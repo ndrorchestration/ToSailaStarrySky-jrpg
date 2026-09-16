@@ -1,0 +1,72 @@
+# Generated audio — regenerate with generate_npc_tts.py
+tts/
+
+# Disposable screenshots
+*.png
+
+# Font source files (embedded-fonts.css has the base64 data URIs)
+*.ttf
+*.woff2
+*.woff
+
+# Debug HTML variants (index.html is the canonical self-contained file)
+index_debug.html
+index_diag.html
+index_trace.html
+index-embedded.html
+
+# Disposable test scripts — keep only the canonical ones
+test-e2e.js
+test-real-p5.js
+test-quick-probe.js
+test-chrome.js
+test-trace.js
+test-render.js
+test-color-trace.js
+test-color-trace2.js
+test-color-trace3.js
+test-bundle.js
+test-bundle2.js
+test-bundle3.js
+test-p5-init.js
+test-world.js
+test-combat.js
+test-dialogue-flow.js
+test-dialogue-audio.js
+test-tts-full-flow.js
+test-tts-flow-v2.js
+test-tts-final.js
+test-integration.js
+test-modules.js
+test-embed.js
+test-http.js
+test-playwright.js
+test-playwright2.js
+test-debug.js
+test-debug2.js
+test-diag.js
+test-diagnostic.js
+test-trace-final.js
+test-e2e.js
+test-world-ambient.js
+test-boot.js
+test-boot2.js
+test-combat-final.js
+test-combat-scene.js
+test-flow-verification.js
+test-title.js
+test-tts-flow-v2.js
+screenshot_all.js
+screenshot_hunt.js
+screenshot_states.js
+
+# Stray investigation files
+combat_analysis.json
+examine-bundle.js
+find-bare-calls.js
+find-bare-calls2.js
+find-bare-calls3.js
+fix-ui-alpha.py
+fonts.css
+generate_npc_tts_v2.py
+nul
