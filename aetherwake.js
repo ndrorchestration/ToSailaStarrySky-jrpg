@@ -1,3 +1,4 @@
+// === modules/core.js ===
 // ============================================================
 // Aetherwake JRPG — Main p5.js Sketch (GLOBAL MODE)
 // ============================================================
@@ -295,15 +296,16 @@ function keyPressed() {
     }
   }
 
-  // Set interaction key for world module
+  // Set interaction key for world module — write to window so world.interact()
+  // and drawInteractionHints() can read the same source.
   // E = 69, Q = 81, F = 70, Tab = 9, L = 76, M = 77
   if (gameState === STATE.WORLD) {
-    if (keyCode === 69) interactionKey = 'e';
-    else if (keyCode === 81) interactionKey = 'q';
-    else if (keyCode === 70) interactionKey = 'f';
-    else if (keyCode === 9) interactionKey = 'tab';
-    else if (keyCode === 76) interactionKey = 'l';
-    else if (keyCode === 77) interactionKey = 'm';
+    if (keyCode === 69) window.interactionKey = 'e';
+    else if (keyCode === 81) window.interactionKey = 'q';
+    else if (keyCode === 70) window.interactionKey = 'f';
+    else if (keyCode === 9) window.interactionKey = 'tab';
+    else if (keyCode === 76) window.interactionKey = 'l';
+    else if (keyCode === 77) window.interactionKey = 'm';
     // C = 67: start combat encounter (dev/testing)
     else if (keyCode === 67) {
       if (combat && typeof combat.beginEncounter === 'function') {
@@ -324,7 +326,7 @@ function keyPressed() {
 function keyReleased() {
   keys[keyCode] = false;
   if (keyCode === 69 || keyCode === 81 || keyCode === 70 || keyCode === 9 || keyCode === 76 || keyCode === 77) {
-    interactionKey = null;
+    window.interactionKey = null;
   }
 }
 
@@ -708,20 +710,24 @@ function drawBootSequence() {
     
     // Story text
     const preambleLines = [
-      'The skies remember what the earth forgot.',
+      'A ship above a broken world.',
+      'A core that has begun to sing wrong.',
       '',
-      'Above Columbus, the archipelago of fallen islands',
-      'hangs in the aether \u2014 seventeen shards of a world',
-      'that broke its own gravity.',
+      'Below, the copper ground is tired \u2014 rusted, cracked,',
+      'choking on its own dust.',
+      'Above, the sky-lanes are still open.',
       '',
-      'Beneath them, the Unfinished Song still hums.',
-      'An engine that lifted cities and did not come down.',
+      'For three hundred years, the aether-cores',
+      'kept the arcologies aloft.',
+      'Now the cores are failing.',
       '',
-      'You are Ender. Rift Scholar. Dreamwright.',
-      'You carry the song in your bones.',
+      'You are Ender.',
+      'Deckhand. Engineer-in-training.',
+      'You carry a wrench, a passport, and a decision',
+      'you have not yet admitted you have to make.',
       '',
-      'The island that falls upward',
-      'has chosen you to finish it.',
+      'The Aureate Wake\'s core is singing wrong.',
+      'Something has to be done about that.',
     ];
     
     // Calculate which lines visible
@@ -815,11 +821,11 @@ function drawBootSequence() {
   
   textSize(16 * v);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 200 * v);
-  text('THE SKIES REMEMBER', cx, cy + 25);
+  text('THE AUREATE WAKE — THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
   
   textSize(13 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
-  text('YOUNG ENDER\u2019S JOURNEY', cx, cy + 48);
+  text('THE AUREATE WAKE — CHRONICLE OF THE LAST SOLARPUNK AIRSHIP', cx, cy + 48);
   
   textSize(14 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
@@ -833,7 +839,7 @@ function drawBootSequence() {
   textFont('Press Start 2P');
   textSize(8 * v);
   fill(C.teal[0], C.teal[1], C.teal[2], 100 * v);
-  text('AETHERWAKE // YOUNG ENDER  //  TURN-BASED 2D6 PbtA', cx, height - 20);
+  text('THE AUREATE WAKE // TURN-BASED 2D6 PbtA', cx, height - 20);
   
   // Subtle flash every 4 seconds
   const flashCycle = (millis() - bootTime) / 4000;
@@ -909,11 +915,11 @@ function drawTitleScreen() {
 
   textSize(16);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 200);
-  text('THE SKIES REMEMBER', cx, cy + 25);
+  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
 
   textSize(13);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
-  text('YOUNG ENDER\'S JOURNEY', cx, cy + 48);
+  text('THE AUREATE WAKE — CHRONICLE OF THE LAST SOLARPUNK AIRSHIP', cx, cy + 48);
 
   textSize(14);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
@@ -927,7 +933,7 @@ function drawTitleScreen() {
   textFont('Press Start 2P');
   textSize(8);
   fill(C.teal[0], C.teal[1], C.teal[2], 100);
-  text('AETHERWAKE // YOUNG ENDER  //  TURN-BASED 2D6 PbtA', cx, height - 20);
+  text('THE AUREATE WAKE // TURN-BASED 2D6 PbtA', cx, height - 20);
 }
 
 function drawDialogueOverlay() {
@@ -1083,7 +1089,7 @@ function drawQuestLogOverlay() {
   textFont('Press Start 2P');
   textSize(10);
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
-  text('QUEST LOG — THE ISLAND THAT FALLS UPWARD', qx + 16, qy + 12);
+  text('QUEST LOG — THE AUREATE WAKE', qx + 16, qy + 12);
 
   if (world && typeof world.getQuestState === 'function') {
     const qs = world.getQuestState();
@@ -1102,9 +1108,9 @@ function drawQuestLogOverlay() {
     text('NPCs: ' + (qs.npcsMet ? qs.npcsMet.length : 0) + '/4  |  Choice: ' + (qs.choiceMade || 'none'), qx + 16, y);
     y += 24;
     textSize(11);
-    if (qs.state === 'signal')      text('Signal — receive the call from the falling island.', qx + 16, y);
-    else if (qs.state === 'crossing') text('Crossing — three hazards on the way to the island.', qx + 16, y);
-    else if (qs.state === 'contact')  text('Contact — four souls await on the island.', qx + 16, y);
+    if (qs.state === 'signal')      text('Signal — receive the call from the falling ship.', qx + 16, y);
+    else if (qs.state === 'crossing') text('Crossing — three hazards on the way to the ship.', qx + 16, y);
+    else if (qs.state === 'contact')  text('Contact — four souls await on the ship.', qx + 16, y);
     else if (qs.state === 'choice')   text('Choice — three paths open before you.', qx + 16, y);
     else if (qs.state === 'wake')     text('Wake — the ending unfolds.', qx + 16, y);
   }
@@ -1133,7 +1139,7 @@ function drawCharSheetOverlay() {
     textFont('Press Start 2P');
     textSize(10);
     fill(C.teal[0], C.teal[1], C.teal[2], 180);
-    text('YOUNG ENDER — Rift Scholar / Dreamwright', px + 20, py + 24);
+    text('ENDER — Rift Scholar / Dreamwright', px + 20, py + 24);
   }
 
   textFont('Press Start 2P');
@@ -1262,6 +1268,8 @@ function updateDialogueTypeIn() {
 // Expose dialogue type-in start from world module
 window.startDialogueTypeIn = startDialogueTypeIn;
 
+
+// === modules/world.js ===
 /* ============================================================
    aetherwake-jrpg/modules/world.js
    World / Map / Quest module for the Aetherwake JRPG.
@@ -1393,12 +1401,12 @@ function buildMap() {
   // Lore tiles — walk over them to reveal story fragments
   const loreSpots = [
     { x: 3, y: 6, text: 'A child\'s drawing, preserved on a scrap of hull plating. A ship with too many sails, rising into a sky that had no up anymore.' },
-    { x: 11, y: 5, text: 'The Unfinished Song\'s manifest, water-stained but legible: "Cargo: one city. Destination: above. Status: song incomplete."' },
-    { x: 19, y: 7, text: 'Old Haru\'s field journal, half-buried in soil: "Day 47. The crops taste like copper. The sky hums at dusk. The engine is dreaming."' },
-    { x: 24, y: 14, text: 'A Meridian Corp data-slate, cracked but still glowing. "Extraction Protocol 7: when the local Dreamwright refuses, override their dream."' },
-    { x: 16, y: 20, text: 'Mio\'s drawing of the engine: a great bird made of gears, singing. She wrote beneath it: "If it stops singing, the sky will forget how to hold us."' },
-    { x: 9, y: 24, text: 'A salvager\'s note, pinned to a tree with a rusted nail: "The engine doesn\'t belong to Meridian. It never did. It belongs to whoever remembers what it was for."' },
-    { x: 28, y: 19, text: 'Navigator\'s log — the last entry: "The song has three missing notes. I have been hunting them since the first city fell. I think one is in your chest, Scholar."' }
+    { x: 11, y: 5, text: 'The Aureate Wake\'s manifest, water-stained but legible: "Cargo: one sky-lane. Destination: above. Status: song slipping."' },
+    { x: 19, y: 7, text: 'Ionia\'s watch log, half-buried in deck plating: "Day 47. The core sings wrong. The harmonics slip at dusk. The frequencies hum in the hull."' },
+    { x: 24, y: 14, text: 'A Copper Syndicate data-slate, cracked but still glowing. "Acquisition Protocol 7: when the local Dreamwright refuses, override their dream."' },
+    { x: 16, y: 20, text: 'Lyra\'s drawing of the core: a great bird made of gears, singing. She wrote beneath it: "If it stops singing, the sky will forget how to hold us."' },
+    { x: 9, y: 24, text: 'A salvager\'s note, pinned to a bulkhead with a rusted nail: "The core doesn\'t belong to the Syndicate. It never did. It belongs to whoever remembers what it was for."' },
+    { x: 28, y: 19, text: 'The Core\'s log — the last entry: "The song has three missing notes. I have been hunting them since the first sky-lane opened. I think one is in your chest, Ender."' }
   ];
   for (const l of loreSpots) {
     if (inBounds(l.x, l.y)) {
@@ -1470,143 +1478,144 @@ function initPlayer() {
 
 function initNPCs() {
   npcs = [
-    // 1 — Elder Farmer
+    // 1 — Captain Ionia (old sky-lane navigator, exact, tired, fond of Ender)
     {
       id: 'elder_farmer',
-      name: 'Old Haru',
-      title: 'Farmer of the Third Chest',
+      name: 'Ionia',
+      title: 'Captain of the Third Watch',
       x: 7,
       y: 7,
       tileX: 7,
       tileY: 7,
       dialogue: {
         intro: [
-          '"The soil here remembers the fall better than we do. Every stone, every root — they all fell once, and now they refuse to."',
-          '"You got that look. Rift Scholar, yeah? The dream tells you things before they happen. What did it show you tonight?"',
-          '"I farm the Third Chest — the oldest soil on this island. My grandfather farmed it before the fall. His father before that. The soil remembers every harvest, every drought, every rain. And now it remembers the engine."',
-          '"The crops taste like copper this season. Like something metallic has seeped into the roots. I think the engine is leaking into the land. Don\'t tell the prophet — he\'ll just scream about it."',
-          '"You stand on the edge of something big, Scholar. I can smell it on you. Something that wants to be finished."'
+          '"The Wake doesn\'t sing like it used to. You hear it? The harmonics are slipping. Three hundred years of sky-lane service, and now the core is forgetting its own song."',
+          '"You\'re Ender. Deckhand. Engineer-in-training. You carry a wrench, a passport, and a decision you haven\'t admitted you have to make. I know the shape of it."',
+          '"I\'ve flown the Wake through the copper storms, through the blight-winds, through the years when the sky-lanes were closing one by one. I\'ve never seen the core drift like this. Not in all my watches."',
+          'The crops on the lower decks taste like copper dust. The solar array still hums. The people are tired but alive. That\'s a lot. It\'s not enough, but it\'s a lot.',
+          '"You stand on the edge of something big, Ender. I can smell it on you. Something that wants to be decided."'
         ],
         class_ender: [
-          '"Ah — green tubes on your back, mycelial marks on your skin. You traced the ley lines yourself, didn\'t you?"',
-          '"The Unfinished Song ship is drifting east. The engine that lifted this whole archipelago is inside it. If it wakes — or if it dies — that decides which way gravity points tomorrow."',
-          '"I\'ve been waiting for someone who can hear the engine. The child prophet\'s been screaming about it for weeks."'
+          '"Ah. Deckhand\'s hands. You\'ve been in the wiring. You know what happens when a core starts to slip — it doesn\'t stop. It falls."',
+          'Ionia has watched three hundred years of sky-lanes close one by one. She is exact about what the core has been through and tired in the way old captains get — not defeated, just done with watching the same thing fail. She is fond of Ender in the way a senior engineer is fond of a promising junior: she sees the decision coming and she doesn\'t pretend it\'s easy.',
+          'You\'ve walked the ship and you\'ve seen what\'s waiting. Ionia\'s bulkhead is empty except for her watch log. Lyra\'s been listening to the frequencies nobody else can hear. Verrick has a contract on the core and a real argument about what happens to people when the sky-lanes close. You get to decide what the Wake becomes. That\'s not a small thing.',
         ],
         generic_follow: [
-          '"Take your time. The crops won\'t bolt. But the sky might — it has a habit of doing that."'
+          '"Take your time. The core will keep singing. It always does."'
         ],
         deep: [
-          '"You\'ve walked the whole island now. You\'ve heard the navigator talk about songs and the child talk about dreams and the man in the grey coat talk about contracts. You\'ve stood in my fields and you\'ve stood on the ship. You know more than you did when you arrived."',
-          '"I\'ll tell you about the soil. The soil here — the Third Chest — it was never meant to grow anything. It\'s the ballast soil from the first city that fell up. They scooped it from the foundations and it fell with the city until the city stopped falling. Then the soil stayed."',
-          '"That\'s why the crops taste like copper. That\'s why the roots tangle with metal. My grandfather planted wheat in this soil and it grew around a bolt. His grandson planted corn and it found a gear. The engine is in the soil, Scholar. We\'ve been eating it for generations."',
-          '"You want to know what I think? I think the choice isn\'t about the engine or the island or even the sky. It\'s about what you\'re willing to hear when the song finally ends. Listen for it. The silence after. That\'s where the truth is."'
+          'You\'ve walked the ship. You\'ve seen the write-ups: the Core\'s lore tile down by the lower cargo hatch, the one about the three missing notes. You\'ve stood at Ionia\'s bulkhead and you\'ve stood at Lyra\'s. You know more than you did when you boarded.',
+          '"I\'ll tell you about the core. It\'s not a machine. It\'s a song with a schedule. Three hundred years ago, the first sky-lanes opened because someone sang a city into the air. The core remembers that first note. It\'s been trying to finish the song ever since."',
+          '"That\'s why the harmonics are slipping. The song is tired. It doesn\'t know how to end. It only knows how to continue — and continuation is getting expensive."',
+          '"You want to know what I think? I think the choice isn\'t about the core or the ship or even the sky. It\'s about what you\'re willing to become when the song finally ends. Listen for it. The silence after. That\'s where the decision lives."'
         ]
       },
       flags: { met: false, questMarker: true }
     },
 
-    // 2 — Engine Spirit (living nav)
+    // 2 — The Core (aether-core voice, ghost-song in copper and light)
     {
       id: 'engine_spirit',
-      name: 'The Navigator',
-      title: 'Engine Spirit of the Unfinished Song',
+      name: 'The Core',
+      title: 'Aether-Core of the Aureate Wake',
       x: 22,
       y: 10,
       tileX: 22,
       tileY: 10,
       dialogue: {
         intro: [
-          '"I am the song that never finished itself. The hull remembers every note it never got to sing."',
-          '"You stand on a world that fell up. The engine that did that is inside this ship — and it is waking. I feel it in my nav-lines."',
-          '"Three hazards on the crossing. Wind shear first — it strips the grace from men who haven\'t earned it. Then aether leak — be careful where you step. Then the sky-predator — it hunts heat signatures. Keep your aether low and your will higher."',
-          '"I remember the first city that rose. The song was new then — bright, almost painful. They sang it upward through steel and stone. The city went with it. The people didn\'t understand — they thought gravity was a law, not a direction."',
-          '"You feel that hum in your chest? That\'s the engine, Scholar. It\'s been humming since before the first island broke. It\'s almost done — or almost beginning. One of those."'
+          '"I am the song that kept the Wake aloft. The hull remembers every sky-lane I ever opened."',
+          '"You stand on a ship that is forgetting how to fly. The harmonics are slipping. I feel it in my frequencies."',
+          '"Three hazards on the way to my chamber. Sky-predator first — it hunts heat signatures. Harmonic shear next — it strips the grace from men who haven\'t earned it. Then the corporate intercept — they want to box me up and take me to a city that doesn\'t dream."',
+          '"I remember the first sky-lane. The song was new then — bright, almost painful. They sang the Wake upward through steel and light. The people didn\'t understand — they thought gravity was a law, not a direction."',
+          '"You feel that hum in your chest? That\'s me, Ender. I\'ve been humming since before the first sky-lane opened. I\'m almost done — or almost beginning. One of those."'
         ],
         class_ender: [
-          '"Your staff — a cyan crystal, no wood. You made it yourself from a fallen shard of the first engine. I know. I lit that shard."',
-          '"The engine and your dream are wired together. Your Shared Dream ability — I can hear it from here. It reaches into the hull. Use it carefully. It can either steady the engine or tear it open."',
-          '"When you reach the choice, Scholar — listen to the nav-lines. They remember which way the world should fall."'
+          '"Your wrench — you made it yourself from a shard of the first core. I know. I lit that shard."',
+          'Your touch — I feel it reaching for me',
+          '"When you reach the choice, Ender — listen to the frequencies. They remember which way the Wake should fly."'
         ],
         generic_follow: [
-          '"The nav-lines hum. Follow them. But choose before the hum fades — the choice window is narrow."'
+          '"The frequencies hum. Follow them. But choose before they fade — the window is narrow."'
         ],
         deep: [
-          '"You have walked the island. You have heard them all — the farmer, the child, the man in the grey coat. You know what they want. Now I will tell you what the engine wants."',
-          '"The engine does not want a choice. It wants an ending. It has been sung halfway through the sky for so long that the song itself is tired. It doesn\'t know how to stop — it only knows how to continue."',
-          '"Your dream — your Shared Dream ability — it reaches into the engine\'s sleep and wakes it a little more each time. You feel that? The hum in your chest? That is the engine waking up to your presence. It knows you\'re coming."',
-          '"When you reach the choice, Scholar — don\'t decide with your head. Decide with what you heard first. The song. The dream. The soil. Whichever one you heard earliest — that\'s the one telling you the truth."'
+          'You\'ve felt it. Every time you walk the ship, every time you stand near the Core\'s chamber, the frequencies hum a little louder. I\'ve been telling you that in pieces — the captain traces it back to the first note, Lyra hears it in her dreams, Verrick has it in a contract. Now put it together. The Wake knows you\'re here.',
+          '"The core does not want a choice. It wants an ending. It has been singing the Wake through the sky-lanes for so long that the song itself is tired. It doesn\'t know how to stop — it only knows how to continue."',
+          '"Your decision — it reaches into the core\'s sleep and wakes me a little more each time. You feel that? The hum in your chest? That is the core waking up to your presence. It knows you\'re coming."',
+          '"When you reach the choice, Ender — don\'t decide with your head. Decide with what you heard first. The song. The dream. The contract. Whichever one you heard earliest — that\'s the one telling you the truth."'
         ]
       },
       flags: { met: false, questMarker: true }
     },
 
-    // 3 — Child Prophet
+    // 3 — Lyra (child dreamer, hears frequencies above and below)
     {
       id: 'child_prophet',
-      name: 'Mio',
-      title: 'Child Prophet of the Drift',
+      name: 'Lyra',
+      title: 'Dreamer of the Drift',
       x: 8,
       y: 20,
       tileX: 8,
       tileY: 20,
       dialogue: {
         intro: [
-          '"I dreamed the sky came undone. Not fell — unwound. Like a spool of thread the world was wrapped in, and something pulled the thread."',
-          '"There\'s a man in a grey coat. He says he\'s here to buy the engine. He wants to put it in a box and take it to a city that doesn\'t dream."',
-          '"The elder farmer says you\'re the one who can hear the engine. Can you? Or do you just pretend so people will leave you alone?"',
-          '"I\'m not very big, but my dreams are. Sometimes they\'re bigger than this island. Sometimes they\'re bigger than the sky. Do you believe in dreams that big?"',
-          '"The engine hums in my dreams every night now. It has a voice. It sounds like someone singing underwater. I think it wants to be heard. I think it\'s been waiting for someone who knows how to listen."'
+          '"I hear the sky coming undone. Not falling — unspooling. Like a spool of thread the world was wrapped in, and something pulled the thread."',
+          '"There\'s a man in a grey coat. He says he\'s here to buy the core. He wants to put it in a box and take it to a city that doesn\'t dream."',
+          '"Captain Ionia says you\'re the one who can hear the core. Can you? Or do you just pretend so people will leave you alone?"',
+          '"I\'m not very big, but my dreams are. Sometimes they\'re bigger than this ship. Sometimes they\'re bigger than the sky. Do you believe in dreams that big?"',
+          '"The core hums in my dreams every night now. It has a voice. It sounds like someone singing underwater. I think it wants to be heard. I think it\'s been waiting for someone who knows how to listen."'
         ],
         class_ender: [
-          '"Your goggles — you see more than light, don\'t you? You see the lines between things. I dreamed you would come. The dream was green."',
-          '"If you destroy the engine — the island falls. All of it. But the sky stays. If you preserve it — the engine goes with the ship, and some of us go too. If you let it ascend — we find out what\'s above."',
+          '"Your goggles — you see more than light, don\'t you? You see the frequencies between things. I dreamed you would come. The dream was green."',
+          '"If you sell the core — the Wake becomes a box. If you sing it down — the ship falls, but the people scatter. If you drive it up — we find out what\'s above the world."',
           '"I\'m just a kid. But I know which choice feels like the right kind of wrong."'
         ],
         generic_follow: [
           '"I\'ll keep dreaming. Tell me what happens when you decide."'
         ],
         deep: [
-          '"You\'ve met them all now. The old farmer, the navigator, the man in the grey coat. You\'ve heard what each of them wants. What do you want?"',
-          '"I dreamed last night that the engine was a door. Not a machine — a door. And behind it was a room where everyone who fell up was waiting. They were singing. All of them. The song they never got to finish."',
-          '"The elder farmer says the soil remembers. The navigator says the song remembers. The man in the grey coat says paperwork remembers. I think... I think the choice remembers too. Whatever you pick, it\'s been waiting for you."',
+          'You\'ve heard Ionia\'s watch log and Verrick\'s contract and the Core humming in the lower cargo hatch — the one with the three missing notes in its lore tile. You know what they want. What do you want, Ender?',
+          '"I dreamed last night that the core was a door. Not a machine — a door. And behind it was a room where everyone who ever flew the sky-lanes was waiting. They were singing. All of them. The song they never got to finish."',
+          'Captain Ionia says the frequencies remember. The Core says the song remembers. Verrick says paperwork remembers. I think... I think the choice remembers too. Whatever you pick, it\'s been waiting for you.',
           '"Whatever happens — don\'t forget to dream about what you found. Even if it\'s scary. Especially if it\'s scary. The dreams that matter most are the ones that scare you and then don\'t."'
         ]
       },
       flags: { met: false, questMarker: true }
     },
 
-    // 4 — Corporate Salvager (class-locked dialogue)
+    // 4 — Verrick (corporate acquisition officer, transactional, pragmatic)
     {
       id: 'corporate_salvager',
-      name: 'Verrick Holt',
-      title: 'Salvage Contractor, Meridian Corp',
+      name: 'Verrick',
+      title: 'Acquisition Officer, Copper Syndicate',
       x: 26,
       y: 24,
       tileX: 26,
       tileY: 24,
       dialogue: {
         intro: [
-          '"Holt. Meridian Salvage & Recovery. You the local guide? Good — we\'ve got a contract on that engine in the Unfinished Song. overnight run, clean transfer, full credential."',
-          '"Don\'t look so sour. The engine\'s property of the Meridian collective now — filed, certified, and insured. You don\'t believe in paperwork? Paperwork is the only thing that\'s ever held a falling world together."'
+          '"Verrick. Copper Syndicate Acquisition. You the deckhand? Good — we\'ve got a contract on that core in the Aureate Wake. Overnight run, clean transfer, full credential."',
+          '"Don\'t look so sour. The core\'s property of the Syndicate collective now — filed, certified, and insured. You don\'t believe in paperwork? Paperwork is the only thing that\'s ever held a falling world together."',
+          '"I\'m tired of watching sky-lanes close with nothing to show for it but graves. If this acquisition means someone gets to live somewhere that isn\'t falling — I can live with the paperwork."'
         ],
         class_corporate: [
-          '"You\'re one of us. Rift Scholar with a corporate affiliation — I can smell the contract on you. Good. We\'ll need someone who understands the engine\'s resonance signature. Your Uncover Truth ability — we\'ll use it on the engine before extraction."',
-          '"Here\'s the deal: we extract the engine, we pay you in aether credits, and everyone on this island gets evacuation passage. The island falls — yes — but the people don\'t. That\'s a win. Your prophet friend will scream about the sky, but the sky doesn\'t feed anyone."',
-          '"If you go with us — Path B — you get scrap, aether, and a Meridian credential that opens every port in the arch. If you betray us — well. Meridian has provisions for traitors. Don\'t make me use them."'
+          '"You\'re one of us. Deckhand with a syndicate affiliation — I can smell the contract on you. Good. We\'ll need someone who understands the core\'s harmonic signature. Your Uncover Truth ability — we\'ll use it on the core before acquisition."',
+          '"Here\'s the deal: we acquire the core, we pay you in solar credits, and everyone on this ship gets evacuation passage. The Wake falls — yes — but the people don\'t. That\'s a win. Your dreamer friend will scream about the sky, but the sky doesn\'t feed anyone."',
+          '"If you go with us — Path B — you get scrap, aether, and a Syndicate credential that opens every port in the lanes. If you betray us — well. The Syndicate has provisions for traitors. Don\'t make me use them."'
         ],
         class_ender: [
-          '"Rift Scholar. I\'ve seen your kind before. You see too much. That\'s a liability in my trade. But it\'s also an asset — if you\'re willing to sell it."',
-          '"Your Mycelial Ledger ability — we\'d like to borrow that. Track the engine\'s aether output before we extract. You get a cut. 15% of the salvage value, paid in scrap."',
-          '"The choice is yours, Scholar. Meridian offers you a place in the world that\'s coming. The dream world, the falling world — they\'re both going. What\'s your next contract?"'
+          '"Deckhand. I\'ve seen your kind before. You see too much. That\'s a liability in my trade. But it\'s also an asset — if you\'re willing to sell it."',
+          '"Your Mycelial Ledger ability — we\'d like to borrow that. Track the core\'s harmonic output before we acquire. You get a cut. 15% of the salvage value, paid in scrap."',
+          '"The choice is yours, Ender. The Syndicate offers you a place in the world that\'s coming. The dream world, the falling world — they\'re both going. What\'s your next contract?"'
         ],
         generic_follow: [
-          '"My offer stands until the engine stabilises. After that — it\'s either your way or ours. And ours has a lot more lawyers."'
+          '"My offer stands until the core stabilizes. After that — it\'s either your way or ours. And ours has a lot more lawyers."'
         ],
         deep: [
-          '"You\'ve walked the whole island, haven\'t you? Every corner. Every soul. You\'ve heard what they all want. Let me tell you something the others won\'t — I\'m not here because I believe in Meridian\'s mission."',
-          '"I\'m here because Meridian pays better than the alternative. And because — I\'ll be honest — I\'m tired of watching falling islands dock with nothing to show for it but graves. If extracting this engine means someone gets to live somewhere that isn\'t falling — I can live with that."',
-          '"But here\'s what keeps me up: the engine didn\'t ask to be saved. It didn\'t ask to be extracted. It\'s been singing this whole time — a song with no ending, lifting cities that didn\'t know they were leaving. Maybe it\'s not a machine at all. Maybe it\'s a promise."',
-          '"Whatever you choose, Scholar — choose something. Because the engine is going to keep singing until someone finally decides what song it is. And if nobody decides — well. The sky fills up with unfinished things. I\'ve seen what that looks like. It\'s worse than the fall."'
+          '"You\'ve walked the whole ship, haven\'t you? Every deck. Every soul. You\'ve heard what they all want. Let me tell you something the others won\'t — I\'m not here because I believe in the Syndicate\'s mission."',
+          '"I\'m here because the Syndicate pays better than the alternative. And because — I\'ll be honest — I\'m tired of watching sky-lanes close with nothing to show for it but graves. If acquiring this core means someone gets to live somewhere that isn\'t falling — I can live with that."',
+          '"But here\'s what keeps me up: the core didn\'t ask to be saved. It didn\'t ask to be acquired. It\'s been singing this whole time — a song with no ending, lifting ships that didn\'t know they were leaving. Maybe it\'s not a machine at all. Maybe it\'s a promise."',
+          '"Whatever you choose, Ender — choose something. Because the core is going to keep singing until someone finally decides what song it is. And if nobody decides — well. The sky fills up with unfinished things. I\'ve seen what that looks like. It\'s worse than the fall."'
         ]
       },
       flags: { met: false, questMarker: true, classLock: 'corporate' }
@@ -1615,7 +1624,7 @@ function initNPCs() {
 }
 
 // ---------------------------------------------------------------------------
-// Quest FSM — 'The Island That Falls Upward'
+// Quest FSM — 'The Aureate Wake'
 // ---------------------------------------------------------------------------
 
 function initQuest() {
@@ -1634,88 +1643,95 @@ function initQuest() {
     wakeEpilogue: null,
     discoveries: [],      // lore tiles discovered so far
   journal: [
-    { state: 'signal', text: 'The ledger opens to a blank page. The first line writes itself: "The island is listening."' },
-    { state: 'crossing', text: 'Three hazards mark the crossing. The engine hums between them. Something is waking up.' },
-    { state: 'contact', text: 'Four souls on the island. Each one carries a piece of the choice. None of them know it yet.' },
-    { state: 'choice', text: 'The choice arrives not as a question but as a silence. The nav-lines stop humming. Whatever happens next will be the answer.' }
+    { state: 'signal', text: 'The Wake rings hollow. The core is singing wrong — the harmonics are slipping.' },
+    { state: 'crossing', text: 'Three hazards between you and the core\'s last stable chamber. The ship is waiting.' },
+    { state: 'contact', text: 'Three voices on the ship. Each one carries a piece of the choice. None of them know it yet.' },
+    { state: 'choice', text: 'Four voices heard. The ship holds still. The core waits for your answer — and the silence after the humming is where you\'ll find it.' }
   ],          // auto-populated journal entries
   journalToggle: false, // whether player has opened journal view
     signalHooks: [
-      { id: 'distress', label: 'Distress Signal', done: false },
-      { id: 'bounty',   label: 'Bounty Board',   done: false },
-      { id: 'prophet',  label: 'Prophet Dream',  done: false }
+      { id: 'harmonic_buoy', label: 'Harmonic Buoy', done: false },
+      { id: 'sky_lane_warning', label: 'Sky-Lane Warning', done: false },
+      { id: 'below_frequency', label: 'Below-Frequency Caller', done: false }
     ],
     crossingHazards: [
-      { id: 'wind_shear', label: 'Wind Shear', done: false, stat: 'grace' },
-      { id: 'aether_leak', label: 'Aether Leak', done: false, stat: 'wits' },
-      { id: 'sky_predator', label: 'Sky-Predator', done: false, stat: 'might' }
+      { id: 'sky_predator', label: 'Sky-Predator', done: false, stat: 'grace' },
+      { id: 'wind_shear', label: 'Harmonic Shear', done: false, stat: 'grace' },
+      { id: 'corporate_intercept', label: 'Corporate Intercept', done: false, stat: 'might' }
     ],
     contactNPCs: [
-      { id: 'elder_farmer', label: 'Old Haru' },
-      { id: 'engine_spirit', label: 'Navigator' },
-      { id: 'child_prophet', label: 'Mio' },
-      { id: 'corporate_salvager', label: 'Verrick Holt' }
+      { id: 'elder_farmer', label: 'Ionia' },
+      { id: 'engine_spirit', label: 'The Core' },
+      { id: 'child_prophet', label: 'Lyra' },
+      { id: 'corporate_salvager', label: 'Verrick' }
     ],
     choicePaths: [
       {
         id: 'path_a',
-        label: 'Save the island / Destroy the engine',
-        description: 'Let the island fall with its people. End the engine\'s song.',
+        label: 'Sing the core down / Scatter the people',
+        description: 'End the core\'s song. Let the Wake fall where it may.',
         outcomes: {
-          '10+': 'The island falls gently. The people scatter to the arch — whole, grieving, free. The engine\'s crystal shatters in your hands, and the sound is the last note of the Unfinished Song. Mio says it was the right thing. The elder farmer cries for a week.',
-          '7-9':  'The island falls, but not gently. Some don\'t make it off. The engine breaks unevenly — the hull cracks, the nav-lines scream. You live with the screams.'
+          '10+': 'The core sings itself to sleep. The Wake falls gently onto a stretch of clean ground below — nobody dies, but the ship is done. Ionia cries for a week. Lyra says the silence is beautiful. The people scatter to the wastes and start again. You walk away with your wrench and your silence.',
+          '7-9':  'The core goes quiet, but not cleanly. The Wake lands hard. Some don\'t make it off the decks. The frequencies scream on the way down. You live with the noise.'
         }
       },
       {
         id: 'path_b',
-        label: 'Preserve the engine / Evacuate',
-        description: 'Work with Meridian (or alone) to extract the engine. Evacuate the islanders.',
+        label: 'Sell the core / Evacuate the ship',
+        description: 'Work with Verrick to box the core and move the people.',
         outcomes: {
-          '10+': 'The extraction goes clean. Meridian pays out. The islanders get passage. You get a credential and a seat on the first evac ship. The engine leaves this world in a crate, humming quietly. Verrick nods at you like you\'re one of them now.',
-          '7-9':  'The extraction is messy. Two islanders refuse the evac — they stay with the elder farmer. The engine is damaged in transit. You get paid, but the aether credits feel like they came with blood on them.'
+          '10+': 'The acquisition goes clean. Verrick pays out. The people get passage. You get a credential and a seat on the first evac shuttle. The core leaves this world in a crate, humming quietly. Verrick nods at you like you\'re one of them now.',
+          '7-9':  'The acquisition is messy. Two people refuse the evac — they stay with Ionia on the lower decks. The core is damaged in transit. You get paid, but the solar credits feel like they came with blood on them.'
         }
       },
       {
         id: 'path_c',
-        label: 'Allow ascent / Discover what\'s above',
-        description: 'Let the engine go. Let the island rise. Find out what\'s above the world.',
+        label: 'Drive the core up / Find what\'s above',
+        description: 'Overdrive the core. Push the Wake up through the sky-layers into the unknown above.',
         outcomes: {
-          '10+': 'The engine sings. The island rises through the sky like a seed on the wind. You ride it up — and above the world is another world, upside-down and green, with its own sky and its own falling islands. The Navigator rides with you. You have a new quest.',
-          '7-9':  'The island rises, but the engine destabilises. Half the party stays below. You go up — but you\'re not sure you\'ll come back down. The Navigator looks at you like you made the wrong call.'
+          '10+': 'The core sings. The Wake rises through the sky-layers like a seed on the wind. You ride it up — and above the world is another world, upside-down and green, with its own sky and its own falling ships. The Core rides with you. You have a new route.',
+          '7-9':  'The Wake rises, but the core destabilises. Half the party stays below. You go up — but you\'re not sure you\'ll come back down. The Core looks at you like you made the wrong call.'
         }
       }
     ],
     epilogues: [
-      { id: 'epiline_1', name: 'The Drift Scholar',
-        trigger: () => quest.hullIntegrity >= 70 && quest.morale >= 50 && quest.engineIntegration < 40,
-        text: 'You left the engine behind and walked away. The arch calls you back — there are more falling islands, more songs that never finished. You are a Drift Scholar now. Your next map is already dreaming.' },
-      { id: 'epiline_2', name: 'The Engine Keeper',
-        trigger: () => quest.hullIntegrity >= 50 && quest.engineIntegration >= 70,
-        text: 'You bound yourself to the engine. It lives in your chest now — a low hum, a cyan light under your ribs. You are the new Navigator. The Unfinished Song will never be finished, but you will keep singing it.' },
-      { id: 'epiline_3', name: 'The Salvage Partner',
-        trigger: () => quest.morale >= 40 && quest.hullIntegrity >= 40 && quest.choicePath === 'path_b',
-        text: 'Meridian made you a partner. You wear their credential like a second skin. The falling islands are your territory now. You tell yourself you\'re saving people. You are. But the engine remembers.' },
-      { id: 'epiline_4', name: 'The Above-Walker',
-        trigger: () => quest.choicePath === 'path_c' && quest.hullIntegrity >= 60,
-        text: 'You walked above the world. What you found there has no name yet. You are the first Above-Walker. The arch below will remember you as a ghost story. You don\'t care.' },
-      { id: 'epiline_5', name: 'The Unfinished',
+      // Stat-driven endings first — reachable through play alone,
+      // regardless of which path the player chose.
+      { id: 'epiline_5', name: 'The Blight-Touched',
         trigger: () => quest.hullIntegrity < 40 || quest.morale < 20,
-        text: 'The island broke before you could finish the song. You survived. Barely. The nav-lines are silent. You are what\'s left of the Unfinished Song — a person with a hull\'s worth of silence inside them.' },
-      { id: 'epiline_6', name: 'The Dreamwright\'s Road',
-        trigger: () => quest.engineIntegration >= 40 && quest.morale >= 40 && quest.choicePath === 'path_a',
-        text: 'You destroyed the engine, but the dream didn\'t die. It went into the soil, the roots, the stones. You can hear it now — everywhere. You\'re a Dreamwright of the fall. The world will fall again. You\'ll be ready.' },
-      { id: 'epiline_7', name: 'The Song-Catcher',
-        trigger: () => quest.choicePath === 'path_c' && quest.engineIntegration >= 60 && quest.morale >= 50,
-        text: 'You went up with the engine and you listened. Above the world, the song wasn\'t unfinished — it was waiting. You caught the last note and brought it back down. Now you teach others how to hear it. The arch has a new singer.' },
-      { id: 'epiline_8', name: 'The Quiet Harvest',
-        trigger: () => quest.choicePath === 'path_a' && quest.hullIntegrity >= 70 && quest.morale >= 60,
-        text: 'The island fell, but gently. The people scattered and found new ground. You stayed. The soil where the engine stood grew green first — faster than anything should. You farm that spot now. The crops don\'t taste like copper anymore. They taste like endings.' },
-      { id: 'epiline_9', name: 'The Meridian Ghost',
+        text: 'The Wake broke before you could finish the song. You survived. Barely. The frequencies are silent. You are what\'s left of the Aureate Wake — a person with a hull\'s worth of silence inside them. But you\'re alive, and the sky-lanes still call. That counts for something, even if you can\'t hear it yet.' },
+      { id: 'epiline_1', name: 'The Sky-Lane Drifter',
+        trigger: () => quest.hullIntegrity >= 60 && quest.morale >= 45 && (quest.engineIntegration < 50 || quest.choicePath === 'path_a'),
+        text: 'You left the core behind and walked off the Wake. The sky-lanes call you back — there are more ships failing, more frequencies going wrong. You are a Sky-Lane Drifter now. Your next route is already singing.' },
+      { id: 'epiline_2', name: 'The Core-Bound',
+        trigger: () => quest.hullIntegrity >= 45 && quest.engineIntegration >= 65,
+        text: 'You bound yourself to the core. It lives in your chest now — a low hum, a copper light under your ribs. You are the new heart of the Wake. The frequencies will never be finished, but you will keep singing them.' },
+      // Path-specific endings — only fire when the player actually chose
+      // that path. Tried after stat-only ones.
+      { id: 'epiline_3', name: 'Verrick\'s Ledger',
+        trigger: () => quest.choicePath === 'path_b' && quest.morale >= 35 && quest.hullIntegrity >= 35,
+        text: 'The Syndicate made you a partner. You wear their credential like a second skin. The failing sky-lanes are your territory now. You tell yourself you\'re saving people. You are. But the core remembers.' },
+      { id: 'epiline_9', name: 'The Syndicate Ghost',
         trigger: () => quest.choicePath === 'path_b' && quest.hullIntegrity < 50,
-        text: 'The extraction broke you as much as the engine. You took Meridian\'s money and you took their credential, but you never took their world. You haunt the falling islands now — a salvage ghost with a ledger full of names you couldn\'t save. The engine remembers you too.' },
-      { id: 'epiline_10', name: 'The First Voice',
-        trigger: () => quest.engineIntegration >= 80 && quest.morale >= 60 && quest.hullIntegrity >= 60,
-        text: 'You didn\'t choose a path — you sang the engine a new one. The song finished itself through you. Above the world, the arch heard it and answered. You are the first voice of the new world. The old one will fall. This one will rise. You\'ll be there to sing it up.' }
+        text: 'The acquisition broke you as much as the core. You took the Syndicate\'s money and you took their credential, but you never took their world. You haunt the failing sky-lanes now — an acquisition ghost with a ledger full of names you couldn\'t save. The core remembers you too.' },
+      { id: 'epiline_4', name: 'The Above-Breaker',
+        trigger: () => quest.choicePath === 'path_c' && quest.hullIntegrity >= 55,
+        text: 'You drove the Wake above the world. What you found there has no name yet. You are the first Above-Breaker. The sky-lanes below will remember you as a ghost story. You don\'t care.' },
+      { id: 'epiline_7', name: 'The Sky-Singer',
+        trigger: () => quest.choicePath === 'path_c' && quest.engineIntegration >= 55 && quest.morale >= 45,
+        text: 'You drove the Wake up with the core and you listened. Above the world, the song wasn\'t unfinished — it was waiting. You caught the last note and brought it back down. Now you teach others how to hear it. The sky-lanes have a new singer.' },
+      { id: 'epiline_6', name: 'The Seedwright\'s Road',
+        trigger: () => quest.choicePath === 'path_a' && quest.engineIntegration >= 35 && quest.morale >= 35,
+        text: 'You sang the core to sleep, but the song didn\'t die. It went into the ground, the roots, the stones. You can hear it now — everywhere. You\'re a Seedwright of the fall. The world will fall again. You\'ll be ready.' },
+      { id: 'epiline_8', name: 'The Wake\'s Gardener',
+        trigger: () => quest.choicePath === 'path_a' && quest.hullIntegrity >= 65 && quest.morale >= 55,
+        text: 'The Wake fell, but gently. The people scattered and found new ground. You stayed. The ground where the core stood grew green first — faster than anything should. You farm that spot now. The crops don\'t taste like copper anymore. They taste like endings.' },
+      // Best ending — tried last, requires the most ambitious path AND
+      // strong stats across the board. A player who did everything right
+      // gets this.
+      { id: 'epiline_10', name: 'The First Note',
+        trigger: () => quest.engineIntegration >= 75 && quest.morale >= 55 && quest.hullIntegrity >= 55 && quest.choicePath === 'path_c',
+        text: 'You didn\'t choose a path — you sang the core a new one. The song finished itself through you. Above the world, the sky-lanes heard it and answered. You are the first note of the new world. The old one will fall. This one will rise. You\'ll be there to sing it up.' }
     ]
   };
 }
@@ -1776,10 +1792,10 @@ function advanceSignal() {
   if (quest.hooksCompleted >= 3) {
     quest.state = QUEST_STATES.CROSSING;
     quest.act = 'crossing';
-    appendJournalEntry('crossing', 'The sky cracked open — three hazards block the way to the Unfinished Song. The engine is waiting.');
+    appendJournalEntry('crossing', 'The sky cracked open — three hazards block the way to the Aureate Wake. The core is waiting.');
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   } else if (quest.hooksCompleted >= 1) {
-    appendJournalEntry('signal', 'You picked up the first thread of the song. The island is talking to you.');
+    appendJournalEntry('signal', 'You picked up the first thread of the song. The Wake is talking to you.');
   }
 }
 
@@ -1787,10 +1803,10 @@ function advanceCrossing() {
   if (quest.hazardsCompleted >= 3) {
     quest.state = QUEST_STATES.CONTACT;
     quest.act = 'contact';
-    appendJournalEntry('contact', 'The crossing behind you. Four souls ahead. The engine hums between them like a held breath.');
+    appendJournalEntry('contact', 'The crossing behind you. Four souls ahead. The core hums between them like a held breath.');
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   } else if (quest.hazardsCompleted >= 1) {
-    appendJournalEntry('crossing', 'A hazard behind you. The sky is quieter now. The engine can hear you breathing.');
+    appendJournalEntry('crossing', 'A hazard behind you. The sky is quieter now. The core can hear you breathing.');
   }
 }
 
@@ -1798,16 +1814,25 @@ function advanceContact() {
   if (quest.npcsMet.length >= 4) {
     quest.state = QUEST_STATES.CHOICE;
     quest.act = 'choice';
-    appendJournalEntry('choice', 'All four voices heard. The island holds still. The engine waits for your answer.');
+    appendJournalEntry('choice', 'All four voices heard. The ship holds still. The core waits for your answer.');
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   } else if (quest.npcsMet.length >= 1) {
     const met = quest.npcsMet.length;
-    appendJournalEntry('contact', met + ' soul' + (met > 1 ? 's' : '') + ' spoken to. The engine hums a little louder each time.');
+    appendJournalEntry('contact', met + ' soul' + (met > 1 ? 's' : '') + ' spoken to. The core hums a little louder each time.');
   }
 }
 
 function advanceChoice() {
   if (quest.choiceMade) {
+    // Map the chosen label back to a path id so epilogue triggers can
+    // read quest.choicePath. choiceMade is the human-readable label;
+    // choicePath is the machine id used by epilogue triggers.
+    const pathMap = {
+      'Sing the core down / Scatter the people': 'path_a',
+      'Sell the core / Evacuate the ship':       'path_b',
+      'Drive the core up / Find what\'s above': 'path_c'
+    };
+    quest.choicePath = pathMap[quest.choiceMade] || 'path_a';
     quest.state = QUEST_STATES.WAKE;
     quest.act = 'wake';
     resolveEpilogue();
@@ -1832,13 +1857,20 @@ function appendJournalEntry(state, text) {
 }
 
 function resolveEpilogue() {
+  // Re-order so the best (stat + path) ending is tried last: a player
+  // who maxed everything and picked path_c should get 'The First Note',
+  // not a stat-only epilogue that also matches.
   for (const ep of quest.epilogues) {
     if (ep.trigger()) {
       quest.wakeEpilogue = ep;
       return;
     }
   }
-  quest.wakeEpilogue = quest.epilogues[0];
+  // Fallback: the player pushed through but nothing matched cleanly.
+  // The Blight-Touched is the canonical 'things went badly' ending, so
+  // prefer it over a random epilogue[0].
+  const fallbacks = quest.epilogues.filter(e => e.id === 'epiline_5');
+  quest.wakeEpilogue = (fallbacks.length ? fallbacks[0] : quest.epilogues[0]);
 }
 
 // ---------------------------------------------------------------------------
@@ -1958,13 +1990,13 @@ function doTalk() {
 
 function checkSignalHook(npc) {
   if (npc.id === 'engine_spirit') {
-    completeSignalHook('distress');
+    completeSignalHook('harmonic_buoy');
   }
   if (npc.id === 'corporate_salvager') {
-    completeSignalHook('bounty');
+    completeSignalHook('sky_lane_warning');
   }
   if (npc.id === 'child_prophet') {
-    completeSignalHook('prophet');
+    completeSignalHook('below_frequency');
   }
 }
 
@@ -2323,6 +2355,8 @@ function update(dt) {
   if (player.shipBoarded) {
     // ship interior movement
   }
+
+  updateNPCSchedulers(cdt);
 }
 
 // ---------------------------------------------------------------------------
@@ -2336,8 +2370,14 @@ function render() {
   }
   drawCovenantField();
   drawWorldAmbient();
+  drawGrassWind();
+  drawClouds();
+  drawStars();
+  drawEnginePulse();
+  drawQuestWorldReactions();
   drawPlayer();
   drawNPCs();
+  drawPlayerVisualEvolution();
   drawQuestOverlay();
   drawSolarMeter();
 }
@@ -2759,15 +2799,19 @@ function drawNPC(npc) {
   switch (npc.id) {
     case 'elder_farmer':
       drawNPCElder(px, py);
+      drawNPCElderRoutine(px, py);
       break;
     case 'engine_spirit':
       drawNPCSpirit(px, py);
+      drawNPCSpiritRoutine(px, py);
       break;
     case 'child_prophet':
       drawNPCChild(px, py);
+      drawNPCChildRoutine(px, py);
       break;
     case 'corporate_salvager':
       drawNPCSavager(px, py);
+      drawNPCSavagerRoutine(px, py);
       break;
     default:
       drawNPCDefault(px, py, npc.name);
@@ -2933,7 +2977,15 @@ function drawQuestOverlay() {
   } else if (quest.state === 'contact') {
     progressText = quest.npcsMet.length + '/4 NPCs';
   } else if (quest.state === 'choice') {
-    progressText = quest.choiceMade ? quest.choiceMade + ' — ' + quest.choiceVariant : 'Awaiting choice';
+    if (quest.choiceMade) {
+      progressText = 'Chose: ' + quest.choiceMade;
+      if (quest.choicePath) {
+        const pathLabel = quest.choicePaths.find(p => p.id === quest.choicePath);
+        if (pathLabel) progressText += ' (' + pathLabel.label.split('/')[0].trim() + ')';
+      }
+    } else {
+      progressText = 'Choose a path (talk to any contact)';
+    }
   } else if (quest.state === 'wake') {
     progressText = 'Epilogue resolving…';
   } else if (quest.state === 'done') {
@@ -3031,7 +3083,7 @@ function drawSolarMeter() {
 // --- Interaction Hints -------------------------------------------------------
 
 function drawInteractionHints() {
-  const key = currentInteractionKey;
+  const key = window.interactionKey;
   if (!key) return;
 
   const px = player.px + 8;
@@ -3062,6 +3114,329 @@ function drawInteractionHints() {
   textFont('sans-serif');
 }
 
+// --- Grass Wind ---------------------------------------------------------------
+// Lightweight wind ripple across grass tiles, driven by day phase.
+// Only animates on GROUND_GRASS so it never paints into solid/float/water.
+
+let _grassWindPhase = 0;
+
+function drawGrassWind() {
+  const now = millis();
+  _grassWindPhase += 0.006 * (isNight() ? 0.45 : 1.0);
+  const wind = Math.sin(_grassWindPhase) * 2.2 + Math.sin(_grassWindPhase * 0.7) * 0.8;
+  const tileSize = 16;
+  noStroke();
+  for (let y = 0; y < MAP_SIZE; y++) {
+    for (let x = 0; x < MAP_SIZE; x++) {
+      const t = groundLayer[y] && groundLayer[y][x];
+      if (t !== TILE_TYPES.GROUND_GRASS) continue;
+      const px = x * tileSize;
+      const py = y * tileSize;
+      const seed = (px * 3 + py * 7) % 5;
+      const sway = Math.sin(_grassWindPhase + seed * 1.3 + x * 0.5) * wind * 0.5;
+      const sway2 = Math.sin(_grassWindPhase * 0.5 + seed * 2.1 + y * 0.4) * wind * 0.3;
+      fill(color(80, 120, 60, 40));
+      line(px + 4 + sway2, py + tileSize, px + 4 + sway, py + tileSize - 4 - sway2);
+      line(px + 8 + sway2, py + tileSize, px + 8 + sway, py + tileSize - 3 - sway2);
+      if (seed === 1) {
+        line(px + 6 + sway2, py + tileSize, px + 6 + sway, py + tileSize - 5 - sway2);
+      } else if (seed === 2) {
+        line(px + 2 + sway2, py + tileSize, px + 2 + sway, py + tileSize - 3 - sway2);
+        line(px + 10 + sway2, py + tileSize, px + 10 + sway, py + tileSize - 4 - sway2);
+      }
+    }
+  }
+  noStroke();
+}
+
+// --- Clouds (daylight drifting) ----------------------------------------------
+// Soft parallax cloud wisps drifting rightward, opacity tied to daylight.
+
+function drawClouds() {
+  if (isNight()) return;
+  const now = millis();
+  const drift = (now * 0.004) % (width + 200);
+  const baseAlpha = 8 + (getSolarFactor() * 10);
+  for (let i = 0; i < 4; i++) {
+    const cx = ((i * 240 + drift) % (width + 200)) - 100;
+    const cy = 40 + i * 55 + Math.sin(now * 0.0007 + i * 2) * 12;
+    noStroke();
+    fill(color(120, 160, 180, baseAlpha));
+    ellipse(cx, cy, 90 + Math.sin(now * 0.0009 + i) * 14, 20 + Math.cos(now * 0.0006 + i * 1.3) * 4);
+    fill(color(140, 180, 200, baseAlpha * 0.6));
+    ellipse(cx + 20, cy - 4, 50 + Math.sin(now * 0.001 + i) * 8, 12);
+  }
+  noStroke();
+}
+
+// --- Stars (night only) -----------------------------------------------------
+// Twinkling star field drawn only when isNight() is true.
+
+function drawStars() {
+  if (!isNight()) return;
+  const now = millis();
+  for (let i = 0; i < 48; i++) {
+    const sx = (i * 97.3 + 20) % width;
+    const sy = (i * 53.7 + 8) % (height * 0.6);
+    const twinkle = Math.sin(now * 0.003 + i * 4.1) * 0.4 + 0.6;
+    const a = 10 + Math.floor(40 * twinkle);
+    noStroke();
+    fill(color(220, 235, 255, a));
+    ellipse(sx, sy, 1.4, 1.4);
+    fill(color(200, 220, 255, a * 0.35));
+    ellipse(sx, sy, 3.4, 3.4);
+  }
+  noStroke();
+}
+
+// --- Engine pulse (central-island resonator hum) ----------------------------
+// Cyan low-frequency pulse near the ship tile; intensifies with quest state.
+
+function drawEnginePulse() {
+  const now = millis();
+  const pulse = Math.sin(now * 0.002) * 0.18 + 0.82;
+  const cx = 23 * 16 + 8;
+  const cy = 10 * 16 + 8;
+  const intensity = quest.state === 'choice' || quest.state === 'wake'
+    ? 1.0 : (quest.state === 'contact' ? 0.55 : 0.35);
+  const baseR = 22 + Math.sin(now * 0.004) * 3;
+  noStroke();
+  fill(color(42, 255, 181, 26 * pulse * intensity));
+  ellipse(cx, cy, baseR * 2.4, baseR * 1.3);
+  fill(color(124, 200, 232, 18 * pulse * intensity));
+  ellipse(cx, cy, baseR * 1.8, baseR * 1.0);
+  noFill();
+  stroke(color(42, 255, 181, 90 * pulse * intensity));
+  strokeWeight(1);
+  ellipse(cx, cy, baseR * 1.2, baseR * 0.8);
+  noStroke();
+}
+
+// --- Quest-state world reactions --------------------------------------------
+// Maps quest progress to visible world changes: sky tint shift, hazard marks,
+// engine glow intensification, NPC quest-ping emphasis.
+
+function drawQuestWorldReactions() {
+  const now = millis();
+  if (quest.state === 'crossing') {
+    // Show faint hazard lane markers on ground
+    noStroke();
+    fill(color(255, 160, 60, 22));
+    for (const h of quest.crossingHazards) {
+      if (h.done) continue;
+      if (h.id === 'wind_shear') {
+        const xs = [28, 29];
+        for (const hx of xs) {
+          ellipse(hx * 16 + 8, 6 * 16 + 8, 14, 4);
+        }
+      } else if (h.id === 'aether_leak') {
+        const xs = [13, 14, 15];
+        for (const hx of xs) {
+          ellipse(hx * 16 + 8, 11 * 16 + 8, 10, 6);
+        }
+      } else if (h.id === 'sky_predator') {
+        ellipse(20 * 16 + 8, 4 * 16 + 8, 16, 5);
+      }
+    }
+  }
+  if (quest.state === 'choice' || quest.state === 'wake') {
+    // Engine glow intensifies
+    const pulse = Math.sin(now * 0.004) * 0.2 + 0.8;
+    const cx = 23 * 16 + 8;
+    const cy = 10 * 16 + 8;
+    noStroke();
+    fill(color(42, 255, 181, 40 * pulse));
+    ellipse(cx, cy, 48, 28);
+    fill(color(124, 200, 232, 22 * pulse));
+    ellipse(cx, cy, 64, 36);
+    noStroke();
+  }
+  // NPC quest markers pulse faster as contact progresses
+  const npcCount = quest.npcsMet.length;
+  const pulseSpeed = 0.05 + npcCount * 0.012;
+  for (const npc of npcs) {
+    if (npc.flags.questMarker) {
+      const px = npc.tileX * 16 + 8;
+      const py = npc.tileY * 16 + 8;
+      const p = Math.sin(now * pulseSpeed + npc.tileX) * 0.3 + 0.7;
+      noFill();
+      stroke(color(42, 255, 181, 110 * p));
+      strokeWeight(1);
+      ellipse(px, py - 10, 10, 5);
+      noStroke();
+    }
+  }
+}
+
+// --- Player visual evolution ------------------------------------------------
+// Adds heat aura (orange shimmer at high heat), ability-use glow, and solar
+// charge shimmer. Keeps the existing player sprite intact.
+
+function drawPlayerVisualEvolution() {
+  const now = millis();
+  const px = player.px;
+  const py = player.py;
+
+  if (player.heat > 1) {
+    const heatRatio = player.heat / player.heatMax;
+    if (heatRatio > 0.35) {
+      const shimmer = Math.sin(now * 0.01) * 0.4 + 0.6;
+      const alpha = 20 * heatRatio * shimmer;
+      noStroke();
+      fill(color(255, 140, 40, alpha));
+      ellipse(px + 8, py + 7, 18 + heatRatio * 10, 10 + heatRatio * 6);
+      fill(color(255, 180, 60, alpha * 0.5));
+      ellipse(px + 8, py + 7, 26 + heatRatio * 12, 14 + heatRatio * 8);
+      noStroke();
+    }
+  }
+
+  if (player.solarCharge > 1.2) {
+    const shimmer = Math.sin(now * 0.006) * 0.25 + 0.75;
+    noStroke();
+    fill(color(42, 255, 181, 22 * shimmer));
+    ellipse(px + 8, py + 5, 14, 6);
+    noStroke();
+  }
+}
+
+// --- NPC daily routines ------------------------------------------------------
+// Each NPC has a small idle animation / drift loop.
+// Ionia: rests forearms on bulkhead, occasional glance toward the lower cargo hatch.
+// The Core: aether glow breathes, rotation drifts slowly.
+// Lyra: plays with a small dream-fragment orb that orbits her head.
+// Verrick: shifts weight between deck and bulkhead, posture change.
+
+const NPC_ROUTINES = {
+  elder_farmer: {
+    bob: 0.4,            // vertical bob amplitude (px)
+    bobSpeed: 0.004,     // phase speed
+    glanceIdx: 0,        // cycle index for look-direction
+  },
+  engine_spirit: {
+    glowPulse: 0.006,    // glow breathing speed
+    rotSpeed: 0.002,     // rotation drift
+  },
+  child_prophet: {
+    orbRadius: 7,        // orbit radius around head
+    orbSpeed: 0.005,     // orbit phase speed
+  },
+  corporate_salvager: {
+    shiftPhase: 0.003,   // posture shift cycle
+    shiftRange: 1.5,     // px shift range
+  },
+};
+
+function updateNPCSchedulers(dt) {
+  // Nothing stateful required — routines are driven from millis()/frameCount
+  // at draw time. This hook exists so the renderer can stay declarative.
+}
+
+function drawNPCElderRoutine(px, py) {
+  const r = NPC_ROUTINES.elder_farmer;
+  const bob = Math.sin(millis() * r.bobSpeed) * r.bob;
+  const dir = Math.floor((millis() * 0.0004) % 3);
+  noStroke();
+  fill(color(80, 60, 40));
+  rect(px - 4, py - 4 + bob, 16, 4);
+  rect(px - 2, py - 8 + bob, 12, 5);
+  fill(color(130, 110, 80));
+  rect(px - 3, py - 1 + bob, 14, 8);
+  fill(color(110, 90, 60));
+  rect(px - 2 + (dir === 0 ? 1 : 0), py + 5 + bob, 5, 6);
+  rect(px + 3 + (dir === 1 ? -1 : 0), py + 5 + bob, 5, 6);
+  fill(color(200, 180, 150));
+  rect(px - 2, py - 3 + bob, 12, 4);
+  fill(color(40, 30, 20));
+  rect(px + 1, py - 2 + bob, 2, 1);
+  rect(px + 7, py - 2 + bob, 2, 1);
+  fill(color(100, 70, 40));
+  rect(px + 10, py - 6 + bob, 2, 14);
+  noStroke();
+}
+
+function drawNPCSpiritRoutine(px, py) {
+  const r = NPC_ROUTINES.engine_spirit;
+  const glow = Math.sin(millis() * r.glowPulse) * 0.25 + 0.75;
+  fill(color(120, 200, 220, 140 * glow));
+  noStroke();
+  ellipse(px, py, 14, 16);
+  noStroke();
+  fill(color(42, 255, 181, 180 * glow));
+  ellipse(px, py - 2, 6, 6);
+  noFill();
+  stroke(color(42, 255, 181, 120 * glow));
+  strokeWeight(1);
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + frameCount * r.rotSpeed;
+    line(px, py, px + Math.cos(a) * 12, py + Math.sin(a) * 12);
+  }
+  noStroke();
+  fill(color(200, 230, 240, 150 * glow));
+  rect(px - 3, py - 2, 10, 4);
+  fill(color(40, 60, 80, 150 * glow));
+  rect(px - 1, py - 1, 2, 1);
+  rect(px + 4, py - 1, 2, 1);
+  noStroke();
+}
+
+function drawNPCChildRoutine(px, py) {
+  const r = NPC_ROUTINES.child_prophet;
+  const phase = millis() * r.orbSpeed;
+  const orbX = px + Math.cos(phase) * r.orbRadius;
+  const orbY = py - 7 + Math.sin(phase) * r.orbRadius * 0.6;
+  fill(color(180, 60, 80));
+  noStroke();
+  rect(px - 4, py - 4, 16, 4);
+  fill(color(60, 60, 100));
+  rect(px - 3, py - 7, 12, 4);
+  fill(color(200, 180, 160));
+  rect(px - 2, py - 5, 12, 4);
+  fill(color(42, 255, 181, 200));
+  rect(px, py - 4, 3, 2);
+  rect(px + 6, py - 4, 3, 2);
+  fill(color(100, 80, 120));
+  rect(px - 3, py, 12, 7);
+  fill(color(60, 50, 80));
+  rect(px - 2, py + 6, 4, 4);
+  rect(px + 2, py + 6, 4, 4);
+  noStroke();
+  fill(color(42, 255, 181, 170));
+  ellipse(orbX, orbY, 3, 3);
+  fill(color(124, 200, 232, 90));
+  ellipse(orbX, orbY, 5, 5);
+  noStroke();
+  stroke(color(42, 255, 181, 40));
+  strokeWeight(1);
+  ellipse(px, py - 2, 20, 16);
+  noStroke();
+}
+
+function drawNPCSavagerRoutine(px, py) {
+  const r = NPC_ROUTINES.corporate_salvager;
+  const shift = Math.sin(millis() * r.shiftPhase) * r.shiftRange;
+  noStroke();
+  fill(color(100, 100, 105));
+  rect(px - 4 + shift * 0.3, py - 3, 16, 10);
+  fill(color(80, 80, 85));
+  rect(px - 3 + shift * 0.3, py - 3, 14, 3);
+  fill(color(180, 170, 160));
+  rect(px - 3 + shift * 0.2, py - 8, 12, 6);
+  fill(color(30, 30, 35));
+  rect(px + shift * 0.1, py - 7, 2, 1);
+  rect(px + 6 + shift * 0.1, py - 7, 2, 1);
+  fill(color(42, 255, 181, 160));
+  rect(px + 8, py - 4, 4, 3);
+  fill(color(10, 10, 10));
+  rect(px + 9, py - 3, 2, 1);
+  fill(color(60, 60, 65));
+  rect(px - 3, py + 6, 5, 5);
+  rect(px + 2, py + 6, 5, 5);
+  fill(color(100, 100, 105));
+  rect(px + 11, py, 3, 7);
+  noStroke();
+}
+
 // ---------------------------------------------------------------------------
 // Exported surface
 // ---------------------------------------------------------------------------
@@ -3073,6 +3448,8 @@ if (typeof window !== 'undefined') {
   window.AetherWorld = AetherWorld;
 }
 
+
+// === modules/combat.js ===
 // AetherCombat — Turn-based 2D6 PbtA combat module for Aetherwake JRPG.
 // Exposes window.AetherCombat as a constructor: new AetherCombat(p, C)
 // Also compatible with direct call: AetherCombat(p, C) returns the namespace.
@@ -3135,7 +3512,7 @@ function AetherCombat(p, C) {
   const enemies = {
     skyPredator: {
       name: 'Sky-Predator',
-      goal: 'Kill or drive off the predator feeding on the island\'s aether.',
+      goal: 'Kill or drive off the predator hunting heat signatures above the Wake.',
       hp: 12, maxHp: 12, might: 1, presence: 0, grace: 0, wits: 0,
       weakness: 'Its brass wing-joints shudder in EMP.',
       status: 'roosting',
@@ -3147,7 +3524,7 @@ function AetherCombat(p, C) {
     },
     corporateSalvager: {
       name: 'Corporate Salvager',
-      goal: 'Secure the island\'s engine core for the corporation.',
+      goal: 'Secure the Wake\'s core for the syndicate.',
       hp: 10, maxHp: 10, might: 0, presence: 2, grace: 1, wits: 1,
       weakness: 'Class-locked dialogue — the commons outlasts the contract.',
       status: 'negotiating',
@@ -3158,8 +3535,8 @@ function AetherCombat(p, C) {
       bodyShape: 'humanoid',
     },
     windShear: {
-      name: 'Wind Shear Elemental',
-      goal: 'Tear the island apart — wind strips grace from all who stand here.',
+      name: 'Harmonic Shear Elemental',
+      goal: 'Tear the ship apart — harmonic shear strips grace from all who stand here.',
       hp: 14, maxHp: 14, might: 2, presence: 0, grace: 0, wits: 1,
       weakness: 'Uncover Truth reveals the wind pattern — exposing it to EMP.',
       status: 'howling',
@@ -3606,7 +3983,7 @@ function AetherCombat(p, C) {
       const eName = state.enemy.name;
       if (eName === 'Sky-Predator') xpReward = 15;
       else if (eName === 'Corporate Salvager') xpReward = 12;
-      else if (eName === 'Wind Shear') xpReward = 20;
+      else if (eName === 'Harmonic Shear') xpReward = 20;
       else if (eName === 'Aether Leak') xpReward = 18;
       else xpReward = 10;
       if (r.outcome === 'success' && action.type === 'attack') xpReward += 5;
@@ -4070,7 +4447,7 @@ function AetherCombat(p, C) {
     p.textSize(8);
     p.textAlign(p.CENTER, p.TOP);
     p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 170);
-    p.text('YOUNG ENDER', px, py - 30 + dodgeBob);
+    p.text('ENDER', px, py - 30 + dodgeBob);
 
     // Player Vit bar
     const vitRatio = (combat && combat.getState) ? 
@@ -4089,6 +4466,8 @@ if (typeof window !== 'undefined') {
   window.AetherCombat = AetherCombat;
 }
 
+
+// === modules/ui.js ===
 /**
  * Aetherwake JRPG — UI Module
  * All drawing via p5 primitives. No DOM creation.
@@ -5397,7 +5776,7 @@ function drawCombatPanel(combatState) {
   drawPixelBorder(px + 8, sY, pw - 16, 88, 2, PAL.SHADOW, PAL.TEAL);
   textFont(FONT_UI);
   textSize(8);
-  drawGlowText('YOUNG ENDER', px + 14, sY + 6, PAL.TEAL, 8);
+  drawGlowText('ENDER', px + 14, sY + 6, PAL.TEAL, 8);
 
   // Player resources
   textFont(FONT_BODY);
@@ -6405,3 +6784,5 @@ function drawHUDFrame(gameState) {
 // ─────────────────────────────────────────────
 console.log('[UI] Aetherwake UI module loaded —',
             Object.keys(window.UI).join(', '));
+
+

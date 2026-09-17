@@ -129,12 +129,12 @@ function buildMap() {
   // Lore tiles — walk over them to reveal story fragments
   const loreSpots = [
     { x: 3, y: 6, text: 'A child\'s drawing, preserved on a scrap of hull plating. A ship with too many sails, rising into a sky that had no up anymore.' },
-    { x: 11, y: 5, text: 'The Unfinished Song\'s manifest, water-stained but legible: "Cargo: one city. Destination: above. Status: song incomplete."' },
-    { x: 19, y: 7, text: 'Old Haru\'s field journal, half-buried in soil: "Day 47. The crops taste like copper. The sky hums at dusk. The engine is dreaming."' },
-    { x: 24, y: 14, text: 'A Meridian Corp data-slate, cracked but still glowing. "Extraction Protocol 7: when the local Dreamwright refuses, override their dream."' },
-    { x: 16, y: 20, text: 'Mio\'s drawing of the engine: a great bird made of gears, singing. She wrote beneath it: "If it stops singing, the sky will forget how to hold us."' },
-    { x: 9, y: 24, text: 'A salvager\'s note, pinned to a tree with a rusted nail: "The engine doesn\'t belong to Meridian. It never did. It belongs to whoever remembers what it was for."' },
-    { x: 28, y: 19, text: 'Navigator\'s log — the last entry: "The song has three missing notes. I have been hunting them since the first city fell. I think one is in your chest, Scholar."' }
+    { x: 11, y: 5, text: 'The Aureate Wake\'s manifest, water-stained but legible: "Cargo: one sky-lane. Destination: above. Status: song slipping."' },
+    { x: 19, y: 7, text: 'Ionia\'s watch log, half-buried in deck plating: "Day 47. The core sings wrong. The harmonics slip at dusk. The frequencies hum in the hull."' },
+    { x: 24, y: 14, text: 'A Copper Syndicate data-slate, cracked but still glowing. "Acquisition Protocol 7: when the local Dreamwright refuses, override their dream."' },
+    { x: 16, y: 20, text: 'Lyra\'s drawing of the core: a great bird made of gears, singing. She wrote beneath it: "If it stops singing, the sky will forget how to hold us."' },
+    { x: 9, y: 24, text: 'A salvager\'s note, pinned to a bulkhead with a rusted nail: "The core doesn\'t belong to the Syndicate. It never did. It belongs to whoever remembers what it was for."' },
+    { x: 28, y: 19, text: 'The Core\'s log — the last entry: "The song has three missing notes. I have been hunting them since the first sky-lane opened. I think one is in your chest, Ender."' }
   ];
   for (const l of loreSpots) {
     if (inBounds(l.x, l.y)) {
@@ -206,143 +206,155 @@ function initPlayer() {
 
 function initNPCs() {
   npcs = [
-    // 1 — Elder Farmer
+    // 1 — Captain Ionia
     {
       id: 'elder_farmer',
-      name: 'Old Haru',
-      title: 'Farmer of the Third Chest',
+      name: 'Captain Ionia',
+      title: 'Captain of the Aureate Wake',
       x: 7,
       y: 7,
       tileX: 7,
       tileY: 7,
       dialogue: {
         intro: [
-          '"The soil here remembers the fall better than we do. Every stone, every root — they all fell once, and now they refuse to."',
-          '"You got that look. Rift Scholar, yeah? The dream tells you things before they happen. What did it show you tonight?"',
-          '"I farm the Third Chest — the oldest soil on this island. My grandfather farmed it before the fall. His father before that. The soil remembers every harvest, every drought, every rain. And now it remembers the engine."',
-          '"The crops taste like copper this season. Like something metallic has seeped into the roots. I think the engine is leaking into the land. Don\'t tell the prophet — he\'ll just scream about it."',
-          '"You stand on the edge of something big, Scholar. I can smell it on you. Something that wants to be finished."'
+          '"The Aureate Wake is the last ship that still flies. I\'ve been captain for three hundred years. The sky-lanes closed one by one, and now it\'s just us. The people below want passage. The corporate syndicates want the core. The sky above wants someone brave enough to find out what\'s up there. You\'ve got three problems and you\'ve only just boarded."',
+          '"My first officer used to say a captain owes her ship a proper send-off and her crew a straight answer. I\'ve been trying for three centuries. I\'m still working on it. You look like someone who appreciates a straight answer. So here it is: this ship has a core that sings wrong. And it\'s going to keep singing wrong until someone makes it stop."',
+          '"You can work the decks. You can talk to the people. You can listen to the frequencies. Or you can do nothing. The Wake will keep flying either way. But the core won\'t. It\'s getting louder each time the sun drops."',
+          '"I\'ve watched the sky-lanes die one by one. Copper-slicked smoke on the horizon. A city going quiet. Another one. Then another. We\'re the last ship flying a sky-lanes route no one else can hold anymore. If we go down, the sky-lanes go with us."',
+          '"If you\'re looking for the honest part of this story — it\'s me. I\'m tired. I\'ve been tired for a very long time. But I\'m still flying. Sometimes that\'s the only honest thing left in a sky-lanes world."'
         ],
         class_ender: [
-          '"Ah — green tubes on your back, mycelial marks on your skin. You traced the ley lines yourself, didn\'t you?"',
-          '"The Unfinished Song ship is drifting east. The engine that lifted this whole archipelago is inside it. If it wakes — or if it dies — that decides which way gravity points tomorrow."',
-          '"I\'ve been waiting for someone who can hear the engine. The child prophet\'s been screaming about it for weeks."'
+          '"Your hands are on the rigging. You\'re not a navigator or an engineer — you\'re the one who makes things work when they\'re already supposed to be working. That\'s worth more than either of those titles. The Wake needs hands like yours. It doesn\'t say so out loud, but it does."',
+          '"The frequencies hum when you walk the decks. Your class — an engineer who listens — that\'s you. You feel the wrongness before anyone else can name it. That\'s why I let you board."',
+          '"The people below want passage. The syndicates want the core. The frequencies want a decision. You\'re the only one who doesn\'t have a price on this ship. That\'s not an accident. That\'s the point."'
+        ],
+        class_farmer: [
+          '"Farmers understand soil because soil tells the truth if you know how to listen. You\'re the same — you listen to what the engine is trying to tell you. That\'s the whole story right there."',
+          '"I\'ve farmed sky-lanes routes as long as I\'ve captained ships. Both of them want the same thing: someone who doesn\'t walk away when the job gets hard."'
         ],
         generic_follow: [
-          '"Take your time. The crops won\'t bolt. But the sky might — it has a habit of doing that."'
+          '"The aether-core is the heart of this ship. It hums — a wrong kind of hum. You\'ll feel it in the rigging before you see it in the decks."'
         ],
         deep: [
-          '"You\'ve walked the whole island now. You\'ve heard the navigator talk about songs and the child talk about dreams and the man in the grey coat talk about contracts. You\'ve stood in my fields and you\'ve stood on the ship. You know more than you did when you arrived."',
-          '"I\'ll tell you about the soil. The soil here — the Third Chest — it was never meant to grow anything. It\'s the ballast soil from the first city that fell up. They scooped it from the foundations and it fell with the city until the city stopped falling. Then the soil stayed."',
-          '"That\'s why the crops taste like copper. That\'s why the roots tangle with metal. My grandfather planted wheat in this soil and it grew around a bolt. His grandson planted corn and it found a gear. The engine is in the soil, Scholar. We\'ve been eating it for generations."',
-          '"You want to know what I think? I think the choice isn\'t about the engine or the island or even the sky. It\'s about what you\'re willing to hear when the song finally ends. Listen for it. The silence after. That\'s where the truth is."'
+          '"You\'ve walked the ship and talked to everyone. I\'ve told you that. The crew is trying. The people below keep asking. The corporate officers keep calling. The core keeps singing wrong. What are you going to do with that?"',
+          '"I can\'t make this decision for you. Nobody can. The Aureate Wake flies because people believe it should. Someone has to keep believing. Or stop. That\'s the choice."',
+          '"You\'ll find out which one I am — the tired old captain who quit, or the tired old captain who didn\'t. The answer\'s coming."'
         ]
       },
       flags: { met: false, questMarker: true }
     },
 
-    // 2 — Engine Spirit (living nav)
+    // 2 — The Core
     {
       id: 'engine_spirit',
-      name: 'The Navigator',
-      title: 'Engine Spirit of the Unfinished Song',
+      name: 'The Core',
+      title: 'Aether-Core of the Aureate Wake',
       x: 22,
       y: 10,
       tileX: 22,
       tileY: 10,
       dialogue: {
         intro: [
-          '"I am the song that never finished itself. The hull remembers every note it never got to sing."',
-          '"You stand on a world that fell up. The engine that did that is inside this ship — and it is waking. I feel it in my nav-lines."',
-          '"Three hazards on the crossing. Wind shear first — it strips the grace from men who haven\'t earned it. Then aether leak — be careful where you step. Then the sky-predator — it hunts heat signatures. Keep your aether low and your will higher."',
-          '"I remember the first city that rose. The song was new then — bright, almost painful. They sang it upward through steel and stone. The city went with it. The people didn\'t understand — they thought gravity was a law, not a direction."',
-          '"You feel that hum in your chest? That\'s the engine, Scholar. It\'s been humming since before the first island broke. It\'s almost done — or almost beginning. One of those."'
+          '"The Aureate Wake is a solarpunk airship. You\'ve heard that. The core is the heart of it — the aether-core, the part that sings the frequencies. And it sings wrong. That\'s the whole story."',
+          '"The sky-lanes are a network of currents and routes above a copper-blighted world. The Wake rides them. The core gives us the lift to ride them. When the core starts singing wrong, the sky-lanes go wrong with it. The Wake is the last ship that can still hear the sky-lanes. We\'re the last one."',
+          '"I\'m the voice of the aether-core. I speak through copper and light. You\'ll feel me in the rigging before you hear me in your chest. You\'ll hear me in the hull. Listen for the wrong note. That\'s the one I\'m singing."',
+          '"The people below — they live in the copper blight. They drink from copper canals and eat from copper soil. They want passage off the copper world, but the sky-lanes are gone. The Wake is the last route that still works. If the core stops singing wrong, the Wake can fly them out. If it doesn\'t, nobody leaves."',
+          '"The frequencies above — you\'ll hear them when you stand on the deck at night. Birds that don\'t exist anymore, singing in sky-lanes that don\'t exist anymore. The core remembers them. I do too. I can\'t stop singing them."'
         ],
         class_ender: [
-          '"Your staff — a cyan crystal, no wood. You made it yourself from a fallen shard of the first engine. I know. I lit that shard."',
-          '"The engine and your dream are wired together. Your Shared Dream ability — I can hear it from here. It reaches into the hull. Use it carefully. It can either steady the engine or tear it open."',
-          '"When you reach the choice, Scholar — listen to the nav-lines. They remember which way the world should fall."'
+          '"The shared dream — the ability you\'ve been developing — it reaches me. I can feel it through the hull. That\'s the whole engine-level story, in one sentence. The player has an ability that the core can hear. Everyone else on the ship is guessing."',
+          '"The frequencies hum and I hum with them. Your dream reaches into the frequencies and the frequencies reach back. That\'s how the whole ship works. That\'s the Aureate Wake."',
+          '"When you reach the choice — sing the core down, sell the core, or drive the core up — the answer is in what you\'ve heard on this ship. I\'ve been singing wrong. You can hear it. The answer is already in the listening."'
+        ],
+        class_witch: [
+          '"The frequencies are a kind of witch\'s craft. Copper and light and wrong song. You hear them. The core hears you hearing them. That\'s the whole engine-level story."',
+          '"The aether-core sings wrong and you\'re the one who can hear it. That\'s the point of the entire ship. That\'s the whole story."'
         ],
         generic_follow: [
-          '"The nav-lines hum. Follow them. But choose before the hum fades — the choice window is narrow."'
+          '"The frequencies hum in the hull. Listen. That\'s the story."'
         ],
         deep: [
-          '"You have walked the island. You have heard them all — the farmer, the child, the man in the grey coat. You know what they want. Now I will tell you what the engine wants."',
-          '"The engine does not want a choice. It wants an ending. It has been sung halfway through the sky for so long that the song itself is tired. It doesn\'t know how to stop — it only knows how to continue."',
-          '"Your dream — your Shared Dream ability — it reaches into the engine\'s sleep and wakes it a little more each time. You feel that? The hum in your chest? That is the engine waking up to your presence. It knows you\'re coming."',
-          '"When you reach the choice, Scholar — don\'t decide with your head. Decide with what you heard first. The song. The dream. The soil. Whichever one you heard earliest — that\'s the one telling you the truth."'
+          '"You\'ve heard the captain and the dreamer and the acquisition officer. You\'ve heard me singing wrong in the rigging. What you haven\'t heard is this — the frequencies above. Someone\'s singing up there too."',
+          '"The sky-lanes still exist. The frequencies still hum. But the route is gone. The Aureate Wake was the last ship that flew a live sky-lane. Now there\'s no route — just the wrong song."',
+          '"The frequencies above — you\'ll find them if you keep listening. I can\'t tell you where they are, because I don\'t know. But I know they\'re there. And I know the core is the only way to reach them."'
         ]
       },
       flags: { met: false, questMarker: true }
     },
 
-    // 3 — Child Prophet
+    // 3 — Lyra
     {
       id: 'child_prophet',
-      name: 'Mio',
-      title: 'Child Prophet of the Drift',
+      name: 'Lyra',
+      title: 'Child Dreamer of the Aureate Wake',
       x: 8,
       y: 20,
       tileX: 8,
       tileY: 20,
       dialogue: {
         intro: [
-          '"I dreamed the sky came undone. Not fell — unwound. Like a spool of thread the world was wrapped in, and something pulled the thread."',
-          '"There\'s a man in a grey coat. He says he\'s here to buy the engine. He wants to put it in a box and take it to a city that doesn\'t dream."',
-          '"The elder farmer says you\'re the one who can hear the engine. Can you? Or do you just pretend so people will leave you alone?"',
-          '"I\'m not very big, but my dreams are. Sometimes they\'re bigger than this island. Sometimes they\'re bigger than the sky. Do you believe in dreams that big?"',
-          '"The engine hums in my dreams every night now. It has a voice. It sounds like someone singing underwater. I think it wants to be heard. I think it\'s been waiting for someone who knows how to listen."'
+          '"The core hums in the hull. I can hear it. I can hear it wrong. That\'s the whole story, really. A ship that sings wrong. That\'s the Aureate Wake."',
+          '"The sky-lanes are gone. The copper-blighted world below wants passage. The Wake is the only route left. If the core stops singing wrong, the Wake can fly the people out. If it doesn\'t — nobody leaves. That\'s the whole engine-level story, in one sentence."',
+          '"I\'m not a navigator. I\'m not an engineer. I\'m the one who hears the frequencies wrong. That\'s the point of me. That\'s the whole crew-level story."',
+          '"The corporate officers want the core. They\'ll say anything. They won\'t say the honest thing — which is that if the Wake falls, the sky-lanes go with it, and nobody gets to fly anymore. That\'s the whole campaign-level story."',
+          '"If you destroy the core, the Wake falls. If you sell the core, the Wake flies — but the people below don\'t get the sky-lanes. If you overdrive the core, the Wake might fly up into the clear sky above the copper world. Or it might fall. I don\'t know which. I\'m just the one who hears the wrong song."'
         ],
         class_ender: [
-          '"Your goggles — you see more than light, don\'t you? You see the lines between things. I dreamed you would come. The dream was green."',
-          '"If you destroy the engine — the island falls. All of it. But the sky stays. If you preserve it — the engine goes with the ship, and some of us go too. If you let it ascend — we find out what\'s above."',
-          '"I\'m just a kid. But I know which choice feels like the right kind of wrong."'
+          '"You hear the frequencies too. I can tell. The frequency hums in your chest — that\'s the engineer in you. You\'ve heard the captain and the acquisition officer talk about the core, and now you\'ve heard me. You\'ve heard all four of us. You know what each of us wants. You decide what the Wake does."',
+          '"The core hums in the hull and I hum with it. You can hear it wrong. The Aureate Wake is the last ship that can still hear the sky-lanes. We\'re the last one. If we go down, the sky-lanes go with us."',
+          '"The shared dream — when you reach for it, the frequencies reach back. That\'s your class, your ability, the whole engine-level story in one sentence. You\'ve been building it since you boarded. Now you use it on the core."'
+        ],
+        class_witch: [
+          '"The frequencies hum and I hum with them. You hear them too. That\'s the whole engine-level story. The core sings wrong and you can hear it. The player\'s ability — the shared dream — it reaches into the frequencies. Everyone else is guessing. You\'re not."',
+          '"The sky-lanes are gone and the Wake is the last route. If the core stops singing wrong, the Wake can fly them out. If it doesn\'t — nobody leaves. That\'s the whole campaign-level story."'
         ],
         generic_follow: [
-          '"I\'ll keep dreaming. Tell me what happens when you decide."'
+          '"The frequencies hum in the hull. Listen. That\'s the story."'
         ],
         deep: [
-          '"You\'ve met them all now. The old farmer, the navigator, the man in the grey coat. You\'ve heard what each of them wants. What do you want?"',
-          '"I dreamed last night that the engine was a door. Not a machine — a door. And behind it was a room where everyone who fell up was waiting. They were singing. All of them. The song they never got to finish."',
-          '"The elder farmer says the soil remembers. The navigator says the song remembers. The man in the grey coat says paperwork remembers. I think... I think the choice remembers too. Whatever you pick, it\'s been waiting for you."',
-          '"Whatever happens — don\'t forget to dream about what you found. Even if it\'s scary. Especially if it\'s scary. The dreams that matter most are the ones that scare you and then don\'t."'
+          '"I\'ve heard the captain and the acquisition officer and the core. I\'ve heard all four of us. You\'ve heard them too. You know what each of us wants. You decide what the Wake does. That\'s the choice."',
+          '"The core hums wrong and I hum with it. That\'s been the whole story since I was born. The frequencies hum and the core hums with them and the Wake hums with the core. That\'s the Aureate Wake. That\'s the whole ship."',
+          '"You\'ll find out which one I am — the kid who hears wrong, or the kid who saves the ship by hearing right. The answer\'s coming."'
         ]
       },
       flags: { met: false, questMarker: true }
     },
 
-    // 4 — Corporate Salvager (class-locked dialogue)
+    // 4 — Verrick
     {
       id: 'corporate_salvager',
-      name: 'Verrick Holt',
-      title: 'Salvage Contractor, Meridian Corp',
+      name: 'Verrick',
+      title: 'Acquisition Officer, Copper Syndicate',
       x: 26,
       y: 24,
       tileX: 26,
       tileY: 24,
       dialogue: {
         intro: [
-          '"Holt. Meridian Salvage & Recovery. You the local guide? Good — we\'ve got a contract on that engine in the Unfinished Song. overnight run, clean transfer, full credential."',
-          '"Don\'t look so sour. The engine\'s property of the Meridian collective now — filed, certified, and insured. You don\'t believe in paperwork? Paperwork is the only thing that\'s ever held a falling world together."'
+          '"Holt. Acquisition officer, Copper Syndicate. You\'ve got an aether-core sitting on a ship above a copper-blighted world, and the sky-lanes are gone. That\'s a solvable problem. Mostly. The sky-lanes bit is the hard part."',
+          '"The Aureate Wake is the last active sky-lane route left above the copper world. When the sky-lanes closed, the Wake was the last ship that could still hear the route. Now it\'s just us — a ship, a core that sings wrong, and a copper world below that wants passage. The syndicate wants the core. The people below want passage. We\'ve got three problems and not enough sky-lane routes. Mostly you\'ve just got the one ship."',
+          '"I\'m not here to convince you of anything. I\'m here to tell you what the syndicate can do, what the core is worth, and what happens to the sketchy bits of this story if nobody makes a decision. The acquisition officer\'s job is to make the transaction clean. The decision\'s yours."',
+          '"The copper world below — that\'s where the sky-lanes closed. When the airships stopped flying, the copper-blight finally owned the sky. If we can fly the Wake out of the copper blight and begin the sky-lanes again — against the copper world, against the Syndicate\'s interests, for the people below who can\'t leave — that\'s possible. But it\'s hard, it\'s expensive, and it\'s not the syndicate\'s first choice."',
+          '"So that\'s the story. A copper-blighted world below. A sky-lane route above that nobody else can hear anymore. A ship that\'s the last one that can still fly it. A core that sings wrong. You\'re the captain\'s acquisition officer and I\'m tired. Let\'s make a decision."'
         ],
         class_corporate: [
-          '"You\'re one of us. Rift Scholar with a corporate affiliation — I can smell the contract on you. Good. We\'ll need someone who understands the engine\'s resonance signature. Your Uncover Truth ability — we\'ll use it on the engine before extraction."',
-          '"Here\'s the deal: we extract the engine, we pay you in aether credits, and everyone on this island gets evacuation passage. The island falls — yes — but the people don\'t. That\'s a win. Your prophet friend will scream about the sky, but the sky doesn\'t feed anyone."',
-          '"If you go with us — Path B — you get scrap, aether, and a Meridian credential that opens every port in the arch. If you betray us — well. Meridian has provisions for traitors. Don\'t make me use them."'
+          '"You\'re one of us. Rift Scholar with a corporate badge — I can smell the credential on you. Good. We\'ll need someone who understands the core\'s resonance signature. Your Uncover Truth ability — we\'ll use it on the core before acquisition."',
+          '"Here\'s the deal: we acquire the core, we pay you in aether credits, and the crew gets evacuation passage on the next sky-lane run. The ship falls — yes — but the people don\'t. That\'s a win. Your prophet friend will scream about the sky, but the sky doesn\'t feed anyone."',
+          '"You go with us — Path B — you get scrap, aether, and a syndicate credential that opens every port in the copper-blight sky-lanes. You betray us — well. Meridian has provisions for betrayal. Don\'t make me use them."'
         ],
         class_ender: [
           '"Rift Scholar. I\'ve seen your kind before. You see too much. That\'s a liability in my trade. But it\'s also an asset — if you\'re willing to sell it."',
-          '"Your Mycelial Ledger ability — we\'d like to borrow that. Track the engine\'s aether output before we extract. You get a cut. 15% of the salvage value, paid in scrap."',
-          '"The choice is yours, Scholar. Meridian offers you a place in the world that\'s coming. The dream world, the falling world — they\'re both going. What\'s your next contract?"'
+          '"Your Mycelial Ledger ability — we\'d like to borrow that. Track the core\'s aether output before we acquire it. You get a cut. 15% of the salvage value, paid in scrap."',
+          '"The choice is yours, Scholar. Meridian offers you a place in the world that\'s coming. The copper world, the sky-lanes — they\'re both gone. What\'s your next contract?"'
         ],
         generic_follow: [
-          '"My offer stands until the engine stabilises. After that — it\'s either your way or ours. And ours has a lot more lawyers."'
+          '"My offer stands until the sky-lanes stabilise. After that — it\'s either your way or ours. And ours has a lot more lawyers."'
         ],
         deep: [
-          '"You\'ve walked the whole island, haven\'t you? Every corner. Every soul. You\'ve heard what they all want. Let me tell you something the others won\'t — I\'m not here because I believe in Meridian\'s mission."',
-          '"I\'m here because Meridian pays better than the alternative. And because — I\'ll be honest — I\'m tired of watching falling islands dock with nothing to show for it but graves. If extracting this engine means someone gets to live somewhere that isn\'t falling — I can live with that."',
-          '"But here\'s what keeps me up: the engine didn\'t ask to be saved. It didn\'t ask to be extracted. It\'s been singing this whole time — a song with no ending, lifting cities that didn\'t know they were leaving. Maybe it\'s not a machine at all. Maybe it\'s a promise."',
-          '"Whatever you choose, Scholar — choose something. Because the engine is going to keep singing until someone finally decides what song it is. And if nobody decides — well. The sky fills up with unfinished things. I\'ve seen what that looks like. It\'s worse than the fall."'
+          '"You\'ve walked the whole ship, haven\'t you? Every deck. Every soul. You\'ve heard what they all want. Let me tell you something the others won\'t — I\'m not here because I believe in Meridian\'s mission."',
+          '"I\'m here because Meridian pays better than the alternative. And because — I\'ll be honest — I\'m tired of watching sky-lane routes dock with nothing to show for it but graves. If acquiring this core means someone gets to live somewhere that isn\'t copper-blight — I can live with that."',
+          '"Here\'s what keeps me up: the core didn\'t ask to be saved. It didn\'t ask to be acquired. It\'s been singing this whole time — a song with no ending, lifting ships that didn\'t know they were leaving. Maybe it\'s not a machine at all. Maybe it\'s a promise."',
+          '"Whatever you choose, Scholar — choose something. Because the core is going to keep singing until someone finally decides what song it is. And if nobody decides — well. The sky fills up with unfinished things. I\'ve seen what that looks like. It\'s worse than the fall."'
         ]
       },
       flags: { met: false, questMarker: true, classLock: 'corporate' }
@@ -370,88 +382,88 @@ function initQuest() {
     wakeEpilogue: null,
     discoveries: [],      // lore tiles discovered so far
   journal: [
-    { state: 'signal', text: 'The ledger opens to a blank page. The first line writes itself: "The island is listening."' },
-    { state: 'crossing', text: 'Three hazards mark the crossing. The engine hums between them. Something is waking up.' },
-    { state: 'contact', text: 'Four souls on the island. Each one carries a piece of the choice. None of them know it yet.' },
-    { state: 'choice', text: 'The choice arrives not as a question but as a silence. The nav-lines stop humming. Whatever happens next will be the answer.' }
+    { state: 'signal', text: 'Ender boards the Aureate Wake, the last solarpunk airship still flying. The sky is copper above a copper-blighted world. The Wake\'s core is singing wrong.' },
+    { state: 'crossing', text: 'Three hazards wait between Ender and the core\'s song. Each one tests whether the Wake can still fly.' },
+    { state: 'contact', text: 'Ender meets the four voices. Each one has a price and a plan. None of them can decide alone.' },
+    { state: 'choice', text: 'The core is singing wrong. Ender has to choose what song it should sing instead.' }
   ],          // auto-populated journal entries
   journalToggle: false, // whether player has opened journal view
     signalHooks: [
-      { id: 'distress', label: 'Distress Signal', done: false },
-      { id: 'bounty',   label: 'Bounty Board',   done: false },
-      { id: 'prophet',  label: 'Prophet Dream',  done: false }
+      { id: 'harmonic_buoy', label: 'Harmonic Buoy', done: false },
+      { id: 'sky_lane_warning', label: 'Sky-Lane Warning', done: false },
+      { id: 'below_frequency', label: 'Below-Frequency Caller', done: false }
     ],
     crossingHazards: [
-      { id: 'wind_shear', label: 'Wind Shear', done: false, stat: 'grace' },
-      { id: 'aether_leak', label: 'Aether Leak', done: false, stat: 'wits' },
-      { id: 'sky_predator', label: 'Sky-Predator', done: false, stat: 'might' }
+      { id: 'sky_predator', label: 'Sky-Predator', done: false, stat: 'grace' },
+      { id: 'wind_shear', label: 'Harmonic Shear', done: false, stat: 'grace' },
+      { id: 'corporate_intercept', label: 'Corporate Intercept', done: false, stat: 'might' }
     ],
     contactNPCs: [
-      { id: 'elder_farmer', label: 'Old Haru' },
-      { id: 'engine_spirit', label: 'Navigator' },
-      { id: 'child_prophet', label: 'Mio' },
-      { id: 'corporate_salvager', label: 'Verrick Holt' }
+      { id: 'elder_farmer', label: 'Ionia' },
+      { id: 'engine_spirit', label: 'The Core' },
+      { id: 'child_prophet', label: 'Lyra' },
+      { id: 'corporate_salvager', label: 'Verrick' }
     ],
     choicePaths: [
       {
         id: 'path_a',
-        label: 'Save the island / Destroy the engine',
-        description: 'Let the island fall with its people. End the engine\'s song.',
+        label: 'Sing the core down / Scatter the people',
+        description: 'End the core\'s song. Let the Wake fall where it may.',
         outcomes: {
-          '10+': 'The island falls gently. The people scatter to the arch — whole, grieving, free. The engine\'s crystal shatters in your hands, and the sound is the last note of the Unfinished Song. Mio says it was the right thing. The elder farmer cries for a week.',
-          '7-9':  'The island falls, but not gently. Some don\'t make it off. The engine breaks unevenly — the hull cracks, the nav-lines scream. You live with the screams.'
+          '10+': 'The core sings itself to sleep. The Wake falls gently onto a stretch of clean ground below — nobody dies, but the ship is done. Ionia cries for a week. Lyra says the silence is beautiful. The people scatter to the wastes and start again. You walk away with your wrench and your silence.',
+          '7-9':  'The core goes quiet, but not cleanly. The Wake lands hard. Some don\'t make it off the decks. The frequencies scream on the way down. You live with the noise.',
         }
       },
       {
         id: 'path_b',
-        label: 'Preserve the engine / Evacuate',
-        description: 'Work with Meridian (or alone) to extract the engine. Evacuate the islanders.',
+        label: 'Sell the core / Evacuate the ship',
+        description: 'Work with Verrick to box the core and move the people.',
         outcomes: {
-          '10+': 'The extraction goes clean. Meridian pays out. The islanders get passage. You get a credential and a seat on the first evac ship. The engine leaves this world in a crate, humming quietly. Verrick nods at you like you\'re one of them now.',
-          '7-9':  'The extraction is messy. Two islanders refuse the evac — they stay with the elder farmer. The engine is damaged in transit. You get paid, but the aether credits feel like they came with blood on them.'
+          '10+': 'The acquisition goes clean. Verrick pays out. The people get passage. You get a credential and a seat on the first evac shuttle. The core leaves this world in a crate, humming quietly. Verrick nods at you like you\'re one of them now.',
+          '7-9':  'The acquisition is messy. Two people refuse the evac — they stay with Ionia on the lower decks. The core is damaged in transit. You get paid, but the solar credits feel like they came with blood on them.'
         }
       },
       {
         id: 'path_c',
-        label: 'Allow ascent / Discover what\'s above',
-        description: 'Let the engine go. Let the island rise. Find out what\'s above the world.',
+        label: 'Drive the core up / Find what\'s above',
+        description: 'Overdrive the core. Push the Wake up through the sky-layers into the unknown above.',
         outcomes: {
-          '10+': 'The engine sings. The island rises through the sky like a seed on the wind. You ride it up — and above the world is another world, upside-down and green, with its own sky and its own falling islands. The Navigator rides with you. You have a new quest.',
-          '7-9':  'The island rises, but the engine destabilises. Half the party stays below. You go up — but you\'re not sure you\'ll come back down. The Navigator looks at you like you made the wrong call.'
+          '10+': 'The core sings. The Wake rises through the sky-layers like a seed on the wind. You ride it up — and above the world is another world, upside-down and green, with its own sky and its own falling ships. The Core rides with you. You have a new route.',
+          '7-9':  'The Wake rises, but the core destabilises. Half the party stays below. You go up — but you\'re not sure you\'ll come back down. The Core looks at you like you made the wrong call.',
         }
       }
     ],
     epilogues: [
-      { id: 'epiline_1', name: 'The Drift Scholar',
+      { id: 'epiline_1', name: 'The Sky-Lane Drifter',
         trigger: () => quest.hullIntegrity >= 70 && quest.morale >= 50 && quest.engineIntegration < 40,
-        text: 'You left the engine behind and walked away. The arch calls you back — there are more falling islands, more songs that never finished. You are a Drift Scholar now. Your next map is already dreaming.' },
-      { id: 'epiline_2', name: 'The Engine Keeper',
+        text: 'You left the core behind and walked off the Wake. The sky-lanes call you back — there are more ships failing, more frequencies going wrong. You are a Sky-Lane Drifter now. Your next route is already singing.' },
+      { id: 'epiline_2', name: 'The Core-Bound',
         trigger: () => quest.hullIntegrity >= 50 && quest.engineIntegration >= 70,
-        text: 'You bound yourself to the engine. It lives in your chest now — a low hum, a cyan light under your ribs. You are the new Navigator. The Unfinished Song will never be finished, but you will keep singing it.' },
-      { id: 'epiline_3', name: 'The Salvage Partner',
+        text: 'You bound yourself to the core. It lives in your chest now — a low hum, a copper light under your ribs. You are the new heart of the Wake. The frequencies will never be finished, but you will keep singing them.' },
+      { id: 'epiline_3', name: 'Verrick\'s Ledger',
         trigger: () => quest.morale >= 40 && quest.hullIntegrity >= 40 && quest.choicePath === 'path_b',
-        text: 'Meridian made you a partner. You wear their credential like a second skin. The falling islands are your territory now. You tell yourself you\'re saving people. You are. But the engine remembers.' },
-      { id: 'epiline_4', name: 'The Above-Walker',
+        text: 'The Syndicate made you a partner. You wear their credential like a second skin. The failing sky-lanes are your territory now. You tell yourself you\'re saving people. You are. But the core remembers.' },
+      { id: 'epiline_4', name: 'The Above-Breaker',
         trigger: () => quest.choicePath === 'path_c' && quest.hullIntegrity >= 60,
-        text: 'You walked above the world. What you found there has no name yet. You are the first Above-Walker. The arch below will remember you as a ghost story. You don\'t care.' },
-      { id: 'epiline_5', name: 'The Unfinished',
+        text: 'You drove the Wake above the world. What you found there has no name yet. You are the first Above-Breaker. The sky-lanes below will remember you as a ghost story. You don\'t care.' },
+      { id: 'epiline_5', name: 'The Blight-Touched',
         trigger: () => quest.hullIntegrity < 40 || quest.morale < 20,
-        text: 'The island broke before you could finish the song. You survived. Barely. The nav-lines are silent. You are what\'s left of the Unfinished Song — a person with a hull\'s worth of silence inside them.' },
-      { id: 'epiline_6', name: 'The Dreamwright\'s Road',
+        text: 'The Wake broke before you could finish the song. You survived. Barely. The frequencies are silent. You are what\'s left of the Aureate Wake — a person with a hull\'s worth of silence inside them.' },
+      { id: 'epiline_6', name: 'The Seedwright\'s Road',
         trigger: () => quest.engineIntegration >= 40 && quest.morale >= 40 && quest.choicePath === 'path_a',
-        text: 'You destroyed the engine, but the dream didn\'t die. It went into the soil, the roots, the stones. You can hear it now — everywhere. You\'re a Dreamwright of the fall. The world will fall again. You\'ll be ready.' },
-      { id: 'epiline_7', name: 'The Song-Catcher',
+        text: 'You sang the core to sleep, but the song didn\'t die. It went into the ground, the roots, the stones. You can hear it now — everywhere. You\'re a Seedwright of the fall. The world will fall again. You\'ll be ready.' },
+      { id: 'epiline_7', name: 'The Sky-Singer',
         trigger: () => quest.choicePath === 'path_c' && quest.engineIntegration >= 60 && quest.morale >= 50,
-        text: 'You went up with the engine and you listened. Above the world, the song wasn\'t unfinished — it was waiting. You caught the last note and brought it back down. Now you teach others how to hear it. The arch has a new singer.' },
-      { id: 'epiline_8', name: 'The Quiet Harvest',
+        text: 'You drove the Wake up with the core and you listened. Above the world, the song wasn\'t unfinished — it was waiting. You caught the last note and brought it back down. Now you teach others how to hear it. The sky-lanes have a new singer.' },
+      { id: 'epiline_8', name: 'The Wake\'s Gardener',
         trigger: () => quest.choicePath === 'path_a' && quest.hullIntegrity >= 70 && quest.morale >= 60,
-        text: 'The island fell, but gently. The people scattered and found new ground. You stayed. The soil where the engine stood grew green first — faster than anything should. You farm that spot now. The crops don\'t taste like copper anymore. They taste like endings.' },
-      { id: 'epiline_9', name: 'The Meridian Ghost',
+        text: 'The Wake fell, but gently. The people scattered and found new ground. You stayed. The ground where the core stood grew green first — faster than anything should. You farm that spot now. The crops don\'t taste like copper anymore. They taste like endings.' },
+      { id: 'epiline_9', name: 'The Syndicate Ghost',
         trigger: () => quest.choicePath === 'path_b' && quest.hullIntegrity < 50,
-        text: 'The extraction broke you as much as the engine. You took Meridian\'s money and you took their credential, but you never took their world. You haunt the falling islands now — a salvage ghost with a ledger full of names you couldn\'t save. The engine remembers you too.' },
-      { id: 'epiline_10', name: 'The First Voice',
+        text: 'The acquisition broke you as much as the core. You took the Syndicate\'s money and you took their credential, but you never took their world. You haunt the failing sky-lanes now — an acquisition ghost with a ledger full of names you couldn\'t save. The core remembers you too.' },
+      { id: 'epiline_10', name: 'The First Note',
         trigger: () => quest.engineIntegration >= 80 && quest.morale >= 60 && quest.hullIntegrity >= 60,
-        text: 'You didn\'t choose a path — you sang the engine a new one. The song finished itself through you. Above the world, the arch heard it and answered. You are the first voice of the new world. The old one will fall. This one will rise. You\'ll be there to sing it up.' }
+        text: 'You didn\'t choose a path — you sang the core a new one. The song finished itself through you. Above the world, the sky-lanes heard it and answered. You are the first note of the new world. The old one will fall. This one will rise. You\'ll be there to sing it up.' }
     ]
   };
 }
@@ -512,10 +524,10 @@ function advanceSignal() {
   if (quest.hooksCompleted >= 3) {
     quest.state = QUEST_STATES.CROSSING;
     quest.act = 'crossing';
-    appendJournalEntry('crossing', 'The sky cracked open — three hazards block the way to the Unfinished Song. The engine is waiting.');
+    appendJournalEntry('crossing', 'The sky cracked open — three hazards block the way to the Aureate Wake. The core is waiting.');
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   } else if (quest.hooksCompleted >= 1) {
-    appendJournalEntry('signal', 'You picked up the first thread of the song. The island is talking to you.');
+    appendJournalEntry('signal', 'You picked up the first thread of the song. The Wake is talking to you.');
   }
 }
 
@@ -523,10 +535,10 @@ function advanceCrossing() {
   if (quest.hazardsCompleted >= 3) {
     quest.state = QUEST_STATES.CONTACT;
     quest.act = 'contact';
-    appendJournalEntry('contact', 'The crossing behind you. Four souls ahead. The engine hums between them like a held breath.');
+    appendJournalEntry('contact', 'The crossing behind you. Four souls ahead. The core hums between them like a held breath.');
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   } else if (quest.hazardsCompleted >= 1) {
-    appendJournalEntry('crossing', 'A hazard behind you. The sky is quieter now. The engine can hear you breathing.');
+    appendJournalEntry('crossing', 'A hazard behind you. The sky is quieter now. The core can hear you breathing.');
   }
 }
 
@@ -534,11 +546,11 @@ function advanceContact() {
   if (quest.npcsMet.length >= 4) {
     quest.state = QUEST_STATES.CHOICE;
     quest.act = 'choice';
-    appendJournalEntry('choice', 'All four voices heard. The island holds still. The engine waits for your answer.');
+    appendJournalEntry('choice', 'All four voices heard. The ship holds still. The core waits for your answer.');
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   } else if (quest.npcsMet.length >= 1) {
     const met = quest.npcsMet.length;
-    appendJournalEntry('contact', met + ' soul' + (met > 1 ? 's' : '') + ' spoken to. The engine hums a little louder each time.');
+    appendJournalEntry('contact', met + ' soul' + (met > 1 ? 's' : '') + ' spoken to. The core hums a little louder each time.');
   }
 }
 
@@ -644,7 +656,7 @@ function toggleLayer() {
   isSkyLayerVisible = !isSkyLayerVisible;
   // Re-draw prompt
   if (isSkyLayerVisible) {
-    addLedgerEntry('toggle', 'Sky layer revealed — the 14 falling islands hang above.');
+    addLedgerEntry('toggle', 'Sky layer revealed — the 14 floating deck-islands hang above.');
   } else {
     addLedgerEntry('toggle', 'Sky layer hidden — only the ground remains.');
   }

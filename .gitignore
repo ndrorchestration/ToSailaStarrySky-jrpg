@@ -13,7 +13,6 @@ tts/
 index_debug.html
 index_diag.html
 index_trace.html
-index-embedded.html
 
 # Disposable test scripts — keep only the canonical ones
 test-e2e.js

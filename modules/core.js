@@ -715,13 +715,13 @@ function drawBootSequence() {
       'hangs in the aether \u2014 seventeen shards of a world',
       'that broke its own gravity.',
       '',
-      'Beneath them, the Unfinished Song still hums.',
-      'An engine that lifted cities and did not come down.',
+      'Beneath them, the last aether-core still hums.',
+      'A ship that lifted cities and has not come down.',
       '',
-      'You are Ender. Rift Scholar. Dreamwright.',
+      'You are Ender. Deckhand. Engineer-in-training.',
       'You carry the song in your bones.',
       '',
-      'The island that falls upward',
+      'The Aureate Wake, the last solarpunk airship,',
       'has chosen you to finish it.',
     ];
     
@@ -1134,7 +1134,7 @@ function drawCharSheetOverlay() {
     textFont('Press Start 2P');
     textSize(10);
     fill(C.teal[0], C.teal[1], C.teal[2], 180);
-    text('YOUNG ENDER — Rift Scholar / Dreamwright', px + 20, py + 24);
+    text('ENDER — Deckhand / Engineer-in-training', px + 20, py + 24);
   }
 
   textFont('Press Start 2P');
