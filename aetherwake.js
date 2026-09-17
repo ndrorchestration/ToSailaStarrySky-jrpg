@@ -5573,7 +5573,7 @@ function drawCharSheet(px, py, pw, ph) {
     'Mycelial Ledger (2D6+Presence)',
     'Resonator Staff: EMP 1d6+2',
   ];
-  abils.forEach((a, i) => {
+  abilities.forEach((a, i) => {
     const ay = sheet.abilitiesY + 22 + i * 18;
     fill(PAL.PARCHMENT);
     noStroke();
@@ -5600,7 +5600,6 @@ function drawCharSheet(px, py, pw, ph) {
     { name: 'Resonator Staff', desc: 'Gunmetal shaft, claw mount, cyan crystal' },
   ];
   gear.forEach((g, i) => {
-    const gy = sheet.gearY + 22 + i * 30;
     drawGlowText(g.name, sheet.gearX + 10, gy, PAL.BIO, 13);
     fill(PAL.DIM);
     noStroke();
