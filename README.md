@@ -10,7 +10,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 - **Playable baseline:** boot → character creation → world exploration → dialogue/quest systems → combat
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
 - **Combat party:** exactly 3 active combatants selected from the persistent roster
-- **Current migration:** smoke-green development baseline with persistent `ROSTER[5]` and reference-based `ACTIVE_PARTY[3]`; authored onboarding and multi-character combat remain later phases
+- **Current migration:** smoke-green persistent roster, frozen effect vocabulary v0.1, and extracted ability/progression registries; generic effect resolution is the next architecture gate
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
 
@@ -108,6 +108,9 @@ It includes signal hooks, traversal hazards, NPC encounters, three major choice 
 |---|---|
 | `aetherwake.js` | Current integrated runtime / preservation build |
 | `index-embedded.html` | Current browser entry point |
+| `modules/effect-vocabulary.js` | Frozen effect vocabulary v0.1 + current action effect profiles |
+| `modules/ability-defs.js` | Canonical metadata for the eight current combat actions |
+| `modules/progression-defs.js` | Canonical current level-unlock table |
 | `modules/party-state.js` | Authoritative persistent roster / active-party reference layer |
 | `modules/char-create.js` | Active preservation character-creation adapter |
 | other `modules/*.js` | Older modular mirrors/reference source; not authoritative runtime for all systems |
@@ -126,13 +129,15 @@ npm install
 npm run playwright:install
 ```
 
-Run the canonical smoke test:
+Run the architecture contracts and canonical smoke test:
 
 ```bash
+npm run test:effects
+npm run test:registries
 npm run test:smoke
 ```
 
-The smoke gate covers the playable path from startup through character creation, world state, combat, and return to WORLD. It also verifies the five-record roster, three canonical active references, WORLD/roster lead identity, and post-combat write-back into the canonical lead record.
+The verification suite covers the playable path from startup through character creation, world state, combat, and return to WORLD. It also verifies the five-record roster/reference invariants, effect-vocabulary coverage for all eight actions, registry/runtime equivalence, the current level-unlock mapping, and post-combat write-back into the canonical lead record.
 
 ## Architecture direction
 
@@ -140,8 +145,8 @@ The production migration is incremental:
 
 1. establish one verified playable baseline,
 2. introduce persistent five-character roster state,
-3. formalize effect vocabulary and `ABILITY_DEFS`,
-4. move combat to a generic effect resolver,
+3. formalize effect vocabulary and extract the current ability/progression registries — **established on `dev/progression-build`**,
+4. move combat to a generic effect resolver while preserving the current 2D6 outcome behavior,
 5. replace prototype companion creation with authored roster onboarding,
 6. implement school/job/mastery progression,
 7. add formation, Dual Arts, and Triple Arts,

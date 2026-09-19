@@ -4,7 +4,7 @@
 
 Aetherwake is a late-prototype / pre-alpha project.
 
-The development branch now has a verified playable baseline plus the first persistent-party architecture phase: `ROSTER[5]` and reference-based `ACTIVE_PARTY[3]`. The next architecture gate is the first explicit effect vocabulary; ability/progression extraction remains downstream.
+The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, effect vocabulary v0.1, and extracted current ability/progression registries. The next architecture gate is generalizing combat resolution behind these contracts.
 
 ## Source-of-truth rules
 
@@ -13,10 +13,13 @@ The development branch now has a verified playable baseline plus the first persi
 Current browser runtime:
 
 1. `index-embedded.html`
-2. `modules/party-state.js`
-3. `aetherwake.js`
-4. `modules/char-create.js`
-5. bundled `p5.min.js`
+2. `modules/effect-vocabulary.js`
+3. `modules/ability-defs.js`
+4. `modules/progression-defs.js`
+5. `modules/party-state.js`
+6. `aetherwake.js`
+7. `modules/char-create.js`
+8. bundled `p5.min.js`
 
 The other files under `modules/` are useful historical/modular mirrors, but they are not guaranteed to match the integrated runtime.
 
@@ -66,6 +69,25 @@ On 2026-09-19, smoke run `35456148594` passed on commit `be896474c97271084c989f7
 - combat state write-back into the canonical lead record.
 
 This checkpoint does not mean the authored-roster onboarding, formation system, three-character combat, ability extraction, or progression architecture is complete, and it does not mean `dev/progression-build` has been promoted to `main`.
+
+## Effect/registry checkpoint
+
+On 2026-09-19:
+
+- run `35457176667` passed on `fda1512e9643c0b70738af200c1714f5174ecaca`, establishing effect vocabulary v0.1 and action-profile coverage;
+- run `35457323324` passed on `1f45d888f62b5f77bb1157c946f2522e40727f42`, verifying extracted ability/progression registries and full browser behavior;
+- all eight runtime actions are created from `modules/ability-defs.js`;
+- level 3/4/5 unlocks are read from `modules/progression-defs.js`;
+- `resolveTurn()` remains unchanged as the active mechanics executor;
+- declared-but-not-applied prototype semantics remain explicitly marked rather than silently treated as implemented.
+
+Canonical verification commands:
+
+```bash
+npm run test:effects
+npm run test:registries
+npm run test:smoke
+```
 
 ## Architecture migration rule
 

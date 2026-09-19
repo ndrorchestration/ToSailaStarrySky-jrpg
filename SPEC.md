@@ -146,6 +146,35 @@ Current prototype level unlocks:
 - level 4 — Aether Seal
 - level 5 — Rest
 
+The development branch now separates current combat metadata from execution:
+
+- `modules/effect-vocabulary.js` establishes effect vocabulary v0.1;
+- frozen kinds are `damage`, `restore`, `resource`, `modifier`, `status`, `reveal`, and `movement`;
+- `modules/ability-defs.js` owns canonical metadata/order for the eight current actions;
+- `modules/progression-defs.js` owns the current level-3/4/5 unlock table;
+- `AetherCombat.resolveTurn()` remains the executable authority in this phase;
+- CI validates definition/profile coverage and runtime equivalence before running the browser smoke test.
+
+Known semantic debt remains explicit rather than being silently upgraded:
+
+- Uncover Truth's reveal and +1-next-roll semantics are currently narrated/local-only rather than durable applied state;
+- the Shared Dream +1-next-action branch is likewise not persisted/applied;
+- current legacy cost/tier behavior is preserved exactly pending the resolver migration.
+
+### ESTABLISHED EFFECT VOCABULARY — v0.1
+
+The first frozen ordinary effect kinds are:
+
+- damage,
+- restoration,
+- resource change,
+- modifier,
+- status,
+- reveal/information,
+- movement/spatial.
+
+This is intentionally smaller than the full long-term design vocabulary. Field/terrain, marks/triggers, interrupt/reaction, summon/deploy, link/network, transform, conditional/branch, sequence, and script-hook policy remain design extensions rather than frozen runtime contracts.
+
 ### TARGET ARCHITECTURE
 
 Combat action availability derives from character state and declarative definitions.
@@ -164,26 +193,9 @@ Learn eligibility and use eligibility must be separate checks.
 
 The generic resolver should process ordinary effects without action-ID-specific branching.
 
-Planned effect-component vocabulary includes:
+Effect vocabulary v0.1 already covers the ordinary current-runtime families listed above. Future extensions may add field/terrain, mark/trigger, interrupt/counter/reaction, summon/deploy/construct, link/network, transform/alter, conditional/branch, sequence, and a rare script-hook escape hatch as those mechanics become executable requirements.
 
-- damage,
-- healing/restoration,
-- resource changes,
-- buffs/debuffs,
-- status,
-- position/spatial,
-- field/terrain,
-- mark/trigger,
-- interrupt/counter/reaction,
-- reveal/information,
-- summon/deploy/construct,
-- link/network,
-- transform/alter,
-- conditional/branch,
-- sequence,
-- rare script hook.
-
-Repeated use of script hooks for ordinary mechanics indicates the vocabulary is incomplete.
+Repeated use of script hooks for ordinary mechanics would indicate the vocabulary is incomplete.
 
 ---
 
@@ -281,8 +293,10 @@ The full campaign will expand story acts, recruitment timing, character arcs, re
 ### CURRENT IMPLEMENTATION
 
 - `index-embedded.html` is the current browser entry point.
-- `modules/party-state.js` is the authoritative persistent roster / active-party reference layer and loads before the integrated runtime.
-- `aetherwake.js` is the current integrated runtime/preservation artifact.
+- `modules/effect-vocabulary.js` loads the frozen effect contract before combat construction.
+- `modules/ability-defs.js` and `modules/progression-defs.js` load the canonical current action/unlock registries.
+- `modules/party-state.js` is the authoritative persistent roster / active-party reference layer.
+- `aetherwake.js` is the current integrated runtime/preservation artifact and remains the current combat executor.
 - `modules/char-create.js` is loaded at runtime as a preservation onboarding adapter.
 - several other `modules/*.js` files are older mirrors/reference copies and may not match the integrated runtime.
 
@@ -364,6 +378,6 @@ Automated tests should also cover:
 10. expand campaign content,
 11. production hardening and balance.
 
-**Development-branch checkpoint (2026-09-19):** the smoke-stabilized baseline and steps 2–3 are verified on `dev/progression-build`; promotion/merge to `main` has not occurred. The next architecture gate is step 4, the first effect vocabulary.
+**Development-branch checkpoint (2026-09-19):** the smoke-stabilized baseline plus steps 2–5 are verified on `dev/progression-build`: persistent roster, active references, effect vocabulary v0.1, and extracted ability/progression registries. Promotion/merge to `main` has not occurred. The next architecture gate is step 6, generalizing combat resolution.
 
 **Non-negotiable:** avoid a single rewrite of character creation, combat, progression, and party state at the same time.
