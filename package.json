@@ -33,6 +33,7 @@
   "private": true,
   "scripts": {
     "test:smoke": "node tests/smoke-playwright.js",
-    "playwright:install": "playwright install chromium"
+    "playwright:install": "playwright install chromium",
+    "test:effects": "node tests/effect-vocabulary.test.js"
   }
 }

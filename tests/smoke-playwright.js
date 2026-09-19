@@ -187,6 +187,35 @@ function createServer() {
     const combatStart = await page.evaluate(() => window._combat.getState());
     assert(combatStart.turn === 0, 'combat did not start at turn 0');
 
+    const effectContract = await page.evaluate(() => {
+      const vocabulary = window.AetherEffectVocabulary;
+      const actions = window._combat.getState().actions;
+      return {
+        version: vocabulary && vocabulary.VERSION,
+        validCoverage: Boolean(vocabulary && vocabulary.assertActionCoverage(actions)),
+        kinds: vocabulary && Object.values(vocabulary.EFFECT_KIND),
+        profileIds: actions.map(action => action.effectProfile),
+        declaredNotApplied: vocabulary
+          ? vocabulary.ACTION_EFFECT_PROFILES.uncoverTruth.success
+              .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.DECLARED_NOT_APPLIED)
+              .map(effect => effect.kind + ':' + effect.key)
+          : [],
+      };
+    });
+
+    assert(effectContract.version === '0.1.0', 'effect vocabulary version is not loaded');
+    assert(effectContract.validCoverage, 'current actions are not covered by effect profiles');
+    assert(effectContract.kinds.join('|') ===
+      'damage|restore|resource|modifier|status|reveal|movement',
+      'effect vocabulary kinds drifted');
+    assert(effectContract.profileIds.join('|') ===
+      'staffStrike|uncoverTruth|sharedDream|mycelialLedger|hold|windWard|aetherSeal|rest',
+      'combat action effect-profile bindings drifted');
+    assert(effectContract.declaredNotApplied.includes('reveal:weakness'),
+      'Uncover Truth reveal debt is no longer explicit');
+    assert(effectContract.declaredNotApplied.includes('modifier:nextRoll'),
+      'Uncover Truth modifier debt is no longer explicit');
+
     await page.keyboard.press('1');
     await page.waitForFunction(() =>
       window._combat && window._combat.getState().turn >= 1
@@ -268,6 +297,7 @@ function createServer() {
     console.log(JSON.stringify({
       party: review,
       partyArchitecture,
+      effectContract,
       worldBeforeCombat,
       combatTurns: combatAfterActions.turn,
       enemy: combatAfterActions.enemy && combatAfterActions.enemy.name,
