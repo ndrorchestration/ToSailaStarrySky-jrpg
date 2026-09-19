@@ -10,7 +10,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 - **Playable baseline:** boot → character creation → world exploration → dialogue/quest systems → combat
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
 - **Combat party:** exactly 3 active combatants selected from the persistent roster
-- **Current migration:** smoke-green persistent roster, effect vocabulary/resolver contracts, extracted registries, enforced level-gated action eligibility, and live ordinary mutation routing; higher-order effect semantics remain separate gates
+- **Current migration:** smoke-green persistent roster, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; higher-order effect semantics remain separate gates
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
 
@@ -137,10 +137,15 @@ npm run test:effects
 npm run test:registries
 npm run test:resolver
 npm run test:resolver-integration
+npm run test:enemy-metadata
+npm run test:combat-input
+npm run test:resource-eligibility
+npm run test:progression-reachability
+npm run test:secondary-action
 npm run test:smoke
 ```
 
-The verification suite covers the playable path from startup through character creation, world state, combat, and return to WORLD. It also verifies roster/reference invariants, effect-vocabulary coverage, registry/runtime equivalence, the level-unlock mapping, fail-closed resolver semantics, live routing of ordinary combat mutations through that resolver, and post-combat write-back into the canonical lead record.
+The verification suite covers the playable path from startup through character creation, world state, combat, and return to WORLD. It also verifies roster/reference invariants, effect-vocabulary coverage, registry/runtime equivalence, transactional action affordability, progression reachability, secondary-action state, enemy metadata propagation, live resolver routing, and post-combat write-back into the canonical lead record.
 
 ## Architecture direction
 
