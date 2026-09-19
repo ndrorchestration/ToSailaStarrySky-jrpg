@@ -26,7 +26,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   const EFFECT_KIND = Object.freeze({
     DAMAGE: 'damage',
@@ -121,8 +121,8 @@
         ),
         effect(
           EFFECT_KIND.MODIFIER, TARGET.SELF, OPERATION.INCREASE, 'nextRoll',
-          RUNTIME_STATUS.DECLARED_NOT_APPLIED,
-          'Current runtime assigns a local nextRollBonus but never applies it to a later roll.'
+          RUNTIME_STATUS.IMPLEMENTED,
+          'Uncover Truth stores +1 and the next admitted action roll consumes it.'
         ),
       ],
       partial: [],

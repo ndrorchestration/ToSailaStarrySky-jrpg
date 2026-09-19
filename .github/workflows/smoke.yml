@@ -33,6 +33,9 @@ jobs:
       - name: Verify effect resolver contract
         run: npm run test:resolver
 
+      - name: Verify modifier-effect contract
+        run: npm run test:modifier-effect
+
       - name: Verify live resolver integration
         run: npm run test:resolver-integration
 

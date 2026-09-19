@@ -365,6 +365,65 @@ function createServer() {
     assert(secondaryStateContract.afterFailure.lastAbilityId === 'uncoverTruth',
       'last ability identity did not advance on the later primary action');
 
+    const modifierRuntimeContract = await page.evaluate(() => {
+      const originalRandom = window.random;
+      try {
+        window._combat.init({
+          vit: 13,
+          scrap: 7,
+          aether: { current: 6, max: 6 },
+          heat: { current: 0, max: 3 },
+          echoes: { current: 3, max: 3 },
+          charges: 2,
+          staffMax: 2,
+          level: 1,
+          xp: 0,
+          xpToNext: 50,
+          unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
+          nextRollBonus: 0,
+        });
+        window._combat.beginEncounter('skyPredator');
+
+        window.random = function() { return 6; };
+        window._combat.resolveTurn('uncoverTruth', null);
+        const afterGrant = window._combat.getState();
+
+        window.random = function() { return 1; };
+        window._combat.resolveTurn('mycelialLedger', null);
+        const afterConsume = window._combat.getState();
+
+        return {
+          afterGrant: {
+            nextRollBonus: afterGrant.player.nextRollBonus,
+            lastRoll: afterGrant.lastRoll,
+          },
+          afterConsume: {
+            nextRollBonus: afterConsume.player.nextRollBonus,
+            lastRoll: afterConsume.lastRoll,
+          },
+        };
+      } finally {
+        window.random = originalRandom;
+        if (typeof startCombat !== 'function') throw new Error('startCombat is unavailable');
+        startCombat('skyPredator');
+      }
+    });
+
+    assert(modifierRuntimeContract.afterGrant.nextRollBonus === 1,
+      'Uncover Truth success did not persist +1 next-roll modifier');
+    assert(modifierRuntimeContract.afterGrant.lastRoll.actionId === 'uncoverTruth',
+      'Uncover Truth roll trace missing');
+    assert(modifierRuntimeContract.afterConsume.nextRollBonus === 0,
+      'next-roll modifier was not consumed by the next admitted roll');
+    assert(modifierRuntimeContract.afterConsume.lastRoll.actionId === 'mycelialLedger',
+      'modifier consumption roll trace bound to wrong action');
+    assert(modifierRuntimeContract.afterConsume.lastRoll.baseStat === 1,
+      'Mycelial Ledger base Presence drifted in modifier test');
+    assert(modifierRuntimeContract.afterConsume.lastRoll.consumedModifier === 1,
+      'next-roll modifier was not included in the following roll');
+    assert(modifierRuntimeContract.afterConsume.lastRoll.stat === 2,
+      'following roll did not receive +1 stat bonus');
+
     // Secondary input must be a safe no-op when no secondary is available.
     // This specifically guards against core reaching into AetherCombat's
     // private state.
@@ -427,6 +486,11 @@ function createServer() {
         validCoverage: Boolean(vocabulary && vocabulary.assertActionCoverage(actions)),
         kinds: vocabulary && Object.values(vocabulary.EFFECT_KIND),
         profileIds: actions.map(action => action.effectProfile),
+        implemented: vocabulary
+          ? vocabulary.ACTION_EFFECT_PROFILES.uncoverTruth.success
+              .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED)
+              .map(effect => effect.kind + ':' + effect.key)
+          : [],
         declaredNotApplied: vocabulary
           ? vocabulary.ACTION_EFFECT_PROFILES.uncoverTruth.success
               .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.DECLARED_NOT_APPLIED)
@@ -435,7 +499,7 @@ function createServer() {
       };
     });
 
-    assert(effectContract.version === '0.1.0', 'effect vocabulary version is not loaded');
+    assert(effectContract.version === '0.2.0', 'effect vocabulary version is not loaded');
     assert(effectContract.validCoverage, 'current actions are not covered by effect profiles');
     assert(effectContract.kinds.join('|') ===
       'damage|restore|resource|modifier|status|reveal|movement',
@@ -445,8 +509,8 @@ function createServer() {
       'combat action effect-profile bindings drifted');
     assert(effectContract.declaredNotApplied.includes('reveal:weakness'),
       'Uncover Truth reveal debt is no longer explicit');
-    assert(effectContract.declaredNotApplied.includes('modifier:nextRoll'),
-      'Uncover Truth modifier debt is no longer explicit');
+    assert(effectContract.implemented.includes('modifier:nextRoll'),
+      'Uncover Truth next-roll modifier is not executable');
 
     const registryContract = await page.evaluate(() => {
       const abilities = window.AetherAbilityDefs;
@@ -518,7 +582,7 @@ function createServer() {
       };
     });
 
-    assert(resolverContract.version === '0.1.0',
+    assert(resolverContract.version === '0.2.0',
       'effect resolver version is not loaded');
     assert(resolverContract.playerVit === 9,
       'effect resolver damage/restoration sequence drifted');
@@ -624,6 +688,7 @@ function createServer() {
       affordabilityContract,
       progressionReachability,
       secondaryStateContract,
+      modifierRuntimeContract,
       effectContract,
       registryContract,
       resolverContract,

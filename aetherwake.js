@@ -4136,6 +4136,7 @@ function AetherCombat(p, C) {
       charge: 2.0,
       staffCharges: 2, maxStaffCharges: 2,
       level: 1, xp: 0, xpToNext: 50,
+      nextRollBonus: 0,
       unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
       equipment: { staff: null, backpack: null },
     },
@@ -4205,6 +4206,17 @@ function AetherCombat(p, C) {
   function changeResource(resource, delta) {
     return recordResolverMutation(effectResolver.applyEffect(
       effectResolver.createResourceDeltaEffect(resource, delta),
+      resolverContext()
+    ));
+  }
+
+  function changeModifier(key, delta) {
+    return recordResolverMutation(effectResolver.applyEffect(
+      effectResolver.createModifierDeltaEffect(
+        effectVocabulary.TARGET.SELF,
+        key,
+        delta
+      ),
       resolverContext()
     ));
   }
@@ -4346,6 +4358,7 @@ function AetherCombat(p, C) {
     state.player.level = options.level ?? 1;
     state.player.xp = options.xp ?? 0;
     state.player.xpToNext = options.xpToNext ?? 50;
+    state.player.nextRollBonus = options.nextRollBonus ?? 0;
     state.player.unlockedAbilities = options.unlockedAbilities || ['uncoverTruth', 'sharedDream', 'mycelialLedger'];
     state.player.equipment = options.equipment || { staff: null, backpack: null };
     state.turn = 0;
@@ -4354,6 +4367,7 @@ function AetherCombat(p, C) {
     state.encounterOver = false;
     state._secondaryAvailable = false;
     state._lastAbilityId = null;
+    state._lastRoll = null;
     resolverMutationCount = 0;
     log('Combat initialized. The weave awaits.');
   };
@@ -4489,9 +4503,24 @@ function AetherCombat(p, C) {
       changeResource(effectVocabulary.RESOURCE.HEAT, 1);
     }
 
-    // Roll
-    const statBonus = action.stat ? state.player[action.stat] || 0 : 0;
+    // Roll. A pending self next-roll modifier is consumed only when an
+    // admitted action actually reaches the roll.
+    const baseStatBonus = action.stat ? state.player[action.stat] || 0 : 0;
+    const pendingRollBonus = state.player.nextRollBonus || 0;
+    const statBonus = baseStatBonus + pendingRollBonus;
+    if (pendingRollBonus !== 0) {
+      changeModifier('nextRoll', -pendingRollBonus);
+    }
     const r = roll2d6Plus(statBonus);
+    state._lastRoll = {
+      actionId: action.id,
+      dice: r.dice,
+      baseStat: baseStatBonus,
+      consumedModifier: pendingRollBonus,
+      stat: r.stat,
+      total: r.total,
+      outcome: r.outcome,
+    };
     let actionText = '';
     let enemyDmg = 0;
     let playerDmg = 0;
@@ -4530,7 +4559,7 @@ function AetherCombat(p, C) {
         // Visual: ability flash for all abilities
         state._abilityFlashTurn = millis();
         if (action.id === 'uncoverTruth') {
-          nextRollBonus = 1;
+          changeModifier('nextRoll', 1);
           actionText = 'Uncover Truth — the weave reveals its pattern. +1 to next roll. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         } else if (action.id === 'sharedDream') {
           // 50/50: heal 1-2 Vit OR +1 next roll bonus
@@ -4886,6 +4915,7 @@ function AetherCombat(p, C) {
       ])),
       secondaryAvailable: Boolean(state._secondaryAvailable),
       lastAbilityId: state._lastAbilityId || null,
+      lastRoll: state._lastRoll ? Object.assign({}, state._lastRoll) : null,
       initiative: state.initiative,
       resolverMutations: resolverMutationCount,
     };
