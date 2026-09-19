@@ -16,7 +16,27 @@ See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for 
 
 ## Run the game
 
-Open `index-embedded.html` in a modern browser.
+Use a local HTTP server for the reliable launch path. The canonical smoke test uses this same model.
+
+From the repository folder:
+
+```bash
+python -m http.server 8080
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8080/index-embedded.html
+```
+
+On Windows, you can also use:
+
+```powershell
+py -m http.server 8080
+```
+
+Opening the file directly may leave the loading screen or produce a blank canvas in some browser configurations because the verified runtime path is served over HTTP.
 
 The development runtime is designed to work offline and uses:
 
