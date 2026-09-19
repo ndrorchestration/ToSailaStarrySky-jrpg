@@ -551,12 +551,11 @@ function handleInput() {
         combat.resolveTurn(actionIds[idx], null);
       }
     }
-    // S key: secondary action (re-run last ability if available)
-    if (typeof key === 'string' && key === 's' && combat && typeof combat.resolveTurn === 'function') {
-      if (state._secondaryAvailable && state._lastAbilityId) {
-        combat.resolveTurn(state._lastAbilityId, null);
-        state._secondaryAvailable = false;
-      }
+    // S key: secondary action. Secondary state belongs to AetherCombat;
+    // core must not reach into the combat module's private state.
+    if (typeof key === 'string' && key.toLowerCase() === 's' &&
+        combat && typeof combat.resolveSecondaryAction === 'function') {
+      combat.resolveSecondaryAction();
     }
   }
   else {
@@ -4353,6 +4352,8 @@ function AetherCombat(p, C) {
     state.log = [];
     state.enemy = null;
     state.encounterOver = false;
+    state._secondaryAvailable = false;
+    state._lastAbilityId = null;
     resolverMutationCount = 0;
     log('Combat initialized. The weave awaits.');
   };
@@ -4651,7 +4652,7 @@ function AetherCombat(p, C) {
     if (enemyDmg > 0) log(state.enemy.name + ' takes ' + enemyDmg + ' EMP. HP: ' + state.enemy.hp + '/' + state.enemy.maxHp);
     if (playerDmg > 0) log('You take ' + playerDmg + ' damage. Vit: ' + state.player.vit + '/' + state.player.maxVit);
     if (heal > 0) log('Healed ' + heal + ' Vit.');
-    if (text) log('[Turn ' + state.turn + '] ' + text);
+    if (actionText) log('[Turn ' + state.turn + '] ' + actionText);
 
     // Enemy turn — use special abilities by type
     if (state.enemy.hp > 0) {
@@ -4830,6 +4831,16 @@ function AetherCombat(p, C) {
   this.ability = function(name, target) {
     const action = actions.find(a => a.id === name.toLowerCase().replace(/\s+/g, ''));
     if (action) this.resolveTurn(action.id, null);
+  };
+
+  this.resolveSecondaryAction = function() {
+    if (!state._secondaryAvailable || !state._lastAbilityId) return false;
+    const abilityId = state._lastAbilityId;
+    this.resolveTurn(abilityId, null);
+    // Preserve the prototype's one-secondary-per-trigger behavior even if
+    // the repeated ability itself rolls another success.
+    state._secondaryAvailable = false;
+    return true;
   };
 
   this.roll2d6 = roll2d6;

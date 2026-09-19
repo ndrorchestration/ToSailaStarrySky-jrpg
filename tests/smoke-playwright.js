@@ -187,6 +187,14 @@ function createServer() {
     const combatStart = await page.evaluate(() => window._combat.getState());
     assert(combatStart.turn === 0, 'combat did not start at turn 0');
 
+    // Secondary input must be a safe no-op when no secondary is available.
+    // This specifically guards against core reaching into AetherCombat's
+    // private state.
+    await page.keyboard.press('KeyS');
+    const afterIdleSecondary = await page.evaluate(() => window._combat.getState());
+    assert(afterIdleSecondary.turn === 0,
+      'unavailable secondary action should not consume a turn');
+
     const enemyMetadataContract = await page.evaluate(() => {
       const ids = [
         'skyPredator',
@@ -359,6 +367,12 @@ function createServer() {
     assert(combatAfterActions.turn >= 2, 'combat actions did not resolve');
     assert(combatAfterActions.resolverMutations > 0,
       'live combat actions did not route ordinary mutations through the effect resolver');
+    assert(combatAfterActions.log.some(line =>
+      line.includes('[Turn 1]') && line.includes('Resonator Staff')),
+      'turn 1 action text was not logged correctly');
+    assert(combatAfterActions.log.some(line =>
+      line.includes('[Turn 2]') && line.includes('Uncover Truth')),
+      'turn 2 action text was not logged correctly');
 
     // Deterministic state-transition check. We test real keyboard combat
     // actions above; direct finishCombat avoids making the smoke test depend on
