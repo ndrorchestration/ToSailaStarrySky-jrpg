@@ -77,7 +77,7 @@ function createServer() {
       document.querySelector('canvas') &&
       document.querySelector('canvas').width === 960 &&
       document.querySelector('canvas').height === 640
-    , { timeout: 15000 });
+    , undefined, { timeout: 15000 });
 
     // One real Enter follows the production input path:
     // BOOT → MENU → CHARCREATE and char-create title → name.
@@ -86,7 +86,7 @@ function createServer() {
       window.gameState === 'charcreate' &&
       window._charcreate &&
       window._charcreate.phase === 'name'
-    , { timeout: 5000 });
+    , undefined, { timeout: 5000 });
 
     // The current prototype defaults to Sky-Sailor if no numeric job key is
     // chosen. Avoid numeric selection here so this smoke test does not couple
@@ -100,7 +100,7 @@ function createServer() {
       window._charcreate.slot === 1 &&
       window._charcreate.party &&
       window._charcreate.party[1]
-    , { timeout: 5000 });
+    , undefined, { timeout: 5000 });
 
     await page.keyboard.type('Ionia');
     await page.keyboard.press('Enter');
@@ -110,7 +110,7 @@ function createServer() {
       window._charcreate.phase === 'review' &&
       window._charcreate.party &&
       window._charcreate.party[2]
-    , { timeout: 5000 });
+    , undefined, { timeout: 5000 });
 
     const review = await page.evaluate(() => ({
       partyLength: window._charcreate.party.length,
@@ -130,7 +130,7 @@ function createServer() {
       window.gameState === 'world' &&
       window._world &&
       window._world.player
-    , { timeout: 5000 });
+    , undefined, { timeout: 5000 });
 
     const worldBeforeCombat = await page.evaluate(() => ({
       name: window._world.player.name,
@@ -150,7 +150,7 @@ function createServer() {
       window._combat &&
       window._combat.getState &&
       window._combat.getState().enemy
-    , { timeout: 5000 });
+    , undefined, { timeout: 5000 });
 
     const combatStart = await page.evaluate(() => window._combat.getState());
     assert(combatStart.turn === 0, 'combat did not start at turn 0');
@@ -158,12 +158,12 @@ function createServer() {
     await page.keyboard.press('1');
     await page.waitForFunction(() =>
       window._combat && window._combat.getState().turn >= 1
-    , { timeout: 5000 });
+    , undefined, { timeout: 5000 });
 
     await page.keyboard.press('2');
     await page.waitForFunction(() =>
       window._combat && window._combat.getState().turn >= 2
-    , { timeout: 5000 });
+    , undefined, { timeout: 5000 });
 
     const combatAfterActions = await page.evaluate(() => window._combat.getState());
     assert(combatAfterActions.turn >= 2, 'combat actions did not resolve');
@@ -176,7 +176,7 @@ function createServer() {
       finishCombat();
     });
 
-    await page.waitForFunction(() => window.gameState === 'world', { timeout: 5000 });
+    await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
 
     const worldAfterCombat = await page.evaluate(() => ({
       vit: window._world.player.vit,
