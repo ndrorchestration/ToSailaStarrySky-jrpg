@@ -530,6 +530,18 @@ function handleInput() {
     if (combat && typeof combat.handleInput === 'function') {
       combat.handleInput(keys, keysPressed);
     }
+
+    // Once an encounter is over, Enter / Space / Esc returns to WORLD and
+    // writes persistent combat results back to world.player.
+    if (combat && typeof combat.getState === 'function') {
+      const combatState = combat.getState();
+      if (combatState && combatState.encounterOver &&
+          (keysPressed[13] || keysPressed[32] || keysPressed[27])) {
+        finishCombat();
+        return;
+      }
+    }
+
     // Number keys 1-8 trigger combat actions
     if (typeof key === 'string' && key >= '1' && key <= '8' && combat && typeof combat.resolveTurn === 'function') {
       const actionIds = ['staffStrike', 'uncoverTruth', 'sharedDream', 'mycelialLedger', 'hold', 'windWard', 'aetherSeal', 'rest'];
@@ -666,6 +678,54 @@ function startCombat(enemyId) {
   combat.beginEncounter(enemyId || 'skyPredator');
   gameState = STATE.COMBAT;
   window.gameState = gameState;
+}
+
+function finishCombat() {
+  if (!combat || !world || !world.player || typeof combat.getState !== 'function') return;
+
+  const combatState = combat.getState();
+  const p = combatState && combatState.player ? combatState.player : null;
+
+  if (p) {
+    world.player.vit = p.vit;
+    world.player.scrap = p.scrap;
+
+    if (p.aether) {
+      world.player.aether = p.aether.current;
+      world.player.aetherMax = p.aether.max;
+    }
+    if (p.heat) {
+      world.player.heat = p.heat.current;
+      world.player.heatMax = p.heat.max;
+    }
+    if (p.echoes) {
+      world.player.echoes = p.echoes.current;
+      world.player.echoesMax = p.echoes.max;
+    }
+
+    world.player.staffCharges = p.staffCharges;
+    if (combat.getCharges) {
+      const chargeInfo = combat.getCharges();
+      if (chargeInfo && chargeInfo.max != null) {
+        world.player.maxStaffCharges = chargeInfo.max;
+      }
+    }
+
+    world.player.level = p.level;
+    world.player.xp = p.xp;
+    world.player.xpToNext = p.xpToNext;
+    world.player.unlockedAbilities = Array.isArray(p.unlockedAbilities)
+      ? p.unlockedAbilities.slice()
+      : world.player.unlockedAbilities;
+    world.player.equipment = p.equipment
+      ? JSON.parse(JSON.stringify(p.equipment))
+      : world.player.equipment;
+  }
+
+  gameState = STATE.WORLD;
+  window.gameState = gameState;
+  prevState = null;
+  if (VIS.fadeTransitions) startFade(150);
 }
 
 function openState(s) {
