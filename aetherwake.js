@@ -827,31 +827,31 @@ function triggerCombatHitFeedback(enemyDmg, playerDmg, rollTotal, isPlayerAttack
   }
   // Audio
   if (isPlayerAttack) {
-    if (enemyDmg > 0) window.playCombatHit();
+    if (enemyDmg > 0 && typeof window.playCombatHit === 'function') window.playCombatHit();
   }
   if (playerDmg > 0) {
-    window.playDamageTaken();
+    if (typeof window.playDamageTaken === 'function') window.playDamageTaken();
   }
 }
 
 /** Notify that an ability resolved — success or fail sound. */
 function triggerAbilityFeedback(success) {
   if (success) {
-    window.playAbilitySuccess();
+    if (typeof window.playAbilitySuccess === 'function') window.playAbilitySuccess();
   } else {
-    window.playAbilityFail();
+    if (typeof window.playAbilityFail === 'function') window.playAbilityFail();
   }
 }
 
 /** Notify quest state change. */
 function triggerQuestAdvance() {
-  window.playQuestAdvance();
+  if (typeof window.playQuestAdvance === 'function') window.playQuestAdvance();
   showToast('QUEST ADVANCED', [42, 255, 181], 1800);
 }
 
 /** Notify level up. */
 function triggerLevelUp() {
-  window.playLevelUp();
+  if (typeof window.playLevelUp === 'function') window.playLevelUp();
   showToast('LEVEL UP', [255, 179, 71], 2200);
 }
 
@@ -4817,6 +4817,9 @@ function AetherCombat(p, C) {
   // ── Rendering (called from core.js drawCombatScene wiring) ──
   this.drawCombatScene = function(playerX, playerY, aetherMax, staffMax) {
     const now = millis();
+    const dodgeBob = state._dodgeTurn && state._dodgeTurn > now - 200
+      ? Math.sin((now - state._dodgeTurn) * 0.02) * 4
+      : 0;
     
     // ── Background ──
     noStroke();
@@ -5203,7 +5206,6 @@ function AetherCombat(p, C) {
     // ── Player character ──
     const px = playerX, py = playerY;
     const pulse = Math.sin(now * 0.003) * 3 + 20;
-    const dodgeBob = state._dodgeTurn && state._dodgeTurn > now - 200 ? Math.sin((now - state._dodgeTurn) * 0.02) * 4 : 0;
 
     // Player glow
     p.fill(C.teal[0], C.teal[1], C.teal[2], 50);
