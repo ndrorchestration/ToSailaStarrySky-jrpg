@@ -22,7 +22,7 @@ function context() {
   };
 }
 
-assert.strictEqual(resolver.VERSION, '0.1.0');
+assert.strictEqual(resolver.VERSION, '0.2.0');
 
 {
   const ctx = context();
@@ -82,6 +82,32 @@ assert.strictEqual(resolver.VERSION, '0.1.0');
 
 {
   const ctx = context();
+  ctx.player.nextRollBonus = 0;
+  const gained = resolver.applyEffect(
+    resolver.createModifierDeltaEffect(
+      vocabulary.TARGET.SELF,
+      'nextRoll',
+      1
+    ),
+    ctx
+  );
+  assert.strictEqual(ctx.player.nextRollBonus, 1);
+  assert.strictEqual(gained.delta, 1);
+
+  const consumed = resolver.applyEffect(
+    resolver.createModifierDeltaEffect(
+      vocabulary.TARGET.SELF,
+      'nextRoll',
+      -1
+    ),
+    ctx
+  );
+  assert.strictEqual(ctx.player.nextRollBonus, 0);
+  assert.strictEqual(consumed.delta, -1);
+}
+
+{
+  const ctx = context();
   const declared = {
     kind: vocabulary.EFFECT_KIND.REVEAL,
     target: vocabulary.TARGET.ENEMY,
@@ -122,7 +148,7 @@ assert.throws(
 console.log('Aetherwake effect resolver contract: PASS');
 console.log(JSON.stringify({
   version: resolver.VERSION,
-  executableKinds: ['damage', 'restore', 'resource'],
-  declaredNoOpKinds: ['modifier', 'reveal'],
+  executableKinds: ['damage', 'restore', 'resource', 'modifier'],
+  declaredNoOpKinds: ['reveal'],
   failClosedKinds: ['status', 'movement'],
 }, null, 2));

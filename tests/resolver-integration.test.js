@@ -37,5 +37,11 @@ assert(body.includes('applyRestore(effectVocabulary.TARGET.SELF'),
   'restoration is not routed through resolver');
 assert(body.includes('changeResource(effectVocabulary.RESOURCE.'),
   'resource changes are not routed through resolver');
+assert(body.includes("changeModifier('nextRoll', -pendingRollBonus);"),
+  'next-roll modifier consumption is not routed through resolver');
+assert(body.includes("changeModifier('nextRoll', 1);"),
+  'Uncover Truth modifier grant is not routed through resolver');
+assert(!/state\.player\.nextRollBonus\s*=/.test(body),
+  'resolveTurn directly mutates nextRollBonus outside the resolver');
 
 console.log('Aetherwake live resolver integration contract: PASS');

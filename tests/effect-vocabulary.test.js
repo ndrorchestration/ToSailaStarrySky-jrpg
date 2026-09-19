@@ -22,7 +22,7 @@ const expectedActions = [
   'rest',
 ];
 
-assert.strictEqual(vocabulary.VERSION, '0.1.0');
+assert.strictEqual(vocabulary.VERSION, '0.2.0');
 assert.deepStrictEqual(Object.values(vocabulary.EFFECT_KIND), expectedKinds);
 assert.deepStrictEqual(Object.keys(vocabulary.ACTION_EFFECT_PROFILES), expectedActions);
 assert.strictEqual(vocabulary.validateVocabulary(), true);
@@ -41,8 +41,9 @@ assert(uncoverSuccess.some(effect =>
 
 assert(uncoverSuccess.some(effect =>
   effect.kind === vocabulary.EFFECT_KIND.MODIFIER &&
-  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.DECLARED_NOT_APPLIED
-), 'Uncover Truth next-roll modifier debt must remain explicit');
+  effect.key === 'nextRoll' &&
+  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED
+), 'Uncover Truth next-roll modifier must be executable');
 
 const sharedDreamSuccess = vocabulary.ACTION_EFFECT_PROFILES.sharedDream.success;
 assert(sharedDreamSuccess.some(effect =>
@@ -58,9 +59,9 @@ console.log(JSON.stringify({
   version: vocabulary.VERSION,
   kinds: Object.values(vocabulary.EFFECT_KIND),
   actionProfiles: Object.keys(vocabulary.ACTION_EFFECT_PROFILES),
+  implemented: ['uncoverTruth.nextRoll'],
   declaredNotApplied: [
     'uncoverTruth.reveal',
-    'uncoverTruth.nextRoll',
     'sharedDream.nextRoll',
   ],
 }, null, 2));
