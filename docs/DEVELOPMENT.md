@@ -4,7 +4,7 @@
 
 Aetherwake is a late-prototype / pre-alpha project.
 
-The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, effect vocabulary v0.1, and extracted current ability/progression registries. The next architecture gate is generalizing combat resolution behind these contracts.
+The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, effect vocabulary v0.1, extracted current ability/progression registries, and live fail-closed resolver routing for ordinary damage/restoration/resource mutations. Higher-order resolver semantics remain staged work.
 
 ## Source-of-truth rules
 
@@ -14,12 +14,13 @@ Current browser runtime:
 
 1. `index-embedded.html`
 2. `modules/effect-vocabulary.js`
-3. `modules/ability-defs.js`
-4. `modules/progression-defs.js`
-5. `modules/party-state.js`
-6. `aetherwake.js`
-7. `modules/char-create.js`
-8. bundled `p5.min.js`
+3. `modules/effect-resolver.js`
+4. `modules/ability-defs.js`
+5. `modules/progression-defs.js`
+6. `modules/party-state.js`
+7. `aetherwake.js`
+8. `modules/char-create.js`
+9. bundled `p5.min.js`
 
 The other files under `modules/` are useful historical/modular mirrors, but they are not guaranteed to match the integrated runtime.
 
@@ -86,8 +87,24 @@ Canonical verification commands:
 ```bash
 npm run test:effects
 npm run test:registries
+npm run test:resolver
+npm run test:resolver-integration
 npm run test:smoke
 ```
+
+## Resolver integration checkpoint
+
+On 2026-09-19:
+
+- resolver scaffold commit `5dd753524fa2874d2df7f726670961f8ce7c62dc` passed run `35457611114`;
+- live integration commit `13c84e00d3097429f70bf6616294bbc08b377618` passed run `35457776908`;
+- ordinary damage, vitality restoration, and resource deltas inside `resolveTurn()` route through `modules/effect-resolver.js`;
+- CI source-checks `resolveTurn()` so ordinary direct mutations cannot silently reappear;
+- browser smoke verifies live combat actually performs resolver-backed mutations;
+- PbtA roll bands, action-specific branch selection, logs, randomness, XP, level-up rules, and the explicit defeat floor remain outside this resolver layer;
+- modifier/reveal/status/movement semantics are not claimed as implemented by the resolver.
+
+This is a partial establishment of migration step 6, not completion of the full generic combat resolver.
 
 ## Architecture migration rule
 
