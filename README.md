@@ -157,9 +157,9 @@ The production migration is incremental:
 4. route ordinary combat mutations through a generic effect resolver while preserving current 2D6 outcome behavior — **damage/restoration/resource routing established on `dev/progression-build`**,
 5. enforce current learned/unlocked action eligibility before broader mastery-tree work — **established on `dev/progression-build`**,
 6. replace prototype companion creation with authored roster onboarding,
-6. implement school/job/mastery progression,
-7. add formation, Dual Arts, and Triple Arts,
-8. expand campaign content after the architecture is stable.
+7. implement school/job/mastery progression,
+8. add formation, Dual Arts, and Triple Arts,
+9. expand campaign content after the architecture is stable.
 
 Each phase should preserve a working combat loop.
 
