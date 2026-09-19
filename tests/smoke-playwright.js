@@ -74,6 +74,8 @@ function createServer() {
       window._charcreate &&
       window._combat &&
       window._world &&
+      window._setupOrder &&
+      window._setupOrder.indexOf('setup-done') !== -1 &&
       document.querySelector('canvas') &&
       document.querySelector('canvas').width === 960 &&
       document.querySelector('canvas').height === 640
