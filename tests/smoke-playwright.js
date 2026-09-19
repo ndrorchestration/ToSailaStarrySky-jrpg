@@ -144,6 +144,38 @@ function createServer() {
     assert(typeof worldBeforeCombat.className === 'string' && worldBeforeCombat.className.length > 0,
       'CHARCREATE → WORLD lost player class');
 
+    const partyArchitecture = await page.evaluate(() => ({
+      rosterLength: window.ROSTER && window.ROSTER.length,
+      activeLength: window.ACTIVE_PARTY && window.ACTIVE_PARTY.length,
+      rosterIds: window.ROSTER && window.ROSTER.map(character => character.id),
+      activeIds: window.ACTIVE_PARTY && window.ACTIVE_PARTY.map(character => character.id),
+      rosterRefs: window.ROSTER && window.ACTIVE_PARTY && [
+        window.ACTIVE_PARTY[0] === window.ROSTER[0],
+        window.ACTIVE_PARTY[1] === window.ROSTER[1],
+        window.ACTIVE_PARTY[2] === window.ROSTER[2],
+      ],
+      worldLeadRef: Boolean(window._world && window.ROSTER &&
+        window._world.player === window.ROSTER[0]),
+      legacyPartyAlias: window.party === window.ACTIVE_PARTY,
+      runtimeImplemented: window.ROSTER &&
+        window.ROSTER.map(character => Boolean(character.runtimeImplemented)),
+    }));
+
+    assert(partyArchitecture.rosterLength === 5, 'persistent roster does not contain five records');
+    assert(partyArchitecture.activeLength === 3, 'active party does not contain three references');
+    assert(partyArchitecture.rosterIds.join('|') === 'ender|lyra|ionia|reson|aepex',
+      'persistent roster identity order is incorrect');
+    assert(partyArchitecture.activeIds.join('|') === 'ender|lyra|ionia',
+      'initial active party references are incorrect');
+    assert(partyArchitecture.rosterRefs.every(Boolean),
+      'ACTIVE_PARTY members are not the canonical ROSTER references');
+    assert(partyArchitecture.worldLeadRef,
+      'WORLD player is not the canonical Ender roster record');
+    assert(partyArchitecture.legacyPartyAlias,
+      'legacy window.party alias is not canonical ACTIVE_PARTY');
+    assert(partyArchitecture.runtimeImplemented.join('|') === 'true|true|true|false|false',
+      'runtime implementation boundary for roster records is incorrect');
+
     await page.keyboard.press('KeyC');
     await page.waitForFunction(() =>
       window.gameState === 'combat' &&
@@ -202,6 +234,32 @@ function createServer() {
     assert(worldAfterCombat.staffCharges === combatAfterActions.player.staffCharges,
       'combat staff charges were not written back to WORLD');
 
+    const rosterAfterCombat = await page.evaluate(() => ({
+      vit: window.ROSTER[0].vit,
+      scrap: window.ROSTER[0].scrap,
+      aether: window.ROSTER[0].aether,
+      heat: window.ROSTER[0].heat,
+      echoes: window.ROSTER[0].echoes,
+      staffCharges: window.ROSTER[0].staffCharges,
+      worldLeadRef: window._world.player === window.ROSTER[0],
+      activeLeadRef: window.ACTIVE_PARTY[0] === window.ROSTER[0],
+    }));
+
+    assert(rosterAfterCombat.vit === worldAfterCombat.vit,
+      'combat vitality did not persist to canonical ROSTER[0]');
+    assert(rosterAfterCombat.scrap === worldAfterCombat.scrap,
+      'combat scrap did not persist to canonical ROSTER[0]');
+    assert(rosterAfterCombat.aether === worldAfterCombat.aether,
+      'combat aether did not persist to canonical ROSTER[0]');
+    assert(rosterAfterCombat.heat === worldAfterCombat.heat,
+      'combat heat did not persist to canonical ROSTER[0]');
+    assert(rosterAfterCombat.echoes === worldAfterCombat.echoes,
+      'combat echoes did not persist to canonical ROSTER[0]');
+    assert(rosterAfterCombat.staffCharges === worldAfterCombat.staffCharges,
+      'combat staff charges did not persist to canonical ROSTER[0]');
+    assert(rosterAfterCombat.worldLeadRef && rosterAfterCombat.activeLeadRef,
+      'canonical lead reference split after combat');
+
     if (errors.length) {
       throw new Error('browser errors:\n' + errors.join('\n'));
     }
@@ -209,6 +267,7 @@ function createServer() {
     console.log('Aetherwake smoke test: PASS');
     console.log(JSON.stringify({
       party: review,
+      partyArchitecture,
       worldBeforeCombat,
       combatTurns: combatAfterActions.turn,
       enemy: combatAfterActions.enemy && combatAfterActions.enemy.name,

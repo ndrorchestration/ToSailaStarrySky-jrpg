@@ -130,6 +130,14 @@ function setup() {
     window._world = world;
     if (world && typeof world.init === 'function') world.init();
   }
+  if (!world || !world.player) {
+    throw new Error('WORLD_PLAYER_UNAVAILABLE_FOR_PARTY_STATE');
+  }
+  if (!window.AetherPartyState || typeof window.AetherPartyState.bootstrap !== 'function') {
+    throw new Error('AETHER_PARTY_STATE_UNAVAILABLE');
+  }
+  window.AetherPartyState.bootstrap(world.player);
+  window._setupOrder = window._setupOrder + '→party-state-done';
   window._setupOrder = window._setupOrder + '→combat-start';
   if (typeof window.AetherCombat !== 'undefined') {
     combat = new window.AetherCombat(window, C);
@@ -229,28 +237,17 @@ function draw() {
     }
     // When char-create signals completion, transition to WORLD and init combat
     if (window._charcreate && window._charcreate.phase === 'done') {
-      // Populate world.player from party[0] (Ender) so the rest of the game
-      // uses the character-created stats. Copy fields that combat.init() expects.
-      if (window._charcreate.party && window._charcreate.party[0]) {
-        const p = window._charcreate.party[0];
-        world.player = {
-          // Preserve persistent identity metadata across CHARCREATE → WORLD.
-          name: p.name,
-          age: p.age,
-          class: p.class,
-          jobId: p.jobId,
-          synergyBonus: p.synergyBonus,
-          vit: p.vit, maxVit: p.maxVit,
-          echoes: p.echoes.current, echoesMax: p.echoes.max,
-          wits: p.wits, presence: p.presence, spirit: p.spirit,
-          might: p.might, grace: p.grace,
-          scrap: p.scrap, aether: p.aether.current, aetherMax: p.aether.max,
-          heat: p.heat.current, heatMax: p.heat.max,
-          staffCharges: p.staffCharges, maxStaffCharges: p.maxStaffCharges,
-          level: p.level, xp: p.xp, xpToNext: p.xpToNext,
-          unlockedAbilities: p.unlockedAbilities,
-          equipment: p.equipment,
-        };
+      // Commit the preservation character-creation draft into persistent
+      // roster records. The lead record is the original World player object,
+      // mutated in place so World, ROSTER[0], and ACTIVE_PARTY[0] share identity.
+      if (!window.AetherPartyState ||
+          typeof window.AetherPartyState.commitPrototypeParty !== 'function') {
+        throw new Error('AETHER_PARTY_STATE_UNAVAILABLE_DURING_HANDOFF');
+      }
+      const activeParty = window.AetherPartyState.commitPrototypeParty(window._charcreate.party);
+      if (!activeParty || activeParty[0] !== world.player ||
+          !window.ROSTER || window.ROSTER[0] !== world.player) {
+        throw new Error('PERSISTENT_PARTY_IDENTITY_INVARIANT_FAILED');
       }
       // Re-init combat with the new player data
       if (combat && typeof combat.init === 'function') {

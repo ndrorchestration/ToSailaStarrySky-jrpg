@@ -10,15 +10,12 @@
       to charCreate.draw() / charCreate.handleInput() in its draw() and
       handleInput() functions (see integration notes at bottom).
 
-   2. PARTY DATA: The module produces window.party, an array of 3
-      character objects. party[0] is always Ender (fixed protagonist).
-      party[1] and party[2] are the two player-created companions.
-      Each character object carries the same fields combat.js expects
-      on its player object: name, class, vit, echoes, wits, presence,
-      spirit, might, grace, scrap, aether, heat, level, unlockedAbilities.
-      After char creation, core.js copies party[0] into world.player and
-      calls combat.init() with those values so combat.js consumes them
-      transparently — no combat.js changes required for rank-1 gameplay.
+   2. PARTY DATA: This module produces a three-character preservation
+      draft. party[0] is Ender and party[1]/party[2] are the two current
+      player-created companion slots. The persistent runtime authority is
+      modules/party-state.js: core.js commits this draft into ROSTER[5]
+      and ACTIVE_PARTY[3] after review. CharCreate is therefore onboarding
+      input, not the owner of persistent party identity.
 
    3. JOB SYSTEM: Three distinct jobs (Sky-Sailor, Engine-Wright,
       Aether-Weaver), each with a fixed rank-1 stat profile and two
@@ -491,7 +488,7 @@ const CharCreate = {
     };
   },
 
-  // ── Finalize: populate window.party and signal completion ──
+  // ── Finalize: expose the onboarding draft and signal completion ──
   _finalizeParty: function() {
     // Guard: ensure party is initialized
     if (!this.party || !Array.isArray(this.party)) {
@@ -505,12 +502,9 @@ const CharCreate = {
       this.party[2] = this._makeCharacter('Companion', JOBS[0]);
     }
 
-    // Expose party globally for core.js / world.js / combat.js
-    window.party = this.party;
-
-    // Also populate window.playerForCombat as the active character (Ender)
-    // so the existing combat.init() path in core.js startGame() works.
-    window.playerForCombat = this.party[0];
+    // This is migration input only. core.js commits it through AetherPartyState
+    // so window.party remains an alias of canonical ACTIVE_PARTY references.
+    window.prototypePartyDraft = this.party;
 
     // Signal that char creation is done — core.js transitions to WORLD
     this.phase = 'done';
