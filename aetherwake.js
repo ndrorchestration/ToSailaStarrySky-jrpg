@@ -4432,8 +4432,22 @@ function AetherCombat(p, C) {
       log('Unknown action: ' + actionId);
       return false;
     }
-    if (!window.AetherAbilityDefs.isActionUnlocked(state.player, action.id)) {
-      log('Locked action: ' + action.label);
+    const useEligibility = window.AetherAbilityDefs.getUseEligibility(
+      state.player,
+      action.id
+    );
+    if (!useEligibility.canUse) {
+      if (useEligibility.reason === 'locked') {
+        log('Locked action: ' + action.label);
+      } else if (useEligibility.reason === 'insufficient_resources') {
+        log(
+          'Not enough resources — ' + action.label +
+          ' needs ' + useEligibility.resourceCost +
+          ', but only ' + useEligibility.availableResource + ' is available.'
+        );
+      } else {
+        log('Action unavailable: ' + action.label + ' (' + useEligibility.reason + ').');
+      }
       return false;
     }
 
@@ -4446,13 +4460,11 @@ function AetherCombat(p, C) {
       state._lastAbilityId = null;
     }
 
-    // Resource cost: tier + base cost (tier 0 = free, tier 1 = 1 echo, tier 2 = 2 echoes, etc.)
-    const resourceCost = (action.tier || 0) + action.cost;
+    // Resource payment uses the same legacy tier + base-cost formula exposed by
+    // AetherAbilityDefs. Affordability was preflighted above, so this payment
+    // is transactional with respect to action admission.
+    const resourceCost = useEligibility.resourceCost;
     if (resourceCost > 0) {
-      if (state.player.echoes.current <= 0 && state.player.aether.current <= 0) {
-        log('No echoes or aether to spend — the action falters.');
-        return;
-      }
       let spent = 0;
       while (spent < resourceCost) {
         if (state.player.echoes.current > 0) {
@@ -4464,12 +4476,8 @@ function AetherCombat(p, C) {
           log('Aether spent.');
           spent++;
         } else {
-          break;
+          throw new Error('ACTION_RESOURCE_PREFLIGHT_DRIFT:' + action.id);
         }
-      }
-      if (spent < resourceCost) {
-        log('Not enough resources — the action falters.');
-        return;
       }
     }
 
@@ -4493,7 +4501,7 @@ function AetherCombat(p, C) {
         // Secondary action available on 10+ with 2+ echoes
         if (state.player.echoes.current >= 2) {
           state._secondaryAvailable = true;
-          log('Press S for secondary action — 1 extra echo to repeat the last ability.');
+          log('Press S for secondary action — repeat the last ability at its normal resource cost.');
         }
       }
       if (action.type === 'attack') {
@@ -4859,6 +4867,11 @@ function AetherCombat(p, C) {
       encounterOver: state.encounterOver,
       actions: actions,
       eligibleActionIds: window.AetherAbilityDefs.getEligibleActionIds(state.player),
+      usableActionIds: window.AetherAbilityDefs.getUsableActionIds(state.player),
+      actionUseEligibility: Object.fromEntries(actions.map(action => [
+        action.id,
+        window.AetherAbilityDefs.getUseEligibility(state.player, action.id),
+      ])),
       initiative: state.initiative,
       resolverMutations: resolverMutationCount,
     };
@@ -6680,8 +6693,12 @@ function drawCombatPanel(combatState) {
   actions.forEach((action, idx) => {
     const ay = actStartY + idx * actH;
     const unlocked = eligibleActionIds.has(action.id);
+    const useEligibility = combatState.actionUseEligibility
+      ? combatState.actionUseEligibility[action.id]
+      : null;
+    const usable = unlocked && (!useEligibility || useEligibility.canUse);
     // Number circle
-    fill(unlocked ? PAL.TEAL : PAL.DIM);
+    fill(usable ? PAL.TEAL : PAL.DIM);
     noStroke();
     ellipse(aX + 12, ay + 7, 9, 9);
     fill(PAL.NAVY);
@@ -6694,19 +6711,21 @@ function drawCombatPanel(combatState) {
     textSize(10);
     textAlign(LEFT, CENTER);
     const label = action.label || action.id;
-    fill(unlocked ? PAL.PARCHMENT : PAL.DIM);
+    fill(usable ? PAL.PARCHMENT : PAL.DIM);
     noStroke();
-    text((unlocked ? '' : 'LOCKED · ') + label.substring(0, unlocked ? 28 : 19), aX + 24, ay + 1);
-    // Cost indicator uses the same legacy formula as resolveTurn().
-    const totalCost = (action.tier || 0) + action.cost;
+    const statePrefix = !unlocked ? 'LOCKED · ' : (usable ? '' : 'NO RES · ');
+    text(statePrefix + label.substring(0, statePrefix ? 19 : 28), aX + 24, ay + 1);
+    // Cost indicator uses the exact same centralized legacy cost function as
+    // runtime admission/payment.
+    const totalCost = window.AetherAbilityDefs.getActionResourceCost(action);
     if (unlocked && totalCost > 0) {
       textFont(FONT_UI);
       textSize(7);
-      fill(PAL.AMBER);
+      fill(usable ? PAL.AMBER : PAL.DIM);
       text('COST: ' + totalCost, aX + aW - 62, ay + 2);
     }
     // Icon
-    if (unlocked) drawActionIcon(aX + aW - 16, ay + 7, 14, action.id);
+    if (usable) drawActionIcon(aX + aW - 16, ay + 7, 14, action.id);
   });
 
   // Enemy special ability hint

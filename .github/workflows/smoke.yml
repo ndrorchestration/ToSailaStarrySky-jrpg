@@ -42,6 +42,9 @@ jobs:
       - name: Verify combat input/log contract
         run: npm run test:combat-input
 
+      - name: Verify resource/use eligibility
+        run: npm run test:resource-eligibility
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 

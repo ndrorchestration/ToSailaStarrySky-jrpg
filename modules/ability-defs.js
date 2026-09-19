@@ -22,7 +22,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   function deepFreeze(value) {
     if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -184,6 +184,86 @@
     return ACTION_ORDER.filter(id => isActionUnlocked(actor, id));
   }
 
+  function getActionResourceCost(actionOrId) {
+    const action = typeof actionOrId === 'string' ? DEFS[actionOrId] : actionOrId;
+    if (!action || typeof action !== 'object') {
+      throw new Error('UNKNOWN_ACTION_FOR_RESOURCE_COST:' + actionOrId);
+    }
+
+    const tier = action.tier == null ? 0 : action.tier;
+    const cost = action.cost == null ? 0 : action.cost;
+
+    if (!Number.isFinite(tier) || tier < 0 || !Number.isFinite(cost) || cost < 0) {
+      throw new Error('ACTION_RESOURCE_COST_INVALID:' + (action.id || actionOrId));
+    }
+
+    // Preserve the current prototype rule exactly. This function centralizes
+    // the rule; it does not redesign the economy.
+    return tier + cost;
+  }
+
+  function currentResource(actor, key) {
+    if (!actor) return 0;
+    const value = actor[key];
+    if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, value);
+    if (value && typeof value.current === 'number' && Number.isFinite(value.current)) {
+      return Math.max(0, value.current);
+    }
+    return 0;
+  }
+
+  function getAvailableActionResource(actor) {
+    return currentResource(actor, 'echoes') + currentResource(actor, 'aether');
+  }
+
+  function getUseEligibility(actor, actionId) {
+    const action = DEFS[actionId];
+    if (!action) {
+      return {
+        canUse: false,
+        reason: 'unknown_action',
+        actionId,
+        resourceCost: null,
+        availableResource: getAvailableActionResource(actor),
+      };
+    }
+
+    const resourceCost = getActionResourceCost(action);
+    const availableResource = getAvailableActionResource(actor);
+
+    if (!isActionUnlocked(actor, actionId)) {
+      return {
+        canUse: false,
+        reason: 'locked',
+        actionId,
+        resourceCost,
+        availableResource,
+      };
+    }
+
+    if (availableResource < resourceCost) {
+      return {
+        canUse: false,
+        reason: 'insufficient_resources',
+        actionId,
+        resourceCost,
+        availableResource,
+      };
+    }
+
+    return {
+      canUse: true,
+      reason: 'ok',
+      actionId,
+      resourceCost,
+      availableResource,
+    };
+  }
+
+  function getUsableActionIds(actor) {
+    return ACTION_ORDER.filter(id => getUseEligibility(actor, id).canUse);
+  }
+
   function createRuntimeActions() {
     validateDefs();
     return ACTION_ORDER.map(id => Object.assign({}, DEFS[id]));
@@ -221,6 +301,10 @@
     validateDefs,
     isActionUnlocked,
     getEligibleActionIds,
+    getActionResourceCost,
+    getAvailableActionResource,
+    getUseEligibility,
+    getUsableActionIds,
     createRuntimeActions,
     assertRuntimeActions,
   });

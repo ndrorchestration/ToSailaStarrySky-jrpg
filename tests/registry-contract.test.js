@@ -14,7 +14,7 @@ const expectedActionOrder = [
   'rest',
 ];
 
-assert.strictEqual(abilities.VERSION, '0.1.0');
+assert.strictEqual(abilities.VERSION, '0.2.0');
 assert.strictEqual(progression.VERSION, '0.1.0');
 assert.deepStrictEqual(abilities.ACTION_ORDER, expectedActionOrder);
 assert.strictEqual(abilities.validateDefs(), true);
@@ -65,6 +65,57 @@ assert.deepStrictEqual(
   abilities.getEligibleActionIds(fullyUnlockedActor),
   expectedActionOrder,
   'fully unlocked actor should expose all current actions'
+);
+
+assert.strictEqual(abilities.getActionResourceCost('staffStrike'), 0);
+assert.strictEqual(abilities.getActionResourceCost('uncoverTruth'), 2);
+assert.strictEqual(abilities.getActionResourceCost('sharedDream'), 2);
+assert.strictEqual(abilities.getActionResourceCost('mycelialLedger'), 0);
+assert.strictEqual(abilities.getActionResourceCost('hold'), 0);
+assert.strictEqual(abilities.getActionResourceCost('windWard'), 2);
+assert.strictEqual(abilities.getActionResourceCost('aetherSeal'), 3);
+assert.strictEqual(abilities.getActionResourceCost('rest'), 0);
+
+const exactFundsActor = {
+  unlockedAbilities: ['uncoverTruth'],
+  echoes: { current: 1, max: 3 },
+  aether: { current: 1, max: 6 },
+};
+assert.deepStrictEqual(
+  abilities.getUseEligibility(exactFundsActor, 'uncoverTruth'),
+  {
+    canUse: true,
+    reason: 'ok',
+    actionId: 'uncoverTruth',
+    resourceCost: 2,
+    availableResource: 2,
+  }
+);
+
+const underfundedActor = {
+  unlockedAbilities: ['uncoverTruth'],
+  echoes: { current: 1, max: 3 },
+  aether: { current: 0, max: 6 },
+};
+assert.deepStrictEqual(
+  abilities.getUseEligibility(underfundedActor, 'uncoverTruth'),
+  {
+    canUse: false,
+    reason: 'insufficient_resources',
+    actionId: 'uncoverTruth',
+    resourceCost: 2,
+    availableResource: 1,
+  }
+);
+assert.strictEqual(
+  abilities.getUseEligibility(underfundedActor, 'windWard').reason,
+  'locked',
+  'unlock failure must take precedence over resource failure'
+);
+assert.strictEqual(
+  abilities.getUseEligibility(underfundedActor, 'staffStrike').canUse,
+  true,
+  'zero-cost baseline actions must remain usable without pooled resources'
 );
 
 assert(Object.isFrozen(abilities.DEFS), 'ability definitions must be frozen');

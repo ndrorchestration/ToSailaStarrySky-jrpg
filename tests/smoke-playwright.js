@@ -198,6 +198,53 @@ function createServer() {
       'staffStrike|uncoverTruth|sharedDream|mycelialLedger|hold',
       'level-1 eligible action set drifted');
 
+    const affordabilityContract = await page.evaluate(() => {
+      window._combat.init({
+        vit: 13,
+        scrap: 7,
+        aether: { current: 0, max: 6 },
+        heat: { current: 1, max: 3 },
+        echoes: { current: 1, max: 3 },
+        charges: 2,
+        staffMax: 2,
+        level: 1,
+        xp: 0,
+        xpToNext: 50,
+        unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
+      });
+      window._combat.beginEncounter('skyPredator');
+      const before = window._combat.getState();
+      const result = window._combat.resolveTurn('uncoverTruth', null);
+      const after = window._combat.getState();
+
+      // Restore the normal world-backed combat session for the rest of smoke.
+      if (typeof startCombat !== 'function') throw new Error('startCombat is unavailable');
+      startCombat('skyPredator');
+
+      return {
+        result,
+        beforeTurn: before.turn,
+        afterTurn: after.turn,
+        beforeEchoes: before.player.echoes.current,
+        afterEchoes: after.player.echoes.current,
+        beforeAether: before.player.aether.current,
+        afterAether: after.player.aether.current,
+        log: after.log,
+      };
+    });
+
+    assert(affordabilityContract.result === false,
+      'underfunded action was not rejected');
+    assert(affordabilityContract.beforeTurn === 0 && affordabilityContract.afterTurn === 0,
+      'underfunded action consumed a turn');
+    assert(affordabilityContract.beforeEchoes === 1 && affordabilityContract.afterEchoes === 1,
+      'underfunded action partially consumed echoes');
+    assert(affordabilityContract.beforeAether === 0 && affordabilityContract.afterAether === 0,
+      'underfunded action partially consumed aether');
+    assert(affordabilityContract.log.some(line =>
+      line.includes('Not enough resources') && line.includes('needs 2')),
+      'underfunded action did not record the preflight rejection');
+
     // Secondary input must be a safe no-op when no secondary is available.
     // This specifically guards against core reaching into AetherCombat's
     // private state.
@@ -300,7 +347,7 @@ function createServer() {
       };
     });
 
-    assert(registryContract.abilityVersion === '0.1.0',
+    assert(registryContract.abilityVersion === '0.2.0',
       'ability registry version is not loaded');
     assert(registryContract.progressionVersion === '0.1.0',
       'progression registry version is not loaded');
@@ -454,6 +501,7 @@ function createServer() {
       party: review,
       partyArchitecture,
       enemyMetadataContract,
+      affordabilityContract,
       effectContract,
       registryContract,
       resolverContract,
