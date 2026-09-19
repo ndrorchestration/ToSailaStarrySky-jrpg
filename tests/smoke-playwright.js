@@ -216,6 +216,40 @@ function createServer() {
     assert(effectContract.declaredNotApplied.includes('modifier:nextRoll'),
       'Uncover Truth modifier debt is no longer explicit');
 
+    const registryContract = await page.evaluate(() => {
+      const abilities = window.AetherAbilityDefs;
+      const progression = window.AetherProgressionDefs;
+      const actions = window._combat.getState().actions;
+      return {
+        abilityVersion: abilities && abilities.VERSION,
+        progressionVersion: progression && progression.VERSION,
+        validAbilities: Boolean(abilities && abilities.assertRuntimeActions(actions)),
+        validProgression: Boolean(
+          progression && progression.validateAgainstAbilityDefs(abilities)
+        ),
+        actionOrder: abilities && abilities.ACTION_ORDER.slice(),
+        levelUnlocks: progression && Object.fromEntries(
+          Object.entries(progression.LEVEL_UNLOCKS)
+            .map(([level, entries]) => [level, entries.map(entry => entry.abilityId)])
+        ),
+      };
+    });
+
+    assert(registryContract.abilityVersion === '0.1.0',
+      'ability registry version is not loaded');
+    assert(registryContract.progressionVersion === '0.1.0',
+      'progression registry version is not loaded');
+    assert(registryContract.validAbilities,
+      'runtime actions drifted from canonical ability definitions');
+    assert(registryContract.validProgression,
+      'progression unlocks do not resolve against canonical ability definitions');
+    assert(registryContract.actionOrder.join('|') ===
+      'staffStrike|uncoverTruth|sharedDream|mycelialLedger|hold|windWard|aetherSeal|rest',
+      'ability action order drifted');
+    assert(JSON.stringify(registryContract.levelUnlocks) ===
+      JSON.stringify({ 3: ['windWard'], 4: ['aetherSeal'], 5: ['rest'] }),
+      'legacy progression unlock mapping drifted');
+
     await page.keyboard.press('1');
     await page.waitForFunction(() =>
       window._combat && window._combat.getState().turn >= 1
@@ -298,6 +332,7 @@ function createServer() {
       party: review,
       partyArchitecture,
       effectContract,
+      registryContract,
       worldBeforeCombat,
       combatTurns: combatAfterActions.turn,
       enemy: combatAfterActions.enemy && combatAfterActions.enemy.name,

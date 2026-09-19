@@ -27,6 +27,9 @@ jobs:
       - name: Verify effect vocabulary contract
         run: npm run test:effects
 
+      - name: Verify ability/progression registries
+        run: npm run test:registries
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 

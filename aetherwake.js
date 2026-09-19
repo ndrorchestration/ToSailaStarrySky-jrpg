@@ -4147,38 +4147,25 @@ function AetherCombat(p, C) {
     initiative: 0,
   };
 
-  const actions = [
-    { id: 'staffStrike',  label: 'Resonator Staff — EMP strike',
-      stat: 'might', cost: 0, type: 'attack', tier: 0, effectProfile: 'staffStrike',
-      desc: '1d6+2 EMP, 10ft melee / 60ft beam, 1 charge' },
-    { id: 'uncoverTruth', label: 'Uncover Truth — read the weave',
-      stat: 'wits', cost: 1, type: 'ability', tier: 1, effectProfile: 'uncoverTruth',
-      desc: '2D6+Wits. Reveal enemy weakness. +1 next roll.' },
-    { id: 'sharedDream',  label: 'Shared Dream — lend your vision',
-      stat: 'spirit', cost: 1, type: 'ability', tier: 1, effectProfile: 'sharedDream',
-      desc: '2D6+Spirit. Ally +1 next action OR heal 1-2 Vit' },
-    { id: 'mycelialLedger', label: 'Mycelial Ledger — account the commons',
-      stat: 'presence', cost: 0, type: 'ability', tier: 0, effectProfile: 'mycelialLedger',
-      desc: '2D6+Presence. Gain scrap or aether' },
-    { id: 'hold',         label: 'Hold position — conserve',
-      stat: null, cost: 0, type: 'hold', tier: 0, effectProfile: 'hold',
-      desc: 'Regain 1 staff charge in sunlight' },
-    { id: 'windWard',     label: 'Wind Ward — ground yourself',
-      stat: 'grace', cost: 1, type: 'defense', tier: 1, effectProfile: 'windWard',
-      desc: '2D6+Grace. Resist wind shear. Restore 1 Vit if 10+' },
-    { id: 'aetherSeal',   label: 'Aether Seal — close the leak',
-      stat: 'wits', cost: 1, type: 'defense', tier: 2, effectProfile: 'aetherSeal',
-      desc: '2D6+Wits. Drain aether pool. Gain scrap on 10+' },
-    { id: 'rest',         label: 'Rest — lower your heat',
-      stat: null, cost: 0, type: 'rest', tier: 0, effectProfile: 'rest',
-      desc: 'Reduce current heat by 1. Recover 1 Vit on 10+' },
-  ];
+  if (!window.AetherAbilityDefs ||
+      typeof window.AetherAbilityDefs.createRuntimeActions !== 'function' ||
+      typeof window.AetherAbilityDefs.assertRuntimeActions !== 'function') {
+    throw new Error('AETHER_ABILITY_DEFS_UNAVAILABLE');
+  }
+  const actions = window.AetherAbilityDefs.createRuntimeActions();
+  window.AetherAbilityDefs.assertRuntimeActions(actions);
 
   if (!window.AetherEffectVocabulary ||
       typeof window.AetherEffectVocabulary.assertActionCoverage !== 'function') {
     throw new Error('AETHER_EFFECT_VOCABULARY_UNAVAILABLE');
   }
   window.AetherEffectVocabulary.assertActionCoverage(actions);
+
+  if (!window.AetherProgressionDefs ||
+      typeof window.AetherProgressionDefs.validateAgainstAbilityDefs !== 'function') {
+    throw new Error('AETHER_PROGRESSION_DEFS_UNAVAILABLE');
+  }
+  window.AetherProgressionDefs.validateAgainstAbilityDefs(window.AetherAbilityDefs);
 
   const enemies = {
     skyPredator: {
@@ -4341,18 +4328,13 @@ function AetherCombat(p, C) {
     p.level++;
     p.xpToNext = Math.floor(50 * Math.pow(1.5, p.level - 1));
     p.echoes.max = Math.min(6, p.echoes.max + 1);
-    if (p.level === 3 && !p.unlockedAbilities.includes('windWard')) {
-      p.unlockedAbilities.push('windWard');
-      log('── LEVEL 3: Wind Ward unlocked! ──');
-    }
-    if (p.level === 4 && !p.unlockedAbilities.includes('aetherSeal')) {
-      p.unlockedAbilities.push('aetherSeal');
-      log('── LEVEL 4: Aether Seal unlocked! ──');
-    }
-    if (p.level === 5 && !p.unlockedAbilities.includes('rest')) {
-      p.unlockedAbilities.push('rest');
-      log('── LEVEL 5: Rest unlocked! ──');
-    }
+    const levelUnlocks = window.AetherProgressionDefs.getUnlocksForLevel(p.level);
+    levelUnlocks.forEach(unlock => {
+      if (!p.unlockedAbilities.includes(unlock.abilityId)) {
+        p.unlockedAbilities.push(unlock.abilityId);
+        log(unlock.log);
+      }
+    });
     log('── LEVEL UP! You are now level ' + p.level + '. Choose a stat to increase. ──');
     return true;
   };
