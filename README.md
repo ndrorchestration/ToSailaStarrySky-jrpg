@@ -196,3 +196,12 @@ Andrew Hensel (ndrorchestration)
 ## Credits
 
 Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts include VT323 and Press Start 2P. TTS tooling uses Microsoft Edge TTS where generated voice assets are available.
+
+
+## Windows desktop package
+
+For the simplest player experience, use the **Aetherwake-Windows.zip** artifact produced by the **Windows desktop package** GitHub Actions workflow. Extract the ZIP completely, then double-click `Aetherwake.exe`. Keep the extracted files together.
+
+The packaged build starts the game in its own window and does not require Python, PowerShell, or a manually started HTTP server. The browser instructions below remain the development and fallback path.
+
+See `docs/DESKTOP_BUILD.md` for the packaging contract.
