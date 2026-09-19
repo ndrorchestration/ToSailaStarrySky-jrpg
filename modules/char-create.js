@@ -1246,7 +1246,7 @@ const CharCreate = {
       textAlign(CENTER, TOP);
       const synText = isEnder ? chr.synergyBonus : (chr.synergyBonus || '—');
       fill(C.teal[0], C.teal[1], C.teal[2], 100);
-      text(synText, cx + cardW / 2, sy + 4);
+      text(synText, cx + cardW / 2, synY);
     });
 
     // Synergy summary at bottom
