@@ -51,6 +51,19 @@ resolver.applyEffect(
 );
 assert.strictEqual(context.player.nextRollBonus, 1);
 
+const overConsumed = resolver.applyEffect(
+  resolver.createModifierDeltaEffect(
+    vocabulary.TARGET.SELF,
+    'nextRoll',
+    -5
+  ),
+  context
+);
+assert.strictEqual(context.player.nextRollBonus, 0);
+assert.strictEqual(overConsumed.before, 1);
+assert.strictEqual(overConsumed.after, 0);
+assert.strictEqual(overConsumed.delta, -1);
+
 const source = fs.readFileSync(
   path.resolve(__dirname, '..', 'aetherwake.js'),
   'utf8'
