@@ -152,14 +152,17 @@ The development branch now separates current combat metadata from execution:
 - frozen kinds are `damage`, `restore`, `resource`, `modifier`, `status`, `reveal`, and `movement`;
 - `modules/ability-defs.js` owns canonical metadata/order for the eight current actions;
 - `modules/progression-defs.js` owns the current level-3/4/5 unlock table;
-- `AetherCombat.resolveTurn()` remains the executable authority in this phase;
-- CI validates definition/profile coverage and runtime equivalence before running the browser smoke test.
+- `AetherCombat.resolveTurn()` remains the action/outcome branch authority;
+- ordinary damage, restoration, and resource mutations inside `resolveTurn()` are now executed through `modules/effect-resolver.js`;
+- the resolver fails closed on unsupported implemented effect kinds and treats `DECLARED_NOT_APPLIED` effects as explicit no-ops;
+- CI rejects reintroduced direct ordinary mutations inside `resolveTurn()` and validates the browser path after resolver integration.
 
 Known semantic debt remains explicit rather than being silently upgraded:
 
 - Uncover Truth's reveal and +1-next-roll semantics are currently narrated/local-only rather than durable applied state;
 - the Shared Dream +1-next-action branch is likewise not persisted/applied;
-- current legacy cost/tier behavior is preserved exactly pending the resolver migration.
+- current legacy cost/tier behavior is preserved exactly;
+- modifier/reveal/status/movement execution is not generalized merely because those kinds exist in the vocabulary.
 
 ### ESTABLISHED EFFECT VOCABULARY — v0.1
 
@@ -174,6 +177,26 @@ The first frozen ordinary effect kinds are:
 - movement/spatial.
 
 This is intentionally smaller than the full long-term design vocabulary. Field/terrain, marks/triggers, interrupt/reaction, summon/deploy, link/network, transform, conditional/branch, sequence, and script-hook policy remain design extensions rather than frozen runtime contracts.
+
+### ESTABLISHED RESOLVER BOUNDARY — v0.1
+
+`modules/effect-resolver.js` is now live for the ordinary mutation subset:
+
+- player/enemy damage,
+- vitality restoration,
+- Echo/Aether/Heat/Scrap/Staff-charge deltas.
+
+Current invariants:
+
+- player damage clamps at zero;
+- enemy HP preserves the prototype's existing unclamped behavior;
+- vitality restoration clamps at `maxVit`;
+- bounded resources clamp to their existing min/max rules;
+- unsupported implemented effect kinds fail closed;
+- `DECLARED_NOT_APPLIED` effects do not mutate state;
+- the explicit post-defeat floor `state.player.vit = 1` remains a special combat rule outside the generic resolver.
+
+The resolver does **not** yet own PbtA outcome selection, action-specific branching, randomness, status semantics, movement semantics, reveal state, modifier persistence, XP, or level-up rules.
 
 ### TARGET ARCHITECTURE
 
@@ -378,6 +401,6 @@ Automated tests should also cover:
 10. expand campaign content,
 11. production hardening and balance.
 
-**Development-branch checkpoint (2026-09-19):** the smoke-stabilized baseline plus steps 2–5 are verified on `dev/progression-build`: persistent roster, active references, effect vocabulary v0.1, and extracted ability/progression registries. Promotion/merge to `main` has not occurred. The next architecture gate is step 6, generalizing combat resolution.
+**Development-branch checkpoint (2026-09-19):** the smoke-stabilized baseline plus steps 2–5 are verified, and step 6 is partially established: ordinary damage/restoration/resource mutations now route through a fail-closed resolver while `resolveTurn()` still owns PbtA outcomes and action-specific branch semantics. Promotion/merge to `main` has not occurred.
 
 **Non-negotiable:** avoid a single rewrite of character creation, combat, progression, and party state at the same time.
