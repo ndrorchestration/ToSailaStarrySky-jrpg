@@ -218,26 +218,9 @@
     return ACTIVE_PARTY;
   }
 
-  function setActiveParty(ids) {
-    if (!Array.isArray(ids) || ids.length !== 3 || new Set(ids).size !== 3) {
-      throw new Error('ACTIVE_PARTY_REQUIRES_3_UNIQUE_IDS');
-    }
-
-    const next = ids.map(id => ROSTER.find(character => character.id === id));
-    if (next.some(character => !character)) {
-      throw new Error('ACTIVE_PARTY_ID_NOT_IN_ROSTER');
-    }
-    if (next.some(character => !character.runtimeImplemented)) {
-      throw new Error('ACTIVE_PARTY_MEMBER_NOT_RUNTIME_IMPLEMENTED');
-    }
-
-    ACTIVE_PARTY.splice(0, ACTIVE_PARTY.length, ...next);
-    global.party = ACTIVE_PARTY;
-    global.playerForCombat = ACTIVE_PARTY[0];
-
-    validate();
-    return ACTIVE_PARTY;
-  }
+  // Formation mutation is intentionally not exposed in this phase.
+  // ACTIVE_PARTY is established as canonical references; formation changes
+  // land later with safe-state and combat-boundary rules.
 
   function snapshot() {
     return {
@@ -255,7 +238,6 @@
     activeParty: ACTIVE_PARTY,
     bootstrap,
     commitPrototypeParty,
-    setActiveParty,
     validate,
     snapshot,
   });

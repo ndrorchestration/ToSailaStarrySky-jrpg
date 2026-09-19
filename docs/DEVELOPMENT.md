@@ -4,7 +4,7 @@
 
 Aetherwake is a late-prototype / pre-alpha project.
 
-The immediate production goal is to establish one verified playable baseline before beginning the five-character roster and progression refactor.
+The development branch now has a verified playable baseline plus the first persistent-party architecture phase: `ROSTER[5]` and reference-based `ACTIVE_PARTY[3]`. The next architecture gate is the first explicit effect vocabulary; ability/progression extraction remains downstream.
 
 ## Source-of-truth rules
 
@@ -13,9 +13,10 @@ The immediate production goal is to establish one verified playable baseline bef
 Current browser runtime:
 
 1. `index-embedded.html`
-2. `aetherwake.js`
-3. `modules/char-create.js`
-4. bundled `p5.min.js`
+2. `modules/party-state.js`
+3. `aetherwake.js`
+4. `modules/char-create.js`
+5. bundled `p5.min.js`
 
 The other files under `modules/` are useful historical/modular mirrors, but they are not guaranteed to match the integrated runtime.
 
@@ -41,15 +42,30 @@ The smoke test should verify:
 ```text
 boot/title
 → character creation
-→ WORLD
+→ canonical ROSTER[5] / ACTIVE_PARTY[3] references
+→ WORLD with world.player === ROSTER[0]
 → start combat
 → resolve a normal action
 → resolve an ability
-→ write combat results back
+→ write combat results back to the canonical lead record
 → return to WORLD
 ```
 
-The test intentionally uses real keyboard input for player-facing state transitions and action execution.
+The test intentionally uses real keyboard input for player-facing state transitions and action execution. Reference equality is part of the gate; equal values in separate character copies are not sufficient.
+
+## Verified development checkpoint
+
+On 2026-09-19, smoke run `35456148594` passed on commit `be896474c97271084c989f7d5e0d61f27ae72769`. It verified:
+
+- roster IDs `ender|lyra|ionia|reson|aepex`,
+- active IDs `ender|lyra|ionia`,
+- direct reference identity for all three active entries,
+- `world.player === ROSTER[0]`,
+- legacy `window.party === ACTIVE_PARTY`,
+- Reson/Aepex remaining unimplemented runtime shells,
+- combat state write-back into the canonical lead record.
+
+This checkpoint does not mean the authored-roster onboarding, formation system, three-character combat, ability extraction, or progression architecture is complete, and it does not mean `dev/progression-build` has been promoted to `main`.
 
 ## Architecture migration rule
 

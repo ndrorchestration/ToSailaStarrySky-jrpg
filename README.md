@@ -10,7 +10,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 - **Playable baseline:** boot → character creation → world exploration → dialogue/quest systems → combat
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
 - **Combat party:** exactly 3 active combatants selected from the persistent roster
-- **Current migration:** preserve and stabilize the latest playable build before replacing prototype party/progression architecture
+- **Current migration:** smoke-green development baseline with persistent `ROSTER[5]` and reference-based `ACTIVE_PARTY[3]`; authored onboarding and multi-character combat remain later phases
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
 
@@ -81,15 +81,18 @@ ROSTER[5] → ACTIVE_PARTY[3] → combat
 
 Persistent progression belongs to the five-character roster. The active trio is a combat/formation selection, not a separate copy of character progression.
 
-### Current prototype
+### Current migration state
 
-The current `modules/char-create.js` still implements the older prototype flow:
+The development runtime now has the first persistent party-state layer:
 
-- Ender is fixed,
-- two player-named companions are created,
-- prototype jobs are Sky-Sailor, Engine-Wright, and Aether-Weaver.
+- `modules/party-state.js` owns exactly five stable roster identities: `ender`, `lyra`, `ionia`, `reson`, and `aepex`;
+- `ACTIVE_PARTY` contains three direct references into `ROSTER`, initially Ender/Lyra/Ionia;
+- `world.player`, `ROSTER[0]`, and `ACTIVE_PARTY[0]` are the same object, so combat write-back updates the canonical lead record;
+- the preserved character-creation flow still creates two player-named prototype companions and prototype jobs, then adapts them into the Lyra/Ionia roster slots;
+- Reson and Aepex are identity-only runtime shells until authored onboarding/mechanics are migrated;
+- formation switching and three-character combat are **not** enabled yet.
 
-That flow is **preserved for provenance and runtime stabilization but is scheduled for replacement** by the authored roster.
+The prototype names/jobs remain implementation provenance rather than final character canon.
 
 ## Current quest vertical slice
 
@@ -104,9 +107,10 @@ It includes signal hooks, traversal hazards, NPC encounters, three major choice 
 | Path | Purpose |
 |---|---|
 | `aetherwake.js` | Current integrated runtime / preservation build |
-| `index-embedded.html` | Current self-contained browser entry point |
-| `modules/char-create.js` | Active prototype character-creation module |
-| `modules/*.js` | Older modular mirrors/reference source; currently not authoritative runtime for all systems |
+| `index-embedded.html` | Current browser entry point |
+| `modules/party-state.js` | Authoritative persistent roster / active-party reference layer |
+| `modules/char-create.js` | Active preservation character-creation adapter |
+| other `modules/*.js` | Older modular mirrors/reference source; not authoritative runtime for all systems |
 | `SPEC.md` | Current technical target + implementation notes |
 | `docs/DEVELOPMENT.md` | Development authority, migration rules, smoke gate |
 | `gap_analysis.md` | Snapshot audit of prototype conformance |
@@ -128,7 +132,7 @@ Run the canonical smoke test:
 npm run test:smoke
 ```
 
-The smoke gate is intended to cover the playable path from startup through character creation, world state, and combat.
+The smoke gate covers the playable path from startup through character creation, world state, combat, and return to WORLD. It also verifies the five-record roster, three canonical active references, WORLD/roster lead identity, and post-combat write-back into the canonical lead record.
 
 ## Architecture direction
 

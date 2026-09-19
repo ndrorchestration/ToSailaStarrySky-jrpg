@@ -47,14 +47,18 @@ Rules:
 
 ### CURRENT IMPLEMENTATION
 
-The preservation build still contains the superseded prototype model:
+The development branch now contains a persistent party-state bridge:
 
-- Ender fixed in slot 0,
-- two player-created companion slots,
-- prototype jobs: Sky-Sailor, Engine-Wright, Aether-Weaver,
-- Ender implementation residue may still display **Rift Scholar + Dreamwright**.
+- `ROSTER` has exactly five stable identities in canonical order: Ender, Lyra, Ionia, Reson, Aepex;
+- `ACTIVE_PARTY` has exactly three direct references into `ROSTER`, initially Ender/Lyra/Ionia;
+- `world.player === ROSTER[0] === ACTIVE_PARTY[0]`, so the lead character is no longer duplicated across WORLD and persistent party state;
+- the preservation character-creation flow remains temporarily in use as onboarding input for the first three records;
+- its two player-created companion names and Sky-Sailor / Engine-Wright / Aether-Weaver jobs remain prototype residue rather than authored canon;
+- Reson and Aepex currently exist as identity/schema shells only;
+- formation mutation and true three-character combat are not implemented in this phase;
+- Ender implementation residue may still display **Rift Scholar + Dreamwright**, while canonical `nativeJob` is **Rift Scholar**.
 
-These facts are implementation provenance, not current character canon.
+The authored identities are canonical; prototype onboarding/mechanics remain migration provenance until the later authored-roster phase.
 
 ---
 
@@ -92,6 +96,12 @@ Combat-local state may contain:
 - transient targeting/setup state.
 
 Post-combat results write back to the persistent roster according to progression rules.
+
+### CURRENT IMPLEMENTATION
+
+`modules/party-state.js` owns the session-persistent roster arrays and validates their identity/reference invariants. The World module's original player object is adopted as `ROSTER[0]` rather than replaced. The current combat system still uses an encounter-local copy for resolution, but `finishCombat()` writes persistent fields back to that canonical roster-backed World record.
+
+The first three records are mechanically populated through the preservation onboarding adapter. Reson and Aepex intentionally remain unimplemented shells; no unresolved job, progression, or ability semantics are fabricated.
 
 ### OPEN DESIGN
 
@@ -271,8 +281,9 @@ The full campaign will expand story acts, recruitment timing, character arcs, re
 ### CURRENT IMPLEMENTATION
 
 - `index-embedded.html` is the current browser entry point.
+- `modules/party-state.js` is the authoritative persistent roster / active-party reference layer and loads before the integrated runtime.
 - `aetherwake.js` is the current integrated runtime/preservation artifact.
-- `modules/char-create.js` is loaded at runtime.
+- `modules/char-create.js` is loaded at runtime as a preservation onboarding adapter.
 - several other `modules/*.js` files are older mirrors/reference copies and may not match the integrated runtime.
 
 ### TARGET ARCHITECTURE
@@ -352,5 +363,7 @@ Automated tests should also cover:
 9. implement formation and combination arts,
 10. expand campaign content,
 11. production hardening and balance.
+
+**Development-branch checkpoint (2026-09-19):** the smoke-stabilized baseline and steps 2–3 are verified on `dev/progression-build`; promotion/merge to `main` has not occurred. The next architecture gate is step 4, the first effect vocabulary.
 
 **Non-negotiable:** avoid a single rewrite of character creation, combat, progression, and party state at the same time.
