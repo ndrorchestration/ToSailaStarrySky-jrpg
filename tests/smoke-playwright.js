@@ -79,6 +79,21 @@ function createServer() {
       document.querySelector('canvas').height === 640
     , undefined, { timeout: 15000 });
 
+    const debugOverlayState = await page.evaluate(() =>
+      ['debug-overlay', 'aw-debug-overlay'].map(id => {
+        const node = document.getElementById(id);
+        return {
+          id,
+          display: node ? getComputedStyle(node).display : 'missing',
+          debugEnabled: Boolean(window.__awDebugEnabled),
+        };
+      })
+    );
+    assert(debugOverlayState.every(entry => entry.debugEnabled === false),
+      'normal launch unexpectedly enabled debug mode');
+    assert(debugOverlayState.every(entry => entry.display === 'none'),
+      'normal launch exposed a debug overlay');
+
     // One real Enter follows the production input path:
     // BOOT → MENU → CHARCREATE and char-create title → name.
     await page.keyboard.press('Enter');
