@@ -45,6 +45,9 @@ jobs:
       - name: Verify resource/use eligibility
         run: npm run test:resource-eligibility
 
+      - name: Verify progression reachability
+        run: npm run test:progression-reachability
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 

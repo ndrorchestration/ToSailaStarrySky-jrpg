@@ -40,6 +40,7 @@
     "test:resolver-integration": "node tests/resolver-integration.test.js",
     "test:enemy-metadata": "node tests/enemy-metadata-contract.test.js",
     "test:combat-input": "node tests/combat-input-contract.test.js",
-    "test:resource-eligibility": "node tests/resource-eligibility.test.js"
+    "test:resource-eligibility": "node tests/resource-eligibility.test.js",
+    "test:progression-reachability": "node tests/progression-reachability.test.js"
   }
 }

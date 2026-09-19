@@ -4822,8 +4822,7 @@ function AetherCombat(p, C) {
       else if (eName === 'Elder Farmer') xpReward = 22;
       else xpReward = 10;
       if (r.outcome === 'success' && action.type === 'attack') xpReward += 5;
-      state.player.xp += xpReward;
-      log('+' + xpReward + ' XP');
+      this.awardXP(xpReward);
       state._defeatTurn = millis();
       // Victory stats
       state._victoryStats = {

@@ -245,6 +245,56 @@ function createServer() {
       line.includes('Not enough resources') && line.includes('needs 2')),
       'underfunded action did not record the preflight rejection');
 
+    const progressionReachability = await page.evaluate(() => {
+      window._combat.init({
+        vit: 13,
+        scrap: 7,
+        aether: { current: 4, max: 6 },
+        heat: { current: 1, max: 3 },
+        echoes: { current: 3, max: 3 },
+        charges: 2,
+        staffMax: 2,
+        level: 2,
+        xp: 74,
+        xpToNext: 75,
+        unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
+      });
+      const before = window._combat.getState();
+      window._combat.awardXP(1);
+      const after = window._combat.getState();
+
+      if (typeof startCombat !== 'function') throw new Error('startCombat is unavailable');
+      startCombat('skyPredator');
+
+      return {
+        beforeLevel: before.player.level,
+        beforeXP: before.player.xp,
+        afterLevel: after.player.level,
+        afterXP: after.player.xp,
+        afterXPToNext: after.player.xpToNext,
+        unlockedAbilities: after.player.unlockedAbilities,
+        eligibleActionIds: after.eligibleActionIds,
+        log: after.log,
+      };
+    });
+
+    assert(progressionReachability.beforeLevel === 2 &&
+      progressionReachability.beforeXP === 74,
+      'progression reachability fixture did not start at level-2 threshold');
+    assert(progressionReachability.afterLevel === 3,
+      'awardXP did not advance level 2 to level 3');
+    assert(progressionReachability.afterXP === 0,
+      'level-up did not consume the previous XP threshold');
+    assert(progressionReachability.afterXPToNext === 112,
+      'level-3 XP threshold drifted');
+    assert(progressionReachability.unlockedAbilities.includes('windWard'),
+      'level-3 progression did not unlock Wind Ward');
+    assert(progressionReachability.eligibleActionIds.includes('windWard'),
+      'newly unlocked Wind Ward did not become eligible');
+    assert(progressionReachability.log.some(line =>
+      line.includes('LEVEL 3: Wind Ward unlocked')),
+      'level-3 unlock log is missing');
+
     // Secondary input must be a safe no-op when no secondary is available.
     // This specifically guards against core reaching into AetherCombat's
     // private state.
@@ -502,6 +552,7 @@ function createServer() {
       partyArchitecture,
       enemyMetadataContract,
       affordabilityContract,
+      progressionReachability,
       effectContract,
       registryContract,
       resolverContract,
