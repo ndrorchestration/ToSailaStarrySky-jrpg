@@ -16,6 +16,8 @@ const C = {
   rust:     [180, 90, 50],
   soil:     [120, 90, 60],
   biolum:   [80, 240, 160],
+  shad:     [60, 50, 60],   // dark gray-violet for shadow fills (char-create module expects this)
+  dim:      [80, 70, 90],   // muted blue-gray for labels/indicators (char-create module expects this)
 };
 
 // ── State ──
@@ -23,6 +25,7 @@ const STATE = {
   BOOT: 'boot', MENU: 'menu', WORLD: 'world', COMBAT: 'combat',
   DIALOGUE: 'dialogue', SHOP: 'shop', LEDGER: 'ledger',
   QUESTLOG: 'questlog', CHARSHEET: 'charsheet',
+  CHARCREATE: 'charcreate',
 };
 let gameState = STATE.BOOT;
 window.gameState = gameState;  // expose for debug
@@ -45,6 +48,14 @@ let hitStop = { active: false, remaining: 0 };
 
 // ── Screen fade transitions ──
 let fade = { active: false, from: null, to: null, startTime: 0, duration: 400, alpha: 0 };
+
+// ── UI polish state (Memories adaptation patterns) ──
+// panelOpenness: window slide-open animation progress (0-255)
+let panelOpenness = 0;
+// uiWindowTone: panel ambiance tint accumulator for scene-state shifts
+let uiWindowTone = 0;
+// lastCmdIdx: last-chosen menu command index for last-command memory
+let lastCmdIdx = -1;
 
 // ── Dialogue type-in ──
 let dialogueTypeIn = { active: false, fullText: '', displayText: '', charIndex: 0, speed: 22, lastCharTime: 0 };
@@ -97,6 +108,17 @@ function setup() {
   window._setupOrder = window._setupOrder ? window._setupOrder + '→setup-start' : 'setup-start';
   const canvas = createCanvas(960, 640);
   window._setupOrder = window._setupOrder + '→canvas-done';
+  // DEBUG: big visible text on canvas so we can see if setup ran at all
+  fill(255, 255, 0);
+  noStroke();
+  textSize(32);
+  textAlign(CENTER, CENTER);
+  text('AETHERWAKE SETUP RAN OK', width/2, height/2 - 30);
+  textSize(16);
+  text('gameState=' + (window.gameState || 'undefined'), width/2, height/2 + 10);
+  text('canvas=' + canvas.width + 'x' + canvas.height, width/2, height/2 + 30);
+  text('p5.instance=' + (window.p5 && window.p5.instance ? 'YES' : 'NO'), width/2, height/2 + 50);
+  // Now proceed with normal setup
   frameRate(60);
   pixelDensity(1);
   colorMode(RGB, 255);
@@ -123,6 +145,13 @@ function setup() {
     combat = new window.AetherCombat(p5, C);
     window._combat = combat;
     if (combat && typeof combat.init === 'function') combat.init();
+  }
+  window._setupOrder = window._setupOrder + '→combat-done';
+  // Character creation module (if present — loaded via index-embedded.html <script>)
+  if (typeof window.AetherCharCreate !== 'undefined') {
+    window._charcreate = window.AetherCharCreate;
+    if (window._charcreate && typeof window._charcreate.init === 'function') window._charcreate.init();
+    window._setupOrder = window._setupOrder + '→charcreate-done';
   }
   window._setupOrder = window._setupOrder + '→setup-done';
   lastTime = millis();
@@ -204,6 +233,53 @@ function draw() {
   else if (gameState === STATE.MENU) {
     drawTitleScreen();
   }
+  else if (gameState === STATE.CHARCREATE) {
+    if (window._charcreate && typeof window._charcreate.draw === 'function') {
+      window._charcreate.draw();
+    }
+    // When char-create signals completion, transition to WORLD and init combat
+    if (window._charcreate && window._charcreate.phase === 'done') {
+      // Populate world.player from party[0] (Ender) so the rest of the game
+      // uses the character-created stats. Copy fields that combat.init() expects.
+      if (window._charcreate.party && window._charcreate.party[0]) {
+        const p = window._charcreate.party[0];
+        world.player = {
+          vit: p.vit, maxVit: p.maxVit,
+          echoes: p.echoes.current, echoesMax: p.echoes.max,
+          wits: p.wits, presence: p.presence, spirit: p.spirit,
+          might: p.might, grace: p.grace,
+          scrap: p.scrap, aether: p.aether.current, aetherMax: p.aether.max,
+          heat: p.heat.current, heatMax: p.heat.max,
+          staffCharges: p.staffCharges, maxStaffCharges: p.maxStaffCharges,
+          level: p.level, xp: p.xp, xpToNext: p.xpToNext,
+          unlockedAbilities: p.unlockedAbilities,
+          equipment: p.equipment,
+        };
+      }
+      // Re-init combat with the new player data
+      if (combat && typeof combat.init === 'function') {
+        combat.init({
+          vit: world.player.vit,
+          scrap: world.player.scrap,
+          aether: { current: world.player.aether, max: world.player.aetherMax },
+          heat: { current: world.player.heat, max: world.player.heatMax },
+          echoes: { current: world.player.echoes, max: world.player.echoesMax },
+          charges: world.player.staffCharges,
+          staffMax: world.player.maxStaffCharges || 2,
+          aetherMax: world.player.aetherMax,
+          heatMax: world.player.heatMax,
+          echoesMax: world.player.echoesMax,
+          level: world.player.level,
+          xp: world.player.xp,
+          xpToNext: world.player.xpToNext,
+          unlockedAbilities: world.player.unlockedAbilities,
+          equipment: world.player.equipment,
+        });
+      }
+      gameState = STATE.WORLD;
+      window.gameState = gameState;
+    }
+  }
   else if (gameState === STATE.WORLD) {
     if (world && typeof world.update === 'function') world.update(dt / 1000);
     if (world && typeof world.render === 'function') world.render();
@@ -268,6 +344,22 @@ function draw() {
   }
 
   drawScanlines();
+
+  // ── Scene fade: track previous state for next-frame detection ──
+  prevState = gameState;
+
+  // ── Window openness animation (Memories §1.2) ──
+  if (window.UI.opening) {
+    window.UI.openness = Math.min(255, window.UI.openness + 32);
+    if (window.UI.openness >= 255) window.UI.opening = false;
+  }
+  if (window.UI.closing) {
+    window.UI.openness = Math.max(0, window.UI.openness - 32);
+    if (window.UI.openness <= 0) {
+      window.UI.openness = 0;
+      window.UI.closing = false;
+    }
+  }
 }
 
 // ── Input ──
@@ -313,12 +405,13 @@ function keyPressed() {
       }
     }
   }
-  // Shop buy-by-number (1-9)
+  // Shop buy-by-number (1-8 only; 9 is reserved for debug)
   if (gameState === STATE.SHOP) {
-    if (typeof key === 'string' && key >= '1' && key <= '9') {
+    if (typeof key === 'string' && key >= '1' && key <= '8') {
       if (window.UI.shopBuyHandler) window.UI.shopBuyHandler(key);
     }
   }
+
   // DEBUG
   window._lastKeyEvent = { type: 'keyPressed', keyCode: keyCode, key: (typeof key !== 'undefined' ? key : null), gameState: gameState };
 }
@@ -333,6 +426,12 @@ function keyReleased() {
 function keyTyped() {
   // p5 fires keyTyped for character keys; keyPressed already handled keyCode input.
   // Here we handle character-driven game flow changes.
+  if (gameState === STATE.CHARCREATE) {
+    if (window._charcreate && typeof window._charcreate.handleTypedChar === 'function') {
+      window._charcreate.handleTypedChar(key);
+    }
+    return;
+  }
   if (gameState === STATE.MENU) {
     if (key === 'n' || key === 'N' || key === 'Enter' || key === ' ') {
       startGame();
@@ -345,6 +444,12 @@ function keyTyped() {
         startCombat('skyPredator');
       }
     }
+    // Disembark ship: L or Esc
+    if ((key === 'l' || key === 'L' || key === 'escape') && world && player && player.shipBoarded) {
+      player.shipBoarded = false;
+    }
+    // Choice path selection: 1/2/3
+    handleChoiceInput();
   }
   if (gameState === STATE.BOOT) {
     // Also allow character keys to skip boot
@@ -361,6 +466,15 @@ function windowResized() {
 }
 
 function handleInput() {
+  // ── Scene fade transition on state change ──
+  if (prevState !== null && prevState !== gameState && VIS.fadeTransitions) {
+    fade.active = true;
+    fade.from = prevState;
+    fade.to = gameState;
+    fade.startTime = millis() - 1;
+    fade.duration = 250;
+  }
+
   // ── Debug logging for key events ──
   window._lastStateTransition = {
     from: prevState,
@@ -397,6 +511,19 @@ function handleInput() {
         (typeof key !== 'undefined' && (key === 'Enter' || key === ' ' || key === 'n' || key === 'N'))) {
       startGame();
     }
+    // If startGame() routed us into CHARCREATE, run the char-create handler
+    // for this same key press so the title→name transition works on first Enter.
+    if (gameState === STATE.CHARCREATE &&
+        window._charcreate && typeof window._charcreate.handleInput === 'function') {
+      window._charcreate.handleInput(keys, keysPressed);
+    }
+    return;
+  }
+
+  if (gameState === STATE.CHARCREATE) {
+    if (window._charcreate && typeof window._charcreate.handleInput === 'function') {
+      window._charcreate.handleInput(keys, keysPressed);
+    }
     return;
   }
 
@@ -407,11 +534,19 @@ function handleInput() {
     if (combat && typeof combat.handleInput === 'function') {
       combat.handleInput(keys, keysPressed);
     }
-    // Number keys 1-5 trigger combat actions
-    if (typeof key === 'string' && key >= '1' && key <= '5' && combat && typeof combat.resolveTurn === 'function') {
-      const actionId = ['staffStrike', 'uncoverTruth', 'sharedDream', 'mycelialLedger', 'hold'][key.charCodeAt(0) - 49];
-      if (actionId) {
-        combat.resolveTurn(actionId, null);
+    // Number keys 1-8 trigger combat actions
+    if (typeof key === 'string' && key >= '1' && key <= '8' && combat && typeof combat.resolveTurn === 'function') {
+      const actionIds = ['staffStrike', 'uncoverTruth', 'sharedDream', 'mycelialLedger', 'hold', 'windWard', 'aetherSeal', 'rest'];
+      const idx = key.charCodeAt(0) - 49;
+      if (idx >= 0 && idx < actionIds.length) {
+        combat.resolveTurn(actionIds[idx], null);
+      }
+    }
+    // S key: secondary action (re-run last ability if available)
+    if (typeof key === 'string' && key === 's' && combat && typeof combat.resolveTurn === 'function') {
+      if (state._secondaryAvailable && state._lastAbilityId) {
+        combat.resolveTurn(state._lastAbilityId, null);
+        state._secondaryAvailable = false;
       }
     }
   }
@@ -498,29 +633,18 @@ function doMove(code) {
 function startGame() {
   // DO NOT call world.init() again — it was called in setup() and resets
   // the player, NPCs, quest, shop, and ledger to initial state. We only
-  // transition to WORLD state so the draw/update loop starts rendering.
-  if (combat && typeof combat.init === 'function') {
-    combat.init({
-      vit: world.player.vit,
-      scrap: world.player.scrap,
-      aether: { current: world.player.aether, max: world.player.aetherMax },
-      heat: { current: world.player.heat, max: world.player.heatMax },
-      echoes: { current: world.player.echoes, max: world.player.echoesMax },
-      charges: world.player.staffCharges,
-      staffMax: 2,
-      aetherMax: world.player.aetherMax,
-      heatMax: world.player.heatMax,
-      echoesMax: world.player.echoesMax,
-      level: world.player.level,
-      xp: world.player.xp,
-      xpToNext: world.player.xpToNext,
-      unlockedAbilities: world.player.unlockedAbilities,
-      equipment: world.player.equipment,
-    });
+  // transition to CHARCREATE state so the character creation flow can run.
+  // When char-create signals completion (phase === 'done'), it will transition
+  // to WORLD. If char-create is not loaded, fall through to WORLD directly.
+  if (typeof window.AetherCharCreate !== 'undefined' && window._charcreate) {
+    gameState = STATE.CHARCREATE;
+    window.gameState = gameState;
+    if (typeof window._charcreate.start === 'function') window._charcreate.start();
+  } else {
+    gameState = STATE.WORLD;
+    window.gameState = gameState;
+    prevState = null;
   }
-  gameState = STATE.WORLD;
-  window.gameState = gameState;
-  prevState = null;
 }
 
 // ── Combat launcher: triggers an encounter ──
@@ -555,6 +679,29 @@ function openState(s) {
   // Fade transition between states
   if (VIS.fadeTransitions) {
     startFade(150);  // quick fade-in overlay
+  }
+  // ── Window openness slide-in (Memories §1.2) ──
+  window.UI.opening = true;
+  window.UI.openness = 0;
+  // ── Per-state window tones (Memories §1.3) ──
+  switch (s) {
+    case STATE.DIALOGUE:
+      window.UI.windowTone = [124, 200, 232]; // cool blue
+      break;
+    case STATE.SHOP:
+      window.UI.windowTone = [210, 180, 140]; // warm dusttan
+      break;
+    case STATE.LEDGER:
+      window.UI.windowTone = [180, 190, 200]; // neutral
+      break;
+    case STATE.QUESTLOG:
+      window.UI.windowTone = [100, 180, 220]; // quest blue
+      break;
+    case STATE.CHARSHEET:
+      window.UI.windowTone = [160, 180, 200]; // neutral
+      break;
+    default:
+      window.UI.windowTone = null;
   }
 }
 
@@ -941,10 +1088,26 @@ function drawDialogueOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2], 180);
   rect(0, 0, width, height);
 
+  // ── Window tone (Memories §1.3): cool tint for dialogue ──
+  const tone = window.UI.windowTone || null;
+
+  // ── Window openness (Memories §1.2): alpha multiplier ──
+  const openness = window.UI.openness || 255;
+
+  // Backdrop dimmer tied to openness
+  fill(C.navy[0], C.navy[1], C.navy[2], 180 * (openness / 255));
+  rect(0, 0, width, height);
+
   const bx = width/2 - 240, by = height - 100, bw = 480, bh = 80;
   fill(C.navy[0], C.navy[1], C.navy[2]);
   noStroke();
   rect(bx, by, bw, bh);
+  // Tint overlay
+  if (tone) {
+    fill(tone[0], tone[1], tone[2], 30);
+    noStroke();
+    rect(bx, by, bw, bh);
+  }
   drawPixelBorder(bx, by, bw, bh, 3);
 
   textFont('Press Start 2P');
@@ -972,6 +1135,14 @@ function drawShopOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2], 190);
   rect(0, 0, width, height);
 
+  // ── Window tone (Memories §1.3): warm tint for shop ──
+  const tone = window.UI.windowTone || null;
+
+  // ── Window openness (Memories §1.2): alpha multiplier ──
+  const openness = window.UI.openness || 255;
+  fill(C.navy[0], C.navy[1], C.navy[2], 190 * (openness / 255));
+  rect(0, 0, width, height);
+
   // Floating islands parallax in shop background
   for (const island of titleIslands) {
     const px = ((island.x + millis() * 0.008 * island.drift) % 60 + 60) % 60 * 16;
@@ -985,6 +1156,12 @@ function drawShopOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2]);
   noStroke();
   rect(sx, sy, sw, sh);
+  // Window tone tint (warm for shop)
+  if (tone) {
+    fill(tone[0], tone[1], tone[2], 25);
+    noStroke();
+    rect(sx, sy, sw, sh);
+  }
   drawPixelBorder(sx, sy, sw, sh, 3);
 
   textFont('Press Start 2P');
@@ -1020,6 +1197,9 @@ function drawShopOverlay() {
     rect(sx + 12, iy, sw - 24, 26);
 
     const buyable = scrap >= item.cost;
+    // Last-command memory highlight (Memories §3.5)
+    const lastSel = window.UI.lastShopSelection;
+    const isLastSelected = (lastSel !== undefined && i === lastSel);
     fill(buyable ? C.parchment[0] : C.rust[0], buyable ? C.parchment[1] : C.rust[1], buyable ? C.parchment[2] : C.rust[2]);
     text(item.name, sx + 20, iy + 5);
     fill(C.rust[0], C.rust[1], C.rust[2], 100);
@@ -1029,6 +1209,12 @@ function drawShopOverlay() {
 
     fill(buyable ? C.teal[0] : C.rust[0], buyable ? C.teal[1] : C.rust[1], buyable ? C.teal[2] : C.rust[2], buyable ? 180 : 60);
     text('[' + (i+1) + '] ' + item.cost + ' scrap', sx + sw - 80, iy + 5);
+    // Highlight last-selected slot
+    if (isLastSelected) {
+      noStroke();
+      fill(C.teal[0], C.teal[1], C.teal[2], 30);
+      rect(sx + 10, iy - 2, sw - 20, 28);
+    }
   }
 
   // Shop footer
@@ -1044,10 +1230,22 @@ function drawLedgerOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2], 190);
   rect(0, 0, width, height);
 
+  // ── Window openness (Memories §1.2): alpha multiplier ──
+  const openness = window.UI.openness || 255;
+  fill(C.navy[0], C.navy[1], C.navy[2], 190 * (openness / 255));
+  rect(0, 0, width, height);
+
   const lx = 40, ly = 40, lw = width - 80, lh = height - 80;
   fill(C.navy[0], C.navy[1], C.navy[2]);
   noStroke();
   rect(lx, ly, lw, lh);
+  // Window tone tint
+  const tone = window.UI.windowTone || null;
+  if (tone) {
+    fill(tone[0], tone[1], tone[2], 20);
+    noStroke();
+    rect(lx, ly, lw, lh);
+  }
   drawPixelBorder(lx, ly, lw, lh, 2);
 
   textFont('Press Start 2P');
@@ -1080,10 +1278,22 @@ function drawQuestLogOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2], 190);
   rect(0, 0, width, height);
 
+  // ── Window openness (Memories §1.2): alpha multiplier ──
+  const openness = window.UI.openness || 255;
+  fill(C.navy[0], C.navy[1], C.navy[2], 190 * (openness / 255));
+  rect(0, 0, width, height);
+
   const qx = 40, qy = 40, qw = width - 80, qh = height - 80;
   fill(C.navy[0], C.navy[1], C.navy[2]);
   noStroke();
   rect(qx, qy, qw, qh);
+  // Window tone tint
+  const tone = window.UI.windowTone || null;
+  if (tone) {
+    fill(tone[0], tone[1], tone[2], 20);
+    noStroke();
+    rect(qx, qy, qw, qh);
+  }
   drawPixelBorder(qx, qy, qw, qh, 2);
 
   textFont('Press Start 2P');
@@ -1103,7 +1313,7 @@ function drawQuestLogOverlay() {
     text('State: ' + qs.state, qx + 16, y);
     y += 18;
     textSize(13);
-    text('Hooks: ' + qs.hooksCompleted + '/3  |  Hazards: ' + qs.hazardsCompleted + '/3', qx + 16, y);
+    text('Hooks: ' + qs.hooksCompleted + '/3  |  Hazards: ' + qs.hazardsCompleted + '/4', qx + 16, y);
     y += 18;
     text('NPCs: ' + (qs.npcsMet ? qs.npcsMet.length : 0) + '/4  |  Choice: ' + (qs.choiceMade || 'none'), qx + 16, y);
     y += 24;
@@ -1127,10 +1337,22 @@ function drawCharSheetOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2], 190);
   rect(0, 0, width, height);
 
+  // ── Window openness (Memories §1.2): alpha multiplier ──
+  const openness = window.UI.openness || 255;
+  fill(C.navy[0], C.navy[1], C.navy[2], 190 * (openness / 255));
+  rect(0, 0, width, height);
+
   const px = 20, py = 20, pw = width - 40, ph = height - 40;
   fill(C.navy[0], C.navy[1], C.navy[2]);
   noStroke();
   rect(px, py, pw, ph);
+  // Window tone tint
+  const tone = window.UI.windowTone || null;
+  if (tone) {
+    fill(tone[0], tone[1], tone[2], 25);
+    noStroke();
+    rect(px, py, pw, ph);
+  }
   drawPixelBorder(px, py, pw, ph, 3);
 
   if (typeof drawCharSheet === 'function') {
@@ -1655,8 +1877,9 @@ function initQuest() {
       { id: 'below_frequency', label: 'Below-Frequency Caller', done: false }
     ],
     crossingHazards: [
-      { id: 'sky_predator', label: 'Sky-Predator', done: false, stat: 'grace' },
-      { id: 'wind_shear', label: 'Harmonic Shear', done: false, stat: 'grace' },
+      { id: 'sky_predator',   label: 'Sky-Predator',    done: false, stat: 'might' },
+      { id: 'wind_shear',     label: 'Wind Shear',      done: false, stat: 'grace' },
+      { id: 'aether_leak',    label: 'Aether Leak',     done: false, stat: 'wits' },
       { id: 'corporate_intercept', label: 'Corporate Intercept', done: false, stat: 'might' }
     ],
     contactNPCs: [
@@ -1840,6 +2063,110 @@ function advanceChoice() {
   }
 }
 
+// --- Choice path selection UI ---------------------------------------------
+
+function drawChoiceMenu() {
+  if (quest.state !== QUEST_STATES.CHOICE || quest.choiceMade) return;
+
+  // Dark overlay
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 200);
+  rect(0, 0, width, height);
+
+  // Panel
+  const px = width / 2 - 220, py = 60, pw = 440, ph = 280;
+  fill(C.navy[0], C.navy[1], C.navy[2], 230);
+  rect(px, py, pw, ph);
+  drawPixelBorder(px, py, pw, ph, 3);
+
+  // Title
+  fill(C.teal[0], C.teal[1], C.teal[2], 220);
+  textAlign(CENTER, TOP);
+  textSize(10);
+  textFont('Press Start 2P');
+  text('CHOOSE YOUR PATH', width / 2, py + 14);
+  textSize(9);
+  textFont('VT323');
+  fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
+  text('The core waits. The ship holds still. What do you do?', width / 2, py + 30);
+  textSize(10);
+  textFont('sans-serif');
+
+  // 3 path options
+  const paths = quest.choicePaths;
+  for (let i = 0; i < 3; i++) {
+    const path = paths[i];
+    if (!path) continue;
+    const optY = py + 50 + i * 70;
+    const optH = 56;
+
+    // Selected highlight
+    if (quest._choiceHover === i) {
+      noStroke();
+      fill(C.teal[0], C.teal[1], C.teal[2], 40);
+      rect(px + 8, optY, pw - 16, optH);
+    }
+
+    // Option box
+    noStroke();
+    fill(C.navy[0] + 10, C.navy[1] + 6, C.navy[2] + 6);
+    rect(px + 10, optY, pw - 20, optH);
+    stroke(C.teal[0], C.teal[1], C.teal[2], 50);
+    strokeWeight(1);
+    rect(px + 10, optY, pw - 20, optH);
+    noStroke();
+
+    // Path label
+    fill(C.teal[0], C.teal[1], C.teal[2], 200);
+    textFont('Press Start 2P');
+    textSize(9);
+    textAlign(LEFT, TOP);
+    text('[' + (i + 1) + ']  ' + path.label, px + 18, optY + 6);
+
+    // Description
+    textFont('VT323');
+    textSize(11);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
+    wrapText(path.description, px + 18, optY + 22, pw - 40);
+    textSize(10);
+    textFont('sans-serif');
+  }
+
+  // Prompt
+  fill(C.teal[0], C.teal[1], C.teal[2], 140);
+  textAlign(CENTER, TOP);
+  textSize(8);
+  textFont('Press Start 2P');
+  text('Press 1 / 2 / 3 or click to choose', width / 2, py + ph - 16);
+  textSize(10);
+  textFont('sans-serif');
+}
+
+function handleChoiceInput() {
+  if (quest.state !== QUEST_STATES.CHOICE || quest.choiceMade) return;
+
+  if (typeof key !== 'undefined' && key >= '1' && key <= '3') {
+    const idx = parseInt(key) - 1;
+    if (idx >= 0 && idx < quest.choicePaths.length) {
+      selectChoicePath(idx);
+    }
+    return;
+  }
+}
+
+function selectChoicePath(idx) {
+  if (idx < 0 || idx >= quest.choicePaths.length) return;
+  const path = quest.choicePaths[idx];
+
+  // Simulate 2D6 roll for variant
+  const roll = Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
+  quest.choiceVariant = roll >= 10 ? '10+' : '7-9';
+  quest.choiceMade = path.label;
+
+  addLedgerEntry('quest', 'You chose: ' + path.label + ' (roll: ' + quest.choiceVariant + ')');
+  advanceChoice();
+}
+
 function advanceWake() {
   if (!quest.wakeEpilogue) {
     resolveEpilogue();
@@ -1928,6 +2255,12 @@ function checkHazardProximity(tx, ty) {
       completeHazard(2);
     }
   }
+  if (tx >= 4 && tx <= 12 && ty >= 9 && ty <= 16 && !quest.crossingHazards[3].done) {
+    if (Math.random() < 0.12) {
+      completeHazard(3);
+    }
+  }
+  // 4th hazard zone marker drawn in drawQuestWorldReactions()
 }
 
 function completeHazard(index) {
@@ -2065,6 +2398,9 @@ function openDialogue(npc) {
   window.UI.dialogueText = lines[0] || '...';
   window.UI.dialogueLines = lines;
   window.UI.dialogueLineIndex = 0;
+  // ── Window openness slide-in (Memories §1.2) ──
+  window.UI.opening = true;
+  window.UI.openness = 0;
   // TTS audio state
   window.UI.dialogueAudioNPC = npc.id;
   window.UI.dialogueAudioBatch = batch;
@@ -2240,6 +2576,11 @@ function initLedgerPlaceholder() {
 
 function openLedger() {
   ledger.open = true;
+  // ── Window openness slide-in (Memories §1.2) ──
+  window.UI.opening = true;
+  window.UI.openness = 0;
+  // Last-command memory: restore last filter (catalog §3.5)
+  if (window.UI.lastLedgerFilter === undefined) window.UI.lastLedgerFilter = 'all';
 }
 
 function closeLedger() {
@@ -2278,6 +2619,13 @@ function openShop() {
     return;
   }
   shop.open = true;
+  // ── Window openness slide-in (Memories §1.2) ──
+  window.UI.opening = true;
+  window.UI.openness = 0;
+  // Last-command memory: restore last selected shop slot
+  if (window.UI.lastShopSelection !== undefined && window.UI.lastShopSelection < shop.items.length) {
+    // selection restored implicitly via draw highlight
+  }
 }
 
 function closeShop() {
@@ -2364,23 +2712,118 @@ function update(dt) {
 // ---------------------------------------------------------------------------
 
 function render() {
-  drawGroundLayer();
-  if (isSkyLayerVisible) {
-    drawSkyLayer();
+  if (player.shipBoarded) {
+    drawShipInterior();
+  } else {
+    drawGroundLayer();
+    if (isSkyLayerVisible) {
+      drawSkyLayer();
+    }
+    drawCovenantField();
+    drawWorldAmbient();
+    drawGrassWind();
+    drawClouds();
+    drawStars();
+    drawEnginePulse();
+    drawQuestWorldReactions();
+    drawPlayer();
+    drawNPCs();
+    drawPlayerVisualEvolution();
   }
-  drawCovenantField();
-  drawWorldAmbient();
-  drawGrassWind();
-  drawClouds();
-  drawStars();
-  drawEnginePulse();
-  drawQuestWorldReactions();
-  drawPlayer();
-  drawNPCs();
-  drawPlayerVisualEvolution();
   drawQuestOverlay();
   drawSolarMeter();
+  if (gameState === STATE.WORLD || gameState === STATE.DIALOGUE || gameState === STATE.SHOP || gameState === STATE.COMBAT) {
+    drawDayNightIndicator();
+  }
+  if (quest && quest.state === QUEST_STATES.CHOICE && !quest.choiceMade) {
+    drawChoiceMenu();
+  }
 }
+
+// --- Ship Interior ----------------------------------------------------------
+
+function drawShipInterior() {
+  // The Unfinished Song — top-down deck view
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2]);
+  rect(0, 0, width, height);
+
+  // Title
+  fill(C.teal[0], C.teal[1], C.teal[2], 200);
+  textAlign(CENTER, TOP);
+  textSize(11);
+  textFont('Press Start 2P');
+  text('THE UNFINISHED SONG', width / 2, 12);
+  textSize(10);
+  textFont('sans-serif');
+
+  // Deck outline — main hull
+  const deckX = 80, deckY = 60, deckW = width - 160, deckH = height - 120;
+  noFill();
+  stroke(C.soil[0], C.soil[1], C.soil[2], 180);
+  strokeWeight(2);
+  rect(deckX, deckY, deckW, deckH);
+  noStroke();
+
+  // Deck planks (subtle horizontal lines)
+  stroke(C.soil[0], C.soil[1], C.soil[2], 40);
+  strokeWeight(1);
+  for (let y = deckY + 20; y < deckY + deckH - 10; y += 20) {
+    line(deckX + 4, y, deckX + deckW - 4, y);
+  }
+  noStroke();
+
+  // Core glow in center
+  const cx = width / 2, cy = height / 2;
+  const pulse = Math.sin(millis() * 0.004) * 0.15 + 0.85;
+  const coreR = 18 + Math.sin(millis() * 0.005) * 2;
+  noStroke();
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 30 * pulse);
+  ellipse(cx, cy, coreR * 3, coreR * 1.8);
+  fill(C.teal[0], C.teal[1], C.teal[2], 60 * pulse);
+  ellipse(cx, cy, coreR * 2, coreR * 1.3);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 160 * pulse);
+  ellipse(cx, cy, coreR * 0.8, coreR * 0.6);
+  noStroke();
+
+  // Core label
+  fill(C.teal[0], C.teal[1], C.teal[2], 150);
+  textAlign(CENTER, CENTER);
+  textSize(8);
+  textFont('VT323');
+  text('CORE', cx, cy - 22);
+  textSize(10);
+  textFont('sans-serif');
+
+  // Ender / player on deck
+  const px = cx - 48, py = cy + 20;
+  fill(C.teal[0], C.teal[1], C.teal[2], 220);
+  noStroke();
+  ellipse(px + 8, py + 8, 14, 14);
+  fill(C.parchment[0], C.parchment[1], C.parchment[2], 200);
+  ellipse(px + 8, py + 6, 8, 6);
+  // Direction indicator
+  fill(C.teal[0], C.teal[1], C.teal[2], 180);
+  textAlign(CENTER, TOP);
+  textSize(7);
+  textFont('Press Start 2P');
+  text('ENDER', px, py - 10);
+  textSize(10);
+  textFont('sans-serif');
+
+  // Exit prompt
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 180);
+  rect(0, height - 28, width, 28);
+  fill(C.teal[0], C.teal[1], C.teal[2], 180);
+  textAlign(CENTER, CENTER);
+  textSize(9);
+  textFont('VT323');
+  text('[ L ] or [ ESC ] to disembark', width / 2, height - 14);
+  textSize(10);
+  textFont('sans-serif');
+}
+
 
 // --- Ground Layer -----------------------------------------------------------
 
@@ -2925,6 +3368,98 @@ function drawNPCDefault(px, py, name) {
   rect(px + 6, py - 5, 2, 1);
 }
 
+function drawEngineSpiritBody(px, py) {
+  // Glowing core shape — biolum green
+  noStroke();
+  // Outer glow
+  fill(color(42, 255, 181, 40));
+  ellipse(px, py, 32, 32);
+  // Core body
+  fill(color(42, 255, 181, 180));
+  ellipse(px, py, 18, 18);
+  // Inner bright core
+  fill(color(180, 255, 220));
+  ellipse(px, py, 8, 8);
+  // Pulsing rings
+  noFill();
+  stroke(color(42, 255, 181, 100));
+  strokeWeight(1);
+  ellipse(px, py, 24, 24);
+  noStroke();
+  // Small floating particles
+  fill(color(42, 255, 181, 200));
+  rect(px - 6, py - 2, 2, 2);
+  rect(px + 4, py + 1, 2, 2);
+  rect(px - 2, py + 4, 2, 2);
+}
+
+function drawChildProphetBody(px, py) {
+  // Small figure with red/pink aura
+  noStroke();
+  // Aura glow
+  fill(color(255, 100, 120, 40));
+  ellipse(px, py - 4, 28, 24);
+  // Body
+  fill(color(200, 80, 100));
+  rect(px - 3, py - 4, 10, 12);
+  // Head
+  fill(color(220, 120, 140));
+  rect(px - 2, py - 8, 8, 6);
+  // Eyes (wide, prophetic)
+  fill(color(255, 255, 255));
+  rect(px - 1, py - 7, 2, 2);
+  rect(px + 3, py - 7, 2, 2);
+  // Aura rays
+  noFill();
+  stroke(color(255, 100, 120, 80));
+  strokeWeight(1);
+  line(px, py - 8, px - 6, py - 12);
+  line(px, py - 8, px + 6, py - 12);
+  line(px, py - 8, px, py - 14);
+  noStroke();
+  // Small floating hands
+  fill(color(200, 80, 100));
+  rect(px - 4, py - 2, 3, 2);
+  rect(px + 4, py - 2, 3, 2);
+}
+
+function drawElderFarmerBody(px, py) {
+  // Sturdy figure — soil brown
+  noStroke();
+  // Body (broad, sturdy)
+  fill(color(120, 90, 60));
+  rect(px - 5, py - 4, 14, 14);
+  // Head
+  fill(color(160, 130, 100));
+  rect(px - 3, py - 9, 10, 7);
+  // Hat brim
+  fill(color(100, 80, 50));
+  rect(px - 5, py - 9, 14, 2);
+  // Hat top
+  fill(color(110, 85, 55));
+  rect(px - 3, py - 12, 8, 4);
+  // Eyes (weathered)
+  fill(color(40, 30, 20));
+  rect(px - 1, py - 7, 2, 1);
+  rect(px + 3, py - 7, 2, 1);
+  // Arms (broad)
+  fill(color(120, 90, 60));
+  rect(px - 8, py - 2, 4, 10);
+  rect(px + 6, py - 2, 4, 10);
+  // Hands
+  fill(color(140, 110, 80));
+  rect(px - 7, py + 7, 3, 3);
+  rect(px + 6, py + 7, 3, 3);
+  // Legs (sturdy)
+  fill(color(100, 80, 50));
+  rect(px - 4, py + 10, 4, 8);
+  rect(px + 1, py + 10, 4, 8);
+  // Boots
+  fill(color(60, 50, 35));
+  rect(px - 5, py + 17, 6, 3);
+  rect(px + 1, py + 17, 6, 3);
+}
+
 // --- Quest Overlay -----------------------------------------------------------
 
 function drawQuestOverlay() {
@@ -2973,7 +3508,7 @@ function drawQuestOverlay() {
   if (quest.state === 'signal') {
     progressText = quest.hooksCompleted + '/3 hooks';
   } else if (quest.state === 'crossing') {
-    progressText = quest.hazardsCompleted + '/3 hazards';
+    progressText = quest.hazardsCompleted + '/4 hazards';
   } else if (quest.state === 'contact') {
     progressText = quest.npcsMet.length + '/4 NPCs';
   } else if (quest.state === 'choice') {
@@ -3077,6 +3612,74 @@ function drawSolarMeter() {
   textFont('VT323');
   text('⚡ FIRE ' + player.staffCharges + '/2', fx, fy - 2);
   textSize(10);
+  textFont('sans-serif');
+}
+
+// --- Day-Night Indicator (HUD corner) -------------------------------------
+
+function drawDayNightIndicator() {
+  if (gameState !== STATE.WORLD && gameState !== STATE.DIALOGUE && gameState !== STATE.SHOP && gameState !== STATE.COMBAT && gameState !== STATE.QUESTLOG) return;
+  const cx = 12, cy = 510, r = 22;
+  const phase = dayTime % 1.0;
+
+  // Background circle
+  noStroke();
+  fill(color(26, 16, 46, 220));
+  ellipse(cx, cy, r * 2);
+
+  // Day arc (scioto fill for daylight portion)
+  noFill();
+  stroke(color(124, 200, 232, 120));
+  strokeWeight(3);
+  const startA = -HALF_PI;
+  const endA = startA + phase * TWO_PI;
+  if (phase <= 0.5) {
+    arc(cx, cy, r * 2 - 4, r * 2 - 4, startA, endA);
+  } else {
+    // Night: overlay dark, then draw remaining day arc
+    noStroke();
+    fill(color(26, 16, 46, 220));
+    ellipse(cx, cy, r * 2 - 4);
+    stroke(color(124, 200, 232, 120));
+    strokeWeight(3);
+    arc(cx, cy, r * 2 - 4, r * 2 - 4, startA, endA);
+  }
+
+  // Sun / moon indicator at leading edge
+  const indicatorAngle = endA;
+  const ix = cx + cos(indicatorAngle) * (r - 5);
+  const iy = cy + sin(indicatorAngle) * (r - 5);
+  noStroke();
+  if (phase < 0.5) {
+    // Sun
+    fill(color(124, 200, 232, 220));
+    ellipse(ix, iy, 7, 7);
+    fill(color(124, 200, 232, 60));
+    ellipse(ix, iy, 12, 12);
+  } else {
+    // Moon
+    fill(color(42, 255, 181, 200));
+    ellipse(ix, iy, 6, 6);
+    fill(color(42, 255, 181, 60));
+    ellipse(ix, iy, 10, 10);
+  }
+
+  // Clock ring
+  noFill();
+  stroke(color(42, 255, 181, 70));
+  strokeWeight(1);
+  ellipse(cx, cy, r * 2, r * 2);
+
+  // Time label
+  noStroke();
+  fill(color(232, 220, 198, 140));
+  textAlign(CENTER, CENTER);
+  textSize(7);
+  textFont('VT323');
+  const label = phase < 0.25 ? 'DAWN' : phase < 0.5 ? 'DAY' :
+                phase < 0.75 ? 'DUSK' : 'NIGHT';
+  text(label, cx, cy + r + 10);
+  textSize(9);
   textFont('sans-serif');
 }
 
@@ -3236,6 +3839,11 @@ function drawQuestWorldReactions() {
         }
       } else if (h.id === 'sky_predator') {
         ellipse(20 * 16 + 8, 4 * 16 + 8, 16, 5);
+      } else if (h.id === 'corporate_intercept') {
+        const xs2 = [17, 18];
+        for (const hx of xs2) {
+          ellipse(hx * 16 + 8, 17 * 16 + 8, 12, 5);
+        }
       }
     }
   }
@@ -3484,28 +4092,28 @@ function AetherCombat(p, C) {
 
   const actions = [
     { id: 'staffStrike',  label: 'Resonator Staff — EMP strike',
-      stat: 'might', cost: 0, type: 'attack',
+      stat: 'might', cost: 0, type: 'attack', tier: 0,
       desc: '1d6+2 EMP, 10ft melee / 60ft beam, 1 charge' },
     { id: 'uncoverTruth', label: 'Uncover Truth — read the weave',
-      stat: 'wits', cost: 1, type: 'ability',
+      stat: 'wits', cost: 1, type: 'ability', tier: 1,
       desc: '2D6+Wits. Reveal enemy weakness. +1 next roll.' },
     { id: 'sharedDream',  label: 'Shared Dream — lend your vision',
-      stat: 'spirit', cost: 1, type: 'ability',
+      stat: 'spirit', cost: 1, type: 'ability', tier: 1,
       desc: '2D6+Spirit. Ally +1 next action OR heal 1-2 Vit' },
     { id: 'mycelialLedger', label: 'Mycelial Ledger — account the commons',
-      stat: 'presence', cost: 0, type: 'ability',
+      stat: 'presence', cost: 0, type: 'ability', tier: 0,
       desc: '2D6+Presence. Gain scrap or aether' },
     { id: 'hold',         label: 'Hold position — conserve',
-      stat: null, cost: 0, type: 'hold',
+      stat: null, cost: 0, type: 'hold', tier: 0,
       desc: 'Regain 1 staff charge in sunlight' },
     { id: 'windWard',     label: 'Wind Ward — ground yourself',
-      stat: 'grace', cost: 1, type: 'defense',
+      stat: 'grace', cost: 1, type: 'defense', tier: 1,
       desc: '2D6+Grace. Resist wind shear. Restore 1 Vit if 10+' },
     { id: 'aetherSeal',   label: 'Aether Seal — close the leak',
-      stat: 'wits', cost: 1, type: 'defense',
+      stat: 'wits', cost: 1, type: 'defense', tier: 2,
       desc: '2D6+Wits. Drain aether pool. Gain scrap on 10+' },
     { id: 'rest',         label: 'Rest — lower your heat',
-      stat: null, cost: 0, type: 'rest',
+      stat: null, cost: 0, type: 'rest', tier: 0,
       desc: 'Reduce current heat by 1. Recover 1 Vit on 10+' },
   ];
 
@@ -3558,6 +4166,53 @@ function AetherCombat(p, C) {
       color: 'teal',
       bodyShape: 'wraith',
     },
+    engine_spirit: {
+      name: 'Engine Spirit',
+      goal: 'Dissipate the aether — the core sings itself hollow.',
+      hp: 10, maxHp: 10, might: 0, presence: 2, grace: 0, wits: 1,
+      weakness: 'Harmonic Pulse backlashes — the spirit feeds on its own resonance.',
+      status: 'pulsing',
+      type: 'engine_spirit',
+      ability: 'harmonic_pulse',
+      abilityDesc: 'Harmonic Pulse — 2D6+Presence, drains 1 aether on 7-9+',
+      color: 'biolum',
+      bodyShape: 'core',
+    },
+    child_prophet: {
+      name: 'Child Prophet',
+      goal: 'Sing the wrong note — unravel the crew\'s confidence one prophecy at a time.',
+      hp: 8, maxHp: 8, might: -1, presence: 0, grace: 2, wits: 1,
+      weakness: 'Prophecy Voice overreaches — the child hears too much and falters.',
+      status: 'chanting',
+      type: 'child_prophet',
+      ability: 'prophecy_voice',
+      abilityDesc: 'Prophecy Voice — 2D6+Grace, on 10+ target loses 1 turn confidence',
+      color: 'rose',
+      bodyShape: 'prophet',
+    },
+    elder_farmer: {
+      name: 'Elder Farmer',
+      goal: 'Hold the ground — the soil remembers every sky-lane that never landed.',
+      hp: 16, maxHp: 16, might: 2, presence: 1, grace: 0, wits: 0,
+      weakness: 'Soil Anchor roots too deep — the earth tires of holding.',
+      status: 'anchored',
+      type: 'elder_farmer',
+      ability: 'soil_anchor',
+      abilityDesc: 'Soil Anchor — 2D6+Might, on 10+ root enemy in place for 1 turn',
+      color: 'soil',
+      bodyShape: 'farmer',
+    },
+  };
+
+  // ── Enemy ability lookup (for display / UI) ──
+  const ENEMY_ABILITIES = {
+    diveBomb: { name: 'Dive Bomb', desc: '2 damage, ignores dodge' },
+    contractClause: { name: 'Contract Clause', desc: 'Lose 1 scrap' },
+    galeForce: { name: 'Gale Force', desc: '2 damage, knockback' },
+    drain: { name: 'Drain', desc: 'Removes 1 aether' },
+    harmonicPulse: { name: 'Harmonic Pulse', desc: 'Drains 1 aether on 7-9+' },
+    prophecyVoice: { name: 'Prophecy Voice', desc: 'Lowers enemy confidence' },
+    soilAnchor: { name: 'Soil Anchor', desc: 'Roots enemy in place' },
   };
 
   // ── Helpers ──
@@ -3627,6 +4282,10 @@ function AetherCombat(p, C) {
       p.unlockedAbilities.push('windWard');
       log('── LEVEL 3: Wind Ward unlocked! ──');
     }
+    if (p.level === 4 && !p.unlockedAbilities.includes('aetherSeal')) {
+      p.unlockedAbilities.push('aetherSeal');
+      log('── LEVEL 4: Aether Seal unlocked! ──');
+    }
     if (p.level === 5 && !p.unlockedAbilities.includes('rest')) {
       p.unlockedAbilities.push('rest');
       log('── LEVEL 5: Rest unlocked! ──');
@@ -3680,18 +4339,37 @@ function AetherCombat(p, C) {
 
     state.turn++;
 
-    // Resource cost
-    if (action.cost > 0) {
+    // Track last ability for secondary action
+    if (action.type === 'ability') {
+      state._lastAbilityId = action.id;
+    } else {
+      state._lastAbilityId = null;
+    }
+
+    // Resource cost: tier + base cost (tier 0 = free, tier 1 = 1 echo, tier 2 = 2 echoes, etc.)
+    const resourceCost = (action.tier || 0) + action.cost;
+    if (resourceCost > 0) {
       if (state.player.echoes.current <= 0 && state.player.aether.current <= 0) {
         log('No echoes or aether to spend — the action falters.');
         return;
       }
-      if (state.player.echoes.current > 0) {
-        state.player.echoes.current--;
-        log('Echo spent.');
-      } else if (state.player.aether.current > 0) {
-        state.player.aether.current--;
-        log('Aether spent.');
+      let spent = 0;
+      while (spent < resourceCost) {
+        if (state.player.echoes.current > 0) {
+          state.player.echoes.current--;
+          log('Echo spent.');
+          spent++;
+        } else if (state.player.aether.current > 0) {
+          state.player.aether.current--;
+          log('Aether spent.');
+          spent++;
+        } else {
+          break;
+        }
+      }
+      if (spent < resourceCost) {
+        log('Not enough resources — the action falters.');
+        return;
       }
     }
 
@@ -3711,6 +4389,13 @@ function AetherCombat(p, C) {
     let nextRollBonus = 0;
 
     if (r.outcome === 'success') {
+      if (action.type === 'ability') {
+        // Secondary action available on 10+ with 2+ echoes
+        if (state.player.echoes.current >= 2) {
+          state._secondaryAvailable = true;
+          log('Press S for secondary action — 1 extra echo to repeat the last ability.');
+        }
+      }
       if (action.type === 'attack') {
         if (state.player.staffCharges <= 0) {
           actionText = 'Staff Strike — no charges left. The weapon falls silent. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
@@ -3727,9 +4412,15 @@ function AetherCombat(p, C) {
           nextRollBonus = 1;
           actionText = 'Uncover Truth — the weave reveals its pattern. +1 to next roll. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         } else if (action.id === 'sharedDream') {
-          heal = floor(random(1, 3));
-          state.player.vit = Math.min(state.player.maxVit, state.player.vit + heal);
-          actionText = 'Shared Dream — ' + heal + ' Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          // 50/50: heal 1-2 Vit OR +1 next roll bonus
+          if (random(0, 2) < 1) {
+            heal = floor(random(1, 3));
+            state.player.vit = Math.min(state.player.maxVit, state.player.vit + heal);
+            actionText = 'Shared Dream — ' + heal + ' Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          } else {
+            nextRollBonus = 1;
+            actionText = 'Shared Dream — ally\'s next action gets +1. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          }
         } else if (action.id === 'mycelialLedger') {
           const gain = floor(random(1, 3));
           if (floor(random(2)) === 0) {
@@ -3903,6 +4594,43 @@ function AetherCombat(p, C) {
             state.player.vit = Math.max(0, state.player.vit - 1);
             enemyText = state.enemy.name + ' strikes desperately — 1 Vit lost.';
           }
+        } else if (eType === 'engine_spirit') {
+          // Harmonic Pulse: 2D6+Presence, drains 1 aether on 7-9+
+          const pulseRoll = floor(random(1, 7)) + floor(random(1, 7)) + state.enemy.presence;
+          if (pulseRoll >= 7) {
+            if (state.player.aether.current > 0) {
+              state.player.aether.current = Math.max(0, state.player.aether.current - 1);
+              enemyText = state.enemy.name + ' emits harmonic pulse — drains 1 aether!';
+            } else {
+              state.player.vit = Math.max(0, state.player.vit - 1);
+              enemyText = state.enemy.name + ' pulses — backlashes for 1 Vit!';
+            }
+          } else {
+            state.player.vit = Math.max(0, state.player.vit - 1);
+            enemyText = state.enemy.name + ' pulses harmlessly — 1 Vit lost.';
+          }
+        } else if (eType === 'child_prophet') {
+          // Prophecy Voice: on hit, lower player confidence (reduce echoes by 1)
+          if (state.player.echoes.current > 0) {
+            state.player.echoes.current = Math.max(0, state.player.echoes.current - 1);
+            enemyText = state.enemy.name + ' chants prophecy — your confidence wavers, -1 echo!';
+          } else {
+            state.player.vit = Math.max(0, state.player.vit - 1);
+            enemyText = state.enemy.name + ' prophesies — 1 Vit lost.';
+          }
+        } else if (eType === 'elder_farmer') {
+          // Soil Anchor: 2D6+Might, on 10+ root player (skip next turn)
+          const anchorRoll = floor(random(1, 7)) + floor(random(1, 7)) + state.enemy.might;
+          if (anchorRoll >= 10) {
+            state._rootedTurn = millis();
+            enemyText = state.enemy.name + ' plants soil anchor — you are rooted for 1 turn!';
+          } else if (anchorRoll >= 7) {
+            state.player.vit = Math.max(0, state.player.vit - 1);
+            enemyText = state.enemy.name + ' anchors imperfectly — 1 Vit lost.';
+          } else {
+            state.player.vit = Math.max(0, state.player.vit - 1);
+            enemyText = state.enemy.name + ' stumbles in the soil — 1 Vit lost.';
+          }
         } else {
           // Generic strike
           state.player.vit = Math.max(0, state.player.vit - 1);
@@ -3924,29 +4652,22 @@ function AetherCombat(p, C) {
     }
 
     // --- Enemy Special Attacks ---
-    // After enemy turn, handle ability usage
-    // Enemy abilities are stored in enemy.abilities array
-    // Each ability is triggered randomly during enemy turn
+    // After enemy turn, handle ability usage.
+    // Uses the ENEMY_ABILITIES lookup defined in the combat module.
     const enemyAbilities = enemy.abilities || [];
     if (state.enemy && enemyAbilities.length > 0 && !state.encounterOver) {
-      // Roll for enemy ability usage (30% chance per turn)
       const abilityRoll = floor(random(1, 11));
       if (abilityRoll <= 3) {
-        // Use random enemy ability
         const abilityIdx = floor(random(0, enemyAbilities.length));
         const abilityId = enemyAbilities[abilityIdx];
-        const enemyAbility = ENEMY_ABILITIES[abilityId];
-        if (enemyAbility) {
-          const result = enemyAbility.execute(state);
-          if (result) {
-            log('[Enemy Ability] ' + enemyAbility.name + ' — ' + result);
-            // Trigger visual feedback
-            if (abilityId === 'diveBomb' || abilityId === 'galeForce') {
-              state._enemyAbilityFlash = millis();
-            } else if (abilityId === 'contractClause') {
-              state._enemyAbilityFlash = millis();
-            }
-          }
+        if (abilityId === 'diveBomb' || abilityId === 'galeForce' || abilityId === 'harmonicPulse') {
+          state._enemyAbilityFlash = millis();
+        } else if (abilityId === 'contractClause' || abilityId === 'prophecyVoice') {
+          state._enemyAbilityFlash = millis();
+        } else if (abilityId === 'soilAnchor') {
+          state._enemyAbilityFlash = millis();
+        } else if (abilityId === 'drain') {
+          state._enemyAbilityFlash = millis();
         }
       }
     }
@@ -3985,6 +4706,9 @@ function AetherCombat(p, C) {
       else if (eName === 'Corporate Salvager') xpReward = 12;
       else if (eName === 'Harmonic Shear') xpReward = 20;
       else if (eName === 'Aether Leak') xpReward = 18;
+      else if (eName === 'Engine Spirit') xpReward = 14;
+      else if (eName === 'Child Prophet') xpReward = 10;
+      else if (eName === 'Elder Farmer') xpReward = 22;
       else xpReward = 10;
       if (r.outcome === 'success' && action.type === 'attack') xpReward += 5;
       state.player.xp += xpReward;
@@ -6783,5 +7507,19 @@ function drawHUDFrame(gameState) {
 // ─────────────────────────────────────────────
 console.log('[UI] Aetherwake UI module loaded —',
             Object.keys(window.UI).join(', '));
+
+function drawScreenFlash() {
+  if (!screenFlash.active) return;
+  const age = millis() - screenFlash.startTime;
+  if (age > screenFlash.duration) {
+    screenFlash.active = false;
+    return;
+  }
+  const t = 1 - age / screenFlash.duration;
+  const alpha = t * screenFlash.intensity;
+  noStroke();
+  fill(color(255, 255, 255, alpha));
+  rect(0, 0, width, height);
+}
 
 

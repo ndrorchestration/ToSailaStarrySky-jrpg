@@ -1,0 +1,32 @@
+{
+  "name": "Aetherwake",
+  "version": "1.0.0",
+  "description": "The Aureate Wake — a solarpunk JRPG about the last solarpunk airship, built with p5.js",
+  "main": "index-embedded.html",
+  "window": {
+    "title": "AETHERWAKE — THE LAST SOLARPUNK AIRSHIP",
+    "width": 960,
+    "height": 640,
+    "min_width": 800,
+    "min_height": 500,
+    "toolbar": false,
+    "resizable": true,
+    "icon": "icon.png",
+    "position": "center",
+    "show": true,
+    "frame": true,
+    "fullscreen": false,
+    "kiosk": false,
+    "focus": true
+  },
+  "webkit": {
+    "plugin": false,
+    "page-cache": true
+  },
+  "js-flags": "--expose-gc",
+  "chromium-args": "--disable-gpu-compositing --disable-gpu-rasterization",
+  "devDependencies": {
+    "nw": "^0.116.0",
+    "nwjs": "^1.4.4"
+  }
+}
