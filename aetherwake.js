@@ -4167,6 +4167,49 @@ function AetherCombat(p, C) {
   }
   window.AetherProgressionDefs.validateAgainstAbilityDefs(window.AetherAbilityDefs);
 
+  if (!window.AetherEffectResolver ||
+      typeof window.AetherEffectResolver.applyEffect !== 'function') {
+    throw new Error('AETHER_EFFECT_RESOLVER_UNAVAILABLE');
+  }
+
+  const effectVocabulary = window.AetherEffectVocabulary;
+  const effectResolver = window.AetherEffectResolver;
+  let resolverMutationCount = 0;
+
+  function resolverContext() {
+    return {
+      player: state.player,
+      enemy: state.enemy,
+      staffChargeMax: state.maxStaffCharges,
+    };
+  }
+
+  function recordResolverMutation(result) {
+    if (result && result.applied) resolverMutationCount++;
+    return result;
+  }
+
+  function applyDamage(target, amount, key) {
+    return recordResolverMutation(effectResolver.applyEffect(
+      effectResolver.createDamageEffect(target, amount, key),
+      resolverContext()
+    ));
+  }
+
+  function applyRestore(target, amount, key) {
+    return recordResolverMutation(effectResolver.applyEffect(
+      effectResolver.createRestoreEffect(target, amount, key),
+      resolverContext()
+    ));
+  }
+
+  function changeResource(resource, delta) {
+    return recordResolverMutation(effectResolver.applyEffect(
+      effectResolver.createResourceDeltaEffect(resource, delta),
+      resolverContext()
+    ));
+  }
+
   const enemies = {
     skyPredator: {
       name: 'Sky-Predator',
@@ -4310,6 +4353,7 @@ function AetherCombat(p, C) {
     state.log = [];
     state.enemy = null;
     state.encounterOver = false;
+    resolverMutationCount = 0;
     log('Combat initialized. The weave awaits.');
   };
 
@@ -4401,11 +4445,11 @@ function AetherCombat(p, C) {
       let spent = 0;
       while (spent < resourceCost) {
         if (state.player.echoes.current > 0) {
-          state.player.echoes.current--;
+          changeResource(effectVocabulary.RESOURCE.ECHOES, -1);
           log('Echo spent.');
           spent++;
         } else if (state.player.aether.current > 0) {
-          state.player.aether.current--;
+          changeResource(effectVocabulary.RESOURCE.AETHER, -1);
           log('Aether spent.');
           spent++;
         } else {
@@ -4420,7 +4464,7 @@ function AetherCombat(p, C) {
 
     // Heat generation: most actions add heat
     if (action.type !== 'hold' && action.type !== 'rest') {
-      state.player.heat.current = Math.min(state.player.heat.max, state.player.heat.current + 1);
+      changeResource(effectVocabulary.RESOURCE.HEAT, 1);
     }
 
     // Roll
@@ -4446,8 +4490,8 @@ function AetherCombat(p, C) {
           actionText = 'Staff Strike — no charges left. The weapon falls silent. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         } else {
           enemyDmg = floor(random(1, 7)) + 2; // 1d6+2
-          state.enemy.hp -= enemyDmg;
-          state.player.staffCharges = Math.max(0, state.player.staffCharges - 1);
+          applyDamage(effectVocabulary.TARGET.ENEMY, enemyDmg, 'emp');
+          changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, -1);
           actionText = action.label + ' — ' + enemyDmg + ' EMP damage. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
         }
       } else if (action.type === 'ability') {
@@ -4460,7 +4504,7 @@ function AetherCombat(p, C) {
           // 50/50: heal 1-2 Vit OR +1 next roll bonus
           if (random(0, 2) < 1) {
             heal = floor(random(1, 3));
-            state.player.vit = Math.min(state.player.maxVit, state.player.vit + heal);
+            applyRestore(effectVocabulary.TARGET.SELF, heal);
             actionText = 'Shared Dream — ' + heal + ' Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           } else {
             nextRollBonus = 1;
@@ -4469,16 +4513,16 @@ function AetherCombat(p, C) {
         } else if (action.id === 'mycelialLedger') {
           const gain = floor(random(1, 3));
           if (floor(random(2)) === 0) {
-            state.player.aether.current = Math.min(state.player.aether.max, state.player.aether.current + gain);
+            changeResource(effectVocabulary.RESOURCE.AETHER, gain);
             actionText = 'Mycelial Ledger — +' + gain + ' Aether stored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           } else {
-            state.player.scrap += gain;
+            changeResource(effectVocabulary.RESOURCE.SCRAP, gain);
             actionText = 'Mycelial Ledger — +' + gain + ' Scrap recorded. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           }
         }
       } else if (action.type === 'hold') {
         if (state.player.staffCharges < state.player.maxStaffCharges) {
-          state.player.staffCharges++;
+          changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, 1);
           actionText = 'Hold — Resonator recharges in light. +1 charge. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         } else {
           actionText = 'Hold — the weave passes through you. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
@@ -4487,7 +4531,7 @@ function AetherCombat(p, C) {
         if (action.id === 'windWard') {
           if (r.outcome === 'success') {
             heal = 1;
-            state.player.vit = Math.min(state.player.maxVit, state.player.vit + heal);
+            applyRestore(effectVocabulary.TARGET.SELF, heal);
             actionText = 'Wind Ward — you brace against the gale. 1 Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           } else {
             playerDmg = 1;
@@ -4496,7 +4540,7 @@ function AetherCombat(p, C) {
         } else if (action.id === 'aetherSeal') {
           if (r.outcome === 'success') {
             const gain = floor(random(1, 3));
-            state.player.scrap += gain;
+            changeResource(effectVocabulary.RESOURCE.SCRAP, gain);
             actionText = 'Aether Seal — the leak closes. +' + gain + ' Scrap. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           } else {
             playerDmg = 1;
@@ -4505,9 +4549,9 @@ function AetherCombat(p, C) {
         }
       } else if (action.type === 'rest') {
         if (r.outcome === 'success') {
-          state.player.heat.current = Math.max(0, state.player.heat.current - 2);
+          changeResource(effectVocabulary.RESOURCE.HEAT, -2);
           heal = floor(random(1, 3));
-          state.player.vit = Math.min(state.player.maxVit, state.player.vit + heal);
+          applyRestore(effectVocabulary.TARGET.SELF, heal);
           actionText = 'Rest — heat eases, ' + heal + ' Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         } else {
           playerDmg = 1;
@@ -4517,8 +4561,8 @@ function AetherCombat(p, C) {
     } else if (r.outcome === 'partial') {
       if (action.type === 'attack') {
         enemyDmg = Math.max(0, floor(random(1, 7)) + 2 - 1);
-        state.enemy.hp -= enemyDmg;
-        state.player.staffCharges = Math.max(0, state.player.staffCharges - 1);
+        applyDamage(effectVocabulary.TARGET.ENEMY, enemyDmg, 'emp');
+        changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, -1);
         playerDmg = 1;
         actionText = action.label + ' — ' + enemyDmg + ' damage, but the enemy counters. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
       } else if (action.type === 'ability') {
@@ -4526,15 +4570,15 @@ function AetherCombat(p, C) {
           actionText = 'Uncover Truth — a glimpse, but it slips. No bonus. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         } else if (action.id === 'sharedDream') {
           heal = 1;
-          state.player.vit = Math.min(state.player.maxVit, state.player.vit + heal);
+          applyRestore(effectVocabulary.TARGET.SELF, heal);
           actionText = 'Shared Dream — faint echo, ' + heal + ' Vit. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         } else if (action.id === 'mycelialLedger') {
-          state.player.scrap += 1;
+          changeResource(effectVocabulary.RESOURCE.SCRAP, 1);
           actionText = 'Mycelial Ledger — +1 Scrap. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         }
       } else if (action.type === 'hold') {
         if (state.player.staffCharges < state.player.maxStaffCharges) {
-          state.player.staffCharges++;
+          changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, 1);
         }
         playerDmg = 1;
         actionText = 'Hold — but the enemy finds you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
@@ -4569,7 +4613,7 @@ function AetherCombat(p, C) {
     }
 
     // Apply
-    state.player.vit = Math.max(0, state.player.vit - playerDmg);
+    applyDamage(effectVocabulary.TARGET.SELF, playerDmg);
     // Combat animation triggers
     if (enemyDmg > 0) {
       state._flashTurn = millis();
@@ -4612,31 +4656,31 @@ function AetherCombat(p, C) {
         if (eType === 'skyPredator') {
           // Dive Bomb: 2 damage, ignores dodge
           const dmg = 2;
-          state.player.vit = Math.max(0, state.player.vit - dmg);
+          applyDamage(effectVocabulary.TARGET.SELF, dmg);
           enemyText = state.enemy.name + ' dive-bombs — ' + dmg + ' damage (ignores dodge)!';
         } else if (eType === 'corporateSalvager') {
           // Contract Clause: lose 1 scrap
           if (state.player.scrap > 0) {
-            state.player.scrap -= 1;
+            changeResource(effectVocabulary.RESOURCE.SCRAP, -1);
             enemyText = state.enemy.name + ' invokes a contract clause — 1 scrap seized!';
           } else {
             // Fallback to strike
-            state.player.vit = Math.max(0, state.player.vit - 1);
+            applyDamage(effectVocabulary.TARGET.SELF, 1);
             enemyText = state.enemy.name + ' strikes — 1 Vit lost.';
           }
         } else if (eType === 'windShear') {
           // Gale Force: 2 damage, knockback feel
           const dmg = 2;
-          state.player.vit = Math.max(0, state.player.vit - dmg);
+          applyDamage(effectVocabulary.TARGET.SELF, dmg);
           enemyText = state.enemy.name + ' unleashes gale force — ' + dmg + ' damage, wind knocks you back!';
           state._windKnockTurn = millis();
         } else if (eType === 'aetherLeak') {
           // Drain: remove 1 aether
           if (state.player.aether.current > 0) {
-            state.player.aether.current = Math.max(0, state.player.aether.current - 1);
+            changeResource(effectVocabulary.RESOURCE.AETHER, -1);
             enemyText = state.enemy.name + ' drains your aether — 1 aether lost!';
           } else {
-            state.player.vit = Math.max(0, state.player.vit - 1);
+            applyDamage(effectVocabulary.TARGET.SELF, 1);
             enemyText = state.enemy.name + ' strikes desperately — 1 Vit lost.';
           }
         } else if (eType === 'engine_spirit') {
@@ -4644,23 +4688,23 @@ function AetherCombat(p, C) {
           const pulseRoll = floor(random(1, 7)) + floor(random(1, 7)) + state.enemy.presence;
           if (pulseRoll >= 7) {
             if (state.player.aether.current > 0) {
-              state.player.aether.current = Math.max(0, state.player.aether.current - 1);
+              changeResource(effectVocabulary.RESOURCE.AETHER, -1);
               enemyText = state.enemy.name + ' emits harmonic pulse — drains 1 aether!';
             } else {
-              state.player.vit = Math.max(0, state.player.vit - 1);
+              applyDamage(effectVocabulary.TARGET.SELF, 1);
               enemyText = state.enemy.name + ' pulses — backlashes for 1 Vit!';
             }
           } else {
-            state.player.vit = Math.max(0, state.player.vit - 1);
+            applyDamage(effectVocabulary.TARGET.SELF, 1);
             enemyText = state.enemy.name + ' pulses harmlessly — 1 Vit lost.';
           }
         } else if (eType === 'child_prophet') {
           // Prophecy Voice: on hit, lower player confidence (reduce echoes by 1)
           if (state.player.echoes.current > 0) {
-            state.player.echoes.current = Math.max(0, state.player.echoes.current - 1);
+            changeResource(effectVocabulary.RESOURCE.ECHOES, -1);
             enemyText = state.enemy.name + ' chants prophecy — your confidence wavers, -1 echo!';
           } else {
-            state.player.vit = Math.max(0, state.player.vit - 1);
+            applyDamage(effectVocabulary.TARGET.SELF, 1);
             enemyText = state.enemy.name + ' prophesies — 1 Vit lost.';
           }
         } else if (eType === 'elder_farmer') {
@@ -4670,15 +4714,15 @@ function AetherCombat(p, C) {
             state._rootedTurn = millis();
             enemyText = state.enemy.name + ' plants soil anchor — you are rooted for 1 turn!';
           } else if (anchorRoll >= 7) {
-            state.player.vit = Math.max(0, state.player.vit - 1);
+            applyDamage(effectVocabulary.TARGET.SELF, 1);
             enemyText = state.enemy.name + ' anchors imperfectly — 1 Vit lost.';
           } else {
-            state.player.vit = Math.max(0, state.player.vit - 1);
+            applyDamage(effectVocabulary.TARGET.SELF, 1);
             enemyText = state.enemy.name + ' stumbles in the soil — 1 Vit lost.';
           }
         } else {
           // Generic strike
-          state.player.vit = Math.max(0, state.player.vit - 1);
+          applyDamage(effectVocabulary.TARGET.SELF, 1);
           enemyText = state.enemy.name + ' strikes — 1 Vit lost.';
         }
         log('[Enemy] ' + enemyText);
@@ -4740,9 +4784,9 @@ function AetherCombat(p, C) {
         scrapReward += 1;
         log('── You fought through the brink — resilience reward. ──');
       }
-      state.player.scrap += scrapReward;
+      changeResource(effectVocabulary.RESOURCE.SCRAP, scrapReward);
       log('── ' + state.enemy.name + ' defeated. +' + scrapReward + ' Scrap. ──');
-      state.player.echoes.current = Math.min(state.player.echoes.max, state.player.echoes.current + echoReward);
+      changeResource(effectVocabulary.RESOURCE.ECHOES, echoReward);
       log('+' + echoReward + ' Echo' + (echoReward > 1 ? 's' : '') + '. The weave settles.');
       // XP reward based on enemy difficulty
       let xpReward = 0;
@@ -4791,6 +4835,7 @@ function AetherCombat(p, C) {
       encounterOver: state.encounterOver,
       actions: actions,
       initiative: state.initiative,
+      resolverMutations: resolverMutationCount,
     };
   };
 

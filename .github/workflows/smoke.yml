@@ -33,6 +33,9 @@ jobs:
       - name: Verify effect resolver contract
         run: npm run test:resolver
 
+      - name: Verify live resolver integration
+        run: npm run test:resolver-integration
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 

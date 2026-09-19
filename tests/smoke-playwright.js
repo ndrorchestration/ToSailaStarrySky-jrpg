@@ -311,6 +311,8 @@ function createServer() {
 
     const combatAfterActions = await page.evaluate(() => window._combat.getState());
     assert(combatAfterActions.turn >= 2, 'combat actions did not resolve');
+    assert(combatAfterActions.resolverMutations > 0,
+      'live combat actions did not route ordinary mutations through the effect resolver');
 
     // Deterministic state-transition check. We test real keyboard combat
     // actions above; direct finishCombat avoids making the smoke test depend on
