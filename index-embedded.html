@@ -157,21 +157,25 @@
   // p5 + the sketch are ready, then reveal the canvas.
   // ============================================================
   window.__awLoadingDone = false;
+  // Debug UI is opt-in only. Normal players should never see diagnostic overlays.
+  window.__awDebugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
 
   function hideLoadingScreen() {
     var ls = document.getElementById('loading-screen');
     if (ls) ls.style.display = 'none';
     var db = document.getElementById('debug-overlay');
     if (db) db.style.display = 'none';
+    var adb = document.getElementById('aw-debug-overlay');
+    if (adb && !window.__awDebugEnabled) adb.style.display = 'none';
     window.__awLoadingDone = true;
   }
 
   // Debug overlay (can enable to inspect load state)
   (function() {
     var db = document.getElementById('debug-overlay');
-    if (!db) return;
+    if (!db || !window.__awDebugEnabled) return;
     db.style.cssText =
-      'position:fixed;top:0;left:0;' +
+      'display:block;position:fixed;top:0;left:0;' +
       'background:rgba(0,0,0,0.85);' +
       'color:#2AFFB5;font-family:monospace;font-size:12px;' +
       'padding:8px 12px;z-index:10001;pointer-events:none;' +
@@ -323,7 +327,7 @@
   // On-screen debug overlay: shows what's happening so we can see if JS is running
   (function() {
     var db = document.getElementById('aw-debug-overlay');
-    if (!db) return;
+    if (!db || !window.__awDebugEnabled) return;
     var lines = [];
     var fps = 0, frames = 0, last = performance.now();
     function push(msg) { lines.push(msg); if (lines.length > 20) lines.shift(); update(); }
