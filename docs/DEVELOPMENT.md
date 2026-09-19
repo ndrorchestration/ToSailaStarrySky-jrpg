@@ -106,6 +106,22 @@ On 2026-09-19:
 
 This is a partial establishment of migration step 6, not completion of the full generic combat resolver.
 
+## Action eligibility checkpoint
+
+On 2026-09-19, commit `d38827c0c8df9d0b92ce2376a775a8ddf0dafcae` passed run `35458285333`.
+
+It establishes:
+
+- stable eight-action ordering remains unchanged;
+- Staff Strike and Hold are baseline actions;
+- other current actions require their ID in `player.unlockedAbilities`;
+- level-1 eligible actions are Staff Strike, Uncover Truth, Shared Dream, Mycelial Ledger, and Hold;
+- Wind Ward/Aether Seal/Rest are rejected before turn/resource consumption until learned;
+- combat UI keeps stable 1–8 slots and marks locked actions rather than renumbering them;
+- the UI displays the same legacy `tier + cost` resource amount used by runtime resolution.
+
+This enforces the existing progression data without introducing school mastery, job gating, or new unlock semantics.
+
 ## Architecture migration rule
 
 Do not rewrite character creation, party state, combat resolution, progression, and save state simultaneously.
