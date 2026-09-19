@@ -187,6 +187,17 @@ function createServer() {
     const combatStart = await page.evaluate(() => window._combat.getState());
     assert(combatStart.turn === 0, 'combat did not start at turn 0');
 
+    // Level-1 progression must actually gate actions 6-8.
+    await page.keyboard.press('6');
+    const afterLockedAction = await page.evaluate(() => window._combat.getState());
+    assert(afterLockedAction.turn === 0,
+      'locked level-gated action consumed a turn');
+    assert(afterLockedAction.log.some(line => line.includes('Locked action: Wind Ward')),
+      'locked action rejection was not recorded');
+    assert(afterLockedAction.eligibleActionIds.join('|') ===
+      'staffStrike|uncoverTruth|sharedDream|mycelialLedger|hold',
+      'level-1 eligible action set drifted');
+
     // Secondary input must be a safe no-op when no secondary is available.
     // This specifically guards against core reaching into AetherCombat's
     // private state.

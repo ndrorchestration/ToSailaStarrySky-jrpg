@@ -42,6 +42,13 @@
     'rest',
   ]);
 
+  // Baseline actions are available independent of learned ability state.
+  // All other actions require their ID to be present in actor.unlockedAbilities.
+  const ALWAYS_AVAILABLE = Object.freeze([
+    'staffStrike',
+    'hold',
+  ]);
+
   const DEFS = deepFreeze({
     staffStrike: {
       id: 'staffStrike',
@@ -156,7 +163,25 @@
     const orphans = ids.filter(id => !ACTION_ORDER.includes(id));
     if (orphans.length) throw new Error('ABILITY_DEF_ORPHANS:' + orphans.join(','));
 
+    ALWAYS_AVAILABLE.forEach(id => {
+      if (!DEFS[id]) throw new Error('ALWAYS_AVAILABLE_UNKNOWN_ACTION:' + id);
+    });
+
     return true;
+  }
+
+  function isActionUnlocked(actor, actionId) {
+    if (!DEFS[actionId]) return false;
+    if (ALWAYS_AVAILABLE.includes(actionId)) return true;
+    return Boolean(
+      actor &&
+      Array.isArray(actor.unlockedAbilities) &&
+      actor.unlockedAbilities.includes(actionId)
+    );
+  }
+
+  function getEligibleActionIds(actor) {
+    return ACTION_ORDER.filter(id => isActionUnlocked(actor, id));
   }
 
   function createRuntimeActions() {
@@ -191,8 +216,11 @@
   return Object.freeze({
     VERSION,
     ACTION_ORDER,
+    ALWAYS_AVAILABLE,
     DEFS,
     validateDefs,
+    isActionUnlocked,
+    getEligibleActionIds,
     createRuntimeActions,
     assertRuntimeActions,
   });

@@ -43,7 +43,32 @@ assert.deepStrictEqual(
 );
 assert.deepStrictEqual(progression.getUnlocksForLevel(2), []);
 
+const level1Actor = {
+  unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
+};
+assert.deepStrictEqual(
+  abilities.getEligibleActionIds(level1Actor),
+  ['staffStrike', 'uncoverTruth', 'sharedDream', 'mycelialLedger', 'hold'],
+  'level-1 eligibility must enforce current unlock state'
+);
+assert.strictEqual(abilities.isActionUnlocked(level1Actor, 'windWard'), false);
+assert.strictEqual(abilities.isActionUnlocked(level1Actor, 'aetherSeal'), false);
+assert.strictEqual(abilities.isActionUnlocked(level1Actor, 'rest'), false);
+
+const fullyUnlockedActor = {
+  unlockedAbilities: [
+    'uncoverTruth', 'sharedDream', 'mycelialLedger',
+    'windWard', 'aetherSeal', 'rest',
+  ],
+};
+assert.deepStrictEqual(
+  abilities.getEligibleActionIds(fullyUnlockedActor),
+  expectedActionOrder,
+  'fully unlocked actor should expose all current actions'
+);
+
 assert(Object.isFrozen(abilities.DEFS), 'ability definitions must be frozen');
+assert(Object.isFrozen(abilities.ALWAYS_AVAILABLE), 'always-available actions must be frozen');
 assert(Object.isFrozen(progression.LEVEL_UNLOCKS), 'progression definitions must be frozen');
 
 const copy = abilities.createRuntimeActions();

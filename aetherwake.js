@@ -4430,7 +4430,11 @@ function AetherCombat(p, C) {
     const action = actions.find(a => a.id === actionId);
     if (!action) {
       log('Unknown action: ' + actionId);
-      return;
+      return false;
+    }
+    if (!window.AetherAbilityDefs.isActionUnlocked(state.player, action.id)) {
+      log('Locked action: ' + action.label);
+      return false;
     }
 
     state.turn++;
@@ -4854,6 +4858,7 @@ function AetherCombat(p, C) {
       log: state.log.slice(),
       encounterOver: state.encounterOver,
       actions: actions,
+      eligibleActionIds: window.AetherAbilityDefs.getEligibleActionIds(state.player),
       initiative: state.initiative,
       resolverMutations: resolverMutationCount,
     };
@@ -6654,24 +6659,29 @@ function drawCombatPanel(combatState) {
   fill(PAL.PARCHMENT);
   text(String(combatState.player.scrap), rX, rY2);
 
-  // Actions grid — 5 actions with number keys
+  // Actions grid — eight stable number-key slots. Locked actions stay visible
+  // so progression is legible without making key bindings move.
   const aX = px + 8;
   const aY = sY + 100;
   const aW = pw - 16;
-  const aH = 90;
+  const aH = 154;
   drawPixelBorder(aX, aY, aW, aH, 2, PAL.SHADOW, PAL.TEAL);
 
   textFont(FONT_UI);
   textSize(8);
-  drawGlowText('ACTIONS [1-5]', aX + 12, aY + 6, PAL.TEAL, 8);
+  drawGlowText('ACTIONS [1-8]', aX + 12, aY + 6, PAL.TEAL, 8);
 
   const actions = combatState.actions || [];
+  const eligibleActionIds = new Set(
+    combatState.eligibleActionIds || actions.map(action => action.id)
+  );
   const actH = 16;
   const actStartY = aY + 22;
   actions.forEach((action, idx) => {
     const ay = actStartY + idx * actH;
+    const unlocked = eligibleActionIds.has(action.id);
     // Number circle
-    fill(PAL.TEAL);
+    fill(unlocked ? PAL.TEAL : PAL.DIM);
     noStroke();
     ellipse(aX + 12, ay + 7, 9, 9);
     fill(PAL.NAVY);
@@ -6684,18 +6694,19 @@ function drawCombatPanel(combatState) {
     textSize(10);
     textAlign(LEFT, CENTER);
     const label = action.label || action.id;
-    fill(PAL.PARCHMENT);
+    fill(unlocked ? PAL.PARCHMENT : PAL.DIM);
     noStroke();
-    text(label.substring(0, 28), aX + 24, ay + 1);
-    // Cost indicator
-    if (action.cost > 0) {
+    text((unlocked ? '' : 'LOCKED · ') + label.substring(0, unlocked ? 28 : 19), aX + 24, ay + 1);
+    // Cost indicator uses the same legacy formula as resolveTurn().
+    const totalCost = (action.tier || 0) + action.cost;
+    if (unlocked && totalCost > 0) {
       textFont(FONT_UI);
       textSize(7);
       fill(PAL.AMBER);
-      text('COST: ' + action.cost, aX + 24 + textWidth(label.substring(0, 28)) + 4, ay + 2);
+      text('COST: ' + totalCost, aX + aW - 62, ay + 2);
     }
     // Icon
-    drawActionIcon(aX + aW - 16, ay + 7, 14, action.id);
+    if (unlocked) drawActionIcon(aX + aW - 16, ay + 7, 14, action.id);
   });
 
   // Enemy special ability hint
