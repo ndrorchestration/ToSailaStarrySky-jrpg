@@ -42,6 +42,7 @@
     "test:combat-input": "node tests/combat-input-contract.test.js",
     "test:resource-eligibility": "node tests/resource-eligibility.test.js",
     "test:progression-reachability": "node tests/progression-reachability.test.js",
-    "test:secondary-action": "node tests/secondary-action-contract.test.js"
+    "test:secondary-action": "node tests/secondary-action-contract.test.js",
+    "test:modifier-effect": "node tests/modifier-effect-contract.test.js"
   }
 }
