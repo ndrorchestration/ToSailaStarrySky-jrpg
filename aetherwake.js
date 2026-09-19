@@ -367,6 +367,10 @@ function keyPressed() {
   keysPressed[keyCode] = true;
   handleInput();
 
+  // keysPressed is an edge-triggered event map consumed synchronously above.
+  // Clear this key immediately so it cannot leak into a later key event.
+  delete keysPressed[keyCode];
+
   // Audio context must be resumed from user gesture on first interaction
   if (typeof ensureAudio === 'function') ensureAudio();
   if (typeof resumeAudio === 'function') resumeAudio();
