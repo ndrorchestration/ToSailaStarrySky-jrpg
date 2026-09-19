@@ -278,15 +278,18 @@
       ? context.player.nextRollBonus
       : 0;
 
-    let after;
+    let rawAfter;
     if (effect.operation === vocabulary.OPERATION.INCREASE) {
-      after = before + amount;
+      rawAfter = before + amount;
     } else if (effect.operation === vocabulary.OPERATION.DECREASE) {
-      after = before - amount;
+      rawAfter = before - amount;
     } else {
       throw new Error('MODIFIER_OPERATION_NOT_SUPPORTED:' + effect.operation);
     }
 
+    // Modifiers are consumable state, so resolver application cannot create
+    // an invalid negative pending bonus.
+    const after = Math.max(0, rawAfter);
     context.player.nextRollBonus = after;
     return mutationResult(effect, before, after);
   }
