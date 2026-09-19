@@ -1,0 +1,47 @@
+name: Windows desktop package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  package-windows:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run contract tests
+        run: npm run test:desktop-package
+
+      - name: Build Windows package
+        run: npm run package:windows
+
+      - name: Create distributable ZIP
+        shell: pwsh
+        run: |
+          $package = Get-ChildItem -Path dist -Directory | Select-Object -First 1
+          if (-not $package) { throw "NW.js did not produce a package directory" }
+          Compress-Archive -Path "$($package.FullName)\*" -DestinationPath "Aetherwake-Windows.zip"
+
+      - name: Upload Windows package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Aetherwake-Windows
+          path: Aetherwake-Windows.zip
+          if-no-files-found: error
