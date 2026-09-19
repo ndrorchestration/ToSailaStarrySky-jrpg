@@ -89,6 +89,11 @@ npm run test:effects
 npm run test:registries
 npm run test:resolver
 npm run test:resolver-integration
+npm run test:enemy-metadata
+npm run test:combat-input
+npm run test:resource-eligibility
+npm run test:progression-reachability
+npm run test:secondary-action
 npm run test:smoke
 ```
 
@@ -121,6 +126,21 @@ It establishes:
 - the UI displays the same legacy `tier + cost` resource amount used by runtime resolution.
 
 This enforces the existing progression data without introducing school mastery, job gating, or new unlock semantics.
+
+## Use/progression/secondary checkpoint
+
+On 2026-09-19:
+
+- transactional use-eligibility implementation `a25c901125e65331e5d7f10d2ca6bdb1620015c0` initially exposed one stale source assertion in run `35463662627`; no runtime/browser claim was made from that failed run;
+- test-only correction `d93dea34e9b512319f3a94e229e5769e695c8f22` passed run `35463741004`, verifying centralized `tier + cost`, pooled Echo+Aether preflight, zero partial spending on rejected actions, UI/runtime cost agreement, and full browser behavior;
+- victory-progression correction `a753ac5809b52534576bba15c7ef37e66d07373f` passed run `35463872395`, proving normal XP award paths can cross level 2 → 3 and unlock Wind Ward;
+- secondary-state correction `ba36e59a332adb95cc3d1f9b40681bd2c9d8106e` passed run `35464000671`, proving secondary opportunities are not stale and are offered only when the repeated ability remains usable.
+
+Current explicit boundaries:
+- cost amounts were **not** redesigned;
+- school/job/mastery prerequisites are not yet implemented;
+- modifier/reveal/status/movement execution remains outside the current generic resolver subset;
+- `main` remains untouched.
 
 ## Architecture migration rule
 
