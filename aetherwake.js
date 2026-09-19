@@ -132,7 +132,7 @@ function setup() {
   }
   window._setupOrder = window._setupOrder + '→combat-start';
   if (typeof window.AetherCombat !== 'undefined') {
-    combat = new window.AetherCombat(p5, C);
+    combat = new window.AetherCombat(window, C);
     window._combat = combat;
     if (combat && typeof combat.init === 'function') combat.init();
   }
@@ -234,6 +234,12 @@ function draw() {
       if (window._charcreate.party && window._charcreate.party[0]) {
         const p = window._charcreate.party[0];
         world.player = {
+          // Preserve persistent identity metadata across CHARCREATE → WORLD.
+          name: p.name,
+          age: p.age,
+          class: p.class,
+          jobId: p.jobId,
+          synergyBonus: p.synergyBonus,
           vit: p.vit, maxVit: p.maxVit,
           echoes: p.echoes.current, echoesMax: p.echoes.max,
           wits: p.wits, presence: p.presence, spirit: p.spirit,
