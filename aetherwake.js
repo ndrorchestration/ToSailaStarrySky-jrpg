@@ -4714,7 +4714,7 @@ function AetherCombat(p, C) {
     // --- Enemy Special Attacks ---
     // After enemy turn, handle ability usage.
     // Uses the ENEMY_ABILITIES lookup defined in the combat module.
-    const enemyAbilities = enemy.abilities || [];
+    const enemyAbilities = state.enemy ? (state.enemy.abilities || []) : [];
     if (state.enemy && enemyAbilities.length > 0 && !state.encounterOver) {
       const abilityRoll = floor(random(1, 11));
       if (abilityRoll <= 3) {
