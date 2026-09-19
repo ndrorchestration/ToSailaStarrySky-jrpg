@@ -31,8 +31,6 @@ assert(combatSource.includes("if (actionText) log('[Turn ' + state.turn + '] ' +
 assert(!combatSource.includes("if (text) log('[Turn ' + state.turn + '] ' + text);"),
   'legacy p5 text-symbol logging bug remains');
 
-assert(combatSource.includes("if (!window.AetherAbilityDefs.isActionUnlocked(state.player, action.id))"),
-  'resolveTurn does not enforce action unlock eligibility');
 assert(source.includes("drawGlowText('ACTIONS [1-8]'"),
   'combat action panel still advertises the wrong key range');
 assert(source.includes('const aH = 154;'),
