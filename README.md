@@ -1,76 +1,160 @@
 # Aetherwake — The Last Solarpunk Airship
 
-A turn-based 2D6 PbtA JRPG. You are Ender, deckhand and engineer-in-training aboard the *Aureate Wake* — the last solarpunk airship. The ship's aether-core is singing wrong. Something has to be done about that.
+Aetherwake is a **pre-alpha 2D6 PbtA JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a failing aether-core, impossible sky-lanes, and a fractured world begin to reveal the same unfinished song.
 
-![Loading screen](screenshot.png)
+The current repository contains a playable vertical-slice prototype plus an active architecture migration toward the full authored-party RPG.
 
-## How to Play
+## Development status
 
-Open `index-embedded.html` in any modern browser. **No internet, no install, no CDNs** — everything is embedded: fonts, the reference-game loading image, and all TTS dialogue audio.
+- **Stage:** late prototype / pre-alpha
+- **Playable baseline:** boot → character creation → world exploration → dialogue/quest systems → combat
+- **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
+- **Combat party:** exactly 3 active combatants selected from the persistent roster
+- **Current migration:** preserve and stabilize the latest playable build before replacing prototype party/progression architecture
 
-### Controls
+See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
+
+## Run the game
+
+Open `index-embedded.html` in a modern browser.
+
+The development runtime is designed to work offline and uses:
+
+- embedded fonts,
+- bundled p5.js,
+- embedded/reference loading assets,
+- local JavaScript modules,
+- optional generated TTS assets when present.
+
+Current canvas: **960×640**.
+
+## Controls
 
 | Key | Action |
-|-----|--------|
-| **WASD** | Move |
-| **E** | Talk / advance dialogue |
-| **Q** | Plant covenant field (spends 1 aether) |
-| **F** | Board the ship (near the core chamber) |
+|---|---|
+| **WASD / arrows** | Move |
+| **E** | Talk / interact / advance dialogue |
+| **Q** | Plant Covenant Field |
+| **F** | Board / interact with ship |
 | **Tab** | Toggle sky / ground layer |
 | **L** | Mycelial ledger |
-| **M** | Repair Cafe (shop) |
+| **M** | Repair Cafe / shop |
 | **R** | Character sheet |
 | **T** | Quest log |
-| **N / Enter / Space** | Start game / confirm |
-| **C** | Trigger a Sky-Predator encounter (dev) |
+| **N / Enter / Space** | Start / confirm |
+| **C** | Trigger Sky-Predator encounter (development/testing) |
+| **1–8** | Combat actions |
+| **S** | Secondary combat action when available |
 
-### Combat
+## Combat prototype
 
-Turn-based 2D6 PbtA. Five actions:
+Combat uses **2D6 + stat**:
 
-| # | Action | Stat | Cost |
-|---|--------|------|------|
-| 1 | Resonator Staff — EMP strike | might | 1 charge |
-| 2 | Uncover Truth — read the weave | wits | 1 echo/aether |
-| 3 | Shared Dream — lend your vision | spirit | 1 echo/aether |
-| 4 | Mycelial Ledger — account the commons | presence | free |
-| 5 | Hold — conserve | — | free |
+- **10+** — full success
+- **7–9** — partial success / cost
+- **6−** — failure / complication
 
-Roll 2D6 + stat: **10+** success, **7–9** partial (with cost), **6–** failure. Wind Ward, Aether Seal, and Rest unlock at levels 3 and 5.
+The current preservation baseline contains eight combat actions:
 
-### The Quest
+| # | Action | Role |
+|---:|---|---|
+| 1 | Resonator Staff | EMP attack |
+| 2 | Uncover Truth | Wits / reveal |
+| 3 | Shared Dream | Spirit / support |
+| 4 | Mycelial Ledger | Presence / resource recovery |
+| 5 | Hold | conserve / recharge |
+| 6 | Wind Ward | defensive ability |
+| 7 | Aether Seal | defensive / aether ability |
+| 8 | Rest | heat / vitality recovery |
 
-Four stages — **Signal → Crossing → Contact → Choice → Wake**.
+Current prototype progression unlocks **Wind Ward at level 3, Aether Seal at level 4, and Rest at level 5**.
 
-- **Signal** — three hooks to find (harmonic buoy, sky-lane warning, below-frequency caller)
-- **Crossing** — three hazards (sky-predator, harmonic shear, corporate intercept)
-- **Contact** — four NPCs (Ionia, The Core, Lyra, Verrick)
-- **Choice** — three paths (sing it down, sell it, drive it up)
-- **Wake** — 10 epilogues, stat-driven and path-specific
+These flat combat definitions are an implementation baseline, not the final architecture. The target system uses data-driven ability definitions, explicit prerequisites, a generic effect resolver, school mastery, jobs, and party-combination arts.
 
-### NPCs
+## Party architecture
 
-| NPC | Voice | Role |
-|-----|--------|------|
-| **Ionia** | en-US-EricNeural | Captain of the Third Watch — tired, exact, fond of Ender |
-| **The Core** | en-US-AriaNeural | Aether-core voice — ghost-song in copper and light |
-| **Lyra** | en-US-JennyNeural | Child dreamer — hears frequencies above and below |
-| **Verrick** | en-US-BrianNeural | Copper Syndicate acquisition officer — transactional, pragmatic |
+### Target
 
-Each has 5–8 lines of intro dialogue, 3 lines of class-specific follow-up, and a generic follow. Every line has a TTS voice clip.
+```text
+ROSTER[5] → ACTIVE_PARTY[3] → combat
+```
 
-## Technical Notes
+Persistent progression belongs to the five-character roster. The active trio is a combat/formation selection, not a separate copy of character progression.
 
-- **Single-file HTML** (`index-embedded.html`) — open directly, no server needed
-- **p5.js** in global mode, 960×640 canvas
-- **Embedded assets**: VT323 + Press Start 2P fonts (base64), reference-game `Loading.png` (base64), 37 TTS MP3s (4 NPCs × ~9 lines)
-- **Offline-ready**: no external requests of any kind
-- **Loading screen**: mirrors the reference game's RMMZ `Scene_Boot` UX — Loading.png sprite, "AETHERWAKE" title, "initializing the weave…" sub, auto-dismisses when the p5 canvas comes live
+### Current prototype
+
+The current `modules/char-create.js` still implements the older prototype flow:
+
+- Ender is fixed,
+- two player-named companions are created,
+- prototype jobs are Sky-Sailor, Engine-Wright, and Aether-Weaver.
+
+That flow is **preserved for provenance and runtime stabilization but is scheduled for replacement** by the authored roster.
+
+## Current quest vertical slice
+
+The existing prototype quest follows:
+
+**Signal → Crossing → Contact → Choice → Wake**
+
+It includes signal hooks, traversal hazards, NPC encounters, three major choice paths, and multiple epilogue outcomes. This is a vertical-slice narrative structure, not the complete campaign.
+
+## Repository layout
+
+| Path | Purpose |
+|---|---|
+| `aetherwake.js` | Current integrated runtime / preservation build |
+| `index-embedded.html` | Current self-contained browser entry point |
+| `modules/char-create.js` | Active prototype character-creation module |
+| `modules/*.js` | Older modular mirrors/reference source; currently not authoritative runtime for all systems |
+| `SPEC.md` | Current technical target + implementation notes |
+| `docs/DEVELOPMENT.md` | Development authority, migration rules, smoke gate |
+| `gap_analysis.md` | Snapshot audit of prototype conformance |
+| `memories_adaptation_catalog.md` | Adaptation/provenance reference |
+| `tests/` | Canonical automated smoke/regression tests |
+
+## Verification
+
+Install dependencies and Chromium once:
+
+```bash
+npm install
+npm run playwright:install
+```
+
+Run the canonical smoke test:
+
+```bash
+npm run test:smoke
+```
+
+The smoke gate is intended to cover the playable path from startup through character creation, world state, and combat.
+
+## Architecture direction
+
+The production migration is incremental:
+
+1. establish one verified playable baseline,
+2. introduce persistent five-character roster state,
+3. formalize effect vocabulary and `ABILITY_DEFS`,
+4. move combat to a generic effect resolver,
+5. replace prototype companion creation with authored roster onboarding,
+6. implement school/job/mastery progression,
+7. add formation, Dual Arts, and Triple Arts,
+8. expand campaign content after the architecture is stable.
+
+Each phase should preserve a working combat loop.
+
+## Provenance
+
+Aetherwake adapts selected code structures, interaction patterns, and reference-game lessons from *Memories* while developing its own setting, characters, narrative, combat/progression model, and authored party structure.
+
+See `memories_adaptation_catalog.md` for the working adaptation catalog.
 
 ## Author
 
-Andrew Hensel (ndrorchestration) — Columbus, OH. Solarpunk airship fantasy, 2D6 PbtA combat, generated TTS dialogue.
+Andrew Hensel (ndrorchestration)
 
 ## Credits
 
-Reference loading-screen UX from *Memories 0.7.4*. Fonts: VT323 (Rik '../'), Press Start 2P (codeandweb) via Google Fonts. TTS: Microsoft Edge TTS.
+Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts include VT323 and Press Start 2P. TTS tooling uses Microsoft Edge TTS where generated voice assets are available.
