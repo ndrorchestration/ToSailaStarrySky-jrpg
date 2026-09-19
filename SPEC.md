@@ -146,15 +146,19 @@ Current prototype level unlocks:
 - level 4 — Aether Seal
 - level 5 — Rest
 
+These unlocks are now enforced at use time. At level 1, the eligible action set is Staff Strike, Uncover Truth, Shared Dream, Mycelial Ledger, and Hold. Wind Ward, Aether Seal, and Rest remain visible in stable key slots but reject use until their IDs enter `player.unlockedAbilities`.
+
 The development branch now separates current combat metadata from execution:
 
 - `modules/effect-vocabulary.js` establishes effect vocabulary v0.1;
 - frozen kinds are `damage`, `restore`, `resource`, `modifier`, `status`, `reveal`, and `movement`;
-- `modules/ability-defs.js` owns canonical metadata/order for the eight current actions;
+- `modules/ability-defs.js` owns canonical metadata/order for the eight current actions and the current unlock-eligibility rule;
 - `modules/progression-defs.js` owns the current level-3/4/5 unlock table;
 - `AetherCombat.resolveTurn()` remains the action/outcome branch authority;
 - ordinary damage, restoration, and resource mutations inside `resolveTurn()` are now executed through `modules/effect-resolver.js`;
 - the resolver fails closed on unsupported implemented effect kinds and treats `DECLARED_NOT_APPLIED` effects as explicit no-ops;
+- `resolveTurn()` now rejects locked actions before consuming a turn or resources;
+- the combat panel exposes stable keys 1–8 while visibly marking locked actions;
 - CI rejects reintroduced direct ordinary mutations inside `resolveTurn()` and validates the browser path after resolver integration.
 
 Known semantic debt remains explicit rather than being silently upgraded:
