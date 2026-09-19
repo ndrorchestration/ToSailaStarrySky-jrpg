@@ -108,16 +108,6 @@ function setup() {
   window._setupOrder = window._setupOrder ? window._setupOrder + '→setup-start' : 'setup-start';
   const canvas = createCanvas(960, 640);
   window._setupOrder = window._setupOrder + '→canvas-done';
-  // DEBUG: big visible text on canvas so we can see if setup ran at all
-  fill(255, 255, 0);
-  noStroke();
-  textSize(32);
-  textAlign(CENTER, CENTER);
-  text('AETHERWAKE SETUP RAN OK', width/2, height/2 - 30);
-  textSize(16);
-  text('gameState=' + (window.gameState || 'undefined'), width/2, height/2 + 10);
-  text('canvas=' + canvas.width + 'x' + canvas.height, width/2, height/2 + 30);
-  text('p5.instance=' + (window.p5 && window.p5.instance ? 'YES' : 'NO'), width/2, height/2 + 50);
   // Now proceed with normal setup
   frameRate(60);
   pixelDensity(1);
