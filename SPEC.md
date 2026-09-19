@@ -148,11 +148,13 @@ Current prototype level unlocks:
 
 These unlocks are now enforced at use time. At level 1, the eligible action set is Staff Strike, Uncover Truth, Shared Dream, Mycelial Ledger, and Hold. Wind Ward, Aether Seal, and Rest remain visible in stable key slots but reject use until their IDs enter `player.unlockedAbilities`.
 
+Current use eligibility is centralized in `modules/ability-defs.js` v0.2.0. The prototype's existing numeric rule is preserved exactly as `tier + cost`, but affordability is preflighted transactionally across pooled Echo+Aether before a turn or resource is consumed. The combat UI and runtime use the same cost function. Normal victory XP now routes through `awardXP()`, so crossing a threshold executes `levelUp()` and makes newly learned actions eligible.
+
 The development branch now separates current combat metadata from execution:
 
 - `modules/effect-vocabulary.js` establishes effect vocabulary v0.1;
 - frozen kinds are `damage`, `restore`, `resource`, `modifier`, `status`, `reveal`, and `movement`;
-- `modules/ability-defs.js` owns canonical metadata/order for the eight current actions and the current unlock-eligibility rule;
+- `modules/ability-defs.js` v0.2.0 owns canonical metadata/order, unlock eligibility, legacy resource-cost calculation, pooled affordability, and current use eligibility for the eight actions;
 - `modules/progression-defs.js` owns the current level-3/4/5 unlock table;
 - `AetherCombat.resolveTurn()` remains the action/outcome branch authority;
 - ordinary damage, restoration, and resource mutations inside `resolveTurn()` are now executed through `modules/effect-resolver.js`;
@@ -200,7 +202,17 @@ Current invariants:
 - `DECLARED_NOT_APPLIED` effects do not mutate state;
 - the explicit post-defeat floor `state.player.vit = 1` remains a special combat rule outside the generic resolver.
 
-The resolver does **not** yet own PbtA outcome selection, action-specific branching, randomness, status semantics, movement semantics, reveal state, modifier persistence, XP, or level-up rules.
+The resolver does **not** yet own PbtA outcome selection, action-specific branching, randomness, status semantics, movement semantics, reveal state, modifier persistence, XP, or level-up rules. XP/level progression remains combat-orchestration logic, but normal victory rewards now reach that progression path correctly.
+
+### ESTABLISHED USE/SECONDARY BOUNDARY
+
+- locked or underfunded actions are rejected before turn/resource consumption;
+- Echoes are still spent before Aether, preserving the current payment order;
+- the resource-cost formula remains the legacy `tier + cost` rule;
+- a newly admitted primary action clears any previous secondary opportunity;
+- a successful ability opens a secondary opportunity only when that same ability remains usable after primary costs;
+- a secondary attempt delegates to ordinary `resolveTurn()` admission and is consumed once;
+- failed later abilities cannot inherit stale secondary availability.
 
 ### TARGET ARCHITECTURE
 
