@@ -1,0 +1,47 @@
+{
+  "name": "Aetherwake",
+  "version": "0.2.0",
+  "description": "Aetherwake pre-alpha — a solarpunk 2D6 PbtA JRPG built with p5.js",
+  "main": "index-embedded.html",
+  "window": {
+    "title": "AETHERWAKE — THE LAST SOLARPUNK AIRSHIP",
+    "width": 960,
+    "height": 640,
+    "min_width": 800,
+    "min_height": 500,
+    "toolbar": false,
+    "resizable": true,
+    "icon": "icon.png",
+    "position": "center",
+    "show": true,
+    "frame": true,
+    "fullscreen": false,
+    "kiosk": false,
+    "focus": true
+  },
+  "webkit": {
+    "plugin": false,
+    "page-cache": true
+  },
+  "js-flags": "--expose-gc",
+  "chromium-args": "--disable-gpu-compositing --disable-gpu-rasterization",
+  "devDependencies": {
+    "nw": "^0.116.0",
+    "nwjs": "^1.4.4",
+    "playwright": "^1.63.0"
+  },
+  "private": true,
+  "scripts": {
+    "test:smoke": "node tests/smoke-playwright.js",
+    "playwright:install": "playwright install chromium",
+    "test:effects": "node tests/effect-vocabulary.test.js",
+    "test:registries": "node tests/registry-contract.test.js",
+    "test:resolver": "node tests/effect-resolver.test.js",
+    "test:resolver-integration": "node tests/resolver-integration.test.js",
+    "test:enemy-metadata": "node tests/enemy-metadata-contract.test.js",
+    "test:combat-input": "node tests/combat-input-contract.test.js",
+    "test:resource-eligibility": "node tests/resource-eligibility.test.js",
+    "test:progression-reachability": "node tests/progression-reachability.test.js",
+    "test:secondary-action": "node tests/secondary-action-contract.test.js"
+  }
+}
