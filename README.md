@@ -10,7 +10,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 - **Playable baseline:** boot → character creation → world exploration → dialogue/quest systems → combat
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
 - **Combat party:** exactly 3 active combatants selected from the persistent roster
-- **Current migration:** smoke-green persistent roster, frozen effect vocabulary v0.1, extracted ability/progression registries, and live resolver routing for ordinary damage/restoration/resource mutations; higher-order effect semantics remain separate gates
+- **Current migration:** smoke-green persistent roster, effect vocabulary/resolver contracts, extracted registries, enforced level-gated action eligibility, and live ordinary mutation routing; higher-order effect semantics remain separate gates
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
 
@@ -150,7 +150,8 @@ The production migration is incremental:
 2. introduce persistent five-character roster state,
 3. formalize effect vocabulary and extract the current ability/progression registries — **established on `dev/progression-build`**,
 4. route ordinary combat mutations through a generic effect resolver while preserving current 2D6 outcome behavior — **damage/restoration/resource routing established on `dev/progression-build`**,
-5. replace prototype companion creation with authored roster onboarding,
+5. enforce current learned/unlocked action eligibility before broader mastery-tree work — **established on `dev/progression-build`**,
+6. replace prototype companion creation with authored roster onboarding,
 6. implement school/job/mastery progression,
 7. add formation, Dual Arts, and Triple Arts,
 8. expand campaign content after the architecture is stable.
