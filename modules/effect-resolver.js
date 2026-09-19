@@ -37,7 +37,7 @@
     throw new Error('EFFECT_RESOLVER_REQUIRES_VOCABULARY');
   }
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   function finiteNonNegative(value, code) {
     if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
@@ -101,6 +101,24 @@
       vocabulary.TARGET.SELF,
       operation,
       resource,
+      Math.abs(delta)
+    );
+  }
+
+  function createModifierDeltaEffect(target, key, delta) {
+    if (typeof delta !== 'number' || !Number.isFinite(delta)) {
+      throw new Error('MODIFIER_DELTA_INVALID');
+    }
+
+    const operation = delta < 0
+      ? vocabulary.OPERATION.DECREASE
+      : vocabulary.OPERATION.INCREASE;
+
+    return implementedDescriptor(
+      vocabulary.EFFECT_KIND.MODIFIER,
+      target,
+      operation,
+      key,
       Math.abs(delta)
     );
   }
@@ -247,6 +265,32 @@
     return mutationResult(effect, before, after);
   }
 
+  function applyModifier(effect, context) {
+    if (effect.target !== vocabulary.TARGET.SELF) {
+      throw new Error('MODIFIER_TARGET_NOT_SUPPORTED:' + effect.target);
+    }
+    if (effect.key !== 'nextRoll') {
+      throw new Error('MODIFIER_KEY_NOT_SUPPORTED:' + effect.key);
+    }
+
+    const amount = finiteNonNegative(effect.amount, 'MODIFIER_AMOUNT_INVALID');
+    const before = typeof context.player.nextRollBonus === 'number'
+      ? context.player.nextRollBonus
+      : 0;
+
+    let after;
+    if (effect.operation === vocabulary.OPERATION.INCREASE) {
+      after = before + amount;
+    } else if (effect.operation === vocabulary.OPERATION.DECREASE) {
+      after = before - amount;
+    } else {
+      throw new Error('MODIFIER_OPERATION_NOT_SUPPORTED:' + effect.operation);
+    }
+
+    context.player.nextRollBonus = after;
+    return mutationResult(effect, before, after);
+  }
+
   function applyEffect(effect, context) {
     requireContext(context);
     vocabulary.validateEffectDescriptor(effect);
@@ -268,6 +312,9 @@
     if (effect.kind === vocabulary.EFFECT_KIND.RESOURCE) {
       return applyResource(effect, context);
     }
+    if (effect.kind === vocabulary.EFFECT_KIND.MODIFIER) {
+      return applyModifier(effect, context);
+    }
 
     throw new Error('EFFECT_KIND_NOT_EXECUTABLE_YET:' + effect.kind);
   }
@@ -282,6 +329,7 @@
     createDamageEffect,
     createRestoreEffect,
     createResourceDeltaEffect,
+    createModifierDeltaEffect,
     applyEffect,
     applyEffects,
   });
