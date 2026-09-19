@@ -48,6 +48,9 @@ jobs:
       - name: Verify progression reachability
         run: npm run test:progression-reachability
 
+      - name: Verify secondary-action state
+        run: npm run test:secondary-action
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 

@@ -295,6 +295,61 @@ function createServer() {
       line.includes('LEVEL 3: Wind Ward unlocked')),
       'level-3 unlock log is missing');
 
+    const secondaryStateContract = await page.evaluate(() => {
+      const originalRandom = window.random;
+      try {
+        window._combat.init({
+          vit: 13,
+          scrap: 7,
+          aether: { current: 4, max: 6 },
+          heat: { current: 1, max: 3 },
+          echoes: { current: 3, max: 3 },
+          charges: 2,
+          staffMax: 2,
+          level: 1,
+          xp: 0,
+          xpToNext: 50,
+          unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
+        });
+        window._combat.beginEncounter('skyPredator');
+
+        window.random = function() { return 6; };
+        if (window._combat.roll2d6() !== 12) {
+          throw new Error('deterministic random override did not reach combat rolls');
+        }
+        window._combat.resolveTurn('mycelialLedger', null);
+        const afterSuccess = window._combat.getState();
+
+        window.random = function() { return 1; };
+        window._combat.resolveTurn('uncoverTruth', null);
+        const afterFailure = window._combat.getState();
+
+        return {
+          afterSuccess: {
+            secondaryAvailable: afterSuccess.secondaryAvailable,
+            lastAbilityId: afterSuccess.lastAbilityId,
+          },
+          afterFailure: {
+            secondaryAvailable: afterFailure.secondaryAvailable,
+            lastAbilityId: afterFailure.lastAbilityId,
+          },
+        };
+      } finally {
+        window.random = originalRandom;
+        if (typeof startCombat !== 'function') throw new Error('startCombat is unavailable');
+        startCombat('skyPredator');
+      }
+    });
+
+    assert(secondaryStateContract.afterSuccess.secondaryAvailable === true,
+      'successful affordable ability did not open a secondary window');
+    assert(secondaryStateContract.afterSuccess.lastAbilityId === 'mycelialLedger',
+      'secondary window did not bind to the successful ability');
+    assert(secondaryStateContract.afterFailure.secondaryAvailable === false,
+      'failed later ability inherited a stale secondary window');
+    assert(secondaryStateContract.afterFailure.lastAbilityId === 'uncoverTruth',
+      'last ability identity did not advance on the later primary action');
+
     // Secondary input must be a safe no-op when no secondary is available.
     // This specifically guards against core reaching into AetherCombat's
     // private state.
@@ -553,6 +608,7 @@ function createServer() {
       enemyMetadataContract,
       affordabilityContract,
       progressionReachability,
+      secondaryStateContract,
       effectContract,
       registryContract,
       resolverContract,

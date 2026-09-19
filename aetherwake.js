@@ -4451,6 +4451,9 @@ function AetherCombat(p, C) {
       return false;
     }
 
+    // A new admitted primary action invalidates any previous secondary window.
+    // A fresh window may be opened below only by this action's own success.
+    state._secondaryAvailable = false;
     state.turn++;
 
     // Track last ability for secondary action
@@ -4498,10 +4501,20 @@ function AetherCombat(p, C) {
 
     if (r.outcome === 'success') {
       if (action.type === 'ability') {
-        // Secondary action available on 10+ with 2+ echoes
-        if (state.player.echoes.current >= 2) {
+        // Secondary action is offered only if the just-used ability remains
+        // usable after primary-action costs have been paid.
+        const secondaryEligibility = window.AetherAbilityDefs.getUseEligibility(
+          state.player,
+          action.id
+        );
+        if (secondaryEligibility.canUse) {
           state._secondaryAvailable = true;
-          log('Press S for secondary action — repeat the last ability at its normal resource cost.');
+          log(
+            'Press S for secondary action — repeat the last ability at its normal resource cost' +
+            (secondaryEligibility.resourceCost > 0
+              ? ' (' + secondaryEligibility.resourceCost + ').'
+              : ' (free).')
+          );
         }
       }
       if (action.type === 'attack') {
@@ -4847,11 +4860,11 @@ function AetherCombat(p, C) {
   this.resolveSecondaryAction = function() {
     if (!state._secondaryAvailable || !state._lastAbilityId) return false;
     const abilityId = state._lastAbilityId;
-    this.resolveTurn(abilityId, null);
-    // Preserve the prototype's one-secondary-per-trigger behavior even if
-    // the repeated ability itself rolls another success.
+    const result = this.resolveTurn(abilityId, null);
+    // One secondary opportunity is consumed by the attempt. resolveTurn()
+    // may briefly reopen a window on another success; suppress that here.
     state._secondaryAvailable = false;
-    return true;
+    return result !== false;
   };
 
   this.roll2d6 = roll2d6;
@@ -4871,6 +4884,8 @@ function AetherCombat(p, C) {
         action.id,
         window.AetherAbilityDefs.getUseEligibility(state.player, action.id),
       ])),
+      secondaryAvailable: Boolean(state._secondaryAvailable),
+      lastAbilityId: state._lastAbilityId || null,
       initiative: state.initiative,
       resolverMutations: resolverMutationCount,
     };
