@@ -250,6 +250,55 @@ function createServer() {
       JSON.stringify({ 3: ['windWard'], 4: ['aetherSeal'], 5: ['rest'] }),
       'legacy progression unlock mapping drifted');
 
+    const resolverContract = await page.evaluate(() => {
+      const vocabulary = window.AetherEffectVocabulary;
+      const resolver = window.AetherEffectResolver;
+      const context = {
+        player: {
+          vit: 10,
+          maxVit: 13,
+          scrap: 7,
+          aether: { current: 4, max: 6 },
+          heat: { current: 1, max: 3 },
+          echoes: { current: 3, max: 3 },
+          staffCharges: 2,
+          maxStaffCharges: 2,
+        },
+        enemy: { hp: 12, maxHp: 12 },
+        staffChargeMax: 2,
+      };
+
+      const results = resolver.applyEffects([
+        resolver.createDamageEffect(vocabulary.TARGET.ENEMY, 3, 'emp'),
+        resolver.createDamageEffect(vocabulary.TARGET.SELF, 2),
+        resolver.createRestoreEffect(vocabulary.TARGET.SELF, 1),
+        resolver.createResourceDeltaEffect(vocabulary.RESOURCE.HEAT, 5),
+        resolver.createResourceDeltaEffect(vocabulary.RESOURCE.AETHER, -2),
+      ], context);
+
+      return {
+        version: resolver.VERSION,
+        playerVit: context.player.vit,
+        enemyHp: context.enemy.hp,
+        heat: context.player.heat.current,
+        aether: context.player.aether.current,
+        applied: results.map(result => result.applied),
+      };
+    });
+
+    assert(resolverContract.version === '0.1.0',
+      'effect resolver version is not loaded');
+    assert(resolverContract.playerVit === 9,
+      'effect resolver damage/restoration sequence drifted');
+    assert(resolverContract.enemyHp === 9,
+      'effect resolver enemy damage drifted');
+    assert(resolverContract.heat === 3,
+      'effect resolver heat clamp drifted');
+    assert(resolverContract.aether === 2,
+      'effect resolver resource decrease drifted');
+    assert(resolverContract.applied.every(Boolean),
+      'effect resolver unexpectedly skipped an implemented effect');
+
     await page.keyboard.press('1');
     await page.waitForFunction(() =>
       window._combat && window._combat.getState().turn >= 1
@@ -333,6 +382,7 @@ function createServer() {
       partyArchitecture,
       effectContract,
       registryContract,
+      resolverContract,
       worldBeforeCombat,
       combatTurns: combatAfterActions.turn,
       enemy: combatAfterActions.enemy && combatAfterActions.enemy.name,

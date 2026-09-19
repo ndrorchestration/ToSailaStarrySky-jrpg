@@ -35,6 +35,7 @@
     "test:smoke": "node tests/smoke-playwright.js",
     "playwright:install": "playwright install chromium",
     "test:effects": "node tests/effect-vocabulary.test.js",
-    "test:registries": "node tests/registry-contract.test.js"
+    "test:registries": "node tests/registry-contract.test.js",
+    "test:resolver": "node tests/effect-resolver.test.js"
   }
 }

@@ -30,6 +30,9 @@ jobs:
       - name: Verify ability/progression registries
         run: npm run test:registries
 
+      - name: Verify effect resolver contract
+        run: npm run test:resolver
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
