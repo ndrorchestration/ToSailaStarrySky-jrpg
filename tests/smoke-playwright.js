@@ -187,6 +187,52 @@ function createServer() {
     const combatStart = await page.evaluate(() => window._combat.getState());
     assert(combatStart.turn === 0, 'combat did not start at turn 0');
 
+    const enemyMetadataContract = await page.evaluate(() => {
+      const ids = [
+        'skyPredator',
+        'corporateSalvager',
+        'windShear',
+        'aetherLeak',
+        'engine_spirit',
+        'child_prophet',
+        'elder_farmer',
+      ];
+      const snapshots = ids.map(id => {
+        window._combat.beginEncounter(id);
+        const enemy = window._combat.getState().enemy;
+        return {
+          id,
+          type: enemy && enemy.type,
+          ability: enemy && enemy.ability,
+          abilities: enemy && enemy.abilities,
+          abilityDesc: enemy && enemy.abilityDesc,
+          color: enemy && enemy.color,
+          bodyShape: enemy && enemy.bodyShape,
+        };
+      });
+      window._combat.beginEncounter('skyPredator');
+      return snapshots;
+    });
+
+    assert(enemyMetadataContract.length === 7,
+      'enemy metadata contract did not cover all current templates');
+    for (const enemy of enemyMetadataContract) {
+      assert(enemy.type === enemy.id,
+        'enemy encounter lost type metadata for ' + enemy.id);
+      assert(typeof enemy.ability === 'string' && enemy.ability.length > 0,
+        'enemy encounter lost ability metadata for ' + enemy.id);
+      assert(Array.isArray(enemy.abilities) &&
+        enemy.abilities.length === 1 &&
+        enemy.abilities[0] === enemy.ability,
+        'enemy encounter ability list drifted for ' + enemy.id);
+      assert(typeof enemy.abilityDesc === 'string' && enemy.abilityDesc.length > 0,
+        'enemy encounter lost ability description for ' + enemy.id);
+      assert(typeof enemy.color === 'string' && enemy.color.length > 0,
+        'enemy encounter lost color metadata for ' + enemy.id);
+      assert(typeof enemy.bodyShape === 'string' && enemy.bodyShape.length > 0,
+        'enemy encounter lost body-shape metadata for ' + enemy.id);
+    }
+
     const effectContract = await page.evaluate(() => {
       const vocabulary = window.AetherEffectVocabulary;
       const actions = window._combat.getState().actions;
@@ -382,6 +428,7 @@ function createServer() {
     console.log(JSON.stringify({
       party: review,
       partyArchitecture,
+      enemyMetadataContract,
       effectContract,
       registryContract,
       resolverContract,

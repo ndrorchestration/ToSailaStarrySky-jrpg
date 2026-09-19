@@ -37,6 +37,7 @@
     "test:effects": "node tests/effect-vocabulary.test.js",
     "test:registries": "node tests/registry-contract.test.js",
     "test:resolver": "node tests/effect-resolver.test.js",
-    "test:resolver-integration": "node tests/resolver-integration.test.js"
+    "test:resolver-integration": "node tests/resolver-integration.test.js",
+    "test:enemy-metadata": "node tests/enemy-metadata-contract.test.js"
   }
 }

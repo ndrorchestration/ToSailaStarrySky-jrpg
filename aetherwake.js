@@ -4407,6 +4407,12 @@ function AetherCombat(p, C) {
       wits: template.wits,
       weakness: template.weakness,
       status: template.status,
+      type: template.type || enemyId,
+      ability: template.ability || null,
+      abilities: template.ability ? [template.ability] : [],
+      abilityDesc: template.abilityDesc || null,
+      color: template.color || null,
+      bodyShape: template.bodyShape || null,
     };
     state.turn = 0;
     state.encounterOver = false;
@@ -4749,13 +4755,16 @@ function AetherCombat(p, C) {
       if (abilityRoll <= 3) {
         const abilityIdx = floor(random(0, enemyAbilities.length));
         const abilityId = enemyAbilities[abilityIdx];
-        if (abilityId === 'diveBomb' || abilityId === 'galeForce' || abilityId === 'harmonicPulse') {
+        const normalizedAbilityId = String(abilityId).replace(/_([a-z])/g, function(_, ch) {
+          return ch.toUpperCase();
+        });
+        if (normalizedAbilityId === 'diveBomb' || normalizedAbilityId === 'galeForce' || normalizedAbilityId === 'harmonicPulse') {
           state._enemyAbilityFlash = millis();
-        } else if (abilityId === 'contractClause' || abilityId === 'prophecyVoice') {
+        } else if (normalizedAbilityId === 'contractClause' || normalizedAbilityId === 'prophecyVoice') {
           state._enemyAbilityFlash = millis();
-        } else if (abilityId === 'soilAnchor') {
+        } else if (normalizedAbilityId === 'soilAnchor') {
           state._enemyAbilityFlash = millis();
-        } else if (abilityId === 'drain') {
+        } else if (normalizedAbilityId === 'drain') {
           state._enemyAbilityFlash = millis();
         }
       }

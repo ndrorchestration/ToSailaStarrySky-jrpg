@@ -36,6 +36,9 @@ jobs:
       - name: Verify live resolver integration
         run: npm run test:resolver-integration
 
+      - name: Verify enemy metadata propagation
+        run: npm run test:enemy-metadata
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
