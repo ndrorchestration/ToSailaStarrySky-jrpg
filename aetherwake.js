@@ -4367,6 +4367,7 @@ function AetherCombat(p, C) {
     state.encounterOver = false;
     state._secondaryAvailable = false;
     state._lastAbilityId = null;
+    state._lastRoll = null;
     resolverMutationCount = 0;
     log('Combat initialized. The weave awaits.');
   };

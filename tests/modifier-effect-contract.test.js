@@ -1,4 +1,6 @@
 const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 const vocabulary = require('../modules/effect-vocabulary.js');
 const resolver = require('../modules/effect-resolver.js');
 
@@ -48,5 +50,12 @@ resolver.applyEffect(
   context
 );
 assert.strictEqual(context.player.nextRollBonus, 1);
+
+const source = fs.readFileSync(
+  path.resolve(__dirname, '..', 'aetherwake.js'),
+  'utf8'
+);
+assert(source.includes('state._lastRoll = null;'),
+  'combat init does not clear the previous roll trace');
 
 console.log('Aetherwake modifier-effect contract: PASS');
