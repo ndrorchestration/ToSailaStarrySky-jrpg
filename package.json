@@ -43,6 +43,7 @@
     "test:resource-eligibility": "node tests/resource-eligibility.test.js",
     "test:progression-reachability": "node tests/progression-reachability.test.js",
     "test:secondary-action": "node tests/secondary-action-contract.test.js",
-    "test:airship": "node tests/airship-state.test.js"
+    "test:airship": "node tests/airship-state.test.js",
+    "test:airship-combat-bridge": "node tests/airship-combat-bridge.test.js"
   }
 }
