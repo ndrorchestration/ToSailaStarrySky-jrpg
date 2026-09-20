@@ -2814,8 +2814,16 @@ function getCurrentDialogueLine() {
 // ---------------------------------------------------------------------------
 
 let _dialogueAudioEl = null;
+// Pre-rendered dialogue voice clips are an optional asset pack and are not
+// shipped in the current repository. Keep them opt-in so normal play never
+// requests guaranteed-missing MP3 files. A packaged build that includes the
+// voice pack may explicitly set this flag to true before dialogue begins.
+if (window.AETHER_DIALOGUE_TTS_ENABLED === undefined) {
+  window.AETHER_DIALOGUE_TTS_ENABLED = false;
+}
 
 function playDialogueAudioLine() {
+  if (window.AETHER_DIALOGUE_TTS_ENABLED !== true) return;
   const npcId  = window.UI.dialogueAudioNPC;
   const batch  = window.UI.dialogueAudioBatch;
   const idx    = window.UI.dialogueLineIndex;
