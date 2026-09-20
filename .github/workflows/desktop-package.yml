@@ -36,7 +36,7 @@ jobs:
       - name: Create distributable ZIP
         shell: pwsh
         run: |
-          $package = Get-ChildItem -Path dist -Directory | Select-Object -First 1
+          $package = Get-ChildItem -Path ..\aetherwake-dist -Directory | Select-Object -First 1
           if (-not $package) { throw "NW.js did not produce a package directory" }
           Compress-Archive -Path "$($package.FullName)\*" -DestinationPath "Aetherwake-Windows.zip"
 
