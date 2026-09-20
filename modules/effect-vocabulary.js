@@ -234,6 +234,42 @@
         effect(EFFECT_KIND.DAMAGE, TARGET.SELF, OPERATION.APPLY, 'vitality'),
       ],
     },
+
+  });
+
+  // First Wake profiles live on a separate surface so the legacy eight-action
+  // vocabulary contract remains compatible with existing consumers.
+  const PARTY_ACTION_EFFECT_PROFILES = deepFreeze({
+    frequencyRead: {
+      common: [],
+      success: [
+        effect(EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'weakness'),
+        effect(EFFECT_KIND.MODIFIER, TARGET.SELF, OPERATION.INCREASE, 'nextRoll'),
+      ],
+      partial: [effect(EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'weakness')],
+      failure: [],
+    },
+    echoRedirect: {
+      common: [],
+      success: [
+        effect(EFFECT_KIND.RESTORE, TARGET.ALLY, OPERATION.RESTORE, 'vitality'),
+        effect(EFFECT_KIND.MODIFIER, TARGET.ALLY, OPERATION.INCREASE, 'nextRoll'),
+      ],
+      partial: [effect(EFFECT_KIND.RESTORE, TARGET.ALLY, OPERATION.RESTORE, 'vitality')],
+      failure: [],
+    },
+    braceTheWake: {
+      common: [],
+      success: [effect(EFFECT_KIND.MODIFIER, TARGET.FIELD, OPERATION.INCREASE, 'nextHitReduction')],
+      partial: [],
+      failure: [],
+    },
+    routeCommand: {
+      common: [],
+      success: [effect(EFFECT_KIND.MODIFIER, TARGET.ALLY, OPERATION.INCREASE, 'nextRoll')],
+      partial: [],
+      failure: [],
+    },
   });
 
   const CURRENT_RUNTIME_EFFECT_SURFACE = deepFreeze({
@@ -299,6 +335,26 @@
     Object.keys(ACTION_EFFECT_PROFILES).forEach(profileId => {
       validateProfile(profileId, ACTION_EFFECT_PROFILES[profileId]);
     });
+    Object.keys(PARTY_ACTION_EFFECT_PROFILES).forEach(profileId => {
+      validateProfile(profileId, PARTY_ACTION_EFFECT_PROFILES[profileId]);
+    });
+    return true;
+  }
+
+  function assertPartyActionCoverage(actions) {
+    if (!Array.isArray(actions)) throw new Error('ACTIONS_MUST_BE_ARRAY');
+    const profiles = Object.assign({}, ACTION_EFFECT_PROFILES, PARTY_ACTION_EFFECT_PROFILES);
+    const actionIds = actions.map(action => action && action.id);
+    const missingProfiles = actionIds.filter(id => !profiles[id]);
+    if (missingProfiles.length) {
+      throw new Error('ACTIONS_MISSING_EFFECT_PROFILES:' + missingProfiles.join(','));
+    }
+    actions.forEach(action => {
+      if (!action || action.effectProfile !== action.id) {
+        throw new Error('ACTION_EFFECT_PROFILE_BINDING_INVALID:' + (action && action.id));
+      }
+      validateProfile(action.id, profiles[action.id]);
+    });
     return true;
   }
 
@@ -342,10 +398,12 @@
     RUNTIME_STATUS,
     PHASES,
     ACTION_EFFECT_PROFILES,
+    PARTY_ACTION_EFFECT_PROFILES,
     CURRENT_RUNTIME_EFFECT_SURFACE,
     validateEffectDescriptor,
     validateProfile,
     validateVocabulary,
     assertActionCoverage,
+    assertPartyActionCoverage,
   });
 });

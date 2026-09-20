@@ -14,5 +14,8 @@ assert.match(handoff, /commitFirstWakeParty/);
 assert.doesNotMatch(handoff, /commitPrototypeParty/);
 assert.match(handoff, /partyCommit\s*&&\s*partyCommit\.activeParty/);
 assert.match(startGame, /start\(\{\s*mode:\s*['"]authored['"]\s*\}\)/);
+assert.match(source, /AetherPartyCombat\.createController/);
+assert.match(source, /activeActor\.id !== ['"]ender['"]/);
+assert.match(source, /window\.__awTestEnabled/);
 
-console.log('First Wake integration source contract: 4/4 passed');
+console.log('First Wake integration source contract: 7/7 passed');
