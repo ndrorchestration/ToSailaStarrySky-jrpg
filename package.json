@@ -28,7 +28,8 @@
   "devDependencies": {
     "nw": "^0.116.0",
     "nwjs": "^1.4.4",
-    "playwright": "^1.63.0"
+    "playwright": "^1.63.0",
+    "nw-builder": "^4.5.0"
   },
   "private": true,
   "scripts": {
@@ -42,6 +43,9 @@
     "test:combat-input": "node tests/combat-input-contract.test.js",
     "test:resource-eligibility": "node tests/resource-eligibility.test.js",
     "test:progression-reachability": "node tests/progression-reachability.test.js",
-    "test:secondary-action": "node tests/secondary-action-contract.test.js"
+    "test:secondary-action": "node tests/secondary-action-contract.test.js",
+    "package:windows": "nwbuild --platforms win-x64 --version 0.116.0 --buildDir dist .",
+    "package:windows:clean": "npm run package:windows",
+    "test:desktop-package": "node tests/desktop-package-contract.test.js"
   }
 }
