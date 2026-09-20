@@ -162,6 +162,14 @@ function setup() {
     return;
   }
   window.AetherPartyState.bootstrap(world.player);
+  if (!window.AetherSaveState ||
+      window.AetherSaveState.schemaVersion !== 1 ||
+      typeof window.AetherSaveState.createDocument !== 'function' ||
+      typeof window.AetherSaveState.loadFromStorage !== 'function') {
+    showInitializationFailure('AETHER_SAVE_STATE_UNAVAILABLE');
+    return;
+  }
+  window._saveState = window.AetherSaveState;
   if (!window.AetherAirshipState ||
       typeof window.AetherAirshipState.createState !== 'function') {
     showInitializationFailure('AETHER_AIRSHIP_STATE_UNAVAILABLE');
