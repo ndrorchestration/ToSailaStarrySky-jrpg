@@ -52,7 +52,7 @@
 - Consumes: the current source text from aetherwake.js and the HTTP-served entrypoints.
 - Produces: failing assertions for the missing World exports, shop handler, overlay cleanup, complete combat snapshot, and second-entrypoint smoke coverage.
 
-- [ ] Step 1: Create tests/runtime-contracts.test.js with source-contract assertions for the exact missing contracts.
+- [ ] Step 1: Create tests/runtime-contracts.test.js with source-contract assertions for the World and shop slice only. Later tasks add their own red assertions before their production changes.
 
     const assert = require('assert');
     const fs = require('fs');
@@ -76,32 +76,6 @@
       'live shop purchase handler is missing');
     assert(source.includes('world.player.scrap'),
       'shop renderer has no persistent World scrap source');
-    assert(source.includes('world.closeDialogue()'),
-      'overlay cleanup does not close World dialogue state');
-    assert(source.includes('world.closeShop()'),
-      'overlay cleanup does not close World shop state');
-
-    const combatStart = source.indexOf('function AetherCombat(p, C) {');
-    assert(combatStart >= 0, 'AetherCombat constructor is missing');
-    const combatSource = source.slice(combatStart);
-
-    assert(combatSource.includes('state.player.maxStaffCharges'),
-      'combat player snapshot does not synchronize maxStaffCharges');
-    assert(combatSource.includes('options.maxVit'),
-      'combat init does not accept maxVit');
-    assert(combatSource.includes('options.wits'),
-      'combat init does not accept primary stat fields');
-    assert(combatSource.includes('while (p.xp >= p.xpToNext)'),
-      'multi-level XP award path is missing');
-
-    const smokeSource = fs.readFileSync(
-      path.resolve(__dirname, 'smoke-playwright.js'),
-      'utf8'
-    );
-    assert(smokeSource.includes('index-embedded.html'),
-      'embedded entrypoint smoke coverage is missing');
-    assert(smokeSource.includes('index.html'),
-      'legacy entrypoint smoke coverage is missing');
 
     console.log('Aetherwake runtime contract tests: PASS');
 
@@ -288,14 +262,18 @@
 - Consumes: World structured action results and the existing STATE/openState/prevState model.
 - Produces: deterministic World → overlay → World transitions with no stale dialogue or shop state.
 
-- [ ] Step 1: Add red browser assertions for the actual overlay contracts.
+- [ ] Step 1: Add red source and browser assertions for the actual overlay contracts.
 
-    const dialogueBefore = await page.evaluate(() => ({
-      state: window.gameState,
-      open: Boolean(window._world && window._world.getQuestState &&
-        window._world.getQuestState().dialogueOpen),
-    }));
-    assert(dialogueBefore.state === 'world', 'dialogue fixture did not begin in WORLD');
+    const source = fs.readFileSync(
+      path.resolve(__dirname, '..', 'aetherwake.js'),
+      'utf8'
+    );
+    assert(source.includes("return { ok: true, kind: 'dialogue'"),
+      'dialogue interaction does not return a structured success result');
+    assert(source.includes('world.closeDialogue()'),
+      'overlay cleanup does not close World dialogue state');
+    assert(source.includes('world.closeShop()'),
+      'overlay cleanup does not close World shop state');
 
     const shopFailure = await page.evaluate(() => {
       const p = window._world.player;
@@ -399,7 +377,17 @@
 
 - [ ] Step 6: Make numeric dialogue choices use keyPressed and prevent keyTyped duplication.
 
-    In keyPressed(), when gameState is STATE.DIALOGUE and keyCode is 49, 50, or 51, call the choice handler exactly once. In keyTyped(), call handleChoiceInput() only when the state is WORLD and no dialogue/overlay transition has already consumed the event.
+    Change handleChoiceInput to accept an optional character value and use the event value first:
+
+    function handleChoiceInput(value) {
+      if (quest.state !== QUEST_STATES.CHOICE || quest.choiceMade) return;
+      const selected = value || (typeof key !== 'undefined' ? key : '');
+      if (selected >= '1' && selected <= '3') {
+        selectChoicePath(parseInt(selected, 10) - 1);
+      }
+    }
+
+    In keyPressed(), call handleChoiceInput(String.fromCharCode(keyCode)) for keyCode 49 through 51 while the dialogue/choice state is active. In keyTyped(), call handleChoiceInput() only for the WORLD state when no overlay transition has consumed the event. The same key event must not select twice.
 
 - [ ] Step 7: Run focused browser smoke and commit.
 
@@ -508,7 +496,7 @@
     state._secondaryAvailable = false;
     state._lastAbilityId = null;
 
-    beginEncounter(enemyId) must validate the enemy before any encounter state is changed. An unknown ID returns { ok: false, reason } and leaves the previous state untouched.
+    beginEncounter(enemyId) must validate the enemy before any encounter state is changed. The unknown-ID branch returns { ok: false, reason } directly without calling log(), because logging would mutate the previous encounter. A known ID then resets the encounter fields and starts its fresh log.
 
 - [ ] Step 4: Make awardXP process all earned levels deterministically.
 
