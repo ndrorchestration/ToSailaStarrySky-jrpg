@@ -578,6 +578,12 @@
       heat: clone(actor.heat),
       staffCharges: actor.staffCharges,
       maxStaffCharges: actor.maxStaffCharges,
+      level: actor.level,
+      xp: actor.xp,
+      xpToNext: actor.xpToNext,
+      scrap: actor.scrap,
+      unlockedAbilities: actor.unlockedAbilities.slice(),
+      equipment: clone(actor.equipment),
       nextRollBonus: actor.nextRollBonus,
       nextHitReduction: actor.nextHitReduction,
     };

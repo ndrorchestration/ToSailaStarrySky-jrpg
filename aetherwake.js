@@ -717,7 +717,9 @@ function finishCombat() {
   }
 
   const combatState = combat.getState();
-  const p = combatState && combatState.player ? combatState.player : null;
+  const p = combatState && Array.isArray(combatState.party)
+    ? (combatState.party.find(actor => actor.id === 'ender') || null)
+    : (combatState && combatState.player ? combatState.player : null);
 
   if (p) {
     world.player.vit = p.vit;
