@@ -10,21 +10,19 @@
       to charCreate.draw() / charCreate.handleInput() in its draw() and
       handleInput() functions (see integration notes at bottom).
 
-   2. PARTY DATA: This module produces a three-character preservation
-      draft. party[0] is Ender and party[1]/party[2] are the two current
-      player-created companion slots. The persistent runtime authority is
-      modules/party-state.js: core.js commits this draft into ROSTER[5]
-      and ACTIVE_PARTY[3] after review. CharCreate is therefore onboarding
-      input, not the owner of persistent party identity.
+   2. PARTY DATA: This module produces a three-character onboarding draft.
+       party[0] is Ender; party[1] and party[2] are the fixed authored
+       identities Lyra and Ionia. The persistent runtime authority is
+       modules/party-state.js: core.js commits this draft into ROSTER[5]
+       and ACTIVE_PARTY[3] after review. CharCreate is onboarding input,
+       not the owner of persistent party identity.
 
-   3. JOB SYSTEM: Three distinct jobs (Sky-Sailor, Engine-Wright,
-      Aether-Weaver), each with a fixed rank-1 stat profile and two
-      abilities drawn from the PbtA 2D6+stat tradition. The player
-      assigns one job to each companion slot. Abilities are stored as
-      string IDs in unlockedAbilities so combat.js can extend its
-      actions table later without char-create needing to know resolution
-      logic. SynergyBonus fields describe passive party-composition
-      bonuses as flavor + mechanical notes for future combat expansion.
+   3. FIELD-ROLE TEMPLATES: Sky-Sailor, Engine-Wright, and Aether-Weaver
+       remain preservation-era rank-1 mechanics templates. They are not
+       canonical authored jobs for Lyra or Ionia. The player assigns a
+       temporary field-role template to each authored companion so the
+       current combat slice retains working stats/abilities while canonical
+       jobs, schools, and mastery remain unresolved.
 
    4. DRAWING: All rendering uses p5.js primitives only — no DOM
       creation. The visual language reuses ui.js patterns: pixel
@@ -181,6 +179,11 @@ const JOBS = [
   },
 ];
 
+const AUTHORED_COMPANIONS = Object.freeze([
+  Object.freeze({ id: 'lyra', name: 'Lyra' }),
+  Object.freeze({ id: 'ionia', name: 'Ionia' }),
+]);
+
 // ── Ender (fixed protagonist — always party[0]) ──
 const ENDER = {
   name: 'Young Ender',
@@ -215,12 +218,13 @@ function jobColorRGB(jobId) {
 
 const CharCreate = {
   // ── State ──
-  phase: 'title',       // 'title' | 'name' | 'class' | 'review' | 'done'
+  phase: 'title',       // 'title' | 'class' | 'review' | 'done'
   slot: 0,              // 0 or 1 (which companion slot we're filling)
   nameInput: '',        // current name being typed
   cursorPos: 0,         // cursor index in nameInput
   selectedJob: null,    // job object selected for current slot
-  party: [],            // will hold 3 characters
+  party: [],            // Ender + authored Lyra/Ionia onboarding draft
+  authoredSlots: AUTHORED_COMPANIONS,
   confirmReady: false,  // true when both slots filled and review passes
 
   // ── Private: current companion being edited ──
@@ -259,10 +263,10 @@ const CharCreate = {
       if (pressed[13] || pressed[32] || pressed[78] || pressed[110] ||
           (typeof key !== 'undefined' && (key === 'Enter' || key === ' ' ||
            key === 'n' || key === 'N'))) {
-        this.phase = 'name';
+        this.phase = 'class';
         this.slot = 0;
-        this.nameInput = '';
-        this.cursorPos = 0;
+        this.nameInput = AUTHORED_COMPANIONS[0].name;
+        this.cursorPos = this.nameInput.length;
         this.selectedJob = null;
         this._currentChar = null;
         return;
@@ -287,11 +291,12 @@ const CharCreate = {
         return;
       }
       if (pressed[27]) {
-        // ESC: go back to class selection for slot 1
+        // ESC: edit the most recently configured authored companion.
         this.phase = 'class';
-        this.slot = 0;
-        this.selectedJob = this.party[1] ? JOBS.find(j => j.id === this.party[1].jobId) : null;
-        this.nameInput = this.party[1] ? this.party[1].name : '';
+        this.slot = 1;
+        this.selectedJob = this.party[2] ? JOBS.find(j => j.id === this.party[2].jobId) : null;
+        this.nameInput = AUTHORED_COMPANIONS[1].name;
+        this.cursorPos = this.nameInput.length;
         return;
       }
       return;
@@ -411,28 +416,26 @@ const CharCreate = {
       return;
     }
 
-    // Enter / Space: confirm job and move to name input (or advance if name done)
+    // Enter / Space: assign the selected preservation mechanics template
+    // to the fixed authored identity. This does not establish a canonical job.
     if (pressed[13] || pressed[32]) {
       if (this.selectedJob) {
-        // If name is empty or cursor at end, confirm and move on
+        const authored = AUTHORED_COMPANIONS[this.slot];
+        this.party[this.slot + 1] = this._makeCharacter(authored.name, this.selectedJob);
         if (this.slot === 0) {
-          // Store companion 1 with selected job, name pending
-          this.party[1] = this._makeCharacter(this.nameInput || 'Companion', this.selectedJob);
           this.slot = 1;
-          this.nameInput = '';
-          this.cursorPos = 0;
+          this.nameInput = AUTHORED_COMPANIONS[1].name;
+          this.cursorPos = this.nameInput.length;
           this.selectedJob = null;
-          this.phase = 'name';
+          this.phase = 'class';
         } else {
-          // Store companion 2
-          this.party[2] = this._makeCharacter(this.nameInput || 'Companion', this.selectedJob);
           this.phase = 'review';
         }
       }
       return;
     }
 
-    // ESC: if slot 0, go back to title; if slot 1, go back to slot 0 name edit
+    // ESC: return to the previous authored slot without reopening free-form naming.
     if (pressed[27]) {
       if (this.slot === 0) {
         this.phase = 'title';
@@ -440,12 +443,11 @@ const CharCreate = {
         this.cursorPos = 0;
         this.selectedJob = null;
       } else {
-        // Go back to slot 0 — restore name and job from party[1] if exists
         this.slot = 0;
-        this.nameInput = this.party[1] ? this.party[1].name : '';
+        this.nameInput = AUTHORED_COMPANIONS[0].name;
         this.cursorPos = this.nameInput.length;
         this.selectedJob = this.party[1] ? JOBS.find(j => j.id === this.party[1].jobId) : null;
-        this.phase = 'name';
+        this.phase = 'class';
       }
       return;
     }
@@ -460,9 +462,11 @@ const CharCreate = {
   _makeCharacter: function(name, job) {
     const j = job || JOBS[0];
     return {
-      name: name || 'Companion',
+      name: name,
       age: 22,
       class: j.name,
+      mechanicsTemplateId: j.id,
+      mechanicsTemplateName: j.name,
       vit: j.vit,
       maxVit: j.vit,
       echoes: { current: j.echoes, max: 3 },
@@ -496,10 +500,10 @@ const CharCreate = {
     }
     // Ensure both companions exist
     if (!this.party[1]) {
-      this.party[1] = this._makeCharacter('Companion', JOBS[0]);
+      this.party[1] = this._makeCharacter(AUTHORED_COMPANIONS[0].name, JOBS[0]);
     }
     if (!this.party[2]) {
-      this.party[2] = this._makeCharacter('Companion', JOBS[0]);
+      this.party[2] = this._makeCharacter(AUTHORED_COMPANIONS[1].name, JOBS[0]);
     }
 
     // This is migration input only. core.js commits it through AetherPartyState
@@ -575,8 +579,8 @@ const CharCreate = {
     textSize(14);
     fill(C.parchment[0], C.parchment[1], C.parchment[2], 180);
     textAlign(CENTER, CENTER);
-    text('Young Ender is your anchor —', cx, cy + 68);
-    text('choose two companions for the journey.', cx, cy + 84);
+    text('Ender, Lyra, and Ionia are the authored starting trio.', cx, cy + 68);
+    text('Assign Lyra and Ionia temporary field-role templates for this pre-alpha slice.', cx, cy + 84);
 
     // Ender preview — small silhouette bottom-center
     const enderX = cx;
@@ -594,7 +598,7 @@ const CharCreate = {
     // Controls hint
     textSize(9);
     fill(C.dim[0], C.dim[1], C.dim[2], 120);
-    text('1-3: pick job   ← →: cycle   ENTER: confirm   ESC: back', cx, height - 22);
+    text('1-3: field-role template   ← →: cycle   ENTER: confirm   ESC: back', cx, height - 22);
   },
 
   // ── Draw Ender preview silhouette ──
@@ -805,15 +809,15 @@ const CharCreate = {
     textFont(CC_FONT_UI);
     textSize(10);
     textAlign(LEFT, TOP);
-    const stepLabel = this.slot === 0 ? 'COMPANION 1 — CLASS' : 'COMPANION 2 — CLASS';
+    const authored = AUTHORED_COMPANIONS[this.slot];
+    const stepLabel = authored.name.toUpperCase() + ' — FIELD ROLE';
     safeGlowText(stepLabel, panelX + 20, panelY + 14, C.teal, 10, CC_FONT_UI);
 
-    const nameDisplay = (this.slot === 0 ? this.nameInput :
-                         (this.party[1] ? this.party[1].name : ''));
+    const nameDisplay = authored.name;
     fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
     textSize(11);
     textAlign(LEFT, TOP);
-    text('"' + (nameDisplay || ' unnamed') + '"', panelX + 20, panelY + 28);
+    text('Authored identity: ' + nameDisplay + '  ·  mechanics template only', panelX + 20, panelY + 28);
 
     // Divider
     stroke(C.teal[0], C.teal[1], C.teal[2], 50);
@@ -821,7 +825,7 @@ const CharCreate = {
     line(panelX + 20, panelY + 44, panelX + panelW - 20, panelY + 44);
     noStroke();
 
-    // Job cards — 3 across
+    // Preservation field-role cards — 3 across. These are not canonical jobs.
     const cardW = (panelW - 60) / 3;
     const cardH = 290;
     const cardGap = 10;
@@ -1090,7 +1094,7 @@ const CharCreate = {
         textSize(7);
         textAlign(CENTER, TOP);
         fill(C.dim[0], C.dim[1], C.dim[2], 120);
-        text('COMPANION ' + (i), cx + cardW / 2, cy + 8);
+        text(i === 1 ? 'LYRA' : 'IONIA', cx + cardW / 2, cy + 8);
       }
 
       // Character preview silhouette
@@ -1171,7 +1175,7 @@ const CharCreate = {
       textSize(10);
       textAlign(CENTER, TOP);
       const jobName = isEnder ? 'Rift Scholar + Dreamwright' :
-                     (job ? job.name : 'Unknown');
+                     (job ? 'FIELD ROLE: ' + job.name : 'FIELD ROLE: UNSET');
       const classCol = isEnder ? C.teal : (job ? jobColorRGB(chr.jobId) : C.dim);
       fill(classCol[0], classCol[1], classCol[2], 160);
       text(jobName, prevX, prevY + previewSize * 0.7 + 22);
@@ -1303,7 +1307,7 @@ const CharCreate = {
     textSize(7);
     fill(C.dim[0], C.dim[1], C.dim[2], 100);
     textAlign(CENTER, BOTTOM);
-    text('ENTER to begin  ·  ESC to edit companions', width / 2, height - 12);
+    text('ENTER to begin  ·  ESC to edit field roles', width / 2, height - 12);
   },
 };
 
