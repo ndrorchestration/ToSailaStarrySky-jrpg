@@ -2330,11 +2330,11 @@ function advanceSignal() {
 }
 
 function advanceCrossing() {
-  const totalHazards = quest.crossingHazards ? quest.crossingHazards.length : 0;
-  if (totalHazards === 0) {
-    // No hazards configured — fail closed, don't advance
+  if (!Array.isArray(quest.crossingHazards) || quest.crossingHazards.length === 0) {
+    // Empty or malformed hazard configuration — fail closed, don't advance.
     return;
   }
+  const totalHazards = quest.crossingHazards.length;
   if (quest.hazardsCompleted >= totalHazards) {
     quest.state = QUEST_STATES.CONTACT;
     quest.act = 'contact';
