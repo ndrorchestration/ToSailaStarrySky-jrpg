@@ -214,6 +214,19 @@ function createServer() {
       window._world.player
     , undefined, { timeout: 5000 });
 
+    const postCreateCombat = await page.evaluate(() => ({
+      worldName: window._world.player.name,
+      worldClass: window._world.player.class,
+      worldMaxVit: window._world.player.maxVit,
+      combatName: window._combat.getState().player.name,
+      combatClass: window._combat.getState().player.class,
+      combatMaxVit: window._combat.getState().player.maxVit,
+    }));
+    assert(postCreateCombat.combatName === postCreateCombat.worldName &&
+      postCreateCombat.combatClass === postCreateCombat.worldClass &&
+      postCreateCombat.combatMaxVit === postCreateCombat.worldMaxVit,
+      'character-creation handoff did not preserve combat identity/stats');
+
     const dialogueStateContract = await page.evaluate(() => {
       const player = window._world.player;
       player.tileX = 7;
