@@ -938,13 +938,14 @@ const CharCreate = {
         text(s.value, cx + cardW - 14, sy);
       });
 
-      // Synergies text (uses sy declared below)
+      // Template synergy text. Use the current card's definition directly;
+      // no cross-card temporary variable is valid in this scope.
       const synY = cy + cardH - 28;
       textFont(CC_FONT_UI);
       textSize(7);
       fill(C.teal[0], C.teal[1], C.teal[2], 120);
       textAlign(CENTER, TOP);
-      text(synText, cx + cardW / 2, synY);
+      text(job.synergyBonus, cx + cardW / 2, synY);
       const abilY = cy + 82 + 4 * statRowH + 10;
       textFont(CC_FONT_UI);
       textSize(7);
