@@ -140,6 +140,7 @@
 </style>
 </head>
 <body>
+<div id="aetherwake-init-error" role="alert" hidden style="position:fixed; inset:20px; z-index:10050; padding:24px; background:#1A102E; color:#FF6B6B; border:2px solid #A04A2C; font:18px monospace; white-space:pre-wrap;"></div>
 <div id="jrpg-container"></div>
 <div id="loading-screen">
   <div class="loading-inner">
@@ -294,10 +295,23 @@
       var hasCanvas = !!cvs && cvs.width >= 800 && cvs.height >= 500;
       var p5ok = typeof p5 !== 'undefined';
 
+      if (window.__aetherwakeInitFailed) {
+        showInitError(
+          document.getElementById('aetherwake-init-error')?.textContent ||
+          'Runtime setup failed.'
+        );
+        return;
+      }
+
       if (hasCanvas && p5ok) {
         p5.disableFriendlyErrors = true;
         console.log('[launch] canvas live, hiding loading screen');
         hideLoadingScreen();
+        return;
+      }
+
+      if (performance.now() - startTime > 10000) {
+        showInitError('Canvas/runtime did not initialize within 10 seconds.');
         return;
       }
 
