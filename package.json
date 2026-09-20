@@ -26,10 +26,8 @@
   "js-flags": "--expose-gc",
   "chromium-args": "--disable-gpu-compositing --disable-gpu-rasterization",
   "devDependencies": {
-    "nw": "^0.116.0",
-    "nwjs": "^1.4.4",
     "playwright": "^1.63.0",
-    "nw-builder": "^4.5.0"
+    "nw-builder": "4.5.0"
   },
   "private": true,
   "scripts": {
