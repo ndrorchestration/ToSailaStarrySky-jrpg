@@ -79,6 +79,36 @@ function createServer() {
       document.querySelector('canvas').height === 640
     , undefined, { timeout: 15000 });
 
+    const worldContract = await page.evaluate(() => ({
+      state: window.gameState,
+      worldExports: {
+        getLedger: typeof window._world.getLedger,
+        getShopItems: typeof window._world.getShopItems,
+        purchaseItem: typeof window._world.purchaseItem,
+        closeShop: typeof window._world.closeShop,
+      },
+      ledger: window._world.getLedger ? window._world.getLedger() : null,
+      shopItems: window._world.getShopItems ? window._world.getShopItems() : null,
+    }));
+
+    assert(worldContract.state === 'boot' || worldContract.state === 'menu' ||
+      worldContract.state === 'charcreate' || worldContract.state === 'world',
+      'runtime did not expose a valid initial state');
+    assert(worldContract.worldExports.getLedger === 'function',
+      'World ledger API is not live');
+    assert(worldContract.worldExports.getShopItems === 'function',
+      'World shop listing API is not live');
+    assert(worldContract.worldExports.purchaseItem === 'function',
+      'World purchase API is not live');
+    assert(worldContract.worldExports.closeShop === 'function',
+      'World close-shop API is not live');
+    assert(Array.isArray(worldContract.ledger) &&
+      worldContract.ledger.every(entry => typeof entry.text === 'string'),
+      'ledger entries do not expose canonical text');
+    assert(Array.isArray(worldContract.shopItems) &&
+      worldContract.shopItems.length >= 6,
+      'Repair Cafe item list is incomplete');
+
     const debugOverlayState = await page.evaluate(() =>
       ['debug-overlay', 'aw-debug-overlay'].map(id => {
         const node = document.getElementById(id);
