@@ -39,8 +39,10 @@ assert(workflow.includes('cancel-in-progress: true'),
   'desktop workflow should cancel superseded branch builds');
 assert(workflow.includes('Aetherwake.exe'),
   'desktop workflow must verify the packaged executable');
-assert(workflow.includes('index-embedded.html'),
-  'desktop workflow must verify the packaged entry point');
+assert(workflow.includes('package.nw'),
+  'desktop workflow must verify the packaged NW.js application archive');
+assert(workflow.includes('Resolve-Path ..\\aetherwake-dist'),
+  'desktop workflow must treat the NW.js output directory itself as the package root');
 assert(workflow.includes('Aetherwake-Windows.zip'),
   'desktop workflow must publish a named Windows ZIP');
 
