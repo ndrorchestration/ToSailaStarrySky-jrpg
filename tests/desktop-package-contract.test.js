@@ -20,8 +20,10 @@ assert(typeof packageJson.scripts['package:windows'] === 'string',
   'Windows packaging script is missing');
 assert(packageJson.scripts['package:windows'].includes('--outDir=../aetherwake-dist'),
   'Windows build output must stay outside the source tree');
-assert(packageJson.devDependencies && packageJson.devDependencies['nw-builder'],
-  'nw-builder dependency is missing');
+assert(packageJson.devDependencies && packageJson.devDependencies['nw-builder'] === '4.5.0',
+  'nw-builder must be pinned to the verified packaging version');
+assert(!packageJson.devDependencies.nw && !packageJson.devDependencies.nwjs,
+  'unused legacy NW.js npm packages must not be reintroduced');
 
 const workflow = fs.readFileSync(
   path.join(__dirname, '..', '.github', 'workflows', 'desktop-package.yml'),
@@ -31,6 +33,10 @@ assert(workflow.includes('npm run test:desktop-package'),
   'desktop workflow must run the packaging contract before building');
 assert(workflow.includes('npm run package:windows'),
   'desktop workflow must build the Windows package');
+assert(workflow.includes('node-version: 22'),
+  'desktop workflow should use the supported Node 22 toolchain');
+assert(workflow.includes('cancel-in-progress: true'),
+  'desktop workflow should cancel superseded branch builds');
 assert(workflow.includes('Aetherwake.exe'),
   'desktop workflow must verify the packaged executable');
 assert(workflow.includes('index-embedded.html'),
