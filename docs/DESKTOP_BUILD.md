@@ -17,7 +17,7 @@ The package is built automatically on `dev/progression-build` and `main`, from v
 Local build requirements:
 
 - Windows or a compatible NW.js build environment
-- Node.js 20+
+- Node.js 22+
 - npm
 
 Commands:
