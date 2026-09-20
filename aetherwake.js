@@ -805,7 +805,13 @@ function startCombat(enemyId) {
   // Build complete player snapshot from World state
   const playerSnapshot = {
     name: world.player.name,
+    age: world.player.age,
     class: world.player.class,
+    wits: world.player.wits,
+    presence: world.player.presence,
+    spirit: world.player.spirit,
+    might: world.player.might,
+    grace: world.player.grace,
     vit: world.player.vit,
     maxVit: world.player.maxVit,
     scrap: world.player.scrap,
@@ -846,6 +852,20 @@ function finishCombat() {
   const p = combatState && combatState.player ? combatState.player : null;
 
   if (p) {
+    const persistentFields = [
+      'name', 'age', 'class', 'wits', 'presence', 'spirit',
+      'might', 'grace', 'maxVit', 'level', 'xp', 'xpToNext',
+    ];
+    persistentFields.forEach(field => {
+      if (p[field] !== undefined) world.player[field] = p[field];
+    });
+    world.player.unlockedAbilities = Array.isArray(p.unlockedAbilities)
+      ? p.unlockedAbilities.slice()
+      : world.player.unlockedAbilities;
+    world.player.equipment = p.equipment
+      ? JSON.parse(JSON.stringify(p.equipment))
+      : world.player.equipment;
+
     world.player.vit = p.vit;
     world.player.scrap = p.scrap;
 
@@ -873,12 +893,14 @@ function finishCombat() {
     world.player.level = p.level;
     world.player.xp = p.xp;
     world.player.xpToNext = p.xpToNext;
-    world.player.unlockedAbilities = Array.isArray(p.unlockedAbilities)
-      ? p.unlockedAbilities.slice()
-      : world.player.unlockedAbilities;
-    world.player.equipment = p.equipment
-      ? JSON.parse(JSON.stringify(p.equipment))
-      : world.player.equipment;
+    if (p.maxStaffCharges !== undefined) {
+      world.player.maxStaffCharges = p.maxStaffCharges;
+    } else if (combat.getCharges) {
+      const chargeInfo = combat.getCharges();
+      if (chargeInfo && chargeInfo.max != null) {
+        world.player.maxStaffCharges = chargeInfo.max;
+      }
+    }
   }
 
   gameState = STATE.WORLD;
@@ -4714,6 +4736,18 @@ function AetherCombat(p, C) {
     if (state.log.length > 20) state.log.shift();
   }
 
+  function normalizeResource(value, maxValue, fallbackCurrent, fallbackMax) {
+    const objectValue = value && typeof value === 'object' ? value : null;
+    const rawMax = objectValue ? objectValue.max : maxValue;
+    const rawCurrent = objectValue ? objectValue.current : value;
+    const max = Math.max(0, Number.isFinite(Number(rawMax))
+      ? Number(rawMax)
+      : fallbackMax);
+    const current = Math.max(0, Math.min(max,
+      Number.isFinite(Number(rawCurrent)) ? Number(rawCurrent) : fallbackCurrent));
+    return { current, max };
+  }
+
   // ── Public API ──
   this.init = function(options) {
     options = options || {};
@@ -4723,18 +4757,37 @@ function AetherCombat(p, C) {
       const seed = floor(random(99999));
       if (randomSeed) randomSeed(seed);
     }
-    state.player.vit = options.vit ?? 13;
-    state.player.scrap = options.scrap ?? 7;
-    state.player.aether = options.aether ? { current: options.aether.current, max: options.aether.max } : { current: options.aether ?? 4, max: options.aetherMax ?? 6 };
-    state.player.heat = options.heat ? { current: options.heat.current, max: options.heat.max } : { current: options.heat ?? 1, max: options.heatMax ?? 3 };
-    state.player.echoes = options.echoes ? { current: options.echoes.current, max: options.echoes.max } : { current: options.echoes ?? 3, max: options.echoesMax ?? 3 };
-    state.player.staffCharges = options.charges ?? (options.staffCharges ?? 2);
-    state.maxStaffCharges = options.staffMax ?? 2;
-    state.player.level = options.level ?? 1;
-    state.player.xp = options.xp ?? 0;
-    state.player.xpToNext = options.xpToNext ?? 50;
-    state.player.unlockedAbilities = options.unlockedAbilities || ['uncoverTruth', 'sharedDream', 'mycelialLedger'];
-    state.player.equipment = options.equipment || { staff: null, backpack: null };
+    const maxVit = Math.max(1, Number(options.maxVit ?? 13));
+    state.player.name = options.name ?? 'Young Ender';
+    state.player.age = options.age ?? 28;
+    state.player.class = options.class ?? 'Rift Scholar + Dreamwright';
+    state.player.vit = Math.max(1, Math.min(maxVit, Number(options.vit ?? maxVit)));
+    state.player.maxVit = maxVit;
+    state.player.wits = Number(options.wits ?? 2);
+    state.player.presence = Number(options.presence ?? 1);
+    state.player.spirit = Number(options.spirit ?? 1);
+    state.player.might = Number(options.might ?? -1);
+    state.player.grace = Number(options.grace ?? 0);
+    state.player.scrap = Math.max(0, Number(options.scrap ?? 7));
+    state.player.aether = normalizeResource(options.aether, options.aetherMax, 4, 6);
+    state.player.heat = normalizeResource(options.heat, options.heatMax, 1, 3);
+    state.player.echoes = normalizeResource(options.echoes, options.echoesMax, 3, 3);
+    state.player.maxEchoes = state.player.echoes.max;
+    state.maxStaffCharges = Math.max(0, Number(options.staffMax ?? options.maxStaffCharges ?? 2));
+    state.player.maxStaffCharges = state.maxStaffCharges;
+    state.player.staffCharges = Math.max(0, Math.min(
+      state.maxStaffCharges,
+      Number(options.charges ?? options.staffCharges ?? state.maxStaffCharges)
+    ));
+    state.player.level = Math.max(1, Number(options.level ?? 1));
+    state.player.xp = Math.max(0, Number(options.xp ?? 0));
+    state.player.xpToNext = Math.max(1, Number(options.xpToNext ?? 50));
+    state.player.unlockedAbilities = Array.isArray(options.unlockedAbilities)
+      ? options.unlockedAbilities.slice()
+      : ['uncoverTruth', 'sharedDream', 'mycelialLedger'];
+    state.player.equipment = options.equipment
+      ? JSON.parse(JSON.stringify(options.equipment))
+      : { staff: null, backpack: null };
     state.turn = 0;
     state.log = [];
     state.enemy = null;
@@ -4744,6 +4797,15 @@ function AetherCombat(p, C) {
     state.airship = configureAirshipModifiers(options.airshipTransfer || null);
     state._airshipTransferApplied = false;
     state._airshipOpeningDamage = 0;
+    state._totalDamageDealt = 0;
+    state._victoryStats = null;
+    state._lastDamageNum = null;
+    state._critFlashTurn = 0;
+    state._playerHitTurn = 0;
+    state._dodgeTurn = 0;
+    state._defeatTurn = 0;
+    state._enemyAbilityFlash = 0;
+    state._lastTurnCrit = false;
     resolverMutationCount = 0;
     log('Combat initialized. The weave awaits.');
   };
@@ -4758,20 +4820,26 @@ function AetherCombat(p, C) {
 
   this.levelUp = function() {
     const p = state.player;
-    if (p.xp < p.xpToNext) return false;
-    p.xp -= p.xpToNext;
-    p.level++;
-    p.xpToNext = Math.floor(50 * Math.pow(1.5, p.level - 1));
-    p.echoes.max = Math.min(6, p.echoes.max + 1);
-    const levelUnlocks = window.AetherProgressionDefs.getUnlocksForLevel(p.level);
-    levelUnlocks.forEach(unlock => {
-      if (!p.unlockedAbilities.includes(unlock.abilityId)) {
-        p.unlockedAbilities.push(unlock.abilityId);
-        log(unlock.log);
-      }
-    });
-    log('── LEVEL UP! You are now level ' + p.level + '. Choose a stat to increase. ──');
-    return true;
+    let leveled = false;
+    while (p.xp >= p.xpToNext) {
+      p.xp -= p.xpToNext;
+      p.level++;
+      p.xpToNext = Math.floor(50 * Math.pow(1.5, p.level - 1));
+      p.echoes.max = Math.min(6, p.echoes.max + 1);
+      p.maxEchoes = p.echoes.max;
+      const levelUnlocks = window.AetherProgressionDefs.getUnlocksForLevel(p.level);
+      levelUnlocks.forEach(unlock => {
+        if (!p.unlockedAbilities.includes(unlock.abilityId)) {
+          p.unlockedAbilities.push(unlock.abilityId);
+          log(unlock.log);
+        }
+      });
+      leveled = true;
+    }
+    if (leveled) {
+      log('── LEVEL UP! You are now level ' + p.level + '. ──');
+    }
+    return leveled;
   };
 
   this.awardXP = function(amount) {
@@ -4784,12 +4852,23 @@ function AetherCombat(p, C) {
   this.beginEncounter = function(enemyId) {
     const template = enemies[enemyId];
     if (!template) {
-      log('Unknown enemy: ' + enemyId);
       return { ok: false, reason: 'Unknown enemy: ' + enemyId };
     }
     // Reset transient fields for this encounter
     state.log = [];
     state._airshipTransferApplied = false;
+    state._airshipOpeningDamage = 0;
+    state._totalDamageDealt = 0;
+    state._victoryStats = null;
+    state._lastDamageNum = null;
+    state._critFlashTurn = 0;
+    state._playerHitTurn = 0;
+    state._dodgeTurn = 0;
+    state._defeatTurn = 0;
+    state._enemyAbilityFlash = 0;
+    state._lastTurnCrit = false;
+    state._secondaryAvailable = false;
+    state._lastAbilityId = null;
     state.enemy = {
       name: template.name,
       goal: template.goal,
