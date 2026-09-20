@@ -825,6 +825,15 @@ function startGame() {
 function startCombat(enemyId) {
   if (!combat || !world) return;
 
+  const resolvedEnemyId = enemyId || 'skyPredator';
+  // Preflight encounter identity before mutating combat or consuming one-shot
+  // airship state. Invalid encounter requests must be completely fail-closed.
+  if (typeof combat.canBeginEncounter === 'function' &&
+      !combat.canBeginEncounter(resolvedEnemyId)) {
+    addLedgerEntry('combat', 'Combat failed: Unknown enemy: ' + resolvedEnemyId);
+    return { ok: false, reason: 'Unknown enemy: ' + resolvedEnemyId };
+  }
+
   // Only consume airship transfer when player is eligible
   let airshipTransfer = null;
   if (airshipState &&
@@ -874,7 +883,7 @@ function startCombat(enemyId) {
   };
 
   combat.init(playerSnapshot);
-  const result = combat.beginEncounter(enemyId || 'skyPredator');
+  const result = combat.beginEncounter(resolvedEnemyId);
   if (!result || !result.ok) {
     // Fail closed — don't enter combat state for invalid enemy IDs
     if (result && result.reason) {
@@ -4878,6 +4887,10 @@ function AetherCombat(p, C) {
     p.xp += amount;
     log('+' + amount + ' XP');
     this.levelUp();
+  };
+
+  this.canBeginEncounter = function(enemyId) {
+    return Boolean(enemies[enemyId]);
   };
 
   this.beginEncounter = function(enemyId) {
