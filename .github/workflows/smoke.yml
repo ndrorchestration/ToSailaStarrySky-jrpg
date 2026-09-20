@@ -31,6 +31,9 @@ jobs:
       - name: Verify runtime contract
         run: npm run test:runtime-contracts
 
+      - name: Verify authored onboarding contract
+        run: npm run test:onboarding
+
       - name: Verify regression contracts
         run: npm run test:regressions
 
