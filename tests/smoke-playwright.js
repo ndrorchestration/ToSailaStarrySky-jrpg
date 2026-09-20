@@ -245,6 +245,13 @@ function createServer() {
     await page.keyboard.press('e');
     await page.waitForFunction(() => window.gameState === 'dialogue', undefined,
       { timeout: 5000 });
+    // Dialogue uses a visible typewriter effect. Wait for the observable intro
+    // content rather than racing the first animation frame.
+    await page.waitForFunction(() =>
+      window.UI.dialogueOpen === true &&
+      typeof window.UI.dialogueText === 'string' &&
+      window.UI.dialogueText.includes('Wake')
+    , undefined, { timeout: 5000 });
     const dialogueOpened = await page.evaluate(() => ({
       npcId: window.UI.dialogueNPC && window.UI.dialogueNPC.id,
       text: window.UI.dialogueText,
