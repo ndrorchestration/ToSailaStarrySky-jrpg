@@ -85,16 +85,23 @@ test('D8: nextDialogueLine and closeDialogue exported in World', () => {
   assert(exports.includes('closeDialogue'), 'closeDialogue should be exported');
 });
 
-// D9: Verify openDialogue transitions to STATE.DIALOGUE
-test('D9: openDialogue transitions to STATE.DIALOGUE', () => {
-  const openDialogueMatch = aetherwakeSrc.match(/function openDialogue\(npc\) \{([\s\S]*?)^\}/m);
+// D9: Verify openDialogue returns a structured result; core owns STATE.DIALOGUE
+test('D9: openDialogue returns structured result; core owns state transition', () => {
+  const openDialogueMatch = aetherwakeSrc.match(/function openDialogue\(npc\) \{([\\s\\S]*?)^\}/m);
   assert(openDialogueMatch, 'openDialogue function should exist');
   const body = openDialogueMatch[1];
-  
-  // Check for state transition at the end of openDialogue
-  assert(body.includes('STATE.DIALOGUE'), 'openDialogue should reference STATE.DIALOGUE');
-  assert(body.includes('gameState = STATE.DIALOGUE') || body.includes('gameState = STATE.DIALOGUE;'), 
-    'openDialogue should set gameState to STATE.DIALOGUE');
+
+  assert(body.includes('window.UI.dialogueOpen = true'),
+    'openDialogue should prepare the dialogue UI state');
+  assert(/return \{\\s*ok: true,\\s*kind: 'dialogue'/.test(body),
+    'openDialogue should return a structured dialogue result');
+  assert(!body.includes('gameState = STATE.DIALOGUE'),
+    'openDialogue should not own the global state transition');
+
+  const handleWorldMatch = aetherwakeSrc.match(/function handleWorldInput\(\) \{([\\s\\S]*?)^\}/m);
+  assert(handleWorldMatch, 'handleWorldInput function should exist');
+  assert(handleWorldMatch[1].includes('openState(STATE.DIALOGUE)'),
+    'core should enter STATE.DIALOGUE after a successful interaction');
 });
 
 // D10: Verify M key routes through world.openShop() 
