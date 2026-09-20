@@ -132,7 +132,7 @@ function setup() {
   }
   window._setupOrder = window._setupOrder + '→combat-start';
   if (typeof window.AetherCombat !== 'undefined') {
-    combat = new window.AetherCombat(p5, C);
+    combat = new window.AetherCombat(window, C);
     window._combat = combat;
     if (combat && typeof combat.init === 'function') combat.init();
   }
@@ -229,11 +229,21 @@ function draw() {
     }
     // When char-create signals completion, transition to WORLD and init combat
     if (window._charcreate && window._charcreate.phase === 'done') {
-      // Populate world.player from party[0] (Ender) so the rest of the game
+      // Populate world.player from party[1] (slot-0 character creation) so the rest of the game
       // uses the character-created stats. Copy fields that combat.init() expects.
-      if (window._charcreate.party && window._charcreate.party[0]) {
-        const p = window._charcreate.party[0];
+      if (window._charcreate.party && window._charcreate.party[1]) {
+        const p = window._charcreate.party[1];
         world.player = {
+          name: p.name,
+          age: p.age,
+          class: p.class,
+          id: p.id,
+          slot: p.slot,
+          crew: p.crew,
+          voice: p.voice,
+          jobId: p.jobId,
+          abilities: p.abilities,
+
           vit: p.vit, maxVit: p.maxVit,
           echoes: p.echoes.current, echoesMax: p.echoes.max,
           wits: p.wits, presence: p.presence, spirit: p.spirit,
@@ -264,6 +274,12 @@ function draw() {
           xpToNext: world.player.xpToNext,
           unlockedAbilities: world.player.unlockedAbilities,
           equipment: world.player.equipment,
+          name: world.player.name,
+          class: world.player.class,
+          age: world.player.age,
+          id: world.player.id,
+          slot: world.player.slot,
+          jobId: world.player.jobId,
         });
       }
       gameState = STATE.WORLD;
@@ -656,6 +672,12 @@ function startCombat(enemyId) {
     xpToNext: world.player.xpToNext,
     unlockedAbilities: world.player.unlockedAbilities,
     equipment: world.player.equipment,
+    name: world.player.name,
+    class: world.player.class,
+    age: world.player.age,
+    id: world.player.id,
+    slot: world.player.slot,
+    jobId: world.player.jobId,
   });
   combat.beginEncounter(enemyId || 'skyPredator');
   gameState = STATE.COMBAT;
@@ -757,31 +779,31 @@ function triggerCombatHitFeedback(enemyDmg, playerDmg, rollTotal, isPlayerAttack
   }
   // Audio
   if (isPlayerAttack) {
-    if (enemyDmg > 0) window.playCombatHit();
+    if (enemyDmg > 0) { if (window.playCombatHit) window.playCombatHit(); }
   }
   if (playerDmg > 0) {
-    window.playDamageTaken();
+    if (window.playDamageTaken) window.playDamageTaken();
   }
 }
 
 /** Notify that an ability resolved — success or fail sound. */
 function triggerAbilityFeedback(success) {
   if (success) {
-    window.playAbilitySuccess();
+    if (window.playAbilitySuccess) window.playAbilitySuccess();
   } else {
-    window.playAbilityFail();
+    if (window.playAbilityFail) window.playAbilityFail();
   }
 }
 
 /** Notify quest state change. */
 function triggerQuestAdvance() {
-  window.playQuestAdvance();
+  if (window.playQuestAdvance) window.playQuestAdvance();
   showToast('QUEST ADVANCED', [42, 255, 181], 1800);
 }
 
 /** Notify level up. */
 function triggerLevelUp() {
-  window.playLevelUp();
+  if (window.playLevelUp) window.playLevelUp();
   showToast('LEVEL UP', [255, 179, 71], 2200);
 }
 
@@ -4246,6 +4268,13 @@ function AetherCombat(p, C) {
     state.player.xpToNext = options.xpToNext ?? 50;
     state.player.unlockedAbilities = options.unlockedAbilities || ['uncoverTruth', 'sharedDream', 'mycelialLedger'];
     state.player.equipment = options.equipment || { staff: null, backpack: null };
+    // Apply identity fields from world.player (passed via startCombat or draw())
+    if (options.name !== undefined) state.player.name = options.name;
+    if (options.class !== undefined) state.player.class = options.class;
+    if (options.age !== undefined) state.player.age = options.age;
+    if (options.id !== undefined) state.player.id = options.id;
+    if (options.slot !== undefined) state.player.slot = options.slot;
+    if (options.jobId !== undefined) state.player.jobId = options.jobId;
     state.turn = 0;
     state.log = [];
     state.enemy = null;
@@ -4641,10 +4670,10 @@ function AetherCombat(p, C) {
       }
     }
 
-    // --- Enemy Special Attacks ---
+    // Enemy Special Attacks ---
     // After enemy turn, handle ability usage.
     // Uses the ENEMY_ABILITIES lookup defined in the combat module.
-    const enemyAbilities = enemy.abilities || [];
+    var _enemyAbilities = state.enemy && state.enemy.abilities ? state.enemy.abilities : [];&#x...[truncated]
     if (state.enemy && enemyAbilities.length > 0 && !state.encounterOver) {
       const abilityRoll = floor(random(1, 11));
       if (abilityRoll <= 3) {
