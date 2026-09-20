@@ -72,15 +72,10 @@ jobs:
             throw "Packaged executable, manifest, or entry point is empty"
           }
 
-      - name: Create distributable ZIP
-        shell: pwsh
-        run: |
-          $packageRoot = Resolve-Path ..\aetherwake-dist -ErrorAction Stop
-          Compress-Archive -Path "$packageRoot\*" -DestinationPath "Aetherwake-Windows.zip"
-
       - name: Upload Windows package
         uses: actions/upload-artifact@v4
         with:
           name: Aetherwake-Windows
-          path: Aetherwake-Windows.zip
+          path: ../aetherwake-dist/**
           if-no-files-found: error
+          compression-level: 6
