@@ -39,8 +39,8 @@ test('D16: openShop returns {ok, reason} on failure', () => {
     'openShop should have appropriate reason message');
   
   // Check successful return
-  assert(body.includes('return { ok: true }'), 
-    'openShop should return {ok: true} on success');
+  assert(/return \\{ ok: true, items:/.test(body), 
+    'openShop should return {ok: true, items} on success');
 });
 
 // D16b: Verify M key in handleWorldInput routes through world.openShop()
