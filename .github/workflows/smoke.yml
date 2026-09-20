@@ -7,6 +7,10 @@ on:
       - dev/progression-build
   pull_request:
 
+concurrency:
+  group: aetherwake-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   smoke:
     runs-on: ubuntu-latest
