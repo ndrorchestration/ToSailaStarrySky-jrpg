@@ -766,8 +766,8 @@ function startCombat(enemyId) {
     // Check if player is eligible: boarded OR has one-shot armed
     const isEligible = world.player.shipBoarded || 
       (airshipState && airshipState.pendingCombat && 
-       (airshipState.pendingCombat.phaseSlip || airshipState.pendingCombat.harmonicVeil || 
-        airshipState.pendingCombat.resonanceLance));
+       (airshipState.pendingCombat.phaseSlip || 
+        airshipState.pendingCombat.resonanceLanceDamage));
     
     if (isEligible) {
       const prepared = window.AetherAirshipCombatBridge.consumeTransfer(airshipState);
@@ -797,6 +797,7 @@ function startCombat(enemyId) {
     xpToNext: world.player.xpToNext,
     unlockedAbilities: world.player.unlockedAbilities.slice ? world.player.unlockedAbilities.slice() : [...(world.player.unlockedAbilities || [])],
     equipment: world.player.equipment ? JSON.parse(JSON.stringify(world.player.equipment)) : { staff: null, backpack: null },
+    airshipTransfer,
   };
 
   combat.init(playerSnapshot);
