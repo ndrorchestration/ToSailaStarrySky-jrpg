@@ -104,6 +104,31 @@ test('D9: openDialogue returns structured result; core owns state transition', (
     'core should enter STATE.DIALOGUE after a successful interaction');
 });
 
+test('D9b: airship boarding reports to core instead of mutating global state', () => {
+  const boardMatch = aetherwakeSrc.match(/function boardShip\(\) \{([\s\S]*?)^\}/m);
+  assert(boardMatch, 'boardShip function should exist');
+  const body = boardMatch[1];
+
+  assert(body.includes("return { ok: false, kind: 'airship'"),
+    'boardShip should return structured failure results');
+  assert(body.includes("return { ok: true, kind: 'airship' }"),
+    'boardShip should return a structured success result');
+  assert(!body.includes('openState(STATE.AIRSHIP)'),
+    'World.boardShip must not own the global AIRSHIP transition');
+
+  const handleWorldMatch = aetherwakeSrc.match(/function handleWorldInput\(\) \{([\s\S]*?)^\}/m);
+  assert(handleWorldMatch, 'handleWorldInput function should exist');
+  const inputBody = handleWorldMatch[1];
+  const fStart = inputBody.indexOf('if (keysPressed[70])');
+  const fEnd = inputBody.indexOf('if (keysPressed[9])');
+  const fBlock = inputBody.substring(fStart, fEnd);
+
+  assert(fBlock.includes('world.interact()'),
+    'F key should route through the World interaction contract');
+  assert(fBlock.includes('openState(STATE.AIRSHIP)'),
+    'core should own AIRSHIP state transition after successful boarding');
+});
+
 // D10: Verify M key routes through world.openShop() 
 test('D10: M key routes through world.openShop() in handleWorldInput', () => {
   // Find the handleWorldInput function
