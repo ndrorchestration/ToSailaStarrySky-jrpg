@@ -52,8 +52,10 @@ The development branch now contains a persistent party-state bridge:
 - `ROSTER` has exactly five stable identities in canonical order: Ender, Lyra, Ionia, Reson, Aepex;
 - `ACTIVE_PARTY` has exactly three direct references into `ROSTER`, initially Ender/Lyra/Ionia;
 - `world.player === ROSTER[0] === ACTIVE_PARTY[0]`, so the lead character is no longer duplicated across WORLD and persistent party state;
-- the preservation character-creation flow remains temporarily in use as onboarding input for the first three records;
-- its two player-created companion names and Sky-Sailor / Engine-Wright / Aether-Weaver jobs remain prototype residue rather than authored canon;
+- onboarding now uses the fixed authored starting identities Ender, Lyra, and Ionia;
+- Lyra and Ionia are no longer player-renamable companion slots;
+- Sky-Sailor / Engine-Wright / Aether-Weaver remain preservation-era **mechanics templates**, recorded separately from authored identity and native-job canon;
+- Lyra and Ionia's canonical `nativeJob` values remain unresolved/null; selecting a mechanics template does not establish canon;
 - Reson and Aepex currently exist as identity/schema shells only;
 - formation mutation and true three-character combat are not implemented in this phase;
 - Ender implementation residue may still display **Rift Scholar + Dreamwright**, while canonical `nativeJob` is **Rift Scholar**.
@@ -101,7 +103,7 @@ Post-combat results write back to the persistent roster according to progression
 
 `modules/party-state.js` owns the session-persistent roster arrays and validates their identity/reference invariants. The World module's original player object is adopted as `ROSTER[0]` rather than replaced. The current combat system still uses an encounter-local copy for resolution, but `finishCombat()` writes persistent fields back to that canonical roster-backed World record.
 
-The first three records are mechanically populated through the preservation onboarding adapter. Reson and Aepex intentionally remain unimplemented shells; no unresolved job, progression, or ability semantics are fabricated.
+The first three records are mechanically populated through the onboarding adapter. Ender retains the preservation baseline, while Lyra and Ionia preserve authored identity plus explicitly labeled prototype mechanics templates. Reson and Aepex intentionally remain unimplemented shells; no unresolved native job, progression, or ability semantics are fabricated.
 
 ### OPEN DESIGN
 
@@ -336,7 +338,7 @@ The full campaign will expand story acts, recruitment timing, character arcs, re
 - `modules/ability-defs.js` and `modules/progression-defs.js` load the canonical current action/unlock registries.
 - `modules/party-state.js` is the authoritative persistent roster / active-party reference layer.
 - `aetherwake.js` is the current integrated runtime/preservation artifact and remains the current combat executor.
-- `modules/char-create.js` is loaded at runtime as a preservation onboarding adapter.
+- `modules/char-create.js` is loaded at runtime as the authored starting-trio onboarding adapter; its three legacy role definitions are temporary mechanics templates, not companion canon.
 - several other `modules/*.js` files are older mirrors/reference copies and may not match the integrated runtime.
 
 ### TARGET ARCHITECTURE
@@ -417,6 +419,6 @@ Automated tests should also cover:
 10. expand campaign content,
 11. production hardening and balance.
 
-**Development-branch checkpoint (2026-09-19):** the smoke-stabilized baseline plus steps 2–5 are verified, and step 6 is partially established: ordinary damage/restoration/resource mutations now route through a fail-closed resolver while `resolveTurn()` still owns PbtA outcomes and action-specific branch semantics. Promotion/merge to `main` has not occurred.
+**Development-branch checkpoint:** the smoke-stabilized baseline plus steps 2–5 are verified; step 6 is partially established through the fail-closed ordinary effect resolver; and step 7 has begun with fixed Ender/Lyra/Ionia authored onboarding while companion canonical jobs/mechanics remain unresolved. Promotion/merge to `main` has not occurred.
 
 **Non-negotiable:** avoid a single rewrite of character creation, combat, progression, and party state at the same time.
