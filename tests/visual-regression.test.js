@@ -64,4 +64,13 @@ test('D25: drawGrassWind sets visible stroke before drawing lines', () => {
     'Should call noStroke() after drawing lines to restore state');
 });
 
+test('D26: rendering helpers do not shadow p5 text()', () => {
+  assert(aetherwakeSrc.includes('function wrapText(content, x, y, maxWidth)'),
+    'wrapText should not name its string parameter text');
+  assert(!aetherwakeSrc.includes('function wrapText(text, x, y, maxWidth)'),
+    'wrapText parameter must not shadow p5 text()');
+  assert(aetherwakeSrc.includes('function drawNPCDialogue(npc, content)'),
+    'dialogue renderer should use a non-shadowing content parameter');
+});
+
 console.log('\nAll Cluster 6 regression tests passed!');
