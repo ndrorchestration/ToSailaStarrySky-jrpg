@@ -383,10 +383,10 @@ function draw() {
   // ── Dialogue type-in effect ──
   updateDialogueTypeIn();
   if (dialogueTypeIn.active && gameState === STATE.DIALOGUE) {
-    // Override the dialogue text with the type-in version
-    if (window.UI.dialogueText) {
-      window.UI.dialogueText = dialogueTypeIn.displayText;
-    }
+    // The animation owns the displayed string while active. Do not gate this
+    // on the current text being truthy: the first type-in frame may
+    // intentionally be empty before the first character is revealed.
+    window.UI.dialogueText = dialogueTypeIn.displayText;
   }
 
   drawScanlines();
