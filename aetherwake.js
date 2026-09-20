@@ -244,9 +244,10 @@ function draw() {
           typeof window.AetherPartyState.commitFirstWakeParty !== 'function') {
         throw new Error('AETHER_PARTY_STATE_UNAVAILABLE_DURING_HANDOFF');
       }
-      const activeParty = window.AetherPartyState.commitFirstWakeParty({
+      const partyCommit = window.AetherPartyState.commitFirstWakeParty({
         storyFlags: { lyraJoined: true, ioniaJoined: true },
       });
+      const activeParty = partyCommit && partyCommit.activeParty;
       if (!activeParty || activeParty[0] !== world.player ||
           !window.ROSTER || window.ROSTER[0] !== world.player) {
         throw new Error('PERSISTENT_PARTY_IDENTITY_INVARIANT_FAILED');
