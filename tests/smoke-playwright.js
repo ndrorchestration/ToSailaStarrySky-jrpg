@@ -62,6 +62,43 @@ function createServer() {
     if (msg.type() === 'error') errors.push(`CONSOLE: ${msg.text()}`);
   });
 
+  async function bootEntrypoint(entrypoint) {
+    const probe = await browser.newPage({ viewport: { width: 960, height: 640 } });
+    const probeErrors = [];
+    probe.on('pageerror', err => probeErrors.push('PAGE: ' + err.message));
+    probe.on('console', msg => {
+      if (msg.type() === 'error') probeErrors.push('CONSOLE: ' + msg.text());
+    });
+    const response = await probe.goto(
+      `http://127.0.0.1:${PORT}/${entrypoint}`,
+      { waitUntil: 'domcontentloaded', timeout: 20000 }
+    );
+    assert(response && response.ok(), entrypoint + ' did not load successfully');
+    await probe.waitForSelector('canvas', { timeout: 15000 });
+    await probe.waitForFunction(() =>
+      window._world && window._combat && window._charcreate &&
+      document.querySelector('canvas')
+    , undefined, { timeout: 15000 });
+    const status = await probe.evaluate(() => ({
+      debugEnabled: Boolean(window.__awDebugEnabled),
+      initErrorHidden: document.querySelector('#aetherwake-init-error') ?
+        document.querySelector('#aetherwake-init-error').hidden : null,
+      canvas: Boolean(document.querySelector('canvas')),
+    }));
+    assert(status.debugEnabled === false,
+      entrypoint + ' enabled debug mode on normal launch');
+    assert(status.initErrorHidden === true,
+      entrypoint + ' exposed initialization failure during normal boot');
+    assert(status.canvas === true, entrypoint + ' did not create a canvas');
+    assert(probeErrors.length === 0,
+      entrypoint + ' emitted browser errors:\\n' + probeErrors.join('\\n'));
+    await probe.close();
+  }
+
+  for (const entrypoint of ['index-embedded.html', 'index.html']) {
+    await bootEntrypoint(entrypoint);
+  }
+
   try {
     const response = await page.goto(
       `http://127.0.0.1:${PORT}/index-embedded.html`,
