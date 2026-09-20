@@ -57,6 +57,26 @@ boot/title
 
 The test intentionally uses real keyboard input for player-facing state transitions and action execution. Reference equality is part of the gate; equal values in separate character copies are not sufficient.
 
+## Dual-entrypoint boot gate
+
+Both `index-embedded.html` (embedded/NW.js launch) and `index.html` (browser launch) are supported playable entrypoints. They must load the same runtime dependency chain in order:
+
+```text
+effect vocabulary → resolver → ability/progression registries → party/airship state
+→ airship bridge/UI → audio → aetherwake.js → character creation → p5.js
+```
+
+Each entrypoint includes a hidden `#aetherwake-init-error` status surface. Missing runtime dependencies fail closed through `showInitializationFailure()` instead of entering a partially initialized game, and the launcher reports a visible timeout if p5/canvas creation never completes. The debug overlay remains opt-in through `?debug=1`.
+
+Validate the entrypoint contracts before browser testing:
+
+```bash
+npm run test:runtime-contracts
+npm run test:smoke
+npm run test:all
+```
+
+
 ## Verified development checkpoint
 
 On 2026-09-19, smoke run `35456148594` passed on commit `be896474c97271084c989f7d5e0d61f27ae72769`. It verified:
