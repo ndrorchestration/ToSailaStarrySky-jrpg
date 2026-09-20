@@ -34,6 +34,9 @@ jobs:
       - name: Verify authored onboarding contract
         run: npm run test:onboarding
 
+      - name: Verify save-state contract
+        run: npm run test:save-state
+
       - name: Verify regression contracts
         run: npm run test:regressions
 
