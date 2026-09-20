@@ -38,6 +38,8 @@
       age: null,
       class: null,
       jobId: null,
+      mechanicsTemplateId: null,
+      mechanicsTemplateName: null,
       synergyBonus: null,
       vit: null,
       maxVit: null,
@@ -87,12 +89,16 @@
     target.canonicalName = definition.canonicalName;
     target.nativeJob = definition.nativeJob;
     target.runtimeImplemented = true;
-    target.implementationSource = 'prototype-adapter';
+    target.implementationSource = definition.id === 'ender'
+      ? 'prototype-adapter'
+      : 'authored-identity+prototype-mechanics';
 
     assignIfDefined(target, 'name', source.name || definition.canonicalName);
     assignIfDefined(target, 'age', source.age);
     assignIfDefined(target, 'class', source.class);
     assignIfDefined(target, 'jobId', source.jobId);
+    assignIfDefined(target, 'mechanicsTemplateId', source.mechanicsTemplateId || source.jobId);
+    assignIfDefined(target, 'mechanicsTemplateName', source.mechanicsTemplateName || source.class);
     assignIfDefined(target, 'synergyBonus', source.synergyBonus);
     assignIfDefined(target, 'vit', source.vit);
     assignIfDefined(target, 'maxVit', source.maxVit);
