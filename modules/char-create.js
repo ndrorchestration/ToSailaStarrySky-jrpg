@@ -640,7 +640,7 @@ const CharCreate = {
     textFont(CC_FONT_UI);
     textSize(8);
     fill(C.dim[0], C.dim[1], C.dim[2], 180);
-    textAlign(C.CENTER, BOTTOM);
+    textAlign(CENTER, BOTTOM);
     text(prompt, width / 2, height - 92);
   },
 
