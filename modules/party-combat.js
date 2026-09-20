@@ -13,22 +13,25 @@
 
   let kits = root && root.AetherFirstWakeKits;
   let abilityDefs = root && root.AetherAbilityDefs;
+  let airshipBridge = root && root.AetherAirshipCombatBridge;
 
   if (typeof module === 'object' && module.exports) {
     kits = kits || require('./first-wake-kits.js');
     abilityDefs = abilityDefs || require('./ability-defs.js');
+    airshipBridge = airshipBridge || require('./airship-combat-bridge.js');
   }
 
-  const api = factory(kits, abilityDefs);
+  const api = factory(kits, abilityDefs, airshipBridge);
 
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.AetherPartyCombat = api;
 })(typeof window !== 'undefined' ? window :
-   (typeof globalThis !== 'undefined' ? globalThis : null), function (kits, abilityDefs) {
+   (typeof globalThis !== 'undefined' ? globalThis : null), function (kits, abilityDefs, airshipBridge) {
   'use strict';
 
   if (!kits) throw new Error('FIRST_WAKE_PARTY_COMBAT_REQUIRES_KITS');
   if (!abilityDefs) throw new Error('FIRST_WAKE_PARTY_COMBAT_REQUIRES_ABILITY_DEFS');
+  if (!airshipBridge) throw new Error('FIRST_WAKE_PARTY_COMBAT_REQUIRES_AIRSHIP_BRIDGE');
 
   const ACTOR_ORDER = Object.freeze(['ender', 'lyra', 'ionia']);
   const TURN_ORDER = Object.freeze(['ender', 'lyra', 'ionia', 'enemy']);
@@ -189,9 +192,16 @@
     return actor;
   }
 
+  function canBeginEncounter(enemy) {
+    if (typeof enemy === 'string') return Boolean(DEFAULT_ENEMIES[enemy]);
+    return Boolean(enemy && typeof enemy === 'object');
+  }
+
   function normalizeEnemy(enemy) {
-    const input = typeof enemy === 'string' ? DEFAULT_ENEMIES[enemy] : enemy;
-    const source = input || DEFAULT_ENEMIES.skyPredator;
+    if (!canBeginEncounter(enemy)) {
+      throw new Error('Unknown enemy: ' + String(enemy));
+    }
+    const source = typeof enemy === 'string' ? DEFAULT_ENEMIES[enemy] : enemy;
     if (!source || typeof source !== 'object') throw new Error('FIRST_WAKE_ENEMY_INVALID');
     return Object.assign({
       id: source.id || source.type || 'enemy',
@@ -624,6 +634,7 @@
       lastOutcome: state.lastOutcome || null,
       lastEffects: state.lastEffects ? clone(state.lastEffects) : [],
       resolverMutations: state.resolverMutations,
+      airship: clone(state.airship),
       writtenBack: Boolean(state.writtenBack),
     };
   }
@@ -654,7 +665,9 @@
       lastOutcome: null,
       lastEffects: [],
       nextHitReduction: 0,
+      airship: airshipBridge.createCombatModifiers(options.airshipTransfer || null),
       writtenBack: false,
+      _airshipTransferApplied: false,
       _rng: normalizeRng(options.rng),
       _secondaryAvailable: false,
       _lastAbilityId: null,
