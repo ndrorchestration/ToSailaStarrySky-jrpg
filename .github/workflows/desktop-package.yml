@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: desktop-package-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   package-windows:
     runs-on: windows-latest
@@ -24,10 +28,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
 
       - name: Run desktop packaging contract
         run: npm run test:desktop-package
