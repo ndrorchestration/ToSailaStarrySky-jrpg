@@ -95,49 +95,34 @@ function createServer() {
       'normal launch exposed a debug overlay');
 
     // One real Enter follows the production input path:
-    // BOOT → MENU → CHARCREATE and char-create title → name.
+    // BOOT → MENU → authored First Wake intro → roster → confirmation.
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.gameState === 'charcreate' &&
       window._charcreate &&
-      window._charcreate.phase === 'name'
+      window._charcreate.mode === 'authored' &&
+      window._charcreate.phase === 'roster'
     , undefined, { timeout: 5000 });
 
-    // The current prototype defaults to Sky-Sailor if no numeric job key is
-    // chosen. Avoid numeric selection here so this smoke test does not couple
-    // itself to prototype name/job input quirks.
-    await page.keyboard.type('Lyra');
-    await page.keyboard.press('Enter');
-
-    await page.waitForFunction(() =>
-      window._charcreate &&
-      window._charcreate.phase === 'name' &&
-      window._charcreate.slot === 1 &&
-      window._charcreate.party &&
-      window._charcreate.party[1]
-    , undefined, { timeout: 5000 });
-
-    await page.keyboard.type('Ionia');
-    await page.keyboard.press('Enter');
-
-    await page.waitForFunction(() =>
-      window._charcreate &&
-      window._charcreate.phase === 'review' &&
-      window._charcreate.party &&
-      window._charcreate.party[2]
-    , undefined, { timeout: 5000 });
-
-    const review = await page.evaluate(() => ({
-      partyLength: window._charcreate.party.length,
-      ender: window._charcreate.party[0] && window._charcreate.party[0].name,
-      companion1: window._charcreate.party[1] && window._charcreate.party[1].name,
-      companion2: window._charcreate.party[2] && window._charcreate.party[2].name,
+    const authoredParty = await page.evaluate(() => ({
+      mode: window._charcreate.mode,
+      phase: window._charcreate.phase,
+      partyIds: window._charcreate.getSnapshot().partyIds,
+      activeIds: window._charcreate.getSnapshot().activeIds,
     }));
 
-    assert(review.partyLength === 3, 'prototype review did not contain three party slots');
-    assert(review.ender === 'Young Ender', 'Ender missing from prototype party');
-    assert(review.companion1 === 'Lyra', 'first companion name was not retained');
-    assert(review.companion2 === 'Ionia', 'second companion name was not retained');
+    assert(authoredParty.mode === 'authored',
+      'normal onboarding did not enter authored First Wake mode');
+    assert(authoredParty.partyIds.join('|') === 'ender|lyra|ionia',
+      'authored onboarding did not retain the canonical early trio');
+    assert(authoredParty.activeIds.join('|') === 'ender|lyra|ionia',
+      'authored onboarding active IDs drifted');
+
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window._charcreate &&
+      window._charcreate.phase === 'confirm'
+    , undefined, { timeout: 5000 });
 
     await page.keyboard.press('Enter');
 
@@ -188,7 +173,7 @@ function createServer() {
       'WORLD player is not the canonical Ender roster record');
     assert(partyArchitecture.legacyPartyAlias,
       'legacy window.party alias is not canonical ACTIVE_PARTY');
-    assert(partyArchitecture.runtimeImplemented.join('|') === 'true|true|true|false|false',
+    assert(partyArchitecture.runtimeImplemented.join('|') === 'true|false|false|false|false',
       'runtime implementation boundary for roster records is incorrect');
 
     await page.keyboard.press('KeyC');
@@ -689,7 +674,7 @@ function createServer() {
 
     console.log('Aetherwake smoke test: PASS');
     console.log(JSON.stringify({
-      party: review,
+      party: authoredParty,
       partyArchitecture,
       enemyMetadataContract,
       affordabilityContract,
