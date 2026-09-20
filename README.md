@@ -16,6 +16,14 @@ See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for 
 
 ## Run the game
 
+### Windows — simplest player path
+
+Use the **Aetherwake-Windows** artifact produced by the **Windows desktop package** GitHub Actions workflow. Extract the ZIP completely, then double-click `Aetherwake.exe`. Keep the extracted files together.
+
+The desktop build does not require Python, PowerShell, a development server, or Node.js on the player's computer.
+
+### Browser — development/fallback path
+
 Open `index-embedded.html` in a modern browser.
 
 The development runtime is designed to work offline and uses:
@@ -136,6 +144,7 @@ It includes signal hooks, traversal hazards, NPC encounters, three major choice 
 | other `modules/*.js` | Older modular mirrors/reference source; not authoritative runtime for all systems |
 | `SPEC.md` | Current technical target + implementation notes |
 | `docs/DEVELOPMENT.md` | Development authority, migration rules, smoke gate |
+| `docs/DESKTOP_BUILD.md` | Windows packaging, artifact, and launch contract |
 | `gap_analysis.md` | Snapshot audit of prototype conformance |
 | `memories_adaptation_catalog.md` | Adaptation/provenance reference |
 | `tests/` | Canonical automated smoke/regression tests |
