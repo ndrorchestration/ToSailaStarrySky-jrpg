@@ -159,6 +159,7 @@
   window.__awLoadingDone = false;
   // Debug UI is opt-in only. Normal players should never see diagnostic overlays.
   window.__awDebugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
+  window.__awTestEnabled = new URLSearchParams(window.location.search).get('test') === '1';
 
   function hideLoadingScreen() {
     var ls = document.getElementById('loading-screen');
@@ -218,6 +219,8 @@
 <script src="modules/effect-resolver.js"></script>
 <script src="modules/ability-defs.js"></script>
 <script src="modules/progression-defs.js"></script>
+<script src="modules/first-wake-kits.js"></script>
+<script src="modules/party-combat.js"></script>
 <script src="modules/party-state.js"></script>
 <script src="aetherwake.js"></script>
 <script src="modules/char-create.js"></script>
