@@ -93,8 +93,8 @@ This checkpoint does not mean the authored-roster onboarding, formation system, 
 
 ## Comprehensive runtime-repair checkpoint
 
-On 2026-09-20, GitHub Actions smoke run `35508703162` passed on commit
-`0ef2eff19334b616f7c11982843373c6be693489` after the comprehensive runtime
+On 2026-09-20, GitHub Actions smoke run `35508881748` passed on commit
+`308b4a4ef83b80bfb67e28047d91454b0d35ec88` after the comprehensive runtime
 repair defined by
 `docs/superpowers/specs/2026-09-20-aetherwake-bug-repair-design.md`.
 
@@ -102,7 +102,7 @@ The verified gate includes:
 
 - dependency-complete, fail-closed boot for both `index-embedded.html` and `index.html`;
 - current-key input ordering and immediate first-step world movement;
-- first-contact dialogue, overlay return-state isolation, and core-owned state transitions;
+- first-contact dialogue, overlay return-state isolation, core-owned state transitions, and a typewriter path that cannot freeze on an empty first frame;
 - synchronized world coordinates, lore sidecar storage, data-driven crossing completion, and a read-only ledger API;
 - stable-ID, scrap-based, transactional Repair Cafe purchases with explicit capacity caps;
 - complete World → Combat → World player-state round-trip and per-encounter transient reset;
