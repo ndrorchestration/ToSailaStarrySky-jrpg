@@ -47,6 +47,29 @@ assert(combatSource.includes('while (p.xp >= p.xpToNext)'),
 console.log('Aetherwake combat snapshot contracts: PASS');
 
 
+const handoffStart = source.indexOf('const activeParty = window.AetherPartyState.commitPrototypeParty');
+const handoffEnd = source.indexOf('gameState = STATE.WORLD', handoffStart);
+assert(handoffStart >= 0 && handoffEnd > handoffStart,
+  'character-creation combat handoff block is missing');
+const handoff = source.slice(handoffStart, handoffEnd);
+[
+  'name: world.player.name',
+  'age: world.player.age',
+  'class: world.player.class',
+  'wits: world.player.wits',
+  'presence: world.player.presence',
+  'spirit: world.player.spirit',
+  'might: world.player.might',
+  'grace: world.player.grace',
+  'maxVit: world.player.maxVit',
+].forEach(field => {
+  assert(handoff.includes(field),
+    'character-creation handoff omits ' + field);
+});
+
+console.log('Aetherwake character handoff contracts: PASS');
+
+
 const requiredScripts = [
   'modules/effect-vocabulary.js',
   'modules/effect-resolver.js',
