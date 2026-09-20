@@ -586,6 +586,77 @@ function createServer() {
     assert(worldAfterCombat.staffCharges === combatAfterActions.player.staffCharges,
       'combat staff charges were not written back to WORLD');
 
+    // Dragonfly-class airship systems: use the production boarding input path.
+    const airshipSetup = await page.evaluate(() => {
+      window._world.player.tileX = 22;
+      window._world.player.tileY = 10;
+      window._world.player.px = 22 * 16;
+      window._world.player.py = 10 * 16;
+      return {
+        tileX: window._world.player.tileX,
+        tileY: window._world.player.tileY,
+      };
+    });
+    assert(airshipSetup.tileX === 22 && airshipSetup.tileY === 10,
+      'airship smoke fixture did not place Ender beside the ship');
+
+    await page.keyboard.press('f');
+    await page.waitForFunction(() => window.gameState === 'airship', undefined,
+      { timeout: 5000 });
+
+    const airshipInitial = await page.evaluate(() => ({
+      classId: window._airshipState && window._airshipState.classId,
+      hullVolumeContainers: window._airshipState && window._airshipState.hullVolumeContainers,
+      power: window._airshipState && window._airshipState.power,
+      shieldMode: window._airshipState && window._airshipState.shieldMode,
+      shipBoarded: window._world.player.shipBoarded,
+    }));
+    assert(airshipInitial.classId === 'dragonfly-wake',
+      'airship runtime did not expose the Dragonfly frame');
+    assert(airshipInitial.hullVolumeContainers === 3,
+      'airship runtime lost the three-container volume limit');
+    assert(airshipInitial.power === 6 && airshipInitial.shieldMode === 'guard',
+      'airship runtime did not start from its bounded power/veil state');
+    assert(airshipInitial.shipBoarded === true,
+      'boarding did not persist the ship interior state');
+
+    await page.keyboard.press('h');
+    await page.waitForFunction(() =>
+      window._airshipState && window._airshipState.shieldMode === 'slip'
+    , undefined, { timeout: 5000 });
+    await page.keyboard.press('1');
+    await page.waitForFunction(() =>
+      window._airshipState && window._airshipState.lastAction === 'phaseSlip'
+    , undefined, { timeout: 5000 });
+    await page.keyboard.press('3');
+    await page.waitForFunction(() =>
+      window._airshipState && window._airshipState.lastAction === 'resonanceLance'
+    , undefined, { timeout: 5000 });
+
+    const airshipAfterActions = await page.evaluate(() => ({
+      shieldMode: window._airshipState.shieldMode,
+      power: window._airshipState.power,
+      driveCharges: window._airshipState.driveCharges,
+      lanceCharges: window._airshipState.lanceCharges,
+      targetIntegrity: window._airshipState.targetIntegrity,
+      lastAction: window._airshipState.lastAction,
+    }));
+    assert(airshipAfterActions.shieldMode === 'slip',
+      'airship veil mode did not persist through system actions');
+    assert(airshipAfterActions.power === 2,
+      'airship systems did not share the Wakeheart power budget');
+    assert(airshipAfterActions.driveCharges === 2 && airshipAfterActions.lanceCharges === 1,
+      'airship system charges were not consumed exactly once');
+    assert(airshipAfterActions.targetIntegrity === 76,
+      'resonance lance did not apply its bounded test strike');
+    assert(airshipAfterActions.lastAction === 'resonanceLance',
+      'airship action identity did not persist');
+
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() =>
+      window.gameState === 'world' && window._world.player.shipBoarded === false
+    , undefined, { timeout: 5000 });
+
     const rosterAfterCombat = await page.evaluate(() => ({
       vit: window.ROSTER[0].vit,
       scrap: window.ROSTER[0].scrap,
@@ -631,6 +702,8 @@ function createServer() {
       combatTurns: combatAfterActions.turn,
       enemy: combatAfterActions.enemy && combatAfterActions.enemy.name,
       worldAfterCombat,
+      airshipInitial,
+      airshipAfterActions,
     }, null, 2));
   } finally {
     await browser.close();
