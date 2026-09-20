@@ -29,3 +29,19 @@ assert(source.includes('world.closeShop()'),
   'overlay cleanup does not close World shop state');
 
 console.log('Aetherwake runtime contract tests: PASS');
+
+
+const combatStart = source.indexOf('function AetherCombat(p, C) {');
+assert(combatStart >= 0, 'AetherCombat constructor is missing');
+const combatSource = source.slice(combatStart);
+
+assert(combatSource.includes('options.maxVit'),
+  'combat init does not accept maxVit');
+assert(combatSource.includes('options.wits'),
+  'combat init does not accept primary stat fields');
+assert(combatSource.includes('state.player.maxStaffCharges'),
+  'combat player snapshot does not synchronize maxStaffCharges');
+assert(combatSource.includes('while (p.xp >= p.xpToNext)'),
+  'multi-level XP award path is missing');
+
+console.log('Aetherwake combat snapshot contracts: PASS');
