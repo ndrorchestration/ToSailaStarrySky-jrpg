@@ -1372,7 +1372,7 @@ function drawShopOverlay() {
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
   text('REPAIR CAFE \u2014 SHOP', sx + 16, sy + 12);
 
-  const scrap = combat ? combat.getScrap ? combat.getScrap() : 7 : 7;
+  const scrap = world && world.player ? world.player.scrap : 0;
   textFont('VT323');
   textSize(12);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
@@ -1710,7 +1710,9 @@ const World = {
   init, update, render,
   movePlayer, interact, toggleLayer,
   plantField, boardShip,
-  openLedger, openShop, openDialogue, nextDialogueLine, closeDialogue,
+  openLedger, openShop, closeShop,
+  openDialogue, nextDialogueLine, closeDialogue,
+  getLedger, getShopItems, purchaseItem,
   getQuestState, advanceQuest
 };
 
@@ -2865,6 +2867,17 @@ function openShop() {
     return { ok: false, reason: 'Merchant is too far away.' };
   }
   shop.open = true;
+  window.UI.shopItems = getShopItems();
+  window.UI.shopBuyHandler = function(slot) {
+    const index = Number(slot) - 1;
+    const item = window.UI.shopItems[index];
+    if (!item) return { ok: false, reason: 'Unknown shop slot.' };
+    const result = purchaseItem(item.id);
+    if (result.ok) {
+      window.UI.shopItems = getShopItems();
+    }
+    return result;
+  };
   // ── Window openness slide-in (Memories §1.2) ──
   window.UI.opening = true;
   window.UI.openness = 0;
@@ -2872,11 +2885,13 @@ function openShop() {
   if (window.UI.lastShopSelection !== undefined && window.UI.lastShopSelection < shop.items.length) {
     // selection restored implicitly via draw highlight
   }
-  return { ok: true };
+  return { ok: true, items: getShopItems() };
 }
 
 function closeShop() {
   shop.open = false;
+  window.UI.shopItems = [];
+  window.UI.shopBuyHandler = null;
 }
 
 function purchaseItem(itemId) {
@@ -2901,7 +2916,8 @@ function purchaseItem(itemId) {
     }
     changes.aether = 1;
   } else if (item.id === 'staff_crystal_polish') {
-    if (player.staffCharges >= 2) {
+    const maxCharges = player.maxStaffCharges || 2;
+    if (player.staffCharges >= maxCharges) {
       return { ok: false, reason: 'Staff charges already at maximum.' };
     }
     changes.staffCharges = 1;
@@ -2928,6 +2944,8 @@ function purchaseItem(itemId) {
       return { ok: false, reason: 'Nav-Line Compass already owned.' };
     }
     changes.navLineCompassOwned = true;
+  } else {
+    return { ok: false, reason: 'Unsupported shop item.' };
   }
   
   // Commit transaction
