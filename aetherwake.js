@@ -1689,8 +1689,8 @@ function drawPixelBorder(x, y, w, h, layers) {
   rect(x - layers*2 - 1, y - layers*2 - 1, w + (layers*2+1)*2, h + (layers*2+1)*2);
 }
 
-function wrapText(text, x, y, maxWidth) {
-  const words = text.split(' ');
+function wrapText(content, x, y, maxWidth) {
+  const words = content.split(' ');
   let line = '';
   let ly = y;
   for (const w of words) {
@@ -7846,13 +7846,13 @@ function drawInventory(ix, iy, iw, ih) {
 /**
  * Draw an NPC dialogue box at the bottom of the screen.
  * @param {object} npc — { name, title? }
- * @param {string} text — dialogue text (wraps)
+ * @param {string} content — dialogue text (wraps)
  */
-function drawNPCDialogue(npc, text) {
+function drawNPCDialogue(npc, content) {
   push();
   window.UI.dialogueOpen = true;
   window.UI.dialogueNPC = npc;
-  window.UI.dialogueText = text;
+  window.UI.dialogueText = content;
 
   const bw = Math.min(width * 0.7, 600);
   const bh = 90;
@@ -7890,7 +7890,7 @@ function drawNPCDialogue(npc, text) {
   textLeading(16);
 
   const maxTextW = bw - 24;
-  const words = text.split(' ');
+  const words = content.split(' ');
   let line = '';
   let ly = by + 30;
   let lineCount = 0;
