@@ -134,4 +134,20 @@ test('D10: M key routes through world.openShop() in handleWorldInput', () => {
     'M key should NOT directly call openState(STATE.SHOP) — should route through world.openShop()');
 });
 
+// D11: Optional prerecorded dialogue TTS must not request absent assets by default
+test('D11: prerecorded dialogue TTS is opt-in', () => {
+  assert(aetherwakeSrc.includes('window.AETHER_DIALOGUE_TTS_ENABLED = false'),
+    'dialogue TTS should default to disabled when the voice asset pack is absent');
+
+  const playMatch = aetherwakeSrc.match(/function playDialogueAudioLine\(\) \{([\s\S]*?)^\}/m);
+  assert(playMatch, 'playDialogueAudioLine should exist');
+  const body = playMatch[1];
+  const guardIdx = body.indexOf('window.AETHER_DIALOGUE_TTS_ENABLED !== true');
+  const srcIdx = body.indexOf("const src = 'tts/'");
+
+  assert(guardIdx !== -1, 'dialogue audio should have an explicit opt-in guard');
+  assert(srcIdx !== -1 && guardIdx < srcIdx,
+    'dialogue TTS guard must run before constructing/requesting an MP3 resource');
+});
+
 console.log('\nAll Cluster 2 regression tests passed!');
