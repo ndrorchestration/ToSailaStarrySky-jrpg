@@ -183,6 +183,8 @@ const JOBS = [
 
 // ── Ender (fixed protagonist — always party[0]) ──
 const ENDER = {
+  id: 'ender',
+  canonicalName: 'Ender',
   name: 'Young Ender',
   age: 28,
   class: 'Rift Scholar + Dreamwright',
@@ -201,6 +203,39 @@ const ENDER = {
   synergyBonus: 'The anchor. Your crew orbits Ender\'s resolve.',
 };
 
+function createAuthoredPreviewParty() {
+  return [
+    Object.assign({}, ENDER, {
+      name: 'Ender',
+      roleId: 'reader',
+      roleLabel: 'Reader',
+      roleCanonStatus: 'provisional',
+    }),
+    {
+      id: 'lyra',
+      canonicalName: 'Lyra',
+      name: 'Lyra',
+      nativeJob: null,
+      roleId: 'receiver',
+      roleLabel: 'Receiver',
+      roleCanonStatus: 'provisional',
+      jobId: null,
+      runtimeImplemented: false,
+    },
+    {
+      id: 'ionia',
+      canonicalName: 'Ionia',
+      name: 'Ionia',
+      nativeJob: null,
+      roleId: 'anchor',
+      roleLabel: 'Anchor',
+      roleCanonStatus: 'provisional',
+      jobId: null,
+      runtimeImplemented: false,
+    },
+  ];
+}
+
 // ── Color helpers ──
 function jobColorRGB(jobId) {
   if (jobId === 'skySailor') return [C.scioto[0], C.scioto[1], C.scioto[2]];
@@ -215,6 +250,7 @@ function jobColorRGB(jobId) {
 
 const CharCreate = {
   // ── State ──
+  mode: 'prototype',   // 'authored' is the normal First Wake flow; prototype is migration/debug only
   phase: 'title',       // 'title' | 'name' | 'class' | 'review' | 'done'
   slot: 0,              // 0 or 1 (which companion slot we're filling)
   nameInput: '',        // current name being typed
@@ -228,6 +264,7 @@ const CharCreate = {
 
   // ── Init ──
   init: function() {
+    this.mode = 'prototype';
     this.phase = 'title';
     this.slot = 0;
     this.nameInput = '';
@@ -240,8 +277,39 @@ const CharCreate = {
   },
 
   // ── Start character creation (called from core.js when entering CHARCREATE state) ──
-  start: function() {
+  start: function(options) {
+    const requestedMode = options && options.mode ? options.mode : 'authored';
+    if (requestedMode === 'authored') {
+      this._startAuthored();
+      return;
+    }
     this.init();
+  },
+
+  _startAuthored: function() {
+    this.mode = 'authored';
+    this.phase = 'intro';
+    this.slot = 0;
+    this.nameInput = '';
+    this.cursorPos = 0;
+    this.selectedJob = null;
+    this.confirmReady = false;
+    this.party = createAuthoredPreviewParty();
+    this._currentChar = null;
+  },
+
+  getSnapshot: function() {
+    const ids = Array.isArray(this.party)
+      ? this.party.map((character, index) =>
+          character && character.id ? character.id : ['ender', 'lyra', 'ionia'][index]
+        )
+      : [];
+    return {
+      mode: this.mode,
+      phase: this.phase,
+      partyIds: ids,
+      activeIds: this.mode === 'authored' ? ['ender', 'lyra', 'ionia'] : ids.slice(0, 3),
+    };
   },
 
   // ── Update (per-frame, for any animations) ──
@@ -254,6 +322,11 @@ const CharCreate = {
   //  INPUT HANDLING
   // ─────────────────────────────────────────────
   handleInput: function(keys, pressed) {
+    if (this.mode === 'authored') {
+      this._handleAuthoredInput(pressed || {});
+      return;
+    }
+
     if (this.phase === 'title') {
       // Any key or Enter starts character creation
       if (pressed[13] || pressed[32] || pressed[78] || pressed[110] ||
@@ -295,6 +368,23 @@ const CharCreate = {
         return;
       }
       return;
+    }
+  },
+
+  _handleAuthoredInput: function(pressed) {
+    const advance = pressed[13] || pressed[32] || pressed[78] || pressed[110];
+    if (this.phase === 'intro') {
+      if (advance) this.phase = 'roster';
+      return;
+    }
+    if (this.phase === 'roster') {
+      if (advance) this.phase = 'confirm';
+      else if (pressed[27]) this.phase = 'intro';
+      return;
+    }
+    if (this.phase === 'confirm') {
+      if (advance) this._finalizeAuthoredParty();
+      else if (pressed[27]) this.phase = 'roster';
     }
   },
 
@@ -510,10 +600,22 @@ const CharCreate = {
     this.phase = 'done';
   },
 
+  _finalizeAuthoredParty: function() {
+    window.authoredPartyDraft = this.party;
+    this.phase = 'done';
+  },
+
   // ─────────────────────────────────────────────
   //  DRAWING
   // ─────────────────────────────────────────────
   draw: function() {
+    if (this.mode === 'authored') {
+      if (this.phase === 'intro') this._drawAuthoredIntro();
+      else if (this.phase === 'roster') this._drawAuthoredRoster();
+      else if (this.phase === 'confirm') this._drawAuthoredConfirm();
+      this._syncDOM();
+      return;
+    }
     switch (this.phase) {
       case 'title':  this._drawTitle(); break;
       case 'name':   this._drawNameStep(); break;
@@ -522,6 +624,60 @@ const CharCreate = {
       case 'done':   break; // core.js should transition out of CHARCREATE
     }
     this._syncDOM();
+  },
+
+  _drawAuthoredPanel: function(title, lines, prompt) {
+    noStroke();
+    fill(C.navy[0], C.navy[1], C.navy[2]);
+    rect(0, 0, width, height);
+    safePixelBorder(80, 70, width - 160, height - 140, 3, PAL.SHADOW, PAL.TEAL);
+    safeGlowTextCenter(title, width / 2, 112, C.teal, 14, CC_FONT_UI);
+    textFont(CC_FONT_BODY);
+    textSize(16);
+    textAlign(CENTER, TOP);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2], 210);
+    lines.forEach((line, index) => text(line, width / 2, 170 + index * 30));
+    textFont(CC_FONT_UI);
+    textSize(8);
+    fill(C.dim[0], C.dim[1], C.dim[2], 180);
+    textAlign(C.CENTER, BOTTOM);
+    text(prompt, width / 2, height - 92);
+  },
+
+  _drawAuthoredIntro: function() {
+    this._drawAuthoredPanel(
+      'FIRST WAKE',
+      [
+        'You are Ender, aboard the Aureate Wake.',
+        'The failing core has begun to sing the sky-lanes wrong.',
+        'Meet the people who still depend on the ship.',
+      ],
+      'ENTER to continue  ·  ESC to return'
+    );
+  },
+
+  _drawAuthoredRoster: function() {
+    this._drawAuthoredPanel(
+      'THE EARLY CREW',
+      [
+        'ENDER  ·  READER  ·  finds patterns in the weave',
+        'LYRA   ·  RECEIVER  ·  hears frequencies beneath the song',
+        'IONIA  ·  ANCHOR  ·  knows what the route costs',
+      ],
+      'ENTER to review the crew  ·  ESC to go back'
+    );
+  },
+
+  _drawAuthoredConfirm: function() {
+    this._drawAuthoredPanel(
+      'CREW CONFIRMED',
+      [
+        'Ender, Lyra, and Ionia will enter the Wake together.',
+        'Reson and Aepex remain part of the five-person roster.',
+        'The Reader, Receiver, and Anchor roles are provisional mechanics.',
+      ],
+      'ENTER to begin  ·  ESC to review'
+    );
   },
 
   _syncDOM: function() {
