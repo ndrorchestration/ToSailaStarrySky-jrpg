@@ -34,6 +34,7 @@
   "scripts": {
     "test:smoke": "node tests/smoke-playwright.js",
     "playwright:install": "playwright install chromium",
+    "test:runtime-contracts": "node tests/runtime-contracts.test.js",
     "test:effects": "node tests/effect-vocabulary.test.js",
     "test:registries": "node tests/registry-contract.test.js",
     "test:resolver": "node tests/effect-resolver.test.js",
@@ -45,6 +46,6 @@
     "test:secondary-action": "node tests/secondary-action-contract.test.js",
     "test:airship": "node tests/airship-state.test.js",
     "test:airship-combat-bridge": "node tests/airship-combat-bridge.test.js",
-    "test:all": "npm run test:effects && npm run test:registries && npm run test:resolver && npm run test:resolver-integration && npm run test:enemy-metadata && npm run test:combat-input && npm run test:resource-eligibility && npm run test:progression-reachability && npm run test:secondary-action && npm run test:airship && npm run test:airship-combat-bridge && npm run test:smoke"
+    "test:all": "npm run test:runtime-contracts && npm run test:effects && npm run test:registries && npm run test:resolver && npm run test:resolver-integration && npm run test:enemy-metadata && npm run test:combat-input && npm run test:resource-eligibility && npm run test:progression-reachability && npm run test:secondary-action && npm run test:airship && npm run test:airship-combat-bridge && npm run test:smoke"
     }
 }
