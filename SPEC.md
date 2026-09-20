@@ -337,6 +337,7 @@ The full campaign will expand story acts, recruitment timing, character arcs, re
 - `modules/effect-vocabulary.js` loads the frozen effect contract before combat construction.
 - `modules/ability-defs.js` and `modules/progression-defs.js` load the canonical current action/unlock registries.
 - `modules/party-state.js` is the authoritative persistent roster / active-party reference layer.
+- `modules/save-state.js` is the versioned save-document boundary; schema v1 currently covers only canonical party/progression persistence.
 - `aetherwake.js` is the current integrated runtime/preservation artifact and remains the current combat executor.
 - `modules/char-create.js` is loaded at runtime as the authored starting-trio onboarding adapter; its three legacy role definitions are temporary mechanics templates, not companion canon.
 - several other `modules/*.js` files are older mirrors/reference copies and may not match the integrated runtime.
@@ -365,14 +366,49 @@ Reduce `window.*` coupling incrementally; do not rewrite the entire engine at on
 
 ## 9. Save/persistence boundary
 
-Before progression content becomes large, introduce:
+### TARGET ARCHITECTURE
 
-- explicit save-schema version,
+Persistent game state must use:
+
+- an explicit save-schema version,
 - stable character IDs,
-- migration functions between schema versions,
-- separation of persistent and encounter-local state.
+- explicit migrations between released schema versions,
+- separation of persistent and encounter-local state,
+- allowlisted subsystem payloads rather than arbitrary runtime-object dumps,
+- fail-closed validation before any restore mutation.
 
-Save format is a compatibility boundary and should not be treated as an afterthought.
+Save format is a compatibility boundary and must not be treated as an afterthought.
+
+### CURRENT IMPLEMENTATION — SCHEMA V1
+
+`modules/save-state.js` establishes save kind `aetherwake-save`, schema
+version `1`, and a versioned local-storage key. `modules/party-state.js`
+provides the underlying allowlisted export/validation/restore API.
+
+Schema v1 currently persists:
+
+- all five stable roster IDs in canonical order,
+- each record's runtime-implementation flag,
+- allowlisted party/progression/resource fields,
+- the three active-party IDs.
+
+Restore mutates the existing canonical records and `ACTIVE_PARTY` array in
+place. Authored identity (`id`, `canonicalName`, `nativeJob`) is code-owned
+and cannot be rewritten by a save document. Invalid JSON, missing/future schema
+versions, roster-ID tampering, duplicate/unknown active IDs, or activation of an
+unimplemented shell fail closed.
+
+The migration registry is explicit and currently empty because v1 is the first
+schema. No fictitious pre-v1 migration is claimed.
+
+### NOT YET PERSISTED
+
+Schema v1 is intentionally **not** a complete player save. It does not yet
+serialize World/quest progression, position/layer state, ledger history,
+Dragonfly system state, or encounter-local combat state. The first four require
+explicit persistence contracts before a player-facing save/load feature is
+declared complete; encounter-local state should remain excluded unless a later
+design explicitly authorizes mid-encounter saves.
 
 ---
 
@@ -419,6 +455,6 @@ Automated tests should also cover:
 10. expand campaign content,
 11. production hardening and balance.
 
-**Development-branch checkpoint:** the smoke-stabilized baseline plus steps 2–5 are verified; step 6 is partially established through the fail-closed ordinary effect resolver; and step 7 has begun with fixed Ender/Lyra/Ionia authored onboarding while companion canonical jobs/mechanics remain unresolved. Promotion/merge to `main` has not occurred.
+**Development-branch checkpoint:** the smoke-stabilized baseline plus steps 2–5 are verified; step 6 is partially established through the fail-closed ordinary effect resolver; step 7 has established fixed Ender/Lyra/Ionia authored onboarding while companion canonical jobs/mechanics remain unresolved; and save schema v1 now establishes the party/progression compatibility boundary required before broader progression work. Complete world/quest/airship persistence remains open. Promotion/merge to `main` has not occurred.
 
 **Non-negotiable:** avoid a single rewrite of character creation, combat, progression, and party state at the same time.
