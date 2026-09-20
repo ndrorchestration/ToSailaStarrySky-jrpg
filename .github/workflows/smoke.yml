@@ -27,6 +27,9 @@ jobs:
       - name: Verify airship state contract
         run: npm run test:airship
 
+      - name: Verify airship combat bridge contract
+        run: npm run test:airship-combat-bridge
+
       - name: Verify effect vocabulary contract
         run: npm run test:effects
 
