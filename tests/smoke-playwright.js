@@ -245,24 +245,43 @@ function createServer() {
     await page.keyboard.press('e');
     await page.waitForFunction(() => window.gameState === 'dialogue', undefined,
       { timeout: 5000 });
-    // Dialogue uses a visible typewriter effect. Wait for the observable intro
-    // content rather than racing the first animation frame.
-    await page.waitForFunction(() =>
-      window.UI.dialogueOpen === true &&
-      typeof window.UI.dialogueText === 'string' &&
-      window.UI.dialogueText.includes('Wake')
-    , undefined, { timeout: 5000 });
-    const dialogueOpened = await page.evaluate(() => ({
-      npcId: window.UI.dialogueNPC && window.UI.dialogueNPC.id,
-      text: window.UI.dialogueText,
-      open: window.UI.dialogueOpen,
-    }));
+
+    // The selected dialogue line is model state; dialogueText is animated
+    // presentation state and changes while the typewriter effect is active.
+    const dialogueHandle = await page.waitForFunction(() => {
+      const npcId = window.UI.dialogueNPC && window.UI.dialogueNPC.id;
+      const modelText = Array.isArray(window.UI.dialogueLines)
+        ? window.UI.dialogueLines[0]
+        : null;
+      if (window.gameState === 'dialogue' &&
+          window.UI.dialogueOpen === true &&
+          npcId === 'elder_farmer' &&
+          typeof modelText === 'string' &&
+          modelText.includes('Wake')) {
+        return {
+          npcId,
+          modelText,
+          displayText: window.UI.dialogueText,
+          open: window.UI.dialogueOpen,
+        };
+      }
+      return false;
+    }, undefined, { timeout: 5000 });
+    const dialogueOpened = await dialogueHandle.jsonValue();
+
     assert(dialogueOpened.npcId === 'elder_farmer',
       'production interaction did not open the nearest NPC dialogue');
     assert(dialogueOpened.open === true &&
-      typeof dialogueOpened.text === 'string' &&
-      dialogueOpened.text.includes('Wake'),
-      'first-meeting dialogue did not show the intro line');
+      typeof dialogueOpened.modelText === 'string' &&
+      dialogueOpened.modelText.includes('Wake'),
+      'first-meeting dialogue did not select the intro line');
+
+    await page.waitForFunction(() =>
+      window.gameState === 'dialogue' &&
+      window.UI.dialogueOpen === true &&
+      typeof window.UI.dialogueText === 'string' &&
+      window.UI.dialogueText.length > 0
+    , undefined, { timeout: 5000 });
 
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => window.gameState === 'world', undefined,
