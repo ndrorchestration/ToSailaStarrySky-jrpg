@@ -14,7 +14,7 @@
 }(typeof window !== 'undefined' ? window : globalThis, function createAirshipApi() {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
   const SHIELD_MODES = ['guard', 'slip', 'resonance'];
 
   const SHIELD_PROFILES = {
@@ -107,6 +107,10 @@
     heat: 0,
     maxHeat: 4,
     targetIntegrity: 100,
+    pendingCombat: {
+      phaseSlip: false,
+      resonanceLanceDamage: 0,
+    },
     cooldowns: {
       phaseSlip: 0,
       resonanceLance: 0,
@@ -146,6 +150,15 @@
     state.hull = clamp(state.hull, 0, state.maxHull);
     state.phaseIntegrity = clamp(state.phaseIntegrity, 0, state.maxPhaseIntegrity);
     state.heat = clamp(state.heat, 0, state.maxHeat);
+    state.pendingCombat = Object.assign(
+      { phaseSlip: false, resonanceLanceDamage: 0 },
+      clone(input.pendingCombat || {})
+    );
+    state.pendingCombat.phaseSlip = Boolean(state.pendingCombat.phaseSlip);
+    const pendingLanceDamage = Number(state.pendingCombat.resonanceLanceDamage);
+    state.pendingCombat.resonanceLanceDamage = Number.isFinite(pendingLanceDamage)
+      ? clamp(pendingLanceDamage, 0, 30)
+      : 0;
     return state;
   }
 
@@ -218,6 +231,7 @@
 
     if (actionId === 'phaseSlip') {
       state.phaseIntegrity = clamp(state.phaseIntegrity - 8, 0, state.maxPhaseIntegrity);
+      state.pendingCombat.phaseSlip = true;
       appendLog(state, 'Phase-slip wake engaged. The Dragonfly crossed a broken sky-lane.');
     } else if (actionId === 'resonanceLance') {
       state.heat = clamp(state.heat + 2, 0, state.maxHeat);
@@ -226,6 +240,7 @@
         0,
         100
       );
+      state.pendingCombat.resonanceLanceDamage = profile.lanceDamage;
       appendLog(state, 'Resonance Lance fired through the ' + profile.label + ' veil.');
     } else if (actionId === 'rootlineTether') {
       state.phaseIntegrity = clamp(state.phaseIntegrity + 22, 0, state.maxPhaseIntegrity);
