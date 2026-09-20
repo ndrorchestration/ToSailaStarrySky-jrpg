@@ -72,10 +72,25 @@ jobs:
             throw "Packaged executable, manifest, or entry point is empty"
           }
 
+      - name: Stage Windows artifact
+        shell: pwsh
+        run: |
+          $stage = Join-Path $PWD "artifact\Aetherwake-Windows"
+          if (Test-Path "artifact") { Remove-Item "artifact" -Recurse -Force }
+          New-Item -ItemType Directory -Path $stage -Force | Out-Null
+          Copy-Item -Path "..\aetherwake-dist\*" -Destination $stage -Recurse -Force
+
+          if (-not (Test-Path (Join-Path $stage "Aetherwake.exe") -PathType Leaf)) {
+            throw "Staged artifact is missing Aetherwake.exe"
+          }
+          if (-not (Test-Path (Join-Path $stage "package.nw\index-embedded.html") -PathType Leaf)) {
+            throw "Staged artifact is missing package.nw/index-embedded.html"
+          }
+
       - name: Upload Windows package
         uses: actions/upload-artifact@v4
         with:
           name: Aetherwake-Windows
-          path: ../aetherwake-dist/**
+          path: artifact/Aetherwake-Windows/**
           if-no-files-found: error
           compression-level: 6
