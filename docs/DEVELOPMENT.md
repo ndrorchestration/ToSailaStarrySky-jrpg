@@ -91,6 +91,38 @@ On 2026-09-19, smoke run `35456148594` passed on commit `be896474c97271084c989f7
 
 This checkpoint does not mean the authored-roster onboarding, formation system, three-character combat, ability extraction, or progression architecture is complete, and it does not mean `dev/progression-build` has been promoted to `main`.
 
+## Comprehensive runtime-repair checkpoint
+
+On 2026-09-20, GitHub Actions smoke run `35508703162` passed on commit
+`0ef2eff19334b616f7c11982843373c6be693489` after the comprehensive runtime
+repair defined by
+`docs/superpowers/specs/2026-09-20-aetherwake-bug-repair-design.md`.
+
+The verified gate includes:
+
+- dependency-complete, fail-closed boot for both `index-embedded.html` and `index.html`;
+- current-key input ordering and immediate first-step world movement;
+- first-contact dialogue, overlay return-state isolation, and core-owned state transitions;
+- synchronized world coordinates, lore sidecar storage, data-driven crossing completion, and a read-only ledger API;
+- stable-ID, scrap-based, transactional Repair Cafe purchases with explicit capacity caps;
+- complete World → Combat → World player-state round-trip and per-encounter transient reset;
+- fail-closed enemy preflight before any one-shot airship state can be consumed;
+- bounded Dragonfly airship-to-combat handoff with one-shot transfer semantics;
+- combat-log rendering from authoritative combat state;
+- canonical night-state vignette and visible grass-wind strokes;
+- optional prerecorded dialogue TTS gated off by default because the current repository does not ship the `tts/` MP3 asset pack;
+- regression coverage for malformed hazard configuration and p5 `text()` renderer shadowing.
+
+The smoke path uses real browser input and verifies the playable flow through
+character creation, world interaction, dialogue, shop behavior, combat,
+Dragonfly boarding/system actions, combat handoff, canonical party write-back,
+and return to WORLD without uncaught page or console errors.
+
+This checkpoint verifies the source branch only. Generated `standalone/` and
+`nw-package/` trees and any desktop executable remain post-validation build
+artifacts and are not established by this CI result. `main` remains untouched
+by this repair sequence.
+
 ## Effect/registry checkpoint
 
 On 2026-09-19:
