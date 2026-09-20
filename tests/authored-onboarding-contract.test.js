@@ -88,4 +88,9 @@ assert(!/this\.phase = 'name';[\s\S]{0,180}this\.slot = 0/.test(
   charCreateSrc.match(/if \(this\.phase === 'title'\) \{[\s\S]*?\n    \}/)?.[0] || ''
 ), 'title flow must not reopen free-form companion naming');
 
+assert(charCreateSrc.includes('text(job.synergyBonus, cx + cardW / 2, synY);'),
+  'field-role selector must render synergy from the current template');
+assert(!charCreateSrc.includes('// Synergies text (uses sy declared below)'),
+  'stale undefined field-role synergy renderer must not return');
+
 console.log('Aetherwake authored onboarding contract: PASS');
