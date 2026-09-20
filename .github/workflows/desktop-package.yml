@@ -39,22 +39,34 @@ jobs:
       - name: Build Windows package
         run: npm run package:windows
 
-      - name: Verify packaged executable
+      - name: Verify packaged application
         shell: pwsh
         run: |
-          $package = Get-ChildItem -Path ..\aetherwake-dist -Directory | Select-Object -First 1
-          if (-not $package) { throw "NW.js did not produce a package directory" }
-          $exe = Get-ChildItem -Path $package.FullName -Filter "Aetherwake.exe" -File -Recurse | Select-Object -First 1
-          if (-not $exe) { throw "Packaged Aetherwake.exe was not found" }
-          $embedded = Get-ChildItem -Path $package.FullName -Filter "index-embedded.html" -File -Recurse | Select-Object -First 1
-          if (-not $embedded) { throw "Packaged index-embedded.html was not found" }
+          $packageRoot = Resolve-Path ..\aetherwake-dist -ErrorAction Stop
+          Write-Host "NW.js output root: $packageRoot"
+          Get-ChildItem -Path $packageRoot | Select-Object Name, Length, Mode | Format-Table -AutoSize
+
+          $exe = Join-Path $packageRoot "Aetherwake.exe"
+          if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
+            $executables = Get-ChildItem -Path $packageRoot -Filter "*.exe" -File -Recurse |
+              Select-Object -ExpandProperty FullName
+            throw "Packaged Aetherwake.exe was not found. Executables present: $($executables -join ', ')"
+          }
+
+          $packageNw = Join-Path $packageRoot "package.nw"
+          if (-not (Test-Path -LiteralPath $packageNw -PathType Leaf)) {
+            throw "Packaged package.nw was not found"
+          }
+
+          if ((Get-Item $exe).Length -le 0 -or (Get-Item $packageNw).Length -le 0) {
+            throw "Packaged executable or package.nw is empty"
+          }
 
       - name: Create distributable ZIP
         shell: pwsh
         run: |
-          $package = Get-ChildItem -Path ..\aetherwake-dist -Directory | Select-Object -First 1
-          if (-not $package) { throw "NW.js did not produce a package directory" }
-          Compress-Archive -Path "$($package.FullName)\*" -DestinationPath "Aetherwake-Windows.zip"
+          $packageRoot = Resolve-Path ..\aetherwake-dist -ErrorAction Stop
+          Compress-Archive -Path "$packageRoot\*" -DestinationPath "Aetherwake-Windows.zip"
 
       - name: Upload Windows package
         uses: actions/upload-artifact@v4
