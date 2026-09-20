@@ -129,6 +129,17 @@ test('D9b: airship boarding reports to core instead of mutating global state', (
     'core should own AIRSHIP state transition after successful boarding');
 });
 
+test('D9c: dialogue typewriter cannot freeze after an empty first frame', () => {
+  const typeInRender = aetherwakeSrc.match(/if \(dialogueTypeIn\.active && gameState === STATE\.DIALOGUE\) \{([\s\S]*?)\n  \}/);
+  assert(typeInRender, 'dialogue type-in render block should exist');
+  const body = typeInRender[1];
+
+  assert(body.includes('window.UI.dialogueText = dialogueTypeIn.displayText'),
+    'active typewriter should always publish its displayText');
+  assert(!body.includes('if (window.UI.dialogueText)'),
+    'typewriter must not stop updating when its first displayed frame is empty');
+});
+
 // D10: Verify M key routes through world.openShop() 
 test('D10: M key routes through world.openShop() in handleWorldInput', () => {
   // Find the handleWorldInput function
