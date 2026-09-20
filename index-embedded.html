@@ -222,6 +222,7 @@
 <script src="modules/airship-state.js"></script>
 <script src="modules/airship-combat-bridge.js"></script>
 <script src="modules/airship-ui.js"></script>
+<script src="modules/audio.js"></script>
 <script src="aetherwake.js"></script>
 <script src="modules/char-create.js"></script>
 <script>
@@ -271,47 +272,31 @@
   //      hide the loading overlay — like Graphics.endLoading() → upper canvas cleared
   // ============================================================
   (function() {
-    var REF_MAX_WAIT = 8000;  // max ms to wait before forcing reveal (safety net)
     var startTime = performance.now();
     var checkTimer = null;
-    var forceTimer = null;
+    var initError = null;
+
+    function showInitError(msg) {
+      initError = msg;
+      console.error('[launch] initialization error:', msg);
+      var ls = document.getElementById('loading-screen');
+      if (ls) {
+        ls.innerHTML =
+          '<div class="loading-inner">' +
+          '<div class="loading-text" style="color:#FF6B6B;">INITIALIZATION FAILED</div>' +
+          '<div class="loading-sub" style="color:#E8DCC6;">' + msg + '</div>' +
+          '</div>';
+      }
+    }
 
     function check() {
-      // Reference mirroring: Graphics.setLoadingImage shows the loading image
-      // immediately during Scene_Boot; Graphics.endLoading() clears it the moment
-      // Scene_Boot.isReady() returns true and Scene_Title begins. Our mirror:
-      // hide the HTML overlay the moment the canvas is live and p5 is drawing,
-      // so the player sees the aetherwake.js BOOT rendering (loading→preamble→title)
-      // on the real canvas, not behind an HTML cover.
-      // Wait for the real p5 canvas (not a placeholder) — p5 creates it
-      // in setup() after the sketch boots. A 300x150 canvas is p5's default
-      // size before createCanvas(960,640) runs; we want the full-size canvas.
       var cvs = document.querySelector('canvas');
       var hasCanvas = !!cvs && cvs.width >= 800 && cvs.height >= 500;
       var p5ok = typeof p5 !== 'undefined';
 
-      // Update debug overlay if present
-      var db = document.getElementById('debug-overlay');
-      if (db && !window.__awLoadingDone) {
-        db.innerHTML =
-          '<b>LOADING</b><br>' +
-          'p5: ' + (p5ok ? 'ok' : 'MISSING') + '<br>' +
-          'canvas: ' + (hasCanvas ? cvs.width + 'x' + cvs.height : 'MISSING') + '<br>' +
-          '<span style="color:#E8DCC6;">' + (hasCanvas ? 'canvas live — revealing title' : 'waiting for canvas...') + '</span>';
-      }
-
       if (hasCanvas && p5ok) {
-        // Mirrors Graphics.endLoading() → upper canvas cleared, game revealed.
         p5.disableFriendlyErrors = true;
-        console.log('[launch] canvas live, hiding loading screen (mirror: Graphics.endLoading)');
-        hideLoadingScreen();
-        return;
-      }
-
-      // Safety net: if sketch hangs, force-reveal after max wait
-      var elapsed = performance.now() - startTime;
-      if (elapsed > REF_MAX_WAIT) {
-        console.warn('[launch] force-revealing after ' + REF_MAX_WAIT + 'ms (sketch may be stuck)');
+        console.log('[launch] canvas live, hiding loading screen');
         hideLoadingScreen();
         return;
       }
@@ -319,7 +304,6 @@
       checkTimer = setTimeout(check, 80);
     }
 
-    // Start checking shortly after DOM ready
     setTimeout(check, 120);
   })();
 </script>

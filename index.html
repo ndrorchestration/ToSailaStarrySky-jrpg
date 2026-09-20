@@ -38,6 +38,7 @@
 
 <script>
   // DEBUG: show game state on the page itself so you can see what's happening
+  // Only enabled via explicit ?debug=1 query parameter
   (function() {
     var db = document.createElement('div');
     db.id = 'debug-overlay';
@@ -65,10 +66,25 @@
       }
       requestAnimationFrame(update);
     };
-    update();
+    // Hide by default, only show if debug query param is set
+    if (new URLSearchParams(window.location.search).get('debug') === '1') {
+      update();
+    } else {
+      db.style.display = 'none';
+    }
   })();
 </script>
+<script src="modules/effect-vocabulary.js"></script>
+<script src="modules/effect-resolver.js"></script>
+<script src="modules/ability-defs.js"></script>
+<script src="modules/progression-defs.js"></script>
+<script src="modules/party-state.js"></script>
+<script src="modules/airship-state.js"></script>
+<script src="modules/airship-combat-bridge.js"></script>
+<script src="modules/airship-ui.js"></script>
+<script src="modules/audio.js"></script>
 <script src="aetherwake.js"></script>
+<script src="modules/char-create.js"></script>
 <script src="p5.min.js"></script>
 <script>
   (function() {
