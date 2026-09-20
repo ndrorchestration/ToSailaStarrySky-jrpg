@@ -5,7 +5,13 @@ on:
     branches:
       - main
       - dev/progression-build
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
   pull_request:
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
 
 concurrency:
   group: aetherwake-smoke-${{ github.ref }}
