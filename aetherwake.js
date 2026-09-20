@@ -745,6 +745,16 @@ function startGame() {
 // ── Combat launcher: triggers an encounter ──
 function startCombat(enemyId) {
   if (!combat || !world) return;
+
+  let airshipTransfer = null;
+  if (airshipState &&
+      window.AetherAirshipCombatBridge &&
+      typeof window.AetherAirshipCombatBridge.consumeTransfer === 'function') {
+    const prepared = window.AetherAirshipCombatBridge.consumeTransfer(airshipState);
+    commitAirshipState(prepared.state);
+    airshipTransfer = prepared.transfer;
+  }
+
   combat.init({
     vit: world.player.vit,
     scrap: world.player.scrap,
@@ -761,6 +771,7 @@ function startCombat(enemyId) {
     xpToNext: world.player.xpToNext,
     unlockedAbilities: world.player.unlockedAbilities,
     equipment: world.player.equipment,
+    airshipTransfer,
   });
   combat.beginEncounter(enemyId || 'skyPredator');
   gameState = STATE.COMBAT;
@@ -4246,6 +4257,17 @@ function AetherCombat(p, C) {
     log: [],
     encounterOver: false,
     initiative: 0,
+    airship: {
+      shipId: null,
+      classId: null,
+      shieldMode: null,
+      phaseSlipReady: false,
+      slipVeilReady: false,
+      guardAbsorption: 0,
+      firstRollBonus: 0,
+      openingLanceDamage: 0,
+    },
+    _airshipTransferApplied: false,
   };
 
   if (!window.AetherAbilityDefs ||
@@ -4309,6 +4331,79 @@ function AetherCombat(p, C) {
       effectResolver.createResourceDeltaEffect(resource, delta),
       resolverContext()
     ));
+  }
+
+  function createNoAirshipModifiers() {
+    return {
+      shipId: null,
+      classId: null,
+      shieldMode: null,
+      phaseSlipReady: false,
+      slipVeilReady: false,
+      guardAbsorption: 0,
+      firstRollBonus: 0,
+      openingLanceDamage: 0,
+    };
+  }
+
+  function configureAirshipModifiers(transfer) {
+    if (!transfer || !transfer.classId) return createNoAirshipModifiers();
+    const bridge = window.AetherAirshipCombatBridge;
+    if (bridge && typeof bridge.createCombatModifiers === 'function') {
+      return bridge.createCombatModifiers(transfer);
+    }
+    return createNoAirshipModifiers();
+  }
+
+  function applyAirshipOpening() {
+    const airship = state.airship;
+    if (!airship || !airship.classId || !state.enemy) return;
+
+    if (airship.openingLanceDamage > 0 && state.enemy.hp > 0) {
+      const openingDamage = Math.min(airship.openingLanceDamage, state.enemy.hp - 1);
+      if (openingDamage > 0) {
+        applyDamage(effectVocabulary.TARGET.ENEMY, openingDamage, 'resonanceLance');
+        state._airshipOpeningDamage = openingDamage;
+        log('[Airship] Resonance Lance opens the encounter — ' + openingDamage + ' damage.');
+      }
+      airship.openingLanceDamage = 0;
+    }
+
+    if (airship.phaseSlipReady) {
+      log('[Airship] Phase-Slip repositioned the Wake; the first damaging strike will miss.');
+    } else if (airship.slipVeilReady) {
+      log('[Airship] Slip veil is open; the first damaging strike will miss.');
+    } else if (airship.guardAbsorption > 0) {
+      log('[Airship] Guard veil is braced; it will absorb 1 incoming damage.');
+    } else if (airship.firstRollBonus > 0) {
+      log('[Airship] Resonance veil sharpened the first crew roll by +1.');
+    }
+  }
+
+  function airshipIncomingDamage(amount) {
+    const requested = Math.max(0, Math.floor(Number(amount) || 0));
+    if (!state.airship || !state.airship.classId) {
+      applyDamage(effectVocabulary.TARGET.SELF, requested);
+      return { requested, damage: requested, event: null };
+    }
+
+    const bridge = window.AetherAirshipCombatBridge;
+    const mitigation = bridge &&
+      typeof bridge.mitigateIncomingDamage === 'function'
+      ? bridge.mitigateIncomingDamage(state.airship, requested)
+      : { modifiers: state.airship, requested, damage: requested, event: null };
+
+    state.airship = mitigation.modifiers;
+    if (mitigation.event === 'phaseSlip') {
+      log('[Airship] Phase-Slip caught the incoming strike — no damage.');
+    } else if (mitigation.event === 'slip') {
+      log('[Airship] Slip veil caught the incoming strike — no damage.');
+    } else if (mitigation.event === 'guard') {
+      log('[Airship] Guard veil absorbed 1 incoming damage.');
+    }
+
+    applyDamage(effectVocabulary.TARGET.SELF, mitigation.damage, 'airshipEnemy');
+    return mitigation;
   }
 
   const enemies = {
@@ -4456,6 +4551,9 @@ function AetherCombat(p, C) {
     state.encounterOver = false;
     state._secondaryAvailable = false;
     state._lastAbilityId = null;
+    state.airship = configureAirshipModifiers(options.airshipTransfer || null);
+    state._airshipTransferApplied = false;
+    state._airshipOpeningDamage = 0;
     resolverMutationCount = 0;
     log('Combat initialized. The weave awaits.');
   };
@@ -4522,6 +4620,10 @@ function AetherCombat(p, C) {
     state.initiative = state.player.wits + (state.player.grace || 0);
     log('Encounter: ' + state.enemy.name + ' — ' + state.enemy.goal);
     log(state.enemy.name + ' weakness: ' + state.enemy.weakness);
+    if (!state._airshipTransferApplied) {
+      applyAirshipOpening();
+      state._airshipTransferApplied = true;
+    }
   };
 
   this.resolveTurn = function(actionId, resources) {
@@ -4592,7 +4694,14 @@ function AetherCombat(p, C) {
     }
 
     // Roll
-    const statBonus = action.stat ? state.player[action.stat] || 0 : 0;
+    const airshipRollBonus = state.airship && state.airship.firstRollBonus
+      ? state.airship.firstRollBonus
+      : 0;
+    if (airshipRollBonus > 0) {
+      state.airship.firstRollBonus = 0;
+      log('[Airship] Resonance veil adds +' + airshipRollBonus + ' to this roll.');
+    }
+    const statBonus = (action.stat ? state.player[action.stat] || 0 : 0) + airshipRollBonus;
     const r = roll2d6Plus(statBonus);
     let actionText = '';
     let enemyDmg = 0;
@@ -4790,7 +4899,7 @@ function AetherCombat(p, C) {
         if (eType === 'skyPredator') {
           // Dive Bomb: 2 damage, ignores dodge
           const dmg = 2;
-          applyDamage(effectVocabulary.TARGET.SELF, dmg);
+          airshipIncomingDamage(dmg);
           enemyText = state.enemy.name + ' dive-bombs — ' + dmg + ' damage (ignores dodge)!';
         } else if (eType === 'corporateSalvager') {
           // Contract Clause: lose 1 scrap
@@ -4799,13 +4908,13 @@ function AetherCombat(p, C) {
             enemyText = state.enemy.name + ' invokes a contract clause — 1 scrap seized!';
           } else {
             // Fallback to strike
-            applyDamage(effectVocabulary.TARGET.SELF, 1);
+            airshipIncomingDamage(1);
             enemyText = state.enemy.name + ' strikes — 1 Vit lost.';
           }
         } else if (eType === 'windShear') {
           // Gale Force: 2 damage, knockback feel
           const dmg = 2;
-          applyDamage(effectVocabulary.TARGET.SELF, dmg);
+          airshipIncomingDamage(dmg);
           enemyText = state.enemy.name + ' unleashes gale force — ' + dmg + ' damage, wind knocks you back!';
           state._windKnockTurn = millis();
         } else if (eType === 'aetherLeak') {
@@ -4814,7 +4923,7 @@ function AetherCombat(p, C) {
             changeResource(effectVocabulary.RESOURCE.AETHER, -1);
             enemyText = state.enemy.name + ' drains your aether — 1 aether lost!';
           } else {
-            applyDamage(effectVocabulary.TARGET.SELF, 1);
+            airshipIncomingDamage(1);
             enemyText = state.enemy.name + ' strikes desperately — 1 Vit lost.';
           }
         } else if (eType === 'engine_spirit') {
@@ -4825,11 +4934,11 @@ function AetherCombat(p, C) {
               changeResource(effectVocabulary.RESOURCE.AETHER, -1);
               enemyText = state.enemy.name + ' emits harmonic pulse — drains 1 aether!';
             } else {
-              applyDamage(effectVocabulary.TARGET.SELF, 1);
+              airshipIncomingDamage(1);
               enemyText = state.enemy.name + ' pulses — backlashes for 1 Vit!';
             }
           } else {
-            applyDamage(effectVocabulary.TARGET.SELF, 1);
+            airshipIncomingDamage(1);
             enemyText = state.enemy.name + ' pulses harmlessly — 1 Vit lost.';
           }
         } else if (eType === 'child_prophet') {
@@ -4838,7 +4947,7 @@ function AetherCombat(p, C) {
             changeResource(effectVocabulary.RESOURCE.ECHOES, -1);
             enemyText = state.enemy.name + ' chants prophecy — your confidence wavers, -1 echo!';
           } else {
-            applyDamage(effectVocabulary.TARGET.SELF, 1);
+            airshipIncomingDamage(1);
             enemyText = state.enemy.name + ' prophesies — 1 Vit lost.';
           }
         } else if (eType === 'elder_farmer') {
@@ -4848,15 +4957,15 @@ function AetherCombat(p, C) {
             state._rootedTurn = millis();
             enemyText = state.enemy.name + ' plants soil anchor — you are rooted for 1 turn!';
           } else if (anchorRoll >= 7) {
-            applyDamage(effectVocabulary.TARGET.SELF, 1);
+            airshipIncomingDamage(1);
             enemyText = state.enemy.name + ' anchors imperfectly — 1 Vit lost.';
           } else {
-            applyDamage(effectVocabulary.TARGET.SELF, 1);
+            airshipIncomingDamage(1);
             enemyText = state.enemy.name + ' stumbles in the soil — 1 Vit lost.';
           }
         } else {
           // Generic strike
-          applyDamage(effectVocabulary.TARGET.SELF, 1);
+          airshipIncomingDamage(1);
           enemyText = state.enemy.name + ' strikes — 1 Vit lost.';
         }
         log('[Enemy] ' + enemyText);
@@ -4977,6 +5086,7 @@ function AetherCombat(p, C) {
       turn: state.turn,
       player: JSON.parse(JSON.stringify(state.player)),
       enemy: state.enemy ? JSON.parse(JSON.stringify(state.enemy)) : null,
+      airship: JSON.parse(JSON.stringify(state.airship)),
       log: state.log.slice(),
       encounterOver: state.encounterOver,
       actions: actions,
