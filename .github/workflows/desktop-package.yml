@@ -54,12 +54,22 @@ jobs:
           }
 
           $packageNw = Join-Path $packageRoot "package.nw"
-          if (-not (Test-Path -LiteralPath $packageNw -PathType Leaf)) {
-            throw "Packaged package.nw was not found"
+          if (-not (Test-Path -LiteralPath $packageNw -PathType Container)) {
+            throw "Packaged package.nw application directory was not found"
           }
 
-          if ((Get-Item $exe).Length -le 0 -or (Get-Item $packageNw).Length -le 0) {
-            throw "Packaged executable or package.nw is empty"
+          $manifest = Join-Path $packageNw "package.json"
+          $entrypoint = Join-Path $packageNw "index-embedded.html"
+          if (-not (Test-Path -LiteralPath $manifest -PathType Leaf)) {
+            throw "Packaged package.json was not found inside package.nw"
+          }
+          if (-not (Test-Path -LiteralPath $entrypoint -PathType Leaf)) {
+            throw "Packaged index-embedded.html was not found inside package.nw"
+          }
+
+          if ((Get-Item $exe).Length -le 0 -or (Get-Item $manifest).Length -le 0 -or
+              (Get-Item $entrypoint).Length -le 0) {
+            throw "Packaged executable, manifest, or entry point is empty"
           }
 
       - name: Create distributable ZIP
