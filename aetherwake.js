@@ -122,6 +122,8 @@ function showInitializationFailure(message) {
   if (typeof noLoop === 'function') noLoop();
 }
 
+window.showInitializationFailure = showInitializationFailure;
+
 function setup() {
   window._setupOrder = window._setupOrder ? window._setupOrder + '→setup-start' : 'setup-start';
   const canvas = createCanvas(960, 640);
