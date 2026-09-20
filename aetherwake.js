@@ -24,7 +24,7 @@ const C = {
 const STATE = {
   BOOT: 'boot', MENU: 'menu', WORLD: 'world', COMBAT: 'combat',
   DIALOGUE: 'dialogue', SHOP: 'shop', LEDGER: 'ledger',
-  QUESTLOG: 'questlog', CHARSHEET: 'charsheet',
+  QUESTLOG: 'questlog', CHARSHEET: 'charsheet', AIRSHIP: 'airship',
   CHARCREATE: 'charcreate',
 };
 let gameState = STATE.BOOT;
@@ -89,6 +89,7 @@ for (let i = 0; i < 14; i++) {
 // Module references (set after loading)
 let world = null;
 let combat = null;
+let airshipState = null;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -137,6 +138,13 @@ function setup() {
     throw new Error('AETHER_PARTY_STATE_UNAVAILABLE');
   }
   window.AetherPartyState.bootstrap(world.player);
+  if (!window.AetherAirshipState ||
+      typeof window.AetherAirshipState.createState !== 'function') {
+    throw new Error('AETHER_AIRSHIP_STATE_UNAVAILABLE');
+  }
+  airshipState = window.AetherAirshipState.createState(world.player.airship);
+  world.player.airship = airshipState;
+  window._airshipState = airshipState;
   window._setupOrder = window._setupOrder + '→party-state-done';
   window._setupOrder = window._setupOrder + '→combat-start';
   if (typeof window.AetherCombat !== 'undefined') {
@@ -276,6 +284,9 @@ function draw() {
   else if (gameState === STATE.WORLD) {
     if (world && typeof world.update === 'function') world.update(dt / 1000);
     if (world && typeof world.render === 'function') world.render();
+  }
+  else if (gameState === STATE.AIRSHIP) {
+    drawAirshipOverlay();
   }
   else if (gameState === STATE.COMBAT) {
     if (combat && typeof combat.render === 'function') combat.render();
@@ -527,6 +538,9 @@ function handleInput() {
   if (gameState === STATE.WORLD) {
     handleWorldInput();
   }
+  else if (gameState === STATE.AIRSHIP) {
+    handleAirshipInput();
+  }
   else if (gameState === STATE.COMBAT) {
     if (combat && typeof combat.handleInput === 'function') {
       combat.handleInput(keys, keysPressed);
@@ -627,6 +641,71 @@ function handleWorldInput() {
   }
   if (keysPressed[27]) {   // ESC
     closeOverlay();
+  }
+}
+
+
+function commitAirshipState(nextState) {
+  airshipState = nextState;
+  window._airshipState = nextState;
+  if (world && world.player) world.player.airship = nextState;
+}
+
+function ensureAirshipState() {
+  if (!window.AetherAirshipState ||
+      typeof window.AetherAirshipState.createState !== 'function') {
+    return false;
+  }
+  if (!airshipState) {
+    airshipState = window.AetherAirshipState.createState(
+      world && world.player ? world.player.airship : null
+    );
+  }
+  window._airshipState = airshipState;
+  if (world && world.player) world.player.airship = airshipState;
+  return true;
+}
+
+function resolveAirshipCommand(actionId) {
+  if (!ensureAirshipState()) return;
+  const result = window.AetherAirshipState.resolveAction(airshipState, actionId);
+  commitAirshipState(result.state);
+  showToast(result.message, result.ok ? C.teal : C.rust, 1600);
+  if (result.ok && actionId === 'resonanceLance') {
+    triggerShake(3, 120);
+  }
+}
+
+function cycleAirshipShieldMode() {
+  if (!ensureAirshipState()) return;
+  const result = window.AetherAirshipState.cycleShieldMode(airshipState);
+  commitAirshipState(result.state);
+  showToast(result.message, C.scioto, 1400);
+}
+
+function leaveAirship() {
+  if (world && world.player) world.player.shipBoarded = false;
+  if (gameState === STATE.AIRSHIP) closeOverlay();
+}
+
+function handleAirshipInput() {
+  if (keysPressed[27] || keysPressed[76]) {
+    leaveAirship();
+    return;
+  }
+
+  if (keysPressed[50] || keysPressed[72]) {
+    cycleAirshipShieldMode();
+  } else if (keysPressed[49]) {
+    resolveAirshipCommand('phaseSlip');
+  } else if (keysPressed[51]) {
+    resolveAirshipCommand('resonanceLance');
+  } else if (keysPressed[52]) {
+    resolveAirshipCommand('rootlineTether');
+  } else if (keysPressed[53]) {
+    resolveAirshipCommand('patternForge');
+  } else if (keysPressed[82]) {
+    resolveAirshipCommand('ventWake');
   }
 }
 
@@ -756,12 +835,18 @@ function openState(s) {
     case STATE.CHARSHEET:
       window.UI.windowTone = [160, 180, 200]; // neutral
       break;
+    case STATE.AIRSHIP:
+      window.UI.windowTone = [42, 255, 181]; // Wakeheart teal
+      break;
     default:
       window.UI.windowTone = null;
   }
 }
 
 function closeOverlay() {
+  if (gameState === STATE.AIRSHIP && world && world.player) {
+    world.player.shipBoarded = false;
+  }
   if (prevState) {
     gameState = prevState;
     window.gameState = gameState;
@@ -1137,6 +1222,14 @@ function drawTitleScreen() {
   textSize(8);
   fill(C.teal[0], C.teal[1], C.teal[2], 100);
   text('THE AUREATE WAKE // TURN-BASED 2D6 PbtA', cx, height - 20);
+}
+
+function drawAirshipOverlay() {
+  if (!ensureAirshipState()) return;
+  if (window.AetherAirshipView &&
+      typeof window.AetherAirshipView.draw === 'function') {
+    window.AetherAirshipView.draw(airshipState, C);
+  }
 }
 
 function drawDialogueOverlay() {
@@ -2616,6 +2709,7 @@ function boardShip() {
       checkSignalHook(spirit);
     }
     advanceQuest();
+    if (ensureAirshipState()) openState(STATE.AIRSHIP);
   }
 }
 
