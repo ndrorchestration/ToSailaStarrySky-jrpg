@@ -162,29 +162,32 @@ function createServer() {
       'normal launch exposed a debug overlay');
 
     // One real Enter follows the production input path:
-    // BOOT → MENU → CHARCREATE and char-create title → name.
+    // BOOT → MENU → CHARCREATE and authored onboarding → Lyra field role.
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.gameState === 'charcreate' &&
       window._charcreate &&
-      window._charcreate.phase === 'name'
+      window._charcreate.phase === 'class' &&
+      window._charcreate.slot === 0 &&
+      window._charcreate.nameInput === 'Lyra'
     , undefined, { timeout: 5000 });
 
-    // The current prototype defaults to Sky-Sailor if no numeric job key is
-    // chosen. Avoid numeric selection here so this smoke test does not couple
-    // itself to prototype name/job input quirks.
-    await page.keyboard.type('Lyra');
+    // The three preservation-era role cards are mechanics templates only;
+    // selecting one must not alter the authored identity.
+    await page.keyboard.press('Digit1');
     await page.keyboard.press('Enter');
 
     await page.waitForFunction(() =>
       window._charcreate &&
-      window._charcreate.phase === 'name' &&
+      window._charcreate.phase === 'class' &&
       window._charcreate.slot === 1 &&
+      window._charcreate.nameInput === 'Ionia' &&
       window._charcreate.party &&
-      window._charcreate.party[1]
+      window._charcreate.party[1] &&
+      window._charcreate.party[1].name === 'Lyra'
     , undefined, { timeout: 5000 });
 
-    await page.keyboard.type('Ionia');
+    await page.keyboard.press('Digit3');
     await page.keyboard.press('Enter');
 
     await page.waitForFunction(() =>
@@ -199,12 +202,24 @@ function createServer() {
       ender: window._charcreate.party[0] && window._charcreate.party[0].name,
       companion1: window._charcreate.party[1] && window._charcreate.party[1].name,
       companion2: window._charcreate.party[2] && window._charcreate.party[2].name,
+      companion1Template: window._charcreate.party[1] &&
+        window._charcreate.party[1].mechanicsTemplateId,
+      companion2Template: window._charcreate.party[2] &&
+        window._charcreate.party[2].mechanicsTemplateId,
+      authoredSlots: window._charcreate.authoredSlots &&
+        window._charcreate.authoredSlots.map(slot => slot.id),
     }));
 
-    assert(review.partyLength === 3, 'prototype review did not contain three party slots');
-    assert(review.ender === 'Young Ender', 'Ender missing from prototype party');
-    assert(review.companion1 === 'Lyra', 'first companion name was not retained');
-    assert(review.companion2 === 'Ionia', 'second companion name was not retained');
+    assert(review.partyLength === 3, 'authored onboarding review did not contain three party slots');
+    assert(review.ender === 'Young Ender', 'Ender missing from onboarding party');
+    assert(review.companion1 === 'Lyra', 'Lyra authored identity was not preserved');
+    assert(review.companion2 === 'Ionia', 'Ionia authored identity was not preserved');
+    assert(review.companion1Template === 'skySailor',
+      'Lyra temporary mechanics template was not retained');
+    assert(review.companion2Template === 'aetherWeaver',
+      'Ionia temporary mechanics template was not retained');
+    assert(review.authoredSlots.join('|') === 'lyra|ionia',
+      'char-create authored slot identities are incorrect');
 
     await page.keyboard.press('Enter');
 
@@ -455,6 +470,14 @@ function createServer() {
       legacyPartyAlias: window.party === window.ACTIVE_PARTY,
       runtimeImplemented: window.ROSTER &&
         window.ROSTER.map(character => Boolean(character.runtimeImplemented)),
+      canonicalNames: window.ROSTER &&
+        window.ROSTER.map(character => character.canonicalName),
+      implementationSources: window.ROSTER &&
+        window.ROSTER.map(character => character.implementationSource),
+      mechanicsTemplates: window.ROSTER &&
+        window.ROSTER.slice(0, 3).map(character => character.mechanicsTemplateId),
+      companionNativeJobs: window.ROSTER &&
+        [window.ROSTER[1].nativeJob, window.ROSTER[2].nativeJob],
     }));
 
     assert(partyArchitecture.rosterLength === 5, 'persistent roster does not contain five records');
@@ -471,6 +494,16 @@ function createServer() {
       'legacy window.party alias is not canonical ACTIVE_PARTY');
     assert(partyArchitecture.runtimeImplemented.join('|') === 'true|true|true|false|false',
       'runtime implementation boundary for roster records is incorrect');
+    assert(partyArchitecture.canonicalNames.join('|') === 'Ender|Lyra|Ionia|Reson|Aepex',
+      'canonical authored roster names are incorrect');
+    assert(partyArchitecture.implementationSources[1] === 'authored-identity+prototype-mechanics' &&
+      partyArchitecture.implementationSources[2] === 'authored-identity+prototype-mechanics',
+      'Lyra/Ionia implementation provenance is not explicit');
+    assert(partyArchitecture.mechanicsTemplates.join('|') === 'ender|skySailor|aetherWeaver',
+      'temporary mechanics templates did not survive canonical party commit');
+    assert(partyArchitecture.companionNativeJobs[0] === null &&
+      partyArchitecture.companionNativeJobs[1] === null,
+      'authored companion native jobs were fabricated during onboarding');
 
     await page.keyboard.press('KeyC');
     await page.waitForFunction(() =>
