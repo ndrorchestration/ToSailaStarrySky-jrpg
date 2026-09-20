@@ -89,6 +89,7 @@ for (let i = 0; i < 14; i++) {
 // Module references (set after loading)
 let world = null;
 let combat = null;
+let legacyCombat = null;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -140,7 +141,20 @@ function setup() {
   window._setupOrder = window._setupOrder + '→party-state-done';
   window._setupOrder = window._setupOrder + '→combat-start';
   if (typeof window.AetherCombat !== 'undefined') {
-    combat = new window.AetherCombat(window, C);
+    legacyCombat = new window.AetherCombat(window, C);
+    window._legacyCombat = legacyCombat;
+  }
+  if (typeof window.AetherPartyCombat !== 'undefined' &&
+      typeof window.AetherPartyCombat.createController === 'function') {
+    combat = window.AetherPartyCombat.createController({
+      party: window.ACTIVE_PARTY,
+      p: window,
+      C,
+    });
+    window._combat = combat;
+    if (combat && typeof combat.init === 'function') combat.init({ party: window.ACTIVE_PARTY });
+  } else if (legacyCombat) {
+    combat = legacyCombat;
     window._combat = combat;
     if (combat && typeof combat.init === 'function') combat.init();
   }
@@ -399,7 +413,7 @@ function keyPressed() {
     else if (keyCode === 76) window.interactionKey = 'l';
     else if (keyCode === 77) window.interactionKey = 'm';
     // C = 67: start combat encounter (dev/testing)
-    else if (keyCode === 67) {
+    else if (keyCode === 67 && window.__awTestEnabled) {
       if (combat && typeof combat.beginEncounter === 'function') {
         startCombat('skyPredator');
       }
@@ -439,7 +453,7 @@ function keyTyped() {
     // Remove return; to allow fall-through from BOOT→MENU→WORLD in same key event
   }
   if (gameState === STATE.WORLD) {
-    if (key === 'c' || key === 'C') {
+    if ((key === 'c' || key === 'C') && window.__awTestEnabled) {
       if (combat && typeof combat.beginEncounter === 'function') {
         startCombat('skyPredator');
       }
@@ -548,7 +562,15 @@ function handleInput() {
 
     // Number keys 1-8 trigger combat actions
     if (typeof key === 'string' && key >= '1' && key <= '8' && combat && typeof combat.resolveTurn === 'function') {
-      const actionIds = ['staffStrike', 'uncoverTruth', 'sharedDream', 'mycelialLedger', 'hold', 'windWard', 'aetherSeal', 'rest'];
+      const combatState = combat.getState ? combat.getState() : null;
+      const activeActor = combatState && combatState.party && combatState.activeActorId
+        ? combatState.party.find(actor => actor.id === combatState.activeActorId)
+        : null;
+      const actionIds = activeActor && activeActor.id !== 'ender' && Array.isArray(activeActor.actionIds)
+        ? activeActor.actionIds
+        : (combatState && Array.isArray(combatState.actions)
+          ? combatState.actions.map(action => action.id)
+          : ['staffStrike', 'uncoverTruth', 'sharedDream', 'mycelialLedger', 'hold', 'windWard', 'aetherSeal', 'rest']);
       const idx = key.charCodeAt(0) - 49;
       if (idx >= 0 && idx < actionIds.length) {
         combat.resolveTurn(actionIds[idx], null);
@@ -623,7 +645,7 @@ function handleWorldInput() {
     openState(STATE.QUESTLOG);
   }
   // C: start combat encounter (dev/testing — triggers a Sky-Predator fight)
-  if (keysPressed[67]) {   // C
+  if (keysPressed[67] && window.__awTestEnabled) {   // C (explicit test hook)
     if (combat && typeof combat.beginEncounter === 'function') {
       startCombat('skyPredator');
     }
@@ -688,8 +710,16 @@ function startCombat(enemyId) {
 function finishCombat() {
   if (!combat || !world || !world.player || typeof combat.getState !== 'function') return;
 
+  // Party combat owns a temporary actor pool and commits all actor changes
+  // explicitly before the legacy Ender compatibility copy below.
+  if (typeof combat.writeBack === 'function') {
+    combat.writeBack();
+  }
+
   const combatState = combat.getState();
-  const p = combatState && combatState.player ? combatState.player : null;
+  const p = combatState && Array.isArray(combatState.party)
+    ? (combatState.party.find(actor => actor.id === 'ender') || null)
+    : (combatState && combatState.player ? combatState.player : null);
 
   if (p) {
     world.player.vit = p.vit;
@@ -6648,7 +6678,12 @@ function drawCombatPanel(combatState) {
   drawPixelBorder(px + 8, sY, pw - 16, 88, 2, PAL.SHADOW, PAL.TEAL);
   textFont(FONT_UI);
   textSize(8);
-  drawGlowText('ENDER', px + 14, sY + 6, PAL.TEAL, 8);
+  const activeName = combatState.player && combatState.player.name
+    ? combatState.player.name.toUpperCase()
+    : String(combatState.activeActorId || 'ender').toUpperCase();
+  drawGlowText(activeName + (combatState.player && combatState.player.roleLabel
+    ? ' · ' + combatState.player.roleLabel.toUpperCase()
+    : ''), px + 14, sY + 6, PAL.TEAL, 8);
 
   // Player resources
   textFont(FONT_BODY);
@@ -6701,7 +6736,8 @@ function drawCombatPanel(combatState) {
 
   textFont(FONT_UI);
   textSize(8);
-  drawGlowText('ACTIONS [1-8]', aX + 12, aY + 6, PAL.TEAL, 8);
+  drawGlowText('ACTIONS [1-' + Math.max(1, (combatState.actions || []).length) + ']',
+    aX + 12, aY + 6, PAL.TEAL, 8);
 
   const actions = combatState.actions || [];
   const eligibleActionIds = new Set(
@@ -7682,5 +7718,3 @@ function drawScreenFlash() {
   fill(color(255, 255, 255, alpha));
   rect(0, 0, width, height);
 }
-
-

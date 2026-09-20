@@ -64,7 +64,7 @@ function createServer() {
 
   try {
     const response = await page.goto(
-      `http://127.0.0.1:${PORT}/index-embedded.html`,
+      `http://127.0.0.1:${PORT}/index-embedded.html?test=1`,
       { waitUntil: 'domcontentloaded', timeout: 20000 }
     );
     assert(response && response.ok(), 'index-embedded.html did not load successfully');
@@ -175,6 +175,30 @@ function createServer() {
       'legacy window.party alias is not canonical ACTIVE_PARTY');
     assert(partyArchitecture.runtimeImplemented.join('|') === 'true|false|false|false|false',
       'runtime implementation boundary for roster records is incorrect');
+
+    const partyCombatStart = await page.evaluate(() => {
+      const state = window._combat.getState();
+      return {
+        actorIds: state.party.map(actor => actor.id),
+        roleIds: state.party.map(actor => actor.roleId),
+        activeActorId: state.activeActorId,
+        turnOrder: state.turnOrder,
+        lyraActions: state.party.find(actor => actor.id === 'lyra').actionIds,
+        ioniaActions: state.party.find(actor => actor.id === 'ionia').actionIds,
+      };
+    });
+    assert(partyCombatStart.actorIds.join('|') === 'ender|lyra|ionia',
+      'party combat did not start from ACTIVE_PARTY');
+    assert(partyCombatStart.roleIds.join('|') === 'reader|receiver|anchor',
+      'party combat role kits drifted');
+    assert(partyCombatStart.activeActorId === 'ender',
+      'party combat did not start with Ender');
+    assert(partyCombatStart.turnOrder.join('|') === 'ender|lyra|ionia|enemy',
+      'party combat turn order drifted');
+    assert(partyCombatStart.lyraActions.includes('frequencyRead'),
+      'Lyra frequency action is not available');
+    assert(partyCombatStart.ioniaActions.includes('braceTheWake'),
+      'Ionia anchor action is not available');
 
     await page.keyboard.press('KeyC');
     await page.waitForFunction(() =>
@@ -298,7 +322,7 @@ function createServer() {
     const secondaryStateContract = await page.evaluate(() => {
       const originalRandom = window.random;
       try {
-        window._combat.init({
+        window._legacyCombat.init({
           vit: 13,
           scrap: 7,
           aether: { current: 4, max: 6 },
@@ -311,18 +335,18 @@ function createServer() {
           xpToNext: 50,
           unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
         });
-        window._combat.beginEncounter('skyPredator');
+        window._legacyCombat.beginEncounter('skyPredator');
 
         window.random = function() { return 6; };
-        if (window._combat.roll2d6() !== 12) {
+        if (window._legacyCombat.roll2d6() !== 12) {
           throw new Error('deterministic random override did not reach combat rolls');
         }
-        window._combat.resolveTurn('mycelialLedger', null);
-        const afterSuccess = window._combat.getState();
+        window._legacyCombat.resolveTurn('mycelialLedger', null);
+        const afterSuccess = window._legacyCombat.getState();
 
         window.random = function() { return 1; };
-        window._combat.resolveTurn('uncoverTruth', null);
-        const afterFailure = window._combat.getState();
+        window._legacyCombat.resolveTurn('uncoverTruth', null);
+        const afterFailure = window._legacyCombat.getState();
 
         return {
           afterSuccess: {
@@ -516,26 +540,42 @@ function createServer() {
     assert(resolverContract.applied.every(Boolean),
       'effect resolver unexpectedly skipped an implemented effect');
 
+    // Exercise one distinct action from each provisional actor. The action
+    // key is intentionally reused per actor; the active kit owns the slots.
     await page.keyboard.press('1');
     await page.waitForFunction(() =>
-      window._combat && window._combat.getState().turn >= 1
+      window._combat && window._combat.getState().activeActorId === 'lyra'
     , undefined, { timeout: 5000 });
 
-    await page.keyboard.press('2');
+    await page.keyboard.press('1');
     await page.waitForFunction(() =>
-      window._combat && window._combat.getState().turn >= 2
+      window._combat && window._combat.getState().activeActorId === 'ionia'
     , undefined, { timeout: 5000 });
+
+    await page.keyboard.press('1');
+    await page.waitForFunction(() =>
+      window._combat && window._combat.getState().activeActorId === 'ender'
+    , undefined, { timeout: 5000 });
+
+    // Ender retains the legacy action surface after the party rotation.
+    await page.evaluate(() => window._combat.resolveTurn('uncoverTruth', null));
 
     const combatAfterActions = await page.evaluate(() => window._combat.getState());
-    assert(combatAfterActions.turn >= 2, 'combat actions did not resolve');
+    assert(combatAfterActions.turn >= 4, 'three-actor combat actions did not resolve');
     assert(combatAfterActions.resolverMutations > 0,
       'live combat actions did not route ordinary mutations through the effect resolver');
     assert(combatAfterActions.log.some(line =>
       line.includes('[Turn 1]') && line.includes('Resonator Staff')),
       'turn 1 action text was not logged correctly');
     assert(combatAfterActions.log.some(line =>
-      line.includes('[Turn 2]') && line.includes('Uncover Truth')),
-      'turn 2 action text was not logged correctly');
+      line.includes('Frequency Read')),
+      'Lyra frequency action was not logged correctly');
+    assert(combatAfterActions.log.some(line =>
+      line.includes('Brace the Wake')),
+      'Ionia anchor action was not logged correctly');
+    assert(combatAfterActions.log.some(line =>
+      line.includes('Uncover Truth')),
+      'Ender legacy action was not retained after party rotation');
 
     // Deterministic state-transition check. We test real keyboard combat
     // actions above; direct finishCombat avoids making the smoke test depend on

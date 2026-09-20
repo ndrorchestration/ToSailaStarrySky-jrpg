@@ -42,6 +42,26 @@
     'rest',
   ]);
 
+  // The legacy ACTION_ORDER remains exactly eight slots for the current
+  // Ender combat API. PARTY_ACTION_ORDER adds the four provisional First Wake
+  // actions without moving or renaming any legacy action.
+  const PARTY_ACTION_ORDER = Object.freeze([
+    ...ACTION_ORDER,
+    'frequencyRead',
+    'echoRedirect',
+    'braceTheWake',
+    'routeCommand',
+  ]);
+
+  const PARTY_ALWAYS_AVAILABLE = Object.freeze([
+    'staffStrike',
+    'hold',
+    'frequencyRead',
+    'echoRedirect',
+    'braceTheWake',
+    'routeCommand',
+  ]);
+
   // Baseline actions are available independent of learned ability state.
   // All other actions require their ID to be present in actor.unlockedAbilities.
   const ALWAYS_AVAILABLE = Object.freeze([
@@ -130,19 +150,59 @@
       effectProfile: 'rest',
       desc: 'Reduce current heat by 1. Recover 1 Vit on 10+',
     },
+    frequencyRead: {
+      id: 'frequencyRead',
+      label: 'Frequency Read — catch the wrong note',
+      stat: 'wits',
+      cost: 1,
+      type: 'party-ability',
+      tier: 1,
+      effectProfile: 'frequencyRead',
+      desc: 'Read an enemy frequency. Reveal its weakness and gain +1 next roll.',
+    },
+    echoRedirect: {
+      id: 'echoRedirect',
+      label: 'Echo Redirect — lend the signal',
+      stat: 'spirit',
+      cost: 1,
+      type: 'party-ability',
+      tier: 1,
+      effectProfile: 'echoRedirect',
+      desc: 'Restore an ally or give their next roll +1.',
+    },
+    braceTheWake: {
+      id: 'braceTheWake',
+      label: 'Brace the Wake — hold the frame',
+      stat: 'might',
+      cost: 1,
+      type: 'party-ability',
+      tier: 1,
+      effectProfile: 'braceTheWake',
+      desc: 'Reduce the next hit against the crew by 1.',
+    },
+    routeCommand: {
+      id: 'routeCommand',
+      label: 'Route Command — call the crossing',
+      stat: 'presence',
+      cost: 1,
+      type: 'party-ability',
+      tier: 1,
+      effectProfile: 'routeCommand',
+      desc: 'Give an ally +1 on their next roll.',
+    },
   });
 
   function validateDefs() {
     const ids = Object.keys(DEFS);
 
-    if (ids.length !== ACTION_ORDER.length) {
+    if (ids.length !== PARTY_ACTION_ORDER.length) {
       throw new Error('ABILITY_DEF_COUNT_MISMATCH');
     }
     if (new Set(ACTION_ORDER).size !== ACTION_ORDER.length) {
       throw new Error('ABILITY_ACTION_ORDER_DUPLICATE');
     }
 
-    ACTION_ORDER.forEach(id => {
+    PARTY_ACTION_ORDER.forEach(id => {
       const def = DEFS[id];
       if (!def) throw new Error('ABILITY_DEF_MISSING:' + id);
       if (def.id !== id) throw new Error('ABILITY_DEF_ID_MISMATCH:' + id);
@@ -160,7 +220,7 @@
       }
     });
 
-    const orphans = ids.filter(id => !ACTION_ORDER.includes(id));
+    const orphans = ids.filter(id => !PARTY_ACTION_ORDER.includes(id));
     if (orphans.length) throw new Error('ABILITY_DEF_ORPHANS:' + orphans.join(','));
 
     ALWAYS_AVAILABLE.forEach(id => {
@@ -264,6 +324,82 @@
     return ACTION_ORDER.filter(id => getUseEligibility(actor, id).canUse);
   }
 
+  function isPartyActionUnlocked(actor, actionId) {
+    if (!DEFS[actionId]) return false;
+    if (actor && actor.id === 'ender' && ACTION_ORDER.includes(actionId)) {
+      return isActionUnlocked(actor, actionId);
+    }
+    if (actor && Array.isArray(actor.actionIds) && !actor.actionIds.includes(actionId)) {
+      return false;
+    }
+    if (PARTY_ALWAYS_AVAILABLE.includes(actionId)) return true;
+    return Boolean(
+      actor &&
+      Array.isArray(actor.unlockedAbilities) &&
+      actor.unlockedAbilities.includes(actionId)
+    );
+  }
+
+  function getPartyEligibleActionIds(actor) {
+    const source = actor && actor.id === 'ender'
+      ? ACTION_ORDER
+      : (actor && Array.isArray(actor.actionIds)
+      ? actor.actionIds
+      : PARTY_ACTION_ORDER);
+    return source.filter(id => isPartyActionUnlocked(actor, id));
+  }
+
+  function getPartyUseEligibility(actor, actionId) {
+    const action = DEFS[actionId];
+    if (!action) {
+      return {
+        canUse: false,
+        reason: 'unknown_action',
+        actionId,
+        resourceCost: null,
+        availableResource: getAvailableActionResource(actor),
+      };
+    }
+
+    const resourceCost = getActionResourceCost(action);
+    const availableResource = getAvailableActionResource(actor);
+    if (!isPartyActionUnlocked(actor, actionId)) {
+      return {
+        canUse: false,
+        reason: 'locked',
+        actionId,
+        resourceCost,
+        availableResource,
+      };
+    }
+    if (availableResource < resourceCost) {
+      return {
+        canUse: false,
+        reason: 'insufficient_resources',
+        actionId,
+        resourceCost,
+        availableResource,
+      };
+    }
+    return {
+      canUse: true,
+      reason: 'ok',
+      actionId,
+      resourceCost,
+      availableResource,
+    };
+  }
+
+  function getPartyUsableActionIds(actor) {
+    return getPartyEligibleActionIds(actor)
+      .filter(id => getPartyUseEligibility(actor, id).canUse);
+  }
+
+  function createPartyRuntimeActions() {
+    validateDefs();
+    return PARTY_ACTION_ORDER.map(id => Object.assign({}, DEFS[id]));
+  }
+
   function createRuntimeActions() {
     validateDefs();
     return ACTION_ORDER.map(id => Object.assign({}, DEFS[id]));
@@ -296,7 +432,9 @@
   return Object.freeze({
     VERSION,
     ACTION_ORDER,
+    PARTY_ACTION_ORDER,
     ALWAYS_AVAILABLE,
+    PARTY_ALWAYS_AVAILABLE,
     DEFS,
     validateDefs,
     isActionUnlocked,
@@ -305,7 +443,12 @@
     getAvailableActionResource,
     getUseEligibility,
     getUsableActionIds,
+    isPartyActionUnlocked,
+    getPartyEligibleActionIds,
+    getPartyUseEligibility,
+    getPartyUsableActionIds,
     createRuntimeActions,
+    createPartyRuntimeActions,
     assertRuntimeActions,
   });
 });

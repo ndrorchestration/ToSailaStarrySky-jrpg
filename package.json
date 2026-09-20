@@ -47,6 +47,11 @@
     "test:first-wake-contract": "node tests/first-wake-contract.test.js",
     "test:first-wake-party": "node tests/first-wake-party-contract.test.js",
     "test:first-wake-onboarding": "node tests/first-wake-onboarding-contract.test.js",
-    "test:first-wake-integration": "node tests/first-wake-integration-source.test.js"
+    "test:first-wake-integration": "node tests/first-wake-integration-source.test.js",
+    "package:windows": "nwbuild --mode=build --glob=false --platform=win --arch=x64 --version=0.116.0 --outDir=../aetherwake-dist .",
+    "package:windows:clean": "npm run package:windows",
+    "test:desktop-package": "node tests/desktop-package-contract.test.js",
+    "test:first-wake-kits": "node tests/first-wake-kits.test.js",
+    "test:first-wake-combat": "node tests/first-wake-combat-contract.test.js"
   }
 }
