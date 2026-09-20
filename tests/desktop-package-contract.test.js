@@ -49,8 +49,10 @@ assert(workflow.includes('Resolve-Path ..\\aetherwake-dist'),
   'desktop workflow must treat the NW.js output directory itself as the package root');
 assert(workflow.includes('name: Aetherwake-Windows'),
   'desktop workflow must publish a named Windows artifact');
-assert(workflow.includes('path: ../aetherwake-dist/**'),
-  'desktop workflow must upload the complete verified NW.js output root');
+assert(workflow.includes('Copy-Item -Path "..\\aetherwake-dist\\*"'),
+  'desktop workflow must stage the verified external build after packaging');
+assert(workflow.includes('path: artifact/Aetherwake-Windows/**'),
+  'desktop workflow must upload the complete staged NW.js output root');
 assert(!workflow.includes('Compress-Archive'),
   'desktop workflow should not create a redundant ZIP inside the GitHub artifact');
 
