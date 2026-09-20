@@ -40,7 +40,11 @@ assert(workflow.includes('cancel-in-progress: true'),
 assert(workflow.includes('Aetherwake.exe'),
   'desktop workflow must verify the packaged executable');
 assert(workflow.includes('package.nw'),
-  'desktop workflow must verify the packaged NW.js application archive');
+  'desktop workflow must verify the packaged NW.js application directory');
+assert(workflow.includes('index-embedded.html'),
+  'desktop workflow must verify the embedded entry point inside package.nw');
+assert(workflow.includes('package.json'),
+  'desktop workflow must verify the application manifest inside package.nw');
 assert(workflow.includes('Resolve-Path ..\\aetherwake-dist'),
   'desktop workflow must treat the NW.js output directory itself as the package root');
 assert(workflow.includes('Aetherwake-Windows.zip'),
