@@ -10,7 +10,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 - **Playable baseline:** boot → character creation → world exploration → dialogue/quest systems → combat
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
 - **Combat party:** exactly 3 active combatants selected from the persistent roster
-- **Current migration:** smoke-green persistent roster, authored Ender/Lyra/Ionia onboarding, explicit prototype-mechanics provenance, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; higher-order effect semantics remain separate gates
+- **Current migration:** smoke-green persistent roster, authored Ender/Lyra/Ionia onboarding, explicit prototype-mechanics provenance, versioned party/progression save schema v1, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; complete game-state persistence and higher-order effect semantics remain separate gates
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
 
@@ -120,6 +120,20 @@ The development runtime now has the first persistent party-state layer:
 
 The temporary field-role templates remain implementation provenance rather than final character canon.
 
+## Persistence boundary
+
+The development branch now includes `modules/save-state.js` with explicit
+`aetherwake-save` schema version **1**. This first schema deliberately covers
+the canonical roster, active-party IDs, and allowlisted progression/resource
+state while preserving roster object identity during restore.
+
+It is an architecture/compatibility checkpoint, **not yet a complete
+player-facing save system**. Quest/world position, world-layer state, ledger
+history, and Dragonfly state still require explicit persistence contracts before
+save/load should be exposed as a finished player feature. Unsupported,
+unversioned, future, or identity-tampered save data fails closed.
+
+
 ## Current quest vertical slice
 
 The existing prototype quest follows:
@@ -163,6 +177,8 @@ npm run playwright:install
 Run the architecture contracts and canonical smoke test:
 
 ```bash
+npm run test:onboarding
+npm run test:save-state
 npm run test:effects
 npm run test:registries
 npm run test:resolver
@@ -177,7 +193,7 @@ npm run test:airship-combat-bridge
 npm run test:smoke
 ```
 
-The verification suite covers the playable path from startup through character creation, world state, combat, Dragonfly ship boarding/system actions, and return to WORLD. It also verifies roster/reference invariants, effect-vocabulary coverage, registry/runtime equivalence, transactional action affordability, progression reachability, secondary-action state, enemy metadata propagation, live resolver routing, and post-combat write-back into the canonical lead record.
+The verification suite covers the playable path from startup through authored onboarding, world state, combat, Dragonfly ship boarding/system actions, and return to WORLD. It also verifies roster/reference invariants, authored-identity/prototype-mechanics separation, save-schema v1 fail-closed behavior, effect-vocabulary coverage, registry/runtime equivalence, transactional action affordability, progression reachability, secondary-action state, enemy metadata propagation, live resolver routing, and post-combat write-back into the canonical lead record.
 
 ## Architecture direction
 
