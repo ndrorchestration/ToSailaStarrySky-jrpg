@@ -16,7 +16,7 @@ assert(worldExport.includes('getShopItems'), 'World does not export getShopItems
 assert(worldExport.includes('purchaseItem'), 'World does not export purchaseItem');
 assert(worldExport.includes('closeShop'), 'World does not export closeShop');
 
-assert(/window\\.UI\\.shopBuyHandler\\s*=/.test(source),
+assert(/window\.UI\.shopBuyHandler\s*=/.test(source),
   'live shop purchase handler assignment is missing');
 assert(source.includes('world.player.scrap'),
   'shop renderer has no persistent World scrap source');
