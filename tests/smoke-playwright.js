@@ -177,6 +177,78 @@ function createServer() {
       window._world.player
     , undefined, { timeout: 5000 });
 
+    const dialogueStateContract = await page.evaluate(() => {
+      const player = window._world.player;
+      player.tileX = 7;
+      player.tileY = 7;
+      player.x = 7;
+      player.y = 7;
+      player.px = 7 * 16;
+      player.py = 7 * 16;
+      const npc = window._world.npcs && window._world.npcs[0];
+      if (npc && npc.flags) npc.flags.met = false;
+      return { npcId: npc && npc.id, state: window.gameState };
+    });
+    assert(dialogueStateContract.npcId === 'elder_farmer',
+      'dialogue fixture did not locate the first NPC');
+
+    await page.keyboard.press('e');
+    await page.waitForFunction(() => window.gameState === 'dialogue', undefined,
+      { timeout: 5000 });
+    const dialogueOpened = await page.evaluate(() => ({
+      npcId: window.UI.dialogueNPC && window.UI.dialogueNPC.id,
+      text: window.UI.dialogueText,
+      open: window.UI.dialogueOpen,
+    }));
+    assert(dialogueOpened.npcId === 'elder_farmer',
+      'production interaction did not open the nearest NPC dialogue');
+    assert(dialogueOpened.open === true &&
+      typeof dialogueOpened.text === 'string' &&
+      dialogueOpened.text.includes('Wake'),
+      'first-meeting dialogue did not show the intro line');
+
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window.gameState === 'world', undefined,
+      { timeout: 5000 });
+    const dialogueClosed = await page.evaluate(() => ({
+      npc: window.UI.dialogueNPC,
+      open: window.UI.dialogueOpen,
+      audioNpc: window.UI.dialogueAudioNPC,
+    }));
+    assert(dialogueClosed.npc === null && dialogueClosed.open === false &&
+      dialogueClosed.audioNpc === null,
+      'closing dialogue left stale dialogue state');
+
+    const shopFixture = await page.evaluate(() => {
+      const player = window._world.player;
+      player.tileX = 14;
+      player.tileY = 22;
+      player.x = 14;
+      player.y = 22;
+      player.px = 14 * 16;
+      player.py = 22 * 16;
+      return { tileX: player.tileX, tileY: player.tileY };
+    });
+    assert(shopFixture.tileX === 14 && shopFixture.tileY === 22,
+      'shop fixture did not place the player by the Repair Cafe');
+
+    await page.keyboard.press('m');
+    await page.waitForFunction(() => window.gameState === 'shop', undefined,
+      { timeout: 5000 });
+    const shopOpen = await page.evaluate(() => ({
+      itemCount: window.UI.shopItems.length,
+      handler: typeof window.UI.shopBuyHandler,
+    }));
+    assert(shopOpen.itemCount >= 6 && shopOpen.handler === 'function',
+      'production shop path did not populate its item handler');
+
+    await page.keyboard.press('m');
+    await page.waitForFunction(() => window.gameState === 'world', undefined,
+      { timeout: 5000 });
+    assert(await page.evaluate(() => window.UI.shopItems.length === 0 &&
+      window.UI.shopBuyHandler === null),
+      'closing shop did not clear its UI state');
+
     const worldBeforeCombat = await page.evaluate(() => ({
       name: window._world.player.name,
       className: window._world.player.class,
