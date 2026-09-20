@@ -21,7 +21,7 @@ assert(/window\\.UI\\.shopBuyHandler\\s*=/.test(source),
 assert(source.includes('world.player.scrap'),
   'shop renderer has no persistent World scrap source');
 
-assert(source.includes("return { ok: true, kind: 'dialogue'"),
+assert(/return \{\s*ok: true,\s*kind: 'dialogue'/.test(source),
   'dialogue interaction does not return a structured success result');
 assert(source.includes('world.closeDialogue()'),
   'overlay cleanup does not close World dialogue state');
