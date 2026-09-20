@@ -249,6 +249,109 @@ function createServer() {
       window.UI.shopBuyHandler === null),
       'closing shop did not clear its UI state');
 
+    const combatRoundTrip = await page.evaluate(() => {
+      const player = window._world.player;
+      Object.assign(player, {
+        name: 'RoundTrip Ender',
+        age: 41,
+        class: 'Rift Scholar',
+        wits: 5,
+        presence: 4,
+        spirit: 3,
+        might: 2,
+        grace: 1,
+        maxVit: 17,
+        vit: 16,
+        aetherMax: 7,
+        aether: 5,
+        heatMax: 6,
+        heat: 2,
+        echoesMax: 5,
+        echoes: 4,
+        maxStaffCharges: 4,
+        staffCharges: 3,
+        level: 2,
+        xp: 23,
+        xpToNext: 75,
+        unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
+        equipment: { staff: 'polished', backpack: 'field-kit' },
+      });
+      const before = {
+        name: player.name,
+        age: player.age,
+        className: player.class,
+        wits: player.wits,
+        presence: player.presence,
+        spirit: player.spirit,
+        might: player.might,
+        grace: player.grace,
+        maxVit: player.maxVit,
+        aetherMax: player.aetherMax,
+        heatMax: player.heatMax,
+        echoesMax: player.echoesMax,
+        maxStaffCharges: player.maxStaffCharges,
+        level: player.level,
+        xp: player.xp,
+        xpToNext: player.xpToNext,
+        unlockedAbilities: player.unlockedAbilities.slice(),
+        equipment: JSON.parse(JSON.stringify(player.equipment)),
+      };
+      startCombat('skyPredator');
+      const combatPlayer = window._combat.getState().player;
+      finishCombat();
+      const after = window._world.player;
+      return { before, combatPlayer, after };
+    });
+
+    const roundTripFields = [
+      ['name', 'name'],
+      ['age', 'age'],
+      ['className', 'class'],
+      ['wits', 'wits'],
+      ['presence', 'presence'],
+      ['spirit', 'spirit'],
+      ['might', 'might'],
+      ['grace', 'grace'],
+      ['maxVit', 'maxVit'],
+      ['aetherMax', 'aetherMax'],
+      ['heatMax', 'heatMax'],
+      ['echoesMax', 'echoesMax'],
+      ['maxStaffCharges', 'maxStaffCharges'],
+      ['level', 'level'],
+      ['xp', 'xp'],
+      ['xpToNext', 'xpToNext'],
+      ['unlockedAbilities', 'unlockedAbilities'],
+      ['equipment', 'equipment'],
+    ];
+    for (const [beforeKey, afterKey] of roundTripFields) {
+      assert(JSON.stringify(combatRoundTrip.after[afterKey]) ===
+        JSON.stringify(combatRoundTrip.before[beforeKey]),
+        'combat round-trip lost ' + afterKey);
+    }
+    assert(combatRoundTrip.combatPlayer.name === combatRoundTrip.before.name,
+      'combat snapshot lost player identity');
+    assert(combatRoundTrip.combatPlayer.maxStaffCharges ===
+      combatRoundTrip.before.maxStaffCharges,
+      'combat snapshot lost staff maximum');
+
+    const multiLevel = await page.evaluate(() => {
+      window._combat.init({
+        level: 1,
+        xp: 0,
+        xpToNext: 50,
+        echoes: { current: 3, max: 3 },
+        aether: { current: 4, max: 6 },
+        heat: { current: 1, max: 3 },
+        charges: 2,
+        staffMax: 2,
+        unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
+      });
+      window._combat.awardXP(200);
+      return window._combat.getState().player;
+    });
+    assert(multiLevel.level >= 3,
+      'single XP award did not process every earned level');
+
     const worldBeforeCombat = await page.evaluate(() => ({
       name: window._world.player.name,
       className: window._world.player.class,
