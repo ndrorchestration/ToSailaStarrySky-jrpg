@@ -327,6 +327,18 @@
     return state.actors.find(candidate => candidate.id !== actor.id) || actor;
   }
 
+  function applyAirshipOpening(state) {
+    if (state._airshipTransferApplied) return;
+    const damage = state.airship && state.airship.openingLanceDamage
+      ? Math.max(0, state.airship.openingLanceDamage)
+      : 0;
+    if (damage > 0) {
+      const applied = damageEnemy(state, damage);
+      log(state, '[Airship] Resonance Lance opens the encounter for ' + applied + ' damage.');
+    }
+    state._airshipTransferApplied = true;
+  }
+
   function advanceTurn(state) {
     let nextIndex = (state.turnIndex + 1) % state.turnOrder.length;
     state.turnIndex = nextIndex;
@@ -345,7 +357,17 @@
     const amount = state.enemy.type === 'windShear' ? 2 : 1;
     const fieldReduction = Math.min(state.nextHitReduction || 0, amount);
     state.nextHitReduction = Math.max(0, (state.nextHitReduction || 0) - fieldReduction);
-    const applied = damageActor(state, target, amount - fieldReduction);
+    const requestedDamage = Math.max(0, amount - fieldReduction);
+    const mitigation = airshipBridge.mitigateIncomingDamage(state.airship, requestedDamage);
+    state.airship = mitigation.modifiers;
+    if (mitigation.event === 'phaseSlip') {
+      log(state, '[Airship] Phase-Slip caught the incoming strike.');
+    } else if (mitigation.event === 'slip') {
+      log(state, '[Airship] Slip veil bent the incoming strike aside.');
+    } else if (mitigation.event === 'guard') {
+      log(state, '[Airship] Guard veil absorbed 1 damage.');
+    }
+    const applied = damageActor(state, target, mitigation.damage);
     log(state, '[Enemy turn] ' + state.enemy.name + ' pressures ' + target.name +
       ' for ' + applied + ' Vit' + (fieldReduction ? ' (1 braced).' : '.') );
   }
@@ -397,12 +419,21 @@
       actor.heat.current = clampResource(actor.heat.current + 1, actor.heat.max);
     }
 
-    const bonus = actor.nextRollBonus || 0;
+    const personalBonus = actor.nextRollBonus || 0;
     actor.nextRollBonus = 0;
+    const airshipBonus = state.airship && state.airship.firstRollBonus
+      ? state.airship.firstRollBonus
+      : 0;
+    if (state.airship) state.airship.firstRollBonus = 0;
+    const bonus = personalBonus + airshipBonus;
     const roll = roll2d6(state, action.stat ? actor[action.stat] : 0);
     roll.total += bonus;
     roll.outcome = roll.total >= 10 ? 'success' : (roll.total >= 7 ? 'partial' : 'failure');
-    roll.nextRollBonus = bonus;
+    roll.nextRollBonus = personalBonus;
+    roll.airshipBonus = airshipBonus;
+    if (airshipBonus) {
+      log(state, '[Airship] Resonance veil adds +' + airshipBonus + ' to the opening roll.');
+    }
     state.turn += 1;
     state.lastRoll = roll;
     state.lastOutcome = roll.outcome;
@@ -721,7 +752,13 @@
         applyInitOptions(state, merged);
         return true;
       },
+      canBeginEncounter(enemy) {
+        return canBeginEncounter(enemy);
+      },
       beginEncounter(enemy) {
+        if (!canBeginEncounter(enemy)) {
+          return { ok: false, reason: 'Unknown enemy: ' + String(enemy) };
+        }
         if (!state) this.init({});
         state.enemy = normalizeEnemy(enemy);
         state.activeActorId = 'ender';
@@ -739,7 +776,8 @@
         log(state, 'Combat initialized. The weave awaits.');
         log(state, 'Encounter: ' + state.enemy.name + ' — ' + state.enemy.goal);
         log(state, state.enemy.name + ' weakness: ' + state.enemy.weakness);
-        return true;
+        applyAirshipOpening(state);
+        return { ok: true };
       },
       resolveTurn(actionId, actionOptions) {
         if (!state) return false;
@@ -845,6 +883,7 @@
     ACTOR_ORDER,
     TURN_ORDER,
     DEFAULT_ENEMIES,
+    canBeginEncounter,
     createEncounter,
     createController,
     resolveAction,
