@@ -4,7 +4,7 @@
 
 Aetherwake is a late-prototype / pre-alpha project.
 
-The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, effect vocabulary v0.1, extracted current ability/progression registries, and live fail-closed resolver routing for ordinary damage/restoration/resource mutations. Higher-order resolver semantics remain staged work.
+The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, fixed authored Ender/Lyra/Ionia onboarding, a versioned party/progression save boundary, effect vocabulary v0.1, extracted current ability/progression registries, and live fail-closed resolver routing for ordinary damage/restoration/resource mutations. Higher-order resolver semantics, complete game-state persistence, and authored companion progression remain staged work.
 
 ## Source-of-truth rules
 
@@ -123,6 +123,58 @@ This checkpoint verifies the source branch only. Generated `standalone/` and
 artifacts and are not established by this CI result. `main` remains untouched
 by this repair sequence.
 
+## Authored onboarding checkpoint
+
+On 2026-09-20, commit `49a031cb73b189d079d61b53f66785dd69c59cac`
+passed both gameplay smoke run `35511110387` and Windows desktop package run
+`35511111911`.
+
+This establishes:
+
+- Ender, Lyra, and Ionia as fixed authored starting identities;
+- Lyra/Ionia no longer being player-renamable companion slots in the normal onboarding path;
+- Sky-Sailor, Engine-Wright, and Aether-Weaver being explicitly treated as temporary **mechanics templates**, not canonical authored jobs;
+- Lyra/Ionia `nativeJob === null` until authored job/school design is established;
+- direct canonical references remaining `ACTIVE_PARTY[0..2] === ROSTER[0..2]`;
+- explicit implementation provenance `authored-identity+prototype-mechanics` for the two companion records;
+- deterministic and browser-level regression coverage for the onboarding state machine.
+
+The browser gate also exposed and fixed an unrelated legacy renderer defect:
+the field-role selector referenced an undefined `synText`; it now renders the
+current template's `job.synergyBonus` directly.
+
+This checkpoint does **not** establish Reson/Aepex mechanics, canonical Lyra/Ionia
+jobs, formation switching, or true three-character combat.
+
+## Save/persistence v1 checkpoint
+
+On 2026-09-20, commit `fadd4a7cb7bee366c38cb07779aa8b388df92dd6`
+passed gameplay smoke run `35511357445` and Windows desktop package run
+`35511357423`.
+
+Schema v1 establishes a compatibility boundary for **party/progression
+persistence**, not a complete player-facing game save:
+
+- `modules/save-state.js` defines save kind `aetherwake-save`, schema version
+  `1`, and storage key `aetherwake.save.v1`;
+- both playable entrypoints load the save module and boot fails visibly if the
+  required save API is unavailable;
+- only an allowlisted set of persistent roster/progression/resource fields is
+  serialized;
+- canonical roster identity is code-owned rather than save-owned;
+- restoration mutates existing roster records in place, preserving
+  `world.player === ROSTER[0]` and canonical `ACTIVE_PARTY` references;
+- malformed JSON, missing versions, future versions, altered roster identity,
+  duplicate/unknown active IDs, and activation of unimplemented roster shells
+  fail closed;
+- the migration registry exists explicitly. Schema v1 has no predecessor, so it
+  correctly claims no synthetic legacy migration;
+- encounter/render/transient fields are excluded by construction.
+
+The next persistence expansion must explicitly cover or reject World/quest,
+position/layer, ledger, and Dragonfly state. Until that occurs, the runtime must
+not present schema v1 as a complete save/load feature to players.
+
 ## Effect/registry checkpoint
 
 On 2026-09-19:
@@ -215,7 +267,9 @@ Preferred order:
 
 The production architecture should have one canonical persistent character schema.
 
-World, combat, formation, UI, and progression systems should operate on character IDs/references or explicit interfaces rather than creating unrelated partial copies.
+World, combat, formation, UI, progression, and persistence systems should operate on character IDs/references or explicit interfaces rather than creating unrelated partial copies.
+
+Save documents must remain versioned compatibility artifacts. New persistent domains require explicit schema treatment and, after a schema is released, explicit migrations rather than best-effort guessing.
 
 Temporary state-copying in the preservation baseline is migration debt and should be removed as the roster architecture lands.
 
