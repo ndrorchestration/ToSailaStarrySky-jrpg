@@ -5,7 +5,7 @@
    Compatibility boundary:
    - versioned JSON document;
    - stable authored character IDs;
-   - allowlisted persistent party data only;
+   - allowlisted persistent subsystem data only;
    - canonical identity remains code-owned;
    - encounter/render/transient state is intentionally excluded;
    - unsupported or unversioned data fails closed.
@@ -15,13 +15,23 @@
   'use strict';
 
   const SAVE_KIND = 'aetherwake-save';
-  const CURRENT_SCHEMA_VERSION = 1;
-  const STORAGE_KEY = 'aetherwake.save.v1';
+  const CURRENT_SCHEMA_VERSION = 2;
+  const STORAGE_KEY = 'aetherwake.save.v2';
+  const LEGACY_STORAGE_KEYS = Object.freeze(['aetherwake.save.v1']);
 
-  // Future schema changes must add an explicit N -> N+1 migration here.
-  // An empty registry is correct for the first-ever save schema; the loader
-  // will not fabricate a migration for legacy/unversioned input.
-  const MIGRATIONS = Object.freeze({});
+  // Every released schema transition is explicit. v1 contained only
+  // party/progression persistence; v2 adds World/quest/ledger and Dragonfly
+  // payloads. Migrated v1 documents preserve the initialized runtime defaults
+  // for those newly introduced domains by representing them as null.
+  const MIGRATIONS = Object.freeze({
+    1: function migrateV1ToV2(input) {
+      const document = cloneJson(input);
+      document.schemaVersion = 2;
+      document.worldState = null;
+      document.airshipState = null;
+      return document;
+    },
+  });
 
   function cloneJson(value) {
     return JSON.parse(JSON.stringify(value));
@@ -36,6 +46,22 @@
       throw new Error('SAVE_PARTY_STATE_API_UNAVAILABLE');
     }
     return partyState;
+  }
+
+  function requireRuntimePersistence() {
+    const runtime = global.AetherRuntimePersistence;
+    const required = [
+      'exportWorldState',
+      'validateWorldState',
+      'restoreWorldState',
+      'exportAirshipState',
+      'validateAirshipState',
+      'restoreAirshipState',
+    ];
+    if (!runtime || required.some(method => typeof runtime[method] !== 'function')) {
+      throw new Error('SAVE_RUNTIME_PERSISTENCE_API_UNAVAILABLE');
+    }
+    return runtime;
   }
 
   function validateDocument(document) {
@@ -57,6 +83,17 @@
     }
 
     requirePartyState().validatePersistentState(document.partyState);
+
+    if (!Object.prototype.hasOwnProperty.call(document, 'worldState') ||
+        !Object.prototype.hasOwnProperty.call(document, 'airshipState')) {
+      throw new Error('SAVE_V2_SUBSYSTEM_PAYLOADS_REQUIRED');
+    }
+
+    if (document.worldState !== null || document.airshipState !== null) {
+      const runtime = requireRuntimePersistence();
+      if (document.worldState !== null) runtime.validateWorldState(document.worldState);
+      if (document.airshipState !== null) runtime.validateAirshipState(document.airshipState);
+    }
     return true;
   }
 
@@ -89,6 +126,7 @@
 
   function createDocument(options) {
     const partyState = requirePartyState();
+    const runtime = requireRuntimePersistence();
     const now = options && typeof options.now === 'string'
       ? options.now
       : new Date().toISOString();
@@ -98,6 +136,8 @@
       schemaVersion: CURRENT_SCHEMA_VERSION,
       savedAt: now,
       partyState: partyState.exportPersistentState(),
+      worldState: runtime.exportWorldState(),
+      airshipState: runtime.exportAirshipState(),
     };
 
     validateDocument(document);
@@ -125,8 +165,27 @@
 
   function restoreDocument(document) {
     const current = migrateToCurrent(document);
-    const result = requirePartyState().restorePersistentState(current.partyState);
-    return { document: current, roster: result.roster, activeParty: result.activeParty };
+    const partyResult = requirePartyState().restorePersistentState(current.partyState);
+    let worldResult = null;
+    let airshipResult = null;
+
+    if (current.worldState !== null || current.airshipState !== null) {
+      const runtime = requireRuntimePersistence();
+      if (current.worldState !== null) {
+        worldResult = runtime.restoreWorldState(current.worldState);
+      }
+      if (current.airshipState !== null) {
+        airshipResult = runtime.restoreAirshipState(current.airshipState);
+      }
+    }
+
+    return {
+      document: current,
+      roster: partyResult.roster,
+      activeParty: partyResult.activeParty,
+      worldState: worldResult,
+      airshipState: airshipResult,
+    };
   }
 
   function requireStorage(storage) {
@@ -148,18 +207,41 @@
 
   function loadFromStorage(storage) {
     const target = requireStorage(storage);
-    const raw = target.getItem(STORAGE_KEY);
+    let sourceKey = STORAGE_KEY;
+    let raw = target.getItem(sourceKey);
+
+    if (raw == null) {
+      for (const legacyKey of LEGACY_STORAGE_KEYS) {
+        raw = target.getItem(legacyKey);
+        if (raw != null) {
+          sourceKey = legacyKey;
+          break;
+        }
+      }
+    }
+
     if (raw == null) {
       return { ok: false, reason: 'SAVE_NOT_FOUND' };
     }
 
     const document = deserialize(raw);
-    const restored = requirePartyState().restorePersistentState(document.partyState);
+    const restored = restoreDocument(document);
+
+    // Successful legacy loads are copied forward only after validation and
+    // restore succeed. The legacy key is retained as a rollback-safe source.
+    if (sourceKey !== STORAGE_KEY) {
+      target.setItem(STORAGE_KEY, JSON.stringify(document));
+    }
+
     return {
       ok: true,
+      migrated: sourceKey !== STORAGE_KEY,
+      sourceKey,
       document,
       roster: restored.roster,
       activeParty: restored.activeParty,
+      worldState: restored.worldState,
+      airshipState: restored.airshipState,
     };
   }
 
@@ -169,6 +251,9 @@
       throw new Error('SAVE_STORAGE_REMOVE_UNAVAILABLE');
     }
     target.removeItem(STORAGE_KEY);
+    for (const legacyKey of LEGACY_STORAGE_KEYS) {
+      target.removeItem(legacyKey);
+    }
     return { ok: true };
   }
 
@@ -176,6 +261,7 @@
     kind: SAVE_KIND,
     schemaVersion: CURRENT_SCHEMA_VERSION,
     storageKey: STORAGE_KEY,
+    legacyStorageKeys: LEGACY_STORAGE_KEYS.slice(),
     migrationVersions: Object.freeze(Object.keys(MIGRATIONS).map(Number)),
     createDocument,
     validateDocument,
