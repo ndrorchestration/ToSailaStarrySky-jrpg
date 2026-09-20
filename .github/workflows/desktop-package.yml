@@ -1,0 +1,60 @@
+name: Windows desktop package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - dev/progression-build
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  package-windows:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run desktop packaging contract
+        run: npm run test:desktop-package
+
+      - name: Build Windows package
+        run: npm run package:windows
+
+      - name: Verify packaged executable
+        shell: pwsh
+        run: |
+          $package = Get-ChildItem -Path ..\aetherwake-dist -Directory | Select-Object -First 1
+          if (-not $package) { throw "NW.js did not produce a package directory" }
+          $exe = Get-ChildItem -Path $package.FullName -Filter "Aetherwake.exe" -File -Recurse | Select-Object -First 1
+          if (-not $exe) { throw "Packaged Aetherwake.exe was not found" }
+          $embedded = Get-ChildItem -Path $package.FullName -Filter "index-embedded.html" -File -Recurse | Select-Object -First 1
+          if (-not $embedded) { throw "Packaged index-embedded.html was not found" }
+
+      - name: Create distributable ZIP
+        shell: pwsh
+        run: |
+          $package = Get-ChildItem -Path ..\aetherwake-dist -Directory | Select-Object -First 1
+          if (-not $package) { throw "NW.js did not produce a package directory" }
+          Compress-Archive -Path "$($package.FullName)\*" -DestinationPath "Aetherwake-Windows.zip"
+
+      - name: Upload Windows package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Aetherwake-Windows
+          path: Aetherwake-Windows.zip
+          if-no-files-found: error
