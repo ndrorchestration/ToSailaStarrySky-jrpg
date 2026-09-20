@@ -29,7 +29,7 @@ npm run test:desktop-package
 npm run package:windows
 ```
 
-The build output is intentionally placed outside the repository at `../aetherwake-dist`. This prevents the packager from recursively including its own generated output. GitHub Actions verifies that the package contains `Aetherwake.exe` and `index-embedded.html`, then publishes `Aetherwake-Windows.zip`.
+The build output is intentionally placed outside the repository at `../aetherwake-dist`. This prevents the packager from recursively including its own generated output. GitHub Actions verifies that the NW.js output root contains `Aetherwake.exe` and the non-empty `package.nw` application archive, then compresses the entire output root as `Aetherwake-Windows.zip`.
 
 ## Launch contract
 
@@ -40,6 +40,6 @@ The desktop package must:
 - run without Python, PowerShell, or a separately started HTTP server;
 - include the tracked application icon;
 - preserve the browser-served path as a development fallback;
-- fail the packaging workflow if the executable or embedded entry point is absent.
+- fail the packaging workflow if the executable or packaged application archive is absent or empty.
 
 Packaging does not change gameplay semantics. A desktop artifact is considered established only when both the normal Aetherwake smoke workflow and the Windows desktop packaging workflow pass for the same source state.
