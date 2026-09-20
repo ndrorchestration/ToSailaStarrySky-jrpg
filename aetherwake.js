@@ -1822,7 +1822,8 @@ const World = {
   openLedger, openShop, closeShop,
   openDialogue, nextDialogueLine, closeDialogue,
   getLedger, getShopItems, purchaseItem,
-  getQuestState, advanceQuest
+  getQuestState, advanceQuest,
+  exportPersistentState, validatePersistentState, restorePersistentState
 };
 
 // ---------------------------------------------------------------------------
@@ -2304,6 +2305,254 @@ function getQuestState() {
     choicePaths: quest.choicePaths.map(p => ({ ...p })),
     epilogues: quest.epilogues.map(e => ({ id: e.id, name: e.name }))
   };
+}
+
+// ---------------------------------------------------------------------------
+/* Persistent World state — save schema subsystem payload v1.
+
+   Code-owned/static data is intentionally excluded:
+   - map tiles and lore sidecar;
+   - NPC definitions/dialogue;
+   - quest path/epilogue functions;
+   - shop definitions;
+   - transient dialogue/shop/field/combat UI state.
+*/
+// ---------------------------------------------------------------------------
+
+const WORLD_PERSISTENCE_VERSION = 1;
+
+function cloneWorldPersistentValue(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function worldPersistenceKnownIds(entries) {
+  return entries.map(entry => entry.id);
+}
+
+function validateUniqueKnownIds(values, known, errorPrefix) {
+  if (!Array.isArray(values)) throw new Error(errorPrefix + '_ARRAY_REQUIRED');
+  if (new Set(values).size !== values.length) throw new Error(errorPrefix + '_DUPLICATE');
+  for (const value of values) {
+    if (typeof value !== 'string' || !known.includes(value)) {
+      throw new Error(errorPrefix + '_UNKNOWN');
+    }
+  }
+}
+
+function validateBoundedNumber(value, minimum, maximum, errorCode) {
+  if (!Number.isFinite(value) || value < minimum || value > maximum) {
+    throw new Error(errorCode);
+  }
+}
+
+function exportPersistentState() {
+  if (!player || !quest || !ledger) {
+    throw new Error('WORLD_PERSISTENCE_NOT_INITIALIZED');
+  }
+
+  return {
+    version: WORLD_PERSISTENCE_VERSION,
+    playerPosition: {
+      tileX: player.tileX,
+      tileY: player.tileY,
+    },
+    dayTime,
+    skyLayerVisible: Boolean(isSkyLayerVisible),
+    quest: {
+      state: quest.state,
+      signalHookDoneIds: quest.signalHooks.filter(entry => entry.done).map(entry => entry.id),
+      crossingHazardDoneIds: quest.crossingHazards.filter(entry => entry.done).map(entry => entry.id),
+      npcsMet: quest.npcsMet.slice(),
+      choiceMade: quest.choiceMade || null,
+      choiceVariant: quest.choiceVariant || null,
+      choicePath: quest.choicePath || null,
+      hullIntegrity: quest.hullIntegrity,
+      morale: quest.morale,
+      heatLevel: quest.heatLevel,
+      engineIntegration: quest.engineIntegration,
+      wakeEpilogueId: quest.wakeEpilogue ? quest.wakeEpilogue.id : null,
+      discoveries: cloneWorldPersistentValue(quest.discoveries || []),
+      journal: cloneWorldPersistentValue(quest.journal || []),
+    },
+    ledgerEntries: cloneWorldPersistentValue(ledger.entries || []),
+  };
+}
+
+function validatePersistentState(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new Error('WORLD_PERSISTENT_STATE_OBJECT_REQUIRED');
+  }
+  if (payload.version !== WORLD_PERSISTENCE_VERSION) {
+    throw new Error('WORLD_PERSISTENT_STATE_VERSION_INVALID');
+  }
+
+  const position = payload.playerPosition;
+  if (!position || !Number.isInteger(position.tileX) || !Number.isInteger(position.tileY) ||
+      !inBounds(position.tileX, position.tileY)) {
+    throw new Error('WORLD_PERSISTENT_POSITION_INVALID');
+  }
+  if (!groundLayer[position.tileY] ||
+      groundLayer[position.tileY][position.tileX] === TILE_TYPES.GROUND_SOLID) {
+    throw new Error('WORLD_PERSISTENT_POSITION_BLOCKED');
+  }
+
+  if (!Number.isFinite(payload.dayTime) || payload.dayTime < 0 || payload.dayTime >= 1) {
+    throw new Error('WORLD_PERSISTENT_DAY_TIME_INVALID');
+  }
+  if (typeof payload.skyLayerVisible !== 'boolean') {
+    throw new Error('WORLD_PERSISTENT_SKY_LAYER_INVALID');
+  }
+
+  const savedQuest = payload.quest;
+  if (!savedQuest || typeof savedQuest !== 'object' || Array.isArray(savedQuest)) {
+    throw new Error('WORLD_PERSISTENT_QUEST_OBJECT_REQUIRED');
+  }
+  if (!Object.values(QUEST_STATES).includes(savedQuest.state)) {
+    throw new Error('WORLD_PERSISTENT_QUEST_STATE_INVALID');
+  }
+
+  validateUniqueKnownIds(
+    savedQuest.signalHookDoneIds,
+    worldPersistenceKnownIds(quest.signalHooks),
+    'WORLD_PERSISTENT_SIGNAL_HOOK'
+  );
+  validateUniqueKnownIds(
+    savedQuest.crossingHazardDoneIds,
+    worldPersistenceKnownIds(quest.crossingHazards),
+    'WORLD_PERSISTENT_CROSSING_HAZARD'
+  );
+  validateUniqueKnownIds(
+    savedQuest.npcsMet,
+    worldPersistenceKnownIds(quest.contactNPCs),
+    'WORLD_PERSISTENT_NPC'
+  );
+
+  const choiceLabels = quest.choicePaths.map(path => path.label);
+  const choiceIds = quest.choicePaths.map(path => path.id);
+  if (savedQuest.choiceMade !== null &&
+      (typeof savedQuest.choiceMade !== 'string' || !choiceLabels.includes(savedQuest.choiceMade))) {
+    throw new Error('WORLD_PERSISTENT_CHOICE_MADE_INVALID');
+  }
+  if (savedQuest.choiceVariant !== null &&
+      savedQuest.choiceVariant !== '10+' && savedQuest.choiceVariant !== '7-9') {
+    throw new Error('WORLD_PERSISTENT_CHOICE_VARIANT_INVALID');
+  }
+  if (savedQuest.choicePath !== null &&
+      (typeof savedQuest.choicePath !== 'string' || !choiceIds.includes(savedQuest.choicePath))) {
+    throw new Error('WORLD_PERSISTENT_CHOICE_PATH_INVALID');
+  }
+  if (savedQuest.choiceMade !== null && savedQuest.choicePath !== null) {
+    const selected = quest.choicePaths.find(path => path.id === savedQuest.choicePath);
+    if (!selected || selected.label !== savedQuest.choiceMade) {
+      throw new Error('WORLD_PERSISTENT_CHOICE_INCONSISTENT');
+    }
+  }
+
+  validateBoundedNumber(savedQuest.hullIntegrity, 0, 100, 'WORLD_PERSISTENT_HULL_INVALID');
+  validateBoundedNumber(savedQuest.morale, 0, 100, 'WORLD_PERSISTENT_MORALE_INVALID');
+  validateBoundedNumber(savedQuest.heatLevel, 0, 100, 'WORLD_PERSISTENT_HEAT_INVALID');
+  validateBoundedNumber(savedQuest.engineIntegration, 0, 100, 'WORLD_PERSISTENT_ENGINE_INVALID');
+
+  const epilogueIds = quest.epilogues.map(epilogue => epilogue.id);
+  if (savedQuest.wakeEpilogueId !== null &&
+      (typeof savedQuest.wakeEpilogueId !== 'string' ||
+       !epilogueIds.includes(savedQuest.wakeEpilogueId))) {
+    throw new Error('WORLD_PERSISTENT_EPILOGUE_INVALID');
+  }
+  if (savedQuest.state === QUEST_STATES.DONE && savedQuest.wakeEpilogueId === null) {
+    throw new Error('WORLD_PERSISTENT_DONE_REQUIRES_EPILOGUE');
+  }
+
+  if (!Array.isArray(savedQuest.discoveries)) {
+    throw new Error('WORLD_PERSISTENT_DISCOVERIES_ARRAY_REQUIRED');
+  }
+  for (const discovery of savedQuest.discoveries) {
+    if (!discovery || !Number.isInteger(discovery.x) || !Number.isInteger(discovery.y) ||
+        !inBounds(discovery.x, discovery.y) || typeof discovery.text !== 'string') {
+      throw new Error('WORLD_PERSISTENT_DISCOVERY_INVALID');
+    }
+  }
+
+  if (!Array.isArray(savedQuest.journal)) {
+    throw new Error('WORLD_PERSISTENT_JOURNAL_ARRAY_REQUIRED');
+  }
+  for (const entry of savedQuest.journal) {
+    if (!entry || !Object.values(QUEST_STATES).includes(entry.state) ||
+        typeof entry.text !== 'string') {
+      throw new Error('WORLD_PERSISTENT_JOURNAL_ENTRY_INVALID');
+    }
+  }
+
+  if (!Array.isArray(payload.ledgerEntries)) {
+    throw new Error('WORLD_PERSISTENT_LEDGER_ARRAY_REQUIRED');
+  }
+  for (const entry of payload.ledgerEntries) {
+    if (!entry || typeof entry.type !== 'string' || typeof entry.text !== 'string') {
+      throw new Error('WORLD_PERSISTENT_LEDGER_ENTRY_INVALID');
+    }
+    if (entry.time !== undefined &&
+        (!Number.isFinite(entry.time) || entry.time < 0 || entry.time >= 1)) {
+      throw new Error('WORLD_PERSISTENT_LEDGER_TIME_INVALID');
+    }
+  }
+
+  return true;
+}
+
+function restorePersistentState(payload) {
+  validatePersistentState(payload);
+
+  player.tileX = payload.playerPosition.tileX;
+  player.tileY = payload.playerPosition.tileY;
+  player.x = player.tileX;
+  player.y = player.tileY;
+  player.px = player.tileX * 16;
+  player.py = player.tileY * 16;
+  // Boarding is a runtime/UI transition, not a persisted location mode.
+  player.shipBoarded = false;
+
+  dayTime = payload.dayTime;
+  isSkyLayerVisible = payload.skyLayerVisible;
+
+  const savedQuest = payload.quest;
+  const signalDone = new Set(savedQuest.signalHookDoneIds);
+  const hazardDone = new Set(savedQuest.crossingHazardDoneIds);
+
+  quest.state = savedQuest.state;
+  quest.act = savedQuest.state;
+  quest.signalHooks.forEach(entry => { entry.done = signalDone.has(entry.id); });
+  quest.crossingHazards.forEach(entry => { entry.done = hazardDone.has(entry.id); });
+  quest.hooksCompleted = signalDone.size;
+  quest.hazardsCompleted = hazardDone.size;
+  quest.npcsMet = savedQuest.npcsMet.slice();
+  quest.choiceMade = savedQuest.choiceMade;
+  quest.choiceVariant = savedQuest.choiceVariant;
+  quest.choicePath = savedQuest.choicePath;
+  quest.hullIntegrity = savedQuest.hullIntegrity;
+  quest.morale = savedQuest.morale;
+  quest.heatLevel = savedQuest.heatLevel;
+  quest.engineIntegration = savedQuest.engineIntegration;
+  quest.wakeEpilogue = savedQuest.wakeEpilogueId === null
+    ? null
+    : quest.epilogues.find(epilogue => epilogue.id === savedQuest.wakeEpilogueId) || null;
+  quest.discoveries = cloneWorldPersistentValue(savedQuest.discoveries);
+  quest.journal = cloneWorldPersistentValue(savedQuest.journal);
+
+  const metNPCs = new Set(quest.npcsMet);
+  npcs.forEach(npc => {
+    if (npc.flags) npc.flags.met = metNPCs.has(npc.id);
+  });
+
+  ledger.entries = cloneWorldPersistentValue(payload.ledgerEntries);
+  ledger.open = false;
+  if (shop) shop.open = false;
+  activeDialogue = null;
+  gameOver = quest.state === QUEST_STATES.DONE;
+
+  World.quest = quest;
+  World.npcs = npcs;
+  validatePersistentState(exportPersistentState());
+  return exportPersistentState();
 }
 
 /**
