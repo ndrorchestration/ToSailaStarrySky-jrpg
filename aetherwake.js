@@ -292,6 +292,15 @@ function draw() {
       // Re-init combat with the new player data
       if (combat && typeof combat.init === 'function') {
         combat.init({
+          name: world.player.name,
+          age: world.player.age,
+          class: world.player.class,
+          wits: world.player.wits,
+          presence: world.player.presence,
+          spirit: world.player.spirit,
+          might: world.player.might,
+          grace: world.player.grace,
+          maxVit: world.player.maxVit,
           vit: world.player.vit,
           scrap: world.player.scrap,
           aether: { current: world.player.aether, max: world.player.aetherMax },
