@@ -178,6 +178,7 @@ function setup() {
   airshipState = window.AetherAirshipState.createState(world.player.airship);
   world.player.airship = airshipState;
   window._airshipState = airshipState;
+  installRuntimePersistenceAdapter();
   window._setupOrder = window._setupOrder + '→party-state-done';
   window._setupOrder = window._setupOrder + '→combat-start';
   if (typeof window.AetherCombat === 'undefined') {
@@ -744,6 +745,49 @@ function commitAirshipState(nextState) {
   airshipState = nextState;
   window._airshipState = nextState;
   if (world && world.player) world.player.airship = nextState;
+}
+
+function installRuntimePersistenceAdapter() {
+  function requireWorldPersistence(method) {
+    if (!world || typeof world[method] !== 'function') {
+      throw new Error('RUNTIME_WORLD_PERSISTENCE_API_UNAVAILABLE');
+    }
+    return world[method].bind(world);
+  }
+
+  function requireAirshipPersistence(method) {
+    if (!window.AetherAirshipState ||
+        typeof window.AetherAirshipState[method] !== 'function') {
+      throw new Error('RUNTIME_AIRSHIP_PERSISTENCE_API_UNAVAILABLE');
+    }
+    return window.AetherAirshipState[method].bind(window.AetherAirshipState);
+  }
+
+  window.AetherRuntimePersistence = Object.freeze({
+    exportWorldState: function() {
+      return requireWorldPersistence('exportPersistentState')();
+    },
+    validateWorldState: function(payload) {
+      return requireWorldPersistence('validatePersistentState')(payload);
+    },
+    restoreWorldState: function(payload) {
+      return requireWorldPersistence('restorePersistentState')(payload);
+    },
+    exportAirshipState: function() {
+      if (!ensureAirshipState()) {
+        throw new Error('RUNTIME_AIRSHIP_STATE_UNAVAILABLE');
+      }
+      return requireAirshipPersistence('exportPersistentState')(airshipState);
+    },
+    validateAirshipState: function(payload) {
+      return requireAirshipPersistence('validatePersistentState')(payload);
+    },
+    restoreAirshipState: function(payload) {
+      const nextState = requireAirshipPersistence('restorePersistentState')(payload);
+      commitAirshipState(nextState);
+      return requireAirshipPersistence('exportPersistentState')(airshipState);
+    },
+  });
 }
 
 function ensureAirshipState() {
