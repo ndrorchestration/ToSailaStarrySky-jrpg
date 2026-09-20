@@ -924,16 +924,6 @@ function finishCombat() {
     }
 
     world.player.staffCharges = p.staffCharges;
-    if (combat.getCharges) {
-      const chargeInfo = combat.getCharges();
-      if (chargeInfo && chargeInfo.max != null) {
-        world.player.maxStaffCharges = chargeInfo.max;
-      }
-    }
-
-    world.player.level = p.level;
-    world.player.xp = p.xp;
-    world.player.xpToNext = p.xpToNext;
     if (p.maxStaffCharges !== undefined) {
       world.player.maxStaffCharges = p.maxStaffCharges;
     } else if (combat.getCharges) {
