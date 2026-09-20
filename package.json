@@ -43,6 +43,7 @@
     "test:resource-eligibility": "node tests/resource-eligibility.test.js",
     "test:progression-reachability": "node tests/progression-reachability.test.js",
     "test:secondary-action": "node tests/secondary-action-contract.test.js",
-    "test:first-wake-contract": "node tests/first-wake-contract.test.js"
+    "test:first-wake-contract": "node tests/first-wake-contract.test.js",
+    "test:first-wake-party": "node tests/first-wake-party-contract.test.js"
   }
 }
