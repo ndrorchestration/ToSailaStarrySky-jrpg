@@ -394,6 +394,12 @@ function keyPressed() {
 
   handleInput();
 
+  // Numeric choices use keydown so browser layouts cannot drop the selection.
+  if ((gameState === STATE.WORLD || gameState === STATE.DIALOGUE) &&
+      keyCode >= 49 && keyCode <= 51) {
+    handleChoiceInput(String(keyCode - 48));
+  }
+
   // keysPressed is an edge-triggered event map consumed synchronously above.
   // Clear this key immediately so it cannot leak into a later key event.
   delete keysPressed[keyCode];
@@ -458,7 +464,7 @@ function keyTyped() {
     if ((key === 'l' || key === 'L' || key === 'escape') && world && player && player.shipBoarded) {
       player.shipBoarded = false;
     }
-    // Choice path selection: 1/2/3
+    // Choice path selection: 1/2/3; keyPressed also handles this path.
     handleChoiceInput();
   }
   if (gameState === STATE.BOOT) {
@@ -575,8 +581,25 @@ function handleInput() {
     }
   }
   else {
-    // Overlay states — ESC or Enter to close
-    if (keysPressed[ENTER] || keysPressed[27]) {
+    // Overlay states honor the key shown in each overlay's prompt.
+    if (gameState === STATE.DIALOGUE && keysPressed[69]) {
+      if (world && typeof world.nextDialogueLine === 'function') {
+        world.nextDialogueLine();
+        if (!window.UI.dialogueOpen) closeOverlay();
+      }
+    } else if (gameState === STATE.SHOP &&
+      (keysPressed[77] || keysPressed[27])) {
+      closeOverlay();
+    } else if (gameState === STATE.LEDGER &&
+      (keysPressed[76] || keysPressed[27])) {
+      closeOverlay();
+    } else if (gameState === STATE.QUESTLOG &&
+      (keysPressed[84] || keysPressed[27])) {
+      closeOverlay();
+    } else if (gameState === STATE.CHARSHEET &&
+      (keysPressed[82] || keysPressed[27])) {
+      closeOverlay();
+    } else if (keysPressed[ENTER] || keysPressed[27]) {
       closeOverlay();
     }
   }
@@ -611,12 +634,15 @@ function handleWorldInput() {
   }
   if (keysPressed[69]) {   // E
     if (gameState === STATE.DIALOGUE) {
-      // Advance dialogue
       if (world && typeof world.nextDialogueLine === 'function') {
         world.nextDialogueLine();
+        if (!window.UI.dialogueOpen) closeOverlay();
       }
-    } else {
-      if (world && typeof world.interact === 'function') world.interact();
+    } else if (world && typeof world.interact === 'function') {
+      const result = world.interact();
+      if (result && result.ok && result.kind === 'dialogue') {
+        openState(STATE.DIALOGUE);
+      }
     }
   }
   if (keysPressed[70]) {   // F
@@ -898,6 +924,12 @@ function openState(s) {
 }
 
 function closeOverlay() {
+  if (gameState === STATE.DIALOGUE && world && typeof world.closeDialogue === 'function') {
+    world.closeDialogue();
+  }
+  if (gameState === STATE.SHOP && world && typeof world.closeShop === 'function') {
+    world.closeShop();
+  }
   if (gameState === STATE.AIRSHIP && world && world.player) {
     world.player.shipBoarded = false;
   }
@@ -2360,15 +2392,12 @@ function drawChoiceMenu() {
   textFont('sans-serif');
 }
 
-function handleChoiceInput() {
+function handleChoiceInput(value) {
   if (quest.state !== QUEST_STATES.CHOICE || quest.choiceMade) return;
 
-  if (typeof key !== 'undefined' && key >= '1' && key <= '3') {
-    const idx = parseInt(key) - 1;
-    if (idx >= 0 && idx < quest.choicePaths.length) {
-      selectChoicePath(idx);
-    }
-    return;
+  const selected = value || (typeof key !== 'undefined' ? key : '');
+  if (selected >= '1' && selected <= '3') {
+    selectChoicePath(parseInt(selected, 10) - 1);
   }
 }
 
@@ -2504,17 +2533,27 @@ function toggleLayer() {
  * interact() — dispatches on the key passed from core.js.
  */
 function interact() {
-  if (gameOver) return;
+  if (gameOver) return { ok: false, kind: 'interaction', reason: 'The game is over.' };
   const key = window.interactionKey;
-  if (!key) return;
+  if (!key) return { ok: false, kind: 'interaction', reason: 'No interaction key.' };
 
   switch (key) {
-    case 'e': doTalk();          break;
-    case 'q': plantField();      break;
-    case 'f': boardShip();       break;
-    case 'tab': toggleLayer();   break;
-    case 'l': openLedger();      break;
-    case 'm': openShop();        break;
+    case 'e': return doTalk();
+    case 'q':
+      plantField();
+      return { ok: true, kind: 'field' };
+    case 'f':
+      return boardShip() || { ok: true, kind: 'airship' };
+    case 'tab':
+      toggleLayer();
+      return { ok: true, kind: 'layer' };
+    case 'l':
+      openLedger();
+      return { ok: true, kind: 'ledger' };
+    case 'm':
+      return openShop();
+    default:
+      return { ok: false, kind: 'interaction', reason: 'Unsupported interaction key.' };
   }
 }
 
@@ -2523,11 +2562,16 @@ function interact() {
  */
 function doTalk() {
   const nearest = findNearestNPC(2);
-  if (!nearest) return;
+  if (!nearest) {
+    return { ok: false, kind: 'dialogue', reason: 'No nearby NPC.' };
+  }
 
-  // Open intro dialogue BEFORE setting met flag so first-contact dialogue is shown
-  if (!nearest.flags.met) {
-    openDialogue(nearest);
+  // Capture first-meeting state before opening dialogue; intro text is authoritative.
+  const firstMeeting = !nearest.flags.met;
+  const result = openDialogue(nearest);
+  if (!result || !result.ok) return result;
+
+  if (firstMeeting) {
     nearest.flags.met = true;
     if (!quest.npcsMet.includes(nearest.id)) {
       quest.npcsMet.push(nearest.id);
@@ -2535,13 +2579,12 @@ function doTalk() {
     if (quest.state === QUEST_STATES.CONTACT || quest.state === QUEST_STATES.CHOICE) {
       advanceQuest();
     }
-  } else {
-    openDialogue(nearest);
   }
 
   if (quest.state === QUEST_STATES.SIGNAL) {
     checkSignalHook(nearest);
   }
+  return result;
 }
 
 function checkSignalHook(npc) {
@@ -2648,15 +2691,12 @@ function openDialogue(npc) {
 
   playDialogueAudioLine();
 
-  // Transition to DIALOGUE state
-  if (gameState !== STATE.DIALOGUE) {
-    prevState = gameState;
-    gameState = STATE.DIALOGUE;
-    window.gameState = gameState;
-    if (VIS.fadeTransitions) startFade(150);
-    window.UI.opening = true;
-    window.UI.openness = 0;
-  }
+  return {
+    ok: true,
+    kind: 'dialogue',
+    npcId: npc.id,
+    lineCount: lines.length
+  };
 }
 
 function getClassLockKey(npc) {
@@ -2670,8 +2710,16 @@ function closeDialogue() {
   if (activeDialogue) {
     activeDialogue.closed = true;
     activeDialogue = null;
-    stopDialogueAudio();
   }
+  stopDialogueAudio();
+  window.UI.dialogueOpen = false;
+  window.UI.dialogueNPC = null;
+  window.UI.dialogueText = '';
+  window.UI.dialogueLines = [];
+  window.UI.dialogueLineIndex = 0;
+  window.UI.dialogueAudioNPC = null;
+  window.UI.dialogueAudioBatch = null;
+  window.UI.dialogueAudioPlayed = false;
 }
 
 function nextDialogueLine() {
@@ -7739,9 +7787,19 @@ function drawNPCDialogue(npc, text) {
  * Close dialogue.
  */
 function closeDialogue() {
+  if (activeDialogue) {
+    activeDialogue.closed = true;
+    activeDialogue = null;
+  }
+  stopDialogueAudio();
   window.UI.dialogueOpen = false;
   window.UI.dialogueNPC = null;
   window.UI.dialogueText = '';
+  window.UI.dialogueLines = [];
+  window.UI.dialogueLineIndex = 0;
+  window.UI.dialogueAudioNPC = null;
+  window.UI.dialogueAudioBatch = null;
+  window.UI.dialogueAudioPlayed = false;
 }
 
 // ─────────────────────────────────────────────
