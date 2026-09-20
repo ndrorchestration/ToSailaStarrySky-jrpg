@@ -133,6 +133,28 @@ test('D22b: drawCombatLog reads from combat state log', () => {
     'Should handle empty log without throwing');
 });
 
+// D21c: Invalid enemy preflight must happen before any mutation/transfer consumption
+test('D21c: invalid enemy preflight precedes combat init and airship consumption', () => {
+  const startCombatMatch = aetherwakeSrc.match(/function startCombat\(enemyId\) \{([\s\S]*?)^\}/m);
+  assert(startCombatMatch, 'startCombat function should exist');
+  const body = startCombatMatch[1];
+
+  const preflightIdx = body.indexOf('combat.canBeginEncounter');
+  const consumeIdx = body.indexOf('consumeTransfer(airshipState)');
+  const initIdx = body.indexOf('combat.init(playerSnapshot)');
+
+  assert(preflightIdx !== -1, 'startCombat should preflight enemy identity');
+  assert(consumeIdx !== -1, 'startCombat should contain airship transfer consumption');
+  assert(initIdx !== -1, 'startCombat should initialize combat for valid encounters');
+  assert(preflightIdx < consumeIdx,
+    'enemy preflight must occur before airship transfer consumption');
+  assert(preflightIdx < initIdx,
+    'enemy preflight must occur before combat initialization');
+
+  assert(aetherwakeSrc.includes('this.canBeginEncounter = function(enemyId)'),
+    'AetherCombat should expose a non-mutating encounter preflight');
+});
+
 // D23: Verify airship transfer only consumed when eligible
 test('D23: Airship transfer eligibility check in startCombat', () => {
   const startCombatMatch = aetherwakeSrc.match(/function startCombat\(enemyId\) \{([\s\S]*?)^\}/m);
