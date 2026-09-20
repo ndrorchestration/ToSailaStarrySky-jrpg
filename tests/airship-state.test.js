@@ -31,6 +31,7 @@ test('phase-slip uses the shared power budget and a drive charge', () => {
   assert.strictEqual(result.state.power, 3);
   assert.strictEqual(result.state.driveCharges, 2);
   assert.strictEqual(result.state.phaseIntegrity, 92);
+  assert.strictEqual(result.state.pendingCombat.phaseSlip, true);
   assert.strictEqual(result.state.lastAction, 'phaseSlip');
   assert.strictEqual(state.power, 6);
 });
@@ -55,6 +56,7 @@ test('resonance lance consumes charge, heats the wakeheart, and marks a target',
   assert.strictEqual(result.state.lanceCharges, 1);
   assert.strictEqual(result.state.heat, 2);
   assert.strictEqual(result.state.targetIntegrity, 76);
+  assert.strictEqual(result.state.pendingCombat.resonanceLanceDamage, 24);
 });
 
 test('insufficient power fails atomically without consuming a charge', () => {
