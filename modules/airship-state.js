@@ -166,6 +166,140 @@
     return SYSTEM_DEFINITIONS.map(system => Object.assign({}, system));
   }
 
+  const PERSISTENCE_VERSION = 1;
+  const PERSISTENT_COOLDOWN_IDS = Object.freeze([
+    'phaseSlip',
+    'resonanceLance',
+    'rootlineTether',
+    'patternForge',
+  ]);
+
+  function validatePersistentNumber(value, minimum, maximum, errorCode, integerOnly) {
+    if (!Number.isFinite(value) ||
+        (integerOnly && !Number.isInteger(value)) ||
+        value < minimum || value > maximum) {
+      throw new Error(errorCode);
+    }
+  }
+
+  function exportPersistentState(inputState) {
+    const state = createState(inputState);
+    return {
+      version: PERSISTENCE_VERSION,
+      power: state.power,
+      hull: state.hull,
+      phaseIntegrity: state.phaseIntegrity,
+      shieldMode: state.shieldMode,
+      driveCharges: state.driveCharges,
+      lanceCharges: state.lanceCharges,
+      tetherCharges: state.tetherCharges,
+      forgeCharges: state.forgeCharges,
+      heat: state.heat,
+      targetIntegrity: state.targetIntegrity,
+      pendingCombat: {
+        phaseSlip: Boolean(state.pendingCombat.phaseSlip),
+        resonanceLanceDamage: state.pendingCombat.resonanceLanceDamage,
+      },
+      cooldowns: {
+        phaseSlip: state.cooldowns.phaseSlip,
+        resonanceLance: state.cooldowns.resonanceLance,
+        rootlineTether: state.cooldowns.rootlineTether,
+        patternForge: state.cooldowns.patternForge,
+      },
+    };
+  }
+
+  function validatePersistentState(payload) {
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+      throw new Error('AIRSHIP_PERSISTENT_STATE_OBJECT_REQUIRED');
+    }
+    if (payload.version !== PERSISTENCE_VERSION) {
+      throw new Error('AIRSHIP_PERSISTENT_STATE_VERSION_INVALID');
+    }
+
+    validatePersistentNumber(payload.power, 0, DEFAULT_STATE.maxPower,
+      'AIRSHIP_PERSISTENT_POWER_INVALID', true);
+    validatePersistentNumber(payload.hull, 0, DEFAULT_STATE.maxHull,
+      'AIRSHIP_PERSISTENT_HULL_INVALID', false);
+    validatePersistentNumber(payload.phaseIntegrity, 0, DEFAULT_STATE.maxPhaseIntegrity,
+      'AIRSHIP_PERSISTENT_PHASE_INVALID', false);
+    if (!SHIELD_MODES.includes(payload.shieldMode)) {
+      throw new Error('AIRSHIP_PERSISTENT_SHIELD_MODE_INVALID');
+    }
+    validatePersistentNumber(payload.driveCharges, 0, DEFAULT_STATE.driveCharges,
+      'AIRSHIP_PERSISTENT_DRIVE_CHARGES_INVALID', true);
+    validatePersistentNumber(payload.lanceCharges, 0, DEFAULT_STATE.lanceCharges,
+      'AIRSHIP_PERSISTENT_LANCE_CHARGES_INVALID', true);
+    validatePersistentNumber(payload.tetherCharges, 0, DEFAULT_STATE.tetherCharges,
+      'AIRSHIP_PERSISTENT_TETHER_CHARGES_INVALID', true);
+    validatePersistentNumber(payload.forgeCharges, 0, DEFAULT_STATE.forgeCharges,
+      'AIRSHIP_PERSISTENT_FORGE_CHARGES_INVALID', true);
+    validatePersistentNumber(payload.heat, 0, DEFAULT_STATE.maxHeat,
+      'AIRSHIP_PERSISTENT_HEAT_INVALID', true);
+    validatePersistentNumber(payload.targetIntegrity, 0, 100,
+      'AIRSHIP_PERSISTENT_TARGET_INVALID', false);
+
+    if (!payload.pendingCombat || typeof payload.pendingCombat !== 'object' ||
+        Array.isArray(payload.pendingCombat) ||
+        typeof payload.pendingCombat.phaseSlip !== 'boolean') {
+      throw new Error('AIRSHIP_PERSISTENT_PENDING_COMBAT_INVALID');
+    }
+    validatePersistentNumber(
+      payload.pendingCombat.resonanceLanceDamage,
+      0,
+      30,
+      'AIRSHIP_PERSISTENT_LANCE_TRANSFER_INVALID',
+      false
+    );
+
+    if (!payload.cooldowns || typeof payload.cooldowns !== 'object' ||
+        Array.isArray(payload.cooldowns)) {
+      throw new Error('AIRSHIP_PERSISTENT_COOLDOWNS_INVALID');
+    }
+    const actualCooldownIds = Object.keys(payload.cooldowns).sort();
+    const expectedCooldownIds = PERSISTENT_COOLDOWN_IDS.slice().sort();
+    if (actualCooldownIds.join('|') !== expectedCooldownIds.join('|')) {
+      throw new Error('AIRSHIP_PERSISTENT_COOLDOWN_KEYS_INVALID');
+    }
+    for (const id of PERSISTENT_COOLDOWN_IDS) {
+      const definition = SYSTEM_DEFINITIONS.find(system => system.id === id);
+      const maximum = definition ? definition.cooldown : 0;
+      validatePersistentNumber(
+        payload.cooldowns[id],
+        0,
+        maximum,
+        'AIRSHIP_PERSISTENT_COOLDOWN_VALUE_INVALID',
+        true
+      );
+    }
+
+    return true;
+  }
+
+  function restorePersistentState(payload) {
+    validatePersistentState(payload);
+    const state = createState({
+      power: payload.power,
+      hull: payload.hull,
+      phaseIntegrity: payload.phaseIntegrity,
+      shieldMode: payload.shieldMode,
+      driveCharges: payload.driveCharges,
+      lanceCharges: payload.lanceCharges,
+      tetherCharges: payload.tetherCharges,
+      forgeCharges: payload.forgeCharges,
+      heat: payload.heat,
+      targetIntegrity: payload.targetIntegrity,
+      pendingCombat: clone(payload.pendingCombat),
+      cooldowns: clone(payload.cooldowns),
+    });
+
+    // Operational history is intentionally not restored from save data.
+    state.lastAction = null;
+    state.lastMessage = DEFAULT_STATE.lastMessage;
+    state.log = clone(DEFAULT_STATE.log);
+    return state;
+  }
+
   function getShieldProfile(mode) {
     const profile = SHIELD_PROFILES[mode] || SHIELD_PROFILES.guard;
     return Object.assign({}, profile);
@@ -256,7 +390,12 @@
   return {
     VERSION,
     SHIELD_MODES: SHIELD_MODES.slice(),
+    persistenceVersion: PERSISTENCE_VERSION,
+    persistentCooldownIds: PERSISTENT_COOLDOWN_IDS.slice(),
     createState,
+    exportPersistentState,
+    validatePersistentState,
+    restorePersistentState,
     getSystemDefinitions,
     getShieldProfile,
     cycleShieldMode,
