@@ -11,7 +11,7 @@
     "min_height": 500,
     "toolbar": false,
     "resizable": true,
-    "icon": "icon.png",
+    "icon": "icon.svg",
     "position": "center",
     "show": true,
     "frame": true,
@@ -28,7 +28,8 @@
   "devDependencies": {
     "nw": "^0.116.0",
     "nwjs": "^1.4.4",
-    "playwright": "^1.63.0"
+    "playwright": "^1.63.0",
+    "nw-builder": "^4.5.0"
   },
   "private": true,
   "scripts": {
@@ -46,7 +47,10 @@
     "test:secondary-action": "node tests/secondary-action-contract.test.js",
     "test:airship": "node tests/airship-state.test.js",
     "test:airship-combat-bridge": "node tests/airship-combat-bridge.test.js",
-    "test:all": "npm run test:runtime-contracts && npm run test:effects && npm run test:registries && npm run test:resolver && npm run test:resolver-integration && npm run test:enemy-metadata && npm run test:combat-input && npm run test:resource-eligibility && npm run test:progression-reachability && npm run test:secondary-action && npm run test:airship && npm run test:airship-combat-bridge && npm run test:regressions && npm run test:smoke",
-    "test:regressions": "node tests/boot-entrypoint-regression.test.js && node tests/input-dialogue-regression.test.js && node tests/world-quest-lore-ledger-regression.test.js && node tests/shop-regression.test.js && node tests/combat-airship-regression.test.js && node tests/visual-regression.test.js"
+    "test:all": "npm run test:runtime-contracts && npm run test:effects && npm run test:registries && npm run test:resolver && npm run test:resolver-integration && npm run test:enemy-metadata && npm run test:combat-input && npm run test:resource-eligibility && npm run test:progression-reachability && npm run test:secondary-action && npm run test:airship && npm run test:airship-combat-bridge && npm run test:regressions && npm run test:desktop-package && npm run test:smoke",
+    "test:regressions": "node tests/boot-entrypoint-regression.test.js && node tests/input-dialogue-regression.test.js && node tests/world-quest-lore-ledger-regression.test.js && node tests/shop-regression.test.js && node tests/combat-airship-regression.test.js && node tests/visual-regression.test.js",
+    "package:windows": "nwbuild --mode=build --glob=false --platform=win --arch=x64 --version=0.116.0 --outDir=../aetherwake-dist .",
+    "package:windows:clean": "npm run package:windows",
+    "test:desktop-package": "node tests/desktop-package-contract.test.js"
   }
 }
