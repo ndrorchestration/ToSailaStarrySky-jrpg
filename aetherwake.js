@@ -685,7 +685,15 @@ function cycleAirshipShieldMode() {
 
 function leaveAirship() {
   if (world && world.player) world.player.shipBoarded = false;
-  if (gameState === STATE.AIRSHIP) closeOverlay();
+  if (gameState === STATE.AIRSHIP) {
+    // The frame loop tracks prevState for fades, so it may already contain
+    // AIRSHIP by the time the user exits. Return directly to WORLD instead of
+    // relying on overlay history for this full-screen ship state.
+    gameState = STATE.WORLD;
+    window.gameState = gameState;
+    prevState = null;
+    if (VIS.fadeTransitions) startFade(100);
+  }
 }
 
 function handleAirshipInput() {
