@@ -970,30 +970,32 @@ function createServer() {
       window.gameState === 'world' && window._world.player.shipBoarded === false
     , undefined, { timeout: 5000 });
 
-    const rosterAfterCombat = await page.evaluate(() => ({
-      vit: window.ROSTER[0].vit,
-      scrap: window.ROSTER[0].scrap,
-      aether: window.ROSTER[0].aether,
-      heat: window.ROSTER[0].heat,
-      echoes: window.ROSTER[0].echoes,
-      staffCharges: window.ROSTER[0].staffCharges,
+    const canonicalAfterCombat = await page.evaluate(() => ({
+      world: {
+        vit: window._world.player.vit,
+        scrap: window._world.player.scrap,
+        aether: window._world.player.aether,
+        heat: window._world.player.heat,
+        echoes: window._world.player.echoes,
+        staffCharges: window._world.player.staffCharges,
+      },
+      roster: {
+        vit: window.ROSTER[0].vit,
+        scrap: window.ROSTER[0].scrap,
+        aether: window.ROSTER[0].aether,
+        heat: window.ROSTER[0].heat,
+        echoes: window.ROSTER[0].echoes,
+        staffCharges: window.ROSTER[0].staffCharges,
+      },
       worldLeadRef: window._world.player === window.ROSTER[0],
       activeLeadRef: window.ACTIVE_PARTY[0] === window.ROSTER[0],
     }));
 
-    assert(rosterAfterCombat.vit === worldAfterCombat.vit,
-      'combat vitality did not persist to canonical ROSTER[0]');
-    assert(rosterAfterCombat.scrap === worldAfterCombat.scrap,
-      'combat scrap did not persist to canonical ROSTER[0]');
-    assert(rosterAfterCombat.aether === worldAfterCombat.aether,
-      'combat aether did not persist to canonical ROSTER[0]');
-    assert(rosterAfterCombat.heat === worldAfterCombat.heat,
-      'combat heat did not persist to canonical ROSTER[0]');
-    assert(rosterAfterCombat.echoes === worldAfterCombat.echoes,
-      'combat echoes did not persist to canonical ROSTER[0]');
-    assert(rosterAfterCombat.staffCharges === worldAfterCombat.staffCharges,
-      'combat staff charges did not persist to canonical ROSTER[0]');
-    assert(rosterAfterCombat.worldLeadRef && rosterAfterCombat.activeLeadRef,
+    for (const field of ['vit', 'scrap', 'aether', 'heat', 'echoes', 'staffCharges']) {
+      assert(canonicalAfterCombat.roster[field] === canonicalAfterCombat.world[field],
+        'post-combat ' + field + ' diverged between World and canonical ROSTER[0]');
+    }
+    assert(canonicalAfterCombat.worldLeadRef && canonicalAfterCombat.activeLeadRef,
       'canonical lead reference split after combat');
 
     if (errors.length) {
