@@ -237,14 +237,17 @@ function draw() {
     }
     // When char-create signals completion, transition to WORLD and init combat
     if (window._charcreate && window._charcreate.phase === 'done') {
-      // Commit the preservation character-creation draft into persistent
-      // roster records. The lead record is the original World player object,
-      // mutated in place so World, ROSTER[0], and ACTIVE_PARTY[0] share identity.
+      // Commit the authored First Wake party into persistent roster records.
+      // The lead record is the original World player object, mutated in place
+      // so World, ROSTER[0], and ACTIVE_PARTY[0] share identity.
       if (!window.AetherPartyState ||
-          typeof window.AetherPartyState.commitPrototypeParty !== 'function') {
+          typeof window.AetherPartyState.commitFirstWakeParty !== 'function') {
         throw new Error('AETHER_PARTY_STATE_UNAVAILABLE_DURING_HANDOFF');
       }
-      const activeParty = window.AetherPartyState.commitPrototypeParty(window._charcreate.party);
+      const partyCommit = window.AetherPartyState.commitFirstWakeParty({
+        storyFlags: { lyraJoined: true, ioniaJoined: true },
+      });
+      const activeParty = partyCommit && partyCommit.activeParty;
       if (!activeParty || activeParty[0] !== world.player ||
           !window.ROSTER || window.ROSTER[0] !== world.player) {
         throw new Error('PERSISTENT_PARTY_IDENTITY_INVARIANT_FAILED');
@@ -647,7 +650,9 @@ function startGame() {
   if (typeof window.AetherCharCreate !== 'undefined' && window._charcreate) {
     gameState = STATE.CHARCREATE;
     window.gameState = gameState;
-    if (typeof window._charcreate.start === 'function') window._charcreate.start();
+    if (typeof window._charcreate.start === 'function') {
+      window._charcreate.start({ mode: 'authored' });
+    }
   } else {
     gameState = STATE.WORLD;
     window.gameState = gameState;
