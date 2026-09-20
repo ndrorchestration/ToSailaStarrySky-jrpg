@@ -29,7 +29,8 @@ const STATE = {
 };
 let gameState = STATE.BOOT;
 window.gameState = gameState;  // expose for debug
-let prevState = null;
+let prevState = null;       // overlay return target; never overwritten by the frame loop
+let lastFrameState = null;  // render/fade tracking only
 let menuAutoStartTimer = 0;  // one-shot: auto-start from MENU after 3s idle (prevents single-press hang)
 
 // Boot sequence timing
@@ -390,8 +391,8 @@ function draw() {
 
   drawScanlines();
 
-  // ── Scene fade: track previous state for next-frame detection ──
-  prevState = gameState;
+  // ── Scene fade: track the last rendered state without clobbering overlay return state ──
+  lastFrameState = gameState;
 
   // ── Window openness animation (Memories §1.2) ──
   if (window.UI.opening) {
@@ -524,9 +525,9 @@ function windowResized() {
 
 function handleInput() {
   // ── Scene fade transition on state change ──
-  if (prevState !== null && prevState !== gameState && VIS.fadeTransitions) {
+  if (lastFrameState !== null && lastFrameState !== gameState && VIS.fadeTransitions) {
     fade.active = true;
-    fade.from = prevState;
+    fade.from = lastFrameState;
     fade.to = gameState;
     fade.startTime = millis() - 1;
     fade.duration = 250;
@@ -534,7 +535,7 @@ function handleInput() {
 
   // ── Debug logging for key events ──
   window._lastStateTransition = {
-    from: prevState,
+    from: lastFrameState,
     to: gameState,
     time: millis(),
     keyCode: (typeof keyCode !== 'undefined' ? keyCode : null),
@@ -765,9 +766,8 @@ function cycleAirshipShieldMode() {
 function leaveAirship() {
   if (world && world.player) world.player.shipBoarded = false;
   if (gameState === STATE.AIRSHIP) {
-    // The frame loop tracks prevState for fades, so it may already contain
-    // AIRSHIP by the time the user exits. Return directly to WORLD instead of
-    // relying on overlay history for this full-screen ship state.
+    // AIRSHIP is a full-screen ship state rather than a normal overlay.
+    // Return directly to WORLD instead of relying on overlay history.
     gameState = STATE.WORLD;
     window.gameState = gameState;
     prevState = null;
