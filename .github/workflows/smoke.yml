@@ -27,6 +27,9 @@ jobs:
       - name: Verify runtime contract
         run: npm run test:runtime-contracts
 
+      - name: Verify regression contracts
+        run: npm run test:regressions
+
       - name: Verify airship state contract
         run: npm run test:airship
 
