@@ -76,6 +76,7 @@ const requiredScripts = [
   'modules/ability-defs.js',
   'modules/progression-defs.js',
   'modules/party-state.js',
+  'modules/save-state.js',
   'modules/airship-state.js',
   'modules/airship-combat-bridge.js',
   'modules/airship-ui.js',
