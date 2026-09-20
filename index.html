@@ -31,6 +31,7 @@
 </style>
 </head>
 <body>
+<div id="aetherwake-init-error" role="alert" hidden style="position:fixed; inset:20px; z-index:10050; padding:24px; background:#1A102E; color:#FF6B6B; border:2px solid #A04A2C; font:18px monospace; white-space:pre-wrap;"></div>
 <div id="jrpg-container"></div>
 <div class="scanline"></div>
 <div class="grid-bg"></div>
@@ -90,6 +91,9 @@
   (function() {
     if (typeof p5 === 'undefined') {
       console.error('p5 failed to load!');
+      if (typeof window.showInitializationFailure === 'function') {
+        window.showInitializationFailure('P5_MODULE_MISSING');
+      }
       return;
     }
     p5.disableFriendlyErrors = true;
@@ -109,6 +113,9 @@
         } else {
           console.error('[p5] canvas still not created after delay — sketch did not start');
           console.error('[p5] setup:', typeof window.setup, 'draw:', typeof window.draw);
+          if (typeof window.showInitializationFailure === 'function') {
+            window.showInitializationFailure('CANVAS_NOT_CREATED');
+          }
         }
       }, 100);
     }
