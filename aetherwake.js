@@ -105,6 +105,23 @@ const keyRepeat = {};
 const keyRepeatFirst = {};
 
 // ── setup() ──
+let initializationFailed = false;
+
+function showInitializationFailure(message) {
+  initializationFailed = true;
+  window.__aetherwakeInitFailed = true;
+  const text = 'AETHERWAKE INITIALIZATION FAILED: ' + message;
+  if (typeof document !== 'undefined') {
+    const node = document.getElementById('aetherwake-init-error');
+    if (node) {
+      node.textContent = text;
+      node.hidden = false;
+      node.classList.add('aetherwake-init-failed');
+    }
+  }
+  if (typeof noLoop === 'function') noLoop();
+}
+
 function setup() {
   window._setupOrder = window._setupOrder ? window._setupOrder + '→setup-start' : 'setup-start';
   const canvas = createCanvas(960, 640);
@@ -126,39 +143,52 @@ function setup() {
   noiseSeed(42);
 
   window._setupOrder = window._setupOrder + '→world-start';
-  if (typeof window.AetherWorld !== 'undefined') {
-    world = window.AetherWorld(p5, C);
-    window._world = world;
-    if (world && typeof world.init === 'function') world.init();
+  if (typeof window.AetherWorld === 'undefined') {
+    showInitializationFailure('WORLD_MODULE_MISSING');
+    return;
   }
+  world = window.AetherWorld(p5, C);
+  window._world = world;
+  if (world && typeof world.init === 'function') world.init();
   if (!world || !world.player) {
-    throw new Error('WORLD_PLAYER_UNAVAILABLE_FOR_PARTY_STATE');
+    showInitializationFailure('WORLD_PLAYER_UNAVAILABLE_FOR_PARTY_STATE');
+    return;
   }
   if (!window.AetherPartyState || typeof window.AetherPartyState.bootstrap !== 'function') {
-    throw new Error('AETHER_PARTY_STATE_UNAVAILABLE');
+    showInitializationFailure('AETHER_PARTY_STATE_UNAVAILABLE');
+    return;
   }
   window.AetherPartyState.bootstrap(world.player);
   if (!window.AetherAirshipState ||
       typeof window.AetherAirshipState.createState !== 'function') {
-    throw new Error('AETHER_AIRSHIP_STATE_UNAVAILABLE');
+    showInitializationFailure('AETHER_AIRSHIP_STATE_UNAVAILABLE');
+    return;
   }
   airshipState = window.AetherAirshipState.createState(world.player.airship);
   world.player.airship = airshipState;
   window._airshipState = airshipState;
   window._setupOrder = window._setupOrder + '→party-state-done';
   window._setupOrder = window._setupOrder + '→combat-start';
-  if (typeof window.AetherCombat !== 'undefined') {
-    combat = new window.AetherCombat(window, C);
-    window._combat = combat;
-    if (combat && typeof combat.init === 'function') combat.init();
+  if (typeof window.AetherCombat === 'undefined') {
+    showInitializationFailure('AETHER_COMBAT_MODULE_MISSING');
+    return;
   }
+  combat = new window.AetherCombat(window, C);
+  window._combat = combat;
+  if (!combat || typeof combat.init !== 'function') {
+    showInitializationFailure('AETHER_COMBAT_UNAVAILABLE');
+    return;
+  }
+  combat.init();
   window._setupOrder = window._setupOrder + '→combat-done';
-  // Character creation module (if present — loaded via index-embedded.html <script>)
-  if (typeof window.AetherCharCreate !== 'undefined') {
-    window._charcreate = window.AetherCharCreate;
-    if (window._charcreate && typeof window._charcreate.init === 'function') window._charcreate.init();
-    window._setupOrder = window._setupOrder + '→charcreate-done';
+  // Character creation is required for the playable entrypoint.
+  if (typeof window.AetherCharCreate === 'undefined') {
+    showInitializationFailure('AETHER_CHAR_CREATE_MODULE_MISSING');
+    return;
   }
+  window._charcreate = window.AetherCharCreate;
+  if (window._charcreate && typeof window._charcreate.init === 'function') window._charcreate.init();
+  window._setupOrder = window._setupOrder + '→charcreate-done';
   window._setupOrder = window._setupOrder + '→setup-done';
   lastTime = millis();
 }
