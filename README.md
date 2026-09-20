@@ -10,7 +10,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 - **Playable baseline:** boot → character creation → world exploration → dialogue/quest systems → combat
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
 - **Combat party:** exactly 3 active combatants selected from the persistent roster
-- **Current migration:** smoke-green persistent roster, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; higher-order effect semantics remain separate gates
+- **Current migration:** smoke-green persistent roster, authored Ender/Lyra/Ionia onboarding, explicit prototype-mechanics provenance, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; higher-order effect semantics remain separate gates
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
 
@@ -112,11 +112,13 @@ The development runtime now has the first persistent party-state layer:
 - `modules/party-state.js` owns exactly five stable roster identities: `ender`, `lyra`, `ionia`, `reson`, and `aepex`;
 - `ACTIVE_PARTY` contains three direct references into `ROSTER`, initially Ender/Lyra/Ionia;
 - `world.player`, `ROSTER[0]`, and `ACTIVE_PARTY[0]` are the same object, so combat write-back updates the canonical lead record;
-- the preserved character-creation flow still creates two player-named prototype companions and prototype jobs, then adapts them into the Lyra/Ionia roster slots;
-- Reson and Aepex are identity-only runtime shells until authored onboarding/mechanics are migrated;
-- formation switching and three-character combat are **not** enabled yet.
+- onboarding now fixes the starting identities as Ender, Lyra, and Ionia; Lyra and Ionia are no longer player-renamable companion slots;
+- Sky-Sailor, Engine-Wright, and Aether-Weaver remain selectable **field-role mechanics templates** for the current pre-alpha slice and are recorded separately from authored identity/native-job canon;
+- Lyra and Ionia's canonical `nativeJob` values remain unresolved/null rather than being inferred from those templates;
+- Reson and Aepex remain identity-only runtime shells until their authored mechanics/recruitment work lands;
+- formation switching and true three-character combat are **not** enabled yet.
 
-The prototype names/jobs remain implementation provenance rather than final character canon.
+The temporary field-role templates remain implementation provenance rather than final character canon.
 
 ## Current quest vertical slice
 
@@ -186,10 +188,10 @@ The production migration is incremental:
 3. formalize effect vocabulary and extract the current ability/progression registries — **established on `dev/progression-build`**,
 4. route ordinary combat mutations through a generic effect resolver while preserving current 2D6 outcome behavior — **damage/restoration/resource routing established on `dev/progression-build`**,
 5. enforce current learned/unlocked action eligibility before broader mastery-tree work — **established on `dev/progression-build`**,
-6. replace prototype companion creation with authored roster onboarding,
-6. implement school/job/mastery progression,
-7. add formation, Dual Arts, and Triple Arts,
-8. expand campaign content after the architecture is stable.
+6. replace prototype companion creation with authored roster onboarding — **identity migration established on `dev/progression-build`; canonical companion jobs/mechanics remain unresolved**,
+7. implement school/job/mastery progression,
+8. add formation, Dual Arts, and Triple Arts,
+9. expand campaign content after the architecture is stable.
 
 Each phase should preserve a working combat loop.
 
