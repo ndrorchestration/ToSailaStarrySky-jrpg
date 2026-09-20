@@ -39,7 +39,7 @@ test('D16: openShop returns {ok, reason} on failure', () => {
     'openShop should have appropriate reason message');
   
   // Check successful return
-  assert(/return \\{ ok: true, items:/.test(body), 
+  assert(/return \{ ok: true, items:/.test(body), 
     'openShop should return {ok: true, items} on success');
 });
 
