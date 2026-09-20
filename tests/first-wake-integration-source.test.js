@@ -12,7 +12,7 @@ const startGame = source.slice(startGameStart, startCombatStart);
 
 assert.match(handoff, /commitFirstWakeParty/);
 assert.doesNotMatch(handoff, /commitPrototypeParty/);
-assert.match(handoff, /partyCommit\\s*&&\\s*partyCommit\\.activeParty/);
+assert.match(handoff, /partyCommit\s*&&\s*partyCommit\.activeParty/);
 assert.match(startGame, /start\(\{\s*mode:\s*['"]authored['"]\s*\}\)/);
 
 console.log('First Wake integration source contract: 4/4 passed');
