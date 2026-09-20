@@ -393,9 +393,9 @@
       return { accepted: false, reason: 'unknown_action', actionId };
     }
 
-    const owner = actionOwner(state, actionId);
     const legacyEnderAction = actor.id === 'ender' && LEGACY_ACTIONS.has(actionId);
-    if ((owner && owner.id !== actor.id) || (!owner && !legacyEnderAction)) {
+    const actorOwnsAction = actor.actionIds.includes(actionId) || legacyEnderAction;
+    if (!actorOwnsAction) {
       return { accepted: false, reason: 'not_active_actor', actionId, actorId: actor.id };
     }
 
