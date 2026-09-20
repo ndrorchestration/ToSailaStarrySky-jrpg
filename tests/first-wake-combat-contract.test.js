@@ -5,13 +5,16 @@ const { loadBrowserModule } = require('./first-wake-test-helpers');
 function loadCombat() {
   const kitsContext = loadBrowserModule('modules/first-wake-kits.js');
   const defsContext = loadBrowserModule('modules/ability-defs.js');
+  const bridgeContext = loadBrowserModule('modules/airship-combat-bridge.js');
   const combatContext = loadBrowserModule('modules/party-combat.js', {
     AetherFirstWakeKits: kitsContext.AetherFirstWakeKits,
     AetherAbilityDefs: defsContext.AetherAbilityDefs,
+    AetherAirshipCombatBridge: bridgeContext.AetherAirshipCombatBridge,
   });
   return {
     kits: kitsContext.AetherFirstWakeKits,
     defs: defsContext.AetherAbilityDefs,
+    bridge: bridgeContext.AetherAirshipCombatBridge,
     combat: combatContext.AetherPartyCombat,
   };
 }
@@ -87,6 +90,8 @@ function plain(value) {
 function run() {
   const { kits, defs, combat } = loadCombat();
 
+  assert.equal(combat.canBeginEncounter('skyPredator'), true);
+  assert.equal(combat.canBeginEncounter('not-an-enemy'), false);
   assert.equal(kits.version, 1);
   assert.deepEqual(Object.keys(kits.roles), ['reader', 'receiver', 'anchor']);
   assert.deepEqual(Array.from(kits.actors.ender.actionIds), [
@@ -172,7 +177,41 @@ function run() {
     /ACTIVE_PARTY_MUST_HAVE_3_ACTORS/
   );
 
-  console.log('First Wake combat contract: 24/24 passed');
+  const controller = combat.createController({ party: activeParty() });
+  controller.init({
+    party: activeParty(),
+    airshipTransfer: {
+      shipId: 'aureate-wake',
+      classId: 'dragonfly-wake',
+      shieldMode: 'slip',
+      phaseSlipReady: true,
+      resonanceLanceDamage: 24,
+    },
+  });
+  const invalidBefore = plain(controller.getState());
+  const invalidEncounter = controller.beginEncounter('not-an-enemy');
+  assert.equal(invalidEncounter.ok, false);
+  assert.deepEqual(plain(controller.getState()), invalidBefore);
+
+  const validEncounter = controller.beginEncounter('skyPredator');
+  assert.equal(validEncounter.ok, true);
+  const opened = controller.getState();
+  assert.equal(opened.enemy.hp, 9);
+  assert.equal(opened.airship.classId, 'dragonfly-wake');
+  assert.equal(opened.airship.phaseSlipReady, true);
+  assert.equal(opened.log.some(line => line.includes('Resonance Lance opens the encounter')), true);
+
+  controller.resolveTurn('hold');
+  controller.resolveTurn('hold');
+  const beforeIonia = controller.getState();
+  controller.resolveTurn('hold');
+  const afterRound = controller.getState();
+  assert.equal(afterRound.turn, 3);
+  assert.equal(afterRound.party[0].vit, beforeIonia.party[0].vit);
+  assert.equal(afterRound.airship.phaseSlipReady, false);
+  assert.equal(afterRound.log.some(line => line.includes('Phase-Slip caught the incoming strike')), true);
+
+  console.log('First Wake combat contract: 33/33 passed');
 }
 
 run();
