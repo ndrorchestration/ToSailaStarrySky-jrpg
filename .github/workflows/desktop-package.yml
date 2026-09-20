@@ -8,6 +8,9 @@ on:
       - dev/progression-build
     tags:
       - "v*"
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
 
 permissions:
   contents: read
