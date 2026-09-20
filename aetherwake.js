@@ -373,6 +373,25 @@ let interactionKey = null;
 function keyPressed() {
   keys[keyCode] = true;
   keysPressed[keyCode] = true;
+
+  // Set interaction key BEFORE calling handleInput so that
+  // world.interact()/handleWorldInput() see the current key.
+  // E = 69, Q = 81, F = 70, Tab = 9, L = 76, M = 77
+  if (gameState === STATE.WORLD) {
+    if (keyCode === 69) window.interactionKey = 'e';
+    else if (keyCode === 81) window.interactionKey = 'q';
+    else if (keyCode === 70) window.interactionKey = 'f';
+    else if (keyCode === 9) window.interactionKey = 'tab';
+    else if (keyCode === 76) window.interactionKey = 'l';
+    else if (keyCode === 77) window.interactionKey = 'm';
+    // C = 67: start combat encounter (dev/testing)
+    else if (keyCode === 67) {
+      if (combat && typeof combat.beginEncounter === 'function') {
+        startCombat('skyPredator');
+      }
+    }
+  }
+
   handleInput();
 
   // keysPressed is an edge-triggered event map consumed synchronously above.
@@ -396,23 +415,6 @@ function keyPressed() {
     }
   }
 
-  // Set interaction key for world module — write to window so world.interact()
-  // and drawInteractionHints() can read the same source.
-  // E = 69, Q = 81, F = 70, Tab = 9, L = 76, M = 77
-  if (gameState === STATE.WORLD) {
-    if (keyCode === 69) window.interactionKey = 'e';
-    else if (keyCode === 81) window.interactionKey = 'q';
-    else if (keyCode === 70) window.interactionKey = 'f';
-    else if (keyCode === 9) window.interactionKey = 'tab';
-    else if (keyCode === 76) window.interactionKey = 'l';
-    else if (keyCode === 77) window.interactionKey = 'm';
-    // C = 67: start combat encounter (dev/testing)
-    else if (keyCode === 67) {
-      if (combat && typeof combat.beginEncounter === 'function') {
-        startCombat('skyPredator');
-      }
-    }
-  }
   // Shop buy-by-number (1-8 only; 9 is reserved for debug)
   if (gameState === STATE.SHOP) {
     if (typeof key === 'string' && key >= '1' && key <= '8') {
@@ -581,7 +583,7 @@ function handleInput() {
 }
 
 function handleWorldInput() {
-  // WASD movement with key repeat
+  // WASD movement with key repeat — first move is immediate, then repeat timer
   const now = millis();
   const delay = 200, rate = 60;
 
@@ -590,6 +592,8 @@ function handleWorldInput() {
       if (!keyRepeat[code]) {
         keyRepeat[code] = now;
         keyRepeatFirst[code] = true;
+        // Immediate first move on keydown
+        doMove(code);
       } else if (now - keyRepeat[code] >= (keyRepeatFirst[code] ? delay : rate)) {
         keyRepeat[code] = now;
         keyRepeatFirst[code] = false;
@@ -625,7 +629,15 @@ function handleWorldInput() {
     openState(STATE.LEDGER);
   }
   if (keysPressed[77]) {   // M
-    openState(STATE.SHOP);
+    // Route through world.openShop() which performs distance check
+    if (world && typeof world.openShop === 'function') {
+      const result = world.openShop();
+      if (result && result.ok) {
+        openState(STATE.SHOP);
+      } else if (result && !result.ok && result.reason) {
+        addLedgerEntry('shop', result.reason);
+      }
+    }
   }
   if (keysPressed[82]) {   // R
     openState(STATE.CHARSHEET);
@@ -746,34 +758,56 @@ function startGame() {
 function startCombat(enemyId) {
   if (!combat || !world) return;
 
+  // Only consume airship transfer when player is eligible
   let airshipTransfer = null;
   if (airshipState &&
       window.AetherAirshipCombatBridge &&
       typeof window.AetherAirshipCombatBridge.consumeTransfer === 'function') {
-    const prepared = window.AetherAirshipCombatBridge.consumeTransfer(airshipState);
-    commitAirshipState(prepared.state);
-    airshipTransfer = prepared.transfer;
+    // Check if player is eligible: boarded OR has one-shot armed
+    const isEligible = world.player.shipBoarded || 
+      (airshipState && airshipState.pendingCombat && 
+       (airshipState.pendingCombat.phaseSlip || airshipState.pendingCombat.harmonicVeil || 
+        airshipState.pendingCombat.resonanceLance));
+    
+    if (isEligible) {
+      const prepared = window.AetherAirshipCombatBridge.consumeTransfer(airshipState);
+      commitAirshipState(prepared.state);
+      airshipTransfer = prepared.transfer;
+    }
   }
 
-  combat.init({
+  // Build complete player snapshot from World state
+  const playerSnapshot = {
+    name: world.player.name,
+    class: world.player.class,
     vit: world.player.vit,
+    maxVit: world.player.maxVit,
     scrap: world.player.scrap,
     aether: { current: world.player.aether, max: world.player.aetherMax },
     heat: { current: world.player.heat, max: world.player.heatMax },
     echoes: { current: world.player.echoes, max: world.player.echoesMax },
     charges: world.player.staffCharges,
-    staffMax: 2,
+    maxStaffCharges: world.player.maxStaffCharges || 2,
+    staffMax: world.player.maxStaffCharges || 2,
     aetherMax: world.player.aetherMax,
     heatMax: world.player.heatMax,
     echoesMax: world.player.echoesMax,
     level: world.player.level,
     xp: world.player.xp,
     xpToNext: world.player.xpToNext,
-    unlockedAbilities: world.player.unlockedAbilities,
-    equipment: world.player.equipment,
-    airshipTransfer,
-  });
-  combat.beginEncounter(enemyId || 'skyPredator');
+    unlockedAbilities: world.player.unlockedAbilities.slice ? world.player.unlockedAbilities.slice() : [...(world.player.unlockedAbilities || [])],
+    equipment: world.player.equipment ? JSON.parse(JSON.stringify(world.player.equipment)) : { staff: null, backpack: null },
+  };
+
+  combat.init(playerSnapshot);
+  const result = combat.beginEncounter(enemyId || 'skyPredator');
+  if (!result || !result.ok) {
+    // Fail closed — don't enter combat state for invalid enemy IDs
+    if (result && result.reason) {
+      addLedgerEntry('combat', 'Combat failed: ' + result.reason);
+    }
+    return;
+  }
   gameState = STATE.COMBAT;
   window.gameState = gameState;
 }
@@ -1573,7 +1607,7 @@ function wrapText(text, x, y, maxWidth) {
 // ── Vignette effect ──────────────────────────────────────────────────────
 function drawVignette() {
   noStroke();
-  const nightFactor = window._isNight ? 0.6 : 0.18;
+  const nightFactor = isNight() ? 0.6 : 0.18;
   const alpha = nightFactor * 180;
   const gradSteps = 20;
   for (let i = gradSteps; i >= 0; i--) {
@@ -1675,7 +1709,7 @@ const World = {
   init, update, render,
   movePlayer, interact, toggleLayer,
   plantField, boardShip,
-  openLedger, openShop,
+  openLedger, openShop, openDialogue, nextDialogueLine, closeDialogue,
   getQuestState, advanceQuest
 };
 
@@ -1738,8 +1772,8 @@ function init() {
   initNPCs();
   initPlayer();
   World.npcs = npcs;
-  World.quest = quest;
   initQuest();
+  World.quest = quest;
   initShop();
   initLedgerPlaceholder();
   covenantField = { x: 0, y: 0, planted: false, life: 0 };
@@ -1789,19 +1823,27 @@ function buildMap() {
   }
 
   // Lore tiles — walk over them to reveal story fragments
+  // Use a sidecar loreLayer to store lore text, not a property on numeric tile values
+  loreLayer = [];
+  for (let y = 0; y < MAP_SIZE; y++) {
+    loreLayer[y] = [];
+    for (let x = 0; x < MAP_SIZE; x++) {
+      loreLayer[y][x] = null;
+    }
+  }
   const loreSpots = [
-    { x: 3, y: 6, text: 'A child\'s drawing, preserved on a scrap of hull plating. A ship with too many sails, rising into a sky that had no up anymore.' },
-    { x: 11, y: 5, text: 'The Aureate Wake\'s manifest, water-stained but legible: "Cargo: one sky-lane. Destination: above. Status: song slipping."' },
-    { x: 19, y: 7, text: 'Ionia\'s watch log, half-buried in deck plating: "Day 47. The core sings wrong. The harmonics slip at dusk. The frequencies hum in the hull."' },
-    { x: 24, y: 14, text: 'A Copper Syndicate data-slate, cracked but still glowing. "Acquisition Protocol 7: when the local Dreamwright refuses, override their dream."' },
-    { x: 16, y: 20, text: 'Lyra\'s drawing of the core: a great bird made of gears, singing. She wrote beneath it: "If it stops singing, the sky will forget how to hold us."' },
-    { x: 9, y: 24, text: 'A salvager\'s note, pinned to a bulkhead with a rusted nail: "The core doesn\'t belong to the Syndicate. It never did. It belongs to whoever remembers what it was for."' },
-    { x: 28, y: 19, text: 'The Core\'s log — the last entry: "The song has three missing notes. I have been hunting them since the first sky-lane opened. I think one is in your chest, Ender."' }
+    { x: 3, y: 6, text: "A child's drawing, preserved on a scrap of hull plating. A ship with too many sails, rising into a sky that had no up anymore." },
+    { x: 11, y: 5, text: "The Aureate Wake's manifest, water-stained but legible: \"Cargo: one sky-lane. Destination: above. Status: song slipping.\"" },
+    { x: 19, y: 7, text: "Ionia's watch log, half-buried in deck plating: \"Day 47. The core sings wrong. The harmonics slip at dusk. The frequencies hum in the hull.\"" },
+    { x: 24, y: 14, text: "A Copper Syndicate data-slate, cracked but still glowing. \"Acquisition Protocol 7: when the local Dreamwright refuses, override their dream.\"" },
+    { x: 16, y: 20, text: "Lyra's drawing of the core: a great bird made of gears, singing. She wrote beneath it: \"If it stops singing, the sky will forget how to hold us.\"" },
+    { x: 9, y: 24, text: "A salvager's note, pinned to a bulkhead with a rusted nail: \"The core doesn't belong to the Syndicate. It never did. It belongs to whoever remembers what it was for.\"" },
+    { x: 28, y: 19, text: "The Core's log — the last entry: \"The song has three missing notes. I have been hunting them since the first sky-lane opened. I think one is in your chest, Ender.\"" }
   ];
   for (const l of loreSpots) {
     if (inBounds(l.x, l.y)) {
       groundLayer[l.y][l.x] = TILE_TYPES.GROUND_LORE;
-      groundLayer[l.y][l.x]._loreText = l.text;
+      loreLayer[l.y][l.x] = l.text;
     }
   }
 
@@ -2191,7 +2233,12 @@ function advanceSignal() {
 }
 
 function advanceCrossing() {
-  if (quest.hazardsCompleted >= 3) {
+  const totalHazards = quest.crossingHazards ? quest.crossingHazards.length : 0;
+  if (totalHazards === 0) {
+    // No hazards configured — fail closed, don't advance
+    return;
+  }
+  if (quest.hazardsCompleted >= totalHazards) {
     quest.state = QUEST_STATES.CONTACT;
     quest.act = 'contact';
     appendJournalEntry('contact', 'The crossing behind you. Four souls ahead. The core hums between them like a held breath.');
@@ -2385,6 +2432,9 @@ function movePlayer(dx, dy) {
   player.tileY = ny;
   player.px = player.tileX * 16;
   player.py = player.tileY * 16;
+  // Sync legacy x/y coordinates
+  player.x = player.tileX;
+  player.y = player.tileY;
   checkHazardProximity(nx, ny);
   checkLoreTile(nx, ny);
 }
@@ -2394,8 +2444,8 @@ function checkLoreTile(tx, ty) {
   if (t === TILE_TYPES.GROUND_LORE) {
     // Check if already discovered
     if (!quest.discoveries.some(d => d.x === tx && d.y === ty)) {
-      const tile = groundLayer[ty][tx];
-      const loreText = tile._loreText || 'Something hums beneath your feet.';
+      // Read lore text from the sidecar loreLayer, not from the tile
+      const loreText = (loreLayer[ty] && loreLayer[ty][tx]) || 'Something hums beneath your feet.';
       quest.discoveries.push({ x: tx, y: ty, text: loreText });
       addLedgerEntry('discovery', 'You found something: ' + loreText);
       // Add a journal entry referencing the discovery
@@ -2472,7 +2522,9 @@ function doTalk() {
   const nearest = findNearestNPC(2);
   if (!nearest) return;
 
+  // Open intro dialogue BEFORE setting met flag so first-contact dialogue is shown
   if (!nearest.flags.met) {
+    openDialogue(nearest);
     nearest.flags.met = true;
     if (!quest.npcsMet.includes(nearest.id)) {
       quest.npcsMet.push(nearest.id);
@@ -2480,13 +2532,13 @@ function doTalk() {
     if (quest.state === QUEST_STATES.CONTACT || quest.state === QUEST_STATES.CHOICE) {
       advanceQuest();
     }
+  } else {
+    openDialogue(nearest);
   }
 
   if (quest.state === QUEST_STATES.SIGNAL) {
     checkSignalHook(nearest);
   }
-
-  openDialogue(nearest);
 }
 
 function checkSignalHook(npc) {
@@ -2592,6 +2644,16 @@ function openDialogue(npc) {
   };
 
   playDialogueAudioLine();
+
+  // Transition to DIALOGUE state
+  if (gameState !== STATE.DIALOGUE) {
+    prevState = gameState;
+    gameState = STATE.DIALOGUE;
+    window.gameState = gameState;
+    if (VIS.fadeTransitions) startFade(150);
+    window.UI.opening = true;
+    window.UI.openness = 0;
+  }
 }
 
 function getClassLockKey(npc) {
@@ -2760,9 +2822,18 @@ function addLedgerEntry(type, text) {
   ledger.entries.push({ type, text, time: dayTime });
 }
 
+function getLedger() {
+  // Return a deep copy to prevent renderer from mutating internal state
+  return ledger.entries.map(entry => ({ ...entry }));
+}
+
 // ---------------------------------------------------------------------------
 // Shop — M press (Repair Cafe)
 // ---------------------------------------------------------------------------
+
+// Echo and heat capacity maxima — explicit constants per amendment 4
+const ECHO_MAX_CAP = 8;
+const HEAT_MAX_CAP = 8;
 
 function initShop() {
   shop = {
@@ -2772,20 +2843,25 @@ function initShop() {
     y: 22,
     open: false,
     items: [
-      { name: 'Solar Resonator Recharge', cost: 3, kind: 'aether', desc: 'Restore 1 aether charge.' },
-      { name: 'Staff Crystal Polish',     cost: 2, kind: 'scrap', desc: 'Restore 1 staff charge.' },
-      { name: 'Mycelial Thread Sheaf',   cost: 4, kind: 'scrap', desc: '+1 echo capacity (permanent).' },
-      { name: 'Nav-Line Compass',         cost: 5, kind: 'scrap', desc: 'Survival advantage on sky crossings.' },
-      { name: 'Hull Patch Kit',           cost: 2, kind: 'scrap', desc: '+10 hull integrity.' },
-      { name: 'Heat Sink Fitting',        cost: 3, kind: 'scrap', desc: '+1 heat capacity.' }
+      { id: 'solar_resonator_recharge', name: 'Solar Resonator Recharge', cost: 3, kind: 'scrap', desc: 'Restore 1 aether charge.' },
+      { id: 'staff_crystal_polish', name: 'Staff Crystal Polish', cost: 2, kind: 'scrap', desc: 'Restore 1 staff charge.' },
+      { id: 'mycelial_thread_sheaf', name: 'Mycelial Thread Sheaf', cost: 4, kind: 'scrap', desc: '+1 echo capacity (permanent).' },
+      { id: 'nav_line_compass', name: 'Nav-Line Compass', cost: 5, kind: 'scrap', desc: 'Survival advantage on sky crossings.' },
+      { id: 'hull_patch_kit', name: 'Hull Patch Kit', cost: 2, kind: 'scrap', desc: '+10 hull integrity.' },
+      { id: 'heat_sink_fitting', name: 'Heat Sink Fitting', cost: 3, kind: 'scrap', desc: '+1 heat capacity.' }
     ]
   };
+}
+
+function getShopItems() {
+  // Return a fresh display-safe item list
+  return shop.items.map(item => ({ ...item }));
 }
 
 function openShop() {
   const dist = Math.abs(player.tileX - shop.x) + Math.abs(player.tileY - shop.y);
   if (dist > 3) {
-    return;
+    return { ok: false, reason: 'Merchant is too far away.' };
   }
   shop.open = true;
   // ── Window openness slide-in (Memories §1.2) ──
@@ -2795,34 +2871,78 @@ function openShop() {
   if (window.UI.lastShopSelection !== undefined && window.UI.lastShopSelection < shop.items.length) {
     // selection restored implicitly via draw highlight
   }
+  return { ok: true };
 }
 
 function closeShop() {
   shop.open = false;
 }
 
-function purchaseItem(itemIndex) {
-  if (!shop || !shop.items[itemIndex]) return false;
-  const item = shop.items[itemIndex];
-  if (item.kind === 'aether' && player.aether >= item.cost) {
-    player.aether -= item.cost;
-    player.aether.current = Math.min(player.aetherMax, player.aether.current + 1);
-    addLedgerEntry('purchase', 'Bought ' + item.name + ' from Repair Cafe.');
-    return true;
-  } else if (item.kind === 'scrap' && player.scrap >= item.cost) {
-    player.scrap -= item.cost;
-    if (item.name === 'Mycelial Thread Sheaf') {
-      player.echoesMax += 1;
-      player.echoes = Math.min(player.echoesMax, player.echoes + 1);
-    } else if (item.name === 'Hull Patch Kit') {
-      quest.hullIntegrity = Math.min(100, quest.hullIntegrity + 10);
-    } else if (item.name === 'Heat Sink Fitting') {
-      player.heatMax += 1;
-    }
-    addLedgerEntry('purchase', 'Bought ' + item.name + ' from Repair Cafe.');
-    return true;
+function purchaseItem(itemId) {
+  // Find item by stable ID
+  const item = shop.items.find(i => i.id === itemId);
+  if (!item) {
+    return { ok: false, reason: 'Unknown item.' };
   }
-  return false;
+  
+  // Check scrap currency
+  if (player.scrap < item.cost) {
+    return { ok: false, reason: 'Not enough scrap.' };
+  }
+  
+  // Prepare changes — only commit if all checks pass
+  const changes = { scrap: -item.cost };
+  
+  // Apply item effect
+  if (item.id === 'solar_resonator_recharge') {
+    if (player.aether >= player.aetherMax) {
+      return { ok: false, reason: 'Aether already at maximum.' };
+    }
+    changes.aether = 1;
+  } else if (item.id === 'staff_crystal_polish') {
+    if (player.staffCharges >= 2) {
+      return { ok: false, reason: 'Staff charges already at maximum.' };
+    }
+    changes.staffCharges = 1;
+  } else if (item.id === 'mycelial_thread_sheaf') {
+    if (player.echoesMax >= ECHO_MAX_CAP) {
+      return { ok: false, reason: 'Echo capacity already at maximum (' + ECHO_MAX_CAP + ').' };
+    }
+    changes.echoesMax = 1;
+    changes.echoes = 1;
+  } else if (item.id === 'hull_patch_kit') {
+    const newHull = Math.min(100, quest.hullIntegrity + 10);
+    if (newHull === quest.hullIntegrity) {
+      return { ok: false, reason: 'Hull already at maximum.' };
+    }
+    changes.hullIntegrity = newHull - quest.hullIntegrity;
+  } else if (item.id === 'heat_sink_fitting') {
+    if (player.heatMax >= HEAT_MAX_CAP) {
+      return { ok: false, reason: 'Heat capacity already at maximum (' + HEAT_MAX_CAP + ').' };
+    }
+    changes.heatMax = 1;
+  } else if (item.id === 'nav_line_compass') {
+    // Record ownership in quest state and ledger
+    if (quest.navLineCompassOwned) {
+      return { ok: false, reason: 'Nav-Line Compass already owned.' };
+    }
+    changes.navLineCompassOwned = true;
+  }
+  
+  // Commit transaction
+  player.scrap += changes.scrap;
+  if (changes.aether) player.aether = Math.min(player.aetherMax, player.aether + changes.aether);
+  if (changes.staffCharges) player.staffCharges += changes.staffCharges;
+  if (changes.echoesMax) player.echoesMax += changes.echoesMax;
+  if (changes.echoes) player.echoes = Math.min(player.echoesMax, (player.echoes || 0) + changes.echoes);
+  if (changes.hullIntegrity) quest.hullIntegrity = Math.min(100, quest.hullIntegrity + changes.hullIntegrity);
+  if (changes.heatMax) player.heatMax += changes.heatMax;
+  if (changes.navLineCompassOwned) {
+    quest.navLineCompassOwned = true;
+  }
+  
+  addLedgerEntry('purchase', 'Bought ' + item.name + ' from Repair Cafe.');
+  return { ok: true, item, changes };
 }
 
 // ---------------------------------------------------------------------------
@@ -3897,7 +4017,9 @@ function drawGrassWind() {
   _grassWindPhase += 0.006 * (isNight() ? 0.45 : 1.0);
   const wind = Math.sin(_grassWindPhase) * 2.2 + Math.sin(_grassWindPhase * 0.7) * 0.8;
   const tileSize = 16;
-  noStroke();
+  // Set visible stroke before drawing lines
+  stroke(color(80, 120, 60, 80));
+  strokeWeight(1);
   for (let y = 0; y < MAP_SIZE; y++) {
     for (let x = 0; x < MAP_SIZE; x++) {
       const t = groundLayer[y] && groundLayer[y][x];
@@ -4595,8 +4717,11 @@ function AetherCombat(p, C) {
     const template = enemies[enemyId];
     if (!template) {
       log('Unknown enemy: ' + enemyId);
-      return;
+      return { ok: false, reason: 'Unknown enemy: ' + enemyId };
     }
+    // Reset transient fields for this encounter
+    state.log = [];
+    state._airshipTransferApplied = false;
     state.enemy = {
       name: template.name,
       goal: template.goal,
@@ -4624,6 +4749,7 @@ function AetherCombat(p, C) {
       applyAirshipOpening();
       state._airshipTransferApplied = true;
     }
+    return { ok: true };
   };
 
   this.resolveTurn = function(actionId, resources) {
@@ -5625,6 +5751,16 @@ window.UI = {
 
 /** Push a string into the combat log, keep last 6. */
 function logCombat(msg) {
+  // Write to combat state log if combat is active, otherwise UI fallback
+  if (typeof combat !== 'undefined' && combat && typeof combat.getState === 'function') {
+    const cs = combat.getState();
+    if (cs && cs.log) {
+      cs.log.push(msg);
+      if (cs.log.length > 6) cs.log.shift();
+      return;
+    }
+  }
+  // Fallback for when combat module isn't fully initialized
   window.UI.combatLog.push(msg);
   if (window.UI.combatLog.length > 6) window.UI.combatLog.shift();
 }
@@ -7011,10 +7147,18 @@ function drawCombatLog(lx, ly, lw, lh) {
   strokeWeight(1);
   line(lx + 12, ly + 24, lx + lw - 12, ly + 24);
 
-  // Entries
+  // Entries - read from combat state log if available, fallback to UI.combatLog
   textFont(FONT_BODY);
   textSize(12);
-  const log = window.UI.combatLog;
+  
+  let log = window.UI.combatLog;
+  if (typeof combat !== 'undefined' && combat && typeof combat.getState === 'function') {
+    const cs = combat.getState();
+    if (cs && cs.log && Array.isArray(cs.log)) {
+      log = cs.log;
+    }
+  }
+  
   const entryH = 16;
   const maxEntries = Math.floor((lh - 40) / entryH);
   const start = Math.max(0, log.length - maxEntries);
