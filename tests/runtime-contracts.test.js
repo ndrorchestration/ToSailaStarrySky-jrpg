@@ -21,4 +21,11 @@ assert(/window\\.UI\\.shopBuyHandler\\s*=/.test(source),
 assert(source.includes('world.player.scrap'),
   'shop renderer has no persistent World scrap source');
 
+assert(source.includes("return { ok: true, kind: 'dialogue'"),
+  'dialogue interaction does not return a structured success result');
+assert(source.includes('world.closeDialogue()'),
+  'overlay cleanup does not close World dialogue state');
+assert(source.includes('world.closeShop()'),
+  'overlay cleanup does not close World shop state');
+
 console.log('Aetherwake runtime contract tests: PASS');
