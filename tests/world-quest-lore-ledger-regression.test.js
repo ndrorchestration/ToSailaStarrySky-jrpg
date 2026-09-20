@@ -104,4 +104,15 @@ test('D15: getLedger() returns deep-copied array', () => {
   assert(body.includes('ledger.entries'), 'getLedger should read from ledger.entries');
 });
 
+test('D14b: crossing hazard configuration rejects malformed values', () => {
+  const crossingMatch = aetherwakeSrc.match(/function advanceCrossing\(\) \{([\s\S]*?)^\}/m);
+  assert(crossingMatch, 'advanceCrossing function should exist');
+  const body = crossingMatch[1];
+
+  assert(body.includes('Array.isArray(quest.crossingHazards)'),
+    'advanceCrossing should require an array hazard configuration');
+  assert(body.includes('quest.crossingHazards.length === 0'),
+    'advanceCrossing should reject an empty hazard configuration');
+});
+
 console.log('\nAll Cluster 3 regression tests passed!');
