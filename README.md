@@ -46,6 +46,22 @@ Current canvas: **960×640**.
 | **1–8** | Combat actions |
 | **S** | Secondary combat action when available |
 
+## Dragonfly Wake console
+
+Stand near the ship's core chamber and press **F** to board the compact Dragonfly-class *Aureate Wake*. The hull volume is fixed at **three shipping containers**, excluding masts, wings, and rigging.
+
+Inside the console:
+
+- **1** — Phase-Slip Wake Drive
+- **2 / H** — cycle Harmonic Phase Veil mode
+- **3** — Resonance Lance
+- **4** — Rootline Tether
+- **5** — Pattern Forge
+- **R** — vent the Wakeheart, reduce heat, advance cooldowns, and recover one power cell
+- **ESC / L** — return to the world
+
+The console is the first playable ship-systems slice. Its power and charge budgets are intentionally bounded; direct ship-to-combat resolution is a later integration gate.
+
 ## Combat prototype
 
 Combat uses **2D6 + stat**:
@@ -114,6 +130,8 @@ It includes signal hooks, traversal hazards, NPC encounters, three major choice 
 | `modules/progression-defs.js` | Canonical current level-unlock table |
 | `modules/party-state.js` | Authoritative persistent roster / active-party reference layer |
 | `modules/char-create.js` | Active preservation character-creation adapter |
+| `modules/airship-state.js` | Pure Dragonfly Wakeheart power, charge, veil, cooldown, and action rules |
+| `modules/airship-ui.js` | Dragonfly-class ship systems console renderer |
 | other `modules/*.js` | Older modular mirrors/reference source; not authoritative runtime for all systems |
 | `SPEC.md` | Current technical target + implementation notes |
 | `docs/DEVELOPMENT.md` | Development authority, migration rules, smoke gate |
@@ -142,10 +160,11 @@ npm run test:combat-input
 npm run test:resource-eligibility
 npm run test:progression-reachability
 npm run test:secondary-action
+npm run test:airship
 npm run test:smoke
 ```
 
-The verification suite covers the playable path from startup through character creation, world state, combat, and return to WORLD. It also verifies roster/reference invariants, effect-vocabulary coverage, registry/runtime equivalence, transactional action affordability, progression reachability, secondary-action state, enemy metadata propagation, live resolver routing, and post-combat write-back into the canonical lead record.
+The verification suite covers the playable path from startup through character creation, world state, combat, Dragonfly ship boarding/system actions, and return to WORLD. It also verifies roster/reference invariants, effect-vocabulary coverage, registry/runtime equivalence, transactional action affordability, progression reachability, secondary-action state, enemy metadata propagation, live resolver routing, and post-combat write-back into the canonical lead record.
 
 ## Architecture direction
 
