@@ -43,6 +43,7 @@ Boot behavior is fail-closed:
 - missing required modules produce one clear initialization error;
 - the page does not claim to be playable when the runtime is incomplete;
 - browser smoke tests assert that both entrypoints create a canvas, load the runtime, and produce no uncaught page errors.
+- the embedded entrypoint must not force-reveal the game canvas after a fixed timeout when initialization is incomplete. Any initialization timeout or missing required module produces a visible initialization-failure state rather than a playable screen. Acceptance tests assert that an entrypoint with an unloaded required module does not become interactive and surfaces one clear initialization error.
 
 ### 3.2 Input routing, overlays, and dialogue
 
@@ -67,6 +68,8 @@ Dialogue becomes a real state-machine transition:
 
 The World public API exports `nextDialogueLine` and `closeDialogue`; core code no longer calls an undefined method. Closing any overlay also clears stale dialogue references.
 
+World's interaction methods return structured results rather than mutating global state directly: `world.interact()`, `world.openDialogue()`, and `world.openShop()` each return a result that core inspects before performing any `openState()` transition. Core retains ownership of the global state machine; World performs the domain check and reports whether the action is allowed, and core performs the corresponding `openState(...)`. Overlay cleanup clears any stale dialogue references.
+
 ### 3.3 World state, lore, quest progression, and ledger
 
 World data uses separate storage for tile identity and lore metadata. Lore text is stored in a `loreLayer[y][x]` sidecar, never as a property on a numeric tile value. Lore lookup and rendering read the sidecar and return no lore only when the cell genuinely has no entry.
@@ -77,7 +80,7 @@ Player coordinates have one synchronization point: movement updates the current 
 
 Crossing completion is data-driven. `advanceCrossing()` requires every configured crossing hazard to be complete, using the hazard-list length rather than the current hard-coded threshold. Empty or malformed hazard lists fail closed and do not advance the quest.
 
-The ledger API is complete and read-only from the renderer’s perspective. `getLedger()` returns the current discovered entries and quest facts without exposing mutable internal arrays. The ledger overlay renders the returned data rather than an undefined method or a hard-coded placeholder.
+The ledger API is complete and read-only from the renderer's perspective. `getLedger()` returns a fresh deep-copied array of entry objects, each carrying at least a `text` field; the renderer treats `text` as the canonical display string and does not depend on any other field. The ledger overlay renders the returned data rather than an undefined method or a hard-coded placeholder. Returning a deep copy rather than a live reference prevents the renderer from mutating internal ledger state.
 
 ### 3.4 Shop contract and transactional purchases
 
@@ -85,22 +88,23 @@ The core opens the shop only through the World shop API. `world.openShop()` perf
 
 The World API exposes:
 
-- `getShopItems()` for a fresh display-safe item list;
-- `purchaseItem(id)` for one validated purchase;
+- `openShop() -> {ok, reason}` — performs the merchant-distance check, initializes the current item list, and returns whether the shop opened; `{ok: false}` when the merchant is out of range or the shop cannot be opened.
+- `getShopItems() -> [{id, name, desc, cost, kind, effect}]` — a fresh display-safe item list keyed by stable item IDs.
+- `purchaseItem(id) -> {ok, reason, item, changes}` — one validated transactional purchase; on success returns the purchased item and the changes applied (scrap deducted, resources modified); on failure returns `{ok: false}` with a reason and leaves all state unchanged.
 - `closeShop()` or the equivalent state-cleanup path.
 
-All shop items use scrap as their purchase currency. A purchase is transactional: the item is validated, the player has enough scrap, the effect can be applied, and only then are the effect and scrap deduction committed. Unknown items, insufficient scrap, missing prerequisites, and already-maxed resources return a failure result and leave all state unchanged.
+All shop items use stable IDs as their canonical key. The item identities are:
 
-The existing item identities are retained with concrete effects:
+- `solar_resonator_recharge` — restores one current aether, clamped to its maximum.
+- `staff_crystal_polish` — restores one current staff charge, clamped to its maximum.
+- `mycelial_thread_sheaf` — increases echo capacity by one and grants the corresponding current echo, subject to the echo capacity cap.
+- `hull_patch_kit` — restores ten hull points, clamped to maximum hull.
+- `heat_sink_fitting` — increases heat capacity by one and keeps current heat within the new bounds.
+- `nav_line_compass` — records ownership in quest state and the ledger as a stable route signature; does not invent a new combat modifier in this repair pass.
 
-- Solar Resonator Recharge restores one current aether, clamped to its maximum.
-- Staff Crystal Polish restores one current staff charge, clamped to its maximum.
-- Mycelial Thread Sheaf increases the echo capacity by one and grants the corresponding current echo, subject to the existing cap model.
-- Hull Patch Kit restores ten hull points, clamped to maximum hull.
-- Heat Sink Fitting increases heat capacity by one and keeps current heat within the new bounds.
-- Nav-Line Compass records ownership in quest state and the ledger as a stable route signature; it does not invent a new combat modifier in this repair pass.
+The echo capacity and heat capacity maxima are explicit, defined constants. A purchase that would exceed either maximum fails with an "already-maxed" reason and leaves all state unchanged. "Already-maxed resources fail" is tested deterministically against these explicit caps.
 
-The shop UI is populated from the World API and refreshed after a successful purchase. Its scrap count comes from persistent World player state, never from a combat-only accessor or a literal fallback. Number-key purchase handlers operate on item IDs from the current shop list.
+A purchase is transactional: the item is validated, the player has enough scrap, the effect can be applied, and only then are the effect and scrap deduction committed. Unknown items, insufficient scrap, missing prerequisites, and already-maxed resources return a failure result and leave all state unchanged.
 
 ### 3.5 Combat initialization, logging, and airship handoff
 
@@ -111,6 +115,8 @@ Every encounter resets transient fields, including accumulated damage, victory s
 The combat renderer consumes the authoritative combat state log. The live path no longer depends on an unpopulated `window.UI.combatLog` array. The log is updated after player actions, enemy actions, and resolution, and the renderer handles an empty log without throwing.
 
 Unknown enemy IDs and invalid encounter setup fail closed before entering `STATE.COMBAT`; they do not strand the player in an unusable combat screen.
+
+Combat initialization acceptance requires round-trip preservation: the full cycle `World player → combat snapshot → finishCombat() → World player` must preserve `name`, `class`, primary stats, `maxVit`, resource maxima (aether max, heat max, echo max, staff max), `maxStaffCharges`, level, XP, unlocked abilities, and equipment — except fields that combat intentionally changes (current resources consumed during combat, XP gained, unlocks added by level-up). An acceptance test exercises this cycle and asserts that every preserved field matches its pre-combat value within the allowed mutation set. This directly guards against the current split-brain state where combat hard-codes `staffMax: 2` and omits identity, class, `maxVit`, and primary stats.
 
 Airship modifiers are applied only when the player is eligible:
 
