@@ -657,6 +657,64 @@ function createServer() {
       window.gameState === 'world' && window._world.player.shipBoarded === false
     , undefined, { timeout: 5000 });
 
+    const airshipCombatStart = await page.evaluate(() => {
+      if (typeof startCombat !== 'function') throw new Error('startCombat is unavailable');
+      startCombat('skyPredator');
+      const combatState = window._combat.getState();
+      return {
+        enemyHp: combatState.enemy && combatState.enemy.hp,
+        vit: combatState.player.vit,
+        airship: combatState.airship,
+        log: combatState.log,
+      };
+    });
+
+    assert(airshipCombatStart.enemyHp === 9,
+      'Resonance Lance did not transfer a bounded opening strike into combat');
+    assert(airshipCombatStart.airship.classId === 'dragonfly-wake' &&
+      airshipCombatStart.airship.shieldMode === 'slip' &&
+      airshipCombatStart.airship.phaseSlipReady === true,
+      'airship combat handoff did not preserve the Dragonfly veil/drive state');
+    assert(airshipCombatStart.log.some(line =>
+      line.includes('[Airship] Resonance Lance opens the encounter')),
+      'airship combat handoff did not log the opening Lance');
+
+    const airshipCombatAfterHit = await page.evaluate(() => {
+      const originalRandom = window.random;
+      try {
+        window.random = function() { return 6; };
+        window._combat.resolveTurn('hold', null);
+        const combatState = window._combat.getState();
+        return {
+          turn: combatState.turn,
+          vit: combatState.player.vit,
+          phaseSlipReady: combatState.airship.phaseSlipReady,
+          enemyHp: combatState.enemy && combatState.enemy.hp,
+          log: combatState.log,
+        };
+      } finally {
+        window.random = originalRandom;
+      }
+    });
+
+    assert(airshipCombatAfterHit.turn === 1,
+      'airship combat handoff did not advance the first encounter turn');
+    assert(airshipCombatAfterHit.vit === airshipCombatStart.vit,
+      'Phase-Slip did not negate the first incoming enemy strike');
+    assert(airshipCombatAfterHit.phaseSlipReady === false,
+      'Phase-Slip was not consumed by the first incoming strike');
+    assert(airshipCombatAfterHit.log.some(line =>
+      line.includes('Phase-Slip caught the incoming strike')),
+      'Phase-Slip mitigation was not recorded in the combat log');
+
+    await page.evaluate(() => {
+      if (typeof finishCombat !== 'function') throw new Error('finishCombat is unavailable');
+      finishCombat();
+    });
+    await page.waitForFunction(() =>
+      window.gameState === 'world' && window._world.player.shipBoarded === false
+    , undefined, { timeout: 5000 });
+
     const rosterAfterCombat = await page.evaluate(() => ({
       vit: window.ROSTER[0].vit,
       scrap: window.ROSTER[0].scrap,
