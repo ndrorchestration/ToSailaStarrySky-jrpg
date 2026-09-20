@@ -25,9 +25,9 @@ jobs:
         run: npm install --ignore-scripts --no-audit --no-fund
 
       - name: Verify runtime contract
-      run: npm run test:runtime-contracts
+        run: npm run test:runtime-contracts
 
-    - name: Verify airship state contract
+      - name: Verify airship state contract
         run: npm run test:airship
 
       - name: Verify airship combat bridge contract
