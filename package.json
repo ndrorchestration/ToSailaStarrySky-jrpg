@@ -11,6 +11,7 @@
     "min_height": 500,
     "toolbar": false,
     "resizable": true,
+    "icon": "icon.svg",
     "position": "center",
     "show": true,
     "frame": true,
