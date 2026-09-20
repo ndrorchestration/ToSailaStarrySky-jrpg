@@ -45,3 +45,38 @@ assert(combatSource.includes('while (p.xp >= p.xpToNext)'),
   'multi-level XP award path is missing');
 
 console.log('Aetherwake combat snapshot contracts: PASS');
+
+
+const requiredScripts = [
+  'modules/effect-vocabulary.js',
+  'modules/effect-resolver.js',
+  'modules/ability-defs.js',
+  'modules/progression-defs.js',
+  'modules/party-state.js',
+  'modules/airship-state.js',
+  'modules/airship-combat-bridge.js',
+  'modules/airship-ui.js',
+  'modules/audio.js',
+  'aetherwake.js',
+  'modules/char-create.js',
+  'p5.min.js',
+];
+
+for (const entrypoint of ['index-embedded.html', 'index.html']) {
+  const html = fs.readFileSync(
+    path.resolve(__dirname, '..', entrypoint),
+    'utf8'
+  );
+  assert(html.includes('id="aetherwake-init-error"'),
+    entrypoint + ' has no initialization failure surface');
+  let previous = -1;
+  for (const script of requiredScripts) {
+    const index = html.indexOf('src="' + script + '"');
+    assert(index >= 0, entrypoint + ' is missing ' + script);
+    assert(index > previous,
+      entrypoint + ' loads ' + script + ' out of dependency order');
+    previous = index;
+  }
+}
+
+console.log('Aetherwake entrypoint contracts: PASS');
