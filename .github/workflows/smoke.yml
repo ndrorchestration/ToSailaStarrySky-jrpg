@@ -1,0 +1,58 @@
+name: Aetherwake smoke
+
+on:
+  push:
+    branches:
+      - main
+      - dev/progression-build
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Verify effect vocabulary contract
+        run: npm run test:effects
+
+      - name: Verify ability/progression registries
+        run: npm run test:registries
+
+      - name: Verify effect resolver contract
+        run: npm run test:resolver
+
+      - name: Verify live resolver integration
+        run: npm run test:resolver-integration
+
+      - name: Verify enemy metadata propagation
+        run: npm run test:enemy-metadata
+
+      - name: Verify combat input/log contract
+        run: npm run test:combat-input
+
+      - name: Verify resource/use eligibility
+        run: npm run test:resource-eligibility
+
+      - name: Verify progression reachability
+        run: npm run test:progression-reachability
+
+      - name: Verify secondary-action state
+        run: npm run test:secondary-action
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run smoke test
+        run: npm run test:smoke
