@@ -2938,6 +2938,7 @@ function openShop() {
 
 function closeShop() {
   shop.open = false;
+  window.UI.shopOpen = false;
   window.UI.shopItems = [];
   window.UI.shopBuyHandler = null;
 }
@@ -7939,8 +7940,10 @@ function drawShop(items) {
  * Close shop.
  */
 function closeShop() {
+  if (typeof shop !== 'undefined' && shop) shop.open = false;
   window.UI.shopOpen = false;
   window.UI.shopItems = [];
+  window.UI.shopBuyHandler = null;
 }
 
 // ─────────────────────────────────────────────
