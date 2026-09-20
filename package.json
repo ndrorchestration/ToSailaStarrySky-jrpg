@@ -44,7 +44,7 @@
     "test:resource-eligibility": "node tests/resource-eligibility.test.js",
     "test:progression-reachability": "node tests/progression-reachability.test.js",
     "test:secondary-action": "node tests/secondary-action-contract.test.js",
-    "package:windows": "nwbuild --mode=build --glob=false --platform=win --arch=x64 --version=0.116.0 --outDir=dist .",
+    "package:windows": "nwbuild --mode=build --glob=false --platform=win --arch=x64 --version=0.116.0 --outDir=../aetherwake-dist .",
     "package:windows:clean": "npm run package:windows",
     "test:desktop-package": "node tests/desktop-package-contract.test.js"
   }
