@@ -22,6 +22,14 @@
     Object.freeze({ id: 'aepex', canonicalName: 'Aepex', nativeJob: null }),
   ]);
 
+  const FIRST_WAKE_IDS = Object.freeze(['ender', 'lyra', 'ionia', 'reson', 'aepex']);
+  const FIRST_WAKE_ACTIVE_IDS = Object.freeze(['ender', 'lyra', 'ionia']);
+  const FIRST_WAKE_ROLES = Object.freeze({
+    ender: Object.freeze({ id: 'reader', label: 'Reader', canonStatus: 'provisional' }),
+    lyra: Object.freeze({ id: 'receiver', label: 'Receiver', canonStatus: 'provisional' }),
+    ionia: Object.freeze({ id: 'anchor', label: 'Anchor', canonStatus: 'provisional' }),
+  });
+
   const ROSTER = [];
   const ACTIVE_PARTY = [];
   let boundWorldPlayer = null;
@@ -35,6 +43,10 @@
       nativeJob: definition.nativeJob,
       runtimeImplemented: false,
       implementationSource: 'authored-shell',
+      roleId: null,
+      roleLabel: null,
+      roleCanonStatus: null,
+      storyFlags: {},
       age: null,
       class: null,
       jobId: null,
@@ -218,6 +230,123 @@
     return ACTIVE_PARTY;
   }
 
+  function authoredRecord(target, definition, role, storyFlags) {
+    target.schemaVersion = 1;
+    target.id = definition.id;
+    target.canonicalName = definition.canonicalName;
+    target.nativeJob = definition.nativeJob;
+    target.roleId = role.id;
+    target.roleLabel = role.label;
+    target.roleCanonStatus = role.canonStatus;
+    target.storyFlags = Object.assign({}, storyFlags);
+    target.implementationSource = 'authored-onboarding';
+
+    if (definition.id === 'ender') {
+      target.name = 'Ender';
+      target.runtimeImplemented = true;
+      return target;
+    }
+
+    target.name = definition.canonicalName;
+    target.runtimeImplemented = false;
+    target.class = null;
+    target.jobId = null;
+    target.age = null;
+    target.synergyBonus = null;
+    target.unlockedAbilities = [];
+    target.equipment = { staff: null, backpack: null };
+    return target;
+  }
+
+  function commitFirstWakeParty(options) {
+    if (!boundWorldPlayer || ROSTER.length !== 5) {
+      throw new Error('PARTY_STATE_NOT_BOOTSTRAPPED');
+    }
+
+    const providedFlags = options && options.storyFlags ? options.storyFlags : {};
+    const storyFlags = Object.assign({ lyraJoined: true, ioniaJoined: true }, providedFlags);
+    if (!storyFlags.lyraJoined || !storyFlags.ioniaJoined) {
+      throw new Error('FIRST_WAKE_PARTY_REQUIRES_AUTHORED_TRIO');
+    }
+
+    authoredRecord(ROSTER[0], DEFINITIONS[0], FIRST_WAKE_ROLES.ender, storyFlags);
+    authoredRecord(ROSTER[1], DEFINITIONS[1], FIRST_WAKE_ROLES.lyra, storyFlags);
+    authoredRecord(ROSTER[2], DEFINITIONS[2], FIRST_WAKE_ROLES.ionia, storyFlags);
+
+    ACTIVE_PARTY.splice(0, ACTIVE_PARTY.length, ROSTER[0], ROSTER[1], ROSTER[2]);
+    global.ROSTER = ROSTER;
+    global.ACTIVE_PARTY = ACTIVE_PARTY;
+    global.party = ACTIVE_PARTY;
+    global.playerForCombat = ACTIVE_PARTY[0];
+
+    validate();
+    return { roster: ROSTER, activeParty: ACTIVE_PARTY };
+  }
+
+  function cloneValue(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function validateSerializedParty(serializedParty) {
+    if (!serializedParty || typeof serializedParty !== 'object') {
+      throw new Error('FIRST_WAKE_PARTY_SNAPSHOT_MUST_BE_OBJECT');
+    }
+    if (!Array.isArray(serializedParty.roster) || serializedParty.roster.length !== 5) {
+      throw new Error('FIRST_WAKE_PARTY_ROSTER_INVALID');
+    }
+    if (!Array.isArray(serializedParty.activeIds) ||
+        serializedParty.activeIds.join('|') !== FIRST_WAKE_ACTIVE_IDS.join('|')) {
+      throw new Error('ACTIVE_PARTY_IDS_INVALID');
+    }
+
+    const stagedRoster = serializedParty.roster.map((character, index) => {
+      if (!character || typeof character !== 'object' || character.id !== FIRST_WAKE_IDS[index]) {
+        throw new Error('FIRST_WAKE_PARTY_IDENTITY_ORDER_INVALID');
+      }
+      if (typeof character.name !== 'string' || character.name.length === 0) {
+        throw new Error('FIRST_WAKE_PARTY_NAME_INVALID:' + character.id);
+      }
+      if (character.runtimeImplemented &&
+          ['vit', 'maxVit', 'level', 'xp', 'xpToNext'].some(key =>
+            typeof character[key] !== 'number' || !Number.isFinite(character[key]))) {
+        throw new Error('FIRST_WAKE_PARTY_NUMERIC_STATE_INVALID:' + character.id);
+      }
+      if (character.id === 'lyra' || character.id === 'ionia') {
+        const role = FIRST_WAKE_ROLES[character.id];
+        if (character.roleId !== role.id || character.roleCanonStatus !== role.canonStatus ||
+            character.jobId !== null) {
+          throw new Error('FIRST_WAKE_PARTY_AUTHORED_ROLE_INVALID:' + character.id);
+        }
+      }
+      return cloneValue(character);
+    });
+
+    return stagedRoster;
+  }
+
+  function replaceRecord(target, source) {
+    Object.keys(target).forEach(key => {
+      if (!Object.prototype.hasOwnProperty.call(source, key)) delete target[key];
+    });
+    Object.assign(target, source);
+  }
+
+  function hydrateFirstWakeParty(serializedParty) {
+    if (!boundWorldPlayer || ROSTER.length !== 5) {
+      throw new Error('PARTY_STATE_NOT_BOOTSTRAPPED');
+    }
+
+    const stagedRoster = validateSerializedParty(serializedParty);
+    stagedRoster.forEach((character, index) => replaceRecord(ROSTER[index], character));
+    ACTIVE_PARTY.splice(0, ACTIVE_PARTY.length, ROSTER[0], ROSTER[1], ROSTER[2]);
+    global.ROSTER = ROSTER;
+    global.ACTIVE_PARTY = ACTIVE_PARTY;
+    global.party = ACTIVE_PARTY;
+    global.playerForCombat = ACTIVE_PARTY[0];
+    validate();
+    return { roster: ROSTER, activeParty: ACTIVE_PARTY };
+  }
+
   // Formation mutation is intentionally not exposed in this phase.
   // ACTIVE_PARTY is established as canonical references; formation changes
   // land later with safe-state and combat-boundary rules.
@@ -227,6 +356,7 @@
       rosterIds: ROSTER.map(character => character.id),
       activeIds: ACTIVE_PARTY.map(character => character.id),
       runtimeImplemented: ROSTER.map(character => Boolean(character.runtimeImplemented)),
+      roleIds: ROSTER.map(character => character.roleId || null),
     };
   }
 
@@ -238,6 +368,8 @@
     activeParty: ACTIVE_PARTY,
     bootstrap,
     commitPrototypeParty,
+    commitFirstWakeParty,
+    hydrateFirstWakeParty,
     validate,
     snapshot,
   });
