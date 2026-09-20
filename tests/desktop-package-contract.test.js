@@ -47,7 +47,11 @@ assert(workflow.includes('package.json'),
   'desktop workflow must verify the application manifest inside package.nw');
 assert(workflow.includes('Resolve-Path ..\\aetherwake-dist'),
   'desktop workflow must treat the NW.js output directory itself as the package root');
-assert(workflow.includes('Aetherwake-Windows.zip'),
-  'desktop workflow must publish a named Windows ZIP');
+assert(workflow.includes('name: Aetherwake-Windows'),
+  'desktop workflow must publish a named Windows artifact');
+assert(workflow.includes('path: ../aetherwake-dist/**'),
+  'desktop workflow must upload the complete verified NW.js output root');
+assert(!workflow.includes('Compress-Archive'),
+  'desktop workflow should not create a redundant ZIP inside the GitHub artifact');
 
 console.log('Aetherwake desktop package contract: PASS');
