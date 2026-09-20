@@ -29,7 +29,7 @@ npm run test:desktop-package
 npm run package:windows
 ```
 
-The build output is intentionally placed outside the repository at `../aetherwake-dist`. This prevents the packager from recursively including its own generated output. GitHub Actions verifies that the NW.js output root contains `Aetherwake.exe`, and that the generated `package.nw/` application directory contains the non-empty `package.json` manifest and `index-embedded.html` entry point. It then compresses the entire output root as `Aetherwake-Windows.zip`.
+The build output is intentionally placed outside the repository at `../aetherwake-dist`. This prevents the packager from recursively including its own generated output. GitHub Actions verifies that the NW.js output root contains `Aetherwake.exe`, and that the generated `package.nw/` application directory contains the non-empty `package.json` manifest and `index-embedded.html` entry point. It then uploads the entire verified output root as the `Aetherwake-Windows` GitHub Actions artifact. GitHub provides that artifact as a single downloadable ZIP, so players only need one extraction.
 
 ## Launch contract
 
