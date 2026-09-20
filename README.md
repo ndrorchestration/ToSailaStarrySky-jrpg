@@ -60,7 +60,7 @@ Inside the console:
 - **R** — vent the Wakeheart, reduce heat, advance cooldowns, and recover one power cell
 - **ESC / L** — return to the world
 
-The console is the first playable ship-systems slice. Its power and charge budgets are intentionally bounded; direct ship-to-combat resolution is a later integration gate.
+The console is the first playable ship-systems slice. Its power and charge budgets are intentionally bounded, and its one-shot systems now hand off to the next encounter: Resonance Lance opens with a bounded strike, Guard veil absorbs the first point of incoming damage, Slip veil can phase through the first hit, Resonance veil sharpens the first crew roll, and Phase-Slip explicitly phases the first damaging strike.
 
 ## Combat prototype
 
@@ -131,6 +131,7 @@ It includes signal hooks, traversal hazards, NPC encounters, three major choice 
 | `modules/party-state.js` | Authoritative persistent roster / active-party reference layer |
 | `modules/char-create.js` | Active preservation character-creation adapter |
 | `modules/airship-state.js` | Pure Dragonfly Wakeheart power, charge, veil, cooldown, and action rules |
+| `modules/airship-combat-bridge.js` | Renderer-free one-shot airship-to-combat transfer and mitigation rules |
 | `modules/airship-ui.js` | Dragonfly-class ship systems console renderer |
 | other `modules/*.js` | Older modular mirrors/reference source; not authoritative runtime for all systems |
 | `SPEC.md` | Current technical target + implementation notes |
@@ -161,6 +162,7 @@ npm run test:resource-eligibility
 npm run test:progression-reachability
 npm run test:secondary-action
 npm run test:airship
+npm run test:airship-combat-bridge
 npm run test:smoke
 ```
 
