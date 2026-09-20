@@ -688,7 +688,14 @@ function handleWorldInput() {
     }
   }
   if (keysPressed[70]) {   // F
-    if (world && typeof world.boardShip === 'function') world.boardShip();
+    if (world && typeof world.interact === 'function') {
+      const result = world.interact();
+      if (result && result.ok && result.kind === 'airship') {
+        openState(STATE.AIRSHIP);
+      } else if (result && !result.ok && result.reason) {
+        addLedgerEntry('airship', result.reason);
+      }
+    }
   }
   if (keysPressed[9]) {    // Tab
     if (world && typeof world.toggleLayer === 'function') world.toggleLayer();
@@ -2605,7 +2612,7 @@ function interact() {
       plantField();
       return { ok: true, kind: 'field' };
     case 'f':
-      return boardShip() || { ok: true, kind: 'airship' };
+      return boardShip();
     case 'tab':
       toggleLayer();
       return { ok: true, kind: 'layer' };
@@ -2894,25 +2901,32 @@ function updateCovenantField(dt) {
 // ---------------------------------------------------------------------------
 
 function boardShip() {
-  if (gameOver) return;
+  if (gameOver) {
+    return { ok: false, kind: 'airship', reason: 'The game is over.' };
+  }
   const shipTileX = 23;
   const shipTileY = 10;
   const dist = Math.abs(player.tileX - shipTileX) + Math.abs(player.tileY - shipTileY);
-  if (dist <= 2) {
-    player.shipBoarded = true;
-    player.shipTileX = 0;
-    player.shipTileY = 0;
-    const spirit = npcs.find(n => n.id === 'engine_spirit');
-    if (spirit && !spirit.flags.met) {
-      spirit.flags.met = true;
-      if (!quest.npcsMet.includes(spirit.id)) {
-        quest.npcsMet.push(spirit.id);
-      }
-      checkSignalHook(spirit);
-    }
-    advanceQuest();
-    if (ensureAirshipState()) openState(STATE.AIRSHIP);
+  if (dist > 2) {
+    return { ok: false, kind: 'airship', reason: 'The airship is too far away.' };
   }
+  if (!ensureAirshipState()) {
+    return { ok: false, kind: 'airship', reason: 'Airship systems are unavailable.' };
+  }
+
+  player.shipBoarded = true;
+  player.shipTileX = 0;
+  player.shipTileY = 0;
+  const spirit = npcs.find(n => n.id === 'engine_spirit');
+  if (spirit && !spirit.flags.met) {
+    spirit.flags.met = true;
+    if (!quest.npcsMet.includes(spirit.id)) {
+      quest.npcsMet.push(spirit.id);
+    }
+    checkSignalHook(spirit);
+  }
+  advanceQuest();
+  return { ok: true, kind: 'airship' };
 }
 
 // ---------------------------------------------------------------------------
