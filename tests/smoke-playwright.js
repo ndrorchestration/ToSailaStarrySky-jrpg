@@ -223,11 +223,28 @@ function createServer() {
 
     await page.keyboard.press('Enter');
 
-    await page.waitForFunction(() =>
-      window.gameState === 'world' &&
-      window._world &&
-      window._world.player
-    , undefined, { timeout: 5000 });
+    try {
+      await page.waitForFunction(() =>
+        window.gameState === 'world' &&
+        window._world &&
+        window._world.player
+      , undefined, { timeout: 5000 });
+    } catch (handoffError) {
+      const handoffDiagnostic = await page.evaluate(() => ({
+        gameState: window.gameState,
+        charCreatePhase: window._charcreate && window._charcreate.phase,
+        charCreateSlot: window._charcreate && window._charcreate.slot,
+        lastKeyEvent: window._lastKeyEvent || null,
+        lastStateTransition: window._lastStateTransition || null,
+        rosterIds: window.ROSTER && window.ROSTER.map(character => character.id),
+        activeIds: window.ACTIVE_PARTY && window.ACTIVE_PARTY.map(character => character.id),
+        worldLeadIsRosterLead: Boolean(window._world && window.ROSTER &&
+          window._world.player === window.ROSTER[0]),
+      }));
+      throw new Error('CHARCREATE_WORLD_HANDOFF_TIMEOUT ' +
+        JSON.stringify(handoffDiagnostic) +
+        (errors.length ? '\nBrowser errors:\n' + errors.join('\n') : ''));
+    }
 
     const postCreateCombat = await page.evaluate(() => ({
       worldName: window._world.player.name,
