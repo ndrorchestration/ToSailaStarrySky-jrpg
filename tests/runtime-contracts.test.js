@@ -80,3 +80,11 @@ for (const entrypoint of ['index-embedded.html', 'index.html']) {
 }
 
 console.log('Aetherwake entrypoint contracts: PASS');
+
+
+assert(source.includes('const nightFactor = isNight()'),
+  'world renderer does not apply time-of-day shading');
+assert(source.includes('stroke(color(80, 120, 60, 80))'),
+  'world renderer does not draw the vegetation layer');
+
+console.log('Aetherwake visual contracts: PASS');
