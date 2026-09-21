@@ -335,6 +335,35 @@ This is deliberately an admission boundary, not an implicit companion-combat
 implementation. Companion turns remain blocked until complete executable
 outcome contracts exist.
 
+## Companion action admission checkpoint
+
+On 2026-09-21, commit `deb34047ed29ac9c54eac6ae3829edb4e6bd7e61`
+passed smoke run `35569640367` and Windows package run `35569640366`.
+
+`modules/companion-action-admission.js` now defines the fail-closed completeness
+gate that a staged companion action must satisfy before it can even be
+considered for execution:
+
+- the action must remain bound to its preservation field-role template and
+  provenance;
+- the 2D6 stat and 10+/7–9/6− roll bands must be explicit;
+- resource cost must be explicit, including zero-cost actions;
+- common/success/partial/failure outcome profiles must all validate against the
+  existing effect vocabulary;
+- every effect required by an executable contract must already have
+  `IMPLEMENTED` runtime status rather than `DECLARED_NOT_APPLIED`;
+- an execution adapter binding and persistence policy must be explicit;
+- structural completeness still yields `complete-not-authorized`, never
+  execution permission.
+
+All six current preservation-role companion actions remain fail-closed with
+`OUTCOME_CONTRACT_NOT_ESTABLISHED`. No companion turns, new canon, save-schema
+changes, or executable companion effects were introduced.
+
+The next admissible work is to author concrete preservation-action outcome
+contracts one at a time. Execution remains a separate later authorization and
+integration step.
+
 ## Effect/registry checkpoint
 
 On 2026-09-19:
