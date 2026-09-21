@@ -5,8 +5,8 @@ const fieldRoles = require('../modules/field-role-defs.js');
 const admission = require('../modules/companion-action-admission.js');
 const effects = require('../modules/effect-vocabulary.js');
 
-assert.strictEqual(contracts.VERSION, '0.5.0');
-assert.deepStrictEqual(Array.from(contracts.DRAFT_ORDER), ['windShearDance', 'aetherCompass', 'overdriveStrike', 'patchworkShield', 'spiritThread']);
+assert.strictEqual(contracts.VERSION, '0.6.0');
+assert.deepStrictEqual(Array.from(contracts.DRAFT_ORDER), ['windShearDance', 'aetherCompass', 'overdriveStrike', 'patchworkShield', 'spiritThread', 'aetherWeave']);
 assert.strictEqual(contracts.validateAgainstFieldRoles(fieldRoles), true);
 
 const draft = contracts.getDraft('windShearDance');
@@ -445,6 +445,109 @@ assert.strictEqual(
 );
 assert.strictEqual(spiritThreadAssessment.contractComplete, false);
 assert.strictEqual(spiritThreadAssessment.executionAuthorized, false);
+
+
+const aetherWeave = contracts.getDraft('aetherWeave');
+assert(aetherWeave, 'Aether Weave draft must exist');
+assert.strictEqual(aetherWeave.templateId, 'aetherWeaver');
+assert.strictEqual(aetherWeave.provenance, fieldRoles.PROVENANCE);
+assert.strictEqual(aetherWeave.status, contracts.STATUS.DRAFT_UNRESOLVED);
+assert.strictEqual(aetherWeave.stat, 'presence');
+assert.strictEqual(
+  aetherWeave.source.text,
+  '2D6+Presence. Buff ally\'s next roll +1. Costs 1 Aether.'
+);
+assert.deepStrictEqual(aetherWeave.roll, {
+  system: '2d6',
+  stat: 'presence',
+  successMin: 10,
+  partialMin: 7,
+  source: 'established-global-combat-rule',
+});
+assert.deepStrictEqual(aetherWeave.cost, {
+  status: contracts.COST_STATUS.DECLARED,
+  resource: 'aether',
+  amount: 1,
+  sourceText: 'Costs 1 Aether.',
+});
+
+const allyBuff = aetherWeave.knownSemantics.find(
+  item => item.id === 'buffAllyNextRoll'
+);
+assert(allyBuff, 'ally next-roll buff semantic must be preserved');
+assert.strictEqual(allyBuff.band, contracts.UNKNOWN);
+assert.strictEqual(allyBuff.effectKind, 'modifier');
+assert.strictEqual(allyBuff.target, 'ally');
+assert.strictEqual(allyBuff.operation, 'increase');
+assert.strictEqual(allyBuff.key, 'nextRoll');
+assert.strictEqual(allyBuff.amount, 1);
+assert.strictEqual(allyBuff.targetSelection, contracts.UNKNOWN);
+
+for (const phase of ['common', 'success', 'partial', 'failure']) {
+  assert.strictEqual(
+    aetherWeave.outcomes[phase],
+    null,
+    'Aether Weave outcome tables must not be fabricated: ' + phase
+  );
+}
+
+assert.strictEqual(aetherWeave.authoredBindings.nativeJob, contracts.UNKNOWN);
+assert.strictEqual(aetherWeave.authoredBindings.school, contracts.UNKNOWN);
+assert.strictEqual(contracts.getAdmissionCandidate('aetherWeave'), null);
+
+const aetherWeaveReadiness = contracts.getReadiness('aetherWeave');
+assert.strictEqual(aetherWeaveReadiness.known, true);
+assert.strictEqual(aetherWeaveReadiness.designComplete, false);
+assert.strictEqual(aetherWeaveReadiness.executionAuthorized, false);
+assert.strictEqual(aetherWeaveReadiness.reason, 'outcome_contract_not_established');
+assert(!aetherWeaveReadiness.blockers.includes(contracts.BLOCKER.COST_NOT_SPECIFIED));
+for (const blocker of [
+  contracts.BLOCKER.BUFF_BAND_NOT_SPECIFIED,
+  contracts.BLOCKER.ALLY_MODIFIER_TARGET_SELECTION_NOT_SPECIFIED,
+  contracts.BLOCKER.ALLY_NEXT_ROLL_MODIFIER_NOT_EXECUTABLE,
+  contracts.BLOCKER.SUCCESS_OUTCOME_NOT_SPECIFIED,
+  contracts.BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED,
+  contracts.BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED,
+]) {
+  assert(aetherWeaveReadiness.blockers.includes(blocker));
+}
+
+const aetherWeaveDeclaration = aetherWeaver.abilities.find(
+  action => action.id === 'aetherWeave'
+);
+const aetherWeaveAssessment = admission.assessAction(
+  aetherWeaveDeclaration,
+  aetherWeaver,
+  contracts.getAdmissionCandidate('aetherWeave'),
+  {
+    provenance: fieldRoles.PROVENANCE,
+    effectVocabulary: effects,
+  }
+);
+assert.strictEqual(aetherWeaveAssessment.status, admission.STATUS.BLOCKED);
+assert.strictEqual(
+  aetherWeaveAssessment.reason,
+  admission.REASON.OUTCOME_CONTRACT_NOT_ESTABLISHED
+);
+assert.strictEqual(aetherWeaveAssessment.contractComplete, false);
+assert.strictEqual(aetherWeaveAssessment.executionAuthorized, false);
+
+// Declared costs are admissible only when their exact evidence is bound to
+// the field-role source declaration.
+const invalidDeclaredCostDefs = JSON.parse(JSON.stringify(fieldRoles.DEFS));
+invalidDeclaredCostDefs.aetherWeaver.abilities[1].desc =
+  '2D6+Presence. Buff ally\'s next roll +1.';
+assert.throws(
+  () => contracts.validateAgainstFieldRoles({
+    PROVENANCE: fieldRoles.PROVENANCE,
+    getById(id) {
+      return invalidDeclaredCostDefs[id]
+        ? JSON.parse(JSON.stringify(invalidDeclaredCostDefs[id]))
+        : null;
+    },
+  }),
+  /COMPANION_CONTRACT_DECLARATION_DRIFT:aetherWeave/
+);
 
 assert.strictEqual(
   contracts.getReadiness('notAnAction').reason,
