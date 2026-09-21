@@ -6093,8 +6093,8 @@ function AetherCombat(p, C) {
     }
 
     // Resolution migration boundary.
-    // Staff Strike and Hold use production JRPG formulas. The remaining six
-    // actions stay on the legacy 2D6 compatibility path until migrated.
+    // Staff Strike, Hold, and Rest use production JRPG formulas. The remaining
+    // five actions stay on the legacy 2D6 compatibility path until migrated.
     let actionText = '';
     let enemyDmg = 0;
     let playerDmg = 0;
@@ -6154,6 +6154,28 @@ function AetherCombat(p, C) {
         } else {
           actionText = 'Hold — Resonator already at full charge.';
         }
+      } else if (formulaResolution.kind === 'recovery') {
+        if (formulaResolution.heatReduction > 0) {
+          changeResource(
+            effectVocabulary.RESOURCE.HEAT,
+            -formulaResolution.heatReduction
+          );
+        }
+        heal = formulaResolution.vitalityRestore;
+        if (heal > 0) {
+          applyRestore(effectVocabulary.TARGET.SELF, heal);
+        }
+
+        const recoveryParts = [];
+        if (formulaResolution.heatReduction > 0) {
+          recoveryParts.push('-' + formulaResolution.heatReduction + ' Heat');
+        }
+        if (heal > 0) {
+          recoveryParts.push('+' + heal + ' Vit');
+        }
+        actionText = recoveryParts.length
+          ? 'Rest — ' + recoveryParts.join(', ') + '.'
+          : 'Rest — already fully recovered.';
       } else {
         throw new Error('FORMULA_RESULT_KIND_UNSUPPORTED:' + formulaResolution.kind);
       }
@@ -6241,16 +6263,6 @@ function AetherCombat(p, C) {
                 actionText = 'Aether Seal — the aether burns you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
               }
             }
-          } else if (action.type === 'rest') {
-            if (r.outcome === 'success') {
-              changeResource(effectVocabulary.RESOURCE.HEAT, -2);
-              heal = floor(random(1, 3));
-              applyRestore(effectVocabulary.TARGET.SELF, heal);
-              actionText = 'Rest — heat eases, ' + heal + ' Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-            } else {
-              playerDmg = 1;
-              actionText = 'Rest — you cannot find peace. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-            }
           }
         } else if (r.outcome === 'partial') {
           if (action.type === 'attack') {
@@ -6277,8 +6289,6 @@ function AetherCombat(p, C) {
             } else {
               actionText = 'Aether Seal — the leak persists. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
             }
-          } else if (action.type === 'rest') {
-            actionText = 'Rest — tension keeps you awake. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           }
         } else {
           // Failure
@@ -6291,9 +6301,6 @@ function AetherCombat(p, C) {
           } else if (action.type === 'defense') {
             playerDmg = floor(random(1, 4)) + 1;
             actionText = action.label + ' — overwhelmed. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-          } else if (action.type === 'rest') {
-            playerDmg = 1;
-            actionText = 'Rest — exhaustion hits hard. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           }
         }
 
