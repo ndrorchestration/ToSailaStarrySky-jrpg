@@ -170,6 +170,73 @@ jobs:
           }
           Write-Host "One-file Aetherwake executable bytes: $($files[0].Length)"
 
+      - name: Launch one-file executable end to end
+        shell: pwsh
+        run: |
+          $playerFile = Join-Path $PWD "artifact\Aetherwake-One-File\Aetherwake - The Last Solarpunk Airship.exe"
+          if (-not (Test-Path -LiteralPath $playerFile -PathType Leaf)) {
+            throw "One-file player executable is missing before launch test"
+          }
+
+          $runtimeRoot = Join-Path $env:LOCALAPPDATA "Aetherwake\runtime"
+          if (Test-Path -LiteralPath $runtimeRoot) {
+            Remove-Item $runtimeRoot -Recurse -Force
+          }
+
+          $launcher = Start-Process -FilePath $playerFile -PassThru
+          if (-not $launcher.WaitForExit(180000)) {
+            try { $launcher.Kill() } catch {}
+            throw "One-file launcher process did not exit within 180 seconds"
+          }
+          if ($launcher.ExitCode -ne 0) {
+            throw "One-file launcher exited with code $($launcher.ExitCode)"
+          }
+
+          $deadline = (Get-Date).AddSeconds(45)
+          $inner = $null
+          while ((Get-Date) -lt $deadline -and -not $inner) {
+            Start-Sleep -Milliseconds 500
+            if (Test-Path -LiteralPath $runtimeRoot) {
+              $inner = Get-ChildItem -LiteralPath $runtimeRoot -Filter "Aetherwake.exe" -File -Recurse -ErrorAction SilentlyContinue |
+                Select-Object -First 1
+            }
+          }
+
+          if (-not $inner) {
+            throw "One-file launcher did not materialize its private Aetherwake.exe runtime"
+          }
+
+          $packageNw = Join-Path $inner.Directory.FullName "package.nw"
+          $entrypoint = Join-Path $packageNw "index-embedded.html"
+          if (-not (Test-Path -LiteralPath $entrypoint -PathType Leaf)) {
+            throw "One-file launcher runtime is missing package.nw/index-embedded.html"
+          }
+
+          $running = $null
+          $deadline = (Get-Date).AddSeconds(30)
+          while ((Get-Date) -lt $deadline -and -not $running) {
+            Start-Sleep -Milliseconds 500
+            $running = Get-CimInstance Win32_Process -Filter "Name = 'Aetherwake.exe'" -ErrorAction SilentlyContinue |
+              Where-Object { $_.ExecutablePath -eq $inner.FullName } |
+              Select-Object -First 1
+          }
+
+          if (-not $running) {
+            throw "One-file launcher extracted the runtime but did not start Aetherwake.exe"
+          }
+
+          Write-Host "One-file launch PASS: $($inner.FullName)"
+          Write-Host "Runtime entry point PASS: $entrypoint"
+
+          Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+            Where-Object {
+              $_.ExecutablePath -and
+              $_.ExecutablePath.StartsWith($inner.Directory.FullName, [System.StringComparison]::OrdinalIgnoreCase)
+            } |
+            ForEach-Object {
+              Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+            }
+
       - name: Upload one-file Windows launcher
         uses: actions/upload-artifact@v4
         with:
