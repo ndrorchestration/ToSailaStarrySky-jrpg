@@ -157,6 +157,19 @@ function setup() {
     showInitializationFailure('WORLD_PLAYER_UNAVAILABLE_FOR_PARTY_STATE');
     return;
   }
+  if (!window.AetherMasteryDefs ||
+      typeof window.AetherMasteryDefs.validate !== 'function') {
+    showInitializationFailure('AETHER_MASTERY_DEFS_UNAVAILABLE');
+    return;
+  }
+  try {
+    window.AetherMasteryDefs.validate();
+  } catch (error) {
+    showInitializationFailure('AETHER_MASTERY_DEFS_INVALID');
+    return;
+  }
+  window._masteryDefs = window.AetherMasteryDefs;
+
   if (!window.AetherPartyState || typeof window.AetherPartyState.bootstrap !== 'function') {
     showInitializationFailure('AETHER_PARTY_STATE_UNAVAILABLE');
     return;
