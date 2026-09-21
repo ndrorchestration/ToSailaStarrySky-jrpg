@@ -178,6 +178,7 @@
     AUTHORED_CHARACTER_IDS,
     getAuthoredAffinities,
     getNativeJobStatus,
+    validateIdList,
     validate,
   });
 });
