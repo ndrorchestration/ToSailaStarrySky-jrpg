@@ -217,10 +217,10 @@ function initNPCs() {
       tileY: 7,
       dialogue: {
         intro: [
-          '"The Aureate Wake is the last ship that still flies. I\'ve been captain for three hundred years. The sky-lanes closed one by one, and now it\'s just us. The people below want passage. The corporate syndicates want the core. The sky above wants someone brave enough to find out what\'s up there. You\'ve got three problems and you\'ve only just boarded."',
-          '"My first officer used to say a captain owes her ship a proper send-off and her crew a straight answer. I\'ve been trying for three centuries. I\'m still working on it. You look like someone who appreciates a straight answer. So here it is: this ship has a core that sings wrong. And it\'s going to keep singing wrong until someone makes it stop."',
+          '"The Aureate Wake is one of the last ships still holding a live route. I served Captain Denith aboard her for ten years, and now she\'s mine to captain. The people below want passage. The corporate syndicates want the Core. The sky above wants someone brave enough to find out what\'s up there. You\'ve got three problems and you\'ve only just boarded."',
+          '"Captain Denith used to say a captain owes her ship and crew a straight answer. I spent ten years learning this vessel under him, and I\'m still learning what it means now that it\'s mine. So here\'s the straight answer: the Core is singing wrong. And it\'s getting worse."',
           '"You can work the decks. You can talk to the people. You can listen to the frequencies. Or you can do nothing. The Wake will keep flying either way. But the core won\'t. It\'s getting louder each time the sun drops."',
-          '"I\'ve watched the sky-lanes die one by one. Copper-slicked smoke on the horizon. A city going quiet. Another one. Then another. We\'re the last ship flying a sky-lanes route no one else can hold anymore. If we go down, the sky-lanes go with us."',
+          '"Denith\'s logs track sky-lanes closing one by one, and I\'ve seen enough failures in my own ten years aboard to know the pattern isn\'t finished. The Wake still holds routes other ships have lost. If we go down, we lose more than transportation."',
           '"If you\'re looking for the honest part of this story — it\'s me. I\'m tired. I\'ve been tired for a very long time. But I\'m still flying. Sometimes that\'s the only honest thing left in a sky-lanes world."'
         ],
         class_ender: [
@@ -282,11 +282,11 @@ function initNPCs() {
       flags: { met: false, questMarker: true }
     },
 
-    // 3 — Lyra
+    // 3 — Lyra (24-year-old mother and frequency-sensitive dreamer)
     {
       id: 'child_prophet',
       name: 'Lyra',
-      title: 'Child Dreamer of the Aureate Wake',
+      title: 'Dreamer of the Aureate Wake',
       x: 8,
       y: 20,
       tileX: 8,

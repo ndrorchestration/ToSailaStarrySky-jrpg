@@ -1402,7 +1402,7 @@ function drawBootSequence() {
       'Now the cores are failing.',
       '',
       'You are Ender.',
-      'Deckhand. Engineer-in-training.',
+      'Rift Scholar. New hand aboard the Wake.',
       'You carry a wrench, a passport, and a decision',
       'you have not yet admitted you have to make.',
       '',
@@ -2272,7 +2272,7 @@ function initPlayer() {
 
 function initNPCs() {
   npcs = [
-    // 1 — Captain Ionia (old sky-lane navigator, exact, tired, fond of Ender)
+    // 1 — Captain Ionia (28-year-old veteran navigator; Denith's former protégé)
     {
       id: 'elder_farmer',
       name: 'Ionia',
@@ -2283,15 +2283,15 @@ function initNPCs() {
       tileY: 7,
       dialogue: {
         intro: [
-          '"The Wake doesn\'t sing like it used to. You hear it? The harmonics are slipping. Three hundred years of sky-lane service, and now the core is forgetting its own song."',
-          '"You\'re Ender. Deckhand. Engineer-in-training. You carry a wrench, a passport, and a decision you haven\'t admitted you have to make. I know the shape of it."',
+          '"The Wake doesn\'t sing like it used to. You hear it? The harmonics are slipping. Ten years under Captain Denith taught me this ship\'s rhythms, and now the Core is forgetting its own song."',
+          '"You\'re Ender. Rift Scholar, and a new hand aboard my ship. You carry a wrench, a passport, and a decision you haven\'t admitted you have to make. I know the shape of it."',
           '"I\'ve flown the Wake through the copper storms, through the blight-winds, through the years when the sky-lanes were closing one by one. I\'ve never seen the core drift like this. Not in all my watches."',
           'The crops on the lower decks taste like copper dust. The solar array still hums. The people are tired but alive. That\'s a lot. It\'s not enough, but it\'s a lot.',
           '"You stand on the edge of something big, Ender. I can smell it on you. Something that wants to be decided."'
         ],
         class_ender: [
           '"Ah. Deckhand\'s hands. You\'ve been in the wiring. You know what happens when a core starts to slip — it doesn\'t stop. It falls."',
-          'Ionia has watched three hundred years of sky-lanes close one by one. She is exact about what the core has been through and tired in the way old captains get — not defeated, just done with watching the same thing fail. She is fond of Ender in the way a senior engineer is fond of a promising junior: she sees the decision coming and she doesn\'t pretend it\'s easy.',
+          'Ionia spent ten years learning the Wake under Captain Denith. She knows the old route records well enough to recognize when the Core is behaving wrong, and now every impossible problem belongs to her as captain. She trusts Ender as a new crewmate whose Rift Scholar instincts may matter here, but she doesn\'t pretend the decision is easy.',
           'You\'ve walked the ship and you\'ve seen what\'s waiting. Ionia\'s bulkhead is empty except for her watch log. Lyra\'s been listening to the frequencies nobody else can hear. Verrick has a contract on the core and a real argument about what happens to people when the sky-lanes close. You get to decide what the Wake becomes. That\'s not a small thing.',
         ],
         generic_follow: [
@@ -2342,7 +2342,7 @@ function initNPCs() {
       flags: { met: false, questMarker: true }
     },
 
-    // 3 — Lyra (child dreamer, hears frequencies above and below)
+    // 3 — Lyra (24-year-old mother; dream/frequency-sensitive)
     {
       id: 'child_prophet',
       name: 'Lyra',
@@ -5178,9 +5178,9 @@ function AetherCombat(p, C) {
   const self = this;
   const state = {
     player: {
-      name: 'Young Ender',
-      age: 28,
-      class: 'Rift Scholar + Dreamwright',
+      name: 'Ender',
+      age: 22,
+      class: 'Rift Scholar',
       vit: 13, maxVit: 13,
       echoes: { current: 3, max: 3 }, maxEchoes: 3,
       wits: 2, presence: 1, spirit: 1, might: -1,
@@ -5489,9 +5489,9 @@ function AetherCombat(p, C) {
       if (randomSeed) randomSeed(seed);
     }
     const maxVit = Math.max(1, Number(options.maxVit ?? 13));
-    state.player.name = options.name ?? 'Young Ender';
-    state.player.age = options.age ?? 28;
-    state.player.class = options.class ?? 'Rift Scholar + Dreamwright';
+    state.player.name = options.name ?? 'Ender';
+    state.player.age = options.age ?? 22;
+    state.player.class = options.class ?? 'Rift Scholar';
     state.player.vit = Math.max(1, Math.min(maxVit, Number(options.vit ?? maxVit)));
     state.player.maxVit = maxVit;
     state.player.wits = Number(options.wits ?? 2);
