@@ -341,6 +341,57 @@ function createServer() {
       characterSheetView.model.abilities.some(action => action.id === 'hold'),
       'character sheet did not derive baseline eligible actions');
 
+    const activeBeforeRosterBrowse = await page.evaluate(() =>
+      window.ACTIVE_PARTY.map(character => character.id)
+    );
+
+    await page.keyboard.press('Digit2');
+    await page.waitForFunction(() => {
+      const model = window.getCharacterSheetViewModel();
+      return model && model.id === 'lyra';
+    }, undefined, { timeout: 5000 });
+    const lyraSheet = await page.evaluate(() => window.getCharacterSheetViewModel());
+    assert(lyraSheet.canonicalName === 'Lyra' &&
+      lyraSheet.activePartyMember === true &&
+      lyraSheet.runtimeImplemented === true,
+      'Lyra roster view did not preserve authored/active runtime identity');
+    assert(lyraSheet.nativeJob.status === 'unknown' &&
+      lyraSheet.affinities.status === 'unknown',
+      'Lyra roster view fabricated unresolved native-job or affinity canon');
+    assert(lyraSheet.mechanicsTemplateId === 'skySailor' &&
+      lyraSheet.mechanicsTemplateName === 'Sky-Sailor',
+      'Lyra roster view lost temporary field-role provenance');
+    assert(lyraSheet.abilities.some(action =>
+      action.id === 'windShearDance' && action.source === 'prototype-mechanics'),
+      'Lyra roster view did not distinguish prototype mechanics from canonical actions');
+
+    await page.keyboard.press('Digit4');
+    await page.waitForFunction(() => {
+      const model = window.getCharacterSheetViewModel();
+      return model && model.id === 'reson';
+    }, undefined, { timeout: 5000 });
+    const resonSheet = await page.evaluate(() => window.getCharacterSheetViewModel());
+    assert(resonSheet.canonicalName === 'Reson' &&
+      resonSheet.runtimeImplemented === false &&
+      resonSheet.activePartyMember === false,
+      'Reson shell status was not represented accurately');
+    assert(resonSheet.nativeJob.status === 'unknown' &&
+      resonSheet.affinities.status === 'unknown' &&
+      resonSheet.abilities.length === 0,
+      'Reson roster view invented unresolved mechanics or canon');
+
+    const activeAfterRosterBrowse = await page.evaluate(() =>
+      window.ACTIVE_PARTY.map(character => character.id)
+    );
+    assert(activeAfterRosterBrowse.join('|') === activeBeforeRosterBrowse.join('|'),
+      'character-sheet roster browsing mutated ACTIVE_PARTY formation');
+
+    await page.keyboard.press('Digit1');
+    await page.waitForFunction(() => {
+      const model = window.getCharacterSheetViewModel();
+      return model && model.id === 'ender';
+    }, undefined, { timeout: 5000 });
+
     await page.keyboard.press('KeyR');
     await page.waitForFunction(() => window.gameState === 'world', undefined,
       { timeout: 5000 });
