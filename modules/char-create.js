@@ -1136,7 +1136,7 @@ const CharCreate = {
       textFont(CC_FONT_BODY);
       textSize(10);
       textAlign(CENTER, TOP);
-      const jobName = isEnder ? 'Rift Scholar + Dreamwright' :
+      const jobName = isEnder ? 'Rift Scholar' :
                      (job ? 'FIELD ROLE: ' + job.name : 'FIELD ROLE: UNSET');
       const classCol = isEnder ? C.teal : (job ? jobColorRGB(chr.jobId) : C.dim);
       fill(classCol[0], classCol[1], classCol[2], 160);
