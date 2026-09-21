@@ -7,10 +7,13 @@ The current repository contains a playable vertical-slice prototype plus an acti
 ## Development status
 
 - **Stage:** late prototype / pre-alpha
-- **Playable baseline:** boot → character creation → world exploration → dialogue/quest systems → combat
+- **Playable baseline:** boot → authored Ender/Lyra/Ionia onboarding → world exploration → dialogue/quest systems → combat → Dragonfly ship systems → save/load
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
-- **Combat party:** exactly 3 active combatants selected from the persistent roster
-- **Current migration:** smoke-green persistent roster, authored Ender/Lyra/Ionia onboarding, explicit prototype-mechanics provenance, versioned party/progression save schema v1, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; complete game-state persistence and higher-order effect semantics remain separate gates
+- **Target combat party:** exactly 3 active combatants selected from the persistent roster
+- **Current combat runtime:** hybrid migration state — Staff Strike, Hold, and Rest use JRPG-native formulas while five preservation-era actions still use the legacy 2D6 compatibility path
+- **Current persistence:** schema v2 stores canonical party/progression state plus bounded World, quest/ledger, and Dragonfly state; encounter-local/transient state remains deliberately excluded
+- **Current party boundary:** persistent five-character roster and authored starting trio are established; formation switching and true three-character combat are not enabled yet
+- **Current architecture work:** effect vocabulary/resolver contracts, transactional use eligibility, progression reachability, JRPG control surfaces, mastery/magic-access definitions, companion/foundation-spell admission contracts, regression coverage, and Windows packaging are under active incremental development
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
 
@@ -59,22 +62,22 @@ Legacy development-era shortcuts remain temporarily available while the migratio
 
 ## Save / load
 
-Aetherwake now exposes the versioned save system through player-facing quick controls:
+Aetherwake exposes the versioned save system through the normal system menu. F2/F3 remain compatibility shortcuts:
 
-- **F2 — Quick Save:** writes the current schema-v2 save only from normal `WORLD` state.
-- **F3 — Quick Load:** restores a valid save from menu, onboarding, or normal `WORLD` state and returns to `WORLD`.
-- combat, dialogue, shop, ledger, quest, character-sheet, and airship-console states reject quick-save/load actions that would cross an unsafe transient boundary.
+- **Save / F2:** writes the current schema-v2 save only from normal `WORLD` state.
+- **Load / F3:** restores a valid save from menu, onboarding, or normal `WORLD` state and returns to `WORLD`.
+- combat, dialogue, shop, ledger, quest, character-sheet, and airship-console states reject save/load actions that would cross an unsafe transient boundary.
 - restored data includes canonical party/progression state, World position/quest/ledger state, and bounded Dragonfly system state.
 - load re-synchronizes the combat snapshot from the restored canonical World/roster record.
 - older schema-v1 saves migrate through the explicit v1 → v2 migration path.
 
-The save document deliberately excludes encounter-local combat and presentation state. Invalid, unversioned, future-version, or identity-tampered saves fail closed rather than being guessed into a usable state.
+The current save document deliberately excludes encounter-local combat and presentation/transient state. Invalid, unversioned, future-version, or identity-tampered saves fail closed rather than being guessed into a usable state.
 
 ## Dragonfly Wake console
 
-Stand near the ship's core chamber and press **F** to board the compact Dragonfly-class *Aureate Wake*. The hull volume is fixed at **three shipping containers**, excluding masts, wings, and rigging.
+Stand near the ship's core chamber and **interact** to board the compact Dragonfly-class *Aureate Wake*. The hull volume is fixed at **three shipping containers**, excluding masts, wings, and rigging.
 
-Inside the console:
+The console is fully cursor-driven with the normal directional + confirm/back controls. Legacy shortcuts remain available during migration:
 
 - **1** — Phase-Slip Wake Drive
 - **2 / H** — cycle Harmonic Phase Veil mode
@@ -82,7 +85,7 @@ Inside the console:
 - **4** — Rootline Tether
 - **5** — Pattern Forge
 - **R** — vent the Wakeheart, reduce heat, advance cooldowns, and recover one power cell
-- **ESC / L** — return to the world
+- **Esc / L** — return to the world
 
 The console is the first playable ship-systems slice. Its power and charge budgets are intentionally bounded, and its one-shot systems now hand off to the next encounter: Resonance Lance opens with a bounded strike, Guard veil absorbs the first point of incoming damage, Slip veil can phase through the first hit, Resonance veil sharpens the first crew roll, and Phase-Slip explicitly phases the first damaging strike.
 
@@ -141,17 +144,19 @@ The temporary field-role templates remain implementation provenance rather than 
 
 ## Persistence boundary
 
-The development branch now includes `modules/save-state.js` with explicit
-`aetherwake-save` schema version **1**. This first schema deliberately covers
-the canonical roster, active-party IDs, and allowlisted progression/resource
-state while preserving roster object identity during restore.
+`modules/save-state.js` defines the current `aetherwake-save` schema version **2**.
 
-It is an architecture/compatibility checkpoint, **not yet a complete
-player-facing save system**. Quest/world position, world-layer state, ledger
-history, and Dragonfly state still require explicit persistence contracts before
-save/load should be exposed as a finished player feature. Unsupported,
-unversioned, future, or identity-tampered save data fails closed.
+Schema v2 persists:
 
+- canonical roster identity and active-party IDs;
+- allowlisted progression/resource state;
+- bounded World position and quest state;
+- Mycelial Ledger history;
+- bounded Dragonfly/Wakeheart state.
+
+Schema v1 documents migrate through an explicit v1 → v2 migration. Canonical authored identity remains code-owned during restore, and roster object identity is preserved.
+
+The persistence boundary intentionally excludes encounter-local combat state and presentation/transient state. Save/load is a player-facing feature, but it remains fail-closed: unsupported, unversioned, future-version, invalid, or identity-tampered documents are rejected rather than guessed into a usable state.
 
 ## Current quest vertical slice
 
@@ -166,20 +171,22 @@ It includes signal hooks, traversal hazards, NPC encounters, three major choice 
 | Path | Purpose |
 |---|---|
 | `aetherwake.js` | Current integrated runtime / preservation build |
-| `index-embedded.html` | Current browser entry point |
-| `modules/effect-vocabulary.js` | Frozen effect vocabulary v0.1 + current action effect profiles |
+| `index-embedded.html` | Current browser and packaged-app entry point |
+| `modules/effect-vocabulary.js` | Current effect vocabulary + action effect profiles |
 | `modules/effect-resolver.js` | Fail-closed ordinary mutation resolver for damage/restoration/resources |
 | `modules/ability-defs.js` | Canonical metadata for the eight current combat actions |
 | `modules/progression-defs.js` | Canonical current level-unlock table |
 | `modules/mastery-defs.js` | Code-owned mastery/domain facts, Ender affinities, and explicit UNKNOWN companion canon |
 | `modules/party-state.js` | Authoritative persistent roster / active-party reference layer |
-| `modules/char-create.js` | Active preservation character-creation adapter |
+| `modules/char-create.js` | Authored Ender/Lyra/Ionia onboarding adapter with temporary field-role mechanics |
+| `modules/save-state.js` | Versioned schema-v2 save/load boundary and v1 → v2 migration |
 | `modules/airship-state.js` | Pure Dragonfly Wakeheart power, charge, veil, cooldown, and action rules |
 | `modules/airship-combat-bridge.js` | Renderer-free one-shot airship-to-combat transfer and mitigation rules |
 | `modules/airship-ui.js` | Dragonfly-class ship systems console renderer |
 | other `modules/*.js` | Older modular mirrors/reference source; not authoritative runtime for all systems |
 | `SPEC.md` | Current technical target + implementation notes |
-| `docs/DEVELOPMENT.md` | Development authority, migration rules, smoke gate |
+| `docs/DEVELOPMENT.md` | Development authority, migration rules, and smoke gate |
+| `docs/JRPG_COMBAT_DIRECTION.md` | Approved target combat architecture and migration policy |
 | `docs/DESKTOP_BUILD.md` | Windows packaging, artifact, and launch contract |
 | `gap_analysis.md` | Snapshot audit of prototype conformance |
 | `memories_adaptation_catalog.md` | Adaptation/provenance reference |
@@ -194,42 +201,44 @@ npm install
 npm run playwright:install
 ```
 
-Run the architecture contracts and canonical smoke test:
+Run the complete current verification gate:
 
 ```bash
+npm run test:all
+```
+
+`test:all` covers runtime contracts, combat policy/formulas, JRPG input/control surfaces, authored onboarding, canon reconciliation, schema-v2 save state and migration, mastery and magic-access definitions, Aether Sense, foundation-spell admission, field-role definitions, party-combat and companion-action contracts, effect vocabulary/resolver integration, enemy metadata, transactional resource eligibility, progression reachability, secondary-action state, Dragonfly state/bridge behavior, regression suites, desktop-package structure, and the canonical browser smoke path.
+
+Useful focused checks include:
+
+```bash
+npm run test:combat-policy
+npm run test:combat-formula
+npm run test:jrpg-controls
 npm run test:onboarding
 npm run test:save-state
-npm run test:effects
-npm run test:registries
-npm run test:resolver
-npm run test:resolver-integration
-npm run test:enemy-metadata
-npm run test:combat-input
-npm run test:resource-eligibility
-npm run test:progression-reachability
-npm run test:secondary-action
 npm run test:airship
-npm run test:airship-combat-bridge
+npm run test:desktop-package
 npm run test:smoke
 ```
 
-The verification suite covers the playable path from startup through authored onboarding, world state, combat, Dragonfly ship boarding/system actions, and return to WORLD. It also verifies roster/reference invariants, authored-identity/prototype-mechanics separation, save-schema v1 fail-closed behavior, effect-vocabulary coverage, registry/runtime equivalence, transactional action affordability, progression reachability, secondary-action state, enemy metadata propagation, live resolver routing, and post-combat write-back into the canonical lead record.
+The smoke path verifies startup through authored onboarding, World state, combat, Dragonfly ship interactions, and return to `WORLD`, including post-combat write-back into the canonical lead record.
 
 ## Architecture direction
 
 The production migration is incremental:
 
-1. establish one verified playable baseline,
-2. introduce persistent five-character roster state,
-3. formalize effect vocabulary and extract the current ability/progression registries — **established on `dev/progression-build`**,
-4. route ordinary combat mutations through a generic effect resolver while preserving current 2D6 outcome behavior — **damage/restoration/resource routing established on `dev/progression-build`**,
-5. enforce current learned/unlocked action eligibility before broader mastery-tree work — **established on `dev/progression-build`**,
-6. replace prototype companion creation with authored roster onboarding — **identity migration established on `dev/progression-build`; canonical companion jobs/mechanics remain unresolved**,
-7. implement school/job/mastery progression — **Phase A definitions established; mutable mastery/save-v3 state not yet implemented**,
-8. add formation, Dual Arts, and Triple Arts,
+1. establish one verified playable baseline — **established**;
+2. introduce persistent five-character roster state — **established**;
+3. formalize effect vocabulary and extract the current ability/progression registries — **established on `dev/progression-build`**;
+4. migrate combat from preservation-era 2D6/PbtA resolution to conventional JRPG formulas — **Staff Strike, Hold, and Rest migrated; five actions remain on compatibility behavior**;
+5. enforce learned/unlocked action eligibility and transactional resource checks — **established**;
+6. replace prototype companion naming with authored Ender/Lyra/Ionia onboarding — **identity migration established; canonical Lyra/Ionia jobs remain unresolved**;
+7. implement school/job/mastery progression — **Phase-A definitions/access contracts established; full mutable mastery progression remains incomplete**;
+8. integrate formation selection, true three-character combat, Dual Arts, and Triple Arts — **bridge/contracts in progress; full runtime not yet enabled**;
 9. expand campaign content after the architecture is stable.
 
-Each phase should preserve a working combat loop.
+Each phase must preserve a working playable loop.
 
 ## Provenance
 
