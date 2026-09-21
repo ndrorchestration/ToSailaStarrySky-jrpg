@@ -110,6 +110,8 @@ for (let i = 0; i < 14; i++) {
 let world = null;
 let combat = null;
 let airshipState = null;
+let airNavigationState = null;
+let airshipFlightMode = false;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -704,7 +706,7 @@ function handleInput() {
   }
 
   if (gameState === STATE.AIRSHIP) {
-    handleAirshipInput({ ok, cancel, up, down, left, right });
+    handleAirshipInput({ ok, cancel, up, down, left, right, pageUp, pageDown, shift });
     return;
   }
 
@@ -1151,6 +1153,7 @@ function activateAirshipCommand(command) {
 }
 
 function handleAirshipInput(input) {
+  if (airshipFlightMode) { handleAirNavigationInput(input); return; }
   const commands = getAirshipCommands();
   airshipCursor = Math.max(0, Math.min(airshipCursor, commands.length - 1));
 
@@ -1167,6 +1170,7 @@ function handleAirshipInput(input) {
     return;
   }
   if (input && input.ok) {
+    if (airshipCursor === 0 && ensureAirNavigationState()) { airshipFlightMode = true; return; }
     activateAirshipCommand(commands[airshipCursor]);
     return;
   }
@@ -1920,7 +1924,70 @@ function drawTitleScreen() {
   text('THE AUREATE WAKE // SOLARPUNK SKYFARING RPG', cx, height - 20);
 }
 
+function ensureAirNavigationState() {
+  if (!window.AetherAirNavigation || typeof window.AetherAirNavigation.createState !== 'function') return false;
+  if (!airNavigationState) airNavigationState = window.AetherAirNavigation.createState();
+  window._airNavigationState = airNavigationState;
+  return true;
+}
+
+function drawAirNavigationScene() {
+  if (!ensureAirNavigationState()) return;
+  const nav = window.AetherAirNavigation;
+  noStroke(); fill(18, 23, 46); rect(0, 0, width, height);
+
+  // Three readable cloud strata communicate altitude and motion without soft vector fog.
+  const altitudeIndex = nav.ALTITUDES.indexOf(airNavigationState.altitude);
+  for (let layer = 0; layer < 3; layer++) {
+    const parallax = 0.25 + layer * 0.22;
+    const yBase = 110 + layer * 145 + (altitudeIndex - 1) * 24;
+    for (let k = 0; k < 8; k++) {
+      const x = Math.round(((k * 173 - airNavigationState.x * 19 * parallax) % (width + 180) + width + 180) % (width + 180) - 90);
+      const y = yBase + ((k * 37) % 64);
+      fill(124, 200, 232, 24 + layer * 10);
+      rect(x, y, 82, 5); rect(x + 18, y - 5, 48, 5);
+    }
+  }
+
+  // Authored sky landmarks are projected around the ship from navigation coordinates.
+  const scaleX = 26, scaleY = 18;
+  for (const mark of nav.LANDMARKS) {
+    const sx = Math.round(width / 2 + (mark.x - airNavigationState.x) * scaleX);
+    const sy = Math.round(height / 2 + (mark.y - airNavigationState.y) * scaleY);
+    if (sx < -80 || sx > width + 80 || sy < -60 || sy > height + 60) continue;
+    fill(91, 68, 61); rect(sx - 22, sy - 5, 44, 10);
+    fill(139, 184, 88); rect(sx - 16, sy - 9, 32, 4);
+    fill(42, 255, 181, 130); rect(sx - 5, sy + 7, 10, 2);
+    fill(232, 220, 198); textFont('VT323'); textSize(12); textAlign(CENTER, TOP); text(mark.label, sx, sy + 13);
+  }
+
+  drawUnfinishedSongExterior(width / 2, height / 2, 0.9);
+
+  const near = nav.nearestLandmark(airNavigationState);
+  textAlign(LEFT, TOP); textFont('Press Start 2P'); textSize(8);
+  fill(42, 255, 181); text('SKY NAV // ' + airNavigationState.altitude.toUpperCase(), 18, 18);
+  fill(232, 220, 198); text('SPD ' + airNavigationState.speed + '   POS ' + Math.round(airNavigationState.x) + ',' + Math.round(airNavigationState.y), 18, 36);
+  if (near) text('NEAREST ' + near.landmark.label + '  ' + near.distance.toFixed(1), 18, 52);
+  fill(124, 200, 232); text('ARROWS FLY   Q/W ALTITUDE   SHIFT SPEED   TAB SYSTEMS   ESC LAND', 18, height - 24);
+}
+
+function handleAirNavigationInput(input) {
+  if (!ensureAirNavigationState()) return;
+  const nav = window.AetherAirNavigation;
+  let dx = 0, dy = 0;
+  if (input.left) dx = -1; else if (input.right) dx = 1;
+  if (input.up) dy = -1; else if (input.down) dy = 1;
+  if (dx || dy) airNavigationState = nav.move(airNavigationState, dx, dy);
+  if (input.pageUp) airNavigationState = nav.changeAltitude(airNavigationState, 1);
+  if (input.pageDown) airNavigationState = nav.changeAltitude(airNavigationState, -1);
+  if (input.shift) airNavigationState.speed = airNavigationState.speed >= 3 ? 1 : airNavigationState.speed + 1;
+  if (input.ok) airshipFlightMode = false;
+  if (input.cancel) { airshipFlightMode = false; leaveAirship(); }
+  window._airNavigationState = airNavigationState;
+}
+
 function drawAirshipOverlay() {
+  if (airshipFlightMode) { drawAirNavigationScene(); return; }
   if (!ensureAirshipState()) return;
   if (window.AetherAirshipView &&
       typeof window.AetherAirshipView.draw === 'function') {
