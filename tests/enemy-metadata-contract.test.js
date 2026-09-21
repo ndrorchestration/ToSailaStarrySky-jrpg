@@ -13,12 +13,12 @@ assert(start >= 0 && end > start, 'beginEncounter source boundaries not found');
 
 const body = source.slice(start, end);
 [
-  'type: template.type || enemyId',
-  'ability: template.ability || null',
-  'abilities: template.ability ? [template.ability] : []',
-  'abilityDesc: template.abilityDesc || null',
-  'color: template.color || null',
-  'bodyShape: template.bodyShape || null',
+  'type: scaledTemplate.type || enemyId',
+  'ability: scaledTemplate.ability || null',
+  'abilities: scaledTemplate.ability ? [scaledTemplate.ability] : []',
+  'abilityDesc: scaledTemplate.abilityDesc || null',
+  'color: scaledTemplate.color || null',
+  'bodyShape: scaledTemplate.bodyShape || null',
 ].forEach(fragment => {
   assert(body.includes(fragment), 'encounter metadata propagation missing: ' + fragment);
 });
@@ -27,5 +27,8 @@ assert(source.includes("const eType = state.enemy.type || 'generic';"),
   'enemy-turn type dispatch is missing');
 assert(source.includes('const normalizedAbilityId = String(abilityId).replace'),
   'legacy enemy ability ID normalization is missing');
+
+assert(body.includes('scaling: scaledTemplate.scaling || null'),
+  'encounter scaling metadata is not exposed');
 
 console.log('Aetherwake enemy metadata contract: PASS');
