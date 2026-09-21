@@ -21,9 +21,13 @@ See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for 
 
 ### Windows — simplest player path
 
-Use the **Aetherwake-Windows** artifact produced by the **Windows desktop package** GitHub Actions workflow. Extract the ZIP completely, then double-click `Aetherwake.exe`. Keep the extracted files together.
+Use the **Aetherwake-One-File** artifact produced by the **Windows desktop package** GitHub Actions workflow. GitHub provides Actions artifacts as ZIP downloads; extract that download once, then double-click the single file inside:
 
-The desktop build does not require Python, PowerShell, a development server, or Node.js on the player's computer.
+`Aetherwake - The Last Solarpunk Airship.exe`
+
+That executable carries the Aetherwake icon and privately prepares the verified game runtime under your local AppData folder. You do not need Python, PowerShell, Node.js, a local HTTP server, or a manually managed runtime folder.
+
+The older **Aetherwake-Windows** folder artifact remains available as a development/debugging fallback.
 
 ### Browser — development/fallback path
 
@@ -207,7 +211,7 @@ Run the complete current verification gate:
 npm run test:all
 ```
 
-`test:all` covers runtime contracts, combat policy/formulas, JRPG input/control surfaces, authored onboarding, canon reconciliation, schema-v2 save state and migration, mastery and magic-access definitions, Aether Sense, foundation-spell admission, field-role definitions, party-combat and companion-action contracts, effect vocabulary/resolver integration, enemy metadata, transactional resource eligibility, progression reachability, secondary-action state, Dragonfly state/bridge behavior, regression suites, desktop-package structure, and the canonical browser smoke path.
+`test:all` covers runtime contracts, combat policy/formulas, JRPG input/control surfaces, authored onboarding, canon reconciliation, schema-v2 save state and migration, mastery and magic-access definitions, Aether Sense, foundation-spell admission, field-role definitions, party-combat and companion-action contracts, effect vocabulary/resolver integration, enemy metadata, transactional resource eligibility, progression reachability, secondary-action state, Dragonfly state/bridge behavior, regression suites, desktop-package structure, the one-file Windows launcher contract, and the canonical browser smoke path.
 
 Useful focused checks include:
 
@@ -219,6 +223,7 @@ npm run test:onboarding
 npm run test:save-state
 npm run test:airship
 npm run test:desktop-package
+npm run test:one-file-launcher
 npm run test:smoke
 ```
 

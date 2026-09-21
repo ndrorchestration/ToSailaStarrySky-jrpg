@@ -1,45 +1,62 @@
 # Aetherwake Windows desktop build
 
-Aetherwake retains its browser path for development and automated smoke testing. The simplest player-facing path is a packaged NW.js Windows build.
+Aetherwake retains its browser path for development and automated smoke testing. The preferred player-facing Windows path is now a **single self-contained launcher executable** wrapped around the verified NW.js runtime.
 
 ## For players
 
-Use the `Aetherwake-Windows` artifact produced by the **Windows desktop package** GitHub Actions workflow. Download and extract the ZIP completely, then double-click:
+Use the `Aetherwake-One-File` artifact produced by the **Windows desktop package** GitHub Actions workflow. GitHub delivers Actions artifacts as ZIP downloads, so extract that download once. Inside it there is exactly one player-facing file:
 
-`Aetherwake.exe`
+`Aetherwake - The Last Solarpunk Airship.exe`
 
-Do not run the executable from inside the ZIP. Keep the extracted files together because the NW.js application loads its packaged resources from that directory.
+Double-click that file. No Python, PowerShell, Node.js, local HTTP server, or manually managed game folder is required.
+
+On first launch, the executable silently extracts the verified NW.js runtime into a private content-addressed directory under your local AppData folder and starts `Aetherwake.exe` from there. Later launches reuse the matching cached runtime. A changed embedded build receives a different cache directory automatically.
+
+The launcher uses the Aetherwake emblem as its Windows application icon.
+
+### Folder-package fallback
+
+The workflow also retains the older `Aetherwake-Windows` artifact. That artifact contains the raw NW.js runtime and is useful for debugging or packaging verification. It must be extracted completely before launching its inner `Aetherwake.exe`.
 
 ## For maintainers
 
 The package is built automatically on `dev/progression-build` and `main`, from version tags, or by manually dispatching the **Windows desktop package** workflow.
 
-Local build requirements:
+The pipeline:
 
-- Windows or a compatible NW.js build environment
-- Node.js 26.7.0 (matches NW.js 0.116.0)
-- npm
+1. stages the minimal Aetherwake runtime;
+2. builds and verifies the normal NW.js Windows package;
+3. creates a ZIP payload from that verified package;
+4. generates the Windows icon from the tracked Aetherwake emblem;
+5. publishes a self-contained .NET 8 Windows launcher with the payload embedded;
+6. renames the single executable to `Aetherwake - The Last Solarpunk Airship.exe`;
+7. verifies the one-file artifact contains exactly that executable.
 
-Commands:
+The launcher source lives under `packaging/one-file-launcher/`. It extracts only under `%LOCALAPPDATA%\Aetherwake\runtime\<payload-hash>`, validates archive paths against zip-slip traversal, and starts the existing NW.js `Aetherwake.exe` without changing gameplay semantics.
+
+Useful verification commands:
 
 ```powershell
 npm install
-npm run test:all
 npm run test:desktop-package
+npm run test:one-file-launcher
 npm run package:windows
 ```
 
-The build output is intentionally placed outside the repository at `../aetherwake-dist`. This prevents the packager from recursively including its own generated output. GitHub Actions verifies that the NW.js output root contains `Aetherwake.exe`, and that the generated `package.nw/` application directory contains the non-empty `package.json` manifest and `index-embedded.html` entry point. After verification, it copies the completed external build into a temporary workspace staging folder because `upload-artifact` cannot consume a parent (`..`) path. It then uploads the staged output as the `Aetherwake-Windows` artifact. GitHub provides that artifact as a single downloadable ZIP, so players only need one extraction.
+The GitHub workflow also configures .NET 8 for the single-file publish stage.
 
 ## Launch contract
 
-The desktop package must:
+The player-facing one-file package must:
 
-- launch `index-embedded.html`;
-- preserve the 960×640 initial window;
-- run without Python, PowerShell, or a separately started HTTP server;
-- include the tracked application icon;
-- preserve the browser-served path as a development fallback;
-- fail the packaging workflow if the executable, packaged manifest, or packaged entry point is absent or empty.
+- consist of exactly one recognizable executable;
+- be named `Aetherwake - The Last Solarpunk Airship.exe`;
+- carry the Aetherwake Windows icon;
+- require no local development server or developer tooling;
+- embed the already-verified NW.js runtime rather than fork gameplay code;
+- use a content-addressed private runtime cache;
+- fail visibly if the embedded runtime is missing or cannot be prepared.
 
-Packaging does not change gameplay semantics. A desktop artifact is considered established only when both the normal Aetherwake smoke workflow and the Windows desktop packaging workflow pass for the same source state.
+The folder-based `Aetherwake-Windows` artifact remains a fallback and diagnostic package.
+
+Packaging does not change gameplay semantics. A one-file artifact is considered established only when its contract checks and the Windows desktop packaging workflow pass for the same source state.
