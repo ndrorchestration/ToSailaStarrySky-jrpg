@@ -708,7 +708,12 @@ function handleInput() {
   }
 
   if (gameState === STATE.DIALOGUE) {
-    if (ok || cancel || keysPressed[69]) {
+    if (cancel) {
+      if (world && typeof world.closeDialogue === 'function') world.closeDialogue();
+      closeOverlay();
+      return;
+    }
+    if (ok || keysPressed[69]) {
       if (world && typeof world.nextDialogueLine === 'function') {
         world.nextDialogueLine();
         if (!window.UI.dialogueOpen) closeOverlay();
