@@ -42,6 +42,14 @@
       B: [22, 26, 31],
       K: [150, 112, 66],
     }),
+    skyPredator: Object.freeze({
+      D: [24, 29, 42],
+      B: [48, 76, 96],
+      W: [92, 142, 166],
+      T: [42, 255, 181],
+      E: [255, 179, 71],
+      H: [175, 218, 230],
+    }),
   });
 
   const SPRITES = Object.freeze({
@@ -176,6 +184,50 @@
         ]),
       ]),
     }),
+
+    skyPredator: Object.freeze({
+      id: 'skyPredator',
+      width: 16,
+      height: 16,
+      frames: Object.freeze([
+        Object.freeze([
+          '................',
+          '.....WWWW.......',
+          '...WWWBBWWW.....',
+          '..WWBBBBBBWW....',
+          '.WWBBBBBBBBWW...',
+          'WWBBBBDDBBBBWW..',
+          'WBBBBDDDDDBBBBW.',
+          '.WBBBDDTEDDBBBW.',
+          '..WBBBDDDDDBBW..',
+          '...WBBBBBBBBW...',
+          '..TTWBBBBBBWTT..',
+          '.T..WWBBBBWW.T..',
+          '....HWWWWWH.....',
+          '.....H..H.......',
+          '....H....H......',
+          '................',
+        ]),
+        Object.freeze([
+          '................',
+          '..WW........WW..',
+          '.WWWW......WWWW.',
+          '..WWBBBBBBBBWW..',
+          '...WBBBBBBBBW...',
+          '..WBBBBDDBBBBW..',
+          '.WBBBBDDDDDBBBBW',
+          '..WBBBDDTEDDBBW.',
+          '...WBBBDDDDDBW..',
+          '....WBBBBBBW....',
+          '..TTWWBBBBWWTT..',
+          '.T...WWBBWW..T..',
+          '.....HWWWW.H....',
+          '......H..H......',
+          '.....H....H.....',
+          '................',
+        ]),
+      ]),
+    }),
   });
 
   function validateSprite(sprite, palette) {
@@ -250,7 +302,7 @@
   }
 
   const api = Object.freeze({
-    VERSION: '0.1.0',
+    VERSION: '0.2.0',
     CELL_SIZE: 1,
     SPRITES,
     PALETTES,

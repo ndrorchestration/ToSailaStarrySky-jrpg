@@ -17,10 +17,10 @@ vm.runInNewContext(source, sandbox, { filename: spritePath });
 
 const api = sandbox.window.AetherPixelSprites;
 assert(api, 'pixel sprite authority was not exposed');
-assert.strictEqual(api.VERSION, '0.1.0');
+assert.strictEqual(api.VERSION, '0.2.0');
 assert.strictEqual(api.validate(), true, 'pixel sprite registry failed validation');
 
-for (const id of ['ender', 'lyra', 'ionia']) {
+for (const id of ['ender', 'lyra', 'ionia', 'skyPredator']) {
   const sprite = api.get(id);
   assert(sprite, id + ' sprite missing');
   assert.strictEqual(sprite.width, 16, id + ' width drifted');
@@ -48,6 +48,13 @@ assert(runtime.includes("sprites.draw('ionia'"),
   'Ionia world renderer is not bound to shared sprite authority');
 assert(runtime.includes("sprites.draw('lyra'"),
   'Lyra world renderer is not bound to shared sprite authority');
+assert(runtime.includes("battleSprites.draw('ender'"),
+  'combat scene is not bound to Ender sprite authority');
+assert(runtime.includes("battleSprites.draw('lyra'") &&
+  runtime.includes("battleSprites.draw('ionia'"),
+  'combat scene is not bound to companion sprite authority');
+assert(runtime.includes("AetherPixelSprites.draw('skyPredator'"),
+  'opening combat enemy is not bound to pixel sprite authority');
 
 const onboarding = fs.readFileSync(path.join(root, 'modules', 'char-create.js'), 'utf8');
 assert(onboarding.includes("sprites.draw('ender'"),
