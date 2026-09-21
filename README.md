@@ -1,6 +1,6 @@
 # Aetherwake — The Last Solarpunk Airship
 
-Aetherwake is a **pre-alpha turn-based JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a failing aether-core, impossible sky-lanes, and a fractured world begin to reveal the same unfinished song.
+Aetherwake is a **pre-alpha turn-based JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the party's compact solarpunk airship as a failing aether-core, impossible sky-lanes, and a fractured world begin to reveal the same unfinished song. Current documentation contains both *Aureate Wake* and *The Unfinished Song*; that naming difference is tracked as an explicit canon-reconciliation item rather than silently normalized.
 
 The current repository contains a playable vertical-slice prototype plus an active architecture migration toward the full authored-party RPG.
 
@@ -13,9 +13,9 @@ The current repository contains a playable vertical-slice prototype plus an acti
 - **Current combat runtime:** hybrid migration state — Staff Strike, Hold, and Rest use JRPG-native formulas while five preservation-era actions still use the legacy 2D6 compatibility path
 - **Current persistence:** schema v2 stores canonical party/progression state plus bounded World, quest/ledger, and Dragonfly state; encounter-local/transient state remains deliberately excluded
 - **Current party boundary:** persistent five-character roster and authored starting trio are established; formation switching and true three-character combat are not enabled yet
-- **Current architecture work:** effect vocabulary/resolver contracts, transactional use eligibility, progression reachability, JRPG control surfaces, mastery/magic-access definitions, companion/foundation-spell admission contracts, regression coverage, and Windows packaging are under active incremental development
+- **Current architecture work:** effect vocabulary/resolver contracts, transactional use eligibility, progression reachability, JRPG control surfaces, mastery/magic-access definitions, authored five-character roster integration, open-sky navigation, sky encounters, regression coverage, and Windows packaging are under active incremental development
 
-See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
+See `docs/DOCUMENTATION_AUTHORITY.md` first for the authority map, then `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
 
 ## Run the game
 
@@ -77,9 +77,9 @@ Aetherwake exposes the versioned save system through the normal system menu. F2/
 
 The current save document deliberately excludes encounter-local combat and presentation/transient state. Invalid, unversioned, future-version, or identity-tampered saves fail closed rather than being guessed into a usable state.
 
-## Dragonfly Wake console
+## Airship systems console
 
-Stand near the ship's core chamber and **interact** to board the compact Dragonfly-class *Aureate Wake*. The hull volume is fixed at **three shipping containers**, excluding masts, wings, and rigging.
+Stand near the ship's core chamber and **interact** to board the compact Dragonfly-class airship. Current art/development work uses **The Unfinished Song** while older canon pages use **Aureate Wake**; see `docs/DOCUMENTATION_AUTHORITY.md`. The hull volume is fixed at **three shipping containers**, excluding masts, wings, and rigging.
 
 The console is fully cursor-driven with the normal directional + confirm/back controls. Legacy shortcuts remain available during migration:
 
@@ -187,8 +187,10 @@ It includes signal hooks, traversal hazards, NPC encounters, three major choice 
 | `modules/airship-state.js` | Pure Dragonfly Wakeheart power, charge, veil, cooldown, and action rules |
 | `modules/airship-combat-bridge.js` | Renderer-free one-shot airship-to-combat transfer and mitigation rules |
 | `modules/airship-ui.js` | Dragonfly-class ship systems console renderer |
+| `modules/air-navigation.js` | Pure sky-navigation geography/state: altitude, routes, weather, docking, and deterministic encounter cadence |
 | other `modules/*.js` | Older modular mirrors/reference source; not authoritative runtime for all systems |
 | `SPEC.md` | Current technical target + implementation notes |
+| `docs/DOCUMENTATION_AUTHORITY.md` | Documentation routing, current-state summary, superseded claims, and open-canon boundaries |
 | `docs/DEVELOPMENT.md` | Development authority, migration rules, and smoke gate |
 | `docs/JRPG_COMBAT_DIRECTION.md` | Approved target combat architecture and migration policy |
 | `docs/DESKTOP_BUILD.md` | Windows packaging, artifact, and launch contract |
