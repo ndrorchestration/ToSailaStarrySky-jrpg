@@ -144,6 +144,12 @@ window.showInitializationFailure = showInitializationFailure;
 function setup() {
   window._setupOrder = window._setupOrder ? window._setupOrder + '→setup-start' : 'setup-start';
   const canvas = createCanvas(960, 640);
+  // #jrpg-container is the full-viewport game host. Without an explicit
+  // parent, p5 appends the canvas after that 100%-height element, placing the
+  // real game below an overflow:hidden viewport.
+  if (canvas && typeof canvas.parent === 'function') {
+    canvas.parent('jrpg-container');
+  }
   window._setupOrder = window._setupOrder + '→canvas-done';
   // Now proceed with normal setup
   frameRate(60);
