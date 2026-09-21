@@ -1306,7 +1306,7 @@ function drawCombatPanel(combatState) {
   drawPixelBorder(px + 8, sY, pw - 16, 88, 2, PAL.SHADOW, PAL.TEAL);
   textFont(FONT_UI);
   textSize(8);
-  drawGlowText('YOUNG ENDER', px + 14, sY + 6, PAL.TEAL, 8);
+  drawGlowText('ENDER', px + 14, sY + 6, PAL.TEAL, 8);
 
   // Player resources
   textFont(FONT_BODY);
