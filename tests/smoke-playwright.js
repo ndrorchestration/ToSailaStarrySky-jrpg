@@ -77,6 +77,7 @@ function createServer() {
     await probe.waitForSelector('canvas', { timeout: 15000 });
     await probe.waitForFunction(() =>
       window._world && window._combat && window._charcreate &&
+      window.AetherPixelSprites && window.AetherPixelSprites.validate() &&
       document.querySelector('canvas')
     , undefined, { timeout: 15000 });
     const status = await probe.evaluate(() => {
@@ -87,6 +88,12 @@ function createServer() {
         initErrorHidden: document.querySelector('#aetherwake-init-error') ?
           document.querySelector('#aetherwake-init-error').hidden : null,
         canvas: Boolean(canvas),
+        pixelSprites: Boolean(window.AetherPixelSprites &&
+          window.AetherPixelSprites.validate &&
+          window.AetherPixelSprites.validate()),
+        crewSpriteIds: window.AetherPixelSprites
+          ? ['ender', 'lyra', 'ionia'].filter(id => Boolean(window.AetherPixelSprites.get(id)))
+          : [],
         parentId: canvas && canvas.parentElement ? canvas.parentElement.id : null,
         rect,
         viewport: { width: innerWidth, height: innerHeight },
@@ -97,6 +104,10 @@ function createServer() {
     assert(status.initErrorHidden === true,
       entrypoint + ' exposed initialization failure during normal boot');
     assert(status.canvas === true, entrypoint + ' did not create a canvas');
+    assert(status.pixelSprites === true,
+      entrypoint + ' pixel sprite authority did not validate');
+    assert(status.crewSpriteIds.join('|') === 'ender|lyra|ionia',
+      entrypoint + ' playable crew sprite registry is incomplete');
     assert(status.parentId === 'jrpg-container',
       entrypoint + ' canvas is not parented into #jrpg-container');
     assert(status.rect &&
