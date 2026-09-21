@@ -3948,7 +3948,7 @@ function openShop() {
   if (window.UI.lastShopSelection !== undefined && window.UI.lastShopSelection < shop.items.length) {
     // selection restored implicitly via draw highlight
   }
-  return { ok: true, items: getShopItems() };
+  return { ok: true, kind: 'shop', items: getShopItems() };
 }
 
 function closeShop() {
