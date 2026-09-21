@@ -420,6 +420,10 @@ function draw() {
     if (world && typeof world.render === 'function') world.render();
     drawCharSheetOverlay();
   }
+  else if (gameState === STATE.SYSTEMMENU) {
+    if (world && typeof world.render === 'function') world.render();
+    drawSystemMenuOverlay();
+  }
 
   // ── Vignette (intensifies at night) ──
   if (VIS.vignette) {
@@ -1243,6 +1247,7 @@ function startGame() {
 // ── Combat launcher: triggers an encounter ──
 function startCombat(enemyId) {
   if (!combat || !world) return;
+  combatCursor = 0;
 
   const resolvedEnemyId = enemyId || 'skyPredator';
   // Preflight encounter identity before mutating combat or consuming one-shot
@@ -1345,6 +1350,15 @@ function finishCombat() {
 function openState(s) {
   prevState = gameState;
   gameState = s;
+  if (s === STATE.SHOP) {
+    const count = window.UI && Array.isArray(window.UI.shopItems)
+      ? window.UI.shopItems.length
+      : 0;
+    shopCursor = count > 0
+      ? Math.max(0, Math.min(Number(window.UI.lastShopSelection) || 0, count - 1))
+      : 0;
+  }
+  if (s === STATE.AIRSHIP) airshipCursor = 0;
   window.gameState = gameState;
   // Fade transition between states
   if (VIS.fadeTransitions) {
@@ -1372,6 +1386,9 @@ function openState(s) {
       break;
     case STATE.AIRSHIP:
       window.UI.windowTone = [42, 255, 181]; // Wakeheart teal
+      break;
+    case STATE.SYSTEMMENU:
+      window.UI.windowTone = [124, 200, 232];
       break;
     default:
       window.UI.windowTone = null;
@@ -1778,8 +1795,50 @@ function drawAirshipOverlay() {
   if (!ensureAirshipState()) return;
   if (window.AetherAirshipView &&
       typeof window.AetherAirshipView.draw === 'function') {
-    window.AetherAirshipView.draw(airshipState, C);
+    window.AetherAirshipView.draw(airshipState, C, { cursor: airshipCursor });
   }
+}
+
+function drawSystemMenuOverlay() {
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 175);
+  rect(0, 0, width, height);
+
+  const commands = getSystemMenuCommands();
+  const mw = 330;
+  const mh = 76 + commands.length * 38;
+  const mx = width - mw - 36;
+  const my = 42;
+
+  fill(C.navy[0], C.navy[1], C.navy[2]);
+  rect(mx, my, mw, mh);
+  drawPixelBorder(mx, my, mw, mh, 3);
+
+  textFont('Press Start 2P');
+  textSize(10);
+  fill(C.teal[0], C.teal[1], C.teal[2]);
+  text('AETHERWAKE', mx + 18, my + 16);
+
+  textFont('VT323');
+  textSize(14);
+  commands.forEach((command, index) => {
+    const cy = my + 48 + index * 38;
+    const selected = index === systemMenuCursor;
+    if (selected) {
+      noStroke();
+      fill(C.teal[0], C.teal[1], C.teal[2], 38);
+      rect(mx + 12, cy - 8, mw - 24, 30);
+    }
+    fill(selected
+      ? color(C.parchment[0], C.parchment[1], C.parchment[2])
+      : color(C.dim[0], C.dim[1], C.dim[2]));
+    text((selected ? '▶ ' : '  ') + command.label, mx + 24, cy);
+  });
+
+  textFont('Press Start 2P');
+  textSize(8);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 160);
+  text('↑↓ SELECT   ·   Z/ENTER OK   ·   X/ESC BACK', mx + 18, my + mh - 22);
 }
 
 function drawDialogueOverlay() {
