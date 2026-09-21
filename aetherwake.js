@@ -4407,7 +4407,9 @@ function drawSkyCloud(px, py, s) {
 }
 
 function drawSkyAstro(px, py, s) {
-  drawPixelWorldTile('astro', px, py, Math.floor(frameCount / 40) % 1);
+  // Astro currently has one authored frame; keep the binding explicit until a
+  // second frame exists rather than implying animation with modulo 1.
+  drawPixelWorldTile('astro', px, py, 0);
 }
 
 function drawFallingIslands() {
@@ -4417,28 +4419,12 @@ function drawFallingIslands() {
     [23,9],[29,7],[5,15],[13,14],
     [20,16],[27,15]
   ];
-  const fallOffset = (dayTime * 8) % 4;
+  const fallOffset = Math.round((dayTime * 8) % 4);
   for (const [ix, iy] of islands) {
-    const cx = ix * 16 + 8;
-    const cy = iy * 16 + 8 - fallOffset;
-    noFill();
-    stroke(color(42, 255, 181, 60));
-    strokeWeight(2);
-    ellipse(cx, cy, 22, 14);
-    noStroke();
-    fill(color(60, 70, 50, 180));
-    noStroke();
-    ellipse(cx, cy, 18, 10);
-    fill(color(80, 120, 60));
-    ellipse(cx, cy - 4, 14, 4);
-    noStroke();
-    noFill();
-    stroke(color(42, 255, 181, 100));
-    strokeWeight(1);
-    ellipse(cx, cy, 18, 10);
-    noStroke();
+    // Reuse the shared floating-terrain sprite so distant islands obey the
+    // same 16x16 pixel grammar as the foreground world.
+    drawPixelWorldTile('float', ix * 16, iy * 16 - fallOffset, 0);
   }
-  noStroke();
 }
 
 // --- World Ambient Atmosphere ------------------------------------------------

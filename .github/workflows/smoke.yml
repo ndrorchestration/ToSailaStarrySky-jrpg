@@ -46,6 +46,9 @@ jobs:
       - name: Verify pixel tile foundation
         run: npm run test:pixel-tiles
 
+      - name: Verify pixel world ambient conversion
+        run: npm run test:pixel-world-ambient
+
       - name: Verify target JRPG combat policy
         run: npm run test:combat-policy
 
