@@ -250,7 +250,7 @@ Current verified uploaded Windows artifact: **219,915,613 bytes**.
 
 | Priority | Gap | Why it remains open |
 |---:|---|---|
-| P1 | True three-character combat | Read-only context and admission gate are established; Wind-Shear Dance now has an evidence-bound but incomplete draft, while all six companion actions still lack admitted complete contracts and execution authorization |
+| P1 | True three-character combat | Read-only context and admission gate are established; Wind-Shear Dance and Aether Compass now have evidence-bound but incomplete drafts, while all six companion actions still lack admitted complete contracts and execution authorization |
 | P1 | Companion canonical progression | Native jobs/affinities/mastery remain intentionally unknown |
 | P1 | Mutable mastery + save schema v3 | Requires explicit design and migration, not silent v2 extension |
 | P2 | Generic durable modifiers/status/reveal | Effect vocabulary exists; full semantics do not |
@@ -269,9 +269,9 @@ Aetherwake now has a smoke-green authored onboarding/roster/save/desktop baselin
 The highest-impact remaining engineering boundary is **party combat/progression
 without fabricating unresolved companion canon**. A read-only three-character
 encounter context and a fail-closed companion-action admission/completeness gate
-are established. Wind-Shear Dance is now the first evidence-bound contract
-draft, but it remains incomplete and non-executable. The next safe work is to
-preserve another action's known semantics or resolve an explicit Wind-Shear
-Dance blocker through an authored design decision, while keeping runtime
-companion turns unauthorized until complete contracts and required effect
-semantics exist.
+are established. Wind-Shear Dance and Aether Compass now have evidence-bound
+contract drafts, but both remain incomplete and non-executable. The next safe
+work is to preserve another temporary action's known semantics or resolve an
+explicit draft blocker through an authored design decision, while keeping
+runtime companion turns unauthorized until complete contracts and required
+effect semantics exist.
