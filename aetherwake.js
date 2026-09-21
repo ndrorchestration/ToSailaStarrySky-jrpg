@@ -137,6 +137,19 @@ function setup() {
     throw new Error('AETHER_PARTY_STATE_UNAVAILABLE');
   }
   window.AetherPartyState.bootstrap(world.player);
+  if (!window.AetherCombatSystemPolicy ||
+      typeof window.AetherCombatSystemPolicy.validate !== 'function') {
+    throw new Error('AETHER_COMBAT_SYSTEM_POLICY_UNAVAILABLE');
+  }
+  window.AetherCombatSystemPolicy.validate();
+  if (!window.AetherCombatFormula ||
+      typeof window.AetherCombatFormula.resolveAction !== 'function' ||
+      typeof window.AetherCombatFormula.validateAgainstAbilityDefs !== 'function') {
+    throw new Error('AETHER_COMBAT_FORMULA_UNAVAILABLE');
+  }
+  window.AetherCombatFormula.validateAgainstAbilityDefs(window.AetherAbilityDefs);
+  window._combatSystemPolicy = window.AetherCombatSystemPolicy;
+  window._combatFormula = window.AetherCombatFormula;
   window._setupOrder = window._setupOrder + '→party-state-done';
   window._setupOrder = window._setupOrder + '→combat-start';
   if (typeof window.AetherCombat !== 'undefined') {
@@ -267,6 +280,9 @@ function draw() {
           xpToNext: world.player.xpToNext,
           unlockedAbilities: world.player.unlockedAbilities,
           equipment: world.player.equipment,
+          productionStats: world.player.productionStats,
+          productionDerivedStats: world.player.productionDerivedStats,
+          productionStatModelVersion: world.player.productionStatModelVersion,
         });
       }
       gameState = STATE.WORLD;
@@ -674,6 +690,9 @@ function startCombat(enemyId) {
     xpToNext: world.player.xpToNext,
     unlockedAbilities: world.player.unlockedAbilities,
     equipment: world.player.equipment,
+    productionStats: world.player.productionStats,
+    productionDerivedStats: world.player.productionDerivedStats,
+    productionStatModelVersion: world.player.productionStatModelVersion,
   });
   combat.beginEncounter(enemyId || 'skyPredator');
   gameState = STATE.COMBAT;
@@ -4350,6 +4369,14 @@ function AetherCombat(p, C) {
     state.player.xpToNext = options.xpToNext ?? (progression && typeof progression.getXPToNext === 'function' ? progression.getXPToNext(state.player.level) : 50);
     state.player.unlockedAbilities = options.unlockedAbilities || ['uncoverTruth', 'sharedDream', 'mycelialLedger'];
     state.player.equipment = options.equipment || { staff: null, backpack: null };
+    state.player.productionStats = options.productionStats
+      ? JSON.parse(JSON.stringify(options.productionStats))
+      : (state.player.productionStats || null);
+    state.player.productionDerivedStats = options.productionDerivedStats
+      ? JSON.parse(JSON.stringify(options.productionDerivedStats))
+      : (state.player.productionDerivedStats || null);
+    state.player.productionStatModelVersion = options.productionStatModelVersion ||
+      state.player.productionStatModelVersion || null;
     state.turn = 0;
     state.log = [];
     state.enemy = null;
@@ -4581,190 +4608,281 @@ function AetherCombat(p, C) {
       changeResource(effectVocabulary.RESOURCE.HEAT, 1);
     }
 
-    // Roll
-    const statBonus = action.stat ? state.player[action.stat] || 0 : 0;
-    const r = roll2d6Plus(statBonus);
+    // Resolution migration boundary.
+    // Staff Strike, Hold, and Rest execute through the production JRPG formula
+    // engine. The remaining five actions stay on the legacy 2D6 compatibility
+    // path until their semantics are separately migrated.
     let actionText = '';
     let enemyDmg = 0;
     let playerDmg = 0;
     let heal = 0;
     let resourceGain = '';
     let nextRollBonus = 0;
+    let r = null;
+    let formulaResolution = null;
+    let attackCritical = false;
 
-    if (r.outcome === 'success') {
-      if (action.type === 'ability') {
-        // Secondary action is offered only if the just-used ability remains
-        // usable after primary-action costs have been paid.
-        const secondaryEligibility = window.AetherAbilityDefs.getUseEligibility(
-          state.player,
-          action.id
-        );
-        if (secondaryEligibility.canUse) {
-          state._secondaryAvailable = true;
-          log(
-            'Press S for secondary action — repeat the last ability at its normal resource cost' +
-            (secondaryEligibility.resourceCost > 0
-              ? ' (' + secondaryEligibility.resourceCost + ').'
-              : ' (free).')
+    if (action.resolution && action.resolution.model === 'jrpg-stat-formula') {
+      if (!window.AetherCombatFormula ||
+          typeof window.AetherCombatFormula.resolveAction !== 'function') {
+        throw new Error('AETHER_COMBAT_FORMULA_UNAVAILABLE_DURING_TURN');
+      }
+      formulaResolution = window.AetherCombatFormula.resolveAction(
+        action.id,
+        state.player,
+        state.enemy,
+        function() { return random(1); }
+      );
+
+      // Synthetic success marker exists only for shared visual plumbing below;
+      // production formula actions do not use PbtA outcome bands.
+      r = { dice: null, stat: null, total: 0, outcome: 'success' };
+
+      if (formulaResolution.kind === 'damage') {
+        if (formulaResolution.hit && formulaResolution.damage > 0) {
+          enemyDmg = formulaResolution.damage;
+          applyDamage(
+            effectVocabulary.TARGET.ENEMY,
+            enemyDmg,
+            formulaResolution.damageType
           );
         }
-      }
-      if (action.type === 'attack') {
-        if (state.player.staffCharges <= 0) {
-          actionText = 'Staff Strike — no charges left. The weapon falls silent. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+        if (!formulaResolution.dedicatedCost ||
+            formulaResolution.dedicatedCost.resource !== 'staffCharges') {
+          throw new Error('STAFF_STRIKE_DEDICATED_COST_DRIFT');
+        }
+        changeResource(
+          effectVocabulary.RESOURCE.STAFF_CHARGES,
+          -formulaResolution.dedicatedCost.amount
+        );
+        attackCritical = Boolean(formulaResolution.critical);
+        actionText = formulaResolution.hit
+          ? action.label + ' — ' + enemyDmg + ' EMP damage' +
+            (attackCritical ? ' — CRITICAL!' : '') + '.'
+          : action.label + ' — attack missed.';
+      } else if (formulaResolution.kind === 'resource') {
+        if (formulaResolution.resource !== effectVocabulary.RESOURCE.STAFF_CHARGES) {
+          throw new Error('FORMULA_RESOURCE_KIND_UNSUPPORTED:' + formulaResolution.resource);
+        }
+        if (formulaResolution.delta > 0) {
+          changeResource(
+            effectVocabulary.RESOURCE.STAFF_CHARGES,
+            formulaResolution.delta
+          );
+          actionText = 'Hold — Resonator recharges. +' +
+            formulaResolution.delta + ' charge' +
+            (formulaResolution.delta === 1 ? '.' : 's.');
         } else {
-          enemyDmg = floor(random(1, 7)) + 2; // 1d6+2
-          applyDamage(effectVocabulary.TARGET.ENEMY, enemyDmg, 'emp');
-          changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, -1);
-          actionText = action.label + ' — ' + enemyDmg + ' EMP damage. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
+          actionText = 'Hold — Resonator already at full charge.';
         }
-      } else if (action.type === 'ability') {
-        // Visual: ability flash for all abilities
-        state._abilityFlashTurn = millis();
-        if (action.id === 'uncoverTruth') {
-          nextRollBonus = 1;
-          actionText = 'Uncover Truth — the weave reveals its pattern. +1 to next roll. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-        } else if (action.id === 'sharedDream') {
-          // 50/50: heal 1-2 Vit OR +1 next roll bonus
-          if (random(0, 2) < 1) {
-            heal = floor(random(1, 3));
-            applyRestore(effectVocabulary.TARGET.SELF, heal);
-            actionText = 'Shared Dream — ' + heal + ' Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-          } else {
-            nextRollBonus = 1;
-            actionText = 'Shared Dream — ally\'s next action gets +1. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-          }
-        } else if (action.id === 'mycelialLedger') {
-          const gain = floor(random(1, 3));
-          if (floor(random(2)) === 0) {
-            changeResource(effectVocabulary.RESOURCE.AETHER, gain);
-            actionText = 'Mycelial Ledger — +' + gain + ' Aether stored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-          } else {
-            changeResource(effectVocabulary.RESOURCE.SCRAP, gain);
-            actionText = 'Mycelial Ledger — +' + gain + ' Scrap recorded. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-          }
+      } else if (formulaResolution.kind === 'recovery') {
+        if (formulaResolution.heatReduction > 0) {
+          changeResource(
+            effectVocabulary.RESOURCE.HEAT,
+            -formulaResolution.heatReduction
+          );
         }
-      } else if (action.type === 'hold') {
-        if (state.player.staffCharges < state.player.maxStaffCharges) {
-          changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, 1);
-          actionText = 'Hold — Resonator recharges in light. +1 charge. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-        } else {
-          actionText = 'Hold — the weave passes through you. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-        }
-      } else if (action.type === 'defense') {
-        if (action.id === 'windWard') {
-          if (r.outcome === 'success') {
-            heal = 1;
-            applyRestore(effectVocabulary.TARGET.SELF, heal);
-            actionText = 'Wind Ward — you brace against the gale. 1 Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-          } else {
-            playerDmg = 1;
-            actionText = 'Wind Ward — the wind knocks you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-          }
-        } else if (action.id === 'aetherSeal') {
-          if (r.outcome === 'success') {
-            const gain = floor(random(1, 3));
-            changeResource(effectVocabulary.RESOURCE.SCRAP, gain);
-            actionText = 'Aether Seal — the leak closes. +' + gain + ' Scrap. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-          } else {
-            playerDmg = 1;
-            actionText = 'Aether Seal — the aether burns you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-          }
-        }
-      } else if (action.type === 'rest') {
-        if (r.outcome === 'success') {
-          changeResource(effectVocabulary.RESOURCE.HEAT, -2);
-          heal = floor(random(1, 3));
+        heal = formulaResolution.vitalityRestore;
+        if (heal > 0) {
           applyRestore(effectVocabulary.TARGET.SELF, heal);
-          actionText = 'Rest — heat eases, ' + heal + ' Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-        } else {
-          playerDmg = 1;
-          actionText = 'Rest — you cannot find peace. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         }
-      }
-    } else if (r.outcome === 'partial') {
-      if (action.type === 'attack') {
-        enemyDmg = Math.max(0, floor(random(1, 7)) + 2 - 1);
-        applyDamage(effectVocabulary.TARGET.ENEMY, enemyDmg, 'emp');
-        changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, -1);
-        playerDmg = 1;
-        actionText = action.label + ' — ' + enemyDmg + ' damage, but the enemy counters. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
-      } else if (action.type === 'ability') {
-        if (action.id === 'uncoverTruth') {
-          actionText = 'Uncover Truth — a glimpse, but it slips. No bonus. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-        } else if (action.id === 'sharedDream') {
-          heal = 1;
-          applyRestore(effectVocabulary.TARGET.SELF, heal);
-          actionText = 'Shared Dream — faint echo, ' + heal + ' Vit. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-        } else if (action.id === 'mycelialLedger') {
-          changeResource(effectVocabulary.RESOURCE.SCRAP, 1);
-          actionText = 'Mycelial Ledger — +1 Scrap. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+        const recoveryParts = [];
+        if (formulaResolution.heatReduction > 0) {
+          recoveryParts.push('-' + formulaResolution.heatReduction + ' Heat');
         }
-      } else if (action.type === 'hold') {
-        if (state.player.staffCharges < state.player.maxStaffCharges) {
-          changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, 1);
-        }
-        playerDmg = 1;
-        actionText = 'Hold — but the enemy finds you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-      } else if (action.type === 'defense') {
-        playerDmg = 1;
-        if (action.id === 'windWard') {
-          actionText = 'Wind Ward — the wind pushes through. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-        } else {
-          actionText = 'Aether Seal — the leak persists. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-        }
-      } else if (action.type === 'rest') {
-        actionText = 'Rest — tension keeps you awake. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+        if (heal > 0) recoveryParts.push('+' + heal + ' Vit');
+        actionText = recoveryParts.length
+          ? 'Rest — ' + recoveryParts.join(', ') + '.'
+          : 'Rest — already fully recovered.';
+      } else {
+        throw new Error('FORMULA_RESULT_KIND_UNSUPPORTED:' + formulaResolution.kind);
       }
     } else {
-      // Failure
-      if (action.type === 'attack') {
-        playerDmg = Math.floor(random(1, 4)) + 1;
-        actionText = action.label + ' — misfires. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
-      } else if (action.type === 'ability') {
-        actionText = action.label + ' — the weave resists. Nothing gained. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-        playerDmg = 1;
-      } else if (action.type === 'hold') {
-        playerDmg = 1;
-        actionText = 'Hold — the enemy finds you. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-      } else if (action.type === 'defense') {
-        playerDmg = floor(random(1, 4)) + 1;
-        actionText = action.label + ' — overwhelmed. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-      } else if (action.type === 'rest') {
-        playerDmg = 1;
-        actionText = 'Rest — exhaustion hits hard. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+      const statBonus = action.stat ? state.player[action.stat] || 0 : 0;
+      r = roll2d6Plus(statBonus);
+      if (r.outcome === 'success') {
+        if (action.type === 'ability') {
+          // Secondary action is offered only if the just-used ability remains
+          // usable after primary-action costs have been paid.
+          const secondaryEligibility = window.AetherAbilityDefs.getUseEligibility(
+            state.player,
+            action.id
+          );
+          if (secondaryEligibility.canUse) {
+            state._secondaryAvailable = true;
+            log(
+              'Press S for secondary action — repeat the last ability at its normal resource cost' +
+              (secondaryEligibility.resourceCost > 0
+                ? ' (' + secondaryEligibility.resourceCost + ').'
+                : ' (free).')
+            );
+          }
+        }
+        if (action.type === 'attack') {
+          if (state.player.staffCharges <= 0) {
+            actionText = 'Staff Strike — no charges left. The weapon falls silent. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          } else {
+            enemyDmg = floor(random(1, 7)) + 2; // 1d6+2
+            applyDamage(effectVocabulary.TARGET.ENEMY, enemyDmg, 'emp');
+            changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, -1);
+            actionText = action.label + ' — ' + enemyDmg + ' EMP damage. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
+          }
+        } else if (action.type === 'ability') {
+          // Visual: ability flash for all abilities
+          state._abilityFlashTurn = millis();
+          if (action.id === 'uncoverTruth') {
+            nextRollBonus = 1;
+            actionText = 'Uncover Truth — the weave reveals its pattern. +1 to next roll. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          } else if (action.id === 'sharedDream') {
+            // 50/50: heal 1-2 Vit OR +1 next roll bonus
+            if (random(0, 2) < 1) {
+              heal = floor(random(1, 3));
+              applyRestore(effectVocabulary.TARGET.SELF, heal);
+              actionText = 'Shared Dream — ' + heal + ' Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            } else {
+              nextRollBonus = 1;
+              actionText = 'Shared Dream — ally\'s next action gets +1. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            }
+          } else if (action.id === 'mycelialLedger') {
+            const gain = floor(random(1, 3));
+            if (floor(random(2)) === 0) {
+              changeResource(effectVocabulary.RESOURCE.AETHER, gain);
+              actionText = 'Mycelial Ledger — +' + gain + ' Aether stored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            } else {
+              changeResource(effectVocabulary.RESOURCE.SCRAP, gain);
+              actionText = 'Mycelial Ledger — +' + gain + ' Scrap recorded. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            }
+          }
+        } else if (action.type === 'hold') {
+          if (state.player.staffCharges < state.player.maxStaffCharges) {
+            changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, 1);
+            actionText = 'Hold — Resonator recharges in light. +1 charge. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          } else {
+            actionText = 'Hold — the weave passes through you. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          }
+        } else if (action.type === 'defense') {
+          if (action.id === 'windWard') {
+            if (r.outcome === 'success') {
+              heal = 1;
+              applyRestore(effectVocabulary.TARGET.SELF, heal);
+              actionText = 'Wind Ward — you brace against the gale. 1 Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            } else {
+              playerDmg = 1;
+              actionText = 'Wind Ward — the wind knocks you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            }
+          } else if (action.id === 'aetherSeal') {
+            if (r.outcome === 'success') {
+              const gain = floor(random(1, 3));
+              changeResource(effectVocabulary.RESOURCE.SCRAP, gain);
+              actionText = 'Aether Seal — the leak closes. +' + gain + ' Scrap. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            } else {
+              playerDmg = 1;
+              actionText = 'Aether Seal — the aether burns you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            }
+          }
+        } else if (action.type === 'rest') {
+          if (r.outcome === 'success') {
+            changeResource(effectVocabulary.RESOURCE.HEAT, -2);
+            heal = floor(random(1, 3));
+            applyRestore(effectVocabulary.TARGET.SELF, heal);
+            actionText = 'Rest — heat eases, ' + heal + ' Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          } else {
+            playerDmg = 1;
+            actionText = 'Rest — you cannot find peace. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          }
+        }
+      } else if (r.outcome === 'partial') {
+        if (action.type === 'attack') {
+          enemyDmg = Math.max(0, floor(random(1, 7)) + 2 - 1);
+          applyDamage(effectVocabulary.TARGET.ENEMY, enemyDmg, 'emp');
+          changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, -1);
+          playerDmg = 1;
+          actionText = action.label + ' — ' + enemyDmg + ' damage, but the enemy counters. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
+        } else if (action.type === 'ability') {
+          if (action.id === 'uncoverTruth') {
+            actionText = 'Uncover Truth — a glimpse, but it slips. No bonus. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          } else if (action.id === 'sharedDream') {
+            heal = 1;
+            applyRestore(effectVocabulary.TARGET.SELF, heal);
+            actionText = 'Shared Dream — faint echo, ' + heal + ' Vit. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          } else if (action.id === 'mycelialLedger') {
+            changeResource(effectVocabulary.RESOURCE.SCRAP, 1);
+            actionText = 'Mycelial Ledger — +1 Scrap. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          }
+        } else if (action.type === 'hold') {
+          if (state.player.staffCharges < state.player.maxStaffCharges) {
+            changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, 1);
+          }
+          playerDmg = 1;
+          actionText = 'Hold — but the enemy finds you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+        } else if (action.type === 'defense') {
+          playerDmg = 1;
+          if (action.id === 'windWard') {
+            actionText = 'Wind Ward — the wind pushes through. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          } else {
+            actionText = 'Aether Seal — the leak persists. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          }
+        } else if (action.type === 'rest') {
+          actionText = 'Rest — tension keeps you awake. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+        }
+      } else {
+        // Failure
+        if (action.type === 'attack') {
+          playerDmg = Math.floor(random(1, 4)) + 1;
+          actionText = action.label + ' — misfires. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
+        } else if (action.type === 'ability') {
+          actionText = action.label + ' — the weave resists. Nothing gained. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          playerDmg = 1;
+        } else if (action.type === 'hold') {
+          playerDmg = 1;
+          actionText = 'Hold — the enemy finds you. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+        } else if (action.type === 'defense') {
+          playerDmg = floor(random(1, 4)) + 1;
+          actionText = action.label + ' — overwhelmed. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+        } else if (action.type === 'rest') {
+          playerDmg = 1;
+          actionText = 'Rest — exhaustion hits hard. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+        }
       }
+
+
     }
 
-    // Apply
+    // Apply compatibility self-damage only when present.
     applyDamage(effectVocabulary.TARGET.SELF, playerDmg);
+    const successfulAttack = Boolean(
+      action && action.type === 'attack' &&
+      ((formulaResolution && formulaResolution.hit) ||
+       (!formulaResolution && r && r.outcome === 'success'))
+    );
+    const criticalVisual = formulaResolution ? attackCritical : successfulAttack;
+
     // Combat animation triggers
     if (enemyDmg > 0) {
       state._flashTurn = millis();
       state._totalDamageDealt = (state._totalDamageDealt || 0) + enemyDmg;
-      // Damage number
       state._lastDamageNum = {
         value: enemyDmg,
-        crit: (action && action.type === 'attack' && r.outcome === 'success'),
+        crit: criticalVisual,
         time: millis(),
       };
-      // Critical hit flash (10+ on attack)
-      if (action && action.type === 'attack' && r.outcome === 'success') {
-        state._critFlashTurn = millis();
-      }
+      if (criticalVisual) state._critFlashTurn = millis();
     }
     if (playerDmg > 0) {
       state._playerHitTurn = millis();
-    } else if (action && action.type === 'attack' && r.outcome === 'success') {
-      // Successful attack = dodge animation on enemy side
+    } else if (successfulAttack) {
       state._dodgeTurn = millis();
     }
-    // ── Visual + audio feedback (triggered from core.js helpers) ──
     if (typeof triggerCombatHitFeedback === 'function') {
-      triggerCombatHitFeedback(enemyDmg, playerDmg, r.total, action && action.type === 'attack');
+      triggerCombatHitFeedback(
+        enemyDmg,
+        playerDmg,
+        r && Number.isFinite(r.total) ? r.total : 0,
+        action && action.type === 'attack'
+      );
     }
     if (typeof triggerAbilityFeedback === 'function' && action && action.type === 'ability') {
-      triggerAbilityFeedback(r.outcome === 'success');
+      triggerAbilityFeedback(Boolean(r && r.outcome === 'success'));
     }
     if (enemyDmg > 0) log(state.enemy.name + ' takes ' + enemyDmg + ' EMP. HP: ' + state.enemy.hp + '/' + state.enemy.maxHp);
     if (playerDmg > 0) log('You take ' + playerDmg + ' damage. Vit: ' + state.player.vit + '/' + state.player.maxVit);
