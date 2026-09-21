@@ -18,4 +18,8 @@ assert(runtime.includes("keysPressed[68] && typeof nav.dock === 'function'"),'do
 assert(runtime.includes("showToast('MOORED // '"),'docking feedback missing');
 assert(runtime.includes("nav.undock(airNavigationState)"),'directional cast-off behavior missing');
 assert(runtime.includes('BERTH AVAILABLE:'),'berth approach UI missing');
+assert(runtime.includes('travelProfile(airNavigationState)'),'flight HUD does not consume weather/route travel profile');
+assert(runtime.includes('routeContext(airNavigationState)'),'flight HUD does not expose route context');
+assert(runtime.includes("'WAKE PRESSURE ' + travel.encounterPressure"),'flight HUD does not expose encounter pressure');
+assert(runtime.includes("' / EFF ' + effectiveSpeed"),'flight HUD does not expose effective weather-adjusted speed');
 console.log('Aetherwake playable air-navigation contract: PASS');
