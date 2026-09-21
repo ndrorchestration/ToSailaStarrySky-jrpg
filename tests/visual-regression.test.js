@@ -74,7 +74,7 @@ test('D26: rendering helpers do not shadow p5 text()', () => {
 });
 
 test('D27: character sheet uses canonical live view-model and defined row variables', () => {
-  assert(aetherwakeSrc.includes('function getCharacterSheetViewModel()'),
+  assert(aetherwakeSrc.includes('function getCharacterSheetViewModel('),
     'character sheet view-model helper should exist');
   assert(aetherwakeSrc.includes('window.getCharacterSheetViewModel = getCharacterSheetViewModel'),
     'character sheet view-model should be exposed for integration verification');
