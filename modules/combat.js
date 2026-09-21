@@ -7,9 +7,9 @@ function AetherCombat(p, C) {
   const self = this;
   const state = {
     player: {
-      name: 'Young Ender',
-      age: 28,
-      class: 'Rift Scholar + Dreamwright',
+      name: 'Ender',
+      age: 22,
+      class: 'Rift Scholar',
       vit: 13, maxVit: 13,
       echoes: { current: 3, max: 3 }, maxEchoes: 3,
       wits: 2, presence: 1, spirit: 1, might: -1,
