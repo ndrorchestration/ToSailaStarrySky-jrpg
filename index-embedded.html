@@ -210,12 +210,48 @@
             worldReady: Boolean(window._world),
             combatReady: Boolean(window._combat),
             charCreateReady: Boolean(window._charcreate),
-            canvas: canvas ? {
-              width: canvas.width,
-              height: canvas.height,
-              cssWidth: canvas.getBoundingClientRect().width,
-              cssHeight: canvas.getBoundingClientRect().height
-            } : null
+            canvas: canvas ? (function() {
+              var metrics = {
+                width: canvas.width,
+                height: canvas.height,
+                cssWidth: canvas.getBoundingClientRect().width,
+                cssHeight: canvas.getBoundingClientRect().height,
+                uniqueSampleColors: null,
+                opaqueSamples: null,
+                nonBackgroundSamples: null,
+                pixelReadError: null
+              };
+              try {
+                var ctx = canvas.getContext('2d');
+                var image = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                var colors = Object.create(null);
+                var unique = 0;
+                var opaque = 0;
+                var nonBackground = 0;
+                var bgR = 26, bgG = 16, bgB = 46;
+                for (var y = 16; y < canvas.height; y += 16) {
+                  for (var x = 16; x < canvas.width; x += 16) {
+                    var i = (y * canvas.width + x) * 4;
+                    var r = image[i], g = image[i + 1], b = image[i + 2], a = image[i + 3];
+                    var key = r + ',' + g + ',' + b + ',' + a;
+                    if (!colors[key]) {
+                      colors[key] = true;
+                      unique++;
+                    }
+                    if (a > 0) opaque++;
+                    if (Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB) > 12) {
+                      nonBackground++;
+                    }
+                  }
+                }
+                metrics.uniqueSampleColors = unique;
+                metrics.opaqueSamples = opaque;
+                metrics.nonBackgroundSamples = nonBackground;
+              } catch (pixelError) {
+                metrics.pixelReadError = String(pixelError && pixelError.message || pixelError);
+              }
+              return metrics;
+            })() : null
           }, null, 2));
         } catch (_) {}
       }
