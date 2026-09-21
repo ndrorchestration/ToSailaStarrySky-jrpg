@@ -4,9 +4,9 @@
 
    Scope:
    - preserve evidence-backed companion action semantics without inventing
-     missing outcome rules;
+     missing target-system rules;
    - make unresolved design fields machine-readable;
-   - expose admission candidates only after a draft is actually complete.
+   - expose admission candidates only after a target JRPG contract is complete.
 
    This module does NOT execute actions, authorize companion turns, assign
    canonical jobs/schools, or modify persistence.
