@@ -1137,7 +1137,7 @@ function createServer() {
       };
     });
 
-    assert(registryContract.abilityVersion === '0.4.0',
+    assert(registryContract.abilityVersion === '0.5.0',
       'ability registry version is not loaded');
     assert(registryContract.progressionVersion === '0.1.0',
       'progression registry version is not loaded');
@@ -1206,12 +1206,14 @@ function createServer() {
       formulaVersion: window.AetherCombatFormula && window.AetherCombatFormula.VERSION,
       staff: window.AetherCombatFormula && window.AetherCombatFormula.getFormula('staffStrike'),
       hold: window.AetherCombatFormula && window.AetherCombatFormula.getFormula('hold'),
+      rest: window.AetherCombatFormula && window.AetherCombatFormula.getFormula('rest'),
       abilityResolution: window.AetherAbilityDefs && window.AetherAbilityDefs.DEFS.staffStrike.resolution,
       holdResolution: window.AetherAbilityDefs && window.AetherAbilityDefs.DEFS.hold.resolution,
+      restResolution: window.AetherAbilityDefs && window.AetherAbilityDefs.DEFS.rest.resolution,
     }));
     assert(formulaContract.policyModel === 'jrpg-stat-formula',
       'target JRPG combat policy is not live in the browser');
-    assert(formulaContract.formulaVersion === '0.2.0',
+    assert(formulaContract.formulaVersion === '0.3.0',
       'combat formula resolver is not live in the browser');
     assert(formulaContract.staff && formulaContract.staff.damageType === 'emp',
       'Staff Strike formula is not registered');
@@ -1225,6 +1227,14 @@ function createServer() {
     assert(formulaContract.holdResolution &&
       formulaContract.holdResolution.formulaId === 'hold',
       'Hold ability is not bound to formula resolution');
+    assert(formulaContract.rest &&
+      formulaContract.rest.kind === 'recovery' &&
+      formulaContract.rest.heatReduction === 2 &&
+      formulaContract.rest.vitalityRestore === 1,
+      'Rest recovery formula is not registered');
+    assert(formulaContract.restResolution &&
+      formulaContract.restResolution.formulaId === 'rest',
+      'Rest ability is not bound to formula resolution');
 
     // startCombat() resets the JRPG combat cursor to slot 1.
     await page.keyboard.press('KeyZ'); // Staff Strike
@@ -1311,6 +1321,71 @@ function createServer() {
       'combat echoes were not written back to WORLD');
     assert(worldAfterCombat.staffCharges === combatAfterActions.player.staffCharges,
       'combat staff charges were not written back to WORLD');
+
+    // Formula-native Rest: unlock it only for this isolated smoke fixture,
+    // lower Vit/raise Heat, then invoke slot 8 through real JRPG cursor input.
+    const restFixture = await page.evaluate(() => {
+      const player = window._world.player;
+      const original = {
+        vit: player.vit,
+        heat: player.heat,
+        unlockedAbilities: player.unlockedAbilities.slice(),
+      };
+      player.vit = Math.max(1, player.maxVit - 1);
+      player.heat = Math.min(player.heatMax, 2);
+      if (!player.unlockedAbilities.includes('rest')) {
+        player.unlockedAbilities.push('rest');
+      }
+      window.__restSmokeOriginal = original;
+      window.__restSmokeRandom = window.random;
+      window.random = function() { return 1; };
+      startCombat('skyPredator');
+      const before = window._combat.getState();
+      return {
+        vit: before.player.vit,
+        maxVit: before.player.maxVit,
+        heat: before.player.heat.current,
+      };
+    });
+    assert(restFixture.vit === restFixture.maxVit - 1,
+      'Rest smoke fixture did not lower Vitality by one');
+    assert(restFixture.heat === 2,
+      'Rest smoke fixture did not establish Heat 2');
+
+    for (let i = 0; i < 7; i++) await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('KeyZ'); // Rest
+    await page.waitForFunction(() =>
+      window._combat && window._combat.getState().turn >= 1
+    , undefined, { timeout: 5000 });
+
+    const restAfter = await page.evaluate(() => window._combat.getState());
+    const restLog = restAfter.log.find(line =>
+      line.includes('[Turn 1]') && line.includes('Rest'));
+    assert(restLog, 'Rest formula action was not logged');
+    assert(restLog.includes('-2 Heat') && restLog.includes('+1 Vit'),
+      'Rest did not apply the deterministic recovery contract');
+    assert(!restLog.includes('Roll:') && !restLog.includes('partial') &&
+      !restLog.includes('failure'),
+      'Rest leaked legacy dice/outcome-band text');
+    assert(restAfter.player.heat.current === 0,
+      'Rest did not reduce Heat by the bounded amount');
+    assert(restAfter.player.vit === restFixture.maxVit,
+      'Rest did not restore one Vitality');
+
+    await page.evaluate(() => {
+      finishCombat();
+      const original = window.__restSmokeOriginal;
+      if (original) {
+        window._world.player.vit = original.vit;
+        window._world.player.heat = original.heat;
+        window._world.player.unlockedAbilities = original.unlockedAbilities.slice();
+      }
+      if (window.__restSmokeRandom) window.random = window.__restSmokeRandom;
+      delete window.__restSmokeOriginal;
+      delete window.__restSmokeRandom;
+    });
+    await page.waitForFunction(() => window.gameState === 'world', undefined,
+      { timeout: 5000 });
 
     // Dragonfly-class airship systems: use the production boarding input path.
     const airshipSetup = await page.evaluate(() => {
