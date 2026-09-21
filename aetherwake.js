@@ -6093,7 +6093,7 @@ function AetherCombat(p, C) {
     }
 
     // Resolution migration boundary.
-    // Staff Strike is the first production JRPG-formula action. All remaining
+    // Staff Strike and Hold use production JRPG formulas. The remaining six
     // actions stay on the legacy 2D6 compatibility path until migrated.
     let actionText = '';
     let enemyDmg = 0;
@@ -6106,37 +6106,56 @@ function AetherCombat(p, C) {
     let attackCritical = false;
 
     if (action.resolution && action.resolution.model === 'jrpg-stat-formula') {
-      formulaResolution = combatFormula.resolveDamage(
+      formulaResolution = combatFormula.resolveAction(
         action.id,
         state.player,
         state.enemy,
         function() { return random(1); }
       );
 
-      if (formulaResolution.hit && formulaResolution.damage > 0) {
-        enemyDmg = formulaResolution.damage;
-        applyDamage(
-          effectVocabulary.TARGET.ENEMY,
-          enemyDmg,
-          formulaResolution.damageType
+      if (formulaResolution.kind === 'damage') {
+        if (formulaResolution.hit && formulaResolution.damage > 0) {
+          enemyDmg = formulaResolution.damage;
+          applyDamage(
+            effectVocabulary.TARGET.ENEMY,
+            enemyDmg,
+            formulaResolution.damageType
+          );
+        }
+
+        if (!formulaResolution.dedicatedCost ||
+            formulaResolution.dedicatedCost.resource !== 'staffCharges') {
+          throw new Error('STAFF_STRIKE_DEDICATED_COST_DRIFT');
+        }
+        changeResource(
+          effectVocabulary.RESOURCE.STAFF_CHARGES,
+          -formulaResolution.dedicatedCost.amount
         );
-      }
 
-      if (!formulaResolution.dedicatedCost ||
-          formulaResolution.dedicatedCost.resource !== 'staffCharges') {
-        throw new Error('STAFF_STRIKE_DEDICATED_COST_DRIFT');
-      }
-      changeResource(
-        effectVocabulary.RESOURCE.STAFF_CHARGES,
-        -formulaResolution.dedicatedCost.amount
-      );
-
-      attackCritical = Boolean(formulaResolution.critical);
-      if (formulaResolution.hit) {
-        actionText = action.label + ' — ' + enemyDmg + ' EMP damage' +
-          (attackCritical ? ' — CRITICAL!' : '') + '.';
+        attackCritical = Boolean(formulaResolution.critical);
+        if (formulaResolution.hit) {
+          actionText = action.label + ' — ' + enemyDmg + ' EMP damage' +
+            (attackCritical ? ' — CRITICAL!' : '') + '.';
+        } else {
+          actionText = action.label + ' — attack missed.';
+        }
+      } else if (formulaResolution.kind === 'resource') {
+        if (formulaResolution.resource !== effectVocabulary.RESOURCE.STAFF_CHARGES) {
+          throw new Error('FORMULA_RESOURCE_KIND_UNSUPPORTED:' + formulaResolution.resource);
+        }
+        if (formulaResolution.delta > 0) {
+          changeResource(
+            effectVocabulary.RESOURCE.STAFF_CHARGES,
+            formulaResolution.delta
+          );
+          actionText = 'Hold — Resonator recharges. +' +
+            formulaResolution.delta + ' charge' +
+            (formulaResolution.delta === 1 ? '.' : 's.');
+        } else {
+          actionText = 'Hold — Resonator already at full charge.';
+        }
       } else {
-        actionText = action.label + ' — attack missed.';
+        throw new Error('FORMULA_RESULT_KIND_UNSUPPORTED:' + formulaResolution.kind);
       }
     } else {
       const airshipRollBonus = state.airship && state.airship.firstRollBonus
@@ -6202,13 +6221,6 @@ function AetherCombat(p, C) {
                 actionText = 'Mycelial Ledger — +' + gain + ' Scrap recorded. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
               }
             }
-          } else if (action.type === 'hold') {
-            if (state.player.staffCharges < state.player.maxStaffCharges) {
-              changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, 1);
-              actionText = 'Hold — Resonator recharges in light. +1 charge. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-            } else {
-              actionText = 'Hold — the weave passes through you. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
-            }
           } else if (action.type === 'defense') {
             if (action.id === 'windWard') {
               if (r.outcome === 'success') {
@@ -6258,12 +6270,6 @@ function AetherCombat(p, C) {
               changeResource(effectVocabulary.RESOURCE.SCRAP, 1);
               actionText = 'Mycelial Ledger — +1 Scrap. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
             }
-          } else if (action.type === 'hold') {
-            if (state.player.staffCharges < state.player.maxStaffCharges) {
-              changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, 1);
-            }
-            playerDmg = 1;
-            actionText = 'Hold — but the enemy finds you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           } else if (action.type === 'defense') {
             playerDmg = 1;
             if (action.id === 'windWard') {
@@ -6282,9 +6288,6 @@ function AetherCombat(p, C) {
           } else if (action.type === 'ability') {
             actionText = action.label + ' — the weave resists. Nothing gained. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
             playerDmg = 1;
-          } else if (action.type === 'hold') {
-            playerDmg = 1;
-            actionText = 'Hold — the enemy finds you. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           } else if (action.type === 'defense') {
             playerDmg = floor(random(1, 4)) + 1;
             actionText = action.label + ' — overwhelmed. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
