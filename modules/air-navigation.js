@@ -8,16 +8,28 @@
   else root.AetherAirNavigation = factory();
 }(typeof window !== 'undefined' ? window : globalThis, function () {
   'use strict';
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
   const SKY_WIDTH = 48, SKY_HEIGHT = 32;
   const ALTITUDES = Object.freeze(['low','cruise','high']);
 
   const LANDMARKS = Object.freeze([
-    Object.freeze({id:'wake-dock',label:'WAKE DOCK',x:8,y:22,kind:'dock'}),
-    Object.freeze({id:'verdant-crown',label:'VERDANT CROWN',x:17,y:15,kind:'island'}),
-    Object.freeze({id:'glass-reef',label:'GLASS REEF',x:28,y:20,kind:'ruin'}),
-    Object.freeze({id:'storm-gate',label:'STORM GATE',x:36,y:10,kind:'weather'}),
-    Object.freeze({id:'high-choir',label:'HIGH CHOIR',x:24,y:5,kind:'floating-city'}),
+    Object.freeze({id:'wake-dock',label:'WAKE DOCK',x:8,y:22,kind:'dock',dockable:true}),
+    Object.freeze({id:'verdant-crown',label:'VERDANT CROWN',x:17,y:15,kind:'island',dockable:true}),
+    Object.freeze({id:'glass-reef',label:'GLASS REEF',x:28,y:20,kind:'ruin',dockable:false}),
+    Object.freeze({id:'storm-gate',label:'STORM GATE',x:36,y:10,kind:'weather',dockable:false}),
+    Object.freeze({id:'high-choir',label:'HIGH CHOIR',x:24,y:5,kind:'floating-city',dockable:true}),
+  ]);
+
+  const SKY_ROUTES = Object.freeze([
+    Object.freeze({id:'rootline-west',from:'wake-dock',to:'verdant-crown',label:'ROOTLINE WEST'}),
+    Object.freeze({id:'reef-run',from:'verdant-crown',to:'glass-reef',label:'REEF RUN'}),
+    Object.freeze({id:'choir-ascent',from:'verdant-crown',to:'high-choir',label:'CHOIR ASCENT'}),
+    Object.freeze({id:'storm-thread',from:'glass-reef',to:'storm-gate',label:'STORM THREAD'}),
+  ]);
+
+  const WEATHER_ZONES = Object.freeze([
+    Object.freeze({id:'crosswind-belt',weatherId:'crosswind',x:19,y:11,radius:6,altitudes:['low','cruise']}),
+    Object.freeze({id:'storm-gate-squall',weatherId:'aether-squall',x:36,y:10,radius:7,altitudes:['cruise','high']}),
   ]);
 
   const SKY_ENCOUNTERS = Object.freeze([
@@ -44,6 +56,8 @@
       speed: clamp(Number.isFinite(o.speed)?o.speed:1,0,3),
       weatherId: WEATHER.some(w=>w.id===o.weatherId)?o.weatherId:'clear',
       discovered: Array.isArray(o.discovered)?o.discovered.slice():['wake-dock'],
+      discoveredRoutes: Array.isArray(o.discoveredRoutes)?o.discoveredRoutes.slice():[],
+      mooredLandmarkId: typeof o.mooredLandmarkId==='string'?o.mooredLandmarkId:null,
       encounterSteps: Number.isInteger(o.encounterSteps)?Math.max(0,o.encounterSteps):0,
       encounterSeed: Number.isInteger(o.encounterSeed)?o.encounterSeed:0,
     };
@@ -56,14 +70,49 @@
     }
     return best ? {landmark:Object.assign({},best),distance:dist} : null;
   }
+  function weatherAt(state) {
+    for (const zone of WEATHER_ZONES) {
+      if (!zone.altitudes.includes(state.altitude)) continue;
+      if (Math.hypot(zone.x-state.x,zone.y-state.y)<=zone.radius) {
+        return Object.assign({}, WEATHER.find(w=>w.id===zone.weatherId));
+      }
+    }
+    return Object.assign({}, WEATHER[0]);
+  }
+  function routeDiscovery(next) {
+    for (const route of SKY_ROUTES) {
+      const a=LANDMARKS.find(mark=>mark.id===route.from), b=LANDMARKS.find(mark=>mark.id===route.to);
+      if (!a || !b) continue;
+      const dx=b.x-a.x, dy=b.y-a.y, len2=dx*dx+dy*dy;
+      const t=len2 ? clamp(((next.x-a.x)*dx+(next.y-a.y)*dy)/len2,0,1) : 0;
+      const px=a.x+t*dx, py=a.y+t*dy;
+      if (Math.hypot(next.x-px,next.y-py)<=1.75 && !next.discoveredRoutes.includes(route.id)) next.discoveredRoutes.push(route.id);
+    }
+  }
+  function dockingCheck(state) {
+    const nearest=nearestLandmark(state);
+    if (!nearest || nearest.distance>1.5 || !nearest.landmark.dockable) return {available:false,landmark:null};
+    return {available:true,landmark:nearest.landmark};
+  }
+  function dock(state) {
+    const next=createState(state), check=dockingCheck(next);
+    if (!check.available) return {ok:false,state:next,landmark:null};
+    next.mooredLandmarkId=check.landmark.id; next.speed=0;
+    return {ok:true,state:next,landmark:check.landmark};
+  }
+  function undock(state) {
+    const next=createState(state); next.mooredLandmarkId=null; if(next.speed===0) next.speed=1; return next;
+  }
   function move(state,dx,dy) {
     const next=createState(state);
     next.x=clamp(next.x+dx*next.speed,0,SKY_WIDTH-1);
     next.y=clamp(next.y+dy*next.speed,0,SKY_HEIGHT-1);
-    if(dx||dy) { next.heading=Math.atan2(dy,dx); next.encounterSteps += 1; }
+    if(dx||dy) { next.mooredLandmarkId=null; next.heading=Math.atan2(dy,dx); next.encounterSteps += 1; }
     for(const mark of LANDMARKS){
       if(Math.hypot(mark.x-next.x,mark.y-next.y)<=2 && !next.discovered.includes(mark.id)) next.discovered.push(mark.id);
     }
+    routeDiscovery(next);
+    next.weatherId=weatherAt(next).id;
     return next;
   }
   function encounterCheck(state) {
@@ -89,5 +138,5 @@
     next.altitude=ALTITUDES[clamp(i+delta,0,ALTITUDES.length-1)];
     return next;
   }
-  return {VERSION,SKY_WIDTH,SKY_HEIGHT,ALTITUDES:ALTITUDES.slice(),LANDMARKS:LANDMARKS.map(x=>Object.assign({},x)),WEATHER:WEATHER.map(x=>Object.assign({},x)),SKY_ENCOUNTERS:SKY_ENCOUNTERS.map(x=>Object.assign({},x)),ENCOUNTER_STEP_THRESHOLD,createState,nearestLandmark,move,encounterCheck,changeAltitude};
+  return {VERSION,SKY_WIDTH,SKY_HEIGHT,ALTITUDES:ALTITUDES.slice(),LANDMARKS:LANDMARKS.map(x=>Object.assign({},x)),SKY_ROUTES:SKY_ROUTES.map(x=>Object.assign({},x)),WEATHER:WEATHER.map(x=>Object.assign({},x)),WEATHER_ZONES:WEATHER_ZONES.map(x=>Object.assign({},x)),SKY_ENCOUNTERS:SKY_ENCOUNTERS.map(x=>Object.assign({},x)),ENCOUNTER_STEP_THRESHOLD,createState,nearestLandmark,weatherAt,dockingCheck,dock,undock,move,encounterCheck,changeAltitude};
 }));
