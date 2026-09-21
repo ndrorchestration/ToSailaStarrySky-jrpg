@@ -1,4 +1,6 @@
-# Aetherwake Development Guide
+# Aetherwake Development
+
+> Documentation routing: read `docs/DOCUMENTATION_AUTHORITY.md` before treating historical checkpoints or preservation-era notes as current target state. Guide
 
 ## Current stage
 
@@ -108,7 +110,7 @@ On 2026-09-19, smoke run `35456148594` passed on commit `be896474c97271084c989f7
 - Reson/Aepex remaining unimplemented runtime shells,
 - combat state write-back into the canonical lead record.
 
-This checkpoint does not mean the authored-roster onboarding, formation system, three-character combat, ability extraction, or progression architecture is complete, and it does not mean `dev/progression-build` has been promoted to `main`.
+This checkpoint does not mean the authored-roster onboarding, full authored multi-character combat, four/five-member party expansion, ability extraction, or progression architecture is complete, and it does not mean `dev/progression-build` has been promoted to `main`.
 
 ## Comprehensive runtime-repair checkpoint
 
@@ -163,7 +165,7 @@ the field-role selector referenced an undefined `synText`; it now renders the
 current template's `job.synergyBonus` directly.
 
 This checkpoint does **not** establish Reson/Aepex mechanics, canonical Lyra/Ionia
-jobs, formation switching, or true three-character combat.
+jobs, full party expansion beyond the opening trio, or final five-member combat presentation.
 
 ## Save/persistence v1 checkpoint
 
