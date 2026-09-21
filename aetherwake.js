@@ -1417,7 +1417,7 @@ function drawCharSheetOverlay() {
     textFont('Press Start 2P');
     textSize(10);
     fill(C.teal[0], C.teal[1], C.teal[2], 180);
-    text('ENDER — Rift Scholar / Dreamwright', px + 20, py + 24);
+    text('ENDER — Rift Scholar', px + 20, py + 24);
   }
 
   textFont('Press Start 2P');
@@ -1826,7 +1826,7 @@ function initNPCs() {
       flags: { met: false, questMarker: true }
     },
 
-    // 3 — Lyra (child dreamer, hears frequencies above and below)
+    // 3 — Lyra (adult frequency-sensitive receiver; hears frequencies above and below)
     {
       id: 'child_prophet',
       name: 'Lyra',
@@ -4123,9 +4123,9 @@ function AetherCombat(p, C) {
   const self = this;
   const state = {
     player: {
-      name: 'Young Ender',
+      name: 'Ender',
       age: 28,
-      class: 'Rift Scholar + Dreamwright',
+      class: 'Rift Scholar',
       vit: 13, maxVit: 13,
       echoes: { current: 3, max: 3 }, maxEchoes: 3,
       wits: 2, presence: 1, spirit: 1, might: -1,
@@ -6491,7 +6491,7 @@ function drawCharSheet(px, py, pw, ph) {
   textAlign(LEFT, TOP);
   drawGlowText('CLASS', sheet.classX, sheet.classY, PAL.TEAL, 10);
   fill(PAL.PARCHMENT);
-  text('Rift Scholar / Dreamwright', sheet.classX + 44, sheet.classY);
+  text('Rift Scholar', sheet.classX + 44, sheet.classY);
 
   drawGlowText('LEVEL', sheet.levelX, sheet.levelY, PAL.TEAL, 10);
   fill(PAL.PARCHMENT);
