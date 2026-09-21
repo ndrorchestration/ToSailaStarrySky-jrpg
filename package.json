@@ -45,7 +45,7 @@
     "test:secondary-action": "node tests/secondary-action-contract.test.js",
     "test:airship": "node tests/airship-state.test.js",
     "test:airship-combat-bridge": "node tests/airship-combat-bridge.test.js",
-    "test:all": "npm run test:runtime-contracts && npm run test:onboarding && npm run test:save-state && npm run test:mastery && npm run test:field-roles && npm run test:effects && npm run test:registries && npm run test:resolver && npm run test:resolver-integration && npm run test:enemy-metadata && npm run test:combat-input && npm run test:resource-eligibility && npm run test:progression-reachability && npm run test:secondary-action && npm run test:airship && npm run test:airship-combat-bridge && npm run test:regressions && npm run test:desktop-package && npm run test:smoke",
+    "test:all": "npm run test:runtime-contracts && npm run test:onboarding && npm run test:save-state && npm run test:mastery && npm run test:field-roles && npm run test:party-combat-bridge && npm run test:effects && npm run test:registries && npm run test:resolver && npm run test:resolver-integration && npm run test:enemy-metadata && npm run test:combat-input && npm run test:resource-eligibility && npm run test:progression-reachability && npm run test:secondary-action && npm run test:airship && npm run test:airship-combat-bridge && npm run test:regressions && npm run test:desktop-package && npm run test:smoke",
     "test:regressions": "node tests/boot-entrypoint-regression.test.js && node tests/input-dialogue-regression.test.js && node tests/world-quest-lore-ledger-regression.test.js && node tests/shop-regression.test.js && node tests/combat-airship-regression.test.js && node tests/visual-regression.test.js",
     "package:windows": "npm run stage:desktop-runtime && nwbuild --mode=build --glob=false --platform=win --arch=x64 --version=0.116.0 --outDir=../aetherwake-dist build/runtime-app",
     "package:windows:clean": "npm run stage:desktop-runtime && nwbuild --mode=build --glob=false --platform=win --arch=x64 --version=0.116.0 --outDir=../aetherwake-dist build/runtime-app",
@@ -54,6 +54,7 @@
     "test:save-state": "node tests/save-state-contract.test.js",
     "test:mastery": "node tests/mastery-defs.test.js",
     "test:field-roles": "node tests/field-role-defs.test.js",
-    "stage:desktop-runtime": "node scripts/stage-desktop-runtime.js"
+    "stage:desktop-runtime": "node scripts/stage-desktop-runtime.js",
+    "test:party-combat-bridge": "node tests/party-combat-bridge.test.js"
   }
 }
