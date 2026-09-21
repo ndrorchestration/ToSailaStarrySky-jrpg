@@ -92,8 +92,9 @@ The console is the first playable ship-systems slice. Its power and charge budge
 
 **Current migration runtime:** combat is now hybrid while the engine is converted incrementally.
 
-- **Resonator Staff / Staff Strike:** first live **JRPG formula** action; Might-scaled EMP damage, one staff charge, bounded damage variance and critical policy, no visible dice/outcome bands.
-- **The remaining seven actions:** still use the preservation-era **2D6 + stat** compatibility path (10+ / 7–9 / 6−) until each receives a production formula/effect contract.
+- **Resonator Staff / Staff Strike:** live **JRPG damage formula**; Might-scaled EMP damage, one staff charge, bounded damage variance and critical policy, no visible dice/outcome bands.
+- **Hold:** live **deterministic JRPG resource formula**; restores one Resonator Staff charge up to the current maximum, with no roll bands or self-damage.
+- **The remaining six actions:** still use the preservation-era **2D6 + stat** compatibility path (10+ / 7–9 / 6−) until each receives a production formula/effect contract.
 
 The current preservation baseline contains eight combat actions:
 
@@ -103,14 +104,14 @@ The current preservation baseline contains eight combat actions:
 | 2 | Uncover Truth | Wits / reveal |
 | 3 | Shared Dream | Spirit / support |
 | 4 | Mycelial Ledger | Presence / resource recovery |
-| 5 | Hold | conserve / recharge |
+| 5 | Hold | deterministic JRPG recharge |
 | 6 | Wind Ward | defensive ability |
 | 7 | Aether Seal | defensive / aether ability |
 | 8 | Rest | heat / vitality recovery |
 
 Current prototype progression unlocks **Wind Ward at level 3, Aether Seal at level 4, and Rest at level 5**.
 
-The remaining 2D6 action definitions are a **legacy implementation baseline**, not the final architecture. Staff Strike is the first action migrated out of that baseline. The target system uses data-driven ability formulas, explicit prerequisites, a generic effect resolver, bounded accuracy/critical/status variance where appropriate, school mastery, jobs, and party-combination arts.
+The remaining 2D6 action definitions are a **legacy implementation baseline**, not the final architecture. Staff Strike and Hold are the first two actions migrated out of that baseline. The target system uses data-driven ability formulas, explicit prerequisites, a generic effect resolver, bounded accuracy/critical/status variance where appropriate, school mastery, jobs, and party-combination arts.
 
 ## Party architecture
 
