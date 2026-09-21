@@ -50,6 +50,7 @@
     "test:longform-progression": "node tests/longform-progression.test.js",
     "test:encounter-scaling": "node tests/encounter-scaling.test.js",
     "test:party-capacity": "node tests/party-capacity.test.js",
-    "test:character-profiles": "node tests/character-stat-profiles.test.js"
+    "test:character-profiles": "node tests/character-stat-profiles.test.js",
+    "test:character-canon": "node tests/character-canon-alignment.test.js"
   }
 }
