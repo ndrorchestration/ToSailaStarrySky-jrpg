@@ -171,6 +171,33 @@ function setup() {
   }
   window._masteryDefs = window.AetherMasteryDefs;
 
+  if (!window.AetherMagicAccess ||
+      typeof window.AetherMagicAccess.validate !== 'function') {
+    showInitializationFailure('AETHER_MAGIC_ACCESS_UNAVAILABLE');
+    return;
+  }
+  try {
+    window.AetherMagicAccess.validate();
+  } catch (error) {
+    showInitializationFailure('AETHER_MAGIC_ACCESS_INVALID');
+    return;
+  }
+  window._magicAccess = window.AetherMagicAccess;
+
+  if (!window.AetherSense ||
+      typeof window.AetherSense.validate !== 'function' ||
+      typeof window.AetherSense.scan !== 'function') {
+    showInitializationFailure('AETHER_SENSE_UNAVAILABLE');
+    return;
+  }
+  try {
+    window.AetherSense.validate();
+  } catch (error) {
+    showInitializationFailure('AETHER_SENSE_INVALID');
+    return;
+  }
+  window._aetherSense = window.AetherSense;
+
   if (!window.AetherFieldRoleDefs ||
       typeof window.AetherFieldRoleDefs.validate !== 'function' ||
       typeof window.AetherFieldRoleDefs.list !== 'function') {
@@ -753,6 +780,14 @@ function handleWorldInput() {
         openState(STATE.SHOP);
       } else if (result && !result.ok && result.reason) {
         addLedgerEntry('shop', result.reason);
+      }
+    }
+  }
+  if (keysPressed[86]) {   // V — Aether Sense
+    if (world && typeof world.senseAether === 'function') {
+      const result = world.senseAether();
+      if (result && !result.ok && result.reason) {
+        addLedgerEntry('aether-sense', 'Aether Sense unavailable: ' + result.reason + '.');
       }
     }
   }
@@ -2025,6 +2060,7 @@ const World = {
   openLedger, openShop, closeShop,
   openDialogue, nextDialogueLine, closeDialogue,
   getLedger, getShopItems, purchaseItem,
+  senseAether, getAetherSenseState,
   getQuestState, advanceQuest,
   exportPersistentState, validatePersistentState, restorePersistentState
 };
@@ -2076,6 +2112,11 @@ let gameOver = false;
 let wakeVariants = [];
 let currentInteractionKey = null;
 let activeDialogue = null;
+let aetherSenseState = {
+  active: false,
+  expiresAt: 0,
+  lastScan: null,
+};
 
 // p5 hooks — called by core.js setup()/draw()/update()
 // ---------------------------------------------------------------------------
@@ -2096,6 +2137,11 @@ function init() {
   dayTime = 0;
   isSkyLayerVisible = false;
   gameOver = false;
+  aetherSenseState = {
+    active: false,
+    expiresAt: 0,
+    lastScan: null,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -3058,6 +3104,119 @@ function toggleLayer() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Aether Sense — V press
+// ---------------------------------------------------------------------------
+
+function buildAetherSenseSignatures() {
+  const signatures = [
+    {
+      id: 'wake-core',
+      label: 'Wake Core',
+      kind: window.AetherSense.SIGNATURE_KIND.CORE,
+      intensity: window.AetherSense.INTENSITY.STRONG,
+      x: 23,
+      y: 10,
+      active: true,
+      note: 'Engineered Aether circulation in the ship core.',
+    },
+  ];
+
+  const spirit = npcs.find(npc => npc.id === 'engine_spirit');
+  if (spirit) {
+    signatures.push({
+      id: 'engine-spirit',
+      label: 'Engine Spirit',
+      kind: window.AetherSense.SIGNATURE_KIND.ENTITY,
+      intensity: window.AetherSense.INTENSITY.MODERATE,
+      x: spirit.tileX,
+      y: spirit.tileY,
+      active: true,
+      note: 'A living resonance threaded through machinery.',
+    });
+  }
+
+  const leak = quest && Array.isArray(quest.crossingHazards)
+    ? quest.crossingHazards.find(hazard => hazard.id === 'aether_leak')
+    : null;
+  if (leak && !leak.done) {
+    signatures.push({
+      id: 'aether-leak',
+      label: 'Aether Leak',
+      kind: window.AetherSense.SIGNATURE_KIND.LEAK,
+      intensity: window.AetherSense.INTENSITY.UNSTABLE,
+      x: 15,
+      y: 11,
+      active: true,
+      note: 'Unstable Aether pooling in the crossing zone.',
+    });
+  }
+
+  if (covenantField && covenantField.planted) {
+    signatures.push({
+      id: 'covenant-field',
+      label: 'Covenant Field',
+      kind: window.AetherSense.SIGNATURE_KIND.FIELD,
+      intensity: window.AetherSense.INTENSITY.MODERATE,
+      x: covenantField.x,
+      y: covenantField.y,
+      active: true,
+      note: 'A temporary player-created field carrying active Aether.',
+    });
+  }
+
+  return signatures;
+}
+
+function senseAether() {
+  if (gameOver) {
+    return {
+      ok: false,
+      spellId: 'aetherSense',
+      reason: 'world_inactive',
+      detections: [],
+    };
+  }
+  if (!window.AetherSense || typeof window.AetherSense.scan !== 'function') {
+    return {
+      ok: false,
+      spellId: 'aetherSense',
+      reason: 'aether_sense_runtime_unavailable',
+      detections: [],
+    };
+  }
+
+  const result = window.AetherSense.scan(
+    'ender',
+    { x: player.tileX, y: player.tileY },
+    buildAetherSenseSignatures()
+  );
+
+  if (!result.ok) return result;
+
+  aetherSenseState.lastScan = result;
+  aetherSenseState.active = true;
+  aetherSenseState.expiresAt = millis() + 1800;
+
+  addLedgerEntry('aether-sense', window.AetherSense.summarize(result));
+
+  if (typeof triggerScreenFlash === 'function') {
+    triggerScreenFlash(124, 200, 232, 180, 55);
+  }
+
+  return JSON.parse(JSON.stringify(result));
+}
+
+function getAetherSenseState() {
+  return {
+    active: aetherSenseState.active,
+    expiresAt: aetherSenseState.expiresAt,
+    lastScan: aetherSenseState.lastScan
+      ? JSON.parse(JSON.stringify(aetherSenseState.lastScan))
+      : null,
+  };
+}
+
 /**
  * interact() — dispatches on the key passed from core.js.
  */
@@ -3606,6 +3765,12 @@ function update(dt) {
   }
 
   updateNPCSchedulers(cdt);
+
+  if (aetherSenseState.active &&
+      aetherSenseState.expiresAt > 0 &&
+      millis() >= aetherSenseState.expiresAt) {
+    aetherSenseState.active = false;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -3627,6 +3792,7 @@ function render() {
     drawStars();
     drawEnginePulse();
     drawQuestWorldReactions();
+    drawAetherSenseOverlay();
     drawPlayer();
     drawNPCs();
     drawPlayerVisualEvolution();
@@ -4777,6 +4943,48 @@ function drawQuestWorldReactions() {
       noStroke();
     }
   }
+}
+
+// --- Aether Sense visualization ---------------------------------------------
+
+function drawAetherSenseOverlay() {
+  if (!aetherSenseState.active || !aetherSenseState.lastScan) return;
+
+  const scan = aetherSenseState.lastScan;
+  const pulse = Math.sin(millis() * 0.012) * 0.25 + 0.75;
+
+  for (const detection of scan.detections) {
+    const cx = detection.x * 16 + 8;
+    const cy = detection.y * 16 + 8;
+    const baseSize = detection.intensity === 'strong' ? 28 :
+      detection.intensity === 'unstable' ? 24 :
+      detection.intensity === 'moderate' ? 20 : 16;
+
+    noFill();
+    stroke(color(124, 200, 232, 150 * pulse));
+    strokeWeight(detection.intensity === 'strong' ? 2 : 1);
+    ellipse(cx, cy, baseSize + (1 - pulse) * 10, baseSize * 0.55 + (1 - pulse) * 5);
+    noStroke();
+
+    fill(color(42, 255, 181, 190 * pulse));
+    ellipse(cx, cy, 4, 4);
+  }
+
+  noStroke();
+  fill(color(26, 16, 46, 210));
+  rect(154, 538, 250, 30, 4);
+  fill(color(124, 200, 232, 220));
+  textAlign(LEFT, TOP);
+  textSize(9);
+  textFont('Press Start 2P');
+  text('AETHER SENSE', 164, 544);
+  fill(color(232, 220, 198, 180));
+  textSize(9);
+  textFont('VT323');
+  text(scan.detections.length + ' explicit signature' +
+    (scan.detections.length === 1 ? '' : 's') + ' detected', 164, 557);
+  textSize(10);
+  textFont('sans-serif');
 }
 
 // --- Player visual evolution ------------------------------------------------
