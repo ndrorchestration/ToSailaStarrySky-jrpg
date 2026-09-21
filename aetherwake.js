@@ -1991,11 +1991,13 @@ function drawAirNavigationScene() {
 
   // Authored route graph gives the sky a navigable geography rather than empty coordinate space.
   const scaleX = 26, scaleY = 18;
-  stroke(124, 200, 232, 45); strokeWeight(1);
   for (const route of nav.SKY_ROUTES || []) {
     const a = nav.LANDMARKS.find(mark => mark.id === route.from);
     const b = nav.LANDMARKS.find(mark => mark.id === route.to);
     if (!a || !b) continue;
+    const charted = (airNavigationState.discoveredRoutes || []).includes(route.id);
+    stroke(124, 200, 232, charted ? 105 : 22);
+    strokeWeight(charted ? 2 : 1);
     const ax = Math.round(width / 2 + (a.x - airNavigationState.x) * scaleX);
     const ay = Math.round(height / 2 + (a.y - airNavigationState.y) * scaleY);
     const bx = Math.round(width / 2 + (b.x - airNavigationState.x) * scaleX);
@@ -2020,10 +2022,13 @@ function drawAirNavigationScene() {
     const sx = Math.round(width / 2 + (mark.x - airNavigationState.x) * scaleX);
     const sy = Math.round(height / 2 + (mark.y - airNavigationState.y) * scaleY);
     if (sx < -80 || sx > width + 80 || sy < -60 || sy > height + 60) continue;
-    fill(91, 68, 61); rect(sx - 22, sy - 5, 44, 10);
-    fill(139, 184, 88); rect(sx - 16, sy - 9, 32, 4);
-    fill(42, 255, 181, 130); rect(sx - 5, sy + 7, 10, 2);
-    fill(232, 220, 198); textFont('VT323'); textSize(12); textAlign(CENTER, TOP); text(mark.label, sx, sy + 13);
+    const discovered = (airNavigationState.discovered || []).includes(mark.id);
+    fill(91, 68, 61, discovered ? 255 : 110); rect(sx - 22, sy - 5, 44, 10);
+    fill(139, 184, 88, discovered ? 255 : 95); rect(sx - 16, sy - 9, 32, 4);
+    fill(42, 255, 181, discovered ? 130 : 55); rect(sx - 5, sy + 7, 10, 2);
+    fill(232, 220, 198, discovered ? 255 : 105);
+    textFont('VT323'); textSize(12); textAlign(CENTER, TOP);
+    text(discovered ? mark.label : 'UNCHARTED SIGNAL', sx, sy + 13);
   }
 
   drawUnfinishedSongExterior(width / 2, height / 2, 0.9);
