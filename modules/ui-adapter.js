@@ -1,3 +1,10 @@
+// NON_RUNTIME_MIRROR
+// modules/ui-adapter.js is NOT loaded by the playable Aetherwake entrypoints.
+// Changes here do NOT change the current game runtime.
+// Playable runtime authority: ../aetherwake.js
+// Runtime authority contract: ../docs/RUNTIME_AUTHORITY.md
+// Retain only as a historical/modular mirror until explicitly extracted or retired.
+
 // AetherUI — Adapter for ui.js flat functions
 // Bridges window.UI (set by ui.js) so core.js can call methods.
 // ui.js flat functions call bare p5 primitives (fill, text, rect, etc.) —
