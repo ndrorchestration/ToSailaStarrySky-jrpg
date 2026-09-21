@@ -57,6 +57,9 @@ jobs:
       - name: Verify party capacity contract
         run: npm run test:party-capacity
 
+      - name: Verify authored protagonist stat profiles
+        run: npm run test:character-profiles
+
       - name: Verify secondary-action state
         run: npm run test:secondary-action
 
