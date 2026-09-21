@@ -5,8 +5,8 @@ const fieldRoles = require('../modules/field-role-defs.js');
 const admission = require('../modules/companion-action-admission.js');
 const effects = require('../modules/effect-vocabulary.js');
 
-assert.strictEqual(contracts.VERSION, '0.3.0');
-assert.deepStrictEqual(Array.from(contracts.DRAFT_ORDER), ['windShearDance', 'aetherCompass', 'overdriveStrike']);
+assert.strictEqual(contracts.VERSION, '0.4.0');
+assert.deepStrictEqual(Array.from(contracts.DRAFT_ORDER), ['windShearDance', 'aetherCompass', 'overdriveStrike', 'patchworkShield']);
 assert.strictEqual(contracts.validateAgainstFieldRoles(fieldRoles), true);
 
 const draft = contracts.getDraft('windShearDance');
@@ -262,6 +262,103 @@ assert.strictEqual(
 );
 assert.strictEqual(overdriveAssessment.contractComplete, false);
 assert.strictEqual(overdriveAssessment.executionAuthorized, false);
+
+
+const patchwork = contracts.getDraft('patchworkShield');
+assert(patchwork, 'Patchwork Shield draft must exist');
+assert.strictEqual(patchwork.templateId, 'engineWright');
+assert.strictEqual(patchwork.provenance, fieldRoles.PROVENANCE);
+assert.strictEqual(patchwork.status, contracts.STATUS.DRAFT_UNRESOLVED);
+assert.strictEqual(patchwork.stat, 'presence');
+assert.strictEqual(
+  patchwork.source.text,
+  '2D6+Presence. Absorb 1 damage for an ally. Return 1 scrap.'
+);
+assert.deepStrictEqual(patchwork.roll, {
+  system: '2d6',
+  stat: 'presence',
+  successMin: 10,
+  partialMin: 7,
+  source: 'established-global-combat-rule',
+});
+assert.deepStrictEqual(patchwork.cost, {
+  status: contracts.UNKNOWN,
+  resource: null,
+  amount: null,
+});
+
+const absorption = patchwork.knownSemantics.find(
+  item => item.id === 'allyDamageAbsorption'
+);
+assert(absorption, 'ally damage-absorption semantic must be preserved');
+assert.strictEqual(absorption.band, contracts.UNKNOWN);
+assert.strictEqual(absorption.effectKind, 'damage');
+assert.strictEqual(absorption.target, 'ally');
+assert.strictEqual(absorption.operation, 'absorb');
+assert.strictEqual(absorption.amount, 1);
+assert.strictEqual(absorption.timing, contracts.UNKNOWN);
+assert.strictEqual(absorption.absorbedDamageDestination, contracts.UNKNOWN);
+
+const scrapReturn = patchwork.knownSemantics.find(
+  item => item.id === 'returnScrap'
+);
+assert(scrapReturn, 'scrap-return semantic must be preserved');
+assert.strictEqual(scrapReturn.band, contracts.UNKNOWN);
+assert.strictEqual(scrapReturn.effectKind, 'resource');
+assert.strictEqual(scrapReturn.target, contracts.UNKNOWN);
+assert.strictEqual(scrapReturn.operation, 'return');
+assert.strictEqual(scrapReturn.key, 'scrap');
+assert.strictEqual(scrapReturn.amount, 1);
+
+for (const phase of ['common', 'success', 'partial', 'failure']) {
+  assert.strictEqual(
+    patchwork.outcomes[phase],
+    null,
+    'Patchwork Shield outcome tables must not be fabricated: ' + phase
+  );
+}
+
+assert.strictEqual(patchwork.authoredBindings.nativeJob, contracts.UNKNOWN);
+assert.strictEqual(patchwork.authoredBindings.school, contracts.UNKNOWN);
+assert.strictEqual(contracts.getAdmissionCandidate('patchworkShield'), null);
+
+const patchworkReadiness = contracts.getReadiness('patchworkShield');
+assert.strictEqual(patchworkReadiness.known, true);
+assert.strictEqual(patchworkReadiness.designComplete, false);
+assert.strictEqual(patchworkReadiness.executionAuthorized, false);
+assert.strictEqual(patchworkReadiness.reason, 'outcome_contract_not_established');
+for (const blocker of [
+  contracts.BLOCKER.COST_NOT_SPECIFIED,
+  contracts.BLOCKER.ALLY_DAMAGE_ABSORPTION_BAND_NOT_SPECIFIED,
+  contracts.BLOCKER.ALLY_DAMAGE_ABSORPTION_TIMING_NOT_SPECIFIED,
+  contracts.BLOCKER.ABSORBED_DAMAGE_DESTINATION_NOT_SPECIFIED,
+  contracts.BLOCKER.SCRAP_RETURN_BAND_NOT_SPECIFIED,
+  contracts.BLOCKER.SCRAP_RETURN_RECIPIENT_NOT_SPECIFIED,
+  contracts.BLOCKER.ABSORPTION_EFFECT_NOT_EXECUTABLE,
+  contracts.BLOCKER.SCRAP_RETURN_EFFECT_NOT_EXECUTABLE,
+]) {
+  assert(patchworkReadiness.blockers.includes(blocker));
+}
+
+const patchworkDeclaration = engineWright.abilities.find(
+  action => action.id === 'patchworkShield'
+);
+const patchworkAssessment = admission.assessAction(
+  patchworkDeclaration,
+  engineWright,
+  contracts.getAdmissionCandidate('patchworkShield'),
+  {
+    provenance: fieldRoles.PROVENANCE,
+    effectVocabulary: effects,
+  }
+);
+assert.strictEqual(patchworkAssessment.status, admission.STATUS.BLOCKED);
+assert.strictEqual(
+  patchworkAssessment.reason,
+  admission.REASON.OUTCOME_CONTRACT_NOT_ESTABLISHED
+);
+assert.strictEqual(patchworkAssessment.contractComplete, false);
+assert.strictEqual(patchworkAssessment.executionAuthorized, false);
 
 assert.strictEqual(
   contracts.getReadiness('notAnAction').reason,
