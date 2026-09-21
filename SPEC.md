@@ -3,7 +3,8 @@
 **Development stage:** pre-alpha  
 **Current runtime:** p5.js global mode, 960×640  
 **Current entry point:** `index-embedded.html`  
-**Architecture rule:** preserve a working playable loop during every migration phase.
+**Architecture rule:** preserve a working playable loop during every migration phase.  
+**Documentation routing:** read `docs/DOCUMENTATION_AUTHORITY.md` before treating historical implementation notes as current target state.
 
 ---
 
@@ -30,6 +31,13 @@ Aetherwake has exactly five authored playable protagonists:
 3. **Ionia**
 4. **Reson**
 5. **Aepex**
+
+Canonical ages / identity constraints:
+- Ender — 22, Rift Scholar, not especially brawny.
+- Lyra — 24, frequency/dream-sensitive; exact native job remains open.
+- Ionia — 28, captain/owner and experienced navigator/caretaker.
+- Reson — 25, burly weapon master; rifle/pike/sword proficiency.
+- Aepex — 27, machinery/computation/invention specialist; exact native job remains open.
 
 Combat uses exactly three active characters:
 
@@ -61,7 +69,7 @@ The development branch now contains a persistent party-state bridge:
 - combat now receives a validated read-only Ender/Lyra/Ionia party context, but only Ender is executable; Lyra/Ionia temporary field-role actions remain explicitly staged/non-executable until complete target JRPG formula/effect contracts are established;
 - Ender implementation residue may still display **Rift Scholar + Dreamwright**, while canonical `nativeJob` is **Rift Scholar**.
 
-The authored identities are canonical; prototype onboarding/mechanics remain migration provenance until the later authored-roster phase.
+The authored identities are canonical; prototype onboarding/mechanics remain migration provenance until the later authored-roster phase. Historical labels such as “Young Ender,” Ender age 28, “Rift Scholar + Dreamwright” as his canonical job, or an elderly/elder-farmer Ionia are superseded and must not be reintroduced as current canon.
 
 ---
 
@@ -611,3 +619,40 @@ Automated tests should also cover:
 **Development-branch checkpoint:** the smoke-stabilized baseline plus steps 2–5 are verified; step 6 is partially established through the fail-closed ordinary effect resolver; step 7 has established fixed Ender/Lyra/Ionia authored onboarding plus a shared preservation field-role registry while companion canonical jobs/affinities remain unresolved; save schema v2 covers party/progression, World/quest/ledger, and bounded Dragonfly state with explicit v1 migration and player-facing F2/F3 safe-state controls; migration step 8 Phase A establishes code-owned mastery/domain facts without mutable mastery state; and the character sheet now exposes a read-only five-character roster browser without mutating formation. Encounter-local combat persistence remains intentionally excluded. Promotion/merge to `main` has not occurred.
 
 **Non-negotiable:** avoid a single rewrite of character creation, combat, progression, and party state at the same time.
+
+
+---
+
+## 9. Air navigation and sky encounters
+
+### TARGET ARCHITECTURE
+
+Air travel is a first-class exploration domain, not a fast-travel menu.
+
+The production structure is:
+
+```text
+ground exploration ↔ ship interior/systems ↔ open-sky navigation
+                                          ↘ turn-based sky encounter ↗
+```
+
+Sky navigation supports authored geography, altitude, weather/aether conditions, landmarks, discoverable routes, docking/landing approaches, and random encounters. Sky combat reuses the shared turn-based combat framework while presenting aerial staging and returning to flight afterward.
+
+### CURRENT IMPLEMENTATION
+
+The current visual-development branch includes:
+- `modules/air-navigation.js` with sky coordinates, altitude bands, authored landmarks, named routes, spatial weather zones, docking/mooring, and deterministic encounter cadence;
+- runtime flight rendering in `aetherwake.js`;
+- altitude-aware sky encounter selection;
+- turn-based aerial encounters routed through the shared combat state with return-to-flight behavior;
+- automated contracts for navigation, runtime binding, and sky-combat routing.
+
+This layer does not by itself establish new story progression, economy, companion magic ownership, or final balance.
+
+---
+
+## 10. Visual development boundary
+
+The active visual target is documented in `docs/ART_DIRECTION.md`. Character art must be reconciled against the canonical Notion dossiers. Generated concept sheets are references, not canon authority.
+
+Current art work may improve rendering, animation, composition, effects, sprites, environments, and vehicle presentation without changing gameplay semantics unless the change is explicitly scoped and separately verified.
