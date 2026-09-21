@@ -6,7 +6,9 @@
 
 Aetherwake is a late-prototype / pre-alpha project.
 
-The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, fixed authored Ender/Lyra/Ionia onboarding, player-facing schema-v2 persistence for party/progression + World/quest/ledger + bounded Dragonfly state, effect vocabulary v0.1, extracted current ability/progression registries, live fail-closed resolver routing for ordinary damage/restoration/resource mutations, and formula-native combat resolution for Staff Strike, Hold, and Rest. Five legacy 2D6 actions, higher-order resolver semantics, and authored companion/mastery progression remain staged work.
+The current implementation has a verified playable baseline with canonical `ROSTER[5]`, an implemented opening-party projection `ACTIVE_PARTY[3]` for Ender/Lyra/Ionia, player-facing persistence, formula-driven JRPG migration work, extracted system registries, and an expanding airship/sky-navigation layer. **Do not read `ACTIVE_PARTY[3]` as the final party-size target:** creator direction now requires the combat/menu architecture to grow to four active protagonists when Reson joins and all five when Aepex joins.
+
+The live branch also contains active visual development: modern pixel-art world composition, richer character/vehicle presentation, pixel atmosphere, and dedicated air-navigation rendering. Preservation-era 2D6 actions and older presentation residue remain migration/history, not the production target.
 
 ## JRPG formula migration checkpoint
 
@@ -66,7 +68,7 @@ The smoke test should verify:
 ```text
 boot/title
 → character creation
-→ canonical ROSTER[5] / ACTIVE_PARTY[3] references
+→ canonical ROSTER[5] / implemented opening-party ACTIVE_PARTY[3] references
 → WORLD with world.player === ROSTER[0]
 → start combat
 → resolve a normal action
