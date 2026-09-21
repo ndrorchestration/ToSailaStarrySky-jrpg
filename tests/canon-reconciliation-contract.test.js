@@ -49,4 +49,40 @@ assert(runtime.includes('Captain Denith') && world.includes('Captain Denith'),
 assert(world.includes("title: 'Dreamer of the Aureate Wake'"),
   'Lyra must not retain child-prophet presentation in player-facing title text');
 
+for (const [label, source] of [['runtime', runtime], ['world mirror', world]]) {
+  const initStart = source.indexOf('function initNPCs()');
+  const questStart = source.indexOf('// ---------------------------------------------------------------------------\n// Quest FSM', initStart);
+  assert(initStart !== -1 && questStart > initStart,
+    label + ' authored NPC block is not locatable');
+  const authoredNpcBlock = source.slice(initStart, questStart);
+
+  assert(authoredNpcBlock.includes("id: 'ionia'"),
+    label + ' does not use canonical Ionia world NPC id');
+  assert(authoredNpcBlock.includes("id: 'lyra'"),
+    label + ' does not use canonical Lyra world NPC id');
+  assert(!authoredNpcBlock.includes("id: 'elder_farmer'"),
+    label + ' leaked elder_farmer adaptation residue into authored NPC identity');
+  assert(!authoredNpcBlock.includes("id: 'child_prophet'"),
+    label + ' leaked child_prophet adaptation residue into authored NPC identity');
+}
+
+assert(runtime.includes("child_prophet: {\n      name: 'Child Prophet'") &&
+  runtime.includes("elder_farmer: {\n      name: 'Elder Farmer'"),
+  'prototype enemy namespace must remain distinct from authored NPC identities');
+
+assert(runtime.includes("elder_farmer: 'ionia'") &&
+  runtime.includes("child_prophet: 'lyra'") &&
+  runtime.includes('normalizeWorldPersistentNPCIds(savedQuest.npcsMet)'),
+  'legacy World-save NPC ids must be accepted only through canonical normalization');
+
+for (const [label, source] of [['runtime', runtime], ['world mirror', world], ['tts mirror', tts]]) {
+  assert(!source.includes("I'm just a kid") && !source.includes("I\\'m just a kid"),
+    label + ' reintroduced child-coded Lyra dialogue');
+  assert(!source.includes("I'm not very big") && !source.includes("I\\'m not very big"),
+    label + ' reintroduced child-coded Lyra framing');
+}
+
+assert(tts.includes("'ionia':") && tts.includes("'lyra':"),
+  'optional TTS mirror must use canonical Ionia/Lyra ids');
+
 console.log('Aetherwake canon reconciliation contract: PASS');
