@@ -60,6 +60,9 @@ jobs:
       - name: Verify authored protagonist stat profiles
         run: npm run test:character-profiles
 
+      - name: Verify dossier-bound character canon
+        run: npm run test:character-canon
+
       - name: Verify secondary-action state
         run: npm run test:secondary-action
 
