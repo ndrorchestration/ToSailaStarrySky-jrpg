@@ -186,6 +186,22 @@ Current authorization boundary:
 This phase exists specifically to prevent descriptive prototype mechanics from
 silently becoming executable rules.
 
+### COMPANION ACTION ADMISSION — COMPLETENESS GATE
+
+`modules/companion-action-admission.js` now formalizes the evidence required
+before a preservation-role companion action can advance beyond staged metadata.
+
+A complete candidate contract must bind the declared action to its temporary
+field-role provenance, specify the existing 2D6 outcome bands and cost, provide
+validated common/success/partial/failure effect profiles whose effects are
+already executable, identify an execution adapter, and state its persistence
+policy.
+
+Passing those completeness checks does **not** authorize execution. The current
+gate returns `complete-not-authorized`; all six real preservation-role actions
+currently remain blocked with `OUTCOME_CONTRACT_NOT_ESTABLISHED`. Ender is
+still the only executable combat actor.
+
 Known semantic debt remains explicit rather than being silently upgraded:
 
 - Uncover Truth's reveal and +1-next-roll semantics are currently narrated/local-only rather than durable applied state;

@@ -250,7 +250,7 @@ Current verified uploaded Windows artifact: **219,915,613 bytes**.
 
 | Priority | Gap | Why it remains open |
 |---:|---|---|
-| P1 | True three-character combat | Read-only Ender/Lyra/Ionia encounter context is established; companion templates still lack complete executable outcome contracts |
+| P1 | True three-character combat | Read-only encounter context and the fail-closed admission/completeness gate are established; all six companion actions still lack admitted real outcome contracts and execution authorization |
 | P1 | Companion canonical progression | Native jobs/affinities/mastery remain intentionally unknown |
 | P1 | Mutable mastery + save schema v3 | Requires explicit design and migration, not silent v2 extension |
 | P2 | Generic durable modifiers/status/reveal | Effect vocabulary exists; full semantics do not |
@@ -268,6 +268,8 @@ The prior “character creation is the single critical gap” conclusion is obso
 Aetherwake now has a smoke-green authored onboarding/roster/save/desktop baseline.
 The highest-impact remaining engineering boundary is **party combat/progression
 without fabricating unresolved companion canon**. A read-only three-character
-encounter context is now established. The next safe work is to formalize the
-admission/completeness contract that must be satisfied before any companion
-action can become executable.
+encounter context and a fail-closed companion-action admission/completeness gate
+are now established. The next safe work is to author concrete preservation
+action outcome contracts one at a time while keeping execution unauthorized;
+runtime companion turns should be integrated only after those contracts and
+their required effect semantics are complete.
