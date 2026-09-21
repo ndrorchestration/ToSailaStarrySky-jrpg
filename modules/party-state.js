@@ -69,7 +69,7 @@
       nativeJob: definition.nativeJob,
       runtimeImplemented: false,
       implementationSource: 'authored-shell',
-      age: definition.age
+      age: definition.age,
       class: null,
       jobId: null,
       mechanicsTemplateId: null,
