@@ -48,6 +48,16 @@ assert(titleInput.includes('input.up') && titleInput.includes('input.down'),
 assert(titleInput.includes('input.ok'),
   'title menu must use semantic OK to confirm');
 
+const handleInputBlock = block('handleInput', 'handleWorldInput');
+assert(handleInputBlock.includes('if (gameState === STATE.DIALOGUE)'),
+  'dialogue input branch is missing');
+assert(handleInputBlock.includes("if (cancel)") &&
+  handleInputBlock.includes("world.closeDialogue()"),
+  'JRPG cancel must close dialogue');
+assert(handleInputBlock.includes("if (ok || keysPressed[69])") &&
+  handleInputBlock.includes("world.nextDialogueLine()"),
+  'JRPG OK must advance dialogue independently of cancel');
+
 // Normal world play must be possible without letter hotkeys.
 const worldInput = block('handleWorldInput', 'getTitleMenuCommands');
 assert(worldInput.includes('inputPressed(api.ACTION.OK)'),
