@@ -18,7 +18,7 @@ let encounterState=nav.createState({x:12,y:12,encounterSteps:nav.ENCOUNTER_STEP_
 const check=nav.encounterCheck(encounterState);
 assert.strictEqual(typeof check.triggered,'boolean');
 assert.strictEqual(check.state.encounterSteps,0,'encounter check must reset movement cadence');
-assert(check.enemyId===null || check.enemyId==='skyPredator','unknown sky enemy emitted');
+assert(check.enemyId===null || ['skyPredator','windShear','aetherLeak'].includes(check.enemyId),'unknown sky enemy emitted');
 const edge=nav.move(nav.createState({x:47,y:31,speed:3}),1,1);
 assert.strictEqual(edge.x,47); assert.strictEqual(edge.y,31);
 console.log('Aetherwake air navigation foundation: PASS');
