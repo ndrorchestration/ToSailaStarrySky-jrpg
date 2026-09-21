@@ -81,6 +81,28 @@ Examples:
 - **Spirit Thread:** preserve target-ally healing and the historical 1–3 Vit range as prototype evidence; establish production healing power/scaling and target rules separately.
 - **Aether Pulse:** discard the synthetic 2D6 outcome model as target balance evidence; future tuning should evaluate formula power, scaling, defense/resistance, resource efficiency, accuracy/crit policy, and encounter time-to-defeat.
 
+## Companion-action admission rule
+
+Preservation-era companion declarations may retain legacy roll text and outcome
+bands as source evidence, but those fields are not admissible production
+contracts.
+
+Before any companion action can be considered for execution, its candidate must
+provide:
+
+- a `jrpg-stat-formula` resolution binding with explicit formula identity,
+  version, kind, and resolved parameters;
+- explicit targeting and target-count policy;
+- only bounded RNG uses allowed by the combat-system policy;
+- explicit costs;
+- executable effect descriptors;
+- an execution adapter;
+- a persistence policy.
+
+A candidate containing legacy `roll` or `outcomes` fields fails admission.
+Completeness is still distinct from authorization: a structurally complete
+candidate remains non-executable until a later explicit integration gate.
+
 ## Compatibility boundary
 
 Until the migration reaches live combat:

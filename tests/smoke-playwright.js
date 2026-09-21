@@ -844,11 +844,11 @@ function createServer() {
       'Ionia staged combat declarations are incorrect');
     for (const companion of partyContext.members.slice(1)) {
       assert(companion.execution.status === 'declared-non-executable' &&
-        companion.execution.reason === 'OUTCOME_CONTRACT_NOT_ESTABLISHED',
+        companion.execution.reason === 'FORMULA_CONTRACT_NOT_ESTABLISHED',
         companion.id + ' was incorrectly authorized for combat execution');
       assert(companion.declaredActions.every(action =>
         action.executable === false &&
-        action.reason === 'OUTCOME_CONTRACT_NOT_ESTABLISHED'
+        action.reason === 'FORMULA_CONTRACT_NOT_ESTABLISHED'
       ), companion.id + ' staged action leaked executable authority');
     }
     const executableActionIds = combatStart.actions.map(action => action.id);

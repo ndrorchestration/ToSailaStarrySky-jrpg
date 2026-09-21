@@ -5,7 +5,23 @@ const fieldRoles = require('../modules/field-role-defs.js');
 const admission = require('../modules/companion-action-admission.js');
 const effects = require('../modules/effect-vocabulary.js');
 
-assert.strictEqual(contracts.VERSION, '0.5.0');
+function assertTargetFormulaBlockers(readiness) {
+  for (const blocker of [
+    contracts.BLOCKER.FORMULA_CONTRACT_NOT_SPECIFIED,
+    contracts.BLOCKER.TARGETING_NOT_SPECIFIED,
+    contracts.BLOCKER.EFFECT_CONTRACT_NOT_ESTABLISHED,
+    contracts.BLOCKER.COST_NOT_SPECIFIED,
+    contracts.BLOCKER.EXECUTION_ADAPTER_NOT_ESTABLISHED,
+    contracts.BLOCKER.PERSISTENCE_POLICY_NOT_ESTABLISHED,
+  ]) {
+    assert(readiness.blockers.includes(blocker),
+      'target readiness missing blocker: ' + blocker);
+  }
+  assert(Array.isArray(readiness.legacyEvidenceBlockers),
+    'legacy evidence blockers must remain separately visible');
+}
+
+assert.strictEqual(contracts.VERSION, '0.6.0');
 assert.deepStrictEqual(Array.from(contracts.DRAFT_ORDER), ['windShearDance', 'aetherCompass', 'overdriveStrike', 'patchworkShield', 'spiritThread']);
 assert.strictEqual(contracts.validateAgainstFieldRoles(fieldRoles), true);
 
@@ -62,12 +78,13 @@ const readiness = contracts.getReadiness('windShearDance');
 assert.strictEqual(readiness.known, true);
 assert.strictEqual(readiness.designComplete, false);
 assert.strictEqual(readiness.executionAuthorized, false);
-assert.strictEqual(readiness.reason, 'outcome_contract_not_established');
-assert(readiness.blockers.includes(contracts.BLOCKER.COST_NOT_SPECIFIED));
-assert(readiness.blockers.includes(contracts.BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED));
-assert(readiness.blockers.includes(contracts.BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED));
-assert(readiness.blockers.includes(contracts.BLOCKER.MOVEMENT_EFFECT_NOT_EXECUTABLE));
-assert(readiness.blockers.includes(
+assert.strictEqual(readiness.reason, 'formula_contract_not_established');
+assertTargetFormulaBlockers(readiness);
+assert(readiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.COST_NOT_SPECIFIED));
+assert(readiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED));
+assert(readiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED));
+assert(readiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.MOVEMENT_EFFECT_NOT_EXECUTABLE));
+assert(readiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.GRACE_MODIFIER_EFFECT_NOT_EXECUTABLE
 ));
 
@@ -86,7 +103,7 @@ const assessment = admission.assessAction(
 assert.strictEqual(assessment.status, admission.STATUS.BLOCKED);
 assert.strictEqual(
   assessment.reason,
-  admission.REASON.OUTCOME_CONTRACT_NOT_ESTABLISHED
+  admission.REASON.FORMULA_CONTRACT_NOT_ESTABLISHED
 );
 assert.strictEqual(assessment.contractComplete, false);
 assert.strictEqual(assessment.executionAuthorized, false);
@@ -136,11 +153,12 @@ const compassReadiness = contracts.getReadiness('aetherCompass');
 assert.strictEqual(compassReadiness.known, true);
 assert.strictEqual(compassReadiness.designComplete, false);
 assert.strictEqual(compassReadiness.executionAuthorized, false);
-assert.strictEqual(compassReadiness.reason, 'outcome_contract_not_established');
-assert(compassReadiness.blockers.includes(contracts.BLOCKER.REVEAL_TARGET_NOT_SPECIFIED));
-assert(compassReadiness.blockers.includes(contracts.BLOCKER.RESOURCE_GAIN_SELECTION_NOT_SPECIFIED));
-assert(compassReadiness.blockers.includes(contracts.BLOCKER.RESOURCE_GAIN_AMOUNT_NOT_SPECIFIED));
-assert(compassReadiness.blockers.includes(contracts.BLOCKER.REVEAL_EFFECT_NOT_EXECUTABLE));
+assert.strictEqual(compassReadiness.reason, 'formula_contract_not_established');
+assertTargetFormulaBlockers(compassReadiness);
+assert(compassReadiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.REVEAL_TARGET_NOT_SPECIFIED));
+assert(compassReadiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.RESOURCE_GAIN_SELECTION_NOT_SPECIFIED));
+assert(compassReadiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.RESOURCE_GAIN_AMOUNT_NOT_SPECIFIED));
+assert(compassReadiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.REVEAL_EFFECT_NOT_EXECUTABLE));
 
 const compassDeclaration = skySailor.abilities.find(action => action.id === 'aetherCompass');
 const compassAssessment = admission.assessAction(
@@ -155,7 +173,7 @@ const compassAssessment = admission.assessAction(
 assert.strictEqual(compassAssessment.status, admission.STATUS.BLOCKED);
 assert.strictEqual(
   compassAssessment.reason,
-  admission.REASON.OUTCOME_CONTRACT_NOT_ESTABLISHED
+  admission.REASON.FORMULA_CONTRACT_NOT_ESTABLISHED
 );
 assert.strictEqual(compassAssessment.contractComplete, false);
 assert.strictEqual(compassAssessment.executionAuthorized, false);
@@ -221,24 +239,25 @@ const overdriveReadiness = contracts.getReadiness('overdriveStrike');
 assert.strictEqual(overdriveReadiness.known, true);
 assert.strictEqual(overdriveReadiness.designComplete, false);
 assert.strictEqual(overdriveReadiness.executionAuthorized, false);
-assert.strictEqual(overdriveReadiness.reason, 'outcome_contract_not_established');
-assert(overdriveReadiness.blockers.includes(contracts.BLOCKER.COST_NOT_SPECIFIED));
-assert(overdriveReadiness.blockers.includes(
+assert.strictEqual(overdriveReadiness.reason, 'formula_contract_not_established');
+assertTargetFormulaBlockers(overdriveReadiness);
+assert(overdriveReadiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.COST_NOT_SPECIFIED));
+assert(overdriveReadiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.DAMAGE_BAND_NOT_SPECIFIED
 ));
-assert(overdriveReadiness.blockers.includes(
+assert(overdriveReadiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.HEAT_GAIN_BAND_NOT_SPECIFIED
 ));
-assert(overdriveReadiness.blockers.includes(
+assert(overdriveReadiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.DAMAGE_FORMULA_EXECUTION_NOT_ESTABLISHED
 ));
-assert(overdriveReadiness.blockers.includes(
+assert(overdriveReadiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.SUCCESS_OUTCOME_NOT_SPECIFIED
 ));
-assert(overdriveReadiness.blockers.includes(
+assert(overdriveReadiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED
 ));
-assert(overdriveReadiness.blockers.includes(
+assert(overdriveReadiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED
 ));
 
@@ -258,7 +277,7 @@ const overdriveAssessment = admission.assessAction(
 assert.strictEqual(overdriveAssessment.status, admission.STATUS.BLOCKED);
 assert.strictEqual(
   overdriveAssessment.reason,
-  admission.REASON.OUTCOME_CONTRACT_NOT_ESTABLISHED
+  admission.REASON.FORMULA_CONTRACT_NOT_ESTABLISHED
 );
 assert.strictEqual(overdriveAssessment.contractComplete, false);
 assert.strictEqual(overdriveAssessment.executionAuthorized, false);
@@ -326,7 +345,8 @@ const patchworkReadiness = contracts.getReadiness('patchworkShield');
 assert.strictEqual(patchworkReadiness.known, true);
 assert.strictEqual(patchworkReadiness.designComplete, false);
 assert.strictEqual(patchworkReadiness.executionAuthorized, false);
-assert.strictEqual(patchworkReadiness.reason, 'outcome_contract_not_established');
+assert.strictEqual(patchworkReadiness.reason, 'formula_contract_not_established');
+assertTargetFormulaBlockers(patchworkReadiness);
 for (const blocker of [
   contracts.BLOCKER.COST_NOT_SPECIFIED,
   contracts.BLOCKER.ALLY_DAMAGE_ABSORPTION_BAND_NOT_SPECIFIED,
@@ -337,7 +357,7 @@ for (const blocker of [
   contracts.BLOCKER.ABSORPTION_EFFECT_NOT_EXECUTABLE,
   contracts.BLOCKER.SCRAP_RETURN_EFFECT_NOT_EXECUTABLE,
 ]) {
-  assert(patchworkReadiness.blockers.includes(blocker));
+  assert(patchworkReadiness.legacyEvidenceBlockers.includes(blocker));
 }
 
 const patchworkDeclaration = engineWright.abilities.find(
@@ -355,7 +375,7 @@ const patchworkAssessment = admission.assessAction(
 assert.strictEqual(patchworkAssessment.status, admission.STATUS.BLOCKED);
 assert.strictEqual(
   patchworkAssessment.reason,
-  admission.REASON.OUTCOME_CONTRACT_NOT_ESTABLISHED
+  admission.REASON.FORMULA_CONTRACT_NOT_ESTABLISHED
 );
 assert.strictEqual(patchworkAssessment.contractComplete, false);
 assert.strictEqual(patchworkAssessment.executionAuthorized, false);
@@ -414,7 +434,8 @@ const spiritThreadReadiness = contracts.getReadiness('spiritThread');
 assert.strictEqual(spiritThreadReadiness.known, true);
 assert.strictEqual(spiritThreadReadiness.designComplete, false);
 assert.strictEqual(spiritThreadReadiness.executionAuthorized, false);
-assert.strictEqual(spiritThreadReadiness.reason, 'outcome_contract_not_established');
+assert.strictEqual(spiritThreadReadiness.reason, 'formula_contract_not_established');
+assertTargetFormulaBlockers(spiritThreadReadiness);
 for (const blocker of [
   contracts.BLOCKER.COST_NOT_SPECIFIED,
   contracts.BLOCKER.HEAL_BAND_NOT_SPECIFIED,
@@ -422,7 +443,7 @@ for (const blocker of [
   contracts.BLOCKER.ALLY_TARGET_SELECTION_NOT_SPECIFIED,
   contracts.BLOCKER.ALLY_RESTORE_EFFECT_NOT_EXECUTABLE,
 ]) {
-  assert(spiritThreadReadiness.blockers.includes(blocker));
+  assert(spiritThreadReadiness.legacyEvidenceBlockers.includes(blocker));
 }
 
 const aetherWeaver = fieldRoles.getById('aetherWeaver');
@@ -441,7 +462,7 @@ const spiritThreadAssessment = admission.assessAction(
 assert.strictEqual(spiritThreadAssessment.status, admission.STATUS.BLOCKED);
 assert.strictEqual(
   spiritThreadAssessment.reason,
-  admission.REASON.OUTCOME_CONTRACT_NOT_ESTABLISHED
+  admission.REASON.FORMULA_CONTRACT_NOT_ESTABLISHED
 );
 assert.strictEqual(spiritThreadAssessment.contractComplete, false);
 assert.strictEqual(spiritThreadAssessment.executionAuthorized, false);

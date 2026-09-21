@@ -58,7 +58,7 @@ The development branch now contains a persistent party-state bridge:
 - Lyra and Ionia's canonical `nativeJob` values remain unresolved/null; selecting a mechanics template does not establish canon;
 - Reson and Aepex currently exist as identity/schema shells only;
 - formation mutation is not implemented in this phase;
-- combat now receives a validated read-only Ender/Lyra/Ionia party context, but only Ender is executable; Lyra/Ionia temporary field-role actions remain explicitly staged/non-executable until complete outcome contracts are established;
+- combat now receives a validated read-only Ender/Lyra/Ionia party context, but only Ender is executable; Lyra/Ionia temporary field-role actions remain explicitly staged/non-executable until complete target JRPG formula/effect contracts are established;
 - Ender implementation residue may still display **Rift Scholar + Dreamwright**, while canonical `nativeJob` is **Rift Scholar**.
 
 The authored identities are canonical; prototype onboarding/mechanics remain migration provenance until the later authored-roster phase.
@@ -201,7 +201,7 @@ Current authorization boundary:
 - Lyra/Ionia retain their temporary field-role provenance and two declared
   preservation actions;
 - every companion action is marked non-executable with
-  `OUTCOME_CONTRACT_NOT_ESTABLISHED`;
+  `FORMULA_CONTRACT_NOT_ESTABLISHED`;
 - no companion action ID enters the current 1–8 executable action registry;
 - the combat UI may display party presence/HP/role, but cannot invoke companion
   turns.
@@ -214,16 +214,17 @@ silently becoming executable rules.
 `modules/companion-action-admission.js` now formalizes the evidence required
 before a preservation-role companion action can advance beyond staged metadata.
 
-A complete candidate contract must bind the declared action to its temporary
-field-role provenance, specify the existing 2D6 outcome bands and cost, provide
-validated common/success/partial/failure effect profiles whose effects are
-already executable, identify an execution adapter, and state its persistence
-policy.
+A complete production candidate must bind the declared action to its temporary
+field-role provenance and provide a **target-system** contract: JRPG formula
+binding/version/kind/parameters, targeting rules, bounded approved RNG uses,
+explicit cost, a non-empty executable effect list, an execution adapter, and
+persistence policy. Candidate contracts carrying legacy `roll` or `outcomes`
+fields are rejected; those fields belong only to preservation evidence.
 
 Passing those completeness checks does **not** authorize execution. The current
 gate returns `complete-not-authorized`; all six real preservation-role actions
-currently remain blocked with `OUTCOME_CONTRACT_NOT_ESTABLISHED`. Ender is
-still the only executable combat actor.
+remain blocked with `FORMULA_CONTRACT_NOT_ESTABLISHED`. Ender is still the
+only executable combat actor.
 
 ### FIRST EVIDENCE-BOUND COMPANION ACTION DRAFT — WIND-SHEAR DANCE
 
@@ -248,8 +249,9 @@ and a possible gain of Scrap or Aether. The draft does not infer which outcome
 band performs either effect, what is revealed, how the gained resource is
 selected, or how much is gained.
 
-Cost, full outcome tables, reveal execution, execution binding, persistence,
-native job, and school remain unresolved. It exposes no admission candidate,
+Cost, target formula/targeting/effect rules, reveal execution, execution binding,
+persistence, native job, and school remain unresolved. Its legacy outcome-band
+gaps remain preserved as provenance evidence only. It exposes no admission candidate,
 so it remains non-executable and does not widen companion combat authorization.
 
 Known semantic debt remains explicit rather than being silently upgraded:

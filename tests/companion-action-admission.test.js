@@ -3,6 +3,7 @@ const assert = require('assert');
 const admission = require('../modules/companion-action-admission.js');
 const fieldRoles = require('../modules/field-role-defs.js');
 const effects = require('../modules/effect-vocabulary.js');
+const combatPolicy = require('../modules/combat-system-policy.js');
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -24,30 +25,33 @@ function completeSyntheticContract(role, action) {
     actionId: action.id,
     templateId: role.id,
     provenance: fieldRoles.PROVENANCE,
-    stat: action.stat,
-    roll: {
-      system: '2d6',
-      stat: action.stat,
-      successMin: 10,
-      partialMin: 7,
+    resolution: {
+      model: combatPolicy.TARGET.model,
+      formulaId: action.id,
+      version: '0.1.0-test',
+      kind: 'movement',
+      parameters: {
+        repositionDistance: 1,
+      },
+      rngUses: [],
+    },
+    targeting: {
+      mode: 'self',
+      maxTargets: 1,
+      requiresExplicitTarget: false,
     },
     cost: {
       resource: null,
       amount: 0,
     },
-    outcomes: {
-      common: [],
-      success: [
-        implementedEffect(
-          effects.EFFECT_KIND.MOVEMENT,
-          effects.TARGET.SELF,
-          effects.OPERATION.MOVE,
-          'reposition'
-        ),
-      ],
-      partial: [],
-      failure: [],
-    },
+    effects: [
+      implementedEffect(
+        effects.EFFECT_KIND.MOVEMENT,
+        effects.TARGET.SELF,
+        effects.OPERATION.MOVE,
+        'reposition'
+      ),
+    ],
     execution: {
       adapterId: 'synthetic-contract-test-only',
       version: '0.0.0-test',
@@ -61,9 +65,11 @@ function completeSyntheticContract(role, action) {
 
 const baseline = admission.assessRegistry(fieldRoles, {}, {
   effectVocabulary: effects,
+  combatPolicy,
 });
 
-assert.strictEqual(baseline.version, '0.1.0');
+assert.strictEqual(baseline.version, '0.2.0');
+assert.strictEqual(baseline.targetModel, 'jrpg-stat-formula');
 assert.strictEqual(baseline.actionCount, 6);
 assert.strictEqual(baseline.completeCount, 0);
 assert.strictEqual(baseline.executionAuthorizedCount, 0);
@@ -74,7 +80,7 @@ for (const role of baseline.roles) {
     assert.strictEqual(action.status, admission.STATUS.BLOCKED);
     assert.strictEqual(
       action.reason,
-      admission.REASON.OUTCOME_CONTRACT_NOT_ESTABLISHED
+      admission.REASON.FORMULA_CONTRACT_NOT_ESTABLISHED
     );
     assert.strictEqual(action.executionAuthorized, false);
   }
@@ -89,6 +95,7 @@ assert.strictEqual(
   admission.validateCompleteContract(windShearDance, skySailor, complete, {
     provenance: fieldRoles.PROVENANCE,
     effectVocabulary: effects,
+    combatPolicy,
   }),
   true
 );
@@ -101,6 +108,7 @@ const completeAssessment = admission.assessAction(
   {
     provenance: fieldRoles.PROVENANCE,
     effectVocabulary: effects,
+    combatPolicy,
   }
 );
 assert.strictEqual(
@@ -114,23 +122,91 @@ assert.strictEqual(
   admission.REASON.EXECUTION_AUTHORIZATION_NOT_ESTABLISHED
 );
 
-const missingPhase = clone(complete);
-delete missingPhase.outcomes.failure;
+const legacyCandidate = clone(complete);
+legacyCandidate.roll = {
+  system: '2d6',
+  stat: 'grace',
+  successMin: 10,
+  partialMin: 7,
+};
+legacyCandidate.outcomes = {
+  common: [],
+  success: [],
+  partial: [],
+  failure: [],
+};
 assert.strictEqual(
-  admission.assessAction(windShearDance, skySailor, missingPhase, {
+  admission.assessAction(windShearDance, skySailor, legacyCandidate, {
     provenance: fieldRoles.PROVENANCE,
     effectVocabulary: effects,
+    combatPolicy,
   }).reason,
-  admission.REASON.CONTRACT_OUTCOMES_INVALID
+  admission.REASON.CONTRACT_LEGACY_RESOLUTION_FORBIDDEN
+);
+
+const wrongModel = clone(complete);
+wrongModel.resolution.model = '2d6-pbta-outcome-bands';
+assert.strictEqual(
+  admission.assessAction(windShearDance, skySailor, wrongModel, {
+    provenance: fieldRoles.PROVENANCE,
+    effectVocabulary: effects,
+    combatPolicy,
+  }).reason,
+  admission.REASON.CONTRACT_RESOLUTION_INVALID
+);
+
+const invalidRng = clone(complete);
+invalidRng.resolution.rngUses = ['success-partial-failure'];
+assert.strictEqual(
+  admission.assessAction(windShearDance, skySailor, invalidRng, {
+    provenance: fieldRoles.PROVENANCE,
+    effectVocabulary: effects,
+    combatPolicy,
+  }).reason,
+  admission.REASON.CONTRACT_RESOLUTION_INVALID
+);
+
+const missingParameters = clone(complete);
+missingParameters.resolution.parameters = {};
+assert.strictEqual(
+  admission.assessAction(windShearDance, skySailor, missingParameters, {
+    provenance: fieldRoles.PROVENANCE,
+    effectVocabulary: effects,
+    combatPolicy,
+  }).reason,
+  admission.REASON.CONTRACT_RESOLUTION_INVALID
+);
+
+const missingTargeting = clone(complete);
+delete missingTargeting.targeting;
+assert.strictEqual(
+  admission.assessAction(windShearDance, skySailor, missingTargeting, {
+    provenance: fieldRoles.PROVENANCE,
+    effectVocabulary: effects,
+    combatPolicy,
+  }).reason,
+  admission.REASON.CONTRACT_TARGETING_INVALID
+);
+
+const missingEffects = clone(complete);
+missingEffects.effects = [];
+assert.strictEqual(
+  admission.assessAction(windShearDance, skySailor, missingEffects, {
+    provenance: fieldRoles.PROVENANCE,
+    effectVocabulary: effects,
+    combatPolicy,
+  }).reason,
+  admission.REASON.CONTRACT_EFFECTS_INVALID
 );
 
 const declaredOnly = clone(complete);
-declaredOnly.outcomes.success[0].runtimeStatus =
+declaredOnly.effects[0].runtimeStatus =
   effects.RUNTIME_STATUS.DECLARED_NOT_APPLIED;
 assert.strictEqual(
   admission.assessAction(windShearDance, skySailor, declaredOnly, {
     provenance: fieldRoles.PROVENANCE,
     effectVocabulary: effects,
+    combatPolicy,
   }).reason,
   admission.REASON.CONTRACT_EFFECT_NOT_IMPLEMENTED
 );
@@ -141,6 +217,7 @@ assert.strictEqual(
   admission.assessAction(windShearDance, skySailor, wrongTemplate, {
     provenance: fieldRoles.PROVENANCE,
     effectVocabulary: effects,
+    combatPolicy,
   }).reason,
   admission.REASON.CONTRACT_TEMPLATE_MISMATCH
 );
@@ -151,6 +228,7 @@ assert.strictEqual(
   admission.assessAction(windShearDance, skySailor, wrongProvenance, {
     provenance: fieldRoles.PROVENANCE,
     effectVocabulary: effects,
+    combatPolicy,
   }).reason,
   admission.REASON.CONTRACT_PROVENANCE_MISMATCH
 );
@@ -161,8 +239,9 @@ assert.strictEqual(
   admission.assessAction(windShearDance, skySailor, missingBinding, {
     provenance: fieldRoles.PROVENANCE,
     effectVocabulary: effects,
+    combatPolicy,
   }).reason,
   admission.REASON.CONTRACT_EXECUTION_BINDING_INVALID
 );
 
-console.log('Aetherwake companion action admission contract: PASS');
+console.log('Aetherwake formula-native companion action admission contract: PASS');

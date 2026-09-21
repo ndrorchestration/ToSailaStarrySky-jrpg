@@ -1,11 +1,12 @@
 /* ============================================================
-   Aetherwake JRPG — Companion Action Admission Contract v0.1
+   Aetherwake JRPG — Companion Action Admission Contract v0.2
    modules/companion-action-admission.js
 
    Scope:
-   - define the completeness evidence required before a staged companion
-     action may even be considered for execution;
+   - define target-system completeness evidence required before a staged
+     companion action may even be considered for execution;
    - preserve the current Phase A fail-closed boundary;
+   - separate preservation-era evidence from production JRPG contracts;
    - distinguish a complete semantic contract from explicit execution
      authorization.
 
@@ -17,11 +18,14 @@
   'use strict';
 
   let effectVocabulary = root && root.AetherEffectVocabulary;
+  let combatPolicy = root && root.AetherCombatSystemPolicy;
+
   if (typeof module === 'object' && module.exports) {
     effectVocabulary = effectVocabulary || require('./effect-vocabulary.js');
+    combatPolicy = combatPolicy || require('./combat-system-policy.js');
   }
 
-  const api = factory(effectVocabulary);
+  const api = factory(effectVocabulary, combatPolicy);
 
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
@@ -30,10 +34,11 @@
     root.AetherCompanionActionAdmission = api;
   }
 })(typeof window !== 'undefined' ? window :
-   (typeof globalThis !== 'undefined' ? globalThis : null), function (effectVocabulary) {
+   (typeof globalThis !== 'undefined' ? globalThis : null),
+function (effectVocabulary, combatPolicy) {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   const STATUS = Object.freeze({
     BLOCKED: 'blocked',
@@ -41,15 +46,17 @@
   });
 
   const REASON = Object.freeze({
-    OUTCOME_CONTRACT_NOT_ESTABLISHED: 'OUTCOME_CONTRACT_NOT_ESTABLISHED',
+    FORMULA_CONTRACT_NOT_ESTABLISHED: 'FORMULA_CONTRACT_NOT_ESTABLISHED',
     EXECUTION_AUTHORIZATION_NOT_ESTABLISHED: 'EXECUTION_AUTHORIZATION_NOT_ESTABLISHED',
     ACTION_DECLARATION_INVALID: 'ACTION_DECLARATION_INVALID',
     CONTRACT_ACTION_MISMATCH: 'CONTRACT_ACTION_MISMATCH',
     CONTRACT_TEMPLATE_MISMATCH: 'CONTRACT_TEMPLATE_MISMATCH',
     CONTRACT_PROVENANCE_MISMATCH: 'CONTRACT_PROVENANCE_MISMATCH',
-    CONTRACT_ROLL_INVALID: 'CONTRACT_ROLL_INVALID',
+    CONTRACT_LEGACY_RESOLUTION_FORBIDDEN: 'CONTRACT_LEGACY_RESOLUTION_FORBIDDEN',
+    CONTRACT_RESOLUTION_INVALID: 'CONTRACT_RESOLUTION_INVALID',
+    CONTRACT_TARGETING_INVALID: 'CONTRACT_TARGETING_INVALID',
     CONTRACT_COST_INVALID: 'CONTRACT_COST_INVALID',
-    CONTRACT_OUTCOMES_INVALID: 'CONTRACT_OUTCOMES_INVALID',
+    CONTRACT_EFFECTS_INVALID: 'CONTRACT_EFFECTS_INVALID',
     CONTRACT_EFFECT_NOT_IMPLEMENTED: 'CONTRACT_EFFECT_NOT_IMPLEMENTED',
     CONTRACT_EXECUTION_BINDING_INVALID: 'CONTRACT_EXECUTION_BINDING_INVALID',
     CONTRACT_PERSISTENCE_INVALID: 'CONTRACT_PERSISTENCE_INVALID',
@@ -60,10 +67,6 @@
     'combat-local',
     'explicit-write-back',
   ]);
-
-  function clone(value) {
-    return JSON.parse(JSON.stringify(value));
-  }
 
   function fail(reason, detail) {
     const error = new Error(reason + (detail ? ':' + detail : ''));
@@ -79,12 +82,23 @@
 
   function requireVocabulary(vocabulary) {
     if (!vocabulary ||
-        typeof vocabulary.validateProfile !== 'function' ||
+        typeof vocabulary.validateEffectDescriptor !== 'function' ||
         !vocabulary.RUNTIME_STATUS ||
         !vocabulary.RESOURCE) {
-      fail(REASON.CONTRACT_OUTCOMES_INVALID, 'EFFECT_VOCABULARY_REQUIRED');
+      fail(REASON.CONTRACT_EFFECTS_INVALID, 'EFFECT_VOCABULARY_REQUIRED');
     }
     return vocabulary;
+  }
+
+  function requireCombatPolicy(policy) {
+    if (!policy ||
+        typeof policy.validate !== 'function' ||
+        !policy.TARGET ||
+        !Array.isArray(policy.ALLOWED_RNG_USES)) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, 'COMBAT_POLICY_REQUIRED');
+    }
+    policy.validate();
+    return policy;
   }
 
   function validateDeclaration(declaration) {
@@ -99,13 +113,43 @@
     return true;
   }
 
-  function validateRoll(declaration, roll) {
-    if (!roll || typeof roll !== 'object' ||
-        roll.system !== '2d6' ||
-        roll.stat !== declaration.stat ||
-        roll.successMin !== 10 ||
-        roll.partialMin !== 7) {
-      fail(REASON.CONTRACT_ROLL_INVALID, declaration.id);
+  function validateResolution(actionId, resolution, policy) {
+    if (!resolution || typeof resolution !== 'object' || Array.isArray(resolution)) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, actionId + ':OBJECT_REQUIRED');
+    }
+    if (resolution.model !== policy.TARGET.model) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, actionId + ':MODEL');
+    }
+    if (typeof resolution.formulaId !== 'string' ||
+        resolution.formulaId !== actionId) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, actionId + ':FORMULA_ID');
+    }
+    if (typeof resolution.version !== 'string' || !resolution.version) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, actionId + ':VERSION');
+    }
+    if (typeof resolution.kind !== 'string' || !resolution.kind) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, actionId + ':KIND');
+    }
+    if (!resolution.parameters ||
+        typeof resolution.parameters !== 'object' ||
+        Array.isArray(resolution.parameters) ||
+        Object.keys(resolution.parameters).length === 0) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, actionId + ':PARAMETERS');
+    }
+    if (!Array.isArray(resolution.rngUses) ||
+        new Set(resolution.rngUses).size !== resolution.rngUses.length ||
+        resolution.rngUses.some(use => !policy.ALLOWED_RNG_USES.includes(use))) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, actionId + ':RNG_USES');
+    }
+    return true;
+  }
+
+  function validateTargeting(actionId, targeting) {
+    if (!targeting || typeof targeting !== 'object' || Array.isArray(targeting) ||
+        typeof targeting.mode !== 'string' || !targeting.mode ||
+        !Number.isInteger(targeting.maxTargets) || targeting.maxTargets < 1 ||
+        typeof targeting.requiresExplicitTarget !== 'boolean') {
+      fail(REASON.CONTRACT_TARGETING_INVALID, actionId);
     }
     return true;
   }
@@ -135,26 +179,20 @@
     return true;
   }
 
-  function validateOutcomes(actionId, outcomes, vocabulary) {
-    if (!outcomes || typeof outcomes !== 'object') {
-      fail(REASON.CONTRACT_OUTCOMES_INVALID, actionId);
+  function validateEffects(actionId, effects, vocabulary) {
+    if (!Array.isArray(effects) || effects.length === 0) {
+      fail(REASON.CONTRACT_EFFECTS_INVALID, actionId + ':NON_EMPTY_ARRAY_REQUIRED');
     }
 
-    try {
-      vocabulary.validateProfile(actionId, outcomes);
-    } catch (error) {
-      fail(REASON.CONTRACT_OUTCOMES_INVALID, actionId + ':' + error.message);
-    }
-
-    vocabulary.PHASES.forEach(phase => {
-      outcomes[phase].forEach((descriptor, index) => {
-        if (descriptor.runtimeStatus !== vocabulary.RUNTIME_STATUS.IMPLEMENTED) {
-          fail(
-            REASON.CONTRACT_EFFECT_NOT_IMPLEMENTED,
-            actionId + ':' + phase + ':' + index
-          );
-        }
-      });
+    effects.forEach((descriptor, index) => {
+      try {
+        vocabulary.validateEffectDescriptor(descriptor);
+      } catch (error) {
+        fail(REASON.CONTRACT_EFFECTS_INVALID, actionId + ':' + index + ':' + error.message);
+      }
+      if (descriptor.runtimeStatus !== vocabulary.RUNTIME_STATUS.IMPLEMENTED) {
+        fail(REASON.CONTRACT_EFFECT_NOT_IMPLEMENTED, actionId + ':' + index);
+      }
     });
     return true;
   }
@@ -184,20 +222,25 @@
 
   function validateCompleteContract(declaration, role, contract, options) {
     validateDeclaration(declaration);
+
     const vocabulary = requireVocabulary(
       options && options.effectVocabulary
         ? options.effectVocabulary
         : effectVocabulary
+    );
+    const policy = requireCombatPolicy(
+      options && options.combatPolicy
+        ? options.combatPolicy
+        : combatPolicy
     );
 
     if (!role || typeof role.id !== 'string' || !role.id) {
       fail(REASON.ACTION_DECLARATION_INVALID, declaration.id + ':ROLE_REQUIRED');
     }
     if (!contract || typeof contract !== 'object') {
-      fail(REASON.OUTCOME_CONTRACT_NOT_ESTABLISHED, declaration.id);
+      fail(REASON.FORMULA_CONTRACT_NOT_ESTABLISHED, declaration.id);
     }
-    if (contract.actionId !== declaration.id ||
-        contract.stat !== declaration.stat) {
+    if (contract.actionId !== declaration.id) {
       fail(REASON.CONTRACT_ACTION_MISMATCH, declaration.id);
     }
     if (contract.templateId !== role.id) {
@@ -210,9 +253,17 @@
       fail(REASON.CONTRACT_PROVENANCE_MISMATCH, declaration.id);
     }
 
-    validateRoll(declaration, contract.roll);
+    // Preservation-era roll/outcome evidence belongs in draft provenance only.
+    // A production admission candidate must be target-system shaped.
+    if (Object.prototype.hasOwnProperty.call(contract, 'roll') ||
+        Object.prototype.hasOwnProperty.call(contract, 'outcomes')) {
+      fail(REASON.CONTRACT_LEGACY_RESOLUTION_FORBIDDEN, declaration.id);
+    }
+
+    validateResolution(declaration.id, contract.resolution, policy);
+    validateTargeting(declaration.id, contract.targeting);
     validateCost(declaration.id, contract.cost, vocabulary);
-    validateOutcomes(declaration.id, contract.outcomes, vocabulary);
+    validateEffects(declaration.id, contract.effects, vocabulary);
     validateExecutionBinding(declaration.id, contract.execution);
     validatePersistence(declaration.id, contract.persistence);
     return true;
@@ -232,7 +283,7 @@
   function assessAction(declaration, role, contract, options) {
     const actionId = declaration && declaration.id ? declaration.id : null;
     if (!contract) {
-      return blocked(actionId, REASON.OUTCOME_CONTRACT_NOT_ESTABLISHED);
+      return blocked(actionId, REASON.FORMULA_CONTRACT_NOT_ESTABLISHED);
     }
 
     try {
@@ -278,6 +329,9 @@
 
     return {
       version: VERSION,
+      targetModel: combatPolicy && combatPolicy.TARGET
+        ? combatPolicy.TARGET.model
+        : null,
       roles,
       actionCount: actions.length,
       completeCount: actions.filter(action => action.contractComplete).length,
@@ -292,6 +346,8 @@
     REASON,
     PERSISTENCE_MODES,
     validateDeclaration,
+    validateResolution,
+    validateTargeting,
     validateCompleteContract,
     assessAction,
     assessFieldRole,
