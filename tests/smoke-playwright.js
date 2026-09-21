@@ -162,10 +162,17 @@ function createServer() {
       'normal launch exposed a debug overlay');
 
     // Standard JRPG path: BOOT → title command menu → character creation.
-    await page.keyboard.press('Enter');
-    await page.waitForFunction(() => window.gameState === 'menu', undefined,
-      { timeout: 5000 });
-    await page.keyboard.press('KeyZ'); // NEW GAME
+    // BOOT also auto-completes its preamble, so tolerate the legitimate race
+    // where Enter lands immediately after that transition and confirms NEW GAME.
+    if (await page.evaluate(() => window.gameState === 'boot')) {
+      await page.keyboard.press('Enter');
+      await page.waitForFunction(() =>
+        window.gameState === 'menu' || window.gameState === 'charcreate'
+      , undefined, { timeout: 5000 });
+    }
+    if (await page.evaluate(() => window.gameState === 'menu')) {
+      await page.keyboard.press('KeyZ'); // NEW GAME
+    }
     await page.waitForFunction(() =>
       window.gameState === 'charcreate' &&
       window._charcreate &&
