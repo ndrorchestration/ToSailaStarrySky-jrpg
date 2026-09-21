@@ -1102,10 +1102,15 @@ function createServer() {
               .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.DECLARED_NOT_APPLIED)
               .map(effect => effect.kind + ':' + effect.key)
           : [],
+        implementedUncover: vocabulary
+          ? vocabulary.ACTION_EFFECT_PROFILES.uncoverTruth.success
+              .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED)
+              .map(effect => effect.kind + ':' + effect.key)
+          : [],
       };
     });
 
-    assert(effectContract.version === '0.1.0', 'effect vocabulary version is not loaded');
+    assert(effectContract.version === '0.2.0', 'effect vocabulary version is not loaded');
     assert(effectContract.validCoverage, 'current actions are not covered by effect profiles');
     assert(effectContract.kinds.join('|') ===
       'damage|restore|resource|modifier|status|reveal|movement',
@@ -1113,8 +1118,10 @@ function createServer() {
     assert(effectContract.profileIds.join('|') ===
       'staffStrike|uncoverTruth|sharedDream|mycelialLedger|hold|windWard|aetherSeal|rest',
       'combat action effect-profile bindings drifted');
-    assert(effectContract.declaredNotApplied.includes('reveal:weakness'),
-      'Uncover Truth reveal debt is no longer explicit');
+    assert(effectContract.implementedUncover.includes('reveal:weakness'),
+      'Uncover Truth weakness reveal is not executable');
+    assert(!effectContract.declaredNotApplied.includes('reveal:weakness'),
+      'Uncover Truth weakness reveal is still marked as unapplied');
     assert(effectContract.declaredNotApplied.includes('modifier:nextRoll'),
       'Uncover Truth modifier debt is no longer explicit');
 
@@ -1137,7 +1144,7 @@ function createServer() {
       };
     });
 
-    assert(registryContract.abilityVersion === '0.5.0',
+    assert(registryContract.abilityVersion === '0.6.0',
       'ability registry version is not loaded');
     assert(registryContract.progressionVersion === '0.1.0',
       'progression registry version is not loaded');
@@ -1167,6 +1174,7 @@ function createServer() {
           maxStaffCharges: 2,
         },
         enemy: { hp: 12, maxHp: 12 },
+        reveals: { self: {}, enemy: {}, field: {} },
         staffChargeMax: 2,
       };
 
@@ -1176,6 +1184,7 @@ function createServer() {
         resolver.createRestoreEffect(vocabulary.TARGET.SELF, 1),
         resolver.createResourceDeltaEffect(vocabulary.RESOURCE.HEAT, 5),
         resolver.createResourceDeltaEffect(vocabulary.RESOURCE.AETHER, -2),
+        resolver.createRevealEffect(vocabulary.TARGET.ENEMY, 'weakness'),
       ], context);
 
       return {
@@ -1184,11 +1193,12 @@ function createServer() {
         enemyHp: context.enemy.hp,
         heat: context.player.heat.current,
         aether: context.player.aether.current,
+        weaknessRevealed: context.reveals.enemy.weakness,
         applied: results.map(result => result.applied),
       };
     });
 
-    assert(resolverContract.version === '0.1.0',
+    assert(resolverContract.version === '0.2.0',
       'effect resolver version is not loaded');
     assert(resolverContract.playerVit === 9,
       'effect resolver damage/restoration sequence drifted');
@@ -1198,6 +1208,8 @@ function createServer() {
       'effect resolver heat clamp drifted');
     assert(resolverContract.aether === 2,
       'effect resolver resource decrease drifted');
+    assert(resolverContract.weaknessRevealed === true,
+      'effect resolver weakness reveal drifted');
     assert(resolverContract.applied.every(Boolean),
       'effect resolver unexpectedly skipped an implemented effect');
 
@@ -1242,11 +1254,39 @@ function createServer() {
       window._combat && window._combat.getState().turn >= 1
     , undefined, { timeout: 5000 });
 
+    const beforeUncover = await page.evaluate(() => {
+      const state = window._combat.getState();
+      return {
+        weakness: state.enemy && state.enemy.weakness,
+        revealed: Boolean(
+          state.reveals && state.reveals.enemy && state.reveals.enemy.weakness
+        ),
+        log: state.log.slice(),
+      };
+    });
+    assert(beforeUncover.revealed === false,
+      'enemy weakness started revealed before Uncover Truth');
+    assert(beforeUncover.log.some(line => line.includes('weakness: unknown')),
+      'encounter did not hide the enemy weakness in the combat log');
+    assert(!beforeUncover.log.some(line =>
+      beforeUncover.weakness && line.includes(beforeUncover.weakness)),
+      'enemy weakness leaked into the log before discovery');
+
+    await page.evaluate(() => {
+      window.__uncoverSmokeRandom = window.random;
+      window.random = function() { return 6; };
+    });
     await page.keyboard.press('ArrowRight');
     await page.keyboard.press('KeyZ'); // Uncover Truth
     await page.waitForFunction(() =>
       window._combat && window._combat.getState().turn >= 2
     , undefined, { timeout: 5000 });
+    await page.evaluate(() => {
+      if (window.__uncoverSmokeRandom) {
+        window.random = window.__uncoverSmokeRandom;
+      }
+      delete window.__uncoverSmokeRandom;
+    });
 
     await page.keyboard.press('ArrowRight');
     await page.keyboard.press('ArrowRight');
@@ -1269,9 +1309,16 @@ function createServer() {
     assert(!staffLog.includes('Roll:') && !staffLog.includes('partial') &&
       !staffLog.includes('failure'),
       'Staff Strike leaked legacy dice/outcome-band text');
-    assert(combatAfterActions.log.some(line =>
-      line.includes('[Turn 2]') && line.includes('Uncover Truth')),
+    const uncoverLog = combatAfterActions.log.find(line =>
+      line.includes('[Turn 2]') && line.includes('Uncover Truth'));
+    assert(uncoverLog,
       'turn 2 action text was not logged correctly');
+    assert(uncoverLog.includes('Weakness exposed'),
+      'Uncover Truth did not report the weakness reveal');
+    assert(combatAfterActions.reveals &&
+      combatAfterActions.reveals.enemy &&
+      combatAfterActions.reveals.enemy.weakness === true,
+      'Uncover Truth did not persist combat-local weakness reveal state');
     const holdLog = combatAfterActions.log.find(line =>
       line.includes('[Turn 3]') && line.includes('Hold'));
     assert(holdLog, 'turn 3 Hold action was not logged correctly');
