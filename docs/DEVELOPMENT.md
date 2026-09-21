@@ -4,7 +4,16 @@
 
 Aetherwake is a late-prototype / pre-alpha project.
 
-The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, fixed authored Ender/Lyra/Ionia onboarding, player-facing schema-v2 persistence for party/progression + World/quest/ledger + bounded Dragonfly state, effect vocabulary v0.1, extracted current ability/progression registries, live fail-closed resolver routing for ordinary damage/restoration/resource mutations, and the first JRPG-formula combat migration for Staff Strike. Higher-order resolver semantics, remaining legacy 2D6 actions, and authored companion/mastery progression remain staged work.
+The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, fixed authored Ender/Lyra/Ionia onboarding, player-facing schema-v2 persistence for party/progression + World/quest/ledger + bounded Dragonfly state, effect vocabulary v0.1, extracted current ability/progression registries, live fail-closed resolver routing for ordinary damage/restoration/resource mutations, and formula-native combat resolution for Staff Strike plus deterministic Hold recharge. Six legacy 2D6 actions, higher-order resolver semantics, and authored companion/mastery progression remain staged work.
+
+## JRPG formula migration checkpoint
+
+The current migration has two formula-native player actions:
+
+- **Staff Strike** — damage formula: explicit power/scaling, EMP type, resistance hook, bounded variance, critical policy, and one dedicated staff-charge cost.
+- **Hold** — deterministic resource formula: +1 staff charge up to the cap, no RNG, no Heat generation, and no PbtA counter/self-damage branch.
+
+Both actions resolve numeric results in `modules/combat-formula.js` and apply ordinary mutations through `modules/effect-resolver.js`. Uncover Truth, Shared Dream, Mycelial Ledger, Wind Ward, Aether Seal, and Rest remain on the legacy compatibility path.
 
 ## Source-of-truth rules
 
