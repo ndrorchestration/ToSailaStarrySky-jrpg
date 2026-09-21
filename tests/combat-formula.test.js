@@ -1,9 +1,11 @@
 const assert = require('node:assert/strict');
 const policy = require('../modules/combat-system-policy.js');
 const formula = require('../modules/combat-formula.js');
+const abilities = require('../modules/ability-defs.js');
 
 assert.equal(formula.VERSION, '0.1.0');
 assert.equal(policy.TARGET.model, 'jrpg-stat-formula');
+assert.equal(formula.validateAgainstAbilityDefs(abilities), true);
 
 const staff = formula.getFormula('staffStrike');
 assert(staff);
