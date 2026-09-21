@@ -644,7 +644,7 @@ const CharCreate = {
     text('YOUNG ENDER', x, y + size * 0.7 + 14);
     textSize(8);
     fill(C.teal[0], C.teal[1], C.teal[2], 140);
-    text('Rift Scholar + Dreamwright  ·  Rank 1', x, y + size * 0.7 + 26);
+    text('Rift Scholar  ·  Rank 1', x, y + size * 0.7 + 26);
   },
 
   // ── Name input step ──
@@ -1170,7 +1170,7 @@ const CharCreate = {
       textFont(CC_FONT_BODY);
       textSize(10);
       textAlign(CENTER, TOP);
-      const jobName = isEnder ? 'Rift Scholar + Dreamwright' :
+      const jobName = isEnder ? 'Rift Scholar' :
                      (job ? job.name : 'Unknown');
       const classCol = isEnder ? C.teal : (job ? jobColorRGB(chr.jobId) : C.dim);
       fill(classCol[0], classCol[1], classCol[2], 160);
