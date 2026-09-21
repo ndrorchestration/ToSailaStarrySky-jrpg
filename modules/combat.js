@@ -1086,7 +1086,7 @@ function AetherCombat(p, C) {
     p.textSize(8);
     p.textAlign(p.CENTER, p.TOP);
     p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 170);
-    p.text('YOUNG ENDER', px, py - 30 + dodgeBob);
+    p.text('ENDER', px, py - 30 + dodgeBob);
 
     // Player Vit bar
     const vitRatio = (combat && combat.getState) ? 
