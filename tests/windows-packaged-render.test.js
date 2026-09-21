@@ -96,6 +96,13 @@ async function waitForEndpoint() {
         height: canvas.height,
         cssWidth: rect.width,
         cssHeight: rect.height,
+        cssLeft: rect.left,
+        cssTop: rect.top,
+        cssRight: rect.right,
+        cssBottom: rect.bottom,
+        viewportWidth: innerWidth,
+        viewportHeight: innerHeight,
+        parentId: canvas.parentElement ? canvas.parentElement.id : null,
         uniqueSampleColors: colors.size,
         opaqueSamples: opaque,
         nonBackgroundSamples: nonBackground,
@@ -106,6 +113,13 @@ async function waitForEndpoint() {
     assert(!result.initFailed, 'Runtime reports initialization failure');
     assert(!result.launchFailure, 'Runtime reports launch failure');
     assert(result.cssWidth > 0 && result.cssHeight > 0, 'Canvas has no visible area');
+    assert(result.parentId === 'jrpg-container',
+      'Canvas is not parented into #jrpg-container');
+    assert(result.cssLeft < result.viewportWidth &&
+      result.cssTop < result.viewportHeight &&
+      result.cssRight > 0 &&
+      result.cssBottom > 0,
+      'Canvas exists but is outside the visible viewport: ' + JSON.stringify(result));
     assert(result.opaqueSamples > 500, 'Canvas lacks opaque rendered pixels');
     assert(result.uniqueSampleColors >= 8,
       'Canvas is internally uniform/blank: ' + result.uniqueSampleColors + ' colors');
