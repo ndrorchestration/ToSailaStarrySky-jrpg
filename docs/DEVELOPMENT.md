@@ -4,7 +4,7 @@
 
 Aetherwake is a late-prototype / pre-alpha project.
 
-The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, fixed authored Ender/Lyra/Ionia onboarding, a versioned party/progression save boundary, effect vocabulary v0.1, extracted current ability/progression registries, and live fail-closed resolver routing for ordinary damage/restoration/resource mutations. Higher-order resolver semantics, complete game-state persistence, and authored companion progression remain staged work.
+The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, fixed authored Ender/Lyra/Ionia onboarding, player-facing schema-v2 persistence for party/progression + World/quest/ledger + bounded Dragonfly state, effect vocabulary v0.1, extracted current ability/progression registries, and live fail-closed resolver routing for ordinary damage/restoration/resource mutations. Higher-order resolver semantics and authored companion/mastery progression remain staged work.
 
 ## Source-of-truth rules
 
@@ -171,9 +171,34 @@ persistence**, not a complete player-facing game save:
   correctly claims no synthetic legacy migration;
 - encounter/render/transient fields are excluded by construction.
 
-The next persistence expansion must explicitly cover or reject World/quest,
-position/layer, ledger, and Dragonfly state. Until that occurs, the runtime must
-not present schema v1 as a complete save/load feature to players.
+That v1 checkpoint has since been superseded by schema v2. Schema v2 explicitly covers World/quest/ledger and Dragonfly state and is exposed through the safe-state F2/F3 controls documented above. Encounter-local combat remains intentionally excluded.
+
+## Player save/load v2 checkpoint
+
+On 2026-09-20, runtime commit `3ddfb0daa287c7d5fc955cdcb7aa07b6573fe116`
+passed gameplay smoke run `35548433775`. The matching Windows desktop build
+run `35548433778` built and verified the packaged application and uploaded
+artifact `10616998053` (`Aetherwake-Windows`, 664,418,765 bytes,
+SHA-256 `135aaa09f440e0c7efc71a965cf989607ed06bbf84777a8fada99dd6794aa35d`).
+
+This establishes the first player-facing persistence controls:
+
+- **F2 Quick Save** is admitted only from normal `WORLD` state;
+- **F3 Quick Load** is admitted from menu, authored onboarding, or normal
+  `WORLD` state and returns to `WORLD`;
+- unsafe transient states reject the operation instead of serializing combat or
+  overlay internals;
+- real-browser testing saves schema-v2 state, deliberately corrupts canonical
+  party resources, World position, and Dragonfly power, then proves F3 restores
+  all three domains;
+- canonical identity survives load:
+  `world.player === ROSTER[0] === ACTIVE_PARTY[0]`;
+- combat is re-synchronized from the restored canonical World player;
+- schema-v1 documents continue through the explicit v1 → v2 migration path.
+
+Schema v2 persists party/progression, World/quest/ledger, and bounded Dragonfly
+state. Encounter-local combat and presentation state remain intentionally
+excluded.
 
 ## Effect/registry checkpoint
 
