@@ -27,7 +27,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.6.0';
 
   const STATUS = Object.freeze({
     DRAFT_UNRESOLVED: 'draft-unresolved',
@@ -35,6 +35,11 @@
   });
 
   const UNKNOWN = 'unknown';
+
+  const COST_STATUS = Object.freeze({
+    UNKNOWN,
+    DECLARED: 'declared',
+  });
 
   const BLOCKER = Object.freeze({
     COST_NOT_SPECIFIED: 'COST_NOT_SPECIFIED',
@@ -52,6 +57,9 @@
     HEAL_AMOUNT_SELECTION_NOT_SPECIFIED: 'HEAL_AMOUNT_SELECTION_NOT_SPECIFIED',
     ALLY_TARGET_SELECTION_NOT_SPECIFIED: 'ALLY_TARGET_SELECTION_NOT_SPECIFIED',
     ALLY_RESTORE_EFFECT_NOT_EXECUTABLE: 'ALLY_RESTORE_EFFECT_NOT_EXECUTABLE',
+    BUFF_BAND_NOT_SPECIFIED: 'BUFF_BAND_NOT_SPECIFIED',
+    ALLY_MODIFIER_TARGET_SELECTION_NOT_SPECIFIED: 'ALLY_MODIFIER_TARGET_SELECTION_NOT_SPECIFIED',
+    ALLY_NEXT_ROLL_MODIFIER_NOT_EXECUTABLE: 'ALLY_NEXT_ROLL_MODIFIER_NOT_EXECUTABLE',
     REPOSITION_BAND_NOT_SPECIFIED: 'REPOSITION_BAND_NOT_SPECIFIED',
     PARTIAL_OUTCOME_NOT_SPECIFIED: 'PARTIAL_OUTCOME_NOT_SPECIFIED',
     FAILURE_OUTCOME_NOT_SPECIFIED: 'FAILURE_OUTCOME_NOT_SPECIFIED',
@@ -85,6 +93,7 @@
     'overdriveStrike',
     'patchworkShield',
     'spiritThread',
+    'aetherWeave',
   ]);
 
   const DRAFTS = deepFreeze({
@@ -472,6 +481,73 @@
         BLOCKER.PERSISTENCE_POLICY_NOT_ESTABLISHED,
       ],
     },
+    aetherWeave: {
+      actionId: 'aetherWeave',
+      templateId: 'aetherWeaver',
+      provenance: 'preservation-era-prototype-mechanics',
+      status: STATUS.DRAFT_UNRESOLVED,
+      source: {
+        kind: 'field-role-declaration',
+        text: '2D6+Presence. Buff ally\'s next roll +1. Costs 1 Aether.',
+      },
+      stat: 'presence',
+      roll: {
+        system: '2d6',
+        stat: 'presence',
+        successMin: 10,
+        partialMin: 7,
+        source: 'established-global-combat-rule',
+      },
+      cost: {
+        status: COST_STATUS.DECLARED,
+        resource: 'aether',
+        amount: 1,
+        sourceText: 'Costs 1 Aether.',
+      },
+      knownSemantics: [
+        {
+          id: 'buffAllyNextRoll',
+          status: 'declared',
+          band: UNKNOWN,
+          effectKind: 'modifier',
+          target: 'ally',
+          operation: 'increase',
+          key: 'nextRoll',
+          amount: 1,
+          targetSelection: UNKNOWN,
+        },
+      ],
+      outcomes: {
+        common: null,
+        success: null,
+        partial: null,
+        failure: null,
+      },
+      execution: {
+        status: 'not-established',
+        adapterId: null,
+        version: null,
+      },
+      persistence: {
+        status: 'not-established',
+        mode: null,
+        fields: [],
+      },
+      authoredBindings: {
+        nativeJob: UNKNOWN,
+        school: UNKNOWN,
+      },
+      blockers: [
+        BLOCKER.BUFF_BAND_NOT_SPECIFIED,
+        BLOCKER.ALLY_MODIFIER_TARGET_SELECTION_NOT_SPECIFIED,
+        BLOCKER.SUCCESS_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.ALLY_NEXT_ROLL_MODIFIER_NOT_EXECUTABLE,
+        BLOCKER.EXECUTION_ADAPTER_NOT_ESTABLISHED,
+        BLOCKER.PERSISTENCE_POLICY_NOT_ESTABLISHED,
+      ],
+    },
   });
 
   function getDraft(actionId) {
@@ -545,10 +621,19 @@
       if (!Array.isArray(draft.blockers) || draft.blockers.length === 0) {
         throw new Error('COMPANION_CONTRACT_BLOCKERS_REQUIRED:' + actionId);
       }
-      if (draft.cost.status !== UNKNOWN ||
-          draft.cost.resource !== null ||
-          draft.cost.amount !== null) {
-        throw new Error('COMPANION_CONTRACT_COST_MUST_REMAIN_UNKNOWN:' + actionId);
+      if (draft.cost.status === COST_STATUS.UNKNOWN) {
+        if (draft.cost.resource !== null || draft.cost.amount !== null) {
+          throw new Error('COMPANION_CONTRACT_UNKNOWN_COST_MUST_BE_EMPTY:' + actionId);
+        }
+      } else if (draft.cost.status === COST_STATUS.DECLARED) {
+        if (typeof draft.cost.resource !== 'string' || !draft.cost.resource ||
+            !Number.isFinite(draft.cost.amount) || draft.cost.amount <= 0 ||
+            typeof draft.cost.sourceText !== 'string' || !draft.cost.sourceText ||
+            !draft.source.text.includes(draft.cost.sourceText)) {
+          throw new Error('COMPANION_CONTRACT_DECLARED_COST_EVIDENCE_INVALID:' + actionId);
+        }
+      } else {
+        throw new Error('COMPANION_CONTRACT_COST_STATUS_INVALID:' + actionId);
       }
       if (draft.authoredBindings.nativeJob !== UNKNOWN ||
           draft.authoredBindings.school !== UNKNOWN) {
@@ -566,6 +651,7 @@
     VERSION,
     STATUS,
     UNKNOWN,
+    COST_STATUS,
     BLOCKER,
     DRAFT_ORDER,
     DRAFTS,
