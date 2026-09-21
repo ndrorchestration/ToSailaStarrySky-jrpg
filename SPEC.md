@@ -378,6 +378,31 @@ must introduce an explicit **save schema v3** migration that initializes new
 mutable fields without fabricating progress. Authored affinity/native-job facts
 remain code-owned rather than save-owned.
 
+### FOUNDATION SPELL ADMISSION — FORMULA-NATIVE COMBAT
+
+`modules/foundation-spell-admission.js` separates semantic completeness from
+runtime authorization.
+
+Two contract modes are currently recognized:
+
+- **exploration-readonly** — established non-mutating techniques such as Aether
+  Sense; no combat formula is required, and persistence must remain `none`;
+- **combat-jrpg-formula** — combat techniques must provide explicit
+  `jrpg-stat-formula` resolution identity/version/kind/parameters, targeting,
+  approved bounded RNG uses, explicit costs, executable effects, execution
+  binding, and persistence policy.
+
+Combat spell candidates carrying legacy `roll` or `outcomes` fields fail
+admission. Those fields may exist only inside explicitly historical provenance
+records.
+
+Aether Sense remains the only established/runtime-integrated foundation
+technique. Aether Pulse remains `design_proposal / not_integrated`: its Aether
+cost amount, formula parameters, targeting contract, effect contract, ownership,
+execution adapter, and persistence policy are unresolved. The historical 2D6
+Pulse evaluator/reference remains test-only provenance and has no target-balance
+or authorization authority.
+
 ### OPEN DESIGN
 
 Several proposed schools/domains, resource relationships, mastery scales/award

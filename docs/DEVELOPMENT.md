@@ -272,6 +272,37 @@ Because no mutable mastery state is introduced, player-facing save schema v2
 remains unchanged. Any later mutable mastery system still requires an explicit
 schema migration.
 
+## Formula-native foundation spell admission correction
+
+On 2026-09-21, combat foundation-spell admission was migrated to the approved
+JRPG formula target without authorizing any new spell.
+
+Current production rules:
+
+- established **exploration-readonly** contracts remain valid without a combat
+  formula; Aether Sense remains the runtime proof and still costs zero;
+- combat candidates must use `combat-jrpg-formula` and bind to
+  `jrpg-stat-formula` with explicit formula identity/version/kind,
+  non-empty parameters, targeting, and only approved bounded RNG uses;
+- combat candidates require explicit resource cost, executable flat effects,
+  execution adapter, and persistence policy;
+- any production candidate carrying legacy `roll` or `outcomes` fields fails
+  closed;
+- Aether Pulse readiness now reports target blockers for formula, targeting,
+  effects, cost, execution, persistence, design status, and starting ownership;
+- its old 2D6 roll/outcome gaps are preserved separately as **legacy evidence
+  blockers** and no longer define production completeness;
+- the synthetic 36-outcome evaluator and legacy runtime reference remain
+  historical/test-only artifacts.
+
+A target-shaped synthetic Pulse contract can pass structural validation, but the
+code-owned `design_proposal / not_integrated` status still prevents runtime
+authorization. No Pulse power, scaling stat, defense interaction, cost amount,
+ownership, or persistence rule was selected.
+
+The older checkpoint below records the historical 2D6 admission design and is
+**superseded as a target contract**, but retained as implementation provenance.
+
 ## Foundation spell admission checkpoint
 
 The magic lane now has a reusable fail-closed semantic gate before additional
