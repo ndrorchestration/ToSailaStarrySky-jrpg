@@ -52,6 +52,9 @@ jobs:
       - name: Verify read-only party combat bridge
         run: npm run test:party-combat-bridge
 
+      - name: Verify companion action admission contract
+        run: npm run test:companion-action-admission
+
       - name: Verify regression contracts
         run: npm run test:regressions
 
