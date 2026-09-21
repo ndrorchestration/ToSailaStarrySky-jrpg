@@ -21,9 +21,9 @@
   ]);
 
   const SKY_ENCOUNTERS = Object.freeze([
-    Object.freeze({id:'skyPredator',weight:6,minAltitude:'low'}),
-    Object.freeze({id:'skyPredator',weight:5,minAltitude:'cruise'}),
-    Object.freeze({id:'skyPredator',weight:4,minAltitude:'high'}),
+    Object.freeze({id:'skyPredator',altitudes:['low','cruise'],weight:6}),
+    Object.freeze({id:'windShear',altitudes:['cruise','high'],weight:4}),
+    Object.freeze({id:'aetherLeak',altitudes:['high'],weight:3}),
   ]);
   const ENCOUNTER_STEP_THRESHOLD = 7;
 
@@ -74,7 +74,15 @@
     const roll=Math.abs(Math.imul(Math.round(next.x)+17,31)+Math.imul(Math.round(next.y)+11,47)+Math.imul(next.encounterSeed+ai+1,53))%5;
     next.encounterSteps=0; next.encounterSeed+=1;
     if(roll>1) return {triggered:false,state:next,enemyId:null};
-    return {triggered:true,state:next,enemyId:'skyPredator'};
+    const candidates=SKY_ENCOUNTERS.filter(entry=>entry.altitudes.includes(next.altitude));
+    const total=candidates.reduce((sum,entry)=>sum+entry.weight,0);
+    let pick=Math.abs(Math.imul(next.encounterSeed+1,97)+Math.round(next.x)*13+Math.round(next.y)*7)%total;
+    let enemyId=candidates[0].id;
+    for(const entry of candidates){
+      if(pick<entry.weight){enemyId=entry.id;break;}
+      pick-=entry.weight;
+    }
+    return {triggered:true,state:next,enemyId};
   }
   function changeAltitude(state,delta){
     const next=createState(state), i=ALTITUDES.indexOf(next.altitude);
