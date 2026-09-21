@@ -43,6 +43,9 @@ jobs:
       - name: Verify save-state contract
         run: npm run test:save-state
 
+      - name: Verify mastery definitions
+        run: npm run test:mastery
+
       - name: Verify regression contracts
         run: npm run test:regressions
 
