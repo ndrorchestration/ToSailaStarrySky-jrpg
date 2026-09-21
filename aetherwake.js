@@ -58,10 +58,12 @@ let uiWindowTone = 0;
 // lastCmdIdx: last-chosen menu command index for last-command memory
 let lastCmdIdx = -1;
 let charSheetRosterIndex = 0; // read-only roster browser selection; never changes formation
+let titleMenuCursor = 0;
 let systemMenuCursor = 0;
 let combatCursor = 0;
 let shopCursor = 0;
 let airshipCursor = 0;
+let choiceCursor = 0;
 
 // ── Dialogue type-in ──
 let dialogueTypeIn = { active: false, fullText: '', displayText: '', charIndex: 0, speed: 22, lastCharTime: 0 };
@@ -303,17 +305,8 @@ function draw() {
   // Only run world/combat updates if hit stop is NOT active
   const updatesEnabled = !hitStop.active;
 
-  // Auto-start from MENU after 3s idle — bridges the BOOT→MENU→WORLD gap
-  // so a single N press (or no press) still reaches the world.
-  if (gameState === STATE.MENU && menuAutoStartTimer === 0) {
-    menuAutoStartTimer = millis();
-  } else if (gameState === STATE.MENU &&
-             menuAutoStartTimer > 0 &&
-             millis() - menuAutoStartTimer > 3000 &&
-             !hasStoredSave()) {
-    startGame();
-  }
-
+  // MENU is an explicit JRPG command surface. Do not auto-start a game;
+  // the player confirms NEW GAME or CONTINUE.
   // Subtle corner brackets — confirm canvas is live without distracting
   noFill();
   stroke(C.teal[0], C.teal[1], C.teal[2], 50);
@@ -559,7 +552,9 @@ function keyPressed() {
 
   // Menu select sound
   if (gameState === STATE.MENU) {
-    if (keyCode === 13 || keyCode === 32 || keyCode === 78 || keyCode === 110) {
+    const inputApi = jrpgInputApi();
+    const menuOk = Boolean(inputApi && inputPressed(inputApi.ACTION.OK));
+    if (menuOk || keyCode === 78 || keyCode === 110) {
       if (typeof window.playMenuSelect === 'function') window.playMenuSelect();
     }
   }
@@ -662,15 +657,13 @@ function handleInput() {
       window.gameState = gameState;
       titleVisible = 0;
       titleFlash = 0;
+      titleMenuCursor = 0;
     }
+    return;
   }
 
   if (gameState === STATE.MENU) {
-    if (ok || keysPressed[78] || keysPressed[110]) startGame();
-    if (gameState === STATE.CHARCREATE &&
-        window._charcreate && typeof window._charcreate.handleInput === 'function') {
-      window._charcreate.handleInput(keys, normalizedLegacyPressed());
-    }
+    handleTitleMenuInput({ ok, up, down });
     return;
   }
 
@@ -791,7 +784,29 @@ function handleWorldInput() {
   // WASD remains a compatibility alias through the key map below.
   const now = millis();
   const api = jrpgInputApi();
+  const ok = api ? inputPressed(api.ACTION.OK) : Boolean(keysPressed[13] || keysPressed[32]);
+  const menu = api ? inputPressed(api.ACTION.MENU) : Boolean(keysPressed[27] || keysPressed[88]);
+  const up = api ? inputPressed(api.ACTION.UP) : Boolean(keysPressed[38]);
+  const down = api ? inputPressed(api.ACTION.DOWN) : Boolean(keysPressed[40]);
+  const left = api ? inputPressed(api.ACTION.LEFT) : Boolean(keysPressed[37]);
+  const right = api ? inputPressed(api.ACTION.RIGHT) : Boolean(keysPressed[39]);
   const fast = api ? inputHeld(api.ACTION.SHIFT) : Boolean(keys[16]);
+
+  const questState = world && typeof world.getQuestState === 'function'
+    ? world.getQuestState()
+    : null;
+  if (questState && questState.state === 'choice' && !questState.choiceMade) {
+    const count = Array.isArray(questState.choicePaths) ? questState.choicePaths.length : 0;
+    if (count > 0) {
+      choiceCursor = Math.max(0, Math.min(choiceCursor, count - 1));
+      if (up || left) choiceCursor = (choiceCursor - 1 + count) % count;
+      else if (down || right) choiceCursor = (choiceCursor + 1) % count;
+      else if (ok && typeof world.selectChoicePath === 'function') {
+        world.selectChoicePath(choiceCursor);
+      }
+    }
+    return;
+  }
   const delay = fast ? 110 : 200;
   const rate = fast ? 35 : 60;
 
@@ -823,9 +838,6 @@ function handleWorldInput() {
       });
     }
   }
-
-  const ok = api && inputPressed(api.ACTION.OK);
-  const menu = api && inputPressed(api.ACTION.MENU);
 
   if (ok && world && typeof world.interact === 'function') {
     window.interactionKey = 'ok';
@@ -882,6 +894,36 @@ function handleWorldInput() {
 }
 
 
+function getTitleMenuCommands() {
+  const commands = [{ id: 'new', label: 'NEW GAME' }];
+  if (hasStoredSave()) commands.push({ id: 'continue', label: 'CONTINUE' });
+  return commands;
+}
+
+function activateTitleMenuCommand(command) {
+  if (!command) return;
+  if (command.id === 'continue') {
+    quickLoadGame();
+  } else if (command.id === 'new') {
+    startGame();
+  }
+}
+
+function handleTitleMenuInput(input) {
+  const commands = getTitleMenuCommands();
+  if (!commands.length) return;
+  titleMenuCursor = Math.max(0, Math.min(titleMenuCursor, commands.length - 1));
+  if (input.up) {
+    titleMenuCursor = (titleMenuCursor - 1 + commands.length) % commands.length;
+    return;
+  }
+  if (input.down) {
+    titleMenuCursor = (titleMenuCursor + 1) % commands.length;
+    return;
+  }
+  if (input.ok) activateTitleMenuCommand(commands[titleMenuCursor]);
+}
+
 function getSystemMenuCommands() {
   return [
     { id: 'status', label: 'STATUS' },
@@ -889,6 +931,7 @@ function getSystemMenuCommands() {
     { id: 'ledger', label: 'MYCELIAL LEDGER' },
     { id: 'sense', label: 'AETHER SENSE' },
     { id: 'field', label: 'COVENANT FIELD' },
+    { id: 'layer', label: 'SKY / GROUND LAYER' },
     { id: 'save', label: 'SAVE' },
     { id: 'load', label: 'LOAD' },
   ];
@@ -913,6 +956,12 @@ function activateSystemMenuCommand(command) {
     closeOverlay();
     if (returnState === STATE.WORLD && world && typeof world.plantField === 'function') {
       world.plantField();
+    }
+  } else if (command.id === 'layer') {
+    const returnState = prevState || STATE.WORLD;
+    closeOverlay();
+    if (returnState === STATE.WORLD && world && typeof world.toggleLayer === 'function') {
+      world.toggleLayer();
     }
   } else if (command.id === 'save') {
     quickSaveGame();
@@ -1055,23 +1104,64 @@ function leaveAirship() {
   }
 }
 
-function handleAirshipInput() {
-  if (keysPressed[27] || keysPressed[76]) {
+function getAirshipCommands() {
+  return [
+    { id: 'phaseSlip', label: 'PHASE-SLIP' },
+    { id: 'harmonicVeil', label: 'VEIL MODE' },
+    { id: 'resonanceLance', label: 'LANCE' },
+    { id: 'rootlineTether', label: 'TETHER' },
+    { id: 'patternForge', label: 'FORGE' },
+    { id: 'ventWake', label: 'VENT WAKE' },
+  ];
+}
+
+function activateAirshipCommand(command) {
+  if (!command) return;
+  if (command.id === 'harmonicVeil') cycleAirshipShieldMode();
+  else resolveAirshipCommand(command.id);
+}
+
+function handleAirshipInput(input) {
+  const commands = getAirshipCommands();
+  airshipCursor = Math.max(0, Math.min(airshipCursor, commands.length - 1));
+
+  if (input && input.cancel) {
     leaveAirship();
     return;
   }
+  if (input && (input.up || input.left)) {
+    airshipCursor = (airshipCursor - 1 + commands.length) % commands.length;
+    return;
+  }
+  if (input && (input.down || input.right)) {
+    airshipCursor = (airshipCursor + 1) % commands.length;
+    return;
+  }
+  if (input && input.ok) {
+    activateAirshipCommand(commands[airshipCursor]);
+    return;
+  }
 
-  if (keysPressed[50] || keysPressed[72]) {
+  // Compatibility aliases retained during migration.
+  if (keysPressed[27] || keysPressed[76]) {
+    leaveAirship();
+  } else if (keysPressed[50] || keysPressed[72]) {
+    airshipCursor = 1;
     cycleAirshipShieldMode();
   } else if (keysPressed[49]) {
+    airshipCursor = 0;
     resolveAirshipCommand('phaseSlip');
   } else if (keysPressed[51]) {
+    airshipCursor = 2;
     resolveAirshipCommand('resonanceLance');
   } else if (keysPressed[52]) {
+    airshipCursor = 3;
     resolveAirshipCommand('rootlineTether');
   } else if (keysPressed[53]) {
+    airshipCursor = 4;
     resolveAirshipCommand('patternForge');
   } else if (keysPressed[82]) {
+    airshipCursor = 5;
     resolveAirshipCommand('ventWake');
   }
 }
@@ -1767,23 +1857,24 @@ function drawTitleScreen() {
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
   text('THE AUREATE WAKE — CHRONICLE OF THE LAST SOLARPUNK AIRSHIP', cx, cy + 48);
 
+  const titleCommands = getTitleMenuCommands();
+  titleMenuCursor = Math.max(0, Math.min(titleMenuCursor, titleCommands.length - 1));
   textSize(14);
-  fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
-  text('NEW GAME — N or ENTER', cx, cy + 78);
+  titleCommands.forEach((command, index) => {
+    const selected = index === titleMenuCursor;
+    fill(selected
+      ? C.teal[0] : C.parchment[0],
+      selected ? C.teal[1] : C.parchment[1],
+      selected ? C.teal[2] : C.parchment[2],
+      selected ? 230 : 160);
+    text((selected ? '▶ ' : '  ') + command.label, cx, cy + 78 + index * 22);
+  });
 
-  const saveAvailable = hasStoredSave();
-  if (saveAvailable) {
-    textSize(12);
-    fill(C.teal[0], C.teal[1], C.teal[2], 210);
-    text('F3 — LOAD SAVE', cx, cy + 98);
-  }
-
-  textSize(11);
-  fill(C.rust[0], C.rust[1], C.rust[2], 140);
-  const controlsY = saveAvailable ? cy + 122 : cy + 104;
-  text('WASD  move  |  E  talk  |  Q  covenant  |  F  ship  |  Tab  sky/ground', cx, controlsY);
-  text('V  Aether Sense  |  L  ledger  |  M  shop  |  R  char sheet  |  T  quest log  |  F2/F3 save/load',
-       cx, controlsY + 18);
+  textSize(10);
+  fill(C.rust[0], C.rust[1], C.rust[2], 150);
+  const controlsY = cy + 132;
+  text('ARROWS  move / select   ·   Z / ENTER / SPACE  confirm / interact', cx, controlsY);
+  text('X / ESC  menu / back   ·   SHIFT  dash / special   ·   Q / W  page', cx, controlsY + 18);
 
   textFont('Press Start 2P');
   textSize(8);
@@ -1795,7 +1886,10 @@ function drawAirshipOverlay() {
   if (!ensureAirshipState()) return;
   if (window.AetherAirshipView &&
       typeof window.AetherAirshipView.draw === 'function') {
-    window.AetherAirshipView.draw(airshipState, C, { cursor: airshipCursor });
+    window.AetherAirshipView.draw(airshipState, C, {
+      cursor: airshipCursor,
+      commands: getAirshipCommands(),
+    });
   }
 }
 
@@ -2269,7 +2363,7 @@ const World = {
   openDialogue, nextDialogueLine, closeDialogue,
   getLedger, getShopItems, purchaseItem,
   senseAether, getAetherSenseState,
-  getQuestState, advanceQuest,
+  getQuestState, advanceQuest, selectChoicePath,
   exportPersistentState, validatePersistentState, restorePersistentState
 };
 
@@ -3133,8 +3227,8 @@ function drawChoiceMenu() {
     const optY = py + 50 + i * 70;
     const optH = 56;
 
-    // Selected highlight
-    if (quest._choiceHover === i) {
+    // Selected highlight: keyboard/gamepad cursor is primary; mouse hover remains optional.
+    if (choiceCursor === i || quest._choiceHover === i) {
       noStroke();
       fill(C.teal[0], C.teal[1], C.teal[2], 40);
       rect(px + 8, optY, pw - 16, optH);
@@ -3154,7 +3248,7 @@ function drawChoiceMenu() {
     textFont('Press Start 2P');
     textSize(9);
     textAlign(LEFT, TOP);
-    text('[' + (i + 1) + ']  ' + path.label, px + 18, optY + 6);
+    text((choiceCursor === i ? '▶ ' : '  ') + path.label, px + 18, optY + 6);
 
     // Description
     textFont('VT323');
@@ -3170,7 +3264,7 @@ function drawChoiceMenu() {
   textAlign(CENTER, TOP);
   textSize(8);
   textFont('Press Start 2P');
-  text('Press 1 / 2 / 3 or click to choose', width / 2, py + ph - 16);
+  text('↑↓ SELECT   ·   Z/ENTER OK   ·   1/2/3 SHORTCUT', width / 2, py + ph - 16);
   textSize(10);
   textFont('sans-serif');
 }
@@ -3186,6 +3280,7 @@ function handleChoiceInput(value) {
 
 function selectChoicePath(idx) {
   if (idx < 0 || idx >= quest.choicePaths.length) return;
+  choiceCursor = idx;
   const path = quest.choicePaths[idx];
 
   // Simulate 2D6 roll for variant
