@@ -161,21 +161,28 @@ function createServer() {
     assert(debugOverlayState.every(entry => entry.display === 'none'),
       'normal launch exposed a debug overlay');
 
-    // One real Enter follows the production input path:
-    // BOOT → MENU → CHARCREATE and authored onboarding → Lyra field role.
+    // Standard JRPG path: BOOT → title command menu → character creation.
     await page.keyboard.press('Enter');
+    await page.waitForFunction(() => window.gameState === 'menu', undefined,
+      { timeout: 5000 });
+    await page.keyboard.press('KeyZ'); // NEW GAME
     await page.waitForFunction(() =>
       window.gameState === 'charcreate' &&
       window._charcreate &&
+      window._charcreate.phase === 'title'
+    , undefined, { timeout: 5000 });
+    await page.keyboard.press('KeyZ'); // begin authored onboarding
+    await page.waitForFunction(() =>
+      window.gameState === 'charcreate' &&
       window._charcreate.phase === 'class' &&
       window._charcreate.slot === 0 &&
       window._charcreate.nameInput === 'Lyra'
     , undefined, { timeout: 5000 });
 
-    // The three preservation-era role cards are mechanics templates only;
-    // selecting one must not alter the authored identity.
-    await page.keyboard.press('Digit1');
-    await page.keyboard.press('Enter');
+    // Select the same preservation templates through cursor navigation, not
+    // number-key shortcuts.
+    await page.keyboard.press('ArrowRight'); // Lyra → Sky-Sailor
+    await page.keyboard.press('KeyZ');
 
     await page.waitForFunction(() =>
       window._charcreate &&
@@ -187,8 +194,10 @@ function createServer() {
       window._charcreate.party[1].name === 'Lyra'
     , undefined, { timeout: 5000 });
 
-    await page.keyboard.press('Digit3');
-    await page.keyboard.press('Enter');
+    await page.keyboard.press('ArrowRight'); // Ionia: Sky-Sailor
+    await page.keyboard.press('ArrowRight'); // Engine-Wright
+    await page.keyboard.press('ArrowRight'); // Aether-Weaver
+    await page.keyboard.press('KeyZ');
 
     await page.waitForFunction(() =>
       window._charcreate &&
@@ -221,7 +230,7 @@ function createServer() {
     assert(review.authoredSlots.join('|') === 'lyra|ionia',
       'char-create authored slot identities are incorrect');
 
-    await page.keyboard.press('Enter');
+    await page.keyboard.press('KeyZ');
 
     try {
       await page.waitForFunction(() =>
@@ -259,8 +268,8 @@ function createServer() {
       postCreateCombat.combatMaxVit === postCreateCombat.worldMaxVit,
       'character-creation handoff did not preserve combat identity/stats');
 
-    // Player-facing persistence integration: use real F2/F3 input and verify
-    // canonical party, World, and Dragonfly state all restore together.
+    // Player-facing persistence integration: use the visible JRPG system
+    // menu rather than F2/F3 shortcuts and verify all persistent domains.
     const quickSaveBaseline = await page.evaluate(() => ({
       scrap: window.ROSTER[0].scrap,
       tileX: window._world.player.tileX,
@@ -271,8 +280,13 @@ function createServer() {
     assert(quickSaveBaseline.worldLeadRef,
       'quick-save fixture does not start from canonical World/ROSTER identity');
 
-    await page.keyboard.press('F2');
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window.gameState === 'systemmenu', undefined,
+      { timeout: 5000 });
+    for (let i = 0; i < 6; i++) await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('KeyZ'); // SAVE
     await page.waitForFunction(() =>
+      window.gameState === 'world' &&
       Boolean(window.localStorage.getItem('aetherwake.save.v2')) &&
       typeof window.hasStoredSave === 'function' &&
       window.hasStoredSave() === true
@@ -286,7 +300,11 @@ function createServer() {
       window._airshipState.power = 0;
     });
 
-    await page.keyboard.press('F3');
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window.gameState === 'systemmenu', undefined,
+      { timeout: 5000 });
+    await page.keyboard.press('ArrowDown'); // SAVE → LOAD
+    await page.keyboard.press('KeyZ');
     await page.waitForFunction((expected) =>
       window.gameState === 'world' &&
       window.ROSTER[0].scrap === expected.scrap &&
@@ -310,9 +328,12 @@ function createServer() {
     assert(quickLoadResult.combatName === quickLoadResult.worldName,
       'quick load did not resynchronize combat identity from restored World state');
 
-    // Character-sheet integration: the overlay must render from canonical
-    // current state and code-owned Mastery Phase-A facts.
-    await page.keyboard.press('KeyR');
+    // Character sheet through the JRPG system menu.
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window.gameState === 'systemmenu', undefined,
+      { timeout: 5000 });
+    await page.keyboard.press('ArrowDown'); // LOAD wraps to STATUS
+    await page.keyboard.press('KeyZ');
     await page.waitForFunction(() => window.gameState === 'charsheet', undefined,
       { timeout: 5000 });
 
@@ -345,7 +366,7 @@ function createServer() {
       window.ACTIVE_PARTY.map(character => character.id)
     );
 
-    await page.keyboard.press('Digit2');
+    await page.keyboard.press('PageDown');
     await page.waitForFunction(() => {
       const model = window.getCharacterSheetViewModel();
       return model && model.id === 'lyra';
@@ -365,7 +386,8 @@ function createServer() {
       action.id === 'windShearDance' && action.source === 'prototype-mechanics'),
       'Lyra roster view did not distinguish prototype mechanics from canonical actions');
 
-    await page.keyboard.press('Digit4');
+    await page.keyboard.press('PageDown');
+    await page.keyboard.press('PageDown');
     await page.waitForFunction(() => {
       const model = window.getCharacterSheetViewModel();
       return model && model.id === 'reson';
@@ -386,13 +408,14 @@ function createServer() {
     assert(activeAfterRosterBrowse.join('|') === activeBeforeRosterBrowse.join('|'),
       'character-sheet roster browsing mutated ACTIVE_PARTY formation');
 
-    await page.keyboard.press('Digit1');
+    await page.keyboard.press('PageDown');
+    await page.keyboard.press('PageDown');
     await page.waitForFunction(() => {
       const model = window.getCharacterSheetViewModel();
       return model && model.id === 'ender';
     }, undefined, { timeout: 5000 });
 
-    await page.keyboard.press('KeyR');
+    await page.keyboard.press('KeyX');
     await page.waitForFunction(() => window.gameState === 'world', undefined,
       { timeout: 5000 });
 
@@ -430,7 +453,13 @@ function createServer() {
       aetherSenseBefore.admission.schoolAccess === 'innate',
       'Aether Sense access admission is not established for Ender');
 
-    await page.keyboard.press('KeyV');
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window.gameState === 'systemmenu', undefined,
+      { timeout: 5000 });
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('KeyZ'); // AETHER SENSE
     await page.waitForFunction(() => {
       const state = window._world &&
         typeof window._world.getAetherSenseState === 'function'
@@ -509,7 +538,7 @@ function createServer() {
     assert(dialogueStateContract.npcId === 'elder_farmer',
       'dialogue fixture did not locate the first NPC');
 
-    await page.keyboard.press('e');
+    await page.keyboard.press('KeyZ');
     await page.waitForFunction(() => window.gameState === 'dialogue', undefined,
       { timeout: 5000 });
 
@@ -550,7 +579,7 @@ function createServer() {
       window.UI.dialogueText.length > 0
     , undefined, { timeout: 5000 });
 
-    await page.keyboard.press('Escape');
+    await page.keyboard.press('KeyX');
     await page.waitForFunction(() => window.gameState === 'world', undefined,
       { timeout: 5000 });
     const dialogueClosed = await page.evaluate(() => ({
@@ -575,7 +604,7 @@ function createServer() {
     assert(shopFixture.tileX === 14 && shopFixture.tileY === 22,
       'shop fixture did not place the player by the Repair Cafe');
 
-    await page.keyboard.press('m');
+    await page.keyboard.press('KeyZ');
     await page.waitForFunction(() => window.gameState === 'shop', undefined,
       { timeout: 5000 });
     const shopOpen = await page.evaluate(() => ({
@@ -585,7 +614,7 @@ function createServer() {
     assert(shopOpen.itemCount >= 6 && shopOpen.handler === 'function',
       'production shop path did not populate its item handler');
 
-    await page.keyboard.press('m');
+    await page.keyboard.press('KeyX');
     await page.waitForFunction(() => window.gameState === 'world', undefined,
       { timeout: 5000 });
     assert(await page.evaluate(() => window.UI.shopItems.length === 0 &&
@@ -982,7 +1011,7 @@ function createServer() {
     // Secondary input must be a safe no-op when no secondary is available.
     // This specifically guards against core reaching into AetherCombat's
     // private state.
-    await page.keyboard.press('KeyS');
+    await page.keyboard.press('Shift');
     const afterIdleSecondary = await page.evaluate(() => window._combat.getState());
     assert(afterIdleSecondary.turn === 0,
       'unavailable secondary action should not consume a turn');
@@ -1145,12 +1174,16 @@ function createServer() {
     assert(resolverContract.applied.every(Boolean),
       'effect resolver unexpectedly skipped an implemented effect');
 
-    await page.keyboard.press('1');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('KeyZ'); // Staff Strike
     await page.waitForFunction(() =>
       window._combat && window._combat.getState().turn >= 1
     , undefined, { timeout: 5000 });
 
-    await page.keyboard.press('2');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('KeyZ'); // Uncover Truth
     await page.waitForFunction(() =>
       window._combat && window._combat.getState().turn >= 2
     , undefined, { timeout: 5000 });
@@ -1214,7 +1247,7 @@ function createServer() {
     assert(airshipSetup.tileX === 22 && airshipSetup.tileY === 10,
       'airship smoke fixture did not place Ender beside the ship');
 
-    await page.keyboard.press('f');
+    await page.keyboard.press('KeyZ');
     await page.waitForFunction(() => window.gameState === 'airship', undefined,
       { timeout: 5000 });
 
@@ -1234,15 +1267,21 @@ function createServer() {
     assert(airshipInitial.shipBoarded === true,
       'boarding did not persist the ship interior state');
 
-    await page.keyboard.press('h');
+    await page.keyboard.press('ArrowDown'); // VEIL MODE
+    await page.keyboard.press('KeyZ');
     await page.waitForFunction(() =>
       window._airshipState && window._airshipState.shieldMode === 'slip'
     , undefined, { timeout: 5000 });
-    await page.keyboard.press('1');
+
+    await page.keyboard.press('ArrowUp'); // PHASE-SLIP
+    await page.keyboard.press('KeyZ');
     await page.waitForFunction(() =>
       window._airshipState && window._airshipState.lastAction === 'phaseSlip'
     , undefined, { timeout: 5000 });
-    await page.keyboard.press('3');
+
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown'); // LANCE
+    await page.keyboard.press('KeyZ');
     await page.waitForFunction(() =>
       window._airshipState && window._airshipState.lastAction === 'resonanceLance'
     , undefined, { timeout: 5000 });
@@ -1266,7 +1305,7 @@ function createServer() {
     assert(airshipAfterActions.lastAction === 'resonanceLance',
       'airship action identity did not persist');
 
-    await page.keyboard.press('Escape');
+    await page.keyboard.press('KeyX');
     await page.waitForFunction(() =>
       window.gameState === 'world' && window._world.player.shipBoarded === false
     , undefined, { timeout: 5000 });
