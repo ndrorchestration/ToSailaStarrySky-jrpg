@@ -7,7 +7,7 @@
      read-only context;
    - preserve Ender as the only executable combat actor in this phase;
    - expose Lyra/Ionia temporary field-role action declarations without
-     authorizing execution before complete outcome contracts exist.
+     authorizing execution before complete formula/effect contracts exist.
 
    This module does not mutate party, combat, progression, or save state.
    ============================================================ */
@@ -27,11 +27,11 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
   const MODE = 'read-only-three-character-context';
   const EXECUTABLE_STATUS = 'executable-lead';
   const STAGED_STATUS = 'declared-non-executable';
-  const NON_EXECUTABLE_REASON = 'OUTCOME_CONTRACT_NOT_ESTABLISHED';
+  const NON_EXECUTABLE_REASON = 'FORMULA_CONTRACT_NOT_ESTABLISHED';
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
