@@ -846,7 +846,7 @@ function getCurrentDialogueLine() {
 // ---------------------------------------------------------------------------
 // Dialogue audio (TTS voice clips)
 // Files on disk: tts/{npc_id}/{batch}/{line_number:02d}.mp3
-// Example: tts/elder_farmer/intro/01.mp3
+// Example: tts/ionia/intro/01.mp3
 // Played when dialogue opens / advances; triggered from openDialogue + nextDialogueLine.
 // ---------------------------------------------------------------------------
 
