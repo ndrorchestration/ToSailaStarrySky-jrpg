@@ -27,7 +27,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.4.0';
+  const VERSION = '0.5.0';
 
   const STATUS = Object.freeze({
     DRAFT_UNRESOLVED: 'draft-unresolved',
@@ -48,6 +48,10 @@
     SCRAP_RETURN_RECIPIENT_NOT_SPECIFIED: 'SCRAP_RETURN_RECIPIENT_NOT_SPECIFIED',
     ABSORPTION_EFFECT_NOT_EXECUTABLE: 'ABSORPTION_EFFECT_NOT_EXECUTABLE',
     SCRAP_RETURN_EFFECT_NOT_EXECUTABLE: 'SCRAP_RETURN_EFFECT_NOT_EXECUTABLE',
+    HEAL_BAND_NOT_SPECIFIED: 'HEAL_BAND_NOT_SPECIFIED',
+    HEAL_AMOUNT_SELECTION_NOT_SPECIFIED: 'HEAL_AMOUNT_SELECTION_NOT_SPECIFIED',
+    ALLY_TARGET_SELECTION_NOT_SPECIFIED: 'ALLY_TARGET_SELECTION_NOT_SPECIFIED',
+    ALLY_RESTORE_EFFECT_NOT_EXECUTABLE: 'ALLY_RESTORE_EFFECT_NOT_EXECUTABLE',
     REPOSITION_BAND_NOT_SPECIFIED: 'REPOSITION_BAND_NOT_SPECIFIED',
     PARTIAL_OUTCOME_NOT_SPECIFIED: 'PARTIAL_OUTCOME_NOT_SPECIFIED',
     FAILURE_OUTCOME_NOT_SPECIFIED: 'FAILURE_OUTCOME_NOT_SPECIFIED',
@@ -80,6 +84,7 @@
     'aetherCompass',
     'overdriveStrike',
     'patchworkShield',
+    'spiritThread',
   ]);
 
   const DRAFTS = deepFreeze({
@@ -393,6 +398,76 @@
         BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED,
         BLOCKER.ABSORPTION_EFFECT_NOT_EXECUTABLE,
         BLOCKER.SCRAP_RETURN_EFFECT_NOT_EXECUTABLE,
+        BLOCKER.EXECUTION_ADAPTER_NOT_ESTABLISHED,
+        BLOCKER.PERSISTENCE_POLICY_NOT_ESTABLISHED,
+      ],
+    },
+    spiritThread: {
+      actionId: 'spiritThread',
+      templateId: 'aetherWeaver',
+      provenance: 'preservation-era-prototype-mechanics',
+      status: STATUS.DRAFT_UNRESOLVED,
+      source: {
+        kind: 'field-role-declaration',
+        text: '2D6+Spirit. Heal 1-3 Vit to a target ally.',
+      },
+      stat: 'spirit',
+      roll: {
+        system: '2d6',
+        stat: 'spirit',
+        successMin: 10,
+        partialMin: 7,
+        source: 'established-global-combat-rule',
+      },
+      cost: {
+        status: UNKNOWN,
+        resource: null,
+        amount: null,
+      },
+      knownSemantics: [
+        {
+          id: 'healTargetAlly',
+          status: 'declared',
+          band: UNKNOWN,
+          effectKind: 'restore',
+          target: 'ally',
+          operation: 'restore',
+          key: 'vitality',
+          amount: null,
+          amountRange: [1, 3],
+          amountSelection: UNKNOWN,
+          targetSelection: UNKNOWN,
+        },
+      ],
+      outcomes: {
+        common: null,
+        success: null,
+        partial: null,
+        failure: null,
+      },
+      execution: {
+        status: 'not-established',
+        adapterId: null,
+        version: null,
+      },
+      persistence: {
+        status: 'not-established',
+        mode: null,
+        fields: [],
+      },
+      authoredBindings: {
+        nativeJob: UNKNOWN,
+        school: UNKNOWN,
+      },
+      blockers: [
+        BLOCKER.COST_NOT_SPECIFIED,
+        BLOCKER.HEAL_BAND_NOT_SPECIFIED,
+        BLOCKER.HEAL_AMOUNT_SELECTION_NOT_SPECIFIED,
+        BLOCKER.ALLY_TARGET_SELECTION_NOT_SPECIFIED,
+        BLOCKER.SUCCESS_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.ALLY_RESTORE_EFFECT_NOT_EXECUTABLE,
         BLOCKER.EXECUTION_ADAPTER_NOT_ESTABLISHED,
         BLOCKER.PERSISTENCE_POLICY_NOT_ESTABLISHED,
       ],
