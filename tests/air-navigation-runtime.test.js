@@ -22,4 +22,6 @@ assert(runtime.includes('travelProfile(airNavigationState)'),'flight HUD does no
 assert(runtime.includes('routeContext(airNavigationState)'),'flight HUD does not expose route context');
 assert(runtime.includes("'WAKE PRESSURE ' + travel.encounterPressure"),'flight HUD does not expose encounter pressure');
 assert(runtime.includes("' / EFF ' + effectiveSpeed"),'flight HUD does not expose effective weather-adjusted speed');
+assert(runtime.includes("'APPROACH ' + travel.approach.landmark.label"),'flight HUD does not expose berth approach state');
+assert(runtime.includes("'  AUTO-SLOW'"),'flight HUD does not expose controlled approach speed limiting');
 console.log('Aetherwake playable air-navigation contract: PASS');
