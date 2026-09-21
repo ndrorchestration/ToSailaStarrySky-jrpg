@@ -4666,23 +4666,25 @@ function drawNPC(npc) {
 }
 
 function drawNPCIonia(px, py) {
-  fill(color(80, 60, 40));
+  // Ionia: young adult captain silhouette — practical coat, captain pin, no elder/farmer cues.
   noStroke();
-  rect(px - 4, py - 4, 16, 4);
-  rect(px - 2, py - 8, 12, 5);
-  fill(color(130, 110, 80));
-  rect(px - 3, py - 1, 14, 8);
-  fill(color(110, 90, 60));
-  rect(px - 2, py + 5, 5, 6);
-  rect(px + 3, py + 5, 5, 6);
-  fill(color(200, 180, 150));
-  rect(px - 2, py - 3, 12, 4);
-  fill(color(40, 30, 20));
-  rect(px + 1, py - 2, 2, 1);
-  rect(px + 7, py - 2, 2, 1);
-  fill(color(100, 70, 40));
-  noStroke();
-  rect(px + 10, py - 6, 2, 14);
+  fill(color(38, 48, 58));
+  rect(px - 4, py - 1, 16, 9);
+  fill(color(52, 92, 102));
+  rect(px - 3, py, 14, 5);
+  fill(color(198, 168, 138));
+  rect(px - 2, py - 7, 12, 6);
+  fill(color(54, 38, 34));
+  rect(px - 3, py - 9, 13, 3);
+  rect(px - 3, py - 7, 3, 4);
+  fill(color(24, 24, 28));
+  rect(px + 1, py - 5, 2, 1);
+  rect(px + 7, py - 5, 2, 1);
+  fill(color(42, 255, 181, 210));
+  rect(px + 8, py + 1, 2, 2);
+  fill(color(30, 34, 40));
+  rect(px - 2, py + 7, 5, 5);
+  rect(px + 4, py + 7, 5, 5);
 }
 
 function drawNPCSpirit(px, py) {
@@ -4708,25 +4710,29 @@ function drawNPCSpirit(px, py) {
 }
 
 function drawNPCLyra(px, py) {
-  fill(color(180, 60, 80));
+  // Lyra: 24-year-old crew member/mother — adult silhouette with subtle frequency glow.
   noStroke();
-  rect(px - 4, py - 4, 16, 4);
-  fill(color(60, 60, 100));
-  rect(px - 3, py - 7, 12, 4);
-  fill(color(200, 180, 160));
-  rect(px - 2, py - 5, 12, 4);
-  fill(color(42, 255, 181, 200));
-  rect(px, py - 4, 3, 2);
-  rect(px + 6, py - 4, 3, 2);
-  fill(color(100, 80, 120));
-  rect(px - 3, py, 12, 7);
-  fill(color(60, 50, 80));
-  rect(px - 2, py + 6, 4, 4);
-  rect(px + 2, py + 6, 4, 4);
+  fill(color(72, 62, 96));
+  rect(px - 4, py - 1, 16, 9);
+  fill(color(112, 84, 122));
+  rect(px - 3, py, 14, 5);
+  fill(color(202, 176, 154));
+  rect(px - 2, py - 7, 12, 6);
+  fill(color(74, 54, 86));
+  rect(px - 3, py - 9, 13, 3);
+  rect(px + 8, py - 7, 3, 5);
+  fill(color(34, 30, 42));
+  rect(px + 1, py - 5, 2, 1);
+  rect(px + 7, py - 5, 2, 1);
+  fill(color(42, 255, 181, 190));
+  rect(px + 9, py + 1, 2, 2);
+  fill(color(48, 42, 64));
+  rect(px - 2, py + 7, 5, 5);
+  rect(px + 4, py + 7, 5, 5);
   noFill();
-  stroke(color(42, 255, 181, 40));
+  stroke(color(42, 255, 181, 45));
   strokeWeight(1);
-  ellipse(px, py - 2, 20, 16);
+  ellipse(px + 3, py - 3, 20, 18);
   noStroke();
 }
 
@@ -5382,24 +5388,10 @@ function updateNPCSchedulers(dt) {
 function drawNPCIoniaRoutine(px, py) {
   const r = NPC_ROUTINES.ionia;
   const bob = Math.sin(millis() * r.bobSpeed) * r.bob;
-  const dir = Math.floor((millis() * 0.0004) % 3);
+  const glance = Math.floor((millis() * 0.0004) % 3) - 1;
   noStroke();
-  fill(color(80, 60, 40));
-  rect(px - 4, py - 4 + bob, 16, 4);
-  rect(px - 2, py - 8 + bob, 12, 5);
-  fill(color(130, 110, 80));
-  rect(px - 3, py - 1 + bob, 14, 8);
-  fill(color(110, 90, 60));
-  rect(px - 2 + (dir === 0 ? 1 : 0), py + 5 + bob, 5, 6);
-  rect(px + 3 + (dir === 1 ? -1 : 0), py + 5 + bob, 5, 6);
-  fill(color(200, 180, 150));
-  rect(px - 2, py - 3 + bob, 12, 4);
-  fill(color(40, 30, 20));
-  rect(px + 1, py - 2 + bob, 2, 1);
-  rect(px + 7, py - 2 + bob, 2, 1);
-  fill(color(100, 70, 40));
-  rect(px + 10, py - 6 + bob, 2, 14);
-  noStroke();
+  fill(color(42, 255, 181, 130));
+  rect(px + 8 + glance, py + 1 + bob, 2, 2);
 }
 
 function drawNPCSpiritRoutine(px, py) {
@@ -5430,33 +5422,13 @@ function drawNPCSpiritRoutine(px, py) {
 function drawNPCLyraRoutine(px, py) {
   const r = NPC_ROUTINES.lyra;
   const phase = millis() * r.orbSpeed;
-  const orbX = px + Math.cos(phase) * r.orbRadius;
-  const orbY = py - 7 + Math.sin(phase) * r.orbRadius * 0.6;
-  fill(color(180, 60, 80));
-  noStroke();
-  rect(px - 4, py - 4, 16, 4);
-  fill(color(60, 60, 100));
-  rect(px - 3, py - 7, 12, 4);
-  fill(color(200, 180, 160));
-  rect(px - 2, py - 5, 12, 4);
-  fill(color(42, 255, 181, 200));
-  rect(px, py - 4, 3, 2);
-  rect(px + 6, py - 4, 3, 2);
-  fill(color(100, 80, 120));
-  rect(px - 3, py, 12, 7);
-  fill(color(60, 50, 80));
-  rect(px - 2, py + 6, 4, 4);
-  rect(px + 2, py + 6, 4, 4);
+  const orbX = px + 3 + Math.cos(phase) * r.orbRadius;
+  const orbY = py - 5 + Math.sin(phase) * r.orbRadius * 0.6;
   noStroke();
   fill(color(42, 255, 181, 170));
   ellipse(orbX, orbY, 3, 3);
-  fill(color(124, 200, 232, 90));
-  ellipse(orbX, orbY, 5, 5);
-  noStroke();
-  stroke(color(42, 255, 181, 40));
-  strokeWeight(1);
-  ellipse(px, py - 2, 20, 16);
-  noStroke();
+  fill(color(124, 200, 232, 80));
+  ellipse(orbX, orbY, 6, 6);
 }
 
 function drawNPCSavagerRoutine(px, py) {
