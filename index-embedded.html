@@ -161,6 +161,150 @@
   // Debug UI is opt-in only. Normal players should never see diagnostic overlays.
   window.__awDebugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
 
+  // CI-only packaged-runtime diagnostics. Normal player launches do not write
+  // any diagnostic files. This survives later startup failures so the Windows
+  // packaging gate can distinguish initialization faults from render faults.
+  (function installPackagedDiagnostics() {
+    var enabled = false;
+    try {
+      enabled =
+        typeof process !== 'undefined' &&
+        process.env &&
+        process.env.AETHERWAKE_DIAGNOSTICS === '1' &&
+        typeof require === 'function';
+    } catch (_) {}
+
+    if (!enabled) return;
+
+    try {
+      var fs = require('fs');
+      var path = require('path');
+      var root = path.join(process.env.LOCALAPPDATA || process.cwd(), 'Aetherwake');
+      var target = path.join(root, 'startup-diagnostic.json');
+      fs.mkdirSync(root, { recursive: true });
+
+      function snapshot(reason, detail) {
+        try {
+          var canvas = document.querySelector('canvas');
+          var loading = document.getElementById('loading-screen');
+          var failure = document.getElementById('aetherwake-init-error');
+          fs.writeFileSync(target, JSON.stringify({
+            timestamp: new Date().toISOString(),
+            reason: reason || 'poll',
+            detail: detail ? String(detail) : null,
+            readyState: document.readyState,
+            href: location.href,
+            title: document.title,
+            p5Loaded: typeof window.p5 !== 'undefined',
+            p5Instance: Boolean(window.p5 && window.p5.instance),
+            setupType: typeof window.setup,
+            drawType: typeof window.draw,
+            setupOrder: window._setupOrder || null,
+            initFailed: Boolean(window.__aetherwakeInitFailed),
+            launchFailure: window.__awLaunchFailure || null,
+            loadingDone: Boolean(window.__awLoadingDone),
+            loadingDisplay: loading ? getComputedStyle(loading).display : null,
+            failureHidden: failure ? failure.hidden : null,
+            failureText: failure ? failure.textContent : null,
+            gameState: window.gameState || null,
+            worldReady: Boolean(window._world),
+            combatReady: Boolean(window._combat),
+            charCreateReady: Boolean(window._charcreate),
+            canvas: canvas ? (function() {
+              var metrics = {
+                width: canvas.width,
+                height: canvas.height,
+                cssWidth: canvas.getBoundingClientRect().width,
+                cssHeight: canvas.getBoundingClientRect().height,
+                uniqueSampleColors: null,
+                opaqueSamples: null,
+                nonBackgroundSamples: null,
+                pixelReadError: null
+              };
+              try {
+                var ctx = canvas.getContext('2d');
+                var image = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                var colors = Object.create(null);
+                var unique = 0;
+                var opaque = 0;
+                var nonBackground = 0;
+                var bgR = 26, bgG = 16, bgB = 46;
+                for (var y = 16; y < canvas.height; y += 16) {
+                  for (var x = 16; x < canvas.width; x += 16) {
+                    var i = (y * canvas.width + x) * 4;
+                    var r = image[i], g = image[i + 1], b = image[i + 2], a = image[i + 3];
+                    var key = r + ',' + g + ',' + b + ',' + a;
+                    if (!colors[key]) {
+                      colors[key] = true;
+                      unique++;
+                    }
+                    if (a > 0) opaque++;
+                    if (Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB) > 12) {
+                      nonBackground++;
+                    }
+                  }
+                }
+                metrics.uniqueSampleColors = unique;
+                metrics.opaqueSamples = opaque;
+                metrics.nonBackgroundSamples = nonBackground;
+              } catch (pixelError) {
+                metrics.pixelReadError = String(pixelError && pixelError.message || pixelError);
+              }
+              return metrics;
+            })() : null
+          }, null, 2));
+        } catch (_) {}
+      }
+
+      window.__awWriteStartupDiagnostic = snapshot;
+      snapshot('diagnostics-installed');
+      setInterval(function() { snapshot('poll'); }, 250);
+      window.addEventListener('error', function(event) {
+        snapshot(
+          'window-error',
+          event.error && event.error.stack ? event.error.stack : event.message
+        );
+      });
+      window.addEventListener('unhandledrejection', function(event) {
+        snapshot(
+          'unhandled-rejection',
+          event.reason && event.reason.stack ? event.reason.stack : event.reason
+        );
+      });
+    } catch (_) {}
+  })();
+
+  // Fail visibly on packaged-runtime errors. A live NW.js window with an
+  // initialization exception must never collapse into an unexplained blank screen.
+  window.__awLaunchFailure = null;
+  function showLaunchFailure(kind, detail) {
+    var message = String(detail || 'Unknown startup failure');
+    window.__awLaunchFailure = { kind: kind, detail: message };
+    var ls = document.getElementById('loading-screen');
+    if (ls) ls.style.display = 'none';
+    var panel = document.getElementById('aetherwake-init-error');
+    if (panel) {
+      panel.hidden = false;
+      panel.textContent =
+        'AETHERWAKE COULD NOT START\n\n' +
+        kind + ': ' + message +
+        '\n\nThis build stopped before the game became render-ready.';
+    }
+  }
+
+  window.addEventListener('error', function(event) {
+    showLaunchFailure(
+      'JavaScript error',
+      event.error && event.error.stack ? event.error.stack : event.message
+    );
+  });
+  window.addEventListener('unhandledrejection', function(event) {
+    showLaunchFailure(
+      'Unhandled promise rejection',
+      event.reason && event.reason.stack ? event.reason.stack : event.reason
+    );
+  });
+
   function hideLoadingScreen() {
     var ls = document.getElementById('loading-screen');
     if (ls) ls.style.display = 'none';
@@ -303,6 +447,9 @@
       var cvs = document.querySelector('canvas');
       var hasCanvas = !!cvs && cvs.width >= 800 && cvs.height >= 500;
       var p5ok = typeof p5 !== 'undefined';
+      var setupDone =
+        typeof window._setupOrder === 'string' &&
+        window._setupOrder.indexOf('setup-done') !== -1;
 
       if (window.__aetherwakeInitFailed) {
         showInitError(
@@ -312,15 +459,15 @@
         return;
       }
 
-      if (hasCanvas && p5ok) {
+      if (hasCanvas && p5ok && setupDone) {
         p5.disableFriendlyErrors = true;
-        console.log('[launch] canvas live, hiding loading screen');
+        console.log('[launch] setup complete and canvas live, hiding loading screen');
         hideLoadingScreen();
         return;
       }
 
       if (performance.now() - startTime > 10000) {
-        showInitError('Canvas/runtime did not initialize within 10 seconds.');
+        showInitError('Runtime did not reach setup-done with a live canvas within 10 seconds.');
         return;
       }
 
