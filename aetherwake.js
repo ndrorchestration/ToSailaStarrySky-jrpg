@@ -3541,14 +3541,54 @@ function interact() {
 }
 
 function doContextInteraction() {
-  const dialogue = doTalk();
-  if (dialogue && dialogue.ok) return dialogue;
+  const candidates = [];
 
-  const shopResult = openShop();
-  if (shopResult && shopResult.ok) return shopResult;
+  const nearestNpc = findNearestNPC(2);
+  if (nearestNpc) {
+    candidates.push({
+      kind: 'dialogue',
+      distance: Math.abs(nearestNpc.tileX - player.tileX) +
+        Math.abs(nearestNpc.tileY - player.tileY),
+      activate: () => doTalk(),
+    });
+  }
 
-  const shipResult = boardShip();
-  if (shipResult && shipResult.ok) return shipResult;
+  if (shop) {
+    const shopDistance = Math.abs(player.tileX - shop.x) +
+      Math.abs(player.tileY - shop.y);
+    if (shopDistance <= 3) {
+      candidates.push({
+        kind: 'shop',
+        distance: shopDistance,
+        activate: () => openShop(),
+      });
+    }
+  }
+
+  const shipTileX = 23;
+  const shipTileY = 10;
+  const shipDistance = Math.abs(player.tileX - shipTileX) +
+    Math.abs(player.tileY - shipTileY);
+  if (shipDistance <= 2) {
+    candidates.push({
+      kind: 'airship',
+      distance: shipDistance,
+      activate: () => boardShip(),
+    });
+  }
+
+  // Typical JRPG contextual interaction: nearest valid target wins.
+  // Tie order is stable and favors dialogue, then shop, then ship.
+  const priority = { dialogue: 0, shop: 1, airship: 2 };
+  candidates.sort((a, b) =>
+    (a.distance - b.distance) ||
+    (priority[a.kind] - priority[b.kind])
+  );
+
+  if (candidates.length > 0) {
+    const result = candidates[0].activate();
+    if (result && result.ok) return result;
+  }
 
   return {
     ok: false,
