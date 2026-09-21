@@ -50,7 +50,7 @@ test('D16b: M key routes through world.openShop() with result check', () => {
   const body = handleWorldMatch[1];
   
   // Find M key handling
-  const mKeyIdx = body.indexOf('if (keysPressed[77])');
+  const mKeyIdx = body.indexOf('if (keysPressed[77]');
   assert(mKeyIdx !== -1, 'M key handling should exist');
   
   // Extract M key block
