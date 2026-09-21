@@ -81,20 +81,13 @@ const handoffEnd = source.indexOf('gameState = STATE.WORLD', handoffStart);
 assert(handoffStart >= 0 && handoffEnd > handoffStart,
   'character-creation combat handoff block is missing');
 const handoff = source.slice(handoffStart, handoffEnd);
-[
-  'name: world.player.name',
-  'age: world.player.age',
-  'class: world.player.class',
-  'wits: world.player.wits',
-  'presence: world.player.presence',
-  'spirit: world.player.spirit',
-  'might: world.player.might',
-  'grace: world.player.grace',
-  'maxVit: world.player.maxVit',
-].forEach(field => {
-  assert(handoff.includes(field),
-    'character-creation handoff omits ' + field);
-});
+assert(handoff.includes('combat.init(buildCombatPlayerSnapshot())'),
+  'character-creation handoff does not use the canonical combat snapshot builder');
+assert(source.includes('partyContext: buildPartyCombatContext()'),
+  'canonical combat snapshot omits validated party context');
+assert(source.includes('const playerSnapshot = buildCombatPlayerSnapshot();') &&
+  source.includes('playerSnapshot.airshipTransfer = airshipTransfer'),
+  'encounter launch does not reuse canonical combat snapshot builder');
 
 console.log('Aetherwake character handoff contracts: PASS');
 
@@ -107,6 +100,7 @@ const requiredScripts = [
   'modules/mastery-defs.js',
   'modules/field-role-defs.js',
   'modules/party-state.js',
+  'modules/party-combat-bridge.js',
   'modules/save-state.js',
   'modules/airship-state.js',
   'modules/airship-combat-bridge.js',
@@ -147,6 +141,19 @@ assert(source.includes('window.AetherFieldRoleDefs.validate()'),
   'runtime boot does not validate field-role definitions');
 assert(source.includes('window._fieldRoleDefs = window.AetherFieldRoleDefs'),
   'validated field-role definitions are not exposed to the runtime');
+
+assert(source.includes('AETHER_PARTY_COMBAT_BRIDGE_UNAVAILABLE'),
+  'runtime boot does not fail closed when party combat bridge is missing');
+assert(source.includes('window._partyCombatBridge = window.AetherPartyCombatBridge'),
+  'validated party combat bridge is not exposed to runtime');
+assert(source.includes('function buildPartyCombatContext()'),
+  'canonical party combat context builder is missing');
+assert(combatSource.includes('state.partyContext = JSON.parse(JSON.stringify(options.partyContext))'),
+  'combat init does not detach validated party context');
+assert(combatSource.includes('partyContext: state.partyContext'),
+  'combat public state does not expose party context');
+
+console.log('Aetherwake party combat context contracts: PASS');
 
 console.log('Aetherwake field-role boot contracts: PASS');
 
