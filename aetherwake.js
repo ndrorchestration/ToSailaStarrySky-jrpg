@@ -5564,6 +5564,11 @@ function AetherCombat(p, C) {
       equipment: { staff: null, backpack: null },
     },
     enemy: null,
+    reveals: {
+      self: {},
+      enemy: {},
+      field: {},
+    },
     turn: 0,
     log: [],
     encounterOver: false,
@@ -5623,6 +5628,7 @@ function AetherCombat(p, C) {
     return {
       player: state.player,
       enemy: state.enemy,
+      reveals: state.reveals,
       staffChargeMax: state.maxStaffCharges,
     };
   }
@@ -5649,6 +5655,13 @@ function AetherCombat(p, C) {
   function changeResource(resource, delta) {
     return recordResolverMutation(effectResolver.applyEffect(
       effectResolver.createResourceDeltaEffect(resource, delta),
+      resolverContext()
+    ));
+  }
+
+  function revealEffect(target, key) {
+    return recordResolverMutation(effectResolver.applyEffect(
+      effectResolver.createRevealEffect(target, key),
       resolverContext()
     ));
   }
@@ -5911,6 +5924,11 @@ function AetherCombat(p, C) {
     state.turn = 0;
     state.log = [];
     state.enemy = null;
+    state.reveals = {
+      self: {},
+      enemy: {},
+      field: {},
+    };
     state.encounterOver = false;
     state._secondaryAvailable = false;
     state._lastAbilityId = null;
@@ -5993,6 +6011,11 @@ function AetherCombat(p, C) {
     state._lastTurnCrit = false;
     state._secondaryAvailable = false;
     state._lastAbilityId = null;
+    state.reveals = {
+      self: {},
+      enemy: {},
+      field: {},
+    };
     state.enemy = {
       name: template.name,
       goal: template.goal,
@@ -6015,7 +6038,7 @@ function AetherCombat(p, C) {
     state.encounterOver = false;
     state.initiative = state.player.wits + (state.player.grace || 0);
     log('Encounter: ' + state.enemy.name + ' — ' + state.enemy.goal);
-    log(state.enemy.name + ' weakness: ' + state.enemy.weakness);
+    log(state.enemy.name + ' weakness: unknown. Analyze the target to reveal it.');
     if (!state._airshipTransferApplied) {
       applyAirshipOpening();
       state._airshipTransferApplied = true;
@@ -6221,8 +6244,8 @@ function AetherCombat(p, C) {
             // Visual: ability flash for all abilities
             state._abilityFlashTurn = millis();
             if (action.id === 'uncoverTruth') {
-              nextRollBonus = 1;
-              actionText = 'Uncover Truth — the weave reveals its pattern. +1 to next roll. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+              revealEffect(effectVocabulary.TARGET.ENEMY, 'weakness');
+              actionText = 'Uncover Truth — the weave reveals its pattern. Weakness exposed. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
             } else if (action.id === 'sharedDream') {
               // 50/50: heal 1-2 Vit OR +1 next roll bonus
               if (random(0, 2) < 1) {
@@ -6548,6 +6571,7 @@ function AetherCombat(p, C) {
       turn: state.turn,
       player: JSON.parse(JSON.stringify(state.player)),
       enemy: state.enemy ? JSON.parse(JSON.stringify(state.enemy)) : null,
+      reveals: JSON.parse(JSON.stringify(state.reveals)),
       airship: JSON.parse(JSON.stringify(state.airship)),
       partyContext: state.partyContext
         ? JSON.parse(JSON.stringify(state.partyContext))
@@ -8442,7 +8466,18 @@ function drawCombatPanel(combatState) {
     textFont(FONT_UI);
     textSize(7);
     fill(PAL.DIM);
-    text('WEAKNESS: ' + (combatState.enemy.weakness || 'unknown'), px + 14, ey + 32);
+    const weaknessRevealed = Boolean(
+      combatState.reveals &&
+      combatState.reveals.enemy &&
+      combatState.reveals.enemy.weakness
+    );
+    text(
+      'WEAKNESS: ' + (weaknessRevealed
+        ? (combatState.enemy.weakness || 'unknown')
+        : 'unknown'),
+      px + 14,
+      ey + 32
+    );
   }
 
   // Player status section
@@ -8494,7 +8529,7 @@ function drawCombatPanel(combatState) {
   text(String(combatState.player.scrap), rX, rY2);
 
   // Read-only party context Phase A. Companions are visible but their action
-  // declarations are deliberately non-executable until outcome contracts exist.
+  // declarations are deliberately non-executable until formula contracts exist.
   if (combatState.partyContext &&
       Array.isArray(combatState.partyContext.members) &&
       combatState.partyContext.members.length === 3) {
