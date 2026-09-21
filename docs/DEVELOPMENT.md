@@ -227,6 +227,32 @@ Because schema v2 is already player-facing, the first mutable mastery state must
 enter through an explicit save schema v3 migration rather than extending v2
 silently.
 
+## Canonical character-sheet checkpoint
+
+On 2026-09-20, runtime commit `94556dabfc56d26b139731c8ee6d8c15e5d54698`
+passed gameplay smoke run `35549081375` and Windows desktop package run
+`35549081367`. The Windows run uploaded artifact `10617812829`
+(`Aetherwake-Windows`, 664,427,544 bytes,
+SHA-256 `4262049ab53f54aae030883c49340a90885f465cf7439e827d1972b913f16d59`).
+
+This checkpoint replaces the live character sheet's preservation-era hardcoded
+values with a canonical view-model:
+
+- identity/stats/resources come from the live World/ROSTER lead record;
+- native-job and affinity facts come from Mastery Phase A;
+- current eligible actions come from the canonical ability registry;
+- the legacy `Rift Scholar / Dreamwright` string is no longer presented as the
+  canonical native job; preservation class residue is labeled separately;
+- gear displays the actual equipment record instead of hardcoded equipment claims;
+- the renderer bugs caused by an undefined `abilities` iterator and undefined
+  gear-row `gy` variable are removed;
+- browser smoke opens the real R-key overlay, verifies Ender's established
+  Rift Scholar native job and Aether/Resonance/Correspondence/Lumen affinities,
+  then closes the overlay without page/console errors.
+
+This remains a presentation/read-model improvement. It does not add mutable
+mastery, companion canon, formation switching, or three-character combat.
+
 ## Effect/registry checkpoint
 
 On 2026-09-19:
