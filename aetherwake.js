@@ -25,7 +25,7 @@ const STATE = {
   BOOT: 'boot', MENU: 'menu', WORLD: 'world', COMBAT: 'combat',
   DIALOGUE: 'dialogue', SHOP: 'shop', LEDGER: 'ledger',
   QUESTLOG: 'questlog', CHARSHEET: 'charsheet', AIRSHIP: 'airship',
-  CHARCREATE: 'charcreate',
+  SYSTEMMENU: 'systemmenu', CHARCREATE: 'charcreate',
 };
 let gameState = STATE.BOOT;
 window.gameState = gameState;  // expose for debug
@@ -58,6 +58,10 @@ let uiWindowTone = 0;
 // lastCmdIdx: last-chosen menu command index for last-command memory
 let lastCmdIdx = -1;
 let charSheetRosterIndex = 0; // read-only roster browser selection; never changes formation
+let systemMenuCursor = 0;
+let combatCursor = 0;
+let shopCursor = 0;
+let airshipCursor = 0;
 
 // ── Dialogue type-in ──
 let dialogueTypeIn = { active: false, fullText: '', displayText: '', charIndex: 0, speed: 22, lastCharTime: 0 };
@@ -460,6 +464,35 @@ function draw() {
 // Interaction key for world module (set by keyPressed, read by world.interact)
 let interactionKey = null;
 
+function jrpgInputApi() {
+  return window.AetherJrpgInput || null;
+}
+
+function inputPressed(action) {
+  const api = jrpgInputApi();
+  return Boolean(api && typeof api.isPressed === 'function' &&
+    api.isPressed(keysPressed, action));
+}
+
+function inputHeld(action) {
+  const api = jrpgInputApi();
+  return Boolean(api && typeof api.isHeld === 'function' &&
+    api.isHeld(keys, action));
+}
+
+function normalizedLegacyPressed() {
+  const out = Object.assign({}, keysPressed);
+  const api = jrpgInputApi();
+  if (!api || !api.ACTION) return out;
+  if (inputPressed(api.ACTION.OK)) out[13] = true;
+  if (inputPressed(api.ACTION.CANCEL)) out[27] = true;
+  if (inputPressed(api.ACTION.LEFT)) out[37] = true;
+  if (inputPressed(api.ACTION.UP)) out[38] = true;
+  if (inputPressed(api.ACTION.RIGHT)) out[39] = true;
+  if (inputPressed(api.ACTION.DOWN)) out[40] = true;
+  return out;
+}
+
 function keyPressed() {
   keys[keyCode] = true;
   keysPressed[keyCode] = true;
@@ -480,9 +513,11 @@ function keyPressed() {
 
   // Set interaction key BEFORE calling handleInput so that
   // world.interact()/handleWorldInput() see the current key.
-  // E = 69, Q = 81, F = 70, Tab = 9, L = 76, M = 77
+  // Standard JRPG OK is contextual; legacy Aetherwake hotkeys remain aliases.
   if (gameState === STATE.WORLD) {
-    if (keyCode === 69) window.interactionKey = 'e';
+    const inputApi = jrpgInputApi();
+    if (inputApi && inputPressed(inputApi.ACTION.OK)) window.interactionKey = 'ok';
+    else if (keyCode === 69) window.interactionKey = 'e';
     else if (keyCode === 81) window.interactionKey = 'q';
     else if (keyCode === 70) window.interactionKey = 'f';
     else if (keyCode === 9) window.interactionKey = 'tab';
@@ -538,7 +573,11 @@ function keyPressed() {
 
 function keyReleased() {
   keys[keyCode] = false;
-  if (keyCode === 69 || keyCode === 81 || keyCode === 70 || keyCode === 9 || keyCode === 76 || keyCode === 77) {
+  const inputApi = jrpgInputApi();
+  const releasesOk = Boolean(inputApi &&
+    inputApi.actionsForKeyCode(keyCode).includes(inputApi.ACTION.OK));
+  if (releasesOk || keyCode === 69 || keyCode === 81 || keyCode === 70 ||
+      keyCode === 9 || keyCode === 76 || keyCode === 77) {
     window.interactionKey = null;
   }
 }
@@ -3226,6 +3265,7 @@ function interact() {
   if (!key) return { ok: false, kind: 'interaction', reason: 'No interaction key.' };
 
   switch (key) {
+    case 'ok': return doContextInteraction();
     case 'e': return doTalk();
     case 'q':
       plantField();
@@ -3243,6 +3283,23 @@ function interact() {
     default:
       return { ok: false, kind: 'interaction', reason: 'Unsupported interaction key.' };
   }
+}
+
+function doContextInteraction() {
+  const dialogue = doTalk();
+  if (dialogue && dialogue.ok) return dialogue;
+
+  const shopResult = openShop();
+  if (shopResult && shopResult.ok) return shopResult;
+
+  const shipResult = boardShip();
+  if (shipResult && shipResult.ok) return shipResult;
+
+  return {
+    ok: false,
+    kind: 'interaction',
+    reason: 'Nothing nearby responds.',
+  };
 }
 
 /**
