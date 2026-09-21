@@ -17,6 +17,7 @@
   const BALANCE_PROFILE_VERSION = 1;
   const BALANCE_STATUS = 'PROVISIONAL_NOT_CANON';
   const CHARACTER_CANON = global.AetherCharacterCanon || null;
+  const JRPG_STAT_MODEL = global.AetherJRPGStatModel || null;
 
   // Identity facts come from creator canon. Numeric values below are a first
   // balance pass fitted to the existing rank-1 stat scale; they are tuning
@@ -75,6 +76,15 @@
     target.artProfileId = definition.id;
     target.balanceProfileVersion = BALANCE_PROFILE_VERSION;
     target.balanceStatus = BALANCE_STATUS;
+    // Production JRPG stats are namespaced separately during migration so
+    // compatibility-only 2D6 actions cannot accidentally consume 1–75 values.
+    if (JRPG_STAT_MODEL && typeof JRPG_STAT_MODEL.getPrimaryStats === 'function') {
+      target.productionStats = JRPG_STAT_MODEL.getPrimaryStats(
+        definition.id,
+        target.level || 1
+      );
+      target.productionStatModelVersion = JRPG_STAT_MODEL.VERSION;
+    }
     target.vit = base.vit;
     target.maxVit = base.vit;
     target.echoes = base.echoes;
@@ -92,6 +102,13 @@
       target.level = 1;
       target.xp = 0;
       target.xpToNext = 50;
+    }
+    if (JRPG_STAT_MODEL && typeof JRPG_STAT_MODEL.getPrimaryStats === 'function') {
+      target.productionStats = JRPG_STAT_MODEL.getPrimaryStats(
+        definition.id,
+        target.level || 1
+      );
+      target.productionStatModelVersion = JRPG_STAT_MODEL.VERSION;
     }
     return target;
   }
@@ -203,6 +220,10 @@
         }
         if ((profile.nativeJob || null) !== (definition.nativeJob || null)) {
           throw new Error('CHARACTER_CANON_JOB_DRIFT:' + definition.id);
+        }
+        if (JRPG_STAT_MODEL && JRPG_STAT_MODEL.PROFILES) {
+          const expectedProduction = JRPG_STAT_MODEL.getPrimaryStats(definition.id, 1);
+          if (!expectedProduction) throw new Error('JRPG_PRODUCTION_PROFILE_MISSING:' + definition.id);
         }
       });
     }
@@ -328,6 +349,7 @@
     balanceProfileVersion: BALANCE_PROFILE_VERSION,
     balanceStatus: BALANCE_STATUS,
     characterCanonVersion: CHARACTER_CANON ? CHARACTER_CANON.VERSION : null,
+    productionStatModelVersion: JRPG_STAT_MODEL ? JRPG_STAT_MODEL.VERSION : null,
     roster: ROSTER,
     activeParty: ACTIVE_PARTY,
     bootstrap,
