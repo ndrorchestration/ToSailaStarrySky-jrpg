@@ -54,7 +54,7 @@ The development branch now contains a persistent party-state bridge:
 - `world.player === ROSTER[0] === ACTIVE_PARTY[0]`, so the lead character is no longer duplicated across WORLD and persistent party state;
 - onboarding now uses the fixed authored starting identities Ender, Lyra, and Ionia;
 - Lyra and Ionia are no longer player-renamable companion slots;
-- Sky-Sailor / Engine-Wright / Aether-Weaver remain preservation-era **mechanics templates**, recorded separately from authored identity and native-job canon;
+- Sky-Sailor / Engine-Wright / Aether-Weaver remain preservation-era **mechanics templates**, centralized in `modules/field-role-defs.js` and recorded separately from authored identity and native-job canon;
 - Lyra and Ionia's canonical `nativeJob` values remain unresolved/null; selecting a mechanics template does not establish canon;
 - Reson and Aepex currently exist as identity/schema shells only;
 - formation mutation and true three-character combat are not implemented in this phase;
@@ -357,11 +357,13 @@ The full campaign will expand story acts, recruitment timing, character arcs, re
 - `index-embedded.html` is the current browser entry point.
 - `modules/effect-vocabulary.js` loads the frozen effect contract before combat construction.
 - `modules/ability-defs.js` and `modules/progression-defs.js` load the canonical current action/unlock registries.
+- `modules/mastery-defs.js` owns the established code-owned mastery/domain facts and explicit UNKNOWN companion canon.
+- `modules/field-role-defs.js` owns the three preservation-era temporary mechanics templates used by authored companion onboarding; these are not canonical native jobs.
 - `modules/party-state.js` is the authoritative persistent roster / active-party reference layer.
-- `modules/save-state.js` is the versioned save-document boundary; schema v1 currently covers only canonical party/progression persistence.
+- `modules/save-state.js` is the versioned save-document boundary; schema v2 is the current player-facing format with explicit migration from released schema v1.
 - `aetherwake.js` is the current integrated runtime/preservation artifact and remains the current combat executor.
-- `modules/char-create.js` is loaded at runtime as the authored starting-trio onboarding adapter; its three legacy role definitions are temporary mechanics templates, not companion canon.
-- several other `modules/*.js` files are older mirrors/reference copies and may not match the integrated runtime.
+- `modules/char-create.js` is loaded at runtime as the authored starting-trio onboarding adapter and consumes the shared field-role registry rather than owning a duplicate mechanics registry.
+- several older mirror/reference modules may still diverge from the integrated runtime and should not be treated as authoritative without entrypoint/test evidence.
 
 ### TARGET ARCHITECTURE
 
@@ -400,7 +402,7 @@ Persistent game state must use:
 
 Save format is a compatibility boundary and must not be treated as an afterthought.
 
-### CURRENT IMPLEMENTATION — SCHEMA V1
+### HISTORICAL RELEASED SCHEMA V1 — MIGRATION SOURCE
 
 `modules/save-state.js` establishes save kind `aetherwake-save`, schema
 version `1`, and a versioned local-storage key. `modules/party-state.js`
@@ -419,8 +421,9 @@ and cannot be rewritten by a save document. Invalid JSON, missing/future schema
 versions, roster-ID tampering, duplicate/unknown active IDs, or activation of an
 unimplemented shell fail closed.
 
-The migration registry is explicit and currently empty because v1 is the first
-schema. No fictitious pre-v1 migration is claimed.
+Schema v1 remains supported only as a released migration source. The current
+migration registry explicitly maps v1 → v2; no fictitious pre-v1 migration is
+claimed.
 
 ### CURRENT SAVE SCHEMA — v2
 
@@ -491,6 +494,6 @@ Automated tests should also cover:
 10. expand campaign content,
 11. production hardening and balance.
 
-**Development-branch checkpoint:** the smoke-stabilized baseline plus steps 2–5 are verified; step 6 is partially established through the fail-closed ordinary effect resolver; step 7 has established fixed Ender/Lyra/Ionia authored onboarding while companion canonical jobs/mechanics remain unresolved; save schema v2 now covers party/progression, World/quest/ledger, and bounded Dragonfly state with explicit v1 migration and player-facing F2/F3 safe-state controls; and migration step 8 Phase A establishes code-owned mastery/domain facts without mutable mastery state. Encounter-local combat persistence remains intentionally excluded. Promotion/merge to `main` has not occurred.
+**Development-branch checkpoint:** the smoke-stabilized baseline plus steps 2–5 are verified; step 6 is partially established through the fail-closed ordinary effect resolver; step 7 has established fixed Ender/Lyra/Ionia authored onboarding plus a shared preservation field-role registry while companion canonical jobs/affinities remain unresolved; save schema v2 covers party/progression, World/quest/ledger, and bounded Dragonfly state with explicit v1 migration and player-facing F2/F3 safe-state controls; migration step 8 Phase A establishes code-owned mastery/domain facts without mutable mastery state; and the character sheet now exposes a read-only five-character roster browser without mutating formation. Encounter-local combat persistence remains intentionally excluded. Promotion/merge to `main` has not occurred.
 
 **Non-negotiable:** avoid a single rewrite of character creation, combat, progression, and party state at the same time.
