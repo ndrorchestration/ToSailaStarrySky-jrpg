@@ -20,7 +20,7 @@ assert(api, 'pixel sprite authority was not exposed');
 assert.strictEqual(api.VERSION, '0.2.0');
 assert.strictEqual(api.validate(), true, 'pixel sprite registry failed validation');
 
-for (const id of ['ender', 'lyra', 'ionia', 'skyPredator']) {
+for (const id of ['ender', 'lyra', 'ionia', 'skyPredator', 'settler']) {
   const sprite = api.get(id);
   assert(sprite, id + ' sprite missing');
   assert.strictEqual(sprite.width, 16, id + ' width drifted');
@@ -55,6 +55,8 @@ assert(runtime.includes("battleSprites.draw('lyra'") &&
   'combat scene is not bound to companion sprite authority');
 assert(runtime.includes("AetherPixelSprites.draw('skyPredator'"),
   'opening combat enemy is not bound to pixel sprite authority');
+assert(runtime.includes("sprites.draw('settler'"),
+  'generic world NPC fallback is not bound to pixel sprite authority');
 
 const onboarding = fs.readFileSync(path.join(root, 'modules', 'char-create.js'), 'utf8');
 assert(onboarding.includes("sprites.draw('ender'"),
