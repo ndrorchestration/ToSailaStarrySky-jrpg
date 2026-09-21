@@ -199,6 +199,52 @@ jobs:
           }
           Write-Host "Compatibility executable bytes: $((Get-Item -LiteralPath $compatFile).Length)"
 
+      - name: Build browser-mode Aetherwake player
+        shell: pwsh
+        run: |
+          $launcherDir = Join-Path $PWD "packaging\one-file-launcher"
+          $packageNw = Resolve-Path "..\aetherwake-dist\package.nw" -ErrorAction Stop
+          $browserPayload = Join-Path $launcherDir "BrowserPayload.zip"
+          if (Test-Path -LiteralPath $browserPayload) { Remove-Item $browserPayload -Force }
+          Compress-Archive -Path "$packageNw\*" -DestinationPath $browserPayload -CompressionLevel Optimal
+
+          $publish = Join-Path $PWD "browser-launcher-publish"
+          if (Test-Path -LiteralPath $publish) { Remove-Item $publish -Recurse -Force }
+
+          dotnet publish "$launcherDir\AetherwakeBrowserMode.csproj" -c Release -r win-x64 --self-contained true -o $publish
+
+          $built = Join-Path $publish "AetherwakeBrowserMode.exe"
+          if (-not (Test-Path -LiteralPath $built -PathType Leaf)) {
+            throw "Browser Mode launcher was not produced: $built"
+          }
+
+          $browserStage = Join-Path $PWD "artifact\Aetherwake-Browser-Mode"
+          if (Test-Path -LiteralPath $browserStage) { Remove-Item $browserStage -Recurse -Force }
+          New-Item -ItemType Directory -Path $browserStage -Force | Out-Null
+
+          $browserFile = Join-Path $browserStage "Aetherwake - Browser Mode.exe"
+          Copy-Item -LiteralPath $built -Destination $browserFile -Force
+
+          $header = [System.IO.File]::ReadAllBytes($browserFile)[0..1]
+          if ($header[0] -ne 0x4D -or $header[1] -ne 0x5A) {
+            throw "Browser Mode launcher is not a valid Windows PE file"
+          }
+          Write-Host "Browser Mode executable bytes: $((Get-Item -LiteralPath $browserFile).Length)"
+
+      - name: Verify browser-mode local server
+        shell: pwsh
+        run: |
+          $browserFile = Join-Path $PWD "artifact\Aetherwake-Browser-Mode\Aetherwake - Browser Mode.exe"
+          $selfTest = Start-Process -FilePath $browserFile -ArgumentList "--self-test" -PassThru
+          if (-not $selfTest.WaitForExit(120000)) {
+            try { $selfTest.Kill() } catch {}
+            throw "Browser Mode self-test did not exit within 120 seconds"
+          }
+          if ($selfTest.ExitCode -ne 0) {
+            throw "Browser Mode self-test exited with code $($selfTest.ExitCode)"
+          }
+          Write-Host "Aetherwake Browser Mode local-server self-test: PASS"
+
       - name: Launch one-file executable end to end
         shell: pwsh
         run: |
@@ -340,6 +386,14 @@ jobs:
               } |
               ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
           }
+
+      - name: Upload browser-mode launcher
+        uses: actions/upload-artifact@v4
+        with:
+          name: Aetherwake-Browser-Mode
+          path: artifact/Aetherwake-Browser-Mode/Aetherwake - Browser Mode.exe
+          if-no-files-found: error
+          compression-level: 0
 
       - name: Upload compatibility-mode launcher
         uses: actions/upload-artifact@v4
