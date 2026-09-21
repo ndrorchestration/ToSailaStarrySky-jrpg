@@ -69,6 +69,7 @@
     "test:runtime-authority": "node tests/runtime-authority-contract.test.js",
     "test:pixel-sprites": "node tests/pixel-sprite-contract.test.js",
     "test:pixel-tiles": "node tests/pixel-tile-contract.test.js",
+    "test:pixel-airship-art": "node tests/pixel-airship-art-contract.test.js",
     "test:pixel-world-ambient": "node tests/pixel-world-ambient-contract.test.js && node tests/16bit-world-art-contract.test.js"
   }
 }
