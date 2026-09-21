@@ -18,12 +18,38 @@ assert(fs.existsSync(path.join(__dirname, '..', 'icon.svg')),
   'desktop application icon is missing');
 assert(typeof packageJson.scripts['package:windows'] === 'string',
   'Windows packaging script is missing');
+assert(typeof packageJson.scripts['stage:desktop-runtime'] === 'string',
+  'desktop runtime staging script is missing');
+assert(packageJson.scripts['stage:desktop-runtime'] === 'node scripts/stage-desktop-runtime.js',
+  'desktop runtime staging command changed unexpectedly');
+assert(packageJson.scripts['package:windows'].includes('npm run stage:desktop-runtime'),
+  'Windows packaging must stage the minimal runtime before nw-builder');
+assert(packageJson.scripts['package:windows'].includes('build/runtime-app'),
+  'Windows packaging must target the staged runtime directory');
 assert(packageJson.scripts['package:windows'].includes('--outDir=../aetherwake-dist'),
   'Windows build output must stay outside the source tree');
 assert(packageJson.devDependencies && packageJson.devDependencies['nw-builder'] === '4.20.0',
   'nw-builder must be pinned to the verified packaging version');
 assert(!packageJson.devDependencies.nw && !packageJson.devDependencies.nwjs,
   'unused legacy NW.js npm packages must not be reintroduced');
+
+const stageScript = fs.readFileSync(
+  path.join(__dirname, '..', 'scripts', 'stage-desktop-runtime.js'),
+  'utf8'
+);
+assert(stageScript.includes("'index-embedded.html'") &&
+  stageScript.includes("'aetherwake.js'") &&
+  stageScript.includes("'p5.min.js'") &&
+  stageScript.includes("'embedded-fonts.css'") &&
+  stageScript.includes("'icon.svg'") &&
+  stageScript.includes("'modules'"),
+  'desktop runtime stage must explicitly include all required runtime assets');
+for (const forbidden of ['node_modules', 'tests', 'docs', '.github', 'scripts']) {
+  assert(stageScript.includes("'" + forbidden + "'"),
+    'desktop runtime stage must explicitly forbid ' + forbidden);
+}
+assert(stageScript.includes('20 * 1024 * 1024'),
+  'desktop runtime stage must fail closed on unexpected payload bloat');
 
 const workflow = fs.readFileSync(
   path.join(__dirname, '..', '.github', 'workflows', 'desktop-package.yml'),
