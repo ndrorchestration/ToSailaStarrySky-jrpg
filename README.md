@@ -38,24 +38,24 @@ Current canvas: **960×640**.
 
 ## Controls
 
-| Key | Action |
+Aetherwake's primary controls now follow the **Memories / RPG Maker-style JRPG vocabulary**. Normal play does not require memorizing Aetherwake-specific letter hotkeys.
+
+| Primary control | Action |
 |---|---|
-| **WASD / arrows** | Move |
-| **E** | Talk / interact / advance dialogue |
-| **Q** | Plant Covenant Field |
-| **F** | Board / interact with ship |
-| **Tab** | Toggle sky / ground layer |
-| **V** | Aether Sense — scan explicit nearby/world Aether signatures without spending a resource |
-| **L** | Mycelial ledger |
-| **M** | Repair Cafe / shop |
-| **R** | Character sheet |
-| **T** | Quest log |
-| **N / Enter / Space** | Start / confirm |
-| **C** | Trigger Sky-Predator encounter (development/testing) |
-| **F2** | Quick Save — available in normal WORLD state |
-| **F3** | Quick Load — available from menu/onboarding/WORLD safe states |
-| **1–8** | Combat actions |
-| **S** | Secondary combat action when available |
+| **Arrow keys / D-pad** | Move in the world; move menu/cursor selection |
+| **Z / Enter / Space / gamepad A** | Confirm, interact, talk, board/use contextual objects, select commands |
+| **X / Esc / gamepad B** | Open system menu in the world; cancel / go back |
+| **Shift / gamepad X** | Dash/fast movement; secondary/special combat action when available |
+| **Q / PageUp / left shoulder** | Previous page/character where supported |
+| **W / PageDown / right shoulder** | Next page/character where supported |
+
+The **system menu** provides normal access to **Status, Quest, Mycelial Ledger, Aether Sense, Covenant Field, Sky/Ground Layer, Save, and Load**.
+
+Combat, shops, Core choices, character/status pages, and the Aureate Wake systems console are cursor-driven: use the directional controls, **Z/Enter** to confirm, and **X/Esc** to back out.
+
+### Compatibility shortcuts
+
+Legacy development-era shortcuts remain temporarily available while the migration is stabilized: WASD movement; E/Q/F/Tab/V/L/M/R/T; number-key combat/choice shortcuts; F2/F3 quick save/load; and C to trigger the development Sky-Predator encounter. They are **aliases, not required controls**, and should not be treated as the normal player interface.
 
 ## Save / load
 
