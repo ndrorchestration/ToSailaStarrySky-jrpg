@@ -588,6 +588,9 @@ function AetherCombat(p, C) {
   // ── Rendering (called from core.js drawCombatScene wiring) ──
   this.drawCombatScene = function(playerX, playerY, aetherMax, staffMax, sceneOptions) {
     const sceneDomain = sceneOptions && sceneOptions.domain === 'sky' ? 'sky' : 'ground';
+    const sceneWeather = sceneOptions && typeof sceneOptions.weatherId === 'string' ? sceneOptions.weatherId : 'clear';
+    const sceneAltitude = sceneOptions && typeof sceneOptions.altitude === 'string' ? sceneOptions.altitude : null;
+    const scenePressure = sceneOptions && Number.isFinite(sceneOptions.encounterPressure) ? sceneOptions.encounterPressure : 0;
     const now = millis();
     
     // ── Background ──
@@ -608,6 +611,24 @@ function AetherCombat(p, C) {
         rect(0, by, p.width, 4);
         fill(C.teal[0], C.teal[1], C.teal[2], 8);
         rect(60 + band * 120, by - 5, 180, 2);
+      }
+      if (sceneWeather === 'crosswind') {
+        for (let gust = 0; gust < 10; gust++) {
+          const gx = ((gust * 127 + now * 0.18) % (p.width + 160)) - 80;
+          const gy = 72 + (gust * 49) % Math.floor(p.height * 0.66);
+          p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 42);
+          p.rect(gx, gy, 86, 2);
+          p.rect(gx + 24, gy - 4, 42, 2);
+        }
+      } else if (sceneWeather === 'aether-squall') {
+        p.fill(C.teal[0], C.teal[1], C.teal[2], 16);
+        p.rect(0, 0, p.width, p.height);
+        for (let arc = 0; arc < 14; arc++) {
+          const ax = (arc * 83 + now * 0.27) % p.width;
+          const ay = 54 + (arc * 61) % Math.floor(p.height * 0.7);
+          p.fill(C.teal[0], C.teal[1], C.teal[2], 55);
+          p.rect(ax, ay, 3, 18 + (arc % 3) * 6);
+        }
       }
     }
 
@@ -654,6 +675,14 @@ function AetherCombat(p, C) {
       p.textSize(12 * bannerT);
       p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * bannerT);
       p.text(state.enemy.name + ' approaches.', p.width/2, 58);
+      if (sceneDomain === 'sky') {
+        p.textSize(10 * bannerT);
+        p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 150 * bannerT);
+        const skyLabel = (sceneAltitude ? sceneAltitude.toUpperCase() + ' AIR' : 'OPEN AIR') +
+          ' // ' + sceneWeather.toUpperCase().replace('-', ' ') +
+          ' // PRESSURE ' + scenePressure;
+        p.text(skyLabel, p.width/2, 76);
+      }
     }
 
     // ── Enemy ──
