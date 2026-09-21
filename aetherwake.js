@@ -2037,10 +2037,18 @@ function drawAirNavigationScene() {
   if (travel) {
     fill(travel.encounterPressure > 1 ? C.rust[0] : C.scioto[0], travel.encounterPressure > 1 ? C.rust[1] : C.scioto[1], travel.encounterPressure > 1 ? C.rust[2] : C.scioto[2]);
     text('WAKE PRESSURE ' + travel.encounterPressure + (travel.routeShelter ? '   ROUTE SHELTER' : ''), 18, 84);
+    if (travel.approach && travel.approach.active && travel.approach.landmark) {
+      fill(232, 220, 198);
+      const approachText = travel.approach.landmark.dockable
+        ? 'APPROACH ' + travel.approach.landmark.label + '  ' + travel.approach.distance.toFixed(1) +
+          (travel.approach.speedLimit !== null ? '  AUTO-SLOW' : '')
+        : 'PASSING ' + travel.approach.landmark.label + '  ' + travel.approach.distance.toFixed(1);
+      text(approachText, 18, 100);
+    }
   }
   const berth = typeof nav.dockingCheck === 'function' ? nav.dockingCheck(airNavigationState) : { available: false };
   if (berth.available) {
-    fill(42, 255, 181); text('BERTH AVAILABLE: ' + berth.landmark.label + '   [D] DOCK', 18, 100);
+    fill(42, 255, 181); text('BERTH AVAILABLE: ' + berth.landmark.label + '   [D] DOCK', 18, 116);
   }
   fill(124, 200, 232); text('ARROWS FLY   Q/W ALTITUDE   SHIFT SPEED   D DOCK   ENTER SYSTEMS   ESC LAND', 18, height - 24);
 }
