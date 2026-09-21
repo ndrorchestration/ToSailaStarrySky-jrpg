@@ -24,4 +24,7 @@ assert(runtime.includes("'WAKE PRESSURE ' + travel.encounterPressure"),'flight H
 assert(runtime.includes("' / EFF ' + effectiveSpeed"),'flight HUD does not expose effective weather-adjusted speed');
 assert(runtime.includes("'APPROACH ' + travel.approach.landmark.label"),'flight HUD does not expose berth approach state');
 assert(runtime.includes("'  AUTO-SLOW'"),'flight HUD does not expose controlled approach speed limiting');
+assert(runtime.includes("'LANDMARK DISCOVERED // ' + landmark.label"),'landmark discovery feedback missing');
+assert(runtime.includes("'SKY LANE CHARTED // ' + route.label"),'route discovery feedback missing');
+assert(runtime.includes("'MOORED // ' + moored.label + '   ENTER FLIGHT TO CAST OFF'"),'moored ship-systems feedback missing');
 console.log('Aetherwake playable air-navigation contract: PASS');
