@@ -10,6 +10,7 @@
 }(typeof window !== 'undefined' ? window : globalThis, function () {
   'use strict';
   const VERSION = '0.4.0';
+  const PERSISTENCE_VERSION = 1;
   const SKY_WIDTH = 48, SKY_HEIGHT = 32;
   const ALTITUDES = Object.freeze(['low','cruise','high']);
 
@@ -222,6 +223,59 @@
     return next;
   }
 
+  function exportPersistentState(state) {
+    const next=createState(state);
+    return {
+      version:PERSISTENCE_VERSION,
+      x:next.x,
+      y:next.y,
+      altitude:next.altitude,
+      heading:next.heading,
+      speed:next.speed,
+      discovered:next.discovered.slice(),
+      discoveredRoutes:next.discoveredRoutes.slice(),
+      mooredLandmarkId:next.mooredLandmarkId,
+      encounterSteps:next.encounterSteps,
+      encounterSeed:next.encounterSeed,
+    };
+  }
+
+  function validatePersistentState(payload) {
+    if (!payload || typeof payload!=='object' || Array.isArray(payload)) throw new Error('AIR_NAV_STATE_OBJECT_REQUIRED');
+    if (payload.version!==PERSISTENCE_VERSION) throw new Error('AIR_NAV_STATE_VERSION_INVALID');
+    if (!Number.isFinite(payload.x) || !Number.isFinite(payload.y) ||
+        payload.x<0 || payload.x>=SKY_WIDTH || payload.y<0 || payload.y>=SKY_HEIGHT) {
+      throw new Error('AIR_NAV_STATE_POSITION_INVALID');
+    }
+    if (!ALTITUDES.includes(payload.altitude)) throw new Error('AIR_NAV_STATE_ALTITUDE_INVALID');
+    if (!Number.isFinite(payload.heading)) throw new Error('AIR_NAV_STATE_HEADING_INVALID');
+    if (!Number.isFinite(payload.speed) || payload.speed<0 || payload.speed>3) throw new Error('AIR_NAV_STATE_SPEED_INVALID');
+    if (!Array.isArray(payload.discovered) ||
+        payload.discovered.some(id=>!LANDMARKS.some(mark=>mark.id===id))) {
+      throw new Error('AIR_NAV_STATE_DISCOVERY_INVALID');
+    }
+    if (!Array.isArray(payload.discoveredRoutes) ||
+        payload.discoveredRoutes.some(id=>!SKY_ROUTES.some(route=>route.id===id))) {
+      throw new Error('AIR_NAV_STATE_ROUTE_DISCOVERY_INVALID');
+    }
+    if (payload.mooredLandmarkId!==null &&
+        !LANDMARKS.some(mark=>mark.id===payload.mooredLandmarkId && mark.dockable)) {
+      throw new Error('AIR_NAV_STATE_MOORING_INVALID');
+    }
+    if (!Number.isInteger(payload.encounterSteps) || payload.encounterSteps<0 ||
+        !Number.isInteger(payload.encounterSeed) || payload.encounterSeed<0) {
+      throw new Error('AIR_NAV_STATE_ENCOUNTER_INVALID');
+    }
+    return true;
+  }
+
+  function restorePersistentState(payload) {
+    validatePersistentState(payload);
+    const next=createState(payload);
+    next.weatherId=weatherAt(next).id;
+    return next;
+  }
+
   return {
     VERSION,SKY_WIDTH,SKY_HEIGHT,ALTITUDES:ALTITUDES.slice(),
     LANDMARKS:LANDMARKS.map(x=>Object.assign({},x)),
@@ -229,8 +283,9 @@
     WEATHER:WEATHER.map(x=>Object.assign({},x)),
     WEATHER_ZONES:WEATHER_ZONES.map(x=>Object.assign({},x)),
     SKY_ENCOUNTERS:SKY_ENCOUNTERS.map(x=>Object.assign({},x)),
-    ENCOUNTER_STEP_THRESHOLD,
+    ENCOUNTER_STEP_THRESHOLD,PERSISTENCE_VERSION,
     createState,nearestLandmark,weatherAt,projectToRoute,nearestRoute,routeContext,
-    dockingCheck,dock,undock,travelProfile,move,encounterCheck,changeAltitude
+    dockingCheck,dock,undock,travelProfile,move,encounterCheck,changeAltitude,
+    exportPersistentState,validatePersistentState,restorePersistentState
   };
 }));
