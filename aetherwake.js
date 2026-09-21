@@ -625,7 +625,6 @@ function windowResized() {
 }
 
 function handleInput() {
-  // ── Scene fade transition on state change ──
   if (lastFrameState !== null && lastFrameState !== gameState && VIS.fadeTransitions) {
     fade.active = true;
     fade.from = lastFrameState;
@@ -634,7 +633,6 @@ function handleInput() {
     fade.duration = 250;
   }
 
-  // ── Debug logging for key events ──
   window._lastStateTransition = {
     from: lastFrameState,
     to: gameState,
@@ -642,211 +640,323 @@ function handleInput() {
     keyCode: (typeof keyCode !== 'undefined' ? keyCode : null),
   };
 
-  // Handle state transitions keyed by physical key events.
-  // This runs from keyPressed() for keyCode-based checks.
-
-  const anyEnter = keysPressed[13] || keysPressed[32] ||          // Enter, Space
-                   (typeof key !== 'undefined' && (key === 'Enter' || key === ' ' || key === 'n' || key === 'N'));
+  const api = jrpgInputApi();
+  const A = api ? api.ACTION : {};
+  const ok = api ? inputPressed(A.OK) : Boolean(keysPressed[13] || keysPressed[32]);
+  const cancel = api ? inputPressed(A.CANCEL) : Boolean(keysPressed[27]);
+  const up = api ? inputPressed(A.UP) : Boolean(keysPressed[38]);
+  const down = api ? inputPressed(A.DOWN) : Boolean(keysPressed[40]);
+  const left = api ? inputPressed(A.LEFT) : Boolean(keysPressed[37]);
+  const right = api ? inputPressed(A.RIGHT) : Boolean(keysPressed[39]);
+  const pageUp = api ? inputPressed(A.PAGEUP) : Boolean(keysPressed[33]);
+  const pageDown = api ? inputPressed(A.PAGEDOWN) : Boolean(keysPressed[34]);
+  const shift = api ? inputPressed(A.SHIFT) : Boolean(keysPressed[16]);
 
   if (gameState === STATE.BOOT) {
-    // Any key skips the boot sequence, goes straight to menu.
-    // The same key press also triggers MENU→WORLD in the same frame so a
-    // single keypress (or test) gets the player into the world.
-    if (keysPressed[13] || keysPressed[32] || keysPressed[78] || keysPressed[110] ||
-        (typeof key !== 'undefined' && (key === 'Enter' || key === ' ' || key === 'n' || key === 'N'))) {
+    if (ok || keysPressed[78] || keysPressed[110]) {
       gameState = STATE.MENU;
+      window.gameState = gameState;
       titleVisible = 0;
       titleFlash = 0;
-      // Fall through to MENU handler in the same handleInput() call.
-      // Do NOT return — let the MENU branch below also run.
     }
-    // (intentionally fall through — MENU handler below also runs)
   }
+
   if (gameState === STATE.MENU) {
-    // Start game on Enter/Space/N (from both keyPressed path and character path).
-    // For headless Chromium (Playwright testing): keyTyped may not fire reliably
-    // for letter keys, so also handle keyPressed keyCode path explicitly.
-    if (keysPressed[13] || keysPressed[32] || keysPressed[78] || keysPressed[110] ||
-        (typeof key !== 'undefined' && (key === 'Enter' || key === ' ' || key === 'n' || key === 'N'))) {
-      startGame();
-    }
-    // If startGame() routed us into CHARCREATE, run the char-create handler
-    // for this same key press so the title→name transition works on first Enter.
+    if (ok || keysPressed[78] || keysPressed[110]) startGame();
     if (gameState === STATE.CHARCREATE &&
         window._charcreate && typeof window._charcreate.handleInput === 'function') {
-      window._charcreate.handleInput(keys, keysPressed);
+      window._charcreate.handleInput(keys, normalizedLegacyPressed());
     }
     return;
   }
 
   if (gameState === STATE.CHARCREATE) {
     if (window._charcreate && typeof window._charcreate.handleInput === 'function') {
-      window._charcreate.handleInput(keys, keysPressed);
+      window._charcreate.handleInput(keys, normalizedLegacyPressed());
     }
     return;
   }
 
   if (gameState === STATE.WORLD) {
     handleWorldInput();
+    return;
   }
-  else if (gameState === STATE.AIRSHIP) {
-    handleAirshipInput();
+
+  if (gameState === STATE.SYSTEMMENU) {
+    handleSystemMenuInput({ ok, cancel, up, down });
+    return;
   }
-  else if (gameState === STATE.COMBAT) {
+
+  if (gameState === STATE.AIRSHIP) {
+    handleAirshipInput({ ok, cancel, up, down, left, right });
+    return;
+  }
+
+  if (gameState === STATE.COMBAT) {
     if (combat && typeof combat.handleInput === 'function') {
-      combat.handleInput(keys, keysPressed);
+      combat.handleInput(keys, normalizedLegacyPressed());
+    }
+    const combatState = combat && typeof combat.getState === 'function'
+      ? combat.getState()
+      : null;
+
+    if (combatState && combatState.encounterOver && (ok || cancel)) {
+      finishCombat();
+      return;
     }
 
-    // Once an encounter is over, Enter / Space / Esc returns to WORLD and
-    // writes persistent combat results back to world.player.
-    if (combat && typeof combat.getState === 'function') {
-      const combatState = combat.getState();
-      if (combatState && combatState.encounterOver &&
-          (keysPressed[13] || keysPressed[32] || keysPressed[27])) {
-        finishCombat();
-        return;
+    const actions = combatState && Array.isArray(combatState.actions)
+      ? combatState.actions
+      : [];
+    if (actions.length > 0) {
+      if (up || left) combatCursor = (combatCursor - 1 + actions.length) % actions.length;
+      else if (down || right) combatCursor = (combatCursor + 1) % actions.length;
+
+      if (ok && combat && typeof combat.resolveTurn === 'function') {
+        const selected = actions[combatCursor];
+        if (selected) combat.resolveTurn(selected.id, null);
       }
     }
 
-    // Number keys 1-8 trigger combat actions
-    if (typeof key === 'string' && key >= '1' && key <= '8' && combat && typeof combat.resolveTurn === 'function') {
-      const actionIds = ['staffStrike', 'uncoverTruth', 'sharedDream', 'mycelialLedger', 'hold', 'windWard', 'aetherSeal', 'rest'];
+    if (typeof key === 'string' && key >= '1' && key <= '8' &&
+        combat && typeof combat.resolveTurn === 'function') {
+      const actionIds = ['staffStrike', 'uncoverTruth', 'sharedDream', 'mycelialLedger',
+        'hold', 'windWard', 'aetherSeal', 'rest'];
       const idx = key.charCodeAt(0) - 49;
       if (idx >= 0 && idx < actionIds.length) {
+        combatCursor = idx;
         combat.resolveTurn(actionIds[idx], null);
       }
     }
-    // S key: secondary action. Secondary state belongs to AetherCombat;
-    // core must not reach into the combat module's private state.
-    if (typeof key === 'string' && key.toLowerCase() === 's' &&
+
+    if ((shift || (typeof key === 'string' && key.toLowerCase() === 's')) &&
         combat && typeof combat.resolveSecondaryAction === 'function') {
       combat.resolveSecondaryAction();
     }
+    return;
   }
-  else {
-    // Overlay states honor the key shown in each overlay's prompt.
-    if (gameState === STATE.DIALOGUE && keysPressed[69]) {
+
+  if (gameState === STATE.DIALOGUE) {
+    if (ok || cancel || keysPressed[69]) {
       if (world && typeof world.nextDialogueLine === 'function') {
         world.nextDialogueLine();
         if (!window.UI.dialogueOpen) closeOverlay();
       }
-    } else if (gameState === STATE.SHOP &&
-      (keysPressed[77] || keysPressed[27])) {
-      closeOverlay();
-    } else if (gameState === STATE.LEDGER &&
-      (keysPressed[76] || keysPressed[27])) {
-      closeOverlay();
-    } else if (gameState === STATE.QUESTLOG &&
-      (keysPressed[84] || keysPressed[27])) {
-      closeOverlay();
-    } else if (gameState === STATE.CHARSHEET &&
-      (keysPressed[49] || keysPressed[50] || keysPressed[51] ||
-       keysPressed[52] || keysPressed[53])) {
+    }
+    return;
+  }
+
+  if (gameState === STATE.SHOP) {
+    handleShopInput({ ok, cancel, up, down });
+    return;
+  }
+
+  if (gameState === STATE.CHARSHEET) {
+    if (pageUp || left) {
+      charSheetRosterIndex = (charSheetRosterIndex + 4) % 5;
+      return;
+    }
+    if (pageDown || right) {
+      charSheetRosterIndex = (charSheetRosterIndex + 1) % 5;
+      return;
+    }
+    if (keysPressed[49] || keysPressed[50] || keysPressed[51] ||
+        keysPressed[52] || keysPressed[53]) {
       const selectedCode = [49, 50, 51, 52, 53].find(code => keysPressed[code]);
-      if (selectedCode != null) {
-        charSheetRosterIndex = selectedCode - 49;
-      }
-    } else if (gameState === STATE.CHARSHEET &&
-      (keysPressed[82] || keysPressed[27])) {
-      closeOverlay();
-    } else if (keysPressed[ENTER] || keysPressed[27]) {
+      if (selectedCode != null) charSheetRosterIndex = selectedCode - 49;
+      return;
+    }
+    if (cancel || keysPressed[82]) closeOverlay();
+    return;
+  }
+
+  if (gameState === STATE.LEDGER || gameState === STATE.QUESTLOG) {
+    if (cancel || ok ||
+        (gameState === STATE.LEDGER && keysPressed[76]) ||
+        (gameState === STATE.QUESTLOG && keysPressed[84])) {
       closeOverlay();
     }
+    return;
   }
+
+  if (cancel || ok) closeOverlay();
 }
 
 function handleWorldInput() {
-  // WASD movement with key repeat — first move is immediate, then repeat timer
+  // Arrow-key movement follows the Memories/RPG Maker convention.
+  // WASD remains a compatibility alias through the key map below.
   const now = millis();
-  const delay = 200, rate = 60;
+  const api = jrpgInputApi();
+  const fast = api ? inputHeld(api.ACTION.SHIFT) : Boolean(keys[16]);
+  const delay = fast ? 110 : 200;
+  const rate = fast ? 35 : 60;
 
-  for (const code of [UP_ARROW, DOWN_ARROW, LEFT_ARROW, RIGHT_ARROW]) {
-    if (keys[code]) {
-      if (!keyRepeat[code]) {
-        keyRepeat[code] = now;
-        keyRepeatFirst[code] = true;
-        // Immediate first move on keydown
-        doMove(code);
-      } else if (now - keyRepeat[code] >= (keyRepeatFirst[code] ? delay : rate)) {
-        keyRepeat[code] = now;
-        keyRepeatFirst[code] = false;
-        doMove(code);
+  const directions = [
+    { primary: UP_ARROW, aliases: [87], dx: 0, dy: -1 },
+    { primary: DOWN_ARROW, aliases: [83], dx: 0, dy: 1 },
+    { primary: LEFT_ARROW, aliases: [65], dx: -1, dy: 0 },
+    { primary: RIGHT_ARROW, aliases: [68], dx: 1, dy: 0 },
+  ];
+
+  for (const dir of directions) {
+    const heldCode = [dir.primary].concat(dir.aliases).find(code => keys[code]);
+    const repeatCode = heldCode || dir.primary;
+    if (heldCode) {
+      if (!keyRepeat[repeatCode]) {
+        keyRepeat[repeatCode] = now;
+        keyRepeatFirst[repeatCode] = true;
+        world.movePlayer(dir.dx, dir.dy);
+      } else if (now - keyRepeat[repeatCode] >=
+                 (keyRepeatFirst[repeatCode] ? delay : rate)) {
+        keyRepeat[repeatCode] = now;
+        keyRepeatFirst[repeatCode] = false;
+        world.movePlayer(dir.dx, dir.dy);
       }
     } else {
-      delete keyRepeat[code];
-      delete keyRepeatFirst[code];
+      [dir.primary].concat(dir.aliases).forEach(code => {
+        delete keyRepeat[code];
+        delete keyRepeatFirst[code];
+      });
     }
   }
 
-  // Edge-triggered actions
-  if (keysPressed[81]) {   // Q
-    if (world && typeof world.plantField === 'function') world.plantField();
-  }
-  if (keysPressed[69]) {   // E
-    if (gameState === STATE.DIALOGUE) {
-      if (world && typeof world.nextDialogueLine === 'function') {
-        world.nextDialogueLine();
-        if (!window.UI.dialogueOpen) closeOverlay();
-      }
-    } else if (world && typeof world.interact === 'function') {
-      const result = world.interact();
-      if (result && result.ok && result.kind === 'dialogue') {
-        openState(STATE.DIALOGUE);
-      }
+  const ok = api && inputPressed(api.ACTION.OK);
+  const menu = api && inputPressed(api.ACTION.MENU);
+
+  if (ok && world && typeof world.interact === 'function') {
+    window.interactionKey = 'ok';
+    const result = world.interact();
+    if (result && result.ok) {
+      if (result.kind === 'dialogue') openState(STATE.DIALOGUE);
+      else if (result.kind === 'airship') openState(STATE.AIRSHIP);
+      else if (result.kind === 'shop') openState(STATE.SHOP);
+      else if (result.kind === 'ledger') openState(STATE.LEDGER);
     }
   }
-  if (keysPressed[70]) {   // F
-    if (world && typeof world.interact === 'function') {
-      const result = world.interact();
-      if (result && result.ok && result.kind === 'airship') {
-        openState(STATE.AIRSHIP);
-      } else if (result && !result.ok && result.reason) {
-        addLedgerEntry('airship', result.reason);
-      }
+
+  if (menu) {
+    systemMenuCursor = Math.max(0,
+      Math.min(systemMenuCursor, getSystemMenuCommands().length - 1));
+    openState(STATE.SYSTEMMENU);
+    return;
+  }
+
+  // Compatibility aliases retained during migration.
+  if (keysPressed[81] && world && typeof world.plantField === 'function') {
+    world.plantField();
+  }
+  if (keysPressed[69] && world && typeof world.interact === 'function') {
+    window.interactionKey = 'e';
+    const result = world.interact();
+    if (result && result.ok && result.kind === 'dialogue') openState(STATE.DIALOGUE);
+  }
+  if (keysPressed[70] && world && typeof world.interact === 'function') {
+    window.interactionKey = 'f';
+    const result = world.interact();
+    if (result && result.ok && result.kind === 'airship') openState(STATE.AIRSHIP);
+  }
+  if (keysPressed[9] && world && typeof world.toggleLayer === 'function') world.toggleLayer();
+  if (keysPressed[76]) openState(STATE.LEDGER);
+  if (keysPressed[77] && world && typeof world.openShop === 'function') {
+    const result = world.openShop();
+    if (result && result.ok) openState(STATE.SHOP);
+    else if (result && result.reason) addLedgerEntry('shop', result.reason);
+  }
+  if (keysPressed[86] && world && typeof world.senseAether === 'function') {
+    const result = world.senseAether();
+    if (result && !result.ok && result.reason) {
+      addLedgerEntry('aether-sense',
+        'Aether Sense unavailable: ' + result.reason + '.');
     }
   }
-  if (keysPressed[9]) {    // Tab
-    if (world && typeof world.toggleLayer === 'function') world.toggleLayer();
-  }
-  if (keysPressed[76]) {   // L
-    openState(STATE.LEDGER);
-  }
-  if (keysPressed[77]) {   // M
-    // Route through world.openShop() which performs distance check
-    if (world && typeof world.openShop === 'function') {
-      const result = world.openShop();
-      if (result && result.ok) {
-        openState(STATE.SHOP);
-      } else if (result && !result.ok && result.reason) {
-        addLedgerEntry('shop', result.reason);
-      }
-    }
-  }
-  if (keysPressed[86]) {   // V — Aether Sense
-    if (world && typeof world.senseAether === 'function') {
-      const result = world.senseAether();
-      if (result && !result.ok && result.reason) {
-        addLedgerEntry('aether-sense', 'Aether Sense unavailable: ' + result.reason + '.');
-      }
-    }
-  }
-  if (keysPressed[82]) {   // R
-    openState(STATE.CHARSHEET);
-  }
-  if (keysPressed[84]) {   // T
-    openState(STATE.QUESTLOG);
-  }
-  // C: start combat encounter (dev/testing — triggers a Sky-Predator fight)
-  if (keysPressed[67]) {   // C
-    if (combat && typeof combat.beginEncounter === 'function') {
-      startCombat('skyPredator');
-    }
-  }
-  if (keysPressed[27]) {   // ESC
-    closeOverlay();
+  if (keysPressed[82]) openState(STATE.CHARSHEET);
+  if (keysPressed[84]) openState(STATE.QUESTLOG);
+
+  if (keysPressed[67] && combat && typeof combat.beginEncounter === 'function') {
+    startCombat('skyPredator');
   }
 }
 
+
+function getSystemMenuCommands() {
+  return [
+    { id: 'status', label: 'STATUS' },
+    { id: 'quest', label: 'QUEST' },
+    { id: 'ledger', label: 'MYCELIAL LEDGER' },
+    { id: 'sense', label: 'AETHER SENSE' },
+    { id: 'field', label: 'COVENANT FIELD' },
+    { id: 'save', label: 'SAVE' },
+    { id: 'load', label: 'LOAD' },
+  ];
+}
+
+function activateSystemMenuCommand(command) {
+  if (!command) return;
+  if (command.id === 'status') {
+    openState(STATE.CHARSHEET);
+  } else if (command.id === 'quest') {
+    openState(STATE.QUESTLOG);
+  } else if (command.id === 'ledger') {
+    openState(STATE.LEDGER);
+  } else if (command.id === 'sense') {
+    const returnState = prevState || STATE.WORLD;
+    closeOverlay();
+    if (returnState === STATE.WORLD && world && typeof world.senseAether === 'function') {
+      world.senseAether();
+    }
+  } else if (command.id === 'field') {
+    const returnState = prevState || STATE.WORLD;
+    closeOverlay();
+    if (returnState === STATE.WORLD && world && typeof world.plantField === 'function') {
+      world.plantField();
+    }
+  } else if (command.id === 'save') {
+    quickSaveGame();
+  } else if (command.id === 'load') {
+    quickLoadGame();
+  }
+}
+
+function handleSystemMenuInput(input) {
+  const commands = getSystemMenuCommands();
+  if (!commands.length) return;
+  if (input.cancel) {
+    closeOverlay();
+    return;
+  }
+  if (input.up) {
+    systemMenuCursor = (systemMenuCursor - 1 + commands.length) % commands.length;
+    return;
+  }
+  if (input.down) {
+    systemMenuCursor = (systemMenuCursor + 1) % commands.length;
+    return;
+  }
+  if (input.ok) activateSystemMenuCommand(commands[systemMenuCursor]);
+}
+
+function handleShopInput(input) {
+  const items = window.UI && Array.isArray(window.UI.shopItems)
+    ? window.UI.shopItems
+    : [];
+  if (input.cancel) {
+    closeOverlay();
+    return;
+  }
+  if (!items.length) return;
+  shopCursor = Math.max(0, Math.min(shopCursor, items.length - 1));
+  if (input.up) {
+    shopCursor = (shopCursor - 1 + items.length) % items.length;
+    return;
+  }
+  if (input.down) {
+    shopCursor = (shopCursor + 1) % items.length;
+    return;
+  }
+  if (input.ok && window.UI.shopBuyHandler) {
+    window.UI.shopBuyHandler(String(shopCursor + 1));
+  }
+}
 
 function commitAirshipState(nextState) {
   airshipState = nextState;
