@@ -401,14 +401,29 @@ unimplemented shell fail closed.
 The migration registry is explicit and currently empty because v1 is the first
 schema. No fictitious pre-v1 migration is claimed.
 
-### NOT YET PERSISTED
+### CURRENT SAVE SCHEMA — v2
 
-Schema v1 is intentionally **not** a complete player save. It does not yet
-serialize World/quest progression, position/layer state, ledger history,
-Dragonfly system state, or encounter-local combat state. The first four require
-explicit persistence contracts before a player-facing save/load feature is
-declared complete; encounter-local state should remain excluded unless a later
-design explicitly authorizes mid-encounter saves.
+Schema v2 is the current player save compatibility boundary:
+
+- versioned save kind `aetherwake-save`;
+- current storage key `aetherwake.save.v2`;
+- stable authored roster IDs with code-owned canonical identity;
+- allowlisted party/progression/resource state;
+- World position/layer, quest, and ledger state through the World persistence contract;
+- bounded Dragonfly system state through the airship persistence contract;
+- explicit migration from released schema v1;
+- validation of the complete document before restore;
+- restoration by mutation/rebinding rules that preserve canonical roster/World references.
+
+Player-facing quick controls now expose this boundary:
+
+- **F2** saves only from normal `WORLD` state;
+- **F3** loads only from safe menu/onboarding/`WORLD` states and returns to `WORLD`;
+- combat/UI/transient states remain excluded;
+- combat is reinitialized from the restored canonical World player after load.
+
+Encounter-local combat state and presentation/render state remain intentionally
+outside the save document. Mid-encounter saving is not authorized by v2.
 
 ---
 
@@ -455,6 +470,6 @@ Automated tests should also cover:
 10. expand campaign content,
 11. production hardening and balance.
 
-**Development-branch checkpoint:** the smoke-stabilized baseline plus steps 2–5 are verified; step 6 is partially established through the fail-closed ordinary effect resolver; step 7 has established fixed Ender/Lyra/Ionia authored onboarding while companion canonical jobs/mechanics remain unresolved; and save schema v1 now establishes the party/progression compatibility boundary required before broader progression work. Complete world/quest/airship persistence remains open. Promotion/merge to `main` has not occurred.
+**Development-branch checkpoint:** the smoke-stabilized baseline plus steps 2–5 are verified; step 6 is partially established through the fail-closed ordinary effect resolver; step 7 has established fixed Ender/Lyra/Ionia authored onboarding while companion canonical jobs/mechanics remain unresolved; and save schema v2 now covers party/progression, World/quest/ledger, and bounded Dragonfly state with explicit v1 migration and player-facing F2/F3 safe-state controls. Encounter-local combat persistence remains intentionally excluded. Promotion/merge to `main` has not occurred.
 
 **Non-negotiable:** avoid a single rewrite of character creation, combat, progression, and party state at the same time.
