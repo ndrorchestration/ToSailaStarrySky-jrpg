@@ -93,6 +93,7 @@ const requiredScripts = [
   'modules/effect-resolver.js',
   'modules/ability-defs.js',
   'modules/progression-defs.js',
+  'modules/mastery-defs.js',
   'modules/party-state.js',
   'modules/save-state.js',
   'modules/airship-state.js',
@@ -120,6 +121,15 @@ for (const entrypoint of ['index-embedded.html', 'index.html']) {
     previous = index;
   }
 }
+
+assert(source.includes('AETHER_MASTERY_DEFS_UNAVAILABLE'),
+  'runtime boot does not fail closed when mastery definitions are missing');
+assert(source.includes('window.AetherMasteryDefs.validate()'),
+  'runtime boot does not validate mastery definitions');
+assert(source.includes('window._masteryDefs = window.AetherMasteryDefs'),
+  'validated mastery definitions are not exposed to the runtime');
+
+console.log('Aetherwake mastery boot contracts: PASS');
 
 console.log('Aetherwake entrypoint contracts: PASS');
 
