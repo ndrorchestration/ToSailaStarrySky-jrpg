@@ -55,6 +55,22 @@ assert(!staffProfile.common.some(effect =>
   effect.target === vocabulary.TARGET.SELF
 ), 'migrated Staff Strike must not retain PbtA failure/counter self-damage');
 
+const holdProfile = vocabulary.ACTION_EFFECT_PROFILES.hold;
+assert.deepStrictEqual(holdProfile.success, [],
+  'migrated Hold must not advertise a success outcome band');
+assert.deepStrictEqual(holdProfile.partial, [],
+  'migrated Hold must not advertise a partial outcome band');
+assert.deepStrictEqual(holdProfile.failure, [],
+  'migrated Hold must not advertise a failure outcome band');
+assert(holdProfile.common.some(effect =>
+  effect.kind === vocabulary.EFFECT_KIND.RESOURCE &&
+  effect.operation === vocabulary.OPERATION.INCREASE &&
+  effect.key === vocabulary.RESOURCE.STAFF_CHARGES
+), 'migrated Hold must retain staff-charge recovery');
+assert(!holdProfile.common.some(effect =>
+  effect.kind === vocabulary.EFFECT_KIND.DAMAGE
+), 'migrated Hold must not retain PbtA self-damage');
+
 const uncoverSuccess = vocabulary.ACTION_EFFECT_PROFILES.uncoverTruth.success;
 assert(uncoverSuccess.some(effect =>
   effect.kind === vocabulary.EFFECT_KIND.REVEAL &&
