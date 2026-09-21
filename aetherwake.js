@@ -4224,87 +4224,83 @@ function render() {
 // --- Ship Interior ----------------------------------------------------------
 
 function drawShipInterior() {
-  // The Unfinished Song — top-down deck view
+  // The Unfinished Song — compact dragonfly-derived technomagical deck.
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2]);
+  fill(20, 18, 31);
   rect(0, 0, width, height);
 
-  // Title
-  fill(C.teal[0], C.teal[1], C.teal[2], 200);
-  textAlign(CENTER, TOP);
-  textSize(11);
-  textFont('Press Start 2P');
-  text('THE UNFINISHED SONG', width / 2, 12);
-  textSize(10);
-  textFont('sans-serif');
+  const cx = Math.round(width / 2), cy = Math.round(height / 2);
+  const deckX = 176, deckY = 96, deckW = width - 352, deckH = height - 192;
 
-  // Deck outline — main hull
-  const deckX = 80, deckY = 60, deckW = width - 160, deckH = height - 120;
-  noFill();
-  stroke(C.soil[0], C.soil[1], C.soil[2], 180);
-  strokeWeight(2);
-  rect(deckX, deckY, deckW, deckH);
+  // Layered void/sky framing gives the tiny ship a strong readable silhouette.
+  fill(28, 34, 55); rect(0, 72, width, height - 144);
+  fill(47, 97, 127); rect(48, cy - 2, 128, 4); rect(width - 176, cy - 2, 128, 4);
+
+  // Dragonfly wing spars: narrow, engineered, luminous rather than giant sails.
+  stroke(72, 138, 167); strokeWeight(3);
+  line(deckX + 32, cy - 54, 78, cy - 150); line(deckX + 32, cy + 54, 78, cy + 150);
+  line(deckX + deckW - 32, cy - 54, width - 78, cy - 150);
+  line(deckX + deckW - 32, cy + 54, width - 78, cy + 150);
+  stroke(42, 255, 181); strokeWeight(1);
+  line(deckX + 40, cy - 48, 104, cy - 132); line(deckX + 40, cy + 48, 104, cy + 132);
+  line(deckX + deckW - 40, cy - 48, width - 104, cy - 132);
+  line(deckX + deckW - 40, cy + 48, width - 104, cy + 132);
   noStroke();
 
-  // Deck planks (subtle horizontal lines)
-  stroke(C.soil[0], C.soil[1], C.soil[2], 40);
-  strokeWeight(1);
-  for (let y = deckY + 20; y < deckY + deckH - 10; y += 20) {
-    line(deckX + 4, y, deckX + deckW - 4, y);
-  }
-  noStroke();
+  // Weathered hull with stepped pixel silhouette.
+  fill(72, 35, 26); rect(deckX - 16, deckY + 48, deckW + 32, deckH - 96);
+  fill(118, 58, 33); rect(deckX, deckY + 24, deckW, deckH - 48);
+  fill(176, 105, 58); rect(deckX + 16, deckY + 8, deckW - 32, deckH - 16);
+  fill(184, 163, 119); rect(deckX + 32, deckY, deckW - 64, deckH);
+  fill(91, 68, 61); rect(deckX + 40, deckY + 16, deckW - 80, deckH - 32);
 
-  // Core glow in center
-  const cx = width / 2, cy = height / 2;
-  const pulse = Math.sin(millis() * 0.004) * 0.15 + 0.85;
-  const coreR = 18 + Math.sin(millis() * 0.005) * 2;
-  noStroke();
-  fill(C.scioto[0], C.scioto[1], C.scioto[2], 30 * pulse);
-  ellipse(cx, cy, coreR * 3, coreR * 1.8);
-  fill(C.teal[0], C.teal[1], C.teal[2], 60 * pulse);
-  ellipse(cx, cy, coreR * 2, coreR * 1.3);
-  fill(C.scioto[0], C.scioto[1], C.scioto[2], 160 * pulse);
-  ellipse(cx, cy, coreR * 0.8, coreR * 0.6);
-  noStroke();
+  // Plank/rib rhythm remains pixel aligned.
+  fill(118, 58, 33);
+  for (let y = deckY + 32; y < deckY + deckH - 24; y += 32) rect(deckX + 44, y, deckW - 88, 2);
+  for (let x = deckX + 64; x < deckX + deckW - 48; x += 64) rect(x, deckY + 20, 2, deckH - 40);
 
-  // Core label
-  fill(C.teal[0], C.teal[1], C.teal[2], 150);
-  textAlign(CENTER, CENTER);
-  textSize(8);
-  textFont('VT323');
-  text('CORE', cx, cy - 22);
-  textSize(10);
-  textFont('sans-serif');
+  // Forward observation glass and aft propulsion spine.
+  fill(47, 97, 127); rect(cx - 56, deckY + 12, 112, 30);
+  fill(124, 200, 232); rect(cx - 44, deckY + 18, 88, 14);
+  fill(29, 72, 52); rect(cx - 34, deckY + deckH - 42, 68, 20);
+  fill(42, 255, 181); rect(cx - 26, deckY + deckH - 36, 52, 8);
 
-  // Ender / player on deck — same sprite authority as the overworld.
-  const px = cx - 48, py = cy + 20;
+  // Multiphasic aether core: concentric pixel diamonds, no procedural ellipses.
+  const pulse = Math.floor(millis() / 220) % 2;
+  fill(47, 97, 127); rect(cx - 28, cy - 18, 56, 36);
+  fill(72, 138, 167); rect(cx - 20, cy - 24, 40, 48);
+  fill(42, 255, 181); rect(cx - 12, cy - 16, 24, 32);
+  fill(211, 239, 241); rect(cx - 4 - pulse * 2, cy - 8 - pulse * 2, 8 + pulse * 4, 16 + pulse * 4);
+
+  // Functional consoles and hydroponic repair beds.
+  fill(29, 72, 52); rect(deckX + 54, cy - 86, 88, 34); rect(deckX + deckW - 142, cy - 86, 88, 34);
+  fill(82, 121, 68); rect(deckX + 62, cy - 78, 72, 18); rect(deckX + deckW - 134, cy - 78, 72, 18);
+  fill(139, 184, 88); rect(deckX + 70, cy - 74, 8, 8); rect(deckX + 92, cy - 70, 8, 8);
+  rect(deckX + deckW - 82, cy - 74, 8, 8); rect(deckX + deckW - 106, cy - 70, 8, 8);
+  fill(47, 97, 127); rect(deckX + 54, cy + 62, 88, 30); rect(deckX + deckW - 142, cy + 62, 88, 30);
+  fill(42, 255, 181); rect(deckX + 62, cy + 70, 24, 4); rect(deckX + deckW - 86, cy + 70, 24, 4);
+
+  fill(C.teal[0], C.teal[1], C.teal[2], 210);
+  textAlign(CENTER, TOP); textSize(11); textFont('Press Start 2P');
+  text('THE UNFINISHED SONG', cx, 18);
+  textSize(7); text('AETHER CORE', cx, cy - 42);
+
+  // Ender on deck — shared sprite authority.
+  const px = cx - 64, py = cy + 34;
   if (window.AetherPixelSprites) {
     window.AetherPixelSprites.drawShadow(px + 8, py + 15, 1);
     window.AetherPixelSprites.draw('ender', px, py, {
-      frame: Math.floor(frameCount / 40) % 2,
-      scale: 1,
-      anchor: 'top-left',
+      frame: Math.floor(frameCount / 40) % 2, scale: 1, anchor: 'top-left',
     });
   }
   fill(C.teal[0], C.teal[1], C.teal[2], 180);
-  textAlign(CENTER, TOP);
-  textSize(7);
-  textFont('Press Start 2P');
-  text('ENDER', px + 8, py - 10);
-  textSize(10);
-  textFont('sans-serif');
+  textAlign(CENTER, TOP); textSize(7); textFont('Press Start 2P'); text('ENDER', px + 8, py - 10);
 
-  // Exit prompt
-  noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2], 180);
-  rect(0, height - 28, width, 28);
-  fill(C.teal[0], C.teal[1], C.teal[2], 180);
-  textAlign(CENTER, CENTER);
-  textSize(9);
-  textFont('VT323');
-  text('[ L ] or [ ESC ] to disembark', width / 2, height - 14);
-  textSize(10);
-  textFont('sans-serif');
+  fill(C.navy[0], C.navy[1], C.navy[2], 220); rect(0, height - 30, width, 30);
+  fill(C.teal[0], C.teal[1], C.teal[2], 190);
+  textAlign(CENTER, CENTER); textSize(9); textFont('VT323');
+  text('[ L ] or [ ESC ] to disembark', cx, height - 15);
+  textSize(10); textFont('sans-serif');
 }
 
 
