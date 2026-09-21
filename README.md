@@ -112,7 +112,9 @@ The current preservation baseline contains eight combat actions:
 
 Current prototype progression unlocks **Wind Ward at level 3, Aether Seal at level 4, and Rest at level 5**.
 
-The remaining 2D6 action definitions are a **legacy implementation baseline**, not the final architecture. Staff Strike, Hold, and Rest are the first three actions migrated out of that baseline. The target system uses data-driven ability formulas, explicit prerequisites, a generic effect resolver, bounded accuracy/critical/status variance where appropriate, school mastery, jobs, and party-combination arts.
+The remaining 2D6 action definitions are a **legacy implementation baseline**, not the final architecture. Staff Strike, Hold, and Rest are the first three actions migrated out of that baseline.
+
+**Uncover Truth remains on the legacy resolution branch**, but its information effect is now real: enemy weaknesses begin hidden, successful Uncover Truth stores a combat-local reveal through the generic effect resolver, and the combat panel exposes the weakness only after discovery. The old “+1 next roll” claim has been removed from player-facing metadata because that modifier was never consumed by runtime logic. The target system uses data-driven ability formulas, explicit prerequisites, a generic effect resolver, bounded accuracy/critical/status variance where appropriate, school mastery, jobs, and party-combination arts.
 
 ## Party architecture
 
@@ -167,8 +169,8 @@ It includes signal hooks, traversal hazards, NPC encounters, three major choice 
 |---|---|
 | `aetherwake.js` | Current integrated runtime / preservation build |
 | `index-embedded.html` | Current browser entry point |
-| `modules/effect-vocabulary.js` | Frozen effect vocabulary v0.1 + current action effect profiles |
-| `modules/effect-resolver.js` | Fail-closed ordinary mutation resolver for damage/restoration/resources |
+| `modules/effect-vocabulary.js` | Frozen effect vocabulary v0.2 + current action effect profiles |
+| `modules/effect-resolver.js` | Fail-closed mutation resolver for damage/restoration/resources + combat-local reveals |
 | `modules/ability-defs.js` | Canonical metadata for the eight current combat actions |
 | `modules/progression-defs.js` | Canonical current level-unlock table |
 | `modules/mastery-defs.js` | Code-owned mastery/domain facts, Ender affinities, and explicit UNKNOWN companion canon |
@@ -222,7 +224,7 @@ The production migration is incremental:
 1. establish one verified playable baseline,
 2. introduce persistent five-character roster state,
 3. formalize effect vocabulary and extract the current ability/progression registries — **established on `dev/progression-build`**,
-4. route ordinary combat mutations through a generic effect resolver while preserving current 2D6 outcome behavior — **damage/restoration/resource routing established on `dev/progression-build`**,
+4. route ordinary combat mutations through a generic effect resolver while preserving unmigrated compatibility behavior — **damage/restoration/resource + combat-local reveal routing established on `dev/progression-build`**,
 5. enforce current learned/unlocked action eligibility before broader mastery-tree work — **established on `dev/progression-build`**,
 6. replace prototype companion creation with authored roster onboarding — **identity migration established on `dev/progression-build`; canonical companion jobs/mechanics remain unresolved**,
 7. implement school/job/mastery progression — **Phase A definitions established; mutable mastery/save-v3 state not yet implemented**,
