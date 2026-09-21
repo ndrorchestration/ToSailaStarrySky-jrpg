@@ -1,9 +1,8 @@
 # Aetherwake Spec Conformance Audit — gap_analysis.md
 
-> **Current audit:** 2026-09-21  
-> **Branch:** `dev/progression-build`  
-> This document supersedes the 2026-09-19 snapshot. Historical claims remain
-> available in git history; they should not be treated as current project state.
+> **Status:** HISTORICAL IMPLEMENTATION AUDIT — superseded for current-direction questions by `docs/DOCUMENTATION_AUTHORITY.md`, `SPEC.md`, and current automated contracts.  
+> **Snapshot lineage:** 2026-09-21 / `dev/progression-build`.  
+> Keep this file as migration evidence; do **not** infer current canon, final party size, art direction, or production combat architecture from an unchecked row below.
 
 ## 0. Current verified baseline
 
@@ -11,7 +10,7 @@ Aetherwake now has a verified playable desktop/browser baseline with:
 
 - dual playable entrypoints (`index-embedded.html` and `index.html`);
 - fixed authored onboarding for Ender, Lyra, and Ionia;
-- canonical `ROSTER[5]` and reference-based `ACTIVE_PARTY[3]`;
+- canonical `ROSTER[5]` and the then-current opening-party `ACTIVE_PARTY[3]` projection; final creator direction now expands combat/menu presentation to all five protagonists as later joins occur;
 - player-facing schema-v2 F2/F3 save/load;
 - Ender combat with eight stable action slots and level-gated unlocks;
 - World/quest/dialogue/shop/ledger/airship vertical-slice systems;
@@ -75,14 +74,14 @@ The Windows package is generated from a minimal runtime staging directory.
 | Requirement | Current status | Evidence boundary |
 |---|---|---|
 | Five stable authored identities | ✅ Established | Ender, Lyra, Ionia, Reson, Aepex in canonical order |
-| Three active references | ✅ Established | `ACTIVE_PARTY = [Ender, Lyra, Ionia]` as direct roster references |
+| Opening-trio references | ✅ Established at this snapshot | `ACTIVE_PARTY = [Ender, Lyra, Ionia]` as direct roster references; this is not the final party-size target |
 | Ender World identity | ✅ Established | `world.player === ROSTER[0] === ACTIVE_PARTY[0]` |
 | Authored onboarding | ✅ Established | Lyra/Ionia are fixed identities, not renamable generic slots |
 | Temporary companion mechanics | ✅ Centralized | Shared `field-role-defs.js` registry |
 | Companion canonical jobs/affinities | ⚪ UNKNOWN by design | No values fabricated |
 | Reson/Aepex runtime mechanics | 🔴 Not implemented | Identity/schema shells only |
-| Formation mutation | 🔴 Not implemented | Current implemented trio is already the fixed active party |
-| True three-character combat | 🔴 Not implemented | Current encounter executor still resolves Ender only |
+| Four/five-member expansion | 🔴 Not implemented at this snapshot | Creator direction now requires later expansion to Reson and Aepex, reaching all five simultaneously |
+| Authored multi-character combat | 🔴 Not implemented at this snapshot | Current encounter executor still resolves Ender only; eventual runtime must scale through the opening trio to four/five members |
 
 ### Important distinction
 
@@ -99,9 +98,9 @@ inventing unresolved mechanics.
 
 ## 3. Combat / effects / progression
 
-### Established
+### Historical implementation facts at this snapshot
 
-- 2D6 + stat with 10+ / 7–9 / 6− outcome bands;
+- Preservation-era 2D6 + stat with 10+ / 7–9 / 6− outcome bands remained present for compatibility; **this is not the production combat target**.
 - eight stable Ender action slots;
 - Staff Strike and Hold baseline availability;
 - level-gated Wind Ward / Aether Seal / Rest;
