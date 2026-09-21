@@ -172,6 +172,33 @@ jobs:
           }
           Write-Host "One-file Aetherwake executable bytes: $($files[0].Length)"
 
+      - name: Build one-file Aetherwake compatibility launcher
+        shell: pwsh
+        run: |
+          $launcherDir = Join-Path $PWD "packaging\one-file-launcher"
+          $publish = Join-Path $PWD "compat-launcher-publish"
+          if (Test-Path -LiteralPath $publish) { Remove-Item $publish -Recurse -Force }
+
+          dotnet publish "$launcherDir\AetherwakeCompatibility.csproj" -c Release -r win-x64 --self-contained true -o $publish
+
+          $built = Join-Path $publish "AetherwakeCompatibility.exe"
+          if (-not (Test-Path -LiteralPath $built -PathType Leaf)) {
+            throw "Compatibility launcher was not produced: $built"
+          }
+
+          $compatStage = Join-Path $PWD "artifact\Aetherwake-Compatibility"
+          if (Test-Path -LiteralPath $compatStage) { Remove-Item $compatStage -Recurse -Force }
+          New-Item -ItemType Directory -Path $compatStage -Force | Out-Null
+
+          $compatFile = Join-Path $compatStage "Aetherwake - Compatibility Mode.exe"
+          Copy-Item -LiteralPath $built -Destination $compatFile -Force
+
+          $header = [System.IO.File]::ReadAllBytes($compatFile)[0..1]
+          if ($header[0] -ne 0x4D -or $header[1] -ne 0x5A) {
+            throw "Compatibility launcher is not a valid Windows PE file"
+          }
+          Write-Host "Compatibility executable bytes: $((Get-Item -LiteralPath $compatFile).Length)"
+
       - name: Launch one-file executable end to end
         shell: pwsh
         run: |
@@ -274,6 +301,53 @@ jobs:
               } |
               ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
           }
+
+      - name: Verify compatibility-mode packaged canvas renders
+        shell: pwsh
+        run: |
+          $compatFile = Join-Path $PWD "artifact\Aetherwake-Compatibility\Aetherwake - Compatibility Mode.exe"
+          $runtimeRoot = Join-Path $env:LOCALAPPDATA "Aetherwake\runtime"
+
+          Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+            Where-Object {
+              $_.ExecutablePath -and
+              $_.ExecutablePath.StartsWith($runtimeRoot, [System.StringComparison]::OrdinalIgnoreCase)
+            } |
+            ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+
+          $diagnostic = Join-Path $env:LOCALAPPDATA "Aetherwake\startup-diagnostic.json"
+          if (Test-Path -LiteralPath $diagnostic) { Remove-Item $diagnostic -Force }
+
+          $env:AETHERWAKE_DIAGNOSTICS = "1"
+          $launcher = Start-Process -FilePath $compatFile -PassThru
+          if (-not $launcher.WaitForExit(180000)) {
+            try { $launcher.Kill() } catch {}
+            throw "Compatibility launcher process did not exit within 180 seconds"
+          }
+          if ($launcher.ExitCode -ne 0) {
+            throw "Compatibility launcher exited with code $($launcher.ExitCode)"
+          }
+
+          Start-Sleep -Seconds 3
+          try {
+            ./scripts/verify-windows-packaged-render.ps1
+          }
+          finally {
+            Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+              Where-Object {
+                $_.ExecutablePath -and
+                $_.ExecutablePath.StartsWith($runtimeRoot, [System.StringComparison]::OrdinalIgnoreCase)
+              } |
+              ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+          }
+
+      - name: Upload compatibility-mode launcher
+        uses: actions/upload-artifact@v4
+        with:
+          name: Aetherwake-Compatibility
+          path: artifact/Aetherwake-Compatibility/Aetherwake - Compatibility Mode.exe
+          if-no-files-found: error
+          compression-level: 0
 
       - name: Upload packaged-window diagnostic
         if: always()
