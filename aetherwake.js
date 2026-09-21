@@ -4357,27 +4357,53 @@ function drawTileSolid(px, py, s) {
   drawPixelWorldTile('hull', px, py, 0);
 }
 
+function isGroundType(tx, ty, type) {
+  return ty >= 0 && ty < MAP_SIZE && tx >= 0 && tx < MAP_SIZE &&
+    groundLayer[ty] && groundLayer[ty][tx] === type;
+}
+
+function scenicNoise(tx, ty, salt) {
+  // Stable integer field: deterministic art placement with no runtime randomness.
+  let n = Math.imul(tx + salt * 17, 374761393) ^ Math.imul(ty - salt * 13, 668265263);
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  return (n ^ (n >>> 16)) >>> 0;
+}
+
+function grassNeighborCount(tx, ty) {
+  let count = 0;
+  for (let oy = -1; oy <= 1; oy++) {
+    for (let ox = -1; ox <= 1; ox++) {
+      if ((ox || oy) && isGroundType(tx + ox, ty + oy, TILE_TYPES.GROUND_GRASS)) count++;
+    }
+  }
+  return count;
+}
+
 function drawTileGrass(px, py, s) {
   const tx = Math.round(px / 16);
   const ty = Math.round(py / 16);
-  const variant = Math.abs(tx * 7 + ty * 13) % 3;
-
-  // Compose richer 16-bit scenery from the underlying walkable grass tile.
-  // This is decorative only: collision/topology remain owned by groundLayer.
+  const variant = scenicNoise(tx, ty, 1) % 3;
   drawPixelWorldTile('grass', px, py, variant);
-  const scenic = Math.abs(tx * 31 + ty * 17) % 29;
-  if (scenic === 3 || scenic === 11) {
+
+  // Region-aware scenic composition. Dense grass interiors carry vegetation,
+  // while landmark bands are deliberately sparse so navigation stays legible.
+  // Decorative only: collision/topology remain owned by groundLayer.
+  const neighbors = grassNeighborCount(tx, ty);
+  const biome = scenicNoise(Math.floor(tx / 3), Math.floor(ty / 3), 4) % 12;
+  const local = scenicNoise(tx, ty, 7) % 16;
+
+  if (neighbors >= 5 && biome <= 2 && local < 10) {
     drawPixelWorldTile('forest', px, py, 0);
-  } else if (scenic === 7 || scenic === 13) {
+  } else if (neighbors >= 4 && (biome === 3 || biome === 4) && local < 7) {
     drawPixelWorldTile('flowers', px, py, 0);
-  } else if (scenic === 19) {
-    drawPixelWorldTile('path', px, py, 0);
-  } else if (scenic === 23 && ty < 10) {
+  } else if (neighbors >= 5 && biome === 5 && local < 5 && ty < Math.floor(MAP_SIZE * 0.55)) {
     drawPixelWorldTile('mountain', px, py, 0);
-  } else if (scenic === 27 && tx > 8 && ty > 7) {
+  } else if (neighbors >= 4 && biome === 8 && local === 0) {
     drawPixelWorldTile('ruins', px, py, 0);
-  } else if (scenic === 5 && tx > 12 && ty > 10) {
+  } else if (neighbors >= 5 && biome === 9 && local === 1) {
     drawPixelWorldTile('village', px, py, 0);
+  } else if ((tx + Math.floor(ty / 3)) % 11 === 5 && neighbors >= 3) {
+    drawPixelWorldTile('path', px, py, 0);
   }
 }
 
