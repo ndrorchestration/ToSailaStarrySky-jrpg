@@ -48,6 +48,9 @@ jobs:
       - name: Verify progression reachability
         run: npm run test:progression-reachability
 
+      - name: Verify long-form progression curve
+        run: npm run test:longform-progression
+
       - name: Verify secondary-action state
         run: npm run test:secondary-action
 
