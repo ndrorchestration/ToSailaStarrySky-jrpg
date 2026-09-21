@@ -220,6 +220,9 @@ assert.strictEqual(
 
 assert.strictEqual(pulseEval.VERSION, '0.1.0');
 assert.strictEqual(pulseEval.STATUS, 'synthetic-test-only');
+assert.strictEqual(pulseEval.SPELL_ID, 'aetherPulse');
+assert.strictEqual(pulseEval.SCHOOL_ID, 'aether');
+assert.strictEqual(pulseEval.RESOURCE, 'aether');
 
 function syntheticBalanceCandidate(candidateId, resourceCost, rollStat, enemyDamage, selfDamage) {
   return {
