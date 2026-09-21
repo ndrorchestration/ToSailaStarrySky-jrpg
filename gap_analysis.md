@@ -1,163 +1,272 @@
 # Aetherwake Spec Conformance Audit — gap_analysis.md
-> Status as of 2026-09-19. The `aetherwake.js` monolith has been expanded from 6,798 lines (when
-> this document was first authored) to 7,523 lines through three agent expansion squads (combat §6-§7,
-> character creation wiring, quest UI + Memories polish). Re-read cited regions before trusting any
-> claim below — line numbers shifted during expansion.
 
-## §0 — Structural note (always current)
+> **Current audit:** 2026-09-21  
+> **Branch:** `dev/progression-build`  
+> This document supersedes the 2026-09-19 snapshot. Historical claims remain
+> available in git history; they should not be treated as current project state.
 
-**Finding:** `index-embedded.html` loads only `aetherwake.js` (7,523 lines) + `modules/char-create.js`
-(via `<script>` tag added by the char-create wiring squad). The `modules/` directory (`core.js`,
-`world.js`, `combat.js`, `ui.js`, `audio.js`) is a dead-end tree of narrative mirrors — not loaded
-at runtime. All edits must target `aetherwake.js` (the live bundled source) or add `<script>` tags
-to `index-embedded.html`. Both `standalone/www/` and `nw-package/` are separate deploy targets that
-must be re-synced after any `aetherwake.js` edit.
+## 0. Current verified baseline
 
----
+Aetherwake now has a verified playable desktop/browser baseline with:
 
-## §6 — Combat Actions (8 wired + 3 unlockable) — CURRENT STATE
+- dual playable entrypoints (`index-embedded.html` and `index.html`);
+- fixed authored onboarding for Ender, Lyra, and Ionia;
+- canonical `ROSTER[5]` and reference-based `ACTIVE_PARTY[3]`;
+- player-facing schema-v2 F2/F3 save/load;
+- Ender combat with eight stable action slots and level-gated unlocks;
+- World/quest/dialogue/shop/ledger/airship vertical-slice systems;
+- Mastery Phase A code-owned facts;
+- a shared preservation field-role registry for temporary companion mechanics;
+- a read-only five-character roster browser on the character sheet;
+- a verified Windows desktop package built from a minimal staged runtime payload.
 
-**SPEC requirement (lines 17–30, 25–29):** *Turn-based 2D6 PbtA. Ender abilities: Uncover Truth,
-Shared Dream, Mycelial Ledger, Resonator Staff. 3 unlockable: wind ward, aether seal, rest.*
+Recent authority checkpoints include:
 
-| Requirement | Status | Detail |
-|---|---|---|
-| 2D6 resolution with 10+/7-9/6- outcomes | ✅ Delivered | `roll2d6Plus(stat)`: returns `{dice, stat, total, outcome}`. |
-| Initiative: Grace + Wits | ✅ Delivered | `state.initiative = state.player.wits + state.player.grace`. |
-| Staff Strike (EMP 1d6+2, 2 charges) | ✅ Delivered | `staffStrike`, attack, might, cost 0, tier 0. |
-| Uncover Truth (2D6+Wits, reveal weakness, +1 next roll) | ✅ Delivered | `uncoverTruth`, tier 1. Sets `nextRollBonus = 1` on success. |
-| Shared Dream (2D6+Spirit, heal 1-2 Vit OR +1 next action) | ✅ Delivered (both branches) | `sharedDream`, tier 1. 50/50 split via `random(0,2) < 1`: heal `floor(random(1,3))` Vit OR set `nextRollBonus = 1`. |
-| Mycelial Ledger (2D6+Presence, gain scrap or aether) | ✅ Delivered | `mycelialLedger`, tier 0. |
-| Hold (regain 1 staff charge) | ✅ Delivered | `hold`, tier 0. |
-| Wind Ward (unlockable, level 3) | ✅ Delivered | `windWard`, tier 1. `levelUp()` unlocks at level 3. |
-| Aether Seal (unlockable, level 4) | ✅ Delivered | `aetherSeal`, tier 2. `levelUp()` unlocks at level 4. |
-| Rest (unlockable, level 5) | ✅ Delivered | `rest`, tier 0. `levelUp()` unlocks at level 5. |
-| All 8 actions shown in combat panel | ✅ Delivered | Combat panel action grid shows all 8 actions with number keys 1–8. |
-| Action cost resource system (echoes/aether) | ✅ Delivered | `resourceCost = (action.tier || 0) + action.cost` echoes (or aether fallback). |
-| Heat generation on actions | ✅ Delivered | Actions increment `heat.current`. |
-| Enemy turn with type-specific abilities | ✅ Delivered | 4 original + 3 new enemy types, each with type-specific ability. |
-| Combat UI: dice display, turn log, action panel | ✅ Delivered | Full combat panel, log, dice roll, die rendering. |
-| Secondary action mechanic (S-key) | ✅ Delivered | After 10+ on ability with 2+ echoes, S-key re-runs last ability, consuming 1 echo. |
+| Checkpoint | Runtime commit | Gameplay smoke | Windows package |
+|---|---|---:|---:|
+| Mastery Phase A | `aa8e0aa4f098d8272a8a4fc539ed90f7ef181c47` | `35548707900` PASS | `35548707894` PASS |
+| Canonical character sheet | `94556dabfc56d26b139731c8ee6d8c15e5d54698` | `35549081375` PASS | `35549081367` PASS |
+| Read-only authored roster browser | `a6a5056e9ef927530f23067b1a9fcee32b205d67` | `35549345673` PASS | `35549345668` PASS |
+| Shared field-role registry | `7dcd741279589e02a99a8eeb835710115edc43f9` | `35567099503` PASS | `35567099421` PASS |
+| Minimal desktop runtime packaging | `93908e2b0fa8b05e69f7c4095dca419e77cc07a3` | `35567486492` PASS | `35567486498` PASS |
 
-**Tier assignments (SPEC line 24: +1/+2/+3 resource spend):**
-| Action | Tier | Resource cost |
-|---|---|---|
-| staffStrike | 0 | free |
-| uncoverTruth | 1 | 1 echo |
-| sharedDream | 1 | 1 echo |
-| mycelialLedger | 0 | free |
-| hold | 0 | free |
-| windWard | 1 | 1 echo |
-| aetherSeal | 2 | 2 echoes |
-| rest | 0 | free |
-
-**Gaps resolved by §6 expansion (2026-09-18):** Shared Dream both branches; Aether Seal L4 gating;
-ENEMY_ABILITIES definition + population; keys 1–8; secondary action S-key; tiered resource spend;
-3 new enemy types (engine_spirit, child_prophet, elder_farmer).
-
-**Remaining gaps in §6:** None. All combat action requirements delivered.
+The lean packaging checkpoint stages **25 runtime files / 2,858,504 bytes**
+inside `package.nw` and reduced the uploaded Windows artifact from
+664,432,820 bytes to 219,915,613 bytes while preserving the same runtime gates.
 
 ---
 
-## §7 — Enemy Types — CURRENT STATE
+## 1. Runtime architecture — current truth
 
-**SPEC requirement (lines 25–29, combat context):** *6 enemy types: sky predator, harmonic shear,
-corporate intercept, engine spirit, child prophet, elder farmer*
+The old claim that `modules/` is a dead tree is no longer correct.
 
-| Enemy Type | Status | Detail |
-|---|---|---|
-| Sky Predator | ✅ Delivered | `skyPredator` enemy + crossing hazard `sky_predator` (stat: might). |
-| Harmonic Shear | ✅ Delivered (as "windShear") | `windShear` enemy + crossing hazard `wind_shear` (stat: grace). |
-| Corporate Intercept | ✅ Delivered (as "corporateSalvager") | `corporateSalvager` enemy + crossing hazard `corporate_intercept` (stat: presence). |
-| Aether Leak | ✅ Delivered | `aetherLeak` combat enemy + `aether_leak` crossing hazard (stat: wits). |
-| Engine Spirit | ✅ Delivered | `engine_spirit` NPC + combat enemy. HP 10, `harmonic_pulse` ability (2D6+presence, drains 1 aether on 7-9+). |
-| Child Prophet | ✅ Delivered | `child_prophet` NPC + combat enemy. HP 8, `prophecy_voice` ability (2D6+grace, lowers enemy confidence). |
-| Elder Farmer (Ionia) | ✅ Delivered | `elder_farmer` NPC + combat enemy. HP 16, `soil_anchor` ability (2D6+might, roots enemy in place). |
+### Live modular authorities
 
-**Gap summary:** All 6 SPEC enemy types now have both world NPC presence AND combat encounter
-counterparts. Each enemy type has a `draw{NPCName}Body()` function for rendering.
+These modules are loaded by both playable entrypoints and are part of the
+current runtime contract:
 
----
+- `modules/effect-vocabulary.js`
+- `modules/effect-resolver.js`
+- `modules/ability-defs.js`
+- `modules/progression-defs.js`
+- `modules/mastery-defs.js`
+- `modules/field-role-defs.js`
+- `modules/party-state.js`
+- `modules/save-state.js`
+- `modules/airship-state.js`
+- `modules/airship-combat-bridge.js`
+- `modules/airship-ui.js`
+- `modules/audio.js`
+- `modules/char-create.js`
 
-## §8 — Visual Aesthetic
+`aetherwake.js` remains the integrated preservation runtime and current combat
+executor. Some older mirrors such as `modules/core.js`, `modules/world.js`,
+`modules/combat.js`, and `modules/ui.js` may still diverge from the live
+integrated implementation and should not be assumed authoritative without
+entrypoint/test evidence.
 
-**SPEC requirement (lines 45–50):** *Palette, fonts, effects, background.*
-
-| Requirement | Status | Detail |
-|---|---|---|
-| 8-color palette | ✅ Delivered | `C` object (RGB) + `PAL` object (hex). |
-| VT323 font | ✅ Delivered | Google Fonts base64 in `index-embedded.html`. |
-| Press Start 2P font | ✅ Delivered | Used in boot, title, dialogue, overlays. |
-| Scanlines | ✅ Delivered | `drawScanlines()` at end of `draw()`. |
-| Teal glow on text | ✅ Delivered | `drawGlowText()`. |
-| Pixel borders | ✅ Delivered | `drawPixelBorder()` on every overlay panel. |
-| Subtle teal grid overlay | ✅ Delivered | `drawBackgroundGrid()` every frame. |
-| Dark navy background | ✅ Delivered | `background(C.navy)` every frame. |
-| 14 falling-upward islands | ✅ Delivered | `drawFallingIslands()` renders all 14. |
-| Vignette (intensifies at night) | ✅ Delivered | `drawVignette()` with night/day alpha. |
-| Quest-state atmospheric tint | ✅ Delivered | `drawQuestWorldReactions()` + `drawWorldAmbient()`. |
-| Player visual evolution | ✅ Delivered | Heat shimmer + solar shimmer. |
-| Ship interior (Unfinished Song) | ✅ Delivered | `drawShipInterior()` renders top-down deck view when `player.shipBoarded`. |
-
-**Gap summary:** Visual spec fully delivered. No gaps.
+Generated desktop outputs are no longer maintained as independent source trees.
+The Windows package is generated from a minimal runtime staging directory.
 
 ---
 
-## §9 — Audio / TTS Module
+## 2. Roster / onboarding / party
 
-| Requirement | Status | Detail |
+| Requirement | Current status | Evidence boundary |
 |---|---|---|
-| Web Audio SFX | ✅ Delivered | `modules/audio.js`: full synthesized SFX module. |
-| `ensureAudio()` / `resumeAudio()` | ✅ Delivered | Called in `keyPressed()`. |
-| NPC dialogue TTS audio | ⚠️ Partial (wiring present, no files) | `playDialogueAudioLine()` constructs `tts/{npc_id}/{batch}/{NN}.mp3` URLs. **No TTS audio files on disk** — loads fail silently. |
-| SFX wiring from combat to audio | ✅ Delivered | `triggerCombatHitFeedback()` + `triggerAbilityFeedback()` after each `resolveTurn`. |
+| Five stable authored identities | ✅ Established | Ender, Lyra, Ionia, Reson, Aepex in canonical order |
+| Three active references | ✅ Established | `ACTIVE_PARTY = [Ender, Lyra, Ionia]` as direct roster references |
+| Ender World identity | ✅ Established | `world.player === ROSTER[0] === ACTIVE_PARTY[0]` |
+| Authored onboarding | ✅ Established | Lyra/Ionia are fixed identities, not renamable generic slots |
+| Temporary companion mechanics | ✅ Centralized | Shared `field-role-defs.js` registry |
+| Companion canonical jobs/affinities | ⚪ UNKNOWN by design | No values fabricated |
+| Reson/Aepex runtime mechanics | 🔴 Not implemented | Identity/schema shells only |
+| Formation mutation | 🔴 Not implemented | Current implemented trio is already the fixed active party |
+| True three-character combat | 🔴 Not implemented | Current encounter executor still resolves Ender only |
 
-**Gap:** NPC dialogue TTS wired but no `.mp3` files on disk. SFX fully implemented and wired.
+### Important distinction
+
+Sky-Sailor, Engine-Wright, and Aether-Weaver are **temporary preservation
+mechanics templates**. They are not canonical native jobs for Lyra or Ionia.
+
+The shared registry defines enough metadata for onboarding and future migration
+(stats, two ability descriptions, synergy text), but it does **not** define a
+complete executable PbtA outcome table for all companion actions. Therefore
+promoting those descriptions directly into full companion combat would require
+inventing unresolved mechanics.
 
 ---
 
-## §10 — Additional gaps not tied to a specific spec line — CURRENT STATE
+## 3. Combat / effects / progression
 
-| # | Gap | Location | Severity | Status |
-|---|---|---|---|---|
-| G1 | **No character creation / party system** — only Ender exists. | `initPlayer()` — singleton only | Critical | 🔴 UNRESOLVED — char-create module wired but needs browser verification |
-| G2 | **Choice path selection UI** — `advanceChoice()` fires only when `quest.choiceMade` already set. | `advanceChoice()` | High | ✅ RESOLVED — `drawChoiceMenu()` + keyboard selection wired into `render()` + `advanceChoice()` |
-| G3 | **ENEMY_ABILITIES was undefined** | Was `aetherwake.js:3949` | Resolved | ✅ RESOLVED |
-| G4 | **5-action key binding only** | Was `aetherwake.js:410–415` | Resolved | ✅ RESOLVED — keys 1–8 |
-| G5 | **Shared Dream lacks +1 alternate** | Was `aetherwake.js:3740–3743` | Resolved | ✅ RESOLVED |
-| G6 | **Aether Seal not level-gated** | Was `levelUp()` | Resolved | ✅ RESOLVED — L4 |
-| G7 | **Crossing hazard naming/mapping diverges from SPEC** | `crossingHazards` | ⚠️ PARTIAL | ✅ LARGELY RESOLVED — aether_leak added, sky_predator stat corrected to might, corporate_intercept label improved |
-| G8 | **Signal hook labels don't match SPEC** | `signalHooks` | Low | ⚠️ RETAINED — labels differ but mechanic identical |
-| G9 | **Ship has no interior** | `boardShip()` | Medium | ✅ RESOLVED — `drawShipInterior()` renders deck view, L/Esc disembark |
-| G10 | **`drawDayNightIndicator` not wired into HUD** | Was `aetherwake.js:2377–2394` | Resolved | ✅ RESOLVED |
-| G11 | **No TTS audio files on disk** | `playDialogueAudioLine()` | Medium | ⚠️ RETAINED |
-| G12 | **`modules/` files are dead ends** | `modules/` directory | Informational | ✅ DOCUMENTED |
+### Established
+
+- 2D6 + stat with 10+ / 7–9 / 6− outcome bands;
+- eight stable Ender action slots;
+- Staff Strike and Hold baseline availability;
+- level-gated Wind Ward / Aether Seal / Rest;
+- centralized use eligibility and pooled Echo/Aether affordability;
+- transactional rejection before turn/resource consumption;
+- ordinary damage/restoration/resource mutations routed through the effect resolver;
+- normal victory XP reaches level-up/unlock logic;
+- secondary-action state is one-shot and cannot leak between abilities;
+- combat state writes persistent Ender fields back to the canonical roster-backed World record.
+
+### Remaining semantic debt
+
+The generic resolver still does **not** own:
+
+- PbtA outcome selection;
+- action-specific branching;
+- durable modifier/reveal/status semantics;
+- movement/spatial semantics;
+- XP/level orchestration;
+- companion turns;
+- Dual/Triple Arts.
+
+Uncover Truth reveal/+1-next-roll and Shared Dream's +1-next-action branch remain
+partly local/narrative rather than fully generalized durable effect state.
 
 ---
 
-## §11 — Summary table — CURRENT STATE
+## 4. Mastery / jobs / schools
 
-| Spec area | Status | Count of gaps |
-|---|---|---|
-| Character creation / party (2 playable slots) | 🔴 Missing (module wired, needs verification) | 1 critical (G1) |
-| Sky layer + 14 islands + Tab toggle | ✅ Delivered | 0 |
-| Quest: Signal (3 hooks) | ⚠️ Partial | 1 low (G8: label mismatch) |
-| Quest: Crossing (3 hazards) | ✅ Delivered (aether_leak added) | 0 |
-| Quest: Contact (4 NPCs, full dialogue) | ✅ Delivered | 0 |
-| Quest: Choice (3 paths, 10+/7-9) | ✅ Delivered (drawChoiceMenu wired) | 0 |
-| Quest: Wake (6–10 epilogues) | ✅ Delivered (10/6) | 0 |
-| Day-night 120s cycle → solar charge | ✅ Delivered | 0 |
-| Covenant field (Q, 1 aether) | ✅ Delivered | 0 |
-| 5 combat actions + 3 unlockable | ✅ Delivered | 0 |
-| Action economy (+1/+2/+3 spend) | ✅ Delivered (tiered: 0/1/1/0/0/1/2/0) | 0 |
-| Enemy types (6 requested) | ✅ Delivered | 0 |
-| Visual (scanlines, teal glow, pixel borders, grid, 14 islands, ship interior) | ✅ Delivered | 0 |
-| Audio/TTS | ✅ Delivered (SFX) / ⚠️ Partial (TTS files missing) | 1 medium (G11) |
+### Established Phase A
 
-**Overall:** The running game in `aetherwake.js` (7,523 lines) now delivers ~85% of the SPEC fully,
-~10% partially, and ~5% not at all (character creation remains the single critical gap — module is
-wired and structurally correct, needs browser verification of the typing path). The three expansion
-squads resolved all §6 combat gaps, all §7 enemy gaps, and all §10 UI gaps except G1 (character
-creation — structurally wired, typing path unverified in headless browser) and G11 (TTS audio files
-not on disk). The `standalone/www/` and `nw-package/` deploy targets are OUT OF SYNC with the current
-`aetherwake.js` and must be re-synced before the NW.js standalone build reflects the expansion.
+- major domain families: Elemental, Arcane, Psychic, Spirit;
+- Ender special affinities: Aether, Resonance, Correspondence, Lumen;
+- Ender native job: Rift Scholar;
+- unresolved companion affinities/native jobs remain explicit **UNKNOWN**.
+
+### Open
+
+- mastery rank/XP scale;
+- mastery award rules;
+- school/tree structure beyond established families;
+- companion canonical jobs and affinities;
+- hybrid/cross-school unlock rules;
+- mutable mastery state.
+
+Because save schema v2 is already player-facing, the first mutable mastery state
+must enter through an explicit **save schema v3** migration. Phase A facts remain
+code-owned and should not be rewritten by save documents.
+
+---
+
+## 5. Save / persistence
+
+### Current player-facing boundary — schema v2
+
+Schema v2 persists:
+
+- canonical party/progression/resource state;
+- active-party IDs;
+- World position/layer;
+- quest state;
+- ledger state;
+- bounded Dragonfly state.
+
+Controls:
+
+- **F2** — Quick Save from normal WORLD state only;
+- **F3** — Quick Load from safe menu/onboarding/WORLD states.
+
+The load path preserves canonical references and re-synchronizes combat from the
+restored World/roster lead record.
+
+Intentionally excluded:
+
+- encounter-local combat state;
+- presentation/UI state;
+- mutable mastery (not implemented yet).
+
+Released schema v1 is supported only as an explicit migration source to v2.
+
+---
+
+## 6. World / quest / UI vertical slice
+
+The current vertical slice includes:
+
+- ground/sky exploration and layer toggle;
+- day/night behavior;
+- Covenant Field interaction;
+- NPC dialogue;
+- shop;
+- ledger;
+- quest log;
+- character sheet;
+- authored roster browser;
+- Dragonfly/Wake console;
+- environmental hazards;
+- multiple enemy types;
+- Signal → Crossing → Contact → Choice → Wake quest structure.
+
+This is a **vertical slice**, not the full campaign.
+
+Remaining low/medium gaps:
+
+- some preservation-era signal-hook labels still differ from later spec wording;
+- campaign breadth, recruitment arcs, regions, bosses, relationship systems, and
+  full character arcs remain future content.
+
+---
+
+## 7. Audio
+
+| Area | Status |
+|---|---|
+| Synthesized Web Audio SFX | ✅ Implemented and wired |
+| Combat/UI sound hooks | ✅ Implemented |
+| Dialogue TTS wiring | ⚠️ Present but optional |
+| Prerecorded TTS asset library | 🔴 Not present |
+
+Missing prerecorded dialogue audio is a content gap, not a boot/runtime blocker.
+
+---
+
+## 8. Desktop distribution
+
+The prior claim that deploy targets must be manually re-synced is obsolete.
+
+Current Windows packaging:
+
+1. stages only required runtime assets;
+2. writes a pruned runtime manifest;
+3. validates all local HTML references;
+4. rejects development-only directory leakage;
+5. enforces a 20 MiB application-payload ceiling;
+6. builds NW.js from that staging directory;
+7. verifies `Aetherwake.exe`, manifest, entrypoint, and package payload;
+8. publishes the complete verified Windows artifact.
+
+Current verified application payload: **2,858,504 bytes**.
+
+Current verified uploaded Windows artifact: **219,915,613 bytes**.
+
+---
+
+## 9. Remaining prioritized gaps
+
+| Priority | Gap | Why it remains open |
+|---:|---|---|
+| P1 | True three-character combat | Companion templates lack complete executable outcome contracts |
+| P1 | Companion canonical progression | Native jobs/affinities/mastery remain intentionally unknown |
+| P1 | Mutable mastery + save schema v3 | Requires explicit design and migration, not silent v2 extension |
+| P2 | Generic durable modifiers/status/reveal | Effect vocabulary exists; full semantics do not |
+| P2 | Reson/Aepex implementation | Identity shells exist, mechanics/canon unresolved |
+| P2 | Formation switching | Not useful until >3 runtime-implemented characters exist |
+| P2 | Campaign expansion | Current content is a vertical slice |
+| P3 | TTS asset production | Wiring exists, files do not |
+| P3 | Monolith decomposition | Must be incremental to preserve the playable baseline |
+| P3 | Installer/signing/release hardening | Verified portable Windows artifact exists; production release work remains |
+
+## Current conclusion
+
+The prior “character creation is the single critical gap” conclusion is obsolete.
+
+Aetherwake now has a smoke-green authored onboarding/roster/save/desktop baseline.
+The highest-impact remaining engineering boundary is **party combat/progression
+without fabricating unresolved companion canon**. The safest next work is to
+formalize executable companion-combat contracts or resolve authored companion
+mechanics before adding true three-character turns.
