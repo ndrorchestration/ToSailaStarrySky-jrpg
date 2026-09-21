@@ -27,7 +27,7 @@ DIALOGUE = {
     'elder_farmer': {
         'intro': [
             '"The Wake doesn\'t sing like it used to. You hear it? The harmonics are slipping. Ten years under Captain Denith taught me this ship\'s rhythms, and now the Core is forgetting its own song."',
-            '"You\'re Ender. Deckhand. Engineer-in-training. You carry a wrench, a passport, and a decision you haven\'t admitted you have to make. I know the shape of it."',
+            '"You\'re Ender. Rift Scholar, and a new hand aboard my ship. You carry a wrench, a passport, and a decision you haven\'t admitted you have to make. I know the shape of it."',
             '"I\'ve flown the Wake through the copper storms, through the blight-winds, through the years when the sky-lanes were closing one by one. I\'ve never seen the core drift like this. Not in all my watches."',
             'The crops on the lower decks taste like copper dust. The solar array still hums. The people are tired but alive. That\'s a lot. It\'s not enough, but it\'s a lot.',
             '"You stand on the edge of something big, Ender. I can smell it on you. Something that wants to be decided."',
