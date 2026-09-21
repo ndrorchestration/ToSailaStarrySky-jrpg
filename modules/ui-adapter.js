@@ -70,7 +70,7 @@ window.AetherUI = function(p, C) {
     textFont('Press Start 2P');
     textSize(8);
     fill(C.teal[0], C.teal[1], C.teal[2], 120);
-    text('AETHERWAKE // YOUNG ENDER  //  TURN-BASED 2D6 PbtA', width/2, height - 24);
+    text('AETHERWAKE // ENDER  //  TURN-BASED 2D6 PbtA', width/2, height - 24);
   };
 
   this.drawHUD = function(p, C) {
@@ -468,10 +468,10 @@ window.AetherUI = function(p, C) {
     // Name + class
     textFont('Press Start 2P');
     textSize(10);
-    drawGlowText('YOUNG ENDER', sx + 130, sy + 16, C.teal, 10);
+    drawGlowText('ENDER', sx + 130, sy + 16, C.teal, 10);
     fill(C.parchment[0], C.parchment[1], C.parchment[2]);
     textSize(9);
-    text('Age 28  //  Rift Scholar + Dreamwright', sx + 130, sy + 36);
+    text('Age 22  //  Rift Scholar', sx + 130, sy + 36);
 
     // Stats
     textFont('VT323');
