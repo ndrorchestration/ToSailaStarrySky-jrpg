@@ -103,6 +103,32 @@ A candidate containing legacy `roll` or `outcomes` fields fails admission.
 Completeness is still distinct from authorization: a structurally complete
 candidate remains non-executable until a later explicit integration gate.
 
+## Foundation-spell combat admission rule
+
+Foundation techniques have a split admission model:
+
+- established read-only exploration techniques may use
+  `exploration-readonly` contracts with zero or explicitly established cost,
+  execution binding, and non-persistent read behavior;
+- combat techniques must use `combat-jrpg-formula` contracts and satisfy the
+  same target resolver principles as other combat abilities.
+
+Before a combat foundation spell can be considered for execution, its candidate
+must provide:
+
+- a `jrpg-stat-formula` resolution binding with explicit formula identity,
+  version, kind, and resolved parameters;
+- explicit targeting and target-count policy;
+- only bounded RNG uses allowed by the combat-system policy;
+- explicit resource cost;
+- executable effect descriptors;
+- an execution adapter;
+- a persistence policy.
+
+Combat candidates containing legacy `roll` or `outcomes` fields fail
+admission. Historical 2D6 evaluators may remain as provenance/reference tests,
+but cannot establish target balance or runtime authorization.
+
 ## Compatibility boundary
 
 Until the migration reaches live combat:
