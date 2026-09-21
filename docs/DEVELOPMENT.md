@@ -459,6 +459,41 @@ The next safe contract work is to preserve evidence for another declared
 preservation action or to resolve one of these explicit design gaps through an
 authored decision; neither path authorizes runtime execution by itself.
 
+## Aether Compass contract-draft checkpoint
+
+On 2026-09-21, commit `23e9c6cc54efbdfee1ff1a2ccb0d9435dc57bb6d`
+passed smoke run `35575511782` and Windows package run `35575511778`.
+The Windows run uploaded artifact `10628410816`
+(`Aetherwake-Windows`, 219,933,894 bytes,
+SHA-256 `2b2764efd4fb5e492a8f3708496ed6d1faceee2ea59068fd6709dc9989a78ac8`).
+
+The second evidence-bound preservation draft, **Aether Compass**, preserves the
+source declaration `2D6+Wits. Reveal resources — gain scrap or aether.`
+without inventing missing combat rules.
+
+Established by the draft:
+
+- the roll uses Wits and the existing global 2D6 outcome bands;
+- resource revelation is preserved as a declared reveal semantic;
+- Scrap and Aether are preserved as the two declared resource-gain alternatives;
+- companion native-job and school bindings remain `UNKNOWN`;
+- the draft remains separate from Ender's executable Aether Sense exploration technique.
+
+Still unresolved and therefore blocking admission:
+
+- action cost;
+- reveal target and outcome band;
+- resource-gain outcome band;
+- whether Scrap/Aether is chosen, random, conditional, or otherwise selected;
+- gain amount;
+- complete success/partial/failure outcome tables;
+- generic executable reveal semantics;
+- execution adapter and persistence policy.
+
+No admission candidate is exposed, and the existing completeness gate still
+returns `OUTCOME_CONTRACT_NOT_ESTABLISHED`. This records more design evidence
+without authorizing a companion turn.
+
 ## Effect/registry checkpoint
 
 On 2026-09-19:

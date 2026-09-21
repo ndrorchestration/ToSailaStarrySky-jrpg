@@ -217,6 +217,18 @@ Wind-Shear Dance remains non-executable and does not change the Ender-only
 combat authorization boundary. Aether Sense becoming executable for Ender does
 not alter this companion boundary.
 
+### SECOND EVIDENCE-BOUND COMPANION ACTION DRAFT — AETHER COMPASS
+
+Aether Compass is recorded as a second `draft-unresolved` preservation
+contract. Its source-backed facts are limited to 2D6+Wits, resource revelation,
+and a possible gain of Scrap or Aether. The draft does not infer which outcome
+band performs either effect, what is revealed, how the gained resource is
+selected, or how much is gained.
+
+Cost, full outcome tables, reveal execution, execution binding, persistence,
+native job, and school remain unresolved. It exposes no admission candidate,
+so it remains non-executable and does not widen companion combat authorization.
+
 Known semantic debt remains explicit rather than being silently upgraded:
 
 - Uncover Truth's reveal and +1-next-roll semantics are currently narrated/local-only rather than durable applied state;
