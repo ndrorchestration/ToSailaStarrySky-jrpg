@@ -26,7 +26,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.1.0';
 
   const EFFECT_KIND = Object.freeze({
     DAMAGE: 'damage',
@@ -116,13 +116,13 @@
       success: [
         effect(
           EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'weakness',
-          RUNTIME_STATUS.IMPLEMENTED,
-          'Encounter weakness is hidden until this reveal effect is applied.'
+          RUNTIME_STATUS.DECLARED_NOT_APPLIED,
+          'Current runtime narrates the reveal but stores no reveal state.'
         ),
         effect(
           EFFECT_KIND.MODIFIER, TARGET.SELF, OPERATION.INCREASE, 'nextRoll',
-          RUNTIME_STATUS.IMPLEMENTED,
-          'Adds +1 to the next admitted player roll, then is consumed.'
+          RUNTIME_STATUS.DECLARED_NOT_APPLIED,
+          'Current runtime assigns a local nextRollBonus but never applies it to a later roll.'
         ),
       ],
       partial: [],
