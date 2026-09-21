@@ -1,6 +1,6 @@
 # Aetherwake — The Last Solarpunk Airship
 
-Aetherwake is a **pre-alpha 2D6 PbtA JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a failing aether-core, impossible sky-lanes, and a fractured world begin to reveal the same unfinished song.
+Aetherwake is a **pre-alpha turn-based JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a failing aether-core, impossible sky-lanes, and a fractured world begin to reveal the same unfinished song.
 
 The current repository contains a playable vertical-slice prototype plus an active architecture migration toward the full authored-party RPG.
 
@@ -88,7 +88,9 @@ The console is the first playable ship-systems slice. Its power and charge budge
 
 ## Combat prototype
 
-Combat uses **2D6 + stat**:
+**Target combat direction:** conventional JRPG stat-and-ability formulas with bounded secondary RNG. There is no player-facing dice system in the production target, and PbtA success/partial/failure bands are being retired. See `docs/JRPG_COMBAT_DIRECTION.md`.
+
+**Current compatibility runtime:** the preservation build still uses **2D6 + stat** while the combat engine is migrated incrementally:
 
 - **10+** — full success
 - **7–9** — partial success / cost
@@ -109,7 +111,7 @@ The current preservation baseline contains eight combat actions:
 
 Current prototype progression unlocks **Wind Ward at level 3, Aether Seal at level 4, and Rest at level 5**.
 
-These flat combat definitions are an implementation baseline, not the final architecture. The target system uses data-driven ability definitions, explicit prerequisites, a generic effect resolver, school mastery, jobs, and party-combination arts.
+These flat combat definitions and their 2D6 outcome behavior are a **legacy implementation baseline**, not the final architecture. The target system uses data-driven ability formulas, explicit prerequisites, a generic effect resolver, bounded accuracy/critical/status variance where appropriate, school mastery, jobs, and party-combination arts.
 
 ## Party architecture
 
