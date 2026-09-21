@@ -276,7 +276,7 @@
 
   function isValidId(id) {
     return typeof id === 'string' &&
-      /^[a-z][a-z0-9-]*$/.test(id);
+      /^[a-z][A-Za-z0-9-]*$/.test(id);
   }
 
   function getAuthoredAffinities(characterId) {
