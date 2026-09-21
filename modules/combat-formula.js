@@ -1,12 +1,12 @@
 /* ============================================================
-   Aetherwake JRPG — Combat Formula Resolver v0.2
+   Aetherwake JRPG — Combat Formula Resolver v0.3
    modules/combat-formula.js
 
    Production formula migration:
    - resolves formula-driven combat actions without PbtA outcome bands;
    - keeps bounded RNG explicit and injectable for deterministic tests;
-   - supports numeric damage formulas and deterministic resource formulas;
-   - Staff Strike and Hold are the first migrated actions.
+   - supports numeric damage, deterministic resource, and recovery formulas;
+   - Staff Strike, Hold, and Rest are the first migrated actions.
 
    This module resolves numeric action results only. State mutation remains
    owned by the effect resolver.
@@ -38,7 +38,7 @@ function (policy) {
   }
   policy.validate();
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
 
   function deepFreeze(value) {
     if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -89,6 +89,13 @@ function (policy) {
       resource: 'staffCharges',
       amount: 1,
       maxResource: 'maxStaffCharges',
+    },
+    rest: {
+      id: 'rest',
+      model: 'jrpg-stat-formula',
+      kind: 'recovery',
+      heatReduction: 2,
+      vitalityRestore: 1,
     },
   });
 
@@ -176,6 +183,13 @@ function (policy) {
     }
   }
 
+  function validateRecoveryFormula(formula) {
+    finite(formula.heatReduction, 'FORMULA_RECOVERY_HEAT_INVALID');
+    finite(formula.vitalityRestore, 'FORMULA_RECOVERY_VITALITY_INVALID');
+    if (formula.heatReduction < 0) throw new Error('FORMULA_RECOVERY_HEAT_INVALID');
+    if (formula.vitalityRestore < 0) throw new Error('FORMULA_RECOVERY_VITALITY_INVALID');
+  }
+
   function validateFormula(formula) {
     if (!formula || typeof formula !== 'object') throw new Error('FORMULA_REQUIRED');
     if (formula.model !== policy.TARGET.model) throw new Error('FORMULA_MODEL_INVALID');
@@ -185,6 +199,8 @@ function (policy) {
       validateDamageFormula(formula);
     } else if (formula.kind === 'resource') {
       validateResourceFormula(formula);
+    } else if (formula.kind === 'recovery') {
+      validateRecoveryFormula(formula);
     } else {
       throw new Error('FORMULA_KIND_NOT_SUPPORTED');
     }
@@ -349,6 +365,39 @@ function (policy) {
     };
   }
 
+  function resolveRecovery(actionId, actor) {
+    const formula = FORMULAS[actionId];
+    if (!formula) throw new Error('COMBAT_FORMULA_UNKNOWN_ACTION:' + actionId);
+    validateFormula(formula);
+    if (formula.kind !== 'recovery') {
+      throw new Error('COMBAT_FORMULA_NOT_RECOVERY_ACTION:' + actionId);
+    }
+    if (!actor || typeof actor !== 'object') throw new Error('COMBAT_FORMULA_ACTOR_REQUIRED');
+
+    const heatCurrent = Math.max(0, readResource(actor, 'heat', 0));
+    const vitCurrent = Math.max(0, readResource(actor, 'vit', 0));
+    const vitMax = Math.max(vitCurrent, readResource(actor, 'maxVit', vitCurrent));
+
+    const heatReduction = Math.min(formula.heatReduction, heatCurrent);
+    const vitalityRestore = Math.min(
+      formula.vitalityRestore,
+      Math.max(0, vitMax - vitCurrent)
+    );
+
+    return {
+      actionId,
+      model: formula.model,
+      kind: formula.kind,
+      requestedHeatReduction: formula.heatReduction,
+      heatReduction,
+      requestedVitalityRestore: formula.vitalityRestore,
+      vitalityRestore,
+      heatBefore: heatCurrent,
+      vitalityBefore: vitCurrent,
+      vitalityMax: vitMax,
+    };
+  }
+
   function resolveAction(actionId, actor, target, randomFn) {
     const formula = FORMULAS[actionId];
     if (!formula) throw new Error('COMBAT_FORMULA_UNKNOWN_ACTION:' + actionId);
@@ -357,6 +406,9 @@ function (policy) {
     }
     if (formula.kind === 'resource') {
       return resolveResource(actionId, actor);
+    }
+    if (formula.kind === 'recovery') {
+      return resolveRecovery(actionId, actor);
     }
     throw new Error('COMBAT_FORMULA_KIND_NOT_RESOLVABLE:' + formula.kind);
   }
@@ -388,6 +440,7 @@ function (policy) {
     getFormula,
     resolveDamage,
     resolveResource,
+    resolveRecovery,
     resolveAction,
     validateAgainstAbilityDefs,
   });

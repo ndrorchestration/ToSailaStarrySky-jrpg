@@ -217,15 +217,14 @@
     },
 
     rest: {
-      common: [],
-      success: [
+      // Deterministic JRPG recovery action: no outcome bands or failure damage.
+      common: [
         effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.DECREASE, RESOURCE.HEAT),
         effect(EFFECT_KIND.RESTORE, TARGET.SELF, OPERATION.RESTORE, 'vitality'),
       ],
+      success: [],
       partial: [],
-      failure: [
-        effect(EFFECT_KIND.DAMAGE, TARGET.SELF, OPERATION.APPLY, 'vitality'),
-      ],
+      failure: [],
     },
   });
 

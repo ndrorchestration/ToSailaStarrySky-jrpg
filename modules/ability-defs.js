@@ -22,7 +22,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.4.0';
+  const VERSION = '0.5.0';
 
   function deepFreeze(value) {
     if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -136,7 +136,11 @@
       type: 'rest',
       tier: 0,
       effectProfile: 'rest',
-      desc: 'Reduce current heat by 1. Recover 1 Vit on 10+',
+      resolution: {
+        model: 'jrpg-stat-formula',
+        formulaId: 'rest',
+      },
+      desc: 'Deterministically reduce Heat by up to 2 and restore up to 1 Vit.',
     },
   });
 
@@ -171,7 +175,7 @@
            def.resolution.formulaId !== id)) {
         throw new Error('ABILITY_FORMULA_BINDING_INVALID:' + id);
       }
-      if ((id === 'staffStrike' || id === 'hold') && !def.resolution) {
+      if ((id === 'staffStrike' || id === 'hold' || id === 'rest') && !def.resolution) {
         throw new Error('ABILITY_FORMULA_BINDING_MISSING:' + id);
       }
     });

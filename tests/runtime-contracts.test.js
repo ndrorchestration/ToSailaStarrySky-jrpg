@@ -143,6 +143,8 @@ assert(source.includes('window.AetherCombatSystemPolicy.validate()'),
   'runtime boot does not validate combat-system policy');
 assert(source.includes('AETHER_COMBAT_FORMULA_UNAVAILABLE'),
   'runtime boot does not fail closed when combat formula resolver is missing');
+assert(source.includes("typeof window.AetherCombatFormula.resolveAction !== 'function'"),
+  'runtime boot does not require the production formula dispatch API');
 assert(source.includes('window.AetherCombatFormula.validateAgainstAbilityDefs(window.AetherAbilityDefs)'),
   'runtime boot does not validate combat formula against ability definitions');
 assert(source.includes('window._combatFormula = window.AetherCombatFormula'),

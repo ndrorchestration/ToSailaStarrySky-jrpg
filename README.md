@@ -94,7 +94,8 @@ The console is the first playable ship-systems slice. Its power and charge budge
 
 - **Resonator Staff / Staff Strike:** live **JRPG damage formula**; Might-scaled EMP damage, one staff charge, bounded damage variance and critical policy, no visible dice/outcome bands.
 - **Hold:** live **deterministic JRPG resource formula**; restores one Resonator Staff charge up to the current maximum, with no roll bands or self-damage.
-- **The remaining six actions:** still use the preservation-era **2D6 + stat** compatibility path (10+ / 7–9 / 6−) until each receives a production formula/effect contract.
+- **Rest:** live **deterministic JRPG recovery formula**; reduces Heat by up to 2 and restores up to 1 Vitality, with no roll bands or failure damage.
+- **The remaining five actions:** still use the preservation-era **2D6 + stat** compatibility path (10+ / 7–9 / 6−) until each receives a production formula/effect contract.
 
 The current preservation baseline contains eight combat actions:
 
@@ -107,11 +108,11 @@ The current preservation baseline contains eight combat actions:
 | 5 | Hold | deterministic JRPG recharge |
 | 6 | Wind Ward | defensive ability |
 | 7 | Aether Seal | defensive / aether ability |
-| 8 | Rest | heat / vitality recovery |
+| 8 | Rest | deterministic JRPG recovery |
 
 Current prototype progression unlocks **Wind Ward at level 3, Aether Seal at level 4, and Rest at level 5**.
 
-The remaining 2D6 action definitions are a **legacy implementation baseline**, not the final architecture. Staff Strike and Hold are the first two actions migrated out of that baseline. The target system uses data-driven ability formulas, explicit prerequisites, a generic effect resolver, bounded accuracy/critical/status variance where appropriate, school mastery, jobs, and party-combination arts.
+The remaining 2D6 action definitions are a **legacy implementation baseline**, not the final architecture. Staff Strike, Hold, and Rest are the first three actions migrated out of that baseline. The target system uses data-driven ability formulas, explicit prerequisites, a generic effect resolver, bounded accuracy/critical/status variance where appropriate, school mastery, jobs, and party-combination arts.
 
 ## Party architecture
 

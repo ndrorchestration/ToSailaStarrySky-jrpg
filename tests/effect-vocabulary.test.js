@@ -71,6 +71,27 @@ assert(!holdProfile.common.some(effect =>
   effect.kind === vocabulary.EFFECT_KIND.DAMAGE
 ), 'migrated Hold must not retain PbtA self-damage');
 
+const restProfile = vocabulary.ACTION_EFFECT_PROFILES.rest;
+assert.deepStrictEqual(restProfile.success, [],
+  'migrated Rest must not advertise a success outcome band');
+assert.deepStrictEqual(restProfile.partial, [],
+  'migrated Rest must not advertise a partial outcome band');
+assert.deepStrictEqual(restProfile.failure, [],
+  'migrated Rest must not advertise a failure outcome band');
+assert(restProfile.common.some(effect =>
+  effect.kind === vocabulary.EFFECT_KIND.RESOURCE &&
+  effect.operation === vocabulary.OPERATION.DECREASE &&
+  effect.key === vocabulary.RESOURCE.HEAT
+), 'migrated Rest must retain Heat reduction');
+assert(restProfile.common.some(effect =>
+  effect.kind === vocabulary.EFFECT_KIND.RESTORE &&
+  effect.target === vocabulary.TARGET.SELF &&
+  effect.key === 'vitality'
+), 'migrated Rest must retain Vitality restoration');
+assert(!restProfile.common.some(effect =>
+  effect.kind === vocabulary.EFFECT_KIND.DAMAGE
+), 'migrated Rest must not retain PbtA failure damage');
+
 const uncoverSuccess = vocabulary.ACTION_EFFECT_PROFILES.uncoverTruth.success;
 assert(uncoverSuccess.some(effect =>
   effect.kind === vocabulary.EFFECT_KIND.REVEAL &&
