@@ -252,6 +252,20 @@
       };
     }
 
+    if (actionId === 'staffStrike' && actor &&
+        Object.prototype.hasOwnProperty.call(actor, 'staffCharges') &&
+        currentResource(actor, 'staffCharges') < 1) {
+      return {
+        canUse: false,
+        reason: 'insufficient_dedicated_resource',
+        actionId,
+        resourceCost,
+        availableResource,
+        dedicatedResource: 'staffCharges',
+        dedicatedAvailable: currentResource(actor, 'staffCharges'),
+      };
+    }
+
     if (availableResource < resourceCost) {
       return {
         canUse: false,
@@ -297,6 +311,13 @@
           throw new Error('RUNTIME_ACTION_FIELD_MISMATCH:' + expectedId + ':' + key);
         }
       });
+      if (expected.resolution) {
+        if (!action.resolution ||
+            action.resolution.model !== expected.resolution.model ||
+            action.resolution.formulaId !== expected.resolution.formulaId) {
+          throw new Error('RUNTIME_ACTION_RESOLUTION_MISMATCH:' + expectedId);
+        }
+      }
     });
 
     return true;
