@@ -4,6 +4,20 @@ Status: **implementation scaffold on a feature branch; Aether Sense is the first
 
 This document describes the first code-owned foundation for Aetherwake's broader magic system. It preserves the existing combat/progression baseline while making the authored Ender magic structure explicit and machine-checkable.
 
+## Combat-system target boundary — 2026-09-21
+
+The production combat target is now a conventional **JRPG stat-and-formula system with bounded secondary RNG**, not the preservation build's 2D6/PbtA outcome model.
+
+Therefore:
+
+- existing `combat-2d6` admission shapes, 36-outcome synthetic measurements, and Staff Strike probability references remain **legacy compatibility/reference evidence only**;
+- they must not establish target Aether Pulse balance or future spell-resolution semantics;
+- future combat spells should define power/scaling, defense/resistance interaction, accuracy policy, critical policy, bounded variance policy, targeting, costs, and effect semantics;
+- PbtA success/partial/failure bands should not be added to new production spell contracts;
+- Aether Sense is unaffected because it is a zero-cost read-only exploration technique rather than a combat-resolution action.
+
+The migration policy is recorded in `docs/JRPG_COMBAT_DIRECTION.md` and `modules/combat-system-policy.js`.
+
 ## Established character facts
 
 Ender's formal native job is **Rift Scholar**.
@@ -115,7 +129,7 @@ The repository now separates **semantic contract completeness** from
 - **exploration-readonly** — zero/declared resource cost, no roll table, no
   effect outcomes, read-only mutation policy, explicit adapter binding, and no
   persistence;
-- **combat-2d6** — explicit resource cost, 2D6 stat/bands, complete
+- **combat-2d6 (LEGACY COMPATIBILITY ONLY)** — explicit resource cost, 2D6 stat/bands, complete
   common/success/partial/failure effect profiles, implemented effect semantics,
   execution adapter binding, and persistence policy.
 
@@ -214,4 +228,4 @@ The smallest safe progression from the current foundation is:
 4. establish the next individual spell's design and resource semantics before implementing it;
 5. add combat spell execution only after its effect semantics are supported by the ordinary resolver.
 
-**Aether Pulse** is the natural next Aether candidate once its cost, roll/effect contract, and combat-resolver path are explicitly established. Resonance, Correspondence, and Lumen resource-bearing techniques remain blocked on unresolved inner-resource semantics rather than silently consuming Echoes or guessed Arete.
+**Aether Pulse** is the natural next Aether candidate once its cost, JRPG formula/effect contract, and combat-resolver path are explicitly established. Resonance, Correspondence, and Lumen resource-bearing techniques remain blocked on unresolved inner-resource semantics rather than silently consuming Echoes or guessed Arete.

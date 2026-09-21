@@ -114,7 +114,25 @@ Inactive-character XP/mastery sharing policy remains open.
 
 ## 4. Combat system
 
-### CURRENT IMPLEMENTATION
+### TARGET COMBAT DIRECTION — APPROVED 2026-09-21
+
+Aetherwake's production combat model is a conventional **turn-based JRPG stat-and-formula system with bounded secondary RNG**.
+
+Target rules:
+
+- stats and declarative ability formulas determine the primary result;
+- actions normally execute when use eligibility, targeting, and resource checks pass;
+- optional RNG is limited to conventional JRPG roles such as accuracy/evasion, critical hits, status application, small bounded damage variance, and enemy AI choice;
+- combat does **not** use PbtA-style full/partial/failure bands as the target resolution model;
+- normal combat exposes **no player-facing dice system**;
+- preservation-era `2D6 + stat` text is compatibility/provenance evidence only and must not be promoted into new production action contracts;
+- migrated abilities require a new formula-system contract covering power/scaling, defense or resistance interaction, targeting, costs, effect semantics, and any bounded RNG policies before execution is authorized.
+
+The migration contract is defined in `docs/JRPG_COMBAT_DIRECTION.md` and machine-guarded by `modules/combat-system-policy.js`.
+
+The existing 2D6 implementation remains temporarily testable only to keep the playable prototype intact while actions are migrated incrementally.
+
+### CURRENT IMPLEMENTATION — LEGACY COMPATIBILITY
 
 Resolution:
 
