@@ -137,15 +137,15 @@ const JOBS = FIELD_ROLE_REGISTRY && typeof FIELD_ROLE_REGISTRY.list === 'functio
   : [];
 
 const AUTHORED_COMPANIONS = Object.freeze([
-  Object.freeze({ id: 'lyra', name: 'Lyra' }),
-  Object.freeze({ id: 'ionia', name: 'Ionia' }),
+  Object.freeze({ id: 'lyra', name: 'Lyra', age: 24 }),
+  Object.freeze({ id: 'ionia', name: 'Ionia', age: 28 }),
 ]);
 
 // ── Ender (fixed protagonist — always party[0]) ──
 const ENDER = {
-  name: 'Young Ender',
-  age: 28,
-  class: 'Rift Scholar + Dreamwright',
+  name: 'Ender',
+  age: 22,
+  class: 'Rift Scholar',
   vit: 13, maxVit: 13,
   echoes: { current: 3, max: 3 }, maxEchoes: 3,
   wits: 2, presence: 1, spirit: 1, might: -1, grace: 0,
@@ -378,7 +378,7 @@ const CharCreate = {
     if (pressed[13] || pressed[32]) {
       if (this.selectedJob) {
         const authored = AUTHORED_COMPANIONS[this.slot];
-        this.party[this.slot + 1] = this._makeCharacter(authored.name, this.selectedJob);
+        this.party[this.slot + 1] = this._makeCharacter(authored, this.selectedJob);
         if (this.slot === 0) {
           this.slot = 1;
           this.nameInput = AUTHORED_COMPANIONS[1].name;
@@ -416,11 +416,15 @@ const CharCreate = {
   },
 
   // ── Create a character object from name + job ──
-  _makeCharacter: function(name, job) {
+  _makeCharacter: function(authored, job) {
     const j = job || JOBS[0];
+    const identity = typeof authored === 'string'
+      ? AUTHORED_COMPANIONS.find(slot => slot.name === authored)
+      : authored;
+    if (!identity) throw new Error('AUTHORED_COMPANION_IDENTITY_REQUIRED');
     return {
-      name: name,
-      age: 22,
+      name: identity.name,
+      age: identity.age,
       class: j.name,
       mechanicsTemplateId: j.id,
       mechanicsTemplateName: j.name,
@@ -457,10 +461,10 @@ const CharCreate = {
     }
     // Ensure both companions exist
     if (!this.party[1]) {
-      this.party[1] = this._makeCharacter(AUTHORED_COMPANIONS[0].name, JOBS[0]);
+      this.party[1] = this._makeCharacter(AUTHORED_COMPANIONS[0], JOBS[0]);
     }
     if (!this.party[2]) {
-      this.party[2] = this._makeCharacter(AUTHORED_COMPANIONS[1].name, JOBS[0]);
+      this.party[2] = this._makeCharacter(AUTHORED_COMPANIONS[1], JOBS[0]);
     }
 
     // This is migration input only. core.js commits it through AetherPartyState
@@ -602,10 +606,10 @@ const CharCreate = {
     textSize(9);
     textAlign(CENTER, CENTER);
     fill(C.parchment[0], C.parchment[1], C.parchment[2], 200);
-    text('YOUNG ENDER', x, y + size * 0.7 + 14);
+    text('ENDER', x, y + size * 0.7 + 14);
     textSize(8);
     fill(C.teal[0], C.teal[1], C.teal[2], 140);
-    text('Rift Scholar + Dreamwright  ·  Rank 1', x, y + size * 0.7 + 26);
+    text('Rift Scholar  ·  Age 22  ·  Rank 1', x, y + size * 0.7 + 26);
   },
 
   // ── Name input step ──
@@ -1132,7 +1136,7 @@ const CharCreate = {
       textFont(CC_FONT_BODY);
       textSize(10);
       textAlign(CENTER, TOP);
-      const jobName = isEnder ? 'Rift Scholar + Dreamwright' :
+      const jobName = isEnder ? 'Rift Scholar' :
                      (job ? 'FIELD ROLE: ' + job.name : 'FIELD ROLE: UNSET');
       const classCol = isEnder ? C.teal : (job ? jobColorRGB(chr.jobId) : C.dim);
       fill(classCol[0], classCol[1], classCol[2], 160);
