@@ -70,7 +70,7 @@ test('D20: Combat init receives complete player snapshot', () => {
     'Should include validated read-only party context');
 
   const startCombatMatch = aetherwakeSrc.match(
-    /function startCombat\(enemyId\) \{([\s\S]*?)^\}/m
+    /function startCombat\(enemyId(?:,\s*returnState)?\) \{([\s\S]*?)^\}/m
   );
   assert(startCombatMatch, 'startCombat function should exist');
   const startBody = startCombatMatch[1];
@@ -101,7 +101,7 @@ test('D21: beginEncounter returns {ok, reason} for unknown enemy', () => {
 
 // D21b: Verify startCombat fails closed when beginEncounter returns error
 test('D21b: startCombat fails closed on invalid enemy', () => {
-  const startCombatMatch = aetherwakeSrc.match(/function startCombat\(enemyId\) \{([\s\S]*?)^\}/m);
+  const startCombatMatch = aetherwakeSrc.match(/function startCombat\(enemyId(?:,\s*returnState)?\) \{([\s\S]*?)^\}/m);
   assert(startCombatMatch, 'startCombat function should exist');
   const body = startCombatMatch[1];
   
@@ -150,7 +150,7 @@ test('D22b: drawCombatLog reads from combat state log', () => {
 
 // D21c: Invalid enemy preflight must happen before any mutation/transfer consumption
 test('D21c: invalid enemy preflight precedes combat init and airship consumption', () => {
-  const startCombatMatch = aetherwakeSrc.match(/function startCombat\(enemyId\) \{([\s\S]*?)^\}/m);
+  const startCombatMatch = aetherwakeSrc.match(/function startCombat\(enemyId(?:,\s*returnState)?\) \{([\s\S]*?)^\}/m);
   assert(startCombatMatch, 'startCombat function should exist');
   const body = startCombatMatch[1];
 
@@ -172,7 +172,7 @@ test('D21c: invalid enemy preflight precedes combat init and airship consumption
 
 // D23: Verify airship transfer only consumed when eligible
 test('D23: Airship transfer eligibility check in startCombat', () => {
-  const startCombatMatch = aetherwakeSrc.match(/function startCombat\(enemyId\) \{([\s\S]*?)^\}/m);
+  const startCombatMatch = aetherwakeSrc.match(/function startCombat\(enemyId(?:,\s*returnState)?\) \{([\s\S]*?)^\}/m);
   assert(startCombatMatch, 'startCombat function should exist');
   const body = startCombatMatch[1];
   
