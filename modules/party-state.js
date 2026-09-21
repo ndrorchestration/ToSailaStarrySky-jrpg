@@ -15,11 +15,11 @@
   'use strict';
 
   const DEFINITIONS = Object.freeze([
-    Object.freeze({ id: 'ender', canonicalName: 'Ender', nativeJob: 'Rift Scholar' }),
-    Object.freeze({ id: 'lyra', canonicalName: 'Lyra', nativeJob: null }),
-    Object.freeze({ id: 'ionia', canonicalName: 'Ionia', nativeJob: null }),
-    Object.freeze({ id: 'reson', canonicalName: 'Reson', nativeJob: null }),
-    Object.freeze({ id: 'aepex', canonicalName: 'Aepex', nativeJob: null }),
+    Object.freeze({ id: 'ender', canonicalName: 'Ender', age: 22, nativeJob: 'Rift Scholar' }),
+    Object.freeze({ id: 'lyra', canonicalName: 'Lyra', age: 24, nativeJob: null }),
+    Object.freeze({ id: 'ionia', canonicalName: 'Ionia', age: 28, nativeJob: null }),
+    Object.freeze({ id: 'reson', canonicalName: 'Reson', age: 25, nativeJob: null }),
+    Object.freeze({ id: 'aepex', canonicalName: 'Aepex', age: 27, nativeJob: null }),
   ]);
 
   const ROSTER = [];
@@ -69,7 +69,7 @@
       nativeJob: definition.nativeJob,
       runtimeImplemented: false,
       implementationSource: 'authored-shell',
-      age: null,
+      age: definition.age
       class: null,
       jobId: null,
       mechanicsTemplateId: null,
@@ -128,7 +128,7 @@
       : 'authored-identity+prototype-mechanics';
 
     assignIfDefined(target, 'name', source.name || definition.canonicalName);
-    assignIfDefined(target, 'age', source.age);
+    target.age = definition.age;
     assignIfDefined(target, 'class', source.class);
     assignIfDefined(target, 'jobId', source.jobId);
     assignIfDefined(target, 'mechanicsTemplateId', source.mechanicsTemplateId || source.jobId);
@@ -351,7 +351,8 @@
       target.id = definition.id;
       target.canonicalName = definition.canonicalName;
       target.nativeJob = definition.nativeJob;
-      target.name = definition.id === 'ender' ? (target.name || definition.canonicalName) : definition.canonicalName;
+      target.age = definition.age;
+      target.name = definition.canonicalName;
       target.runtimeImplemented = source.runtimeImplemented;
       target.implementationSource = source.runtimeImplemented
         ? (definition.id === 'ender' ? 'save-restore' : 'authored-identity+prototype-mechanics')
