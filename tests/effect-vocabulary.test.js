@@ -33,6 +33,28 @@ assert.strictEqual(vocabulary.assertActionCoverage(actionFixture), true);
 assert(Object.isFrozen(vocabulary.EFFECT_KIND), 'effect kinds must be frozen');
 assert(Object.isFrozen(vocabulary.ACTION_EFFECT_PROFILES), 'effect profiles must be frozen');
 
+const staffProfile = vocabulary.ACTION_EFFECT_PROFILES.staffStrike;
+assert.deepStrictEqual(staffProfile.success, [],
+  'migrated Staff Strike must not advertise a success outcome band');
+assert.deepStrictEqual(staffProfile.partial, [],
+  'migrated Staff Strike must not advertise a partial outcome band');
+assert.deepStrictEqual(staffProfile.failure, [],
+  'migrated Staff Strike must not advertise a failure outcome band');
+assert(staffProfile.common.some(effect =>
+  effect.kind === vocabulary.EFFECT_KIND.DAMAGE &&
+  effect.target === vocabulary.TARGET.ENEMY &&
+  effect.key === 'emp'
+), 'migrated Staff Strike must retain EMP damage semantics');
+assert(staffProfile.common.some(effect =>
+  effect.kind === vocabulary.EFFECT_KIND.RESOURCE &&
+  effect.operation === vocabulary.OPERATION.DECREASE &&
+  effect.key === vocabulary.RESOURCE.STAFF_CHARGES
+), 'migrated Staff Strike must retain dedicated charge consumption');
+assert(!staffProfile.common.some(effect =>
+  effect.kind === vocabulary.EFFECT_KIND.DAMAGE &&
+  effect.target === vocabulary.TARGET.SELF
+), 'migrated Staff Strike must not retain PbtA failure/counter self-damage');
+
 const uncoverSuccess = vocabulary.ACTION_EFFECT_PROFILES.uncoverTruth.success;
 assert(uncoverSuccess.some(effect =>
   effect.kind === vocabulary.EFFECT_KIND.REVEAL &&
