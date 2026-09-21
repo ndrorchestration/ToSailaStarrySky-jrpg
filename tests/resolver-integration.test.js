@@ -37,5 +37,7 @@ assert(body.includes('applyRestore(effectVocabulary.TARGET.SELF'),
   'restoration is not routed through resolver');
 assert(body.includes('changeResource(effectVocabulary.RESOURCE.'),
   'resource changes are not routed through resolver');
+assert(body.includes("revealEffect(effectVocabulary.TARGET.ENEMY, 'weakness')"),
+  'weakness reveal is not routed through resolver');
 
 console.log('Aetherwake live resolver integration contract: PASS');
