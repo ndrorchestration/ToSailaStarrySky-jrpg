@@ -10,7 +10,7 @@ function member(id, name, templateId, overrides) {
     runtimeImplemented: true,
     mechanicsTemplateId: templateId || null,
     mechanicsTemplateName: templateId
-      ? fieldRoles.getById(templateId).name
+      ? ((fieldRoles.getById(templateId) || {}).name || templateId)
       : null,
     implementationSource: id === 'ender'
       ? 'canonical-lead'
