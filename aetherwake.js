@@ -1798,7 +1798,7 @@ function drawBootSequence() {
   
   textSize(13 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
-  text('THE AUREATE WAKE — CHRONICLE OF THE LAST SOLARPUNK AIRSHIP', cx, cy + 48);
+  text('A SOLARPUNK SKYFARING RPG', cx, cy + 48);
   
   textSize(14 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
@@ -1812,7 +1812,7 @@ function drawBootSequence() {
   textFont('Press Start 2P');
   textSize(8 * v);
   fill(C.teal[0], C.teal[1], C.teal[2], 100 * v);
-  text('THE AUREATE WAKE // TURN-BASED JRPG // FORMULA MIGRATION', cx, height - 20);
+  text('THE AUREATE WAKE // SOLARPUNK SKYFARING RPG', cx, height - 20);
   
   // Subtle flash every 4 seconds
   const flashCycle = (millis() - bootTime) / 4000;
@@ -1916,7 +1916,7 @@ function drawTitleScreen() {
   textFont('Press Start 2P');
   textSize(8);
   fill(C.teal[0], C.teal[1], C.teal[2], 100);
-  text('THE AUREATE WAKE // TURN-BASED 2D6 PbtA', cx, height - 20);
+  text('THE AUREATE WAKE // SOLARPUNK SKYFARING RPG', cx, height - 20);
 }
 
 function drawAirshipOverlay() {

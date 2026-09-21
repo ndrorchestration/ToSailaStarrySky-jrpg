@@ -224,7 +224,7 @@ const CharCreate = {
         this.slot = 0;
         this.nameInput = AUTHORED_COMPANIONS[0].name;
         this.cursorPos = this.nameInput.length;
-        this.selectedJob = null;
+        this.selectedJob = JOBS[0] || null;
         this._currentChar = null;
         return;
       }
@@ -383,7 +383,7 @@ const CharCreate = {
           this.slot = 1;
           this.nameInput = AUTHORED_COMPANIONS[1].name;
           this.cursorPos = this.nameInput.length;
-          this.selectedJob = null;
+          this.selectedJob = JOBS[0] || null;
           this.phase = 'class';
         } else {
           this.phase = 'review';
@@ -540,8 +540,8 @@ const CharCreate = {
     textSize(14);
     fill(C.parchment[0], C.parchment[1], C.parchment[2], 180);
     textAlign(CENTER, CENTER);
-    text('Ender, Lyra, and Ionia are the authored starting trio.', cx, cy + 68);
-    text('Assign Lyra and Ionia temporary field-role templates for this pre-alpha slice.', cx, cy + 84);
+    text('You travel as Ender, alongside Lyra and Ionia.', cx, cy + 68);
+    text('Choose how Lyra and Ionia support the crew on this opening voyage.', cx, cy + 84);
 
     // Ender preview — small silhouette bottom-center
     const enderX = cx;
@@ -559,7 +559,7 @@ const CharCreate = {
     // Controls hint
     textSize(9);
     fill(C.dim[0], C.dim[1], C.dim[2], 120);
-    text('← →: select field role   ·   Z/ENTER: confirm   ·   X/ESC: back', cx, height - 22);
+    text('← → choose   ·   Z/ENTER confirm   ·   X/ESC back', cx, height - 22);
   },
 
   // ── Draw Ender preview silhouette ──
@@ -778,7 +778,7 @@ const CharCreate = {
     fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
     textSize(11);
     textAlign(LEFT, TOP);
-    text('Authored identity: ' + nameDisplay + '  ·  mechanics template only', panelX + 20, panelY + 28);
+    text('Crewmate: ' + nameDisplay + '  ·  choose a role for the opening voyage', panelX + 20, panelY + 28);
 
     // Divider
     stroke(C.teal[0], C.teal[1], C.teal[2], 50);
@@ -969,7 +969,7 @@ const CharCreate = {
     textSize(8);
     fill(C.dim[0], C.dim[1], C.dim[2], 120);
     textAlign(CENTER, BOTTOM);
-    text('← → to cycle  ·  Z/ENTER to confirm  ·  X/ESC to go back',
+    text('← → choose role  ·  Z/ENTER confirm  ·  1–3 quick select  ·  X/ESC back',
          width / 2, height - 16);
   },
 
@@ -1006,7 +1006,7 @@ const CharCreate = {
     textSize(12);
     fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
     textAlign(CENTER, TOP);
-    text('The island that falls upward awaits — your party is set.', width / 2, panelY + 36);
+    text('Your crew is ready. Review each role before the first wake.', width / 2, panelY + 36);
 
     // Divider
     stroke(C.teal[0], C.teal[1], C.teal[2], 50);

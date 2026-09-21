@@ -177,6 +177,13 @@ function createServer() {
     assert(debugOverlayState.every(entry => entry.display === 'none'),
       'normal launch exposed a debug overlay');
 
+    const playerCopy = await page.evaluate(() => ({
+      titleText: document.body.innerText || '',
+      charCreateSource: String(window.AetherCharCreate && window.AetherCharCreate._drawTitle || ''),
+    }));
+    assert(!/FORMULA MIGRATION/i.test(playerCopy.titleText),
+      'player-facing title still exposes internal migration language');
+
     // Standard JRPG path: BOOT → title command menu → character creation.
     await page.keyboard.press('Enter');
     await page.waitForFunction(() => window.gameState === 'menu', undefined,
@@ -192,12 +199,13 @@ function createServer() {
       window.gameState === 'charcreate' &&
       window._charcreate.phase === 'class' &&
       window._charcreate.slot === 0 &&
-      window._charcreate.nameInput === 'Lyra'
+      window._charcreate.nameInput === 'Lyra' &&
+      window._charcreate.selectedJob &&
+      window._charcreate.selectedJob.id === 'skySailor'
     , undefined, { timeout: 5000 });
 
-    // Select the same preservation templates through cursor navigation, not
-    // number-key shortcuts.
-    await page.keyboard.press('ArrowRight'); // Lyra → Sky-Sailor
+    // Field-role screen must never be a dead end: its visible default selection
+    // is immediately confirmable without requiring an unexplained arrow press.
     await page.keyboard.press('KeyZ');
 
     await page.waitForFunction(() =>
@@ -210,7 +218,10 @@ function createServer() {
       window._charcreate.party[1].name === 'Lyra'
     , undefined, { timeout: 5000 });
 
-    await page.keyboard.press('ArrowRight'); // Ionia: Sky-Sailor
+    await page.waitForFunction(() =>
+      window._charcreate.selectedJob &&
+      window._charcreate.selectedJob.id === 'skySailor'
+    , undefined, { timeout: 5000 });
     await page.keyboard.press('ArrowRight'); // Engine-Wright
     await page.keyboard.press('ArrowRight'); // Aether-Weaver
     await page.keyboard.press('KeyZ');
