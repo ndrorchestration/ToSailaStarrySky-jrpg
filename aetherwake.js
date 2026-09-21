@@ -431,7 +431,10 @@ function draw() {
       const py = world ? world.player.py : 380;
       const aetherInfo = combat.getAether ? combat.getAether() : { max: 6 };
       const chargeInfo = combat.getCharges ? combat.getCharges() : { max: 2 };
-      combat.drawCombatScene(px, py, aetherInfo.max, chargeInfo.max);
+      combat.drawCombatScene(
+        px, py, aetherInfo.max, chargeInfo.max,
+        { domain: combatReturnState === STATE.AIRSHIP ? 'sky' : 'ground' }
+      );
     }
     // Draw combat UI panel
     if (typeof drawCombatPanel === 'function' && combat && typeof combat.getState === 'function') {
