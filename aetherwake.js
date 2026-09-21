@@ -281,7 +281,7 @@ function setup() {
   }
   window.AetherPartyState.bootstrap(world.player);
   if (!window.AetherSaveState ||
-      window.AetherSaveState.schemaVersion !== 2 ||
+      window.AetherSaveState.schemaVersion !== 3 ||
       typeof window.AetherSaveState.createDocument !== 'function' ||
       typeof window.AetherSaveState.loadFromStorage !== 'function') {
     showInitializationFailure('AETHER_SAVE_STATE_UNAVAILABLE');
