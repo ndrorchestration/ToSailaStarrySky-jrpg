@@ -1367,7 +1367,7 @@ function drawBootSequence() {
       'Now the cores are failing.',
       '',
       'You are Ender.',
-      'Deckhand. Engineer-in-training.',
+      'Rift Scholar. New hand aboard the Wake.',
       'You carry a wrench, a passport, and a decision',
       'you have not yet admitted you have to make.',
       '',
@@ -2238,7 +2238,7 @@ function initNPCs() {
       dialogue: {
         intro: [
           '"The Wake doesn\'t sing like it used to. You hear it? The harmonics are slipping. Ten years under Captain Denith taught me this ship\'s rhythms, and now the Core is forgetting its own song."',
-          '"You\'re Ender. Deckhand. Engineer-in-training. You carry a wrench, a passport, and a decision you haven\'t admitted you have to make. I know the shape of it."',
+          '"You\'re Ender. Rift Scholar, and a new hand aboard my ship. You carry a wrench, a passport, and a decision you haven\'t admitted you have to make. I know the shape of it."',
           '"I\'ve flown the Wake through the copper storms, through the blight-winds, through the years when the sky-lanes were closing one by one. I\'ve never seen the core drift like this. Not in all my watches."',
           'The crops on the lower decks taste like copper dust. The solar array still hums. The people are tired but alive. That\'s a lot. It\'s not enough, but it\'s a lot.',
           '"You stand on the edge of something big, Ender. I can smell it on you. Something that wants to be decided."'
@@ -2296,7 +2296,7 @@ function initNPCs() {
       flags: { met: false, questMarker: true }
     },
 
-    // 3 — Lyra (child dreamer, hears frequencies above and below)
+    // 3 — Lyra (24-year-old mother; dream/frequency-sensitive)
     {
       id: 'child_prophet',
       name: 'Lyra',
@@ -4970,9 +4970,9 @@ function AetherCombat(p, C) {
   const self = this;
   const state = {
     player: {
-      name: 'Young Ender',
-      age: 28,
-      class: 'Rift Scholar + Dreamwright',
+      name: 'Ender',
+      age: 22,
+      class: 'Rift Scholar',
       vit: 13, maxVit: 13,
       echoes: { current: 3, max: 3 }, maxEchoes: 3,
       wits: 2, presence: 1, spirit: 1, might: -1,
@@ -5281,9 +5281,9 @@ function AetherCombat(p, C) {
       if (randomSeed) randomSeed(seed);
     }
     const maxVit = Math.max(1, Number(options.maxVit ?? 13));
-    state.player.name = options.name ?? 'Young Ender';
-    state.player.age = options.age ?? 28;
-    state.player.class = options.class ?? 'Rift Scholar + Dreamwright';
+    state.player.name = options.name ?? 'Ender';
+    state.player.age = options.age ?? 22;
+    state.player.class = options.class ?? 'Rift Scholar';
     state.player.vit = Math.max(1, Math.min(maxVit, Number(options.vit ?? maxVit)));
     state.player.maxVit = maxVit;
     state.player.wits = Number(options.wits ?? 2);
