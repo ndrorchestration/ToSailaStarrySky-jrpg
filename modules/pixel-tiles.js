@@ -25,6 +25,11 @@
     W: [205, 225, 230],
     Y: [255, 196, 91],
     P: [103, 85, 116],
+    F: [29, 72, 52],
+    L: [139, 184, 88],
+    S: [230, 210, 151],
+    K: [91, 68, 61],
+    H: [211, 239, 241],
   });
 
   function freezeFrame(rows) {
@@ -114,6 +119,56 @@
           'TTTTTTTTTTTGTTTT',
         ]),
       ]),
+    }),
+
+    forest: Object.freeze({
+      id: 'forest',
+      frames: Object.freeze([freezeFrame([
+        'TTTTTTTTTTTTTTTT','TTTTTFFTTFFTTTTT','TTTFFGFFFFFFTTTT','TTFFFGGGFFFFFTTT',
+        'TFFFGgGGGFFFFFTT','TFFGGGGGGGFFFFTT','FFGGgGGGGGGFFFFT','FFGGGGGGGGGFFFFT',
+        'TFFGGGGGGGFFFFTT','TTFFGGGGGFFFFTTT','TTTFFFGFFFFFTTTT','TTTTFFKFFFTTTTTT',
+        'TTTTTKKKTTTTTTTT','TTTTTKKKTTTTTTTT','TTTTTTKTTTTTTTTT','TTTTTTTTTTTTTTTT',
+      ])]),
+    }),
+
+    cliff: Object.freeze({
+      id: 'cliff',
+      frames: Object.freeze([freezeFrame([
+        'GGGGGGGGGGGGGGGG','TTTTTTTTTTTTTTTT','OOOOOOOOOOOOOOOO','ODDDOODDDDOODDDO',
+        'DDOODDDDOODDDDOO','DOODDDOODDDOODDD','DDDDOODDDDOODDDD','ODDDDOODDDDOODDD',
+        'DDOODDDDOODDDDOO','DOODDDOODDDOODDD','DDDDOODDDDOODDDD','ODDDDOODDDDOODDD',
+        'DDOODDDDOODDDDOO','DOODDDOODDDOODDD','DDDDDDDDDDDDDDDD','NNNNNNNNNNNNNNNN',
+      ])]),
+    }),
+
+    shore: Object.freeze({
+      id: 'shore',
+      frames: Object.freeze([freezeFrame([
+        'SSSSSSSSSSSSSSSS','SSSSSSSSSSSSSSSS','SSSSSSSSSSSSSSSS','SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS','SSSSSSSSSSSSSSSS','SSSSSSSSSSSSSSSS','SSSSSSSSSSSSSSSS',
+        'SSSSSSSSSSSSSSSS','SSSSSSSSSSSSSSSS','SSSSSSSSSSSSSSSS','SSSSSSSSSSSSSSSS',
+        'SSSSCCCCSSSSCCCC','SSCCCCCCCCCCCCCC','CCCCCbbbbCCCCCCC','BBBBBBBBBBBBBBBB',
+      ])]),
+    }),
+
+    mountain: Object.freeze({
+      id: 'mountain',
+      frames: Object.freeze([freezeFrame([
+        '.......H........','......HHH.......','.....HWWWH......','....HWWWWWK.....',
+        '...HWWWKKKKK....','..HWWKKKKKKKK...','.HWWKKKKKKKKKK..','HWWKKKKKKKKKKKK.',
+        'WWKKKKKKKKKKKKKK','WKKKKKKKKKKKKKKK','KKKKKKKKKKKKKKKK','KKKKKKKKKKKKKKKK',
+        'KKKKKKKKKKKKKKKK','KKKKKKKKKKKKKKKK','KKKKKKKKKKKKKKKK','KKKKKKKKKKKKKKKK',
+      ])]),
+    }),
+
+    path: Object.freeze({
+      id: 'path',
+      frames: Object.freeze([freezeFrame([
+        'TTTTTTSSSSTTTTTT','TTTTTSSSSSSTTTTT','TTTTSSSSSSSSTTTT','TTTTSSSSSSSSTTTT',
+        'TTTTTSSSSSSTTTTT','TTTTTTSSSSTTTTTT','TTTTTTSSSSTTTTTT','TTTTTSSSSSSTTTTT',
+        'TTTTSSSSSSSSTTTT','TTTTSSSSSSSSTTTT','TTTTTSSSSSSTTTTT','TTTTTTSSSSTTTTTT',
+        'TTTTTTSSSSTTTTTT','TTTTTSSSSSSTTTTT','TTTTSSSSSSSSTTTT','TTTTSSSSSSSSTTTT',
+      ])]),
     }),
 
     crate: Object.freeze({
@@ -353,7 +408,7 @@
   }
 
   const api = Object.freeze({
-    VERSION: '0.1.0',
+    VERSION: '0.2.0',
     TILE_SIZE: 16,
     PALETTE,
     TILES,
