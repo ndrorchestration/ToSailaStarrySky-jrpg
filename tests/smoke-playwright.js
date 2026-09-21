@@ -526,6 +526,28 @@ function createServer() {
       aetherSenseAfter.versions.sense === '0.1.0',
       'Aether Sense runtime dependency versions drifted');
 
+    // Historical save compatibility: authored NPC aliases are accepted at the
+    // persistence boundary, normalized immediately, and never re-exported.
+    const legacyNpcMigration = await page.evaluate(() => {
+      const original = window._world.exportPersistentState();
+      const legacy = JSON.parse(JSON.stringify(original));
+      legacy.quest.npcsMet = ['elder_farmer', 'child_prophet'];
+
+      const restored = window._world.restorePersistentState(legacy);
+      const canonicalIds = restored.quest.npcsMet.slice();
+      const metFlags = window._world.npcs
+        .filter(npc => npc.id === 'ionia' || npc.id === 'lyra')
+        .map(npc => ({ id: npc.id, met: Boolean(npc.flags && npc.flags.met) }));
+
+      window._world.restorePersistentState(original);
+      return { canonicalIds, metFlags };
+    });
+    assert(legacyNpcMigration.canonicalIds.join('|') === 'ionia|lyra',
+      'legacy authored NPC save ids were not normalized to canonical ids');
+    assert(legacyNpcMigration.metFlags.length === 2 &&
+      legacyNpcMigration.metFlags.every(entry => entry.met === true),
+      'legacy authored NPC save ids did not restore canonical NPC met flags');
+
     const dialogueStateContract = await page.evaluate(() => {
       const player = window._world.player;
       player.tileX = 7;
@@ -538,7 +560,7 @@ function createServer() {
       if (npc && npc.flags) npc.flags.met = false;
       return { npcId: npc && npc.id, state: window.gameState };
     });
-    assert(dialogueStateContract.npcId === 'elder_farmer',
+    assert(dialogueStateContract.npcId === 'ionia',
       'dialogue fixture did not locate the first NPC');
 
     await page.keyboard.press('KeyZ');
@@ -554,7 +576,7 @@ function createServer() {
         : null;
       if (window.gameState === 'dialogue' &&
           window.UI.dialogueOpen === true &&
-          npcId === 'elder_farmer' &&
+          npcId === 'ionia' &&
           typeof modelText === 'string' &&
           modelText.includes('Wake')) {
         return {
@@ -568,7 +590,7 @@ function createServer() {
     }, undefined, { timeout: 5000 });
     const dialogueOpened = await dialogueHandle.jsonValue();
 
-    assert(dialogueOpened.npcId === 'elder_farmer',
+    assert(dialogueOpened.npcId === 'ionia',
       'production interaction did not open the nearest NPC dialogue');
     assert(dialogueOpened.open === true &&
       typeof dialogueOpened.modelText === 'string' &&
