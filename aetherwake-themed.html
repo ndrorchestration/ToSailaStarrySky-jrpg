@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AETHERWAKE — THE LAST SOLARPUNK AIRSHIP</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #1a102e; }
+    #aetherwake-game { width: 100%; height: 100%; border: 0; display: block; background: #1a102e; }
+  </style>
+</head>
+<body>
+  <iframe
+    id="aetherwake-game"
+    src="index-embedded.html"
+    title="Aetherwake"
+    allow="autoplay"
+    autofocus
+  ></iframe>
+  <script src="modules/title-music.js"></script>
+  <script>
+    (function () {
+      var frame = document.getElementById('aetherwake-game');
+      window.AetherwakeTitleMusic.init({ frame: frame });
+      frame.addEventListener('load', function () {
+        try { frame.contentWindow.focus(); } catch (_) {}
+      });
+    })();
+  </script>
+</body>
+</html>
