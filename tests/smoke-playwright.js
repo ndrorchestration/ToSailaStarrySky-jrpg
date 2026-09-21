@@ -670,6 +670,54 @@ function createServer() {
     const combatStart = await page.evaluate(() => window._combat.getState());
     assert(combatStart.turn === 0, 'combat did not start at turn 0');
 
+    const partyContext = combatStart.partyContext;
+    assert(partyContext &&
+      partyContext.mode === 'read-only-three-character-context',
+      'combat did not receive the read-only party context');
+    assert(partyContext.members.map(member => member.id).join('|') ===
+      'ender|lyra|ionia',
+      'combat party context identity set drifted');
+    assert(partyContext.executableActorIds.join('|') === 'ender' &&
+      partyContext.members[0].execution.status === 'executable-lead',
+      'combat party context widened executable actor authority');
+    assert(partyContext.members[1].fieldRole.id === 'skySailor' &&
+      partyContext.members[1].declaredActions.map(action => action.id).join('|') ===
+        'windShearDance|aetherCompass',
+      'Lyra staged combat declarations are incorrect');
+    assert(partyContext.members[2].fieldRole.id === 'aetherWeaver' &&
+      partyContext.members[2].declaredActions.map(action => action.id).join('|') ===
+        'spiritThread|aetherWeave',
+      'Ionia staged combat declarations are incorrect');
+    for (const companion of partyContext.members.slice(1)) {
+      assert(companion.execution.status === 'declared-non-executable' &&
+        companion.execution.reason === 'OUTCOME_CONTRACT_NOT_ESTABLISHED',
+        companion.id + ' was incorrectly authorized for combat execution');
+      assert(companion.declaredActions.every(action =>
+        action.executable === false &&
+        action.reason === 'OUTCOME_CONTRACT_NOT_ESTABLISHED'
+      ), companion.id + ' staged action leaked executable authority');
+    }
+    const executableActionIds = combatStart.actions.map(action => action.id);
+    for (const stagedActionId of [
+      'windShearDance', 'aetherCompass', 'spiritThread', 'aetherWeave',
+    ]) {
+      assert(!executableActionIds.includes(stagedActionId),
+        stagedActionId + ' leaked into Ender executable action slots');
+    }
+
+    const partyContextIsolation = await page.evaluate(() => {
+      const detached = window._combat.getState();
+      detached.partyContext.members[1].vit = 0;
+      return {
+        internalLyraVit: window._combat.getState().partyContext.members[1].vit,
+        activeIds: window.ACTIVE_PARTY.map(character => character.id),
+      };
+    });
+    assert(partyContextIsolation.internalLyraVit === partyContext.members[1].vit,
+      'combat getState exposed mutable internal party context');
+    assert(partyContextIsolation.activeIds.join('|') === 'ender|lyra|ionia',
+      'combat context creation mutated ACTIVE_PARTY');
+
     // Level-1 progression must actually gate actions 6-8.
     await page.keyboard.press('6');
     const afterLockedAction = await page.evaluate(() => window._combat.getState());
