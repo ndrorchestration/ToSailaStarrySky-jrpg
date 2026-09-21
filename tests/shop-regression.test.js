@@ -32,15 +32,14 @@ test('D16: openShop returns semantic {ok, kind, reason/items} results', () => {
   assert(openShopMatch, 'openShop function should exist');
   const body = openShopMatch[1];
   
-  // Check that it returns {ok: false, reason: ...} on distance failure
-  assert(body.includes('return { ok: false, reason:'), 
-    'openShop should return {ok: false, reason} when merchant is too far');
-  assert(body.includes("'Merchant is too far away.'"), 
+  // Check that failure and success preserve the semantic interaction kind.
+  assert(body.includes("return { ok: false, kind: 'shop', reason:"),
+    'openShop should return semantic shop failure when merchant is too far');
+  assert(body.includes("'Merchant is too far away.'"),
     'openShop should have appropriate reason message');
-  
-  // Check successful return
-  assert(/return \{ ok: true, items:/.test(body), 
-    'openShop should return {ok: true, items} on success');
+
+  assert(body.includes("return { ok: true, kind: 'shop', items: getShopItems() }"),
+    'openShop should return semantic shop success with items');
 });
 
 // D16b: Verify contextual JRPG OK routes shop access through World.interact().
