@@ -82,4 +82,16 @@ assert(workflow.includes('path: artifact/Aetherwake-Windows/**'),
 assert(!workflow.includes('Compress-Archive'),
   'desktop workflow should not create a redundant ZIP inside the GitHub artifact');
 
+
+const embeddedHtml = fs.readFileSync(
+  path.join(__dirname, '..', 'index-embedded.html'),
+  'utf8'
+);
+assert(embeddedHtml.includes('const LAUNCH_SETUP_TIMEOUT_MS = 30000;'),
+  'packaged launch gate must allow 30 seconds for setup-done, matching the packaged verifier');
+assert(embeddedHtml.includes('setupOrder=') &&
+  embeddedHtml.includes('p5Loaded=') &&
+  embeddedHtml.includes('canvas='),
+  'packaged launch timeout must expose startup state instead of a generic failure');
+
 console.log('Aetherwake desktop package contract: PASS');
