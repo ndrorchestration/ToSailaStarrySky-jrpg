@@ -58,6 +58,9 @@ jobs:
       - name: Verify companion action admission contract
         run: npm run test:companion-action-admission
 
+      - name: Verify companion action contract drafts
+        run: npm run test:companion-action-contracts
+
       - name: Verify regression contracts
         run: npm run test:regressions
 
