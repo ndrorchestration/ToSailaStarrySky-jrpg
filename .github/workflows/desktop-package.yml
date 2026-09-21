@@ -18,7 +18,8 @@ on:
       - "scripts/stage-desktop-runtime.js"
       - "scripts/generate-windows-icon.ps1"
       - "tests/desktop-package-contract.test.js"
-      - "tests/one-file-launcher-contract.test.js"\n      - "tests/windows-packaged-render.test.js"
+      - "tests/one-file-launcher-contract.test.js"
+      - "tests/windows-packaged-render.test.js"
   push:
     branches:
       - main
