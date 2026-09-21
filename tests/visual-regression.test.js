@@ -92,4 +92,21 @@ test('D27: character sheet uses canonical live view-model and defined row variab
     'character sheet must not hardcode the legacy class as canonical native job');
 });
 
+test('D28: character sheet roster browser is read-only and uncertainty-preserving', () => {
+  assert(aetherwakeSrc.includes('let charSheetRosterIndex = 0'),
+    'character sheet roster selection state is missing');
+  assert(aetherwakeSrc.includes('charSheetRosterIndex = selectedCode - 49'),
+    'number keys 1-5 should select a roster record for viewing');
+  assert(aetherwakeSrc.includes('const actor = roster[index]'),
+    'character sheet view-model should read the selected canonical roster record');
+  assert(aetherwakeSrc.includes("actor.runtimeImplemented === false"),
+    'unimplemented roster shells should suppress inherited action claims');
+  assert(aetherwakeSrc.includes("Field role (temporary):"),
+    'temporary mechanics templates should be labeled as non-canonical field roles');
+  assert(aetherwakeSrc.includes("view.runtimeImplemented ? 'PORTRAIT PENDING' : 'NOT IMPLEMENTED'"),
+    'unresolved companion portraits should not fabricate appearance');
+  assert(!aetherwakeSrc.includes('ACTIVE_PARTY.splice', aetherwakeSrc.indexOf('function drawCharSheet')),
+    'character sheet renderer must not mutate active-party formation');
+});
+
 console.log('\nAll Cluster 6 regression tests passed!');
