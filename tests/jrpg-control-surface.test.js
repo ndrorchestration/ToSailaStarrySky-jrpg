@@ -14,6 +14,15 @@ function block(name, nextName) {
   return source.slice(start, end >= 0 ? end : source.length);
 }
 
+const keyTyped = block('keyTyped', 'windowResized');
+assert(keyTyped.includes('handleTypedChar'),
+  'keyTyped must remain available for character text entry');
+assert(!keyTyped.includes('startGame()') &&
+  !keyTyped.includes('gameState = STATE.MENU') &&
+  !keyTyped.includes('startCombat(') &&
+  !keyTyped.includes('handleChoiceInput('),
+  'keyTyped must not perform game-state actions; keyPressed is the single action authority');
+
 // Title/menu flow is explicit: no timer-driven implicit new game.
 assert(!source.includes('millis() - menuAutoStartTimer > 3000'),
   'title menu must not auto-start a new game');
