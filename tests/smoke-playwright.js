@@ -79,17 +79,33 @@ function createServer() {
       window._world && window._combat && window._charcreate &&
       document.querySelector('canvas')
     , undefined, { timeout: 15000 });
-    const status = await probe.evaluate(() => ({
-      debugEnabled: Boolean(window.__awDebugEnabled),
-      initErrorHidden: document.querySelector('#aetherwake-init-error') ?
-        document.querySelector('#aetherwake-init-error').hidden : null,
-      canvas: Boolean(document.querySelector('canvas')),
-    }));
+    const status = await probe.evaluate(() => {
+      const canvas = document.querySelector('canvas');
+      const rect = canvas ? canvas.getBoundingClientRect() : null;
+      return {
+        debugEnabled: Boolean(window.__awDebugEnabled),
+        initErrorHidden: document.querySelector('#aetherwake-init-error') ?
+          document.querySelector('#aetherwake-init-error').hidden : null,
+        canvas: Boolean(canvas),
+        parentId: canvas && canvas.parentElement ? canvas.parentElement.id : null,
+        rect,
+        viewport: { width: innerWidth, height: innerHeight },
+      };
+    });
     assert(status.debugEnabled === false,
       entrypoint + ' enabled debug mode on normal launch');
     assert(status.initErrorHidden === true,
       entrypoint + ' exposed initialization failure during normal boot');
     assert(status.canvas === true, entrypoint + ' did not create a canvas');
+    assert(status.parentId === 'jrpg-container',
+      entrypoint + ' canvas is not parented into #jrpg-container');
+    assert(status.rect &&
+      status.rect.left < status.viewport.width &&
+      status.rect.top < status.viewport.height &&
+      status.rect.right > 0 &&
+      status.rect.bottom > 0,
+      entrypoint + ' canvas does not intersect the visible viewport: ' +
+      JSON.stringify(status));
     assert(probeErrors.length === 0,
       entrypoint + ' emitted browser errors:\\n' + probeErrors.join('\\n'));
     await probe.close();
