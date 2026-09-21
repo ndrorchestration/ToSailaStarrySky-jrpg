@@ -4207,6 +4207,10 @@ function render() {
     drawStars();
     drawEnginePulse();
     drawQuestWorldReactions();
+    // Signature vehicle landmark: visible in-world without changing collision semantics.
+    if (quest && quest.state !== QUEST_STATES.SIGNAL) {
+      drawUnfinishedSongExterior(width - 112, 92, 0.72);
+    }
     drawAetherSenseOverlay();
     drawPlayer();
     drawNPCs();
