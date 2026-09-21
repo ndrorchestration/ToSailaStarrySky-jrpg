@@ -105,6 +105,34 @@ This slice does **not** establish:
 
 The Aetherwake capstone remains intentionally undefined and plot-gated.
 
+## Foundation spell admission gate
+
+The repository now separates **semantic contract completeness** from
+**runtime authorization** for foundation spells.
+
+`modules/foundation-spell-admission.js` validates two contract shapes:
+
+- **exploration-readonly** — zero/declared resource cost, no roll table, no
+  effect outcomes, read-only mutation policy, explicit adapter binding, and no
+  persistence;
+- **combat-2d6** — explicit resource cost, 2D6 stat/bands, complete
+  common/success/partial/failure effect profiles, implemented effect semantics,
+  execution adapter binding, and persistence policy.
+
+`modules/foundation-spell-contracts.js` records current evidence:
+
+- **Aether Sense** — established runtime contract; admission resolves
+  `runtime-ready`;
+- **Aether Pulse** — unresolved draft only. It preserves the known Aether
+  resource binding, combat/offense role, 2D6 global combat shape, and damage
+  requirement, but explicitly leaves cost, governing stat, outcome tables,
+  starting ownership, execution adapter, and persistence policy unresolved.
+
+A synthetic structurally complete Aether Pulse contract is used only in tests
+to prove that **contract completeness cannot override design/runtime
+authorization**. The real Aether Pulse definition remains
+`design_proposal / not_integrated`.
+
 ## Next implementation gates
 
 The smallest safe progression from the current foundation is:

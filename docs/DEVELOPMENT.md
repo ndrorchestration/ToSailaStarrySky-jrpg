@@ -259,6 +259,29 @@ Because no mutable mastery state is introduced, player-facing save schema v2
 remains unchanged. Any later mutable mastery system still requires an explicit
 schema migration.
 
+## Foundation spell admission checkpoint
+
+The magic lane now has a reusable fail-closed semantic gate before additional
+foundation spells may become executable.
+
+- `modules/foundation-spell-admission.js` separates **contract completeness**
+  from **runtime authorization**;
+- exploration/read-only and combat/2D6 spells have distinct required evidence;
+- combat contracts require an explicit resource cost, governing stat, complete
+  10+/7–9/6− effect profiles, implemented effect semantics, adapter binding,
+  and persistence policy;
+- `modules/foundation-spell-contracts.js` records Aether Sense as the current
+  established runtime proof and Aether Pulse as an unresolved evidence draft;
+- Aether Pulse remains blocked on design establishment, starting ownership,
+  numeric cost, roll stat, all outcome bands, execution binding, and
+  persistence policy;
+- a synthetic test-only Pulse contract proves structural completeness cannot
+  bypass the code-owned `design_proposal / not_integrated` authorization
+  boundary.
+
+This checkpoint does **not** add a second castable spell, change save schema,
+choose Aether Pulse balance values, or alter existing combat execution.
+
 ## Canonical character-sheet checkpoint
 
 On 2026-09-20, runtime commit `94556dabfc56d26b139731c8ee6d8c15e5d54698`
