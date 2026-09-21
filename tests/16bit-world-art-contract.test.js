@@ -9,8 +9,8 @@ vm.createContext(context);
 vm.runInContext(source, context);
 const api = context.globalThis.AetherPixelTiles;
 assert(api && api.validate(), 'pixel tile registry must validate');
-['forest','cliff','shore','mountain','path'].forEach(id => assert(api.get(id), id + ' tile missing'));
-assert.strictEqual(api.VERSION, '0.2.0');
+['forest','cliff','shore','mountain','path','flowers','ruins','village'].forEach(id => assert(api.get(id), id + ' tile missing'));
+assert.strictEqual(api.VERSION, '0.3.0');
 const runtime = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8');
 ['forest','cliff','shore','mountain','path'].forEach(id =>
   assert(runtime.includes("'" + id + "'"), id + ' is not composed into the live world renderer')
