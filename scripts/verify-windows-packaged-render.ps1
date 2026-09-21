@@ -106,14 +106,38 @@ else {
   Write-Host "Packaged startup diagnostic file was not produced."
 }
 
-if ($opaqueSamples -lt 100) {
-  throw "Packaged Aetherwake window did not contain enough opaque pixels"
-}
-if ($colors.Count -lt 4) {
-  throw "Packaged Aetherwake window is visually uniform/blank ($($colors.Count) sampled colors)"
-}
-if ($nonBlack -lt 20) {
-  throw "Packaged Aetherwake window is effectively black/blank ($nonBlack non-black samples)"
+$diagnostic = $null
+if (Test-Path -LiteralPath $diagnosticPath -PathType Leaf) {
+  $diagnostic = Get-Content -LiteralPath $diagnosticPath -Raw | ConvertFrom-Json
 }
 
-Write-Host "AETHERWAKE_PACKAGED_WINDOW_RENDER=PASS"
+if (-not $diagnostic -or -not $diagnostic.canvas) {
+  throw "Packaged startup diagnostic did not contain canvas metrics"
+}
+if ($diagnostic.initFailed -or $diagnostic.launchFailure) {
+  throw "Packaged runtime reported an initialization/launch failure"
+}
+if (-not $diagnostic.loadingDone) {
+  throw "Packaged runtime never completed its loading boundary"
+}
+if ($diagnostic.setupOrder -notlike "*setup-done*") {
+  throw "Packaged runtime never reached setup-done"
+}
+if ($diagnostic.canvas.pixelReadError) {
+  throw "Packaged canvas pixels could not be read: $($diagnostic.canvas.pixelReadError)"
+}
+if ([int]$diagnostic.canvas.opaqueSamples -lt 500) {
+  throw "Packaged canvas did not contain enough opaque samples: $($diagnostic.canvas.opaqueSamples)"
+}
+if ([int]$diagnostic.canvas.uniqueSampleColors -lt 8) {
+  throw "Packaged canvas is internally uniform/blank: $($diagnostic.canvas.uniqueSampleColors) colors"
+}
+if ([int]$diagnostic.canvas.nonBackgroundSamples -lt 30) {
+  throw "Packaged canvas contains too little content beyond the background: $($diagnostic.canvas.nonBackgroundSamples)"
+}
+
+Write-Host "Canvas unique sampled colors: $($diagnostic.canvas.uniqueSampleColors)"
+Write-Host "Canvas opaque samples: $($diagnostic.canvas.opaqueSamples)"
+Write-Host "Canvas non-background samples: $($diagnostic.canvas.nonBackgroundSamples)"
+Write-Host "Window-capture colors (diagnostic only): $($colors.Count)"
+Write-Host "AETHERWAKE_PACKAGED_CANVAS_RENDER=PASS"
