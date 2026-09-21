@@ -1,13 +1,14 @@
 /* ============================================================
-   Aetherwake JRPG — Effect Resolver v0.1
+   Aetherwake JRPG — Effect Resolver v0.2
    modules/effect-resolver.js
 
-   Stage 1 resolver scaffold:
-   - Pure mutation engine for ordinary damage, restoration, and resource deltas.
-   - Uses the frozen effect vocabulary.
-   - Fails closed on unsupported implemented effect kinds.
-   - Treats DECLARED_NOT_APPLIED effects as explicit no-ops.
-   - Not yet wired into live combat resolution in this commit.
+   Resolver surface:
+   - ordinary damage, restoration, and resource deltas;
+   - combat-local reveal state;
+   - explicit no-op handling for DECLARED_NOT_APPLIED semantics;
+   - fail-closed behavior for implemented effect kinds not yet executable.
+
+   State mutation is owned here; action/formula resolution remains separate.
    ============================================================ */
 
 (function (root, factory) {
@@ -37,7 +38,7 @@
     throw new Error('EFFECT_RESOLVER_REQUIRES_VOCABULARY');
   }
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   function finiteNonNegative(value, code) {
     if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
@@ -61,7 +62,7 @@
       key: key || null,
       runtimeStatus: vocabulary.RUNTIME_STATUS.IMPLEMENTED,
       note: null,
-      amount,
+      amount: amount == null ? null : amount,
     };
   }
 
@@ -105,6 +106,19 @@
     );
   }
 
+  function createRevealEffect(target, key) {
+    if (typeof key !== 'string' || !key) {
+      throw new Error('REVEAL_KEY_INVALID');
+    }
+    return implementedDescriptor(
+      vocabulary.EFFECT_KIND.REVEAL,
+      target,
+      vocabulary.OPERATION.REVEAL,
+      key,
+      null
+    );
+  }
+
   function mutationResult(effect, before, after) {
     return {
       applied: true,
@@ -116,6 +130,22 @@
       before,
       after,
       delta: after - before,
+    };
+  }
+
+  function stateMutationResult(effect, before, after) {
+    const changed = before !== after;
+    return {
+      applied: changed,
+      kind: effect.kind,
+      target: effect.target,
+      key: effect.key,
+      operation: effect.operation,
+      requestedAmount: null,
+      before,
+      after,
+      changed,
+      reason: changed ? null : 'already_applied',
     };
   }
 
@@ -247,6 +277,38 @@
     return mutationResult(effect, before, after);
   }
 
+  function revealBucket(context, target) {
+    if (!context.reveals || typeof context.reveals !== 'object') {
+      throw new Error('REVEAL_STATE_UNAVAILABLE');
+    }
+
+    let bucketKey;
+    if (target === vocabulary.TARGET.SELF) bucketKey = 'self';
+    else if (target === vocabulary.TARGET.ENEMY) bucketKey = 'enemy';
+    else if (target === vocabulary.TARGET.FIELD) bucketKey = 'field';
+    else throw new Error('REVEAL_TARGET_NOT_SUPPORTED:' + target);
+
+    const bucket = context.reveals[bucketKey];
+    if (!bucket || typeof bucket !== 'object' || Array.isArray(bucket)) {
+      throw new Error('REVEAL_BUCKET_INVALID:' + bucketKey);
+    }
+    return bucket;
+  }
+
+  function applyReveal(effect, context) {
+    if (effect.operation !== vocabulary.OPERATION.REVEAL) {
+      throw new Error('REVEAL_OPERATION_NOT_SUPPORTED:' + effect.operation);
+    }
+    if (typeof effect.key !== 'string' || !effect.key) {
+      throw new Error('REVEAL_KEY_INVALID');
+    }
+
+    const bucket = revealBucket(context, effect.target);
+    const before = Boolean(bucket[effect.key]);
+    bucket[effect.key] = true;
+    return stateMutationResult(effect, before, true);
+  }
+
   function applyEffect(effect, context) {
     requireContext(context);
     vocabulary.validateEffectDescriptor(effect);
@@ -268,6 +330,9 @@
     if (effect.kind === vocabulary.EFFECT_KIND.RESOURCE) {
       return applyResource(effect, context);
     }
+    if (effect.kind === vocabulary.EFFECT_KIND.REVEAL) {
+      return applyReveal(effect, context);
+    }
 
     throw new Error('EFFECT_KIND_NOT_EXECUTABLE_YET:' + effect.kind);
   }
@@ -282,6 +347,7 @@
     createDamageEffect,
     createRestoreEffect,
     createResourceDeltaEffect,
+    createRevealEffect,
     applyEffect,
     applyEffects,
   });
