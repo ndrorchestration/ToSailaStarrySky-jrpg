@@ -251,6 +251,7 @@ jobs:
             } |
             ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 
+          $env:AETHERWAKE_DIAGNOSTICS = "1"
           $launcher = Start-Process -FilePath $playerFile -PassThru
           if (-not $launcher.WaitForExit(180000)) {
             try { $launcher.Kill() } catch {}
