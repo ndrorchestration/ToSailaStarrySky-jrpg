@@ -46,6 +46,9 @@ jobs:
       - name: Verify mastery definitions
         run: npm run test:mastery
 
+      - name: Verify magic school access boundary
+        run: npm run test:magic-access
+
       - name: Verify preservation field-role definitions
         run: npm run test:field-roles
 
