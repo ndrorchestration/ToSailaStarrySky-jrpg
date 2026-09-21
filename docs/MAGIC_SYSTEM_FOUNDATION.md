@@ -181,29 +181,29 @@ This creates a useful sequence:
 and prevents synthetic tuning evidence from bypassing the design/admission gate.
 
 
-## Current-runtime balance reference
+## Legacy 2D6 balance reference
 
-Synthetic candidate measurements can now be compared to the **current prototype
+Historical synthetic candidate measurements can be compared to the **preservation-era 2D6
 combat scale** through:
 
 `modules/aether-pulse-runtime-reference.js`
 
-The reference is intentionally descriptive rather than prescriptive. It records
-current runtime facts that materially affect interpretation of a hypothetical
-Aether Pulse:
+The reference is intentionally historical rather than prescriptive. Staff Strike
+has now migrated to the JRPG formula path, so these values describe the old 2D6
+prototype only:
 
-- current prototype Ender: **Wits +2**, **Might -1**;
-- current Aether pool: **4 current / 6 maximum**;
-- current Staff Strike capacity: **2 charges**;
-- current ordinary enemy HP examples: **8, 10, 12, 14**;
+- preservation-era prototype Ender: **Wits +2**, **Might -1**;
+- preservation-era Aether pool: **4 current / 6 maximum**;
+- preservation-era Staff Strike capacity: **2 charges**;
+- preservation-era ordinary enemy HP examples: **8, 10, 12, 14**;
 - charged Staff Strike success damage: mean **5.5** from `1d6+2`;
 - partial Staff Strike damage: mean **4.5** from `1d6+1`;
 - current Staff Strike uses Might and therefore evaluates against the present
   **−1** prototype modifier by default.
 
-The reference is protected by source-drift tests against `modules/combat.js`
-and `modules/ability-defs.js`. If those observed facts change, the reference
-must be reconciled instead of silently carrying an obsolete baseline forward.
+The reference is protected against drift in the preservation-era modular mirror.
+It must not be used as evidence for current Staff Strike behavior or as a target
+balance source for Aether Pulse.
 
 It can report, for any explicitly synthetic Pulse candidate:
 
