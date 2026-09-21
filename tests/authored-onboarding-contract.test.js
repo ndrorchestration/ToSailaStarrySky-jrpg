@@ -80,10 +80,14 @@ assert(active.map(character => character.id).join('|') === 'ender|lyra|ionia',
 assert(active[0] === roster[0] && active[1] === roster[1] && active[2] === roster[2],
   'active party must contain direct canonical roster references');
 
-assert(roster[1].canonicalName === 'Lyra' && roster[1].name === 'Lyra',
-  'Lyra canonical/display identity diverged');
-assert(roster[2].canonicalName === 'Ionia' && roster[2].name === 'Ionia',
-  'Ionia canonical/display identity diverged');
+assert(roster[0].canonicalName === 'Ender' && roster[0].name === 'Ender' && roster[0].age === 22,
+  'Ender canonical identity/age diverged');
+assert(roster[1].canonicalName === 'Lyra' && roster[1].name === 'Lyra' && roster[1].age === 24,
+  'Lyra canonical identity/age diverged');
+assert(roster[2].canonicalName === 'Ionia' && roster[2].name === 'Ionia' && roster[2].age === 28,
+  'Ionia canonical identity/age diverged');
+assert(roster[3].age === 25 && roster[4].age === 27,
+  'resolved Reson/Aepex ages must remain code-owned in roster shells');
 assert(roster[1].nativeJob === null && roster[2].nativeJob === null,
   'unresolved authored companion native jobs must remain null');
 assert(roster[1].implementationSource === 'authored-identity+prototype-mechanics' &&

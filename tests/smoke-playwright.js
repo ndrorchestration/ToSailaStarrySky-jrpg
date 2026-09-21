@@ -211,7 +211,7 @@ function createServer() {
     }));
 
     assert(review.partyLength === 3, 'authored onboarding review did not contain three party slots');
-    assert(review.ender === 'Young Ender', 'Ender missing from onboarding party');
+    assert(review.ender === 'Ender', 'Ender canonical onboarding identity was not preserved');
     assert(review.companion1 === 'Lyra', 'Lyra authored identity was not preserved');
     assert(review.companion2 === 'Ionia', 'Ionia authored identity was not preserved');
     assert(review.companion1Template === 'skySailor',
