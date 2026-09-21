@@ -1061,7 +1061,7 @@ function drawCharSheet(px, py, pw, ph) {
   textAlign(LEFT, TOP);
   drawGlowText('CLASS', sheet.classX, sheet.classY, PAL.TEAL, 10);
   fill(PAL.PARCHMENT);
-  text('Rift Scholar / Dreamwright', sheet.classX + 44, sheet.classY);
+  text('Rift Scholar', sheet.classX + 44, sheet.classY);
 
   drawGlowText('LEVEL', sheet.levelX, sheet.levelY, PAL.TEAL, 10);
   fill(PAL.PARCHMENT);
