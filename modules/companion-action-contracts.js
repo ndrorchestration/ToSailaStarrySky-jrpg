@@ -27,7 +27,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.6.0';
 
   const STATUS = Object.freeze({
     DRAFT_UNRESOLVED: 'draft-unresolved',
@@ -37,6 +37,9 @@
   const UNKNOWN = 'unknown';
 
   const BLOCKER = Object.freeze({
+    FORMULA_CONTRACT_NOT_SPECIFIED: 'FORMULA_CONTRACT_NOT_SPECIFIED',
+    TARGETING_NOT_SPECIFIED: 'TARGETING_NOT_SPECIFIED',
+    EFFECT_CONTRACT_NOT_ESTABLISHED: 'EFFECT_CONTRACT_NOT_ESTABLISHED',
     COST_NOT_SPECIFIED: 'COST_NOT_SPECIFIED',
     DAMAGE_BAND_NOT_SPECIFIED: 'DAMAGE_BAND_NOT_SPECIFIED',
     HEAT_GAIN_BAND_NOT_SPECIFIED: 'HEAT_GAIN_BAND_NOT_SPECIFIED',
@@ -482,6 +485,25 @@
     return DRAFT_ORDER.map(getDraft);
   }
 
+  function getTargetBlockers(draft) {
+    if (!draft) return [];
+    const blockers = [
+      BLOCKER.FORMULA_CONTRACT_NOT_SPECIFIED,
+      BLOCKER.TARGETING_NOT_SPECIFIED,
+      BLOCKER.EFFECT_CONTRACT_NOT_ESTABLISHED,
+    ];
+    if (!draft.cost || draft.cost.status === UNKNOWN) {
+      blockers.push(BLOCKER.COST_NOT_SPECIFIED);
+    }
+    if (!draft.execution || draft.execution.status !== 'established') {
+      blockers.push(BLOCKER.EXECUTION_ADAPTER_NOT_ESTABLISHED);
+    }
+    if (!draft.persistence || draft.persistence.status !== 'established') {
+      blockers.push(BLOCKER.PERSISTENCE_POLICY_NOT_ESTABLISHED);
+    }
+    return blockers;
+  }
+
   function getReadiness(actionId) {
     const draft = DRAFTS[actionId];
     if (!draft) {
@@ -492,18 +514,21 @@
         executionAuthorized: false,
         reason: 'unknown_companion_action_contract',
         blockers: [],
+        legacyEvidenceBlockers: [],
       };
     }
 
+    const ready = draft.status === STATUS.READY_FOR_ADMISSION;
     return {
       actionId,
       known: true,
-      designComplete: draft.status === STATUS.READY_FOR_ADMISSION,
+      designComplete: ready,
       executionAuthorized: false,
-      reason: draft.status === STATUS.READY_FOR_ADMISSION
+      reason: ready
         ? 'execution_authorization_not_established'
-        : 'outcome_contract_not_established',
-      blockers: draft.blockers.slice(),
+        : 'formula_contract_not_established',
+      blockers: ready ? [] : getTargetBlockers(draft),
+      legacyEvidenceBlockers: draft.blockers.slice(),
     };
   }
 
@@ -571,6 +596,7 @@
     DRAFTS,
     getDraft,
     listDrafts,
+    getTargetBlockers,
     getReadiness,
     getAdmissionCandidate,
     validateAgainstFieldRoles,
