@@ -57,6 +57,7 @@ let panelOpenness = 0;
 let uiWindowTone = 0;
 // lastCmdIdx: last-chosen menu command index for last-command memory
 let lastCmdIdx = -1;
+let charSheetRosterIndex = 0; // read-only roster browser selection; never changes formation
 
 // ── Dialogue type-in ──
 let dialogueTypeIn = { active: false, fullText: '', displayText: '', charIndex: 0, speed: 22, lastCharTime: 0 };
@@ -675,6 +676,13 @@ function handleInput() {
     } else if (gameState === STATE.QUESTLOG &&
       (keysPressed[84] || keysPressed[27])) {
       closeOverlay();
+    } else if (gameState === STATE.CHARSHEET &&
+      (keysPressed[49] || keysPressed[50] || keysPressed[51] ||
+       keysPressed[52] || keysPressed[53])) {
+      const selectedCode = [49, 50, 51, 52, 53].find(code => keysPressed[code]);
+      if (selectedCode != null) {
+        charSheetRosterIndex = selectedCode - 49;
+      }
     } else if (gameState === STATE.CHARSHEET &&
       (keysPressed[82] || keysPressed[27])) {
       closeOverlay();
@@ -7291,10 +7299,14 @@ function drawCovenantField(x, y, radius = 60, pulse = 0) {
  * Draw the full character sheet HUD: portrait, class/level, stats, abilities, gear, resources.
  * Layout: top-left portrait + vitals, right column stats, bottom abilities/gear/resources.
  */
-function getCharacterSheetViewModel() {
-  const actor = world && world.player
-    ? world.player
-    : (window.ROSTER && window.ROSTER[0] ? window.ROSTER[0] : null);
+function getCharacterSheetViewModel(rosterIndex) {
+  const roster = Array.isArray(window.ROSTER) ? window.ROSTER : [];
+  const requestedIndex = Number.isInteger(rosterIndex)
+    ? rosterIndex
+    : charSheetRosterIndex;
+  const index = Math.max(0, Math.min(4, requestedIndex || 0));
+  const actor = roster[index] ||
+    (index === 0 && world && world.player ? world.player : null);
   if (!actor) return null;
 
   const mastery = window._masteryDefs || window.AetherMasteryDefs || null;
@@ -7307,10 +7319,24 @@ function getCharacterSheetViewModel() {
 
   const abilityDefs = window.AetherAbilityDefs || null;
   let abilityIds = [];
-  if (abilityDefs && typeof abilityDefs.getEligibleActionIds === 'function') {
+  if (actor.runtimeImplemented === false) {
+    abilityIds = [];
+  } else if (actor.id === 'ender' &&
+             abilityDefs &&
+             typeof abilityDefs.getEligibleActionIds === 'function') {
     abilityIds = abilityDefs.getEligibleActionIds(actor);
   } else if (Array.isArray(actor.unlockedAbilities)) {
+    // Companion mechanics are still preservation templates rather than the
+    // canonical combat registry. Display their recorded IDs as provenance only.
     abilityIds = actor.unlockedAbilities.slice();
+  }
+
+  function humanizeId(id) {
+    if (typeof id !== 'string' || !id) return 'Unknown';
+    return id
+      .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+      .replace(/[-_]+/g, ' ')
+      .replace(/\b\w/g, ch => ch.toUpperCase());
   }
 
   const abilityLabels = abilityIds.map(id => {
@@ -7319,7 +7345,8 @@ function getCharacterSheetViewModel() {
       id,
       label: def && typeof def.label === 'string'
         ? def.label.split(' — ')[0]
-        : id,
+        : humanizeId(id),
+      source: def ? 'canonical-action-registry' : 'prototype-mechanics',
     };
   });
 
@@ -7328,11 +7355,20 @@ function getCharacterSheetViewModel() {
     : {};
 
   return {
+    rosterIndex: index,
+    rosterNumber: index + 1,
     id: actor.id || null,
     canonicalName: actor.canonicalName || actor.name || 'Unknown',
     name: actor.name || actor.canonicalName || 'Unknown',
     nativeJob,
     preservationClass: actor.class || null,
+    mechanicsTemplateId: actor.mechanicsTemplateId || null,
+    mechanicsTemplateName: actor.mechanicsTemplateName || null,
+    implementationSource: actor.implementationSource || null,
+    runtimeImplemented: actor.runtimeImplemented !== false,
+    activePartyMember: Array.isArray(window.ACTIVE_PARTY)
+      ? window.ACTIVE_PARTY.includes(actor)
+      : false,
     affinities,
     level: Number.isFinite(actor.level) ? actor.level : null,
     xp: Number.isFinite(actor.xp) ? actor.xp : null,
@@ -7374,7 +7410,7 @@ window.getCharacterSheetViewModel = getCharacterSheetViewModel;
  */
 function drawCharSheet(px, py, pw, ph) {
   push();
-  const view = getCharacterSheetViewModel();
+  const view = getCharacterSheetViewModel(charSheetRosterIndex);
   if (!view) {
     fill(PAL.RUST);
     textFont(FONT_UI);
@@ -7408,6 +7444,15 @@ function drawCharSheet(px, py, pw, ph) {
   rect(px, py, pw, ph);
   drawPixelBorder(px, py, pw, ph, 3, PAL.SHADOW, PAL.TEAL);
 
+  textFont(FONT_UI);
+  textSize(9);
+  textAlign(RIGHT, TOP);
+  fill(view.activePartyMember ? PAL.BIO : PAL.DIM);
+  text(view.activePartyMember ? 'ACTIVE PARTY' : 'ROSTER', px + pw - 18, py + 12);
+
+  textAlign(LEFT, TOP);
+  drawGlowText(view.canonicalName.toUpperCase(), px + 160, py + 2, PAL.TEAL, 11);
+
   const portX = sheet.portraitX;
   const portY = sheet.portraitY;
   const portW = sheet.portraitW;
@@ -7417,43 +7462,62 @@ function drawCharSheet(px, py, pw, ph) {
   fill(PAL.SHADOW);
   rect(portX + 4, portY + 4, portW - 8, portH - 8);
 
-  // Ender portrait placeholder retained from the preservation build.
   const cx = portX + portW / 2;
   const cy = portY + portH / 2 - 10;
   const headR = 32;
-  fill(PAL.DUST);
-  ellipse(cx, cy, headR * 2, headR * 2.1);
-  stroke(PAL.TEAL);
-  strokeWeight(1.5);
-  noFill();
-  beginShape();
-  vertex(cx - 18, cy - 10); vertex(cx - 24, cy - 4);
-  vertex(cx - 22, cy + 4); vertex(cx - 16, cy + 8);
-  endShape();
-  beginShape();
-  vertex(cx + 18, cy - 10); vertex(cx + 24, cy - 4);
-  vertex(cx + 22, cy + 4); vertex(cx + 16, cy + 8);
-  endShape();
-  line(cx - 14, cy - 18, cx + 14, cy - 18);
-  noStroke();
-  fill(PAL.BIO);
-  ellipse(cx - 12, cy - 4, 14, 10);
-  ellipse(cx + 12, cy - 4, 14, 10);
-  fill(PAL.SCIOTO);
-  ellipse(cx - 12, cy - 4, 8, 6);
-  ellipse(cx + 12, cy - 4, 8, 6);
-  fill(PAL.SOIL);
-  beginShape();
-  vertex(cx - 16, cy + 6); vertex(cx - 20, cy + 18);
-  vertex(cx - 12, cy + 22); vertex(cx, cy + 20);
-  vertex(cx + 12, cy + 22); vertex(cx + 20, cy + 18);
-  vertex(cx + 16, cy + 6);
-  endShape(CLOSE);
-  fill(PAL.NAVY);
-  ellipse(cx - 12, cy - 4, 4, 4);
-  ellipse(cx + 12, cy - 4, 4, 4);
-  fill(PAL.RUST);
-  rect(cx - 18, cy + 22, 36, 8);
+
+  if (view.id === 'ender') {
+    // Ender portrait placeholder retained from the preservation build.
+    fill(PAL.DUST);
+    ellipse(cx, cy, headR * 2, headR * 2.1);
+    stroke(PAL.TEAL);
+    strokeWeight(1.5);
+    noFill();
+    beginShape();
+    vertex(cx - 18, cy - 10); vertex(cx - 24, cy - 4);
+    vertex(cx - 22, cy + 4); vertex(cx - 16, cy + 8);
+    endShape();
+    beginShape();
+    vertex(cx + 18, cy - 10); vertex(cx + 24, cy - 4);
+    vertex(cx + 22, cy + 4); vertex(cx + 16, cy + 8);
+    endShape();
+    line(cx - 14, cy - 18, cx + 14, cy - 18);
+    noStroke();
+    fill(PAL.BIO);
+    ellipse(cx - 12, cy - 4, 14, 10);
+    ellipse(cx + 12, cy - 4, 14, 10);
+    fill(PAL.SCIOTO);
+    ellipse(cx - 12, cy - 4, 8, 6);
+    ellipse(cx + 12, cy - 4, 8, 6);
+    fill(PAL.SOIL);
+    beginShape();
+    vertex(cx - 16, cy + 6); vertex(cx - 20, cy + 18);
+    vertex(cx - 12, cy + 22); vertex(cx, cy + 20);
+    vertex(cx + 12, cy + 22); vertex(cx + 20, cy + 18);
+    vertex(cx + 16, cy + 6);
+    endShape(CLOSE);
+    fill(PAL.NAVY);
+    ellipse(cx - 12, cy - 4, 4, 4);
+    ellipse(cx + 12, cy - 4, 4, 4);
+    fill(PAL.RUST);
+    rect(cx - 18, cy + 22, 36, 8);
+  } else {
+    // Do not fabricate companion appearance before authored portrait design.
+    noStroke();
+    fill(view.runtimeImplemented ? PAL.DIM : PAL.SHADOW);
+    ellipse(cx, cy - 4, headR * 1.7, headR * 1.7);
+    fill(PAL.NAVY);
+    rect(cx - 24, cy + 18, 48, 28);
+    textFont(FONT_UI);
+    textAlign(CENTER, CENTER);
+    textSize(20);
+    fill(PAL.TEAL);
+    text((view.canonicalName || '?').slice(0, 1).toUpperCase(), cx, cy - 4);
+    textSize(7);
+    fill(PAL.DIM);
+    text(view.runtimeImplemented ? 'PORTRAIT PENDING' : 'NOT IMPLEMENTED',
+         cx, cy + 58);
+  }
 
   textFont(FONT_UI);
   textSize(10);
@@ -7479,10 +7543,16 @@ function drawCharSheet(px, py, pw, ph) {
 
   // Preservation class is explicitly labeled so it cannot be confused with
   // the code-owned native-job fact.
-  if (view.preservationClass && view.preservationClass !== nativeLabel) {
+  if (view.mechanicsTemplateName) {
     textSize(9);
     fill(PAL.DIM);
-    text('Prototype class: ' + view.preservationClass, sheet.levelX, sheet.levelY + 34);
+    text('Field role (temporary): ' + view.mechanicsTemplateName,
+         sheet.levelX, sheet.levelY + 34);
+  } else if (view.preservationClass && view.preservationClass !== nativeLabel) {
+    textSize(9);
+    fill(PAL.DIM);
+    text('Prototype class: ' + view.preservationClass,
+         sheet.levelX, sheet.levelY + 34);
   }
 
   textFont(FONT_BODY);
@@ -7513,16 +7583,25 @@ function drawCharSheet(px, py, pw, ph) {
 
   textFont(FONT_UI);
   textSize(9);
-  drawGlowText('ELIGIBLE ACTIONS', sheet.abilitiesX, sheet.abilitiesY, PAL.TEAL, 9);
+  drawGlowText(view.id === 'ender' ? 'ELIGIBLE ACTIONS' : 'RECORDED ABILITIES',
+               sheet.abilitiesX, sheet.abilitiesY, PAL.TEAL, 9);
   textFont(FONT_BODY);
   textSize(12);
-  view.abilities.slice(0, 8).forEach((ability, i) => {
-    const col = i < 4 ? 0 : 1;
-    const row = i < 4 ? i : i - 4;
-    const ax = sheet.abilitiesX + 10 + col * 145;
-    const ay = sheet.abilitiesY + 22 + row * 17;
-    drawGlowText(ability.label, ax, ay, PAL.TEAL, 12);
-  });
+  if (view.abilities.length === 0) {
+    fill(PAL.DIM);
+    text(view.runtimeImplemented ? 'No recorded abilities' : 'Not yet implemented',
+         sheet.abilitiesX + 10, sheet.abilitiesY + 22);
+  } else {
+    view.abilities.slice(0, 8).forEach((ability, i) => {
+      const col = i < 4 ? 0 : 1;
+      const row = i < 4 ? i : i - 4;
+      const ax = sheet.abilitiesX + 10 + col * 145;
+      const ay = sheet.abilitiesY + 22 + row * 17;
+      drawGlowText(ability.label, ax, ay,
+                   ability.source === 'prototype-mechanics' ? PAL.DIM : PAL.TEAL,
+                   12);
+    });
+  }
 
   textFont(FONT_UI);
   textSize(9);
@@ -7559,6 +7638,16 @@ function drawCharSheet(px, py, pw, ph) {
     noStroke();
     text(resource.value, rx + 46, sheet.resourcesY + 22);
   });
+
+  const rosterNames = ['ENDER', 'LYRA', 'IONIA', 'RESON', 'AEPEX'];
+  textFont(FONT_UI);
+  textSize(8);
+  textAlign(CENTER, BOTTOM);
+  const rosterNav = rosterNames
+    .map((name, i) => (i === view.rosterIndex ? '[' + (i + 1) + ' ' + name + ']' : (i + 1) + ' ' + name))
+    .join('   ');
+  fill(PAL.DIM);
+  text(rosterNav, px + pw / 2, py + ph - 28);
 
   pop();
 }
