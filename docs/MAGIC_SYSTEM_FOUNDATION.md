@@ -167,6 +167,33 @@ This creates a useful sequence:
 and prevents synthetic tuning evidence from bypassing the design/admission gate.
 
 
+
+## Synthetic design-space comparison
+
+The synthetic evaluator can now compare an **explicit caller-supplied candidate
+set** without choosing a preferred spell design.
+
+For one common modifier it can calculate a Pareto frontier across three
+mechanical dimensions:
+
+- higher expected enemy damage;
+- lower expected self-damage;
+- lower Aether cost.
+
+A candidate is removed from that frontier only when another synthetic candidate
+is no worse on all three dimensions and strictly better on at least one. This
+preserves real tradeoffs instead of collapsing them into a hidden score.
+
+The frontier deliberately refuses mixed-modifier comparisons. A Wits +2 result,
+for example, cannot be placed on the same frontier as a Might -1 result without
+first making the modifier context explicit. Candidate sets can still be swept
+across multiple modifiers to show sensitivity.
+
+Automated fixtures include a deliberately dominated candidate only to prove the
+filter works. Fixture identities and numbers remain **test-only**. The tooling
+does not generate a recommended candidate, assign weights, select a stat, or
+promote anything into the real Aether Pulse contract.
+
 ## Current-runtime balance reference
 
 Synthetic candidate measurements can now be compared to the **current prototype
