@@ -27,6 +27,8 @@ public static class AetherwakeWindowCapture {
 }
 "@
 
+$diagnosticPath = Join-Path (Split-Path -Parent $RuntimeRoot) "startup-diagnostic.json"
+
 $deadline = (Get-Date).AddSeconds(45)
 $game = $null
 while ((Get-Date) -lt $deadline -and -not $game) {
@@ -94,6 +96,15 @@ Write-Host "Unique sampled colors: $($colors.Count)"
 Write-Host "Opaque samples: $opaqueSamples"
 Write-Host "Non-black samples: $nonBlack"
 Write-Host "Screenshot: $OutputPath"
+
+if (Test-Path -LiteralPath $diagnosticPath -PathType Leaf) {
+  Write-Host "---- packaged startup diagnostic ----"
+  Get-Content -LiteralPath $diagnosticPath -Raw | Write-Host
+  Write-Host "---- end packaged startup diagnostic ----"
+}
+else {
+  Write-Host "Packaged startup diagnostic file was not produced."
+}
 
 if ($opaqueSamples -lt 100) {
   throw "Packaged Aetherwake window did not contain enough opaque pixels"
