@@ -183,7 +183,11 @@ jobs:
             Remove-Item $runtimeRoot -Recurse -Force
           }
 
-          $launcher = Start-Process -FilePath $playerFile -PassThru -Wait
+          $launcher = Start-Process -FilePath $playerFile -PassThru
+          if (-not $launcher.WaitForExit(180000)) {
+            try { $launcher.Kill() } catch {}
+            throw "One-file launcher process did not exit within 180 seconds"
+          }
           if ($launcher.ExitCode -ne 0) {
             throw "One-file launcher exited with code $($launcher.ExitCode)"
           }
