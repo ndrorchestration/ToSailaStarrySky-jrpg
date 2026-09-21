@@ -1177,9 +1177,7 @@ function createServer() {
     assert(resolverContract.applied.every(Boolean),
       'effect resolver unexpectedly skipped an implemented effect');
 
-    await page.keyboard.press('ArrowRight');
-    await page.keyboard.press('ArrowRight');
-    await page.keyboard.press('ArrowRight');
+    // startCombat() resets the cursor to Staff Strike at slot 0.
     await page.keyboard.press('KeyZ'); // Staff Strike
     await page.waitForFunction(() =>
       window._combat && window._combat.getState().turn >= 1
