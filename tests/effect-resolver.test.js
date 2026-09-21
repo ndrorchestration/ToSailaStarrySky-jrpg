@@ -18,11 +18,16 @@ function context() {
       hp: 12,
       maxHp: 12,
     },
+    reveals: {
+      self: {},
+      enemy: {},
+      field: {},
+    },
     staffChargeMax: 2,
   };
 }
 
-assert.strictEqual(resolver.VERSION, '0.1.0');
+assert.strictEqual(resolver.VERSION, '0.2.0');
 
 {
   const ctx = context();
@@ -95,22 +100,41 @@ assert.strictEqual(resolver.VERSION, '0.1.0');
   assert.strictEqual(result.applied, false);
   assert.strictEqual(result.reason, 'declared_not_applied');
   assert.strictEqual(ctx.enemy.hp, 12);
+  assert.strictEqual(ctx.reveals.enemy.weakness, undefined);
+}
+
+{
+  const ctx = context();
+  const reveal = resolver.createRevealEffect(
+    vocabulary.TARGET.ENEMY,
+    'weakness'
+  );
+  const first = resolver.applyEffect(reveal, ctx);
+  assert.strictEqual(first.applied, true);
+  assert.strictEqual(first.before, false);
+  assert.strictEqual(first.after, true);
+  assert.strictEqual(ctx.reveals.enemy.weakness, true);
+
+  const second = resolver.applyEffect(reveal, ctx);
+  assert.strictEqual(second.applied, false);
+  assert.strictEqual(second.reason, 'already_applied');
+  assert.strictEqual(ctx.reveals.enemy.weakness, true);
 }
 
 {
   const ctx = context();
   const unsupported = {
-    kind: vocabulary.EFFECT_KIND.REVEAL,
-    target: vocabulary.TARGET.ENEMY,
-    operation: vocabulary.OPERATION.REVEAL,
-    key: 'weakness',
+    kind: vocabulary.EFFECT_KIND.MODIFIER,
+    target: vocabulary.TARGET.SELF,
+    operation: vocabulary.OPERATION.INCREASE,
+    key: 'nextAction',
     runtimeStatus: vocabulary.RUNTIME_STATUS.IMPLEMENTED,
     note: null,
   };
 
   assert.throws(
     () => resolver.applyEffect(unsupported, ctx),
-    /EFFECT_KIND_NOT_EXECUTABLE_YET:reveal/
+    /EFFECT_KIND_NOT_EXECUTABLE_YET:modifier/
   );
 }
 
@@ -122,7 +146,7 @@ assert.throws(
 console.log('Aetherwake effect resolver contract: PASS');
 console.log(JSON.stringify({
   version: resolver.VERSION,
-  executableKinds: ['damage', 'restore', 'resource'],
-  declaredNoOpKinds: ['modifier', 'reveal'],
+  executableKinds: ['damage', 'restore', 'resource', 'reveal'],
+  declaredNoOpKinds: ['modifier'],
   failClosedKinds: ['status', 'movement'],
 }, null, 2));
