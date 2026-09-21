@@ -166,6 +166,44 @@ This creates a useful sequence:
 
 and prevents synthetic tuning evidence from bypassing the design/admission gate.
 
+
+## Current-runtime balance reference
+
+Synthetic candidate measurements can now be compared to the **current prototype
+combat scale** through:
+
+`modules/aether-pulse-runtime-reference.js`
+
+The reference is intentionally descriptive rather than prescriptive. It records
+current runtime facts that materially affect interpretation of a hypothetical
+Aether Pulse:
+
+- current prototype Ender: **Wits +2**, **Might -1**;
+- current Aether pool: **4 current / 6 maximum**;
+- current Staff Strike capacity: **2 charges**;
+- current ordinary enemy HP examples: **8, 10, 12, 14**;
+- charged Staff Strike success damage: mean **5.5** from `1d6+2`;
+- partial Staff Strike damage: mean **4.5** from `1d6+1`;
+- current Staff Strike uses Might and therefore evaluates against the present
+  **−1** prototype modifier by default.
+
+The reference is protected by source-drift tests against `modules/combat.js`
+and `modules/ability-defs.js`. If those observed facts change, the reference
+must be reconciled instead of silently carrying an obsolete baseline forward.
+
+It can report, for any explicitly synthetic Pulse candidate:
+
+- expected enemy damage versus the currently charged Staff Strike;
+- expected self-risk difference;
+- current/max-Aether cast capacity for the proposed cost;
+- expected total damage across that resource envelope;
+- expected fraction of each current enemy HP band removed per cast.
+
+**This comparison does not make Staff Strike the target balance for Aether
+Pulse.** Staff Strike is a charged weapon technique with a different role,
+resource model, and variance profile. The reference exists to reveal scale and
+tradeoffs, not to select a winner or authorize a design.
+
 ## Next implementation gates
 
 The smallest safe progression from the current foundation is:
