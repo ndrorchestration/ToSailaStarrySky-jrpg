@@ -268,17 +268,36 @@ function AetherCombat(p, C) {
       log('Unknown enemy: ' + enemyId);
       return;
     }
+    const activeLevels = (typeof window !== 'undefined' && Array.isArray(window.ACTIVE_PARTY))
+      ? window.ACTIVE_PARTY
+          .filter(member => member && Number.isFinite(member.level) && member.level >= 1)
+          .map(member => member.level)
+      : [];
+    const partyLevels = activeLevels.length ? activeLevels : [state.player.level];
+    const scaling = (typeof window !== 'undefined' && window.AetherEncounterScaling &&
+      typeof window.AetherEncounterScaling.scaleEnemy === 'function')
+      ? window.AetherEncounterScaling
+      : null;
+    const scaledTemplate = scaling
+      ? scaling.scaleEnemy(template, {
+          partyLevels,
+          partySize: partyLevels.length,
+          playerLevel: state.player.level,
+        })
+      : template;
+
     state.enemy = {
-      name: template.name,
-      goal: template.goal,
-      hp: template.hp,
-      maxHp: template.maxHp,
-      might: template.might,
-      presence: template.presence,
-      grace: template.grace,
-      wits: template.wits,
-      weakness: template.weakness,
-      status: template.status,
+      name: scaledTemplate.name,
+      goal: scaledTemplate.goal,
+      hp: scaledTemplate.hp,
+      maxHp: scaledTemplate.maxHp,
+      might: scaledTemplate.might,
+      presence: scaledTemplate.presence,
+      grace: scaledTemplate.grace,
+      wits: scaledTemplate.wits,
+      weakness: scaledTemplate.weakness,
+      status: scaledTemplate.status,
+      scaling: scaledTemplate.scaling || null,
     };
     state.turn = 0;
     state.encounterOver = false;
