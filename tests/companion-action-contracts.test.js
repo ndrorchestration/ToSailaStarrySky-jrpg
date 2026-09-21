@@ -84,7 +84,7 @@ assert(readiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.COST_NOT_SPEC
 assert(readiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED));
 assert(readiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED));
 assert(readiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.MOVEMENT_EFFECT_NOT_EXECUTABLE));
-assert(readiness.blockers.includes(
+assert(readiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.GRACE_MODIFIER_EFFECT_NOT_EXECUTABLE
 ));
 
