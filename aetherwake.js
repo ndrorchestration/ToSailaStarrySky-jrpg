@@ -4533,35 +4533,31 @@ function drawWorldAmbient() {
 
 function drawCovenantField() {
   if (!covenantField.planted) return;
-  const cx = covenantField.x * 16 + 8;
-  const cy = covenantField.y * 16 + 8;
-  const radius = 20 + Math.sin(covenantField.life * 3) * 4;
+  const cx = Math.round(covenantField.x * 16 + 8);
+  const cy = Math.round(covenantField.y * 16 + 8);
+  const pulse = Math.floor(covenantField.life * 6) % 2;
+  const r = 18 + pulse * 3;
 
+  // Pixel-conscious covenant glyph: nested diamonds and cardinal runes.
   noFill();
-  stroke(color(42, 255, 181, 80));
+  stroke(color(42, 255, 181, 105));
   strokeWeight(2);
-  ellipse(cx, cy, radius * 2, radius * 2);
-  stroke(color(42, 255, 181, 160));
+  beginShape();
+  vertex(cx, cy - r); vertex(cx + r, cy); vertex(cx, cy + r); vertex(cx - r, cy); vertex(cx, cy - r);
+  endShape();
+  stroke(color(124, 200, 232, 150));
   strokeWeight(1);
-  ellipse(cx, cy, radius * 1.2, radius * 1.2);
+  const inner = Math.floor(r * 0.55);
+  beginShape();
+  vertex(cx, cy - inner); vertex(cx + inner, cy); vertex(cx, cy + inner); vertex(cx - inner, cy); vertex(cx, cy - inner);
+  endShape();
   noStroke();
-  fill(color(42, 255, 181, 40));
-  ellipse(cx, cy, radius * 0.6, radius * 0.6);
-  noFill();
-  stroke(color(42, 255, 181, 120));
-  strokeWeight(1);
-  for (let i = 0; i < 4; i++) {
-    const angle = (i / 4) * Math.PI * 2 + covenantField.life * 0.5;
-    const inner = radius * 0.3;
-    const outer = radius * 0.8;
-    line(
-      cx + Math.cos(angle) * inner,
-      cy + Math.sin(angle) * inner,
-      cx + Math.cos(angle) * outer,
-      cy + Math.sin(angle) * outer
-    );
-  }
-  noStroke();
+  fill(color(42, 255, 181, 80));
+  rect(cx - 3, cy - 3, 6, 6);
+  rect(cx - 1, cy - r - 4, 2, 4);
+  rect(cx - 1, cy + r, 2, 4);
+  rect(cx - r - 4, cy - 1, 4, 2);
+  rect(cx + r, cy - 1, 4, 2);
 }
 
 // --- Player -----------------------------------------------------------------
