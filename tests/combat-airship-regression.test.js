@@ -28,43 +28,58 @@ function test(name, fn) {
 
 // D20: Verify combat snapshot includes complete player state
 test('D20: Combat init receives complete player snapshot', () => {
-  // Find startCombat function
-  const startCombatMatch = aetherwakeSrc.match(/function startCombat\(enemyId\) \{([\s\S]*?)^\}/m);
+  const snapshotMatch = aetherwakeSrc.match(
+    /function buildCombatPlayerSnapshot\(\) \{([\s\S]*?)^\}/m
+  );
+  assert(snapshotMatch, 'canonical buildCombatPlayerSnapshot function should exist');
+  const snapshotBody = snapshotMatch[1];
+
+  // Identity / primary state.
+  assert(snapshotBody.includes('name: world.player.name'), 'Should include player name');
+  assert(snapshotBody.includes('age: world.player.age'), 'Should include player age');
+  assert(snapshotBody.includes('class: world.player.class'), 'Should include player class');
+  assert(snapshotBody.includes('maxVit: world.player.maxVit'), 'Should include maxVit');
+  assert(snapshotBody.includes('vit: world.player.vit'), 'Should include vit');
+  assert(snapshotBody.includes('scrap: world.player.scrap'), 'Should include scrap');
+
+  // Stats and bounded resource maxima.
+  for (const stat of ['wits', 'presence', 'spirit', 'might', 'grace']) {
+    assert(snapshotBody.includes(stat + ': world.player.' + stat),
+      'Should include player ' + stat);
+  }
+  assert(snapshotBody.includes('aetherMax: world.player.aetherMax'), 'Should include aetherMax');
+  assert(snapshotBody.includes('heatMax: world.player.heatMax'), 'Should include heatMax');
+  assert(snapshotBody.includes('echoesMax: world.player.echoesMax'), 'Should include echoesMax');
+
+  // Staff charges remain dynamic.
+  assert(snapshotBody.includes('staffMax: world.player.maxStaffCharges || 2'),
+    'StaffMax should come from player state');
+  assert(!snapshotBody.includes('staffMax: 2'), 'Should NOT hard-code staffMax: 2');
+
+  // Progression and detached collections.
+  assert(snapshotBody.includes('level: world.player.level'), 'Should include level');
+  assert(snapshotBody.includes('xp: world.player.xp'), 'Should include xp');
+  assert(snapshotBody.includes('xpToNext: world.player.xpToNext'), 'Should include xpToNext');
+  assert(snapshotBody.includes('world.player.unlockedAbilities.slice()'),
+    'Should deep copy unlockedAbilities');
+  assert(snapshotBody.includes('JSON.parse(JSON.stringify(world.player.equipment))'),
+    'Should deep copy equipment');
+
+  // Three-character context is assembled at the same canonical snapshot seam.
+  assert(snapshotBody.includes('partyContext: buildPartyCombatContext()'),
+    'Should include validated read-only party context');
+
+  const startCombatMatch = aetherwakeSrc.match(
+    /function startCombat\(enemyId\) \{([\s\S]*?)^\}/m
+  );
   assert(startCombatMatch, 'startCombat function should exist');
-  const body = startCombatMatch[1];
-  
-  // Check that player snapshot includes identity fields
-  assert(body.includes('name: world.player.name'), 'Should include player name');
-  assert(body.includes('class: world.player.class'), 'Should include player class');
-  assert(body.includes('maxVit: world.player.maxVit'), 'Should include maxVit');
-  
-  // Check primary stats
-  assert(body.includes('vit: world.player.vit'), 'Should include vit');
-  assert(body.includes('scrap: world.player.scrap'), 'Should include scrap');
-  
-  // Check resource maxima
-  assert(body.includes('aetherMax: world.player.aetherMax'), 'Should include aetherMax');
-  assert(body.includes('heatMax: world.player.heatMax'), 'Should include heatMax');
-  assert(body.includes('echoesMax: world.player.echoesMax'), 'Should include echoesMax');
-  
-  // Check staff charges
-  assert(body.includes('maxStaffCharges: world.player.maxStaffCharges'), 'Should include maxStaffCharges');
-  assert(body.includes('staffMax: world.player.maxStaffCharges'), 'StaffMax should come from player, not hard-coded 2');
-  assert(!body.includes('staffMax: 2'), 'Should NOT hard-code staffMax: 2');
-  
-  // Check level/XP
-  assert(body.includes('level: world.player.level'), 'Should include level');
-  assert(body.includes('xp: world.player.xp'), 'Should include xp');
-  
-  // Check unlocked abilities (deep copy)
-  assert(body.includes('unlockedAbilities: world.player.unlockedAbilities.slice') || 
-         body.includes('unlockedAbilities: world.player.unlockedAbilities.slice()'), 
-         'Should deep copy unlockedAbilities');
-  
-  // Check equipment (deep copy)
-  assert(body.includes('equipment: world.player.equipment ? JSON.parse(JSON.stringify'), 
-         'Should deep copy equipment');
+  const startBody = startCombatMatch[1];
+  assert(startBody.includes('const playerSnapshot = buildCombatPlayerSnapshot();'),
+    'startCombat should consume the canonical snapshot builder');
+  assert(startBody.includes('playerSnapshot.airshipTransfer = airshipTransfer'),
+    'startCombat should attach encounter-local airship transfer after snapshot construction');
 });
+
 
 // D21: Verify beginEncounter returns {ok, reason} and fails closed
 test('D21: beginEncounter returns {ok, reason} for unknown enemy', () => {
