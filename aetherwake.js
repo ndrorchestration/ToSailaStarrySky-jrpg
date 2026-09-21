@@ -4361,8 +4361,21 @@ function drawTileSolid(px, py, s) {
 }
 
 function drawTileGrass(px, py, s) {
-  const variant = Math.abs(((px / 16) * 7 + (py / 16) * 13)) % 3;
+  const tx = Math.round(px / 16);
+  const ty = Math.round(py / 16);
+  const variant = Math.abs(tx * 7 + ty * 13) % 3;
+
+  // Compose richer 16-bit scenery from the underlying walkable grass tile.
+  // This is decorative only: collision/topology remain owned by groundLayer.
   drawPixelWorldTile('grass', px, py, variant);
+  const scenic = Math.abs(tx * 31 + ty * 17) % 29;
+  if (scenic === 3 || scenic === 11) {
+    drawPixelWorldTile('forest', px, py, 0);
+  } else if (scenic === 19) {
+    drawPixelWorldTile('path', px, py, 0);
+  } else if (scenic === 23 && ty < 10) {
+    drawPixelWorldTile('mountain', px, py, 0);
+  }
 }
 
 function drawTileCrate(px, py, s) {
@@ -4370,11 +4383,21 @@ function drawTileCrate(px, py, s) {
 }
 
 function drawTileFloat(px, py, s) {
+  // Floating land gets a stronger 16-bit silhouette with a cliff face.
   drawPixelWorldTile('float', px, py, 0);
+  if ((Math.round(px / 16) + Math.round(py / 16)) % 3 === 0) {
+    drawPixelWorldTile('cliff', px, py, 0);
+  }
 }
 
 function drawTileWater(px, py, s) {
   drawPixelWorldTile('water', px, py, Math.floor(frameCount / 24) % 2);
+  // Sparse pale surf breaks up large water fields without changing walkability.
+  const tx = Math.round(px / 16);
+  const ty = Math.round(py / 16);
+  if (Math.abs(tx * 5 + ty * 11) % 17 === 0) {
+    drawPixelWorldTile('shore', px, py, 0);
+  }
 }
 
 function drawTileLore(px, py, s) {
