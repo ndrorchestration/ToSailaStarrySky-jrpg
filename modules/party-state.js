@@ -4,7 +4,7 @@
 
    First production-architecture bridge:
    - ROSTER contains exactly five stable authored identities.
-   - ACTIVE_PARTY contains exactly three references into ROSTER.
+   - ACTIVE_PARTY contains 1–5 canonical references into ROSTER.
    - The current preservation character-creation flow is adapted into
      the first three roster records without changing its player-facing flow.
    - Reson and Aepex remain authored identity shells until the later
@@ -24,6 +24,8 @@
 
   const ROSTER = [];
   const ACTIVE_PARTY = [];
+  const MIN_ACTIVE_PARTY = 1;
+  const MAX_ACTIVE_PARTY = 5;
   let boundWorldPlayer = null;
 
   function createShell(definition) {
@@ -142,8 +144,12 @@
     }
 
     if (new Set(actualIds).size !== 5) throw new Error('ROSTER_IDS_MUST_BE_UNIQUE');
-    if (ACTIVE_PARTY.length !== 3) throw new Error('ACTIVE_PARTY_LENGTH_MUST_BE_3');
-    if (new Set(ACTIVE_PARTY).size !== 3) throw new Error('ACTIVE_PARTY_REFERENCES_MUST_BE_UNIQUE');
+    if (ACTIVE_PARTY.length < MIN_ACTIVE_PARTY || ACTIVE_PARTY.length > MAX_ACTIVE_PARTY) {
+      throw new Error('ACTIVE_PARTY_LENGTH_MUST_BE_1_TO_5');
+    }
+    if (new Set(ACTIVE_PARTY).size !== ACTIVE_PARTY.length) {
+      throw new Error('ACTIVE_PARTY_REFERENCES_MUST_BE_UNIQUE');
+    }
 
     for (const character of ACTIVE_PARTY) {
       if (!ROSTER.includes(character)) {
@@ -156,6 +162,39 @@
     }
 
     return true;
+  }
+
+  function syncGlobals() {
+    global.ROSTER = ROSTER;
+    global.ACTIVE_PARTY = ACTIVE_PARTY;
+    global.party = ACTIVE_PARTY;
+    global.playerForCombat = ACTIVE_PARTY[0] || null;
+  }
+
+  function setActivePartyIds(ids) {
+    if (!boundWorldPlayer || ROSTER.length !== 5) {
+      throw new Error('PARTY_STATE_NOT_BOOTSTRAPPED');
+    }
+    if (!Array.isArray(ids) || ids.length < MIN_ACTIVE_PARTY || ids.length > MAX_ACTIVE_PARTY) {
+      throw new Error('ACTIVE_PARTY_IDS_MUST_HAVE_1_TO_5_MEMBERS');
+    }
+    if (new Set(ids).size !== ids.length) {
+      throw new Error('ACTIVE_PARTY_IDS_MUST_BE_UNIQUE');
+    }
+
+    const next = ids.map(id => {
+      const character = ROSTER.find(entry => entry.id === id);
+      if (!character) throw new Error('ACTIVE_PARTY_UNKNOWN_CHARACTER:' + id);
+      if (!character.runtimeImplemented) {
+        throw new Error('ACTIVE_PARTY_CHARACTER_NOT_IMPLEMENTED:' + id);
+      }
+      return character;
+    });
+
+    ACTIVE_PARTY.splice(0, ACTIVE_PARTY.length, ...next);
+    syncGlobals();
+    validate();
+    return ACTIVE_PARTY;
   }
 
   function bootstrap(worldPlayer) {
@@ -186,10 +225,7 @@
       throw new Error('PARTY_STATE_ALREADY_BOUND_TO_DIFFERENT_WORLD_PLAYER');
     }
 
-    global.ROSTER = ROSTER;
-    global.ACTIVE_PARTY = ACTIVE_PARTY;
-    global.party = ACTIVE_PARTY;
-    global.playerForCombat = ACTIVE_PARTY[0];
+    syncGlobals();
 
     validate();
     return { roster: ROSTER, activeParty: ACTIVE_PARTY };
@@ -209,18 +245,14 @@
 
     ACTIVE_PARTY.splice(0, ACTIVE_PARTY.length, ROSTER[0], ROSTER[1], ROSTER[2]);
 
-    global.ROSTER = ROSTER;
-    global.ACTIVE_PARTY = ACTIVE_PARTY;
-    global.party = ACTIVE_PARTY;
-    global.playerForCombat = ACTIVE_PARTY[0];
+    syncGlobals();
 
     validate();
     return ACTIVE_PARTY;
   }
 
-  // Formation mutation is intentionally not exposed in this phase.
-  // ACTIVE_PARTY is established as canonical references; formation changes
-  // land later with safe-state and combat-boundary rules.
+  // Formation capacity is now 1–5. Scene/combat code remains responsible for
+  // calling setActivePartyIds only at admissible story/safe-state boundaries.
 
   function snapshot() {
     return {
@@ -238,7 +270,10 @@
     activeParty: ACTIVE_PARTY,
     bootstrap,
     commitPrototypeParty,
+    setActivePartyIds,
     validate,
     snapshot,
+    minActiveParty: MIN_ACTIVE_PARTY,
+    maxActiveParty: MAX_ACTIVE_PARTY,
   });
 })(window);
