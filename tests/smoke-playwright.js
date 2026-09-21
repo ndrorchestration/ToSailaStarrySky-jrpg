@@ -943,15 +943,20 @@ function createServer() {
         validCoverage: Boolean(vocabulary && vocabulary.assertActionCoverage(actions)),
         kinds: vocabulary && Object.values(vocabulary.EFFECT_KIND),
         profileIds: actions.map(action => action.effectProfile),
-        declaredNotApplied: vocabulary
+        uncoverImplemented: vocabulary
           ? vocabulary.ACTION_EFFECT_PROFILES.uncoverTruth.success
+              .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED)
+              .map(effect => effect.kind + ':' + effect.key)
+          : [],
+        sharedDreamDeclaredNotApplied: vocabulary
+          ? vocabulary.ACTION_EFFECT_PROFILES.sharedDream.success
               .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.DECLARED_NOT_APPLIED)
               .map(effect => effect.kind + ':' + effect.key)
           : [],
       };
     });
 
-    assert(effectContract.version === '0.1.0', 'effect vocabulary version is not loaded');
+    assert(effectContract.version === '0.2.0', 'effect vocabulary version is not loaded');
     assert(effectContract.validCoverage, 'current actions are not covered by effect profiles');
     assert(effectContract.kinds.join('|') ===
       'damage|restore|resource|modifier|status|reveal|movement',
@@ -959,10 +964,12 @@ function createServer() {
     assert(effectContract.profileIds.join('|') ===
       'staffStrike|uncoverTruth|sharedDream|mycelialLedger|hold|windWard|aetherSeal|rest',
       'combat action effect-profile bindings drifted');
-    assert(effectContract.declaredNotApplied.includes('reveal:weakness'),
-      'Uncover Truth reveal debt is no longer explicit');
-    assert(effectContract.declaredNotApplied.includes('modifier:nextRoll'),
-      'Uncover Truth modifier debt is no longer explicit');
+    assert(effectContract.uncoverImplemented.includes('reveal:weakness'),
+      'Uncover Truth reveal is not implemented in effect vocabulary v0.2');
+    assert(effectContract.uncoverImplemented.includes('modifier:nextRoll'),
+      'Uncover Truth next-roll modifier is not implemented in effect vocabulary v0.2');
+    assert(effectContract.sharedDreamDeclaredNotApplied.includes('modifier:nextRoll'),
+      'Shared Dream next-roll modifier debt is no longer explicit');
 
     const registryContract = await page.evaluate(() => {
       const abilities = window.AetherAbilityDefs;
