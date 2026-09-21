@@ -582,40 +582,13 @@ function keyReleased() {
 }
 
 function keyTyped() {
-  // p5 fires keyTyped for character keys; keyPressed already handled keyCode input.
-  // Here we handle character-driven game flow changes.
-  if (gameState === STATE.CHARCREATE) {
-    if (window._charcreate && typeof window._charcreate.handleTypedChar === 'function') {
-      window._charcreate.handleTypedChar(key);
-    }
-    return;
-  }
-  if (gameState === STATE.MENU) {
-    if (key === 'n' || key === 'N' || key === 'Enter' || key === ' ') {
-      startGame();
-    }
-    // Remove return; to allow fall-through from BOOT→MENU→WORLD in same key event
-  }
-  if (gameState === STATE.WORLD) {
-    if (key === 'c' || key === 'C') {
-      if (combat && typeof combat.beginEncounter === 'function') {
-        startCombat('skyPredator');
-      }
-    }
-    // Disembark ship: L or Esc
-    if ((key === 'l' || key === 'L' || key === 'escape') && world && player && player.shipBoarded) {
-      player.shipBoarded = false;
-    }
-    // Choice path selection: 1/2/3; keyPressed also handles this path.
-    handleChoiceInput();
-  }
-  if (gameState === STATE.BOOT) {
-    // Also allow character keys to skip boot
-    if (key === 'n' || key === 'N' || key === 'Enter' || key === ' ') {
-      gameState = STATE.MENU;
-      titleVisible = 0;
-      titleFlash = 0;
-    }
+  // Text entry is the only responsibility of keyTyped. All game-state actions
+  // are edge-triggered from keyPressed through the JRPG semantic input layer.
+  // This prevents one physical Enter/Space/Z press from advancing two states.
+  if (gameState === STATE.CHARCREATE &&
+      window._charcreate &&
+      typeof window._charcreate.handleTypedChar === 'function') {
+    window._charcreate.handleTypedChar(key);
   }
 }
 
