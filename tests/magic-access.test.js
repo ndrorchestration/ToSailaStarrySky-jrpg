@@ -2,7 +2,7 @@ const assert = require('assert');
 const mastery = require('../modules/mastery-defs.js');
 const magicAccess = require('../modules/magic-access.js');
 
-assert.strictEqual(magicAccess.VERSION, '0.1.0');
+assert.strictEqual(magicAccess.VERSION, '0.2.0');
 assert.deepStrictEqual(
   magicAccess.CORE_DOMAIN_IDS,
   ['elemental', 'arcane', 'psychic', 'spirit']
@@ -100,9 +100,16 @@ for (const schoolId of [
 
 for (const spellId of mastery.FOUNDATION_SPELL_ORDER) {
   const admission = magicAccess.getFoundationSpellStudyAdmission('ender', spellId);
-  assert.strictEqual(admission.canStudy, false);
-  assert.strictEqual(admission.canUse, false);
-  assert.strictEqual(admission.reason, 'spell_design_not_established');
+  if (spellId === 'aetherSense') {
+    assert.strictEqual(admission.canStudy, true);
+    assert.strictEqual(admission.canUse, true);
+    assert.strictEqual(admission.reason, 'ok');
+    assert.strictEqual(admission.schoolAccess, 'innate');
+  } else {
+    assert.strictEqual(admission.canStudy, false);
+    assert.strictEqual(admission.canUse, false);
+    assert.strictEqual(admission.reason, 'spell_design_not_established');
+  }
 }
 
 const companionSpell = magicAccess.getFoundationSpellStudyAdmission(
@@ -128,5 +135,6 @@ console.log(JSON.stringify({
   version: magicAccess.VERSION,
   recognizedSchools: magicAccess.RECOGNIZED_SCHOOL_IDS,
   ender,
-  boundary: 'school access does not authorize proposed spells',
+  establishedStartingSpell: 'aetherSense',
+  boundary: 'school access alone does not authorize remaining proposed spells',
 }, null, 2));
