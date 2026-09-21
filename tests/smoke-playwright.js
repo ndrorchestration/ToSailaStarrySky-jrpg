@@ -754,6 +754,8 @@ function createServer() {
       className: window._world.player.class,
       level: window._world.player.level,
       xp: window._world.player.xp,
+      staffCharges: window._world.player.staffCharges,
+      maxStaffCharges: window._world.player.maxStaffCharges,
     }));
 
     assert(typeof worldBeforeCombat.name === 'string' && worldBeforeCombat.name.length > 0,
@@ -1270,8 +1272,11 @@ function createServer() {
       !holdLog.includes('failure'),
       'Hold leaked legacy dice/outcome-band text');
     assert(combatAfterActions.player.staffCharges ===
-      combatAfterActions.player.maxStaffCharges,
-      'Hold did not restore the charge consumed by Staff Strike');
+      worldBeforeCombat.staffCharges,
+      'Hold did not restore exactly the charge consumed by Staff Strike');
+    assert(combatAfterActions.player.maxStaffCharges ===
+      worldBeforeCombat.maxStaffCharges,
+      'Hold changed the staff charge cap');
 
     // Deterministic state-transition check. We test real keyboard combat
     // actions above; direct finishCombat avoids making the smoke test depend on
