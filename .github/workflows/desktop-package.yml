@@ -33,11 +33,18 @@ jobs:
         with:
           node-version: 26.7.0
 
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Run desktop packaging contract
-        run: npm run test:desktop-package
+      - name: Run desktop packaging contracts
+        run: |
+          npm run test:desktop-package
+          npm run test:one-file-launcher
 
       - name: Build Windows package
         run: npm run package:windows
@@ -96,7 +103,7 @@ jobs:
         shell: pwsh
         run: |
           $stage = Join-Path $PWD "artifact\Aetherwake-Windows"
-          if (Test-Path "artifact") { Remove-Item "artifact" -Recurse -Force }
+          if (Test-Path -LiteralPath $stage) { Remove-Item $stage -Recurse -Force }
           New-Item -ItemType Directory -Path $stage -Force | Out-Null
           Copy-Item -Path "..\aetherwake-dist\*" -Destination $stage -Recurse -Force
 
@@ -107,6 +114,52 @@ jobs:
             throw "Staged artifact is missing package.nw/index-embedded.html"
           }
 
+
+      - name: Generate one-file launcher icon
+        shell: pwsh
+        run: ./scripts/generate-windows-icon.ps1
+
+      - name: Build one-file Aetherwake launcher
+        shell: pwsh
+        run: |
+          $launcherDir = Join-Path $PWD "packaging\one-file-launcher"
+          $payload = Join-Path $launcherDir "Payload.zip"
+          if (Test-Path -LiteralPath $payload) { Remove-Item $payload -Force }
+          Compress-Archive -Path "..\aetherwake-dist\*" -DestinationPath $payload -CompressionLevel Optimal
+
+          $publish = Join-Path $PWD "launcher-publish"
+          if (Test-Path -LiteralPath $publish) { Remove-Item $publish -Recurse -Force }
+          dotnet publish "$launcherDir\AetherwakeLauncher.csproj" -c Release -r win-x64 --self-contained true -o $publish
+
+          $built = Join-Path $publish "AetherwakeOneFile.exe"
+          if (-not (Test-Path -LiteralPath $built -PathType Leaf)) {
+            throw "One-file launcher was not produced: $built"
+          }
+
+          $oneFileStage = Join-Path $PWD "artifact\Aetherwake-One-File"
+          if (Test-Path -LiteralPath $oneFileStage) { Remove-Item $oneFileStage -Recurse -Force }
+          New-Item -ItemType Directory -Path $oneFileStage -Force | Out-Null
+          $playerFile = Join-Path $oneFileStage "Aetherwake - The Last Solarpunk Airship.exe"
+          Copy-Item -LiteralPath $built -Destination $playerFile -Force
+
+          $files = @(Get-ChildItem -LiteralPath $oneFileStage -File)
+          if ($files.Count -ne 1 -or $files[0].Name -ne "Aetherwake - The Last Solarpunk Airship.exe") {
+            throw "One-file artifact must contain exactly the recognizable Aetherwake executable"
+          }
+          if ($files[0].Length -le 0) { throw "One-file Aetherwake executable is empty" }
+          $header = [System.IO.File]::ReadAllBytes($playerFile)[0..1]
+          if ($header[0] -ne 0x4D -or $header[1] -ne 0x5A) {
+            throw "One-file Aetherwake executable is not a valid Windows PE file"
+          }
+          Write-Host "One-file Aetherwake executable bytes: $($files[0].Length)"
+
+      - name: Upload one-file Windows launcher
+        uses: actions/upload-artifact@v4
+        with:
+          name: Aetherwake-One-File
+          path: artifact/Aetherwake-One-File/Aetherwake - The Last Solarpunk Airship.exe
+          if-no-files-found: error
+          compression-level: 0
       - name: Upload Windows package
         uses: actions/upload-artifact@v4
         with:
