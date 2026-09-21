@@ -1091,6 +1091,29 @@ function installRuntimePersistenceAdapter() {
       commitAirshipState(nextState);
       return requireAirshipPersistence('exportPersistentState')(airshipState);
     },
+    exportAirNavigationState: function() {
+      if (!ensureAirNavigationState() ||
+          typeof window.AetherAirNavigation.exportPersistentState !== 'function') {
+        throw new Error('RUNTIME_AIR_NAVIGATION_STATE_UNAVAILABLE');
+      }
+      return window.AetherAirNavigation.exportPersistentState(airNavigationState);
+    },
+    validateAirNavigationState: function(payload) {
+      if (!window.AetherAirNavigation ||
+          typeof window.AetherAirNavigation.validatePersistentState !== 'function') {
+        throw new Error('RUNTIME_AIR_NAVIGATION_PERSISTENCE_API_UNAVAILABLE');
+      }
+      return window.AetherAirNavigation.validatePersistentState(payload);
+    },
+    restoreAirNavigationState: function(payload) {
+      if (!window.AetherAirNavigation ||
+          typeof window.AetherAirNavigation.restorePersistentState !== 'function') {
+        throw new Error('RUNTIME_AIR_NAVIGATION_PERSISTENCE_API_UNAVAILABLE');
+      }
+      airNavigationState = window.AetherAirNavigation.restorePersistentState(payload);
+      window._airNavigationState = airNavigationState;
+      return window.AetherAirNavigation.exportPersistentState(airNavigationState);
+    },
   });
 }
 
