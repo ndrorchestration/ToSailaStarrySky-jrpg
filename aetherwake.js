@@ -2567,7 +2567,7 @@ function initNPCs() {
   npcs = [
     // 1 — Captain Ionia (28-year-old veteran navigator; Denith's former protégé)
     {
-      id: 'elder_farmer',
+      id: 'ionia',
       name: 'Ionia',
       title: 'Captain of the Third Watch',
       x: 7,
@@ -2637,7 +2637,7 @@ function initNPCs() {
 
     // 3 — Lyra (24-year-old mother; dream/frequency-sensitive)
     {
-      id: 'child_prophet',
+      id: 'lyra',
       name: 'Lyra',
       title: 'Dreamer of the Drift',
       x: 8,
@@ -2649,13 +2649,13 @@ function initNPCs() {
           '"I hear the sky coming undone. Not falling — unspooling. Like a spool of thread the world was wrapped in, and something pulled the thread."',
           '"There\'s a man in a grey coat. He says he\'s here to buy the core. He wants to put it in a box and take it to a city that doesn\'t dream."',
           '"Captain Ionia says you\'re the one who can hear the core. Can you? Or do you just pretend so people will leave you alone?"',
-          '"I\'m not very big, but my dreams are. Sometimes they\'re bigger than this ship. Sometimes they\'re bigger than the sky. Do you believe in dreams that big?"',
+          '"My dreams keep getting bigger than this ship. Sometimes they reach beyond the sky-lanes entirely. I don\'t know what that means yet, but I know they keep returning to the Core."',
           '"The core hums in my dreams every night now. It has a voice. It sounds like someone singing underwater. I think it wants to be heard. I think it\'s been waiting for someone who knows how to listen."'
         ],
         class_ender: [
           '"Your goggles — you see more than light, don\'t you? You see the frequencies between things. I dreamed you would come. The dream was green."',
           '"If you sell the core — the Wake becomes a box. If you sing it down — the ship falls, but the people scatter. If you drive it up — we find out what\'s above the world."',
-          '"I\'m just a kid. But I know which choice feels like the right kind of wrong."'
+          '"I don\'t know which choice is right. But I know which one feels like the right kind of wrong."'
         ],
         generic_follow: [
           '"I\'ll keep dreaming. Tell me what happens when you decide."'
@@ -2748,9 +2748,9 @@ function initQuest() {
       { id: 'corporate_intercept', label: 'Corporate Intercept', done: false, stat: 'might' }
     ],
     contactNPCs: [
-      { id: 'elder_farmer', label: 'Ionia' },
+      { id: 'ionia', label: 'Ionia' },
       { id: 'engine_spirit', label: 'The Core' },
-      { id: 'child_prophet', label: 'Lyra' },
+      { id: 'lyra', label: 'Lyra' },
       { id: 'corporate_salvager', label: 'Verrick' }
     ],
     choicePaths: [
@@ -2871,6 +2871,22 @@ function worldPersistenceKnownIds(entries) {
   return entries.map(entry => entry.id);
 }
 
+const WORLD_PERSISTENT_NPC_ID_ALIASES = Object.freeze({
+  elder_farmer: 'ionia',
+  child_prophet: 'lyra',
+});
+
+function normalizeWorldPersistentNPCId(value) {
+  return Object.prototype.hasOwnProperty.call(WORLD_PERSISTENT_NPC_ID_ALIASES, value)
+    ? WORLD_PERSISTENT_NPC_ID_ALIASES[value]
+    : value;
+}
+
+function normalizeWorldPersistentNPCIds(values) {
+  if (!Array.isArray(values)) return values;
+  return values.map(normalizeWorldPersistentNPCId);
+}
+
 function validateUniqueKnownIds(values, known, errorPrefix) {
   if (!Array.isArray(values)) throw new Error(errorPrefix + '_ARRAY_REQUIRED');
   if (new Set(values).size !== values.length) throw new Error(errorPrefix + '_DUPLICATE');
@@ -2964,7 +2980,7 @@ function validatePersistentState(payload) {
     'WORLD_PERSISTENT_CROSSING_HAZARD'
   );
   validateUniqueKnownIds(
-    savedQuest.npcsMet,
+    normalizeWorldPersistentNPCIds(savedQuest.npcsMet),
     worldPersistenceKnownIds(quest.contactNPCs),
     'WORLD_PERSISTENT_NPC'
   );
@@ -3066,7 +3082,7 @@ function restorePersistentState(payload) {
   quest.crossingHazards.forEach(entry => { entry.done = hazardDone.has(entry.id); });
   quest.hooksCompleted = signalDone.size;
   quest.hazardsCompleted = hazardDone.size;
-  quest.npcsMet = savedQuest.npcsMet.slice();
+  quest.npcsMet = normalizeWorldPersistentNPCIds(savedQuest.npcsMet);
   quest.choiceMade = savedQuest.choiceMade;
   quest.choiceVariant = savedQuest.choiceVariant;
   quest.choicePath = savedQuest.choicePath;
@@ -3594,7 +3610,7 @@ function checkSignalHook(npc) {
   if (npc.id === 'corporate_salvager') {
     completeSignalHook('sky_lane_warning');
   }
-  if (npc.id === 'child_prophet') {
+  if (npc.id === 'lyra') {
     completeSignalHook('below_frequency');
   }
 }
@@ -3747,7 +3763,7 @@ function getCurrentDialogueLine() {
 // ---------------------------------------------------------------------------
 // Dialogue audio (TTS voice clips)
 // Files on disk: tts/{npc_id}/{batch}/{line_number:02d}.mp3
-// Example: tts/elder_farmer/intro/01.mp3
+// Example: tts/ionia/intro/01.mp3
 // Played when dialogue opens / advances; triggered from openDialogue + nextDialogueLine.
 // ---------------------------------------------------------------------------
 
@@ -4619,17 +4635,17 @@ function drawNPC(npc) {
   ellipse(px + 4, py + 8, 10, 4);
 
   switch (npc.id) {
-    case 'elder_farmer':
-      drawNPCElder(px, py);
-      drawNPCElderRoutine(px, py);
+    case 'ionia':
+      drawNPCIonia(px, py);
+      drawNPCIoniaRoutine(px, py);
       break;
     case 'engine_spirit':
       drawNPCSpirit(px, py);
       drawNPCSpiritRoutine(px, py);
       break;
-    case 'child_prophet':
-      drawNPCChild(px, py);
-      drawNPCChildRoutine(px, py);
+    case 'lyra':
+      drawNPCLyra(px, py);
+      drawNPCLyraRoutine(px, py);
       break;
     case 'corporate_salvager':
       drawNPCSavager(px, py);
@@ -4649,7 +4665,7 @@ function drawNPC(npc) {
   textFont('VT323');
 }
 
-function drawNPCElder(px, py) {
+function drawNPCIonia(px, py) {
   fill(color(80, 60, 40));
   noStroke();
   rect(px - 4, py - 4, 16, 4);
@@ -4691,7 +4707,7 @@ function drawNPCSpirit(px, py) {
   rect(px + 4, py - 1, 2, 1);
 }
 
-function drawNPCChild(px, py) {
+function drawNPCLyra(px, py) {
   fill(color(180, 60, 80));
   noStroke();
   rect(px - 4, py - 4, 16, 4);
@@ -5339,7 +5355,7 @@ function drawPlayerVisualEvolution() {
 // Verrick: shifts weight between deck and bulkhead, posture change.
 
 const NPC_ROUTINES = {
-  elder_farmer: {
+  ionia: {
     bob: 0.4,            // vertical bob amplitude (px)
     bobSpeed: 0.004,     // phase speed
     glanceIdx: 0,        // cycle index for look-direction
@@ -5348,7 +5364,7 @@ const NPC_ROUTINES = {
     glowPulse: 0.006,    // glow breathing speed
     rotSpeed: 0.002,     // rotation drift
   },
-  child_prophet: {
+  lyra: {
     orbRadius: 7,        // orbit radius around head
     orbSpeed: 0.005,     // orbit phase speed
   },
@@ -5363,8 +5379,8 @@ function updateNPCSchedulers(dt) {
   // at draw time. This hook exists so the renderer can stay declarative.
 }
 
-function drawNPCElderRoutine(px, py) {
-  const r = NPC_ROUTINES.elder_farmer;
+function drawNPCIoniaRoutine(px, py) {
+  const r = NPC_ROUTINES.ionia;
   const bob = Math.sin(millis() * r.bobSpeed) * r.bob;
   const dir = Math.floor((millis() * 0.0004) % 3);
   noStroke();
@@ -5411,8 +5427,8 @@ function drawNPCSpiritRoutine(px, py) {
   noStroke();
 }
 
-function drawNPCChildRoutine(px, py) {
-  const r = NPC_ROUTINES.child_prophet;
+function drawNPCLyraRoutine(px, py) {
+  const r = NPC_ROUTINES.lyra;
   const phase = millis() * r.orbSpeed;
   const orbX = px + Math.cos(phase) * r.orbRadius;
   const orbY = py - 7 + Math.sin(phase) * r.orbRadius * 0.6;
