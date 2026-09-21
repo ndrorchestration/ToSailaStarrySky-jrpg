@@ -58,7 +58,8 @@
       type: 'attack',
       tier: 0,
       effectProfile: 'staffStrike',
-      desc: '1d6+2 EMP, 10ft melee / 60ft beam, 1 charge',
+      resolution: { model: 'jrpg-stat-formula', formulaId: 'staffStrike' },
+      desc: 'Formula-driven EMP strike. Uses 1 Resonator Staff charge.',
     },
     uncoverTruth: {
       id: 'uncoverTruth',
@@ -98,7 +99,8 @@
       type: 'hold',
       tier: 0,
       effectProfile: 'hold',
-      desc: 'Regain 1 staff charge in sunlight',
+      resolution: { model: 'jrpg-stat-formula', formulaId: 'hold' },
+      desc: 'Deterministically regain 1 staff charge, up to maximum.',
     },
     windWard: {
       id: 'windWard',
@@ -128,7 +130,8 @@
       type: 'rest',
       tier: 0,
       effectProfile: 'rest',
-      desc: 'Reduce current heat by 1. Recover 1 Vit on 10+',
+      resolution: { model: 'jrpg-stat-formula', formulaId: 'rest' },
+      desc: 'Deterministically reduce Heat by up to 2 and restore up to 1 Vit.',
     },
   });
 
@@ -157,6 +160,14 @@
       }
       if (typeof def.type !== 'string' || !def.type) {
         throw new Error('ABILITY_TYPE_INVALID:' + id);
+      }
+      if (def.resolution &&
+          (def.resolution.model !== 'jrpg-stat-formula' ||
+           def.resolution.formulaId !== id)) {
+        throw new Error('ABILITY_FORMULA_BINDING_INVALID:' + id);
+      }
+      if ((id === 'staffStrike' || id === 'hold' || id === 'rest') && !def.resolution) {
+        throw new Error('ABILITY_FORMULA_BINDING_MISSING:' + id);
       }
     });
 
