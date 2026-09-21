@@ -174,6 +174,18 @@ function createServer() {
       legacyPartyAlias: window.party === window.ACTIVE_PARTY,
       runtimeImplemented: window.ROSTER &&
         window.ROSTER.map(character => Boolean(character.runtimeImplemented)),
+      statModelVersion: window.AetherJRPGStatModel && window.AetherJRPGStatModel.VERSION,
+      productionStatModelVersion: window.AetherPartyState &&
+        window.AetherPartyState.productionStatModelVersion,
+      enderProductionSpirit: window.ROSTER && window.ROSTER[0] &&
+        window.ROSTER[0].productionStats && window.ROSTER[0].productionStats.spirit,
+      ioniaProductionPresence: window.ROSTER && window.ROSTER[2] &&
+        window.ROSTER[2].productionStats && window.ROSTER[2].productionStats.presence,
+      enderLegacySpirit: window.ROSTER && window.ROSTER[0] && window.ROSTER[0].spirit,
+      ioniaLegacyPresence: window.ROSTER && window.ROSTER[2] && window.ROSTER[2].presence,
+      derivedReady: Boolean(window.ROSTER && window.ROSTER.every(character =>
+        character.productionDerivedStats &&
+        Number.isFinite(character.productionDerivedStats.maxHp))),
     }));
 
     assert(partyArchitecture.rosterLength === 5, 'persistent roster does not contain five records');
@@ -190,6 +202,19 @@ function createServer() {
       'legacy window.party alias is not canonical ACTIVE_PARTY');
     assert(partyArchitecture.runtimeImplemented.join('|') === 'true|true|true|false|false',
       'runtime implementation boundary for roster records is incorrect');
+    assert(partyArchitecture.statModelVersion === '0.1.0',
+      'JRPG stat model is not loaded in the browser runtime');
+    assert(partyArchitecture.productionStatModelVersion === '0.1.0',
+      'party state is not bound to JRPG stat model v0.1.0');
+    assert(partyArchitecture.enderProductionSpirit === 12,
+      'Ender production Spirit 12 is not present in the live roster');
+    assert(partyArchitecture.ioniaProductionPresence === 9,
+      'Ionia production Presence 9 is not present in the live roster');
+    assert(partyArchitecture.enderLegacySpirit === 1 &&
+           partyArchitecture.ioniaLegacyPresence === 2,
+      'production stat binding contaminated legacy compatibility fields');
+    assert(partyArchitecture.derivedReady,
+      'production derived stats are not initialized for all roster records');
 
     await page.keyboard.press('KeyC');
     await page.waitForFunction(() =>
