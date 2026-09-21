@@ -171,6 +171,47 @@
       ])]),
     }),
 
+    flowers: Object.freeze({
+      id: 'flowers',
+      frames: Object.freeze([freezeFrame([
+        'TTTTTTTTTTTTTTTT','TTTTTTTTTTTTTTTT','TTTYTTTTTTTTATTT','TTTgTTTTTTTTgTTT',
+        'TTTGTTTTTTTTGTTT','TTTTTTTTTTTTTTTT','TTTTTCTTTTTTTTTT','TTTTTgTTTTTYTTTT',
+        'TTTTTGTTTTTgTTTT','TTTTTTTTTTTGTTTT','TTATTTTTTTTTTTTT','TTgTTTTTTCTTTTTT',
+        'TTGTTTTTTgTTTTTT','TTTTTTTTTGTTTTTT','TTTTTTTTTTTTTTTT','TTTTTTTTTTTTTTTT',
+      ])]),
+    }),
+
+    ruins: Object.freeze({
+      id: 'ruins',
+      frames: Object.freeze([freezeFrame([
+        'TTTTTTTTTTTTTTTT','TTTMMMMTTMMMMTTT','TTTMWMMTTMMWMTTT','TTTMMMMTTMMMMTTT',
+        'TTTMMTTTTTTMMTTT','TTTMMTTTTTTMMTTT','TTTMMMMMMMMMMTTT','TTTMMMMMMMMMMTTT',
+        'TTTMMTTAA TTMMTT'.replace(' ', 'T'),'TTTMMTAAAA TMMTT'.replace(' ', 'T'),
+        'TTTMMTTAA TTMMTT'.replace(' ', 'T'),'TTTMMMMMMMMMMTTT','TTTMMMMMMMMMMTTT',
+        'TTMMMMMMMMMMMMTT','TMMMMMMMMMMMMMMT','TTTTTTTTTTTTTTTT',
+      ])]),
+    }),
+
+    bridge: Object.freeze({
+      id: 'bridge',
+      frames: Object.freeze([freezeFrame([
+        'BBBRRRRRRRRRRBBB','BBBROROROROROBBB','BBBRRRRRRRRRRBBB','BBBROROROROROBBB',
+        'BBBRRRRRRRRRRBBB','BBBROROROROROBBB','BBBRRRRRRRRRRBBB','BBBROROROROROBBB',
+        'BBBRRRRRRRRRRBBB','BBBROROROROROBBB','BBBRRRRRRRRRRBBB','BBBROROROROROBBB',
+        'BBBRRRRRRRRRRBBB','BBBROROROROROBBB','BBBRRRRRRRRRRBBB','BBBRRRRRRRRRRBBB',
+      ])]),
+    }),
+
+    village: Object.freeze({
+      id: 'village',
+      frames: Object.freeze([freezeFrame([
+        'TTTTTTTTTTTTTTTT','TTTTTTRRTTTTTTTT','TTTTTRRRRTTTTTTT','TTTTRRRRRRTTTTTT',
+        'TTTRRRRRRRRTTTTT','TTMMMMMMMMMMTTTT','TTMSSSSSSSSMTTTT','TTMSSSSSSSSMTTTT',
+        'TTMSSMMSSSSMTTTT','TTMSSMMSSSSMTTTT','TTMSSSSSSSSMTTTT','TTMSSSSSSSSMTTTT',
+        'TTMMMMMMMMMMTTTT','TTTTTTMMTTTTTTTT','TTTTTTMMTTTTTTTT','TTTTTTTTTTTTTTTT',
+      ])]),
+    }),
+
     crate: Object.freeze({
       id: 'crate',
       frames: Object.freeze([
@@ -408,7 +449,7 @@
   }
 
   const api = Object.freeze({
-    VERSION: '0.2.0',
+    VERSION: '0.3.0',
     TILE_SIZE: 16,
     PALETTE,
     TILES,
