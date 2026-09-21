@@ -1,5 +1,5 @@
 /* ============================================================
-   Aetherwake JRPG — Aether Pulse Synthetic Evaluation v0.1
+   Aetherwake JRPG — Aether Pulse Synthetic Evaluation v0.2
    modules/aether-pulse-synthetic-evaluation.js
 
    Scope:
@@ -28,7 +28,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
   const STATUS = 'synthetic-test-only';
   const SPELL_ID = 'aetherPulse';
   const SCHOOL_ID = 'aether';
@@ -183,15 +183,123 @@
     };
   }
 
-  function evaluateAcrossModifiers(candidate, modifiers, thresholds) {
+
+  function validateCandidateSet(candidates) {
+    if (!Array.isArray(candidates) || candidates.length === 0) {
+      throw new Error('SYNTHETIC_CANDIDATE_SET_REQUIRED');
+    }
+
+    const checked = candidates.map(validateCandidate);
+    const ids = checked.map(candidate => candidate.candidateId);
+    if (new Set(ids).size !== ids.length) {
+      throw new Error('SYNTHETIC_CANDIDATE_SET_DUPLICATE_ID');
+    }
+    return checked;
+  }
+
+  function evaluateCandidateSet(candidates, modifier, thresholds) {
+    const checked = validateCandidateSet(candidates);
+    return checked.map(candidate =>
+      evaluateCandidate(candidate, modifier, thresholds)
+    );
+  }
+
+  function validateModifierSet(modifiers) {
     if (!Array.isArray(modifiers) || modifiers.length === 0) {
       throw new Error('SYNTHETIC_MODIFIER_SET_REQUIRED');
     }
     if (new Set(modifiers).size !== modifiers.length) {
       throw new Error('SYNTHETIC_MODIFIER_SET_DUPLICATE');
     }
+    modifiers.forEach(modifier => {
+      if (!Number.isInteger(modifier)) {
+        throw new Error('SYNTHETIC_2D6_MODIFIER_MUST_BE_INTEGER');
+      }
+    });
+    return modifiers.slice();
+  }
 
-    return modifiers.map(modifier =>
+  function evaluateCandidateSetAcrossModifiers(candidates, modifiers, thresholds) {
+    const checked = validateCandidateSet(candidates);
+    const modifierSet = validateModifierSet(modifiers);
+
+    return modifierSet.map(modifier => ({
+      modifier,
+      evaluations: checked.map(candidate =>
+        evaluateCandidate(candidate, modifier, thresholds)
+      ),
+    }));
+  }
+
+  function validateEvaluationForFrontier(evaluation) {
+    if (!evaluation ||
+        evaluation.status !== STATUS ||
+        evaluation.synthetic !== true ||
+        evaluation.designEstablished !== false ||
+        evaluation.runtimeAuthorized !== false ||
+        evaluation.spellId !== SPELL_ID ||
+        !Number.isFinite(evaluation.expectedEnemyDamage) ||
+        !Number.isFinite(evaluation.expectedSelfDamage) ||
+        !Number.isFinite(evaluation.resourceCost) ||
+        evaluation.resourceCost <= 0 ||
+        !Number.isInteger(evaluation.modifier)) {
+      throw new Error('SYNTHETIC_FRONTIER_EVALUATION_INVALID');
+    }
+    return evaluation;
+  }
+
+  function dominates(left, right) {
+    validateEvaluationForFrontier(left);
+    validateEvaluationForFrontier(right);
+    if (left.modifier !== right.modifier) {
+      throw new Error('SYNTHETIC_FRONTIER_MODIFIER_MISMATCH');
+    }
+
+    const noWorse =
+      left.expectedEnemyDamage >= right.expectedEnemyDamage &&
+      left.expectedSelfDamage <= right.expectedSelfDamage &&
+      left.resourceCost <= right.resourceCost;
+    const strictlyBetter =
+      left.expectedEnemyDamage > right.expectedEnemyDamage ||
+      left.expectedSelfDamage < right.expectedSelfDamage ||
+      left.resourceCost < right.resourceCost;
+
+    return noWorse && strictlyBetter;
+  }
+
+  function getParetoFrontier(evaluations) {
+    if (!Array.isArray(evaluations) || evaluations.length === 0) {
+      throw new Error('SYNTHETIC_FRONTIER_SET_REQUIRED');
+    }
+
+    const checked = evaluations.map(validateEvaluationForFrontier);
+    const ids = checked.map(item => item.candidateId);
+    if (new Set(ids).size !== ids.length) {
+      throw new Error('SYNTHETIC_FRONTIER_DUPLICATE_CANDIDATE');
+    }
+
+    const modifier = checked[0].modifier;
+    checked.forEach(item => {
+      if (item.modifier !== modifier) {
+        throw new Error('SYNTHETIC_FRONTIER_MODIFIER_MISMATCH');
+      }
+    });
+
+    return checked
+      .filter(candidate =>
+        !checked.some(other =>
+          other.candidateId !== candidate.candidateId &&
+          dominates(other, candidate)
+        )
+      )
+      .slice()
+      .sort((a, b) => a.candidateId.localeCompare(b.candidateId));
+  }
+
+  function evaluateAcrossModifiers(candidate, modifiers, thresholds) {
+    const modifierSet = validateModifierSet(modifiers);
+
+    return modifierSet.map(modifier =>
       evaluateCandidate(candidate, modifier, thresholds)
     );
   }
@@ -205,9 +313,14 @@
     DEFAULT_THRESHOLDS,
     PHASES,
     validateCandidate,
+    validateCandidateSet,
     getOutcomeCounts,
     getOutcomeProbabilities,
     evaluateCandidate,
+    evaluateCandidateSet,
     evaluateAcrossModifiers,
+    evaluateCandidateSetAcrossModifiers,
+    dominates,
+    getParetoFrontier,
   });
 });
