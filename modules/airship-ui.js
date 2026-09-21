@@ -100,10 +100,18 @@
     text('phase array // rootline // lance', cx, y + h - 10);
   }
 
-  function draw(state, C) {
+  function draw(state, C, options) {
     const systems = root.AetherAirshipState
       ? root.AetherAirshipState.getSystemDefinitions()
       : [];
+    const opts = options || {};
+    const cursor = Number.isInteger(opts.cursor) ? opts.cursor : 0;
+    const commands = Array.isArray(opts.commands) && opts.commands.length
+      ? opts.commands
+      : systems.map(system => ({ id: system.id, label: system.shortLabel }))
+          .concat({ id: 'ventWake', label: 'VENT WAKE' });
+    const systemsById = {};
+    systems.forEach(system => { systemsById[system.id] = system; });
     const profile = root.AetherAirshipState
       ? root.AetherAirshipState.getShieldProfile(state.shieldMode)
       : { label: state.shieldMode.toUpperCase(), description: '' };
@@ -147,26 +155,34 @@
     text('LIVE CAPABILITY STATE', rightX + 14, rightY + 262);
 
     textFont('VT323');
-    textSize(13);
-    for (let i = 0; i < systems.length; i++) {
-      const system = systems[i];
-      const rowY = leftY + 42 + i * 70;
-      const active = state.lastAction === system.id;
-      setFill(active ? C.teal : C.navy, active ? 28 : 150);
-      rect(leftX + 10, rowY, leftW - 20, 56, 2);
-      border(leftX + 10, rowY, leftW - 20, 56, active ? C.teal : C.dim);
-      setFill(active ? C.teal : C.parchment, 220);
-      text('[' + (i === 1 ? '2/H' : String(i + 1)) + '] ' + system.shortLabel,
-        leftX + 20, rowY + 7);
+    textSize(12);
+    for (let i = 0; i < commands.length; i++) {
+      const command = commands[i];
+      const system = systemsById[command.id] || {
+        id: 'ventWake',
+        shortLabel: 'VENT WAKE',
+        description: 'Vent excess Wakeheart heat and stabilize the current cycle.',
+        chargeKey: null,
+      };
+      const rowY = leftY + 42 + i * 58;
+      const selected = i === cursor;
+      const recentlyUsed = state.lastAction === system.id;
+      setFill(selected ? C.teal : C.navy, selected ? 36 : (recentlyUsed ? 24 : 150));
+      rect(leftX + 10, rowY, leftW - 20, 48, 2);
+      border(leftX + 10, rowY, leftW - 20, 48, selected ? C.teal : (recentlyUsed ? C.scioto : C.dim));
+      setFill(selected ? C.teal : C.parchment, 220);
+      text((selected ? '▶ ' : '  ') + (command.label || system.shortLabel),
+        leftX + 20, rowY + 6);
       setFill(C.dim, 190);
-      text(system.description, leftX + 20, rowY + 25, leftW - 115, 24);
+      text(system.description, leftX + 20, rowY + 21, leftW - 125, 20);
       textAlign(RIGHT, TOP);
-      setFill(active ? C.teal : C.scioto, 210);
-      text(systemStatus(state, system), leftX + leftW - 20, rowY + 8);
+      setFill(selected ? C.teal : C.scioto, 210);
+      text(system.id === 'ventWake' ? 'SPECIAL' : systemStatus(state, system),
+        leftX + leftW - 20, rowY + 7);
       const cooldown = state.cooldowns[system.id] || 0;
       if (cooldown > 0) {
         setFill(C.rust, 220);
-        text('COOL ' + cooldown, leftX + leftW - 20, rowY + 29);
+        text('COOL ' + cooldown, leftX + leftW - 20, rowY + 25);
       }
       textAlign(LEFT, TOP);
     }
@@ -198,7 +214,7 @@
     textFont('Press Start 2P');
     textSize(7);
     setFill(C.teal, 190);
-    text('1 PHASE-SLIP   2/H VEIL   3 LANCE   4 TETHER   5 FORGE   R VENT   ESC/L LEAVE', width / 2, footerY);
+    text('↑↓/←→ SELECT   ·   Z/ENTER OK   ·   X/ESC BACK', width / 2, footerY);
     textAlign(LEFT, TOP);
   }
 
