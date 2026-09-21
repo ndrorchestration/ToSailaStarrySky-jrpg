@@ -5,6 +5,7 @@ const ROOT = path.resolve(__dirname, '..');
 const DEST = path.join(ROOT, 'build', 'runtime-app');
 
 const REQUIRED_FILES = Object.freeze([
+  'aetherwake-themed.html',
   'index-embedded.html',
   'index.html',
   'aetherwake.js',
@@ -15,6 +16,7 @@ const REQUIRED_FILES = Object.freeze([
 
 const REQUIRED_DIRECTORIES = Object.freeze([
   'modules',
+  'assets',
 ]);
 
 const MANIFEST_KEYS = Object.freeze([
@@ -73,8 +75,8 @@ function writeRuntimeManifest() {
     }
   }
 
-  if (runtime.main !== 'index-embedded.html') {
-    fail('runtime manifest main must remain index-embedded.html');
+  if (runtime.main !== 'aetherwake-themed.html') {
+    fail('runtime manifest main must remain aetherwake-themed.html');
   }
   if (!runtime.window || runtime.window.icon !== 'icon.svg') {
     fail('runtime manifest must preserve icon.svg window icon');
@@ -139,6 +141,16 @@ function verifyStage() {
     }
   }
 
+  const themePath = path.join(
+    DEST,
+    'assets',
+    'audio',
+    'aetherwake-skyward-arpeggio-main-title.mp3'
+  );
+  if (!fs.existsSync(themePath) || !fs.statSync(themePath).isFile()) {
+    fail('canonical main title theme is missing');
+  }
+
   for (const entry of FORBIDDEN_RUNTIME_ENTRIES) {
     if (fs.existsSync(path.join(DEST, entry))) {
       fail('development-only entry leaked into staged runtime: ' + entry);
@@ -152,14 +164,15 @@ function verifyStage() {
     fail('runtime manifest contains dependency or development script metadata');
   }
 
+  verifyLocalHtmlReferences('aetherwake-themed.html');
   verifyLocalHtmlReferences('index-embedded.html');
   verifyLocalHtmlReferences('index.html');
 
   const files = walkFiles(DEST);
   const bytes = files.reduce((sum, file) => sum + fs.statSync(file).size, 0);
   if (bytes <= 0) fail('staged runtime is empty');
-  if (bytes > 20 * 1024 * 1024) {
-    fail('staged runtime unexpectedly exceeds 20 MiB: ' + bytes);
+  if (bytes > 25 * 1024 * 1024) {
+    fail('staged runtime unexpectedly exceeds 25 MiB: ' + bytes);
   }
 
   return {
