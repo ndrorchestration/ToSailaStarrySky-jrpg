@@ -1851,18 +1851,19 @@ function drawTitleScreen() {
     const px = ((island.x + millis() * 0.01 * island.drift) % 60 + 60) % 60 * 16;
     const py = island.y + Math.sin(millis() * 0.001 * island.speed + island.drift) * 6;
 
+    // Pixel-built title islands: stepped silhouettes instead of procedural ellipses.
+    const iw = Math.max(16, Math.round(island.size / 8) * 8);
+    const ih = Math.max(8, Math.round(island.size * 0.45 / 4) * 4);
+    const ix = Math.round(px - iw / 2), iy = Math.round(py - ih / 2);
     noStroke();
-    fill(C.soil[0], C.soil[1], C.soil[2], 200);
-    ellipse(px, py, island.size, island.size * 0.6);
-
-    noFill();
-    stroke(C.teal[0], C.teal[1], C.teal[2], 100);
-    strokeWeight(1);
-    ellipse(px, py, island.size, island.size * 0.6);
-    noStroke();
-
-    fill(C.teal[0], C.teal[1], C.teal[2], 70);
-    ellipse(px - 3, py - 3, island.size * 0.3, island.size * 0.2);
+    fill(C.soil[0], C.soil[1], C.soil[2], 220);
+    rect(ix + 4, iy, iw - 8, 4);
+    rect(ix, iy + 4, iw, Math.max(4, ih - 8));
+    rect(ix + 8, iy + ih - 4, Math.max(8, iw - 16), 4);
+    fill(C.grass[0], C.grass[1], C.grass[2], 220);
+    rect(ix + 4, iy, iw - 8, 3);
+    fill(C.teal[0], C.teal[1], C.teal[2], 100);
+    rect(ix + Math.floor(iw * 0.35), iy + ih, Math.max(2, Math.floor(iw * 0.3)), 2);
   }
 
   stroke(C.teal[0], C.teal[1], C.teal[2], 12);
