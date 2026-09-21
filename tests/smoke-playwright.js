@@ -310,6 +310,41 @@ function createServer() {
     assert(quickLoadResult.combatName === quickLoadResult.worldName,
       'quick load did not resynchronize combat identity from restored World state');
 
+    // Character-sheet integration: the overlay must render from canonical
+    // current state and code-owned Mastery Phase-A facts.
+    await page.keyboard.press('KeyR');
+    await page.waitForFunction(() => window.gameState === 'charsheet', undefined,
+      { timeout: 5000 });
+
+    const characterSheetView = await page.evaluate(() => {
+      const model = window.getCharacterSheetViewModel();
+      return {
+        model,
+        rosterScrap: window.ROSTER[0].scrap,
+        worldLeadRef: window._world.player === window.ROSTER[0],
+      };
+    });
+    assert(characterSheetView.model && characterSheetView.model.id === 'ender',
+      'character sheet did not bind to canonical Ender');
+    assert(characterSheetView.model.nativeJob.status === 'established' &&
+      characterSheetView.model.nativeJob.id === 'rift-scholar' &&
+      characterSheetView.model.nativeJob.label === 'Rift Scholar',
+      'character sheet did not expose established Ender native-job fact');
+    assert(characterSheetView.model.affinities.status === 'established' &&
+      characterSheetView.model.affinities.ids.join('|') ===
+        'aether|resonance|correspondence|lumen',
+      'character sheet did not expose established Ender affinities');
+    assert(characterSheetView.model.resources.scrap === characterSheetView.rosterScrap &&
+      characterSheetView.worldLeadRef,
+      'character sheet values are not sourced from canonical live state');
+    assert(characterSheetView.model.abilities.some(action => action.id === 'staffStrike') &&
+      characterSheetView.model.abilities.some(action => action.id === 'hold'),
+      'character sheet did not derive baseline eligible actions');
+
+    await page.keyboard.press('KeyR');
+    await page.waitForFunction(() => window.gameState === 'world', undefined,
+      { timeout: 5000 });
+
     const dialogueStateContract = await page.evaluate(() => {
       const player = window._world.player;
       player.tileX = 7;
