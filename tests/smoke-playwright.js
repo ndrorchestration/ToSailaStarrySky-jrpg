@@ -135,7 +135,7 @@ function createServer() {
     }));
 
     assert(review.partyLength === 3, 'prototype review did not contain three party slots');
-    assert(review.ender === 'Young Ender', 'Ender missing from prototype party');
+    assert(review.ender === 'Ender', 'Ender missing from prototype party');
     assert(review.companion1 === 'Lyra', 'first companion name was not retained');
     assert(review.companion2 === 'Ionia', 'second companion name was not retained');
 
