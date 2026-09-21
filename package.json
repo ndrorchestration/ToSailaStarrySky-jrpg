@@ -24,7 +24,6 @@
     "page-cache": true
   },
   "js-flags": "--expose-gc",
-  "chromium-args": "--disable-gpu-compositing --disable-gpu-rasterization",
   "devDependencies": {
     "playwright": "^1.63.0",
     "nw-builder": "4.20.0"
