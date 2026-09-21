@@ -54,6 +54,18 @@ assert.strictEqual(
   'use eligibility must accept persistent numeric resource shape'
 );
 
+const dischargedStaff = {
+  unlockedAbilities: [],
+  echoes: { current: 0, max: 3 },
+  aether: { current: 0, max: 6 },
+  staffCharges: 0,
+};
+const discharged = abilities.getUseEligibility(dischargedStaff, 'staffStrike');
+assert.strictEqual(discharged.canUse, false);
+assert.strictEqual(discharged.reason, 'insufficient_dedicated_resource');
+assert.strictEqual(discharged.dedicatedResource, 'staffCharges');
+assert.strictEqual(discharged.dedicatedAvailable, 0);
+
 assert.throws(
   () => abilities.getActionResourceCost('notAnAction'),
   /UNKNOWN_ACTION_FOR_RESOURCE_COST/
