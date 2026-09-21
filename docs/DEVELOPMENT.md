@@ -304,6 +304,37 @@ download while preserving the same playable/runtime behavior. The remaining
 artifact weight is primarily the NW.js/Chromium desktop runtime rather than the
 game application payload.
 
+## Read-only party combat context checkpoint
+
+On 2026-09-21, runtime commit `ceeb943d94a2d4cd81e500ad475aee11a10ea0d2`
+passed gameplay smoke run `35568410543` and lean Windows desktop package run
+`35568410500`. The Windows run uploaded artifact `10625580392`
+(`Aetherwake-Windows`, 219,918,339 bytes,
+SHA-256 `6e15a8edf4946e805f8253037edb82f43efd1f97e760e27545c163d08a476967`).
+
+This establishes the first validated three-character **combat context** without
+claiming three-character combat execution:
+
+- `modules/party-combat-bridge.js` snapshots exactly three unique implemented
+  active roster references;
+- Phase A requires Ender as the executable lead actor;
+- Lyra and Ionia enter the encounter context with live HP/resources and their
+  temporary field-role provenance;
+- their two preservation-era action declarations are visible but explicitly
+  marked `declared-non-executable` with reason
+  `OUTCOME_CONTRACT_NOT_ESTABLISHED`;
+- companion action IDs do not enter Ender's executable 1–8 action registry;
+- `AetherCombat` validates and clones the party context, and `getState()`
+  returns another detached copy;
+- the combat panel displays Lyra/Ionia as **STAGED** but provides no companion
+  action controls;
+- browser smoke proves encounter context creation does not mutate
+  `ACTIVE_PARTY`.
+
+This is deliberately an admission boundary, not an implicit companion-combat
+implementation. Companion turns remain blocked until complete executable
+outcome contracts exist.
+
 ## Effect/registry checkpoint
 
 On 2026-09-19:
