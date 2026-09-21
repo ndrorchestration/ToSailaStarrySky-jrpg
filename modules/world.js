@@ -208,7 +208,7 @@ function initNPCs() {
   npcs = [
     // 1 — Captain Ionia
     {
-      id: 'elder_farmer',
+      id: 'ionia',
       name: 'Captain Ionia',
       title: 'Captain of the Aureate Wake',
       x: 7,
@@ -284,7 +284,7 @@ function initNPCs() {
 
     // 3 — Lyra (24-year-old mother and frequency-sensitive dreamer)
     {
-      id: 'child_prophet',
+      id: 'lyra',
       name: 'Lyra',
       title: 'Dreamer of the Aureate Wake',
       x: 8,
@@ -314,7 +314,7 @@ function initNPCs() {
         deep: [
           '"I\'ve heard the captain and the acquisition officer and the core. I\'ve heard all four of us. You\'ve heard them too. You know what each of us wants. You decide what the Wake does. That\'s the choice."',
           '"The core hums wrong and I hum with it. That\'s been the whole story since I was born. The frequencies hum and the core hums with them and the Wake hums with the core. That\'s the Aureate Wake. That\'s the whole ship."',
-          '"You\'ll find out which one I am — the kid who hears wrong, or the kid who saves the ship by hearing right. The answer\'s coming."'
+          '"You\'ll find out whether I\'m hearing the wrong song or the part everyone else missed. The answer\'s coming."'
         ]
       },
       flags: { met: false, questMarker: true }
@@ -399,9 +399,9 @@ function initQuest() {
       { id: 'corporate_intercept', label: 'Corporate Intercept', done: false, stat: 'might' }
     ],
     contactNPCs: [
-      { id: 'elder_farmer', label: 'Ionia' },
+      { id: 'ionia', label: 'Ionia' },
       { id: 'engine_spirit', label: 'The Core' },
-      { id: 'child_prophet', label: 'Lyra' },
+      { id: 'lyra', label: 'Lyra' },
       { id: 'corporate_salvager', label: 'Verrick' }
     ],
     choicePaths: [
@@ -711,7 +711,7 @@ function checkSignalHook(npc) {
   if (npc.id === 'corporate_salvager') {
     completeSignalHook('bounty');
   }
-  if (npc.id === 'child_prophet') {
+  if (npc.id === 'lyra') {
     completeSignalHook('prophet');
   }
 }
@@ -846,7 +846,7 @@ function getCurrentDialogueLine() {
 // ---------------------------------------------------------------------------
 // Dialogue audio (TTS voice clips)
 // Files on disk: tts/{npc_id}/{batch}/{line_number:02d}.mp3
-// Example: tts/elder_farmer/intro/01.mp3
+// Example: tts/ionia/intro/01.mp3
 // Played when dialogue opens / advances; triggered from openDialogue + nextDialogueLine.
 // ---------------------------------------------------------------------------
 
@@ -1505,14 +1505,14 @@ function drawNPC(npc) {
   ellipse(px + 4, py + 8, 10, 4);
 
   switch (npc.id) {
-    case 'elder_farmer':
-      drawNPCElder(px, py);
+    case 'ionia':
+      drawNPCIonia(px, py);
       break;
     case 'engine_spirit':
       drawNPCSpirit(px, py);
       break;
-    case 'child_prophet':
-      drawNPCChild(px, py);
+    case 'lyra':
+      drawNPCLyra(px, py);
       break;
     case 'corporate_salvager':
       drawNPCSavager(px, py);
@@ -1531,24 +1531,26 @@ function drawNPC(npc) {
   textFont('VT323');
 }
 
-function drawNPCElder(px, py) {
-  fill(color(80, 60, 40));
+function drawNPCIonia(px, py) {
+  // Ionia: young adult captain silhouette — practical coat, captain pin, no elder/farmer cues.
   noStroke();
-  rect(px - 4, py - 4, 16, 4);
-  rect(px - 2, py - 8, 12, 5);
-  fill(color(130, 110, 80));
-  rect(px - 3, py - 1, 14, 8);
-  fill(color(110, 90, 60));
-  rect(px - 2, py + 5, 5, 6);
-  rect(px + 3, py + 5, 5, 6);
-  fill(color(200, 180, 150));
-  rect(px - 2, py - 3, 12, 4);
-  fill(color(40, 30, 20));
-  rect(px + 1, py - 2, 2, 1);
-  rect(px + 7, py - 2, 2, 1);
-  fill(color(100, 70, 40));
-  noStroke();
-  rect(px + 10, py - 6, 2, 14);
+  fill(color(38, 48, 58));
+  rect(px - 4, py - 1, 16, 9);
+  fill(color(52, 92, 102));
+  rect(px - 3, py, 14, 5);
+  fill(color(198, 168, 138));
+  rect(px - 2, py - 7, 12, 6);
+  fill(color(54, 38, 34));
+  rect(px - 3, py - 9, 13, 3);
+  rect(px - 3, py - 7, 3, 4);
+  fill(color(24, 24, 28));
+  rect(px + 1, py - 5, 2, 1);
+  rect(px + 7, py - 5, 2, 1);
+  fill(color(42, 255, 181, 210));
+  rect(px + 8, py + 1, 2, 2);
+  fill(color(30, 34, 40));
+  rect(px - 2, py + 7, 5, 5);
+  rect(px + 4, py + 7, 5, 5);
 }
 
 function drawNPCSpirit(px, py) {
@@ -1573,26 +1575,30 @@ function drawNPCSpirit(px, py) {
   rect(px + 4, py - 1, 2, 1);
 }
 
-function drawNPCChild(px, py) {
-  fill(color(180, 60, 80));
+function drawNPCLyra(px, py) {
+  // Lyra: 24-year-old crew member/mother — adult silhouette with subtle frequency glow.
   noStroke();
-  rect(px - 4, py - 4, 16, 4);
-  fill(color(60, 60, 100));
-  rect(px - 3, py - 7, 12, 4);
-  fill(color(200, 180, 160));
-  rect(px - 2, py - 5, 12, 4);
-  fill(color(42, 255, 181, 200));
-  rect(px, py - 4, 3, 2);
-  rect(px + 6, py - 4, 3, 2);
-  fill(color(100, 80, 120));
-  rect(px - 3, py, 12, 7);
-  fill(color(60, 50, 80));
-  rect(px - 2, py + 6, 4, 4);
-  rect(px + 2, py + 6, 4, 4);
+  fill(color(72, 62, 96));
+  rect(px - 4, py - 1, 16, 9);
+  fill(color(112, 84, 122));
+  rect(px - 3, py, 14, 5);
+  fill(color(202, 176, 154));
+  rect(px - 2, py - 7, 12, 6);
+  fill(color(74, 54, 86));
+  rect(px - 3, py - 9, 13, 3);
+  rect(px + 8, py - 7, 3, 5);
+  fill(color(34, 30, 42));
+  rect(px + 1, py - 5, 2, 1);
+  rect(px + 7, py - 5, 2, 1);
+  fill(color(42, 255, 181, 190));
+  rect(px + 9, py + 1, 2, 2);
+  fill(color(48, 42, 64));
+  rect(px - 2, py + 7, 5, 5);
+  rect(px + 4, py + 7, 5, 5);
   noFill();
-  stroke(color(42, 255, 181, 40));
+  stroke(color(42, 255, 181, 45));
   strokeWeight(1);
-  ellipse(px, py - 2, 20, 16);
+  ellipse(px + 3, py - 3, 20, 18);
   noStroke();
 }
 

@@ -16,15 +16,15 @@ import html
 # Reachable female voices: en-US-AriaNeural, en-US-JennyNeural
 # All others return NoAudioReceived in your environment.
 NPC_VOICE = {
-    'elder_farmer':      ('en-US-JennyNeural', '+0%', '-1Hz'),   # Ionia — adult captain
+    'ionia':             ('en-US-JennyNeural', '+0%', '-1Hz'),   # Ionia — adult captain
     'engine_spirit':     ('en-US-AriaNeural', '+0%',  '+1Hz'),    # calm, slightly ethereal
-    'child_prophet':     ('en-US-AriaNeural', '+0%', '+0Hz'),    # Lyra — adult dream/frequency-sensitive voice
+    'lyra':              ('en-US-AriaNeural', '+0%', '+0Hz'),    # Lyra — adult dream/frequency-sensitive voice
     'corporate_salvager':('en-US-BrianNeural', '+0%',  '+0Hz'),   # crisp corporate
 }
 
 # ── dialogue data (mirrored from world.js so generation is self-contained) ──
 DIALOGUE = {
-    'elder_farmer': {
+    'ionia': {
         'intro': [
             '"The Wake doesn\'t sing like it used to. You hear it? The harmonics are slipping. Ten years under Captain Denith taught me this ship\'s rhythms, and now the Core is forgetting its own song."',
             '"You\'re Ender. Rift Scholar, and a new hand aboard my ship. You carry a wrench, a passport, and a decision you haven\'t admitted you have to make. I know the shape of it."',
@@ -58,18 +58,18 @@ DIALOGUE = {
             '"The frequencies hum. Follow them. But choose before they fade — the window is narrow."',
         ],
     },
-    'child_prophet': {
+    'lyra': {
         'intro': [
             '"I hear the sky coming undone. Not falling — unspooling. Like a spool of thread the world was wrapped in, and something pulled the thread."',
             '"There\'s a man in a grey coat. He says he\'s here to buy the core. He wants to put it in a box and take it to a city that doesn\'t dream."',
             '"Captain Ionia says you\'re the one who can hear the core. Can you? Or do you just pretend so people will leave you alone?"',
-            '"I\'m not very big, but my dreams are. Sometimes they\'re bigger than this ship. Sometimes they\'re bigger than the sky. Do you believe in dreams that big?"',
+            '"My dreams keep getting bigger than this ship. Sometimes they reach beyond the sky-lanes entirely. I don\'t know what that means yet, but I know they keep returning to the Core."',
             '"The core hums in my dreams every night now. It has a voice. It sounds like someone singing underwater. I think it wants to be heard. I think it\'s been waiting for someone who knows how to listen."',
         ],
         'class_ender': [
             '"Your goggles — you see more than light, don\'t you? You see the frequencies between things. I dreamed you would come. The dream was green."',
             '"If you sell the core — the Wake becomes a box. If you sing it down — the ship falls, but the people scatter. If you drive it up — we find out what\'s above the world."',
-            '"I\'m just a kid. But I know which choice feels like the right kind of wrong."',
+            '"I don\'t know which choice is right. But I know which one feels like the right kind of wrong."',
         ],
         'generic_follow': [
             '"I\'ll keep dreaming. Tell me what happens when you decide."',
