@@ -5,8 +5,8 @@ const fieldRoles = require('../modules/field-role-defs.js');
 const admission = require('../modules/companion-action-admission.js');
 const effects = require('../modules/effect-vocabulary.js');
 
-assert.strictEqual(contracts.VERSION, '0.2.0');
-assert.deepStrictEqual(Array.from(contracts.DRAFT_ORDER), ['windShearDance', 'aetherCompass']);
+assert.strictEqual(contracts.VERSION, '0.3.0');
+assert.deepStrictEqual(Array.from(contracts.DRAFT_ORDER), ['windShearDance', 'aetherCompass', 'overdriveStrike']);
 assert.strictEqual(contracts.validateAgainstFieldRoles(fieldRoles), true);
 
 const draft = contracts.getDraft('windShearDance');
@@ -159,6 +159,109 @@ assert.strictEqual(
 );
 assert.strictEqual(compassAssessment.contractComplete, false);
 assert.strictEqual(compassAssessment.executionAuthorized, false);
+
+
+const overdrive = contracts.getDraft('overdriveStrike');
+assert(overdrive, 'Overdrive Strike draft must exist');
+assert.strictEqual(overdrive.templateId, 'engineWright');
+assert.strictEqual(overdrive.provenance, fieldRoles.PROVENANCE);
+assert.strictEqual(overdrive.status, contracts.STATUS.DRAFT_UNRESOLVED);
+assert.strictEqual(overdrive.stat, 'might');
+assert.strictEqual(
+  overdrive.source.text,
+  '2D6+Might. Heavy EMP: 1d6+3 damage. Generates 1 Heat.'
+);
+assert.deepStrictEqual(overdrive.roll, {
+  system: '2d6',
+  stat: 'might',
+  successMin: 10,
+  partialMin: 7,
+  source: 'established-global-combat-rule',
+});
+assert.deepStrictEqual(overdrive.cost, {
+  status: contracts.UNKNOWN,
+  resource: null,
+  amount: null,
+});
+
+const heavyEmpDamage = overdrive.knownSemantics.find(
+  item => item.id === 'heavyEmpDamage'
+);
+assert(heavyEmpDamage, 'Heavy EMP damage semantic must be preserved');
+assert.strictEqual(heavyEmpDamage.band, contracts.UNKNOWN);
+assert.strictEqual(heavyEmpDamage.effectKind, 'damage');
+assert.strictEqual(heavyEmpDamage.target, 'enemy');
+assert.strictEqual(heavyEmpDamage.key, 'emp');
+assert.strictEqual(heavyEmpDamage.amount, null);
+assert.strictEqual(heavyEmpDamage.amountFormula, '1d6+3');
+
+const generatedHeat = overdrive.knownSemantics.find(
+  item => item.id === 'generateHeat'
+);
+assert(generatedHeat, 'Heat-generation semantic must be preserved');
+assert.strictEqual(generatedHeat.band, contracts.UNKNOWN);
+assert.strictEqual(generatedHeat.effectKind, 'resource');
+assert.strictEqual(generatedHeat.target, 'self');
+assert.strictEqual(generatedHeat.key, 'heat');
+assert.strictEqual(generatedHeat.amount, 1);
+
+for (const phase of ['common', 'success', 'partial', 'failure']) {
+  assert.strictEqual(
+    overdrive.outcomes[phase],
+    null,
+    'Overdrive Strike outcome tables must not be fabricated: ' + phase
+  );
+}
+
+assert.strictEqual(overdrive.authoredBindings.nativeJob, contracts.UNKNOWN);
+assert.strictEqual(overdrive.authoredBindings.school, contracts.UNKNOWN);
+assert.strictEqual(contracts.getAdmissionCandidate('overdriveStrike'), null);
+
+const overdriveReadiness = contracts.getReadiness('overdriveStrike');
+assert.strictEqual(overdriveReadiness.known, true);
+assert.strictEqual(overdriveReadiness.designComplete, false);
+assert.strictEqual(overdriveReadiness.executionAuthorized, false);
+assert.strictEqual(overdriveReadiness.reason, 'outcome_contract_not_established');
+assert(overdriveReadiness.blockers.includes(contracts.BLOCKER.COST_NOT_SPECIFIED));
+assert(overdriveReadiness.blockers.includes(
+  contracts.BLOCKER.DAMAGE_BAND_NOT_SPECIFIED
+));
+assert(overdriveReadiness.blockers.includes(
+  contracts.BLOCKER.HEAT_GAIN_BAND_NOT_SPECIFIED
+));
+assert(overdriveReadiness.blockers.includes(
+  contracts.BLOCKER.DAMAGE_FORMULA_EXECUTION_NOT_ESTABLISHED
+));
+assert(overdriveReadiness.blockers.includes(
+  contracts.BLOCKER.SUCCESS_OUTCOME_NOT_SPECIFIED
+));
+assert(overdriveReadiness.blockers.includes(
+  contracts.BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED
+));
+assert(overdriveReadiness.blockers.includes(
+  contracts.BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED
+));
+
+const engineWright = fieldRoles.getById('engineWright');
+const overdriveDeclaration = engineWright.abilities.find(
+  action => action.id === 'overdriveStrike'
+);
+const overdriveAssessment = admission.assessAction(
+  overdriveDeclaration,
+  engineWright,
+  contracts.getAdmissionCandidate('overdriveStrike'),
+  {
+    provenance: fieldRoles.PROVENANCE,
+    effectVocabulary: effects,
+  }
+);
+assert.strictEqual(overdriveAssessment.status, admission.STATUS.BLOCKED);
+assert.strictEqual(
+  overdriveAssessment.reason,
+  admission.REASON.OUTCOME_CONTRACT_NOT_ESTABLISHED
+);
+assert.strictEqual(overdriveAssessment.contractComplete, false);
+assert.strictEqual(overdriveAssessment.executionAuthorized, false);
 
 assert.strictEqual(
   contracts.getReadiness('notAnAction').reason,
