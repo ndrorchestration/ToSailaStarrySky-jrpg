@@ -27,7 +27,7 @@ function test(name, fn) {
 }
 
 // D16: Verify openShop returns {ok, reason}
-test('D16: openShop returns {ok, reason} on failure', () => {
+test('D16: openShop returns semantic {ok, kind, reason/items} results', () => {
   const openShopMatch = aetherwakeSrc.match(/function openShop\(\) \{([\s\S]*?)^\}/m);
   assert(openShopMatch, 'openShop function should exist');
   const body = openShopMatch[1];
