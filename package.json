@@ -48,6 +48,7 @@
     "package:windows:clean": "npm run package:windows",
     "test:desktop-package": "node tests/desktop-package-contract.test.js",
     "test:longform-progression": "node tests/longform-progression.test.js",
-    "test:encounter-scaling": "node tests/encounter-scaling.test.js"
+    "test:encounter-scaling": "node tests/encounter-scaling.test.js",
+    "test:party-capacity": "node tests/party-capacity.test.js"
   }
 }
