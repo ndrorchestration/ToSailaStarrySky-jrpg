@@ -65,6 +65,15 @@ const squallMove=nav.move(stormState,1,0);
 assert(squallMove.x-stormState.x<stormState.speed,'squall movement should be slower than nominal speed');
 assert(squallMove.encounterSteps>1,'squall movement should accumulate additional encounter pressure');
 
+
+const approach=nav.approachStatus(nav.createState({x:15,y:15,speed:3}));
+assert(approach.active && approach.landmark.id==='verdant-crown','dockable landmark approach not detected');
+assert.strictEqual(approach.speedLimit,1,'near-berth approach should impose a speed limit');
+const approachProfile=nav.travelProfile(nav.createState({x:15,y:15,speed:3}));
+assert(approachProfile.effectiveSpeed<=1,'approach envelope must limit effective speed');
+const distantApproach=nav.approachStatus(nav.createState({x:0,y:0}));
+assert.strictEqual(distantApproach.active,false,'distant landmarks should not activate approach state');
+
 const nearest=nav.nearestLandmark(initial);
 assert(nearest && nearest.landmark.id==='wake-dock');
 
