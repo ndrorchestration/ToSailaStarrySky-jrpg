@@ -37,6 +37,9 @@ jobs:
       - name: Verify runtime contract
         run: npm run test:runtime-contracts
 
+      - name: Verify Memories-style JRPG input authority
+        run: npm run test:jrpg-input
+
       - name: Verify authored onboarding contract
         run: npm run test:onboarding
 
