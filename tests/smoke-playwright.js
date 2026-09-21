@@ -161,8 +161,11 @@ function createServer() {
     assert(debugOverlayState.every(entry => entry.display === 'none'),
       'normal launch exposed a debug overlay');
 
-    // One real Enter follows the production input path:
-    // BOOT → MENU → CHARCREATE and authored onboarding → Lyra field role.
+    // Exercise the explicit JRPG title flow:
+    // BOOT → MENU, then confirm NEW GAME → authored onboarding.
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => window.gameState === 'menu', undefined,
+      { timeout: 5000 });
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.gameState === 'charcreate' &&
@@ -585,7 +588,7 @@ function createServer() {
     assert(shopOpen.itemCount >= 6 && shopOpen.handler === 'function',
       'production shop path did not populate its item handler');
 
-    await page.keyboard.press('m');
+    await page.keyboard.press('Escape');
     await page.waitForFunction(() => window.gameState === 'world', undefined,
       { timeout: 5000 });
     assert(await page.evaluate(() => window.UI.shopItems.length === 0 &&
