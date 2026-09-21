@@ -286,7 +286,7 @@ function initNPCs() {
     {
       id: 'child_prophet',
       name: 'Lyra',
-      title: 'Child Dreamer of the Aureate Wake',
+      title: 'Frequency-Sensitive Dreamer of the Aureate Wake',
       x: 8,
       y: 20,
       tileX: 8,
