@@ -18,7 +18,7 @@ on:
       - "scripts/stage-desktop-runtime.js"
       - "scripts/generate-windows-icon.ps1"
       - "tests/desktop-package-contract.test.js"
-      - "tests/one-file-launcher-contract.test.js"
+      - "tests/one-file-launcher-contract.test.js"\n      - "tests/windows-packaged-render.test.js"
   push:
     branches:
       - main
@@ -236,6 +236,41 @@ jobs:
             ForEach-Object {
               Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
             }
+
+      - name: Verify one-file packaged canvas renders
+        shell: pwsh
+        run: |
+          $playerFile = Join-Path $PWD "artifact\Aetherwake-One-File\Aetherwake - The Last Solarpunk Airship.exe"
+          $runtimeRoot = Join-Path $env:LOCALAPPDATA "Aetherwake\runtime"
+          Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+            Where-Object {
+              $_.ExecutablePath -and
+              $_.ExecutablePath.StartsWith($runtimeRoot, [System.StringComparison]::OrdinalIgnoreCase)
+            } |
+            ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+
+          $port = 9223
+          $launcher = Start-Process -FilePath $playerFile -ArgumentList "--remote-debugging-port=$port" -PassThru
+          if (-not $launcher.WaitForExit(180000)) {
+            try { $launcher.Kill() } catch {}
+            throw "One-file launcher process did not exit within 180 seconds during render probe"
+          }
+          if ($launcher.ExitCode -ne 0) {
+            throw "One-file launcher exited with code $($launcher.ExitCode) during render probe"
+          }
+
+          $env:AETHERWAKE_CDP_PORT = "$port"
+          try {
+            node tests/windows-packaged-render.test.js
+          }
+          finally {
+            Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+              Where-Object {
+                $_.ExecutablePath -and
+                $_.ExecutablePath.StartsWith($runtimeRoot, [System.StringComparison]::OrdinalIgnoreCase)
+              } |
+              ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+          }
 
       - name: Upload one-file Windows launcher
         uses: actions/upload-artifact@v4
