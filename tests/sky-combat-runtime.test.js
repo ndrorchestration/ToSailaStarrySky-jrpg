@@ -20,6 +20,16 @@ assert(combat.includes("sceneDomain === 'sky' ? '⚔ SKY ENCOUNTER ⚔' : '⚔ C
   'sky encounter presentation banner missing');
 assert(combat.includes("if (sceneDomain === 'ground')"),
   'combat staging no longer distinguishes ground from open sky');
+assert(runtime.includes("weatherId: skyTravel && skyTravel.weather ? skyTravel.weather.id : 'clear'"),
+  'sky combat handoff does not carry weather context');
+assert(runtime.includes('encounterPressure: skyTravel ? skyTravel.encounterPressure : 0'),
+  'sky combat handoff does not carry encounter pressure');
+assert(combat.includes("sceneWeather === 'crosswind'"),
+  'sky combat renderer lacks crosswind staging');
+assert(combat.includes("sceneWeather === 'aether-squall'"),
+  'sky combat renderer lacks aether-squall staging');
+assert(combat.includes("' // PRESSURE ' + scenePressure"),
+  'sky combat banner lacks flight pressure context');
 assert.deepStrictEqual(
   nav.SKY_ENCOUNTERS.map(e=>e.id).sort(),
   ['aetherLeak','skyPredator','windShear'].sort(),
