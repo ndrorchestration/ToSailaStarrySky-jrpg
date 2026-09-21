@@ -1996,14 +1996,28 @@ function drawAirNavigationScene() {
   drawUnfinishedSongExterior(width / 2, height / 2, 0.9);
 
   const near = nav.nearestLandmark(airNavigationState);
+  const travel = typeof nav.travelProfile === 'function' ? nav.travelProfile(airNavigationState) : null;
+  const routeCtx = typeof nav.routeContext === 'function' ? nav.routeContext(airNavigationState) : null;
   textAlign(LEFT, TOP); textFont('Press Start 2P'); textSize(8);
   fill(42, 255, 181); text('SKY NAV // ' + airNavigationState.altitude.toUpperCase(), 18, 18);
-  fill(232, 220, 198); text('SPD ' + airNavigationState.speed + '   POS ' + Math.round(airNavigationState.x) + ',' + Math.round(airNavigationState.y), 18, 36);
+  fill(232, 220, 198);
+  const effectiveSpeed = travel ? travel.effectiveSpeed.toFixed(1) : airNavigationState.speed;
+  text('SPD ' + airNavigationState.speed + ' / EFF ' + effectiveSpeed + '   POS ' + Math.round(airNavigationState.x) + ',' + Math.round(airNavigationState.y), 18, 36);
   text('WEATHER ' + weather.label + '   ROUTES ' + airNavigationState.discoveredRoutes.length + '/' + (nav.SKY_ROUTES || []).length, 18, 52);
-  if (near) text('NEAREST ' + near.landmark.label + '  ' + near.distance.toFixed(1), 18, 68);
+  if (routeCtx && routeCtx.onRoute && routeCtx.route) {
+    const routePct = Math.round(routeCtx.progress * 100);
+    const routeStatus = routeCtx.discovered ? 'CHARTED' : 'DISCOVERING';
+    text('LANE ' + routeCtx.route.label + '  ' + routePct + '%  ' + routeStatus, 18, 68);
+  } else if (near) {
+    text('NEAREST ' + near.landmark.label + '  ' + near.distance.toFixed(1), 18, 68);
+  }
+  if (travel) {
+    fill(travel.encounterPressure > 1 ? C.rust[0] : C.scioto[0], travel.encounterPressure > 1 ? C.rust[1] : C.scioto[1], travel.encounterPressure > 1 ? C.rust[2] : C.scioto[2]);
+    text('WAKE PRESSURE ' + travel.encounterPressure + (travel.routeShelter ? '   ROUTE SHELTER' : ''), 18, 84);
+  }
   const berth = typeof nav.dockingCheck === 'function' ? nav.dockingCheck(airNavigationState) : { available: false };
   if (berth.available) {
-    fill(42, 255, 181); text('BERTH AVAILABLE: ' + berth.landmark.label + '   [D] DOCK', 18, 84);
+    fill(42, 255, 181); text('BERTH AVAILABLE: ' + berth.landmark.label + '   [D] DOCK', 18, 100);
   }
   fill(124, 200, 232); text('ARROWS FLY   Q/W ALTITUDE   SHIFT SPEED   D DOCK   ENTER SYSTEMS   ESC LAND', 18, height - 24);
 }
@@ -2025,7 +2039,8 @@ function handleAirNavigationInput(input) {
       airNavigationState = encounter.state;
       if (encounter.triggered) {
         window._airNavigationState = airNavigationState;
-        showToast('HOSTILE WAKE DETECTED', C.rust, 1200);
+        const pressureSuffix = typeof encounter.pressure === 'number' ? ' // PRESSURE ' + encounter.pressure : '';
+        showToast('HOSTILE WAKE DETECTED' + pressureSuffix, C.rust, 1200);
         startCombat(encounter.enemyId, STATE.AIRSHIP);
         return;
       }
