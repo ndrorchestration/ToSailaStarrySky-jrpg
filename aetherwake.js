@@ -171,6 +171,20 @@ function setup() {
   }
   window._masteryDefs = window.AetherMasteryDefs;
 
+  if (!window.AetherFieldRoleDefs ||
+      typeof window.AetherFieldRoleDefs.validate !== 'function' ||
+      typeof window.AetherFieldRoleDefs.list !== 'function') {
+    showInitializationFailure('AETHER_FIELD_ROLE_DEFS_UNAVAILABLE');
+    return;
+  }
+  try {
+    window.AetherFieldRoleDefs.validate();
+  } catch (error) {
+    showInitializationFailure('AETHER_FIELD_ROLE_DEFS_INVALID');
+    return;
+  }
+  window._fieldRoleDefs = window.AetherFieldRoleDefs;
+
   if (!window.AetherPartyState || typeof window.AetherPartyState.bootstrap !== 'function') {
     showInitializationFailure('AETHER_PARTY_STATE_UNAVAILABLE');
     return;
