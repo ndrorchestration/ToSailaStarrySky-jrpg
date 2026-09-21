@@ -5,8 +5,8 @@ const fieldRoles = require('../modules/field-role-defs.js');
 const admission = require('../modules/companion-action-admission.js');
 const effects = require('../modules/effect-vocabulary.js');
 
-assert.strictEqual(contracts.VERSION, '0.4.0');
-assert.deepStrictEqual(Array.from(contracts.DRAFT_ORDER), ['windShearDance', 'aetherCompass', 'overdriveStrike', 'patchworkShield']);
+assert.strictEqual(contracts.VERSION, '0.5.0');
+assert.deepStrictEqual(Array.from(contracts.DRAFT_ORDER), ['windShearDance', 'aetherCompass', 'overdriveStrike', 'patchworkShield', 'spiritThread']);
 assert.strictEqual(contracts.validateAgainstFieldRoles(fieldRoles), true);
 
 const draft = contracts.getDraft('windShearDance');
@@ -359,6 +359,92 @@ assert.strictEqual(
 );
 assert.strictEqual(patchworkAssessment.contractComplete, false);
 assert.strictEqual(patchworkAssessment.executionAuthorized, false);
+
+
+const spiritThread = contracts.getDraft('spiritThread');
+assert(spiritThread, 'Spirit Thread draft must exist');
+assert.strictEqual(spiritThread.templateId, 'aetherWeaver');
+assert.strictEqual(spiritThread.provenance, fieldRoles.PROVENANCE);
+assert.strictEqual(spiritThread.status, contracts.STATUS.DRAFT_UNRESOLVED);
+assert.strictEqual(spiritThread.stat, 'spirit');
+assert.strictEqual(
+  spiritThread.source.text,
+  '2D6+Spirit. Heal 1-3 Vit to a target ally.'
+);
+assert.deepStrictEqual(spiritThread.roll, {
+  system: '2d6',
+  stat: 'spirit',
+  successMin: 10,
+  partialMin: 7,
+  source: 'established-global-combat-rule',
+});
+assert.deepStrictEqual(spiritThread.cost, {
+  status: contracts.UNKNOWN,
+  resource: null,
+  amount: null,
+});
+
+const allyHeal = spiritThread.knownSemantics.find(
+  item => item.id === 'healTargetAlly'
+);
+assert(allyHeal, 'target-ally heal semantic must be preserved');
+assert.strictEqual(allyHeal.band, contracts.UNKNOWN);
+assert.strictEqual(allyHeal.effectKind, 'restore');
+assert.strictEqual(allyHeal.target, 'ally');
+assert.strictEqual(allyHeal.operation, 'restore');
+assert.strictEqual(allyHeal.key, 'vitality');
+assert.strictEqual(allyHeal.amount, null);
+assert.deepStrictEqual(allyHeal.amountRange, [1, 3]);
+assert.strictEqual(allyHeal.amountSelection, contracts.UNKNOWN);
+assert.strictEqual(allyHeal.targetSelection, contracts.UNKNOWN);
+
+for (const phase of ['common', 'success', 'partial', 'failure']) {
+  assert.strictEqual(
+    spiritThread.outcomes[phase],
+    null,
+    'Spirit Thread outcome tables must not be fabricated: ' + phase
+  );
+}
+
+assert.strictEqual(spiritThread.authoredBindings.nativeJob, contracts.UNKNOWN);
+assert.strictEqual(spiritThread.authoredBindings.school, contracts.UNKNOWN);
+assert.strictEqual(contracts.getAdmissionCandidate('spiritThread'), null);
+
+const spiritThreadReadiness = contracts.getReadiness('spiritThread');
+assert.strictEqual(spiritThreadReadiness.known, true);
+assert.strictEqual(spiritThreadReadiness.designComplete, false);
+assert.strictEqual(spiritThreadReadiness.executionAuthorized, false);
+assert.strictEqual(spiritThreadReadiness.reason, 'outcome_contract_not_established');
+for (const blocker of [
+  contracts.BLOCKER.COST_NOT_SPECIFIED,
+  contracts.BLOCKER.HEAL_BAND_NOT_SPECIFIED,
+  contracts.BLOCKER.HEAL_AMOUNT_SELECTION_NOT_SPECIFIED,
+  contracts.BLOCKER.ALLY_TARGET_SELECTION_NOT_SPECIFIED,
+  contracts.BLOCKER.ALLY_RESTORE_EFFECT_NOT_EXECUTABLE,
+]) {
+  assert(spiritThreadReadiness.blockers.includes(blocker));
+}
+
+const aetherWeaver = fieldRoles.getById('aetherWeaver');
+const spiritThreadDeclaration = aetherWeaver.abilities.find(
+  action => action.id === 'spiritThread'
+);
+const spiritThreadAssessment = admission.assessAction(
+  spiritThreadDeclaration,
+  aetherWeaver,
+  contracts.getAdmissionCandidate('spiritThread'),
+  {
+    provenance: fieldRoles.PROVENANCE,
+    effectVocabulary: effects,
+  }
+);
+assert.strictEqual(spiritThreadAssessment.status, admission.STATUS.BLOCKED);
+assert.strictEqual(
+  spiritThreadAssessment.reason,
+  admission.REASON.OUTCOME_CONTRACT_NOT_ESTABLISHED
+);
+assert.strictEqual(spiritThreadAssessment.contractComplete, false);
+assert.strictEqual(spiritThreadAssessment.executionAuthorized, false);
 
 assert.strictEqual(
   contracts.getReadiness('notAnAction').reason,
