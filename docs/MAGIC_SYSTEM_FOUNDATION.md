@@ -133,6 +133,39 @@ to prove that **contract completeness cannot override design/runtime
 authorization**. The real Aether Pulse definition remains
 `design_proposal / not_integrated`.
 
+
+## Synthetic Aether Pulse evaluation
+
+The repository now has a deliberately non-authorizing balance-measurement surface:
+
+`modules/aether-pulse-synthetic-evaluation.js`
+
+It exists so proposed Aether Pulse shapes can be measured **before** any values are
+promoted into the spell contract.
+
+The evaluator:
+
+- enumerates all **36 exact 2D6 outcomes** for a supplied integer stat modifier;
+- preserves the established global 10+ / 7–9 / 6− outcome bands by default;
+- accepts explicitly marked `synthetic-test-only` candidate fixtures;
+- measures expected enemy damage, expected self-damage, and expected enemy
+  damage per Aether;
+- can sweep the same synthetic candidate across multiple stat modifiers;
+- stamps every result `designEstablished: false` and
+  `runtimeAuthorized: false`.
+
+The candidate numbers in the automated tests are **test fixtures only**. They are
+not recommendations, balance decisions, starting ownership, or proposed canon.
+The real `foundation-spell-contracts.js` Aether Pulse record remains unchanged:
+cost, governing stat, outcome table, ownership, adapter, persistence, and runtime
+authorization are still unresolved.
+
+This creates a useful sequence:
+
+`synthetic measurement → explicit design decision → complete admission contract → runtime authorization`
+
+and prevents synthetic tuning evidence from bypassing the design/admission gate.
+
 ## Next implementation gates
 
 The smallest safe progression from the current foundation is:
