@@ -586,7 +586,8 @@ function AetherCombat(p, C) {
   };
 
   // ── Rendering (called from core.js drawCombatScene wiring) ──
-  this.drawCombatScene = function(playerX, playerY, aetherMax, staffMax) {
+  this.drawCombatScene = function(playerX, playerY, aetherMax, staffMax, sceneOptions) {
+    const sceneDomain = sceneOptions && sceneOptions.domain === 'sky' ? 'sky' : 'ground';
     const now = millis();
     
     // ── Background ──
@@ -594,9 +595,21 @@ function AetherCombat(p, C) {
     fill(C.navy[0], C.navy[1], C.navy[2]);
     rect(0, 0, p.width, p.height);
 
-    // Ground
-    fill(C.soil[0], C.soil[1], C.soil[2]);
-    rect(0, p.height * 0.55, p.width, p.height * 0.45);
+    // Domain staging: land encounters use soil; aerial encounters use open-sky strata.
+    if (sceneDomain === 'ground') {
+      fill(C.soil[0], C.soil[1], C.soil[2]);
+      rect(0, p.height * 0.55, p.width, p.height * 0.45);
+    } else {
+      fill(C.scioto[0], C.scioto[1], C.scioto[2], 18);
+      rect(0, p.height * 0.55, p.width, p.height * 0.45);
+      for (let band = 0; band < 4; band++) {
+        const by = p.height * 0.56 + band * 52;
+        fill(C.scioto[0], C.scioto[1], C.scioto[2], 20 + band * 4);
+        rect(0, by, p.width, 4);
+        fill(C.teal[0], C.teal[1], C.teal[2], 8);
+        rect(60 + band * 120, by - 5, 180, 2);
+      }
+    }
 
     // Sky gradient overlay
     for (let i = 0; i < p.height * 0.55; i += 2) {
@@ -637,7 +650,7 @@ function AetherCombat(p, C) {
       p.textSize(20 * bannerT);
       p.textAlign(p.CENTER, p.CENTER);
       p.fill(C.teal[0], C.teal[1], C.teal[2], 160 * bannerT);
-      p.text('⚔ COMBAT ⚔', p.width/2, 38);
+      p.text(sceneDomain === 'sky' ? '⚔ SKY ENCOUNTER ⚔' : '⚔ COMBAT ⚔', p.width/2, 38);
       p.textSize(12 * bannerT);
       p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * bannerT);
       p.text(state.enemy.name + ' approaches.', p.width/2, 58);
