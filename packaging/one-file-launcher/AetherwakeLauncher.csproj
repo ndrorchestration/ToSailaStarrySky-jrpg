@@ -22,6 +22,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ProgramCompatibility.cs" />
     <EmbeddedResource Include="Payload.zip" LogicalName="Aetherwake.Payload.zip" />
   </ItemGroup>
 </Project>
