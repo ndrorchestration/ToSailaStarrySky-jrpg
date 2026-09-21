@@ -39,6 +39,12 @@ assert(!combatSource.includes("const resourceCost = (action.tier || 0) + action.
   'resolveTurn still duplicates the action resource-cost formula');
 assert(source.includes('window.AetherAbilityDefs.getActionResourceCost(action)'),
   'combat UI does not use centralized action cost');
+assert(source.includes('const weaknessRevealed = Boolean('),
+  'combat UI does not gate weakness presentation on reveal state');
+assert(source.includes("weakness: unknown. Analyze the target to reveal it."),
+  'encounter log does not hide weakness before discovery');
+assert(!source.includes("log(state.enemy.name + ' weakness: ' + state.enemy.weakness);"),
+  'encounter start still leaks the enemy weakness');
 assert(combatSource.includes('window.AetherAbilityDefs.getUseEligibility('),
   'resolveTurn does not use centralized use eligibility');
 
