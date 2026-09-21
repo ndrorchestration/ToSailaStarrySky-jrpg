@@ -14,13 +14,14 @@ vm.runInNewContext(source, sandbox, { filename: tilePath });
 
 const api = sandbox.window.AetherPixelTiles;
 assert(api, 'pixel tile authority was not exposed');
-assert.strictEqual(api.VERSION, '0.2.0');
+assert.strictEqual(api.VERSION, '0.3.0');
 assert.strictEqual(api.TILE_SIZE, 16);
 assert.strictEqual(api.validate(), true, 'pixel tile registry failed validation');
 
 const ids = [
   'hull', 'grass', 'crate', 'float', 'water',
   'loreUnknown', 'loreKnown', 'cloud', 'astro',
+  'forest', 'cliff', 'shore', 'mountain', 'path', 'flowers', 'ruins', 'bridge', 'village',
 ];
 
 for (const id of ids) {
