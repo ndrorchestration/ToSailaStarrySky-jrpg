@@ -259,6 +259,55 @@ function createServer() {
       postCreateCombat.combatMaxVit === postCreateCombat.worldMaxVit,
       'character-creation handoff did not preserve combat identity/stats');
 
+    // Player-facing persistence integration: use real F2/F3 input and verify
+    // canonical party, World, and Dragonfly state all restore together.
+    const quickSaveBaseline = await page.evaluate(() => ({
+      scrap: window.ROSTER[0].scrap,
+      tileX: window._world.player.tileX,
+      tileY: window._world.player.tileY,
+      airshipPower: window._airshipState.power,
+      worldLeadRef: window._world.player === window.ROSTER[0],
+    }));
+    assert(quickSaveBaseline.worldLeadRef,
+      'quick-save fixture does not start from canonical World/ROSTER identity');
+
+    await page.keyboard.press('F2');
+    await page.waitForFunction(() =>
+      Boolean(window.localStorage.getItem('aetherwake.save.v2'))
+    , undefined, { timeout: 5000 });
+
+    await page.evaluate(() => {
+      window.ROSTER[0].scrap += 11;
+      window._world.player.tileX += 3;
+      window._world.player.x = window._world.player.tileX;
+      window._world.player.px = window._world.player.tileX * 16;
+      window._airshipState.power = 0;
+    });
+
+    await page.keyboard.press('F3');
+    await page.waitForFunction((expected) =>
+      window.gameState === 'world' &&
+      window.ROSTER[0].scrap === expected.scrap &&
+      window._world.player.tileX === expected.tileX &&
+      window._world.player.tileY === expected.tileY &&
+      window._airshipState.power === expected.airshipPower
+    , quickSaveBaseline, { timeout: 5000 });
+
+    const quickLoadResult = await page.evaluate(() => ({
+      scrap: window.ROSTER[0].scrap,
+      tileX: window._world.player.tileX,
+      tileY: window._world.player.tileY,
+      airshipPower: window._airshipState.power,
+      worldLeadRef: window._world.player === window.ROSTER[0],
+      activeLeadRef: window.ACTIVE_PARTY[0] === window.ROSTER[0],
+      combatName: window._combat.getState().player.name,
+      worldName: window._world.player.name,
+    }));
+    assert(quickLoadResult.worldLeadRef && quickLoadResult.activeLeadRef,
+      'quick load split canonical party references');
+    assert(quickLoadResult.combatName === quickLoadResult.worldName,
+      'quick load did not resynchronize combat identity from restored World state');
+
     const dialogueStateContract = await page.evaluate(() => {
       const player = window._world.player;
       player.tileX = 7;
