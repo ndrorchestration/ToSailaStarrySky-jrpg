@@ -39,10 +39,10 @@ Canonical ages / identity constraints:
 - Reson — 25, burly weapon master; rifle/pike/sword proficiency.
 - Aepex — 27, machinery/computation/invention specialist; exact native job remains open.
 
-Combat uses exactly three active characters:
+The opening combat party grows from one to two to three characters, and the production architecture must later expand cleanly to four and then all five protagonists as Reson and Aepex join:
 
 ```text
-ROSTER[5] → select ACTIVE_PARTY[3] → combat
+ROSTER[5] → story-available party[1..5] → combat
 ```
 
 Rules:
@@ -51,7 +51,8 @@ Rules:
 - bench status must not create a separate/frozen character copy,
 - formation changes initially occur outside combat at preparation/safe states,
 - no in-battle swapping is required for the first production implementation,
-- Triple Arts always involve all three active combatants.
+- Dual and Triple Arts remain meaningful subset techniques inside the larger party.
+- No permanent bench is required for the core five once all are recruited, although temporary story absences or optional formation mechanics may exist.
 
 ### CURRENT IMPLEMENTATION
 
@@ -65,8 +66,8 @@ The development branch now contains a persistent party-state bridge:
 - Sky-Sailor / Engine-Wright / Aether-Weaver remain preservation-era **mechanics templates**, centralized in `modules/field-role-defs.js` and recorded separately from authored identity and native-job canon;
 - Lyra and Ionia's canonical `nativeJob` values remain unresolved/null; selecting a mechanics template does not establish canon;
 - Reson and Aepex currently exist as identity/schema shells only;
-- formation mutation is not implemented in this phase;
-- combat now receives a validated read-only Ender/Lyra/Ionia party context, but only Ender is executable; Lyra/Ionia temporary field-role actions remain explicitly staged/non-executable until complete target JRPG formula/effect contracts are established;
+- full party expansion beyond the authored opening trio is not implemented in this phase;
+- combat currently receives an Ender/Lyra/Ionia context while the authored opening-party implementation is still incomplete; later architecture must scale without redesigning the roster when Reson and Aepex join;
 - Ender implementation residue may still display **Rift Scholar + Dreamwright**, while canonical `nativeJob` is **Rift Scholar**.
 
 The authored identities are canonical; prototype onboarding/mechanics remain migration provenance until the later authored-roster phase. Historical labels such as “Young Ender,” Ender age 28, “Rift Scholar + Dreamwright” as his canonical job, or an elderly/elder-farmer Ionia are superseded and must not be reintroduced as current canon.
