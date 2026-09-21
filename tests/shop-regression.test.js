@@ -9,7 +9,7 @@ if (syntax) {
 }
 
 // Regression tests for Cluster 4: Shop (D16-D19)
-// D16: openShop returns {ok, reason}; contextual OK is the primary route
+// D16: openShop returns structured success/failure; contextual OK is the primary route
 // D17: All items use scrap currency, transactional purchases
 // D18: Items have stable IDs
 // D19: Echo/heat capacity caps are explicit constants
@@ -38,9 +38,9 @@ test('D16: openShop returns {ok, reason} on failure', () => {
   assert(body.includes("'Merchant is too far away.'"), 
     'openShop should have appropriate reason message');
   
-  // Check successful return
-  assert(/return \{ ok: true, items:/.test(body), 
-    'openShop should return {ok: true, items} on success');
+  // Check successful return includes the interaction kind consumed by core.
+  assert(/return \{ ok: true, kind: 'shop', items:/.test(body),
+    'openShop should return {ok: true, kind: shop, items} on success');
 });
 
 // D16b: Verify contextual JRPG OK routes shop access through World.interact().
