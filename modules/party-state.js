@@ -14,12 +14,43 @@
 (function (global) {
   'use strict';
 
+  const BALANCE_PROFILE_VERSION = 1;
+  const BALANCE_STATUS = 'PROVISIONAL_NOT_CANON';
+
+  // Identity facts come from creator canon. Numeric values below are a first
+  // balance pass fitted to the existing rank-1 stat scale; they are tuning
+  // data, not declarations about unresolved jobs or magic-school ownership.
   const DEFINITIONS = Object.freeze([
-    Object.freeze({ id: 'ender', canonicalName: 'Ender', nativeJob: 'Rift Scholar' }),
-    Object.freeze({ id: 'lyra', canonicalName: 'Lyra', nativeJob: null }),
-    Object.freeze({ id: 'ionia', canonicalName: 'Ionia', nativeJob: null }),
-    Object.freeze({ id: 'reson', canonicalName: 'Reson', nativeJob: null }),
-    Object.freeze({ id: 'aepex', canonicalName: 'Aepex', nativeJob: null }),
+    Object.freeze({
+      id: 'ender', canonicalName: 'Ender', age: 22, nativeJob: 'Rift Scholar',
+      combatRole: 'analyst-controller',
+      base: Object.freeze({ vit:13, echoes:3, aether:4, aetherMax:6, heat:1, heatMax:3,
+        wits:2, presence:1, spirit:1, might:-1, grace:0 })
+    }),
+    Object.freeze({
+      id: 'lyra', canonicalName: 'Lyra', age: 24, nativeJob: null,
+      combatRole: 'perceptive-support',
+      base: Object.freeze({ vit:10, echoes:3, aether:3, aetherMax:6, heat:0, heatMax:3,
+        wits:1, presence:0, spirit:2, might:-1, grace:1 })
+    }),
+    Object.freeze({
+      id: 'ionia', canonicalName: 'Ionia', age: 28, nativeJob: null,
+      combatRole: 'captain-support',
+      base: Object.freeze({ vit:12, echoes:2, aether:3, aetherMax:6, heat:0, heatMax:3,
+        wits:1, presence:2, spirit:0, might:0, grace:0 })
+    }),
+    Object.freeze({
+      id: 'reson', canonicalName: 'Reson', age: 25, nativeJob: null,
+      combatRole: 'durable-weapon-specialist',
+      base: Object.freeze({ vit:15, echoes:2, aether:2, aetherMax:6, heat:0, heatMax:3,
+        wits:0, presence:0, spirit:1, might:2, grace:0 })
+    }),
+    Object.freeze({
+      id: 'aepex', canonicalName: 'Aepex', age: 27, nativeJob: null,
+      combatRole: 'technical-specialist',
+      base: Object.freeze({ vit:11, echoes:2, aether:4, aetherMax:6, heat:0, heatMax:3,
+        wits:2, presence:1, spirit:0, might:0, grace:0 })
+    }),
   ]);
 
   const ROSTER = [];
@@ -28,41 +59,53 @@
   const MAX_ACTIVE_PARTY = 5;
   let boundWorldPlayer = null;
 
+  function applyAuthoredProfile(target, definition, options) {
+    const opts = options || {};
+    const base = definition.base;
+    target.schemaVersion = 1;
+    target.id = definition.id;
+    target.canonicalName = definition.canonicalName;
+    target.name = definition.canonicalName;
+    target.age = definition.age;
+    target.nativeJob = definition.nativeJob;
+    target.class = definition.nativeJob;
+    target.jobId = definition.nativeJob ? definition.id : null;
+    target.combatRole = definition.combatRole;
+    target.balanceProfileVersion = BALANCE_PROFILE_VERSION;
+    target.balanceStatus = BALANCE_STATUS;
+    target.vit = base.vit;
+    target.maxVit = base.vit;
+    target.echoes = base.echoes;
+    target.echoesMax = 3;
+    target.aether = base.aether;
+    target.aetherMax = base.aetherMax;
+    target.heat = base.heat;
+    target.heatMax = base.heatMax;
+    target.wits = base.wits;
+    target.presence = base.presence;
+    target.spirit = base.spirit;
+    target.might = base.might;
+    target.grace = base.grace;
+    if (opts.initializeProgression !== false) {
+      target.level = 1;
+      target.xp = 0;
+      target.xpToNext = 50;
+    }
+    return target;
+  }
+
   function createShell(definition) {
-    return {
-      schemaVersion: 1,
-      id: definition.id,
-      canonicalName: definition.canonicalName,
-      name: definition.canonicalName,
-      nativeJob: definition.nativeJob,
+    const shell = {
       runtimeImplemented: false,
-      implementationSource: 'authored-shell',
-      age: null,
-      class: null,
-      jobId: null,
+      implementationSource: 'authored-balance-shell',
       synergyBonus: null,
-      vit: null,
-      maxVit: null,
-      echoes: null,
-      echoesMax: null,
-      wits: null,
-      presence: null,
-      spirit: null,
-      might: null,
-      grace: null,
-      scrap: null,
-      aether: null,
-      aetherMax: null,
-      heat: null,
-      heatMax: null,
-      staffCharges: null,
-      maxStaffCharges: null,
-      level: null,
-      xp: null,
-      xpToNext: null,
+      scrap: 5,
+      staffCharges: 0,
+      maxStaffCharges: 0,
       unlockedAbilities: [],
       equipment: { staff: null, backpack: null },
     };
+    return applyAuthoredProfile(shell, definition);
   }
 
   function currentOf(value) {
@@ -131,6 +174,10 @@
       target.equipment = Object.assign({}, source.equipment);
     }
 
+    // The preservation creator may still provide temporary names/jobs/stats,
+    // but authored protagonist identity and the current fitted balance profile
+    // are authoritative at the persistent-roster boundary.
+    applyAuthoredProfile(target, definition, { initializeProgression: false });
     return target;
   }
 
@@ -205,12 +252,9 @@
     if (ROSTER.length === 0) {
       boundWorldPlayer = worldPlayer;
 
-      worldPlayer.schemaVersion = 1;
-      worldPlayer.id = DEFINITIONS[0].id;
-      worldPlayer.canonicalName = DEFINITIONS[0].canonicalName;
-      worldPlayer.nativeJob = DEFINITIONS[0].nativeJob;
+      applyAuthoredProfile(worldPlayer, DEFINITIONS[0], { initializeProgression: false });
       worldPlayer.runtimeImplemented = true;
-      worldPlayer.implementationSource = 'world-bootstrap';
+      worldPlayer.implementationSource = 'world-bootstrap-authored-profile';
 
       ROSTER.push(
         worldPlayer,
@@ -266,6 +310,8 @@
   global.ACTIVE_PARTY = ACTIVE_PARTY;
   global.AetherPartyState = Object.freeze({
     definitions: DEFINITIONS,
+    balanceProfileVersion: BALANCE_PROFILE_VERSION,
+    balanceStatus: BALANCE_STATUS,
     roster: ROSTER,
     activeParty: ACTIVE_PARTY,
     bootstrap,
