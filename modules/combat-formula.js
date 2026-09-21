@@ -1,11 +1,12 @@
 /* ============================================================
-   Aetherwake JRPG — Combat Formula Resolver v0.1
+   Aetherwake JRPG — Combat Formula Resolver v0.2
    modules/combat-formula.js
 
-   First production formula slice:
+   Production formula migration:
    - resolves formula-driven combat actions without PbtA outcome bands;
    - keeps bounded RNG explicit and injectable for deterministic tests;
-   - establishes Staff Strike as the first migrated action.
+   - supports numeric damage formulas and deterministic resource formulas;
+   - Staff Strike and Hold are the first migrated actions.
 
    This module resolves numeric action results only. State mutation remains
    owned by the effect resolver.
@@ -37,7 +38,7 @@ function (policy) {
   }
   policy.validate();
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   function deepFreeze(value) {
     if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -81,6 +82,14 @@ function (policy) {
         amount: 1,
       },
     },
+    hold: {
+      id: 'hold',
+      model: 'jrpg-stat-formula',
+      kind: 'resource',
+      resource: 'staffCharges',
+      amount: 1,
+      maxResource: 'maxStaffCharges',
+    },
   });
 
   function finite(value, code) {
@@ -94,10 +103,7 @@ function (policy) {
     return value;
   }
 
-  function validateFormula(formula) {
-    if (!formula || typeof formula !== 'object') throw new Error('FORMULA_REQUIRED');
-    if (formula.model !== policy.TARGET.model) throw new Error('FORMULA_MODEL_INVALID');
-    if (formula.kind !== 'damage') throw new Error('FORMULA_KIND_NOT_SUPPORTED');
+  function validateDamageFormula(formula) {
     if (typeof formula.damageType !== 'string' || !formula.damageType) {
       throw new Error('FORMULA_DAMAGE_TYPE_REQUIRED');
     }
@@ -154,7 +160,34 @@ function (policy) {
       throw new Error('FORMULA_DEDICATED_COST_INVALID');
     }
     finite(formula.dedicatedCost.amount, 'FORMULA_DEDICATED_COST_INVALID');
-    if (formula.dedicatedCost.amount < 0) throw new Error('FORMULA_DEDICATED_COST_INVALID');
+    if (formula.dedicatedCost.amount < 0) {
+      throw new Error('FORMULA_DEDICATED_COST_INVALID');
+    }
+  }
+
+  function validateResourceFormula(formula) {
+    if (typeof formula.resource !== 'string' || !formula.resource) {
+      throw new Error('FORMULA_RESOURCE_REQUIRED');
+    }
+    finite(formula.amount, 'FORMULA_RESOURCE_AMOUNT_INVALID');
+    if (formula.amount < 0) throw new Error('FORMULA_RESOURCE_AMOUNT_INVALID');
+    if (typeof formula.maxResource !== 'string' || !formula.maxResource) {
+      throw new Error('FORMULA_RESOURCE_MAX_REQUIRED');
+    }
+  }
+
+  function validateFormula(formula) {
+    if (!formula || typeof formula !== 'object') throw new Error('FORMULA_REQUIRED');
+    if (formula.model !== policy.TARGET.model) throw new Error('FORMULA_MODEL_INVALID');
+    if (typeof formula.id !== 'string' || !formula.id) throw new Error('FORMULA_ID_REQUIRED');
+
+    if (formula.kind === 'damage') {
+      validateDamageFormula(formula);
+    } else if (formula.kind === 'resource') {
+      validateResourceFormula(formula);
+    } else {
+      throw new Error('FORMULA_KIND_NOT_SUPPORTED');
+    }
     return true;
   }
 
@@ -166,6 +199,16 @@ function (policy) {
   function readStat(subject, stat, fallback) {
     if (subject && typeof subject[stat] === 'number' && Number.isFinite(subject[stat])) {
       return subject[stat];
+    }
+    return fallback;
+  }
+
+  function readResource(subject, key, fallback) {
+    if (!subject) return fallback;
+    const value = subject[key];
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (value && typeof value.current === 'number' && Number.isFinite(value.current)) {
+      return value.current;
     }
     return fallback;
   }
@@ -183,6 +226,9 @@ function (policy) {
     const formula = FORMULAS[actionId];
     if (!formula) throw new Error('COMBAT_FORMULA_UNKNOWN_ACTION:' + actionId);
     validateFormula(formula);
+    if (formula.kind !== 'damage') {
+      throw new Error('COMBAT_FORMULA_NOT_DAMAGE_ACTION:' + actionId);
+    }
     if (!actor || typeof actor !== 'object') throw new Error('COMBAT_FORMULA_ACTOR_REQUIRED');
     if (!target || typeof target !== 'object') throw new Error('COMBAT_FORMULA_TARGET_REQUIRED');
 
@@ -197,6 +243,7 @@ function (policy) {
       return {
         actionId,
         model: formula.model,
+        kind: formula.kind,
         damageType: formula.damageType,
         hit: false,
         critical: false,
@@ -213,6 +260,7 @@ function (policy) {
         accuracyRoll,
         varianceMultiplier: null,
         criticalRoll: null,
+        dedicatedCost: JSON.parse(JSON.stringify(formula.dedicatedCost)),
       };
     }
 
@@ -255,6 +303,7 @@ function (policy) {
     return {
       actionId,
       model: formula.model,
+      kind: formula.kind,
       damageType: formula.damageType,
       hit: true,
       critical,
@@ -271,6 +320,45 @@ function (policy) {
       criticalRoll,
       dedicatedCost: JSON.parse(JSON.stringify(formula.dedicatedCost)),
     };
+  }
+
+  function resolveResource(actionId, actor) {
+    const formula = FORMULAS[actionId];
+    if (!formula) throw new Error('COMBAT_FORMULA_UNKNOWN_ACTION:' + actionId);
+    validateFormula(formula);
+    if (formula.kind !== 'resource') {
+      throw new Error('COMBAT_FORMULA_NOT_RESOURCE_ACTION:' + actionId);
+    }
+    if (!actor || typeof actor !== 'object') throw new Error('COMBAT_FORMULA_ACTOR_REQUIRED');
+
+    const current = Math.max(0, readResource(actor, formula.resource, 0));
+    const rawMax = readResource(actor, formula.maxResource, current);
+    const max = Math.max(current, rawMax);
+    const delta = Math.max(0, Math.min(formula.amount, max - current));
+
+    return {
+      actionId,
+      model: formula.model,
+      kind: formula.kind,
+      resource: formula.resource,
+      requestedAmount: formula.amount,
+      delta,
+      current,
+      max,
+      capped: delta < formula.amount,
+    };
+  }
+
+  function resolveAction(actionId, actor, target, randomFn) {
+    const formula = FORMULAS[actionId];
+    if (!formula) throw new Error('COMBAT_FORMULA_UNKNOWN_ACTION:' + actionId);
+    if (formula.kind === 'damage') {
+      return resolveDamage(actionId, actor, target, randomFn);
+    }
+    if (formula.kind === 'resource') {
+      return resolveResource(actionId, actor);
+    }
+    throw new Error('COMBAT_FORMULA_KIND_NOT_RESOLVABLE:' + formula.kind);
   }
 
   function validateAgainstAbilityDefs(abilityDefs) {
@@ -299,6 +387,8 @@ function (policy) {
     validateFormula,
     getFormula,
     resolveDamage,
+    resolveResource,
+    resolveAction,
     validateAgainstAbilityDefs,
   });
 });
