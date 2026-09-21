@@ -754,6 +754,8 @@ function createServer() {
       className: window._world.player.class,
       level: window._world.player.level,
       xp: window._world.player.xp,
+      staffCharges: window._world.player.staffCharges,
+      maxStaffCharges: window._world.player.maxStaffCharges,
     }));
 
     assert(typeof worldBeforeCombat.name === 'string' && worldBeforeCombat.name.length > 0,
@@ -1135,7 +1137,7 @@ function createServer() {
       };
     });
 
-    assert(registryContract.abilityVersion === '0.3.0',
+    assert(registryContract.abilityVersion === '0.4.0',
       'ability registry version is not loaded');
     assert(registryContract.progressionVersion === '0.1.0',
       'progression registry version is not loaded');
@@ -1203,17 +1205,26 @@ function createServer() {
       policyModel: window.AetherCombatSystemPolicy && window.AetherCombatSystemPolicy.TARGET.model,
       formulaVersion: window.AetherCombatFormula && window.AetherCombatFormula.VERSION,
       staff: window.AetherCombatFormula && window.AetherCombatFormula.getFormula('staffStrike'),
+      hold: window.AetherCombatFormula && window.AetherCombatFormula.getFormula('hold'),
       abilityResolution: window.AetherAbilityDefs && window.AetherAbilityDefs.DEFS.staffStrike.resolution,
+      holdResolution: window.AetherAbilityDefs && window.AetherAbilityDefs.DEFS.hold.resolution,
     }));
     assert(formulaContract.policyModel === 'jrpg-stat-formula',
       'target JRPG combat policy is not live in the browser');
-    assert(formulaContract.formulaVersion === '0.1.0',
+    assert(formulaContract.formulaVersion === '0.2.0',
       'combat formula resolver is not live in the browser');
     assert(formulaContract.staff && formulaContract.staff.damageType === 'emp',
       'Staff Strike formula is not registered');
     assert(formulaContract.abilityResolution &&
       formulaContract.abilityResolution.formulaId === 'staffStrike',
       'Staff Strike ability is not bound to formula resolution');
+    assert(formulaContract.hold &&
+      formulaContract.hold.kind === 'resource' &&
+      formulaContract.hold.resource === 'staffCharges',
+      'Hold resource formula is not registered');
+    assert(formulaContract.holdResolution &&
+      formulaContract.holdResolution.formulaId === 'hold',
+      'Hold ability is not bound to formula resolution');
 
     // startCombat() resets the JRPG combat cursor to slot 1.
     await page.keyboard.press('KeyZ'); // Staff Strike
@@ -1227,8 +1238,16 @@ function createServer() {
       window._combat && window._combat.getState().turn >= 2
     , undefined, { timeout: 5000 });
 
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('KeyZ'); // Hold
+    await page.waitForFunction(() =>
+      window._combat && window._combat.getState().turn >= 3
+    , undefined, { timeout: 5000 });
+
     const combatAfterActions = await page.evaluate(() => window._combat.getState());
-    assert(combatAfterActions.turn >= 2, 'combat actions did not resolve');
+    assert(combatAfterActions.turn >= 3, 'combat actions did not resolve');
     assert(combatAfterActions.resolverMutations > 0,
       'live combat actions did not route ordinary mutations through the effect resolver');
     const staffLog = combatAfterActions.log.find(line =>
@@ -1243,6 +1262,21 @@ function createServer() {
     assert(combatAfterActions.log.some(line =>
       line.includes('[Turn 2]') && line.includes('Uncover Truth')),
       'turn 2 action text was not logged correctly');
+    const holdLog = combatAfterActions.log.find(line =>
+      line.includes('[Turn 3]') && line.includes('Hold'));
+    assert(holdLog, 'turn 3 Hold action was not logged correctly');
+    assert(holdLog.includes('Resonator recharges') &&
+      holdLog.includes('+1 charge'),
+      'Hold did not deterministically restore a staff charge');
+    assert(!holdLog.includes('Roll:') && !holdLog.includes('partial') &&
+      !holdLog.includes('failure'),
+      'Hold leaked legacy dice/outcome-band text');
+    assert(combatAfterActions.player.staffCharges ===
+      worldBeforeCombat.staffCharges,
+      'Hold did not restore exactly the charge consumed by Staff Strike');
+    assert(combatAfterActions.player.maxStaffCharges ===
+      worldBeforeCombat.maxStaffCharges,
+      'Hold changed the staff charge cap');
 
     // Deterministic state-transition check. We test real keyboard combat
     // actions above; direct finishCombat avoids making the smoke test depend on
