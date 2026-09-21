@@ -1,14 +1,15 @@
 /*
  * Aetherwake — Air Navigation Foundation
  * Pure-data sky geography and travel-state contract. This deliberately does
- * not authorize combat, economy, or story progression.
+ * not authorize economy or story progression. Combat is handed off through
+ * the shared turn-based runtime contract.
  */
 (function attach(root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.AetherAirNavigation = factory();
 }(typeof window !== 'undefined' ? window : globalThis, function () {
   'use strict';
-  const VERSION = '0.3.0';
+  const VERSION = '0.4.0';
   const SKY_WIDTH = 48, SKY_HEIGHT = 32;
   const ALTITUDES = Object.freeze(['low','cruise','high']);
 
@@ -40,12 +41,13 @@
   const ENCOUNTER_STEP_THRESHOLD = 7;
 
   const WEATHER = Object.freeze([
-    Object.freeze({id:'clear',label:'CLEAR WAKE',phaseRisk:0}),
-    Object.freeze({id:'crosswind',label:'CROSSWIND',phaseRisk:1}),
-    Object.freeze({id:'aether-squall',label:'AETHER SQUALL',phaseRisk:2}),
+    Object.freeze({id:'clear',label:'CLEAR WAKE',phaseRisk:0,stepPressure:0,speedFactor:1}),
+    Object.freeze({id:'crosswind',label:'CROSSWIND',phaseRisk:1,stepPressure:1,speedFactor:0.85}),
+    Object.freeze({id:'aether-squall',label:'AETHER SQUALL',phaseRisk:2,stepPressure:2,speedFactor:0.7}),
   ]);
 
   function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+
   function createState(overrides) {
     const o=overrides||{};
     return {
@@ -62,6 +64,7 @@
       encounterSeed: Number.isInteger(o.encounterSeed)?o.encounterSeed:0,
     };
   }
+
   function nearestLandmark(state) {
     let best=null,dist=Infinity;
     for (const mark of LANDMARKS) {
@@ -70,6 +73,7 @@
     }
     return best ? {landmark:Object.assign({},best),distance:dist} : null;
   }
+
   function weatherAt(state) {
     for (const zone of WEATHER_ZONES) {
       if (!zone.altitudes.includes(state.altitude)) continue;
@@ -79,35 +83,106 @@
     }
     return Object.assign({}, WEATHER[0]);
   }
+
+  function projectToRoute(state, route) {
+    const a=LANDMARKS.find(mark=>mark.id===route.from);
+    const b=LANDMARKS.find(mark=>mark.id===route.to);
+    if (!a || !b) return null;
+    const dx=b.x-a.x, dy=b.y-a.y, len2=dx*dx+dy*dy;
+    const t=len2 ? clamp(((state.x-a.x)*dx+(state.y-a.y)*dy)/len2,0,1) : 0;
+    const px=a.x+t*dx, py=a.y+t*dy;
+    return {
+      route:Object.assign({},route),
+      progress:t,
+      crossTrackDistance:Math.hypot(state.x-px,state.y-py),
+      projectedX:px,
+      projectedY:py,
+    };
+  }
+
+  function nearestRoute(state) {
+    let best=null;
+    for (const route of SKY_ROUTES) {
+      const projection=projectToRoute(state,route);
+      if (!projection) continue;
+      if (!best || projection.crossTrackDistance<best.crossTrackDistance) best=projection;
+    }
+    return best;
+  }
+
+  function routeContext(state) {
+    const nearest=nearestRoute(state);
+    if (!nearest) return {onRoute:false,discovered:false,route:null,progress:0,crossTrackDistance:Infinity};
+    const onRoute=nearest.crossTrackDistance<=1.75;
+    const discovered=state.discoveredRoutes.includes(nearest.route.id);
+    return {
+      onRoute,
+      discovered,
+      route:nearest.route,
+      progress:nearest.progress,
+      crossTrackDistance:nearest.crossTrackDistance,
+    };
+  }
+
   function routeDiscovery(next) {
     for (const route of SKY_ROUTES) {
-      const a=LANDMARKS.find(mark=>mark.id===route.from), b=LANDMARKS.find(mark=>mark.id===route.to);
-      if (!a || !b) continue;
-      const dx=b.x-a.x, dy=b.y-a.y, len2=dx*dx+dy*dy;
-      const t=len2 ? clamp(((next.x-a.x)*dx+(next.y-a.y)*dy)/len2,0,1) : 0;
-      const px=a.x+t*dx, py=a.y+t*dy;
-      if (Math.hypot(next.x-px,next.y-py)<=1.75 && !next.discoveredRoutes.includes(route.id)) next.discoveredRoutes.push(route.id);
+      const projection=projectToRoute(next,route);
+      if (!projection) continue;
+      if (projection.crossTrackDistance<=1.75 && !next.discoveredRoutes.includes(route.id)) {
+        next.discoveredRoutes.push(route.id);
+      }
     }
   }
+
   function dockingCheck(state) {
     const nearest=nearestLandmark(state);
     if (!nearest || nearest.distance>1.5 || !nearest.landmark.dockable) return {available:false,landmark:null};
     return {available:true,landmark:nearest.landmark};
   }
+
   function dock(state) {
     const next=createState(state), check=dockingCheck(next);
     if (!check.available) return {ok:false,state:next,landmark:null};
-    next.mooredLandmarkId=check.landmark.id; next.speed=0;
+    next.mooredLandmarkId=check.landmark.id;
+    next.speed=0;
+    next.encounterSteps=0;
     return {ok:true,state:next,landmark:check.landmark};
   }
+
   function undock(state) {
-    const next=createState(state); next.mooredLandmarkId=null; if(next.speed===0) next.speed=1; return next;
+    const next=createState(state);
+    next.mooredLandmarkId=null;
+    if(next.speed===0) next.speed=1;
+    return next;
   }
+
+  function travelProfile(state) {
+    const next=createState(state);
+    const weather=weatherAt(next);
+    const route=routeContext(next);
+    const routeShelter=route.onRoute && route.discovered ? 1 : 0;
+    const altitudeExposure=next.altitude==='high' ? 1 : 0;
+    return {
+      weather,
+      route,
+      routeShelter,
+      altitudeExposure,
+      effectiveSpeed:next.mooredLandmarkId ? 0 : next.speed * weather.speedFactor,
+      encounterPressure:Math.max(0,weather.stepPressure + altitudeExposure - routeShelter),
+    };
+  }
+
   function move(state,dx,dy) {
     const next=createState(state);
-    next.x=clamp(next.x+dx*next.speed,0,SKY_WIDTH-1);
-    next.y=clamp(next.y+dy*next.speed,0,SKY_HEIGHT-1);
-    if(dx||dy) { next.mooredLandmarkId=null; next.heading=Math.atan2(dy,dx); next.encounterSteps += 1; }
+    const profile=travelProfile(next);
+    const travelSpeed=profile.effectiveSpeed;
+    next.x=clamp(next.x+dx*travelSpeed,0,SKY_WIDTH-1);
+    next.y=clamp(next.y+dy*travelSpeed,0,SKY_HEIGHT-1);
+    if(dx||dy) {
+      next.mooredLandmarkId=null;
+      next.heading=Math.atan2(dy,dx);
+      next.encounterSteps += 1 + profile.encounterPressure;
+    }
     for(const mark of LANDMARKS){
       if(Math.hypot(mark.x-next.x,mark.y-next.y)<=2 && !next.discovered.includes(mark.id)) next.discovered.push(mark.id);
     }
@@ -115,14 +190,20 @@
     next.weatherId=weatherAt(next).id;
     return next;
   }
+
   function encounterCheck(state) {
     const next=createState(state);
-    if (next.encounterSteps < ENCOUNTER_STEP_THRESHOLD) return {triggered:false,state:next,enemyId:null};
+    const profile=travelProfile(next);
+    const threshold=Math.max(3,ENCOUNTER_STEP_THRESHOLD-profile.encounterPressure);
+    if (next.encounterSteps < threshold) {
+      return {triggered:false,state:next,enemyId:null,threshold,pressure:profile.encounterPressure};
+    }
     // Deterministic encounter roll: movement count + position + altitude. No frame-time RNG.
     const ai=ALTITUDES.indexOf(next.altitude);
     const roll=Math.abs(Math.imul(Math.round(next.x)+17,31)+Math.imul(Math.round(next.y)+11,47)+Math.imul(next.encounterSeed+ai+1,53))%5;
-    next.encounterSteps=0; next.encounterSeed+=1;
-    if(roll>1) return {triggered:false,state:next,enemyId:null};
+    next.encounterSteps=0;
+    next.encounterSeed+=1;
+    if(roll>1) return {triggered:false,state:next,enemyId:null,threshold,pressure:profile.encounterPressure};
     const candidates=SKY_ENCOUNTERS.filter(entry=>entry.altitudes.includes(next.altitude));
     const total=candidates.reduce((sum,entry)=>sum+entry.weight,0);
     let pick=Math.abs(Math.imul(next.encounterSeed+1,97)+Math.round(next.x)*13+Math.round(next.y)*7)%total;
@@ -131,12 +212,25 @@
       if(pick<entry.weight){enemyId=entry.id;break;}
       pick-=entry.weight;
     }
-    return {triggered:true,state:next,enemyId};
+    return {triggered:true,state:next,enemyId,threshold,pressure:profile.encounterPressure};
   }
+
   function changeAltitude(state,delta){
     const next=createState(state), i=ALTITUDES.indexOf(next.altitude);
     next.altitude=ALTITUDES[clamp(i+delta,0,ALTITUDES.length-1)];
+    next.weatherId=weatherAt(next).id;
     return next;
   }
-  return {VERSION,SKY_WIDTH,SKY_HEIGHT,ALTITUDES:ALTITUDES.slice(),LANDMARKS:LANDMARKS.map(x=>Object.assign({},x)),SKY_ROUTES:SKY_ROUTES.map(x=>Object.assign({},x)),WEATHER:WEATHER.map(x=>Object.assign({},x)),WEATHER_ZONES:WEATHER_ZONES.map(x=>Object.assign({},x)),SKY_ENCOUNTERS:SKY_ENCOUNTERS.map(x=>Object.assign({},x)),ENCOUNTER_STEP_THRESHOLD,createState,nearestLandmark,weatherAt,dockingCheck,dock,undock,move,encounterCheck,changeAltitude};
+
+  return {
+    VERSION,SKY_WIDTH,SKY_HEIGHT,ALTITUDES:ALTITUDES.slice(),
+    LANDMARKS:LANDMARKS.map(x=>Object.assign({},x)),
+    SKY_ROUTES:SKY_ROUTES.map(x=>Object.assign({},x)),
+    WEATHER:WEATHER.map(x=>Object.assign({},x)),
+    WEATHER_ZONES:WEATHER_ZONES.map(x=>Object.assign({},x)),
+    SKY_ENCOUNTERS:SKY_ENCOUNTERS.map(x=>Object.assign({},x)),
+    ENCOUNTER_STEP_THRESHOLD,
+    createState,nearestLandmark,weatherAt,projectToRoute,nearestRoute,routeContext,
+    dockingCheck,dock,undock,travelProfile,move,encounterCheck,changeAltitude
+  };
 }));
