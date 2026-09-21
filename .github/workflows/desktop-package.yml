@@ -272,6 +272,15 @@ jobs:
               ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
           }
 
+      - name: Upload packaged-window diagnostic
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Aetherwake-Packaged-Window-Diagnostic
+          path: artifact/aetherwake-packaged-window.png
+          if-no-files-found: warn
+          compression-level: 0
+
       - name: Upload one-file Windows launcher
         uses: actions/upload-artifact@v4
         with:
