@@ -3,7 +3,7 @@ const policy = require('../modules/combat-system-policy.js');
 const formula = require('../modules/combat-formula.js');
 const abilities = require('../modules/ability-defs.js');
 
-assert.equal(formula.VERSION, '0.2.0');
+assert.equal(formula.VERSION, '0.3.0');
 assert.equal(policy.TARGET.model, 'jrpg-stat-formula');
 assert.equal(formula.validateAgainstAbilityDefs(abilities), true);
 
@@ -66,6 +66,45 @@ assert.equal(holdAtCap.capped, true);
 assert.throws(
   () => formula.resolveDamage('hold', {}, {}, () => 0.5),
   /COMBAT_FORMULA_NOT_DAMAGE_ACTION:hold/
+);
+
+const rest = formula.getFormula('rest');
+assert(rest);
+assert.equal(rest.model, 'jrpg-stat-formula');
+assert.equal(rest.kind, 'recovery');
+assert.equal(rest.heatReduction, 2);
+assert.equal(rest.vitalityRestore, 1);
+
+const restRecovery = formula.resolveAction(
+  'rest',
+  {
+    heat: { current: 2, max: 3 },
+    vit: 10,
+    maxVit: 13,
+  },
+  null,
+  () => { throw new Error('REST_MUST_NOT_USE_RNG'); }
+);
+assert.equal(restRecovery.kind, 'recovery');
+assert.equal(restRecovery.heatReduction, 2);
+assert.equal(restRecovery.vitalityRestore, 1);
+
+const boundedRest = formula.resolveAction(
+  'rest',
+  {
+    heat: { current: 1, max: 3 },
+    vit: 13,
+    maxVit: 13,
+  },
+  null,
+  () => { throw new Error('REST_MUST_NOT_USE_RNG'); }
+);
+assert.equal(boundedRest.heatReduction, 1);
+assert.equal(boundedRest.vitalityRestore, 0);
+
+assert.throws(
+  () => formula.resolveRecovery('staffStrike', {}, null),
+  /COMBAT_FORMULA_NOT_RECOVERY_ACTION:staffStrike/
 );
 
 function sequence(values) {
