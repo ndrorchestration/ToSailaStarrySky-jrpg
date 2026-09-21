@@ -21,6 +21,8 @@ for (const [label, source] of [['runtime', runtime], ['world mirror', world], ['
     label + ' reintroduced centuries-old Ionia dialogue');
   assert(!source.includes('tired in the way old captains get'),
     label + ' reintroduced elderly-Ionia framing');
+  assert(!source.includes('Engineer-in-training'),
+    label + ' reintroduced superseded Ender engineering identity');
 }
 
 assert(onboarding.includes("name: 'Ender'") &&
@@ -29,6 +31,10 @@ assert(onboarding.includes("name: 'Ender'") &&
   'Ender onboarding identity must remain Ender / 22 / Rift Scholar');
 assert(!onboarding.includes("class: 'Rift Scholar + Dreamwright'"),
   'superseded Ender Dreamwright job label returned');
+assert(!onboarding.includes('Rift Scholar + Dreamwright'),
+  'superseded Dreamwright presentation returned elsewhere in onboarding');
+assert(!runtime.includes('Young Ender') && !runtime.includes('Rift Scholar + Dreamwright'),
+  'runtime reintroduced superseded Ender identity defaults');
 
 for (const expected of [
   "id: 'ender', canonicalName: 'Ender', age: 22",
