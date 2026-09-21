@@ -27,7 +27,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.3.0';
+  const VERSION = '0.4.0';
 
   const STATUS = Object.freeze({
     DRAFT_UNRESOLVED: 'draft-unresolved',
@@ -41,6 +41,13 @@
     DAMAGE_BAND_NOT_SPECIFIED: 'DAMAGE_BAND_NOT_SPECIFIED',
     HEAT_GAIN_BAND_NOT_SPECIFIED: 'HEAT_GAIN_BAND_NOT_SPECIFIED',
     DAMAGE_FORMULA_EXECUTION_NOT_ESTABLISHED: 'DAMAGE_FORMULA_EXECUTION_NOT_ESTABLISHED',
+    ALLY_DAMAGE_ABSORPTION_BAND_NOT_SPECIFIED: 'ALLY_DAMAGE_ABSORPTION_BAND_NOT_SPECIFIED',
+    ALLY_DAMAGE_ABSORPTION_TIMING_NOT_SPECIFIED: 'ALLY_DAMAGE_ABSORPTION_TIMING_NOT_SPECIFIED',
+    ABSORBED_DAMAGE_DESTINATION_NOT_SPECIFIED: 'ABSORBED_DAMAGE_DESTINATION_NOT_SPECIFIED',
+    SCRAP_RETURN_BAND_NOT_SPECIFIED: 'SCRAP_RETURN_BAND_NOT_SPECIFIED',
+    SCRAP_RETURN_RECIPIENT_NOT_SPECIFIED: 'SCRAP_RETURN_RECIPIENT_NOT_SPECIFIED',
+    ABSORPTION_EFFECT_NOT_EXECUTABLE: 'ABSORPTION_EFFECT_NOT_EXECUTABLE',
+    SCRAP_RETURN_EFFECT_NOT_EXECUTABLE: 'SCRAP_RETURN_EFFECT_NOT_EXECUTABLE',
     REPOSITION_BAND_NOT_SPECIFIED: 'REPOSITION_BAND_NOT_SPECIFIED',
     PARTIAL_OUTCOME_NOT_SPECIFIED: 'PARTIAL_OUTCOME_NOT_SPECIFIED',
     FAILURE_OUTCOME_NOT_SPECIFIED: 'FAILURE_OUTCOME_NOT_SPECIFIED',
@@ -72,6 +79,7 @@
     'windShearDance',
     'aetherCompass',
     'overdriveStrike',
+    'patchworkShield',
   ]);
 
   const DRAFTS = deepFreeze({
@@ -303,6 +311,88 @@
         BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED,
         BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED,
         BLOCKER.DAMAGE_FORMULA_EXECUTION_NOT_ESTABLISHED,
+        BLOCKER.EXECUTION_ADAPTER_NOT_ESTABLISHED,
+        BLOCKER.PERSISTENCE_POLICY_NOT_ESTABLISHED,
+      ],
+    },
+    patchworkShield: {
+      actionId: 'patchworkShield',
+      templateId: 'engineWright',
+      provenance: 'preservation-era-prototype-mechanics',
+      status: STATUS.DRAFT_UNRESOLVED,
+      source: {
+        kind: 'field-role-declaration',
+        text: '2D6+Presence. Absorb 1 damage for an ally. Return 1 scrap.',
+      },
+      stat: 'presence',
+      roll: {
+        system: '2d6',
+        stat: 'presence',
+        successMin: 10,
+        partialMin: 7,
+        source: 'established-global-combat-rule',
+      },
+      cost: {
+        status: UNKNOWN,
+        resource: null,
+        amount: null,
+      },
+      knownSemantics: [
+        {
+          id: 'allyDamageAbsorption',
+          status: 'declared',
+          band: UNKNOWN,
+          effectKind: 'damage',
+          target: 'ally',
+          operation: 'absorb',
+          key: 'vitality',
+          amount: 1,
+          timing: UNKNOWN,
+          absorbedDamageDestination: UNKNOWN,
+        },
+        {
+          id: 'returnScrap',
+          status: 'declared',
+          band: UNKNOWN,
+          effectKind: 'resource',
+          target: UNKNOWN,
+          operation: 'return',
+          key: 'scrap',
+          amount: 1,
+        },
+      ],
+      outcomes: {
+        common: null,
+        success: null,
+        partial: null,
+        failure: null,
+      },
+      execution: {
+        status: 'not-established',
+        adapterId: null,
+        version: null,
+      },
+      persistence: {
+        status: 'not-established',
+        mode: null,
+        fields: [],
+      },
+      authoredBindings: {
+        nativeJob: UNKNOWN,
+        school: UNKNOWN,
+      },
+      blockers: [
+        BLOCKER.COST_NOT_SPECIFIED,
+        BLOCKER.ALLY_DAMAGE_ABSORPTION_BAND_NOT_SPECIFIED,
+        BLOCKER.ALLY_DAMAGE_ABSORPTION_TIMING_NOT_SPECIFIED,
+        BLOCKER.ABSORBED_DAMAGE_DESTINATION_NOT_SPECIFIED,
+        BLOCKER.SCRAP_RETURN_BAND_NOT_SPECIFIED,
+        BLOCKER.SCRAP_RETURN_RECIPIENT_NOT_SPECIFIED,
+        BLOCKER.SUCCESS_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.ABSORPTION_EFFECT_NOT_EXECUTABLE,
+        BLOCKER.SCRAP_RETURN_EFFECT_NOT_EXECUTABLE,
         BLOCKER.EXECUTION_ADAPTER_NOT_ESTABLISHED,
         BLOCKER.PERSISTENCE_POLICY_NOT_ESTABLISHED,
       ],
