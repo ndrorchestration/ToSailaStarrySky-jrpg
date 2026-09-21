@@ -9,7 +9,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 - **Stage:** late prototype / pre-alpha
 - **Playable baseline:** boot → authored Ender/Lyra/Ionia onboarding → world exploration → dialogue/quest systems → combat → Dragonfly ship systems → save/load
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
-- **Target combat party:** exactly 3 active combatants selected from the persistent roster
+- **Target combat party:** grows with story recruitment and should support all 5 canonical protagonists simultaneously once the full roster has joined; early combat forms progressively around Ender → Ender/Lyra → Ender/Lyra/Ionia
 - **Current combat runtime:** hybrid migration state — Staff Strike, Hold, and Rest use JRPG-native formulas while five preservation-era actions still use the legacy 2D6 compatibility path
 - **Current persistence:** schema v2 stores canonical party/progression state plus bounded World, quest/ledger, and Dragonfly state; encounter-local/transient state remains deliberately excluded
 - **Current party boundary:** persistent five-character roster and authored starting trio are established; formation switching and true three-character combat are not enabled yet
@@ -126,10 +126,10 @@ The remaining 2D6 action definitions are a **legacy implementation baseline**, n
 ### Target
 
 ```text
-ROSTER[5] → ACTIVE_PARTY[3] → combat
+ROSTER[5] → AVAILABLE_PARTY[1..5] → combat
 ```
 
-Persistent progression belongs to the five-character roster. The active trio is a combat/formation selection, not a separate copy of character progression.
+Persistent progression belongs to the five-character roster. The currently available battle party grows with story recruitment. The final architecture should support all five protagonists simultaneously; availability/formation state must not duplicate persistent character progression.
 
 ### Current migration state
 
@@ -142,7 +142,7 @@ The development runtime now has the first persistent party-state layer:
 - Sky-Sailor, Engine-Wright, and Aether-Weaver remain selectable **field-role mechanics templates** for the current pre-alpha slice and are recorded separately from authored identity/native-job canon;
 - Lyra and Ionia's canonical `nativeJob` values remain unresolved/null rather than being inferred from those templates;
 - Reson and Aepex remain identity-only runtime shells until their authored mechanics/recruitment work lands;
-- formation switching and true three-character combat are **not** enabled yet.
+- full authored multi-character execution and the eventual five-member combat/menu layout are **not** enabled yet.
 
 The temporary field-role templates remain implementation provenance rather than final character canon.
 
@@ -242,7 +242,7 @@ The production migration is incremental:
 5. enforce learned/unlocked action eligibility and transactional resource checks — **established**;
 6. replace prototype companion naming with authored Ender/Lyra/Ionia onboarding — **identity migration established; canonical Lyra/Ionia jobs remain unresolved**;
 7. implement school/job/mastery progression — **Phase-A definitions/access contracts established; full mutable mastery progression remains incomplete**;
-8. integrate formation selection, true three-character combat, Dual Arts, and Triple Arts — **bridge/contracts in progress; full runtime not yet enabled**;
+8. expand authored combat from the opening trio toward four and then five simultaneous protagonists as Reson and Aepex join; preserve Dual/Triple Arts as subset techniques — **bridge/contracts in progress; full runtime not yet enabled**;
 9. expand campaign content after the architecture is stable.
 
 Each phase must preserve a working playable loop.
