@@ -396,6 +396,46 @@ The next admissible work is to author concrete preservation-action outcome
 contracts one at a time. Execution remains a separate later authorization and
 integration step.
 
+## Wind-Shear Dance contract-draft checkpoint
+
+On 2026-09-21, commit `466fd8ce083f40bbd321ec2cd16ff3a5d46f1d5e`
+passed smoke run `35574785248` and Windows package run `35574785284`.
+The Windows run uploaded artifact `10626674771`
+(`Aetherwake-Windows`, 219,929,340 bytes,
+SHA-256 `2ed4b950d66fd3ce224cb26d1a6937c04d1557ffe1dc370cbe76daa6f46a4e05`).
+
+`modules/companion-action-contracts.js` now records the first evidence-bound
+preservation action draft, **Wind-Shear Dance**, without converting descriptive
+prototype text into invented executable rules.
+
+Established by the draft:
+
+- the source declaration remains exactly `2D6+Grace. Evade / reposition. 10+: next Grace roll +1.`;
+- the roll uses the already-established 2D6 + Grace and global 10+/7–9/6− bands;
+- reposition intent is preserved but its exact outcome-band assignment remains unknown;
+- the explicit 10+ next-Grace-roll +1 is preserved as a declared modifier semantic;
+- native-job and school bindings remain `UNKNOWN`, consistent with the companion magic-access boundary.
+
+Still unresolved and therefore blocking admission:
+
+- numeric/resource cost;
+- exact reposition outcome band;
+- 7–9 outcome;
+- 6− outcome;
+- executable movement semantics;
+- executable next-Grace-roll modifier semantics;
+- execution adapter;
+- persistence policy.
+
+The module exposes **no admission candidate** while those blockers remain, so
+the existing companion-action admission gate continues to return
+`OUTCOME_CONTRACT_NOT_ESTABLISHED`. Wind-Shear Dance is documented more
+precisely, but it is not executable and no companion turn is authorized.
+
+The next safe contract work is to preserve evidence for another declared
+preservation action or to resolve one of these explicit design gaps through an
+authored decision; neither path authorizes runtime execution by itself.
+
 ## Effect/registry checkpoint
 
 On 2026-09-19:

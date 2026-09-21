@@ -202,6 +202,21 @@ gate returns `complete-not-authorized`; all six real preservation-role actions
 currently remain blocked with `OUTCOME_CONTRACT_NOT_ESTABLISHED`. Ender is
 still the only executable combat actor.
 
+### FIRST EVIDENCE-BOUND COMPANION ACTION DRAFT — WIND-SHEAR DANCE
+
+`modules/companion-action-contracts.js` records Wind-Shear Dance as a
+`draft-unresolved` preservation contract. The draft preserves only source-backed
+facts: 2D6+Grace, evade/reposition intent, and the explicit 10+ next-Grace-roll
++1. It intentionally leaves cost, exact reposition band, partial/failure
+outcomes, execution binding, and persistence unresolved.
+
+The draft assigns no companion school or canonical native job. Those bindings
+remain `UNKNOWN`, so the temporary Sky-Sailor mechanics template cannot silently
+become Lyra/Ionia canon. Because the draft exposes no admission candidate,
+Wind-Shear Dance remains non-executable and does not change the Ender-only
+combat authorization boundary. Aether Sense becoming executable for Ender does
+not alter this companion boundary.
+
 Known semantic debt remains explicit rather than being silently upgraded:
 
 - Uncover Truth's reveal and +1-next-roll semantics are currently narrated/local-only rather than durable applied state;
