@@ -46,6 +46,9 @@ jobs:
       - name: Verify mastery definitions
         run: npm run test:mastery
 
+      - name: Verify preservation field-role definitions
+        run: npm run test:field-roles
+
       - name: Verify regression contracts
         run: npm run test:regressions
 
