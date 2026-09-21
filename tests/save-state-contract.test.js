@@ -98,6 +98,32 @@ let airshipRuntimeState = {
   },
 };
 
+
+let airNavigationRuntimeState = {
+  version: 1,
+  x: 17,
+  y: 15,
+  altitude: 'cruise',
+  heading: 0.5,
+  speed: 2,
+  discovered: ['wake-dock','verdant-crown'],
+  discoveredRoutes: ['rootline-west'],
+  mooredLandmarkId: null,
+  encounterSteps: 3,
+  encounterSeed: 4,
+};
+
+let airNavigationRestoreCount = 0;
+
+function validateAirNavigationFixture(payload) {
+  if (!payload || payload.version !== 1 ||
+      !Number.isFinite(payload.x) ||
+      !Array.isArray(payload.discoveredRoutes)) {
+    throw new Error('TEST_AIR_NAV_STATE_INVALID');
+  }
+  return true;
+}
+
 let worldRestoreCount = 0;
 let airshipRestoreCount = 0;
 
@@ -141,6 +167,18 @@ sandbox.window.AetherRuntimePersistence = {
     airshipRuntimeState = clone(payload);
     airshipRestoreCount++;
     return clone(airshipRuntimeState);
+  },
+  exportAirNavigationState() {
+    return clone(airNavigationRuntimeState);
+  },
+  validateAirNavigationState(payload) {
+    return validateAirNavigationFixture(payload);
+  },
+  restoreAirNavigationState(payload) {
+    validateAirNavigationFixture(payload);
+    airNavigationRuntimeState = clone(payload);
+    airNavigationRestoreCount++;
+    return clone(airNavigationRuntimeState);
   },
 };
 
@@ -216,7 +254,7 @@ const fixedTime = '2026-09-20T12:00:00.000Z';
 const document = saveState.createDocument({ now: fixedTime });
 
 assert(document.kind === 'aetherwake-save', 'save kind is incorrect');
-assert(document.schemaVersion === 2, 'save schema version is incorrect');
+assert(document.schemaVersion === 3, 'save schema version is incorrect');
 assert(document.savedAt === fixedTime, 'save timestamp injection failed');
 assert(document.partyState.roster.length === 5, 'save roster length is incorrect');
 assert(document.partyState.activePartyIds.join('|') === 'ender|lyra|ionia',
@@ -227,6 +265,9 @@ assert(document.worldState.version === 1 &&
 assert(document.airshipState.version === 1 &&
   document.airshipState.shieldMode === 'guard',
   'Dragonfly subsystem payload was not captured');
+assert(document.airNavigationState.version === 1 &&
+  document.airNavigationState.discoveredRoutes[0] === 'rootline-west',
+  'Air-navigation subsystem payload was not captured');
 
 for (const record of document.partyState.roster) {
   assert(!Object.prototype.hasOwnProperty.call(record, 'canonicalName'),
@@ -243,6 +284,7 @@ const savedScrap = roster[0].scrap;
 const savedLyraVit = roster[1].vit;
 const savedWorld = clone(worldRuntimeState);
 const savedAirship = clone(airshipRuntimeState);
+const savedAirNavigation = clone(airNavigationRuntimeState);
 
 const storageResult = saveState.saveToStorage(fakeStorage, { now: fixedTime });
 assert(storageResult.ok === true, 'saveToStorage did not succeed');
@@ -254,6 +296,8 @@ worldRuntimeState.playerPosition.tileX = 20;
 worldRuntimeState.quest.hullIntegrity = 1;
 airshipRuntimeState.power = 0;
 airshipRuntimeState.shieldMode = 'slip';
+airNavigationRuntimeState.x = 41;
+airNavigationRuntimeState.discoveredRoutes = [];
 
 const loadResult = saveState.loadFromStorage(fakeStorage);
 assert(loadResult.ok === true && loadResult.migrated === false,
@@ -264,7 +308,9 @@ assert(JSON.stringify(worldRuntimeState) === JSON.stringify(savedWorld),
   'World runtime state did not restore');
 assert(JSON.stringify(airshipRuntimeState) === JSON.stringify(savedAirship),
   'Dragonfly runtime state did not restore');
-assert(worldRestoreCount === 1 && airshipRestoreCount === 1,
+assert(JSON.stringify(airNavigationRuntimeState) === JSON.stringify(savedAirNavigation),
+  'Air-navigation runtime state did not restore');
+assert(worldRestoreCount === 1 && airshipRestoreCount === 1 && airNavigationRestoreCount === 1,
   'subsystem restore adapters were not invoked exactly once');
 assert(roster[0] === leadRef && roster[1] === lyraRef,
   'restore replaced canonical roster object references');
@@ -303,11 +349,11 @@ expectThrow(() => saveState.restoreDocument(invalidBench),
 const missingSubsystems = saveState.createDocument({ now: fixedTime });
 delete missingSubsystems.worldState;
 expectThrow(() => saveState.restoreDocument(missingSubsystems),
-  'SAVE_V2_SUBSYSTEM_PAYLOADS_REQUIRED',
-  'v2 save missing a subsystem payload must fail closed');
+  'SAVE_V3_SUBSYSTEM_PAYLOADS_REQUIRED',
+  'v3 save missing a subsystem payload must fail closed');
 
 const future = saveState.createDocument({ now: fixedTime });
-future.schemaVersion = 3;
+future.schemaVersion = 4;
 expectThrow(() => saveState.migrateToCurrent(future),
   'SAVE_SCHEMA_VERSION_FROM_FUTURE',
   'future save schema must fail closed');
@@ -322,7 +368,24 @@ expectThrow(() => saveState.deserialize('{not-json'),
   'SAVE_JSON_INVALID',
   'invalid JSON must fail closed');
 
-// Real v1 -> v2 compatibility path. v1 had no World/Dragonfly payloads.
+
+saveState.clearStorage(fakeStorage);
+const legacyV2 = clone(document);
+legacyV2.schemaVersion = 2;
+delete legacyV2.airNavigationState;
+fakeStorage.setItem('aetherwake.save.v2', JSON.stringify(legacyV2));
+const beforeV2NavRestores = airNavigationRestoreCount;
+const v2Load = saveState.loadFromStorage(fakeStorage);
+assert(v2Load.ok === true && v2Load.migrated === true,
+  'legacy v2 save did not migrate');
+assert(v2Load.document.schemaVersion === 3,
+  'legacy v2 save did not migrate to schema v3');
+assert(v2Load.document.airNavigationState === null,
+  'v2 migration must preserve initialized air-navigation defaults');
+assert(airNavigationRestoreCount === beforeV2NavRestores,
+  'v2 migration must not restore absent air-navigation state');
+
+// Real v1 -> v3 compatibility path. v1 had no World/Dragonfly/navigation payloads.
 saveState.clearStorage(fakeStorage);
 const legacyV1 = clone(document);
 legacyV1.schemaVersion = 1;
@@ -338,10 +401,11 @@ assert(legacyLoad.ok === true && legacyLoad.migrated === true,
   'legacy v1 save did not migrate');
 assert(legacyLoad.sourceKey === legacyKey,
   'legacy load did not report its source key');
-assert(legacyLoad.document.schemaVersion === 2,
-  'legacy save did not migrate to schema v2');
+assert(legacyLoad.document.schemaVersion === 3,
+  'legacy save did not migrate to schema v3');
 assert(legacyLoad.document.worldState === null &&
-  legacyLoad.document.airshipState === null,
+  legacyLoad.document.airshipState === null &&
+  legacyLoad.document.airNavigationState === null,
   'v1 migration must preserve initialized defaults for newly introduced domains');
 assert(worldRestoreCount === beforeLegacyWorldRestores &&
   airshipRestoreCount === beforeLegacyAirshipRestores,
