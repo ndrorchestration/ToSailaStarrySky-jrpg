@@ -51,8 +51,23 @@ Current canvas: **960×640**.
 | **T** | Quest log |
 | **N / Enter / Space** | Start / confirm |
 | **C** | Trigger Sky-Predator encounter (development/testing) |
+| **F2** | Quick Save — available in normal WORLD state |
+| **F3** | Quick Load — available from menu/onboarding/WORLD safe states |
 | **1–8** | Combat actions |
 | **S** | Secondary combat action when available |
+
+## Save / load
+
+Aetherwake now exposes the versioned save system through player-facing quick controls:
+
+- **F2 — Quick Save:** writes the current schema-v2 save only from normal `WORLD` state.
+- **F3 — Quick Load:** restores a valid save from menu, onboarding, or normal `WORLD` state and returns to `WORLD`.
+- combat, dialogue, shop, ledger, quest, character-sheet, and airship-console states reject quick-save/load actions that would cross an unsafe transient boundary.
+- restored data includes canonical party/progression state, World position/quest/ledger state, and bounded Dragonfly system state.
+- load re-synchronizes the combat snapshot from the restored canonical World/roster record.
+- older schema-v1 saves migrate through the explicit v1 → v2 migration path.
+
+The save document deliberately excludes encounter-local combat and presentation state. Invalid, unversioned, future-version, or identity-tampered saves fail closed rather than being guessed into a usable state.
 
 ## Dragonfly Wake console
 
