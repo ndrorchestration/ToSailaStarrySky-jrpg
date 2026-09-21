@@ -33,7 +33,7 @@ const party = [
 ];
 
 const snapshot = bridge.createSnapshot(party, fieldRoles);
-assert.strictEqual(snapshot.version, '0.1.0');
+assert.strictEqual(snapshot.version, '0.2.0');
 assert.strictEqual(snapshot.mode, 'read-only-three-character-context');
 assert.strictEqual(snapshot.leadActorId, 'ender');
 assert.deepStrictEqual(snapshot.executableActorIds, ['ender']);
@@ -44,11 +44,11 @@ assert.deepStrictEqual(snapshot.members[0].declaredActions, []);
 
 for (const companion of snapshot.members.slice(1)) {
   assert.strictEqual(companion.execution.status, 'declared-non-executable');
-  assert.strictEqual(companion.execution.reason, 'OUTCOME_CONTRACT_NOT_ESTABLISHED');
+  assert.strictEqual(companion.execution.reason, 'FORMULA_CONTRACT_NOT_ESTABLISHED');
   assert.strictEqual(companion.declaredActions.length, 2);
   assert(companion.declaredActions.every(action =>
     action.executable === false &&
-    action.reason === 'OUTCOME_CONTRACT_NOT_ESTABLISHED'
+    action.reason === 'FORMULA_CONTRACT_NOT_ESTABLISHED'
   ));
 }
 
