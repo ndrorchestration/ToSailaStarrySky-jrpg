@@ -51,6 +51,9 @@ jobs:
       - name: Verify long-form progression curve
         run: npm run test:longform-progression
 
+      - name: Verify encounter scaling contract
+        run: npm run test:encounter-scaling
+
       - name: Verify secondary-action state
         run: npm run test:secondary-action
 
