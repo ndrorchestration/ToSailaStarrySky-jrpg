@@ -15,7 +15,7 @@ const expectedActionOrder = [
 ];
 
 assert.strictEqual(abilities.VERSION, '0.2.0');
-assert.strictEqual(progression.VERSION, '0.1.0');
+assert.strictEqual(progression.VERSION, '0.2.0');
 assert.deepStrictEqual(abilities.ACTION_ORDER, expectedActionOrder);
 assert.strictEqual(abilities.validateDefs(), true);
 
@@ -121,6 +121,10 @@ assert.strictEqual(
 assert(Object.isFrozen(abilities.DEFS), 'ability definitions must be frozen');
 assert(Object.isFrozen(abilities.ALWAYS_AVAILABLE), 'always-available actions must be frozen');
 assert(Object.isFrozen(progression.LEVEL_UNLOCKS), 'progression definitions must be frozen');
+assert(Object.isFrozen(progression.LEVEL_LIMITS), 'progression limits must be frozen');
+assert.strictEqual(progression.LEVEL_LIMITS.MAIN_STORY_TARGET, 130);
+assert.strictEqual(progression.LEVEL_LIMITS.MASTER_ART_THRESHOLD, 150);
+assert.strictEqual(progression.LEVEL_LIMITS.HARD_CAP, 175);
 
 const copy = abilities.createRuntimeActions();
 copy[0].label = 'mutated copy';
