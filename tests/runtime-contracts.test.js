@@ -105,6 +105,7 @@ const requiredScripts = [
   'modules/ability-defs.js',
   'modules/progression-defs.js',
   'modules/mastery-defs.js',
+  'modules/field-role-defs.js',
   'modules/party-state.js',
   'modules/save-state.js',
   'modules/airship-state.js',
@@ -139,6 +140,15 @@ assert(source.includes('window.AetherMasteryDefs.validate()'),
   'runtime boot does not validate mastery definitions');
 assert(source.includes('window._masteryDefs = window.AetherMasteryDefs'),
   'validated mastery definitions are not exposed to the runtime');
+
+assert(source.includes('AETHER_FIELD_ROLE_DEFS_UNAVAILABLE'),
+  'runtime boot does not fail closed when field-role definitions are missing');
+assert(source.includes('window.AetherFieldRoleDefs.validate()'),
+  'runtime boot does not validate field-role definitions');
+assert(source.includes('window._fieldRoleDefs = window.AetherFieldRoleDefs'),
+  'validated field-role definitions are not exposed to the runtime');
+
+console.log('Aetherwake field-role boot contracts: PASS');
 
 console.log('Aetherwake mastery boot contracts: PASS');
 
