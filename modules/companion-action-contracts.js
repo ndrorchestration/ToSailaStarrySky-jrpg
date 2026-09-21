@@ -27,7 +27,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
 
   const STATUS = Object.freeze({
     DRAFT_UNRESOLVED: 'draft-unresolved',
@@ -38,6 +38,9 @@
 
   const BLOCKER = Object.freeze({
     COST_NOT_SPECIFIED: 'COST_NOT_SPECIFIED',
+    DAMAGE_BAND_NOT_SPECIFIED: 'DAMAGE_BAND_NOT_SPECIFIED',
+    HEAT_GAIN_BAND_NOT_SPECIFIED: 'HEAT_GAIN_BAND_NOT_SPECIFIED',
+    DAMAGE_FORMULA_EXECUTION_NOT_ESTABLISHED: 'DAMAGE_FORMULA_EXECUTION_NOT_ESTABLISHED',
     REPOSITION_BAND_NOT_SPECIFIED: 'REPOSITION_BAND_NOT_SPECIFIED',
     PARTIAL_OUTCOME_NOT_SPECIFIED: 'PARTIAL_OUTCOME_NOT_SPECIFIED',
     FAILURE_OUTCOME_NOT_SPECIFIED: 'FAILURE_OUTCOME_NOT_SPECIFIED',
@@ -68,6 +71,7 @@
   const DRAFT_ORDER = Object.freeze([
     'windShearDance',
     'aetherCompass',
+    'overdriveStrike',
   ]);
 
   const DRAFTS = deepFreeze({
@@ -222,6 +226,83 @@
         BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED,
         BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED,
         BLOCKER.REVEAL_EFFECT_NOT_EXECUTABLE,
+        BLOCKER.EXECUTION_ADAPTER_NOT_ESTABLISHED,
+        BLOCKER.PERSISTENCE_POLICY_NOT_ESTABLISHED,
+      ],
+    },
+    overdriveStrike: {
+      actionId: 'overdriveStrike',
+      templateId: 'engineWright',
+      provenance: 'preservation-era-prototype-mechanics',
+      status: STATUS.DRAFT_UNRESOLVED,
+      source: {
+        kind: 'field-role-declaration',
+        text: '2D6+Might. Heavy EMP: 1d6+3 damage. Generates 1 Heat.',
+      },
+      stat: 'might',
+      roll: {
+        system: '2d6',
+        stat: 'might',
+        successMin: 10,
+        partialMin: 7,
+        source: 'established-global-combat-rule',
+      },
+      cost: {
+        status: UNKNOWN,
+        resource: null,
+        amount: null,
+      },
+      knownSemantics: [
+        {
+          id: 'heavyEmpDamage',
+          status: 'declared',
+          band: UNKNOWN,
+          effectKind: 'damage',
+          target: 'enemy',
+          operation: 'apply',
+          key: 'emp',
+          amount: null,
+          amountFormula: '1d6+3',
+        },
+        {
+          id: 'generateHeat',
+          status: 'declared',
+          band: UNKNOWN,
+          effectKind: 'resource',
+          target: 'self',
+          operation: 'increase',
+          key: 'heat',
+          amount: 1,
+        },
+      ],
+      outcomes: {
+        common: null,
+        success: null,
+        partial: null,
+        failure: null,
+      },
+      execution: {
+        status: 'not-established',
+        adapterId: null,
+        version: null,
+      },
+      persistence: {
+        status: 'not-established',
+        mode: null,
+        fields: [],
+      },
+      authoredBindings: {
+        nativeJob: UNKNOWN,
+        school: UNKNOWN,
+      },
+      blockers: [
+        BLOCKER.COST_NOT_SPECIFIED,
+        BLOCKER.DAMAGE_BAND_NOT_SPECIFIED,
+        BLOCKER.HEAT_GAIN_BAND_NOT_SPECIFIED,
+        BLOCKER.SUCCESS_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.DAMAGE_FORMULA_EXECUTION_NOT_ESTABLISHED,
         BLOCKER.EXECUTION_ADAPTER_NOT_ESTABLISHED,
         BLOCKER.PERSISTENCE_POLICY_NOT_ESTABLISHED,
       ],
