@@ -423,6 +423,9 @@ function createServer() {
     }, undefined, { timeout: 5000 });
 
     await page.keyboard.press('KeyX');
+    await page.waitForFunction(() => window.gameState === 'systemmenu', undefined,
+      { timeout: 5000 });
+    await page.keyboard.press('KeyX');
     await page.waitForFunction(() => window.gameState === 'world', undefined,
       { timeout: 5000 });
 
