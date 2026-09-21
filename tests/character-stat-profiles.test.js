@@ -84,6 +84,27 @@ assert.strictEqual(state.roster[0].spirit, 1,
 assert.strictEqual(state.roster[2].presence, 2,
   'Ionia legacy Presence must remain compatibility-safe during migration');
 
+for (const member of state.roster) {
+  assert(member.productionDerivedStats,
+    member.id + ' production derived stats missing');
+  assert(member.productionDerivedStats.maxHp > 0,
+    member.id + ' production maxHp invalid');
+}
+
+state.roster[0].level = 70;
+const refreshedEnder = state.refreshProductionStats(state.roster[0]);
+assert.strictEqual(refreshedEnder.primary.wits,
+  window.AetherJRPGStatModel.getPrimaryStats('ender', 70).wits);
+assert.strictEqual(refreshedEnder.primary.spirit,
+  window.AetherJRPGStatModel.getPrimaryStats('ender', 70).spirit);
+assert.strictEqual(refreshedEnder.derived.technicalPower,
+  window.AetherJRPGStatModel.derive(refreshedEnder.primary, 70).technicalPower);
+assert.strictEqual(state.roster[0].spirit, 1,
+  'refreshing production stats must not mutate legacy compatibility stats');
+
+state.refreshAllProductionStats();
+assert.strictEqual(state.roster[0].productionStatModelVersion, '0.1.0');
+
 const prototypeParty = [
   Object.assign({}, ender, {name:'Wrong Ender',age:99,class:'Rift Scholar + Dreamwright'}),
   {
