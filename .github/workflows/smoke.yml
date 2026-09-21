@@ -40,6 +40,9 @@ jobs:
       - name: Verify runtime authority
         run: npm run test:runtime-authority
 
+      - name: Verify pixel sprite foundation
+        run: npm run test:pixel-sprites
+
       - name: Verify target JRPG combat policy
         run: npm run test:combat-policy
 
