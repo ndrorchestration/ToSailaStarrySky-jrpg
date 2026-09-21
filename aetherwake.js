@@ -83,7 +83,10 @@ const VIS = {
   hitStop: true,
   fadeTransitions: true,
   dialogueTypeIn: true,
-  vignette: true,
+  // Disabled in the integrated runtime until the vignette compositor is
+  // rewritten. The current concentric navy-ellipse implementation repeatedly
+  // darkens the center and can bury otherwise valid title/world rendering.
+  vignette: false,
   particles: true,
   hudAnimations: true,
 };
