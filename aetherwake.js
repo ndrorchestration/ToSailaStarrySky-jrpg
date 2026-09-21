@@ -3927,7 +3927,7 @@ function getShopItems() {
 function openShop() {
   const dist = Math.abs(player.tileX - shop.x) + Math.abs(player.tileY - shop.y);
   if (dist > 3) {
-    return { ok: false, reason: 'Merchant is too far away.' };
+    return { ok: false, kind: 'shop', reason: 'Merchant is too far away.' };
   }
   shop.open = true;
   window.UI.shopItems = getShopItems();
@@ -3948,7 +3948,7 @@ function openShop() {
   if (window.UI.lastShopSelection !== undefined && window.UI.lastShopSelection < shop.items.length) {
     // selection restored implicitly via draw highlight
   }
-  return { ok: true, items: getShopItems() };
+  return { ok: true, kind: 'shop', items: getShopItems() };
 }
 
 function closeShop() {
