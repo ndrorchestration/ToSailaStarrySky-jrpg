@@ -253,6 +253,57 @@ values with a canonical view-model:
 This remains a presentation/read-model improvement. It does not add mutable
 mastery, companion canon, formation switching, or three-character combat.
 
+## Shared field-role registry checkpoint
+
+On 2026-09-21, runtime commit `7dcd741279589e02a99a8eeb835710115edc43f9`
+passed gameplay smoke run `35567099503` and Windows desktop package run
+`35567099421`. The Windows run uploaded artifact `10624083439`
+(`Aetherwake-Windows`, 664,432,820 bytes,
+SHA-256 `4d4ffdf8a3521ce3f5b2e3822d65be3f209d15de7a94cf3d955f4c5d824291e1`).
+
+This checkpoint extracts the preservation-era Sky-Sailor, Engine-Wright, and
+Aether-Weaver mechanics templates from character creation into
+`modules/field-role-defs.js`.
+
+The boundary is explicit:
+
+- these definitions are **prototype mechanics / temporary field roles**;
+- they are not canonical native jobs, schools, or mastery facts for Lyra,
+  Ionia, Reson, or Aepex;
+- onboarding consumes one shared registry rather than owning a duplicate copy;
+- runtime boot fails closed if the registry is unavailable or invalid;
+- the registry preserves the exact existing rank-1 stats, two-ability metadata,
+  and synergy text without balance changes;
+- full companion combat is still not authorized because the templates do not
+  yet define complete executable PbtA outcome tables for all roll bands.
+
+## Minimal desktop runtime packaging checkpoint
+
+On 2026-09-21, runtime commit `93908e2b0fa8b05e69f7c4095dca419e77cc07a3`
+passed gameplay smoke run `35567486492` and Windows desktop package run
+`35567486498`.
+
+The packaging lane now stages only required runtime assets before invoking
+NW.js:
+
+- staged runtime: **25 files / 2,858,504 bytes**;
+- `package.nw` verified payload: **2,858,504 bytes**;
+- development-only entries such as `node_modules`, tests, docs, CI metadata,
+  scripts, and build tooling are rejected if they leak into `package.nw`;
+- the staged runtime has a hard **20 MiB** fail-closed size bound;
+- `Aetherwake.exe` and the staged manifest/entrypoint are still verified before
+  artifact publication.
+
+The uploaded Windows artifact is `10623874064`
+(`Aetherwake-Windows`, **219,915,613 bytes**,
+SHA-256 `d90ac3b4b2d83e575e09b047d9b1786783eab1484884c01b44d724484fa21d89`).
+
+Compared with the immediately preceding verified artifact
+(`664,432,820 bytes`), this removes **444,517,207 bytes (66.9%)** from the
+download while preserving the same playable/runtime behavior. The remaining
+artifact weight is primarily the NW.js/Chromium desktop runtime rather than the
+game application payload.
+
 ## Effect/registry checkpoint
 
 On 2026-09-19:
