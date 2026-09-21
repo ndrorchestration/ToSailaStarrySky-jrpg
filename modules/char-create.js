@@ -183,9 +183,9 @@ const JOBS = [
 
 // ── Ender (fixed protagonist — always party[0]) ──
 const ENDER = {
-  name: 'Young Ender',
-  age: 28,
-  class: 'Rift Scholar + Dreamwright',
+  name: 'Ender',
+  age: 22,
+  class: 'Rift Scholar',
   vit: 13, maxVit: 13,
   echoes: { current: 3, max: 3 }, maxEchoes: 3,
   wits: 2, presence: 1, spirit: 1, might: -1, grace: 0,
@@ -198,7 +198,7 @@ const ENDER = {
   unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
   equipment: { staff: null, backpack: null },
   jobId: 'ender',
-  synergyBonus: 'The anchor. Your crew orbits Ender\'s resolve.',
+  synergyBonus: 'Analyst-controller baseline. Final party synergy remains open.',
 };
 
 // ── Color helpers ──
