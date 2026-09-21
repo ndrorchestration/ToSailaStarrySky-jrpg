@@ -44,6 +44,17 @@ assert(source.includes('window.quickSaveGame = quickSaveGame') &&
   source.includes('window.quickLoadGame = quickLoadGame'),
   'player persistence actions are not exposed for integration verification');
 
+assert(source.includes('function hasStoredSave()'),
+  'stored-save discovery helper is missing');
+assert(source.includes('window._saveState.legacyStorageKeys'),
+  'stored-save discovery does not include legacy migration keys');
+assert(source.includes('millis() - menuAutoStartTimer > 3000 &&\n             !hasStoredSave()'),
+  'menu auto-start is not suppressed when a save exists');
+assert(source.includes("text('F3 — LOAD SAVE'"),
+  'title screen does not surface the F3 load affordance');
+
+console.log('Aetherwake save discovery/title contracts: PASS');
+
 console.log('Aetherwake player save/load input contracts: PASS');
 
 console.log('Aetherwake runtime contract tests: PASS');
