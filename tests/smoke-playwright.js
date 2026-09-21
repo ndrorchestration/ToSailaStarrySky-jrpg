@@ -273,7 +273,9 @@ function createServer() {
 
     await page.keyboard.press('F2');
     await page.waitForFunction(() =>
-      Boolean(window.localStorage.getItem('aetherwake.save.v2'))
+      Boolean(window.localStorage.getItem('aetherwake.save.v2')) &&
+      typeof window.hasStoredSave === 'function' &&
+      window.hasStoredSave() === true
     , undefined, { timeout: 5000 });
 
     await page.evaluate(() => {
