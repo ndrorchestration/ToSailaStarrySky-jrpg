@@ -441,6 +441,7 @@
   //      hide the loading overlay — like Graphics.endLoading() → upper canvas cleared
   // ============================================================
   (function() {
+    const LAUNCH_SETUP_TIMEOUT_MS = 30000;
     var startTime = performance.now();
     var checkTimer = null;
     var initError = null;
@@ -481,8 +482,15 @@
         return;
       }
 
-      if (performance.now() - startTime > 10000) {
-        showInitError('Runtime did not reach setup-done with a live canvas within 10 seconds.');
+      if (performance.now() - startTime > LAUNCH_SETUP_TIMEOUT_MS) {
+        var setupOrder = typeof window._setupOrder === 'string' ? window._setupOrder : 'not-started';
+        var canvasStatus = cvs ? (cvs.width + 'x' + cvs.height) : 'missing';
+        showInitError(
+          'Runtime did not reach setup-done with a live canvas within 30 seconds. ' +
+          'setupOrder=' + setupOrder +
+          '; p5Loaded=' + p5ok +
+          '; canvas=' + canvasStatus + '.'
+        );
         return;
       }
 
