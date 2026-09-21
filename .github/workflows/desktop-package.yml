@@ -19,7 +19,7 @@ on:
       - "scripts/generate-windows-icon.ps1"
       - "tests/desktop-package-contract.test.js"
       - "tests/one-file-launcher-contract.test.js"
-      - "tests/windows-packaged-render.test.js"
+      - "scripts/verify-windows-packaged-render.ps1"
   push:
     branches:
       - main
@@ -238,11 +238,12 @@ jobs:
               Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
             }
 
-      - name: Verify one-file packaged canvas renders
+      - name: Verify one-file packaged window renders
         shell: pwsh
         run: |
           $playerFile = Join-Path $PWD "artifact\Aetherwake-One-File\Aetherwake - The Last Solarpunk Airship.exe"
           $runtimeRoot = Join-Path $env:LOCALAPPDATA "Aetherwake\runtime"
+
           Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
             Where-Object {
               $_.ExecutablePath -and
@@ -250,19 +251,17 @@ jobs:
             } |
             ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 
-          $port = 9223
-          $launcher = Start-Process -FilePath $playerFile -ArgumentList "--remote-debugging-port=$port" -PassThru
+          $launcher = Start-Process -FilePath $playerFile -PassThru
           if (-not $launcher.WaitForExit(180000)) {
             try { $launcher.Kill() } catch {}
-            throw "One-file launcher process did not exit within 180 seconds during render probe"
+            throw "One-file launcher process did not exit within 180 seconds during window-render probe"
           }
           if ($launcher.ExitCode -ne 0) {
-            throw "One-file launcher exited with code $($launcher.ExitCode) during render probe"
+            throw "One-file launcher exited with code $($launcher.ExitCode) during window-render probe"
           }
 
-          $env:AETHERWAKE_CDP_PORT = "$port"
           try {
-            node tests/windows-packaged-render.test.js
+            ./scripts/verify-windows-packaged-render.ps1
           }
           finally {
             Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
