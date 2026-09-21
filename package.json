@@ -52,6 +52,7 @@
     "test:party-capacity": "node tests/party-capacity.test.js",
     "test:character-profiles": "node tests/character-stat-profiles.test.js",
     "test:jrpg-stat-model": "node tests/jrpg-stat-model.test.js",
+    "test:jrpg-formula-engine": "node tests/jrpg-formula-engine.test.js",
     "test:character-canon": "node tests/character-canon-alignment.test.js"
   }
 }
