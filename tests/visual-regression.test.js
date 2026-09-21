@@ -73,4 +73,23 @@ test('D26: rendering helpers do not shadow p5 text()', () => {
     'dialogue renderer should use a non-shadowing content parameter');
 });
 
+test('D27: character sheet uses canonical live view-model and defined row variables', () => {
+  assert(aetherwakeSrc.includes('function getCharacterSheetViewModel()'),
+    'character sheet view-model helper should exist');
+  assert(aetherwakeSrc.includes('window.getCharacterSheetViewModel = getCharacterSheetViewModel'),
+    'character sheet view-model should be exposed for integration verification');
+  assert(aetherwakeSrc.includes("mastery.getNativeJobStatus(actor.id)"),
+    'character sheet should read native-job facts from mastery definitions');
+  assert(aetherwakeSrc.includes("mastery.getAuthoredAffinities(actor.id)"),
+    'character sheet should read authored affinities from mastery definitions');
+  assert(aetherwakeSrc.includes("abilityDefs.getEligibleActionIds(actor)"),
+    'character sheet should derive eligible actions from the canonical ability registry');
+  assert(!aetherwakeSrc.includes('abilities.forEach((a, i)'),
+    'legacy undefined abilities iterator must not return');
+  assert(aetherwakeSrc.includes('const gy = sheet.gearY + 22 + i * 32'),
+    'gear renderer must define its row position before use');
+  assert(!aetherwakeSrc.includes("text('Rift Scholar / Dreamwright', sheet.classX"),
+    'character sheet must not hardcode the legacy class as canonical native job');
+});
+
 console.log('\nAll Cluster 6 regression tests passed!');
