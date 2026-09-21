@@ -11,4 +11,11 @@ assert(runtime.includes('nav.move(airNavigationState'),'flight movement not boun
 assert(runtime.includes('nav.changeAltitude(airNavigationState'),'altitude controls not bound');
 assert(runtime.includes('airshipFlightMode = true'),'airship systems do not enter flight');
 assert(runtime.includes('pageUp, pageDown, shift'),'flight control channels missing');
+assert(runtime.includes('nav.SKY_ROUTES'),'sky route graph is not rendered');
+assert(runtime.includes("weather.id === 'crosswind'"),'crosswind presentation missing');
+assert(runtime.includes("weather.id === 'aether-squall'"),'aether-squall presentation missing');
+assert(runtime.includes("keysPressed[68] && typeof nav.dock === 'function'"),'dock command not bound');
+assert(runtime.includes("showToast('MOORED // '"),'docking feedback missing');
+assert(runtime.includes("nav.undock(airNavigationState)"),'directional cast-off behavior missing');
+assert(runtime.includes('BERTH AVAILABLE:'),'berth approach UI missing');
 console.log('Aetherwake playable air-navigation contract: PASS');
