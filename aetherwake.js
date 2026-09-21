@@ -112,6 +112,7 @@ let combat = null;
 let airshipState = null;
 let airNavigationState = null;
 let airshipFlightMode = false;
+let combatReturnState = STATE.WORLD;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -1369,8 +1370,9 @@ function startGame() {
 }
 
 // ── Combat launcher: triggers an encounter ──
-function startCombat(enemyId) {
+function startCombat(enemyId, returnState) {
   if (!combat || !world) return;
+  combatReturnState = returnState || STATE.WORLD;
   combatCursor = 0;
 
   const resolvedEnemyId = enemyId || 'skyPredator';
@@ -1465,8 +1467,10 @@ function finishCombat() {
     }
   }
 
-  gameState = STATE.WORLD;
+  gameState = combatReturnState || STATE.WORLD;
   window.gameState = gameState;
+  if (gameState === STATE.AIRSHIP) airshipFlightMode = true;
+  combatReturnState = STATE.WORLD;
   prevState = null;
   if (VIS.fadeTransitions) startFade(150);
 }
@@ -1977,7 +1981,19 @@ function handleAirNavigationInput(input) {
   let dx = 0, dy = 0;
   if (input.left) dx = -1; else if (input.right) dx = 1;
   if (input.up) dy = -1; else if (input.down) dy = 1;
-  if (dx || dy) airNavigationState = nav.move(airNavigationState, dx, dy);
+  if (dx || dy) {
+    airNavigationState = nav.move(airNavigationState, dx, dy);
+    if (typeof nav.encounterCheck === 'function') {
+      const encounter = nav.encounterCheck(airNavigationState);
+      airNavigationState = encounter.state;
+      if (encounter.triggered) {
+        window._airNavigationState = airNavigationState;
+        showToast('HOSTILE WAKE DETECTED', C.rust, 1200);
+        startCombat(encounter.enemyId, STATE.AIRSHIP);
+        return;
+      }
+    }
+  }
   if (input.pageUp) airNavigationState = nav.changeAltitude(airNavigationState, 1);
   if (input.pageDown) airNavigationState = nav.changeAltitude(airNavigationState, -1);
   if (input.shift) airNavigationState.speed = airNavigationState.speed >= 3 ? 1 : airNavigationState.speed + 1;
