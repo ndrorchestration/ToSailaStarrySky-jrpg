@@ -161,6 +161,37 @@
   // Debug UI is opt-in only. Normal players should never see diagnostic overlays.
   window.__awDebugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
 
+  // Fail visibly on packaged-runtime errors. A live NW.js window with an
+  // initialization exception must never collapse into an unexplained blank screen.
+  window.__awLaunchFailure = null;
+  function showLaunchFailure(kind, detail) {
+    var message = String(detail || 'Unknown startup failure');
+    window.__awLaunchFailure = { kind: kind, detail: message };
+    var ls = document.getElementById('loading-screen');
+    if (ls) ls.style.display = 'none';
+    var panel = document.getElementById('aetherwake-init-error');
+    if (panel) {
+      panel.hidden = false;
+      panel.textContent =
+        'AETHERWAKE COULD NOT START\n\n' +
+        kind + ': ' + message +
+        '\n\nThis build stopped before the game became render-ready.';
+    }
+  }
+
+  window.addEventListener('error', function(event) {
+    showLaunchFailure(
+      'JavaScript error',
+      event.error && event.error.stack ? event.error.stack : event.message
+    );
+  });
+  window.addEventListener('unhandledrejection', function(event) {
+    showLaunchFailure(
+      'Unhandled promise rejection',
+      event.reason && event.reason.stack ? event.reason.stack : event.reason
+    );
+  });
+
   function hideLoadingScreen() {
     var ls = document.getElementById('loading-screen');
     if (ls) ls.style.display = 'none';
@@ -303,6 +334,9 @@
       var cvs = document.querySelector('canvas');
       var hasCanvas = !!cvs && cvs.width >= 800 && cvs.height >= 500;
       var p5ok = typeof p5 !== 'undefined';
+      var setupDone =
+        typeof window._setupOrder === 'string' &&
+        window._setupOrder.indexOf('setup-done') !== -1;
 
       if (window.__aetherwakeInitFailed) {
         showInitError(
@@ -312,15 +346,15 @@
         return;
       }
 
-      if (hasCanvas && p5ok) {
+      if (hasCanvas && p5ok && setupDone) {
         p5.disableFriendlyErrors = true;
-        console.log('[launch] canvas live, hiding loading screen');
+        console.log('[launch] setup complete and canvas live, hiding loading screen');
         hideLoadingScreen();
         return;
       }
 
       if (performance.now() - startTime > 10000) {
-        showInitError('Canvas/runtime did not initialize within 10 seconds.');
+        showInitError('Runtime did not reach setup-done with a live canvas within 10 seconds.');
         return;
       }
 
