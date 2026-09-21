@@ -167,6 +167,7 @@ It includes signal hooks, traversal hazards, NPC encounters, three major choice 
 | `modules/effect-resolver.js` | Fail-closed ordinary mutation resolver for damage/restoration/resources |
 | `modules/ability-defs.js` | Canonical metadata for the eight current combat actions |
 | `modules/progression-defs.js` | Canonical current level-unlock table |
+| `modules/mastery-defs.js` | Code-owned mastery/domain facts, Ender affinities, and explicit UNKNOWN companion canon |
 | `modules/party-state.js` | Authoritative persistent roster / active-party reference layer |
 | `modules/char-create.js` | Active preservation character-creation adapter |
 | `modules/airship-state.js` | Pure Dragonfly Wakeheart power, charge, veil, cooldown, and action rules |
@@ -220,7 +221,7 @@ The production migration is incremental:
 4. route ordinary combat mutations through a generic effect resolver while preserving current 2D6 outcome behavior — **damage/restoration/resource routing established on `dev/progression-build`**,
 5. enforce current learned/unlocked action eligibility before broader mastery-tree work — **established on `dev/progression-build`**,
 6. replace prototype companion creation with authored roster onboarding — **identity migration established on `dev/progression-build`; canonical companion jobs/mechanics remain unresolved**,
-7. implement school/job/mastery progression,
+7. implement school/job/mastery progression — **Phase A definitions established; mutable mastery/save-v3 state not yet implemented**,
 8. add formation, Dual Arts, and Triple Arts,
 9. expand campaign content after the architecture is stable.
 
