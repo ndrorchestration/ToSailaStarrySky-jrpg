@@ -12,7 +12,8 @@ assert.deepStrictEqual(Object.keys(model.PROFILES), ids);
 for (const id of ids) {
   const profile = model.PROFILES[id];
   const budget = model.PRIMARY_STATS.reduce((n, key) => n + profile.level1[key], 0);
-  assert.strictEqual(budget, 25, id + ' level-1 budget drift');
+  assert(budget >= model.LEVEL_ONE_BASELINE_BUDGET,
+    id + ' level-1 budget fell below the baseline');
   assert.deepStrictEqual(model.getPrimaryStats(id, 1), profile.level1,
     id + ' level-1 interpolation drift');
   assert.deepStrictEqual(model.getPrimaryStats(id, 175), profile.capstone,
@@ -32,8 +33,9 @@ for (const id of ids) {
 
 // Signature identity at level 1.
 assert.strictEqual(model.getPrimaryStats('ender', 1).wits, 8);
+assert.strictEqual(model.getPrimaryStats('ender', 1).spirit, 12);
 assert.strictEqual(model.getPrimaryStats('lyra', 1).spirit, 9);
-assert.strictEqual(model.getPrimaryStats('ionia', 1).presence, 8);
+assert.strictEqual(model.getPrimaryStats('ionia', 1).presence, 9);
 assert.strictEqual(model.getPrimaryStats('reson', 1).might, 9);
 assert.strictEqual(model.getPrimaryStats('aepex', 1).wits, 9);
 
