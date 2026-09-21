@@ -964,9 +964,13 @@ function activateSystemMenuCommand(command) {
       world.toggleLayer();
     }
   } else if (command.id === 'save') {
-    quickSaveGame();
+    const returnState = prevState || STATE.WORLD;
+    closeOverlay();
+    if (returnState === STATE.WORLD) quickSaveGame();
   } else if (command.id === 'load') {
-    quickLoadGame();
+    const returnState = prevState || STATE.WORLD;
+    closeOverlay();
+    if (returnState === STATE.WORLD) quickLoadGame();
   }
 }
 
