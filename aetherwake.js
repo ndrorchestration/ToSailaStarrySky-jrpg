@@ -4701,14 +4701,18 @@ function drawNPCSavager(px, py) {
 }
 
 function drawNPCDefault(px, py, name) {
-  fill(color(160, 140, 110));
+  const sprites = window.AetherPixelSprites;
+  if (sprites && typeof sprites.draw === 'function') {
+    sprites.draw('settler', px, py + 12, {
+      frame: Math.floor(frameCount / 40) % 2,
+      scale: 1,
+      anchor: 'bottom-center',
+    });
+    return;
+  }
   noStroke();
-  rect(px - 3, py - 2, 12, 9);
-  fill(color(200, 180, 150));
-  rect(px - 2, py - 6, 10, 5);
-  fill(color(40, 30, 20));
-  rect(px + 1, py - 5, 2, 1);
-  rect(px + 6, py - 5, 2, 1);
+  fill(255, 80, 100);
+  rect(px - 4, py - 4, 12, 12);
 }
 
 function drawEngineSpiritBody(px, py) {
