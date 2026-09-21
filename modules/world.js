@@ -208,7 +208,7 @@ function initNPCs() {
   npcs = [
     // 1 — Captain Ionia
     {
-      id: 'elder_farmer',
+      id: 'ionia',
       name: 'Captain Ionia',
       title: 'Captain of the Aureate Wake',
       x: 7,
@@ -284,7 +284,7 @@ function initNPCs() {
 
     // 3 — Lyra (24-year-old mother and frequency-sensitive dreamer)
     {
-      id: 'child_prophet',
+      id: 'lyra',
       name: 'Lyra',
       title: 'Dreamer of the Aureate Wake',
       x: 8,
@@ -314,7 +314,7 @@ function initNPCs() {
         deep: [
           '"I\'ve heard the captain and the acquisition officer and the core. I\'ve heard all four of us. You\'ve heard them too. You know what each of us wants. You decide what the Wake does. That\'s the choice."',
           '"The core hums wrong and I hum with it. That\'s been the whole story since I was born. The frequencies hum and the core hums with them and the Wake hums with the core. That\'s the Aureate Wake. That\'s the whole ship."',
-          '"You\'ll find out which one I am — the kid who hears wrong, or the kid who saves the ship by hearing right. The answer\'s coming."'
+          '"You\'ll find out whether I\'m hearing the wrong song or the part everyone else missed. The answer\'s coming."'
         ]
       },
       flags: { met: false, questMarker: true }
@@ -399,9 +399,9 @@ function initQuest() {
       { id: 'corporate_intercept', label: 'Corporate Intercept', done: false, stat: 'might' }
     ],
     contactNPCs: [
-      { id: 'elder_farmer', label: 'Ionia' },
+      { id: 'ionia', label: 'Ionia' },
       { id: 'engine_spirit', label: 'The Core' },
-      { id: 'child_prophet', label: 'Lyra' },
+      { id: 'lyra', label: 'Lyra' },
       { id: 'corporate_salvager', label: 'Verrick' }
     ],
     choicePaths: [
@@ -711,7 +711,7 @@ function checkSignalHook(npc) {
   if (npc.id === 'corporate_salvager') {
     completeSignalHook('bounty');
   }
-  if (npc.id === 'child_prophet') {
+  if (npc.id === 'lyra') {
     completeSignalHook('prophet');
   }
 }
@@ -1505,14 +1505,14 @@ function drawNPC(npc) {
   ellipse(px + 4, py + 8, 10, 4);
 
   switch (npc.id) {
-    case 'elder_farmer':
-      drawNPCElder(px, py);
+    case 'ionia':
+      drawNPCIonia(px, py);
       break;
     case 'engine_spirit':
       drawNPCSpirit(px, py);
       break;
-    case 'child_prophet':
-      drawNPCChild(px, py);
+    case 'lyra':
+      drawNPCLyra(px, py);
       break;
     case 'corporate_salvager':
       drawNPCSavager(px, py);
@@ -1531,7 +1531,7 @@ function drawNPC(npc) {
   textFont('VT323');
 }
 
-function drawNPCElder(px, py) {
+function drawNPCIonia(px, py) {
   fill(color(80, 60, 40));
   noStroke();
   rect(px - 4, py - 4, 16, 4);
@@ -1573,7 +1573,7 @@ function drawNPCSpirit(px, py) {
   rect(px + 4, py - 1, 2, 1);
 }
 
-function drawNPCChild(px, py) {
+function drawNPCLyra(px, py) {
   fill(color(180, 60, 80));
   noStroke();
   rect(px - 4, py - 4, 16, 4);
