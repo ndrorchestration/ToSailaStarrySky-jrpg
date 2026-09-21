@@ -1,3 +1,10 @@
+// NON_RUNTIME_MIRROR
+// modules/world.js is NOT loaded by the playable Aetherwake entrypoints.
+// Changes here do NOT change the current game runtime.
+// Playable runtime authority: ../aetherwake.js
+// Runtime authority contract: ../docs/RUNTIME_AUTHORITY.md
+// Retain only as a historical/modular mirror until explicitly extracted or retired.
+
 /* ============================================================
    aetherwake-jrpg/modules/world.js
    World / Map / Quest module for the Aetherwake JRPG.
