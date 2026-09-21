@@ -50,10 +50,15 @@ assert(source.includes('function hasStoredSave()'),
   'stored-save discovery helper is missing');
 assert(source.includes('window._saveState.legacyStorageKeys'),
   'stored-save discovery does not include legacy migration keys');
-assert(source.includes('millis() - menuAutoStartTimer > 3000 &&\n             !hasStoredSave()'),
-  'menu auto-start is not suppressed when a save exists');
-assert(source.includes("text('F3 — LOAD SAVE'"),
-  'title screen does not surface the F3 load affordance');
+assert(!source.includes('millis() - menuAutoStartTimer > 3000'),
+  'title menu must not auto-start after idle');
+assert(source.includes('function getTitleMenuCommands()') &&
+  source.includes("commands.push({ id: 'continue', label: 'CONTINUE' })"),
+  'stored save does not surface an explicit CONTINUE title command');
+assert(source.includes('function activateTitleMenuCommand(command)') &&
+  source.includes("if (command.id === 'continue')") &&
+  source.includes('quickLoadGame();'),
+  'CONTINUE title command does not route through quickLoadGame');
 
 console.log('Aetherwake save discovery/title contracts: PASS');
 
