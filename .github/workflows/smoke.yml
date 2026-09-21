@@ -54,6 +54,9 @@ jobs:
       - name: Verify encounter scaling contract
         run: npm run test:encounter-scaling
 
+      - name: Verify party capacity contract
+        run: npm run test:party-capacity
+
       - name: Verify secondary-action state
         run: npm run test:secondary-action
 
