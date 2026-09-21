@@ -78,6 +78,7 @@ function createServer() {
     await probe.waitForFunction(() =>
       window._world && window._combat && window._charcreate &&
       window.AetherPixelSprites && window.AetherPixelSprites.validate() &&
+      window.AetherPixelTiles && window.AetherPixelTiles.validate() &&
       document.querySelector('canvas')
     , undefined, { timeout: 15000 });
     const status = await probe.evaluate(() => {
@@ -91,6 +92,14 @@ function createServer() {
         pixelSprites: Boolean(window.AetherPixelSprites &&
           window.AetherPixelSprites.validate &&
           window.AetherPixelSprites.validate()),
+        pixelTiles: Boolean(window.AetherPixelTiles &&
+          window.AetherPixelTiles.validate &&
+          window.AetherPixelTiles.validate()),
+        worldTileIds: window.AetherPixelTiles
+          ? ['hull', 'grass', 'crate', 'float', 'water', 'loreUnknown',
+             'loreKnown', 'cloud', 'astro']
+              .filter(id => Boolean(window.AetherPixelTiles.get(id)))
+          : [],
         crewSpriteIds: window.AetherPixelSprites
           ? ['ender', 'lyra', 'ionia'].filter(id => Boolean(window.AetherPixelSprites.get(id)))
           : [],
@@ -106,6 +115,10 @@ function createServer() {
     assert(status.canvas === true, entrypoint + ' did not create a canvas');
     assert(status.pixelSprites === true,
       entrypoint + ' pixel sprite authority did not validate');
+    assert(status.pixelTiles === true,
+      entrypoint + ' pixel tile authority did not validate');
+    assert(status.worldTileIds.length === 9,
+      entrypoint + ' pixel tile registry is incomplete');
     assert(status.crewSpriteIds.join('|') === 'ender|lyra|ionia',
       entrypoint + ' playable crew sprite registry is incomplete');
     assert(status.parentId === 'jrpg-container',
