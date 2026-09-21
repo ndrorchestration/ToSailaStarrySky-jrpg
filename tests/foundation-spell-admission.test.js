@@ -1,4 +1,5 @@
 const assert = require('assert');
+const fs = require('fs');
 
 const mastery = require('../modules/mastery-defs.js');
 const magicAccess = require('../modules/magic-access.js');
@@ -6,6 +7,7 @@ const effects = require('../modules/effect-vocabulary.js');
 const admission = require('../modules/foundation-spell-admission.js');
 const contracts = require('../modules/foundation-spell-contracts.js');
 const pulseEval = require('../modules/aether-pulse-synthetic-evaluation.js');
+const pulseReference = require('../modules/aether-pulse-runtime-reference.js');
 
 assert.strictEqual(admission.VERSION, '0.1.0');
 assert.strictEqual(contracts.VERSION, '0.1.0');
@@ -316,6 +318,120 @@ assert.throws(
   /SYNTHETIC_MODIFIER_SET_DUPLICATE/
 );
 
+
+assert.strictEqual(pulseReference.VERSION, '0.1.0');
+assert.strictEqual(pulseReference.STATUS, 'current-runtime-reference');
+
+const combatSource = fs.readFileSync(
+  require.resolve('../modules/combat.js'),
+  'utf8'
+);
+const abilitySource = fs.readFileSync(
+  require.resolve('../modules/ability-defs.js'),
+  'utf8'
+);
+
+// Reference values must remain bound to observed runtime source rather than
+// drifting into an independent balance specification.
+for (const expectedSourceFact of [
+  'wits: 2, presence: 1, spirit: 1, might: -1',
+  'aether: { current: 4, max: 6 }',
+  'staffCharges: 2, maxStaffCharges: 2',
+  "hp: 8, maxHp: 8",
+  "hp: 10, maxHp: 10",
+  "hp: 12, maxHp: 12",
+  "hp: 14, maxHp: 14",
+  'floor(random(1, 7)) + 2; // 1d6+2',
+  'floor(random(1, 7)) + 2 - 1',
+  'Math.floor(random(1, 4)) + 1',
+]) {
+  assert(
+    combatSource.includes(expectedSourceFact),
+    'runtime reference source fact drifted: ' + expectedSourceFact
+  );
+}
+assert(
+  abilitySource.includes("id: 'staffStrike'") &&
+  abilitySource.includes("stat: 'might'") &&
+  abilitySource.includes("cost: 0") &&
+  abilitySource.includes("tier: 0"),
+  'Staff Strike registry reference drifted'
+);
+
+assert.deepStrictEqual(pulseReference.REFERENCE.ender, {
+  wits: 2,
+  might: -1,
+  aetherCurrent: 4,
+  aetherMax: 6,
+  staffCharges: 2,
+});
+assert.deepStrictEqual(pulseReference.REFERENCE.enemyHp, {
+  aetherLeak: 8,
+  corporateSalvager: 10,
+  skyPredator: 12,
+  windShear: 14,
+});
+
+const staffReference = pulseReference.evaluateStaffStrike();
+assert.deepStrictEqual(staffReference.probabilities.counts, {
+  success: 3,
+  partial: 12,
+  failure: 21,
+  total: 36,
+});
+assert.strictEqual(staffReference.expectedEnemyDamage, 70.5 / 36);
+assert.strictEqual(staffReference.expectedSelfDamage, 75 / 36);
+assert.strictEqual(staffReference.expectedChargeConsumption, 15 / 36);
+assert.strictEqual(staffReference.expectedEnemyDamagePerExpectedCharge, 4.7);
+
+const pulseRuntimeComparison = pulseReference.compareSyntheticPulse(
+  pulseCandidateA,
+  pulseReference.REFERENCE.ender.wits
+);
+assert.strictEqual(pulseRuntimeComparison.synthetic, true);
+assert.strictEqual(pulseRuntimeComparison.designEstablished, false);
+assert.strictEqual(pulseRuntimeComparison.runtimeAuthorized, false);
+assert.strictEqual(
+  pulseRuntimeComparison.pulse.expectedEnemyDamage,
+  45 / 36
+);
+assert.strictEqual(
+  pulseRuntimeComparison.pulse.expectedSelfDamage,
+  6 / 36
+);
+assert.strictEqual(
+  pulseRuntimeComparison.resourceEnvelope.castCapacityAtCurrentAether,
+  4
+);
+assert.strictEqual(
+  pulseRuntimeComparison.resourceEnvelope.castCapacityAtMaxAether,
+  6
+);
+assert.strictEqual(
+  pulseRuntimeComparison.resourceEnvelope.expectedDamageAtCurrentAether,
+  5
+);
+assert.strictEqual(
+  pulseRuntimeComparison.resourceEnvelope.expectedDamageAtMaxAether,
+  7.5
+);
+assert.strictEqual(
+  pulseRuntimeComparison.ratios.enemyDamageVsChargedStaff,
+  (45 / 36) / (70.5 / 36)
+);
+assert.strictEqual(
+  pulseRuntimeComparison.enemyCoverage.aetherLeak.expectedHpFractionPerCast,
+  (45 / 36) / 8
+);
+assert.strictEqual(
+  pulseRuntimeComparison.enemyCoverage.windShear.expectedHpFractionPerCast,
+  (45 / 36) / 14
+);
+assert.strictEqual(
+  pulseRuntimeComparison.boundary,
+  'comparison against current prototype runtime only; no design or runtime authority'
+);
+
 console.log('Aetherwake foundation spell admission gate: PASS');
 console.log(JSON.stringify({
   sense: senseAssessment,
@@ -325,6 +441,10 @@ console.log(JSON.stringify({
     neutralA,
     plusTwoA,
     neutralB,
+  },
+  currentRuntimeReference: {
+    staffReference,
+    pulseRuntimeComparison,
   },
   boundary: 'structural completeness and synthetic balance evidence never override design/runtime authorization',
 }, null, 2));
