@@ -4,7 +4,7 @@
 
 Aetherwake is a late-prototype / pre-alpha project.
 
-The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, fixed authored Ender/Lyra/Ionia onboarding, player-facing schema-v2 persistence for party/progression + World/quest/ledger + bounded Dragonfly state, effect vocabulary v0.1, extracted current ability/progression registries, and live fail-closed resolver routing for ordinary damage/restoration/resource mutations. Higher-order resolver semantics and authored companion/mastery progression remain staged work.
+The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, fixed authored Ender/Lyra/Ionia onboarding, player-facing schema-v2 persistence for party/progression + World/quest/ledger + bounded Dragonfly state, effect vocabulary v0.1, extracted current ability/progression registries, live fail-closed resolver routing for ordinary damage/restoration/resource mutations, and the first JRPG-formula combat migration for Staff Strike. Higher-order resolver semantics, remaining legacy 2D6 actions, and authored companion/mastery progression remain staged work.
 
 ## Source-of-truth rules
 
@@ -13,17 +13,20 @@ The development branch now has a verified playable baseline, persistent `ROSTER[
 Current browser runtime:
 
 1. `index-embedded.html`
-2. `modules/effect-vocabulary.js`
-3. `modules/effect-resolver.js`
-4. `modules/ability-defs.js`
-5. `modules/progression-defs.js`
-6. `modules/mastery-defs.js`
-7. `modules/magic-access.js`
-8. `modules/aether-sense.js`
-9. `modules/party-state.js`
-10. `aetherwake.js`
-11. `modules/char-create.js`
-12. bundled `p5.min.js`
+2. `modules/jrpg-input.js`
+3. `modules/combat-system-policy.js`
+4. `modules/combat-formula.js`
+5. `modules/effect-vocabulary.js`
+6. `modules/effect-resolver.js`
+7. `modules/ability-defs.js`
+8. `modules/progression-defs.js`
+9. `modules/mastery-defs.js`
+10. `modules/magic-access.js`
+11. `modules/aether-sense.js`
+12. party / save / airship runtime modules
+13. `aetherwake.js`
+14. `modules/char-create.js`
+15. bundled `p5.min.js`
 
 The other files under `modules/` are useful historical/modular mirrors, but they are not guaranteed to match the integrated runtime.
 
@@ -65,7 +68,7 @@ The test intentionally uses real keyboard input for player-facing state transiti
 Both `index-embedded.html` (embedded/NW.js launch) and `index.html` (browser launch) are supported playable entrypoints. They must load the same runtime dependency chain in order:
 
 ```text
-effect vocabulary → resolver → ability/progression registries → mastery
+JRPG input → combat target policy → combat formula → effect vocabulary → resolver → ability/progression registries → mastery
 → magic access → Aether Sense → party/airship state → airship bridge/UI
 → audio → aetherwake.js → character creation → p5.js
 ```

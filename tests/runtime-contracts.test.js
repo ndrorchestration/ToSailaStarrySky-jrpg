@@ -98,6 +98,8 @@ console.log('Aetherwake character handoff contracts: PASS');
 
 
 const requiredScripts = [
+  'modules/combat-system-policy.js',
+  'modules/combat-formula.js',
   'modules/effect-vocabulary.js',
   'modules/effect-resolver.js',
   'modules/ability-defs.js',
@@ -134,6 +136,17 @@ for (const entrypoint of ['index-embedded.html', 'index.html']) {
     previous = index;
   }
 }
+
+assert(source.includes('AETHER_COMBAT_SYSTEM_POLICY_UNAVAILABLE'),
+  'runtime boot does not fail closed when combat-system policy is missing');
+assert(source.includes('window.AetherCombatSystemPolicy.validate()'),
+  'runtime boot does not validate combat-system policy');
+assert(source.includes('AETHER_COMBAT_FORMULA_UNAVAILABLE'),
+  'runtime boot does not fail closed when combat formula resolver is missing');
+assert(source.includes('window.AetherCombatFormula.validateAgainstAbilityDefs(window.AetherAbilityDefs)'),
+  'runtime boot does not validate combat formula against ability definitions');
+assert(source.includes('window._combatFormula = window.AetherCombatFormula'),
+  'validated combat formula is not exposed to runtime');
 
 assert(source.includes('AETHER_MASTERY_DEFS_UNAVAILABLE'),
   'runtime boot does not fail closed when mastery definitions are missing');

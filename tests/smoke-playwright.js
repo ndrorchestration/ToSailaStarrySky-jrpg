@@ -1135,7 +1135,7 @@ function createServer() {
       };
     });
 
-    assert(registryContract.abilityVersion === '0.2.0',
+    assert(registryContract.abilityVersion === '0.3.0',
       'ability registry version is not loaded');
     assert(registryContract.progressionVersion === '0.1.0',
       'progression registry version is not loaded');
@@ -1199,6 +1199,22 @@ function createServer() {
     assert(resolverContract.applied.every(Boolean),
       'effect resolver unexpectedly skipped an implemented effect');
 
+    const formulaContract = await page.evaluate(() => ({
+      policyModel: window.AetherCombatSystemPolicy && window.AetherCombatSystemPolicy.TARGET.model,
+      formulaVersion: window.AetherCombatFormula && window.AetherCombatFormula.VERSION,
+      staff: window.AetherCombatFormula && window.AetherCombatFormula.getFormula('staffStrike'),
+      abilityResolution: window.AetherAbilityDefs && window.AetherAbilityDefs.DEFS.staffStrike.resolution,
+    }));
+    assert(formulaContract.policyModel === 'jrpg-stat-formula',
+      'target JRPG combat policy is not live in the browser');
+    assert(formulaContract.formulaVersion === '0.1.0',
+      'combat formula resolver is not live in the browser');
+    assert(formulaContract.staff && formulaContract.staff.damageType === 'emp',
+      'Staff Strike formula is not registered');
+    assert(formulaContract.abilityResolution &&
+      formulaContract.abilityResolution.formulaId === 'staffStrike',
+      'Staff Strike ability is not bound to formula resolution');
+
     // startCombat() resets the JRPG combat cursor to slot 1.
     await page.keyboard.press('KeyZ'); // Staff Strike
     await page.waitForFunction(() =>
@@ -1215,9 +1231,15 @@ function createServer() {
     assert(combatAfterActions.turn >= 2, 'combat actions did not resolve');
     assert(combatAfterActions.resolverMutations > 0,
       'live combat actions did not route ordinary mutations through the effect resolver');
-    assert(combatAfterActions.log.some(line =>
-      line.includes('[Turn 1]') && line.includes('Resonator Staff')),
+    const staffLog = combatAfterActions.log.find(line =>
+      line.includes('[Turn 1]') && line.includes('Resonator Staff'));
+    assert(staffLog,
       'turn 1 action text was not logged correctly');
+    assert(staffLog.includes('EMP damage'),
+      'Staff Strike did not resolve through the damage formula');
+    assert(!staffLog.includes('Roll:') && !staffLog.includes('partial') &&
+      !staffLog.includes('failure'),
+      'Staff Strike leaked legacy dice/outcome-band text');
     assert(combatAfterActions.log.some(line =>
       line.includes('[Turn 2]') && line.includes('Uncover Truth')),
       'turn 2 action text was not logged correctly');

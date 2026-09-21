@@ -1,15 +1,15 @@
 /* ============================================================
-   Aetherwake JRPG — Aether Pulse Runtime Balance Reference v0.1
+   Aetherwake JRPG — Aether Pulse Legacy 2D6 Balance Reference v0.1
    modules/aether-pulse-runtime-reference.js
 
    Scope:
-   - preserve a machine-readable snapshot of the CURRENT prototype combat
-     scale that is useful when evaluating synthetic Aether Pulse candidates;
-   - compare synthetic Pulse measurements to the current charged Staff Strike
-     and current enemy HP bands;
+   - preserve a machine-readable snapshot of the preservation-era 2D6 combat
+     scale for historical comparison only;
+   - compare synthetic Pulse measurements to the legacy charged Staff Strike
+     and preservation-era enemy HP bands;
    - fail closed on missing evaluator dependencies.
 
-   This is a CURRENT-RUNTIME REFERENCE, not a target balance specification,
+   This is a LEGACY 2D6 REFERENCE, not current Staff Strike behavior or a target balance specification,
    creator-canon decision, or authorization for Aether Pulse.
    ============================================================ */
 
@@ -37,7 +37,7 @@ function (pulseEvaluation) {
   'use strict';
 
   const VERSION = '0.1.0';
-  const STATUS = 'current-runtime-reference';
+  const STATUS = 'legacy-2d6-reference';
 
   function deepFreeze(value) {
     if (!value || typeof value !== 'object' || Object.isFrozen(value)) {
@@ -50,7 +50,7 @@ function (pulseEvaluation) {
 
   const REFERENCE = deepFreeze({
     status: STATUS,
-    authority: 'observed-prototype-runtime-only',
+    authority: 'preservation-legacy-runtime-only',
     sourceFiles: [
       'modules/combat.js',
       'modules/ability-defs.js',
@@ -89,7 +89,7 @@ function (pulseEvaluation) {
       },
     },
     caveats: [
-      'Reference describes current prototype behavior, not final combat balance.',
+      'Reference describes preservation-era 2D6 behavior, not current Staff Strike behavior or final combat balance.',
       'Staff Strike damage assumes at least one staff charge is available.',
       'Generic prototype action resources must not define Aether Pulse resource semantics.',
       'Aether Pulse remains design_proposal / not_integrated / draft-unresolved.',
@@ -209,7 +209,7 @@ function (pulseEvaluation) {
       },
       enemyCoverage: enemyCoverage(pulse.expectedEnemyDamage),
       boundary:
-        'comparison against current prototype runtime only; no design or runtime authority',
+        'comparison against preservation-era 2D6 prototype only; no target design or runtime authority',
     };
   }
 

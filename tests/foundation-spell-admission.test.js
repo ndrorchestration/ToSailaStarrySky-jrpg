@@ -320,7 +320,7 @@ assert.throws(
 
 
 assert.strictEqual(pulseReference.VERSION, '0.1.0');
-assert.strictEqual(pulseReference.STATUS, 'current-runtime-reference');
+assert.strictEqual(pulseReference.STATUS, 'legacy-2d6-reference');
 
 const combatSource = fs.readFileSync(
   require.resolve('../modules/combat.js'),
@@ -331,8 +331,8 @@ const abilitySource = fs.readFileSync(
   'utf8'
 );
 
-// Reference values must remain bound to observed runtime source rather than
-// drifting into an independent balance specification.
+// Legacy reference values remain bound to the preservation-era modular mirror
+// rather than drifting into an independent target balance specification.
 for (const expectedSourceFact of [
   'wits: 2, presence: 1, spirit: 1, might: -1',
   'aether: { current: 4, max: 6 }',
@@ -347,7 +347,7 @@ for (const expectedSourceFact of [
 ]) {
   assert(
     combatSource.includes(expectedSourceFact),
-    'runtime reference source fact drifted: ' + expectedSourceFact
+    'legacy 2D6 reference source fact drifted: ' + expectedSourceFact
   );
 }
 assert(
@@ -432,7 +432,7 @@ assert.strictEqual(
 );
 assert.strictEqual(
   pulseRuntimeComparison.boundary,
-  'comparison against current prototype runtime only; no design or runtime authority'
+  'comparison against preservation-era 2D6 prototype only; no target design or runtime authority'
 );
 
 console.log('Aetherwake foundation spell admission gate: PASS');

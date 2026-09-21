@@ -88,25 +88,22 @@
   }
 
   // Bridge metadata only. resolveTurn() remains the executable authority in
-  // this phase. These profiles are intentionally outcome-oriented and do not
-  // replace the current action cost/tier calculation.
+  // this migration phase. Unmigrated actions remain outcome-oriented. Migrated
+  // formula actions place their unconditional executable effects in `common`
+  // and leave legacy outcome-band phases empty.
   const ACTION_EFFECT_PROFILES = deepFreeze({
     staffStrike: {
+      // First JRPG-formula migration: these effects are no longer selected by
+      // success/partial/failure bands. Numeric EMP damage comes from
+      // modules/combat-formula.js; the effect resolver owns mutation.
       common: [
         effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.HEAT),
-      ],
-      success: [
         effect(EFFECT_KIND.DAMAGE, TARGET.ENEMY, OPERATION.APPLY, 'emp'),
         effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.DECREASE, RESOURCE.STAFF_CHARGES),
       ],
-      partial: [
-        effect(EFFECT_KIND.DAMAGE, TARGET.ENEMY, OPERATION.APPLY, 'emp'),
-        effect(EFFECT_KIND.DAMAGE, TARGET.SELF, OPERATION.APPLY, 'vitality'),
-        effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.DECREASE, RESOURCE.STAFF_CHARGES),
-      ],
-      failure: [
-        effect(EFFECT_KIND.DAMAGE, TARGET.SELF, OPERATION.APPLY, 'vitality'),
-      ],
+      success: [],
+      partial: [],
+      failure: [],
     },
 
     uncoverTruth: {

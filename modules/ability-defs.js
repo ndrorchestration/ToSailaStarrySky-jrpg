@@ -22,7 +22,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
 
   function deepFreeze(value) {
     if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -58,7 +58,11 @@
       type: 'attack',
       tier: 0,
       effectProfile: 'staffStrike',
-      desc: '1d6+2 EMP, 10ft melee / 60ft beam, 1 charge',
+      resolution: {
+        model: 'jrpg-stat-formula',
+        formulaId: 'staffStrike',
+      },
+      desc: 'Formula-driven EMP strike. Uses 1 Resonator Staff charge.',
     },
     uncoverTruth: {
       id: 'uncoverTruth',
@@ -158,6 +162,12 @@
       if (typeof def.type !== 'string' || !def.type) {
         throw new Error('ABILITY_TYPE_INVALID:' + id);
       }
+      if (id === 'staffStrike' &&
+          (!def.resolution ||
+           def.resolution.model !== 'jrpg-stat-formula' ||
+           def.resolution.formulaId !== 'staffStrike')) {
+        throw new Error('ABILITY_FORMULA_BINDING_INVALID:' + id);
+      }
     });
 
     const orphans = ids.filter(id => !ACTION_ORDER.includes(id));
@@ -241,6 +251,20 @@
       };
     }
 
+    if (actionId === 'staffStrike' && actor &&
+        Object.prototype.hasOwnProperty.call(actor, 'staffCharges') &&
+        currentResource(actor, 'staffCharges') < 1) {
+      return {
+        canUse: false,
+        reason: 'insufficient_dedicated_resource',
+        actionId,
+        resourceCost,
+        availableResource,
+        dedicatedResource: 'staffCharges',
+        dedicatedAvailable: currentResource(actor, 'staffCharges'),
+      };
+    }
+
     if (availableResource < resourceCost) {
       return {
         canUse: false,
@@ -286,6 +310,13 @@
           throw new Error('RUNTIME_ACTION_FIELD_MISMATCH:' + expectedId + ':' + key);
         }
       });
+      if (expected.resolution) {
+        if (!action.resolution ||
+            action.resolution.model !== expected.resolution.model ||
+            action.resolution.formulaId !== expected.resolution.formulaId) {
+          throw new Error('RUNTIME_ACTION_RESOLUTION_MISMATCH:' + expectedId);
+        }
+      }
     });
 
     return true;

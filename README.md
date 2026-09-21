@@ -90,17 +90,16 @@ The console is the first playable ship-systems slice. Its power and charge budge
 
 **Target combat direction:** conventional JRPG stat-and-ability formulas with bounded secondary RNG. There is no player-facing dice system in the production target, and PbtA success/partial/failure bands are being retired. See `docs/JRPG_COMBAT_DIRECTION.md`.
 
-**Current compatibility runtime:** the preservation build still uses **2D6 + stat** while the combat engine is migrated incrementally:
+**Current migration runtime:** combat is now hybrid while the engine is converted incrementally.
 
-- **10+** — full success
-- **7–9** — partial success / cost
-- **6−** — failure / complication
+- **Resonator Staff / Staff Strike:** first live **JRPG formula** action; Might-scaled EMP damage, one staff charge, bounded damage variance and critical policy, no visible dice/outcome bands.
+- **The remaining seven actions:** still use the preservation-era **2D6 + stat** compatibility path (10+ / 7–9 / 6−) until each receives a production formula/effect contract.
 
 The current preservation baseline contains eight combat actions:
 
 | # | Action | Role |
 |---:|---|---|
-| 1 | Resonator Staff | EMP attack |
+| 1 | Resonator Staff | JRPG-formula EMP attack |
 | 2 | Uncover Truth | Wits / reveal |
 | 3 | Shared Dream | Spirit / support |
 | 4 | Mycelial Ledger | Presence / resource recovery |
@@ -111,7 +110,7 @@ The current preservation baseline contains eight combat actions:
 
 Current prototype progression unlocks **Wind Ward at level 3, Aether Seal at level 4, and Rest at level 5**.
 
-These flat combat definitions and their 2D6 outcome behavior are a **legacy implementation baseline**, not the final architecture. The target system uses data-driven ability formulas, explicit prerequisites, a generic effect resolver, bounded accuracy/critical/status variance where appropriate, school mastery, jobs, and party-combination arts.
+The remaining 2D6 action definitions are a **legacy implementation baseline**, not the final architecture. Staff Strike is the first action migrated out of that baseline. The target system uses data-driven ability formulas, explicit prerequisites, a generic effect resolver, bounded accuracy/critical/status variance where appropriate, school mastery, jobs, and party-combination arts.
 
 ## Party architecture
 
