@@ -14,7 +14,7 @@ const expectedActionOrder = [
   'rest',
 ];
 
-assert.strictEqual(abilities.VERSION, '0.5.0');
+assert.strictEqual(abilities.VERSION, '0.6.0');
 assert.strictEqual(progression.VERSION, '0.1.0');
 assert.deepStrictEqual(abilities.ACTION_ORDER, expectedActionOrder);
 assert.strictEqual(abilities.validateDefs(), true);
