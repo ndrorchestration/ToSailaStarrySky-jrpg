@@ -47,6 +47,7 @@
     "package:windows": "nwbuild --mode=build --glob=false --platform=win --arch=x64 --version=0.116.0 --outDir=../aetherwake-dist .",
     "package:windows:clean": "npm run package:windows",
     "test:desktop-package": "node tests/desktop-package-contract.test.js",
-    "test:longform-progression": "node tests/longform-progression.test.js"
+    "test:longform-progression": "node tests/longform-progression.test.js",
+    "test:encounter-scaling": "node tests/encounter-scaling.test.js"
   }
 }
