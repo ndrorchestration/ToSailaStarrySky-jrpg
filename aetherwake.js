@@ -2074,7 +2074,19 @@ function handleAirNavigationInput(input) {
       airNavigationState = nav.undock(airNavigationState);
       showToast('CAST OFF // ' + airNavigationState.altitude.toUpperCase() + ' AIR', C.scioto, 900);
     }
+    const knownLandmarks = new Set(airNavigationState.discovered || []);
+    const knownRoutes = new Set(airNavigationState.discoveredRoutes || []);
     airNavigationState = nav.move(airNavigationState, dx, dy);
+    const newLandmarkId = (airNavigationState.discovered || []).find(id => !knownLandmarks.has(id));
+    const newRouteId = (airNavigationState.discoveredRoutes || []).find(id => !knownRoutes.has(id));
+    if (newLandmarkId) {
+      const landmark = (nav.LANDMARKS || []).find(mark => mark.id === newLandmarkId);
+      if (landmark) showToast('LANDMARK DISCOVERED // ' + landmark.label, C.teal, 1500);
+    }
+    if (newRouteId) {
+      const route = (nav.SKY_ROUTES || []).find(entry => entry.id === newRouteId);
+      if (route) showToast('SKY LANE CHARTED // ' + route.label, C.scioto, 1500);
+    }
     if (typeof nav.encounterCheck === 'function') {
       const encounter = nav.encounterCheck(airNavigationState);
       airNavigationState = encounter.state;
@@ -2114,6 +2126,17 @@ function drawAirshipOverlay() {
       cursor: airshipCursor,
       commands: getAirshipCommands(),
     });
+  }
+  if (airNavigationState && airNavigationState.mooredLandmarkId && window.AetherAirNavigation) {
+    const moored = (window.AetherAirNavigation.LANDMARKS || [])
+      .find(mark => mark.id === airNavigationState.mooredLandmarkId);
+    if (moored) {
+      textAlign(LEFT, TOP);
+      textFont('Press Start 2P');
+      textSize(8);
+      fill(C.teal[0], C.teal[1], C.teal[2]);
+      text('MOORED // ' + moored.label + '   ENTER FLIGHT TO CAST OFF', 18, height - 42);
+    }
   }
 }
 
