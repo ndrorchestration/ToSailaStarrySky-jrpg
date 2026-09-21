@@ -177,17 +177,13 @@
     },
 
     hold: {
-      common: [],
-      success: [
+      // Deterministic JRPG resource action: no outcome bands, no self-damage.
+      common: [
         effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.STAFF_CHARGES),
       ],
-      partial: [
-        effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.STAFF_CHARGES),
-        effect(EFFECT_KIND.DAMAGE, TARGET.SELF, OPERATION.APPLY, 'vitality'),
-      ],
-      failure: [
-        effect(EFFECT_KIND.DAMAGE, TARGET.SELF, OPERATION.APPLY, 'vitality'),
-      ],
+      success: [],
+      partial: [],
+      failure: [],
     },
 
     windWard: {
