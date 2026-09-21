@@ -4224,6 +4224,49 @@ function render() {
 
 // --- Ship Interior ----------------------------------------------------------
 
+function drawUnfinishedSongExterior(cx, cy, scale) {
+  const s = scale || 1;
+  const q = n => Math.round(n * s);
+  push();
+  translate(Math.round(cx), Math.round(cy));
+  noStroke();
+
+  // The Unfinished Song: dragonfly + armored seed pod + compact expedition craft.
+  // A larger hero asset by design; it is not constrained to the 16x16 overworld grammar.
+  fill(20, 18, 31, 150); rect(-q(54), q(18), q(108), q(5));
+  fill(47, 97, 127, 130);
+  rect(-q(78), -q(20), q(52), q(5)); rect(q(26), -q(20), q(52), q(5));
+  rect(-q(78), q(14), q(52), q(5)); rect(q(26), q(14), q(52), q(5));
+  fill(42, 255, 181, 120);
+  rect(-q(70), -q(18), q(42), q(2)); rect(q(28), -q(18), q(42), q(2));
+  rect(-q(70), q(16), q(42), q(2)); rect(q(28), q(16), q(42), q(2));
+
+  // Hammerhead prow and armored thorax.
+  fill(72, 35, 26); rect(-q(42), -q(13), q(84), q(27));
+  fill(118, 58, 33); rect(-q(50), -q(8), q(100), q(17));
+  fill(176, 105, 58); rect(-q(36), -q(17), q(62), q(35));
+  fill(184, 163, 119); rect(-q(28), -q(13), q(48), q(27));
+  fill(91, 68, 61); rect(-q(20), -q(9), q(38), q(19));
+
+  // Observation glass / Wakeheart.
+  fill(47, 97, 127); rect(-q(38), -q(7), q(15), q(14));
+  fill(124, 200, 232); rect(-q(35), -q(4), q(9), q(8));
+  fill(42, 255, 181); rect(-q(7), -q(4), q(10), q(8));
+  fill(211, 239, 241); rect(-q(4), -q(2), q(4), q(4));
+
+  // Segmented abdomen and unusually compact propulsion spine.
+  fill(72, 35, 26); rect(q(24), -q(7), q(42), q(15));
+  fill(118, 58, 33); rect(q(34), -q(5), q(40), q(11));
+  fill(47, 97, 127); rect(q(70), -q(4), q(16), q(9));
+  const pulse = Math.floor(frameCount / 12) % 2;
+  fill(42, 255, 181, 190); rect(q(84), -q(3 + pulse), q(12 + pulse * 4), q(7 + pulse * 2));
+
+  // Three folded resonance masts keep the silhouette vertical without bloating the hull.
+  fill(91, 68, 61); rect(-q(14), -q(38), q(3), q(23)); rect(q(5), -q(43), q(3), q(28)); rect(q(22), -q(35), q(3), q(20));
+  fill(42, 255, 181, 150); rect(-q(14), -q(39), q(3), q(3)); rect(q(5), -q(44), q(3), q(3)); rect(q(22), -q(36), q(3), q(3));
+  pop();
+}
+
 function drawShipInterior() {
   // The Unfinished Song — compact dragonfly-derived technomagical deck.
   noStroke();
