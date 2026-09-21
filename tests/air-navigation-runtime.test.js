@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('assert'),fs=require('fs'),path=require('path');
+const runtime=fs.readFileSync(path.join(__dirname,'..','aetherwake.js'),'utf8');
+const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+assert(html.includes('modules/air-navigation.js'),'air-navigation module not loaded');
+assert(runtime.includes('function drawAirNavigationScene()'),'playable sky renderer missing');
+assert(runtime.includes('function handleAirNavigationInput(input)'),'flight controls missing');
+assert(runtime.includes('drawUnfinishedSongExterior(width / 2, height / 2, 0.9)'),'hero ship not rendered in flight');
+assert(runtime.includes('nav.LANDMARKS'),'sky landmarks not projected');
+assert(runtime.includes('nav.move(airNavigationState'),'flight movement not bound');
+assert(runtime.includes('nav.changeAltitude(airNavigationState'),'altitude controls not bound');
+assert(runtime.includes('airshipFlightMode = true'),'airship systems do not enter flight');
+assert(runtime.includes('pageUp, pageDown, shift'),'flight control channels missing');
+console.log('Aetherwake playable air-navigation contract: PASS');
