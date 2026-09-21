@@ -220,7 +220,7 @@ assert.strictEqual(
 );
 
 
-assert.strictEqual(pulseEval.VERSION, '0.1.0');
+assert.strictEqual(pulseEval.VERSION, '0.2.0');
 assert.strictEqual(pulseEval.STATUS, 'synthetic-test-only');
 assert.strictEqual(pulseEval.SPELL_ID, 'aetherPulse');
 assert.strictEqual(pulseEval.SCHOOL_ID, 'aether');
@@ -254,6 +254,13 @@ const pulseCandidateB = syntheticBalanceCandidate(
   'wits',
   { success: 4, partial: 2, failure: 0 },
   { success: 0, partial: 0, failure: 0 }
+);
+const pulseCandidateC = syntheticBalanceCandidate(
+  'TEST_ONLY_C_DOMINATED',
+  2,
+  'wits',
+  { success: 2, partial: 1, failure: 0 },
+  { success: 0, partial: 0, failure: 1 }
 );
 
 const neutralCounts = pulseEval.getOutcomeCounts(0);
@@ -306,6 +313,63 @@ modifierSweep.forEach(result => {
   assert.strictEqual(result.runtimeAuthorized, false);
   assert.strictEqual(result.designEstablished, false);
 });
+
+
+const designSpaceAtPlusTwo = pulseEval.evaluateCandidateSet(
+  [pulseCandidateA, pulseCandidateB, pulseCandidateC],
+  2
+);
+assert.deepStrictEqual(
+  designSpaceAtPlusTwo.map(item => item.candidateId),
+  ['TEST_ONLY_A', 'TEST_ONLY_B', 'TEST_ONLY_C_DOMINATED']
+);
+designSpaceAtPlusTwo.forEach(item => {
+  assert.strictEqual(item.synthetic, true);
+  assert.strictEqual(item.designEstablished, false);
+  assert.strictEqual(item.runtimeAuthorized, false);
+  assert.strictEqual(item.modifier, 2);
+});
+
+const designFrontier = pulseEval.getParetoFrontier(designSpaceAtPlusTwo);
+assert.deepStrictEqual(
+  designFrontier.map(item => item.candidateId),
+  ['TEST_ONLY_A', 'TEST_ONLY_B'],
+  'frontier should retain tradeoffs and remove only the strictly dominated fixture'
+);
+assert.strictEqual(
+  pulseEval.dominates(designSpaceAtPlusTwo[0], designSpaceAtPlusTwo[2]),
+  true
+);
+assert.strictEqual(
+  pulseEval.dominates(designSpaceAtPlusTwo[1], designSpaceAtPlusTwo[0]),
+  false,
+  'higher damage/lower risk does not dominate when it also costs more Aether'
+);
+
+const multiModifierDesignSpace = pulseEval.evaluateCandidateSetAcrossModifiers(
+  [pulseCandidateA, pulseCandidateB],
+  [0, 2]
+);
+assert.deepStrictEqual(
+  multiModifierDesignSpace.map(group => group.modifier),
+  [0, 2]
+);
+assert(
+  multiModifierDesignSpace.every(group => group.evaluations.length === 2),
+  'candidate-set modifier sweep must preserve every supplied candidate'
+);
+
+assert.throws(
+  () => pulseEval.validateCandidateSet([pulseCandidateA, pulseCandidateA]),
+  /SYNTHETIC_CANDIDATE_SET_DUPLICATE_ID/
+);
+assert.throws(
+  () => pulseEval.getParetoFrontier([
+    pulseEval.evaluateCandidate(pulseCandidateA, 0),
+    pulseEval.evaluateCandidate(pulseCandidateB, 2),
+  ]),
+  /SYNTHETIC_FRONTIER_MODIFIER_MISMATCH/
+);
 
 assert.throws(
   () => pulseEval.validateCandidate(Object.assign({}, pulseCandidateA, {
@@ -444,6 +508,12 @@ console.log(JSON.stringify({
     neutralA,
     plusTwoA,
     neutralB,
+    designFrontier: designFrontier.map(item => ({
+      candidateId: item.candidateId,
+      resourceCost: item.resourceCost,
+      expectedEnemyDamage: item.expectedEnemyDamage,
+      expectedSelfDamage: item.expectedSelfDamage,
+    })),
   },
   currentRuntimeReference: {
     staffReference,
