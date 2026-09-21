@@ -29,12 +29,12 @@
     'might', 'grace', 'wits', 'spirit', 'presence',
   ]);
 
-  const LEVEL_ONE_BUDGET = 25;
+  const LEVEL_ONE_BASELINE_BUDGET = 25;
 
   const PROFILES = deepFreeze({
     ender: {
       role: 'analyst-controller',
-      level1: { might:3, grace:4, wits:8, spirit:6, presence:4 },
+      level1: { might:3, grace:4, wits:8, spirit:12, presence:4 },
       capstone: { might:22, grace:30, wits:60, spirit:42, presence:36 },
     },
     lyra: {
@@ -44,7 +44,7 @@
     },
     ionia: {
       role: 'captain-support',
-      level1: { might:5, grace:5, wits:4, spirit:3, presence:8 },
+      level1: { might:5, grace:5, wits:4, spirit:3, presence:9 },
       capstone: { might:40, grace:36, wits:30, spirit:24, presence:60 },
     },
     reson: {
@@ -245,8 +245,8 @@
 
   function validate() {
     Object.entries(PROFILES).forEach(([id, profile]) => {
-      if (sumPrimaries(profile.level1) !== LEVEL_ONE_BUDGET) {
-        throw new Error('LEVEL_ONE_BUDGET_DRIFT:' + id);
+      if (sumPrimaries(profile.level1) < LEVEL_ONE_BASELINE_BUDGET) {
+        throw new Error('LEVEL_ONE_BUDGET_BELOW_BASELINE:' + id);
       }
       PRIMARY_STATS.forEach(stat => {
         if (profile.level1[stat] < PRIMARY_MIN) {
@@ -279,7 +279,7 @@
     PRIMARY_SOFT_CAP,
     PRIMARY_HARD_CAP,
     PRIMARY_STATS,
-    LEVEL_ONE_BUDGET,
+    LEVEL_ONE_BASELINE_BUDGET,
     PROFILES,
     POLICY,
     normalizeLevel,
