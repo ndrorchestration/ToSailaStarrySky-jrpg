@@ -1956,8 +1956,33 @@ function drawAirNavigationScene() {
     }
   }
 
-  // Authored sky landmarks are projected around the ship from navigation coordinates.
+  // Authored route graph gives the sky a navigable geography rather than empty coordinate space.
   const scaleX = 26, scaleY = 18;
+  stroke(124, 200, 232, 45); strokeWeight(1);
+  for (const route of nav.SKY_ROUTES || []) {
+    const a = nav.LANDMARKS.find(mark => mark.id === route.from);
+    const b = nav.LANDMARKS.find(mark => mark.id === route.to);
+    if (!a || !b) continue;
+    const ax = Math.round(width / 2 + (a.x - airNavigationState.x) * scaleX);
+    const ay = Math.round(height / 2 + (a.y - airNavigationState.y) * scaleY);
+    const bx = Math.round(width / 2 + (b.x - airNavigationState.x) * scaleX);
+    const by = Math.round(height / 2 + (b.y - airNavigationState.y) * scaleY);
+    line(ax, ay, bx, by);
+  }
+  noStroke();
+
+  // Weather zones tint and texture the flight layer without changing story state.
+  const weather = typeof nav.weatherAt === 'function' ? nav.weatherAt(airNavigationState) : { id: 'clear', label: 'CLEAR WAKE' };
+  if (weather.id === 'crosswind') {
+    fill(124, 200, 232, 20);
+    for (let i = 0; i < 9; i++) rect((i * 131 + frameCount * 2) % (width + 120) - 60, 120 + (i * 47) % 360, 72, 2);
+  } else if (weather.id === 'aether-squall') {
+    fill(42, 255, 181, 18); rect(0, 0, width, height);
+    fill(124, 200, 232, 38);
+    for (let i = 0; i < 12; i++) rect((i * 83 + frameCount * 3) % width, 70 + (i * 53) % 470, 4, 14);
+  }
+
+  // Authored sky landmarks are projected around the ship from navigation coordinates.
   for (const mark of nav.LANDMARKS) {
     const sx = Math.round(width / 2 + (mark.x - airNavigationState.x) * scaleX);
     const sy = Math.round(height / 2 + (mark.y - airNavigationState.y) * scaleY);
@@ -1974,8 +1999,13 @@ function drawAirNavigationScene() {
   textAlign(LEFT, TOP); textFont('Press Start 2P'); textSize(8);
   fill(42, 255, 181); text('SKY NAV // ' + airNavigationState.altitude.toUpperCase(), 18, 18);
   fill(232, 220, 198); text('SPD ' + airNavigationState.speed + '   POS ' + Math.round(airNavigationState.x) + ',' + Math.round(airNavigationState.y), 18, 36);
-  if (near) text('NEAREST ' + near.landmark.label + '  ' + near.distance.toFixed(1), 18, 52);
-  fill(124, 200, 232); text('ARROWS FLY   Q/W ALTITUDE   SHIFT SPEED   TAB SYSTEMS   ESC LAND', 18, height - 24);
+  text('WEATHER ' + weather.label + '   ROUTES ' + airNavigationState.discoveredRoutes.length + '/' + (nav.SKY_ROUTES || []).length, 18, 52);
+  if (near) text('NEAREST ' + near.landmark.label + '  ' + near.distance.toFixed(1), 18, 68);
+  const berth = typeof nav.dockingCheck === 'function' ? nav.dockingCheck(airNavigationState) : { available: false };
+  if (berth.available) {
+    fill(42, 255, 181); text('BERTH AVAILABLE: ' + berth.landmark.label + '   [D] DOCK', 18, 84);
+  }
+  fill(124, 200, 232); text('ARROWS FLY   Q/W ALTITUDE   SHIFT SPEED   D DOCK   ENTER SYSTEMS   ESC LAND', 18, height - 24);
 }
 
 function handleAirNavigationInput(input) {
@@ -1985,6 +2015,10 @@ function handleAirNavigationInput(input) {
   if (input.left) dx = -1; else if (input.right) dx = 1;
   if (input.up) dy = -1; else if (input.down) dy = 1;
   if (dx || dy) {
+    if (airNavigationState.mooredLandmarkId && typeof nav.undock === 'function') {
+      airNavigationState = nav.undock(airNavigationState);
+      showToast('CAST OFF // ' + airNavigationState.altitude.toUpperCase() + ' AIR', C.scioto, 900);
+    }
     airNavigationState = nav.move(airNavigationState, dx, dy);
     if (typeof nav.encounterCheck === 'function') {
       const encounter = nav.encounterCheck(airNavigationState);
@@ -1999,6 +2033,16 @@ function handleAirNavigationInput(input) {
   }
   if (input.pageUp) airNavigationState = nav.changeAltitude(airNavigationState, 1);
   if (input.pageDown) airNavigationState = nav.changeAltitude(airNavigationState, -1);
+  if (keysPressed[68] && typeof nav.dock === 'function') {
+    const docking = nav.dock(airNavigationState);
+    airNavigationState = docking.state;
+    if (docking.ok) {
+      showToast('MOORED // ' + docking.landmark.label, C.teal, 1200);
+      airshipFlightMode = false;
+    } else {
+      showToast('NO STABLE BERTH IN RANGE', C.rust, 900);
+    }
+  }
   if (input.shift) airNavigationState.speed = airNavigationState.speed >= 3 ? 1 : airNavigationState.speed + 1;
   if (input.ok) airshipFlightMode = false;
   if (input.cancel) { airshipFlightMode = false; leaveAirship(); }
