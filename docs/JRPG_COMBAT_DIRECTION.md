@@ -16,6 +16,12 @@ Aetherwake's production combat system will use a conventional turn-based JRPG mo
 
 The current 2D6 runtime is preservation/adaptation residue. It remains testable only so the playable build stays intact during migration.
 
+## Party-size direction
+
+Combat-system architecture must not assume a permanent three-character maximum. The opening party grows from Ender alone to Ender/Lyra and then Ender/Lyra/Ionia; later recruitment should expand the same turn-based framework to four active protagonists when Reson joins and all five when Aepex joins.
+
+Dual and Triple Arts remain valid subset techniques inside the larger party. UI layout, turn order, targeting, status presentation, and resource displays must therefore scale to five simultaneous protagonists without duplicating character progression state.
+
 ## Target resolution pipeline
 
 1. Validate actor, action ownership/unlock state, target, and resource affordability.
