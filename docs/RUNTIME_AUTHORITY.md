@@ -19,7 +19,9 @@ index-embedded.html
 
 The entrypoints also load explicit supporting runtime modules before and after
 `aetherwake.js`, including input, combat policy/formula, registries, party,
-save, airship, audio, character creation, and p5.js.
+save, airship state/navigation/UI, audio, character creation, and p5.js.
+
+Current extracted executable support modules include `modules/air-navigation.js`; runtime behavior remains authoritative only when the supported entrypoint actually loads the module.
 
 A file is executable runtime authority only when a supported entrypoint
 explicitly loads it or when an explicitly loaded runtime file imports/uses it.
