@@ -29,7 +29,8 @@ const STATE = {
 };
 let gameState = STATE.BOOT;
 window.gameState = gameState;  // expose for debug
-let prevState = null;       // overlay return target; never overwritten by the frame loop
+let prevState = null;       // compatibility projection of the current overlay return target
+let overlayStateStack = [];  // nested JRPG menus: WORLD → SYSTEMMENU → STATUS, etc.
 let lastFrameState = null;  // render/fade tracking only
 let menuAutoStartTimer = 0;  // one-shot: auto-start from MENU after 3s idle (prevents single-press hang)
 
@@ -1077,6 +1078,7 @@ function leaveAirship() {
     gameState = STATE.WORLD;
     window.gameState = gameState;
     prevState = null;
+    overlayStateStack.length = 0;
     if (VIS.fadeTransitions) startFade(100);
   }
 }
@@ -1275,6 +1277,7 @@ function quickLoadGame() {
     gameState = STATE.WORLD;
     window.gameState = gameState;
     prevState = null;
+    overlayStateStack.length = 0;
     if (window.UI) {
       window.UI.dialogueOpen = false;
       window.UI.shopOpen = false;
@@ -1415,7 +1418,8 @@ function finishCombat() {
 }
 
 function openState(s) {
-  prevState = gameState;
+  overlayStateStack.push(gameState);
+  prevState = overlayStateStack[overlayStateStack.length - 1] || null;
   gameState = s;
   if (s === STATE.SHOP) {
     const count = window.UI && Array.isArray(window.UI.shopItems)
@@ -1472,10 +1476,15 @@ function closeOverlay() {
   if (gameState === STATE.AIRSHIP && world && world.player) {
     world.player.shipBoarded = false;
   }
-  if (prevState) {
-    gameState = prevState;
+  const returnState = overlayStateStack.length
+    ? overlayStateStack.pop()
+    : prevState;
+  if (returnState) {
+    gameState = returnState;
     window.gameState = gameState;
-    prevState = null;
+    prevState = overlayStateStack.length
+      ? overlayStateStack[overlayStateStack.length - 1]
+      : null;
     if (VIS.fadeTransitions) {
       startFade(100);
     }
