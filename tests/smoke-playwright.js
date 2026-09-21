@@ -1236,17 +1236,19 @@ function createServer() {
 
     // Dragonfly-class airship systems: use the production boarding input path.
     const airshipSetup = await page.evaluate(() => {
-      window._world.player.tileX = 22;
+      window._world.player.tileX = 23;
       window._world.player.tileY = 10;
-      window._world.player.px = 22 * 16;
+      window._world.player.x = 23;
+      window._world.player.y = 10;
+      window._world.player.px = 23 * 16;
       window._world.player.py = 10 * 16;
       return {
         tileX: window._world.player.tileX,
         tileY: window._world.player.tileY,
       };
     });
-    assert(airshipSetup.tileX === 22 && airshipSetup.tileY === 10,
-      'airship smoke fixture did not place Ender beside the ship');
+    assert(airshipSetup.tileX === 23 && airshipSetup.tileY === 10,
+      'airship smoke fixture did not place Ender on the boarding locus');
 
     await page.keyboard.press('KeyZ');
     await page.waitForFunction(() => window.gameState === 'airship', undefined,
