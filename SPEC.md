@@ -132,14 +132,15 @@ The migration contract is defined in `docs/JRPG_COMBAT_DIRECTION.md` and machine
 
 The existing 2D6 implementation remains temporarily testable only to keep the playable prototype intact while actions are migrated incrementally.
 
-### CURRENT IMPLEMENTATION — LEGACY COMPATIBILITY
+### CURRENT IMPLEMENTATION — HYBRID MIGRATION
 
-Resolution:
+Resolution now has two explicit paths:
 
-- 2D6 + relevant stat
-- 10+ = full success
-- 7–9 = partial success / complication
-- 6− = failure
+- **Staff Strike:** live JRPG formula resolution through `modules/combat-formula.js`; no 2D6 outcome band, one dedicated staff charge, Might scaling, EMP damage type, explicit future EMP-defense hook, bounded variance, and critical policy.
+- **All other current actions:** preservation-era 2D6 compatibility path:
+  - 10+ = full success
+  - 7–9 = partial success / complication
+  - 6− = failure
 
 Resources currently include:
 
@@ -169,15 +170,17 @@ Current prototype level unlocks:
 
 These unlocks are now enforced at use time. At level 1, the eligible action set is Staff Strike, Uncover Truth, Shared Dream, Mycelial Ledger, and Hold. Wind Ward, Aether Seal, and Rest remain visible in stable key slots but reject use until their IDs enter `player.unlockedAbilities`.
 
-Current use eligibility is centralized in `modules/ability-defs.js` v0.2.0. The prototype's existing numeric rule is preserved exactly as `tier + cost`, but affordability is preflighted transactionally across pooled Echo+Aether before a turn or resource is consumed. The combat UI and runtime use the same cost function. Normal victory XP now routes through `awardXP()`, so crossing a threshold executes `levelUp()` and makes newly learned actions eligible.
+Current use eligibility is centralized in `modules/ability-defs.js` v0.3.0. Staff Strike additionally preflights its dedicated staff charge before turn/heat consumption. The prototype's existing numeric rule is preserved exactly as `tier + cost`, but affordability is preflighted transactionally across pooled Echo+Aether before a turn or resource is consumed. The combat UI and runtime use the same cost function. Normal victory XP now routes through `awardXP()`, so crossing a threshold executes `levelUp()` and makes newly learned actions eligible.
 
 The development branch now separates current combat metadata from execution:
 
+- `modules/combat-system-policy.js` guards the approved formula-driven JRPG target;
+- `modules/combat-formula.js` v0.1 resolves the first migrated numeric combat formula (Staff Strike) without mutating state;
 - `modules/effect-vocabulary.js` establishes effect vocabulary v0.1;
 - frozen kinds are `damage`, `restore`, `resource`, `modifier`, `status`, `reveal`, and `movement`;
 - `modules/ability-defs.js` v0.2.0 owns canonical metadata/order, unlock eligibility, legacy resource-cost calculation, pooled affordability, and current use eligibility for the eight actions;
 - `modules/progression-defs.js` owns the current level-3/4/5 unlock table;
-- `AetherCombat.resolveTurn()` remains the action/outcome branch authority;
+- `AetherCombat.resolveTurn()` routes Staff Strike through the formula resolver and keeps unmigrated actions on the legacy outcome branch;
 - ordinary damage, restoration, and resource mutations inside `resolveTurn()` are now executed through `modules/effect-resolver.js`;
 - the resolver fails closed on unsupported implemented effect kinds and treats `DECLARED_NOT_APPLIED` effects as explicit no-ops;
 - `resolveTurn()` now rejects locked actions before consuming a turn or resources;
