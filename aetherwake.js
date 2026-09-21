@@ -4420,13 +4420,21 @@ function drawTileFloat(px, py, s) {
 }
 
 function drawTileWater(px, py, s) {
-  drawPixelWorldTile('water', px, py, Math.floor(frameCount / 24) % 2);
-  // Sparse pale surf breaks up large water fields without changing walkability.
   const tx = Math.round(px / 16);
   const ty = Math.round(py / 16);
-  if (Math.abs(tx * 5 + ty * 11) % 17 === 0) {
-    drawPixelWorldTile('shore', px, py, 0);
-  }
+  drawPixelWorldTile('water', px, py, Math.floor(frameCount / 24) % 2);
+
+  // Surf belongs to actual land/water boundaries, not arbitrary open-water cells.
+  const touchesLand =
+    isGroundType(tx - 1, ty, TILE_TYPES.GROUND_GRASS) ||
+    isGroundType(tx + 1, ty, TILE_TYPES.GROUND_GRASS) ||
+    isGroundType(tx, ty - 1, TILE_TYPES.GROUND_GRASS) ||
+    isGroundType(tx, ty + 1, TILE_TYPES.GROUND_GRASS) ||
+    isGroundType(tx - 1, ty, TILE_TYPES.GROUND_FLOAT) ||
+    isGroundType(tx + 1, ty, TILE_TYPES.GROUND_FLOAT) ||
+    isGroundType(tx, ty - 1, TILE_TYPES.GROUND_FLOAT) ||
+    isGroundType(tx, ty + 1, TILE_TYPES.GROUND_FLOAT);
+  if (touchesLand) drawPixelWorldTile('shore', px, py, 0);
 }
 
 function drawTileLore(px, py, s) {
