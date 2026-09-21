@@ -16,6 +16,7 @@
 
   const BALANCE_PROFILE_VERSION = 1;
   const BALANCE_STATUS = 'PROVISIONAL_NOT_CANON';
+  const CHARACTER_CANON = global.AetherCharacterCanon || null;
 
   // Identity facts come from creator canon. Numeric values below are a first
   // balance pass fitted to the existing rank-1 stat scale; they are tuning
@@ -71,6 +72,7 @@
     target.class = definition.nativeJob;
     target.jobId = definition.nativeJob ? definition.id : null;
     target.combatRole = definition.combatRole;
+    target.artProfileId = definition.id;
     target.balanceProfileVersion = BALANCE_PROFILE_VERSION;
     target.balanceStatus = BALANCE_STATUS;
     target.vit = base.vit;
@@ -191,6 +193,19 @@
     }
 
     if (new Set(actualIds).size !== 5) throw new Error('ROSTER_IDS_MUST_BE_UNIQUE');
+
+    if (CHARACTER_CANON && CHARACTER_CANON.PROFILES) {
+      DEFINITIONS.forEach(definition => {
+        const profile = CHARACTER_CANON.PROFILES[definition.id];
+        if (!profile) throw new Error('CHARACTER_CANON_PROFILE_MISSING:' + definition.id);
+        if (profile.name !== definition.canonicalName || profile.age !== definition.age) {
+          throw new Error('CHARACTER_CANON_IDENTITY_DRIFT:' + definition.id);
+        }
+        if ((profile.nativeJob || null) !== (definition.nativeJob || null)) {
+          throw new Error('CHARACTER_CANON_JOB_DRIFT:' + definition.id);
+        }
+      });
+    }
     if (ACTIVE_PARTY.length < MIN_ACTIVE_PARTY || ACTIVE_PARTY.length > MAX_ACTIVE_PARTY) {
       throw new Error('ACTIVE_PARTY_LENGTH_MUST_BE_1_TO_5');
     }
@@ -312,6 +327,7 @@
     definitions: DEFINITIONS,
     balanceProfileVersion: BALANCE_PROFILE_VERSION,
     balanceStatus: BALANCE_STATUS,
+    characterCanonVersion: CHARACTER_CANON ? CHARACTER_CANON.VERSION : null,
     roster: ROSTER,
     activeParty: ACTIVE_PARTY,
     bootstrap,
