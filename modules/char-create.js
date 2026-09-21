@@ -554,12 +554,12 @@ const CharCreate = {
     textSize(11);
     fill(C.teal[0], C.teal[1], C.teal[2], blink);
     textAlign(CENTER, CENTER);
-    text('PRESS  ENTER  /  SPACE  /  N  TO  BEGIN', cx, height - 42);
+    text('PRESS  Z  /  ENTER  /  SPACE  TO  BEGIN', cx, height - 42);
 
     // Controls hint
     textSize(9);
     fill(C.dim[0], C.dim[1], C.dim[2], 120);
-    text('1-3: field-role template   ← →: cycle   ENTER: confirm   ESC: back', cx, height - 22);
+    text('← →: select field role   ·   Z/ENTER: confirm   ·   X/ESC: back', cx, height - 22);
   },
 
   // ── Draw Ender preview silhouette ──
@@ -706,7 +706,7 @@ const CharCreate = {
     textSize(8);
     fill(C.teal[0], C.teal[1], C.teal[2], 140);
     textAlign(LEFT, TOP);
-    text('ENTER to confirm name', fieldX + 8, fieldY + fieldH + 10);
+    text('Z / ENTER to confirm name', fieldX + 8, fieldY + fieldH + 10);
 
     // Already-named companion preview (if returning from review)
     if (this.slot === 1 && this.party[1]) {
@@ -740,7 +740,7 @@ const CharCreate = {
     textSize(7);
     fill(C.dim[0], C.dim[1], C.dim[2], 100);
     textAlign(RIGHT, BOTTOM);
-    text('ESC to cancel', panelX + panelW - 16, panelY + panelH - 10);
+    text('X / ESC to cancel', panelX + panelW - 16, panelY + panelH - 10);
   },
 
   // ── Class selection step ──
@@ -969,7 +969,7 @@ const CharCreate = {
     textSize(8);
     fill(C.dim[0], C.dim[1], C.dim[2], 120);
     textAlign(CENTER, BOTTOM);
-    text('← → to cycle  ·  1-3 to select  ·  ENTER to confirm  ·  ESC to go back',
+    text('← → to cycle  ·  Z/ENTER to confirm  ·  X/ESC to go back',
          width / 2, height - 16);
   },
 
@@ -1260,7 +1260,7 @@ const CharCreate = {
     textAlign(CENTER, CENTER);
     fill(C.teal[0], C.teal[1], C.teal[2], 220);
     const confirmLabel = this.party[1] && this.party[2]
-      ? '▶  CONFIRM PARTY  —  ENTER  ◀'
+      ? '▶  CONFIRM PARTY  —  Z / ENTER  ◀'
       : '▷  Fill both slots to continue  ◁';
     text(confirmLabel, width / 2, btnY + btnH / 2);
 
@@ -1269,7 +1269,7 @@ const CharCreate = {
     textSize(7);
     fill(C.dim[0], C.dim[1], C.dim[2], 100);
     textAlign(CENTER, BOTTOM);
-    text('ENTER to begin  ·  ESC to edit field roles', width / 2, height - 12);
+    text('Z/ENTER to begin  ·  X/ESC to edit field roles', width / 2, height - 12);
   },
 };
 
