@@ -4371,10 +4371,16 @@ function drawTileGrass(px, py, s) {
   const scenic = Math.abs(tx * 31 + ty * 17) % 29;
   if (scenic === 3 || scenic === 11) {
     drawPixelWorldTile('forest', px, py, 0);
+  } else if (scenic === 7 || scenic === 13) {
+    drawPixelWorldTile('flowers', px, py, 0);
   } else if (scenic === 19) {
     drawPixelWorldTile('path', px, py, 0);
   } else if (scenic === 23 && ty < 10) {
     drawPixelWorldTile('mountain', px, py, 0);
+  } else if (scenic === 27 && tx > 8 && ty > 7) {
+    drawPixelWorldTile('ruins', px, py, 0);
+  } else if (scenic === 5 && tx > 12 && ty > 10) {
+    drawPixelWorldTile('village', px, py, 0);
   }
 }
 
