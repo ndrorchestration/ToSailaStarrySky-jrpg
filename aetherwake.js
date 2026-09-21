@@ -6587,6 +6587,31 @@ function AetherCombat(p, C) {
       p.ellipse(wx - 4, wy - 2, 14 + Math.sin(t * 1.3 + i) * 4, 4 + Math.cos(t * 0.9 + i) * 2);
     }
 
+    // ── Pixel party formation ──
+    const battleSprites = window.AetherPixelSprites;
+    const battleGroundY = Math.round(p.height * 0.62);
+    const battleEnderX = Math.round(p.width * 0.34);
+    const battleLyraX = battleEnderX - 54;
+    const battleIoniaX = battleEnderX - 104;
+    const battleFrame = Math.floor(now / 420) % 2;
+
+    if (battleSprites && typeof battleSprites.draw === 'function') {
+      battleSprites.drawShadow(battleIoniaX, battleGroundY + 3, 2.2);
+      battleSprites.draw('ionia', battleIoniaX, battleGroundY, {
+        frame: battleFrame, scale: 3, anchor: 'bottom-center',
+      });
+
+      battleSprites.drawShadow(battleLyraX, battleGroundY + 3, 2.2);
+      battleSprites.draw('lyra', battleLyraX, battleGroundY, {
+        frame: battleFrame, scale: 3, anchor: 'bottom-center',
+      });
+
+      battleSprites.drawShadow(battleEnderX, battleGroundY + 3, 2.4);
+      battleSprites.draw('ender', battleEnderX, battleGroundY + dodgeBob, {
+        frame: battleFrame, scale: 3, anchor: 'bottom-center',
+      });
+    }
+
     // ── Combat intro banner ──
     if (state.enemy && state.turn <= 3) {
       const bannerT = Math.min(1, state.turn / 3);
@@ -6616,88 +6641,110 @@ function AetherCombat(p, C) {
       };
       const eBodyColor = colorMap[eColor] || C.soil;
 
-      // Enemy glow (changes with HP)
+      // Pixel authority for the opening encounter. Other enemy families stay
+      // on the legacy renderer until their own sprite pass is admitted.
       const hpRatio = state.enemy.hp / state.enemy.maxHp;
       const glowColor = hpRatio > 0.5 ? C.scioto : (hpRatio > 0.25 ? C.rust : C.teal);
-      p.fill(glowColor[0], glowColor[1], glowColor[2], 30 + Math.sin(now * 0.005) * 10);
-      p.noStroke();
-      p.ellipse(ex, ey, 70 + Math.sin(now * 0.003) * 4, 52 + Math.cos(now * 0.004) * 3);
+      const pixelEnemy = window.AetherPixelSprites &&
+        window.AetherPixelSprites.get &&
+        window.AetherPixelSprites.get('skyPredator');
 
-      // ── Enemy wings (animated) ──
-      const wingFlap = Math.sin(now * 0.005 + state.turn * 0.5) * 10 + 22;
-      // Per-enemy-type wing color
-      const wingColorMap = {
-        skyPredator: C.scioto,
-        corporateSalvager: C.soil,
-        windShear: C.scioto,
-        aetherLeak: C.teal,
-      };
-      const wingColor = wingColorMap[eType] || C.teal;
-      p.fill(wingColor[0], wingColor[1], wingColor[2], 140 + Math.sin(now * 0.004 + state.turn) * 20);
-      p.noStroke();
-      p.ellipse(ex - 26, ey - 8, 30, wingFlap);
-      p.ellipse(ex + 26, ey - 8, 30, wingFlap * 0.85);
+      if (eType === 'skyPredator' && pixelEnemy) {
+        const flapFrame = Math.floor(now / 180) % 2;
+        window.AetherPixelSprites.drawShadow(ex, ey + 34, 3);
+        window.AetherPixelSprites.draw('skyPredator', ex, ey + 26, {
+          frame: flapFrame,
+          scale: 4,
+          anchor: 'bottom-center',
+        });
 
-      // Wing-edge glow
-      p.stroke(C.teal[0], C.teal[1], C.teal[2], 60);
-      p.strokeWeight(1);
-      p.noFill();
-      p.ellipse(ex - 26, ey - 8, 30, wingFlap);
-      p.ellipse(ex + 26, ey - 8, 30, wingFlap * 0.85);
-      p.noStroke();
-
-      // ── Enemy body ──
-      const bodyColor = eBodyColor;
-      p.fill(bodyColor[0], bodyColor[1], bodyColor[2], 220);
-      p.noStroke();
-      // Different body shapes per enemy type
-      if (eType === 'elemental') {
-        // Wind Shear: angular, swirling body
-        p.ellipse(ex, ey, 34, 28);
-        p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 80);
-        p.ellipse(ex - 8, ey - 4, 18, 14);
-        // Wind streaks
-        p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], 100);
-        p.strokeWeight(1.5);
         p.noFill();
-        for (let w = 0; w < 3; w++) {
-          const wa = now * 0.005 + w * 2.1;
-          p.line(ex - 12 + Math.sin(wa) * 8, ey - 6 + Math.cos(wa * 0.7) * 4,
-                 ex - 4 + Math.sin(wa + 1) * 10, ey - 2 + Math.cos(wa * 0.7 + 1) * 5);
-        }
+        p.stroke(glowColor[0], glowColor[1], glowColor[2], 55);
+        p.strokeWeight(2);
+        p.rect(ex - 36, ey - 38, 72, 72);
         p.noStroke();
-      } else if (eType === 'wraith') {
-        // Aether Leak: translucent, irregular blob
-        p.ellipse(ex, ey, 32, 26);
-        // Corrosive aura
-        p.fill(C.teal[0], C.teal[1], C.teal[2], 30 + Math.sin(now * 0.008) * 15);
-        p.ellipse(ex, ey, 44, 36);
-        p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 50);
-        p.ellipse(ex - 4, ey - 2, 16, 12);
-      } else if (eType === 'humanoid') {
-        // Corporate Salvager: taller, narrower
-        p.ellipse(ex, ey, 26, 36);
-        p.fill(C.soil[0], C.soil[1], C.soil[2], 180);
-        p.rect(ex - 8, ey - 18, 16, 18);
       } else {
-        // Sky-Predator (default): original body
-        p.ellipse(ex, ey, 30, 34);
+  
+        p.fill(glowColor[0], glowColor[1], glowColor[2], 30 + Math.sin(now * 0.005) * 10);
+        p.noStroke();
+        p.ellipse(ex, ey, 70 + Math.sin(now * 0.003) * 4, 52 + Math.cos(now * 0.004) * 3);
+  
+        // ── Enemy wings (animated) ──
+        const wingFlap = Math.sin(now * 0.005 + state.turn * 0.5) * 10 + 22;
+        // Per-enemy-type wing color
+        const wingColorMap = {
+          skyPredator: C.scioto,
+          corporateSalvager: C.soil,
+          windShear: C.scioto,
+          aetherLeak: C.teal,
+        };
+        const wingColor = wingColorMap[eType] || C.teal;
+        p.fill(wingColor[0], wingColor[1], wingColor[2], 140 + Math.sin(now * 0.004 + state.turn) * 20);
+        p.noStroke();
+        p.ellipse(ex - 26, ey - 8, 30, wingFlap);
+        p.ellipse(ex + 26, ey - 8, 30, wingFlap * 0.85);
+  
+        // Wing-edge glow
+        p.stroke(C.teal[0], C.teal[1], C.teal[2], 60);
+        p.strokeWeight(1);
+        p.noFill();
+        p.ellipse(ex - 26, ey - 8, 30, wingFlap);
+        p.ellipse(ex + 26, ey - 8, 30, wingFlap * 0.85);
+        p.noStroke();
+  
+        // ── Enemy body ──
+        const bodyColor = eBodyColor;
+        p.fill(bodyColor[0], bodyColor[1], bodyColor[2], 220);
+        p.noStroke();
+        // Different body shapes per enemy type
+        if (eType === 'elemental') {
+          // Wind Shear: angular, swirling body
+          p.ellipse(ex, ey, 34, 28);
+          p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 80);
+          p.ellipse(ex - 8, ey - 4, 18, 14);
+          // Wind streaks
+          p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], 100);
+          p.strokeWeight(1.5);
+          p.noFill();
+          for (let w = 0; w < 3; w++) {
+            const wa = now * 0.005 + w * 2.1;
+            p.line(ex - 12 + Math.sin(wa) * 8, ey - 6 + Math.cos(wa * 0.7) * 4,
+                   ex - 4 + Math.sin(wa + 1) * 10, ey - 2 + Math.cos(wa * 0.7 + 1) * 5);
+          }
+          p.noStroke();
+        } else if (eType === 'wraith') {
+          // Aether Leak: translucent, irregular blob
+          p.ellipse(ex, ey, 32, 26);
+          // Corrosive aura
+          p.fill(C.teal[0], C.teal[1], C.teal[2], 30 + Math.sin(now * 0.008) * 15);
+          p.ellipse(ex, ey, 44, 36);
+          p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 50);
+          p.ellipse(ex - 4, ey - 2, 16, 12);
+        } else if (eType === 'humanoid') {
+          // Corporate Salvager: taller, narrower
+          p.ellipse(ex, ey, 26, 36);
+          p.fill(C.soil[0], C.soil[1], C.soil[2], 180);
+          p.rect(ex - 8, ey - 18, 16, 18);
+        } else {
+          // Sky-Predator (default): original body
+          p.ellipse(ex, ey, 30, 34);
+        }
+  
+        // Body highlight
+        p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 40);
+        p.ellipse(ex - 5, ey - 8, 14, 10);
+  
+        // ── Enemy eye (glows) ──
+        const eyeGlow = Math.sin(now * 0.006) * 0.2 + 0.8;
+        p.fill(C.teal[0], C.teal[1], C.teal[2], 200 * eyeGlow);
+        p.noStroke();
+        p.ellipse(ex + 7, ey - 5, 7, 7);
+        p.fill(C.navy[0], C.navy[1], C.navy[2]);
+        p.ellipse(ex + 8, ey - 5, 3.5, 3.5);
+        // Eye highlight
+        p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 160);
+        p.ellipse(ex + 9, ey - 6, 1.5, 1.5);
       }
-
-      // Body highlight
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 40);
-      p.ellipse(ex - 5, ey - 8, 14, 10);
-
-      // ── Enemy eye (glows) ──
-      const eyeGlow = Math.sin(now * 0.006) * 0.2 + 0.8;
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 200 * eyeGlow);
-      p.noStroke();
-      p.ellipse(ex + 7, ey - 5, 7, 7);
-      p.fill(C.navy[0], C.navy[1], C.navy[2]);
-      p.ellipse(ex + 8, ey - 5, 3.5, 3.5);
-      // Eye highlight
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 160);
-      p.ellipse(ex + 9, ey - 6, 1.5, 1.5);
 
       // ── HP bar ──
       p.stroke(C.navy[0], C.navy[1], C.navy[2], 200);
