@@ -403,6 +403,34 @@ This is deliberately an admission boundary, not an implicit companion-combat
 implementation. Companion turns remain blocked until complete executable
 outcome contracts exist.
 
+## Formula-native companion admission correction
+
+On 2026-09-21, the companion admission boundary was migrated to the approved
+JRPG combat target without authorizing any companion turn.
+
+Current production admission rules:
+
+- preservation-era `2D6`, `10+/7–9/6−`, and band-placement data remain
+  available inside evidence drafts, but are not production completeness fields;
+- an admissible candidate must bind the action/template/provenance to
+  `jrpg-stat-formula` resolution with an explicit formula ID/version/kind,
+  non-empty parameters, targeting rules, and only approved bounded RNG uses;
+- resource cost, executable flat effects, execution adapter, and persistence
+  policy must all be explicit;
+- any candidate carrying legacy `roll` or `outcomes` fields fails closed;
+- structural completeness still produces `complete-not-authorized`, never
+  execution permission;
+- the party bridge now reports `FORMULA_CONTRACT_NOT_ESTABLISHED`;
+- current draft readiness separates **target blockers** from
+  **legacy evidence blockers**, so historical source gaps remain inspectable
+  without defining the production architecture.
+
+All current companion actions remain non-executable. No companion ownership,
+school, native job, save schema, or combat-turn behavior was established.
+
+The older checkpoint below records the historical 2D6 admission design and is
+**superseded as a target contract**, but retained as implementation provenance.
+
 ## Companion action admission checkpoint
 
 On 2026-09-21, commit `deb34047ed29ac9c54eac6ae3829edb4e6bd7e61`
