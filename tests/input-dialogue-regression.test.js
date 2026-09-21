@@ -140,6 +140,30 @@ test('D9c: dialogue typewriter cannot freeze after an empty first frame', () => 
     'typewriter must not stop updating when its first displayed frame is empty');
 });
 
+// D9d: semantic Cancel dismisses dialogue while OK/E advances it.
+test('D9d: dialogue Cancel closes while OK/E advances', () => {
+  const handleInputMatch = aetherwakeSrc.match(/function handleInput\(\) \{([\s\S]*?)^\}/m);
+  assert(handleInputMatch, 'handleInput function should exist');
+  const body = handleInputMatch[1];
+  const dialogueStart = body.indexOf('if (gameState === STATE.DIALOGUE)');
+  const shopStart = body.indexOf('if (gameState === STATE.SHOP)', dialogueStart);
+  assert(dialogueStart !== -1 && shopStart > dialogueStart,
+    'dialogue input block should exist');
+  const dialogueBlock = body.substring(dialogueStart, shopStart);
+
+  const cancelIdx = dialogueBlock.indexOf('if (cancel)');
+  const closeIdx = dialogueBlock.indexOf('closeOverlay();', cancelIdx);
+  const advanceIdx = dialogueBlock.indexOf('if (ok || keysPressed[69])');
+  const nextLineIdx = dialogueBlock.indexOf('world.nextDialogueLine()', advanceIdx);
+
+  assert(cancelIdx !== -1 && closeIdx > cancelIdx,
+    'Cancel should dismiss dialogue through closeOverlay');
+  assert(advanceIdx > closeIdx,
+    'OK/E advance handling should be separate from Cancel');
+  assert(nextLineIdx > advanceIdx,
+    'OK/E should advance through World.nextDialogueLine');
+});
+
 // D10: Verify shop access uses contextual World interaction as the primary path.
 test('D10: contextual OK can open shop through World interaction', () => {
   const handleWorldMatch = aetherwakeSrc.match(/function handleWorldInput\(\) \{([\s\S]*?)^\}/m);
