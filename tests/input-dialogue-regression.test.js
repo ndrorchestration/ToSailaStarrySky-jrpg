@@ -14,6 +14,38 @@ if (syntax) {
 // D7: Dialogue first-contact - intro shown before met flag set
 // D8: Dialogue API exports - nextDialogueLine, closeDialogue exported
 // D9: openDialogue returns a structured result; core owns STATE.DIALOGUE
+const aetherwakeSrc = fs.readFileSync('aetherwake.js', 'utf-8');
+
+function test(name, fn) {
+  try {
+    fn();
+    console.log(`PASS ${name}`);
+  } catch (error) {
+    console.error(`FAIL ${name}: ${error.message}`);
+    throw error;
+  }
+}
+
+// Dialogue uses semantic controls: Cancel dismisses; OK/E advances.
+test('D9: semantic Cancel closes dialogue while OK/E advances', () => {
+  const handleInputMatch = aetherwakeSrc.match(/function handleInput\(\) \{([\s\S]*?)^\}/m);
+  assert(handleInputMatch, 'handleInput function should exist');
+  const body = handleInputMatch[1];
+  const dialogueStart = body.indexOf('if (gameState === STATE.DIALOGUE)');
+  const shopStart = body.indexOf('if (gameState === STATE.SHOP)', dialogueStart);
+  assert(dialogueStart !== -1 && shopStart > dialogueStart,
+    'dialogue input block should exist');
+  const dialogue = body.slice(dialogueStart, shopStart);
+  const cancelIdx = dialogue.indexOf('if (cancel)');
+  const closeIdx = dialogue.indexOf('closeOverlay();', cancelIdx);
+  const advanceIdx = dialogue.indexOf('if (ok || keysPressed[69])');
+  const nextIdx = dialogue.indexOf('world.nextDialogueLine()', advanceIdx);
+  assert(cancelIdx !== -1 && closeIdx > cancelIdx,
+    'semantic Cancel should dismiss dialogue');
+  assert(advanceIdx > closeIdx && nextIdx > advanceIdx,
+    'semantic OK/E should advance dialogue separately from Cancel');
+});
+
 // D10: Verify shop access uses contextual World interaction as the primary path.
 test('D10: contextual OK can open shop through World interaction', () => {
   const handleWorldMatch = aetherwakeSrc.match(/function handleWorldInput\(\) \{([\s\S]*?)^\}/m);
