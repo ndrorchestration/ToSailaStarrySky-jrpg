@@ -4432,49 +4432,46 @@ function drawFallingIslands() {
 function drawWorldAmbient() {
   const now = millis();
 
-  // ── Floating aether motes (ambient atmosphere — teal-blue motes drifting) ──
+  // Pixel-aligned aether motes. Atmospheric motion is preserved, but every
+  // visible particle resolves to an authored-looking square pixel cluster.
+  noStroke();
   for (let i = 0; i < 12; i++) {
     const seed = i * 137.5;
-    const bx = (seed + player.px * 0.2) % width;
-    const by = ((i * 97.3 + 20) % (height * 0.5)) + Math.sin(now * 0.0005 + i * 2.3) * 40;
-    const driftX = Math.sin(now * 0.0008 + i * 1.7) * 25;
-    const driftY = Math.cos(now * 0.0006 + i * 1.3) * 18;
-    const moteAlpha = 8 + Math.sin(now * 0.002 + i * 3.1) * 5;
-    const moteSize = 2 + Math.sin(now * 0.003 + i * 2.7) * 0.8;
-
-    noStroke();
-    fill(color(124, 200, 232, moteAlpha));
-    ellipse(bx + driftX, by + driftY, moteSize, moteSize);
-
-    // Soft teal core
-    fill(color(42, 255, 181, moteAlpha * 0.4));
-    ellipse(bx + driftX, by + driftY, moteSize * 1.8, moteSize * 1.8);
+    const x = Math.round((seed + player.px * 0.2 +
+      Math.sin(now * 0.0008 + i * 1.7) * 25) % width);
+    const y = Math.round(((i * 97.3 + 20) % (height * 0.5)) +
+      Math.sin(now * 0.0005 + i * 2.3) * 40 +
+      Math.cos(now * 0.0006 + i * 1.3) * 18);
+    const a = 8 + Math.sin(now * 0.002 + i * 3.1) * 5;
+    fill(124, 200, 232, a);
+    rect(x, y, 2, 2);
+    fill(42, 255, 181, a * 0.45);
+    rect(x + 1, y + 1, 1, 1);
   }
 
-  // ── Ground mist wisps (bottom of screen — low teal fog) ──
+  // Ground mist becomes staggered pixel bands rather than translucent ovals.
   for (let i = 0; i < 4; i++) {
-    const mistX = (i * 220 + (now * 0.02 + i * 50) % width) % width;
-    const mistY = height - 40 - i * 12 + Math.sin(now * 0.001 + i * 2) * 8;
-    fill(color(42, 255, 181, 6));
-    noStroke();
-    ellipse(mistX, mistY, 180, 16);
-    fill(color(124, 200, 232, 4));
-    ellipse(mistX + 30, mistY - 5, 140, 12);
+    const x = Math.round((i * 220 + (now * 0.02 + i * 50) % width) % width);
+    const y = Math.round(height - 40 - i * 12 + Math.sin(now * 0.001 + i * 2) * 8);
+    fill(42, 255, 181, 6);
+    rect(x - 48, y, 96, 3);
+    rect(x - 30, y - 3, 60, 2);
+    fill(124, 200, 232, 4);
+    rect(x - 16, y - 6, 72, 2);
   }
 
-  // ── Aether drift particles (slow rise from below) ──
+  // Rising aether fragments stay on integer pixels and use small block shapes.
   for (let i = 0; i < 6; i++) {
-    const riseBase = ((i * 193 + 47) % width);
-    const riseY = (height - 20 - (now * 0.002 + i * 30) % (height * 0.7));
-    const riseAlpha = map(riseY, height - 20, 50, 0, 20);
-    if (riseAlpha > 0) {
-      noStroke();
-      fill(color(42, 255, 181, riseAlpha));
-      ellipse(riseBase, riseY, 3 + Math.sin(now * 0.004 + i) * 1.5, 2 + Math.cos(now * 0.003 + i * 2) * 1);
+    const x = Math.round((i * 193 + 47) % width);
+    const y = Math.round(height - 20 - (now * 0.002 + i * 30) % (height * 0.7));
+    const a = map(y, height - 20, 50, 0, 20);
+    if (a > 0) {
+      fill(42, 255, 181, a);
+      rect(x, y, 2, 2);
+      if (i % 2 === 0) rect(x + 2, y - 1, 1, 1);
     }
   }
 
-  // ── Quest-state atmospheric tint ──
   const tint = {
     signal:   { r: 42, g: 255, b: 181 },
     crossing: { r: 255, g: 160, b: 60 },
@@ -4484,22 +4481,20 @@ function drawWorldAmbient() {
     done:     { r: 255, g: 255, b: 200 }
   }[quest.state] || { r: 42, g: 255, b: 181 };
 
+  // Full-screen tint is a lighting layer, not world geometry.
   const alphaBase = { signal: 6, crossing: 10, contact: 8, choice: 14, wake: 18, done: 20 }[quest.state] || 6;
-  noStroke();
   fill(tint.r, tint.g, tint.b, alphaBase);
   rect(0, 0, width, height);
 
-  // ── Floating accent motes (quest-state colored, intensifies in choice/wake) ──
   const accentCount = (quest.state === 'choice' || quest.state === 'wake') ? 16 : 8;
   const accentSpeed = (quest.state === 'choice' || quest.state === 'wake') ? 0.004 : 0.0025;
   for (let i = 0; i < accentCount; i++) {
-    const seed = i * 73.1;
-    const ax = (seed + player.px * 0.15) % width;
-    const ay = ((i * 131.7 + 30) % height);
-    const driftY = Math.sin(now * accentSpeed + i * 3.7) * 30;
+    const x = Math.round((i * 73.1 + player.px * 0.15) % width);
+    const y = Math.round(((i * 131.7 + 30) % height) +
+      Math.sin(now * accentSpeed + i * 3.7) * 30);
     const a = 5 + Math.sin(now * 0.003 + i * 2.1) * 4;
-    fill(color(tint.r, tint.g, tint.b, a));
-    ellipse(ax, ay + driftY, 1.5, 1.5);
+    fill(tint.r, tint.g, tint.b, a);
+    rect(x, y, 2, 2);
   }
 }
 
