@@ -1,11 +1,11 @@
 /* ============================================================
-   Aetherwake JRPG — Foundation Spell Admission Contract v0.1
+   Aetherwake JRPG — Foundation Spell Admission Contract v0.2
    modules/foundation-spell-admission.js
 
    Scope:
-   - define semantic completeness for exploration and combat spells;
+   - preserve established read-only exploration spell contracts;
+   - define target JRPG completeness for combat spells;
    - keep contract completeness separate from runtime authorization;
-   - validate resource, roll, effect, execution, and persistence bindings;
    - fail closed when any required evidence is missing.
 
    This module does NOT execute spells, mutate gameplay state, grant spells,
@@ -18,14 +18,21 @@
   let masteryDefs = root && root.AetherMasteryDefs;
   let magicAccess = root && root.AetherMagicAccess;
   let effectVocabulary = root && root.AetherEffectVocabulary;
+  let combatPolicy = root && root.AetherCombatSystemPolicy;
 
   if (typeof module === 'object' && module.exports) {
     masteryDefs = masteryDefs || require('./mastery-defs.js');
     magicAccess = magicAccess || require('./magic-access.js');
     effectVocabulary = effectVocabulary || require('./effect-vocabulary.js');
+    combatPolicy = combatPolicy || require('./combat-system-policy.js');
   }
 
-  const api = factory(masteryDefs, magicAccess, effectVocabulary);
+  const api = factory(
+    masteryDefs,
+    magicAccess,
+    effectVocabulary,
+    combatPolicy
+  );
 
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
@@ -35,10 +42,10 @@
   }
 })(typeof window !== 'undefined' ? window :
    (typeof globalThis !== 'undefined' ? globalThis : null),
-function (masteryDefs, magicAccess, effectVocabulary) {
+function (masteryDefs, magicAccess, effectVocabulary, combatPolicy) {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   const STATUS = Object.freeze({
     BLOCKED: 'blocked',
@@ -48,18 +55,21 @@ function (masteryDefs, magicAccess, effectVocabulary) {
 
   const MODE = Object.freeze({
     EXPLORATION_READONLY: 'exploration-readonly',
-    COMBAT_2D6: 'combat-2d6',
+    COMBAT_JRPG: 'combat-jrpg-formula',
   });
 
   const REASON = Object.freeze({
     UNKNOWN_SPELL: 'UNKNOWN_SPELL',
     SCHOOL_ACCESS_UNAVAILABLE: 'SCHOOL_ACCESS_UNAVAILABLE',
     CONTRACT_NOT_ESTABLISHED: 'CONTRACT_NOT_ESTABLISHED',
+    FORMULA_CONTRACT_NOT_ESTABLISHED: 'FORMULA_CONTRACT_NOT_ESTABLISHED',
     CONTRACT_IDENTITY_MISMATCH: 'CONTRACT_IDENTITY_MISMATCH',
     CONTRACT_MODE_INVALID: 'CONTRACT_MODE_INVALID',
     CONTRACT_COST_INVALID: 'CONTRACT_COST_INVALID',
-    CONTRACT_ROLL_INVALID: 'CONTRACT_ROLL_INVALID',
-    CONTRACT_OUTCOMES_INVALID: 'CONTRACT_OUTCOMES_INVALID',
+    CONTRACT_LEGACY_RESOLUTION_FORBIDDEN: 'CONTRACT_LEGACY_RESOLUTION_FORBIDDEN',
+    CONTRACT_RESOLUTION_INVALID: 'CONTRACT_RESOLUTION_INVALID',
+    CONTRACT_TARGETING_INVALID: 'CONTRACT_TARGETING_INVALID',
+    CONTRACT_EFFECTS_INVALID: 'CONTRACT_EFFECTS_INVALID',
     CONTRACT_EFFECT_NOT_IMPLEMENTED: 'CONTRACT_EFFECT_NOT_IMPLEMENTED',
     CONTRACT_MUTATION_POLICY_INVALID: 'CONTRACT_MUTATION_POLICY_INVALID',
     CONTRACT_EXECUTION_BINDING_INVALID: 'CONTRACT_EXECUTION_BINDING_INVALID',
@@ -98,11 +108,18 @@ function (masteryDefs, magicAccess, effectVocabulary) {
       fail(REASON.SCHOOL_ACCESS_UNAVAILABLE, 'MAGIC_ACCESS_REQUIRED');
     }
     if (!effectVocabulary ||
-        typeof effectVocabulary.validateProfile !== 'function' ||
+        typeof effectVocabulary.validateEffectDescriptor !== 'function' ||
         !effectVocabulary.RUNTIME_STATUS ||
         !effectVocabulary.RESOURCE) {
-      fail(REASON.CONTRACT_OUTCOMES_INVALID, 'EFFECT_VOCABULARY_REQUIRED');
+      fail(REASON.CONTRACT_EFFECTS_INVALID, 'EFFECT_VOCABULARY_REQUIRED');
     }
+    if (!combatPolicy ||
+        typeof combatPolicy.validate !== 'function' ||
+        !combatPolicy.TARGET ||
+        !Array.isArray(combatPolicy.ALLOWED_RNG_USES)) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, 'COMBAT_POLICY_REQUIRED');
+    }
+    combatPolicy.validate();
   }
 
   function validateIdentity(spell, contract) {
@@ -167,18 +184,96 @@ function (masteryDefs, magicAccess, effectVocabulary) {
     return true;
   }
 
+  function rejectLegacyResolution(spellId, contract) {
+    if (Object.prototype.hasOwnProperty.call(contract, 'roll') ||
+        Object.prototype.hasOwnProperty.call(contract, 'outcomes')) {
+      fail(REASON.CONTRACT_LEGACY_RESOLUTION_FORBIDDEN, spellId);
+    }
+  }
+
+  function validateResolution(spellId, resolution) {
+    if (!resolution || typeof resolution !== 'object' || Array.isArray(resolution)) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, spellId + ':OBJECT_REQUIRED');
+    }
+    if (resolution.model !== combatPolicy.TARGET.model) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, spellId + ':MODEL');
+    }
+    if (resolution.formulaId !== spellId) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, spellId + ':FORMULA_ID');
+    }
+    if (typeof resolution.version !== 'string' || !resolution.version) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, spellId + ':VERSION');
+    }
+    if (typeof resolution.kind !== 'string' || !resolution.kind) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, spellId + ':KIND');
+    }
+    if (!resolution.parameters ||
+        typeof resolution.parameters !== 'object' ||
+        Array.isArray(resolution.parameters) ||
+        Object.keys(resolution.parameters).length === 0) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, spellId + ':PARAMETERS');
+    }
+    if (!Array.isArray(resolution.rngUses) ||
+        new Set(resolution.rngUses).size !== resolution.rngUses.length ||
+        resolution.rngUses.some(use =>
+          !combatPolicy.ALLOWED_RNG_USES.includes(use))) {
+      fail(REASON.CONTRACT_RESOLUTION_INVALID, spellId + ':RNG_USES');
+    }
+    return true;
+  }
+
+  function validateTargeting(spellId, targeting) {
+    if (!targeting || typeof targeting !== 'object' || Array.isArray(targeting) ||
+        typeof targeting.mode !== 'string' || !targeting.mode ||
+        !Number.isInteger(targeting.maxTargets) || targeting.maxTargets < 1 ||
+        typeof targeting.requiresExplicitTarget !== 'boolean') {
+      fail(REASON.CONTRACT_TARGETING_INVALID, spellId);
+    }
+    return true;
+  }
+
+  function validateEffects(spellId, effects) {
+    if (!Array.isArray(effects) || effects.length === 0) {
+      fail(REASON.CONTRACT_EFFECTS_INVALID, spellId + ':NON_EMPTY_ARRAY_REQUIRED');
+    }
+    effects.forEach((descriptor, index) => {
+      try {
+        effectVocabulary.validateEffectDescriptor(descriptor);
+      } catch (error) {
+        fail(
+          REASON.CONTRACT_EFFECTS_INVALID,
+          spellId + ':' + index + ':' + error.message
+        );
+      }
+      if (descriptor.runtimeStatus !== effectVocabulary.RUNTIME_STATUS.IMPLEMENTED) {
+        fail(REASON.CONTRACT_EFFECT_NOT_IMPLEMENTED, spellId + ':' + index);
+      }
+    });
+    return true;
+  }
+
   function validateExplorationContract(spell, contract) {
     if (!spell.modes.includes('exploration') ||
-        contract.mutationPolicy !== 'read-only' ||
-        contract.roll !== null ||
-        contract.outcomes !== null) {
+        contract.mutationPolicy !== 'read-only') {
       fail(REASON.CONTRACT_MUTATION_POLICY_INVALID, spell.id);
     }
+
+    rejectLegacyResolution(spell.id, contract);
+
+    if (Object.prototype.hasOwnProperty.call(contract, 'resolution') ||
+        Object.prototype.hasOwnProperty.call(contract, 'targeting') ||
+        Object.prototype.hasOwnProperty.call(contract, 'effects')) {
+      fail(REASON.CONTRACT_MODE_INVALID, spell.id + ':EXPLORATION_TARGET_FIELDS');
+    }
+
     validateCost(spell, contract);
     validateExecution(spell.id, contract.execution);
     validatePersistence(spell.id, contract.persistence);
     if (contract.persistence.mode !== 'none') {
-      fail(REASON.CONTRACT_PERSISTENCE_INVALID, spell.id + ':EXPLORATION_MUST_NOT_PERSIST');
+      fail(
+        REASON.CONTRACT_PERSISTENCE_INVALID,
+        spell.id + ':EXPLORATION_MUST_NOT_PERSIST'
+      );
     }
     return true;
   }
@@ -189,37 +284,11 @@ function (masteryDefs, magicAccess, effectVocabulary) {
       fail(REASON.CONTRACT_MUTATION_POLICY_INVALID, spell.id);
     }
 
+    rejectLegacyResolution(spell.id, contract);
     validateCost(spell, contract);
-
-    const roll = contract.roll;
-    if (!roll || typeof roll !== 'object' ||
-        roll.system !== '2d6' ||
-        typeof roll.stat !== 'string' || !roll.stat ||
-        roll.successMin !== 10 ||
-        roll.partialMin !== 7) {
-      fail(REASON.CONTRACT_ROLL_INVALID, spell.id);
-    }
-
-    if (!contract.outcomes || typeof contract.outcomes !== 'object') {
-      fail(REASON.CONTRACT_OUTCOMES_INVALID, spell.id);
-    }
-    try {
-      effectVocabulary.validateProfile(spell.id, contract.outcomes);
-    } catch (error) {
-      fail(REASON.CONTRACT_OUTCOMES_INVALID, spell.id + ':' + error.message);
-    }
-
-    effectVocabulary.PHASES.forEach(phase => {
-      contract.outcomes[phase].forEach((descriptor, index) => {
-        if (descriptor.runtimeStatus !== effectVocabulary.RUNTIME_STATUS.IMPLEMENTED) {
-          fail(
-            REASON.CONTRACT_EFFECT_NOT_IMPLEMENTED,
-            spell.id + ':' + phase + ':' + index
-          );
-        }
-      });
-    });
-
+    validateResolution(spell.id, contract.resolution);
+    validateTargeting(spell.id, contract.targeting);
+    validateEffects(spell.id, contract.effects);
     validateExecution(spell.id, contract.execution);
     validatePersistence(spell.id, contract.persistence);
     return true;
@@ -232,7 +301,7 @@ function (masteryDefs, magicAccess, effectVocabulary) {
     if (contract.mode === MODE.EXPLORATION_READONLY) {
       return validateExplorationContract(spell, contract);
     }
-    if (contract.mode === MODE.COMBAT_2D6) {
+    if (contract.mode === MODE.COMBAT_JRPG) {
       return validateCombatContract(spell, contract);
     }
     fail(REASON.CONTRACT_MODE_INVALID, spell.id);
@@ -268,7 +337,13 @@ function (masteryDefs, magicAccess, effectVocabulary) {
     }
 
     if (!contract) {
-      return blocked(characterId, spellId, REASON.CONTRACT_NOT_ESTABLISHED);
+      return blocked(
+        characterId,
+        spellId,
+        spell.modes.includes('combat')
+          ? REASON.FORMULA_CONTRACT_NOT_ESTABLISHED
+          : REASON.CONTRACT_NOT_ESTABLISHED
+      );
     }
 
     try {
@@ -312,6 +387,8 @@ function (masteryDefs, magicAccess, effectVocabulary) {
     MODE,
     REASON,
     PERSISTENCE_MODES,
+    validateResolution,
+    validateTargeting,
     validateCompleteContract,
     assessSpell,
   });
