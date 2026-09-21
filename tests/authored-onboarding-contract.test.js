@@ -7,6 +7,7 @@ function assert(condition, message) {
 }
 
 const root = path.join(__dirname, '..');
+const fieldRoleSrc = fs.readFileSync(path.join(root, 'modules', 'field-role-defs.js'), 'utf8');
 const charCreateSrc = fs.readFileSync(path.join(root, 'modules', 'char-create.js'), 'utf8');
 const partyStateSrc = fs.readFileSync(path.join(root, 'modules', 'party-state.js'), 'utf8');
 
@@ -15,7 +16,15 @@ const sandbox = {
   console,
 };
 vm.createContext(sandbox);
+vm.runInContext(fieldRoleSrc, sandbox, { filename: 'modules/field-role-defs.js' });
 vm.runInContext(charCreateSrc, sandbox, { filename: 'modules/char-create.js' });
+
+const fieldRoles = sandbox.window.AetherFieldRoleDefs;
+assert(fieldRoles, 'AetherFieldRoleDefs was not exposed');
+assert(fieldRoles.PROVENANCE === 'preservation-era-prototype-mechanics',
+  'field-role provenance must remain explicitly non-canonical');
+assert(fieldRoles.validate() === true,
+  'field-role registry validation failed');
 
 const charCreate = sandbox.window.AetherCharCreate;
 assert(charCreate, 'AetherCharCreate was not exposed');
@@ -92,5 +101,9 @@ assert(charCreateSrc.includes('text(job.synergyBonus, cx + cardW / 2, synY);'),
   'field-role selector must render synergy from the current template');
 assert(!charCreateSrc.includes('// Synergies text (uses sy declared below)'),
   'stale undefined field-role synergy renderer must not return');
+assert(!charCreateSrc.includes('const JOBS = ['),
+  'char-create must not own a second embedded field-role registry');
+assert(charCreateSrc.includes('window.AetherFieldRoleDefs'),
+  'char-create must consume the shared field-role registry');
 
 console.log('Aetherwake authored onboarding contract: PASS');
