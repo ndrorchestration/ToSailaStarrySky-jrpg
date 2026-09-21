@@ -83,7 +83,10 @@ const VIS = {
   hitStop: true,
   fadeTransitions: true,
   dialogueTypeIn: true,
-  vignette: true,
+  // Disabled in the integrated runtime until the vignette compositor is
+  // rewritten. The current concentric navy-ellipse implementation repeatedly
+  // darkens the center and can bury otherwise valid title/world rendering.
+  vignette: false,
   particles: true,
   hudAnimations: true,
 };
@@ -7170,18 +7173,15 @@ function drawBackground() {
  * Call AFTER all content, semi-transparent dark teal lines.
  */
 function drawScanlines() {
-  push();
-  noStroke();
-  fill(color(PAL.SHADOW), 40); // subtle dark scanline tint
-  for (let y = 0; y < height; y += 3) {
-    rect(0, y, width, 1);
-  }
-  // Brighter scanline gaps
-  fill(color(PAL.TEAL), 6);
-  for (let y = 1; y < height; y += 3) {
-    rect(0, y, width, 1);
-  }
-  pop();
+  // Disabled in the integrated playable runtime.
+  //
+  // This later UI-module declaration overrides the earlier game-level
+  // drawScanlines() because both were concatenated into one global script.
+  // Its p5 color-object + alpha calls rendered as an effectively opaque
+  // cyan/black stripe mask in packaged Chromium, covering the actual game.
+  //
+  // Keep the effect off until the integrated UI helpers are namespaced.
+  return;
 }
 
 /**
