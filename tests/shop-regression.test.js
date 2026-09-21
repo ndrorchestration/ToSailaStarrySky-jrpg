@@ -9,7 +9,7 @@ if (syntax) {
 }
 
 // Regression tests for Cluster 4: Shop (D16-D19)
-// D16: openShop returns {ok, reason} and M key routes through it
+// D16: openShop returns {ok, reason}; contextual OK is the primary route
 // D17: All items use scrap currency, transactional purchases
 // D18: Items have stable IDs
 // D19: Echo/heat capacity caps are explicit constants
@@ -43,29 +43,29 @@ test('D16: openShop returns {ok, reason} on failure', () => {
     'openShop should return {ok: true, items} on success');
 });
 
-// D16b: Verify M key in handleWorldInput routes through world.openShop()
-test('D16b: M key routes through world.openShop() with result check', () => {
+// D16b: Verify contextual JRPG OK routes shop access through World.interact().
+test('D16b: contextual OK routes shop through the World contract', () => {
   const handleWorldMatch = aetherwakeSrc.match(/function handleWorldInput\(\) \{([\s\S]*?)^\}/m);
   assert(handleWorldMatch, 'handleWorldInput function should exist');
   const body = handleWorldMatch[1];
-  
-  // Find M key handling
-  const mKeyIdx = body.indexOf('if (keysPressed[77])');
-  assert(mKeyIdx !== -1, 'M key handling should exist');
-  
-  // Extract M key block
-  let depth = 0;
-  let mKeyEnd = mKeyIdx;
-  let foundOpen = false;
-  for (let i = mKeyIdx; i < body.length; i++) {
-    if (body[i] === '{') { depth++; foundOpen = true; }
-    if (body[i] === '}') { depth--; if (foundOpen && depth === 0) { mKeyEnd = i; break; } }
-  }
-  const mKeyBlock = body.substring(mKeyIdx, mKeyEnd + 1);
-  
-  assert(mKeyBlock.includes('world.openShop()'), 'M key should call world.openShop()');
-  assert(mKeyBlock.includes('result.ok') || mKeyBlock.includes('result && result.ok'), 
-    'M key should check result.ok before opening state');
+
+  assert(body.includes('inputPressed(api.ACTION.OK)'),
+    'WORLD should use semantic OK for contextual interaction');
+  assert(body.includes('const result = world.interact();'),
+    'semantic OK should call World.interact()');
+  assert(body.includes("result.kind === 'shop'") &&
+    body.includes('openState(STATE.SHOP)'),
+    'shop state should open only after a structured World interaction result');
+
+  // M is retained only as a compatibility alias and must still respect openShop.
+  const mKeyIdx = body.indexOf('if (keysPressed[77]');
+  assert(mKeyIdx !== -1, 'legacy M compatibility alias should remain during migration');
+  const mKeyEnd = body.indexOf('if (keysPressed[86]', mKeyIdx);
+  const mKeyBlock = body.slice(mKeyIdx, mKeyEnd);
+  assert(mKeyBlock.includes('world.openShop()'),
+    'legacy M alias must call World.openShop()');
+  assert(mKeyBlock.includes('result && result.ok'),
+    'legacy M alias must check structured shop success');
 });
 
 // D17: Verify all items use scrap currency (no aether kind)
