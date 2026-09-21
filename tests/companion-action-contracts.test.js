@@ -242,22 +242,22 @@ assert.strictEqual(overdriveReadiness.executionAuthorized, false);
 assert.strictEqual(overdriveReadiness.reason, 'formula_contract_not_established');
 assertTargetFormulaBlockers(overdriveReadiness);
 assert(overdriveReadiness.legacyEvidenceBlockers.includes(contracts.BLOCKER.COST_NOT_SPECIFIED));
-assert(overdriveReadiness.blockers.includes(
+assert(overdriveReadiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.DAMAGE_BAND_NOT_SPECIFIED
 ));
-assert(overdriveReadiness.blockers.includes(
+assert(overdriveReadiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.HEAT_GAIN_BAND_NOT_SPECIFIED
 ));
-assert(overdriveReadiness.blockers.includes(
+assert(overdriveReadiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.DAMAGE_FORMULA_EXECUTION_NOT_ESTABLISHED
 ));
-assert(overdriveReadiness.blockers.includes(
+assert(overdriveReadiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.SUCCESS_OUTCOME_NOT_SPECIFIED
 ));
-assert(overdriveReadiness.blockers.includes(
+assert(overdriveReadiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED
 ));
-assert(overdriveReadiness.blockers.includes(
+assert(overdriveReadiness.legacyEvidenceBlockers.includes(
   contracts.BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED
 ));
 
