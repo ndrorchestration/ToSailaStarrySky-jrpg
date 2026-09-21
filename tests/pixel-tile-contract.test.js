@@ -14,7 +14,7 @@ vm.runInNewContext(source, sandbox, { filename: tilePath });
 
 const api = sandbox.window.AetherPixelTiles;
 assert(api, 'pixel tile authority was not exposed');
-assert.strictEqual(api.VERSION, '0.1.0');
+assert.strictEqual(api.VERSION, '0.2.0');
 assert.strictEqual(api.TILE_SIZE, 16);
 assert.strictEqual(api.validate(), true, 'pixel tile registry failed validation');
 
