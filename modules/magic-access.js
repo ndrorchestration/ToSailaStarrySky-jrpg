@@ -37,7 +37,7 @@
     throw new Error('MAGIC_ACCESS_REQUIRES_MASTERY_DEFS');
   }
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   const ACCESS_STATUS = Object.freeze({
     INNATE: 'innate',
@@ -357,8 +357,12 @@
 
     masteryDefs.FOUNDATION_SPELL_ORDER.forEach(spellId => {
       const admission = getFoundationSpellStudyAdmission('ender', spellId);
-      if (admission.canStudy || admission.canUse ||
-          admission.reason !== 'spell_design_not_established') {
+      if (spellId === 'aetherSense') {
+        if (!admission.canStudy || !admission.canUse || admission.reason !== 'ok') {
+          throw new Error('AETHER_SENSE_ACCESS_ADMISSION_INVALID');
+        }
+      } else if (admission.canStudy || admission.canUse ||
+                 admission.reason !== 'spell_design_not_established') {
         throw new Error('PROPOSED_FOUNDATION_SPELL_MUST_NOT_BECOME_LEARNED:' + spellId);
       }
     });

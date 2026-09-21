@@ -49,6 +49,9 @@ jobs:
       - name: Verify magic school access boundary
         run: npm run test:magic-access
 
+      - name: Verify Aether Sense runtime
+        run: npm run test:aether-sense
+
       - name: Verify preservation field-role definitions
         run: npm run test:field-roles
 

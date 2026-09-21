@@ -1,7 +1,7 @@
 const assert = require('assert');
 const defs = require('../modules/mastery-defs.js');
 
-assert.strictEqual(defs.VERSION, '0.2.0');
+assert.strictEqual(defs.VERSION, '0.3.0');
 assert.deepStrictEqual(
   defs.DOMAIN_FAMILY_IDS,
   ['elemental', 'arcane', 'psychic', 'spirit'],
@@ -37,6 +37,7 @@ for (const id of ['lyra', 'ionia', 'reson', 'aepex']) {
     id + ' magic profile must remain explicitly unknown');
   assert.deepStrictEqual(magic.schoolIds, []);
   assert.deepStrictEqual(magic.foundationCandidateIds, []);
+  assert.deepStrictEqual(magic.startingSpellIds, []);
 }
 
 const enderJob = defs.getNativeJobStatus('ender');
@@ -98,24 +99,38 @@ assert.deepStrictEqual(
   enderMagic.foundationCandidateIds,
   defs.FOUNDATION_SPELL_ORDER
 );
+assert.deepStrictEqual(
+  enderMagic.startingSpellIds,
+  ['aetherSense'],
+  'Aether Sense must be Ender\'s only established starting magic technique'
+);
 
 for (const spellId of defs.FOUNDATION_SPELL_ORDER) {
   const spell = defs.getFoundationSpellDefinition(spellId);
   assert(spell, 'foundation spell missing: ' + spellId);
   assert.strictEqual(spell.tier, 1);
   assert.strictEqual(spell.branchId, null);
-  assert.strictEqual(spell.designStatus, 'design_proposal');
-  assert.strictEqual(spell.runtimeStatus, 'not_integrated');
   assert.strictEqual(spell.resourceCost, null,
     spellId + ' must not invent a numeric resource cost');
 
   const readiness = defs.getSpellRuntimeReadiness('ender', spellId);
-  assert.strictEqual(readiness.canUse, false,
-    spellId + ' must fail closed before design/runtime authorization');
-  assert.strictEqual(
-    readiness.reason,
-    'design_proposal_not_runtime_authorized'
-  );
+  if (spellId === 'aetherSense') {
+    assert.strictEqual(spell.designStatus, 'established');
+    assert.strictEqual(spell.runtimeStatus, 'integrated');
+    assert.deepStrictEqual(spell.startingCharacterIds, ['ender']);
+    assert.strictEqual(readiness.canUse, true);
+    assert.strictEqual(readiness.reason, 'ok');
+  } else {
+    assert.strictEqual(spell.designStatus, 'design_proposal');
+    assert.strictEqual(spell.runtimeStatus, 'not_integrated');
+    assert.deepStrictEqual(spell.startingCharacterIds, []);
+    assert.strictEqual(readiness.canUse, false,
+      spellId + ' must fail closed before design/runtime authorization');
+    assert.strictEqual(
+      readiness.reason,
+      'design_proposal_not_runtime_authorized'
+    );
+  }
 }
 
 assert.strictEqual(
@@ -168,5 +183,6 @@ console.log(JSON.stringify({
   version: defs.VERSION,
   schools: defs.SCHOOL_ORDER,
   foundationSpells: defs.FOUNDATION_SPELL_ORDER,
-  runtimeBoundary: 'design proposals remain fail-closed',
+  establishedStartingSpell: 'aetherSense',
+  runtimeBoundary: 'all other design proposals remain fail-closed',
 }, null, 2));

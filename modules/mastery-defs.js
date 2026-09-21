@@ -26,7 +26,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
 
   const STATUS = Object.freeze({
     ESTABLISHED: 'established',
@@ -154,7 +154,8 @@
     },
   });
 
-  function foundationSpell(id, label, schoolId, modes, role, resourceBinding, verbs, description) {
+  function foundationSpell(id, label, schoolId, modes, role, resourceBinding, verbs, description, options) {
+    const config = options || {};
     return {
       id,
       label,
@@ -165,8 +166,11 @@
       role,
       resourceBinding,
       resourceCost: null,
-      designStatus: DESIGN_STATUS.DESIGN_PROPOSAL,
-      runtimeStatus: RUNTIME_STATUS.NOT_INTEGRATED,
+      designStatus: config.designStatus || DESIGN_STATUS.DESIGN_PROPOSAL,
+      runtimeStatus: config.runtimeStatus || RUNTIME_STATUS.NOT_INTEGRATED,
+      startingCharacterIds: Array.isArray(config.startingCharacterIds)
+        ? config.startingCharacterIds.slice()
+        : [],
       verbs,
       description,
     };
@@ -192,7 +196,12 @@
       'perception',
       RESOURCE_BINDING.NONE,
       ['detect', 'identify'],
-      'Detect Aether concentrations, leaks, charged machinery, active fields, and unusual Aether signatures.'
+      'Detect Aether concentrations, leaks, charged machinery, active fields, and unusual Aether signatures.',
+      {
+        designStatus: DESIGN_STATUS.ESTABLISHED,
+        runtimeStatus: RUNTIME_STATUS.INTEGRATED,
+        startingCharacterIds: ['ender'],
+      }
     ),
     aetherPulse: foundationSpell(
       'aetherPulse',
@@ -343,6 +352,7 @@
         affinityIds: [],
         schoolIds: [],
         foundationCandidateIds: [],
+        startingSpellIds: [],
       };
     }
 
@@ -357,6 +367,9 @@
       affinityIds: copyIds(affinities.ids),
       schoolIds: copyIds(schoolIds),
       foundationCandidateIds: copyIds(foundationCandidateIds),
+      startingSpellIds: FOUNDATION_SPELL_ORDER.filter(spellId =>
+        FOUNDATION_SPELLS[spellId].startingCharacterIds.includes(characterId)
+      ),
     };
   }
 
@@ -403,6 +416,15 @@
       return {
         canUse: false,
         reason: 'runtime_not_integrated',
+        characterId,
+        spellId,
+      };
+    }
+
+    if (!spell.startingCharacterIds.includes(characterId)) {
+      return {
+        canUse: false,
+        reason: 'spell_not_learned',
         characterId,
         spellId,
       };
@@ -495,11 +517,26 @@
       if (spell.tier !== 1 || spell.branchId !== null) {
         throw new Error('FOUNDATION_SPELL_TIER_INVALID:' + id);
       }
-      if (spell.designStatus !== DESIGN_STATUS.DESIGN_PROPOSAL) {
-        throw new Error('FOUNDATION_SPELL_DESIGN_STATUS_INVALID:' + id);
-      }
-      if (spell.runtimeStatus !== RUNTIME_STATUS.NOT_INTEGRATED) {
-        throw new Error('FOUNDATION_SPELL_RUNTIME_STATUS_INVALID:' + id);
+      if (id === 'aetherSense') {
+        if (spell.designStatus !== DESIGN_STATUS.ESTABLISHED) {
+          throw new Error('AETHER_SENSE_DESIGN_STATUS_INVALID');
+        }
+        if (spell.runtimeStatus !== RUNTIME_STATUS.INTEGRATED) {
+          throw new Error('AETHER_SENSE_RUNTIME_STATUS_INVALID');
+        }
+        if (spell.startingCharacterIds.join('|') !== 'ender') {
+          throw new Error('AETHER_SENSE_STARTING_OWNERSHIP_INVALID');
+        }
+      } else {
+        if (spell.designStatus !== DESIGN_STATUS.DESIGN_PROPOSAL) {
+          throw new Error('FOUNDATION_SPELL_DESIGN_STATUS_INVALID:' + id);
+        }
+        if (spell.runtimeStatus !== RUNTIME_STATUS.NOT_INTEGRATED) {
+          throw new Error('FOUNDATION_SPELL_RUNTIME_STATUS_INVALID:' + id);
+        }
+        if (spell.startingCharacterIds.length !== 0) {
+          throw new Error('PROPOSED_FOUNDATION_SPELL_HAS_STARTING_OWNER:' + id);
+        }
       }
       if (!Object.values(RESOURCE_BINDING).includes(spell.resourceBinding)) {
         throw new Error('FOUNDATION_SPELL_RESOURCE_BINDING_INVALID:' + id);
@@ -578,8 +615,12 @@
 
     FOUNDATION_SPELL_ORDER.forEach(spellId => {
       const readiness = getSpellRuntimeReadiness('ender', spellId);
-      if (readiness.canUse ||
-          readiness.reason !== 'design_proposal_not_runtime_authorized') {
+      if (spellId === 'aetherSense') {
+        if (!readiness.canUse || readiness.reason !== 'ok') {
+          throw new Error('AETHER_SENSE_MUST_BE_RUNTIME_READY');
+        }
+      } else if (readiness.canUse ||
+                 readiness.reason !== 'design_proposal_not_runtime_authorized') {
         throw new Error('PROPOSED_FOUNDATION_SPELL_MUST_FAIL_CLOSED:' + spellId);
       }
     });

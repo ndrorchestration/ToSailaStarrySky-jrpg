@@ -15,6 +15,8 @@ assert(worldExport.includes('getLedger'), 'World does not export getLedger');
 assert(worldExport.includes('getShopItems'), 'World does not export getShopItems');
 assert(worldExport.includes('purchaseItem'), 'World does not export purchaseItem');
 assert(worldExport.includes('closeShop'), 'World does not export closeShop');
+assert(worldExport.includes('senseAether'), 'World does not export senseAether');
+assert(worldExport.includes('getAetherSenseState'), 'World does not export getAetherSenseState');
 
 assert(/window\.UI\.shopBuyHandler\s*=/.test(source),
   'live shop purchase handler assignment is missing');
@@ -98,6 +100,8 @@ const requiredScripts = [
   'modules/ability-defs.js',
   'modules/progression-defs.js',
   'modules/mastery-defs.js',
+  'modules/magic-access.js',
+  'modules/aether-sense.js',
   'modules/field-role-defs.js',
   'modules/party-state.js',
   'modules/party-combat-bridge.js',
@@ -135,6 +139,24 @@ assert(source.includes('window.AetherMasteryDefs.validate()'),
 assert(source.includes('window._masteryDefs = window.AetherMasteryDefs'),
   'validated mastery definitions are not exposed to the runtime');
 
+assert(source.includes('AETHER_MAGIC_ACCESS_UNAVAILABLE'),
+  'runtime boot does not fail closed when magic access is missing');
+assert(source.includes('window.AetherMagicAccess.validate()'),
+  'runtime boot does not validate magic access');
+assert(source.includes('window._magicAccess = window.AetherMagicAccess'),
+  'validated magic access is not exposed to runtime');
+
+assert(source.includes('AETHER_SENSE_UNAVAILABLE'),
+  'runtime boot does not fail closed when Aether Sense runtime is missing');
+assert(source.includes('window.AetherSense.validate()'),
+  'runtime boot does not validate Aether Sense runtime');
+assert(source.includes('window._aetherSense = window.AetherSense'),
+  'validated Aether Sense runtime is not exposed to runtime');
+assert(source.includes('keysPressed[86]'),
+  'WORLD input does not bind V to Aether Sense');
+assert(source.includes("addLedgerEntry('aether-sense'"),
+  'Aether Sense does not record an exploration ledger entry');
+
 assert(source.includes('AETHER_FIELD_ROLE_DEFS_UNAVAILABLE'),
   'runtime boot does not fail closed when field-role definitions are missing');
 assert(source.includes('window.AetherFieldRoleDefs.validate()'),
@@ -156,6 +178,8 @@ assert(combatSource.includes('partyContext: state.partyContext'),
 console.log('Aetherwake party combat context contracts: PASS');
 
 console.log('Aetherwake field-role boot contracts: PASS');
+
+console.log('Aetherwake Aether Sense boot/input contracts: PASS');
 
 console.log('Aetherwake mastery boot contracts: PASS');
 

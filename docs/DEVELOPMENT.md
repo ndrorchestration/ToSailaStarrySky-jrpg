@@ -17,10 +17,13 @@ Current browser runtime:
 3. `modules/effect-resolver.js`
 4. `modules/ability-defs.js`
 5. `modules/progression-defs.js`
-6. `modules/party-state.js`
-7. `aetherwake.js`
-8. `modules/char-create.js`
-9. bundled `p5.min.js`
+6. `modules/mastery-defs.js`
+7. `modules/magic-access.js`
+8. `modules/aether-sense.js`
+9. `modules/party-state.js`
+10. `aetherwake.js`
+11. `modules/char-create.js`
+12. bundled `p5.min.js`
 
 The other files under `modules/` are useful historical/modular mirrors, but they are not guaranteed to match the integrated runtime.
 
@@ -62,8 +65,9 @@ The test intentionally uses real keyboard input for player-facing state transiti
 Both `index-embedded.html` (embedded/NW.js launch) and `index.html` (browser launch) are supported playable entrypoints. They must load the same runtime dependency chain in order:
 
 ```text
-effect vocabulary → resolver → ability/progression registries → party/airship state
-→ airship bridge/UI → audio → aetherwake.js → character creation → p5.js
+effect vocabulary → resolver → ability/progression registries → mastery
+→ magic access → Aether Sense → party/airship state → airship bridge/UI
+→ audio → aetherwake.js → character creation → p5.js
 ```
 
 Each entrypoint includes a hidden `#aetherwake-init-error` status surface. Missing runtime dependencies fail closed through `showInitializationFailure()` instead of entering a partially initialized game, and the launcher reports a visible timeout if p5/canvas creation never completes. The debug overlay remains opt-in through `?debug=1`.
@@ -226,6 +230,34 @@ Mutable mastery ranks/points are intentionally not part of this checkpoint.
 Because schema v2 is already player-facing, the first mutable mastery state must
 enter through an explicit save schema v3 migration rather than extending v2
 silently.
+
+## Aether Sense executable-magic checkpoint
+
+The magic-development lane establishes **Aether Sense** as the first
+runtime-authorized foundation technique while preserving the remaining seven
+foundation techniques as fail-closed design proposals.
+
+The boundary is intentionally narrow:
+
+- Ender's Aether affinity is established, and Aether Sense is explicitly listed
+  as an Ender starting technique rather than being granted to every future
+  Aether-capable character;
+- Aether Sense is exploration-only in this slice and costs no Aether, Echoes,
+  or unresolved inner resource;
+- WORLD key **V** scans only explicit scene signatures: the Wake core, Engine
+  Spirit, unresolved Aether Leak hazard while present, and an active player
+  Covenant Field;
+- sensing is read-only: it does not complete hazards, advance quests, mutate
+  combat, grant mastery, or change save schema;
+- results are recorded in the existing ledger and shown through a short-lived
+  world overlay;
+- Lyra/Ionia/Reson/Aepex magic ownership remains UNKNOWN;
+- Aether Pulse, Resonant Ping, Attune, Spatial Sense, Rift Step, Lumen Spark,
+  and Solar Mend remain unauthorized proposals.
+
+Because no mutable mastery state is introduced, player-facing save schema v2
+remains unchanged. Any later mutable mastery system still requires an explicit
+schema migration.
 
 ## Canonical character-sheet checkpoint
 
