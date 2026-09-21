@@ -75,6 +75,23 @@ jobs:
             throw "Packaged executable, manifest, or entry point is empty"
           }
 
+          $forbiddenRuntimeEntries = @("node_modules", "tests", "docs", ".github", "scripts", "build")
+          foreach ($entry in $forbiddenRuntimeEntries) {
+            $candidate = Join-Path $packageNw $entry
+            if (Test-Path -LiteralPath $candidate) {
+              throw "Development-only content leaked into package.nw: $entry"
+            }
+          }
+
+          $packageNwBytes = (
+            Get-ChildItem -LiteralPath $packageNw -File -Recurse |
+            Measure-Object -Property Length -Sum
+          ).Sum
+          Write-Host "package.nw application payload bytes: $packageNwBytes"
+          if ($packageNwBytes -le 0 -or $packageNwBytes -gt 20MB) {
+            throw "package.nw runtime payload outside expected 0-20 MiB bound: $packageNwBytes"
+          }
+
       - name: Stage Windows artifact
         shell: pwsh
         run: |
