@@ -4276,19 +4276,21 @@ function drawShipInterior() {
   textSize(10);
   textFont('sans-serif');
 
-  // Ender / player on deck
+  // Ender / player on deck — same sprite authority as the overworld.
   const px = cx - 48, py = cy + 20;
-  fill(C.teal[0], C.teal[1], C.teal[2], 220);
-  noStroke();
-  ellipse(px + 8, py + 8, 14, 14);
-  fill(C.parchment[0], C.parchment[1], C.parchment[2], 200);
-  ellipse(px + 8, py + 6, 8, 6);
-  // Direction indicator
+  if (window.AetherPixelSprites) {
+    window.AetherPixelSprites.drawShadow(px + 8, py + 15, 1);
+    window.AetherPixelSprites.draw('ender', px, py, {
+      frame: Math.floor(frameCount / 40) % 2,
+      scale: 1,
+      anchor: 'top-left',
+    });
+  }
   fill(C.teal[0], C.teal[1], C.teal[2], 180);
   textAlign(CENTER, TOP);
   textSize(7);
   textFont('Press Start 2P');
-  text('ENDER', px, py - 10);
+  text('ENDER', px + 8, py - 10);
   textSize(10);
   textFont('sans-serif');
 
@@ -4634,63 +4636,27 @@ function drawCovenantField() {
 function drawPlayer() {
   const px = player.px;
   const py = player.py;
+  const sprites = window.AetherPixelSprites;
 
-  noStroke();
-  fill(color(0, 0, 0, 80));
-  ellipse(px + 8, py + 14, 14, 5);
-
-  fill(color(40, 45, 60));
-  noStroke();
-  rect(px + 5, py + 9, 4, 5);
-  rect(px + 9, py + 9, 4, 5);
-
-  fill(color(30, 50, 40));
-  rect(px + 4, py + 4, 10, 6);
-  fill(color(42, 255, 181, 120));
-  rect(px + 2, py + 5, 3, 4);
-  rect(px + 13, py + 5, 3, 4);
-  noStroke();
-  fill(color(42, 255, 181, 60));
-  ellipse(px + 3.5, py + 7, 3, 2);
-  ellipse(px + 14.5, py + 7, 3, 2);
-
-  fill(color(220, 200, 170));
-  rect(px + 5, py + 1, 8, 4);
-  fill(color(42, 255, 181, 180));
-  rect(px + 5, py + 2, 3, 2);
-  rect(px + 10, py + 2, 3, 2);
-  noFill();
-  stroke(color(60, 60, 60));
-  strokeWeight(1);
-  line(px + 5, py + 2, px + 5, py);
-  line(px + 13, py + 2, px + 13, py);
-  noStroke();
-
-  noFill();
-  stroke(color(42, 255, 181, 120));
-  strokeWeight(1);
-  line(px + 13, py + 2, px + 15, py + 3);
-  line(px + 15, py + 3, px + 16, py + 2);
-  noStroke();
-
-  const staffX = px + 14;
-  const staffY = py + 1;
-  fill(color(80, 80, 90));
-  noStroke();
-  rect(staffX, staffY, 2, 12);
-  fill(color(42, 255, 181, 200));
-  rect(staffX - 1, staffY - 1, 4, 3);
-  noStroke();
-  fill(color(42, 255, 181, 80));
-  ellipse(staffX + 1, staffY, 4, 3);
-  noStroke();
+  if (sprites && typeof sprites.draw === 'function') {
+    const moving = Boolean(keys && (keys[37] || keys[38] || keys[39] || keys[40] ||
+      keys[65] || keys[68] || keys[83] || keys[87]));
+    const frame = moving ? Math.floor(frameCount / 8) % 2 : 0;
+    sprites.drawShadow(px + 8, py + 15, 1);
+    sprites.draw('ender', px, py, { frame, scale: 1, anchor: 'top-left' });
+  } else {
+    // Fail visibly rather than silently reverting to the old blob silhouette.
+    noStroke();
+    fill(255, 80, 100);
+    rect(px + 2, py + 2, 12, 12);
+  }
 
   fill(color(232, 220, 198));
   noStroke();
   textAlign(CENTER, TOP);
   textSize(8);
   textFont('VT323');
-  text('Ender', px + 8, py - 6);
+  text('Ender', px + 8, py - 7);
   textSize(9);
   textFont('VT323');
 }
@@ -4752,25 +4718,19 @@ function drawNPC(npc) {
 }
 
 function drawNPCIonia(px, py) {
-  // Ionia: young adult captain silhouette — practical coat, captain pin, no elder/farmer cues.
+  const sprites = window.AetherPixelSprites;
+  if (sprites && typeof sprites.draw === 'function') {
+    const frame = Math.floor(frameCount / 36) % 2;
+    sprites.draw('ionia', px + 4, py + 12, {
+      frame,
+      scale: 1,
+      anchor: 'bottom-center',
+    });
+    return;
+  }
   noStroke();
-  fill(color(38, 48, 58));
-  rect(px - 4, py - 1, 16, 9);
-  fill(color(52, 92, 102));
-  rect(px - 3, py, 14, 5);
-  fill(color(198, 168, 138));
-  rect(px - 2, py - 7, 12, 6);
-  fill(color(54, 38, 34));
-  rect(px - 3, py - 9, 13, 3);
-  rect(px - 3, py - 7, 3, 4);
-  fill(color(24, 24, 28));
-  rect(px + 1, py - 5, 2, 1);
-  rect(px + 7, py - 5, 2, 1);
-  fill(color(42, 255, 181, 210));
-  rect(px + 8, py + 1, 2, 2);
-  fill(color(30, 34, 40));
-  rect(px - 2, py + 7, 5, 5);
-  rect(px + 4, py + 7, 5, 5);
+  fill(255, 80, 100);
+  rect(px - 4, py - 4, 12, 12);
 }
 
 function drawNPCSpirit(px, py) {
@@ -4796,30 +4756,19 @@ function drawNPCSpirit(px, py) {
 }
 
 function drawNPCLyra(px, py) {
-  // Lyra: 24-year-old crew member/mother — adult silhouette with subtle frequency glow.
+  const sprites = window.AetherPixelSprites;
+  if (sprites && typeof sprites.draw === 'function') {
+    const frame = Math.floor(frameCount / 30) % 2;
+    sprites.draw('lyra', px + 4, py + 12, {
+      frame,
+      scale: 1,
+      anchor: 'bottom-center',
+    });
+    return;
+  }
   noStroke();
-  fill(color(72, 62, 96));
-  rect(px - 4, py - 1, 16, 9);
-  fill(color(112, 84, 122));
-  rect(px - 3, py, 14, 5);
-  fill(color(202, 176, 154));
-  rect(px - 2, py - 7, 12, 6);
-  fill(color(74, 54, 86));
-  rect(px - 3, py - 9, 13, 3);
-  rect(px + 8, py - 7, 3, 5);
-  fill(color(34, 30, 42));
-  rect(px + 1, py - 5, 2, 1);
-  rect(px + 7, py - 5, 2, 1);
-  fill(color(42, 255, 181, 190));
-  rect(px + 9, py + 1, 2, 2);
-  fill(color(48, 42, 64));
-  rect(px - 2, py + 7, 5, 5);
-  rect(px + 4, py + 7, 5, 5);
-  noFill();
-  stroke(color(42, 255, 181, 45));
-  strokeWeight(1);
-  ellipse(px + 3, py - 3, 20, 18);
-  noStroke();
+  fill(255, 80, 100);
+  rect(px - 4, py - 4, 12, 12);
 }
 
 function drawNPCSavager(px, py) {
