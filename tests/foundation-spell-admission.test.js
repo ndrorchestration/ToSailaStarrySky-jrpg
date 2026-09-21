@@ -5,6 +5,7 @@ const magicAccess = require('../modules/magic-access.js');
 const effects = require('../modules/effect-vocabulary.js');
 const admission = require('../modules/foundation-spell-admission.js');
 const contracts = require('../modules/foundation-spell-contracts.js');
+const pulseEval = require('../modules/aether-pulse-synthetic-evaluation.js');
 
 assert.strictEqual(admission.VERSION, '0.1.0');
 assert.strictEqual(contracts.VERSION, '0.1.0');
@@ -216,10 +217,111 @@ assert.strictEqual(
   'unknown_foundation_spell_contract'
 );
 
+
+assert.strictEqual(pulseEval.VERSION, '0.1.0');
+assert.strictEqual(pulseEval.STATUS, 'synthetic-test-only');
+
+function syntheticBalanceCandidate(candidateId, resourceCost, rollStat, enemyDamage, selfDamage) {
+  return {
+    status: pulseEval.STATUS,
+    synthetic: true,
+    spellId: 'aetherPulse',
+    schoolId: 'aether',
+    candidateId,
+    resource: 'aether',
+    resourceCost,
+    rollStat,
+    enemyDamage,
+    selfDamage,
+  };
+}
+
+const pulseCandidateA = syntheticBalanceCandidate(
+  'TEST_ONLY_A',
+  1,
+  'wits',
+  { success: 2, partial: 1, failure: 0 },
+  { success: 0, partial: 0, failure: 1 }
+);
+const pulseCandidateB = syntheticBalanceCandidate(
+  'TEST_ONLY_B',
+  2,
+  'wits',
+  { success: 4, partial: 2, failure: 0 },
+  { success: 0, partial: 0, failure: 0 }
+);
+
+const neutralCounts = pulseEval.getOutcomeCounts(0);
+assert.deepStrictEqual(neutralCounts, {
+  success: 6,
+  partial: 15,
+  failure: 15,
+  total: 36,
+});
+const plusTwoCounts = pulseEval.getOutcomeCounts(2);
+assert.deepStrictEqual(plusTwoCounts, {
+  success: 15,
+  partial: 15,
+  failure: 6,
+  total: 36,
+});
+
+const neutralA = pulseEval.evaluateCandidate(pulseCandidateA, 0);
+assert.strictEqual(neutralA.synthetic, true);
+assert.strictEqual(neutralA.designEstablished, false);
+assert.strictEqual(neutralA.runtimeAuthorized, false);
+assert.strictEqual(neutralA.expectedEnemyDamageNumerator, 27);
+assert.strictEqual(neutralA.expectedEnemyDamage, 27 / 36);
+assert.strictEqual(neutralA.expectedSelfDamageNumerator, 15);
+assert.strictEqual(neutralA.expectedSelfDamage, 15 / 36);
+assert.strictEqual(neutralA.expectedEnemyDamagePerAether, 27 / 36);
+
+const plusTwoA = pulseEval.evaluateCandidate(pulseCandidateA, 2);
+assert.strictEqual(plusTwoA.expectedEnemyDamageNumerator, 45);
+assert.strictEqual(plusTwoA.expectedEnemyDamage, 45 / 36);
+assert.strictEqual(plusTwoA.expectedSelfDamageNumerator, 6);
+
+const neutralB = pulseEval.evaluateCandidate(pulseCandidateB, 0);
+assert.strictEqual(neutralB.expectedEnemyDamageNumerator, 54);
+assert.strictEqual(neutralB.expectedEnemyDamage, 54 / 36);
+assert.strictEqual(neutralB.expectedEnemyDamagePerAether, 27 / 36);
+
+const modifierSweep = pulseEval.evaluateAcrossModifiers(
+  pulseCandidateA,
+  [-1, 0, 1, 2, 3]
+);
+assert.strictEqual(modifierSweep.length, 5);
+modifierSweep.forEach(result => {
+  const counts = result.probabilities.counts;
+  assert.strictEqual(
+    counts.success + counts.partial + counts.failure,
+    36,
+    'every 2D6 modifier sweep must preserve the 36 exact dice outcomes'
+  );
+  assert.strictEqual(result.runtimeAuthorized, false);
+  assert.strictEqual(result.designEstablished, false);
+});
+
+assert.throws(
+  () => pulseEval.validateCandidate(Object.assign({}, pulseCandidateA, {
+    synthetic: false,
+  })),
+  /SYNTHETIC_CANDIDATE_BOUNDARY_REQUIRED/
+);
+assert.throws(
+  () => pulseEval.evaluateAcrossModifiers(pulseCandidateA, [0, 0]),
+  /SYNTHETIC_MODIFIER_SET_DUPLICATE/
+);
+
 console.log('Aetherwake foundation spell admission gate: PASS');
 console.log(JSON.stringify({
   sense: senseAssessment,
   pulse: pulseReadiness,
   syntheticPulse: syntheticAssessment,
-  boundary: 'structural completeness never overrides design/runtime authorization',
+  syntheticBalanceEvaluation: {
+    neutralA,
+    plusTwoA,
+    neutralB,
+  },
+  boundary: 'structural completeness and synthetic balance evidence never override design/runtime authorization',
 }, null, 2));
