@@ -1,4 +1,12 @@
-// === modules/core.js ===
+// PLAYABLE_RUNTIME_AUTHORITY
+// This file is the integrated Aetherwake gameplay runtime loaded by both
+// index.html and index-embedded.html.
+//
+// Do not infer playable behavior from modules/core.js, modules/combat.js,
+// modules/world.js, modules/ui.js, or modules/ui-adapter.js. Those files are
+// NON_RUNTIME_MIRROR sources unless an entrypoint explicitly loads them.
+//
+// Runtime authority contract: docs/RUNTIME_AUTHORITY.md
 // ============================================================
 // Aetherwake JRPG — Main p5.js Sketch (GLOBAL MODE)
 // ============================================================
