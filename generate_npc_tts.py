@@ -16,9 +16,9 @@ import html
 # Reachable female voices: en-US-AriaNeural, en-US-JennyNeural
 # All others return NoAudioReceived in your environment.
 NPC_VOICE = {
-    'elder_farmer':      ('en-US-EricNeural', '-15%', '+0Hz'),   # weathered older male
+    'elder_farmer':      ('en-US-JennyNeural', '+0%', '-1Hz'),   # Ionia — adult captain
     'engine_spirit':     ('en-US-AriaNeural', '+0%',  '+1Hz'),    # calm, slightly ethereal
-    'child_prophet':     ('en-US-JennyNeural', '-15%', '+2Hz'),   # softer, higher — closest we have to a kid voice
+    'child_prophet':     ('en-US-AriaNeural', '+0%', '+0Hz'),    # Lyra — adult dream/frequency-sensitive voice
     'corporate_salvager':('en-US-BrianNeural', '+0%',  '+0Hz'),   # crisp corporate
 }
 
@@ -26,7 +26,7 @@ NPC_VOICE = {
 DIALOGUE = {
     'elder_farmer': {
         'intro': [
-            '"The Wake doesn\'t sing like it used to. You hear it? The harmonics are slipping. Three hundred years of sky-lane service, and now the core is forgetting its own song."',
+            '"The Wake doesn\'t sing like it used to. You hear it? The harmonics are slipping. Ten years under Captain Denith taught me this ship\'s rhythms, and now the Core is forgetting its own song."',
             '"You\'re Ender. Deckhand. Engineer-in-training. You carry a wrench, a passport, and a decision you haven\'t admitted you have to make. I know the shape of it."',
             '"I\'ve flown the Wake through the copper storms, through the blight-winds, through the years when the sky-lanes were closing one by one. I\'ve never seen the core drift like this. Not in all my watches."',
             'The crops on the lower decks taste like copper dust. The solar array still hums. The people are tired but alive. That\'s a lot. It\'s not enough, but it\'s a lot.',
@@ -34,7 +34,7 @@ DIALOGUE = {
         ],
         'class_ender': [
             '"Ah. Deckhand\'s hands. You\'ve been in the wiring. You know what happens when a core starts to slip — it doesn\'t stop. It falls."',
-            'Ionia has watched three hundred years of sky-lanes close one by one. She is exact about what the core has been through and tired in the way old captains get — not defeated, just done with watching the same thing fail. She is fond of Ender in the way a senior engineer is fond of a promising junior: she sees the decision coming and she doesn\'t pretend it\'s easy.',
+            'Ionia spent ten years learning the Wake under Captain Denith. She knows the old route records well enough to recognize when the Core is behaving wrong, and now every impossible problem belongs to her as captain. She trusts Ender as a new crewmate whose Rift Scholar instincts may matter here, but she doesn\'t pretend the decision is easy.',
             'You\'ve walked the ship and you\'ve seen what\'s waiting. Ionia\'s bulkhead is empty except for her watch log. Lyra\'s been listening to the frequencies nobody else can hear. Verrick has a contract on the core and a real argument about what happens to people when the sky-lanes close. You get to decide what the Wake becomes. That\'s not a small thing.',
         ],
         'generic_follow': [
