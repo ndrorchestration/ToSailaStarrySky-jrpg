@@ -431,9 +431,19 @@ function draw() {
       const py = world ? world.player.py : 380;
       const aetherInfo = combat.getAether ? combat.getAether() : { max: 6 };
       const chargeInfo = combat.getCharges ? combat.getCharges() : { max: 2 };
+      const skyCombat = combatReturnState === STATE.AIRSHIP;
+      const skyTravel = skyCombat && airNavigationState && window.AetherAirNavigation &&
+        typeof window.AetherAirNavigation.travelProfile === 'function'
+        ? window.AetherAirNavigation.travelProfile(airNavigationState)
+        : null;
       combat.drawCombatScene(
         px, py, aetherInfo.max, chargeInfo.max,
-        { domain: combatReturnState === STATE.AIRSHIP ? 'sky' : 'ground' }
+        {
+          domain: skyCombat ? 'sky' : 'ground',
+          weatherId: skyTravel && skyTravel.weather ? skyTravel.weather.id : 'clear',
+          altitude: skyCombat && airNavigationState ? airNavigationState.altitude : null,
+          encounterPressure: skyTravel ? skyTravel.encounterPressure : 0,
+        }
       );
     }
     // Draw combat UI panel
