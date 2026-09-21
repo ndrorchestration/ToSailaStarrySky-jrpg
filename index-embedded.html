@@ -161,6 +161,83 @@
   // Debug UI is opt-in only. Normal players should never see diagnostic overlays.
   window.__awDebugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
 
+  // CI-only packaged-runtime diagnostics. Normal player launches do not write
+  // any diagnostic files. This survives later startup failures so the Windows
+  // packaging gate can distinguish initialization faults from render faults.
+  (function installPackagedDiagnostics() {
+    var enabled = false;
+    try {
+      enabled =
+        typeof process !== 'undefined' &&
+        process.env &&
+        process.env.AETHERWAKE_DIAGNOSTICS === '1' &&
+        typeof require === 'function';
+    } catch (_) {}
+
+    if (!enabled) return;
+
+    try {
+      var fs = require('fs');
+      var path = require('path');
+      var root = path.join(process.env.LOCALAPPDATA || process.cwd(), 'Aetherwake');
+      var target = path.join(root, 'startup-diagnostic.json');
+      fs.mkdirSync(root, { recursive: true });
+
+      function snapshot(reason, detail) {
+        try {
+          var canvas = document.querySelector('canvas');
+          var loading = document.getElementById('loading-screen');
+          var failure = document.getElementById('aetherwake-init-error');
+          fs.writeFileSync(target, JSON.stringify({
+            timestamp: new Date().toISOString(),
+            reason: reason || 'poll',
+            detail: detail ? String(detail) : null,
+            readyState: document.readyState,
+            href: location.href,
+            title: document.title,
+            p5Loaded: typeof window.p5 !== 'undefined',
+            p5Instance: Boolean(window.p5 && window.p5.instance),
+            setupType: typeof window.setup,
+            drawType: typeof window.draw,
+            setupOrder: window._setupOrder || null,
+            initFailed: Boolean(window.__aetherwakeInitFailed),
+            launchFailure: window.__awLaunchFailure || null,
+            loadingDone: Boolean(window.__awLoadingDone),
+            loadingDisplay: loading ? getComputedStyle(loading).display : null,
+            failureHidden: failure ? failure.hidden : null,
+            failureText: failure ? failure.textContent : null,
+            gameState: window.gameState || null,
+            worldReady: Boolean(window._world),
+            combatReady: Boolean(window._combat),
+            charCreateReady: Boolean(window._charcreate),
+            canvas: canvas ? {
+              width: canvas.width,
+              height: canvas.height,
+              cssWidth: canvas.getBoundingClientRect().width,
+              cssHeight: canvas.getBoundingClientRect().height
+            } : null
+          }, null, 2));
+        } catch (_) {}
+      }
+
+      window.__awWriteStartupDiagnostic = snapshot;
+      snapshot('diagnostics-installed');
+      setInterval(function() { snapshot('poll'); }, 250);
+      window.addEventListener('error', function(event) {
+        snapshot(
+          'window-error',
+          event.error && event.error.stack ? event.error.stack : event.message
+        );
+      });
+      window.addEventListener('unhandledrejection', function(event) {
+        snapshot(
+          'unhandled-rejection',
+          event.reason && event.reason.stack ? event.reason.stack : event.reason
+        );
+      });
+    } catch (_) {}
+  })();
+
   // Fail visibly on packaged-runtime errors. A live NW.js window with an
   // initialization exception must never collapse into an unexplained blank screen.
   window.__awLaunchFailure = null;
