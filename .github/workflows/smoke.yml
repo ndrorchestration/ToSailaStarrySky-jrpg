@@ -49,6 +49,9 @@ jobs:
       - name: Verify preservation field-role definitions
         run: npm run test:field-roles
 
+      - name: Verify read-only party combat bridge
+        run: npm run test:party-combat-bridge
+
       - name: Verify regression contracts
         run: npm run test:regressions
 
