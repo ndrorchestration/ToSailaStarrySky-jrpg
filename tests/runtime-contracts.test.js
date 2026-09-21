@@ -28,6 +28,24 @@ assert(source.includes('world.closeDialogue()'),
 assert(source.includes('world.closeShop()'),
   'overlay cleanup does not close World shop state');
 
+assert(source.includes('if (keyCode === 113)'),
+  'F2 quick-save key binding is missing');
+assert(source.includes('if (keyCode === 114)'),
+  'F3 quick-load key binding is missing');
+assert(source.includes("gameState !== STATE.WORLD"),
+  'quick save is not restricted to safe WORLD state');
+assert(source.includes("gameState === STATE.MENU") &&
+  source.includes("gameState === STATE.CHARCREATE") &&
+  source.includes("gameState === STATE.WORLD"),
+  'quick load safe-state allowlist is incomplete');
+assert(source.includes('syncCombatFromWorldPlayer()'),
+  'quick load does not resynchronize combat from restored canonical state');
+assert(source.includes('window.quickSaveGame = quickSaveGame') &&
+  source.includes('window.quickLoadGame = quickLoadGame'),
+  'player persistence actions are not exposed for integration verification');
+
+console.log('Aetherwake player save/load input contracts: PASS');
+
 console.log('Aetherwake runtime contract tests: PASS');
 
 
