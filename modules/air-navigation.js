@@ -141,6 +141,21 @@
     return {available:true,landmark:nearest.landmark};
   }
 
+  function approachStatus(state) {
+    const nearest=nearestLandmark(state);
+    if (!nearest || nearest.distance>5) {
+      return {active:false,landmark:null,distance:Infinity,berthAvailable:false,speedLimit:null};
+    }
+    const berthAvailable=nearest.landmark.dockable && nearest.distance<=1.5;
+    return {
+      active:true,
+      landmark:nearest.landmark,
+      distance:nearest.distance,
+      berthAvailable,
+      speedLimit:nearest.landmark.dockable && nearest.distance<=3 ? 1 : null,
+    };
+  }
+
   function dock(state) {
     const next=createState(state), check=dockingCheck(next);
     if (!check.available) return {ok:false,state:next,landmark:null};
@@ -163,12 +178,18 @@
     const route=routeContext(next);
     const routeShelter=route.onRoute && route.discovered ? 1 : 0;
     const altitudeExposure=next.altitude==='high' ? 1 : 0;
+    const approach=approachStatus(next);
+    const weatherSpeed=next.speed * weather.speedFactor;
+    const effectiveSpeed=next.mooredLandmarkId
+      ? 0
+      : (approach.speedLimit===null ? weatherSpeed : Math.min(weatherSpeed,approach.speedLimit));
     return {
       weather,
       route,
+      approach,
       routeShelter,
       altitudeExposure,
-      effectiveSpeed:next.mooredLandmarkId ? 0 : next.speed * weather.speedFactor,
+      effectiveSpeed,
       encounterPressure:Math.max(0,weather.stepPressure + altitudeExposure - routeShelter),
     };
   }
@@ -285,7 +306,7 @@
     SKY_ENCOUNTERS:SKY_ENCOUNTERS.map(x=>Object.assign({},x)),
     ENCOUNTER_STEP_THRESHOLD,PERSISTENCE_VERSION,
     createState,nearestLandmark,weatherAt,projectToRoute,nearestRoute,routeContext,
-    dockingCheck,dock,undock,travelProfile,move,encounterCheck,changeAltitude,
+    dockingCheck,approachStatus,dock,undock,travelProfile,move,encounterCheck,changeAltitude,
     exportPersistentState,validatePersistentState,restorePersistentState
   };
 }));
