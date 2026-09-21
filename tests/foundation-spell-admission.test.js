@@ -382,7 +382,10 @@ assert.deepStrictEqual(staffReference.probabilities.counts, {
 assert.strictEqual(staffReference.expectedEnemyDamage, 70.5 / 36);
 assert.strictEqual(staffReference.expectedSelfDamage, 75 / 36);
 assert.strictEqual(staffReference.expectedChargeConsumption, 15 / 36);
-assert.strictEqual(staffReference.expectedEnemyDamagePerExpectedCharge, 4.7);
+assert(
+  Math.abs(staffReference.expectedEnemyDamagePerExpectedCharge - 4.7) < 1e-12,
+  'charged Staff Strike expected damage-per-charge reference drifted'
+);
 
 const pulseRuntimeComparison = pulseReference.compareSyntheticPulse(
   pulseCandidateA,
