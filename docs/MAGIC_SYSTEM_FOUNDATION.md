@@ -1,6 +1,6 @@
 # Aetherwake Magic System Foundation
 
-Status: **implementation scaffold on a feature branch; no new spells are runtime-authorized yet**
+Status: **implementation scaffold on a feature branch; Aether Sense is the first established runtime technique, while all other foundation spells remain unauthorized proposals**
 
 This document describes the first code-owned foundation for Aetherwake's broader magic system. It preserves the existing combat/progression baseline while making the authored Ender magic structure explicit and machine-checkable.
 
@@ -34,11 +34,11 @@ These branch names and detailed spell-tree contents are **DESIGN_PROPOSAL**, not
 
 ## Tier-I foundation techniques
 
-The current implementation scaffold records two proposed Tier-I techniques per school:
+The current implementation scaffold records two Tier-I foundation techniques per school. **Aether Sense is now established and integrated for Ender; the other seven remain design proposals.**
 
 ### Aether
 
-- **Aether Sense** — perception/exploration technique for Aether signatures, leaks, machinery, and fields.
+- **Aether Sense** — **ESTABLISHED / INTEGRATED for Ender.** A zero-cost exploration technique for explicit Aether signatures, leaks, machinery, active fields, and Aether-bearing entities. In WORLD, press **V** to scan; results are written to the ledger and briefly visualized without advancing quest state.
 - **Aether Pulse** — baseline active Aether discharge.
 
 ### Resonance / Harmonic
@@ -65,7 +65,7 @@ The code intentionally does **not** assign numeric costs to these techniques.
 - Passive/perception techniques may ultimately have no direct resource cost.
 - **Echoes are not redefined here** and are not silently treated as Arete.
 
-Every proposed foundation technique therefore carries a null/unfrozen numeric cost.
+Every still-proposed foundation technique therefore carries a null/unfrozen numeric cost. Aether Sense is explicitly zero-cost and retains a null numeric cost because it does not consume a resource.
 
 ## Runtime boundary
 
@@ -78,11 +78,13 @@ The browser-visible `AetherMasteryDefs` registry now exposes:
 - foundation-candidate discovery,
 - explicit runtime-readiness checks.
 
-Readiness is fail-closed. A proposed spell returns:
+Readiness remains fail-closed. A still-proposed spell returns:
 
 `design_proposal_not_runtime_authorized`
 
 until its design status is explicitly established and runtime integration is separately implemented.
+
+**Aether Sense is the first exception established through that gate.** It is explicitly starting-owned by Ender, returns `canUse: true`, and routes through a dedicated read-only exploration scanner. School access alone still does not grant any other spell.
 
 This prevents a data scaffold from silently becoming a playable mechanic.
 
@@ -97,7 +99,7 @@ This slice does **not** establish:
 - equipped spell slots,
 - companion school assignments,
 - hybrid / Dual / Triple Arts,
-- spell execution through the combat resolver,
+- foundation-spell execution through the combat resolver (Aether Sense is exploration-only),
 - save-state schema for mastery,
 - the four-affinity **Aetherwake** capstone.
 
@@ -105,12 +107,12 @@ The Aetherwake capstone remains intentionally undefined and plot-gated.
 
 ## Next implementation gates
 
-The smallest safe progression from this foundation is:
+The smallest safe progression from the current foundation is:
 
-1. approve or revise the Tier-I spell identities and resource semantics;
-2. define persistent school-mastery state without changing combat eligibility;
-3. add save/hydration support for mastery state;
-4. integrate one low-risk spell end-to-end through the ordinary effect resolver;
-5. verify combat/exploration behavior before widening the spell registry.
+1. keep Aether Sense's zero-cost exploration contract stable through browser verification;
+2. preserve the distinction between innate access, broad learnability, learned ownership, and runtime authorization;
+3. define persistent school-mastery state only when an actual mutable mastery mechanic is ready, using an explicit save-schema migration;
+4. establish the next individual spell's design and resource semantics before implementing it;
+5. add combat spell execution only after its effect semantics are supported by the ordinary resolver.
 
-A strong first executable candidate is **Aether Sense** because it can prove school ownership, environmental targeting, and exploration magic without inventing damage balance or Arete costs.
+**Aether Pulse** is the natural next Aether candidate once its cost, roll/effect contract, and combat-resolver path are explicitly established. Resonance, Correspondence, and Lumen resource-bearing techniques remain blocked on unresolved inner-resource semantics rather than silently consuming Echoes or guessed Arete.
