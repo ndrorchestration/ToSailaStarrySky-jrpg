@@ -3,18 +3,24 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
+const statModelSource = fs.readFileSync(
+  path.resolve(__dirname, '..', 'modules', 'jrpg-stat-model.js'),
+  'utf8'
+);
 const source = fs.readFileSync(
   path.resolve(__dirname, '..', 'modules', 'party-state.js'),
   'utf8'
 );
 
 const window = {};
+vm.runInNewContext(statModelSource, { window, console });
 vm.runInNewContext(source, { window, console });
 
 const state = window.AetherPartyState;
 assert(state, 'party-state API missing');
 assert.strictEqual(state.balanceProfileVersion, 1);
 assert.strictEqual(state.balanceStatus, 'PROVISIONAL_NOT_CANON');
+assert.strictEqual(state.productionStatModelVersion, '0.1.0');
 
 const defs = state.definitions;
 assert.strictEqual(defs.length, 5);
@@ -63,7 +69,20 @@ for (const member of state.roster) {
   assert.strictEqual(member.maxVit, e.vit);
   assert.strictEqual(member.combatRole, e.role);
   assert.strictEqual(member.balanceProfileVersion, 1);
+  assert.strictEqual(member.productionStatModelVersion, '0.1.0');
+  assert(member.productionStats, member.id + ' production stats missing');
 }
+
+assert.strictEqual(state.roster[0].productionStats.spirit, 12,
+  'Ender production Spirit must reflect creator-directed value 12');
+assert.strictEqual(state.roster[2].productionStats.presence, 9,
+  'Ionia production Presence must reflect creator-directed value 9');
+// Legacy compatibility fields remain intentionally unchanged until their
+// remaining 2D6 actions migrate to the production formula path.
+assert.strictEqual(state.roster[0].spirit, 1,
+  'Ender legacy Spirit must remain compatibility-safe during migration');
+assert.strictEqual(state.roster[2].presence, 2,
+  'Ionia legacy Presence must remain compatibility-safe during migration');
 
 const prototypeParty = [
   Object.assign({}, ender, {name:'Wrong Ender',age:99,class:'Rift Scholar + Dreamwright'}),
