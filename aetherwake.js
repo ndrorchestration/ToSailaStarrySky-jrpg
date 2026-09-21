@@ -1514,7 +1514,7 @@ function drawBootSequence() {
   textSize(11 * v);
   fill(C.rust[0], C.rust[1], C.rust[2], 140 * v);
   text('WASD  move  |  E  talk  |  Q  covenant  |  F  ship  |  Tab  sky/ground', cx, cy + 100);
-  text('L  ledger  |  M  shop  |  R  char sheet  |  T  quest log', cx, cy + 118);
+  text('V  Aether Sense  |  L  ledger  |  M  shop  |  R  char sheet  |  T  quest log', cx, cy + 118);
   
   textFont('Press Start 2P');
   textSize(8 * v);
@@ -1616,7 +1616,7 @@ function drawTitleScreen() {
   fill(C.rust[0], C.rust[1], C.rust[2], 140);
   const controlsY = saveAvailable ? cy + 122 : cy + 104;
   text('WASD  move  |  E  talk  |  Q  covenant  |  F  ship  |  Tab  sky/ground', cx, controlsY);
-  text('L  ledger  |  M  shop  |  R  char sheet  |  T  quest log  |  F2 save / F3 load',
+  text('V  Aether Sense  |  L  ledger  |  M  shop  |  R  char sheet  |  T  quest log  |  F2/F3 save/load',
        cx, controlsY + 18);
 
   textFont('Press Start 2P');
