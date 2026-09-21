@@ -185,6 +185,14 @@ function setup() {
   }
   window._fieldRoleDefs = window.AetherFieldRoleDefs;
 
+  if (!window.AetherPartyCombatBridge ||
+      typeof window.AetherPartyCombatBridge.createSnapshot !== 'function' ||
+      typeof window.AetherPartyCombatBridge.validateSnapshot !== 'function') {
+    showInitializationFailure('AETHER_PARTY_COMBAT_BRIDGE_UNAVAILABLE');
+    return;
+  }
+  window._partyCombatBridge = window.AetherPartyCombatBridge;
+
   if (!window.AetherPartyState || typeof window.AetherPartyState.bootstrap !== 'function') {
     showInitializationFailure('AETHER_PARTY_STATE_UNAVAILABLE');
     return;
@@ -328,34 +336,9 @@ function draw() {
           !window.ROSTER || window.ROSTER[0] !== world.player) {
         throw new Error('PERSISTENT_PARTY_IDENTITY_INVARIANT_FAILED');
       }
-      // Re-init combat with the new player data
+      // Re-init combat from the canonical lead + validated three-member context.
       if (combat && typeof combat.init === 'function') {
-        combat.init({
-          name: world.player.name,
-          age: world.player.age,
-          class: world.player.class,
-          wits: world.player.wits,
-          presence: world.player.presence,
-          spirit: world.player.spirit,
-          might: world.player.might,
-          grace: world.player.grace,
-          maxVit: world.player.maxVit,
-          vit: world.player.vit,
-          scrap: world.player.scrap,
-          aether: { current: world.player.aether, max: world.player.aetherMax },
-          heat: { current: world.player.heat, max: world.player.heatMax },
-          echoes: { current: world.player.echoes, max: world.player.echoesMax },
-          charges: world.player.staffCharges,
-          staffMax: world.player.maxStaffCharges || 2,
-          aetherMax: world.player.aetherMax,
-          heatMax: world.player.heatMax,
-          echoesMax: world.player.echoesMax,
-          level: world.player.level,
-          xp: world.player.xp,
-          xpToNext: world.player.xpToNext,
-          unlockedAbilities: world.player.unlockedAbilities,
-          equipment: world.player.equipment,
-        });
+        combat.init(buildCombatPlayerSnapshot());
       }
       gameState = STATE.WORLD;
       window.gameState = gameState;
@@ -913,6 +896,24 @@ function doMove(code) {
   if (code === RIGHT_ARROW) world.movePlayer(1, 0);
 }
 
+function buildPartyCombatContext() {
+  if (!window._partyCombatBridge ||
+      typeof window._partyCombatBridge.createSnapshot !== 'function') {
+    throw new Error('PARTY_COMBAT_BRIDGE_UNAVAILABLE');
+  }
+  if (!Array.isArray(window.ACTIVE_PARTY)) {
+    throw new Error('PARTY_COMBAT_ACTIVE_PARTY_UNAVAILABLE');
+  }
+  const snapshot = window._partyCombatBridge.createSnapshot(
+    window.ACTIVE_PARTY,
+    window._fieldRoleDefs || window.AetherFieldRoleDefs
+  );
+  window._partyCombatBridge.validateSnapshot(snapshot);
+  return snapshot;
+}
+
+window.buildPartyCombatContext = buildPartyCombatContext;
+
 function buildCombatPlayerSnapshot() {
   if (!world || !world.player) throw new Error('COMBAT_SYNC_WORLD_PLAYER_REQUIRED');
   return {
@@ -944,6 +945,7 @@ function buildCombatPlayerSnapshot() {
     equipment: world.player.equipment
       ? JSON.parse(JSON.stringify(world.player.equipment))
       : { staff: null, backpack: null },
+    partyContext: buildPartyCombatContext(),
   };
 }
 
@@ -1085,35 +1087,9 @@ function startCombat(enemyId) {
     }
   }
 
-  // Build complete player snapshot from World state
-  const playerSnapshot = {
-    name: world.player.name,
-    age: world.player.age,
-    class: world.player.class,
-    wits: world.player.wits,
-    presence: world.player.presence,
-    spirit: world.player.spirit,
-    might: world.player.might,
-    grace: world.player.grace,
-    vit: world.player.vit,
-    maxVit: world.player.maxVit,
-    scrap: world.player.scrap,
-    aether: { current: world.player.aether, max: world.player.aetherMax },
-    heat: { current: world.player.heat, max: world.player.heatMax },
-    echoes: { current: world.player.echoes, max: world.player.echoesMax },
-    charges: world.player.staffCharges,
-    maxStaffCharges: world.player.maxStaffCharges || 2,
-    staffMax: world.player.maxStaffCharges || 2,
-    aetherMax: world.player.aetherMax,
-    heatMax: world.player.heatMax,
-    echoesMax: world.player.echoesMax,
-    level: world.player.level,
-    xp: world.player.xp,
-    xpToNext: world.player.xpToNext,
-    unlockedAbilities: world.player.unlockedAbilities.slice ? world.player.unlockedAbilities.slice() : [...(world.player.unlockedAbilities || [])],
-    equipment: world.player.equipment ? JSON.parse(JSON.stringify(world.player.equipment)) : { staff: null, backpack: null },
-    airshipTransfer,
-  };
+  // Build one canonical Ender snapshot plus validated read-only party context.
+  const playerSnapshot = buildCombatPlayerSnapshot();
+  playerSnapshot.airshipTransfer = airshipTransfer;
 
   combat.init(playerSnapshot);
   const result = combat.beginEncounter(resolvedEnemyId);
@@ -5015,6 +4991,7 @@ function AetherCombat(p, C) {
     log: [],
     encounterOver: false,
     initiative: 0,
+    partyContext: null,
     airship: {
       shipId: null,
       classId: null,
@@ -5334,6 +5311,18 @@ function AetherCombat(p, C) {
     state.player.equipment = options.equipment
       ? JSON.parse(JSON.stringify(options.equipment))
       : { staff: null, backpack: null };
+
+    if (options.partyContext != null) {
+      if (!window.AetherPartyCombatBridge ||
+          typeof window.AetherPartyCombatBridge.validateSnapshot !== 'function') {
+        throw new Error('AETHER_PARTY_COMBAT_BRIDGE_UNAVAILABLE_IN_COMBAT');
+      }
+      window.AetherPartyCombatBridge.validateSnapshot(options.partyContext);
+      state.partyContext = JSON.parse(JSON.stringify(options.partyContext));
+    } else {
+      state.partyContext = null;
+    }
+
     state.turn = 0;
     state.log = [];
     state.enemy = null;
@@ -5910,6 +5899,9 @@ function AetherCombat(p, C) {
       player: JSON.parse(JSON.stringify(state.player)),
       enemy: state.enemy ? JSON.parse(JSON.stringify(state.enemy)) : null,
       airship: JSON.parse(JSON.stringify(state.airship)),
+      partyContext: state.partyContext
+        ? JSON.parse(JSON.stringify(state.partyContext))
+        : null,
       log: state.log.slice(),
       encounterOver: state.encounterOver,
       actions: actions,
@@ -7850,6 +7842,32 @@ function drawCombatPanel(combatState) {
   rX += 36;
   fill(PAL.PARCHMENT);
   text(String(combatState.player.scrap), rX, rY2);
+
+  // Read-only party context Phase A. Companions are visible but their action
+  // declarations are deliberately non-executable until outcome contracts exist.
+  if (combatState.partyContext &&
+      Array.isArray(combatState.partyContext.members) &&
+      combatState.partyContext.members.length === 3) {
+    textFont(FONT_UI);
+    textSize(6);
+    const companions = combatState.partyContext.members.slice(1);
+    companions.forEach((member, index) => {
+      const lineY = sY + 66 + index * 10;
+      fill(PAL.DIM);
+      const role = member.fieldRole && member.fieldRole.name
+        ? member.fieldRole.name
+        : 'ROLE UNKNOWN';
+      const hp = member.vit == null || member.maxVit == null
+        ? 'HP —'
+        : 'HP ' + member.vit + '/' + member.maxVit;
+      text(
+        member.canonicalName.toUpperCase() + '  ' + hp + '  ' +
+        role.toUpperCase() + ' · STAGED',
+        px + 14,
+        lineY
+      );
+    });
+  }
 
   // Actions grid — eight stable number-key slots. Locked actions stay visible
   // so progression is legible without making key bindings move.
