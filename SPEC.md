@@ -178,13 +178,14 @@ The development branch now separates current combat metadata from execution:
 
 - `modules/combat-system-policy.js` guards the approved formula-driven JRPG target;
 - `modules/combat-formula.js` v0.3 resolves migrated damage, deterministic resource, and deterministic recovery formulas (currently Staff Strike, Hold, and Rest) without mutating state;
-- `modules/effect-vocabulary.js` establishes effect vocabulary v0.1;
+- `modules/effect-vocabulary.js` establishes effect vocabulary v0.2;
 - frozen kinds are `damage`, `restore`, `resource`, `modifier`, `status`, `reveal`, and `movement`;
-- `modules/ability-defs.js` v0.5.0 owns canonical metadata/order, formula bindings, unlock eligibility, legacy pooled resource-cost calculation, affordability, and current use eligibility for the eight actions;
+- `modules/ability-defs.js` v0.6.0 owns canonical metadata/order, formula bindings, unlock eligibility, legacy pooled resource-cost calculation, affordability, and current use eligibility for the eight actions;
 - `modules/progression-defs.js` owns the current level-3/4/5 unlock table;
 - `AetherCombat.resolveTurn()` routes Staff Strike, Hold, and Rest through the formula resolver and keeps the five unmigrated actions on the legacy outcome branch;
-- ordinary damage, restoration, and resource mutations inside `resolveTurn()` are now executed through `modules/effect-resolver.js`;
-- the resolver fails closed on unsupported implemented effect kinds and treats `DECLARED_NOT_APPLIED` effects as explicit no-ops;
+- ordinary damage, restoration, resource mutations, and combat-local reveal state inside `resolveTurn()` are executed through `modules/effect-resolver.js`;
+- enemy weakness information begins hidden and successful Uncover Truth reveals it through the resolver; the combat panel gates presentation on that reveal state;
+- the resolver fails closed on unsupported implemented modifier/status/movement effects and treats `DECLARED_NOT_APPLIED` effects as explicit no-ops;
 - `resolveTurn()` now rejects locked actions before consuming a turn or resources;
 - the combat panel exposes stable keys 1–8 while visibly marking locked actions;
 - CI rejects reintroduced direct ordinary mutations inside `resolveTurn()` and validates the browser path after resolver integration.
@@ -256,7 +257,7 @@ so it remains non-executable and does not widen companion combat authorization.
 
 Known semantic debt remains explicit rather than being silently upgraded:
 
-- Uncover Truth's reveal and +1-next-roll semantics are currently narrated/local-only rather than durable applied state;
+- Uncover Truth's **weakness reveal is now real combat-local state**; its old +1-next-roll modifier remains declared-not-applied and is not presented as working player-facing behavior;
 - the Shared Dream +1-next-action branch is likewise not persisted/applied;
 - current legacy cost/tier behavior is preserved exactly;
 - modifier/reveal/status/movement execution is not generalized merely because those kinds exist in the vocabulary.
@@ -323,7 +324,7 @@ Learn eligibility and use eligibility must be separate checks.
 
 The generic resolver should process ordinary effects without action-ID-specific branching.
 
-Effect vocabulary v0.1 already covers the ordinary current-runtime families listed above. Future extensions may add field/terrain, mark/trigger, interrupt/counter/reaction, summon/deploy/construct, link/network, transform/alter, conditional/branch, sequence, and a rare script-hook escape hatch as those mechanics become executable requirements.
+Effect vocabulary v0.2 already covers the ordinary current-runtime families listed above, with damage/restoration/resource/reveal execution currently established. Future extensions may add field/terrain, mark/trigger, interrupt/counter/reaction, summon/deploy/construct, link/network, transform/alter, conditional/branch, sequence, and a rare script-hook escape hatch as those mechanics become executable requirements.
 
 Repeated use of script hooks for ordinary mechanics would indicate the vocabulary is incomplete.
 
