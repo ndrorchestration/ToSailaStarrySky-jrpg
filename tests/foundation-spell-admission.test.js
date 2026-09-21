@@ -4,13 +4,14 @@ const fs = require('fs');
 const mastery = require('../modules/mastery-defs.js');
 const magicAccess = require('../modules/magic-access.js');
 const effects = require('../modules/effect-vocabulary.js');
+const combatPolicy = require('../modules/combat-system-policy.js');
 const admission = require('../modules/foundation-spell-admission.js');
 const contracts = require('../modules/foundation-spell-contracts.js');
 const pulseEval = require('../modules/aether-pulse-synthetic-evaluation.js');
 const pulseReference = require('../modules/aether-pulse-runtime-reference.js');
 
-assert.strictEqual(admission.VERSION, '0.1.0');
-assert.strictEqual(contracts.VERSION, '0.1.0');
+assert.strictEqual(admission.VERSION, '0.2.0');
+assert.strictEqual(contracts.VERSION, '0.2.0');
 assert.deepStrictEqual(
   Array.from(contracts.DRAFT_ORDER),
   ['aetherSense', 'aetherPulse']
@@ -28,9 +29,15 @@ assert.strictEqual(senseRecord.cost.resource, null);
 assert.strictEqual(senseRecord.mutationPolicy, 'read-only');
 assert.deepStrictEqual(senseRecord.startingCharacterIds, ['ender']);
 assert.deepStrictEqual(senseRecord.blockers, []);
+assert.deepStrictEqual(senseRecord.legacyEvidenceBlockers, []);
 
 const senseCandidate = contracts.getAdmissionCandidate('aetherSense');
 assert(senseCandidate, 'Aether Sense admission contract must be exposed');
+assert(!Object.prototype.hasOwnProperty.call(senseCandidate, 'roll'),
+  'Aether Sense target contract must not carry legacy roll fields');
+assert(!Object.prototype.hasOwnProperty.call(senseCandidate, 'outcomes'),
+  'Aether Sense target contract must not carry legacy outcome fields');
+
 const senseAssessment = admission.assessSpell(
   'ender',
   'aetherSense',
@@ -61,23 +68,42 @@ assert(pulse, 'Aether Pulse draft must exist');
 assert.strictEqual(pulse.status, contracts.STATUS.DRAFT_UNRESOLVED);
 assert.strictEqual(pulse.schoolId, 'aether');
 assert.strictEqual(pulse.resourceBinding, 'aether');
-assert.strictEqual(pulse.mode, 'combat-2d6');
+assert.strictEqual(pulse.mode, 'combat-jrpg-formula');
 assert.strictEqual(pulse.cost.resource, 'aether');
 assert.strictEqual(pulse.cost.amount, null);
 assert.strictEqual(pulse.cost.status, contracts.UNKNOWN);
-assert.strictEqual(pulse.roll.system, '2d6');
-assert.strictEqual(pulse.roll.stat, contracts.UNKNOWN);
-assert.strictEqual(pulse.roll.successMin, 10);
-assert.strictEqual(pulse.roll.partialMin, 7);
+assert.strictEqual(pulse.resolution.status, contracts.UNKNOWN);
+assert.strictEqual(pulse.resolution.model, combatPolicy.TARGET.model);
+assert.strictEqual(pulse.resolution.formulaId, 'aetherPulse');
+assert.strictEqual(pulse.resolution.version, null);
+assert.strictEqual(pulse.resolution.kind, null);
+assert.strictEqual(pulse.resolution.parameters, null);
+assert.strictEqual(pulse.resolution.rngUses, null);
+assert.strictEqual(pulse.targeting.status, contracts.UNKNOWN);
+assert.strictEqual(pulse.targeting.mode, null);
+assert.strictEqual(pulse.targeting.maxTargets, null);
+assert.strictEqual(pulse.targeting.requiresExplicitTarget, null);
 assert.deepStrictEqual(pulse.requiredEffectKinds, ['damage']);
+assert.strictEqual(pulse.effects, null);
 assert.deepStrictEqual(pulse.startingCharacterIds, []);
 assert.strictEqual(contracts.getAdmissionCandidate('aetherPulse'), null);
 
+assert.strictEqual(
+  pulse.legacyResolutionEvidence.status,
+  'historical-2d6-prototype-only'
+);
+assert.deepStrictEqual(pulse.legacyResolutionEvidence.roll, {
+  system: '2d6',
+  stat: contracts.UNKNOWN,
+  successMin: 10,
+  partialMin: 7,
+  source: 'superseded-global-combat-rule',
+});
 for (const phase of ['common', 'success', 'partial', 'failure']) {
   assert.strictEqual(
-    pulse.outcomes[phase],
+    pulse.legacyResolutionEvidence.outcomes[phase],
     null,
-    'Aether Pulse outcome must remain unresolved: ' + phase
+    'legacy Aether Pulse outcome evidence must remain unresolved: ' + phase
   );
 }
 
@@ -87,22 +113,33 @@ assert.strictEqual(pulseReadiness.designComplete, false);
 assert.strictEqual(pulseReadiness.runtimeEstablished, false);
 assert.strictEqual(
   pulseReadiness.reason,
-  'spell_contract_not_established'
+  'formula_contract_not_established'
 );
 for (const blocker of [
   contracts.BLOCKER.DESIGN_NOT_ESTABLISHED,
   contracts.BLOCKER.STARTING_OWNERSHIP_NOT_ESTABLISHED,
+  contracts.BLOCKER.FORMULA_CONTRACT_NOT_SPECIFIED,
+  contracts.BLOCKER.TARGETING_NOT_SPECIFIED,
+  contracts.BLOCKER.EFFECT_CONTRACT_NOT_ESTABLISHED,
   contracts.BLOCKER.COST_NOT_SPECIFIED,
-  contracts.BLOCKER.ROLL_STAT_NOT_SPECIFIED,
-  contracts.BLOCKER.SUCCESS_OUTCOME_NOT_SPECIFIED,
-  contracts.BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED,
-  contracts.BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED,
   contracts.BLOCKER.EXECUTION_ADAPTER_NOT_ESTABLISHED,
   contracts.BLOCKER.PERSISTENCE_POLICY_NOT_ESTABLISHED,
 ]) {
   assert(
     pulseReadiness.blockers.includes(blocker),
-    'missing Aether Pulse blocker: ' + blocker
+    'missing target Aether Pulse blocker: ' + blocker
+  );
+}
+for (const blocker of [
+  contracts.BLOCKER.ROLL_STAT_NOT_SPECIFIED,
+  contracts.BLOCKER.COMMON_OUTCOME_NOT_SPECIFIED,
+  contracts.BLOCKER.SUCCESS_OUTCOME_NOT_SPECIFIED,
+  contracts.BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED,
+  contracts.BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED,
+]) {
+  assert(
+    pulseReadiness.legacyEvidenceBlockers.includes(blocker),
+    'missing legacy Aether Pulse evidence blocker: ' + blocker
   );
 }
 
@@ -114,7 +151,7 @@ const missingPulseContract = admission.assessSpell(
 assert.strictEqual(missingPulseContract.status, admission.STATUS.BLOCKED);
 assert.strictEqual(
   missingPulseContract.reason,
-  admission.REASON.CONTRACT_NOT_ESTABLISHED
+  admission.REASON.FORMULA_CONTRACT_NOT_ESTABLISHED
 );
 assert.strictEqual(missingPulseContract.executionAuthorized, false);
 
@@ -135,37 +172,37 @@ function implemented(kind, target, operation, key) {
 const syntheticPulseContract = {
   spellId: 'aetherPulse',
   schoolId: 'aether',
-  mode: admission.MODE.COMBAT_2D6,
+  mode: admission.MODE.COMBAT_JRPG,
   cost: {
     resource: effects.RESOURCE.AETHER,
     amount: 1,
   },
-  roll: {
-    system: '2d6',
-    stat: 'wits',
-    successMin: 10,
-    partialMin: 7,
+  resolution: {
+    model: combatPolicy.TARGET.model,
+    formulaId: 'aetherPulse',
+    version: '0.0.0-test',
+    kind: 'damage',
+    parameters: {
+      power: 1,
+      scalingStat: 'wits',
+      scalingCoefficient: 1,
+      defenseStat: 'aetherDefense',
+    },
+    rngUses: [],
   },
-  outcomes: {
-    common: [],
-    success: [
-      implemented(
-        effects.EFFECT_KIND.DAMAGE,
-        effects.TARGET.ENEMY,
-        effects.OPERATION.APPLY,
-        'syntheticAetherPulse'
-      ),
-    ],
-    partial: [
-      implemented(
-        effects.EFFECT_KIND.DAMAGE,
-        effects.TARGET.ENEMY,
-        effects.OPERATION.APPLY,
-        'syntheticAetherPulse'
-      ),
-    ],
-    failure: [],
+  targeting: {
+    mode: 'single-enemy',
+    maxTargets: 1,
+    requiresExplicitTarget: true,
   },
+  effects: [
+    implemented(
+      effects.EFFECT_KIND.DAMAGE,
+      effects.TARGET.ENEMY,
+      effects.OPERATION.APPLY,
+      'syntheticAetherPulse'
+    ),
+  ],
   mutationPolicy: 'effect-resolver',
   execution: {
     adapterId: 'synthetic-test-only',
@@ -214,12 +251,53 @@ assert.strictEqual(
   admission.REASON.CONTRACT_COST_INVALID
 );
 
+const legacyCandidate = JSON.parse(JSON.stringify(syntheticPulseContract));
+legacyCandidate.roll = {
+  system: '2d6',
+  stat: 'wits',
+  successMin: 10,
+  partialMin: 7,
+};
+legacyCandidate.outcomes = {
+  common: [],
+  success: [],
+  partial: [],
+  failure: [],
+};
+assert.strictEqual(
+  admission.assessSpell('ender', 'aetherPulse', legacyCandidate).reason,
+  admission.REASON.CONTRACT_LEGACY_RESOLUTION_FORBIDDEN
+);
+
+const invalidRng = JSON.parse(JSON.stringify(syntheticPulseContract));
+invalidRng.resolution.rngUses = ['success-partial-failure'];
+assert.strictEqual(
+  admission.assessSpell('ender', 'aetherPulse', invalidRng).reason,
+  admission.REASON.CONTRACT_RESOLUTION_INVALID
+);
+
+const invalidTargeting = JSON.parse(JSON.stringify(syntheticPulseContract));
+invalidTargeting.targeting.maxTargets = 0;
+assert.strictEqual(
+  admission.assessSpell('ender', 'aetherPulse', invalidTargeting).reason,
+  admission.REASON.CONTRACT_TARGETING_INVALID
+);
+
+const missingEffects = JSON.parse(JSON.stringify(syntheticPulseContract));
+missingEffects.effects = [];
+assert.strictEqual(
+  admission.assessSpell('ender', 'aetherPulse', missingEffects).reason,
+  admission.REASON.CONTRACT_EFFECTS_INVALID
+);
+
 assert.strictEqual(
   contracts.getReadiness('notASpell').reason,
   'unknown_foundation_spell_contract'
 );
 
 
+// Everything below is an explicit historical/synthetic 2D6 reference suite.
+// It is retained to prevent provenance drift and has no target-design authority.
 assert.strictEqual(pulseEval.VERSION, '0.1.0');
 assert.strictEqual(pulseEval.STATUS, 'synthetic-test-only');
 assert.strictEqual(pulseEval.SPELL_ID, 'aetherPulse');
