@@ -56,8 +56,8 @@
         db.innerHTML =
           '<b>DEBUG</b><br>' +
           'gameState: ' + (window.gameState || 'undefined (TITLE SCREEN)') + '<br>' +
-          'world: ' + (window.world ? 'loaded' : 'not loaded') + '<br>' +
-          'combat: ' + (window.combat ? 'loaded' : 'not loaded') + '<br>' +
+          'world: ' + (window._world ? 'loaded' : 'not loaded') + '<br>' +
+          'combat: ' + (window._combat ? 'loaded' : 'not loaded') + '<br>' +
           'UI: ' + (window.UI ? 'loaded' : 'not loaded') + '<br>' +
           'FPS: ' + fps + '<br>' +
           'p5: ' + (window.p5 ? 'loaded' : 'NOT LOADED') + '<br>' +
