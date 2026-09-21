@@ -45,6 +45,7 @@ Current canvas: **960×640**.
 | **Q** | Plant Covenant Field |
 | **F** | Board / interact with ship |
 | **Tab** | Toggle sky / ground layer |
+| **V** | Aether Sense — scan explicit nearby/world Aether signatures without spending a resource |
 | **L** | Mycelial ledger |
 | **M** | Repair Cafe / shop |
 | **R** | Character sheet |
