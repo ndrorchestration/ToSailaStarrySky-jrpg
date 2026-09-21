@@ -14,7 +14,7 @@ const expectedActionOrder = [
   'rest',
 ];
 
-assert.strictEqual(abilities.VERSION, '0.3.0');
+assert.strictEqual(abilities.VERSION, '0.4.0');
 assert.strictEqual(progression.VERSION, '0.1.0');
 assert.deepStrictEqual(abilities.ACTION_ORDER, expectedActionOrder);
 assert.strictEqual(abilities.validateDefs(), true);
@@ -76,6 +76,10 @@ assert.strictEqual(abilities.getActionResourceCost('uncoverTruth'), 2);
 assert.strictEqual(abilities.getActionResourceCost('sharedDream'), 2);
 assert.strictEqual(abilities.getActionResourceCost('mycelialLedger'), 0);
 assert.strictEqual(abilities.getActionResourceCost('hold'), 0);
+assert.deepStrictEqual(abilities.DEFS.hold.resolution, {
+  model: 'jrpg-stat-formula',
+  formulaId: 'hold',
+});
 assert.strictEqual(abilities.getActionResourceCost('windWard'), 2);
 assert.strictEqual(abilities.getActionResourceCost('aetherSeal'), 3);
 assert.strictEqual(abilities.getActionResourceCost('rest'), 0);
