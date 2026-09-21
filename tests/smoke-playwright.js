@@ -1260,17 +1260,21 @@ function createServer() {
 
     // Dragonfly-class airship systems: use the production boarding input path.
     const airshipSetup = await page.evaluate(() => {
-      window._world.player.tileX = 22;
+      // Use the side opposite the Core. At (22,10) contextual OK correctly
+      // prioritizes the nearby Core dialogue before ship boarding.
+      window._world.player.tileX = 25;
       window._world.player.tileY = 10;
-      window._world.player.px = 22 * 16;
+      window._world.player.x = 25;
+      window._world.player.y = 10;
+      window._world.player.px = 25 * 16;
       window._world.player.py = 10 * 16;
       return {
         tileX: window._world.player.tileX,
         tileY: window._world.player.tileY,
       };
     });
-    assert(airshipSetup.tileX === 22 && airshipSetup.tileY === 10,
-      'airship smoke fixture did not place Ender beside the ship');
+    assert(airshipSetup.tileX === 25 && airshipSetup.tileY === 10,
+      'airship smoke fixture did not place Ender at an unambiguous boarding point');
 
     await page.keyboard.press('KeyZ');
     await page.waitForFunction(() => window.gameState === 'airship', undefined,
