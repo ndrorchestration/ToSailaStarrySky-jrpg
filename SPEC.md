@@ -134,11 +134,12 @@ The existing 2D6 implementation remains temporarily testable only to keep the pl
 
 ### CURRENT IMPLEMENTATION — HYBRID MIGRATION
 
-Resolution now has three explicit paths:
+Resolution now has four explicit paths:
 
 - **Staff Strike:** live JRPG damage-formula resolution through `modules/combat-formula.js`; no 2D6 outcome band, one dedicated staff charge, Might scaling, EMP damage type, explicit future EMP-defense hook, bounded variance, and critical policy.
 - **Hold:** live deterministic JRPG resource-formula resolution; restores one staff charge up to `maxStaffCharges`, consumes the turn, adds no Heat, and has no success/partial/failure self-damage branches.
-- **The remaining six current actions:** preservation-era 2D6 compatibility path:
+- **Rest:** live deterministic JRPG recovery-formula resolution; reduces Heat by up to 2 and restores up to 1 Vitality, consumes the turn, adds no Heat, and has no success/partial/failure damage branch.
+- **The remaining five current actions:** preservation-era 2D6 compatibility path:
   - 10+ = full success
   - 7–9 = partial success / complication
   - 6− = failure
@@ -171,17 +172,17 @@ Current prototype level unlocks:
 
 These unlocks are now enforced at use time. At level 1, the eligible action set is Staff Strike, Uncover Truth, Shared Dream, Mycelial Ledger, and Hold. Wind Ward, Aether Seal, and Rest remain visible in stable key slots but reject use until their IDs enter `player.unlockedAbilities`.
 
-Current use eligibility is centralized in `modules/ability-defs.js` v0.4.0. Staff Strike additionally preflights its dedicated staff charge before turn/heat consumption. The prototype's existing numeric rule is preserved exactly as `tier + cost`, but affordability is preflighted transactionally across pooled Echo+Aether before a turn or resource is consumed. The combat UI and runtime use the same cost function. Normal victory XP now routes through `awardXP()`, so crossing a threshold executes `levelUp()` and makes newly learned actions eligible.
+Current use eligibility is centralized in `modules/ability-defs.js` v0.5.0. Staff Strike additionally preflights its dedicated staff charge before turn/heat consumption. The prototype's existing numeric rule is preserved exactly as `tier + cost`, but affordability is preflighted transactionally across pooled Echo+Aether before a turn or resource is consumed. The combat UI and runtime use the same cost function. Normal victory XP now routes through `awardXP()`, so crossing a threshold executes `levelUp()` and makes newly learned actions eligible.
 
 The development branch now separates current combat metadata from execution:
 
 - `modules/combat-system-policy.js` guards the approved formula-driven JRPG target;
-- `modules/combat-formula.js` v0.2 resolves migrated damage and deterministic resource formulas (currently Staff Strike and Hold) without mutating state;
+- `modules/combat-formula.js` v0.3 resolves migrated damage, deterministic resource, and deterministic recovery formulas (currently Staff Strike, Hold, and Rest) without mutating state;
 - `modules/effect-vocabulary.js` establishes effect vocabulary v0.1;
 - frozen kinds are `damage`, `restore`, `resource`, `modifier`, `status`, `reveal`, and `movement`;
-- `modules/ability-defs.js` v0.4.0 owns canonical metadata/order, formula bindings, unlock eligibility, legacy pooled resource-cost calculation, affordability, and current use eligibility for the eight actions;
+- `modules/ability-defs.js` v0.5.0 owns canonical metadata/order, formula bindings, unlock eligibility, legacy pooled resource-cost calculation, affordability, and current use eligibility for the eight actions;
 - `modules/progression-defs.js` owns the current level-3/4/5 unlock table;
-- `AetherCombat.resolveTurn()` routes Staff Strike and Hold through the formula resolver and keeps the six unmigrated actions on the legacy outcome branch;
+- `AetherCombat.resolveTurn()` routes Staff Strike, Hold, and Rest through the formula resolver and keeps the five unmigrated actions on the legacy outcome branch;
 - ordinary damage, restoration, and resource mutations inside `resolveTurn()` are now executed through `modules/effect-resolver.js`;
 - the resolver fails closed on unsupported implemented effect kinds and treats `DECLARED_NOT_APPLIED` effects as explicit no-ops;
 - `resolveTurn()` now rejects locked actions before consuming a turn or resources;
