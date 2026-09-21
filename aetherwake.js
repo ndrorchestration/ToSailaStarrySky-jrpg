@@ -4641,25 +4641,18 @@ function drawNPCIonia(px, py) {
 }
 
 function drawNPCSpirit(px, py) {
-  fill(color(120, 200, 220, 140));
-  noStroke();
-  ellipse(px, py, 14, 16);
-  noStroke();
-  fill(color(42, 255, 181, 180));
-  ellipse(px, py - 2, 6, 6);
-  noFill();
-  stroke(color(42, 255, 181, 120));
-  strokeWeight(1);
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2 + frameCount * 0.02;
-    line(px, py, px + Math.cos(a) * 12, py + Math.sin(a) * 12);
+  const sprites = window.AetherPixelSprites;
+  if (sprites && typeof sprites.draw === 'function') {
+    sprites.draw('engineSpirit', px, py + 8, {
+      frame: Math.floor(frameCount / 18) % 2,
+      scale: 1,
+      anchor: 'bottom-center',
+    });
+    return;
   }
   noStroke();
-  fill(color(200, 230, 240, 150));
-  rect(px - 3, py - 2, 10, 4);
-  fill(color(40, 60, 80, 150));
-  rect(px - 1, py - 1, 2, 1);
-  rect(px + 4, py - 1, 2, 1);
+  fill(255, 80, 100);
+  rect(px - 4, py - 4, 12, 12);
 }
 
 function drawNPCLyra(px, py) {
@@ -4679,25 +4672,18 @@ function drawNPCLyra(px, py) {
 }
 
 function drawNPCSavager(px, py) {
-  fill(color(100, 100, 105));
+  const sprites = window.AetherPixelSprites;
+  if (sprites && typeof sprites.draw === 'function') {
+    sprites.draw('corporateSalvager', px, py + 12, {
+      frame: Math.floor(frameCount / 32) % 2,
+      scale: 1,
+      anchor: 'bottom-center',
+    });
+    return;
+  }
   noStroke();
-  rect(px - 4, py - 3, 16, 10);
-  fill(color(80, 80, 85));
-  rect(px - 3, py - 3, 14, 3);
-  fill(color(180, 170, 160));
-  rect(px - 3, py - 8, 12, 6);
-  fill(color(30, 30, 35));
-  rect(px, py - 7, 2, 1);
-  rect(px + 6, py - 7, 2, 1);
-  fill(color(42, 255, 181, 160));
-  rect(px + 8, py - 4, 4, 3);
-  fill(color(10, 10, 10));
-  rect(px + 9, py - 3, 2, 1);
-  fill(color(60, 60, 65));
-  rect(px - 3, py + 6, 5, 5);
-  rect(px + 2, py + 6, 5, 5);
-  fill(color(100, 100, 105));
-  rect(px + 11, py, 3, 7);
+  fill(255, 80, 100);
+  rect(px - 4, py - 4, 12, 12);
 }
 
 function drawNPCDefault(px, py, name) {
