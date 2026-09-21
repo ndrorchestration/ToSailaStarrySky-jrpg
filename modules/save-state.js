@@ -15,20 +15,26 @@
   'use strict';
 
   const SAVE_KIND = 'aetherwake-save';
-  const CURRENT_SCHEMA_VERSION = 2;
-  const STORAGE_KEY = 'aetherwake.save.v2';
-  const LEGACY_STORAGE_KEYS = Object.freeze(['aetherwake.save.v1']);
+  const CURRENT_SCHEMA_VERSION = 3;
+  const STORAGE_KEY = 'aetherwake.save.v3';
+  const LEGACY_STORAGE_KEYS = Object.freeze(['aetherwake.save.v2','aetherwake.save.v1']);
 
   // Every released schema transition is explicit. v1 contained only
-  // party/progression persistence; v2 adds World/quest/ledger and Dragonfly
-  // payloads. Migrated v1 documents preserve the initialized runtime defaults
-  // for those newly introduced domains by representing them as null.
+  // party/progression persistence; v2 added World/quest/ledger and Dragonfly
+  // payloads; v3 adds resumable air-navigation state. Older saves preserve
+  // initialized runtime defaults for domains they did not yet own by using null.
   const MIGRATIONS = Object.freeze({
     1: function migrateV1ToV2(input) {
       const document = cloneJson(input);
       document.schemaVersion = 2;
       document.worldState = null;
       document.airshipState = null;
+      return document;
+    },
+    2: function migrateV2ToV3(input) {
+      const document = cloneJson(input);
+      document.schemaVersion = 3;
+      document.airNavigationState = null;
       return document;
     },
   });
@@ -57,6 +63,9 @@
       'exportAirshipState',
       'validateAirshipState',
       'restoreAirshipState',
+      'exportAirNavigationState',
+      'validateAirNavigationState',
+      'restoreAirNavigationState',
     ];
     if (!runtime || required.some(method => typeof runtime[method] !== 'function')) {
       throw new Error('SAVE_RUNTIME_PERSISTENCE_API_UNAVAILABLE');
@@ -85,14 +94,18 @@
     requirePartyState().validatePersistentState(document.partyState);
 
     if (!Object.prototype.hasOwnProperty.call(document, 'worldState') ||
-        !Object.prototype.hasOwnProperty.call(document, 'airshipState')) {
-      throw new Error('SAVE_V2_SUBSYSTEM_PAYLOADS_REQUIRED');
+        !Object.prototype.hasOwnProperty.call(document, 'airshipState') ||
+        !Object.prototype.hasOwnProperty.call(document, 'airNavigationState')) {
+      throw new Error('SAVE_V3_SUBSYSTEM_PAYLOADS_REQUIRED');
     }
 
-    if (document.worldState !== null || document.airshipState !== null) {
+    if (document.worldState !== null ||
+        document.airshipState !== null ||
+        document.airNavigationState !== null) {
       const runtime = requireRuntimePersistence();
       if (document.worldState !== null) runtime.validateWorldState(document.worldState);
       if (document.airshipState !== null) runtime.validateAirshipState(document.airshipState);
+      if (document.airNavigationState !== null) runtime.validateAirNavigationState(document.airNavigationState);
     }
     return true;
   }
@@ -138,6 +151,7 @@
       partyState: partyState.exportPersistentState(),
       worldState: runtime.exportWorldState(),
       airshipState: runtime.exportAirshipState(),
+      airNavigationState: runtime.exportAirNavigationState(),
     };
 
     validateDocument(document);
@@ -168,14 +182,20 @@
     const partyResult = requirePartyState().restorePersistentState(current.partyState);
     let worldResult = null;
     let airshipResult = null;
+    let airNavigationResult = null;
 
-    if (current.worldState !== null || current.airshipState !== null) {
+    if (current.worldState !== null ||
+        current.airshipState !== null ||
+        current.airNavigationState !== null) {
       const runtime = requireRuntimePersistence();
       if (current.worldState !== null) {
         worldResult = runtime.restoreWorldState(current.worldState);
       }
       if (current.airshipState !== null) {
         airshipResult = runtime.restoreAirshipState(current.airshipState);
+      }
+      if (current.airNavigationState !== null) {
+        airNavigationResult = runtime.restoreAirNavigationState(current.airNavigationState);
       }
     }
 
@@ -185,6 +205,7 @@
       activeParty: partyResult.activeParty,
       worldState: worldResult,
       airshipState: airshipResult,
+      airNavigationState: airNavigationResult,
     };
   }
 
@@ -242,6 +263,7 @@
       activeParty: restored.activeParty,
       worldState: restored.worldState,
       airshipState: restored.airshipState,
+      airNavigationState: restored.airNavigationState,
     };
   }
 
