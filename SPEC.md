@@ -269,9 +269,30 @@ Jobs and schools are separate concepts:
 
 Jobs should not simply own spell lists.
 
+### MASTERY DEFINITIONS — PHASE A
+
+`modules/mastery-defs.js` now establishes only the code-owned facts that are
+already supported by the specification:
+
+- major domain-family IDs: Elemental, Arcane, Psychic, Spirit;
+- Ender special affinity IDs: Aether, Resonance, Correspondence, Lumen;
+- Ender native job: Rift Scholar;
+- Lyra/Ionia/Reson/Aepex affinity and native-job status: explicit **UNKNOWN**.
+
+The module preserves unknown as a first-class state rather than converting missing
+data into "none." It does not add ranks, mastery XP, trees, new abilities, or new
+combat eligibility.
+
+Because save schema v2 is already player-facing, mutable mastery state is not
+allowed to appear silently inside v2 documents. The first mutable mastery phase
+must introduce an explicit **save schema v3** migration that initializes new
+mutable fields without fabricating progress. Authored affinity/native-job facts
+remain code-owned rather than save-owned.
+
 ### OPEN DESIGN
 
-Several proposed schools/domains, resource relationships, and companion job definitions remain unresolved.
+Several proposed schools/domains, resource relationships, mastery scales/award
+rules, and companion job definitions remain unresolved.
 
 ---
 
@@ -470,6 +491,6 @@ Automated tests should also cover:
 10. expand campaign content,
 11. production hardening and balance.
 
-**Development-branch checkpoint:** the smoke-stabilized baseline plus steps 2–5 are verified; step 6 is partially established through the fail-closed ordinary effect resolver; step 7 has established fixed Ender/Lyra/Ionia authored onboarding while companion canonical jobs/mechanics remain unresolved; and save schema v2 now covers party/progression, World/quest/ledger, and bounded Dragonfly state with explicit v1 migration and player-facing F2/F3 safe-state controls. Encounter-local combat persistence remains intentionally excluded. Promotion/merge to `main` has not occurred.
+**Development-branch checkpoint:** the smoke-stabilized baseline plus steps 2–5 are verified; step 6 is partially established through the fail-closed ordinary effect resolver; step 7 has established fixed Ender/Lyra/Ionia authored onboarding while companion canonical jobs/mechanics remain unresolved; save schema v2 now covers party/progression, World/quest/ledger, and bounded Dragonfly state with explicit v1 migration and player-facing F2/F3 safe-state controls; and migration step 8 Phase A establishes code-owned mastery/domain facts without mutable mastery state. Encounter-local combat persistence remains intentionally excluded. Promotion/merge to `main` has not occurred.
 
 **Non-negotiable:** avoid a single rewrite of character creation, combat, progression, and party state at the same time.
