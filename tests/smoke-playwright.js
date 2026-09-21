@@ -226,6 +226,15 @@ function createServer() {
 
     const combatStart = await page.evaluate(() => window._combat.getState());
     assert(combatStart.turn === 0, 'combat did not start at turn 0');
+    assert(combatStart.player.productionStats &&
+           combatStart.player.productionStats.spirit === 12,
+      'combat state did not receive Ender production stats');
+    assert(window.AetherCombatSystemPolicy &&
+           window.AetherCombatSystemPolicy.TARGET.model === 'jrpg-stat-formula',
+      'production combat policy is not loaded');
+    assert(window.AetherCombatFormula &&
+           window.AetherCombatFormula.VERSION === '1.0.0',
+      'production formula engine is not loaded');
 
     // Level-1 progression must actually gate actions 6-8.
     await page.keyboard.press('6');
@@ -574,8 +583,53 @@ function createServer() {
       line.includes('[Turn 1]') && line.includes('Resonator Staff')),
       'turn 1 action text was not logged correctly');
     assert(combatAfterActions.log.some(line =>
+      line.includes('[Turn 1]') &&
+      line.includes('Resonator Staff') &&
+      !line.includes('Roll:')),
+      'Staff Strike still exposed legacy dice text after formula migration');
+    assert(combatAfterActions.log.some(line =>
       line.includes('[Turn 2]') && line.includes('Uncover Truth')),
       'turn 2 action text was not logged correctly');
+
+    const dedicatedResourceContract = await page.evaluate(() => {
+      const productionStats = window._world.player.productionStats;
+      const productionDerivedStats = window._world.player.productionDerivedStats;
+      window._combat.init({
+        vit: 13,
+        scrap: 7,
+        aether: { current: 4, max: 6 },
+        heat: { current: 1, max: 3 },
+        echoes: { current: 3, max: 3 },
+        charges: 0,
+        staffMax: 2,
+        level: 1,
+        xp: 0,
+        xpToNext: 50,
+        unlockedAbilities: ['uncoverTruth','sharedDream','mycelialLedger'],
+        productionStats,
+        productionDerivedStats,
+        productionStatModelVersion: '0.1.0',
+      });
+      window._combat.beginEncounter('skyPredator');
+      const before = window._combat.getState();
+      const result = window._combat.resolveTurn('staffStrike', null);
+      const after = window._combat.getState();
+      startCombat('skyPredator');
+      return {
+        result,
+        beforeTurn: before.turn,
+        afterTurn: after.turn,
+        reason: after.actionUseEligibility.staffStrike.reason,
+        log: after.log,
+      };
+    });
+    assert(dedicatedResourceContract.result === false,
+      'zero-charge Staff Strike was not rejected');
+    assert(dedicatedResourceContract.beforeTurn === 0 &&
+           dedicatedResourceContract.afterTurn === 0,
+      'zero-charge Staff Strike consumed a turn');
+    assert(dedicatedResourceContract.reason === 'insufficient_dedicated_resource',
+      'zero-charge Staff Strike did not expose dedicated-resource rejection');
 
     // Deterministic state-transition check. We test real keyboard combat
     // actions above; direct finishCombat avoids making the smoke test depend on
