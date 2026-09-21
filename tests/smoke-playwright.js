@@ -396,6 +396,104 @@ function createServer() {
     await page.waitForFunction(() => window.gameState === 'world', undefined,
       { timeout: 5000 });
 
+    // First executable magic technique: Aether Sense must use the real WORLD
+    // input path, remain resource-free, and observe rather than mutate quest state.
+    const aetherSenseBefore = await page.evaluate(() => {
+      const quest = window._world.getQuestState();
+      const ledger = window._world.getLedger();
+      return {
+        aether: window._world.player.aether,
+        echoes: window._world.player.echoes,
+        ledgerLength: ledger.length,
+        questState: quest.state,
+        hooksCompleted: quest.hooksCompleted,
+        hazardsCompleted: quest.hazardsCompleted,
+        crossingHazards: quest.crossingHazards.map(hazard => ({
+          id: hazard.id,
+          done: hazard.done,
+        })),
+        readiness: window.AetherMasteryDefs.getSpellRuntimeReadiness(
+          'ender',
+          'aetherSense'
+        ),
+        admission: window.AetherMagicAccess.getFoundationSpellStudyAdmission(
+          'ender',
+          'aetherSense'
+        ),
+      };
+    });
+
+    assert(aetherSenseBefore.readiness.canUse === true &&
+      aetherSenseBefore.readiness.reason === 'ok',
+      'Aether Sense mastery readiness is not established');
+    assert(aetherSenseBefore.admission.canUse === true &&
+      aetherSenseBefore.admission.schoolAccess === 'innate',
+      'Aether Sense access admission is not established for Ender');
+
+    await page.keyboard.press('KeyV');
+    await page.waitForFunction(() => {
+      const state = window._world &&
+        typeof window._world.getAetherSenseState === 'function'
+        ? window._world.getAetherSenseState()
+        : null;
+      return Boolean(state && state.active && state.lastScan && state.lastScan.ok);
+    }, undefined, { timeout: 5000 });
+
+    const aetherSenseAfter = await page.evaluate(() => {
+      const state = window._world.getAetherSenseState();
+      const quest = window._world.getQuestState();
+      const ledger = window._world.getLedger();
+      return {
+        gameState: window.gameState,
+        aether: window._world.player.aether,
+        echoes: window._world.player.echoes,
+        ledgerLength: ledger.length,
+        lastLedger: ledger[ledger.length - 1],
+        questState: quest.state,
+        hooksCompleted: quest.hooksCompleted,
+        hazardsCompleted: quest.hazardsCompleted,
+        crossingHazards: quest.crossingHazards.map(hazard => ({
+          id: hazard.id,
+          done: hazard.done,
+        })),
+        senseState: state,
+        versions: {
+          mastery: window.AetherMasteryDefs.VERSION,
+          access: window.AetherMagicAccess.VERSION,
+          sense: window.AetherSense.VERSION,
+        },
+      };
+    });
+
+    assert(aetherSenseAfter.gameState === 'world',
+      'Aether Sense unexpectedly changed the gameplay state');
+    assert(aetherSenseAfter.aether === aetherSenseBefore.aether &&
+      aetherSenseAfter.echoes === aetherSenseBefore.echoes,
+      'Aether Sense unexpectedly consumed a persistent resource');
+    assert(aetherSenseAfter.ledgerLength === aetherSenseBefore.ledgerLength + 1 &&
+      aetherSenseAfter.lastLedger.type === 'aether-sense' &&
+      aetherSenseAfter.lastLedger.text.includes('Aether Sense'),
+      'Aether Sense did not record exactly one exploration ledger result');
+    assert(aetherSenseAfter.questState === aetherSenseBefore.questState &&
+      aetherSenseAfter.hooksCompleted === aetherSenseBefore.hooksCompleted &&
+      aetherSenseAfter.hazardsCompleted === aetherSenseBefore.hazardsCompleted &&
+      JSON.stringify(aetherSenseAfter.crossingHazards) ===
+        JSON.stringify(aetherSenseBefore.crossingHazards),
+      'Aether Sense mutated quest or hazard progress');
+    assert(aetherSenseAfter.senseState.lastScan.resourceCost === 0,
+      'Aether Sense runtime did not preserve zero-cost semantics');
+
+    const sensedIds = aetherSenseAfter.senseState.lastScan.detections
+      .map(detection => detection.id);
+    assert(sensedIds.includes('wake-core'),
+      'Aether Sense did not detect the explicit Wake Core signature');
+    assert(sensedIds.includes('engine-spirit'),
+      'Aether Sense did not detect the explicit Engine Spirit signature');
+    assert(aetherSenseAfter.versions.mastery === '0.3.0' &&
+      aetherSenseAfter.versions.access === '0.2.0' &&
+      aetherSenseAfter.versions.sense === '0.1.0',
+      'Aether Sense runtime dependency versions drifted');
+
     const dialogueStateContract = await page.evaluate(() => {
       const player = window._world.player;
       player.tileX = 7;
