@@ -425,6 +425,20 @@ function keyPressed() {
   keys[keyCode] = true;
   keysPressed[keyCode] = true;
 
+  // F2 / F3 are player-facing persistence shortcuts. Handle them before
+  // ordinary state dispatch so they remain one-shot and cannot leak into
+  // overlay/combat controls.
+  if (keyCode === 113) { // F2
+    quickSaveGame();
+    delete keysPressed[keyCode];
+    return false;
+  }
+  if (keyCode === 114) { // F3
+    quickLoadGame();
+    delete keysPressed[keyCode];
+    return false;
+  }
+
   // Set interaction key BEFORE calling handleInput so that
   // world.interact()/handleWorldInput() see the current key.
   // E = 69, Q = 81, F = 70, Tab = 9, L = 76, M = 77
@@ -862,6 +876,113 @@ function doMove(code) {
   if (code === LEFT_ARROW)  world.movePlayer(-1, 0);
   if (code === RIGHT_ARROW) world.movePlayer(1, 0);
 }
+
+function buildCombatPlayerSnapshot() {
+  if (!world || !world.player) throw new Error('COMBAT_SYNC_WORLD_PLAYER_REQUIRED');
+  return {
+    name: world.player.name,
+    age: world.player.age,
+    class: world.player.class,
+    wits: world.player.wits,
+    presence: world.player.presence,
+    spirit: world.player.spirit,
+    might: world.player.might,
+    grace: world.player.grace,
+    maxVit: world.player.maxVit,
+    vit: world.player.vit,
+    scrap: world.player.scrap,
+    aether: { current: world.player.aether, max: world.player.aetherMax },
+    heat: { current: world.player.heat, max: world.player.heatMax },
+    echoes: { current: world.player.echoes, max: world.player.echoesMax },
+    charges: world.player.staffCharges,
+    staffMax: world.player.maxStaffCharges || 2,
+    aetherMax: world.player.aetherMax,
+    heatMax: world.player.heatMax,
+    echoesMax: world.player.echoesMax,
+    level: world.player.level,
+    xp: world.player.xp,
+    xpToNext: world.player.xpToNext,
+    unlockedAbilities: Array.isArray(world.player.unlockedAbilities)
+      ? world.player.unlockedAbilities.slice()
+      : [],
+    equipment: world.player.equipment
+      ? JSON.parse(JSON.stringify(world.player.equipment))
+      : { staff: null, backpack: null },
+  };
+}
+
+function syncCombatFromWorldPlayer() {
+  if (!combat || typeof combat.init !== 'function') {
+    throw new Error('COMBAT_SYNC_API_UNAVAILABLE');
+  }
+  combat.init(buildCombatPlayerSnapshot());
+  return true;
+}
+
+function quickSaveGame() {
+  if (gameState !== STATE.WORLD) {
+    showToast('SAVE AVAILABLE IN WORLD ONLY', C.rust, 1800);
+    return { ok: false, reason: 'SAVE_REQUIRES_WORLD' };
+  }
+  if (!window._saveState || typeof window._saveState.saveToStorage !== 'function') {
+    showToast('SAVE SYSTEM UNAVAILABLE', C.rust, 1800);
+    return { ok: false, reason: 'SAVE_API_UNAVAILABLE' };
+  }
+
+  try {
+    const result = window._saveState.saveToStorage(window.localStorage);
+    addLedgerEntry('system', 'Game saved.');
+    showToast('GAME SAVED', C.teal, 1500);
+    return result;
+  } catch (error) {
+    console.error('AETHER_QUICK_SAVE_FAILED', error);
+    showToast('SAVE FAILED', C.rust, 1800);
+    return { ok: false, reason: error && error.message ? error.message : 'SAVE_FAILED' };
+  }
+}
+
+function quickLoadGame() {
+  const allowed = gameState === STATE.MENU ||
+    gameState === STATE.CHARCREATE ||
+    gameState === STATE.WORLD;
+  if (!allowed) {
+    showToast('LOAD UNAVAILABLE IN CURRENT STATE', C.rust, 1800);
+    return { ok: false, reason: 'LOAD_REQUIRES_SAFE_STATE' };
+  }
+  if (!window._saveState || typeof window._saveState.loadFromStorage !== 'function') {
+    showToast('SAVE SYSTEM UNAVAILABLE', C.rust, 1800);
+    return { ok: false, reason: 'SAVE_API_UNAVAILABLE' };
+  }
+
+  try {
+    const result = window._saveState.loadFromStorage(window.localStorage);
+    if (!result || !result.ok) {
+      showToast('NO SAVE FOUND', C.rust, 1600);
+      return result || { ok: false, reason: 'SAVE_NOT_FOUND' };
+    }
+
+    syncCombatFromWorldPlayer();
+    gameState = STATE.WORLD;
+    window.gameState = gameState;
+    prevState = null;
+    if (window.UI) {
+      window.UI.dialogueOpen = false;
+      window.UI.shopOpen = false;
+      window.UI.opening = false;
+    }
+    addLedgerEntry('system', result.migrated ? 'Legacy save migrated and loaded.' : 'Game loaded.');
+    showToast(result.migrated ? 'SAVE MIGRATED + LOADED' : 'GAME LOADED', C.teal, 1800);
+    if (VIS.fadeTransitions) startFade(120);
+    return result;
+  } catch (error) {
+    console.error('AETHER_QUICK_LOAD_FAILED', error);
+    showToast('LOAD FAILED', C.rust, 1800);
+    return { ok: false, reason: error && error.message ? error.message : 'LOAD_FAILED' };
+  }
+}
+
+window.quickSaveGame = quickSaveGame;
+window.quickLoadGame = quickLoadGame;
 
 function startGame() {
   // DO NOT call world.init() again — it was called in setup() and resets
