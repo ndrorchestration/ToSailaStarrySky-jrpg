@@ -23,6 +23,17 @@ assert(!keyTyped.includes('startGame()') &&
   !keyTyped.includes('handleChoiceInput('),
   'keyTyped must not perform game-state actions; keyPressed is the single action authority');
 
+assert(source.includes('let overlayStateStack = []'),
+  'nested JRPG overlay stack is missing');
+const openState = block('openState', 'closeOverlay');
+const closeOverlay = block('closeOverlay', 'startFade');
+assert(openState.includes('overlayStateStack.push(gameState)'),
+  'openState must push the current state for nested menus');
+assert(closeOverlay.includes('overlayStateStack.pop()'),
+  'closeOverlay must pop one nested menu level');
+assert(closeOverlay.includes("overlayStateStack[overlayStateStack.length - 1]"),
+  'prevState compatibility projection must follow the remaining stack');
+
 // Title/menu flow is explicit: no timer-driven implicit new game.
 assert(!source.includes('millis() - menuAutoStartTimer > 3000'),
   'title menu must not auto-start a new game');
