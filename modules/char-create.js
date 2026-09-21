@@ -563,53 +563,28 @@ const CharCreate = {
   },
 
   // ── Draw Ender preview silhouette ──
+  // ── Draw Ender sprite preview ──
   _drawEnderPreview: function(x, y, size) {
-    push();
-    translate(x, y);
+    const sprites = window.AetherPixelSprites;
+    const scale = Math.max(2, Math.floor(size / 16));
 
-    // Glow
-    fill(C.teal[0], C.teal[1], C.teal[2], 40);
-    noStroke();
-    ellipse(0, 0, size * 1.8, size * 1.8);
+    if (sprites && typeof sprites.draw === 'function') {
+      sprites.drawShadow(x, y + 24, Math.max(1, scale * 0.8));
+      sprites.draw('ender', x, y + 24, {
+        frame: Math.floor(millis() / 600) % 2,
+        scale,
+        anchor: 'bottom-center',
+      });
+    }
 
-    // Body
-    fill(C.teal[0], C.teal[1], C.teal[2], 180);
-    ellipse(0, 0, size * 0.8, size * 0.85);
-
-    // Goggle accent
-    fill(C.biolum[0], C.biolum[1], C.biolum[2], 200);
-    ellipse(-size * 0.18, -size * 0.08, size * 0.22, size * 0.16);
-    ellipse(size * 0.18, -size * 0.08, size * 0.22, size * 0.16);
-    fill(C.scioto[0], C.scioto[1], C.scioto[2], 180);
-    ellipse(-size * 0.18, -size * 0.08, size * 0.14, size * 0.1);
-    ellipse(size * 0.18, -size * 0.08, size * 0.14, size * 0.1);
-
-    // Mycelial tattoo hint
-    stroke(C.teal[0], C.teal[1], C.teal[2], 120);
-    strokeWeight(1.5);
-    noFill();
-    beginShape();
-    vertex(-size * 0.3, -size * 0.05);
-    vertex(-size * 0.4, size * 0.05);
-    vertex(-size * 0.35, size * 0.15);
-    endShape();
-    beginShape();
-    vertex(size * 0.3, -size * 0.05);
-    vertex(size * 0.4, size * 0.05);
-    vertex(size * 0.35, size * 0.15);
-    endShape();
-    noStroke();
-
-    // Name label
-    pop();
     textFont(CC_FONT_UI);
     textSize(9);
     textAlign(CENTER, CENTER);
-    fill(C.parchment[0], C.parchment[1], C.parchment[2], 200);
-    text('ENDER', x, y + size * 0.7 + 14);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2], 220);
+    text('ENDER', x, y + 38);
     textSize(8);
-    fill(C.teal[0], C.teal[1], C.teal[2], 140);
-    text('Rift Scholar  ·  Age 22  ·  Rank 1', x, y + size * 0.7 + 26);
+    fill(C.teal[0], C.teal[1], C.teal[2], 160);
+    text('Rift Scholar  ·  Age 22  ·  Rank 1', x, y + 50);
   },
 
   // ── Name input step ──
@@ -1059,71 +1034,20 @@ const CharCreate = {
         text(i === 1 ? 'LYRA' : 'IONIA', cx + cardW / 2, cy + 8);
       }
 
-      // Character preview silhouette
+      // Shared pixel-sprite preview
       const previewSize = 36;
       const prevX = cx + cardW / 2;
       const prevY = cy + 36;
-
-      push();
-      translate(prevX, prevY);
-
-      // Glow
-      const glowCol = isEnder ? C.teal : (job ? jobColorRGB(chr.jobId) : C.dim);
-      fill(glowCol[0], glowCol[1], glowCol[2], 35);
-      noStroke();
-      ellipse(0, 0, previewSize * 1.6, previewSize * 1.6);
-
-      // Body
-      fill(glowCol[0], glowCol[1], glowCol[2], 170);
-      ellipse(0, 0, previewSize * 0.75, previewSize * 0.8);
-
-      // Accent details
-      if (isEnder) {
-        // Goggles
-        fill(C.biolum[0], C.biolum[1], C.biolum[2], 200);
-        ellipse(-previewSize * 0.16, -previewSize * 0.06, previewSize * 0.2, previewSize * 0.14);
-        ellipse(previewSize * 0.16, -previewSize * 0.06, previewSize * 0.2, previewSize * 0.14);
-        fill(C.scioto[0], C.scioto[1], C.scioto[2], 180);
-        ellipse(-previewSize * 0.16, -previewSize * 0.06, previewSize * 0.12, previewSize * 0.08);
-        ellipse(previewSize * 0.16, -previewSize * 0.06, previewSize * 0.12, previewSize * 0.08);
-      } else if (job) {
-        // Job-specific accent
-        const jCol = jobColorRGB(chr.jobId);
-        if (chr.jobId === 'skySailor') {
-          // Wind lines
-          stroke(jCol[0], jCol[1], jCol[2], 150);
-          strokeWeight(1);
-          noFill();
-          for (let w = 0; w < 3; w++) {
-            const wa = millis() * 0.003 + w * 2.1;
-            line(-previewSize * 0.3 + Math.sin(wa) * 5, -previewSize * 0.2 + Math.cos(wa * 0.7) * 3,
-                  previewSize * 0.3 + Math.sin(wa + 1) * 5, previewSize * 0.1 + Math.cos(wa * 0.7 + 1) * 3);
-          }
-          noStroke();
-        } else if (chr.jobId === 'engineWright') {
-          // Gear accent
-          fill(jCol[0], jCol[1], jCol[2], 180);
-          noStroke();
-          ellipse(0, previewSize * 0.15, previewSize * 0.18, previewSize * 0.18);
-          stroke(jCol[0], jCol[1], jCol[2], 120);
-          strokeWeight(1);
-          noFill();
-          ellipse(0, previewSize * 0.15, previewSize * 0.1, previewSize * 0.1);
-          noStroke();
-        } else if (chr.jobId === 'aetherWeaver') {
-          // Aether sparkles
-          fill(jCol[0], jCol[1], jCol[2], 180);
-          noStroke();
-          for (let s = 0; s < 3; s++) {
-            const sa = millis() * 0.004 + s * 2.3;
-            const sx = Math.sin(sa) * previewSize * 0.3;
-            const sy = Math.cos(sa * 0.8) * previewSize * 0.25 - previewSize * 0.1;
-            ellipse(sx, sy, 3, 3);
-          }
-          noStroke();
-        }
+      const spriteId = isEnder ? 'ender' : (i === 1 ? 'lyra' : 'ionia');
+      const sprites = window.AetherPixelSprites;
+      if (sprites && typeof sprites.draw === 'function') {
+        sprites.drawShadow(prevX, prevY + 35, 1.6);
+        sprites.draw(spriteId, prevX, prevY + 34, {
+          frame: Math.floor(millis() / 650) % 2,
+          scale: 2,
+          anchor: 'bottom-center',
+        });
       }
-      pop();
 
       // Name
       textFont(CC_FONT_UI);
