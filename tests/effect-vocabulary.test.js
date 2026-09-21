@@ -22,7 +22,7 @@ const expectedActions = [
   'rest',
 ];
 
-assert.strictEqual(vocabulary.VERSION, '0.2.0');
+assert.strictEqual(vocabulary.VERSION, '0.1.0');
 assert.deepStrictEqual(Object.values(vocabulary.EFFECT_KIND), expectedKinds);
 assert.deepStrictEqual(Object.keys(vocabulary.ACTION_EFFECT_PROFILES), expectedActions);
 assert.strictEqual(vocabulary.validateVocabulary(), true);
@@ -36,13 +36,13 @@ assert(Object.isFrozen(vocabulary.ACTION_EFFECT_PROFILES), 'effect profiles must
 const uncoverSuccess = vocabulary.ACTION_EFFECT_PROFILES.uncoverTruth.success;
 assert(uncoverSuccess.some(effect =>
   effect.kind === vocabulary.EFFECT_KIND.REVEAL &&
-  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED
-), 'Uncover Truth reveal must be implemented in effect vocabulary v0.2');
+  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.DECLARED_NOT_APPLIED
+), 'Uncover Truth reveal debt must remain explicit');
 
 assert(uncoverSuccess.some(effect =>
   effect.kind === vocabulary.EFFECT_KIND.MODIFIER &&
-  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED
-), 'Uncover Truth next-roll modifier must be implemented in effect vocabulary v0.2');
+  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.DECLARED_NOT_APPLIED
+), 'Uncover Truth next-roll modifier debt must remain explicit');
 
 const sharedDreamSuccess = vocabulary.ACTION_EFFECT_PROFILES.sharedDream.success;
 assert(sharedDreamSuccess.some(effect =>
@@ -51,18 +51,16 @@ assert(sharedDreamSuccess.some(effect =>
 ), 'Shared Dream modifier debt must remain explicit');
 
 assert(!Object.values(vocabulary.EFFECT_KIND).includes('scriptHook'),
-  'script hooks are intentionally outside effect vocabulary v0.2');
+  'script hooks are intentionally outside effect vocabulary v0.1');
 
 console.log('Aetherwake effect vocabulary contract: PASS');
 console.log(JSON.stringify({
   version: vocabulary.VERSION,
   kinds: Object.values(vocabulary.EFFECT_KIND),
   actionProfiles: Object.keys(vocabulary.ACTION_EFFECT_PROFILES),
-  implemented: [
+  declaredNotApplied: [
     'uncoverTruth.reveal',
     'uncoverTruth.nextRoll',
-  ],
-  declaredNotApplied: [
     'sharedDream.nextRoll',
   ],
 }, null, 2));
