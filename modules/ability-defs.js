@@ -22,7 +22,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.6.0';
 
   function deepFreeze(value) {
     if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -72,7 +72,7 @@
       type: 'ability',
       tier: 1,
       effectProfile: 'uncoverTruth',
-      desc: '2D6+Wits. Reveal enemy weakness. +1 next roll.',
+      desc: 'Read the weave to reveal the target\'s hidden weakness.',
     },
     sharedDream: {
       id: 'sharedDream',
