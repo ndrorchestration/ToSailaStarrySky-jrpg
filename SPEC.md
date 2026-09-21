@@ -57,7 +57,8 @@ The development branch now contains a persistent party-state bridge:
 - Sky-Sailor / Engine-Wright / Aether-Weaver remain preservation-era **mechanics templates**, centralized in `modules/field-role-defs.js` and recorded separately from authored identity and native-job canon;
 - Lyra and Ionia's canonical `nativeJob` values remain unresolved/null; selecting a mechanics template does not establish canon;
 - Reson and Aepex currently exist as identity/schema shells only;
-- formation mutation and true three-character combat are not implemented in this phase;
+- formation mutation is not implemented in this phase;
+- combat now receives a validated read-only Ender/Lyra/Ionia party context, but only Ender is executable; Lyra/Ionia temporary field-role actions remain explicitly staged/non-executable until complete outcome contracts are established;
 - Ender implementation residue may still display **Rift Scholar + Dreamwright**, while canonical `nativeJob` is **Rift Scholar**.
 
 The authored identities are canonical; prototype onboarding/mechanics remain migration provenance until the later authored-roster phase.
@@ -164,6 +165,26 @@ The development branch now separates current combat metadata from execution:
 - `resolveTurn()` now rejects locked actions before consuming a turn or resources;
 - the combat panel exposes stable keys 1–8 while visibly marking locked actions;
 - CI rejects reintroduced direct ordinary mutations inside `resolveTurn()` and validates the browser path after resolver integration.
+
+### READ-ONLY PARTY COMBAT CONTEXT — PHASE A
+
+`modules/party-combat-bridge.js` now creates a validated, detached snapshot of
+the three active roster records for encounter context.
+
+Current authorization boundary:
+
+- active context must contain exactly three unique implemented records;
+- Ender is the only executable actor in this phase;
+- Lyra/Ionia retain their temporary field-role provenance and two declared
+  preservation actions;
+- every companion action is marked non-executable with
+  `OUTCOME_CONTRACT_NOT_ESTABLISHED`;
+- no companion action ID enters the current 1–8 executable action registry;
+- the combat UI may display party presence/HP/role, but cannot invoke companion
+  turns.
+
+This phase exists specifically to prevent descriptive prototype mechanics from
+silently becoming executable rules.
 
 Known semantic debt remains explicit rather than being silently upgraded:
 
