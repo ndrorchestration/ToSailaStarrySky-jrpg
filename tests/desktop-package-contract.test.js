@@ -6,8 +6,8 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-assert(packageJson.main === 'index-embedded.html',
-  'desktop package must launch the embedded HTML entry point');
+assert(packageJson.main === 'aetherwake-themed.html',
+  'desktop package must launch the themed HTML entry point');
 assert(packageJson.window && packageJson.window.width === 960,
   'desktop package window width must remain 960');
 assert(packageJson.window && packageJson.window.height === 640,
@@ -16,6 +16,10 @@ assert(packageJson.window && packageJson.window.icon === 'icon.svg',
   'desktop package must reference the tracked application icon');
 assert(fs.existsSync(path.join(__dirname, '..', 'icon.svg')),
   'desktop application icon is missing');
+assert(fs.existsSync(path.join(__dirname, '..', 'aetherwake-themed.html')),
+  'desktop themed launcher is missing');
+assert(fs.existsSync(path.join(__dirname, '..', 'modules', 'title-music.js')),
+  'desktop title music controller is missing');
 assert(typeof packageJson.scripts['package:windows'] === 'string',
   'Windows packaging script is missing');
 assert(typeof packageJson.scripts['stage:desktop-runtime'] === 'string',
@@ -37,18 +41,22 @@ const stageScript = fs.readFileSync(
   path.join(__dirname, '..', 'scripts', 'stage-desktop-runtime.js'),
   'utf8'
 );
-assert(stageScript.includes("'index-embedded.html'") &&
+assert(stageScript.includes("'aetherwake-themed.html'") &&
+  stageScript.includes("'index-embedded.html'") &&
   stageScript.includes("'aetherwake.js'") &&
   stageScript.includes("'p5.min.js'") &&
   stageScript.includes("'embedded-fonts.css'") &&
   stageScript.includes("'icon.svg'") &&
-  stageScript.includes("'modules'"),
+  stageScript.includes("'modules'") &&
+  stageScript.includes("'assets'"),
   'desktop runtime stage must explicitly include all required runtime assets');
+assert(stageScript.includes('aetherwake-skyward-arpeggio-main-title.mp3'),
+  'desktop runtime stage must require the canonical title theme');
 for (const forbidden of ['node_modules', 'tests', 'docs', '.github', 'scripts']) {
   assert(stageScript.includes("'" + forbidden + "'"),
     'desktop runtime stage must explicitly forbid ' + forbidden);
 }
-assert(stageScript.includes('20 * 1024 * 1024'),
+assert(stageScript.includes('25 * 1024 * 1024'),
   'desktop runtime stage must fail closed on unexpected payload bloat');
 
 const workflow = fs.readFileSync(
