@@ -27,7 +27,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   const STATUS = Object.freeze({
     DRAFT_UNRESOLVED: 'draft-unresolved',
@@ -43,6 +43,13 @@
     FAILURE_OUTCOME_NOT_SPECIFIED: 'FAILURE_OUTCOME_NOT_SPECIFIED',
     MOVEMENT_EFFECT_NOT_EXECUTABLE: 'MOVEMENT_EFFECT_NOT_EXECUTABLE',
     GRACE_MODIFIER_EFFECT_NOT_EXECUTABLE: 'GRACE_MODIFIER_EFFECT_NOT_EXECUTABLE',
+    REVEAL_TARGET_NOT_SPECIFIED: 'REVEAL_TARGET_NOT_SPECIFIED',
+    REVEAL_BAND_NOT_SPECIFIED: 'REVEAL_BAND_NOT_SPECIFIED',
+    RESOURCE_GAIN_BAND_NOT_SPECIFIED: 'RESOURCE_GAIN_BAND_NOT_SPECIFIED',
+    RESOURCE_GAIN_SELECTION_NOT_SPECIFIED: 'RESOURCE_GAIN_SELECTION_NOT_SPECIFIED',
+    RESOURCE_GAIN_AMOUNT_NOT_SPECIFIED: 'RESOURCE_GAIN_AMOUNT_NOT_SPECIFIED',
+    SUCCESS_OUTCOME_NOT_SPECIFIED: 'SUCCESS_OUTCOME_NOT_SPECIFIED',
+    REVEAL_EFFECT_NOT_EXECUTABLE: 'REVEAL_EFFECT_NOT_EXECUTABLE',
     EXECUTION_ADAPTER_NOT_ESTABLISHED: 'EXECUTION_ADAPTER_NOT_ESTABLISHED',
     PERSISTENCE_POLICY_NOT_ESTABLISHED: 'PERSISTENCE_POLICY_NOT_ESTABLISHED',
   });
@@ -60,6 +67,7 @@
 
   const DRAFT_ORDER = Object.freeze([
     'windShearDance',
+    'aetherCompass',
   ]);
 
   const DRAFTS = deepFreeze({
@@ -134,6 +142,86 @@
         BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED,
         BLOCKER.MOVEMENT_EFFECT_NOT_EXECUTABLE,
         BLOCKER.GRACE_MODIFIER_EFFECT_NOT_EXECUTABLE,
+        BLOCKER.EXECUTION_ADAPTER_NOT_ESTABLISHED,
+        BLOCKER.PERSISTENCE_POLICY_NOT_ESTABLISHED,
+      ],
+    },
+    aetherCompass: {
+      actionId: 'aetherCompass',
+      templateId: 'skySailor',
+      provenance: 'preservation-era-prototype-mechanics',
+      status: STATUS.DRAFT_UNRESOLVED,
+      source: {
+        kind: 'field-role-declaration',
+        text: '2D6+Wits. Reveal resources — gain scrap or aether.',
+      },
+      stat: 'wits',
+      roll: {
+        system: '2d6',
+        stat: 'wits',
+        successMin: 10,
+        partialMin: 7,
+        source: 'established-global-combat-rule',
+      },
+      cost: {
+        status: UNKNOWN,
+        resource: null,
+        amount: null,
+      },
+      knownSemantics: [
+        {
+          id: 'revealResources',
+          status: 'declared',
+          band: UNKNOWN,
+          effectKind: 'reveal',
+          target: UNKNOWN,
+          operation: 'reveal',
+          key: 'resources',
+          amount: null,
+        },
+        {
+          id: 'gainResource',
+          status: 'declared',
+          band: UNKNOWN,
+          effectKind: 'resource',
+          target: 'self',
+          operation: 'increase',
+          key: UNKNOWN,
+          resourceAlternatives: ['scrap', 'aether'],
+          amount: null,
+        },
+      ],
+      outcomes: {
+        common: null,
+        success: null,
+        partial: null,
+        failure: null,
+      },
+      execution: {
+        status: 'not-established',
+        adapterId: null,
+        version: null,
+      },
+      persistence: {
+        status: 'not-established',
+        mode: null,
+        fields: [],
+      },
+      authoredBindings: {
+        nativeJob: UNKNOWN,
+        school: UNKNOWN,
+      },
+      blockers: [
+        BLOCKER.COST_NOT_SPECIFIED,
+        BLOCKER.REVEAL_TARGET_NOT_SPECIFIED,
+        BLOCKER.REVEAL_BAND_NOT_SPECIFIED,
+        BLOCKER.RESOURCE_GAIN_BAND_NOT_SPECIFIED,
+        BLOCKER.RESOURCE_GAIN_SELECTION_NOT_SPECIFIED,
+        BLOCKER.RESOURCE_GAIN_AMOUNT_NOT_SPECIFIED,
+        BLOCKER.SUCCESS_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.PARTIAL_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.FAILURE_OUTCOME_NOT_SPECIFIED,
+        BLOCKER.REVEAL_EFFECT_NOT_EXECUTABLE,
         BLOCKER.EXECUTION_ADAPTER_NOT_ESTABLISHED,
         BLOCKER.PERSISTENCE_POLICY_NOT_ESTABLISHED,
       ],

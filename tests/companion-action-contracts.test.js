@@ -5,8 +5,8 @@ const fieldRoles = require('../modules/field-role-defs.js');
 const admission = require('../modules/companion-action-admission.js');
 const effects = require('../modules/effect-vocabulary.js');
 
-assert.strictEqual(contracts.VERSION, '0.1.0');
-assert.deepStrictEqual(Array.from(contracts.DRAFT_ORDER), ['windShearDance']);
+assert.strictEqual(contracts.VERSION, '0.2.0');
+assert.deepStrictEqual(Array.from(contracts.DRAFT_ORDER), ['windShearDance', 'aetherCompass']);
 assert.strictEqual(contracts.validateAgainstFieldRoles(fieldRoles), true);
 
 const draft = contracts.getDraft('windShearDance');
@@ -91,9 +91,78 @@ assert.strictEqual(
 assert.strictEqual(assessment.contractComplete, false);
 assert.strictEqual(assessment.executionAuthorized, false);
 
+const compass = contracts.getDraft('aetherCompass');
+assert(compass, 'Aether Compass draft must exist');
+assert.strictEqual(compass.templateId, 'skySailor');
+assert.strictEqual(compass.provenance, fieldRoles.PROVENANCE);
+assert.strictEqual(compass.status, contracts.STATUS.DRAFT_UNRESOLVED);
+assert.strictEqual(compass.stat, 'wits');
+assert.strictEqual(
+  compass.source.text,
+  '2D6+Wits. Reveal resources — gain scrap or aether.'
+);
+assert.deepStrictEqual(compass.cost, {
+  status: contracts.UNKNOWN,
+  resource: null,
+  amount: null,
+});
+
+const revealResources = compass.knownSemantics.find(item => item.id === 'revealResources');
+assert(revealResources, 'resource-reveal semantic must be preserved');
+assert.strictEqual(revealResources.band, contracts.UNKNOWN);
+assert.strictEqual(revealResources.effectKind, 'reveal');
+assert.strictEqual(revealResources.target, contracts.UNKNOWN);
+
+const gainResource = compass.knownSemantics.find(item => item.id === 'gainResource');
+assert(gainResource, 'Scrap/Aether gain semantic must be preserved');
+assert.strictEqual(gainResource.band, contracts.UNKNOWN);
+assert.strictEqual(gainResource.effectKind, 'resource');
+assert.deepStrictEqual(gainResource.resourceAlternatives, ['scrap', 'aether']);
+assert.strictEqual(gainResource.amount, null);
+
+for (const phase of ['common', 'success', 'partial', 'failure']) {
+  assert.strictEqual(
+    compass.outcomes[phase],
+    null,
+    'Aether Compass outcome tables must not be fabricated: ' + phase
+  );
+}
+
+assert.strictEqual(compass.authoredBindings.nativeJob, contracts.UNKNOWN);
+assert.strictEqual(compass.authoredBindings.school, contracts.UNKNOWN);
+assert.strictEqual(contracts.getAdmissionCandidate('aetherCompass'), null);
+
+const compassReadiness = contracts.getReadiness('aetherCompass');
+assert.strictEqual(compassReadiness.known, true);
+assert.strictEqual(compassReadiness.designComplete, false);
+assert.strictEqual(compassReadiness.executionAuthorized, false);
+assert.strictEqual(compassReadiness.reason, 'outcome_contract_not_established');
+assert(compassReadiness.blockers.includes(contracts.BLOCKER.REVEAL_TARGET_NOT_SPECIFIED));
+assert(compassReadiness.blockers.includes(contracts.BLOCKER.RESOURCE_GAIN_SELECTION_NOT_SPECIFIED));
+assert(compassReadiness.blockers.includes(contracts.BLOCKER.RESOURCE_GAIN_AMOUNT_NOT_SPECIFIED));
+assert(compassReadiness.blockers.includes(contracts.BLOCKER.REVEAL_EFFECT_NOT_EXECUTABLE));
+
+const compassDeclaration = skySailor.abilities.find(action => action.id === 'aetherCompass');
+const compassAssessment = admission.assessAction(
+  compassDeclaration,
+  skySailor,
+  contracts.getAdmissionCandidate('aetherCompass'),
+  {
+    provenance: fieldRoles.PROVENANCE,
+    effectVocabulary: effects,
+  }
+);
+assert.strictEqual(compassAssessment.status, admission.STATUS.BLOCKED);
+assert.strictEqual(
+  compassAssessment.reason,
+  admission.REASON.OUTCOME_CONTRACT_NOT_ESTABLISHED
+);
+assert.strictEqual(compassAssessment.contractComplete, false);
+assert.strictEqual(compassAssessment.executionAuthorized, false);
+
 assert.strictEqual(
   contracts.getReadiness('notAnAction').reason,
   'unknown_companion_action_contract'
 );
 
-console.log('Aetherwake Wind-Shear Dance contract draft: PASS');
+console.log('Aetherwake companion action contract drafts: PASS');
