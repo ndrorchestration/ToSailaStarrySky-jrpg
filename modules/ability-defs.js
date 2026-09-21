@@ -22,7 +22,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.3.0';
+  const VERSION = '0.4.0';
 
   function deepFreeze(value) {
     if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -102,7 +102,11 @@
       type: 'hold',
       tier: 0,
       effectProfile: 'hold',
-      desc: 'Regain 1 staff charge in sunlight',
+      resolution: {
+        model: 'jrpg-stat-formula',
+        formulaId: 'hold',
+      },
+      desc: 'Deterministically regain 1 staff charge, up to maximum.',
     },
     windWard: {
       id: 'windWard',
@@ -162,11 +166,13 @@
       if (typeof def.type !== 'string' || !def.type) {
         throw new Error('ABILITY_TYPE_INVALID:' + id);
       }
-      if (id === 'staffStrike' &&
-          (!def.resolution ||
-           def.resolution.model !== 'jrpg-stat-formula' ||
-           def.resolution.formulaId !== 'staffStrike')) {
+      if (def.resolution &&
+          (def.resolution.model !== 'jrpg-stat-formula' ||
+           def.resolution.formulaId !== id)) {
         throw new Error('ABILITY_FORMULA_BINDING_INVALID:' + id);
+      }
+      if ((id === 'staffStrike' || id === 'hold') && !def.resolution) {
+        throw new Error('ABILITY_FORMULA_BINDING_MISSING:' + id);
       }
     });
 
