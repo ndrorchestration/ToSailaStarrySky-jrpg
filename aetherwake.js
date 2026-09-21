@@ -7291,8 +7291,99 @@ function drawCovenantField(x, y, radius = 60, pulse = 0) {
  * Draw the full character sheet HUD: portrait, class/level, stats, abilities, gear, resources.
  * Layout: top-left portrait + vitals, right column stats, bottom abilities/gear/resources.
  */
+function getCharacterSheetViewModel() {
+  const actor = world && world.player
+    ? world.player
+    : (window.ROSTER && window.ROSTER[0] ? window.ROSTER[0] : null);
+  if (!actor) return null;
+
+  const mastery = window._masteryDefs || window.AetherMasteryDefs || null;
+  const nativeJob = mastery && typeof mastery.getNativeJobStatus === 'function'
+    ? mastery.getNativeJobStatus(actor.id)
+    : { status: 'unknown', id: null, label: null };
+  const affinities = mastery && typeof mastery.getAuthoredAffinities === 'function'
+    ? mastery.getAuthoredAffinities(actor.id)
+    : { status: 'unknown', ids: [] };
+
+  const abilityDefs = window.AetherAbilityDefs || null;
+  let abilityIds = [];
+  if (abilityDefs && typeof abilityDefs.getEligibleActionIds === 'function') {
+    abilityIds = abilityDefs.getEligibleActionIds(actor);
+  } else if (Array.isArray(actor.unlockedAbilities)) {
+    abilityIds = actor.unlockedAbilities.slice();
+  }
+
+  const abilityLabels = abilityIds.map(id => {
+    const def = abilityDefs && abilityDefs.DEFS ? abilityDefs.DEFS[id] : null;
+    return {
+      id,
+      label: def && typeof def.label === 'string'
+        ? def.label.split(' — ')[0]
+        : id,
+    };
+  });
+
+  const equipment = actor.equipment && typeof actor.equipment === 'object'
+    ? actor.equipment
+    : {};
+
+  return {
+    id: actor.id || null,
+    canonicalName: actor.canonicalName || actor.name || 'Unknown',
+    name: actor.name || actor.canonicalName || 'Unknown',
+    nativeJob,
+    preservationClass: actor.class || null,
+    affinities,
+    level: Number.isFinite(actor.level) ? actor.level : null,
+    xp: Number.isFinite(actor.xp) ? actor.xp : null,
+    xpToNext: Number.isFinite(actor.xpToNext) ? actor.xpToNext : null,
+    stats: {
+      vit: actor.vit,
+      maxVit: actor.maxVit,
+      echoes: actor.echoes,
+      echoesMax: actor.echoesMax,
+      wits: actor.wits,
+      presence: actor.presence,
+      spirit: actor.spirit,
+      might: actor.might,
+      grace: actor.grace,
+    },
+    resources: {
+      scrap: actor.scrap,
+      aether: actor.aether,
+      aetherMax: actor.aetherMax,
+      heat: actor.heat,
+      heatMax: actor.heatMax,
+      staffCharges: actor.staffCharges,
+      maxStaffCharges: actor.maxStaffCharges,
+    },
+    abilities: abilityLabels,
+    equipment: {
+      staff: equipment.staff || null,
+      backpack: equipment.backpack || null,
+    },
+  };
+}
+
+window.getCharacterSheetViewModel = getCharacterSheetViewModel;
+
+/**
+ * Draw the full character sheet from canonical live state.
+ * Phase-A mastery facts are code-owned presentation data only; no mutable
+ * mastery progress is created here.
+ */
 function drawCharSheet(px, py, pw, ph) {
   push();
+  const view = getCharacterSheetViewModel();
+  if (!view) {
+    fill(PAL.RUST);
+    textFont(FONT_UI);
+    textSize(10);
+    text('CHARACTER DATA UNAVAILABLE', px + 20, py + 20);
+    pop();
+    return;
+  }
+
   const sheet = {
     portraitX: px + 16,
     portraitY: py + 16,
@@ -7303,69 +7394,47 @@ function drawCharSheet(px, py, pw, ph) {
     levelX: px + 160,
     levelY: py + 48,
     statsX: px + 160,
-    statsY: py + 80,
+    statsY: py + 88,
     abilitiesX: px + 16,
-    abilitiesY: py + 170,
-    gearX: px + 300,
-    gearY: py + 170,
+    abilitiesY: py + 180,
+    gearX: px + 330,
+    gearY: py + 180,
     resourcesX: px + 16,
-    resourcesY: py + 290,
-    panelW: pw - 32,
-    panelH: ph - 32,
+    resourcesY: py + 310,
   };
 
-  // Panel background with pixel border
   noStroke();
   fill(PAL.NAVY);
   rect(px, py, pw, ph);
   drawPixelBorder(px, py, pw, ph, 3, PAL.SHADOW, PAL.TEAL);
 
-  // ── Portrait Area ──
   const portX = sheet.portraitX;
   const portY = sheet.portraitY;
   const portW = sheet.portraitW;
   const portH = sheet.portraitH;
-
-  // Portrait frame — pixel border
   drawPixelBorder(portX, portY, portW, portH, 3, PAL.SHADOW, PAL.TEAL);
-
-  // Portrait bg
   noStroke();
   fill(PAL.SHADOW);
   rect(portX + 4, portY + 4, portW - 8, portH - 8);
 
-  // Portrait placeholder: Ender — green goggles, trimmed beard, mycelial tattoos
+  // Ender portrait placeholder retained from the preservation build.
   const cx = portX + portW / 2;
   const cy = portY + portH / 2 - 10;
   const headR = 32;
-
-  // Head silhouette
   fill(PAL.DUST);
-  noStroke();
   ellipse(cx, cy, headR * 2, headR * 2.1);
-
-  // Mycelial tattoos — teal branching on face
   stroke(PAL.TEAL);
   strokeWeight(1.5);
   noFill();
-  // Left branch
   beginShape();
-  vertex(cx - 18, cy - 10);
-  vertex(cx - 24, cy - 4);
-  vertex(cx - 22, cy + 4);
-  vertex(cx - 16, cy + 8);
+  vertex(cx - 18, cy - 10); vertex(cx - 24, cy - 4);
+  vertex(cx - 22, cy + 4); vertex(cx - 16, cy + 8);
   endShape();
-  // Right branch
   beginShape();
-  vertex(cx + 18, cy - 10);
-  vertex(cx + 24, cy - 4);
-  vertex(cx + 22, cy + 4);
-  vertex(cx + 16, cy + 8);
+  vertex(cx + 18, cy - 10); vertex(cx + 24, cy - 4);
+  vertex(cx + 22, cy + 4); vertex(cx + 16, cy + 8);
   endShape();
-  // Forehead line
   line(cx - 14, cy - 18, cx + 14, cy - 18);
-
-  // Goggles — green
   noStroke();
   fill(PAL.BIO);
   ellipse(cx - 12, cy - 4, 14, 10);
@@ -7373,152 +7442,122 @@ function drawCharSheet(px, py, pw, ph) {
   fill(PAL.SCIOTO);
   ellipse(cx - 12, cy - 4, 8, 6);
   ellipse(cx + 12, cy - 4, 8, 6);
-
-  // Trimmed beard
   fill(PAL.SOIL);
-  noStroke();
   beginShape();
-  vertex(cx - 16, cy + 6);
-  vertex(cx - 20, cy + 18);
-  vertex(cx - 12, cy + 22);
-  vertex(cx, cy + 20);
-  vertex(cx + 12, cy + 22);
-  vertex(cx + 20, cy + 18);
+  vertex(cx - 16, cy + 6); vertex(cx - 20, cy + 18);
+  vertex(cx - 12, cy + 22); vertex(cx, cy + 20);
+  vertex(cx + 12, cy + 22); vertex(cx + 20, cy + 18);
   vertex(cx + 16, cy + 6);
   endShape(CLOSE);
-
-  // Eyes
   fill(PAL.NAVY);
-  noStroke();
   ellipse(cx - 12, cy - 4, 4, 4);
   ellipse(cx + 12, cy - 4, 4, 4);
-
-  // Short trimmed hair (beard top)
-  fill(PAL.SOIL);
-  noStroke();
-  beginShape();
-  vertex(cx - 22, cy - 22);
-  vertex(cx - 26, cy - 14);
-  vertex(cx - 24, cy - 8);
-  vertex(cx - 18, cy - 14);
-  vertex(cx - 14, cy - 20);
-  endShape();
-  beginShape();
-  vertex(cx + 22, cy - 22);
-  vertex(cx + 26, cy - 14);
-  vertex(cx + 24, cy - 8);
-  vertex(cx + 18, cy - 14);
-  vertex(cx + 14, cy - 20);
-  endShape();
-
-  // Armor collar hint
   fill(PAL.RUST);
-  noStroke();
   rect(cx - 18, cy + 22, 36, 8);
 
-  // ── Class + Level ──
   textFont(FONT_UI);
   textSize(10);
   textAlign(LEFT, TOP);
-  drawGlowText('CLASS', sheet.classX, sheet.classY, PAL.TEAL, 10);
+  drawGlowText('NATIVE', sheet.classX, sheet.classY, PAL.TEAL, 10);
   fill(PAL.PARCHMENT);
-  text('Rift Scholar / Dreamwright', sheet.classX + 44, sheet.classY);
+  const nativeLabel = view.nativeJob.status === 'established' && view.nativeJob.label
+    ? view.nativeJob.label
+    : 'UNKNOWN';
+  text(nativeLabel, sheet.classX + 52, sheet.classY);
 
   drawGlowText('LEVEL', sheet.levelX, sheet.levelY, PAL.TEAL, 10);
   fill(PAL.PARCHMENT);
-  text('Rank 1', sheet.levelX + 44, sheet.levelY);
+  text(view.level == null ? '—' : 'Lv.' + view.level, sheet.levelX + 44, sheet.levelY);
 
-  // ── Stats ──
   textFont(FONT_BODY);
-  textSize(14);
-  const statsY = sheet.statsY;
-  const statColor = PAL.PARCHMENT;
-  const statAccent = PAL.TEAL;
+  textSize(10);
+  fill(PAL.DIM);
+  const affinityLabel = view.affinities.status === 'established'
+    ? view.affinities.ids.map(id => id.toUpperCase()).join(' · ')
+    : 'AFFINITIES: UNKNOWN';
+  text(affinityLabel, sheet.levelX, sheet.levelY + 20);
+
+  // Preservation class is explicitly labeled so it cannot be confused with
+  // the code-owned native-job fact.
+  if (view.preservationClass && view.preservationClass !== nativeLabel) {
+    textSize(9);
+    fill(PAL.DIM);
+    text('Prototype class: ' + view.preservationClass, sheet.levelX, sheet.levelY + 34);
+  }
+
+  textFont(FONT_BODY);
+  textSize(12);
+  const signed = value =>
+    Number.isFinite(value) ? (value > 0 ? '+' + value : '' + value) : '—';
+  const ratio = (value, max) =>
+    Number.isFinite(value) && Number.isFinite(max) ? value + '/' + max : '—';
   const stats = [
-    { label: 'Vit',    value: '13',   accent: PAL.RUST },
-    { label: 'Echoes', value: '3/3',  accent: PAL.BIO },
-    { label: 'Wits',   value: '+2',   accent: PAL.SCIOTO },
-    { label: 'Presence', value: '+1', accent: PAL.TEAL },
-    { label: 'Spirit', value: '+1',   accent: PAL.TEAL },
-    { label: 'Might',  value: '-1',   accent: PAL.RUST },
+    { label: 'Vit', value: ratio(view.stats.vit, view.stats.maxVit), accent: PAL.RUST },
+    { label: 'Echo', value: ratio(view.stats.echoes, view.stats.echoesMax), accent: PAL.BIO },
+    { label: 'Wits', value: signed(view.stats.wits), accent: PAL.SCIOTO },
+    { label: 'Pres', value: signed(view.stats.presence), accent: PAL.TEAL },
+    { label: 'Spirit', value: signed(view.stats.spirit), accent: PAL.TEAL },
+    { label: 'Might', value: signed(view.stats.might), accent: PAL.RUST },
+    { label: 'Grace', value: signed(view.stats.grace), accent: PAL.SCIOTO },
   ];
-  stats.forEach((s, i) => {
-    const sy = statsY + i * 18;
-    drawGlowText(s.label, sheet.statsX, sy, statAccent, 14);
-    fill(s.accent);
+  stats.forEach((stat, i) => {
+    const col = i < 4 ? 0 : 1;
+    const row = i < 4 ? i : i - 4;
+    const sx = sheet.statsX + col * 115;
+    const sy = sheet.statsY + row * 17;
+    drawGlowText(stat.label, sx, sy, PAL.TEAL, 12);
+    fill(stat.accent);
     noStroke();
-    textSize(16);
-    text(s.value, sheet.statsX + textWidth(s.label) + 8, sy - 2);
+    text(stat.value, sx + 48, sy);
   });
 
-  // ── Abilities ──
   textFont(FONT_UI);
   textSize(9);
-  drawGlowText('ABILITIES', sheet.abilitiesX, sheet.abilitiesY,
-               PAL.TEAL, 9);
+  drawGlowText('ELIGIBLE ACTIONS', sheet.abilitiesX, sheet.abilitiesY, PAL.TEAL, 9);
   textFont(FONT_BODY);
-  textSize(13);
-  const abils = [
-    'Uncover Truth  (2D6+Wits)',
-    'Shared Dream   (2D6+Spirit)',
-    'Mycelial Ledger (2D6+Presence)',
-    'Resonator Staff: EMP 1d6+2',
-  ];
-  abilities.forEach((a, i) => {
-    const ay = sheet.abilitiesY + 22 + i * 18;
-    fill(PAL.PARCHMENT);
-    noStroke();
-    // Ability name in teal
-    const parts = a.split(':');
-    if (parts.length === 2) {
-      drawGlowText(parts[0] + ':', sheet.abilitiesX + 10, ay,
-                   PAL.TEAL, 13);
-      fill(PAL.PARCHMENT);
-      text(parts[1].trim(), sheet.abilitiesX + 10 + textWidth(parts[0] + ':') + 8, ay);
-    } else {
-      drawGlowText(a, sheet.abilitiesX + 10, ay, PAL.TEAL, 13);
-    }
+  textSize(12);
+  view.abilities.slice(0, 8).forEach((ability, i) => {
+    const col = i < 4 ? 0 : 1;
+    const row = i < 4 ? i : i - 4;
+    const ax = sheet.abilitiesX + 10 + col * 145;
+    const ay = sheet.abilitiesY + 22 + row * 17;
+    drawGlowText(ability.label, ax, ay, PAL.TEAL, 12);
   });
 
-  // ── Gear ──
   textFont(FONT_UI);
   textSize(9);
   drawGlowText('GEAR', sheet.gearX, sheet.gearY, PAL.TEAL, 9);
   textFont(FONT_BODY);
-  textSize(13);
+  textSize(12);
   const gear = [
-    { name: 'Loom Backpack', desc: 'Solar green tubes / 2.0kWh / 400W' },
-    { name: 'Resonator Staff', desc: 'Gunmetal shaft, claw mount, cyan crystal' },
+    { name: 'Staff', value: view.equipment.staff || 'Unassigned' },
+    { name: 'Backpack', value: view.equipment.backpack || 'Unassigned' },
   ];
-  gear.forEach((g, i) => {
-    drawGlowText(g.name, sheet.gearX + 10, gy, PAL.BIO, 13);
+  gear.forEach((item, i) => {
+    const gy = sheet.gearY + 22 + i * 32;
+    drawGlowText(item.name, sheet.gearX + 10, gy, PAL.BIO, 12);
     fill(PAL.DIM);
     noStroke();
-    textSize(12);
-    text(g.desc, sheet.gearX + 10, gy + 16);
+    text(item.value, sheet.gearX + 10, gy + 14);
   });
 
-  // ── Resources ──
   textFont(FONT_UI);
   textSize(9);
-  drawGlowText('RESOURCES', sheet.resourcesX, sheet.resourcesY,
-               PAL.TEAL, 9);
+  drawGlowText('RESOURCES', sheet.resourcesX, sheet.resourcesY, PAL.TEAL, 9);
   textFont(FONT_BODY);
-  textSize(14);
-  const resY = sheet.resourcesY + 22;
-  const res = [
-    { label: 'Scrap',   value: '7',    unit: '' },
-    { label: 'Aether',  value: '4',    unit: '/6' },
-    { label: 'Heat',    value: '1',    unit: '/3' },
-    { label: 'Charge',  value: '2.0',  unit: 'kWh / 400W' },
+  textSize(13);
+  const resources = [
+    { label: 'Scrap', value: Number.isFinite(view.resources.scrap) ? '' + view.resources.scrap : '—' },
+    { label: 'Aether', value: ratio(view.resources.aether, view.resources.aetherMax) },
+    { label: 'Heat', value: ratio(view.resources.heat, view.resources.heatMax) },
+    { label: 'Staff', value: ratio(view.resources.staffCharges, view.resources.maxStaffCharges) },
   ];
-  res.forEach((r, i) => {
-    const ry = resY + i * 20;
-    drawGlowText(r.label, sheet.resourcesX + 10, ry, PAL.SCIOTO, 14);
+  resources.forEach((resource, i) => {
+    const rx = sheet.resourcesX + 10 + i * 112;
+    drawGlowText(resource.label, rx, sheet.resourcesY + 22, PAL.SCIOTO, 13);
     fill(PAL.PARCHMENT);
     noStroke();
-    textSize(15);
-    text(r.value + r.unit, sheet.resourcesX + 10 + textWidth(r.label) + 10, ry - 1);
+    text(resource.value, rx + 46, sheet.resourcesY + 22);
   });
 
   pop();
