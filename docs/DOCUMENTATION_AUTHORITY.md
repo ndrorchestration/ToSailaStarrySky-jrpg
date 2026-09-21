@@ -18,7 +18,7 @@ Historical documents remain useful evidence. They must not be read as current im
 ## Current high-level state
 
 - Five canonical playable protagonists: **Ender, Lyra, Ionia, Reson, Aepex**.
-- Exactly three active combatants are the production target.
+- The opening party grows Ender → Ender/Lyra → Ender/Lyra/Ionia, and the production combat/menu architecture should expand to **all five protagonists simultaneously** after Reson and Aepex join. Dual/Triple Arts remain valid subsets; a permanent bench is not required for the core five.
 - Ender is **22** and his canonical native job is **Rift Scholar**.
 - Lyra is **24**; her exact native job and formal magic-school classification remain unresolved.
 - Ionia is **28**, captain/owner of the ship, and an experienced navigator/caretaker; she is not an elderly farmer.
