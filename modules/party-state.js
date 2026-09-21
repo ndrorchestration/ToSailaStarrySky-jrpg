@@ -83,6 +83,11 @@
         definition.id,
         target.level || 1
       );
+      target.productionDerivedStats = JRPG_STAT_MODEL.derive(
+        target.productionStats,
+        target.level || 1,
+        target.productionEquipment || {}
+      );
       target.productionStatModelVersion = JRPG_STAT_MODEL.VERSION;
     }
     target.vit = base.vit;
@@ -139,6 +144,34 @@
 
   function assignIfDefined(target, key, value) {
     if (value !== undefined) target[key] = value;
+  }
+
+  function refreshProductionStats(character) {
+    if (!character || typeof character !== 'object') {
+      throw new Error('PRODUCTION_STATS_CHARACTER_REQUIRED');
+    }
+    if (!JRPG_STAT_MODEL ||
+        typeof JRPG_STAT_MODEL.getPrimaryStats !== 'function' ||
+        typeof JRPG_STAT_MODEL.derive !== 'function') {
+      throw new Error('JRPG_STAT_MODEL_UNAVAILABLE');
+    }
+    const level = character.level || 1;
+    character.productionStats = JRPG_STAT_MODEL.getPrimaryStats(character.id, level);
+    character.productionDerivedStats = JRPG_STAT_MODEL.derive(
+      character.productionStats,
+      level,
+      character.productionEquipment || {}
+    );
+    character.productionStatModelVersion = JRPG_STAT_MODEL.VERSION;
+    return {
+      primary: character.productionStats,
+      derived: character.productionDerivedStats,
+    };
+  }
+
+  function refreshAllProductionStats() {
+    if (!JRPG_STAT_MODEL) throw new Error('JRPG_STAT_MODEL_UNAVAILABLE');
+    return ROSTER.map(refreshProductionStats);
   }
 
   function adaptPrototypeCharacter(target, source, definition) {
@@ -357,6 +390,8 @@
     setActivePartyIds,
     validate,
     snapshot,
+    refreshProductionStats,
+    refreshAllProductionStats,
     minActiveParty: MIN_ACTIVE_PARTY,
     maxActiveParty: MAX_ACTIVE_PARTY,
   });
