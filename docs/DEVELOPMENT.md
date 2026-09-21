@@ -200,6 +200,33 @@ Schema v2 persists party/progression, World/quest/ledger, and bounded Dragonfly
 state. Encounter-local combat and presentation state remain intentionally
 excluded.
 
+## Mastery definitions Phase A checkpoint
+
+On 2026-09-20, runtime commit `aa8e0aa4f098d8272a8a4fc539ed90f7ef181c47`
+passed gameplay smoke run `35548707900` and Windows desktop package run
+`35548707894`. The Windows run uploaded artifact `10617756330`
+(`Aetherwake-Windows`, 664,424,658 bytes,
+SHA-256 `79e6249b49ed46298a50548f3d1329e4d068beb0e736eb5cc5f547fef8dcb01c`).
+
+Phase A establishes a non-mutating mastery-definition boundary:
+
+- major domain families are code-owned as Elemental, Arcane, Psychic, Spirit;
+- Ender's established special affinities are Aether, Resonance,
+  Correspondence, and Lumen;
+- Ender's native job fact is Rift Scholar;
+- Lyra/Ionia/Reson/Aepex affinity and native-job knowledge remains explicit
+  **UNKNOWN**, not silently interpreted as none;
+- the runtime fails visibly if mastery definitions are missing or invalid;
+- both playable entrypoints load the same mastery definition module before
+  persistent party state;
+- current combat eligibility, costs, level unlocks, and save schema v2 are
+  unchanged by Phase A.
+
+Mutable mastery ranks/points are intentionally not part of this checkpoint.
+Because schema v2 is already player-facing, the first mutable mastery state must
+enter through an explicit save schema v3 migration rather than extending v2
+silently.
+
 ## Effect/registry checkpoint
 
 On 2026-09-19:
