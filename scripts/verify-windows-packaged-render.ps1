@@ -80,14 +80,25 @@ $bitmap.Save($OutputPath, [System.Drawing.Imaging.ImageFormat]::Png)
 $colors = New-Object 'System.Collections.Generic.HashSet[string]'
 $nonBlack = 0
 $opaqueSamples = 0
-for ($y = 24; $y -lt $height; $y += 32) {
-  for ($x = 24; $x -lt $width; $x += 32) {
+$visualSamples = 0
+$brightTealSamples = 0
+for ($y = 24; $y -lt $height; $y += 8) {
+  for ($x = 24; $x -lt $width; $x += 8) {
     $pixel = $bitmap.GetPixel($x, $y)
     [void]$colors.Add("$($pixel.R),$($pixel.G),$($pixel.B),$($pixel.A)")
     if ($pixel.A -gt 0) { $opaqueSamples++ }
     if (($pixel.R + $pixel.G + $pixel.B) -gt 12) { $nonBlack++ }
+    $visualSamples++
+    if ($pixel.R -ge 30 -and $pixel.R -le 60 -and
+        $pixel.G -ge 220 -and
+        $pixel.B -ge 140 -and $pixel.B -le 220) {
+      $brightTealSamples++
+    }
   }
 }
+$brightTealFraction = if ($visualSamples -gt 0) {
+  $brightTealSamples / [double]$visualSamples
+} else { 0 }
 
 $bitmap.Dispose()
 
@@ -95,7 +106,17 @@ Write-Host "Packaged window: $width x $height"
 Write-Host "Unique sampled colors: $($colors.Count)"
 Write-Host "Opaque samples: $opaqueSamples"
 Write-Host "Non-black samples: $nonBlack"
+Write-Host ("Bright-teal sample fraction: {0:P2}" -f $brightTealFraction)
 Write-Host "Screenshot: $OutputPath"
+
+# Regression guard for the historical opaque scanline failure. In the broken
+# frame roughly one third of the visible game surface is saturated Aetherwake
+# teal, alternating with dark rows. Normal title/world/combat scenes use teal
+# as an accent, not as a full-frame stripe mask.
+if ($brightTealFraction -gt 0.15) {
+  $bitmap.Dispose()
+  throw ("Packaged window is dominated by bright-teal stripe pixels: {0:P2}" -f $brightTealFraction)
+}
 
 if (Test-Path -LiteralPath $diagnosticPath -PathType Leaf) {
   Write-Host "---- packaged startup diagnostic ----"
