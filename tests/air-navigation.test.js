@@ -79,6 +79,26 @@ assert.strictEqual(typeof check.threshold,'number','dynamic encounter threshold 
 assert.strictEqual(typeof check.pressure,'number','encounter pressure telemetry missing');
 assert(check.enemyId===null || ['skyPredator','windShear','aetherLeak'].includes(check.enemyId),'unknown sky enemy emitted');
 
+
+const persisted=nav.exportPersistentState(nav.createState({
+  x:17,y:15,altitude:'high',speed:2,
+  discovered:['wake-dock','verdant-crown'],
+  discoveredRoutes:['rootline-west'],
+  encounterSteps:4,encounterSeed:3
+}));
+assert.strictEqual(persisted.version,nav.PERSISTENCE_VERSION,'navigation persistence version missing');
+assert(nav.validatePersistentState(persisted),'valid navigation persistence rejected');
+const restored=nav.restorePersistentState(persisted);
+assert.strictEqual(restored.x,17);
+assert.strictEqual(restored.altitude,'high');
+assert.deepStrictEqual(restored.discoveredRoutes,['rootline-west']);
+assert.strictEqual(restored.weatherId,nav.weatherAt(restored).id,'restored weather must be recomputed from geography');
+assert.throws(
+  ()=>nav.validatePersistentState(Object.assign({},persisted,{discoveredRoutes:['unknown-route']})),
+  /AIR_NAV_STATE_ROUTE_DISCOVERY_INVALID/,
+  'unknown persisted routes must fail closed'
+);
+
 const edge=nav.move(nav.createState({x:47,y:31,speed:3}),1,1);
 assert.strictEqual(edge.x,47);
 assert.strictEqual(edge.y,31);
