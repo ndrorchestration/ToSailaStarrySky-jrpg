@@ -37,6 +37,9 @@ jobs:
       - name: Verify runtime contract
         run: npm run test:runtime-contracts
 
+      - name: Verify runtime authority
+        run: npm run test:runtime-authority
+
       - name: Verify target JRPG combat policy
         run: npm run test:combat-policy
 

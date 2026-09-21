@@ -1,3 +1,10 @@
+// NON_RUNTIME_MIRROR
+// modules/combat.js is NOT loaded by the playable Aetherwake entrypoints.
+// Changes here do NOT change the current game runtime.
+// Playable runtime authority: ../aetherwake.js
+// Runtime authority contract: ../docs/RUNTIME_AUTHORITY.md
+// Retain only as a historical/modular mirror until explicitly extracted or retired.
+
 // AetherCombat — Turn-based 2D6 PbtA combat module for Aetherwake JRPG.
 // Exposes window.AetherCombat as a constructor: new AetherCombat(p, C)
 // Also compatible with direct call: AetherCombat(p, C) returns the namespace.

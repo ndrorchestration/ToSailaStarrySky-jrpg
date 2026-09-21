@@ -334,8 +334,8 @@
         frames = 0;
         last = now;
         var gs = window.gameState || 'undefined (TITLE SCREEN)';
-        var w  = window.world ? 'loaded' : 'not loaded';
-        var c  = window.combat ? 'loaded' : 'not loaded';
+        var w  = window._world ? 'loaded' : 'not loaded';
+        var c  = window._combat ? 'loaded' : 'not loaded';
         var u  = window.UI ? 'loaded' : 'not loaded';
         var p5v = window.p5
           ? 'loaded v' + (window.p5.prototype && window.p5.prototype.VERSION

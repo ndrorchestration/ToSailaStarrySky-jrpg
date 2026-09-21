@@ -18,6 +18,8 @@ All three actions resolve numeric results in `modules/combat-formula.js` and app
 
 ## Source-of-truth rules
 
+The machine-enforced authority boundary is defined in `docs/RUNTIME_AUTHORITY.md` and checked by `npm run test:runtime-authority`.
+
 ### Runtime
 
 Current browser runtime:
