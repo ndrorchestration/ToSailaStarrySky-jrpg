@@ -27,4 +27,6 @@ assert(runtime.includes("'  AUTO-SLOW'"),'flight HUD does not expose controlled 
 assert(runtime.includes("'LANDMARK DISCOVERED // ' + landmark.label"),'landmark discovery feedback missing');
 assert(runtime.includes("'SKY LANE CHARTED // ' + route.label"),'route discovery feedback missing');
 assert(runtime.includes("'MOORED // ' + moored.label + '   ENTER FLIGHT TO CAST OFF'"),'moored ship-systems feedback missing');
+assert(runtime.includes("charted ? 105 : 22"),'charted routes are not visually distinguished');
+assert(runtime.includes("'UNCHARTED SIGNAL'"),'undiscovered landmarks reveal canonical labels too early');
 console.log('Aetherwake playable air-navigation contract: PASS');
