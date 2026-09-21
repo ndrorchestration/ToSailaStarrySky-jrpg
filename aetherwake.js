@@ -180,7 +180,7 @@ function setup() {
   window._combatSystemPolicy = window.AetherCombatSystemPolicy;
 
   if (!window.AetherCombatFormula ||
-      typeof window.AetherCombatFormula.resolveDamage !== 'function' ||
+      typeof window.AetherCombatFormula.resolveAction !== 'function' ||
       typeof window.AetherCombatFormula.validateAgainstAbilityDefs !== 'function') {
     showInitializationFailure('AETHER_COMBAT_FORMULA_UNAVAILABLE');
     return;
@@ -5608,7 +5608,7 @@ function AetherCombat(p, C) {
   }
 
   if (!window.AetherCombatFormula ||
-      typeof window.AetherCombatFormula.resolveDamage !== 'function' ||
+      typeof window.AetherCombatFormula.resolveAction !== 'function' ||
       typeof window.AetherCombatFormula.validateAgainstAbilityDefs !== 'function') {
     throw new Error('AETHER_COMBAT_FORMULA_UNAVAILABLE');
   }
