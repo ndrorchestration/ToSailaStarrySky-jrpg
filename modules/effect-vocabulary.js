@@ -1,5 +1,5 @@
 /* ============================================================
-   Aetherwake JRPG — Effect Vocabulary v0.1
+   Aetherwake JRPG — Effect Vocabulary v0.2
    modules/effect-vocabulary.js
 
    Scope:
@@ -26,7 +26,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   const EFFECT_KIND = Object.freeze({
     DAMAGE: 'damage',
@@ -113,8 +113,8 @@
       success: [
         effect(
           EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'weakness',
-          RUNTIME_STATUS.DECLARED_NOT_APPLIED,
-          'Current runtime narrates the reveal but stores no reveal state.'
+          RUNTIME_STATUS.IMPLEMENTED,
+          'Combat-local weakness reveal is stored by the generic effect resolver.'
         ),
         effect(
           EFFECT_KIND.MODIFIER, TARGET.SELF, OPERATION.INCREASE, 'nextRoll',
