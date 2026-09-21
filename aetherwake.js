@@ -255,7 +255,8 @@ function draw() {
     menuAutoStartTimer = millis();
   } else if (gameState === STATE.MENU &&
              menuAutoStartTimer > 0 &&
-             millis() - menuAutoStartTimer > 3000) {
+             millis() - menuAutoStartTimer > 3000 &&
+             !hasStoredSave()) {
     startGame();
   }
 
@@ -932,6 +933,23 @@ function syncCombatFromWorldPlayer() {
   return true;
 }
 
+function hasStoredSave() {
+  if (!window._saveState) return false;
+  try {
+    const storage = window.localStorage;
+    if (!storage || typeof storage.getItem !== 'function') return false;
+    const keys = [window._saveState.storageKey]
+      .concat(Array.isArray(window._saveState.legacyStorageKeys)
+        ? window._saveState.legacyStorageKeys
+        : []);
+    return keys.some(key => typeof key === 'string' && storage.getItem(key) != null);
+  } catch (error) {
+    return false;
+  }
+}
+
+window.hasStoredSave = hasStoredSave;
+
 function quickSaveGame() {
   if (gameState !== STATE.WORLD) {
     showToast('SAVE AVAILABLE IN WORLD ONLY', C.rust, 1800);
@@ -1554,10 +1572,19 @@ function drawTitleScreen() {
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
   text('NEW GAME — N or ENTER', cx, cy + 78);
 
+  const saveAvailable = hasStoredSave();
+  if (saveAvailable) {
+    textSize(12);
+    fill(C.teal[0], C.teal[1], C.teal[2], 210);
+    text('F3 — LOAD SAVE', cx, cy + 98);
+  }
+
   textSize(11);
   fill(C.rust[0], C.rust[1], C.rust[2], 140);
-  text('WASD  move  |  E  talk  |  Q  covenant  |  F  ship  |  Tab  sky/ground', cx, cy + 100);
-  text('L  ledger  |  M  shop  |  R  char sheet  |  T  quest log', cx, cy + 118);
+  const controlsY = saveAvailable ? cy + 122 : cy + 104;
+  text('WASD  move  |  E  talk  |  Q  covenant  |  F  ship  |  Tab  sky/ground', cx, controlsY);
+  text('L  ledger  |  M  shop  |  R  char sheet  |  T  quest log  |  F2 save / F3 load',
+       cx, controlsY + 18);
 
   textFont('Press Start 2P');
   textSize(8);
