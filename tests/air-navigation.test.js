@@ -1,0 +1,17 @@
+'use strict';
+const assert=require('assert');
+const nav=require('../modules/air-navigation.js');
+assert.strictEqual(nav.VERSION,'0.1.0');
+assert.deepStrictEqual(nav.ALTITUDES,['low','cruise','high']);
+assert(nav.LANDMARKS.length>=5,'sky needs authored navigation landmarks');
+const initial=nav.createState();
+assert.strictEqual(initial.altitude,'cruise');
+const moved=nav.move(initial,1,0);
+assert(moved.x>initial.x,'air navigation must move independently of ground topology');
+const high=nav.changeAltitude(initial,1);
+assert.strictEqual(high.altitude,'high');
+const nearest=nav.nearestLandmark(initial);
+assert(nearest && nearest.landmark.id==='wake-dock');
+const edge=nav.move(nav.createState({x:47,y:31,speed:3}),1,1);
+assert.strictEqual(edge.x,47); assert.strictEqual(edge.y,31);
+console.log('Aetherwake air navigation foundation: PASS');
