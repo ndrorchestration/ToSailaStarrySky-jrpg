@@ -4,7 +4,7 @@
 
 Aetherwake is a late-prototype / pre-alpha project.
 
-The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, fixed authored Ender/Lyra/Ionia onboarding, player-facing schema-v2 persistence for party/progression + World/quest/ledger + bounded Dragonfly state, effect vocabulary v0.1, extracted current ability/progression registries, live fail-closed resolver routing for ordinary damage/restoration/resource mutations, and formula-native combat resolution for Staff Strike, Hold, and Rest. Five legacy 2D6 actions, higher-order resolver semantics, and authored companion/mastery progression remain staged work.
+The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, fixed authored Ender/Lyra/Ionia onboarding, player-facing schema-v2 persistence for party/progression + World/quest/ledger + bounded Dragonfly state, effect vocabulary v0.2, extracted current ability/progression registries, live fail-closed resolver routing for damage/restoration/resource/reveal mutations, and formula-native combat resolution for Staff Strike, Hold, and Rest. Five legacy 2D6 actions, higher-order resolver semantics, and authored companion/mastery progression remain staged work.
 
 ## JRPG formula migration checkpoint
 
@@ -566,6 +566,25 @@ No admission candidate is exposed, and the existing completeness gate still
 returns `OUTCOME_CONTRACT_NOT_ESTABLISHED`. This records more design evidence
 without authorizing a companion turn.
 
+## Combat-local reveal checkpoint
+
+The generic effect resolver now executes **reveal** effects in addition to
+damage, restoration, and resource changes.
+
+- reveal state is encounter-local and reset by combat initialization/new
+  encounters;
+- enemy weakness starts hidden in both the combat log and panel;
+- successful Uncover Truth routes `reveal:weakness` through the resolver;
+- repeated reveals are idempotent and do not count as additional mutations;
+- `getState()` returns a detached reveal snapshot for UI/tests;
+- Uncover Truth's old +1-next-roll modifier remains
+  `DECLARED_NOT_APPLIED`; its player-facing metadata no longer promises that
+  nonfunctional bonus;
+- modifier, status, and movement execution remain fail-closed.
+
+Uncover Truth itself is **not** formula-migrated by this checkpoint; its
+preservation-era resolution branch remains temporary compatibility debt.
+
 ## Effect/registry checkpoint
 
 On 2026-09-19:
@@ -602,7 +621,7 @@ On 2026-09-19:
 - CI source-checks `resolveTurn()` so ordinary direct mutations cannot silently reappear;
 - browser smoke verifies live combat actually performs resolver-backed mutations;
 - PbtA roll bands, action-specific branch selection, logs, randomness, XP, level-up rules, and the explicit defeat floor remain outside this resolver layer;
-- modifier/reveal/status/movement semantics are not claimed as implemented by the resolver.
+- reveal semantics were added later as combat-local state; modifier/status/movement remain outside this historical resolver checkpoint.
 
 This is a partial establishment of migration step 6, not completion of the full generic combat resolver.
 
@@ -634,7 +653,7 @@ On 2026-09-19:
 Current explicit boundaries:
 - cost amounts were **not** redesigned;
 - school/job/mastery prerequisites are not yet implemented;
-- modifier/reveal/status/movement execution remains outside the current generic resolver subset;
+- modifier/status/movement execution remains outside the current generic resolver subset; combat-local reveal execution is established;
 - `main` remains untouched.
 
 ## Architecture migration rule
