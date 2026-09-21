@@ -469,7 +469,7 @@ function createServer() {
 
     assert(registryContract.abilityVersion === '0.2.0',
       'ability registry version is not loaded');
-    assert(registryContract.progressionVersion === '0.1.0',
+    assert(registryContract.progressionVersion === '0.2.0',
       'progression registry version is not loaded');
     assert(registryContract.validAbilities,
       'runtime actions drifted from canonical ability definitions');
