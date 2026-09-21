@@ -6,6 +6,17 @@ Aetherwake is a modern pixel-art JRPG, not a hardware-emulation exercise. Its vi
 
 The game must remain recognizably Aetherwake. References are studied for transferable craft principles, never copied for characters, layouts, sprites, logos, or proprietary visual motifs.
 
+## Canon and character-art authority
+
+Character art must follow the five canonical Notion dossiers before it follows any generated concept sheet. The locked facts currently include ages, roles, relationship positions, and core identity constraints; appearance details that the dossiers do not establish must remain art-direction choices rather than being mislabeled as canon.
+
+For the current roster:
+- Ender: 22, Rift Scholar, not especially brawny.
+- Lyra: 24, unusually frequency/dream sensitive; adult single mother of Talen.
+- Ionia: 28, captain/owner and experienced navigator/caretaker; not elderly.
+- Reson: 25, burly weapon master; former military service; rifle/pike/sword proficiency.
+- Aepex: 27, confident/chill machinery, computation, and invention specialist.
+
 ## Contemporary reference principles
 
 - **Sea of Stars:** readable silhouettes, rich environmental motion, strong light/shadow separation, dense scenes that remain navigable.
@@ -13,6 +24,7 @@ The game must remain recognizably Aetherwake. References are studied for transfe
 - **Octopath / HD-2D lineage:** depth staging, atmospheric separation, selective bloom-like emphasis and cinematic framing without abandoning pixel characters.
 - **Eastward:** authored environmental clutter, lived-in spaces, strong local color scripts and prop storytelling.
 - **CrossCode:** crisp tile readability, strong interaction language, controlled effects density.
+- **Final Fantasy Tactics lineage:** compact heroic proportions, strong job/role silhouettes, painterly portrait sensibility, readable equipment, and restrained fantasy ornament. Use these as transferable principles only; do not copy characters, costumes, poses, UI, maps, sprites, or proprietary motifs.
 - **Recent pixel-art RPG direction:** pixel foundations can use modern lighting, particles, camera language and high-resolution environmental composition rather than imitating a single historical console.
 
 ## Aetherwake-specific rules
@@ -27,6 +39,8 @@ The game must remain recognizably Aetherwake. References are studied for transfe
 8. Effects may be modern, but their shapes should remain pixel-conscious and preserve sprite readability.
 9. UI should feel like restored instrumentation: precise, compact, legible, slightly futuristic, never generic sci-fi glass.
 10. Every art pass must preserve gameplay semantics unless explicitly scoped otherwise.
+11. A generated character concept is provisional until checked against the canonical dossier. If concept art conflicts with canon, canon wins.
+12. Do not visually invent unresolved magic ownership. Lyra, Ionia, Reson, and Aepex may have effects associated with established actions only after those actions are canonically assigned.
 
 ## Quality gate
 
