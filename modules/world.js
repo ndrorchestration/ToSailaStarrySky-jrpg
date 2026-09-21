@@ -229,8 +229,8 @@ function initNPCs() {
           '"The people below want passage. The syndicates want the core. The frequencies want a decision. You\'re the only one who doesn\'t have a price on this ship. That\'s not an accident. That\'s the point."'
         ],
         class_farmer: [
-          '"Farmers understand soil because soil tells the truth if you know how to listen. You\'re the same — you listen to what the engine is trying to tell you. That\'s the whole story right there."',
-          '"I\'ve farmed sky-lanes routes as long as I\'ve captained ships. Both of them want the same thing: someone who doesn\'t walk away when the job gets hard."'
+          '"Navigation teaches the same lesson every watch: the sky tells the truth if you know how to read it. You notice wrongness before most people can name it. I can work with that."',
+          '"Captain Denith taught me to trust instruments, weather, and people in that order only when the first two agree. The Wake needs someone who listens before acting."'
         ],
         generic_follow: [
           '"The aether-core is the heart of this ship. It hums — a wrong kind of hum. You\'ll feel it in the rigging before you see it in the decks."'
