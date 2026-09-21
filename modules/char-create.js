@@ -128,56 +128,13 @@ function safeGlowTextCenter(txt, x, y, textColor, size, font) {
   text(txt, x, y);
 }
 
-// ── Job / Class Definitions ──
-// Each job: fixed rank-1 stats, two abilities (id, label, stat, description),
-// and a synergyBonus string shown at party review.
-const JOBS = [
-  {
-    id: 'skySailor',
-    name: 'Sky-Sailor',
-    tagline: 'Wind navigator · mobile striker',
-    vit: 10, echoes: 2, wits: 1, presence: 0, spirit: 1, might: -1, grace: 2,
-    color: 'scioto',
-    abilities: [
-      { id: 'windShearDance', label: 'Wind-Shear Dance',
-        stat: 'grace', desc: '2D6+Grace. Evade / reposition. 10+: next Grace roll +1.' },
-      { id: 'aetherCompass', label: 'Aether Compass',
-        stat: 'wits', desc: '2D6+Wits. Reveal resources — gain scrap or aether.' },
-    ],
-    synergyBonus: 'Wind-Reader — Ender\'s Uncover Truth grants +1 to Sky-Sailor\'s Grace rolls.',
-    previewGlyph: 'W', // displayed on companion preview
-  },
-  {
-    id: 'engineWright',
-    name: 'Engine-Wright',
-    tagline: 'Mechanical engineer · heavy hitter',
-    vit: 12, echoes: 2, wits: 0, presence: 2, spirit: 0, might: 2, grace: -1,
-    color: 'rust',
-    abilities: [
-      { id: 'overdriveStrike', label: 'Overdrive Strike',
-        stat: 'might', desc: '2D6+Might. Heavy EMP: 1d6+3 damage. Generates 1 Heat.' },
-      { id: 'patchworkShield', label: 'Patchwork Shield',
-        stat: 'presence', desc: '2D6+Presence. Absorb 1 damage for an ally. Return 1 scrap.' },
-    ],
-    synergyBonus: 'Engine Heart — Ender\'s Mycelial Ledger grants +1 scrap on success while Wright is present.',
-    previewGlyph: 'E',
-  },
-  {
-    id: 'aetherWeaver',
-    name: 'Aether-Weaver',
-    tagline: 'Spirit caster · healer & buffer',
-    vit: 9, echoes: 3, wits: 1, presence: 1, spirit: 2, might: -2, grace: 0,
-    color: 'biolum',
-    abilities: [
-      { id: 'spiritThread', label: 'Spirit Thread',
-        stat: 'spirit', desc: '2D6+Spirit. Heal 1-3 Vit to a target ally.' },
-      { id: 'aetherWeave', label: 'Aether Weave',
-        stat: 'presence', desc: '2D6+Presence. Buff ally\'s next roll +1. Costs 1 Aether.' },
-    ],
-    synergyBonus: 'Dreamweaver\'s Pact — Ender\'s Shared Dream heals +1 extra Vit when Weaver is in party.',
-    previewGlyph: 'A',
-  },
-];
+// ── Preservation field-role definitions ──
+// Shared authority lives in modules/field-role-defs.js. These are temporary
+// mechanics templates only; they are not authored native jobs.
+const FIELD_ROLE_REGISTRY = window.AetherFieldRoleDefs || null;
+const JOBS = FIELD_ROLE_REGISTRY && typeof FIELD_ROLE_REGISTRY.list === 'function'
+  ? FIELD_ROLE_REGISTRY.list()
+  : [];
 
 const AUTHORED_COMPANIONS = Object.freeze([
   Object.freeze({ id: 'lyra', name: 'Lyra' }),
