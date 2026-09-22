@@ -525,3 +525,98 @@ Automated tests should also cover:
 **Development-branch checkpoint (2026-09-19):** the smoke-stabilized baseline plus steps 2–5 are verified, and step 6 is partially established: ordinary damage/restoration/resource mutations now route through a fail-closed resolver while `resolveTurn()` still owns PbtA outcomes and action-specific branch semantics. Promotion/merge to `main` has not occurred.
 
 **Non-negotiable:** avoid a single rewrite of character creation, combat, progression, and party state at the same time.
+
+
+---
+
+## 9. Shared combat-content architecture — 2026-09-22
+
+### TARGET ARCHITECTURE
+
+Spells, weapon techniques, job techniques, item actions, hybrid arts, Dual Arts, Triple Arts, and Affinity Arts should converge on **one shared executable ability contract**. They are different content sources, not different combat engines.
+
+The production pipeline should be:
+
+```text
+source catalog
+  → normalize to AbilityDefinition
+  → validate prerequisites / admission
+  → resolve formula family
+  → emit typed effects
+  → effect resolver mutates state
+  → persistence / UI consume the same definition
+```
+
+The existing `modules/ability-defs.js`, `modules/effect-vocabulary.js`, `modules/effect-resolver.js`, `modules/jrpg-stat-model.js`, and `modules/combat-formula.js` are the substrate to extend. Do not create parallel weapon or spell resolvers.
+
+Recommended normalized fields:
+
+- `id`, `name`, `sourceKind`;
+- school/tree, weapon-family, job, item, character, or party-art source IDs where applicable;
+- rank/tier and authority/admission status;
+- targeting and reach;
+- formula family and typed parameters;
+- costs and resource types;
+- prerequisites/mastery/access;
+- typed effect list;
+- status, field, reaction, counter, and synergy hooks;
+- timing / charge / recovery;
+- tags;
+- runtime/persistence status.
+
+### Weapon skills
+
+Weapon skills are a first-class progression system parallel to magic.
+
+Each supported weapon family should have a Rank 1–5 technique tree:
+
+- Rank 1 — handling identity / basic verb;
+- Rank 2 — reliable tactical extension;
+- Rank 3 — mature build-defining loop;
+- Rank 4 — advanced stance, counter, mobility, Break, routing, or combo behavior;
+- Rank 5 — signature/master technique.
+
+Weapon techniques should emphasize stance, reach, positioning, guard pressure, Break/Stagger, counters, combo routing, mobility, armor interaction, sustained physical pressure, and family identity. They should not merely duplicate spells at a lower cost.
+
+Weapon mastery remains a separate prerequisite axis from magic-school mastery. Martial/magic hybrids may require both.
+
+### Weapon interaction design
+
+Do **not** build an exhaustive weapon-family × weapon-family pair matrix. Most pairings do not create a new systemic state and would become documentation overhead.
+
+Instead use:
+
+1. a weapon-family tactical identity table;
+2. explicit matchup/counter rules only where they materially change play;
+3. a weapon-family × magic-school synergy matrix for imbues, routing, counters, hybrid arts, and build-defining interactions.
+
+### Reuse / deduplication rule
+
+Existing elemental and non-elemental spell catalogs are the current design seed corpus and should be enriched rather than replaced.
+
+The existing magic mastery/access/study architecture provides the pattern for future weapon mastery/access/study. Reuse the pattern, but keep weapon mastery and school mastery distinct.
+
+### Known gaps before broad content expansion
+
+- no first-class weapon-skill catalog;
+- no weapon-mastery/profile/study layer;
+- spell seeds do not yet carry complete production formula metadata;
+- field reactions are still design-state only;
+- no single production status registry yet owns stacking/resistance/duration/boss-control policy;
+- no executable shared schema yet owns Dual/Triple/Affinity Art admission;
+- Arete economy remains open; Echo ontology remains open;
+- balance coefficients are not yet calibrated across early, story-cap, and level-175 mastery bands.
+
+### Lowest-risk implementation order
+
+1. freeze the normalized AbilityDefinition schema;
+2. prove compatibility by normalizing current live actions;
+3. enrich existing spell catalogs with formula/effect metadata;
+4. add weapon-family definitions and Rank 1–5 weapon catalogs;
+5. add one status/field/reaction policy layer with priority and loop prevention;
+6. add weapon mastery/profile/access/study using the magic pattern;
+7. add hybrid and party-art definitions;
+8. run balance simulation across representative level bands;
+9. only then widen runtime UI and save-schema support.
+
+This sequence minimizes duplicated code, protects save/load stability, and makes future content mostly data authoring plus validation rather than bespoke implementation.
