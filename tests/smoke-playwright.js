@@ -245,6 +245,26 @@ function createServer() {
     assert(savedRoundTrip.storageType === 'localStorage',
       'browser smoke did not exercise localStorage save fallback');
 
+    const continueFallback = await page.evaluate(() => {
+      const invalidPayload = buildSavePayload();
+      invalidPayload.world.playerPosition.px = 999;
+      window.AetherSaveSystem.save('manual-2', invalidPayload, saveMetadata());
+      refreshSaveIndex();
+      const selected = window._latestSaveMeta && window._latestSaveMeta.slot;
+      const invalidMeta = window._saveSlotIndex.find(entry => entry.slot === 'manual-2');
+      window.AetherSaveSystem.remove('manual-2');
+      refreshSaveIndex();
+      return {
+        selected,
+        invalidSemantic: invalidMeta && invalidMeta.semanticValid,
+        invalidMarked: invalidMeta && invalidMeta.valid
+      };
+    });
+    assert(continueFallback.selected === 'manual-1',
+      'Continue did not fall back to the newest semantically loadable save');
+    assert(continueFallback.invalidSemantic === false && continueFallback.invalidMarked === false,
+      'semantic save failure was not classified as an invalid Continue candidate');
+
     await page.keyboard.press('m');
     await page.waitForTimeout(200);
     assert((await page.evaluate(() => window.gameState)) === 'world',
