@@ -139,7 +139,8 @@
     {
       "id": "move-up",
       "contexts": [
-        "world"
+        "world",
+        "airship"
       ],
       "keyboard": [
         "ArrowUp",
@@ -155,7 +156,8 @@
     {
       "id": "move-down",
       "contexts": [
-        "world"
+        "world",
+        "airship"
       ],
       "keyboard": [
         "ArrowDown",
@@ -171,7 +173,8 @@
     {
       "id": "move-left",
       "contexts": [
-        "world"
+        "world",
+        "airship"
       ],
       "keyboard": [
         "ArrowLeft",
@@ -187,7 +190,8 @@
     {
       "id": "move-right",
       "contexts": [
-        "world"
+        "world",
+        "airship"
       ],
       "keyboard": [
         "ArrowRight",
