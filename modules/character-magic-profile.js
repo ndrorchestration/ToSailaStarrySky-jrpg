@@ -187,7 +187,7 @@
 
   return Object.freeze({
     version: '0.2.0',
-    runtimeStatus: 'PURE_PROFILE_NOT_PERSISTED',
+    runtimeStatus: 'PURE_PROFILE_SCHEMA_V2',
     CHARACTER_IDS,
     AFFINITY_RECORDS,
     createProfile,
