@@ -21,7 +21,7 @@ The package is built by GitHub Actions from a tagged commit or by manually dispa
 Local build requirements:
 
 - Windows or a compatible NW.js build environment
-- Node.js 20+
+- Node.js 22+
 - npm
 
 Local commands:
