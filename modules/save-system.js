@@ -138,6 +138,12 @@
     const dir = path.join(root.nw.App.dataPath, 'saves');
     fs.mkdirSync(dir, { recursive: true });
 
+    function testHook(stage, context) {
+      if (root && typeof root.__AETHERWAKE_SAVE_TEST_HOOK__ === 'function') {
+        root.__AETHERWAKE_SAVE_TEST_HOOK__(stage, context || {});
+      }
+    }
+
     function file(slot) { return path.join(dir, slot + '.json'); }
     return {
       type: 'nw-file',
@@ -146,6 +152,8 @@
         const tmp = target + '.tmp';
         const bak = target + '.bak';
         const json = JSON.stringify(envelope, null, 2) + '\n';
+        testHook('before-temp-write', { slot, target, tmp, bak });
+
         const fd = fs.openSync(tmp, 'w');
         try {
           fs.writeFileSync(fd, json, 'utf8');
@@ -153,14 +161,27 @@
         } finally {
           fs.closeSync(fd);
         }
-        if (fs.existsSync(target)) {
-          if (fs.existsSync(bak)) fs.unlinkSync(bak);
-          fs.renameSync(target, bak);
-        }
+        testHook('after-temp-fsync', { slot, target, tmp, bak });
+
         try {
+          if (fs.existsSync(target)) {
+            if (fs.existsSync(bak)) fs.unlinkSync(bak);
+            fs.renameSync(target, bak);
+          }
+          testHook('after-backup-promote', { slot, target, tmp, bak });
+          testHook('before-primary-promote', { slot, target, tmp, bak });
           fs.renameSync(tmp, target);
+          testHook('after-primary-promote', { slot, target, tmp, bak });
         } catch (error) {
-          if (!fs.existsSync(target) && fs.existsSync(bak)) fs.renameSync(bak, target);
+          // If the old primary has already moved to backup but no primary exists,
+          // restore it before reporting failure. If the new primary already exists,
+          // it is itself a complete fsynced JSON file and may safely remain primary.
+          if (!fs.existsSync(target) && fs.existsSync(bak)) {
+            fs.renameSync(bak, target);
+          }
+          if (fs.existsSync(tmp)) {
+            try { fs.unlinkSync(tmp); } catch (_) {}
+          }
           throw error;
         }
       },
