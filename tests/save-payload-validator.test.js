@@ -36,6 +36,25 @@ assert.throws(
   /SAVE_QUEST_HOOK_COUNTER_MISMATCH/
 );
 
+// Current First Wake Crossing has four hazards and 4/4 is a valid persisted state.
+const fourHazards = JSON.parse(JSON.stringify(original));
+fourHazards.quest.state = 'contact';
+fourHazards.quest.act = 'contact';
+fourHazards.quest.hazardsCompleted = 4;
+fourHazards.quest.crossingHazards.forEach(hazard => { hazard.done = true; });
+assert.strictEqual(
+  validator.validatePayload(fourHazards, { validateAirNavigation() { return true; } }),
+  true,
+  '4/4 Crossing completion must remain a valid save payload'
+);
+
+const staleThreeHazards = JSON.parse(JSON.stringify(original));
+staleThreeHazards.quest.crossingHazards = staleThreeHazards.quest.crossingHazards.slice(0, 3);
+assert.throws(
+  () => validator.validatePayload(staleThreeHazards, { validateAirNavigation() { return true; } }),
+  /SAVE_QUEST_CROSSING_HAZARD_COUNT_DRIFT/
+);
+
 // Canonical roster identity/order cannot drift.
 const badParty = JSON.parse(JSON.stringify(original));
 badParty.party.roster[1].id = 'reson';
