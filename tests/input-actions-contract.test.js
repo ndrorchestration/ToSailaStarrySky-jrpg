@@ -32,6 +32,16 @@ assert.deepStrictEqual(
   'F5 must map to manual-save in WORLD'
 );
 assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 117 }, 'world'),
+  ['open-save-load'],
+  'F6 must open the focused Save/Load UI in WORLD'
+);
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 117 }, 'airship'),
+  ['open-save-load'],
+  'F6 must open the focused Save/Load UI in AIRSHIP'
+);
+assert.deepStrictEqual(
   input.actionsForKeyboardEvent({ keyCode: 116 }, 'combat'),
   [],
   'F5 must not map to manual-save in COMBAT'
