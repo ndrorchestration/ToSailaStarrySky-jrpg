@@ -15,6 +15,7 @@
   "inputContexts": [
     "global",
     "menu",
+    "settings",
     "world",
     "dialogue",
     "combat",
@@ -113,6 +114,20 @@
       ],
       "gamepad": [
         "button-east"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "open-settings",
+      "contexts": [
+        "menu"
+      ],
+      "keyboard": [
+        "S"
+      ],
+      "gamepad": [
+        "menu"
       ],
       "remappable": true,
       "singlePressDigital": true
