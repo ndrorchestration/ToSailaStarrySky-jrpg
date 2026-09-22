@@ -81,7 +81,7 @@
     integer(quest.hooksCompleted, 'SAVE_QUEST_HOOK_COUNT_INVALID');
     integer(quest.hazardsCompleted, 'SAVE_QUEST_HAZARD_COUNT_INVALID');
     assert(quest.hooksCompleted >= 0 && quest.hooksCompleted <= 3, 'SAVE_QUEST_HOOK_COUNT_RANGE');
-    assert(quest.hazardsCompleted >= 0 && quest.hazardsCompleted <= 3, 'SAVE_QUEST_HAZARD_COUNT_RANGE');
+    assert(quest.hazardsCompleted >= 0 && quest.hazardsCompleted <= 4, 'SAVE_QUEST_HAZARD_COUNT_RANGE');
 
     assert(Array.isArray(quest.npcsMet), 'SAVE_QUEST_NPCS_INVALID');
     assert(quest.npcsMet.every(x => typeof x === 'string'), 'SAVE_QUEST_NPC_ID_INVALID');
@@ -102,7 +102,7 @@
     assert(Array.isArray(quest.signalHooks), 'SAVE_QUEST_SIGNAL_HOOKS_INVALID');
     assert(Array.isArray(quest.crossingHazards), 'SAVE_QUEST_CROSSING_HAZARDS_INVALID');
     assert(quest.signalHooks.length === 3, 'SAVE_QUEST_SIGNAL_HOOK_COUNT_DRIFT');
-    assert(quest.crossingHazards.length === 3, 'SAVE_QUEST_CROSSING_HAZARD_COUNT_DRIFT');
+    assert(quest.crossingHazards.length === 4, 'SAVE_QUEST_CROSSING_HAZARD_COUNT_DRIFT');
 
     const doneHooks = quest.signalHooks.filter(x => x && x.done === true).length;
     const doneHazards = quest.crossingHazards.filter(x => x && x.done === true).length;
