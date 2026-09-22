@@ -179,15 +179,33 @@
       }
     }
 
+    if (scene.id === 'berth_task' && state.berthTask) {
+      const step = state.berthTask.step;
+      fill(42, 255, 181, 45 + step * 35);
+      rect(185, 338, Math.max(8, step * 54), 4);
+      fill(232, 220, 198, 180);
+      textAlign(LEFT, TOP);
+      textFont('VT323');
+      textSize(14);
+      text('BERTH WORK // ' + step + ' / ' + state.berthTask.max, 185, 383);
+    }
+
     if (scene.id === 'talen_staying') {
-      // Talen has no canonical shared sprite yet; show his block-built Wake instead.
-      fill(140, 104, 68);
-      rect(423, 366, 44, 16);
-      fill(76, 111, 121);
-      rect(438, 352, 19, 14);
-      fill(42, 255, 181, 80);
-      rect(418, 373, 6, 3);
-      rect(467, 373, 6, 3);
+      const talenStep = state.talenBeat ? state.talenBeat.step : 0;
+      if (talenStep >= 2) {
+        fill(140, 104, 68);
+        rect(423, 366, 44, 16);
+        fill(76, 111, 121);
+        rect(438, 352, 19, 14);
+        fill(42, 255, 181, 80);
+        rect(418, 373, 6, 3);
+        rect(467, 373, 6, 3);
+      }
+      fill(232, 220, 198, 180);
+      textAlign(LEFT, TOP);
+      textFont('VT323');
+      textSize(14);
+      text('TALEN // ' + talenStep + ' / ' + (state.talenBeat ? state.talenBeat.max : 2), 423, 392);
     }
   }
 
@@ -287,10 +305,19 @@
     );
 
     fill(42, 255, 181);
+    const presentationReady = typeof root.AetherFirstWakeOpening.presentationReady === 'function'
+      ? root.AetherFirstWakeOpening.presentationReady(state)
+      : true;
     if (scene.id === 'dock_walk' && state.dockWalk && !state.dockWalk.ready) {
       text('A / D OR LEFT / RIGHT — WALK TO THE DRAGONFLY', width / 2, height - 29);
     } else if (scene.id === 'dock_walk') {
       text('ENTER — BOARD THE DRAGONFLY', width / 2, height - 29);
+    } else if (scene.id === 'berth_task' && state.berthTask && !state.berthTask.ready) {
+      text('E — WORK ON THE BERTH', width / 2, height - 29);
+    } else if (scene.id === 'talen_staying' && state.talenBeat && !state.talenBeat.ready) {
+      text('E — RESPOND TO TALEN', width / 2, height - 29);
+    } else if (scene.cinematic && !presentationReady) {
+      text('', width / 2, height - 29);
     } else {
       text('ENTER / SPACE — CONTINUE', width / 2, height - 29);
     }
