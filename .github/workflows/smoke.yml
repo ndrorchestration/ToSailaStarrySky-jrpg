@@ -34,6 +34,9 @@ jobs:
       - name: Verify crossing hazards require combat
         run: npm run test:crossing-hazard-combat
 
+      - name: Verify hazard markers match live zones
+        run: npm run test:hazard-marker-alignment
+
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
 
