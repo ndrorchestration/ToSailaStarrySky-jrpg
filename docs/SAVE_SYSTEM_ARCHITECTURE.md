@@ -188,3 +188,27 @@ Required:
 ## Current boundary
 
 The candidate implementation establishes the persistence foundation and first complete save/load loop. It does not claim every future subsystem is already represented. Any new gameplay system must register its persistence ownership before merge so save coverage does not drift behind feature development.
+
+
+## Hardening tranche — semantic preflight and migration registry
+
+The load path now has a strict two-phase shape:
+
+1. **Prepare / validate**
+   - envelope integrity and schema normalization;
+   - runtime stable-scene validation;
+   - world coordinate and pixel/tile consistency;
+   - quest counter/record consistency;
+   - canonical five-record party identity and resource bounds;
+   - active-party membership validation;
+   - magic-profile validation when present;
+   - air-navigation validation and rehydration planning;
+   - epilogue identity validation.
+2. **Commit**
+   - only after all preparation succeeds may canonical runtime objects be mutated.
+
+This prevents a checksum-valid but semantically impossible save from partially changing the live game before a later subsystem rejects it.
+
+A migration registry now exists before schema v2 is introduced. Unknown future versions fail closed, and migration steps are required to advance exactly one schema version at a time.
+
+Historical compatibility is now anchored by `tests/fixtures/saves/schema-v1-manual-1.json`. Released schema fixtures are intended to remain permanent regression inputs.
