@@ -1,0 +1,21 @@
+'use strict';
+
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
+
+const runtime = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8');
+const start = runtime.indexOf('function drawWorldAmbient()');
+const end = runtime.indexOf('// --- Covenant Field', start);
+assert(start >= 0 && end > start, 'world ambient renderer missing');
+const ambient = runtime.slice(start, end);
+
+assert(ambient.includes('Pixel atmosphere'), 'pixel atmosphere contract missing');
+assert(ambient.includes('staggered translucent pixel bands'), 'pixel mist contract missing');
+assert(ambient.includes('Rising aether fragments'), 'aether fragment contract missing');
+assert(ambient.includes('Math.round'), 'ambient particles must snap to integer pixel coordinates');
+assert(!ambient.includes('ellipse('), 'ambient art regressed to soft ellipse primitives');
+assert(ambient.includes('rect(0, 0, width, height)'),
+  'quest-state lighting tint must remain present');
+
+console.log('Aetherwake pixel world ambient contract: PASS');
