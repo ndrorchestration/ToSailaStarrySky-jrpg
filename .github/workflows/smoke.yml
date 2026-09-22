@@ -117,6 +117,9 @@ jobs:
       - name: Verify semantic input action registry
         run: npm run test:input-actions
 
+      - name: Verify deterministic focus manager
+        run: npm run test:focus-manager
+
       - name: Verify input runtime contracts
         run: npm run test:input-runtime
 
