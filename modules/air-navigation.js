@@ -107,7 +107,7 @@
     const next=createState(state);
     next.x=clamp(next.x+dx*next.speed,0,SKY_WIDTH-1);
     next.y=clamp(next.y+dy*next.speed,0,SKY_HEIGHT-1);
-    if(dx||dy) { next.mooredLandmarkId=null; next.heading=Math.atan2(dy,dx); next.encounterSteps += 1; }
+    if(dx||dy) { next.mooredLandmarkId=null; next.heading=Math.atan2(dy,dx); next.encounterSteps += Math.max(1, next.speed); }
     for(const mark of LANDMARKS){
       if(Math.hypot(mark.x-next.x,mark.y-next.y)<=2 && !next.discovered.includes(mark.id)) next.discovered.push(mark.id);
     }
