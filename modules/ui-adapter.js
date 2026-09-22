@@ -70,7 +70,7 @@ window.AetherUI = function(p, C) {
     textFont('Press Start 2P');
     textSize(8);
     fill(C.teal[0], C.teal[1], C.teal[2], 120);
-    text('AETHERWAKE // ENDER  //  TURN-BASED 2D6 PbtA', width/2, height - 24);
+    text('AETHERWAKE // ENDER  //  TURN-BASED JRPG', width/2, height - 24);
   };
 
   this.drawHUD = function(p, C) {
