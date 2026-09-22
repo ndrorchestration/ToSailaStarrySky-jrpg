@@ -577,18 +577,18 @@
     "save/load overlay focus integration with non-color marker and stable slot restoration",
     "standard-mapping gamepad polling through navigator.getGamepads()",
     "context-prioritized gamepad semantic adapter",
-    "live controller dispatch for BOOT, title, Settings, authored opening, WORLD, dialogue, read-only overlays, and AIRSHIP",
+    "live controller dispatch for BOOT, title, Settings, authored opening, WORLD, dialogue, read-only overlays, COMBAT, SAVELOAD, and AIRSHIP",
     "bounded controller movement repeat equivalent to keyboard movement cadence",
+    "deterministic combat action focus with non-color marker and canonical resolveTurn activation",
+    "single-press controller Save/Load route through gameplay Menu button",
     "independent schema-v1 user settings persistence",
     "Settings reachable before gameplay from keyboard or controller",
     "reduced-motion, screen-shake, text-speed runtime integration",
     "effects-volume and dialogue-volume runtime integration",
-    "live Playwright controller-parity regression registered in smoke CI"
+    "live Playwright controller-parity regression covering settings, opening, WORLD, Save/Load, dialogue, flight, and combat focus"
   ],
   "remainingBeforeRepresentativeParity": [
-    "combat controller action focus and execution",
     "action remapping UI and prompt rebinding",
-    "single-press navigable Save/Load controller route",
     "text-scale rendering integration",
     "high-contrast UI rendering integration",
     "subtitle size/background and speaker-label rendering integration",
