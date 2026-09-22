@@ -120,6 +120,9 @@ jobs:
       - name: Verify deterministic focus manager
         run: npm run test:focus-manager
 
+      - name: Verify standard gamepad semantic adapter
+        run: npm run test:gamepad-input
+
       - name: Verify input runtime contracts
         run: npm run test:input-runtime
 
