@@ -302,6 +302,29 @@ async function capture(page, id, description) {
       'Representative Dragonfly open-sky flight visual gate'
     ));
 
+    // 6 — Aerial combat context inherited from real flight state.
+    await page.evaluate(() => {
+      const s = window._airNavigationState;
+      s.x = 19;
+      s.y = 11;
+      s.altitude = 'cruise';
+      s.speed = 2;
+      s.mooredLandmarkId = null;
+      if (typeof startCombat !== 'function') throw new Error('START_COMBAT_UNAVAILABLE');
+      startCombat('skyPredator', window.gameState);
+    });
+    await page.waitForFunction(() =>
+      window.gameState === 'combat' &&
+      window._combat &&
+      window._combat.getState &&
+      window._combat.getState().enemy
+    , undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '06-sky-combat-crosswind',
+      'Sky-Predator aerial combat under Crosswind flight context'
+    ));
+
     assert(errors.length === 0, 'visual capture runtime errors:\n' + errors.join('\n'));
 
     const manifest = {
