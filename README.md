@@ -7,7 +7,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 ## Development status
 
 - **Stage:** late prototype / pre-alpha
-- **Playable baseline:** boot → character creation → world exploration → dialogue/quest systems → combat
+- **Playable baseline:** boot → First Wake opening → world exploration → dialogue/quest systems → combat
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
 - **Combat party target:** supports 1–5 active authored protagonists, growing through recruitment; First Wake now begins with Ender alone and adds Lyra at the Wrong Song beat
 - **Current migration:** smoke-green persistent roster, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; higher-order effect semantics remain separate gates
