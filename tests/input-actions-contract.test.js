@@ -12,6 +12,11 @@ assert.deepStrictEqual(
   'T must map to quest-log in WORLD'
 );
 assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 83 }, 'boot'),
+  ['open-settings'],
+  'S must open Settings directly from BOOT'
+);
+assert.deepStrictEqual(
   input.actionsForKeyboardEvent({ keyCode: 83 }, 'menu'),
   ['open-settings'],
   'S must open Settings from the title menu'
