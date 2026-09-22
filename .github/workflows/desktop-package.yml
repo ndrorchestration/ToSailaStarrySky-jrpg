@@ -9,7 +9,7 @@ on:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   package-windows:
@@ -36,13 +36,15 @@ jobs:
       - name: Create distributable ZIP
         shell: pwsh
         run: |
-          $package = Get-ChildItem -Path ..\aetherwake-dist -Directory | Select-Object -First 1
+          $package = Get-ChildItem -Path ..\\aetherwake-dist -Directory | Select-Object -First 1
           if (-not $package) { throw "NW.js did not produce a package directory" }
-          Compress-Archive -Path "$($package.FullName)\*" -DestinationPath "Aetherwake-Windows.zip"
+          Compress-Archive -Path "$($package.FullName)\\*" -DestinationPath "Aetherwake-Windows.zip"
 
-      - name: Upload Windows package
-        uses: actions/upload-artifact@v4
+      - name: Publish Windows package release
+        uses: softprops/action-gh-release@v2
         with:
-          name: Aetherwake-Windows
-          path: Aetherwake-Windows.zip
-          if-no-files-found: error
+          tag_name: aetherwake-desktop-${{ github.sha }}
+          name: Aetherwake Windows Desktop ${{ github.sha }}
+          prerelease: true
+          generate_release_notes: false
+          files: Aetherwake-Windows.zip
