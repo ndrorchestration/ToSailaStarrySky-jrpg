@@ -1,7 +1,7 @@
 const assert = require('assert');
 const opening = require('../modules/first-wake-opening.js');
 
-assert.strictEqual(opening.VERSION, '0.5.0');
+assert.strictEqual(opening.VERSION, '0.6.0');
 assert.strictEqual(opening.validate(), true);
 assert.strictEqual(opening.SCENES.length, 10);
 assert.strictEqual(opening.SCENES[0].id, 'arrival_horizon');
@@ -10,6 +10,8 @@ assert.strictEqual(opening.SCENES[1].cinematic, true);
 assert.strictEqual(opening.SCENES[2].interactive, true);
 assert.strictEqual(opening.SCENES[3].interactive, true);
 assert.strictEqual(opening.SCENES[3].interaction, 'berth-task');
+assert.strictEqual(opening.SCENES[4].interactive, true);
+assert.strictEqual(opening.SCENES[4].interaction, 'talen-beat');
 assert.strictEqual(opening.SCENES[6].id, 'wrong_song');
 assert.strictEqual(opening.SCENES[6].joinCharacterId, 'lyra');
 assert.deepStrictEqual(opening.SCENES[6].activePartyIds, ['ender']);
@@ -65,7 +67,20 @@ assert.strictEqual(opening.berthTaskProgress(state), 1);
 opening.advance(state);
 assert.strictEqual(opening.currentScene(state).id, 'talen_staying');
 
-for (let i = 0; i < 2; i++) opening.advance(state);
+const talenBlocked = opening.advance(state);
+assert(talenBlocked.event && talenBlocked.event.type === 'interaction-required');
+assert.strictEqual(talenBlocked.event.interaction, 'talen-beat');
+assert.strictEqual(opening.talenBeatProgress(state), 0);
+
+opening.interactTalen(state);
+assert.strictEqual(opening.talenBeatProgress(state), 0.5);
+const talenDone = opening.interactTalen(state);
+assert.strictEqual(talenDone.ready, true);
+assert.strictEqual(opening.talenBeatProgress(state), 1);
+
+opening.advance(state);
+assert.strictEqual(opening.currentScene(state).id, 'lyra_family');
+opening.advance(state);
 assert.strictEqual(opening.currentScene(state).id, 'wrong_song');
 assert.deepStrictEqual(opening.expectedPartyIds(state), ['ender']);
 const join = opening.advance(state);
