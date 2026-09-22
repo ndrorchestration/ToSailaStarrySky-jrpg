@@ -77,3 +77,7 @@ nw-package/
 standalone/
 nwjs-win64.zip
 *.log
+
+# Staged player runtime
+.desktop-runtime/
+local-release/
