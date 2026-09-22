@@ -23,7 +23,13 @@ assert.strictEqual(canon.PROFILES.aepex.age, 27);
 assert(canon.PROFILES.aepex.canon.interests.includes('computers'));
 assert(canon.PROFILES.aepex.art.avoid.includes('generic wizard imagery'));
 
-const context = { window: { AetherCharacterCanon: canon }, console };
+const context = {
+  window: {
+    AetherCharacterCanon: canon,
+    AetherwakeCharacterMagicProfile: require('../modules/character-magic-profile.js'),
+  },
+  console,
+};
 const partySource = fs.readFileSync(path.resolve(__dirname,'..','modules','party-state.js'),'utf8');
 vm.runInNewContext(partySource, context);
 const state = context.window.AetherPartyState;
