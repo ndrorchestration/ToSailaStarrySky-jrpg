@@ -1044,7 +1044,7 @@ function createServer() {
       enemyMetadataContract,
       affordabilityContract,
       progressionReachability,
-      secondaryStateContract,
+      blockedResidueContract,
       effectContract,
       registryContract,
       resolverContract,
