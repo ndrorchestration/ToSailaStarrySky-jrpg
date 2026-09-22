@@ -8,7 +8,7 @@ Aetherwake retains its HTTP-served browser path for development and automated sm
 2. Run the installer and choose the install location if needed.
 3. Launch Aetherwake from the created desktop or Start Menu shortcut.
 
-The standard installer installs the packaged runtime and does not require Python, PowerShell, a manually started HTTP server, or opening an HTML file.
+The standard installer installs the packaged runtime per-user under `%LOCALAPPDATA%\\Programs\\Aetherwake`, does not require administrator elevation, and does not require Python, PowerShell, a manually started HTTP server, or opening an HTML file.
 
 **Fallback:** **Aetherwake-Windows.zip** is also published for manual extraction. Extract the ZIP completely, then run **Aetherwake.exe** from the extracted folder. Keep the extracted files together.
 
@@ -41,6 +41,7 @@ The desktop shell must:
 - run without Python or a separately started HTTP server;
 - keep the browser-served path available as a fallback;
 - publish Aetherwake-Setup.exe as the primary player artifact;
+- install per-user without requiring administrator elevation or the pre-install startup confirmation;
 - publish Aetherwake-Windows.zip as the manual fallback;
 - fail visibly if packaging or the entry point is invalid.
 

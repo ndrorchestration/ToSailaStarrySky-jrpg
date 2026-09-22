@@ -48,8 +48,10 @@ jobs:
           [Setup]
           AppName=Aetherwake
           AppVersion=0.2.0
-          DefaultDirName={autopf}\\Aetherwake
+          DefaultDirName={localappdata}\\Programs\\Aetherwake
           DisableProgramGroupPage=yes
+          DisableStartupPrompt=yes
+          PrivilegesRequired=lowest
           Uninstallable=yes
           ArchitecturesInstallIn64BitMode=x64compatible
           OutputDir=.
