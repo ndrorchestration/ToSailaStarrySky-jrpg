@@ -16,10 +16,10 @@ Do not use superseded self-extracting/SFX artifacts. If Windows Defender flags a
 
 ## Current verification state — 2026-09-22
 
-- Memories-style launcher correction merged at `304835c12555e35061870a54d61f7c95996d0bdd`.
+- Memories-style launcher correction merged at `304835c12555e35061870a54d61f7c95996d0bdd`; the release-critical no-artifact-storage hardening is current on `main` at `313d7eb2aee003ce51a23edf48532f64d30f2bc0`.
 - Staging validation confirms the production manifest shape is `package.json → main: www/index-embedded.html`, with the game payload under `www/`.
 - Runtime-resource audit confirms the loading artwork used at boot is embedded as a data URI; there is no required external `img/system/Loading.png` file to package.
-- Hosted GitHub Actions verification is currently blocked before checkout. Windows package run `35692454573` attempt 2 ended with `runner_id: 0`, `steps: []`; browser smoke run `35692454657` is the same class of zero-runner failure.
+- Hosted GitHub Actions verification is currently blocked before checkout. On current `main` `313d7eb2aee003ce51a23edf48532f64d30f2bc0`, Windows package run `35694446836` and browser smoke run `35694446855` both ended with `runner_id: 0` and zero steps.
 - These are runner-admission/infrastructure failures. They do **not** establish that current code tests passed or failed.
 - No fresh installer is player-authorized until the exact candidate completes a real Windows install/launch verification. Historical CI-green packaging results remain provenance only and must not be substituted for this current gate.
 
