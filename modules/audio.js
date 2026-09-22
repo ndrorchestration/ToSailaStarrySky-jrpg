@@ -17,8 +17,11 @@ const _envs = new Map();
 /** Whether audio is enabled (player-toggleable). */
 window.AUDIO_ENABLED = true;
 
+/** Authored maximum master gain. Default Effects 80% preserves legacy 0.35 gain. */
+const AUTHORED_MAX_VOLUME = 0.4375;
+
 /** Global volume 0..1. */
-window.AUDIO_VOLUME = 0.35;
+window.AUDIO_VOLUME = AUTHORED_MAX_VOLUME * 0.8;
 
 // ── Audio Context Lifecycle ──────────────────────────────────────────────
 
@@ -258,6 +261,17 @@ window.setAudioVolume = function (v) {
   if (_masterGain) {
     _masterGain.gain.value = window.AUDIO_VOLUME;
   }
+};
+
+/**
+ * Set authored SFX volume as a player-facing 0..100 percentage.
+ * 80% intentionally equals the historical 0.35 master gain.
+ */
+window.setEffectsVolumePercent = function (percent) {
+  const pct = Math.max(0, Math.min(100, Number(percent) || 0));
+  window.setAudioVolume(AUTHORED_MAX_VOLUME * (pct / 100));
+  window.AUDIO_EFFECTS_PERCENT = pct;
+  return window.AUDIO_VOLUME;
 };
 
 console.log('[Audio] Aetherwake audio module loaded — synthesized Web Audio SFX ready.');
