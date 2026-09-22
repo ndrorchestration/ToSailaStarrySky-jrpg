@@ -42,10 +42,16 @@ assert.throws(
   'same-context keyboard conflicts must fail closed'
 );
 
-state = bindings.setGamepadBinding(state, 'quest-log', 8);
-assert.strictEqual(bindings.gamepadLabel(state, 'quest-log'), 'VIEW');
+assert.throws(
+  () => bindings.setGamepadBinding(state, 'quest-log', 8),
+  /INPUT_BINDINGS_CONFLICT_GAMEPAD:toggle-layer/,
+  'occupied same-context gamepad buttons must fail closed'
+);
+
+state = bindings.setGamepadBinding(state, 'quest-log', 6);
+assert.strictEqual(bindings.gamepadLabel(state, 'quest-log'), 'LT');
 assert.strictEqual(
-  bindings.resolveGamepadButtonAction(state, 8, 'world', null),
+  bindings.resolveGamepadButtonAction(state, 6, 'world', null),
   'quest-log'
 );
 assert.strictEqual(
@@ -55,7 +61,7 @@ assert.strictEqual(
 );
 
 assert.throws(
-  () => bindings.setGamepadBinding(state, 'ledger', 8),
+  () => bindings.setGamepadBinding(state, 'ledger', 6),
   /INPUT_BINDINGS_CONFLICT_GAMEPAD:quest-log/,
   'same-context gamepad conflicts must fail closed'
 );
