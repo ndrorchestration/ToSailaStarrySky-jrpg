@@ -4,37 +4,39 @@ This foundation exists **before** Aetherwake expands its menu surface, five-char
 
 ## Current implementation state
 
-**PARTIAL IMPLEMENTATION FOUNDATION — not full controller/accessibility parity.**
+**PARTIAL IMPLEMENTATION FOUNDATION — broad controller traversal exists, but full combat/remapping/rendering parity is not established.**
 
 Implemented on this branch:
 
-- semantic keyboard-action registry and validation;
-- live runtime consumption of semantic actions for safe edge actions;
+- semantic keyboard-action registry with context-specific physical bindings;
 - deterministic shared focus manager;
 - Save/Load focus with stable slot restoration and a non-color `▶` marker;
-- standard-mapping browser gamepad adapter with per-frame `navigator.getGamepads()` polling;
-- live controller dispatch limited to the **title and Settings UI**;
+- standard-mapping browser gamepad adapter using fresh `navigator.getGamepads()` polling;
+- context-prioritized controller semantics so one physical button does not emit contradictory actions;
+- controller dispatch for BOOT, title, Settings, authored First Wake opening, WORLD, dialogue, read-only overlays, and AIRSHIP;
+- bounded controller movement repeat matching the existing keyboard cadence;
 - independent schema-v1 user-settings persistence under `nw.App.dataPath/settings.json` with localStorage fallback;
-- title-accessible Settings screen;
-- immediate application of reduced motion, screen shake, dialogue text speed, Effects volume, and Dialogue volume;
-- synthesized SFX module loaded in the embedded runtime, preserving the historical default master gain.
+- Settings reachable before gameplay with keyboard **S** or controller **Menu**;
+- immediate application of Reduced Motion, Screen Shake, Text Speed, Effects Volume, and Dialogue Volume;
+- synthesized SFX loaded in the embedded runtime while preserving the historical authored default loudness;
+- a Playwright controller-parity regression that drives the real gamepad polling path through Settings, First Wake, WORLD, dialogue, and Dragonfly flight.
 
-Not yet implemented:
+Not yet established:
 
-- WORLD controller movement/action dispatch;
-- full dialogue/AIRSHIP/combat controller parity;
+- combat action focus/selection with controller;
 - player remapping UI and prompt rebinding;
-- text-scale and high-contrast rendering;
+- single-press navigable controller Save/Load route;
+- Text Scale and High Contrast rendering;
 - subtitle size/background and speaker-label rendering;
 - controller vibration;
-- music-volume application (no canonical runtime music bus yet);
-- executed First Wake keyboard/controller parity.
+- Music Volume application because no canonical runtime music bus exists yet;
+- an executed exact-head hosted parity result while the repository runner remains unavailable.
 
 ## Architectural decision
 
 Runtime code consumes **semantic actions** such as `confirm`, `cancel`, `interact`, `quest-log`, `open-settings`, and `airship-dock`. Physical keyboard/gamepad bindings belong to the input layer so they can evolve without rewriting gameplay logic.
 
-Controller behavior is context-prioritized. A physical button must not emit contradictory actions in the same state. For example, the south button is Confirm in menus, Interact in ordinary WORLD, Confirm during the WAKE resolution, and Dock in AIRSHIP.
+Controller behavior is context-prioritized. The south button is Confirm in menus/opening, Interact in ordinary WORLD, Confirm during the WAKE resolution, and Dock in AIRSHIP. WORLD keeps WASD + arrows; AIRSHIP steering uses arrows so keyboard `D` remains Dock rather than becoming an ambiguous move-right action.
 
 ## Focus contract
 
@@ -62,21 +64,38 @@ Settings own schema version 1 independently from the whole-game save envelope.
 
 The remaining preferences are persisted and visible in Settings but are not described as active until their rendering/audio hooks exist.
 
+## Controller verification lane
+
+`tests/controller-parity-playwright.js` injects a standard-layout test gamepad through `navigator.getGamepads()` and exercises the actual polling + semantic adapter + runtime dispatcher. It covers:
+
+- BOOT → Settings;
+- deterministic Settings focus and persisted Reduced Motion;
+- title → authored First Wake;
+- controller-only advancement through Sequences 00–09;
+- WORLD movement;
+- Quest Log open/close;
+- dialogue interact/cancel;
+- Dragonfly boarding;
+- altitude change, cast-off, movement, re-dock, and landing.
+
+Combat selection is deliberately excluded until combat has an explicit focus model.
+
 ## Next implementation tranche
 
-1. migrate WORLD movement/actions onto safe shared semantic dispatch;
-2. migrate dialogue and AIRSHIP semantics;
-3. add First Wake controller parity regression coverage for those contexts;
-4. design combat action focus rather than mapping eight numbered actions ad hoc;
-5. implement remapping and prompt rebinding;
-6. integrate text scale, contrast, subtitles/speaker labels, vibration, and later music volume.
+1. design controller combat focus and action execution around semantic actions rather than numbered-key emulation;
+2. provide navigable Save/Load access for controller users;
+3. implement remapping + dynamic prompt rebinding;
+4. integrate text scale, contrast, subtitles/speaker labels, and vibration;
+5. bind Music Volume only after the title/runtime music bus is canonical;
+6. execute the full exact-head lane when a runner is allocated and keep the benchmark fail-closed until then.
 
 ## Critical invariants
 
 - no essential action requires a chord without a navigable single-press alternative;
-- remapping must eventually update displayed prompts;
+- remapping must update displayed prompts;
 - focus is visible and predictable;
 - Settings remain available before gameplay;
 - text advance remains player-controlled;
 - essential information cannot rely on sound or fixed color alone;
-- game save data and user settings remain independently versioned.
+- game save data and user settings remain independently versioned;
+- controller support is not called complete until combat, Save/Load access, remapping, rendering hooks, and exact-head execution are all proven.
