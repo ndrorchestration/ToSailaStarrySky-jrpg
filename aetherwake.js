@@ -105,6 +105,7 @@ let saveMenuMode = 'save';
 let saveMenuIndex = 0;
 let saveMenuFocus = null;
 let saveMenuReturnState = STATE.WORLD;
+let gamepadInputState = null;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -212,6 +213,14 @@ function setup() {
     throw new Error('AETHER_FOCUS_MANAGER_UNAVAILABLE');
   }
   window._focusManager = window.AetherFocusManager;
+  if (!window.AetherGamepadInput ||
+      typeof window.AetherGamepadInput.createState !== 'function' ||
+      typeof window.AetherGamepadInput.poll !== 'function') {
+    throw new Error('AETHER_GAMEPAD_INPUT_UNAVAILABLE');
+  }
+  gamepadInputState = window.AetherGamepadInput.createState();
+  window._gamepadInput = window.AetherGamepadInput;
+  window._gamepadInputState = gamepadInputState;
   refreshSaveIndex();
   window._saveSystem = window.AetherSaveSystem;
   if (!window.AetherCombatFormula ||
@@ -374,8 +383,46 @@ function writeDesktopSmokeMarkerOnce() {
   }
 }
 
+function pollGamepadDiagnostics() {
+  if (!gamepadInputState || !window.AetherGamepadInput ||
+      typeof navigator === 'undefined' ||
+      typeof navigator.getGamepads !== 'function') {
+    return null;
+  }
+
+  let pads;
+  try {
+    pads = navigator.getGamepads();
+  } catch (error) {
+    window._lastGamepadPoll = {
+      supported: false,
+      reason: 'getgamepads-error',
+      error: error.message
+    };
+    return window._lastGamepadPoll;
+  }
+
+  const gamepad = Array.from(pads || []).find(pad => pad && pad.connected !== false) || null;
+  const semanticContext = window.AetherInputActions &&
+    typeof window.AetherInputActions.normalizeContext === 'function'
+    ? window.AetherInputActions.normalizeContext(gameState)
+    : gameState;
+  const result = window.AetherGamepadInput.poll(
+    gamepad,
+    gamepadInputState,
+    semanticContext,
+    { wakeResolution: Boolean(gameState === STATE.WORLD && quest && quest.state === QUEST_STATES.WAKE) }
+  );
+  window._lastGamepadPoll = result;
+  return result;
+}
+
 // ── draw() ──
 function draw() {
+  // Poll current browser gamepad objects every frame. This tranche records
+  // semantic diagnostics only; gameplay dispatch remains keyboard-authoritative
+  // until the semantic dispatcher is migrated safely.
+  pollGamepadDiagnostics();
   dt = millis() - lastTime;
   lastTime = millis();
 
