@@ -212,3 +212,32 @@ This prevents a checksum-valid but semantically impossible save from partially c
 A migration registry now exists before schema v2 is introduced. Unknown future versions fail closed, and migration steps are required to advance exactly one schema version at a time.
 
 Historical compatibility is now anchored by `tests/fixtures/saves/schema-v1-manual-1.json`. Released schema fixtures are intended to remain permanent regression inputs.
+
+
+## Persistence coverage registry
+
+`docs/persistence-coverage.json` is the machine-readable ownership index for consequential runtime state.
+
+Each implemented persistent subsystem must identify:
+- snapshot owner;
+- restore owner;
+- validator owner;
+- version owner.
+
+Transient states such as authored opening and combat are explicitly registered as `transient_not_saveable`, rather than silently omitted. Planned systems that do not yet have persistence ownership are explicitly registered as `gap`.
+
+This keeps feature development honest: a new consequential system cannot disappear from save/load architecture merely because its in-session behavior works.
+
+### Versioning clarification
+The **whole-game save envelope schema** and **subsystem persistence versions** are independent contracts. For example, air navigation owns its own `PERSISTENCE_VERSION`; that version does not redefine the whole-game save envelope schema. Documentation must always identify which versioned contract it is referring to.
+
+## Interrupted-write fault simulation
+
+Desktop-save tests now inject failures at each durable-write stage:
+- before temporary write;
+- after temporary fsync;
+- after old-primary backup promotion;
+- immediately before new-primary promotion;
+- immediately after new-primary promotion.
+
+At every stage, the invariant is: **either the previous save or the fully-written new save remains valid and loadable**.
