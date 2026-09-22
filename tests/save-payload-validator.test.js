@@ -55,6 +55,22 @@ assert.throws(
   /SAVE_QUEST_CROSSING_HAZARD_COUNT_DRIFT/
 );
 
+// Persisted quest state must match the runtime's stable-save policy.
+const wakeState = JSON.parse(JSON.stringify(original));
+wakeState.quest.state = 'wake';
+wakeState.quest.act = 'wake';
+assert.throws(
+  () => validator.validatePayload(wakeState, { validateAirNavigation() { return true; } }),
+  /SAVE_QUEST_STATE_NOT_PERSISTABLE/
+);
+
+const unknownContact = JSON.parse(JSON.stringify(original));
+unknownContact.quest.npcsMet = ['engine_spirit', 'not_a_real_contact'];
+assert.throws(
+  () => validator.validatePayload(unknownContact, { validateAirNavigation() { return true; } }),
+  /SAVE_QUEST_NPC_UNKNOWN/
+);
+
 // Canonical roster identity/order cannot drift.
 const badParty = JSON.parse(JSON.stringify(original));
 badParty.party.roster[1].id = 'reson';
