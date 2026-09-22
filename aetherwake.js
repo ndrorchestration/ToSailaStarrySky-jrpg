@@ -16,6 +16,7 @@ const C = {
   rust:     [180, 90, 50],
   soil:     [120, 90, 60],
   biolum:   [80, 240, 160],
+  rose:     [220, 120, 160],
   shad:     [60, 50, 60],   // dark gray-violet for shadow fills (char-create module expects this)
   dim:      [80, 70, 90],   // muted blue-gray for labels/indicators (char-create module expects this)
 };
@@ -202,6 +203,7 @@ function setup() {
   }
   window._setupOrder = window._setupOrder + '→setup-done';
   lastTime = millis();
+  window.__awRuntimeReady = true;
 }
 
 // ── draw() ──
@@ -411,6 +413,9 @@ function draw() {
       window.UI.closing = false;
     }
   }
+
+  // The embedded loader waits for a completed frame, not merely a canvas node.
+  window.__awFirstFrame = true;
 }
 
 // ── Input ──
@@ -427,6 +432,16 @@ function keyPressed() {
     if (typeof ensureAudio === 'function') ensureAudio();
     if (typeof resumeAudio === 'function') resumeAudio();
     return;
+  }
+
+  // Publish interaction intent before dispatch; world.interact() reads this value synchronously.
+  if (gameState === STATE.WORLD) {
+    if (keyCode === 69) window.interactionKey = 'e';
+    else if (keyCode === 81) window.interactionKey = 'q';
+    else if (keyCode === 70) window.interactionKey = 'f';
+    else if (keyCode === 9) window.interactionKey = 'tab';
+    else if (keyCode === 76) window.interactionKey = 'l';
+    else if (keyCode === 77) window.interactionKey = 'm';
   }
 
   handleInput();
@@ -654,11 +669,13 @@ function handleWorldInput() {
   const now = millis();
   const delay = 200, rate = 60;
 
-  for (const code of [UP_ARROW, DOWN_ARROW, LEFT_ARROW, RIGHT_ARROW]) {
+  const movementCodes = [UP_ARROW, DOWN_ARROW, LEFT_ARROW, RIGHT_ARROW, 87, 83, 65, 68];
+  for (const code of movementCodes) {
     if (keys[code]) {
       if (!keyRepeat[code]) {
         keyRepeat[code] = now;
         keyRepeatFirst[code] = true;
+        doMove(code);
       } else if (now - keyRepeat[code] >= (keyRepeatFirst[code] ? delay : rate)) {
         keyRepeat[code] = now;
         keyRepeatFirst[code] = false;
@@ -697,7 +714,10 @@ function handleWorldInput() {
     openState(STATE.LEDGER);
   }
   if (keysPressed[77]) {   // M
-    openState(STATE.SHOP);
+    const shopOpened = world && typeof world.openShop === 'function'
+      ? world.openShop()
+      : true;
+    if (shopOpened !== false) openState(STATE.SHOP);
   }
   if (keysPressed[82]) {   // R
     openState(STATE.CHARSHEET);
@@ -718,10 +738,10 @@ function handleWorldInput() {
 
 function doMove(code) {
   if (!world || typeof world.movePlayer !== 'function') return;
-  if (code === UP_ARROW)    world.movePlayer(0, -1);
-  if (code === DOWN_ARROW)  world.movePlayer(0, 1);
-  if (code === LEFT_ARROW)  world.movePlayer(-1, 0);
-  if (code === RIGHT_ARROW) world.movePlayer(1, 0);
+  if (code === UP_ARROW || code === 87)    world.movePlayer(0, -1);
+  if (code === DOWN_ARROW || code === 83)  world.movePlayer(0, 1);
+  if (code === LEFT_ARROW || code === 65)  world.movePlayer(-1, 0);
+  if (code === RIGHT_ARROW || code === 68) world.movePlayer(1, 0);
 }
 
 function startGame() {
@@ -982,7 +1002,9 @@ function startCombat(enemyId, returnState) {
   if (!combat || !world) return;
   combatReturnState = returnState || STATE.WORLD;
   combat.init({
+    id: world.player.id,
     vit: world.player.vit,
+    maxVit: world.player.maxVit,
     scrap: world.player.scrap,
     aether: { current: world.player.aether, max: world.player.aetherMax },
     heat: { current: world.player.heat, max: world.player.heatMax },
@@ -1055,6 +1077,10 @@ function finishCombat() {
     }
     if (p.productionStatModelVersion) {
       world.player.productionStatModelVersion = p.productionStatModelVersion;
+    }
+    if (window.AetherPartyState &&
+        typeof window.AetherPartyState.refreshProductionStats === 'function') {
+      window.AetherPartyState.refreshProductionStats(world.player);
     }
   }
 
@@ -2576,6 +2602,26 @@ function drawChoiceMenu() {
   textFont('sans-serif');
 }
 
+function mousePressed() {
+  if (gameState !== STATE.WORLD ||
+      quest.state !== QUEST_STATES.CHOICE ||
+      quest.choiceMade) {
+    return false;
+  }
+  const px = width / 2 - 220;
+  const py = 60;
+  const pw = 440;
+  for (let i = 0; i < 3; i++) {
+    const optY = py + 50 + i * 70;
+    if (mouseX >= px && mouseX <= px + pw &&
+        mouseY >= optY && mouseY <= optY + 56) {
+      selectChoicePath(i);
+      return false;
+    }
+  }
+  return false;
+}
+
 function handleChoiceInput() {
   if (quest.state !== QUEST_STATES.CHOICE || quest.choiceMade) return;
 
@@ -2737,8 +2783,9 @@ function interact() {
 function doTalk() {
   const nearest = findNearestNPC(2);
   if (!nearest) return;
+  const firstContact = !nearest.flags.met;
 
-  if (!nearest.flags.met) {
+  if (firstContact) {
     nearest.flags.met = true;
     if (!quest.npcsMet.includes(nearest.id)) {
       quest.npcsMet.push(nearest.id);
@@ -2753,7 +2800,7 @@ function doTalk() {
   }
 
   openState(STATE.DIALOGUE);
-  openDialogue(nearest);
+  openDialogue(nearest, firstContact);
 }
 
 function checkSignalHook(npc) {
@@ -2794,11 +2841,11 @@ function findNearestNPC(range) {
 // Dialogue state
 // ---------------------------------------------------------------------------
 
-function openDialogue(npc) {
+function openDialogue(npc, forceIntro) {
   const classKey = getClassLockKey(npc);
   let lines = [];
 
-  if (!npc.flags.met) {
+  if (forceIntro || !npc.flags.met) {
     lines = npc.dialogue.intro.slice();
   } else {
     const classLines = npc.dialogue['class_' + classKey];
@@ -2815,7 +2862,7 @@ function openDialogue(npc) {
   // batch keys: 'intro' | 'class_ender' | 'class_corporate' | 'generic_follow'
   // Matches the on-disk audio layout: tts/{npc_id}/{batch}/{NN}.mp3
   let batch = 'intro';
-  if (npc.flags.met) {
+  if (!forceIntro && npc.flags.met) {
     const classKey = getClassLockKey(npc);
     const classLines = npc.dialogue['class_' + classKey];
     if (classLines && classLines.length > 0) {
@@ -3058,7 +3105,7 @@ function initShop() {
 function openShop() {
   const dist = Math.abs(player.tileX - shop.x) + Math.abs(player.tileY - shop.y);
   if (dist > 3) {
-    return;
+    return false;
   }
   shop.open = true;
   // ── Window openness slide-in (Memories §1.2) ──
@@ -3068,6 +3115,7 @@ function openShop() {
   if (window.UI.lastShopSelection !== undefined && window.UI.lastShopSelection < shop.items.length) {
     // selection restored implicitly via draw highlight
   }
+  return true;
 }
 
 function closeShop() {
@@ -4742,7 +4790,9 @@ function AetherCombat(p, C) {
       const seed = floor(random(99999));
       if (randomSeed) randomSeed(seed);
     }
+    state.player.id = options.id || state.player.id || 'ender';
     state.player.vit = options.vit ?? 13;
+    state.player.maxVit = options.maxVit ?? state.player.maxVit ?? 13;
     state.player.scrap = options.scrap ?? 7;
     state.player.aether = options.aether ? { current: options.aether.current, max: options.aether.max } : { current: options.aether ?? 4, max: options.aetherMax ?? 6 };
     state.player.heat = options.heat ? { current: options.heat.current, max: options.heat.max } : { current: options.heat ?? 1, max: options.heatMax ?? 3 };
@@ -4799,6 +4849,11 @@ function AetherCombat(p, C) {
     p.xp -= p.xpToNext;
     p.level++;
 
+    if (p.id && window.AetherPartyState &&
+        typeof window.AetherPartyState.refreshProductionStats === 'function') {
+      window.AetherPartyState.refreshProductionStats(p);
+    }
+
     p.xpToNext = progression && typeof progression.getXPToNext === 'function'
       ? progression.getXPToNext(p.level)
       : Math.floor(50 * Math.pow(1.5, p.level - 1));
@@ -4838,7 +4893,7 @@ function AetherCombat(p, C) {
       log('── MILESTONE: ' + milestone.label + ' ──');
     }
 
-    log('── LEVEL UP! You are now level ' + p.level + '. Choose a stat to increase. ──');
+    log('── LEVEL UP! You are now level ' + p.level + '. Production stats refreshed. ──');
 
     if (p.level >= hardCap) {
       p.xp = 0;
@@ -4885,10 +4940,13 @@ function AetherCombat(p, C) {
       log('Unknown enemy: ' + enemyId);
       return;
     }
-    const activeLevels = (typeof window !== 'undefined' && Array.isArray(window.ACTIVE_PARTY))
-      ? window.ACTIVE_PARTY
-          .filter(member => member && Number.isFinite(member.level) && member.level >= 1)
-          .map(member => member.level)
+    // Formation capacity is larger than the live turn/write-back runtime.
+    // Scale against the lead only until companion turns/resources/XP are integrated.
+    const activeLead = (typeof window !== 'undefined' && Array.isArray(window.ACTIVE_PARTY))
+      ? window.ACTIVE_PARTY[0]
+      : null;
+    const activeLevels = activeLead && Number.isFinite(activeLead.level) && activeLead.level >= 1
+      ? [activeLead.level]
       : [];
     const partyLevels = activeLevels.length ? activeLevels : [state.player.level];
     const scaling = (typeof window !== 'undefined' && window.AetherEncounterScaling &&
@@ -4979,6 +5037,17 @@ function AetherCombat(p, C) {
         log('Aether Seal cannot bind: ' + aetherSealEvaluation.reason + '.');
         return false;
       }
+    }
+
+    if (action.resolution && action.resolution.model === 'commons-readonly' &&
+        (!window.AetherCommonsLedger ||
+         typeof window.AetherCommonsLedger.createLedgerEntry !== 'function')) {
+      throw new Error('AETHER_COMMONS_LEDGER_UNAVAILABLE_DURING_TURN');
+    }
+    if (action.resolution && action.resolution.model === 'jrpg-stat-formula' &&
+        (!window.AetherCombatFormula ||
+         typeof window.AetherCombatFormula.resolveAction !== 'function')) {
+      throw new Error('AETHER_COMBAT_FORMULA_UNAVAILABLE_DURING_TURN');
     }
 
     // A new admitted primary action invalidates any previous secondary window.
@@ -5542,7 +5611,9 @@ function AetherCombat(p, C) {
 
     if (state.player.vit <= 0) {
       state.player.vit = 1;
-      log('Your vitality fails. The dream fades — for now.');
+      state.encounterOver = true;
+      state._defeat = true;
+      log('Your vitality fails. The dream fades — for now. Press Enter to return.');
     }
   };
 
