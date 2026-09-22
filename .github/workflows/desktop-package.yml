@@ -7,6 +7,21 @@ on:
       - main
     tags:
       - "v*"
+    paths:
+      - 'aetherwake.js'
+      - 'index-embedded.html'
+      - 'p5.min.js'
+      - 'embedded-fonts.css'
+      - 'icon.svg'
+      - 'modules/**'
+      - 'assets/**'
+      - 'tts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/stage-memories-desktop.js'
+      - 'scripts/build-windows-release.ps1'
+      - 'tests/desktop-package-contract.test.js'
+      - '.github/workflows/desktop-package.yml'
 
 permissions:
   contents: write
