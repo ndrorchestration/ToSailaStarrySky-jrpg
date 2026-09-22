@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aetherwake.local/schemas/cinematic-manifest.schema.json",
+  "title": "Aetherwake Cinematic Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "version",
+    "file",
+    "storySequence",
+    "trigger",
+    "skippable",
+    "replayable",
+    "blocksProgression",
+    "fallback",
+    "audio",
+    "subtitles",
+    "nextState"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "file": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*\\.mp4$"
+    },
+    "storySequence": {
+      "type": ["string", "null"]
+    },
+    "trigger": {
+      "type": ["string", "null"]
+    },
+    "skippable": {
+      "type": "boolean"
+    },
+    "replayable": {
+      "type": "boolean"
+    },
+    "blocksProgression": {
+      "const": false
+    },
+    "fallback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "asset"],
+      "properties": {
+        "type": {
+          "enum": ["still", "in-engine", "still-or-in-engine"]
+        },
+        "asset": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "audio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "duckRuntimeMusic"],
+      "properties": {
+        "mode": {
+          "enum": ["baked", "hybrid", "runtime-controlled", "baked-or-runtime"]
+        },
+        "duckRuntimeMusic": {
+          "type": "boolean"
+        }
+      }
+    },
+    "subtitles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "track"],
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "track": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "nextState": {
+      "type": ["string", "null"]
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}
