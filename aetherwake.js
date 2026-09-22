@@ -456,12 +456,38 @@ function keyPressed() {
   keys[keyCode] = true;
   keysPressed[keyCode] = true;
 
-  if (gameState === STATE.OPENING && (keyCode === 13 || keyCode === 32)) {
-    advanceFirstWakeOpening();
-    delete keysPressed[keyCode];
-    if (typeof ensureAudio === 'function') ensureAudio();
-    if (typeof resumeAudio === 'function') resumeAudio();
-    return;
+  if (gameState === STATE.OPENING) {
+    const opening = window.AetherFirstWakeOpening;
+    const openingState = window._firstWakeOpeningState;
+    const openingScene = opening && openingState ? opening.currentScene(openingState) : null;
+
+    if (openingScene && openingScene.id === 'dock_walk' &&
+        (keyCode === LEFT_ARROW || keyCode === 65 || keyCode === RIGHT_ARROW || keyCode === 68)) {
+      const delta = (keyCode === LEFT_ARROW || keyCode === 65) ? -1 : 1;
+      const movement = opening.moveDock(openingState, delta);
+      if (movement.ready && !window.__awDockWalkReadyToastShown) {
+        showToast('AUREATE WAKE REACHED // ENTER TO BOARD', C.teal, 1400);
+        window.__awDockWalkReadyToastShown = true;
+      }
+      delete keysPressed[keyCode];
+      if (typeof ensureAudio === 'function') ensureAudio();
+      if (typeof resumeAudio === 'function') resumeAudio();
+      return;
+    }
+
+    if (keyCode === 13 || keyCode === 32) {
+      const beforeScene = openingScene;
+      const beforeIndex = openingState && openingState.sceneIndex;
+      advanceFirstWakeOpening();
+      if (beforeScene && beforeScene.id === 'dock_walk' &&
+          openingState && openingState.sceneIndex === beforeIndex) {
+        showToast('MOVE RIGHT TOWARD THE AUREATE WAKE', C.scioto, 1100);
+      }
+      delete keysPressed[keyCode];
+      if (typeof ensureAudio === 'function') ensureAudio();
+      if (typeof resumeAudio === 'function') resumeAudio();
+      return;
+    }
   }
 
   // Publish interaction intent before dispatch; world.interact() reads this value synchronously.
