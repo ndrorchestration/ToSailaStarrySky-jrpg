@@ -82,64 +82,69 @@
       "id": "first-objective-readability",
       "category": "quest",
       "blocking": true,
-      "status": "partial",
+      "status": "automated",
       "outcome": "The player receives a clear first objective and journal direction immediately after the authored handoff.",
       "owner": "aetherwake.js / quest UI",
       "evidence": [
-        "tests/first-wake-opening.test.js static objective assertions"
+        "tests/first-wake-opening.test.js static objective assertions",
+        "tests/first-wake-benchmark-playwright.js"
       ],
-      "nextAction": "Add browser-level quest-log/open-objective assertion."
+      "nextAction": "Keep this gate in the live First Wake benchmark and investigate any exact-head regression before adding content breadth."
     },
     {
       "id": "three-signal-contacts",
       "category": "quest",
       "blocking": true,
-      "status": "partial",
+      "status": "automated",
       "outcome": "All three authored signal contacts can be completed through normal interaction and advance the quest exactly once each.",
       "owner": "aetherwake.js quest state",
       "evidence": [
         "signal-hook static/runtime contracts",
-        "browser smoke covers one real first-contact dialogue path"
+        "browser smoke covers one real first-contact dialogue path",
+        "tests/first-wake-benchmark-playwright.js"
       ],
-      "nextAction": "Add live browser path that completes all three hooks and asserts transition to Crossing."
+      "nextAction": "Keep this gate in the live First Wake benchmark and investigate any exact-head regression before adding content breadth."
     },
     {
       "id": "four-crossing-hazards",
       "category": "combat",
       "blocking": true,
-      "status": "partial",
+      "status": "automated",
       "outcome": "Each of the four Crossing hazards launches its authored combat encounter; only victory marks that hazard complete; 4/4 advances to Contact.",
       "owner": "aetherwake.js crossing state",
       "evidence": [
         "tests/first-wake-opening.test.js maps four hazards and requires 4/4",
-        "save validator accepts 4/4 state"
+        "save validator accepts 4/4 state",
+        "tests/first-wake-benchmark-playwright.js"
       ],
-      "nextAction": "Add live browser coverage for all four hazard launch/victory/progression transitions."
+      "nextAction": "Keep this gate in the live First Wake benchmark and investigate any exact-head regression before adding content breadth."
     },
     {
       "id": "four-contact-voices",
       "category": "quest",
       "blocking": true,
-      "status": "partial",
+      "status": "automated",
       "outcome": "The four authored contact NPCs are individually recorded and 4/4 advances to Choice without duplicate-count drift.",
       "owner": "aetherwake.js contact state",
       "evidence": [
         "semantic save validator constrains contact IDs",
-        "runtime advanceContact contract"
+        "runtime advanceContact contract",
+        "tests/first-wake-benchmark-playwright.js"
       ],
-      "nextAction": "Add browser progression coverage for all four contacts."
+      "nextAction": "Keep this gate in the live First Wake benchmark and investigate any exact-head regression before adding content breadth."
     },
     {
       "id": "quest-log",
       "category": "ui",
       "blocking": true,
-      "status": "partial",
+      "status": "automated",
       "outcome": "Quest log/journal opens from normal input and reflects current First Wake objective/progress without stale three-hazard text.",
       "owner": "aetherwake.js quest-log UI",
       "evidence": [
-        "tests/first-wake-opening.test.js static journal/render assertions"
+        "tests/first-wake-opening.test.js static journal/render assertions",
+        "tests/first-wake-benchmark-playwright.js"
       ],
-      "nextAction": "Add browser input/render assertion for quest log."
+      "nextAction": "Keep this gate in the live First Wake benchmark and investigate any exact-head regression before adding content breadth."
     },
     {
       "id": "combat-roundtrip",
@@ -171,13 +176,14 @@
       "id": "wake-resolution",
       "category": "narrative",
       "blocking": true,
-      "status": "partial",
+      "status": "automated",
       "outcome": "Choice transitions into a deliberate WAKE beat and cannot silently skip directly to epilogue/stable completion.",
       "owner": "aetherwake.js choice/wake state",
       "evidence": [
-        "tests/first-wake-opening.test.js WAKE contract"
+        "tests/first-wake-opening.test.js WAKE contract",
+        "tests/first-wake-benchmark-playwright.js"
       ],
-      "nextAction": "Add browser-level choice→WAKE→advance assertion."
+      "nextAction": "Keep this gate in the live First Wake benchmark and investigate any exact-head regression before adding content breadth."
     },
     {
       "id": "dragonfly-flight",
