@@ -1474,6 +1474,7 @@ function createServer() {
     assert(airshipInitial.shipBoarded === true,
       'boarding did not persist the ship interior state');
 
+    await page.keyboard.press('ArrowDown'); // PHASE-SLIP
     await page.keyboard.press('ArrowDown'); // VEIL MODE
     await page.keyboard.press('KeyZ');
     await page.waitForFunction(() =>
