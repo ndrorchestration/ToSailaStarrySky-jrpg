@@ -47,7 +47,8 @@ The desktop shell must:
 - preserve the 960×640 initial canvas;
 - run without Python or a separately started HTTP server;
 - keep the browser-served path available as a fallback;
-- build and preserve Aetherwake-Setup.exe plus Aetherwake-Windows.zip before verification;\n- publish the installer only after the exact candidate passes a real Windows install/launch smoke;
+- build and preserve Aetherwake-Setup.exe plus Aetherwake-Windows.zip before verification;
+- publish the installer only after the exact candidate passes a real Windows install/launch smoke;
 - install per-user without requiring administrator elevation or the pre-install startup confirmation;
 - publish Aetherwake-Windows.zip as the manual fallback;
 - fail visibly if packaging or the entry point is invalid.
