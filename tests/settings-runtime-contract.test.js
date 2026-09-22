@@ -11,11 +11,14 @@ assert(html.includes('modules/user-settings.js'),
   'user settings persistence module must load in the runtime');
 assert(html.indexOf('modules/user-settings.js') < html.indexOf('aetherwake.js'),
   'user settings module must load before the runtime');
+assert(html.includes('modules/input-bindings.js') &&
+       html.indexOf('modules/input-bindings.js') < html.indexOf('aetherwake.js'),
+  'input binding persistence authority must load before the runtime');
 
 assert(runtime.includes("SETTINGS: 'settings'"),
   'runtime Settings state is missing');
-assert(runtime.includes("text('SETTINGS — S'"),
-  'title screen must expose Settings before gameplay');
+assert(runtime.includes("inputPrompt('open-settings', 'menu', 'both')"),
+  'title screen must expose the live Settings binding before gameplay');
 assert(runtime.includes("semanticActionPressed('open-settings')"),
   'title Settings entry must use semantic input');
 assert(runtime.includes('function openUserSettingsMenu('),
@@ -32,6 +35,11 @@ assert(runtime.includes('window.AetherUserSettings.save(nextSettings)'),
   'Settings changes must persist through the independent settings store');
 assert(runtime.includes('Changes save immediately. Integrated now: motion, screen shake, text speed, effects/dialogue volume.'),
   'Settings UI must state the current integration boundary');
+assert(runtime.includes("window.AetherUserSettings.SETTING_ORDER.concat(['__controls'])"),
+  'Settings must expose the Controls remapping entry without changing the settings schema');
+assert(runtime.includes('function openControlsMenu(') &&
+       runtime.includes('function drawControlsOverlay()'),
+  'Settings must route to a dedicated controls remapping surface');
 
 assert(runtime.includes('VIS.screenShake = !reduceMotion'),
   'screen-shake preference must apply to the current runtime hook');
