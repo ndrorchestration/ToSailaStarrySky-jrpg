@@ -69,6 +69,9 @@ jobs:
       - name: Verify Commons Ledger SSOT contract
         run: npm run test:commons-ledger
 
+      - name: Verify Aether Seal design contract
+        run: npm run test:aether-seal-contract
+
       - name: Verify dossier-bound character canon
         run: npm run test:character-canon
 
