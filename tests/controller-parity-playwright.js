@@ -53,6 +53,25 @@ async function setAxes(page, x, y) {
   await page.waitForTimeout(80);
 }
 
+async function focusByDpadDown(page, snapshotGlobal, targetId, maxSteps = 64) {
+  for (let i = 0; i < maxSteps; i++) {
+    const focusedId = await page.evaluate(name => {
+      const snapshot = window[name];
+      return snapshot && snapshot.focusedId;
+    }, snapshotGlobal);
+    if (focusedId === targetId) return;
+    await pulseButton(page, 13);
+  }
+  const finalId = await page.evaluate(name => {
+    const snapshot = window[name];
+    return snapshot && snapshot.focusedId;
+  }, snapshotGlobal);
+  throw new Error(
+    'focus navigation failed for ' + snapshotGlobal +
+    ': expected ' + targetId + ', got ' + finalId
+  );
+}
+
 (async () => {
   const server = createServer();
   await new Promise(resolve => server.listen(PORT, '127.0.0.1', resolve));
@@ -182,7 +201,8 @@ async function setAxes(page, x, y) {
     );
 
     // Continue through Settings into the controller-accessible remapping UI.
-    for (let i = 0; i < 11; i++) await pulseButton(page, 13);
+    // Navigate by stable focus id so adding future settings does not make this test stale.
+    await focusByDpadDown(page, '_settingsMenuFocus', '__controls');
     await page.waitForFunction(() =>
       window._settingsMenuFocus && window._settingsMenuFocus.focusedId === '__controls'
     , undefined, { timeout: 5000 });
@@ -194,7 +214,7 @@ async function setAxes(page, x, y) {
     , undefined, { timeout: 5000 });
 
     // Focus Quest Log, switch the binding column to gamepad, and capture LT.
-    for (let i = 0; i < 13; i++) await pulseButton(page, 13);
+    await focusByDpadDown(page, '_controlsMenuFocus', 'quest-log');
     await page.waitForFunction(() =>
       window._controlsMenuFocus &&
       window._controlsMenuFocus.focusedId === 'quest-log'
