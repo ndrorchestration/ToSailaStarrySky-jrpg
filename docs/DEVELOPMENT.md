@@ -17,10 +17,13 @@ Current browser runtime:
 3. `modules/effect-resolver.js`
 4. `modules/ability-defs.js`
 5. `modules/progression-defs.js`
-6. `modules/party-state.js`
-7. `aetherwake.js`
-8. `modules/char-create.js`
-9. bundled `p5.min.js`
+6. `modules/magic-defs.js`
+7. `modules/magic-mastery.js`
+8. `modules/character-magic-profile.js`
+9. `modules/party-state.js`
+10. `aetherwake.js`
+11. `modules/char-create.js`
+12. bundled `p5.min.js`
 
 The other files under `modules/` are useful historical/modular mirrors, but they are not guaranteed to match the integrated runtime.
 
