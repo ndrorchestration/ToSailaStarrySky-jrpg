@@ -81,3 +81,17 @@ Keep player-facing runtime media compact and deterministic.
 See:
 - `docs/VISUAL_BIBLE.md`
 - `docs/CINEMATIC_CLIP_CONTRACT.md`
+
+
+## Manifest-relative paths
+
+Manifest `file` and subtitle-track paths are relative to `assets/cinematics/`.
+
+Examples:
+
+```text
+airship/first-dragonfly-reveal.mp4
+magic/ender-sonic-boom-tower.mp4
+```
+
+This allows category directories without duplicating `assets/cinematics/` inside every manifest.
