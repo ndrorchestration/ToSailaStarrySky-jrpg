@@ -145,6 +145,14 @@
     assert(party.activeIds.length >= 1 && party.activeIds.length <= 5, 'SAVE_PARTY_ACTIVE_COUNT_INVALID');
     assert(new Set(party.activeIds).size === party.activeIds.length, 'SAVE_PARTY_ACTIVE_DUPLICATE');
     assert(party.activeIds.every(id => ROSTER_IDS.includes(id)), 'SAVE_PARTY_ACTIVE_UNKNOWN');
+
+    party.roster.forEach(record => {
+      assert(typeof record.playable === 'boolean', 'SAVE_PARTY_PLAYABLE_FLAG_INVALID:' + record.id);
+    });
+    for (const id of party.activeIds) {
+      const record = party.roster.find(entry => entry.id === id);
+      assert(record && record.playable === true, 'SAVE_PARTY_ACTIVE_NOT_PLAYABLE:' + id);
+    }
     return true;
   }
 
