@@ -224,6 +224,90 @@ function setup() {
   window._setupOrder = window._setupOrder + '→setup-done';
   lastTime = millis();
   window.__awRuntimeReady = true;
+  setTimeout(runDesktopSavePersistenceSmokeIfRequested, 0);
+}
+
+function runDesktopSavePersistenceSmokeIfRequested() {
+  try {
+    if (typeof process === 'undefined' || !process.env || typeof require !== 'function') return;
+    const markerPath = process.env.AETHERWAKE_SAVE_PERSISTENCE_MARKER;
+    const phase = process.env.AETHERWAKE_SAVE_PERSISTENCE_PHASE;
+    if (!markerPath || !phase) return;
+    if (!window.AetherSaveSystem || !world || !world.player) {
+      throw new Error('DESKTOP_SAVE_SMOKE_RUNTIME_UNAVAILABLE');
+    }
+
+    const storage = window.AetherSaveSystem.getStorage();
+    if (!storage || storage.type !== 'nw-file') {
+      throw new Error('DESKTOP_SAVE_SMOKE_NOT_NW_FILE');
+    }
+
+    const fs = require('fs');
+    const marker = {
+      phase,
+      storageType: storage.type,
+      dataPath: window.nw && window.nw.App ? window.nw.App.dataPath : null,
+      slot: 'manual-6',
+      timestamp: new Date().toISOString(),
+    };
+
+    if (phase === 'write') {
+      gameState = STATE.WORLD;
+      window.gameState = gameState;
+      world.player.tileX = 9;
+      world.player.tileY = 11;
+      world.player.px = 9 * 16;
+      world.player.py = 11 * 16;
+
+      if (!saveToSlot('manual-6', false)) {
+        throw new Error('DESKTOP_SAVE_SMOKE_WRITE_FAILED');
+      }
+      marker.saved = true;
+      marker.savePath = window._lastSaveResult && window._lastSaveResult.path;
+      marker.tileX = world.player.tileX;
+      marker.tileY = world.player.tileY;
+      marker.questState = quest && quest.state;
+      marker.activeIds = window.ACTIVE_PARTY.map(character => character.id);
+    } else if (phase === 'load') {
+      world.player.tileX = 2;
+      world.player.tileY = 2;
+      world.player.px = 2 * 16;
+      world.player.py = 2 * 16;
+
+      if (!loadFromSlot('manual-6')) {
+        throw new Error('DESKTOP_SAVE_SMOKE_LOAD_FAILED');
+      }
+      marker.restored =
+        world.player.tileX === 9 &&
+        world.player.tileY === 11 &&
+        window.ACTIVE_PARTY.length >= 1 &&
+        window.ACTIVE_PARTY[0] === window.ROSTER[0];
+      marker.savePath = window._lastLoadResult && window._lastLoadResult.path;
+      marker.tileX = world.player.tileX;
+      marker.tileY = world.player.tileY;
+      marker.questState = quest && quest.state;
+      marker.activeIds = window.ACTIVE_PARTY.map(character => character.id);
+      if (!marker.restored) throw new Error('DESKTOP_SAVE_SMOKE_SEMANTIC_RESTORE_FAILED');
+    } else {
+      throw new Error('DESKTOP_SAVE_SMOKE_PHASE_INVALID:' + phase);
+    }
+
+    fs.writeFileSync(markerPath, JSON.stringify(marker), 'utf8');
+    window.__awDesktopSavePersistenceSmoke = marker;
+  } catch (error) {
+    console.error('DESKTOP_SAVE_PERSISTENCE_SMOKE_FAILED', error);
+    try {
+      if (typeof process !== 'undefined' && process.env &&
+          process.env.AETHERWAKE_SAVE_PERSISTENCE_MARKER &&
+          typeof require === 'function') {
+        require('fs').writeFileSync(
+          process.env.AETHERWAKE_SAVE_PERSISTENCE_MARKER,
+          JSON.stringify({ phase: process.env.AETHERWAKE_SAVE_PERSISTENCE_PHASE || null, error: error.message }),
+          'utf8'
+        );
+      }
+    } catch (_) {}
+  }
 }
 
 function writeDesktopSmokeMarkerOnce() {
