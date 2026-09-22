@@ -21,6 +21,9 @@
     'move-left': { contexts: ['world','airship'], keyCodesByContext: { world: [37,65], airship: [37] } },
     'move-right': { contexts: ['world','airship'], keyCodesByContext: { world: [39,68], airship: [39] } },
     'interact': { contexts: ['world','dialogue'], keyCodes: [69] },
+    'covenant-field': { contexts: ['world'], keyCodes: [81] },
+    'toggle-layer': { contexts: ['world'], keyCodes: [9] },
+    'shop': { contexts: ['world'], keyCodes: [77] },
     'quest-log': { contexts: ['world'], keyCodes: [84] },
     'character-sheet': { contexts: ['world'], keyCodes: [82] },
     'ledger': { contexts: ['world'], keyCodes: [76] },
@@ -72,7 +75,7 @@
 
     const required = [
       'confirm','cancel','open-settings','open-save-load','move-up','move-down','move-left','move-right',
-      'interact','quest-log','character-sheet','ledger','board-or-flight',
+      'interact','covenant-field','toggle-layer','shop','quest-log','character-sheet','ledger','board-or-flight',
       'manual-save','manual-load','airship-altitude-up','airship-altitude-down',
       'airship-dock','airship-land'
     ];
