@@ -197,8 +197,8 @@ Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts includ
 
 ## Windows desktop package
 
-For the simplest player experience, use the **Aetherwake-Windows.zip** artifact produced by the **Windows desktop package** GitHub Actions workflow. Extract the ZIP completely, then double-click `Aetherwake.exe`. Keep the extracted files together.
+For the simplest player experience, download **Aetherwake-OneClick.exe** from the Windows desktop release and double-click it. It contains the packaged runtime, extracts itself to a temporary folder, and starts the game in its own maximizable window without Python, PowerShell, an HTTP server, or opening an HTML file.
 
-The packaged build starts the game in its own window and does not require Python, PowerShell, or a manually started HTTP server. The browser instructions below remain the development and fallback path.
+The release also includes **Aetherwake-Windows.zip** as a manual-extraction fallback. The browser instructions below remain the development path.
 
 See `docs/DESKTOP_BUILD.md` for the packaging contract.
