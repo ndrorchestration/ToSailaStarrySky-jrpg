@@ -89,7 +89,7 @@ assert(result.pressed.includes('ui-down'));
 assert(result.held.includes('ui-down'));
 
 let bindingState = bindings.emptyState();
-bindingState = bindings.setGamepadBinding(bindingState, 'quest-log', pad.BUTTON.VIEW);
+bindingState = bindings.setGamepadBinding(bindingState, 'quest-log', pad.BUTTON.LEFT_TRIGGER);
 state = pad.createState();
 result = pad.poll(gamepad([pad.BUTTON.NORTH]), state, 'world', {
   bindingsSystem: bindings,
@@ -101,7 +101,7 @@ assert.deepStrictEqual(result.rawPressedButtons, [pad.BUTTON.NORTH],
   'adapter must preserve raw button edges for remap capture');
 
 state = pad.createState();
-result = pad.poll(gamepad([pad.BUTTON.VIEW]), state, 'world', {
+result = pad.poll(gamepad([pad.BUTTON.LEFT_TRIGGER]), state, 'world', {
   bindingsSystem: bindings,
   bindings: bindingState
 });
