@@ -77,6 +77,7 @@ async function setAxes(page, x, y) {
   });
 
   await page.addInitScript(() => {
+    window.__awVibrationCalls = [];
     const pad = {
       index: 0,
       id: 'Aetherwake Test Standard Gamepad',
@@ -84,7 +85,13 @@ async function setAxes(page, x, y) {
       mapping: 'standard',
       timestamp: 0,
       axes: [0, 0, 0, 0],
-      buttons: Array.from({ length: 17 }, () => ({ pressed: false, touched: false, value: 0 }))
+      buttons: Array.from({ length: 17 }, () => ({ pressed: false, touched: false, value: 0 })),
+      vibrationActuator: {
+        playEffect(type, profile) {
+          window.__awVibrationCalls.push({ type, profile });
+          return Promise.resolve('complete');
+        }
+      }
     };
     window.__awTestPad = pad;
     window.__awTestPadSetButton = function(index, pressed) {
@@ -127,8 +134,28 @@ async function setAxes(page, x, y) {
     }));
     assert(settingsState.focus === 'textScale', 'Settings did not begin on deterministic first focus');
 
-    // Navigate to Reduced Motion and toggle it through controller Confirm.
+    // Text Scale, High Contrast, and Reduced Motion apply immediately.
+    await pulseButton(page, 15);
+    await page.waitForFunction(() =>
+      window._userSettings &&
+      window._userSettings.textScale === '150' &&
+      window._appliedAccessibilitySettings &&
+      window._appliedAccessibilitySettings.textScale === '150'
+    , undefined, { timeout: 5000 });
+
     await pulseButton(page, 13);
+    await page.waitForFunction(() =>
+      window._settingsMenuFocus && window._settingsMenuFocus.focusedId === 'highContrastUI'
+    , undefined, { timeout: 5000 });
+    await pulseButton(page, 0);
+    await page.waitForFunction(() =>
+      window._userSettings &&
+      window._userSettings.highContrastUI === true &&
+      window._appliedAccessibilitySettings &&
+      window._appliedAccessibilitySettings.highContrastUI === true &&
+      window._highContrastUI === true
+    , undefined, { timeout: 5000 });
+
     await pulseButton(page, 13);
     await page.waitForFunction(() =>
       window._settingsMenuFocus && window._settingsMenuFocus.focusedId === 'reducedMotion'
@@ -145,8 +172,14 @@ async function setAxes(page, x, y) {
       const raw = localStorage.getItem('aetherwake.settings.v1');
       return raw ? JSON.parse(raw) : null;
     });
-    assert(persisted && persisted.settings && persisted.settings.reducedMotion === true,
-      'controller Settings change did not persist independently');
+    assert(
+      persisted &&
+      persisted.settings &&
+      persisted.settings.reducedMotion === true &&
+      persisted.settings.highContrastUI === true &&
+      persisted.settings.textScale === '150',
+      'controller accessibility Settings changes did not persist independently'
+    );
 
     // Continue through Settings into the controller-accessible remapping UI.
     for (let i = 0; i < 11; i++) await pulseButton(page, 13);
@@ -370,11 +403,18 @@ async function setAxes(page, x, y) {
     const final = await page.evaluate(() => ({
       gameState: window.gameState,
       reducedMotion: window._userSettings.reducedMotion,
+      highContrastUI: window._userSettings.highContrastUI,
+      textScale: window._userSettings.textScale,
+      vibrationCalls: window.__awVibrationCalls.length,
       lastGamepadPoll: window._lastGamepadPoll,
       lastDispatchHandled: window._lastGamepadDispatchHandled
     }));
     assert(final.gameState === 'world', 'controller parity path did not end in stable WORLD');
-    assert(final.reducedMotion === true, 'controller-configured setting was not retained');
+    assert(final.reducedMotion === true, 'controller-configured Reduced Motion was not retained');
+    assert(final.highContrastUI === true && final.textScale === '150',
+      'controller-configured rendering accessibility settings were not retained');
+    assert(final.vibrationCalls > 0,
+      'controller vibration preference never reached the standard haptic actuator');
 
     console.log('Aetherwake controller parity smoke: PASS');
     console.log(JSON.stringify({ persistedBindings, openingResult, savePosition, loadedPosition, flightBefore, altitudeAfter, combatFocusResult, final }));
