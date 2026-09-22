@@ -813,6 +813,160 @@ function advanceFirstWakeOpening() {
   }
 }
 
+function drawOpeningSkyGradient(topColor, bottomColor) {
+  noStroke();
+  for (let y = 0; y < height; y += 4) {
+    const t = y / height;
+    fill(
+      lerp(topColor[0], bottomColor[0], t),
+      lerp(topColor[1], bottomColor[1], t),
+      lerp(topColor[2], bottomColor[2], t)
+    );
+    rect(0, y, width, 5);
+  }
+}
+
+function drawOpeningCloudBand(y, drift, alpha) {
+  noStroke();
+  fill(226, 238, 241, alpha);
+  for (let x = -120; x < width + 160; x += 150) {
+    const px = x + drift;
+    ellipse(px, y, 170, 42);
+    ellipse(px + 48, y - 14, 116, 40);
+    ellipse(px - 44, y + 6, 102, 34);
+  }
+}
+
+function drawOpeningWakeShip(x, y, scaleFactor, lit) {
+  push();
+  translate(x, y);
+  scale(scaleFactor);
+  noStroke();
+  fill(24, 31, 45);
+  rect(-96, -18, 172, 36, 7);
+  triangle(76, -18, 118, 0, 76, 18);
+  fill(49, 67, 81);
+  rect(-68, -34, 104, 18, 5);
+  fill(86, 112, 118);
+  rect(-25, -46, 44, 12, 4);
+  stroke(132, 196, 181, 150);
+  strokeWeight(2);
+  line(-86, 21, 72, 21);
+  line(-51, -34, -61, -60);
+  line(8, -46, 18, -68);
+  noStroke();
+  fill(lit ? 244 : 155, lit ? 214 : 174, lit ? 122 : 105, lit ? 220 : 120);
+  for (let wx = -55; wx <= 48; wx += 31) rect(wx, -8, 12, 7, 2);
+  fill(54, 171, 150, 130);
+  ellipse(-83, 0, 15, 15);
+  pop();
+}
+
+function drawOpeningInterior(sceneVisual) {
+  noStroke();
+  fill(18, 25, 34);
+  rect(0, 0, width, height);
+  fill(41, 49, 56);
+  rect(76, 104, width - 152, height - 178, 10);
+  fill(66, 71, 68);
+  rect(92, 120, width - 184, height - 210, 8);
+  fill(91, 76, 59);
+  rect(116, height - 190, 248, 32, 5);
+  fill(118, 105, 78);
+  rect(132, height - 242, 142, 48, 4);
+  fill(44, 53, 58);
+  rect(width - 308, 148, 174, 218, 6);
+  fill(111, 154, 149, 90);
+  rect(width - 288, 170, 134, 6);
+  rect(width - 288, 196, 98, 6);
+  rect(width - 288, 222, 119, 6);
+  fill(229, 187, 110, 130);
+  ellipse(226, 154, 34, 34);
+  if (sceneVisual === 'wrong-song') {
+    stroke(115, 211, 226, 180);
+    strokeWeight(2);
+    for (let i = 0; i < 8; i++) {
+      const yy = 170 + i * 24;
+      line(410 + sin(frameCount * 0.08 + i) * 14, yy, 650 + cos(frameCount * 0.07 + i) * 18, yy + 5);
+    }
+    noFill();
+    stroke(182, 132, 230, 150);
+    rect(width * 0.46 + sin(frameCount * 0.05) * 4, 138, 210, 172);
+  }
+}
+
+function drawOpeningBackdrop(scene) {
+  const visual = scene.visual || 'dock-horizon';
+  if (visual === 'dock-horizon' || visual === 'arrival' || visual === 'dock-walk') {
+    drawOpeningSkyGradient([28, 42, 70], [177, 130, 103]);
+    drawOpeningCloudBand(390, (frameCount * 0.12) % 150, 118);
+    drawOpeningCloudBand(455, -((frameCount * 0.08) % 150), 82);
+    noStroke();
+    fill(32, 43, 54);
+    rect(0, 450, width, 190);
+    fill(51, 65, 72);
+    rect(0, 430, width, 36);
+    for (let x = 34; x < width; x += 118) {
+      fill(27, 34, 42);
+      rect(x, 344, 16, 90);
+      stroke(97, 116, 119, 130);
+      strokeWeight(2);
+      line(x + 8, 344, x + 55, 298);
+      noStroke();
+    }
+    drawOpeningWakeShip(width * 0.71, 388, visual === 'arrival' ? 1.12 : 0.86, true);
+    if (visual === 'dock-walk') {
+      fill(206, 191, 151, 110);
+      for (let x = 60; x < 520; x += 88) rect(x, 398 + ((x / 88) % 2) * 8, 46, 5);
+    }
+    return;
+  }
+
+  if (visual === 'chapter') {
+    drawOpeningSkyGradient([9, 13, 25], [17, 27, 42]);
+    noStroke();
+    fill(84, 184, 177, 90 + sin(frameCount * 0.05) * 25);
+    ellipse(width / 2, height / 2 + 16, 300, 300);
+    fill(16, 22, 31);
+    ellipse(width / 2, height / 2 + 16, 246, 246);
+    stroke(120, 207, 210, 120);
+    noFill();
+    strokeWeight(2);
+    for (let r = 110; r <= 230; r += 30) ellipse(width / 2, height / 2 + 16, r, r * 0.56);
+    return;
+  }
+
+  drawOpeningInterior(visual);
+  if (visual === 'talen') {
+    noStroke();
+    fill(148, 117, 75);
+    rect(312, 388, 18, 18);
+    rect(332, 372, 18, 34);
+    rect(352, 386, 18, 20);
+  }
+  if (visual === 'household') {
+    noStroke();
+    fill(219, 178, 107, 110);
+    ellipse(536, 188, 42, 42);
+    fill(122, 91, 72);
+    rect(484, 360, 138, 18, 4);
+  }
+  if (visual === 'practical') {
+    noStroke();
+    fill(101, 187, 181, 140);
+    rect(width - 294, 166, 12, 112);
+    fill(210, 110, 98, 150);
+    rect(width - 294, 240, 12, 38);
+  }
+  if (visual === 'core-walk') {
+    noStroke();
+    fill(8, 12, 20, 190);
+    rect(width - 280, 120, 180, 320, 8);
+    fill(83, 194, 187, 70);
+    rect(width - 260, 148, 140, 266, 6);
+  }
+}
+
 function drawFirstWakeOpening() {
   const opening = window.AetherFirstWakeOpening;
   const state = window._firstWakeOpeningState;
@@ -820,38 +974,51 @@ function drawFirstWakeOpening() {
   const scene = opening.currentScene(state);
 
   push();
+  drawOpeningBackdrop(scene);
+
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2], 245);
+  fill(7, 10, 16, scene.chapterCard ? 120 : 154);
   rect(0, 0, width, height);
 
-  fill(52, 67, 96);
-  rect(0, height * 0.62, width, height * 0.38);
-  fill(124, 200, 232, 80);
-  rect(0, height * 0.58, width, 3);
-  fill(16, 22, 38);
-  rect(width * 0.68, height * 0.51, 124, 34);
-  rect(width * 0.72, height * 0.47, 48, 12);
+  fill(6, 9, 14, 205);
+  rect(92, 54, width - 184, 128, 8);
+  fill(6, 9, 14, 222);
+  rect(112, 198, width - 224, 286, 8);
 
   textAlign(CENTER, TOP);
   textFont('Press Start 2P');
-  textSize(scene.chapterCard ? 22 : 12);
+  textSize(scene.chapterCard ? 24 : 13);
   fill(C.teal[0], C.teal[1], C.teal[2]);
-  text(scene.title, width / 2, 82);
+  text(scene.title, width / 2, 78);
   if (scene.subtitle) {
-    textSize(10);
+    textSize(11);
     fill(C.scioto[0], C.scioto[1], C.scioto[2]);
-    text(scene.subtitle, width / 2, 120);
+    text(scene.subtitle, width / 2, 124);
   }
 
-  textAlign(LEFT, TOP);
-  textFont('VT323');
-  textSize(20);
-  fill(C.parchment[0], C.parchment[1], C.parchment[2]);
-  let y = 210;
-  for (const line of scene.lines) {
-    text(line, 150, y, width - 300, 56);
-    y += 58;
+  if (!scene.chapterCard) {
+    textAlign(LEFT, TOP);
+    textFont('VT323');
+    textSize(22);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2]);
+    let y = 226;
+    for (const line of scene.lines) {
+      text(line, 146, y, width - 292, 58);
+      y += 60;
+    }
+  } else {
+    textAlign(CENTER, CENTER);
+    textFont('VT323');
+    textSize(24);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2], 220);
+    text(scene.lines.join('   •   '), width / 2, height * 0.60, width - 240, 100);
   }
+
+  textAlign(LEFT, BOTTOM);
+  textFont('VT323');
+  textSize(15);
+  fill(C.dusttan[0], C.dusttan[1], C.dusttan[2], 220);
+  text('SEQUENCE ' + String(scene.sequence).padStart(2, '0') + ' // ' + scene.visual.toUpperCase(), 28, height - 22);
 
   textAlign(CENTER, BOTTOM);
   textSize(16);
