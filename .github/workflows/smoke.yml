@@ -126,6 +126,12 @@ jobs:
       - name: Verify First Wake opening runtime
         run: npm run test:first-wake-opening
 
+      - name: Verify save storage contract
+        run: npm run test:save-system
+
+      - name: Verify save runtime integration
+        run: npm run test:save-runtime
+
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
