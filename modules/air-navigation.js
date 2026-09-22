@@ -196,14 +196,18 @@
 
   function move(state,dx,dy) {
     const next=createState(state);
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return next;
     const profile=travelProfile(next);
     const travelSpeed=profile.effectiveSpeed;
+    const beforeX=next.x, beforeY=next.y;
     next.x=clamp(next.x+dx*travelSpeed,0,SKY_WIDTH-1);
     next.y=clamp(next.y+dy*travelSpeed,0,SKY_HEIGHT-1);
     if(dx||dy) {
       next.mooredLandmarkId=null;
       next.heading=Math.atan2(dy,dx);
-      next.encounterSteps += 1 + profile.encounterPressure;
+      if (next.x!==beforeX || next.y!==beforeY) {
+        next.encounterSteps += 1 + profile.encounterPressure;
+      }
     }
     for(const mark of LANDMARKS){
       if(Math.hypot(mark.x-next.x,mark.y-next.y)<=2 && !next.discovered.includes(mark.id)) next.discovered.push(mark.id);
@@ -238,8 +242,10 @@
   }
 
   function changeAltitude(state,delta){
-    const next=createState(state), i=ALTITUDES.indexOf(next.altitude);
-    next.altitude=ALTITUDES[clamp(i+delta,0,ALTITUDES.length-1)];
+    const next=createState(state);
+    if (!Number.isFinite(delta)) return next;
+    const i=ALTITUDES.indexOf(next.altitude);
+    next.altitude=ALTITUDES[clamp(i+Math.trunc(delta),0,ALTITUDES.length-1)];
     next.weatherId=weatherAt(next).id;
     return next;
   }
@@ -279,9 +285,13 @@
         payload.discoveredRoutes.some(id=>!SKY_ROUTES.some(route=>route.id===id))) {
       throw new Error('AIR_NAV_STATE_ROUTE_DISCOVERY_INVALID');
     }
-    if (payload.mooredLandmarkId!==null &&
-        !LANDMARKS.some(mark=>mark.id===payload.mooredLandmarkId && mark.dockable)) {
-      throw new Error('AIR_NAV_STATE_MOORING_INVALID');
+    if (payload.mooredLandmarkId!==null) {
+      const moored=LANDMARKS.find(mark=>mark.id===payload.mooredLandmarkId && mark.dockable);
+      if (!moored ||
+          payload.speed!==0 ||
+          Math.hypot(moored.x-payload.x,moored.y-payload.y)>1.5) {
+        throw new Error('AIR_NAV_STATE_MOORING_INVALID');
+      }
     }
     if (!Number.isInteger(payload.encounterSteps) || payload.encounterSteps<0 ||
         !Number.isInteger(payload.encounterSeed) || payload.encounterSeed<0) {
