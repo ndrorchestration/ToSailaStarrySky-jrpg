@@ -18,7 +18,7 @@ function createServer() {
     const parsed = new URL(req.url, `http://127.0.0.1:${PORT}`);
     let requested = decodeURIComponent(parsed.pathname);
     if (requested === '/') requested = '/index-embedded.html';
-    const relative = requested.replace(/^\\/+/, '');
+    const relative = requested.replace(/^\/+/, '');
     const fullPath = path.resolve(BASE, relative);
     if (!fullPath.startsWith(BASE + path.sep) && fullPath !== BASE) {
       res.writeHead(403); res.end('Forbidden'); return;
