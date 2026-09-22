@@ -33,7 +33,7 @@ assert(template.blocksProgression === false,
   'cinematic template must default blocksProgression=false');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(template.id),
   'cinematic template id must be kebab-case');
-assert(/^[a-z0-9]+(?:-[a-z0-9]+)*\.mp4$/.test(template.file),
+assert(/^(?:[a-z0-9]+(?:-[a-z0-9]+)*\/)*[a-z0-9]+(?:-[a-z0-9]+)*\.mp4$/.test(template.file),
   'cinematic template file must be kebab-case MP4');
 assert(['still', 'in-engine', 'still-or-in-engine'].includes(template.fallback.type),
   'cinematic template fallback type is invalid');
@@ -64,7 +64,7 @@ for (const file of manifests) {
     `${path.relative(root, file)} must set blocksProgression=false`);
   assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(manifest.id),
     `${path.relative(root, file)} id must be kebab-case`);
-  assert(/^[a-z0-9]+(?:-[a-z0-9]+)*\.mp4$/.test(manifest.file),
+  assert(/^(?:[a-z0-9]+(?:-[a-z0-9]+)*\/)*[a-z0-9]+(?:-[a-z0-9]+)*\.mp4$/.test(manifest.file),
     `${path.relative(root, file)} file must be kebab-case MP4`);
   const expectedBase = path.basename(file, '.json');
   assert(expectedBase === manifest.id,
