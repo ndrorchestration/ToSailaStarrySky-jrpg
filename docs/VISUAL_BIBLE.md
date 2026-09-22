@@ -274,3 +274,16 @@ Before promotion:
 - prefer one coherent current-main visual foundation over parallel visual stacks.
 
 Old stale branches remain provenance only unless cleanly extracted.
+
+
+## Dialogue presentation gate — implementation candidate
+
+Representative dialogue now uses the same shared sprite authority as field rendering, scaled at integer pixel ratios inside a larger cinematic instrument-panel frame. Current candidate requirements:
+- live world remains visible behind the dialogue stage;
+- speaker portrait is derived from canonical shared sprite data;
+- Ionia, Lyra, The Core, and Verrick resolve through current canon despite legacy compatibility IDs;
+- speaker role/title remains visible;
+- type-in text flow and E/Enter continuation remain unchanged;
+- UI ornament derives from aether instrumentation rather than generic fantasy panels.
+
+**Status: IMPLEMENTED CANDIDATE / NOT YET VISUAL PASS.**
