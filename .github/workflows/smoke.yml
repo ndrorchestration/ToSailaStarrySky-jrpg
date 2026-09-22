@@ -162,6 +162,9 @@ jobs:
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
+      - name: Verify direct title-theme contract
+        run: npm run test:title-music
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
