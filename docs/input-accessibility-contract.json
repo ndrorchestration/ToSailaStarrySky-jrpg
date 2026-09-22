@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "status": "design-contract",
-  "purpose": "Define a single semantic input and accessibility foundation before Aetherwake multiplies menus, party UI, regions, and content.",
+  "status": "foundation-implemented-partial",
+  "purpose": "Provide a live semantic input, focus, settings, and accessibility foundation before Aetherwake multiplies menus, party UI, regions, and content.",
   "principles": [
     "Gameplay and UI bind to semantic actions, not hard-coded physical keys.",
     "Every required action has a single-press digital path.",
@@ -488,8 +488,8 @@
   ],
   "settingsPersistence": {
     "saveSlotsOwnSettings": false,
-    "plannedDesktopOwner": "nw.App.dataPath/settings.json",
-    "plannedBrowserFallback": "localStorage",
+    "plannedDesktopOwner": "nw.App.dataPath/settings.json (implemented)",
+    "plannedBrowserFallback": "localStorage (implemented)",
     "migrationRequired": true
   },
   "phasedImplementation": [
@@ -512,5 +512,29 @@
     "Microsoft Xbox Accessibility Guideline 113 — UI focus handling",
     "Microsoft Xbox Accessibility Guideline 117 — Visual distractions and motion settings",
     "Game Accessibility Guidelines — Basic / Intermediate / remappable controls / subtitle customization"
+  ],
+  "implementedNow": [
+    "semantic keyboard action registry for safe runtime actions",
+    "deterministic shared focus manager",
+    "save/load overlay focus integration with non-color marker",
+    "standard-mapping gamepad polling and contextual semantic adapter",
+    "live controller dispatch for title and Settings UI only",
+    "independent schema-v1 user settings persistence",
+    "title-accessible Settings UI",
+    "reduced-motion, screen-shake, text-speed runtime integration",
+    "effects-volume and dialogue-volume runtime integration"
+  ],
+  "remainingBeforeRepresentativeParity": [
+    "WORLD controller movement and action dispatch",
+    "dialogue controller parity beyond current keyboard semantic path",
+    "AIRSHIP controller movement/altitude/dock/land dispatch",
+    "combat controller action focus and execution",
+    "action remapping UI and prompt rebinding",
+    "text-scale rendering integration",
+    "high-contrast UI rendering integration",
+    "subtitle size/background and speaker-label rendering integration",
+    "controller vibration integration",
+    "music-volume runtime integration after a canonical music bus exists",
+    "First Wake keyboard/controller parity execution"
   ]
 }
