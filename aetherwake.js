@@ -150,6 +150,13 @@ function setup() {
   window.AetherCombatFormula.validateAgainstAbilityDefs(window.AetherAbilityDefs);
   window._combatSystemPolicy = window.AetherCombatSystemPolicy;
   window._combatFormula = window.AetherCombatFormula;
+  if (!window.AetherCommonsLedger ||
+      typeof window.AetherCommonsLedger.createLedgerEntry !== 'function' ||
+      typeof window.AetherCommonsLedger.validate !== 'function') {
+    throw new Error('AETHER_COMMONS_LEDGER_UNAVAILABLE');
+  }
+  window.AetherCommonsLedger.validate();
+  window._commonsLedger = window.AetherCommonsLedger;
   window._setupOrder = window._setupOrder + '→party-state-done';
   window._setupOrder = window._setupOrder + '→combat-start';
   if (typeof window.AetherCombat !== 'undefined') {
@@ -4383,6 +4390,7 @@ function AetherCombat(p, C) {
     state.encounterOver = false;
     state._secondaryAvailable = false;
     state._lastAbilityId = null;
+    state.commonsLedgerEntry = null;
     resolverMutationCount = 0;
     log('Combat initialized. The weave awaits.');
   };
@@ -4604,7 +4612,9 @@ function AetherCombat(p, C) {
     }
 
     // Heat generation: most actions add heat
-    if (action.type !== 'hold' && action.type !== 'rest') {
+    if (action.type !== 'hold' &&
+        action.type !== 'rest' &&
+        !(action.resolution && action.resolution.model === 'commons-readonly')) {
       changeResource(effectVocabulary.RESOURCE.HEAT, 1);
     }
 
@@ -4622,7 +4632,28 @@ function AetherCombat(p, C) {
     let formulaResolution = null;
     let attackCritical = false;
 
-    if (action.resolution && action.resolution.model === 'jrpg-stat-formula') {
+    if (action.resolution && action.resolution.model === 'commons-readonly') {
+      if (!window.AetherCommonsLedger ||
+          typeof window.AetherCommonsLedger.createLedgerEntry !== 'function') {
+        throw new Error('AETHER_COMMONS_LEDGER_UNAVAILABLE_DURING_TURN');
+      }
+      const beforePlayer = JSON.stringify(state.player);
+      const beforeEnemy = JSON.stringify(state.enemy);
+      const ledgerEntry = window.AetherCommonsLedger.createLedgerEntry(state.enemy);
+      state.commonsLedgerEntry = JSON.parse(JSON.stringify(ledgerEntry));
+      if (JSON.stringify(state.player) !== beforePlayer ||
+          JSON.stringify(state.enemy) !== beforeEnemy) {
+        throw new Error('COMMONS_LEDGER_READ_ONLY_VIOLATION');
+      }
+      r = { dice: null, stat: null, total: 0, outcome: 'success' };
+      const summary = window.AetherCommonsLedger.summarize(ledgerEntry);
+      actionText = 'Mycelial Ledger — ' +
+        (summary || 'No network facts confirmed.') +
+        (ledgerEntry.unknowns.length
+          ? ' Unknown: ' + ledgerEntry.unknowns.join(', ') + '.'
+          : '.');
+      state._abilityFlashTurn = millis();
+    } else if (action.resolution && action.resolution.model === 'jrpg-stat-formula') {
       if (!window.AetherCombatFormula ||
           typeof window.AetherCombatFormula.resolveAction !== 'function') {
         throw new Error('AETHER_COMBAT_FORMULA_UNAVAILABLE_DURING_TURN');
@@ -5114,6 +5145,9 @@ function AetherCombat(p, C) {
       ])),
       secondaryAvailable: Boolean(state._secondaryAvailable),
       lastAbilityId: state._lastAbilityId || null,
+      commonsLedgerEntry: state.commonsLedgerEntry
+        ? JSON.parse(JSON.stringify(state.commonsLedgerEntry))
+        : null,
       initiative: state.initiative,
       resolverMutations: resolverMutationCount,
     };
