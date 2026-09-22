@@ -120,7 +120,11 @@
       type: 'defense',
       tier: 1,
       effectProfile: 'windWard',
-      desc: '2D6+Grace. Resist wind shear. Restore 1 Vit if 10+',
+      authorityStatus: 'legacy-adaptation-residue',
+      migrationStatus: 'blocked-pending-owner-and-domain',
+      canonicalOwner: null,
+      ssotNote: 'No current SSOT source assigns Wind Ward to Ender or another canonical protagonist/domain. Do not migrate until ownership and school/discipline are established.',
+      desc: 'Legacy compatibility action. Production owner/domain unresolved.',
     },
     aetherSeal: {
       id: 'aetherSeal',
@@ -207,6 +211,12 @@
         DEFS.sharedDream.resolution) {
       throw new Error('SHARED_DREAM_SSOT_GUARD_DRIFT');
     }
+    if (DEFS.windWard.migrationStatus !== 'blocked-pending-owner-and-domain' ||
+        DEFS.windWard.canonicalOwner !== null ||
+        DEFS.windWard.resolution) {
+      throw new Error('WIND_WARD_SSOT_GUARD_DRIFT');
+    }
+
     if (DEFS.mycelialLedger.canonicalOwner !== 'ender' ||
         DEFS.mycelialLedger.migrationStatus !== 'live-readonly-v1' ||
         !DEFS.mycelialLedger.resolution ||
