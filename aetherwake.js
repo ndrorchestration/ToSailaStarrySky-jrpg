@@ -955,75 +955,60 @@ function drawAirNavigationScene() {
   if (!ensureAirNavigationState()) return;
   const nav = window.AetherAirNavigation;
   const travel = nav.travelProfile(airNavigationState);
+  const visual = window.AetherFlightVisual;
 
+  if (visual && typeof visual.drawBackdrop === 'function') {
+    visual.drawBackdrop({
+      width,
+      height,
+      now: millis(),
+      state: airNavigationState,
+      travel,
+      nav,
+    });
+
+    visual.drawDragonfly({
+      x: Math.round(width * 0.50),
+      y: Math.round(height * 0.49),
+      now: millis(),
+      state: airNavigationState,
+      travel,
+    });
+
+    visual.drawRouteOverlay({
+      width,
+      height,
+      state: airNavigationState,
+      travel,
+      nav,
+    });
+
+    visual.drawLandmarkBeacons({
+      width,
+      height,
+      state: airNavigationState,
+      travel,
+      nav,
+    });
+    return;
+  }
+
+  // Fail-visible fallback: navigation remains operable if visual authority is absent.
   background(16, 28, 52);
-  noStroke();
-  fill(34, 56, 92);
-  rect(0, 0, width, height * 0.58);
-  fill(22, 36, 64);
-  rect(0, height * 0.58, width, height * 0.42);
-
-  const left = 90, top = 76, mapW = width - 180, mapH = height - 170;
-  const sx = x => left + (x / (nav.SKY_WIDTH - 1)) * mapW;
-  const sy = y => top + (y / (nav.SKY_HEIGHT - 1)) * mapH;
-
-  stroke(124, 200, 232, 70);
-  strokeWeight(2);
-  for (const route of nav.SKY_ROUTES) {
-    const a = nav.LANDMARKS.find(mark => mark.id === route.from);
-    const b = nav.LANDMARKS.find(mark => mark.id === route.to);
-    if (!a || !b) continue;
-    line(sx(a.x), sy(a.y), sx(b.x), sy(b.y));
-  }
-
   textAlign(CENTER, CENTER);
-  textSize(12);
-  for (const mark of nav.LANDMARKS) {
-    const discovered = airNavigationState.discovered.includes(mark.id);
-    noStroke();
-    fill(discovered ? 42 : 90, discovered ? 255 : 100, discovered ? 181 : 120);
-    ellipse(sx(mark.x), sy(mark.y), mark.dockable ? 13 : 9, mark.dockable ? 13 : 9);
-    fill(232, 220, 198, discovered ? 210 : 100);
-    text(discovered ? mark.label : 'UNCHARTED SIGNAL', sx(mark.x), sy(mark.y) - 14);
-  }
-
-  const shipX = sx(airNavigationState.x);
-  const shipY = sy(airNavigationState.y);
-  push();
-  translate(shipX, shipY);
-  rotate(airNavigationState.heading || 0);
-  noStroke();
-  fill(232, 220, 198);
-  triangle(12, 0, -9, -7, -9, 7);
-  fill(42, 255, 181);
-  rect(-8, -2, 11, 4);
-  pop();
-
-  textAlign(LEFT, TOP);
-  fill(232, 220, 198);
   textSize(14);
-  text('OPEN-SKY FLIGHT', 24, 22);
+  fill(232, 220, 198);
+  text('OPEN-SKY FLIGHT', width / 2, height / 2 - 20);
   textSize(12);
+  fill(124, 200, 232);
   text(
     'ALT ' + airNavigationState.altitude.toUpperCase() +
     '  WEATHER ' + travel.weather.label +
-    '  SPEED ' + travel.effectiveSpeed.toFixed(2) +
-    '  PRESSURE ' + travel.encounterPressure,
-    24, 44
+    '  SPEED ' + travel.effectiveSpeed.toFixed(2),
+    width / 2, height / 2 + 8
   );
-  if (travel.route && travel.route.route) {
-    text(
-      'ROUTE ' + travel.route.route.label +
-      '  ' + Math.round(travel.route.progress * 100) + '%',
-      24, 62
-    );
-  }
-  if (airNavigationState.mooredLandmarkId) {
-    const moored = nav.LANDMARKS.find(mark => mark.id === airNavigationState.mooredLandmarkId);
-    if (moored) text('MOORED // ' + moored.label, 24, height - 54);
-  }
-  textAlign(RIGHT, TOP);
-  text('ARROWS steer  Q/E altitude  D dock  L/Esc land', width - 24, 22);
+  textSize(10);
+  text('ARROWS steer  Q/E altitude  D dock  L/Esc land', width / 2, height / 2 + 32);
   textAlign(LEFT, BASELINE);
 }
 
