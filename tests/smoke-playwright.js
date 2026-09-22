@@ -133,7 +133,26 @@ function createServer() {
     assert(openingBootstrap.charCreatePhase !== 'name',
       'normal New Game incorrectly entered custom companion creation');
 
-    for (let i = 0; i < 6; i++) await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.gameState === 'opening' &&
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'dock_walk'
+    , undefined, { timeout: 5000 });
+
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'dock_walk'
+    , undefined, { timeout: 5000 });
+
+    for (let i = 0; i < 8; i++) await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() =>
+      window._firstWakeOpeningState.dockWalk &&
+      window._firstWakeOpeningState.dockWalk.ready === true
+    , undefined, { timeout: 5000 });
+
+    await page.keyboard.press('Enter');
+    for (let i = 0; i < 3; i++) await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.gameState === 'opening' &&
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 6
