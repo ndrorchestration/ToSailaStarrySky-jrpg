@@ -363,3 +363,17 @@ Status remains implementation candidate until exact-head rendered evidence is re
 
 ## First Wake visual evidence frame
 The exact-head evidence bundle includes `00-first-wake-dock-walk.png`, captured halfway through Sequence 02 after four of eight authored dock steps. This frame is the acceptance artifact for the opening's shared-authority presentation and must show Ender, Ionia, the Dragonfly, dock depth, and the real interaction state coherently.
+
+
+## Title-theme presentation authority
+`modules/title-music.js` is the direct embedded-runtime controller for **Aetherwake — Skyward Arpeggio Main Title**.
+
+Constraints:
+- no iframe wrapper or alternate desktop entrypoint;
+- boot/menu only;
+- keyboard/pointer retry for autoplay restrictions;
+- fade/reset when authored opening or gameplay begins;
+- missing asset, autoplay rejection, or decode failure may never block launch;
+- desktop staging includes `assets/**` so admitted audio and cinematic media can ship with the standalone package.
+
+Verified supplied MP3 identity is documented in `assets/audio/README.md`. Repository-complete audio remains pending admission of that exact binary to `assets/audio/aetherwake-skyward-arpeggio-main-title.mp3`.
