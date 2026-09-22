@@ -1352,7 +1352,7 @@ function drawTitleScreen() {
   textFont('Press Start 2P');
   textSize(8);
   fill(C.teal[0], C.teal[1], C.teal[2], 100);
-  text('THE AUREATE WAKE // TURN-BASED 2D6 PbtA', cx, height - 20);
+  text('THE AUREATE WAKE // TURN-BASED JRPG', cx, height - 20);
 }
 
 function drawDialogueOverlay() {
