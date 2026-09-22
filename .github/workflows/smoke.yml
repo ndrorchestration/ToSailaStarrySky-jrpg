@@ -120,6 +120,18 @@ jobs:
       - name: Verify overlay and economy contracts
         run: npm run test:overlay-contract
 
+      - name: Verify pixel world atmosphere
+        run: npm run test:pixel-world-ambient
+
+      - name: Verify shared pixel sprite authority
+        run: npm run test:pixel-sprites
+
+      - name: Verify shared pixel tile authority
+        run: npm run test:pixel-tiles
+
+      - name: Verify 16-bit world composition
+        run: npm run test:16bit-world-art
+
       - name: Verify live open-sky runtime contract
         run: npm run test:open-sky-runtime
 
