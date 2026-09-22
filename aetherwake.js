@@ -1128,6 +1128,11 @@ function cycleAirshipShieldMode() {
 }
 
 function leaveAirship() {
+  if (airNavigationState && !airNavigationState.mooredLandmarkId) {
+    showToast('LANDING DENIED // DOCK AT A STABLE BERTH', C.rust, 1200);
+    airshipFlightMode = false;
+    return false;
+  }
   if (world && world.player) world.player.shipBoarded = false;
   if (gameState === STATE.AIRSHIP) {
     // AIRSHIP is a full-screen ship state rather than a normal overlay.
@@ -1138,10 +1143,12 @@ function leaveAirship() {
     overlayStateStack.length = 0;
     if (VIS.fadeTransitions) startFade(100);
   }
+  return true;
 }
 
 function getAirshipCommands() {
   return [
+    { id: 'flight', label: 'OPEN-SKY FLIGHT' },
     { id: 'phaseSlip', label: 'PHASE-SLIP' },
     { id: 'harmonicVeil', label: 'VEIL MODE' },
     { id: 'resonanceLance', label: 'LANCE' },
@@ -1153,6 +1160,10 @@ function getAirshipCommands() {
 
 function activateAirshipCommand(command) {
   if (!command) return;
+  if (command.id === 'flight') {
+    if (ensureAirNavigationState()) airshipFlightMode = true;
+    return;
+  }
   if (command.id === 'harmonicVeil') cycleAirshipShieldMode();
   else resolveAirshipCommand(command.id);
 }
@@ -1175,7 +1186,6 @@ function handleAirshipInput(input) {
     return;
   }
   if (input && input.ok) {
-    if (airshipCursor === 0 && ensureAirNavigationState()) { airshipFlightMode = true; return; }
     activateAirshipCommand(commands[airshipCursor]);
     return;
   }
@@ -1184,22 +1194,22 @@ function handleAirshipInput(input) {
   if (keysPressed[27] || keysPressed[76]) {
     leaveAirship();
   } else if (keysPressed[50] || keysPressed[72]) {
-    airshipCursor = 1;
+    airshipCursor = 2;
     cycleAirshipShieldMode();
   } else if (keysPressed[49]) {
-    airshipCursor = 0;
+    airshipCursor = 1;
     resolveAirshipCommand('phaseSlip');
   } else if (keysPressed[51]) {
-    airshipCursor = 2;
+    airshipCursor = 3;
     resolveAirshipCommand('resonanceLance');
   } else if (keysPressed[52]) {
-    airshipCursor = 3;
+    airshipCursor = 4;
     resolveAirshipCommand('rootlineTether');
   } else if (keysPressed[53]) {
-    airshipCursor = 4;
+    airshipCursor = 5;
     resolveAirshipCommand('patternForge');
   } else if (keysPressed[82]) {
-    airshipCursor = 5;
+    airshipCursor = 6;
     resolveAirshipCommand('ventWake');
   }
 }
@@ -1376,7 +1386,6 @@ function startGame() {
 // ── Combat launcher: triggers an encounter ──
 function startCombat(enemyId, returnState) {
   if (!combat || !world) return;
-  combatReturnState = returnState || STATE.WORLD;
   combatCursor = 0;
 
   const resolvedEnemyId = enemyId || 'skyPredator';
@@ -1387,6 +1396,8 @@ function startCombat(enemyId, returnState) {
     addLedgerEntry('combat', 'Combat failed: Unknown enemy: ' + resolvedEnemyId);
     return { ok: false, reason: 'Unknown enemy: ' + resolvedEnemyId };
   }
+
+  combatReturnState = returnState || STATE.WORLD;
 
   // Only consume airship transfer when player is eligible
   let airshipTransfer = null;
@@ -2006,7 +2017,7 @@ function drawAirNavigationScene() {
   if (berth.available) {
     fill(42, 255, 181); text('BERTH AVAILABLE: ' + berth.landmark.label + '   [D] DOCK', 18, 84);
   }
-  fill(124, 200, 232); text('ARROWS FLY   Q/W ALTITUDE   SHIFT SPEED   D DOCK   ENTER SYSTEMS   ESC LAND', 18, height - 24);
+  fill(124, 200, 232); text('ARROWS FLY   Q/W ALTITUDE   SHIFT SPEED   D DOCK   ENTER / ESC SYSTEMS', 18, height - 24);
 }
 
 function handleAirNavigationInput(input) {
@@ -2046,7 +2057,7 @@ function handleAirNavigationInput(input) {
   }
   if (input.shift) airNavigationState.speed = airNavigationState.speed >= 3 ? 1 : airNavigationState.speed + 1;
   if (input.ok) airshipFlightMode = false;
-  if (input.cancel) { airshipFlightMode = false; leaveAirship(); }
+  if (input.cancel) { airshipFlightMode = false; showToast('FLIGHT CONTROL // SYSTEMS', C.scioto, 700); }
   window._airNavigationState = airNavigationState;
 }
 
