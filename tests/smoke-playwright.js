@@ -69,16 +69,40 @@ function createServer() {
     );
     assert(response && response.ok(), 'index-embedded.html did not load successfully');
 
+    await page.waitForFunction(() =>
+      Boolean(window.__awLaunchFailure) || Boolean(document.querySelector('canvas'))
+    , undefined, { timeout: 15000 });
+
+    const earlyLaunchFailure = await page.evaluate(() => window.__awLaunchFailure);
+    assert(!earlyLaunchFailure,
+      'startup failed visibly: ' + JSON.stringify(earlyLaunchFailure));
+
     await page.waitForSelector('canvas', { timeout: 15000 });
     await page.waitForFunction(() =>
       window._firstWakeOpeningState &&
       window.AetherFirstWakeOpening &&
       window._combat &&
       window._world &&
+      window._setupOrder &&
+      window._setupOrder.indexOf('setup-done') !== -1 &&
       document.querySelector('canvas') &&
       document.querySelector('canvas').width === 960 &&
       document.querySelector('canvas').height === 640
     , undefined, { timeout: 15000 });
+
+    const launchState = await page.evaluate(() => ({
+      failure: window.__awLaunchFailure,
+      setupOrder: window._setupOrder,
+      loadingDisplay: getComputedStyle(document.getElementById('loading-screen')).display,
+      errorPanel: Boolean(document.getElementById('aw-launch-error')),
+    }));
+    assert(!launchState.failure, 'launch failure persisted after setup-done');
+    assert(launchState.setupOrder.includes('setup-done'),
+      'runtime did not reach setup-done');
+    assert(launchState.loadingDisplay === 'none',
+      'loading screen remained visible after setup-done');
+    assert(launchState.errorPanel === false,
+      'startup error panel appeared on a healthy launch');
 
     const debugOverlayState = await page.evaluate(() =>
       ['debug-overlay', 'aw-debug-overlay'].map(id => {
