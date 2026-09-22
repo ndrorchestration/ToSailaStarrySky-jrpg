@@ -57,7 +57,7 @@ function createServer() {
   const page = await browser.newPage({ viewport: { width: 960, height: 640 } });
   const errors = [];
 
-  page.on('pageerror', err => errors.push(`PAGE: ${err.message}`));
+  page.on('pageerror', err => errors.push(`PAGE: ${err.message}\n${err.stack || ''}`));
   page.on('console', msg => {
     if (msg.type() === 'error') errors.push(`CONSOLE: ${msg.text()}`);
   });
