@@ -149,9 +149,29 @@ This catalog is still **not executable**. It supplies learnable design content f
 | **Time** | Sequence | bounded haste/delay/anchor/stasis; no casual history rewriting, resurrection-by-rewind or indefinite turn denial |
 | **Fate / Probability** | Bias | alters likelihood/branching possibility; distinct from Time and from Psychic prediction |
 
+### Non-elemental spell-tree catalog v0.1
+
+`modules/non-elemental-spell-trees.js` now provides a **status-preserving 1–5 design catalog** for all 15 registered non-elemental domains.
+
+- Every domain has five mastery ranks and exactly two design seeds per rank in v0.1.
+- Existing registry status and access labels are inherited unchanged.
+- Established domains remain established.
+- Proposed and proposed-high-order domains remain proposed; this catalog does **not** promote them to canon.
+- Each domain must sustain broad JRPG utility and at least one Rank-5 Grand Art seed.
+- Cross-domain prerequisites are explicit where a synthesis requires another mastered school.
+- None of these entries are executable combat abilities yet.
+
+Key safeguarded boundaries remain enforced by test:
+- Lumen is not Holy.
+- Umbral/Shadow is morally neutral and not Entropy.
+- Time is bounded local chronology, not unrestricted history rewriting.
+- Fate/Probability is not temporal flow.
+- Psychic does not own souls or Fate.
+- Spirit does not collapse into generic biology.
+
 ### Exceptional
 
-**Dreaming** is plot-bound exceptional access rather than an ordinary learnable school. It may interact with Psychic, Memory, Resonance and other domains without becoming another standard mastery icon.
+**Dreaming** is plot-bound exceptional access rather than an ordinary learnable school. It is intentionally absent from the non-elemental mastery catalog and may interact with Psychic, Memory, Resonance and other domains without becoming another standard mastery icon.
 
 ## 7. Metaphysical modifier layer
 

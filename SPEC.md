@@ -313,9 +313,9 @@ Dreaming remains plot-bound exceptional access rather than an ordinary learnable
 
 ### OPEN DESIGN
 
-The first elemental spell catalog now exists in `modules/elemental-spell-trees.js` as a design-only 1–5 tree map for all 11 admitted elemental schools, with at least two learnable seeds per rank and explicit cross-mastery prerequisites where needed. These definitions are not executable combat abilities yet.
+The first elemental spell catalog exists in `modules/elemental-spell-trees.js` as a design-only 1–5 tree map for all 11 admitted elemental schools. `modules/non-elemental-spell-trees.js` now provides the parallel status-preserving 1–5 design catalog for all 15 registered non-elemental domains. Proposed/high-order domains retain their registry status and are not promoted by catalog inclusion. Dreaming remains exceptional and outside ordinary mastery. These definitions are not executable combat abilities yet.
 
-Mastery XP curves, resource costs, teachers/quests, learn-unlock pacing, proposed-domain canon status, companion magical ownership, balance coefficients, and final Grand Synthesis names remain unresolved.
+Mastery XP curves, resource costs, teachers/quests, learn-unlock pacing, final proposed-domain canon decisions, companion magical ownership, balance coefficients, and final Grand Synthesis names remain unresolved.
 
 ---
 
