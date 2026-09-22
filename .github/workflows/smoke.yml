@@ -135,6 +135,9 @@ jobs:
       - name: Verify Settings runtime integration
         run: npm run test:settings-runtime
 
+      - name: Verify audio settings mapping
+        run: npm run test:audio-settings
+
       - name: Verify overlay and economy contracts
         run: npm run test:overlay-contract
 
