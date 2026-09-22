@@ -521,6 +521,26 @@ function dispatchGamepadActions(result) {
   const pressed = Array.isArray(result.pressed) ? result.pressed : [];
   const now = typeof millis === 'function' ? millis() : Date.now();
 
+  if (gameState === STATE.BOOT) {
+    if (pressed.includes('open-settings')) {
+      gameState = STATE.MENU;
+      window.gameState = gameState;
+      titleVisible = 0;
+      titleFlash = 0;
+      openUserSettingsMenu();
+      return true;
+    }
+    if (pressed.includes('confirm')) {
+      gameState = STATE.MENU;
+      window.gameState = gameState;
+      titleVisible = 0;
+      titleFlash = 0;
+      startGame();
+      return true;
+    }
+    return false;
+  }
+
   if (gameState === STATE.MENU) {
     if (pressed.includes('open-settings')) {
       openUserSettingsMenu();
@@ -1080,6 +1100,14 @@ function handleInput() {
                    (typeof key !== 'undefined' && (key === 'Enter' || key === ' ' || key === 'n' || key === 'N'));
 
   if (gameState === STATE.BOOT) {
+    if (semanticActionPressed('open-settings')) {
+      gameState = STATE.MENU;
+      window.gameState = gameState;
+      titleVisible = 0;
+      titleFlash = 0;
+      openUserSettingsMenu();
+      return;
+    }
     // Any key skips the boot sequence, goes straight to menu.
     // The same key press also triggers MENU→WORLD in the same frame so a
     // single keypress (or test) gets the player into the world.
@@ -2465,7 +2493,7 @@ function drawBootSequence() {
     textSize(9);
     fill(C.teal[0], C.teal[1], C.teal[2], 100 * fadeIn);
     textAlign(CENTER, CENTER);
-    text('[ any key to skip ]', width/2, height - 30);
+    text('[ ENTER/CONFIRM skip  |  S/MENU settings ]', width/2, height - 30);
 
     return;
   }
