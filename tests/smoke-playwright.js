@@ -133,12 +133,31 @@ function createServer() {
     assert(openingBootstrap.charCreatePhase !== 'name',
       'normal New Game incorrectly entered custom companion creation');
 
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.presentationReady(window._firstWakeOpeningState) === true
+    , undefined, { timeout: 5000 });
     await page.keyboard.press('Enter');
+
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 1 &&
+      window.AetherFirstWakeOpening.presentationReady(window._firstWakeOpeningState) === true
+    , undefined, { timeout: 5000 });
     await page.keyboard.press('Enter');
+
     await page.waitForFunction(() =>
       window.gameState === 'opening' &&
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 2
     , undefined, { timeout: 5000 });
+
+    const cinematicFrontEdge = await page.evaluate(() => ({
+      sequence: window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence,
+      dockProgress: window.AetherFirstWakeOpening.dockWalkProgress(window._firstWakeOpeningState),
+      sceneTicks: window._firstWakeOpeningState.sceneTicks,
+    }));
+    assert(cinematicFrontEdge.sequence === 2,
+      'cinematic front edge did not hand off cleanly into Sequence 02');
+    assert(cinematicFrontEdge.dockProgress === 0,
+      'cinematic front edge altered dock tutorial progression before player control');
 
     const blockedDockAdvance = await page.evaluate(() => {
       const before = window._firstWakeOpeningState.sceneIndex;
@@ -1219,6 +1238,7 @@ function createServer() {
     console.log('Aetherwake smoke test: PASS');
     console.log(JSON.stringify({
       openingBootstrap,
+      cinematicFrontEdge,
       blockedDockAdvance,
       dockReady,
       beforeLyraJoin,
