@@ -390,3 +390,10 @@ Requirements:
 - use one renderer for the final boot title frame and steady MENU state.
 
 The verified Skyward Arpeggio title track identity is reserved for this surface, but audio integration is a separate runtime/media concern and must not require a wrapper or iframe.
+
+
+## Premium UI foundation
+
+The shared player-facing UI grammar is specified in `docs/UI_SYSTEM.md` and implemented first in `modules/aether-ui-system.js`. Memories-derived behavioral patterns may be retained, but new and migrated surfaces should use Aetherwake-specific aetherglass, brass, Scioto-blue, and restrained solar-teal hierarchy rather than prototype flat-panel styling.
+
+The title screen is the first required consumer. Menu migration proceeds incrementally so presentation work does not widen gameplay or persistence authority.
