@@ -595,6 +595,66 @@ function createServer() {
       line.includes('[Turn 2]') && line.includes('Uncover Truth')),
       'turn 2 action text was not logged correctly');
 
+    // Deterministic state-transition check. We test real keyboard combat
+    // actions above; direct finishCombat avoids making the smoke test depend on
+    // random damage rolls reaching victory.
+    await page.evaluate(() => {
+      if (typeof finishCombat !== 'function') throw new Error('finishCombat is unavailable');
+      finishCombat();
+    });
+
+    await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
+
+    const worldAfterCombat = await page.evaluate(() => ({
+      vit: window._world.player.vit,
+      scrap: window._world.player.scrap,
+      aether: window._world.player.aether,
+      heat: window._world.player.heat,
+      echoes: window._world.player.echoes,
+      staffCharges: window._world.player.staffCharges,
+      level: window._world.player.level,
+      xp: window._world.player.xp,
+    }));
+
+    assert(worldAfterCombat.vit === combatAfterActions.player.vit,
+      'combat vitality was not written back to WORLD');
+    assert(worldAfterCombat.scrap === combatAfterActions.player.scrap,
+      'combat scrap was not written back to WORLD');
+    assert(worldAfterCombat.aether === combatAfterActions.player.aether.current,
+      'combat aether was not written back to WORLD');
+    assert(worldAfterCombat.heat === combatAfterActions.player.heat.current,
+      'combat heat was not written back to WORLD');
+    assert(worldAfterCombat.echoes === combatAfterActions.player.echoes.current,
+      'combat echoes were not written back to WORLD');
+    assert(worldAfterCombat.staffCharges === combatAfterActions.player.staffCharges,
+      'combat staff charges were not written back to WORLD');
+
+    const rosterAfterCombat = await page.evaluate(() => ({
+      vit: window.ROSTER[0].vit,
+      scrap: window.ROSTER[0].scrap,
+      aether: window.ROSTER[0].aether,
+      heat: window.ROSTER[0].heat,
+      echoes: window.ROSTER[0].echoes,
+      staffCharges: window.ROSTER[0].staffCharges,
+      worldLeadRef: window._world.player === window.ROSTER[0],
+      activeLeadRef: window.ACTIVE_PARTY[0] === window.ROSTER[0],
+    }));
+
+    assert(rosterAfterCombat.vit === worldAfterCombat.vit,
+      'combat vitality did not persist to canonical ROSTER[0]');
+    assert(rosterAfterCombat.scrap === worldAfterCombat.scrap,
+      'combat scrap did not persist to canonical ROSTER[0]');
+    assert(rosterAfterCombat.aether === worldAfterCombat.aether,
+      'combat aether did not persist to canonical ROSTER[0]');
+    assert(rosterAfterCombat.heat === worldAfterCombat.heat,
+      'combat heat did not persist to canonical ROSTER[0]');
+    assert(rosterAfterCombat.echoes === worldAfterCombat.echoes,
+      'combat echoes did not persist to canonical ROSTER[0]');
+    assert(rosterAfterCombat.staffCharges === worldAfterCombat.staffCharges,
+      'combat staff charges did not persist to canonical ROSTER[0]');
+    assert(rosterAfterCombat.worldLeadRef && rosterAfterCombat.activeLeadRef,
+      'canonical lead reference split after combat');
+
     const dedicatedResourceContract = await page.evaluate(() => {
       const productionStats = window._world.player.productionStats;
       const productionDerivedStats = window._world.player.productionDerivedStats;
@@ -689,66 +749,6 @@ function createServer() {
       line.includes('Target analyzed') &&
       !line.includes('Roll:')),
       'Uncover Truth still exposed legacy dice text or failed to log analysis');
-
-    // Deterministic state-transition check. We test real keyboard combat
-    // actions above; direct finishCombat avoids making the smoke test depend on
-    // random damage rolls reaching victory.
-    await page.evaluate(() => {
-      if (typeof finishCombat !== 'function') throw new Error('finishCombat is unavailable');
-      finishCombat();
-    });
-
-    await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
-
-    const worldAfterCombat = await page.evaluate(() => ({
-      vit: window._world.player.vit,
-      scrap: window._world.player.scrap,
-      aether: window._world.player.aether,
-      heat: window._world.player.heat,
-      echoes: window._world.player.echoes,
-      staffCharges: window._world.player.staffCharges,
-      level: window._world.player.level,
-      xp: window._world.player.xp,
-    }));
-
-    assert(worldAfterCombat.vit === combatAfterActions.player.vit,
-      'combat vitality was not written back to WORLD');
-    assert(worldAfterCombat.scrap === combatAfterActions.player.scrap,
-      'combat scrap was not written back to WORLD');
-    assert(worldAfterCombat.aether === combatAfterActions.player.aether.current,
-      'combat aether was not written back to WORLD');
-    assert(worldAfterCombat.heat === combatAfterActions.player.heat.current,
-      'combat heat was not written back to WORLD');
-    assert(worldAfterCombat.echoes === combatAfterActions.player.echoes.current,
-      'combat echoes were not written back to WORLD');
-    assert(worldAfterCombat.staffCharges === combatAfterActions.player.staffCharges,
-      'combat staff charges were not written back to WORLD');
-
-    const rosterAfterCombat = await page.evaluate(() => ({
-      vit: window.ROSTER[0].vit,
-      scrap: window.ROSTER[0].scrap,
-      aether: window.ROSTER[0].aether,
-      heat: window.ROSTER[0].heat,
-      echoes: window.ROSTER[0].echoes,
-      staffCharges: window.ROSTER[0].staffCharges,
-      worldLeadRef: window._world.player === window.ROSTER[0],
-      activeLeadRef: window.ACTIVE_PARTY[0] === window.ROSTER[0],
-    }));
-
-    assert(rosterAfterCombat.vit === worldAfterCombat.vit,
-      'combat vitality did not persist to canonical ROSTER[0]');
-    assert(rosterAfterCombat.scrap === worldAfterCombat.scrap,
-      'combat scrap did not persist to canonical ROSTER[0]');
-    assert(rosterAfterCombat.aether === worldAfterCombat.aether,
-      'combat aether did not persist to canonical ROSTER[0]');
-    assert(rosterAfterCombat.heat === worldAfterCombat.heat,
-      'combat heat did not persist to canonical ROSTER[0]');
-    assert(rosterAfterCombat.echoes === worldAfterCombat.echoes,
-      'combat echoes did not persist to canonical ROSTER[0]');
-    assert(rosterAfterCombat.staffCharges === worldAfterCombat.staffCharges,
-      'combat staff charges did not persist to canonical ROSTER[0]');
-    assert(rosterAfterCombat.worldLeadRef && rosterAfterCombat.activeLeadRef,
-      'canonical lead reference split after combat');
 
     if (errors.length) {
       throw new Error('browser errors:\n' + errors.join('\n'));
