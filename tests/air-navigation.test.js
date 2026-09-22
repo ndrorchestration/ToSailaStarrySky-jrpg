@@ -108,8 +108,28 @@ assert.throws(
   'unknown persisted routes must fail closed'
 );
 
-const edge=nav.move(nav.createState({x:47,y:31,speed:3}),1,1);
+const edge=nav.move(nav.createState({x:47,y:31,speed:3,encounterSteps:2}),1,1);
 assert.strictEqual(edge.x,47);
 assert.strictEqual(edge.y,31);
+assert.strictEqual(edge.encounterSteps,2,'blocked boundary input must not advance encounter cadence');
+
+const invalidMove=nav.move(initial,NaN,0);
+assert(Number.isFinite(invalidMove.x) && Number.isFinite(invalidMove.y));
+assert.strictEqual(invalidMove.encounterSteps,initial.encounterSteps,'invalid movement must fail closed');
+const invalidAltitude=nav.changeAltitude(initial,Infinity);
+assert.strictEqual(invalidAltitude.altitude,initial.altitude,'invalid altitude input must fail closed');
+
+const validMoored=nav.exportPersistentState(docked);
+assert(nav.validatePersistentState(validMoored),'valid moored state rejected');
+assert.throws(
+  ()=>nav.validatePersistentState(Object.assign({},validMoored,{speed:2})),
+  /AIR_NAV_STATE_MOORING_INVALID/,
+  'moving speed must not coexist with persisted mooring'
+);
+assert.throws(
+  ()=>nav.validatePersistentState(Object.assign({},validMoored,{x:0,y:0})),
+  /AIR_NAV_STATE_MOORING_INVALID/,
+  'persisted mooring must be geometrically at the berth'
+);
 
 console.log('Aetherwake air navigation foundation: PASS');
