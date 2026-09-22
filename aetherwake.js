@@ -4589,6 +4589,21 @@ function AetherCombat(p, C) {
       return false;
     }
 
+    // Target-specific admission must occur before turn/resource/secondary state
+    // is mutated so rejected actions are fully transactional.
+    let aetherSealEvaluation = null;
+    if (action.resolution && action.resolution.model === 'aether-seal') {
+      if (!window.AetherSealContract ||
+          typeof window.AetherSealContract.evaluateTarget !== 'function') {
+        throw new Error('AETHER_SEAL_CONTRACT_UNAVAILABLE_DURING_TURN');
+      }
+      aetherSealEvaluation = window.AetherSealContract.evaluateTarget(state.enemy);
+      if (!aetherSealEvaluation.applicable) {
+        log('Aether Seal cannot bind: ' + aetherSealEvaluation.reason + '.');
+        return false;
+      }
+    }
+
     // A new admitted primary action invalidates any previous secondary window.
     // A fresh window may be opened below only by this action's own success.
     state._secondaryAvailable = false;
@@ -4604,19 +4619,6 @@ function AetherCombat(p, C) {
     // Resource payment uses the same legacy tier + base-cost formula exposed by
     // AetherAbilityDefs. Affordability was preflighted above, so this payment
     // is transactional with respect to action admission.
-    let aetherSealEvaluation = null;
-    if (action.resolution && action.resolution.model === 'aether-seal') {
-      if (!window.AetherSealContract ||
-          typeof window.AetherSealContract.evaluateTarget !== 'function') {
-        throw new Error('AETHER_SEAL_CONTRACT_UNAVAILABLE_DURING_TURN');
-      }
-      aetherSealEvaluation = window.AetherSealContract.evaluateTarget(state.enemy);
-      if (!aetherSealEvaluation.applicable) {
-        log('Aether Seal cannot bind: ' + aetherSealEvaluation.reason + '.');
-        return false;
-      }
-    }
-
     const resourceCost = useEligibility.resourceCost;
     if (resourceCost > 0) {
       let spent = 0;
