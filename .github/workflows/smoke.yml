@@ -63,6 +63,9 @@ jobs:
       - name: Verify persistent party magic profiles
         run: npm run test:party-magic-profile
 
+      - name: Verify magic field reactions
+        run: npm run test:magic-field-reactions
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
