@@ -10,6 +10,8 @@ const spec=read('SPEC.md');
 const art=read('docs/ART_DIRECTION.md');
 const combat=read('docs/JRPG_COMBAT_DIRECTION.md');
 const gap=read('gap_analysis.md');
+const index=read('index.html');
+const embedded=read('index-embedded.html');
 
 assert(authority.includes('all five protagonists simultaneously'),
   'documentation authority lost the five-protagonist final-party direction');
@@ -32,6 +34,11 @@ assert(art.includes('Ionia: 28') && art.includes('Reson: 25') && art.includes('A
   'art direction lost canonical roster identity anchors');
 assert(gap.includes('HISTORICAL IMPLEMENTATION AUDIT'),
   'gap analysis is no longer visibly classified as historical evidence');
+assert(!index.includes('<title>Aetherwake — Young Ender</title>') && !embedded.includes('<title>Aetherwake — Young Ender</title>'),
+  'playable entrypoint title regressed to superseded Young Ender identity');
+assert(index.includes('<title>Aetherwake — The Last Solarpunk Airship</title>') &&
+       embedded.includes('<title>Aetherwake — The Last Solarpunk Airship</title>'),
+  'playable entrypoints lost canonical neutral title');
 assert(authority.includes('Aureate Wake') && authority.includes('The Unfinished Song'),
   'ship naming reconciliation boundary disappeared');
 console.log('Aetherwake documentation authority contract: PASS');
