@@ -197,10 +197,13 @@ Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts includ
 
 ## Windows desktop package
 
-For the simplest player experience, download **Aetherwake-Setup.exe** from a Windows desktop release and run the installer. It installs the packaged runtime for the current Windows user without requiring administrator elevation, creates Start Menu and desktop shortcuts, and launches Aetherwake without Python, PowerShell, an HTTP server, or opening an HTML file.
+Use only a **verified Windows desktop release** for the simplest player path.
 
-The release also includes **Aetherwake-Windows.zip** as a manual-extraction fallback. Extract it completely, then run **Aetherwake.exe** from the extracted folder. The browser instructions above remain the development path.
+- **Aetherwake-Setup.exe** — conventional per-user installer; no administrator elevation; creates normal Start Menu and desktop shortcuts.
+- **Aetherwake-Windows.zip** — no-installer fallback. Extract it completely, then run **Aetherwake.exe**.
 
-Older self-extracting/one-click artifacts are superseded and should not be used. If Windows Defender flags an executable, do not whitelist it; record the exact detection name and SHA-256 and submit that report to Microsoft.
+The release pipeline now builds the Windows runtime and installer independently of Windows, preserves those candidate artifacts, then installs and launches the exact installer candidate on a pinned Windows runner. Publication is gated on that verification, so an installer is not presented as verified merely because it compiled.
 
-See `docs/DESKTOP_BUILD.md` for the packaging contract.
+Older self-extracting/one-click wrappers are superseded and should not be used. If Windows Defender flags an executable, do not whitelist or bypass it; record the exact detection name and SHA-256.
+
+See `docs/DESKTOP_BUILD.md` for the packaging and verification contract.
