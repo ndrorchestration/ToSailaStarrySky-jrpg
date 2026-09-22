@@ -17,6 +17,7 @@
     const mode = ctx.mode === 'flight' ? 'flight' : 'dock';
     const heading = Number.isFinite(ctx.heading) ? ctx.heading : 0;
     const speed = Math.max(0, Number(ctx.speed) || 0);
+    const shipScale = Number.isFinite(ctx.scale) && ctx.scale > 0 ? ctx.scale : 1;
     const wingAmp = mode === 'flight' ? 5 : 3;
     const wingRate = mode === 'flight' ? (0.004 + speed * 0.001) : 0.0022;
     const wing = Math.round(Math.sin(now * wingRate) * wingAmp);
@@ -25,6 +26,7 @@
     push();
     translate(x, y);
     if (mode === 'flight') rotate(heading);
+    if (shipScale !== 1) scale(shipScale);
 
     if (mode === 'dock') {
       noStroke();
