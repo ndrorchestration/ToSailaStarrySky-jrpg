@@ -16,7 +16,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.4.0';
+  const VERSION = '0.5.0';
 
   const SCENES = Object.freeze([
     Object.freeze({
@@ -65,6 +65,8 @@
       id: 'berth_task',
       sequence: 3,
       visual: 'berth',
+      interactive: true,
+      interaction: 'berth-task',
       title: 'A PLACE ABOARD',
       speaker: 'IONIA',
       lines: Object.freeze([
@@ -162,8 +164,11 @@
     SCENES.forEach((scene, index) => {
       if (scene.sequence !== index) throw new Error('FIRST_WAKE_OPENING_SEQUENCE_DRIFT:' + scene.id);
       if (!scene.id || !scene.title || !scene.visual) throw new Error('FIRST_WAKE_OPENING_SCENE_INVALID:' + index);
-      if (scene.interactive && scene.id !== 'dock_walk') {
+      if (scene.interactive && !['dock_walk', 'berth_task'].includes(scene.id)) {
         throw new Error('FIRST_WAKE_OPENING_INTERACTIVE_DRIFT:' + scene.id);
+      }
+      if (scene.id === 'berth_task' && scene.interaction !== 'berth-task') {
+        throw new Error('FIRST_WAKE_BERTH_TASK_CONTRACT_DRIFT');
       }
       if (scene.cinematic && (!Number.isInteger(scene.minimumTicks) || scene.minimumTicks < 1)) {
         throw new Error('FIRST_WAKE_OPENING_CINEMATIC_TIMING_INVALID:' + scene.id);
@@ -196,6 +201,11 @@
         max: 8,
         ready: false,
       },
+      berthTask: {
+        step: 0,
+        max: 3,
+        ready: false,
+      },
     };
   }
 
@@ -215,11 +225,19 @@
         event: Object.freeze({ type: 'presentation-required', remainingTicks: (scene.minimumTicks || 0) - state.sceneTicks }),
       };
     }
-    if (scene.interactive && (!state.dockWalk || !state.dockWalk.ready)) {
-      return {
-        state,
-        event: Object.freeze({ type: 'interaction-required', interaction: 'dock-walk' }),
-      };
+    if (scene.interactive) {
+      if (scene.id === 'dock_walk' && (!state.dockWalk || !state.dockWalk.ready)) {
+        return {
+          state,
+          event: Object.freeze({ type: 'interaction-required', interaction: 'dock-walk' }),
+        };
+      }
+      if (scene.id === 'berth_task' && (!state.berthTask || !state.berthTask.ready)) {
+        return {
+          state,
+          event: Object.freeze({ type: 'interaction-required', interaction: 'berth-task' }),
+        };
+      }
     }
     const event = scene.joinCharacterId && !state.appliedJoinIds.includes(scene.joinCharacterId)
       ? Object.freeze({ type: 'party-join', characterId: scene.joinCharacterId })
@@ -267,6 +285,25 @@
     return state.dockWalk.max > 0 ? state.dockWalk.x / state.dockWalk.max : 1;
   }
 
+  function interactBerth(state) {
+    if (!state || !state.berthTask) throw new Error('FIRST_WAKE_BERTH_TASK_STATE_REQUIRED');
+    const scene = currentScene(state);
+    if (scene.id !== 'berth_task') {
+      return { state, advanced: false, ready: Boolean(state.berthTask.ready), step: state.berthTask.step };
+    }
+    if (state.berthTask.ready) {
+      return { state, advanced: false, ready: true, step: state.berthTask.step };
+    }
+    state.berthTask.step = Math.min(state.berthTask.max, state.berthTask.step + 1);
+    state.berthTask.ready = state.berthTask.step >= state.berthTask.max;
+    return { state, advanced: true, ready: state.berthTask.ready, step: state.berthTask.step };
+  }
+
+  function berthTaskProgress(state) {
+    if (!state || !state.berthTask) throw new Error('FIRST_WAKE_BERTH_TASK_STATE_REQUIRED');
+    return state.berthTask.max > 0 ? state.berthTask.step / state.berthTask.max : 1;
+  }
+
   function expectedPartyIds(state) {
     return currentScene(state).activePartyIds.slice();
   }
@@ -284,6 +321,8 @@
     presentationReady,
     moveDock,
     dockWalkProgress,
+    interactBerth,
+    berthTaskProgress,
     expectedPartyIds,
   });
 });
