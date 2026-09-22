@@ -1,0 +1,262 @@
+'use strict';
+
+const { chromium } = require('playwright');
+const crypto = require('crypto');
+const fs = require('fs');
+const http = require('http');
+const path = require('path');
+const { URL } = require('url');
+
+const BASE = path.resolve(__dirname, '..');
+const PORT = Number(process.env.AETHERWAKE_VISUAL_EVIDENCE_PORT || 8097);
+const OUT = path.resolve(
+  process.env.AETHERWAKE_VISUAL_EVIDENCE_DIR ||
+  path.join(BASE, 'visual-evidence')
+);
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+function createServer() {
+  return http.createServer((req, res) => {
+    const parsed = new URL(req.url, `http://127.0.0.1:${PORT}`);
+    let requested = decodeURIComponent(parsed.pathname);
+    if (requested === '/') requested = '/index-embedded.html';
+
+    const relative = requested.replace(/^\/+/, '');
+    const fullPath = path.resolve(BASE, relative);
+    if (!fullPath.startsWith(BASE + path.sep) && fullPath !== BASE) {
+      res.writeHead(403);
+      res.end('Forbidden');
+      return;
+    }
+
+    fs.readFile(fullPath, (err, data) => {
+      if (err) {
+        res.writeHead(404);
+        res.end('Not found');
+        return;
+      }
+      const mime = {
+        '.html': 'text/html; charset=utf-8',
+        '.js': 'application/javascript; charset=utf-8',
+        '.css': 'text/css; charset=utf-8',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.mp3': 'audio/mpeg',
+        '.svg': 'image/svg+xml',
+      }[path.extname(fullPath).toLowerCase()] || 'application/octet-stream';
+      res.writeHead(200, { 'Content-Type': mime });
+      res.end(data);
+    });
+  });
+}
+
+async function waitForRuntime(page) {
+  await page.waitForSelector('canvas', { timeout: 15000 });
+  await page.waitForFunction(() =>
+    window.__awRuntimeReady &&
+    window._world &&
+    window._combat &&
+    window.AetherFirstWakeOpening &&
+    window._firstWakeOpeningState &&
+    document.querySelector('canvas') &&
+    document.querySelector('canvas').width === 960 &&
+    document.querySelector('canvas').height === 640
+  , undefined, { timeout: 15000 });
+}
+
+async function bootToWorld(page) {
+  await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 20000,
+  });
+  await waitForRuntime(page);
+
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => window.gameState === 'opening', undefined, { timeout: 5000 });
+
+  for (let i = 0; i < 10; i++) {
+    await page.keyboard.press('Enter');
+  }
+
+  await page.waitForFunction(() =>
+    window.gameState === 'world' &&
+    window._firstWakeOpeningState &&
+    window._firstWakeOpeningState.complete === true &&
+    window._world &&
+    window._world.player
+  , undefined, { timeout: 5000 });
+}
+
+function sha256(filePath) {
+  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+}
+
+async function capture(page, id, description) {
+  await page.waitForTimeout(220);
+  const file = path.join(OUT, id + '.png');
+  await page.screenshot({ path: file, fullPage: false });
+  const canvas = await page.evaluate(() => {
+    const node = document.querySelector('canvas');
+    const rect = node ? node.getBoundingClientRect() : null;
+    return node && rect ? {
+      logicalWidth: node.width,
+      logicalHeight: node.height,
+      cssWidth: Math.round(rect.width),
+      cssHeight: Math.round(rect.height),
+    } : null;
+  });
+  assert(canvas, 'canvas missing during visual capture: ' + id);
+
+  return {
+    id,
+    description,
+    file: path.basename(file),
+    sha256: sha256(file),
+    viewport: { width: 1440, height: 960 },
+    canvas,
+  };
+}
+
+(async () => {
+  fs.rmSync(OUT, { recursive: true, force: true });
+  fs.mkdirSync(OUT, { recursive: true });
+
+  const server = createServer();
+  await new Promise(resolve => server.listen(PORT, '127.0.0.1', resolve));
+
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 960 } });
+  const errors = [];
+
+  page.on('pageerror', err => errors.push('PAGE: ' + err.message));
+  page.on('requestfailed', req =>
+    errors.push('REQUEST: ' + req.url() + ' — ' + (req.failure()?.errorText || 'failed'))
+  );
+  page.on('console', msg => {
+    if (msg.type() === 'error' && !msg.text().includes('Failed to load resource')) {
+      errors.push('CONSOLE: ' + msg.text());
+    }
+  });
+
+  try {
+    const captures = [];
+
+    // 1 — Dragonfly Dusk Dock benchmark.
+    await bootToWorld(page);
+    await page.evaluate(() => {
+      const p = window._world.player;
+      p.tileX = 22; p.tileY = 16;
+      p.x = 22; p.y = 16;
+      p.px = 22 * 16; p.py = 16 * 16;
+
+      if (!window._airNavigationState) throw new Error('AIR_NAVIGATION_STATE_UNAVAILABLE');
+      window._airNavigationState.x = 8;
+      window._airNavigationState.y = 22;
+      window._airNavigationState.altitude = 'cruise';
+      window._airNavigationState.speed = 0;
+      window._airNavigationState.mooredLandmarkId = 'wake-dock';
+    });
+    captures.push(await capture(
+      page,
+      '01-dragonfly-dusk-dock',
+      'Dragonfly Dusk Dock benchmark candidate'
+    ));
+
+    // 2 — Representative dialogue.
+    await page.evaluate(() => {
+      const p = window._world.player;
+      p.tileX = 7; p.tileY = 7;
+      p.x = 7; p.y = 7;
+      p.px = 7 * 16; p.py = 7 * 16;
+    });
+    await page.keyboard.press('e');
+    await page.waitForFunction(() =>
+      window.gameState === 'dialogue' &&
+      window.UI &&
+      window.UI.dialogueNPC &&
+      window.UI.dialogueNPC.name === 'Ionia'
+    , undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '02-dialogue-ionia',
+      'Representative Ionia dialogue visual gate'
+    ));
+
+    // 3 — Representative combat.
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
+    await page.keyboard.press('KeyC');
+    await page.waitForFunction(() =>
+      window.gameState === 'combat' &&
+      window._combat &&
+      window._combat.getState &&
+      window._combat.getState().enemy &&
+      window._combat.getState().enemy.type === 'skyPredator'
+    , undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '03-combat-sky-predator',
+      'Representative Sky-Predator combat visual gate'
+    ));
+
+    // 4 — Dragonfly flight.
+    await bootToWorld(page);
+    await page.evaluate(() => {
+      if (typeof enterAirNavigation !== 'function') {
+        throw new Error('ENTER_AIR_NAVIGATION_UNAVAILABLE');
+      }
+      if (!enterAirNavigation()) throw new Error('ENTER_AIR_NAVIGATION_FAILED');
+
+      const s = window._airNavigationState;
+      s.x = 18;
+      s.y = 15;
+      s.altitude = 'cruise';
+      s.heading = 0.15;
+      s.speed = 2;
+      s.mooredLandmarkId = null;
+      if (!s.discovered.includes('verdant-crown')) s.discovered.push('verdant-crown');
+      if (!s.discoveredRoutes.includes('rootline-west')) {
+        s.discoveredRoutes.push('rootline-west');
+      }
+    });
+    await page.waitForFunction(() => window.gameState === 'airship', undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '04-dragonfly-flight',
+      'Representative Dragonfly open-sky flight visual gate'
+    ));
+
+    assert(errors.length === 0, 'visual capture runtime errors:\n' + errors.join('\n'));
+
+    const manifest = {
+      contract: 'AETHERWAKE_VISUAL_EVIDENCE_V1',
+      generatedAt: new Date().toISOString(),
+      sourceSha: process.env.GITHUB_SHA || process.env.AETHERWAKE_SOURCE_SHA || 'LOCAL_UNBOUND',
+      rendering: {
+        browser: 'playwright-chromium',
+        viewport: { width: 1440, height: 960 },
+        logicalCanvas: { width: 960, height: 640 },
+      },
+      acceptanceBoundary:
+        'CAPTURE_ONLY_NOT_VISUAL_PASS: screenshots require human review against docs/VISUAL_BIBLE.md and docs/VISUAL_BENCHMARK_SCENE.md',
+      captures,
+    };
+
+    const manifestPath = path.join(OUT, 'manifest.json');
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+
+    console.log('AETHERWAKE_VISUAL_EVIDENCE=CAPTURED');
+    console.log('AETHERWAKE_VISUAL_EVIDENCE_COUNT=' + captures.length);
+    console.log('AETHERWAKE_VISUAL_EVIDENCE_MANIFEST=' + manifestPath);
+  } finally {
+    await browser.close();
+    await new Promise(resolve => server.close(resolve));
+  }
+})().catch(err => {
+  console.error(err.stack || err);
+  process.exit(1);
+});
