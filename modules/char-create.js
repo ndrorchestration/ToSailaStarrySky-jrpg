@@ -159,6 +159,7 @@ const ENDER = {
   equipment: { staff: null, backpack: null },
   jobId: 'ender',
   synergyBonus: 'The anchor. Your crew orbits Ender\'s resolve.',
+  description: 'Rift Scholar of the Wake. Learned to read the spaces between stars and now carries that habit into every room, every crew, every decision. Not the strongest voice on the bridge, but the one people check with when the maps stop matching the sky.',
 };
 
 // ── Color helpers ──

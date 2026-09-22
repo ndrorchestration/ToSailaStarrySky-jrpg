@@ -406,7 +406,17 @@ function draw() {
           !window.ROSTER || window.ROSTER[0] !== world.player) {
         throw new Error('PERSISTENT_PARTY_IDENTITY_INVARIANT_FAILED');
       }
-      // Re-init combat from the canonical lead + validated three-member context.
+      // Propagate the character-creation description into the persistent
+      // roster record so the character-sheet profile section has source text.
+      // commitPrototypeParty copies stat/identity fields but does not preserve
+      // authored narrative fields like description; the lead actor is the same
+      // object as world.player, so assignment here reaches ROSTER[0] too.
+      if (window._charcreate && window._charcreate.party &&
+          window._charcreate.party[0] &&
+          window._charcreate.party[0].description) {
+        world.player.description = window._charcreate.party[0].description;
+      }
+      // Copy companion descriptions too, so the roster is self-contained.
       if (combat && typeof combat.init === 'function') {
         combat.init(buildCombatPlayerSnapshot());
       }
@@ -2221,8 +2231,9 @@ function drawQuestLogOverlay() {
   text('T or ESC to close', width/2, qy + qh - 14);
 }
 
+
 function drawCharSheetOverlay() {
-  noStroke();
+    noStroke();
   fill(C.navy[0], C.navy[1], C.navy[2], 190);
   rect(0, 0, width, height);
 
@@ -7994,8 +8005,94 @@ window.getCharacterSheetViewModel = getCharacterSheetViewModel;
  * Phase-A mastery facts are code-owned presentation data only; no mutable
  * mastery progress is created here.
  */
+
+// ── Profile text for character sheet (Memories §4 analogue) ──
+// Returns an array of profile/biography lines for the given character id.
+// Uses the character's description from the live roster state.
+function getCharSheetProfileLines(actorId) {
+  const roster = Array.isArray(window.ROSTER) ? window.ROSTER : [];
+  const actor = roster.find(a => a && a.id === actorId) || (roster[0] || null);
+  if (!actor || !actor.description) return [];
+  // Split description into lines at newline or period, capped at 4 lines
+  const raw = String(actor.description).replace(/\s+/g, ' ').trim();
+  if (!raw) return [];
+  const sentences = raw.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+  if (sentences.length === 0) return raw.length > 0 ? [raw] : [];
+  return sentences.slice(0, 4).map(s => s.trim());
+}
+
+
+// ── Character sheet drawing helpers (Memories §4 full-screen layout) ──
+
+function drawCharSheetHorzLine(x, y) {
+  noStroke();
+  fill(PAL.TEAL[0], PAL.TEAL[1], PAL.TEAL[2], 90);
+  rect(x, y, width - 2 * x, 2);
+  fill(PAL.TEAL[0], PAL.TEAL[1], PAL.TEAL[2], 160);
+  rect(x, y, width - 2 * x, 1);
+}
+
+function drawCharSheetFace(x, y, w, h, view) {
+  noStroke();
+  fill(PAL.SHADOW[0], PAL.SHADOW[1], PAL.SHADOW[2]);
+  rect(x, y, w, h);
+  drawPixelBorder(x, y, w, h, 2, PAL.SHADOW, PAL.TEAL);
+  const cx = x + w / 2;
+  const cy = y + h / 2 - 6;
+  const headR = Math.min(28, w * 0.26);
+  if (view.id === 'ender') {
+    fill(PAL.DUST[0], PAL.DUST[1], PAL.DUST[2]);
+    ellipse(cx, cy, headR * 2, headR * 2.1);
+    noFill();
+    stroke(PAL.TEAL[0], PAL.TEAL[1], PAL.TEAL[2]);
+    strokeWeight(1.5);
+    ellipse(cx, cy, headR * 2, headR * 2.1);
+    noStroke();
+    fill(PAL.RUST[0], PAL.RUST[1], PAL.RUST[2]);
+    rect(cx - 16, cy + 16, 32, 6);
+  } else {
+    noStroke();
+    fill(PAL.SHADOW[0], PAL.SHADOW[1], PAL.SHADOW[2]);
+    ellipse(cx, cy, headR * 1.6, headR * 1.6);
+    fill(PAL.NAVY[0], PAL.NAVY[1], PAL.NAVY[2]);
+    rect(cx - 22, cy + 14, 44, 26);
+    textFont(FONT_UI);
+    textAlign(CENTER, CENTER);
+    textSize(18);
+    fill(PAL.TEAL[0], PAL.TEAL[1], PAL.TEAL[2]);
+    text((view.canonicalName || '?').slice(0, 1).toUpperCase(), cx, cy);
+    textSize(7);
+    fill(PAL.DIM[0], PAL.DIM[1], PAL.DIM[2]);
+    text('CREW', cx, cy + 38);
+  }
+}
+
+function drawCharSheetGauge(x, y, w, value, max, label, barFill, barBg) {
+  noStroke();
+  fill(PAL.NAVY[0], PAL.NAVY[1], PAL.NAVY[2]);
+  rect(x, y, w, 12);
+  drawPixelBorder(x, y, w, 12, 1, PAL.SHADOW, barFill);
+  noStroke();
+  fill(barBg[0], barBg[1], barBg[2], 120);
+  rect(x + 2, y + 2, w - 4, 8);
+  if (Number.isFinite(value) && Number.isFinite(max) && max > 0) {
+    const pct = Math.max(0, Math.min(1, value / max));
+    noStroke();
+    fill(barFill[0], barFill[1], barFill[2]);
+    rect(x + 2, y + 2, Math.max(2, (w - 4) * pct), 8);
+  }
+  textFont(FONT_UI);
+  textSize(8);
+  textAlign(LEFT, TOP);
+  fill(PAL.DIM[0], PAL.DIM[1], PAL.DIM[2]);
+  text(label, x + 3, y + 1);
+  fill(PAL.PARCHMENT[0], PAL.PARCHMENT[1], PAL.PARCHMENT[2]);
+  textAlign(RIGHT, TOP);
+  text(value + '/' + max, x + w - 3, y + 1);
+}
+
 function drawCharSheet(px, py, pw, ph) {
-  push();
+    push();
   const view = getCharacterSheetViewModel(charSheetRosterIndex);
   if (!view) {
     fill(PAL.RUST);
@@ -8006,225 +8103,365 @@ function drawCharSheet(px, py, pw, ph) {
     return;
   }
 
-  const sheet = {
-    portraitX: px + 16,
-    portraitY: py + 16,
-    portraitW: 120,
-    portraitH: 140,
-    classX: px + 160,
-    classY: py + 16,
-    levelX: px + 160,
-    levelY: py + 48,
-    statsX: px + 160,
-    statsY: py + 88,
-    abilitiesX: px + 16,
-    abilitiesY: py + 180,
-    gearX: px + 330,
-    gearY: py + 180,
-    resourcesX: px + 16,
-    resourcesY: py + 310,
-  };
-
+  // Panel background + border (always)
   noStroke();
   fill(PAL.NAVY);
   rect(px, py, pw, ph);
   drawPixelBorder(px, py, pw, ph, 3, PAL.SHADOW, PAL.TEAL);
 
+  // Status label (top-right) — always shown
   textFont(FONT_UI);
   textSize(9);
   textAlign(RIGHT, TOP);
   fill(view.activePartyMember ? PAL.BIO : PAL.DIM);
   text(view.activePartyMember ? 'ACTIVE PARTY' : 'ROSTER', px + pw - 18, py + 12);
 
-  textAlign(LEFT, TOP);
-  drawGlowText(view.canonicalName.toUpperCase(), px + 160, py + 2, PAL.TEAL, 11);
+  // Use full Memories-style layout for large panels (overlay mode);
+  // keep compact 2-column layout for small panels (e.g. 440×360 combat HUD).
+  const useFullLayout = ph >= 400;
 
-  const portX = sheet.portraitX;
-  const portY = sheet.portraitY;
-  const portW = sheet.portraitW;
-  const portH = sheet.portraitH;
-  drawPixelBorder(portX, portY, portW, portH, 3, PAL.SHADOW, PAL.TEAL);
-  noStroke();
-  fill(PAL.SHADOW);
-  rect(portX + 4, portY + 4, portW - 8, portH - 8);
+  if (useFullLayout) {
+    // ── Memories-style Window_Status layout ──
+    const LH = 32;
+    const faceW = 144, faceH = 144;
+    const margin = 8;
 
-  const cx = portX + portW / 2;
-  const cy = portY + portH / 2 - 10;
-  const headR = 32;
-
-  if (view.id === 'ender') {
-    // Ender portrait placeholder retained from the preservation build.
-    fill(PAL.DUST);
-    ellipse(cx, cy, headR * 2, headR * 2.1);
-    stroke(PAL.TEAL);
-    strokeWeight(1.5);
-    noFill();
-    beginShape();
-    vertex(cx - 18, cy - 10); vertex(cx - 24, cy - 4);
-    vertex(cx - 22, cy + 4); vertex(cx - 16, cy + 8);
-    endShape();
-    beginShape();
-    vertex(cx + 18, cy - 10); vertex(cx + 24, cy - 4);
-    vertex(cx + 22, cy + 4); vertex(cx + 16, cy + 8);
-    endShape();
-    line(cx - 14, cy - 18, cx + 14, cy - 18);
-    noStroke();
-    fill(PAL.BIO);
-    ellipse(cx - 12, cy - 4, 14, 10);
-    ellipse(cx + 12, cy - 4, 14, 10);
-    fill(PAL.SCIOTO);
-    ellipse(cx - 12, cy - 4, 8, 6);
-    ellipse(cx + 12, cy - 4, 8, 6);
-    fill(PAL.SOIL);
-    beginShape();
-    vertex(cx - 16, cy + 6); vertex(cx - 20, cy + 18);
-    vertex(cx - 12, cy + 22); vertex(cx, cy + 20);
-    vertex(cx + 12, cy + 22); vertex(cx + 20, cy + 18);
-    vertex(cx + 16, cy + 6);
-    endShape(CLOSE);
-    fill(PAL.NAVY);
-    ellipse(cx - 12, cy - 4, 4, 4);
-    ellipse(cx + 12, cy - 4, 4, 4);
-    fill(PAL.RUST);
-    rect(cx - 18, cy + 22, 36, 8);
-  } else {
-    // Do not fabricate companion appearance before authored portrait design.
-    noStroke();
-    fill(view.runtimeImplemented ? PAL.DIM : PAL.SHADOW);
-    ellipse(cx, cy - 4, headR * 1.7, headR * 1.7);
-    fill(PAL.NAVY);
-    rect(cx - 24, cy + 18, 48, 28);
+    // ── Band 1: Name · Class · Role (y = py + 0) ──
+    const b1Y = py + 0;
+    textAlign(LEFT, TOP);
+    drawGlowText(view.canonicalName.toUpperCase(), px + margin, b1Y, PAL.TEAL, 11);
+    const classLabel = view.nativeJob.status === 'established' && view.nativeJob.label
+      ? view.nativeJob.label : (view.preservationClass || 'UNKNOWN');
+    fill(PAL.PARCHMENT);
     textFont(FONT_UI);
-    textAlign(CENTER, CENTER);
-    textSize(20);
-    fill(PAL.TEAL);
-    text((view.canonicalName || '?').slice(0, 1).toUpperCase(), cx, cy - 4);
-    textSize(7);
+    textSize(10);
+    text(classLabel, px + 200, b1Y);
+    const roleLabel = {
+      ender: 'RIFT SCHOLAR', ionia: 'CAPTAIN',
+      lyra: 'SHIP MEMORY', reson: 'SHIP VOICE',
+      aepex: 'SHIP REACH'
+    }[view.id] || 'CREW';
     fill(PAL.DIM);
-    text(view.runtimeImplemented ? 'PORTRAIT PENDING' : 'NOT IMPLEMENTED',
-         cx, cy + 58);
-  }
+    text(roleLabel, px + 440, b1Y);
 
-  textFont(FONT_UI);
-  textSize(10);
-  textAlign(LEFT, TOP);
-  drawGlowText('NATIVE', sheet.classX, sheet.classY, PAL.TEAL, 10);
-  fill(PAL.PARCHMENT);
-  const nativeLabel = view.nativeJob.status === 'established' && view.nativeJob.label
-    ? view.nativeJob.label
-    : 'UNKNOWN';
-  text(nativeLabel, sheet.classX + 52, sheet.classY);
+    drawCharSheetHorzLine(px, py + LH);
 
-  drawGlowText('LEVEL', sheet.levelX, sheet.levelY, PAL.TEAL, 10);
-  fill(PAL.PARCHMENT);
-  text(view.level == null ? '—' : 'Lv.' + view.level, sheet.levelX + 44, sheet.levelY);
+    // ── Band 2: Face + BasicInfo (y = py + 2*LH) ──
+    const b2Y = py + 2 * LH;
+    const faceX = px + margin;
+    drawCharSheetFace(faceX, b2Y, faceW, faceH, view);
 
-  textFont(FONT_BODY);
-  textSize(10);
-  fill(PAL.DIM);
-  const affinityLabel = view.affinities.status === 'established'
-    ? view.affinities.ids.map(id => id.toUpperCase()).join(' · ')
-    : 'AFFINITIES: UNKNOWN';
-  text(affinityLabel, sheet.levelX, sheet.levelY + 20);
+    const biX = faceX + faceW + 16;
+    // Level
+    drawGlowText('LEVEL', biX, b2Y, PAL.TEAL, 10);
+    fill(PAL.PARCHMENT);
+    textFont(FONT_UI);
+    textSize(10);
+    text('Lv.' + (view.level == null ? '—' : view.level), biX + 46, b2Y);
+    // Abilities (short list as icon substitute)
+    drawGlowText('ACTIONS', biX, b2Y + LH, PAL.TEAL, 9);
+    fill(PAL.PARCHMENT);
+    textFont(FONT_BODY);
+    textSize(10);
+    const abText = view.abilities.length > 0
+      ? view.abilities.slice(0, 3).map(a => a.label).join(' · ')
+      : '—';
+    text(abText, biX + 56, b2Y + LH);
+    // HP gauge (vit / maxVit)
+    drawCharSheetGauge(biX, b2Y + 2 * LH, pw - biX - margin,
+      view.stats.vit, view.stats.maxVit, 'HP', PAL.RUST, PAL.SHADOW);
+    // MP gauge (aether / aetherMax)
+    drawCharSheetGauge(biX, b2Y + 3 * LH, pw - biX - margin,
+      view.resources.aether, view.resources.aetherMax, 'AETHER', PAL.TEAL, PAL.SHADOW);
+    // EXP
+    drawGlowText('EXP', biX, b2Y + 4 * LH, PAL.SCIOTO, 9);
+    fill(PAL.PARCHMENT);
+    textFont(FONT_BODY);
+    textSize(10);
+    const expPct = (view.xp != null && view.xpToNext != null && view.xpToNext > 0)
+      ? Math.round(view.xp / view.xpToNext * 100) : 0;
+    text(view.xp != null ? view.xp : '—', biX + 40, b2Y + 4 * LH);
+    text('/' + (view.xpToNext != null ? view.xpToNext : '—'), biX + 88, b2Y + 4 * LH);
+    text('(' + expPct + '%)', biX + 130, b2Y + 4 * LH);
 
-  // Preservation class is explicitly labeled so it cannot be confused with
-  // the code-owned native-job fact.
-  if (view.mechanicsTemplateName) {
+    drawCharSheetHorzLine(px, py + 6 * LH);
+
+    // ── Band 3: Parameters (6 stats) + Equipment (y = py + 7*LH) ──
+    const b3Y = py + 7 * LH;
+    const paramX = px + margin;
+    const equipX = px + 440;
+
+    const params = [
+      { label: 'VIT',   value: view.stats.vit,          max: view.stats.maxVit },
+      { label: 'ECHO',  value: view.stats.echoes,       max: view.stats.echoesMax },
+      { label: 'WITS',  value: view.stats.wits,         max: null },
+      { label: 'PRES',  value: view.stats.presence,     max: null },
+      { label: 'SPIR',  value: view.stats.spirit,       max: null },
+      { label: 'MIGHT', value: view.stats.might,        max: null },
+    ];
+    textFont(FONT_UI);
+    textSize(10);
+    textAlign(LEFT, TOP);
+    params.forEach((p, i) => {
+      const y = b3Y + i * LH;
+      fill(PAL.DIM);
+      text(p.label, paramX, y);
+      fill(PAL.PARCHMENT);
+      textAlign(RIGHT, TOP);
+      const val = Number.isFinite(p.value) ? p.value : '—';
+      const mx = p.max != null ? p.max : '';
+      text(val + (mx ? '/' + mx : ''), paramX + 120, y);
+      textAlign(LEFT, TOP);
+    });
+
+    // Equipment
+    drawGlowText('GEAR', equipX, b3Y, PAL.TEAL, 9);
+    textFont(FONT_BODY);
+    textSize(12);
+    const gear = [
+      { name: 'Staff',    value: view.equipment.staff    || 'Unassigned' },
+      { name: 'Backpack', value: view.equipment.backpack || 'Unassigned' },
+    ];
+    gear.forEach((item, i) => {
+      const gy = b3Y + 22 + i * 30;
+      drawGlowText(item.name, equipX + 8, gy, PAL.BIO, 12);
+      fill(PAL.DIM);
+      noStroke();
+      text(item.value, equipX + 8, gy + 14);
+    });
+
+    // Resources (small, below equipment)
+    textFont(FONT_UI);
     textSize(9);
-    fill(PAL.DIM);
-    text('Field role (temporary): ' + view.mechanicsTemplateName,
-         sheet.levelX, sheet.levelY + 34);
-  } else if (view.preservationClass && view.preservationClass !== nativeLabel) {
-    textSize(9);
-    fill(PAL.DIM);
-    text('Prototype class: ' + view.preservationClass,
-         sheet.levelX, sheet.levelY + 34);
-  }
+    drawGlowText('RESOURCES', equipX, b3Y + 82, PAL.SCIOTO, 9);
+    fill(PAL.PARCHMENT);
+    textFont(FONT_BODY);
+    textSize(10);
+    const resY = b3Y + 94;
+    const resItems = [
+      'Scrap: ' + (Number.isFinite(view.resources.scrap) ? view.resources.scrap : '—'),
+      'Heat: ' + (Number.isFinite(view.resources.heat) ?
+        view.resources.heat + '/' + view.resources.heatMax : '—'),
+      'Staff: ' + (Number.isFinite(view.resources.staffCharges) ?
+        view.resources.staffCharges + '/' + view.resources.maxStaffCharges : '—'),
+    ];
+    resItems.forEach((r, i) => text(r, equipX + 8, resY + i * 14));
 
-  textFont(FONT_BODY);
-  textSize(12);
-  const signed = value =>
-    Number.isFinite(value) ? (value > 0 ? '+' + value : '' + value) : '—';
-  const ratio = (value, max) =>
-    Number.isFinite(value) && Number.isFinite(max) ? value + '/' + max : '—';
-  const stats = [
-    { label: 'Vit', value: ratio(view.stats.vit, view.stats.maxVit), accent: PAL.RUST },
-    { label: 'Echo', value: ratio(view.stats.echoes, view.stats.echoesMax), accent: PAL.BIO },
-    { label: 'Wits', value: signed(view.stats.wits), accent: PAL.SCIOTO },
-    { label: 'Pres', value: signed(view.stats.presence), accent: PAL.TEAL },
-    { label: 'Spirit', value: signed(view.stats.spirit), accent: PAL.TEAL },
-    { label: 'Might', value: signed(view.stats.might), accent: PAL.RUST },
-    { label: 'Grace', value: signed(view.stats.grace), accent: PAL.SCIOTO },
-  ];
-  stats.forEach((stat, i) => {
-    const col = i < 4 ? 0 : 1;
-    const row = i < 4 ? i : i - 4;
-    const sx = sheet.statsX + col * 115;
-    const sy = sheet.statsY + row * 17;
-    drawGlowText(stat.label, sx, sy, PAL.TEAL, 12);
-    fill(stat.accent);
-    noStroke();
-    text(stat.value, sx + 48, sy);
-  });
+    drawCharSheetHorzLine(px, py + 13 * LH);
 
-  textFont(FONT_UI);
-  textSize(9);
-  drawGlowText(view.id === 'ender' ? 'ELIGIBLE ACTIONS' : 'RECORDED ABILITIES',
-               sheet.abilitiesX, sheet.abilitiesY, PAL.TEAL, 9);
-  textFont(FONT_BODY);
-  textSize(12);
-  if (view.abilities.length === 0) {
-    fill(PAL.DIM);
-    text(view.runtimeImplemented ? 'No recorded abilities' : 'Not yet implemented',
-         sheet.abilitiesX + 10, sheet.abilitiesY + 22);
+    // ── Band 4: Profile text (y = py + 14*LH) ──
+    const b4Y = py + 14 * LH;
+    textFont(FONT_BODY);
+    textSize(11);
+    textAlign(LEFT, TOP);
+    getCharSheetProfileLines(view.id).forEach((line, i) => {
+      fill(PAL.PARCHMENT);
+      text(line, px + margin, b4Y + i * 15);
+    });
+
   } else {
-    view.abilities.slice(0, 8).forEach((ability, i) => {
+    // ── Compact 2-column layout (small panels, e.g. 440×360) ──
+    const sheet = {
+      portraitX: px + 16,
+      portraitY: py + 16,
+      portraitW: Math.min(120, pw - 32),
+      portraitH: Math.min(140, ph - 32),
+      classX: px + 160,
+      classY: py + 16,
+      levelX: px + 160,
+      levelY: py + 48,
+      statsX: px + 160,
+      statsY: py + 88,
+      abilitiesX: px + 16,
+      abilitiesY: py + 180,
+      gearX: px + 330,
+      gearY: py + 180,
+      resourcesX: px + 16,
+      resourcesY: py + 310,
+    };
+
+    textFont(FONT_UI);
+    textSize(9);
+    textAlign(RIGHT, TOP);
+    fill(view.activePartyMember ? PAL.BIO : PAL.DIM);
+    text(view.activePartyMember ? 'ACTIVE PARTY' : 'ROSTER', px + pw - 18, py + 12);
+
+    textAlign(LEFT, TOP);
+    drawGlowText(view.canonicalName.toUpperCase(), sheet.classX, py + 2, PAL.TEAL, 11);
+
+    // Portrait
+    const portX = sheet.portraitX;
+    const portY = sheet.portraitY;
+    const portW = sheet.portraitW;
+    const portH = sheet.portraitH;
+    drawPixelBorder(portX, portY, portW, portH, 3, PAL.SHADOW, PAL.TEAL);
+    noStroke();
+    fill(PAL.SHADOW);
+    rect(portX + 4, portY + 4, portW - 8, portH - 8);
+
+    const cx = portX + portW / 2;
+    const cy = portY + portH / 2 - 10;
+    const headR = Math.min(32, portW * 0.27);
+
+    if (view.id === 'ender') {
+      fill(PAL.DUST);
+      ellipse(cx, cy, headR * 2, headR * 2.1);
+      stroke(PAL.TEAL);
+      strokeWeight(1.5);
+      noFill();
+      beginShape();
+      vertex(cx - 18, cy - 10); vertex(cx - 24, cy - 4);
+      vertex(cx - 22, cy + 4); vertex(cx - 16, cy + 8);
+      endShape();
+      beginShape();
+      vertex(cx + 18, cy - 10); vertex(cx + 24, cy - 4);
+      vertex(cx + 22, cy + 4); vertex(cx + 16, cy + 8);
+      endShape();
+      line(cx - 14, cy - 18, cx + 14, cy - 18);
+      noStroke();
+      fill(PAL.BIO);
+      ellipse(cx - 12, cy - 4, 14, 10);
+      ellipse(cx + 12, cy - 4, 14, 10);
+      fill(PAL.SCIOTO);
+      ellipse(cx - 12, cy - 4, 8, 6);
+      ellipse(cx + 12, cy - 4, 8, 6);
+      fill(PAL.SOIL);
+      beginShape();
+      vertex(cx - 16, cy + 6); vertex(cx - 20, cy + 18);
+      vertex(cx - 12, cy + 22); vertex(cx, cy + 20);
+      vertex(cx + 12, cy + 22); vertex(cx + 20, cy + 18);
+      vertex(cx + 16, cy + 6);
+      endShape(CLOSE);
+      fill(PAL.NAVY);
+      ellipse(cx - 12, cy - 4, 4, 4);
+      ellipse(cx + 12, cy - 4, 4, 4);
+      fill(PAL.RUST);
+      rect(cx - 18, cy + 22, 36, 8);
+    } else {
+      noStroke();
+      fill(view.runtimeImplemented ? PAL.DIM : PAL.SHADOW);
+      ellipse(cx, cy - 4, headR * 1.7, headR * 1.7);
+      fill(PAL.NAVY);
+      rect(cx - 24, cy + 18, 48, 28);
+      textFont(FONT_UI);
+      textAlign(CENTER, CENTER);
+      textSize(20);
+      fill(PAL.TEAL);
+      text((view.canonicalName || '?').slice(0, 1).toUpperCase(), cx, cy - 4);
+      textSize(7);
+      fill(PAL.DIM);
+      text(view.runtimeImplemented ? 'PORTRAIT PENDING' : 'NOT IMPLEMENTED', cx, cy + 58);
+    }
+
+    // Class + Level
+    drawGlowText('NATIVE', sheet.classX, sheet.classY, PAL.TEAL, 10);
+    fill(PAL.PARCHMENT);
+    const nativeLabel = view.nativeJob.status === 'established' && view.nativeJob.label
+      ? view.nativeJob.label : 'UNKNOWN';
+    text(nativeLabel, sheet.classX + 52, sheet.classY);
+
+    drawGlowText('LEVEL', sheet.levelX, sheet.levelY, PAL.TEAL, 10);
+    fill(PAL.PARCHMENT);
+    text(view.level == null ? '—' : 'Lv.' + view.level, sheet.levelX + 44, sheet.levelY);
+
+    // Affinities
+    textFont(FONT_BODY);
+    textSize(10);
+    fill(PAL.DIM);
+    const affinityLabel = view.affinities.status === 'established'
+      ? view.affinities.ids.map(id => id.toUpperCase()).join(' · ')
+      : 'AFFINITIES: UNKNOWN';
+    text(affinityLabel, sheet.levelX, sheet.levelY + 20);
+
+    // Stats grid (7 stats in 2×4)
+    textFont(FONT_BODY);
+    textSize(12);
+    const signed = value =>
+      Number.isFinite(value) ? (value > 0 ? '+' + value : '' + value) : '—';
+    const ratio = (value, max) =>
+      Number.isFinite(value) && Number.isFinite(max) ? value + '/' + max : '—';
+    const stats = [
+      { label: 'Vit',   value: ratio(view.stats.vit, view.stats.maxVit),    accent: PAL.RUST },
+      { label: 'Echo',  value: ratio(view.stats.echoes, view.stats.echoesMax), accent: PAL.BIO },
+      { label: 'Wits',  value: signed(view.stats.wits),   accent: PAL.SCIOTO },
+      { label: 'Pres',  value: signed(view.stats.presence), accent: PAL.TEAL },
+      { label: 'Spirit',value: signed(view.stats.spirit), accent: PAL.TEAL },
+      { label: 'Might', value: signed(view.stats.might),  accent: PAL.RUST },
+      { label: 'Grace', value: signed(view.stats.grace),  accent: PAL.SCIOTO },
+    ];
+    stats.forEach((stat, i) => {
       const col = i < 4 ? 0 : 1;
       const row = i < 4 ? i : i - 4;
-      const ax = sheet.abilitiesX + 10 + col * 145;
-      const ay = sheet.abilitiesY + 22 + row * 17;
-      drawGlowText(ability.label, ax, ay,
-                   ability.source === 'prototype-mechanics' ? PAL.DIM : PAL.TEAL,
-                   12);
+      const sx = sheet.statsX + col * 115;
+      const sy = sheet.statsY + row * 17;
+      drawGlowText(stat.label, sx, sy, PAL.TEAL, 12);
+      fill(stat.accent);
+      noStroke();
+      text(stat.value, sx + 48, sy);
+    });
+
+    // Abilities
+    textFont(FONT_UI);
+    textSize(9);
+    drawGlowText(view.id === 'ender' ? 'ELIGIBLE ACTIONS' : 'RECORDED ABILITIES',
+                 sheet.abilitiesX, sheet.abilitiesY, PAL.TEAL, 9);
+    textFont(FONT_BODY);
+    textSize(12);
+    if (view.abilities.length === 0) {
+      fill(PAL.DIM);
+      text(view.runtimeImplemented ? 'No recorded abilities' : 'Not yet implemented',
+           sheet.abilitiesX + 10, sheet.abilitiesY + 22);
+    } else {
+      view.abilities.slice(0, 8).forEach((ability, i) => {
+        const col = i < 4 ? 0 : 1;
+        const row = i < 4 ? i : i - 4;
+        const ax = sheet.abilitiesX + 10 + col * 145;
+        const ay = sheet.abilitiesY + 22 + row * 17;
+        drawGlowText(ability.label, ax, ay,
+                     ability.source === 'prototype-mechanics' ? PAL.DIM : PAL.TEAL, 12);
+      });
+    }
+
+    // Gear
+    textFont(FONT_UI);
+    textSize(9);
+    drawGlowText('GEAR', sheet.gearX, sheet.gearY, PAL.TEAL, 9);
+    textFont(FONT_BODY);
+    textSize(12);
+    const gear2 = [
+      { name: 'Staff',    value: view.equipment.staff    || 'Unassigned' },
+      { name: 'Backpack', value: view.equipment.backpack || 'Unassigned' },
+    ];
+    gear2.forEach((item, i) => {
+      const gy = sheet.gearY + 22 + i * 32;
+      drawGlowText(item.name, sheet.gearX + 10, gy, PAL.BIO, 12);
+      fill(PAL.DIM);
+      noStroke();
+      text(item.value, sheet.gearX + 10, gy + 14);
+    });
+
+    // Resources
+    textFont(FONT_UI);
+    textSize(9);
+    drawGlowText('RESOURCES', sheet.resourcesX, sheet.resourcesY, PAL.TEAL, 9);
+    textFont(FONT_BODY);
+    textSize(13);
+    const resources = [
+      { label: 'Scrap',  value: Number.isFinite(view.resources.scrap) ? '' + view.resources.scrap : '—' },
+      { label: 'Aether', value: ratio(view.resources.aether, view.resources.aetherMax) },
+      { label: 'Heat',   value: ratio(view.resources.heat, view.resources.heatMax) },
+      { label: 'Staff',  value: ratio(view.resources.staffCharges, view.resources.maxStaffCharges) },
+    ];
+    resources.forEach((resource, i) => {
+      const rx = sheet.resourcesX + 10 + i * 112;
+      drawGlowText(resource.label, rx, sheet.resourcesY + 22, PAL.SCIOTO, 13);
+      fill(PAL.PARCHMENT);
+      noStroke();
+      text(resource.value, rx + 46, sheet.resourcesY + 22);
     });
   }
 
-  textFont(FONT_UI);
-  textSize(9);
-  drawGlowText('GEAR', sheet.gearX, sheet.gearY, PAL.TEAL, 9);
-  textFont(FONT_BODY);
-  textSize(12);
-  const gear = [
-    { name: 'Staff', value: view.equipment.staff || 'Unassigned' },
-    { name: 'Backpack', value: view.equipment.backpack || 'Unassigned' },
-  ];
-  gear.forEach((item, i) => {
-    const gy = sheet.gearY + 22 + i * 32;
-    drawGlowText(item.name, sheet.gearX + 10, gy, PAL.BIO, 12);
-    fill(PAL.DIM);
-    noStroke();
-    text(item.value, sheet.gearX + 10, gy + 14);
-  });
-
-  textFont(FONT_UI);
-  textSize(9);
-  drawGlowText('RESOURCES', sheet.resourcesX, sheet.resourcesY, PAL.TEAL, 9);
-  textFont(FONT_BODY);
-  textSize(13);
-  const resources = [
-    { label: 'Scrap', value: Number.isFinite(view.resources.scrap) ? '' + view.resources.scrap : '—' },
-    { label: 'Aether', value: ratio(view.resources.aether, view.resources.aetherMax) },
-    { label: 'Heat', value: ratio(view.resources.heat, view.resources.heatMax) },
-    { label: 'Staff', value: ratio(view.resources.staffCharges, view.resources.maxStaffCharges) },
-  ];
-  resources.forEach((resource, i) => {
-    const rx = sheet.resourcesX + 10 + i * 112;
-    drawGlowText(resource.label, rx, sheet.resourcesY + 22, PAL.SCIOTO, 13);
-    fill(PAL.PARCHMENT);
-    noStroke();
-    text(resource.value, rx + 46, sheet.resourcesY + 22);
-  });
-
+  // ── Roster navigation strip (always, bottom) ──
   const rosterNames = ['ENDER', 'LYRA', 'IONIA', 'RESON', 'AEPEX'];
   textFont(FONT_UI);
   textSize(8);
@@ -8233,7 +8470,7 @@ function drawCharSheet(px, py, pw, ph) {
     .map((name, i) => (i === view.rosterIndex ? '[' + (i + 1) + ' ' + name + ']' : (i + 1) + ' ' + name))
     .join('   ');
   fill(PAL.DIM);
-  text(rosterNav, px + pw / 2, py + ph - 28);
+  text(rosterNav, px + pw / 2, py + ph - 22);
 
   pop();
 }
