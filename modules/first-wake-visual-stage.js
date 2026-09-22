@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   function bandedSky(top, mid, low) {
     const bands = [top, mid, low];
@@ -209,6 +209,228 @@
     }
   }
 
+  function wakeMapPoint(x, y) {
+    return {
+      x: Math.round(128 + (x - 1) * 49),
+      y: Math.round(156 + (y - 1) * 47),
+    };
+  }
+
+  function drawWakeRoomLabel(label, x, y, active) {
+    noStroke();
+    fill(active ? 42 : 185, active ? 255 : 158, active ? 181 : 116, active ? 210 : 120);
+    rect(x, y, Math.max(54, label.length * 7 + 12), 18);
+    fill(8, 12, 18, 230);
+    textAlign(LEFT, TOP);
+    textFont('VT323');
+    textSize(13);
+    text(label, x + 6, y + 2);
+  }
+
+  function drawWakeExploration(scene, state, now) {
+    const opening = root.AetherFirstWakeOpening;
+    const view = opening && typeof opening.wakeExplorationView === 'function'
+      ? opening.wakeExplorationView(state)
+      : null;
+    const e = state.wakeExploration;
+    if (!view || !e) {
+      drawInterior(scene, state, now);
+      return;
+    }
+
+    noStroke();
+    fill(8, 13, 20);
+    rect(0, 0, width, height);
+
+    // Hull frame.
+    fill(24, 31, 38);
+    rect(70, 94, width - 140, 432);
+    fill(49, 54, 55);
+    rect(90, 114, width - 180, 392);
+    fill(31, 37, 42);
+    rect(108, 132, width - 216, 354);
+
+    // Connected interior floor — intentionally one readable space, not a corridor of cards.
+    fill(72, 64, 54);
+    rect(122, 145, 690, 330);
+    fill(42, 47, 49);
+    rect(136, 159, 662, 302);
+
+    // Soft room zoning.
+    fill(91, 73, 55, 125);   // berth
+    rect(136, 330, 172, 131);
+    fill(93, 73, 62, 100);   // shared table
+    rect(136, 159, 220, 144);
+    fill(77, 63, 82, 105);   // Lyra/Talen
+    rect(374, 159, 182, 144);
+    fill(48, 67, 76, 120);   // nav
+    rect(574, 159, 224, 144);
+    fill(49, 55, 58, 125);   // maintenance
+    rect(374, 330, 244, 131);
+    fill(29, 37, 47, 150);   // core approach
+    rect(636, 330, 162, 131);
+
+    // Walkable connectors.
+    fill(58, 58, 55);
+    rect(308, 221, 66, 42);
+    rect(556, 221, 18, 42);
+    rect(308, 369, 66, 42);
+    rect(618, 369, 18, 42);
+
+    // Shared table and galley.
+    fill(119, 86, 60);
+    rect(176, 226, 126, 20);
+    rect(190, 246, 10, 35);
+    rect(278, 246, 10, 35);
+    fill(149, 112, 72);
+    rect(153, 181, 70, 20);
+    fill(73, 100, 76);
+    rect(237, 181, 28, 20);
+
+    // Ender's berth and Talen's block-built Wake.
+    fill(111, 91, 68);
+    rect(164, 372, 112, 34);
+    fill(151, 112, 72);
+    rect(232, 422, 44, 16);
+    fill(76, 111, 121);
+    rect(247, 408, 19, 14);
+
+    // Lyra's sensory objects and fabric.
+    fill(142, 77, 74);
+    rect(407, 180, 88, 7);
+    fill(185, 116, 94, 120);
+    rect(410, 190, 5, 72);
+    rect(489, 190, 5, 72);
+    fill(124, 200, 232, 75);
+    rect(449, 254, 56, 3);
+
+    // Navigation station.
+    fill(27, 43, 52);
+    rect(612, 179, 145, 80);
+    fill(42, 255, 181, 70);
+    rect(630, 195, 102, 4);
+    fill(124, 200, 232, 70);
+    rect(630, 214, 84, 4);
+    rect(630, 233, 111, 4);
+
+    // Maintenance wall and telemetry.
+    fill(35, 42, 46);
+    rect(420, 355, 148, 72);
+    fill(185, 158, 116, 90);
+    rect(441, 373, 40, 5);
+    fill(42, 255, 181, e.clues.includes('frequency') ? 150 : 45);
+    rect(493, 373, 52, 5);
+
+    fill(31, 43, 52);
+    rect(549, 397, 52, 38);
+    fill(124, 200, 232, e.clues.includes('systems') ? 160 : 55);
+    rect(558, 407, 34, 4);
+    rect(558, 417, 26, 4);
+
+    // Structural route chart.
+    fill(46, 42, 39);
+    rect(201, 172, 92, 42);
+    fill(181, 103, 91, e.clues.includes('structural') ? 65 : 125);
+    rect(214, 187, 62, 3);
+    rect(236, 179, 3, 26);
+    if (e.clues.includes('structural')) {
+      fill(42, 255, 181, 140);
+      rect(214, 201, 62, 3);
+    }
+
+    // Core threshold.
+    fill(8, 12, 19);
+    rect(713, 351, 58, 92);
+    fill(e.coreUnlocked ? 42 : 98, e.coreUnlocked ? 255 : 108, e.coreUnlocked ? 181 : 116, e.coreUnlocked ? 120 : 70);
+    rect(723, 361, 38, 72);
+    if (e.coreUnlocked) {
+      fill(205, 245, 232, 150);
+      rect(741, 370, 3, 54);
+    }
+
+    // Wrong Song distortion: small errors in otherwise stable architecture.
+    if (scene.id === 'wrong_song' || e.anomalyTriggered) {
+      for (let i = 0; i < 8; i++) {
+        const xx = 354 + i * 43;
+        const yy = 118 + ((Math.floor(now / 120) + i * 7) % 9);
+        fill(124, 200, 232, 35 + i * 5);
+        rect(xx, yy, 29, 2);
+        if (i % 2 === 0) {
+          fill(42, 255, 181, 28);
+          rect(xx + 7, yy + 8, 17, 2);
+        }
+      }
+    }
+
+    const sprites = root.AetherPixelSprites;
+    if (sprites && sprites.validate()) {
+      const ep = wakeMapPoint(e.x, e.y);
+      sprites.drawShadow(ep.x, ep.y, 2);
+      sprites.draw('ender', ep.x, ep.y, {
+        anchor: 'bottom-center',
+        scale: 2,
+        frame: Math.floor(now / 220) % 2,
+      });
+
+      const lp = wakeMapPoint(7, 3);
+      sprites.drawShadow(lp.x, lp.y, 2);
+      sprites.draw('lyra', lp.x, lp.y, {
+        anchor: 'bottom-center',
+        scale: 2,
+        frame: Math.floor(now / 310) % 2,
+      });
+
+      const ip = wakeMapPoint(12, 2);
+      sprites.drawShadow(ip.x, ip.y, 2);
+      sprites.draw('ionia', ip.x, ip.y, {
+        anchor: 'bottom-center',
+        scale: 2,
+        frame: Math.floor(now / 290) % 2,
+      });
+    }
+
+    // Context cue only for what is close enough to inspect.
+    const nearby = opening.nearbyWakeHotspot(state, 1);
+    if (nearby) {
+      const p = wakeMapPoint(nearby.x, nearby.y);
+      fill(42, 255, 181, 130);
+      rect(p.x - 18, p.y - 42, 36, 3);
+      rect(p.x - 18, p.y - 42, 3, 10);
+      rect(p.x + 15, p.y - 42, 3, 10);
+    }
+
+    drawWakeRoomLabel('BERTH', 145, 443, view.zone === 'berth');
+    drawWakeRoomLabel('TABLE', 145, 282, view.zone === 'shared-table');
+    drawWakeRoomLabel('LYRA', 392, 282, view.zone === 'lyra-space');
+    drawWakeRoomLabel('NAV', 590, 282, view.zone === 'navigation');
+    drawWakeRoomLabel('MAINT', 392, 443, view.zone === 'maintenance');
+    drawWakeRoomLabel('CORE', 651, 443, view.zone === 'core-approach');
+
+    // Exploration HUD: objective, not a cutscene card.
+    fill(5, 8, 13, 205);
+    rect(84, 36, width - 168, 65);
+    textAlign(LEFT, TOP);
+    textFont('Press Start 2P');
+    textSize(10);
+    fill(42, 255, 181);
+    text(view.objective, 108, 55, width - 216, 28);
+
+    fill(5, 8, 13, 215);
+    rect(106, 535, width - 212, 65);
+    textFont('VT323');
+    textSize(17);
+    fill(232, 220, 198);
+    text(view.lastMessage || 'Explore.', 128, 548, width - 256, 27);
+    fill(185, 158, 116);
+    textSize(14);
+    const clueText = scene.id === 'core_walk'
+      ? 'CLUES ' + e.clues.length + ' / 3  //  2 REQUIRED'
+      : 'WASD / ARROWS MOVE   E INSPECT';
+    text(clueText, 128, 575, width - 256, 20);
+
+    textAlign(LEFT, TOP);
+  }
+
   function drawChapter(now) {
     bandedSky([7, 10, 20], [14, 22, 37], [25, 43, 62]);
     noStroke();
@@ -244,6 +466,12 @@
 
   function draw(scene, state, ctx) {
     const now = ctx.now || 0;
+
+    if (scene.sequence >= 5 && scene.sequence <= 8) {
+      drawWakeExploration(scene, state, now);
+      return true;
+    }
+
     drawFrame(scene, state, now);
 
     // Cinematic framing.
@@ -331,6 +559,7 @@
     draw,
     drawDock,
     drawInterior,
+    drawWakeExploration,
     drawChapter,
   });
 })(typeof window !== 'undefined' ? window : globalThis);
