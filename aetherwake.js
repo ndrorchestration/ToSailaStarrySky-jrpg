@@ -170,6 +170,10 @@ function setup() {
       typeof window.AetherSaveSystem.load !== 'function') {
     throw new Error('AETHER_SAVE_SYSTEM_UNAVAILABLE');
   }
+  if (!window.AetherSavePayloadValidator ||
+      typeof window.AetherSavePayloadValidator.validatePayload !== 'function') {
+    throw new Error('AETHER_SAVE_PAYLOAD_VALIDATOR_UNAVAILABLE');
+  }
   refreshSaveIndex();
   window._saveSystem = window.AetherSaveSystem;
   if (!window.AetherCombatFormula ||
@@ -987,39 +991,70 @@ function restorePartyState(saved) {
   window.AetherPartyState.validate();
 }
 
-function applySaveEnvelope(envelope) {
+function prepareSaveEnvelopeForApply(envelope) {
   if (!envelope || !envelope.payload) throw new Error('SAVE_ENVELOPE_PAYLOAD_MISSING');
-  const payload = envelope.payload;
+  const payload = cloneJson(envelope.payload);
+
+  window.AetherSavePayloadValidator.validatePayload(payload, {
+    validateAirNavigation: function(candidate) {
+      return window.AetherAirNavigation.validatePersistentState(candidate);
+    }
+  });
+
+  if (payload.quest.wakeEpilogueId &&
+      !quest.epilogues.some(ep => ep.id === payload.quest.wakeEpilogueId)) {
+    throw new Error('SAVE_QUEST_EPILOGUE_UNKNOWN');
+  }
+
+  if (window.AetherwakeCharacterMagicProfile &&
+      typeof window.AetherwakeCharacterMagicProfile.validateProfile === 'function') {
+    payload.party.roster.forEach(record => {
+      if (record.magicProfile) {
+        const validated = window.AetherwakeCharacterMagicProfile.validateProfile(record.magicProfile);
+        if (!validated || validated.characterId !== record.id) {
+          throw new Error('SAVE_PARTY_MAGIC_PROFILE_MISMATCH:' + record.id);
+        }
+      }
+    });
+  }
+
+  const preparedAirNavigation = payload.airNavigation
+    ? window.AetherAirNavigation.restorePersistentState(payload.airNavigation)
+    : null;
+
+  return Object.freeze({
+    payload,
+    preparedAirNavigation
+  });
+}
+
+function applySaveEnvelope(envelope) {
+  // All semantic validation and subsystem rehydration planning happens before
+  // the first mutation of canonical live runtime state.
+  const prepared = prepareSaveEnvelopeForApply(envelope);
+  const payload = prepared.payload;
+
   restorePartyState(payload.party);
   restoreQuestState(payload.quest);
 
-  if (payload.world && payload.world.playerPosition) {
-    const pos = payload.world.playerPosition;
-    world.player.tileX = pos.tileX; world.player.tileY = pos.tileY;
-    world.player.px = pos.px; world.player.py = pos.py;
-  }
-  if (payload.world && payload.world.covenantField) covenantField = cloneJson(payload.world.covenantField);
-  if (payload.world && Array.isArray(payload.world.ledgerEntries)) ledger.entries = cloneJson(payload.world.ledgerEntries);
+  const pos = payload.world.playerPosition;
+  world.player.tileX = pos.tileX; world.player.tileY = pos.tileY;
+  world.player.px = pos.px; world.player.py = pos.py;
+  covenantField = cloneJson(payload.world.covenantField);
+  ledger.entries = cloneJson(payload.world.ledgerEntries);
 
-  dayTime = payload.runtime && Number.isFinite(payload.runtime.dayTime) ? payload.runtime.dayTime : 0;
-  isSkyLayerVisible = Boolean(payload.runtime && payload.runtime.skyLayerVisible);
-  loadedPlaytimeMs = payload.runtime && Number.isFinite(payload.runtime.playtimeMs)
-    ? Math.max(0, payload.runtime.playtimeMs)
-    : Math.max(0, envelope.playtimeMs || 0);
+  dayTime = payload.runtime.dayTime;
+  isSkyLayerVisible = payload.runtime.skyLayerVisible;
+  loadedPlaytimeMs = payload.runtime.playtimeMs;
   playSessionStartMs = millis();
 
-  if (payload.airNavigation && window.AetherAirNavigation) {
-    airNavigationState = window.AetherAirNavigation.restorePersistentState(payload.airNavigation);
-    window._airNavigationState = airNavigationState;
-  } else {
-    airNavigationState = null;
-    window._airNavigationState = null;
-  }
+  airNavigationState = prepared.preparedAirNavigation;
+  window._airNavigationState = airNavigationState;
 
   gameOver = false;
   pendingHazardIndex = null;
   combatReturnState = STATE.WORLD;
-  gameState = payload.runtime && payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
+  gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
   window.gameState = gameState;
   prevState = null;
   refreshSaveIndex();
