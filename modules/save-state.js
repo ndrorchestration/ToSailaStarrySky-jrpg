@@ -15,9 +15,9 @@
   'use strict';
 
   const SAVE_KIND = 'aetherwake-save';
-  const CURRENT_SCHEMA_VERSION = 2;
-  const STORAGE_KEY = 'aetherwake.save.v2';
-  const LEGACY_STORAGE_KEYS = Object.freeze(['aetherwake.save.v1']);
+  const CURRENT_SCHEMA_VERSION = 3;
+  const STORAGE_KEY = 'aetherwake.save.v3';
+  const LEGACY_STORAGE_KEYS = Object.freeze(['aetherwake.save.v2','aetherwake.save.v1']);
 
   // Every released schema transition is explicit. v1 contained only
   // party/progression persistence; v2 adds World/quest/ledger and Dragonfly
@@ -29,6 +29,12 @@
       document.schemaVersion = 2;
       document.worldState = null;
       document.airshipState = null;
+      return document;
+    },
+    2: function migrateV2ToV3(input) {
+      const document = cloneJson(input);
+      document.schemaVersion = 3;
+      document.navigationState = null;
       return document;
     },
   });
@@ -57,6 +63,9 @@
       'exportAirshipState',
       'validateAirshipState',
       'restoreAirshipState',
+      'exportNavigationState',
+      'validateNavigationState',
+      'restoreNavigationState',
     ];
     if (!runtime || required.some(method => typeof runtime[method] !== 'function')) {
       throw new Error('SAVE_RUNTIME_PERSISTENCE_API_UNAVAILABLE');
@@ -85,14 +94,17 @@
     requirePartyState().validatePersistentState(document.partyState);
 
     if (!Object.prototype.hasOwnProperty.call(document, 'worldState') ||
-        !Object.prototype.hasOwnProperty.call(document, 'airshipState')) {
-      throw new Error('SAVE_V2_SUBSYSTEM_PAYLOADS_REQUIRED');
+        !Object.prototype.hasOwnProperty.call(document, 'airshipState') ||
+        !Object.prototype.hasOwnProperty.call(document, 'navigationState')) {
+      throw new Error('SAVE_V3_SUBSYSTEM_PAYLOADS_REQUIRED');
     }
 
-    if (document.worldState !== null || document.airshipState !== null) {
+    if (document.worldState !== null || document.airshipState !== null ||
+        document.navigationState !== null) {
       const runtime = requireRuntimePersistence();
       if (document.worldState !== null) runtime.validateWorldState(document.worldState);
       if (document.airshipState !== null) runtime.validateAirshipState(document.airshipState);
+      if (document.navigationState !== null) runtime.validateNavigationState(document.navigationState);
     }
     return true;
   }
@@ -138,6 +150,7 @@
       partyState: partyState.exportPersistentState(),
       worldState: runtime.exportWorldState(),
       airshipState: runtime.exportAirshipState(),
+      navigationState: runtime.exportNavigationState(),
     };
 
     validateDocument(document);
@@ -168,14 +181,19 @@
     const partyResult = requirePartyState().restorePersistentState(current.partyState);
     let worldResult = null;
     let airshipResult = null;
+    let navigationResult = null;
 
-    if (current.worldState !== null || current.airshipState !== null) {
+    if (current.worldState !== null || current.airshipState !== null ||
+        current.navigationState !== null) {
       const runtime = requireRuntimePersistence();
       if (current.worldState !== null) {
         worldResult = runtime.restoreWorldState(current.worldState);
       }
       if (current.airshipState !== null) {
         airshipResult = runtime.restoreAirshipState(current.airshipState);
+      }
+      if (current.navigationState !== null) {
+        navigationResult = runtime.restoreNavigationState(current.navigationState);
       }
     }
 
@@ -185,6 +203,7 @@
       activeParty: partyResult.activeParty,
       worldState: worldResult,
       airshipState: airshipResult,
+      navigationState: navigationResult,
     };
   }
 
@@ -242,6 +261,7 @@
       activeParty: restored.activeParty,
       worldState: restored.worldState,
       airshipState: restored.airshipState,
+      navigationState: restored.navigationState,
     };
   }
 
