@@ -4577,6 +4577,11 @@ function AetherCombat(p, C) {
     if (!useEligibility.canUse) {
       if (useEligibility.reason === 'locked') {
         log('Locked action: ' + action.label);
+      } else if (useEligibility.reason === 'ssot_blocked') {
+        log(
+          'Action blocked by current SSOT: ' + action.label +
+          ' (' + useEligibility.migrationStatus + ').'
+        );
       } else if (useEligibility.reason === 'insufficient_resources') {
         log(
           'Not enough resources — ' + action.label +
