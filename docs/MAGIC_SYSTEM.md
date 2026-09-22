@@ -15,7 +15,20 @@ Aetherwake magic is built for a multi-job JRPG rather than a flat elemental weak
 6. **Dreaming is exceptional.** It is plot-bound and outside the ordinary learnable-school catalog.
 7. **Holy/Unholy are not elements.** Sacred/corrupted metaphysics are modifiers layered onto compatible magic.
 
-## 2. Mastery model
+## 2. Character affinity vs mastery
+
+Innate affinity and learned mastery are separate state.
+
+- **Affinity** means a character has an unusual natural relationship, sensitivity, or compatibility with a domain.
+- **Mastery rank** records learned/practiced capability in a tree or domain.
+- Affinity does **not** automatically grant Rank 1, free spells, or combat authorization.
+- Ender's established innate affinities are **Aether, Resonance/Harmonic, Correspondence, and Lumen**.
+- Lyra, Ionia, Reson, and Aepex remain **OPEN** for formal magical affinities; no affinity is inferred from thematic fit.
+- Dreaming remains exceptional and is not stored as ordinary mastery.
+
+`modules/character-magic-profile.js` v0.1 encodes this boundary as a pure profile contract; it is not yet persistent runtime state.
+
+## 3. Mastery model
 
 | Detailed rank | Name | 1–3 compression | Design purpose |
 | --- | --- | --- | --- |
@@ -32,7 +45,7 @@ Cross-mastery thresholds:
 - **4 + 4:** advanced synergy passive or field rule.
 - **5 + 5:** Grand Synthesis Art.
 
-## 3. Elemental trees
+## 4. Elemental trees
 
 ### Primal trees
 
@@ -63,7 +76,7 @@ The absorbed concepts remain mechanically available:
 
 **Sonic boundary:** Sonic governs physical vibration/acoustics. **Resonance/Harmonic** governs deeper magical frequency relationships, synchronization and sympathetic attunement. They deliberately overlap enough to synergize without being synonyms.
 
-## 4. Elemental five-rank development
+## 5. Elemental five-rank development
 
 The registry contains five named stages for every elemental tree. The mechanical expectation is:
 
@@ -81,7 +94,7 @@ The registry contains five named stages for every elemental tree. The mechanical
 
 These are progression labels, not a frozen spell list. Individual spell names remain authorable content.
 
-## 5. Non-elemental domains
+## 6. Non-elemental domains
 
 ### Established families
 
@@ -117,7 +130,7 @@ These are progression labels, not a frozen spell list. Individual spell names re
 
 **Dreaming** is plot-bound exceptional access rather than an ordinary learnable school. It may interact with Psychic, Memory, Resonance and other domains without becoming another standard mastery icon.
 
-## 6. Metaphysical modifier layer
+## 7. Metaphysical modifier layer
 
 The following are qualities, not schools:
 
@@ -125,7 +138,7 @@ The following are qualities, not schools:
 
 Lumen is not automatically Sanctified. Umbral is not automatically Profaned.
 
-## 7. Environmental channels and reactions
+## 8. Environmental channels and reactions
 
 Battlefields should eventually track four readable channels:
 
@@ -147,7 +160,7 @@ Representative reactions:
 
 The UI should preview these before confirmation whenever practical.
 
-## 8. Cross-mastery map
+## 9. Cross-mastery map
 
 | Pair | Mastery behavior | Grand Synthesis seed |
 | --- | --- | --- |
@@ -171,7 +184,7 @@ The UI should preview these before confirmation whenever practical.
 
 The names above are design seeds. The interaction rules are the durable part; capstone names may change during narrative/content authoring.
 
-## 9. Storm + Lightning exemplar
+## 10. Storm + Lightning exemplar
 
 This pair defines the desired ceiling.
 
@@ -182,7 +195,7 @@ This pair defines the desired ceiling.
 
 Thus a master Storm mage with master Lightning is exceptionally destructive because the two systems change each other's rules, not because both damage coefficients are multiplied.
 
-## 10. Discovery and UI pacing
+## 11. Discovery and UI pacing
 
 Do not expose every school at character creation.
 
@@ -194,7 +207,7 @@ Suggested reveal rings:
 4. **Rare/high-order layer:** Time and Fate.
 5. **Exceptional narrative layer:** Dreaming and Personal Grand Synthesis.
 
-## 11. Implementation boundary
+## 12. Implementation boundary
 
 'magic-defs.js' v0.1 is a **design registry**, not a runtime admission registry.
 
