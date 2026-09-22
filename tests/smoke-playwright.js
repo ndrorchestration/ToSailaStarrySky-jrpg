@@ -238,6 +238,10 @@ function createServer() {
         window.AetherCommonsLedger.VERSION,
       commonsOwner: window.AetherCommonsLedger &&
         window.AetherCommonsLedger.OWNER,
+      aetherSealVersion: window.AetherSealContract &&
+        window.AetherSealContract.VERSION,
+      aetherSealOwner: window.AetherSealContract &&
+        window.AetherSealContract.OWNER,
     }));
     assert(productionFormulaRuntime.policyModel === 'jrpg-stat-formula',
       'production combat policy is not loaded');
@@ -246,6 +250,9 @@ function createServer() {
     assert(productionFormulaRuntime.commonsVersion === '0.1.0' &&
            productionFormulaRuntime.commonsOwner === 'ender',
       'Commons Ledger runtime contract is not loaded for Ender');
+    assert(productionFormulaRuntime.aetherSealVersion === '0.1.0' &&
+           productionFormulaRuntime.aetherSealOwner === 'ender',
+      'Aether Seal runtime contract is not loaded for Ender');
 
     // Level-1 progression must actually gate actions 6-8.
     await page.keyboard.press('6');
@@ -492,6 +499,11 @@ function createServer() {
         mycelialCommonCount: vocabulary
           ? vocabulary.ACTION_EFFECT_PROFILES.mycelialLedger.common.length
           : -1,
+        aetherSealImplemented: vocabulary
+          ? vocabulary.ACTION_EFFECT_PROFILES.aetherSeal.success
+              .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED)
+              .map(effect => effect.kind + ':' + effect.key)
+          : [],
       };
     });
 
@@ -513,6 +525,8 @@ function createServer() {
     }
     assert(effectContract.mycelialCommonCount === 0,
       'Mycelial Ledger unexpectedly retains common resource/Heat mutations');
+    assert(effectContract.aetherSealImplemented.includes('status:aether-suppressed'),
+      'Aether Seal suppression status is not marked implemented');
 
     const registryContract = await page.evaluate(() => {
       const abilities = window.AetherAbilityDefs;
@@ -540,6 +554,14 @@ function createServer() {
           resolutionModel: abilities.DEFS.mycelialLedger.resolution &&
             abilities.DEFS.mycelialLedger.resolution.model,
         },
+        aetherSealAuthority: abilities && abilities.DEFS.aetherSeal && {
+          authorityStatus: abilities.DEFS.aetherSeal.authorityStatus,
+          migrationStatus: abilities.DEFS.aetherSeal.migrationStatus,
+          canonicalOwner: abilities.DEFS.aetherSeal.canonicalOwner,
+          hasResolution: Boolean(abilities.DEFS.aetherSeal.resolution),
+          resolutionModel: abilities.DEFS.aetherSeal.resolution &&
+            abilities.DEFS.aetherSeal.resolution.model,
+        },
         levelUnlocks: progression && Object.fromEntries(
           Object.entries(progression.LEVEL_UNLOCKS)
             .map(([level, entries]) => [level, entries.map(entry => entry.abilityId)])
@@ -564,6 +586,13 @@ function createServer() {
       registryContract.mycelialLedgerAuthority.hasResolution === true &&
       registryContract.mycelialLedgerAuthority.resolutionModel === 'commons-readonly',
       'Mycelial Ledger SSOT migration guard drifted');
+    assert(registryContract.aetherSealAuthority &&
+      registryContract.aetherSealAuthority.authorityStatus === 'creator-aligned-aether-ward' &&
+      registryContract.aetherSealAuthority.migrationStatus === 'live-aether-seal-v1' &&
+      registryContract.aetherSealAuthority.canonicalOwner === 'ender' &&
+      registryContract.aetherSealAuthority.hasResolution === true &&
+      registryContract.aetherSealAuthority.resolutionModel === 'aether-seal',
+      'Aether Seal authority binding drifted');
     assert(registryContract.validAbilities,
       'runtime actions drifted from canonical ability definitions');
     assert(registryContract.validProgression,
@@ -847,6 +876,129 @@ function createServer() {
     assert(commonsLedgerContract.log.some(line =>
       line.includes('Mycelial Ledger') && !line.includes('Roll:')),
       'Mycelial Ledger still exposes legacy dice text');
+
+    const aetherSealLiveContract = await page.evaluate(() => {
+      const originalRandom = window.random;
+      try {
+        window._combat.init({
+          vit: 13,
+          scrap: 7,
+          aether: { current: 6, max: 6 },
+          heat: { current: 0, max: 3 },
+          echoes: { current: 3, max: 3 },
+          charges: 2,
+          staffMax: 2,
+          level: 4,
+          xp: 0,
+          xpToNext: 168,
+          unlockedAbilities: ['uncoverTruth','sharedDream','mycelialLedger','windWard','aetherSeal'],
+          productionStats: window._world.player.productionStats,
+          productionDerivedStats: window._world.player.productionDerivedStats,
+          productionStatModelVersion: '0.1.0',
+        });
+
+        // Force enemy-turn hit branches so suppression must actually prevent drain.
+        window.random = function(min, max) {
+          if (max !== undefined) {
+            if (min === 1 && max === 4) return 3;
+            return (min + max) / 2;
+          }
+          if (min !== undefined) return min * 0.5;
+          return 0.5;
+        };
+
+        window._combat.beginEncounter('aetherLeak');
+        const beforeSeal = window._combat.getState();
+        const sealResult = window._combat.resolveTurn('aetherSeal', null);
+        const afterSeal = window._combat.getState();
+        const aetherAfterSeal = afterSeal.player.aether.current;
+        const suppressionAfterSeal = afterSeal.enemy.aetherSuppression;
+
+        window._combat.resolveTurn('hold', null);
+        const afterSecondSuppressedTurn = window._combat.getState();
+
+        window._combat.init({
+          vit: 13,
+          scrap: 7,
+          aether: { current: 6, max: 6 },
+          heat: { current: 0, max: 3 },
+          echoes: { current: 3, max: 3 },
+          charges: 2,
+          staffMax: 2,
+          level: 4,
+          xp: 0,
+          xpToNext: 168,
+          unlockedAbilities: ['uncoverTruth','sharedDream','mycelialLedger','windWard','aetherSeal'],
+        });
+        window._combat.beginEncounter('skyPredator');
+        const beforeRejected = window._combat.getState();
+        const rejectedResult = window._combat.resolveTurn('aetherSeal', null);
+        const afterRejected = window._combat.getState();
+
+        return {
+          sealResult,
+          beforeSealTurn: beforeSeal.turn,
+          afterSealTurn: afterSeal.turn,
+          aetherBeforeSeal: beforeSeal.player.aether.current,
+          aetherAfterSeal,
+          echoesBeforeSeal: beforeSeal.player.echoes.current,
+          echoesAfterSeal: afterSeal.player.echoes.current,
+          heatAfterSeal: afterSeal.player.heat.current,
+          suppressionAfterSeal,
+          aetherAfterSecondSuppressedTurn: afterSecondSuppressedTurn.player.aether.current,
+          suppressionCleared: !afterSecondSuppressedTurn.enemy.aetherSuppression,
+          sealLog: afterSeal.log.slice(),
+          rejectedResult,
+          rejectedBeforeTurn: beforeRejected.turn,
+          rejectedAfterTurn: afterRejected.turn,
+          rejectedBeforeEchoes: beforeRejected.player.echoes.current,
+          rejectedAfterEchoes: afterRejected.player.echoes.current,
+          rejectedBeforeAether: beforeRejected.player.aether.current,
+          rejectedAfterAether: afterRejected.player.aether.current,
+          rejectedLog: afterRejected.log.slice(),
+        };
+      } finally {
+        window.random = originalRandom;
+        startCombat('skyPredator');
+      }
+    });
+
+    assert(aetherSealLiveContract.sealResult !== false,
+      'Aether Seal was rejected on explicitly Aether-dependent target');
+    assert(aetherSealLiveContract.beforeSealTurn === 0 &&
+           aetherSealLiveContract.afterSealTurn === 1,
+      'Aether Seal did not consume exactly one turn');
+    assert(aetherSealLiveContract.echoesBeforeSeal === 3 &&
+           aetherSealLiveContract.echoesAfterSeal === 0,
+      'Aether Seal did not pay its existing three-point pooled resource cost');
+    assert(aetherSealLiveContract.aetherBeforeSeal === 6 &&
+           aetherSealLiveContract.aetherAfterSeal === 6 &&
+           aetherSealLiveContract.aetherAfterSecondSuppressedTurn === 6,
+      'Aether Seal failed to suppress Wraith Aether drain for two enemy turns');
+    assert(aetherSealLiveContract.heatAfterSeal === 1,
+      'Aether Seal did not preserve current Heat-generation policy');
+    assert(aetherSealLiveContract.suppressionAfterSeal &&
+           aetherSealLiveContract.suppressionAfterSeal.remainingTurns === 1,
+      'Aether Seal suppression did not establish/decrement correctly');
+    assert(aetherSealLiveContract.suppressionCleared === true,
+      'Aether Seal suppression did not expire after two enemy turns');
+    assert(aetherSealLiveContract.sealLog.some(line =>
+      line.includes('Aether Seal') && !line.includes('Roll:')),
+      'Aether Seal still exposes legacy dice text');
+
+    assert(aetherSealLiveContract.rejectedResult === false,
+      'Aether Seal did not fail closed on non-Aether-dependent target');
+    assert(aetherSealLiveContract.rejectedBeforeTurn === 0 &&
+           aetherSealLiveContract.rejectedAfterTurn === 0,
+      'rejected Aether Seal consumed a turn');
+    assert(aetherSealLiveContract.rejectedBeforeEchoes ===
+           aetherSealLiveContract.rejectedAfterEchoes &&
+           aetherSealLiveContract.rejectedBeforeAether ===
+           aetherSealLiveContract.rejectedAfterAether,
+      'rejected Aether Seal consumed resources');
+    assert(aetherSealLiveContract.rejectedLog.some(line =>
+      line.includes('Aether Seal cannot bind')),
+      'rejected Aether Seal did not expose fail-closed reason');
 
     if (errors.length) {
       throw new Error('browser errors:\n' + errors.join('\n'));
