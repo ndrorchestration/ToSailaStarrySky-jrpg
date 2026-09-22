@@ -315,6 +315,14 @@ function subtitleBackgroundAlpha() {
   }[userSettings.subtitleBackground] ?? 90;
 }
 
+function dialogueCaptionVisible() {
+  // Dialogue text is essential information. If subtitles are disabled, hide
+  // captions only after the optional TTS asset is positively confirmed
+  // playable. Missing/unavailable audio always keeps text visible fail-closed.
+  if (!userSettings || userSettings.subtitles !== false) return true;
+  return window.UI && window.UI.dialogueAudioAvailable === true ? false : true;
+}
+
 function maybeGamepadVibrate(kind) {
   if (!userSettings || userSettings.controllerVibration === 'off' ||
       typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function') {
@@ -377,6 +385,7 @@ function applyUserSettings(settings) {
     textSpeed: userSettings.textSpeed,
     textScale: userSettings.textScale,
     highContrastUI: highContrast,
+    subtitles: userSettings.subtitles,
     subtitleSize: userSettings.subtitleSize,
     subtitleBackground: userSettings.subtitleBackground,
     speakerLabels: userSettings.speakerLabels,
@@ -2182,7 +2191,7 @@ function drawSettingsOverlay() {
   textFont('VT323');
   uiTextSize(14);
   fill(C.scioto[0], C.scioto[1], C.scioto[2]);
-  text('Changes save immediately. Integrated now: motion, screen shake, text speed, effects/dialogue volume.', x + 20, y + 42);
+  text('Changes save immediately. Accessibility/input changes apply now; Music Volume awaits the canonical music bus.', x + 20, y + 42);
 
   const order = window.AetherUserSettings.SETTING_ORDER.concat(['__controls']);
   const focus = settingsMenuFocus ? window.AetherFocusManager.snapshot(settingsMenuFocus) : null;
@@ -3458,8 +3467,11 @@ function drawDialogueOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2], 180 * (openness / 255));
   rect(0, 0, width, height);
 
-  const bx = width/2 - 240, by = height - 112, bw = 480, bh = 92;
-  const captionAlpha = subtitleBackgroundAlpha();
+  const dialogueScale = accessibilityTextScale() * subtitleSizeMultiplier();
+  const bh = Math.min(176, 92 + Math.max(0, dialogueScale - 1) * 72);
+  const bx = width/2 - 240, by = height - bh - 20, bw = 480;
+  const captionVisible = dialogueCaptionVisible();
+  const captionAlpha = captionVisible ? subtitleBackgroundAlpha() : 0;
   fill(C.navy[0], C.navy[1], C.navy[2], window._highContrastUI ? 255 : 235);
   noStroke();
   rect(bx, by, bw, bh);
@@ -3483,11 +3495,13 @@ function drawDialogueOverlay() {
     text(npcName, bx + 10, by + 10);
   }
 
-  textFont('VT323');
-  uiTextSize(13 * subtitleSizeMultiplier());
-  textLeading(16 * accessibilityTextScale() * subtitleSizeMultiplier());
-  fill(C.parchment[0], C.parchment[1], C.parchment[2]);
-  wrapText(window.UI.dialogueText || '...', bx + 10, by + 28, bw - 20);
+  if (captionVisible) {
+    textFont('VT323');
+    uiTextSize(13 * subtitleSizeMultiplier());
+    textLeading(16 * accessibilityTextScale() * subtitleSizeMultiplier());
+    fill(C.parchment[0], C.parchment[1], C.parchment[2]);
+    wrapText(window.UI.dialogueText || '...', bx + 10, by + 28, bw - 20);
+  }
 
   textFont('Press Start 2P');
   uiTextSize(8);
@@ -4941,18 +4955,29 @@ function playDialogueAudioLine() {
   // asset manifest admits this exact clip. This prevents absent optional audio
   // from generating 404s during otherwise healthy dialogue.
   const manifest = window.AetherDialogueTTSManifest;
-  if (!manifest || manifest[src] !== true) return;
+  if (!manifest || manifest[src] !== true) {
+    window.UI.dialogueAudioAvailable = false;
+    return;
+  }
 
   try {
     if (!_dialogueAudioEl) {
       _dialogueAudioEl = new Audio();
     }
+    window.UI.dialogueAudioAvailable = false;
+    _dialogueAudioEl.oncanplay = function() {
+      window.UI.dialogueAudioAvailable = true;
+    };
+    _dialogueAudioEl.onerror = function() {
+      window.UI.dialogueAudioAvailable = false;
+    };
     const dialogueVolume = userSettings && Number.isInteger(userSettings.dialogueVolume)
       ? userSettings.dialogueVolume
       : 100;
     _dialogueAudioEl.volume = 0.92 * (dialogueVolume / 100);
     _dialogueAudioEl.src = src;
     _dialogueAudioEl.play().catch(function(err) {
+      window.UI.dialogueAudioAvailable = false;
       console.warn('[TTS] play failed for ' + src + ': ' + err.message);
     });
   } catch (e) {
@@ -4965,6 +4990,7 @@ function stopDialogueAudio() {
     try { _dialogueAudioEl.pause(); } catch (e) { /* ignore */ }
     _dialogueAudioEl = null;
   }
+  if (window.UI) window.UI.dialogueAudioAvailable = false;
 }
 
 // ---------------------------------------------------------------------------
