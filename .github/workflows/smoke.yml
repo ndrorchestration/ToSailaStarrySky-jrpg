@@ -171,6 +171,9 @@ jobs:
       - name: Verify persistence coverage registry
         run: npm run test:persistence-coverage
 
+      - name: Verify WORLD authority and four-hazard mirror
+        run: npm run test:world-authority
+
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
