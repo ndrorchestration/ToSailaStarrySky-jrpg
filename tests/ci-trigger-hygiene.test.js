@@ -11,8 +11,10 @@ const desktop = fs.readFileSync(path.join(root, '.github', 'workflows', 'desktop
 for (const ignored of ["'docs/**'", "'**/*.md'", "'.github/ISSUE_TEMPLATE/**'"]) {
   assert(smoke.includes(ignored), 'smoke workflow must ignore documentation-only change: ' + ignored);
 }
-assert(smoke.includes('pull_request:\n    paths-ignore:'),
-  'pull-request smoke must skip documentation-only changes');
+assert(smoke.includes('pull_request:\n'),
+  'pull-request smoke trigger must remain present');
+assert(!smoke.includes('pull_request:\n    paths-ignore:'),
+  'pull-request smoke must remain unconditional while required-check protection is unknown');
 assert(smoke.includes('npm run test:ci-trigger-hygiene'),
   'smoke workflow must self-check trigger hygiene');
 
