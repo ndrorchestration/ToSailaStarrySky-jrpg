@@ -572,7 +572,21 @@ function dispatchGamepadActions(result) {
     return true;
   }
 
+  if (gameState === STATE.SAVELOAD) {
+    if (!pressed.length) return false;
+    semanticActionsPressed.clear();
+    for (const action of pressed) semanticActionsPressed.add(action);
+    window._lastSemanticActions = pressed.slice();
+    handleSaveLoadInput();
+    clearSemanticActions();
+    return true;
+  }
+
   if (gameState === STATE.WORLD) {
+    if (pressed.includes('open-save-load')) {
+      openSaveLoadMenu('save');
+      return true;
+    }
     if (quest && quest.state === QUEST_STATES.WAKE && pressed.includes('confirm')) {
       advanceWake();
       return true;
@@ -662,6 +676,10 @@ function dispatchGamepadActions(result) {
     if (!ensureAirNavigationState()) return false;
     const nav = window.AetherAirNavigation;
 
+    if (pressed.includes('open-save-load')) {
+      openSaveLoadMenu('save');
+      return true;
+    }
     if (pressed.includes('airship-land')) {
       leaveAirNavigation();
       return true;
@@ -981,6 +999,12 @@ function keyPressed() {
   }
   if (semanticActionPressed('manual-load')) {
     openSaveLoadMenu('load');
+    delete keysPressed[keyCode];
+    clearSemanticActions();
+    return false;
+  }
+  if (semanticActionPressed('open-save-load')) {
+    openSaveLoadMenu('save');
     delete keysPressed[keyCode];
     clearSemanticActions();
     return false;
@@ -1743,7 +1767,7 @@ function drawSaveLoadOverlay() {
     textSize(9);
   }
   fill(C.scioto[0], C.scioto[1], C.scioto[2]);
-  text('↑/↓ focus   ←/→ mode   ENTER confirm   ESC return', 90, height - 46);
+  text('↑/↓ focus   ←/→ mode   ENTER / SOUTH confirm   ESC / EAST return', 90, height - 46);
 }
 
 function syncSettingsMenuFocusSnapshot() {
