@@ -298,3 +298,78 @@ The evaluator only answers whether a spell is currently **eligible for access**.
 `modules/party-state.js` can replace a character's magic profile only after validating matching character identity, making mastery/learned-spell updates session-persistent on the canonical roster. Save-file persistence remains unimplemented.
 
 Unsupported magic must continue to fail closed rather than being simulated through narration-only effects.
+
+
+---
+
+## 13. Matrix v2, formula enrichment, and weapon integration — 2026-09-22
+
+### Matrix v2
+
+The next elemental interaction matrix must cover the 11 admitted elemental trees and classify each applicable pairing as one or more of:
+
+- reaction;
+- amplification;
+- conversion;
+- cancellation;
+- propagation;
+- transformation;
+- status interaction;
+- terrain interaction;
+- intentionally no unique interaction.
+
+Directional/asymmetric behavior is allowed when order matters.
+
+The historical 15-domain / 105-pair cross-school matrix remains provenance. A revised all-school matrix should be generated only after the next taxonomy roster is deliberately admitted.
+
+### Existing spell catalogs are not to be rewritten from scratch
+
+`modules/elemental-spell-trees.js` and `modules/non-elemental-spell-trees.js` already provide the current Rank 1–5 design seed corpus. The next pass should **curate and enrich** those definitions with production metadata rather than create a competing spell-list source.
+
+Each executable candidate should eventually bind to:
+
+- a reusable formula family;
+- typed potency/scaling/defense parameters;
+- accuracy/variance/critical policy where applicable;
+- status/field/reaction payloads;
+- explicit resources/costs;
+- timing and targeting;
+- stacking/counter rules;
+- persistence/runtime admission.
+
+### Weapon + magic boundary
+
+Weapon skills are not a new magic school and should not be stored in the magic mastery profile.
+
+However, the magic system must expose deliberate crossover hooks:
+
+- Elemental / Arcane imbues;
+- Resonance timing, vibration, shatter, and harmonic guard-break interactions;
+- Correspondence reach, routing, projectile redirection, and attack geometry;
+- Aether-powered weapons, conductors, barriers, and resonator devices;
+- Lumen targeting/refraction/visibility/radiant interaction without becoming a Holy damage school.
+
+Proposed domains may add weapon interactions only after explicit domain admission.
+
+### Field/state design
+
+Atmosphere, Surface, Temperature, and Charge remain the current field-state channels. New channels require explicit justification rather than convenience.
+
+The implementation gap is no longer naming more reactions; it is establishing one production policy for:
+
+- field magnitude;
+- duration/decay;
+- stacking;
+- reaction priority;
+- state consumption/creation;
+- resistance/immunity;
+- boss-control limits;
+- loop prevention;
+- deterministic testability.
+
+### Resource boundary
+
+- Aether remains external/world-accessible energy/current.
+- Arete remains the leading candidate for personal/internal casting expenditure where appropriate, but its economy is not frozen.
+- Echoes remain unresolved and must not be silently converted into universal spell mana.
+
