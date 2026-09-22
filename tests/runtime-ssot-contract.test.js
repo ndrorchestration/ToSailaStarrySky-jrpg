@@ -22,6 +22,10 @@ assert(readme.includes('conventional JRPG formula model'),
   'README does not state current combat target');
 assert(readme.includes('ACTIVE_PARTY[1..5]'),
   'README does not state 1–5 active-party architecture');
+assert(readme.includes('First Wake now begins with Ender alone'),
+  'README does not state authored First Wake party bootstrap');
+assert(readme.includes('Historical compatibility adapter; not the normal New Game path'),
+  'README still treats char-create as canonical onboarding');
 assert(!uiAdapter.includes('TURN-BASED 2D6 PbtA'),
   'active title UI still advertises 2D6/PbtA');
 assert(!ui.includes("'Uncover Truth  (2D6+Wits)'"),
@@ -38,5 +42,9 @@ assert(spec.includes('Shared Dream — legacy compatibility residue'),
   'SPEC does not preserve Shared Dream SSOT boundary');
 assert(spec.includes('Wind Ward — legacy compatibility residue'),
   'SPEC does not preserve Wind Ward SSOT boundary');
+assert(spec.includes('First Wake starts with Ender alone and adds Lyra at Sequence 06'),
+  'SPEC does not bind the authored opening recruitment boundary');
+assert(spec.includes('modules/first-wake-opening.js'),
+  'SPEC does not identify the active First Wake opening controller');
 
 console.log('Aetherwake runtime/documentation SSOT contract: PASS');

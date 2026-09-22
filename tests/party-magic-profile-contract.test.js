@@ -20,7 +20,12 @@ const worldPlayer = {
 
 const boot = window.AetherPartyState.bootstrap(worldPlayer);
 assert.strictEqual(boot.roster.length, 5);
-assert.strictEqual(boot.activeParty.length, 3);
+assert.strictEqual(boot.activeParty.length, 1);
+assert.deepStrictEqual(boot.activeParty.map(character => character.id), ['ender']);
+assert.deepStrictEqual(
+  boot.roster.map(character => Boolean(character.playable)),
+  [true, false, false, false, false]
+);
 
 for (const character of boot.roster) {
   assert.ok(character.magicProfile, `${character.id} missing magicProfile`);

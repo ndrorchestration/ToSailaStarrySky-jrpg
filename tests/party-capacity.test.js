@@ -26,34 +26,37 @@ const state = window.AetherPartyState;
 state.bootstrap(ender);
 
 assert.strictEqual(state.roster.length, 5);
-assert.strictEqual(state.activeParty.length, 3,
-  'preservation bootstrap should still start with the current three-slot adapter');
+assert.strictEqual(state.activeParty.length, 1,
+  'authored opening bootstrap must begin with Ender alone');
+assert.deepStrictEqual(Array.from(state.activeParty, member => member.id), ['ender']);
+assert.deepStrictEqual(Array.from(state.roster, member => Boolean(member.playable)),
+  [true, false, false, false, false]);
 assert.strictEqual(state.maxActiveParty, 5);
 assert.strictEqual(state.minActiveParty, 1);
 
-state.setActivePartyIds(['ender']);
-assert.deepStrictEqual(
-  Array.from(state.activeParty, member => member.id),
-  ['ender'],
-  'opening must be able to begin with Ender alone'
+assert.throws(
+  () => state.setActivePartyIds(['ender', 'lyra']),
+  /ACTIVE_PARTY_CHARACTER_NOT_PLAYABLE:lyra/
 );
 
-state.roster[1].runtimeImplemented = true;
-state.roster[2].runtimeImplemented = true;
-state.setActivePartyIds(['ender', 'lyra']);
+state.recruitCharacter('lyra');
 assert.deepStrictEqual(Array.from(state.activeParty, member => member.id), ['ender', 'lyra']);
 
-state.setActivePartyIds(['ender', 'lyra', 'ionia']);
+state.recruitCharacter('ionia');
 assert.deepStrictEqual(
   Array.from(state.activeParty, member => member.id),
   ['ender', 'lyra', 'ionia']
 );
 
-state.roster[3].runtimeImplemented = true;
+assert.throws(
+  () => state.recruitCharacter('reson'),
+  /PARTY_STATE_RECRUITMENT_NOT_AUTHORIZED:reson/
+);
+state.roster[3].playable = true;
 state.setActivePartyIds(['ender', 'lyra', 'ionia', 'reson']);
 assert.strictEqual(state.activeParty.length, 4);
 
-state.roster[4].runtimeImplemented = true;
+state.roster[4].playable = true;
 state.setActivePartyIds(['ender', 'lyra', 'ionia', 'reson', 'aepex']);
 assert.strictEqual(state.activeParty.length, 5);
 assert.deepStrictEqual(

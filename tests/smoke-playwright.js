@@ -71,7 +71,8 @@ function createServer() {
 
     await page.waitForSelector('canvas', { timeout: 15000 });
     await page.waitForFunction(() =>
-      window._charcreate &&
+      window._firstWakeOpeningState &&
+      window.AetherFirstWakeOpening &&
       window._combat &&
       window._world &&
       document.querySelector('canvas') &&
@@ -95,52 +96,69 @@ function createServer() {
       'normal launch exposed a debug overlay');
 
     // One real Enter follows the production input path:
-    // BOOT → MENU → CHARCREATE and char-create title → name.
+    // BOOT → MENU → OPENING. No custom companion creation is allowed.
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
-      window.gameState === 'charcreate' &&
-      window._charcreate &&
-      window._charcreate.phase === 'name'
+      window.gameState === 'opening' &&
+      window._firstWakeOpeningState &&
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 0
     , undefined, { timeout: 5000 });
 
-    // The current prototype defaults to Sky-Sailor if no numeric job key is
-    // chosen. Avoid numeric selection here so this smoke test does not couple
-    // itself to prototype name/job input quirks.
-    await page.keyboard.type('Lyra');
-    await page.keyboard.press('Enter');
-
-    await page.waitForFunction(() =>
-      window._charcreate &&
-      window._charcreate.phase === 'name' &&
-      window._charcreate.slot === 1 &&
-      window._charcreate.party &&
-      window._charcreate.party[1]
-    , undefined, { timeout: 5000 });
-
-    await page.keyboard.type('Ionia');
-    await page.keyboard.press('Enter');
-
-    await page.waitForFunction(() =>
-      window._charcreate &&
-      window._charcreate.phase === 'review' &&
-      window._charcreate.party &&
-      window._charcreate.party[2]
-    , undefined, { timeout: 5000 });
-
-    const review = await page.evaluate(() => ({
-      partyLength: window._charcreate.party.length,
-      ender: window._charcreate.party[0] && window._charcreate.party[0].name,
-      companion1: window._charcreate.party[1] && window._charcreate.party[1].name,
-      companion2: window._charcreate.party[2] && window._charcreate.party[2].name,
+    const openingBootstrap = await page.evaluate(() => ({
+      sceneId: window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id,
+      activeIds: window.ACTIVE_PARTY.map(character => character.id),
+      playable: window.ROSTER.map(character => Boolean(character.playable)),
+      charCreatePhase: window._charcreate && window._charcreate.phase,
     }));
+    assert(openingBootstrap.sceneId === 'arrival_horizon',
+      'New Game did not begin at authored First Wake Sequence 00');
+    assert(openingBootstrap.activeIds.join('|') === 'ender',
+      'First Wake did not begin with Ender alone');
+    assert(openingBootstrap.playable.join('|') === 'true|false|false|false|false',
+      'opening bootstrap exposed unjoined protagonists');
+    assert(openingBootstrap.charCreatePhase !== 'name',
+      'normal New Game incorrectly entered custom companion creation');
 
-    assert(review.partyLength === 3, 'prototype review did not contain three party slots');
-    assert(review.ender === 'Ender', 'Ender missing from prototype party');
-    assert(review.companion1 === 'Lyra', 'first companion name was not retained');
-    assert(review.companion2 === 'Ionia', 'second companion name was not retained');
+    for (let i = 0; i < 6; i++) await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.gameState === 'opening' &&
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 6
+    , undefined, { timeout: 5000 });
+
+    const beforeLyraJoin = await page.evaluate(() => ({
+      sceneId: window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id,
+      activeIds: window.ACTIVE_PARTY.map(character => character.id),
+      playable: window.ROSTER.map(character => Boolean(character.playable)),
+    }));
+    assert(beforeLyraJoin.sceneId === 'wrong_song',
+      'First Wake did not reach the Wrong Song join scene');
+    assert(beforeLyraJoin.activeIds.join('|') === 'ender',
+      'Lyra joined before the authored Wrong Song beat');
 
     await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 7 &&
+      window.ACTIVE_PARTY.length === 2
+    , undefined, { timeout: 5000 });
 
+    const afterLyraJoin = await page.evaluate(() => ({
+      activeIds: window.ACTIVE_PARTY.map(character => character.id),
+      playable: window.ROSTER.map(character => Boolean(character.playable)),
+      lyraRef: window.ACTIVE_PARTY[1] === window.ROSTER[1],
+      ioniaActive: window.ACTIVE_PARTY.some(character => character.id === 'ionia'),
+    }));
+    assert(afterLyraJoin.activeIds.join('|') === 'ender|lyra',
+      'Lyra did not join at the authored Sequence 06 boundary');
+    assert(afterLyraJoin.playable.join('|') === 'true|true|false|false|false',
+      'Lyra join widened protagonist availability beyond the authored boundary');
+    assert(afterLyraJoin.lyraRef,
+      'Lyra active-party entry is not the canonical roster record');
+    assert(afterLyraJoin.ioniaActive === false,
+      'Ionia joined before the authored departure decision');
+
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.gameState === 'world' &&
       window._world &&
@@ -152,12 +170,18 @@ function createServer() {
       className: window._world.player.class,
       level: window._world.player.level,
       xp: window._world.player.xp,
+      openingComplete: window._firstWakeOpeningState.complete,
+      activeIds: window.ACTIVE_PARTY.map(character => character.id),
     }));
 
-    assert(typeof worldBeforeCombat.name === 'string' && worldBeforeCombat.name.length > 0,
-      'CHARCREATE → WORLD lost player name');
-    assert(typeof worldBeforeCombat.className === 'string' && worldBeforeCombat.className.length > 0,
-      'CHARCREATE → WORLD lost player class');
+    assert(worldBeforeCombat.name === 'Ender',
+      'First Wake handoff lost authored Ender identity');
+    assert(worldBeforeCombat.className === 'Rift Scholar',
+      'First Wake handoff lost Ender Rift Scholar job');
+    assert(worldBeforeCombat.openingComplete === true,
+      'First Wake opening did not mark completion at chapter-card handoff');
+    assert(worldBeforeCombat.activeIds.join('|') === 'ender|lyra',
+      'chapter-card handoff did not preserve authored two-member party');
 
     const partyArchitecture = await page.evaluate(() => ({
       rosterLength: window.ROSTER && window.ROSTER.length,
@@ -167,13 +191,14 @@ function createServer() {
       rosterRefs: window.ROSTER && window.ACTIVE_PARTY && [
         window.ACTIVE_PARTY[0] === window.ROSTER[0],
         window.ACTIVE_PARTY[1] === window.ROSTER[1],
-        window.ACTIVE_PARTY[2] === window.ROSTER[2],
       ],
       worldLeadRef: Boolean(window._world && window.ROSTER &&
         window._world.player === window.ROSTER[0]),
       legacyPartyAlias: window.party === window.ACTIVE_PARTY,
       runtimeImplemented: window.ROSTER &&
         window.ROSTER.map(character => Boolean(character.runtimeImplemented)),
+      playable: window.ROSTER &&
+        window.ROSTER.map(character => Boolean(character.playable)),
       statModelVersion: window.AetherJRPGStatModel && window.AetherJRPGStatModel.VERSION,
       productionStatModelVersion: window.AetherPartyState &&
         window.AetherPartyState.productionStatModelVersion,
@@ -189,19 +214,21 @@ function createServer() {
     }));
 
     assert(partyArchitecture.rosterLength === 5, 'persistent roster does not contain five records');
-    assert(partyArchitecture.activeLength === 3, 'active party does not contain three references');
+    assert(partyArchitecture.activeLength === 2, 'chapter-card party does not contain Ender + Lyra');
     assert(partyArchitecture.rosterIds.join('|') === 'ender|lyra|ionia|reson|aepex',
       'persistent roster identity order is incorrect');
-    assert(partyArchitecture.activeIds.join('|') === 'ender|lyra|ionia',
-      'initial active party references are incorrect');
+    assert(partyArchitecture.activeIds.join('|') === 'ender|lyra',
+      'chapter-card active party references are incorrect');
     assert(partyArchitecture.rosterRefs.every(Boolean),
       'ACTIVE_PARTY members are not the canonical ROSTER references');
     assert(partyArchitecture.worldLeadRef,
       'WORLD player is not the canonical Ender roster record');
     assert(partyArchitecture.legacyPartyAlias,
       'legacy window.party alias is not canonical ACTIVE_PARTY');
-    assert(partyArchitecture.runtimeImplemented.join('|') === 'true|true|true|false|false',
+    assert(partyArchitecture.runtimeImplemented.join('|') === 'true|false|false|false|false',
       'runtime implementation boundary for roster records is incorrect');
+    assert(partyArchitecture.playable.join('|') === 'true|true|false|false|false',
+      'story-playable boundary drifted after Lyra join');
     assert(partyArchitecture.statModelVersion === '0.1.0',
       'JRPG stat model is not loaded in the browser runtime');
     assert(partyArchitecture.productionStatModelVersion === '0.1.0',
@@ -1074,7 +1101,9 @@ function createServer() {
 
     console.log('Aetherwake smoke test: PASS');
     console.log(JSON.stringify({
-      party: review,
+      openingBootstrap,
+      beforeLyraJoin,
+      afterLyraJoin,
       partyArchitecture,
       enemyMetadataContract,
       affordabilityContract,
