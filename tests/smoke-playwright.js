@@ -318,6 +318,45 @@ function createServer() {
     await page.keyboard.press('d');
     await page.waitForFunction(() => window._world.player.tileX === 17);
 
+    // Save/load round-trip: manual slot must restore world position, party state,
+    // quest state, and expose Continue metadata through the production runtime.
+    const savedRoundTrip = await page.evaluate(() => {
+      const before = {
+        tileX: window._world.player.tileX,
+        tileY: window._world.player.tileY,
+        questState: window._world.getQuestState().state,
+        activeIds: window.ACTIVE_PARTY.map(character => character.id),
+      };
+      if (!saveToSlot('manual-1', false)) throw new Error('manual save failed');
+      window._world.player.tileX = 25;
+      window._world.player.tileY = 25;
+      window._world.player.px = 25 * 16;
+      window._world.player.py = 25 * 16;
+      if (!loadFromSlot('manual-1')) throw new Error('manual load failed');
+      return {
+        before,
+        after: {
+          tileX: window._world.player.tileX,
+          tileY: window._world.player.tileY,
+          questState: window._world.getQuestState().state,
+          activeIds: window.ACTIVE_PARTY.map(character => character.id),
+        },
+        latest: window._latestSaveMeta,
+        storageType: window._lastLoadResult && window._lastLoadResult.storageType,
+      };
+    });
+    assert(savedRoundTrip.after.tileX === savedRoundTrip.before.tileX &&
+           savedRoundTrip.after.tileY === savedRoundTrip.before.tileY,
+      'save/load round-trip did not restore world position');
+    assert(savedRoundTrip.after.questState === savedRoundTrip.before.questState,
+      'save/load round-trip did not restore quest state');
+    assert(savedRoundTrip.after.activeIds.join('|') === savedRoundTrip.before.activeIds.join('|'),
+      'save/load round-trip did not restore canonical active party');
+    assert(savedRoundTrip.latest && savedRoundTrip.latest.slot === 'manual-1',
+      'manual save did not become a valid Continue candidate');
+    assert(savedRoundTrip.storageType === 'localStorage',
+      'browser smoke did not exercise localStorage save fallback');
+
     await page.keyboard.press('m');
     await page.waitForTimeout(200);
     assert((await page.evaluate(() => window.gameState)) === 'world',
