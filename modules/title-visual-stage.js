@@ -94,7 +94,7 @@
     return true;
   }
 
-  function drawTitleCopy(now) {
+  function drawTitleCopy(now, ctx) {
     const ui = root.AetherUI;
     const left = 74;
     const baseTop = 94;
@@ -162,6 +162,13 @@
       text('ENTER / N  confirm', left + 299, top + 167);
     }
 
+    if (ctx && ctx.hasContinue) {
+      textFont('Press Start 2P');
+      textSize(7);
+      fill(124, 200, 232, 205);
+      text('CONTINUE — C', left + 18, top + 205);
+    }
+
     if (ui && typeof ui.divider === 'function') ui.divider(left + 2, top + 216, 350, false);
     textFont('Press Start 2P');
     textSize(6);
@@ -214,7 +221,7 @@
     drawSky(now);
     drawHero(now);
     drawAmbientFrame(now);
-    drawTitleCopy(now);
+    drawTitleCopy(now, ctx || {});
     drawFooter();
     return true;
   }
