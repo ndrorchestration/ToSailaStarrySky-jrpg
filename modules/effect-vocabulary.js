@@ -116,13 +116,13 @@
       success: [
         effect(
           EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'weakness',
-          RUNTIME_STATUS.DECLARED_NOT_APPLIED,
-          'Current runtime narrates the reveal but stores no reveal state.'
+          RUNTIME_STATUS.IMPLEMENTED,
+          'Formula-native Uncover Truth stores the authored enemy weakness in analysis state.'
         ),
         effect(
-          EFFECT_KIND.MODIFIER, TARGET.SELF, OPERATION.INCREASE, 'nextRoll',
-          RUNTIME_STATUS.DECLARED_NOT_APPLIED,
-          'Current runtime assigns a local nextRollBonus but never applies it to a later roll.'
+          EFFECT_KIND.MODIFIER, TARGET.ENEMY, OPERATION.INCREASE, 'nextDamageMultiplier',
+          RUNTIME_STATUS.IMPLEMENTED,
+          'Formula-native Uncover Truth creates one 1.15x damage-analysis charge.'
         ),
       ],
       partial: [],
