@@ -133,7 +133,45 @@ function createServer() {
     assert(openingBootstrap.charCreatePhase !== 'name',
       'normal New Game incorrectly entered custom companion creation');
 
-    for (let i = 0; i < 6; i++) await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.gameState === 'opening' &&
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 2
+    , undefined, { timeout: 5000 });
+
+    const blockedDockAdvance = await page.evaluate(() => {
+      const before = window._firstWakeOpeningState.sceneIndex;
+      const result = window.AetherFirstWakeOpening.advance(window._firstWakeOpeningState);
+      return {
+        before,
+        after: window._firstWakeOpeningState.sceneIndex,
+        event: result.event && result.event.type,
+        progress: window.AetherFirstWakeOpening.dockWalkProgress(window._firstWakeOpeningState),
+      };
+    });
+    assert(blockedDockAdvance.before === 2 && blockedDockAdvance.after === 2,
+      'Sequence 02 advanced before the dock movement tutorial completed');
+    assert(blockedDockAdvance.event === 'interaction-required',
+      'Sequence 02 did not expose the movement gate');
+    assert(blockedDockAdvance.progress === 0,
+      'dock movement tutorial did not begin at the authored start');
+
+    for (let i = 0; i < 8; i++) await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() =>
+      window._firstWakeOpeningState.dockWalk &&
+      window._firstWakeOpeningState.dockWalk.ready === true
+    , undefined, { timeout: 5000 });
+
+    const dockReady = await page.evaluate(() => ({
+      progress: window.AetherFirstWakeOpening.dockWalkProgress(window._firstWakeOpeningState),
+      sceneId: window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id,
+    }));
+    assert(dockReady.progress === 1 && dockReady.sceneId === 'dock_walk',
+      'dock walk did not reach the Aureate Wake endpoint');
+
+    await page.keyboard.press('Enter');
+    for (let i = 0; i < 3; i++) await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.gameState === 'opening' &&
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 6
@@ -1181,6 +1219,8 @@ function createServer() {
     console.log('Aetherwake smoke test: PASS');
     console.log(JSON.stringify({
       openingBootstrap,
+      blockedDockAdvance,
+      dockReady,
       beforeLyraJoin,
       afterLyraJoin,
       partyArchitecture,
