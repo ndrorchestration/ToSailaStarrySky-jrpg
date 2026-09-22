@@ -30,6 +30,10 @@ const STATE = {
 let gameState = STATE.BOOT;
 window.gameState = gameState;  // expose for debug
 let prevState = null;
+// Overlay states need their own return target. `prevState` is updated every
+// frame for transition effects, so it cannot safely carry the state beneath
+// an overlay.
+let overlayReturnState = null;
 let menuAutoStartTimer = 0;  // one-shot: auto-start from MENU after 3s idle (prevents single-press hang)
 
 // Boot sequence timing
@@ -593,6 +597,16 @@ function handleInput() {
   if (gameState === STATE.WORLD) {
     handleWorldInput();
   }
+  else if (gameState === STATE.DIALOGUE) {
+    // Dialogue is a real overlay state, so its confirm key must be handled
+    // here instead of falling through to the generic close-only overlay path.
+    if (keysPressed[69] || keysPressed[13] || keysPressed[32]) {
+      if (world && typeof world.nextDialogueLine === 'function') {
+        world.nextDialogueLine();
+      }
+    }
+    if (keysPressed[27]) closeOverlay();
+  }
   else if (gameState === STATE.AIRSHIP) {
     handleAirNavigationInput();
   }
@@ -974,7 +988,7 @@ function startCombat(enemyId, returnState) {
     heat: { current: world.player.heat, max: world.player.heatMax },
     echoes: { current: world.player.echoes, max: world.player.echoesMax },
     charges: world.player.staffCharges,
-    staffMax: 2,
+    staffMax: world.player.maxStaffCharges || 2,
     aetherMax: world.player.aetherMax,
     heatMax: world.player.heatMax,
     echoesMax: world.player.echoesMax,
@@ -1032,6 +1046,16 @@ function finishCombat() {
     world.player.equipment = p.equipment
       ? JSON.parse(JSON.stringify(p.equipment))
       : world.player.equipment;
+    if (p.maxVit != null) world.player.maxVit = p.maxVit;
+    if (p.productionStats) {
+      world.player.productionStats = JSON.parse(JSON.stringify(p.productionStats));
+    }
+    if (p.productionDerivedStats) {
+      world.player.productionDerivedStats = JSON.parse(JSON.stringify(p.productionDerivedStats));
+    }
+    if (p.productionStatModelVersion) {
+      world.player.productionStatModelVersion = p.productionStatModelVersion;
+    }
   }
 
   gameState = combatReturnState || STATE.WORLD;
@@ -1042,6 +1066,7 @@ function finishCombat() {
 }
 
 function openState(s) {
+  overlayReturnState = gameState;
   prevState = gameState;
   gameState = s;
   window.gameState = gameState;
@@ -1059,6 +1084,24 @@ function openState(s) {
       break;
     case STATE.SHOP:
       window.UI.windowTone = [210, 180, 140]; // warm dusttan
+      window.UI.shopOpen = true;
+      window.UI.shopItems = world && typeof world.getShopItems === 'function'
+        ? world.getShopItems()
+        : [];
+      window.UI.shopBuyHandler = function (selection) {
+        const itemIndex = Number(selection) - 1;
+        if (!world || typeof world.purchaseItem !== 'function' ||
+            !Number.isInteger(itemIndex) || itemIndex < 0) return false;
+        const purchased = world.purchaseItem(itemIndex);
+        window.UI.lastShopSelection = itemIndex;
+        if (purchased) {
+          window.UI.shopItems = world.getShopItems();
+          showToast('REPAIR CAFE // PURCHASED', C.teal, 900);
+        } else {
+          showToast('REPAIR CAFE // UNAVAILABLE', C.rust, 900);
+        }
+        return purchased;
+      };
       break;
     case STATE.LEDGER:
       window.UI.windowTone = [180, 190, 200]; // neutral
@@ -1075,10 +1118,26 @@ function openState(s) {
 }
 
 function closeOverlay() {
-  if (prevState) {
-    gameState = prevState;
+  const overlayStates = [
+    STATE.DIALOGUE, STATE.SHOP, STATE.LEDGER, STATE.QUESTLOG, STATE.CHARSHEET
+  ];
+  if (overlayStates.includes(gameState)) {
+    if (gameState === STATE.DIALOGUE && world && typeof world.closeDialogue === 'function') {
+      world.closeDialogue();
+    }
+    if (gameState === STATE.SHOP && world && typeof world.closeShop === 'function') {
+      world.closeShop();
+    }
+    gameState = overlayReturnState || STATE.WORLD;
     window.gameState = gameState;
+    overlayReturnState = null;
     prevState = null;
+    window.UI.dialogueOpen = false;
+    window.UI.dialogueNPC = null;
+    window.UI.dialogueText = '';
+    window.UI.shopOpen = false;
+    window.UI.shopItems = [];
+    window.UI.shopBuyHandler = null;
     if (VIS.fadeTransitions) {
       startFade(100);
     }
@@ -1538,7 +1597,9 @@ function drawShopOverlay() {
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
   text('REPAIR CAFE \u2014 SHOP', sx + 16, sy + 12);
 
-  const scrap = combat ? combat.getScrap ? combat.getScrap() : 7 : 7;
+  const scrap = world && world.player
+    ? world.player.scrap
+    : (combat && combat.getScrap ? combat.getScrap() : 0);
   textFont('VT323');
   textSize(12);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
@@ -1552,7 +1613,9 @@ function drawShopOverlay() {
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
   text(' \u25A0', sx + 56, sy + 31);
 
-  const items = window.UI.shopItems || [];
+  const items = window.UI.shopItems && window.UI.shopItems.length
+    ? window.UI.shopItems
+    : (world && typeof world.getShopItems === 'function' ? world.getShopItems() : []);
   textSize(12);
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
@@ -1877,7 +1940,9 @@ const World = {
   movePlayer, interact, toggleLayer,
   plantField, boardShip,
   openLedger, openShop,
-  getQuestState, advanceQuest
+  closeShop, getShopItems, purchaseItem,
+  getQuestState, advanceQuest, getLedger,
+  nextDialogueLine, closeDialogue: closeWorldDialogue
 };
 
 // ---------------------------------------------------------------------------
@@ -1939,8 +2004,8 @@ function init() {
   initNPCs();
   initPlayer();
   World.npcs = npcs;
-  World.quest = quest;
   initQuest();
+  World.quest = quest;
   initShop();
   initLedgerPlaceholder();
   covenantField = { x: 0, y: 0, planted: false, life: 0 };
@@ -2687,6 +2752,7 @@ function doTalk() {
     checkSignalHook(nearest);
   }
 
+  openState(STATE.DIALOGUE);
   openDialogue(nearest);
 }
 
@@ -2802,12 +2868,15 @@ function getClassLockKey(npc) {
   return (player.class && player.class.toLowerCase()) || 'ender';
 }
 
-function closeDialogue() {
+function closeWorldDialogue() {
   if (activeDialogue) {
     activeDialogue.closed = true;
     activeDialogue = null;
     stopDialogueAudio();
   }
+  window.UI.dialogueOpen = false;
+  window.UI.dialogueNPC = null;
+  window.UI.dialogueText = '';
 }
 
 function nextDialogueLine() {
@@ -2822,8 +2891,8 @@ function nextDialogueLine() {
     return activeDialogue.lines[activeDialogue.lineIndex];
   }
   const last = activeDialogue.lines[activeDialogue.lineIndex];
-  stopDialogueAudio();
-  closeDialogue();
+  closeWorldDialogue();
+  if (gameState === STATE.DIALOGUE) closeOverlay();
   return last;
 }
 
@@ -2960,6 +3029,10 @@ function addLedgerEntry(type, text) {
   ledger.entries.push({ type, text, time: dayTime });
 }
 
+function getLedger() {
+  return ledger.entries.map(entry => ({ ...entry }));
+}
+
 // ---------------------------------------------------------------------------
 // Shop — M press (Repair Cafe)
 // ---------------------------------------------------------------------------
@@ -2967,17 +3040,17 @@ function addLedgerEntry(type, text) {
 function initShop() {
   shop = {
     name: 'Repair Cafe',
-    owner: 'Maeve of the Tinker\'s Hand',
+    owner: 'Maeve of the Tinker's Hand',
     x: 14,
     y: 22,
     open: false,
     items: [
-      { name: 'Solar Resonator Recharge', cost: 3, kind: 'aether', desc: 'Restore 1 aether charge.' },
-      { name: 'Staff Crystal Polish',     cost: 2, kind: 'scrap', desc: 'Restore 1 staff charge.' },
-      { name: 'Mycelial Thread Sheaf',   cost: 4, kind: 'scrap', desc: '+1 echo capacity (permanent).' },
-      { name: 'Nav-Line Compass',         cost: 5, kind: 'scrap', desc: 'Survival advantage on sky crossings.' },
-      { name: 'Hull Patch Kit',           cost: 2, kind: 'scrap', desc: '+10 hull integrity.' },
-      { name: 'Heat Sink Fitting',        cost: 3, kind: 'scrap', desc: '+1 heat capacity.' }
+      { name: 'Solar Resonator Recharge', cost: 3, kind: 'scrap', effect: 'aether', desc: 'Restore 1 aether charge.' },
+      { name: 'Staff Crystal Polish',     cost: 2, kind: 'scrap', effect: 'staffCharges', desc: 'Restore 1 staff charge.' },
+      { name: 'Mycelial Thread Sheaf',   cost: 4, kind: 'scrap', effect: 'echoesMax', desc: '+1 echo capacity (permanent).' },
+      { name: 'Nav-Line Compass',         cost: 5, kind: 'scrap', effect: 'navLineCompass', desc: 'Survival advantage on sky crossings.' },
+      { name: 'Hull Patch Kit',           cost: 2, kind: 'scrap', effect: 'hullIntegrity', desc: '+10 hull integrity.' },
+      { name: 'Heat Sink Fitting',        cost: 3, kind: 'scrap', effect: 'heatMax', desc: '+1 heat capacity.' }
     ]
   };
 }
@@ -3001,28 +3074,47 @@ function closeShop() {
   shop.open = false;
 }
 
+function getShopItems() {
+  return shop ? shop.items.map(item => ({ ...item })) : [];
+}
+
 function purchaseItem(itemIndex) {
   if (!shop || !shop.items[itemIndex]) return false;
   const item = shop.items[itemIndex];
-  if (item.kind === 'aether' && player.aether >= item.cost) {
-    player.aether -= item.cost;
-    player.aether.current = Math.min(player.aetherMax, player.aether.current + 1);
-    addLedgerEntry('purchase', 'Bought ' + item.name + ' from Repair Cafe.');
-    return true;
-  } else if (item.kind === 'scrap' && player.scrap >= item.cost) {
-    player.scrap -= item.cost;
-    if (item.name === 'Mycelial Thread Sheaf') {
+  if (item.kind !== 'scrap' || player.scrap < item.cost) return false;
+
+  const maxStaffCharges = player.maxStaffCharges || 2;
+  if (item.effect === 'aether' && player.aether >= player.aetherMax) return false;
+  if (item.effect === 'staffCharges' && player.staffCharges >= maxStaffCharges) return false;
+  if (item.effect === 'navLineCompass' && player.navLineCompass === true) return false;
+
+  player.scrap -= item.cost;
+  switch (item.effect) {
+    case 'aether':
+      player.aether = Math.min(player.aetherMax, player.aether + 1);
+      break;
+    case 'staffCharges':
+      player.staffCharges = Math.min(maxStaffCharges, player.staffCharges + 1);
+      break;
+    case 'echoesMax':
       player.echoesMax += 1;
       player.echoes = Math.min(player.echoesMax, player.echoes + 1);
-    } else if (item.name === 'Hull Patch Kit') {
+      break;
+    case 'navLineCompass':
+      player.navLineCompass = true;
+      break;
+    case 'hullIntegrity':
       quest.hullIntegrity = Math.min(100, quest.hullIntegrity + 10);
-    } else if (item.name === 'Heat Sink Fitting') {
+      break;
+    case 'heatMax':
       player.heatMax += 1;
-    }
-    addLedgerEntry('purchase', 'Bought ' + item.name + ' from Repair Cafe.');
-    return true;
+      break;
+    default:
+      player.scrap += item.cost;
+      return false;
   }
-  return false;
+  addLedgerEntry('purchase', 'Bought ' + item.name + ' from Repair Cafe.');
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -6734,7 +6826,7 @@ function drawQuestProgress(x, y, currentState) {
  * Phase maps to angle: 0 = top (noon), PI = bottom (night).
  * arc / ellipse with scioto-blue → dark navy gradient.
  */
-function drawDayNightIndicator(cx, cy, r = 28) {
+function drawDayNightIndicatorHUD(cx, cy, r = 28) {
   push();
   const phase = window.UI.dayNightPhase; // 0..1
   const angle = phase * TWO_PI;
@@ -6810,7 +6902,7 @@ function drawDayNightIndicator(cx, cy, r = 28) {
  * @param {number} radius — field radius (pixels)
  * @param {number} pulse — 0..1 pulse phase for animation
  */
-function drawCovenantField(x, y, radius = 60, pulse = 0) {
+function drawCovenantFieldHUD(x, y, radius = 60, pulse = 0) {
   push();
   translate(x, y);
 
@@ -7149,7 +7241,7 @@ function drawWorldHUD() {
   text('Signal 0/3', qX + 44, qY);
   
   // Day-night mini indicator
-  drawDayNightIndicator(hudX + hudW - 36, hudY + 32, 20);
+  drawDayNightIndicatorHUD(hudX + hudW - 36, hudY + 32, 20);
   
   pop();
 }
@@ -7968,7 +8060,7 @@ function drawNPCDialogue(npc, text) {
 /**
  * Close dialogue.
  */
-function closeDialogue() {
+function clearDialogueOverlay() {
   window.UI.dialogueOpen = false;
   window.UI.dialogueNPC = null;
   window.UI.dialogueText = '';
@@ -8110,7 +8202,7 @@ function drawShop(items) {
 /**
  * Close shop.
  */
-function closeShop() {
+function clearShopOverlay() {
   window.UI.shopOpen = false;
   window.UI.shopItems = [];
 }
@@ -8184,7 +8276,7 @@ function drawHUDFrame(gameState) {
   const mode = gameState || {};
 
   // Day-night in corner
-  drawDayNightIndicator(width - 56, 44, 28);
+  drawDayNightIndicatorHUD(width - 56, 44, 28);
 
   // HUD bar
   if (mode.showHUD !== false) {
