@@ -78,6 +78,7 @@
     "test:cinematics": "node tests/cinematic-manifest-contract.test.js",
     "test:save-payload": "node tests/save-payload-validator.test.js",
     "test:save-interrupted-write": "node tests/save-interrupted-write.test.js",
-    "test:persistence-coverage": "node tests/persistence-coverage-contract.test.js"
+    "test:persistence-coverage": "node tests/persistence-coverage-contract.test.js",
+    "test:first-wake-benchmark": "node tests/first-wake-benchmark-contract.test.js"
   }
 }
