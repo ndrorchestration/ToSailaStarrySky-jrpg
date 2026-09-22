@@ -42,7 +42,8 @@ Current browser runtime:
 
 The other files under `modules/` are useful historical/modular mirrors, but they are not guaranteed to match the integrated runtime.
 
-Do not assume a change to `modules/core.js` or `modules/combat.js` changes the playable browser build unless the build process is explicitly changed to consume those files.
+Do not assume a change to the integrated runtime `aetherwake.js` or its
+explicitly loaded supporting modules changes the playable browser build.
 
 ### Branches
 

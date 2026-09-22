@@ -10,7 +10,14 @@ if (!authority.startsWith('// PLAYABLE_RUNTIME_AUTHORITY')) {
   fail('aetherwake.js must begin with PLAYABLE_RUNTIME_AUTHORITY');
 }
 
-const mirrors = [
+// The five historical/modular mirrors (modules/core.js, modules/combat.js,
+// modules/world.js, modules/ui.js, modules/ui-adapter.js) were retired in
+// favor of the integrated aetherwake.js runtime. They are no longer in the
+// repository. Verify they are absent rather than reading them.
+//
+// Runtime authority is now solely: aetherwake.js (integrated) + the
+// explicitly loaded supporting modules in index.html.
+const retiredMirrors = [
   'modules/core.js',
   'modules/combat.js',
   'modules/world.js',
@@ -18,9 +25,9 @@ const mirrors = [
   'modules/ui-adapter.js',
 ];
 
-for (const mirror of mirrors) {
-  if (!read(mirror).startsWith('// NON_RUNTIME_MIRROR')) {
-    fail(mirror + ' must begin with NON_RUNTIME_MIRROR');
+for (const mirror of retiredMirrors) {
+  if (require('fs').existsSync(path.join(root, mirror))) {
+    fail(mirror + ' still exists — should have been retired');
   }
 }
 
@@ -37,9 +44,9 @@ for (const entrypoint of ['index.html', 'index-embedded.html']) {
     fail(entrypoint + ' must load aetherwake.js');
   }
 
-  for (const mirror of mirrors) {
+  for (const mirror of retiredMirrors) {
     if (scripts.includes(mirror)) {
-      fail(entrypoint + ' must not load non-runtime mirror ' + mirror);
+      fail(entrypoint + ' must not load retired mirror ' + mirror);
     }
   }
 

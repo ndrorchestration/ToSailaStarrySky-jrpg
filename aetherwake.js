@@ -2,10 +2,6 @@
 // This file is the integrated Aetherwake gameplay runtime loaded by both
 // index.html and index-embedded.html.
 //
-// Do not infer playable behavior from modules/core.js, modules/combat.js,
-// modules/world.js, modules/ui.js, or modules/ui-adapter.js. Those files are
-// NON_RUNTIME_MIRROR sources unless an entrypoint explicitly loads them.
-//
 // Runtime authority contract: docs/RUNTIME_AUTHORITY.md
 // ============================================================
 // Aetherwake JRPG — Main p5.js Sketch (GLOBAL MODE)
@@ -2391,7 +2387,7 @@ function updateDialogueTypeIn() {
 window.startDialogueTypeIn = startDialogueTypeIn;
 
 
-// === modules/world.js ===
+// === modules/world.js (RETIRED — integrated into aetherwake.js) ===
 /* ============================================================
    aetherwake-jrpg/modules/world.js
    World / Map / Quest module for the Aetherwake JRPG.
@@ -5434,7 +5430,7 @@ if (typeof window !== 'undefined') {
 }
 
 
-// === modules/combat.js ===
+// === modules/combat.js (RETIRED — integrated into aetherwake.js) ===
 // AetherCombat — Turn-based JRPG combat during formula/legacy migration.
 // Exposes window.AetherCombat as a constructor: new AetherCombat(p, C)
 // Also compatible with direct call: AetherCombat(p, C) returns the namespace.
@@ -6956,7 +6952,7 @@ if (typeof window !== 'undefined') {
 }
 
 
-// === modules/ui.js ===
+// === modules/ui.js (RETIRED — integrated into aetherwake.js) ===
 /**
  * Aetherwake JRPG — UI Module
  * All drawing via p5 primitives. No DOM creation.

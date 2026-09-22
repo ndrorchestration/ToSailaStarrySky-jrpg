@@ -24,10 +24,10 @@ save, airship, audio, character creation, and p5.js.
 A file is executable runtime authority only when a supported entrypoint
 explicitly loads it or when an explicitly loaded runtime file imports/uses it.
 
-## Non-runtime mirrors
+## Retired non-runtime mirrors
 
-The following files are historical/modular mirrors and are **not** loaded by
-either playable entrypoint:
+The following five historical/modular mirrors were retired in favor of the
+integrated `aetherwake.js` runtime. They are no longer in the repository:
 
 ```text
 modules/core.js
@@ -37,16 +37,16 @@ modules/ui.js
 modules/ui-adapter.js
 ```
 
-They must begin with the marker:
+Before retirement they began with the marker:
 
 ```text
 NON_RUNTIME_MIRROR
 ```
 
-Changes to those files do not change the current playable game.
-
-Do not diagnose current gameplay behavior solely from a non-runtime mirror.
-Verify the entrypoint script chain and inspect `aetherwake.js` first.
+They were not loaded by either playable entrypoint. Changes to them did not
+change the current playable game. Do not diagnose current gameplay behavior
+from a non-runtime mirror — verify the entrypoint script chain and inspect
+`aetherwake.js` first.
 
 ## Authority markers
 
@@ -62,7 +62,7 @@ The non-runtime mirrors listed above must begin with:
 NON_RUNTIME_MIRROR
 ```
 
-CI enforces these markers through `npm run test:runtime-authority`.
+CI enforces the playable runtime authority marker through `npm run test:runtime-authority`.
 
 ## Debug runtime projections
 

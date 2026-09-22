@@ -19,7 +19,8 @@
 - Combat preserves identity, primary stats, maxima, progression, unlocks, and equipment across the World → combat → World cycle.
 - Airship one-shot transfers are consumed at most once and are not consumed before the player is eligible.
 - The current three-container Dragonfly airship behavior and existing airship tests remain valid.
-- No broad rewrite of inactive modules/world.js or modules/combat.js.
+- No broad rewrite of the integrated runtime `aetherwake.js` or its
+  explicitly loaded supporting modules.
 - No sky-route travel system, combat-balance redesign, new authored roster mechanics, or new audio assets in this plan.
 - Changes remain on dev/progression-build; main is untouched.
 

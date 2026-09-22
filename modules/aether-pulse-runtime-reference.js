@@ -52,7 +52,7 @@ function (pulseEvaluation) {
     status: STATUS,
     authority: 'preservation-legacy-runtime-only',
     sourceFiles: [
-      'modules/combat.js',
+      'modules/combat.js (retired — integrated into aetherwake.js)',
       'modules/ability-defs.js',
     ],
     ender: {

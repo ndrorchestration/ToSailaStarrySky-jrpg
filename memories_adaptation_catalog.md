@@ -1,7 +1,7 @@
 # Memories 0.7.4 → Aetherwake JRPG: UI/UX Pattern Adaptation Catalog
 
 **Source:** Memories 0.7.4 (RPG Maker MV / NW.js)  
-**Target:** Aetherwake JRPG (p5.js single-file, hand-rolled UI in `modules/ui.js`)  
+**Target:** Aetherwake JRPG (p5.js single-file integrated runtime `aetherwake.js` with explicitly loaded supporting modules)  
 **Date:** 2026-09-18  
 **Already ported:** Scene_Boot loading screen UX (Loading.png sprite + "initializing the weave..." sub + auto-dismiss)
 
@@ -490,4 +490,4 @@ This is basically a formalization of what Aetherwake already does informally.
 
 ---
 
-*Report generated from Memories 0.7.4 source files (rpg_windows.js 6028 lines, rpg_scenes.js 2697 lines, GALV_MessageStyles.js 818 lines, SRD_HUDMaker.js 69KB, SRD_MenuStatusCustomizer.js 625 lines, SRD_BattleStatusCustomizer.js 1119 lines) and Aetherwake JRPG modules/ui.js (2316 lines).*
+*Report generated from Memories 0.7.4 source files (rpg_windows.js 6028 lines, rpg_scenes.js 2697 lines, GALV_MessageStyles.js 818 lines, SRD_HUDMaker.js 69KB, SRD_MenuStatusCustomizer.js 625 lines, SRD_BattleStatusCustomizer.js 1119 lines) and Aetherwake JRPG integrated UI in `aetherwake.js` (hand-rolled 4-band layout, §4 Memories-style character sheet).*

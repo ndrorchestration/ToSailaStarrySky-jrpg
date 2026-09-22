@@ -60,10 +60,9 @@ current runtime contract:
 - `modules/char-create.js`
 
 `aetherwake.js` remains the integrated preservation runtime and current combat
-executor. Some older mirrors such as `modules/core.js`, `modules/world.js`,
-`modules/combat.js`, and `modules/ui.js` may still diverge from the live
-integrated implementation and should not be assumed authoritative without
-entrypoint/test evidence.
+executor. Some older modular mirrors previously under `modules/` (core.js,
+world.js, combat.js, ui.js, ui-adapter.js) have been retired in favor of the
+integrated implementation and should not be assumed authoritative.
 
 Generated desktop outputs are no longer maintained as independent source trees.
 The Windows package is generated from a minimal runtime staging directory.

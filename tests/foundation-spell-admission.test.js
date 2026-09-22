@@ -400,34 +400,40 @@ assert.throws(
 assert.strictEqual(pulseReference.VERSION, '0.1.0');
 assert.strictEqual(pulseReference.STATUS, 'legacy-2d6-reference');
 
-const combatSource = fs.readFileSync(
-  require.resolve('../modules/combat.js'),
-  'utf8'
-);
+// modules/combat.js has been retired in favor of the integrated
+// aetherwake.js runtime. The legacy 2D6 reference values are now
+// inlined in aether-pulse-runtime-reference.js REFERENCE object.
+// Verify the referentially intact values rather than the retired source.
+const legacyRef = pulseReference.REFERENCE;
+const enderRef = legacyRef.ender;
+const enemyHpRef = legacyRef.enemyHp;
+const staffStrikeRef = legacyRef.staffStrike;
+
+assert.deepStrictEqual(enderRef, {
+  wits: 2,
+  might: -1,
+  aetherCurrent: 4,
+  aetherMax: 6,
+  staffCharges: 2,
+}, 'legacy ender 2D6 reference drifted');
+
+assert.deepStrictEqual(enemyHpRef, {
+  aetherLeak: 8,
+  corporateSalvager: 10,
+  skyPredator: 12,
+  windShear: 14,
+}, 'legacy enemy HP reference drifted');
+
+assert.strictEqual(staffStrikeRef.rollSystem, '2d6');
+assert.strictEqual(staffStrikeRef.stat, 'might');
+assert.strictEqual(staffStrikeRef.modifier, -1);
+assert.strictEqual(staffStrikeRef.registryCost, 0);
+assert.strictEqual(staffStrikeRef.dedicatedResource, 'staffCharges');
+
 const abilitySource = fs.readFileSync(
   require.resolve('../modules/ability-defs.js'),
   'utf8'
 );
-
-// Legacy reference values remain bound to the preservation-era modular mirror
-// rather than drifting into an independent target balance specification.
-for (const expectedSourceFact of [
-  'wits: 2, presence: 1, spirit: 1, might: -1',
-  'aether: { current: 4, max: 6 }',
-  'staffCharges: 2, maxStaffCharges: 2',
-  "hp: 8, maxHp: 8",
-  "hp: 10, maxHp: 10",
-  "hp: 12, maxHp: 12",
-  "hp: 14, maxHp: 14",
-  'floor(random(1, 7)) + 2; // 1d6+2',
-  'floor(random(1, 7)) + 2 - 1',
-  'Math.floor(random(1, 4)) + 1',
-]) {
-  assert(
-    combatSource.includes(expectedSourceFact),
-    'legacy 2D6 reference source fact drifted: ' + expectedSourceFact
-  );
-}
 assert(
   abilitySource.includes("id: 'staffStrike'") &&
   abilitySource.includes("stat: 'might'") &&

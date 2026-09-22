@@ -24,7 +24,9 @@ Sky-route travel, a combat-balance redesign, a broad rewrite of inactive mirror 
 
 - `aetherwake.js` remains the authoritative bundled runtime for gameplay behavior.
 - Pure rule modules under `modules/` remain the preferred home for reusable definitions, resolvers, and bridge logic.
-- Existing mirror files such as `modules/world.js` and `modules/combat.js` will not be rewritten wholesale merely to make them resemble the bundle. They are updated only when an entrypoint or tested public contract requires it.
+- Existing integrated modules within `aetherwake.js` will not be rewritten
+  wholesale merely to make them resemble a modular mirror. They are updated
+  only when an entrypoint or tested public contract requires it.
 - Both HTML entrypoints must load the dependency-complete runtime set. `char-create.js` remains after `aetherwake.js` because it depends on the runtime namespace.
 - Changes are limited to `dev/progression-build`; `main` is not modified.
 
