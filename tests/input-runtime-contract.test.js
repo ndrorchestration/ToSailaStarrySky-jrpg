@@ -68,17 +68,29 @@ assert(source.includes('navigator.getGamepads()'),
   'runtime must obtain current gamepad objects from navigator.getGamepads');
 assert(source.includes('window.AetherGamepadInput.poll('),
   'runtime gamepad polling must use the semantic gamepad adapter');
-assert(source.includes('gameplay dispatch remains keyboard-authoritative'),
-  'gamepad diagnostics tranche must not overclaim live controller dispatch');
+assert(source.includes('Combat action') && source.includes('remains keyboard-authoritative'),
+  'runtime must preserve the boundary that combat action selection is not controller-enabled yet');
 
-assert(source.includes('function dispatchSafeGamepadUIActions(result)'),
-  'runtime must isolate safe controller UI dispatch from keyboard dispatch');
+assert(source.includes('function dispatchGamepadActions(result)'),
+  'runtime must isolate semantic controller dispatch from keyboard dispatch');
 assert(source.includes("gameState === STATE.MENU"),
   'safe controller dispatch must support title menu actions');
 assert(source.includes("result.pressed.includes('open-settings')"),
   'controller Menu action must open Settings from title');
 assert(source.includes("gameState === STATE.SETTINGS"),
-  'safe controller dispatch must support Settings navigation');
+  'controller dispatch must support Settings navigation');
+assert(source.includes("gameState === STATE.WORLD"),
+  'controller dispatch must support WORLD semantic actions');
+assert(source.includes("gameState === STATE.DIALOGUE"),
+  'controller dispatch must support dialogue confirm/cancel');
+assert(source.includes("gameState === STATE.AIRSHIP"),
+  'controller dispatch must support AIRSHIP semantic actions');
+assert(source.includes('function gamepadMovementShouldFire(actionId, result, now)'),
+  'controller movement must use a bounded repeat clock');
+assert(source.includes('function moveWorldBySemanticAction(actionId)'),
+  'WORLD controller movement must not synthesize keyboard events');
+assert(source.includes('function moveAirshipBySemanticAction(actionId)'),
+  'AIRSHIP controller movement must use the navigation subsystem directly');
 assert(source.includes('window._lastGamepadDispatchHandled'),
   'controller dispatch result must remain inspectable for regression tests');
 
