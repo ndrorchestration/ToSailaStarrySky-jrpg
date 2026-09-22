@@ -27,13 +27,21 @@ Do not use superseded self-extracting/SFX artifacts. If Windows Defender flags a
 
 The production desktop layout intentionally follows the same structural pattern used by RPG Maker MV/NW.js games such as the Memories reference: the NW.js launcher/runtime lives at the package root, a minimal root `package.json` points to `www/index-embedded.html`, and the game payload lives under `www/`. Development files, tests, docs, and npm tooling are not part of the player runtime.
 
-The release path is intentionally split into three gates:
+The release-critical path is intentionally a **single pinned Windows job**. This avoids a previously demonstrated GitHub Actions artifact-storage/quota failure mode and ensures the bytes that are published are the same bytes that were built and tested.
 
-1. **Build candidate on Linux.** NW.js produces the Windows x64 runtime, then NSIS creates a conventional per-user installer. The portable ZIP, installer, and SHA-256 manifest are retained as a candidate artifact.
-2. **Verify on Windows.** A pinned Windows runner downloads that exact candidate, silently installs it into a clean directory, verifies `Aetherwake.exe` exists, launches it, and requires the process to remain alive through the launch smoke. The portable ZIP layout is checked too.
-3. **Publish only after verification.** Tagged/manual releases cannot publish until the Windows verification job passes.
+The job performs, in order:
 
-This means Windows runner availability is no longer required to *create and preserve* the Windows candidate, but an installer is never represented as verified without an actual Windows install/launch test.
+1. lockfile install and desktop packaging contract;
+2. staged Memories-style NW.js Windows build;
+3. portable ZIP creation;
+4. NSIS installer compilation;
+5. clean per-user installer execution;
+6. launch smoke of the installed `Aetherwake.exe`;
+7. portable ZIP layout verification;
+8. SHA-256 generation;
+9. release publication only for manual/tagged release runs.
+
+No `upload-artifact` / `download-artifact` transfer is on the release-critical path. The maintainer-local Windows script remains the independent fallback when hosted runners are unavailable.
 
 Local build requirements:
 
@@ -60,8 +68,9 @@ The desktop shell must:
 - preserve the 960×640 initial canvas;
 - run without Python or a separately started HTTP server;
 - keep the browser-served path available as a fallback;
-- build and preserve Aetherwake-Setup.exe plus Aetherwake-Windows.zip before verification;
-- publish the installer only after the exact candidate passes a real Windows install/launch smoke;
+- build Aetherwake-Setup.exe plus Aetherwake-Windows.zip in the same Windows job that verifies them;
+- avoid GitHub Actions artifact storage/transfer on the release-critical path;
+- publish only after the exact candidate passes a real Windows install/launch smoke;
 - install per-user without requiring administrator elevation or the pre-install startup confirmation;
 - publish Aetherwake-Windows.zip as the manual fallback;
 - fail visibly if packaging or the entry point is invalid.
