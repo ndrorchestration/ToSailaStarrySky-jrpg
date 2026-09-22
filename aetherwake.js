@@ -770,6 +770,18 @@ function handleInput() {
 }
 
 function handleWorldInput() {
+  if (world && typeof world.getQuestState === 'function') {
+    const currentQuest = world.getQuestState();
+    if (currentQuest && currentQuest.state === 'wake') {
+      if (keysPressed[13] || keysPressed[32]) {
+        if (typeof world.advanceQuest === 'function') {
+          world.advanceQuest();
+        }
+      }
+      return;
+    }
+  }
+
   // WASD movement with key repeat
   const now = millis();
   const delay = 200, rate = 60;
@@ -4038,6 +4050,11 @@ function drawQuestOverlay() {
     return;
   }
 
+  if (quest.state === QUEST_STATES.WAKE) {
+    drawWakeResolutionScreen();
+    return;
+  }
+
   const stateColors = {
     signal:   color(42, 255, 181, 120),
     crossing: color(255, 160, 60, 140),
@@ -4099,6 +4116,43 @@ function drawQuestOverlay() {
   text(progressText, 630, 23);
   textSize(10);
   textFont('sans-serif');
+}
+
+function drawWakeResolutionScreen() {
+  noStroke();
+  fill(color(10, 14, 26, 232));
+  rect(0, 0, width, height);
+
+  // restrained pixel aether response — a held breath before the epilogue
+  for (let i = 0; i < 9; i++) {
+    const w = 140 + i * 54;
+    const alpha = 12 + i * 6;
+    fill(color(42, 255, 181, alpha));
+    rect(width / 2 - w / 2, height / 2 - 4, w, 8);
+  }
+
+  textAlign(CENTER, CENTER);
+  textFont('Press Start 2P');
+  textSize(18);
+  fill(color(42, 255, 181, 220));
+  text('THE WAKE ANSWERS', width / 2, height / 2 - 82);
+
+  textFont('VT323');
+  textSize(18);
+  fill(color(232, 220, 198, 210));
+  text(
+    'The ship responds to your choice.\nThe core changes its song — and the world waits for the consequence.',
+    width / 2,
+    height / 2 - 12,
+    width - 220,
+    110
+  );
+
+  textFont('Press Start 2P');
+  textSize(9);
+  fill(color(124, 200, 232, 185));
+  text('ENTER / SPACE — SEE THE CONSEQUENCE', width / 2, height / 2 + 105);
+  textAlign(LEFT, TOP);
 }
 
 function drawEpilogueScreen() {
