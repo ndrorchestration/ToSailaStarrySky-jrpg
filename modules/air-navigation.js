@@ -8,7 +8,7 @@
   else root.AetherAirNavigation = factory();
 }(typeof window !== 'undefined' ? window : globalThis, function () {
   'use strict';
-  const VERSION = '0.3.0';
+  const VERSION = '0.4.0';
   const SKY_WIDTH = 48, SKY_HEIGHT = 32;
   const ALTITUDES = Object.freeze(['low','cruise','high']);
 
@@ -38,6 +38,7 @@
     Object.freeze({id:'aetherLeak',altitudes:['high'],weight:3}),
   ]);
   const ENCOUNTER_STEP_THRESHOLD = 7;
+  const PERSISTENCE_VERSION = 1;
 
   const WEATHER = Object.freeze([
     Object.freeze({id:'clear',label:'CLEAR WAKE',phaseRisk:0}),
@@ -148,5 +149,56 @@
     next.weatherId=weatherAt(next).id;
     return next;
   }
-  return {VERSION,SKY_WIDTH,SKY_HEIGHT,ALTITUDES:ALTITUDES.slice(),LANDMARKS:LANDMARKS.map(x=>Object.assign({},x)),SKY_ROUTES:SKY_ROUTES.map(x=>Object.assign({},x)),WEATHER:WEATHER.map(x=>Object.assign({},x)),WEATHER_ZONES:WEATHER_ZONES.map(x=>Object.assign({},x)),SKY_ENCOUNTERS:SKY_ENCOUNTERS.map(x=>Object.assign({},x)),ENCOUNTER_STEP_THRESHOLD,createState,nearestLandmark,weatherAt,dockingCheck,dock,undock,move,encounterCheck,changeAltitude};
+
+  function exportPersistentState(state) {
+    const next=createState(state);
+    return {
+      version:PERSISTENCE_VERSION,
+      x:next.x,
+      y:next.y,
+      altitude:next.altitude,
+      heading:next.heading,
+      speed:next.speed,
+      discovered:next.discovered.slice(),
+      discoveredRoutes:next.discoveredRoutes.slice(),
+      mooredLandmarkId:next.mooredLandmarkId,
+      encounterSteps:next.encounterSteps,
+      encounterSeed:next.encounterSeed,
+    };
+  }
+
+  function validatePersistentState(payload) {
+    if (!payload || typeof payload!=='object' || Array.isArray(payload)) throw new Error('AIR_NAV_PERSISTENT_STATE_OBJECT_REQUIRED');
+    if (payload.version!==PERSISTENCE_VERSION) throw new Error('AIR_NAV_PERSISTENT_STATE_VERSION_INVALID');
+    if (!Number.isFinite(payload.x) || payload.x<0 || payload.x>SKY_WIDTH-1 ||
+        !Number.isFinite(payload.y) || payload.y<0 || payload.y>SKY_HEIGHT-1) {
+      throw new Error('AIR_NAV_PERSISTENT_POSITION_INVALID');
+    }
+    if (!ALTITUDES.includes(payload.altitude)) throw new Error('AIR_NAV_PERSISTENT_ALTITUDE_INVALID');
+    if (!Number.isFinite(payload.heading)) throw new Error('AIR_NAV_PERSISTENT_HEADING_INVALID');
+    if (!Number.isFinite(payload.speed) || payload.speed<0 || payload.speed>3) throw new Error('AIR_NAV_PERSISTENT_SPEED_INVALID');
+    if (!Array.isArray(payload.discovered) ||
+        payload.discovered.some(id=>!LANDMARKS.some(mark=>mark.id===id))) {
+      throw new Error('AIR_NAV_PERSISTENT_DISCOVERED_INVALID');
+    }
+    if (!Array.isArray(payload.discoveredRoutes) ||
+        payload.discoveredRoutes.some(id=>!SKY_ROUTES.some(route=>route.id===id))) {
+      throw new Error('AIR_NAV_PERSISTENT_ROUTES_INVALID');
+    }
+    if (payload.mooredLandmarkId!==null &&
+        !LANDMARKS.some(mark=>mark.id===payload.mooredLandmarkId && mark.dockable &&
+          Math.hypot(mark.x-payload.x,mark.y-payload.y)<=1.5)) {
+      throw new Error('AIR_NAV_PERSISTENT_MOORING_INVALID');
+    }
+    if (!Number.isInteger(payload.encounterSteps) || payload.encounterSteps<0) throw new Error('AIR_NAV_PERSISTENT_ENCOUNTER_STEPS_INVALID');
+    if (!Number.isInteger(payload.encounterSeed) || payload.encounterSeed<0) throw new Error('AIR_NAV_PERSISTENT_ENCOUNTER_SEED_INVALID');
+    return true;
+  }
+
+  function restorePersistentState(payload) {
+    validatePersistentState(payload);
+    return createState(payload);
+  }
+
+  return {VERSION,SKY_WIDTH,SKY_HEIGHT,ALTITUDES:ALTITUDES.slice(),LANDMARKS:LANDMARKS.map(x=>Object.assign({},x)),SKY_ROUTES:SKY_ROUTES.map(x=>Object.assign({},x)),WEATHER:WEATHER.map(x=>Object.assign({},x)),WEATHER_ZONES:WEATHER_ZONES.map(x=>Object.assign({},x)),SKY_ENCOUNTERS:SKY_ENCOUNTERS.map(x=>Object.assign({},x)),ENCOUNTER_STEP_THRESHOLD,persistenceVersion:PERSISTENCE_VERSION,createState,nearestLandmark,weatherAt,dockingCheck,dock,undock,move,encounterCheck,changeAltitude,exportPersistentState,validatePersistentState,restorePersistentState};
 }));
