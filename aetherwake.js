@@ -456,12 +456,38 @@ function keyPressed() {
   keys[keyCode] = true;
   keysPressed[keyCode] = true;
 
-  if (gameState === STATE.OPENING && (keyCode === 13 || keyCode === 32)) {
-    advanceFirstWakeOpening();
-    delete keysPressed[keyCode];
-    if (typeof ensureAudio === 'function') ensureAudio();
-    if (typeof resumeAudio === 'function') resumeAudio();
-    return;
+  if (gameState === STATE.OPENING) {
+    const opening = window.AetherFirstWakeOpening;
+    const openingState = window._firstWakeOpeningState;
+    const openingScene = opening && openingState ? opening.currentScene(openingState) : null;
+
+    if (openingScene && openingScene.id === 'dock_walk' &&
+        (keyCode === LEFT_ARROW || keyCode === 65 || keyCode === RIGHT_ARROW || keyCode === 68)) {
+      const delta = (keyCode === LEFT_ARROW || keyCode === 65) ? -1 : 1;
+      const movement = opening.moveDock(openingState, delta);
+      if (movement.ready && !window.__awDockWalkReadyToastShown) {
+        showToast('AUREATE WAKE REACHED // ENTER TO BOARD', C.teal, 1400);
+        window.__awDockWalkReadyToastShown = true;
+      }
+      delete keysPressed[keyCode];
+      if (typeof ensureAudio === 'function') ensureAudio();
+      if (typeof resumeAudio === 'function') resumeAudio();
+      return;
+    }
+
+    if (keyCode === 13 || keyCode === 32) {
+      const beforeScene = openingScene;
+      const beforeIndex = openingState && openingState.sceneIndex;
+      advanceFirstWakeOpening();
+      if (beforeScene && beforeScene.id === 'dock_walk' &&
+          openingState && openingState.sceneIndex === beforeIndex) {
+        showToast('MOVE RIGHT TOWARD THE AUREATE WAKE', C.scioto, 1100);
+      }
+      delete keysPressed[keyCode];
+      if (typeof ensureAudio === 'function') ensureAudio();
+      if (typeof resumeAudio === 'function') resumeAudio();
+      return;
+    }
   }
 
   // Publish interaction intent before dispatch; world.interact() reads this value synchronously.
@@ -918,6 +944,43 @@ function drawOpeningBackdrop(scene) {
     if (visual === 'dock-walk') {
       fill(206, 191, 151, 110);
       for (let x = 60; x < 520; x += 88) rect(x, 398 + ((x / 88) % 2) * 8, 46, 5);
+
+      const opening = window.AetherFirstWakeOpening;
+      const openingState = window._firstWakeOpeningState;
+      const progress = opening && openingState && typeof opening.dockWalkProgress === 'function'
+        ? opening.dockWalkProgress(openingState)
+        : 0;
+      const enderX = 146 + progress * 430;
+
+      // Ender — readable compact overworld silhouette.
+      noStroke();
+      fill(40, 58, 72);
+      rect(enderX - 9, 392, 18, 30, 4);
+      fill(212, 190, 163);
+      ellipse(enderX, 383, 17, 17);
+      fill(89, 163, 157);
+      rect(enderX - 12, 407, 24, 5, 2);
+
+      // Travel bag starts beside Ender and is visually left behind as he walks.
+      fill(84, 62, 48);
+      rect(128, 410, 19, 14, 3);
+
+      // Ionia waits at the Wake, half-engaged with a maintenance panel.
+      fill(104, 126, 130);
+      rect(626, 376, 18, 34, 4);
+      fill(211, 184, 157);
+      ellipse(635, 367, 17, 17);
+      fill(197, 151, 83);
+      rect(647, 383, 22, 18, 3);
+
+      // Closed-route board: environmental tutorial, not lore dump.
+      fill(39, 46, 48);
+      rect(250, 334, 82, 58, 4);
+      stroke(181, 103, 91, 170);
+      strokeWeight(3);
+      line(261, 347, 320, 378);
+      line(320, 347, 261, 378);
+      noStroke();
     }
     return;
   }
@@ -982,8 +1045,10 @@ function drawFirstWakeOpening() {
 
   fill(6, 9, 14, 205);
   rect(92, 54, width - 184, 128, 8);
-  fill(6, 9, 14, 222);
-  rect(112, 198, width - 224, 286, 8);
+  if (!scene.interactive) {
+    fill(6, 9, 14, 222);
+    rect(112, 198, width - 224, 286, 8);
+  }
 
   textAlign(CENTER, TOP);
   textFont('Press Start 2P');
@@ -996,7 +1061,22 @@ function drawFirstWakeOpening() {
     text(scene.subtitle, width / 2, 124);
   }
 
-  if (!scene.chapterCard) {
+  if (scene.interactive && scene.id === 'dock_walk') {
+    textAlign(CENTER, TOP);
+    textFont('VT323');
+    textSize(20);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2]);
+    text('Walk to Ionia at the Aureate Wake.', width / 2, 205);
+    textSize(17);
+    fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
+    text(
+      state.dockWalk && state.dockWalk.ready
+        ? 'You made it. Press ENTER to board.'
+        : 'A / D or LEFT / RIGHT to move',
+      width / 2,
+      234
+    );
+  } else if (!scene.chapterCard) {
     textAlign(LEFT, TOP);
     textFont('VT323');
     textSize(22);
@@ -1029,7 +1109,13 @@ function drawFirstWakeOpening() {
     height - 58
   );
   fill(C.teal[0], C.teal[1], C.teal[2]);
-  text('ENTER / SPACE — CONTINUE', width / 2, height - 26);
+  text(
+    scene.interactive && scene.id === 'dock_walk'
+      ? (state.dockWalk && state.dockWalk.ready ? 'ENTER — BOARD THE WAKE' : 'MOVE TOWARD THE WAKE')
+      : 'ENTER / SPACE — CONTINUE',
+    width / 2,
+    height - 26
+  );
   pop();
 }
 
