@@ -8,12 +8,14 @@ function assert(condition, message) {
 
 assert(packageJson.main === 'index-embedded.html',
   'development manifest must retain the embedded HTML entry point');
-assert(packageJson.window && packageJson.window.width === 960,
-  'desktop package window width must remain 960');
-assert(packageJson.window && packageJson.window.height === 640,
-  'desktop package window height must remain 640');
+assert(packageJson.window && packageJson.window.width === 1440,
+  'desktop package window width must default to 1440');
+assert(packageJson.window && packageJson.window.height === 960,
+  'desktop package window height must default to 960');
 assert(packageJson.window && packageJson.window.resizable === true,
   'desktop package window must remain resizable');
+assert(packageJson.window.min_width === 960 && packageJson.window.min_height === 640,
+  'desktop package minimum window must preserve the logical 960x640 game surface');
 assert(typeof packageJson.scripts['package:windows'] === 'string',
   'Windows packaging script is missing');
 assert(packageJson.devDependencies && packageJson.devDependencies['nw-builder'],
@@ -115,3 +117,10 @@ assert(runtimeSource.includes('function writeDesktopSmokeMarkerOnce()'),
 assert(runtimeSource.includes('window.__awRuntimeReady') &&
        runtimeSource.includes('window.__awFirstFrame'),
   'desktop readiness marker must be bound to runtime-ready and completed-first-frame signals');
+
+const embeddedHtmlForCanvas = fs.readFileSync(path.join(__dirname, '..', 'index-embedded.html'), 'utf8');
+const runtimeSourceForCanvas = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8');
+assert(runtimeSourceForCanvas.includes('createCanvas(960, 640)'),
+  'logical game canvas must remain 960x640 to preserve authored layout coordinates');
+assert(embeddedHtmlForCanvas.includes('width: min(100vw, calc(100vh * 1.5))'),
+  'desktop presentation must scale the 3:2 canvas to the largest fitting window area');
