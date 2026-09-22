@@ -208,6 +208,7 @@
   return Object.freeze({
     VERSION, SCHEMA_VERSION, MANUAL_SLOTS: MANUAL_SLOTS.slice(),
     AUTOSAVE_SLOTS: AUTOSAVE_SLOTS.slice(), makeEnvelope, validateEnvelope,
-    checksum, getStorage, save, load, remove, list, latest, rotateAutosave
+    checksum, getStorage, save, load, remove, list, latest, rotateAutosave,
+    _createForTesting: factory
   });
 }));
