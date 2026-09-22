@@ -14,10 +14,35 @@ const expectedActionOrder = [
   'rest',
 ];
 
-assert.strictEqual(abilities.VERSION, '0.2.0');
-assert.strictEqual(progression.VERSION, '0.1.0');
+assert.strictEqual(abilities.VERSION, '0.3.0');
+assert.strictEqual(progression.VERSION, '0.2.0');
 assert.deepStrictEqual(abilities.ACTION_ORDER, expectedActionOrder);
 assert.strictEqual(abilities.validateDefs(), true);
+assert.strictEqual(abilities.DEFS.sharedDream.authorityStatus, 'legacy-adaptation-residue');
+assert.strictEqual(abilities.DEFS.sharedDream.migrationStatus, 'blocked-by-current-ssot');
+assert.strictEqual(abilities.DEFS.sharedDream.canonicalOwner, null);
+assert.strictEqual(abilities.DEFS.sharedDream.resolution, undefined);
+assert.strictEqual(abilities.DEFS.mycelialLedger.authorityStatus,
+  'creator-aligned-exceptional-access');
+assert.strictEqual(abilities.DEFS.mycelialLedger.migrationStatus,
+  'live-readonly-v1');
+assert.strictEqual(abilities.DEFS.mycelialLedger.canonicalOwner, 'ender');
+assert.deepStrictEqual(abilities.DEFS.mycelialLedger.resolution, {
+  model: 'commons-readonly',
+  contractId: 'mycelialLedger',
+});
+assert.strictEqual(abilities.DEFS.aetherSeal.authorityStatus, 'creator-aligned-aether-ward');
+assert.strictEqual(abilities.DEFS.aetherSeal.migrationStatus, 'live-aether-seal-v1');
+assert.strictEqual(abilities.DEFS.aetherSeal.canonicalOwner, 'ender');
+assert.deepStrictEqual(abilities.DEFS.aetherSeal.resolution, {
+  model: 'aether-seal',
+  contractId: 'aetherSeal',
+});
+assert.strictEqual(abilities.DEFS.windWard.authorityStatus, 'legacy-adaptation-residue');
+assert.strictEqual(abilities.DEFS.windWard.migrationStatus,
+  'blocked-pending-owner-and-domain');
+assert.strictEqual(abilities.DEFS.windWard.canonicalOwner, null);
+assert.strictEqual(abilities.DEFS.windWard.resolution, undefined);
 
 const runtimeActions = abilities.createRuntimeActions();
 assert.strictEqual(abilities.assertRuntimeActions(runtimeActions), true);
@@ -109,8 +134,18 @@ assert.deepStrictEqual(
 );
 assert.strictEqual(
   abilities.getUseEligibility(underfundedActor, 'windWard').reason,
-  'locked',
-  'unlock failure must take precedence over resource failure'
+  'ssot_blocked',
+  'SSOT authority block must take precedence over unlock/resource state'
+);
+assert.strictEqual(
+  abilities.getUseEligibility(level1Actor, 'sharedDream').reason,
+  'ssot_blocked',
+  'Shared Dream must fail closed under current Dreaming/Talen SSOT'
+);
+assert.strictEqual(
+  abilities.getUseEligibility(fullyUnlockedActor, 'windWard').reason,
+  'ssot_blocked',
+  'Wind Ward must remain unusable even when legacy progression unlocks it'
 );
 assert.strictEqual(
   abilities.getUseEligibility(underfundedActor, 'staffStrike').canUse,
@@ -121,6 +156,10 @@ assert.strictEqual(
 assert(Object.isFrozen(abilities.DEFS), 'ability definitions must be frozen');
 assert(Object.isFrozen(abilities.ALWAYS_AVAILABLE), 'always-available actions must be frozen');
 assert(Object.isFrozen(progression.LEVEL_UNLOCKS), 'progression definitions must be frozen');
+assert(Object.isFrozen(progression.LEVEL_LIMITS), 'progression limits must be frozen');
+assert.strictEqual(progression.LEVEL_LIMITS.MAIN_STORY_TARGET, 130);
+assert.strictEqual(progression.LEVEL_LIMITS.MASTER_ART_THRESHOLD, 150);
+assert.strictEqual(progression.LEVEL_LIMITS.HARD_CAP, 175);
 
 const copy = abilities.createRuntimeActions();
 copy[0].label = 'mutated copy';

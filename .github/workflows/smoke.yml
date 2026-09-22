@@ -48,6 +48,36 @@ jobs:
       - name: Verify progression reachability
         run: npm run test:progression-reachability
 
+      - name: Verify long-form progression curve
+        run: npm run test:longform-progression
+
+      - name: Verify encounter scaling contract
+        run: npm run test:encounter-scaling
+
+      - name: Verify party capacity contract
+        run: npm run test:party-capacity
+
+      - name: Verify authored protagonist stat profiles
+        run: npm run test:character-profiles
+
+      - name: Verify JRPG stat/formula model
+        run: npm run test:jrpg-stat-model
+
+      - name: Verify production JRPG formula engine
+        run: npm run test:jrpg-formula-engine
+
+      - name: Verify Commons Ledger SSOT contract
+        run: npm run test:commons-ledger
+
+      - name: Verify Aether Seal design contract
+        run: npm run test:aether-seal-contract
+
+      - name: Verify dossier-bound character canon
+        run: npm run test:character-canon
+
+      - name: Verify runtime/documentation SSOT
+        run: npm run test:runtime-ssot
+
       - name: Verify secondary-action state
         run: npm run test:secondary-action
 
@@ -72,10 +102,10 @@ jobs:
       - name: Verify non-elemental spell trees
         run: npm run test:non-elemental-spell-trees
 
-      - name: Verify magic spell access
+      - name: Verify unified spell access
         run: npm run test:magic-spell-access
 
-      - name: Verify magic study transactions
+      - name: Verify explicit magic study transactions
         run: npm run test:magic-study
 
       - name: Install Chromium

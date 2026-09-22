@@ -24,6 +24,8 @@ const pooled = {
 
 assert.strictEqual(abilities.getAvailableActionResource(pooled), 2);
 assert.strictEqual(abilities.getUseEligibility(pooled, 'uncoverTruth').canUse, true);
+assert.strictEqual(abilities.getUseEligibility(pooled, 'sharedDream').canUse, false);
+assert.strictEqual(abilities.getUseEligibility(pooled, 'sharedDream').reason, 'ssot_blocked');
 
 const underfunded = {
   unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],

@@ -4,7 +4,7 @@
 
    First production-architecture bridge:
    - ROSTER contains exactly five stable authored identities.
-   - ACTIVE_PARTY contains exactly three references into ROSTER.
+   - ACTIVE_PARTY contains 1–5 canonical references into ROSTER.
    - The current preservation character-creation flow is adapted into
      the first three roster records without changing its player-facing flow.
    - Reson and Aepex remain authored identity shells until the later
@@ -14,16 +14,51 @@
 (function (global) {
   'use strict';
 
+  const BALANCE_PROFILE_VERSION = 1;
+  const BALANCE_STATUS = 'PROVISIONAL_NOT_CANON';
+  const CHARACTER_CANON = global.AetherCharacterCanon || null;
+  const JRPG_STAT_MODEL = global.AetherJRPGStatModel || null;
+
+  // Identity facts come from creator canon. Numeric values below are a first
+  // balance pass fitted to the existing rank-1 stat scale; they are tuning
+  // data, not declarations about unresolved jobs or magic-school ownership.
   const DEFINITIONS = Object.freeze([
-    Object.freeze({ id: 'ender', canonicalName: 'Ender', nativeJob: 'Rift Scholar' }),
-    Object.freeze({ id: 'lyra', canonicalName: 'Lyra', nativeJob: null }),
-    Object.freeze({ id: 'ionia', canonicalName: 'Ionia', nativeJob: null }),
-    Object.freeze({ id: 'reson', canonicalName: 'Reson', nativeJob: null }),
-    Object.freeze({ id: 'aepex', canonicalName: 'Aepex', nativeJob: null }),
+    Object.freeze({
+      id: 'ender', canonicalName: 'Ender', age: 22, nativeJob: 'Rift Scholar',
+      combatRole: 'analyst-controller',
+      base: Object.freeze({ vit:13, echoes:3, aether:4, aetherMax:6, heat:1, heatMax:3,
+        wits:2, presence:1, spirit:1, might:-1, grace:0 })
+    }),
+    Object.freeze({
+      id: 'lyra', canonicalName: 'Lyra', age: 24, nativeJob: null,
+      combatRole: 'perceptive-support',
+      base: Object.freeze({ vit:10, echoes:3, aether:3, aetherMax:6, heat:0, heatMax:3,
+        wits:1, presence:0, spirit:2, might:-1, grace:1 })
+    }),
+    Object.freeze({
+      id: 'ionia', canonicalName: 'Ionia', age: 28, nativeJob: null,
+      combatRole: 'captain-support',
+      base: Object.freeze({ vit:12, echoes:2, aether:3, aetherMax:6, heat:0, heatMax:3,
+        wits:1, presence:2, spirit:0, might:0, grace:0 })
+    }),
+    Object.freeze({
+      id: 'reson', canonicalName: 'Reson', age: 25, nativeJob: null,
+      combatRole: 'durable-weapon-specialist',
+      base: Object.freeze({ vit:15, echoes:2, aether:2, aetherMax:6, heat:0, heatMax:3,
+        wits:0, presence:0, spirit:1, might:2, grace:0 })
+    }),
+    Object.freeze({
+      id: 'aepex', canonicalName: 'Aepex', age: 27, nativeJob: null,
+      combatRole: 'technical-specialist',
+      base: Object.freeze({ vit:11, echoes:2, aether:4, aetherMax:6, heat:0, heatMax:3,
+        wits:2, presence:1, spirit:0, might:0, grace:0 })
+    }),
   ]);
 
   const ROSTER = [];
   const ACTIVE_PARTY = [];
+  const MIN_ACTIVE_PARTY = 1;
+  const MAX_ACTIVE_PARTY = 5;
   let boundWorldPlayer = null;
 
   function createMagicProfile(characterId) {
@@ -46,42 +81,82 @@
     return true;
   }
 
+  function ensureMagicProfile(target, characterId) {
+    if (!target.magicProfile) target.magicProfile = createMagicProfile(characterId);
+    validateMagicProfile(target);
+    return target.magicProfile;
+  }
+
+  function applyAuthoredProfile(target, definition, options) {
+    const opts = options || {};
+    const base = definition.base;
+    target.schemaVersion = 1;
+    target.id = definition.id;
+    target.canonicalName = definition.canonicalName;
+    target.name = definition.canonicalName;
+    target.age = definition.age;
+    target.nativeJob = definition.nativeJob;
+    target.class = definition.nativeJob;
+    target.jobId = definition.nativeJob ? definition.id : null;
+    target.combatRole = definition.combatRole;
+    target.artProfileId = definition.id;
+    target.balanceProfileVersion = BALANCE_PROFILE_VERSION;
+    target.balanceStatus = BALANCE_STATUS;
+    ensureMagicProfile(target, definition.id);
+    // Production JRPG stats are namespaced separately during migration so
+    // compatibility-only 2D6 actions cannot accidentally consume 1–75 values.
+    if (JRPG_STAT_MODEL && typeof JRPG_STAT_MODEL.getPrimaryStats === 'function') {
+      target.productionStats = JRPG_STAT_MODEL.getPrimaryStats(
+        definition.id,
+        target.level || 1
+      );
+      target.productionDerivedStats = JRPG_STAT_MODEL.derive(
+        target.productionStats,
+        target.level || 1,
+        target.productionEquipment || {}
+      );
+      target.productionStatModelVersion = JRPG_STAT_MODEL.VERSION;
+    }
+    target.vit = base.vit;
+    target.maxVit = base.vit;
+    target.echoes = base.echoes;
+    target.echoesMax = 3;
+    target.aether = base.aether;
+    target.aetherMax = base.aetherMax;
+    target.heat = base.heat;
+    target.heatMax = base.heatMax;
+    target.wits = base.wits;
+    target.presence = base.presence;
+    target.spirit = base.spirit;
+    target.might = base.might;
+    target.grace = base.grace;
+    if (opts.initializeProgression !== false) {
+      target.level = 1;
+      target.xp = 0;
+      target.xpToNext = 50;
+    }
+    if (JRPG_STAT_MODEL && typeof JRPG_STAT_MODEL.getPrimaryStats === 'function') {
+      target.productionStats = JRPG_STAT_MODEL.getPrimaryStats(
+        definition.id,
+        target.level || 1
+      );
+      target.productionStatModelVersion = JRPG_STAT_MODEL.VERSION;
+    }
+    return target;
+  }
+
   function createShell(definition) {
-    return {
-      schemaVersion: 1,
-      id: definition.id,
-      canonicalName: definition.canonicalName,
-      name: definition.canonicalName,
-      nativeJob: definition.nativeJob,
+    const shell = {
       runtimeImplemented: false,
-      implementationSource: 'authored-shell',
-      age: null,
-      class: null,
-      jobId: null,
+      implementationSource: 'authored-balance-shell',
       synergyBonus: null,
-      vit: null,
-      maxVit: null,
-      echoes: null,
-      echoesMax: null,
-      wits: null,
-      presence: null,
-      spirit: null,
-      might: null,
-      grace: null,
-      scrap: null,
-      aether: null,
-      aetherMax: null,
-      heat: null,
-      heatMax: null,
-      staffCharges: null,
-      maxStaffCharges: null,
-      level: null,
-      xp: null,
-      xpToNext: null,
+      scrap: 5,
+      staffCharges: 0,
+      maxStaffCharges: 0,
       unlockedAbilities: [],
-      magicProfile: createMagicProfile(definition.id),
       equipment: { staff: null, backpack: null },
     };
+    return applyAuthoredProfile(shell, definition);
   }
 
   function currentOf(value) {
@@ -96,6 +171,34 @@
 
   function assignIfDefined(target, key, value) {
     if (value !== undefined) target[key] = value;
+  }
+
+  function refreshProductionStats(character) {
+    if (!character || typeof character !== 'object') {
+      throw new Error('PRODUCTION_STATS_CHARACTER_REQUIRED');
+    }
+    if (!JRPG_STAT_MODEL ||
+        typeof JRPG_STAT_MODEL.getPrimaryStats !== 'function' ||
+        typeof JRPG_STAT_MODEL.derive !== 'function') {
+      throw new Error('JRPG_STAT_MODEL_UNAVAILABLE');
+    }
+    const level = character.level || 1;
+    character.productionStats = JRPG_STAT_MODEL.getPrimaryStats(character.id, level);
+    character.productionDerivedStats = JRPG_STAT_MODEL.derive(
+      character.productionStats,
+      level,
+      character.productionEquipment || {}
+    );
+    character.productionStatModelVersion = JRPG_STAT_MODEL.VERSION;
+    return {
+      primary: character.productionStats,
+      derived: character.productionDerivedStats,
+    };
+  }
+
+  function refreshAllProductionStats() {
+    if (!JRPG_STAT_MODEL) throw new Error('JRPG_STAT_MODEL_UNAVAILABLE');
+    return ROSTER.map(refreshProductionStats);
   }
 
   function adaptPrototypeCharacter(target, source, definition) {
@@ -150,6 +253,10 @@
       target.equipment = Object.assign({}, source.equipment);
     }
 
+    // The preservation creator may still provide temporary names/jobs/stats,
+    // but authored protagonist identity and the current fitted balance profile
+    // are authoritative at the persistent-roster boundary.
+    applyAuthoredProfile(target, definition, { initializeProgression: false });
     return target;
   }
 
@@ -163,8 +270,29 @@
     }
 
     if (new Set(actualIds).size !== 5) throw new Error('ROSTER_IDS_MUST_BE_UNIQUE');
-    if (ACTIVE_PARTY.length !== 3) throw new Error('ACTIVE_PARTY_LENGTH_MUST_BE_3');
-    if (new Set(ACTIVE_PARTY).size !== 3) throw new Error('ACTIVE_PARTY_REFERENCES_MUST_BE_UNIQUE');
+
+    if (CHARACTER_CANON && CHARACTER_CANON.PROFILES) {
+      DEFINITIONS.forEach(definition => {
+        const profile = CHARACTER_CANON.PROFILES[definition.id];
+        if (!profile) throw new Error('CHARACTER_CANON_PROFILE_MISSING:' + definition.id);
+        if (profile.name !== definition.canonicalName || profile.age !== definition.age) {
+          throw new Error('CHARACTER_CANON_IDENTITY_DRIFT:' + definition.id);
+        }
+        if ((profile.nativeJob || null) !== (definition.nativeJob || null)) {
+          throw new Error('CHARACTER_CANON_JOB_DRIFT:' + definition.id);
+        }
+        if (JRPG_STAT_MODEL && JRPG_STAT_MODEL.PROFILES) {
+          const expectedProduction = JRPG_STAT_MODEL.getPrimaryStats(definition.id, 1);
+          if (!expectedProduction) throw new Error('JRPG_PRODUCTION_PROFILE_MISSING:' + definition.id);
+        }
+      });
+    }
+    if (ACTIVE_PARTY.length < MIN_ACTIVE_PARTY || ACTIVE_PARTY.length > MAX_ACTIVE_PARTY) {
+      throw new Error('ACTIVE_PARTY_LENGTH_MUST_BE_1_TO_5');
+    }
+    if (new Set(ACTIVE_PARTY).size !== ACTIVE_PARTY.length) {
+      throw new Error('ACTIVE_PARTY_REFERENCES_MUST_BE_UNIQUE');
+    }
 
     for (const character of ACTIVE_PARTY) {
       if (!ROSTER.includes(character)) {
@@ -172,15 +300,46 @@
       }
     }
 
-    for (const character of ROSTER) {
-      validateMagicProfile(character);
-    }
+    for (const character of ROSTER) validateMagicProfile(character);
 
     if (boundWorldPlayer && ROSTER[0] !== boundWorldPlayer) {
       throw new Error('WORLD_PLAYER_MUST_REFERENCE_ROSTER_LEAD');
     }
 
     return true;
+  }
+
+  function syncGlobals() {
+    global.ROSTER = ROSTER;
+    global.ACTIVE_PARTY = ACTIVE_PARTY;
+    global.party = ACTIVE_PARTY;
+    global.playerForCombat = ACTIVE_PARTY[0] || null;
+  }
+
+  function setActivePartyIds(ids) {
+    if (!boundWorldPlayer || ROSTER.length !== 5) {
+      throw new Error('PARTY_STATE_NOT_BOOTSTRAPPED');
+    }
+    if (!Array.isArray(ids) || ids.length < MIN_ACTIVE_PARTY || ids.length > MAX_ACTIVE_PARTY) {
+      throw new Error('ACTIVE_PARTY_IDS_MUST_HAVE_1_TO_5_MEMBERS');
+    }
+    if (new Set(ids).size !== ids.length) {
+      throw new Error('ACTIVE_PARTY_IDS_MUST_BE_UNIQUE');
+    }
+
+    const next = ids.map(id => {
+      const character = ROSTER.find(entry => entry.id === id);
+      if (!character) throw new Error('ACTIVE_PARTY_UNKNOWN_CHARACTER:' + id);
+      if (!character.runtimeImplemented) {
+        throw new Error('ACTIVE_PARTY_CHARACTER_NOT_IMPLEMENTED:' + id);
+      }
+      return character;
+    });
+
+    ACTIVE_PARTY.splice(0, ACTIVE_PARTY.length, ...next);
+    syncGlobals();
+    validate();
+    return ACTIVE_PARTY;
   }
 
   function bootstrap(worldPlayer) {
@@ -191,13 +350,9 @@
     if (ROSTER.length === 0) {
       boundWorldPlayer = worldPlayer;
 
-      worldPlayer.schemaVersion = 1;
-      worldPlayer.id = DEFINITIONS[0].id;
-      worldPlayer.canonicalName = DEFINITIONS[0].canonicalName;
-      worldPlayer.nativeJob = DEFINITIONS[0].nativeJob;
+      applyAuthoredProfile(worldPlayer, DEFINITIONS[0], { initializeProgression: false });
       worldPlayer.runtimeImplemented = true;
-      worldPlayer.implementationSource = 'world-bootstrap';
-      worldPlayer.magicProfile = createMagicProfile(DEFINITIONS[0].id);
+      worldPlayer.implementationSource = 'world-bootstrap-authored-profile';
 
       ROSTER.push(
         worldPlayer,
@@ -212,10 +367,7 @@
       throw new Error('PARTY_STATE_ALREADY_BOUND_TO_DIFFERENT_WORLD_PLAYER');
     }
 
-    global.ROSTER = ROSTER;
-    global.ACTIVE_PARTY = ACTIVE_PARTY;
-    global.party = ACTIVE_PARTY;
-    global.playerForCombat = ACTIVE_PARTY[0];
+    syncGlobals();
 
     validate();
     return { roster: ROSTER, activeParty: ACTIVE_PARTY };
@@ -256,25 +408,22 @@
 
     ACTIVE_PARTY.splice(0, ACTIVE_PARTY.length, ROSTER[0], ROSTER[1], ROSTER[2]);
 
-    global.ROSTER = ROSTER;
-    global.ACTIVE_PARTY = ACTIVE_PARTY;
-    global.party = ACTIVE_PARTY;
-    global.playerForCombat = ACTIVE_PARTY[0];
+    syncGlobals();
 
     validate();
     return ACTIVE_PARTY;
   }
 
-  // Formation mutation is intentionally not exposed in this phase.
-  // ACTIVE_PARTY is established as canonical references; formation changes
-  // land later with safe-state and combat-boundary rules.
+  // Formation capacity is now 1–5. Scene/combat code remains responsible for
+  // calling setActivePartyIds only at admissible story/safe-state boundaries.
 
   function snapshot() {
     return {
       rosterIds: ROSTER.map(character => character.id),
       activeIds: ACTIVE_PARTY.map(character => character.id),
       runtimeImplemented: ROSTER.map(character => Boolean(character.runtimeImplemented)),
-      affinityStatus: ROSTER.map(character => character.magicProfile && character.magicProfile.affinityStatus),
+      affinityStatus: ROSTER.map(character =>
+        character.magicProfile && character.magicProfile.affinityStatus),
       masteryRanks: ROSTER.map(character => ({
         trees: Object.assign({}, character.magicProfile.mastery.trees),
         domains: Object.assign({}, character.magicProfile.mastery.domains),
@@ -287,12 +436,21 @@
   global.ACTIVE_PARTY = ACTIVE_PARTY;
   global.AetherPartyState = Object.freeze({
     definitions: DEFINITIONS,
+    balanceProfileVersion: BALANCE_PROFILE_VERSION,
+    balanceStatus: BALANCE_STATUS,
+    characterCanonVersion: CHARACTER_CANON ? CHARACTER_CANON.VERSION : null,
+    productionStatModelVersion: JRPG_STAT_MODEL ? JRPG_STAT_MODEL.VERSION : null,
     roster: ROSTER,
     activeParty: ACTIVE_PARTY,
     bootstrap,
     commitPrototypeParty,
     replaceMagicProfile,
+    setActivePartyIds,
     validate,
     snapshot,
+    refreshProductionStats,
+    refreshAllProductionStats,
+    minActiveParty: MIN_ACTIVE_PARTY,
+    maxActiveParty: MAX_ACTIVE_PARTY,
   });
 })(window);

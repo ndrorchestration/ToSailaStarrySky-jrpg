@@ -1,7 +1,7 @@
 {
   "name": "Aetherwake",
   "version": "0.2.0",
-  "description": "Aetherwake pre-alpha — a solarpunk 2D6 PbtA JRPG built with p5.js",
+  "description": "Aetherwake pre-alpha — a solarpunk turn-based JRPG built with p5.js",
   "main": "index-embedded.html",
   "window": {
     "title": "AETHERWAKE — THE LAST SOLARPUNK AIRSHIP",
@@ -23,6 +23,8 @@
     "plugin": false,
     "page-cache": true
   },
+  "js-flags": "--expose-gc",
+  "chromium-args": "--disable-gpu-compositing --disable-gpu-rasterization",
   "devDependencies": {
     "nw": "^0.116.0",
     "nwjs": "^1.4.4",
@@ -53,6 +55,16 @@
     "test:elemental-spell-trees": "node tests/elemental-spell-trees-contract.test.js",
     "test:non-elemental-spell-trees": "node tests/non-elemental-spell-trees-contract.test.js",
     "test:magic-spell-access": "node tests/magic-spell-access-contract.test.js",
-    "test:magic-study": "node tests/magic-study-contract.test.js"
+    "test:magic-study": "node tests/magic-study-contract.test.js",
+    "test:longform-progression": "node tests/longform-progression.test.js",
+    "test:encounter-scaling": "node tests/encounter-scaling.test.js",
+    "test:party-capacity": "node tests/party-capacity.test.js",
+    "test:character-profiles": "node tests/character-stat-profiles.test.js",
+    "test:jrpg-stat-model": "node tests/jrpg-stat-model.test.js",
+    "test:jrpg-formula-engine": "node tests/jrpg-formula-engine.test.js",
+    "test:commons-ledger": "node tests/commons-ledger.test.js",
+    "test:aether-seal-contract": "node tests/aether-seal-contract.test.js",
+    "test:character-canon": "node tests/character-canon-alignment.test.js",
+    "test:runtime-ssot": "node tests/runtime-ssot-contract.test.js"
   }
 }

@@ -1,3 +1,9 @@
+// HISTORICAL MIRROR — NOT RUNTIME AUTHORITY.
+// The live combat executor is integrated in ../aetherwake.js and production
+// player actions are migrating to explicit JRPG formula/contract resolution.
+// This file preserves earlier 2D6/PbtA behavior for provenance only and must
+// not be used as evidence of current gameplay semantics.
+
 // AetherCombat — Turn-based 2D6 PbtA combat module for Aetherwake JRPG.
 // Exposes window.AetherCombat as a constructor: new AetherCombat(p, C)
 // Also compatible with direct call: AetherCombat(p, C) returns the namespace.
@@ -7,9 +13,9 @@ function AetherCombat(p, C) {
   const self = this;
   const state = {
     player: {
-      name: 'Young Ender',
-      age: 28,
-      class: 'Rift Scholar + Dreamwright',
+      name: 'Ender',
+      age: 22,
+      class: 'Rift Scholar',
       vit: 13, maxVit: 13,
       echoes: { current: 3, max: 3 }, maxEchoes: 3,
       wits: 2, presence: 1, spirit: 1, might: -1,
@@ -144,9 +150,11 @@ function AetherCombat(p, C) {
     state.player.echoes = options.echoes ? { current: options.echoes.current, max: options.echoes.max } : { current: options.echoes ?? 3, max: options.echoesMax ?? 3 };
     state.player.staffCharges = options.charges ?? (options.staffCharges ?? 2);
     state.maxStaffCharges = options.staffMax ?? 2;
-    state.player.level = options.level ?? 1;
+    const progression = (typeof window !== 'undefined' && window.AetherProgressionDefs) ? window.AetherProgressionDefs : null;
+    const requestedLevel = options.level ?? 1;
+    state.player.level = progression && typeof progression.normalizeLevel === 'function' ? progression.normalizeLevel(requestedLevel) : requestedLevel;
     state.player.xp = options.xp ?? 0;
-    state.player.xpToNext = options.xpToNext ?? 50;
+    state.player.xpToNext = options.xpToNext ?? (progression && typeof progression.getXPToNext === 'function' ? progression.getXPToNext(state.player.level) : 50);
     state.player.unlockedAbilities = options.unlockedAbilities || ['uncoverTruth', 'sharedDream', 'mycelialLedger'];
     state.player.equipment = options.equipment || { staff: null, backpack: null };
     state.turn = 0;
@@ -166,28 +174,98 @@ function AetherCombat(p, C) {
 
   this.levelUp = function() {
     const p = state.player;
+    const progression = (typeof window !== 'undefined' && window.AetherProgressionDefs) ? window.AetherProgressionDefs : null;
+    const hardCap = progression && progression.LEVEL_LIMITS ? progression.LEVEL_LIMITS.HARD_CAP : 175;
+
+    if (p.level >= hardCap) {
+      p.level = hardCap;
+      p.xp = 0;
+      p.xpToNext = 0;
+      return false;
+    }
     if (p.xp < p.xpToNext) return false;
+
     p.xp -= p.xpToNext;
     p.level++;
-    p.xpToNext = Math.floor(50 * Math.pow(1.5, p.level - 1));
+
+    p.xpToNext = progression && typeof progression.getXPToNext === 'function'
+      ? progression.getXPToNext(p.level)
+      : Math.floor(50 * Math.pow(1.5, p.level - 1));
+
     p.echoes.max = Math.min(6, p.echoes.max + 1);
-    if (p.level === 3 && !p.unlockedAbilities.includes('windWard')) {
-      p.unlockedAbilities.push('windWard');
-      log('── LEVEL 3: Wind Ward unlocked! ──');
+
+    const unlocks = progression && typeof progression.getUnlocksForLevel === 'function'
+      ? progression.getUnlocksForLevel(p.level)
+      : [];
+
+    if (unlocks.length > 0) {
+      unlocks.forEach(entry => {
+        if (!p.unlockedAbilities.includes(entry.abilityId)) {
+          p.unlockedAbilities.push(entry.abilityId);
+          log(entry.log);
+        }
+      });
+    } else {
+      // Compatibility fallback if progression definitions are unavailable.
+      if (p.level === 3 && !p.unlockedAbilities.includes('windWard')) {
+        p.unlockedAbilities.push('windWard');
+        log('── LEVEL 3: Wind Ward unlocked! ──');
+      }
+      if (p.level === 4 && !p.unlockedAbilities.includes('aetherSeal')) {
+        p.unlockedAbilities.push('aetherSeal');
+        log('── LEVEL 4: Aether Seal unlocked! ──');
+      }
+      if (p.level === 5 && !p.unlockedAbilities.includes('rest')) {
+        p.unlockedAbilities.push('rest');
+        log('── LEVEL 5: Rest unlocked! ──');
+      }
     }
-    if (p.level === 5 && !p.unlockedAbilities.includes('rest')) {
-      p.unlockedAbilities.push('rest');
-      log('── LEVEL 5: Rest unlocked! ──');
+
+    const milestone = progression && typeof progression.getMilestone === 'function'
+      ? progression.getMilestone(p.level)
+      : null;
+    if (milestone) {
+      log('── MILESTONE: ' + milestone.label + ' ──');
     }
+
     log('── LEVEL UP! You are now level ' + p.level + '. Choose a stat to increase. ──');
+
+    if (p.level >= hardCap) {
+      p.xp = 0;
+      p.xpToNext = 0;
+    }
+
     return true;
   };
 
   this.awardXP = function(amount) {
     const p = state.player;
-    p.xp += amount;
-    log('+' + amount + ' XP');
-    this.levelUp();
+    if (!Number.isFinite(amount) || amount <= 0) return 0;
+
+    const progression = (typeof window !== 'undefined' && window.AetherProgressionDefs) ? window.AetherProgressionDefs : null;
+    const hardCap = progression && progression.LEVEL_LIMITS ? progression.LEVEL_LIMITS.HARD_CAP : 175;
+    if (p.level >= hardCap) {
+      p.level = hardCap;
+      p.xp = 0;
+      p.xpToNext = 0;
+      return 0;
+    }
+
+    p.xp += Math.floor(amount);
+    log('+' + Math.floor(amount) + ' XP');
+
+    let gained = 0;
+    let guard = 0;
+    while (p.level < hardCap && p.xpToNext > 0 && p.xp >= p.xpToNext) {
+      if (!this.levelUp()) break;
+      gained++;
+      guard++;
+      if (guard > hardCap) {
+        throw new Error('PROGRESSION_LEVEL_LOOP_GUARD');
+      }
+    }
+
+    return gained;
   };
 
   this.beginEncounter = function(enemyId) {
@@ -196,17 +274,36 @@ function AetherCombat(p, C) {
       log('Unknown enemy: ' + enemyId);
       return;
     }
+    const activeLevels = (typeof window !== 'undefined' && Array.isArray(window.ACTIVE_PARTY))
+      ? window.ACTIVE_PARTY
+          .filter(member => member && Number.isFinite(member.level) && member.level >= 1)
+          .map(member => member.level)
+      : [];
+    const partyLevels = activeLevels.length ? activeLevels : [state.player.level];
+    const scaling = (typeof window !== 'undefined' && window.AetherEncounterScaling &&
+      typeof window.AetherEncounterScaling.scaleEnemy === 'function')
+      ? window.AetherEncounterScaling
+      : null;
+    const scaledTemplate = scaling
+      ? scaling.scaleEnemy(template, {
+          partyLevels,
+          partySize: partyLevels.length,
+          playerLevel: state.player.level,
+        })
+      : template;
+
     state.enemy = {
-      name: template.name,
-      goal: template.goal,
-      hp: template.hp,
-      maxHp: template.maxHp,
-      might: template.might,
-      presence: template.presence,
-      grace: template.grace,
-      wits: template.wits,
-      weakness: template.weakness,
-      status: template.status,
+      name: scaledTemplate.name,
+      goal: scaledTemplate.goal,
+      hp: scaledTemplate.hp,
+      maxHp: scaledTemplate.maxHp,
+      might: scaledTemplate.might,
+      presence: scaledTemplate.presence,
+      grace: scaledTemplate.grace,
+      wits: scaledTemplate.wits,
+      weakness: scaledTemplate.weakness,
+      status: scaledTemplate.status,
+      scaling: scaledTemplate.scaling || null,
     };
     state.turn = 0;
     state.encounterOver = false;
@@ -995,7 +1092,7 @@ function AetherCombat(p, C) {
     p.textSize(8);
     p.textAlign(p.CENTER, p.TOP);
     p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 170);
-    p.text('YOUNG ENDER', px, py - 30 + dodgeBob);
+    p.text('ENDER', px, py - 30 + dodgeBob);
 
     // Player Vit bar
     const vitRatio = (combat && combat.getState) ? 

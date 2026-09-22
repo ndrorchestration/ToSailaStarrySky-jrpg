@@ -217,8 +217,8 @@ function initNPCs() {
       tileY: 7,
       dialogue: {
         intro: [
-          '"The Aureate Wake is the last ship that still flies. I\'ve been captain for three hundred years. The sky-lanes closed one by one, and now it\'s just us. The people below want passage. The corporate syndicates want the core. The sky above wants someone brave enough to find out what\'s up there. You\'ve got three problems and you\'ve only just boarded."',
-          '"My first officer used to say a captain owes her ship a proper send-off and her crew a straight answer. I\'ve been trying for three centuries. I\'m still working on it. You look like someone who appreciates a straight answer. So here it is: this ship has a core that sings wrong. And it\'s going to keep singing wrong until someone makes it stop."',
+          '"The Aureate Wake is the last ship that still flies. I\'ve captained the Aureate Wake long enough to know every change in her voice. The sky-lanes closed one by one, and now it\'s just us. The people below want passage. The corporate syndicates want the core. The sky above wants someone brave enough to find out what\'s up there. You\'ve got three problems and you\'ve only just boarded."',
+          '"My first officer used to say a captain owes her ship a proper send-off and her crew a straight answer. Captain Denith taught me a captain owes her ship a proper send-off and her crew a straight answer. I\'m still working on both. You look like someone who appreciates a straight answer. So here it is: this ship has a core that sings wrong. And it\'s going to keep singing wrong until someone makes it stop."',
           '"You can work the decks. You can talk to the people. You can listen to the frequencies. Or you can do nothing. The Wake will keep flying either way. But the core won\'t. It\'s getting louder each time the sun drops."',
           '"I\'ve watched the sky-lanes die one by one. Copper-slicked smoke on the horizon. A city going quiet. Another one. Then another. We\'re the last ship flying a sky-lanes route no one else can hold anymore. If we go down, the sky-lanes go with us."',
           '"If you\'re looking for the honest part of this story — it\'s me. I\'m tired. I\'ve been tired for a very long time. But I\'m still flying. Sometimes that\'s the only honest thing left in a sky-lanes world."'
@@ -229,8 +229,8 @@ function initNPCs() {
           '"The people below want passage. The syndicates want the core. The frequencies want a decision. You\'re the only one who doesn\'t have a price on this ship. That\'s not an accident. That\'s the point."'
         ],
         class_farmer: [
-          '"Farmers understand soil because soil tells the truth if you know how to listen. You\'re the same — you listen to what the engine is trying to tell you. That\'s the whole story right there."',
-          '"I\'ve farmed sky-lanes routes as long as I\'ve captained ships. Both of them want the same thing: someone who doesn\'t walk away when the job gets hard."'
+          '"Navigation teaches the same lesson every watch: the sky tells the truth if you know how to read it. You notice wrongness before most people can name it. I can work with that."',
+          '"Captain Denith taught me to trust instruments, weather, and people in that order only when the first two agree. The Wake needs someone who listens before acting."'
         ],
         generic_follow: [
           '"The aether-core is the heart of this ship. It hums — a wrong kind of hum. You\'ll feel it in the rigging before you see it in the decks."'
@@ -238,7 +238,7 @@ function initNPCs() {
         deep: [
           '"You\'ve walked the ship and talked to everyone. I\'ve told you that. The crew is trying. The people below keep asking. The corporate officers keep calling. The core keeps singing wrong. What are you going to do with that?"',
           '"I can\'t make this decision for you. Nobody can. The Aureate Wake flies because people believe it should. Someone has to keep believing. Or stop. That\'s the choice."',
-          '"You\'ll find out which one I am — the tired old captain who quit, or the tired old captain who didn\'t. The answer\'s coming."'
+          '"You\'ll find out which one I am — the captain who quit, or the captain who didn\'t. The answer\'s coming."'
         ]
       },
       flags: { met: false, questMarker: true }
@@ -286,7 +286,7 @@ function initNPCs() {
     {
       id: 'child_prophet',
       name: 'Lyra',
-      title: 'Child Dreamer of the Aureate Wake',
+      title: 'Frequency-Sensitive Dreamer of the Aureate Wake',
       x: 8,
       y: 20,
       tileX: 8,
