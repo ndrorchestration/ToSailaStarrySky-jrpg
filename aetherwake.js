@@ -5699,7 +5699,7 @@ function AetherCombat(p, C) {
   };
 
   // ── Rendering (called from core.js drawCombatScene wiring) ──
-  this.drawCombatScene = function(combatPlayerX, combatPlayerY, aetherMax, staffMax) {
+  this.drawCombatScene = function(playerX, playerY, aetherMax, staffMax) {
     const now = millis();
     const dodgeBob = state._dodgeTurn && state._dodgeTurn > now - 200
       ? Math.sin((now - state._dodgeTurn) * 0.02) * 4
@@ -5769,17 +5769,12 @@ function AetherCombat(p, C) {
         teal: C.teal,
         biolum: C.biolum,
         rose: C.rose,
-    
-    if (visualStage && typeof visualStage.drawTurnRail === 'function') {
-      visualStage.drawTurnRail({
-        width: p.width,
-        height: p.height,
-        turn: state.turn,
-        enemy: state.enemy,
-      });
-    }
-  };
+      };
       const eBodyColor = colorMap[eColor] || C.soil;
+
+      // Enemy HP/glow state remains local because downstream HUD/effects use it.
+      const hpRatio = state.enemy.hp / state.enemy.maxHp;
+      const glowColor = hpRatio > 0.5 ? C.scioto : (hpRatio > 0.25 ? C.rust : C.teal);
 
       // Shared visual-stage enemy treatment. Mechanical state remains local.
       if (visualStage && typeof visualStage.drawEnemy === 'function') {
@@ -6058,6 +6053,15 @@ function AetherCombat(p, C) {
     p.noStroke();
     p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 180);
     p.rect(px - 15, py - 41 + dodgeBob, 30 * Math.max(0, vitRatio), 1.5);
+
+    if (visualStage && typeof visualStage.drawTurnRail === 'function') {
+      visualStage.drawTurnRail({
+        width: p.width,
+        height: p.height,
+        turn: state.turn,
+        enemy: state.enemy,
+      });
+    }
   };
 };
 
