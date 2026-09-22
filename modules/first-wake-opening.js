@@ -16,12 +16,13 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   const SCENES = Object.freeze([
     Object.freeze({
       id: 'arrival_horizon',
       sequence: 0,
+      visual: 'dock-horizon',
       title: 'WAKE DOCK — LOWER VERDANT REACH',
       speaker: null,
       lines: Object.freeze([
@@ -33,6 +34,7 @@
     Object.freeze({
       id: 'ender_arrives',
       sequence: 1,
+      visual: 'arrival',
       title: 'ARRIVAL',
       speaker: 'IONIA',
       lines: Object.freeze([
@@ -45,6 +47,7 @@
     Object.freeze({
       id: 'dock_walk',
       sequence: 2,
+      visual: 'dock-walk',
       title: 'THE WALK TO THE WAKE',
       speaker: null,
       lines: Object.freeze([
@@ -56,6 +59,7 @@
     Object.freeze({
       id: 'berth_task',
       sequence: 3,
+      visual: 'berth',
       title: 'A PLACE ABOARD',
       speaker: 'IONIA',
       lines: Object.freeze([
@@ -68,6 +72,7 @@
     Object.freeze({
       id: 'talen_staying',
       sequence: 4,
+      visual: 'talen',
       title: 'ARE YOU STAYING?',
       speaker: 'TALEN',
       lines: Object.freeze([
@@ -80,6 +85,7 @@
     Object.freeze({
       id: 'lyra_family',
       sequence: 5,
+      visual: 'household',
       title: 'THE HOUSEHOLD',
       speaker: 'LYRA',
       lines: Object.freeze([
@@ -92,6 +98,7 @@
     Object.freeze({
       id: 'wrong_song',
       sequence: 6,
+      visual: 'wrong-song',
       title: 'THE WRONG SONG',
       speaker: 'LYRA',
       lines: Object.freeze([
@@ -106,6 +113,7 @@
     Object.freeze({
       id: 'ionia_practical',
       sequence: 7,
+      visual: 'practical',
       title: 'MAKE IT PRACTICAL',
       speaker: 'IONIA',
       lines: Object.freeze([
@@ -118,6 +126,7 @@
     Object.freeze({
       id: 'core_walk',
       sequence: 8,
+      visual: 'core-walk',
       title: 'TO THE CORE',
       speaker: null,
       lines: Object.freeze([
@@ -130,6 +139,7 @@
     Object.freeze({
       id: 'first_wake_card',
       sequence: 9,
+      visual: 'chapter',
       title: 'AETHERWAKE',
       subtitle: 'CHAPTER I — FIRST WAKE',
       speaker: null,
@@ -146,7 +156,10 @@
     if (SCENES.length !== 10) throw new Error('FIRST_WAKE_OPENING_SCENE_COUNT_DRIFT');
     SCENES.forEach((scene, index) => {
       if (scene.sequence !== index) throw new Error('FIRST_WAKE_OPENING_SEQUENCE_DRIFT:' + scene.id);
-      if (!scene.id || !scene.title) throw new Error('FIRST_WAKE_OPENING_SCENE_INVALID:' + index);
+      if (!scene.id || !scene.title || !scene.visual) throw new Error('FIRST_WAKE_OPENING_SCENE_INVALID:' + index);
+      if (!['dock-horizon','arrival','dock-walk','berth','talen','household','wrong-song','practical','core-walk','chapter'].includes(scene.visual)) {
+        throw new Error('FIRST_WAKE_OPENING_VISUAL_INVALID:' + scene.id);
+      }
       if (!Array.isArray(scene.activePartyIds) || scene.activePartyIds.length < 1) {
         throw new Error('FIRST_WAKE_OPENING_PARTY_INVALID:' + scene.id);
       }
