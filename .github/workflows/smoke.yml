@@ -72,6 +72,9 @@ jobs:
       - name: Verify non-elemental spell trees
         run: npm run test:non-elemental-spell-trees
 
+      - name: Verify magic spell access
+        run: npm run test:magic-spell-access
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
