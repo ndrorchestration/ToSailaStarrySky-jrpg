@@ -97,6 +97,7 @@ let world = null;
 let combat = null;
 let airNavigationState = null;
 let combatReturnState = STATE.WORLD;
+let combatActionFocus = null;
 let pendingHazardIndex = null;
 let wakeResolutionStart = 0;
 let latestSaveMeta = null;
@@ -629,6 +630,34 @@ function dispatchGamepadActions(result) {
     return false;
   }
 
+  if (gameState === STATE.COMBAT) {
+    const combatState = combat && typeof combat.getState === 'function' ? combat.getState() : null;
+    if (!combatState) return false;
+
+    if (combatState.encounterOver) {
+      if (pressed.includes('confirm') || pressed.includes('cancel')) {
+        finishCombat();
+        return true;
+      }
+      return false;
+    }
+
+    let handled = false;
+    if (pressed.includes('ui-up') || pressed.includes('ui-left')) {
+      moveCombatActionFocus(-1);
+      handled = true;
+    }
+    if (pressed.includes('ui-down') || pressed.includes('ui-right')) {
+      moveCombatActionFocus(1);
+      handled = true;
+    }
+    if (pressed.includes('confirm')) {
+      activateCombatFocusedAction();
+      handled = true;
+    }
+    return handled;
+  }
+
   if (gameState === STATE.AIRSHIP) {
     if (!ensureAirNavigationState()) return false;
     const nav = window.AetherAirNavigation;
@@ -710,9 +739,8 @@ function pollGamepadDiagnostics() {
 
 // ── draw() ──
 function draw() {
-  // Poll fresh browser gamepad objects every frame. Title, Settings, WORLD,
-  // dialogue, and AIRSHIP dispatch through semantic actions. Combat action
-  // selection remains keyboard-authoritative until it has a focus model.
+  // Poll fresh browser gamepad objects every frame. Title, Settings, opening,
+  // WORLD, dialogue, combat focus/actions, and AIRSHIP use semantic dispatch.
   pollGamepadDiagnostics();
   dt = millis() - lastTime;
   lastTime = millis();
@@ -1211,7 +1239,19 @@ function handleInput() {
       }
     }
 
-    // Number keys 1-8 trigger combat actions
+    if (combat && typeof combat.getState === 'function' && !combat.getState().encounterOver) {
+      if (semanticActionPressed('ui-up') || semanticActionPressed('ui-left')) {
+        moveCombatActionFocus(-1);
+      }
+      if (semanticActionPressed('ui-down') || semanticActionPressed('ui-right')) {
+        moveCombatActionFocus(1);
+      }
+      if (semanticActionPressed('confirm')) {
+        activateCombatFocusedAction();
+      }
+    }
+
+    // Number keys 1-8 remain direct combat-action shortcuts.
     if (typeof key === 'string' && key >= '1' && key <= '8' && combat && typeof combat.resolveTurn === 'function') {
       const actionIds = ['staffStrike', 'uncoverTruth', 'sharedDream', 'mycelialLedger', 'hold', 'windWard', 'aetherSeal', 'rest'];
       const idx = key.charCodeAt(0) - 49;
@@ -2134,6 +2174,50 @@ function drawAirNavigationScene() {
   textAlign(LEFT, BASELINE);
 }
 
+// ── Combat semantic focus ──
+function syncCombatActionFocusSnapshot() {
+  if (!combatActionFocus || !window.AetherFocusManager) {
+    window._combatActionFocus = null;
+    return null;
+  }
+  const snapshot = window.AetherFocusManager.snapshot(combatActionFocus);
+  window._combatActionFocus = snapshot;
+  return snapshot;
+}
+
+function ensureCombatActionFocus() {
+  if (!combat || typeof combat.getState !== 'function' || !window.AetherFocusManager) return null;
+  const combatState = combat.getState();
+  const ids = (combatState.actions || []).map(action => action.id);
+  if (!ids.length) {
+    combatActionFocus = null;
+    syncCombatActionFocusSnapshot();
+    return null;
+  }
+  if (!combatActionFocus) {
+    combatActionFocus = window.AetherFocusManager.createState(ids, ids[0]);
+  } else {
+    const current = window.AetherFocusManager.focusedId(combatActionFocus);
+    window.AetherFocusManager.setItems(combatActionFocus, ids, current);
+  }
+  return syncCombatActionFocusSnapshot();
+}
+
+function moveCombatActionFocus(delta) {
+  if (!ensureCombatActionFocus()) return null;
+  window.AetherFocusManager.move(combatActionFocus, delta);
+  return syncCombatActionFocusSnapshot();
+}
+
+function activateCombatFocusedAction() {
+  const focus = ensureCombatActionFocus();
+  if (!focus || !combat || typeof combat.resolveTurn !== 'function') return false;
+  if (combat.getState && combat.getState().encounterOver) return false;
+  const result = combat.resolveTurn(focus.focusedId, null);
+  syncCombatActionFocusSnapshot();
+  return result !== false;
+}
+
 // ── Combat launcher: triggers an encounter ──
 function startCombat(enemyId, returnState) {
   if (!combat || !world) return;
@@ -2161,6 +2245,8 @@ function startCombat(enemyId, returnState) {
     productionStatModelVersion: world.player.productionStatModelVersion,
   });
   combat.beginEncounter(enemyId || 'skyPredator');
+  combatActionFocus = null;
+  ensureCombatActionFocus();
   gameState = STATE.COMBAT;
   window.gameState = gameState;
 }
@@ -2231,6 +2317,8 @@ function finishCombat() {
   window.gameState = gameState;
   prevState = null;
   combatReturnState = STATE.WORLD;
+  combatActionFocus = null;
+  syncCombatActionFocusSnapshot();
 
   if (hazardVictory) {
     completeHazard(resolvedHazardIndex);
@@ -8775,6 +8863,9 @@ function drawCombatPanel(combatState) {
   drawGlowText('ACTIONS [1-8]', aX + 12, aY + 6, PAL.TEAL, 8);
 
   const actions = combatState.actions || [];
+  const focusedCombatActionId = combatActionFocus && window.AetherFocusManager
+    ? window.AetherFocusManager.focusedId(combatActionFocus)
+    : null;
   const eligibleActionIds = new Set(
     combatState.eligibleActionIds || actions.map(action => action.id)
   );
@@ -8787,6 +8878,12 @@ function drawCombatPanel(combatState) {
       ? combatState.actionUseEligibility[action.id]
       : null;
     const usable = unlocked && (!useEligibility || useEligibility.canUse);
+    const focused = action.id === focusedCombatActionId;
+    if (focused) {
+      fill(PAL.TEAL[0], PAL.TEAL[1], PAL.TEAL[2], 30);
+      noStroke();
+      rect(aX + 4, ay - 1, aW - 8, actH);
+    }
     // Number circle
     fill(usable ? PAL.TEAL : PAL.DIM);
     noStroke();
@@ -8808,7 +8905,7 @@ function drawCombatPanel(combatState) {
       : (useEligibility && useEligibility.reason === 'ssot_blocked'
         ? 'UNAVAILABLE · '
         : (usable ? '' : 'NO RES · '));
-    text(statePrefix + label.substring(0, statePrefix ? 19 : 28), aX + 24, ay + 1);
+    text((focused ? '▶ ' : '  ') + statePrefix + label.substring(0, statePrefix ? 17 : 26), aX + 24, ay + 1);
     // Cost indicator uses the exact same centralized legacy cost function as
     // runtime admission/payment.
     const totalCost = window.AetherAbilityDefs.getActionResourceCost(action);
