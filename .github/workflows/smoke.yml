@@ -117,6 +117,9 @@ jobs:
       - name: Verify First Wake opening runtime
         run: npm run test:first-wake-opening
 
+      - name: Verify fail-visible launch diagnostics
+        run: npm run test:launch-diagnostics
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
