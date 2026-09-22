@@ -94,4 +94,14 @@ assert(source.includes('function moveAirshipBySemanticAction(actionId)'),
 assert(source.includes('window._lastGamepadDispatchHandled'),
   'controller dispatch result must remain inspectable for regression tests');
 
+assert(source.includes("if (gameState === STATE.COMBAT)"),
+  'controller semantic dispatcher must include COMBAT');
+assert(source.includes("pressed.includes('ui-up') || pressed.includes('ui-left')"),
+  'controller combat focus must support previous-action navigation');
+assert(source.includes("pressed.includes('ui-down') || pressed.includes('ui-right')"),
+  'controller combat focus must support next-action navigation');
+assert(source.includes("pressed.includes('confirm')") &&
+       source.includes('activateCombatFocusedAction();'),
+  'controller combat Confirm must activate the focused action');
+
 console.log('Aetherwake input runtime contract: PASS');
