@@ -31,6 +31,13 @@ assert.deepStrictEqual(abilities.DEFS.mycelialLedger.resolution, {
   model: 'commons-readonly',
   contractId: 'mycelialLedger',
 });
+assert.strictEqual(abilities.DEFS.aetherSeal.authorityStatus, 'creator-aligned-aether-ward');
+assert.strictEqual(abilities.DEFS.aetherSeal.migrationStatus, 'live-aether-seal-v1');
+assert.strictEqual(abilities.DEFS.aetherSeal.canonicalOwner, 'ender');
+assert.deepStrictEqual(abilities.DEFS.aetherSeal.resolution, {
+  model: 'aether-seal',
+  contractId: 'aetherSeal',
+});
 
 const runtimeActions = abilities.createRuntimeActions();
 assert.strictEqual(abilities.assertRuntimeActions(runtimeActions), true);
