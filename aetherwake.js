@@ -4656,10 +4656,28 @@ function AetherCombat(p, C) {
           -formulaResolution.dedicatedCost.amount
         );
         attackCritical = Boolean(formulaResolution.critical);
+        if (formulaResolution.consumedAnalysis && state.enemy.analysis) {
+          state.enemy.analysis.charges = Math.max(0, (state.enemy.analysis.charges || 0) - 1);
+          if (state.enemy.analysis.charges === 0) state.enemy.analysis = null;
+        }
         actionText = formulaResolution.hit
           ? action.label + ' — ' + enemyDmg + ' EMP damage' +
             (attackCritical ? ' — CRITICAL!' : '') + '.'
           : action.label + ' — attack missed.';
+      } else if (formulaResolution.kind === 'analysis') {
+        state.enemy.analysis = {
+          revealedWeakness: formulaResolution.weakness,
+          nextDamageMultiplier: formulaResolution.modifier.nextDamageMultiplier,
+          charges: formulaResolution.modifier.charges,
+          source: 'uncoverTruth',
+        };
+        actionText = 'Uncover Truth — ' +
+          (formulaResolution.weakness
+            ? formulaResolution.weakness
+            : 'No discrete weakness can be confirmed.') +
+          ' Target analyzed: next damaging action deals +' +
+          Math.round((formulaResolution.modifier.nextDamageMultiplier - 1) * 100) + '%.';
+        state._abilityFlashTurn = millis();
       } else if (formulaResolution.kind === 'resource') {
         if (formulaResolution.resource !== effectVocabulary.RESOURCE.STAFF_CHARGES) {
           throw new Error('FORMULA_RESOURCE_KIND_UNSUPPORTED:' + formulaResolution.resource);
