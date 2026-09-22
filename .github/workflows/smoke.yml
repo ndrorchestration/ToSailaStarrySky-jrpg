@@ -123,6 +123,9 @@ jobs:
       - name: Verify standard gamepad semantic adapter
         run: npm run test:gamepad-input
 
+      - name: Verify persistent input bindings
+        run: npm run test:input-bindings
+
       - name: Verify input runtime contracts
         run: npm run test:input-runtime
 
