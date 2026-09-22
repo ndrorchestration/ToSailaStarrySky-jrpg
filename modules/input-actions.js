@@ -4,7 +4,7 @@
   const VERSION = '0.1.0';
 
   const CONTEXTS = Object.freeze([
-    'global', 'menu', 'settings', 'world', 'dialogue', 'combat', 'airship', 'save-load'
+    'global', 'boot', 'menu', 'settings', 'world', 'dialogue', 'combat', 'airship', 'save-load'
   ]);
 
   const ACTIONS = Object.freeze({
@@ -14,7 +14,7 @@
     'ui-right': { contexts: ['menu','combat','save-load','settings'], keyCodes: [39] },
     'confirm': { contexts: ['global'], keyCodes: [13,32] },
     'cancel': { contexts: ['global'], keyCodes: [27] },
-    'open-settings': { contexts: ['menu'], keyCodes: [83] },
+    'open-settings': { contexts: ['boot','menu'], keyCodes: [83] },
     'move-up': { contexts: ['world','airship'], keyCodesByContext: { world: [38,87], airship: [38] } },
     'move-down': { contexts: ['world','airship'], keyCodesByContext: { world: [40,83], airship: [40] } },
     'move-left': { contexts: ['world','airship'], keyCodesByContext: { world: [37,65], airship: [37] } },
