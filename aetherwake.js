@@ -96,6 +96,7 @@ let world = null;
 let combat = null;
 let airNavigationState = null;
 let combatReturnState = STATE.WORLD;
+let pendingHazardIndex = null;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -1149,6 +1150,29 @@ function finishCombat() {
     if (window.AetherPartyState &&
         typeof window.AetherPartyState.refreshProductionStats === 'function') {
       window.AetherPartyState.refreshProductionStats(world.player);
+    }
+  }
+
+  if (pendingHazardIndex !== null) {
+    const resolvedHazardIndex = pendingHazardIndex;
+    pendingHazardIndex = null;
+    const victory = Boolean(
+      combatState &&
+      combatState.encounterOver &&
+      combatState.enemy &&
+      combatState.enemy.hp <= 0
+    );
+
+    if (victory) {
+      const hazard = quest.crossingHazards[resolvedHazardIndex];
+      completeHazard(resolvedHazardIndex);
+      if (hazard) showToast('HAZARD CLEARED // ' + hazard.label.toUpperCase(), C.teal, 1400);
+    } else {
+      const hazard = quest.crossingHazards[resolvedHazardIndex];
+      if (hazard) {
+        appendJournalEntry('crossing', hazard.label + ' remains on the route. Regroup and try again.');
+        showToast('HAZARD REMAINS // ' + hazard.label.toUpperCase(), C.rust, 1400);
+      }
     }
   }
 
@@ -2811,34 +2835,64 @@ function checkLoreTile(tx, ty) {
   }
 }
 
+const HAZARD_ENCOUNTER_IDS = Object.freeze({
+  sky_predator: 'skyPredator',
+  wind_shear: 'windShear',
+  aether_leak: 'aetherLeak',
+  corporate_intercept: 'corporateSalvager',
+});
+
+function startHazardEncounter(index) {
+  if (quest.state !== QUEST_STATES.CROSSING) return false;
+  const hazard = quest.crossingHazards[index];
+  if (!hazard || hazard.done || pendingHazardIndex !== null) return false;
+
+  const enemyId = HAZARD_ENCOUNTER_IDS[hazard.id];
+  if (!enemyId) throw new Error('UNKNOWN_HAZARD_ENCOUNTER:' + hazard.id);
+
+  pendingHazardIndex = index;
+  appendJournalEntry('crossing', hazard.label + ' blocks the route. The crossing turns into a fight.');
+  showToast('HAZARD // ' + hazard.label.toUpperCase(), C.rust, 1200);
+  startCombat(enemyId, STATE.WORLD);
+  return true;
+}
+
 function checkHazardProximity(tx, ty) {
+  if (quest.state !== QUEST_STATES.CROSSING || pendingHazardIndex !== null) return;
+
   if (tx >= 28 && ty >= 4 && ty <= 8 && !quest.crossingHazards[0].done) {
     if (Math.random() < 0.15) {
-      completeHazard(0);
+      startHazardEncounter(0);
+      return;
     }
   }
   if (tx >= 10 && tx <= 20 && ty >= 8 && ty <= 14 && !quest.crossingHazards[1].done) {
     if (Math.random() < 0.1) {
-      completeHazard(1);
+      startHazardEncounter(1);
+      return;
     }
   }
   if (ty <= 5 && tx >= 15 && tx <= 25 && !quest.crossingHazards[2].done) {
     if (Math.random() < 0.08) {
-      completeHazard(2);
+      startHazardEncounter(2);
+      return;
     }
   }
   if (tx >= 4 && tx <= 12 && ty >= 9 && ty <= 16 && !quest.crossingHazards[3].done) {
     if (Math.random() < 0.12) {
-      completeHazard(3);
+      startHazardEncounter(3);
     }
   }
-  // 4th hazard zone marker drawn in drawQuestWorldReactions()
 }
 
 function completeHazard(index) {
-  quest.crossingHazards[index].done = true;
+  const hazard = quest.crossingHazards[index];
+  if (!hazard || hazard.done) return false;
+  hazard.done = true;
   quest.hazardsCompleted++;
+  appendJournalEntry('crossing', hazard.label + ' cleared. The route opens a little farther.');
   advanceQuest();
+  return true;
 }
 
 function toggleLayer() {
