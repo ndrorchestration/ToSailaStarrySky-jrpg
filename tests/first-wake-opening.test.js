@@ -7,7 +7,7 @@ assert.strictEqual(opening.SCENES.length, 10);
 assert.strictEqual(opening.SCENES[0].id, 'arrival_horizon');
 assert.strictEqual(opening.SCENES[6].id, 'wrong_song');
 assert.strictEqual(opening.SCENES[6].joinCharacterId, 'lyra');
-assert.deepStrictEqual(opening.SCENES[6].activePartyIds, ['ender','lyra']);
+assert.deepStrictEqual(opening.SCENES[6].activePartyIds, ['ender']);
 assert.strictEqual(opening.SCENES[9].chapterCard, true);
 assert(!opening.SCENES.some(scene => scene.activePartyIds.includes('ionia')),
   'Ionia must not join before Sequence 13/14');
@@ -17,6 +17,7 @@ assert.deepStrictEqual(opening.expectedPartyIds(state), ['ender']);
 
 for (let i = 0; i < 6; i++) opening.advance(state);
 assert.strictEqual(opening.currentScene(state).id, 'wrong_song');
+assert.deepStrictEqual(opening.expectedPartyIds(state), ['ender']);
 const join = opening.advance(state);
 assert(join.event && join.event.type === 'party-join');
 assert.strictEqual(join.event.characterId, 'lyra');
