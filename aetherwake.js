@@ -206,6 +206,32 @@ function setup() {
   window.__awRuntimeReady = true;
 }
 
+function writeDesktopSmokeMarkerOnce() {
+  if (window.__awDesktopSmokeMarkerWritten) return;
+  try {
+    if (typeof process === 'undefined' || !process.env) return;
+    const markerPath = process.env.AETHERWAKE_DESKTOP_SMOKE_MARKER;
+    if (!markerPath) return;
+    if (!window.__awRuntimeReady || !window.__awFirstFrame) return;
+    if (typeof require !== 'function') return;
+
+    const fs = require('fs');
+    const payload = {
+      runtimeReady: true,
+      firstFrame: true,
+      width: typeof width === 'number' ? width : null,
+      height: typeof height === 'number' ? height : null,
+      gameState: typeof gameState !== 'undefined' ? gameState : null,
+      setupOrder: window._setupOrder || null,
+      timestamp: new Date().toISOString(),
+    };
+    fs.writeFileSync(markerPath, JSON.stringify(payload), 'utf8');
+    window.__awDesktopSmokeMarkerWritten = true;
+  } catch (error) {
+    console.error('DESKTOP_SMOKE_MARKER_WRITE_FAILED', error);
+  }
+}
+
 // ── draw() ──
 function draw() {
   dt = millis() - lastTime;
@@ -419,6 +445,7 @@ function draw() {
 
   // The embedded loader waits for a completed frame, not merely a canvas node.
   window.__awFirstFrame = true;
+  writeDesktopSmokeMarkerOnce();
 }
 
 // ── Input ──
