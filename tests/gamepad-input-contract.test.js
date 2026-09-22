@@ -38,6 +38,16 @@ result = pad.poll(gamepad([pad.BUTTON.SOUTH]), state, 'world');
 assert.deepStrictEqual(result.pressed, ['interact']);
 
 state = pad.createState();
+result = pad.poll(gamepad([pad.BUTTON.MENU]), state, 'world');
+assert.deepStrictEqual(result.pressed, ['open-save-load'],
+  'Menu must open Save/Load from WORLD');
+
+state = pad.createState();
+result = pad.poll(gamepad([pad.BUTTON.MENU]), state, 'airship');
+assert.deepStrictEqual(result.pressed, ['open-save-load'],
+  'Menu must open Save/Load from AIRSHIP');
+
+state = pad.createState();
 result = pad.poll(gamepad([pad.BUTTON.SOUTH]), state, 'world', { wakeResolution: true });
 assert.deepStrictEqual(result.pressed, ['confirm'],
   'WAKE substate must prioritize confirm over ordinary world interact');
