@@ -153,10 +153,4 @@ counterparts. Each enemy type has a `draw{NPCName}Body()` function for rendering
 | Visual (scanlines, teal glow, pixel borders, grid, 14 islands, ship interior) | ✅ Delivered | 0 |
 | Audio/TTS | ✅ Delivered (SFX) / ⚠️ Partial (TTS files missing) | 1 medium (G11) |
 
-**Overall:** The running game in `aetherwake.js` (7,523 lines) now delivers ~85% of the SPEC fully,
-~10% partially, and ~5% not at all **at the time of this historical audit** (character creation was then the single critical gap — module was
-wired and structurally correct, needs browser verification of the typing path). The three expansion
-squads resolved all §6 combat gaps, all §7 enemy gaps, and all §10 UI gaps except G1 (character
-creation — structurally wired, typing path unverified in headless browser) and G11 (TTS audio files
-not on disk). The `standalone/www/` and `nw-package/` deploy targets are OUT OF SYNC with the current
-`aetherwake.js` and must be re-synced before the NW.js standalone build reflects the expansion.
+**Historical overall assessment (2026-09-19):** At the time of this audit, the then-running monolith was estimated at ~85% of that historical SPEC fully delivered, ~10% partial, and ~5% missing. The cited character-creation gap and deploy-target synchronization problem are **superseded** by current `main`: normal New Game now routes through authored First Wake, party state is `ROSTER[5] → ACTIVE_PARTY[1..5]`, and desktop packaging now stages an isolated `.desktop-runtime/www/` payload rather than synchronizing the old deploy mirrors. G11 remains only as an optional-content gap: no canonical TTS clip set is present, and current runtime fails closed before networking unless an explicit TTS manifest admits a clip.
