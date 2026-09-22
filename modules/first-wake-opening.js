@@ -16,13 +16,15 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.3.0';
+  const VERSION = '0.4.0';
 
   const SCENES = Object.freeze([
     Object.freeze({
       id: 'arrival_horizon',
       sequence: 0,
       visual: 'dock-horizon',
+      cinematic: true,
+      minimumTicks: 75,
       title: 'WAKE DOCK — LOWER VERDANT REACH',
       speaker: null,
       lines: Object.freeze([
@@ -35,6 +37,8 @@
       id: 'ender_arrives',
       sequence: 1,
       visual: 'arrival',
+      cinematic: true,
+      minimumTicks: 60,
       title: 'ARRIVAL',
       speaker: 'IONIA',
       lines: Object.freeze([
@@ -161,6 +165,9 @@
       if (scene.interactive && scene.id !== 'dock_walk') {
         throw new Error('FIRST_WAKE_OPENING_INTERACTIVE_DRIFT:' + scene.id);
       }
+      if (scene.cinematic && (!Number.isInteger(scene.minimumTicks) || scene.minimumTicks < 1)) {
+        throw new Error('FIRST_WAKE_OPENING_CINEMATIC_TIMING_INVALID:' + scene.id);
+      }
       if (!['dock-horizon','arrival','dock-walk','berth','talen','household','wrong-song','practical','core-walk','chapter'].includes(scene.visual)) {
         throw new Error('FIRST_WAKE_OPENING_VISUAL_INVALID:' + scene.id);
       }
@@ -183,6 +190,7 @@
       sceneIndex: 0,
       complete: false,
       appliedJoinIds: [],
+      sceneTicks: 0,
       dockWalk: {
         x: 0,
         max: 8,
@@ -201,6 +209,12 @@
   function advance(state) {
     if (!state || state.complete) return { state, event: null };
     const scene = currentScene(state);
+    if (scene.cinematic && state.sceneTicks < (scene.minimumTicks || 0)) {
+      return {
+        state,
+        event: Object.freeze({ type: 'presentation-required', remainingTicks: (scene.minimumTicks || 0) - state.sceneTicks }),
+      };
+    }
     if (scene.interactive && (!state.dockWalk || !state.dockWalk.ready)) {
       return {
         state,
@@ -220,6 +234,19 @@
 
     state.sceneIndex += 1;
     return { state, event };
+  }
+
+  function tickPresentation(state, ticks) {
+    if (!state || state.complete) return state;
+    const amount = Number.isFinite(ticks) ? Math.max(0, Math.floor(ticks)) : 1;
+    state.sceneTicks += amount;
+    return state;
+  }
+
+  function presentationReady(state) {
+    if (!state || state.complete) return true;
+    const scene = currentScene(state);
+    return !scene.cinematic || state.sceneTicks >= (scene.minimumTicks || 0);
   }
 
   function moveDock(state, delta) {
@@ -253,6 +280,8 @@
     createState,
     currentScene,
     advance,
+    tickPresentation,
+    presentationReady,
     moveDock,
     dockWalkProgress,
     expectedPartyIds,
