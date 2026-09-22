@@ -1894,7 +1894,16 @@ function drawSaveLoadOverlay() {
     textSize(9);
   }
   fill(C.scioto[0], C.scioto[1], C.scioto[2]);
-  text('↑/↓ focus   ←/→ mode   ENTER / SOUTH confirm   ESC / EAST return', 90, height - 46);
+  text(
+    inputPrompt('ui-up', 'save-load', 'both') + ' / ' +
+    inputPrompt('ui-down', 'save-load', 'both') + ' focus   ' +
+    inputPrompt('ui-left', 'save-load', 'both') + ' / ' +
+    inputPrompt('ui-right', 'save-load', 'both') + ' mode   ' +
+    inputPrompt('confirm', 'save-load', 'both') + ' confirm   ' +
+    inputPrompt('cancel', 'save-load', 'both') + ' return',
+    90,
+    height - 46
+  );
 }
 
 function syncSettingsMenuFocusSnapshot() {
@@ -2074,7 +2083,16 @@ function drawSettingsOverlay() {
   textFont('Press Start 2P');
   textSize(8);
   fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
-  text('↑/↓ focus   ←/→ change   ENTER change   ESC return', x + 20, y + h - 26);
+  text(
+    inputPrompt('ui-up', 'settings', 'both') + ' / ' +
+    inputPrompt('ui-down', 'settings', 'both') + ' focus   ' +
+    inputPrompt('ui-left', 'settings', 'both') + ' / ' +
+    inputPrompt('ui-right', 'settings', 'both') + ' change   ' +
+    inputPrompt('confirm', 'settings', 'both') + ' select   ' +
+    inputPrompt('cancel', 'settings', 'both') + ' return',
+    x + 20,
+    y + h - 26
+  );
 }
 
 function controlsMenuItems() {
@@ -2413,7 +2431,12 @@ function advanceFirstWakeOpening() {
     setTimeout(function() { autosave('chapter-handoff'); }, 0);
     setTimeout(function() {
       if (gameState === STATE.WORLD) {
-        showToast('OBJECTIVE // TALK TO THE THREE SIGNAL CONTACTS — PRESS T FOR QUEST LOG', C.teal, 3200);
+        showToast(
+          'OBJECTIVE // TALK TO THE THREE SIGNAL CONTACTS — QUEST ' +
+          inputPrompt('quest-log', 'world', 'both'),
+          C.teal,
+          3200
+        );
       }
     }, 450);
   }
@@ -2468,7 +2491,7 @@ function drawFirstWakeOpening() {
     height - 58
   );
   fill(C.teal[0], C.teal[1], C.teal[2]);
-  text('ENTER / SPACE — CONTINUE', width / 2, height - 26);
+  text(inputPrompt('confirm', 'opening', 'both') + ' — CONTINUE', width / 2, height - 26);
   pop();
 }
 
@@ -2615,7 +2638,22 @@ function drawAirNavigationScene() {
     if (moored) text('MOORED // ' + moored.label, 24, height - 54);
   }
   textAlign(RIGHT, TOP);
-  text('ARROWS steer  Q/E altitude  D dock  L/Esc land', width - 24, 22);
+  text(
+    'STEER ' + inputPrompt('move-left', 'airship', 'keyboard') + ' / ' +
+    inputPrompt('move-right', 'airship', 'keyboard') + ' / ' +
+    inputPrompt('move-up', 'airship', 'keyboard') + ' / ' +
+    inputPrompt('move-down', 'airship', 'keyboard'),
+    width - 24,
+    22
+  );
+  text(
+    'ALT ' + inputPrompt('airship-altitude-down', 'airship', 'both') + ' / ' +
+    inputPrompt('airship-altitude-up', 'airship', 'both') +
+    '  DOCK ' + inputPrompt('airship-dock', 'airship', 'both') +
+    '  LAND ' + inputPrompt('airship-land', 'airship', 'both'),
+    width - 24,
+    40
+  );
   textAlign(LEFT, BASELINE);
 }
 
@@ -3123,8 +3161,25 @@ function drawBootSequence() {
   textSize(11 * v);
   fill(C.rust[0], C.rust[1], C.rust[2], 140 * v);
   const controlY = latestSaveMeta ? cy + 140 : cy + 122;
-  text('WASD  move  |  E  talk  |  Q  covenant  |  F  ship  |  Tab  sky/ground', cx, controlY);
-  text('L ledger | M shop | R char | T quest | F5 save | F9 load', cx, controlY + 18);
+  text(
+    'MOVE ' +
+    inputPrompt('move-up', 'world', 'keyboard') + ' / ' +
+    inputPrompt('move-down', 'world', 'keyboard') + ' / ' +
+    inputPrompt('move-left', 'world', 'keyboard') + ' / ' +
+    inputPrompt('move-right', 'world', 'keyboard') +
+    '  | TALK ' + inputPrompt('interact', 'world', 'both') +
+    '  | SHIP ' + inputPrompt('board-or-flight', 'world', 'both'),
+    cx,
+    controlY
+  );
+  text(
+    'QUEST ' + inputPrompt('quest-log', 'world', 'both') +
+    ' | CHAR ' + inputPrompt('character-sheet', 'world', 'both') +
+    ' | LEDGER ' + inputPrompt('ledger', 'world', 'both') +
+    ' | SAVE/LOAD ' + inputPrompt('open-save-load', 'world', 'both'),
+    cx,
+    controlY + 18
+  );
   
   textFont('Press Start 2P');
   textSize(8 * v);
@@ -3213,7 +3268,7 @@ function drawTitleScreen() {
 
   textSize(14);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
-  text('NEW GAME — N or ENTER', cx, cy + 78);
+  text('NEW GAME — ' + inputPrompt('confirm', 'menu', 'both'), cx, cy + 78);
   if (latestSaveMeta) {
     fill(C.teal[0], C.teal[1], C.teal[2], 190);
     textSize(13);
@@ -3221,12 +3276,24 @@ function drawTitleScreen() {
   }
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 190);
   textSize(13);
-  text('SETTINGS — S', cx, cy + (latestSaveMeta ? 114 : 96));
+  text('SETTINGS — ' + inputPrompt('open-settings', 'menu', 'both'), cx, cy + (latestSaveMeta ? 114 : 96));
 
   textSize(11);
   fill(C.rust[0], C.rust[1], C.rust[2], 140);
-  text('WASD  move  |  E  talk  |  Q  covenant  |  F  ship  |  Tab  sky/ground', cx, cy + 118);
-  text('L ledger | M shop | R char | T quest | F5 save | F9 load', cx, cy + 136);
+  text(
+    'TALK ' + inputPrompt('interact', 'world', 'both') +
+    '  | SHIP ' + inputPrompt('board-or-flight', 'world', 'both') +
+    '  | QUEST ' + inputPrompt('quest-log', 'world', 'both'),
+    cx,
+    cy + 118
+  );
+  text(
+    'CHAR ' + inputPrompt('character-sheet', 'world', 'both') +
+    ' | LEDGER ' + inputPrompt('ledger', 'world', 'both') +
+    ' | SAVE/LOAD ' + inputPrompt('open-save-load', 'world', 'both'),
+    cx,
+    cy + 136
+  );
 
   textFont('Press Start 2P');
   textSize(8);
@@ -3277,7 +3344,12 @@ function drawDialogueOverlay() {
   textSize(8);
   fill(C.teal[0], C.teal[1], C.teal[2], 120);
   textAlign(CENTER, TOP);
-  text('E / ENTER to continue', width/2, by + bh + 6);
+  text(
+    inputPrompt('confirm', 'dialogue', 'both') + ' continue   ' +
+    inputPrompt('cancel', 'dialogue', 'both') + ' close',
+    width/2,
+    by + bh + 6
+  );
   textAlign(LEFT, TOP);
 }
 
@@ -9305,7 +9377,13 @@ function drawCombatPanel(combatState) {
 
   textFont(FONT_UI);
   textSize(8);
-  drawGlowText('ACTIONS [1-8]', aX + 12, aY + 6, PAL.TEAL, 8);
+  drawGlowText(
+    'ACTIONS [1-8] · USE ' + inputPrompt('confirm', 'combat', 'gamepad'),
+    aX + 12,
+    aY + 6,
+    PAL.TEAL,
+    8
+  );
 
   const actions = combatState.actions || [];
   const focusedCombatActionId = combatActionFocus && window.AetherFocusManager
