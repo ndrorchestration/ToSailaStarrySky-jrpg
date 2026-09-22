@@ -16,6 +16,8 @@ Do not use superseded self-extracting/SFX artifacts. If Windows Defender flags a
 
 ## For maintainers
 
+The production desktop layout intentionally follows the same structural pattern used by RPG Maker MV/NW.js games such as the Memories reference: the NW.js launcher/runtime lives at the package root, a minimal root `package.json` points to `www/index-embedded.html`, and the game payload lives under `www/`. Development files, tests, docs, and npm tooling are not part of the player runtime.
+
 The release path is intentionally split into three gates:
 
 1. **Build candidate on Linux.** NW.js produces the Windows x64 runtime, then NSIS creates a conventional per-user installer. The portable ZIP, installer, and SHA-256 manifest are retained as a candidate artifact.
@@ -43,7 +45,9 @@ The local release script runs the desktop contract, builds the Windows runtime, 
 
 The desktop shell must:
 
-- launch index-embedded.html;
+- launch `www/index-embedded.html` from a minimal launcher-root `package.json`;
+- keep the launcher/runtime separate from the `www/` game payload;
+- exclude development-only files from the player runtime;
 - preserve the 960×640 initial canvas;
 - run without Python or a separately started HTTP server;
 - keep the browser-served path available as a fallback;

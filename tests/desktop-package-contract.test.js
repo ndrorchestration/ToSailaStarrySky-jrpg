@@ -7,7 +7,7 @@ function assert(condition, message) {
 }
 
 assert(packageJson.main === 'index-embedded.html',
-  'desktop package must launch the embedded HTML entry point');
+  'development manifest must retain the embedded HTML entry point');
 assert(packageJson.window && packageJson.window.width === 960,
   'desktop package window width must remain 960');
 assert(packageJson.window && packageJson.window.height === 640,
@@ -18,6 +18,19 @@ assert(typeof packageJson.scripts['package:windows'] === 'string',
   'Windows packaging script is missing');
 assert(packageJson.devDependencies && packageJson.devDependencies['nw-builder'],
   'nw-builder dependency is missing');
+
+const stageScript = fs.readFileSync(
+  path.join(__dirname, '..', 'scripts', 'stage-memories-desktop.js'),
+  'utf8'
+);
+assert(stageScript.includes("main: 'www/index-embedded.html'"),
+  'production desktop manifest must use the RPG Maker MV-style www entrypoint');
+assert(stageScript.includes("path.join(stage, 'package.json')"),
+  'production desktop manifest must live at the launcher root');
+assert(stageScript.includes("path.join(stage, 'www')"),
+  'production game payload must live under www');
+assert(packageJson.scripts['package:windows'].includes('.desktop-runtime'),
+  'Windows packaging must consume only the staged production runtime');
 
 const workflow = fs.readFileSync(
   path.join(__dirname, '..', '.github', 'workflows', 'desktop-package.yml'),
