@@ -8,12 +8,13 @@ This lane exists to turn the Visual Bible's four propagation gates into exact-he
 
 A complete bundle contains:
 
-1. `00-first-wake-dock-walk.png` — First Wake Sequence 02 mid-walk.
-2. `01-dragonfly-dusk-dock.png` — benchmark dock scene.
-3. `02-dialogue-ionia.png` — representative dialogue scene.
-4. `03-combat-sky-predator.png` — representative combat scene.
-5. `04-dragonfly-flight.png` — representative Dragonfly flight scene.
-6. `manifest.json` — source SHA, viewport/canvas dimensions, capture boundary, and SHA-256 for every screenshot.
+1. `00-title-screen.png` — shared-authority title screen.
+2. `01-first-wake-dock-walk.png` — First Wake Sequence 02 mid-walk.
+3. `02-dragonfly-dusk-dock.png` — benchmark dock scene.
+4. `03-dialogue-ionia.png` — representative dialogue scene.
+5. `04-combat-sky-predator.png` — representative combat scene.
+6. `05-dragonfly-flight.png` — representative Dragonfly flight scene.
+7. `manifest.json` — source SHA, viewport/canvas dimensions, capture boundary, and SHA-256 for every screenshot.
 
 ## Capture contract
 
@@ -50,7 +51,7 @@ At minimum, verify:
 - at least three depth planes are visible;
 - lighting materially improves composition;
 - repeated tile/procedural patterns do not dominate;
-- First Wake, character, Dragonfly, dialogue, combat, and flight treatments feel like one game;
+- title, First Wake, character, Dragonfly, dialogue, combat, and flight treatments feel like one game;
 - no debug/prototype visual dominates the frame;
 - the benchmark screenshot could plausibly serve as a store-page image without retouching.
 
