@@ -5,8 +5,11 @@ const path = require('path');
 
 const base = require('../modules/save-system.js');
 
-assert.strictEqual(base.VERSION, '1.0.0');
+assert.strictEqual(base.VERSION, '1.1.0');
 assert.strictEqual(base.SCHEMA_VERSION, 1);
+assert.deepStrictEqual(Object.keys(base.MIGRATIONS), [],
+  'schema v1 should have no migration steps yet, but the registry must exist');
+assert.strictEqual(typeof base.migrateEnvelope, 'function');
 assert.deepStrictEqual(base.MANUAL_SLOTS, ['manual-1','manual-2','manual-3','manual-4','manual-5','manual-6']);
 assert.deepStrictEqual(base.AUTOSAVE_SLOTS, ['autosave-0','autosave-1','autosave-2']);
 
@@ -71,3 +74,18 @@ assert.strictEqual(auto.length, 3, 'autosave rotation must retain exactly three 
 
 fs.rmSync(temp, { recursive: true, force: true });
 console.log('Aetherwake save-system contract: PASS');
+
+const fixture = JSON.parse(fs.readFileSync(
+  path.join(__dirname, 'fixtures', 'saves', 'schema-v1-manual-1.json'),
+  'utf8'
+));
+assert.strictEqual(base.validateEnvelope(fixture), true,
+  'golden schema-v1 fixture stopped validating');
+assert.strictEqual(base.migrateEnvelope(fixture).schemaVersion, 1,
+  'current historical fixture must normalize to current schema');
+const future = JSON.parse(JSON.stringify(fixture));
+future.schemaVersion = 2;
+const futureBody = { ...future };
+delete futureBody.checksum;
+future.checksum = base.checksum(futureBody);
+assert.throws(() => base.migrateEnvelope(future), /SAVE_SCHEMA_FUTURE_UNSUPPORTED/);
