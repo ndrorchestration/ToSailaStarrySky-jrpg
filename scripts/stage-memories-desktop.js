@@ -31,6 +31,12 @@ if (!fs.existsSync(modulesSrc)) {
 }
 fs.cpSync(modulesSrc, modulesDst, { recursive: true });
 
+const assetsSrc = path.join(repo, 'assets');
+const assetsDst = path.join(www, 'assets');
+if (fs.existsSync(assetsSrc)) {
+  fs.cpSync(assetsSrc, assetsDst, { recursive: true });
+}
+
 const manifest = {
   name: 'Aetherwake',
   main: 'www/index-embedded.html',
