@@ -304,3 +304,20 @@ Current candidate establishes:
 - existing HP bars, staff state, action UI, impact flashes, crits, and knockback effects remain mechanically unchanged.
 
 **Status: IMPLEMENTED CANDIDATE / NOT YET VISUAL PASS.**
+
+
+## Dragonfly flight presentation gate — implementation candidate
+
+The open-sky state now renders as an in-world Dragonfly flight scene rather than a full-screen debug-map presentation. Navigation state and route logic remain owned by `AetherAirNavigation`.
+
+Current candidate establishes:
+- altitude-dependent horizon and cloud-plane composition;
+- weather-dependent sky palettes and motion cues;
+- four parallax cloud planes;
+- floating-island depth landmarks;
+- the Dragonfly as the central playable hero object with animated wings, multiphasic-shield hint, aether core, helm glazing, warm cabin lights, and speed-scaled propulsion wake;
+- compact route/progress instrumentation rather than a giant map;
+- nearest-signal and berth-availability beacons;
+- crosswind and aether-squall visual treatments derived from the real travel profile.
+
+**Status: IMPLEMENTED CANDIDATE / NOT YET VISUAL PASS.**
