@@ -59,7 +59,7 @@ assets/
     endings/
 ~~~
 
-Every runtime clip should have a sidecar JSON manifest with the same basename.
+Every runtime clip should have a sidecar JSON manifest with the same basename. Runtime manifests are validated by `tests/cinematic-manifest-contract.test.js` against the repository contract in `assets/cinematics/cinematic-manifest.schema.json`.
 
 Example:
 
