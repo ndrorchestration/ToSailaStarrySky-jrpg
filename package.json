@@ -73,6 +73,7 @@
     "test:input-runtime": "node tests/input-runtime-contract.test.js",
     "test:combat-runtime": "node tests/combat-runtime-contract.test.js",
     "stage:desktop": "node scripts/stage-memories-desktop.js",
-    "test:pixel-tiles": "node tests/pixel-tile-contract.test.js"
+    "test:pixel-tiles": "node tests/pixel-tile-contract.test.js",
+    "test:16bit-world-art": "node tests/16bit-world-art-contract.test.js"
   }
 }
