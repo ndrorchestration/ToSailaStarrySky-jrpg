@@ -244,12 +244,36 @@ Repeated use of script hooks for ordinary mechanics would indicate the vocabular
 
 Aether is a distinct external/world-accessible magical system, not generic mana.
 
-Recognized major school/domain families include:
+The elemental design contract uses **four primal trees**:
 
-- Elemental
+- Fire
+- Water
+- Air
+- Earth
+
+Advanced/specialized elemental trees currently admitted to the design registry are:
+
+- Frost
+- Lightning
+- Crystal
+- Metal
+- Plasma
+- Sonic
+- Storm
+
+Sand/Dust is an Earth application, Steam/Mist is a Water application, and Magma/Glass are Earth applications strengthened or unlocked through Fire knowledge. These are not separate mastery trees.
+
+Recognized major non-elemental school/domain families include:
+
+- Aether
+- Lumen
+- Resonance / Harmonic
+- Correspondence
 - Arcane
 - Psychic
 - Spirit
+
+Proposed later/high-order domains remain explicitly status-labeled in `modules/magic-defs.js` and `docs/MAGIC_SYSTEM.md`; proposal status is not silently converted into story canon.
 
 Ender has special innate affinities including:
 
@@ -263,13 +287,29 @@ Ender may eventually learn broadly across magical forms, but potential does not 
 Jobs and schools are separate concepts:
 
 - **school** = aspect/form of magic,
-- **job** = combat role, profession, tradition, training package, access modifiers, passives, equipment relationships.
+- **job** = combat role, profession/tradition/training package, access modifiers, passives, equipment relationships.
 
 Jobs should not simply own spell lists.
 
+Magic mastery uses five detailed ranks that can be compressed to three UI tiers:
+
+- Ranks 1–2 = Foundation
+- Ranks 3–4 = Advanced
+- Rank 5 = Grandmaster
+
+Cross-mastery should change behavior rather than merely add flat damage. The initial thresholds are 2+2 minor interaction, 3+3 Cross-School Art, 4+4 advanced synergy, and 5+5 Grand Synthesis.
+
+Holy/Unholy are not ordinary schools. Sacred/corrupted metaphysics are modeled through modifiers such as Sanctified, Profaned, Blessed, Cursed, Hallowed, and Blighted. Lumen is not synonymous with Holy; Umbral/Shadow is not synonymous with Unholy.
+
+Dreaming remains plot-bound exceptional access rather than an ordinary learnable school.
+
+### DESIGN REGISTRY BOUNDARY
+
+`modules/magic-defs.js` v0.1 is a target-design registry only. It does not authorize use of any new spell in the preservation runtime. Unsupported status, field, reaction, learning, or synthesis mechanics remain fail-closed until the resolver, save schema, UI, and automated tests support them.
+
 ### OPEN DESIGN
 
-Several proposed schools/domains, resource relationships, and companion job definitions remain unresolved.
+Exact spell catalogs, mastery XP curves, resource costs, school teachers/quests, proposed-domain canon status, companion magical ownership, and final Grand Synthesis names remain unresolved.
 
 ---
 
