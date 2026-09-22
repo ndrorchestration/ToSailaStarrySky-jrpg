@@ -305,7 +305,7 @@ Dreaming remains plot-bound exceptional access rather than an ordinary learnable
 
 ### DESIGN REGISTRY BOUNDARY
 
-`modules/magic-defs.js` v0.1 is a target-design registry only. It does not authorize use of any new spell in the preservation runtime. Unsupported status, field, reaction, learning, or synthesis mechanics remain fail-closed until the resolver, save schema, UI, and automated tests support them.
+`modules/magic-defs.js` v0.1 is a target-design registry only. `modules/magic-mastery.js` v0.1 adds pure prerequisite, threshold, and reaction eligibility evaluation against that registry. Neither module grants mastery, mutates roster state, unlocks spells, or authorizes use of any new spell in the preservation runtime. Unsupported status, field, persistence, acquisition, and executable synthesis mechanics remain fail-closed until the resolver, save schema, UI, and automated tests support them.
 
 ### OPEN DESIGN
 

@@ -54,6 +54,9 @@ jobs:
       - name: Verify magic domain registry
         run: npm run test:magic-defs
 
+      - name: Verify magic mastery evaluator
+        run: npm run test:magic-mastery
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 

@@ -198,16 +198,23 @@ Suggested reveal rings:
 
 'magic-defs.js' v0.1 is a **design registry**, not a runtime admission registry.
 
-Before executable magic is enabled, later implementation must add:
+The pure design-side eligibility layer now exists in `modules/magic-mastery.js` v0.1. It can:
+- validate 0–5 tree/domain mastery profiles,
+- evaluate tree prerequisites such as Water→Frost, Fire+Aether→Plasma, and Air+Lightning→Storm,
+- evaluate 2+2 / 3+3 / 4+4 / 5+5 registered cross-mastery thresholds,
+- return registered reaction lookups,
+- compress detailed 1–5 ranks into the 1–3 UI tier.
+
+It **does not mutate character state, award mastery, unlock spells, or authorize combat use**.
+
+Before executable magic is enabled, later implementation still must add:
 - ability definitions for actual spells,
 - status/field semantics,
-- environmental channels,
-- learn-eligibility checks,
-- mastery XP/rank rules,
-- synergy eligibility,
+- environmental channels in encounter state,
+- mastery XP/rank acquisition rules,
+- persistent character mastery storage and save migration,
 - UI reaction previews,
 - effect-resolver coverage,
-- save-schema support,
-- automated combat tests.
+- automated combat tests for executable spells.
 
 Unsupported magic must continue to fail closed rather than being simulated through narration-only effects.
