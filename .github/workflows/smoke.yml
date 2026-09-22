@@ -144,6 +144,9 @@ jobs:
       - name: Verify Dragonfly flight visual gate
         run: npm run test:flight-visual
 
+      - name: Verify visual evidence capture contract
+        run: npm run test:visual-evidence-contract
+
       - name: Verify live open-sky runtime contract
         run: npm run test:open-sky-runtime
 
