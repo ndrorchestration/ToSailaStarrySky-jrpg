@@ -106,7 +106,8 @@
           "heatMax": 3,
           "echoes": 3,
           "echoesMax": 3,
-          "scrap": 7
+          "scrap": 7,
+          "playable": true
         },
         {
           "id": "lyra",
@@ -119,7 +120,8 @@
           "heatMax": 3,
           "echoes": 3,
           "echoesMax": 3,
-          "scrap": 5
+          "scrap": 5,
+          "playable": true
         },
         {
           "id": "ionia",
@@ -132,7 +134,8 @@
           "heatMax": 3,
           "echoes": 2,
           "echoesMax": 3,
-          "scrap": 5
+          "scrap": 5,
+          "playable": false
         },
         {
           "id": "reson",
@@ -145,7 +148,8 @@
           "heatMax": 3,
           "echoes": 2,
           "echoesMax": 3,
-          "scrap": 5
+          "scrap": 5,
+          "playable": false
         },
         {
           "id": "aepex",
@@ -158,7 +162,8 @@
           "heatMax": 3,
           "echoes": 2,
           "echoesMax": 3,
-          "scrap": 5
+          "scrap": 5,
+          "playable": false
         }
       ],
       "activeIds": [
@@ -168,5 +173,5 @@
     },
     "airNavigation": null
   },
-  "checksum": "7754c683"
+  "checksum": "577c2d04"
 }
