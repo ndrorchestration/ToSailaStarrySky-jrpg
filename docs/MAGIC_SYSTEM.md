@@ -160,6 +160,8 @@ Representative reactions:
 
 The UI should preview these before confirmation whenever practical.
 
+`modules/magic-field-reactions.js` v0.1 now encodes these as **immutable design-state transitions**. It can preview and resolve state tags such as Wet→Frozen, Wet→Mist, Frozen→Brittle, Metallic→Charged, and Wet Earth→Mire, but it does not yet apply damage, turn-order effects, duration, resistance checks, or combat mutations.
+
 ## 9. Cross-mastery map
 
 | Pair | Mastery behavior | Grand Synthesis seed |
