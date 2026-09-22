@@ -7,7 +7,7 @@
 (function attach(root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory(null);
   else root.AetherSaveSystem = factory(root);
-}(typeof window !== 'undefined' ? window : globalThis, function (root) {
+}(typeof window !== 'undefined' ? window : globalThis, function createSaveSystem(root) {
   'use strict';
 
   const VERSION = '1.0.0';
@@ -106,11 +106,23 @@
         const tmp = target + '.tmp';
         const bak = target + '.bak';
         const json = JSON.stringify(envelope, null, 2) + '\n';
-        fs.writeFileSync(tmp, json, 'utf8');
-        if (fs.existsSync(target)) {
-          try { fs.copyFileSync(target, bak); } catch (_) {}
+        const fd = fs.openSync(tmp, 'w');
+        try {
+          fs.writeFileSync(fd, json, 'utf8');
+          fs.fsyncSync(fd);
+        } finally {
+          fs.closeSync(fd);
         }
-        fs.renameSync(tmp, target);
+        if (fs.existsSync(target)) {
+          if (fs.existsSync(bak)) fs.unlinkSync(bak);
+          fs.renameSync(target, bak);
+        }
+        try {
+          fs.renameSync(tmp, target);
+        } catch (error) {
+          if (!fs.existsSync(target) && fs.existsSync(bak)) fs.renameSync(bak, target);
+          throw error;
+        }
       },
       read(slot) {
         const target = file(slot);
@@ -209,6 +221,6 @@
     VERSION, SCHEMA_VERSION, MANUAL_SLOTS: MANUAL_SLOTS.slice(),
     AUTOSAVE_SLOTS: AUTOSAVE_SLOTS.slice(), makeEnvelope, validateEnvelope,
     checksum, getStorage, save, load, remove, list, latest, rotateAutosave,
-    _createForTesting: factory
+    _createForTesting: createSaveSystem
   });
 }));
