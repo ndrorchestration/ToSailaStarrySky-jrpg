@@ -237,10 +237,10 @@ function createServer() {
     await page.keyboard.press('e');
     await page.waitForFunction(() => window.gameState === 'dialogue');
     const firstDialogue = await page.evaluate(() => ({
-      text: window.UI.dialogueText,
+      lines: window.UI.dialogueLines,
       lineIndex: window.UI.dialogueLineIndex,
     }));
-    assert(firstDialogue.text.includes('core sings wrong'),
+    assert(firstDialogue.lines[0].includes('harmonics are slipping'),
       'first NPC contact did not select the authored intro dialogue');
     assert(firstDialogue.lineIndex === 0, 'dialogue did not start at line zero');
     await page.keyboard.press('e');
