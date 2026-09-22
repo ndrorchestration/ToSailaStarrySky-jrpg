@@ -164,6 +164,16 @@ npm run test:smoke
 
 The verification suite covers the playable path from startup through the authored First Wake opening, world/overlay interactions, combat, flight-return seams, and return to the correct originating state. It also verifies roster/reference invariants, effect-vocabulary coverage, registry/runtime equivalence, transactional action affordability, progression reachability, party capacity, magic contracts, air-navigation behavior, live resolver routing, and post-combat write-back into the canonical lead record.
 
+## Visual authority
+
+The canonical project-wide visual direction is defined in:
+
+- `docs/VISUAL_BIBLE.md` — project-wide visual language;
+- `docs/VISUAL_BENCHMARK_SCENE.md` — first final-quality acceptance scene;
+- `docs/CINEMATIC_CLIP_CONTRACT.md` — authored short-video integration rules.
+
+These documents sit above individual art branches. Existing pixel-art recovery work is implementation material and must be reconciled against the visual bible before broad promotion.
+
 ## Architecture direction
 
 The production migration is incremental:
