@@ -86,6 +86,9 @@
       if (context === 'world') return 'quest-log';
       return null;
     }
+    if (index === BUTTON.LEFT_STICK && context === 'world') return 'covenant-field';
+    if (index === BUTTON.VIEW && context === 'world') return 'toggle-layer';
+    if (index === BUTTON.RIGHT_STICK && context === 'world') return 'shop';
     if (index === BUTTON.LEFT_SHOULDER && context === 'world') return 'character-sheet';
     if (index === BUTTON.RIGHT_SHOULDER && context === 'world') return 'ledger';
     if (index === BUTTON.LEFT_TRIGGER && context === 'airship') return 'airship-altitude-down';
