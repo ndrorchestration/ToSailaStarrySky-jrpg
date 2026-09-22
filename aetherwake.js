@@ -2967,6 +2967,14 @@ function playDialogueAudioLine() {
   if (!npcId || !batch || idx == null || idx < 0) return;
   const lineNum = String(idx + 1).padStart(2, '0');
   const src = 'tts/' + npcId + '/' + batch + '/' + lineNum + '.mp3';
+
+  // Dialogue TTS is optional and the current repository has no canonical TTS
+  // asset set. Fail closed before issuing a network request unless an explicit
+  // asset manifest admits this exact clip. This prevents absent optional audio
+  // from generating 404s during otherwise healthy dialogue.
+  const manifest = window.AetherDialogueTTSManifest;
+  if (!manifest || manifest[src] !== true) return;
+
   try {
     if (!_dialogueAudioEl) {
       _dialogueAudioEl = new Audio();
