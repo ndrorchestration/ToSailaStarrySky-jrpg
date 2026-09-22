@@ -1,0 +1,24 @@
+{
+  "id": "example-cinematic",
+  "version": 1,
+  "file": "example-cinematic.mp4",
+  "storySequence": null,
+  "trigger": null,
+  "skippable": true,
+  "replayable": true,
+  "blocksProgression": false,
+  "fallback": {
+    "type": "still-or-in-engine",
+    "asset": null
+  },
+  "audio": {
+    "mode": "hybrid",
+    "duckRuntimeMusic": true
+  },
+  "subtitles": {
+    "required": false,
+    "track": null
+  },
+  "nextState": null,
+  "notes": "Template only. Copy and rename alongside the real MP4."
+}
