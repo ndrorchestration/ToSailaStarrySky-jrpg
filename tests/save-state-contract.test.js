@@ -98,8 +98,23 @@ let airshipRuntimeState = {
   },
 };
 
+let navigationRuntimeState = {
+  version: 1,
+  x: 17,
+  y: 15,
+  altitude: 'cruise',
+  heading: 0,
+  speed: 0,
+  discovered: ['wake-dock','verdant-crown'],
+  discoveredRoutes: ['rootline-west'],
+  mooredLandmarkId: 'verdant-crown',
+  encounterSteps: 0,
+  encounterSeed: 4,
+};
+
 let worldRestoreCount = 0;
 let airshipRestoreCount = 0;
+let navigationRestoreCount = 0;
 
 function validateWorldFixture(payload) {
   if (!payload || payload.version !== 1 ||
@@ -113,6 +128,14 @@ function validateAirshipFixture(payload) {
   if (!payload || payload.version !== 1 ||
       typeof payload.shieldMode !== 'string') {
     throw new Error('TEST_AIRSHIP_STATE_INVALID');
+  }
+  return true;
+}
+
+function validateNavigationFixture(payload) {
+  if (!payload || payload.version !== 1 ||
+      !Number.isFinite(payload.x) || typeof payload.altitude !== 'string') {
+    throw new Error('TEST_NAVIGATION_STATE_INVALID');
   }
   return true;
 }
@@ -141,6 +164,18 @@ sandbox.window.AetherRuntimePersistence = {
     airshipRuntimeState = clone(payload);
     airshipRestoreCount++;
     return clone(airshipRuntimeState);
+  },
+  exportNavigationState() {
+    return clone(navigationRuntimeState);
+  },
+  validateNavigationState(payload) {
+    return validateNavigationFixture(payload);
+  },
+  restoreNavigationState(payload) {
+    validateNavigationFixture(payload);
+    navigationRuntimeState = clone(payload);
+    navigationRestoreCount++;
+    return clone(navigationRuntimeState);
   },
 };
 
@@ -216,7 +251,7 @@ const fixedTime = '2026-09-20T12:00:00.000Z';
 const document = saveState.createDocument({ now: fixedTime });
 
 assert(document.kind === 'aetherwake-save', 'save kind is incorrect');
-assert(document.schemaVersion === 2, 'save schema version is incorrect');
+assert(document.schemaVersion === 3, 'save schema version is incorrect');
 assert(document.savedAt === fixedTime, 'save timestamp injection failed');
 assert(document.partyState.roster.length === 5, 'save roster length is incorrect');
 assert(document.partyState.activePartyIds.join('|') === 'ender|lyra|ionia',
@@ -227,6 +262,9 @@ assert(document.worldState.version === 1 &&
 assert(document.airshipState.version === 1 &&
   document.airshipState.shieldMode === 'guard',
   'Dragonfly subsystem payload was not captured');
+assert(document.navigationState.version === 1 &&
+  document.navigationState.mooredLandmarkId === 'verdant-crown',
+  'sky-navigation payload was not captured');
 
 for (const record of document.partyState.roster) {
   assert(!Object.prototype.hasOwnProperty.call(record, 'canonicalName'),
@@ -243,6 +281,7 @@ const savedScrap = roster[0].scrap;
 const savedLyraVit = roster[1].vit;
 const savedWorld = clone(worldRuntimeState);
 const savedAirship = clone(airshipRuntimeState);
+const savedNavigation = clone(navigationRuntimeState);
 
 const storageResult = saveState.saveToStorage(fakeStorage, { now: fixedTime });
 assert(storageResult.ok === true, 'saveToStorage did not succeed');
@@ -254,6 +293,10 @@ worldRuntimeState.playerPosition.tileX = 20;
 worldRuntimeState.quest.hullIntegrity = 1;
 airshipRuntimeState.power = 0;
 airshipRuntimeState.shieldMode = 'slip';
+navigationRuntimeState.x = 8;
+navigationRuntimeState.y = 22;
+navigationRuntimeState.discoveredRoutes = [];
+navigationRuntimeState.mooredLandmarkId = 'wake-dock';
 
 const loadResult = saveState.loadFromStorage(fakeStorage);
 assert(loadResult.ok === true && loadResult.migrated === false,
@@ -264,7 +307,9 @@ assert(JSON.stringify(worldRuntimeState) === JSON.stringify(savedWorld),
   'World runtime state did not restore');
 assert(JSON.stringify(airshipRuntimeState) === JSON.stringify(savedAirship),
   'Dragonfly runtime state did not restore');
-assert(worldRestoreCount === 1 && airshipRestoreCount === 1,
+assert(JSON.stringify(navigationRuntimeState) === JSON.stringify(savedNavigation),
+  'sky-navigation runtime state did not restore');
+assert(worldRestoreCount === 1 && airshipRestoreCount === 1 && navigationRestoreCount === 1,
   'subsystem restore adapters were not invoked exactly once');
 assert(roster[0] === leadRef && roster[1] === lyraRef,
   'restore replaced canonical roster object references');
@@ -303,11 +348,11 @@ expectThrow(() => saveState.restoreDocument(invalidBench),
 const missingSubsystems = saveState.createDocument({ now: fixedTime });
 delete missingSubsystems.worldState;
 expectThrow(() => saveState.restoreDocument(missingSubsystems),
-  'SAVE_V2_SUBSYSTEM_PAYLOADS_REQUIRED',
-  'v2 save missing a subsystem payload must fail closed');
+  'SAVE_V3_SUBSYSTEM_PAYLOADS_REQUIRED',
+  'v3 save missing a subsystem payload must fail closed');
 
 const future = saveState.createDocument({ now: fixedTime });
-future.schemaVersion = 3;
+future.schemaVersion = 4;
 expectThrow(() => saveState.migrateToCurrent(future),
   'SAVE_SCHEMA_VERSION_FROM_FUTURE',
   'future save schema must fail closed');
@@ -322,45 +367,75 @@ expectThrow(() => saveState.deserialize('{not-json'),
   'SAVE_JSON_INVALID',
   'invalid JSON must fail closed');
 
-// Real v1 -> v2 compatibility path. v1 had no World/Dragonfly payloads.
+// Real v2 -> v3 compatibility path. v2 had World/Dragonfly state but no sky navigation.
+saveState.clearStorage(fakeStorage);
+const legacyV2 = clone(document);
+legacyV2.schemaVersion = 2;
+delete legacyV2.navigationState;
+const legacyV2Key = 'aetherwake.save.v2';
+fakeStorage.setItem(legacyV2Key, JSON.stringify(legacyV2));
+
+const beforeV2WorldRestores = worldRestoreCount;
+const beforeV2AirshipRestores = airshipRestoreCount;
+const beforeV2NavigationRestores = navigationRestoreCount;
+const legacyV2Load = saveState.loadFromStorage(fakeStorage);
+assert(legacyV2Load.ok === true && legacyV2Load.migrated === true,
+  'legacy v2 save did not migrate');
+assert(legacyV2Load.sourceKey === legacyV2Key,
+  'legacy v2 load did not report its source key');
+assert(legacyV2Load.document.schemaVersion === 3,
+  'legacy v2 save did not migrate to schema v3');
+assert(legacyV2Load.document.navigationState === null,
+  'v2 migration must preserve initialized default sky-navigation state');
+assert(worldRestoreCount === beforeV2WorldRestores + 1 &&
+  airshipRestoreCount === beforeV2AirshipRestores + 1 &&
+  navigationRestoreCount === beforeV2NavigationRestores,
+  'v2 migration restored the wrong subsystem set');
+
+// Real v1 -> v3 compatibility path. v1 had no World/Dragonfly/navigation payloads.
 saveState.clearStorage(fakeStorage);
 const legacyV1 = clone(document);
 legacyV1.schemaVersion = 1;
 delete legacyV1.worldState;
 delete legacyV1.airshipState;
-const legacyKey = saveState.legacyStorageKeys[0];
-fakeStorage.setItem(legacyKey, JSON.stringify(legacyV1));
+delete legacyV1.navigationState;
+const legacyV1Key = 'aetherwake.save.v1';
+fakeStorage.setItem(legacyV1Key, JSON.stringify(legacyV1));
 
 const beforeLegacyWorldRestores = worldRestoreCount;
 const beforeLegacyAirshipRestores = airshipRestoreCount;
+const beforeLegacyNavigationRestores = navigationRestoreCount;
 const legacyLoad = saveState.loadFromStorage(fakeStorage);
 assert(legacyLoad.ok === true && legacyLoad.migrated === true,
   'legacy v1 save did not migrate');
-assert(legacyLoad.sourceKey === legacyKey,
-  'legacy load did not report its source key');
-assert(legacyLoad.document.schemaVersion === 2,
-  'legacy save did not migrate to schema v2');
+assert(legacyLoad.sourceKey === legacyV1Key,
+  'legacy v1 load did not report its source key');
+assert(legacyLoad.document.schemaVersion === 3,
+  'legacy save did not migrate to schema v3');
 assert(legacyLoad.document.worldState === null &&
-  legacyLoad.document.airshipState === null,
+  legacyLoad.document.airshipState === null &&
+  legacyLoad.document.navigationState === null,
   'v1 migration must preserve initialized defaults for newly introduced domains');
 assert(worldRestoreCount === beforeLegacyWorldRestores &&
-  airshipRestoreCount === beforeLegacyAirshipRestores,
+  airshipRestoreCount === beforeLegacyAirshipRestores &&
+  navigationRestoreCount === beforeLegacyNavigationRestores,
   'v1 migration must not overwrite newly introduced runtime domains');
 assert(storageData.has(saveState.storageKey),
-  'successful legacy migration was not copied to the v2 storage key');
+  'successful legacy migration was not copied to the v3 storage key');
 
 saveState.clearStorage(fakeStorage);
-assert(!storageData.has(saveState.storageKey) && !storageData.has(legacyKey),
+assert(!storageData.has(saveState.storageKey) &&
+  !storageData.has(legacyV1Key) && !storageData.has(legacyV2Key),
   'clearStorage did not remove current and legacy save keys');
 const missing = saveState.loadFromStorage(fakeStorage);
 assert(missing.ok === false && missing.reason === 'SAVE_NOT_FOUND',
   'missing save should return an explicit not-found result');
 
-assert(saveState.storageKey === 'aetherwake.save.v2',
-  'current storage key does not track schema v2');
-assert(saveState.legacyStorageKeys.join('|') === 'aetherwake.save.v1',
+assert(saveState.storageKey === 'aetherwake.save.v3',
+  'current storage key does not track schema v3');
+assert(saveState.legacyStorageKeys.join('|') === 'aetherwake.save.v2|aetherwake.save.v1',
   'legacy storage key registry is incorrect');
-assert(saveState.migrationVersions.join('|') === '1',
-  'schema v2 must advertise the real v1 migration');
+assert(saveState.migrationVersions.join('|') === '1|2',
+  'schema v3 must advertise the real v1 and v2 migrations');
 
-console.log('Aetherwake save-state v2 contract: PASS');
+console.log('Aetherwake save-state v3 contract: PASS');
