@@ -204,3 +204,20 @@ A clip is runtime-ready only when:
 - failure path works;
 - transition back to gameplay works;
 - visual continuity review passes.
+
+
+## Runtime player authority
+
+`modules/cinematic-player.js` is the canonical pre-rendered media player.
+
+It:
+- loads directly inside the embedded runtime;
+- supports preload, play, skip, and explicit completion results;
+- traps Escape/Enter/Space only while a skippable clip is active;
+- supports WebVTT subtitle tracks declared by the manifest;
+- emits `aetherwake:cinematic-fallback` on load/decode/playback failure;
+- defaults to immediate return to the surrounding in-engine scene if no explicit fallback handler is installed;
+- never mutates story/progression state;
+- rejects any manifest whose `blocksProgression` is not exactly `false`.
+
+Callers advance canonical story state only after receiving the player's explicit result object; media success is never itself the authorization condition.
