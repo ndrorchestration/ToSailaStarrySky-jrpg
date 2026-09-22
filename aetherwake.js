@@ -152,6 +152,22 @@ function semanticActionPressed(actionId) {
   return semanticActionsPressed.has(actionId);
 }
 
+function semanticActionHeld(actionId, context) {
+  const targetContext = context || gameState;
+  for (const codeText of Object.keys(keys)) {
+    if (!keys[codeText]) continue;
+    const code = Number(codeText);
+    if (!Number.isInteger(code)) continue;
+    const actions = window.AetherInputBindings &&
+      inputBindingsState &&
+      typeof window.AetherInputBindings.keyboardActionsForEvent === 'function'
+      ? window.AetherInputBindings.keyboardActionsForEvent({ keyCode: code }, targetContext, inputBindingsState)
+      : window.AetherInputActions.actionsForKeyboardEvent({ keyCode: code }, targetContext);
+    if (actions.includes(actionId)) return true;
+  }
+  return false;
+}
+
 function clearSemanticActions() {
   semanticActionsPressed.clear();
 }
@@ -1108,14 +1124,11 @@ function keyPressed() {
     return;
   }
 
-  // Publish interaction intent before dispatch; world.interact() reads this value synchronously.
-  if (gameState === STATE.WORLD) {
-    if (keyCode === 69) window.interactionKey = 'e';
-    else if (keyCode === 81) window.interactionKey = 'q';
-    else if (keyCode === 70) window.interactionKey = 'f';
-    else if (keyCode === 9) window.interactionKey = 'tab';
-    else if (keyCode === 76) window.interactionKey = 'l';
-    else if (keyCode === 77) window.interactionKey = 'm';
+  // Publish canonical interaction intent after semantic mapping; the world
+  // module still consumes its historical internal token, but physical keys do
+  // not own that token anymore.
+  if (gameState === STATE.WORLD && semanticActionPressed('interact')) {
+    window.interactionKey = 'e';
   }
 
   handleInput();
@@ -1128,9 +1141,10 @@ function keyPressed() {
   if (typeof ensureAudio === 'function') ensureAudio();
   if (typeof resumeAudio === 'function') resumeAudio();
 
-  // Footstep sound on first move key repeat (tile crossing)
-  if (gameState === STATE.WORLD && (keyCode === UP_ARROW || keyCode === DOWN_ARROW ||
-      keyCode === LEFT_ARROW || keyCode === RIGHT_ARROW)) {
+  // Footstep sound follows semantic movement, including remapped controls.
+  if (gameState === STATE.WORLD &&
+      window._lastSemanticActions &&
+      window._lastSemanticActions.some(action => action.startsWith('move-'))) {
     if (typeof window.playFootstep === 'function') window.playFootstep();
   }
 
@@ -1141,21 +1155,11 @@ function keyPressed() {
     }
   }
 
-  // Set interaction key for world module — write to window so world.interact()
-  // and drawInteractionHints() can read the same source.
-  // E = 69, Q = 81, F = 70, Tab = 9, L = 76, M = 77
-  if (gameState === STATE.WORLD) {
-    if (keyCode === 69) window.interactionKey = 'e';
-    else if (keyCode === 81) window.interactionKey = 'q';
-    else if (keyCode === 70) window.interactionKey = 'f';
-    else if (keyCode === 9) window.interactionKey = 'tab';
-    else if (keyCode === 76) window.interactionKey = 'l';
-    else if (keyCode === 77) window.interactionKey = 'm';
-    // C = 67: start combat encounter (dev/testing)
-    else if (keyCode === 67) {
-      if (combat && typeof combat.beginEncounter === 'function') {
-        startCombat('skyPredator');
-      }
+  // C remains a development-only direct encounter shortcut and is not part
+  // of the player-remapping contract.
+  if (gameState === STATE.WORLD && keyCode === 67) {
+    if (combat && typeof combat.beginEncounter === 'function') {
+      startCombat('skyPredator');
     }
   }
   // Shop buy-by-number (1-8 only; 9 is reserved for debug)
@@ -1172,9 +1176,7 @@ function keyPressed() {
 
 function keyReleased() {
   keys[keyCode] = false;
-  if (keyCode === 69 || keyCode === 81 || keyCode === 70 || keyCode === 9 || keyCode === 76 || keyCode === 77) {
-    window.interactionKey = null;
-  }
+  window.interactionKey = null;
 }
 
 function keyTyped() {
@@ -1378,25 +1380,24 @@ function handleInput() {
 }
 
 function handleWorldInput() {
-  // WASD movement with key repeat
+  // Semantic movement with the same historical keyboard repeat cadence.
   const now = millis();
   const delay = 200, rate = 60;
-
-  const movementCodes = [UP_ARROW, DOWN_ARROW, LEFT_ARROW, RIGHT_ARROW, 87, 83, 65, 68];
-  for (const code of movementCodes) {
-    if (keys[code]) {
-      if (!keyRepeat[code]) {
-        keyRepeat[code] = now;
-        keyRepeatFirst[code] = true;
-        doMove(code);
-      } else if (now - keyRepeat[code] >= (keyRepeatFirst[code] ? delay : rate)) {
-        keyRepeat[code] = now;
-        keyRepeatFirst[code] = false;
-        doMove(code);
+  const movementActions = ['move-up','move-down','move-left','move-right'];
+  for (const action of movementActions) {
+    if (semanticActionHeld(action, STATE.WORLD)) {
+      if (!keyRepeat[action]) {
+        keyRepeat[action] = now;
+        keyRepeatFirst[action] = true;
+        doMoveSemantic(action);
+      } else if (now - keyRepeat[action] >= (keyRepeatFirst[action] ? delay : rate)) {
+        keyRepeat[action] = now;
+        keyRepeatFirst[action] = false;
+        doMoveSemantic(action);
       }
     } else {
-      delete keyRepeat[code];
-      delete keyRepeatFirst[code];
+      delete keyRepeat[action];
+      delete keyRepeatFirst[action];
     }
   }
 
@@ -1457,12 +1458,14 @@ function handleWorldInput() {
   }
 }
 
-function doMove(code) {
-  if (!world || typeof world.movePlayer !== 'function') return;
-  if (code === UP_ARROW || code === 87)    world.movePlayer(0, -1);
-  if (code === DOWN_ARROW || code === 83)  world.movePlayer(0, 1);
-  if (code === LEFT_ARROW || code === 65)  world.movePlayer(-1, 0);
-  if (code === RIGHT_ARROW || code === 68) world.movePlayer(1, 0);
+function doMoveSemantic(actionId) {
+  if (!world || typeof world.movePlayer !== 'function') return false;
+  if (actionId === 'move-up') world.movePlayer(0, -1);
+  else if (actionId === 'move-down') world.movePlayer(0, 1);
+  else if (actionId === 'move-left') world.movePlayer(-1, 0);
+  else if (actionId === 'move-right') world.movePlayer(1, 0);
+  else return false;
+  return true;
 }
 
 
@@ -2157,45 +2160,31 @@ function handleAirNavigationInput() {
   if (!ensureAirNavigationState()) return;
   const nav = window.AetherAirNavigation;
 
-  if (keysPressed[27] || keysPressed[76]) { // Esc / L
+  if (semanticActionPressed('airship-land') || semanticActionPressed('cancel')) {
     leaveAirNavigation();
     return;
   }
 
-  if (keysPressed[81]) { // Q
+  if (semanticActionPressed('airship-altitude-down')) {
     airNavigationState = nav.changeAltitude(airNavigationState, -1);
     showToast('ALTITUDE // ' + airNavigationState.altitude.toUpperCase(), C.scioto, 900);
   }
-  if (keysPressed[69]) { // E
+  if (semanticActionPressed('airship-altitude-up')) {
     airNavigationState = nav.changeAltitude(airNavigationState, 1);
     showToast('ALTITUDE // ' + airNavigationState.altitude.toUpperCase(), C.scioto, 900);
   }
-  if (keysPressed[68]) { // D
+  if (semanticActionPressed('airship-dock')) {
     const result = nav.dock(airNavigationState);
     airNavigationState = result.state;
     if (result.ok) showToast('MOORED // ' + result.landmark.label, C.teal, 1200);
     else showToast('NO STABLE BERTH IN RANGE', C.rust, 1000);
   }
 
-  let dx = 0, dy = 0;
-  if (keysPressed[LEFT_ARROW]) dx = -1;
-  else if (keysPressed[RIGHT_ARROW]) dx = 1;
-  else if (keysPressed[UP_ARROW]) dy = -1;
-  else if (keysPressed[DOWN_ARROW]) dy = 1;
-
-  if (dx || dy) {
-    if (airNavigationState.mooredLandmarkId) {
-      airNavigationState = nav.undock(airNavigationState);
-      showToast('CAST OFF // OPEN SKY', C.scioto, 800);
-    }
-    airNavigationState = nav.move(airNavigationState, dx, dy);
-    const encounter = nav.encounterCheck(airNavigationState);
-    airNavigationState = encounter.state;
-    if (encounter.triggered) {
-      window._airNavigationState = airNavigationState;
-      startCombat(encounter.enemyId, STATE.AIRSHIP);
-      return;
-    }
+  for (const action of ['move-up','move-down','move-left','move-right']) {
+    if (!semanticActionPressed(action)) continue;
+    moveAirshipBySemanticAction(action);
+    if (gameState !== STATE.AIRSHIP) return;
+    break;
   }
 
   window._airNavigationState = airNavigationState;
