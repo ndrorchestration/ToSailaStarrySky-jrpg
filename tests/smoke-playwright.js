@@ -562,6 +562,12 @@ function createServer() {
           resolutionModel: abilities.DEFS.aetherSeal.resolution &&
             abilities.DEFS.aetherSeal.resolution.model,
         },
+        windWardAuthority: abilities && abilities.DEFS.windWard && {
+          authorityStatus: abilities.DEFS.windWard.authorityStatus,
+          migrationStatus: abilities.DEFS.windWard.migrationStatus,
+          canonicalOwner: abilities.DEFS.windWard.canonicalOwner,
+          hasResolution: Boolean(abilities.DEFS.windWard.resolution),
+        },
         levelUnlocks: progression && Object.fromEntries(
           Object.entries(progression.LEVEL_UNLOCKS)
             .map(([level, entries]) => [level, entries.map(entry => entry.abilityId)])
@@ -593,6 +599,12 @@ function createServer() {
       registryContract.aetherSealAuthority.hasResolution === true &&
       registryContract.aetherSealAuthority.resolutionModel === 'aether-seal',
       'Aether Seal authority binding drifted');
+    assert(registryContract.windWardAuthority &&
+      registryContract.windWardAuthority.authorityStatus === 'legacy-adaptation-residue' &&
+      registryContract.windWardAuthority.migrationStatus === 'blocked-pending-owner-and-domain' &&
+      registryContract.windWardAuthority.canonicalOwner === null &&
+      registryContract.windWardAuthority.hasResolution === false,
+      'Wind Ward unresolved-authority guard drifted');
     assert(registryContract.validAbilities,
       'runtime actions drifted from canonical ability definitions');
     assert(registryContract.validProgression,
