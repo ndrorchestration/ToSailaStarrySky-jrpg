@@ -2077,7 +2077,7 @@ function drawTitleScreen() {
   const visual = window.AetherTitleVisual;
   if (visual && typeof visual.draw === 'function') {
     push();
-    visual.draw({ now: millis(), width, height });
+    visual.draw({ now: millis(), width, height, hasContinue: Boolean(latestSaveMeta) });
     pop();
     return;
   }
@@ -2094,6 +2094,7 @@ function drawTitleScreen() {
   textSize(10);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
   text('NEW GAME // N OR ENTER', width / 2, height / 2 + 30);
+  if (latestSaveMeta) text('CONTINUE — C', width / 2, height / 2 + 52);
 }
 
 function getDialogueSpriteId(npc) {
