@@ -46,6 +46,32 @@ Current status as of 2026-09-22: launcher-layout correction is merged (`304835c1
 
 ---
 
+## 1.2 Visual presentation contract
+
+### CURRENT DIRECTION
+
+Aetherwake uses a coordinated three-layer presentation model:
+
+1. gameplay pixel art;
+2. in-engine cinematic presentation;
+3. short authored video cinematics for selected high-cost story beats.
+
+All three must depict the same canon, silhouettes, materials, palette logic, geography, Dragonfly state, and magic behavior.
+
+The internal gameplay render surface remains 960×640. Desktop presentation may scale that surface, but visual composition and input geometry must preserve the logical coordinate system.
+
+### ACCEPTANCE AUTHORITY
+
+See:
+
+- `docs/VISUAL_BIBLE.md`
+- `docs/VISUAL_BENCHMARK_SCENE.md`
+- `docs/CINEMATIC_CLIP_CONTRACT.md`
+
+Existing art/migration PRs are implementation candidates and do not supersede these acceptance rules.
+
+---
+
 ## 2. Playable roster
 
 ### TARGET ARCHITECTURE
