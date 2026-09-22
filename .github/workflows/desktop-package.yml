@@ -12,8 +12,8 @@ permissions:
   contents: write
 
 jobs:
-  package-windows:
-    runs-on: windows-latest
+  build-windows:
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Check out source
@@ -27,52 +27,97 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run contract tests
+      - name: Run desktop packaging contract
         run: npm run test:desktop-package
 
-      - name: Build Windows package
+      - name: Build Windows NW.js package
         run: npm run package:windows
 
-      - name: Build standard Windows installer with Inno Setup
-        shell: pwsh
+      - name: Locate package directory
+        id: package
+        shell: bash
         run: |
-          $package = Get-ChildItem -Path ..\\aetherwake-dist -Directory | Select-Object -First 1
-          if (-not $package) { throw "NW.js did not produce a package directory" }
-          $iscc = @(
-            "C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe",
-            "C:\\Program Files\\Inno Setup 6\\ISCC.exe"
-          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if (-not $iscc) { throw "Inno Setup compiler not found" }
-          $source = $package.FullName.Replace('\', '\\')
-          $script = @"
-          [Setup]
-          AppName=Aetherwake
-          AppVersion=0.2.0
-          DefaultDirName={localappdata}\\Programs\\Aetherwake
-          DisableProgramGroupPage=yes
-          DisableStartupPrompt=yes
-          PrivilegesRequired=lowest
-          Uninstallable=yes
-          ArchitecturesInstallIn64BitMode=x64compatible
-          OutputDir=.
-          OutputBaseFilename=Aetherwake-Setup
-          Compression=lzma2
-          SolidCompression=yes
+          package="$(find ../aetherwake-dist -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          if [ -z "$package" ]; then
+            echo "NW.js did not produce a package directory" >&2
+            exit 1
+          fi
+          test -f "$package/Aetherwake.exe"
+          echo "dir=$package" >> "$GITHUB_OUTPUT"
 
-          [Files]
-          Source: "$source\\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
+      - name: Build portable ZIP
+        shell: bash
+        run: |
+          cd "${{ steps.package.outputs.dir }}"
+          zip -r "$GITHUB_WORKSPACE/Aetherwake-Windows.zip" .
 
-          [Icons]
-          Name: "{autodesktop}\\Aetherwake"; Filename: "{app}\\Aetherwake.exe"
-          Name: "{autoprograms}\\Aetherwake"; Filename: "{app}\\Aetherwake.exe"
+      - name: Install NSIS
+        run: sudo apt-get update && sudo apt-get install -y nsis
 
-          [Run]
-          Filename: "{app}\\Aetherwake.exe"; Description: "Launch Aetherwake"; Flags: nowait postinstall skipifsilent
-          "@
-          Set-Content -Path Aetherwake-Setup.iss -Value $script -Encoding utf8
-          & $iscc Aetherwake-Setup.iss
-          if ($LASTEXITCODE -ne 0) { throw "Inno Setup compilation failed" }
-          if (-not (Test-Path Aetherwake-Setup.exe)) { throw "Installer was not created" }
+      - name: Build no-admin Windows installer
+        shell: bash
+        env:
+          PACKAGE_DIR: ${{ steps.package.outputs.dir }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          source = Path(os.environ["PACKAGE_DIR"]).resolve()
+          script = f'''Unicode true
+          Name "Aetherwake"
+          OutFile "Aetherwake-Setup.exe"
+          InstallDir "$LOCALAPPDATA\\Programs\\Aetherwake"
+          RequestExecutionLevel user
+          SetCompressor /SOLID lzma
+
+          Page directory
+          Page instfiles
+
+          Section "Aetherwake" SEC_MAIN
+            SetOutPath "$INSTDIR"
+            File /r "{source.as_posix()}/*"
+            CreateShortCut "$DESKTOP\\Aetherwake.lnk" "$INSTDIR\\Aetherwake.exe"
+            CreateDirectory "$SMPROGRAMS\\Aetherwake"
+            CreateShortCut "$SMPROGRAMS\\Aetherwake\\Aetherwake.lnk" "$INSTDIR\\Aetherwake.exe"
+            WriteUninstaller "$INSTDIR\\Uninstall.exe"
+          SectionEnd
+
+          Section "Uninstall"
+            Delete "$DESKTOP\\Aetherwake.lnk"
+            Delete "$SMPROGRAMS\\Aetherwake\\Aetherwake.lnk"
+            RMDir "$SMPROGRAMS\\Aetherwake"
+            RMDir /r "$INSTDIR"
+          SectionEnd
+          '''
+          Path("Aetherwake-Setup.nsi").write_text(script, encoding="utf-8")
+          PY
+          makensis Aetherwake-Setup.nsi
+          test -f Aetherwake-Setup.exe
+
+      - name: Write SHA-256 manifest
+        run: sha256sum Aetherwake-Setup.exe Aetherwake-Windows.zip > SHA256SUMS.txt
+
+      - name: Upload Windows candidate artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: aetherwake-windows-candidate
+          path: |
+            Aetherwake-Setup.exe
+            Aetherwake-Windows.zip
+            SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  verify-windows:
+    needs: build-windows
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - name: Download Windows candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: aetherwake-windows-candidate
 
       - name: Install and launch packaged app
         shell: pwsh
@@ -82,27 +127,36 @@ jobs:
             Remove-Item -LiteralPath $installDir -Recurse -Force
           }
           $installer = Start-Process -FilePath (Join-Path $PWD "Aetherwake-Setup.exe") -ArgumentList @(
-            "/VERYSILENT",
-            "/SUPPRESSMSGBOXES",
-            "/NORESTART",
-            "/DIR=$installDir"
+            "/S",
+            "/D=$installDir"
           ) -Wait -PassThru
-          if ($installer.ExitCode -ne 0) { throw "Silent installer exited with code $($installer.ExitCode)" }
+          if ($installer.ExitCode -ne 0) { throw "Installer exited with code $($installer.ExitCode)" }
           $exe = Join-Path $installDir "Aetherwake.exe"
           if (-not (Test-Path -LiteralPath $exe)) { throw "Installed Aetherwake.exe was not found" }
           $process = Start-Process -FilePath $exe -PassThru
-          Start-Sleep -Seconds 8
-          if ($process.HasExited) { throw "Installed Aetherwake.exe exited during launch smoke" }
+          Start-Sleep -Seconds 10
+          if ($process.HasExited) { throw "Installed Aetherwake.exe exited during launch smoke with code $($process.ExitCode)" }
           Stop-Process -Id $process.Id -Force
 
-      - name: Create distributable ZIP fallback
+      - name: Verify portable package layout
         shell: pwsh
         run: |
-          $package = Get-ChildItem -Path ..\\aetherwake-dist -Directory | Select-Object -First 1
-          Compress-Archive -Path "$($package.FullName)\\*" -DestinationPath "Aetherwake-Windows.zip"
+          Expand-Archive -LiteralPath Aetherwake-Windows.zip -DestinationPath portable
+          if (-not (Test-Path -LiteralPath portable\Aetherwake.exe)) {
+            throw "Portable Aetherwake.exe was not found"
+          }
 
-      - name: Publish Windows package release
-        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+  publish-windows:
+    needs: verify-windows
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download verified Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: aetherwake-windows-candidate
+
+      - name: Publish verified Windows release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: aetherwake-desktop-${{ github.sha }}
@@ -112,3 +166,4 @@ jobs:
           files: |
             Aetherwake-Setup.exe
             Aetherwake-Windows.zip
+            SHA256SUMS.txt
