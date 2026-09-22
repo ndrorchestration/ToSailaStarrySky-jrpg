@@ -13,7 +13,7 @@ const api = sandbox.window.AetherVisualBenchmark;
 
 assert(api, 'visual benchmark API missing');
 assert.strictEqual(api.VERSION, '0.1.0');
-for (const fn of ['isActive','drawBackdrop','drawDragonfly','drawDockLights','drawForeground']) {
+for (const fn of ['isActive','drawBackdrop','drawDragonfly','drawLighting','drawDockLights','drawForeground']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
 
@@ -41,6 +41,8 @@ assert(runtime.includes('drawBackdrop'),
   'runtime benchmark backdrop integration missing');
 assert(runtime.includes('drawDragonfly'),
   'runtime Dragonfly benchmark integration missing');
+assert(runtime.includes('drawLighting'),
+  'runtime dusk lighting integration missing');
 assert(runtime.includes('drawForeground'),
   'runtime foreground depth integration missing');
 
