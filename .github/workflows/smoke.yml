@@ -69,6 +69,9 @@ jobs:
       - name: Verify elemental spell trees
         run: npm run test:elemental-spell-trees
 
+      - name: Verify non-elemental spell trees
+        run: npm run test:non-elemental-spell-trees
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
