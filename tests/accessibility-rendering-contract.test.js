@@ -47,6 +47,16 @@ assert(dialogue.includes('subtitleSizeMultiplier()'),
   'dialogue does not apply subtitle-size preference');
 assert(dialogue.includes('subtitleBackgroundAlpha()'),
   'dialogue does not apply subtitle-background preference');
+assert(source.includes('function dialogueCaptionVisible()'),
+  'subtitle on/off visibility helper is missing');
+assert(source.includes("userSettings.subtitles !== false"),
+  'subtitle on/off preference is not consulted');
+assert(source.includes("window.UI.dialogueAudioAvailable === true"),
+  'subtitles may only hide after optional TTS is positively available');
+assert(dialogue.includes('const captionVisible = dialogueCaptionVisible();'),
+  'dialogue renderer does not apply subtitle visibility');
+assert(dialogue.includes('const bh = Math.min(176, 92 + Math.max(0, dialogueScale - 1) * 72);'),
+  'large subtitle/text combinations do not reflow the dialogue panel');
 assert(dialogue.includes("userSettings.speakerLabels !== false"),
   'dialogue does not honor speaker-label preference');
 assert(dialogue.includes('textLeading(16 * accessibilityTextScale() * subtitleSizeMultiplier())'),
@@ -69,6 +79,7 @@ assert(source.includes('PAL.NAVY =') &&
 for (const field of [
   'textScale',
   'highContrastUI',
+  'subtitles',
   'subtitleSize',
   'subtitleBackground',
   'speakerLabels',
