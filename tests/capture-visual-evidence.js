@@ -160,6 +160,19 @@ async function capture(page, id, description) {
   try {
     const captures = [];
 
+    // 0 — Shared-authority title screen after real boot/preamble.
+    await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 20000,
+    });
+    await waitForRuntime(page);
+    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 13000 });
+    captures.push(await capture(
+      page,
+      '00-title-screen',
+      'Shared-authority Aetherwake title screen'
+    ));
+
     // 0 — First Wake interactive dock-walk presentation.
     await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
       waitUntil: 'domcontentloaded',
@@ -180,7 +193,7 @@ async function capture(page, id, description) {
     , undefined, { timeout: 5000 });
     captures.push(await capture(
       page,
-      '00-first-wake-dock-walk',
+      '01-first-wake-dock-walk',
       'First Wake Sequence 02 shared-authority visual stage'
     ));
 
@@ -201,7 +214,7 @@ async function capture(page, id, description) {
     });
     captures.push(await capture(
       page,
-      '01-dragonfly-dusk-dock',
+      '02-dragonfly-dusk-dock',
       'Dragonfly Dusk Dock benchmark candidate'
     ));
 
@@ -221,7 +234,7 @@ async function capture(page, id, description) {
     , undefined, { timeout: 5000 });
     captures.push(await capture(
       page,
-      '02-dialogue-ionia',
+      '03-dialogue-ionia',
       'Representative Ionia dialogue visual gate'
     ));
 
@@ -238,7 +251,7 @@ async function capture(page, id, description) {
     , undefined, { timeout: 5000 });
     captures.push(await capture(
       page,
-      '03-combat-sky-predator',
+      '04-combat-sky-predator',
       'Representative Sky-Predator combat visual gate'
     ));
 
@@ -265,7 +278,7 @@ async function capture(page, id, description) {
     await page.waitForFunction(() => window.gameState === 'airship', undefined, { timeout: 5000 });
     captures.push(await capture(
       page,
-      '04-dragonfly-flight',
+      '05-dragonfly-flight',
       'Representative Dragonfly open-sky flight visual gate'
     ));
 
