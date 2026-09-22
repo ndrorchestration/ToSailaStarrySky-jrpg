@@ -78,7 +78,22 @@ async function bootToWorld(page) {
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => window.gameState === 'opening', undefined, { timeout: 5000 });
 
-  for (let i = 0; i < 10; i++) {
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() =>
+    window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'dock_walk'
+  , undefined, { timeout: 5000 });
+
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press('ArrowRight');
+  }
+  await page.waitForFunction(() =>
+    window._firstWakeOpeningState.dockWalk &&
+    window._firstWakeOpeningState.dockWalk.ready === true
+  , undefined, { timeout: 5000 });
+
+  await page.keyboard.press('Enter');
+  for (let i = 0; i < 7; i++) {
     await page.keyboard.press('Enter');
   }
 
