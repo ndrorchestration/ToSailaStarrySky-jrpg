@@ -158,23 +158,33 @@
     textSize(12);
     for (let i = 0; i < commands.length; i++) {
       const command = commands[i];
-      const system = systemsById[command.id] || {
-        id: 'ventWake',
-        shortLabel: 'VENT WAKE',
-        description: 'Vent excess Wakeheart heat and stabilize the current cycle.',
-        chargeKey: null,
-      };
-      const rowY = leftY + 42 + i * 58;
+      const system = systemsById[command.id] || (command.id === 'flight'
+        ? {
+            id: 'flight',
+            shortLabel: 'OPEN-SKY FLIGHT',
+            description: 'Enter the navigable sky layer for routes, weather, encounters, and docking.',
+            chargeKey: null,
+          }
+        : {
+            id: 'ventWake',
+            shortLabel: 'VENT WAKE',
+            description: 'Vent excess Wakeheart heat and stabilize the current cycle.',
+            chargeKey: null,
+          });
+      const compactRows = commands.length > 6;
+      const rowStep = compactRows ? 44 : 58;
+      const rowHeight = compactRows ? 38 : 48;
+      const rowY = leftY + 42 + i * rowStep;
       const selected = i === cursor;
       const recentlyUsed = state.lastAction === system.id;
       setFill(selected ? C.teal : C.navy, selected ? 36 : (recentlyUsed ? 24 : 150));
-      rect(leftX + 10, rowY, leftW - 20, 48, 2);
-      border(leftX + 10, rowY, leftW - 20, 48, selected ? C.teal : (recentlyUsed ? C.scioto : C.dim));
+      rect(leftX + 10, rowY, leftW - 20, rowHeight, 2);
+      border(leftX + 10, rowY, leftW - 20, rowHeight, selected ? C.teal : (recentlyUsed ? C.scioto : C.dim));
       setFill(selected ? C.teal : C.parchment, 220);
       text((selected ? '▶ ' : '  ') + (command.label || system.shortLabel),
         leftX + 20, rowY + 6);
       setFill(C.dim, 190);
-      text(system.description, leftX + 20, rowY + 21, leftW - 125, 20);
+      text(system.description, leftX + 20, rowY + (compactRows ? 18 : 21), leftW - 125, compactRows ? 16 : 20);
       textAlign(RIGHT, TOP);
       setFill(selected ? C.teal : C.scioto, 210);
       text(system.id === 'ventWake' ? 'SPECIAL' : systemStatus(state, system),
