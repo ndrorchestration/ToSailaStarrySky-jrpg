@@ -49,7 +49,7 @@ At minimum, verify:
 - at least three depth planes are visible;
 - lighting materially improves composition;
 - repeated tile/procedural patterns do not dominate;
-- character, Dragonfly, dialogue, and combat treatments feel like one game;
+- First Wake, character, Dragonfly, dialogue, combat, and flight treatments feel like one game;
 - no debug/prototype visual dominates the frame;
 - the benchmark screenshot could plausibly serve as a store-page image without retouching.
 
