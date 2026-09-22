@@ -1,0 +1,496 @@
+{
+  "version": 1,
+  "status": "design-contract",
+  "purpose": "Define a single semantic input and accessibility foundation before Aetherwake multiplies menus, party UI, regions, and content.",
+  "principles": [
+    "Gameplay and UI bind to semantic actions, not hard-coded physical keys.",
+    "Every required action has a single-press digital path.",
+    "Keyboard and gamepad can navigate the entire representative slice.",
+    "Player remapping is action-based and visible prompts must reflect the active mapping.",
+    "UI focus order is deterministic, visible, and never depends on color alone.",
+    "Accessibility settings are reachable before gameplay and remembered separately from save slots.",
+    "Important information is not conveyed by audio or fixed color alone.",
+    "Player-controlled text advance remains available and motion/distraction can be reduced."
+  ],
+  "inputContexts": [
+    "global",
+    "menu",
+    "world",
+    "dialogue",
+    "combat",
+    "airship",
+    "save-load"
+  ],
+  "requiredActions": [
+    {
+      "id": "ui-up",
+      "contexts": [
+        "menu",
+        "dialogue",
+        "combat",
+        "save-load"
+      ],
+      "keyboard": [
+        "ArrowUp"
+      ],
+      "gamepad": [
+        "dpad-up"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "ui-down",
+      "contexts": [
+        "menu",
+        "dialogue",
+        "combat",
+        "save-load"
+      ],
+      "keyboard": [
+        "ArrowDown"
+      ],
+      "gamepad": [
+        "dpad-down"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "ui-left",
+      "contexts": [
+        "menu",
+        "combat",
+        "save-load"
+      ],
+      "keyboard": [
+        "ArrowLeft"
+      ],
+      "gamepad": [
+        "dpad-left"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "ui-right",
+      "contexts": [
+        "menu",
+        "combat",
+        "save-load"
+      ],
+      "keyboard": [
+        "ArrowRight"
+      ],
+      "gamepad": [
+        "dpad-right"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "confirm",
+      "contexts": [
+        "global"
+      ],
+      "keyboard": [
+        "Enter",
+        "Space"
+      ],
+      "gamepad": [
+        "button-south"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "cancel",
+      "contexts": [
+        "global"
+      ],
+      "keyboard": [
+        "Escape"
+      ],
+      "gamepad": [
+        "button-east"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "move-up",
+      "contexts": [
+        "world"
+      ],
+      "keyboard": [
+        "ArrowUp",
+        "W"
+      ],
+      "gamepad": [
+        "dpad-up",
+        "left-stick-up"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "move-down",
+      "contexts": [
+        "world"
+      ],
+      "keyboard": [
+        "ArrowDown",
+        "S"
+      ],
+      "gamepad": [
+        "dpad-down",
+        "left-stick-down"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "move-left",
+      "contexts": [
+        "world"
+      ],
+      "keyboard": [
+        "ArrowLeft",
+        "A"
+      ],
+      "gamepad": [
+        "dpad-left",
+        "left-stick-left"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "move-right",
+      "contexts": [
+        "world"
+      ],
+      "keyboard": [
+        "ArrowRight",
+        "D"
+      ],
+      "gamepad": [
+        "dpad-right",
+        "left-stick-right"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "interact",
+      "contexts": [
+        "world"
+      ],
+      "keyboard": [
+        "E"
+      ],
+      "gamepad": [
+        "button-south"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "quest-log",
+      "contexts": [
+        "world"
+      ],
+      "keyboard": [
+        "T"
+      ],
+      "gamepad": [
+        "button-north"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "character-sheet",
+      "contexts": [
+        "world"
+      ],
+      "keyboard": [
+        "R"
+      ],
+      "gamepad": [
+        "left-shoulder"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "ledger",
+      "contexts": [
+        "world"
+      ],
+      "keyboard": [
+        "L"
+      ],
+      "gamepad": [
+        "right-shoulder"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "board-or-flight",
+      "contexts": [
+        "world"
+      ],
+      "keyboard": [
+        "F"
+      ],
+      "gamepad": [
+        "button-west"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "manual-save",
+      "contexts": [
+        "world",
+        "airship"
+      ],
+      "keyboard": [
+        "F5"
+      ],
+      "gamepad": [
+        "menu+button-west"
+      ],
+      "remappable": true,
+      "singlePressDigital": false,
+      "plannedAccessibleAlternative": "pause/menu → Save"
+    },
+    {
+      "id": "manual-load",
+      "contexts": [
+        "world",
+        "airship"
+      ],
+      "keyboard": [
+        "F9"
+      ],
+      "gamepad": [
+        "menu+button-north"
+      ],
+      "remappable": true,
+      "singlePressDigital": false,
+      "plannedAccessibleAlternative": "pause/menu → Load"
+    },
+    {
+      "id": "airship-altitude-up",
+      "contexts": [
+        "airship"
+      ],
+      "keyboard": [
+        "E"
+      ],
+      "gamepad": [
+        "right-trigger"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "airship-altitude-down",
+      "contexts": [
+        "airship"
+      ],
+      "keyboard": [
+        "Q"
+      ],
+      "gamepad": [
+        "left-trigger"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "airship-dock",
+      "contexts": [
+        "airship"
+      ],
+      "keyboard": [
+        "D"
+      ],
+      "gamepad": [
+        "button-south"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "airship-land",
+      "contexts": [
+        "airship"
+      ],
+      "keyboard": [
+        "L"
+      ],
+      "gamepad": [
+        "button-east"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    }
+  ],
+  "focusContract": {
+    "deterministicDirectionalOrder": true,
+    "alwaysVisibleFocus": true,
+    "focusIndicatorMustNotUseColorAlone": true,
+    "restoreFocusOnClose": true,
+    "noHiddenFocusedControls": true,
+    "consistentConfirmCancel": true
+  },
+  "settings": [
+    {
+      "id": "text-scale",
+      "type": "enum",
+      "values": [
+        "100",
+        "125",
+        "150",
+        "175"
+      ],
+      "default": "125",
+      "persistence": "user-settings"
+    },
+    {
+      "id": "high-contrast-ui",
+      "type": "boolean",
+      "default": false,
+      "persistence": "user-settings"
+    },
+    {
+      "id": "reduced-motion",
+      "type": "boolean",
+      "default": false,
+      "persistence": "user-settings"
+    },
+    {
+      "id": "screen-shake",
+      "type": "enum",
+      "values": [
+        "off",
+        "low",
+        "full"
+      ],
+      "default": "low",
+      "persistence": "user-settings"
+    },
+    {
+      "id": "subtitles",
+      "type": "boolean",
+      "default": true,
+      "persistence": "user-settings"
+    },
+    {
+      "id": "subtitle-size",
+      "type": "enum",
+      "values": [
+        "medium",
+        "large",
+        "extra-large"
+      ],
+      "default": "large",
+      "persistence": "user-settings"
+    },
+    {
+      "id": "subtitle-background",
+      "type": "enum",
+      "values": [
+        "off",
+        "soft",
+        "strong"
+      ],
+      "default": "soft",
+      "persistence": "user-settings"
+    },
+    {
+      "id": "speaker-labels",
+      "type": "boolean",
+      "default": true,
+      "persistence": "user-settings"
+    },
+    {
+      "id": "music-volume",
+      "type": "integer",
+      "min": 0,
+      "max": 100,
+      "default": 80,
+      "persistence": "user-settings"
+    },
+    {
+      "id": "effects-volume",
+      "type": "integer",
+      "min": 0,
+      "max": 100,
+      "default": 80,
+      "persistence": "user-settings"
+    },
+    {
+      "id": "dialogue-volume",
+      "type": "integer",
+      "min": 0,
+      "max": 100,
+      "default": 100,
+      "persistence": "user-settings"
+    },
+    {
+      "id": "text-speed",
+      "type": "enum",
+      "values": [
+        "slow",
+        "normal",
+        "fast",
+        "instant"
+      ],
+      "default": "normal",
+      "persistence": "user-settings"
+    },
+    {
+      "id": "controller-vibration",
+      "type": "enum",
+      "values": [
+        "off",
+        "low",
+        "full"
+      ],
+      "default": "low",
+      "persistence": "user-settings"
+    }
+  ],
+  "settingsPersistence": {
+    "saveSlotsOwnSettings": false,
+    "plannedDesktopOwner": "nw.App.dataPath/settings.json",
+    "plannedBrowserFallback": "localStorage",
+    "migrationRequired": true
+  },
+  "phasedImplementation": [
+    "semantic action registry + validation",
+    "runtime input adapter while preserving current keyboard behavior",
+    "focus manager + controller polling",
+    "settings persistence + settings UI reachable from title",
+    "text/motion/audio/subtitle rendering integration",
+    "First Wake benchmark keyboard/controller parity and accessibility regression coverage"
+  ],
+  "deferred": [
+    "full screen narration",
+    "assistive-technology-specific platform certification",
+    "platform storefront accessibility metadata",
+    "localization-specific subtitle line-breaking"
+  ],
+  "research": [
+    "Microsoft Xbox Accessibility Guideline 107 — Input",
+    "Microsoft Xbox Accessibility Guideline 112 — UI navigation",
+    "Microsoft Xbox Accessibility Guideline 113 — UI focus handling",
+    "Microsoft Xbox Accessibility Guideline 117 — Visual distractions and motion settings",
+    "Game Accessibility Guidelines — Basic / Intermediate / remappable controls / subtitle customization"
+  ]
+}
