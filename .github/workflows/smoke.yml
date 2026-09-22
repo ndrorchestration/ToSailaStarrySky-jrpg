@@ -66,6 +66,9 @@ jobs:
       - name: Verify production JRPG formula engine
         run: npm run test:jrpg-formula-engine
 
+      - name: Verify Commons Ledger SSOT contract
+        run: npm run test:commons-ledger
+
       - name: Verify dossier-bound character canon
         run: npm run test:character-canon
 
