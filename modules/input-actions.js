@@ -8,10 +8,10 @@
   ]);
 
   const ACTIONS = Object.freeze({
-    'ui-up': { contexts: ['menu','dialogue','combat','save-load'], keyCodes: [38] },
-    'ui-down': { contexts: ['menu','dialogue','combat','save-load'], keyCodes: [40] },
-    'ui-left': { contexts: ['menu','combat','save-load'], keyCodes: [37] },
-    'ui-right': { contexts: ['menu','combat','save-load'], keyCodes: [39] },
+    'ui-up': { contexts: ['menu','dialogue','combat','save-load','settings'], keyCodes: [38] },
+    'ui-down': { contexts: ['menu','dialogue','combat','save-load','settings'], keyCodes: [40] },
+    'ui-left': { contexts: ['menu','combat','save-load','settings'], keyCodes: [37] },
+    'ui-right': { contexts: ['menu','combat','save-load','settings'], keyCodes: [39] },
     'confirm': { contexts: ['global'], keyCodes: [13,32] },
     'cancel': { contexts: ['global'], keyCodes: [27] },
     'open-settings': { contexts: ['menu'], keyCodes: [83] },
