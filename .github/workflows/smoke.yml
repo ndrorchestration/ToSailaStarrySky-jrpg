@@ -135,6 +135,12 @@ jobs:
       - name: Verify semantic save payload validation
         run: npm run test:save-payload
 
+      - name: Verify interrupted-write recovery
+        run: npm run test:save-interrupted-write
+
+      - name: Verify persistence coverage registry
+        run: npm run test:persistence-coverage
+
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
