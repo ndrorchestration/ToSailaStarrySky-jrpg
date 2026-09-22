@@ -91,6 +91,7 @@
     if (index === BUTTON.LEFT_TRIGGER && context === 'airship') return 'airship-altitude-down';
     if (index === BUTTON.RIGHT_TRIGGER && context === 'airship') return 'airship-altitude-up';
     if (index === BUTTON.MENU && (context === 'boot' || context === 'menu')) return 'open-settings';
+    if (index === BUTTON.MENU && (context === 'world' || context === 'airship')) return 'open-save-load';
     return null;
   }
 
