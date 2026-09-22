@@ -213,9 +213,10 @@
         "tests/controller-parity-playwright.js",
         "tests/input-runtime-contract.test.js",
         "tests/settings-runtime-contract.test.js",
-        "tests/audio-settings-contract.test.js"
+        "tests/audio-settings-contract.test.js",
+        "tests/combat-input-contract.test.js"
       ],
-      "nextAction": "Add combat controller focus/selection, navigable controller Save/Load, remapping/prompt rebinding, remaining rendering hooks, then require an executed exact-head controller parity result."
+      "nextAction": "Implement remapping/prompt rebinding and remaining text/contrast/subtitle/vibration hooks, then require an executed exact-head controller parity result."
     },
     {
       "id": "visual-benchmark-set",
