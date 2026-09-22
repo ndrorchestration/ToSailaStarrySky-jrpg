@@ -71,6 +71,21 @@ assert.throws(
   /SAVE_PARTY_VIT_OVER_MAX/
 );
 
+// Active-party membership must be fully admissible before commit.
+const inactivePlayable = JSON.parse(JSON.stringify(original));
+inactivePlayable.party.roster.find(record => record.id === 'lyra').playable = false;
+assert.throws(
+  () => validator.validatePayload(inactivePlayable, { validateAirNavigation() { return true; } }),
+  /SAVE_PARTY_ACTIVE_NOT_PLAYABLE:lyra/
+);
+
+const missingPlayableFlag = JSON.parse(JSON.stringify(original));
+delete missingPlayableFlag.party.roster[0].playable;
+assert.throws(
+  () => validator.validatePayload(missingPlayableFlag, { validateAirNavigation() { return true; } }),
+  /SAVE_PARTY_PLAYABLE_FLAG_INVALID:ender/
+);
+
 // AIRSHIP saves must carry validated navigation state.
 const missingAir = JSON.parse(JSON.stringify(original));
 missingAir.runtime.scene = 'airship';
