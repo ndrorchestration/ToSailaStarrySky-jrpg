@@ -33,35 +33,44 @@ jobs:
       - name: Build Windows package
         run: npm run package:windows
 
-      - name: Create one-click Windows launcher
+      - name: Build standard Windows installer with Inno Setup
         shell: pwsh
         run: |
           $package = Get-ChildItem -Path ..\\aetherwake-dist -Directory | Select-Object -First 1
           if (-not $package) { throw "NW.js did not produce a package directory" }
-          $sevenZip = Join-Path $env:ProgramFiles "7-Zip\\7z.exe"
-          $sfx = Join-Path $env:ProgramFiles "7-Zip\\7z.sfx"
-          if (-not (Test-Path $sevenZip)) { throw "7-Zip executable not found" }
-          if (-not (Test-Path $sfx)) { throw "7-Zip SFX module not found" }
-          $config = @"
-          ;!@Install@!UTF-8!
-          RunProgram="Aetherwake.exe"
-          InstallPath="%TEMP%\\Aetherwake-OneClick"
-          Title="Aetherwake"
-          ;!@InstallEnd@!
+          $iscc = @(
+            "C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe",
+            "C:\\Program Files\\Inno Setup 6\\ISCC.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) { throw "Inno Setup compiler not found" }
+          $source = $package.FullName.Replace('\', '\\')
+          $script = @"
+          [Setup]
+          AppName=Aetherwake
+          AppVersion=0.2.0
+          DefaultDirName={autopf}\\Aetherwake
+          DisableProgramGroupPage=yes
+          Uninstallable=no
+          ArchitecturesInstallIn64BitMode=x64
+          OutputDir=.
+          OutputBaseFilename=Aetherwake-Setup
+          Compression=lzma2
+          SolidCompression=yes
+
+          [Files]
+          Source: "$source\\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
+
+          [Icons]
+          Name: "{autodesktop}\\Aetherwake"; Filename: "{app}\\Aetherwake.exe"
+          Name: "{autoprograms}\\Aetherwake"; Filename: "{app}\\Aetherwake.exe"
+
+          [Run]
+          Filename: "{app}\\Aetherwake.exe"; Description: "Launch Aetherwake"; Flags: nowait postinstall skipifsilent
           "@
-          Set-Content -Path Aetherwake-OneClick-config.txt -Value $config -Encoding utf8
-          & $sevenZip a -t7z Aetherwake-OneClick.7z "$($package.FullName)\\*" -mx=9
-          if ($LASTEXITCODE -ne 0) { throw "7-Zip archive creation failed" }
-          $output = [IO.File]::OpenWrite("Aetherwake-OneClick.exe")
-          try {
-            foreach ($part in @($sfx, "Aetherwake-OneClick-config.txt", "Aetherwake-OneClick.7z")) {
-              $bytes = [IO.File]::ReadAllBytes($part)
-              $output.Write($bytes, 0, $bytes.Length)
-            }
-          } finally {
-            $output.Dispose()
-          }
-          if (-not (Test-Path Aetherwake-OneClick.exe)) { throw "One-click launcher was not created" }
+          Set-Content -Path Aetherwake-Setup.iss -Value $script -Encoding utf8
+          & $iscc Aetherwake-Setup.iss
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup compilation failed" }
+          if (-not (Test-Path Aetherwake-Setup.exe)) { throw "Installer was not created" }
 
       - name: Create distributable ZIP fallback
         shell: pwsh
@@ -72,10 +81,10 @@ jobs:
       - name: Publish Windows package release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: aetherwake-desktop-${{ github.sha }}
-          name: Aetherwake Windows Desktop ${{ github.sha }}
+          tag_name: aetherwake-desktop-\${{ github.sha }}
+          name: Aetherwake Windows Desktop \${{ github.sha }}
           prerelease: true
           generate_release_notes: false
           files: |
-            Aetherwake-OneClick.exe
+            Aetherwake-Setup.exe
             Aetherwake-Windows.zip
