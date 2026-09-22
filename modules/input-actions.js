@@ -18,7 +18,7 @@
     'move-down': { contexts: ['world'], keyCodes: [40,83] },
     'move-left': { contexts: ['world'], keyCodes: [37,65] },
     'move-right': { contexts: ['world'], keyCodes: [39,68] },
-    'interact': { contexts: ['world'], keyCodes: [69] },
+    'interact': { contexts: ['world','dialogue'], keyCodes: [69] },
     'quest-log': { contexts: ['world'], keyCodes: [84] },
     'character-sheet': { contexts: ['world'], keyCodes: [82] },
     'ledger': { contexts: ['world'], keyCodes: [76] },
