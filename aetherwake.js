@@ -885,6 +885,8 @@ function advanceFirstWakeOpening() {
     window.gameState = gameState;
     prevState = null;
     showToast('CHAPTER I // FIRST WAKE', C.scioto, 1800);
+    showToast('T // QUEST LOG   E // TALK   R // CHARACTER', C.teal, 3200);
+    showToast('FOLLOW THE TEAL SIGNAL MARKERS // FIND 3 HOOKS', C.parchment, 4200);
   }
 }
 
