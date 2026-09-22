@@ -197,7 +197,49 @@ function createServer() {
       'dock walk did not reach the Aureate Wake endpoint');
 
     await page.keyboard.press('Enter');
-    for (let i = 0; i < 3; i++) await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.gameState === 'opening' &&
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 3
+    , undefined, { timeout: 5000 });
+
+    const blockedBerthAdvance = await page.evaluate(() => {
+      const before = window._firstWakeOpeningState.sceneIndex;
+      const result = window.AetherFirstWakeOpening.advance(window._firstWakeOpeningState);
+      return {
+        before,
+        after: window._firstWakeOpeningState.sceneIndex,
+        event: result.event && result.event.type,
+        interaction: result.event && result.event.interaction,
+        progress: window.AetherFirstWakeOpening.berthTaskProgress(window._firstWakeOpeningState),
+      };
+    });
+    assert(blockedBerthAdvance.before === 3 && blockedBerthAdvance.after === 3,
+      'Sequence 03 advanced before the berth task completed');
+    assert(blockedBerthAdvance.event === 'interaction-required' &&
+           blockedBerthAdvance.interaction === 'berth-task',
+      'Sequence 03 did not expose the berth interaction gate');
+    assert(blockedBerthAdvance.progress === 0,
+      'berth task did not begin at the authored starting state');
+
+    await page.keyboard.press('e');
+    await page.keyboard.press('e');
+    await page.keyboard.press('e');
+    await page.waitForFunction(() =>
+      window._firstWakeOpeningState.berthTask &&
+      window._firstWakeOpeningState.berthTask.ready === true
+    , undefined, { timeout: 5000 });
+
+    const berthReady = await page.evaluate(() => ({
+      progress: window.AetherFirstWakeOpening.berthTaskProgress(window._firstWakeOpeningState),
+      step: window._firstWakeOpeningState.berthTask.step,
+      sceneId: window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id,
+    }));
+    assert(berthReady.progress === 1 && berthReady.step === 3 && berthReady.sceneId === 'berth_task',
+      'berth task did not complete all three authored interactions');
+
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.gameState === 'opening' &&
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 6
@@ -1248,6 +1290,8 @@ function createServer() {
       cinematicFrontEdge,
       blockedDockAdvance,
       dockReady,
+      blockedBerthAdvance,
+      berthReady,
       beforeLyraJoin,
       afterLyraJoin,
       partyArchitecture,
