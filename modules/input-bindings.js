@@ -214,6 +214,39 @@
     }
     validateOverrideKeys(state.keyboardOverrides, 'KEYBOARD');
     validateOverrideKeys(state.gamepadOverrides, 'GAMEPAD');
+
+    const ids = actionIds();
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        const a = ids[i], b = ids[j];
+        if (!contextsOverlap(a, b)) continue;
+
+        const sharedContexts = contextsFor(a).filter(context => contextsFor(b).includes(context));
+        for (const context of sharedContexts) {
+          const aCodes = Object.prototype.hasOwnProperty.call(state.keyboardOverrides, a)
+            ? [state.keyboardOverrides[a]]
+            : defaultKeyboardCodes(a, context);
+          const bCodes = Object.prototype.hasOwnProperty.call(state.keyboardOverrides, b)
+            ? [state.keyboardOverrides[b]]
+            : defaultKeyboardCodes(b, context);
+          if (aCodes.some(code => bCodes.includes(code))) {
+            throw new Error('INPUT_BINDINGS_CONFLICT_KEYBOARD:' + a + ':' + b + ':' + context);
+          }
+        }
+
+        if (!overlapAllowed(a, b)) {
+          const aButton = Object.prototype.hasOwnProperty.call(state.gamepadOverrides, a)
+            ? state.gamepadOverrides[a]
+            : GAMEPAD_DEFAULT_BUTTON[a];
+          const bButton = Object.prototype.hasOwnProperty.call(state.gamepadOverrides, b)
+            ? state.gamepadOverrides[b]
+            : GAMEPAD_DEFAULT_BUTTON[b];
+          if (aButton != null && aButton === bButton) {
+            throw new Error('INPUT_BINDINGS_CONFLICT_GAMEPAD:' + a + ':' + b);
+          }
+        }
+      }
+    }
     return true;
   }
 
@@ -223,10 +256,8 @@
   }
 
   function conflictForKeyboard(state, actionId, keyCode) {
-    validateState(state);
     for (const otherId of actionIds()) {
       if (otherId === actionId || !contextsOverlap(actionId, otherId)) continue;
-      if (overlapAllowed(actionId, otherId)) continue;
       const sharedContexts = contextsFor(actionId).filter(context => contextsFor(otherId).includes(context));
       for (const context of sharedContexts) {
         if (effectivePrimaryKeyboardCode(state, otherId, context) === keyCode) return otherId;
@@ -236,7 +267,6 @@
   }
 
   function conflictForGamepad(state, actionId, buttonIndex) {
-    validateState(state);
     for (const otherId of actionIds()) {
       if (otherId === actionId || !contextsOverlap(actionId, otherId)) continue;
       if (overlapAllowed(actionId, otherId)) continue;
