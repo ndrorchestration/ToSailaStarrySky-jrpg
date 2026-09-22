@@ -19,7 +19,15 @@ function gamepad(buttonIndexes, axes, mapping) {
 }
 
 let state = pad.createState();
-let result = pad.poll(gamepad([pad.BUTTON.SOUTH]), state, 'menu');
+let result = pad.poll(gamepad([pad.BUTTON.MENU]), state, 'boot');
+assert.deepStrictEqual(result.pressed, ['open-settings']);
+
+state = pad.createState();
+result = pad.poll(gamepad([pad.BUTTON.SOUTH]), state, 'opening');
+assert.deepStrictEqual(result.pressed, ['confirm']);
+
+state = pad.createState();
+result = pad.poll(gamepad([pad.BUTTON.SOUTH]), state, 'menu');
 assert.deepStrictEqual(result.pressed, ['confirm']);
 
 result = pad.poll(gamepad([pad.BUTTON.SOUTH]), state, 'menu');
