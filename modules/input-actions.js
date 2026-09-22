@@ -4,14 +4,14 @@
   const VERSION = '0.1.0';
 
   const CONTEXTS = Object.freeze([
-    'global', 'boot', 'menu', 'settings', 'opening', 'world', 'dialogue', 'combat', 'airship', 'save-load'
+    'global', 'boot', 'menu', 'settings', 'controls', 'opening', 'world', 'dialogue', 'combat', 'airship', 'save-load'
   ]);
 
   const ACTIONS = Object.freeze({
-    'ui-up': { contexts: ['menu','dialogue','combat','save-load','settings'], keyCodes: [38] },
-    'ui-down': { contexts: ['menu','dialogue','combat','save-load','settings'], keyCodes: [40] },
-    'ui-left': { contexts: ['menu','combat','save-load','settings'], keyCodes: [37] },
-    'ui-right': { contexts: ['menu','combat','save-load','settings'], keyCodes: [39] },
+    'ui-up': { contexts: ['menu','dialogue','combat','save-load','settings','controls'], keyCodes: [38] },
+    'ui-down': { contexts: ['menu','dialogue','combat','save-load','settings','controls'], keyCodes: [40] },
+    'ui-left': { contexts: ['menu','combat','save-load','settings','controls'], keyCodes: [37] },
+    'ui-right': { contexts: ['menu','combat','save-load','settings','controls'], keyCodes: [39] },
     'confirm': { contexts: ['global'], keyCodes: [13,32] },
     'cancel': { contexts: ['global'], keyCodes: [27] },
     'open-settings': { contexts: ['boot','menu'], keyCodes: [83] },
