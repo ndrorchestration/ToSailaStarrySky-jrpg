@@ -134,3 +134,15 @@ assert(embeddedDesktopControls.includes("event.key === 'F11'"),
   'desktop entrypoint must support F11 fullscreen');
 assert(embeddedDesktopControls.includes('win.leaveFullscreen()'),
   'desktop entrypoint must support leaving fullscreen with Escape');
+
+
+const memoriesStage = fs.readFileSync(
+  path.join(__dirname, '..', 'scripts', 'stage-memories-desktop.js'),
+  'utf8'
+);
+assert(memoriesStage.includes("const assetsSrc = path.join(repo, 'assets')"),
+  'desktop staging must include repository assets');
+assert(memoriesStage.includes('fs.cpSync(assetsSrc, assetsDst'),
+  'desktop staging must recursively copy assets for cinematics/audio');
+assert(memoriesStage.includes("main: 'www/index-embedded.html'"),
+  'desktop staging must preserve direct embedded runtime entrypoint');
