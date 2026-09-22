@@ -96,6 +96,7 @@ let world = null;
 let combat = null;
 let airNavigationState = null;
 let combatReturnState = STATE.WORLD;
+let pendingHazardIndex = null;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -1114,10 +1115,24 @@ function finishCombat() {
     }
   }
 
+  const hazardVictory = pendingHazardIndex !== null &&
+    combatState && combatState.encounterOver &&
+    combatState.enemy && combatState.enemy.hp <= 0;
+  const resolvedHazardIndex = pendingHazardIndex;
+  pendingHazardIndex = null;
+
   gameState = combatReturnState || STATE.WORLD;
   window.gameState = gameState;
   prevState = null;
   combatReturnState = STATE.WORLD;
+
+  if (hazardVictory) {
+    completeHazard(resolvedHazardIndex);
+    showToast('CROSSING HAZARD CLEARED', C.teal, 1400);
+  } else if (resolvedHazardIndex !== null) {
+    showToast('HAZARD REMAINS // REGROUP AND TRY AGAIN', C.rust, 1600);
+  }
+
   if (VIS.fadeTransitions) startFade(150);
 }
 
@@ -1807,7 +1822,7 @@ function drawQuestLogOverlay() {
     y += 24;
     textSize(11);
     if (qs.state === 'signal')      text('Signal — receive the call from the falling ship.', qx + 16, y);
-    else if (qs.state === 'crossing') text('Crossing — three hazards on the way to the ship.', qx + 16, y);
+    else if (qs.state === 'crossing') text('Crossing — four hazards on the way to the ship.', qx + 16, y);
     else if (qs.state === 'contact')  text('Contact — four souls await on the ship.', qx + 16, y);
     else if (qs.state === 'choice')   text('Choice — three paths open before you.', qx + 16, y);
     else if (qs.state === 'wake')     text('Wake — the ending unfolds.', qx + 16, y);
@@ -2749,33 +2764,65 @@ function checkLoreTile(tx, ty) {
   }
 }
 
+function hazardEncounterId(index) {
+  const hazard = quest.crossingHazards[index];
+  if (!hazard) return null;
+  const encounterByHazard = {
+    sky_predator: 'skyPredator',
+    wind_shear: 'windShear',
+    aether_leak: 'aetherLeak',
+    corporate_intercept: 'corporateSalvager',
+  };
+  return encounterByHazard[hazard.id] || null;
+}
+
+function triggerHazardEncounter(index) {
+  if (pendingHazardIndex !== null || gameState === STATE.COMBAT) return false;
+  const hazard = quest.crossingHazards[index];
+  if (!hazard || hazard.done) return false;
+  const enemyId = hazardEncounterId(index);
+  if (!enemyId) return false;
+
+  pendingHazardIndex = index;
+  showToast('HAZARD // ' + hazard.label.toUpperCase(), C.rust, 1200);
+  startCombat(enemyId, STATE.WORLD);
+  return true;
+}
+
 function checkHazardProximity(tx, ty) {
+  if (quest.state !== QUEST_STATES.CROSSING || pendingHazardIndex !== null) return;
+
   if (tx >= 28 && ty >= 4 && ty <= 8 && !quest.crossingHazards[0].done) {
     if (Math.random() < 0.15) {
-      completeHazard(0);
+      triggerHazardEncounter(0);
+      return;
     }
   }
   if (tx >= 10 && tx <= 20 && ty >= 8 && ty <= 14 && !quest.crossingHazards[1].done) {
     if (Math.random() < 0.1) {
-      completeHazard(1);
+      triggerHazardEncounter(1);
+      return;
     }
   }
   if (ty <= 5 && tx >= 15 && tx <= 25 && !quest.crossingHazards[2].done) {
     if (Math.random() < 0.08) {
-      completeHazard(2);
+      triggerHazardEncounter(2);
+      return;
     }
   }
   if (tx >= 4 && tx <= 12 && ty >= 9 && ty <= 16 && !quest.crossingHazards[3].done) {
     if (Math.random() < 0.12) {
-      completeHazard(3);
+      triggerHazardEncounter(3);
     }
   }
-  // 4th hazard zone marker drawn in drawQuestWorldReactions()
 }
 
 function completeHazard(index) {
-  quest.crossingHazards[index].done = true;
+  const hazard = quest.crossingHazards[index];
+  if (!hazard || hazard.done) return;
+  hazard.done = true;
   quest.hazardsCompleted++;
+  addLedgerEntry('hazard', hazard.label + ' cleared.');
   advanceQuest();
 }
 
@@ -4374,22 +4421,22 @@ function drawQuestWorldReactions() {
     fill(color(255, 160, 60, 22));
     for (const h of quest.crossingHazards) {
       if (h.done) continue;
-      if (h.id === 'wind_shear') {
+      if (h.id === 'sky_predator') {
         const xs = [28, 29];
         for (const hx of xs) {
           ellipse(hx * 16 + 8, 6 * 16 + 8, 14, 4);
         }
-      } else if (h.id === 'aether_leak') {
-        const xs = [13, 14, 15];
+      } else if (h.id === 'wind_shear') {
+        const xs = [14, 15, 16];
         for (const hx of xs) {
           ellipse(hx * 16 + 8, 11 * 16 + 8, 10, 6);
         }
-      } else if (h.id === 'sky_predator') {
+      } else if (h.id === 'aether_leak') {
         ellipse(20 * 16 + 8, 4 * 16 + 8, 16, 5);
       } else if (h.id === 'corporate_intercept') {
-        const xs2 = [17, 18];
+        const xs2 = [7, 8, 9];
         for (const hx of xs2) {
-          ellipse(hx * 16 + 8, 17 * 16 + 8, 12, 5);
+          ellipse(hx * 16 + 8, 12 * 16 + 8, 12, 5);
         }
       }
     }
