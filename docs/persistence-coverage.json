@@ -162,12 +162,12 @@
     },
     {
       "id": "settings",
-      "status": "gap",
-      "snapshot": null,
-      "restore": null,
-      "validator": null,
-      "versionOwner": null,
-      "rationale": "Appropriate user settings persistence remains separate future work."
+      "status": "covered",
+      "snapshot": "AetherUserSettings.save",
+      "restore": "AetherUserSettings.load + aetherwake.js::applyUserSettings",
+      "validator": "AetherUserSettings.validateSettings",
+      "versionOwner": "user-settings SCHEMA_VERSION",
+      "rationale": "Accessibility and user preferences persist independently from game save slots."
     }
   ]
 }
