@@ -94,6 +94,29 @@ The registry contains five named stages for every elemental tree. The mechanical
 
 These are progression labels, not a frozen spell list. Individual spell names remain authorable content.
 
+### Elemental spell-tree catalog v0.1
+
+`modules/elemental-spell-trees.js` now provides a complete **design-only learnable catalog** for all 11 admitted elemental trees.
+
+Each tree contains:
+- exactly five mastery ranks,
+- at least two learnable spell/technique seeds per rank,
+- a distinct fantasy/signature combat loop,
+- at least four JRPG tactical role families across the full tree,
+- at least one Rank-5 Grand Art,
+- explicit cross-mastery prerequisites where needed.
+
+The first catalog contains **110+ spell/technique seeds** across Fire, Water, Air, Earth, Frost, Lightning, Crystal, Metal, Plasma, Sonic, and Storm.
+
+Important absorbed concepts remain intact:
+- Sand/Dust stays inside Earth.
+- Steam/Mist stays inside Water.
+- Magma and vitrification/glass stay inside Earth and require Fire knowledge where appropriate.
+- Sonic remains physical vibration/acoustics rather than replacing Resonance/Harmonic.
+- Heavenbreak Tempest is explicitly gated by Storm 5 + Lightning 5.
+
+This catalog is still **not executable**. It supplies learnable design content for later ability-definition admission and balance work.
+
 ## 6. Non-elemental domains
 
 ### Established families
