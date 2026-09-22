@@ -48,6 +48,7 @@
     "test:desktop-package": "node tests/desktop-package-contract.test.js",
     "test:magic-mastery": "node tests/magic-mastery-contract.test.js",
     "test:character-magic-profile": "node tests/character-magic-profile-contract.test.js",
-    "test:party-magic-profile": "node tests/party-magic-profile-contract.test.js"
+    "test:party-magic-profile": "node tests/party-magic-profile-contract.test.js",
+    "test:magic-field-reactions": "node tests/magic-field-reactions-contract.test.js"
   }
 }
