@@ -3040,7 +3040,7 @@ function getLedger() {
 function initShop() {
   shop = {
     name: 'Repair Cafe',
-    owner: 'Maeve of the Tinker's Hand',
+    owner: 'Maeve of the Tinker\'s Hand',
     x: 14,
     y: 22,
     open: false,
