@@ -1567,50 +1567,117 @@ function drawTitleScreen() {
   text('THE AUREATE WAKE // TURN-BASED JRPG', cx, height - 20);
 }
 
-function drawDialogueOverlay() {
-  noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2], 180);
-  rect(0, 0, width, height);
+function getDialogueSpriteId(npc) {
+  if (!npc) return 'settler';
+  if (npc.id === 'elder_farmer' || npc.name === 'Ionia') return 'ionia';
+  if (npc.id === 'child_prophet' || npc.name === 'Lyra') return 'lyra';
+  if (npc.id === 'engine_spirit' || npc.name === 'The Core') return 'engineSpirit';
+  if (npc.id === 'corporate_salvager' || npc.name === 'Verrick') return 'corporateSalvager';
+  return 'settler';
+}
 
-  // ── Window tone (Memories §1.3): cool tint for dialogue ──
-  const tone = window.UI.windowTone || null;
-
-  // ── Window openness (Memories §1.2): alpha multiplier ──
-  const openness = window.UI.openness || 255;
-
-  // Backdrop dimmer tied to openness
-  fill(C.navy[0], C.navy[1], C.navy[2], 180 * (openness / 255));
-  rect(0, 0, width, height);
-
-  const bx = width/2 - 240, by = height - 100, bw = 480, bh = 80;
-  fill(C.navy[0], C.navy[1], C.navy[2]);
-  noStroke();
-  rect(bx, by, bw, bh);
-  // Tint overlay
-  if (tone) {
-    fill(tone[0], tone[1], tone[2], 30);
-    noStroke();
-    rect(bx, by, bw, bh);
+function drawDialoguePortrait(npc, x, y, size) {
+  const sprites = window.AetherPixelSprites;
+  if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
+    return false;
   }
+  const id = getDialogueSpriteId(npc);
+  const scale = Math.max(1, Math.floor(size / 16));
+  noStroke();
+  fill(C.navy[0] + 5, C.navy[1] + 7, C.navy[2] + 10, 245);
+  rect(x, y, size, size);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 28);
+  rect(x + 4, y + 4, size - 8, size - 8);
+  sprites.drawShadow(x + size / 2, y + size - 8, Math.max(1, scale * 0.8));
+  sprites.draw(id, x + size / 2, y + size - 9, {
+    anchor: 'bottom-center',
+    scale
+  });
+  drawPixelBorder(x, y, size, size, 2, C.shadow, C.scioto);
+  return true;
+}
+
+function drawDialogueOverlay() {
+  // Preserve the live scene as context instead of replacing it with a flat modal.
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 118);
+  rect(0, 0, width, height);
+
+  const tone = window.UI.windowTone || null;
+  const openness = window.UI.openness || 255;
+  const alpha = openness / 255;
+
+  // Cinematic letterbox framing keeps dialogue focused without obscuring the world.
+  fill(8, 10, 20, 190 * alpha);
+  rect(0, 0, width, 20);
+  rect(0, height - 20, width, 20);
+
+  const bw = Math.min(820, width - 64);
+  const bh = 126;
+  const bx = Math.round((width - bw) / 2);
+  const by = height - bh - 34;
+  const portraitSize = 80;
+  const gap = 16;
+  const px = bx + 14;
+  const py = by + 22;
+  const textX = px + portraitSize + gap;
+  const textW = bw - portraitSize - gap - 34;
+
+  // Main window with layered instrument-panel depth.
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 248 * alpha);
+  rect(bx, by, bw, bh);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 18 * alpha);
+  rect(bx + 4, by + 4, bw - 8, bh - 8);
+
+  if (tone) {
+    fill(tone[0], tone[1], tone[2], 24 * alpha);
+    rect(bx + 4, by + 4, bw - 8, bh - 8);
+  }
+
+  // Thin aether instrumentation rail.
+  fill(C.teal[0], C.teal[1], C.teal[2], 110 * alpha);
+  rect(bx + 14, by + 12, bw - 28, 2);
+  for (let i = 0; i < 7; i++) {
+    const tick = bx + 24 + i * Math.floor((bw - 48) / 6);
+    rect(tick, by + 10, 1, 6);
+  }
+
   drawPixelBorder(bx, by, bw, bh, 3);
 
-  textFont('Press Start 2P');
-  textSize(9);
-  fill(C.teal[0], C.teal[1], C.teal[2], 180);
-  const npcName = window.UI.dialogueNPC ? window.UI.dialogueNPC.name : '???';
-  text(npcName, bx + 10, by + 10);
+  const npc = window.UI.dialogueNPC || null;
+  const npcName = npc ? npc.name : '???';
+  const npcTitle = npc && npc.title ? npc.title : '';
 
+  drawDialoguePortrait(npc, px, py, portraitSize);
+
+  // Speaker plate.
+  textAlign(LEFT, TOP);
+  textFont('Press Start 2P');
+  textSize(10);
+  fill(C.teal[0], C.teal[1], C.teal[2], 220 * alpha);
+  text(npcName.toUpperCase(), textX, by + 24);
+
+  if (npcTitle) {
+    textFont('VT323');
+    textSize(12);
+    fill(C.scioto[0], C.scioto[1], C.scioto[2], 190 * alpha);
+    text(npcTitle, textX, by + 39);
+  }
+
+  // Dialogue copy.
   textFont('VT323');
-  textSize(13);
-  textLeading(16);
-  fill(C.parchment[0], C.parchment[1], C.parchment[2]);
-  wrapText(window.UI.dialogueText || '...', bx + 10, by + 28, bw - 20);
+  textSize(15);
+  textLeading(18);
+  fill(C.parchment[0], C.parchment[1], C.parchment[2], 245 * alpha);
+  wrapText(window.UI.dialogueText || '...', textX, by + 56, textW);
 
+  // Continue cue as a quiet instrument readout.
   textFont('Press Start 2P');
-  textSize(8);
-  fill(C.teal[0], C.teal[1], C.teal[2], 120);
-  textAlign(CENTER, TOP);
-  text('E / ENTER to continue', width/2, by + bh + 6);
+  textSize(7);
+  fill(C.teal[0], C.teal[1], C.teal[2], 125 * alpha);
+  textAlign(RIGHT, TOP);
+  text('E / ENTER  CONTINUE', bx + bw - 14, by + bh - 14);
   textAlign(LEFT, TOP);
 }
 
