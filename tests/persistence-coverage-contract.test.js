@@ -62,5 +62,9 @@ assert.strictEqual(byId.get('settings').status, 'covered',
   'user settings persistence must remain independently covered');
 assert.strictEqual(byId.get('settings').versionOwner, 'user-settings SCHEMA_VERSION',
   'user settings must own an independent schema version');
+assert.strictEqual(byId.get('input-bindings').status, 'covered',
+  'input remaps must persist independently from game saves');
+assert.strictEqual(byId.get('input-bindings').versionOwner, 'input-bindings SCHEMA_VERSION',
+  'input remaps must own an independent schema version');
 
 console.log('Aetherwake persistence coverage registry: PASS');
