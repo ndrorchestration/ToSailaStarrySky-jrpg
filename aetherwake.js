@@ -370,7 +370,23 @@ function draw() {
       const py = world ? world.player.py : 380;
       const aetherInfo = combat.getAether ? combat.getAether() : { max: 6 };
       const chargeInfo = combat.getCharges ? combat.getCharges() : { max: 2 };
-      combat.drawCombatScene(px, py, aetherInfo.max, chargeInfo.max);
+      const skyCombat = combatReturnState === STATE.AIRSHIP;
+      const skyTravel = skyCombat && airNavigationState && window.AetherAirNavigation &&
+        typeof window.AetherAirNavigation.travelProfile === 'function'
+        ? window.AetherAirNavigation.travelProfile(airNavigationState)
+        : null;
+      combat.drawCombatScene(
+        px,
+        py,
+        aetherInfo.max,
+        chargeInfo.max,
+        {
+          domain: skyCombat ? 'sky' : 'ground',
+          weatherId: skyTravel && skyTravel.weather ? skyTravel.weather.id : 'clear',
+          altitude: skyCombat && airNavigationState ? airNavigationState.altitude : null,
+          encounterPressure: skyTravel ? skyTravel.encounterPressure : 0,
+        }
+      );
     }
     // Draw combat UI panel
     if (typeof drawCombatPanel === 'function' && combat && typeof combat.getState === 'function') {
@@ -5678,7 +5694,7 @@ function AetherCombat(p, C) {
   };
 
   // ── Rendering (called from core.js drawCombatScene wiring) ──
-  this.drawCombatScene = function(playerX, playerY, aetherMax, staffMax) {
+  this.drawCombatScene = function(playerX, playerY, aetherMax, staffMax, sceneOptions) {
     const now = millis();
     const dodgeBob = state._dodgeTurn && state._dodgeTurn > now - 200
       ? Math.sin((now - state._dodgeTurn) * 0.02) * 4
@@ -5706,6 +5722,11 @@ function AetherCombat(p, C) {
         now,
         enemy: state.enemy,
         turn: state.turn,
+        domain: sceneOptions && sceneOptions.domain ? sceneOptions.domain : 'ground',
+        weatherId: sceneOptions && sceneOptions.weatherId ? sceneOptions.weatherId : 'clear',
+        altitude: sceneOptions ? sceneOptions.altitude : null,
+        encounterPressure: sceneOptions && Number.isFinite(sceneOptions.encounterPressure)
+          ? sceneOptions.encounterPressure : 0,
       });
     } else {
       noStroke();
@@ -6039,6 +6060,11 @@ function AetherCombat(p, C) {
         height: p.height,
         turn: state.turn,
         enemy: state.enemy,
+        domain: sceneOptions && sceneOptions.domain ? sceneOptions.domain : 'ground',
+        weatherId: sceneOptions && sceneOptions.weatherId ? sceneOptions.weatherId : 'clear',
+        altitude: sceneOptions ? sceneOptions.altitude : null,
+        encounterPressure: sceneOptions && Number.isFinite(sceneOptions.encounterPressure)
+          ? sceneOptions.encounterPressure : 0,
       });
     }
   };
