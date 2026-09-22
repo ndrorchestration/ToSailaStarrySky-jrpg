@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   function stage(width, height) {
     return Object.freeze({
@@ -25,6 +25,9 @@
     const h = ctx.height;
     const now = ctx.now || 0;
     const s = stage(w, h);
+    const domain = ctx.domain === 'sky' ? 'sky' : 'ground';
+    const weatherId = ctx.weatherId || 'clear';
+    const altitude = ctx.altitude || 'cruise';
 
     noStroke();
 
@@ -62,25 +65,61 @@
     rect(Math.round(w * 0.86), Math.round(h * 0.32), 58, 15);
     rect(Math.round(w * 0.88), Math.round(h * 0.32) + 15, 29, 4);
 
-    // Battle plane: three value bands create foreground depth.
-    fill(67, 52, 43);
-    rect(0, s.horizonY, w, h - s.horizonY);
-    fill(53, 43, 39);
-    rect(0, Math.round(h * 0.66), w, Math.round(h * 0.34));
-    fill(30, 29, 34);
-    rect(0, Math.round(h * 0.83), w, Math.round(h * 0.17));
+    if (domain === 'sky') {
+      // Open-sky combat keeps the characters suspended above layered cloud seas.
+      fill(86, 111, 134, 88);
+      rect(0, s.horizonY, w, h - s.horizonY);
+      fill(148, 169, 183, 55);
+      rect(0, Math.round(h * 0.69), w, Math.round(h * 0.31));
+      fill(205, 225, 230, 38);
+      rect(0, Math.round(h * 0.82), w, Math.round(h * 0.18));
 
-    // Perspective deck/terrain seams.
-    stroke(118, 83, 58, 75);
-    strokeWeight(1);
-    for (let i = -2; i <= 7; i++) {
-      const x = Math.round(w * 0.5 + i * 105);
-      line(Math.round(w * 0.5), s.horizonY, x, h);
+      if (weatherId === 'crosswind') {
+        stroke(205, 225, 230, 72);
+        strokeWeight(1);
+        for (let i = 0; i < 12; i++) {
+          const yy = 92 + i * 38;
+          const xx = Math.round((now * 0.06 + i * 101) % (w + 90)) - 45;
+          line(xx, yy, xx + 48, yy - 7);
+        }
+        noStroke();
+      } else if (weatherId === 'aether-squall') {
+        fill(42, 255, 181, 75);
+        for (let i = 0; i < 22; i++) {
+          const xx = Math.round((i * 83 + now * 0.019) % w);
+          const yy = 46 + ((i * 67) % Math.round(h * 0.78));
+          rect(xx, yy, 2, 3);
+        }
+      }
+
+      // Altitude changes atmospheric openness.
+      if (altitude === 'high') {
+        fill(14, 21, 38, 42);
+        rect(0, 0, w, Math.round(h * 0.34));
+      } else if (altitude === 'low') {
+        fill(205, 225, 230, 24);
+        rect(0, Math.round(h * 0.42), w, Math.round(h * 0.26));
+      }
+    } else {
+      // Ground encounter stage.
+      fill(67, 52, 43);
+      rect(0, s.horizonY, w, h - s.horizonY);
+      fill(53, 43, 39);
+      rect(0, Math.round(h * 0.66), w, Math.round(h * 0.34));
+      fill(30, 29, 34);
+      rect(0, Math.round(h * 0.83), w, Math.round(h * 0.17));
+
+      stroke(118, 83, 58, 75);
+      strokeWeight(1);
+      for (let i = -2; i <= 7; i++) {
+        const x = Math.round(w * 0.5 + i * 105);
+        line(Math.round(w * 0.5), s.horizonY, x, h);
+      }
+      for (let y = s.horizonY + 28; y < h; y += 42) {
+        line(0, y, w, y);
+      }
+      noStroke();
     }
-    for (let y = s.horizonY + 28; y < h; y += 42) {
-      line(0, y, w, y);
-    }
-    noStroke();
 
     // Sparse stars/aether motes remain pixel blocks.
     fill(205, 225, 230, 90);
@@ -176,6 +215,10 @@
     const w = ctx.width;
     const enemy = ctx.enemy;
     const turn = ctx.turn || 1;
+    const domain = ctx.domain === 'sky' ? 'sky' : 'ground';
+    const weatherId = ctx.weatherId || 'clear';
+    const altitude = ctx.altitude || null;
+    const pressure = Number.isFinite(ctx.encounterPressure) ? ctx.encounterPressure : 0;
 
     noStroke();
     fill(10, 13, 23, 205);
@@ -188,7 +231,18 @@
     textFont('Press Start 2P');
     textSize(8);
     fill(232, 220, 198, 210);
-    text('TURN ' + turn + (enemy ? '  //  ' + enemy.name.toUpperCase() : ''), w / 2, 26);
+    const encounterLabel = domain === 'sky' ? 'SKY ENCOUNTER' : 'GROUND ENCOUNTER';
+    text(encounterLabel + '  //  TURN ' + turn + (enemy ? '  //  ' + enemy.name.toUpperCase() : ''), w / 2, 26);
+
+    if (domain === 'sky') {
+      textFont('VT323');
+      textSize(11);
+      fill(124, 200, 232, 195);
+      const telemetry = 'ALT ' + String(altitude || 'cruise').toUpperCase() +
+        '  //  ' + String(weatherId).toUpperCase().replace('-', ' ') +
+        '  //  PRESSURE ' + pressure;
+      text(telemetry, w / 2, 43);
+    }
     textAlign(LEFT, TOP);
   }
 
