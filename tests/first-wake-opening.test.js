@@ -48,4 +48,8 @@ assert(runtime.includes('OBJECTIVE // TALK TO THE THREE SIGNAL CONTACTS'), 'Worl
 assert(runtime.includes('journal: quest.journal.map'), 'Quest state must expose journal entries to the quest log');
 assert(runtime.includes("text('JOURNAL'"), 'Quest log must render journal entries');
 
+assert(runtime.includes('function drawWakeResolutionBeat()'), 'Choice resolution must include a dedicated Wake beat before epilogue');
+assert(runtime.includes("quest.state === QUEST_STATES.WAKE"), 'Wake state must be explicitly handled');
+assert(runtime.includes('ENTER / SPACE — HEAR WHAT FOLLOWS'), 'Wake beat must require deliberate player advance');
+
 console.log('Aetherwake First Wake opening contract: PASS');
