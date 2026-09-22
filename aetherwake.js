@@ -260,6 +260,18 @@ function restorePalette() {
 
 function applyHighContrastPalette(enabled) {
   restorePalette();
+
+  if (typeof PAL !== 'undefined') {
+    if (!window._basePalSnapshot) {
+      window._basePalSnapshot = Object.fromEntries(
+        Object.entries(PAL).map(([key, value]) => [key, value])
+      );
+    }
+    for (const [key, value] of Object.entries(window._basePalSnapshot)) {
+      PAL[key] = value;
+    }
+  }
+
   if (!enabled) return;
   C.navy = [4, 5, 10];
   C.parchment = [255, 255, 255];
@@ -271,6 +283,18 @@ function applyHighContrastPalette(enabled) {
   C.rose = [255, 150, 205];
   C.shad = [15, 16, 24];
   C.dim = [180, 190, 210];
+
+  if (typeof PAL !== 'undefined') {
+    PAL.NAVY = '#05060A';
+    PAL.PARCHMENT = '#FFFFFF';
+    PAL.SCIOTO = '#ACE2FF';
+    PAL.TEAL = '#20FFB4';
+    PAL.DIM = '#B4BED2';
+    PAL.SHADOW = '#000000';
+    PAL.RED = '#FF6F6F';
+    PAL.AMBER = '#FFD166';
+    PAL.GREEN = '#72FF9D';
+  }
 }
 
 function subtitleSizeMultiplier() {
@@ -1968,10 +1992,10 @@ function drawSaveLoadOverlay() {
   const listing = buildLoadableSaveIndex();
   textAlign(LEFT, TOP);
   textFont('Press Start 2P');
-  textSize(13);
+  uiTextSize(13);
   fill(C.teal[0], C.teal[1], C.teal[2]);
   text('SAVE / LOAD', 90, 60);
-  textSize(9);
+  uiTextSize(9);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
   text('MODE: ' + saveMenuMode.toUpperCase() + '   ←/→ switch', 90, 88);
 
@@ -1988,7 +2012,7 @@ function drawSaveLoadOverlay() {
          i === saveMenuIndex ? C.teal[2] : C.parchment[2]);
     text((i === saveMenuIndex ? '▶ ' : '  ') + 'SLOT ' + (i + 1), 100, y);
     textFont('VT323');
-    textSize(15);
+    uiTextSize(15);
     if (meta && meta.exists && meta.valid) {
       const mins = Math.floor((meta.playtimeMs || 0) / 60000);
       text((meta.chapter || 'Aetherwake') + '  //  ' + mins + ' min', 220, y - 2);
@@ -2001,7 +2025,7 @@ function drawSaveLoadOverlay() {
       text('EMPTY', 220, y + 6);
     }
     textFont('Press Start 2P');
-    textSize(9);
+    uiTextSize(9);
   }
   fill(C.scioto[0], C.scioto[1], C.scioto[2]);
   text(
@@ -2151,12 +2175,12 @@ function drawSettingsOverlay() {
 
   textAlign(LEFT, TOP);
   textFont('Press Start 2P');
-  textSize(13);
+  uiTextSize(13);
   fill(C.teal[0], C.teal[1], C.teal[2]);
   text('SETTINGS // ACCESSIBILITY & INPUT', x + 20, y + 16);
 
   textFont('VT323');
-  textSize(14);
+  uiTextSize(14);
   fill(C.scioto[0], C.scioto[1], C.scioto[2]);
   text('Changes save immediately. Integrated now: motion, screen shake, text speed, effects/dialogue volume.', x + 20, y + 42);
 
@@ -2176,7 +2200,7 @@ function drawSettingsOverlay() {
     }
 
     textFont('Press Start 2P');
-    textSize(8);
+    uiTextSize(8);
     fill(selected ? C.teal[0] : C.parchment[0],
          selected ? C.teal[1] : C.parchment[1],
          selected ? C.teal[2] : C.parchment[2]);
@@ -2184,14 +2208,14 @@ function drawSettingsOverlay() {
 
     textAlign(RIGHT, TOP);
     textFont('VT323');
-    textSize(15);
+    uiTextSize(15);
     fill(C.scioto[0], C.scioto[1], C.scioto[2]);
     text(userSettingValue(key), x + w - 28, rowY - 3);
     textAlign(LEFT, TOP);
   }
 
   textFont('Press Start 2P');
-  textSize(8);
+  uiTextSize(8);
   fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
   text(
     inputPrompt('ui-up', 'settings', 'both') + ' / ' +
@@ -2379,12 +2403,12 @@ function drawControlsOverlay() {
 
   textAlign(LEFT, TOP);
   textFont('Press Start 2P');
-  textSize(12);
+  uiTextSize(12);
   fill(C.teal[0], C.teal[1], C.teal[2]);
   text('CONTROLS // ACTION REMAPPING', x + 18, y + 14);
 
   textFont('VT323');
-  textSize(14);
+  uiTextSize(14);
   fill(C.scioto[0], C.scioto[1], C.scioto[2]);
   text(
     'Device: ' + controlsDevice.toUpperCase() +
@@ -2418,7 +2442,7 @@ function drawControlsOverlay() {
 
     textAlign(LEFT, TOP);
     textFont('Press Start 2P');
-    textSize(8);
+    uiTextSize(8);
     fill(
       selected ? C.teal[0] : C.parchment[0],
       selected ? C.teal[1] : C.parchment[1],
@@ -2429,7 +2453,7 @@ function drawControlsOverlay() {
       text((selected ? '▶ ' : '  ') + 'RESET ALL TO DEFAULTS', x + 24, rowY + 2);
       textAlign(RIGHT, TOP);
       textFont('VT323');
-      textSize(15);
+      uiTextSize(15);
       fill(C.rust[0], C.rust[1], C.rust[2]);
       text('CONFIRM', x + w - 24, rowY - 2);
       continue;
@@ -2443,7 +2467,7 @@ function drawControlsOverlay() {
 
     textAlign(RIGHT, TOP);
     textFont('VT323');
-    textSize(15);
+    uiTextSize(15);
     fill(C.scioto[0], C.scioto[1], C.scioto[2]);
     const bindingLabel = controlsDevice === 'keyboard'
       ? window.AetherInputBindings.keyboardLabel(inputBindingsState, id, preferredPromptContext(id))
@@ -2458,7 +2482,7 @@ function drawControlsOverlay() {
     drawPixelBorder(x + 70, y + 170, w - 140, 150, 3);
     textAlign(CENTER, TOP);
     textFont('Press Start 2P');
-    textSize(10);
+    uiTextSize(10);
     fill(C.teal[0], C.teal[1], C.teal[2]);
     text(
       'REBIND // ' +
@@ -2467,7 +2491,7 @@ function drawControlsOverlay() {
       y + 194
     );
     textFont('VT323');
-    textSize(20);
+    uiTextSize(20);
     fill(C.parchment[0], C.parchment[1], C.parchment[2]);
     text(
       inputBindingCapture.device === 'keyboard'
@@ -2477,7 +2501,7 @@ function drawControlsOverlay() {
       y + 232
     );
     if (window._lastInputBindingError) {
-      textSize(14);
+      uiTextSize(14);
       fill(C.rust[0], C.rust[1], C.rust[2]);
       text(window._lastInputBindingError, width / 2, y + 270);
     }
@@ -2485,7 +2509,7 @@ function drawControlsOverlay() {
 
   textAlign(LEFT, TOP);
   textFont('Press Start 2P');
-  textSize(8);
+  uiTextSize(8);
   fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
   text(
     '↑/↓ action   ← keyboard   → gamepad   CONFIRM rebind   CANCEL return',
@@ -2573,18 +2597,18 @@ function drawFirstWakeOpening() {
 
   textAlign(CENTER, TOP);
   textFont('Press Start 2P');
-  textSize(scene.chapterCard ? 22 : 12);
+  uiTextSize(scene.chapterCard ? 22 : 12);
   fill(C.teal[0], C.teal[1], C.teal[2]);
   text(scene.title, width / 2, 82);
   if (scene.subtitle) {
-    textSize(10);
+    uiTextSize(10);
     fill(C.scioto[0], C.scioto[1], C.scioto[2]);
     text(scene.subtitle, width / 2, 120);
   }
 
   textAlign(LEFT, TOP);
   textFont('VT323');
-  textSize(20);
+  uiTextSize(20);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
   let y = 210;
   for (const line of scene.lines) {
@@ -2593,7 +2617,7 @@ function drawFirstWakeOpening() {
   }
 
   textAlign(CENTER, BOTTOM);
-  textSize(16);
+  uiTextSize(16);
   fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
   text(
     'ACTIVE PARTY // ' + opening.expectedPartyIds(state).map(id => id.toUpperCase()).join(' + '),
@@ -2702,7 +2726,7 @@ function drawAirNavigationScene() {
   }
 
   textAlign(CENTER, CENTER);
-  textSize(12);
+  uiTextSize(12);
   for (const mark of nav.LANDMARKS) {
     const discovered = airNavigationState.discovered.includes(mark.id);
     noStroke();
@@ -2726,9 +2750,9 @@ function drawAirNavigationScene() {
 
   textAlign(LEFT, TOP);
   fill(232, 220, 198);
-  textSize(14);
+  uiTextSize(14);
   text('OPEN-SKY FLIGHT', 24, 22);
-  textSize(12);
+  uiTextSize(12);
   text(
     'ALT ' + airNavigationState.altitude.toUpperCase() +
     '  WEATHER ' + travel.weather.label +
@@ -3126,12 +3150,12 @@ function drawBootSequence() {
   // ── Loading phase (0-1.2s) ──
   if (elapsed < BOOT_LOAD_MS) {
     noStroke();
-    textSize(12);
+    uiTextSize(12);
     fill(C.teal[0], C.teal[1], C.teal[2], 150);
     textAlign(CENTER, CENTER);
     const loadText = 'LOADING' + '.'.repeat(Math.floor((elapsed / 300) % 4));
     text(loadText, width/2, height/2 - 20);
-    textSize(9);
+    uiTextSize(9);
     fill(C.parchment[0], C.parchment[1], C.parchment[2], 100);
     text('initializing the weave\u2026', width/2, height/2 + 8);
     return;
@@ -3180,14 +3204,14 @@ function drawBootSequence() {
       
       noStroke();
       fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * lineAlpha);
-      textSize(13);
+      uiTextSize(13);
       textAlign(CENTER, CENTER);
       text(preambleLines[i], width/2, lineY);
     }
     
     // Bottom hint
     noStroke();
-    textSize(9);
+    uiTextSize(9);
     fill(C.teal[0], C.teal[1], C.teal[2], 100 * fadeIn);
     textAlign(CENTER, CENTER);
     text('[ ENTER/CONFIRM skip  |  S/MENU settings ]', width/2, height - 30);
@@ -3239,7 +3263,7 @@ function drawBootSequence() {
   // Title text (same content as drawTitleScreen, with alpha fade)
   noStroke();
   textFont('VT323');
-  textSize(36 * v);
+  uiTextSize(36 * v);
   textAlign(CENTER, CENTER);
   textLeading(40);
   
@@ -3256,19 +3280,19 @@ function drawBootSequence() {
   fill(C.teal[0], C.teal[1], C.teal[2], 100 * v);
   text('AETHERWAKE', cx, cy);
   
-  textSize(16 * v);
+  uiTextSize(16 * v);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 200 * v);
   text('THE AUREATE WAKE — THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
   
-  textSize(13 * v);
+  uiTextSize(13 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
   text('THE AUREATE WAKE — CHRONICLE OF THE LAST SOLARPUNK AIRSHIP', cx, cy + 48);
   
-  textSize(14 * v);
+  uiTextSize(14 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
   text('NEW GAME \u2014 N or ENTER', cx, cy + 78);
   
-  textSize(11 * v);
+  uiTextSize(11 * v);
   fill(C.rust[0], C.rust[1], C.rust[2], 140 * v);
   const controlY = latestSaveMeta ? cy + 140 : cy + 122;
   text(
@@ -3292,7 +3316,7 @@ function drawBootSequence() {
   );
   
   textFont('Press Start 2P');
-  textSize(8 * v);
+  uiTextSize(8 * v);
   fill(C.teal[0], C.teal[1], C.teal[2], 100 * v);
   text('THE AUREATE WAKE // TURN-BASED JRPG', cx, height - 20);
   
@@ -3354,7 +3378,7 @@ function drawTitleScreen() {
   for (let y = 0; y < height; y += 32) line(0, y, width, y);
 
   textFont('VT323');
-  textSize(36);
+  uiTextSize(36);
   textAlign(CENTER, CENTER);
   textLeading(40);
 
@@ -3369,27 +3393,27 @@ function drawTitleScreen() {
   fill(C.teal[0], C.teal[1], C.teal[2], 100);
   text('AETHERWAKE', cx, cy);
 
-  textSize(16);
+  uiTextSize(16);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 200);
   text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
 
-  textSize(13);
+  uiTextSize(13);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
   text('THE AUREATE WAKE — CHRONICLE OF THE LAST SOLARPUNK AIRSHIP', cx, cy + 48);
 
-  textSize(14);
+  uiTextSize(14);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
   text('NEW GAME — ' + inputPrompt('confirm', 'menu', 'both'), cx, cy + 78);
   if (latestSaveMeta) {
     fill(C.teal[0], C.teal[1], C.teal[2], 190);
-    textSize(13);
+    uiTextSize(13);
     text('CONTINUE — C', cx, cy + 96);
   }
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 190);
-  textSize(13);
+  uiTextSize(13);
   text('SETTINGS — ' + inputPrompt('open-settings', 'menu', 'both'), cx, cy + (latestSaveMeta ? 114 : 96));
 
-  textSize(11);
+  uiTextSize(11);
   fill(C.rust[0], C.rust[1], C.rust[2], 140);
   text(
     'TALK ' + inputPrompt('interact', 'world', 'both') +
@@ -3414,7 +3438,7 @@ function drawTitleScreen() {
   );
 
   textFont('Press Start 2P');
-  textSize(8);
+  uiTextSize(8);
   fill(C.teal[0], C.teal[1], C.teal[2], 100);
   text('THE AUREATE WAKE // TURN-BASED JRPG', cx, height - 20);
 }
@@ -3434,10 +3458,15 @@ function drawDialogueOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2], 180 * (openness / 255));
   rect(0, 0, width, height);
 
-  const bx = width/2 - 240, by = height - 100, bw = 480, bh = 80;
-  fill(C.navy[0], C.navy[1], C.navy[2]);
+  const bx = width/2 - 240, by = height - 112, bw = 480, bh = 92;
+  const captionAlpha = subtitleBackgroundAlpha();
+  fill(C.navy[0], C.navy[1], C.navy[2], window._highContrastUI ? 255 : 235);
   noStroke();
   rect(bx, by, bw, bh);
+  if (captionAlpha > 0) {
+    fill(0, 0, 0, captionAlpha);
+    rect(bx + 6, by + 24, bw - 12, bh - 34);
+  }
   // Tint overlay
   if (tone) {
     fill(tone[0], tone[1], tone[2], 30);
@@ -3447,19 +3476,21 @@ function drawDialogueOverlay() {
   drawPixelBorder(bx, by, bw, bh, 3);
 
   textFont('Press Start 2P');
-  textSize(9);
+  uiTextSize(9);
   fill(C.teal[0], C.teal[1], C.teal[2], 180);
   const npcName = window.UI.dialogueNPC ? window.UI.dialogueNPC.name : '???';
-  text(npcName, bx + 10, by + 10);
+  if (!userSettings || userSettings.speakerLabels !== false) {
+    text(npcName, bx + 10, by + 10);
+  }
 
   textFont('VT323');
-  textSize(13);
-  textLeading(16);
+  uiTextSize(13 * subtitleSizeMultiplier());
+  textLeading(16 * accessibilityTextScale() * subtitleSizeMultiplier());
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
   wrapText(window.UI.dialogueText || '...', bx + 10, by + 28, bw - 20);
 
   textFont('Press Start 2P');
-  textSize(8);
+  uiTextSize(8);
   fill(C.teal[0], C.teal[1], C.teal[2], 120);
   textAlign(CENTER, TOP);
   text(
@@ -3642,27 +3673,27 @@ function drawQuestLogOverlay() {
   drawPixelBorder(qx, qy, qw, qh, 2);
 
   textFont('Press Start 2P');
-  textSize(10);
+  uiTextSize(10);
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
   text('QUEST LOG — THE AUREATE WAKE', qx + 16, qy + 12);
 
   if (world && typeof world.getQuestState === 'function') {
     const qs = world.getQuestState();
     textFont('VT323');
-    textSize(13);
+    uiTextSize(13);
     fill(C.parchment[0], C.parchment[1], C.parchment[2]);
 
     let y = qy + 36;
     fill(C.teal[0], C.teal[1], C.teal[2], 180);
-    textSize(11);
+    uiTextSize(11);
     text('State: ' + qs.state, qx + 16, y);
     y += 18;
-    textSize(13);
+    uiTextSize(13);
     text('Hooks: ' + qs.hooksCompleted + '/3  |  Hazards: ' + qs.hazardsCompleted + '/4', qx + 16, y);
     y += 18;
     text('NPCs: ' + (qs.npcsMet ? qs.npcsMet.length : 0) + '/4  |  Choice: ' + (qs.choiceMade || 'none'), qx + 16, y);
     y += 24;
-    textSize(11);
+    uiTextSize(11);
     if (qs.state === 'signal')      text('Signal — receive the call from the falling ship.', qx + 16, y);
     else if (qs.state === 'crossing') text('Crossing — four hazards on the way to the ship.', qx + 16, y);
     else if (qs.state === 'contact')  text('Contact — four souls await on the ship.', qx + 16, y);
@@ -3672,11 +3703,11 @@ function drawQuestLogOverlay() {
     if (Array.isArray(qs.journal) && qs.journal.length) {
       y += 30;
       fill(C.scioto[0], C.scioto[1], C.scioto[2], 180);
-      textSize(10);
+      uiTextSize(10);
       text('JOURNAL', qx + 16, y);
       y += 18;
       fill(C.parchment[0], C.parchment[1], C.parchment[2], 190);
-      textSize(11);
+      uiTextSize(11);
       const recent = qs.journal.slice(-5);
       for (const entry of recent) {
         const label = (entry.state || 'note').toUpperCase();
@@ -3688,7 +3719,7 @@ function drawQuestLogOverlay() {
   }
 
   textFont('Press Start 2P');
-  textSize(8);
+  uiTextSize(8);
   fill(C.rust[0], C.rust[1], C.rust[2], 120);
   textAlign(CENTER, TOP);
   text('T or ESC to close', width/2, qy + qh - 14);
@@ -3721,13 +3752,13 @@ function drawCharSheetOverlay() {
     drawCharSheet(px, py, pw, ph);
   } else {
     textFont('Press Start 2P');
-    textSize(10);
+    uiTextSize(10);
     fill(C.teal[0], C.teal[1], C.teal[2], 180);
     text('ENDER — Rift Scholar', px + 20, py + 24);
   }
 
   textFont('Press Start 2P');
-  textSize(8);
+  uiTextSize(8);
   fill(C.rust[0], C.rust[1], C.rust[2], 120);
   textAlign(CENTER, TOP);
   text('R or ESC to close', width/2, py + ph - 14);
@@ -9404,7 +9435,7 @@ function drawCombatPanel(combatState) {
 
   // Header
   textFont(FONT_UI);
-  textSize(9);
+  uiTextSize(9);
   drawGlowText('COMBAT', px + 12, py + 8, PAL.TEAL, 9);
   text('TURN ' + combatState.turn, px + pw - 60, py + 10);
 
@@ -9413,10 +9444,10 @@ function drawCombatPanel(combatState) {
     const ey = py + 36;
     drawPixelBorder(px + 8, ey, pw - 16, 48, 2, PAL.SHADOW, PAL.RUST);
     textFont(FONT_UI);
-    textSize(8);
+    uiTextSize(8);
     drawGlowText(combatState.enemy.name.toUpperCase(), px + 14, ey + 4, PAL.RUST, 8);
     textFont(FONT_BODY);
-    textSize(11);
+    uiTextSize(11);
     fill(PAL.PARCHMENT);
     noStroke();
     const eNameW = textWidth(combatState.enemy.name);
@@ -9432,7 +9463,7 @@ function drawCombatPanel(combatState) {
     rect(px + 14, ey + 24, barW * hpRatio, 5);
     // Weakness hint
     textFont(FONT_UI);
-    textSize(7);
+    uiTextSize(7);
     fill(PAL.DIM);
     text('WEAKNESS: ' + (combatState.enemy.weakness || 'unknown'), px + 14, ey + 32);
   }
@@ -9441,12 +9472,12 @@ function drawCombatPanel(combatState) {
   const sY = py + 96;
   drawPixelBorder(px + 8, sY, pw - 16, 88, 2, PAL.SHADOW, PAL.TEAL);
   textFont(FONT_UI);
-  textSize(8);
+  uiTextSize(8);
   drawGlowText('ENDER', px + 14, sY + 6, PAL.TEAL, 8);
 
   // Player resources
   textFont(FONT_BODY);
-  textSize(12);
+  uiTextSize(12);
   let rX = px + 14;
   const rY = sY + 24;
   // Vit
@@ -9494,7 +9525,7 @@ function drawCombatPanel(combatState) {
   drawPixelBorder(aX, aY, aW, aH, 2, PAL.SHADOW, PAL.TEAL);
 
   textFont(FONT_UI);
-  textSize(8);
+  uiTextSize(8);
   drawGlowText(
     'ACTIONS [1-8] · USE ' + inputPrompt('confirm', 'combat', 'gamepad'),
     aX + 12,
@@ -9531,12 +9562,12 @@ function drawCombatPanel(combatState) {
     ellipse(aX + 12, ay + 7, 9, 9);
     fill(PAL.NAVY);
     textFont(FONT_UI);
-    textSize(7);
+    uiTextSize(7);
     textAlign(CENTER, CENTER);
     text(String(idx + 1), aX + 12, ay + 7);
     // Action label
     textFont(FONT_BODY);
-    textSize(10);
+    uiTextSize(10);
     textAlign(LEFT, CENTER);
     const label = action.label || action.id;
     fill(usable ? PAL.PARCHMENT : PAL.DIM);
@@ -9552,7 +9583,7 @@ function drawCombatPanel(combatState) {
     const totalCost = window.AetherAbilityDefs.getActionResourceCost(action);
     if (unlocked && totalCost > 0) {
       textFont(FONT_UI);
-      textSize(7);
+      uiTextSize(7);
       fill(usable ? PAL.AMBER : PAL.DIM);
       text('COST: ' + totalCost, aX + aW - 62, ay + 2);
     }
@@ -9565,11 +9596,11 @@ function drawCombatPanel(combatState) {
     const abY = aY + aH + 10;
     drawPixelBorder(px + 8, abY, pw - 16, 28, 1, PAL.SHADOW, PAL.RUST);
     textFont(FONT_UI);
-    textSize(7);
+    uiTextSize(7);
     fill(PAL.RUST);
     text('ENEMY ABILITY:', px + 14, abY + 5);
     textFont(FONT_BODY);
-    textSize(9);
+    uiTextSize(9);
     fill(PAL.PARCHMENT);
     const abText = combatState.enemy.abilityDesc;
     const maxW = pw - 40;
@@ -9609,7 +9640,7 @@ function drawCombatLog(lx, ly, lw, lh) {
 
   // Header
   textFont(FONT_UI);
-  textSize(9);
+  uiTextSize(9);
   drawGlowText('COMBAT LOG', lx + 12, ly + 10, PAL.TEAL, 9);
 
   // Divider line
@@ -9619,7 +9650,7 @@ function drawCombatLog(lx, ly, lw, lh) {
 
   // Entries
   textFont(FONT_BODY);
-  textSize(12);
+  uiTextSize(12);
   const log = window.UI.combatLog;
   const entryH = 16;
   const maxEntries = Math.floor((lh - 40) / entryH);
@@ -9649,7 +9680,7 @@ function drawCombatLog(lx, ly, lw, lh) {
 
   // Footer hint
   textFont(FONT_UI);
-  textSize(8);
+  uiTextSize(8);
   fill(PAL.DIM);
   noStroke();
   text('Tab: toggle log', lx + lw - 90, ly + lh - 14);
