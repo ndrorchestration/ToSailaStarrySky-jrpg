@@ -25,7 +25,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run contract tests
         run: npm run test:desktop-package
@@ -50,8 +50,8 @@ jobs:
           AppVersion=0.2.0
           DefaultDirName={autopf}\\Aetherwake
           DisableProgramGroupPage=yes
-          Uninstallable=no
-          ArchitecturesInstallIn64BitMode=x64
+          Uninstallable=yes
+          ArchitecturesInstallIn64BitMode=x64compatible
           OutputDir=.
           OutputBaseFilename=Aetherwake-Setup
           Compression=lzma2
@@ -72,6 +72,22 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Inno Setup compilation failed" }
           if (-not (Test-Path Aetherwake-Setup.exe)) { throw "Installer was not created" }
 
+      - name: Install and launch packaged app
+        shell: pwsh
+        run: |
+          $installDir = Join-Path $env:RUNNER_TEMP "AetherwakeInstall"
+          if (Test-Path -LiteralPath $installDir) {
+            Remove-Item -LiteralPath $installDir -Recurse -Force
+          }
+          & .\Aetherwake-Setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART "/DIR=$installDir"
+          if ($LASTEXITCODE -ne 0) { throw "Silent installer exited with code $LASTEXITCODE" }
+          $exe = Join-Path $installDir "Aetherwake.exe"
+          if (-not (Test-Path -LiteralPath $exe)) { throw "Installed Aetherwake.exe was not found" }
+          $process = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 8
+          if ($process.HasExited) { throw "Installed Aetherwake.exe exited during launch smoke" }
+          Stop-Process -Id $process.Id -Force
+
       - name: Create distributable ZIP fallback
         shell: pwsh
         run: |
@@ -79,10 +95,11 @@ jobs:
           Compress-Archive -Path "$($package.FullName)\\*" -DestinationPath "Aetherwake-Windows.zip"
 
       - name: Publish Windows package release
+        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: aetherwake-desktop-${{ github.sha }}
-          name: Aetherwake Windows Desktop \${{ github.sha }}
+          name: Aetherwake Windows Desktop ${{ github.sha }}
           prerelease: true
           generate_release_notes: false
           files: |
