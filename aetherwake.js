@@ -724,6 +724,23 @@ function dispatchGamepadActions(result) {
       try { world.interact(); } finally { window.interactionKey = null; }
       handled = true;
     }
+    if (pressed.includes('covenant-field') &&
+        world && typeof world.plantField === 'function') {
+      world.plantField();
+      handled = true;
+    }
+    if (pressed.includes('toggle-layer') &&
+        world && typeof world.toggleLayer === 'function') {
+      world.toggleLayer();
+      handled = true;
+    }
+    if (pressed.includes('shop')) {
+      const shopOpened = world && typeof world.openShop === 'function'
+        ? world.openShop()
+        : true;
+      if (shopOpened !== false) openState(STATE.SHOP);
+      handled = true;
+    }
     if (pressed.includes('quest-log')) {
       openState(STATE.QUESTLOG);
       handled = true;
@@ -1447,10 +1464,10 @@ function handleWorldInput() {
   }
 
   // Edge-triggered actions
-  if (keysPressed[81]) {   // Q
+  if (semanticActionPressed('covenant-field')) {
     if (world && typeof world.plantField === 'function') world.plantField();
   }
-  if (semanticActionPressed('interact')) {   // E
+  if (semanticActionPressed('interact')) {
     if (gameState === STATE.DIALOGUE) {
       // Advance dialogue
       if (world && typeof world.nextDialogueLine === 'function') {
@@ -1466,13 +1483,13 @@ function handleWorldInput() {
       if (world.player && world.player.shipBoarded) enterAirNavigation();
     }
   }
-  if (keysPressed[9]) {    // Tab
+  if (semanticActionPressed('toggle-layer')) {
     if (world && typeof world.toggleLayer === 'function') world.toggleLayer();
   }
-  if (semanticActionPressed('ledger')) {   // L
+  if (semanticActionPressed('ledger')) {
     openState(STATE.LEDGER);
   }
-  if (keysPressed[77]) {   // M
+  if (semanticActionPressed('shop')) {
     const shopOpened = world && typeof world.openShop === 'function'
       ? world.openShop()
       : true;
@@ -3282,17 +3299,24 @@ function drawTitleScreen() {
   fill(C.rust[0], C.rust[1], C.rust[2], 140);
   text(
     'TALK ' + inputPrompt('interact', 'world', 'both') +
-    '  | SHIP ' + inputPrompt('board-or-flight', 'world', 'both') +
-    '  | QUEST ' + inputPrompt('quest-log', 'world', 'both'),
+    ' | COVENANT ' + inputPrompt('covenant-field', 'world', 'both') +
+    ' | SHIP ' + inputPrompt('board-or-flight', 'world', 'both'),
     cx,
     cy + 118
+  );
+  text(
+    'LAYER ' + inputPrompt('toggle-layer', 'world', 'both') +
+    ' | SHOP ' + inputPrompt('shop', 'world', 'both') +
+    ' | QUEST ' + inputPrompt('quest-log', 'world', 'both'),
+    cx,
+    cy + 136
   );
   text(
     'CHAR ' + inputPrompt('character-sheet', 'world', 'both') +
     ' | LEDGER ' + inputPrompt('ledger', 'world', 'both') +
     ' | SAVE/LOAD ' + inputPrompt('open-save-load', 'world', 'both'),
     cx,
-    cy + 136
+    cy + 154
   );
 
   textFont('Press Start 2P');
