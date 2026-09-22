@@ -12,8 +12,8 @@ vm.runInNewContext(source, sandbox, { filename: 'first-wake-visual-stage.js' });
 
 const api = sandbox.window.AetherFirstWakeVisual;
 assert(api, 'First Wake visual stage missing');
-assert.strictEqual(api.VERSION, '0.1.0');
-for (const fn of ['draw','drawDock','drawInterior','drawChapter']) {
+assert.strictEqual(api.VERSION, '0.2.0');
+for (const fn of ['draw','drawDock','drawInterior','drawWakeExploration','drawChapter']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
 
@@ -25,8 +25,12 @@ assert(source.includes("sprites.draw('ender'"),
   'opening must use canonical Ender sprite');
 assert(source.includes("sprites.draw('ionia'") || source.includes("['ionia'"),
   'opening must use canonical Ionia sprite');
-assert(source.includes("['lyra'"),
-  'opening must use canonical Lyra sprite');
+assert(source.includes("sprites.draw('lyra'"),
+  'explorable Wake must use canonical Lyra sprite');
+assert(source.includes('wakeExplorationView'),
+  'Sequences 05-08 must render from live exploration state');
+assert(source.includes('CLUES '),
+  'investigation HUD must expose collected-clue state');
 assert(!source.includes('ellipse('),
   'opening visual stage must avoid smooth ellipse-based procedural art');
 assert(!source.includes('triangle('),
