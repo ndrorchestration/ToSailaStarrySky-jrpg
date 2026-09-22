@@ -75,6 +75,7 @@
     "test:save-system": "node tests/save-system-contract.test.js",
     "test:save-runtime": "node tests/save-runtime-contract.test.js",
     "stage:desktop": "node scripts/stage-memories-desktop.js",
-    "test:cinematics": "node tests/cinematic-manifest-contract.test.js"
+    "test:cinematics": "node tests/cinematic-manifest-contract.test.js",
+    "test:save-payload": "node tests/save-payload-validator.test.js"
   }
 }
