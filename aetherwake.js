@@ -1471,6 +1471,19 @@ function finishCombat() {
   window.gameState = gameState;
   prevState = null;
   if (VIS.fadeTransitions) startFade(150);
+
+  // If this combat resolved a crossing hazard, mark the hazard done and
+  // advance the quest so the player progresses toward the core.
+  if (pendingHazardIndex >= 0) {
+    const hIdx = pendingHazardIndex;
+    pendingHazardIndex = -1;
+    if (hIdx < quest.crossingHazards.length && !quest.crossingHazards[hIdx].done) {
+      quest.crossingHazards[hIdx].done = true;
+      quest.hazardsCompleted++;
+      addLedgerEntry('hazard', 'Hazard cleared: ' + quest.crossingHazards[hIdx].label + '.');
+      advanceQuest();
+    }
+  }
 }
 
 function openState(s) {
@@ -2464,6 +2477,22 @@ let aetherSenseState = {
   lastScan: null,
 };
 
+// ---------------------------------------------------------------------------
+// Crossing-hazard → combat enemy mapping
+// ---------------------------------------------------------------------------
+// Each crossing hazard triggers a combat encounter against its mapped enemy
+// instead of auto-completing. On combat resolution (win), the hazard is
+// marked done and the quest advances. If the player loses combat, the hazard
+// remains active and can trigger again on re-entry.
+let pendingHazardIndex = -1;
+
+const HAZARD_ENEMY_MAP = [
+  'skyPredator',      // 0 — sky_predator: hunts heat signatures
+  'windShear',        // 1 — wind_shear: strips grace
+  'aetherLeak',       // 2 — aether_leak: pools aether
+  'corporateSalvager', // 3 — corporate_intercept: Syndicate acquisition attempt
+];
+
 // p5 hooks — called by core.js setup()/draw()/update()
 // ---------------------------------------------------------------------------
 
@@ -3452,9 +3481,33 @@ function checkHazardProximity(tx, ty) {
 }
 
 function completeHazard(index) {
-  quest.crossingHazards[index].done = true;
-  quest.hazardsCompleted++;
-  advanceQuest();
+  // Guard: don't re-trigger a hazard that is already resolved.
+  if (index < 0 || index >= HAZARD_ENEMY_MAP.length) return;
+  if (quest.crossingHazards[index].done) return;
+
+  // If a hazard is already in combat resolution, the new trigger is a
+  // re-entry after losing the previous encounter — let the new one override.
+  if (pendingHazardIndex >= 0 && pendingHazardIndex !== index) {
+    // Previous hazard combat was lost; reset its pending state so it can
+    // trigger again later. Don't mark it done — the player didn't clear it.
+    pendingHazardIndex = -1;
+  }
+
+  // Launch the combat encounter for this hazard's mapped enemy.
+  // The hazard is NOT marked done yet — that happens on combat resolution
+  // in finishCombat() so the player must actually clear the encounter.
+  pendingHazardIndex = index;
+  startCombat(HAZARD_ENEMY_MAP[index]);
+
+  // Defensive fallback: if startCombat didn't enter COMBAT state (e.g. the
+  // enemy catalog is missing the mapped type), resolve the hazard as cleared
+  // so the quest is not blocked on a system error.
+  if (gameState !== STATE.COMBAT) {
+    quest.crossingHazards[index].done = true;
+    quest.hazardsCompleted++;
+    pendingHazardIndex = -1;
+    advanceQuest();
+  }
 }
 
 function toggleLayer() {
