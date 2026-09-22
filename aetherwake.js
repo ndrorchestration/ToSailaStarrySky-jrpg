@@ -837,11 +837,34 @@ function doMove(code) {
 }
 
 
+function buildLoadableSaveIndex() {
+  if (!window.AetherSaveSystem) return [];
+  const listing = window.AetherSaveSystem.list();
+  return listing.map(meta => {
+    if (!meta.exists || meta.valid === false) return meta;
+    try {
+      const loaded = window.AetherSaveSystem.load(meta.slot);
+      if (!loaded || !loaded.envelope) {
+        return { ...meta, valid: false, semanticValid: false, error: 'SAVE_ENVELOPE_MISSING' };
+      }
+      prepareSaveEnvelopeForApply(loaded.envelope);
+      return { ...meta, semanticValid: true };
+    } catch (error) {
+      return { ...meta, valid: false, semanticValid: false, error: error.message };
+    }
+  });
+}
+
 function refreshSaveIndex() {
   try {
-    latestSaveMeta = window.AetherSaveSystem ? window.AetherSaveSystem.latest() : null;
+    const classified = buildLoadableSaveIndex();
+    window._saveSlotIndex = classified;
+    latestSaveMeta = classified
+      .filter(entry => entry.exists && entry.valid !== false && entry.semanticValid === true && entry.savedAt)
+      .sort((a, b) => String(b.savedAt).localeCompare(String(a.savedAt)))[0] || null;
   } catch (error) {
     latestSaveMeta = null;
+    window._saveSlotIndex = [];
     console.warn('SAVE_INDEX_REFRESH_FAILED', error);
   }
   window._latestSaveMeta = latestSaveMeta;
@@ -1132,7 +1155,7 @@ function drawSaveLoadOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2], 235);
   rect(0, 0, width, height);
   const slots = window.AetherSaveSystem.MANUAL_SLOTS;
-  const listing = window.AetherSaveSystem.list();
+  const listing = buildLoadableSaveIndex();
   textAlign(LEFT, TOP);
   textFont('Press Start 2P');
   textSize(13);
@@ -1162,7 +1185,8 @@ function drawSaveLoadOverlay() {
       text((meta.partySummary || []).join(' + '), 220, y + 18);
     } else if (meta && meta.exists && meta.valid === false) {
       fill(C.rust[0], C.rust[1], C.rust[2]);
-      text('CORRUPT / UNREADABLE — original retained', 220, y + 6);
+      const reason = meta.semanticValid === false ? 'INVALID SAVE STATE' : 'CORRUPT / UNREADABLE';
+      text(reason + ' — original retained', 220, y + 6);
     } else {
       text('EMPTY', 220, y + 6);
     }
