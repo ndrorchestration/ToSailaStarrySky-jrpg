@@ -134,8 +134,18 @@ assert.deepStrictEqual(
 );
 assert.strictEqual(
   abilities.getUseEligibility(underfundedActor, 'windWard').reason,
-  'locked',
-  'unlock failure must take precedence over resource failure'
+  'ssot_blocked',
+  'SSOT authority block must take precedence over unlock/resource state'
+);
+assert.strictEqual(
+  abilities.getUseEligibility(level1Actor, 'sharedDream').reason,
+  'ssot_blocked',
+  'Shared Dream must fail closed under current Dreaming/Talen SSOT'
+);
+assert.strictEqual(
+  abilities.getUseEligibility(fullyUnlockedActor, 'windWard').reason,
+  'ssot_blocked',
+  'Wind Ward must remain unusable even when legacy progression unlocks it'
 );
 assert.strictEqual(
   abilities.getUseEligibility(underfundedActor, 'staffStrike').canUse,
