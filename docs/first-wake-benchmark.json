@@ -1,0 +1,232 @@
+{
+  "version": 1,
+  "milestone": "M0-reliable-first-wake-benchmark",
+  "purpose": "Keep the representative Aetherwake slice continuously playable and make missing proof explicit before content scale-out.",
+  "authority": {
+    "runtime": "GitHub current branch/runtime",
+    "canon": "Aetherwake Notion SSOT",
+    "productionOrder": "Aetherwake Production Execution & Completeness Matrix — 2026-09-22"
+  },
+  "statusVocabulary": [
+    "automated",
+    "partial",
+    "manual",
+    "gap"
+  ],
+  "gates": [
+    {
+      "id": "desktop-installed-launch",
+      "category": "release",
+      "blocking": true,
+      "status": "automated",
+      "outcome": "Installed Aetherwake.exe reaches runtime-ready, first-frame, 960x640 canvas, and setup-done.",
+      "owner": ".github/workflows/desktop-package.yml",
+      "evidence": [
+        "npm run test:desktop-package",
+        "DESKTOP_RENDER_READINESS=PASS"
+      ],
+      "nextAction": "Execute exact-head Windows lane when a runner is allocated."
+    },
+    {
+      "id": "desktop-save-restart",
+      "category": "persistence",
+      "blocking": true,
+      "status": "automated",
+      "outcome": "A production-path save written by installed NW.js survives process termination and restores after relaunch from the same app-data profile.",
+      "owner": ".github/workflows/desktop-package.yml",
+      "evidence": [
+        "DESKTOP_SAVE_RESTART=PASS",
+        "scripts/build-windows-release.ps1"
+      ],
+      "nextAction": "Execute exact-head Windows lane when a runner is allocated."
+    },
+    {
+      "id": "title-new-game",
+      "category": "onboarding",
+      "blocking": true,
+      "status": "automated",
+      "outcome": "Normal launch exposes the production title path and New Game enters authored First Wake rather than legacy companion creation.",
+      "owner": "tests/smoke-playwright.js",
+      "evidence": [
+        "browser smoke BOOT → MENU → OPENING",
+        "tests/first-wake-opening.test.js"
+      ],
+      "nextAction": "Keep in every representative-slice smoke."
+    },
+    {
+      "id": "authored-opening-00-09",
+      "category": "narrative",
+      "blocking": true,
+      "status": "automated",
+      "outcome": "Sequences 00–09 remain ordered and complete, with Lyra joining at the authored Wrong Song boundary and Ionia still unavailable.",
+      "owner": "modules/first-wake-opening.js",
+      "evidence": [
+        "tests/first-wake-opening.test.js",
+        "tests/smoke-playwright.js"
+      ],
+      "nextAction": "Add visual/audio acceptance without changing story authority."
+    },
+    {
+      "id": "world-handoff",
+      "category": "onboarding",
+      "blocking": true,
+      "status": "automated",
+      "outcome": "First Wake chapter-card handoff reaches stable WORLD with canonical Ender identity and Ender+Lyra party references.",
+      "owner": "tests/smoke-playwright.js",
+      "evidence": [
+        "browser smoke world handoff assertions"
+      ],
+      "nextAction": "Preserve as precondition for later benchmark gates."
+    },
+    {
+      "id": "first-objective-readability",
+      "category": "quest",
+      "blocking": true,
+      "status": "partial",
+      "outcome": "The player receives a clear first objective and journal direction immediately after the authored handoff.",
+      "owner": "aetherwake.js / quest UI",
+      "evidence": [
+        "tests/first-wake-opening.test.js static objective assertions"
+      ],
+      "nextAction": "Add browser-level quest-log/open-objective assertion."
+    },
+    {
+      "id": "three-signal-contacts",
+      "category": "quest",
+      "blocking": true,
+      "status": "partial",
+      "outcome": "All three authored signal contacts can be completed through normal interaction and advance the quest exactly once each.",
+      "owner": "aetherwake.js quest state",
+      "evidence": [
+        "signal-hook static/runtime contracts",
+        "browser smoke covers one real first-contact dialogue path"
+      ],
+      "nextAction": "Add live browser path that completes all three hooks and asserts transition to Crossing."
+    },
+    {
+      "id": "four-crossing-hazards",
+      "category": "combat",
+      "blocking": true,
+      "status": "partial",
+      "outcome": "Each of the four Crossing hazards launches its authored combat encounter; only victory marks that hazard complete; 4/4 advances to Contact.",
+      "owner": "aetherwake.js crossing state",
+      "evidence": [
+        "tests/first-wake-opening.test.js maps four hazards and requires 4/4",
+        "save validator accepts 4/4 state"
+      ],
+      "nextAction": "Add live browser coverage for all four hazard launch/victory/progression transitions."
+    },
+    {
+      "id": "four-contact-voices",
+      "category": "quest",
+      "blocking": true,
+      "status": "partial",
+      "outcome": "The four authored contact NPCs are individually recorded and 4/4 advances to Choice without duplicate-count drift.",
+      "owner": "aetherwake.js contact state",
+      "evidence": [
+        "semantic save validator constrains contact IDs",
+        "runtime advanceContact contract"
+      ],
+      "nextAction": "Add browser progression coverage for all four contacts."
+    },
+    {
+      "id": "quest-log",
+      "category": "ui",
+      "blocking": true,
+      "status": "partial",
+      "outcome": "Quest log/journal opens from normal input and reflects current First Wake objective/progress without stale three-hazard text.",
+      "owner": "aetherwake.js quest-log UI",
+      "evidence": [
+        "tests/first-wake-opening.test.js static journal/render assertions"
+      ],
+      "nextAction": "Add browser input/render assertion for quest log."
+    },
+    {
+      "id": "combat-roundtrip",
+      "category": "combat",
+      "blocking": true,
+      "status": "automated",
+      "outcome": "Combat starts through production input, executes production JRPG actions, and returns persistent state to WORLD safely.",
+      "owner": "tests/smoke-playwright.js",
+      "evidence": [
+        "browser combat action assertions",
+        "finishCombat return-state assertion"
+      ],
+      "nextAction": "Keep generic combat smoke plus add Crossing-specific progression coverage."
+    },
+    {
+      "id": "manual-save-load",
+      "category": "persistence",
+      "blocking": true,
+      "status": "automated",
+      "outcome": "Manual save/load restores world position, quest state, canonical active-party references, and Continue metadata.",
+      "owner": "tests/smoke-playwright.js",
+      "evidence": [
+        "browser save→mutate→load round-trip",
+        "semantic Continue fallback contract"
+      ],
+      "nextAction": "Maintain alongside packaged restart proof."
+    },
+    {
+      "id": "wake-resolution",
+      "category": "narrative",
+      "blocking": true,
+      "status": "partial",
+      "outcome": "Choice transitions into a deliberate WAKE beat and cannot silently skip directly to epilogue/stable completion.",
+      "owner": "aetherwake.js choice/wake state",
+      "evidence": [
+        "tests/first-wake-opening.test.js WAKE contract"
+      ],
+      "nextAction": "Add browser-level choice→WAKE→advance assertion."
+    },
+    {
+      "id": "dragonfly-flight",
+      "category": "exploration",
+      "blocking": true,
+      "status": "automated",
+      "outcome": "Player can enter AIRSHIP, cast off through movement, preserve valid navigation state, and remain in flight.",
+      "owner": "tests/smoke-playwright.js",
+      "evidence": [
+        "browser flight entry/movement assertions",
+        "air-navigation persistence contract"
+      ],
+      "nextAction": "Add dock/return-to-world benchmark path."
+    },
+    {
+      "id": "input-controller-accessibility",
+      "category": "ux",
+      "blocking": true,
+      "status": "gap",
+      "outcome": "Representative slice is navigable with the chosen keyboard/controller model and required accessibility/readability settings.",
+      "owner": "future input/accessibility foundation",
+      "evidence": [],
+      "nextAction": "Define controller focus, remapping, scalable text, reduced motion/screen shake, subtitles/audio settings before UI scale-out."
+    },
+    {
+      "id": "visual-benchmark-set",
+      "category": "art",
+      "blocking": true,
+      "status": "manual",
+      "outcome": "Title/opening, dock exploration, dialogue, combat, and Dragonfly flight meet the approved Visual Bible in the live runtime.",
+      "owner": "Aetherwake Visual Bible + benchmark scene records",
+      "evidence": [
+        "Visual Bible",
+        "Dragonfly Dusk Dock benchmark"
+      ],
+      "nextAction": "Approve representative scenes in-context before broad asset propagation."
+    },
+    {
+      "id": "audio-benchmark-set",
+      "category": "audio",
+      "blocking": false,
+      "status": "partial",
+      "outcome": "Title theme and representative dialogue/combat/flight audio behave correctly in the standalone runtime with graceful optional-asset fallback.",
+      "owner": "runtime audio + cinematic/audio assets",
+      "evidence": [
+        "main-title asset authority",
+        "optional TTS fail-closed behavior"
+      ],
+      "nextAction": "Verify title-theme wiring and representative mix in packaged build."
+    }
+  ]
+}
