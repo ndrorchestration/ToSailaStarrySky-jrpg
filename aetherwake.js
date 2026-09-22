@@ -1846,8 +1846,8 @@ function drawPixelBorder(x, y, w, h, layers) {
   rect(x - layers*2 - 1, y - layers*2 - 1, w + (layers*2+1)*2, h + (layers*2+1)*2);
 }
 
-function wrapText(text, x, y, maxWidth) {
-  const words = text.split(' ');
+function wrapText(content, x, y, maxWidth) {
+  const words = String(content || '').split(' ');
   let line = '';
   let ly = y;
   for (const w of words) {
