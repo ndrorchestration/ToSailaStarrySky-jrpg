@@ -81,6 +81,8 @@
     "test:visual-benchmark": "node tests/visual-benchmark-contract.test.js",
     "test:dialogue-visual": "node tests/dialogue-visual-gate.test.js",
     "test:combat-visual": "node tests/combat-visual-gate.test.js",
-    "test:flight-visual": "node tests/flight-visual-gate.test.js"
+    "test:flight-visual": "node tests/flight-visual-gate.test.js",
+    "test:visual-evidence-contract": "node tests/visual-evidence-contract.test.js",
+    "capture:visual-evidence": "node tests/capture-visual-evidence.js"
   }
 }
