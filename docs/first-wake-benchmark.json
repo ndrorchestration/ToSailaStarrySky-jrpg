@@ -202,11 +202,19 @@
       "id": "input-controller-accessibility",
       "category": "ux",
       "blocking": true,
-      "status": "gap",
+      "status": "partial",
       "outcome": "Representative slice is navigable with the chosen keyboard/controller model and required accessibility/readability settings.",
-      "owner": "future input/accessibility foundation",
-      "evidence": [],
-      "nextAction": "Define controller focus, remapping, scalable text, reduced motion/screen shake, subtitles/audio settings before UI scale-out."
+      "owner": "input/accessibility foundation PR #147",
+      "evidence": [
+        "modules/input-actions.js",
+        "modules/focus-manager.js",
+        "modules/gamepad-input.js",
+        "modules/user-settings.js",
+        "tests/input-runtime-contract.test.js",
+        "tests/settings-runtime-contract.test.js",
+        "tests/audio-settings-contract.test.js"
+      ],
+      "nextAction": "Migrate WORLD/dialogue/AIRSHIP semantic controller dispatch, then combat focus/remapping and remaining text/contrast/subtitle/vibration hooks before running First Wake keyboard/controller parity."
     },
     {
       "id": "visual-benchmark-set",
