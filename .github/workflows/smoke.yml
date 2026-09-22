@@ -126,6 +126,9 @@ jobs:
       - name: Verify First Wake opening runtime
         run: npm run test:first-wake-opening
 
+      - name: Verify First Wake benchmark registry
+        run: npm run test:first-wake-benchmark
+
       - name: Verify save storage contract
         run: npm run test:save-system
 
