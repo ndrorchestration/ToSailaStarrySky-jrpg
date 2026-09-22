@@ -51,6 +51,9 @@ jobs:
       - name: Verify secondary-action state
         run: npm run test:secondary-action
 
+      - name: Verify magic domain registry
+        run: npm run test:magic-defs
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 

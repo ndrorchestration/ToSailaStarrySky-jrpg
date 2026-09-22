@@ -23,8 +23,6 @@
     "plugin": false,
     "page-cache": true
   },
-  "js-flags": "--expose-gc",
-  "chromium-args": "--disable-gpu-compositing --disable-gpu-rasterization",
   "devDependencies": {
     "nw": "^0.116.0",
     "nwjs": "^1.4.4",
@@ -44,6 +42,7 @@
     "test:resource-eligibility": "node tests/resource-eligibility.test.js",
     "test:progression-reachability": "node tests/progression-reachability.test.js",
     "test:secondary-action": "node tests/secondary-action-contract.test.js",
+    "test:magic-defs": "node tests/magic-defs-contract.test.js",
     "package:windows": "nwbuild --mode=build --glob=false --platform=win --arch=x64 --version=0.116.0 --outDir=../aetherwake-dist .",
     "package:windows:clean": "npm run package:windows",
     "test:desktop-package": "node tests/desktop-package-contract.test.js"
