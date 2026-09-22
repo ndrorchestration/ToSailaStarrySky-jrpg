@@ -3374,6 +3374,16 @@ function drawShipInterior() {
 
 // --- Ground Layer -----------------------------------------------------------
 
+function drawPixelWorldTile(id, px, py, frame) {
+  const tiles = window.AetherPixelTiles;
+  if (!tiles || typeof tiles.draw !== 'function' || !tiles.validate()) {
+    throw new Error('AETHER_PIXEL_TILES_UNAVAILABLE');
+  }
+  if (!tiles.draw(id, px, py, { frame: frame || 0 })) {
+    throw new Error('AETHER_PIXEL_TILE_UNKNOWN:' + id);
+  }
+}
+
 function drawGroundLayer() {
   const tileSize = 16;
   for (let y = 0; y < MAP_SIZE; y++) {
@@ -3408,112 +3418,29 @@ function drawGroundLayer() {
 }
 
 function drawTileSolid(px, py, s) {
-  const rust = color(120, 60, 30);
-  const dark = color(60, 30, 15);
-  fill(rust);
-  noStroke();
-  rect(px, py, s, s);
-  fill(dark);
-  rect(px + 3, py + 3, 2, 2);
-  rect(px + s - 5, py + 3, 2, 2);
-  rect(px + 3, py + s - 5, 2, 2);
-  rect(px + s - 5, py + s - 5, 2, 2);
+  drawPixelWorldTile('hull', px, py, 0);
 }
 
 function drawTileGrass(px, py, s) {
-  const tan = color(180, 160, 120);
-  fill(tan);
-  noStroke();
-  rect(px, py, s, s);
-  stroke(color(80, 120, 60));
-  strokeWeight(1);
-  const seed = (px * 7 + py * 13) % 5;
-  if (seed === 0) {
-    line(px + 4, py + s, px + 4, py + s - 4);
-    line(px + 8, py + s, px + 8, py + s - 3);
-  } else if (seed === 1) {
-    line(px + 6, py + s, px + 6, py + s - 5);
-  } else if (seed === 2) {
-    line(px + 2, py + s, px + 2, py + s - 3);
-    line(px + 10, py + s, px + 10, py + s - 4);
-  }
-  noStroke();
+  const frame = Math.abs((px / 16) * 7 + (py / 16) * 13) % 3;
+  drawPixelWorldTile('grass', px, py, frame);
 }
 
 function drawTileCrate(px, py, s) {
-  const wood = color(140, 100, 60);
-  const darkWood = color(90, 60, 30);
-  fill(wood);
-  noStroke();
-  rect(px, py, s, s);
-  stroke(darkWood);
-  strokeWeight(1);
-  line(px, py + s/2, px + s, py + s/2);
-  line(px + s/2, py, px + s/2, py + s);
-  noStroke();
-  fill(darkWood);
-  rect(px + 2, py + 2, 2, 2);
-  rect(px + s - 4, py + 2, 2, 2);
-  rect(px + 2, py + s - 4, 2, 2);
-  rect(px + s - 4, py + s - 4, 2, 2);
-  noStroke();
+  drawPixelWorldTile('crate', px, py, 0);
 }
 
 function drawTileFloat(px, py, s) {
-  const earth = color(110, 90, 60);
-  fill(earth);
-  noStroke();
-  rect(px, py, s, s);
-  noFill();
-  stroke(color(42, 255, 181, 40));
-  strokeWeight(1);
-  rect(px, py, s, s);
-  noStroke();
-  fill(color(100, 140, 70));
-  rect(px + 3, py, s - 6, 3);
+  drawPixelWorldTile('float', px, py, 0);
 }
 
 function drawTileWater(px, py, s) {
-  const blue = color(60, 120, 160, 120);
-  fill(blue);
-  noStroke();
-  rect(px, py, s, s);
-  noFill();
-  stroke(color(100, 180, 220, 100));
-  strokeWeight(1);
-  ellipse(px + s/2, py + s/2, s * 0.4, s * 0.2);
-  noStroke();
+  drawPixelWorldTile('water', px, py, Math.floor(frameCount / 24) % 2);
 }
 
 function drawTileLore(px, py, s) {
-  const tile = groundLayer[py / s] && groundLayer[py / s][px / s];
-  const loreText = tile && tile._loreText ? tile._loreText : '';
   const discovered = quest.discoveries.some(d => d.x === px / s && d.y === py / s);
-
-  // Base: dark crate with subtle cyan outline
-  fill(color(60, 50, 40));
-  noStroke();
-  rect(px, py, s, s);
-  stroke(color(42, 255, 181, discovered ? 100 : 30));
-  strokeWeight(1);
-  noFill();
-  rect(px + 2, py + 2, s - 4, s - 4);
-  noStroke();
-
-  // Discovered: show a faint icon/mark
-  if (discovered) {
-    fill(color(42, 255, 181, 120));
-    noStroke();
-    ellipse(px + s/2, py + s/2, 4, 4);
-  } else {
-    // Undiscovered: question mark glyph
-    fill(color(180, 160, 140, 120));
-    noStroke();
-    textAlign(CENTER, CENTER);
-    textSize(8);
-    textFont('VT323');
-    text('?', px + s/2, py + s/2);
-  }
+  drawPixelWorldTile(discovered ? 'loreKnown' : 'loreUnknown', px, py, 0);
 }
 
 // --- Sky Layer --------------------------------------------------------------
@@ -3537,20 +3464,11 @@ function drawSkyLayer() {
 }
 
 function drawSkyCloud(px, py, s) {
-  const cloudCol = color(120, 160, 180, 80);
-  fill(cloudCol);
-  noStroke();
-  ellipse(px + s/2, py + s/2, s * 1.2, s * 0.7);
-  noStroke();
+  drawPixelWorldTile('cloud', Math.round(px), Math.round(py), 0);
 }
 
 function drawSkyAstro(px, py, s) {
-  const astro = color(200, 220, 255, 100);
-  noFill();
-  stroke(astro);
-  strokeWeight(1);
-  ellipse(px + s/2, py + s/2, s * 0.6, s * 0.6);
-  noStroke();
+  drawPixelWorldTile('astro', Math.round(px), Math.round(py), 0);
 }
 
 function drawFallingIslands() {
@@ -3560,28 +3478,12 @@ function drawFallingIslands() {
     [23,9],[29,7],[5,15],[13,14],
     [20,16],[27,15]
   ];
-  const fallOffset = (dayTime * 8) % 4;
+  const fallOffset = Math.round((dayTime * 8) % 4);
   for (const [ix, iy] of islands) {
     const cx = ix * 16 + 8;
     const cy = iy * 16 + 8 - fallOffset;
-    noFill();
-    stroke(color(42, 255, 181, 60));
-    strokeWeight(2);
-    ellipse(cx, cy, 22, 14);
-    noStroke();
-    fill(color(60, 70, 50, 180));
-    noStroke();
-    ellipse(cx, cy, 18, 10);
-    fill(color(80, 120, 60));
-    ellipse(cx, cy - 4, 14, 4);
-    noStroke();
-    noFill();
-    stroke(color(42, 255, 181, 100));
-    strokeWeight(1);
-    ellipse(cx, cy, 18, 10);
-    noStroke();
+    drawPixelWorldTile('float', Math.round(cx - 8), Math.round(cy - 8), 0);
   }
-  noStroke();
 }
 
 // --- World Ambient Atmosphere ------------------------------------------------
