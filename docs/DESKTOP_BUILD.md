@@ -12,7 +12,7 @@ The standard installer installs the packaged runtime and does not require Python
 
 **Fallback:** **Aetherwake-Windows.zip** is also published for manual extraction. Extract the ZIP completely, then run **Aetherwake.exe** from the extracted folder. Keep the extracted files together.
 
-Do not use superseded Aetherwake-OneClick.exe/self-extracting artifacts. If Windows Defender flags an artifact, do not whitelist or bypass it; preserve the exact detection name and SHA-256 for a false-positive report.
+Do not use superseded self-extracting/SFX artifacts. If Windows Defender flags an artifact, do not whitelist or bypass it; preserve the exact detection name and SHA-256 for a false-positive report.
 
 ## For maintainers
 
