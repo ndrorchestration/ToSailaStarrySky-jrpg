@@ -60,4 +60,24 @@ assert.strictEqual(bindings.conflictForGamepad(defaults, 'airship-dock', 0), nul
 const reset = bindings.resetAction(state, 'interact', 'keyboard');
 assert.strictEqual(bindings.keyboardLabel(reset, 'interact', 'world'), 'E');
 
+const memory = new Map();
+global.localStorage = {
+  getItem(key) { return memory.has(key) ? memory.get(key) : null; },
+  setItem(key, value) { memory.set(key, String(value)); },
+  removeItem(key) { memory.delete(key); }
+};
+const saved = bindings.save(state);
+assert.strictEqual(saved.storageType, 'localStorage');
+const loaded = bindings.load();
+assert.deepStrictEqual(loaded.bindings, state,
+  'persisted input bindings must round-trip independently from game saves/settings');
+
+const ambiguous = bindings.emptyState();
+ambiguous.keyboardOverrides.interact = 84; // collides with quest-log in WORLD.
+assert.throws(
+  () => bindings.validateState(ambiguous),
+  /INPUT_BINDINGS_CONFLICT_KEYBOARD/,
+  'ambiguous persisted bindings must fail closed during validation'
+);
+
 console.log('Aetherwake input binding persistence/remap contract: PASS');
