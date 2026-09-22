@@ -6,6 +6,23 @@ const input = require('../modules/input-actions.js');
 assert.strictEqual(input.VERSION, '0.1.0');
 assert.strictEqual(input.validate(), true);
 
+
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 81 }, 'world'),
+  ['covenant-field'],
+  'Q must map to covenant-field in WORLD'
+);
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 9 }, 'world'),
+  ['toggle-layer'],
+  'Tab must map to toggle-layer in WORLD'
+);
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 77 }, 'world'),
+  ['shop'],
+  'M must map to shop in WORLD'
+);
+
 assert.deepStrictEqual(
   input.actionsForKeyboardEvent({ keyCode: 84 }, 'world'),
   ['quest-log'],
