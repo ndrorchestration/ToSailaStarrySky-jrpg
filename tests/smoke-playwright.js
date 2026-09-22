@@ -237,8 +237,8 @@ function createServer() {
     }));
     assert(productionFormulaRuntime.policyModel === 'jrpg-stat-formula',
       'production combat policy is not loaded');
-    assert(productionFormulaRuntime.formulaVersion === '1.0.0',
-      'production formula engine is not loaded');
+    assert(productionFormulaRuntime.formulaVersion === '1.1.0',
+      'production formula engine is not loaded at expected version 1.1.0');
 
     // Level-1 progression must actually gate actions 6-8.
     await page.keyboard.press('6');
