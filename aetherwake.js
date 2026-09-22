@@ -157,6 +157,13 @@ function setup() {
   }
   window.AetherCommonsLedger.validate();
   window._commonsLedger = window.AetherCommonsLedger;
+  if (!window.AetherSealContract ||
+      typeof window.AetherSealContract.evaluateTarget !== 'function' ||
+      typeof window.AetherSealContract.validate !== 'function') {
+    throw new Error('AETHER_SEAL_CONTRACT_UNAVAILABLE');
+  }
+  window.AetherSealContract.validate();
+  window._aetherSealContract = window.AetherSealContract;
   window._setupOrder = window._setupOrder + '→party-state-done';
   window._setupOrder = window._setupOrder + '→combat-start';
   if (typeof window.AetherCombat !== 'undefined') {
@@ -4597,6 +4604,19 @@ function AetherCombat(p, C) {
     // Resource payment uses the same legacy tier + base-cost formula exposed by
     // AetherAbilityDefs. Affordability was preflighted above, so this payment
     // is transactional with respect to action admission.
+    let aetherSealEvaluation = null;
+    if (action.resolution && action.resolution.model === 'aether-seal') {
+      if (!window.AetherSealContract ||
+          typeof window.AetherSealContract.evaluateTarget !== 'function') {
+        throw new Error('AETHER_SEAL_CONTRACT_UNAVAILABLE_DURING_TURN');
+      }
+      aetherSealEvaluation = window.AetherSealContract.evaluateTarget(state.enemy);
+      if (!aetherSealEvaluation.applicable) {
+        log('Aether Seal cannot bind: ' + aetherSealEvaluation.reason + '.');
+        return false;
+      }
+    }
+
     const resourceCost = useEligibility.resourceCost;
     if (resourceCost > 0) {
       let spent = 0;
@@ -4636,7 +4656,21 @@ function AetherCombat(p, C) {
     let formulaResolution = null;
     let attackCritical = false;
 
-    if (action.resolution && action.resolution.model === 'commons-readonly') {
+    if (action.resolution && action.resolution.model === 'aether-seal') {
+      const effect = aetherSealEvaluation && aetherSealEvaluation.effect;
+      if (!effect) throw new Error('AETHER_SEAL_EFFECT_MISSING_AFTER_PREFLIGHT');
+      state.enemy.aetherSuppression = {
+        status: effect.status,
+        remainingTurns: effect.durationTurns,
+        incomingAetherDamageMultiplier: effect.incomingAetherDamageMultiplier,
+        outgoingAetherEffectMultiplier: effect.outgoingAetherEffectMultiplier,
+        source: 'aetherSeal',
+      };
+      r = { dice: null, stat: null, total: 0, outcome: 'success' };
+      actionText = 'Aether Seal — ' + state.enemy.name +
+        ' is Aether-suppressed for ' + effect.durationTurns + ' turns.';
+      state._abilityFlashTurn = millis();
+    } else if (action.resolution && action.resolution.model === 'commons-readonly') {
       if (!window.AetherCommonsLedger ||
           typeof window.AetherCommonsLedger.createLedgerEntry !== 'function') {
         throw new Error('AETHER_COMMONS_LEDGER_UNAVAILABLE_DURING_TURN');
@@ -4970,10 +5004,19 @@ function AetherCombat(p, C) {
           enemyText = state.enemy.name + ' unleashes gale force — ' + dmg + ' damage, wind knocks you back!';
           state._windKnockTurn = millis();
         } else if (eType === 'aetherLeak') {
-          // Drain: remove 1 aether
-          if (state.player.aether.current > 0) {
-            changeResource(effectVocabulary.RESOURCE.AETHER, -1);
-            enemyText = state.enemy.name + ' drains your aether — 1 aether lost!';
+          // Drain: explicitly Aether-dependent and therefore suppressible.
+          const suppression = state.enemy.aetherSuppression;
+          const outputMultiplier = suppression && suppression.remainingTurns > 0
+            ? Number(suppression.outgoingAetherEffectMultiplier || 1)
+            : 1;
+          const drainAmount = Math.max(0, Math.floor(1 * outputMultiplier));
+          if (drainAmount === 0 && suppression && suppression.remainingTurns > 0) {
+            enemyText = state.enemy.name +
+              ' tries to drain Aether, but the Seal collapses the current.';
+          } else if (state.player.aether.current > 0) {
+            changeResource(effectVocabulary.RESOURCE.AETHER, -drainAmount);
+            enemyText = state.enemy.name + ' drains your aether — ' +
+              drainAmount + ' aether lost!';
           } else {
             applyDamage(effectVocabulary.TARGET.SELF, 1);
             enemyText = state.enemy.name + ' strikes desperately — 1 Vit lost.';
@@ -5056,6 +5099,15 @@ function AetherCombat(p, C) {
         } else if (normalizedAbilityId === 'drain') {
           state._enemyAbilityFlash = millis();
         }
+      }
+    }
+
+    if (state.enemy && state.enemy.aetherSuppression &&
+        state.enemy.aetherSuppression.remainingTurns > 0) {
+      state.enemy.aetherSuppression.remainingTurns -= 1;
+      if (state.enemy.aetherSuppression.remainingTurns <= 0) {
+        log('[Status] Aether suppression on ' + state.enemy.name + ' ends.');
+        state.enemy.aetherSuppression = null;
       }
     }
 
