@@ -75,6 +75,9 @@ jobs:
       - name: Verify magic spell access
         run: npm run test:magic-spell-access
 
+      - name: Verify magic study transactions
+        run: npm run test:magic-study
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
