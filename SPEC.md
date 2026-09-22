@@ -309,7 +309,7 @@ Dreaming remains plot-bound exceptional access rather than an ordinary learnable
 
 ### DESIGN REGISTRY BOUNDARY
 
-`modules/magic-defs.js` v0.1 is a target-design registry only. `modules/magic-mastery.js` v0.1 adds pure prerequisite, threshold, and reaction eligibility evaluation against that registry. Neither module grants mastery, mutates roster state, unlocks spells, or authorizes use of any new spell in the preservation runtime. Unsupported status, field, persistence, acquisition, and executable synthesis mechanics remain fail-closed until the resolver, save schema, UI, and automated tests support them.
+`modules/magic-defs.js` v0.1 is a target-design registry only. `modules/magic-mastery.js` v0.1 adds pure prerequisite, threshold, and reaction eligibility evaluation against that registry. Neither module grants mastery, mutates roster state, unlocks spells, or authorizes use of any new spell in the preservation runtime. `modules/magic-field-reactions.js` v0.1 now provides a pure immutable design-state layer for registered elemental reactions and state transitions. It does not yet execute damage, duration, resistance, turn-order, or other combat effects. Unsupported persistence, acquisition, live field mutation, and executable synthesis mechanics remain fail-closed until the resolver, save schema, UI, and automated tests support them.
 
 ### OPEN DESIGN
 
