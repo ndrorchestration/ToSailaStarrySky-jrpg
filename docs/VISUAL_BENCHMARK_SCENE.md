@@ -144,3 +144,7 @@ Current candidate establishes:
 - foreground railing/cables and windborne particles for near-plane depth.
 
 **Status: IMPLEMENTED CANDIDATE / NOT YET VISUAL PASS.** This is the first benchmark implementation, not a claim that the store-page screenshot gate has been satisfied. It remains stacked on unverified Visual Foundation v1 while private-repository Actions cannot allocate runners.
+
+
+## Evidence capture binding
+The benchmark acceptance screenshot is captured as `01-dragonfly-dusk-dock.png` by the exact-head visual-evidence harness. The screenshot and manifest SHA must correspond to the candidate under review. Capture alone does not promote this benchmark to PASS.
