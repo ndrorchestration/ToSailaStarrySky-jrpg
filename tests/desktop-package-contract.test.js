@@ -35,6 +35,12 @@ assert(workflow.includes('Aetherwake-Windows.zip'),
 
 assert(workflow.includes('Uninstallable=yes'),
   'standard installer must support normal uninstall');
+assert(workflow.includes('DefaultDirName={localappdata}\\\\Programs\\\\Aetherwake'),
+  'player installer must default to a per-user location');
+assert(workflow.includes('PrivilegesRequired=lowest'),
+  'player installer must not require administrator elevation');
+assert(workflow.includes('DisableStartupPrompt=yes'),
+  'player installer must not present the pre-install startup confirmation');
 assert(workflow.includes('Install and launch packaged app'),
   'desktop workflow must install-smoke the compiled installer');
 
