@@ -57,6 +57,9 @@ jobs:
       - name: Verify magic mastery evaluator
         run: npm run test:magic-mastery
 
+      - name: Verify character magic profiles
+        run: npm run test:character-magic-profile
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
