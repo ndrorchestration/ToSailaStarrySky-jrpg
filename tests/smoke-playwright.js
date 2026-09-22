@@ -133,26 +133,60 @@ function createServer() {
     assert(openingBootstrap.charCreatePhase !== 'name',
       'normal New Game incorrectly entered custom companion creation');
 
-    await page.keyboard.press('Enter');
-    await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
-      window.gameState === 'opening' &&
+      window.AetherFirstWakeOpening.presentationReady(window._firstWakeOpeningState) === true
+    , undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'ender_arrives'
+    , undefined, { timeout: 5000 });
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.presentationReady(window._firstWakeOpeningState) === true
+    , undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+
+    await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'dock_walk'
     , undefined, { timeout: 5000 });
-
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'dock_walk'
     , undefined, { timeout: 5000 });
 
     for (let i = 0; i < 8; i++) await page.keyboard.press('ArrowRight');
-    await page.waitForFunction(() =>
-      window._firstWakeOpeningState.dockWalk &&
-      window._firstWakeOpeningState.dockWalk.ready === true
-    , undefined, { timeout: 5000 });
-
+    await page.waitForFunction(() => window._firstWakeOpeningState.dockWalk.ready === true,
+      undefined, { timeout: 5000 });
     await page.keyboard.press('Enter');
-    for (let i = 0; i < 3; i++) await page.keyboard.press('Enter');
+
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'berth_task'
+    , undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'berth_task'
+    , undefined, { timeout: 5000 });
+    for (let i = 0; i < 3; i++) await page.keyboard.press('e');
+    await page.waitForFunction(() => window._firstWakeOpeningState.berthTask.ready === true,
+      undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'talen_staying'
+    , undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'talen_staying'
+    , undefined, { timeout: 5000 });
+    for (let i = 0; i < 2; i++) await page.keyboard.press('e');
+    await page.waitForFunction(() => window._firstWakeOpeningState.talenBeat.ready === true,
+      undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'lyra_family'
+    , undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.gameState === 'opening' &&
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 6
