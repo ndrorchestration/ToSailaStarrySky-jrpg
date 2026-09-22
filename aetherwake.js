@@ -822,6 +822,10 @@ function advanceFirstWakeOpening() {
   if (!opening || !state) throw new Error('FIRST_WAKE_OPENING_STATE_UNAVAILABLE');
 
   const result = opening.advance(state);
+  if (result.event && result.event.type === 'presentation-required') {
+    showToast('THE MOMENT IS STILL UNFOLDING', C.scioto, 700);
+    return;
+  }
   if (result.event && result.event.type === 'party-join') {
     window.AetherPartyState.recruitCharacter(result.event.characterId);
     showToast(
@@ -1035,6 +1039,7 @@ function drawFirstWakeOpening() {
   const state = window._firstWakeOpeningState;
   if (!opening || !state) return;
   const scene = opening.currentScene(state);
+  if (typeof opening.tickPresentation === 'function') opening.tickPresentation(state, 1);
 
   push();
   drawOpeningBackdrop(scene);
@@ -1043,25 +1048,85 @@ function drawFirstWakeOpening() {
   fill(7, 10, 16, scene.chapterCard ? 120 : 154);
   rect(0, 0, width, height);
 
-  fill(6, 9, 14, 205);
-  rect(92, 54, width - 184, 128, 8);
-  if (!scene.interactive) {
-    fill(6, 9, 14, 222);
-    rect(112, 198, width - 224, 286, 8);
+  if (!scene.cinematic) {
+    fill(6, 9, 14, 205);
+    rect(92, 54, width - 184, 128, 8);
+    if (!scene.interactive) {
+      fill(6, 9, 14, 222);
+      rect(112, 198, width - 224, 286, 8);
+    }
+
+    textAlign(CENTER, TOP);
+    textFont('Press Start 2P');
+    textSize(scene.chapterCard ? 24 : 13);
+    fill(C.teal[0], C.teal[1], C.teal[2]);
+    text(scene.title, width / 2, 78);
+    if (scene.subtitle) {
+      textSize(11);
+      fill(C.scioto[0], C.scioto[1], C.scioto[2]);
+      text(scene.subtitle, width / 2, 124);
+    }
   }
 
-  textAlign(CENTER, TOP);
-  textFont('Press Start 2P');
-  textSize(scene.chapterCard ? 24 : 13);
-  fill(C.teal[0], C.teal[1], C.teal[2]);
-  text(scene.title, width / 2, 78);
-  if (scene.subtitle) {
+  if (scene.cinematic && scene.id === 'arrival_horizon') {
+    const reveal = Math.min(1, state.sceneTicks / Math.max(1, scene.minimumTicks));
+    textAlign(LEFT, TOP);
+    textFont('Press Start 2P');
     textSize(11);
-    fill(C.scioto[0], C.scioto[1], C.scioto[2]);
-    text(scene.subtitle, width / 2, 124);
-  }
+    fill(C.teal[0], C.teal[1], C.teal[2], 150 + reveal * 105);
+    text('LOWER VERDANT REACH', 54, 52);
 
-  if (scene.interactive && scene.id === 'dock_walk') {
+    fill(5, 8, 13, 165 * reveal);
+    noStroke();
+    rect(0, height - 142, width, 142);
+
+    textAlign(CENTER, TOP);
+    textFont('VT323');
+    textSize(25);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2], 255 * reveal);
+    text('Dawn gathers beneath a sea of clouds.', width / 2, height - 118);
+    if (reveal > 0.48) {
+      textSize(20);
+      fill(C.dusttan[0], C.dusttan[1], C.dusttan[2], 255 * Math.min(1, (reveal - 0.48) / 0.35));
+      text('A small patched vessel hangs against a very large sky.', width / 2, height - 80);
+    }
+  } else if (scene.cinematic && scene.id === 'ender_arrives') {
+    // Keep the first human exchange in-world rather than presenting it as a menu card.
+    noStroke();
+    fill(31, 43, 56);
+    rect(180, 362, 22, 42, 5);
+    fill(212, 190, 163);
+    ellipse(191, 351, 20, 20);
+    fill(94, 126, 134);
+    rect(618, 350, 24, 46, 5);
+    fill(210, 184, 157);
+    ellipse(630, 339, 20, 20);
+
+    fill(4, 7, 11, 205);
+    rect(96, height - 186, width - 192, 130, 8);
+    textAlign(LEFT, TOP);
+    textFont('VT323');
+    textSize(23);
+    const phase = state.sceneTicks / Math.max(1, scene.minimumTicks);
+    fill(C.scioto[0], C.scioto[1], C.scioto[2]);
+    text(phase < 0.55 ? 'IONIA' : 'ENDER', 126, height - 164);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2]);
+    text(
+      phase < 0.55
+        ? 'You said you could fix things.'
+        : 'I said I was willing to learn how.',
+      126,
+      height - 128,
+      width - 252,
+      66
+    );
+    if (phase > 0.82) {
+      textAlign(RIGHT, TOP);
+      textSize(18);
+      fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
+      text('IONIA: Good. That\'s usually cheaper.', width - 126, height - 78);
+    }
+  } else if (scene.interactive && scene.id === 'dock_walk') {
     textAlign(CENTER, TOP);
     textFont('VT323');
     textSize(20);
@@ -1094,28 +1159,17 @@ function drawFirstWakeOpening() {
     text(scene.lines.join('   •   '), width / 2, height * 0.60, width - 240, 100);
   }
 
-  textAlign(LEFT, BOTTOM);
-  textFont('VT323');
-  textSize(15);
-  fill(C.dusttan[0], C.dusttan[1], C.dusttan[2], 220);
-  text('SEQUENCE ' + String(scene.sequence).padStart(2, '0') + ' // ' + scene.visual.toUpperCase(), 28, height - 22);
-
   textAlign(CENTER, BOTTOM);
+  textFont('VT323');
   textSize(16);
-  fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
-  text(
-    'ACTIVE PARTY // ' + opening.expectedPartyIds(state).map(id => id.toUpperCase()).join(' + '),
-    width / 2,
-    height - 58
-  );
   fill(C.teal[0], C.teal[1], C.teal[2]);
-  text(
-    scene.interactive && scene.id === 'dock_walk'
-      ? (state.dockWalk && state.dockWalk.ready ? 'ENTER — BOARD THE WAKE' : 'MOVE TOWARD THE WAKE')
-      : 'ENTER / SPACE — CONTINUE',
-    width / 2,
-    height - 26
-  );
+  const presentationReady = typeof opening.presentationReady === 'function'
+    ? opening.presentationReady(state)
+    : true;
+  const openingPrompt = scene.interactive && scene.id === 'dock_walk'
+    ? (state.dockWalk && state.dockWalk.ready ? 'ENTER — BOARD THE WAKE' : 'MOVE TOWARD THE WAKE')
+    : (scene.cinematic && !presentationReady ? '' : 'ENTER / SPACE — CONTINUE');
+  if (openingPrompt) text(openingPrompt, width / 2, height - 26);
   pop();
 }
 
