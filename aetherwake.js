@@ -166,6 +166,13 @@ function applyUserSettings(settings) {
   dialogueTypeIn.speed = textSpeeds[userSettings.textSpeed];
   VIS.dialogueTypeIn = userSettings.textSpeed !== 'instant';
 
+  if (typeof window.setEffectsVolumePercent === 'function') {
+    window.setEffectsVolumePercent(userSettings.effectsVolume);
+  }
+  if (_dialogueAudioEl) {
+    _dialogueAudioEl.volume = 0.92 * (userSettings.dialogueVolume / 100);
+  }
+
   window._userSettings = JSON.parse(JSON.stringify(userSettings));
   window._appliedAccessibilitySettings = {
     reducedMotion: reduceMotion,
@@ -1635,7 +1642,7 @@ function drawSettingsOverlay() {
   textFont('VT323');
   textSize(14);
   fill(C.scioto[0], C.scioto[1], C.scioto[2]);
-  text('Changes save immediately. Integrated now: reduced motion, screen shake, text speed.', x + 20, y + 42);
+  text('Changes save immediately. Integrated now: motion, screen shake, text speed, effects/dialogue volume.', x + 20, y + 42);
 
   const order = window.AetherUserSettings.SETTING_ORDER;
   const focus = settingsMenuFocus ? window.AetherFocusManager.snapshot(settingsMenuFocus) : null;
@@ -3990,8 +3997,11 @@ function playDialogueAudioLine() {
   try {
     if (!_dialogueAudioEl) {
       _dialogueAudioEl = new Audio();
-      _dialogueAudioEl.volume = 0.92;
     }
+    const dialogueVolume = userSettings && Number.isInteger(userSettings.dialogueVolume)
+      ? userSettings.dialogueVolume
+      : 100;
+    _dialogueAudioEl.volume = 0.92 * (dialogueVolume / 100);
     _dialogueAudioEl.src = src;
     _dialogueAudioEl.play().catch(function(err) {
       console.warn('[TTS] play failed for ' + src + ': ' + err.message);
