@@ -129,6 +129,9 @@ jobs:
       - name: Verify input/accessibility foundation contract
         run: npm run test:input-accessibility
 
+      - name: Verify user settings persistence
+        run: npm run test:user-settings
+
       - name: Verify overlay and economy contracts
         run: npm run test:overlay-contract
 
