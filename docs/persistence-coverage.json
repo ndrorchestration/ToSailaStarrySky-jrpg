@@ -168,6 +168,15 @@
       "validator": "AetherUserSettings.validateSettings",
       "versionOwner": "user-settings SCHEMA_VERSION",
       "rationale": "Accessibility and user preferences persist independently from game save slots."
+    },
+    {
+      "id": "input-bindings",
+      "status": "covered",
+      "snapshot": "AetherInputBindings.save",
+      "restore": "AetherInputBindings.load + runtime semantic input adapters",
+      "validator": "AetherInputBindings.validateState",
+      "versionOwner": "input-bindings SCHEMA_VERSION",
+      "rationale": "User control remaps persist independently from game saves and general accessibility settings."
     }
   ]
 }
