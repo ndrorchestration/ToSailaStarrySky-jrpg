@@ -1,3 +1,9 @@
+// HISTORICAL MIRROR — NOT RUNTIME AUTHORITY.
+// The live combat executor is integrated in ../aetherwake.js and production
+// player actions are migrating to explicit JRPG formula/contract resolution.
+// This file preserves earlier 2D6/PbtA behavior for provenance only and must
+// not be used as evidence of current gameplay semantics.
+
 // AetherCombat — Turn-based 2D6 PbtA combat module for Aetherwake JRPG.
 // Exposes window.AetherCombat as a constructor: new AetherCombat(p, C)
 // Also compatible with direct call: AetherCombat(p, C) returns the namespace.
