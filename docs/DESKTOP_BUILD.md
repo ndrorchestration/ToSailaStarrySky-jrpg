@@ -4,6 +4,9 @@ Aetherwake retains its HTTP-served browser path for development and automated sm
 
 ## For players
 
+The desktop window opens at **1440×960** by default. Maximizing the window enlarges the game further while preserving its 3:2 aspect ratio. The internal 960×640 coordinate system stays unchanged so authored UI, combat positions, and input geometry remain stable.
+
+
 1. Download **Aetherwake-Setup.exe** from a Windows desktop release.
 2. Run the installer and choose the install location if needed.
 3. Launch Aetherwake from the created desktop or Start Menu shortcut.
@@ -65,7 +68,7 @@ The desktop shell must:
 - launch `www/index-embedded.html` from a minimal launcher-root `package.json`;
 - keep the launcher/runtime separate from the `www/` game payload;
 - exclude development-only files from the player runtime;
-- preserve the 960×640 initial canvas;
+- preserve the 960×640 logical render surface while presenting it at 1440×960 by default and scaling it responsively to the largest 3:2 area available when resized/maximized;
 - run without Python or a separately started HTTP server;
 - keep the browser-served path available as a fallback;
 - build Aetherwake-Setup.exe plus Aetherwake-Windows.zip in the same Windows job that verifies them;
@@ -75,4 +78,4 @@ The desktop shell must:
 - publish Aetherwake-Windows.zip as the manual fallback;
 - fail visibly if packaging or the entry point is invalid.
 
-The packaged build does not change gameplay semantics; it supplies the desktop runtime container.
+The packaged build does not change gameplay semantics. The internal game coordinate system remains 960×640, while the player-facing desktop window defaults to 1440×960 and the canvas scales proportionally with the window.
