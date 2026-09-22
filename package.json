@@ -80,6 +80,7 @@
     "test:16bit-world-art": "node tests/16bit-world-art-contract.test.js",
     "test:visual-benchmark": "node tests/visual-benchmark-contract.test.js",
     "test:dialogue-visual": "node tests/dialogue-visual-gate.test.js",
-    "test:combat-visual": "node tests/combat-visual-gate.test.js"
+    "test:combat-visual": "node tests/combat-visual-gate.test.js",
+    "test:flight-visual": "node tests/flight-visual-gate.test.js"
   }
 }
