@@ -127,79 +127,18 @@
   }
 
   function drawDragonfly(ctx) {
-    const x = Math.round(ctx.x);
-    const y = Math.round(ctx.y);
-    const now = ctx.now || 0;
-    const state = ctx.state;
-    const speed = Math.max(0, Number(ctx.travel.effectiveSpeed) || 0);
-    const wing = Math.round(Math.sin(now * (0.004 + speed * 0.001)) * 5);
-    const pulse = 0.72 + Math.sin(now * 0.005) * 0.28;
-
-    push();
-    translate(x, y);
-    rotate(state.heading || 0);
-
-    // Multiphasic shield hint: restrained, readable outline.
-    noFill();
-    stroke(42, 255, 181, Math.round(38 + pulse * 20));
-    strokeWeight(1);
-    rect(-52, -34, 104, 68);
-    noStroke();
-
-    // Wing membranes and spars.
-    fill(78, 126, 151, 78);
-    rect(-20, -35 - wing, 56, 17);
-    rect(-20, 18 + wing, 56, 17);
-    fill(124, 200, 232, 55);
-    rect(-13, -31 - wing, 42, 8);
-    rect(-13, 23 + wing, 42, 8);
-    stroke(124, 200, 232, 100);
-    line(-18, -27 - wing, 27, -22 - wing);
-    line(-18, 27 + wing, 27, 22 + wing);
-    noStroke();
-
-    // Reinforced compact hull.
-    fill(35, 42, 55);
-    rect(-42, -13, 78, 27);
-    fill(78, 66, 58);
-    rect(-36, -17, 60, 5);
-    fill(120, 82, 56);
-    rect(-38, 11, 67, 5);
-
-    // Forward helm blister.
-    fill(37, 70, 85);
-    rect(25, -9, 18, 18);
-    fill(124, 200, 232, 150);
-    rect(29, -5, 10, 6);
-
-    // Tail/stabilizer.
-    fill(48, 52, 64);
-    rect(-58, -5, 17, 10);
-    rect(-64, -12, 6, 24);
-    fill(124, 200, 232, 85);
-    rect(-64, -14, 2, 28);
-
-    // Core + shield nodes.
-    fill(42, 255, 181, Math.round(75 * pulse));
-    rect(-16, -7, 23, 14);
-    fill(205, 245, 232, Math.round(190 * pulse));
-    rect(-9, -3, 8, 6);
-    fill(42, 255, 181, Math.round(185 * pulse));
-    for (const [nx, ny] of [[12,-15],[12,13],[-34,-15],[-34,13]]) rect(nx, ny, 3, 3);
-
-    // Lived-in window lights.
-    fill(243, 176, 96, 165);
-    rect(-28, -8, 4, 3);
-    rect(-21, -8, 4, 3);
-
-    // Distinctive thrust wake. Length follows actual effective speed.
-    const wake = Math.round(12 + speed * 18 + Math.sin(now * 0.008) * 3);
-    fill(124, 200, 232, 72);
-    rect(-58 - wake, -3, wake, 6);
-    fill(42, 255, 181, 55);
-    rect(-55 - Math.floor(wake * 0.72), -1, Math.floor(wake * 0.72), 2);
-
-    pop();
+    const visual = root.AetherDragonflyVisual;
+    if (!visual || typeof visual.draw !== 'function') {
+      throw new Error('AETHER_DRAGONFLY_VISUAL_UNAVAILABLE');
+    }
+    return visual.draw({
+      mode: 'flight',
+      x: ctx.x,
+      y: ctx.y,
+      now: ctx.now || 0,
+      speed: ctx.travel ? ctx.travel.effectiveSpeed : 0,
+      heading: ctx.state ? ctx.state.heading : 0
+    });
   }
 
   function drawRouteOverlay(ctx) {
