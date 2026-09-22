@@ -234,11 +234,18 @@ function createServer() {
         window.AetherCombatSystemPolicy.TARGET.model,
       formulaVersion: window.AetherCombatFormula &&
         window.AetherCombatFormula.VERSION,
+      commonsVersion: window.AetherCommonsLedger &&
+        window.AetherCommonsLedger.VERSION,
+      commonsOwner: window.AetherCommonsLedger &&
+        window.AetherCommonsLedger.OWNER,
     }));
     assert(productionFormulaRuntime.policyModel === 'jrpg-stat-formula',
       'production combat policy is not loaded');
     assert(productionFormulaRuntime.formulaVersion === '1.1.0',
       'production formula engine is not loaded at expected version 1.1.0');
+    assert(productionFormulaRuntime.commonsVersion === '0.1.0' &&
+           productionFormulaRuntime.commonsOwner === 'ender',
+      'Commons Ledger runtime contract is not loaded for Ender');
 
     // Level-1 progression must actually gate actions 6-8.
     await page.keyboard.press('6');
@@ -370,7 +377,7 @@ function createServer() {
         if (window._combat.roll2d6() !== 12) {
           throw new Error('deterministic random override did not reach combat rolls');
         }
-        window._combat.resolveTurn('mycelialLedger', null);
+        window._combat.resolveTurn('sharedDream', null);
         const afterSuccess = window._combat.getState();
 
         window.random = function() { return 1; };
@@ -396,8 +403,8 @@ function createServer() {
 
     assert(secondaryStateContract.afterSuccess.secondaryAvailable === true,
       'successful affordable ability did not open a secondary window');
-    assert(secondaryStateContract.afterSuccess.lastAbilityId === 'mycelialLedger',
-      'secondary window did not bind to the successful ability');
+    assert(secondaryStateContract.afterSuccess.lastAbilityId === 'sharedDream',
+      'secondary window did not bind to the successful compatibility ability');
     assert(secondaryStateContract.afterFailure.secondaryAvailable === false,
       'failed later ability inherited a stale secondary window');
     assert(secondaryStateContract.afterFailure.lastAbilityId === 'uncoverTruth',
@@ -470,6 +477,14 @@ function createServer() {
               .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED)
               .map(effect => effect.kind + ':' + effect.key)
           : [],
+        mycelialImplemented: vocabulary
+          ? vocabulary.ACTION_EFFECT_PROFILES.mycelialLedger.success
+              .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED)
+              .map(effect => effect.kind + ':' + effect.key)
+          : [],
+        mycelialCommonCount: vocabulary
+          ? vocabulary.ACTION_EFFECT_PROFILES.mycelialLedger.common.length
+          : -1,
       };
     });
 
@@ -485,6 +500,12 @@ function createServer() {
       'Uncover Truth weakness reveal is not marked implemented');
     assert(effectContract.uncoverImplemented.includes('modifier:nextDamageMultiplier'),
       'Uncover Truth analysis multiplier is not marked implemented');
+    for (const key of ['relationships', 'dependencies', 'exchanges', 'obligations']) {
+      assert(effectContract.mycelialImplemented.includes('reveal:' + key),
+        'Mycelial Ledger read-only reveal is not implemented: ' + key);
+    }
+    assert(effectContract.mycelialCommonCount === 0,
+      'Mycelial Ledger unexpectedly retains common resource/Heat mutations');
 
     const registryContract = await page.evaluate(() => {
       const abilities = window.AetherAbilityDefs;
@@ -509,6 +530,8 @@ function createServer() {
           migrationStatus: abilities.DEFS.mycelialLedger.migrationStatus,
           canonicalOwner: abilities.DEFS.mycelialLedger.canonicalOwner,
           hasResolution: Boolean(abilities.DEFS.mycelialLedger.resolution),
+          resolutionModel: abilities.DEFS.mycelialLedger.resolution &&
+            abilities.DEFS.mycelialLedger.resolution.model,
         },
         levelUnlocks: progression && Object.fromEntries(
           Object.entries(progression.LEVEL_UNLOCKS)
@@ -529,9 +552,10 @@ function createServer() {
       'Shared Dream SSOT migration guard drifted');
     assert(registryContract.mycelialLedgerAuthority &&
       registryContract.mycelialLedgerAuthority.authorityStatus === 'creator-aligned-exceptional-access' &&
-      registryContract.mycelialLedgerAuthority.migrationStatus === 'redesign-required-before-formula' &&
+      registryContract.mycelialLedgerAuthority.migrationStatus === 'live-readonly-v1' &&
       registryContract.mycelialLedgerAuthority.canonicalOwner === 'ender' &&
-      registryContract.mycelialLedgerAuthority.hasResolution === false,
+      registryContract.mycelialLedgerAuthority.hasResolution === true &&
+      registryContract.mycelialLedgerAuthority.resolutionModel === 'commons-readonly',
       'Mycelial Ledger SSOT migration guard drifted');
     assert(registryContract.validAbilities,
       'runtime actions drifted from canonical ability definitions');
@@ -773,6 +797,49 @@ function createServer() {
       line.includes('Target analyzed') &&
       !line.includes('Roll:')),
       'Uncover Truth still exposed legacy dice text or failed to log analysis');
+
+    const commonsLedgerContract = await page.evaluate(() => {
+      startCombat('skyPredator');
+      const before = window._combat.getState();
+      const beforeResources = {
+        scrap: before.player.scrap,
+        aether: before.player.aether.current,
+        heat: before.player.heat.current,
+      };
+      const result = window._combat.resolveTurn('mycelialLedger', null);
+      const after = window._combat.getState();
+      return {
+        result,
+        beforeTurn: before.turn,
+        afterTurn: after.turn,
+        beforeResources,
+        afterResources: {
+          scrap: after.player.scrap,
+          aether: after.player.aether.current,
+          heat: after.player.heat.current,
+        },
+        ledger: after.commonsLedgerEntry,
+        log: after.log.slice(),
+      };
+    });
+    assert(commonsLedgerContract.result !== false,
+      'Mycelial Ledger read-only action was rejected');
+    assert(commonsLedgerContract.beforeTurn === 0 &&
+           commonsLedgerContract.afterTurn === 1,
+      'Mycelial Ledger did not consume exactly one turn');
+    assert(JSON.stringify(commonsLedgerContract.beforeResources) ===
+           JSON.stringify(commonsLedgerContract.afterResources),
+      'Mycelial Ledger mutated scrap, aether, or Heat');
+    assert(commonsLedgerContract.ledger &&
+           commonsLedgerContract.ledger.owner === 'ender' &&
+           commonsLedgerContract.ledger.accessMode === 'mycelial-commons' &&
+           commonsLedgerContract.ledger.readOnly === true,
+      'live Commons Ledger entry is missing or violates owner/access boundary');
+    assert(Array.isArray(commonsLedgerContract.ledger.unknowns),
+      'Commons Ledger did not preserve explicit unknowns');
+    assert(commonsLedgerContract.log.some(line =>
+      line.includes('Mycelial Ledger') && !line.includes('Roll:')),
+      'Mycelial Ledger still exposes legacy dice text');
 
     if (errors.length) {
       throw new Error('browser errors:\n' + errors.join('\n'));
