@@ -37,3 +37,10 @@ assert(stage.includes('fs.cpSync(assetsSrc, assetsDst'),
   'desktop staging must recursively copy assets');
 
 console.log('Aetherwake direct title-theme contract: PASS');
+
+
+const smoke = fs.readFileSync(path.join(root, 'tests', 'smoke-playwright.js'), 'utf8');
+assert(smoke.includes('aetherwake-skyward-arpeggio-main-title\\.mp3'),
+  'smoke must allow the documented pending binary to remain non-fatal');
+assert(smoke.includes('verified/recoverable but its binary has not yet been'),
+  'smoke title-media exception must preserve the explicit admission boundary');
