@@ -7,7 +7,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
 
   function drawSky(now) {
     const bands = [
@@ -26,13 +26,11 @@
       rect(0, i * bh, width, bh + 1);
     }
 
-    // Dusk horizon glow.
     for (let i = 0; i < 5; i++) {
       fill(236, 166, 96, 11 - i);
       rect(0, Math.round(height * 0.48) + i * 6, width, 6);
     }
 
-    // Four cloud-depth planes.
     for (let layer = 0; layer < 4; layer++) {
       const y = Math.round(height * (0.55 + layer * 0.07));
       const off = Math.round((now * (0.003 + layer * 0.0014) + layer * 91) % 190);
@@ -44,7 +42,6 @@
       }
     }
 
-    // Floating geography.
     const islands = [
       [0.07, 0.28, 66, 18],
       [0.22, 0.18, 38, 12],
@@ -65,7 +62,6 @@
       if (iw > 70) rect(x + 36, y + 9, 2, 2);
     }
 
-    // First stars with restrained twinkle.
     const stars = [[63,48],[121,81],[201,42],[315,68],[404,37],[529,79],[651,49],[771,91],[888,44],[742,132],[476,111]];
     for (let i = 0; i < stars.length; i++) {
       const [x,y] = stars[i];
@@ -79,7 +75,6 @@
     const dragonfly = root.AetherDragonflyVisual;
     if (!dragonfly || typeof dragonfly.draw !== 'function') return false;
 
-    // Quiet propulsion wake to anchor motion before the ship itself.
     noStroke();
     for (let i = 0; i < 6; i++) {
       const drift = (now * 0.018 + i * 34) % 180;
@@ -102,47 +97,47 @@
   function drawTitleCopy(now) {
     const ui = root.AetherUI;
     const left = 74;
-    const top = 94;
+    const baseTop = 94;
+    const entry = ui && ui.motion ? ui.motion.enter(now, 720) : Math.min(1, now / 720);
+    const top = baseTop + Math.round((1 - entry) * 12);
     const panelW = 430;
     const panelH = 318;
-    const pulse = Math.sin(now * 0.0032) * 0.5 + 0.5;
+    const pulse = ui && ui.motion ? ui.motion.pulse(now, 0.0032, 0.34) : Math.sin(now * 0.0032) * 0.5 + 0.5;
 
     if (ui && typeof ui.panel === 'function') {
-      ui.panel(left - 20, top - 26, panelW, panelH, { alpha: 232 });
-      ui.sectionLabel('THE AUREATE WAKE // FLIGHT DECK', left, top - 11, { warm: true });
+      ui.panel(left - 20, top - 26, panelW, panelH, { alpha: Math.round(188 + 44 * entry) });
+      ui.sectionLabel('THE AUREATE WAKE // FLIGHT DECK', left, top - 11, { warm: true, alpha: Math.round(110 + 70 * entry) });
     } else {
       noStroke();
       fill(7, 10, 20, 228);
       rect(left - 20, top - 26, panelW, panelH);
     }
 
-    // Logo lockup.
     textAlign(LEFT, TOP);
     textFont('Press Start 2P');
     textSize(31);
-    fill(42, 255, 181);
+    fill(42, 255, 181, Math.round(155 + 100 * entry));
     text('AETHERWAKE', left, top + 12);
 
-    fill(232, 220, 198, 235);
+    fill(232, 220, 198, Math.round(150 + 85 * entry));
     textSize(8);
     text('A SOLARPUNK SKY-FANTASY JRPG', left + 2, top + 57);
 
     noStroke();
-    fill(208, 160, 91, 150);
-    rect(left + 2, top + 77, 168, 2);
-    fill(124, 200, 232, 72);
-    rect(left + 174, top + 77, 176, 1);
+    fill(208, 160, 91, Math.round(75 + 75 * entry));
+    rect(left + 2, top + 77, Math.round(168 * entry), 2);
+    fill(124, 200, 232, Math.round(35 + 37 * entry));
+    rect(left + 174, top + 77, Math.round(176 * entry), 1);
 
     textFont('VT323');
     textSize(17);
-    fill(232, 220, 198, 220);
+    fill(232, 220, 198, Math.round(135 + 85 * entry));
     text('A small ship. A broken world. A song beginning to fail.', left + 2, top + 94);
 
     textSize(13);
-    fill(124, 200, 232, 165);
+    fill(124, 200, 232, Math.round(100 + 65 * entry));
     text('THE FIRST WAKE', left + 2, top + 124);
 
-    // Premium primary action: visually reads as a real menu command.
     if (ui && typeof ui.primaryButton === 'function') {
       ui.primaryButton('NEW GAME', left + 2, top + 153, 278, 42, { pulse });
     } else {
@@ -158,28 +153,39 @@
       text('NEW GAME', left + 18, top + 169);
     }
 
-    textFont('VT323');
-    textSize(13);
-    fill(138, 153, 169, 210);
-    text('ENTER / N  confirm', left + 299, top + 167);
+    if (ui && typeof ui.keyHint === 'function') {
+      ui.keyHint('ENTER', 'confirm', left + 299, top + 164, { alpha: 180 });
+    } else {
+      textFont('VT323');
+      textSize(13);
+      fill(138, 153, 169, 210);
+      text('ENTER / N  confirm', left + 299, top + 167);
+    }
 
-    // Operational hints are quiet and separated from the hero action.
     if (ui && typeof ui.divider === 'function') ui.divider(left + 2, top + 216, 350, false);
     textFont('Press Start 2P');
     textSize(6);
     fill(124, 200, 232, 135);
     text('KEYBOARD', left + 2, top + 230);
+
+    if (ui && typeof ui.keyHint === 'function') {
+      ui.keyHint('WASD', 'move', left + 2, top + 244, { alpha: 145 });
+      ui.keyHint('E', 'interact', left + 116, top + 244, { alpha: 145 });
+      ui.keyHint('ESC', 'back', left + 208, top + 244, { alpha: 145 });
+    } else {
+      textFont('VT323');
+      textSize(13);
+      fill(232, 220, 198, 175);
+      text('WASD / ARROWS  move     E  interact     ESC  back', left + 2, top + 245);
+    }
+
     textFont('VT323');
     textSize(13);
-    fill(232, 220, 198, 175);
-    text('WASD / ARROWS  move     E  interact     ESC  back', left + 2, top + 245);
-
     fill(208, 160, 91, 145);
-    text('Alt+Enter / F11  fullscreen', left + 2, top + 267);
+    text('Alt+Enter / F11  fullscreen', left + 2, top + 273);
   }
 
   function drawAmbientFrame(now) {
-    // Edge vignette and subtle navigation marks.
     noFill();
     stroke(7, 10, 20, 118);
     strokeWeight(14);
