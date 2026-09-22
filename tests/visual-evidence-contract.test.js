@@ -8,11 +8,12 @@ const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'tests', 'capture-visual-evidence.js'), 'utf8');
 
 for (const id of [
-  '00-first-wake-dock-walk',
-  '01-dragonfly-dusk-dock',
-  '02-dialogue-ionia',
-  '03-combat-sky-predator',
-  '04-dragonfly-flight',
+  '00-title-screen',
+  '01-first-wake-dock-walk',
+  '02-dragonfly-dusk-dock',
+  '03-dialogue-ionia',
+  '04-combat-sky-predator',
+  '05-dragonfly-flight',
 ]) {
   assert(source.includes(id), 'visual evidence capture missing scene: ' + id);
 }
