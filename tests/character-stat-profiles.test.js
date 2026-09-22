@@ -12,7 +12,9 @@ const source = fs.readFileSync(
   'utf8'
 );
 
-const window = {};
+const window = {
+  AetherwakeCharacterMagicProfile: require('../modules/character-magic-profile.js'),
+};
 vm.runInNewContext(statModelSource, { window, console });
 vm.runInNewContext(source, { window, console });
 
