@@ -193,7 +193,7 @@ async function setAxes(page, x, y) {
       window._controlsMenuFocus.focusedId === 'ui-up'
     , undefined, { timeout: 5000 });
 
-    // Focus Quest Log, switch the binding column to gamepad, and capture VIEW.
+    // Focus Quest Log, switch the binding column to gamepad, and capture LT.
     for (let i = 0; i < 13; i++) await pulseButton(page, 13);
     await page.waitForFunction(() =>
       window._controlsMenuFocus &&
@@ -207,12 +207,12 @@ async function setAxes(page, x, y) {
       window._inputBindingCapture.actionId === 'quest-log' &&
       window._inputBindingCapture.device === 'gamepad'
     , undefined, { timeout: 5000 });
-    await pulseButton(page, 8);
+    await pulseButton(page, 6);
     await page.waitForFunction(() =>
       !window._inputBindingCapture &&
       window._inputBindings &&
       window._inputBindings.gamepadOverrides &&
-      window._inputBindings.gamepadOverrides['quest-log'] === 8
+      window._inputBindings.gamepadOverrides['quest-log'] === 6
     , undefined, { timeout: 5000 });
 
     const persistedBindings = await page.evaluate(() => {
@@ -225,10 +225,10 @@ async function setAxes(page, x, y) {
     assert(
       persistedBindings.envelope &&
       persistedBindings.envelope.bindings &&
-      persistedBindings.envelope.bindings.gamepadOverrides['quest-log'] === 8,
+      persistedBindings.envelope.bindings.gamepadOverrides['quest-log'] === 6,
       'controller remap did not persist independently'
     );
-    assert(persistedBindings.questPrompt === 'VIEW',
+    assert(persistedBindings.questPrompt === 'LT',
       'dynamic prompt did not update to the remapped controller binding');
 
     // Cancel returns to Settings, then title/menu; Confirm starts authored First Wake.
@@ -302,12 +302,12 @@ async function setAxes(page, x, y) {
            loadedPosition.tileY === savePosition.tileY,
       'controller Save/Load overlay did not restore the saved world position');
 
-    // The old Quest Log button is suppressed after remapping; VIEW now owns it.
+    // The old Quest Log button is suppressed after remapping; LT now owns it.
     await pulseButton(page, 3);
     await page.waitForTimeout(200);
     assert((await page.evaluate(() => window.gameState)) === 'world',
       'old controller Quest Log button remained active after remap');
-    await pulseButton(page, 8);
+    await pulseButton(page, 6);
     await page.waitForFunction(() => window.gameState === 'questlog', undefined, { timeout: 5000 });
     await pulseButton(page, 1);
     await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
