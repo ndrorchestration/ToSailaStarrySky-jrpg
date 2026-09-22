@@ -36,7 +36,7 @@ The job performs, in order:
 3. portable ZIP creation;
 4. NSIS installer compilation;
 5. clean per-user installer execution;
-6. launch smoke of the installed `Aetherwake.exe`;
+6. launch the installed `Aetherwake.exe` and require an application-level readiness marker proving `setup()` completed and a 960×640 first frame rendered;
 7. portable ZIP layout verification;
 8. SHA-256 generation;
 9. release publication only for manual/tagged release runs.
@@ -56,7 +56,7 @@ Local commands:
 .\scripts\build-windows-release.ps1
 ~~~
 
-The local release script runs the desktop contract, builds the Windows runtime, compiles the NSIS installer, installs it into a clean temporary directory, launches the installed game for a 10-second smoke, and writes SHA-256 hashes. It is the maintainer fallback when hosted CI cannot allocate runners.
+The local release script runs the desktop contract, builds the Windows runtime, compiles the NSIS installer, installs it into a clean temporary directory, launches the installed game, requires a runtime-ready + completed-first-frame marker with the expected 960×640 canvas, and writes SHA-256 hashes. It is the maintainer fallback when hosted CI cannot allocate runners.
 
 ## Launch contract
 
@@ -70,7 +70,7 @@ The desktop shell must:
 - keep the browser-served path available as a fallback;
 - build Aetherwake-Setup.exe plus Aetherwake-Windows.zip in the same Windows job that verifies them;
 - avoid GitHub Actions artifact storage/transfer on the release-critical path;
-- publish only after the exact candidate passes a real Windows install/launch smoke;
+- publish only after the exact candidate passes a real Windows install plus application-level runtime-ready/first-frame smoke;
 - install per-user without requiring administrator elevation or the pre-install startup confirmation;
 - publish Aetherwake-Windows.zip as the manual fallback;
 - fail visibly if packaging or the entry point is invalid.
