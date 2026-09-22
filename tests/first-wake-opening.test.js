@@ -151,4 +151,28 @@ opening.advance(state);
 assert.strictEqual(state.complete, true);
 assert.strictEqual(opening.currentScene(state).id, 'first_wake_card');
 
+const fs = require('fs');
+const path = require('path');
+const runtime = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8');
+
+assert(runtime.includes("sky_predator: 'skyPredator'"), 'Sky-Predator hazard must map to combat encounter');
+assert(runtime.includes("wind_shear: 'windShear'"), 'Wind Shear hazard must map to combat encounter');
+assert(runtime.includes("aether_leak: 'aetherLeak'"), 'Aether Leak hazard must map to combat encounter');
+assert(runtime.includes("corporate_intercept: 'corporateSalvager'"), 'Corporate Intercept hazard must map to combat encounter');
+assert(runtime.includes('triggerHazardEncounter(0)'), 'Crossing proximity must launch hazard encounters');
+assert(runtime.includes('combatState.enemy.hp <= 0'), 'Hazard completion must be gated on combat victory');
+assert(runtime.includes("quest.state !== QUEST_STATES.CROSSING"), 'Hazards must not trigger outside Crossing');
+assert(runtime.includes("Four hazards stand between you"), 'Crossing journal copy must match the four-hazard runtime');
+assert(runtime.includes("Crossing — four hazards on the way to the ship."), 'Quest log copy must match the four-hazard runtime');
+
+assert(runtime.includes('if (quest.hazardsCompleted >= 4)'), 'Crossing must not advance before all four hazards are cleared');
+assert(runtime.includes('four hazards block the way to the Aureate Wake'), 'Crossing journal must describe four hazards');
+assert(runtime.includes('OBJECTIVE // TALK TO THE THREE SIGNAL CONTACTS'), 'World entry must provide an explicit first objective');
+assert(runtime.includes('journal: quest.journal.map'), 'Quest state must expose journal entries to the quest log');
+assert(runtime.includes("text('JOURNAL'"), 'Quest log must render journal entries');
+
+assert(runtime.includes('function drawWakeResolutionBeat()'), 'Choice resolution must include a dedicated Wake beat before epilogue');
+assert(runtime.includes("quest.state === QUEST_STATES.WAKE"), 'Wake state must be explicitly handled');
+assert(runtime.includes('ENTER / SPACE — HEAR WHAT FOLLOWS'), 'Wake beat must require deliberate player advance');
+
 console.log('Aetherwake First Wake opening contract: PASS');
