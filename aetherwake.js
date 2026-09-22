@@ -285,6 +285,7 @@ function draw() {
     menuAutoStartTimer = millis();
   } else if (gameState === STATE.MENU &&
              menuAutoStartTimer > 0 &&
+             !latestSaveMeta &&
              millis() - menuAutoStartTimer > 3000) {
     startGame();
   }
@@ -475,6 +476,17 @@ let interactionKey = null;
 function keyPressed() {
   keys[keyCode] = true;
   keysPressed[keyCode] = true;
+
+  if ((gameState === STATE.WORLD || gameState === STATE.AIRSHIP) && keyCode === 116) {
+    openSaveLoadMenu('save');
+    delete keysPressed[keyCode];
+    return false;
+  }
+  if ((gameState === STATE.WORLD || gameState === STATE.AIRSHIP) && keyCode === 120) {
+    openSaveLoadMenu('load');
+    delete keysPressed[keyCode];
+    return false;
+  }
 
   if (gameState === STATE.OPENING && (keyCode === 13 || keyCode === 32)) {
     advanceFirstWakeOpening();
@@ -1162,6 +1174,7 @@ function advanceFirstWakeOpening() {
     window.gameState = gameState;
     prevState = null;
     showToast('CHAPTER I // FIRST WAKE', C.scioto, 1800);
+    setTimeout(function() { autosave('chapter-handoff'); }, 0);
     setTimeout(function() {
       if (gameState === STATE.WORLD) {
         showToast('OBJECTIVE // TALK TO THE THREE SIGNAL CONTACTS — PRESS T FOR QUEST LOG', C.teal, 3200);
@@ -1490,6 +1503,7 @@ function finishCombat() {
   }
 
   if (VIS.fadeTransitions) startFade(150);
+  setTimeout(function() { autosave('combat-resolution'); }, 0);
 }
 
 function openState(s) {
@@ -1642,6 +1656,9 @@ function triggerAbilityFeedback(success) {
 function triggerQuestAdvance() {
   if (typeof window.playQuestAdvance === 'function') window.playQuestAdvance();
   showToast('QUEST ADVANCED', [42, 255, 181], 1800);
+  if (typeof autosave === 'function') {
+    setTimeout(function() { autosave('quest-advance'); }, 0);
+  }
 }
 
 /** Notify level up. */
