@@ -498,6 +498,18 @@ function createServer() {
           progression && progression.validateAgainstAbilityDefs(abilities)
         ),
         actionOrder: abilities && abilities.ACTION_ORDER.slice(),
+        sharedDreamAuthority: abilities && abilities.DEFS.sharedDream && {
+          authorityStatus: abilities.DEFS.sharedDream.authorityStatus,
+          migrationStatus: abilities.DEFS.sharedDream.migrationStatus,
+          canonicalOwner: abilities.DEFS.sharedDream.canonicalOwner,
+          hasResolution: Boolean(abilities.DEFS.sharedDream.resolution),
+        },
+        mycelialLedgerAuthority: abilities && abilities.DEFS.mycelialLedger && {
+          authorityStatus: abilities.DEFS.mycelialLedger.authorityStatus,
+          migrationStatus: abilities.DEFS.mycelialLedger.migrationStatus,
+          canonicalOwner: abilities.DEFS.mycelialLedger.canonicalOwner,
+          hasResolution: Boolean(abilities.DEFS.mycelialLedger.resolution),
+        },
         levelUnlocks: progression && Object.fromEntries(
           Object.entries(progression.LEVEL_UNLOCKS)
             .map(([level, entries]) => [level, entries.map(entry => entry.abilityId)])
@@ -505,10 +517,22 @@ function createServer() {
       };
     });
 
-    assert(registryContract.abilityVersion === '0.2.0',
+    assert(registryContract.abilityVersion === '0.3.0',
       'ability registry version is not loaded');
     assert(registryContract.progressionVersion === '0.2.0',
       'progression registry version is not loaded');
+    assert(registryContract.sharedDreamAuthority &&
+      registryContract.sharedDreamAuthority.authorityStatus === 'legacy-adaptation-residue' &&
+      registryContract.sharedDreamAuthority.migrationStatus === 'blocked-by-current-ssot' &&
+      registryContract.sharedDreamAuthority.canonicalOwner === null &&
+      registryContract.sharedDreamAuthority.hasResolution === false,
+      'Shared Dream SSOT migration guard drifted');
+    assert(registryContract.mycelialLedgerAuthority &&
+      registryContract.mycelialLedgerAuthority.authorityStatus === 'creator-aligned-exceptional-access' &&
+      registryContract.mycelialLedgerAuthority.migrationStatus === 'redesign-required-before-formula' &&
+      registryContract.mycelialLedgerAuthority.canonicalOwner === 'ender' &&
+      registryContract.mycelialLedgerAuthority.hasResolution === false,
+      'Mycelial Ledger SSOT migration guard drifted');
     assert(registryContract.validAbilities,
       'runtime actions drifted from canonical ability definitions');
     assert(registryContract.validProgression,
