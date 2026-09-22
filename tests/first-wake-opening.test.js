@@ -42,4 +42,10 @@ assert(runtime.includes("quest.state !== QUEST_STATES.CROSSING"), 'Hazards must 
 assert(runtime.includes("Four hazards stand between you"), 'Crossing journal copy must match the four-hazard runtime');
 assert(runtime.includes("Crossing — four hazards on the way to the ship."), 'Quest log copy must match the four-hazard runtime');
 
+assert(runtime.includes('if (quest.hazardsCompleted >= 4)'), 'Crossing must not advance before all four hazards are cleared');
+assert(runtime.includes('four hazards block the way to the Aureate Wake'), 'Crossing journal must describe four hazards');
+assert(runtime.includes('OBJECTIVE // TALK TO THE THREE SIGNAL CONTACTS'), 'World entry must provide an explicit first objective');
+assert(runtime.includes('journal: quest.journal.map'), 'Quest state must expose journal entries to the quest log');
+assert(runtime.includes("text('JOURNAL'"), 'Quest log must render journal entries');
+
 console.log('Aetherwake First Wake opening contract: PASS');
