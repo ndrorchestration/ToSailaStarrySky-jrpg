@@ -80,6 +80,7 @@
     "test:save-interrupted-write": "node tests/save-interrupted-write.test.js",
     "test:persistence-coverage": "node tests/persistence-coverage-contract.test.js",
     "test:first-wake-benchmark": "node tests/first-wake-benchmark-contract.test.js",
-    "test:first-wake-benchmark-live": "node tests/first-wake-benchmark-playwright.js"
+    "test:first-wake-benchmark-live": "node tests/first-wake-benchmark-playwright.js",
+    "test:input-accessibility": "node tests/input-accessibility-contract.test.js"
   }
 }
