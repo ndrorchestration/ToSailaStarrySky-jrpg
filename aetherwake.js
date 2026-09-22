@@ -3421,9 +3421,53 @@ function drawTileSolid(px, py, s) {
   drawPixelWorldTile('hull', px, py, 0);
 }
 
+function isGroundType(tx, ty, type) {
+  return ty >= 0 && ty < MAP_SIZE && tx >= 0 && tx < MAP_SIZE &&
+    groundLayer[ty] && groundLayer[ty][tx] === type;
+}
+
+function scenicNoise(tx, ty, salt) {
+  // Stable integer field: deterministic art placement with no runtime randomness.
+  let n = Math.imul(tx + salt * 17, 374761393) ^ Math.imul(ty - salt * 13, 668265263);
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  return (n ^ (n >>> 16)) >>> 0;
+}
+
+function grassNeighborCount(tx, ty) {
+  let count = 0;
+  for (let oy = -1; oy <= 1; oy++) {
+    for (let ox = -1; ox <= 1; ox++) {
+      if ((ox || oy) && isGroundType(tx + ox, ty + oy, TILE_TYPES.GROUND_GRASS)) count++;
+    }
+  }
+  return count;
+}
+
 function drawTileGrass(px, py, s) {
-  const frame = Math.abs((px / 16) * 7 + (py / 16) * 13) % 3;
-  drawPixelWorldTile('grass', px, py, frame);
+  const tx = Math.round(px / 16);
+  const ty = Math.round(py / 16);
+  const variant = scenicNoise(tx, ty, 1) % 3;
+  drawPixelWorldTile('grass', px, py, variant);
+
+  // Region-aware scenic composition. Decorative only: collision/topology remain
+  // owned by groundLayer, so richer art cannot create or remove walkable cells.
+  const neighbors = grassNeighborCount(tx, ty);
+  const biome = scenicNoise(Math.floor(tx / 3), Math.floor(ty / 3), 4) % 12;
+  const local = scenicNoise(tx, ty, 7) % 16;
+
+  if (neighbors >= 5 && biome <= 2 && local < 10) {
+    drawPixelWorldTile('forest', px, py, 0);
+  } else if (neighbors >= 4 && (biome === 3 || biome === 4) && local < 7) {
+    drawPixelWorldTile('flowers', px, py, 0);
+  } else if (neighbors >= 5 && biome === 5 && local < 5 && ty < Math.floor(MAP_SIZE * 0.55)) {
+    drawPixelWorldTile('mountain', px, py, 0);
+  } else if (neighbors >= 4 && biome === 8 && local === 0) {
+    drawPixelWorldTile('ruins', px, py, 0);
+  } else if (neighbors >= 5 && biome === 9 && local === 1) {
+    drawPixelWorldTile('village', px, py, 0);
+  } else if ((tx + Math.floor(ty / 3)) % 11 === 5 && neighbors >= 3) {
+    drawPixelWorldTile('path', px, py, 0);
+  }
 }
 
 function drawTileCrate(px, py, s) {
@@ -3435,7 +3479,21 @@ function drawTileFloat(px, py, s) {
 }
 
 function drawTileWater(px, py, s) {
+  const tx = Math.round(px / 16);
+  const ty = Math.round(py / 16);
   drawPixelWorldTile('water', px, py, Math.floor(frameCount / 24) % 2);
+
+  // Shoreline surf is based on actual adjacency, not arbitrary open-water noise.
+  const touchesLand =
+    isGroundType(tx - 1, ty, TILE_TYPES.GROUND_GRASS) ||
+    isGroundType(tx + 1, ty, TILE_TYPES.GROUND_GRASS) ||
+    isGroundType(tx, ty - 1, TILE_TYPES.GROUND_GRASS) ||
+    isGroundType(tx, ty + 1, TILE_TYPES.GROUND_GRASS) ||
+    isGroundType(tx - 1, ty, TILE_TYPES.GROUND_FLOAT) ||
+    isGroundType(tx + 1, ty, TILE_TYPES.GROUND_FLOAT) ||
+    isGroundType(tx, ty - 1, TILE_TYPES.GROUND_FLOAT) ||
+    isGroundType(tx, ty + 1, TILE_TYPES.GROUND_FLOAT);
+  if (touchesLand) drawPixelWorldTile('shore', px, py, 0);
 }
 
 function drawTileLore(px, py, s) {
