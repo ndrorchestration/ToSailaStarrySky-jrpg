@@ -95,6 +95,9 @@
     "test:crossing-hazard-combat": "node tests/crossing-hazard-combat.test.js",
     "test:hazard-marker-alignment": "node tests/hazard-marker-alignment.test.js",
     "test:world-entry-onboarding": "node tests/world-entry-onboarding.test.js",
-    "test:wake-transition-pacing": "node tests/wake-transition-pacing.test.js"
+    "test:wake-transition-pacing": "node tests/wake-transition-pacing.test.js",
+    "test:save-system": "node tests/save-system-contract.test.js",
+    "test:save-runtime": "node tests/save-runtime-contract.test.js",
+    "test:save-payload": "node tests/save-payload-validator.test.js"
   }
 }
