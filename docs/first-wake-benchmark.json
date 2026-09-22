@@ -210,11 +210,12 @@
         "modules/focus-manager.js",
         "modules/gamepad-input.js",
         "modules/user-settings.js",
+        "tests/controller-parity-playwright.js",
         "tests/input-runtime-contract.test.js",
         "tests/settings-runtime-contract.test.js",
         "tests/audio-settings-contract.test.js"
       ],
-      "nextAction": "Migrate WORLD/dialogue/AIRSHIP semantic controller dispatch, then combat focus/remapping and remaining text/contrast/subtitle/vibration hooks before running First Wake keyboard/controller parity."
+      "nextAction": "Add combat controller focus/selection, navigable controller Save/Load, remapping/prompt rebinding, remaining rendering hooks, then require an executed exact-head controller parity result."
     },
     {
       "id": "visual-benchmark-set",
