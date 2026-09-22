@@ -79,6 +79,12 @@
           "stat": "grace"
         },
         {
+          "id": "aether_leak",
+          "label": "Aether Leak",
+          "done": false,
+          "stat": "wits"
+        },
+        {
           "id": "corporate_intercept",
           "label": "Corporate Intercept",
           "done": false,
@@ -162,5 +168,5 @@
     },
     "airNavigation": null
   },
-  "checksum": "cd5aad51"
+  "checksum": "7754c683"
 }
