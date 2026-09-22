@@ -8,11 +8,12 @@ This lane exists to turn the Visual Bible's four propagation gates into exact-he
 
 A complete bundle contains:
 
-1. `01-dragonfly-dusk-dock.png` — benchmark dock scene.
-2. `02-dialogue-ionia.png` — representative dialogue scene.
-3. `03-combat-sky-predator.png` — representative combat scene.
-4. `04-dragonfly-flight.png` — representative Dragonfly flight scene.
-5. `manifest.json` — source SHA, viewport/canvas dimensions, capture boundary, and SHA-256 for every screenshot.
+1. `00-first-wake-dock-walk.png` — First Wake Sequence 02 mid-walk.
+2. `01-dragonfly-dusk-dock.png` — benchmark dock scene.
+3. `02-dialogue-ionia.png` — representative dialogue scene.
+4. `03-combat-sky-predator.png` — representative combat scene.
+5. `04-dragonfly-flight.png` — representative Dragonfly flight scene.
+6. `manifest.json` — source SHA, viewport/canvas dimensions, capture boundary, and SHA-256 for every screenshot.
 
 ## Capture contract
 
