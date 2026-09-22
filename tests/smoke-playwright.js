@@ -1033,6 +1033,41 @@ function createServer() {
       line.includes('Aether Seal cannot bind')),
       'rejected Aether Seal did not expose fail-closed reason');
 
+    const flightBefore = await page.evaluate(() => {
+      finishCombat();
+      if (typeof enterAirNavigation !== 'function') {
+        throw new Error('enterAirNavigation unavailable');
+      }
+      const entered = enterAirNavigation();
+      return {
+        entered,
+        gameState: window.gameState,
+        x: window._airNavigationState && window._airNavigationState.x,
+        y: window._airNavigationState && window._airNavigationState.y,
+        moored: window._airNavigationState && window._airNavigationState.mooredLandmarkId,
+        altitude: window._airNavigationState && window._airNavigationState.altitude,
+      };
+    });
+    assert(flightBefore.entered === true && flightBefore.gameState === 'airship',
+      'open-sky flight state did not activate');
+    assert(flightBefore.moored === 'wake-dock',
+      'flight did not begin moored at Wake Dock');
+
+    await page.keyboard.press('ArrowRight');
+    const flightAfterMove = await page.evaluate(() => ({
+      gameState: window.gameState,
+      x: window._airNavigationState && window._airNavigationState.x,
+      y: window._airNavigationState && window._airNavigationState.y,
+      moored: window._airNavigationState && window._airNavigationState.mooredLandmarkId,
+      weatherId: window._airNavigationState && window._airNavigationState.weatherId,
+    }));
+    assert(flightAfterMove.gameState === 'airship',
+      'flight movement left the airship state unexpectedly');
+    assert(flightAfterMove.moored === null,
+      'first flight movement did not cast off from berth');
+    assert(flightAfterMove.x > flightBefore.x,
+      'flight movement did not advance sky position');
+
     if (errors.length) {
       throw new Error('browser errors:\n' + errors.join('\n'));
     }
@@ -1052,6 +1087,8 @@ function createServer() {
       combatTurns: combatAfterActions.turn,
       enemy: combatAfterActions.enemy && combatAfterActions.enemy.name,
       worldAfterCombat,
+      flightBefore,
+      flightAfterMove,
     }, null, 2));
   } finally {
     await browser.close();
