@@ -101,7 +101,7 @@
         'A frequency distortion and a displaced spatial relation overlap.',
       ]),
       joinCharacterId: 'lyra',
-      activePartyIds: Object.freeze(['ender', 'lyra']),
+      activePartyIds: Object.freeze(['ender']),
     }),
     Object.freeze({
       id: 'ionia_practical',
