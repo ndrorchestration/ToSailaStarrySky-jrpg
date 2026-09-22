@@ -30,7 +30,7 @@ assert(runtime.includes("'▶ '"),
   'Settings focus must not rely on color alone');
 assert(runtime.includes('window.AetherUserSettings.save(nextSettings)'),
   'Settings changes must persist through the independent settings store');
-assert(runtime.includes('Changes save immediately. Integrated now: reduced motion, screen shake, text speed.'),
+assert(runtime.includes('Changes save immediately. Integrated now: motion, screen shake, text speed, effects/dialogue volume.'),
   'Settings UI must state the current integration boundary');
 
 assert(runtime.includes('VIS.screenShake = !reduceMotion'),
@@ -39,5 +39,10 @@ assert(runtime.includes('VIS.fadeTransitions = !reduceMotion'),
   'reduced-motion preference must disable fade transitions');
 assert(runtime.includes('dialogueTypeIn.speed = textSpeeds[userSettings.textSpeed]'),
   'text-speed preference must apply to dialogue type-in timing');
+
+assert(runtime.includes('window.setEffectsVolumePercent(userSettings.effectsVolume)'),
+  'Effects volume must apply through the authored SFX master-gain adapter');
+assert(runtime.includes('_dialogueAudioEl.volume = 0.92 * (dialogueVolume / 100)'),
+  'Dialogue volume must scale the authored TTS element level');
 
 console.log('Aetherwake Settings runtime contract: PASS');
