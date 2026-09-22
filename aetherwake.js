@@ -842,53 +842,31 @@ function advanceFirstWakeOpening() {
 function drawFirstWakeOpening() {
   const opening = window.AetherFirstWakeOpening;
   const state = window._firstWakeOpeningState;
+  const visual = window.AetherFirstWakeVisual;
   if (!opening || !state) return;
   const scene = opening.currentScene(state);
 
+  if (visual && typeof visual.draw === 'function') {
+    push();
+    visual.draw(scene, state, { now: millis(), width, height });
+    pop();
+    return;
+  }
+
+  // Fail-visible fallback only; canonical presentation lives in AetherFirstWakeVisual.
   push();
   noStroke();
   fill(C.navy[0], C.navy[1], C.navy[2], 245);
   rect(0, 0, width, height);
-
-  fill(52, 67, 96);
-  rect(0, height * 0.62, width, height * 0.38);
-  fill(124, 200, 232, 80);
-  rect(0, height * 0.58, width, 3);
-  fill(16, 22, 38);
-  rect(width * 0.68, height * 0.51, 124, 34);
-  rect(width * 0.72, height * 0.47, 48, 12);
-
-  textAlign(CENTER, TOP);
+  textAlign(CENTER, CENTER);
   textFont('Press Start 2P');
-  textSize(scene.chapterCard ? 22 : 12);
+  textSize(12);
   fill(C.teal[0], C.teal[1], C.teal[2]);
-  text(scene.title, width / 2, 82);
-  if (scene.subtitle) {
-    textSize(10);
-    fill(C.scioto[0], C.scioto[1], C.scioto[2]);
-    text(scene.subtitle, width / 2, 120);
-  }
-
-  textAlign(LEFT, TOP);
+  text(scene.title, width / 2, height / 2 - 30);
   textFont('VT323');
-  textSize(20);
+  textSize(18);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
-  let y = 210;
-  for (const line of scene.lines) {
-    text(line, 150, y, width - 300, 56);
-    y += 58;
-  }
-
-  textAlign(CENTER, BOTTOM);
-  textSize(16);
-  fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
-  text(
-    'ACTIVE PARTY // ' + opening.expectedPartyIds(state).map(id => id.toUpperCase()).join(' + '),
-    width / 2,
-    height - 58
-  );
-  fill(C.teal[0], C.teal[1], C.teal[2]);
-  text('ENTER / SPACE — CONTINUE', width / 2, height - 26);
+  text(scene.lines.join('  '), width / 2, height / 2 + 18, width - 220, 120);
   pop();
 }
 
