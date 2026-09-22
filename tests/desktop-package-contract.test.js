@@ -124,3 +124,13 @@ assert(runtimeSourceForCanvas.includes('createCanvas(960, 640)'),
   'logical game canvas must remain 960x640 to preserve authored layout coordinates');
 assert(embeddedHtmlForCanvas.includes('width: min(100vw, calc(100vh * 1.5))'),
   'desktop presentation must scale the 3:2 canvas to the largest fitting window area');
+
+const embeddedDesktopControls = fs.readFileSync(path.join(__dirname, '..', 'index-embedded.html'), 'utf8');
+assert(embeddedDesktopControls.includes('win.toggleFullscreen()'),
+  'desktop entrypoint must expose a native fullscreen toggle');
+assert(embeddedDesktopControls.includes("event.altKey && event.key === 'Enter'"),
+  'desktop entrypoint must support Alt+Enter fullscreen');
+assert(embeddedDesktopControls.includes("event.key === 'F11'"),
+  'desktop entrypoint must support F11 fullscreen');
+assert(embeddedDesktopControls.includes('win.leaveFullscreen()'),
+  'desktop entrypoint must support leaving fullscreen with Escape');
