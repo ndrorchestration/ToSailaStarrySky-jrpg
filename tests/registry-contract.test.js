@@ -14,10 +14,20 @@ const expectedActionOrder = [
   'rest',
 ];
 
-assert.strictEqual(abilities.VERSION, '0.2.0');
+assert.strictEqual(abilities.VERSION, '0.3.0');
 assert.strictEqual(progression.VERSION, '0.2.0');
 assert.deepStrictEqual(abilities.ACTION_ORDER, expectedActionOrder);
 assert.strictEqual(abilities.validateDefs(), true);
+assert.strictEqual(abilities.DEFS.sharedDream.authorityStatus, 'legacy-adaptation-residue');
+assert.strictEqual(abilities.DEFS.sharedDream.migrationStatus, 'blocked-by-current-ssot');
+assert.strictEqual(abilities.DEFS.sharedDream.canonicalOwner, null);
+assert.strictEqual(abilities.DEFS.sharedDream.resolution, undefined);
+assert.strictEqual(abilities.DEFS.mycelialLedger.authorityStatus,
+  'creator-aligned-exceptional-access');
+assert.strictEqual(abilities.DEFS.mycelialLedger.migrationStatus,
+  'redesign-required-before-formula');
+assert.strictEqual(abilities.DEFS.mycelialLedger.canonicalOwner, 'ender');
+assert.strictEqual(abilities.DEFS.mycelialLedger.resolution, undefined);
 
 const runtimeActions = abilities.createRuntimeActions();
 assert.strictEqual(abilities.assertRuntimeActions(runtimeActions), true);
