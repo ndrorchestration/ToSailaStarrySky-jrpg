@@ -156,6 +156,9 @@ jobs:
       - name: Verify First Wake opening runtime
         run: npm run test:first-wake-opening
 
+      - name: Verify title visual stage
+        run: npm run test:title-visual
+
       - name: Verify First Wake visual stage
         run: npm run test:first-wake-visual
 
