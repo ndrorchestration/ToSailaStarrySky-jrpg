@@ -62,4 +62,13 @@ assert(source.includes("semanticActionPressed('ui-down')"),
 assert(source.includes("'▶ '"),
   'focused save slot must have a non-color-only visual marker');
 
+assert(source.includes('function pollGamepadDiagnostics()'),
+  'runtime must poll browser gamepad state each frame');
+assert(source.includes('navigator.getGamepads()'),
+  'runtime must obtain current gamepad objects from navigator.getGamepads');
+assert(source.includes('window.AetherGamepadInput.poll('),
+  'runtime gamepad polling must use the semantic gamepad adapter');
+assert(source.includes('gameplay dispatch remains keyboard-authoritative'),
+  'gamepad diagnostics tranche must not overclaim live controller dispatch');
+
 console.log('Aetherwake input runtime contract: PASS');
