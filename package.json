@@ -66,6 +66,7 @@
     "test:aether-seal-contract": "node tests/aether-seal-contract.test.js",
     "test:character-canon": "node tests/character-canon-alignment.test.js",
     "test:runtime-ssot": "node tests/runtime-ssot-contract.test.js",
-    "test:air-navigation": "node tests/air-navigation.test.js"
+    "test:air-navigation": "node tests/air-navigation.test.js",
+    "test:open-sky-runtime": "node tests/open-sky-runtime-contract.test.js"
   }
 }
