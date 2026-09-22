@@ -275,4 +275,16 @@ Before executable magic is enabled, later implementation still must add:
 - effect-resolver coverage,
 - automated combat tests for executable spells.
 
+`modules/magic-spell-access.js` v0.1 now provides a unified, fail-closed access evaluator across the **260 current design spell seeds**.
+
+It evaluates:
+- source-tree/domain mastery rank,
+- spell-rank requirement,
+- explicit cross-mastery prerequisites,
+- non-elemental domain admission status.
+
+Established and established-family domains are admitted by their current registry status. Proposed and proposed-high-order domains remain blocked by default unless a caller supplies an explicit admitted-domain list representing a later creator/canon decision. That explicit admission still does not bypass mastery requirements.
+
+The evaluator only answers whether a spell is currently **eligible for access**. It does not learn the spell, award mastery, charge resources, or execute effects.
+
 Unsupported magic must continue to fail closed rather than being simulated through narration-only effects.
