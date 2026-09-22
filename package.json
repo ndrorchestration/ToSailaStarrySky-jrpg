@@ -85,6 +85,7 @@
     "test:visual-evidence-contract": "node tests/visual-evidence-contract.test.js",
     "capture:visual-evidence": "node tests/capture-visual-evidence.js",
     "test:dragonfly-visual": "node tests/dragonfly-visual-authority.test.js",
-    "test:first-wake-visual": "node tests/first-wake-visual-stage.test.js"
+    "test:first-wake-visual": "node tests/first-wake-visual-stage.test.js",
+    "test:title-music": "node tests/title-music-contract.test.js"
   }
 }
