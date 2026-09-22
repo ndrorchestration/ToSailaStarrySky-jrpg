@@ -22,6 +22,12 @@ assert(runtime.includes("createState({ mooredLandmarkId: 'wake-dock', speed: 0 }
 assert(runtime.includes("{ id: 'flight', label: 'OPEN-SKY FLIGHT' }"),'explicit flight command missing');
 assert(runtime.includes("{ id: 'phaseSlip', label: 'PHASE-SLIP' }"),'phase-slip command was lost');
 assert(runtime.includes("LANDING DENIED // DOCK AT A STABLE BERTH"),'midair disembark guard missing');
+assert(runtime.includes("DISEMBARK UNAVAILABLE // DESTINATION MAP NOT ESTABLISHED"),
+  'unmapped destination disembark is not fail-closed');
+assert(runtime.includes("airNavigationState.mooredLandmarkId !== 'wake-dock'"),
+  'non-Wake docks can still fall through to the current ground map');
+assert(runtime.includes("CAST OFF BEFORE CHANGING SPEED"),
+  'moored ship can change travel speed without casting off');
 assert(!runtime.includes("if (input.cancel) { airshipFlightMode = false; leaveAirship(); }"),'flight cancel still permits direct midair world exit');
 assert(runtime.includes("ENTER / ESC SYSTEMS"),'flight controls still advertise unsafe landing');
 assert(runtime.indexOf('combatReturnState = returnState || STATE.WORLD;') >
