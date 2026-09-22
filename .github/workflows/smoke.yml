@@ -5,6 +5,10 @@ on:
     branches:
       - main
       - dev/progression-build
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/ISSUE_TEMPLATE/**'
   pull_request:
 
 jobs:
@@ -20,6 +24,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      - name: Verify CI trigger hygiene
+        run: npm run test:ci-trigger-hygiene
 
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
