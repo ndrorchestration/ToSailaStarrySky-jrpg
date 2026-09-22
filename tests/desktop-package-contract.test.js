@@ -71,6 +71,13 @@ assert(workflow.includes('AETHERWAKE_DESKTOP_SMOKE_MARKER'),
   'desktop workflow must require an application-level readiness marker');
 assert(workflow.includes('DESKTOP_RENDER_READINESS=PASS'),
   'desktop workflow must require live rendered-frame readiness before publication');
+assert(workflow.includes('Verify packaged save survives restart'),
+  'desktop workflow must verify persistence across an installed NW.js restart');
+assert(workflow.includes('AETHERWAKE_SAVE_PERSISTENCE_PHASE') &&
+       workflow.includes('AETHERWAKE_SAVE_PERSISTENCE_MARKER'),
+  'desktop workflow must drive the packaged save persistence smoke mode');
+assert(workflow.includes('DESKTOP_SAVE_RESTART=PASS'),
+  'desktop workflow must require packaged save restart success before publication');
 assert(workflow.includes('Verify portable package layout'),
   'desktop workflow must verify the portable package shape');
 
@@ -108,6 +115,11 @@ assert(localReleaseScript.includes('AETHERWAKE_DESKTOP_SMOKE_MARKER'),
   'local Windows release fallback must require application-level render readiness');
 assert(localReleaseScript.includes('DESKTOP_RENDER_READINESS=PASS'),
   'local Windows release fallback must verify a rendered first frame');
+assert(localReleaseScript.includes('AETHERWAKE_SAVE_PERSISTENCE_PHASE') &&
+       localReleaseScript.includes('AETHERWAKE_SAVE_PERSISTENCE_MARKER'),
+  'local Windows release fallback must run packaged save persistence smoke');
+assert(localReleaseScript.includes('DESKTOP_SAVE_RESTART=PASS'),
+  'local Windows release fallback must prove save/load across process restart');
 
 console.log('Aetherwake desktop package contract: PASS');
 
@@ -134,3 +146,10 @@ assert(embeddedDesktopControls.includes("event.key === 'F11'"),
   'desktop entrypoint must support F11 fullscreen');
 assert(embeddedDesktopControls.includes('win.leaveFullscreen()'),
   'desktop entrypoint must support leaving fullscreen with Escape');
+
+assert(runtimeSource.includes('function runDesktopSavePersistenceSmokeIfRequested()'),
+  'runtime must expose environment-gated packaged save persistence smoke');
+assert(runtimeSource.includes("saveToSlot('manual-6', false)"),
+  'packaged save smoke must exercise the production save path');
+assert(runtimeSource.includes("loadFromSlot('manual-6')"),
+  'packaged save smoke must exercise the production load path');
