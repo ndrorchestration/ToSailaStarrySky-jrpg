@@ -84,7 +84,7 @@ assert.match(catalog.getTree('umbral').boundary, /morally neutral/i);
 assert.match(catalog.getTree('time').boundary, /no casual history rewrite/i);
 assert.match(catalog.getTree('fate').boundary, /not temporal flow/i);
 assert.match(catalog.getTree('psychic').boundary, /not soul or fate/i);
-assert.match(catalog.getTree('spirit').boundary, /not generic biology/i);
+assert.match(catalog.getTree('spirit').boundary, /not generic life energy/i);
 
 // Dreaming remains exceptional and outside ordinary mastery.
 assert.strictEqual(catalog.getTree('dreaming'), null);
