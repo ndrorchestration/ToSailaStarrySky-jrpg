@@ -1,6 +1,9 @@
 'use strict';
 
 const assert = require('assert');
+global.window = global;
+global.AetherInputActions = require('../modules/input-actions.js');
+const bindings = require('../modules/input-bindings.js');
 const pad = require('../modules/gamepad-input.js');
 
 function gamepad(buttonIndexes, axes, mapping) {
@@ -68,6 +71,26 @@ state = pad.createState();
 result = pad.poll(gamepad([pad.BUTTON.DPAD_DOWN]), state, 'save-load');
 assert(result.pressed.includes('ui-down'));
 assert(result.held.includes('ui-down'));
+
+let bindingState = bindings.emptyState();
+bindingState = bindings.setGamepadBinding(bindingState, 'quest-log', pad.BUTTON.VIEW);
+state = pad.createState();
+result = pad.poll(gamepad([pad.BUTTON.NORTH]), state, 'world', {
+  bindingsSystem: bindings,
+  bindings: bindingState
+});
+assert.deepStrictEqual(result.pressed, [],
+  'old default controller button must be suppressed after a remap');
+assert.deepStrictEqual(result.rawPressedButtons, [pad.BUTTON.NORTH],
+  'adapter must preserve raw button edges for remap capture');
+
+state = pad.createState();
+result = pad.poll(gamepad([pad.BUTTON.VIEW]), state, 'world', {
+  bindingsSystem: bindings,
+  bindings: bindingState
+});
+assert.deepStrictEqual(result.pressed, ['quest-log'],
+  'remapped controller button must emit the semantic action');
 
 state = pad.createState();
 result = pad.poll(gamepad([], [0,0,0,0], 'raw'), state, 'menu');
