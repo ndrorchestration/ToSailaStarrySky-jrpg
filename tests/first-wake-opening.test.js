@@ -1,10 +1,12 @@
 const assert = require('assert');
 const opening = require('../modules/first-wake-opening.js');
 
-assert.strictEqual(opening.VERSION, '0.3.0');
+assert.strictEqual(opening.VERSION, '0.4.0');
 assert.strictEqual(opening.validate(), true);
 assert.strictEqual(opening.SCENES.length, 10);
 assert.strictEqual(opening.SCENES[0].id, 'arrival_horizon');
+assert.strictEqual(opening.SCENES[0].cinematic, true);
+assert.strictEqual(opening.SCENES[1].cinematic, true);
 assert.strictEqual(opening.SCENES[2].interactive, true);
 assert.strictEqual(opening.SCENES[6].id, 'wrong_song');
 assert.strictEqual(opening.SCENES[6].joinCharacterId, 'lyra');
@@ -20,8 +22,19 @@ assert(!opening.SCENES.some(scene => scene.activePartyIds.includes('ionia')),
 const state = opening.createState();
 assert.deepStrictEqual(opening.expectedPartyIds(state), ['ender']);
 
+let held = opening.advance(state);
+assert(held.event && held.event.type === 'presentation-required');
+assert.strictEqual(opening.currentScene(state).id, 'arrival_horizon');
+opening.tickPresentation(state, opening.SCENES[0].minimumTicks);
+assert.strictEqual(opening.presentationReady(state), true);
 opening.advance(state);
+
+held = opening.advance(state);
+assert(held.event && held.event.type === 'presentation-required');
+assert.strictEqual(opening.currentScene(state).id, 'ender_arrives');
+opening.tickPresentation(state, opening.SCENES[1].minimumTicks);
 opening.advance(state);
+
 assert.strictEqual(opening.currentScene(state).id, 'dock_walk');
 const blocked = opening.advance(state);
 assert(blocked.event && blocked.event.type === 'interaction-required');
