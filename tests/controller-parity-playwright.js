@@ -148,7 +148,59 @@ async function setAxes(page, x, y) {
     assert(persisted && persisted.settings && persisted.settings.reducedMotion === true,
       'controller Settings change did not persist independently');
 
-    // Cancel returns to title/menu; Confirm starts authored First Wake.
+    // Continue through Settings into the controller-accessible remapping UI.
+    for (let i = 0; i < 11; i++) await pulseButton(page, 13);
+    await page.waitForFunction(() =>
+      window._settingsMenuFocus && window._settingsMenuFocus.focusedId === '__controls'
+    , undefined, { timeout: 5000 });
+    await pulseButton(page, 0);
+    await page.waitForFunction(() =>
+      window.gameState === 'controls' &&
+      window._controlsMenuFocus &&
+      window._controlsMenuFocus.focusedId === 'ui-up'
+    , undefined, { timeout: 5000 });
+
+    // Focus Quest Log, switch the binding column to gamepad, and capture VIEW.
+    for (let i = 0; i < 13; i++) await pulseButton(page, 13);
+    await page.waitForFunction(() =>
+      window._controlsMenuFocus &&
+      window._controlsMenuFocus.focusedId === 'quest-log'
+    , undefined, { timeout: 5000 });
+    await pulseButton(page, 15);
+    await page.waitForFunction(() => window._controlsDevice === 'gamepad');
+    await pulseButton(page, 0);
+    await page.waitForFunction(() =>
+      window._inputBindingCapture &&
+      window._inputBindingCapture.actionId === 'quest-log' &&
+      window._inputBindingCapture.device === 'gamepad'
+    , undefined, { timeout: 5000 });
+    await pulseButton(page, 8);
+    await page.waitForFunction(() =>
+      !window._inputBindingCapture &&
+      window._inputBindings &&
+      window._inputBindings.gamepadOverrides &&
+      window._inputBindings.gamepadOverrides['quest-log'] === 8
+    , undefined, { timeout: 5000 });
+
+    const persistedBindings = await page.evaluate(() => {
+      const raw = localStorage.getItem('aetherwake.input-bindings.v1');
+      return {
+        envelope: raw ? JSON.parse(raw) : null,
+        questPrompt: window.AetherInputPrompt('quest-log', 'world', 'gamepad')
+      };
+    });
+    assert(
+      persistedBindings.envelope &&
+      persistedBindings.envelope.bindings &&
+      persistedBindings.envelope.bindings.gamepadOverrides['quest-log'] === 8,
+      'controller remap did not persist independently'
+    );
+    assert(persistedBindings.questPrompt === 'VIEW',
+      'dynamic prompt did not update to the remapped controller binding');
+
+    // Cancel returns to Settings, then title/menu; Confirm starts authored First Wake.
+    await pulseButton(page, 1);
+    await page.waitForFunction(() => window.gameState === 'settings', undefined, { timeout: 5000 });
     await pulseButton(page, 1);
     await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
     await pulseButton(page, 0);
@@ -217,8 +269,12 @@ async function setAxes(page, x, y) {
            loadedPosition.tileY === savePosition.tileY,
       'controller Save/Load overlay did not restore the saved world position');
 
-    // Controller opens and closes a read-only overlay.
+    // The old Quest Log button is suppressed after remapping; VIEW now owns it.
     await pulseButton(page, 3);
+    await page.waitForTimeout(200);
+    assert((await page.evaluate(() => window.gameState)) === 'world',
+      'old controller Quest Log button remained active after remap');
+    await pulseButton(page, 8);
     await page.waitForFunction(() => window.gameState === 'questlog', undefined, { timeout: 5000 });
     await pulseButton(page, 1);
     await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
@@ -321,7 +377,7 @@ async function setAxes(page, x, y) {
     assert(final.reducedMotion === true, 'controller-configured setting was not retained');
 
     console.log('Aetherwake controller parity smoke: PASS');
-    console.log(JSON.stringify({ openingResult, savePosition, loadedPosition, flightBefore, altitudeAfter, combatFocusResult, final }));
+    console.log(JSON.stringify({ persistedBindings, openingResult, savePosition, loadedPosition, flightBefore, altitudeAfter, combatFocusResult, final }));
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
