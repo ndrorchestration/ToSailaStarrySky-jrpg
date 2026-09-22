@@ -141,6 +141,9 @@ jobs:
       - name: Verify audio settings mapping
         run: npm run test:audio-settings
 
+      - name: Verify accessibility rendering hooks
+        run: npm run test:accessibility-rendering
+
       - name: Verify overlay and economy contracts
         run: npm run test:overlay-contract
 
