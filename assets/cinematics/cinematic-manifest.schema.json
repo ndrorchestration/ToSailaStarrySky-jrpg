@@ -29,13 +29,19 @@
     },
     "file": {
       "type": "string",
-      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*\\.mp4$"
+      "pattern": "^(?:[a-z0-9]+(?:-[a-z0-9]+)*/)*[a-z0-9]+(?:-[a-z0-9]+)*\\\\.mp4$"
     },
     "storySequence": {
-      "type": ["string", "null"]
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "trigger": {
-      "type": ["string", "null"]
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "skippable": {
       "type": "boolean"
@@ -49,23 +55,41 @@
     "fallback": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "asset"],
+      "required": [
+        "type",
+        "asset"
+      ],
       "properties": {
         "type": {
-          "enum": ["still", "in-engine", "still-or-in-engine"]
+          "enum": [
+            "still",
+            "in-engine",
+            "still-or-in-engine"
+          ]
         },
         "asset": {
-          "type": ["string", "null"]
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     },
     "audio": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["mode", "duckRuntimeMusic"],
+      "required": [
+        "mode",
+        "duckRuntimeMusic"
+      ],
       "properties": {
         "mode": {
-          "enum": ["baked", "hybrid", "runtime-controlled", "baked-or-runtime"]
+          "enum": [
+            "baked",
+            "hybrid",
+            "runtime-controlled",
+            "baked-or-runtime"
+          ]
         },
         "duckRuntimeMusic": {
           "type": "boolean"
@@ -75,18 +99,32 @@
     "subtitles": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["required", "track"],
+      "required": [
+        "required",
+        "track"
+      ],
       "properties": {
         "required": {
           "type": "boolean"
         },
         "track": {
-          "type": ["string", "null"]
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^(?:[a-z0-9]+(?:-[a-z0-9]+)*/)*[a-z0-9]+(?:-[a-z0-9]+)*\\\\.vtt$"
+            }
+          ]
         }
       }
     },
     "nextState": {
-      "type": ["string", "null"]
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "notes": {
       "type": "string"
