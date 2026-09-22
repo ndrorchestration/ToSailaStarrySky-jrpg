@@ -1,0 +1,38 @@
+name: Aetherwake visual evidence
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify capture contract
+        run: npm run test:visual-evidence-contract
+
+      - name: Capture exact-head visual evidence
+        run: npm run capture:visual-evidence
+
+      - name: Upload visual evidence bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: aetherwake-visual-evidence-${{ github.sha }}
+          path: visual-evidence/
+          if-no-files-found: error
+          retention-days: 14
