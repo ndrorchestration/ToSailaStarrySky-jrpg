@@ -35,7 +35,7 @@ let prevState = null;
 // frame for transition effects, so it cannot safely carry the state beneath
 // an overlay.
 let overlayReturnState = null;
-let menuAutoStartTimer = 0;  // one-shot: auto-start from MENU after 3s idle (prevents single-press hang)
+let menuAutoStartTimer = 0;  // retained for runtime compatibility; title menu never auto-starts
 
 // Boot sequence timing
 let bootTime = 0;
@@ -263,15 +263,7 @@ function draw() {
   // Only run world/combat updates if hit stop is NOT active
   const updatesEnabled = !hitStop.active;
 
-  // Auto-start from MENU after 3s idle — bridges the BOOT→MENU→WORLD gap
-  // so a single N press (or no press) still reaches the world.
-  if (gameState === STATE.MENU && menuAutoStartTimer === 0) {
-    menuAutoStartTimer = millis();
-  } else if (gameState === STATE.MENU &&
-             menuAutoStartTimer > 0 &&
-             millis() - menuAutoStartTimer > 3000) {
-    startGame();
-  }
+  // The title screen is intentionally stable: New Game begins only from an explicit player input.
 
   // Subtle corner brackets — confirm canvas is live without distracting
   noFill();
@@ -628,18 +620,17 @@ function handleInput() {
                    (typeof key !== 'undefined' && (key === 'Enter' || key === ' ' || key === 'n' || key === 'N'));
 
   if (gameState === STATE.BOOT) {
-    // Any key skips the boot sequence, goes straight to menu.
-    // The same key press also triggers MENU→WORLD in the same frame so a
-    // single keypress (or test) gets the player into the world.
+    // First deliberate input leaves the boot/preamble and reveals the title.
+    // It must not also start New Game in the same physical key event.
     if (keysPressed[13] || keysPressed[32] || keysPressed[78] || keysPressed[110] ||
         (typeof key !== 'undefined' && (key === 'Enter' || key === ' ' || key === 'n' || key === 'N'))) {
       gameState = STATE.MENU;
+      window.gameState = gameState;
       titleVisible = 0;
       titleFlash = 0;
-      // Fall through to MENU handler in the same handleInput() call.
-      // Do NOT return — let the MENU branch below also run.
+      menuAutoStartTimer = 0;
     }
-    // (intentionally fall through — MENU handler below also runs)
+    return;
   }
   if (gameState === STATE.MENU) {
     // Start game on Enter/Space/N (from both keyPressed path and character path).
