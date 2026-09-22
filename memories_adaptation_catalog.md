@@ -7,6 +7,22 @@
 
 ---
 
+## Desktop launcher adaptation status — 2026-09-22
+
+The Memories reference is documented here as an RPG Maker MV / NW.js game. Aetherwake now mirrors the **deployment structure**, not the engine internals:
+
+- launcher/runtime at the desktop package root;
+- minimal root `package.json`;
+- production entrypoint `www/index-embedded.html`;
+- game payload under `www/`;
+- no development-only repository material in the player runtime.
+
+This launcher-layout correction merged at `304835c12555e35061870a54d61f7c95996d0bdd`.
+
+This is a structural adaptation, **not** a claim that Aetherwake copied the Memories executable or launcher byte-for-byte. The original Memories 0.7.4 executable/package was not available in the connected repository or saved-file surfaces during this reconciliation, so exact binary equivalence is not established.
+
+Current verification boundary: the staged layout has been independently exercised, but GitHub-hosted Windows/browser jobs are currently rejected before runner allocation. A new player-facing installer remains unverified until the exact candidate completes a real Windows install/launch gate.
+
 ## 1. Window Chrome / Drawing System
 
 ### 1.1 Windowskin 9-Patch Border (rpg_windows.js:65–67, 659–685)
