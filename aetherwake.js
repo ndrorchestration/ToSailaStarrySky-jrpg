@@ -1945,7 +1945,7 @@ function drawTitleScreen() {
 
 function ensureAirNavigationState() {
   if (!window.AetherAirNavigation || typeof window.AetherAirNavigation.createState !== 'function') return false;
-  if (!airNavigationState) airNavigationState = window.AetherAirNavigation.createState();
+  if (!airNavigationState) airNavigationState = window.AetherAirNavigation.createState({ mooredLandmarkId: 'wake-dock', speed: 0 });
   window._airNavigationState = airNavigationState;
   return true;
 }
