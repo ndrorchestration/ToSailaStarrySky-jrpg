@@ -1,6 +1,6 @@
 # Aetherwake — The Last Solarpunk Airship
 
-Aetherwake is a **pre-alpha 2D6 PbtA JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a failing aether-core, impossible sky-lanes, and a fractured world begin to reveal the same unfinished song.
+Aetherwake is a **pre-alpha turn-based JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a failing aether-core, impossible sky-lanes, and a fractured world begin to reveal the same unfinished song.
 
 The current repository contains a playable vertical-slice prototype plus an active architecture migration toward the full authored-party RPG.
 
@@ -9,7 +9,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 - **Stage:** late prototype / pre-alpha
 - **Playable baseline:** boot → character creation → world exploration → dialogue/quest systems → combat
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
-- **Combat party:** exactly 3 active combatants selected from the persistent roster
+- **Combat party target:** supports 1–5 active authored protagonists, growing through recruitment; current preservation runtime still initializes Ender/Lyra/Ionia first
 - **Current migration:** smoke-green persistent roster, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; higher-order effect semantics remain separate gates
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
@@ -68,24 +68,20 @@ Current canvas: **960×640**.
 
 ## Combat prototype
 
-Combat uses **2D6 + stat**:
+Combat is migrating to a **conventional JRPG formula model**. Production-native actions use explicit power/scaling, defenses, bounded accuracy/critical variance, costs, statuses, and deterministic analysis where appropriate. Legacy 2D6 behavior remains only in explicitly quarantined compatibility actions and historical mirrors.
 
-- **10+** — full success
-- **7–9** — partial success / cost
-- **6−** — failure / complication
-
-The current preservation baseline contains eight combat actions:
+The current action surface contains eight slots:
 
 | # | Action | Role |
 |---:|---|---|
 | 1 | Resonator Staff | EMP attack |
-| 2 | Uncover Truth | Wits / reveal |
-| 3 | Shared Dream | Spirit / support |
-| 4 | Mycelial Ledger | Presence / resource recovery |
-| 5 | Hold | conserve / recharge |
-| 6 | Wind Ward | defensive ability |
-| 7 | Aether Seal | defensive / aether ability |
-| 8 | Rest | heat / vitality recovery |
+| 2 | Uncover Truth | deterministic analysis / weakness reveal |
+| 3 | Shared Dream | legacy compatibility residue; blocked by current Dreaming/Talen SSOT |
+| 4 | Mycelial Ledger | Ender Commons read-only relationship analysis |
+| 5 | Hold | deterministic staff recharge |
+| 6 | Wind Ward | legacy compatibility residue; owner/domain unresolved |
+| 7 | Aether Seal | Ender Aether/Ward suppression on explicit Aether-dependent targets |
+| 8 | Rest | deterministic heat/vitality recovery |
 
 Current prototype progression unlocks **Wind Ward at level 3, Aether Seal at level 4, and Rest at level 5**.
 
@@ -96,21 +92,21 @@ These flat combat definitions are an implementation baseline, not the final arch
 ### Target
 
 ```text
-ROSTER[5] → ACTIVE_PARTY[3] → combat
+ROSTER[5] → ACTIVE_PARTY[1..5] → combat
 ```
 
-Persistent progression belongs to the five-character roster. The active trio is a combat/formation selection, not a separate copy of character progression.
+Persistent progression belongs to the five-character roster. The target combat/menu architecture supports all five simultaneously once recruited; the active party grows from 1 → 2 → 3 → 4 → 5 through the story.
 
 ### Current migration state
 
 The development runtime now has the first persistent party-state layer:
 
 - `modules/party-state.js` owns exactly five stable roster identities: `ender`, `lyra`, `ionia`, `reson`, and `aepex`;
-- `ACTIVE_PARTY` contains three direct references into `ROSTER`, initially Ender/Lyra/Ionia;
+- `ACTIVE_PARTY` is validated for 1–5 direct references into `ROSTER`; the current preservation bootstrap begins with Ender/Lyra/Ionia;
 - `world.player`, `ROSTER[0]`, and `ACTIVE_PARTY[0]` are the same object, so combat write-back updates the canonical lead record;
 - the preserved character-creation flow still creates two player-named prototype companions and prototype jobs, then adapts them into the Lyra/Ionia roster slots;
 - Reson and Aepex are identity-only runtime shells until authored onboarding/mechanics are migrated;
-- formation switching and three-character combat are **not** enabled yet.
+- full authored five-character simultaneous combat is **not** enabled yet; the architecture now permits 1–5 active members while authored recruitment/onboarding is migrated.
 
 The prototype names/jobs remain implementation provenance rather than final character canon.
 
@@ -174,7 +170,7 @@ The production migration is incremental:
 1. establish one verified playable baseline,
 2. introduce persistent five-character roster state,
 3. formalize effect vocabulary and extract the current ability/progression registries — **established on `dev/progression-build`**,
-4. route ordinary combat mutations through a generic effect resolver while preserving current 2D6 outcome behavior — **damage/restoration/resource routing established on `dev/progression-build`**,
+4. migrate production combat away from legacy 2D6 branches into explicit JRPG formula/contract resolution while preserving only quarantined compatibility behavior,
 5. enforce current learned/unlocked action eligibility before broader mastery-tree work — **established on `dev/progression-build`**,
 6. replace prototype companion creation with authored roster onboarding,
 7. implement school/job/mastery progression,

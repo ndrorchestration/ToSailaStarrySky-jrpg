@@ -135,7 +135,7 @@ function createServer() {
     }));
 
     assert(review.partyLength === 3, 'prototype review did not contain three party slots');
-    assert(review.ender === 'Young Ender', 'Ender missing from prototype party');
+    assert(review.ender === 'Ender', 'Ender missing from prototype party');
     assert(review.companion1 === 'Lyra', 'first companion name was not retained');
     assert(review.companion2 === 'Ionia', 'second companion name was not retained');
 
@@ -174,6 +174,18 @@ function createServer() {
       legacyPartyAlias: window.party === window.ACTIVE_PARTY,
       runtimeImplemented: window.ROSTER &&
         window.ROSTER.map(character => Boolean(character.runtimeImplemented)),
+      statModelVersion: window.AetherJRPGStatModel && window.AetherJRPGStatModel.VERSION,
+      productionStatModelVersion: window.AetherPartyState &&
+        window.AetherPartyState.productionStatModelVersion,
+      enderProductionSpirit: window.ROSTER && window.ROSTER[0] &&
+        window.ROSTER[0].productionStats && window.ROSTER[0].productionStats.spirit,
+      ioniaProductionPresence: window.ROSTER && window.ROSTER[2] &&
+        window.ROSTER[2].productionStats && window.ROSTER[2].productionStats.presence,
+      enderLegacySpirit: window.ROSTER && window.ROSTER[0] && window.ROSTER[0].spirit,
+      ioniaLegacyPresence: window.ROSTER && window.ROSTER[2] && window.ROSTER[2].presence,
+      derivedReady: Boolean(window.ROSTER && window.ROSTER.every(character =>
+        character.productionDerivedStats &&
+        Number.isFinite(character.productionDerivedStats.maxHp))),
     }));
 
     assert(partyArchitecture.rosterLength === 5, 'persistent roster does not contain five records');
@@ -190,6 +202,19 @@ function createServer() {
       'legacy window.party alias is not canonical ACTIVE_PARTY');
     assert(partyArchitecture.runtimeImplemented.join('|') === 'true|true|true|false|false',
       'runtime implementation boundary for roster records is incorrect');
+    assert(partyArchitecture.statModelVersion === '0.1.0',
+      'JRPG stat model is not loaded in the browser runtime');
+    assert(partyArchitecture.productionStatModelVersion === '0.1.0',
+      'party state is not bound to JRPG stat model v0.1.0');
+    assert(partyArchitecture.enderProductionSpirit === 12,
+      'Ender production Spirit 12 is not present in the live roster');
+    assert(partyArchitecture.ioniaProductionPresence === 9,
+      'Ionia production Presence 9 is not present in the live roster');
+    assert(partyArchitecture.enderLegacySpirit === 1 &&
+           partyArchitecture.ioniaLegacyPresence === 2,
+      'production stat binding contaminated legacy compatibility fields');
+    assert(partyArchitecture.derivedReady,
+      'production derived stats are not initialized for all roster records');
 
     await page.keyboard.press('KeyC');
     await page.waitForFunction(() =>
@@ -201,14 +226,43 @@ function createServer() {
 
     const combatStart = await page.evaluate(() => window._combat.getState());
     assert(combatStart.turn === 0, 'combat did not start at turn 0');
+    assert(combatStart.player.productionStats &&
+           combatStart.player.productionStats.spirit === 12,
+      'combat state did not receive Ender production stats');
+    const productionFormulaRuntime = await page.evaluate(() => ({
+      policyModel: window.AetherCombatSystemPolicy &&
+        window.AetherCombatSystemPolicy.TARGET.model,
+      formulaVersion: window.AetherCombatFormula &&
+        window.AetherCombatFormula.VERSION,
+      commonsVersion: window.AetherCommonsLedger &&
+        window.AetherCommonsLedger.VERSION,
+      commonsOwner: window.AetherCommonsLedger &&
+        window.AetherCommonsLedger.OWNER,
+      aetherSealVersion: window.AetherSealContract &&
+        window.AetherSealContract.VERSION,
+      aetherSealOwner: window.AetherSealContract &&
+        window.AetherSealContract.OWNER,
+    }));
+    assert(productionFormulaRuntime.policyModel === 'jrpg-stat-formula',
+      'production combat policy is not loaded');
+    assert(productionFormulaRuntime.formulaVersion === '1.1.0',
+      'production formula engine is not loaded at expected version 1.1.0');
+    assert(productionFormulaRuntime.commonsVersion === '0.1.0' &&
+           productionFormulaRuntime.commonsOwner === 'ender',
+      'Commons Ledger runtime contract is not loaded for Ender');
+    assert(productionFormulaRuntime.aetherSealVersion === '0.1.0' &&
+           productionFormulaRuntime.aetherSealOwner === 'ender',
+      'Aether Seal runtime contract is not loaded for Ender');
 
-    // Level-1 progression must actually gate actions 6-8.
+    // Wind Ward remains visible in its stable slot but authority-blocked
+    // regardless of legacy level state.
     await page.keyboard.press('6');
     const afterLockedAction = await page.evaluate(() => window._combat.getState());
     assert(afterLockedAction.turn === 0,
-      'locked level-gated action consumed a turn');
-    assert(afterLockedAction.log.some(line => line.includes('Locked action: Wind Ward')),
-      'locked action rejection was not recorded');
+      'SSOT-blocked Wind Ward consumed a turn');
+    assert(afterLockedAction.log.some(line =>
+      line.includes('Action blocked by current SSOT') && line.includes('Wind Ward')),
+      'Wind Ward SSOT rejection was not recorded');
     assert(afterLockedAction.eligibleActionIds.join('|') ===
       'staffStrike|uncoverTruth|sharedDream|mycelialLedger|hold',
       'level-1 eligible action set drifted');
@@ -289,6 +343,7 @@ function createServer() {
         afterXPToNext: after.player.xpToNext,
         unlockedAbilities: after.player.unlockedAbilities,
         eligibleActionIds: after.eligibleActionIds,
+        usableActionIds: after.usableActionIds,
         log: after.log,
       };
     });
@@ -305,65 +360,83 @@ function createServer() {
     assert(progressionReachability.unlockedAbilities.includes('windWard'),
       'level-3 progression did not unlock Wind Ward');
     assert(progressionReachability.eligibleActionIds.includes('windWard'),
-      'newly unlocked Wind Ward did not become eligible');
+      'legacy progression record did not retain Wind Ward unlock provenance');
+    assert(!progressionReachability.usableActionIds.includes('windWard'),
+      'SSOT-blocked Wind Ward became runtime-usable after legacy unlock');
     assert(progressionReachability.log.some(line =>
       line.includes('LEVEL 3: Wind Ward unlocked')),
       'level-3 unlock log is missing');
 
-    const secondaryStateContract = await page.evaluate(() => {
-      const originalRandom = window.random;
-      try {
-        window._combat.init({
-          vit: 13,
-          scrap: 7,
-          aether: { current: 4, max: 6 },
-          heat: { current: 1, max: 3 },
-          echoes: { current: 3, max: 3 },
-          charges: 2,
-          staffMax: 2,
-          level: 1,
-          xp: 0,
-          xpToNext: 50,
-          unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
-        });
-        window._combat.beginEncounter('skyPredator');
+    const blockedResidueContract = await page.evaluate(() => {
+      window._combat.init({
+        vit: 13,
+        scrap: 7,
+        aether: { current: 4, max: 6 },
+        heat: { current: 1, max: 3 },
+        echoes: { current: 3, max: 3 },
+        charges: 2,
+        staffMax: 2,
+        level: 3,
+        xp: 0,
+        xpToNext: 112,
+        unlockedAbilities: [
+          'uncoverTruth', 'sharedDream', 'mycelialLedger', 'windWard'
+        ],
+      });
+      window._combat.beginEncounter('skyPredator');
 
-        window.random = function() { return 6; };
-        if (window._combat.roll2d6() !== 12) {
-          throw new Error('deterministic random override did not reach combat rolls');
-        }
-        window._combat.resolveTurn('mycelialLedger', null);
-        const afterSuccess = window._combat.getState();
+      const before = window._combat.getState();
+      const dreamResult = window._combat.resolveTurn('sharedDream', null);
+      const afterDream = window._combat.getState();
+      const wardResult = window._combat.resolveTurn('windWard', null);
+      const afterWard = window._combat.getState();
 
-        window.random = function() { return 1; };
-        window._combat.resolveTurn('uncoverTruth', null);
-        const afterFailure = window._combat.getState();
+      if (typeof startCombat !== 'function') throw new Error('startCombat is unavailable');
+      startCombat('skyPredator');
 
-        return {
-          afterSuccess: {
-            secondaryAvailable: afterSuccess.secondaryAvailable,
-            lastAbilityId: afterSuccess.lastAbilityId,
-          },
-          afterFailure: {
-            secondaryAvailable: afterFailure.secondaryAvailable,
-            lastAbilityId: afterFailure.lastAbilityId,
-          },
-        };
-      } finally {
-        window.random = originalRandom;
-        if (typeof startCombat !== 'function') throw new Error('startCombat is unavailable');
-        startCombat('skyPredator');
-      }
+      return {
+        dreamResult,
+        wardResult,
+        beforeTurn: before.turn,
+        afterDreamTurn: afterDream.turn,
+        afterWardTurn: afterWard.turn,
+        beforeResources: {
+          echoes: before.player.echoes.current,
+          aether: before.player.aether.current,
+          heat: before.player.heat.current,
+        },
+        afterResources: {
+          echoes: afterWard.player.echoes.current,
+          aether: afterWard.player.aether.current,
+          heat: afterWard.player.heat.current,
+        },
+        dreamEligibility: afterDream.actionUseEligibility.sharedDream,
+        wardEligibility: afterWard.actionUseEligibility.windWard,
+        secondaryAvailable: afterWard.secondaryAvailable,
+        lastAbilityId: afterWard.lastAbilityId,
+        log: afterWard.log.slice(),
+      };
     });
 
-    assert(secondaryStateContract.afterSuccess.secondaryAvailable === true,
-      'successful affordable ability did not open a secondary window');
-    assert(secondaryStateContract.afterSuccess.lastAbilityId === 'mycelialLedger',
-      'secondary window did not bind to the successful ability');
-    assert(secondaryStateContract.afterFailure.secondaryAvailable === false,
-      'failed later ability inherited a stale secondary window');
-    assert(secondaryStateContract.afterFailure.lastAbilityId === 'uncoverTruth',
-      'last ability identity did not advance on the later primary action');
+    assert(blockedResidueContract.dreamResult === false &&
+           blockedResidueContract.wardResult === false,
+      'SSOT-blocked compatibility actions were executable');
+    assert(blockedResidueContract.beforeTurn === 0 &&
+           blockedResidueContract.afterDreamTurn === 0 &&
+           blockedResidueContract.afterWardTurn === 0,
+      'SSOT-blocked compatibility action consumed a turn');
+    assert(JSON.stringify(blockedResidueContract.beforeResources) ===
+           JSON.stringify(blockedResidueContract.afterResources),
+      'SSOT-blocked compatibility action consumed resources or generated Heat');
+    assert(blockedResidueContract.dreamEligibility.reason === 'ssot_blocked' &&
+           blockedResidueContract.wardEligibility.reason === 'ssot_blocked',
+      'blocked compatibility actions do not expose SSOT-blocked eligibility');
+    assert(blockedResidueContract.secondaryAvailable === false &&
+           blockedResidueContract.lastAbilityId === null,
+      'blocked compatibility action mutated secondary-action state');
+    assert(blockedResidueContract.log.filter(line =>
+      line.includes('Action blocked by current SSOT')).length >= 2,
+      'blocked compatibility actions did not log authority rejection');
 
     // Secondary input must be a safe no-op when no secondary is available.
     // This specifically guards against core reaching into AetherCombat's
@@ -394,6 +467,7 @@ function createServer() {
           abilityDesc: enemy && enemy.abilityDesc,
           color: enemy && enemy.color,
           bodyShape: enemy && enemy.bodyShape,
+          aetherDependent: enemy && enemy.aetherDependent,
         };
       });
       window._combat.beginEncounter('skyPredator');
@@ -418,6 +492,12 @@ function createServer() {
       assert(typeof enemy.bodyShape === 'string' && enemy.bodyShape.length > 0,
         'enemy encounter lost body-shape metadata for ' + enemy.id);
     }
+    const aetherLeakMetadata = enemyMetadataContract.find(enemy => enemy.id === 'aetherLeak');
+    const engineSpiritMetadata = enemyMetadataContract.find(enemy => enemy.id === 'engine_spirit');
+    assert(aetherLeakMetadata && aetherLeakMetadata.aetherDependent === true,
+      'Aether Leak Wraith lost explicit Aether-dependence metadata');
+    assert(engineSpiritMetadata && engineSpiritMetadata.aetherDependent == null,
+      'Engine Spirit Aether dependence was inferred without authority');
 
     const effectContract = await page.evaluate(() => {
       const vocabulary = window.AetherEffectVocabulary;
@@ -427,9 +507,22 @@ function createServer() {
         validCoverage: Boolean(vocabulary && vocabulary.assertActionCoverage(actions)),
         kinds: vocabulary && Object.values(vocabulary.EFFECT_KIND),
         profileIds: actions.map(action => action.effectProfile),
-        declaredNotApplied: vocabulary
+        uncoverImplemented: vocabulary
           ? vocabulary.ACTION_EFFECT_PROFILES.uncoverTruth.success
-              .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.DECLARED_NOT_APPLIED)
+              .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED)
+              .map(effect => effect.kind + ':' + effect.key)
+          : [],
+        mycelialImplemented: vocabulary
+          ? vocabulary.ACTION_EFFECT_PROFILES.mycelialLedger.success
+              .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED)
+              .map(effect => effect.kind + ':' + effect.key)
+          : [],
+        mycelialCommonCount: vocabulary
+          ? vocabulary.ACTION_EFFECT_PROFILES.mycelialLedger.common.length
+          : -1,
+        aetherSealImplemented: vocabulary
+          ? vocabulary.ACTION_EFFECT_PROFILES.aetherSeal.success
+              .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED)
               .map(effect => effect.kind + ':' + effect.key)
           : [],
       };
@@ -443,10 +536,18 @@ function createServer() {
     assert(effectContract.profileIds.join('|') ===
       'staffStrike|uncoverTruth|sharedDream|mycelialLedger|hold|windWard|aetherSeal|rest',
       'combat action effect-profile bindings drifted');
-    assert(effectContract.declaredNotApplied.includes('reveal:weakness'),
-      'Uncover Truth reveal debt is no longer explicit');
-    assert(effectContract.declaredNotApplied.includes('modifier:nextRoll'),
-      'Uncover Truth modifier debt is no longer explicit');
+    assert(effectContract.uncoverImplemented.includes('reveal:weakness'),
+      'Uncover Truth weakness reveal is not marked implemented');
+    assert(effectContract.uncoverImplemented.includes('modifier:nextDamageMultiplier'),
+      'Uncover Truth analysis multiplier is not marked implemented');
+    for (const key of ['relationships', 'dependencies', 'exchanges', 'obligations']) {
+      assert(effectContract.mycelialImplemented.includes('reveal:' + key),
+        'Mycelial Ledger read-only reveal is not implemented: ' + key);
+    }
+    assert(effectContract.mycelialCommonCount === 0,
+      'Mycelial Ledger unexpectedly retains common resource/Heat mutations');
+    assert(effectContract.aetherSealImplemented.includes('status:aether-suppressed'),
+      'Aether Seal suppression status is not marked implemented');
 
     const registryContract = await page.evaluate(() => {
       const abilities = window.AetherAbilityDefs;
@@ -460,6 +561,34 @@ function createServer() {
           progression && progression.validateAgainstAbilityDefs(abilities)
         ),
         actionOrder: abilities && abilities.ACTION_ORDER.slice(),
+        sharedDreamAuthority: abilities && abilities.DEFS.sharedDream && {
+          authorityStatus: abilities.DEFS.sharedDream.authorityStatus,
+          migrationStatus: abilities.DEFS.sharedDream.migrationStatus,
+          canonicalOwner: abilities.DEFS.sharedDream.canonicalOwner,
+          hasResolution: Boolean(abilities.DEFS.sharedDream.resolution),
+        },
+        mycelialLedgerAuthority: abilities && abilities.DEFS.mycelialLedger && {
+          authorityStatus: abilities.DEFS.mycelialLedger.authorityStatus,
+          migrationStatus: abilities.DEFS.mycelialLedger.migrationStatus,
+          canonicalOwner: abilities.DEFS.mycelialLedger.canonicalOwner,
+          hasResolution: Boolean(abilities.DEFS.mycelialLedger.resolution),
+          resolutionModel: abilities.DEFS.mycelialLedger.resolution &&
+            abilities.DEFS.mycelialLedger.resolution.model,
+        },
+        aetherSealAuthority: abilities && abilities.DEFS.aetherSeal && {
+          authorityStatus: abilities.DEFS.aetherSeal.authorityStatus,
+          migrationStatus: abilities.DEFS.aetherSeal.migrationStatus,
+          canonicalOwner: abilities.DEFS.aetherSeal.canonicalOwner,
+          hasResolution: Boolean(abilities.DEFS.aetherSeal.resolution),
+          resolutionModel: abilities.DEFS.aetherSeal.resolution &&
+            abilities.DEFS.aetherSeal.resolution.model,
+        },
+        windWardAuthority: abilities && abilities.DEFS.windWard && {
+          authorityStatus: abilities.DEFS.windWard.authorityStatus,
+          migrationStatus: abilities.DEFS.windWard.migrationStatus,
+          canonicalOwner: abilities.DEFS.windWard.canonicalOwner,
+          hasResolution: Boolean(abilities.DEFS.windWard.resolution),
+        },
         levelUnlocks: progression && Object.fromEntries(
           Object.entries(progression.LEVEL_UNLOCKS)
             .map(([level, entries]) => [level, entries.map(entry => entry.abilityId)])
@@ -467,10 +596,36 @@ function createServer() {
       };
     });
 
-    assert(registryContract.abilityVersion === '0.2.0',
+    assert(registryContract.abilityVersion === '0.3.0',
       'ability registry version is not loaded');
-    assert(registryContract.progressionVersion === '0.1.0',
+    assert(registryContract.progressionVersion === '0.2.0',
       'progression registry version is not loaded');
+    assert(registryContract.sharedDreamAuthority &&
+      registryContract.sharedDreamAuthority.authorityStatus === 'legacy-adaptation-residue' &&
+      registryContract.sharedDreamAuthority.migrationStatus === 'blocked-by-current-ssot' &&
+      registryContract.sharedDreamAuthority.canonicalOwner === null &&
+      registryContract.sharedDreamAuthority.hasResolution === false,
+      'Shared Dream SSOT migration guard drifted');
+    assert(registryContract.mycelialLedgerAuthority &&
+      registryContract.mycelialLedgerAuthority.authorityStatus === 'creator-aligned-exceptional-access' &&
+      registryContract.mycelialLedgerAuthority.migrationStatus === 'live-readonly-v1' &&
+      registryContract.mycelialLedgerAuthority.canonicalOwner === 'ender' &&
+      registryContract.mycelialLedgerAuthority.hasResolution === true &&
+      registryContract.mycelialLedgerAuthority.resolutionModel === 'commons-readonly',
+      'Mycelial Ledger SSOT migration guard drifted');
+    assert(registryContract.aetherSealAuthority &&
+      registryContract.aetherSealAuthority.authorityStatus === 'creator-aligned-aether-ward' &&
+      registryContract.aetherSealAuthority.migrationStatus === 'live-aether-seal-v1' &&
+      registryContract.aetherSealAuthority.canonicalOwner === 'ender' &&
+      registryContract.aetherSealAuthority.hasResolution === true &&
+      registryContract.aetherSealAuthority.resolutionModel === 'aether-seal',
+      'Aether Seal authority binding drifted');
+    assert(registryContract.windWardAuthority &&
+      registryContract.windWardAuthority.authorityStatus === 'legacy-adaptation-residue' &&
+      registryContract.windWardAuthority.migrationStatus === 'blocked-pending-owner-and-domain' &&
+      registryContract.windWardAuthority.canonicalOwner === null &&
+      registryContract.windWardAuthority.hasResolution === false,
+      'Wind Ward unresolved-authority guard drifted');
     assert(registryContract.validAbilities,
       'runtime actions drifted from canonical ability definitions');
     assert(registryContract.validProgression,
@@ -549,6 +704,11 @@ function createServer() {
       line.includes('[Turn 1]') && line.includes('Resonator Staff')),
       'turn 1 action text was not logged correctly');
     assert(combatAfterActions.log.some(line =>
+      line.includes('[Turn 1]') &&
+      line.includes('Resonator Staff') &&
+      !line.includes('Roll:')),
+      'Staff Strike still exposed legacy dice text after formula migration');
+    assert(combatAfterActions.log.some(line =>
       line.includes('[Turn 2]') && line.includes('Uncover Truth')),
       'turn 2 action text was not logged correctly');
 
@@ -612,6 +772,267 @@ function createServer() {
     assert(rosterAfterCombat.worldLeadRef && rosterAfterCombat.activeLeadRef,
       'canonical lead reference split after combat');
 
+    const dedicatedResourceContract = await page.evaluate(() => {
+      const productionStats = window._world.player.productionStats;
+      const productionDerivedStats = window._world.player.productionDerivedStats;
+      window._combat.init({
+        vit: 13,
+        scrap: 7,
+        aether: { current: 4, max: 6 },
+        heat: { current: 1, max: 3 },
+        echoes: { current: 3, max: 3 },
+        charges: 0,
+        staffMax: 2,
+        level: 1,
+        xp: 0,
+        xpToNext: 50,
+        unlockedAbilities: ['uncoverTruth','sharedDream','mycelialLedger'],
+        productionStats,
+        productionDerivedStats,
+        productionStatModelVersion: '0.1.0',
+      });
+      window._combat.beginEncounter('skyPredator');
+      const before = window._combat.getState();
+      const result = window._combat.resolveTurn('staffStrike', null);
+      const after = window._combat.getState();
+      startCombat('skyPredator');
+      return {
+        result,
+        beforeTurn: before.turn,
+        afterTurn: after.turn,
+        reason: after.actionUseEligibility.staffStrike.reason,
+        log: after.log,
+      };
+    });
+    assert(dedicatedResourceContract.result === false,
+      'zero-charge Staff Strike was not rejected');
+    assert(dedicatedResourceContract.beforeTurn === 0 &&
+           dedicatedResourceContract.afterTurn === 0,
+      'zero-charge Staff Strike consumed a turn');
+    assert(dedicatedResourceContract.reason === 'insufficient_dedicated_resource',
+      'zero-charge Staff Strike did not expose dedicated-resource rejection');
+
+    const uncoverTruthContract = await page.evaluate(() => {
+      const originalRandom = window.random;
+      try {
+        startCombat('skyPredator');
+        const before = window._combat.getState();
+        const result = window._combat.resolveTurn('uncoverTruth', null);
+        const analyzed = window._combat.getState();
+        const revealedWeakness = analyzed.enemy && analyzed.enemy.analysis &&
+          analyzed.enemy.analysis.revealedWeakness;
+        const chargesBeforeStrike = analyzed.enemy && analyzed.enemy.analysis &&
+          analyzed.enemy.analysis.charges;
+        const analysisLog = analyzed.log.slice();
+
+        // Formula damage uses bounded injected RNG via p5 random. Keep values
+        // deterministic enough to prove analysis consumption, not exact damage.
+        window.random = function(min, max) {
+          if (max !== undefined) return (min + max) / 2;
+          if (min !== undefined) return min * 0.5;
+          return 0.5;
+        };
+        window._combat.resolveTurn('staffStrike', null);
+        const afterStrike = window._combat.getState();
+
+        return {
+          result,
+          beforeTurn: before.turn,
+          afterAnalysisTurn: analyzed.turn,
+          revealedWeakness,
+          chargesBeforeStrike,
+          analysisCleared: !afterStrike.enemy.analysis,
+          analysisLog,
+          afterStrikeLog: afterStrike.log.slice(),
+        };
+      } finally {
+        window.random = originalRandom;
+        startCombat('skyPredator');
+      }
+    });
+
+    assert(uncoverTruthContract.beforeTurn === 0 &&
+           uncoverTruthContract.afterAnalysisTurn === 1,
+      'Uncover Truth did not consume exactly one turn');
+    assert(typeof uncoverTruthContract.revealedWeakness === 'string' &&
+           uncoverTruthContract.revealedWeakness.length > 0,
+      'Uncover Truth did not reveal the authored weakness');
+    assert(uncoverTruthContract.chargesBeforeStrike === 1,
+      'Uncover Truth did not establish a single-use analysis window');
+    assert(uncoverTruthContract.analysisCleared === true,
+      'analysis window was not consumed by the next damaging action');
+    assert(uncoverTruthContract.analysisLog.some(line =>
+      line.includes('Uncover Truth') &&
+      line.includes('Target analyzed') &&
+      !line.includes('Roll:')),
+      'Uncover Truth still exposed legacy dice text or failed to log analysis');
+
+    const commonsLedgerContract = await page.evaluate(() => {
+      startCombat('skyPredator');
+      const before = window._combat.getState();
+      const beforeResources = {
+        scrap: before.player.scrap,
+        aether: before.player.aether.current,
+        heat: before.player.heat.current,
+      };
+      const result = window._combat.resolveTurn('mycelialLedger', null);
+      const after = window._combat.getState();
+      return {
+        result,
+        beforeTurn: before.turn,
+        afterTurn: after.turn,
+        beforeResources,
+        afterResources: {
+          scrap: after.player.scrap,
+          aether: after.player.aether.current,
+          heat: after.player.heat.current,
+        },
+        ledger: after.commonsLedgerEntry,
+        log: after.log.slice(),
+      };
+    });
+    assert(commonsLedgerContract.result !== false,
+      'Mycelial Ledger read-only action was rejected');
+    assert(commonsLedgerContract.beforeTurn === 0 &&
+           commonsLedgerContract.afterTurn === 1,
+      'Mycelial Ledger did not consume exactly one turn');
+    assert(JSON.stringify(commonsLedgerContract.beforeResources) ===
+           JSON.stringify(commonsLedgerContract.afterResources),
+      'Mycelial Ledger mutated scrap, aether, or Heat');
+    assert(commonsLedgerContract.ledger &&
+           commonsLedgerContract.ledger.owner === 'ender' &&
+           commonsLedgerContract.ledger.accessMode === 'mycelial-commons' &&
+           commonsLedgerContract.ledger.readOnly === true,
+      'live Commons Ledger entry is missing or violates owner/access boundary');
+    assert(Array.isArray(commonsLedgerContract.ledger.unknowns),
+      'Commons Ledger did not preserve explicit unknowns');
+    assert(commonsLedgerContract.log.some(line =>
+      line.includes('Mycelial Ledger') && !line.includes('Roll:')),
+      'Mycelial Ledger still exposes legacy dice text');
+
+    const aetherSealLiveContract = await page.evaluate(() => {
+      const originalRandom = window.random;
+      try {
+        window._combat.init({
+          vit: 13,
+          scrap: 7,
+          aether: { current: 6, max: 6 },
+          heat: { current: 0, max: 3 },
+          echoes: { current: 3, max: 3 },
+          charges: 2,
+          staffMax: 2,
+          level: 4,
+          xp: 0,
+          xpToNext: 168,
+          unlockedAbilities: ['uncoverTruth','sharedDream','mycelialLedger','windWard','aetherSeal'],
+          productionStats: window._world.player.productionStats,
+          productionDerivedStats: window._world.player.productionDerivedStats,
+          productionStatModelVersion: '0.1.0',
+        });
+
+        // Force enemy-turn hit branches so suppression must actually prevent drain.
+        window.random = function(min, max) {
+          if (max !== undefined) {
+            if (min === 1 && max === 4) return 3;
+            return (min + max) / 2;
+          }
+          if (min !== undefined) return min * 0.5;
+          return 0.5;
+        };
+
+        window._combat.beginEncounter('aetherLeak');
+        const beforeSeal = window._combat.getState();
+        const sealResult = window._combat.resolveTurn('aetherSeal', null);
+        const afterSeal = window._combat.getState();
+        const aetherAfterSeal = afterSeal.player.aether.current;
+        const suppressionAfterSeal = afterSeal.enemy.aetherSuppression;
+
+        window._combat.resolveTurn('hold', null);
+        const afterSecondSuppressedTurn = window._combat.getState();
+
+        window._combat.init({
+          vit: 13,
+          scrap: 7,
+          aether: { current: 6, max: 6 },
+          heat: { current: 0, max: 3 },
+          echoes: { current: 3, max: 3 },
+          charges: 2,
+          staffMax: 2,
+          level: 4,
+          xp: 0,
+          xpToNext: 168,
+          unlockedAbilities: ['uncoverTruth','sharedDream','mycelialLedger','windWard','aetherSeal'],
+        });
+        window._combat.beginEncounter('skyPredator');
+        const beforeRejected = window._combat.getState();
+        const rejectedResult = window._combat.resolveTurn('aetherSeal', null);
+        const afterRejected = window._combat.getState();
+
+        return {
+          sealResult,
+          beforeSealTurn: beforeSeal.turn,
+          afterSealTurn: afterSeal.turn,
+          aetherBeforeSeal: beforeSeal.player.aether.current,
+          aetherAfterSeal,
+          echoesBeforeSeal: beforeSeal.player.echoes.current,
+          echoesAfterSeal: afterSeal.player.echoes.current,
+          heatAfterSeal: afterSeal.player.heat.current,
+          suppressionAfterSeal,
+          aetherAfterSecondSuppressedTurn: afterSecondSuppressedTurn.player.aether.current,
+          suppressionCleared: !afterSecondSuppressedTurn.enemy.aetherSuppression,
+          sealLog: afterSeal.log.slice(),
+          rejectedResult,
+          rejectedBeforeTurn: beforeRejected.turn,
+          rejectedAfterTurn: afterRejected.turn,
+          rejectedBeforeEchoes: beforeRejected.player.echoes.current,
+          rejectedAfterEchoes: afterRejected.player.echoes.current,
+          rejectedBeforeAether: beforeRejected.player.aether.current,
+          rejectedAfterAether: afterRejected.player.aether.current,
+          rejectedLog: afterRejected.log.slice(),
+        };
+      } finally {
+        window.random = originalRandom;
+        startCombat('skyPredator');
+      }
+    });
+
+    assert(aetherSealLiveContract.sealResult !== false,
+      'Aether Seal was rejected on explicitly Aether-dependent target');
+    assert(aetherSealLiveContract.beforeSealTurn === 0 &&
+           aetherSealLiveContract.afterSealTurn === 1,
+      'Aether Seal did not consume exactly one turn');
+    assert(aetherSealLiveContract.echoesBeforeSeal === 3 &&
+           aetherSealLiveContract.echoesAfterSeal === 0,
+      'Aether Seal did not pay its existing three-point pooled resource cost');
+    assert(aetherSealLiveContract.aetherBeforeSeal === 6 &&
+           aetherSealLiveContract.aetherAfterSeal === 6 &&
+           aetherSealLiveContract.aetherAfterSecondSuppressedTurn === 6,
+      'Aether Seal failed to suppress Wraith Aether drain for two enemy turns');
+    assert(aetherSealLiveContract.heatAfterSeal === 1,
+      'Aether Seal did not preserve current Heat-generation policy');
+    assert(aetherSealLiveContract.suppressionAfterSeal &&
+           aetherSealLiveContract.suppressionAfterSeal.remainingTurns === 1,
+      'Aether Seal suppression did not establish/decrement correctly');
+    assert(aetherSealLiveContract.suppressionCleared === true,
+      'Aether Seal suppression did not expire after two enemy turns');
+    assert(aetherSealLiveContract.sealLog.some(line =>
+      line.includes('Aether Seal') && !line.includes('Roll:')),
+      'Aether Seal still exposes legacy dice text');
+
+    assert(aetherSealLiveContract.rejectedResult === false,
+      'Aether Seal did not fail closed on non-Aether-dependent target');
+    assert(aetherSealLiveContract.rejectedBeforeTurn === 0 &&
+           aetherSealLiveContract.rejectedAfterTurn === 0,
+      'rejected Aether Seal consumed a turn');
+    assert(aetherSealLiveContract.rejectedBeforeEchoes ===
+           aetherSealLiveContract.rejectedAfterEchoes &&
+           aetherSealLiveContract.rejectedBeforeAether ===
+           aetherSealLiveContract.rejectedAfterAether,
+      'rejected Aether Seal consumed resources');
+    assert(aetherSealLiveContract.rejectedLog.some(line =>
+      line.includes('Aether Seal cannot bind')),
+      'rejected Aether Seal did not expose fail-closed reason');
+
     if (errors.length) {
       throw new Error('browser errors:\n' + errors.join('\n'));
     }
@@ -623,7 +1044,7 @@ function createServer() {
       enemyMetadataContract,
       affordabilityContract,
       progressionReachability,
-      secondaryStateContract,
+      blockedResidueContract,
       effectContract,
       registryContract,
       resolverContract,

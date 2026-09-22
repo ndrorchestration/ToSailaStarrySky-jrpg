@@ -31,10 +31,10 @@ Aetherwake has exactly five authored playable protagonists:
 4. **Reson**
 5. **Aepex**
 
-Combat uses exactly three active characters:
+Combat supports 1–5 active authored protagonists as recruitment expands:
 
 ```text
-ROSTER[5] → select ACTIVE_PARTY[3] → combat
+ROSTER[5] → ACTIVE_PARTY[1..5] → combat
 ```
 
 Rules:
@@ -84,7 +84,7 @@ Minimum character-state domains:
 - story flags,
 - long-term resources.
 
-`ACTIVE_PARTY[3]` should contain IDs/references to roster records.
+`ACTIVE_PARTY[1..5]` should contain IDs/references to roster records.
 
 Combat-local state may contain:
 
@@ -117,10 +117,9 @@ Inactive-character XP/mastery sharing policy remains open.
 
 Resolution:
 
-- 2D6 + relevant stat
-- 10+ = full success
-- 7–9 = partial success / complication
-- 6− = failure
+- target production model: conventional JRPG stat/formula resolution;
+- migrated actions use explicit deterministic or bounded-RNG contracts;
+- legacy 2D6 outcome bands remain compatibility provenance only where an action has not yet been migrated or intentionally quarantined.
 
 Resources currently include:
 
@@ -131,16 +130,16 @@ Resources currently include:
 - Scrap,
 - Resonator Staff charges.
 
-Current flat actions:
+Current action slots:
 
-1. Resonator Staff
-2. Uncover Truth
-3. Shared Dream
-4. Mycelial Ledger
-5. Hold
-6. Wind Ward
-7. Aether Seal
-8. Rest
+1. Resonator Staff — production JRPG formula
+2. Uncover Truth — deterministic analysis / weakness reveal
+3. Shared Dream — legacy compatibility residue; blocked by current Dreaming/Talen SSOT
+4. Mycelial Ledger — Ender Commons read-only analysis
+5. Hold — deterministic recharge
+6. Wind Ward — legacy compatibility residue; owner/domain unresolved
+7. Aether Seal — Ender Aether/Ward suppression on explicit Aether-dependent targets
+8. Rest — deterministic recovery
 
 Current prototype level unlocks:
 
@@ -162,15 +161,16 @@ The development branch now separates current combat metadata from execution:
 - ordinary damage, restoration, and resource mutations inside `resolveTurn()` are now executed through `modules/effect-resolver.js`;
 - the resolver fails closed on unsupported implemented effect kinds and treats `DECLARED_NOT_APPLIED` effects as explicit no-ops;
 - `resolveTurn()` now rejects locked actions before consuming a turn or resources;
-- the combat panel exposes stable keys 1–8 while visibly marking locked actions;
+- the combat panel exposes stable keys 1–8 while visibly marking locked/unavailable actions;
 - CI rejects reintroduced direct ordinary mutations inside `resolveTurn()` and validates the browser path after resolver integration.
 
 Known semantic debt remains explicit rather than being silently upgraded:
 
-- Uncover Truth's reveal and +1-next-roll semantics are currently narrated/local-only rather than durable applied state;
-- the Shared Dream +1-next-action branch is likewise not persisted/applied;
-- current legacy cost/tier behavior is preserved exactly;
-- modifier/reveal/status/movement execution is not generalized merely because those kinds exist in the vocabulary.
+- Shared Dream remains compatibility residue because current SSOT reserves true Dreaming for Talen;
+- Wind Ward remains compatibility residue because canonical owner/domain are unresolved;
+- current legacy cost/tier behavior is still preserved where not yet redesigned;
+- modifier/reveal/status/movement execution is not generalized merely because those kinds exist in the vocabulary;
+- several historical modular mirrors still contain old 2D6 text and are not runtime authority.
 
 ### ESTABLISHED EFFECT VOCABULARY — v0.1
 
@@ -334,7 +334,7 @@ Hierarchy:
 3. Synthesis Arts — one character, three schools
 4. Personal Grand Synthesis — four+ schools
 5. Dual Arts — two characters
-6. Triple Arts — all three active characters
+6. Triple Arts — three participating active characters
 
 Combination eligibility should check actual state:
 
@@ -346,7 +346,7 @@ Combination eligibility should check actual state:
 - positioning/status/setup,
 - registered combo definition.
 
-Triple Arts must be genuinely simultaneous. If one character taking three sequential turns can approximately reproduce the result, the effect is too weak for a Triple Art.
+Triple Arts must be genuinely simultaneous among their three participants. A five-member active party may contain multiple valid Triple-Art subsets.
 
 ---
 
@@ -458,7 +458,7 @@ Automated tests should also cover:
 
 1. stabilize and merge the newest playable baseline,
 2. establish persistent `ROSTER[5]`,
-3. establish `ACTIVE_PARTY[3]`,
+3. establish `ACTIVE_PARTY[1..5]`,
 4. freeze first effect vocabulary,
 5. extract registries without changing behavior,
 6. generalize ability access/resolution,

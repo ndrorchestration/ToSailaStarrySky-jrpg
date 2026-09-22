@@ -183,9 +183,9 @@ const JOBS = [
 
 // ── Ender (fixed protagonist — always party[0]) ──
 const ENDER = {
-  name: 'Young Ender',
-  age: 28,
-  class: 'Rift Scholar + Dreamwright',
+  name: 'Ender',
+  age: 22,
+  class: 'Rift Scholar',
   vit: 13, maxVit: 13,
   echoes: { current: 3, max: 3 }, maxEchoes: 3,
   wits: 2, presence: 1, spirit: 1, might: -1, grace: 0,
@@ -198,7 +198,7 @@ const ENDER = {
   unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
   equipment: { staff: null, backpack: null },
   jobId: 'ender',
-  synergyBonus: 'The anchor. Your crew orbits Ender\'s resolve.',
+  synergyBonus: 'Analyst-controller baseline. Final party synergy remains open.',
 };
 
 // ── Color helpers ──
@@ -575,7 +575,7 @@ const CharCreate = {
     textSize(14);
     fill(C.parchment[0], C.parchment[1], C.parchment[2], 180);
     textAlign(CENTER, CENTER);
-    text('Young Ender is your anchor —', cx, cy + 68);
+    text('Ender is your anchor —', cx, cy + 68);
     text('choose two companions for the journey.', cx, cy + 84);
 
     // Ender preview — small silhouette bottom-center
@@ -641,10 +641,10 @@ const CharCreate = {
     textSize(9);
     textAlign(CENTER, CENTER);
     fill(C.parchment[0], C.parchment[1], C.parchment[2], 200);
-    text('YOUNG ENDER', x, y + size * 0.7 + 14);
+    text('ENDER', x, y + size * 0.7 + 14);
     textSize(8);
     fill(C.teal[0], C.teal[1], C.teal[2], 140);
-    text('Rift Scholar + Dreamwright  ·  Rank 1', x, y + size * 0.7 + 26);
+    text('Rift Scholar  ·  Rank 1', x, y + size * 0.7 + 26);
   },
 
   // ── Name input step ──
@@ -1170,7 +1170,7 @@ const CharCreate = {
       textFont(CC_FONT_BODY);
       textSize(10);
       textAlign(CENTER, TOP);
-      const jobName = isEnder ? 'Rift Scholar + Dreamwright' :
+      const jobName = isEnder ? 'Rift Scholar' :
                      (job ? job.name : 'Unknown');
       const classCol = isEnder ? C.teal : (job ? jobColorRGB(chr.jobId) : C.dim);
       fill(classCol[0], classCol[1], classCol[2], 160);

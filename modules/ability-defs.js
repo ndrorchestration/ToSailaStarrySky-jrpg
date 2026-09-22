@@ -22,7 +22,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
 
   function deepFreeze(value) {
     if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -58,7 +58,8 @@
       type: 'attack',
       tier: 0,
       effectProfile: 'staffStrike',
-      desc: '1d6+2 EMP, 10ft melee / 60ft beam, 1 charge',
+      resolution: { model: 'jrpg-stat-formula', formulaId: 'staffStrike' },
+      desc: 'Formula-driven EMP strike. Uses 1 Resonator Staff charge.',
     },
     uncoverTruth: {
       id: 'uncoverTruth',
@@ -68,7 +69,8 @@
       type: 'ability',
       tier: 1,
       effectProfile: 'uncoverTruth',
-      desc: '2D6+Wits. Reveal enemy weakness. +1 next roll.',
+      resolution: { model: 'jrpg-stat-formula', formulaId: 'uncoverTruth' },
+      desc: 'Analyze the target: reveal its weakness and expose it to the next damaging action.',
     },
     sharedDream: {
       id: 'sharedDream',
@@ -78,7 +80,11 @@
       type: 'ability',
       tier: 1,
       effectProfile: 'sharedDream',
-      desc: '2D6+Spirit. Ally +1 next action OR heal 1-2 Vit',
+      authorityStatus: 'legacy-adaptation-residue',
+      migrationStatus: 'blocked-by-current-ssot',
+      canonicalOwner: null,
+      ssotNote: 'Dreaming is plot-bound Talen access; do not migrate this action as an Ender formula ability.',
+      desc: 'Legacy compatibility action. Current ownership and production semantics are not authorized.',
     },
     mycelialLedger: {
       id: 'mycelialLedger',
@@ -88,7 +94,12 @@
       type: 'ability',
       tier: 0,
       effectProfile: 'mycelialLedger',
-      desc: '2D6+Presence. Gain scrap or aether',
+      authorityStatus: 'creator-aligned-exceptional-access',
+      migrationStatus: 'live-readonly-v1',
+      canonicalOwner: 'ender',
+      resolution: { model: 'commons-readonly', contractId: 'mycelialLedger' },
+      ssotNote: 'Commons Art: reveal relationships, dependencies, exchanges, obligations, and network structure.',
+      desc: 'Read-only Commons analysis. Reveals observed network facts and explicit unknowns.',
     },
     hold: {
       id: 'hold',
@@ -98,7 +109,8 @@
       type: 'hold',
       tier: 0,
       effectProfile: 'hold',
-      desc: 'Regain 1 staff charge in sunlight',
+      resolution: { model: 'jrpg-stat-formula', formulaId: 'hold' },
+      desc: 'Deterministically regain 1 staff charge, up to maximum.',
     },
     windWard: {
       id: 'windWard',
@@ -108,7 +120,11 @@
       type: 'defense',
       tier: 1,
       effectProfile: 'windWard',
-      desc: '2D6+Grace. Resist wind shear. Restore 1 Vit if 10+',
+      authorityStatus: 'legacy-adaptation-residue',
+      migrationStatus: 'blocked-pending-owner-and-domain',
+      canonicalOwner: null,
+      ssotNote: 'No current SSOT source assigns Wind Ward to Ender or another canonical protagonist/domain. Do not migrate until ownership and school/discipline are established.',
+      desc: 'Legacy compatibility action. Production owner/domain unresolved.',
     },
     aetherSeal: {
       id: 'aetherSeal',
@@ -118,7 +134,11 @@
       type: 'defense',
       tier: 2,
       effectProfile: 'aetherSeal',
-      desc: '2D6+Wits. Drain aether pool. Gain scrap on 10+',
+      authorityStatus: 'creator-aligned-aether-ward',
+      migrationStatus: 'live-aether-seal-v1',
+      canonicalOwner: 'ender',
+      resolution: { model: 'aether-seal', contractId: 'aetherSeal' },
+      desc: 'Suppress explicitly Aether-dependent targets. Fails closed when dependence is unknown.',
     },
     rest: {
       id: 'rest',
@@ -128,7 +148,8 @@
       type: 'rest',
       tier: 0,
       effectProfile: 'rest',
-      desc: 'Reduce current heat by 1. Recover 1 Vit on 10+',
+      resolution: { model: 'jrpg-stat-formula', formulaId: 'rest' },
+      desc: 'Deterministically reduce Heat by up to 2 and restore up to 1 Vit.',
     },
   });
 
@@ -158,7 +179,50 @@
       if (typeof def.type !== 'string' || !def.type) {
         throw new Error('ABILITY_TYPE_INVALID:' + id);
       }
+      if (def.authorityStatus != null && typeof def.authorityStatus !== 'string') {
+        throw new Error('ABILITY_AUTHORITY_STATUS_INVALID:' + id);
+      }
+      if (def.migrationStatus != null && typeof def.migrationStatus !== 'string') {
+        throw new Error('ABILITY_MIGRATION_STATUS_INVALID:' + id);
+      }
+      if (def.canonicalOwner != null && typeof def.canonicalOwner !== 'string') {
+        throw new Error('ABILITY_CANONICAL_OWNER_INVALID:' + id);
+      }
+      if (def.resolution) {
+        const validFormula = def.resolution.model === 'jrpg-stat-formula' &&
+          def.resolution.formulaId === id;
+        const validCommons = id === 'mycelialLedger' &&
+          def.resolution.model === 'commons-readonly' &&
+          def.resolution.contractId === 'mycelialLedger';
+        const validAetherSeal = id === 'aetherSeal' &&
+          def.resolution.model === 'aether-seal' &&
+          def.resolution.contractId === 'aetherSeal';
+        if (!validFormula && !validCommons && !validAetherSeal) {
+          throw new Error('ABILITY_RESOLUTION_BINDING_INVALID:' + id);
+        }
+      }
+      if ((id === 'staffStrike' || id === 'uncoverTruth' || id === 'hold' || id === 'rest') && !def.resolution) {
+        throw new Error('ABILITY_FORMULA_BINDING_MISSING:' + id);
+      }
     });
+
+    if (DEFS.sharedDream.migrationStatus !== 'blocked-by-current-ssot' ||
+        DEFS.sharedDream.canonicalOwner !== null ||
+        DEFS.sharedDream.resolution) {
+      throw new Error('SHARED_DREAM_SSOT_GUARD_DRIFT');
+    }
+    if (DEFS.windWard.migrationStatus !== 'blocked-pending-owner-and-domain' ||
+        DEFS.windWard.canonicalOwner !== null ||
+        DEFS.windWard.resolution) {
+      throw new Error('WIND_WARD_SSOT_GUARD_DRIFT');
+    }
+
+    if (DEFS.mycelialLedger.canonicalOwner !== 'ender' ||
+        DEFS.mycelialLedger.migrationStatus !== 'live-readonly-v1' ||
+        !DEFS.mycelialLedger.resolution ||
+        DEFS.mycelialLedger.resolution.model !== 'commons-readonly') {
+      throw new Error('MYCELIAL_LEDGER_SSOT_GUARD_DRIFT');
+    }
 
     const orphans = ids.filter(id => !ACTION_ORDER.includes(id));
     if (orphans.length) throw new Error('ABILITY_DEF_ORPHANS:' + orphans.join(','));
@@ -216,6 +280,14 @@
     return currentResource(actor, 'echoes') + currentResource(actor, 'aether');
   }
 
+  function isAuthorityBlocked(action) {
+    return Boolean(
+      action &&
+      typeof action.migrationStatus === 'string' &&
+      action.migrationStatus.startsWith('blocked-')
+    );
+  }
+
   function getUseEligibility(actor, actionId) {
     const action = DEFS[actionId];
     if (!action) {
@@ -231,6 +303,17 @@
     const resourceCost = getActionResourceCost(action);
     const availableResource = getAvailableActionResource(actor);
 
+    if (isAuthorityBlocked(action)) {
+      return {
+        canUse: false,
+        reason: 'ssot_blocked',
+        actionId,
+        resourceCost,
+        availableResource,
+        migrationStatus: action.migrationStatus,
+      };
+    }
+
     if (!isActionUnlocked(actor, actionId)) {
       return {
         canUse: false,
@@ -238,6 +321,20 @@
         actionId,
         resourceCost,
         availableResource,
+      };
+    }
+
+    if (actionId === 'staffStrike' && actor &&
+        Object.prototype.hasOwnProperty.call(actor, 'staffCharges') &&
+        currentResource(actor, 'staffCharges') < 1) {
+      return {
+        canUse: false,
+        reason: 'insufficient_dedicated_resource',
+        actionId,
+        resourceCost,
+        availableResource,
+        dedicatedResource: 'staffCharges',
+        dedicatedAvailable: currentResource(actor, 'staffCharges'),
       };
     }
 
@@ -281,11 +378,20 @@
         throw new Error('RUNTIME_ACTION_ORDER_MISMATCH:' + expectedId);
       }
 
-      ['label', 'stat', 'cost', 'type', 'tier', 'effectProfile', 'desc'].forEach(key => {
+      ['label', 'stat', 'cost', 'type', 'tier', 'effectProfile', 'desc',
+       'authorityStatus', 'migrationStatus', 'canonicalOwner', 'ssotNote'].forEach(key => {
         if (action[key] !== expected[key]) {
           throw new Error('RUNTIME_ACTION_FIELD_MISMATCH:' + expectedId + ':' + key);
         }
       });
+      if (expected.resolution) {
+        if (!action.resolution ||
+            action.resolution.model !== expected.resolution.model ||
+            action.resolution.formulaId !== expected.resolution.formulaId ||
+            action.resolution.contractId !== expected.resolution.contractId) {
+          throw new Error('RUNTIME_ACTION_RESOLUTION_MISMATCH:' + expectedId);
+        }
+      }
     });
 
     return true;
@@ -303,6 +409,7 @@
     getEligibleActionIds,
     getActionResourceCost,
     getAvailableActionResource,
+    isAuthorityBlocked,
     getUseEligibility,
     getUsableActionIds,
     createRuntimeActions,

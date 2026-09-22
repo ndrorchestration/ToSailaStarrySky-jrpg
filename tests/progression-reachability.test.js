@@ -30,7 +30,9 @@ assert(awardStart >= 0 && encounterStart > awardStart,
   'awardXP source block not found');
 
 const awardBlock = combatSource.slice(awardStart, encounterStart);
-assert(awardBlock.includes('this.levelUp();'),
+assert(awardBlock.includes('this.levelUp()'),
   'awardXP does not invoke level-up evaluation');
+assert(awardBlock.includes('while (p.level < hardCap'),
+  'awardXP must support crossing multiple levels safely');
 
 console.log('Aetherwake progression reachability contract: PASS');

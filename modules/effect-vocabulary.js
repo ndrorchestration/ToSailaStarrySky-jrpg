@@ -116,13 +116,13 @@
       success: [
         effect(
           EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'weakness',
-          RUNTIME_STATUS.DECLARED_NOT_APPLIED,
-          'Current runtime narrates the reveal but stores no reveal state.'
+          RUNTIME_STATUS.IMPLEMENTED,
+          'Formula-native Uncover Truth stores the authored enemy weakness in analysis state.'
         ),
         effect(
-          EFFECT_KIND.MODIFIER, TARGET.SELF, OPERATION.INCREASE, 'nextRoll',
-          RUNTIME_STATUS.DECLARED_NOT_APPLIED,
-          'Current runtime assigns a local nextRollBonus but never applies it to a later roll.'
+          EFFECT_KIND.MODIFIER, TARGET.ENEMY, OPERATION.INCREASE, 'nextDamageMultiplier',
+          RUNTIME_STATUS.IMPLEMENTED,
+          'Formula-native Uncover Truth creates one 1.15x damage-analysis charge.'
         ),
       ],
       partial: [],
@@ -156,27 +156,31 @@
     },
 
     mycelialLedger: {
-      common: [
-        effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.HEAT),
-      ],
+      common: [],
       success: [
         effect(
-          EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.AETHER,
+          EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'relationships',
           RUNTIME_STATUS.IMPLEMENTED,
-          'One current random branch gains aether.'
+          'Commons Ledger reveals only relationships already represented on the inspected target.'
         ),
         effect(
-          EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.SCRAP,
+          EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'dependencies',
           RUNTIME_STATUS.IMPLEMENTED,
-          'The alternate current branch gains scrap.'
+          'Commons Ledger reveals only dependencies already represented on the inspected target.'
+        ),
+        effect(
+          EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'exchanges',
+          RUNTIME_STATUS.IMPLEMENTED,
+          'Commons Ledger reveals only exchanges already represented on the inspected target.'
+        ),
+        effect(
+          EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'obligations',
+          RUNTIME_STATUS.IMPLEMENTED,
+          'Commons Ledger reveals only obligations already represented on the inspected target.'
         ),
       ],
-      partial: [
-        effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.SCRAP),
-      ],
-      failure: [
-        effect(EFFECT_KIND.DAMAGE, TARGET.SELF, OPERATION.APPLY, 'vitality'),
-      ],
+      partial: [],
+      failure: [],
     },
 
     hold: {
@@ -213,14 +217,14 @@
         effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.HEAT),
       ],
       success: [
-        effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.SCRAP),
+        effect(
+          EFFECT_KIND.STATUS, TARGET.ENEMY, OPERATION.APPLY, 'aether-suppressed',
+          RUNTIME_STATUS.IMPLEMENTED,
+          'Aether Seal applies only to explicitly Aether-dependent targets and suppresses bounded Aether output.'
+        ),
       ],
-      partial: [
-        effect(EFFECT_KIND.DAMAGE, TARGET.SELF, OPERATION.APPLY, 'vitality'),
-      ],
-      failure: [
-        effect(EFFECT_KIND.DAMAGE, TARGET.SELF, OPERATION.APPLY, 'vitality'),
-      ],
+      partial: [],
+      failure: [],
     },
 
     rest: {

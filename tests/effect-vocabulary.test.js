@@ -36,13 +36,47 @@ assert(Object.isFrozen(vocabulary.ACTION_EFFECT_PROFILES), 'effect profiles must
 const uncoverSuccess = vocabulary.ACTION_EFFECT_PROFILES.uncoverTruth.success;
 assert(uncoverSuccess.some(effect =>
   effect.kind === vocabulary.EFFECT_KIND.REVEAL &&
-  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.DECLARED_NOT_APPLIED
-), 'Uncover Truth reveal debt must remain explicit');
+  effect.key === 'weakness' &&
+  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED
+), 'Uncover Truth weakness reveal must be implemented');
 
 assert(uncoverSuccess.some(effect =>
   effect.kind === vocabulary.EFFECT_KIND.MODIFIER &&
-  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.DECLARED_NOT_APPLIED
-), 'Uncover Truth next-roll modifier debt must remain explicit');
+  effect.key === 'nextDamageMultiplier' &&
+  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED
+), 'Uncover Truth analysis modifier must be implemented');
+
+const mycelialSuccess = vocabulary.ACTION_EFFECT_PROFILES.mycelialLedger.success;
+for (const key of ['relationships', 'dependencies', 'exchanges', 'obligations']) {
+  assert(mycelialSuccess.some(effect =>
+    effect.kind === vocabulary.EFFECT_KIND.REVEAL &&
+    effect.key === key &&
+    effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED
+  ), 'Mycelial Ledger must implement read-only reveal: ' + key);
+}
+assert.strictEqual(
+  vocabulary.ACTION_EFFECT_PROFILES.mycelialLedger.common.length, 0,
+  'Mycelial Ledger must not generate Heat or other common mutations'
+);
+assert.strictEqual(
+  vocabulary.ACTION_EFFECT_PROFILES.mycelialLedger.partial.length, 0,
+  'Mycelial Ledger must not retain legacy partial-outcome mutations'
+);
+assert.strictEqual(
+  vocabulary.ACTION_EFFECT_PROFILES.mycelialLedger.failure.length, 0,
+  'Mycelial Ledger must not retain legacy failure mutations'
+);
+
+const aetherSealSuccess = vocabulary.ACTION_EFFECT_PROFILES.aetherSeal.success;
+assert(aetherSealSuccess.some(effect =>
+  effect.kind === vocabulary.EFFECT_KIND.STATUS &&
+  effect.key === 'aether-suppressed' &&
+  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED
+), 'Aether Seal suppression status must be implemented');
+assert.strictEqual(vocabulary.ACTION_EFFECT_PROFILES.aetherSeal.partial.length, 0,
+  'Aether Seal must not retain legacy partial outcome damage');
+assert.strictEqual(vocabulary.ACTION_EFFECT_PROFILES.aetherSeal.failure.length, 0,
+  'Aether Seal must not retain legacy failure outcome damage');
 
 const sharedDreamSuccess = vocabulary.ACTION_EFFECT_PROFILES.sharedDream.success;
 assert(sharedDreamSuccess.some(effect =>
@@ -58,9 +92,15 @@ console.log(JSON.stringify({
   version: vocabulary.VERSION,
   kinds: Object.values(vocabulary.EFFECT_KIND),
   actionProfiles: Object.keys(vocabulary.ACTION_EFFECT_PROFILES),
-  declaredNotApplied: [
+  implementedAnalysis: [
     'uncoverTruth.reveal',
-    'uncoverTruth.nextRoll',
+    'uncoverTruth.nextDamageMultiplier',
+    'mycelialLedger.relationships',
+    'mycelialLedger.dependencies',
+    'mycelialLedger.exchanges',
+    'mycelialLedger.obligations',
+  ],
+  declaredNotApplied: [
     'sharedDream.nextRoll',
   ],
 }, null, 2));
