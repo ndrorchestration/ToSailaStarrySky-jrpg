@@ -3262,10 +3262,37 @@ function render() {
   if (player.shipBoarded) {
     drawShipInterior();
   } else {
+    const benchmark = window.AetherVisualBenchmark;
+    const benchmarkActive = Boolean(
+      benchmark &&
+      typeof benchmark.isActive === 'function' &&
+      benchmark.isActive(player, airNavigationState)
+    );
+    const benchmarkCtx = benchmarkActive ? {
+      width,
+      height,
+      now: millis(),
+      dayTime,
+      player,
+      airNavigationState
+    } : null;
+
+    if (benchmarkActive) benchmark.drawBackdrop(benchmarkCtx);
+
     drawGroundLayer();
     if (isSkyLayerVisible) {
       drawSkyLayer();
     }
+
+    if (benchmarkActive) {
+      benchmark.drawDragonfly({
+        x: 535,
+        y: 258,
+        now: millis(),
+        moored: true
+      });
+    }
+
     drawCovenantField();
     drawWorldAmbient();
     drawGrassWind();
@@ -3276,6 +3303,12 @@ function render() {
     drawPlayer();
     drawNPCs();
     drawPlayerVisualEvolution();
+
+    if (benchmarkActive) {
+      benchmark.drawLighting(benchmarkCtx);
+      benchmark.drawDockLights(benchmarkCtx);
+      benchmark.drawForeground(benchmarkCtx);
+    }
   }
   drawQuestOverlay();
   drawSolarMeter();
