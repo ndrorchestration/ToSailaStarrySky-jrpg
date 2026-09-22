@@ -16,7 +16,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
 
   const SCENES = Object.freeze([
     Object.freeze({
@@ -48,6 +48,7 @@
       id: 'dock_walk',
       sequence: 2,
       visual: 'dock-walk',
+      interactive: true,
       title: 'THE WALK TO THE WAKE',
       speaker: null,
       lines: Object.freeze([
@@ -157,6 +158,9 @@
     SCENES.forEach((scene, index) => {
       if (scene.sequence !== index) throw new Error('FIRST_WAKE_OPENING_SEQUENCE_DRIFT:' + scene.id);
       if (!scene.id || !scene.title || !scene.visual) throw new Error('FIRST_WAKE_OPENING_SCENE_INVALID:' + index);
+      if (scene.interactive && scene.id !== 'dock_walk') {
+        throw new Error('FIRST_WAKE_OPENING_INTERACTIVE_DRIFT:' + scene.id);
+      }
       if (!['dock-horizon','arrival','dock-walk','berth','talen','household','wrong-song','practical','core-walk','chapter'].includes(scene.visual)) {
         throw new Error('FIRST_WAKE_OPENING_VISUAL_INVALID:' + scene.id);
       }
@@ -179,6 +183,11 @@
       sceneIndex: 0,
       complete: false,
       appliedJoinIds: [],
+      dockWalk: {
+        x: 0,
+        max: 8,
+        ready: false,
+      },
     };
   }
 
@@ -192,6 +201,12 @@
   function advance(state) {
     if (!state || state.complete) return { state, event: null };
     const scene = currentScene(state);
+    if (scene.interactive && (!state.dockWalk || !state.dockWalk.ready)) {
+      return {
+        state,
+        event: Object.freeze({ type: 'interaction-required', interaction: 'dock-walk' }),
+      };
+    }
     const event = scene.joinCharacterId && !state.appliedJoinIds.includes(scene.joinCharacterId)
       ? Object.freeze({ type: 'party-join', characterId: scene.joinCharacterId })
       : null;
@@ -207,6 +222,24 @@
     return { state, event };
   }
 
+  function moveDock(state, delta) {
+    if (!state || !state.dockWalk) throw new Error('FIRST_WAKE_DOCK_WALK_STATE_REQUIRED');
+    const scene = currentScene(state);
+    if (!scene.interactive || scene.id !== 'dock_walk') {
+      return { state, moved: false, ready: Boolean(state.dockWalk.ready) };
+    }
+    const step = Number.isFinite(delta) ? Math.sign(delta) : 0;
+    if (step === 0) return { state, moved: false, ready: Boolean(state.dockWalk.ready) };
+    state.dockWalk.x = Math.max(0, Math.min(state.dockWalk.max, state.dockWalk.x + step));
+    state.dockWalk.ready = state.dockWalk.x >= state.dockWalk.max;
+    return { state, moved: true, ready: state.dockWalk.ready };
+  }
+
+  function dockWalkProgress(state) {
+    if (!state || !state.dockWalk) throw new Error('FIRST_WAKE_DOCK_WALK_STATE_REQUIRED');
+    return state.dockWalk.max > 0 ? state.dockWalk.x / state.dockWalk.max : 1;
+  }
+
   function expectedPartyIds(state) {
     return currentScene(state).activePartyIds.slice();
   }
@@ -220,6 +253,8 @@
     createState,
     currentScene,
     advance,
+    moveDock,
+    dockWalkProgress,
     expectedPartyIds,
   });
 });
