@@ -5125,9 +5125,10 @@ function AetherCombat(p, C) {
     }
 
     // Resolution migration boundary.
-    // Staff Strike, Hold, and Rest execute through the production JRPG formula
-    // engine. The remaining five actions stay on the legacy 2D6 compatibility
-    // path until their semantics are separately migrated.
+    // Resonator Staff, Uncover Truth, Hold, and Rest execute through the
+    // production JRPG formula engine. Mycelial Ledger and Aether Seal use
+    // their explicit live contracts. Shared Dream and Wind Ward remain the
+    // two authority-blocked legacy compatibility actions.
     let actionText = '';
     let enemyDmg = 0;
     let playerDmg = 0;
@@ -7536,7 +7537,11 @@ function drawCombatPanel(combatState) {
     const label = action.label || action.id;
     fill(usable ? PAL.PARCHMENT : PAL.DIM);
     noStroke();
-    const statePrefix = !unlocked ? 'LOCKED · ' : (usable ? '' : 'NO RES · ');
+    const statePrefix = !unlocked
+      ? 'LOCKED · '
+      : (useEligibility && useEligibility.reason === 'ssot_blocked'
+        ? 'UNAVAILABLE · '
+        : (usable ? '' : 'NO RES · '));
     text(statePrefix + label.substring(0, statePrefix ? 19 : 28), aX + 24, ay + 1);
     // Cost indicator uses the exact same centralized legacy cost function as
     // runtime admission/payment.
