@@ -90,6 +90,7 @@
     "test:ci-trigger-hygiene": "node tests/ci-trigger-hygiene.test.js",
     "test:title-visual": "node tests/title-visual-stage.test.js",
     "test:sky-combat-visual": "node tests/sky-combat-visual-context.test.js",
-    "test:cinematic-player": "node tests/cinematic-player-contract.test.js"
+    "test:cinematic-player": "node tests/cinematic-player-contract.test.js",
+    "test:visual-package-integration": "node tests/visual-package-integration.test.js"
   }
 }
