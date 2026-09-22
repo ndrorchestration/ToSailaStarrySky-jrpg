@@ -28,7 +28,7 @@ function (policy, statModel) {
   }
   policy.validate();
 
-  const VERSION = '1.0.0';
+  const VERSION = '1.1.0';
 
   function deepFreeze(value) {
     if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -51,6 +51,14 @@ function (policy, statModel) {
       criticalPolicy: { mode: 'chance', chance: 0.10 },
       variancePolicy: { mode: 'bounded' },
       dedicatedCost: { resource: 'staffCharges', amount: 1 },
+    },
+    uncoverTruth: {
+      id: 'uncoverTruth',
+      model: 'jrpg-stat-formula',
+      kind: 'analysis',
+      reveal: 'weakness',
+      nextDamageMultiplier: 1.15,
+      charges: 1,
     },
     hold: {
       id: 'hold',
@@ -134,6 +142,11 @@ function (policy, statModel) {
     const varianceRng = formula.variancePolicy.mode === 'bounded' ? nextRandom(randomFn) : 0.5;
     const critRng = formula.criticalPolicy.mode === 'chance' ? nextRandom(randomFn) : 0.999999;
 
+    const analysisMultiplier = target && target.analysis &&
+      target.analysis.charges > 0
+      ? Number(target.analysis.nextDamageMultiplier || 1)
+      : 1;
+
     const result = statModel.resolveDamage({
       attacker: primary,
       scalingStat: formula.scalingStat,
@@ -145,6 +158,7 @@ function (policy, statModel) {
       canCrit: formula.criticalPolicy.mode === 'chance',
       critRate: formula.criticalPolicy.chance,
       critRng,
+      situationalMultiplier: analysisMultiplier,
     });
 
     return Object.freeze({
@@ -164,6 +178,27 @@ function (policy, statModel) {
       defenseMultiplier: result.defenseMultiplier,
       varianceMultiplier: result.variance,
       dedicatedCost: Object.freeze({...formula.dedicatedCost}),
+      consumedAnalysis: analysisMultiplier > 1,
+      analysisMultiplier,
+    });
+  }
+
+  function resolveAnalysis(actionId, actor, target) {
+    const formula = FORMULAS[actionId];
+    if (!formula) throw new Error('COMBAT_FORMULA_UNKNOWN_ACTION:' + actionId);
+    if (formula.kind !== 'analysis') throw new Error('COMBAT_FORMULA_NOT_ANALYSIS_ACTION:' + actionId);
+    if (!target || typeof target !== 'object') throw new Error('COMBAT_FORMULA_TARGET_REQUIRED');
+    return Object.freeze({
+      actionId,
+      model: formula.model,
+      kind: formula.kind,
+      reveal: formula.reveal,
+      weakness: target.weakness || null,
+      modifier: Object.freeze({
+        key: 'analyzed',
+        nextDamageMultiplier: formula.nextDamageMultiplier,
+        charges: formula.charges,
+      }),
     });
   }
 
@@ -200,6 +235,7 @@ function (policy, statModel) {
     const formula = FORMULAS[actionId];
     if (!formula) throw new Error('COMBAT_FORMULA_UNKNOWN_ACTION:' + actionId);
     if (formula.kind === 'damage') return resolveDamage(actionId, actor, target, randomFn);
+    if (formula.kind === 'analysis') return resolveAnalysis(actionId, actor, target);
     if (formula.kind === 'resource') return resolveResource(actionId, actor);
     if (formula.kind === 'recovery') return resolveRecovery(actionId, actor);
     throw new Error('COMBAT_FORMULA_KIND_NOT_RESOLVABLE:' + formula.kind);
@@ -220,7 +256,7 @@ function (policy, statModel) {
 
   return Object.freeze({
     VERSION, FORMULAS, getFormula,
-    resolveDamage, resolveResource, resolveRecovery, resolveAction,
+    resolveDamage, resolveAnalysis, resolveResource, resolveRecovery, resolveAction,
     validateAgainstAbilityDefs,
   });
 });
