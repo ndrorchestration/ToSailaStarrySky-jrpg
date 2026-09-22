@@ -59,7 +59,7 @@
 
   function directionalAction(direction, context) {
     if (context === 'world' || context === 'airship') return 'move-' + direction;
-    if (context === 'menu' || context === 'settings' || context === 'dialogue' || context === 'combat' || context === 'save-load') {
+    if (context === 'menu' || context === 'settings' || context === 'controls' || context === 'dialogue' || context === 'combat' || context === 'save-load') {
       return 'ui-' + direction;
     }
     return null;
