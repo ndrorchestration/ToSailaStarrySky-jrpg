@@ -27,6 +27,11 @@ assert.deepStrictEqual(
   'E must map to interact in WORLD'
 );
 assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 69 }, 'dialogue'),
+  ['interact'],
+  'E must preserve dialogue advance semantics'
+);
+assert.deepStrictEqual(
   input.actionsForKeyboardEvent({ keyCode: 69 }, 'airship'),
   ['airship-altitude-up'],
   'E must map to altitude-up in AIRSHIP'
