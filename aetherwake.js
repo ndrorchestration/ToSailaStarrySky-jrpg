@@ -3538,6 +3538,7 @@ function drawShopOverlay() {
     ellipse(px, py, island.size, island.size * 0.5);
   }
 
+  const uiScale = accessibilityTextScale();
   const sx = 40, sy = 40, sw = width - 80, sh = height - 80;
   fill(C.navy[0], C.navy[1], C.navy[2]);
   noStroke();
@@ -3551,7 +3552,7 @@ function drawShopOverlay() {
   drawPixelBorder(sx, sy, sw, sh, 3);
 
   textFont('Press Start 2P');
-  textSize(10);
+  uiTextSize(10);
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
   text('REPAIR CAFE \u2014 SHOP', sx + 16, sy + 12);
 
@@ -3559,13 +3560,13 @@ function drawShopOverlay() {
     ? world.player.scrap
     : (combat && combat.getScrap ? combat.getScrap() : 0);
   textFont('VT323');
-  textSize(12);
+  uiTextSize(12);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
   text('Scrap: ' + scrap, sx + sw - 110, sy + 12);
 
   // Tabs: Items | Aether | Charges
   textFont('Press Start 2P');
-  textSize(8);
+  uiTextSize(8);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 120);
   text('ITEMS', sx + 16, sy + 32);
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
@@ -3574,28 +3575,29 @@ function drawShopOverlay() {
   const items = window.UI.shopItems && window.UI.shopItems.length
     ? window.UI.shopItems
     : (world && typeof world.getShopItems === 'function' ? world.getShopItems() : []);
-  textSize(12);
+  const itemRowH = Math.round(30 * uiScale);
+  uiTextSize(12);
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    const iy = sy + 48 + i * 30;
-    if (iy + 18 > sy + sh - 20) break;
+    const iy = sy + 48 + i * itemRowH;
+    if (iy + itemRowH > sy + sh - 26) break;
     noStroke();
     fill(C.navy[0]+8, C.navy[1]+4, C.navy[2]+4);
-    rect(sx + 12, iy, sw - 24, 26);
+    rect(sx + 12, iy, sw - 24, itemRowH - 4);
     stroke(C.teal[0], C.teal[1], C.teal[2], 50);
     strokeWeight(1);
-    rect(sx + 12, iy, sw - 24, 26);
+    rect(sx + 12, iy, sw - 24, itemRowH - 4);
 
     const buyable = scrap >= item.cost;
     // Last-command memory highlight (Memories §3.5)
     const lastSel = window.UI.lastShopSelection;
     const isLastSelected = (lastSel !== undefined && i === lastSel);
     fill(buyable ? C.parchment[0] : C.rust[0], buyable ? C.parchment[1] : C.rust[1], buyable ? C.parchment[2] : C.rust[2]);
-    text(item.name, sx + 20, iy + 5);
+    text(item.name, sx + 20, iy + 4);
     fill(C.rust[0], C.rust[1], C.rust[2], 100);
-    textSize(10);
-    text(item.desc || '', sx + 20, iy + 16);
-    textSize(12);
+    uiTextSize(10);
+    text(item.desc || '', sx + 20, iy + Math.round(16 * uiScale));
+    uiTextSize(12);
 
     fill(buyable ? C.teal[0] : C.rust[0], buyable ? C.teal[1] : C.rust[1], buyable ? C.teal[2] : C.rust[2], buyable ? 180 : 60);
     text('[' + (i+1) + '] ' + item.cost + ' scrap', sx + sw - 80, iy + 5);
@@ -3603,16 +3605,20 @@ function drawShopOverlay() {
     if (isLastSelected) {
       noStroke();
       fill(C.teal[0], C.teal[1], C.teal[2], 30);
-      rect(sx + 10, iy - 2, sw - 20, 28);
+      rect(sx + 10, iy - 2, sw - 20, itemRowH);
     }
   }
 
   // Shop footer
   textFont('Press Start 2P');
-  textSize(8);
+  uiTextSize(8);
   fill(C.rust[0], C.rust[1], C.rust[2], 120);
   textAlign(CENTER, TOP);
-  text('M or ESC to close  |  1-' + items.length + ' to buy', width/2, sy + sh - 14);
+  text(
+    inputPrompt('cancel', 'menu', 'both') + ' close  |  1-' + items.length + ' buy',
+    width/2,
+    sy + sh - 14
+  );
 }
 
 function drawLedgerOverlay() {
@@ -3625,6 +3631,7 @@ function drawLedgerOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2], 190 * (openness / 255));
   rect(0, 0, width, height);
 
+  const uiScale = accessibilityTextScale();
   const lx = 40, ly = 40, lw = width - 80, lh = height - 80;
   fill(C.navy[0], C.navy[1], C.navy[2]);
   noStroke();
@@ -3639,17 +3646,18 @@ function drawLedgerOverlay() {
   drawPixelBorder(lx, ly, lw, lh, 2);
 
   textFont('Press Start 2P');
-  textSize(10);
+  uiTextSize(10);
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
   text('MYCELIAL LEDGER', lx + 16, ly + 12);
 
   textFont('VT323');
-  textSize(13);
+  uiTextSize(13);
   const entries = world && world.getLedger ? world.getLedger() : [];
+  const rowH = Math.round(20 * uiScale);
   for (let i = 0; i < entries.length; i++) {
     const e = entries[i];
-    const ey = ly + 40 + i * 20;
-    if (ey > ly + lh - 20) break;
+    const ey = ly + Math.round(40 * uiScale) + i * rowH;
+    if (ey > ly + lh - Math.round(28 * uiScale)) break;
     fill(C.scioto[0], C.scioto[1], C.scioto[2], 120);
     text(e.date || '', lx + 16, ey);
     fill(C.parchment[0], C.parchment[1], C.parchment[2]);
@@ -3657,10 +3665,10 @@ function drawLedgerOverlay() {
   }
 
   textFont('Press Start 2P');
-  textSize(8);
+  uiTextSize(8);
   fill(C.rust[0], C.rust[1], C.rust[2], 120);
   textAlign(CENTER, TOP);
-  text('L or ESC to close', width/2, ly + lh - 14);
+  text(inputPrompt('cancel', 'menu', 'both') + ' close', width/2, ly + lh - 14);
 }
 
 function drawQuestLogOverlay() {
