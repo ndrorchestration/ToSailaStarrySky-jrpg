@@ -25,9 +25,12 @@ assert.strictEqual(abilities.DEFS.sharedDream.resolution, undefined);
 assert.strictEqual(abilities.DEFS.mycelialLedger.authorityStatus,
   'creator-aligned-exceptional-access');
 assert.strictEqual(abilities.DEFS.mycelialLedger.migrationStatus,
-  'redesign-required-before-formula');
+  'live-readonly-v1');
 assert.strictEqual(abilities.DEFS.mycelialLedger.canonicalOwner, 'ender');
-assert.strictEqual(abilities.DEFS.mycelialLedger.resolution, undefined);
+assert.deepStrictEqual(abilities.DEFS.mycelialLedger.resolution, {
+  model: 'commons-readonly',
+  contractId: 'mycelialLedger',
+});
 
 const runtimeActions = abilities.createRuntimeActions();
 assert.strictEqual(abilities.assertRuntimeActions(runtimeActions), true);
