@@ -1156,6 +1156,12 @@ function leaveAirship() {
     airshipFlightMode = false;
     return false;
   }
+  if (airNavigationState && airNavigationState.mooredLandmarkId &&
+      airNavigationState.mooredLandmarkId !== 'wake-dock') {
+    showToast('DISEMBARK UNAVAILABLE // DESTINATION MAP NOT ESTABLISHED', C.rust, 1400);
+    airshipFlightMode = false;
+    return false;
+  }
   if (world && world.player) world.player.shipBoarded = false;
   if (gameState === STATE.AIRSHIP) {
     // AIRSHIP is a full-screen ship state rather than a normal overlay.
@@ -2078,7 +2084,13 @@ function handleAirNavigationInput(input) {
       showToast('NO STABLE BERTH IN RANGE', C.rust, 900);
     }
   }
-  if (input.shift) airNavigationState.speed = airNavigationState.speed >= 3 ? 1 : airNavigationState.speed + 1;
+  if (input.shift) {
+    if (airNavigationState.mooredLandmarkId) {
+      showToast('CAST OFF BEFORE CHANGING SPEED', C.rust, 800);
+    } else {
+      airNavigationState.speed = airNavigationState.speed >= 3 ? 1 : airNavigationState.speed + 1;
+    }
+  }
   if (input.ok) airshipFlightMode = false;
   if (input.cancel) { airshipFlightMode = false; showToast('FLIGHT CONTROL // SYSTEMS', C.scioto, 700); }
   window._airNavigationState = airNavigationState;
