@@ -37,10 +37,10 @@ const workflow = fs.readFileSync(
   'utf8'
 );
 
-assert(workflow.includes('build-windows:'),
-  'desktop workflow must have an OS-independent Windows build job');
-assert(workflow.includes('runs-on: ubuntu-latest'),
-  'Windows candidate artifacts must be buildable without a Windows runner');
+assert(!workflow.includes('actions/upload-artifact@v4'),
+  'release-critical path must not depend on GitHub Actions artifact storage');
+assert(!workflow.includes('actions/download-artifact@v4'),
+  'release-critical path must not depend on GitHub Actions artifact transfer');
 assert(workflow.includes('npm ci'),
   'desktop workflow must use the lockfile');
 assert(workflow.includes('npm run test:desktop-package'),
@@ -59,22 +59,19 @@ assert(workflow.includes('Aetherwake-Windows.zip'),
   'desktop workflow must preserve the portable ZIP fallback');
 assert(workflow.includes('SHA256SUMS.txt'),
   'desktop workflow must publish artifact hashes');
-assert(workflow.includes('actions/upload-artifact@v4'),
-  'desktop workflow must preserve candidate artifacts independently of release publication');
-
 assert(workflow.includes('verify-windows:'),
-  'desktop workflow must have a Windows verification job');
+  'desktop workflow must have a Windows build-and-verification job');
 assert(workflow.includes('runs-on: windows-2022'),
   'Windows verification must use a pinned runner image');
-assert(workflow.includes('Install and launch packaged app'),
+assert(workflow.includes('Install and launch exact candidate'),
   'desktop workflow must install-smoke the exact candidate installer');
 assert(workflow.includes('Verify portable package layout'),
   'desktop workflow must verify the portable package shape');
 
-assert(workflow.includes('publish-windows:'),
-  'desktop workflow must have a gated publication job');
-assert(workflow.includes('needs: verify-windows'),
-  'publication must depend on successful Windows verification');
+assert(workflow.includes('Publish verified Windows release'),
+  'desktop workflow must publish only after build and Windows verification in the same job');
+assert(workflow.indexOf('Install and launch exact candidate') < workflow.indexOf('Publish verified Windows release'),
+  'publication must occur after exact-candidate install/launch verification');
 
 const readme = fs.readFileSync(path.join(__dirname, '..', 'README.md'), 'utf8');
 const desktopGuide = fs.readFileSync(
