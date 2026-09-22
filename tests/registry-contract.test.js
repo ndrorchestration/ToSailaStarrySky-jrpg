@@ -38,6 +38,11 @@ assert.deepStrictEqual(abilities.DEFS.aetherSeal.resolution, {
   model: 'aether-seal',
   contractId: 'aetherSeal',
 });
+assert.strictEqual(abilities.DEFS.windWard.authorityStatus, 'legacy-adaptation-residue');
+assert.strictEqual(abilities.DEFS.windWard.migrationStatus,
+  'blocked-pending-owner-and-domain');
+assert.strictEqual(abilities.DEFS.windWard.canonicalOwner, null);
+assert.strictEqual(abilities.DEFS.windWard.resolution, undefined);
 
 const runtimeActions = abilities.createRuntimeActions();
 assert.strictEqual(abilities.assertRuntimeActions(runtimeActions), true);
