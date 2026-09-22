@@ -177,6 +177,46 @@ async function setAxes(page, x, y) {
     await page.waitForFunction(() => window._world.player.tileX > 16, undefined, { timeout: 5000 });
     await setAxes(page, 0, 0);
 
+    // Single-press controller Save/Load route: Menu opens the focused overlay.
+    const savePosition = await page.evaluate(() => ({
+      tileX: window._world.player.tileX,
+      tileY: window._world.player.tileY,
+    }));
+    await pulseButton(page, 9);
+    await page.waitForFunction(() =>
+      window.gameState === 'saveload' &&
+      window._saveMenuFocus &&
+      window._saveMenuFocus.focusedId === 'manual-1'
+    , undefined, { timeout: 5000 });
+
+    // Confirm in default Save mode writes manual-1 and reopens on the same focus.
+    await pulseButton(page, 0);
+    await page.waitForFunction(() =>
+      window.gameState === 'saveload' &&
+      window._latestSaveMeta &&
+      window._latestSaveMeta.slot === 'manual-1' &&
+      window._saveMenuFocus &&
+      window._saveMenuFocus.focusedId === 'manual-1'
+    , undefined, { timeout: 5000 });
+
+    await page.evaluate(() => {
+      const p = window._world.player;
+      p.tileX = 25; p.tileY = 25; p.x = 25; p.y = 25;
+      p.px = 25 * 16; p.py = 25 * 16;
+    });
+
+    // D-pad right switches to Load mode; Confirm restores the same focused slot.
+    await pulseButton(page, 15);
+    await pulseButton(page, 0);
+    await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
+    const loadedPosition = await page.evaluate(() => ({
+      tileX: window._world.player.tileX,
+      tileY: window._world.player.tileY,
+    }));
+    assert(loadedPosition.tileX === savePosition.tileX &&
+           loadedPosition.tileY === savePosition.tileY,
+      'controller Save/Load overlay did not restore the saved world position');
+
     // Controller opens and closes a read-only overlay.
     await pulseButton(page, 3);
     await page.waitForFunction(() => window.gameState === 'questlog', undefined, { timeout: 5000 });
@@ -281,7 +321,7 @@ async function setAxes(page, x, y) {
     assert(final.reducedMotion === true, 'controller-configured setting was not retained');
 
     console.log('Aetherwake controller parity smoke: PASS');
-    console.log(JSON.stringify({ openingResult, flightBefore, altitudeAfter, combatFocusResult, final }));
+    console.log(JSON.stringify({ openingResult, savePosition, loadedPosition, flightBefore, altitudeAfter, combatFocusResult, final }));
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
