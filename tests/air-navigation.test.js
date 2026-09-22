@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('assert');
 const nav=require('../modules/air-navigation.js');
-assert.strictEqual(nav.VERSION,'0.3.0');
+assert.strictEqual(nav.VERSION,'0.4.0');
 assert.deepStrictEqual(nav.ALTITUDES,['low','cruise','high']);
 assert(nav.LANDMARKS.length>=5,'sky needs authored navigation landmarks');
 assert(nav.SKY_ROUTES.length>=4,'sky needs authored route graph');
@@ -46,6 +46,21 @@ const stopped=nav.move(nav.createState({x:12,y:12,speed:0,encounterSteps:2}),1,0
 assert.strictEqual(stopped.encounterSteps,2,'zero-distance movement must not increase encounter cadence');
 const fastMove=nav.move(nav.createState({x:8,y:22,speed:3,encounterSteps:0}),1,0);
 assert.strictEqual(fastMove.encounterSteps,3,'encounter cadence must scale with distance traveled, not keypress count');
+const persisted=nav.exportPersistentState(nav.createState({
+  x:17,y:15,altitude:'high',speed:0,
+  discovered:['wake-dock','verdant-crown'],
+  discoveredRoutes:['rootline-west'],
+  mooredLandmarkId:'verdant-crown',
+  encounterSteps:3,encounterSeed:9
+}));
+assert.strictEqual(nav.validatePersistentState(persisted),true);
+const restored=nav.restorePersistentState(persisted);
+assert.strictEqual(restored.x,17);
+assert.strictEqual(restored.altitude,'high');
+assert.strictEqual(restored.mooredLandmarkId,'verdant-crown');
+assert.deepStrictEqual(restored.discoveredRoutes,['rootline-west']);
+assert.throws(()=>nav.validatePersistentState(Object.assign({},persisted,{mooredLandmarkId:'wake-dock'})),
+  /AIR_NAV_PERSISTENT_MOORING_INVALID/);
 const edge=nav.move(nav.createState({x:47,y:31,speed:3}),1,1);
 assert.strictEqual(edge.x,47); assert.strictEqual(edge.y,31);
 console.log('Aetherwake air navigation foundation: PASS');
