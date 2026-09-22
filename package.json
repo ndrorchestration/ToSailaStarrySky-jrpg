@@ -77,6 +77,7 @@
     "test:pixel-world-ambient": "node tests/pixel-world-ambient-contract.test.js",
     "test:pixel-sprites": "node tests/pixel-sprite-contract.test.js",
     "test:pixel-tiles": "node tests/pixel-tile-contract.test.js",
-    "test:16bit-world-art": "node tests/16bit-world-art-contract.test.js"
+    "test:16bit-world-art": "node tests/16bit-world-art-contract.test.js",
+    "test:visual-benchmark": "node tests/visual-benchmark-contract.test.js"
   }
 }
