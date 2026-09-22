@@ -516,6 +516,61 @@ function keyPressed() {
       return;
     }
 
+    const wakeExplorationScene = openingScene && openingScene.sequence >= 5 && openingScene.sequence <= 8;
+    if (wakeExplorationScene &&
+        (keyCode === LEFT_ARROW || keyCode === 65 ||
+         keyCode === RIGHT_ARROW || keyCode === 68 ||
+         keyCode === UP_ARROW || keyCode === 87 ||
+         keyCode === DOWN_ARROW || keyCode === 83)) {
+      let dx = 0;
+      let dy = 0;
+      if (keyCode === LEFT_ARROW || keyCode === 65) dx = -1;
+      else if (keyCode === RIGHT_ARROW || keyCode === 68) dx = 1;
+      else if (keyCode === UP_ARROW || keyCode === 87) dy = -1;
+      else if (keyCode === DOWN_ARROW || keyCode === 83) dy = 1;
+
+      const movement = opening.moveWake(openingState, dx, dy);
+      if (movement.event && movement.event.type === 'wrong-song-triggered') {
+        showToast('THE WAKE FALLS OUT OF RHYTHM', C.scioto, 1500);
+        advanceFirstWakeOpening();
+      }
+
+      delete keysPressed[keyCode];
+      if (typeof ensureAudio === 'function') ensureAudio();
+      if (typeof resumeAudio === 'function') resumeAudio();
+      return;
+    }
+
+    if (wakeExplorationScene && keyCode === 69) {
+      const interaction = opening.interactWake(openingState);
+      const view = opening.wakeExplorationView(openingState);
+      if (view.lastMessage) {
+        showToast(view.lastMessage.toUpperCase(), C.scioto, 1500);
+      }
+
+      if (interaction.event && (
+        interaction.event.type === 'wrong-song-triggered' ||
+        interaction.event.type === 'wrong-song-acknowledged' ||
+        interaction.event.type === 'ionia-found' ||
+        interaction.event.type === 'core-threshold'
+      )) {
+        advanceFirstWakeOpening();
+      } else if (interaction.event && interaction.event.type === 'investigation-clue') {
+        const count = interaction.event.count;
+        showToast(
+          'ANOMALY EVIDENCE // ' + count + ' FOUND' +
+          (interaction.event.coreUnlocked ? ' // CORE ROUTE OPEN' : ''),
+          interaction.event.coreUnlocked ? C.teal : C.parchment,
+          1700
+        );
+      }
+
+      delete keysPressed[keyCode];
+      if (typeof ensureAudio === 'function') ensureAudio();
+      if (typeof resumeAudio === 'function') resumeAudio();
+      return;
+    }
+
     if (keyCode === 13 || keyCode === 32) {
       const beforeScene = openingScene;
       const beforeIndex = openingState && openingState.sceneIndex;
@@ -530,6 +585,19 @@ function keyPressed() {
           showToast('PRESS E TO WORK ON THE BERTH', C.scioto, 1100);
         } else if (beforeScene.id === 'talen_staying') {
           showToast('PRESS E TO RESPOND TO TALEN', C.scioto, 1100);
+        } else if (beforeScene.id === 'lyra_family') {
+          showToast('EXPLORE THE WAKE // E TO INSPECT', C.scioto, 1200);
+        } else if (beforeScene.id === 'wrong_song') {
+          showToast('FIND LYRA // E TO SPEAK', C.scioto, 1200);
+        } else if (beforeScene.id === 'ionia_practical') {
+          showToast('FIND IONIA // E TO SPEAK', C.scioto, 1200);
+        } else if (beforeScene.id === 'core_walk') {
+          const view = opening.wakeExplorationView(openingState);
+          showToast(
+            view.coreUnlocked ? 'FIND THE CORE DOOR' : 'INVESTIGATE // ' + view.clues.length + ' / 2 CLUES',
+            C.scioto,
+            1200
+          );
         }
       }
       delete keysPressed[keyCode];
@@ -882,6 +950,7 @@ function advanceFirstWakeOpening() {
   const state = window._firstWakeOpeningState;
   if (!opening || !state) throw new Error('FIRST_WAKE_OPENING_STATE_UNAVAILABLE');
 
+  const beforeScene = opening.currentScene(state);
   const result = opening.advance(state);
   if (result.event && result.event.type === 'party-join') {
     window.AetherPartyState.recruitCharacter(result.event.characterId);
@@ -890,6 +959,19 @@ function advanceFirstWakeOpening() {
       C.teal,
       1600
     );
+  }
+
+  if (!state.complete && beforeScene && state.sceneIndex !== beforeScene.sequence) {
+    const nextScene = opening.currentScene(state);
+    if (nextScene.id === 'lyra_family') {
+      showToast('THE WAKE IS YOURS TO EXPLORE // E TO INSPECT', C.teal, 2000);
+    } else if (nextScene.id === 'wrong_song') {
+      showToast('SOMETHING IS WRONG // FIND LYRA', C.scioto, 1800);
+    } else if (nextScene.id === 'ionia_practical') {
+      showToast('FIND IONIA', C.teal, 1400);
+    } else if (nextScene.id === 'core_walk') {
+      showToast('INVESTIGATE THE ANOMALY // ANY 2 OF 3 CLUES', C.teal, 2200);
+    }
   }
 
   if (state.complete) {

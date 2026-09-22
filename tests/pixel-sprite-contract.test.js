@@ -13,8 +13,17 @@ vm.runInNewContext(source, sandbox, { filename: spritePath });
 
 const api = sandbox.window.AetherPixelSprites;
 assert(api, 'pixel sprite authority was not exposed');
-assert.strictEqual(api.VERSION, '0.2.0');
+assert.strictEqual(api.VERSION, '0.3.0');
 assert.strictEqual(api.validate(), true, 'pixel sprite registry failed validation');
+
+assert.deepStrictEqual(Array.from(api.PALETTES.ender.H), [168, 82, 48],
+  'Ender sprite hair must preserve canonical copper/auburn appearance');
+assert.deepStrictEqual(Array.from(api.PALETTES.ender.G), [164, 119, 61],
+  'Ender goggles must read brass/bronze');
+assert.deepStrictEqual(Array.from(api.PALETTES.lyra.H), [162, 61, 46],
+  'Lyra sprite must preserve canonical red hair');
+assert.deepStrictEqual(Array.from(api.PALETTES.ionia.H), [218, 186, 118],
+  'Ionia sprite must preserve canonical blond hair');
 
 for (const id of ['ender','lyra','ionia','skyPredator','engineSpirit','corporateSalvager','settler']) {
   const sprite = api.get(id);

@@ -1,7 +1,7 @@
 const assert = require('assert');
 const opening = require('../modules/first-wake-opening.js');
 
-assert.strictEqual(opening.VERSION, '0.6.0');
+assert.strictEqual(opening.VERSION, '0.7.0');
 assert.strictEqual(opening.validate(), true);
 assert.strictEqual(opening.SCENES.length, 10);
 assert.strictEqual(opening.SCENES[0].id, 'arrival_horizon');
@@ -12,6 +12,10 @@ assert.strictEqual(opening.SCENES[3].interactive, true);
 assert.strictEqual(opening.SCENES[3].interaction, 'berth-task');
 assert.strictEqual(opening.SCENES[4].interactive, true);
 assert.strictEqual(opening.SCENES[4].interaction, 'talen-beat');
+assert.strictEqual(opening.SCENES[5].interaction, 'wake-free-roam');
+assert.strictEqual(opening.SCENES[6].interaction, 'wrong-song');
+assert.strictEqual(opening.SCENES[7].interaction, 'find-ionia');
+assert.strictEqual(opening.SCENES[8].interaction, 'wake-investigation');
 assert.strictEqual(opening.SCENES[6].id, 'wrong_song');
 assert.strictEqual(opening.SCENES[6].joinCharacterId, 'lyra');
 assert.deepStrictEqual(opening.SCENES[6].activePartyIds, ['ender']);
@@ -80,16 +84,70 @@ assert.strictEqual(opening.talenBeatProgress(state), 1);
 
 opening.advance(state);
 assert.strictEqual(opening.currentScene(state).id, 'lyra_family');
+
+const roamBlocked = opening.advance(state);
+assert(roamBlocked.event && roamBlocked.event.interaction === 'wake-free-roam',
+  'Sequence 05 must not be skippable with Enter');
+
+function move(dx, dy, count) {
+  for (let i = 0; i < count; i++) opening.moveWake(state, dx, dy);
+}
+
+// Start at Ender's berth (3,5), then freely reach the route chart at (5,2).
+move(1, 0, 2);
+move(0, -1, 3);
+let interaction = opening.interactWake(state);
+assert(interaction.event && interaction.event.type === 'wrong-song-triggered',
+  'route-chart discovery should be one valid exploration trigger');
+assert.strictEqual(state.wakeExploration.anomalyTriggered, true);
 opening.advance(state);
 assert.strictEqual(opening.currentScene(state).id, 'wrong_song');
 assert.deepStrictEqual(opening.expectedPartyIds(state), ['ender']);
+
+// Find Lyra at (7,3) rather than advancing a dialogue card.
+move(1, 0, 2);
+move(0, 1, 1);
+interaction = opening.interactWake(state);
+assert(interaction.event && interaction.event.type === 'wrong-song-acknowledged');
 const join = opening.advance(state);
 assert(join.event && join.event.type === 'party-join');
 assert.strictEqual(join.event.characterId, 'lyra');
 assert.deepStrictEqual(state.appliedJoinIds, ['lyra']);
+assert.strictEqual(opening.currentScene(state).id, 'ionia_practical');
 assert.deepStrictEqual(opening.expectedPartyIds(state), ['ender','lyra']);
 
-while (!state.complete) opening.advance(state);
+// Find Ionia at (12,2).
+move(1, 0, 5);
+move(0, -1, 1);
+interaction = opening.interactWake(state);
+assert(interaction.event && interaction.event.type === 'ionia-found');
+opening.advance(state);
+assert.strictEqual(opening.currentScene(state).id, 'core_walk');
+
+// Investigation order is flexible. Collect systems then frequency; 2 of 3 opens the Core route.
+move(-1, 0, 1);
+move(0, 1, 3);
+interaction = opening.interactWake(state);
+assert(interaction.event && interaction.event.type === 'investigation-clue');
+assert.strictEqual(interaction.event.clue, 'systems');
+assert.strictEqual(state.wakeExploration.coreUnlocked, false);
+
+move(-1, 0, 2);
+move(0, 1, 1);
+interaction = opening.interactWake(state);
+assert.strictEqual(interaction.event.clue, 'frequency');
+assert.strictEqual(state.wakeExploration.clues.length, 2);
+assert.strictEqual(state.wakeExploration.coreUnlocked, true);
+
+// Player chooses the threshold at the Core door (13,5).
+move(1, 0, 4);
+move(0, -1, 1);
+interaction = opening.interactWake(state);
+assert(interaction.event && interaction.event.type === 'core-threshold');
+opening.advance(state);
+assert.strictEqual(opening.currentScene(state).id, 'first_wake_card');
+
+opening.advance(state);
 assert.strictEqual(state.complete, true);
 assert.strictEqual(opening.currentScene(state).id, 'first_wake_card');
 

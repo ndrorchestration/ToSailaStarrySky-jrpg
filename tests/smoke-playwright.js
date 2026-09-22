@@ -190,23 +190,48 @@ function createServer() {
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'lyra_family'
     , undefined, { timeout: 5000 });
+
+    // Sequence 05 is now free-roam. Enter must not skip it.
     await page.keyboard.press('Enter');
+    assert((await page.evaluate(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id
+    )) === 'lyra_family', 'Sequence 05 was still skippable as a story card');
+
+    const freeRoamStart = await page.evaluate(() =>
+      window.AetherFirstWakeOpening.wakeExplorationView(window._firstWakeOpeningState)
+    );
+    assert(freeRoamStart.x === 3 && freeRoamStart.y === 5,
+      'Wake free-roam did not begin at Ender\'s berth');
+
+    // Explore to the route chart at (5,2): this is one valid discovery-driven Wrong Song trigger.
+    await page.keyboard.press('d');
+    await page.keyboard.press('d');
+    await page.keyboard.press('w');
+    await page.keyboard.press('w');
+    await page.keyboard.press('w');
+    await page.keyboard.press('e');
     await page.waitForFunction(() =>
-      window.gameState === 'opening' &&
-      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 6
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'wrong_song'
     , undefined, { timeout: 5000 });
 
     const beforeLyraJoin = await page.evaluate(() => ({
       sceneId: window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id,
       activeIds: window.ACTIVE_PARTY.map(character => character.id),
       playable: window.ROSTER.map(character => Boolean(character.playable)),
+      exploration: window.AetherFirstWakeOpening.wakeExplorationView(window._firstWakeOpeningState),
     }));
     assert(beforeLyraJoin.sceneId === 'wrong_song',
-      'First Wake did not reach the Wrong Song join scene');
+      'First Wake did not reach the Wrong Song from exploration');
+    assert(beforeLyraJoin.exploration.anomalyTriggered === true,
+      'Wrong Song was not bound to an exploration discovery');
     assert(beforeLyraJoin.activeIds.join('|') === 'ender',
-      'Lyra joined before the authored Wrong Song beat');
+      'Lyra joined before Ender found her after the Wrong Song');
 
-    await page.keyboard.press('Enter');
+    // Find Lyra at (7,3) and acknowledge the shared anomaly.
+    await page.keyboard.press('d');
+    await page.keyboard.press('d');
+    await page.keyboard.press('s');
+    await page.keyboard.press('e');
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 7 &&
       window.ACTIVE_PARTY.length === 2
@@ -227,8 +252,38 @@ function createServer() {
     assert(afterLyraJoin.ioniaActive === false,
       'Ionia joined before the authored departure decision');
 
-    await page.keyboard.press('Enter');
-    await page.keyboard.press('Enter');
+    // Sequence 07: physically find Ionia at navigation (12,2).
+    for (let i = 0; i < 5; i++) await page.keyboard.press('d');
+    await page.keyboard.press('w');
+    await page.keyboard.press('e');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'core_walk'
+    , undefined, { timeout: 5000 });
+
+    // Sequence 08: flexible investigation order — systems first, frequency second.
+    await page.keyboard.press('a');
+    for (let i = 0; i < 3; i++) await page.keyboard.press('s');
+    await page.keyboard.press('e');
+    for (let i = 0; i < 2; i++) await page.keyboard.press('a');
+    await page.keyboard.press('s');
+    await page.keyboard.press('e');
+
+    const investigation = await page.evaluate(() =>
+      window.AetherFirstWakeOpening.wakeExplorationView(window._firstWakeOpeningState)
+    );
+    assert(investigation.clues.join('|') === 'systems|frequency',
+      'flexible clue order did not preserve discovered evidence');
+    assert(investigation.coreUnlocked === true,
+      'two independent clues did not open the Core route');
+
+    // Player chooses to cross the threshold at the Core door (13,5).
+    for (let i = 0; i < 4; i++) await page.keyboard.press('d');
+    await page.keyboard.press('w');
+    await page.keyboard.press('e');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'first_wake_card'
+    , undefined, { timeout: 5000 });
+
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.gameState === 'world' &&
