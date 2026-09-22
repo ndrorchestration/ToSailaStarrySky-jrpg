@@ -18,4 +18,12 @@ assert(runtime.includes("keysPressed[68] && typeof nav.dock === 'function'"),'do
 assert(runtime.includes("showToast('MOORED // '"),'docking feedback missing');
 assert(runtime.includes("nav.undock(airNavigationState)"),'directional cast-off behavior missing');
 assert(runtime.includes('BERTH AVAILABLE:'),'berth approach UI missing');
+assert(runtime.includes("{ id: 'flight', label: 'OPEN-SKY FLIGHT' }"),'explicit flight command missing');
+assert(runtime.includes("{ id: 'phaseSlip', label: 'PHASE-SLIP' }"),'phase-slip command was lost');
+assert(runtime.includes("LANDING DENIED // DOCK AT A STABLE BERTH"),'midair disembark guard missing');
+assert(!runtime.includes("if (input.cancel) { airshipFlightMode = false; leaveAirship(); }"),'flight cancel still permits direct midair world exit');
+assert(runtime.includes("ENTER / ESC SYSTEMS"),'flight controls still advertise unsafe landing');
+assert(runtime.indexOf('combatReturnState = returnState || STATE.WORLD;') >
+       runtime.indexOf('combat.canBeginEncounter'),
+  'combat return state is committed before invalid-enemy preflight');
 console.log('Aetherwake playable air-navigation contract: PASS');
