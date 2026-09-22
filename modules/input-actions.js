@@ -4,7 +4,7 @@
   const VERSION = '0.1.0';
 
   const CONTEXTS = Object.freeze([
-    'global', 'boot', 'menu', 'settings', 'world', 'dialogue', 'combat', 'airship', 'save-load'
+    'global', 'boot', 'menu', 'settings', 'opening', 'world', 'dialogue', 'combat', 'airship', 'save-load'
   ]);
 
   const ACTIONS = Object.freeze({
