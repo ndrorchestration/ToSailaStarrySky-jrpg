@@ -280,6 +280,14 @@
     return currentResource(actor, 'echoes') + currentResource(actor, 'aether');
   }
 
+  function isAuthorityBlocked(action) {
+    return Boolean(
+      action &&
+      typeof action.migrationStatus === 'string' &&
+      action.migrationStatus.startsWith('blocked-')
+    );
+  }
+
   function getUseEligibility(actor, actionId) {
     const action = DEFS[actionId];
     if (!action) {
@@ -294,6 +302,17 @@
 
     const resourceCost = getActionResourceCost(action);
     const availableResource = getAvailableActionResource(actor);
+
+    if (isAuthorityBlocked(action)) {
+      return {
+        canUse: false,
+        reason: 'ssot_blocked',
+        actionId,
+        resourceCost,
+        availableResource,
+        migrationStatus: action.migrationStatus,
+      };
+    }
 
     if (!isActionUnlocked(actor, actionId)) {
       return {
@@ -390,6 +409,7 @@
     getEligibleActionIds,
     getActionResourceCost,
     getAvailableActionResource,
+    isAuthorityBlocked,
     getUseEligibility,
     getUsableActionIds,
     createRuntimeActions,
