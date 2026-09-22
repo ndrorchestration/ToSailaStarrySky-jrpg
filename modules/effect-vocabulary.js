@@ -217,14 +217,14 @@
         effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.HEAT),
       ],
       success: [
-        effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.SCRAP),
+        effect(
+          EFFECT_KIND.STATUS, TARGET.ENEMY, OPERATION.APPLY, 'aether-suppressed',
+          RUNTIME_STATUS.IMPLEMENTED,
+          'Aether Seal applies only to explicitly Aether-dependent targets and suppresses bounded Aether output.'
+        ),
       ],
-      partial: [
-        effect(EFFECT_KIND.DAMAGE, TARGET.SELF, OPERATION.APPLY, 'vitality'),
-      ],
-      failure: [
-        effect(EFFECT_KIND.DAMAGE, TARGET.SELF, OPERATION.APPLY, 'vitality'),
-      ],
+      partial: [],
+      failure: [],
     },
 
     rest: {
