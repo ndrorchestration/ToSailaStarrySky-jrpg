@@ -71,4 +71,15 @@ assert(source.includes('window.AetherGamepadInput.poll('),
 assert(source.includes('gameplay dispatch remains keyboard-authoritative'),
   'gamepad diagnostics tranche must not overclaim live controller dispatch');
 
+assert(source.includes('function dispatchSafeGamepadUIActions(result)'),
+  'runtime must isolate safe controller UI dispatch from keyboard dispatch');
+assert(source.includes("gameState === STATE.MENU"),
+  'safe controller dispatch must support title menu actions');
+assert(source.includes("result.pressed.includes('open-settings')"),
+  'controller Menu action must open Settings from title');
+assert(source.includes("gameState === STATE.SETTINGS"),
+  'safe controller dispatch must support Settings navigation');
+assert(source.includes('window._lastGamepadDispatchHandled'),
+  'controller dispatch result must remain inspectable for regression tests');
+
 console.log('Aetherwake input runtime contract: PASS');
