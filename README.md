@@ -162,7 +162,7 @@ npm run test:secondary-action
 npm run test:smoke
 ```
 
-The verification suite covers the playable path from startup through character creation, world state, combat, and return to WORLD. It also verifies roster/reference invariants, effect-vocabulary coverage, registry/runtime equivalence, transactional action affordability, progression reachability, secondary-action state, enemy metadata propagation, live resolver routing, and post-combat write-back into the canonical lead record.
+The verification suite covers the playable path from startup through the authored First Wake opening, world/overlay interactions, combat, flight-return seams, and return to the correct originating state. It also verifies roster/reference invariants, effect-vocabulary coverage, registry/runtime equivalence, transactional action affordability, progression reachability, party capacity, magic contracts, air-navigation behavior, live resolver routing, and post-combat write-back into the canonical lead record.
 
 ## Architecture direction
 
@@ -170,9 +170,9 @@ The production migration is incremental:
 
 1. establish one verified playable baseline,
 2. introduce persistent five-character roster state,
-3. formalize effect vocabulary and extract the current ability/progression registries — **established on `dev/progression-build`**,
+3. formalize effect vocabulary and extract the current ability/progression registries — **integrated on `main`**,
 4. migrate production combat away from legacy 2D6 branches into explicit JRPG formula/contract resolution while preserving only quarantined compatibility behavior,
-5. enforce current learned/unlocked action eligibility before broader mastery-tree work — **established on `dev/progression-build`**,
+5. enforce current learned/unlocked action eligibility before broader mastery-tree work — **integrated on `main`**,
 6. replace prototype companion creation with authored roster onboarding,
 7. implement school/job/mastery progression,
 8. add formation, Dual Arts, and Triple Arts,
