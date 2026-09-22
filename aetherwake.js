@@ -4390,28 +4390,27 @@ function drawEnginePulse() {
 function drawQuestWorldReactions() {
   const now = millis();
   if (quest.state === 'crossing') {
-    // Show faint hazard lane markers on ground
+    // Hazard markers are intentionally anchored inside the exact live trigger
+    // zones from checkHazardProximity(). They are visual guidance, not separate
+    // gameplay coordinates.
+    const hazardMarkerCells = {
+      sky_predator: [[29, 5], [30, 6], [29, 7]],
+      wind_shear: [[13, 10], [15, 11], [17, 12]],
+      aether_leak: [[18, 3], [20, 4], [22, 3]],
+      corporate_intercept: [[7, 11], [9, 12], [10, 14]],
+    };
+
     noStroke();
-    fill(color(255, 160, 60, 22));
-    for (const h of quest.crossingHazards) {
-      if (h.done) continue;
-      if (h.id === 'wind_shear') {
-        const xs = [28, 29];
-        for (const hx of xs) {
-          ellipse(hx * 16 + 8, 6 * 16 + 8, 14, 4);
-        }
-      } else if (h.id === 'aether_leak') {
-        const xs = [13, 14, 15];
-        for (const hx of xs) {
-          ellipse(hx * 16 + 8, 11 * 16 + 8, 10, 6);
-        }
-      } else if (h.id === 'sky_predator') {
-        ellipse(20 * 16 + 8, 4 * 16 + 8, 16, 5);
-      } else if (h.id === 'corporate_intercept') {
-        const xs2 = [17, 18];
-        for (const hx of xs2) {
-          ellipse(hx * 16 + 8, 17 * 16 + 8, 12, 5);
-        }
+    for (const hazard of quest.crossingHazards) {
+      if (hazard.done) continue;
+      const cells = hazardMarkerCells[hazard.id] || [];
+      for (const [hx, hy] of cells) {
+        const px = hx * 16 + 8;
+        const py = hy * 16 + 8;
+        fill(color(255, 160, 60, 26));
+        rect(px - 7, py - 2, 14, 4);
+        fill(color(42, 255, 181, 40));
+        rect(px - 2, py - 4, 4, 8);
       }
     }
   }
