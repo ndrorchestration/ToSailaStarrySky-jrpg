@@ -69,7 +69,8 @@
       type: 'ability',
       tier: 1,
       effectProfile: 'uncoverTruth',
-      desc: '2D6+Wits. Reveal enemy weakness. +1 next roll.',
+      resolution: { model: 'jrpg-stat-formula', formulaId: 'uncoverTruth' },
+      desc: 'Analyze the target: reveal its weakness and expose it to the next damaging action.',
     },
     sharedDream: {
       id: 'sharedDream',
@@ -166,7 +167,7 @@
            def.resolution.formulaId !== id)) {
         throw new Error('ABILITY_FORMULA_BINDING_INVALID:' + id);
       }
-      if ((id === 'staffStrike' || id === 'hold' || id === 'rest') && !def.resolution) {
+      if ((id === 'staffStrike' || id === 'uncoverTruth' || id === 'hold' || id === 'rest') && !def.resolution) {
         throw new Error('ABILITY_FORMULA_BINDING_MISSING:' + id);
       }
     });
