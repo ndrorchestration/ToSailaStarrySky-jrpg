@@ -152,3 +152,6 @@ jobs:
 
       - name: Run smoke test
         run: npm run test:smoke
+
+      - name: Run live First Wake benchmark
+        run: npm run test:first-wake-benchmark-live
