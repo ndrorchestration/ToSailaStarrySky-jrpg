@@ -4,7 +4,7 @@ Aetherwake retains its HTTP-served browser path for development and automated sm
 
 ## For players
 
-The desktop window opens at **1440×960** by default. Maximizing the window enlarges the game further while preserving its 3:2 aspect ratio. The internal 960×640 coordinate system stays unchanged so authored UI, combat positions, and input geometry remain stable.
+The desktop window opens at **1440×960** by default. Maximizing the window enlarges the game further while preserving its 3:2 aspect ratio. **Alt+Enter** or **F11** toggles true NW.js fullscreen; **Escape** exits fullscreen. The internal 960×640 coordinate system stays unchanged so authored UI, combat positions, and input geometry remain stable.
 
 
 1. Download **Aetherwake-Setup.exe** from a Windows desktop release.
@@ -68,7 +68,8 @@ The desktop shell must:
 - launch `www/index-embedded.html` from a minimal launcher-root `package.json`;
 - keep the launcher/runtime separate from the `www/` game payload;
 - exclude development-only files from the player runtime;
-- preserve the 960×640 logical render surface while presenting it at 1440×960 by default and scaling it responsively to the largest 3:2 area available when resized/maximized;
+- preserve the 960×640 logical render surface while presenting it at 1440×960 by default and scaling it responsively to the largest 3:2 area available when resized/maximized/fullscreen;
+- expose native NW.js fullscreen through Alt+Enter and F11, with Escape returning to windowed mode;
 - run without Python or a separately started HTTP server;
 - keep the browser-served path available as a fallback;
 - build Aetherwake-Setup.exe plus Aetherwake-Windows.zip in the same Windows job that verifies them;

@@ -409,5 +409,38 @@
     update();
   })();
 </script>
+<script>
+  // Desktop-only presentation controls. Normal browser runs ignore this block.
+  (function() {
+    function getDesktopWindow() {
+      try {
+        if (typeof nw !== 'undefined' && nw.Window && typeof nw.Window.get === 'function') {
+          return nw.Window.get();
+        }
+      } catch (error) {
+        console.warn('[desktop] NW.js window unavailable', error);
+      }
+      return null;
+    }
+
+    window.addEventListener('keydown', function(event) {
+      var win = getDesktopWindow();
+      if (!win) return;
+
+      var altEnter = event.altKey && event.key === 'Enter';
+      var f11 = event.key === 'F11';
+      if (altEnter || f11) {
+        event.preventDefault();
+        win.toggleFullscreen();
+        return;
+      }
+
+      if (event.key === 'Escape' && win.isFullscreen) {
+        event.preventDefault();
+        win.leaveFullscreen();
+      }
+    }, true);
+  })();
+</script>
 </body>
 </html>
