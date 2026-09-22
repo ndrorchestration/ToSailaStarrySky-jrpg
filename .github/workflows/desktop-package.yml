@@ -79,8 +79,13 @@ jobs:
           if (Test-Path -LiteralPath $installDir) {
             Remove-Item -LiteralPath $installDir -Recurse -Force
           }
-          & .\Aetherwake-Setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART "/DIR=$installDir"
-          if ($LASTEXITCODE -ne 0) { throw "Silent installer exited with code $LASTEXITCODE" }
+          $installer = Start-Process -FilePath (Join-Path $PWD "Aetherwake-Setup.exe") -ArgumentList @(
+            "/VERYSILENT",
+            "/SUPPRESSMSGBOXES",
+            "/NORESTART",
+            "/DIR=$installDir"
+          ) -Wait -PassThru
+          if ($installer.ExitCode -ne 0) { throw "Silent installer exited with code $($installer.ExitCode)" }
           $exe = Join-Path $installDir "Aetherwake.exe"
           if (-not (Test-Path -LiteralPath $exe)) { throw "Installed Aetherwake.exe was not found" }
           $process = Start-Process -FilePath $exe -PassThru
