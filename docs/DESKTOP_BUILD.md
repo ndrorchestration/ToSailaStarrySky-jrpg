@@ -14,6 +14,15 @@ The standard installer installs the packaged runtime per-user under `%LOCALAPPDA
 
 Do not use superseded self-extracting/SFX artifacts. If Windows Defender flags an artifact, do not whitelist or bypass it; preserve the exact detection name and SHA-256 for a false-positive report.
 
+## Current verification state — 2026-09-22
+
+- Memories-style launcher correction merged at `304835c12555e35061870a54d61f7c95996d0bdd`.
+- Staging validation confirms the production manifest shape is `package.json → main: www/index-embedded.html`, with the game payload under `www/`.
+- Runtime-resource audit confirms the loading artwork used at boot is embedded as a data URI; there is no required external `img/system/Loading.png` file to package.
+- Hosted GitHub Actions verification is currently blocked before checkout. Windows package run `35692454573` attempt 2 ended with `runner_id: 0`, `steps: []`; browser smoke run `35692454657` is the same class of zero-runner failure.
+- These are runner-admission/infrastructure failures. They do **not** establish that current code tests passed or failed.
+- No fresh installer is player-authorized until the exact candidate completes a real Windows install/launch verification. Historical CI-green packaging results remain provenance only and must not be substituted for this current gate.
+
 ## For maintainers
 
 The production desktop layout intentionally follows the same structural pattern used by RPG Maker MV/NW.js games such as the Memories reference: the NW.js launcher/runtime lives at the package root, a minimal root `package.json` points to `www/index-embedded.html`, and the game payload lives under `www/`. Development files, tests, docs, and npm tooling are not part of the player runtime.
