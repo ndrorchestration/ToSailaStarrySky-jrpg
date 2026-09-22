@@ -160,6 +160,19 @@ async function capture(page, id, description) {
   try {
     const captures = [];
 
+    // Title — real boot/preamble reaches MENU naturally.
+    await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 20000,
+    });
+    await waitForRuntime(page);
+    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 13000 });
+    captures.push(await capture(
+      page,
+      '00-title-screen',
+      'Shared-authority Aetherwake title screen'
+    ));
+
     // 0 — First Wake interactive dock-walk presentation.
     await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
       waitUntil: 'domcontentloaded',
