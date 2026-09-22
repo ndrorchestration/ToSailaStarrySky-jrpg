@@ -39,6 +39,9 @@ jobs:
       - name: Verify enemy metadata propagation
         run: npm run test:enemy-metadata
 
+      - name: Verify combat runtime bridge
+        run: npm run test:combat-runtime
+
       - name: Verify combat input/log contract
         run: npm run test:combat-input
 
