@@ -135,6 +135,9 @@ jobs:
       - name: Verify Dragonfly Dusk Dock benchmark
         run: npm run test:visual-benchmark
 
+      - name: Verify representative dialogue visual gate
+        run: npm run test:dialogue-visual
+
       - name: Verify live open-sky runtime contract
         run: npm run test:open-sky-runtime
 
