@@ -282,6 +282,8 @@ Ender has special innate affinities including:
 - Correspondence
 - Lumen
 
+**Affinity and mastery are separate contracts.** An innate affinity does not automatically grant Rank 1 mastery, free abilities, or runtime authorization. `modules/character-magic-profile.js` v0.1 records Ender's four established affinities while leaving his mastery profile at zero by default. Lyra, Ionia, Reson, and Aepex retain open affinity status rather than receiving inferred schools from thematic fit.
+
 Ender may eventually learn broadly across magical forms, but potential does not equal automatic mastery.
 
 Jobs and schools are separate concepts:
