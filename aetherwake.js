@@ -110,6 +110,7 @@ let gamepadInputState = null;
 let userSettings = null;
 let settingsMenuFocus = null;
 let settingsMenuReturnState = STATE.MENU;
+const gamepadMoveRepeat = {};
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -457,17 +458,75 @@ function writeDesktopSmokeMarkerOnce() {
   }
 }
 
-function dispatchSafeGamepadUIActions(result) {
-  if (!result || result.supported !== true || !Array.isArray(result.pressed) || !result.pressed.length) {
+function gamepadMovementShouldFire(actionId, result, now) {
+  const held = Array.isArray(result.held) && result.held.includes(actionId);
+  if (!held) {
+    delete gamepadMoveRepeat[actionId];
     return false;
   }
 
+  const pressed = Array.isArray(result.pressed) && result.pressed.includes(actionId);
+  if (pressed || !gamepadMoveRepeat[actionId]) {
+    gamepadMoveRepeat[actionId] = { last: now, first: true };
+    return true;
+  }
+
+  const state = gamepadMoveRepeat[actionId];
+  const delay = state.first ? 200 : 60;
+  if (now - state.last >= delay) {
+    state.last = now;
+    state.first = false;
+    return true;
+  }
+  return false;
+}
+
+function moveWorldBySemanticAction(actionId) {
+  if (!world || typeof world.movePlayer !== 'function') return false;
+  if (actionId === 'move-up') world.movePlayer(0, -1);
+  else if (actionId === 'move-down') world.movePlayer(0, 1);
+  else if (actionId === 'move-left') world.movePlayer(-1, 0);
+  else if (actionId === 'move-right') world.movePlayer(1, 0);
+  else return false;
+  return true;
+}
+
+function moveAirshipBySemanticAction(actionId) {
+  if (!ensureAirNavigationState()) return false;
+  const nav = window.AetherAirNavigation;
+  let dx = 0, dy = 0;
+  if (actionId === 'move-up') dy = -1;
+  else if (actionId === 'move-down') dy = 1;
+  else if (actionId === 'move-left') dx = -1;
+  else if (actionId === 'move-right') dx = 1;
+  else return false;
+
+  if (airNavigationState.mooredLandmarkId) {
+    airNavigationState = nav.undock(airNavigationState);
+    showToast('CAST OFF // OPEN SKY', C.scioto, 800);
+  }
+  airNavigationState = nav.move(airNavigationState, dx, dy);
+  const encounter = nav.encounterCheck(airNavigationState);
+  airNavigationState = encounter.state;
+  window._airNavigationState = airNavigationState;
+  if (encounter.triggered) {
+    startCombat(encounter.enemyId, STATE.AIRSHIP);
+  }
+  return true;
+}
+
+function dispatchGamepadActions(result) {
+  if (!result || result.supported !== true) return false;
+
+  const pressed = Array.isArray(result.pressed) ? result.pressed : [];
+  const now = typeof millis === 'function' ? millis() : Date.now();
+
   if (gameState === STATE.MENU) {
-    if (result.pressed.includes('open-settings')) {
+    if (pressed.includes('open-settings')) {
       openUserSettingsMenu();
       return true;
     }
-    if (result.pressed.includes('confirm')) {
+    if (pressed.includes('confirm')) {
       startGame();
       return true;
     }
@@ -475,12 +534,101 @@ function dispatchSafeGamepadUIActions(result) {
   }
 
   if (gameState === STATE.SETTINGS) {
+    if (!pressed.length) return false;
     semanticActionsPressed.clear();
-    for (const action of result.pressed) semanticActionsPressed.add(action);
-    window._lastSemanticActions = result.pressed.slice();
+    for (const action of pressed) semanticActionsPressed.add(action);
+    window._lastSemanticActions = pressed.slice();
     handleSettingsInput();
     clearSemanticActions();
     return true;
+  }
+
+  if (gameState === STATE.WORLD) {
+    if (quest && quest.state === QUEST_STATES.WAKE && pressed.includes('confirm')) {
+      advanceWake();
+      return true;
+    }
+
+    let handled = false;
+    for (const action of ['move-up','move-down','move-left','move-right']) {
+      if (gamepadMovementShouldFire(action, result, now)) {
+        handled = moveWorldBySemanticAction(action) || handled;
+      }
+    }
+
+    if (pressed.includes('interact') && world && typeof world.interact === 'function') {
+      window.interactionKey = 'e';
+      try { world.interact(); } finally { window.interactionKey = null; }
+      handled = true;
+    }
+    if (pressed.includes('quest-log')) {
+      openState(STATE.QUESTLOG);
+      handled = true;
+    }
+    if (pressed.includes('character-sheet')) {
+      openState(STATE.CHARSHEET);
+      handled = true;
+    }
+    if (pressed.includes('ledger')) {
+      openState(STATE.LEDGER);
+      handled = true;
+    }
+    if (pressed.includes('board-or-flight') && world && typeof world.boardShip === 'function') {
+      world.boardShip();
+      if (world.player && world.player.shipBoarded) enterAirNavigation();
+      handled = true;
+    }
+    return handled;
+  }
+
+  if (gameState === STATE.DIALOGUE) {
+    if (pressed.includes('confirm')) {
+      if (world && typeof world.nextDialogueLine === 'function') world.nextDialogueLine();
+      return true;
+    }
+    if (pressed.includes('cancel')) {
+      closeOverlay();
+      return true;
+    }
+    return false;
+  }
+
+  if (gameState === STATE.AIRSHIP) {
+    if (!ensureAirNavigationState()) return false;
+    const nav = window.AetherAirNavigation;
+
+    if (pressed.includes('airship-land')) {
+      leaveAirNavigation();
+      return true;
+    }
+
+    let handled = false;
+    if (pressed.includes('airship-altitude-down')) {
+      airNavigationState = nav.changeAltitude(airNavigationState, -1);
+      showToast('ALTITUDE // ' + airNavigationState.altitude.toUpperCase(), C.scioto, 900);
+      handled = true;
+    }
+    if (pressed.includes('airship-altitude-up')) {
+      airNavigationState = nav.changeAltitude(airNavigationState, 1);
+      showToast('ALTITUDE // ' + airNavigationState.altitude.toUpperCase(), C.scioto, 900);
+      handled = true;
+    }
+    if (pressed.includes('airship-dock')) {
+      const dockResult = nav.dock(airNavigationState);
+      airNavigationState = dockResult.state;
+      if (dockResult.ok) showToast('MOORED // ' + dockResult.landmark.label, C.teal, 1200);
+      else showToast('NO STABLE BERTH IN RANGE', C.rust, 1000);
+      window._airNavigationState = airNavigationState;
+      handled = true;
+    }
+
+    for (const action of ['move-up','move-down','move-left','move-right']) {
+      if (gameState !== STATE.AIRSHIP) break;
+      if (gamepadMovementShouldFire(action, result, now)) {
+        handled = moveAirshipBySemanticAction(action) || handled;
+      }
+    }
+    return handled;
   }
 
   return false;
@@ -516,16 +664,19 @@ function pollGamepadDiagnostics() {
     semanticContext,
     { wakeResolution: Boolean(gameState === STATE.WORLD && quest && quest.state === QUEST_STATES.WAKE) }
   );
+  if (gameState !== STATE.WORLD && gameState !== STATE.AIRSHIP) {
+    for (const action of Object.keys(gamepadMoveRepeat)) delete gamepadMoveRepeat[action];
+  }
   window._lastGamepadPoll = result;
-  window._lastGamepadDispatchHandled = dispatchSafeGamepadUIActions(result);
+  window._lastGamepadDispatchHandled = dispatchGamepadActions(result);
   return result;
 }
 
 // ── draw() ──
 function draw() {
-  // Poll current browser gamepad objects every frame. This tranche records
-  // semantic diagnostics only; gameplay dispatch remains keyboard-authoritative
-  // until the semantic dispatcher is migrated safely.
+  // Poll fresh browser gamepad objects every frame. Title, Settings, WORLD,
+  // dialogue, and AIRSHIP dispatch through semantic actions. Combat action
+  // selection remains keyboard-authoritative until it has a focus model.
   pollGamepadDiagnostics();
   dt = millis() - lastTime;
   lastTime = millis();
