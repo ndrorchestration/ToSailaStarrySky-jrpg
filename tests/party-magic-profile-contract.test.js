@@ -4,6 +4,7 @@ global.window = {};
 window.AetherwakeMagicDefs = require('../modules/magic-defs.js');
 window.AetherwakeMagicMastery = require('../modules/magic-mastery.js');
 window.AetherwakeCharacterMagicProfile = require('../modules/character-magic-profile.js');
+const study = require('../modules/magic-study.js');
 
 delete require.cache[require.resolve('../modules/party-state.js')];
 require('../modules/party-state.js');
@@ -26,6 +27,7 @@ for (const character of boot.roster) {
   assert.strictEqual(character.magicProfile.characterId, character.id);
   assert.deepStrictEqual(character.magicProfile.mastery.trees, {});
   assert.deepStrictEqual(character.magicProfile.mastery.domains, {});
+  assert.deepStrictEqual(character.magicProfile.learnedSpells, []);
 }
 
 assert.deepStrictEqual(
@@ -52,9 +54,27 @@ assert.strictEqual(
   'prototype adaptation must not overwrite canonical magic profile'
 );
 
+let studied = study.advanceMastery(boot.roster[0].magicProfile, 'fire', 1);
+studied = study.learnSpell(studied, 'fire.ember_dart');
+const persisted = window.AetherPartyState.replaceMagicProfile('ender', studied);
+assert.strictEqual(persisted.characterId, 'ender');
+assert.strictEqual(persisted.mastery.trees.fire, 1);
+assert.deepStrictEqual(persisted.learnedSpells, ['fire.ember_dart']);
+assert.strictEqual(boot.roster[0].magicProfile, persisted);
+
 const snapshot = window.AetherPartyState.snapshot();
 assert.deepStrictEqual(snapshot.affinityStatus, ['established','open','open','open','open']);
-assert.deepStrictEqual(snapshot.masteryRanks[0], { trees:{}, domains:{} });
+assert.deepStrictEqual(snapshot.masteryRanks[0], { trees:{fire:1}, domains:{} });
+assert.deepStrictEqual(snapshot.learnedSpells[0], ['fire.ember_dart']);
+assert.deepStrictEqual(snapshot.learnedSpells.slice(1), [[],[],[],[]]);
+
+assert.throws(
+  () => window.AetherPartyState.replaceMagicProfile(
+    'ender',
+    window.AetherwakeCharacterMagicProfile.createProfile('lyra')
+  ),
+  /PARTY_STATE_MAGIC_PROFILE_CHARACTER_MISMATCH/
+);
 
 boot.roster[0].magicProfile = window.AetherwakeCharacterMagicProfile.createProfile('lyra');
 assert.throws(
