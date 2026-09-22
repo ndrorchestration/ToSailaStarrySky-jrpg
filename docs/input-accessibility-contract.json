@@ -557,27 +557,28 @@
     "Game Accessibility Guidelines — Basic / Intermediate / remappable controls / subtitle customization"
   ],
   "implementedNow": [
-    "semantic keyboard action registry for safe runtime actions",
+    "semantic keyboard action registry with context-specific bindings",
     "deterministic shared focus manager",
-    "save/load overlay focus integration with non-color marker",
-    "standard-mapping gamepad polling and contextual semantic adapter",
-    "live controller dispatch for title and Settings UI only",
+    "save/load overlay focus integration with non-color marker and stable slot restoration",
+    "standard-mapping gamepad polling through navigator.getGamepads()",
+    "context-prioritized gamepad semantic adapter",
+    "live controller dispatch for BOOT, title, Settings, authored opening, WORLD, dialogue, read-only overlays, and AIRSHIP",
+    "bounded controller movement repeat equivalent to keyboard movement cadence",
     "independent schema-v1 user settings persistence",
-    "title-accessible Settings UI",
+    "Settings reachable before gameplay from keyboard or controller",
     "reduced-motion, screen-shake, text-speed runtime integration",
-    "effects-volume and dialogue-volume runtime integration"
+    "effects-volume and dialogue-volume runtime integration",
+    "live Playwright controller-parity regression registered in smoke CI"
   ],
   "remainingBeforeRepresentativeParity": [
-    "WORLD controller movement and action dispatch",
-    "dialogue controller parity beyond current keyboard semantic path",
-    "AIRSHIP controller movement/altitude/dock/land dispatch",
     "combat controller action focus and execution",
     "action remapping UI and prompt rebinding",
+    "single-press navigable Save/Load controller route",
     "text-scale rendering integration",
     "high-contrast UI rendering integration",
     "subtitle size/background and speaker-label rendering integration",
     "controller vibration integration",
     "music-volume runtime integration after a canonical music bus exists",
-    "First Wake keyboard/controller parity execution"
+    "exact-head execution of the live controller-parity regression"
   ]
 }
