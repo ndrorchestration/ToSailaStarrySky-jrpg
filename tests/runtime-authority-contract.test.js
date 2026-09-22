@@ -29,12 +29,26 @@ function scriptSources(html) {
     .map(match => match[1]);
 }
 
+const requiredRuntimeModules = [
+  'modules/save-state.js',
+  'modules/airship-state.js',
+  'modules/air-navigation.js',
+  'modules/airship-combat-bridge.js',
+  'modules/airship-ui.js',
+];
+
 for (const entrypoint of ['index.html', 'index-embedded.html']) {
   const html = read(entrypoint);
   const scripts = scriptSources(html);
 
   if (!scripts.includes('aetherwake.js')) {
     fail(entrypoint + ' must load aetherwake.js');
+  }
+
+  for (const required of requiredRuntimeModules) {
+    if (!scripts.includes(required)) {
+      fail(entrypoint + ' missing required runtime module ' + required);
+    }
   }
 
   for (const mirror of mirrors) {
@@ -69,3 +83,11 @@ for (const marker of [
 }
 
 console.log('Aetherwake runtime authority contract: PASS');
+
+const browserScripts = scriptSources(read('index.html'));
+const embeddedScripts = scriptSources(read('index-embedded.html'));
+for (const required of requiredRuntimeModules) {
+  if (browserScripts.indexOf(required) !== embeddedScripts.indexOf(required)) {
+    fail('entrypoint runtime module order drifted for ' + required);
+  }
+}
