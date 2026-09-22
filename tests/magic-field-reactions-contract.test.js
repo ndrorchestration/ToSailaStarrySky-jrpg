@@ -13,7 +13,7 @@ assert.deepStrictEqual(preview[0].add, ['charged']);
 
 let result = field.resolveDesignState(state, 'lightning');
 assert.deepStrictEqual(result.reactions, ['conduct']);
-assert.deepStrictEqual(result.after.tags.sort(), ['charged','wet'].sort());
+assert.deepStrictEqual([...result.after.tags].sort(), ['charged','wet'].sort());
 
 result = field.resolveDesignState(field.createState(['wet']), 'frost');
 assert.deepStrictEqual(result.reactions, ['freeze']);
@@ -37,11 +37,11 @@ assert.deepStrictEqual(result.after.tags, ['burning']);
 
 result = field.resolveDesignState(field.createState(['metallic']), 'lightning');
 assert.deepStrictEqual(result.reactions, ['surge']);
-assert.deepStrictEqual(result.after.tags.sort(), ['metallic','charged'].sort());
+assert.deepStrictEqual([...result.after.tags].sort(), ['metallic','charged'].sort());
 
 result = field.resolveDesignState(field.createState(['crystal']), 'sonic');
 assert.deepStrictEqual(result.reactions, ['harmonic-shatter']);
-assert.deepStrictEqual(result.after.tags.sort(), ['crystal','brittle'].sort());
+assert.deepStrictEqual([...result.after.tags].sort(), ['crystal','brittle'].sort());
 
 result = field.resolveDesignState(field.createState(['wet-earth']), 'earth');
 assert.deepStrictEqual(result.reactions, ['mire']);
