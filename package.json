@@ -79,6 +79,7 @@
     "test:pixel-tiles": "node tests/pixel-tile-contract.test.js",
     "test:16bit-world-art": "node tests/16bit-world-art-contract.test.js",
     "test:visual-benchmark": "node tests/visual-benchmark-contract.test.js",
-    "test:dialogue-visual": "node tests/dialogue-visual-gate.test.js"
+    "test:dialogue-visual": "node tests/dialogue-visual-gate.test.js",
+    "test:combat-visual": "node tests/combat-visual-gate.test.js"
   }
 }
