@@ -317,7 +317,9 @@ The first elemental spell catalog exists in `modules/elemental-spell-trees.js` a
 
 `modules/magic-spell-access.js` v0.1 now unifies the 260 elemental/non-elemental design seeds behind fail-closed spell access checks: own-school rank, cross-mastery prerequisites, and proposed-domain admission all must pass. Proposed/high-order domains remain inaccessible by default until explicitly admitted by a later creator/canon decision.
 
-Mastery XP curves, actual spell-learning transactions, resource costs, teachers/quests, learn-unlock pacing, final proposed-domain canon decisions, companion magical ownership, balance coefficients, and final Grand Synthesis names remain unresolved.
+Character magic profiles now use schema v2 with learned spells separated from affinity/mastery. `modules/magic-study.js` provides explicit one-rank mastery advances and eligible-spell learning transactions, and `party-state.js` can persist a validated replacement profile for the current session. These transactions deliberately contain no XP curve, teacher requirement, currency/time cost, or automatic progression.
+
+Mastery XP curves, study/resource costs, teachers/quests, authored learn-unlock pacing, save-file persistence/migration, final proposed-domain canon decisions, companion magical ownership, balance coefficients, and final Grand Synthesis names remain unresolved.
 
 ---
 
