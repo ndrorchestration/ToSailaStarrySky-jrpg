@@ -126,3 +126,21 @@ Do not scale this visual treatment across the whole game until:
 - one Dragonfly flight scene passes.
 
 Those four scenes form the reusable visual foundation.
+
+
+## Implementation candidate — 2026-09-22
+
+Stacked implementation branch: `feat/dragonfly-dusk-dock-benchmark`, based on Visual Foundation v1 draft PR #121.
+
+Current candidate establishes:
+- activation only when the player is in the eastern dock region and the real air-navigation state is moored at `wake-dock`;
+- banded dusk sky;
+- four moving cloud-depth layers;
+- distant floating-island silhouettes and settlement lights;
+- distant air traffic;
+- first-star layer;
+- articulated Dragonfly hero rendering with wing motion, core pulse, shield nodes, navigation lights, idle wake, and mooring lines;
+- cool dusk grade plus warm dock-light contrast;
+- foreground railing/cables and windborne particles for near-plane depth.
+
+**Status: IMPLEMENTED CANDIDATE / NOT YET VISUAL PASS.** This is the first benchmark implementation, not a claim that the store-page screenshot gate has been satisfied. It remains stacked on unverified Visual Foundation v1 while private-repository Actions cannot allocate runners.
