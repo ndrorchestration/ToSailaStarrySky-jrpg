@@ -635,6 +635,61 @@ function createServer() {
     assert(dedicatedResourceContract.reason === 'insufficient_dedicated_resource',
       'zero-charge Staff Strike did not expose dedicated-resource rejection');
 
+    const uncoverTruthContract = await page.evaluate(() => {
+      const originalRandom = window.random;
+      try {
+        startCombat('skyPredator');
+        const before = window._combat.getState();
+        const result = window._combat.resolveTurn('uncoverTruth', null);
+        const analyzed = window._combat.getState();
+        const revealedWeakness = analyzed.enemy && analyzed.enemy.analysis &&
+          analyzed.enemy.analysis.revealedWeakness;
+        const chargesBeforeStrike = analyzed.enemy && analyzed.enemy.analysis &&
+          analyzed.enemy.analysis.charges;
+        const analysisLog = analyzed.log.slice();
+
+        // Formula damage uses bounded injected RNG via p5 random. Keep values
+        // deterministic enough to prove analysis consumption, not exact damage.
+        window.random = function(min, max) {
+          if (max !== undefined) return (min + max) / 2;
+          if (min !== undefined) return min * 0.5;
+          return 0.5;
+        };
+        window._combat.resolveTurn('staffStrike', null);
+        const afterStrike = window._combat.getState();
+
+        return {
+          result,
+          beforeTurn: before.turn,
+          afterAnalysisTurn: analyzed.turn,
+          revealedWeakness,
+          chargesBeforeStrike,
+          analysisCleared: !afterStrike.enemy.analysis,
+          analysisLog,
+          afterStrikeLog: afterStrike.log.slice(),
+        };
+      } finally {
+        window.random = originalRandom;
+        startCombat('skyPredator');
+      }
+    });
+
+    assert(uncoverTruthContract.beforeTurn === 0 &&
+           uncoverTruthContract.afterAnalysisTurn === 1,
+      'Uncover Truth did not consume exactly one turn');
+    assert(typeof uncoverTruthContract.revealedWeakness === 'string' &&
+           uncoverTruthContract.revealedWeakness.length > 0,
+      'Uncover Truth did not reveal the authored weakness');
+    assert(uncoverTruthContract.chargesBeforeStrike === 1,
+      'Uncover Truth did not establish a single-use analysis window');
+    assert(uncoverTruthContract.analysisCleared === true,
+      'analysis window was not consumed by the next damaging action');
+    assert(uncoverTruthContract.analysisLog.some(line =>
+      line.includes('Uncover Truth') &&
+      line.includes('Target analyzed') &&
+      !line.includes('Roll:')),
+      'Uncover Truth still exposed legacy dice text or failed to log analysis');
+
     // Deterministic state-transition check. We test real keyboard combat
     // actions above; direct finishCombat avoids making the smoke test depend on
     // random damage rolls reaching victory.
