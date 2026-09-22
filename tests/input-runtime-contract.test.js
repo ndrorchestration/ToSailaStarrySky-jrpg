@@ -32,4 +32,23 @@ assert(source.includes("const shopOpened = world && typeof world.openShop === 'f
 assert(source.includes('function mousePressed()'),
   'choice UI must expose a mouse selection path');
 
+assert(source.includes('function refreshSemanticActionsFromKeyboard()'),
+  'runtime must derive semantic actions from keyboard events');
+assert(source.includes("window.AetherInputActions.actionsForKeyboardEvent"),
+  'runtime must use the semantic input action registry');
+assert(source.includes("semanticActionPressed('quest-log')"),
+  'quest log must consume semantic action input');
+assert(source.includes("semanticActionPressed('character-sheet')"),
+  'character sheet must consume semantic action input');
+assert(source.includes("semanticActionPressed('manual-save')"),
+  'manual save must consume semantic action input');
+assert(source.includes("semanticActionPressed('manual-load')"),
+  'manual load must consume semantic action input');
+assert(source.includes("semanticActionPressed('board-or-flight')"),
+  'board/flight must consume semantic action input');
+assert(source.includes("semanticActionPressed('ledger')"),
+  'ledger must consume semantic action input');
+assert(source.includes("semanticActionPressed('cancel')"),
+  'cancel/close must consume semantic action input');
+
 console.log('Aetherwake input runtime contract: PASS');
