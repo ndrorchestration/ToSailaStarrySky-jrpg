@@ -12,6 +12,16 @@ assert.deepStrictEqual(
   'T must map to quest-log in WORLD'
 );
 assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 83 }, 'menu'),
+  ['open-settings'],
+  'S must open Settings from the title menu'
+);
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 38 }, 'settings'),
+  ['ui-up'],
+  'Settings must share semantic UI navigation'
+);
+assert.deepStrictEqual(
   input.actionsForKeyboardEvent({ keyCode: 116 }, 'world'),
   ['manual-save'],
   'F5 must map to manual-save in WORLD'
