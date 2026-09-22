@@ -87,6 +87,9 @@ const embeddedHtml = fs.readFileSync(
   path.join(__dirname, '..', 'index-embedded.html'),
   'utf8'
 );
+assert(embeddedHtml.includes('modules/save-state.js') &&
+  embeddedHtml.includes('modules/air-navigation.js'),
+  'packaged entrypoint must load save and sky-navigation persistence dependencies');
 assert(embeddedHtml.includes('const LAUNCH_SETUP_TIMEOUT_MS = 30000;'),
   'packaged launch gate must allow 30 seconds for setup-done, matching the packaged verifier');
 assert(embeddedHtml.includes('setupOrder=') &&
