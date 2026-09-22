@@ -95,10 +95,11 @@
       tier: 0,
       effectProfile: 'mycelialLedger',
       authorityStatus: 'creator-aligned-exceptional-access',
-      migrationStatus: 'redesign-required-before-formula',
+      migrationStatus: 'live-readonly-v1',
       canonicalOwner: 'ender',
+      resolution: { model: 'commons-readonly', contractId: 'mycelialLedger' },
       ssotNote: 'Commons Art: reveal relationships, dependencies, exchanges, obligations, and network structure.',
-      desc: 'Legacy compatibility action pending Commons-Arts production redesign.',
+      desc: 'Read-only Commons analysis. Reveals observed network facts and explicit unknowns.',
     },
     hold: {
       id: 'hold',
@@ -179,10 +180,15 @@
       if (def.canonicalOwner != null && typeof def.canonicalOwner !== 'string') {
         throw new Error('ABILITY_CANONICAL_OWNER_INVALID:' + id);
       }
-      if (def.resolution &&
-          (def.resolution.model !== 'jrpg-stat-formula' ||
-           def.resolution.formulaId !== id)) {
-        throw new Error('ABILITY_FORMULA_BINDING_INVALID:' + id);
+      if (def.resolution) {
+        const validFormula = def.resolution.model === 'jrpg-stat-formula' &&
+          def.resolution.formulaId === id;
+        const validCommons = id === 'mycelialLedger' &&
+          def.resolution.model === 'commons-readonly' &&
+          def.resolution.contractId === 'mycelialLedger';
+        if (!validFormula && !validCommons) {
+          throw new Error('ABILITY_RESOLUTION_BINDING_INVALID:' + id);
+        }
       }
       if ((id === 'staffStrike' || id === 'uncoverTruth' || id === 'hold' || id === 'rest') && !def.resolution) {
         throw new Error('ABILITY_FORMULA_BINDING_MISSING:' + id);
@@ -195,8 +201,9 @@
       throw new Error('SHARED_DREAM_SSOT_GUARD_DRIFT');
     }
     if (DEFS.mycelialLedger.canonicalOwner !== 'ender' ||
-        DEFS.mycelialLedger.migrationStatus !== 'redesign-required-before-formula' ||
-        DEFS.mycelialLedger.resolution) {
+        DEFS.mycelialLedger.migrationStatus !== 'live-readonly-v1' ||
+        !DEFS.mycelialLedger.resolution ||
+        DEFS.mycelialLedger.resolution.model !== 'commons-readonly') {
       throw new Error('MYCELIAL_LEDGER_SSOT_GUARD_DRIFT');
     }
 
@@ -344,7 +351,8 @@
       if (expected.resolution) {
         if (!action.resolution ||
             action.resolution.model !== expected.resolution.model ||
-            action.resolution.formulaId !== expected.resolution.formulaId) {
+            action.resolution.formulaId !== expected.resolution.formulaId ||
+            action.resolution.contractId !== expected.resolution.contractId) {
           throw new Error('RUNTIME_ACTION_RESOLUTION_MISMATCH:' + expectedId);
         }
       }
