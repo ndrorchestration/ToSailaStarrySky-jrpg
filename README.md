@@ -227,3 +227,17 @@ When a fresh candidate passes the exact Windows install/launch gate, the primary
 If Windows Defender flags an executable, do not whitelist or bypass it. Record the exact detection name and SHA-256 so the artifact can be audited.
 
 See `docs/DESKTOP_BUILD.md` for the canonical packaging and verification contract.
+
+
+## Combat-content architecture update — 2026-09-22
+
+The next combat-content phase is being simplified around reuse rather than parallel systems:
+
+- spells and weapon skills will share the existing ability/formula/effect pipeline;
+- existing Rank 1–5 spell catalogs will be enriched rather than rewritten;
+- weapon skills will receive separate Rank 1–5 family mastery while using the same execution contract;
+- exhaustive weapon-vs-weapon matrices are intentionally avoided in favor of family identity plus meaningful counters;
+- elemental and school interaction matrices remain the systemic interaction surfaces;
+- status/field/reaction policy and formula metadata are the next architectural bottlenecks before large-scale content expansion.
+
+See `SPEC.md` and `docs/MAGIC_SYSTEM.md` for the owning technical contracts.
