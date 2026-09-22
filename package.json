@@ -86,6 +86,7 @@
     "test:focus-manager": "node tests/focus-manager-contract.test.js",
     "test:gamepad-input": "node tests/gamepad-input-contract.test.js",
     "test:user-settings": "node tests/user-settings-contract.test.js",
-    "test:settings-runtime": "node tests/settings-runtime-contract.test.js"
+    "test:settings-runtime": "node tests/settings-runtime-contract.test.js",
+    "test:audio-settings": "node tests/audio-settings-contract.test.js"
   }
 }
