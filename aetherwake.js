@@ -1068,6 +1068,14 @@ function installRuntimePersistenceAdapter() {
     return window.AetherAirshipState[method].bind(window.AetherAirshipState);
   }
 
+  function requireNavigationPersistence(method) {
+    if (!window.AetherAirNavigation ||
+        typeof window.AetherAirNavigation[method] !== 'function') {
+      throw new Error('RUNTIME_AIR_NAV_PERSISTENCE_API_UNAVAILABLE');
+    }
+    return window.AetherAirNavigation[method].bind(window.AetherAirNavigation);
+  }
+
   window.AetherRuntimePersistence = Object.freeze({
     exportWorldState: function() {
       return requireWorldPersistence('exportPersistentState')();
@@ -1091,6 +1099,21 @@ function installRuntimePersistenceAdapter() {
       const nextState = requireAirshipPersistence('restorePersistentState')(payload);
       commitAirshipState(nextState);
       return requireAirshipPersistence('exportPersistentState')(airshipState);
+    },
+    exportNavigationState: function() {
+      if (!ensureAirNavigationState()) {
+        throw new Error('RUNTIME_AIR_NAV_STATE_UNAVAILABLE');
+      }
+      return requireNavigationPersistence('exportPersistentState')(airNavigationState);
+    },
+    validateNavigationState: function(payload) {
+      return requireNavigationPersistence('validatePersistentState')(payload);
+    },
+    restoreNavigationState: function(payload) {
+      airNavigationState = requireNavigationPersistence('restorePersistentState')(payload);
+      window._airNavigationState = airNavigationState;
+      airshipFlightMode = false;
+      return requireNavigationPersistence('exportPersistentState')(airNavigationState);
     },
   });
 }
