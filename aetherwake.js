@@ -467,13 +467,32 @@ function keyPressed() {
       return;
     }
 
+    if (openingScene && openingScene.id === 'berth_task' && keyCode === 69) {
+      const berth = opening.interactBerth(openingState);
+      const berthSteps = [
+        'BERTH CLEARED',
+        'PANEL ALIGNED',
+        'BAG PLACED // A PLACE ABOARD',
+      ];
+      if (berth.advanced) {
+        showToast(berthSteps[Math.max(0, berth.step - 1)], berth.ready ? C.teal : C.scioto, 1100);
+      }
+      delete keysPressed[keyCode];
+      if (typeof ensureAudio === 'function') ensureAudio();
+      if (typeof resumeAudio === 'function') resumeAudio();
+      return;
+    }
+
     if (keyCode === 13 || keyCode === 32) {
       const beforeScene = openingScene;
       const beforeIndex = openingState && openingState.sceneIndex;
       advanceFirstWakeOpening();
-      if (beforeScene && beforeScene.id === 'dock_walk' &&
-          openingState && openingState.sceneIndex === beforeIndex) {
-        showToast('MOVE RIGHT TOWARD THE AUREATE WAKE', C.scioto, 1100);
+      if (beforeScene && openingState && openingState.sceneIndex === beforeIndex) {
+        if (beforeScene.id === 'dock_walk') {
+          showToast('MOVE RIGHT TOWARD THE AUREATE WAKE', C.scioto, 1100);
+        } else if (beforeScene.id === 'berth_task') {
+          showToast('PRESS E TO WORK ON THE BERTH', C.scioto, 1100);
+        }
       }
       delete keysPressed[keyCode];
       if (typeof ensureAudio === 'function') ensureAudio();
@@ -903,6 +922,46 @@ function drawOpeningInterior(sceneVisual) {
   rect(width - 288, 222, 119, 6);
   fill(229, 187, 110, 130);
   ellipse(226, 154, 34, 34);
+  if (sceneVisual === 'berth') {
+    const opening = window.AetherFirstWakeOpening;
+    const state = window._firstWakeOpeningState;
+    const step = state && state.berthTask ? state.berthTask.step : 0;
+
+    // Berth alcove: incomplete, practical, increasingly inhabited as the player works.
+    noStroke();
+    fill(30, 37, 42);
+    rect(126, 286, 252, 118, 7);
+    fill(76, 65, 56);
+    rect(146, 310, 204, 24, 4);
+
+    if (step < 1) {
+      fill(119, 91, 69);
+      rect(156, 342, 50, 34, 3);
+      rect(216, 348, 42, 28, 3);
+      rect(267, 338, 54, 38, 3);
+    }
+
+    fill(step >= 2 ? 91 : 153, step >= 2 ? 164 : 102, step >= 2 ? 150 : 84);
+    rect(292, 222, 76, 48, 5);
+    fill(19, 25, 29);
+    rect(304, 234, 52, 24, 3);
+    if (step >= 2) {
+      fill(111, 211, 194, 160);
+      rect(310, 241, 40, 5);
+      rect(310, 250, 28, 4);
+    } else {
+      fill(192, 112, 92, 160);
+      rect(310, 241, 40, 5);
+    }
+
+    if (step >= 3) {
+      fill(84, 62, 48);
+      rect(170, 350, 34, 24, 4);
+      fill(210, 180, 140, 130);
+      rect(173, 345, 28, 5, 2);
+    }
+  }
+
   if (sceneVisual === 'wrong-song') {
     stroke(115, 211, 226, 180);
     strokeWeight(2);
@@ -1059,7 +1118,23 @@ function drawFirstWakeOpening() {
     }
   }
 
-  if (scene.cinematic && scene.id === 'arrival_horizon') {
+  if (scene.interactive && scene.id === 'berth_task') {
+    const step = state.berthTask ? state.berthTask.step : 0;
+    const berthLabels = [
+      'Clear the berth.',
+      'Align the listing panel.',
+      'Put down your bag.',
+      'The berth is yours for now.',
+    ];
+    textAlign(CENTER, TOP);
+    textFont('VT323');
+    textSize(22);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2]);
+    text(berthLabels[Math.min(step, berthLabels.length - 1)], width / 2, 205);
+    textSize(17);
+    fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
+    text(step >= 3 ? 'Press ENTER to continue.' : 'Press E to interact.', width / 2, 238);
+  } else if (scene.cinematic && scene.id === 'arrival_horizon') {
     const reveal = Math.min(1, state.sceneTicks / Math.max(1, scene.minimumTicks));
     textAlign(LEFT, TOP);
     textFont('Press Start 2P');
@@ -1159,7 +1234,9 @@ function drawFirstWakeOpening() {
     : true;
   const openingPrompt = scene.interactive && scene.id === 'dock_walk'
     ? (state.dockWalk && state.dockWalk.ready ? 'ENTER — BOARD THE WAKE' : 'MOVE TOWARD THE WAKE')
-    : (scene.cinematic && !presentationReady ? '' : 'ENTER / SPACE — CONTINUE');
+    : scene.interactive && scene.id === 'berth_task'
+      ? (state.berthTask && state.berthTask.ready ? 'ENTER — CONTINUE' : 'E — WORK ON THE BERTH')
+      : (scene.cinematic && !presentationReady ? '' : 'ENTER / SPACE — CONTINUE');
   if (openingPrompt) text(openingPrompt, width / 2, height - 26);
   pop();
 }
