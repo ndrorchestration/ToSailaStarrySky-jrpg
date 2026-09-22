@@ -1,0 +1,73 @@
+{
+  "version": "2026-09-22",
+  "authority": "Notion character dossiers + Character Art Direction contract",
+  "drive_folder": "https://drive.google.com/drive/folders/1QvH2xrt0vMoVupI2hRNzESsoiayt3p3B",
+  "notion_page": "https://app.notion.com/p/3e3f5bad238b81999b97cd821db6603b?pvs=204",
+  "assets": [
+    {
+      "file": "Ender_Canonical_Appearance_Reference.jpeg",
+      "status": "canonical_likeness_anchor",
+      "url": "https://drive.google.com/file/d/1LnJPrr0Lv7gXer5nRi1Nhqcy5Xd9hPQP/view?usp=drivesdk"
+    },
+    {
+      "file": "Aetherwake_Five_Character_Visual_Bible_Collage.png",
+      "status": "current_visual_reference",
+      "url": "https://drive.google.com/file/d/1l4MXWFKoguCDKWDZgO_EQJwRek8Wp6Dh/view?usp=drivesdk"
+    },
+    {
+      "file": "Reson_Corrected_Red_Cap_Light_Mustache.png",
+      "status": "current_visual_reference",
+      "url": "https://drive.google.com/file/d/1wLdOhHGrgEj-X5WeV4vDNNh_xasCDpsf/view?usp=drivesdk"
+    },
+    {
+      "file": "Aepex_Corrected_Dirty_Blond_Brow_Notch.png",
+      "status": "current_visual_reference",
+      "url": "https://drive.google.com/file/d/1bzXki03n3-_JxEB0WFIi_ptiRkbZmkcb/view?usp=drivesdk"
+    },
+    {
+      "file": "Boys_And_Ender_Corrected_01.png",
+      "status": "current_visual_reference",
+      "url": "https://drive.google.com/file/d/1zSvBgoGbh48TYxc4TsX3rXjwaw0KBBy_/view?usp=drivesdk"
+    },
+    {
+      "file": "Boys_And_Ender_Corrected_02.png",
+      "status": "current_visual_reference",
+      "url": "https://drive.google.com/file/d/17AmtLCJL-QB5nbfWz9nNaNiC9pYNawPv/view?usp=drivesdk"
+    },
+    {
+      "file": "Aetherwake_Worlds_Above_More_Ahead.png",
+      "status": "development_reference",
+      "url": "https://drive.google.com/file/d/1wk9rp5_jyQqFefvw-zghFOzCN01pWr8E/view?usp=drivesdk"
+    },
+    {
+      "file": "Aetherwake_Skybound_Character_Compendium.png",
+      "status": "development_reference",
+      "url": "https://drive.google.com/file/d/1RYlBucSs2Wg1eIQL_axpHwqxL3-v5yeE/view?usp=drivesdk"
+    },
+    {
+      "file": "Aetherwake_Character_Lineup.png",
+      "status": "development_reference",
+      "url": "https://drive.google.com/file/d/1NSdf3sdx1uqfkbSajtYIN9cDxmXjgsEY/view?usp=drivesdk"
+    },
+    {
+      "file": "Boys_And_Ender_Group_01.png",
+      "status": "development_reference",
+      "url": "https://drive.google.com/file/d/15J3g8WKhAgLOb6ecd1jqlQJt-IoAWbIb/view?usp=drivesdk"
+    },
+    {
+      "file": "Reson_Character_Art_01.png",
+      "status": "superseded_likeness_reference",
+      "url": "https://drive.google.com/file/d/1ZqV5HWZfd9waPS_rVLbcT_oJ7Opz8DUG/view?usp=drivesdk"
+    },
+    {
+      "file": "Aepex_Character_Art_01.png",
+      "status": "superseded_likeness_reference",
+      "url": "https://drive.google.com/file/d/1zfPqBkNrsN0G9NGOyoUGSNQHMatoWuMB/view?usp=drivesdk"
+    },
+    {
+      "file": "Boys_And_Ender_Group_02.png",
+      "status": "development_reference",
+      "url": "https://drive.google.com/file/d/1Sr93EnHeuGkEveo8LN3YbDcRlTSdtd8X/view?usp=drivesdk"
+    }
+  ]
+}
