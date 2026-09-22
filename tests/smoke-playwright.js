@@ -109,8 +109,15 @@ function createServer() {
     assert(debugOverlayState.every(entry => entry.display === 'none'),
       'normal launch exposed a debug overlay');
 
-    // One real Enter follows the production input path:
-    // BOOT → MENU → OPENING. No custom companion creation is allowed.
+    // The beginning requires two deliberate inputs:
+    // first BOOT → MENU, then explicit New Game MENU → OPENING.
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
+
+    await page.waitForTimeout(3200);
+    assert((await page.evaluate(() => window.gameState)) === 'menu',
+      'title menu auto-started without an explicit New Game input');
+
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.gameState === 'opening' &&
