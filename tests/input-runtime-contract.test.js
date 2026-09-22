@@ -12,15 +12,15 @@ const dispatch = source.indexOf('  handleInput();', publish);
 assert(publish >= 0 && dispatch > publish,
   'world interaction intent must be published before input dispatch');
 
-assert(source.includes(
-  'const movementCodes = [UP_ARROW, DOWN_ARROW, LEFT_ARROW, RIGHT_ARROW, 87, 83, 65, 68];'
-), 'WASD and arrow movement codes must share the repeat path');
-assert(source.includes('if (code === UP_ARROW || code === 87)'),
-  'WASD north movement is not mapped');
-assert(source.includes('if (code === RIGHT_ARROW || code === 68)'),
-  'WASD east movement is not mapped');
-assert(source.includes('keyRepeatFirst[code] = true;\n        doMove(code);'),
-  'the first movement keypress must move immediately');
+assert(source.includes('function semanticActionHeld(actionId, context)'),
+  'held keyboard movement must resolve through semantic bindings');
+assert(source.includes("const movementActions = ['move-up','move-down','move-left','move-right'];"),
+  'WORLD movement must use semantic action identities');
+assert(source.includes('doMoveSemantic(action);'),
+  'WORLD semantic movement must preserve immediate first-step behavior');
+assert(source.includes("semanticActionPressed('airship-altitude-up')") &&
+       source.includes("semanticActionPressed('airship-dock')"),
+  'AIRSHIP keyboard controls must consume semantic actions after remapping');
 
 assert(source.includes("const firstContact = !nearest.flags.met;"),
   'dialogue must capture first-contact state before mutating the NPC');
@@ -68,9 +68,6 @@ assert(source.includes('navigator.getGamepads()'),
   'runtime must obtain current gamepad objects from navigator.getGamepads');
 assert(source.includes('window.AetherGamepadInput.poll('),
   'runtime gamepad polling must use the semantic gamepad adapter');
-assert(source.includes('Combat action') && source.includes('remains keyboard-authoritative'),
-  'runtime must preserve the boundary that combat action selection is not controller-enabled yet');
-
 assert(source.includes('function dispatchGamepadActions(result)'),
   'runtime must isolate semantic controller dispatch from keyboard dispatch');
 assert(source.includes("gameState === STATE.MENU"),
@@ -110,5 +107,19 @@ assert(source.includes("pressed.includes('open-save-load')"),
   'controller runtime must expose a focused Save/Load entry action');
 assert(source.includes("if (gameState === STATE.SAVELOAD)"),
   'controller dispatcher must handle the Save/Load overlay semantically');
+
+assert(source.includes("CONTROLS: 'controls'"),
+  'runtime must expose a dedicated Controls remapping state');
+assert(source.includes('function drawControlsOverlay()'),
+  'runtime must render the Controls remapping surface');
+assert(source.includes('function commitKeyboardBindingCapture(code)'),
+  'runtime must capture and persist keyboard remaps');
+assert(source.includes('function commitGamepadBindingCapture(buttonIndex)'),
+  'runtime must capture and persist gamepad remaps');
+assert(source.includes('window.AetherInputBindings.setKeyboardBinding(') &&
+       source.includes('window.AetherInputBindings.setGamepadBinding('),
+  'remap UI must route through the versioned input-binding authority');
+assert(source.includes('window.AetherInputPrompt = inputPrompt'),
+  'dynamic prompt ownership must be exposed from the active binding state');
 
 console.log('Aetherwake input runtime contract: PASS');
