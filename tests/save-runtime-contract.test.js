@@ -6,6 +6,9 @@ const runtime = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'ut
 const html = fs.readFileSync(path.join(__dirname, '..', 'index-embedded.html'), 'utf8');
 
 assert(html.includes('modules/save-system.js'), 'save-system module is not loaded by the runtime');
+assert(html.includes('modules/save-payload-validator.js'), 'semantic save validator is not loaded by the runtime');
+assert(html.indexOf('modules/save-payload-validator.js') < html.indexOf('aetherwake.js'),
+  'semantic save validator must load before the runtime');
 assert(html.indexOf('modules/save-system.js') < html.indexOf('aetherwake.js'),
   'save-system module must load before aetherwake.js');
 
@@ -14,6 +17,15 @@ assert(runtime.includes("CONTINUE — C"), 'title Continue command missing');
 assert(runtime.includes("openSaveLoadMenu('save')"), 'manual save UI entry missing');
 assert(runtime.includes("openSaveLoadMenu('load')"), 'manual load UI entry missing');
 assert(runtime.includes('function buildSavePayload()'), 'runtime save snapshot missing');
+assert(runtime.includes('function prepareSaveEnvelopeForApply(envelope)'),
+  'semantic preflight stage missing');
+assert(runtime.includes('AetherSavePayloadValidator.validatePayload(payload'),
+  'runtime must validate payload semantics before apply');
+assert(runtime.indexOf('function prepareSaveEnvelopeForApply(envelope)') <
+       runtime.indexOf('function applySaveEnvelope(envelope)'),
+  'preflight must be defined before the mutating apply path');
+assert(runtime.includes('const prepared = prepareSaveEnvelopeForApply(envelope);'),
+  'apply path does not require successful preflight');
 assert(runtime.includes('function applySaveEnvelope(envelope)'), 'runtime restore path missing');
 assert(runtime.includes('window.AetherPartyState.setActivePartyIds(ids)'),
   'load path must restore canonical active-party references');
