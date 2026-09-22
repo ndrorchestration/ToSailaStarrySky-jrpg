@@ -119,29 +119,37 @@
     const nowButtons = [];
     const rawPressedButtons = [];
     const pressed = [];
+    const held = [];
     const bindingsSystem = options && options.bindingsSystem;
     const bindings = options && options.bindings;
 
     for (let i = 0; i < (gamepad.buttons || []).length; i++) {
       if (!buttonPressed(gamepad, i)) continue;
       nowButtons.push(i);
+
+      const defaultAction = primaryButtonAction(i, normalizedContext, options);
+      const action = bindingsSystem &&
+        typeof bindingsSystem.resolveGamepadButtonAction === 'function' &&
+        bindings
+        ? bindingsSystem.resolveGamepadButtonAction(
+            bindings, i, normalizedContext, defaultAction
+          )
+        : defaultAction;
+
+      // Movement remapped to an ordinary button must participate in the held
+      // stream so repeat cadence works just like D-pad/stick movement.
+      if (action && action.startsWith('move-') && !held.includes(action)) {
+        held.push(action);
+      }
+
       if (!previousButtons.has(i)) {
         rawPressedButtons.push(i);
-        const defaultAction = primaryButtonAction(i, normalizedContext, options);
-        const action = bindingsSystem &&
-          typeof bindingsSystem.resolveGamepadButtonAction === 'function' &&
-          bindings
-          ? bindingsSystem.resolveGamepadButtonAction(
-              bindings, i, normalizedContext, defaultAction
-            )
-          : defaultAction;
         if (action && !pressed.includes(action)) pressed.push(action);
       }
     }
 
     const previousDirections = new Set(state.axisDirections);
     const nowDirections = directionSet(gamepad);
-    const held = [];
     for (const direction of nowDirections) {
       const defaultAction = directionalAction(direction, normalizedContext);
       const action = bindingsSystem &&
