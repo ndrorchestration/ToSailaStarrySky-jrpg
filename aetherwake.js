@@ -4961,6 +4961,27 @@ function AetherCombat(p, C) {
         })
       : template;
 
+    const legacyProductionStats = {
+      might: Math.max(1, Number(scaledTemplate.might) || 1),
+      grace: Math.max(1, Number(scaledTemplate.grace) || 1),
+      wits: Math.max(1, Number(scaledTemplate.wits) || 1),
+      spirit: Math.max(1, Number(scaledTemplate.spirit ?? scaledTemplate.presence) || 1),
+      presence: Math.max(1, Number(scaledTemplate.presence) || 1),
+    };
+    const productionStats = scaledTemplate.productionStats
+      ? JSON.parse(JSON.stringify(scaledTemplate.productionStats))
+      : legacyProductionStats;
+    const productionDerivedStats = scaledTemplate.productionDerivedStats
+      ? JSON.parse(JSON.stringify(scaledTemplate.productionDerivedStats))
+      : (window.AetherJRPGStatModel &&
+         typeof window.AetherJRPGStatModel.derive === 'function'
+        ? window.AetherJRPGStatModel.derive(
+            productionStats,
+            scaledTemplate.level || 1,
+            scaledTemplate.equipment || {}
+          )
+        : { aetherDefense: Math.max(0, Number(scaledTemplate.aetherDefense) || 0) });
+
     state.enemy = {
       name: scaledTemplate.name,
       goal: scaledTemplate.goal,
@@ -4979,6 +5000,8 @@ function AetherCombat(p, C) {
       abilityDesc: scaledTemplate.abilityDesc || null,
       color: scaledTemplate.color || null,
       bodyShape: scaledTemplate.bodyShape || null,
+      productionStats,
+      productionDerivedStats,
       aetherDependent: scaledTemplate.aetherDependent === true
         ? true
         : (scaledTemplate.aetherDependent === false ? false : null),
@@ -5730,6 +5753,11 @@ function AetherCombat(p, C) {
       const ex = p.width * 0.75;
       const ey = p.height * 0.52;
       const eType = state.enemy.type || 'generic';
+      const eVisual = state.enemy.bodyShape || ({
+        windShear: 'elemental',
+        aetherLeak: 'wraith',
+        corporateSalvager: 'humanoid',
+      }[eType] || eType);
       const eColor = state.enemy.color || 'soil';
 
       // Map color name to C array
@@ -5738,6 +5766,8 @@ function AetherCombat(p, C) {
         soil: C.soil,
         scioto: C.scioto,
         teal: C.teal,
+        biolum: C.biolum,
+        rose: C.rose,
       };
       const eBodyColor = colorMap[eColor] || C.soil;
 
@@ -5776,7 +5806,7 @@ function AetherCombat(p, C) {
       p.fill(bodyColor[0], bodyColor[1], bodyColor[2], 220);
       p.noStroke();
       // Different body shapes per enemy type
-      if (eType === 'elemental') {
+      if (eVisual === 'elemental') {
         // Wind Shear: angular, swirling body
         p.ellipse(ex, ey, 34, 28);
         p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 80);
@@ -5791,7 +5821,7 @@ function AetherCombat(p, C) {
                  ex - 4 + Math.sin(wa + 1) * 10, ey - 2 + Math.cos(wa * 0.7 + 1) * 5);
         }
         p.noStroke();
-      } else if (eType === 'wraith') {
+      } else if (eVisual === 'wraith') {
         // Aether Leak: translucent, irregular blob
         p.ellipse(ex, ey, 32, 26);
         // Corrosive aura
@@ -5799,7 +5829,7 @@ function AetherCombat(p, C) {
         p.ellipse(ex, ey, 44, 36);
         p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 50);
         p.ellipse(ex - 4, ey - 2, 16, 12);
-      } else if (eType === 'humanoid') {
+      } else if (eVisual === 'humanoid') {
         // Corporate Salvager: taller, narrower
         p.ellipse(ex, ey, 26, 36);
         p.fill(C.soil[0], C.soil[1], C.soil[2], 180);
@@ -8418,7 +8448,7 @@ function drawHUDFrame(gameState) {
   }
 
   // Screen flash
-  drawScreenFlash();
+  drawScreenFlashLegacy();
 
   // Scanlines on top of everything
   drawScanlines();
@@ -8432,15 +8462,15 @@ function drawHUDFrame(gameState) {
 console.log('[UI] Aetherwake UI module loaded —',
             Object.keys(window.UI).join(', '));
 
-function drawScreenFlash() {
-  if (!screenFlash.active) return;
-  const age = millis() - screenFlash.startTime;
-  if (age > screenFlash.duration) {
-    screenFlash.active = false;
+function drawScreenFlashLegacy() {
+  if (!window.screenFlash || !window.screenFlash.active) return;
+  const age = millis() - window.screenFlash.startTime;
+  if (age > window.screenFlash.duration) {
+    window.screenFlash.active = false;
     return;
   }
-  const t = 1 - age / screenFlash.duration;
-  const alpha = t * screenFlash.intensity;
+  const t = 1 - age / window.screenFlash.duration;
+  const alpha = t * window.screenFlash.alpha;
   noStroke();
   fill(color(255, 255, 255, alpha));
   rect(0, 0, width, height);
