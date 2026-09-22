@@ -23,6 +23,7 @@ const C = {
   dusttan:  [210, 180, 140],
   rust:     [180, 90, 50],
   soil:     [120, 90, 60],
+  grass:    [139, 184, 88],
   biolum:   [80, 240, 160],
   shad:     [60, 50, 60],   // dark gray-violet for shadow fills (char-create module expects this)
   dim:      [80, 70, 90],   // muted blue-gray for labels/indicators (char-create module expects this)
