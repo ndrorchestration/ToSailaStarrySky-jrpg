@@ -5,7 +5,15 @@ on:
     branches:
       - main
       - dev/progression-build
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/ISSUE_TEMPLATE/**'
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/ISSUE_TEMPLATE/**'
 
 jobs:
   smoke:
@@ -15,6 +23,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Verify CI trigger hygiene
+        run: npm run test:ci-trigger-hygiene
 
       - name: Set up Node
         uses: actions/setup-node@v4
