@@ -15,10 +15,10 @@
     'confirm': { contexts: ['global'], keyCodes: [13,32] },
     'cancel': { contexts: ['global'], keyCodes: [27] },
     'open-settings': { contexts: ['menu'], keyCodes: [83] },
-    'move-up': { contexts: ['world','airship'], keyCodes: [38,87] },
-    'move-down': { contexts: ['world','airship'], keyCodes: [40,83] },
-    'move-left': { contexts: ['world','airship'], keyCodes: [37,65] },
-    'move-right': { contexts: ['world','airship'], keyCodes: [39,68] },
+    'move-up': { contexts: ['world','airship'], keyCodesByContext: { world: [38,87], airship: [38] } },
+    'move-down': { contexts: ['world','airship'], keyCodesByContext: { world: [40,83], airship: [40] } },
+    'move-left': { contexts: ['world','airship'], keyCodesByContext: { world: [37,65], airship: [37] } },
+    'move-right': { contexts: ['world','airship'], keyCodesByContext: { world: [39,68], airship: [39] } },
     'interact': { contexts: ['world','dialogue'], keyCodes: [69] },
     'quest-log': { contexts: ['world'], keyCodes: [84] },
     'character-sheet': { contexts: ['world'], keyCodes: [82] },
@@ -56,7 +56,11 @@
     for (const id of Object.keys(ACTIONS)) {
       const definition = ACTIONS[id];
       if (!appliesToContext(definition, context)) continue;
-      if (definition.keyCodes.includes(keyCode)) actions.push(id);
+      const normalized = normalizeContext(context);
+      const keyCodes = definition.keyCodesByContext
+        ? (definition.keyCodesByContext[normalized] || [])
+        : definition.keyCodes;
+      if (keyCodes.includes(keyCode)) actions.push(id);
     }
     return actions;
   }
@@ -80,8 +84,16 @@
       if (!Array.isArray(def.contexts) || !def.contexts.length) {
         throw new Error('INPUT_ACTION_CONTEXT_MISSING:' + id);
       }
-      if (!Array.isArray(def.keyCodes) || !def.keyCodes.length ||
-          def.keyCodes.some(code => !Number.isInteger(code))) {
+      if (def.keyCodesByContext) {
+        for (const context of def.contexts) {
+          const codes = def.keyCodesByContext[context];
+          if (!Array.isArray(codes) || !codes.length ||
+              codes.some(code => !Number.isInteger(code))) {
+            throw new Error('INPUT_ACTION_CONTEXT_KEYCODE_INVALID:' + id + ':' + context);
+          }
+        }
+      } else if (!Array.isArray(def.keyCodes) || !def.keyCodes.length ||
+                 def.keyCodes.some(code => !Number.isInteger(code))) {
         throw new Error('INPUT_ACTION_KEYCODE_INVALID:' + id);
       }
     }
