@@ -450,6 +450,35 @@ function writeDesktopSmokeMarkerOnce() {
   }
 }
 
+function dispatchSafeGamepadUIActions(result) {
+  if (!result || result.supported !== true || !Array.isArray(result.pressed) || !result.pressed.length) {
+    return false;
+  }
+
+  if (gameState === STATE.MENU) {
+    if (result.pressed.includes('open-settings')) {
+      openUserSettingsMenu();
+      return true;
+    }
+    if (result.pressed.includes('confirm')) {
+      startGame();
+      return true;
+    }
+    return false;
+  }
+
+  if (gameState === STATE.SETTINGS) {
+    semanticActionsPressed.clear();
+    for (const action of result.pressed) semanticActionsPressed.add(action);
+    window._lastSemanticActions = result.pressed.slice();
+    handleSettingsInput();
+    clearSemanticActions();
+    return true;
+  }
+
+  return false;
+}
+
 function pollGamepadDiagnostics() {
   if (!gamepadInputState || !window.AetherGamepadInput ||
       typeof navigator === 'undefined' ||
@@ -481,6 +510,7 @@ function pollGamepadDiagnostics() {
     { wakeResolution: Boolean(gameState === STATE.WORLD && quest && quest.state === QUEST_STATES.WAKE) }
   );
   window._lastGamepadPoll = result;
+  window._lastGamepadDispatchHandled = dispatchSafeGamepadUIActions(result);
   return result;
 }
 
