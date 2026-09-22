@@ -184,7 +184,8 @@
     {
       "id": "interact",
       "contexts": [
-        "world"
+        "world",
+        "dialogue"
       ],
       "keyboard": [
         "E"
