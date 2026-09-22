@@ -20,6 +20,27 @@ The current production desktop structure is intentionally separate from the deve
 
 Launcher-layout correction lineage: `304835c12555e35061870a54d61f7c95996d0bdd`.
 
+## Visual / cinematic authority
+
+Visual work is governed by three current-main documents:
+
+- `docs/VISUAL_BIBLE.md` — canonical cross-project visual grammar;
+- `docs/VISUAL_BENCHMARK_SCENE.md` — Dragonfly Dusk Dock acceptance target;
+- `docs/CINEMATIC_CLIP_CONTRACT.md` — media format, manifest, failover, transition, and accessibility rules.
+
+The existing Notion Character Art Direction & Implementation Contract remains subordinate character-specific authority rather than being replaced.
+
+Visual branches and stale migration PRs do not become art authority merely by existing or being visually richer. Before promotion, reconcile them to the Bible and prefer a single coherent current-main visual foundation.
+
+The first propagation gate is four near-final scenes:
+
+1. benchmark dock scene;
+2. representative dialogue scene;
+3. representative combat scene;
+4. representative Dragonfly flight scene.
+
+Do not scale expensive effects project-wide until those four establish reusable rules.
+
 ## Source-of-truth rules
 
 ### Runtime
