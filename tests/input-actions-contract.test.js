@@ -1,0 +1,47 @@
+'use strict';
+
+const assert = require('assert');
+const input = require('../modules/input-actions.js');
+
+assert.strictEqual(input.VERSION, '0.1.0');
+assert.strictEqual(input.validate(), true);
+
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 84 }, 'world'),
+  ['quest-log'],
+  'T must map to quest-log in WORLD'
+);
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 116 }, 'world'),
+  ['manual-save'],
+  'F5 must map to manual-save in WORLD'
+);
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 116 }, 'combat'),
+  [],
+  'F5 must not map to manual-save in COMBAT'
+);
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 69 }, 'world'),
+  ['interact'],
+  'E must map to interact in WORLD'
+);
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 69 }, 'airship'),
+  ['airship-altitude-up'],
+  'E must map to altitude-up in AIRSHIP'
+);
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 27 }, 'dialogue'),
+  ['cancel'],
+  'Escape must retain global cancel semantics'
+);
+
+const worldUp = input.actionsForKeyboardEvent({ keyCode: 38 }, 'world');
+assert(worldUp.includes('move-up'), 'ArrowUp must map to move-up in WORLD');
+assert(!worldUp.includes('ui-up'), 'WORLD movement must not also emit menu ui-up');
+
+assert.strictEqual(input.normalizeContext('saveload'), 'save-load');
+assert.strictEqual(input.normalizeContext('questlog'), 'menu');
+
+console.log('Aetherwake semantic input actions: PASS');
