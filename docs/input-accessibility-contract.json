@@ -151,7 +151,16 @@
         "left-stick-up"
       ],
       "remappable": true,
-      "singlePressDigital": true
+      "singlePressDigital": true,
+      "keyboardByContext": {
+        "world": [
+          "ArrowUp",
+          "W"
+        ],
+        "airship": [
+          "ArrowUp"
+        ]
+      }
     },
     {
       "id": "move-down",
@@ -168,7 +177,16 @@
         "left-stick-down"
       ],
       "remappable": true,
-      "singlePressDigital": true
+      "singlePressDigital": true,
+      "keyboardByContext": {
+        "world": [
+          "ArrowDown",
+          "S"
+        ],
+        "airship": [
+          "ArrowDown"
+        ]
+      }
     },
     {
       "id": "move-left",
@@ -185,7 +203,16 @@
         "left-stick-left"
       ],
       "remappable": true,
-      "singlePressDigital": true
+      "singlePressDigital": true,
+      "keyboardByContext": {
+        "world": [
+          "ArrowLeft",
+          "A"
+        ],
+        "airship": [
+          "ArrowLeft"
+        ]
+      }
     },
     {
       "id": "move-right",
@@ -202,7 +229,16 @@
         "left-stick-right"
       ],
       "remappable": true,
-      "singlePressDigital": true
+      "singlePressDigital": true,
+      "keyboardByContext": {
+        "world": [
+          "ArrowRight",
+          "D"
+        ],
+        "airship": [
+          "ArrowRight"
+        ]
+      }
     },
     {
       "id": "interact",
