@@ -287,3 +287,20 @@ Representative dialogue now uses the same shared sprite authority as field rende
 - UI ornament derives from aether instrumentation rather than generic fantasy panels.
 
 **Status: IMPLEMENTED CANDIDATE / NOT YET VISUAL PASS.**
+
+
+## Combat presentation gate — implementation candidate
+
+Representative combat now uses a dedicated presentation-only visual stage while preserving the combat resolver, action eligibility, resource accounting, hit/crit timing, logs, and progression mechanics.
+
+Current candidate establishes:
+- fixed cinematic player/enemy stage anchors;
+- pixel-banded sky and three-plane battle terrain;
+- far cloud and floating-island depth;
+- shared Ender sprite authority at 3× scale;
+- shared enemy sprites for Sky-Predator, Corporate Salvager, and Engine Spirit;
+- pixel-authored fallback treatments for Harmonic Shear and Aether Leak;
+- a top turn/opponent hierarchy rail;
+- existing HP bars, staff state, action UI, impact flashes, crits, and knockback effects remain mechanically unchanged.
+
+**Status: IMPLEMENTED CANDIDATE / NOT YET VISUAL PASS.**
