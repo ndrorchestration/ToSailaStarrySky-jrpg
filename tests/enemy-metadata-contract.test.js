@@ -32,3 +32,8 @@ assert(body.includes('scaling: scaledTemplate.scaling || null'),
   'encounter scaling metadata is not exposed');
 
 console.log('Aetherwake enemy metadata contract: PASS');
+
+assert.strictEqual(enemyTemplates.aetherLeak.aetherDependent, true,
+  'Aether Leak Wraith must be explicitly Aether-dependent');
+assert.strictEqual(enemyTemplates.engine_spirit.aetherDependent, undefined,
+  'Engine Spirit Aether-dependence must remain unknown until established');
