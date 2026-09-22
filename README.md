@@ -201,12 +201,12 @@ The intended player experience is **download one Windows artifact, launch/instal
 
 ### Current release authority — 2026-09-22
 
-- The current desktop launcher architecture was corrected on `main` at commit `304835c12555e35061870a54d61f7c95996d0bdd`.
+- The desktop launcher architecture was corrected at `304835c12555e35061870a54d61f7c95996d0bdd`; the release-critical single-Windows-job hardening that removes Actions artifact storage/transfer is current on `main` at `313d7eb2aee003ce51a23edf48532f64d30f2bc0`.
 - Production packaging now follows the RPG Maker MV/NW.js structural pattern used by the Memories reference: a minimal launcher-root `package.json` points to `www/index-embedded.html`, while the player runtime lives under `www/`.
 - Development-only files are excluded from the staged player runtime.
 - The release system produces **Aetherwake-Setup.exe** plus **Aetherwake-Windows.zip**, verifies those exact bytes on the same pinned Windows job, records SHA-256 hashes, and publishes only after install/launch verification. GitHub Actions artifact storage is deliberately excluded from the release-critical path because that quota has already caused a real packaging failure.
 - A local Windows fallback script, `scripts/build-windows-release.ps1`, performs build → installer compile → clean install → launch smoke → SHA-256 generation when hosted CI is unavailable.
-- Current GitHub-hosted verification is **blocked before execution**, not failing inside Aetherwake: Windows package run `35692454573` attempt 2 again ended with `runner_id: 0` and zero steps; smoke run `35692454657` showed the same runner-admission failure.
+- Current GitHub-hosted verification is **blocked before execution**, not failing inside Aetherwake: on `main` `313d7eb2aee003ce51a23edf48532f64d30f2bc0`, Windows package run `35694446836` and smoke run `35694446855` both ended with `runner_id: 0` and zero steps.
 - Therefore **no newly generated installer is currently authorized as verified player-facing output**. Older installers and self-extracting wrappers remain historical artifacts and should not be presented as the current answer merely because they compiled or passed an older CI lane.
 
 When a fresh candidate passes the exact Windows install/launch gate, the primary player artifact will be:
