@@ -11,6 +11,14 @@ assert.strictEqual(bindings.validateState(state), true);
 assert.strictEqual(bindings.keyboardLabel(state, 'interact', 'world'), 'E');
 assert.strictEqual(bindings.gamepadLabel(state, 'interact'), 'A / SOUTH');
 
+assert.strictEqual(bindings.keyboardLabel(state, 'covenant-field', 'world'), 'Q');
+assert.strictEqual(bindings.keyboardLabel(state, 'toggle-layer', 'world'), 'TAB');
+assert.strictEqual(bindings.keyboardLabel(state, 'shop', 'world'), 'M');
+assert.strictEqual(bindings.gamepadLabel(state, 'covenant-field'), 'LS');
+assert.strictEqual(bindings.gamepadLabel(state, 'toggle-layer'), 'VIEW');
+assert.strictEqual(bindings.gamepadLabel(state, 'shop'), 'RS');
+
+
 assert.deepStrictEqual(
   bindings.keyboardActionsForEvent({ keyCode: 69 }, 'world', state),
   ['interact']
@@ -50,6 +58,31 @@ assert.throws(
   () => bindings.setGamepadBinding(state, 'ledger', 8),
   /INPUT_BINDINGS_CONFLICT_GAMEPAD:quest-log/,
   'same-context gamepad conflicts must fail closed'
+);
+
+
+let utilityState = bindings.emptyState();
+utilityState = bindings.setKeyboardBinding(utilityState, 'shop', 75); // K
+assert.deepStrictEqual(
+  bindings.keyboardActionsForEvent({ keyCode: 77 }, 'world', utilityState),
+  [],
+  'old M shop binding must be suppressed after remap'
+);
+assert.deepStrictEqual(
+  bindings.keyboardActionsForEvent({ keyCode: 75 }, 'world', utilityState),
+  ['shop'],
+  'remapped shop key must emit shop'
+);
+utilityState = bindings.setGamepadBinding(utilityState, 'toggle-layer', 6);
+assert.strictEqual(
+  bindings.resolveGamepadButtonAction(utilityState, 8, 'world', 'toggle-layer'),
+  null,
+  'old VIEW layer binding must be suppressed after remap'
+);
+assert.strictEqual(
+  bindings.resolveGamepadButtonAction(utilityState, 6, 'world', null),
+  'toggle-layer',
+  'remapped gamepad layer button must emit toggle-layer'
 );
 
 // Context-prioritized default overlaps remain valid.
