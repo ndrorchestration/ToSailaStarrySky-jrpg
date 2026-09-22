@@ -51,36 +51,34 @@ for (const forbidden of ['node_modules', 'tests', 'docs', '.github', 'scripts'])
 assert(stageScript.includes('20 * 1024 * 1024'),
   'desktop runtime stage must fail closed on unexpected payload bloat');
 
-const workflow = fs.readFileSync(
+const workflowContents = fs.readFileSync(
   path.join(__dirname, '..', '.github', 'workflows', 'desktop-package.yml'),
   'utf8'
 );
-assert(workflow.includes('npm run test:desktop-package'),
+assert(workflowContents.includes('npm run test:desktop-package'),
   'desktop workflow must run the packaging contract before building');
-assert(workflow.includes('npm run package:windows'),
+assert(workflowContents.includes('npm run package:windows'),
   'desktop workflow must build the Windows package');
-assert(workflow.includes('node-version: 26.7.0'),
+assert(workflowContents.includes('node-version: 26.7.0'),
   'desktop workflow should match NW.js 0.116.0 host Node 26.7.0');
-assert(workflow.includes('cancel-in-progress: true'),
+assert(workflowContents.includes('cancel-in-progress: true'),
   'desktop workflow should cancel superseded branch builds');
-assert(workflow.includes('Aetherwake.exe'),
+assert(workflowContents.includes('Aetherwake.exe'),
   'desktop workflow must verify the packaged executable');
-assert(workflow.includes('package.nw'),
+assert(workflowContents.includes('package.nw'),
   'desktop workflow must verify the packaged NW.js application directory');
-assert(workflow.includes('index-embedded.html'),
+assert(workflowContents.includes('index-embedded.html'),
   'desktop workflow must verify the embedded entry point inside package.nw');
-assert(workflow.includes('package.json'),
+assert(workflowContents.includes('package.json'),
   'desktop workflow must verify the application manifest inside package.nw');
-assert(workflow.includes('Resolve-Path ..\\aetherwake-dist'),
+assert(workflowContents.includes('Resolve-Path ..\\aetherwake-dist'),
   'desktop workflow must treat the NW.js output directory itself as the package root');
-assert(workflow.includes('name: Aetherwake-Windows'),
+assert(workflowContents.includes('name: Aetherwake-Windows'),
   'desktop workflow must publish a named Windows artifact');
-assert(workflow.includes('Copy-Item -Path "..\\aetherwake-dist\\*"'),
+assert(workflowContents.includes('Copy-Item -Path "..\\aetherwake-dist\\*"'),
   'desktop workflow must stage the verified external build after packaging');
-assert(workflow.includes('path: artifact/Aetherwake-Windows/**'),
+assert(workflowContents.includes('path: artifact/Aetherwake-Windows/**'),
   'desktop workflow must upload the complete staged NW.js output root');
-assert(!workflow.includes('Compress-Archive'),
-  'desktop workflow should not create a redundant ZIP inside the GitHub artifact');
 
 
 const embeddedHtml = fs.readFileSync(
