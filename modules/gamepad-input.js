@@ -114,13 +114,24 @@
 
     const previousButtons = new Set(state.pressedButtons);
     const nowButtons = [];
+    const rawPressedButtons = [];
     const pressed = [];
+    const bindingsSystem = options && options.bindingsSystem;
+    const bindings = options && options.bindings;
 
     for (let i = 0; i < (gamepad.buttons || []).length; i++) {
       if (!buttonPressed(gamepad, i)) continue;
       nowButtons.push(i);
       if (!previousButtons.has(i)) {
-        const action = primaryButtonAction(i, normalizedContext, options);
+        rawPressedButtons.push(i);
+        const defaultAction = primaryButtonAction(i, normalizedContext, options);
+        const action = bindingsSystem &&
+          typeof bindingsSystem.resolveGamepadButtonAction === 'function' &&
+          bindings
+          ? bindingsSystem.resolveGamepadButtonAction(
+              bindings, i, normalizedContext, defaultAction
+            )
+          : defaultAction;
         if (action && !pressed.includes(action)) pressed.push(action);
       }
     }
@@ -129,7 +140,12 @@
     const nowDirections = directionSet(gamepad);
     const held = [];
     for (const direction of nowDirections) {
-      const action = directionalAction(direction, normalizedContext);
+      const defaultAction = directionalAction(direction, normalizedContext);
+      const action = bindingsSystem &&
+        typeof bindingsSystem.resolveGamepadDirectionalAction === 'function' &&
+        bindings
+        ? bindingsSystem.resolveGamepadDirectionalAction(bindings, defaultAction)
+        : defaultAction;
       if (action && !held.includes(action)) held.push(action);
       if (!previousDirections.has(direction) && action && !pressed.includes(action)) {
         pressed.push(action);
@@ -146,6 +162,8 @@
       index: state.connectedIndex,
       id: gamepad.id || '',
       mapping: gamepad.mapping || '',
+      rawPressedButtons,
+      rawHeldDirections: Array.from(nowDirections),
       pressed,
       held
     };
