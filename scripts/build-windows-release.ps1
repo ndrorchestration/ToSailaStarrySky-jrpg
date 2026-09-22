@@ -85,10 +85,39 @@ if ($installProcess.ExitCode -ne 0) { throw "Installer exited with code $($insta
 $installedExe = Join-Path $installDir "Aetherwake.exe"
 if (-not (Test-Path -LiteralPath $installedExe)) { throw "Installed Aetherwake.exe was not found." }
 
+$marker = Join-Path $env:TEMP "aetherwake-desktop-ready.json"
+if (Test-Path -LiteralPath $marker) {
+  Remove-Item -LiteralPath $marker -Force
+}
+$env:AETHERWAKE_DESKTOP_SMOKE_MARKER = $marker
 $game = Start-Process -FilePath $installedExe -PassThru
-Start-Sleep -Seconds 10
-if ($game.HasExited) { throw "Installed Aetherwake.exe exited during launch smoke with code $($game.ExitCode)." }
+
+$deadline = (Get-Date).AddSeconds(20)
+while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $marker)) {
+  if ($game.HasExited) {
+    throw "Installed Aetherwake.exe exited before rendering a verified first frame with code $($game.ExitCode)."
+  }
+  Start-Sleep -Milliseconds 250
+}
+if (-not (Test-Path -LiteralPath $marker)) {
+  throw "Installed Aetherwake.exe did not report runtime-ready + first-frame within 20 seconds."
+}
+$ready = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
+if (-not $ready.runtimeReady -or -not $ready.firstFrame) {
+  throw "Desktop readiness marker did not confirm runtimeReady and firstFrame."
+}
+if ($ready.width -ne 960 -or $ready.height -ne 640) {
+  throw "Desktop readiness marker reported unexpected canvas $($ready.width)x$($ready.height)."
+}
+if ($ready.setupOrder -notlike "*setup-done*") {
+  throw "Desktop readiness marker did not include setup-done."
+}
+if ($game.HasExited) {
+  throw "Installed Aetherwake.exe exited immediately after first-frame readiness with code $($game.ExitCode)."
+}
+Write-Host "DESKTOP_RENDER_READINESS=PASS"
 Stop-Process -Id $game.Id -Force
+Remove-Item Env:AETHERWAKE_DESKTOP_SMOKE_MARKER -ErrorAction SilentlyContinue
 
 $manifest = Join-Path $OutputDir "SHA256SUMS.txt"
 $lines = @()

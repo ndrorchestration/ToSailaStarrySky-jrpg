@@ -65,6 +65,10 @@ assert(workflow.includes('runs-on: windows-2022'),
   'Windows verification must use a pinned runner image');
 assert(workflow.includes('Install and launch exact candidate'),
   'desktop workflow must install-smoke the exact candidate installer');
+assert(workflow.includes('AETHERWAKE_DESKTOP_SMOKE_MARKER'),
+  'desktop workflow must require an application-level readiness marker');
+assert(workflow.includes('DESKTOP_RENDER_READINESS=PASS'),
+  'desktop workflow must require live rendered-frame readiness before publication');
 assert(workflow.includes('Verify portable package layout'),
   'desktop workflow must verify the portable package shape');
 
@@ -98,5 +102,16 @@ assert(localReleaseScript.includes('Start-Process -FilePath $installer'),
   'local Windows release fallback must install-smoke the generated installer');
 assert(localReleaseScript.includes('Start-Process -FilePath $installedExe'),
   'local Windows release fallback must launch-smoke the installed game');
+assert(localReleaseScript.includes('AETHERWAKE_DESKTOP_SMOKE_MARKER'),
+  'local Windows release fallback must require application-level render readiness');
+assert(localReleaseScript.includes('DESKTOP_RENDER_READINESS=PASS'),
+  'local Windows release fallback must verify a rendered first frame');
 
 console.log('Aetherwake desktop package contract: PASS');
+
+const runtimeSource = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8');
+assert(runtimeSource.includes('function writeDesktopSmokeMarkerOnce()'),
+  'runtime must expose a guarded desktop readiness marker writer');
+assert(runtimeSource.includes('window.__awRuntimeReady') &&
+       runtimeSource.includes('window.__awFirstFrame'),
+  'desktop readiness marker must be bound to runtime-ready and completed-first-frame signals');
