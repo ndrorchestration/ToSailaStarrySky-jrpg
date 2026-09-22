@@ -81,7 +81,7 @@ jobs:
       - name: Publish Windows package release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: aetherwake-desktop-\${{ github.sha }}
+          tag_name: aetherwake-desktop-${{ github.sha }}
           name: Aetherwake Windows Desktop \${{ github.sha }}
           prerelease: true
           generate_release_notes: false
