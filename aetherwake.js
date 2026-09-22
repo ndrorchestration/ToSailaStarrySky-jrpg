@@ -1866,7 +1866,7 @@ function syncSettingsMenuFocusSnapshot() {
 
 function openUserSettingsMenu(preferredKey) {
   settingsMenuReturnState = gameState === STATE.MENU ? STATE.MENU : gameState;
-  const items = window.AetherUserSettings.SETTING_ORDER.slice();
+  const items = window.AetherUserSettings.SETTING_ORDER.concat(['__controls']);
   settingsMenuFocus = window.AetherFocusManager.createState(items, preferredKey || items[0]);
   syncSettingsMenuFocusSnapshot();
   gameState = STATE.SETTINGS;
@@ -1935,6 +1935,15 @@ function handleSettingsInput() {
   }
 
   const focusedKey = window.AetherFocusManager.focusedId(settingsMenuFocus);
+  if (focusedKey === '__controls') {
+    if (semanticActionPressed('confirm') ||
+        semanticActionPressed('ui-left') ||
+        semanticActionPressed('ui-right')) {
+      openControlsMenu();
+    }
+    return;
+  }
+
   if (semanticActionPressed('ui-left')) adjustUserSetting(focusedKey, -1);
   if (semanticActionPressed('ui-right') || semanticActionPressed('confirm')) {
     adjustUserSetting(focusedKey, 1);
@@ -1942,6 +1951,7 @@ function handleSettingsInput() {
 }
 
 function userSettingLabel(key) {
+  if (key === '__controls') return 'CONTROL REMAPPING';
   const labels = {
     textScale: 'TEXT SCALE',
     highContrastUI: 'HIGH CONTRAST UI',
@@ -1961,6 +1971,7 @@ function userSettingLabel(key) {
 }
 
 function userSettingValue(key) {
+  if (key === '__controls') return 'OPEN';
   const value = userSettings ? userSettings[key] : null;
   if (typeof value === 'boolean') return value ? 'ON' : 'OFF';
   if (Number.isInteger(value)) return value + '%';
@@ -1989,7 +2000,7 @@ function drawSettingsOverlay() {
   fill(C.scioto[0], C.scioto[1], C.scioto[2]);
   text('Changes save immediately. Integrated now: motion, screen shake, text speed, effects/dialogue volume.', x + 20, y + 42);
 
-  const order = window.AetherUserSettings.SETTING_ORDER;
+  const order = window.AetherUserSettings.SETTING_ORDER.concat(['__controls']);
   const focus = settingsMenuFocus ? window.AetherFocusManager.snapshot(settingsMenuFocus) : null;
   const startY = y + 76;
   const rowH = 32;
@@ -2023,6 +2034,303 @@ function drawSettingsOverlay() {
   textSize(8);
   fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
   text('↑/↓ focus   ←/→ change   ENTER change   ESC return', x + 20, y + h - 26);
+}
+
+function controlsMenuItems() {
+  if (!window.AetherInputBindings) return ['__reset_all'];
+  return window.AetherInputBindings.actionIds().concat(['__reset_all']);
+}
+
+function syncControlsMenuFocusSnapshot() {
+  if (!controlsMenuFocus || !window.AetherFocusManager) {
+    window._controlsMenuFocus = null;
+    return null;
+  }
+  const snapshot = window.AetherFocusManager.snapshot(controlsMenuFocus);
+  window._controlsMenuFocus = snapshot;
+  window._controlsDevice = controlsDevice;
+  window._inputBindingCapture = inputBindingCapture
+    ? JSON.parse(JSON.stringify(inputBindingCapture))
+    : null;
+  return snapshot;
+}
+
+function openControlsMenu(preferredActionId) {
+  controlsMenuReturnState = STATE.SETTINGS;
+  const items = controlsMenuItems();
+  controlsMenuFocus = window.AetherFocusManager.createState(
+    items,
+    preferredActionId && items.includes(preferredActionId) ? preferredActionId : items[0]
+  );
+  inputBindingCapture = null;
+  syncControlsMenuFocusSnapshot();
+  gameState = STATE.CONTROLS;
+  window.gameState = gameState;
+  menuAutoStartTimer = 0;
+}
+
+function closeControlsMenu() {
+  inputBindingCapture = null;
+  syncControlsMenuFocusSnapshot();
+  gameState = controlsMenuReturnState || STATE.SETTINGS;
+  window.gameState = gameState;
+  controlsMenuReturnState = STATE.SETTINGS;
+}
+
+function focusedControlActionId() {
+  if (!controlsMenuFocus || !window.AetherFocusManager) return null;
+  return window.AetherFocusManager.focusedId(controlsMenuFocus);
+}
+
+function beginInputBindingCapture() {
+  const actionId = focusedControlActionId();
+  if (!actionId || actionId === '__reset_all') return false;
+  inputBindingCapture = {
+    actionId,
+    device: controlsDevice
+  };
+  window._lastInputBindingError = null;
+  syncControlsMenuFocusSnapshot();
+  showToast(
+    controlsDevice === 'keyboard'
+      ? 'PRESS A KEY // BACKSPACE CANCELS'
+      : 'PRESS A GAMEPAD BUTTON // EAST CANCELS',
+    C.scioto,
+    1800
+  );
+  return true;
+}
+
+function cancelInputBindingCapture() {
+  inputBindingCapture = null;
+  syncControlsMenuFocusSnapshot();
+}
+
+function commitKeyboardBindingCapture(code) {
+  if (!inputBindingCapture || inputBindingCapture.device !== 'keyboard') return false;
+  try {
+    const next = window.AetherInputBindings.setKeyboardBinding(
+      inputBindingsState,
+      inputBindingCapture.actionId,
+      code
+    );
+    if (!persistInputBindings(next)) return false;
+    const actionId = inputBindingCapture.actionId;
+    inputBindingCapture = null;
+    syncControlsMenuFocusSnapshot();
+    showToast(
+      'BOUND ' + window.AetherInputBindings.actionLabel(actionId) +
+      ' // ' + window.AetherInputBindings.keyLabel(code),
+      C.teal,
+      1200
+    );
+    return true;
+  } catch (error) {
+    window._lastInputBindingError = error.message;
+    showToast('BINDING REJECTED // ' + error.message, C.rust, 1800);
+    return false;
+  }
+}
+
+function commitGamepadBindingCapture(buttonIndex) {
+  if (!inputBindingCapture || inputBindingCapture.device !== 'gamepad') return false;
+  try {
+    const next = window.AetherInputBindings.setGamepadBinding(
+      inputBindingsState,
+      inputBindingCapture.actionId,
+      buttonIndex
+    );
+    if (!persistInputBindings(next)) return false;
+    const actionId = inputBindingCapture.actionId;
+    inputBindingCapture = null;
+    syncControlsMenuFocusSnapshot();
+    showToast(
+      'BOUND ' + window.AetherInputBindings.actionLabel(actionId) +
+      ' // ' + window.AetherInputBindings.gamepadLabel(inputBindingsState, actionId),
+      C.teal,
+      1200
+    );
+    return true;
+  } catch (error) {
+    window._lastInputBindingError = error.message;
+    showToast('BINDING REJECTED // ' + error.message, C.rust, 1800);
+    return false;
+  }
+}
+
+function resetAllInputBindings() {
+  const next = window.AetherInputBindings.resetAll();
+  if (!persistInputBindings(next)) return false;
+  inputBindingCapture = null;
+  syncControlsMenuFocusSnapshot();
+  showToast('CONTROL BINDINGS RESET TO DEFAULTS', C.teal, 1400);
+  return true;
+}
+
+function handleControlsInput() {
+  if (!controlsMenuFocus) openControlsMenu();
+
+  if (inputBindingCapture) return;
+
+  if (semanticActionPressed('cancel')) {
+    closeControlsMenu();
+    return;
+  }
+  if (semanticActionPressed('ui-up')) {
+    window.AetherFocusManager.move(controlsMenuFocus, -1);
+    syncControlsMenuFocusSnapshot();
+  }
+  if (semanticActionPressed('ui-down')) {
+    window.AetherFocusManager.move(controlsMenuFocus, 1);
+    syncControlsMenuFocusSnapshot();
+  }
+  if (semanticActionPressed('ui-left')) {
+    controlsDevice = 'keyboard';
+    syncControlsMenuFocusSnapshot();
+  }
+  if (semanticActionPressed('ui-right')) {
+    controlsDevice = 'gamepad';
+    syncControlsMenuFocusSnapshot();
+  }
+  if (semanticActionPressed('confirm')) {
+    if (focusedControlActionId() === '__reset_all') resetAllInputBindings();
+    else beginInputBindingCapture();
+  }
+}
+
+function drawControlsOverlay() {
+  background(C.navy[0], C.navy[1], C.navy[2]);
+  drawBackgroundGrid();
+
+  const x = 70, y = 36, w = width - 140, h = height - 72;
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 248);
+  rect(x, y, w, h);
+  drawPixelBorder(x, y, w, h, 3);
+
+  textAlign(LEFT, TOP);
+  textFont('Press Start 2P');
+  textSize(12);
+  fill(C.teal[0], C.teal[1], C.teal[2]);
+  text('CONTROLS // ACTION REMAPPING', x + 18, y + 14);
+
+  textFont('VT323');
+  textSize(14);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2]);
+  text(
+    'Device: ' + controlsDevice.toUpperCase() +
+    '   ← keyboard   gamepad →   Confirm captures a new binding.',
+    x + 18,
+    y + 38
+  );
+
+  const items = controlsMenuItems();
+  const focus = controlsMenuFocus ? window.AetherFocusManager.snapshot(controlsMenuFocus) : null;
+  const focusedIndex = focus ? focus.index : 0;
+  const visibleRows = 12;
+  const startIndex = Math.max(
+    0,
+    Math.min(items.length - visibleRows, focusedIndex - Math.floor(visibleRows / 2))
+  );
+  const endIndex = Math.min(items.length, startIndex + visibleRows);
+  const rowY0 = y + 72;
+  const rowH = 36;
+
+  for (let i = startIndex; i < endIndex; i++) {
+    const id = items[i];
+    const rowY = rowY0 + (i - startIndex) * rowH;
+    const selected = Boolean(focus && focus.index === i);
+
+    if (selected) {
+      fill(C.teal[0], C.teal[1], C.teal[2], 34);
+      noStroke();
+      rect(x + 12, rowY - 4, w - 24, 30);
+    }
+
+    textAlign(LEFT, TOP);
+    textFont('Press Start 2P');
+    textSize(8);
+    fill(
+      selected ? C.teal[0] : C.parchment[0],
+      selected ? C.teal[1] : C.parchment[1],
+      selected ? C.teal[2] : C.parchment[2]
+    );
+
+    if (id === '__reset_all') {
+      text((selected ? '▶ ' : '  ') + 'RESET ALL TO DEFAULTS', x + 24, rowY + 2);
+      textAlign(RIGHT, TOP);
+      textFont('VT323');
+      textSize(15);
+      fill(C.rust[0], C.rust[1], C.rust[2]);
+      text('CONFIRM', x + w - 24, rowY - 2);
+      continue;
+    }
+
+    text(
+      (selected ? '▶ ' : '  ') + window.AetherInputBindings.actionLabel(id).toUpperCase(),
+      x + 24,
+      rowY + 2
+    );
+
+    textAlign(RIGHT, TOP);
+    textFont('VT323');
+    textSize(15);
+    fill(C.scioto[0], C.scioto[1], C.scioto[2]);
+    const bindingLabel = controlsDevice === 'keyboard'
+      ? window.AetherInputBindings.keyboardLabel(inputBindingsState, id, preferredPromptContext(id))
+      : window.AetherInputBindings.gamepadLabel(inputBindingsState, id);
+    text(bindingLabel, x + w - 24, rowY - 2);
+  }
+
+  if (inputBindingCapture) {
+    fill(C.navy[0], C.navy[1], C.navy[2], 235);
+    noStroke();
+    rect(x + 70, y + 170, w - 140, 150);
+    drawPixelBorder(x + 70, y + 170, w - 140, 150, 3);
+    textAlign(CENTER, TOP);
+    textFont('Press Start 2P');
+    textSize(10);
+    fill(C.teal[0], C.teal[1], C.teal[2]);
+    text(
+      'REBIND // ' +
+      window.AetherInputBindings.actionLabel(inputBindingCapture.actionId).toUpperCase(),
+      width / 2,
+      y + 194
+    );
+    textFont('VT323');
+    textSize(20);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2]);
+    text(
+      inputBindingCapture.device === 'keyboard'
+        ? 'Press the new key now. Backspace cancels.'
+        : 'Press the new gamepad button now. East / B cancels.',
+      width / 2,
+      y + 232
+    );
+    if (window._lastInputBindingError) {
+      textSize(14);
+      fill(C.rust[0], C.rust[1], C.rust[2]);
+      text(window._lastInputBindingError, width / 2, y + 270);
+    }
+  }
+
+  textAlign(LEFT, TOP);
+  textFont('Press Start 2P');
+  textSize(8);
+  fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
+  text(
+    '↑/↓ action   ← keyboard   → gamepad   CONFIRM rebind   CANCEL return',
+    x + 18,
+    y + h - 26
+  );
+}
+
+function preferredPromptContext(actionId) {
+  const contexts = window.AetherInputBindings.contextsFor(actionId);
+  for (const preferred of ['world','airship','combat','menu','settings','dialogue','save-load']) {
+    if (contexts.includes(preferred)) return preferred;
+  }
+  return contexts[0] || 'global';
 }
 
 function startGame() {
