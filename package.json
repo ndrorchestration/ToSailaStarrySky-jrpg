@@ -88,6 +88,7 @@
     "test:first-wake-visual": "node tests/first-wake-visual-stage.test.js",
     "test:title-music": "node tests/title-music-contract.test.js",
     "test:ci-trigger-hygiene": "node tests/ci-trigger-hygiene.test.js",
-    "test:title-visual": "node tests/title-visual-stage.test.js"
+    "test:title-visual": "node tests/title-visual-stage.test.js",
+    "test:sky-combat-visual": "node tests/sky-combat-visual-context.test.js"
   }
 }
