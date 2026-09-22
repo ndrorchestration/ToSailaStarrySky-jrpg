@@ -10,7 +10,7 @@ const contract = JSON.parse(fs.readFileSync(
 ));
 
 assert.strictEqual(contract.version, 1);
-assert.strictEqual(contract.status, 'design-contract');
+assert.strictEqual(contract.status, 'foundation-implemented-partial');
 assert(Array.isArray(contract.requiredActions) && contract.requiredActions.length >= 15);
 assert(Array.isArray(contract.settings) && contract.settings.length >= 10);
 
@@ -60,4 +60,10 @@ assert.strictEqual(contract.settingsPersistence.saveSlotsOwnSettings, false,
 assert(contract.settingsPersistence.migrationRequired === true,
   'settings persistence requires versioned migration ownership');
 
-console.log('Aetherwake input/accessibility design contract: PASS');
+assert(Array.isArray(contract.implementedNow) && contract.implementedNow.length > 0,
+  'implemented foundation evidence must be explicit');
+assert(Array.isArray(contract.remainingBeforeRepresentativeParity) &&
+       contract.remainingBeforeRepresentativeParity.length > 0,
+  'remaining representative-parity work must stay explicit');
+
+console.log('Aetherwake input/accessibility foundation contract: PASS');
