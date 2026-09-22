@@ -160,6 +160,30 @@ async function capture(page, id, description) {
   try {
     const captures = [];
 
+    // 0 — First Wake interactive dock-walk presentation.
+    await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 20000,
+    });
+    await waitForRuntime(page);
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => window.gameState === 'opening', undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'dock_walk'
+    , undefined, { timeout: 5000 });
+    for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() =>
+      window._firstWakeOpeningState.dockWalk &&
+      window._firstWakeOpeningState.dockWalk.x === 4
+    , undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '00-first-wake-dock-walk',
+      'First Wake Sequence 02 shared-authority visual stage'
+    ));
+
     // 1 — Dragonfly Dusk Dock benchmark.
     await bootToWorld(page);
     await page.evaluate(() => {
