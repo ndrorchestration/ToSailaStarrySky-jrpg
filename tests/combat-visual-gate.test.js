@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'combat-visual-stage.js' });
 const api = sandbox.window.AetherCombatVisual;
 
 assert(api, 'combat visual stage API missing');
-assert.strictEqual(api.VERSION, '0.1.0');
+assert.strictEqual(api.VERSION, '0.2.0');
 for (const fn of ['stage','drawBackdrop','drawPlayer','drawEnemy','drawTurnRail','enemySpriteId']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
