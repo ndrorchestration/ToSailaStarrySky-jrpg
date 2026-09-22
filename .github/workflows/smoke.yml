@@ -141,6 +141,9 @@ jobs:
       - name: Verify representative combat visual gate
         run: npm run test:combat-visual
 
+      - name: Verify shared Dragonfly visual authority
+        run: npm run test:dragonfly-visual
+
       - name: Verify Dragonfly flight visual gate
         run: npm run test:flight-visual
 
