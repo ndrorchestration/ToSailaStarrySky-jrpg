@@ -63,7 +63,9 @@ jobs:
       - name: Run desktop packaging contracts
         run: |
           npm run test:desktop-package
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm run test:one-file-launcher
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Build Windows package
         run: npm run package:windows
@@ -426,3 +428,4 @@ jobs:
           path: artifact/Aetherwake-Windows/**
           if-no-files-found: error
           compression-level: 6
+

@@ -12,7 +12,8 @@ assert(runtime.includes('combatReturnState = returnState || STATE.WORLD'),
   'combat return-state contract missing');
 assert(runtime.includes('if (gameState === STATE.AIRSHIP) airshipFlightMode = true'),
   'combat completion does not restore active flight');
-assert(runtime.includes("domain: combatReturnState === STATE.AIRSHIP ? 'sky' : 'ground'"),
+assert(runtime.includes("const skyCombat = combatReturnState === STATE.AIRSHIP") &&
+  runtime.includes("domain: skyCombat ? 'sky' : 'ground'"),
   'combat renderer does not receive aerial scene domain');
 assert(combat.includes("sceneOptions && sceneOptions.domain === 'sky'"),
   'shared combat renderer lacks sky presentation mode');
@@ -38,3 +39,4 @@ assert.deepStrictEqual(
 assert(nav.SKY_ENCOUNTERS.every(e=>Array.isArray(e.altitudes)&&e.altitudes.length),
   'sky encounter altitude eligibility missing');
 console.log('Aetherwake sky combat runtime contract: PASS');
+

@@ -288,7 +288,7 @@ const savedAirNavigation = clone(airNavigationRuntimeState);
 
 const storageResult = saveState.saveToStorage(fakeStorage, { now: fixedTime });
 assert(storageResult.ok === true, 'saveToStorage did not succeed');
-assert(storageData.has(saveState.storageKey), 'v2 save was not written to current storage key');
+assert(storageData.has(saveState.storageKey), 'v3 save was not written to current storage key');
 
 roster[0].scrap = 999;
 roster[1].vit = 1;
@@ -411,7 +411,7 @@ assert(worldRestoreCount === beforeLegacyWorldRestores &&
   airshipRestoreCount === beforeLegacyAirshipRestores,
   'v1 migration must not overwrite newly introduced runtime domains');
 assert(storageData.has(saveState.storageKey),
-  'successful legacy migration was not copied to the v2 storage key');
+  'successful legacy migration was not copied to the v3 storage key');
 
 saveState.clearStorage(fakeStorage);
 assert(!storageData.has(saveState.storageKey) && !storageData.has(legacyKey),
@@ -420,11 +420,12 @@ const missing = saveState.loadFromStorage(fakeStorage);
 assert(missing.ok === false && missing.reason === 'SAVE_NOT_FOUND',
   'missing save should return an explicit not-found result');
 
-assert(saveState.storageKey === 'aetherwake.save.v2',
-  'current storage key does not track schema v2');
-assert(saveState.legacyStorageKeys.join('|') === 'aetherwake.save.v1',
+assert(saveState.storageKey === 'aetherwake.save.v3',
+  'current storage key does not track schema v3');
+assert(saveState.legacyStorageKeys.join('|') === 'aetherwake.save.v2|aetherwake.save.v1',
   'legacy storage key registry is incorrect');
-assert(saveState.migrationVersions.join('|') === '1',
-  'schema v2 must advertise the real v1 migration');
+assert(saveState.migrationVersions.join('|') === '1|2',
+  'schema v3 must advertise the real v1 and v2 migrations');
 
-console.log('Aetherwake save-state v2 contract: PASS');
+console.log('Aetherwake save-state v3 contract: PASS');
+

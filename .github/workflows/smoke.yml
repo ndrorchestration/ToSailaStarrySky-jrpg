@@ -97,6 +97,15 @@ jobs:
       - name: Verify airship state contract
         run: npm run test:airship
 
+      - name: Verify air navigation
+        run: npm run test:air-navigation
+
+      - name: Verify air navigation runtime
+        run: npm run test:air-navigation-runtime
+
+      - name: Verify sky combat runtime
+        run: npm run test:sky-combat
+
       - name: Verify airship combat bridge contract
         run: npm run test:airship-combat-bridge
 
@@ -132,3 +141,4 @@ jobs:
 
       - name: Run smoke test
         run: npm run test:smoke
+

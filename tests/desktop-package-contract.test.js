@@ -79,9 +79,18 @@ assert(workflow.includes('Copy-Item -Path "..\\aetherwake-dist\\*"'),
   'desktop workflow must stage the verified external build after packaging');
 assert(workflow.includes('path: artifact/Aetherwake-Windows/**'),
   'desktop workflow must upload the complete staged NW.js output root');
-assert(!workflow.includes('Compress-Archive'),
+const artifactStaging = workflow.slice(
+  workflow.indexOf('      - name: Stage Windows artifact'),
+  workflow.indexOf('      - name: Generate one-file launcher icon')
+);
+assert(artifactStaging.includes('Copy-Item') && !artifactStaging.includes('Compress-Archive'),
   'desktop workflow should not create a redundant ZIP inside the GitHub artifact');
 
+
+for (const command of ['test:desktop-package', 'test:one-file-launcher']) {
+  assert(workflow.includes('npm run ' + command + '\n          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }'),
+    'Windows contract failure must stop the step: ' + command);
+}
 
 const embeddedHtml = fs.readFileSync(
   path.join(__dirname, '..', 'index-embedded.html'),
@@ -95,3 +104,4 @@ assert(embeddedHtml.includes('setupOrder=') &&
   'packaged launch timeout must expose startup state instead of a generic failure');
 
 console.log('Aetherwake desktop package contract: PASS');
+
