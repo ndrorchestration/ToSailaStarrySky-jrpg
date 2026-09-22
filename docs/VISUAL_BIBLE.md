@@ -362,7 +362,7 @@ Status remains implementation candidate until exact-head rendered evidence is re
 
 
 ## First Wake visual evidence frame
-The exact-head evidence bundle includes `00-first-wake-dock-walk.png`, captured halfway through Sequence 02 after four of eight authored dock steps. This frame is the acceptance artifact for the opening's shared-authority presentation and must show Ender, Ionia, the Dragonfly, dock depth, and the real interaction state coherently.
+The exact-head evidence bundle includes `01-first-wake-dock-walk.png`, captured halfway through Sequence 02 after four of eight authored dock steps. This frame is the acceptance artifact for the opening's shared-authority presentation and must show Ender, Ionia, the Dragonfly, dock depth, and the real interaction state coherently.
 
 
 ## Title-theme presentation authority
@@ -377,3 +377,16 @@ Constraints:
 - desktop staging includes `assets/**` so admitted audio and cinematic media can ship with the standalone package.
 
 Verified supplied MP3 identity is documented in `assets/audio/README.md`. Repository-complete audio remains pending admission of that exact binary to `assets/audio/aetherwake-skyward-arpeggio-main-title.mp3`.
+
+
+## Title-screen visual authority
+The player-facing title screen is owned by `modules/title-visual-stage.js` and should use the same world/vehicle grammar as gameplay rather than a separate prototype aesthetic.
+
+Requirements:
+- reuse `AetherDragonflyVisual` as the title hero object;
+- use block/pixel-authored floating islands and cloud strata rather than the old smooth ellipse treatment;
+- keep title text hierarchy sparse enough for the Dragonfly and sky to remain the visual focus;
+- preserve direct New Game controls and boot/preamble semantics;
+- use one renderer for the final boot title frame and steady MENU state.
+
+The verified Skyward Arpeggio title track identity is reserved for this surface, but audio integration is a separate runtime/media concern and must not require a wrapper or iframe.
