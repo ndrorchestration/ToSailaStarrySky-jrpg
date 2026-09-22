@@ -16,7 +16,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.6.0';
 
   const SCENES = Object.freeze([
     Object.freeze({
@@ -80,6 +80,8 @@
       id: 'talen_staying',
       sequence: 4,
       visual: 'talen',
+      interactive: true,
+      interaction: 'talen-beat',
       title: 'ARE YOU STAYING?',
       speaker: 'TALEN',
       lines: Object.freeze([
@@ -164,11 +166,14 @@
     SCENES.forEach((scene, index) => {
       if (scene.sequence !== index) throw new Error('FIRST_WAKE_OPENING_SEQUENCE_DRIFT:' + scene.id);
       if (!scene.id || !scene.title || !scene.visual) throw new Error('FIRST_WAKE_OPENING_SCENE_INVALID:' + index);
-      if (scene.interactive && !['dock_walk', 'berth_task'].includes(scene.id)) {
+      if (scene.interactive && !['dock_walk', 'berth_task', 'talen_staying'].includes(scene.id)) {
         throw new Error('FIRST_WAKE_OPENING_INTERACTIVE_DRIFT:' + scene.id);
       }
       if (scene.id === 'berth_task' && scene.interaction !== 'berth-task') {
         throw new Error('FIRST_WAKE_BERTH_TASK_CONTRACT_DRIFT');
+      }
+      if (scene.id === 'talen_staying' && scene.interaction !== 'talen-beat') {
+        throw new Error('FIRST_WAKE_TALEN_BEAT_CONTRACT_DRIFT');
       }
       if (scene.cinematic && (!Number.isInteger(scene.minimumTicks) || scene.minimumTicks < 1)) {
         throw new Error('FIRST_WAKE_OPENING_CINEMATIC_TIMING_INVALID:' + scene.id);
@@ -206,6 +211,11 @@
         max: 3,
         ready: false,
       },
+      talenBeat: {
+        step: 0,
+        max: 2,
+        ready: false,
+      },
     };
   }
 
@@ -236,6 +246,12 @@
         return {
           state,
           event: Object.freeze({ type: 'interaction-required', interaction: 'berth-task' }),
+        };
+      }
+      if (scene.id === 'talen_staying' && (!state.talenBeat || !state.talenBeat.ready)) {
+        return {
+          state,
+          event: Object.freeze({ type: 'interaction-required', interaction: 'talen-beat' }),
         };
       }
     }
@@ -304,6 +320,25 @@
     return state.berthTask.max > 0 ? state.berthTask.step / state.berthTask.max : 1;
   }
 
+  function interactTalen(state) {
+    if (!state || !state.talenBeat) throw new Error('FIRST_WAKE_TALEN_BEAT_STATE_REQUIRED');
+    const scene = currentScene(state);
+    if (scene.id !== 'talen_staying') {
+      return { state, advanced: false, ready: Boolean(state.talenBeat.ready), step: state.talenBeat.step };
+    }
+    if (state.talenBeat.ready) {
+      return { state, advanced: false, ready: true, step: state.talenBeat.step };
+    }
+    state.talenBeat.step = Math.min(state.talenBeat.max, state.talenBeat.step + 1);
+    state.talenBeat.ready = state.talenBeat.step >= state.talenBeat.max;
+    return { state, advanced: true, ready: state.talenBeat.ready, step: state.talenBeat.step };
+  }
+
+  function talenBeatProgress(state) {
+    if (!state || !state.talenBeat) throw new Error('FIRST_WAKE_TALEN_BEAT_STATE_REQUIRED');
+    return state.talenBeat.max > 0 ? state.talenBeat.step / state.talenBeat.max : 1;
+  }
+
   function expectedPartyIds(state) {
     return currentScene(state).activePartyIds.slice();
   }
@@ -323,6 +358,8 @@
     dockWalkProgress,
     interactBerth,
     berthTaskProgress,
+    interactTalen,
+    talenBeatProgress,
     expectedPartyIds,
   });
 });
