@@ -152,6 +152,76 @@ jobs:
           Stop-Process -Id $game.Id -Force
           Remove-Item Env:AETHERWAKE_DESKTOP_SMOKE_MARKER -ErrorAction SilentlyContinue
 
+      - name: Verify packaged save survives restart
+        shell: pwsh
+        run: |
+          $installDir = Join-Path $env:RUNNER_TEMP "AetherwakeInstall"
+          $exe = Join-Path $installDir "Aetherwake.exe"
+          if (-not (Test-Path -LiteralPath $exe)) { throw "Installed Aetherwake.exe was not found" }
+
+          $saveProfile = Join-Path $env:RUNNER_TEMP "AetherwakeSaveSmokeProfile"
+          if (Test-Path -LiteralPath $saveProfile) {
+            Remove-Item -LiteralPath $saveProfile -Recurse -Force
+          }
+          New-Item -ItemType Directory -Path $saveProfile | Out-Null
+
+          function Invoke-SaveSmokePhase {
+            param([string]$Phase, [string]$MarkerPath)
+
+            if (Test-Path -LiteralPath $MarkerPath) {
+              Remove-Item -LiteralPath $MarkerPath -Force
+            }
+            $env:AETHERWAKE_SAVE_PERSISTENCE_PHASE = $Phase
+            $env:AETHERWAKE_SAVE_PERSISTENCE_MARKER = $MarkerPath
+            $proc = Start-Process -FilePath $exe -ArgumentList @("--user-data-dir=$saveProfile") -PassThru
+
+            $deadline = (Get-Date).AddSeconds(20)
+            while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $MarkerPath)) {
+              if ($proc.HasExited) {
+                throw "Packaged save smoke phase '$Phase' exited before marker with code $($proc.ExitCode)"
+              }
+              Start-Sleep -Milliseconds 250
+            }
+            if (-not (Test-Path -LiteralPath $MarkerPath)) {
+              Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+              throw "Packaged save smoke phase '$Phase' did not report within 20 seconds"
+            }
+
+            $result = Get-Content -LiteralPath $MarkerPath -Raw | ConvertFrom-Json
+            Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            if ($result.error) { throw "Packaged save smoke phase '$Phase' failed: $($result.error)" }
+            return $result
+          }
+
+          $writeMarker = Join-Path $env:RUNNER_TEMP "aetherwake-save-write.json"
+          $loadMarker = Join-Path $env:RUNNER_TEMP "aetherwake-save-load.json"
+
+          $write = Invoke-SaveSmokePhase "write" $writeMarker
+          if (-not $write.saved -or $write.storageType -ne "nw-file") {
+            throw "Packaged save write did not use NW.js file persistence"
+          }
+          if ($write.tileX -ne 9 -or $write.tileY -ne 11) {
+            throw "Packaged save write marker reported unexpected player position"
+          }
+          if (-not $write.savePath -or -not (Test-Path -LiteralPath $write.savePath)) {
+            throw "Packaged save was not created at the reported path"
+          }
+
+          $load = Invoke-SaveSmokePhase "load" $loadMarker
+          if (-not $load.restored) {
+            throw "Packaged save did not restore after process restart"
+          }
+          if ($load.tileX -ne 9 -or $load.tileY -ne 11) {
+            throw "Packaged save restored the wrong player position"
+          }
+          if ($load.savePath -ne $write.savePath) {
+            throw "Packaged relaunch did not use the same persistent save path"
+          }
+          Write-Host "DESKTOP_SAVE_RESTART=PASS"
+          Write-Host ($load | ConvertTo-Json -Compress)
+          Remove-Item Env:AETHERWAKE_SAVE_PERSISTENCE_PHASE -ErrorAction SilentlyContinue
+          Remove-Item Env:AETHERWAKE_SAVE_PERSISTENCE_MARKER -ErrorAction SilentlyContinue
+
       - name: Verify portable package layout
         shell: pwsh
         run: |
