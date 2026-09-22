@@ -47,4 +47,20 @@ const turnIncrementIndex = combatSource.indexOf('state.turn++;', eligibilityInde
 assert(eligibilityIndex >= 0 && turnIncrementIndex > eligibilityIndex,
   'use eligibility must run before turn consumption');
 
+assert(source.includes('let combatActionFocus = null;'),
+  'combat must own an explicit semantic action focus state');
+assert(source.includes('function ensureCombatActionFocus()'),
+  'combat action focus initializer is missing');
+assert(source.includes('function moveCombatActionFocus(delta)'),
+  'combat directional focus helper is missing');
+assert(source.includes('function activateCombatFocusedAction()'),
+  'combat confirm activation helper is missing');
+assert(source.includes("semanticActionPressed('ui-up')") &&
+       source.includes("semanticActionPressed('ui-down')"),
+  'keyboard combat focus must consume semantic UI navigation');
+assert(source.includes("(focused ? '▶ ' : '  ')"),
+  'combat focus must expose a non-color-only marker');
+assert(source.includes('combat.resolveTurn(focus.focusedId, null)'),
+  'focused combat action must route through the canonical resolveTurn API');
+
 console.log('Aetherwake combat input/log contract: PASS');
