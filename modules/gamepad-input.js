@@ -90,6 +90,7 @@
     if (index === BUTTON.RIGHT_SHOULDER && context === 'world') return 'ledger';
     if (index === BUTTON.LEFT_TRIGGER && context === 'airship') return 'airship-altitude-down';
     if (index === BUTTON.RIGHT_TRIGGER && context === 'airship') return 'airship-altitude-up';
+    if (index === BUTTON.MENU && context === 'menu') return 'open-settings';
     return null;
   }
 
