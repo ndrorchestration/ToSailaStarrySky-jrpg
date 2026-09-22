@@ -14,6 +14,8 @@
   const MAP_SIZE = 32;
   const ROSTER_IDS = Object.freeze(['ender','lyra','ionia','reson','aepex']);
   const QUEST_STATES = Object.freeze(['signal','crossing','contact','choice','wake','done']);
+  const PERSISTABLE_QUEST_STATES = Object.freeze(['signal','crossing','contact','choice']);
+  const CONTACT_NPC_IDS = Object.freeze(['elder_farmer','engine_spirit','child_prophet','corporate_salvager']);
   const STABLE_SCENES = Object.freeze(['world','airship']);
 
   function assert(condition, code) {
@@ -77,6 +79,7 @@
   function validateQuest(quest) {
     assert(isPlainObject(quest), 'SAVE_QUEST_INVALID');
     assert(QUEST_STATES.includes(quest.state), 'SAVE_QUEST_STATE_INVALID');
+    assert(PERSISTABLE_QUEST_STATES.includes(quest.state), 'SAVE_QUEST_STATE_NOT_PERSISTABLE');
     assert(typeof quest.act === 'string' && quest.act.length > 0, 'SAVE_QUEST_ACT_INVALID');
     integer(quest.hooksCompleted, 'SAVE_QUEST_HOOK_COUNT_INVALID');
     integer(quest.hazardsCompleted, 'SAVE_QUEST_HAZARD_COUNT_INVALID');
@@ -84,7 +87,9 @@
     assert(quest.hazardsCompleted >= 0 && quest.hazardsCompleted <= 4, 'SAVE_QUEST_HAZARD_COUNT_RANGE');
 
     assert(Array.isArray(quest.npcsMet), 'SAVE_QUEST_NPCS_INVALID');
+    assert(quest.npcsMet.length <= CONTACT_NPC_IDS.length, 'SAVE_QUEST_NPC_COUNT_RANGE');
     assert(quest.npcsMet.every(x => typeof x === 'string'), 'SAVE_QUEST_NPC_ID_INVALID');
+    assert(quest.npcsMet.every(id => CONTACT_NPC_IDS.includes(id)), 'SAVE_QUEST_NPC_UNKNOWN');
     assert(new Set(quest.npcsMet).size === quest.npcsMet.length, 'SAVE_QUEST_NPC_DUPLICATE');
 
     for (const [key, min, max] of [
@@ -182,6 +187,8 @@
     MAP_SIZE,
     ROSTER_IDS: ROSTER_IDS.slice(),
     QUEST_STATES: QUEST_STATES.slice(),
+    PERSISTABLE_QUEST_STATES: PERSISTABLE_QUEST_STATES.slice(),
+    CONTACT_NPC_IDS: CONTACT_NPC_IDS.slice(),
     STABLE_SCENES: STABLE_SCENES.slice(),
     validatePayload,
     validateRuntime,
