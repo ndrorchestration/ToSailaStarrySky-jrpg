@@ -254,13 +254,15 @@ function createServer() {
            productionFormulaRuntime.aetherSealOwner === 'ender',
       'Aether Seal runtime contract is not loaded for Ender');
 
-    // Level-1 progression must actually gate actions 6-8.
+    // Wind Ward remains visible in its stable slot but authority-blocked
+    // regardless of legacy level state.
     await page.keyboard.press('6');
     const afterLockedAction = await page.evaluate(() => window._combat.getState());
     assert(afterLockedAction.turn === 0,
-      'locked level-gated action consumed a turn');
-    assert(afterLockedAction.log.some(line => line.includes('Locked action: Wind Ward')),
-      'locked action rejection was not recorded');
+      'SSOT-blocked Wind Ward consumed a turn');
+    assert(afterLockedAction.log.some(line =>
+      line.includes('Action blocked by current SSOT') && line.includes('Wind Ward')),
+      'Wind Ward SSOT rejection was not recorded');
     assert(afterLockedAction.eligibleActionIds.join('|') ===
       'staffStrike|uncoverTruth|sharedDream|mycelialLedger|hold',
       'level-1 eligible action set drifted');
@@ -341,6 +343,7 @@ function createServer() {
         afterXPToNext: after.player.xpToNext,
         unlockedAbilities: after.player.unlockedAbilities,
         eligibleActionIds: after.eligibleActionIds,
+        usableActionIds: after.usableActionIds,
         log: after.log,
       };
     });
@@ -357,65 +360,83 @@ function createServer() {
     assert(progressionReachability.unlockedAbilities.includes('windWard'),
       'level-3 progression did not unlock Wind Ward');
     assert(progressionReachability.eligibleActionIds.includes('windWard'),
-      'newly unlocked Wind Ward did not become eligible');
+      'legacy progression record did not retain Wind Ward unlock provenance');
+    assert(!progressionReachability.usableActionIds.includes('windWard'),
+      'SSOT-blocked Wind Ward became runtime-usable after legacy unlock');
     assert(progressionReachability.log.some(line =>
       line.includes('LEVEL 3: Wind Ward unlocked')),
       'level-3 unlock log is missing');
 
-    const secondaryStateContract = await page.evaluate(() => {
-      const originalRandom = window.random;
-      try {
-        window._combat.init({
-          vit: 13,
-          scrap: 7,
-          aether: { current: 4, max: 6 },
-          heat: { current: 1, max: 3 },
-          echoes: { current: 3, max: 3 },
-          charges: 2,
-          staffMax: 2,
-          level: 1,
-          xp: 0,
-          xpToNext: 50,
-          unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
-        });
-        window._combat.beginEncounter('skyPredator');
+    const blockedResidueContract = await page.evaluate(() => {
+      window._combat.init({
+        vit: 13,
+        scrap: 7,
+        aether: { current: 4, max: 6 },
+        heat: { current: 1, max: 3 },
+        echoes: { current: 3, max: 3 },
+        charges: 2,
+        staffMax: 2,
+        level: 3,
+        xp: 0,
+        xpToNext: 112,
+        unlockedAbilities: [
+          'uncoverTruth', 'sharedDream', 'mycelialLedger', 'windWard'
+        ],
+      });
+      window._combat.beginEncounter('skyPredator');
 
-        window.random = function() { return 6; };
-        if (window._combat.roll2d6() !== 12) {
-          throw new Error('deterministic random override did not reach combat rolls');
-        }
-        window._combat.resolveTurn('sharedDream', null);
-        const afterSuccess = window._combat.getState();
+      const before = window._combat.getState();
+      const dreamResult = window._combat.resolveTurn('sharedDream', null);
+      const afterDream = window._combat.getState();
+      const wardResult = window._combat.resolveTurn('windWard', null);
+      const afterWard = window._combat.getState();
 
-        window.random = function() { return 1; };
-        window._combat.resolveTurn('uncoverTruth', null);
-        const afterFailure = window._combat.getState();
+      if (typeof startCombat !== 'function') throw new Error('startCombat is unavailable');
+      startCombat('skyPredator');
 
-        return {
-          afterSuccess: {
-            secondaryAvailable: afterSuccess.secondaryAvailable,
-            lastAbilityId: afterSuccess.lastAbilityId,
-          },
-          afterFailure: {
-            secondaryAvailable: afterFailure.secondaryAvailable,
-            lastAbilityId: afterFailure.lastAbilityId,
-          },
-        };
-      } finally {
-        window.random = originalRandom;
-        if (typeof startCombat !== 'function') throw new Error('startCombat is unavailable');
-        startCombat('skyPredator');
-      }
+      return {
+        dreamResult,
+        wardResult,
+        beforeTurn: before.turn,
+        afterDreamTurn: afterDream.turn,
+        afterWardTurn: afterWard.turn,
+        beforeResources: {
+          echoes: before.player.echoes.current,
+          aether: before.player.aether.current,
+          heat: before.player.heat.current,
+        },
+        afterResources: {
+          echoes: afterWard.player.echoes.current,
+          aether: afterWard.player.aether.current,
+          heat: afterWard.player.heat.current,
+        },
+        dreamEligibility: afterDream.actionUseEligibility.sharedDream,
+        wardEligibility: afterWard.actionUseEligibility.windWard,
+        secondaryAvailable: afterWard.secondaryAvailable,
+        lastAbilityId: afterWard.lastAbilityId,
+        log: afterWard.log.slice(),
+      };
     });
 
-    assert(secondaryStateContract.afterSuccess.secondaryAvailable === true,
-      'successful affordable ability did not open a secondary window');
-    assert(secondaryStateContract.afterSuccess.lastAbilityId === 'sharedDream',
-      'secondary window did not bind to the successful compatibility ability');
-    assert(secondaryStateContract.afterFailure.secondaryAvailable === false,
-      'failed later ability inherited a stale secondary window');
-    assert(secondaryStateContract.afterFailure.lastAbilityId === 'uncoverTruth',
-      'last ability identity did not advance on the later primary action');
+    assert(blockedResidueContract.dreamResult === false &&
+           blockedResidueContract.wardResult === false,
+      'SSOT-blocked compatibility actions were executable');
+    assert(blockedResidueContract.beforeTurn === 0 &&
+           blockedResidueContract.afterDreamTurn === 0 &&
+           blockedResidueContract.afterWardTurn === 0,
+      'SSOT-blocked compatibility action consumed a turn');
+    assert(JSON.stringify(blockedResidueContract.beforeResources) ===
+           JSON.stringify(blockedResidueContract.afterResources),
+      'SSOT-blocked compatibility action consumed resources or generated Heat');
+    assert(blockedResidueContract.dreamEligibility.reason === 'ssot_blocked' &&
+           blockedResidueContract.wardEligibility.reason === 'ssot_blocked',
+      'blocked compatibility actions do not expose SSOT-blocked eligibility');
+    assert(blockedResidueContract.secondaryAvailable === false &&
+           blockedResidueContract.lastAbilityId === null,
+      'blocked compatibility action mutated secondary-action state');
+    assert(blockedResidueContract.log.filter(line =>
+      line.includes('Action blocked by current SSOT')).length >= 2,
+      'blocked compatibility actions did not log authority rejection');
 
     // Secondary input must be a safe no-op when no secondary is available.
     // This specifically guards against core reaching into AetherCombat's
