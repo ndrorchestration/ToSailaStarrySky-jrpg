@@ -114,6 +114,9 @@ jobs:
       - name: Verify air-navigation foundation
         run: npm run test:air-navigation
 
+      - name: Verify semantic input action registry
+        run: npm run test:input-actions
+
       - name: Verify input runtime contracts
         run: npm run test:input-runtime
 
