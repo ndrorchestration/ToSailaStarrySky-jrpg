@@ -176,3 +176,6 @@ jobs:
 
       - name: Run live First Wake benchmark
         run: npm run test:first-wake-benchmark-live
+
+      - name: Run live controller parity smoke
+        run: npm run test:controller-parity-live
