@@ -103,6 +103,8 @@ Post-combat results write back to the persistent roster according to progression
 
 The first three records are mechanically populated through the preservation onboarding adapter. Reson and Aepex intentionally remain unimplemented shells; no unresolved job, progression, or ability semantics are fabricated.
 
+Each canonical roster record now also carries a validated `magicProfile`. Ender's profile records only his established innate affinities (**Aether, Resonance/Harmonic, Correspondence, Lumen**) while all mastery ranks remain zero by default. Lyra, Ionia, Reson, and Aepex carry explicit OPEN affinity status with empty affinity/mastery sets. Prototype onboarding does not overwrite these canonical profiles. This state is session-persistent through the roster layer but does not yet grant spells or affect combat.
+
 ### OPEN DESIGN
 
 Inactive-character XP/mastery sharing policy remains open.
@@ -376,7 +378,8 @@ The full campaign will expand story acts, recruitment timing, character arcs, re
 - `index-embedded.html` is the current browser entry point.
 - `modules/effect-vocabulary.js` loads the frozen effect contract before combat construction.
 - `modules/ability-defs.js` and `modules/progression-defs.js` load the canonical current action/unlock registries.
-- `modules/party-state.js` is the authoritative persistent roster / active-party reference layer.
+- `modules/magic-defs.js`, `modules/magic-mastery.js`, and `modules/character-magic-profile.js` load before party state and provide fail-closed magic taxonomy/profile contracts.
+- `modules/party-state.js` is the authoritative persistent roster / active-party reference layer and now attaches validated magic profiles to all five canonical records.
 - `aetherwake.js` is the current integrated runtime/preservation artifact and remains the current combat executor.
 - `modules/char-create.js` is loaded at runtime as a preservation onboarding adapter.
 - several other `modules/*.js` files are older mirrors/reference copies and may not match the integrated runtime.

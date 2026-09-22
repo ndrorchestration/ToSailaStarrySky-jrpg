@@ -26,6 +26,26 @@
   const ACTIVE_PARTY = [];
   let boundWorldPlayer = null;
 
+  function createMagicProfile(characterId) {
+    if (!global.AetherwakeCharacterMagicProfile ||
+        typeof global.AetherwakeCharacterMagicProfile.createProfile !== 'function') {
+      throw new Error('PARTY_STATE_MAGIC_PROFILE_MODULE_UNAVAILABLE');
+    }
+    return global.AetherwakeCharacterMagicProfile.createProfile(characterId);
+  }
+
+  function validateMagicProfile(character) {
+    if (!global.AetherwakeCharacterMagicProfile ||
+        typeof global.AetherwakeCharacterMagicProfile.validateProfile !== 'function') {
+      throw new Error('PARTY_STATE_MAGIC_PROFILE_MODULE_UNAVAILABLE');
+    }
+    const profile = global.AetherwakeCharacterMagicProfile.validateProfile(character.magicProfile);
+    if (profile.characterId !== character.id) {
+      throw new Error('PARTY_STATE_MAGIC_PROFILE_CHARACTER_MISMATCH');
+    }
+    return true;
+  }
+
   function createShell(definition) {
     return {
       schemaVersion: 1,
@@ -59,6 +79,7 @@
       xp: null,
       xpToNext: null,
       unlockedAbilities: [],
+      magicProfile: createMagicProfile(definition.id),
       equipment: { staff: null, backpack: null },
     };
   }
@@ -151,6 +172,10 @@
       }
     }
 
+    for (const character of ROSTER) {
+      validateMagicProfile(character);
+    }
+
     if (boundWorldPlayer && ROSTER[0] !== boundWorldPlayer) {
       throw new Error('WORLD_PLAYER_MUST_REFERENCE_ROSTER_LEAD');
     }
@@ -172,6 +197,7 @@
       worldPlayer.nativeJob = DEFINITIONS[0].nativeJob;
       worldPlayer.runtimeImplemented = true;
       worldPlayer.implementationSource = 'world-bootstrap';
+      worldPlayer.magicProfile = createMagicProfile(DEFINITIONS[0].id);
 
       ROSTER.push(
         worldPlayer,
@@ -227,6 +253,11 @@
       rosterIds: ROSTER.map(character => character.id),
       activeIds: ACTIVE_PARTY.map(character => character.id),
       runtimeImplemented: ROSTER.map(character => Boolean(character.runtimeImplemented)),
+      affinityStatus: ROSTER.map(character => character.magicProfile && character.magicProfile.affinityStatus),
+      masteryRanks: ROSTER.map(character => ({
+        trees: Object.assign({}, character.magicProfile.mastery.trees),
+        domains: Object.assign({}, character.magicProfile.mastery.domains),
+      })),
     };
   }
 

@@ -60,6 +60,9 @@ jobs:
       - name: Verify character magic profiles
         run: npm run test:character-magic-profile
 
+      - name: Verify persistent party magic profiles
+        run: npm run test:party-magic-profile
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
