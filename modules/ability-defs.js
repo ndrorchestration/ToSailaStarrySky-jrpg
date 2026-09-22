@@ -130,7 +130,11 @@
       type: 'defense',
       tier: 2,
       effectProfile: 'aetherSeal',
-      desc: '2D6+Wits. Drain aether pool. Gain scrap on 10+',
+      authorityStatus: 'creator-aligned-aether-ward',
+      migrationStatus: 'live-aether-seal-v1',
+      canonicalOwner: 'ender',
+      resolution: { model: 'aether-seal', contractId: 'aetherSeal' },
+      desc: 'Suppress explicitly Aether-dependent targets. Fails closed when dependence is unknown.',
     },
     rest: {
       id: 'rest',
@@ -186,7 +190,10 @@
         const validCommons = id === 'mycelialLedger' &&
           def.resolution.model === 'commons-readonly' &&
           def.resolution.contractId === 'mycelialLedger';
-        if (!validFormula && !validCommons) {
+        const validAetherSeal = id === 'aetherSeal' &&
+          def.resolution.model === 'aether-seal' &&
+          def.resolution.contractId === 'aetherSeal';
+        if (!validFormula && !validCommons && !validAetherSeal) {
           throw new Error('ABILITY_RESOLUTION_BINDING_INVALID:' + id);
         }
       }
