@@ -78,24 +78,35 @@ async function bootToWorld(page) {
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => window.gameState === 'opening', undefined, { timeout: 5000 });
 
-  await page.keyboard.press('Enter');
-  await page.keyboard.press('Enter');
   await page.waitForFunction(() =>
-    window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'dock_walk'
+    window.AetherFirstWakeOpening.presentationReady(window._firstWakeOpeningState) === true
   , undefined, { timeout: 5000 });
-
-  for (let i = 0; i < 8; i++) {
-    await page.keyboard.press('ArrowRight');
-  }
-  await page.waitForFunction(() =>
-    window._firstWakeOpeningState.dockWalk &&
-    window._firstWakeOpeningState.dockWalk.ready === true
-  , undefined, { timeout: 5000 });
-
   await page.keyboard.press('Enter');
-  for (let i = 0; i < 7; i++) {
-    await page.keyboard.press('Enter');
-  }
+
+  await page.waitForFunction(() =>
+    window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'ender_arrives'
+  , undefined, { timeout: 5000 });
+  await page.waitForFunction(() =>
+    window.AetherFirstWakeOpening.presentationReady(window._firstWakeOpeningState) === true
+  , undefined, { timeout: 5000 });
+  await page.keyboard.press('Enter');
+
+  for (let i = 0; i < 8; i++) await page.keyboard.press('ArrowRight');
+  await page.waitForFunction(() => window._firstWakeOpeningState.dockWalk.ready === true,
+    undefined, { timeout: 5000 });
+  await page.keyboard.press('Enter');
+
+  for (let i = 0; i < 3; i++) await page.keyboard.press('e');
+  await page.waitForFunction(() => window._firstWakeOpeningState.berthTask.ready === true,
+    undefined, { timeout: 5000 });
+  await page.keyboard.press('Enter');
+
+  for (let i = 0; i < 2; i++) await page.keyboard.press('e');
+  await page.waitForFunction(() => window._firstWakeOpeningState.talenBeat.ready === true,
+    undefined, { timeout: 5000 });
+  await page.keyboard.press('Enter');
+
+  for (let i = 0; i < 5; i++) await page.keyboard.press('Enter');
 
   await page.waitForFunction(() =>
     window.gameState === 'world' &&
@@ -173,7 +184,7 @@ async function capture(page, id, description) {
       'Shared-authority Aetherwake title screen'
     ));
 
-    // 0 — First Wake interactive dock-walk presentation.
+    // 1 — First Wake interactive dock-walk presentation.
     await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
       waitUntil: 'domcontentloaded',
       timeout: 20000,
@@ -181,7 +192,16 @@ async function capture(page, id, description) {
     await waitForRuntime(page);
     await page.keyboard.press('Enter');
     await page.waitForFunction(() => window.gameState === 'opening', undefined, { timeout: 5000 });
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.presentationReady(window._firstWakeOpeningState) === true
+    , undefined, { timeout: 5000 });
     await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'ender_arrives'
+    , undefined, { timeout: 5000 });
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.presentationReady(window._firstWakeOpeningState) === true
+    , undefined, { timeout: 5000 });
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'dock_walk'
