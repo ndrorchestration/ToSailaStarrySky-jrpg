@@ -140,6 +140,21 @@
       "singlePressDigital": true
     },
     {
+      "id": "open-save-load",
+      "contexts": [
+        "world",
+        "airship"
+      ],
+      "keyboard": [
+        "F6"
+      ],
+      "gamepad": [
+        "menu"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
       "id": "move-up",
       "contexts": [
         "world",
@@ -328,7 +343,7 @@
       ],
       "remappable": true,
       "singlePressDigital": false,
-      "plannedAccessibleAlternative": "pause/menu → Save"
+      "plannedAccessibleAlternative": "open-save-load → choose Save/Load mode → confirm slot"
     },
     {
       "id": "manual-load",
@@ -344,7 +359,7 @@
       ],
       "remappable": true,
       "singlePressDigital": false,
-      "plannedAccessibleAlternative": "pause/menu → Load"
+      "plannedAccessibleAlternative": "open-save-load → choose Save/Load mode → confirm slot"
     },
     {
       "id": "airship-altitude-up",
