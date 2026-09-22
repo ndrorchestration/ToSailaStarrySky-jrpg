@@ -58,5 +58,9 @@ assert(/independent of envelope schema/.test(byId.get('air-navigation').versionO
   'air-navigation schema must remain explicitly independent from whole-game save schema');
 assert.strictEqual(byId.get('opening-authored-sequence').status, 'transient_not_saveable');
 assert.strictEqual(byId.get('combat').status, 'transient_not_saveable');
+assert.strictEqual(byId.get('settings').status, 'covered',
+  'user settings persistence must remain independently covered');
+assert.strictEqual(byId.get('settings').versionOwner, 'user-settings SCHEMA_VERSION',
+  'user settings must own an independent schema version');
 
 console.log('Aetherwake persistence coverage registry: PASS');
