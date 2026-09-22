@@ -2,7 +2,7 @@
 
 Status: **CAPTURE HARNESS ESTABLISHED / VISUAL ACCEPTANCE HUMAN-REVIEWED**
 
-This lane exists to turn the Visual Bible's four propagation gates into exact-head rendered evidence. It does **not** decide visual quality automatically.
+This lane exists to turn the Visual Bible's propagation gates plus title/opening/aerial-context surfaces into exact-head rendered evidence. It does **not** decide visual quality automatically.
 
 ## Required evidence set
 
@@ -14,7 +14,8 @@ A complete bundle contains:
 4. `03-dialogue-ionia.png` — representative dialogue scene.
 5. `04-combat-sky-predator.png` — representative combat scene.
 6. `05-dragonfly-flight.png` — representative Dragonfly flight scene.
-7. `manifest.json` — source SHA, viewport/canvas dimensions, capture boundary, and SHA-256 for every screenshot.
+7. `06-sky-combat-crosswind.png` — aerial combat inheriting Crosswind/altitude/wake-pressure context.
+8. `manifest.json` — source SHA, viewport/canvas dimensions, capture boundary, and SHA-256 for every screenshot.
 
 ## Capture contract
 
