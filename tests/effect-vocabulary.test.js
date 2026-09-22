@@ -67,6 +67,17 @@ assert.strictEqual(
   'Mycelial Ledger must not retain legacy failure mutations'
 );
 
+const aetherSealSuccess = vocabulary.ACTION_EFFECT_PROFILES.aetherSeal.success;
+assert(aetherSealSuccess.some(effect =>
+  effect.kind === vocabulary.EFFECT_KIND.STATUS &&
+  effect.key === 'aether-suppressed' &&
+  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED
+), 'Aether Seal suppression status must be implemented');
+assert.strictEqual(vocabulary.ACTION_EFFECT_PROFILES.aetherSeal.partial.length, 0,
+  'Aether Seal must not retain legacy partial outcome damage');
+assert.strictEqual(vocabulary.ACTION_EFFECT_PROFILES.aetherSeal.failure.length, 0,
+  'Aether Seal must not retain legacy failure outcome damage');
+
 const sharedDreamSuccess = vocabulary.ACTION_EFFECT_PROFILES.sharedDream.success;
 assert(sharedDreamSuccess.some(effect =>
   effect.kind === vocabulary.EFFECT_KIND.MODIFIER &&
