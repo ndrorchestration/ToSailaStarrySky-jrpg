@@ -483,6 +483,21 @@ function keyPressed() {
       return;
     }
 
+    if (openingScene && openingScene.id === 'talen_staying' && keyCode === 69) {
+      const talen = opening.interactTalen(openingState);
+      const talenSteps = [
+        'TALEN: ARE YOU STAYING HERE NOW?',
+        'A SMALL WAKE IS LEFT ON YOUR DESK',
+      ];
+      if (talen.advanced) {
+        showToast(talenSteps[Math.max(0, talen.step - 1)], talen.ready ? C.teal : C.scioto, 1200);
+      }
+      delete keysPressed[keyCode];
+      if (typeof ensureAudio === 'function') ensureAudio();
+      if (typeof resumeAudio === 'function') resumeAudio();
+      return;
+    }
+
     if (keyCode === 13 || keyCode === 32) {
       const beforeScene = openingScene;
       const beforeIndex = openingState && openingState.sceneIndex;
@@ -492,6 +507,8 @@ function keyPressed() {
           showToast('MOVE RIGHT TOWARD THE AUREATE WAKE', C.scioto, 1100);
         } else if (beforeScene.id === 'berth_task') {
           showToast('PRESS E TO WORK ON THE BERTH', C.scioto, 1100);
+        } else if (beforeScene.id === 'talen_staying') {
+          showToast('PRESS E TO RESPOND TO TALEN', C.scioto, 1100);
         }
       }
       delete keysPressed[keyCode];
@@ -1055,11 +1072,33 @@ function drawOpeningBackdrop(scene) {
 
   drawOpeningInterior(visual);
   if (visual === 'talen') {
+    const state = window._firstWakeOpeningState;
+    const step = state && state.talenBeat ? state.talenBeat.step : 0;
+
+    // Talen: small figure at the berth threshold.
     noStroke();
-    fill(148, 117, 75);
-    rect(312, 388, 18, 18);
-    rect(332, 372, 18, 34);
-    rect(352, 386, 18, 20);
+    fill(74, 89, 96);
+    rect(548, 336, 18, 34, 4);
+    fill(207, 181, 153);
+    ellipse(557, 326, 17, 17);
+
+    // Ender remains by the newly claimed berth.
+    fill(40, 58, 72);
+    rect(282, 350, 20, 36, 4);
+    fill(212, 190, 163);
+    ellipse(292, 339, 18, 18);
+
+    // The repaired desk and the model Wake appear only after Talen's second beat.
+    fill(118, 105, 78);
+    rect(210, 392, 180, 20, 4);
+    if (step >= 2) {
+      fill(148, 117, 75);
+      rect(282, 382, 18, 10, 2);
+      rect(302, 374, 18, 18, 2);
+      rect(322, 384, 18, 8, 2);
+      fill(83, 173, 158, 130);
+      rect(306, 371, 7, 4, 1);
+    }
   }
   if (visual === 'household') {
     noStroke();
@@ -1118,7 +1157,34 @@ function drawFirstWakeOpening() {
     }
   }
 
-  if (scene.interactive && scene.id === 'berth_task') {
+  if (scene.interactive && scene.id === 'talen_staying') {
+    const step = state.talenBeat ? state.talenBeat.step : 0;
+    fill(4, 7, 11, 205);
+    rect(96, height - 190, width - 192, 134, 8);
+
+    textAlign(LEFT, TOP);
+    textFont('VT323');
+    textSize(22);
+    fill(C.scioto[0], C.scioto[1], C.scioto[2]);
+    text(step < 1 ? 'TALEN' : 'ENDER', 126, height - 165);
+
+    fill(C.parchment[0], C.parchment[1], C.parchment[2]);
+    if (step < 1) {
+      text('Are you staying here now?', 126, height - 128, width - 252, 58);
+    } else if (step < 2) {
+      text('...I think so.', 126, height - 128, width - 252, 58);
+      textSize(17);
+      fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
+      text('TALEN: Don\'t put your books on that shelf. It falls down.', 126, height - 86, width - 252, 48);
+    } else {
+      text('Talen leaves a small block-built Wake on the repaired desk.', 126, height - 128, width - 252, 58);
+    }
+
+    textAlign(CENTER, TOP);
+    textSize(17);
+    fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
+    text(step >= 2 ? 'Press ENTER to continue.' : 'Press E.', width / 2, 238);
+  } else if (scene.interactive && scene.id === 'berth_task') {
     const step = state.berthTask ? state.berthTask.step : 0;
     const berthLabels = [
       'Clear the berth.',
@@ -1236,7 +1302,9 @@ function drawFirstWakeOpening() {
     ? (state.dockWalk && state.dockWalk.ready ? 'ENTER — BOARD THE WAKE' : 'MOVE TOWARD THE WAKE')
     : scene.interactive && scene.id === 'berth_task'
       ? (state.berthTask && state.berthTask.ready ? 'ENTER — CONTINUE' : 'E — WORK ON THE BERTH')
-      : (scene.cinematic && !presentationReady ? '' : 'ENTER / SPACE — CONTINUE');
+      : scene.interactive && scene.id === 'talen_staying'
+        ? (state.talenBeat && state.talenBeat.ready ? 'ENTER — CONTINUE' : 'E — RESPOND')
+        : (scene.cinematic && !presentationReady ? '' : 'ENTER / SPACE — CONTINUE');
   if (openingPrompt) text(openingPrompt, width / 2, height - 26);
   pop();
 }
