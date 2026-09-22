@@ -384,6 +384,9 @@ function draw() {
   // ── Toast messages ──
   drawToasts();
 
+  // ── Screen flash ──
+  drawScreenFlash();
+
   // ── Fade transition overlay ──
   drawFadeOverlay();
 
