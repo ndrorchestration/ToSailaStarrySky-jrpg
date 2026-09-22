@@ -5699,51 +5699,41 @@ function AetherCombat(p, C) {
   };
 
   // ── Rendering (called from core.js drawCombatScene wiring) ──
-  this.drawCombatScene = function(playerX, playerY, aetherMax, staffMax) {
+  this.drawCombatScene = function(combatPlayerX, combatPlayerY, aetherMax, staffMax) {
     const now = millis();
     const dodgeBob = state._dodgeTurn && state._dodgeTurn > now - 200
       ? Math.sin((now - state._dodgeTurn) * 0.02) * 4
       : 0;
     
-    // ── Background ──
-    noStroke();
-    fill(C.navy[0], C.navy[1], C.navy[2]);
-    rect(0, 0, p.width, p.height);
+    // ── Visual stage authority ──
+    const visualStage = window.AetherCombatVisual;
+    const stage = visualStage && typeof visualStage.stage === 'function'
+      ? visualStage.stage(p.width, p.height)
+      : {
+          playerX: Math.round(p.width * 0.34),
+          playerY: Math.round(p.height * 0.58),
+          enemyX: Math.round(p.width * 0.72),
+          enemyY: Math.round(p.height * 0.50),
+          horizonY: Math.round(p.height * 0.47),
+        };
 
-    // Ground
-    fill(C.soil[0], C.soil[1], C.soil[2]);
-    rect(0, p.height * 0.55, p.width, p.height * 0.45);
+    const combatPlayerX = stage.playerX;
+    const combatPlayerY = stage.playerY;
 
-    // Sky gradient overlay
-    for (let i = 0; i < p.height * 0.55; i += 2) {
-      const t = i / (p.height * 0.55);
-      p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], Math.floor(15 * (1 - t)));
-      p.strokeWeight(2);
-      p.line(0, i, p.width, i);
-    }
-    p.noStroke();
-
-    // ── Stars ──
-    for (let i = 0; i < 30; i++) {
-      const sx = (i * 137.5 + 50 + Math.sin(now * 0.0003 + i) * 8) % p.width;
-      const sy = (i * 97.3 + 20 + Math.cos(now * 0.0002 + i * 1.3) * 6) % (p.height * 0.45);
-      const twinkle = Math.sin(now * 0.002 + i * 3) * 0.3 + 0.7;
-      p.fill(C.teal[0], C.teal[1], C.teal[2], Math.floor(20 + 20 * twinkle));
-      p.noStroke();
-      p.ellipse(sx, sy, 1.5 + twinkle * 0.5, 1.5 + twinkle * 0.5);
-    }
-
-    // ── Aether wisps ──
-    const t = now * 0.001;
-    for (let i = 0; i < 5; i++) {
-      const wx = (p.width * 0.12 * i + p.width * 0.08 + Math.sin(t + i * 2.5) * 50) % p.width;
-      const wy = p.height * 0.15 + Math.sin(t * 0.6 + i * 3.7) * 35;
-      const wispAlpha = 30 + Math.sin(t * 1.1 + i * 1.7) * 18;
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], wispAlpha);
-      p.noStroke();
-      p.ellipse(wx, wy, 22 + Math.sin(t * 1.2 + i * 0.9) * 6, 6 + Math.cos(t * 0.8 + i * 1.1) * 3);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], wispAlpha * 0.4);
-      p.ellipse(wx - 4, wy - 2, 14 + Math.sin(t * 1.3 + i) * 4, 4 + Math.cos(t * 0.9 + i) * 2);
+    if (visualStage && typeof visualStage.drawBackdrop === 'function') {
+      visualStage.drawBackdrop({
+        width: p.width,
+        height: p.height,
+        now,
+        enemy: state.enemy,
+        turn: state.turn,
+      });
+    } else {
+      noStroke();
+      fill(C.navy[0], C.navy[1], C.navy[2]);
+      rect(0, 0, p.width, p.height);
+      fill(C.soil[0], C.soil[1], C.soil[2]);
+      rect(0, p.height * 0.55, p.width, p.height * 0.45);
     }
 
     // ── Combat intro banner ──
@@ -5761,8 +5751,8 @@ function AetherCombat(p, C) {
 
     // ── Enemy ──
     if (state.enemy) {
-      const ex = p.width * 0.75;
-      const ey = p.height * 0.52;
+      const ex = stage.enemyX;
+      const ey = stage.enemyY;
       const eType = state.enemy.type || 'generic';
       const eVisual = state.enemy.bodyShape || ({
         windShear: 'elemental',
@@ -5779,91 +5769,32 @@ function AetherCombat(p, C) {
         teal: C.teal,
         biolum: C.biolum,
         rose: C.rose,
-      };
+    
+    if (visualStage && typeof visualStage.drawTurnRail === 'function') {
+      visualStage.drawTurnRail({
+        width: p.width,
+        height: p.height,
+        turn: state.turn,
+        enemy: state.enemy,
+      });
+    }
+  };
       const eBodyColor = colorMap[eColor] || C.soil;
 
-      // Enemy glow (changes with HP)
-      const hpRatio = state.enemy.hp / state.enemy.maxHp;
-      const glowColor = hpRatio > 0.5 ? C.scioto : (hpRatio > 0.25 ? C.rust : C.teal);
-      p.fill(glowColor[0], glowColor[1], glowColor[2], 30 + Math.sin(now * 0.005) * 10);
-      p.noStroke();
-      p.ellipse(ex, ey, 70 + Math.sin(now * 0.003) * 4, 52 + Math.cos(now * 0.004) * 3);
-
-      // ── Enemy wings (animated) ──
-      const wingFlap = Math.sin(now * 0.005 + state.turn * 0.5) * 10 + 22;
-      // Per-enemy-type wing color
-      const wingColorMap = {
-        skyPredator: C.scioto,
-        corporateSalvager: C.soil,
-        windShear: C.scioto,
-        aetherLeak: C.teal,
-      };
-      const wingColor = wingColorMap[eType] || C.teal;
-      p.fill(wingColor[0], wingColor[1], wingColor[2], 140 + Math.sin(now * 0.004 + state.turn) * 20);
-      p.noStroke();
-      p.ellipse(ex - 26, ey - 8, 30, wingFlap);
-      p.ellipse(ex + 26, ey - 8, 30, wingFlap * 0.85);
-
-      // Wing-edge glow
-      p.stroke(C.teal[0], C.teal[1], C.teal[2], 60);
-      p.strokeWeight(1);
-      p.noFill();
-      p.ellipse(ex - 26, ey - 8, 30, wingFlap);
-      p.ellipse(ex + 26, ey - 8, 30, wingFlap * 0.85);
-      p.noStroke();
-
-      // ── Enemy body ──
-      const bodyColor = eBodyColor;
-      p.fill(bodyColor[0], bodyColor[1], bodyColor[2], 220);
-      p.noStroke();
-      // Different body shapes per enemy type
-      if (eVisual === 'elemental') {
-        // Wind Shear: angular, swirling body
-        p.ellipse(ex, ey, 34, 28);
-        p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 80);
-        p.ellipse(ex - 8, ey - 4, 18, 14);
-        // Wind streaks
-        p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], 100);
-        p.strokeWeight(1.5);
-        p.noFill();
-        for (let w = 0; w < 3; w++) {
-          const wa = now * 0.005 + w * 2.1;
-          p.line(ex - 12 + Math.sin(wa) * 8, ey - 6 + Math.cos(wa * 0.7) * 4,
-                 ex - 4 + Math.sin(wa + 1) * 10, ey - 2 + Math.cos(wa * 0.7 + 1) * 5);
-        }
-        p.noStroke();
-      } else if (eVisual === 'wraith') {
-        // Aether Leak: translucent, irregular blob
-        p.ellipse(ex, ey, 32, 26);
-        // Corrosive aura
-        p.fill(C.teal[0], C.teal[1], C.teal[2], 30 + Math.sin(now * 0.008) * 15);
-        p.ellipse(ex, ey, 44, 36);
-        p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 50);
-        p.ellipse(ex - 4, ey - 2, 16, 12);
-      } else if (eVisual === 'humanoid') {
-        // Corporate Salvager: taller, narrower
-        p.ellipse(ex, ey, 26, 36);
-        p.fill(C.soil[0], C.soil[1], C.soil[2], 180);
-        p.rect(ex - 8, ey - 18, 16, 18);
+      // Shared visual-stage enemy treatment. Mechanical state remains local.
+      if (visualStage && typeof visualStage.drawEnemy === 'function') {
+        visualStage.drawEnemy({
+          x: ex,
+          y: ey,
+          now,
+          enemy: state.enemy,
+          turn: state.turn,
+        });
       } else {
-        // Sky-Predator (default): original body
-        p.ellipse(ex, ey, 30, 34);
+        p.fill(eBodyColor[0], eBodyColor[1], eBodyColor[2], 220);
+        p.noStroke();
+        p.rect(ex - 14, ey - 18, 28, 36);
       }
-
-      // Body highlight
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 40);
-      p.ellipse(ex - 5, ey - 8, 14, 10);
-
-      // ── Enemy eye (glows) ──
-      const eyeGlow = Math.sin(now * 0.006) * 0.2 + 0.8;
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 200 * eyeGlow);
-      p.noStroke();
-      p.ellipse(ex + 7, ey - 5, 7, 7);
-      p.fill(C.navy[0], C.navy[1], C.navy[2]);
-      p.ellipse(ex + 8, ey - 5, 3.5, 3.5);
-      // Eye highlight
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 160);
-      p.ellipse(ex + 9, ey - 6, 1.5, 1.5);
 
       // ── HP bar ──
       p.stroke(C.navy[0], C.navy[1], C.navy[2], 200);
@@ -5983,9 +5914,9 @@ function AetherCombat(p, C) {
       const hitScale = map(hitAge, 0, 400, 1, 3);
       p.fill(C.rust[0], C.rust[1], C.rust[2], hitAlpha);
       p.noStroke();
-      p.ellipse(playerX, playerY + dodgeBob, 40 * hitScale, 40 * hitScale);
+      p.ellipse(combatPlayerX, combatPlayerY + dodgeBob, 40 * hitScale, 40 * hitScale);
       p.fill(C.teal[0], C.teal[1], C.teal[2], hitAlpha * 0.3);
-      p.ellipse(playerX, playerY + dodgeBob, 50 * hitScale, 50 * hitScale);
+      p.ellipse(combatPlayerX, combatPlayerY + dodgeBob, 50 * hitScale, 50 * hitScale);
     }
 
     // ── Player ability flash — teal burst on ability use ──
@@ -5995,9 +5926,9 @@ function AetherCombat(p, C) {
       const aScale = map(aAge, 0, 300, 1, 2);
       p.fill(C.teal[0], C.teal[1], C.teal[2], aAlpha);
       p.noStroke();
-      p.ellipse(playerX, playerY + dodgeBob, 35 * aScale, 35 * aScale);
+      p.ellipse(combatPlayerX, combatPlayerY + dodgeBob, 35 * aScale, 35 * aScale);
       p.fill(C.scioto[0], C.scioto[1], C.scioto[2], aAlpha * 0.5);
-      p.ellipse(playerX, playerY + dodgeBob, 45 * aScale, 45 * aScale);
+      p.ellipse(combatPlayerX, combatPlayerY + dodgeBob, 45 * aScale, 45 * aScale);
     }
 
     // ── Wind knockback visual — screen shake effect ──
@@ -6095,36 +6026,27 @@ function AetherCombat(p, C) {
     }
 
     // ── Player character ──
-    const px = playerX, py = playerY;
-    const pulse = Math.sin(now * 0.003) * 3 + 20;
-
-    // Player glow
-    p.fill(C.teal[0], C.teal[1], C.teal[2], 50);
-    p.noStroke();
-    p.ellipse(px, py + dodgeBob, pulse + 10, pulse + 10);
-
-    // Player body
-    p.fill(C.teal[0], C.teal[1], C.teal[2], 190);
-    p.noStroke();
-    p.ellipse(px, py + dodgeBob, pulse, pulse);
-
-    // Player highlight
-    p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 160);
-    p.ellipse(px - 4, py - 4 + dodgeBob, pulse * 0.35, pulse * 0.35);
-
-    // Player outline
-    p.stroke(C.teal[0], C.teal[1], C.teal[2], 100);
-    p.strokeWeight(1.5);
-    p.noFill();
-    p.ellipse(px, py + dodgeBob, pulse + 2, pulse + 2);
-    p.noStroke();
+    const px = combatPlayerX, py = combatPlayerY;
+    if (visualStage && typeof visualStage.drawPlayer === 'function') {
+      visualStage.drawPlayer({
+        x: px,
+        y: py,
+        now,
+        dodgeBob,
+        player: state.player,
+      });
+    } else {
+      p.fill(C.teal[0], C.teal[1], C.teal[2], 190);
+      p.noStroke();
+      p.rect(px - 10, py - 20 + dodgeBob, 20, 20);
+    }
 
     // Player name
     p.textFont('Press Start 2P');
     p.textSize(8);
     p.textAlign(p.CENTER, p.TOP);
     p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 170);
-    p.text('ENDER', px, py - 30 + dodgeBob);
+    p.text('ENDER', px, py - 58 + dodgeBob);
 
     // Player Vit bar
     const vitRatio = (combat && combat.getState) ? 
