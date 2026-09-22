@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "generatedFor": "Aetherwake save/load hardening",
+  "wholeGameEnvelopeSchema": 1,
+  "notes": [
+    "Subsystem schema versions are independent from the whole-game envelope schema.",
+    "A subsystem may be explicitly transient/non-saveable or an acknowledged gap; both states are machine-readable."
+  ],
+  "statuses": [
+    "covered",
+    "derived",
+    "transient_not_saveable",
+    "gap"
+  ],
+  "subsystems": [
+    {
+      "id": "runtime",
+      "status": "covered",
+      "snapshot": "aetherwake.js::buildSavePayload().runtime",
+      "restore": "aetherwake.js::applySaveEnvelope()",
+      "validator": "AetherSavePayloadValidator.validateRuntime",
+      "versionOwner": "whole-game-envelope",
+      "autosave": [
+        "chapter-handoff",
+        "quest-advance",
+        "combat-resolution"
+      ]
+    },
+    {
+      "id": "world-position",
+      "status": "covered",
+      "snapshot": "aetherwake.js::buildSavePayload().world.playerPosition",
+      "restore": "aetherwake.js::applySaveEnvelope()",
+      "validator": "AetherSavePayloadValidator.validateWorld",
+      "versionOwner": "whole-game-envelope"
+    },
+    {
+      "id": "covenant-field",
+      "status": "covered",
+      "snapshot": "aetherwake.js::buildSavePayload().world.covenantField",
+      "restore": "aetherwake.js::applySaveEnvelope()",
+      "validator": "AetherSavePayloadValidator.validateWorld",
+      "versionOwner": "whole-game-envelope"
+    },
+    {
+      "id": "commons-ledger",
+      "status": "covered",
+      "snapshot": "aetherwake.js::buildSavePayload().world.ledgerEntries",
+      "restore": "aetherwake.js::applySaveEnvelope()",
+      "validator": "AetherSavePayloadValidator.validateWorld",
+      "versionOwner": "whole-game-envelope"
+    },
+    {
+      "id": "quest",
+      "status": "covered",
+      "snapshot": "aetherwake.js::captureQuestStateForSave",
+      "restore": "aetherwake.js::restoreQuestState",
+      "validator": "AetherSavePayloadValidator.validateQuest",
+      "versionOwner": "whole-game-envelope"
+    },
+    {
+      "id": "party-roster",
+      "status": "covered",
+      "snapshot": "aetherwake.js::buildSavePayload().party.roster",
+      "restore": "aetherwake.js::restorePartyState",
+      "validator": "AetherSavePayloadValidator.validateParty",
+      "versionOwner": "party-state + whole-game-envelope"
+    },
+    {
+      "id": "party-formation",
+      "status": "covered",
+      "snapshot": "aetherwake.js::buildSavePayload().party.activeIds",
+      "restore": "AetherPartyState.setActivePartyIds",
+      "validator": "AetherSavePayloadValidator.validateParty + AetherPartyState.validate",
+      "versionOwner": "party-state + whole-game-envelope"
+    },
+    {
+      "id": "character-progression",
+      "status": "covered",
+      "snapshot": "nested canonical roster records",
+      "restore": "aetherwake.js::restorePartyState",
+      "validator": "AetherSavePayloadValidator.validateParty",
+      "versionOwner": "party-state"
+    },
+    {
+      "id": "equipment",
+      "status": "covered",
+      "snapshot": "nested canonical roster records",
+      "restore": "aetherwake.js::restorePartyState",
+      "validator": "party-state runtime validators",
+      "versionOwner": "party-state"
+    },
+    {
+      "id": "magic-profile-mastery",
+      "status": "covered",
+      "snapshot": "nested canonical roster magicProfile",
+      "restore": "aetherwake.js::restorePartyState",
+      "validator": "AetherwakeCharacterMagicProfile.validateProfile + AetherPartyState.validate",
+      "versionOwner": "character-magic-profile"
+    },
+    {
+      "id": "air-navigation",
+      "status": "covered",
+      "snapshot": "AetherAirNavigation.exportPersistentState",
+      "restore": "AetherAirNavigation.restorePersistentState",
+      "validator": "AetherAirNavigation.validatePersistentState",
+      "versionOwner": "air-navigation PERSISTENCE_VERSION (independent of envelope schema)"
+    },
+    {
+      "id": "opening-authored-sequence",
+      "status": "transient_not_saveable",
+      "snapshot": null,
+      "restore": null,
+      "validator": "canSaveNow denies STATE.OPENING",
+      "versionOwner": "first-wake-opening",
+      "rationale": "Opening state is authored/transient; autosave occurs after stable chapter handoff."
+    },
+    {
+      "id": "combat",
+      "status": "transient_not_saveable",
+      "snapshot": null,
+      "restore": null,
+      "validator": "canSaveNow allows only WORLD/AIRSHIP",
+      "versionOwner": "combat-runtime",
+      "rationale": "Combat is not a resumable persistence boundary; autosave occurs after resolution."
+    },
+    {
+      "id": "dialogue-overlays",
+      "status": "transient_not_saveable",
+      "snapshot": null,
+      "restore": null,
+      "validator": "canSaveNow allows only WORLD/AIRSHIP",
+      "versionOwner": "runtime-overlay",
+      "rationale": "Transient presentation state is not persisted directly."
+    },
+    {
+      "id": "world-mutations-beyond-covered-fields",
+      "status": "gap",
+      "snapshot": null,
+      "restore": null,
+      "validator": null,
+      "versionOwner": null,
+      "rationale": "Future persistent world changes must register ownership before implementation is considered complete."
+    },
+    {
+      "id": "economy-crafting",
+      "status": "gap",
+      "snapshot": null,
+      "restore": null,
+      "validator": null,
+      "versionOwner": null,
+      "rationale": "No complete persistent economy/crafting contract is established yet."
+    },
+    {
+      "id": "relationships-private-actions",
+      "status": "gap",
+      "snapshot": null,
+      "restore": null,
+      "validator": null,
+      "versionOwner": null,
+      "rationale": "Planned open-ended relationship/private-action state is not yet implemented as a persistence contract."
+    },
+    {
+      "id": "settings",
+      "status": "gap",
+      "snapshot": null,
+      "restore": null,
+      "validator": null,
+      "versionOwner": null,
+      "rationale": "Appropriate user settings persistence remains separate future work."
+    }
+  ]
+}
