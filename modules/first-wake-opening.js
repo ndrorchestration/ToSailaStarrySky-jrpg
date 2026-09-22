@@ -1,5 +1,5 @@
 /* ============================================================
-   Aetherwake JRPG — First Wake Opening Runtime v0.4
+   Aetherwake JRPG — First Wake Opening Runtime v0.7
    modules/first-wake-opening.js
 
    Executes the authored opening through the FIRST WAKE chapter card.
