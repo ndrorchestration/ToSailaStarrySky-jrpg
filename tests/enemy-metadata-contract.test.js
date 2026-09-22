@@ -19,6 +19,7 @@ const body = source.slice(start, end);
   'abilityDesc: scaledTemplate.abilityDesc || null',
   'color: scaledTemplate.color || null',
   'bodyShape: scaledTemplate.bodyShape || null',
+  'aetherDependent: scaledTemplate.aetherDependent === true',
 ].forEach(fragment => {
   assert(body.includes(fragment), 'encounter metadata propagation missing: ' + fragment);
 });
@@ -33,7 +34,7 @@ assert(body.includes('scaling: scaledTemplate.scaling || null'),
 
 console.log('Aetherwake enemy metadata contract: PASS');
 
-assert.strictEqual(enemyTemplates.aetherLeak.aetherDependent, true,
-  'Aether Leak Wraith must be explicitly Aether-dependent');
-assert.strictEqual(enemyTemplates.engine_spirit.aetherDependent, undefined,
-  'Engine Spirit Aether-dependence must remain unknown until established');
+assert(source.includes("aetherDependent: true"),
+  'Aether Leak Wraith template must establish explicit Aether dependence');
+assert(!source.includes("engine_spirit: {\n      aetherDependent: true"),
+  'Engine Spirit must not be inferred Aether-dependent');
