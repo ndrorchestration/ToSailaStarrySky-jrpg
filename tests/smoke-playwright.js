@@ -41,6 +41,7 @@ function createServer() {
         '.jpg': 'image/jpeg',
         '.jpeg': 'image/jpeg',
         '.mp3': 'audio/mpeg',
+        '.svg': 'image/svg+xml',
       }[path.extname(fullPath).toLowerCase()] || 'application/octet-stream';
 
       res.writeHead(200, { 'Content-Type': mime });
@@ -58,8 +59,21 @@ function createServer() {
   const errors = [];
 
   page.on('pageerror', err => errors.push(`PAGE: ${err.message}\n${err.stack || ''}`));
+  page.on('requestfailed', request => {
+    errors.push(`REQUEST: ${request.url()} — ${request.failure()?.errorText || 'failed'}`);
+  });
+  page.on('response', response => {
+    if (response.status() < 400) return;
+    const url = response.url();
+    // Generated TTS is intentionally optional; a missing clip must not fail
+    // the otherwise valid gameplay smoke path.
+    if (/\/tts\/[^/]+\/[^/]+\/\d+\.mp3(?:\?.*)?$/.test(url)) return;
+    errors.push(`HTTP ${response.status()} ${url}`);
+  });
   page.on('console', msg => {
-    if (msg.type() === 'error') errors.push(`CONSOLE: ${msg.text()}`);
+    if (msg.type() === 'error' && !msg.text().includes('Failed to load resource')) {
+      errors.push(`CONSOLE: ${msg.text()}`);
+    }
   });
 
   try {
