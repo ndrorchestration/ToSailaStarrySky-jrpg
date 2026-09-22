@@ -183,6 +183,71 @@ function createServer() {
     assert(worldBeforeCombat.activeIds.join('|') === 'ender|lyra',
       'chapter-card handoff did not preserve authored two-member party');
 
+    // Exercise real input/overlay paths before combat: movement, proximity-gated
+    // shop, ledger data, and first-contact dialogue.
+    await page.evaluate(() => {
+      const p = window._world.player;
+      p.tileX = 16; p.tileY = 16; p.x = 16; p.y = 16; p.px = 16 * 16; p.py = 16 * 16;
+    });
+    await page.keyboard.press('d');
+    await page.waitForFunction(() => window._world.player.tileX === 17);
+
+    await page.keyboard.press('m');
+    await page.waitForTimeout(200);
+    assert((await page.evaluate(() => window.gameState)) === 'world',
+      'shop must not open outside Repair Cafe proximity');
+
+    await page.evaluate(() => {
+      const p = window._world.player;
+      p.tileX = 14; p.tileY = 22; p.x = 14; p.y = 22; p.px = 14 * 16; p.py = 22 * 16;
+    });
+    await page.keyboard.press('m');
+    await page.waitForFunction(() => window.gameState === 'shop');
+    const shopBefore = await page.evaluate(() => ({
+      items: window.UI.shopItems.length,
+      handler: typeof window.UI.shopBuyHandler,
+      scrap: window._world.player.scrap,
+      aether: window._world.player.aether,
+    }));
+    assert(shopBefore.items === 6, 'Repair Cafe did not populate its live item list');
+    assert(shopBefore.handler === 'function', 'Repair Cafe purchase handler is missing');
+    await page.keyboard.press('1');
+    await page.waitForFunction(before => window._world.player.scrap < before,
+      shopBefore.scrap);
+    const shopAfter = await page.evaluate(() => ({
+      scrap: window._world.player.scrap,
+      aether: window._world.player.aether,
+    }));
+    assert(shopAfter.aether === shopBefore.aether + 1,
+      'Repair Cafe aether purchase did not update numeric world state');
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window.gameState === 'world');
+
+    await page.keyboard.press('l');
+    await page.waitForFunction(() => window.gameState === 'ledger');
+    assert(await page.evaluate(() => window._world.getLedger().length >= 2),
+      'ledger overlay did not expose live entries');
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window.gameState === 'world');
+
+    await page.evaluate(() => {
+      const p = window._world.player;
+      p.tileX = 7; p.tileY = 7; p.x = 7; p.y = 7; p.px = 7 * 16; p.py = 7 * 16;
+    });
+    await page.keyboard.press('e');
+    await page.waitForFunction(() => window.gameState === 'dialogue');
+    const firstDialogue = await page.evaluate(() => ({
+      text: window.UI.dialogueText,
+      lineIndex: window.UI.dialogueLineIndex,
+    }));
+    assert(firstDialogue.text.includes('core sings wrong'),
+      'first NPC contact did not select the authored intro dialogue');
+    assert(firstDialogue.lineIndex === 0, 'dialogue did not start at line zero');
+    await page.keyboard.press('e');
+    await page.waitForFunction(() => window.UI.dialogueLineIndex === 1);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window.gameState === 'world');
+
     const partyArchitecture = await page.evaluate(() => ({
       rosterLength: window.ROSTER && window.ROSTER.length,
       activeLength: window.ACTIVE_PARTY && window.ACTIVE_PARTY.length,
