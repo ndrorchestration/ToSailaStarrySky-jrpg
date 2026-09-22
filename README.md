@@ -197,8 +197,10 @@ Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts includ
 
 ## Windows desktop package
 
-For the simplest player experience, download **Aetherwake-OneClick.exe** from the Windows desktop release and double-click it. It contains the packaged runtime, extracts itself to a temporary folder, and starts the game in its own maximizable window without Python, PowerShell, an HTTP server, or opening an HTML file.
+For the simplest player experience, download **Aetherwake-Setup.exe** from a Windows desktop release and run the installer. It installs the packaged runtime, creates Start Menu and desktop shortcuts, and launches Aetherwake without Python, PowerShell, an HTTP server, or opening an HTML file.
 
-The release also includes **Aetherwake-Windows.zip** as a manual-extraction fallback. The browser instructions below remain the development path.
+The release also includes **Aetherwake-Windows.zip** as a manual-extraction fallback. Extract it completely, then run **Aetherwake.exe** from the extracted folder. The browser instructions above remain the development path.
+
+Older self-extracting/one-click artifacts are superseded and should not be used. If Windows Defender flags an executable, do not whitelist it; record the exact detection name and SHA-256 and submit that report to Microsoft.
 
 See `docs/DESKTOP_BUILD.md` for the packaging contract.
