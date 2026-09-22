@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'tests', 'capture-visual-evidence.js'), 'utf8');
 
 for (const id of [
+  '00-first-wake-dock-walk',
   '01-dragonfly-dusk-dock',
   '02-dialogue-ionia',
   '03-combat-sky-predator',
