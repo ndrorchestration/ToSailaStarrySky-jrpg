@@ -108,6 +108,7 @@ let saveMenuIndex = 0;
 let saveMenuFocus = null;
 let saveMenuReturnState = STATE.WORLD;
 let gamepadInputState = null;
+let inputBindingsState = null;
 let userSettings = null;
 let settingsMenuFocus = null;
 let settingsMenuReturnState = STATE.MENU;
@@ -134,10 +135,15 @@ function refreshSemanticActionsFromKeyboard() {
     window._lastSemanticActions = [];
     return;
   }
-  const actions = window.AetherInputActions.actionsForKeyboardEvent(
-    { keyCode: (typeof keyCode === 'number' ? keyCode : null), key: (typeof key !== 'undefined' ? key : null) },
-    gameState
-  );
+  const eventLike = {
+    keyCode: (typeof keyCode === 'number' ? keyCode : null),
+    key: (typeof key !== 'undefined' ? key : null)
+  };
+  const actions = window.AetherInputBindings &&
+    inputBindingsState &&
+    typeof window.AetherInputBindings.keyboardActionsForEvent === 'function'
+    ? window.AetherInputBindings.keyboardActionsForEvent(eventLike, gameState, inputBindingsState)
+    : window.AetherInputActions.actionsForKeyboardEvent(eventLike, gameState);
   for (const action of actions) semanticActionsPressed.add(action);
   window._lastSemanticActions = actions.slice();
 }
@@ -148,6 +154,67 @@ function semanticActionPressed(actionId) {
 
 function clearSemanticActions() {
   semanticActionsPressed.clear();
+}
+
+function loadInputBindings() {
+  if (!window.AetherInputBindings ||
+      typeof window.AetherInputBindings.load !== 'function' ||
+      typeof window.AetherInputBindings.validateState !== 'function') {
+    throw new Error('AETHER_INPUT_BINDINGS_UNAVAILABLE');
+  }
+  try {
+    const loaded = window.AetherInputBindings.load();
+    window.AetherInputBindings.validateState(loaded.bindings);
+    inputBindingsState = JSON.parse(JSON.stringify(loaded.bindings));
+    window._inputBindings = JSON.parse(JSON.stringify(inputBindingsState));
+    window._inputBindingsStorage = {
+      storageType: loaded.storageType,
+      path: loaded.path,
+      isDefault: loaded.isDefault
+    };
+    return loaded;
+  } catch (error) {
+    console.warn('INPUT_BINDINGS_LOAD_FAILED_DEFAULTING', error);
+    inputBindingsState = window.AetherInputBindings.emptyState();
+    window._inputBindings = JSON.parse(JSON.stringify(inputBindingsState));
+    window._inputBindingsStorage = {
+      storageType: 'memory-defaults',
+      path: null,
+      isDefault: true,
+      recoveredFromError: error.message
+    };
+    return { bindings: inputBindingsState, storageType: 'memory-defaults', path: null, isDefault: true };
+  }
+}
+
+function persistInputBindings(nextBindings) {
+  try {
+    window.AetherInputBindings.validateState(nextBindings);
+    const saved = window.AetherInputBindings.save(nextBindings);
+    inputBindingsState = JSON.parse(JSON.stringify(saved.bindings));
+    window._inputBindings = JSON.parse(JSON.stringify(inputBindingsState));
+    window._inputBindingsStorage = {
+      storageType: saved.storageType,
+      path: saved.path,
+      isDefault: false
+    };
+    return true;
+  } catch (error) {
+    window._lastInputBindingError = error.message;
+    console.error('INPUT_BINDINGS_SAVE_FAILED', error);
+    showToast('CONTROL BINDING FAILED // ' + error.message, C.rust, 1800);
+    return false;
+  }
+}
+
+function inputPrompt(actionId, context, device) {
+  if (!window.AetherInputBindings || !inputBindingsState) return actionId;
+  return window.AetherInputBindings.prompt(
+    inputBindingsState,
+    actionId,
+    context || gameState,
+    device || 'both'
+  );
 }
 
 function applyUserSettings(settings) {
@@ -289,6 +356,14 @@ function setup() {
   gamepadInputState = window.AetherGamepadInput.createState();
   window._gamepadInput = window.AetherGamepadInput;
   window._gamepadInputState = gamepadInputState;
+  if (!window.AetherInputBindings ||
+      typeof window.AetherInputBindings.load !== 'function' ||
+      typeof window.AetherInputBindings.save !== 'function' ||
+      typeof window.AetherInputBindings.keyboardActionsForEvent !== 'function') {
+    throw new Error('AETHER_INPUT_BINDINGS_UNAVAILABLE');
+  }
+  window._inputBindingsSystem = window.AetherInputBindings;
+  loadInputBindings();
   if (!window.AetherUserSettings ||
       typeof window.AetherUserSettings.load !== 'function' ||
       typeof window.AetherUserSettings.save !== 'function' ||
@@ -745,7 +820,11 @@ function pollGamepadDiagnostics() {
     gamepad,
     gamepadInputState,
     semanticContext,
-    { wakeResolution: Boolean(gameState === STATE.WORLD && quest && quest.state === QUEST_STATES.WAKE) }
+    {
+      wakeResolution: Boolean(gameState === STATE.WORLD && quest && quest.state === QUEST_STATES.WAKE),
+      bindingsSystem: window.AetherInputBindings,
+      bindings: inputBindingsState
+    }
   );
   if (gameState !== STATE.WORLD && gameState !== STATE.AIRSHIP) {
     for (const action of Object.keys(gamepadMoveRepeat)) delete gamepadMoveRepeat[action];
