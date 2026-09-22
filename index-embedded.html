@@ -160,6 +160,48 @@
   // Debug UI is opt-in only. Normal players should never see diagnostic overlays.
   window.__awDebugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
 
+  // Fail visibly during startup instead of leaving the player on a blank or
+  // permanently covered window. Runtime errors after successful boot are not
+  // converted into a startup panel.
+  window.__awLaunchFailure = null;
+  function showLaunchFailure(kind, detail) {
+    if (window.__awLoadingDone) return;
+    window.__awLaunchFailure = {
+      kind: String(kind || 'Startup failure'),
+      detail: String(detail || 'Unknown startup failure')
+    };
+    var ls = document.getElementById('loading-screen');
+    if (ls) ls.style.display = 'none';
+    var panel = document.getElementById('aw-launch-error');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'aw-launch-error';
+      panel.style.cssText =
+        'position:fixed;inset:0;z-index:20000;background:#1A102E;color:#E8DCC6;' +
+        'padding:48px;font:18px monospace;white-space:pre-wrap;overflow:auto;';
+      document.body.appendChild(panel);
+    }
+    panel.textContent =
+      'AETHERWAKE COULD NOT START\n\n' +
+      window.__awLaunchFailure.kind + ': ' + window.__awLaunchFailure.detail +
+      '\n\nThe game stopped before setup completed.' +
+      '\nUse the latest installed build, or ?debug=1 when running the development HTML.';
+    console.error('[aetherwake-launch-failure]', kind, detail);
+  }
+  window.addEventListener('error', function(event) {
+    var detail = event.error && event.error.stack
+      ? event.error.stack
+      : (event.message || 'Unknown JavaScript error');
+    showLaunchFailure('JavaScript error', detail);
+  });
+  window.addEventListener('unhandledrejection', function(event) {
+    var reason = event.reason;
+    showLaunchFailure(
+      'Unhandled promise rejection',
+      reason && reason.stack ? reason.stack : reason
+    );
+  });
+
   function hideLoadingScreen() {
     var ls = document.getElementById('loading-screen');
     if (ls) ls.style.display = 'none';
@@ -301,6 +343,8 @@
       var cvs = document.querySelector('canvas');
       var hasCanvas = !!cvs && cvs.width >= 800 && cvs.height >= 500;
       var p5ok = typeof p5 !== 'undefined';
+      var setupDone = !!window._setupOrder &&
+        window._setupOrder.indexOf('setup-done') !== -1;
 
       // Update debug overlay if present
       var db = document.getElementById('debug-overlay');
@@ -309,10 +353,13 @@
           '<b>LOADING</b><br>' +
           'p5: ' + (p5ok ? 'ok' : 'MISSING') + '<br>' +
           'canvas: ' + (hasCanvas ? cvs.width + 'x' + cvs.height : 'MISSING') + '<br>' +
-          '<span style="color:#E8DCC6;">' + (hasCanvas ? 'canvas live — revealing title' : 'waiting for canvas...') + '</span>';
+          'setup: ' + (setupDone ? 'done' : 'waiting') + '<br>' +
+          '<span style="color:#E8DCC6;">' +
+          (hasCanvas && setupDone ? 'runtime ready — revealing title' : 'waiting for setup...') +
+          '</span>';
       }
 
-      if (hasCanvas && p5ok) {
+      if (hasCanvas && p5ok && setupDone) {
         // Mirrors Graphics.endLoading() → upper canvas cleared, game revealed.
         p5.disableFriendlyErrors = true;
         console.log('[launch] canvas live, hiding loading screen (mirror: Graphics.endLoading)');
@@ -320,11 +367,14 @@
         return;
       }
 
-      // Safety net: if sketch hangs, force-reveal after max wait
+      // Fail visibly if the sketch never reaches setup-done. Never reveal an
+      // uninitialized canvas as though startup succeeded.
       var elapsed = performance.now() - startTime;
       if (elapsed > REF_MAX_WAIT) {
-        console.warn('[launch] force-revealing after ' + REF_MAX_WAIT + 'ms (sketch may be stuck)');
-        hideLoadingScreen();
+        showLaunchFailure(
+          'Startup timeout',
+          'The runtime did not reach setup-done within ' + REF_MAX_WAIT + 'ms.'
+        );
         return;
       }
 
