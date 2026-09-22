@@ -221,6 +221,27 @@
     return { roster: ROSTER, activeParty: ACTIVE_PARTY };
   }
 
+  function replaceMagicProfile(characterId, nextProfile) {
+    if (ROSTER.length !== 5) throw new Error('PARTY_STATE_NOT_BOOTSTRAPPED');
+
+    const character = ROSTER.find(entry => entry.id === characterId);
+    if (!character) throw new Error('PARTY_STATE_UNKNOWN_CHARACTER:' + characterId);
+
+    if (!global.AetherwakeCharacterMagicProfile ||
+        typeof global.AetherwakeCharacterMagicProfile.validateProfile !== 'function') {
+      throw new Error('PARTY_STATE_MAGIC_PROFILE_MODULE_UNAVAILABLE');
+    }
+
+    const validated = global.AetherwakeCharacterMagicProfile.validateProfile(nextProfile);
+    if (validated.characterId !== characterId) {
+      throw new Error('PARTY_STATE_MAGIC_PROFILE_CHARACTER_MISMATCH');
+    }
+
+    character.magicProfile = validated;
+    validate();
+    return character.magicProfile;
+  }
+
   function commitPrototypeParty(prototypeParty) {
     if (!boundWorldPlayer || ROSTER.length !== 5) {
       throw new Error('PARTY_STATE_NOT_BOOTSTRAPPED');
@@ -258,6 +279,7 @@
         trees: Object.assign({}, character.magicProfile.mastery.trees),
         domains: Object.assign({}, character.magicProfile.mastery.domains),
       })),
+      learnedSpells: ROSTER.map(character => character.magicProfile.learnedSpells.slice()),
     };
   }
 
@@ -269,6 +291,7 @@
     activeParty: ACTIVE_PARTY,
     bootstrap,
     commitPrototypeParty,
+    replaceMagicProfile,
     validate,
     snapshot,
   });

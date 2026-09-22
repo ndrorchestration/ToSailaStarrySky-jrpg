@@ -19,11 +19,15 @@ Current browser runtime:
 5. `modules/progression-defs.js`
 6. `modules/magic-defs.js`
 7. `modules/magic-mastery.js`
-8. `modules/character-magic-profile.js`
-9. `modules/party-state.js`
-10. `aetherwake.js`
-11. `modules/char-create.js`
-12. bundled `p5.min.js`
+8. `modules/elemental-spell-trees.js`
+9. `modules/non-elemental-spell-trees.js`
+10. `modules/character-magic-profile.js`
+11. `modules/magic-spell-access.js`
+12. `modules/magic-study.js`
+13. `modules/party-state.js`
+14. `aetherwake.js`
+15. `modules/char-create.js`
+16. bundled `p5.min.js`
 
 The other files under `modules/` are useful historical/modular mirrors, but they are not guaranteed to match the integrated runtime.
 
@@ -97,6 +101,15 @@ npm run test:combat-input
 npm run test:resource-eligibility
 npm run test:progression-reachability
 npm run test:secondary-action
+npm run test:magic-defs
+npm run test:magic-mastery
+npm run test:character-magic-profile
+npm run test:party-magic-profile
+npm run test:magic-field-reactions
+npm run test:elemental-spell-trees
+npm run test:non-elemental-spell-trees
+npm run test:magic-spell-access
+npm run test:magic-study
 npm run test:smoke
 ```
 

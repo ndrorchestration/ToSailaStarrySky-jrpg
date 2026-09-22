@@ -52,6 +52,7 @@
     "test:magic-field-reactions": "node tests/magic-field-reactions-contract.test.js",
     "test:elemental-spell-trees": "node tests/elemental-spell-trees-contract.test.js",
     "test:non-elemental-spell-trees": "node tests/non-elemental-spell-trees-contract.test.js",
-    "test:magic-spell-access": "node tests/magic-spell-access-contract.test.js"
+    "test:magic-spell-access": "node tests/magic-spell-access-contract.test.js",
+    "test:magic-study": "node tests/magic-study-contract.test.js"
   }
 }

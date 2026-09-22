@@ -269,8 +269,8 @@ Before executable magic is enabled, later implementation still must add:
 - ability definitions for actual spells,
 - status/field semantics,
 - environmental channels in encounter state,
-- mastery XP/rank acquisition rules,
-- persistent character mastery storage and save migration,
+- gameplay mastery XP/rank acquisition rules and study costs,
+- save-file persistence/migration for magic profiles,
 - UI reaction previews,
 - effect-resolver coverage,
 - automated combat tests for executable spells.
@@ -286,5 +286,15 @@ It evaluates:
 Established and established-family domains are admitted by their current registry status. Proposed and proposed-high-order domains remain blocked by default unless a caller supplies an explicit admitted-domain list representing a later creator/canon decision. That explicit admission still does not bypass mastery requirements.
 
 The evaluator only answers whether a spell is currently **eligible for access**. It does not learn the spell, award mastery, charge resources, or execute effects.
+
+`modules/character-magic-profile.js` v0.2 now separates **learned-spell state** from affinity and mastery, with v1-shaped records normalizing forward to schema v2. `modules/magic-study.js` v0.1 adds explicit pure study transactions:
+- mastery can advance only one rank at a time,
+- advanced elemental prerequisites must already be satisfied,
+- proposed domains remain blocked unless explicitly admitted,
+- a spell can be learned only after unified access checks pass,
+- duplicate learning is rejected,
+- no XP, teacher, currency, time cost, or automatic progression rule is invented.
+
+`modules/party-state.js` can replace a character's magic profile only after validating matching character identity, making mastery/learned-spell updates session-persistent on the canonical roster. Save-file persistence remains unimplemented.
 
 Unsupported magic must continue to fail closed rather than being simulated through narration-only effects.
