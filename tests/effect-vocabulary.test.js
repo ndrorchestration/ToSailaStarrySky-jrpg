@@ -46,6 +46,27 @@ assert(uncoverSuccess.some(effect =>
   effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED
 ), 'Uncover Truth analysis modifier must be implemented');
 
+const mycelialSuccess = vocabulary.ACTION_EFFECT_PROFILES.mycelialLedger.success;
+for (const key of ['relationships', 'dependencies', 'exchanges', 'obligations']) {
+  assert(mycelialSuccess.some(effect =>
+    effect.kind === vocabulary.EFFECT_KIND.REVEAL &&
+    effect.key === key &&
+    effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED
+  ), 'Mycelial Ledger must implement read-only reveal: ' + key);
+}
+assert.strictEqual(
+  vocabulary.ACTION_EFFECT_PROFILES.mycelialLedger.common.length, 0,
+  'Mycelial Ledger must not generate Heat or other common mutations'
+);
+assert.strictEqual(
+  vocabulary.ACTION_EFFECT_PROFILES.mycelialLedger.partial.length, 0,
+  'Mycelial Ledger must not retain legacy partial-outcome mutations'
+);
+assert.strictEqual(
+  vocabulary.ACTION_EFFECT_PROFILES.mycelialLedger.failure.length, 0,
+  'Mycelial Ledger must not retain legacy failure mutations'
+);
+
 const sharedDreamSuccess = vocabulary.ACTION_EFFECT_PROFILES.sharedDream.success;
 assert(sharedDreamSuccess.some(effect =>
   effect.kind === vocabulary.EFFECT_KIND.MODIFIER &&
@@ -63,6 +84,10 @@ console.log(JSON.stringify({
   implementedAnalysis: [
     'uncoverTruth.reveal',
     'uncoverTruth.nextDamageMultiplier',
+    'mycelialLedger.relationships',
+    'mycelialLedger.dependencies',
+    'mycelialLedger.exchanges',
+    'mycelialLedger.obligations',
   ],
   declaredNotApplied: [
     'sharedDream.nextRoll',
