@@ -40,6 +40,22 @@ state = pad.createState();
 result = pad.poll(gamepad([pad.BUTTON.SOUTH]), state, 'world');
 assert.deepStrictEqual(result.pressed, ['interact']);
 
+
+state = pad.createState();
+result = pad.poll(gamepad([pad.BUTTON.LEFT_STICK]), state, 'world');
+assert.deepStrictEqual(result.pressed, ['covenant-field'],
+  'Left stick press must expose covenant-field in WORLD');
+
+state = pad.createState();
+result = pad.poll(gamepad([pad.BUTTON.VIEW]), state, 'world');
+assert.deepStrictEqual(result.pressed, ['toggle-layer'],
+  'View must expose layer toggle in WORLD');
+
+state = pad.createState();
+result = pad.poll(gamepad([pad.BUTTON.RIGHT_STICK]), state, 'world');
+assert.deepStrictEqual(result.pressed, ['shop'],
+  'Right stick press must expose Shop in WORLD');
+
 state = pad.createState();
 result = pad.poll(gamepad([pad.BUTTON.MENU]), state, 'world');
 assert.deepStrictEqual(result.pressed, ['open-save-load'],
