@@ -359,3 +359,7 @@ Requirements:
 - story, party joins, and progression remain owned by `AetherFirstWakeOpening`, not the renderer.
 
 Status remains implementation candidate until exact-head rendered evidence is reviewed.
+
+
+## First Wake visual evidence frame
+The exact-head evidence bundle includes `00-first-wake-dock-walk.png`, captured halfway through Sequence 02 after four of eight authored dock steps. This frame is the acceptance artifact for the opening's shared-authority presentation and must show Ender, Ionia, the Dragonfly, dock depth, and the real interaction state coherently.
