@@ -238,6 +238,43 @@ function createServer() {
       'berth task did not complete all three authored interactions');
 
     await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.gameState === 'opening' &&
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 4
+    , undefined, { timeout: 5000 });
+
+    const blockedTalenAdvance = await page.evaluate(() => {
+      const before = window._firstWakeOpeningState.sceneIndex;
+      const result = window.AetherFirstWakeOpening.advance(window._firstWakeOpeningState);
+      return {
+        before,
+        after: window._firstWakeOpeningState.sceneIndex,
+        event: result.event && result.event.type,
+        interaction: result.event && result.event.interaction,
+        progress: window.AetherFirstWakeOpening.talenBeatProgress(window._firstWakeOpeningState),
+      };
+    });
+    assert(blockedTalenAdvance.before === 4 && blockedTalenAdvance.after === 4,
+      'Sequence 04 advanced before the Talen beat completed');
+    assert(blockedTalenAdvance.event === 'interaction-required' &&
+           blockedTalenAdvance.interaction === 'talen-beat',
+      'Sequence 04 did not expose the Talen interaction gate');
+
+    await page.keyboard.press('e');
+    await page.keyboard.press('e');
+    await page.waitForFunction(() =>
+      window._firstWakeOpeningState.talenBeat &&
+      window._firstWakeOpeningState.talenBeat.ready === true
+    , undefined, { timeout: 5000 });
+
+    const talenReady = await page.evaluate(() => ({
+      progress: window.AetherFirstWakeOpening.talenBeatProgress(window._firstWakeOpeningState),
+      step: window._firstWakeOpeningState.talenBeat.step,
+      sceneId: window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id,
+    }));
+    assert(talenReady.progress === 1 && talenReady.step === 2 && talenReady.sceneId === 'talen_staying',
+      'Talen beat did not complete both authored interactions');
+
     await page.keyboard.press('Enter');
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
@@ -1292,6 +1329,8 @@ function createServer() {
       dockReady,
       blockedBerthAdvance,
       berthReady,
+      blockedTalenAdvance,
+      talenReady,
       beforeLyraJoin,
       afterLyraJoin,
       partyArchitecture,
