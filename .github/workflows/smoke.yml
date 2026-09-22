@@ -75,6 +75,9 @@ jobs:
       - name: Verify dossier-bound character canon
         run: npm run test:character-canon
 
+      - name: Verify runtime/documentation SSOT
+        run: npm run test:runtime-ssot
+
       - name: Verify secondary-action state
         run: npm run test:secondary-action
 
