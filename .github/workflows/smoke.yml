@@ -175,6 +175,9 @@ jobs:
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
+      - name: Verify runtime cinematic player
+        run: npm run test:cinematic-player
+
       - name: Verify direct title-theme contract
         run: npm run test:title-music
 
