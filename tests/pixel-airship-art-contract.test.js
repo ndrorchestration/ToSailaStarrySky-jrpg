@@ -16,4 +16,7 @@ assert(ship.includes('Multiphasic aether core'), 'aether core visual contract mi
 assert(ship.includes('hydroponic repair beds'), 'solarpunk interior storytelling contract missing');
 assert(ship.includes("AetherPixelSprites.draw('ender'"), 'Ender sprite authority missing from ship interior');
 
+assert(airshipUi.includes("command.id === 'flight'"),'flight command lacks dedicated UI metadata');
+assert(airshipUi.includes('const compactRows = commands.length > 6'),'airship UI does not compact seven-command layouts');
+assert(airshipUi.includes('const rowStep = compactRows ? 44 : 58'),'seven-command row spacing contract missing');
 console.log('Aetherwake pixel airship interior contract: PASS');
