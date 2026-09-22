@@ -811,6 +811,11 @@ function advanceFirstWakeOpening() {
     window.gameState = gameState;
     prevState = null;
     showToast('CHAPTER I // FIRST WAKE', C.scioto, 1800);
+    setTimeout(function() {
+      if (gameState === STATE.WORLD) {
+        showToast('OBJECTIVE // TALK TO THE THREE SIGNAL CONTACTS — PRESS T FOR QUEST LOG', C.teal, 3200);
+      }
+    }, 450);
   }
 }
 
@@ -1826,6 +1831,23 @@ function drawQuestLogOverlay() {
     else if (qs.state === 'contact')  text('Contact — four souls await on the ship.', qx + 16, y);
     else if (qs.state === 'choice')   text('Choice — three paths open before you.', qx + 16, y);
     else if (qs.state === 'wake')     text('Wake — the ending unfolds.', qx + 16, y);
+
+    if (Array.isArray(qs.journal) && qs.journal.length) {
+      y += 30;
+      fill(C.scioto[0], C.scioto[1], C.scioto[2], 180);
+      textSize(10);
+      text('JOURNAL', qx + 16, y);
+      y += 18;
+      fill(C.parchment[0], C.parchment[1], C.parchment[2], 190);
+      textSize(11);
+      const recent = qs.journal.slice(-5);
+      for (const entry of recent) {
+        const label = (entry.state || 'note').toUpperCase();
+        text('[' + label + '] ' + entry.text, qx + 16, y, qw - 32, 42);
+        y += 42;
+        if (y > qy + qh - 62) break;
+      }
+    }
   }
 
   textFont('Press Start 2P');
@@ -2485,6 +2507,7 @@ function getQuestState() {
     crossingHazards: quest.crossingHazards.map(h => ({ ...h })),
     contactNPCs: quest.contactNPCs.map(n => ({ ...n })),
     choicePaths: quest.choicePaths.map(p => ({ ...p })),
+    journal: quest.journal.map(entry => ({ ...entry })),
     epilogues: quest.epilogues.map(e => ({ id: e.id, name: e.name }))
   };
 }
@@ -2520,7 +2543,7 @@ function advanceSignal() {
   if (quest.hooksCompleted >= 3) {
     quest.state = QUEST_STATES.CROSSING;
     quest.act = 'crossing';
-    appendJournalEntry('crossing', 'The sky cracked open — three hazards block the way to the Aureate Wake. The core is waiting.');
+    appendJournalEntry('crossing', 'The sky cracked open — four hazards block the way to the Aureate Wake. The core is waiting.');
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   } else if (quest.hooksCompleted >= 1) {
     appendJournalEntry('signal', 'You picked up the first thread of the song. The Wake is talking to you.');
@@ -2528,7 +2551,7 @@ function advanceSignal() {
 }
 
 function advanceCrossing() {
-  if (quest.hazardsCompleted >= 3) {
+  if (quest.hazardsCompleted >= 4) {
     quest.state = QUEST_STATES.CONTACT;
     quest.act = 'contact';
     appendJournalEntry('contact', 'The crossing behind you. Four souls ahead. The core hums between them like a held breath.');
@@ -4121,6 +4144,18 @@ function drawQuestOverlay() {
     progressText = quest.wakeEpilogue ? quest.wakeEpilogue.name : '—';
   }
   text(progressText, 630, 23);
+
+  fill(color(232, 220, 198, 125));
+  textAlign(LEFT, TOP);
+  textSize(8);
+  textFont('VT323');
+  let objectiveText = '';
+  if (quest.state === 'signal') objectiveText = 'Talk to the three marked contacts. [T] Quest Log';
+  else if (quest.state === 'crossing') objectiveText = 'Cross the four marked hazard zones. [T] Quest Log';
+  else if (quest.state === 'contact') objectiveText = 'Speak with all four souls aboard the Wake.';
+  else if (quest.state === 'choice') objectiveText = 'Choose the Wake\'s path: 1 / 2 / 3.';
+  if (objectiveText) text(objectiveText, 620, 36, 320, 24);
+
   textSize(10);
   textFont('sans-serif');
 }
