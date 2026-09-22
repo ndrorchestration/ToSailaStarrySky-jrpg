@@ -18,6 +18,7 @@ assert(runtime.includes("keysPressed[68] && typeof nav.dock === 'function'"),'do
 assert(runtime.includes("showToast('MOORED // '"),'docking feedback missing');
 assert(runtime.includes("nav.undock(airNavigationState)"),'directional cast-off behavior missing');
 assert(runtime.includes('BERTH AVAILABLE:'),'berth approach UI missing');
+assert(runtime.includes("createState({ mooredLandmarkId: 'wake-dock', speed: 0 })"),'first flight does not initialize moored at Wake Dock');
 assert(runtime.includes("{ id: 'flight', label: 'OPEN-SKY FLIGHT' }"),'explicit flight command missing');
 assert(runtime.includes("{ id: 'phaseSlip', label: 'PHASE-SLIP' }"),'phase-slip command was lost');
 assert(runtime.includes("LANDING DENIED // DOCK AT A STABLE BERTH"),'midair disembark guard missing');
