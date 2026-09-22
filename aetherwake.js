@@ -27,7 +27,7 @@ const STATE = {
   DIALOGUE: 'dialogue', SHOP: 'shop', LEDGER: 'ledger',
   QUESTLOG: 'questlog', CHARSHEET: 'charsheet', AIRSHIP: 'airship',
   OPENING: 'opening', CHARCREATE: 'charcreate', SAVELOAD: 'saveload',
-  SETTINGS: 'settings',
+  SETTINGS: 'settings', CONTROLS: 'controls',
 };
 let gameState = STATE.BOOT;
 window.gameState = gameState;  // expose for debug
@@ -112,6 +112,10 @@ let inputBindingsState = null;
 let userSettings = null;
 let settingsMenuFocus = null;
 let settingsMenuReturnState = STATE.MENU;
+let controlsMenuFocus = null;
+let controlsMenuReturnState = STATE.SETTINGS;
+let controlsDevice = 'keyboard';
+let inputBindingCapture = null;
 const gamepadMoveRepeat = {};
 
 // Expose state for debugging
