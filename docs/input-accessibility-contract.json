@@ -29,7 +29,8 @@
         "menu",
         "dialogue",
         "combat",
-        "save-load"
+        "save-load",
+        "settings"
       ],
       "keyboard": [
         "ArrowUp"
@@ -46,7 +47,8 @@
         "menu",
         "dialogue",
         "combat",
-        "save-load"
+        "save-load",
+        "settings"
       ],
       "keyboard": [
         "ArrowDown"
@@ -62,7 +64,8 @@
       "contexts": [
         "menu",
         "combat",
-        "save-load"
+        "save-load",
+        "settings"
       ],
       "keyboard": [
         "ArrowLeft"
@@ -78,7 +81,8 @@
       "contexts": [
         "menu",
         "combat",
-        "save-load"
+        "save-load",
+        "settings"
       ],
       "keyboard": [
         "ArrowRight"
