@@ -156,27 +156,31 @@
     },
 
     mycelialLedger: {
-      common: [
-        effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.HEAT),
-      ],
+      common: [],
       success: [
         effect(
-          EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.AETHER,
+          EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'relationships',
           RUNTIME_STATUS.IMPLEMENTED,
-          'One current random branch gains aether.'
+          'Commons Ledger reveals only relationships already represented on the inspected target.'
         ),
         effect(
-          EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.SCRAP,
+          EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'dependencies',
           RUNTIME_STATUS.IMPLEMENTED,
-          'The alternate current branch gains scrap.'
+          'Commons Ledger reveals only dependencies already represented on the inspected target.'
+        ),
+        effect(
+          EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'exchanges',
+          RUNTIME_STATUS.IMPLEMENTED,
+          'Commons Ledger reveals only exchanges already represented on the inspected target.'
+        ),
+        effect(
+          EFFECT_KIND.REVEAL, TARGET.ENEMY, OPERATION.REVEAL, 'obligations',
+          RUNTIME_STATUS.IMPLEMENTED,
+          'Commons Ledger reveals only obligations already represented on the inspected target.'
         ),
       ],
-      partial: [
-        effect(EFFECT_KIND.RESOURCE, TARGET.SELF, OPERATION.INCREASE, RESOURCE.SCRAP),
-      ],
-      failure: [
-        effect(EFFECT_KIND.DAMAGE, TARGET.SELF, OPERATION.APPLY, 'vitality'),
-      ],
+      partial: [],
+      failure: [],
     },
 
     hold: {
