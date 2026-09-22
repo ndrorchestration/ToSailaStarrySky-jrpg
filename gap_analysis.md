@@ -6,18 +6,13 @@
 > character creation wiring, quest UI + Memories polish). Re-read cited regions before trusting any
 > claim below — line numbers shifted during expansion.
 
-## §0 — Structural note (always current)
+## §0 — Historical structural note — superseded
 
-**Finding:** `index-embedded.html` loads only `aetherwake.js` (7,523 lines) + `modules/char-create.js`
-(via `<script>` tag added by the char-create wiring squad). The `modules/` directory (`core.js`,
-`world.js`, `combat.js`, `ui.js`, `audio.js`) is a dead-end tree of narrative mirrors — not loaded
-at runtime. All edits must target `aetherwake.js` (the live bundled source) or add `<script>` tags
-to `index-embedded.html`. Both `standalone/www/` and `nw-package/` are separate deploy targets that
-must be re-synced after any `aetherwake.js` edit.
+**Historical finding at the time of this audit:** the entrypoint loaded a much smaller runtime surface centered on `aetherwake.js` and char-create. This is **superseded**. Current executable authority is the present `index-embedded.html` load order plus the integrated `aetherwake.js` runtime and its loaded contract modules. Do not use this old structural description to route current edits.
 
 ---
 
-## §6 — Combat Actions (8 wired + 3 unlockable) — CURRENT STATE
+## §6 — Combat Actions (8 wired + 3 unlockable) — HISTORICAL SNAPSHOT
 
 **SPEC requirement (lines 17–30, 25–29):** *Turn-based 2D6 PbtA. Ender abilities: Uncover Truth,
 Shared Dream, Mycelial Ledger, Resonator Staff. 3 unlockable: wind ward, aether seal, rest.*
@@ -61,7 +56,7 @@ ENEMY_ABILITIES definition + population; keys 1–8; secondary action S-key; tie
 
 ---
 
-## §7 — Enemy Types — CURRENT STATE
+## §7 — Enemy Types — HISTORICAL SNAPSHOT
 
 **SPEC requirement (lines 25–29, combat context):** *6 enemy types: sky predator, harmonic shear,
 corporate intercept, engine spirit, child prophet, elder farmer*
@@ -111,18 +106,18 @@ counterparts. Each enemy type has a `draw{NPCName}Body()` function for rendering
 |---|---|---|
 | Web Audio SFX | ✅ Delivered | `modules/audio.js`: full synthesized SFX module. |
 | `ensureAudio()` / `resumeAudio()` | ✅ Delivered | Called in `keyPressed()`. |
-| NPC dialogue TTS audio | ⚠️ Partial (wiring present, no files) | `playDialogueAudioLine()` constructs `tts/{npc_id}/{batch}/{NN}.mp3` URLs. **No TTS audio files on disk** — loads fail silently. |
+| NPC dialogue TTS audio | ⚠️ Optional / no canonical clips present | The runtime retains the TTS hook but now fails closed **before networking** unless an explicit `AetherDialogueTTSManifest` admits the exact clip. Missing optional TTS therefore does not generate 404s or block dialogue. |
 | SFX wiring from combat to audio | ✅ Delivered | `triggerCombatHitFeedback()` + `triggerAbilityFeedback()` after each `resolveTurn`. |
 
 **Gap:** NPC dialogue TTS wired but no `.mp3` files on disk. SFX fully implemented and wired.
 
 ---
 
-## §10 — Additional gaps not tied to a specific spec line — CURRENT STATE
+## §10 — Additional gaps not tied to a specific spec line — HISTORICAL SNAPSHOT
 
 | # | Gap | Location | Severity | Status |
 |---|---|---|---|---|
-| G1 | **No character creation / party system** — only Ender exists. | `initPlayer()` — singleton only | Critical | 🔴 UNRESOLVED — char-create module wired but needs browser verification |
+| G1 | **Historical: no authored roster/onboarding system at audit time.** | preservation-era bootstrap | Superseded | ✅ RESOLVED IN CURRENT MAIN — authored First Wake, `ROSTER[5]`, and validated `ACTIVE_PARTY[1..5]` are current authority. |
 | G2 | **Choice path selection UI** — `advanceChoice()` fires only when `quest.choiceMade` already set. | `advanceChoice()` | High | ✅ RESOLVED — `drawChoiceMenu()` + keyboard selection wired into `render()` + `advanceChoice()` |
 | G3 | **ENEMY_ABILITIES was undefined** | Was `aetherwake.js:3949` | Resolved | ✅ RESOLVED |
 | G4 | **5-action key binding only** | Was `aetherwake.js:410–415` | Resolved | ✅ RESOLVED — keys 1–8 |
@@ -137,11 +132,11 @@ counterparts. Each enemy type has a `draw{NPCName}Body()` function for rendering
 
 ---
 
-## §11 — Summary table — CURRENT STATE
+## §11 — Summary table — HISTORICAL SNAPSHOT
 
 | Spec area | Status | Count of gaps |
 |---|---|---|
-| Character creation / party (2 playable slots) | 🔴 Missing (module wired, needs verification) | 1 critical (G1) |
+| Historical character-creation / party gap | ✅ Superseded by authored First Wake + five-character roster architecture | 0 current critical gaps from this historical row |
 | Sky layer + 14 islands + Tab toggle | ✅ Delivered | 0 |
 | Quest: Signal (3 hooks) | ⚠️ Partial | 1 low (G8: label mismatch) |
 | Quest: Crossing (3 hazards) | ✅ Delivered (aether_leak added) | 0 |
@@ -157,7 +152,7 @@ counterparts. Each enemy type has a `draw{NPCName}Body()` function for rendering
 | Audio/TTS | ✅ Delivered (SFX) / ⚠️ Partial (TTS files missing) | 1 medium (G11) |
 
 **Overall:** The running game in `aetherwake.js` (7,523 lines) now delivers ~85% of the SPEC fully,
-~10% partially, and ~5% not at all (character creation remains the single critical gap — module is
+~10% partially, and ~5% not at all **at the time of this historical audit** (character creation was then the single critical gap — module was
 wired and structurally correct, needs browser verification of the typing path). The three expansion
 squads resolved all §6 combat gaps, all §7 enemy gaps, and all §10 UI gaps except G1 (character
 creation — structurally wired, typing path unverified in headless browser) and G11 (TTS audio files
