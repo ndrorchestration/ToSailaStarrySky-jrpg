@@ -230,6 +230,45 @@ async function setAxes(page, x, y) {
     await pulseButton(page, 1);
     await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
 
+    // Controller combat uses deterministic semantic focus rather than numeric-key emulation.
+    await page.evaluate(() => {
+      if (typeof startCombat !== 'function') throw new Error('startCombat unavailable');
+      startCombat('skyPredator');
+    });
+    await page.waitForFunction(() =>
+      window.gameState === 'combat' &&
+      window._combatActionFocus &&
+      window._combatActionFocus.focusedId === 'staffStrike'
+    , undefined, { timeout: 5000 });
+
+    await pulseButton(page, 13);
+    await page.waitForFunction(() =>
+      window._combatActionFocus && window._combatActionFocus.focusedId === 'uncoverTruth'
+    , undefined, { timeout: 5000 });
+
+    await pulseButton(page, 12);
+    await page.waitForFunction(() =>
+      window._combatActionFocus && window._combatActionFocus.focusedId === 'staffStrike'
+    , undefined, { timeout: 5000 });
+
+    const combatTurnBefore = await page.evaluate(() => window._combat.getState().turn);
+    await pulseButton(page, 0);
+    await page.waitForFunction(before => window._combat.getState().turn > before,
+      combatTurnBefore, { timeout: 5000 });
+
+    const combatFocusResult = await page.evaluate(() => ({
+      turn: window._combat.getState().turn,
+      focusedId: window._combatActionFocus && window._combatActionFocus.focusedId,
+      encounterOver: window._combat.getState().encounterOver
+    }));
+    assert(combatFocusResult.turn > combatTurnBefore,
+      'controller Confirm did not execute the focused combat action');
+    assert(combatFocusResult.focusedId === 'staffStrike',
+      'combat focus did not remain stable after action execution');
+
+    await page.evaluate(() => finishCombat());
+    await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
+
     if (errors.length) throw new Error('controller parity browser errors:\n' + errors.join('\n'));
 
     const final = await page.evaluate(() => ({
@@ -242,7 +281,7 @@ async function setAxes(page, x, y) {
     assert(final.reducedMotion === true, 'controller-configured setting was not retained');
 
     console.log('Aetherwake controller parity smoke: PASS');
-    console.log(JSON.stringify({ openingResult, flightBefore, altitudeAfter, final }));
+    console.log(JSON.stringify({ openingResult, flightBefore, altitudeAfter, combatFocusResult, final }));
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
