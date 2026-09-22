@@ -68,6 +68,8 @@
     "test:runtime-ssot": "node tests/runtime-ssot-contract.test.js",
     "test:air-navigation": "node tests/air-navigation.test.js",
     "test:open-sky-runtime": "node tests/open-sky-runtime-contract.test.js",
-    "test:first-wake-opening": "node tests/first-wake-opening.test.js"
+    "test:first-wake-opening": "node tests/first-wake-opening.test.js",
+    "test:overlay-contract": "node tests/runtime-overlay-contract.test.js",
+    "test:input-runtime": "node tests/input-runtime-contract.test.js"
   }
 }
