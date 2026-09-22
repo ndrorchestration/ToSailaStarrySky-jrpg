@@ -92,7 +92,7 @@ These flat combat definitions are an implementation baseline, not the final arch
 ### Target
 
 ```text
-ROSTER[5] → ACTIVE_PARTY[3] → combat
+ROSTER[5] → ACTIVE_PARTY[1..5] → combat
 ```
 
 Persistent progression belongs to the five-character roster. The target combat/menu architecture supports all five simultaneously once recruited; the active party grows from 1 → 2 → 3 → 4 → 5 through the story.
