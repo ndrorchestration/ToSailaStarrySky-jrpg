@@ -97,6 +97,7 @@ let combat = null;
 let airNavigationState = null;
 let combatReturnState = STATE.WORLD;
 let pendingHazardIndex = null;
+let wakeResolutionStart = 0;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -459,6 +460,15 @@ function keyPressed() {
 
   if (gameState === STATE.OPENING && (keyCode === 13 || keyCode === 32)) {
     advanceFirstWakeOpening();
+    delete keysPressed[keyCode];
+    if (typeof ensureAudio === 'function') ensureAudio();
+    if (typeof resumeAudio === 'function') resumeAudio();
+    return;
+  }
+
+  if (gameState === STATE.WORLD && quest && quest.state === QUEST_STATES.WAKE &&
+      (keyCode === 13 || keyCode === 32)) {
+    advanceWake();
     delete keysPressed[keyCode];
     if (typeof ensureAudio === 'function') ensureAudio();
     if (typeof resumeAudio === 'function') resumeAudio();
@@ -2586,7 +2596,10 @@ function advanceChoice() {
     quest.choicePath = pathMap[quest.choiceMade] || 'path_a';
     quest.state = QUEST_STATES.WAKE;
     quest.act = 'wake';
+    wakeResolutionStart = (typeof millis === 'function') ? millis() : 0;
     resolveEpilogue();
+    appendJournalEntry('wake', 'Your choice settles into the hull. The Wake answers in the silence after the core-song.');
+    showToast('THE WAKE IS ANSWERING // ENTER TO CONTINUE', C.scioto, 2400);
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   }
 }
@@ -4085,6 +4098,11 @@ function drawQuestOverlay() {
     return;
   }
 
+  if (quest.state === QUEST_STATES.WAKE && quest.wakeEpilogue) {
+    drawWakeResolutionBeat();
+    return;
+  }
+
   const stateColors = {
     signal:   color(42, 255, 181, 120),
     crossing: color(255, 160, 60, 140),
@@ -4158,6 +4176,38 @@ function drawQuestOverlay() {
 
   textSize(10);
   textFont('sans-serif');
+}
+
+function drawWakeResolutionBeat() {
+  noStroke();
+  fill(color(26, 16, 46, 218));
+  rect(0, 0, width, height);
+
+  const pulse = Math.sin(((typeof millis === 'function' ? millis() : 0) - wakeResolutionStart) * 0.003) * 0.15 + 0.85;
+  fill(color(124, 200, 232, 190 * pulse));
+  textAlign(CENTER, CENTER);
+  textFont('Press Start 2P');
+  textSize(15);
+  text('THE WAKE ANSWERS', width / 2, height / 2 - 72);
+
+  fill(color(232, 220, 198, 210));
+  textFont('VT323');
+  textSize(20);
+  text(
+    'The core-song drops away. For one breath, the entire ship is still.\n' +
+    'Then the hull answers your choice.',
+    width / 2,
+    height / 2 - 8,
+    width - 180,
+    92
+  );
+
+  fill(color(42, 255, 181, 185));
+  textFont('Press Start 2P');
+  textSize(9);
+  text('ENTER / SPACE — HEAR WHAT FOLLOWS', width / 2, height / 2 + 96);
+  textFont('sans-serif');
+  textSize(10);
 }
 
 function drawEpilogueScreen() {
