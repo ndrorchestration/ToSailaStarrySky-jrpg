@@ -119,6 +119,74 @@ Write-Host "DESKTOP_RENDER_READINESS=PASS"
 Stop-Process -Id $game.Id -Force
 Remove-Item Env:AETHERWAKE_DESKTOP_SMOKE_MARKER -ErrorAction SilentlyContinue
 
+# Prove the packaged NW.js runtime persists a semantic save across process restart
+# using an isolated Chromium/NW.js user-data directory so real player saves are untouched.
+$saveProfile = Join-Path $env:TEMP "AetherwakeSaveSmokeProfile"
+if (Test-Path -LiteralPath $saveProfile) {
+  Remove-Item -LiteralPath $saveProfile -Recurse -Force
+}
+New-Item -ItemType Directory -Path $saveProfile | Out-Null
+
+function Invoke-AetherwakeSaveSmokePhase {
+  param(
+    [Parameter(Mandatory=$true)][string]$Phase,
+    [Parameter(Mandatory=$true)][string]$MarkerPath
+  )
+
+  if (Test-Path -LiteralPath $MarkerPath) {
+    Remove-Item -LiteralPath $MarkerPath -Force
+  }
+  $env:AETHERWAKE_SAVE_PERSISTENCE_PHASE = $Phase
+  $env:AETHERWAKE_SAVE_PERSISTENCE_MARKER = $MarkerPath
+  $proc = Start-Process -FilePath $installedExe -ArgumentList @("--user-data-dir=$saveProfile") -PassThru
+
+  $limit = (Get-Date).AddSeconds(20)
+  while ((Get-Date) -lt $limit -and -not (Test-Path -LiteralPath $MarkerPath)) {
+    if ($proc.HasExited) {
+      throw "Packaged save smoke phase '$Phase' exited before writing its marker with code $($proc.ExitCode)."
+    }
+    Start-Sleep -Milliseconds 250
+  }
+  if (-not (Test-Path -LiteralPath $MarkerPath)) {
+    Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+    throw "Packaged save smoke phase '$Phase' did not report within 20 seconds."
+  }
+
+  $result = Get-Content -LiteralPath $MarkerPath -Raw | ConvertFrom-Json
+  Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+  if ($result.error) {
+    throw "Packaged save smoke phase '$Phase' failed: $($result.error)"
+  }
+  return $result
+}
+
+$saveWriteMarker = Join-Path $env:TEMP "aetherwake-save-write.json"
+$saveLoadMarker = Join-Path $env:TEMP "aetherwake-save-load.json"
+$writeResult = Invoke-AetherwakeSaveSmokePhase -Phase "write" -MarkerPath $saveWriteMarker
+if (-not $writeResult.saved -or $writeResult.storageType -ne "nw-file") {
+  throw "Packaged save write did not use NW.js file persistence."
+}
+if ($writeResult.tileX -ne 9 -or $writeResult.tileY -ne 11) {
+  throw "Packaged save write marker reported unexpected semantic state."
+}
+if (-not $writeResult.savePath -or -not (Test-Path -LiteralPath $writeResult.savePath)) {
+  throw "Packaged save file was not created at the reported NW.js path."
+}
+
+$loadResult = Invoke-AetherwakeSaveSmokePhase -Phase "load" -MarkerPath $saveLoadMarker
+if (-not $loadResult.restored) {
+  throw "Packaged save did not restore semantic state after relaunch."
+}
+if ($loadResult.tileX -ne 9 -or $loadResult.tileY -ne 11) {
+  throw "Packaged relaunch restored the wrong player position."
+}
+if ($loadResult.savePath -ne $writeResult.savePath) {
+  throw "Packaged relaunch did not use the same persistent save path."
+}
+Write-Host "DESKTOP_SAVE_RESTART=PASS"
+Remove-Item Env:AETHERWAKE_SAVE_PERSISTENCE_PHASE -ErrorAction SilentlyContinue
+Remove-Item Env:AETHERWAKE_SAVE_PERSISTENCE_MARKER -ErrorAction SilentlyContinue
+
 $manifest = Join-Path $OutputDir "SHA256SUMS.txt"
 $lines = @()
 foreach ($file in @($installer, $zip)) {
