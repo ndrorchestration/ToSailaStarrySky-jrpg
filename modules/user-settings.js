@@ -26,6 +26,8 @@
     controllerVibration: 'low'
   });
 
+  const SETTING_ORDER = Object.freeze(Object.keys(DEFAULTS));
+
   const ENUMS = Object.freeze({
     textScale: ['100','125','150','175'],
     screenShake: ['off','low','full'],
@@ -243,6 +245,7 @@
     SCHEMA_VERSION,
     STORAGE_KEY,
     DEFAULTS,
+    SETTING_ORDER,
     ENUMS,
     defaults,
     validateSettings,
