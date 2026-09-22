@@ -4,30 +4,15 @@
 
 Aetherwake is a late-prototype / pre-alpha project.
 
-The development branch now has a verified playable baseline, persistent `ROSTER[5]` / reference-based `ACTIVE_PARTY[3]`, effect vocabulary v0.1, extracted current ability/progression registries, and live fail-closed resolver routing for ordinary damage/restoration/resource mutations. Higher-order resolver semantics remain staged work.
+The authoritative `main` line now contains the authored First Wake onboarding path, persistent `ROSTER[5]`, validated reference-based `ACTIVE_PARTY[1..5]`, the JRPG combat/formula and magic contract stack, open-sky navigation, live dialogue/shop/ledger paths, and fail-closed compatibility guards. The current source is newer than the last fully executed green checkpoint; when hosted runners are unavailable, preserve that verification distinction rather than treating runner-admission failures as code failures.
 
 ## Source-of-truth rules
 
 ### Runtime
 
-Current browser runtime:
+Current browser runtime authority is the script load order declared by `index-embedded.html`, including the active contract modules for effects, abilities/progression, character canon, JRPG stats/formulas, magic, First Wake, party state, air navigation, the integrated `aetherwake.js` runtime, compatibility-only char-create provenance, and bundled `p5.min.js`.
 
-1. `index-embedded.html`
-2. `modules/effect-vocabulary.js`
-3. `modules/effect-resolver.js`
-4. `modules/ability-defs.js`
-5. `modules/progression-defs.js`
-6. `modules/magic-defs.js`
-7. `modules/magic-mastery.js`
-8. `modules/elemental-spell-trees.js`
-9. `modules/non-elemental-spell-trees.js`
-10. `modules/character-magic-profile.js`
-11. `modules/magic-spell-access.js`
-12. `modules/magic-study.js`
-13. `modules/party-state.js`
-14. `aetherwake.js`
-15. `modules/char-create.js`
-16. bundled `p5.min.js`
+Do not infer runtime authority from a file merely existing under `modules/`; only the entrypoint load order and integrated runtime establish executable authority.
 
 The other files under `modules/` are useful historical/modular mirrors, but they are not guaranteed to match the integrated runtime.
 
@@ -35,10 +20,10 @@ Do not assume a change to `modules/core.js` or `modules/combat.js` changes the p
 
 ### Branches
 
-- `main` — authoritative stable repository baseline.
-- `dev/progression-build` — preservation/stabilization branch for the September 18–19 development build and subsequent baseline fixes.
+- `main` — authoritative repository source line.
+- `dev/progression-build` — historical preservation/migration branch. It remains useful as provenance for unextracted work, but it is not current executable authority and must not be merged wholesale into `main`.
 
-Do not promote `dev/progression-build` to `main` until the smoke gate passes.
+Stale feature PRs based on `dev/progression-build` must be rebuilt or cleanly extracted onto current `main` in dependency order.
 
 ## Smoke gate
 
@@ -52,19 +37,21 @@ The smoke test should verify:
 
 ```text
 boot/title
-→ character creation
-→ canonical ROSTER[5] / ACTIVE_PARTY[3] references
-→ WORLD with world.player === ROSTER[0]
+→ authored First Wake opening
+→ Ender-only ACTIVE_PARTY start
+→ Lyra joins at Sequence 06 / The Wrong Song
+→ canonical ROSTER[5] / ACTIVE_PARTY[1..5] reference invariants
+→ WORLD with world.player === ROSTER[0] === ACTIVE_PARTY[0]
+→ exercise live world/overlay interactions
 → start combat
-→ resolve a normal action
-→ resolve an ability
+→ resolve production actions / analysis paths
 → write combat results back to the canonical lead record
-→ return to WORLD
+→ return to the correct originating state
 ```
 
 The test intentionally uses real keyboard input for player-facing state transitions and action execution. Reference equality is part of the gate; equal values in separate character copies are not sufficient.
 
-## Verified development checkpoint
+## Historical verified development checkpoint
 
 On 2026-09-19, smoke run `35456148594` passed on commit `be896474c97271084c989f7d5e0d61f27ae72769`. It verified:
 
@@ -76,7 +63,7 @@ On 2026-09-19, smoke run `35456148594` passed on commit `be896474c97271084c989f7
 - Reson/Aepex remaining unimplemented runtime shells,
 - combat state write-back into the canonical lead record.
 
-This checkpoint does not mean the authored-roster onboarding, formation system, three-character combat, ability extraction, or progression architecture is complete, and it does not mean `dev/progression-build` has been promoted to `main`.
+This 2026-09-19 checkpoint is retained as provenance. Authored First Wake onboarding, the five-character roster architecture, 1–5 active-party capacity, and the later JRPG/magic migration have since advanced on `main`; it must not be read as current implementation status.
 
 ## Effect/registry checkpoint
 
@@ -152,28 +139,30 @@ On 2026-09-19:
 - victory-progression correction `a753ac5809b52534576bba15c7ef37e66d07373f` passed run `35463872395`, proving normal XP award paths can cross level 2 → 3 and unlock Wind Ward;
 - secondary-state correction `ba36e59a332adb95cc3d1f9b40681bd2c9d8106e` passed run `35464000671`, proving secondary opportunities are not stale and are offered only when the repeated ability remains usable.
 
-Current explicit boundaries:
+Historical boundaries at that checkpoint:
 - cost amounts were **not** redesigned;
-- school/job/mastery prerequisites are not yet implemented;
-- modifier/reveal/status/movement execution remains outside the current generic resolver subset;
-- `main` remains untouched.
+- school/job/mastery prerequisites were not yet implemented;
+- modifier/reveal/status/movement execution remained outside that resolver subset;
+- `main` had not yet incorporated the later migration work.
+
+These statements are checkpoint provenance, not current-main status.
 
 ## Architecture migration rule
 
-Do not rewrite character creation, party state, combat resolution, progression, and save state simultaneously.
+Do not rewrite authored onboarding, party state, combat resolution, progression, and persistence simultaneously.
 
 Preferred order:
 
-1. stabilize current playable baseline,
-2. establish persistent `ROSTER[5]`,
-3. establish `ACTIVE_PARTY[3]` as references/IDs,
-4. define effect vocabulary,
-5. extract ability and progression registries,
-6. generalize combat resolution,
-7. migrate to authored roster onboarding,
-8. add school/job/mastery progression,
-9. add formation, Dual Arts, and Triple Arts,
-10. expand campaign content.
+1. stabilize a playable baseline — **established historically**,
+2. establish persistent `ROSTER[5]` — **established**,
+3. establish validated `ACTIVE_PARTY[1..5]` references/IDs — **established**,
+4. define effect vocabulary and fail-closed compatibility boundaries — **established**,
+5. extract ability/progression and magic contracts — **established**,
+6. migrate production action resolution to the JRPG formula line — **established for the current production-native subset**,
+7. migrate normal New Game to authored First Wake onboarding — **established**,
+8. continue school/job/mastery and character-kit implementation without inventing unresolved canon,
+9. add later-recruitment formation/presentation and combination systems only when their contracts are authored,
+10. expand campaign content while preserving source/canon/runtime authority boundaries.
 
 ## Persistent-state rule
 
