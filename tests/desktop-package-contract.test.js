@@ -68,6 +68,10 @@ const desktopGuide = fs.readFileSync(
   path.join(__dirname, '..', 'docs', 'DESKTOP_BUILD.md'),
   'utf8'
 );
+const localReleaseScript = fs.readFileSync(
+  path.join(__dirname, '..', 'scripts', 'build-windows-release.ps1'),
+  'utf8'
+);
 assert(readme.includes('Aetherwake-Setup.exe'),
   'README must advertise the standard installer');
 assert(readme.includes('Aetherwake-Windows.zip'),
@@ -78,5 +82,11 @@ assert(desktopGuide.includes('Aetherwake-Setup.exe'),
   'desktop guide must advertise the standard installer');
 assert(!desktopGuide.includes('Aetherwake-OneClick.exe'),
   'desktop guide must not advertise superseded self-extracting artifacts');
+assert(localReleaseScript.includes('LOCAL_WINDOWS_RELEASE=PASS'),
+  'local Windows release fallback must emit an explicit success marker');
+assert(localReleaseScript.includes('Start-Process -FilePath $installer'),
+  'local Windows release fallback must install-smoke the generated installer');
+assert(localReleaseScript.includes('Start-Process -FilePath $installedExe'),
+  'local Windows release fallback must launch-smoke the installed game');
 
 console.log('Aetherwake desktop package contract: PASS');

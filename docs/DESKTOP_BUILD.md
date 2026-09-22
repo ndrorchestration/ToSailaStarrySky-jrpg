@@ -34,10 +34,10 @@ Local build requirements:
 Local commands:
 
 ~~~powershell
-npm ci
-npm run test:desktop-package
-npm run package:windows
+.\scripts\build-windows-release.ps1
 ~~~
+
+The local release script runs the desktop contract, builds the Windows runtime, compiles the NSIS installer, installs it into a clean temporary directory, launches the installed game for a 10-second smoke, and writes SHA-256 hashes. It is the maintainer fallback when hosted CI cannot allocate runners.
 
 ## Launch contract
 
