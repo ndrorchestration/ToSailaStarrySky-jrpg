@@ -344,3 +344,18 @@ Mode-specific presentation may vary without changing the ship identity:
 - **flight:** heading rotation, multiphasic shield hint, larger wing motion, speed-scaled propulsion wake.
 
 This is a presentation authority only and does not own air-navigation, combat, story, quest, or persistence state.
+
+
+## First Wake opening visual stage
+First Wake Sequences 00–09 use `modules/first-wake-visual-stage.js` as the in-engine opening presentation authority.
+
+Requirements:
+- dock scenes reuse `AetherDragonflyVisual` rather than drawing a separate ship;
+- Ender, Ionia, and Lyra reuse `AetherPixelSprites`;
+- Talen is not assigned an invented character sprite while his canonical shared sprite remains absent;
+- atmosphere is pixel-banded/block-authored rather than ellipse-heavy smooth procedural art;
+- Sequence 02 visual position follows the real dock-walk interaction state;
+- later interior scenes use one consistent lived-in solarpunk/aether-tech material language;
+- story, party joins, and progression remain owned by `AetherFirstWakeOpening`, not the renderer.
+
+Status remains implementation candidate until exact-head rendered evidence is reviewed.
