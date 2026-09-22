@@ -184,6 +184,18 @@
     pop();
   }
 
+  function drawLighting(ctx) {
+    const w = ctx.width;
+    const h = ctx.height;
+    const dusk = duskFactor(ctx.dayTime);
+    noStroke();
+    fill(28, 31, 62, Math.round(28 + dusk * 18));
+    rect(0, 0, w, h);
+    // Preserve warm human-scale light against the cool dusk grade.
+    fill(245, 167, 82, 18);
+    rect(360, 180, 188, 210);
+  }
+
   function drawDockLights(ctx) {
     const now = ctx.now || 0;
     const lamps = [
@@ -238,6 +250,7 @@
     isActive,
     drawBackdrop,
     drawDragonfly,
+    drawLighting,
     drawDockLights,
     drawForeground,
   });
