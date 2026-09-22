@@ -22,7 +22,7 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies
-        run: npm install --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Verify effect vocabulary contract
         run: npm run test:effects
@@ -110,6 +110,12 @@ jobs:
 
       - name: Verify air-navigation foundation
         run: npm run test:air-navigation
+
+      - name: Verify input runtime contracts
+        run: npm run test:input-runtime
+
+      - name: Verify overlay and economy contracts
+        run: npm run test:overlay-contract
 
       - name: Verify live open-sky runtime contract
         run: npm run test:open-sky-runtime
