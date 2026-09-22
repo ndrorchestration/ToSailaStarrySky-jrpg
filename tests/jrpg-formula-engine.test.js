@@ -5,7 +5,7 @@ const formula = require('../modules/combat-formula.js');
 const abilities = require('../modules/ability-defs.js');
 
 assert.strictEqual(policy.TARGET.model, 'jrpg-stat-formula');
-assert.strictEqual(formula.VERSION, '1.0.0');
+assert.strictEqual(formula.VERSION, '1.1.0');
 assert.strictEqual(formula.validateAgainstAbilityDefs(abilities), true);
 
 const actor = {
@@ -51,6 +51,28 @@ const critical = formula.resolveAction(
 assert.strictEqual(critical.critical, true);
 assert(critical.damage > normal.damage);
 
+const analysis = formula.resolveAction(
+  'uncoverTruth',
+  actor,
+  { weakness:'EMP fractures the exposed harmonic seam.' },
+  () => { throw new Error('ANALYSIS_RNG_FORBIDDEN'); }
+);
+assert.strictEqual(analysis.kind, 'analysis');
+assert.strictEqual(analysis.weakness, 'EMP fractures the exposed harmonic seam.');
+assert.strictEqual(analysis.modifier.nextDamageMultiplier, 1.15);
+assert.strictEqual(analysis.modifier.charges, 1);
+
+const analyzedTarget = {
+  productionDerivedStats: { aetherDefense:20, evasion:10 },
+  analysis: { nextDamageMultiplier:1.15, charges:1 },
+};
+const analyzedDamage = formula.resolveAction(
+  'staffStrike', actor, analyzedTarget, sequence([0.5,0.99])
+);
+assert.strictEqual(analyzedDamage.consumedAnalysis, true);
+assert.strictEqual(analyzedDamage.analysisMultiplier, 1.15);
+assert(analyzedDamage.damage > normal.damage);
+
 const hold = formula.resolveAction('hold', {
   staffCharges:1,maxStaffCharges:2
 }, null, () => { throw new Error('HOLD_RNG_FORBIDDEN'); });
@@ -67,6 +89,7 @@ assert.throws(
 );
 
 assert.strictEqual(abilities.DEFS.staffStrike.resolution.model, 'jrpg-stat-formula');
+assert.strictEqual(abilities.DEFS.uncoverTruth.resolution.formulaId, 'uncoverTruth');
 assert.strictEqual(abilities.DEFS.hold.resolution.formulaId, 'hold');
 assert.strictEqual(abilities.DEFS.rest.resolution.formulaId, 'rest');
 
