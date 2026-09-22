@@ -24,7 +24,7 @@ const C = {
 const STATE = {
   BOOT: 'boot', MENU: 'menu', WORLD: 'world', COMBAT: 'combat',
   DIALOGUE: 'dialogue', SHOP: 'shop', LEDGER: 'ledger',
-  QUESTLOG: 'questlog', CHARSHEET: 'charsheet',
+  QUESTLOG: 'questlog', CHARSHEET: 'charsheet', AIRSHIP: 'airship',
   CHARCREATE: 'charcreate',
 };
 let gameState = STATE.BOOT;
@@ -89,6 +89,8 @@ for (let i = 0; i < 14; i++) {
 // Module references (set after loading)
 let world = null;
 let combat = null;
+let airNavigationState = null;
+let combatReturnState = STATE.WORLD;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -164,6 +166,15 @@ function setup() {
   }
   window.AetherSealContract.validate();
   window._aetherSealContract = window.AetherSealContract;
+  if (!window.AetherAirNavigation || typeof window.AetherAirNavigation.createState !== 'function') {
+    throw new Error('AETHER_AIR_NAVIGATION_UNAVAILABLE');
+  }
+  airNavigationState = window.AetherAirNavigation.createState({
+    mooredLandmarkId: 'wake-dock',
+    speed: 0,
+  });
+  window._airNavigation = window.AetherAirNavigation;
+  window._airNavigationState = airNavigationState;
   window._setupOrder = window._setupOrder + '→party-state-done';
   window._setupOrder = window._setupOrder + '→combat-start';
   if (typeof window.AetherCombat !== 'undefined') {
@@ -306,6 +317,9 @@ function draw() {
   else if (gameState === STATE.WORLD) {
     if (world && typeof world.update === 'function') world.update(dt / 1000);
     if (world && typeof world.render === 'function') world.render();
+  }
+  else if (gameState === STATE.AIRSHIP) {
+    drawAirNavigationScene();
   }
   else if (gameState === STATE.COMBAT) {
     if (combat && typeof combat.render === 'function') combat.render();
@@ -557,6 +571,9 @@ function handleInput() {
   if (gameState === STATE.WORLD) {
     handleWorldInput();
   }
+  else if (gameState === STATE.AIRSHIP) {
+    handleAirNavigationInput();
+  }
   else if (gameState === STATE.COMBAT) {
     if (combat && typeof combat.handleInput === 'function') {
       combat.handleInput(keys, keysPressed);
@@ -632,7 +649,10 @@ function handleWorldInput() {
     }
   }
   if (keysPressed[70]) {   // F
-    if (world && typeof world.boardShip === 'function') world.boardShip();
+    if (world && typeof world.boardShip === 'function') {
+      world.boardShip();
+      if (world.player && world.player.shipBoarded) enterAirNavigation();
+    }
   }
   if (keysPressed[9]) {    // Tab
     if (world && typeof world.toggleLayer === 'function') world.toggleLayer();
@@ -685,9 +705,171 @@ function startGame() {
   }
 }
 
+// ── Open-sky flight ──
+function ensureAirNavigationState() {
+  if (!window.AetherAirNavigation) return false;
+  if (!airNavigationState) {
+    airNavigationState = window.AetherAirNavigation.createState({
+      mooredLandmarkId: 'wake-dock',
+      speed: 0,
+    });
+  }
+  window._airNavigationState = airNavigationState;
+  return true;
+}
+
+function enterAirNavigation() {
+  if (!ensureAirNavigationState()) return false;
+  gameState = STATE.AIRSHIP;
+  window.gameState = gameState;
+  prevState = null;
+  if (VIS.fadeTransitions) startFade(120);
+  showToast('OPEN-SKY FLIGHT // WAKE DOCK', C.teal, 1400);
+  return true;
+}
+
+function leaveAirNavigation() {
+  if (!ensureAirNavigationState()) return false;
+  if (airNavigationState.mooredLandmarkId !== 'wake-dock') {
+    showToast('LANDING DENIED // RETURN TO WAKE DOCK', C.rust, 1400);
+    return false;
+  }
+  if (world && world.player) world.player.shipBoarded = false;
+  gameState = STATE.WORLD;
+  window.gameState = gameState;
+  prevState = null;
+  if (VIS.fadeTransitions) startFade(120);
+  return true;
+}
+
+function handleAirNavigationInput() {
+  if (!ensureAirNavigationState()) return;
+  const nav = window.AetherAirNavigation;
+
+  if (keysPressed[27] || keysPressed[76]) { // Esc / L
+    leaveAirNavigation();
+    return;
+  }
+
+  if (keysPressed[81]) { // Q
+    airNavigationState = nav.changeAltitude(airNavigationState, -1);
+    showToast('ALTITUDE // ' + airNavigationState.altitude.toUpperCase(), C.scioto, 900);
+  }
+  if (keysPressed[69]) { // E
+    airNavigationState = nav.changeAltitude(airNavigationState, 1);
+    showToast('ALTITUDE // ' + airNavigationState.altitude.toUpperCase(), C.scioto, 900);
+  }
+  if (keysPressed[68]) { // D
+    const result = nav.dock(airNavigationState);
+    airNavigationState = result.state;
+    if (result.ok) showToast('MOORED // ' + result.landmark.label, C.teal, 1200);
+    else showToast('NO STABLE BERTH IN RANGE', C.rust, 1000);
+  }
+
+  let dx = 0, dy = 0;
+  if (keysPressed[LEFT_ARROW]) dx = -1;
+  else if (keysPressed[RIGHT_ARROW]) dx = 1;
+  else if (keysPressed[UP_ARROW]) dy = -1;
+  else if (keysPressed[DOWN_ARROW]) dy = 1;
+
+  if (dx || dy) {
+    if (airNavigationState.mooredLandmarkId) {
+      airNavigationState = nav.undock(airNavigationState);
+      showToast('CAST OFF // OPEN SKY', C.scioto, 800);
+    }
+    airNavigationState = nav.move(airNavigationState, dx, dy);
+    const encounter = nav.encounterCheck(airNavigationState);
+    airNavigationState = encounter.state;
+    if (encounter.triggered) {
+      window._airNavigationState = airNavigationState;
+      startCombat(encounter.enemyId, STATE.AIRSHIP);
+      return;
+    }
+  }
+
+  window._airNavigationState = airNavigationState;
+}
+
+function drawAirNavigationScene() {
+  if (!ensureAirNavigationState()) return;
+  const nav = window.AetherAirNavigation;
+  const travel = nav.travelProfile(airNavigationState);
+
+  background(16, 28, 52);
+  noStroke();
+  fill(34, 56, 92);
+  rect(0, 0, width, height * 0.58);
+  fill(22, 36, 64);
+  rect(0, height * 0.58, width, height * 0.42);
+
+  const left = 90, top = 76, mapW = width - 180, mapH = height - 170;
+  const sx = x => left + (x / (nav.SKY_WIDTH - 1)) * mapW;
+  const sy = y => top + (y / (nav.SKY_HEIGHT - 1)) * mapH;
+
+  stroke(124, 200, 232, 70);
+  strokeWeight(2);
+  for (const route of nav.SKY_ROUTES) {
+    const a = nav.LANDMARKS.find(mark => mark.id === route.from);
+    const b = nav.LANDMARKS.find(mark => mark.id === route.to);
+    if (!a || !b) continue;
+    line(sx(a.x), sy(a.y), sx(b.x), sy(b.y));
+  }
+
+  textAlign(CENTER, CENTER);
+  textSize(12);
+  for (const mark of nav.LANDMARKS) {
+    const discovered = airNavigationState.discovered.includes(mark.id);
+    noStroke();
+    fill(discovered ? 42 : 90, discovered ? 255 : 100, discovered ? 181 : 120);
+    ellipse(sx(mark.x), sy(mark.y), mark.dockable ? 13 : 9, mark.dockable ? 13 : 9);
+    fill(232, 220, 198, discovered ? 210 : 100);
+    text(discovered ? mark.label : 'UNCHARTED SIGNAL', sx(mark.x), sy(mark.y) - 14);
+  }
+
+  const shipX = sx(airNavigationState.x);
+  const shipY = sy(airNavigationState.y);
+  push();
+  translate(shipX, shipY);
+  rotate(airNavigationState.heading || 0);
+  noStroke();
+  fill(232, 220, 198);
+  triangle(12, 0, -9, -7, -9, 7);
+  fill(42, 255, 181);
+  rect(-8, -2, 11, 4);
+  pop();
+
+  textAlign(LEFT, TOP);
+  fill(232, 220, 198);
+  textSize(14);
+  text('OPEN-SKY FLIGHT', 24, 22);
+  textSize(12);
+  text(
+    'ALT ' + airNavigationState.altitude.toUpperCase() +
+    '  WEATHER ' + travel.weather.label +
+    '  SPEED ' + travel.effectiveSpeed.toFixed(2) +
+    '  PRESSURE ' + travel.encounterPressure,
+    24, 44
+  );
+  if (travel.route && travel.route.route) {
+    text(
+      'ROUTE ' + travel.route.route.label +
+      '  ' + Math.round(travel.route.progress * 100) + '%',
+      24, 62
+    );
+  }
+  if (airNavigationState.mooredLandmarkId) {
+    const moored = nav.LANDMARKS.find(mark => mark.id === airNavigationState.mooredLandmarkId);
+    if (moored) text('MOORED // ' + moored.label, 24, height - 54);
+  }
+  textAlign(RIGHT, TOP);
+  text('ARROWS steer  Q/E altitude  D dock  L/Esc land', width - 24, 22);
+  textAlign(LEFT, BASELINE);
+}
+
 // ── Combat launcher: triggers an encounter ──
-function startCombat(enemyId) {
+function startCombat(enemyId, returnState) {
   if (!combat || !world) return;
+  combatReturnState = returnState || STATE.WORLD;
   combat.init({
     vit: world.player.vit,
     scrap: world.player.scrap,
@@ -755,9 +937,10 @@ function finishCombat() {
       : world.player.equipment;
   }
 
-  gameState = STATE.WORLD;
+  gameState = combatReturnState || STATE.WORLD;
   window.gameState = gameState;
   prevState = null;
+  combatReturnState = STATE.WORLD;
   if (VIS.fadeTransitions) startFade(150);
 }
 
@@ -1075,7 +1258,7 @@ function drawBootSequence() {
   textFont('Press Start 2P');
   textSize(8 * v);
   fill(C.teal[0], C.teal[1], C.teal[2], 100 * v);
-  text('THE AUREATE WAKE // TURN-BASED 2D6 PbtA', cx, height - 20);
+  text('THE AUREATE WAKE // TURN-BASED JRPG', cx, height - 20);
   
   // Subtle flash every 4 seconds
   const flashCycle = (millis() - bootTime) / 4000;
