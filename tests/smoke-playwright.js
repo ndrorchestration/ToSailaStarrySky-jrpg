@@ -439,6 +439,7 @@ function createServer() {
           abilityDesc: enemy && enemy.abilityDesc,
           color: enemy && enemy.color,
           bodyShape: enemy && enemy.bodyShape,
+          aetherDependent: enemy && enemy.aetherDependent,
         };
       });
       window._combat.beginEncounter('skyPredator');
@@ -463,6 +464,12 @@ function createServer() {
       assert(typeof enemy.bodyShape === 'string' && enemy.bodyShape.length > 0,
         'enemy encounter lost body-shape metadata for ' + enemy.id);
     }
+    const aetherLeakMetadata = enemyMetadataContract.find(enemy => enemy.id === 'aetherLeak');
+    const engineSpiritMetadata = enemyMetadataContract.find(enemy => enemy.id === 'engine_spirit');
+    assert(aetherLeakMetadata && aetherLeakMetadata.aetherDependent === true,
+      'Aether Leak Wraith lost explicit Aether-dependence metadata');
+    assert(engineSpiritMetadata && engineSpiritMetadata.aetherDependent == null,
+      'Engine Spirit Aether dependence was inferred without authority');
 
     const effectContract = await page.evaluate(() => {
       const vocabulary = window.AetherEffectVocabulary;
