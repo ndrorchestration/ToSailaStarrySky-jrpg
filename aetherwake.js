@@ -3374,6 +3374,16 @@ function drawShipInterior() {
 
 // --- Ground Layer -----------------------------------------------------------
 
+function drawPixelWorldTile(id, px, py, frame) {
+  const tiles = window.AetherPixelTiles;
+  if (!tiles || typeof tiles.draw !== 'function' || !tiles.validate()) {
+    throw new Error('AETHER_PIXEL_TILES_UNAVAILABLE');
+  }
+  if (!tiles.draw(id, px, py, { frame: frame || 0 })) {
+    throw new Error('AETHER_PIXEL_TILE_UNKNOWN:' + id);
+  }
+}
+
 function drawGroundLayer() {
   const tileSize = 16;
   for (let y = 0; y < MAP_SIZE; y++) {
@@ -3408,112 +3418,87 @@ function drawGroundLayer() {
 }
 
 function drawTileSolid(px, py, s) {
-  const rust = color(120, 60, 30);
-  const dark = color(60, 30, 15);
-  fill(rust);
-  noStroke();
-  rect(px, py, s, s);
-  fill(dark);
-  rect(px + 3, py + 3, 2, 2);
-  rect(px + s - 5, py + 3, 2, 2);
-  rect(px + 3, py + s - 5, 2, 2);
-  rect(px + s - 5, py + s - 5, 2, 2);
+  drawPixelWorldTile('hull', px, py, 0);
+}
+
+function isGroundType(tx, ty, type) {
+  return ty >= 0 && ty < MAP_SIZE && tx >= 0 && tx < MAP_SIZE &&
+    groundLayer[ty] && groundLayer[ty][tx] === type;
+}
+
+function scenicNoise(tx, ty, salt) {
+  // Stable integer field: deterministic art placement with no runtime randomness.
+  let n = Math.imul(tx + salt * 17, 374761393) ^ Math.imul(ty - salt * 13, 668265263);
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  return (n ^ (n >>> 16)) >>> 0;
+}
+
+function grassNeighborCount(tx, ty) {
+  let count = 0;
+  for (let oy = -1; oy <= 1; oy++) {
+    for (let ox = -1; ox <= 1; ox++) {
+      if ((ox || oy) && isGroundType(tx + ox, ty + oy, TILE_TYPES.GROUND_GRASS)) count++;
+    }
+  }
+  return count;
 }
 
 function drawTileGrass(px, py, s) {
-  const tan = color(180, 160, 120);
-  fill(tan);
-  noStroke();
-  rect(px, py, s, s);
-  stroke(color(80, 120, 60));
-  strokeWeight(1);
-  const seed = (px * 7 + py * 13) % 5;
-  if (seed === 0) {
-    line(px + 4, py + s, px + 4, py + s - 4);
-    line(px + 8, py + s, px + 8, py + s - 3);
-  } else if (seed === 1) {
-    line(px + 6, py + s, px + 6, py + s - 5);
-  } else if (seed === 2) {
-    line(px + 2, py + s, px + 2, py + s - 3);
-    line(px + 10, py + s, px + 10, py + s - 4);
+  const tx = Math.round(px / 16);
+  const ty = Math.round(py / 16);
+  const variant = scenicNoise(tx, ty, 1) % 3;
+  drawPixelWorldTile('grass', px, py, variant);
+
+  // Region-aware scenic composition. Decorative only: collision/topology remain
+  // owned by groundLayer, so richer art cannot create or remove walkable cells.
+  const neighbors = grassNeighborCount(tx, ty);
+  const biome = scenicNoise(Math.floor(tx / 3), Math.floor(ty / 3), 4) % 12;
+  const local = scenicNoise(tx, ty, 7) % 16;
+
+  if (neighbors >= 5 && biome <= 2 && local < 10) {
+    drawPixelWorldTile('forest', px, py, 0);
+  } else if (neighbors >= 4 && (biome === 3 || biome === 4) && local < 7) {
+    drawPixelWorldTile('flowers', px, py, 0);
+  } else if (neighbors >= 5 && biome === 5 && local < 5 && ty < Math.floor(MAP_SIZE * 0.55)) {
+    drawPixelWorldTile('mountain', px, py, 0);
+  } else if (neighbors >= 4 && biome === 8 && local === 0) {
+    drawPixelWorldTile('ruins', px, py, 0);
+  } else if (neighbors >= 5 && biome === 9 && local === 1) {
+    drawPixelWorldTile('village', px, py, 0);
+  } else if ((tx + Math.floor(ty / 3)) % 11 === 5 && neighbors >= 3) {
+    drawPixelWorldTile('path', px, py, 0);
   }
-  noStroke();
 }
 
 function drawTileCrate(px, py, s) {
-  const wood = color(140, 100, 60);
-  const darkWood = color(90, 60, 30);
-  fill(wood);
-  noStroke();
-  rect(px, py, s, s);
-  stroke(darkWood);
-  strokeWeight(1);
-  line(px, py + s/2, px + s, py + s/2);
-  line(px + s/2, py, px + s/2, py + s);
-  noStroke();
-  fill(darkWood);
-  rect(px + 2, py + 2, 2, 2);
-  rect(px + s - 4, py + 2, 2, 2);
-  rect(px + 2, py + s - 4, 2, 2);
-  rect(px + s - 4, py + s - 4, 2, 2);
-  noStroke();
+  drawPixelWorldTile('crate', px, py, 0);
 }
 
 function drawTileFloat(px, py, s) {
-  const earth = color(110, 90, 60);
-  fill(earth);
-  noStroke();
-  rect(px, py, s, s);
-  noFill();
-  stroke(color(42, 255, 181, 40));
-  strokeWeight(1);
-  rect(px, py, s, s);
-  noStroke();
-  fill(color(100, 140, 70));
-  rect(px + 3, py, s - 6, 3);
+  drawPixelWorldTile('float', px, py, 0);
 }
 
 function drawTileWater(px, py, s) {
-  const blue = color(60, 120, 160, 120);
-  fill(blue);
-  noStroke();
-  rect(px, py, s, s);
-  noFill();
-  stroke(color(100, 180, 220, 100));
-  strokeWeight(1);
-  ellipse(px + s/2, py + s/2, s * 0.4, s * 0.2);
-  noStroke();
+  const tx = Math.round(px / 16);
+  const ty = Math.round(py / 16);
+  drawPixelWorldTile('water', px, py, Math.floor(frameCount / 24) % 2);
+
+  // Shoreline surf is based on actual adjacency, not arbitrary open-water noise.
+  const touchesLand =
+    isGroundType(tx - 1, ty, TILE_TYPES.GROUND_GRASS) ||
+    isGroundType(tx + 1, ty, TILE_TYPES.GROUND_GRASS) ||
+    isGroundType(tx, ty - 1, TILE_TYPES.GROUND_GRASS) ||
+    isGroundType(tx, ty + 1, TILE_TYPES.GROUND_GRASS) ||
+    isGroundType(tx - 1, ty, TILE_TYPES.GROUND_FLOAT) ||
+    isGroundType(tx + 1, ty, TILE_TYPES.GROUND_FLOAT) ||
+    isGroundType(tx, ty - 1, TILE_TYPES.GROUND_FLOAT) ||
+    isGroundType(tx, ty + 1, TILE_TYPES.GROUND_FLOAT);
+  if (touchesLand) drawPixelWorldTile('shore', px, py, 0);
 }
 
 function drawTileLore(px, py, s) {
-  const tile = groundLayer[py / s] && groundLayer[py / s][px / s];
-  const loreText = tile && tile._loreText ? tile._loreText : '';
   const discovered = quest.discoveries.some(d => d.x === px / s && d.y === py / s);
-
-  // Base: dark crate with subtle cyan outline
-  fill(color(60, 50, 40));
-  noStroke();
-  rect(px, py, s, s);
-  stroke(color(42, 255, 181, discovered ? 100 : 30));
-  strokeWeight(1);
-  noFill();
-  rect(px + 2, py + 2, s - 4, s - 4);
-  noStroke();
-
-  // Discovered: show a faint icon/mark
-  if (discovered) {
-    fill(color(42, 255, 181, 120));
-    noStroke();
-    ellipse(px + s/2, py + s/2, 4, 4);
-  } else {
-    // Undiscovered: question mark glyph
-    fill(color(180, 160, 140, 120));
-    noStroke();
-    textAlign(CENTER, CENTER);
-    textSize(8);
-    textFont('VT323');
-    text('?', px + s/2, py + s/2);
-  }
+  drawPixelWorldTile(discovered ? 'loreKnown' : 'loreUnknown', px, py, 0);
 }
 
 // --- Sky Layer --------------------------------------------------------------
@@ -3537,20 +3522,11 @@ function drawSkyLayer() {
 }
 
 function drawSkyCloud(px, py, s) {
-  const cloudCol = color(120, 160, 180, 80);
-  fill(cloudCol);
-  noStroke();
-  ellipse(px + s/2, py + s/2, s * 1.2, s * 0.7);
-  noStroke();
+  drawPixelWorldTile('cloud', Math.round(px), Math.round(py), 0);
 }
 
 function drawSkyAstro(px, py, s) {
-  const astro = color(200, 220, 255, 100);
-  noFill();
-  stroke(astro);
-  strokeWeight(1);
-  ellipse(px + s/2, py + s/2, s * 0.6, s * 0.6);
-  noStroke();
+  drawPixelWorldTile('astro', Math.round(px), Math.round(py), 0);
 }
 
 function drawFallingIslands() {
@@ -3560,28 +3536,12 @@ function drawFallingIslands() {
     [23,9],[29,7],[5,15],[13,14],
     [20,16],[27,15]
   ];
-  const fallOffset = (dayTime * 8) % 4;
+  const fallOffset = Math.round((dayTime * 8) % 4);
   for (const [ix, iy] of islands) {
     const cx = ix * 16 + 8;
     const cy = iy * 16 + 8 - fallOffset;
-    noFill();
-    stroke(color(42, 255, 181, 60));
-    strokeWeight(2);
-    ellipse(cx, cy, 22, 14);
-    noStroke();
-    fill(color(60, 70, 50, 180));
-    noStroke();
-    ellipse(cx, cy, 18, 10);
-    fill(color(80, 120, 60));
-    ellipse(cx, cy - 4, 14, 4);
-    noStroke();
-    noFill();
-    stroke(color(42, 255, 181, 100));
-    strokeWeight(1);
-    ellipse(cx, cy, 18, 10);
-    noStroke();
+    drawPixelWorldTile('float', Math.round(cx - 8), Math.round(cy - 8), 0);
   }
-  noStroke();
 }
 
 // --- World Ambient Atmosphere ------------------------------------------------
@@ -3589,49 +3549,46 @@ function drawFallingIslands() {
 function drawWorldAmbient() {
   const now = millis();
 
-  // ── Floating aether motes (ambient atmosphere — teal-blue motes drifting) ──
+  // Pixel atmosphere: motion is preserved, but visible particles snap to integer
+  // coordinates and small block clusters rather than soft procedural ellipses.
+  noStroke();
   for (let i = 0; i < 12; i++) {
     const seed = i * 137.5;
-    const bx = (seed + player.px * 0.2) % width;
-    const by = ((i * 97.3 + 20) % (height * 0.5)) + Math.sin(now * 0.0005 + i * 2.3) * 40;
-    const driftX = Math.sin(now * 0.0008 + i * 1.7) * 25;
-    const driftY = Math.cos(now * 0.0006 + i * 1.3) * 18;
-    const moteAlpha = 8 + Math.sin(now * 0.002 + i * 3.1) * 5;
-    const moteSize = 2 + Math.sin(now * 0.003 + i * 2.7) * 0.8;
-
-    noStroke();
-    fill(color(124, 200, 232, moteAlpha));
-    ellipse(bx + driftX, by + driftY, moteSize, moteSize);
-
-    // Soft teal core
-    fill(color(42, 255, 181, moteAlpha * 0.4));
-    ellipse(bx + driftX, by + driftY, moteSize * 1.8, moteSize * 1.8);
+    const x = Math.round((seed + player.px * 0.2 +
+      Math.sin(now * 0.0008 + i * 1.7) * 25) % width);
+    const y = Math.round(((i * 97.3 + 20) % (height * 0.5)) +
+      Math.sin(now * 0.0005 + i * 2.3) * 40 +
+      Math.cos(now * 0.0006 + i * 1.3) * 18);
+    const a = 8 + Math.sin(now * 0.002 + i * 3.1) * 5;
+    fill(124, 200, 232, a);
+    rect(x, y, 2, 2);
+    fill(42, 255, 181, a * 0.45);
+    rect(x + 1, y + 1, 1, 1);
   }
 
-  // ── Ground mist wisps (bottom of screen — low teal fog) ──
+  // Ground mist is rendered as staggered translucent pixel bands.
   for (let i = 0; i < 4; i++) {
-    const mistX = (i * 220 + (now * 0.02 + i * 50) % width) % width;
-    const mistY = height - 40 - i * 12 + Math.sin(now * 0.001 + i * 2) * 8;
-    fill(color(42, 255, 181, 6));
-    noStroke();
-    ellipse(mistX, mistY, 180, 16);
-    fill(color(124, 200, 232, 4));
-    ellipse(mistX + 30, mistY - 5, 140, 12);
+    const x = Math.round((i * 220 + (now * 0.02 + i * 50) % width) % width);
+    const y = Math.round(height - 40 - i * 12 + Math.sin(now * 0.001 + i * 2) * 8);
+    fill(42, 255, 181, 6);
+    rect(x - 48, y, 96, 3);
+    rect(x - 30, y - 3, 60, 2);
+    fill(124, 200, 232, 4);
+    rect(x - 16, y - 6, 72, 2);
   }
 
-  // ── Aether drift particles (slow rise from below) ──
+  // Rising aether fragments stay on integer pixels and use small block shapes.
   for (let i = 0; i < 6; i++) {
-    const riseBase = ((i * 193 + 47) % width);
-    const riseY = (height - 20 - (now * 0.002 + i * 30) % (height * 0.7));
-    const riseAlpha = map(riseY, height - 20, 50, 0, 20);
-    if (riseAlpha > 0) {
-      noStroke();
-      fill(color(42, 255, 181, riseAlpha));
-      ellipse(riseBase, riseY, 3 + Math.sin(now * 0.004 + i) * 1.5, 2 + Math.cos(now * 0.003 + i * 2) * 1);
+    const x = Math.round((i * 193 + 47) % width);
+    const y = Math.round(height - 20 - (now * 0.002 + i * 30) % (height * 0.7));
+    const a = map(y, height - 20, 50, 0, 20);
+    if (a > 0) {
+      fill(42, 255, 181, a);
+      rect(x, y, 2, 2);
+      if (i % 2 === 0) rect(x + 2, y - 1, 1, 1);
     }
   }
 
-  // ── Quest-state atmospheric tint ──
   const tint = {
     signal:   { r: 42, g: 255, b: 181 },
     crossing: { r: 255, g: 160, b: 60 },
@@ -3641,22 +3598,20 @@ function drawWorldAmbient() {
     done:     { r: 255, g: 255, b: 200 }
   }[quest.state] || { r: 42, g: 255, b: 181 };
 
+  // Full-screen tint remains a lighting layer, not world geometry.
   const alphaBase = { signal: 6, crossing: 10, contact: 8, choice: 14, wake: 18, done: 20 }[quest.state] || 6;
-  noStroke();
   fill(tint.r, tint.g, tint.b, alphaBase);
   rect(0, 0, width, height);
 
-  // ── Floating accent motes (quest-state colored, intensifies in choice/wake) ──
   const accentCount = (quest.state === 'choice' || quest.state === 'wake') ? 16 : 8;
   const accentSpeed = (quest.state === 'choice' || quest.state === 'wake') ? 0.004 : 0.0025;
   for (let i = 0; i < accentCount; i++) {
-    const seed = i * 73.1;
-    const ax = (seed + player.px * 0.15) % width;
-    const ay = ((i * 131.7 + 30) % height);
-    const driftY = Math.sin(now * accentSpeed + i * 3.7) * 30;
+    const x = Math.round((i * 73.1 + player.px * 0.15) % width);
+    const y = Math.round(((i * 131.7 + 30) % height) +
+      Math.sin(now * accentSpeed + i * 3.7) * 30);
     const a = 5 + Math.sin(now * 0.003 + i * 2.1) * 4;
-    fill(color(tint.r, tint.g, tint.b, a));
-    ellipse(ax, ay + driftY, 1.5, 1.5);
+    fill(tint.r, tint.g, tint.b, a);
+    rect(x, y, 2, 2);
   }
 }
 
@@ -3698,58 +3653,17 @@ function drawCovenantField() {
 // --- Player -----------------------------------------------------------------
 
 function drawPlayer() {
+  const sprites = window.AetherPixelSprites;
+  if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
+    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
+  }
   const px = player.px;
   const py = player.py;
-
-  noStroke();
-  fill(color(0, 0, 0, 80));
-  ellipse(px + 8, py + 14, 14, 5);
-
-  fill(color(40, 45, 60));
-  noStroke();
-  rect(px + 5, py + 9, 4, 5);
-  rect(px + 9, py + 9, 4, 5);
-
-  fill(color(30, 50, 40));
-  rect(px + 4, py + 4, 10, 6);
-  fill(color(42, 255, 181, 120));
-  rect(px + 2, py + 5, 3, 4);
-  rect(px + 13, py + 5, 3, 4);
-  noStroke();
-  fill(color(42, 255, 181, 60));
-  ellipse(px + 3.5, py + 7, 3, 2);
-  ellipse(px + 14.5, py + 7, 3, 2);
-
-  fill(color(220, 200, 170));
-  rect(px + 5, py + 1, 8, 4);
-  fill(color(42, 255, 181, 180));
-  rect(px + 5, py + 2, 3, 2);
-  rect(px + 10, py + 2, 3, 2);
-  noFill();
-  stroke(color(60, 60, 60));
-  strokeWeight(1);
-  line(px + 5, py + 2, px + 5, py);
-  line(px + 13, py + 2, px + 13, py);
-  noStroke();
-
-  noFill();
-  stroke(color(42, 255, 181, 120));
-  strokeWeight(1);
-  line(px + 13, py + 2, px + 15, py + 3);
-  line(px + 15, py + 3, px + 16, py + 2);
-  noStroke();
-
-  const staffX = px + 14;
-  const staffY = py + 1;
-  fill(color(80, 80, 90));
-  noStroke();
-  rect(staffX, staffY, 2, 12);
-  fill(color(42, 255, 181, 200));
-  rect(staffX - 1, staffY - 1, 4, 3);
-  noStroke();
-  fill(color(42, 255, 181, 80));
-  ellipse(staffX + 1, staffY, 4, 3);
-  noStroke();
+  const moving = Math.abs(player.px - player.tileX * 16) > 0.5 ||
+    Math.abs(player.py - player.tileY * 16) > 0.5;
+  const frame = moving ? Math.floor(frameCount / 8) % 2 : 0;
+  sprites.drawShadow(px + 8, py + 16, 1);
+  sprites.draw('ender', px, py, { frame });
 
   fill(color(232, 220, 198));
   noStroke();
@@ -3789,19 +3703,15 @@ function drawNPC(npc) {
   switch (npc.id) {
     case 'elder_farmer':
       drawNPCElder(px, py);
-      drawNPCElderRoutine(px, py);
       break;
     case 'engine_spirit':
       drawNPCSpirit(px, py);
-      drawNPCSpiritRoutine(px, py);
       break;
     case 'child_prophet':
       drawNPCChild(px, py);
-      drawNPCChildRoutine(px, py);
       break;
     case 'corporate_salvager':
       drawNPCSavager(px, py);
-      drawNPCSavagerRoutine(px, py);
       break;
     default:
       drawNPCDefault(px, py, npc.name);
@@ -3818,101 +3728,63 @@ function drawNPC(npc) {
 }
 
 function drawNPCElder(px, py) {
-  fill(color(80, 60, 40));
-  noStroke();
-  rect(px - 4, py - 4, 16, 4);
-  rect(px - 2, py - 8, 12, 5);
-  fill(color(130, 110, 80));
-  rect(px - 3, py - 1, 14, 8);
-  fill(color(110, 90, 60));
-  rect(px - 2, py + 5, 5, 6);
-  rect(px + 3, py + 5, 5, 6);
-  fill(color(200, 180, 150));
-  rect(px - 2, py - 3, 12, 4);
-  fill(color(40, 30, 20));
-  rect(px + 1, py - 2, 2, 1);
-  rect(px + 7, py - 2, 2, 1);
-  fill(color(100, 70, 40));
-  noStroke();
-  rect(px + 10, py - 6, 2, 14);
+  const sprites = window.AetherPixelSprites;
+  if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
+    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
+  }
+  sprites.drawShadow(px, py + 9, 1);
+  sprites.draw('ionia', px, py + 8, {
+    anchor: 'bottom-center',
+    frame: Math.floor(frameCount / 18) % 2
+  });
 }
 
 function drawNPCSpirit(px, py) {
-  fill(color(120, 200, 220, 140));
-  noStroke();
-  ellipse(px, py, 14, 16);
-  noStroke();
-  fill(color(42, 255, 181, 180));
-  ellipse(px, py - 2, 6, 6);
-  noFill();
-  stroke(color(42, 255, 181, 120));
-  strokeWeight(1);
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2 + frameCount * 0.02;
-    line(px, py, px + Math.cos(a) * 12, py + Math.sin(a) * 12);
+  const sprites = window.AetherPixelSprites;
+  if (!sprites || typeof sprites.draw !== 'function') {
+    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
   }
-  noStroke();
-  fill(color(200, 230, 240, 150));
-  rect(px - 3, py - 2, 10, 4);
-  fill(color(40, 60, 80, 150));
-  rect(px - 1, py - 1, 2, 1);
-  rect(px + 4, py - 1, 2, 1);
+  sprites.drawShadow(px, py + 9, 1);
+  sprites.draw('engineSpirit', px, py + 8, {
+    anchor: 'bottom-center',
+    frame: Math.floor(frameCount / 18) % 2
+  });
 }
 
 function drawNPCChild(px, py) {
-  fill(color(180, 60, 80));
-  noStroke();
-  rect(px - 4, py - 4, 16, 4);
-  fill(color(60, 60, 100));
-  rect(px - 3, py - 7, 12, 4);
-  fill(color(200, 180, 160));
-  rect(px - 2, py - 5, 12, 4);
-  fill(color(42, 255, 181, 200));
-  rect(px, py - 4, 3, 2);
-  rect(px + 6, py - 4, 3, 2);
-  fill(color(100, 80, 120));
-  rect(px - 3, py, 12, 7);
-  fill(color(60, 50, 80));
-  rect(px - 2, py + 6, 4, 4);
-  rect(px + 2, py + 6, 4, 4);
-  noFill();
-  stroke(color(42, 255, 181, 40));
-  strokeWeight(1);
-  ellipse(px, py - 2, 20, 16);
-  noStroke();
+  const sprites = window.AetherPixelSprites;
+  if (!sprites || typeof sprites.draw !== 'function') {
+    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
+  }
+  sprites.drawShadow(px, py + 9, 1);
+  sprites.draw('lyra', px, py + 8, {
+    anchor: 'bottom-center',
+    frame: Math.floor(frameCount / 16) % 2
+  });
 }
 
 function drawNPCSavager(px, py) {
-  fill(color(100, 100, 105));
-  noStroke();
-  rect(px - 4, py - 3, 16, 10);
-  fill(color(80, 80, 85));
-  rect(px - 3, py - 3, 14, 3);
-  fill(color(180, 170, 160));
-  rect(px - 3, py - 8, 12, 6);
-  fill(color(30, 30, 35));
-  rect(px, py - 7, 2, 1);
-  rect(px + 6, py - 7, 2, 1);
-  fill(color(42, 255, 181, 160));
-  rect(px + 8, py - 4, 4, 3);
-  fill(color(10, 10, 10));
-  rect(px + 9, py - 3, 2, 1);
-  fill(color(60, 60, 65));
-  rect(px - 3, py + 6, 5, 5);
-  rect(px + 2, py + 6, 5, 5);
-  fill(color(100, 100, 105));
-  rect(px + 11, py, 3, 7);
+  const sprites = window.AetherPixelSprites;
+  if (!sprites || typeof sprites.draw !== 'function') {
+    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
+  }
+  sprites.drawShadow(px, py + 9, 1);
+  sprites.draw('corporateSalvager', px, py + 8, {
+    anchor: 'bottom-center',
+    frame: Math.floor(frameCount / 20) % 2
+  });
 }
 
 function drawNPCDefault(px, py, name) {
-  fill(color(160, 140, 110));
-  noStroke();
-  rect(px - 3, py - 2, 12, 9);
-  fill(color(200, 180, 150));
-  rect(px - 2, py - 6, 10, 5);
-  fill(color(40, 30, 20));
-  rect(px + 1, py - 5, 2, 1);
-  rect(px + 6, py - 5, 2, 1);
+  const sprites = window.AetherPixelSprites;
+  if (!sprites || typeof sprites.draw !== 'function') {
+    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
+  }
+  sprites.drawShadow(px, py + 9, 1);
+  sprites.draw('settler', px, py + 8, {
+    anchor: 'bottom-center',
+    frame: Math.floor(frameCount / 22) % 2
+  });
 }
 
 function drawEngineSpiritBody(px, py) {
