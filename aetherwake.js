@@ -27,6 +27,7 @@ const STATE = {
   DIALOGUE: 'dialogue', SHOP: 'shop', LEDGER: 'ledger',
   QUESTLOG: 'questlog', CHARSHEET: 'charsheet', AIRSHIP: 'airship',
   OPENING: 'opening', CHARCREATE: 'charcreate', SAVELOAD: 'saveload',
+  SETTINGS: 'settings',
 };
 let gameState = STATE.BOOT;
 window.gameState = gameState;  // expose for debug
@@ -107,6 +108,8 @@ let saveMenuFocus = null;
 let saveMenuReturnState = STATE.WORLD;
 let gamepadInputState = null;
 let userSettings = null;
+let settingsMenuFocus = null;
+let settingsMenuReturnState = STATE.MENU;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -562,6 +565,9 @@ function draw() {
   else if (gameState === STATE.MENU) {
     drawTitleScreen();
   }
+  else if (gameState === STATE.SETTINGS) {
+    drawSettingsOverlay();
+  }
   else if (gameState === STATE.OPENING) {
     drawFirstWakeOpening();
   }
@@ -900,6 +906,10 @@ function handleInput() {
     // (intentionally fall through — MENU handler below also runs)
   }
   if (gameState === STATE.MENU) {
+    if (semanticActionPressed('open-settings')) {
+      openUserSettingsMenu();
+      return;
+    }
     if (keysPressed[67] || (typeof key !== 'undefined' && (key === 'c' || key === 'C'))) {
       continueLatestSave();
       return;
@@ -917,6 +927,11 @@ function handleInput() {
         window._charcreate && typeof window._charcreate.handleInput === 'function') {
       window._charcreate.handleInput(keys, keysPressed);
     }
+    return;
+  }
+
+  if (gameState === STATE.SETTINGS) {
+    handleSettingsInput();
     return;
   }
 
@@ -1457,6 +1472,175 @@ function drawSaveLoadOverlay() {
   }
   fill(C.scioto[0], C.scioto[1], C.scioto[2]);
   text('↑/↓ focus   ←/→ mode   ENTER confirm   ESC return', 90, height - 46);
+}
+
+function syncSettingsMenuFocusSnapshot() {
+  if (!settingsMenuFocus || !window.AetherFocusManager) {
+    window._settingsMenuFocus = null;
+    return;
+  }
+  window._settingsMenuFocus = window.AetherFocusManager.snapshot(settingsMenuFocus);
+}
+
+function openUserSettingsMenu(preferredKey) {
+  settingsMenuReturnState = gameState === STATE.MENU ? STATE.MENU : gameState;
+  const items = window.AetherUserSettings.SETTING_ORDER.slice();
+  settingsMenuFocus = window.AetherFocusManager.createState(items, preferredKey || items[0]);
+  syncSettingsMenuFocusSnapshot();
+  gameState = STATE.SETTINGS;
+  window.gameState = gameState;
+  menuAutoStartTimer = 0;
+}
+
+function persistUserSettings(nextSettings) {
+  try {
+    const saved = window.AetherUserSettings.save(nextSettings);
+    applyUserSettings(saved.settings);
+    window._userSettingsStorage = {
+      storageType: saved.storageType,
+      path: saved.path,
+      isDefault: false
+    };
+    showToast('SETTINGS SAVED', C.teal, 700);
+    return true;
+  } catch (error) {
+    console.error('USER_SETTINGS_SAVE_FAILED', error);
+    showToast('SETTINGS SAVE FAILED', C.rust, 1400);
+    return false;
+  }
+}
+
+function adjustUserSetting(key, delta) {
+  if (!userSettings || !key) return false;
+  const current = userSettings[key];
+  let nextValue = current;
+
+  if (Object.prototype.hasOwnProperty.call(window.AetherUserSettings.ENUMS, key)) {
+    const values = window.AetherUserSettings.ENUMS[key];
+    const index = values.indexOf(current);
+    const step = delta < 0 ? -1 : 1;
+    nextValue = values[(index + step + values.length) % values.length];
+  } else if (typeof current === 'boolean') {
+    nextValue = !current;
+  } else if (Number.isInteger(current)) {
+    const step = delta < 0 ? -10 : 10;
+    nextValue = Math.max(0, Math.min(100, current + step));
+  } else {
+    return false;
+  }
+
+  const next = window.AetherUserSettings.update(userSettings, { [key]: nextValue });
+  return persistUserSettings(next);
+}
+
+function handleSettingsInput() {
+  if (!settingsMenuFocus) openUserSettingsMenu();
+
+  if (semanticActionPressed('cancel')) {
+    gameState = settingsMenuReturnState || STATE.MENU;
+    window.gameState = gameState;
+    settingsMenuReturnState = STATE.MENU;
+    menuAutoStartTimer = 0;
+    return;
+  }
+  if (semanticActionPressed('ui-up')) {
+    window.AetherFocusManager.move(settingsMenuFocus, -1);
+    syncSettingsMenuFocusSnapshot();
+  }
+  if (semanticActionPressed('ui-down')) {
+    window.AetherFocusManager.move(settingsMenuFocus, 1);
+    syncSettingsMenuFocusSnapshot();
+  }
+
+  const focusedKey = window.AetherFocusManager.focusedId(settingsMenuFocus);
+  if (semanticActionPressed('ui-left')) adjustUserSetting(focusedKey, -1);
+  if (semanticActionPressed('ui-right') || semanticActionPressed('confirm')) {
+    adjustUserSetting(focusedKey, 1);
+  }
+}
+
+function userSettingLabel(key) {
+  const labels = {
+    textScale: 'TEXT SCALE',
+    highContrastUI: 'HIGH CONTRAST UI',
+    reducedMotion: 'REDUCED MOTION',
+    screenShake: 'SCREEN SHAKE',
+    subtitles: 'SUBTITLES',
+    subtitleSize: 'SUBTITLE SIZE',
+    subtitleBackground: 'SUBTITLE BACKGROUND',
+    speakerLabels: 'SPEAKER LABELS',
+    musicVolume: 'MUSIC VOLUME',
+    effectsVolume: 'EFFECTS VOLUME',
+    dialogueVolume: 'DIALOGUE VOLUME',
+    textSpeed: 'TEXT SPEED',
+    controllerVibration: 'CONTROLLER VIBRATION'
+  };
+  return labels[key] || key.toUpperCase();
+}
+
+function userSettingValue(key) {
+  const value = userSettings ? userSettings[key] : null;
+  if (typeof value === 'boolean') return value ? 'ON' : 'OFF';
+  if (Number.isInteger(value)) return value + '%';
+  if (key === 'textScale') return value + '%';
+  return String(value || '').toUpperCase();
+}
+
+function drawSettingsOverlay() {
+  background(C.navy[0], C.navy[1], C.navy[2]);
+  drawBackgroundGrid();
+
+  const x = 92, y = 42, w = width - 184, h = height - 84;
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 245);
+  rect(x, y, w, h);
+  drawPixelBorder(x, y, w, h, 3);
+
+  textAlign(LEFT, TOP);
+  textFont('Press Start 2P');
+  textSize(13);
+  fill(C.teal[0], C.teal[1], C.teal[2]);
+  text('SETTINGS // ACCESSIBILITY & INPUT', x + 20, y + 16);
+
+  textFont('VT323');
+  textSize(14);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2]);
+  text('Changes save immediately. Integrated now: reduced motion, screen shake, text speed.', x + 20, y + 42);
+
+  const order = window.AetherUserSettings.SETTING_ORDER;
+  const focus = settingsMenuFocus ? window.AetherFocusManager.snapshot(settingsMenuFocus) : null;
+  const startY = y + 76;
+  const rowH = 32;
+
+  for (let i = 0; i < order.length; i++) {
+    const key = order[i];
+    const rowY = startY + i * rowH;
+    const selected = Boolean(focus && focus.index === i);
+
+    if (selected) {
+      fill(C.teal[0], C.teal[1], C.teal[2], 32);
+      rect(x + 14, rowY - 4, w - 28, 28);
+    }
+
+    textFont('Press Start 2P');
+    textSize(8);
+    fill(selected ? C.teal[0] : C.parchment[0],
+         selected ? C.teal[1] : C.parchment[1],
+         selected ? C.teal[2] : C.parchment[2]);
+    text((selected ? '▶ ' : '  ') + userSettingLabel(key), x + 26, rowY);
+
+    textAlign(RIGHT, TOP);
+    textFont('VT323');
+    textSize(15);
+    fill(C.scioto[0], C.scioto[1], C.scioto[2]);
+    text(userSettingValue(key), x + w - 28, rowY - 3);
+    textAlign(LEFT, TOP);
+  }
+
+  textFont('Press Start 2P');
+  textSize(8);
+  fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
+  text('↑/↓ focus   ←/→ change   ENTER change   ESC return', x + 20, y + h - 26);
 }
 
 function startGame() {
@@ -2173,8 +2357,9 @@ function drawBootSequence() {
   
   textSize(11 * v);
   fill(C.rust[0], C.rust[1], C.rust[2], 140 * v);
-  text('WASD  move  |  E  talk  |  Q  covenant  |  F  ship  |  Tab  sky/ground', cx, cy + 118);
-  text('L ledger | M shop | R char | T quest | F5 save | F9 load', cx, cy + 136);
+  const controlY = latestSaveMeta ? cy + 140 : cy + 122;
+  text('WASD  move  |  E  talk  |  Q  covenant  |  F  ship  |  Tab  sky/ground', cx, controlY);
+  text('L ledger | M shop | R char | T quest | F5 save | F9 load', cx, controlY + 18);
   
   textFont('Press Start 2P');
   textSize(8 * v);
@@ -2269,6 +2454,9 @@ function drawTitleScreen() {
     textSize(13);
     text('CONTINUE — C', cx, cy + 96);
   }
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 190);
+  textSize(13);
+  text('SETTINGS — S', cx, cy + (latestSaveMeta ? 114 : 96));
 
   textSize(11);
   fill(C.rust[0], C.rust[1], C.rust[2], 140);
