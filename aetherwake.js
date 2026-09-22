@@ -106,6 +106,7 @@ let saveMenuIndex = 0;
 let saveMenuFocus = null;
 let saveMenuReturnState = STATE.WORLD;
 let gamepadInputState = null;
+let userSettings = null;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -142,6 +143,61 @@ function semanticActionPressed(actionId) {
 
 function clearSemanticActions() {
   semanticActionsPressed.clear();
+}
+
+function applyUserSettings(settings) {
+  if (!window.AetherUserSettings ||
+      typeof window.AetherUserSettings.validateSettings !== 'function') {
+    throw new Error('AETHER_USER_SETTINGS_UNAVAILABLE');
+  }
+  window.AetherUserSettings.validateSettings(settings);
+  userSettings = JSON.parse(JSON.stringify(settings));
+
+  const reduceMotion = Boolean(userSettings.reducedMotion);
+  VIS.screenShake = !reduceMotion && userSettings.screenShake !== 'off';
+  VIS.fadeTransitions = !reduceMotion;
+  VIS.particles = !reduceMotion;
+  VIS.hudAnimations = !reduceMotion;
+
+  const textSpeeds = { slow: 38, normal: 22, fast: 12, instant: 0 };
+  dialogueTypeIn.speed = textSpeeds[userSettings.textSpeed];
+  VIS.dialogueTypeIn = userSettings.textSpeed !== 'instant';
+
+  window._userSettings = JSON.parse(JSON.stringify(userSettings));
+  window._appliedAccessibilitySettings = {
+    reducedMotion: reduceMotion,
+    screenShake: userSettings.screenShake,
+    textSpeed: userSettings.textSpeed
+  };
+  return window._userSettings;
+}
+
+function loadUserSettings() {
+  if (!window.AetherUserSettings ||
+      typeof window.AetherUserSettings.load !== 'function') {
+    throw new Error('AETHER_USER_SETTINGS_UNAVAILABLE');
+  }
+  try {
+    const loaded = window.AetherUserSettings.load();
+    applyUserSettings(loaded.settings);
+    window._userSettingsStorage = {
+      storageType: loaded.storageType,
+      path: loaded.path,
+      isDefault: loaded.isDefault
+    };
+    return loaded;
+  } catch (error) {
+    console.warn('USER_SETTINGS_LOAD_FAILED_DEFAULTING', error);
+    const fallback = window.AetherUserSettings.defaults();
+    applyUserSettings(fallback);
+    window._userSettingsStorage = {
+      storageType: 'memory-defaults',
+      path: null,
+      isDefault: true,
+      recoveredFromError: error.message
+    };
+    return { settings: fallback, storageType: 'memory-defaults', path: null, isDefault: true };
+  }
 }
 
 // ── setup() ──
@@ -221,6 +277,14 @@ function setup() {
   gamepadInputState = window.AetherGamepadInput.createState();
   window._gamepadInput = window.AetherGamepadInput;
   window._gamepadInputState = gamepadInputState;
+  if (!window.AetherUserSettings ||
+      typeof window.AetherUserSettings.load !== 'function' ||
+      typeof window.AetherUserSettings.save !== 'function' ||
+      typeof window.AetherUserSettings.validateSettings !== 'function') {
+    throw new Error('AETHER_USER_SETTINGS_UNAVAILABLE');
+  }
+  window._userSettingsSystem = window.AetherUserSettings;
+  loadUserSettings();
   refreshSaveIndex();
   window._saveSystem = window.AetherSaveSystem;
   if (!window.AetherCombatFormula ||
