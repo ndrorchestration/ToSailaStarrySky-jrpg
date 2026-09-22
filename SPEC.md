@@ -19,6 +19,33 @@ The current integrated runtime and the long-term architecture are not yet identi
 
 ---
 
+## 1.1 Desktop distribution contract
+
+### CURRENT IMPLEMENTATION
+
+The player desktop runtime is staged independently from the development repository:
+
+```text
+desktop package root/
+├── package.json        # minimal launcher manifest
+└── www/
+    ├── index-embedded.html
+    ├── aetherwake.js
+    ├── p5.min.js
+    ├── modules/
+    └── required runtime assets
+```
+
+The launcher manifest points to `www/index-embedded.html`. Windows packaging consumes only this staged runtime, not the repository root. The distribution pipeline produces a conventional per-user installer plus a portable ZIP fallback.
+
+### VERIFICATION RULE
+
+A compiled installer is not sufficient evidence of a working release. A player-facing installer may be called verified only when the **exact generated candidate** has been installed on Windows and the installed `Aetherwake.exe` has successfully launched through the release smoke gate.
+
+Current status as of 2026-09-22: launcher-layout correction is merged (`304835c12555e35061870a54d61f7c95996d0bdd`), but hosted CI is blocked before runner allocation; therefore no fresh installer is currently promoted as verified.
+
+---
+
 ## 2. Playable roster
 
 ### TARGET ARCHITECTURE

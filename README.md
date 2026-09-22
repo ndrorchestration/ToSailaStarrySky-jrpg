@@ -197,13 +197,23 @@ Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts includ
 
 ## Windows desktop package
 
-Use only a **verified Windows desktop release** for the simplest player path.
+The intended player experience is **download one Windows artifact, launch/install it, and run Aetherwake in its own resizable/maximizable desktop window**. Browser/HTTP instructions above are development and diagnostic paths, not the desired end-user experience.
+
+### Current release authority — 2026-09-22
+
+- The current desktop launcher architecture was corrected on `main` at commit `304835c12555e35061870a54d61f7c95996d0bdd`.
+- Production packaging now follows the RPG Maker MV/NW.js structural pattern used by the Memories reference: a minimal launcher-root `package.json` points to `www/index-embedded.html`, while the player runtime lives under `www/`.
+- Development-only files are excluded from the staged player runtime.
+- The release system produces **Aetherwake-Setup.exe** plus **Aetherwake-Windows.zip**, retains SHA-256 hashes, and requires the exact installer candidate to pass Windows install/launch verification before publication.
+- A local Windows fallback script, `scripts/build-windows-release.ps1`, performs build → installer compile → clean install → launch smoke → SHA-256 generation when hosted CI is unavailable.
+- Current GitHub-hosted verification is **blocked before execution**, not failing inside Aetherwake: Windows package run `35692454573` attempt 2 again ended with `runner_id: 0` and zero steps; smoke run `35692454657` showed the same runner-admission failure.
+- Therefore **no newly generated installer is currently authorized as verified player-facing output**. Older installers and self-extracting wrappers remain historical artifacts and should not be presented as the current answer merely because they compiled or passed an older CI lane.
+
+When a fresh candidate passes the exact Windows install/launch gate, the primary player artifact will be:
 
 - **Aetherwake-Setup.exe** — conventional per-user installer; no administrator elevation; creates normal Start Menu and desktop shortcuts.
-- **Aetherwake-Windows.zip** — no-installer fallback. Extract it completely, then run **Aetherwake.exe**.
+- **Aetherwake-Windows.zip** — portable fallback. Extract completely, then run **Aetherwake.exe**.
 
-The release pipeline now builds the Windows runtime and installer independently of Windows, preserves those candidate artifacts, then installs and launches the exact installer candidate on a pinned Windows runner. Publication is gated on that verification, so an installer is not presented as verified merely because it compiled.
+If Windows Defender flags an executable, do not whitelist or bypass it. Record the exact detection name and SHA-256 so the artifact can be audited.
 
-Older self-extracting/one-click wrappers are superseded and should not be used. If Windows Defender flags an executable, do not whitelist or bypass it; record the exact detection name and SHA-256.
-
-See `docs/DESKTOP_BUILD.md` for the packaging and verification contract.
+See `docs/DESKTOP_BUILD.md` for the canonical packaging and verification contract.

@@ -1,5 +1,7 @@
 > **Historical prototype audit — not current runtime SSOT.** This document records earlier preservation-era implementation checks, including 2D6/PbtA combat. Current runtime authority is `aetherwake.js` plus the loaded contract modules and current Notion SSOT. Do not treat the “delivered” labels below as current production semantics.
 
+> **Current desktop/release overlay — 2026-09-22.** The player-facing launcher has since been restructured around a clean RPG Maker MV/NW.js-style deployment: root launcher manifest → `www/index-embedded.html` → isolated `www/` payload. The correction is merged at `304835c12555e35061870a54d61f7c95996d0bdd`. Hosted verification is presently blocked before runner allocation (`runner_id: 0`, zero steps), so no fresh installer is currently promoted as verified. Any older packaging conclusions below are historical audit evidence only.
+
 # Aetherwake Spec Conformance Audit — gap_analysis.md
 > Status as of 2026-09-19. The `aetherwake.js` monolith has been expanded from 6,798 lines (when
 > this document was first authored) to 7,523 lines through three agent expansion squads (combat §6-§7,
