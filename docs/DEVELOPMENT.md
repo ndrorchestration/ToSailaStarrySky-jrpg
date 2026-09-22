@@ -6,6 +6,20 @@ Aetherwake is a late-prototype / pre-alpha project.
 
 The authoritative `main` line now contains the authored First Wake onboarding path, persistent `ROSTER[5]`, validated reference-based `ACTIVE_PARTY[1..5]`, the JRPG combat/formula and magic contract stack, open-sky navigation, live dialogue/shop/ledger paths, and fail-closed compatibility guards. The current source is newer than the last fully executed green checkpoint; when hosted runners are unavailable, preserve that verification distinction rather than treating runner-admission failures as code failures.
 
+## Desktop / release authority
+
+The current production desktop structure is intentionally separate from the development repository root.
+
+- `scripts/stage-memories-desktop.js` builds a clean staged runtime at `.desktop-runtime/`.
+- The staged launcher root contains a minimal `package.json` with `main: "www/index-embedded.html"`.
+- The game payload lives under `www/`; tests, docs, GitHub metadata, npm development files, and other repository-only material are not player-runtime authority.
+- `npm run package:windows` packages only that staged runtime.
+- `scripts/build-windows-release.ps1` is the maintainer-local Windows fallback and must reach `LOCAL_WINDOWS_RELEASE=PASS` only after build, installer compilation, clean installation, launch smoke, and hash generation.
+- Hosted CI currently cannot execute even checkout because jobs are receiving no runner. Treat `runner_id: 0` + zero steps as infrastructure/admission evidence, not as test evidence.
+- Do not call any new installer verified until the exact generated candidate has completed Windows install/launch verification.
+
+Launcher-layout correction lineage: `304835c12555e35061870a54d61f7c95996d0bdd`.
+
 ## Source-of-truth rules
 
 ### Runtime
