@@ -13,19 +13,19 @@ Implemented on this branch:
 - Save/Load focus with stable slot restoration and a non-color `▶` marker;
 - standard-mapping browser gamepad adapter using fresh `navigator.getGamepads()` polling;
 - context-prioritized controller semantics so one physical button does not emit contradictory actions;
-- controller dispatch for BOOT, title, Settings, authored First Wake opening, WORLD, dialogue, read-only overlays, and AIRSHIP;
+- controller dispatch for BOOT, title, Settings, authored First Wake opening, WORLD, dialogue, read-only overlays, COMBAT, SAVELOAD, and AIRSHIP;
 - bounded controller movement repeat matching the existing keyboard cadence;
 - independent schema-v1 user-settings persistence under `nw.App.dataPath/settings.json` with localStorage fallback;
 - Settings reachable before gameplay with keyboard **S** or controller **Menu**;
 - immediate application of Reduced Motion, Screen Shake, Text Speed, Effects Volume, and Dialogue Volume;
 - synthesized SFX loaded in the embedded runtime while preserving the historical authored default loudness;
-- a Playwright controller-parity regression that drives the real gamepad polling path through Settings, First Wake, WORLD, dialogue, and Dragonfly flight.
+- deterministic combat action focus with a non-color `▶` marker and canonical `resolveTurn()` activation;
+- single-press controller Save/Load through gameplay Menu → focused Save/Load overlay;
+- a Playwright controller-parity regression that drives the real gamepad polling path through Settings, First Wake, WORLD, Save/Load, dialogue, Dragonfly flight, and one focused combat action.
 
 Not yet established:
 
-- combat action focus/selection with controller;
 - player remapping UI and prompt rebinding;
-- single-press navigable controller Save/Load route;
 - Text Scale and High Contrast rendering;
 - subtitle size/background and speaker-label rendering;
 - controller vibration;
@@ -78,16 +78,14 @@ The remaining preferences are persisted and visible in Settings but are not desc
 - Dragonfly boarding;
 - altitude change, cast-off, movement, re-dock, and landing.
 
-Combat selection is deliberately excluded until combat has an explicit focus model.
+Combat selection now uses the shared focus model; the live parity lane moves focus and executes a focused action without emulating numeric keys.
 
 ## Next implementation tranche
 
-1. design controller combat focus and action execution around semantic actions rather than numbered-key emulation;
-2. provide navigable Save/Load access for controller users;
-3. implement remapping + dynamic prompt rebinding;
-4. integrate text scale, contrast, subtitles/speaker labels, and vibration;
-5. bind Music Volume only after the title/runtime music bus is canonical;
-6. execute the full exact-head lane when a runner is allocated and keep the benchmark fail-closed until then.
+1. implement remapping + dynamic prompt rebinding;
+2. integrate text scale, contrast, subtitles/speaker labels, and vibration;
+3. bind Music Volume only after the title/runtime music bus is canonical;
+4. execute the full exact-head lane when a runner is allocated and keep the benchmark fail-closed until then.
 
 ## Critical invariants
 
@@ -98,4 +96,4 @@ Combat selection is deliberately excluded until combat has an explicit focus mod
 - text advance remains player-controlled;
 - essential information cannot rely on sound or fixed color alone;
 - game save data and user settings remain independently versioned;
-- controller support is not called complete until combat, Save/Load access, remapping, rendering hooks, and exact-head execution are all proven.
+- controller/accessibility support is not called complete until remapping, remaining rendering hooks, and exact-head execution are all proven.
