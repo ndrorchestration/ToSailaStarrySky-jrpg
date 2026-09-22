@@ -1,9 +1,9 @@
 /* ============================================================
-   Aetherwake JRPG — Character Magic Profile v0.1
+   Aetherwake JRPG — Character Magic Profile v0.2
    modules/character-magic-profile.js
 
    Separates innate affinity from learned mastery. Affinity never
-   implies Rank 1+ mastery. This is a pure data/validation layer.
+   implies Rank 1+ mastery. This is a pure data/validation layer. Learned spells are tracked\n   separately from mastery and affinity.
    ============================================================ */
 
 (function (root, factory) {
@@ -50,7 +50,7 @@
 
   function freezeProfile(profile) {
     return Object.freeze({
-      schemaVersion: 1,
+      schemaVersion: 2,
       characterId: profile.characterId,
       affinityStatus: profile.affinityStatus,
       innateAffinities: Object.freeze(profile.innateAffinities.slice()),
@@ -58,6 +58,7 @@
         trees: Object.freeze(Object.assign({}, profile.mastery.trees)),
         domains: Object.freeze(Object.assign({}, profile.mastery.domains))
       }),
+      learnedSpells: Object.freeze(profile.learnedSpells.slice()),
       unlockedHybrids: Object.freeze(profile.unlockedHybrids.slice())
     });
   }
@@ -71,6 +72,7 @@
       affinityStatus: affinity.status,
       innateAffinities: affinity.innateAffinities,
       mastery: { trees: {}, domains: {} },
+      learnedSpells: [],
       unlockedHybrids: []
     });
   }
@@ -93,6 +95,22 @@
     }
 
     const normalizedMastery = mastery.normalizeProfile(profile.mastery || {});
+
+    const learnedSpells = profile.learnedSpells == null ? [] : profile.learnedSpells;
+    if (!Array.isArray(learnedSpells)) {
+      throw new Error('CHARACTER_MAGIC_PROFILE_LEARNED_SPELLS_MUST_BE_ARRAY');
+    }
+    const learnedSeen = new Set();
+    for (const spellId of learnedSpells) {
+      if (typeof spellId !== 'string' || !spellId) {
+        throw new Error('CHARACTER_MAGIC_PROFILE_INVALID_LEARNED_SPELL');
+      }
+      if (learnedSeen.has(spellId)) {
+        throw new Error('CHARACTER_MAGIC_PROFILE_DUPLICATE_LEARNED_SPELL:' + spellId);
+      }
+      learnedSeen.add(spellId);
+    }
+
     const unlockedHybrids = Array.isArray(profile.unlockedHybrids) ? profile.unlockedHybrids : [];
 
     return freezeProfile({
@@ -100,6 +118,7 @@
       affinityStatus: profile.affinityStatus || AFFINITY_RECORDS[profile.characterId].status,
       innateAffinities: profile.innateAffinities,
       mastery: normalizedMastery,
+      learnedSpells,
       unlockedHybrids
     });
   }
@@ -130,6 +149,7 @@
         trees: Object.assign({}, validated.mastery.trees),
         domains: Object.assign({}, validated.mastery.domains)
       },
+      learnedSpells: validated.learnedSpells,
       unlockedHybrids: validated.unlockedHybrids
     };
 
@@ -141,8 +161,32 @@
     return validateProfile(next);
   }
 
+  function knowsSpell(profile, spellId) {
+    if (typeof spellId !== 'string' || !spellId) {
+      throw new Error('CHARACTER_MAGIC_PROFILE_INVALID_LEARNED_SPELL');
+    }
+    return validateProfile(profile).learnedSpells.includes(spellId);
+  }
+
+  function withLearnedSpell(profile, spellId) {
+    if (typeof spellId !== 'string' || !spellId) {
+      throw new Error('CHARACTER_MAGIC_PROFILE_INVALID_LEARNED_SPELL');
+    }
+    const validated = validateProfile(profile);
+    if (validated.learnedSpells.includes(spellId)) return validated;
+
+    return validateProfile({
+      characterId: validated.characterId,
+      affinityStatus: validated.affinityStatus,
+      innateAffinities: validated.innateAffinities,
+      mastery: validated.mastery,
+      learnedSpells: validated.learnedSpells.concat(spellId),
+      unlockedHybrids: validated.unlockedHybrids
+    });
+  }
+
   return Object.freeze({
-    version: '0.1.0',
+    version: '0.2.0',
     runtimeStatus: 'PURE_PROFILE_NOT_PERSISTED',
     CHARACTER_IDS,
     AFFINITY_RECORDS,
@@ -150,6 +194,8 @@
     validateProfile,
     hasAffinity,
     rankFor,
-    withMasteryRank
+    withMasteryRank,
+    knowsSpell,
+    withLearnedSpell
   });
 });
