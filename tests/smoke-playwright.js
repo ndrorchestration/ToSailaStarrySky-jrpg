@@ -595,46 +595,6 @@ function createServer() {
       line.includes('[Turn 2]') && line.includes('Uncover Truth')),
       'turn 2 action text was not logged correctly');
 
-    const dedicatedResourceContract = await page.evaluate(() => {
-      const productionStats = window._world.player.productionStats;
-      const productionDerivedStats = window._world.player.productionDerivedStats;
-      window._combat.init({
-        vit: 13,
-        scrap: 7,
-        aether: { current: 4, max: 6 },
-        heat: { current: 1, max: 3 },
-        echoes: { current: 3, max: 3 },
-        charges: 0,
-        staffMax: 2,
-        level: 1,
-        xp: 0,
-        xpToNext: 50,
-        unlockedAbilities: ['uncoverTruth','sharedDream','mycelialLedger'],
-        productionStats,
-        productionDerivedStats,
-        productionStatModelVersion: '0.1.0',
-      });
-      window._combat.beginEncounter('skyPredator');
-      const before = window._combat.getState();
-      const result = window._combat.resolveTurn('staffStrike', null);
-      const after = window._combat.getState();
-      startCombat('skyPredator');
-      return {
-        result,
-        beforeTurn: before.turn,
-        afterTurn: after.turn,
-        reason: after.actionUseEligibility.staffStrike.reason,
-        log: after.log,
-      };
-    });
-    assert(dedicatedResourceContract.result === false,
-      'zero-charge Staff Strike was not rejected');
-    assert(dedicatedResourceContract.beforeTurn === 0 &&
-           dedicatedResourceContract.afterTurn === 0,
-      'zero-charge Staff Strike consumed a turn');
-    assert(dedicatedResourceContract.reason === 'insufficient_dedicated_resource',
-      'zero-charge Staff Strike did not expose dedicated-resource rejection');
-
     // Deterministic state-transition check. We test real keyboard combat
     // actions above; direct finishCombat avoids making the smoke test depend on
     // random damage rolls reaching victory.
@@ -694,6 +654,46 @@ function createServer() {
       'combat staff charges did not persist to canonical ROSTER[0]');
     assert(rosterAfterCombat.worldLeadRef && rosterAfterCombat.activeLeadRef,
       'canonical lead reference split after combat');
+
+    const dedicatedResourceContract = await page.evaluate(() => {
+      const productionStats = window._world.player.productionStats;
+      const productionDerivedStats = window._world.player.productionDerivedStats;
+      window._combat.init({
+        vit: 13,
+        scrap: 7,
+        aether: { current: 4, max: 6 },
+        heat: { current: 1, max: 3 },
+        echoes: { current: 3, max: 3 },
+        charges: 0,
+        staffMax: 2,
+        level: 1,
+        xp: 0,
+        xpToNext: 50,
+        unlockedAbilities: ['uncoverTruth','sharedDream','mycelialLedger'],
+        productionStats,
+        productionDerivedStats,
+        productionStatModelVersion: '0.1.0',
+      });
+      window._combat.beginEncounter('skyPredator');
+      const before = window._combat.getState();
+      const result = window._combat.resolveTurn('staffStrike', null);
+      const after = window._combat.getState();
+      startCombat('skyPredator');
+      return {
+        result,
+        beforeTurn: before.turn,
+        afterTurn: after.turn,
+        reason: after.actionUseEligibility.staffStrike.reason,
+        log: after.log,
+      };
+    });
+    assert(dedicatedResourceContract.result === false,
+      'zero-charge Staff Strike was not rejected');
+    assert(dedicatedResourceContract.beforeTurn === 0 &&
+           dedicatedResourceContract.afterTurn === 0,
+      'zero-charge Staff Strike consumed a turn');
+    assert(dedicatedResourceContract.reason === 'insufficient_dedicated_resource',
+      'zero-charge Staff Strike did not expose dedicated-resource rejection');
 
     if (errors.length) {
       throw new Error('browser errors:\n' + errors.join('\n'));
