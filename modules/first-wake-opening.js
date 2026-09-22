@@ -1,5 +1,5 @@
 /* ============================================================
-   Aetherwake JRPG — First Wake Opening Runtime v0.1
+   Aetherwake JRPG — First Wake Opening Runtime v0.4
    modules/first-wake-opening.js
 
    Executes the authored opening through the FIRST WAKE chapter card.
@@ -16,12 +16,15 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.6.0';
 
   const SCENES = Object.freeze([
     Object.freeze({
       id: 'arrival_horizon',
       sequence: 0,
+      visual: 'dock-horizon',
+      cinematic: true,
+      minimumTicks: 75,
       title: 'WAKE DOCK — LOWER VERDANT REACH',
       speaker: null,
       lines: Object.freeze([
@@ -33,6 +36,9 @@
     Object.freeze({
       id: 'ender_arrives',
       sequence: 1,
+      visual: 'arrival',
+      cinematic: true,
+      minimumTicks: 60,
       title: 'ARRIVAL',
       speaker: 'IONIA',
       lines: Object.freeze([
@@ -45,6 +51,7 @@
     Object.freeze({
       id: 'dock_walk',
       sequence: 2,
+      visual: 'dock-walk',
       interactive: true,
       title: 'THE WALK TO THE WAKE',
       speaker: null,
@@ -57,6 +64,9 @@
     Object.freeze({
       id: 'berth_task',
       sequence: 3,
+      visual: 'berth',
+      interactive: true,
+      interaction: 'berth-task',
       title: 'A PLACE ABOARD',
       speaker: 'IONIA',
       lines: Object.freeze([
@@ -69,6 +79,9 @@
     Object.freeze({
       id: 'talen_staying',
       sequence: 4,
+      visual: 'talen',
+      interactive: true,
+      interaction: 'talen-beat',
       title: 'ARE YOU STAYING?',
       speaker: 'TALEN',
       lines: Object.freeze([
@@ -81,6 +94,7 @@
     Object.freeze({
       id: 'lyra_family',
       sequence: 5,
+      visual: 'household',
       title: 'THE HOUSEHOLD',
       speaker: 'LYRA',
       lines: Object.freeze([
@@ -93,6 +107,7 @@
     Object.freeze({
       id: 'wrong_song',
       sequence: 6,
+      visual: 'wrong-song',
       title: 'THE WRONG SONG',
       speaker: 'LYRA',
       lines: Object.freeze([
@@ -107,6 +122,7 @@
     Object.freeze({
       id: 'ionia_practical',
       sequence: 7,
+      visual: 'practical',
       title: 'MAKE IT PRACTICAL',
       speaker: 'IONIA',
       lines: Object.freeze([
@@ -119,6 +135,7 @@
     Object.freeze({
       id: 'core_walk',
       sequence: 8,
+      visual: 'core-walk',
       title: 'TO THE CORE',
       speaker: null,
       lines: Object.freeze([
@@ -131,6 +148,7 @@
     Object.freeze({
       id: 'first_wake_card',
       sequence: 9,
+      visual: 'chapter',
       title: 'AETHERWAKE',
       subtitle: 'CHAPTER I — FIRST WAKE',
       speaker: null,
@@ -147,9 +165,21 @@
     if (SCENES.length !== 10) throw new Error('FIRST_WAKE_OPENING_SCENE_COUNT_DRIFT');
     SCENES.forEach((scene, index) => {
       if (scene.sequence !== index) throw new Error('FIRST_WAKE_OPENING_SEQUENCE_DRIFT:' + scene.id);
-      if (!scene.id || !scene.title) throw new Error('FIRST_WAKE_OPENING_SCENE_INVALID:' + index);
-      if (scene.interactive && scene.id !== 'dock_walk') {
+      if (!scene.id || !scene.title || !scene.visual) throw new Error('FIRST_WAKE_OPENING_SCENE_INVALID:' + index);
+      if (scene.interactive && !['dock_walk', 'berth_task', 'talen_staying'].includes(scene.id)) {
         throw new Error('FIRST_WAKE_OPENING_INTERACTIVE_DRIFT:' + scene.id);
+      }
+      if (scene.id === 'berth_task' && scene.interaction !== 'berth-task') {
+        throw new Error('FIRST_WAKE_BERTH_TASK_CONTRACT_DRIFT');
+      }
+      if (scene.id === 'talen_staying' && scene.interaction !== 'talen-beat') {
+        throw new Error('FIRST_WAKE_TALEN_BEAT_CONTRACT_DRIFT');
+      }
+      if (scene.cinematic && (!Number.isInteger(scene.minimumTicks) || scene.minimumTicks < 1)) {
+        throw new Error('FIRST_WAKE_OPENING_CINEMATIC_TIMING_INVALID:' + scene.id);
+      }
+      if (!['dock-horizon','arrival','dock-walk','berth','talen','household','wrong-song','practical','core-walk','chapter'].includes(scene.visual)) {
+        throw new Error('FIRST_WAKE_OPENING_VISUAL_INVALID:' + scene.id);
       }
       if (!Array.isArray(scene.activePartyIds) || scene.activePartyIds.length < 1) {
         throw new Error('FIRST_WAKE_OPENING_PARTY_INVALID:' + scene.id);
@@ -170,9 +200,20 @@
       sceneIndex: 0,
       complete: false,
       appliedJoinIds: [],
+      sceneTicks: 0,
       dockWalk: {
         x: 0,
         max: 8,
+        ready: false,
+      },
+      berthTask: {
+        step: 0,
+        max: 3,
+        ready: false,
+      },
+      talenBeat: {
+        step: 0,
+        max: 2,
         ready: false,
       },
     };
@@ -188,11 +229,31 @@
   function advance(state) {
     if (!state || state.complete) return { state, event: null };
     const scene = currentScene(state);
-    if (scene.interactive && (!state.dockWalk || !state.dockWalk.ready)) {
+    if (scene.cinematic && state.sceneTicks < (scene.minimumTicks || 0)) {
       return {
         state,
-        event: Object.freeze({ type: 'interaction-required', interaction: 'dock-walk' }),
+        event: Object.freeze({ type: 'presentation-required', remainingTicks: (scene.minimumTicks || 0) - state.sceneTicks }),
       };
+    }
+    if (scene.interactive) {
+      if (scene.id === 'dock_walk' && (!state.dockWalk || !state.dockWalk.ready)) {
+        return {
+          state,
+          event: Object.freeze({ type: 'interaction-required', interaction: 'dock-walk' }),
+        };
+      }
+      if (scene.id === 'berth_task' && (!state.berthTask || !state.berthTask.ready)) {
+        return {
+          state,
+          event: Object.freeze({ type: 'interaction-required', interaction: 'berth-task' }),
+        };
+      }
+      if (scene.id === 'talen_staying' && (!state.talenBeat || !state.talenBeat.ready)) {
+        return {
+          state,
+          event: Object.freeze({ type: 'interaction-required', interaction: 'talen-beat' }),
+        };
+      }
     }
     const event = scene.joinCharacterId && !state.appliedJoinIds.includes(scene.joinCharacterId)
       ? Object.freeze({ type: 'party-join', characterId: scene.joinCharacterId })
@@ -207,6 +268,19 @@
 
     state.sceneIndex += 1;
     return { state, event };
+  }
+
+  function tickPresentation(state, ticks) {
+    if (!state || state.complete) return state;
+    const amount = Number.isFinite(ticks) ? Math.max(0, Math.floor(ticks)) : 1;
+    state.sceneTicks += amount;
+    return state;
+  }
+
+  function presentationReady(state) {
+    if (!state || state.complete) return true;
+    const scene = currentScene(state);
+    return !scene.cinematic || state.sceneTicks >= (scene.minimumTicks || 0);
   }
 
   function moveDock(state, delta) {
@@ -227,6 +301,44 @@
     return state.dockWalk.max > 0 ? state.dockWalk.x / state.dockWalk.max : 1;
   }
 
+  function interactBerth(state) {
+    if (!state || !state.berthTask) throw new Error('FIRST_WAKE_BERTH_TASK_STATE_REQUIRED');
+    const scene = currentScene(state);
+    if (scene.id !== 'berth_task') {
+      return { state, advanced: false, ready: Boolean(state.berthTask.ready), step: state.berthTask.step };
+    }
+    if (state.berthTask.ready) {
+      return { state, advanced: false, ready: true, step: state.berthTask.step };
+    }
+    state.berthTask.step = Math.min(state.berthTask.max, state.berthTask.step + 1);
+    state.berthTask.ready = state.berthTask.step >= state.berthTask.max;
+    return { state, advanced: true, ready: state.berthTask.ready, step: state.berthTask.step };
+  }
+
+  function berthTaskProgress(state) {
+    if (!state || !state.berthTask) throw new Error('FIRST_WAKE_BERTH_TASK_STATE_REQUIRED');
+    return state.berthTask.max > 0 ? state.berthTask.step / state.berthTask.max : 1;
+  }
+
+  function interactTalen(state) {
+    if (!state || !state.talenBeat) throw new Error('FIRST_WAKE_TALEN_BEAT_STATE_REQUIRED');
+    const scene = currentScene(state);
+    if (scene.id !== 'talen_staying') {
+      return { state, advanced: false, ready: Boolean(state.talenBeat.ready), step: state.talenBeat.step };
+    }
+    if (state.talenBeat.ready) {
+      return { state, advanced: false, ready: true, step: state.talenBeat.step };
+    }
+    state.talenBeat.step = Math.min(state.talenBeat.max, state.talenBeat.step + 1);
+    state.talenBeat.ready = state.talenBeat.step >= state.talenBeat.max;
+    return { state, advanced: true, ready: state.talenBeat.ready, step: state.talenBeat.step };
+  }
+
+  function talenBeatProgress(state) {
+    if (!state || !state.talenBeat) throw new Error('FIRST_WAKE_TALEN_BEAT_STATE_REQUIRED');
+    return state.talenBeat.max > 0 ? state.talenBeat.step / state.talenBeat.max : 1;
+  }
+
   function expectedPartyIds(state) {
     return currentScene(state).activePartyIds.slice();
   }
@@ -240,8 +352,14 @@
     createState,
     currentScene,
     advance,
+    tickPresentation,
+    presentationReady,
     moveDock,
     dockWalkProgress,
+    interactBerth,
+    berthTaskProgress,
+    interactTalen,
+    talenBeatProgress,
     expectedPartyIds,
   });
 });
