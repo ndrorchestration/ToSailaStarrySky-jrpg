@@ -57,7 +57,10 @@
       weatherId: WEATHER.some(w=>w.id===o.weatherId)?o.weatherId:'clear',
       discovered: Array.isArray(o.discovered)?o.discovered.slice():['wake-dock'],
       discoveredRoutes: Array.isArray(o.discoveredRoutes)?o.discoveredRoutes.slice():[],
-      mooredLandmarkId: typeof o.mooredLandmarkId==='string'?o.mooredLandmarkId:null,
+      mooredLandmarkId: (typeof o.mooredLandmarkId==='string' &&
+        LANDMARKS.some(mark=>mark.id===o.mooredLandmarkId && mark.dockable &&
+          Math.hypot(mark.x-(Number.isFinite(o.x)?o.x:8),mark.y-(Number.isFinite(o.y)?o.y:22))<=1.5))
+        ? o.mooredLandmarkId : null,
       encounterSteps: Number.isInteger(o.encounterSteps)?Math.max(0,o.encounterSteps):0,
       encounterSeed: Number.isInteger(o.encounterSeed)?o.encounterSeed:0,
     };
@@ -97,7 +100,7 @@
   function dock(state) {
     const next=createState(state), check=dockingCheck(next);
     if (!check.available) return {ok:false,state:next,landmark:null};
-    next.mooredLandmarkId=check.landmark.id; next.speed=0;
+    next.mooredLandmarkId=check.landmark.id; next.speed=0; next.encounterSteps=0;
     return {ok:true,state:next,landmark:check.landmark};
   }
   function undock(state) {
@@ -105,9 +108,15 @@
   }
   function move(state,dx,dy) {
     const next=createState(state);
+    const startX=next.x, startY=next.y;
     next.x=clamp(next.x+dx*next.speed,0,SKY_WIDTH-1);
     next.y=clamp(next.y+dy*next.speed,0,SKY_HEIGHT-1);
-    if(dx||dy) { next.mooredLandmarkId=null; next.heading=Math.atan2(dy,dx); next.encounterSteps += Math.max(1, next.speed); }
+    const traveled=Math.abs(next.x-startX)+Math.abs(next.y-startY);
+    if(traveled>0) {
+      next.mooredLandmarkId=null;
+      next.heading=Math.atan2(dy,dx);
+      next.encounterSteps += traveled;
+    }
     for(const mark of LANDMARKS){
       if(Math.hypot(mark.x-next.x,mark.y-next.y)<=2 && !next.discovered.includes(mark.id)) next.discovered.push(mark.id);
     }
