@@ -136,6 +136,7 @@
   function changeAltitude(state,delta){
     const next=createState(state), i=ALTITUDES.indexOf(next.altitude);
     next.altitude=ALTITUDES[clamp(i+delta,0,ALTITUDES.length-1)];
+    next.weatherId=weatherAt(next).id;
     return next;
   }
   return {VERSION,SKY_WIDTH,SKY_HEIGHT,ALTITUDES:ALTITUDES.slice(),LANDMARKS:LANDMARKS.map(x=>Object.assign({},x)),SKY_ROUTES:SKY_ROUTES.map(x=>Object.assign({},x)),WEATHER:WEATHER.map(x=>Object.assign({},x)),WEATHER_ZONES:WEATHER_ZONES.map(x=>Object.assign({},x)),SKY_ENCOUNTERS:SKY_ENCOUNTERS.map(x=>Object.assign({},x)),ENCOUNTER_STEP_THRESHOLD,createState,nearestLandmark,weatherAt,dockingCheck,dock,undock,move,encounterCheck,changeAltitude};
