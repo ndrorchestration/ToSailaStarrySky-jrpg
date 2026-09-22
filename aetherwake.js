@@ -475,13 +475,45 @@ function keyPressed() {
       return;
     }
 
+    if (openingScene && openingScene.id === 'berth_task' && keyCode === 69) {
+      const berth = opening.interactBerth(openingState);
+      const berthSteps = ['BERTH CLEARED', 'PANEL ALIGNED', 'BAG PLACED // A PLACE ABOARD'];
+      if (berth.advanced) {
+        showToast(berthSteps[Math.max(0, berth.step - 1)], berth.ready ? C.teal : C.scioto, 1100);
+      }
+      delete keysPressed[keyCode];
+      if (typeof ensureAudio === 'function') ensureAudio();
+      if (typeof resumeAudio === 'function') resumeAudio();
+      return;
+    }
+
+    if (openingScene && openingScene.id === 'talen_staying' && keyCode === 69) {
+      const talen = opening.interactTalen(openingState);
+      const talenSteps = ['TALEN: ARE YOU STAYING HERE NOW?', 'A SMALL WAKE IS LEFT ON YOUR DESK'];
+      if (talen.advanced) {
+        showToast(talenSteps[Math.max(0, talen.step - 1)], talen.ready ? C.teal : C.scioto, 1200);
+      }
+      delete keysPressed[keyCode];
+      if (typeof ensureAudio === 'function') ensureAudio();
+      if (typeof resumeAudio === 'function') resumeAudio();
+      return;
+    }
+
     if (keyCode === 13 || keyCode === 32) {
       const beforeScene = openingScene;
       const beforeIndex = openingState && openingState.sceneIndex;
       advanceFirstWakeOpening();
-      if (beforeScene && beforeScene.id === 'dock_walk' &&
-          openingState && openingState.sceneIndex === beforeIndex) {
-        showToast('MOVE RIGHT TOWARD THE AUREATE WAKE', C.scioto, 1100);
+      if (beforeScene && openingState && openingState.sceneIndex === beforeIndex) {
+        if (beforeScene.cinematic && typeof opening.presentationReady === 'function' &&
+            !opening.presentationReady(openingState)) {
+          // Minimum cinematic dwell is still active; no warning toast needed.
+        } else if (beforeScene.id === 'dock_walk') {
+          showToast('MOVE RIGHT TOWARD THE AUREATE WAKE', C.scioto, 1100);
+        } else if (beforeScene.id === 'berth_task') {
+          showToast('PRESS E TO WORK ON THE BERTH', C.scioto, 1100);
+        } else if (beforeScene.id === 'talen_staying') {
+          showToast('PRESS E TO RESPOND TO TALEN', C.scioto, 1100);
+        }
       }
       delete keysPressed[keyCode];
       if (typeof ensureAudio === 'function') ensureAudio();
@@ -845,6 +877,7 @@ function drawFirstWakeOpening() {
   const visual = window.AetherFirstWakeVisual;
   if (!opening || !state) return;
   const scene = opening.currentScene(state);
+  if (typeof opening.tickPresentation === 'function') opening.tickPresentation(state, 1);
 
   if (visual && typeof visual.draw === 'function') {
     push();
