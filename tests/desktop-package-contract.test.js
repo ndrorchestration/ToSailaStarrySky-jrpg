@@ -25,10 +25,10 @@ assert(workflow.includes('npm run test:desktop-package'),
   'desktop workflow must run the packaging contract before building');
 assert(workflow.includes('npm run package:windows'),
   'desktop workflow must build the Windows package');
-assert(workflow.includes('Create one-click Windows launcher'),
-  'desktop workflow must create the one-click Windows launcher');
-assert(workflow.includes('Aetherwake-OneClick.exe'),
-  'desktop workflow must publish the one-click Windows executable');
+assert(workflow.includes('Inno Setup'),
+  'desktop workflow must build the standard Windows installer');
+assert(workflow.includes('Aetherwake-Setup.exe'),
+  'desktop workflow must publish the standard Windows installer');
 assert(workflow.includes('Aetherwake-Windows.zip'),
   'desktop workflow must publish a named Windows ZIP fallback');
 
