@@ -16,13 +16,20 @@ Do not use superseded self-extracting/SFX artifacts. If Windows Defender flags a
 
 ## For maintainers
 
-The package is built by GitHub Actions from a tagged commit or by manually dispatching the **Windows desktop package** workflow. The workflow builds the NW.js package, compiles the standard Inno Setup installer, installs and launches that installer in CI, and publishes the installer plus ZIP fallback for tagged/manual releases.
+The release path is intentionally split into three gates:
+
+1. **Build candidate on Linux.** NW.js produces the Windows x64 runtime, then NSIS creates a conventional per-user installer. The portable ZIP, installer, and SHA-256 manifest are retained as a candidate artifact.
+2. **Verify on Windows.** A pinned Windows runner downloads that exact candidate, silently installs it into a clean directory, verifies `Aetherwake.exe` exists, launches it, and requires the process to remain alive through the launch smoke. The portable ZIP layout is checked too.
+3. **Publish only after verification.** Tagged/manual releases cannot publish until the Windows verification job passes.
+
+This means Windows runner availability is no longer required to *create and preserve* the Windows candidate, but an installer is never represented as verified without an actual Windows install/launch test.
 
 Local build requirements:
 
-- Windows or a compatible NW.js build environment
 - Node.js 22+
 - npm
+- NSIS for installer compilation
+- Windows for final install/launch verification
 
 Local commands:
 
@@ -40,7 +47,8 @@ The desktop shell must:
 - preserve the 960×640 initial canvas;
 - run without Python or a separately started HTTP server;
 - keep the browser-served path available as a fallback;
-- publish Aetherwake-Setup.exe as the primary player artifact;
+- build and preserve Aetherwake-Setup.exe plus Aetherwake-Windows.zip before verification;
+- publish the installer only after the exact candidate passes a real Windows install/launch smoke;
 - install per-user without requiring administrator elevation or the pre-install startup confirmation;
 - publish Aetherwake-Windows.zip as the manual fallback;
 - fail visibly if packaging or the entry point is invalid.
