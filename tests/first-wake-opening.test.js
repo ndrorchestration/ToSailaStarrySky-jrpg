@@ -1,10 +1,11 @@
 const assert = require('assert');
 const opening = require('../modules/first-wake-opening.js');
 
-assert.strictEqual(opening.VERSION, '0.2.0');
+assert.strictEqual(opening.VERSION, '0.3.0');
 assert.strictEqual(opening.validate(), true);
 assert.strictEqual(opening.SCENES.length, 10);
 assert.strictEqual(opening.SCENES[0].id, 'arrival_horizon');
+assert.strictEqual(opening.SCENES[2].interactive, true);
 assert.strictEqual(opening.SCENES[6].id, 'wrong_song');
 assert.strictEqual(opening.SCENES[6].joinCharacterId, 'lyra');
 assert.deepStrictEqual(opening.SCENES[6].activePartyIds, ['ender']);
@@ -19,7 +20,21 @@ assert(!opening.SCENES.some(scene => scene.activePartyIds.includes('ionia')),
 const state = opening.createState();
 assert.deepStrictEqual(opening.expectedPartyIds(state), ['ender']);
 
-for (let i = 0; i < 6; i++) opening.advance(state);
+opening.advance(state);
+opening.advance(state);
+assert.strictEqual(opening.currentScene(state).id, 'dock_walk');
+const blocked = opening.advance(state);
+assert(blocked.event && blocked.event.type === 'interaction-required');
+assert.strictEqual(opening.currentScene(state).id, 'dock_walk');
+assert.strictEqual(opening.dockWalkProgress(state), 0);
+
+for (let i = 0; i < 8; i++) opening.moveDock(state, 1);
+assert.strictEqual(opening.dockWalkProgress(state), 1);
+assert.strictEqual(state.dockWalk.ready, true);
+opening.advance(state);
+assert.strictEqual(opening.currentScene(state).id, 'berth_task');
+
+for (let i = 0; i < 3; i++) opening.advance(state);
 assert.strictEqual(opening.currentScene(state).id, 'wrong_song');
 assert.deepStrictEqual(opening.expectedPartyIds(state), ['ender']);
 const join = opening.advance(state);
