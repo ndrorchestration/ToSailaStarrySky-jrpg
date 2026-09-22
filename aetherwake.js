@@ -117,6 +117,30 @@ const keys = {};
 const keysPressed = {};
 const keyRepeat = {};
 const keyRepeatFirst = {};
+const semanticActionsPressed = new Set();
+
+function refreshSemanticActionsFromKeyboard() {
+  semanticActionsPressed.clear();
+  if (!window.AetherInputActions ||
+      typeof window.AetherInputActions.actionsForKeyboardEvent !== 'function') {
+    window._lastSemanticActions = [];
+    return;
+  }
+  const actions = window.AetherInputActions.actionsForKeyboardEvent(
+    { keyCode: (typeof keyCode === 'number' ? keyCode : null), key: (typeof key !== 'undefined' ? key : null) },
+    gameState
+  );
+  for (const action of actions) semanticActionsPressed.add(action);
+  window._lastSemanticActions = actions.slice();
+}
+
+function semanticActionPressed(actionId) {
+  return semanticActionsPressed.has(actionId);
+}
+
+function clearSemanticActions() {
+  semanticActionsPressed.clear();
+}
 
 // ── setup() ──
 function setup() {
@@ -174,6 +198,13 @@ function setup() {
       typeof window.AetherSavePayloadValidator.validatePayload !== 'function') {
     throw new Error('AETHER_SAVE_PAYLOAD_VALIDATOR_UNAVAILABLE');
   }
+  if (!window.AetherInputActions ||
+      typeof window.AetherInputActions.actionsForKeyboardEvent !== 'function' ||
+      typeof window.AetherInputActions.validate !== 'function') {
+    throw new Error('AETHER_INPUT_ACTIONS_UNAVAILABLE');
+  }
+  window.AetherInputActions.validate();
+  window._inputActions = window.AetherInputActions;
   refreshSaveIndex();
   window._saveSystem = window.AetherSaveSystem;
   if (!window.AetherCombatFormula ||
@@ -564,30 +595,35 @@ let interactionKey = null;
 function keyPressed() {
   keys[keyCode] = true;
   keysPressed[keyCode] = true;
+  refreshSemanticActionsFromKeyboard();
 
-  if ((gameState === STATE.WORLD || gameState === STATE.AIRSHIP) && keyCode === 116) {
+  if (semanticActionPressed('manual-save')) {
     openSaveLoadMenu('save');
     delete keysPressed[keyCode];
+    clearSemanticActions();
     return false;
   }
-  if ((gameState === STATE.WORLD || gameState === STATE.AIRSHIP) && keyCode === 120) {
+  if (semanticActionPressed('manual-load')) {
     openSaveLoadMenu('load');
     delete keysPressed[keyCode];
+    clearSemanticActions();
     return false;
   }
 
-  if (gameState === STATE.OPENING && (keyCode === 13 || keyCode === 32)) {
+  if (gameState === STATE.OPENING && semanticActionPressed('confirm')) {
     advanceFirstWakeOpening();
     delete keysPressed[keyCode];
+    clearSemanticActions();
     if (typeof ensureAudio === 'function') ensureAudio();
     if (typeof resumeAudio === 'function') resumeAudio();
     return;
   }
 
   if (gameState === STATE.WORLD && quest && quest.state === QUEST_STATES.WAKE &&
-      (keyCode === 13 || keyCode === 32)) {
+      semanticActionPressed('confirm')) {
     advanceWake();
     delete keysPressed[keyCode];
+    clearSemanticActions();
     if (typeof ensureAudio === 'function') ensureAudio();
     if (typeof resumeAudio === 'function') resumeAudio();
     return;
@@ -652,6 +688,7 @@ function keyPressed() {
 
   // DEBUG
   window._lastKeyEvent = { type: 'keyPressed', keyCode: keyCode, key: (typeof key !== 'undefined' ? key : null), gameState: gameState };
+  clearSemanticActions();
 }
 
 function keyReleased() {
@@ -783,12 +820,12 @@ function handleInput() {
   else if (gameState === STATE.DIALOGUE) {
     // Dialogue is a real overlay state, so its confirm key must be handled
     // here instead of falling through to the generic close-only overlay path.
-    if (keysPressed[69] || keysPressed[13] || keysPressed[32]) {
+    if (semanticActionPressed('interact') || semanticActionPressed('confirm')) {
       if (world && typeof world.nextDialogueLine === 'function') {
         world.nextDialogueLine();
       }
     }
-    if (keysPressed[27]) closeOverlay();
+    if (semanticActionPressed('cancel')) closeOverlay();
   }
   else if (gameState === STATE.AIRSHIP) {
     handleAirNavigationInput();
@@ -803,7 +840,7 @@ function handleInput() {
     if (combat && typeof combat.getState === 'function') {
       const combatState = combat.getState();
       if (combatState && combatState.encounterOver &&
-          (keysPressed[13] || keysPressed[32] || keysPressed[27])) {
+          (semanticActionPressed('confirm') || semanticActionPressed('cancel'))) {
         finishCombat();
         return;
       }
@@ -826,7 +863,7 @@ function handleInput() {
   }
   else {
     // Overlay states — ESC or Enter to close
-    if (keysPressed[ENTER] || keysPressed[27]) {
+    if (semanticActionPressed('confirm') || semanticActionPressed('cancel')) {
       closeOverlay();
     }
   }
@@ -859,7 +896,7 @@ function handleWorldInput() {
   if (keysPressed[81]) {   // Q
     if (world && typeof world.plantField === 'function') world.plantField();
   }
-  if (keysPressed[69]) {   // E
+  if (semanticActionPressed('interact')) {   // E
     if (gameState === STATE.DIALOGUE) {
       // Advance dialogue
       if (world && typeof world.nextDialogueLine === 'function') {
@@ -869,7 +906,7 @@ function handleWorldInput() {
       if (world && typeof world.interact === 'function') world.interact();
     }
   }
-  if (keysPressed[70]) {   // F
+  if (semanticActionPressed('board-or-flight')) {   // F
     if (world && typeof world.boardShip === 'function') {
       world.boardShip();
       if (world.player && world.player.shipBoarded) enterAirNavigation();
@@ -878,7 +915,7 @@ function handleWorldInput() {
   if (keysPressed[9]) {    // Tab
     if (world && typeof world.toggleLayer === 'function') world.toggleLayer();
   }
-  if (keysPressed[76]) {   // L
+  if (semanticActionPressed('ledger')) {   // L
     openState(STATE.LEDGER);
   }
   if (keysPressed[77]) {   // M
@@ -887,17 +924,17 @@ function handleWorldInput() {
       : true;
     if (shopOpened !== false) openState(STATE.SHOP);
   }
-  if (keysPressed[82]) {   // R
+  if (semanticActionPressed('character-sheet')) {   // R
     openState(STATE.CHARSHEET);
   }
-  if (keysPressed[84]) {   // T
+  if (semanticActionPressed('quest-log')) {   // T
     openState(STATE.QUESTLOG);
   }
-  if (keysPressed[116]) {  // F5
+  if (semanticActionPressed('manual-save')) {  // F5
     openSaveLoadMenu('save');
     return;
   }
-  if (keysPressed[120]) {  // F9
+  if (semanticActionPressed('manual-load')) {  // F9
     openSaveLoadMenu('load');
     return;
   }
@@ -907,7 +944,7 @@ function handleWorldInput() {
       startCombat('skyPredator');
     }
   }
-  if (keysPressed[27]) {   // ESC
+  if (semanticActionPressed('cancel')) {   // ESC
     closeOverlay();
   }
 }
