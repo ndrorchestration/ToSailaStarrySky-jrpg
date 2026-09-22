@@ -47,6 +47,21 @@ assert.deepStrictEqual(
   'E must map to altitude-up in AIRSHIP'
 );
 assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 68 }, 'world'),
+  ['move-right'],
+  'D must remain WORLD move-right'
+);
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 68 }, 'airship'),
+  ['airship-dock'],
+  'D must be AIRSHIP dock and must not also steer right'
+);
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 39 }, 'airship'),
+  ['move-right'],
+  'AIRSHIP right-arrow must steer right'
+);
+assert.deepStrictEqual(
   input.actionsForKeyboardEvent({ keyCode: 27 }, 'dialogue'),
   ['cancel'],
   'Escape must retain global cancel semantics'
