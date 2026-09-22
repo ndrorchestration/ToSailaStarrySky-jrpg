@@ -66,6 +66,9 @@ jobs:
       - name: Verify magic field reactions
         run: npm run test:magic-field-reactions
 
+      - name: Verify elemental spell trees
+        run: npm run test:elemental-spell-trees
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
