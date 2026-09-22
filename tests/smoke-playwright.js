@@ -229,11 +229,15 @@ function createServer() {
     assert(combatStart.player.productionStats &&
            combatStart.player.productionStats.spirit === 12,
       'combat state did not receive Ender production stats');
-    assert(window.AetherCombatSystemPolicy &&
-           window.AetherCombatSystemPolicy.TARGET.model === 'jrpg-stat-formula',
+    const productionFormulaRuntime = await page.evaluate(() => ({
+      policyModel: window.AetherCombatSystemPolicy &&
+        window.AetherCombatSystemPolicy.TARGET.model,
+      formulaVersion: window.AetherCombatFormula &&
+        window.AetherCombatFormula.VERSION,
+    }));
+    assert(productionFormulaRuntime.policyModel === 'jrpg-stat-formula',
       'production combat policy is not loaded');
-    assert(window.AetherCombatFormula &&
-           window.AetherCombatFormula.VERSION === '1.0.0',
+    assert(productionFormulaRuntime.formulaVersion === '1.0.0',
       'production formula engine is not loaded');
 
     // Level-1 progression must actually gate actions 6-8.
