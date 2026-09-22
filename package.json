@@ -72,6 +72,8 @@
     "test:overlay-contract": "node tests/runtime-overlay-contract.test.js",
     "test:input-runtime": "node tests/input-runtime-contract.test.js",
     "test:combat-runtime": "node tests/combat-runtime-contract.test.js",
+    "test:save-system": "node tests/save-system-contract.test.js",
+    "test:save-runtime": "node tests/save-runtime-contract.test.js",
     "stage:desktop": "node scripts/stage-memories-desktop.js",
     "test:cinematics": "node tests/cinematic-manifest-contract.test.js"
   }
