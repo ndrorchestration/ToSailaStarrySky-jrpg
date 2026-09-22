@@ -22,7 +22,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
 
   function deepFreeze(value) {
     if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
@@ -80,7 +80,11 @@
       type: 'ability',
       tier: 1,
       effectProfile: 'sharedDream',
-      desc: '2D6+Spirit. Ally +1 next action OR heal 1-2 Vit',
+      authorityStatus: 'legacy-adaptation-residue',
+      migrationStatus: 'blocked-by-current-ssot',
+      canonicalOwner: null,
+      ssotNote: 'Dreaming is plot-bound Talen access; do not migrate this action as an Ender formula ability.',
+      desc: 'Legacy compatibility action. Current ownership and production semantics are not authorized.',
     },
     mycelialLedger: {
       id: 'mycelialLedger',
@@ -90,7 +94,11 @@
       type: 'ability',
       tier: 0,
       effectProfile: 'mycelialLedger',
-      desc: '2D6+Presence. Gain scrap or aether',
+      authorityStatus: 'creator-aligned-exceptional-access',
+      migrationStatus: 'redesign-required-before-formula',
+      canonicalOwner: 'ender',
+      ssotNote: 'Commons Art: reveal relationships, dependencies, exchanges, obligations, and network structure.',
+      desc: 'Legacy compatibility action pending Commons-Arts production redesign.',
     },
     hold: {
       id: 'hold',
@@ -162,6 +170,15 @@
       if (typeof def.type !== 'string' || !def.type) {
         throw new Error('ABILITY_TYPE_INVALID:' + id);
       }
+      if (def.authorityStatus != null && typeof def.authorityStatus !== 'string') {
+        throw new Error('ABILITY_AUTHORITY_STATUS_INVALID:' + id);
+      }
+      if (def.migrationStatus != null && typeof def.migrationStatus !== 'string') {
+        throw new Error('ABILITY_MIGRATION_STATUS_INVALID:' + id);
+      }
+      if (def.canonicalOwner != null && typeof def.canonicalOwner !== 'string') {
+        throw new Error('ABILITY_CANONICAL_OWNER_INVALID:' + id);
+      }
       if (def.resolution &&
           (def.resolution.model !== 'jrpg-stat-formula' ||
            def.resolution.formulaId !== id)) {
@@ -171,6 +188,17 @@
         throw new Error('ABILITY_FORMULA_BINDING_MISSING:' + id);
       }
     });
+
+    if (DEFS.sharedDream.migrationStatus !== 'blocked-by-current-ssot' ||
+        DEFS.sharedDream.canonicalOwner !== null ||
+        DEFS.sharedDream.resolution) {
+      throw new Error('SHARED_DREAM_SSOT_GUARD_DRIFT');
+    }
+    if (DEFS.mycelialLedger.canonicalOwner !== 'ender' ||
+        DEFS.mycelialLedger.migrationStatus !== 'redesign-required-before-formula' ||
+        DEFS.mycelialLedger.resolution) {
+      throw new Error('MYCELIAL_LEDGER_SSOT_GUARD_DRIFT');
+    }
 
     const orphans = ids.filter(id => !ACTION_ORDER.includes(id));
     if (orphans.length) throw new Error('ABILITY_DEF_ORPHANS:' + orphans.join(','));
@@ -307,7 +335,8 @@
         throw new Error('RUNTIME_ACTION_ORDER_MISMATCH:' + expectedId);
       }
 
-      ['label', 'stat', 'cost', 'type', 'tier', 'effectProfile', 'desc'].forEach(key => {
+      ['label', 'stat', 'cost', 'type', 'tier', 'effectProfile', 'desc',
+       'authorityStatus', 'migrationStatus', 'canonicalOwner', 'ssotNote'].forEach(key => {
         if (action[key] !== expected[key]) {
           throw new Error('RUNTIME_ACTION_FIELD_MISMATCH:' + expectedId + ':' + key);
         }
