@@ -4542,6 +4542,9 @@ function AetherCombat(p, C) {
       abilityDesc: scaledTemplate.abilityDesc || null,
       color: scaledTemplate.color || null,
       bodyShape: scaledTemplate.bodyShape || null,
+      aetherDependent: scaledTemplate.aetherDependent === true
+        ? true
+        : (scaledTemplate.aetherDependent === false ? false : null),
     };
     state.turn = 0;
     state.encounterOver = false;
