@@ -66,6 +66,27 @@ result = pad.poll(gamepad([pad.BUTTON.MENU]), state, 'airship');
 assert.deepStrictEqual(result.pressed, ['open-save-load'],
   'Menu must open Save/Load from AIRSHIP');
 
+const bindingSystem = {
+  resolveGamepadButtonAction(bindings, index, context, defaultAction) {
+    if (context === 'world' && index === pad.BUTTON.LEFT_SHOULDER) return 'move-right';
+    return defaultAction;
+  },
+  resolveGamepadDirectionalAction(bindings, defaultAction) {
+    return defaultAction;
+  }
+};
+state = pad.createState();
+result = pad.poll(
+  gamepad([pad.BUTTON.LEFT_SHOULDER]),
+  state,
+  'world',
+  { bindingsSystem: bindingSystem, bindings: { test: true } }
+);
+assert(result.pressed.includes('move-right'),
+  'remapped movement button must emit an initial movement edge');
+assert(result.held.includes('move-right'),
+  'remapped movement button must remain in the held stream for repeat cadence');
+
 state = pad.createState();
 result = pad.poll(gamepad([pad.BUTTON.SOUTH]), state, 'world', { wakeResolution: true });
 assert.deepStrictEqual(result.pressed, ['confirm'],
