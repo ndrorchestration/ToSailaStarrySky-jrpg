@@ -4,11 +4,12 @@ Aetherwake retains its HTTP-served browser path for development and automated sm
 
 ## For players
 
-Download the Windows package artifact, extract the ZIP completely, and double-click:
+1. Download **Aetherwake-Windows.zip**.
+2. Extract the ZIP completely to a normal folder.
+3. Open the extracted folder.
+4. Double-click **Aetherwake.exe**.
 
-`Aetherwake.exe`
-
-Do not run the executable from inside the ZIP. Keep the extracted folder intact because the executable loads the game files beside it.
+The executable opens Aetherwake in its own resizable, maximizable game window. Do not open `index.html` or `index-embedded.html`; those are development/fallback files. Do not run the executable from inside the ZIP. Keep the extracted folder intact because the executable loads the game files beside it.
 
 ## For maintainers
 
@@ -40,4 +41,4 @@ The desktop shell must:
 - keep the browser-served path available as a fallback;
 - fail visibly if packaging or the entry point is invalid.
 
-The packaged build does not change gameplay semantics; it only supplies the desktop runtime container.
+The packaged build does not change gameplay semantics; it supplies the desktop runtime container.
