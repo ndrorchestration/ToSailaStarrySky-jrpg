@@ -8880,7 +8880,7 @@ function drawCombatPanel(combatState) {
     const usable = unlocked && (!useEligibility || useEligibility.canUse);
     const focused = action.id === focusedCombatActionId;
     if (focused) {
-      fill(PAL.TEAL[0], PAL.TEAL[1], PAL.TEAL[2], 30);
+      fill(42, 255, 181, 30);
       noStroke();
       rect(aX + 4, ay - 1, aW - 8, actH);
     }
