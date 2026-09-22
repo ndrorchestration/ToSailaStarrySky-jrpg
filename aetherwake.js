@@ -236,6 +236,7 @@ function inputPrompt(actionId, context, device) {
     device || 'both'
   );
 }
+window.AetherInputPrompt = inputPrompt;
 
 function applyUserSettings(settings) {
   if (!window.AetherUserSettings ||
@@ -667,6 +668,30 @@ function dispatchGamepadActions(result) {
     return true;
   }
 
+  if (gameState === STATE.CONTROLS) {
+    const rawPressed = Array.isArray(result.rawPressedButtons)
+      ? result.rawPressedButtons
+      : [];
+
+    if (inputBindingCapture && inputBindingCapture.device === 'gamepad') {
+      if (!rawPressed.length) return false;
+      if (rawPressed.includes(window.AetherGamepadInput.BUTTON.EAST)) {
+        cancelInputBindingCapture();
+        return true;
+      }
+      commitGamepadBindingCapture(rawPressed[0]);
+      return true;
+    }
+
+    if (!pressed.length) return false;
+    semanticActionsPressed.clear();
+    for (const action of pressed) semanticActionsPressed.add(action);
+    window._lastSemanticActions = pressed.slice();
+    handleControlsInput();
+    clearSemanticActions();
+    return true;
+  }
+
   if (gameState === STATE.SAVELOAD) {
     if (!pressed.length) return false;
     semanticActionsPressed.clear();
@@ -937,6 +962,9 @@ function draw() {
   else if (gameState === STATE.SETTINGS) {
     drawSettingsOverlay();
   }
+  else if (gameState === STATE.CONTROLS) {
+    drawControlsOverlay();
+  }
   else if (gameState === STATE.OPENING) {
     drawFirstWakeOpening();
   }
@@ -1086,6 +1114,14 @@ function draw() {
 let interactionKey = null;
 
 function keyPressed() {
+  if (gameState === STATE.CONTROLS &&
+      inputBindingCapture &&
+      inputBindingCapture.device === 'keyboard') {
+    if (keyCode === 8) cancelInputBindingCapture();
+    else commitKeyboardBindingCapture(keyCode);
+    return false;
+  }
+
   keys[keyCode] = true;
   keysPressed[keyCode] = true;
   refreshSemanticActionsFromKeyboard();
@@ -1301,6 +1337,11 @@ function handleInput() {
 
   if (gameState === STATE.SETTINGS) {
     handleSettingsInput();
+    return;
+  }
+
+  if (gameState === STATE.CONTROLS) {
+    handleControlsInput();
     return;
   }
 
