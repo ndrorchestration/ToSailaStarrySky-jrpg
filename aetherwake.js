@@ -541,6 +541,14 @@ function dispatchGamepadActions(result) {
     return false;
   }
 
+  if (gameState === STATE.OPENING) {
+    if (pressed.includes('confirm')) {
+      advanceFirstWakeOpening();
+      return true;
+    }
+    return false;
+  }
+
   if (gameState === STATE.MENU) {
     if (pressed.includes('open-settings')) {
       openUserSettingsMenu();
@@ -607,6 +615,14 @@ function dispatchGamepadActions(result) {
       return true;
     }
     if (pressed.includes('cancel')) {
+      closeOverlay();
+      return true;
+    }
+    return false;
+  }
+
+  if ([STATE.LEDGER, STATE.QUESTLOG, STATE.CHARSHEET].includes(gameState)) {
+    if (pressed.includes('confirm') || pressed.includes('cancel')) {
       closeOverlay();
       return true;
     }
