@@ -36,13 +36,15 @@ assert(Object.isFrozen(vocabulary.ACTION_EFFECT_PROFILES), 'effect profiles must
 const uncoverSuccess = vocabulary.ACTION_EFFECT_PROFILES.uncoverTruth.success;
 assert(uncoverSuccess.some(effect =>
   effect.kind === vocabulary.EFFECT_KIND.REVEAL &&
-  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.DECLARED_NOT_APPLIED
-), 'Uncover Truth reveal debt must remain explicit');
+  effect.key === 'weakness' &&
+  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED
+), 'Uncover Truth weakness reveal must be implemented');
 
 assert(uncoverSuccess.some(effect =>
   effect.kind === vocabulary.EFFECT_KIND.MODIFIER &&
-  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.DECLARED_NOT_APPLIED
-), 'Uncover Truth next-roll modifier debt must remain explicit');
+  effect.key === 'nextDamageMultiplier' &&
+  effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED
+), 'Uncover Truth analysis modifier must be implemented');
 
 const sharedDreamSuccess = vocabulary.ACTION_EFFECT_PROFILES.sharedDream.success;
 assert(sharedDreamSuccess.some(effect =>
@@ -58,9 +60,11 @@ console.log(JSON.stringify({
   version: vocabulary.VERSION,
   kinds: Object.values(vocabulary.EFFECT_KIND),
   actionProfiles: Object.keys(vocabulary.ACTION_EFFECT_PROFILES),
-  declaredNotApplied: [
+  implementedAnalysis: [
     'uncoverTruth.reveal',
-    'uncoverTruth.nextRoll',
+    'uncoverTruth.nextDamageMultiplier',
+  ],
+  declaredNotApplied: [
     'sharedDream.nextRoll',
   ],
 }, null, 2));
