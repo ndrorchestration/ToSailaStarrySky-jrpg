@@ -51,4 +51,15 @@ assert(source.includes("semanticActionPressed('ledger')"),
 assert(source.includes("semanticActionPressed('cancel')"),
   'cancel/close must consume semantic action input');
 
+assert(source.includes('function syncSaveMenuFocusSnapshot()'),
+  'save/load overlay must expose deterministic focus state');
+assert(source.includes('window.AetherFocusManager.createState(slots'),
+  'save/load overlay must create focus through the shared focus manager');
+assert(source.includes("semanticActionPressed('ui-up')"),
+  'save/load focus must consume semantic UI navigation');
+assert(source.includes("semanticActionPressed('ui-down')"),
+  'save/load focus must consume semantic UI navigation');
+assert(source.includes("'▶ '"),
+  'focused save slot must have a non-color-only visual marker');
+
 console.log('Aetherwake input runtime contract: PASS');
