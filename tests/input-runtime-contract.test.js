@@ -104,4 +104,11 @@ assert(source.includes("pressed.includes('confirm')") &&
        source.includes('activateCombatFocusedAction();'),
   'controller combat Confirm must activate the focused action');
 
+assert(source.includes("semanticActionPressed('open-save-load')"),
+  'keyboard runtime must expose a focused Save/Load entry action');
+assert(source.includes("pressed.includes('open-save-load')"),
+  'controller runtime must expose a focused Save/Load entry action');
+assert(source.includes("if (gameState === STATE.SAVELOAD)"),
+  'controller dispatcher must handle the Save/Load overlay semantically');
+
 console.log('Aetherwake input runtime contract: PASS');
