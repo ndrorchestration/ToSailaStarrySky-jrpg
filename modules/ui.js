@@ -1098,10 +1098,10 @@ function drawCharSheet(px, py, pw, ph) {
   textFont(FONT_BODY);
   textSize(13);
   const abils = [
-    'Uncover Truth  (2D6+Wits)',
-    'Shared Dream   (2D6+Spirit)',
-    'Mycelial Ledger (2D6+Presence)',
-    'Resonator Staff: EMP 1d6+2',
+    'Uncover Truth: Analyze weakness',
+    'Shared Dream: Legacy / SSOT blocked',
+    'Mycelial Ledger: Commons analysis',
+    'Resonator Staff: EMP formula attack',
   ];
   abils.forEach((a, i) => {
     const ay = sheet.abilitiesY + 22 + i * 18;
@@ -1491,11 +1491,13 @@ function drawCombatLog(lx, ly, lw, lh) {
 }
 
 // ─────────────────────────────────────────────
-// DICE ROLL DISPLAY (2D6)
+// LEGACY COMPATIBILITY DICE DISPLAY (2D6)
 // ─────────────────────────────────────────────
 
 /**
- * Draw a 2D6 dice roll result with PbtA framing.
+ * Legacy compatibility helper only. Production-native player actions do not
+ * use PbtA outcome bands. Keep this isolated until all compatibility actions
+ * and historical presentation paths are retired.
  * @param {number} result — sum of 2D6 (2..12)
  * @param {string} description — what was rolled (e.g. 'Uncover Truth + Wits')
  * @param {number} cx, cy — center position
