@@ -103,6 +103,7 @@ let loadedPlaytimeMs = 0;
 let playSessionStartMs = 0;
 let saveMenuMode = 'save';
 let saveMenuIndex = 0;
+let saveMenuFocus = null;
 let saveMenuReturnState = STATE.WORLD;
 
 // Expose state for debugging
@@ -205,6 +206,12 @@ function setup() {
   }
   window.AetherInputActions.validate();
   window._inputActions = window.AetherInputActions;
+  if (!window.AetherFocusManager ||
+      typeof window.AetherFocusManager.createState !== 'function' ||
+      typeof window.AetherFocusManager.move !== 'function') {
+    throw new Error('AETHER_FOCUS_MANAGER_UNAVAILABLE');
+  }
+  window._focusManager = window.AetherFocusManager;
   refreshSaveIndex();
   window._saveSystem = window.AetherSaveSystem;
   if (!window.AetherCombatFormula ||
@@ -1232,14 +1239,26 @@ function continueLatestSave() {
   return loadFromSlot(latestSaveMeta.slot);
 }
 
-function openSaveLoadMenu(mode) {
+function syncSaveMenuFocusSnapshot() {
+  if (!saveMenuFocus || !window.AetherFocusManager) {
+    window._saveMenuFocus = null;
+    return;
+  }
+  const snapshot = window.AetherFocusManager.snapshot(saveMenuFocus);
+  saveMenuIndex = snapshot.index;
+  window._saveMenuFocus = snapshot;
+}
+
+function openSaveLoadMenu(mode, preferredSlot) {
   if (!canSaveNow() && mode === 'save') {
     showToast('CANNOT SAVE HERE', C.rust, 1400);
     return;
   }
   saveMenuReturnState = gameState === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
   saveMenuMode = mode === 'load' ? 'load' : 'save';
-  saveMenuIndex = 0;
+  const slots = window.AetherSaveSystem.MANUAL_SLOTS;
+  saveMenuFocus = window.AetherFocusManager.createState(slots, preferredSlot || slots[0]);
+  syncSaveMenuFocusSnapshot();
   refreshSaveIndex();
   gameState = STATE.SAVELOAD;
   window.gameState = gameState;
@@ -1247,24 +1266,35 @@ function openSaveLoadMenu(mode) {
 
 function handleSaveLoadInput() {
   const slots = window.AetherSaveSystem.MANUAL_SLOTS;
-  if (keysPressed[27]) {
+  if (!saveMenuFocus) {
+    saveMenuFocus = window.AetherFocusManager.createState(slots, slots[0]);
+    syncSaveMenuFocusSnapshot();
+  }
+
+  if (semanticActionPressed('cancel')) {
     gameState = saveMenuReturnState;
     window.gameState = gameState;
     return;
   }
-  if (keysPressed[LEFT_ARROW] || keysPressed[RIGHT_ARROW]) {
+  if (semanticActionPressed('ui-left') || semanticActionPressed('ui-right')) {
     saveMenuMode = saveMenuMode === 'save' ? 'load' : 'save';
   }
-  if (keysPressed[UP_ARROW]) saveMenuIndex = (saveMenuIndex + slots.length - 1) % slots.length;
-  if (keysPressed[DOWN_ARROW]) saveMenuIndex = (saveMenuIndex + 1) % slots.length;
-  if (keysPressed[13] || keysPressed[32]) {
-    const slot = slots[saveMenuIndex];
+  if (semanticActionPressed('ui-up')) {
+    window.AetherFocusManager.move(saveMenuFocus, -1);
+    syncSaveMenuFocusSnapshot();
+  }
+  if (semanticActionPressed('ui-down')) {
+    window.AetherFocusManager.move(saveMenuFocus, 1);
+    syncSaveMenuFocusSnapshot();
+  }
+  if (semanticActionPressed('confirm')) {
+    const slot = window.AetherFocusManager.focusedId(saveMenuFocus);
     if (saveMenuMode === 'save') {
       const returnState = saveMenuReturnState;
       gameState = returnState;
       window.gameState = gameState;
       saveToSlot(slot, false);
-      openSaveLoadMenu('save');
+      openSaveLoadMenu('save', slot);
     } else if (loadFromSlot(slot)) {
       return;
     }
@@ -1297,7 +1327,7 @@ function drawSaveLoadOverlay() {
     fill(i === saveMenuIndex ? C.teal[0] : C.parchment[0],
          i === saveMenuIndex ? C.teal[1] : C.parchment[1],
          i === saveMenuIndex ? C.teal[2] : C.parchment[2]);
-    text('SLOT ' + (i + 1), 100, y);
+    text((i === saveMenuIndex ? '▶ ' : '  ') + 'SLOT ' + (i + 1), 100, y);
     textFont('VT323');
     textSize(15);
     if (meta && meta.exists && meta.valid) {
@@ -1315,7 +1345,7 @@ function drawSaveLoadOverlay() {
     textSize(9);
   }
   fill(C.scioto[0], C.scioto[1], C.scioto[2]);
-  text('↑/↓ slot   ENTER confirm   ESC return   F5 save   F9 load', 90, height - 46);
+  text('↑/↓ focus   ←/→ mode   ENTER confirm   ESC return', 90, height - 46);
 }
 
 function startGame() {
