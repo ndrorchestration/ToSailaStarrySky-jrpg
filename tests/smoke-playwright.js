@@ -1101,7 +1101,9 @@ function createServer() {
 
     console.log('Aetherwake smoke test: PASS');
     console.log(JSON.stringify({
-      party: review,
+      openingBootstrap,
+      beforeLyraJoin,
+      afterLyraJoin,
       partyArchitecture,
       enemyMetadataContract,
       affordabilityContract,
