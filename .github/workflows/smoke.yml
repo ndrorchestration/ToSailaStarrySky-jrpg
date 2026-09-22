@@ -132,6 +132,9 @@ jobs:
       - name: Verify save runtime integration
         run: npm run test:save-runtime
 
+      - name: Verify semantic save payload validation
+        run: npm run test:save-payload
+
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
