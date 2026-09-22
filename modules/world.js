@@ -1,3 +1,7 @@
+// MIRROR NOTICE: This file is not the runtime authority. The live WORLD implementation
+// is the bundled "// === modules/world.js ===" section inside /aetherwake.js.
+// Keep canon-critical facts aligned here because audits/tests may inspect this mirror.
+
 /* ============================================================
    aetherwake-jrpg/modules/world.js
    World / Map / Quest module for the Aetherwake JRPG.
@@ -383,7 +387,7 @@ function initQuest() {
     discoveries: [],      // lore tiles discovered so far
   journal: [
     { state: 'signal', text: 'Ender boards the Aureate Wake, the last solarpunk airship still flying. The sky is copper above a copper-blighted world. The Wake\'s core is singing wrong.' },
-    { state: 'crossing', text: 'Three hazards wait between Ender and the core\'s song. Each one tests whether the Wake can still fly.' },
+    { state: 'crossing', text: 'Four hazards wait between Ender and the core\'s song. Each one tests whether the Wake can still fly.' },
     { state: 'contact', text: 'Ender meets the four voices. Each one has a price and a plan. None of them can decide alone.' },
     { state: 'choice', text: 'The core is singing wrong. Ender has to choose what song it should sing instead.' }
   ],          // auto-populated journal entries
@@ -394,8 +398,9 @@ function initQuest() {
       { id: 'below_frequency', label: 'Below-Frequency Caller', done: false }
     ],
     crossingHazards: [
-      { id: 'sky_predator', label: 'Sky-Predator', done: false, stat: 'grace' },
-      { id: 'wind_shear', label: 'Harmonic Shear', done: false, stat: 'grace' },
+      { id: 'sky_predator', label: 'Sky-Predator', done: false, stat: 'might' },
+      { id: 'wind_shear', label: 'Wind Shear', done: false, stat: 'grace' },
+      { id: 'aether_leak', label: 'Aether Leak', done: false, stat: 'wits' },
       { id: 'corporate_intercept', label: 'Corporate Intercept', done: false, stat: 'might' }
     ],
     contactNPCs: [
@@ -524,7 +529,7 @@ function advanceSignal() {
   if (quest.hooksCompleted >= 3) {
     quest.state = QUEST_STATES.CROSSING;
     quest.act = 'crossing';
-    appendJournalEntry('crossing', 'The sky cracked open — three hazards block the way to the Aureate Wake. The core is waiting.');
+    appendJournalEntry('crossing', 'The sky cracked open — four hazards block the way to the Aureate Wake. The core is waiting.');
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   } else if (quest.hooksCompleted >= 1) {
     appendJournalEntry('signal', 'You picked up the first thread of the song. The Wake is talking to you.');
@@ -532,7 +537,7 @@ function advanceSignal() {
 }
 
 function advanceCrossing() {
-  if (quest.hazardsCompleted >= 3) {
+  if (quest.hazardsCompleted >= 4) {
     quest.state = QUEST_STATES.CONTACT;
     quest.act = 'contact';
     appendJournalEntry('contact', 'The crossing behind you. Four souls ahead. The core hums between them like a held breath.');
@@ -642,6 +647,11 @@ function checkHazardProximity(tx, ty) {
   if (ty <= 5 && tx >= 15 && tx <= 25 && !quest.crossingHazards[2].done) {
     if (Math.random() < 0.08) {
       completeHazard(2);
+    }
+  }
+  if (tx >= 4 && tx <= 12 && ty >= 9 && ty <= 16 && !quest.crossingHazards[3].done) {
+    if (Math.random() < 0.12) {
+      completeHazard(3);
     }
   }
 }
