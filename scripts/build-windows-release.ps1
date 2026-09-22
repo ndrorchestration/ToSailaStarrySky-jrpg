@@ -37,10 +37,11 @@ if (-not $makensis) {
 
 $nsi = Join-Path $OutputDir "Aetherwake-Setup.nsi"
 $source = $package.FullName.Replace('\','\\')
-@"
+$outFile = (Join-Path $OutputDir "Aetherwake-Setup.exe").Replace('\','\\')
+$template = @'
 Unicode true
 Name "Aetherwake"
-OutFile "$OutputDir\Aetherwake-Setup.exe"
+OutFile "__OUTPUT__"
 InstallDir "$LOCALAPPDATA\Programs\Aetherwake"
 RequestExecutionLevel user
 SetCompressor /SOLID lzma
@@ -50,7 +51,7 @@ Page instfiles
 
 Section "Aetherwake" SEC_MAIN
   SetOutPath "$INSTDIR"
-  File /r "$source\*"
+  File /r "__SOURCE__\*"
   CreateShortCut "$DESKTOP\Aetherwake.lnk" "$INSTDIR\Aetherwake.exe"
   CreateDirectory "$SMPROGRAMS\Aetherwake"
   CreateShortCut "$SMPROGRAMS\Aetherwake\Aetherwake.lnk" "$INSTDIR\Aetherwake.exe"
@@ -63,7 +64,9 @@ Section "Uninstall"
   RMDir "$SMPROGRAMS\Aetherwake"
   RMDir /r "$INSTDIR"
 SectionEnd
-"@ | Set-Content -LiteralPath $nsi -Encoding UTF8
+'@
+$template.Replace('__OUTPUT__', $outFile).Replace('__SOURCE__', $source) |
+  Set-Content -LiteralPath $nsi -Encoding UTF8
 
 & $makensis $nsi
 if ($LASTEXITCODE -ne 0) { throw "NSIS compilation failed with code $LASTEXITCODE." }
