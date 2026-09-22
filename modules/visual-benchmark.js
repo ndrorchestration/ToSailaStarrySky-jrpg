@@ -102,86 +102,18 @@
   }
 
   function drawDragonfly(ctx) {
-    const now = ctx.now || 0;
-    const x = ctx.x;
-    const y = ctx.y;
-    const pulse = 0.75 + Math.sin(now * 0.004) * 0.25;
-    const wing = Math.round(Math.sin(now * 0.0022) * 3);
-
-    push();
-    translate(Math.round(x), Math.round(y));
-
-    // Mooring shadow / dock contact.
-    noStroke();
-    fill(10, 12, 22, 75);
-    rect(-48, 19, 102, 8);
-
-    // Lower wings: translucent layered membrane with structural spars.
-    fill(78, 126, 151, 70);
-    rect(-22, -27 - wing, 48, 14);
-    rect(-22, 22 + wing, 48, 14);
-    fill(124, 200, 232, 52);
-    rect(-17, -23 - wing, 38, 7);
-    rect(-17, 25 + wing, 38, 7);
-
-    stroke(124, 200, 232, 105);
-    strokeWeight(1);
-    line(-20, -20 - wing, 18, -15 - wing);
-    line(-20, 29 + wing, 18, 24 + wing);
-    noStroke();
-
-    // Compact reinforced hull — roughly shipping-container proportions.
-    fill(36, 43, 55);
-    rect(-42, -12, 76, 25);
-    fill(77, 68, 63);
-    rect(-34, -16, 58, 5);
-    fill(118, 83, 58);
-    rect(-38, 10, 67, 5);
-
-    // Forward observation/helm glazing.
-    fill(38, 71, 86);
-    rect(24, -8, 17, 16);
-    fill(124, 200, 232, 135);
-    rect(28, -5, 10, 5);
-
-    // Articulated tail / stabilizer.
-    fill(47, 51, 61);
-    rect(-57, -5, 17, 10);
-    rect(-62, -11, 5, 22);
-    fill(124, 200, 232, 70);
-    rect(-63, -14, 2, 28);
-
-    // Aether core and shield nodes.
-    fill(42, 255, 181, Math.round(70 * pulse));
-    rect(-17, -7, 22, 14);
-    fill(205, 245, 232, Math.round(175 * pulse));
-    rect(-10, -3, 8, 6);
-    fill(42, 255, 181, Math.round(180 * pulse));
-    rect(10, -14, 3, 3);
-    rect(10, 12, 3, 3);
-    rect(-33, -14, 3, 3);
-    rect(-33, 12, 3, 3);
-
-    // Propulsion wake at idle — restrained, not a full thrust plume.
-    const wake = 8 + Math.round(Math.sin(now * 0.006) * 3);
-    fill(124, 200, 232, 60);
-    rect(-57 - wake, -2, wake, 4);
-    fill(42, 255, 181, 45);
-    rect(-55 - Math.floor(wake / 2), -1, Math.floor(wake / 2), 2);
-
-    // Warm lived-in windows.
-    fill(241, 174, 96, 155);
-    rect(-27, -7, 4, 3);
-    rect(-20, -7, 4, 3);
-
-    // Mooring lines tie visual hero object back to the real dock.
-    stroke(94, 75, 58, 170);
-    strokeWeight(1);
-    line(-22, 14, -40, 32);
-    line(18, 14, 36, 33);
-    noStroke();
-
-    pop();
+    const visual = root.AetherDragonflyVisual;
+    if (!visual || typeof visual.draw !== 'function') {
+      throw new Error('AETHER_DRAGONFLY_VISUAL_UNAVAILABLE');
+    }
+    return visual.draw({
+      mode: 'dock',
+      x: ctx.x,
+      y: ctx.y,
+      now: ctx.now || 0,
+      speed: 0,
+      heading: 0
+    });
   }
 
   function drawLighting(ctx) {
