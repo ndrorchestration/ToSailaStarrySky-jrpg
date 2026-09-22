@@ -20,6 +20,10 @@ const C = {
   shad:     [60, 50, 60],   // dark gray-violet for shadow fills (char-create module expects this)
   dim:      [80, 70, 90],   // muted blue-gray for labels/indicators (char-create module expects this)
 };
+const BASE_PALETTE = Object.freeze(
+  Object.fromEntries(Object.entries(C).map(([key, value]) => [key, value.slice()]))
+);
+
 
 // ── State ──
 const STATE = {
@@ -238,6 +242,82 @@ function inputPrompt(actionId, context, device) {
 }
 window.AetherInputPrompt = inputPrompt;
 
+function accessibilityTextScale() {
+  if (!userSettings || !userSettings.textScale) return 1;
+  const parsed = Number(userSettings.textScale);
+  return Number.isFinite(parsed) ? Math.max(1, Math.min(1.75, parsed / 100)) : 1;
+}
+
+function uiTextSize(baseSize) {
+  textSize(Math.max(6, Number(baseSize || 12) * accessibilityTextScale()));
+}
+
+function restorePalette() {
+  for (const [key, value] of Object.entries(BASE_PALETTE)) {
+    C[key] = value.slice();
+  }
+}
+
+function applyHighContrastPalette(enabled) {
+  restorePalette();
+  if (!enabled) return;
+  C.navy = [4, 5, 10];
+  C.parchment = [255, 255, 255];
+  C.scioto = [172, 226, 255];
+  C.teal = [32, 255, 180];
+  C.dusttan = [245, 218, 170];
+  C.rust = [255, 145, 82];
+  C.biolum = [110, 255, 145];
+  C.rose = [255, 150, 205];
+  C.shad = [15, 16, 24];
+  C.dim = [180, 190, 210];
+}
+
+function subtitleSizeMultiplier() {
+  if (!userSettings) return 1;
+  return {
+    medium: 0.9,
+    large: 1,
+    'extra-large': 1.25
+  }[userSettings.subtitleSize] || 1;
+}
+
+function subtitleBackgroundAlpha() {
+  if (!userSettings) return 90;
+  return {
+    off: 0,
+    soft: 90,
+    strong: 220
+  }[userSettings.subtitleBackground] ?? 90;
+}
+
+function maybeGamepadVibrate(kind) {
+  if (!userSettings || userSettings.controllerVibration === 'off' ||
+      typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function') {
+    return false;
+  }
+  let pads;
+  try { pads = navigator.getGamepads(); } catch (_) { return false; }
+  const pad = Array.from(pads || []).find(candidate => candidate && candidate.connected !== false);
+  if (!pad) return false;
+  const actuator = pad.vibrationActuator ||
+    (Array.isArray(pad.hapticActuators) ? pad.hapticActuators[0] : null);
+  if (!actuator || typeof actuator.playEffect !== 'function') return false;
+
+  const full = userSettings.controllerVibration === 'full';
+  const profile = kind === 'combat'
+    ? { duration: full ? 110 : 65, weakMagnitude: full ? 0.75 : 0.35, strongMagnitude: full ? 0.9 : 0.45 }
+    : { duration: full ? 55 : 35, weakMagnitude: full ? 0.45 : 0.22, strongMagnitude: full ? 0.55 : 0.28 };
+  try {
+    const result = actuator.playEffect('dual-rumble', profile);
+    if (result && typeof result.catch === 'function') result.catch(function() {});
+    window._lastVibrationRequest = { kind: kind || 'ui', profile };
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 function applyUserSettings(settings) {
   if (!window.AetherUserSettings ||
       typeof window.AetherUserSettings.validateSettings !== 'function') {
@@ -247,10 +327,13 @@ function applyUserSettings(settings) {
   userSettings = JSON.parse(JSON.stringify(settings));
 
   const reduceMotion = Boolean(userSettings.reducedMotion);
+  const highContrast = Boolean(userSettings.highContrastUI);
+  applyHighContrastPalette(highContrast);
   VIS.screenShake = !reduceMotion && userSettings.screenShake !== 'off';
   VIS.fadeTransitions = !reduceMotion;
   VIS.particles = !reduceMotion;
   VIS.hudAnimations = !reduceMotion;
+  VIS.vignette = !highContrast;
 
   const textSpeeds = { slow: 38, normal: 22, fast: 12, instant: 0 };
   dialogueTypeIn.speed = textSpeeds[userSettings.textSpeed];
@@ -267,8 +350,15 @@ function applyUserSettings(settings) {
   window._appliedAccessibilitySettings = {
     reducedMotion: reduceMotion,
     screenShake: userSettings.screenShake,
-    textSpeed: userSettings.textSpeed
+    textSpeed: userSettings.textSpeed,
+    textScale: userSettings.textScale,
+    highContrastUI: highContrast,
+    subtitleSize: userSettings.subtitleSize,
+    subtitleBackground: userSettings.subtitleBackground,
+    speakerLabels: userSettings.speakerLabels,
+    controllerVibration: userSettings.controllerVibration
   };
+  window._highContrastUI = highContrast;
   return window._userSettings;
 }
 
@@ -893,6 +983,9 @@ function pollGamepadDiagnostics() {
   }
   window._lastGamepadPoll = result;
   window._lastGamepadDispatchHandled = dispatchGamepadActions(result);
+  if (window._lastGamepadDispatchHandled && Array.isArray(result.pressed) && result.pressed.length) {
+    maybeGamepadVibrate(gameState === STATE.COMBAT ? 'combat' : 'ui');
+  }
   return result;
 }
 
@@ -3222,6 +3315,7 @@ function drawBackgroundGrid() {
 }
 
 function drawScanlines() {
+  if (window._highContrastUI) return;
   noFill();
   for (let y = 0; y < height; y += 3) {
     stroke(C.teal[0], C.teal[1], C.teal[2], 3);
