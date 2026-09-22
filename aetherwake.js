@@ -26,7 +26,7 @@ const STATE = {
   BOOT: 'boot', MENU: 'menu', WORLD: 'world', COMBAT: 'combat',
   DIALOGUE: 'dialogue', SHOP: 'shop', LEDGER: 'ledger',
   QUESTLOG: 'questlog', CHARSHEET: 'charsheet', AIRSHIP: 'airship',
-  OPENING: 'opening', CHARCREATE: 'charcreate',
+  OPENING: 'opening', CHARCREATE: 'charcreate', SAVELOAD: 'saveload',
 };
 let gameState = STATE.BOOT;
 window.gameState = gameState;  // expose for debug
@@ -97,6 +97,12 @@ let combat = null;
 let airNavigationState = null;
 let combatReturnState = STATE.WORLD;
 let pendingHazardIndex = null;
+let latestSaveMeta = null;
+let loadedPlaytimeMs = 0;
+let playSessionStartMs = 0;
+let saveMenuMode = 'save';
+let saveMenuIndex = 0;
+let saveMenuReturnState = STATE.WORLD;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -131,6 +137,7 @@ function setup() {
   }
   randomSeed(42);
   noiseSeed(42);
+  playSessionStartMs = millis();
 
   window._setupOrder = window._setupOrder + '→world-start';
   if (typeof window.AetherWorld !== 'undefined') {
@@ -157,6 +164,17 @@ function setup() {
     throw new Error('AETHER_COMBAT_SYSTEM_POLICY_UNAVAILABLE');
   }
   window.AetherCombatSystemPolicy.validate();
+  if (!window.AetherSaveSystem ||
+      typeof window.AetherSaveSystem.save !== 'function' ||
+      typeof window.AetherSaveSystem.load !== 'function') {
+    throw new Error('AETHER_SAVE_SYSTEM_UNAVAILABLE');
+  }
+  if (!window.AetherSavePayloadValidator ||
+      typeof window.AetherSavePayloadValidator.validatePayload !== 'function') {
+    throw new Error('AETHER_SAVE_PAYLOAD_VALIDATOR_UNAVAILABLE');
+  }
+  refreshSaveIndex();
+  window._saveSystem = window.AetherSaveSystem;
   if (!window.AetherCombatFormula ||
       typeof window.AetherCombatFormula.resolveAction !== 'function' ||
       typeof window.AetherCombatFormula.validateAgainstAbilityDefs !== 'function') {
@@ -270,6 +288,7 @@ function draw() {
     menuAutoStartTimer = millis();
   } else if (gameState === STATE.MENU &&
              menuAutoStartTimer > 0 &&
+             !latestSaveMeta &&
              millis() - menuAutoStartTimer > 3000) {
     startGame();
   }
@@ -418,6 +437,10 @@ function draw() {
     if (world && typeof world.render === 'function') world.render();
     drawCharSheetOverlay();
   }
+  else if (gameState === STATE.SAVELOAD) {
+    if (world && typeof world.render === 'function') world.render();
+    drawSaveLoadOverlay();
+  }
 
   // ── Vignette (intensifies at night) ──
   if (VIS.vignette) {
@@ -472,6 +495,17 @@ let interactionKey = null;
 function keyPressed() {
   keys[keyCode] = true;
   keysPressed[keyCode] = true;
+
+  if ((gameState === STATE.WORLD || gameState === STATE.AIRSHIP) && keyCode === 116) {
+    openSaveLoadMenu('save');
+    delete keysPressed[keyCode];
+    return false;
+  }
+  if ((gameState === STATE.WORLD || gameState === STATE.AIRSHIP) && keyCode === 120) {
+    openSaveLoadMenu('load');
+    delete keysPressed[keyCode];
+    return false;
+  }
 
   if (gameState === STATE.OPENING) {
     const opening = window.AetherFirstWakeOpening;
@@ -635,6 +669,10 @@ function keyPressed() {
 
   // Menu select sound
   if (gameState === STATE.MENU) {
+    if (keysPressed[67] || (typeof key !== 'undefined' && (key === 'c' || key === 'C'))) {
+      continueLatestSave();
+      return;
+    }
     if (keyCode === 13 || keyCode === 32 || keyCode === 78 || keyCode === 110) {
       if (typeof window.playMenuSelect === 'function') window.playMenuSelect();
     }
@@ -681,6 +719,11 @@ function keyTyped() {
   if (gameState === STATE.OPENING) {
     return;
   }
+  if (gameState === STATE.SAVELOAD) {
+    handleSaveLoadInput();
+    return;
+  }
+
   if (gameState === STATE.CHARCREATE) {
     if (window._charcreate && typeof window._charcreate.handleTypedChar === 'function') {
       window._charcreate.handleTypedChar(key);
@@ -910,6 +953,14 @@ function handleWorldInput() {
   if (keysPressed[84]) {   // T
     openState(STATE.QUESTLOG);
   }
+  if (keysPressed[116]) {  // F5
+    openSaveLoadMenu('save');
+    return;
+  }
+  if (keysPressed[120]) {  // F9
+    openSaveLoadMenu('load');
+    return;
+  }
   // C: start combat encounter (dev/testing — triggers a Sky-Predator fight)
   if (keysPressed[67]) {   // C
     if (combat && typeof combat.beginEncounter === 'function') {
@@ -927,6 +978,366 @@ function doMove(code) {
   if (code === DOWN_ARROW || code === 83)  world.movePlayer(0, 1);
   if (code === LEFT_ARROW || code === 65)  world.movePlayer(-1, 0);
   if (code === RIGHT_ARROW || code === 68) world.movePlayer(1, 0);
+}
+
+function buildLoadableSaveIndex() {
+  if (!window.AetherSaveSystem) return [];
+  const listing = window.AetherSaveSystem.list();
+  return listing.map(meta => {
+    if (!meta.exists || meta.valid === false) return meta;
+    try {
+      const loaded = window.AetherSaveSystem.load(meta.slot);
+      if (!loaded || !loaded.envelope) {
+        return { ...meta, valid: false, semanticValid: false, error: 'SAVE_ENVELOPE_MISSING' };
+      }
+      prepareSaveEnvelopeForApply(loaded.envelope);
+      return { ...meta, semanticValid: true };
+    } catch (error) {
+      return { ...meta, valid: false, semanticValid: false, error: error.message };
+    }
+  });
+}
+
+function refreshSaveIndex() {
+  try {
+    const classified = buildLoadableSaveIndex();
+    window._saveSlotIndex = classified;
+    latestSaveMeta = classified
+      .filter(entry => entry.exists && entry.valid !== false && entry.semanticValid === true && entry.savedAt)
+      .sort((a, b) => String(b.savedAt).localeCompare(String(a.savedAt)))[0] || null;
+  } catch (error) {
+    latestSaveMeta = null;
+    window._saveSlotIndex = [];
+    console.warn('SAVE_INDEX_REFRESH_FAILED', error);
+  }
+  window._latestSaveMeta = latestSaveMeta;
+  return latestSaveMeta;
+}
+
+function currentPlaytimeMs() {
+  const session = playSessionStartMs > 0 ? Math.max(0, millis() - playSessionStartMs) : 0;
+  return loadedPlaytimeMs + session;
+}
+
+function canSaveNow() {
+  if (!world || !world.player || gameOver) return false;
+  if (quest && quest.state === QUEST_STATES.WAKE) return false;
+  return gameState === STATE.WORLD || gameState === STATE.AIRSHIP;
+}
+
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function captureQuestStateForSave() {
+  return {
+    state: quest.state,
+    act: quest.act,
+    hooksCompleted: quest.hooksCompleted,
+    hazardsCompleted: quest.hazardsCompleted,
+    npcsMet: quest.npcsMet.slice(),
+    choiceMade: quest.choiceMade,
+    choiceVariant: quest.choiceVariant,
+    choicePath: quest.choicePath || null,
+    hullIntegrity: quest.hullIntegrity,
+    morale: quest.morale,
+    heatLevel: quest.heatLevel,
+    engineIntegration: quest.engineIntegration,
+    discoveries: cloneJson(quest.discoveries || []),
+    journal: cloneJson(quest.journal || []),
+    signalHooks: cloneJson(quest.signalHooks || []),
+    crossingHazards: cloneJson(quest.crossingHazards || []),
+    wakeEpilogueId: quest.wakeEpilogue ? quest.wakeEpilogue.id : null
+  };
+}
+
+function buildSavePayload() {
+  if (!canSaveNow()) throw new Error('SAVE_NOT_ALLOWED_IN_CURRENT_STATE');
+  return {
+    runtime: {
+      scene: gameState === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD,
+      dayTime,
+      skyLayerVisible: Boolean(isSkyLayerVisible),
+      playtimeMs: currentPlaytimeMs()
+    },
+    world: {
+      playerPosition: {
+        tileX: world.player.tileX, tileY: world.player.tileY,
+        px: world.player.px, py: world.player.py
+      },
+      covenantField: cloneJson(covenantField),
+      ledgerEntries: cloneJson(ledger.entries || [])
+    },
+    quest: captureQuestStateForSave(),
+    party: {
+      roster: window.ROSTER ? window.ROSTER.map(character => cloneJson(character)) : [],
+      activeIds: window.ACTIVE_PARTY ? window.ACTIVE_PARTY.map(character => character.id) : ['ender']
+    },
+    airNavigation: window.AetherAirNavigation && airNavigationState
+      ? window.AetherAirNavigation.exportPersistentState(airNavigationState)
+      : null
+  };
+}
+
+function saveMetadata() {
+  return {
+    gameVersion: '0.2.0',
+    playtimeMs: currentPlaytimeMs(),
+    chapter: 'Chapter I — First Wake',
+    location: gameState === STATE.AIRSHIP ? 'Open Sky' : 'Aureate Wake',
+    partySummary: window.ACTIVE_PARTY ? window.ACTIVE_PARTY.map(character => character.name || character.id) : ['Ender']
+  };
+}
+
+function saveToSlot(slot, autosave) {
+  if (!canSaveNow()) {
+    showToast('CANNOT SAVE HERE', C.rust, 1400);
+    return false;
+  }
+  try {
+    const payload = buildSavePayload();
+    const result = autosave
+      ? window.AetherSaveSystem.rotateAutosave(payload, saveMetadata())
+      : window.AetherSaveSystem.save(slot, payload, saveMetadata());
+    refreshSaveIndex();
+    window._lastSaveResult = result;
+    showToast(autosave ? 'AUTOSAVED' : 'GAME SAVED // ' + slot.toUpperCase(), C.teal, 1300);
+    return true;
+  } catch (error) {
+    window._lastSaveError = error.message;
+    console.error('SAVE_FAILED', error);
+    showToast('SAVE FAILED // ' + error.message, C.rust, 2200);
+    return false;
+  }
+}
+
+function autosave(reason) {
+  if (!canSaveNow()) return false;
+  const ok = saveToSlot(null, true);
+  if (ok) window._lastAutosaveReason = reason || 'checkpoint';
+  return ok;
+}
+
+function restoreQuestState(saved) {
+  if (!saved || typeof saved !== 'object') throw new Error('SAVE_QUEST_STATE_MISSING');
+  quest.state = saved.state;
+  quest.act = saved.act;
+  quest.hooksCompleted = saved.hooksCompleted;
+  quest.hazardsCompleted = saved.hazardsCompleted;
+  quest.npcsMet = Array.isArray(saved.npcsMet) ? saved.npcsMet.slice() : [];
+  quest.choiceMade = saved.choiceMade || null;
+  quest.choiceVariant = saved.choiceVariant || null;
+  quest.choicePath = saved.choicePath || null;
+  quest.hullIntegrity = saved.hullIntegrity;
+  quest.morale = saved.morale;
+  quest.heatLevel = saved.heatLevel;
+  quest.engineIntegration = saved.engineIntegration;
+  quest.discoveries = cloneJson(saved.discoveries || []);
+  quest.journal = cloneJson(saved.journal || []);
+  if (Array.isArray(saved.signalHooks)) quest.signalHooks = cloneJson(saved.signalHooks);
+  if (Array.isArray(saved.crossingHazards)) quest.crossingHazards = cloneJson(saved.crossingHazards);
+  quest.wakeEpilogue = saved.wakeEpilogueId
+    ? quest.epilogues.find(ep => ep.id === saved.wakeEpilogueId) || null
+    : null;
+  world.quest = quest;
+}
+
+function restorePartyState(saved) {
+  if (!saved || !Array.isArray(saved.roster) || saved.roster.length !== 5) {
+    throw new Error('SAVE_PARTY_ROSTER_INVALID');
+  }
+  if (!window.ROSTER || window.ROSTER.length !== 5) throw new Error('RUNTIME_ROSTER_UNAVAILABLE');
+  saved.roster.forEach((record, index) => {
+    const target = window.ROSTER[index];
+    if (!record || record.id !== target.id) throw new Error('SAVE_PARTY_IDENTITY_MISMATCH');
+    Object.assign(target, cloneJson(record));
+  });
+  const ids = Array.isArray(saved.activeIds) && saved.activeIds.length ? saved.activeIds : ['ender'];
+  window.AetherPartyState.setActivePartyIds(ids);
+  window.AetherPartyState.validate();
+}
+
+function prepareSaveEnvelopeForApply(envelope) {
+  if (!envelope || !envelope.payload) throw new Error('SAVE_ENVELOPE_PAYLOAD_MISSING');
+  const payload = cloneJson(envelope.payload);
+
+  window.AetherSavePayloadValidator.validatePayload(payload, {
+    validateAirNavigation: function(candidate) {
+      return window.AetherAirNavigation.validatePersistentState(candidate);
+    }
+  });
+
+  if (payload.quest.wakeEpilogueId &&
+      !quest.epilogues.some(ep => ep.id === payload.quest.wakeEpilogueId)) {
+    throw new Error('SAVE_QUEST_EPILOGUE_UNKNOWN');
+  }
+
+  if (window.AetherwakeCharacterMagicProfile &&
+      typeof window.AetherwakeCharacterMagicProfile.validateProfile === 'function') {
+    payload.party.roster.forEach(record => {
+      if (record.magicProfile) {
+        const validated = window.AetherwakeCharacterMagicProfile.validateProfile(record.magicProfile);
+        if (!validated || validated.characterId !== record.id) {
+          throw new Error('SAVE_PARTY_MAGIC_PROFILE_MISMATCH:' + record.id);
+        }
+      }
+    });
+  }
+
+  const preparedAirNavigation = payload.airNavigation
+    ? window.AetherAirNavigation.restorePersistentState(payload.airNavigation)
+    : null;
+
+  return Object.freeze({
+    payload,
+    preparedAirNavigation
+  });
+}
+
+function applySaveEnvelope(envelope) {
+  // All semantic validation and subsystem rehydration planning happens before
+  // the first mutation of canonical live runtime state.
+  const prepared = prepareSaveEnvelopeForApply(envelope);
+  const payload = prepared.payload;
+
+  restorePartyState(payload.party);
+  restoreQuestState(payload.quest);
+
+  const pos = payload.world.playerPosition;
+  world.player.tileX = pos.tileX; world.player.tileY = pos.tileY;
+  world.player.px = pos.px; world.player.py = pos.py;
+  covenantField = cloneJson(payload.world.covenantField);
+  ledger.entries = cloneJson(payload.world.ledgerEntries);
+
+  dayTime = payload.runtime.dayTime;
+  isSkyLayerVisible = payload.runtime.skyLayerVisible;
+  loadedPlaytimeMs = payload.runtime.playtimeMs;
+  playSessionStartMs = millis();
+
+  airNavigationState = prepared.preparedAirNavigation;
+  window._airNavigationState = airNavigationState;
+
+  gameOver = false;
+  pendingHazardIndex = null;
+  combatReturnState = STATE.WORLD;
+  gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
+  window.gameState = gameState;
+  prevState = null;
+  refreshSaveIndex();
+  showToast('GAME LOADED', C.teal, 1500);
+  return true;
+}
+
+function loadFromSlot(slot) {
+  try {
+    const loaded = window.AetherSaveSystem.load(slot);
+    if (!loaded) {
+      showToast('NO SAVE IN ' + slot.toUpperCase(), C.rust, 1400);
+      return false;
+    }
+    window._lastLoadResult = loaded;
+    return applySaveEnvelope(loaded.envelope);
+  } catch (error) {
+    window._lastLoadError = error.message;
+    console.error('LOAD_FAILED', error);
+    showToast('LOAD FAILED // ' + error.message, C.rust, 2200);
+    return false;
+  }
+}
+
+function continueLatestSave() {
+  refreshSaveIndex();
+  if (!latestSaveMeta) {
+    showToast('NO VALID SAVE FOUND', C.rust, 1400);
+    return false;
+  }
+  return loadFromSlot(latestSaveMeta.slot);
+}
+
+function openSaveLoadMenu(mode) {
+  if (!canSaveNow() && mode === 'save') {
+    showToast('CANNOT SAVE HERE', C.rust, 1400);
+    return;
+  }
+  saveMenuReturnState = gameState === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
+  saveMenuMode = mode === 'load' ? 'load' : 'save';
+  saveMenuIndex = 0;
+  refreshSaveIndex();
+  gameState = STATE.SAVELOAD;
+  window.gameState = gameState;
+}
+
+function handleSaveLoadInput() {
+  const slots = window.AetherSaveSystem.MANUAL_SLOTS;
+  if (keysPressed[27]) {
+    gameState = saveMenuReturnState;
+    window.gameState = gameState;
+    return;
+  }
+  if (keysPressed[LEFT_ARROW] || keysPressed[RIGHT_ARROW]) {
+    saveMenuMode = saveMenuMode === 'save' ? 'load' : 'save';
+  }
+  if (keysPressed[UP_ARROW]) saveMenuIndex = (saveMenuIndex + slots.length - 1) % slots.length;
+  if (keysPressed[DOWN_ARROW]) saveMenuIndex = (saveMenuIndex + 1) % slots.length;
+  if (keysPressed[13] || keysPressed[32]) {
+    const slot = slots[saveMenuIndex];
+    if (saveMenuMode === 'save') {
+      const returnState = saveMenuReturnState;
+      gameState = returnState;
+      window.gameState = gameState;
+      saveToSlot(slot, false);
+      openSaveLoadMenu('save');
+    } else if (loadFromSlot(slot)) {
+      return;
+    }
+  }
+}
+
+function drawSaveLoadOverlay() {
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 235);
+  rect(0, 0, width, height);
+  const slots = window.AetherSaveSystem.MANUAL_SLOTS;
+  const listing = buildLoadableSaveIndex();
+  textAlign(LEFT, TOP);
+  textFont('Press Start 2P');
+  textSize(13);
+  fill(C.teal[0], C.teal[1], C.teal[2]);
+  text('SAVE / LOAD', 90, 60);
+  textSize(9);
+  fill(C.parchment[0], C.parchment[1], C.parchment[2]);
+  text('MODE: ' + saveMenuMode.toUpperCase() + '   ←/→ switch', 90, 88);
+
+  for (let i = 0; i < slots.length; i++) {
+    const slot = slots[i];
+    const meta = listing.find(entry => entry.slot === slot);
+    const y = 126 + i * 62;
+    if (i === saveMenuIndex) {
+      fill(C.teal[0], C.teal[1], C.teal[2], 35);
+      rect(80, y - 8, width - 160, 52);
+    }
+    fill(i === saveMenuIndex ? C.teal[0] : C.parchment[0],
+         i === saveMenuIndex ? C.teal[1] : C.parchment[1],
+         i === saveMenuIndex ? C.teal[2] : C.parchment[2]);
+    text('SLOT ' + (i + 1), 100, y);
+    textFont('VT323');
+    textSize(15);
+    if (meta && meta.exists && meta.valid) {
+      const mins = Math.floor((meta.playtimeMs || 0) / 60000);
+      text((meta.chapter || 'Aetherwake') + '  //  ' + mins + ' min', 220, y - 2);
+      text((meta.partySummary || []).join(' + '), 220, y + 18);
+    } else if (meta && meta.exists && meta.valid === false) {
+      fill(C.rust[0], C.rust[1], C.rust[2]);
+      const reason = meta.semanticValid === false ? 'INVALID SAVE STATE' : 'CORRUPT / UNREADABLE';
+      text(reason + ' — original retained', 220, y + 6);
+    } else {
+      text('EMPTY', 220, y + 6);
+    }
+    textFont('Press Start 2P');
+    textSize(9);
+  }
+  fill(C.scioto[0], C.scioto[1], C.scioto[2]);
+  text('↑/↓ slot   ENTER confirm   ESC return   F5 save   F9 load', 90, height - 46);
 }
 
 function startGame() {
@@ -979,6 +1390,7 @@ function advanceFirstWakeOpening() {
     window.gameState = gameState;
     prevState = null;
     showToast('CHAPTER I // FIRST WAKE', C.scioto, 1800);
+    setTimeout(function() { autosave('chapter-handoff'); }, 0);
     showToast('T // QUEST LOG   E // TALK   R // CHARACTER', C.teal, 3200);
     showToast('FOLLOW THE TEAL SIGNAL MARKERS // FIND 3 HOOKS', C.parchment, 4200);
   }
@@ -1277,6 +1689,7 @@ function finishCombat() {
   prevState = null;
   combatReturnState = STATE.WORLD;
   if (VIS.fadeTransitions) startFade(150);
+  setTimeout(function() { autosave('combat-resolution'); }, 0);
 }
 
 function openState(s) {
@@ -1429,6 +1842,7 @@ function triggerAbilityFeedback(success) {
 function triggerQuestAdvance() {
   if (typeof window.playQuestAdvance === 'function') window.playQuestAdvance();
   showToast('QUEST ADVANCED', [42, 255, 181], 1800);
+  setTimeout(function() { autosave('quest-advance'); }, 0);
 }
 
 /** Notify level up. */
