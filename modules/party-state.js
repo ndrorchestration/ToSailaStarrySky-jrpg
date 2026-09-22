@@ -148,6 +148,7 @@
   function createShell(definition) {
     const shell = {
       runtimeImplemented: false,
+      playable: false,
       implementationSource: 'authored-balance-shell',
       synergyBonus: null,
       scrap: 5,
@@ -211,6 +212,7 @@
     target.canonicalName = definition.canonicalName;
     target.nativeJob = definition.nativeJob;
     target.runtimeImplemented = true;
+    target.playable = true;
     target.implementationSource = 'prototype-adapter';
 
     assignIfDefined(target, 'name', source.name || definition.canonicalName);
@@ -330,8 +332,8 @@
     const next = ids.map(id => {
       const character = ROSTER.find(entry => entry.id === id);
       if (!character) throw new Error('ACTIVE_PARTY_UNKNOWN_CHARACTER:' + id);
-      if (!character.runtimeImplemented) {
-        throw new Error('ACTIVE_PARTY_CHARACTER_NOT_IMPLEMENTED:' + id);
+      if (!character.playable) {
+        throw new Error('ACTIVE_PARTY_CHARACTER_NOT_PLAYABLE:' + id);
       }
       return character;
     });
@@ -352,6 +354,7 @@
 
       applyAuthoredProfile(worldPlayer, DEFINITIONS[0], { initializeProgression: false });
       worldPlayer.runtimeImplemented = true;
+      worldPlayer.playable = true;
       worldPlayer.implementationSource = 'world-bootstrap-authored-profile';
 
       ROSTER.push(
@@ -362,7 +365,7 @@
         createShell(DEFINITIONS[4])
       );
 
-      ACTIVE_PARTY.push(ROSTER[0], ROSTER[1], ROSTER[2]);
+      ACTIVE_PARTY.push(ROSTER[0]);
     } else if (ROSTER[0] !== worldPlayer) {
       throw new Error('PARTY_STATE_ALREADY_BOUND_TO_DIFFERENT_WORLD_PLAYER');
     }
@@ -371,6 +374,27 @@
 
     validate();
     return { roster: ROSTER, activeParty: ACTIVE_PARTY };
+  }
+
+  function recruitCharacter(characterId) {
+    if (!boundWorldPlayer || ROSTER.length !== 5) {
+      throw new Error('PARTY_STATE_NOT_BOOTSTRAPPED');
+    }
+    const character = ROSTER.find(entry => entry.id === characterId);
+    if (!character) throw new Error('PARTY_STATE_UNKNOWN_CHARACTER:' + characterId);
+    if (characterId === 'reson' || characterId === 'aepex') {
+      throw new Error('PARTY_STATE_RECRUITMENT_NOT_AUTHORIZED:' + characterId);
+    }
+
+    character.playable = true;
+    character.implementationSource = character.runtimeImplemented
+      ? character.implementationSource
+      : 'story-joined-authored-shell';
+
+    const nextIds = ACTIVE_PARTY.map(entry => entry.id);
+    if (!nextIds.includes(characterId)) nextIds.push(characterId);
+    setActivePartyIds(nextIds);
+    return character;
   }
 
   function replaceMagicProfile(characterId, nextProfile) {
@@ -422,6 +446,7 @@
       rosterIds: ROSTER.map(character => character.id),
       activeIds: ACTIVE_PARTY.map(character => character.id),
       runtimeImplemented: ROSTER.map(character => Boolean(character.runtimeImplemented)),
+      playable: ROSTER.map(character => Boolean(character.playable)),
       affinityStatus: ROSTER.map(character =>
         character.magicProfile && character.magicProfile.affinityStatus),
       masteryRanks: ROSTER.map(character => ({
@@ -444,6 +469,7 @@
     activeParty: ACTIVE_PARTY,
     bootstrap,
     commitPrototypeParty,
+    recruitCharacter,
     replaceMagicProfile,
     setActivePartyIds,
     validate,

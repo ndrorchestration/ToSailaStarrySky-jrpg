@@ -9,7 +9,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 - **Stage:** late prototype / pre-alpha
 - **Playable baseline:** boot → character creation → world exploration → dialogue/quest systems → combat
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
-- **Combat party target:** supports 1–5 active authored protagonists, growing through recruitment; current preservation runtime still initializes Ender/Lyra/Ionia first
+- **Combat party target:** supports 1–5 active authored protagonists, growing through recruitment; First Wake now begins with Ender alone and adds Lyra at the Wrong Song beat
 - **Current migration:** smoke-green persistent roster, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; higher-order effect semantics remain separate gates
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
@@ -102,7 +102,7 @@ Persistent progression belongs to the five-character roster. The target combat/m
 The development runtime now has the first persistent party-state layer:
 
 - `modules/party-state.js` owns exactly five stable roster identities: `ender`, `lyra`, `ionia`, `reson`, and `aepex`;
-- `ACTIVE_PARTY` is validated for 1–5 direct references into `ROSTER`; the current preservation bootstrap begins with Ender/Lyra/Ionia;
+- `ACTIVE_PARTY` is validated for 1–5 direct references into `ROSTER`; authored New Game begins with Ender alone, then recruits Lyra at First Wake Sequence 06;
 - `world.player`, `ROSTER[0]`, and `ACTIVE_PARTY[0]` are the same object, so combat write-back updates the canonical lead record;
 - the preserved character-creation flow still creates two player-named prototype companions and prototype jobs, then adapts them into the Lyra/Ionia roster slots;
 - Reson and Aepex are identity-only runtime shells until authored onboarding/mechanics are migrated;
@@ -129,7 +129,8 @@ It includes signal hooks, traversal hazards, NPC encounters, three major choice 
 | `modules/ability-defs.js` | Canonical metadata for the eight current combat actions |
 | `modules/progression-defs.js` | Canonical current level-unlock table |
 | `modules/party-state.js` | Authoritative persistent roster / active-party reference layer |
-| `modules/char-create.js` | Active preservation character-creation adapter |
+| `modules/first-wake-opening.js` | Active authored New Game → First Wake opening controller |
+| `modules/char-create.js` | Historical compatibility adapter; not the normal New Game path |
 | other `modules/*.js` | Older modular mirrors/reference source; not authoritative runtime for all systems |
 | `SPEC.md` | Current technical target + implementation notes |
 | `docs/DEVELOPMENT.md` | Development authority, migration rules, smoke gate |

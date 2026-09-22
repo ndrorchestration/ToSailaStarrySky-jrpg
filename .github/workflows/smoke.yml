@@ -114,6 +114,9 @@ jobs:
       - name: Verify live open-sky runtime contract
         run: npm run test:open-sky-runtime
 
+      - name: Verify First Wake opening runtime
+        run: npm run test:first-wake-opening
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 

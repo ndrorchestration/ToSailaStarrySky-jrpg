@@ -25,7 +25,7 @@ const STATE = {
   BOOT: 'boot', MENU: 'menu', WORLD: 'world', COMBAT: 'combat',
   DIALOGUE: 'dialogue', SHOP: 'shop', LEDGER: 'ledger',
   QUESTLOG: 'questlog', CHARSHEET: 'charsheet', AIRSHIP: 'airship',
-  CHARCREATE: 'charcreate',
+  OPENING: 'opening', CHARCREATE: 'charcreate',
 };
 let gameState = STATE.BOOT;
 window.gameState = gameState;  // expose for debug
@@ -139,6 +139,13 @@ function setup() {
     throw new Error('AETHER_PARTY_STATE_UNAVAILABLE');
   }
   window.AetherPartyState.bootstrap(world.player);
+  if (!window.AetherFirstWakeOpening ||
+      typeof window.AetherFirstWakeOpening.createState !== 'function' ||
+      typeof window.AetherFirstWakeOpening.validate !== 'function') {
+    throw new Error('AETHER_FIRST_WAKE_OPENING_UNAVAILABLE');
+  }
+  window.AetherFirstWakeOpening.validate();
+  window._firstWakeOpeningState = window.AetherFirstWakeOpening.createState();
   if (!window.AetherCombatSystemPolicy ||
       typeof window.AetherCombatSystemPolicy.validate !== 'function') {
     throw new Error('AETHER_COMBAT_SYSTEM_POLICY_UNAVAILABLE');
@@ -268,6 +275,9 @@ function draw() {
   }
   else if (gameState === STATE.MENU) {
     drawTitleScreen();
+  }
+  else if (gameState === STATE.OPENING) {
+    drawFirstWakeOpening();
   }
   else if (gameState === STATE.CHARCREATE) {
     if (window._charcreate && typeof window._charcreate.draw === 'function') {
@@ -406,6 +416,15 @@ let interactionKey = null;
 function keyPressed() {
   keys[keyCode] = true;
   keysPressed[keyCode] = true;
+
+  if (gameState === STATE.OPENING && (keyCode === 13 || keyCode === 32)) {
+    advanceFirstWakeOpening();
+    delete keysPressed[keyCode];
+    if (typeof ensureAudio === 'function') ensureAudio();
+    if (typeof resumeAudio === 'function') resumeAudio();
+    return;
+  }
+
   handleInput();
 
   // keysPressed is an edge-triggered event map consumed synchronously above.
@@ -467,6 +486,9 @@ function keyReleased() {
 function keyTyped() {
   // p5 fires keyTyped for character keys; keyPressed already handled keyCode input.
   // Here we handle character-driven game flow changes.
+  if (gameState === STATE.OPENING) {
+    return;
+  }
   if (gameState === STATE.CHARCREATE) {
     if (window._charcreate && typeof window._charcreate.handleTypedChar === 'function') {
       window._charcreate.handleTypedChar(key);
@@ -689,20 +711,95 @@ function doMove(code) {
 }
 
 function startGame() {
-  // DO NOT call world.init() again — it was called in setup() and resets
-  // the player, NPCs, quest, shop, and ledger to initial state. We only
-  // transition to CHARCREATE state so the character creation flow can run.
-  // When char-create signals completion (phase === 'done'), it will transition
-  // to WORLD. If char-create is not loaded, fall through to WORLD directly.
-  if (typeof window.AetherCharCreate !== 'undefined' && window._charcreate) {
-    gameState = STATE.CHARCREATE;
-    window.gameState = gameState;
-    if (typeof window._charcreate.start === 'function') window._charcreate.start();
-  } else {
+  startFirstWakeOpening();
+}
+
+function startFirstWakeOpening() {
+  if (!window.AetherFirstWakeOpening || !window.AetherPartyState) {
+    throw new Error('FIRST_WAKE_OPENING_RUNTIME_UNAVAILABLE');
+  }
+  window._firstWakeOpeningState = window.AetherFirstWakeOpening.createState();
+  window.AetherPartyState.setActivePartyIds(['ender']);
+  gameState = STATE.OPENING;
+  window.gameState = gameState;
+  prevState = null;
+  menuAutoStartTimer = 0;
+}
+
+function advanceFirstWakeOpening() {
+  const opening = window.AetherFirstWakeOpening;
+  const state = window._firstWakeOpeningState;
+  if (!opening || !state) throw new Error('FIRST_WAKE_OPENING_STATE_UNAVAILABLE');
+
+  const result = opening.advance(state);
+  if (result.event && result.event.type === 'party-join') {
+    window.AetherPartyState.recruitCharacter(result.event.characterId);
+    showToast(
+      result.event.characterId.toUpperCase() + ' joined Ender\'s active party.',
+      C.teal,
+      1600
+    );
+  }
+
+  if (state.complete) {
     gameState = STATE.WORLD;
     window.gameState = gameState;
     prevState = null;
+    showToast('CHAPTER I // FIRST WAKE', C.scioto, 1800);
   }
+}
+
+function drawFirstWakeOpening() {
+  const opening = window.AetherFirstWakeOpening;
+  const state = window._firstWakeOpeningState;
+  if (!opening || !state) return;
+  const scene = opening.currentScene(state);
+
+  push();
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 245);
+  rect(0, 0, width, height);
+
+  fill(52, 67, 96);
+  rect(0, height * 0.62, width, height * 0.38);
+  fill(124, 200, 232, 80);
+  rect(0, height * 0.58, width, 3);
+  fill(16, 22, 38);
+  rect(width * 0.68, height * 0.51, 124, 34);
+  rect(width * 0.72, height * 0.47, 48, 12);
+
+  textAlign(CENTER, TOP);
+  textFont('Press Start 2P');
+  textSize(scene.chapterCard ? 22 : 12);
+  fill(C.teal[0], C.teal[1], C.teal[2]);
+  text(scene.title, width / 2, 82);
+  if (scene.subtitle) {
+    textSize(10);
+    fill(C.scioto[0], C.scioto[1], C.scioto[2]);
+    text(scene.subtitle, width / 2, 120);
+  }
+
+  textAlign(LEFT, TOP);
+  textFont('VT323');
+  textSize(20);
+  fill(C.parchment[0], C.parchment[1], C.parchment[2]);
+  let y = 210;
+  for (const line of scene.lines) {
+    text(line, 150, y, width - 300, 56);
+    y += 58;
+  }
+
+  textAlign(CENTER, BOTTOM);
+  textSize(16);
+  fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
+  text(
+    'ACTIVE PARTY // ' + opening.expectedPartyIds(state).map(id => id.toUpperCase()).join(' + '),
+    width / 2,
+    height - 58
+  );
+  fill(C.teal[0], C.teal[1], C.teal[2]);
+  text('ENTER / SPACE — CONTINUE', width / 2, height - 26);
+  pop();
 }
 
 // ── Open-sky flight ──

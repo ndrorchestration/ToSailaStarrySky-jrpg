@@ -50,10 +50,10 @@ Rules:
 The development branch now contains a persistent party-state bridge:
 
 - `ROSTER` has exactly five stable identities in canonical order: Ender, Lyra, Ionia, Reson, Aepex;
-- `ACTIVE_PARTY` has exactly three direct references into `ROSTER`, initially Ender/Lyra/Ionia;
+- `ACTIVE_PARTY` supports 1–5 direct references into `ROSTER`; First Wake starts with Ender alone and adds Lyra at Sequence 06;
 - `world.player === ROSTER[0] === ACTIVE_PARTY[0]`, so the lead character is no longer duplicated across WORLD and persistent party state;
-- the preservation character-creation flow remains temporarily in use as onboarding input for the first three records;
-- its two player-created companion names and Sky-Sailor / Engine-Wright / Aether-Weaver jobs remain prototype residue rather than authored canon;
+- the normal New Game path no longer uses custom companion creation;
+- `modules/char-create.js` remains compatibility provenance only, and its custom companion/job assumptions are not authored canon;
 - Reson and Aepex currently exist as identity/schema shells only;
 - formation mutation and true three-character combat are not implemented in this phase;
 - Ender implementation residue may still display **Rift Scholar + Dreamwright**, while canonical `nativeJob` is **Rift Scholar**.
@@ -387,7 +387,8 @@ The full campaign will expand story acts, recruitment timing, character arcs, re
 - `modules/magic-defs.js`, `modules/magic-mastery.js`, and `modules/character-magic-profile.js` load before party state and provide fail-closed magic taxonomy/profile contracts.
 - `modules/party-state.js` is the authoritative persistent roster / active-party reference layer and now attaches validated magic profiles to all five canonical records.
 - `aetherwake.js` is the current integrated runtime/preservation artifact and remains the current combat executor.
-- `modules/char-create.js` is loaded at runtime as a preservation onboarding adapter.
+- `modules/first-wake-opening.js` is the active authored New Game onboarding controller through the FIRST WAKE chapter card.
+- `modules/char-create.js` remains loaded only as historical compatibility surface and is not the normal New Game route.
 - several other `modules/*.js` files are older mirrors/reference copies and may not match the integrated runtime.
 
 ### TARGET ARCHITECTURE
