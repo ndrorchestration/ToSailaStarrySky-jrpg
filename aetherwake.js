@@ -1383,6 +1383,8 @@ function drawBootSequence() {
   if (elapsed >= BOOT_LOAD_MS + PREAMBLE_DURATION && gameState === STATE.BOOT) {
     gameState = STATE.MENU;
     window.gameState = gameState;
+    drawTitleScreen();
+    return;
   }
 
   // Draw parallax islands BEHIND everything (already drawn above grid)
@@ -1489,71 +1491,26 @@ function drawScanlines() {
 }
 
 function drawTitleScreen() {
+  const visual = window.AetherTitleVisual;
+  if (visual && typeof visual.draw === 'function') {
+    push();
+    visual.draw({ now: millis(), width, height });
+    pop();
+    return;
+  }
+
+  // Fail-visible fallback only.
   noStroke();
   fill(C.navy[0], C.navy[1], C.navy[2]);
   rect(0, 0, width, height);
-
-  // Floating islands parallax (title screen also gets islands)
-  for (const island of titleIslands) {
-    const px = ((island.x + millis() * 0.01 * island.drift) % 60 + 60) % 60 * 16;
-    const py = island.y + Math.sin(millis() * 0.001 * island.speed + island.drift) * 6;
-
-    noStroke();
-    fill(C.soil[0], C.soil[1], C.soil[2], 200);
-    ellipse(px, py, island.size, island.size * 0.6);
-
-    noFill();
-    stroke(C.teal[0], C.teal[1], C.teal[2], 100);
-    strokeWeight(1);
-    ellipse(px, py, island.size, island.size * 0.6);
-    noStroke();
-
-    fill(C.teal[0], C.teal[1], C.teal[2], 70);
-    ellipse(px - 3, py - 3, island.size * 0.3, island.size * 0.2);
-  }
-
-  stroke(C.teal[0], C.teal[1], C.teal[2], 12);
-  strokeWeight(1);
-  for (let x = 0; x < width; x += 32) line(x, 0, x, height);
-  for (let y = 0; y < height; y += 32) line(0, y, width, y);
-
-  textFont('VT323');
-  textSize(36);
   textAlign(CENTER, CENTER);
-  textLeading(40);
-
-  const cx = width/2, cy = height/2 - 50;
-  fill(C.teal[0], C.teal[1], C.teal[2], 60);
-  for (let dx = -2; dx <= 2; dx++) {
-    for (let dy = -2; dy <= 2; dy++) {
-      if (dx === 0 && dy === 0) continue;
-      text('AETHERWAKE', cx + dx, cy + dy);
-    }
-  }
-  fill(C.teal[0], C.teal[1], C.teal[2], 100);
-  text('AETHERWAKE', cx, cy);
-
-  textSize(16);
-  fill(C.scioto[0], C.scioto[1], C.scioto[2], 200);
-  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
-
-  textSize(13);
-  fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
-  text('THE AUREATE WAKE — CHRONICLE OF THE LAST SOLARPUNK AIRSHIP', cx, cy + 48);
-
-  textSize(14);
-  fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
-  text('NEW GAME — N or ENTER', cx, cy + 78);
-
-  textSize(11);
-  fill(C.rust[0], C.rust[1], C.rust[2], 140);
-  text('WASD  move  |  E  talk  |  Q  covenant  |  F  ship  |  Tab  sky/ground', cx, cy + 100);
-  text('L  ledger  |  M  shop  |  R  char sheet  |  T  quest log', cx, cy + 118);
-
   textFont('Press Start 2P');
-  textSize(8);
-  fill(C.teal[0], C.teal[1], C.teal[2], 100);
-  text('THE AUREATE WAKE // TURN-BASED JRPG', cx, height - 20);
+  textSize(26);
+  fill(C.teal[0], C.teal[1], C.teal[2]);
+  text('AETHERWAKE', width / 2, height / 2 - 35);
+  textSize(10);
+  fill(C.parchment[0], C.parchment[1], C.parchment[2]);
+  text('NEW GAME // N OR ENTER', width / 2, height / 2 + 30);
 }
 
 function getDialogueSpriteId(npc) {
