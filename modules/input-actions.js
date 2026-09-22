@@ -4,7 +4,7 @@
   const VERSION = '0.1.0';
 
   const CONTEXTS = Object.freeze([
-    'global', 'menu', 'world', 'dialogue', 'combat', 'airship', 'save-load'
+    'global', 'menu', 'settings', 'world', 'dialogue', 'combat', 'airship', 'save-load'
   ]);
 
   const ACTIONS = Object.freeze({
@@ -14,6 +14,7 @@
     'ui-right': { contexts: ['menu','combat','save-load'], keyCodes: [39] },
     'confirm': { contexts: ['global'], keyCodes: [13,32] },
     'cancel': { contexts: ['global'], keyCodes: [27] },
+    'open-settings': { contexts: ['menu'], keyCodes: [83] },
     'move-up': { contexts: ['world'], keyCodes: [38,87] },
     'move-down': { contexts: ['world'], keyCodes: [40,83] },
     'move-left': { contexts: ['world'], keyCodes: [37,65] },
@@ -33,6 +34,7 @@
 
   function normalizeContext(context) {
     if (context === 'saveload') return 'save-load';
+    if (context === 'settings') return 'settings';
     if (context === 'questlog' || context === 'charsheet' || context === 'shop' || context === 'ledger') {
       return 'menu';
     }
@@ -64,7 +66,7 @@
     if (!ids.length) throw new Error('INPUT_ACTIONS_EMPTY');
 
     const required = [
-      'confirm','cancel','move-up','move-down','move-left','move-right',
+      'confirm','cancel','open-settings','move-up','move-down','move-left','move-right',
       'interact','quest-log','character-sheet','ledger','board-or-flight',
       'manual-save','manual-load','airship-altitude-up','airship-altitude-down',
       'airship-dock','airship-land'
