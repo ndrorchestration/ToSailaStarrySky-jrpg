@@ -90,6 +90,7 @@
     "test:audio-settings": "node tests/audio-settings-contract.test.js",
     "test:controller-parity-live": "node tests/controller-parity-playwright.js",
     "test:input-bindings": "node tests/input-bindings-contract.test.js",
-    "test:accessibility-rendering": "node tests/accessibility-rendering-contract.test.js"
+    "test:accessibility-rendering": "node tests/accessibility-rendering-contract.test.js",
+    "test:world-authority": "node tests/world-authority-contract.test.js"
   }
 }
