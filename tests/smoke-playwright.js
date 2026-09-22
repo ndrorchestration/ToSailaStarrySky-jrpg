@@ -465,9 +465,9 @@ function createServer() {
         validCoverage: Boolean(vocabulary && vocabulary.assertActionCoverage(actions)),
         kinds: vocabulary && Object.values(vocabulary.EFFECT_KIND),
         profileIds: actions.map(action => action.effectProfile),
-        declaredNotApplied: vocabulary
+        uncoverImplemented: vocabulary
           ? vocabulary.ACTION_EFFECT_PROFILES.uncoverTruth.success
-              .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.DECLARED_NOT_APPLIED)
+              .filter(effect => effect.runtimeStatus === vocabulary.RUNTIME_STATUS.IMPLEMENTED)
               .map(effect => effect.kind + ':' + effect.key)
           : [],
       };
@@ -481,10 +481,10 @@ function createServer() {
     assert(effectContract.profileIds.join('|') ===
       'staffStrike|uncoverTruth|sharedDream|mycelialLedger|hold|windWard|aetherSeal|rest',
       'combat action effect-profile bindings drifted');
-    assert(effectContract.declaredNotApplied.includes('reveal:weakness'),
-      'Uncover Truth reveal debt is no longer explicit');
-    assert(effectContract.declaredNotApplied.includes('modifier:nextRoll'),
-      'Uncover Truth modifier debt is no longer explicit');
+    assert(effectContract.uncoverImplemented.includes('reveal:weakness'),
+      'Uncover Truth weakness reveal is not marked implemented');
+    assert(effectContract.uncoverImplemented.includes('modifier:nextDamageMultiplier'),
+      'Uncover Truth analysis multiplier is not marked implemented');
 
     const registryContract = await page.evaluate(() => {
       const abilities = window.AetherAbilityDefs;
