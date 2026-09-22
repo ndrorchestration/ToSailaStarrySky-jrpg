@@ -119,7 +119,7 @@ assert.strictEqual(invalidMove.encounterSteps,initial.encounterSteps,'invalid mo
 const invalidAltitude=nav.changeAltitude(initial,Infinity);
 assert.strictEqual(invalidAltitude.altitude,initial.altitude,'invalid altitude input must fail closed');
 
-const validMoored=nav.exportPersistentState(docked);
+const validMoored=nav.exportPersistentState(docked.state);
 assert(nav.validatePersistentState(validMoored),'valid moored state rejected');
 assert.throws(
   ()=>nav.validatePersistentState(Object.assign({},validMoored,{speed:2})),
