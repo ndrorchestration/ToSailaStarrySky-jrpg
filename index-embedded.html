@@ -157,6 +157,7 @@
   // p5 + the sketch are ready, then reveal the canvas.
   // ============================================================
   window.__awLoadingDone = false;
+  window.__awLoadingError = false;
   // Debug UI is opt-in only. Normal players should never see diagnostic overlays.
   window.__awDebugEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
 
@@ -234,7 +235,8 @@
 <script src="modules/aether-seal-contract.js"></script>
 <script src="modules/first-wake-opening.js"></script>
 <script src="modules/party-state.js"></script>
-<script src="modules/air-navigation.js"></script>\n<script src="aetherwake.js"></script>
+<script src="modules/air-navigation.js"></script>
+<script src="aetherwake.js"></script>
 <script src="modules/char-create.js"></script>
 <script>
   // p5.js v1.11.3 webpack bundle needs window.webpackJsonp defined before load
@@ -309,22 +311,41 @@
           '<b>LOADING</b><br>' +
           'p5: ' + (p5ok ? 'ok' : 'MISSING') + '<br>' +
           'canvas: ' + (hasCanvas ? cvs.width + 'x' + cvs.height : 'MISSING') + '<br>' +
-          '<span style="color:#E8DCC6;">' + (hasCanvas ? 'canvas live — revealing title' : 'waiting for canvas...') + '</span>';
+          '<span style="color:#E8DCC6;">' + (hasCanvas
+           ? 'canvas live — waiting for runtime frame'
+           : 'waiting for canvas...') + '</span><br>' +
+           'runtime: ' + (window.__awRuntimeReady ? 'ready' : 'pending') + '<br>' +
+           'frame: ' + (window.__awFirstFrame ? 'ready' : 'pending');
       }
 
-      if (hasCanvas && p5ok) {
-        // Mirrors Graphics.endLoading() → upper canvas cleared, game revealed.
+      var runtimeReady = window.__awRuntimeReady === true;
+      var firstFrameReady = window.__awFirstFrame === true;
+      if (hasCanvas && p5ok && runtimeReady && firstFrameReady) {
+        // Reveal only after setup and a completed frame. A canvas node alone can
+        // exist while setup has failed, which would otherwise expose a blank screen.
         p5.disableFriendlyErrors = true;
-        console.log('[launch] canvas live, hiding loading screen (mirror: Graphics.endLoading)');
+        console.log('[launch] runtime ready, hiding loading screen');
         hideLoadingScreen();
         return;
       }
 
-      // Safety net: if sketch hangs, force-reveal after max wait
+      // Fail closed: keep the diagnostic loading screen visible instead of
+      // revealing a blank canvas when setup or the first frame failed.
       var elapsed = performance.now() - startTime;
       if (elapsed > REF_MAX_WAIT) {
-        console.warn('[launch] force-revealing after ' + REF_MAX_WAIT + 'ms (sketch may be stuck)');
-        hideLoadingScreen();
+        window.__awLoadingError = true;
+        var title = document.querySelector('.loading-text');
+        var sub = document.querySelector('.loading-sub');
+        if (title) {
+          title.textContent = 'AETHERWAKE FAILED TO START';
+          title.style.color = '#FF8066';
+          title.style.animation = 'none';
+        }
+        if (sub) {
+          sub.textContent = 'Close and relaunch. If this repeats, report the exact error.';
+          sub.style.color = '#E8DCC6';
+        }
+        console.error('[launch] runtime readiness timeout; loading screen remains visible');
         return;
       }
 
