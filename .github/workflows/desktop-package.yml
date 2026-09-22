@@ -14,7 +14,7 @@ permissions:
 jobs:
   package-windows:
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -33,11 +33,32 @@ jobs:
       - name: Build Windows package
         run: npm run package:windows
 
-      - name: Create distributable ZIP
+      - name: Create one-click Windows launcher
         shell: pwsh
         run: |
           $package = Get-ChildItem -Path ..\\aetherwake-dist -Directory | Select-Object -First 1
           if (-not $package) { throw "NW.js did not produce a package directory" }
+          $sevenZip = Join-Path $env:ProgramFiles "7-Zip\\7z.exe"
+          $sfx = Join-Path $env:ProgramFiles "7-Zip\\7z.sfx"
+          if (-not (Test-Path $sevenZip)) { throw "7-Zip executable not found" }
+          if (-not (Test-Path $sfx)) { throw "7-Zip SFX module not found" }
+          $config = @"
+          ;!@Install@!UTF-8!
+          RunProgram="Aetherwake.exe"
+          InstallPath="%TEMP%\\Aetherwake-OneClick"
+          Title="Aetherwake"
+          ;!@InstallEnd@!
+          "@
+          Set-Content -Path Aetherwake-OneClick-config.txt -Value $config -Encoding utf8
+          & $sevenZip a -t7z Aetherwake-OneClick.7z "$($package.FullName)\\*" -mx=9
+          if ($LASTEXITCODE -ne 0) { throw "7-Zip archive creation failed" }
+          cmd /c copy /b "$sfx+Aetherwake-OneClick-config.txt+Aetherwake-OneClick.7z" Aetherwake-OneClick.exe
+          if (-not (Test-Path Aetherwake-OneClick.exe)) { throw "One-click launcher was not created" }
+
+      - name: Create distributable ZIP fallback
+        shell: pwsh
+        run: |
+          $package = Get-ChildItem -Path ..\\aetherwake-dist -Directory | Select-Object -First 1
           Compress-Archive -Path "$($package.FullName)\\*" -DestinationPath "Aetherwake-Windows.zip"
 
       - name: Publish Windows package release
@@ -47,4 +68,6 @@ jobs:
           name: Aetherwake Windows Desktop ${{ github.sha }}
           prerelease: true
           generate_release_notes: false
-          files: Aetherwake-Windows.zip
+          files: |
+            Aetherwake-OneClick.exe
+            Aetherwake-Windows.zip
