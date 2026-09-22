@@ -10,8 +10,13 @@
 }(typeof window !== 'undefined' ? window : globalThis, function createSaveSystem(root) {
   'use strict';
 
-  const VERSION = '1.0.0';
+  const VERSION = '1.1.0';
   const SCHEMA_VERSION = 1;
+  const MIGRATIONS = Object.freeze({
+    // Future entries are keyed by their source schema version.
+    // Example: 1: envelopeV1 => envelopeV2
+    // Keeping the registry live before v2 exists prevents ad-hoc migration logic later.
+  });
   const STORAGE_PREFIX = 'aetherwake.save.v1.';
   const MANUAL_SLOTS = Object.freeze(['manual-1','manual-2','manual-3','manual-4','manual-5','manual-6']);
   const AUTOSAVE_SLOTS = Object.freeze(['autosave-0','autosave-1','autosave-2']);
@@ -60,17 +65,52 @@
     return { ...body, checksum: checksum(body) };
   }
 
-  function validateEnvelope(envelope) {
+  function validateEnvelopeIntegrity(envelope) {
     if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) {
       throw new Error('SAVE_ENVELOPE_OBJECT_REQUIRED');
     }
-    if (envelope.schemaVersion !== SCHEMA_VERSION) throw new Error('SAVE_SCHEMA_UNSUPPORTED');
+    if (!Number.isInteger(envelope.schemaVersion) || envelope.schemaVersion < 1) {
+      throw new Error('SAVE_SCHEMA_INVALID');
+    }
     validateSlot(envelope.slot);
-    if (!envelope.payload || typeof envelope.payload !== 'object') throw new Error('SAVE_PAYLOAD_MISSING');
+    if (!envelope.payload || typeof envelope.payload !== 'object' || Array.isArray(envelope.payload)) {
+      throw new Error('SAVE_PAYLOAD_MISSING');
+    }
     const given = envelope.checksum;
     const body = { ...envelope };
     delete body.checksum;
     if (given !== checksum(body)) throw new Error('SAVE_CHECKSUM_INVALID');
+    return true;
+  }
+
+  function migrateEnvelope(envelope) {
+    validateEnvelopeIntegrity(envelope);
+    if (envelope.schemaVersion > SCHEMA_VERSION) {
+      throw new Error('SAVE_SCHEMA_FUTURE_UNSUPPORTED:' + envelope.schemaVersion);
+    }
+
+    let current = JSON.parse(JSON.stringify(envelope));
+    while (current.schemaVersion < SCHEMA_VERSION) {
+      const migration = MIGRATIONS[current.schemaVersion];
+      if (typeof migration !== 'function') {
+        throw new Error('SAVE_MIGRATION_MISSING:' + current.schemaVersion);
+      }
+      const fromVersion = current.schemaVersion;
+      current = migration(JSON.parse(JSON.stringify(current)));
+      if (!current || current.schemaVersion !== fromVersion + 1) {
+        throw new Error('SAVE_MIGRATION_VERSION_INVALID:' + fromVersion);
+      }
+      const body = { ...current };
+      delete body.checksum;
+      current.checksum = checksum(body);
+    }
+    validateEnvelopeIntegrity(current);
+    return current;
+  }
+
+  function validateEnvelope(envelope) {
+    const migrated = migrateEnvelope(envelope);
+    if (migrated.schemaVersion !== SCHEMA_VERSION) throw new Error('SAVE_SCHEMA_UNSUPPORTED');
     return true;
   }
 
@@ -168,8 +208,15 @@
     if (!storage) throw new Error('SAVE_STORAGE_UNAVAILABLE');
     const envelope = storage.read(slot);
     if (!envelope) return null;
-    validateEnvelope(envelope);
-    return { envelope, storageType: storage.type, path: storage.path(slot) };
+    const migrated = migrateEnvelope(envelope);
+    return {
+      envelope: migrated,
+      migratedFromSchemaVersion: envelope.schemaVersion === migrated.schemaVersion
+        ? null
+        : envelope.schemaVersion,
+      storageType: storage.type,
+      path: storage.path(slot)
+    };
   }
 
   function remove(slot) {
@@ -218,8 +265,10 @@
   }
 
   return Object.freeze({
-    VERSION, SCHEMA_VERSION, MANUAL_SLOTS: MANUAL_SLOTS.slice(),
-    AUTOSAVE_SLOTS: AUTOSAVE_SLOTS.slice(), makeEnvelope, validateEnvelope,
+    VERSION, SCHEMA_VERSION, MIGRATIONS,
+    MANUAL_SLOTS: MANUAL_SLOTS.slice(),
+    AUTOSAVE_SLOTS: AUTOSAVE_SLOTS.slice(),
+    makeEnvelope, validateEnvelopeIntegrity, migrateEnvelope, validateEnvelope,
     checksum, getStorage, save, load, remove, list, latest, rotateAutosave,
     _createForTesting: createSaveSystem
   });
