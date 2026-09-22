@@ -52,7 +52,15 @@ jobs:
           Set-Content -Path Aetherwake-OneClick-config.txt -Value $config -Encoding utf8
           & $sevenZip a -t7z Aetherwake-OneClick.7z "$($package.FullName)\\*" -mx=9
           if ($LASTEXITCODE -ne 0) { throw "7-Zip archive creation failed" }
-          cmd /c copy /b "$sfx+Aetherwake-OneClick-config.txt+Aetherwake-OneClick.7z" Aetherwake-OneClick.exe
+          $output = [IO.File]::OpenWrite("Aetherwake-OneClick.exe")
+          try {
+            foreach ($part in @($sfx, "Aetherwake-OneClick-config.txt", "Aetherwake-OneClick.7z")) {
+              $bytes = [IO.File]::ReadAllBytes($part)
+              $output.Write($bytes, 0, $bytes.Length)
+            }
+          } finally {
+            $output.Dispose()
+          }
           if (-not (Test-Path Aetherwake-OneClick.exe)) { throw "One-click launcher was not created" }
 
       - name: Create distributable ZIP fallback
