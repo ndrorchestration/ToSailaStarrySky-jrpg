@@ -20,6 +20,8 @@ assert(typeof packageJson.scripts['package:windows'] === 'string',
   'Windows packaging script is missing');
 assert(packageJson.scripts['verify:packaged-title-audio'] === 'node scripts/verify-packaged-title-audio.js',
   'packaged title-audio verifier script must be registered');
+assert(packageJson.scripts['write:release-evidence'] === 'node scripts/write-release-evidence.js',
+  'release evidence writer script must be registered');
 assert(packageJson.devDependencies && packageJson.devDependencies['nw-builder'],
   'nw-builder dependency is missing');
 
@@ -72,6 +74,9 @@ assert(workflow.includes('Aetherwake-Windows.zip'),
   'desktop workflow must preserve the portable ZIP fallback');
 assert(workflow.includes('SHA256SUMS.txt'),
   'desktop workflow must publish artifact hashes');
+assert(workflow.includes('Write release provenance evidence') &&
+       workflow.includes('RELEASE_EVIDENCE.json'),
+  'desktop workflow must publish source-bound release evidence');
 assert(workflow.includes('verify-windows:'),
   'desktop workflow must have a Windows build-and-verification job');
 assert(workflow.includes('runs-on: windows-2022'),
@@ -118,6 +123,9 @@ assert(!desktopGuide.includes('Aetherwake-OneClick.exe'),
   'desktop guide must not advertise superseded self-extracting artifacts');
 assert(localReleaseScript.includes('LOCAL_WINDOWS_RELEASE=PASS'),
   'local Windows release fallback must emit an explicit success marker');
+assert(localReleaseScript.includes('Local Windows release requires readable Git HEAD provenance') &&
+       localReleaseScript.includes('Local Windows release requires a clean working tree'),
+  'local Windows release must require a clean working tree and exact source provenance');
 assert(localReleaseScript.includes('Start-Process -FilePath $installer'),
   'local Windows release fallback must install-smoke the generated installer');
 assert(localReleaseScript.includes('Start-Process -FilePath $installedExe'),
@@ -140,6 +148,9 @@ assert(localReleaseScript.includes('did not use the same isolated NW.js data pat
 assert(localReleaseScript.includes('npm run verify:packaged-title-audio') &&
        localReleaseScript.includes('PACKAGED_TITLE_AUDIO=PASS'),
   'local Windows release must verify the governed MP3 inside the packaged payload');
+assert(localReleaseScript.includes('npm run write:release-evidence') &&
+       localReleaseScript.includes('RELEASE_EVIDENCE.json'),
+  'local Windows release must emit machine-readable source-bound evidence');
 
 console.log('Aetherwake desktop package contract: PASS');
 
@@ -192,3 +203,18 @@ assert(packagedAudioVerifier.includes("path.join(packageDir, 'www', title.canoni
   'packaged title-audio verifier must inspect the staged www payload');
 assert(packagedAudioVerifier.includes("assert.deepStrictEqual(\n  packaged,\n  source"),
   'packaged title-audio verifier must compare the staged file to governed source authority');
+
+const releaseEvidenceWriter = fs.readFileSync(
+  path.join(__dirname, '..', 'scripts', 'write-release-evidence.js'),
+  'utf8'
+);
+assert(releaseEvidenceWriter.includes("git', ['rev-parse', 'HEAD']"),
+  'release evidence must bind artifacts to exact source commit');
+assert(releaseEvidenceWriter.includes("git', ['status', '--porcelain=v1']"),
+  'release evidence must reject dirty working-tree provenance');
+assert(releaseEvidenceWriter.includes('governedTitleAudio') &&
+       releaseEvidenceWriter.includes('sourceVerification.sha256'),
+  'release evidence must retain governed title-audio identity');
+assert(releaseEvidenceWriter.includes('installer') &&
+       releaseEvidenceWriter.includes('portableZip'),
+  'release evidence must fingerprint installer and portable ZIP');
