@@ -15,8 +15,8 @@ Implemented on this branch:
 - deterministic combat action focus routed through canonical `resolveTurn()`;
 - single-press controller Save/Load through gameplay Menu → focused Save/Load overlay;
 - remappable title Continue with `C` / controller North defaults and dynamic prompt ownership;
-- independent schema-v1 user-settings persistence;
-- independent schema-v1 keyboard/gamepad binding persistence;
+- independent schema-v1 user-settings persistence with corrupt/missing-primary backup recovery, explicit recovery provenance, first-edit backup preservation, and newer-schema downgrade protection;
+- independent schema-v1 keyboard/gamepad binding persistence with corrupt/missing-primary backup recovery, explicit recovery provenance, first-edit backup preservation, and newer-schema downgrade protection;
 - keyboard/gamepad remapping UI with immediate persistence, reset-to-defaults, and fail-closed conflict rejection;
 - dynamic player prompts sourced from the active binding authority;
 - Reduced Motion, Screen Shake, Text Speed, Music Volume, Effects Volume, and Dialogue Volume;
@@ -99,7 +99,7 @@ Music Volume is active on the canonical music bus. With no registered track, the
 `tests/accessibility-visual-matrix-playwright.js` now turns rendered review into a repeatable artifact lane rather than an ad hoc screenshot task.
 
 It captures **58 canonical 960×640 review frames**:
-- 11 representative surfaces at each Text Scale value: 100 / 125 / 150 / 175%;
+- 12 representative surfaces at each Text Scale value: 100 / 125 / 150 / 175%, including occupied-slot overwrite confirmation;
 - six High Contrast samples at 150%;
 - four dialogue subtitle/speaker-label combinations, including the fail-closed Subtitles Off / TTS unavailable case.
 
