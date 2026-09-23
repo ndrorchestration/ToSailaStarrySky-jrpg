@@ -131,6 +131,22 @@
           return parsed;
         }
       },
+      futureSchemaVersion() {
+        let newest = null;
+        for (const key of [STORAGE_KEY, STORAGE_KEY + '.bak']) {
+          const raw = root.localStorage.getItem(key);
+          if (raw === null) continue;
+          try {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) &&
+                parsed.settings && typeof parsed.settings === 'object' && !Array.isArray(parsed.settings) &&
+                Number.isInteger(parsed.schemaVersion) && parsed.schemaVersion > SCHEMA_VERSION) {
+              newest = newest == null ? parsed.schemaVersion : Math.max(newest, parsed.schemaVersion);
+            }
+          } catch (_) {}
+        }
+        return newest;
+      },
       remove() {
         root.localStorage.removeItem(STORAGE_KEY);
         root.localStorage.removeItem(STORAGE_KEY + '.bak');
@@ -190,6 +206,21 @@
           return parsed;
         }
       },
+      futureSchemaVersion() {
+        let newest = null;
+        for (const file of [target, bak]) {
+          if (!fs.existsSync(file)) continue;
+          try {
+            const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) &&
+                parsed.settings && typeof parsed.settings === 'object' && !Array.isArray(parsed.settings) &&
+                Number.isInteger(parsed.schemaVersion) && parsed.schemaVersion > SCHEMA_VERSION) {
+              newest = newest == null ? parsed.schemaVersion : Math.max(newest, parsed.schemaVersion);
+            }
+          } catch (_) {}
+        }
+        return newest;
+      },
       remove() {
         for (const file of [target,tmp,bak]) {
           if (fs.existsSync(file)) fs.unlinkSync(file);
@@ -224,6 +255,12 @@
   function save(settings) {
     const storage = getStorage();
     if (!storage) throw new Error('SETTINGS_STORAGE_UNAVAILABLE');
+    const protectedVersion = typeof storage.futureSchemaVersion === 'function'
+      ? storage.futureSchemaVersion()
+      : null;
+    if (protectedVersion != null) {
+      throw new Error('SETTINGS_FUTURE_SCHEMA_PROTECTED:' + protectedVersion);
+    }
     const envelope = makeEnvelope(settings);
     storage.write(envelope);
     return {
