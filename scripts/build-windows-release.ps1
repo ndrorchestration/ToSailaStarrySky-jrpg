@@ -10,6 +10,7 @@ Write-Host "== Aetherwake local Windows release build =="
 
 npm ci
 npm run test:desktop-package
+npm run test:m0-title-audio-ready
 npm run package:windows
 
 $package = Get-ChildItem -Path (Join-Path $repo "..\aetherwake-dist") -Directory | Select-Object -First 1
