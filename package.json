@@ -98,6 +98,7 @@
     "admit:title-audio": "node scripts/admit-title-audio.js",
     "test:title-audio-admission": "node tests/title-audio-admission-contract.test.js",
     "test:title-audio-runtime": "node tests/title-audio-runtime-contract.test.js",
-    "test:m0-local-verification": "node tests/m0-local-verification-contract.test.js"
+    "test:m0-local-verification": "node tests/m0-local-verification-contract.test.js",
+    "test:production-method": "node tests/production-method-contract.test.js"
   }
 }
