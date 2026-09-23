@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "authority": "Aetherwake AI-Assisted Production Contract",
+  "purpose": "Define required production registries and fail-closed admission expectations before broad content scale-out.",
+  "registries": [
+    {
+      "id": "canonical-lore",
+      "required": true,
+      "scope": [
+        "character-facts",
+        "faction-rules",
+        "location-facts",
+        "timeline-events",
+        "terminology",
+        "unresolved-questions",
+        "source-scene-ids"
+      ],
+      "authority": "creator-owned canon / Notion SSOT",
+      "admission": "human-reviewed"
+    },
+    {
+      "id": "content",
+      "required": true,
+      "scope": [
+        "abilities",
+        "items",
+        "enemies",
+        "maps",
+        "npcs",
+        "quests",
+        "dialogue-nodes",
+        "music-cues",
+        "localization-strings"
+      ],
+      "authority": "GitHub runtime/data definitions",
+      "admission": "stable-id + schema/reference validation"
+    },
+    {
+      "id": "asset-provenance",
+      "required": true,
+      "scope": [
+        "source",
+        "license",
+        "creator-or-tool-model",
+        "input-reference",
+        "transformations",
+        "approver",
+        "shipped-status"
+      ],
+      "authority": "asset provenance records",
+      "admission": "traceable provenance + explicit approval"
+    },
+    {
+      "id": "decision-log",
+      "required": true,
+      "scope": [
+        "change",
+        "reason",
+        "approver",
+        "admitted-build-or-commit",
+        "supporting-evidence"
+      ],
+      "authority": "project decision records",
+      "admission": "recorded before production-complete claim"
+    }
+  ],
+  "aiAdmissionPath": [
+    "design-specification",
+    "ai-draft",
+    "human-review",
+    "validation",
+    "repository-or-ssot"
+  ],
+  "contentScaleGate": {
+    "blocking": true,
+    "requires": [
+      "representative-slice-completable-without-live-explanation",
+      "next-objective-understandable",
+      "combat-choices-intelligible",
+      "save-load-and-restart-stable",
+      "representative-visual-audio-acceptance",
+      "asset-provenance-traceable",
+      "repeatable-production-template"
+    ]
+  },
+  "combatBudgetFields": [
+    "expected-party-hp-and-damage",
+    "standard-enemy-turns-to-defeat",
+    "boss-phase-duration",
+    "healing-capacity-per-encounter",
+    "resource-recovery-assumptions",
+    "acceptable-variance",
+    "maximum-stacked-damage-multiplier"
+  ],
+  "stateSpaceQACategories": [
+    "transient-state-save-boundaries",
+    "process-restart-restoration",
+    "invalid-newest-save-fallback",
+    "combat-failure-or-escape-return",
+    "quest-order-permutations",
+    "resource-unavailability",
+    "party-wipe-recovery-when-supported",
+    "inventory-overflow-when-supported",
+    "save-version-migration"
+  ]
+}
