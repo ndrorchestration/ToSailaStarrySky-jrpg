@@ -218,9 +218,11 @@
         "modules/input-bindings.js",
         "tests/input-bindings-contract.test.js",
         "tests/accessibility-rendering-contract.test.js",
-        "tests/accessibility-visual-matrix-playwright.js"
+        "tests/accessibility-visual-matrix-playwright.js",
+        "modules/music-bus.js",
+        "tests/music-bus-contract.test.js"
       ],
-      "nextAction": "Execute and human-review the 54-frame accessibility visual matrix, then require executed exact-head controller-parity and First Wake benchmark results. Music Volume remains blocked on a canonical music bus."
+      "nextAction": "Execute and human-review the 54-frame accessibility visual matrix, require executed exact-head controller-parity and First Wake benchmark results, and separately admit/verify the packaged title-music asset on the canonical music bus."
     },
     {
       "id": "visual-benchmark-set",
