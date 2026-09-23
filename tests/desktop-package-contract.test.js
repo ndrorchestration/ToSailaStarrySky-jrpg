@@ -31,6 +31,10 @@ assert(stageScript.includes("path.join(stage, 'package.json')"),
   'production desktop manifest must live at the launcher root');
 assert(stageScript.includes("path.join(stage, 'www')"),
   'production game payload must live under www');
+assert(stageScript.includes("path.join(repo, 'assets')") &&
+       stageScript.includes("path.join(www, 'assets')") &&
+       stageScript.includes('fs.cpSync(assetsSrc, assetsDst, { recursive: true })'),
+  'production desktop staging must preserve governed runtime assets under www/assets');
 assert(packageJson.scripts['package:windows'].includes('.desktop-runtime'),
   'Windows packaging must consume only the staged production runtime');
 
