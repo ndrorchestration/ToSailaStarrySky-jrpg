@@ -135,6 +135,8 @@ try {
     'test:release-evidence',
     'test:external-playtest-evidence',
     'test:external-playtest-packet',
+    'test:m0-operator-lane',
+    'test:m0-manual-acceptance-dashboard',
     'test:m0-acceptance-contract'
   )
 
