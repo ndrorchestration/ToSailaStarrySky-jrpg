@@ -27,6 +27,7 @@ for (const gate of [
   'test:audio-assets',
   'test:title-audio-admission',
   'test:title-audio-runtime',
+  'test:m0-title-audio-ready',
   'test:world-authority',
   'test:production-method',
   'test:smoke',
@@ -63,6 +64,10 @@ assert(doc.includes('M0_EXTERNAL_PLAYTEST.md'),
   'documentation must route manual player-comprehension evidence to its protocol');
 assert(doc.includes('uncoached external-player completion pass'),
   'documentation must preserve the external-player acceptance dependency');
+assert(doc.includes('test:m0-title-audio-ready'),
+  'documentation must name the strict M0 title-audio readiness gate');
+assert(doc.includes('fail closed unless it is admitted and Git-tracked'),
+  'documentation must distinguish development fallback from M0 readiness');
 assert(doc.includes('admit:title-audio'),
   'documentation must route title audio through governed admission');
 
