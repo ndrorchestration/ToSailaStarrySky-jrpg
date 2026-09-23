@@ -58,6 +58,10 @@ assert(!runtime.includes('if (!meta.exists || meta.valid === false) return meta;
   'Continue must not suppress backup recovery solely because the primary listing is invalid');
 assert(runtime.includes('RECOVERED PREVIOUS SAVE // PRIMARY INVALID'),
   'player must receive a visible recovery notice when backup semantics rescue a slot');
+assert(runtime.includes('NEWER VERSION SAVE — PRESERVED'),
+  'save UI must clearly distinguish protected future-version saves from corrupt saves');
+assert(runtime.includes('futureSchemaProtected'),
+  'save index must classify future-schema protection explicitly');
 assert(runtime.includes('function applySaveEnvelope(envelope)'), 'runtime restore path missing');
 assert(runtime.includes('window.AetherPartyState.setActivePartyIds(ids)'),
   'load path must restore canonical active-party references');
