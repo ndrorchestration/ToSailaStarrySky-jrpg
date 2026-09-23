@@ -397,10 +397,15 @@
       try {
         const loaded = load(slot);
         const e = loaded.envelope;
+        const protectedState = futureProtectedSlot(slot, storage);
         return {
           slot, exists: true, valid: true, kind: e.kind, savedAt: e.savedAt,
           playtimeMs: e.playtimeMs, chapter: e.chapter, location: e.location,
-          partySummary: e.partySummary, gameVersion: e.gameVersion
+          partySummary: e.partySummary, gameVersion: e.gameVersion,
+          recoveredFromBackup: Boolean(loaded.recoveredFromBackup),
+          futureSchemaProtected: Boolean(protectedState),
+          futureSchemaVersion: protectedState ? protectedState.version : null,
+          futureSchemaSource: protectedState ? protectedState.source : null
         };
       } catch (error) {
         return { slot, exists: true, valid: false, error: error.message, kind: slot.startsWith('autosave-') ? 'autosave' : 'manual' };
