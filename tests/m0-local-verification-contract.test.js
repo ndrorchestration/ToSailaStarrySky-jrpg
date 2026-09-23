@@ -52,6 +52,16 @@ assert(doc.includes('clean working tree'),
   'documentation must require a clean working tree for exact-head claims');
 assert(doc.includes('not the same as final M0 acceptance'),
   'documentation must not overclaim local script success');
+assert(script.includes('PASS_WITH_MANUAL_ACCEPTANCE_PENDING'),
+  'local verifier must not report final M0 acceptance');
+assert(script.includes("uncoachedExternalPlayer = 'NOT_RUN'"),
+  'local verifier summary must expose the uncoached-player gate as not run');
+assert(script.includes("accessibilityVisualReview = 'PENDING_HUMAN_REVIEW'"),
+  'local verifier summary must expose pending visual review');
+assert(doc.includes('M0_EXTERNAL_PLAYTEST.md'),
+  'documentation must route manual player-comprehension evidence to its protocol');
+assert(doc.includes('uncoached external-player completion pass'),
+  'documentation must preserve the external-player acceptance dependency');
 assert(doc.includes('admit:title-audio'),
   'documentation must route title audio through governed admission');
 
