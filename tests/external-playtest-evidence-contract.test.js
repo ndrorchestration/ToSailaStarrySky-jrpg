@@ -26,6 +26,10 @@ assert(validator.includes('release.artifacts.installer.sha256'),
   'external playtest validator must bind installer hash');
 assert(validator.includes('playerVerifiedStandalone, true'),
   'external playtest validator must require standalone verification');
+assert(validator.includes('persistenceVerification') &&
+       validator.includes('desktopSaveRestart') &&
+       validator.includes('desktopSaveBackupOnlyRecovery'),
+  'external playtest validator must require installed persistence/recovery proof');
 assert(validator.includes('record.interventions.length, 0'),
   'external playtest validator must reject coached/intervened PASS');
 assert(validator.includes('combatDecisionReasoning.length > 0'),
