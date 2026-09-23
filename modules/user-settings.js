@@ -108,6 +108,36 @@
 
   function browserStorage() {
     if (!root || !root.localStorage) return null;
+
+    function readWithRecovery() {
+      const primary = root.localStorage.getItem(STORAGE_KEY);
+      let primaryError = null;
+      if (primary !== null) {
+        try {
+          const parsed = JSON.parse(primary);
+          validateEnvelope(parsed);
+          return { envelope: parsed, recoveredFromBackup: false, primaryLoadError: null };
+        } catch (error) {
+          primaryError = error;
+        }
+      } else {
+        primaryError = new Error('SETTINGS_PRIMARY_MISSING');
+      }
+
+      const backup = root.localStorage.getItem(STORAGE_KEY + '.bak');
+      if (backup === null) {
+        if (primary !== null) throw primaryError;
+        return null;
+      }
+      const parsed = JSON.parse(backup);
+      validateEnvelope(parsed);
+      return {
+        envelope: parsed,
+        recoveredFromBackup: true,
+        primaryLoadError: primaryError ? primaryError.message : 'SETTINGS_PRIMARY_MISSING'
+      };
+    }
+
     return {
       type: 'localStorage',
       path() { return 'localStorage://' + STORAGE_KEY; },
@@ -116,20 +146,10 @@
         if (previous !== null) root.localStorage.setItem(STORAGE_KEY + '.bak', previous);
         root.localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
       },
+      readWithRecovery,
       read() {
-        const primary = root.localStorage.getItem(STORAGE_KEY);
-        if (primary === null) return null;
-        try {
-          const parsed = JSON.parse(primary);
-          validateEnvelope(parsed);
-          return parsed;
-        } catch (primaryError) {
-          const backup = root.localStorage.getItem(STORAGE_KEY + '.bak');
-          if (backup === null) throw primaryError;
-          const parsed = JSON.parse(backup);
-          validateEnvelope(parsed);
-          return parsed;
-        }
+        const result = readWithRecovery();
+        return result ? result.envelope : null;
       },
       futureSchemaVersion() {
         let newest = null;
@@ -193,18 +213,35 @@
           throw error;
         }
       },
-      read() {
-        if (!fs.existsSync(target)) return null;
-        try {
-          const parsed = JSON.parse(fs.readFileSync(target, 'utf8'));
-          validateEnvelope(parsed);
-          return parsed;
-        } catch (primaryError) {
-          if (!fs.existsSync(bak)) throw primaryError;
-          const parsed = JSON.parse(fs.readFileSync(bak, 'utf8'));
-          validateEnvelope(parsed);
-          return parsed;
+      readWithRecovery() {
+        let primaryError = null;
+        if (fs.existsSync(target)) {
+          try {
+            const parsed = JSON.parse(fs.readFileSync(target, 'utf8'));
+            validateEnvelope(parsed);
+            return { envelope: parsed, recoveredFromBackup: false, primaryLoadError: null };
+          } catch (error) {
+            primaryError = error;
+          }
+        } else {
+          primaryError = new Error('SETTINGS_PRIMARY_MISSING');
         }
+
+        if (!fs.existsSync(bak)) {
+          if (fs.existsSync(target)) throw primaryError;
+          return null;
+        }
+        const parsed = JSON.parse(fs.readFileSync(bak, 'utf8'));
+        validateEnvelope(parsed);
+        return {
+          envelope: parsed,
+          recoveredFromBackup: true,
+          primaryLoadError: primaryError ? primaryError.message : 'SETTINGS_PRIMARY_MISSING'
+        };
+      },
+      read() {
+        const result = this.readWithRecovery();
+        return result ? result.envelope : null;
       },
       futureSchemaVersion() {
         let newest = null;
@@ -238,17 +275,27 @@
     if (!storage) {
       return { settings: defaults(), storageType: 'memory-defaults', path: null, isDefault: true };
     }
-    const envelope = storage.read();
-    if (!envelope) {
+    const readResult = typeof storage.readWithRecovery === 'function'
+      ? storage.readWithRecovery()
+      : (storage.read() ? { envelope: storage.read(), recoveredFromBackup: false, primaryLoadError: null } : null);
+    if (!readResult || !readResult.envelope) {
       return { settings: defaults(), storageType: storage.type, path: storage.path(), isDefault: true };
     }
+    const envelope = readResult.envelope;
     validateEnvelope(envelope);
+    const protectedVersion = typeof storage.futureSchemaVersion === 'function'
+      ? storage.futureSchemaVersion()
+      : null;
     return {
       settings: clone(envelope.settings),
       envelope,
       storageType: storage.type,
-      path: storage.path(),
-      isDefault: false
+      path: readResult.recoveredFromBackup ? storage.path() + '.bak' : storage.path(),
+      isDefault: false,
+      recoveredFromBackup: Boolean(readResult.recoveredFromBackup),
+      primaryLoadError: readResult.primaryLoadError || null,
+      futureSchemaProtected: protectedVersion != null,
+      futureSchemaVersion: protectedVersion
     };
   }
 
