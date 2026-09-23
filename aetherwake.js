@@ -1943,7 +1943,11 @@ function saveToSlot(slot, autosave) {
   } catch (error) {
     window._lastSaveError = error.message;
     console.error('SAVE_FAILED', error);
-    showToast('SAVE FAILED // ' + error.message, C.rust, 2200);
+    if (/SAVE_SLOT_FUTURE_SCHEMA_PROTECTED|SAVE_AUTOSAVE_ALL_SLOTS_FUTURE_PROTECTED/.test(error.message)) {
+      showToast('NEWER VERSION SAVE DATA — PRESERVED', C.scioto, 2400);
+    } else {
+      showToast('SAVE FAILED // ' + error.message, C.rust, 2200);
+    }
     return false;
   }
 }
