@@ -92,10 +92,21 @@ Music Volume remains stored but intentionally inactive until the canonical music
 - focused combat navigation/action execution;
 - haptic dispatch when a supported actuator is present.
 
+## Visual acceptance lane
+
+`tests/accessibility-visual-matrix-playwright.js` now turns rendered review into a repeatable artifact lane rather than an ad hoc screenshot task.
+
+It captures **54 canonical 960×640 review frames**:
+- 11 representative surfaces at each Text Scale value: 100 / 125 / 150 / 175%;
+- six High Contrast samples at 150%;
+- four dialogue subtitle/speaker-label combinations, including the fail-closed Subtitles Off / TTS unavailable case.
+
+The lane writes `artifacts/accessibility-visual-matrix/manifest.json` with `HUMAN_REVIEW_REQUIRED` and CI uploads the directory as an artifact. Screenshot generation is verification infrastructure; the frames still require human review before rendered acceptance can be claimed.
+
 ## Next production actions
 
-1. execute rendered visual acceptance at each supported text scale and key contrast/subtitle combinations;
-2. execute the exact-head static/browser suite when a runner is actually allocated;
+1. execute and review the 54-frame accessibility visual matrix;
+2. execute the exact-head controller-parity and First Wake benchmark suites when a runner is actually allocated;
 3. bind Music Volume only after title/runtime music playback has a canonical authority;
 4. if those pass, reassess whether PR #147 can leave draft without widening scope.
 
