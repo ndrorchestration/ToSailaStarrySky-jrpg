@@ -80,12 +80,20 @@ assert.strictEqual(byId.get('settings').status, 'covered',
   'user settings persistence must remain independently covered');
 assert(/newer-schema primary\/backup sidecars are downgrade-protected/.test(byId.get('settings').rationale),
   'settings persistence must preserve newer-schema sidecars during downgrade');
+assert(/Missing\/corrupt primaries recover from validated backup with explicit provenance/.test(byId.get('settings').rationale),
+  'settings persistence must retain explicit recovery provenance');
+assert(/first post-recovery edit preserves that backup/.test(byId.get('settings').rationale),
+  'settings persistence must preserve the validated recovery backup on first edit');
 assert.strictEqual(byId.get('settings').versionOwner, 'user-settings SCHEMA_VERSION',
   'user settings must own an independent schema version');
 assert.strictEqual(byId.get('input-bindings').status, 'covered',
   'input remaps must persist independently from game saves');
 assert(/newer-schema primary\/backup sidecars are downgrade-protected/.test(byId.get('input-bindings').rationale),
   'input bindings persistence must preserve newer-schema sidecars during downgrade');
+assert(/Missing\/corrupt primaries recover from validated backup with explicit provenance/.test(byId.get('input-bindings').rationale),
+  'input bindings persistence must retain explicit recovery provenance');
+assert(/first post-recovery edit preserves that backup/.test(byId.get('input-bindings').rationale),
+  'input bindings persistence must preserve the validated recovery backup on first edit');
 assert.strictEqual(byId.get('input-bindings').versionOwner, 'input-bindings SCHEMA_VERSION',
   'input remaps must own an independent schema version');
 
