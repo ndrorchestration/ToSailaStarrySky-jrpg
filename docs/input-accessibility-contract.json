@@ -145,6 +145,20 @@
       "singlePressDigital": true
     },
     {
+      "id": "continue-game",
+      "contexts": [
+        "menu"
+      ],
+      "keyboard": [
+        "C"
+      ],
+      "gamepad": [
+        "button-north"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
       "id": "open-save-load",
       "contexts": [
         "world",
@@ -625,6 +639,7 @@
     "standard-mapping gamepad polling through navigator.getGamepads()",
     "context-prioritized gamepad semantic adapter",
     "live controller dispatch for BOOT, title, Settings, Controls, authored opening, WORLD, dialogue, read-only overlays, COMBAT, SAVELOAD, and AIRSHIP",
+    "remappable title Continue action with keyboard/controller parity and dynamic prompt",
     "bounded controller movement repeat equivalent to keyboard movement cadence",
     "deterministic combat action focus with non-color marker and canonical resolveTurn activation",
     "single-press controller Save/Load route through gameplay Menu button",
