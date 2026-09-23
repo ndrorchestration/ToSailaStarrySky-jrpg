@@ -1731,18 +1731,63 @@ function doMoveSemantic(actionId) {
 }
 
 
+function loadSemanticallyValidSaveCandidate(slot) {
+  let primaryError = null;
+  try {
+    const loaded = window.AetherSaveSystem.load(slot);
+    if (!loaded || !loaded.envelope) return null;
+    prepareSaveEnvelopeForApply(loaded.envelope);
+    return loaded;
+  } catch (error) {
+    primaryError = error;
+  }
+
+  if (typeof window.AetherSaveSystem.loadBackup === 'function') {
+    try {
+      const backup = window.AetherSaveSystem.loadBackup(slot);
+      if (backup && backup.envelope) {
+        prepareSaveEnvelopeForApply(backup.envelope);
+        return {
+          ...backup,
+          semanticBackupRecovery: true,
+          primarySemanticError: primaryError ? primaryError.message : null
+        };
+      }
+    } catch (backupError) {
+      const primaryMessage = primaryError ? primaryError.message : 'unknown';
+      throw new Error(
+        'SAVE_PRIMARY_AND_BACKUP_UNLOADABLE:' +
+        primaryMessage + '|' + backupError.message
+      );
+    }
+  }
+
+  throw primaryError;
+}
+
 function buildLoadableSaveIndex() {
   if (!window.AetherSaveSystem) return [];
   const listing = window.AetherSaveSystem.list();
   return listing.map(meta => {
     if (!meta.exists || meta.valid === false) return meta;
     try {
-      const loaded = window.AetherSaveSystem.load(meta.slot);
+      const loaded = loadSemanticallyValidSaveCandidate(meta.slot);
       if (!loaded || !loaded.envelope) {
         return { ...meta, valid: false, semanticValid: false, error: 'SAVE_ENVELOPE_MISSING' };
       }
-      prepareSaveEnvelopeForApply(loaded.envelope);
-      return { ...meta, semanticValid: true };
+      const envelope = loaded.envelope;
+      return {
+        ...meta,
+        valid: true,
+        semanticValid: true,
+        semanticBackupRecovery: Boolean(loaded.semanticBackupRecovery),
+        savedAt: envelope.savedAt,
+        playtimeMs: envelope.playtimeMs,
+        chapter: envelope.chapter,
+        location: envelope.location,
+        partySummary: Array.isArray(envelope.partySummary) ? envelope.partySummary.slice() : [],
+        gameVersion: envelope.gameVersion
+      };
     } catch (error) {
       return { ...meta, valid: false, semanticValid: false, error: error.message };
     }
@@ -1981,15 +2026,28 @@ function applySaveEnvelope(envelope) {
 
 function loadFromSlot(slot) {
   try {
-    const loaded = window.AetherSaveSystem.load(slot);
+    const loaded = loadSemanticallyValidSaveCandidate(slot);
     if (!loaded) {
       showToast('NO SAVE IN ' + slot.toUpperCase(), C.rust, 1400);
       return false;
     }
     window._lastLoadResult = loaded;
-    return applySaveEnvelope(loaded.envelope);
+    const applied = applySaveEnvelope(loaded.envelope);
+    if (applied && loaded.semanticBackupRecovery) {
+      window._lastLoadRecovery = {
+        slot,
+        source: 'backup',
+        primarySemanticError: loaded.primarySemanticError || null,
+        path: loaded.path
+      };
+      showToast('RECOVERED PREVIOUS SAVE // PRIMARY INVALID', C.scioto, 2200);
+    } else {
+      window._lastLoadRecovery = null;
+    }
+    return applied;
   } catch (error) {
     window._lastLoadError = error.message;
+    window._lastLoadRecovery = null;
     console.error('LOAD_FAILED', error);
     showToast('LOAD FAILED // ' + error.message, C.rust, 2200);
     return false;
