@@ -104,6 +104,8 @@
     "verify:packaged-title-audio": "node scripts/verify-packaged-title-audio.js",
     "write:release-evidence": "node scripts/write-release-evidence.js",
     "test:release-evidence": "node tests/release-evidence-contract.test.js",
-    "test:title-audio-handoff": "node tests/title-audio-handoff-contract.test.js"
+    "test:title-audio-handoff": "node tests/title-audio-handoff-contract.test.js",
+    "test:accessibility-visual-review": "node tests/accessibility-visual-review-contract.test.js",
+    "validate:accessibility-review": "node scripts/validate-m0-accessibility-review.js"
   }
 }
