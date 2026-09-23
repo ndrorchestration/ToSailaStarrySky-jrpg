@@ -30,6 +30,9 @@ jobs:
       - name: Run desktop packaging contract
         run: npm run test:desktop-package
 
+      - name: Require admitted title audio for release candidate
+        run: npm run test:m0-title-audio-ready
+
       - name: Build Windows NW.js package
         run: npm run package:windows
 
