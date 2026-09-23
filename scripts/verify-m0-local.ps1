@@ -29,9 +29,11 @@ $results = [ordered]@{
   windowsPackage = $null
   manualAcceptance = [ordered]@{
     accessibilityVisualReview = 'PENDING_HUMAN_REVIEW'
+    accessibilityReviewProtocol = 'docs/M0_ACCESSIBILITY_VISUAL_REVIEW.md'
+    accessibilityEvidenceTemplate = 'docs/m0-accessibility-visual-review.template.json'
     uncoachedExternalPlayer = 'NOT_RUN'
-    protocol = 'docs/M0_EXTERNAL_PLAYTEST.md'
-    evidenceTemplate = 'docs/m0-external-playtest-record.template.json'
+    externalPlayerProtocol = 'docs/M0_EXTERNAL_PLAYTEST.md'
+    externalPlayerEvidenceTemplate = 'docs/m0-external-playtest-record.template.json'
   }
   overall = 'RUNNING'
 }
