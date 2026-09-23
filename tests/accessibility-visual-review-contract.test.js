@@ -18,6 +18,8 @@ const template = JSON.parse(fs.readFileSync(
   'utf8'
 ));
 
+assert.doesNotThrow(() => new Function(matrix),
+  'accessibility visual-matrix runner must parse as JavaScript');
 assert(matrix.includes('schemaVersion: 2'),
   'visual matrix manifest must use provenance schema v2');
 assert(matrix.includes("git', ['rev-parse', 'HEAD']"),
