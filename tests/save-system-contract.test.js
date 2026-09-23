@@ -186,6 +186,27 @@ assert.throws(
 assert.strictEqual(JSON.parse(fs.readFileSync(futureManualPath, 'utf8')).schemaVersion, 2,
   'future-schema manual primary must remain untouched');
 
+// Mixed-version recovery: newer primary + older valid backup may load the backup,
+// but the slot must remain explicitly future-protected and non-writable.
+const mixed = nwSave.save('manual-6', { value: 61 }, { gameVersion: '0.2.0' });
+nwSave.save('manual-6', { value: 62 }, { gameVersion: '0.2.0' });
+fs.writeFileSync(mixed.path, JSON.stringify(futureEnvelope('manual-6', 99)), 'utf8');
+const mixedLoaded = nwSave.load('manual-6');
+assert.strictEqual(mixedLoaded.recoveredFromBackup, true);
+assert.strictEqual(mixedLoaded.envelope.payload.value, 61,
+  'mixed-version slot did not recover the older valid backup');
+const mixedMeta = nwSave.list().find(entry => entry.slot === 'manual-6');
+assert(mixedMeta && mixedMeta.valid === true,
+  'mixed-version slot should remain loadable through its older backup');
+assert.strictEqual(mixedMeta.recoveredFromBackup, true);
+assert.strictEqual(mixedMeta.futureSchemaProtected, true);
+assert.strictEqual(mixedMeta.futureSchemaVersion, 2);
+assert.strictEqual(mixedMeta.futureSchemaSource, 'primary');
+assert.throws(
+  () => nwSave.save('manual-6', { value: 63 }, { gameVersion: '0.2.0' }),
+  /SAVE_SLOT_FUTURE_SCHEMA_PROTECTED:manual-6:2:primary/
+);
+
 // A future backup is also protected even when the primary itself is corrupt.
 const protectedPrimary = path.join(saveDir, 'manual-5.json');
 const protectedBackup = protectedPrimary + '.bak';
