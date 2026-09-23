@@ -1769,8 +1769,10 @@ function buildLoadableSaveIndex() {
   if (!window.AetherSaveSystem) return [];
   const listing = window.AetherSaveSystem.list();
   return listing.map(meta => {
-    if (!meta.exists || meta.valid === false) return meta;
+    if (!meta.exists) return meta;
     try {
+      // Even an envelope-invalid primary may have a valid previous desktop backup.
+      // Do not let the coarse storage listing suppress the semantic candidate chain.
       const loaded = loadSemanticallyValidSaveCandidate(meta.slot);
       if (!loaded || !loaded.envelope) {
         return { ...meta, valid: false, semanticValid: false, error: 'SAVE_ENVELOPE_MISSING' };
