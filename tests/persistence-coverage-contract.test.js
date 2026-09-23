@@ -80,6 +80,8 @@ assert(/Desktop and browser persistence share this recovery contract/.test(byId.
   'backup recovery contract must cover both desktop and browser persistence');
 assert(/Manual overwrite and autosave rotation both preserve the validated backup/.test(byId.get('save-backup-recovery').rationale),
   'manual and autosave replacement must preserve validated recovery backups');
+assert(/Backup-only slots remain discoverable by listing and Continue/.test(byId.get('save-backup-recovery').rationale),
+  'backup-only saves must remain visible to player-facing discovery');
 assert.strictEqual(byId.get('air-navigation').status, 'covered');
 assert(/independent of envelope schema/.test(byId.get('air-navigation').versionOwner),
   'air-navigation schema must remain explicitly independent from whole-game save schema');
