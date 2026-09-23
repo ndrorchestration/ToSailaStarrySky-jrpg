@@ -64,3 +64,6 @@ assert(runtime.includes('recoveredFromBackup: Boolean(loaded.recoveredFromBackup
   'runtime must preserve user-settings backup recovery provenance');
 assert(runtime.includes('futureSchemaProtected: Boolean(loaded.futureSchemaProtected)'),
   'runtime must expose newer-schema settings protection state');
+
+assert(runtime.includes('window._userSettingsStorage.recoveredFromBackup'),
+  'settings writes must preserve validated backup after recovery');
