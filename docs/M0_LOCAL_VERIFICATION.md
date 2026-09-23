@@ -4,7 +4,7 @@ GitHub-hosted Actions for the private Aetherwake repository currently fail befor
 
 ## Command
 
-From a Windows checkout of the exact candidate branch:
+From a Windows checkout of the exact candidate branch with a **clean working tree**. The verifier fails closed if Git HEAD provenance is unavailable or if uncommitted changes are present, so local results cannot be mistaken for exact-head evidence:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify-m0-local.ps1
