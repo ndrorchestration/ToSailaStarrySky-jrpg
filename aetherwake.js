@@ -671,11 +671,38 @@ function runDesktopSavePersistenceSmokeIfRequested() {
     if (phase === 'write') {
       gameState = STATE.WORLD;
       window.gameState = gameState;
+
+      // Create a second slot with two generations. The external Windows
+      // verifier will delete only its primary between processes, forcing the
+      // relaunch to discover and restore the surviving backup generation.
+      world.player.tileX = 12;
+      world.player.tileY = 13;
+      world.player.px = 12 * 16;
+      world.player.py = 13 * 16;
+      if (!saveToSlot('manual-5', false)) {
+        throw new Error('DESKTOP_SAVE_SMOKE_BACKUP_FIXTURE_FIRST_WRITE_FAILED');
+      }
+      marker.backupOnlyExpectedTileX = 12;
+      marker.backupOnlyExpectedTileY = 13;
+      marker.backupOnlyQuestState = quest && quest.state;
+      marker.backupOnlyActiveIds = window.ACTIVE_PARTY.map(character => character.id);
+
+      world.player.tileX = 14;
+      world.player.tileY = 15;
+      world.player.px = 14 * 16;
+      world.player.py = 15 * 16;
+      if (!saveToSlot('manual-5', false)) {
+        throw new Error('DESKTOP_SAVE_SMOKE_BACKUP_FIXTURE_SECOND_WRITE_FAILED');
+      }
+      marker.backupOnlyPrimaryPath = window._lastSaveResult && window._lastSaveResult.path;
+      marker.backupOnlyBackupPath = marker.backupOnlyPrimaryPath
+        ? marker.backupOnlyPrimaryPath + '.bak'
+        : null;
+
       world.player.tileX = 9;
       world.player.tileY = 11;
       world.player.px = 9 * 16;
       world.player.py = 11 * 16;
-
       if (!saveToSlot('manual-6', false)) {
         throw new Error('DESKTOP_SAVE_SMOKE_WRITE_FAILED');
       }
@@ -722,6 +749,43 @@ function runDesktopSavePersistenceSmokeIfRequested() {
       marker.questState = quest && quest.state;
       marker.activeIds = restoredActiveIds;
       if (!marker.restored) throw new Error('DESKTOP_SAVE_SMOKE_SEMANTIC_RESTORE_FAILED');
+
+      // Prove packaged backup-only discovery/recovery across the same process
+      // restart after the verifier has removed manual-5's primary file.
+      world.player.tileX = 3;
+      world.player.tileY = 3;
+      world.player.px = 3 * 16;
+      world.player.py = 3 * 16;
+      quest.state = quest.state === QUEST_STATES.DONE ? QUEST_STATES.SIGNAL : QUEST_STATES.DONE;
+      quest.act = quest.state;
+      window.ACTIVE_PARTY.splice(0, window.ACTIVE_PARTY.length);
+
+      const backupOnlyMetaBeforeLoad = buildLoadableSaveIndex()
+        .find(entry => entry.slot === 'manual-5');
+      if (!backupOnlyMetaBeforeLoad ||
+          !backupOnlyMetaBeforeLoad.exists ||
+          backupOnlyMetaBeforeLoad.semanticValid !== true ||
+          backupOnlyMetaBeforeLoad.semanticBackupRecovery !== true) {
+        throw new Error('DESKTOP_SAVE_SMOKE_BACKUP_ONLY_NOT_DISCOVERABLE');
+      }
+      if (!loadFromSlot('manual-5')) {
+        throw new Error('DESKTOP_SAVE_SMOKE_BACKUP_ONLY_LOAD_FAILED');
+      }
+      const backupOnlyRestoredIds = window.ACTIVE_PARTY.map(character => character.id);
+      marker.backupOnlyRestored =
+        world.player.tileX === 12 &&
+        world.player.tileY === 13 &&
+        Boolean(window._lastLoadRecovery && window._lastLoadRecovery.source === 'backup') &&
+        Boolean(window._lastLoadResult && /\.bak$/.test(window._lastLoadResult.path || ''));
+      marker.backupOnlyLoadedPath = window._lastLoadResult && window._lastLoadResult.path;
+      marker.backupOnlyRecovery = window._lastLoadRecovery;
+      marker.backupOnlyTileX = world.player.tileX;
+      marker.backupOnlyTileY = world.player.tileY;
+      marker.backupOnlyQuestStateRestored = quest && quest.state;
+      marker.backupOnlyActiveIdsRestored = backupOnlyRestoredIds;
+      if (!marker.backupOnlyRestored) {
+        throw new Error('DESKTOP_SAVE_SMOKE_BACKUP_ONLY_RESTORE_FAILED');
+      }
     } else {
       throw new Error('DESKTOP_SAVE_SMOKE_PHASE_INVALID:' + phase);
     }
