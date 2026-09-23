@@ -408,6 +408,58 @@ function createServer() {
     assert(continueFallback.invalidSemantic === false && continueFallback.invalidMarked === false,
       'semantic save failure was not classified as an invalid Continue candidate');
 
+    const backupOnlyContinue = await page.evaluate(() => {
+      const p = window._world.player;
+      p.tileX = 20; p.tileY = 20; p.x = 20; p.y = 20;
+      p.px = 20 * 16; p.py = 20 * 16;
+      const first = saveToSlot('manual-4', false);
+      if (!first) throw new Error('backup-only fixture first save failed');
+
+      p.tileX = 21; p.tileY = 21; p.x = 21; p.y = 21;
+      p.px = 21 * 16; p.py = 21 * 16;
+      if (!saveToSlot('manual-4', false)) throw new Error('backup-only fixture second save failed');
+
+      const primaryPath = window._lastSaveResult && window._lastSaveResult.path;
+      if (!primaryPath || !primaryPath.startsWith('localStorage://')) {
+        throw new Error('backup-only fixture did not use browser persistence');
+      }
+      const storageKey = primaryPath.replace('localStorage://', '');
+      localStorage.removeItem(storageKey);
+
+      p.tileX = 24; p.tileY = 24; p.x = 24; p.y = 24;
+      p.px = 24 * 16; p.py = 24 * 16;
+
+      refreshSaveIndex();
+      const selectedBeforeContinue = window._latestSaveMeta && window._latestSaveMeta.slot;
+      const slotMeta = window._saveSlotIndex.find(entry => entry.slot === 'manual-4');
+      const continued = continueLatestSave();
+      const result = {
+        selectedBeforeContinue,
+        slotExists: slotMeta && slotMeta.exists,
+        slotSemanticValid: slotMeta && slotMeta.semanticValid,
+        slotRecovered: slotMeta && slotMeta.semanticBackupRecovery,
+        continued,
+        tileX: window._world.player.tileX,
+        tileY: window._world.player.tileY,
+        recovery: window._lastLoadRecovery
+      };
+      window.AetherSaveSystem.remove('manual-4');
+      refreshSaveIndex();
+      return result;
+    });
+    assert(backupOnlyContinue.selectedBeforeContinue === 'manual-4',
+      'Continue index did not discover the newest backup-only save slot');
+    assert(backupOnlyContinue.slotExists === true &&
+           backupOnlyContinue.slotSemanticValid === true &&
+           backupOnlyContinue.slotRecovered === true,
+      'backup-only slot was not classified as a recoverable semantic candidate');
+    assert(backupOnlyContinue.continued === true &&
+           backupOnlyContinue.tileX === 20 &&
+           backupOnlyContinue.tileY === 20,
+      'Continue did not restore the surviving backup-only save generation');
+    assert(backupOnlyContinue.recovery && backupOnlyContinue.recovery.source === 'backup',
+      'backup-only Continue did not expose recovery provenance');
+
     await page.keyboard.press('m');
     await page.waitForTimeout(200);
     assert((await page.evaluate(() => window.gameState)) === 'world',
