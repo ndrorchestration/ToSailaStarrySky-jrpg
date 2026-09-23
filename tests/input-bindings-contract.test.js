@@ -113,6 +113,24 @@ const loaded = bindings.load();
 assert.deepStrictEqual(loaded.bindings, state,
   'persisted input bindings must round-trip independently from game saves/settings');
 bindings.save(state);
+global.localStorage.setItem(bindings.STORAGE_KEY, '{broken json');
+const recoveredBindingsFromCorrupt = bindings.load();
+assert.deepStrictEqual(recoveredBindingsFromCorrupt.bindings, state,
+  'input bindings must recover validated backup after primary corruption');
+assert.strictEqual(recoveredBindingsFromCorrupt.recoveredFromBackup, true);
+assert(recoveredBindingsFromCorrupt.primaryLoadError);
+const recoveredBindingsBackupRaw = global.localStorage.getItem(bindings.STORAGE_KEY + '.bak');
+const recoveredBindingSave = bindings.save(
+  recoveredBindingsFromCorrupt.bindings,
+  { preserveBackup: true }
+);
+assert.strictEqual(recoveredBindingSave.preservedBackup, true);
+assert.strictEqual(
+  global.localStorage.getItem(bindings.STORAGE_KEY + '.bak'),
+  recoveredBindingsBackupRaw,
+  'first input edit after recovery must preserve the validated backup'
+);
+
 global.localStorage.removeItem(bindings.STORAGE_KEY);
 const recoveredBindings = bindings.load();
 assert.deepStrictEqual(recoveredBindings.bindings, state,
