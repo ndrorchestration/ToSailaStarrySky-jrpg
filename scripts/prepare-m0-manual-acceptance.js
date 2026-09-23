@@ -129,6 +129,11 @@ a{font-weight:600}
 <p>Validation command: <code>npm run validate:external-playtest -- --record "&lt;completed-playtest.json&gt;" --release-evidence "${esc(rel(summary.evidenceBindings.releaseEvidencePath))}"</code></p>
 </div>
 
+<h2>Final acceptance</h2>
+<p>Only after both human records are completed and independently validate as PASS, run:</p>
+<p><code>npm run validate:m0-acceptance -- --summary "artifacts/m0-local-verification/summary.json" --accessibility-review "artifacts/accessibility-visual-matrix/human-review.json" --matrix-dir "artifacts/accessibility-visual-matrix" --external-playtest "artifacts/m0-external-playtest/external-playtest.json" --release-evidence "${esc(rel(summary.evidenceBindings.releaseEvidencePath))}" --output "artifacts/m0-local-verification/M0_ACCEPTANCE.json"</code></p>
+<p>The final validator revalidates both human records, rebinds all evidence to the exact candidate, and only then may write <code>M0_ACCEPTANCE.json</code>.</p>
+
 <h2>Acceptance boundary</h2>
 <p>This dashboard is an index over already-bound evidence. It does not modify either human record, cannot set either result to PASS, and is not final M0 authorization.</p>
 </body>
