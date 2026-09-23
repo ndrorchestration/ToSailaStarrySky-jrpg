@@ -1,0 +1,58 @@
+# M0 accessibility visual-review protocol
+
+Status: **MANUAL BLOCKING EVIDENCE / HUMAN JUDGMENT REQUIRED**
+
+This protocol owns human acceptance of the generated 54-frame accessibility visual matrix. Automated capture proves that the required surfaces render without registered runtime/HTTP errors; it does **not** prove readability, clipping quality, focus clarity, contrast quality, or acceptable composition.
+
+## Candidate binding
+
+Before review, record:
+- exact Git commit SHA;
+- `artifacts/accessibility-visual-matrix/manifest.json` identity;
+- SHA-256 of that manifest;
+- capture count;
+- reviewer identity or stable reviewer label;
+- review date.
+
+Do not reuse a review from another commit or regenerated matrix.
+
+## Required review set
+
+The current matrix contains exactly **54 captures**:
+- 44 text-scale captures: 11 representative surfaces at 100%, 125%, 150%, and 175%;
+- 6 high-contrast captures at 150%;
+- 4 subtitle/speaker-label presentation captures.
+
+Every file listed in the manifest must be reviewed. A missing or extra capture invalidates the review record.
+
+## Review criteria
+
+For each capture, inspect at minimum:
+- no clipped, overlapping, off-canvas, or unreadable required text;
+- focus/selection state remains identifiable without relying on color alone where focus is shown;
+- text remains legible against its immediate background;
+- enlarged text preserves usable hierarchy and does not hide required controls/objectives;
+- high-contrast mode improves or preserves distinction rather than collapsing information;
+- subtitle background/size combinations remain readable and do not obscure critical interaction information;
+- speaker-label behavior matches the selected setting;
+- no obvious placeholder/debug/error surface is visible;
+- no composition defect makes a required M0 action materially harder to understand.
+
+Record defects by capture filename. Do not silently waive a defect because another scale or surface looks correct.
+
+## Result semantics
+
+The review record begins as `NOT_RUN`.
+
+Valid terminal results:
+- `PASS` — every capture reviewed; no blocking visual/accessibility defect remains.
+- `FAIL` — one or more blocking defects exist.
+- `INVALIDATED` — candidate/manifest mismatch, incomplete capture set, regenerated evidence after review, or other provenance failure.
+
+A passing automated visual-matrix capture **cannot** set this result to `PASS`.
+
+## Evidence record
+
+Copy `docs/m0-accessibility-visual-review.template.json` for each exact candidate review.
+
+The human review and the uncoached external-player gate answer different questions and neither substitutes for the other.
