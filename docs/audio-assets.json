@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "authority": "Aetherwake governed runtime audio assets",
+  "titleTheme": {
+    "id": "title-main",
+    "title": "Aetherwake — Skyward Arpeggio Main Title",
+    "canonicalPath": "assets/audio/aetherwake-skyward-arpeggio-main-title.mp3",
+    "sourceFilename": "Aetherwake - Skyward Arpeggio Main Title.mp3",
+    "sourceVerification": {
+      "sha256": "7ac5fe9c2ee0bc8d0cbfa36441dbb7783dbe2ef0cc5e2ee665086a527a7bc350",
+      "bytes": 4233081,
+      "durationSeconds": 179.976,
+      "channels": 2,
+      "sampleRateHz": 48000
+    },
+    "repositoryStatus": "source-verified-repository-missing",
+    "musicBusTrackId": "title",
+    "runtimeRegistration": false,
+    "packagingRule": "assets/** must stage to www/assets/**"
+  }
+}
