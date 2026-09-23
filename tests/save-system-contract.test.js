@@ -51,6 +51,20 @@ const browserRecovered = browserSave.load('manual-2');
 assert.strictEqual(browserRecovered.recoveredFromBackup, true,
   'browser load must recover from malformed primary through explicit backup provenance');
 assert.strictEqual(browserRecovered.path, browserFirst.path + '.bak');
+const browserBackupBeforeProtectedOverwrite = browserRoot.localStorage.getItem(browserStorageKey + '.bak');
+const browserReplacement = browserSave.save(
+  'manual-2',
+  { runtime: { scene: 'world' }, party: { activeIds: ['ender'] }, marker: 3 },
+  { gameVersion: '0.2.0' },
+  { preserveBackup: true }
+);
+assert.strictEqual(browserReplacement.preservedBackup, true);
+assert.strictEqual(
+  browserRoot.localStorage.getItem(browserStorageKey + '.bak'),
+  browserBackupBeforeProtectedOverwrite,
+  'browser overwrite of a recovered slot must not replace the validated backup generation'
+);
+assert.strictEqual(browserSave.load('manual-2').envelope.payload.marker, 3);
 assert.strictEqual(browserSave.latest().slot, 'manual-2');
 browserSave.remove('manual-2');
 assert.strictEqual(browserSave.load('manual-2'), null);
@@ -99,6 +113,22 @@ assert.strictEqual(recovered.recoveredFromBackup, true);
 assert.strictEqual(recovered.path, first.path + '.bak');
 assert(recovered.primaryLoadError,
   'backup recovery must retain the primary failure reason');
+
+const protectedBackupBytes = fs.readFileSync(first.path + '.bak', 'utf8');
+const replacement = nwSave.save(
+  'manual-3',
+  { value: 4 },
+  { gameVersion: '0.2.0' },
+  { preserveBackup: true }
+);
+assert.strictEqual(replacement.preservedBackup, true);
+assert.strictEqual(nwSave.load('manual-3').envelope.payload.value, 4);
+assert.strictEqual(
+  fs.readFileSync(first.path + '.bak', 'utf8'),
+  protectedBackupBytes,
+  'desktop overwrite of a recovered slot must not replace the validated backup generation'
+);
+assert.strictEqual(nwSave.loadBackup('manual-3').envelope.payload.value, 1);
 
 // Downgrade protection: a newer-schema save must never be overwritten by this build.
 function futureEnvelope(slot, value) {
