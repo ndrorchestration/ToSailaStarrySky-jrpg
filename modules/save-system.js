@@ -125,6 +125,7 @@
         const raw = root.localStorage.getItem(STORAGE_PREFIX + slot);
         return raw ? JSON.parse(raw) : null;
       },
+      readBackup() { return null; },
       remove(slot) { root.localStorage.removeItem(STORAGE_PREFIX + slot); },
       exists(slot) { return root.localStorage.getItem(STORAGE_PREFIX + slot) !== null; },
       path(slot) { return 'localStorage://' + STORAGE_PREFIX + slot; }
@@ -198,6 +199,11 @@
           return backup;
         }
       },
+      readBackup(slot) {
+        const bak = file(slot) + '.bak';
+        if (!fs.existsSync(bak)) return null;
+        return JSON.parse(fs.readFileSync(bak, 'utf8'));
+      },
       remove(slot) {
         const target = file(slot);
         for (const p of [target, target + '.bak', target + '.tmp']) {
@@ -237,6 +243,25 @@
         : envelope.schemaVersion,
       storageType: storage.type,
       path: storage.path(slot)
+    };
+  }
+
+  function loadBackup(slot) {
+    validateSlot(slot);
+    const storage = getStorage();
+    if (!storage) throw new Error('SAVE_STORAGE_UNAVAILABLE');
+    if (typeof storage.readBackup !== 'function') return null;
+    const envelope = storage.readBackup(slot);
+    if (!envelope) return null;
+    const migrated = migrateEnvelope(envelope);
+    return {
+      envelope: migrated,
+      migratedFromSchemaVersion: envelope.schemaVersion === migrated.schemaVersion
+        ? null
+        : envelope.schemaVersion,
+      storageType: storage.type,
+      path: storage.path(slot) + '.bak',
+      recoveredFromBackup: true
     };
   }
 
@@ -290,7 +315,7 @@
     MANUAL_SLOTS: MANUAL_SLOTS.slice(),
     AUTOSAVE_SLOTS: AUTOSAVE_SLOTS.slice(),
     makeEnvelope, validateEnvelopeIntegrity, migrateEnvelope, validateEnvelope,
-    checksum, getStorage, save, load, remove, list, latest, rotateAutosave,
+    checksum, getStorage, save, load, loadBackup, remove, list, latest, rotateAutosave,
     _createForTesting: createSaveSystem
   });
 }));
