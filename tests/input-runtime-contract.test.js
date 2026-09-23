@@ -128,4 +128,18 @@ assert(source.includes('window.AetherInputBindings.setKeyboardBinding(') &&
 assert(source.includes('window.AetherInputPrompt = inputPrompt'),
   'dynamic prompt ownership must be exposed from the active binding state');
 
+assert(source.includes("inputPrompt('confirm', 'boot', 'both')") &&
+       source.includes("inputPrompt('open-settings', 'boot', 'both')"),
+  'BOOT hints must reflect active confirm/settings bindings');
+assert(source.includes("inputPrompt('confirm', 'world', 'both') + ' — HEAR WHAT FOLLOWS'"),
+  'WAKE resolution hint must reflect the active Confirm binding');
+assert(source.includes("inputPrompt('character-sheet', 'world', 'both')"),
+  'character-sheet close hint must reflect its active binding');
+assert(!source.includes('[ ENTER/CONFIRM skip  |  S/MENU settings ]'),
+  'BOOT retains stale physical-key instructions');
+assert(!source.includes('Tab: toggle log'),
+  'combat log must not advertise a nonexistent toggle');
+assert(!source.includes('[ R ] to begin again'),
+  'epilogue must not advertise a nonexistent restart binding');
+
 console.log('Aetherwake input runtime contract: PASS');
