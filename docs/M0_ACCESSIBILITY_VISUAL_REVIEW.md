@@ -74,3 +74,19 @@ npm run validate:accessibility-review -- --record ".\path\to\completed-review.js
 The validator fails closed if the review commit does not match the matrix Git HEAD, the manifest bytes changed, any capture was replaced/regenerated, review coverage is incomplete, any criterion is not explicitly true, blocking defects remain, reviewer identity/date is missing, or the result is not `PASS`.
 
 A validator PASS confirms integrity and completeness of the human record; it does not replace the human judgment that produced that record.
+
+## Deterministic review packet
+
+After the 54-frame matrix is generated, create the review packet with:
+
+```powershell
+npm run prepare:accessibility-review
+```
+
+This produces, inside `artifacts/accessibility-visual-matrix/`:
+- `review-index.html` — a local contact sheet containing all 54 manifest-bound captures, grouped by text scale, high-contrast, and subtitle cases;
+- `human-review.json` — a copy of the review template pre-bound to the exact matrix Git HEAD, manifest SHA-256, and capture count.
+
+The generated record remains `NOT_RUN`; all coverage flags remain false and all review criteria remain unset. The packet generator verifies the manifest and every screenshot hash before writing either output. It does **not** perform or imply human acceptance.
+
+Open `review-index.html`, review every capture, then complete `human-review.json` manually. Validate the completed record using the evidence-validation command above.
