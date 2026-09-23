@@ -67,6 +67,13 @@ assert.strictEqual(recovered.settings.musicVolume, 55,
 assert.strictEqual(recovered.recoveredFromBackup, true);
 assert(recovered.primaryLoadError,
   'settings recovery must retain the primary failure reason');
+const recoveredBackupRaw = localStorage.getItem(settings.STORAGE_KEY + '.bak');
+const recoveredEdit = settings.update(recovered.settings, { musicVolume: 56 });
+const recoveredEditSave = settings.save(recoveredEdit, { preserveBackup: true });
+assert.strictEqual(recoveredEditSave.preservedBackup, true);
+assert.strictEqual(localStorage.getItem(settings.STORAGE_KEY + '.bak'), recoveredBackupRaw,
+  'first settings edit after recovery must preserve the validated backup');
+assert.strictEqual(settings.load().settings.musicVolume, 56);
 
 localStorage.removeItem(settings.STORAGE_KEY);
 const missingPrimaryRecovered = settings.load();
