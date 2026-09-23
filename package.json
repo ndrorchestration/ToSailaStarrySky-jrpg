@@ -117,6 +117,7 @@
     "prepare:m0-manual-acceptance": "node scripts/prepare-m0-manual-acceptance.js",
     "test:m0-acceptance-contract": "node tests/m0-acceptance-contract.test.js",
     "validate:m0-acceptance": "node scripts/validate-m0-acceptance.js",
-    "test:m0-manual-acceptance-dashboard": "node tests/m0-manual-acceptance-dashboard-contract.test.js"
+    "test:m0-manual-acceptance-dashboard": "node tests/m0-manual-acceptance-dashboard-contract.test.js",
+    "test:first-wake-persistent-mutations": "node tests/first-wake-persistent-mutations-contract.test.js"
   }
 }
