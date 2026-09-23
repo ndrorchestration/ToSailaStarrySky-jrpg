@@ -146,6 +146,9 @@ jobs:
       - name: Verify accessibility rendering policies
         run: npm run test:accessibility-rendering
 
+      - name: Verify governed audio asset authority
+        run: npm run test:audio-assets
+
       - name: Verify canonical music bus
         run: npm run test:music-bus
 
