@@ -26,12 +26,24 @@ assert(runtime.indexOf('function prepareSaveEnvelopeForApply(envelope)') <
   'preflight must be defined before the mutating apply path');
 assert(runtime.includes('const prepared = prepareSaveEnvelopeForApply(envelope);'),
   'apply path does not require successful preflight');
+assert(runtime.includes('function loadSemanticallyValidSaveCandidate(slot)'),
+  'runtime must centralize primary/backup semantic candidate selection');
+assert(runtime.includes('window.AetherSaveSystem.loadBackup(slot)'),
+  'semantic-invalid primaries must be allowed to try the previous desktop backup');
+assert(runtime.includes('semanticBackupRecovery: true'),
+  'runtime must mark semantic backup recovery explicitly');
+assert(runtime.includes('SAVE_PRIMARY_AND_BACKUP_UNLOADABLE:'),
+  'runtime must fail closed when both primary and backup are semantically unloadable');
 assert(runtime.includes('function buildLoadableSaveIndex()'),
   'Continue must classify semantic loadability, not envelope validity alone');
 assert(runtime.includes('prepareSaveEnvelopeForApply(loaded.envelope)'),
   'save index must use the same semantic preflight as explicit Load');
 assert(runtime.includes('semanticValid: false'),
   'semantic failures must be excluded from Continue candidates');
+assert(runtime.includes('savedAt: envelope.savedAt'),
+  'Continue metadata must use the semantically selected envelope rather than an invalid primary');
+assert(runtime.includes('RECOVERED PREVIOUS SAVE // PRIMARY INVALID'),
+  'player must receive a visible recovery notice when backup semantics rescue a slot');
 assert(runtime.includes('function applySaveEnvelope(envelope)'), 'runtime restore path missing');
 assert(runtime.includes('window.AetherPartyState.setActivePartyIds(ids)'),
   'load path must restore canonical active-party references');
