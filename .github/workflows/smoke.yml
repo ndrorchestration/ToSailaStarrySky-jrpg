@@ -224,6 +224,10 @@ jobs:
       - name: Capture accessibility visual matrix
         run: npm run test:accessibility-visual-matrix
 
+      - name: Prepare accessibility human-review packet
+        if: always()
+        run: npm run prepare:accessibility-review
+
       - name: Upload accessibility visual matrix
         if: always()
         uses: actions/upload-artifact@v4
