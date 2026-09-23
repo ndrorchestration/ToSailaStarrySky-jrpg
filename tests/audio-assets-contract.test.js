@@ -24,6 +24,20 @@ assert.strictEqual(title.sourceVerification.bytes, 4233081,
 assert.strictEqual(title.musicBusTrackId, 'title',
   'title theme must retain canonical music-bus id');
 
+assert(title.sourceRecovery &&
+       title.sourceRecovery.status === 'exact-source-recovered-and-reverified',
+  'governed manifest must record recovered exact source evidence');
+assert.strictEqual(
+  title.sourceRecovery.sha256,
+  title.sourceVerification.sha256,
+  'recovered title source fingerprint must match original verification'
+);
+assert.strictEqual(
+  title.sourceRecovery.bytes,
+  title.sourceVerification.bytes,
+  'recovered title source byte count must match original verification'
+);
+
 const assetPath = path.join(repo, title.canonicalPath);
 if (!fs.existsSync(assetPath)) {
   assert.strictEqual(
