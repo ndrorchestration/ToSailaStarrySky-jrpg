@@ -39,7 +39,7 @@ The participant should attempt, without live coaching:
 6. create a manual save;
 7. close the game process;
 8. relaunch and restore the save correctly;
-9. encounter or deliberately exercise at least one non-happy-path state and recover using player-facing affordances;
+9. encounter or deliberately exercise at least one non-happy-path state and recover using player-facing affordances; the candidate's automated Windows gate separately proves low-level backup-only file recovery and does not substitute for this player-facing observation;
 10. complete the bounded First Wake Choice → WAKE experience;
 11. reach the representative Dragonfly/open-sky traversal state when included in the candidate.
 
