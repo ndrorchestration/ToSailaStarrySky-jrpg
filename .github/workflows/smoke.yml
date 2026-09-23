@@ -197,6 +197,9 @@ jobs:
       - name: Verify AI-assisted production contract
         run: npm run test:production-method
 
+      - name: Verify release provenance evidence contract
+        run: npm run test:release-evidence
+
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
