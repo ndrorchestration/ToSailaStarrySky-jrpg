@@ -42,6 +42,10 @@ assert(runtime.includes('semanticValid: false'),
   'semantic failures must be excluded from Continue candidates');
 assert(runtime.includes('savedAt: envelope.savedAt'),
   'Continue metadata must use the semantically selected envelope rather than an invalid primary');
+assert(runtime.includes('if (!meta.exists) return meta;'),
+  'Continue must try the semantic candidate chain for every existing slot, including envelope-invalid primaries');
+assert(!runtime.includes('if (!meta.exists || meta.valid === false) return meta;'),
+  'Continue must not suppress backup recovery solely because the primary listing is invalid');
 assert(runtime.includes('RECOVERED PREVIOUS SAVE // PRIMARY INVALID'),
   'player must receive a visible recovery notice when backup semantics rescue a slot');
 assert(runtime.includes('function applySaveEnvelope(envelope)'), 'runtime restore path missing');
