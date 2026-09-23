@@ -31,8 +31,8 @@ assert(combatSource.includes("if (actionText) log('[Turn ' + state.turn + '] ' +
 assert(!combatSource.includes("if (text) log('[Turn ' + state.turn + '] ' + text);"),
   'legacy p5 text-symbol logging bug remains');
 
-assert(source.includes("drawGlowText('ACTIONS [1-8]'"),
-  'combat action panel still advertises the wrong key range');
+assert(source.includes("'ACTIONS [1-8] · USE ' + inputPrompt('confirm', 'combat', 'gamepad')"),
+  'combat action panel must advertise stable numeric shortcuts and the active controller Confirm prompt');
 assert(source.includes('const aH = 154;'),
   'combat action panel is not sized for eight stable slots');
 assert(!combatSource.includes("const resourceCost = (action.tier || 0) + action.cost;"),
