@@ -42,6 +42,7 @@ for (const required of [
   'save-write-semantic-preflight',
   'future-schema-overwrite-protection',
   'save-backup-recovery',
+  'transactional-load-apply',
   'world-position',
   'quest',
   'party-roster',
@@ -98,3 +99,9 @@ assert.strictEqual(byId.get('input-bindings').versionOwner, 'input-bindings SCHE
   'input remaps must own an independent schema version');
 
 console.log('Aetherwake persistence coverage registry: PASS');
+
+assert.strictEqual(byId.get('transactional-load-apply').status, 'derived');
+assert(/late runtime exception during rehydration/.test(byId.get('transactional-load-apply').rationale),
+  'load application must remain transactional after semantic preflight');
+assert(/rollback itself fails/.test(byId.get('transactional-load-apply').rationale),
+  'load transaction must fail closed if rollback cannot restore the prior runtime');
