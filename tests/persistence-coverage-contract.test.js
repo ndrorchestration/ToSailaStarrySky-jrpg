@@ -65,6 +65,14 @@ assert(/newer primary and an older valid backup may load the older backup/.test(
   'mixed-version slots must remain loadable-through-backup but non-writable');
 assert(/before any primary replacement or autosave rotation/.test(byId.get('save-write-semantic-preflight').rationale),
   'save-write semantic preflight must remain ahead of destructive slot mutation');
+assert.strictEqual(byId.get('world-mutations-beyond-covered-fields').status, 'derived',
+  'world mutation registration control must remain derived');
+assert(/first-wake-persistent-mutations\.json/.test(
+  byId.get('world-mutations-beyond-covered-fields').rationale
+), 'world mutation registration must route to its explicit ownership registry');
+assert(/BLOCKING_UNREGISTERED/.test(
+  byId.get('world-mutations-beyond-covered-fields').rationale
+), 'unknown future persistent mutations must remain blocking until registered');
 assert.strictEqual(byId.get('save-backup-recovery').status, 'derived');
 assert(/integrity\/migration and full semantic preflight/.test(byId.get('save-backup-recovery').rationale),
   'save backup recovery must remain gated by integrity, migration, and semantic validation');
