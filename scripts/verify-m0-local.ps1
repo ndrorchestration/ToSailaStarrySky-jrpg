@@ -22,6 +22,12 @@ $results = [ordered]@{
   gates = @()
   visualMatrix = $null
   windowsPackage = $null
+  manualAcceptance = [ordered]@{
+    accessibilityVisualReview = 'PENDING_HUMAN_REVIEW'
+    uncoachedExternalPlayer = 'NOT_RUN'
+    protocol = 'docs/M0_EXTERNAL_PLAYTEST.md'
+    evidenceTemplate = 'docs/m0-external-playtest-record.template.json'
+  }
   overall = 'RUNNING'
 }
 
@@ -166,9 +172,11 @@ try {
     }
   }
 
-  Write-Summary 'PASS_WITH_HUMAN_VISUAL_REVIEW_PENDING'
+  Write-Summary 'PASS_WITH_MANUAL_ACCEPTANCE_PENDING'
   Write-Host ""
-  Write-Host "M0_LOCAL_VERIFICATION=PASS_WITH_HUMAN_VISUAL_REVIEW_PENDING" -ForegroundColor Green
+  Write-Host "M0_LOCAL_VERIFICATION=PASS_WITH_MANUAL_ACCEPTANCE_PENDING" -ForegroundColor Green
+  Write-Host "MANUAL_ACCESSIBILITY_REVIEW=PENDING_HUMAN_REVIEW"
+  Write-Host "UNCOACHED_EXTERNAL_PLAYER=NOT_RUN"
   Write-Host "SUMMARY=$SummaryPath"
   Write-Host "VISUAL_MATRIX=$VisualManifestPath"
 }
