@@ -666,19 +666,36 @@ function runDesktopSavePersistenceSmokeIfRequested() {
       world.player.px = 2 * 16;
       world.player.py = 2 * 16;
 
+      // Force persisted domains away from their startup values before loading.
+      // This makes the restart smoke prove restoration instead of merely
+      // observing that fresh-process defaults happen to match the save.
+      quest.state = quest.state === QUEST_STATES.DONE ? QUEST_STATES.SIGNAL : QUEST_STATES.DONE;
+      quest.act = quest.state;
+      window.ACTIVE_PARTY.splice(0, window.ACTIVE_PARTY.length);
+
       if (!loadFromSlot('manual-6')) {
         throw new Error('DESKTOP_SAVE_SMOKE_LOAD_FAILED');
       }
+      const loadedPayload = window._lastLoadResult &&
+        window._lastLoadResult.envelope &&
+        window._lastLoadResult.envelope.payload;
+      const expectedQuestState = loadedPayload && loadedPayload.quest && loadedPayload.quest.state;
+      const expectedActiveIds = loadedPayload && loadedPayload.party && loadedPayload.party.activeIds;
+      const restoredActiveIds = window.ACTIVE_PARTY.map(character => character.id);
       marker.restored =
         world.player.tileX === 9 &&
         world.player.tileY === 11 &&
+        quest.state === expectedQuestState &&
+        Array.isArray(expectedActiveIds) &&
+        expectedActiveIds.length === restoredActiveIds.length &&
+        expectedActiveIds.every((id, index) => id === restoredActiveIds[index]) &&
         window.ACTIVE_PARTY.length >= 1 &&
         window.ACTIVE_PARTY[0] === window.ROSTER[0];
       marker.savePath = window._lastLoadResult && window._lastLoadResult.path;
       marker.tileX = world.player.tileX;
       marker.tileY = world.player.tileY;
       marker.questState = quest && quest.state;
-      marker.activeIds = window.ACTIVE_PARTY.map(character => character.id);
+      marker.activeIds = restoredActiveIds;
       if (!marker.restored) throw new Error('DESKTOP_SAVE_SMOKE_SEMANTIC_RESTORE_FAILED');
     } else {
       throw new Error('DESKTOP_SAVE_SMOKE_PHASE_INVALID:' + phase);
