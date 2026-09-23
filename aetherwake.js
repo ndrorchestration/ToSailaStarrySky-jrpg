@@ -693,7 +693,9 @@ function handleInput() {
                    (typeof key !== 'undefined' && (key === 'Enter' || key === ' ' || key === 'n' || key === 'N'));
 
   if (gameState === STATE.PREVIEW_END) {
-    if (anyEnter) startFirstWakeOpening();
+    if (anyEnter && window.location && typeof window.location.reload === 'function') {
+      window.location.reload();
+    }
     return;
   }
 
