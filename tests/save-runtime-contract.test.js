@@ -63,6 +63,17 @@ assert(runtime.includes('LOAD_APPLY_AND_ROLLBACK_FAILED:'),
   'load must fail closed if rollback itself fails');
 assert(runtime.includes('window._lastLoadRollback'),
   'rollback outcome must remain machine-visible');
+assert(runtime.indexOf('window._lastLoadResult = loaded;') >
+       runtime.indexOf('const applied = applySaveEnvelope(loaded.envelope);'),
+  'last-load success evidence must be written only after apply commits');
+assert(runtime.includes('window._lastLoadResult = null;'),
+  'failed loads must clear stale successful-load evidence');
+assert(runtime.includes('window._lastLoadError = null;'),
+  'successful loads must clear stale load errors');
+assert(runtime.includes('window._lastSaveResult = null;'),
+  'failed saves must clear stale successful-save evidence');
+assert(runtime.includes('window._lastSaveError = null;'),
+  'successful saves must clear stale save errors');
 assert(runtime.includes('AetherSavePayloadValidator.validatePayload(payload'),
   'runtime must validate payload semantics before apply');
 assert(runtime.indexOf('function prepareSaveEnvelopeForApply(envelope)') <
