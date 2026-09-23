@@ -44,6 +44,12 @@ assert(script.includes('build-windows-release.ps1'),
   'M0 local verifier must invoke exact Windows package verification by default');
 assert(script.includes('summary.json'),
   'M0 local verifier must emit a machine-readable summary');
+assert(script.includes('requires a clean working tree'),
+  'M0 local verifier must fail closed on uncommitted working-tree changes');
+assert(script.includes('requires readable Git HEAD provenance'),
+  'M0 local verifier must fail closed when exact Git HEAD provenance is unavailable');
+assert(doc.includes('clean working tree'),
+  'documentation must require a clean working tree for exact-head claims');
 assert(doc.includes('not the same as final M0 acceptance'),
   'documentation must not overclaim local script success');
 assert(doc.includes('admit:title-audio'),
