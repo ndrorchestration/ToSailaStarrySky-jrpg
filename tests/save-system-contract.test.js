@@ -73,11 +73,62 @@ fs.writeFileSync(first.path, '{"broken":', 'utf8');
 const recovered = nwSave.load('manual-3');
 assert.strictEqual(recovered.envelope.payload.value, 1);
 
+// Downgrade protection: a newer-schema save must never be overwritten by this build.
+function futureEnvelope(slot, value) {
+  const next = nwSave.makeEnvelope(slot, { value }, { gameVersion: '9.9.9' });
+  next.schemaVersion = nwSave.SCHEMA_VERSION + 1;
+  const body = { ...next };
+  delete body.checksum;
+  next.checksum = nwSave.checksum(body);
+  return next;
+}
+
+const saveDir = path.join(temp, 'saves');
+const futureManualPath = path.join(saveDir, 'manual-4.json');
+fs.writeFileSync(futureManualPath, JSON.stringify(futureEnvelope('manual-4', 99)), 'utf8');
+assert.throws(
+  () => nwSave.save('manual-4', { value: 4 }, { gameVersion: '0.2.0' }),
+  /SAVE_SLOT_FUTURE_SCHEMA_PROTECTED:manual-4:2:primary/
+);
+assert.strictEqual(JSON.parse(fs.readFileSync(futureManualPath, 'utf8')).schemaVersion, 2,
+  'future-schema manual primary must remain untouched');
+
+// A future backup is also protected even when the primary itself is corrupt.
+const protectedPrimary = path.join(saveDir, 'manual-5.json');
+const protectedBackup = protectedPrimary + '.bak';
+fs.writeFileSync(protectedPrimary, '{"broken":', 'utf8');
+fs.writeFileSync(protectedBackup, JSON.stringify(futureEnvelope('manual-5', 88)), 'utf8');
+assert.throws(
+  () => nwSave.save('manual-5', { value: 5 }, { gameVersion: '0.2.0' }),
+  /SAVE_SLOT_FUTURE_SCHEMA_PROTECTED:manual-5:2:backup/
+);
+assert.strictEqual(JSON.parse(fs.readFileSync(protectedBackup, 'utf8')).schemaVersion, 2,
+  'future-schema backup must remain untouched behind a corrupt primary');
+
 for (let i = 0; i < 4; i++) {
   nwSave.rotateAutosave({ seq: i }, { gameVersion: '0.2.0' });
 }
 const auto = nwSave.list().filter(x => x.kind === 'autosave' && x.exists && x.valid);
 assert.strictEqual(auto.length, 3, 'autosave rotation must retain exactly three files');
+
+// Autosave rotation must skip protected future-schema slots.
+for (const slot of nwSave.AUTOSAVE_SLOTS) nwSave.remove(slot);
+const protectedAuto0 = path.join(saveDir, 'autosave-0.json');
+fs.writeFileSync(protectedAuto0, JSON.stringify(futureEnvelope('autosave-0', 70)), 'utf8');
+const rotated = nwSave.rotateAutosave({ seq: 100 }, { gameVersion: '0.2.0' });
+assert.notStrictEqual(rotated.envelope.slot, 'autosave-0',
+  'autosave rotation must not overwrite a protected future-schema slot');
+assert.strictEqual(JSON.parse(fs.readFileSync(protectedAuto0, 'utf8')).schemaVersion, 2);
+
+// If every autosave slot belongs to a newer schema, fail closed instead of deleting one.
+for (const slot of nwSave.AUTOSAVE_SLOTS) {
+  const target = path.join(saveDir, slot + '.json');
+  fs.writeFileSync(target, JSON.stringify(futureEnvelope(slot, 80)), 'utf8');
+}
+assert.throws(
+  () => nwSave.rotateAutosave({ seq: 101 }, { gameVersion: '0.2.0' }),
+  /SAVE_AUTOSAVE_ALL_SLOTS_FUTURE_PROTECTED/
+);
 
 fs.rmSync(temp, { recursive: true, force: true });
 console.log('Aetherwake save-system contract: PASS');
