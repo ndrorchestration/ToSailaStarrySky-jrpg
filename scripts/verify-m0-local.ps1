@@ -71,6 +71,15 @@ try {
     $results.gitStatus = 'git metadata unavailable'
   }
 
+  if ([string]::IsNullOrWhiteSpace([string]$results.gitHead)) {
+    Write-Summary 'FAIL'
+    throw 'M0 exact-head verification requires readable Git HEAD provenance.'
+  }
+  if (-not [string]::IsNullOrWhiteSpace([string]$results.gitStatus)) {
+    Write-Summary 'FAIL'
+    throw 'M0 exact-head verification requires a clean working tree. Commit or discard local changes before running this lane.'
+  }
+
   if (-not $SkipInstall) {
     Invoke-Gate 'npm clean install' 'npm ci --ignore-scripts --no-audit --no-fund'
   }
