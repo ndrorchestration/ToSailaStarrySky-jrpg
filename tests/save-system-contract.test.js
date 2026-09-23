@@ -67,6 +67,17 @@ assert.strictEqual(
 assert.strictEqual(browserSave.load('manual-2').envelope.payload.marker, 3);
 assert.strictEqual(browserSave.latest().slot, 'manual-2');
 
+const browserPrimaryRaw = browserRoot.localStorage.getItem(browserStorageKey);
+browserRoot.localStorage.removeItem(browserStorageKey);
+const browserBackupOnlyMeta = browserSave.list().find(entry => entry.slot === 'manual-2');
+assert(browserBackupOnlyMeta && browserBackupOnlyMeta.exists === true && browserBackupOnlyMeta.valid === true,
+  'browser backup-only slot must remain discoverable and valid');
+assert.strictEqual(browserBackupOnlyMeta.recoveredFromBackup, true,
+  'browser backup-only listing must expose recovery provenance');
+assert.strictEqual(browserSave.latest().slot, 'manual-2',
+  'browser latest candidate discovery must include backup-only slots');
+browserRoot.localStorage.setItem(browserStorageKey, browserPrimaryRaw);
+
 // Semantic autosave recovery must preserve the validated backup generation.
 browserSave.save('autosave-0', { seq: 1 }, { gameVersion: '0.2.0' });
 browserSave.save('autosave-0', { seq: 2 }, { gameVersion: '0.2.0' });
@@ -129,6 +140,15 @@ assert(explicitBackup && explicitBackup.recoveredFromBackup === true,
   'desktop save system must expose the previous primary as an explicit backup candidate');
 assert.strictEqual(explicitBackup.envelope.payload.value, 1);
 assert.strictEqual(explicitBackup.path, first.path + '.bak');
+
+const desktopPrimaryBytes = fs.readFileSync(first.path, 'utf8');
+fs.unlinkSync(first.path);
+const desktopBackupOnlyMeta = nwSave.list().find(entry => entry.slot === 'manual-3');
+assert(desktopBackupOnlyMeta && desktopBackupOnlyMeta.exists === true && desktopBackupOnlyMeta.valid === true,
+  'desktop backup-only slot must remain discoverable and valid');
+assert.strictEqual(desktopBackupOnlyMeta.recoveredFromBackup, true,
+  'desktop backup-only listing must expose recovery provenance');
+fs.writeFileSync(first.path, desktopPrimaryBytes, 'utf8');
 
 // Checksum-invalid but parseable primary must recover the previous valid backup
 // with explicit provenance rather than silently applying the bad primary.
