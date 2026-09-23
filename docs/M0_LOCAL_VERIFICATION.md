@@ -42,9 +42,14 @@ The summary records the checkout HEAD, working-tree status, each gate and exit c
 
 A successful script exits with:
 
-`M0_LOCAL_VERIFICATION=PASS_WITH_HUMAN_VISUAL_REVIEW_PENDING`
+`M0_LOCAL_VERIFICATION=PASS_WITH_MANUAL_ACCEPTANCE_PENDING`
 
-That state is intentionally **not** the same as final M0 acceptance. Human review of the rendered matrix is still required.
+The summary also records two manual acceptance dependencies:
+
+- `accessibilityVisualReview = PENDING_HUMAN_REVIEW`;
+- `uncoachedExternalPlayer = NOT_RUN`, routed to `docs/M0_EXTERNAL_PLAYTEST.md` and `docs/m0-external-playtest-record.template.json`.
+
+That state is intentionally **not** the same as final M0 acceptance. Human review of the rendered matrix **and** a candidate-bound uncoached external-player completion pass are still required.
 
 ## Title audio
 
