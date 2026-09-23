@@ -97,3 +97,20 @@ A successful technical run emits:
 `M0_OPERATOR_LANE=TECHNICAL_PASS_MANUAL_ACCEPTANCE_PENDING`
 
 It does **not** mean final M0 acceptance. The command verifies that the M0 summary remains `PASS_WITH_MANUAL_ACCEPTANCE_PENDING`, accessibility remains `PENDING_HUMAN_REVIEW`, the external-player gate remains `NOT_RUN`, and the candidate-bound manual review packets were generated. It prints the exact paths for the accessibility review and external playtest artifacts.
+
+
+## Final M0 acceptance
+
+After the technical operator lane passes and both human records are completed as explicit `PASS`, run:
+
+```powershell
+npm run validate:m0-acceptance -- --summary ".\artifacts\m0-local-verification\summary.json" --accessibility-review ".\artifacts\accessibility-visual-matrix\human-review.json" --matrix-dir ".\artifacts\accessibility-visual-matrix" --external-playtest ".\artifacts\m0-external-playtest\external-playtest.json" --release-evidence ".\local-release\RELEASE_EVIDENCE.json"
+```
+
+The validator first requires the technical summary to remain `PASS_WITH_MANUAL_ACCEPTANCE_PENDING`, then verifies that the visual manifest, accessibility review, release evidence, installer identity, portable ZIP identity, and external-player record all bind to the same exact Git commit and hashes. It invokes the dedicated accessibility-review and external-playtest validators rather than bypassing them.
+
+Only after both human evidence records independently validate as `PASS` does it write:
+
+`artifacts/m0-local-verification/M0_ACCEPTANCE.json`
+
+That acceptance record fingerprints the technical summary, visual manifest, accessibility review, release evidence, installer, portable ZIP, and external-playtest evidence. Before the human reviews occur, this command must fail closed and no final M0 acceptance record is admissible.
