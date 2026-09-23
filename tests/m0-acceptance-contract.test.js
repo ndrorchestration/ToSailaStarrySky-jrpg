@@ -54,6 +54,10 @@ assert(source.includes('externalPlaytestSha256'),
   'final acceptance must fingerprint human player evidence');
 assert(source.includes('releaseEvidenceSha256'),
   'final acceptance must fingerprint release evidence');
+assert(source.includes('persistenceVerification') &&
+       source.includes('desktopSaveRestart') &&
+       source.includes('desktopSaveBackupOnlyRecovery'),
+  'final acceptance must require installed persistence/recovery proof');
 assert(source.includes('installer') && source.includes('portableZip'),
   'final acceptance must bind player artifact identities');
 
