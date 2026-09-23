@@ -53,14 +53,16 @@ That state is intentionally **not** the same as final M0 acceptance. Human revie
 
 ## Title audio
 
-The title MP3 is governed separately during development, but **final local M0 and Windows release verification now fail closed unless it is admitted and Git-tracked**. If the exact source has not yet been admitted to the checkout, first use:
+The title MP3 is governed separately during development, but **final local M0 and Windows release verification now fail closed unless it is admitted and Git-tracked**. If the exact source has not yet been admitted to the checkout, use the governed Windows handoff wrapper from a clean branch checkout:
 
 ```powershell
-npm run admit:title-audio -- --source "C:\path\to\Aetherwake - Skyward Arpeggio Main Title.mp3"
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\admit-title-audio.ps1 -Source "C:\path\to\Aetherwake - Skyward Arpeggio Main Title.mp3" -Commit
 ```
 
-The admission tool verifies the exact governed SHA-256 and byte size before copying or promoting anything. A mismatch fails closed.
+The wrapper invokes the underlying admission tool, verifies the exact governed SHA-256 and byte size, stages **only** the canonical MP3 + governed manifest + generated runtime registry, rejects unexpected staged paths, runs the strict M0 readiness gate, creates a fixed-scope admission commit, verifies the working tree is clean, then reruns readiness against the committed candidate.
 
-For exact-head claims, commit the admitted canonical asset + generated manifest/runtime-registry changes before running the final verification lane.
+Omit `-Commit` only for diagnostic/development use; that leaves the verified three-file admission staged and reports `COMMIT_REQUIRED=true`.
+
+For exact-head M0 claims, use the committed form before running the final verification lane.
 
 The strict M0 readiness gate is `npm run test:m0-title-audio-ready`. It requires `repositoryStatus=admitted`, `runtimeRegistration=true`, completed repository transfer, the exact Git-tracked canonical MP3, and the governed SHA-256/byte count. Development-safe silent fallback remains valid outside final M0 verification.
