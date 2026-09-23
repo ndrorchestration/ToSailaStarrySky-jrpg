@@ -35,7 +35,7 @@ for (const action of contract.requiredActions) {
 for (const id of [
   'ui-up','ui-down','ui-left','ui-right','confirm','cancel','open-settings','open-save-load',
   'move-up','move-down','move-left','move-right',
-  'interact','quest-log','manual-save','manual-load',
+  'interact','covenant-field','toggle-layer','shop','quest-log','manual-save','manual-load',
   'airship-altitude-up','airship-altitude-down','airship-dock','airship-land'
 ]) {
   assert(actionIds.has(id), 'required semantic action missing: ' + id);
@@ -65,5 +65,24 @@ assert(Array.isArray(contract.implementedNow) && contract.implementedNow.length 
 assert(Array.isArray(contract.remainingBeforeRepresentativeParity) &&
        contract.remainingBeforeRepresentativeParity.length > 0,
   'remaining representative-parity work must stay explicit');
+
+assert(contract.inputContexts.includes('controls'),
+  'Controls remapping must be a first-class semantic input context');
+assert(contract.implementedNow.some(item => item.includes('action-remapping UI')),
+  'implemented foundation must record the remapping UI');
+assert(contract.implementedNow.some(item => item.includes('dynamic player prompts')),
+  'implemented foundation must record prompt rebinding ownership');
+assert(contract.implementedNow.some(item => item.includes('high-contrast')),
+  'implemented foundation must record high-contrast rendering');
+assert(contract.implementedNow.some(item => item.includes('subtitle visibility')),
+  'implemented foundation must record subtitle presentation');
+assert(contract.implementedNow.some(item => item.includes('controller vibration')),
+  'implemented foundation must record controller vibration');
+assert(!contract.remainingBeforeRepresentativeParity.some(item =>
+  item.includes('action remapping') ||
+  item.includes('high-contrast UI rendering') ||
+  item.includes('subtitle size') ||
+  item.includes('controller vibration')
+), 'implemented accessibility work must not remain listed as missing');
 
 console.log('Aetherwake input/accessibility foundation contract: PASS');
