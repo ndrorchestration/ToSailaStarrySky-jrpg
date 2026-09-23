@@ -158,6 +158,6 @@ assert(runtimeSource.includes("saveToSlot('manual-6', false)"),
 assert(runtimeSource.includes("loadFromSlot('manual-6')"),
   'packaged save smoke must exercise the production load path');
 
-const windowsRelease = fs.readFileSync(path.join(repo, 'scripts', 'build-windows-release.ps1'), 'utf8');
+const windowsRelease = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'build-windows-release.ps1'), 'utf8');
 assert(windowsRelease.includes('npm run test:m0-title-audio-ready'),
   'Windows release build must require strict M0 title-audio readiness before packaging');
