@@ -28,7 +28,10 @@
     "nonHappyPathAttempted": null,
     "nonHappyPathRecovered": null,
     "firstWakeCompleted": null,
-    "dragonflyTraversalReached": null
+    "dragonflyTraversalReached": null,
+    "objectiveUnderstandingEvidence": null,
+    "combatDecisionReasoning": [],
+    "recoveryReasoning": null
   },
   "interventions": [],
   "confusionPoints": [],
