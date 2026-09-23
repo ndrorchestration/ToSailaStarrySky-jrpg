@@ -2212,6 +2212,10 @@ function handleSaveLoadInput() {
     const slot = window.AetherFocusManager.focusedId(saveMenuFocus);
     if (saveMenuMode === 'save') {
       const existing = buildLoadableSaveIndex().find(entry => entry.slot === slot && entry.exists);
+      if (existing && existing.futureSchemaProtected) {
+        showToast('NEWER VERSION SAVE DATA — PRESERVED', C.scioto, 2400);
+        return;
+      }
       if (existing) {
         setSaveOverwritePending(slot);
         return;
