@@ -26,8 +26,8 @@ assert.strictEqual(
 );
 assert(generator.includes('manifest.schemaVersion, 2'),
   'review packet must require provenance manifest schema v2');
-assert(generator.includes('manifest.captureCount, 54'),
-  'review packet must require exactly 54 captures');
+assert(generator.includes('manifest.captureCount, 58'),
+  'review packet must require exactly 58 captures');
 assert(generator.includes('Visual capture hash drifted'),
   'review packet must verify every capture hash');
 assert(generator.includes('record.candidate.commitSha = manifest.gitHead'),
