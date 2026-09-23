@@ -4,6 +4,7 @@ const assert = require('assert');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const childProcess = require('child_process');
 
 const repo = path.resolve(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(
@@ -52,6 +53,22 @@ if (!fs.existsSync(assetPath)) {
     'present title asset requires explicit admitted status');
   assert.strictEqual(title.runtimeRegistration, true,
     'present title asset requires explicit runtime registration');
+  assert(title.sourceRecovery &&
+         title.sourceRecovery.repositoryTransfer === 'completed',
+    'admitted title asset must record completed repository transfer');
+  let tracked = false;
+  try {
+    childProcess.execFileSync(
+      'git',
+      ['ls-files', '--error-unmatch', '--', title.canonicalPath],
+      { cwd: repo, stdio: 'ignore' }
+    );
+    tracked = true;
+  } catch (_error) {
+    tracked = false;
+  }
+  assert.strictEqual(tracked, true,
+    'admitted title asset must be tracked by Git at its canonical path');
   const bytes = fs.readFileSync(assetPath);
   assert.strictEqual(bytes.length, title.sourceVerification.bytes,
     'admitted title asset byte size does not match verified source');
