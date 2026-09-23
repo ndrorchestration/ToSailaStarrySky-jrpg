@@ -220,9 +220,12 @@
         "tests/accessibility-rendering-contract.test.js",
         "tests/accessibility-visual-matrix-playwright.js",
         "modules/music-bus.js",
-        "tests/music-bus-contract.test.js"
+        "tests/music-bus-contract.test.js",
+        "docs/audio-assets.json",
+        "tests/audio-assets-contract.test.js",
+        "scripts/stage-memories-desktop.js"
       ],
-      "nextAction": "Execute and human-review the 54-frame accessibility visual matrix, require executed exact-head controller-parity and First Wake benchmark results, and separately admit/verify the packaged title-music asset on the canonical music bus."
+      "nextAction": "Execute and human-review the 54-frame accessibility visual matrix; require executed exact-head controller-parity and First Wake benchmark results; then admit the verified title MP3 at the governed audio manifest path, register it on the canonical music bus, and verify the standalone candidate."
     },
     {
       "id": "visual-benchmark-set",
