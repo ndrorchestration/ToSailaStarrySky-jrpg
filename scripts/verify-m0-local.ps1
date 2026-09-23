@@ -113,14 +113,18 @@ try {
     'test:user-settings',
     'test:settings-runtime',
     'test:accessibility-rendering',
+    'test:accessibility-visual-review',
     'test:audio-assets',
     'test:title-audio-admission',
+    'test:title-audio-handoff',
     'test:title-audio-runtime',
     'test:m0-title-audio-ready',
     'test:music-bus',
     'test:audio-settings',
     'test:world-authority',
-    'test:production-method'
+    'test:production-method',
+    'test:release-evidence',
+    'test:external-playtest-evidence'
   )
 
   foreach ($gate in $unitGates) {
