@@ -182,7 +182,7 @@ async function capture(page, fileName) {
     if (response.status() < 400) return;
     // Dialogue TTS is an explicitly optional/fail-closed asset family during this
     // pre-alpha benchmark; all other missing runtime assets invalidate the matrix.
-    if (/\\/tts\\/[^/]+\\/[^/]+\\/\\d+\\.mp3(?:\\?.*)?$/.test(response.url())) return;
+    if (/\/tts\/[^/]+\/[^/]+\/\d+\.mp3(?:\?.*)?$/.test(response.url())) return;
     errors.push(`HTTP ${response.status()} ${response.url()}`);
   });
   page.on('console', msg => {
