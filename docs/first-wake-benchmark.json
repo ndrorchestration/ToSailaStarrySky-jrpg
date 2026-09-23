@@ -32,13 +32,15 @@
       "category": "persistence",
       "blocking": true,
       "status": "automated",
-      "outcome": "A production-path save written by installed NW.js survives process termination and restores after relaunch from the same app-data profile.",
+      "outcome": "Installed NW.js proves normal semantic save → process close → relaunch → load and a separate primary-loss case where a two-generation slot is recovered from its surviving .bak with correct position, quest state, and active-party order.",
       "owner": ".github/workflows/desktop-package.yml",
       "evidence": [
         "DESKTOP_SAVE_RESTART=PASS",
-        "scripts/build-windows-release.ps1"
+        "DESKTOP_SAVE_BACKUP_ONLY_RECOVERY=PASS",
+        "scripts/build-windows-release.ps1",
+        ".github/workflows/desktop-package.yml"
       ],
-      "nextAction": "Execute exact-head Windows lane when a runner is allocated."
+      "nextAction": "Execute the exact-head Windows lane on a real Windows runner/operator and bind the resulting release evidence to the candidate."
     },
     {
       "id": "title-new-game",
@@ -164,13 +166,17 @@
       "category": "persistence",
       "blocking": true,
       "status": "automated",
-      "outcome": "Manual save/load restores world position, quest state, canonical active-party references, and Continue metadata.",
+      "outcome": "Manual save/load restores world position, quest state, canonical active-party references, supports explicit occupied-slot overwrite confirmation, transactional rollback on late apply failure, backup-only Continue discovery, and committed-only diagnostic evidence.",
       "owner": "tests/smoke-playwright.js",
       "evidence": [
         "browser save→mutate→load round-trip",
-        "semantic Continue fallback contract"
+        "semantic Continue fallback contract",
+        "occupied-slot Confirm/Cancel/overwrite smoke",
+        "fault-injected transactional load rollback smoke",
+        "backup-only Continue recovery smoke",
+        "docs/persistence-coverage.json"
       ],
-      "nextAction": "Maintain alongside packaged restart proof."
+      "nextAction": "Maintain alongside packaged restart/backup-only recovery proof; register every new persistent domain before content scale-out."
     },
     {
       "id": "wake-resolution",
