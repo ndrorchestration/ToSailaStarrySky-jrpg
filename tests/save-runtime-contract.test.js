@@ -51,6 +51,18 @@ assert(runtime.indexOf('validateSavePayloadBeforeWrite(payload);') <
   'manual save replacement must occur only after semantic snapshot validation');
 assert(runtime.includes('function prepareSaveEnvelopeForApply(envelope)'),
   'semantic preflight stage missing');
+assert(runtime.includes('function captureLiveRuntimeForLoadRollback()'),
+  'runtime must snapshot live state before mutating load apply');
+assert(runtime.includes('function restoreLiveRuntimeAfterFailedLoad(snapshot)'),
+  'runtime must rollback partial save application');
+assert(runtime.includes("runLoadTestHook('after-party')") &&
+       runtime.includes("runLoadTestHook('after-world')") &&
+       runtime.includes("runLoadTestHook('before-commit')"),
+  'load transaction must expose fault-injection boundaries');
+assert(runtime.includes('LOAD_APPLY_AND_ROLLBACK_FAILED:'),
+  'load must fail closed if rollback itself fails');
+assert(runtime.includes('window._lastLoadRollback'),
+  'rollback outcome must remain machine-visible');
 assert(runtime.includes('AetherSavePayloadValidator.validatePayload(payload'),
   'runtime must validate payload semantics before apply');
 assert(runtime.indexOf('function prepareSaveEnvelopeForApply(envelope)') <
