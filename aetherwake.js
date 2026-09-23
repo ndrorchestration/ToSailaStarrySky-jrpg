@@ -1945,9 +1945,25 @@ function saveToSlot(slot, autosave) {
   try {
     const payload = buildSavePayload();
     validateSavePayloadBeforeWrite(payload);
+    let preserveBackup = false;
+    if (!autosave && slot) {
+      try {
+        const priorCandidate = loadSemanticallyValidSaveCandidate(slot);
+        preserveBackup = Boolean(priorCandidate && priorCandidate.semanticBackupRecovery);
+      } catch (_) {
+        // Unrecoverable/corrupt current slots may still be replaced after explicit
+        // user confirmation; future-schema protection remains enforced by storage.
+        preserveBackup = false;
+      }
+    }
     const result = autosave
       ? window.AetherSaveSystem.rotateAutosave(payload, saveMetadata())
-      : window.AetherSaveSystem.save(slot, payload, saveMetadata());
+      : window.AetherSaveSystem.save(
+          slot,
+          payload,
+          saveMetadata(),
+          { preserveBackup }
+        );
     refreshSaveIndex();
     window._lastSaveResult = result;
     showToast(autosave ? 'AUTOSAVED' : 'GAME SAVED // ' + slot.toUpperCase(), C.teal, 1300);
