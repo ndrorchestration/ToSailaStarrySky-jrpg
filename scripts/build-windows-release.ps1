@@ -8,6 +8,17 @@ Set-Location $repo
 
 Write-Host "== Aetherwake local Windows release build =="
 
+$gitHead = (& git rev-parse HEAD 2>$null)
+$gitStatus = (& git status --porcelain=v1 2>$null) -join "
+"
+if ([string]::IsNullOrWhiteSpace([string]$gitHead)) {
+  throw "Local Windows release requires readable Git HEAD provenance."
+}
+if (-not [string]::IsNullOrWhiteSpace([string]$gitStatus)) {
+  throw "Local Windows release requires a clean working tree."
+}
+Write-Host "SOURCE_COMMIT=$gitHead"
+
 npm ci
 npm run test:desktop-package
 npm run test:m0-title-audio-ready
@@ -212,8 +223,13 @@ foreach ($file in @($installer, $zip)) {
 }
 $lines | Set-Content -LiteralPath $manifest -Encoding ASCII
 
+$releaseEvidence = Join-Path $OutputDir "RELEASE_EVIDENCE.json"
+npm run write:release-evidence -- --installer "$installer" --zip "$zip" --output "$releaseEvidence"
+if ($LASTEXITCODE -ne 0) { throw "Release evidence generation failed with code $LASTEXITCODE." }
+
 Write-Host ""
 Write-Host "LOCAL_WINDOWS_RELEASE=PASS"
 Write-Host "INSTALLER=$installer"
 Write-Host "PORTABLE_ZIP=$zip"
 Write-Host "SHA256_MANIFEST=$manifest"
+Write-Host "RELEASE_EVIDENCE=$releaseEvidence"
