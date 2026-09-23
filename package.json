@@ -108,6 +108,8 @@
     "test:accessibility-visual-review": "node tests/accessibility-visual-review-contract.test.js",
     "validate:accessibility-review": "node scripts/validate-m0-accessibility-review.js",
     "prepare:accessibility-review": "node scripts/prepare-m0-accessibility-review.js",
-    "test:accessibility-review-packet": "node tests/accessibility-review-packet-contract.test.js"
+    "test:accessibility-review-packet": "node tests/accessibility-review-packet-contract.test.js",
+    "test:external-playtest-evidence": "node tests/external-playtest-evidence-contract.test.js",
+    "validate:external-playtest": "node scripts/validate-m0-external-playtest.js"
   }
 }
