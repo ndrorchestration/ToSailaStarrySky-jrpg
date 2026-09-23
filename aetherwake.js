@@ -3856,7 +3856,7 @@ function drawToasts() {
     rect(width / 2 - 110, y - 8, 220, 22, 4);
     fill(t.color[0], t.color[1], t.color[2], alpha);
     textFont('VT323');
-    textSize(14);
+    uiTextSize(14);
     textAlign(CENTER, CENTER);
     text(t.text, width / 2, y + 2);
   }
@@ -4495,7 +4495,13 @@ function drawChoiceMenu() {
   rect(0, 0, width, height);
 
   // Panel
-  const px = width / 2 - 220, py = 60, pw = 440, ph = 280;
+  const uiScale = accessibilityTextScale();
+  const px = width / 2 - 250;
+  const py = 42;
+  const pw = 500;
+  const optionH = Math.round(58 + 24 * (uiScale - 1));
+  const optionGap = Math.round(10 + 4 * (uiScale - 1));
+  const ph = Math.min(height - 84, 82 + 3 * (optionH + optionGap));
   fill(C.navy[0], C.navy[1], C.navy[2], 230);
   rect(px, py, pw, ph);
   drawPixelBorder(px, py, pw, ph, 3);
@@ -4503,14 +4509,14 @@ function drawChoiceMenu() {
   // Title
   fill(C.teal[0], C.teal[1], C.teal[2], 220);
   textAlign(CENTER, TOP);
-  textSize(10);
+  uiTextSize(10);
   textFont('Press Start 2P');
   text('CHOOSE YOUR PATH', width / 2, py + 14);
-  textSize(9);
+  uiTextSize(9);
   textFont('VT323');
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
   text('The core waits. The ship holds still. What do you do?', width / 2, py + 30);
-  textSize(10);
+  uiTextSize(10);
   textFont('sans-serif');
 
   // 3 path options
@@ -4518,8 +4524,8 @@ function drawChoiceMenu() {
   for (let i = 0; i < 3; i++) {
     const path = paths[i];
     if (!path) continue;
-    const optY = py + 50 + i * 70;
-    const optH = 56;
+    const optY = py + 54 + i * (optionH + optionGap);
+    const optH = optionH;
 
     // Selected highlight
     if (quest._choiceHover === i) {
@@ -4540,26 +4546,26 @@ function drawChoiceMenu() {
     // Path label
     fill(C.teal[0], C.teal[1], C.teal[2], 200);
     textFont('Press Start 2P');
-    textSize(9);
+    uiTextSize(9);
     textAlign(LEFT, TOP);
     text('[' + (i + 1) + ']  ' + path.label, px + 18, optY + 6);
 
     // Description
     textFont('VT323');
-    textSize(11);
+    uiTextSize(11);
     fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
-    wrapText(path.description, px + 18, optY + 22, pw - 40);
-    textSize(10);
+    wrapText(path.description, px + 18, optY + Math.round(23 * uiScale), pw - 40);
+    uiTextSize(10);
     textFont('sans-serif');
   }
 
   // Prompt
   fill(C.teal[0], C.teal[1], C.teal[2], 140);
   textAlign(CENTER, TOP);
-  textSize(8);
+  uiTextSize(8);
   textFont('Press Start 2P');
-  text('Press 1 / 2 / 3 or click to choose', width / 2, py + ph - 16);
-  textSize(10);
+  text('Press 1 / 2 / 3 or click to choose', width / 2, py + ph - Math.round(18 * uiScale));
+  uiTextSize(10);
   textFont('sans-serif');
 }
 
@@ -5732,10 +5738,10 @@ function drawPlayer() {
   fill(color(232, 220, 198));
   noStroke();
   textAlign(CENTER, TOP);
-  textSize(8);
+  uiTextSize(8);
   textFont('VT323');
   text('Ender', px + 8, py - 6);
-  textSize(9);
+  uiTextSize(9);
   textFont('VT323');
 }
 
@@ -5788,10 +5794,10 @@ function drawNPC(npc) {
   noStroke();
   fill(color(232, 220, 198, 200));
   textAlign(CENTER, TOP);
-  textSize(7);
+  uiTextSize(7);
   textFont('VT323');
   text(npc.name, px, py - 12);
-  textSize(9);
+  uiTextSize(9);
   textFont('VT323');
 }
 
@@ -6007,6 +6013,10 @@ function drawQuestOverlay() {
     done:     color(255, 255, 200, 180)
   };
 
+  const uiScale = accessibilityTextScale();
+  const panelW = Math.round(190 + 70 * (uiScale - 1));
+  const panelH = Math.round(34 + 18 * (uiScale - 1));
+  const panelX = width - panelW - 10;
   const col = stateColors[quest.state] || color(232, 220, 198, 150);
   const stateLabel = {
     signal: 'SIGNAL',
@@ -6019,21 +6029,21 @@ function drawQuestOverlay() {
 
   noStroke();
   fill(color(26, 16, 46, 200));
-  rect(620, 8, 170, 22, 4);
+  rect(panelX, 8, panelW, panelH, 4);
   fill(col);
   noStroke();
-  rect(620, 8, 4, 22);
+  rect(panelX, 8, 4, panelH);
   fill(col);
   textAlign(LEFT, TOP);
-  textSize(11);
+  uiTextSize(11);
   textFont('Press Start 2P');
-  text(stateLabel, 630, 11);
-  textSize(10);
+  text(stateLabel, panelX + 10, 11);
+  uiTextSize(10);
   textFont('VT323');
 
   fill(color(232, 220, 198, 150));
   textAlign(LEFT, TOP);
-  textSize(8);
+  uiTextSize(8);
   let progressText = '';
   if (quest.state === 'signal') {
     progressText = quest.hooksCompleted + '/3 hooks';
@@ -6056,11 +6066,11 @@ function drawQuestOverlay() {
   } else if (quest.state === 'done') {
     progressText = quest.wakeEpilogue ? quest.wakeEpilogue.name : '—';
   }
-  text(progressText, 630, 23);
+  text(progressText, panelX + 10, 12 + Math.round(15 * uiScale));
 
   fill(color(232, 220, 198, 125));
   textAlign(LEFT, TOP);
-  textSize(8);
+  uiTextSize(8);
   textFont('VT323');
   let objectiveText = '';
   if (quest.state === 'signal') objectiveText = 'Talk to the three marked contacts. [T] Quest Log';
@@ -6069,7 +6079,7 @@ function drawQuestOverlay() {
   else if (quest.state === 'choice') objectiveText = 'Choose the Wake\'s path: 1 / 2 / 3.';
   if (objectiveText) text(objectiveText, 620, 36, 320, 24);
 
-  textSize(10);
+  uiTextSize(10);
   textFont('sans-serif');
 }
 
@@ -6082,12 +6092,12 @@ function drawWakeResolutionBeat() {
   fill(color(124, 200, 232, 190 * pulse));
   textAlign(CENTER, CENTER);
   textFont('Press Start 2P');
-  textSize(15);
+  uiTextSize(15);
   text('THE WAKE ANSWERS', width / 2, height / 2 - 72);
 
   fill(color(232, 220, 198, 210));
   textFont('VT323');
-  textSize(20);
+  uiTextSize(20);
   text(
     'The core-song drops away. For one breath, the entire ship is still.\n' +
     'Then the hull answers your choice.',
@@ -6099,10 +6109,10 @@ function drawWakeResolutionBeat() {
 
   fill(color(42, 255, 181, 185));
   textFont('Press Start 2P');
-  textSize(9);
+  uiTextSize(9);
   text('ENTER / SPACE — HEAR WHAT FOLLOWS', width / 2, height / 2 + 96);
   textFont('sans-serif');
-  textSize(10);
+  uiTextSize(10);
 }
 
 function drawEpilogueScreen() {
@@ -6112,22 +6122,22 @@ function drawEpilogueScreen() {
 
   fill(color(42, 255, 181, 220));
   textAlign(CENTER, CENTER);
-  textSize(18);
+  uiTextSize(18);
   textFont('Press Start 2P');
   const ep = quest.wakeEpilogue;
   if (ep) {
     text(ep.name.toUpperCase(), width/2, height/2 - 40);
     fill(color(232, 220, 198, 200));
-    textSize(14);
+    uiTextSize(14);
     textFont('VT323');
     textAlign(CENTER, CENTER);
     text(ep.text, width/2, height/2 + 20, width - 80, 100);
     fill(color(42, 255, 181, 120));
-    textSize(10);
+    uiTextSize(10);
     textFont('Press Start 2P');
     text('[ R ] to begin again', width/2, height/2 + 80);
   }
-  textSize(10);
+  uiTextSize(10);
   textFont('sans-serif');
 }
 
@@ -6157,10 +6167,10 @@ function drawSolarMeter() {
   fill(color(232, 220, 198, 160));
   noStroke();
   textAlign(LEFT, BOTTOM);
-  textSize(8);
+  uiTextSize(8);
   textFont('VT323');
   text('SOLAR ' + player.solarCharge.toFixed(2) + 'kWh', mx, my - 2);
-  textSize(10);
+  uiTextSize(10);
   textFont('sans-serif');
 
   // ── Fire bar (staff charges) ──
@@ -6182,10 +6192,10 @@ function drawSolarMeter() {
   noStroke();
   fill(color(232, 220, 198, 160));
   textAlign(LEFT, BOTTOM);
-  textSize(8);
+  uiTextSize(8);
   textFont('VT323');
   text('⚡ FIRE ' + player.staffCharges + '/2', fx, fy - 2);
-  textSize(10);
+  uiTextSize(10);
   textFont('sans-serif');
 }
 
@@ -6266,28 +6276,41 @@ function drawInteractionHints() {
   const px = player.px + 8;
   const py = player.py - 16;
 
-  const labels = {
-    e:    'E — Talk',
-    q:    'Q — Covenant Field',
-    f:    'F — Board Ship',
-    tab:  'Tab — Toggle Sky',
-    l:    'L — Ledger',
-    m:    'M — Repair Cafe'
+  const actionByToken = {
+    e: 'interact',
+    q: 'covenant-field',
+    f: 'board-or-flight',
+    tab: 'toggle-layer',
+    l: 'ledger',
+    m: 'shop'
   };
-
-  const label = labels[key] || key.toUpperCase();
+  const labelByToken = {
+    e: 'Talk',
+    q: 'Covenant Field',
+    f: 'Board Ship',
+    tab: 'Toggle Sky',
+    l: 'Ledger',
+    m: 'Repair Cafe'
+  };
+  const actionId = actionByToken[key] || null;
+  const binding = actionId && typeof window.AetherInputPrompt === 'function'
+    ? window.AetherInputPrompt(actionId, 'world', 'both')
+    : key.toUpperCase();
+  const label = binding + ' — ' + (labelByToken[key] || key.toUpperCase());
   const pulse = Math.sin(frameCount * 0.08) * 0.2 + 0.8;
 
+  textFont('VT323');
+  uiTextSize(8);
+  const hintW = Math.max(84, textWidth(label) + 18);
+  const hintH = Math.max(16, 12 * accessibilityTextScale());
   noStroke();
-  fill(color(26, 16, 46, 180));
-  rect(px - 30, py - 6, 60, 12, 3);
+  fill(color(26, 16, 46, 200));
+  rect(px - hintW / 2, py - 7, hintW, hintH, 3);
 
   fill(color(42, 255, 181, 200 * pulse));
   textAlign(CENTER, TOP);
-  textSize(8);
-  textFont('VT323');
   text(label, px, py - 4);
-  textSize(10);
+  uiTextSize(10);
   textFont('sans-serif');
 }
 
@@ -8385,7 +8408,7 @@ function drawGlowText(txt, x, y, textColor = PAL.TEAL, size = 18,
                       font = FONT_BODY) {
   push();
   textFont(font);
-  textSize(size);
+  uiTextSize(size);
   textAlign(LEFT, TOP);
   textLeading(size * 1.2);
 
@@ -8418,7 +8441,7 @@ function drawGlowTextCenter(txt, x, y, textColor = PAL.TEAL, size = 18,
                             font = FONT_BODY) {
   push();
   textFont(font);
-  textSize(size);
+  uiTextSize(size);
   textAlign(CENTER, CENTER);
   textLeading(size * 1.2);
 
@@ -8448,7 +8471,7 @@ function drawStatLabel(label, x, y, value, valueColor = PAL.PARCHMENT,
                        size = 16) {
   push();
   textFont(FONT_BODY);
-  textSize(size);
+  uiTextSize(size);
   textAlign(LEFT, TOP);
   // Label with teal glow
   drawGlowText(label, x, y, PAL.TEAL, size);
@@ -9259,7 +9282,7 @@ function drawCharSheet(px, py, pw, ph) {
 
   // ── Class + Level ──
   textFont(FONT_UI);
-  textSize(10);
+  uiTextSize(10);
   textAlign(LEFT, TOP);
   drawGlowText('CLASS', sheet.classX, sheet.classY, PAL.TEAL, 10);
   fill(PAL.PARCHMENT);
@@ -9271,7 +9294,7 @@ function drawCharSheet(px, py, pw, ph) {
 
   // ── Stats ──
   textFont(FONT_BODY);
-  textSize(14);
+  uiTextSize(14);
   const statsY = sheet.statsY;
   const statColor = PAL.PARCHMENT;
   const statAccent = PAL.TEAL;
@@ -9288,17 +9311,17 @@ function drawCharSheet(px, py, pw, ph) {
     drawGlowText(s.label, sheet.statsX, sy, statAccent, 14);
     fill(s.accent);
     noStroke();
-    textSize(16);
+    uiTextSize(16);
     text(s.value, sheet.statsX + textWidth(s.label) + 8, sy - 2);
   });
 
   // ── Abilities ──
   textFont(FONT_UI);
-  textSize(9);
+  uiTextSize(9);
   drawGlowText('ABILITIES', sheet.abilitiesX, sheet.abilitiesY,
                PAL.TEAL, 9);
   textFont(FONT_BODY);
-  textSize(13);
+  uiTextSize(13);
   const abils = [
     'Uncover Truth  (2D6+Wits)',
     'Shared Dream   (2D6+Spirit)',
@@ -9323,10 +9346,10 @@ function drawCharSheet(px, py, pw, ph) {
 
   // ── Gear ──
   textFont(FONT_UI);
-  textSize(9);
+  uiTextSize(9);
   drawGlowText('GEAR', sheet.gearX, sheet.gearY, PAL.TEAL, 9);
   textFont(FONT_BODY);
-  textSize(13);
+  uiTextSize(13);
   const gear = [
     { name: 'Loom Backpack', desc: 'Solar green tubes / 2.0kWh / 400W' },
     { name: 'Resonator Staff', desc: 'Gunmetal shaft, claw mount, cyan crystal' },
@@ -9335,17 +9358,17 @@ function drawCharSheet(px, py, pw, ph) {
     drawGlowText(g.name, sheet.gearX + 10, gy, PAL.BIO, 13);
     fill(PAL.DIM);
     noStroke();
-    textSize(12);
+    uiTextSize(12);
     text(g.desc, sheet.gearX + 10, gy + 16);
   });
 
   // ── Resources ──
   textFont(FONT_UI);
-  textSize(9);
+  uiTextSize(9);
   drawGlowText('RESOURCES', sheet.resourcesX, sheet.resourcesY,
                PAL.TEAL, 9);
   textFont(FONT_BODY);
-  textSize(14);
+  uiTextSize(14);
   const resY = sheet.resourcesY + 22;
   const res = [
     { label: 'Scrap',   value: '7',    unit: '' },
@@ -9358,7 +9381,7 @@ function drawCharSheet(px, py, pw, ph) {
     drawGlowText(r.label, sheet.resourcesX + 10, ry, PAL.SCIOTO, 14);
     fill(PAL.PARCHMENT);
     noStroke();
-    textSize(15);
+    uiTextSize(15);
     text(r.value + r.unit, sheet.resourcesX + 10 + textWidth(r.label) + 10, ry - 1);
   });
 
@@ -9381,15 +9404,15 @@ function drawWorldHUD() {
   
   // Character name + level
   textFont(FONT_UI);
-  textSize(9);
+  uiTextSize(9);
   drawGlowText('ENDER', hudX + 12, hudY + 8, PAL.TEAL, 9);
   fill(PAL.PARCHMENT);
-  textSize(9);
+  uiTextSize(9);
   text('Rift Scholar  Lv.1', hudX + 64, hudY + 8);
   
   // Vitals row
   textFont(FONT_BODY);
-  textSize(12);
+  uiTextSize(12);
   const vY = hudY + 28;
   drawStatLabel('Vit', hudX + 12, vY, '13', PAL.RUST);
   drawStatLabel('Echoes', hudX + 80, vY, '3/3', PAL.BIO);
@@ -9401,10 +9424,10 @@ function drawWorldHUD() {
   const qX = hudX + hudW - 130;
   const qY = hudY + 8;
   textFont(FONT_UI);
-  textSize(9);
+  uiTextSize(9);
   drawGlowText('QUEST', qX, qY, PAL.TEAL, 9);
   fill(PAL.PARCHMENT);
-  textSize(10);
+  uiTextSize(10);
   text('Signal 0/3', qX + 44, qY);
   
   // Day-night mini indicator
