@@ -225,7 +225,7 @@
         "tests/audio-assets-contract.test.js",
         "scripts/stage-memories-desktop.js"
       ],
-      "nextAction": "Execute and human-review the 54-frame accessibility visual matrix; require executed exact-head controller-parity and First Wake benchmark results; then admit the verified title MP3 at the governed audio manifest path, register it on the canonical music bus, and verify the standalone candidate."
+      "nextAction": "Execute and human-review the 58-frame accessibility visual matrix including save-overwrite confirmation; require executed exact-head controller-parity and First Wake benchmark results; then admit the verified title MP3 at the governed audio manifest path, register it on the canonical music bus, and verify the standalone candidate."
     },
     {
       "id": "visual-benchmark-set",
