@@ -94,6 +94,12 @@ assert(workflow.includes('AETHERWAKE_SAVE_PERSISTENCE_PHASE') &&
   'desktop workflow must drive the packaged save persistence smoke mode');
 assert(workflow.includes('DESKTOP_SAVE_RESTART=PASS'),
   'desktop workflow must require packaged save restart success before publication');
+assert(workflow.includes('Packaged save restored the wrong quest state'),
+  'desktop workflow must verify quest-state restoration after restart');
+assert(workflow.includes('Packaged save restored the wrong active-party membership/order'),
+  'desktop workflow must verify full active-party restoration after restart');
+assert(workflow.includes('same isolated NW.js data path'),
+  'desktop workflow must verify both processes use the same isolated NW.js data path');
 assert(workflow.includes('Verify portable package layout'),
   'desktop workflow must verify the portable package shape');
 
