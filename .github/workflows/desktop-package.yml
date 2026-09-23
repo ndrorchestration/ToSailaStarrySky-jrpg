@@ -19,6 +19,14 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Verify clean source checkout
+        shell: pwsh
+        run: |
+          $status = (git status --porcelain=v1) -join "
+"
+          if (-not [string]::IsNullOrWhiteSpace([string]$status)) { throw "Release source checkout is not clean" }
+          Write-Host "SOURCE_COMMIT=$(git rev-parse HEAD)"
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
