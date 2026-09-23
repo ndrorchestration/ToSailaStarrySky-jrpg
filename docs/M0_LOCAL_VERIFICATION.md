@@ -27,10 +27,10 @@ The script executes the M0 persistence, First Wake benchmark, semantic input/con
 - ordinary browser smoke;
 - live First Wake benchmark;
 - live controller-parity smoke;
-- 54-frame accessibility visual matrix;
+- 58-frame accessibility visual matrix;
 - exact Windows package/install/save-restart verifier unless explicitly skipped.
 
-It requires the visual matrix manifest to contain exactly **54 captures** and `HUMAN_REVIEW_REQUIRED`.
+It requires the visual matrix manifest to contain exactly **58 captures** and `HUMAN_REVIEW_REQUIRED`.
 
 ## Output
 
