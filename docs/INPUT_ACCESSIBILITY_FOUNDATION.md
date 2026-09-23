@@ -18,7 +18,7 @@ Implemented on this branch:
 - independent schema-v1 keyboard/gamepad binding persistence;
 - keyboard/gamepad remapping UI with immediate persistence, reset-to-defaults, and fail-closed conflict rejection;
 - dynamic player prompts sourced from the active binding authority;
-- Reduced Motion, Screen Shake, Text Speed, Effects Volume, and Dialogue Volume;
+- Reduced Motion, Screen Shake, Text Speed, Music Volume, Effects Volume, and Dialogue Volume;
 - Text Scale across the representative First Wake title/opening/WORLD/overlay/choice/wake/character/flight/combat surfaces;
 - High Contrast palette overrides with vignette suppression;
 - subtitle visibility, size, background, and speaker-label policies;
@@ -28,7 +28,7 @@ Implemented on this branch:
 ## Still open
 
 - **Rendered visual acceptance** at 100 / 125 / 150 / 175% text scale, including high-contrast and subtitle combinations. Source-level contracts are not a substitute for reviewing actual rendered frames.
-- **Music Volume** remains persisted-only until Aetherwake has one canonical runtime music bus. It must not be wired to a guessed or historical playback path.
+- **Title-track asset admission/playback verification** remains open. The canonical music bus now owns Music Volume, ducking, registration, and playback state, but no title-music binary is registered or packaged on this branch.
 - **Exact-head executed verification** remains blocked while the private repository receives zero-step hosted runs.
 
 ## Architectural decision
@@ -69,12 +69,13 @@ Settings own schema version 1 independently from the whole-game save envelope.
 - Subtitle size;
 - Subtitle background;
 - Speaker labels;
+- Music volume through the canonical fail-safe music bus;
 - Effects volume;
 - Dialogue volume;
 - Text speed;
 - Controller vibration.
 
-Music Volume remains stored but intentionally inactive until the canonical music path exists.
+Music Volume is active on the canonical music bus. With no registered track, the bus remains silent and reports unregistered playback fail-closed.
 
 ## Controller verification lane
 
@@ -107,7 +108,7 @@ The lane writes `artifacts/accessibility-visual-matrix/manifest.json` with `HUMA
 
 1. execute and review the 54-frame accessibility visual matrix;
 2. execute the exact-head controller-parity and First Wake benchmark suites when a runner is actually allocated;
-3. bind Music Volume only after title/runtime music playback has a canonical authority;
+3. admit/register the packaged title track when the canonical audio asset is available, then verify exact-candidate playback;
 4. if those pass, reassess whether PR #147 can leave draft without widening scope.
 
 ## Critical invariants
