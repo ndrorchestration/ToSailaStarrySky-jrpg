@@ -38,6 +38,12 @@ assert.strictEqual(record.candidate.installerSha256, release.artifacts.installer
   'Playtest installer hash does not match release evidence');
 assert.strictEqual(record.candidate.platform, 'Windows',
   'M0 external playtest must use the governed Windows candidate');
+assert(release.persistenceVerification,
+  'External playtest requires release persistence verification evidence');
+assert.strictEqual(release.persistenceVerification.desktopSaveRestart, 'PASS',
+  'External playtest candidate lacks verified installed save/restart persistence');
+assert.strictEqual(release.persistenceVerification.desktopSaveBackupOnlyRecovery, 'PASS',
+  'External playtest candidate lacks verified backup-only crash-window recovery');
 assert.strictEqual(record.candidate.playerVerifiedStandalone, true,
   'External playtest PASS requires player-verified standalone execution');
 
