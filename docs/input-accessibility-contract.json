@@ -17,6 +17,7 @@
     "boot",
     "menu",
     "settings",
+    "controls",
     "opening",
     "world",
     "dialogue",
@@ -32,7 +33,8 @@
         "dialogue",
         "combat",
         "save-load",
-        "settings"
+        "settings",
+        "controls"
       ],
       "keyboard": [
         "ArrowUp"
@@ -50,7 +52,8 @@
         "dialogue",
         "combat",
         "save-load",
-        "settings"
+        "settings",
+        "controls"
       ],
       "keyboard": [
         "ArrowDown"
@@ -67,7 +70,8 @@
         "menu",
         "combat",
         "save-load",
-        "settings"
+        "settings",
+        "controls"
       ],
       "keyboard": [
         "ArrowLeft"
@@ -84,7 +88,8 @@
         "menu",
         "combat",
         "save-load",
-        "settings"
+        "settings",
+        "controls"
       ],
       "keyboard": [
         "ArrowRight"
@@ -269,6 +274,48 @@
       ],
       "gamepad": [
         "button-south"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "covenant-field",
+      "contexts": [
+        "world"
+      ],
+      "keyboard": [
+        "Q"
+      ],
+      "gamepad": [
+        "left-stick"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "toggle-layer",
+      "contexts": [
+        "world"
+      ],
+      "keyboard": [
+        "Tab"
+      ],
+      "gamepad": [
+        "view"
+      ],
+      "remappable": true,
+      "singlePressDigital": true
+    },
+    {
+      "id": "shop",
+      "contexts": [
+        "world"
+      ],
+      "keyboard": [
+        "M"
+      ],
+      "gamepad": [
+        "right-stick"
       ],
       "remappable": true,
       "singlePressDigital": true
@@ -577,23 +624,26 @@
     "save/load overlay focus integration with non-color marker and stable slot restoration",
     "standard-mapping gamepad polling through navigator.getGamepads()",
     "context-prioritized gamepad semantic adapter",
-    "live controller dispatch for BOOT, title, Settings, authored opening, WORLD, dialogue, read-only overlays, COMBAT, SAVELOAD, and AIRSHIP",
+    "live controller dispatch for BOOT, title, Settings, Controls, authored opening, WORLD, dialogue, read-only overlays, COMBAT, SAVELOAD, and AIRSHIP",
     "bounded controller movement repeat equivalent to keyboard movement cadence",
     "deterministic combat action focus with non-color marker and canonical resolveTurn activation",
     "single-press controller Save/Load route through gameplay Menu button",
     "independent schema-v1 user settings persistence",
+    "independent schema-v1 input-binding persistence with fail-closed conflict validation",
+    "action-remapping UI for keyboard/gamepad with reset-to-defaults",
+    "dynamic player prompts sourced from active input bindings",
     "Settings reachable before gameplay from keyboard or controller",
+    "representative First Wake text scaling across title, opening, WORLD HUD, overlays, choice/wake/epilogue, character sheet, flight, and combat UI",
+    "high-contrast palette and vignette suppression",
+    "subtitle visibility, size, background, and speaker-label rendering policy",
     "reduced-motion, screen-shake, text-speed runtime integration",
     "effects-volume and dialogue-volume runtime integration",
-    "live Playwright controller-parity regression covering settings, opening, WORLD, Save/Load, dialogue, flight, and combat focus"
+    "controller vibration with graceful unsupported-hardware fallback",
+    "live Playwright controller-parity regression covering settings, remapping, opening, WORLD, Save/Load, dialogue, flight, combat focus, rendering settings, and vibration"
   ],
   "remainingBeforeRepresentativeParity": [
-    "action remapping UI and prompt rebinding",
-    "text-scale rendering integration",
-    "high-contrast UI rendering integration",
-    "subtitle size/background and speaker-label rendering integration",
-    "controller vibration integration",
+    "rendered visual acceptance at text scales 100/125/150/175 with high-contrast and subtitle combinations",
     "music-volume runtime integration after a canonical music bus exists",
-    "exact-head execution of the live controller-parity regression"
+    "exact-head execution of the live controller-parity and First Wake benchmark regressions"
   ]
 }
