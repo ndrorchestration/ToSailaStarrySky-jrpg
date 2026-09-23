@@ -131,6 +131,12 @@ assert(localReleaseScript.includes('AETHERWAKE_SAVE_PERSISTENCE_PHASE') &&
   'local Windows release fallback must run packaged save persistence smoke');
 assert(localReleaseScript.includes('DESKTOP_SAVE_RESTART=PASS'),
   'local Windows release fallback must prove save/load across process restart');
+assert(localReleaseScript.includes('restored the wrong quest state'),
+  'local Windows release fallback must verify quest-state restoration after restart');
+assert(localReleaseScript.includes('restored the wrong active-party membership/order'),
+  'local Windows release fallback must verify full active-party restoration after restart');
+assert(localReleaseScript.includes('did not use the same isolated NW.js data path'),
+  'local Windows release fallback must verify both processes use the same isolated NW.js data path');
 assert(localReleaseScript.includes('npm run verify:packaged-title-audio') &&
        localReleaseScript.includes('PACKAGED_TITLE_AUDIO=PASS'),
   'local Windows release must verify the governed MP3 inside the packaged payload');
@@ -167,6 +173,12 @@ assert(runtimeSource.includes("saveToSlot('manual-6', false)"),
   'packaged save smoke must exercise the production save path');
 assert(runtimeSource.includes("loadFromSlot('manual-6')"),
   'packaged save smoke must exercise the production load path');
+assert(runtimeSource.includes("window.ACTIVE_PARTY.splice(0, window.ACTIVE_PARTY.length)"),
+  'packaged save smoke must invalidate live party state before loading');
+assert(runtimeSource.includes("quest.state === expectedQuestState"),
+  'packaged save smoke must require quest-state restoration from the persisted payload');
+assert(runtimeSource.includes("expectedActiveIds.every((id, index) => id === restoredActiveIds[index])"),
+  'packaged save smoke must require exact active-party membership/order restoration');
 
 const windowsRelease = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'build-windows-release.ps1'), 'utf8');
 assert(windowsRelease.includes('npm run test:m0-title-audio-ready'),
