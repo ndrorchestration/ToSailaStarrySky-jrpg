@@ -196,7 +196,11 @@ function loadInputBindings() {
     window._inputBindingsStorage = {
       storageType: loaded.storageType,
       path: loaded.path,
-      isDefault: loaded.isDefault
+      isDefault: loaded.isDefault,
+      recoveredFromBackup: Boolean(loaded.recoveredFromBackup),
+      primaryLoadError: loaded.primaryLoadError || null,
+      futureSchemaProtected: Boolean(loaded.futureSchemaProtected),
+      futureSchemaVersion: loaded.futureSchemaVersion || null
     };
     return loaded;
   } catch (error) {
@@ -460,7 +464,11 @@ function loadUserSettings() {
     window._userSettingsStorage = {
       storageType: loaded.storageType,
       path: loaded.path,
-      isDefault: loaded.isDefault
+      isDefault: loaded.isDefault,
+      recoveredFromBackup: Boolean(loaded.recoveredFromBackup),
+      primaryLoadError: loaded.primaryLoadError || null,
+      futureSchemaProtected: Boolean(loaded.futureSchemaProtected),
+      futureSchemaVersion: loaded.futureSchemaVersion || null
     };
     return loaded;
   } catch (error) {
