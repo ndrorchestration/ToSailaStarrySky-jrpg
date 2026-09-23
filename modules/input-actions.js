@@ -15,6 +15,7 @@
     'confirm': { contexts: ['global'], keyCodes: [13,32] },
     'cancel': { contexts: ['global'], keyCodes: [27] },
     'open-settings': { contexts: ['boot','menu'], keyCodes: [83] },
+    'continue-game': { contexts: ['menu'], keyCodes: [67] },
     'open-save-load': { contexts: ['world','airship'], keyCodes: [117] },
     'move-up': { contexts: ['world','airship'], keyCodesByContext: { world: [38,87], airship: [38] } },
     'move-down': { contexts: ['world','airship'], keyCodesByContext: { world: [40,83], airship: [40] } },
@@ -74,7 +75,7 @@
     if (!ids.length) throw new Error('INPUT_ACTIONS_EMPTY');
 
     const required = [
-      'confirm','cancel','open-settings','open-save-load','move-up','move-down','move-left','move-right',
+      'confirm','cancel','open-settings','continue-game','open-save-load','move-up','move-down','move-left','move-right',
       'interact','covenant-field','toggle-layer','shop','quest-log','character-sheet','ledger','board-or-flight',
       'manual-save','manual-load','airship-altitude-up','airship-altitude-down',
       'airship-dock','airship-land'
