@@ -4,6 +4,8 @@ Status: **MANUAL BLOCKING EVIDENCE / NOT A SUBSTITUTE FOR AUTOMATED OR WINDOWS P
 
 This protocol owns the manual comprehension gate in `docs/first-wake-benchmark.json`. It exists because automated tests can prove state integrity and deterministic behavior, but cannot prove that a new player understands what Aetherwake is asking them to do.
 
+A passing developer smoke test or local M0 run cannot substitute for this manual comprehension evidence. Automated verification and external-player comprehension answer different questions and both remain required where the benchmark marks them blocking.
+
 ## Candidate binding
 
 Before the session, record:
