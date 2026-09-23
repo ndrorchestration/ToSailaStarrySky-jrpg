@@ -29,7 +29,7 @@ Implemented on this branch:
 ## Still open
 
 - **Rendered visual acceptance** at 100 / 125 / 150 / 175% text scale, including high-contrast and subtitle combinations. Source-level contracts are not a substitute for reviewing actual rendered frames.
-- **Title-track asset admission/playback verification** remains open. The canonical music bus now owns Music Volume, ducking, registration, and playback state, but no title-music binary is registered or packaged on this branch.
+- **Title-track asset admission/playback verification** remains open. `docs/audio-assets.json` now fixes the canonical path and verified source fingerprint; the canonical music bus owns Music Volume/registration/playback, and desktop staging preserves `assets/**`. The MP3 binary itself is still absent, so runtime registration remains false.
 - **Exact-head executed verification** remains blocked while the private repository receives zero-step hosted runs.
 
 ## Architectural decision
@@ -109,7 +109,7 @@ The lane writes `artifacts/accessibility-visual-matrix/manifest.json` with `HUMA
 
 1. execute and review the 54-frame accessibility visual matrix;
 2. execute the exact-head controller-parity and First Wake benchmark suites when a runner is actually allocated;
-3. admit/register the packaged title track when the canonical audio asset is available, then verify exact-candidate playback;
+3. admit the exact verified title MP3 at `assets/audio/aetherwake-skyward-arpeggio-main-title.mp3`, flip the governed manifest to admitted/runtime-registered, then verify exact-candidate playback;
 4. if those pass, reassess whether PR #147 can leave draft without widening scope.
 
 ## Critical invariants
