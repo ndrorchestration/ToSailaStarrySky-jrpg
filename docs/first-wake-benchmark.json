@@ -252,6 +252,16 @@
         "optional TTS fail-closed behavior"
       ],
       "nextAction": "Verify title-theme wiring and representative mix in packaged build."
+    },
+    {
+      "id": "uncoached-external-player",
+      "category": "playtest",
+      "blocking": true,
+      "status": "manual",
+      "outcome": "At least one uncoached external player can install/launch, understand the next objective, make intelligible combat choices, use save/load, recover from a non-happy-path state, and complete the representative First Wake slice without live creator explanation.",
+      "owner": "M0 external playtest record",
+      "evidence": [],
+      "nextAction": "Run after exact candidate verification; record observed confusion, failures, and interventions without coaching during the pass."
     }
   ]
 }
