@@ -1,6 +1,6 @@
 {
   "name": "Aetherwake",
-  "version": "0.2.0",
+  "version": "0.1.0-preview.1",
   "description": "Aetherwake pre-alpha — a solarpunk turn-based JRPG built with p5.js",
   "main": "index-embedded.html",
   "window": {
@@ -95,6 +95,7 @@
     "test:crossing-hazard-combat": "node tests/crossing-hazard-combat.test.js",
     "test:hazard-marker-alignment": "node tests/hazard-marker-alignment.test.js",
     "test:world-entry-onboarding": "node tests/world-entry-onboarding.test.js",
-    "test:wake-transition-pacing": "node tests/wake-transition-pacing.test.js"
+    "test:wake-transition-pacing": "node tests/wake-transition-pacing.test.js",
+    "build:preview:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\build-preview-windows.ps1"
   }
 }
