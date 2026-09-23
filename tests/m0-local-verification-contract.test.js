@@ -20,8 +20,8 @@ assert(fs.existsSync(visualReviewProtocolPath),
 assert(fs.existsSync(visualReviewTemplatePath),
   'candidate-bound accessibility visual-review template is missing');
 const visualReviewTemplate = JSON.parse(fs.readFileSync(visualReviewTemplatePath, 'utf8'));
-assert.strictEqual(visualReviewTemplate.candidate.captureCount, 54,
-  'visual-review template must bind the current 54-frame matrix');
+assert.strictEqual(visualReviewTemplate.candidate.captureCount, 58,
+  'visual-review template must bind the current 58-frame matrix');
 assert.strictEqual(visualReviewTemplate.result, 'NOT_RUN',
   'visual-review template must fail closed until a human review occurs');
 assert.strictEqual(visualReviewTemplate.coverage.allManifestCapturesReviewed, false,
@@ -51,8 +51,8 @@ for (const gate of [
   assert(script.includes(gate), 'M0 local verifier missing gate: ' + gate);
 }
 
-assert(script.includes('captureCount -ne 54'),
-  'M0 local verifier must require the 54-frame matrix');
+assert(script.includes('captureCount -ne 58'),
+  'M0 local verifier must require the 58-frame matrix');
 assert(script.includes("reviewStatus -ne 'HUMAN_REVIEW_REQUIRED'"),
   'M0 local verifier must preserve human visual review');
 assert(script.includes("Invoke-Gate 'prepare:accessibility-review' 'npm run prepare:accessibility-review'"),
