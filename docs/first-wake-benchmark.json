@@ -240,9 +240,12 @@
       "blocking": true,
       "status": "manual",
       "outcome": "At least one uncoached external player can install/launch, understand the next objective, make intelligible combat choices, use save/load, recover from a non-happy-path state, and complete the representative First Wake slice without live creator explanation.",
-      "owner": "M0 external playtest record",
-      "evidence": [],
-      "nextAction": "Run after exact candidate verification; record observed confusion, failures, and interventions without coaching during the pass."
+      "owner": "docs/M0_EXTERNAL_PLAYTEST.md",
+      "evidence": [
+        "docs/M0_EXTERNAL_PLAYTEST.md",
+        "docs/m0-external-playtest-record.template.json"
+      ],
+      "nextAction": "Run after exact candidate verification; bind the session to exact commit/build identity and record confusion, defects, interventions, persistence restoration, non-happy-path recovery, and completion without coaching."
     }
   ]
 }
