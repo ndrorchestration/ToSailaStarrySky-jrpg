@@ -113,6 +113,7 @@
     "validate:external-playtest": "node scripts/validate-m0-external-playtest.js",
     "prepare:external-playtest": "node scripts/prepare-m0-external-playtest.js",
     "test:external-playtest-packet": "node tests/external-playtest-packet-contract.test.js",
-    "test:m0-operator-lane": "node tests/m0-operator-lane-contract.test.js"
+    "test:m0-operator-lane": "node tests/m0-operator-lane-contract.test.js",
+    "prepare:m0-manual-acceptance": "node scripts/prepare-m0-manual-acceptance.js"
   }
 }
