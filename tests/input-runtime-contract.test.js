@@ -143,3 +143,8 @@ assert(!source.includes('[ R ] to begin again'),
   'epilogue must not advertise a nonexistent restart binding');
 
 console.log('Aetherwake input runtime contract: PASS');
+
+assert(runtime.includes('primaryLoadError: loaded.primaryLoadError || null'),
+  'runtime must preserve input-binding primary failure provenance');
+assert(runtime.includes('futureSchemaProtected: Boolean(loaded.futureSchemaProtected)'),
+  'runtime must expose newer-schema input-binding protection state');
