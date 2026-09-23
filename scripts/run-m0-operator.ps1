@@ -33,12 +33,11 @@ $manifestPath = Join-Path $Repo 'docs\audio-assets.json'
 if (-not (Test-Path -LiteralPath $manifestPath)) {
   throw "Audio authority missing: $manifestPath"
 }
-$audio = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-$titleReady = (
-  $audio.titleTheme.repositoryStatus -eq 'admitted' -and
-  [bool]$audio.titleTheme.runtimeRegistration -and
-  $audio.titleTheme.sourceRecovery.repositoryTransfer -eq 'completed'
-)
+
+# Do not trust manifest labels alone. The strict readiness gate also requires
+# the canonical MP3 to exist, be Git-tracked, and match governed bytes/SHA-256.
+& cmd.exe /d /s /c "npm run test:m0-title-audio-ready"
+$titleReady = ($LASTEXITCODE -eq 0)
 
 if (-not $titleReady) {
   if ($SkipTitleAdmission) {
@@ -64,7 +63,7 @@ if (-not $titleReady) {
   }
   Write-Host "ADMITTED_COMMIT=$head"
 } else {
-  Write-Host 'TITLE_AUDIO_ADMISSION=ALREADY_VERIFIED'
+  Write-Host 'TITLE_AUDIO_ADMISSION=ALREADY_VERIFIED_STRICT'
 }
 
 $m0 = Join-Path $PSScriptRoot 'verify-m0-local.ps1'
