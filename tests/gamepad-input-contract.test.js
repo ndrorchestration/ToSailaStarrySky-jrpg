@@ -33,6 +33,11 @@ state = pad.createState();
 result = pad.poll(gamepad([pad.BUTTON.SOUTH]), state, 'menu');
 assert.deepStrictEqual(result.pressed, ['confirm']);
 
+state = pad.createState();
+result = pad.poll(gamepad([pad.BUTTON.NORTH]), state, 'menu');
+assert.deepStrictEqual(result.pressed, ['continue-game'],
+  'North must expose semantic Continue on the title menu');
+
 result = pad.poll(gamepad([pad.BUTTON.SOUTH]), state, 'menu');
 assert.deepStrictEqual(result.pressed, [], 'held buttons must not repeat as edge presses');
 
