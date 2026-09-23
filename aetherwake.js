@@ -2087,35 +2087,144 @@ function prepareSaveEnvelopeForApply(envelope) {
   });
 }
 
+function captureLiveRuntimeForLoadRollback() {
+  return {
+    roster: window.ROSTER ? window.ROSTER.map(character => cloneJson(character)) : [],
+    activeIds: window.ACTIVE_PARTY ? window.ACTIVE_PARTY.map(character => character.id) : [],
+    quest: captureQuestStateForSave(),
+    world: {
+      playerPosition: {
+        tileX: world.player.tileX,
+        tileY: world.player.tileY,
+        px: world.player.px,
+        py: world.player.py
+      },
+      covenantField: cloneJson(covenantField),
+      ledgerEntries: cloneJson(ledger.entries || [])
+    },
+    runtime: {
+      dayTime,
+      skyLayerVisible: isSkyLayerVisible,
+      loadedPlaytimeMs,
+      playSessionStartMs,
+      gameState,
+      gameOver,
+      pendingHazardIndex,
+      combatReturnState,
+      prevState
+    },
+    airNavigation: airNavigationState && window.AetherAirNavigation
+      ? window.AetherAirNavigation.exportPersistentState(airNavigationState)
+      : null
+  };
+}
+
+function restoreLiveRuntimeAfterFailedLoad(snapshot) {
+  if (!snapshot) throw new Error('LOAD_ROLLBACK_SNAPSHOT_MISSING');
+
+  snapshot.roster.forEach((record, index) => {
+    if (!window.ROSTER[index] || window.ROSTER[index].id !== record.id) {
+      throw new Error('LOAD_ROLLBACK_ROSTER_IDENTITY_MISMATCH');
+    }
+    Object.assign(window.ROSTER[index], cloneJson(record));
+  });
+  window.AetherPartyState.setActivePartyIds(snapshot.activeIds);
+  window.AetherPartyState.validate();
+  restoreQuestState(snapshot.quest);
+
+  const pos = snapshot.world.playerPosition;
+  world.player.tileX = pos.tileX;
+  world.player.tileY = pos.tileY;
+  world.player.px = pos.px;
+  world.player.py = pos.py;
+  covenantField = cloneJson(snapshot.world.covenantField);
+  ledger.entries = cloneJson(snapshot.world.ledgerEntries);
+
+  dayTime = snapshot.runtime.dayTime;
+  isSkyLayerVisible = snapshot.runtime.skyLayerVisible;
+  loadedPlaytimeMs = snapshot.runtime.loadedPlaytimeMs;
+  playSessionStartMs = snapshot.runtime.playSessionStartMs;
+
+  airNavigationState = snapshot.airNavigation && window.AetherAirNavigation
+    ? window.AetherAirNavigation.restorePersistentState(snapshot.airNavigation)
+    : null;
+  window._airNavigationState = airNavigationState;
+
+  gameOver = snapshot.runtime.gameOver;
+  pendingHazardIndex = snapshot.runtime.pendingHazardIndex;
+  combatReturnState = snapshot.runtime.combatReturnState;
+  gameState = snapshot.runtime.gameState;
+  window.gameState = gameState;
+  prevState = snapshot.runtime.prevState;
+}
+
+function runLoadTestHook(stage) {
+  if (window && typeof window.__AETHERWAKE_LOAD_TEST_HOOK__ === 'function') {
+    window.__AETHERWAKE_LOAD_TEST_HOOK__(stage);
+  }
+}
+
 function applySaveEnvelope(envelope) {
   // All semantic validation and subsystem rehydration planning happens before
   // the first mutation of canonical live runtime state.
   const prepared = prepareSaveEnvelopeForApply(envelope);
   const payload = prepared.payload;
+  const rollbackSnapshot = captureLiveRuntimeForLoadRollback();
 
-  restorePartyState(payload.party);
-  restoreQuestState(payload.quest);
+  try {
+    runLoadTestHook('before-apply');
 
-  const pos = payload.world.playerPosition;
-  world.player.tileX = pos.tileX; world.player.tileY = pos.tileY;
-  world.player.px = pos.px; world.player.py = pos.py;
-  covenantField = cloneJson(payload.world.covenantField);
-  ledger.entries = cloneJson(payload.world.ledgerEntries);
+    restorePartyState(payload.party);
+    runLoadTestHook('after-party');
 
-  dayTime = payload.runtime.dayTime;
-  isSkyLayerVisible = payload.runtime.skyLayerVisible;
-  loadedPlaytimeMs = payload.runtime.playtimeMs;
-  playSessionStartMs = millis();
+    restoreQuestState(payload.quest);
+    runLoadTestHook('after-quest');
 
-  airNavigationState = prepared.preparedAirNavigation;
-  window._airNavigationState = airNavigationState;
+    const pos = payload.world.playerPosition;
+    world.player.tileX = pos.tileX; world.player.tileY = pos.tileY;
+    world.player.px = pos.px; world.player.py = pos.py;
+    covenantField = cloneJson(payload.world.covenantField);
+    ledger.entries = cloneJson(payload.world.ledgerEntries);
+    runLoadTestHook('after-world');
 
-  gameOver = false;
-  pendingHazardIndex = null;
-  combatReturnState = STATE.WORLD;
-  gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
-  window.gameState = gameState;
-  prevState = null;
+    dayTime = payload.runtime.dayTime;
+    isSkyLayerVisible = payload.runtime.skyLayerVisible;
+    loadedPlaytimeMs = payload.runtime.playtimeMs;
+    playSessionStartMs = millis();
+
+    airNavigationState = prepared.preparedAirNavigation;
+    window._airNavigationState = airNavigationState;
+    runLoadTestHook('after-runtime');
+
+    gameOver = false;
+    pendingHazardIndex = null;
+    combatReturnState = STATE.WORLD;
+    gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
+    window.gameState = gameState;
+    prevState = null;
+    runLoadTestHook('before-commit');
+  } catch (error) {
+    try {
+      restoreLiveRuntimeAfterFailedLoad(rollbackSnapshot);
+      window._lastLoadRollback = {
+        ok: true,
+        error: error.message
+      };
+    } catch (rollbackError) {
+      window._lastLoadRollback = {
+        ok: false,
+        error: error.message,
+        rollbackError: rollbackError.message
+      };
+      throw new Error(
+        'LOAD_APPLY_AND_ROLLBACK_FAILED:' +
+        error.message + '|' + rollbackError.message
+      );
+    }
+    throw error;
+  }
+
+  window._lastLoadRollback = null;
   refreshSaveIndex();
   showToast('GAME LOADED', C.teal, 1500);
   return true;
