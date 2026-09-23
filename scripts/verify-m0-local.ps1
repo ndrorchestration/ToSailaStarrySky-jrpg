@@ -19,6 +19,11 @@ $results = [ordered]@{
   repo = $Repo
   gitHead = $null
   gitStatus = $null
+  developmentSkips = [ordered]@{
+    install = [bool]$SkipInstall
+    browserInstall = [bool]$SkipBrowserInstall
+    windowsPackage = [bool]$SkipWindowsPackage
+  }
   gates = @()
   visualMatrix = $null
   windowsPackage = $null
@@ -177,6 +182,17 @@ try {
     Write-Host "M0_LOCAL_VERIFICATION=INCOMPLETE_REQUIRED_GATE_SKIPPED" -ForegroundColor Yellow
     Write-Host "WINDOWS_PACKAGE=SKIPPED_DEVELOPMENT_ONLY"
     Write-Host "SUMMARY=$SummaryPath"
+    exit 2
+  }
+
+  if ($SkipInstall -or $SkipBrowserInstall) {
+    Write-Summary 'INCOMPLETE_REQUIRED_PREREQUISITE_SKIPPED'
+    Write-Host ""
+    Write-Host "M0_LOCAL_VERIFICATION=INCOMPLETE_REQUIRED_PREREQUISITE_SKIPPED" -ForegroundColor Yellow
+    Write-Host "DEVELOPMENT_SKIP_INSTALL=$([bool]$SkipInstall)"
+    Write-Host "DEVELOPMENT_SKIP_BROWSER_INSTALL=$([bool]$SkipBrowserInstall)"
+    Write-Host "SUMMARY=$SummaryPath"
+    Write-Host "VISUAL_MATRIX=$VisualManifestPath"
     exit 2
   }
 
