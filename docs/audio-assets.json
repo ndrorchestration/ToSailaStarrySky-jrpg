@@ -16,6 +16,14 @@
     "repositoryStatus": "source-verified-repository-missing",
     "musicBusTrackId": "title",
     "runtimeRegistration": false,
-    "packagingRule": "assets/** must stage to www/assets/**"
+    "packagingRule": "assets/** must stage to www/assets/**",
+    "sourceRecovery": {
+      "status": "exact-source-recovered-and-reverified",
+      "reverifiedDate": "2026-09-23",
+      "sha256": "7ac5fe9c2ee0bc8d0cbfa36441dbb7783dbe2ef0cc5e2ee665086a527a7bc350",
+      "bytes": 4233081,
+      "sourceClass": "user-owned ChatGPT Library file",
+      "repositoryTransfer": "pending-binary-handoff"
+    }
   }
 }
