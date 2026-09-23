@@ -152,6 +152,9 @@ jobs:
       - name: Verify title audio admission pipeline
         run: npm run test:title-audio-admission
 
+      - name: Verify title audio handoff contract
+        run: npm run test:title-audio-handoff
+
       - name: Verify title audio runtime registration
         run: npm run test:title-audio-runtime
 
