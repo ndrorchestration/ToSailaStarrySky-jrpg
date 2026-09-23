@@ -103,6 +103,8 @@ assert(runtime.includes('savedAt: envelope.savedAt'),
   'Continue metadata must use the semantically selected envelope rather than an invalid primary');
 assert(runtime.includes('if (!meta.exists) return meta;'),
   'Continue must try the semantic candidate chain for every existing slot, including envelope-invalid primaries');
+assert(runtime.includes('loadSemanticallyValidSaveCandidate(meta.slot)'),
+  'Continue/index discovery must resolve backup-only existing slots through semantic recovery');
 assert(!runtime.includes('if (!meta.exists || meta.valid === false) return meta;'),
   'Continue must not suppress backup recovery solely because the primary listing is invalid');
 assert(runtime.includes('RECOVERED PREVIOUS SAVE // PRIMARY INVALID'),
