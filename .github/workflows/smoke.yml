@@ -179,6 +179,9 @@ jobs:
       - name: Verify First Wake benchmark registry
         run: npm run test:first-wake-benchmark
 
+      - name: Verify external playtest evidence contract
+        run: npm run test:external-playtest-evidence
+
       - name: Verify save storage contract
         run: npm run test:save-system
 
