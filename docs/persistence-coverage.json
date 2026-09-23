@@ -194,7 +194,7 @@
       "restore": "AetherUserSettings.load + aetherwake.js::applyUserSettings",
       "validator": "AetherUserSettings.validateSettings",
       "versionOwner": "user-settings SCHEMA_VERSION",
-      "rationale": "Accessibility and user preferences persist independently from game save slots. Parseable newer-schema primary/backup sidecars are downgrade-protected from overwrite."
+      "rationale": "Accessibility and user preferences persist independently from game save slots. Missing/corrupt primaries recover from validated backup with explicit provenance; the first post-recovery edit preserves that backup while writing a new primary. Parseable newer-schema primary/backup sidecars are downgrade-protected from overwrite."
     },
     {
       "id": "input-bindings",
@@ -203,7 +203,7 @@
       "restore": "AetherInputBindings.load + runtime semantic input adapters",
       "validator": "AetherInputBindings.validateState",
       "versionOwner": "input-bindings SCHEMA_VERSION",
-      "rationale": "User control remaps persist independently from game saves and general accessibility settings. Parseable newer-schema primary/backup sidecars are downgrade-protected from overwrite."
+      "rationale": "User control remaps persist independently from game saves and general accessibility settings. Missing/corrupt primaries recover from validated backup with explicit provenance; the first post-recovery edit preserves that backup while writing a new primary. Parseable newer-schema primary/backup sidecars are downgrade-protected from overwrite."
     }
   ]
 }
