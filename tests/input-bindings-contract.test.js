@@ -112,6 +112,13 @@ assert.strictEqual(saved.storageType, 'localStorage');
 const loaded = bindings.load();
 assert.deepStrictEqual(loaded.bindings, state,
   'persisted input bindings must round-trip independently from game saves/settings');
+bindings.save(state);
+global.localStorage.removeItem(bindings.STORAGE_KEY);
+const recoveredBindings = bindings.load();
+assert.deepStrictEqual(recoveredBindings.bindings, state,
+  'input bindings must recover the validated backup when primary is missing');
+assert.strictEqual(recoveredBindings.recoveredFromBackup, true);
+assert.strictEqual(recoveredBindings.primaryLoadError, 'INPUT_BINDINGS_PRIMARY_MISSING');
 
 const ambiguous = bindings.emptyState();
 ambiguous.keyboardOverrides.interact = 84; // collides with quest-log in WORLD.
