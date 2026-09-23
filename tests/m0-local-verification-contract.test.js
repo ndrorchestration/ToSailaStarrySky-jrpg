@@ -47,6 +47,7 @@ for (const gate of [
   'test:production-method',
   'test:release-evidence',
   'test:external-playtest-evidence',
+  'test:external-playtest-packet',
   'test:smoke',
   'test:first-wake-benchmark-live',
   'test:controller-parity-live',
@@ -63,6 +64,12 @@ assert(script.includes("Invoke-Gate 'prepare:accessibility-review' 'npm run prep
   'M0 local verifier must generate a deterministic accessibility review packet');
 assert(script.includes('ACCESSIBILITY_REVIEW_HTML=') && script.includes('ACCESSIBILITY_REVIEW_RECORD='),
   'M0 local verifier must expose generated review packet paths');
+assert(script.includes("Invoke-Gate 'prepare:external-playtest' 'npm run prepare:external-playtest'"),
+  'M0 local verifier must prepare the candidate-bound external playtest packet');
+assert(script.includes("status = 'PREPARED_NOT_RUN'"),
+  'external playtest packet must remain explicitly not run');
+assert(script.includes('EXTERNAL_PLAYTEST_GUIDE=') && script.includes('EXTERNAL_PLAYTEST_RECORD='),
+  'M0 local verifier must expose external playtest packet paths');
 assert(script.includes('build-windows-release.ps1'),
   'M0 local verifier must invoke exact Windows package verification by default');
 assert(script.includes('summary.json'),
