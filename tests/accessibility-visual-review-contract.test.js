@@ -40,7 +40,7 @@ assert(validator.includes('record.defects.length, 0'),
 
 assert.strictEqual(template.result, 'NOT_RUN',
   'review template must remain fail-closed before human review');
-assert.strictEqual(template.candidate.captureCount, 54,
+assert.strictEqual(template.candidate.captureCount, 58,
   'review template must bind expected matrix cardinality');
 
 console.log('Aetherwake accessibility visual-review evidence contract: PASS');
