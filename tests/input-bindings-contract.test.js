@@ -121,4 +121,33 @@ assert.throws(
   'ambiguous persisted bindings must fail closed during validation'
 );
 
+// Downgrade protection: preserve parseable newer-schema binding sidecars.
+const futureBindings = {
+  schemaVersion: bindings.SCHEMA_VERSION + 1,
+  savedAt: new Date().toISOString(),
+  bindings: {
+    schemaVersion: bindings.SCHEMA_VERSION + 1,
+    keyboardOverrides: { interact: 74 },
+    gamepadOverrides: {}
+  }
+};
+global.localStorage.setItem(bindings.STORAGE_KEY, JSON.stringify(futureBindings));
+const futurePrimaryRaw = global.localStorage.getItem(bindings.STORAGE_KEY);
+assert.throws(
+  () => bindings.save(state),
+  /INPUT_BINDINGS_FUTURE_SCHEMA_PROTECTED:2/
+);
+assert.strictEqual(global.localStorage.getItem(bindings.STORAGE_KEY), futurePrimaryRaw,
+  'older build must not overwrite newer-schema input binding primary');
+
+global.localStorage.setItem(bindings.STORAGE_KEY, '{broken json');
+global.localStorage.setItem(bindings.STORAGE_KEY + '.bak', JSON.stringify(futureBindings));
+const futureBackupRaw = global.localStorage.getItem(bindings.STORAGE_KEY + '.bak');
+assert.throws(
+  () => bindings.save(state),
+  /INPUT_BINDINGS_FUTURE_SCHEMA_PROTECTED:2/
+);
+assert.strictEqual(global.localStorage.getItem(bindings.STORAGE_KEY + '.bak'), futureBackupRaw,
+  'older build must not overwrite newer-schema input binding backup');
+
 console.log('Aetherwake input binding persistence/remap contract: PASS');
