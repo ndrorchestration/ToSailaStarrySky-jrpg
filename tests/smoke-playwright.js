@@ -296,6 +296,7 @@ function createServer() {
         loaded,
         rollback: window._lastLoadRollback,
         loadError: window._lastLoadError,
+        loadResult: window._lastLoadResult,
       };
     });
     assert(rollbackProbe.loaded === false,
@@ -304,6 +305,8 @@ function createServer() {
       'fault-injected partial load did not report successful rollback');
     assert(String(rollbackProbe.loadError).includes('TEST_LOAD_AFTER_WORLD_FAILURE'),
       'fault-injected load did not preserve the original apply failure');
+    assert(rollbackProbe.loadResult === null,
+      'rolled-back load left stale successful-load evidence');
     assert(JSON.stringify(rollbackProbe.after) === JSON.stringify(rollbackProbe.before),
       'failed partial load did not restore the exact pre-load live runtime');
 
