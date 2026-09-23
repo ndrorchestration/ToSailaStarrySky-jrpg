@@ -42,7 +42,7 @@
       "restore": "preservation-only; newer save is not loaded by older schema",
       "validator": "AetherSaveSystem.validateEnvelopeIntegrity + schemaVersion > current SCHEMA_VERSION",
       "versionOwner": "save-system SCHEMA_VERSION",
-      "rationale": "A downgraded build must not overwrite an integrity-valid save from a newer schema. Manual saves fail closed, autosave rotation skips protected slots, and all-protected autosave sets fail without destructive mutation."
+      "rationale": "A downgraded build must not overwrite newer-schema persistent player data. Whole-game saves require integrity-valid future envelopes; settings/input sidecars require parseable future envelopes with the expected payload container. Manual saves fail closed, autosave rotation skips protected slots, and sidecar writes fail closed without destructive mutation."
     },
     {
       "id": "desktop-save-backup-recovery",
@@ -194,7 +194,7 @@
       "restore": "AetherUserSettings.load + aetherwake.js::applyUserSettings",
       "validator": "AetherUserSettings.validateSettings",
       "versionOwner": "user-settings SCHEMA_VERSION",
-      "rationale": "Accessibility and user preferences persist independently from game save slots."
+      "rationale": "Accessibility and user preferences persist independently from game save slots. Parseable newer-schema primary/backup sidecars are downgrade-protected from overwrite."
     },
     {
       "id": "input-bindings",
@@ -203,7 +203,7 @@
       "restore": "AetherInputBindings.load + runtime semantic input adapters",
       "validator": "AetherInputBindings.validateState",
       "versionOwner": "input-bindings SCHEMA_VERSION",
-      "rationale": "User control remaps persist independently from game saves and general accessibility settings."
+      "rationale": "User control remaps persist independently from game saves and general accessibility settings. Parseable newer-schema primary/backup sidecars are downgrade-protected from overwrite."
     }
   ]
 }
