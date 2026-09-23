@@ -71,6 +71,22 @@ assert(summary.evidenceBindings,
   'Technical summary is missing exact evidence bindings');
 
 const commitSha = summary.gitHead;
+const currentHead = childProcess.execFileSync(
+  'git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }
+).trim();
+const trackedDiff = childProcess.spawnSync(
+  'git', ['diff', '--quiet', 'HEAD', '--'], { cwd: repo }
+);
+const stagedDiff = childProcess.spawnSync(
+  'git', ['diff', '--cached', '--quiet', '--'], { cwd: repo }
+);
+assert.strictEqual(currentHead, commitSha,
+  'Final M0 acceptance must run from the exact candidate checkout');
+assert.strictEqual(trackedDiff.status, 0,
+  'Final M0 acceptance rejects tracked source changes after technical verification');
+assert.strictEqual(stagedDiff.status, 0,
+  'Final M0 acceptance rejects staged source changes after technical verification');
+
 assert.strictEqual(visualManifest.gitHead, commitSha,
   'Visual manifest commit does not match technical M0 candidate');
 assert.strictEqual(accessibilityReview.candidate.commitSha, commitSha,
