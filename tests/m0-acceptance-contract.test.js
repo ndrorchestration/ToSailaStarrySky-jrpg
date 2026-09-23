@@ -38,6 +38,14 @@ assert(source.includes('externalPlaytest.candidate.commitSha, commitSha'),
   'final acceptance must bind external-player evidence to exact candidate');
 assert(source.includes('accessibilityReview.candidate.commitSha, commitSha'),
   'final acceptance must bind human visual review to exact candidate');
+assert(source.includes("git', ['rev-parse', 'HEAD']"),
+  'final acceptance must bind current checkout HEAD');
+assert(source.includes("git', ['diff', '--quiet', 'HEAD', '--']"),
+  'final acceptance must reject tracked source drift');
+assert(source.includes("git', ['diff', '--cached', '--quiet', '--']"),
+  'final acceptance must reject staged source drift');
+assert(source.includes('Final M0 acceptance must run from the exact candidate checkout'),
+  'final acceptance must reject stale-candidate checkout use');
 assert(source.includes('technicalSummarySha256'),
   'final acceptance must fingerprint technical evidence');
 assert(source.includes('accessibilityReviewSha256'),
