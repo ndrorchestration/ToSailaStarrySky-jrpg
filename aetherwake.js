@@ -26,7 +26,7 @@ const STATE = {
   BOOT: 'boot', MENU: 'menu', WORLD: 'world', COMBAT: 'combat',
   DIALOGUE: 'dialogue', SHOP: 'shop', LEDGER: 'ledger',
   QUESTLOG: 'questlog', CHARSHEET: 'charsheet', AIRSHIP: 'airship',
-  OPENING: 'opening', CHARCREATE: 'charcreate',
+  OPENING: 'opening', CHARCREATE: 'charcreate', PREVIEW_END: 'preview-end',
 };
 let gameState = STATE.BOOT;
 window.gameState = gameState;  // expose for debug
@@ -97,6 +97,12 @@ let combat = null;
 let airNavigationState = null;
 let combatReturnState = STATE.WORLD;
 let pendingHazardIndex = null;
+
+// Preview 0.1 is intentionally bounded: authored opening -> Ionia -> one combat -> end card.
+let previewEncounterArmed = false;
+let previewEncounterStarted = false;
+let previewEncounterFinished = false;
+let previewEndAt = 0;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -274,6 +280,13 @@ function draw() {
     startGame();
   }
 
+  if (gameState === STATE.WORLD && previewEndAt > 0 && millis() >= previewEndAt) {
+    previewEndAt = 0;
+    gameState = STATE.PREVIEW_END;
+    window.gameState = gameState;
+    prevState = null;
+  }
+
   // Subtle corner brackets — confirm canvas is live without distracting
   noFill();
   stroke(C.teal[0], C.teal[1], C.teal[2], 50);
@@ -356,6 +369,9 @@ function draw() {
       gameState = STATE.WORLD;
       window.gameState = gameState;
     }
+  }
+  else if (gameState === STATE.PREVIEW_END) {
+    drawPreviewEndScreen();
   }
   else if (gameState === STATE.WORLD) {
     if (world && typeof world.update === 'function') world.update(dt / 1000);
@@ -676,6 +692,11 @@ function handleInput() {
   const anyEnter = keysPressed[13] || keysPressed[32] ||          // Enter, Space
                    (typeof key !== 'undefined' && (key === 'Enter' || key === ' ' || key === 'n' || key === 'N'));
 
+  if (gameState === STATE.PREVIEW_END) {
+    if (anyEnter) startFirstWakeOpening();
+    return;
+  }
+
   if (gameState === STATE.BOOT) {
     // Any key skips the boot sequence, goes straight to menu.
     // The same key press also triggers MENU→WORLD in the same frame so a
@@ -869,6 +890,10 @@ function startFirstWakeOpening() {
   if (!window.AetherFirstWakeOpening || !window.AetherPartyState) {
     throw new Error('FIRST_WAKE_OPENING_RUNTIME_UNAVAILABLE');
   }
+  previewEncounterArmed = false;
+  previewEncounterStarted = false;
+  previewEncounterFinished = false;
+  previewEndAt = 0;
   window._firstWakeOpeningState = window.AetherFirstWakeOpening.createState();
   window.AetherPartyState.setActivePartyIds(['ender']);
   gameState = STATE.OPENING;
@@ -896,10 +921,50 @@ function advanceFirstWakeOpening() {
     gameState = STATE.WORLD;
     window.gameState = gameState;
     prevState = null;
-    showToast('CHAPTER I // FIRST WAKE', C.scioto, 1800);
-    showToast('T // QUEST LOG   E // TALK   R // CHARACTER', C.teal, 3200);
-    showToast('FOLLOW THE TEAL SIGNAL MARKERS // FIND 3 HOOKS', C.parchment, 4200);
+    showToast('AETHERWAKE PREVIEW 0.1 // FIRST WAKE', C.scioto, 1800);
+    showToast('WASD / ARROWS // MOVE   E // TALK', C.teal, 3200);
+    showToast('FIND IONIA // NORTHWEST TEAL MARKER', C.parchment, 4800);
   }
+}
+
+function drawPreviewEndScreen() {
+  push();
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 248);
+  rect(0, 0, width, height);
+
+  const pulse = 0.72 + Math.sin(millis() * 0.003) * 0.12;
+  fill(C.teal[0], C.teal[1], C.teal[2], 34);
+  ellipse(width / 2, height / 2 - 34, 340 * pulse, 118 * pulse);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 28);
+  ellipse(width / 2, height / 2 - 34, 230 * pulse, 76 * pulse);
+
+  textAlign(CENTER, CENTER);
+  textFont('Press Start 2P');
+  textSize(11);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 220);
+  text('AETHERWAKE // PREVIEW 0.1', width / 2, height / 2 - 112);
+
+  textSize(24);
+  fill(C.teal[0], C.teal[1], C.teal[2], 235);
+  text('END OF PREVIEW', width / 2, height / 2 - 48);
+
+  textFont('VT323');
+  textSize(20);
+  fill(C.parchment[0], C.parchment[1], C.parchment[2], 220);
+  text(
+    'Ender has heard the first warning and survived the first thing in the sky that answered it.\n\nThe rest of Aetherwake is still being built.',
+    width / 2,
+    height / 2 + 26,
+    width - 230,
+    150
+  );
+
+  textFont('Press Start 2P');
+  textSize(9);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 190);
+  text('ENTER / SPACE — PLAY AGAIN', width / 2, height / 2 + 150);
+  pop();
 }
 
 function drawFirstWakeOpening() {
@@ -1194,6 +1259,14 @@ function finishCombat() {
   window.gameState = gameState;
   prevState = null;
   combatReturnState = STATE.WORLD;
+
+  if (previewEncounterStarted && !previewEncounterFinished) {
+    previewEncounterFinished = true;
+    previewEndAt = millis() + 2400;
+    showToast('THE SKY GOES QUIET // FOR NOW', C.teal, 1800);
+    showToast('RETURNING TO THE WAKE...', C.parchment, 2200);
+  }
+
   if (VIS.fadeTransitions) startFade(150);
 }
 
@@ -2950,6 +3023,9 @@ function doTalk() {
     if (!quest.npcsMet.includes(nearest.id)) {
       quest.npcsMet.push(nearest.id);
     }
+    if (nearest.id === 'elder_farmer' && !previewEncounterStarted && !previewEncounterFinished) {
+      previewEncounterArmed = true;
+    }
     if (quest.state === QUEST_STATES.CONTACT || quest.state === QUEST_STATES.CHOICE) {
       advanceQuest();
     }
@@ -3098,8 +3174,17 @@ function nextDialogueLine() {
     return activeDialogue.lines[activeDialogue.lineIndex];
   }
   const last = activeDialogue.lines[activeDialogue.lineIndex];
+  const completedNpcId = activeDialogue.npc && activeDialogue.npc.id;
   closeWorldDialogue();
   if (gameState === STATE.DIALOGUE) closeOverlay();
+
+  if (completedNpcId === 'elder_farmer' && previewEncounterArmed &&
+      !previewEncounterStarted && !previewEncounterFinished) {
+    previewEncounterArmed = false;
+    previewEncounterStarted = true;
+    showToast('SKY-PREDATOR // INCOMING', C.rust, 1400);
+    startCombat('skyPredator', STATE.WORLD);
+  }
   return last;
 }
 
