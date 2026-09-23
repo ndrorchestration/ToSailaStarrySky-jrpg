@@ -1482,10 +1482,10 @@ function drawPlayer() {
   fill(color(232, 220, 198));
   noStroke();
   textAlign(CENTER, TOP);
-  textSize(8);
+  uiTextSize(8);
   textFont('VT323');
   text('Ender', px + 8, py - 6);
-  textSize(9);
+  uiTextSize(9);
   textFont('VT323');
 }
 
@@ -1534,10 +1534,10 @@ function drawNPC(npc) {
   noStroke();
   fill(color(232, 220, 198, 200));
   textAlign(CENTER, TOP);
-  textSize(7);
+  uiTextSize(7);
   textFont('VT323');
   text(npc.name, px, py - 12);
-  textSize(9);
+  uiTextSize(9);
   textFont('VT323');
 }
 
@@ -1674,15 +1674,15 @@ function drawQuestOverlay() {
   rect(620, 8, 4, 22);
   fill(col);
   textAlign(LEFT, TOP);
-  textSize(11);
+  uiTextSize(11);
   textFont('Press Start 2P');
   text(stateLabel, 630, 11);
-  textSize(10);
+  uiTextSize(10);
   textFont('VT323');
 
   fill(color(232, 220, 198, 150));
   textAlign(LEFT, TOP);
-  textSize(8);
+  uiTextSize(8);
   let progressText = '';
   if (quest.state === 'signal') {
     progressText = quest.hooksCompleted + '/3 hooks';
@@ -1698,7 +1698,7 @@ function drawQuestOverlay() {
     progressText = quest.wakeEpilogue ? quest.wakeEpilogue.name : '—';
   }
   text(progressText, 630, 23);
-  textSize(10);
+  uiTextSize(10);
   textFont('sans-serif');
 }
 
@@ -1709,22 +1709,22 @@ function drawEpilogueScreen() {
 
   fill(color(42, 255, 181, 220));
   textAlign(CENTER, CENTER);
-  textSize(18);
+  uiTextSize(18);
   textFont('Press Start 2P');
   const ep = quest.wakeEpilogue;
   if (ep) {
     text(ep.name.toUpperCase(), width/2, height/2 - 40);
     fill(color(232, 220, 198, 200));
-    textSize(14);
+    uiTextSize(14);
     textFont('VT323');
     textAlign(CENTER, CENTER);
     text(ep.text, width/2, height/2 + 20, width - 80, 100);
     fill(color(42, 255, 181, 120));
-    textSize(10);
+    uiTextSize(10);
     textFont('Press Start 2P');
     text('[ R ] to begin again', width/2, height/2 + 80);
   }
-  textSize(10);
+  uiTextSize(10);
   textFont('sans-serif');
 }
 
@@ -1754,10 +1754,10 @@ function drawSolarMeter() {
   fill(color(232, 220, 198, 160));
   noStroke();
   textAlign(LEFT, BOTTOM);
-  textSize(8);
+  uiTextSize(8);
   textFont('VT323');
   text('SOLAR ' + player.solarCharge.toFixed(2) + 'kWh', mx, my - 2);
-  textSize(10);
+  uiTextSize(10);
   textFont('sans-serif');
 
   // ── Fire bar (staff charges) ──
@@ -1779,10 +1779,10 @@ function drawSolarMeter() {
   noStroke();
   fill(color(232, 220, 198, 160));
   textAlign(LEFT, BOTTOM);
-  textSize(8);
+  uiTextSize(8);
   textFont('VT323');
   text('⚡ FIRE ' + player.staffCharges + '/2', fx, fy - 2);
-  textSize(10);
+  uiTextSize(10);
   textFont('sans-serif');
 }
 
@@ -1795,28 +1795,43 @@ function drawInteractionHints() {
   const px = player.px + 8;
   const py = player.py - 16;
 
-  const labels = {
-    e:    'E — Talk',
-    q:    'Q — Covenant Field',
-    f:    'F — Board Ship',
-    tab:  'Tab — Toggle Sky',
-    l:    'L — Ledger',
-    m:    'M — Repair Cafe'
+  const actionByToken = {
+    e: 'interact',
+    q: 'covenant-field',
+    f: 'board-or-flight',
+    tab: 'toggle-layer',
+    l: 'ledger',
+    m: 'shop'
   };
-
-  const label = labels[key] || key.toUpperCase();
+  const labelByToken = {
+    e: 'Talk',
+    q: 'Covenant Field',
+    f: 'Board Ship',
+    tab: 'Toggle Sky',
+    l: 'Ledger',
+    m: 'Repair Cafe'
+  };
+  const actionId = actionByToken[key] || null;
+  const binding = actionId && typeof window.AetherInputPrompt === 'function'
+    ? window.AetherInputPrompt(actionId, 'world', 'both')
+    : key.toUpperCase();
+  const label = binding + ' — ' + (labelByToken[key] || key.toUpperCase());
   const pulse = Math.sin(frameCount * 0.08) * 0.2 + 0.8;
 
+  textFont('VT323');
+  uiTextSize(8);
+  const hintW = Math.max(84, textWidth(label) + 18);
+  const hintH = Math.max(16, 12 * (typeof accessibilityTextScale === 'function'
+    ? accessibilityTextScale()
+    : 1));
   noStroke();
-  fill(color(26, 16, 46, 180));
-  rect(px - 30, py - 6, 60, 12, 3);
+  fill(color(26, 16, 46, 200));
+  rect(px - hintW / 2, py - 7, hintW, hintH, 3);
 
   fill(color(42, 255, 181, 200 * pulse));
   textAlign(CENTER, TOP);
-  textSize(8);
-  textFont('VT323');
   text(label, px, py - 4);
-  textSize(10);
+  uiTextSize(10);
   textFont('sans-serif');
 }
 
