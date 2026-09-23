@@ -125,6 +125,10 @@
         const raw = root.localStorage.getItem(STORAGE_PREFIX + slot);
         return raw ? JSON.parse(raw) : null;
       },
+      readPrimary(slot) {
+        const raw = root.localStorage.getItem(STORAGE_PREFIX + slot);
+        return raw ? JSON.parse(raw) : null;
+      },
       readBackup() { return null; },
       remove(slot) { root.localStorage.removeItem(STORAGE_PREFIX + slot); },
       exists(slot) { return root.localStorage.getItem(STORAGE_PREFIX + slot) !== null; },
@@ -199,6 +203,11 @@
           return backup;
         }
       },
+      readPrimary(slot) {
+        const target = file(slot);
+        if (!fs.existsSync(target)) return null;
+        return JSON.parse(fs.readFileSync(target, 'utf8'));
+      },
       readBackup(slot) {
         const bak = file(slot) + '.bak';
         if (!fs.existsSync(bak)) return null;
@@ -219,10 +228,54 @@
     return nwStorage() || browserStorage() || null;
   }
 
+  function futureSchemaVersion(envelope) {
+    if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) return null;
+    try {
+      validateEnvelopeIntegrity(envelope);
+    } catch (_) {
+      return null;
+    }
+    return Number.isInteger(envelope.schemaVersion) && envelope.schemaVersion > SCHEMA_VERSION
+      ? envelope.schemaVersion
+      : null;
+  }
+
+  function futureProtectedSlot(slot, storageOverride) {
+    validateSlot(slot);
+    const storage = storageOverride || getStorage();
+    if (!storage) return null;
+    const candidates = [];
+    for (const reader of ['readPrimary','readBackup']) {
+      if (typeof storage[reader] !== 'function') continue;
+      try {
+        const envelope = storage[reader](slot);
+        const version = futureSchemaVersion(envelope);
+        if (version != null) candidates.push({ source: reader === 'readPrimary' ? 'primary' : 'backup', version });
+      } catch (_) {
+        // Unreadable/corrupt records are not future-schema protection claims.
+      }
+    }
+    if (!candidates.length) return null;
+    candidates.sort((a,b) => b.version - a.version);
+    return candidates[0];
+  }
+
+  function assertSlotOverwriteCompatible(slot, storage) {
+    const protectedState = futureProtectedSlot(slot, storage);
+    if (protectedState) {
+      throw new Error(
+        'SAVE_SLOT_FUTURE_SCHEMA_PROTECTED:' +
+        slot + ':' + protectedState.version + ':' + protectedState.source
+      );
+    }
+    return true;
+  }
+
   function save(slot, payload, meta) {
     validateSlot(slot);
     const storage = getStorage();
     if (!storage) throw new Error('SAVE_STORAGE_UNAVAILABLE');
+    assertSlotOverwriteCompatible(slot, storage);
     const envelope = makeEnvelope(slot, payload, meta || {});
     validateEnvelope(envelope);
     storage.write(slot, envelope);
@@ -298,13 +351,18 @@
   }
 
   function rotateAutosave(payload, meta) {
-    const entries = AUTOSAVE_SLOTS.map(slot => {
-      try { return load(slot); } catch (_) { return null; }
+    const storage = getStorage();
+    if (!storage) throw new Error('SAVE_STORAGE_UNAVAILABLE');
+    const candidates = AUTOSAVE_SLOTS.filter(slot => !futureProtectedSlot(slot, storage));
+    if (!candidates.length) throw new Error('SAVE_AUTOSAVE_ALL_SLOTS_FUTURE_PROTECTED');
+
+    const entries = candidates.map(slot => {
+      try { return { slot, loaded: load(slot) }; } catch (_) { return { slot, loaded: null }; }
     });
-    const dated = entries.map((entry, i) => ({
-      slot: AUTOSAVE_SLOTS[i],
-      time: entry && entry.envelope && entry.envelope.savedAt
-        ? Date.parse(entry.envelope.savedAt) || 0
+    const dated = entries.map(entry => ({
+      slot: entry.slot,
+      time: entry.loaded && entry.loaded.envelope && entry.loaded.envelope.savedAt
+        ? Date.parse(entry.loaded.envelope.savedAt) || 0
         : 0
     })).sort((a,b) => a.time - b.time);
     return save(dated[0].slot, payload, meta);
@@ -315,7 +373,8 @@
     MANUAL_SLOTS: MANUAL_SLOTS.slice(),
     AUTOSAVE_SLOTS: AUTOSAVE_SLOTS.slice(),
     makeEnvelope, validateEnvelopeIntegrity, migrateEnvelope, validateEnvelope,
-    checksum, getStorage, save, load, loadBackup, remove, list, latest, rotateAutosave,
+    checksum, getStorage, futureSchemaVersion, futureProtectedSlot, assertSlotOverwriteCompatible,
+    save, load, loadBackup, remove, list, latest, rotateAutosave,
     _createForTesting: createSaveSystem
   });
 }));
