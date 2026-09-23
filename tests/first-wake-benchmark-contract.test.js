@@ -92,6 +92,12 @@ assert.strictEqual(record.constraints.browserDependencyAllowed, false,
   'playtest candidate must not depend on browser execution');
 assert.strictEqual(record.candidate.playerVerifiedStandalone, false,
   'template must not pre-claim player verification');
+assert(Object.prototype.hasOwnProperty.call(record.observations, 'objectiveUnderstandingEvidence'),
+  'playtest record must capture evidence for objective comprehension');
+assert(Array.isArray(record.observations.combatDecisionReasoning),
+  'playtest record must capture observed combat decision reasoning');
+assert(Object.prototype.hasOwnProperty.call(record.observations, 'recoveryReasoning'),
+  'playtest record must capture player-facing recovery reasoning');
 
 const blockers = registry.gates.filter(gate => gate.blocking);
 assert(blockers.some(gate => gate.status === 'gap' || gate.status === 'partial' || gate.status === 'manual'),
