@@ -27,6 +27,15 @@
       ]
     },
     {
+      "id": "save-write-semantic-preflight",
+      "status": "derived",
+      "snapshot": "aetherwake.js::buildSavePayload",
+      "restore": "not applicable; write admission guard",
+      "validator": "aetherwake.js::validateSavePayloadBeforeWrite -> AetherSavePayloadValidator + magic/epilogue semantic checks",
+      "versionOwner": "whole-game-envelope + subsystem validators",
+      "rationale": "Manual/autosave snapshots must pass semantic preflight before any primary replacement or autosave rotation can displace known-good disk state."
+    },
+    {
       "id": "desktop-save-backup-recovery",
       "status": "derived",
       "snapshot": "NW.js previous primary promoted to slot .bak before overwrite",
