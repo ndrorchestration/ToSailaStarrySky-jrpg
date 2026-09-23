@@ -56,6 +56,10 @@ assert(doc.includes('not the same as final M0 acceptance'),
   'documentation must not overclaim local script success');
 assert(script.includes('PASS_WITH_MANUAL_ACCEPTANCE_PENDING'),
   'local verifier must not report final M0 acceptance');
+assert(script.includes('INCOMPLETE_REQUIRED_GATE_SKIPPED'),
+  'skipping the Windows package gate must produce an incomplete non-passing result');
+assert(script.includes("status = 'SKIPPED_DEVELOPMENT_ONLY'"),
+  'development-only Windows-package skips must be explicit in the summary');
 assert(script.includes("uncoachedExternalPlayer = 'NOT_RUN'"),
   'local verifier summary must expose the uncoached-player gate as not run');
 assert(script.includes("accessibilityVisualReview = 'PENDING_HUMAN_REVIEW'"),
