@@ -55,6 +55,10 @@ assert(script.includes('captureCount -ne 54'),
   'M0 local verifier must require the 54-frame matrix');
 assert(script.includes("reviewStatus -ne 'HUMAN_REVIEW_REQUIRED'"),
   'M0 local verifier must preserve human visual review');
+assert(script.includes("Invoke-Gate 'prepare:accessibility-review' 'npm run prepare:accessibility-review'"),
+  'M0 local verifier must generate a deterministic accessibility review packet');
+assert(script.includes('ACCESSIBILITY_REVIEW_HTML=') && script.includes('ACCESSIBILITY_REVIEW_RECORD='),
+  'M0 local verifier must expose generated review packet paths');
 assert(script.includes('build-windows-release.ps1'),
   'M0 local verifier must invoke exact Windows package verification by default');
 assert(script.includes('summary.json'),
