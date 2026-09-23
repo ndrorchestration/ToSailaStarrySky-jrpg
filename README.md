@@ -10,7 +10,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 - **Playable baseline:** boot → First Wake opening → world exploration → dialogue/quest systems → combat
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
 - **Combat party target:** supports 1–5 active authored protagonists, growing through recruitment; First Wake now begins with Ender alone and adds Lyra at the Wrong Song beat
-- **Current migration:** smoke-green persistent roster, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; higher-order effect semantics remain separate gates
+- **Current M0 focus:** reliable First Wake benchmark with persistence-first hardening, semantic input/controller/accessibility, exact Windows packaging evidence, and human acceptance gates before broad content scale-out
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
 
@@ -65,6 +65,9 @@ Current canvas: **960×640**.
 | **C** | Trigger Sky-Predator encounter (development/testing) |
 | **1–8** | Combat actions |
 | **S** | Secondary combat action when available |
+| **F5** | Open Save mode from stable WORLD/AIRSHIP |
+| **F6** | Open focused Save/Load menu from stable WORLD/AIRSHIP |
+| **F9** | Open Load mode from stable WORLD/AIRSHIP |
 
 ## Combat prototype
 
@@ -209,15 +212,17 @@ Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts includ
 
 The intended player experience is **download one Windows artifact, launch/install it, and run Aetherwake in its own large resizable/maximizable desktop window**. The desktop presentation defaults to **1440×960** and scales proportionally when maximized, while preserving the 960×640 logical game layout. **Alt+Enter** or **F11** toggles native fullscreen; **Escape** exits fullscreen. Browser/HTTP instructions above are development and diagnostic paths, not the desired end-user experience.
 
-### Current release authority — 2026-09-22
+### Current release authority — 2026-09-23
 
-- The desktop launcher architecture was corrected at `304835c12555e35061870a54d61f7c95996d0bdd`; the release-critical single-Windows-job hardening that removes Actions artifact storage/transfer is current on `main` at `313d7eb2aee003ce51a23edf48532f64d30f2bc0`.
-- Production packaging now follows the RPG Maker MV/NW.js structural pattern used by the Memories reference: a minimal launcher-root `package.json` points to `www/index-embedded.html`, while the player runtime lives under `www/`.
+- Production packaging follows the RPG Maker MV/NW.js structural pattern used by the Memories reference: a minimal launcher-root `package.json` points to `www/index-embedded.html`, while the player runtime lives under `www/`.
 - Development-only files are excluded from the staged player runtime.
-- The release system produces **Aetherwake-Setup.exe** plus **Aetherwake-Windows.zip**, verifies those exact bytes on the same pinned Windows job, records SHA-256 hashes, and publishes only after install/launch verification. GitHub Actions artifact storage is deliberately excluded from the release-critical path because that quota has already caused a real packaging failure.
-- A local Windows fallback script, `scripts/build-windows-release.ps1`, performs build → installer compile → clean install → launch smoke → SHA-256 generation when hosted CI is unavailable.
-- Current GitHub-hosted verification is **blocked before execution**, not failing inside Aetherwake: on `main` `313d7eb2aee003ce51a23edf48532f64d30f2bc0`, Windows package run `35694446836` and smoke run `35694446855` both ended with `runner_id: 0` and zero steps.
-- Therefore **no newly generated installer is currently authorized as verified player-facing output**. Older installers and self-extracting wrappers remain historical artifacts and should not be presented as the current answer merely because they compiled or passed an older CI lane.
+- The release system produces **Aetherwake-Setup.exe** plus **Aetherwake-Windows.zip**, verifies those exact bytes on the same pinned Windows job, records SHA-256 hashes, and publishes only after exact-candidate install/launch verification.
+- Persistence is release-critical. The installed NW.js gate now proves both ordinary save → process close → relaunch → load and a simulated crash-window recovery where a save primary is removed between processes and the surviving `.bak` must be discovered and restored with matching position, quest state, and active-party order.
+- Save application itself is transactional: semantic preflight occurs before mutation, partial apply failures roll back live party/quest/world/runtime/air-navigation state, backup-only slots remain discoverable by Continue, and newer-schema saves are preserved rather than overwritten by older builds.
+- The accessibility evidence set is **58 rendered frames**: 12 representative surfaces × 4 text scales, 6 high-contrast cases, and 4 subtitle/speaker-label cases. Human review remains required.
+- A local Windows fallback script, `scripts/build-windows-release.ps1`, performs the same package/install/restart/recovery verification when hosted CI is unavailable.
+- Current GitHub-hosted verification is still **blocked before repository steps execute**. Recent exact-head smoke jobs continue to finish with zero steps and no logs; this is infrastructure/admission evidence, not a demonstrated Aetherwake test failure.
+- Therefore **no newly generated installer is currently authorized as verified player-facing output** until an exact candidate completes the Windows technical lane and the remaining candidate-bound human acceptance gates.
 
 When a fresh candidate passes the exact Windows install/launch gate, the primary player artifact will be:
 
