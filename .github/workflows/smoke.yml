@@ -149,6 +149,12 @@ jobs:
       - name: Verify governed audio asset authority
         run: npm run test:audio-assets
 
+      - name: Verify title audio admission pipeline
+        run: npm run test:title-audio-admission
+
+      - name: Verify title audio runtime registration
+        run: npm run test:title-audio-runtime
+
       - name: Verify canonical music bus
         run: npm run test:music-bus
 
