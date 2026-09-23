@@ -116,6 +116,7 @@
     "test:m0-operator-lane": "node tests/m0-operator-lane-contract.test.js",
     "prepare:m0-manual-acceptance": "node scripts/prepare-m0-manual-acceptance.js",
     "test:m0-acceptance-contract": "node tests/m0-acceptance-contract.test.js",
-    "validate:m0-acceptance": "node scripts/validate-m0-acceptance.js"
+    "validate:m0-acceptance": "node scripts/validate-m0-acceptance.js",
+    "test:m0-manual-acceptance-dashboard": "node tests/m0-manual-acceptance-dashboard-contract.test.js"
   }
 }
