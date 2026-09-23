@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "milestone": "M0-reliable-first-wake-benchmark",
+  "candidate": {
+    "commitSha": null,
+    "visualManifestPath": "artifacts/accessibility-visual-matrix/manifest.json",
+    "visualManifestSha256": null,
+    "captureCount": 54
+  },
+  "reviewer": {
+    "id": null,
+    "reviewedAt": null
+  },
+  "coverage": {
+    "allManifestCapturesReviewed": false,
+    "textScaleCapturesReviewed": false,
+    "highContrastCapturesReviewed": false,
+    "subtitleCasesReviewed": false
+  },
+  "criteria": {
+    "noRequiredTextClipping": null,
+    "focusReadableWithoutColorAlone": null,
+    "textBackgroundLegibility": null,
+    "enlargedTextHierarchyUsable": null,
+    "highContrastUsable": null,
+    "subtitlePresentationUsable": null,
+    "speakerLabelsCorrect": null,
+    "noDebugOrErrorSurfaces": null,
+    "requiredActionsRemainUnderstandable": null
+  },
+  "defects": [],
+  "notes": null,
+  "result": "NOT_RUN"
+}
