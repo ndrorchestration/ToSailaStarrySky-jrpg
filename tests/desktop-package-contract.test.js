@@ -97,6 +97,13 @@ assert(workflow.includes('AETHERWAKE_SAVE_PERSISTENCE_PHASE') &&
   'desktop workflow must drive the packaged save persistence smoke mode');
 assert(workflow.includes('DESKTOP_SAVE_RESTART=PASS'),
   'desktop workflow must require packaged save restart success before publication');
+assert(workflow.includes('DESKTOP_SAVE_BACKUP_ONLY_RECOVERY=PASS'),
+  'desktop workflow must require backup-only packaged save recovery before publication');
+assert(workflow.includes('backupOnlyPrimaryPath') &&
+       workflow.includes('Remove-Item -LiteralPath $write.backupOnlyPrimaryPath -Force'),
+  'desktop workflow must remove only the backup-fixture primary between processes');
+assert(workflow.includes('did not load from the surviving .bak path'),
+  'desktop workflow must prove the packaged recovery path came from .bak');
 assert(workflow.includes('Packaged save restored the wrong quest state'),
   'desktop workflow must verify quest-state restoration after restart');
 assert(workflow.includes('Packaged save restored the wrong active-party membership/order'),
@@ -151,6 +158,12 @@ assert(localReleaseScript.includes('AETHERWAKE_SAVE_PERSISTENCE_PHASE') &&
   'local Windows release fallback must run packaged save persistence smoke');
 assert(localReleaseScript.includes('DESKTOP_SAVE_RESTART=PASS'),
   'local Windows release fallback must prove save/load across process restart');
+assert(localReleaseScript.includes('DESKTOP_SAVE_BACKUP_ONLY_RECOVERY=PASS'),
+  'local Windows release fallback must prove backup-only recovery across restart');
+assert(localReleaseScript.includes('Remove-Item -LiteralPath $writeResult.backupOnlyPrimaryPath -Force'),
+  'local Windows release must simulate primary loss while retaining backup');
+assert(localReleaseScript.includes('did not load from the surviving .bak path'),
+  'local Windows release must require backup-path recovery evidence');
 assert(localReleaseScript.includes('restored the wrong quest state'),
   'local Windows release fallback must verify quest-state restoration after restart');
 assert(localReleaseScript.includes('restored the wrong active-party membership/order'),
@@ -192,6 +205,15 @@ assert(embeddedDesktopControls.includes("event.key === 'F11'"),
   'desktop entrypoint must support F11 fullscreen');
 assert(embeddedDesktopControls.includes('win.leaveFullscreen()'),
   'desktop entrypoint must support leaving fullscreen with Escape');
+
+assert(runtimeSource.includes("saveToSlot('manual-5', false)"),
+  'packaged save smoke must create a two-generation backup recovery fixture');
+assert(runtimeSource.includes("loadFromSlot('manual-5')"),
+  'packaged save smoke must load the backup-only fixture after primary loss');
+assert(runtimeSource.includes('DESKTOP_SAVE_SMOKE_BACKUP_ONLY_NOT_DISCOVERABLE'),
+  'packaged save smoke must fail if listing/Continue cannot discover backup-only state');
+assert(runtimeSource.includes('semanticBackupRecovery !== true'),
+  'packaged save smoke must require semantic backup recovery classification');
 
 assert(runtimeSource.includes('function runDesktopSavePersistenceSmokeIfRequested()'),
   'runtime must expose environment-gated packaged save persistence smoke');
