@@ -51,7 +51,7 @@
       "restore": "AetherSaveSystem.load/loadBackup + aetherwake.js::loadSemanticallyValidSaveCandidate",
       "validator": "backup must independently pass envelope integrity/migration and the same prepareSaveEnvelopeForApply semantic preflight as primary",
       "versionOwner": "save-system + whole-game-envelope",
-      "rationale": "Malformed, checksum-invalid, migration-invalid, or semantically unloadable primaries may recover the previous `.bak` generation only when that backup independently passes integrity/migration and full semantic preflight. Recovery provenance and the primary failure reason remain machine-visible; if both fail, loading fails closed. Manual overwrite and autosave rotation both preserve the validated backup whenever the selected existing candidate came from `.bak`, so a known-bad primary cannot displace the only recoverable generation. Desktop and browser persistence share this recovery contract."
+      "rationale": "Malformed, checksum-invalid, migration-invalid, missing, or semantically unloadable primaries may recover the previous `.bak` generation only when that backup independently passes integrity/migration and full semantic preflight. Backup-only slots remain discoverable by listing and Continue; recovery provenance and the primary failure reason remain machine-visible. Manual overwrite and autosave rotation preserve the validated backup whenever the selected existing candidate came from `.bak`, so a known-bad primary cannot displace the only recoverable generation. Desktop and browser persistence share this recovery contract."
     },
     {
       "id": "transactional-load-apply",
