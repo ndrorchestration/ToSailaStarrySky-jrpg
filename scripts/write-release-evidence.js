@@ -52,6 +52,17 @@ const title = audioManifest.titleTheme;
 assert(title && title.repositoryStatus === 'admitted' && title.runtimeRegistration === true,
   'Release evidence requires admitted governed title audio');
 
+assert.strictEqual(
+  process.env.AETHERWAKE_RELEASE_DESKTOP_SAVE_RESTART,
+  'PASS',
+  'Release evidence requires packaged save restart verification'
+);
+assert.strictEqual(
+  process.env.AETHERWAKE_RELEASE_DESKTOP_SAVE_BACKUP_ONLY_RECOVERY,
+  'PASS',
+  'Release evidence requires packaged backup-only save recovery verification'
+);
+
 const evidence = {
   schemaVersion: 1,
   generatedAt: new Date().toISOString(),
@@ -65,6 +76,11 @@ const evidence = {
     sha256: title.sourceVerification.sha256,
     repositoryStatus: title.repositoryStatus,
     runtimeRegistration: title.runtimeRegistration
+  },
+  persistenceVerification: {
+    desktopSaveRestart: process.env.AETHERWAKE_RELEASE_DESKTOP_SAVE_RESTART,
+    desktopSaveBackupOnlyRecovery:
+      process.env.AETHERWAKE_RELEASE_DESKTOP_SAVE_BACKUP_ONLY_RECOVERY
   },
   artifacts: {
     installer: {
