@@ -28,6 +28,7 @@ for (const gate of [
   'test:title-audio-admission',
   'test:title-audio-runtime',
   'test:world-authority',
+  'test:production-method',
   'test:smoke',
   'test:first-wake-benchmark-live',
   'test:controller-parity-live',
