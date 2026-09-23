@@ -6392,25 +6392,6 @@ function drawBackground() {
 }
 
 /**
- * Scanline overlay — horizontal lines across the whole canvas.
- * Call AFTER all content, semi-transparent dark teal lines.
- */
-function drawScanlines() {
-  push();
-  noStroke();
-  fill(color(PAL.SHADOW), 40); // subtle dark scanline tint
-  for (let y = 0; y < height; y += 3) {
-    rect(0, y, width, 1);
-  }
-  // Brighter scanline gaps
-  fill(color(PAL.TEAL), 6);
-  for (let y = 1; y < height; y += 3) {
-    rect(0, y, width, 1);
-  }
-  pop();
-}
-
-/**
  * Pixel border: nested rects to simulate box-shadow depth.
  * @param {number} x,y,w,h — outer rect
  * @param {number} layers — how many nested border layers
@@ -8582,9 +8563,6 @@ function drawHUDFrame(gameState) {
 
   // Screen flash
   drawScreenFlashLegacy();
-
-  // Scanlines on top of everything
-  drawScanlines();
 
   pop();
 }
