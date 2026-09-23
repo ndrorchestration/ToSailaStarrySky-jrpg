@@ -245,6 +245,68 @@ function createServer() {
     assert(savedRoundTrip.storageType === 'localStorage',
       'browser smoke did not exercise localStorage save fallback');
 
+    // Transactional load rollback: inject a failure after live mutation begins and
+    // require exact restoration of the pre-load party/quest/world/runtime state.
+    const rollbackProbe = await page.evaluate(() => {
+      const before = {
+        tileX: window._world.player.tileX,
+        tileY: window._world.player.tileY,
+        px: window._world.player.px,
+        py: window._world.player.py,
+        questState: window._world.getQuestState().state,
+        hullIntegrity: window._world.getQuestState().hullIntegrity,
+        activeIds: window.ACTIVE_PARTY.map(character => character.id),
+        leadScrap: window.ROSTER[0].scrap,
+        gameState: window.gameState,
+      };
+
+      const payload = buildSavePayload();
+      payload.world.playerPosition.tileX = 23;
+      payload.world.playerPosition.tileY = 21;
+      payload.world.playerPosition.px = 23 * 16;
+      payload.world.playerPosition.py = 21 * 16;
+      payload.quest.hullIntegrity = Math.max(1, payload.quest.hullIntegrity - 1);
+      payload.party.roster[0].scrap = (payload.party.roster[0].scrap || 0) + 3;
+      validateSavePayloadBeforeWrite(payload);
+      window.AetherSaveSystem.save('manual-3', payload, saveMetadata());
+
+      window.__AETHERWAKE_LOAD_TEST_HOOK__ = stage => {
+        if (stage === 'after-world') throw new Error('TEST_LOAD_AFTER_WORLD_FAILURE');
+      };
+      const loaded = loadFromSlot('manual-3');
+      delete window.__AETHERWAKE_LOAD_TEST_HOOK__;
+
+      const after = {
+        tileX: window._world.player.tileX,
+        tileY: window._world.player.tileY,
+        px: window._world.player.px,
+        py: window._world.player.py,
+        questState: window._world.getQuestState().state,
+        hullIntegrity: window._world.getQuestState().hullIntegrity,
+        activeIds: window.ACTIVE_PARTY.map(character => character.id),
+        leadScrap: window.ROSTER[0].scrap,
+        gameState: window.gameState,
+      };
+      window.AetherSaveSystem.remove('manual-3');
+      refreshSaveIndex();
+
+      return {
+        before,
+        after,
+        loaded,
+        rollback: window._lastLoadRollback,
+        loadError: window._lastLoadError,
+      };
+    });
+    assert(rollbackProbe.loaded === false,
+      'fault-injected partial load unexpectedly reported success');
+    assert(rollbackProbe.rollback && rollbackProbe.rollback.ok === true,
+      'fault-injected partial load did not report successful rollback');
+    assert(String(rollbackProbe.loadError).includes('TEST_LOAD_AFTER_WORLD_FAILURE'),
+      'fault-injected load did not preserve the original apply failure');
+    assert(JSON.stringify(rollbackProbe.after) === JSON.stringify(rollbackProbe.before),
+      'failed partial load did not restore the exact pre-load live runtime');
+
     // Occupied-slot overwrite safety through the production SAVELOAD input path.
     const overwriteFixture = await page.evaluate(() => {
       const before = window.AetherSaveSystem.load('manual-1');
