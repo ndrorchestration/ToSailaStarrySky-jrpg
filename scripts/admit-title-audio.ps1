@@ -30,7 +30,20 @@ if (-not (Test-Path -LiteralPath $Source)) {
   throw "Title-audio source file does not exist: $Source"
 }
 
+$branchName = (& git branch --show-current 2>$null)
+if ([string]::IsNullOrWhiteSpace([string]$branchName)) {
+  throw 'Title-audio admission requires a named branch; detached HEAD is not allowed.'
+}
+
 Write-Host "SOURCE_COMMIT=$head"
+Write-Host "SOURCE_BRANCH=$branchName"
+
+npm run admit:title-audio -- --source "$Source" --check-only
+if ($LASTEXITCODE -ne 0) {
+  throw "Title-audio preflight verification failed with code $LASTEXITCODE."
+}
+Write-Host 'TITLE_AUDIO_PREFLIGHT=PASS'
+
 npm run admit:title-audio -- --source "$Source"
 if ($LASTEXITCODE -ne 0) {
   throw "Governed title-audio admission failed with code $LASTEXITCODE."
@@ -86,3 +99,4 @@ Write-Host ''
 Write-Host 'TITLE_AUDIO_ADMISSION=COMMITTED_VERIFIED'
 Write-Host "SOURCE_COMMIT=$head"
 Write-Host "ADMISSION_COMMIT=$newHead"
+Write-Host 'NEXT_M0_COMMAND=powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\verify-m0-local.ps1'
