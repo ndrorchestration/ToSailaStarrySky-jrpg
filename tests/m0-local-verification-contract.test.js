@@ -67,6 +67,18 @@ assert(script.includes('build-windows-release.ps1'),
   'M0 local verifier must invoke exact Windows package verification by default');
 assert(script.includes('summary.json'),
   'M0 local verifier must emit a machine-readable summary');
+assert(script.includes('evidenceBindings'),
+  'M0 local summary must bind exact evidence identities');
+assert(script.includes('visualManifestSha256'),
+  'M0 local summary must fingerprint the reviewed visual manifest');
+assert(script.includes('releaseEvidenceSha256'),
+  'M0 local summary must fingerprint release evidence');
+assert(script.includes('installerSha256') && script.includes('portableZipSha256'),
+  'M0 local summary must bind exact player artifact hashes');
+assert(script.includes('Release evidence Git HEAD does not match M0 candidate'),
+  'M0 local verifier must reject release evidence from another commit');
+assert(script.includes('Accessibility visual manifest Git HEAD does not match M0 candidate'),
+  'M0 local verifier must reject visual evidence from another commit');
 assert(script.includes('requires a clean working tree'),
   'M0 local verifier must fail closed on uncommitted working-tree changes');
 assert(script.includes('INCOMPLETE_REQUIRED_PREREQUISITE_SKIPPED'),
