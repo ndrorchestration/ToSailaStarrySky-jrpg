@@ -67,8 +67,8 @@ assert(/integrity\/migration and full semantic preflight/.test(byId.get('save-ba
   'save backup recovery must remain gated by integrity, migration, and semantic validation');
 assert(/Desktop and browser persistence share this recovery contract/.test(byId.get('save-backup-recovery').rationale),
   'backup recovery contract must cover both desktop and browser persistence');
-assert(/validated backup generation is preserved/.test(byId.get('save-backup-recovery').rationale),
-  'recovered-slot overwrite must preserve the validated backup generation');
+assert(/Manual overwrite and autosave rotation both preserve the validated backup/.test(byId.get('save-backup-recovery').rationale),
+  'manual and autosave replacement must preserve validated recovery backups');
 assert.strictEqual(byId.get('air-navigation').status, 'covered');
 assert(/independent of envelope schema/.test(byId.get('air-navigation').versionOwner),
   'air-navigation schema must remain explicitly independent from whole-game save schema');
