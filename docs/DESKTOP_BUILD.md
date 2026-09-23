@@ -17,14 +17,18 @@ The standard installer installs the packaged runtime per-user under `%LOCALAPPDA
 
 Do not use superseded self-extracting/SFX artifacts. If Windows Defender flags an artifact, do not whitelist or bypass it; preserve the exact detection name and SHA-256 for a false-positive report.
 
-## Current verification state — 2026-09-22
+## Current verification state — 2026-09-23
 
-- Memories-style launcher correction merged at `304835c12555e35061870a54d61f7c95996d0bdd`; the release-critical no-artifact-storage hardening is current on `main` at `313d7eb2aee003ce51a23edf48532f64d30f2bc0`.
 - Staging validation confirms the production manifest shape is `package.json → main: www/index-embedded.html`, with the game payload under `www/`.
 - Runtime-resource audit confirms the loading artwork used at boot is embedded as a data URI; there is no required external `img/system/Loading.png` file to package.
-- Hosted GitHub Actions verification is currently blocked before checkout. On current `main` `313d7eb2aee003ce51a23edf48532f64d30f2bc0`, Windows package run `35694446836` and browser smoke run `35694446855` both ended with `runner_id: 0` and zero steps.
-- These are runner-admission/infrastructure failures. They do **not** establish that current code tests passed or failed.
-- No fresh installer is player-authorized until the exact candidate completes a real Windows install/launch verification. Historical CI-green packaging results remain provenance only and must not be substituted for this current gate.
+- The exact installed candidate must prove application readiness **and persistence across process boundaries**. The persistence gate now covers:
+  - normal NW.js save → close → relaunch → load;
+  - exact player position, quest state, active-party membership/order, save path, and isolated NW.js data path restoration;
+  - a second two-generation save whose primary is deliberately deleted between processes, requiring discovery and recovery from the surviving `.bak`;
+  - explicit `DESKTOP_SAVE_RESTART=PASS` and `DESKTOP_SAVE_BACKUP_ONLY_RECOVERY=PASS` markers.
+- The local and hosted Windows lanes enforce the same recovery semantics before release evidence can be accepted.
+- Hosted GitHub Actions is still blocked before repository commands execute: recent exact-head smoke jobs continue to terminate with zero steps/no logs. These are runner-admission/infrastructure failures and do **not** establish that current code tests passed or failed.
+- No fresh installer is player-authorized until the exact candidate completes a real Windows technical lane and the remaining candidate-bound manual acceptance gates.
 
 ## For maintainers
 
@@ -40,9 +44,11 @@ The job performs, in order:
 4. NSIS installer compilation;
 5. clean per-user installer execution;
 6. launch the installed `Aetherwake.exe` and require an application-level readiness marker proving `setup()` completed and a 960×640 first frame rendered;
-7. portable ZIP layout verification;
-8. SHA-256 generation;
-9. release publication only for manual/tagged release runs.
+7. run installed NW.js persistence verification across process restart, including semantic state restoration;
+8. simulate primary-save loss and require backup-only `.bak` recovery across a second process;
+9. portable ZIP layout verification;
+10. SHA-256 / release-provenance generation;
+11. release publication only for manual/tagged release runs.
 
 No `upload-artifact` / `download-artifact` transfer is on the release-critical path. The maintainer-local Windows script remains the independent fallback when hosted runners are unavailable.
 
@@ -59,7 +65,7 @@ Local commands:
 .\scripts\build-windows-release.ps1
 ~~~
 
-The local release script runs the desktop contract, builds the Windows runtime, compiles the NSIS installer, installs it into a clean temporary directory, launches the installed game, requires a runtime-ready + completed-first-frame marker with the expected 960×640 canvas, and writes SHA-256 hashes. It is the maintainer fallback when hosted CI cannot allocate runners.
+The local release script runs the desktop contract, builds the Windows runtime, compiles the NSIS installer, installs it into a clean temporary directory, launches the installed game, requires a runtime-ready + completed-first-frame marker with the expected 960×640 canvas, proves normal save-restart restoration, deliberately removes a backup-fixture primary and proves recovery from the surviving `.bak`, verifies governed title audio, and writes SHA-256/source-bound release evidence. It is the maintainer fallback when hosted CI cannot allocate runners.
 
 ## Launch contract
 
