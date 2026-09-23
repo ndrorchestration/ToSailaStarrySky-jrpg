@@ -42,7 +42,7 @@ The launcher manifest points to `www/index-embedded.html`. Windows packaging con
 
 A compiled installer is not sufficient evidence of a working release. A player-facing installer may be called verified only when the **exact generated candidate** has been installed on Windows and the installed `Aetherwake.exe` has successfully launched through the release smoke gate.
 
-Current status as of 2026-09-22: launcher-layout correction is merged (`304835c12555e35061870a54d61f7c95996d0bdd`), but hosted CI is blocked before runner allocation; therefore no fresh installer is currently promoted as verified.
+Current M0 status as of 2026-09-23: the packaging contract is implemented, but hosted exact-head jobs still terminate before repository steps execute. The installed Windows verification contract now requires runtime-ready/first-frame proof, normal semantic save → process restart → load restoration, and a second crash-window case in which a two-generation save loses its primary between processes and must recover from the surviving `.bak`. No fresh installer is promoted as verified until that exact candidate executes the technical lane and completes the remaining candidate-bound human acceptance gates.
 
 ---
 
@@ -157,6 +157,24 @@ Post-combat results write back to the persistent roster according to progression
 The first three records are mechanically populated through the preservation onboarding adapter. Reson and Aepex intentionally remain unimplemented shells; no unresolved job, progression, or ability semantics are fabricated.
 
 Each canonical roster record now also carries a validated `magicProfile`. Ender's profile records only his established innate affinities (**Aether, Resonance/Harmonic, Correspondence, Lumen**) while all mastery ranks remain zero by default. Lyra, Ionia, Reson, and Aepex carry explicit OPEN affinity status with empty affinity/mastery sets. Prototype onboarding does not overwrite these canonical profiles. This state is session-persistent through the roster layer but does not yet grant spells or affect combat.
+
+### M0 PERSISTENCE RELIABILITY — CURRENT IMPLEMENTATION
+
+The representative First Wake slice now has an explicit persistence/recovery contract:
+
+- save snapshots are semantic-preflighted before manual replacement or autosave rotation;
+- manual occupied-slot overwrite requires explicit confirmation;
+- browser and NW.js saves retain a previous generation;
+- invalid/missing primaries recover only through an independently integrity/migration/semantic-valid backup;
+- backup-only slots remain discoverable by listing and Continue;
+- newer-schema save data is preserved from downgrade overwrite, including mixed-version slots that may load an older backup while preserving a newer primary;
+- settings and input bindings persist independently, recover from corrupt/missing primaries, preserve their validated backup on the first post-recovery edit, and protect newer schemas;
+- load application is transactional: party/quest/world/runtime/air-navigation state is snapshotted before mutation and restored if any late apply stage throws;
+- save/load machine evidence records committed outcomes only;
+- Save/Load entry is restricted to stable WORLD/AIRSHIP states;
+- installed Windows verification requires both `DESKTOP_SAVE_RESTART=PASS` and `DESKTOP_SAVE_BACKUP_ONLY_RECOVERY=PASS`.
+
+Machine-readable subsystem coverage is authoritative in `docs/persistence-coverage.json`. Current known gaps such as full economy/crafting and relationship/private-action persistence remain explicit there rather than being inferred as covered.
 
 ### OPEN DESIGN
 
@@ -522,6 +540,8 @@ Automated tests should also cover:
 10. expand campaign content,
 11. production hardening and balance.
 
-**Development-branch checkpoint (2026-09-19):** the smoke-stabilized baseline plus steps 2–5 are verified, and step 6 is partially established: ordinary damage/restoration/resource mutations now route through a fail-closed resolver while `resolveTurn()` still owns PbtA outcomes and action-specific branch semantics. Promotion/merge to `main` has not occurred.
+**Historical development-branch checkpoint (2026-09-19):** the smoke-stabilized baseline plus steps 2–5 were verified, and step 6 was partially established at that time. This paragraph is provenance only and does not describe the current M0 candidate.
+
+**Current M0 production checkpoint (2026-09-23):** breadth is intentionally constrained behind a reliable First Wake benchmark. Persistence, semantic input/controller/accessibility, standalone packaging, visual/audio evidence, and uncoached external-player acceptance are the active gates. Do not use fast content generation as justification to bypass those gates.
 
 **Non-negotiable:** avoid a single rewrite of character creation, combat, progression, and party state at the same time.
