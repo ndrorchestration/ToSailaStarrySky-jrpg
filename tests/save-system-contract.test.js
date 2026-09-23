@@ -37,13 +37,25 @@ function makeLocalStorage() {
 
 const browserRoot = { localStorage: makeLocalStorage() };
 const browserSave = base._createForTesting(browserRoot);
-browserSave.save('manual-2', payload, { gameVersion: '0.2.0' });
+const browserFirst = browserSave.save('manual-2', payload, { gameVersion: '0.2.0' });
 assert.strictEqual(browserSave.load('manual-2').envelope.payload.runtime.scene, 'world');
-assert.strictEqual(browserSave.loadBackup('manual-2'), null,
-  'browser/localStorage persistence must not invent a backup candidate');
+browserSave.save('manual-2', { runtime: { scene: 'world' }, party: { activeIds: ['ender'] }, marker: 2 }, { gameVersion: '0.2.0' });
+const browserBackup = browserSave.loadBackup('manual-2');
+assert(browserBackup && browserBackup.recoveredFromBackup === true,
+  'browser/localStorage persistence must expose the previous generation as backup');
+assert.strictEqual(browserBackup.envelope.payload.marker, undefined,
+  'browser backup must contain the previous primary generation');
+const browserStorageKey = browserFirst.path.replace('localStorage://', '');
+browserRoot.localStorage.setItem(browserStorageKey, '{"broken":');
+const browserRecovered = browserSave.load('manual-2');
+assert.strictEqual(browserRecovered.recoveredFromBackup, true,
+  'browser load must recover from malformed primary through explicit backup provenance');
+assert.strictEqual(browserRecovered.path, browserFirst.path + '.bak');
 assert.strictEqual(browserSave.latest().slot, 'manual-2');
 browserSave.remove('manual-2');
 assert.strictEqual(browserSave.load('manual-2'), null);
+assert.strictEqual(browserRoot.localStorage.getItem(browserStorageKey + '.bak'), null,
+  'removing a browser slot must remove its backup generation too');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'aetherwake-save-'));
 const nwRoot = {
