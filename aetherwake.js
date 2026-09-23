@@ -374,6 +374,10 @@ function applyUserSettings(settings) {
   if (typeof window.setEffectsVolumePercent === 'function') {
     window.setEffectsVolumePercent(userSettings.effectsVolume);
   }
+  if (window.AetherMusicBus && typeof window.AetherMusicBus.setVolumePercent === 'function') {
+    window.AetherMusicBus.setVolumePercent(userSettings.musicVolume);
+    window._musicBus = window.AetherMusicBus.snapshot();
+  }
   if (_dialogueAudioEl) {
     _dialogueAudioEl.volume = 0.92 * (userSettings.dialogueVolume / 100);
   }
@@ -389,6 +393,7 @@ function applyUserSettings(settings) {
     subtitleSize: userSettings.subtitleSize,
     subtitleBackground: userSettings.subtitleBackground,
     speakerLabels: userSettings.speakerLabels,
+    musicVolume: userSettings.musicVolume,
     controllerVibration: userSettings.controllerVibration
   };
   window._highContrastUI = highContrast;
