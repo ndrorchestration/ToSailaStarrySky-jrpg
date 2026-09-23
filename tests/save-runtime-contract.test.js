@@ -15,6 +15,18 @@ assert(html.indexOf('modules/save-system.js') < html.indexOf('aetherwake.js'),
 assert(runtime.includes("SAVELOAD: 'saveload'"), 'save/load UI state missing');
 assert(runtime.includes("CONTINUE — C"), 'title Continue command missing');
 assert(runtime.includes("openSaveLoadMenu('save')"), 'manual save UI entry missing');
+assert(runtime.includes('let saveOverwritePendingSlot = null;'),
+  'save UI must track explicit overwrite confirmation state');
+assert(runtime.includes('function setSaveOverwritePending(slot)'),
+  'save UI must centralize overwrite confirmation state');
+assert(runtime.includes("showToast('OVERWRITE CANCELLED // SAVE PRESERVED'"),
+  'canceling overwrite must explicitly preserve the existing save');
+assert(runtime.includes("const existing = buildLoadableSaveIndex().find(entry => entry.slot === slot && entry.exists);"),
+  'occupied manual slots must require overwrite confirmation before save mutation');
+assert(runtime.includes("text('OVERWRITE SLOT ' + slotNumber + '?'"),
+  'save overlay must render an explicit overwrite confirmation prompt');
+assert(runtime.includes("' keep current save'"),
+  'overwrite prompt must expose a clear cancel/preserve action');
 assert(runtime.includes("openSaveLoadMenu('load')"), 'manual load UI entry missing');
 assert(runtime.includes('function buildSavePayload()'), 'runtime save snapshot missing');
 assert(runtime.includes('function validateSavePayloadBeforeWrite(payload)'),
