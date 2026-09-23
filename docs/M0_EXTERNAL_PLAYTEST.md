@@ -98,3 +98,19 @@ The validator fails closed unless:
 - completion time, observer identity, review time, and explicit `PASS` are recorded.
 
 A validator PASS proves integrity/completeness of the evidence record. It does not automate or replace the human participant session.
+
+## Deterministic session packet
+
+After the exact Windows candidate has passed local package/install/save-restart verification and `local-release/RELEASE_EVIDENCE.json` exists, prepare the observer packet with:
+
+```powershell
+npm run prepare:external-playtest
+```
+
+This writes, under `artifacts/m0-external-playtest/`:
+- `observer-guide.html` — an exact-candidate observer checklist that repeats the no-coaching boundary and displays the bound commit, installer name/hash, and release-evidence hash;
+- `external-playtest.json` — the playtest template pre-bound to the exact release source commit, installer SHA-256, installer filename, generated build ID, and release-evidence SHA-256.
+
+Packet generation fails if the release-evidence source commit does not equal the current checkout HEAD or if governed title audio is not admitted. The generated record remains `NOT_RUN`, `playerVerifiedStandalone=false`, with participant/reviewer/observational fields unset. It does not perform or imply the human playtest.
+
+A complete local M0 technical run prepares this packet automatically after Windows verification succeeds and reports the generated paths. The human session remains separately blocking.
