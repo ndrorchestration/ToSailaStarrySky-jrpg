@@ -21,10 +21,9 @@ const packageJson = require('../package.json');
 
 assert(script.includes("git', ['rev-parse', 'HEAD']"),
   'release evidence must bind exact Git HEAD');
-assert(script.includes("git', ['status', '--porcelain=v1']"),
-  'release evidence must inspect working-tree cleanliness');
-assert(script.includes("assert.strictEqual(gitStatus, '',"),
-  'release evidence must fail closed on a dirty working tree');
+assert(script.includes("['diff', '--quiet', 'HEAD', '--']") &&
+       script.includes("['diff', '--cached', '--quiet', '--']"),
+  'release evidence must reject tracked or staged source mutation while allowing generated artifacts');
 assert(script.includes("repositoryStatus === 'admitted'") &&
        script.includes('runtimeRegistration === true'),
   'release evidence must require admitted governed title audio');
@@ -34,8 +33,8 @@ assert(script.includes('title.sourceVerification.bytes') &&
 assert(script.includes('sha256(installer)') &&
        script.includes('sha256(portableZip)'),
   'release evidence must fingerprint both release artifacts');
-assert(script.includes("workingTree: 'clean'"),
-  'release evidence must record clean source provenance');
+assert(script.includes("trackedSource: 'unchanged-from-head'"),
+  'release evidence must record that tracked source remained unchanged from HEAD');
 
 assert.strictEqual(
   packageJson.scripts['write:release-evidence'],
@@ -48,6 +47,9 @@ assert(localRelease.includes('SOURCE_COMMIT=$gitHead'),
 assert(localRelease.includes('RELEASE_EVIDENCE.json') &&
        localRelease.includes('npm run write:release-evidence'),
   'local release must generate machine-readable release evidence');
+assert(workflow.includes('Verify clean source checkout') &&
+       workflow.includes('Release source checkout is not clean'),
+  'hosted release must verify a clean source checkout before build');
 assert(workflow.includes('Write release provenance evidence') &&
        workflow.includes('npm run write:release-evidence'),
   'hosted Windows release must generate release evidence');
