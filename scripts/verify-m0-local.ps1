@@ -27,6 +27,7 @@ $results = [ordered]@{
   gates = @()
   visualMatrix = $null
   windowsPackage = $null
+  externalPlaytest = $null
   manualAcceptance = [ordered]@{
     accessibilityVisualReview = 'PENDING_HUMAN_REVIEW'
     accessibilityReviewProtocol = 'docs/M0_ACCESSIBILITY_VISUAL_REVIEW.md'
@@ -187,6 +188,26 @@ try {
       Write-Summary 'FAIL'
       throw "Windows release verification failed (exit $packageCode)"
     }
+
+    $releaseEvidencePath = Join-Path $Repo 'local-release\RELEASE_EVIDENCE.json'
+    if (-not (Test-Path $releaseEvidencePath)) {
+      Write-Summary 'FAIL'
+      throw "Release evidence missing after verified Windows build: $releaseEvidencePath"
+    }
+    Invoke-Gate 'prepare:external-playtest' 'npm run prepare:external-playtest'
+    $externalPlaytestDir = Join-Path $Repo 'artifacts\m0-external-playtest'
+    $externalPlaytestRecord = Join-Path $externalPlaytestDir 'external-playtest.json'
+    $externalPlaytestGuide = Join-Path $externalPlaytestDir 'observer-guide.html'
+    if (-not (Test-Path $externalPlaytestRecord) -or -not (Test-Path $externalPlaytestGuide)) {
+      Write-Summary 'FAIL'
+      throw 'External playtest packet was not generated.'
+    }
+    $results.externalPlaytest = [ordered]@{
+      status = 'PREPARED_NOT_RUN'
+      releaseEvidence = $releaseEvidencePath
+      record = $externalPlaytestRecord
+      observerGuide = $externalPlaytestGuide
+    }
   } else {
     $results.windowsPackage = [ordered]@{
       status = 'SKIPPED_DEVELOPMENT_ONLY'
@@ -207,6 +228,10 @@ try {
     Write-Host "DEVELOPMENT_SKIP_BROWSER_INSTALL=$([bool]$SkipBrowserInstall)"
     Write-Host "SUMMARY=$SummaryPath"
     Write-Host "VISUAL_MATRIX=$VisualManifestPath"
+  Write-Host "ACCESSIBILITY_REVIEW_HTML=$reviewHtml"
+  Write-Host "ACCESSIBILITY_REVIEW_RECORD=$reviewRecord"
+  Write-Host "EXTERNAL_PLAYTEST_GUIDE=$externalPlaytestGuide"
+  Write-Host "EXTERNAL_PLAYTEST_RECORD=$externalPlaytestRecord"
   Write-Host "ACCESSIBILITY_REVIEW_HTML=$reviewHtml"
   Write-Host "ACCESSIBILITY_REVIEW_RECORD=$reviewRecord"
     exit 2
