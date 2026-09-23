@@ -51,6 +51,8 @@ assert(workflow.includes('npm ci'),
   'desktop workflow must use the lockfile');
 assert(workflow.includes('npm run test:desktop-package'),
   'desktop workflow must run the packaging contract before building');
+assert(workflow.includes('npm run test:m0-title-audio-ready'),
+  'desktop workflow must require strict M0 title-audio readiness before packaging');
 assert(workflow.includes('npm run package:windows'),
   'desktop workflow must build the Windows NW.js package');
 assert(workflow.includes('makensis'),
