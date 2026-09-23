@@ -13,6 +13,19 @@ const doc = fs.readFileSync(
   path.join(repo, 'docs', 'M0_LOCAL_VERIFICATION.md'),
   'utf8'
 );
+const visualReviewProtocolPath = path.join(repo, 'docs', 'M0_ACCESSIBILITY_VISUAL_REVIEW.md');
+const visualReviewTemplatePath = path.join(repo, 'docs', 'm0-accessibility-visual-review.template.json');
+assert(fs.existsSync(visualReviewProtocolPath),
+  'candidate-bound accessibility visual-review protocol is missing');
+assert(fs.existsSync(visualReviewTemplatePath),
+  'candidate-bound accessibility visual-review template is missing');
+const visualReviewTemplate = JSON.parse(fs.readFileSync(visualReviewTemplatePath, 'utf8'));
+assert.strictEqual(visualReviewTemplate.candidate.captureCount, 54,
+  'visual-review template must bind the current 54-frame matrix');
+assert.strictEqual(visualReviewTemplate.result, 'NOT_RUN',
+  'visual-review template must fail closed until a human review occurs');
+assert.strictEqual(visualReviewTemplate.coverage.allManifestCapturesReviewed, false,
+  'visual-review template must not pre-approve matrix coverage');
 
 for (const gate of [
   'test:save-system',
