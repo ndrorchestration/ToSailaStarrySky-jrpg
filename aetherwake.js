@@ -779,6 +779,10 @@ function dispatchGamepadActions(result) {
       openUserSettingsMenu();
       return true;
     }
+    if (pressed.includes('continue-game')) {
+      if (latestSaveMeta) continueLatestSave();
+      return Boolean(latestSaveMeta);
+    }
     if (pressed.includes('confirm')) {
       startGame();
       return true;
@@ -1463,8 +1467,8 @@ function handleInput() {
       openUserSettingsMenu();
       return;
     }
-    if (keysPressed[67] || (typeof key !== 'undefined' && (key === 'c' || key === 'C'))) {
-      continueLatestSave();
+    if (semanticActionPressed('continue-game')) {
+      if (latestSaveMeta) continueLatestSave();
       return;
     }
     // Start game on Enter/Space/N (from both keyPressed path and character path).
@@ -3228,7 +3232,13 @@ function drawBootSequence() {
     uiTextSize(9);
     fill(C.teal[0], C.teal[1], C.teal[2], 100 * fadeIn);
     textAlign(CENTER, CENTER);
-    text('[ ENTER/CONFIRM skip  |  S/MENU settings ]', width/2, height - 30);
+    text(
+      '[ ' + inputPrompt('confirm', 'boot', 'both') +
+      ' skip  |  ' + inputPrompt('open-settings', 'boot', 'both') +
+      ' settings ]',
+      width/2,
+      height - 30
+    );
 
     return;
   }
@@ -3304,7 +3314,7 @@ function drawBootSequence() {
   
   uiTextSize(14 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
-  text('NEW GAME \u2014 N or ENTER', cx, cy + 78);
+  text('NEW GAME \u2014 ' + inputPrompt('confirm', 'menu', 'both'), cx, cy + 78);
   
   uiTextSize(11 * v);
   fill(C.rust[0], C.rust[1], C.rust[2], 140 * v);
@@ -3421,7 +3431,7 @@ function drawTitleScreen() {
   if (latestSaveMeta) {
     fill(C.teal[0], C.teal[1], C.teal[2], 190);
     uiTextSize(13);
-    text('CONTINUE — C', cx, cy + 96);
+    text('CONTINUE — ' + inputPrompt('continue-game', 'menu', 'both'), cx, cy + 96);
   }
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 190);
   uiTextSize(13);
@@ -3788,7 +3798,12 @@ function drawCharSheetOverlay() {
   uiTextSize(8);
   fill(C.rust[0], C.rust[1], C.rust[2], 120);
   textAlign(CENTER, TOP);
-  text('R or ESC to close', width/2, py + ph - 14);
+  text(
+    inputPrompt('character-sheet', 'world', 'both') + ' / ' +
+    inputPrompt('cancel', 'menu', 'both') + ' to close',
+    width/2,
+    py + ph - 14
+  );
 }
 
 function drawPixelBorder(x, y, w, h, layers) {
