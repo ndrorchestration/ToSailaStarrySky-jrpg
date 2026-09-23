@@ -304,6 +304,54 @@ async function focusByDpadDown(page, snapshotGlobal, targetId, maxSteps = 64) {
       window._saveMenuFocus.focusedId === 'manual-1'
     , undefined, { timeout: 5000 });
 
+    // Occupied-slot overwrite uses the same semantic controller Confirm/Cancel path.
+    await page.evaluate(() => {
+      const p = window._world.player;
+      p.tileX = 19; p.tileY = 18; p.x = 19; p.y = 18;
+      p.px = 19 * 16; p.py = 18 * 16;
+    });
+    await pulseButton(page, 0);
+    await page.waitForFunction(() => window._saveOverwritePendingSlot === 'manual-1',
+      undefined, { timeout: 5000 });
+    const beforeControllerCancel = await page.evaluate(() => {
+      const stored = window.AetherSaveSystem.load('manual-1');
+      return {
+        tileX: stored.envelope.payload.world.playerPosition.tileX,
+        tileY: stored.envelope.payload.world.playerPosition.tileY,
+      };
+    });
+    await pulseButton(page, 1);
+    await page.waitForFunction(() =>
+      window.gameState === 'saveload' && window._saveOverwritePendingSlot === null
+    , undefined, { timeout: 5000 });
+    const afterControllerCancel = await page.evaluate(() => {
+      const stored = window.AetherSaveSystem.load('manual-1');
+      return {
+        tileX: stored.envelope.payload.world.playerPosition.tileX,
+        tileY: stored.envelope.payload.world.playerPosition.tileY,
+      };
+    });
+    assert(afterControllerCancel.tileX === beforeControllerCancel.tileX &&
+           afterControllerCancel.tileY === beforeControllerCancel.tileY,
+      'controller Cancel mutated the occupied save during overwrite confirmation');
+
+    await pulseButton(page, 0);
+    await page.waitForFunction(() => window._saveOverwritePendingSlot === 'manual-1',
+      undefined, { timeout: 5000 });
+    await pulseButton(page, 0);
+    await page.waitForFunction(() =>
+      window.gameState === 'saveload' && window._saveOverwritePendingSlot === null
+    , undefined, { timeout: 5000 });
+    const overwritePosition = await page.evaluate(() => {
+      const stored = window.AetherSaveSystem.load('manual-1');
+      return {
+        tileX: stored.envelope.payload.world.playerPosition.tileX,
+        tileY: stored.envelope.payload.world.playerPosition.tileY,
+      };
+    });
+    assert(overwritePosition.tileX === 19 && overwritePosition.tileY === 18,
+      'controller double-confirm did not deliberately overwrite the occupied slot');
+
     await page.evaluate(() => {
       const p = window._world.player;
       p.tileX = 25; p.tileY = 25; p.x = 25; p.y = 25;
@@ -318,9 +366,9 @@ async function focusByDpadDown(page, snapshotGlobal, targetId, maxSteps = 64) {
       tileX: window._world.player.tileX,
       tileY: window._world.player.tileY,
     }));
-    assert(loadedPosition.tileX === savePosition.tileX &&
-           loadedPosition.tileY === savePosition.tileY,
-      'controller Save/Load overlay did not restore the saved world position');
+    assert(loadedPosition.tileX === overwritePosition.tileX &&
+           loadedPosition.tileY === overwritePosition.tileY,
+      'controller Save/Load overlay did not restore the deliberately overwritten world position');
 
     // Title Continue is a semantic, remappable controller action. Return to the
     // title state and use North/Y to resume the newest validated save.
@@ -336,9 +384,9 @@ async function focusByDpadDown(page, snapshotGlobal, targetId, maxSteps = 64) {
       tileY: window._world.player.tileY,
       prompt: inputPrompt('continue-game', 'menu', 'both')
     }));
-    assert(continuedPosition.tileX === savePosition.tileX &&
-           continuedPosition.tileY === savePosition.tileY,
-      'controller title Continue did not resume the newest validated save');
+    assert(continuedPosition.tileX === overwritePosition.tileX &&
+           continuedPosition.tileY === overwritePosition.tileY,
+      'controller title Continue did not resume the newest deliberately overwritten save');
     assert(continuedPosition.prompt.includes('C') &&
            continuedPosition.prompt.includes('Y / NORTH'),
       'title Continue prompt does not reflect keyboard/controller binding authority');
@@ -458,7 +506,7 @@ async function focusByDpadDown(page, snapshotGlobal, targetId, maxSteps = 64) {
       'controller vibration preference never reached the standard haptic actuator');
 
     console.log('Aetherwake controller parity smoke: PASS');
-    console.log(JSON.stringify({ persistedBindings, openingResult, savePosition, loadedPosition, continuedPosition, flightBefore, altitudeAfter, combatFocusResult, final }));
+    console.log(JSON.stringify({ persistedBindings, openingResult, savePosition, overwritePosition, loadedPosition, continuedPosition, flightBefore, altitudeAfter, combatFocusResult, final }));
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
