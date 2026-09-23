@@ -41,7 +41,7 @@ for (const required of [
   'runtime',
   'save-write-semantic-preflight',
   'future-schema-overwrite-protection',
-  'desktop-save-backup-recovery',
+  'save-backup-recovery',
   'world-position',
   'quest',
   'party-roster',
@@ -62,9 +62,11 @@ assert(/must not overwrite newer-schema persistent player data/.test(byId.get('f
   'future-schema overwrite protection must remain explicit across save and sidecar persistence');
 assert(/before any primary replacement or autosave rotation/.test(byId.get('save-write-semantic-preflight').rationale),
   'save-write semantic preflight must remain ahead of destructive slot mutation');
-assert.strictEqual(byId.get('desktop-save-backup-recovery').status, 'derived');
-assert(/integrity\/migration and full semantic preflight/.test(byId.get('desktop-save-backup-recovery').rationale),
-  'desktop backup recovery must remain gated by integrity, migration, and semantic validation');
+assert.strictEqual(byId.get('save-backup-recovery').status, 'derived');
+assert(/integrity\/migration and full semantic preflight/.test(byId.get('save-backup-recovery').rationale),
+  'save backup recovery must remain gated by integrity, migration, and semantic validation');
+assert(/Desktop and browser persistence share this recovery contract/.test(byId.get('save-backup-recovery').rationale),
+  'backup recovery contract must cover both desktop and browser persistence');
 assert.strictEqual(byId.get('air-navigation').status, 'covered');
 assert(/independent of envelope schema/.test(byId.get('air-navigation').versionOwner),
   'air-navigation schema must remain explicitly independent from whole-game save schema');
