@@ -586,6 +586,18 @@ function createServer() {
 
     const combatStart = await page.evaluate(() => window._combat.getState());
     assert(combatStart.turn === 0, 'combat did not start at turn 0');
+
+    await page.keyboard.press('F9');
+    await page.waitForTimeout(120);
+    assert((await page.evaluate(() => window.gameState)) === 'combat',
+      'F9 opened Load or escaped COMBAT');
+
+    const directLoadGuard = await page.evaluate(() => ({
+      opened: openSaveLoadMenu('load'),
+      state: window.gameState
+    }));
+    assert(directLoadGuard.opened === false && directLoadGuard.state === 'combat',
+      'direct transient-state Load entry bypassed the stable-state guard');
     assert(combatStart.player.productionStats &&
            combatStart.player.productionStats.spirit === 12,
       'combat state did not receive Ender production stats');
