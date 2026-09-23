@@ -6,7 +6,10 @@
     "buildId": null,
     "installerSha256": null,
     "platform": "Windows",
-    "playerVerifiedStandalone": false
+    "playerVerifiedStandalone": false,
+    "releaseEvidencePath": "RELEASE_EVIDENCE.json",
+    "releaseEvidenceSha256": null,
+    "installerFilename": "Aetherwake-Setup.exe"
   },
   "participant": {
     "id": null,
