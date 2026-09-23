@@ -99,6 +99,9 @@ assert(workflow.includes('DESKTOP_SAVE_RESTART=PASS'),
   'desktop workflow must require packaged save restart success before publication');
 assert(workflow.includes('DESKTOP_SAVE_BACKUP_ONLY_RECOVERY=PASS'),
   'desktop workflow must require backup-only packaged save recovery before publication');
+assert(workflow.includes('AETHERWAKE_RELEASE_DESKTOP_SAVE_RESTART=PASS') &&
+       workflow.includes('AETHERWAKE_RELEASE_DESKTOP_SAVE_BACKUP_ONLY_RECOVERY=PASS'),
+  'desktop workflow must propagate verified persistence outcomes into release provenance');
 assert(workflow.includes('backupOnlyPrimaryPath') &&
        workflow.includes('Remove-Item -LiteralPath $write.backupOnlyPrimaryPath -Force'),
   'desktop workflow must remove only the backup-fixture primary between processes');
