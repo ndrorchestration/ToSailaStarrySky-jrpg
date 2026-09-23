@@ -17,6 +17,16 @@ assert(runtime.includes("CONTINUE — C"), 'title Continue command missing');
 assert(runtime.includes("openSaveLoadMenu('save')"), 'manual save UI entry missing');
 assert(runtime.includes("openSaveLoadMenu('load')"), 'manual load UI entry missing');
 assert(runtime.includes('function buildSavePayload()'), 'runtime save snapshot missing');
+assert(runtime.includes('function validateSavePayloadBeforeWrite(payload)'),
+  'runtime must semantic-preflight save snapshots before persistence');
+assert(runtime.includes('validateSavePayloadBeforeWrite(payload);'),
+  'saveToSlot must validate the snapshot before rotating/replacing save files');
+assert(runtime.indexOf('validateSavePayloadBeforeWrite(payload);') <
+       runtime.indexOf('window.AetherSaveSystem.rotateAutosave(payload, saveMetadata())'),
+  'autosave rotation must occur only after semantic snapshot validation');
+assert(runtime.indexOf('validateSavePayloadBeforeWrite(payload);') <
+       runtime.indexOf('window.AetherSaveSystem.save(slot, payload, saveMetadata())'),
+  'manual save replacement must occur only after semantic snapshot validation');
 assert(runtime.includes('function prepareSaveEnvelopeForApply(envelope)'),
   'semantic preflight stage missing');
 assert(runtime.includes('AetherSavePayloadValidator.validatePayload(payload'),
