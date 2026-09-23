@@ -42,7 +42,7 @@
       "restore": "preservation-only; newer save is not loaded by older schema",
       "validator": "AetherSaveSystem.validateEnvelopeIntegrity + schemaVersion > current SCHEMA_VERSION",
       "versionOwner": "save-system SCHEMA_VERSION",
-      "rationale": "A downgraded build must not overwrite newer-schema persistent player data. Whole-game saves require integrity-valid future envelopes; settings/input sidecars require parseable future envelopes with the expected payload container. Manual saves fail closed, autosave rotation skips protected slots, and sidecar writes fail closed without destructive mutation."
+      "rationale": "A downgraded build must not overwrite newer-schema persistent player data. Whole-game saves require integrity-valid future envelopes; settings/input sidecars require parseable future envelopes with the expected payload container. A slot with a newer primary and an older valid backup may load the older backup, but remains explicitly future-protected and non-writable. Manual saves fail closed, autosave rotation skips protected slots, and sidecar writes fail closed without destructive mutation."
     },
     {
       "id": "save-backup-recovery",
