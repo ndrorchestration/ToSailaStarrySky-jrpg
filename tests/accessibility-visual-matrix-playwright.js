@@ -126,6 +126,11 @@ async function prepareSurface(page, surface) {
         setState(STATE.WORLD);
         openSaveLoadMenu('save');
         break;
+      case 'saveload-overwrite':
+        setState(STATE.WORLD);
+        openSaveLoadMenu('save');
+        setSaveOverwritePending('manual-1');
+        break;
       case 'airship':
         setState(STATE.WORLD);
         enterAirNavigation();
@@ -214,7 +219,7 @@ async function capture(page, fileName) {
 
     const scaleSurfaces = [
       'title','settings','controls','world','choice','questlog',
-      'charsheet','saveload','airship','combat','dialogue'
+      'charsheet','saveload','saveload-overwrite','airship','combat','dialogue'
     ];
 
     for (const scale of ['100','125','150','175']) {
@@ -267,7 +272,7 @@ async function capture(page, fileName) {
     }));
     assert(state.width === 960 && state.height === 640,
       'visual matrix must use the canonical logical surface');
-    assert(captures.length === 54,
+    assert(captures.length === 58,
       'visual matrix capture count drifted: ' + captures.length);
 
     const gitHead = childProcess.execFileSync(
