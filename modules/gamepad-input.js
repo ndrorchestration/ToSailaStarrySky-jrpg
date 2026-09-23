@@ -84,6 +84,7 @@
     }
     if (index === BUTTON.NORTH) {
       if (context === 'world') return 'quest-log';
+      if (context === 'menu') return 'continue-game';
       return null;
     }
     if (index === BUTTON.LEFT_STICK && context === 'world') return 'covenant-field';
