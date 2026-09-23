@@ -209,6 +209,9 @@ jobs:
       - name: Verify M0 operator lane contract
         run: npm run test:m0-operator-lane
 
+      - name: Verify final M0 acceptance contract
+        run: npm run test:m0-acceptance-contract
+
       - name: Verify AI-assisted production contract
         run: npm run test:production-method
 
