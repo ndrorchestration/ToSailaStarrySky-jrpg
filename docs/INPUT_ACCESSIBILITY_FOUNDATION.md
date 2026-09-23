@@ -14,6 +14,7 @@ Implemented on this branch:
 - controller traversal across BOOT, title, Settings, Controls, authored First Wake opening, WORLD, dialogue, read-only overlays, COMBAT, SAVELOAD, and AIRSHIP;
 - deterministic combat action focus routed through canonical `resolveTurn()`;
 - single-press controller Save/Load through gameplay Menu → focused Save/Load overlay;
+- remappable title Continue with `C` / controller North defaults and dynamic prompt ownership;
 - independent schema-v1 user-settings persistence;
 - independent schema-v1 keyboard/gamepad binding persistence;
 - keyboard/gamepad remapping UI with immediate persistence, reset-to-defaults, and fail-closed conflict rejection;
