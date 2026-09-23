@@ -105,6 +105,9 @@ assert(workflow.includes('same isolated NW.js data path'),
   'desktop workflow must verify both processes use the same isolated NW.js data path');
 assert(workflow.includes('Verify portable package layout'),
   'desktop workflow must verify the portable package shape');
+assert(workflow.includes('INSTALLED_TITLE_AUDIO=PASS') &&
+       workflow.includes('PORTABLE_TITLE_AUDIO=PASS'),
+  'hosted Windows workflow must verify title audio after installer and portable extraction');
 
 assert(workflow.includes('Publish verified Windows release'),
   'desktop workflow must publish only after build and Windows verification in the same job');
@@ -157,6 +160,9 @@ assert(localReleaseScript.includes('did not use the same isolated NW.js data pat
 assert(localReleaseScript.includes('npm run verify:packaged-title-audio') &&
        localReleaseScript.includes('PACKAGED_TITLE_AUDIO=PASS'),
   'local Windows release must verify the governed MP3 inside the packaged payload');
+assert(localReleaseScript.includes('INSTALLED_TITLE_AUDIO=PASS') &&
+       localReleaseScript.includes('PORTABLE_TITLE_AUDIO=PASS'),
+  'local Windows release must verify installed and portable title-audio copies');
 assert(localReleaseScript.includes('npm run write:release-evidence') &&
        localReleaseScript.includes('RELEASE_EVIDENCE.json'),
   'local Windows release must emit machine-readable source-bound evidence');
