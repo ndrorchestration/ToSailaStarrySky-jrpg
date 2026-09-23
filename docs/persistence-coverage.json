@@ -36,6 +36,15 @@
       "rationale": "Manual/autosave snapshots must pass semantic preflight before any primary replacement or autosave rotation can displace known-good disk state."
     },
     {
+      "id": "future-schema-overwrite-protection",
+      "status": "derived",
+      "snapshot": "existing primary/backup save envelope schema inspection before write",
+      "restore": "preservation-only; newer save is not loaded by older schema",
+      "validator": "AetherSaveSystem.validateEnvelopeIntegrity + schemaVersion > current SCHEMA_VERSION",
+      "versionOwner": "save-system SCHEMA_VERSION",
+      "rationale": "A downgraded build must not overwrite an integrity-valid save from a newer schema. Manual saves fail closed, autosave rotation skips protected slots, and all-protected autosave sets fail without destructive mutation."
+    },
+    {
       "id": "desktop-save-backup-recovery",
       "status": "derived",
       "snapshot": "NW.js previous primary promoted to slot .bak before overwrite",
