@@ -144,7 +144,10 @@
         root.localStorage.removeItem(key(slot));
         root.localStorage.removeItem(key(slot) + '.bak');
       },
-      exists(slot) { return root.localStorage.getItem(key(slot)) !== null; },
+      exists(slot) {
+        return root.localStorage.getItem(key(slot)) !== null ||
+          root.localStorage.getItem(key(slot) + '.bak') !== null;
+      },
       path(slot) { return 'localStorage://' + key(slot); }
     };
   }
@@ -237,7 +240,10 @@
           if (fs.existsSync(p)) fs.unlinkSync(p);
         }
       },
-      exists(slot) { return fs.existsSync(file(slot)); },
+      exists(slot) {
+        const target = file(slot);
+        return fs.existsSync(target) || fs.existsSync(target + '.bak');
+      },
       path(slot) { return file(slot); }
     };
   }
