@@ -206,6 +206,9 @@ jobs:
       - name: Verify release provenance evidence contract
         run: npm run test:release-evidence
 
+      - name: Verify accessibility review packet contract
+        run: npm run test:accessibility-review-packet
+
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
