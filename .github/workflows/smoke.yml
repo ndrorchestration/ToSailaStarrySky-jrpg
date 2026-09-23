@@ -146,6 +146,9 @@ jobs:
       - name: Verify accessibility rendering policies
         run: npm run test:accessibility-rendering
 
+      - name: Verify accessibility visual-review evidence contract
+        run: npm run test:accessibility-visual-review
+
       - name: Verify governed audio asset authority
         run: npm run test:audio-assets
 
