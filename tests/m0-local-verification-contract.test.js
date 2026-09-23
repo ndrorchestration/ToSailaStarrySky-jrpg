@@ -48,6 +48,10 @@ assert(script.includes('summary.json'),
   'M0 local verifier must emit a machine-readable summary');
 assert(script.includes('requires a clean working tree'),
   'M0 local verifier must fail closed on uncommitted working-tree changes');
+assert(script.includes('INCOMPLETE_REQUIRED_PREREQUISITE_SKIPPED'),
+  'M0 local verifier must not pass when install/browser prerequisites are skipped');
+assert(script.includes('developmentSkips'),
+  'M0 summary must record development skip provenance');
 assert(script.includes('requires readable Git HEAD provenance'),
   'M0 local verifier must fail closed when exact Git HEAD provenance is unavailable');
 assert(doc.includes('clean working tree'),
