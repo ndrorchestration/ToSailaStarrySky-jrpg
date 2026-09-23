@@ -65,4 +65,30 @@ const recovered = settings.load();
 assert.strictEqual(recovered.settings.musicVolume, 55,
   'settings loader must recover validated browser backup after primary corruption');
 
+// Downgrade protection: parseable newer-schema settings must be preserved.
+const futureSettings = {
+  schemaVersion: settings.SCHEMA_VERSION + 1,
+  savedAt: new Date().toISOString(),
+  settings: Object.assign({}, recovered.settings, { musicVolume: 77 })
+};
+localStorage.setItem(settings.STORAGE_KEY, JSON.stringify(futureSettings));
+const futurePrimaryRaw = localStorage.getItem(settings.STORAGE_KEY);
+assert.throws(
+  () => settings.save(recovered.settings),
+  /SETTINGS_FUTURE_SCHEMA_PROTECTED:2/
+);
+assert.strictEqual(localStorage.getItem(settings.STORAGE_KEY), futurePrimaryRaw,
+  'older build must not overwrite newer-schema settings primary');
+
+// A newer-schema backup must also be preserved behind a corrupt primary.
+localStorage.setItem(settings.STORAGE_KEY, '{broken json');
+localStorage.setItem(settings.STORAGE_KEY + '.bak', JSON.stringify(futureSettings));
+const futureBackupRaw = localStorage.getItem(settings.STORAGE_KEY + '.bak');
+assert.throws(
+  () => settings.save(recovered.settings),
+  /SETTINGS_FUTURE_SCHEMA_PROTECTED:2/
+);
+assert.strictEqual(localStorage.getItem(settings.STORAGE_KEY + '.bak'), futureBackupRaw,
+  'older build must not overwrite newer-schema settings backup');
+
 console.log('Aetherwake user settings persistence: PASS');
