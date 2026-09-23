@@ -220,13 +220,25 @@ function loadInputBindings() {
 function persistInputBindings(nextBindings) {
   try {
     window.AetherInputBindings.validateState(nextBindings);
-    const saved = window.AetherInputBindings.save(nextBindings);
+    const saved = window.AetherInputBindings.save(
+      nextBindings,
+      {
+        preserveBackup: Boolean(
+          window._inputBindingsStorage &&
+          window._inputBindingsStorage.recoveredFromBackup
+        )
+      }
+    );
     inputBindingsState = JSON.parse(JSON.stringify(saved.bindings));
     window._inputBindings = JSON.parse(JSON.stringify(inputBindingsState));
     window._inputBindingsStorage = {
       storageType: saved.storageType,
       path: saved.path,
-      isDefault: false
+      isDefault: false,
+      recoveredFromBackup: false,
+      primaryLoadError: null,
+      futureSchemaProtected: false,
+      futureSchemaVersion: null
     };
     return true;
   } catch (error) {
@@ -2376,12 +2388,24 @@ function openUserSettingsMenu(preferredKey) {
 
 function persistUserSettings(nextSettings) {
   try {
-    const saved = window.AetherUserSettings.save(nextSettings);
+    const saved = window.AetherUserSettings.save(
+      nextSettings,
+      {
+        preserveBackup: Boolean(
+          window._userSettingsStorage &&
+          window._userSettingsStorage.recoveredFromBackup
+        )
+      }
+    );
     applyUserSettings(saved.settings);
     window._userSettingsStorage = {
       storageType: saved.storageType,
       path: saved.path,
-      isDefault: false
+      isDefault: false,
+      recoveredFromBackup: false,
+      primaryLoadError: null,
+      futureSchemaProtected: false,
+      futureSchemaVersion: null
     };
     showToast('SETTINGS SAVED', C.teal, 700);
     return true;
