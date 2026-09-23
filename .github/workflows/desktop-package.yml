@@ -224,8 +224,20 @@ jobs:
           if ($load.tileX -ne 9 -or $load.tileY -ne 11) {
             throw "Packaged save restored the wrong player position"
           }
+          if ($load.questState -ne $write.questState) {
+            throw "Packaged save restored the wrong quest state"
+          }
+          $writeActiveIds = @($write.activeIds)
+          $loadActiveIds = @($load.activeIds)
+          if ($writeActiveIds.Count -ne $loadActiveIds.Count -or
+              (Compare-Object -ReferenceObject $writeActiveIds -DifferenceObject $loadActiveIds -SyncWindow 0)) {
+            throw "Packaged save restored the wrong active-party membership/order"
+          }
           if ($load.savePath -ne $write.savePath) {
             throw "Packaged relaunch did not use the same persistent save path"
+          }
+          if ($load.dataPath -ne $write.dataPath) {
+            throw "Packaged relaunch did not use the same isolated NW.js data path"
           }
           Write-Host "DESKTOP_SAVE_RESTART=PASS"
           Write-Host ($load | ConvertTo-Json -Compress)
