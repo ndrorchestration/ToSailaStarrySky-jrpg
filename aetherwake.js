@@ -1957,7 +1957,11 @@ function saveToSlot(slot, autosave) {
       }
     }
     const result = autosave
-      ? window.AetherSaveSystem.rotateAutosave(payload, saveMetadata())
+      ? window.AetherSaveSystem.rotateAutosave(
+          payload,
+          saveMetadata(),
+          { candidateResolver: loadSemanticallyValidSaveCandidate }
+        )
       : window.AetherSaveSystem.save(
           slot,
           payload,
