@@ -66,6 +66,42 @@ assert.strictEqual(
 );
 assert.strictEqual(browserSave.load('manual-2').envelope.payload.marker, 3);
 assert.strictEqual(browserSave.latest().slot, 'manual-2');
+
+// Semantic autosave recovery must preserve the validated backup generation.
+browserSave.save('autosave-0', { seq: 1 }, { gameVersion: '0.2.0' });
+browserSave.save('autosave-0', { seq: 2 }, { gameVersion: '0.2.0' });
+const auto0BackupBefore = browserSave.loadBackup('autosave-0');
+assert.strictEqual(auto0BackupBefore.envelope.payload.seq, 1);
+const semanticRotate = browserSave.rotateAutosave(
+  { seq: 3 },
+  { gameVersion: '0.2.0' },
+  {
+    candidateResolver(slot) {
+      if (slot === 'autosave-0') {
+        return {
+          envelope: { savedAt: '2000-01-01T00:00:00.000Z' },
+          semanticBackupRecovery: true
+        };
+      }
+      return {
+        envelope: {
+          savedAt: slot === 'autosave-1'
+            ? '2100-01-01T00:00:00.000Z'
+            : '2200-01-01T00:00:00.000Z'
+        }
+      };
+    }
+  }
+);
+assert.strictEqual(semanticRotate.envelope.slot, 'autosave-0',
+  'semantic resolver fixture did not select the intended oldest autosave slot');
+assert.strictEqual(semanticRotate.preservedBackup, true,
+  'semantic backup recovery must request backup preservation during autosave rotation');
+assert.strictEqual(browserSave.load('autosave-0').envelope.payload.seq, 3);
+assert.strictEqual(browserSave.loadBackup('autosave-0').envelope.payload.seq, 1,
+  'autosave rotation replaced the validated recovery backup with the known-bad primary');
+browserSave.remove('autosave-0');
+
 browserSave.remove('manual-2');
 assert.strictEqual(browserSave.load('manual-2'), null);
 assert.strictEqual(browserRoot.localStorage.getItem(browserStorageKey + '.bak'), null,
