@@ -209,6 +209,9 @@ jobs:
       - name: Verify M0 operator lane contract
         run: npm run test:m0-operator-lane
 
+      - name: Verify M0 manual acceptance dashboard contract
+        run: npm run test:m0-manual-acceptance-dashboard
+
       - name: Verify final M0 acceptance contract
         run: npm run test:m0-acceptance-contract
 
