@@ -54,6 +54,15 @@
       "rationale": "Malformed, checksum-invalid, migration-invalid, or semantically unloadable primaries may recover the previous `.bak` generation only when that backup independently passes integrity/migration and full semantic preflight. Recovery provenance and the primary failure reason remain machine-visible; if both fail, loading fails closed. Manual overwrite and autosave rotation both preserve the validated backup whenever the selected existing candidate came from `.bak`, so a known-bad primary cannot displace the only recoverable generation. Desktop and browser persistence share this recovery contract."
     },
     {
+      "id": "transactional-load-apply",
+      "status": "derived",
+      "snapshot": "aetherwake.js::captureLiveRuntimeForLoadRollback",
+      "restore": "aetherwake.js::restoreLiveRuntimeAfterFailedLoad",
+      "validator": "prepareSaveEnvelopeForApply semantic preflight + rollback fault-injection coverage",
+      "versionOwner": "whole-game runtime restore path",
+      "rationale": "A valid save may still encounter a late runtime exception during rehydration. Load application snapshots canonical live state before mutation and restores party, quest, world, runtime, and air-navigation state if any apply stage fails. If rollback itself fails, loading fails closed with combined evidence."
+    },
+    {
       "id": "world-position",
       "status": "covered",
       "snapshot": "aetherwake.js::buildSavePayload().world.playerPosition",
