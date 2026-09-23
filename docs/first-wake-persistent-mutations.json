@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "milestone": "M0-reliable-first-wake-benchmark",
+  "scope": "Current persistent gameplay mutations in the bounded First Wake / representative air-navigation slice.",
+  "authority": {
+    "snapshotOwner": "aetherwake.js::buildSavePayload / captureQuestStateForSave",
+    "restoreOwner": "aetherwake.js::prepareSaveEnvelopeForApply / applySaveEnvelope",
+    "semanticValidator": "modules/save-payload-validator.js",
+    "persistenceCoverage": "docs/persistence-coverage.json"
+  },
+  "policy": {
+    "unknownPersistentMutation": "BLOCKING_UNREGISTERED",
+    "newPersistentFieldRequires": [
+      "registry entry",
+      "snapshot owner",
+      "restore owner",
+      "semantic validator owner",
+      "version owner or explicit envelope ownership",
+      "contract evidence"
+    ],
+    "deferredSystemsDoNotCountAsImplemented": true
+  },
+  "mutations": [
+    {
+      "id": "runtime-stable-scene",
+      "runtimeSource": "gameState",
+      "payloadPath": "runtime.scene",
+      "snapshotEvidence": "scene: gameState === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD",
+      "restoreEvidence": "gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD",
+      "validatorEvidence": "STABLE_SCENES.includes(runtime.scene)",
+      "versionOwner": "whole-game envelope schema"
+    },
+    {
+      "id": "runtime-day-time",
+      "runtimeSource": "dayTime",
+      "payloadPath": "runtime.dayTime",
+      "snapshotEvidence": "dayTime,",
+      "restoreEvidence": "dayTime = payload.runtime.dayTime",
+      "validatorEvidence": "finite(runtime.dayTime",
+      "versionOwner": "whole-game envelope schema"
+    },
+    {
+      "id": "runtime-sky-layer",
+      "runtimeSource": "isSkyLayerVisible",
+      "payloadPath": "runtime.skyLayerVisible",
+      "snapshotEvidence": "skyLayerVisible: Boolean(isSkyLayerVisible)",
+      "restoreEvidence": "isSkyLayerVisible = payload.runtime.skyLayerVisible",
+      "validatorEvidence": "typeof runtime.skyLayerVisible === 'boolean'",
+      "versionOwner": "whole-game envelope schema"
+    },
+    {
+      "id": "runtime-playtime",
+      "runtimeSource": "loadedPlaytimeMs + live session clock",
+      "payloadPath": "runtime.playtimeMs",
+      "snapshotEvidence": "playtimeMs: currentPlaytimeMs()",
+      "restoreEvidence": "loadedPlaytimeMs = payload.runtime.playtimeMs",
+      "validatorEvidence": "finite(runtime.playtimeMs",
+      "versionOwner": "whole-game envelope schema"
+    },
+    {
+      "id": "world-player-position",
+      "runtimeSource": "world.player tile/pixel coordinates",
+      "payloadPath": "world.playerPosition",
+      "snapshotEvidence": "playerPosition:",
+      "restoreEvidence": "world.player.tileX = pos.tileX",
+      "validatorEvidence": "SAVE_WORLD_PX_MISMATCH",
+      "versionOwner": "whole-game envelope schema"
+    },
+    {
+      "id": "world-covenant-field",
+      "runtimeSource": "covenantField",
+      "payloadPath": "world.covenantField",
+      "snapshotEvidence": "covenantField: cloneJson(covenantField)",
+      "restoreEvidence": "covenantField = cloneJson(payload.world.covenantField)",
+      "validatorEvidence": "SAVE_COVENANT_FIELD_INVALID",
+      "versionOwner": "whole-game envelope schema"
+    },
+    {
+      "id": "world-commons-ledger",
+      "runtimeSource": "ledger.entries",
+      "payloadPath": "world.ledgerEntries",
+      "snapshotEvidence": "ledgerEntries: cloneJson(ledger.entries || [])",
+      "restoreEvidence": "ledger.entries = cloneJson(payload.world.ledgerEntries)",
+      "validatorEvidence": "Array.isArray(world.ledgerEntries)",
+      "versionOwner": "whole-game envelope schema"
+    },
+    {
+      "id": "quest-first-wake-progression",
+      "runtimeSource": "quest",
+      "payloadPath": "quest",
+      "snapshotEvidence": "function captureQuestStateForSave()",
+      "restoreEvidence": "restoreQuestState(payload.quest)",
+      "validatorEvidence": "function validateQuest(quest)",
+      "versionOwner": "whole-game envelope schema",
+      "fields": [
+        "state",
+        "act",
+        "hooksCompleted",
+        "hazardsCompleted",
+        "npcsMet",
+        "choiceMade",
+        "choiceVariant",
+        "choicePath",
+        "hullIntegrity",
+        "morale",
+        "heatLevel",
+        "engineIntegration",
+        "discoveries",
+        "journal",
+        "signalHooks",
+        "crossingHazards",
+        "wakeEpilogueId"
+      ]
+    },
+    {
+      "id": "party-roster-progression",
+      "runtimeSource": "window.ROSTER",
+      "payloadPath": "party.roster",
+      "snapshotEvidence": "window.ROSTER ? window.ROSTER.map",
+      "restoreEvidence": "restorePartyState(payload.party)",
+      "validatorEvidence": "function validateParty(party)",
+      "versionOwner": "whole-game envelope schema"
+    },
+    {
+      "id": "party-active-formation",
+      "runtimeSource": "window.ACTIVE_PARTY",
+      "payloadPath": "party.activeIds",
+      "snapshotEvidence": "window.ACTIVE_PARTY ? window.ACTIVE_PARTY.map",
+      "restoreEvidence": "restorePartyState(payload.party)",
+      "validatorEvidence": "SAVE_PARTY_ACTIVE_IDS_INVALID",
+      "versionOwner": "whole-game envelope schema"
+    },
+    {
+      "id": "air-navigation",
+      "runtimeSource": "airNavigationState",
+      "payloadPath": "airNavigation",
+      "snapshotEvidence": "exportPersistentState(airNavigationState)",
+      "restoreEvidence": "restorePersistentState(payload.airNavigation)",
+      "validatorEvidence": "validateAirNavigation(airNavigation",
+      "versionOwner": "air-navigation persistenceVersion"
+    }
+  ],
+  "explicitlyDeferred": [
+    {
+      "id": "economy-crafting",
+      "reason": "Outside current M0 persistence scope; remains a gap in docs/persistence-coverage.json."
+    },
+    {
+      "id": "relationships-private-actions",
+      "reason": "Outside current M0 persistence scope; remains a gap in docs/persistence-coverage.json."
+    }
+  ]
+}
