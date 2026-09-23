@@ -39,10 +39,10 @@ assert.strictEqual(manifest.schemaVersion, 2,
   'Accessibility visual manifest must use provenance schema v2');
 assert(typeof manifest.gitHead === 'string' && /^[0-9a-f]{40}$/.test(manifest.gitHead),
   'Accessibility visual manifest must bind exact Git HEAD');
-assert.strictEqual(manifest.captureCount, 54,
-  'Accessibility visual manifest must contain exactly 54 captures');
-assert(Array.isArray(manifest.captures) && manifest.captures.length === 54,
-  'Accessibility visual manifest capture list must contain 54 records');
+assert.strictEqual(manifest.captureCount, 58,
+  'Accessibility visual manifest must contain exactly 58 captures');
+assert(Array.isArray(manifest.captures) && manifest.captures.length === 58,
+  'Accessibility visual manifest capture list must contain 58 records');
 
 for (const capture of manifest.captures) {
   const file = path.join(matrixDir, capture.file);
@@ -122,7 +122,7 @@ figcaption{margin-top:8px}
 <h1>Aetherwake M0 Accessibility Review</h1>
 <div class="notice">
 <strong>Human review required.</strong> This packet does not pre-approve any criterion.
-Complete <code>${esc(path.basename(recordOut))}</code> only after reviewing all 54 captures.
+Complete <code>${esc(path.basename(recordOut))}</code> only after reviewing all 58 captures.
 </div>
 <p><strong>Commit:</strong> <code>${esc(manifest.gitHead)}</code><br>
 <strong>Manifest SHA-256:</strong> <code>${esc(manifestSha256)}</code><br>
