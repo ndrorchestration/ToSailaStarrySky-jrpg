@@ -60,7 +60,7 @@
       "restore": "aetherwake.js::restoreLiveRuntimeAfterFailedLoad",
       "validator": "prepareSaveEnvelopeForApply semantic preflight + rollback fault-injection coverage",
       "versionOwner": "whole-game runtime restore path",
-      "rationale": "A valid save may still encounter a late runtime exception during rehydration. Load application snapshots canonical live state before mutation and restores party, quest, world, runtime, and air-navigation state if any apply stage fails. If rollback itself fails, loading fails closed with combined evidence."
+      "rationale": "A valid save may still encounter a late runtime exception during rehydration. Load application snapshots canonical live state before mutation and restores party, quest, world, runtime, and air-navigation state if any apply stage fails. Success markers are written only after apply commits; failed/rolled-back loads clear stale success evidence and preserve the original error plus rollback outcome. If rollback itself fails, loading fails closed with combined evidence."
     },
     {
       "id": "world-position",
