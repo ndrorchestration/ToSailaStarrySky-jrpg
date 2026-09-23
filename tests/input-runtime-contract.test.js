@@ -105,6 +105,12 @@ assert(source.includes("semanticActionPressed('open-save-load')"),
   'keyboard runtime must expose a focused Save/Load entry action');
 assert(source.includes("pressed.includes('open-save-load')"),
   'controller runtime must expose a focused Save/Load entry action');
+assert(source.includes("pressed.includes('continue-game')"),
+  'controller runtime must expose semantic title Continue');
+assert(source.includes("semanticActionPressed('continue-game')"),
+  'keyboard runtime must route title Continue through semantic input');
+assert(source.includes("inputPrompt('continue-game', 'menu', 'both')"),
+  'title Continue prompt must reflect the active binding');
 assert(source.includes("if (gameState === STATE.SAVELOAD)"),
   'controller dispatcher must handle the Save/Load overlay semantically');
 
