@@ -41,8 +41,10 @@ assert(runtime.includes('preserveBackup = Boolean(priorCandidate && priorCandida
   'manual overwrite must preserve the validated backup when the current slot recovered from backup');
 assert(runtime.includes('{ preserveBackup }'),
   'manual save write must pass recovery-preservation intent to the storage layer');
+assert(runtime.includes('{ candidateResolver: loadSemanticallyValidSaveCandidate }'),
+  'autosave rotation must classify existing slots through the same semantic resolver as Load/Continue');
 assert(runtime.indexOf('validateSavePayloadBeforeWrite(payload);') <
-       runtime.indexOf('window.AetherSaveSystem.rotateAutosave(payload, saveMetadata())'),
+       runtime.indexOf('window.AetherSaveSystem.rotateAutosave('),
   'autosave rotation must occur only after semantic snapshot validation');
 assert(runtime.indexOf('validateSavePayloadBeforeWrite(payload);') <
        runtime.indexOf('window.AetherSaveSystem.save(slot, payload, saveMetadata())'),
