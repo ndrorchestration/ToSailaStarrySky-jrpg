@@ -46,7 +46,7 @@ A successful script exits with:
 
 The summary also records two manual acceptance dependencies:
 
-- `accessibilityVisualReview = PENDING_HUMAN_REVIEW`;
+- `accessibilityVisualReview = PENDING_HUMAN_REVIEW`, routed to `docs/M0_ACCESSIBILITY_VISUAL_REVIEW.md` and `docs/m0-accessibility-visual-review.template.json`;
 - `uncoachedExternalPlayer = NOT_RUN`, routed to `docs/M0_EXTERNAL_PLAYTEST.md` and `docs/m0-external-playtest-record.template.json`.
 
 That state is intentionally **not** the same as final M0 acceptance. Human review of the rendered matrix **and** a candidate-bound uncoached external-player completion pass are still required.
