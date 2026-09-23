@@ -1791,7 +1791,14 @@ function buildLoadableSaveIndex() {
         gameVersion: envelope.gameVersion
       };
     } catch (error) {
-      return { ...meta, valid: false, semanticValid: false, error: error.message };
+      const futureSchemaProtected = /SAVE_SCHEMA_FUTURE_UNSUPPORTED|SAVE_SLOT_FUTURE_SCHEMA_PROTECTED/.test(error.message);
+      return {
+        ...meta,
+        valid: false,
+        semanticValid: false,
+        futureSchemaProtected,
+        error: error.message
+      };
     }
   });
 }
@@ -2194,8 +2201,14 @@ function drawSaveLoadOverlay() {
       text((meta.partySummary || []).join(' + '), 220, y + 18);
     } else if (meta && meta.exists && meta.valid === false) {
       fill(C.rust[0], C.rust[1], C.rust[2]);
-      const reason = meta.semanticValid === false ? 'INVALID SAVE STATE' : 'CORRUPT / UNREADABLE';
-      text(reason + ' — original retained', 220, y + 6);
+      const reason = meta.futureSchemaProtected
+        ? 'NEWER VERSION SAVE — PRESERVED'
+        : (meta.semanticValid === false ? 'INVALID SAVE STATE' : 'CORRUPT / UNREADABLE');
+      text(
+        meta.futureSchemaProtected ? reason : reason + ' — original retained',
+        220,
+        y + 6
+      );
     } else {
       text('EMPTY', 220, y + 6);
     }
