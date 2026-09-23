@@ -60,6 +60,8 @@ assert.strictEqual(byId.get('save-write-semantic-preflight').status, 'derived');
 assert.strictEqual(byId.get('future-schema-overwrite-protection').status, 'derived');
 assert(/must not overwrite newer-schema persistent player data/.test(byId.get('future-schema-overwrite-protection').rationale),
   'future-schema overwrite protection must remain explicit across save and sidecar persistence');
+assert(/newer primary and an older valid backup may load the older backup/.test(byId.get('future-schema-overwrite-protection').rationale),
+  'mixed-version slots must remain loadable-through-backup but non-writable');
 assert(/before any primary replacement or autosave rotation/.test(byId.get('save-write-semantic-preflight').rationale),
   'save-write semantic preflight must remain ahead of destructive slot mutation');
 assert.strictEqual(byId.get('save-backup-recovery').status, 'derived');
