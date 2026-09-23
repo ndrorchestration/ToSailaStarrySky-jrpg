@@ -18,6 +18,8 @@ assert(packageJson.window.min_width === 960 && packageJson.window.min_height ===
   'desktop package minimum window must preserve the logical 960x640 game surface');
 assert(typeof packageJson.scripts['package:windows'] === 'string',
   'Windows packaging script is missing');
+assert(packageJson.scripts['verify:packaged-title-audio'] === 'node scripts/verify-packaged-title-audio.js',
+  'packaged title-audio verifier script must be registered');
 assert(packageJson.devDependencies && packageJson.devDependencies['nw-builder'],
   'nw-builder dependency is missing');
 
@@ -55,6 +57,9 @@ assert(workflow.includes('npm run test:m0-title-audio-ready'),
   'desktop workflow must require strict M0 title-audio readiness before packaging');
 assert(workflow.includes('npm run package:windows'),
   'desktop workflow must build the Windows NW.js package');
+assert(workflow.includes('Verify packaged title audio') &&
+       workflow.includes('npm run verify:packaged-title-audio'),
+  'hosted Windows workflow must verify the governed MP3 inside the packaged payload');
 assert(workflow.includes('makensis'),
   'desktop workflow must compile a conventional NSIS installer');
 assert(workflow.includes('RequestExecutionLevel user'),
@@ -126,6 +131,9 @@ assert(localReleaseScript.includes('AETHERWAKE_SAVE_PERSISTENCE_PHASE') &&
   'local Windows release fallback must run packaged save persistence smoke');
 assert(localReleaseScript.includes('DESKTOP_SAVE_RESTART=PASS'),
   'local Windows release fallback must prove save/load across process restart');
+assert(localReleaseScript.includes('npm run verify:packaged-title-audio') &&
+       localReleaseScript.includes('PACKAGED_TITLE_AUDIO=PASS'),
+  'local Windows release must verify the governed MP3 inside the packaged payload');
 
 console.log('Aetherwake desktop package contract: PASS');
 
@@ -163,3 +171,12 @@ assert(runtimeSource.includes("loadFromSlot('manual-6')"),
 const windowsRelease = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'build-windows-release.ps1'), 'utf8');
 assert(windowsRelease.includes('npm run test:m0-title-audio-ready'),
   'Windows release build must require strict M0 title-audio readiness before packaging');
+
+const packagedAudioVerifier = fs.readFileSync(
+  path.join(__dirname, '..', 'scripts', 'verify-packaged-title-audio.js'),
+  'utf8'
+);
+assert(packagedAudioVerifier.includes("path.join(packageDir, 'www', title.canonicalPath)"),
+  'packaged title-audio verifier must inspect the staged www payload');
+assert(packagedAudioVerifier.includes("assert.deepStrictEqual(\n  packaged,\n  source"),
+  'packaged title-audio verifier must compare the staged file to governed source authority');
