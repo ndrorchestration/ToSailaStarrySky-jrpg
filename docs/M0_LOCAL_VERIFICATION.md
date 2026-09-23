@@ -81,3 +81,19 @@ A technically successful local M0 run still exits as `PASS_WITH_MANUAL_ACCEPTANC
 The external-playtest packet is generated **only after** the exact Windows package/install/save-restart lane succeeds and `local-release/RELEASE_EVIDENCE.json` is present. It binds the playtest record to the exact source commit, installer SHA-256, installer filename, build ID, and release-evidence SHA-256 while leaving `playerVerifiedStandalone=false` and `result=NOT_RUN` until the human session occurs.
 
 The local summary records these packet paths but never upgrades either manual gate automatically.
+
+## One-command operator lane
+
+For the normal Windows operator path, use:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-m0-operator.ps1 -TitleAudioSource "C:\path\to\Aetherwake - Skyward Arpeggio Main Title.mp3"
+```
+
+The operator lane requires a named branch and clean checkout. If title audio is not yet admitted, it performs the governed committed admission first, then runs the full exact-head local M0 verifier. If title audio is already admitted, the admission step is skipped only after manifest authority confirms it.
+
+A successful technical run emits:
+
+`M0_OPERATOR_LANE=TECHNICAL_PASS_MANUAL_ACCEPTANCE_PENDING`
+
+It does **not** mean final M0 acceptance. The command verifies that the M0 summary remains `PASS_WITH_MANUAL_ACCEPTANCE_PENDING`, accessibility remains `PENDING_HUMAN_REVIEW`, the external-player gate remains `NOT_RUN`, and the candidate-bound manual review packets were generated. It prints the exact paths for the accessibility review and external playtest artifacts.
