@@ -40,6 +40,7 @@ for (const entry of registry.subsystems) {
 for (const required of [
   'runtime',
   'save-write-semantic-preflight',
+  'future-schema-overwrite-protection',
   'desktop-save-backup-recovery',
   'world-position',
   'quest',
@@ -56,6 +57,9 @@ for (const required of [
 }
 
 assert.strictEqual(byId.get('save-write-semantic-preflight').status, 'derived');
+assert.strictEqual(byId.get('future-schema-overwrite-protection').status, 'derived');
+assert(/must not overwrite an integrity-valid save from a newer schema/.test(byId.get('future-schema-overwrite-protection').rationale),
+  'future-schema overwrite protection must remain explicit');
 assert(/before any primary replacement or autosave rotation/.test(byId.get('save-write-semantic-preflight').rationale),
   'save-write semantic preflight must remain ahead of destructive slot mutation');
 assert.strictEqual(byId.get('desktop-save-backup-recovery').status, 'derived');
