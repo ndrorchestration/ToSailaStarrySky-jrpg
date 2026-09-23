@@ -10,6 +10,8 @@ let state = bindings.emptyState();
 assert.strictEqual(bindings.validateState(state), true);
 assert.strictEqual(bindings.keyboardLabel(state, 'interact', 'world'), 'E');
 assert.strictEqual(bindings.gamepadLabel(state, 'interact'), 'A / SOUTH');
+assert.strictEqual(bindings.keyboardLabel(state, 'continue-game', 'menu'), 'C');
+assert.strictEqual(bindings.gamepadLabel(state, 'continue-game'), 'Y / NORTH');
 
 assert.strictEqual(bindings.keyboardLabel(state, 'covenant-field', 'world'), 'Q');
 assert.strictEqual(bindings.keyboardLabel(state, 'toggle-layer', 'world'), 'TAB');
