@@ -134,7 +134,8 @@ try {
     'test:production-method',
     'test:release-evidence',
     'test:external-playtest-evidence',
-    'test:external-playtest-packet'
+    'test:external-playtest-packet',
+    'test:m0-acceptance-contract'
   )
 
   foreach ($gate in $unitGates) {
