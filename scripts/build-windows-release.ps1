@@ -16,6 +16,10 @@ npm run package:windows
 $package = Get-ChildItem -Path (Join-Path $repo "..\aetherwake-dist") -Directory | Select-Object -First 1
 if (-not $package) { throw "NW.js did not produce a package directory." }
 
+npm run verify:packaged-title-audio -- "$($package.FullName)"
+if ($LASTEXITCODE -ne 0) { throw "Packaged title-audio verification failed with code $LASTEXITCODE." }
+Write-Host "PACKAGED_TITLE_AUDIO=PASS"
+
 $exe = Join-Path $package.FullName "Aetherwake.exe"
 if (-not (Test-Path -LiteralPath $exe)) { throw "Aetherwake.exe not found in packaged runtime." }
 
