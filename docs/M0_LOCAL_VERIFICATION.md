@@ -66,3 +66,18 @@ Omit `-Commit` only for diagnostic/development use; that leaves the verified thr
 For exact-head M0 claims, use the committed form before running the final verification lane.
 
 The strict M0 readiness gate is `npm run test:m0-title-audio-ready`. It requires `repositoryStatus=admitted`, `runtimeRegistration=true`, completed repository transfer, the exact Git-tracked canonical MP3, and the governed SHA-256/byte count. Development-safe silent fallback remains valid outside final M0 verification.
+
+## Manual acceptance packets
+
+A technically successful local M0 run still exits as `PASS_WITH_MANUAL_ACCEPTANCE_PENDING`. It now prepares both remaining human gates against the exact candidate:
+
+- Accessibility review packet:
+  - `artifacts/accessibility-visual-matrix/review-index.html`
+  - `artifacts/accessibility-visual-matrix/human-review.json`
+- Uncoached external-player packet:
+  - `artifacts/m0-external-playtest/observer-guide.html`
+  - `artifacts/m0-external-playtest/external-playtest.json`
+
+The external-playtest packet is generated **only after** the exact Windows package/install/save-restart lane succeeds and `local-release/RELEASE_EVIDENCE.json` is present. It binds the playtest record to the exact source commit, installer SHA-256, installer filename, build ID, and release-evidence SHA-256 while leaving `playerVerifiedStandalone=false` and `result=NOT_RUN` until the human session occurs.
+
+The local summary records these packet paths but never upgrades either manual gate automatically.
