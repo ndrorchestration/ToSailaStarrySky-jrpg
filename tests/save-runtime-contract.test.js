@@ -32,6 +32,14 @@ assert(runtime.includes("text('OVERWRITE SLOT ' + slotNumber + '?'"),
 assert(runtime.includes("' keep current save'"),
   'overwrite prompt must expose a clear cancel/preserve action');
 assert(runtime.includes("openSaveLoadMenu('load')"), 'manual load UI entry missing');
+assert(runtime.includes('function canOpenSaveLoadMenu(mode)'),
+  'Save/Load entry must have a stable-state guard');
+assert(runtime.includes('const stableScene = gameState === STATE.WORLD || gameState === STATE.AIRSHIP;'),
+  'Save/Load must be limited to stable WORLD/AIRSHIP entry scenes');
+assert(runtime.includes('saveMenuReturnState = gameState;'),
+  'Save/Load cancel must return to the exact originating stable state');
+assert(runtime.includes("normalizedMode === 'load' ? 'CANNOT LOAD HERE' : 'CANNOT SAVE HERE'"),
+  'blocked transient Save/Load entry must be player-visible');
 assert(runtime.includes('function buildSavePayload()'), 'runtime save snapshot missing');
 assert(runtime.includes('function validateSavePayloadBeforeWrite(payload)'),
   'runtime must semantic-preflight save snapshots before persistence');
