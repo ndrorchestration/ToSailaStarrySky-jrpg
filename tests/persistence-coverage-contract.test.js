@@ -39,6 +39,7 @@ for (const entry of registry.subsystems) {
 
 for (const required of [
   'runtime',
+  'desktop-save-backup-recovery',
   'world-position',
   'quest',
   'party-roster',
@@ -53,6 +54,9 @@ for (const required of [
   assert(byId.has(required), 'required persistence subsystem not registered: ' + required);
 }
 
+assert.strictEqual(byId.get('desktop-save-backup-recovery').status, 'derived');
+assert(/same semantic preflight/.test(byId.get('desktop-save-backup-recovery').rationale),
+  'desktop backup recovery must remain gated by the same semantic validation as primary saves');
 assert.strictEqual(byId.get('air-navigation').status, 'covered');
 assert(/independent of envelope schema/.test(byId.get('air-navigation').versionOwner),
   'air-navigation schema must remain explicitly independent from whole-game save schema');
