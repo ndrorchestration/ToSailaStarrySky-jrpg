@@ -414,14 +414,17 @@
     return valid[0] || null;
   }
 
-  function rotateAutosave(payload, meta) {
+  function rotateAutosave(payload, meta, options) {
     const storage = getStorage();
     if (!storage) throw new Error('SAVE_STORAGE_UNAVAILABLE');
     const candidates = AUTOSAVE_SLOTS.filter(slot => !futureProtectedSlot(slot, storage));
     if (!candidates.length) throw new Error('SAVE_AUTOSAVE_ALL_SLOTS_FUTURE_PROTECTED');
 
+    const resolver = options && typeof options.candidateResolver === 'function'
+      ? options.candidateResolver
+      : load;
     const entries = candidates.map(slot => {
-      try { return { slot, loaded: load(slot) }; } catch (_) { return { slot, loaded: null }; }
+      try { return { slot, loaded: resolver(slot) }; } catch (_) { return { slot, loaded: null }; }
     });
     const dated = entries.map(entry => ({
       slot: entry.slot,
@@ -430,7 +433,11 @@
         : 0
     })).sort((a,b) => a.time - b.time);
     const chosen = entries.find(entry => entry.slot === dated[0].slot);
-    const preserveBackup = Boolean(chosen && chosen.loaded && chosen.loaded.recoveredFromBackup);
+    const preserveBackup = Boolean(
+      chosen &&
+      chosen.loaded &&
+      (chosen.loaded.recoveredFromBackup || chosen.loaded.semanticBackupRecovery)
+    );
     return save(dated[0].slot, payload, meta, { preserveBackup });
   }
 
