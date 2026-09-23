@@ -185,8 +185,20 @@ if (-not $loadResult.restored) {
 if ($loadResult.tileX -ne 9 -or $loadResult.tileY -ne 11) {
   throw "Packaged relaunch restored the wrong player position."
 }
+if ($loadResult.questState -ne $writeResult.questState) {
+  throw "Packaged relaunch restored the wrong quest state."
+}
+$writeActiveIds = @($writeResult.activeIds)
+$loadActiveIds = @($loadResult.activeIds)
+if ($writeActiveIds.Count -ne $loadActiveIds.Count -or
+    (Compare-Object -ReferenceObject $writeActiveIds -DifferenceObject $loadActiveIds -SyncWindow 0)) {
+  throw "Packaged relaunch restored the wrong active-party membership/order."
+}
 if ($loadResult.savePath -ne $writeResult.savePath) {
   throw "Packaged relaunch did not use the same persistent save path."
+}
+if ($loadResult.dataPath -ne $writeResult.dataPath) {
+  throw "Packaged relaunch did not use the same isolated NW.js data path."
 }
 Write-Host "DESKTOP_SAVE_RESTART=PASS"
 Remove-Item Env:AETHERWAKE_SAVE_PERSISTENCE_PHASE -ErrorAction SilentlyContinue
