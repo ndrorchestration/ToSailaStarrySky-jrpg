@@ -148,7 +148,7 @@ try {
     throw "Accessibility visual matrix manifest missing: $VisualManifestPath"
   }
   $visual = Get-Content -Raw $VisualManifestPath | ConvertFrom-Json
-  if ($visual.captureCount -ne 54) {
+  if ($visual.captureCount -ne 58) {
     throw "Accessibility visual matrix capture count drifted: $($visual.captureCount)"
   }
   if ($visual.reviewStatus -ne 'HUMAN_REVIEW_REQUIRED') {
