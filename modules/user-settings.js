@@ -141,9 +141,12 @@
     return {
       type: 'localStorage',
       path() { return 'localStorage://' + STORAGE_KEY; },
-      write(envelope) {
+      write(envelope, options) {
         const previous = root.localStorage.getItem(STORAGE_KEY);
-        if (previous !== null) root.localStorage.setItem(STORAGE_KEY + '.bak', previous);
+        const preserveBackup = Boolean(options && options.preserveBackup);
+        if (!preserveBackup && previous !== null) {
+          root.localStorage.setItem(STORAGE_KEY + '.bak', previous);
+        }
         root.localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
       },
       readWithRecovery,
@@ -187,8 +190,9 @@
     return {
       type: 'nw-file',
       path() { return target; },
-      write(envelope) {
+      write(envelope, options) {
         const json = JSON.stringify(envelope, null, 2) + '\n';
+        const preserveBackup = Boolean(options && options.preserveBackup);
         const fd = fs.openSync(tmp, 'w');
         try {
           fs.writeFileSync(fd, json, 'utf8');
@@ -199,8 +203,12 @@
 
         try {
           if (fs.existsSync(target)) {
-            if (fs.existsSync(bak)) fs.unlinkSync(bak);
-            fs.renameSync(target, bak);
+            if (preserveBackup) {
+              fs.unlinkSync(target);
+            } else {
+              if (fs.existsSync(bak)) fs.unlinkSync(bak);
+              fs.renameSync(target, bak);
+            }
           }
           fs.renameSync(tmp, target);
         } catch (error) {
@@ -299,7 +307,7 @@
     };
   }
 
-  function save(settings) {
+  function save(settings, options) {
     const storage = getStorage();
     if (!storage) throw new Error('SETTINGS_STORAGE_UNAVAILABLE');
     const protectedVersion = typeof storage.futureSchemaVersion === 'function'
@@ -309,12 +317,13 @@
       throw new Error('SETTINGS_FUTURE_SCHEMA_PROTECTED:' + protectedVersion);
     }
     const envelope = makeEnvelope(settings);
-    storage.write(envelope);
+    storage.write(envelope, options || {});
     return {
       settings: clone(envelope.settings),
       envelope,
       storageType: storage.type,
-      path: storage.path()
+      path: storage.path(),
+      preservedBackup: Boolean(options && options.preserveBackup)
     };
   }
 
