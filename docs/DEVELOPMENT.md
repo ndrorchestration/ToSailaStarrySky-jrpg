@@ -14,8 +14,8 @@ The current production desktop structure is intentionally separate from the deve
 - The staged launcher root contains a minimal `package.json` with `main: "www/index-embedded.html"`.
 - The game payload lives under `www/`; tests, docs, GitHub metadata, npm development files, and other repository-only material are not player-runtime authority.
 - `npm run package:windows` packages only that staged runtime.
-- `scripts/build-windows-release.ps1` is the maintainer-local Windows fallback and must reach `LOCAL_WINDOWS_RELEASE=PASS` only after build, installer compilation, clean installation, launch smoke, and hash generation.
-- Hosted CI currently cannot execute even checkout because jobs are receiving no runner. Treat `runner_id: 0` + zero steps as infrastructure/admission evidence, not as test evidence.
+- `scripts/build-windows-release.ps1` is the maintainer-local Windows fallback and must reach `LOCAL_WINDOWS_RELEASE=PASS` only after build, installer compilation, clean installation, launch smoke, normal packaged save-restart verification, backup-only `.bak` restart recovery, title-audio verification, and hash/provenance generation.
+- Hosted CI currently continues to terminate exact-head jobs with zero executed steps and no logs. Treat that as infrastructure/admission evidence, not as test evidence; do not infer pass or fail from a job that never ran repository commands.
 - Do not call any new installer verified until the exact generated candidate has completed Windows install/launch verification.
 
 Launcher-layout correction lineage: `304835c12555e35061870a54d61f7c95996d0bdd`.
@@ -198,6 +198,24 @@ Preferred order:
 8. continue school/job/mastery and character-kit implementation without inventing unresolved canon,
 9. add later-recruitment formation/presentation and combination systems only when their contracts are authored,
 10. expand campaign content while preserving source/canon/runtime authority boundaries.
+
+## M0 persistence / recovery authority — 2026-09-23
+
+The current representative-slice persistence contract is intentionally stricter than a basic serialize/deserialize loop:
+
+- manual/autosave snapshots receive semantic preflight before destructive slot mutation;
+- occupied manual slots require explicit overwrite confirmation;
+- browser and NW.js saves retain a previous generation and expose recovery provenance;
+- malformed, checksum-invalid, migration-invalid, missing, or semantically invalid primaries may recover only through an independently validated backup;
+- backup-only slots remain discoverable by listing and Continue;
+- newer-schema saves/settings/input bindings are downgrade-protected from overwrite;
+- settings and input bindings recover from corrupt or missing primaries and preserve the validated backup on the first post-recovery edit;
+- load application is transactional: live runtime state is snapshotted before mutation and rolled back if a late apply stage throws;
+- save/load diagnostic markers represent committed outcomes only;
+- Save/Load UI entry is limited to stable WORLD/AIRSHIP states;
+- installed Windows verification proves both normal restart restoration and backup-only recovery after deliberate primary removal between processes.
+
+Machine-readable persistence coverage lives in `docs/persistence-coverage.json`. Any new persistent gameplay domain must be registered there with snapshot, restore, validator, and version ownership before it can be treated as covered.
 
 ## Persistent-state rule
 
