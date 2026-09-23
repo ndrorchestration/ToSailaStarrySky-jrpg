@@ -23,6 +23,10 @@ assert(runtime.includes("showToast('OVERWRITE CANCELLED // SAVE PRESERVED'"),
   'canceling overwrite must explicitly preserve the existing save');
 assert(runtime.includes("const existing = buildLoadableSaveIndex().find(entry => entry.slot === slot && entry.exists);"),
   'occupied manual slots must require overwrite confirmation before save mutation');
+assert(runtime.includes('if (existing && existing.futureSchemaProtected)'),
+  'future-version slots must be blocked before overwrite confirmation');
+assert(runtime.includes("showToast('NEWER VERSION SAVE DATA — PRESERVED'"),
+  'future-version overwrite prevention must be player-visible');
 assert(runtime.includes("text('OVERWRITE SLOT ' + slotNumber + '?'"),
   'save overlay must render an explicit overwrite confirmation prompt');
 assert(runtime.includes("' keep current save'"),
