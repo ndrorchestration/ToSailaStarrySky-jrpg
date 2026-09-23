@@ -5373,7 +5373,7 @@ function drawShipInterior() {
   textAlign(CENTER, CENTER);
   textSize(9);
   textFont('VT323');
-  text('[ L ] or [ ESC ] to disembark', width / 2, height - 14);
+  text(inputPrompt('airship-land', 'airship', 'both') + ' to disembark', width / 2, height - 14);
   textSize(10);
   textFont('sans-serif');
 }
@@ -6133,7 +6133,7 @@ function drawWakeResolutionBeat() {
   fill(color(42, 255, 181, 185));
   textFont('Press Start 2P');
   uiTextSize(9);
-  text('ENTER / SPACE — HEAR WHAT FOLLOWS', width / 2, height / 2 + 96);
+  text(inputPrompt('confirm', 'world', 'both') + ' — HEAR WHAT FOLLOWS', width / 2, height / 2 + 96);
   textFont('sans-serif');
   uiTextSize(10);
 }
@@ -6158,7 +6158,7 @@ function drawEpilogueScreen() {
     fill(color(42, 255, 181, 120));
     uiTextSize(10);
     textFont('Press Start 2P');
-    text('[ R ] to begin again', width/2, height/2 + 80);
+    text('[ FIRST WAKE COMPLETE ]', width/2, height/2 + 80);
   }
   uiTextSize(10);
   textFont('sans-serif');
@@ -9763,7 +9763,7 @@ function drawCombatLog(lx, ly, lw, lh) {
   uiTextSize(8);
   fill(PAL.DIM);
   noStroke();
-  text('Tab: toggle log', lx + lw - 90, ly + lh - 14);
+  text('RECENT TURN HISTORY', lx + lw - 100, ly + lh - 14);
 
   pop();
 }
@@ -10002,7 +10002,12 @@ function drawMenu() {
   textAlign(CENTER, CENTER);
   fill(PAL.DIM);
   noStroke();
-  text('ENTER to select  ESC to close', mx + totalW / 2, my + totalH - 10);
+  text(
+    inputPrompt('confirm', 'menu', 'both') + ' select  ' +
+    inputPrompt('cancel', 'menu', 'both') + ' close',
+    mx + totalW / 2,
+    my + totalH - 10
+  );
 
   pop();
 }
@@ -10426,7 +10431,7 @@ function drawShop(items) {
   textAlign(CENTER, CENTER);
   fill(PAL.DIM);
   noStroke();
-  text('M: close shop  ESC: back', sx + sw / 2, sy + sh - 10);
+  text(inputPrompt('cancel', 'menu', 'both') + ' back', sx + sw / 2, sy + sh - 10);
 
   pop();
 }
