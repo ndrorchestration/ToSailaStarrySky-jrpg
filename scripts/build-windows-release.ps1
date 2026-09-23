@@ -101,6 +101,10 @@ if ($installProcess.ExitCode -ne 0) { throw "Installer exited with code $($insta
 $installedExe = Join-Path $installDir "Aetherwake.exe"
 if (-not (Test-Path -LiteralPath $installedExe)) { throw "Installed Aetherwake.exe was not found." }
 
+npm run verify:packaged-title-audio -- "$installDir"
+if ($LASTEXITCODE -ne 0) { throw "Installed title-audio verification failed with code $LASTEXITCODE." }
+Write-Host "INSTALLED_TITLE_AUDIO=PASS"
+
 $marker = Join-Path $env:TEMP "aetherwake-desktop-ready.json"
 if (Test-Path -LiteralPath $marker) {
   Remove-Item -LiteralPath $marker -Force
