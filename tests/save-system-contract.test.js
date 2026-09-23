@@ -68,10 +68,25 @@ assert(explicitBackup && explicitBackup.recoveredFromBackup === true,
 assert.strictEqual(explicitBackup.envelope.payload.value, 1);
 assert.strictEqual(explicitBackup.path, first.path + '.bak');
 
-// Corrupt the primary; loader must recover the previous valid backup.
+// Checksum-invalid but parseable primary must recover the previous valid backup
+// with explicit provenance rather than silently applying the bad primary.
+const checksumBad = nwSave.makeEnvelope('manual-3', { value: 3 }, { gameVersion: '0.2.0' });
+checksumBad.checksum = '00000000';
+fs.writeFileSync(first.path, JSON.stringify(checksumBad), 'utf8');
+const checksumRecovered = nwSave.load('manual-3');
+assert.strictEqual(checksumRecovered.envelope.payload.value, 1);
+assert.strictEqual(checksumRecovered.recoveredFromBackup, true);
+assert.strictEqual(checksumRecovered.path, first.path + '.bak');
+assert(/SAVE_CHECKSUM_INVALID/.test(checksumRecovered.primaryLoadError));
+
+// Malformed primary JSON must use the same explicit recovery contract.
 fs.writeFileSync(first.path, '{"broken":', 'utf8');
 const recovered = nwSave.load('manual-3');
 assert.strictEqual(recovered.envelope.payload.value, 1);
+assert.strictEqual(recovered.recoveredFromBackup, true);
+assert.strictEqual(recovered.path, first.path + '.bak');
+assert(recovered.primaryLoadError,
+  'backup recovery must retain the primary failure reason');
 
 // Downgrade protection: a newer-schema save must never be overwritten by this build.
 function futureEnvelope(slot, value) {
