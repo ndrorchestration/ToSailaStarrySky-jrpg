@@ -227,7 +227,11 @@ function persistInputBindings(nextBindings) {
   } catch (error) {
     window._lastInputBindingError = error.message;
     console.error('INPUT_BINDINGS_SAVE_FAILED', error);
-    showToast('CONTROL BINDING FAILED // ' + error.message, C.rust, 1800);
+    if (/INPUT_BINDINGS_FUTURE_SCHEMA_PROTECTED/.test(error.message)) {
+      showToast('NEWER CONTROL SETTINGS — PRESERVED', C.scioto, 2200);
+    } else {
+      showToast('CONTROL BINDING FAILED // ' + error.message, C.rust, 1800);
+    }
     return false;
   }
 }
@@ -2263,7 +2267,11 @@ function persistUserSettings(nextSettings) {
     return true;
   } catch (error) {
     console.error('USER_SETTINGS_SAVE_FAILED', error);
-    showToast('SETTINGS SAVE FAILED', C.rust, 1400);
+    if (/SETTINGS_FUTURE_SCHEMA_PROTECTED/.test(error.message)) {
+      showToast('NEWER SETTINGS DATA — PRESERVED', C.scioto, 2200);
+    } else {
+      showToast('SETTINGS SAVE FAILED', C.rust, 1400);
+    }
     return false;
   }
 }
