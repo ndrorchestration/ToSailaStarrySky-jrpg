@@ -12,6 +12,11 @@ const script = fs.readFileSync(
 
 assert(script.includes('requires a clean working tree before mutation'),
   'admission wrapper must fail closed on pre-existing local changes');
+assert(script.includes('detached HEAD is not allowed'),
+  'admission wrapper must require a named branch');
+assert(script.includes('npm run admit:title-audio -- --source "$Source" --check-only') &&
+       script.includes('TITLE_AUDIO_PREFLIGHT=PASS'),
+  'admission wrapper must preflight the exact source before repository mutation');
 assert(script.includes('assets/audio/aetherwake-skyward-arpeggio-main-title.mp3'),
   'admission wrapper must stage the canonical title MP3');
 assert(script.includes('docs/audio-assets.json'),
@@ -30,5 +35,7 @@ assert(script.includes("assets: admit canonical Skyward Arpeggio title theme"),
   'admission wrapper must use a stable explicit commit message');
 assert(script.includes('TITLE_AUDIO_ADMISSION=COMMITTED_VERIFIED'),
   'committed admission must emit a machine-readable success marker');
+assert(script.includes('NEXT_M0_COMMAND=powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\verify-m0-local.ps1'),
+  'admission wrapper must emit the exact next M0 command');
 
 console.log('Aetherwake title-audio handoff contract: PASS');
