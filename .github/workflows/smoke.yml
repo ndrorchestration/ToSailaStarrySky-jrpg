@@ -182,6 +182,9 @@ jobs:
       - name: Verify external playtest evidence contract
         run: npm run test:external-playtest-evidence
 
+      - name: Verify external playtest packet contract
+        run: npm run test:external-playtest-packet
+
       - name: Verify save storage contract
         run: npm run test:save-system
 
