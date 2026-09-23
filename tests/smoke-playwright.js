@@ -245,6 +245,84 @@ function createServer() {
     assert(savedRoundTrip.storageType === 'localStorage',
       'browser smoke did not exercise localStorage save fallback');
 
+    // Occupied-slot overwrite safety through the production SAVELOAD input path.
+    const overwriteFixture = await page.evaluate(() => {
+      const before = window.AetherSaveSystem.load('manual-1');
+      openSaveLoadMenu('save', 'manual-1');
+      return {
+        beforeTileX: before.envelope.payload.world.playerPosition.tileX,
+        beforeTileY: before.envelope.payload.world.playerPosition.tileY,
+        beforeSavedAt: before.envelope.savedAt,
+        state: window.gameState,
+      };
+    });
+    assert(overwriteFixture.state === 'saveload',
+      'occupied-slot overwrite fixture did not open production save UI');
+
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => window._saveOverwritePendingSlot === 'manual-1');
+    const afterFirstConfirm = await page.evaluate(() => {
+      const stored = window.AetherSaveSystem.load('manual-1');
+      return {
+        pending: window._saveOverwritePendingSlot,
+        tileX: stored.envelope.payload.world.playerPosition.tileX,
+        tileY: stored.envelope.payload.world.playerPosition.tileY,
+      };
+    });
+    assert(afterFirstConfirm.pending === 'manual-1',
+      'first Confirm did not arm overwrite confirmation');
+    assert(afterFirstConfirm.tileX === overwriteFixture.beforeTileX &&
+           afterFirstConfirm.tileY === overwriteFixture.beforeTileY,
+      'first overwrite Confirm mutated the occupied slot');
+
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window._saveOverwritePendingSlot === null);
+    const afterCancel = await page.evaluate(() => {
+      const stored = window.AetherSaveSystem.load('manual-1');
+      return {
+        gameState: window.gameState,
+        tileX: stored.envelope.payload.world.playerPosition.tileX,
+        tileY: stored.envelope.payload.world.playerPosition.tileY,
+      };
+    });
+    assert(afterCancel.gameState === 'saveload',
+      'overwrite Cancel should return to the save menu, not exit it');
+    assert(afterCancel.tileX === overwriteFixture.beforeTileX &&
+           afterCancel.tileY === overwriteFixture.beforeTileY,
+      'overwrite Cancel did not preserve the existing save payload');
+
+    await page.evaluate(() => {
+      const p = window._world.player;
+      p.tileX = 19; p.tileY = 18; p.x = 19; p.y = 18;
+      p.px = 19 * 16; p.py = 18 * 16;
+    });
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => window._saveOverwritePendingSlot === 'manual-1');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.gameState === 'saveload' &&
+      window._saveOverwritePendingSlot === null
+    );
+
+    const afterOverwrite = await page.evaluate(() => {
+      const primary = window.AetherSaveSystem.load('manual-1');
+      const backup = window.AetherSaveSystem.loadBackup('manual-1');
+      return {
+        primaryTileX: primary.envelope.payload.world.playerPosition.tileX,
+        primaryTileY: primary.envelope.payload.world.playerPosition.tileY,
+        backupTileX: backup && backup.envelope.payload.world.playerPosition.tileX,
+        backupTileY: backup && backup.envelope.payload.world.playerPosition.tileY,
+      };
+    });
+    assert(afterOverwrite.primaryTileX === 19 && afterOverwrite.primaryTileY === 18,
+      'second overwrite Confirm did not replace the occupied primary');
+    assert(afterOverwrite.backupTileX === overwriteFixture.beforeTileX &&
+           afterOverwrite.backupTileY === overwriteFixture.beforeTileY,
+      'confirmed overwrite did not retain the previous generation as backup');
+
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window.gameState === 'world');
+
     const continueFallback = await page.evaluate(() => {
       const invalidPayload = buildSavePayload();
       invalidPayload.world.playerPosition.px = 999;
