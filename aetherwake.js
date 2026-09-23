@@ -120,6 +120,7 @@ let controlsMenuFocus = null;
 let controlsMenuReturnState = STATE.SETTINGS;
 let controlsDevice = 'keyboard';
 let inputBindingCapture = null;
+let titleMusicAttempted = false;
 const gamepadMoveRepeat = {};
 
 // Expose state for debugging
@@ -400,6 +401,49 @@ function applyUserSettings(settings) {
   return window._userSettings;
 }
 
+function initializeGovernedAudioAssets() {
+  if (!window.AetherMusicBus ||
+      typeof window.AetherMusicBus.registerTrack !== 'function' ||
+      typeof window.AetherMusicBus.play !== 'function') {
+    throw new Error('AETHER_MUSIC_BUS_UNAVAILABLE');
+  }
+  if (!window.AetherAudioAssets ||
+      typeof window.AetherAudioAssets.registerAdmittedTracks !== 'function') {
+    throw new Error('AETHER_AUDIO_ASSETS_UNAVAILABLE');
+  }
+  const result = window.AetherAudioAssets.registerAdmittedTracks(window.AetherMusicBus);
+  window._audioAssetRegistration = result;
+  window._musicBus = window.AetherMusicBus.snapshot();
+  return result;
+}
+
+function requestTitleMusic(force) {
+  if (!window.AetherMusicBus || !window.AetherAudioAssets) return false;
+  const title = window.AetherAudioAssets.MANIFEST &&
+    window.AetherAudioAssets.MANIFEST.titleTheme;
+  if (!title || title.repositoryStatus !== 'admitted' || !title.runtimeRegistration) {
+    window._titleMusicRequest = {
+      ok: false,
+      reason: 'TITLE_THEME_NOT_ADMITTED'
+    };
+    return false;
+  }
+  if (titleMusicAttempted && force !== true) return true;
+  titleMusicAttempted = true;
+  const result = window.AetherMusicBus.play(title.musicBusTrackId);
+  window._titleMusicRequest = result;
+  window._musicBus = window.AetherMusicBus.snapshot();
+  return Boolean(result && result.ok);
+}
+
+function stopTitleMusic() {
+  titleMusicAttempted = false;
+  if (!window.AetherMusicBus || typeof window.AetherMusicBus.stop !== 'function') return false;
+  window.AetherMusicBus.stop();
+  window._musicBus = window.AetherMusicBus.snapshot();
+  return true;
+}
+
 function loadUserSettings() {
   if (!window.AetherUserSettings ||
       typeof window.AetherUserSettings.load !== 'function') {
@@ -521,6 +565,7 @@ function setup() {
   }
   window._userSettingsSystem = window.AetherUserSettings;
   loadUserSettings();
+  initializeGovernedAudioAssets();
   refreshSaveIndex();
   window._saveSystem = window.AetherSaveSystem;
   if (!window.AetherCombatFormula ||
@@ -1332,6 +1377,9 @@ function keyPressed() {
   // Audio context must be resumed from user gesture on first interaction
   if (typeof ensureAudio === 'function') ensureAudio();
   if (typeof resumeAudio === 'function') resumeAudio();
+  if (gameState === STATE.MENU || gameState === STATE.SETTINGS || gameState === STATE.CONTROLS) {
+    requestTitleMusic(true);
+  }
 
   // Footstep sound follows semantic movement, including remapped controls.
   if (gameState === STATE.WORLD &&
@@ -2545,6 +2593,7 @@ function preferredPromptContext(actionId) {
 }
 
 function startGame() {
+  stopTitleMusic();
   startFirstWakeOpening();
 }
 
@@ -3373,6 +3422,7 @@ function drawScanlines() {
 }
 
 function drawTitleScreen() {
+  requestTitleMusic(false);
   noStroke();
   fill(C.navy[0], C.navy[1], C.navy[2]);
   rect(0, 0, width, height);
