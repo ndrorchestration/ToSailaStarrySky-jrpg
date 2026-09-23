@@ -111,7 +111,8 @@ try {
     'test:title-audio-runtime',
     'test:music-bus',
     'test:audio-settings',
-    'test:world-authority'
+    'test:world-authority',
+    'test:production-method'
   )
 
   foreach ($gate in $unitGates) {
