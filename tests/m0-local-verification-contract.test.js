@@ -48,6 +48,7 @@ for (const gate of [
   'test:release-evidence',
   'test:external-playtest-evidence',
   'test:external-playtest-packet',
+  'test:m0-acceptance-contract',
   'test:smoke',
   'test:first-wake-benchmark-live',
   'test:controller-parity-live',
