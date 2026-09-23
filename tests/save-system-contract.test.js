@@ -39,6 +39,8 @@ const browserRoot = { localStorage: makeLocalStorage() };
 const browserSave = base._createForTesting(browserRoot);
 browserSave.save('manual-2', payload, { gameVersion: '0.2.0' });
 assert.strictEqual(browserSave.load('manual-2').envelope.payload.runtime.scene, 'world');
+assert.strictEqual(browserSave.loadBackup('manual-2'), null,
+  'browser/localStorage persistence must not invent a backup candidate');
 assert.strictEqual(browserSave.latest().slot, 'manual-2');
 browserSave.remove('manual-2');
 assert.strictEqual(browserSave.load('manual-2'), null);
@@ -60,6 +62,11 @@ assert(fs.existsSync(first.path), 'desktop save file was not created');
 nwSave.save('manual-3', { value: 2 }, { gameVersion: '0.2.0' });
 assert.strictEqual(nwSave.load('manual-3').envelope.payload.value, 2);
 assert(fs.existsSync(first.path + '.bak'), 'backup was not created before overwrite');
+const explicitBackup = nwSave.loadBackup('manual-3');
+assert(explicitBackup && explicitBackup.recoveredFromBackup === true,
+  'desktop save system must expose the previous primary as an explicit backup candidate');
+assert.strictEqual(explicitBackup.envelope.payload.value, 1);
+assert.strictEqual(explicitBackup.path, first.path + '.bak');
 
 // Corrupt the primary; loader must recover the previous valid backup.
 fs.writeFileSync(first.path, '{"broken":', 'utf8');
