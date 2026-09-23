@@ -116,23 +116,35 @@
 
   function browserStorage() {
     if (!root || !root.localStorage) return null;
+    function key(slot) { return STORAGE_PREFIX + slot; }
     return {
       type: 'localStorage',
       write(slot, envelope) {
-        root.localStorage.setItem(STORAGE_PREFIX + slot, JSON.stringify(envelope));
+        const primaryKey = key(slot);
+        const previous = root.localStorage.getItem(primaryKey);
+        if (previous !== null) {
+          root.localStorage.setItem(primaryKey + '.bak', previous);
+        }
+        root.localStorage.setItem(primaryKey, JSON.stringify(envelope));
       },
       read(slot) {
-        const raw = root.localStorage.getItem(STORAGE_PREFIX + slot);
+        const raw = root.localStorage.getItem(key(slot));
         return raw ? JSON.parse(raw) : null;
       },
       readPrimary(slot) {
-        const raw = root.localStorage.getItem(STORAGE_PREFIX + slot);
+        const raw = root.localStorage.getItem(key(slot));
         return raw ? JSON.parse(raw) : null;
       },
-      readBackup() { return null; },
-      remove(slot) { root.localStorage.removeItem(STORAGE_PREFIX + slot); },
-      exists(slot) { return root.localStorage.getItem(STORAGE_PREFIX + slot) !== null; },
-      path(slot) { return 'localStorage://' + STORAGE_PREFIX + slot; }
+      readBackup(slot) {
+        const raw = root.localStorage.getItem(key(slot) + '.bak');
+        return raw ? JSON.parse(raw) : null;
+      },
+      remove(slot) {
+        root.localStorage.removeItem(key(slot));
+        root.localStorage.removeItem(key(slot) + '.bak');
+      },
+      exists(slot) { return root.localStorage.getItem(key(slot)) !== null; },
+      path(slot) { return 'localStorage://' + key(slot); }
     };
   }
 
