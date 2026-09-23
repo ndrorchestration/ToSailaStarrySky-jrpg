@@ -33,6 +33,10 @@ assert(runtime.includes('function validateSavePayloadBeforeWrite(payload)'),
   'runtime must semantic-preflight save snapshots before persistence');
 assert(runtime.includes('validateSavePayloadBeforeWrite(payload);'),
   'saveToSlot must validate the snapshot before rotating/replacing save files');
+assert(runtime.includes('preserveBackup = Boolean(priorCandidate && priorCandidate.semanticBackupRecovery)'),
+  'manual overwrite must preserve the validated backup when the current slot recovered from backup');
+assert(runtime.includes('{ preserveBackup }'),
+  'manual save write must pass recovery-preservation intent to the storage layer');
 assert(runtime.indexOf('validateSavePayloadBeforeWrite(payload);') <
        runtime.indexOf('window.AetherSaveSystem.rotateAutosave(payload, saveMetadata())'),
   'autosave rotation must occur only after semantic snapshot validation');
