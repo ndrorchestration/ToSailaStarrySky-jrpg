@@ -286,17 +286,58 @@
     validateSlot(slot);
     const storage = getStorage();
     if (!storage) throw new Error('SAVE_STORAGE_UNAVAILABLE');
-    const envelope = storage.read(slot);
-    if (!envelope) return null;
-    const migrated = migrateEnvelope(envelope);
-    return {
-      envelope: migrated,
-      migratedFromSchemaVersion: envelope.schemaVersion === migrated.schemaVersion
-        ? null
-        : envelope.schemaVersion,
-      storageType: storage.type,
-      path: storage.path(slot)
-    };
+
+    let primary = null;
+    let primaryError = null;
+    try {
+      primary = typeof storage.readPrimary === 'function'
+        ? storage.readPrimary(slot)
+        : storage.read(slot);
+      if (primary) {
+        const migrated = migrateEnvelope(primary);
+        return {
+          envelope: migrated,
+          migratedFromSchemaVersion: primary.schemaVersion === migrated.schemaVersion
+            ? null
+            : primary.schemaVersion,
+          storageType: storage.type,
+          path: storage.path(slot),
+          recoveredFromBackup: false
+        };
+      }
+    } catch (error) {
+      primaryError = error;
+    }
+
+    if (typeof storage.readBackup === 'function') {
+      try {
+        const backup = storage.readBackup(slot);
+        if (backup) {
+          const migrated = migrateEnvelope(backup);
+          return {
+            envelope: migrated,
+            migratedFromSchemaVersion: backup.schemaVersion === migrated.schemaVersion
+              ? null
+              : backup.schemaVersion,
+            storageType: storage.type,
+            path: storage.path(slot) + '.bak',
+            recoveredFromBackup: true,
+            primaryLoadError: primaryError ? primaryError.message : 'SAVE_PRIMARY_MISSING'
+          };
+        }
+      } catch (backupError) {
+        if (primaryError) {
+          throw new Error(
+            'SAVE_PRIMARY_AND_BACKUP_INTEGRITY_UNLOADABLE:' +
+            primaryError.message + '|' + backupError.message
+          );
+        }
+        throw backupError;
+      }
+    }
+
+    if (primaryError) throw primaryError;
+    return null;
   }
 
   function loadBackup(slot) {
