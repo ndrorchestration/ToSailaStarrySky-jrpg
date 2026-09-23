@@ -266,12 +266,10 @@ try {
     Write-Host "DEVELOPMENT_SKIP_BROWSER_INSTALL=$([bool]$SkipBrowserInstall)"
     Write-Host "SUMMARY=$SummaryPath"
     Write-Host "VISUAL_MATRIX=$VisualManifestPath"
-  Write-Host "ACCESSIBILITY_REVIEW_HTML=$reviewHtml"
-  Write-Host "ACCESSIBILITY_REVIEW_RECORD=$reviewRecord"
-  Write-Host "EXTERNAL_PLAYTEST_GUIDE=$externalPlaytestGuide"
-  Write-Host "EXTERNAL_PLAYTEST_RECORD=$externalPlaytestRecord"
-  Write-Host "ACCESSIBILITY_REVIEW_HTML=$reviewHtml"
-  Write-Host "ACCESSIBILITY_REVIEW_RECORD=$reviewRecord"
+    Write-Host "ACCESSIBILITY_REVIEW_HTML=$reviewHtml"
+    Write-Host "ACCESSIBILITY_REVIEW_RECORD=$reviewRecord"
+    Write-Host "EXTERNAL_PLAYTEST_GUIDE=$externalPlaytestGuide"
+    Write-Host "EXTERNAL_PLAYTEST_RECORD=$externalPlaytestRecord"
     exit 2
   }
 
@@ -282,6 +280,10 @@ try {
   Write-Host "UNCOACHED_EXTERNAL_PLAYER=NOT_RUN"
   Write-Host "SUMMARY=$SummaryPath"
   Write-Host "VISUAL_MATRIX=$VisualManifestPath"
+  Write-Host "ACCESSIBILITY_REVIEW_HTML=$reviewHtml"
+  Write-Host "ACCESSIBILITY_REVIEW_RECORD=$reviewRecord"
+  Write-Host "EXTERNAL_PLAYTEST_GUIDE=$externalPlaytestGuide"
+  Write-Host "EXTERNAL_PLAYTEST_RECORD=$externalPlaytestRecord"
   Write-Host "VISUAL_MANIFEST_SHA256=$($results.evidenceBindings.visualManifestSha256)"
   Write-Host "RELEASE_EVIDENCE=$($results.evidenceBindings.releaseEvidencePath)"
   Write-Host "RELEASE_EVIDENCE_SHA256=$($results.evidenceBindings.releaseEvidenceSha256)"
