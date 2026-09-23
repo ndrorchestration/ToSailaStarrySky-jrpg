@@ -150,11 +150,19 @@ try {
   if ($visual.reviewStatus -ne 'HUMAN_REVIEW_REQUIRED') {
     throw "Accessibility visual matrix review status drifted: $($visual.reviewStatus)"
   }
+  Invoke-Gate 'prepare:accessibility-review' 'npm run prepare:accessibility-review'
+  $reviewHtml = Join-Path (Split-Path $VisualManifestPath -Parent) 'review-index.html'
+  $reviewRecord = Join-Path (Split-Path $VisualManifestPath -Parent) 'human-review.json'
+  if (-not (Test-Path $reviewHtml) -or -not (Test-Path $reviewRecord)) {
+    throw 'Accessibility review packet was not generated.'
+  }
   $results.visualMatrix = [ordered]@{
     manifest = $VisualManifestPath
     captureCount = $visual.captureCount
     reviewStatus = $visual.reviewStatus
     status = 'CAPTURED_HUMAN_REVIEW_REQUIRED'
+    reviewHtml = $reviewHtml
+    reviewRecord = $reviewRecord
   }
 
   if (-not $SkipWindowsPackage) {
@@ -195,6 +203,8 @@ try {
     Write-Host "DEVELOPMENT_SKIP_BROWSER_INSTALL=$([bool]$SkipBrowserInstall)"
     Write-Host "SUMMARY=$SummaryPath"
     Write-Host "VISUAL_MATRIX=$VisualManifestPath"
+  Write-Host "ACCESSIBILITY_REVIEW_HTML=$reviewHtml"
+  Write-Host "ACCESSIBILITY_REVIEW_RECORD=$reviewRecord"
     exit 2
   }
 
