@@ -655,11 +655,12 @@
     "effects-volume and dialogue-volume runtime integration",
     "canonical fail-safe runtime music bus with persisted Music Volume integration",
     "controller vibration with graceful unsupported-hardware fallback",
-    "live Playwright controller-parity regression covering settings, remapping, opening, WORLD, Save/Load, dialogue, flight, combat focus, rendering settings, and vibration"
+    "live Playwright controller-parity regression covering settings, remapping, opening, WORLD, Save/Load, dialogue, flight, combat focus, rendering settings, and vibration",
+    "desktop staging preserves governed assets under www/assets for standalone builds"
   ],
   "remainingBeforeRepresentativeParity": [
     "rendered visual acceptance at text scales 100/125/150/175 with high-contrast and subtitle combinations",
     "exact-head execution of the live controller-parity and First Wake benchmark regressions",
-    "packaged title-track asset registration and exact-candidate playback verification"
+    "admit the verified title-track binary at docs/audio-assets.json canonicalPath, then register it on the canonical music bus and verify exact-candidate playback"
   ]
 }
