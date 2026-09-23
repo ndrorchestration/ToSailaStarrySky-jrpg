@@ -68,6 +68,12 @@ assert(script.includes("uncoachedExternalPlayer = 'NOT_RUN'"),
   'local verifier summary must expose the uncoached-player gate as not run');
 assert(script.includes("accessibilityVisualReview = 'PENDING_HUMAN_REVIEW'"),
   'local verifier summary must expose pending visual review');
+assert(script.includes("accessibilityReviewProtocol = 'docs/M0_ACCESSIBILITY_VISUAL_REVIEW.md'"),
+  'local verifier summary must route visual acceptance to its human-review protocol');
+assert(script.includes("accessibilityEvidenceTemplate = 'docs/m0-accessibility-visual-review.template.json'"),
+  'local verifier summary must expose the candidate-bound visual-review evidence template');
+assert(doc.includes('M0_ACCESSIBILITY_VISUAL_REVIEW.md'),
+  'local M0 documentation must route visual acceptance to its protocol');
 assert(doc.includes('M0_EXTERNAL_PLAYTEST.md'),
   'documentation must route manual player-comprehension evidence to its protocol');
 assert(doc.includes('uncoached external-player completion pass'),
