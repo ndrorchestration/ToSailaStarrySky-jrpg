@@ -16,8 +16,12 @@ assert(script.includes('requires a named branch; detached HEAD is not allowed'),
   'operator lane must reject detached HEAD');
 assert(script.includes('requires a clean working tree'),
   'operator lane must start from a clean checkout');
+assert(script.includes('test:m0-title-audio-ready'),
+  'operator lane must use the strict Git-tracked/hash title-audio readiness gate');
+assert(script.includes('TITLE_AUDIO_ADMISSION=ALREADY_VERIFIED_STRICT'),
+  'operator lane must distinguish strict readiness from manifest-only state');
 assert(script.includes('admit-title-audio.ps1') && script.includes('-Commit'),
-  'operator lane must use governed committed title-audio admission');
+  'operator lane must use governed committed title-audio admission when strict readiness fails');
 assert(script.includes('verify-m0-local.ps1'),
   'operator lane must run the full local M0 verifier');
 assert(script.includes("PASS_WITH_MANUAL_ACCEPTANCE_PENDING"),
