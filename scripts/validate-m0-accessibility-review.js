@@ -28,10 +28,10 @@ assert.strictEqual(manifest.schemaVersion, 2,
   'Accessibility visual manifest must use provenance schema v2');
 assert(typeof manifest.gitHead === 'string' && /^[0-9a-f]{40}$/.test(manifest.gitHead),
   'Accessibility visual manifest must bind exact Git HEAD');
-assert.strictEqual(manifest.captureCount, 54,
-  'Accessibility visual manifest must contain exactly 54 captures');
-assert(Array.isArray(manifest.captures) && manifest.captures.length === 54,
-  'Accessibility visual manifest capture list must contain 54 records');
+assert.strictEqual(manifest.captureCount, 58,
+  'Accessibility visual manifest must contain exactly 58 captures');
+assert(Array.isArray(manifest.captures) && manifest.captures.length === 58,
+  'Accessibility visual manifest capture list must contain 58 records');
 
 for (const capture of manifest.captures) {
   assert(capture && typeof capture.file === 'string' && capture.file.length > 0,
