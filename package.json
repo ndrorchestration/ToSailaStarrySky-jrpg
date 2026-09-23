@@ -101,6 +101,7 @@
     "test:m0-local-verification": "node tests/m0-local-verification-contract.test.js",
     "test:production-method": "node tests/production-method-contract.test.js",
     "test:m0-title-audio-ready": "node tests/m0-title-audio-ready.test.js",
-    "verify:packaged-title-audio": "node scripts/verify-packaged-title-audio.js"
+    "verify:packaged-title-audio": "node scripts/verify-packaged-title-audio.js",
+    "write:release-evidence": "node scripts/write-release-evidence.js"
   }
 }
