@@ -68,6 +68,17 @@ assert.deepStrictEqual(
   [],
   'F5 must not map to manual-save in COMBAT'
 );
+
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 120 }, 'combat'),
+  [],
+  'F9 must not map to manual-load in COMBAT'
+);
+assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 117 }, 'dialogue'),
+  [],
+  'F6 must not open Save/Load from DIALOGUE'
+);
 assert.deepStrictEqual(
   input.actionsForKeyboardEvent({ keyCode: 69 }, 'world'),
   ['interact'],
