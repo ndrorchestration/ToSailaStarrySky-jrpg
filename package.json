@@ -94,6 +94,9 @@
     "test:world-authority": "node tests/world-authority-contract.test.js",
     "test:accessibility-visual-matrix": "node tests/accessibility-visual-matrix-playwright.js",
     "test:music-bus": "node tests/music-bus-contract.test.js",
-    "test:audio-assets": "node tests/audio-assets-contract.test.js"
+    "test:audio-assets": "node tests/audio-assets-contract.test.js",
+    "admit:title-audio": "node scripts/admit-title-audio.js",
+    "test:title-audio-admission": "node tests/title-audio-admission-contract.test.js",
+    "test:title-audio-runtime": "node tests/title-audio-runtime-contract.test.js"
   }
 }
