@@ -111,6 +111,7 @@
     "test:accessibility-review-packet": "node tests/accessibility-review-packet-contract.test.js",
     "test:external-playtest-evidence": "node tests/external-playtest-evidence-contract.test.js",
     "validate:external-playtest": "node scripts/validate-m0-external-playtest.js",
-    "prepare:external-playtest": "node scripts/prepare-m0-external-playtest.js"
+    "prepare:external-playtest": "node scripts/prepare-m0-external-playtest.js",
+    "test:external-playtest-packet": "node tests/external-playtest-packet-contract.test.js"
   }
 }
