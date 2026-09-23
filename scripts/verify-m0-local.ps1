@@ -28,6 +28,14 @@ $results = [ordered]@{
   visualMatrix = $null
   windowsPackage = $null
   externalPlaytest = $null
+  evidenceBindings = [ordered]@{
+    visualManifestSha256 = $null
+    releaseEvidencePath = $null
+    releaseEvidenceSha256 = $null
+    releaseSourceCommit = $null
+    installerSha256 = $null
+    portableZipSha256 = $null
+  }
   manualAcceptance = [ordered]@{
     accessibilityVisualReview = 'PENDING_HUMAN_REVIEW'
     accessibilityReviewProtocol = 'docs/M0_ACCESSIBILITY_VISUAL_REVIEW.md'
@@ -161,8 +169,16 @@ try {
   if (-not (Test-Path $reviewHtml) -or -not (Test-Path $reviewRecord)) {
     throw 'Accessibility review packet was not generated.'
   }
+  $visualManifestHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $VisualManifestPath).Hash.ToLower()
+  if ($visual.gitHead -ne $results.gitHead) {
+    Write-Summary 'FAIL'
+    throw "Accessibility visual manifest Git HEAD does not match M0 candidate: $($visual.gitHead) != $($results.gitHead)"
+  }
+  $results.evidenceBindings.visualManifestSha256 = $visualManifestHash
   $results.visualMatrix = [ordered]@{
     manifest = $VisualManifestPath
+    manifestSha256 = $visualManifestHash
+    gitHead = $visual.gitHead
     captureCount = $visual.captureCount
     reviewStatus = $visual.reviewStatus
     status = 'CAPTURED_HUMAN_REVIEW_REQUIRED'
@@ -179,12 +195,12 @@ try {
     Write-Host "=== exact Windows package/install/save-restart verification ===" -ForegroundColor Cyan
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $packageScript
     $packageCode = $LASTEXITCODE
-    $results.windowsPackage = [ordered]@{
-      script = $packageScript
-      exitCode = $packageCode
-      status = $(if ($packageCode -eq 0) { 'PASS' } else { 'FAIL' })
-    }
     if ($packageCode -ne 0) {
+      $results.windowsPackage = [ordered]@{
+        script = $packageScript
+        exitCode = $packageCode
+        status = 'FAIL'
+      }
       Write-Summary 'FAIL'
       throw "Windows release verification failed (exit $packageCode)"
     }
@@ -193,6 +209,27 @@ try {
     if (-not (Test-Path $releaseEvidencePath)) {
       Write-Summary 'FAIL'
       throw "Release evidence missing after verified Windows build: $releaseEvidencePath"
+    }
+    $releaseEvidence = Get-Content -LiteralPath $releaseEvidencePath -Raw | ConvertFrom-Json
+    $releaseEvidenceHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $releaseEvidencePath).Hash.ToLower()
+    if ($releaseEvidence.source.gitHead -ne $results.gitHead) {
+      Write-Summary 'FAIL'
+      throw "Release evidence Git HEAD does not match M0 candidate: $($releaseEvidence.source.gitHead) != $($results.gitHead)"
+    }
+    $results.evidenceBindings.releaseEvidencePath = $releaseEvidencePath
+    $results.evidenceBindings.releaseEvidenceSha256 = $releaseEvidenceHash
+    $results.evidenceBindings.releaseSourceCommit = $releaseEvidence.source.gitHead
+    $results.evidenceBindings.installerSha256 = $releaseEvidence.artifacts.installer.sha256
+    $results.evidenceBindings.portableZipSha256 = $releaseEvidence.artifacts.portableZip.sha256
+    $results.windowsPackage = [ordered]@{
+      script = $packageScript
+      exitCode = $packageCode
+      status = 'PASS'
+      releaseEvidence = $releaseEvidencePath
+      releaseEvidenceSha256 = $releaseEvidenceHash
+      sourceCommit = $releaseEvidence.source.gitHead
+      installerSha256 = $releaseEvidence.artifacts.installer.sha256
+      portableZipSha256 = $releaseEvidence.artifacts.portableZip.sha256
     }
     Invoke-Gate 'prepare:external-playtest' 'npm run prepare:external-playtest'
     $externalPlaytestDir = Join-Path $Repo 'artifacts\m0-external-playtest'
@@ -244,6 +281,11 @@ try {
   Write-Host "UNCOACHED_EXTERNAL_PLAYER=NOT_RUN"
   Write-Host "SUMMARY=$SummaryPath"
   Write-Host "VISUAL_MATRIX=$VisualManifestPath"
+  Write-Host "VISUAL_MANIFEST_SHA256=$($results.evidenceBindings.visualManifestSha256)"
+  Write-Host "RELEASE_EVIDENCE=$($results.evidenceBindings.releaseEvidencePath)"
+  Write-Host "RELEASE_EVIDENCE_SHA256=$($results.evidenceBindings.releaseEvidenceSha256)"
+  Write-Host "INSTALLER_SHA256=$($results.evidenceBindings.installerSha256)"
+  Write-Host "PORTABLE_ZIP_SHA256=$($results.evidenceBindings.portableZipSha256)"
 }
 catch {
   if ($results.overall -eq 'RUNNING') {
