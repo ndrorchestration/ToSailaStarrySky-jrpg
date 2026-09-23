@@ -322,6 +322,27 @@ async function focusByDpadDown(page, snapshotGlobal, targetId, maxSteps = 64) {
            loadedPosition.tileY === savePosition.tileY,
       'controller Save/Load overlay did not restore the saved world position');
 
+    // Title Continue is a semantic, remappable controller action. Return to the
+    // title state and use North/Y to resume the newest validated save.
+    await page.evaluate(() => {
+      gameState = STATE.MENU;
+      window.gameState = gameState;
+    });
+    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
+    await pulseButton(page, 3);
+    await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
+    const continuedPosition = await page.evaluate(() => ({
+      tileX: window._world.player.tileX,
+      tileY: window._world.player.tileY,
+      prompt: inputPrompt('continue-game', 'menu', 'both')
+    }));
+    assert(continuedPosition.tileX === savePosition.tileX &&
+           continuedPosition.tileY === savePosition.tileY,
+      'controller title Continue did not resume the newest validated save');
+    assert(continuedPosition.prompt.includes('C') &&
+           continuedPosition.prompt.includes('Y / NORTH'),
+      'title Continue prompt does not reflect keyboard/controller binding authority');
+
     // The old Quest Log button is suppressed after remapping; LT now owns it.
     await pulseButton(page, 3);
     await page.waitForTimeout(200);
@@ -437,7 +458,7 @@ async function focusByDpadDown(page, snapshotGlobal, targetId, maxSteps = 64) {
       'controller vibration preference never reached the standard haptic actuator');
 
     console.log('Aetherwake controller parity smoke: PASS');
-    console.log(JSON.stringify({ persistedBindings, openingResult, savePosition, loadedPosition, flightBefore, altitudeAfter, combatFocusResult, final }));
+    console.log(JSON.stringify({ persistedBindings, openingResult, savePosition, loadedPosition, continuedPosition, flightBefore, altitudeAfter, combatFocusResult, final }));
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
