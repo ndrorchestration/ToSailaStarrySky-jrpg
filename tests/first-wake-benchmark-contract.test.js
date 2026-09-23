@@ -56,10 +56,42 @@ for (const required of [
   'wake-resolution',
   'dragonfly-flight',
   'input-controller-accessibility',
-  'visual-benchmark-set'
+  'visual-benchmark-set',
+  'uncoached-external-player'
 ]) {
   assert(ids.has(required), 'required First Wake benchmark gate missing: ' + required);
 }
+
+const externalPlayer = registry.gates.find(gate => gate.id === 'uncoached-external-player');
+assert(externalPlayer, 'external-player M0 gate missing');
+assert.strictEqual(externalPlayer.blocking, true,
+  'external-player M0 gate must remain blocking');
+assert.strictEqual(externalPlayer.status, 'manual',
+  'external-player comprehension must remain a manual evidence gate');
+assert.strictEqual(externalPlayer.owner, 'docs/M0_EXTERNAL_PLAYTEST.md');
+assert(externalPlayer.evidence.includes('docs/M0_EXTERNAL_PLAYTEST.md'));
+assert(externalPlayer.evidence.includes('docs/m0-external-playtest-record.template.json'));
+
+const protocol = fs.readFileSync(
+  path.join(__dirname, '..', 'docs', 'M0_EXTERNAL_PLAYTEST.md'),
+  'utf8'
+);
+const record = JSON.parse(fs.readFileSync(
+  path.join(__dirname, '..', 'docs', 'm0-external-playtest-record.template.json'),
+  'utf8'
+));
+assert(protocol.includes('do not explain objectives, controls, combat strategy'),
+  'external-player protocol must preserve the no-coaching boundary');
+assert(protocol.includes('A passing developer smoke test or local M0 run cannot substitute'),
+  'manual comprehension evidence must remain distinct from automated verification');
+assert.strictEqual(record.result, 'NOT_RUN',
+  'playtest template must fail closed before an actual session');
+assert.strictEqual(record.constraints.liveCreatorCoachingAllowed, false,
+  'playtest template must prohibit live creator coaching');
+assert.strictEqual(record.constraints.browserDependencyAllowed, false,
+  'playtest candidate must not depend on browser execution');
+assert.strictEqual(record.candidate.playerVerifiedStandalone, false,
+  'template must not pre-claim player verification');
 
 const blockers = registry.gates.filter(gate => gate.blocking);
 assert(blockers.some(gate => gate.status === 'gap' || gate.status === 'partial' || gate.status === 'manual'),
