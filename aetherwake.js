@@ -4575,13 +4575,16 @@ function mousePressed() {
       quest.choiceMade) {
     return false;
   }
-  const px = width / 2 - 220;
-  const py = 60;
-  const pw = 440;
+  const uiScale = accessibilityTextScale();
+  const px = width / 2 - 250;
+  const py = 42;
+  const pw = 500;
+  const optionH = Math.round(58 + 24 * (uiScale - 1));
+  const optionGap = Math.round(10 + 4 * (uiScale - 1));
   for (let i = 0; i < 3; i++) {
-    const optY = py + 50 + i * 70;
+    const optY = py + 54 + i * (optionH + optionGap);
     if (mouseX >= px && mouseX <= px + pw &&
-        mouseY >= optY && mouseY <= optY + 56) {
+        mouseY >= optY && mouseY <= optY + optionH) {
       selectChoicePath(i);
       return false;
     }
