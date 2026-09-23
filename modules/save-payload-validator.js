@@ -26,6 +26,15 @@
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
   }
 
+  function assertKnownKeys(value, allowedKeys, code) {
+    assert(isPlainObject(value), code + '_OBJECT_REQUIRED');
+    const allowed = new Set(allowedKeys);
+    for (const key of Object.keys(value)) {
+      assert(allowed.has(key), code + '_UNKNOWN_KEY:' + key);
+    }
+    return true;
+  }
+
   function finite(value, code) {
     assert(Number.isFinite(value), code);
     return value;
@@ -38,6 +47,11 @@
 
   function validateRuntime(runtime) {
     assert(isPlainObject(runtime), 'SAVE_RUNTIME_INVALID');
+    assertKnownKeys(
+      runtime,
+      ['scene','dayTime','skyLayerVisible','playtimeMs'],
+      'SAVE_RUNTIME'
+    );
     assert(STABLE_SCENES.includes(runtime.scene), 'SAVE_RUNTIME_SCENE_INVALID');
     finite(runtime.dayTime, 'SAVE_RUNTIME_DAYTIME_INVALID');
     assert(runtime.dayTime >= 0, 'SAVE_RUNTIME_DAYTIME_NEGATIVE');
@@ -49,8 +63,14 @@
 
   function validateWorld(world) {
     assert(isPlainObject(world), 'SAVE_WORLD_INVALID');
+    assertKnownKeys(
+      world,
+      ['playerPosition','covenantField','ledgerEntries'],
+      'SAVE_WORLD'
+    );
     const pos = world.playerPosition;
     assert(isPlainObject(pos), 'SAVE_WORLD_POSITION_INVALID');
+    assertKnownKeys(pos, ['tileX','tileY','px','py'], 'SAVE_WORLD_POSITION');
     integer(pos.tileX, 'SAVE_WORLD_TILE_X_INVALID');
     integer(pos.tileY, 'SAVE_WORLD_TILE_Y_INVALID');
     finite(pos.px, 'SAVE_WORLD_PX_INVALID');
@@ -62,6 +82,11 @@
 
     if (world.covenantField != null) {
       assert(isPlainObject(world.covenantField), 'SAVE_COVENANT_FIELD_INVALID');
+      assertKnownKeys(
+        world.covenantField,
+        ['x','y','life','planted'],
+        'SAVE_COVENANT_FIELD'
+      );
       if (world.covenantField.x != null) finite(world.covenantField.x, 'SAVE_COVENANT_X_INVALID');
       if (world.covenantField.y != null) finite(world.covenantField.y, 'SAVE_COVENANT_Y_INVALID');
       if (world.covenantField.life != null) {
@@ -78,6 +103,16 @@
 
   function validateQuest(quest) {
     assert(isPlainObject(quest), 'SAVE_QUEST_INVALID');
+    assertKnownKeys(
+      quest,
+      [
+        'state','act','hooksCompleted','hazardsCompleted','npcsMet',
+        'choiceMade','choiceVariant','choicePath','hullIntegrity','morale',
+        'heatLevel','engineIntegration','discoveries','journal','signalHooks',
+        'crossingHazards','wakeEpilogueId'
+      ],
+      'SAVE_QUEST'
+    );
     assert(QUEST_STATES.includes(quest.state), 'SAVE_QUEST_STATE_INVALID');
     assert(PERSISTABLE_QUEST_STATES.includes(quest.state), 'SAVE_QUEST_STATE_NOT_PERSISTABLE');
     assert(typeof quest.act === 'string' && quest.act.length > 0, 'SAVE_QUEST_ACT_INVALID');
@@ -142,6 +177,7 @@
 
   function validateParty(party) {
     assert(isPlainObject(party), 'SAVE_PARTY_INVALID');
+    assertKnownKeys(party, ['roster','activeIds'], 'SAVE_PARTY');
     assert(Array.isArray(party.roster), 'SAVE_PARTY_ROSTER_INVALID');
     assert(party.roster.length === ROSTER_IDS.length, 'SAVE_PARTY_ROSTER_COUNT_INVALID');
     party.roster.forEach((record, index) => validateCharacter(record, ROSTER_IDS[index]));
@@ -171,6 +207,11 @@
 
   function validatePayload(payload, context) {
     assert(isPlainObject(payload), 'SAVE_PAYLOAD_SEMANTIC_INVALID');
+    assertKnownKeys(
+      payload,
+      ['runtime','world','quest','party','airNavigation'],
+      'SAVE_PAYLOAD'
+    );
     validateRuntime(payload.runtime);
     validateWorld(payload.world);
     validateQuest(payload.quest);
