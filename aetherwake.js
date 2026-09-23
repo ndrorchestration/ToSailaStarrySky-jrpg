@@ -2298,13 +2298,25 @@ function setSaveOverwritePending(slot) {
   window._saveOverwritePendingSlot = saveOverwritePendingSlot;
 }
 
+function canOpenSaveLoadMenu(mode) {
+  const stableScene = gameState === STATE.WORLD || gameState === STATE.AIRSHIP;
+  if (!stableScene) return false;
+  if (mode === 'save') return canSaveNow();
+  return mode === 'load';
+}
+
 function openSaveLoadMenu(mode, preferredSlot) {
-  if (!canSaveNow() && mode === 'save') {
-    showToast('CANNOT SAVE HERE', C.rust, 1400);
-    return;
+  const normalizedMode = mode === 'load' ? 'load' : 'save';
+  if (!canOpenSaveLoadMenu(normalizedMode)) {
+    showToast(
+      normalizedMode === 'load' ? 'CANNOT LOAD HERE' : 'CANNOT SAVE HERE',
+      C.rust,
+      1400
+    );
+    return false;
   }
-  saveMenuReturnState = gameState === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
-  saveMenuMode = mode === 'load' ? 'load' : 'save';
+  saveMenuReturnState = gameState;
+  saveMenuMode = normalizedMode;
   setSaveOverwritePending(null);
   const slots = window.AetherSaveSystem.MANUAL_SLOTS;
   saveMenuFocus = window.AetherFocusManager.createState(slots, preferredSlot || slots[0]);
@@ -2312,6 +2324,7 @@ function openSaveLoadMenu(mode, preferredSlot) {
   refreshSaveIndex();
   gameState = STATE.SAVELOAD;
   window.gameState = gameState;
+  return true;
 }
 
 function handleSaveLoadInput() {
