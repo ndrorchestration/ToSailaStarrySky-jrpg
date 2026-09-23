@@ -2196,7 +2196,7 @@ function drawSettingsOverlay() {
   textFont('VT323');
   uiTextSize(14);
   fill(C.scioto[0], C.scioto[1], C.scioto[2]);
-  text('Changes save immediately. Accessibility/input changes apply now; Music Volume awaits the canonical music bus.', x + 20, y + 42);
+  text('Changes save immediately. Accessibility/input/audio changes apply now; music playback remains silent until a packaged track is registered.', x + 20, y + 42);
 
   const order = window.AetherUserSettings.SETTING_ORDER.concat(['__controls']);
   const focus = settingsMenuFocus ? window.AetherFocusManager.snapshot(settingsMenuFocus) : null;
