@@ -98,7 +98,7 @@ Music Volume is active on the canonical music bus. With no registered track, the
 
 `tests/accessibility-visual-matrix-playwright.js` now turns rendered review into a repeatable artifact lane rather than an ad hoc screenshot task.
 
-It captures **54 canonical 960×640 review frames**:
+It captures **58 canonical 960×640 review frames**:
 - 11 representative surfaces at each Text Scale value: 100 / 125 / 150 / 175%;
 - six High Contrast samples at 150%;
 - four dialogue subtitle/speaker-label combinations, including the fail-closed Subtitles Off / TTS unavailable case.
@@ -107,7 +107,7 @@ The lane writes `artifacts/accessibility-visual-matrix/manifest.json` with `HUMA
 
 ## Next production actions
 
-1. execute and review the 54-frame accessibility visual matrix;
+1. execute and review the 58-frame accessibility visual matrix, including occupied-slot overwrite confirmation at every text scale;
 2. execute the exact-head controller-parity and First Wake benchmark suites when a runner is actually allocated;
 3. admit the exact verified title MP3 at `assets/audio/aetherwake-skyward-arpeggio-main-title.mp3`, flip the governed manifest to admitted/runtime-registered, then verify exact-candidate playback;
 4. if those pass, reassess whether PR #147 can leave draft without widening scope.
