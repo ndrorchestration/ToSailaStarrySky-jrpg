@@ -133,7 +133,8 @@ try {
     'test:world-authority',
     'test:production-method',
     'test:release-evidence',
-    'test:external-playtest-evidence'
+    'test:external-playtest-evidence',
+    'test:external-playtest-packet'
   )
 
   foreach ($gate in $unitGates) {
