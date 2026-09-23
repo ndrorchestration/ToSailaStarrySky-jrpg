@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "milestone": "M0-reliable-first-wake-benchmark",
+  "candidate": {
+    "commitSha": null,
+    "buildId": null,
+    "installerSha256": null,
+    "platform": "Windows",
+    "playerVerifiedStandalone": false
+  },
+  "participant": {
+    "id": null,
+    "priorAetherwakeExposure": "none",
+    "priorInstructionsBeyondLaunch": "none"
+  },
+  "constraints": {
+    "liveCreatorCoachingAllowed": false,
+    "repositoryKnowledgeRequired": false,
+    "browserDependencyAllowed": false
+  },
+  "observations": {
+    "installedAndLaunched": null,
+    "understoodNextObjectiveWithoutHelp": null,
+    "combatChoicesIntelligible": null,
+    "saveCreated": null,
+    "processClosedAndRelaunched": null,
+    "saveRestoredCorrectly": null,
+    "nonHappyPathAttempted": null,
+    "nonHappyPathRecovered": null,
+    "firstWakeCompleted": null,
+    "dragonflyTraversalReached": null
+  },
+  "interventions": [],
+  "confusionPoints": [],
+  "defects": [],
+  "completionMinutes": null,
+  "result": "NOT_RUN",
+  "reviewer": null,
+  "reviewedAt": null
+}
