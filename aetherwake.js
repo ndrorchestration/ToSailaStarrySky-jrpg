@@ -1990,10 +1990,12 @@ function saveToSlot(slot, autosave) {
         );
     refreshSaveIndex();
     window._lastSaveResult = result;
+    window._lastSaveError = null;
     showToast(autosave ? 'AUTOSAVED' : 'GAME SAVED // ' + slot.toUpperCase(), C.teal, 1300);
     return true;
   } catch (error) {
     window._lastSaveError = error.message;
+    window._lastSaveResult = null;
     console.error('SAVE_FAILED', error);
     if (/SAVE_SLOT_FUTURE_SCHEMA_PROTECTED|SAVE_AUTOSAVE_ALL_SLOTS_FUTURE_PROTECTED/.test(error.message)) {
       showToast('NEWER VERSION SAVE DATA — PRESERVED', C.scioto, 2400);
@@ -2237,9 +2239,11 @@ function loadFromSlot(slot) {
       showToast('NO SAVE IN ' + slot.toUpperCase(), C.rust, 1400);
       return false;
     }
-    window._lastLoadResult = loaded;
     const applied = applySaveEnvelope(loaded.envelope);
-    if (applied && loaded.semanticBackupRecovery) {
+    if (!applied) throw new Error('LOAD_APPLY_RETURNED_FALSE');
+    window._lastLoadResult = loaded;
+    window._lastLoadError = null;
+    if (loaded.semanticBackupRecovery) {
       window._lastLoadRecovery = {
         slot,
         source: 'backup',
@@ -2262,6 +2266,7 @@ function loadFromSlot(slot) {
     return applied;
   } catch (error) {
     window._lastLoadError = error.message;
+    window._lastLoadResult = null;
     window._lastLoadRecovery = null;
     console.error('LOAD_FAILED', error);
     showToast('LOAD FAILED // ' + error.message, C.rust, 2200);
