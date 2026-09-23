@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "purpose": "Index existing Aetherwake authority surfaces into the four required production registries without duplicating canonical data.",
+  "registries": [
+    {
+      "id": "canonical-lore",
+      "status": "partial-indexed",
+      "authorityPaths": [
+        "modules/character-canon.js",
+        "docs/CHARACTER_ART_DIRECTION.md",
+        "docs/MAGIC_SYSTEM.md"
+      ],
+      "externalAuthority": "Notion canonical dossiers and narrative SSOT",
+      "note": "Repository files mirror or constrain subsets of canon; Notion remains creator-owned canon authority where explicitly declared."
+    },
+    {
+      "id": "content",
+      "status": "partial-indexed",
+      "authorityPaths": [
+        "modules/magic-defs.js",
+        "docs/first-wake-benchmark.json",
+        "docs/persistence-coverage.json"
+      ],
+      "note": "Existing registries are domain-specific; broad item/enemy/map/NPC registries are added only when their production systems are admitted."
+    },
+    {
+      "id": "asset-provenance",
+      "status": "partial-indexed",
+      "authorityPaths": [
+        "docs/audio-assets.json",
+        "docs/VISUAL_BIBLE.md"
+      ],
+      "note": "Title audio has machine-readable fingerprint/provenance. Broader visual-asset provenance remains incomplete and must be expanded before broad final-asset admission."
+    },
+    {
+      "id": "decision-log",
+      "status": "established",
+      "authorityPaths": [
+        "docs/DECISION_LOG.json"
+      ],
+      "note": "Records production/governance decisions only; it does not replace creator canon records or Git history."
+    }
+  ]
+}
