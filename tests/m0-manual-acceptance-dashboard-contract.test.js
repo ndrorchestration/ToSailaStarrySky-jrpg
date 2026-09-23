@@ -37,6 +37,8 @@ assert(generator.includes('This dashboard is an index over already-bound evidenc
   'dashboard must explicitly deny acceptance authority');
 assert(!generator.includes("record.result = 'PASS'"),
   'dashboard must not mutate human evidence to PASS');
+assert(generator.includes('validate:m0-acceptance') && generator.includes('M0_ACCEPTANCE.json'),
+  'dashboard must route completed human evidence through final M0 validation');
 
 assert(operator.includes('npm run prepare:m0-manual-acceptance'),
   'operator lane must generate the manual acceptance dashboard after technical M0');
