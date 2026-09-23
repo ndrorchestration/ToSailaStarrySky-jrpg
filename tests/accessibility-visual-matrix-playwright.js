@@ -5,6 +5,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
+const crypto = require('crypto');
+const childProcess = require('child_process');
 
 const BASE = path.resolve(__dirname, '..');
 const PORT = Number(process.env.AETHERWAKE_ACCESSIBILITY_MATRIX_PORT || 8095);
@@ -268,11 +270,27 @@ async function capture(page, fileName) {
     assert(captures.length === 54,
       'visual matrix capture count drifted: ' + captures.length);
 
+    const gitHead = childProcess.execFileSync(
+      'git', ['rev-parse', 'HEAD'], { cwd: BASE, encoding: 'utf8' }
+    ).trim();
+    assert(gitHead, 'visual matrix requires exact Git HEAD provenance');
+
+    const captureRecords = captures.map(file => {
+      const bytes = fs.readFileSync(file);
+      return {
+        file: path.relative(OUTPUT, file),
+        bytes: bytes.length,
+        sha256: crypto.createHash('sha256').update(bytes).digest('hex')
+      };
+    });
+
     const manifest = {
+      schemaVersion: 2,
       generatedAt: new Date().toISOString(),
+      gitHead,
       logicalSurface: { width: 960, height: 640 },
-      captureCount: captures.length,
-      captures: captures.map(file => path.relative(OUTPUT, file)),
+      captureCount: captureRecords.length,
+      captures: captureRecords,
       settingsBoundary: state.applied,
       reviewStatus: 'HUMAN_REVIEW_REQUIRED'
     };
