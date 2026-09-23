@@ -194,6 +194,9 @@ jobs:
       - name: Verify local M0 orchestration contract
         run: npm run test:m0-local-verification
 
+      - name: Verify AI-assisted production contract
+        run: npm run test:production-method
+
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
