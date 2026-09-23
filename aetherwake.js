@@ -2117,7 +2117,16 @@ function loadFromSlot(slot) {
         primarySemanticError: loaded.primarySemanticError || null,
         path: loaded.path
       };
-      showToast('RECOVERED PREVIOUS SAVE // PRIMARY INVALID', C.scioto, 2200);
+      const newerPrimaryPreserved = /SAVE_SCHEMA_FUTURE_UNSUPPORTED/.test(
+        loaded.primarySemanticError || ''
+      );
+      showToast(
+        newerPrimaryPreserved
+          ? 'RECOVERED OLDER SAVE // NEWER PRIMARY PRESERVED'
+          : 'RECOVERED PREVIOUS SAVE // PRIMARY INVALID',
+        C.scioto,
+        2200
+      );
     } else {
       window._lastLoadRecovery = null;
     }
@@ -2267,7 +2276,19 @@ function drawSaveLoadOverlay() {
     if (meta && meta.exists && meta.valid) {
       const mins = Math.floor((meta.playtimeMs || 0) / 60000);
       text((meta.chapter || 'Aetherwake') + '  //  ' + mins + ' min', 220, y - 2);
-      text((meta.partySummary || []).join(' + '), 220, y + 18);
+      if (meta.futureSchemaProtected && meta.recoveredFromBackup) {
+        fill(C.scioto[0], C.scioto[1], C.scioto[2]);
+        text(
+          'RECOVERY BACKUP // NEWER V' +
+          meta.futureSchemaVersion + ' ' +
+          String(meta.futureSchemaSource || 'PRIMARY').toUpperCase() +
+          ' PRESERVED',
+          220,
+          y + 18
+        );
+      } else {
+        text((meta.partySummary || []).join(' + '), 220, y + 18);
+      }
     } else if (meta && meta.exists && meta.valid === false) {
       fill(C.rust[0], C.rust[1], C.rust[2]);
       const reason = meta.futureSchemaProtected
