@@ -53,7 +53,7 @@ That state is intentionally **not** the same as final M0 acceptance. Human revie
 
 ## Title audio
 
-The title MP3 is governed separately. If the exact source has not yet been admitted to the checkout, first use:
+The title MP3 is governed separately during development, but **final local M0 and Windows release verification now fail closed unless it is admitted and Git-tracked**. If the exact source has not yet been admitted to the checkout, first use:
 
 ```powershell
 npm run admit:title-audio -- --source "C:\path\to\Aetherwake - Skyward Arpeggio Main Title.mp3"
@@ -62,3 +62,5 @@ npm run admit:title-audio -- --source "C:\path\to\Aetherwake - Skyward Arpeggio 
 The admission tool verifies the exact governed SHA-256 and byte size before copying or promoting anything. A mismatch fails closed.
 
 For exact-head claims, commit the admitted canonical asset + generated manifest/runtime-registry changes before running the final verification lane.
+
+The strict M0 readiness gate is `npm run test:m0-title-audio-ready`. It requires `repositoryStatus=admitted`, `runtimeRegistration=true`, completed repository transfer, the exact Git-tracked canonical MP3, and the governed SHA-256/byte count. Development-safe silent fallback remains valid outside final M0 verification.
