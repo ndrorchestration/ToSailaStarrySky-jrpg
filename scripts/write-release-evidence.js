@@ -26,11 +26,17 @@ for (const file of [installer, portableZip]) {
 const gitHead = childProcess.execFileSync(
   'git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }
 ).trim();
-const gitStatus = childProcess.execFileSync(
-  'git', ['status', '--porcelain=v1'], { cwd: repo, encoding: 'utf8' }
-).trim();
+const trackedDiff = childProcess.spawnSync(
+  'git', ['diff', '--quiet', 'HEAD', '--'], { cwd: repo }
+);
+const stagedDiff = childProcess.spawnSync(
+  'git', ['diff', '--cached', '--quiet', '--'], { cwd: repo }
+);
 assert(gitHead, 'Release evidence requires Git HEAD provenance');
-assert.strictEqual(gitStatus, '', 'Release evidence requires a clean working tree');
+assert.strictEqual(trackedDiff.status, 0,
+  'Release evidence rejects tracked source changes created during the build');
+assert.strictEqual(stagedDiff.status, 0,
+  'Release evidence rejects staged source changes created during the build');
 
 function sha256(file) {
   const hash = crypto.createHash('sha256');
@@ -51,7 +57,7 @@ const evidence = {
   generatedAt: new Date().toISOString(),
   source: {
     gitHead,
-    workingTree: 'clean'
+    trackedSource: 'unchanged-from-head'
   },
   governedTitleAudio: {
     canonicalPath: title.canonicalPath,
