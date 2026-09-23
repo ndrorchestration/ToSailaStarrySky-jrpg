@@ -113,3 +113,5 @@ assert(/late runtime exception during rehydration/.test(byId.get('transactional-
   'load application must remain transactional after semantic preflight');
 assert(/rollback itself fails/.test(byId.get('transactional-load-apply').rationale),
   'load transaction must fail closed if rollback cannot restore the prior runtime');
+assert(/Success markers are written only after apply commits/.test(byId.get('transactional-load-apply').rationale),
+  'load evidence must reflect committed outcomes only');
