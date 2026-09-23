@@ -121,3 +121,24 @@ assert.throws(
 );
 
 console.log('Aetherwake semantic save-payload validator: PASS');
+
+
+// Undocumented persisted container keys must fail closed rather than silently
+// expanding the whole-game save schema.
+for (const [label, mutate, pattern] of [
+  ['payload', p => { p.futureTopLevel = true; }, /SAVE_PAYLOAD_UNKNOWN_KEY:futureTopLevel/],
+  ['runtime', p => { p.runtime.futureRuntime = true; }, /SAVE_RUNTIME_UNKNOWN_KEY:futureRuntime/],
+  ['world', p => { p.world.futureWorld = true; }, /SAVE_WORLD_UNKNOWN_KEY:futureWorld/],
+  ['position', p => { p.world.playerPosition.z = 1; }, /SAVE_WORLD_POSITION_UNKNOWN_KEY:z/],
+  ['covenant', p => { p.world.covenantField.futureField = true; }, /SAVE_COVENANT_FIELD_UNKNOWN_KEY:futureField/],
+  ['quest', p => { p.quest.futureQuestFlag = true; }, /SAVE_QUEST_UNKNOWN_KEY:futureQuestFlag/],
+  ['party', p => { p.party.futureFormationFlag = true; }, /SAVE_PARTY_UNKNOWN_KEY:futureFormationFlag/]
+]) {
+  const candidate = JSON.parse(JSON.stringify(original));
+  mutate(candidate);
+  assert.throws(
+    () => validator.validatePayload(candidate, { validateAirNavigation() { return true; } }),
+    pattern,
+    'undocumented persisted container key must fail closed: ' + label
+  );
+}
