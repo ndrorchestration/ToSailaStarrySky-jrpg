@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "decision-2026-09-23-ai-production-boundary",
+      "date": "2026-09-23",
+      "status": "adopted",
+      "category": "production-governance",
+      "decision": "Treat AI outputs as proposal material under a human-owned admission path: design specification -> AI draft -> human review -> validation -> repository / SSOT.",
+      "reason": "Prevent content velocity from outrunning canon coherence, provenance, state consistency, and milestone evidence.",
+      "approver": "creator",
+      "admittedBy": "PR #147 production-method tranche",
+      "evidence": [
+        "docs/AI_ASSISTED_PRODUCTION_CONTRACT.md",
+        "docs/production-registries.json",
+        "tests/production-method-contract.test.js"
+      ],
+      "runtimeImpact": "none",
+      "canonImpact": "none",
+      "saveSchemaImpact": "none"
+    },
+    {
+      "id": "decision-2026-09-23-evidence-before-scale",
+      "date": "2026-09-23",
+      "status": "adopted",
+      "category": "production-sequencing",
+      "decision": "Keep M0 / First Wake as the blocking representative slice before broad region, quest, enemy, item, ability, or final-asset scale-out.",
+      "reason": "Require player comprehension, persistence/restart stability, repeatable production pipelines, and representative visual/audio acceptance before expansion.",
+      "approver": "creator",
+      "admittedBy": "PR #147 production-method tranche",
+      "evidence": [
+        "docs/AI_ASSISTED_PRODUCTION_CONTRACT.md",
+        "docs/first-wake-benchmark.json"
+      ],
+      "runtimeImpact": "none",
+      "canonImpact": "none",
+      "saveSchemaImpact": "none"
+    }
+  ]
+}
