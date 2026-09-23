@@ -33,7 +33,7 @@ for (const action of contract.requiredActions) {
 }
 
 for (const id of [
-  'ui-up','ui-down','ui-left','ui-right','confirm','cancel','open-settings','open-save-load',
+  'ui-up','ui-down','ui-left','ui-right','confirm','cancel','open-settings','continue-game','open-save-load',
   'move-up','move-down','move-left','move-right',
   'interact','covenant-field','toggle-layer','shop','quest-log','manual-save','manual-load',
   'airship-altitude-up','airship-altitude-down','airship-dock','airship-land'
