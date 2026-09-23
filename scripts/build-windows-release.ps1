@@ -42,6 +42,18 @@ New-Item -ItemType Directory -Path $OutputDir | Out-Null
 $zip = Join-Path $OutputDir "Aetherwake-Windows.zip"
 Compress-Archive -Path (Join-Path $package.FullName "*") -DestinationPath $zip
 
+$portableVerify = Join-Path $env:TEMP "AetherwakePortableVerify"
+if (Test-Path -LiteralPath $portableVerify) {
+  Remove-Item -LiteralPath $portableVerify -Recurse -Force
+}
+Expand-Archive -LiteralPath $zip -DestinationPath $portableVerify
+if (-not (Test-Path -LiteralPath (Join-Path $portableVerify "Aetherwake.exe"))) {
+  throw "Portable Aetherwake.exe was not found after extraction."
+}
+npm run verify:packaged-title-audio -- "$portableVerify"
+if ($LASTEXITCODE -ne 0) { throw "Portable title-audio verification failed with code $LASTEXITCODE." }
+Write-Host "PORTABLE_TITLE_AUDIO=PASS"
+
 $makensis = @(
   "C:\Program Files (x86)\NSIS\makensis.exe",
   "C:\Program Files\NSIS\makensis.exe"
