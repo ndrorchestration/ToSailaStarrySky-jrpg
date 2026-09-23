@@ -13,6 +13,14 @@ const registry = JSON.parse(fs.readFileSync(
   path.join(repo, 'docs', 'production-registries.json'),
   'utf8'
 ));
+const registryIndex = JSON.parse(fs.readFileSync(
+  path.join(repo, 'docs', 'production-registry-index.json'),
+  'utf8'
+));
+const decisionLog = JSON.parse(fs.readFileSync(
+  path.join(repo, 'docs', 'DECISION_LOG.json'),
+  'utf8'
+));
 
 assert(contract.includes('design specification -> AI draft -> human review -> validation -> repository / SSOT'),
   'AI admission path must remain explicit and human-gated');
@@ -48,5 +56,28 @@ assert(registry.stateSpaceQACategories.includes('quest-order-permutations'),
   'state-space QA must include quest-order permutations');
 assert(registry.stateSpaceQACategories.includes('invalid-newest-save-fallback'),
   'state-space QA must include invalid-newest-save fallback');
+
+const indexedIds = new Set(registryIndex.registries.map(entry => entry.id));
+for (const id of ['canonical-lore','content','asset-provenance','decision-log']) {
+  assert(indexedIds.has(id), 'production registry index missing: ' + id);
+}
+for (const entry of registryIndex.registries) {
+  assert(Array.isArray(entry.authorityPaths) && entry.authorityPaths.length > 0,
+    'registry index entry has no authority paths: ' + entry.id);
+  for (const relative of entry.authorityPaths) {
+    assert(fs.existsSync(path.join(repo, relative)),
+      'indexed authority path does not exist: ' + relative);
+  }
+}
+
+assert(Array.isArray(decisionLog.entries) && decisionLog.entries.length >= 2,
+  'production decision log must retain the adopted production-method decisions');
+for (const entry of decisionLog.entries) {
+  assert(entry.status === 'adopted', 'decision log entry is not adopted: ' + entry.id);
+  assert(typeof entry.runtimeImpact === 'string' &&
+         typeof entry.canonImpact === 'string' &&
+         typeof entry.saveSchemaImpact === 'string',
+    'decision log entry must declare runtime/canon/save impacts: ' + entry.id);
+}
 
 console.log('Aetherwake AI-assisted production contract: PASS');
