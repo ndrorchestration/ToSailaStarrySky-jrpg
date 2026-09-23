@@ -48,10 +48,10 @@
       "id": "desktop-save-backup-recovery",
       "status": "derived",
       "snapshot": "NW.js previous primary promoted to slot .bak before overwrite",
-      "restore": "aetherwake.js::loadSemanticallyValidSaveCandidate + AetherSaveSystem.loadBackup",
-      "validator": "same envelope integrity/migration + prepareSaveEnvelopeForApply semantic preflight as primary",
+      "restore": "AetherSaveSystem.load/loadBackup + aetherwake.js::loadSemanticallyValidSaveCandidate",
+      "validator": "backup must independently pass envelope integrity/migration and the same prepareSaveEnvelopeForApply semantic preflight as primary",
       "versionOwner": "save-system + whole-game-envelope",
-      "rationale": "A checksum/JSON-valid but semantically unloadable primary may recover the previous desktop backup only when that backup independently passes the same semantic preflight. If both fail, loading fails closed."
+      "rationale": "Malformed, checksum-invalid, migration-invalid, or semantically unloadable desktop primaries may recover the previous `.bak` only when that backup independently passes integrity/migration and full semantic preflight. Recovery provenance and the primary failure reason remain machine-visible; if both fail, loading fails closed."
     },
     {
       "id": "world-position",
