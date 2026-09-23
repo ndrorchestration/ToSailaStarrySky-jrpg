@@ -39,6 +39,11 @@ assert.deepStrictEqual(
   'S must open Settings from the title menu'
 );
 assert.deepStrictEqual(
+  input.actionsForKeyboardEvent({ keyCode: 67 }, 'menu'),
+  ['continue-game'],
+  'C must map to semantic Continue on the title menu'
+);
+assert.deepStrictEqual(
   input.actionsForKeyboardEvent({ keyCode: 38 }, 'settings'),
   ['ui-up'],
   'Settings must share semantic UI navigation'
