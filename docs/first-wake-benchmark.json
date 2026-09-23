@@ -217,9 +217,10 @@
         "tests/combat-input-contract.test.js",
         "modules/input-bindings.js",
         "tests/input-bindings-contract.test.js",
-        "tests/accessibility-rendering-contract.test.js"
+        "tests/accessibility-rendering-contract.test.js",
+        "tests/accessibility-visual-matrix-playwright.js"
       ],
-      "nextAction": "Run rendered visual acceptance at text scales 100/125/150/175 with high-contrast/subtitle combinations, then require executed exact-head controller-parity and First Wake benchmark results. Music Volume remains blocked on a canonical music bus."
+      "nextAction": "Execute and human-review the 54-frame accessibility visual matrix, then require executed exact-head controller-parity and First Wake benchmark results. Music Volume remains blocked on a canonical music bus."
     },
     {
       "id": "visual-benchmark-set",
