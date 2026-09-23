@@ -42,6 +42,10 @@ assert(runtime.includes('window.AetherSaveSystem.loadBackup(slot)'),
   'semantic-invalid primaries must be allowed to try the previous desktop backup');
 assert(runtime.includes('semanticBackupRecovery: true'),
   'runtime must mark semantic backup recovery explicitly');
+assert(runtime.includes('if (loaded.recoveredFromBackup)'),
+  'integrity-level backup recovery must be promoted into the same runtime recovery evidence path');
+assert(runtime.includes('primaryLoadError'),
+  'runtime recovery evidence must retain the primary integrity/migration failure reason');
 assert(runtime.includes('SAVE_PRIMARY_AND_BACKUP_UNLOADABLE:'),
   'runtime must fail closed when both primary and backup are semantically unloadable');
 assert(runtime.includes('function buildLoadableSaveIndex()'),
