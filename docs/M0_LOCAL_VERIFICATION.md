@@ -18,7 +18,7 @@ Optional development-only skips:
 .\scripts\verify-m0-local.ps1 -SkipWindowsPackage
 ```
 
-A skipped Windows package is **not** release verification. `-SkipWindowsPackage` is development-only and now exits nonzero with `M0_LOCAL_VERIFICATION=INCOMPLETE_REQUIRED_GATE_SKIPPED`; it can never produce a passing M0-local result.
+All three skip switches are **development-only**. A run using `-SkipInstall`, `-SkipBrowserInstall`, or `-SkipWindowsPackage` can never produce a passing M0-local result. Windows-package omission exits with `M0_LOCAL_VERIFICATION=INCOMPLETE_REQUIRED_GATE_SKIPPED`; prerequisite omissions exit with `M0_LOCAL_VERIFICATION=INCOMPLETE_REQUIRED_PREREQUISITE_SKIPPED`.
 
 ## What it runs
 
