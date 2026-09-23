@@ -124,6 +124,15 @@ assert.strictEqual(
   releaseEvidence.artifacts.portableZip.sha256,
   'Technical summary portable ZIP hash does not match release evidence'
 );
+assert(releaseEvidence.persistenceVerification,
+  'Final M0 acceptance requires release persistence verification evidence');
+assert.strictEqual(releaseEvidence.persistenceVerification.desktopSaveRestart, 'PASS',
+  'Final M0 acceptance requires verified installed save/restart persistence');
+assert.strictEqual(
+  releaseEvidence.persistenceVerification.desktopSaveBackupOnlyRecovery,
+  'PASS',
+  'Final M0 acceptance requires verified backup-only crash-window recovery'
+);
 
 runValidator('validate-m0-accessibility-review.js', [
   '--record', accessibilityReviewPath,
