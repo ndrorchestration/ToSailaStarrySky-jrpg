@@ -14,6 +14,9 @@ assert(html.indexOf('modules/user-settings.js') < html.indexOf('aetherwake.js'),
 assert(html.includes('modules/input-bindings.js') &&
        html.indexOf('modules/input-bindings.js') < html.indexOf('aetherwake.js'),
   'input binding persistence authority must load before the runtime');
+assert(html.includes('modules/music-bus.js') &&
+       html.indexOf('modules/music-bus.js') < html.indexOf('aetherwake.js'),
+  'canonical music bus must load before the runtime');
 
 assert(runtime.includes("SETTINGS: 'settings'"),
   'runtime Settings state is missing');
@@ -33,7 +36,7 @@ assert(runtime.includes("'▶ '"),
   'Settings focus must not rely on color alone');
 assert(runtime.includes('window.AetherUserSettings.save(nextSettings)'),
   'Settings changes must persist through the independent settings store');
-assert(runtime.includes('Changes save immediately. Integrated now: motion, screen shake, text speed, effects/dialogue volume.'),
+assert(runtime.includes('Changes save immediately. Accessibility/input/audio changes apply now; music playback remains silent until a packaged track is registered.'),
   'Settings UI must state the current integration boundary');
 assert(runtime.includes("window.AetherUserSettings.SETTING_ORDER.concat(['__controls'])"),
   'Settings must expose the Controls remapping entry without changing the settings schema');
@@ -50,6 +53,8 @@ assert(runtime.includes('dialogueTypeIn.speed = textSpeeds[userSettings.textSpee
 
 assert(runtime.includes('window.setEffectsVolumePercent(userSettings.effectsVolume)'),
   'Effects volume must apply through the authored SFX master-gain adapter');
+assert(runtime.includes('window.AetherMusicBus.setVolumePercent(userSettings.musicVolume)'),
+  'Music volume must apply through the canonical music bus');
 assert(runtime.includes('_dialogueAudioEl.volume = 0.92 * (dialogueVolume / 100)'),
   'Dialogue volume must scale the authored TTS element level');
 
