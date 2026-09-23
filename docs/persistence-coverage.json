@@ -162,12 +162,12 @@
     },
     {
       "id": "world-mutations-beyond-covered-fields",
-      "status": "gap",
-      "snapshot": null,
-      "restore": null,
-      "validator": null,
-      "versionOwner": null,
-      "rationale": "Future persistent world changes must register ownership before implementation is considered complete."
+      "status": "derived",
+      "snapshot": "docs/first-wake-persistent-mutations.json",
+      "restore": "docs/first-wake-persistent-mutations.json",
+      "validator": "tests/first-wake-persistent-mutations-contract.test.js",
+      "versionOwner": "whole-game envelope schema + subsystem version owners",
+      "rationale": "Current bounded First Wake persistent world mutations are explicitly registered in docs/first-wake-persistent-mutations.json with snapshot, restore, semantic-validator, and version ownership. Unknown future persistent mutations are BLOCKING_UNREGISTERED until added to that registry. This does not implement deferred economy/crafting or relationship/private-action persistence."
     },
     {
       "id": "economy-crafting",
