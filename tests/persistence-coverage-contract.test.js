@@ -72,10 +72,14 @@ assert.strictEqual(byId.get('opening-authored-sequence').status, 'transient_not_
 assert.strictEqual(byId.get('combat').status, 'transient_not_saveable');
 assert.strictEqual(byId.get('settings').status, 'covered',
   'user settings persistence must remain independently covered');
+assert(/newer-schema primary\/backup sidecars are downgrade-protected/.test(byId.get('settings').rationale),
+  'settings persistence must preserve newer-schema sidecars during downgrade');
 assert.strictEqual(byId.get('settings').versionOwner, 'user-settings SCHEMA_VERSION',
   'user settings must own an independent schema version');
 assert.strictEqual(byId.get('input-bindings').status, 'covered',
   'input remaps must persist independently from game saves');
+assert(/newer-schema primary\/backup sidecars are downgrade-protected/.test(byId.get('input-bindings').rationale),
+  'input bindings persistence must preserve newer-schema sidecars during downgrade');
 assert.strictEqual(byId.get('input-bindings').versionOwner, 'input-bindings SCHEMA_VERSION',
   'input remaps must own an independent schema version');
 
