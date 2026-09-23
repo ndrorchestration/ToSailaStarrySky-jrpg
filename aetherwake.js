@@ -458,7 +458,7 @@ function draw() {
     }
   }
 
-  drawScanlines();
+  // Preview 0.1 intentionally omits CRT scanlines; they obscure pixel art on native Windows rendering.
 
   // ── Scene fade: track previous state for next-frame detection ──
   prevState = gameState;
