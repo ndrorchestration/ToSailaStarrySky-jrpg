@@ -92,6 +92,15 @@ if (-not $result.externalPlaytest -or $result.externalPlaytest.status -ne 'PREPA
   throw 'Candidate-bound external playtest packet was not prepared.'
 }
 
+npm run prepare:m0-manual-acceptance
+if ($LASTEXITCODE -ne 0) {
+  throw "Manual acceptance dashboard generation failed with code $LASTEXITCODE."
+}
+$manualDashboard = Join-Path $Repo 'artifacts\m0-manual-acceptance\index.html'
+if (-not (Test-Path -LiteralPath $manualDashboard)) {
+  throw 'Manual acceptance dashboard was not generated.'
+}
+
 Write-Host ''
 Write-Host 'M0_OPERATOR_LANE=TECHNICAL_PASS_MANUAL_ACCEPTANCE_PENDING'
 Write-Host "CANDIDATE_COMMIT=$($result.gitHead)"
@@ -100,3 +109,4 @@ Write-Host "ACCESSIBILITY_REVIEW_HTML=$($result.visualMatrix.reviewHtml)"
 Write-Host "ACCESSIBILITY_REVIEW_RECORD=$($result.visualMatrix.reviewRecord)"
 Write-Host "EXTERNAL_PLAYTEST_GUIDE=$($result.externalPlaytest.observerGuide)"
 Write-Host "EXTERNAL_PLAYTEST_RECORD=$($result.externalPlaytest.record)"
+Write-Host "MANUAL_ACCEPTANCE_DASHBOARD=$manualDashboard"
