@@ -200,6 +200,9 @@ jobs:
       - name: Verify persistence coverage registry
         run: npm run test:persistence-coverage
 
+      - name: Verify First Wake persistent mutation ownership
+        run: npm run test:first-wake-persistent-mutations
+
       - name: Verify WORLD authority and four-hazard mirror
         run: npm run test:world-authority
 
