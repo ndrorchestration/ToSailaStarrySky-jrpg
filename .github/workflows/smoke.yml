@@ -218,6 +218,9 @@ jobs:
       - name: Verify final M0 acceptance contract
         run: npm run test:m0-acceptance-contract
 
+      - name: Verify desktop packaging contract
+        run: npm run test:desktop-package
+
       - name: Verify AI-assisted production contract
         run: npm run test:production-method
 
