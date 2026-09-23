@@ -39,6 +39,7 @@ for (const entry of registry.subsystems) {
 
 for (const required of [
   'runtime',
+  'save-write-semantic-preflight',
   'desktop-save-backup-recovery',
   'world-position',
   'quest',
@@ -54,6 +55,9 @@ for (const required of [
   assert(byId.has(required), 'required persistence subsystem not registered: ' + required);
 }
 
+assert.strictEqual(byId.get('save-write-semantic-preflight').status, 'derived');
+assert(/before any primary replacement or autosave rotation/.test(byId.get('save-write-semantic-preflight').rationale),
+  'save-write semantic preflight must remain ahead of destructive slot mutation');
 assert.strictEqual(byId.get('desktop-save-backup-recovery').status, 'derived');
 assert(/same semantic preflight/.test(byId.get('desktop-save-backup-recovery').rationale),
   'desktop backup recovery must remain gated by the same semantic validation as primary saves');
