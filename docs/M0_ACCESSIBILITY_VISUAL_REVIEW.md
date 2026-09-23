@@ -2,7 +2,7 @@
 
 Status: **MANUAL BLOCKING EVIDENCE / HUMAN JUDGMENT REQUIRED**
 
-This protocol owns human acceptance of the generated 54-frame accessibility visual matrix. Automated capture proves that the required surfaces render without registered runtime/HTTP errors; it does **not** prove readability, clipping quality, focus clarity, contrast quality, or acceptable composition.
+This protocol owns human acceptance of the generated 58-frame accessibility visual matrix. Automated capture proves that the required surfaces render without registered runtime/HTTP errors; it does **not** prove readability, clipping quality, focus clarity, contrast quality, or acceptable composition.
 
 ## Candidate binding
 
@@ -18,8 +18,8 @@ Do not reuse a review from another commit or regenerated matrix.
 
 ## Required review set
 
-The current matrix contains exactly **54 captures**:
-- 44 text-scale captures: 11 representative surfaces at 100%, 125%, 150%, and 175%;
+The current matrix contains exactly **58 captures**:
+- 48 text-scale captures: 12 representative surfaces at 100%, 125%, 150%, and 175%;
 - 6 high-contrast captures at 150%;
 - 4 subtitle/speaker-label presentation captures.
 
@@ -62,7 +62,7 @@ The human review and the uncoached external-player gate answer different questio
 
 The generated matrix manifest uses provenance schema v2 and binds:
 - exact Git HEAD;
-- exactly 54 capture records;
+- exactly 58 capture records;
 - each capture filename, byte count, and SHA-256.
 
 After completing the human review record, validate it against the exact matrix before treating the review as admissible evidence:
@@ -77,14 +77,14 @@ A validator PASS confirms integrity and completeness of the human record; it doe
 
 ## Deterministic review packet
 
-After the 54-frame matrix is generated, create the review packet with:
+After the 58-frame matrix is generated, create the review packet with:
 
 ```powershell
 npm run prepare:accessibility-review
 ```
 
 This produces, inside `artifacts/accessibility-visual-matrix/`:
-- `review-index.html` — a local contact sheet containing all 54 manifest-bound captures, grouped by text scale, high-contrast, and subtitle cases;
+- `review-index.html` — a local contact sheet containing all 58 manifest-bound captures, grouped by text scale, high-contrast, and subtitle cases;
 - `human-review.json` — a copy of the review template pre-bound to the exact matrix Git HEAD, manifest SHA-256, and capture count.
 
 The generated record remains `NOT_RUN`; all coverage flags remain false and all review criteria remain unset. The packet generator verifies the manifest and every screenshot hash before writing either output. It does **not** perform or imply human acceptance.
