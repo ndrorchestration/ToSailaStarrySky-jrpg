@@ -64,6 +64,16 @@ localStorage.setItem(settings.STORAGE_KEY, '{broken json');
 const recovered = settings.load();
 assert.strictEqual(recovered.settings.musicVolume, 55,
   'settings loader must recover validated browser backup after primary corruption');
+assert.strictEqual(recovered.recoveredFromBackup, true);
+assert(recovered.primaryLoadError,
+  'settings recovery must retain the primary failure reason');
+
+localStorage.removeItem(settings.STORAGE_KEY);
+const missingPrimaryRecovered = settings.load();
+assert.strictEqual(missingPrimaryRecovered.recoveredFromBackup, true,
+  'settings loader must recover backup when primary is missing');
+assert.strictEqual(missingPrimaryRecovered.primaryLoadError, 'SETTINGS_PRIMARY_MISSING');
+assert.strictEqual(missingPrimaryRecovered.settings.musicVolume, 55);
 
 // Downgrade protection: parseable newer-schema settings must be preserved.
 const futureSettings = {
