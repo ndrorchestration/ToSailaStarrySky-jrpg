@@ -51,6 +51,9 @@ assert(!workflow.includes('actions/upload-artifact@v4'),
   'release-critical path must not depend on GitHub Actions artifact storage');
 assert(!workflow.includes('actions/download-artifact@v4'),
   'release-critical path must not depend on GitHub Actions artifact transfer');
+assert(workflow.includes('Verify clean source checkout') &&
+       workflow.includes('Release source checkout is not clean'),
+  'hosted release workflow must verify a clean source checkout before building');
 assert(workflow.includes('npm ci'),
   'desktop workflow must use the lockfile');
 assert(workflow.includes('npm run test:desktop-package'),
@@ -216,8 +219,9 @@ const releaseEvidenceWriter = fs.readFileSync(
 );
 assert(releaseEvidenceWriter.includes("git', ['rev-parse', 'HEAD']"),
   'release evidence must bind artifacts to exact source commit');
-assert(releaseEvidenceWriter.includes("git', ['status', '--porcelain=v1']"),
-  'release evidence must reject dirty working-tree provenance');
+assert(releaseEvidenceWriter.includes("['diff', '--quiet', 'HEAD', '--']") &&
+       releaseEvidenceWriter.includes("['diff', '--cached', '--quiet', '--']"),
+  'release evidence must reject tracked source mutation while allowing generated artifacts');
 assert(releaseEvidenceWriter.includes('governedTitleAudio') &&
        releaseEvidenceWriter.includes('sourceVerification.sha256'),
   'release evidence must retain governed title-audio identity');
