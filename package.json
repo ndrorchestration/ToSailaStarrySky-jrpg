@@ -107,6 +107,7 @@
     "test:title-audio-handoff": "node tests/title-audio-handoff-contract.test.js",
     "test:accessibility-visual-review": "node tests/accessibility-visual-review-contract.test.js",
     "validate:accessibility-review": "node scripts/validate-m0-accessibility-review.js",
-    "prepare:accessibility-review": "node scripts/prepare-m0-accessibility-review.js"
+    "prepare:accessibility-review": "node scripts/prepare-m0-accessibility-review.js",
+    "test:accessibility-review-packet": "node tests/accessibility-review-packet-contract.test.js"
   }
 }
