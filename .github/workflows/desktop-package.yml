@@ -228,6 +228,19 @@ jobs:
           if (-not $write.savePath -or -not (Test-Path -LiteralPath $write.savePath)) {
             throw "Packaged save was not created at the reported path"
           }
+          if (-not $write.backupOnlyPrimaryPath -or
+              -not $write.backupOnlyBackupPath -or
+              -not (Test-Path -LiteralPath $write.backupOnlyPrimaryPath) -or
+              -not (Test-Path -LiteralPath $write.backupOnlyBackupPath)) {
+            throw "Packaged backup-only fixture did not create both generations"
+          }
+          Remove-Item -LiteralPath $write.backupOnlyPrimaryPath -Force
+          if (Test-Path -LiteralPath $write.backupOnlyPrimaryPath) {
+            throw "Packaged backup-only fixture primary could not be removed"
+          }
+          if (-not (Test-Path -LiteralPath $write.backupOnlyBackupPath)) {
+            throw "Packaged backup-only fixture lost its recovery backup before relaunch"
+          }
 
           $load = Invoke-SaveSmokePhase "load" $loadMarker
           if (-not $load.restored) {
@@ -251,6 +264,27 @@ jobs:
           if ($load.dataPath -ne $write.dataPath) {
             throw "Packaged relaunch did not use the same isolated NW.js data path"
           }
+          if (-not $load.backupOnlyRestored) {
+            throw "Packaged relaunch did not recover the backup-only save generation"
+          }
+          if ($load.backupOnlyTileX -ne $write.backupOnlyExpectedTileX -or
+              $load.backupOnlyTileY -ne $write.backupOnlyExpectedTileY) {
+            throw "Packaged backup-only recovery restored the wrong player position"
+          }
+          if ($load.backupOnlyQuestStateRestored -ne $write.backupOnlyQuestState) {
+            throw "Packaged backup-only recovery restored the wrong quest state"
+          }
+          $backupWriteIds = @($write.backupOnlyActiveIds)
+          $backupLoadIds = @($load.backupOnlyActiveIdsRestored)
+          if ($backupWriteIds.Count -ne $backupLoadIds.Count -or
+              (Compare-Object -ReferenceObject $backupWriteIds -DifferenceObject $backupLoadIds -SyncWindow 0)) {
+            throw "Packaged backup-only recovery restored the wrong active-party membership/order"
+          }
+          if (-not $load.backupOnlyLoadedPath -or
+              -not $load.backupOnlyLoadedPath.EndsWith(".bak")) {
+            throw "Packaged backup-only recovery did not load from the surviving .bak path"
+          }
+          Write-Host "DESKTOP_SAVE_BACKUP_ONLY_RECOVERY=PASS"
           Write-Host "DESKTOP_SAVE_RESTART=PASS"
           Write-Host ($load | ConvertTo-Json -Compress)
           Remove-Item Env:AETHERWAKE_SAVE_PERSISTENCE_PHASE -ErrorAction SilentlyContinue
