@@ -1887,6 +1887,37 @@ function saveMetadata() {
   };
 }
 
+function validateSavePayloadBeforeWrite(payload) {
+  if (!window.AetherSavePayloadValidator ||
+      typeof window.AetherSavePayloadValidator.validatePayload !== 'function') {
+    throw new Error('SAVE_PAYLOAD_VALIDATOR_UNAVAILABLE');
+  }
+
+  window.AetherSavePayloadValidator.validatePayload(payload, {
+    validateAirNavigation: function(candidate) {
+      return window.AetherAirNavigation.validatePersistentState(candidate);
+    }
+  });
+
+  if (payload.quest.wakeEpilogueId &&
+      !quest.epilogues.some(ep => ep.id === payload.quest.wakeEpilogueId)) {
+    throw new Error('SAVE_QUEST_EPILOGUE_UNKNOWN');
+  }
+
+  if (window.AetherwakeCharacterMagicProfile &&
+      typeof window.AetherwakeCharacterMagicProfile.validateProfile === 'function') {
+    payload.party.roster.forEach(record => {
+      if (!record.magicProfile) return;
+      const validated = window.AetherwakeCharacterMagicProfile.validateProfile(record.magicProfile);
+      if (!validated || validated.characterId !== record.id) {
+        throw new Error('SAVE_PARTY_MAGIC_PROFILE_MISMATCH:' + record.id);
+      }
+    });
+  }
+
+  return true;
+}
+
 function saveToSlot(slot, autosave) {
   if (!canSaveNow()) {
     showToast('CANNOT SAVE HERE', C.rust, 1400);
@@ -1894,6 +1925,7 @@ function saveToSlot(slot, autosave) {
   }
   try {
     const payload = buildSavePayload();
+    validateSavePayloadBeforeWrite(payload);
     const result = autosave
       ? window.AetherSaveSystem.rotateAutosave(payload, saveMetadata())
       : window.AetherSaveSystem.save(slot, payload, saveMetadata());
