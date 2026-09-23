@@ -92,6 +92,7 @@
     "test:input-bindings": "node tests/input-bindings-contract.test.js",
     "test:accessibility-rendering": "node tests/accessibility-rendering-contract.test.js",
     "test:world-authority": "node tests/world-authority-contract.test.js",
-    "test:accessibility-visual-matrix": "node tests/accessibility-visual-matrix-playwright.js"
+    "test:accessibility-visual-matrix": "node tests/accessibility-visual-matrix-playwright.js",
+    "test:music-bus": "node tests/music-bus-contract.test.js"
   }
 }
