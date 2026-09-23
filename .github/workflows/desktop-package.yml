@@ -286,6 +286,8 @@ jobs:
           }
           Write-Host "DESKTOP_SAVE_BACKUP_ONLY_RECOVERY=PASS"
           Write-Host "DESKTOP_SAVE_RESTART=PASS"
+          "AETHERWAKE_RELEASE_DESKTOP_SAVE_RESTART=PASS" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "AETHERWAKE_RELEASE_DESKTOP_SAVE_BACKUP_ONLY_RECOVERY=PASS" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Host ($load | ConvertTo-Json -Compress)
           Remove-Item Env:AETHERWAKE_SAVE_PERSISTENCE_PHASE -ErrorAction SilentlyContinue
           Remove-Item Env:AETHERWAKE_SAVE_PERSISTENCE_MARKER -ErrorAction SilentlyContinue
