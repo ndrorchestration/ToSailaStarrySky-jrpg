@@ -111,6 +111,7 @@ let saveMenuMode = 'save';
 let saveMenuIndex = 0;
 let saveMenuFocus = null;
 let saveMenuReturnState = STATE.WORLD;
+let saveOverwritePendingSlot = null;
 let gamepadInputState = null;
 let inputBindingsState = null;
 let userSettings = null;
@@ -2129,6 +2130,11 @@ function syncSaveMenuFocusSnapshot() {
   window._saveMenuFocus = snapshot;
 }
 
+function setSaveOverwritePending(slot) {
+  saveOverwritePendingSlot = slot || null;
+  window._saveOverwritePendingSlot = saveOverwritePendingSlot;
+}
+
 function openSaveLoadMenu(mode, preferredSlot) {
   if (!canSaveNow() && mode === 'save') {
     showToast('CANNOT SAVE HERE', C.rust, 1400);
@@ -2136,6 +2142,7 @@ function openSaveLoadMenu(mode, preferredSlot) {
   }
   saveMenuReturnState = gameState === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
   saveMenuMode = mode === 'load' ? 'load' : 'save';
+  setSaveOverwritePending(null);
   const slots = window.AetherSaveSystem.MANUAL_SLOTS;
   saveMenuFocus = window.AetherFocusManager.createState(slots, preferredSlot || slots[0]);
   syncSaveMenuFocusSnapshot();
@@ -2149,6 +2156,24 @@ function handleSaveLoadInput() {
   if (!saveMenuFocus) {
     saveMenuFocus = window.AetherFocusManager.createState(slots, slots[0]);
     syncSaveMenuFocusSnapshot();
+  }
+
+  if (saveOverwritePendingSlot) {
+    if (semanticActionPressed('cancel')) {
+      setSaveOverwritePending(null);
+      showToast('OVERWRITE CANCELLED // SAVE PRESERVED', C.scioto, 1200);
+      return;
+    }
+    if (semanticActionPressed('confirm')) {
+      const slot = saveOverwritePendingSlot;
+      setSaveOverwritePending(null);
+      const returnState = saveMenuReturnState;
+      gameState = returnState;
+      window.gameState = gameState;
+      saveToSlot(slot, false);
+      openSaveLoadMenu('save', slot);
+    }
+    return;
   }
 
   if (semanticActionPressed('cancel')) {
@@ -2170,6 +2195,11 @@ function handleSaveLoadInput() {
   if (semanticActionPressed('confirm')) {
     const slot = window.AetherFocusManager.focusedId(saveMenuFocus);
     if (saveMenuMode === 'save') {
+      const existing = buildLoadableSaveIndex().find(entry => entry.slot === slot && entry.exists);
+      if (existing) {
+        setSaveOverwritePending(slot);
+        return;
+      }
       const returnState = saveMenuReturnState;
       gameState = returnState;
       window.gameState = gameState;
@@ -2230,6 +2260,36 @@ function drawSaveLoadOverlay() {
     textFont('Press Start 2P');
     uiTextSize(9);
   }
+  if (saveOverwritePendingSlot) {
+    const slotNumber = slots.indexOf(saveOverwritePendingSlot) + 1;
+    const boxW = 620;
+    const boxH = 112;
+    const boxX = (width - boxW) / 2;
+    const boxY = (height - boxH) / 2;
+    fill(C.navy[0], C.navy[1], C.navy[2], 252);
+    rect(boxX, boxY, boxW, boxH);
+    drawPixelBorder(boxX, boxY, boxW, boxH, 3);
+    textAlign(CENTER, TOP);
+    textFont('Press Start 2P');
+    uiTextSize(10);
+    fill(C.rust[0], C.rust[1], C.rust[2]);
+    text('OVERWRITE SLOT ' + slotNumber + '?', width / 2, boxY + 18);
+    textFont('VT323');
+    uiTextSize(15);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2]);
+    text('The current save will be retained as the previous backup generation.', width / 2, boxY + 48);
+    textFont('Press Start 2P');
+    uiTextSize(8);
+    fill(C.scioto[0], C.scioto[1], C.scioto[2]);
+    text(
+      inputPrompt('confirm', 'save-load', 'both') + ' overwrite   ' +
+      inputPrompt('cancel', 'save-load', 'both') + ' keep current save',
+      width / 2,
+      boxY + 80
+    );
+    textAlign(LEFT, TOP);
+  }
+
   fill(C.scioto[0], C.scioto[1], C.scioto[2]);
   text(
     inputPrompt('ui-up', 'save-load', 'both') + ' / ' +
