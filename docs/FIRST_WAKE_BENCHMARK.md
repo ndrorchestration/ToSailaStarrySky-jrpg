@@ -30,6 +30,7 @@ A gate being labelled automated does **not** mean its current branch has execute
 11. Combat return to stable WORLD.
 12. Dragonfly flight and stable navigation.
 13. Representative input/accessibility, visual, and audio acceptance.
+14. At least one uncoached external-player completion pass before content scale-out.
 
 ## Why this exists
 
@@ -40,3 +41,9 @@ New systems and content should extend this benchmark rather than silently replac
 - remain outside the representative slice until its upstream architecture is ready.
 
 This keeps future regions, enemies, quests, menus, and assets from multiplying faster than the shared production pipelines can support them.
+
+## External-player scale-out gate
+
+Automated contracts prove determinism and state integrity; they do not prove that a new player understands the game. Before broad content scale-out, require at least one player who was not coached live by the creator/developer to complete the representative slice. The pass should establish that the player can understand the current objective, choose combat actions for intelligible reasons, use save/load, recover from at least one non-happy-path state, and finish the bounded First Wake experience without repository or browser knowledge.
+
+This is intentionally a **manual production gate**. A passing developer smoke test or local M0 run cannot substitute for it.
