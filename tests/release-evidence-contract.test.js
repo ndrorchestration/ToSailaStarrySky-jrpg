@@ -35,6 +35,13 @@ assert(script.includes('sha256(installer)') &&
   'release evidence must fingerprint both release artifacts');
 assert(script.includes("trackedSource: 'unchanged-from-head'"),
   'release evidence must record that tracked source remained unchanged from HEAD');
+assert(script.includes('AETHERWAKE_RELEASE_DESKTOP_SAVE_RESTART') &&
+       script.includes('AETHERWAKE_RELEASE_DESKTOP_SAVE_BACKUP_ONLY_RECOVERY'),
+  'release evidence must require explicit persistence verification inputs');
+assert(script.includes('persistenceVerification') &&
+       script.includes('desktopSaveRestart') &&
+       script.includes('desktopSaveBackupOnlyRecovery'),
+  'release evidence must record restart and backup-only recovery proof');
 
 assert.strictEqual(
   packageJson.scripts['write:release-evidence'],
@@ -47,12 +54,18 @@ assert(localRelease.includes('SOURCE_COMMIT=$gitHead'),
 assert(localRelease.includes('RELEASE_EVIDENCE.json') &&
        localRelease.includes('npm run write:release-evidence'),
   'local release must generate machine-readable release evidence');
+assert(localRelease.includes("$env:AETHERWAKE_RELEASE_DESKTOP_SAVE_RESTART = 'PASS'") &&
+       localRelease.includes("$env:AETHERWAKE_RELEASE_DESKTOP_SAVE_BACKUP_ONLY_RECOVERY = 'PASS'"),
+  'local release must export verified persistence results before provenance generation');
 assert(workflow.includes('Verify clean source checkout') &&
        workflow.includes('Release source checkout is not clean'),
   'hosted release must verify a clean source checkout before build');
 assert(workflow.includes('Write release provenance evidence') &&
        workflow.includes('npm run write:release-evidence'),
   'hosted Windows release must generate release evidence');
+assert(workflow.includes('AETHERWAKE_RELEASE_DESKTOP_SAVE_RESTART=PASS') &&
+       workflow.includes('AETHERWAKE_RELEASE_DESKTOP_SAVE_BACKUP_ONLY_RECOVERY=PASS'),
+  'hosted Windows release must carry persistence verification into release evidence');
 assert(workflow.includes('RELEASE_EVIDENCE.json'),
   'hosted release publication must include release evidence');
 assert(
