@@ -90,7 +90,7 @@ For the normal Windows operator path, use:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-m0-operator.ps1 -TitleAudioSource "C:\path\to\Aetherwake - Skyward Arpeggio Main Title.mp3"
 ```
 
-The operator lane requires a named branch and clean checkout. If title audio is not yet admitted, it performs the governed committed admission first, then runs the full exact-head local M0 verifier. If title audio is already admitted, the admission step is skipped only after manifest authority confirms it.
+The operator lane requires a named branch and clean checkout. It first runs the strict M0 title-audio readiness gate, which verifies the canonical MP3 exists, is Git-tracked, and matches the governed byte count/SHA-256 in addition to manifest/runtime admission state. If strict readiness fails, it performs the governed committed admission using the supplied exact source and then runs the full exact-head local M0 verifier. It skips admission only when the strict readiness gate actually passes.
 
 A successful technical run emits:
 
