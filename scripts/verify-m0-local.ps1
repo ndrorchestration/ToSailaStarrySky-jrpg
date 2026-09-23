@@ -170,8 +170,14 @@ try {
     }
   } else {
     $results.windowsPackage = [ordered]@{
-      status = 'SKIPPED_BY_OPERATOR'
+      status = 'SKIPPED_DEVELOPMENT_ONLY'
     }
+    Write-Summary 'INCOMPLETE_REQUIRED_GATE_SKIPPED'
+    Write-Host ""
+    Write-Host "M0_LOCAL_VERIFICATION=INCOMPLETE_REQUIRED_GATE_SKIPPED" -ForegroundColor Yellow
+    Write-Host "WINDOWS_PACKAGE=SKIPPED_DEVELOPMENT_ONLY"
+    Write-Host "SUMMARY=$SummaryPath"
+    exit 2
   }
 
   Write-Summary 'PASS_WITH_MANUAL_ACCEPTANCE_PENDING'
