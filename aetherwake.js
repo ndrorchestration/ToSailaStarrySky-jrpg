@@ -1741,6 +1741,13 @@ function loadSemanticallyValidSaveCandidate(slot) {
     const loaded = window.AetherSaveSystem.load(slot);
     if (!loaded || !loaded.envelope) return null;
     prepareSaveEnvelopeForApply(loaded.envelope);
+    if (loaded.recoveredFromBackup) {
+      return {
+        ...loaded,
+        semanticBackupRecovery: true,
+        primarySemanticError: loaded.primaryLoadError || null
+      };
+    }
     return loaded;
   } catch (error) {
     primaryError = error;
