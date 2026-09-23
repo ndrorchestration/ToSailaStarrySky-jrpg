@@ -27,7 +27,23 @@ for (const fn of [
   'drawSaveLoadOverlay',
   'drawSettingsOverlay',
   'drawControlsOverlay',
-  'drawDialogueOverlay'
+  'drawFirstWakeOpening',
+  'drawAirNavigationScene',
+  'drawDialogueOverlay',
+  'drawShopOverlay',
+  'drawLedgerOverlay',
+  'drawQuestLogOverlay',
+  'drawCharSheetOverlay',
+  'drawQuestOverlay',
+  'drawChoiceMenu',
+  'drawWakeResolutionBeat',
+  'drawEpilogueScreen',
+  'drawSolarMeter',
+  'drawInteractionHints',
+  'drawCharSheet',
+  'drawCombatPanel',
+  'drawCombatLog',
+  'drawToasts'
 ]) {
   const start = source.indexOf('function ' + fn + '(');
   assert(start >= 0, fn + ' missing');
@@ -37,6 +53,19 @@ for (const fn of [
   assert(body.includes('uiTextSize('),
     fn + ' must consume the shared text-scale adapter');
 }
+
+
+assert(source.includes("window.AetherInputPrompt(actionId, 'world', 'both')"),
+  'WORLD interaction hints must render the active remapped binding');
+assert(source.includes("const hintW = Math.max(84, textWidth(label) + 18)"),
+  'WORLD interaction hint box must expand with scaled/remapped prompt text');
+
+const choice = sliceFunction('drawChoiceMenu', 'mousePressed');
+const choiceMouse = sliceFunction('mousePressed', 'handleChoiceInput');
+assert(choice.includes('const optionH = Math.round(58 + 24 * (uiScale - 1))'),
+  'Choice menu rows must expand with text scale');
+assert(choiceMouse.includes('const optionH = Math.round(58 + 24 * (uiScale - 1))'),
+  'Choice mouse hitboxes must share the scaled row geometry');
 
 assert(source.includes('function applyHighContrastPalette(enabled)'),
   'high-contrast palette adapter missing');
