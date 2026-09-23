@@ -76,3 +76,25 @@ Copy `docs/m0-external-playtest-record.template.json` for each candidate/partici
 - `INVALIDATED`
 
 Do not promote this gate from manual evidence to automated evidence.
+
+## Evidence validation
+
+A completed PASS record must be validated against the exact release provenance file used for the participant build:
+
+```powershell
+npm run validate:external-playtest -- --record ".\path\to\completed-playtest.json" --release-evidence ".\path\to\RELEASE_EVIDENCE.json"
+```
+
+The validator fails closed unless:
+- the playtest commit matches the release evidence source Git HEAD;
+- the release-evidence SHA-256 matches the exact evidence file reviewed;
+- installer filename and SHA-256 match the release evidence;
+- the candidate was actually player-verified as a standalone Windows build;
+- the participant had no prior Aetherwake exposure or gameplay instructions beyond launch;
+- all required observed-path results are explicitly true;
+- objective comprehension, combat reasoning, and non-happy-path recovery evidence are recorded;
+- no live intervention occurred;
+- no blocking defect remains;
+- completion time, observer identity, review time, and explicit `PASS` are recorded.
+
+A validator PASS proves integrity/completeness of the evidence record. It does not automate or replace the human participant session.
