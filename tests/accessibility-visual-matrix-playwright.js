@@ -168,6 +168,16 @@ async function capture(page, fileName) {
   const captures = [];
 
   page.on('pageerror', err => errors.push(`PAGE: ${err.message}`));
+  page.on('requestfailed', request => {
+    errors.push(`REQUEST: ${request.url()} — ${request.failure()?.errorText || 'failed'}`);
+  });
+  page.on('response', response => {
+    if (response.status() < 400) return;
+    // Dialogue TTS is an explicitly optional/fail-closed asset family during this
+    // pre-alpha benchmark; all other missing runtime assets invalidate the matrix.
+    if (/\\/tts\\/[^/]+\\/[^/]+\\/\\d+\\.mp3(?:\\?.*)?$/.test(response.url())) return;
+    errors.push(`HTTP ${response.status()} ${response.url()}`);
+  });
   page.on('console', msg => {
     if (msg.type() === 'error' && !msg.text().includes('Failed to load resource')) {
       errors.push(`CONSOLE: ${msg.text()}`);
