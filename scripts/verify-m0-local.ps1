@@ -112,6 +112,7 @@ try {
     'test:save-payload',
     'test:save-interrupted-write',
     'test:persistence-coverage',
+    'test:first-wake-persistent-mutations',
     'test:first-wake-benchmark',
     'test:input-actions',
     'test:focus-manager',
