@@ -59,3 +59,8 @@ assert(runtime.includes('_dialogueAudioEl.volume = 0.92 * (dialogueVolume / 100)
   'Dialogue volume must scale the authored TTS element level');
 
 console.log('Aetherwake Settings runtime contract: PASS');
+
+assert(runtime.includes('recoveredFromBackup: Boolean(loaded.recoveredFromBackup)'),
+  'runtime must preserve user-settings backup recovery provenance');
+assert(runtime.includes('futureSchemaProtected: Boolean(loaded.futureSchemaProtected)'),
+  'runtime must expose newer-schema settings protection state');
