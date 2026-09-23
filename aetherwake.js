@@ -1643,15 +1643,6 @@ function drawBackgroundGrid() {
   for (let y = 0; y < height; y += 32) line(0, y, width, y);
 }
 
-function drawScanlines() {
-  noFill();
-  for (let y = 0; y < height; y += 3) {
-    stroke(C.teal[0], C.teal[1], C.teal[2], 3);
-    strokeWeight(1);
-    line(0, y, width, y);
-  }
-}
-
 function drawTitleScreen() {
   const visual = window.AetherTitleVisual;
   if (visual && typeof visual.draw === 'function') {
