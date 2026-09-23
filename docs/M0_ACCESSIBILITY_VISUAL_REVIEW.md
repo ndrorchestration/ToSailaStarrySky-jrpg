@@ -56,3 +56,21 @@ A passing automated visual-matrix capture **cannot** set this result to `PASS`.
 Copy `docs/m0-accessibility-visual-review.template.json` for each exact candidate review.
 
 The human review and the uncoached external-player gate answer different questions and neither substitutes for the other.
+
+
+## Evidence validation
+
+The generated matrix manifest uses provenance schema v2 and binds:
+- exact Git HEAD;
+- exactly 54 capture records;
+- each capture filename, byte count, and SHA-256.
+
+After completing the human review record, validate it against the exact matrix before treating the review as admissible evidence:
+
+```powershell
+npm run validate:accessibility-review -- --record ".\path\to\completed-review.json" --matrix-dir ".\artifacts\accessibility-visual-matrix"
+```
+
+The validator fails closed if the review commit does not match the matrix Git HEAD, the manifest bytes changed, any capture was replaced/regenerated, review coverage is incomplete, any criterion is not explicitly true, blocking defects remain, reviewer identity/date is missing, or the result is not `PASS`.
+
+A validator PASS confirms integrity and completeness of the human record; it does not replace the human judgment that produced that record.
