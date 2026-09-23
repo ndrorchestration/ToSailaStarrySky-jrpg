@@ -138,6 +138,10 @@ jobs:
           $exe = Join-Path $installDir "Aetherwake.exe"
           if (-not (Test-Path -LiteralPath $exe)) { throw "Installed Aetherwake.exe was not found" }
 
+          npm run verify:packaged-title-audio -- "$installDir"
+          if ($LASTEXITCODE -ne 0) { throw "Installed title-audio verification failed" }
+          Write-Host "INSTALLED_TITLE_AUDIO=PASS"
+
           $env:AETHERWAKE_DESKTOP_SMOKE_MARKER = $marker
           $game = Start-Process -FilePath $exe -PassThru
 
@@ -263,6 +267,9 @@ jobs:
           if (-not (Test-Path -LiteralPath (Join-Path $portable "Aetherwake.exe"))) {
             throw "Portable Aetherwake.exe was not found"
           }
+          npm run verify:packaged-title-audio -- "$portable"
+          if ($LASTEXITCODE -ne 0) { throw "Portable title-audio verification failed" }
+          Write-Host "PORTABLE_TITLE_AUDIO=PASS"
 
       - name: Write SHA-256 manifest
         shell: pwsh
