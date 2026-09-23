@@ -119,10 +119,11 @@
     function key(slot) { return STORAGE_PREFIX + slot; }
     return {
       type: 'localStorage',
-      write(slot, envelope) {
+      write(slot, envelope, options) {
         const primaryKey = key(slot);
         const previous = root.localStorage.getItem(primaryKey);
-        if (previous !== null) {
+        const preserveBackup = Boolean(options && options.preserveBackup);
+        if (!preserveBackup && previous !== null) {
           root.localStorage.setItem(primaryKey + '.bak', previous);
         }
         root.localStorage.setItem(primaryKey, JSON.stringify(envelope));
@@ -164,12 +165,13 @@
     function file(slot) { return path.join(dir, slot + '.json'); }
     return {
       type: 'nw-file',
-      write(slot, envelope) {
+      write(slot, envelope, options) {
         const target = file(slot);
         const tmp = target + '.tmp';
         const bak = target + '.bak';
         const json = JSON.stringify(envelope, null, 2) + '\n';
-        testHook('before-temp-write', { slot, target, tmp, bak });
+        const preserveBackup = Boolean(options && options.preserveBackup);
+        testHook('before-temp-write', { slot, target, tmp, bak, preserveBackup });
 
         const fd = fs.openSync(tmp, 'w');
         try {
@@ -182,10 +184,14 @@
 
         try {
           if (fs.existsSync(target)) {
-            if (fs.existsSync(bak)) fs.unlinkSync(bak);
-            fs.renameSync(target, bak);
+            if (preserveBackup) {
+              fs.unlinkSync(target);
+            } else {
+              if (fs.existsSync(bak)) fs.unlinkSync(bak);
+              fs.renameSync(target, bak);
+            }
           }
-          testHook('after-backup-promote', { slot, target, tmp, bak });
+          testHook('after-backup-promote', { slot, target, tmp, bak, preserveBackup });
           testHook('before-primary-promote', { slot, target, tmp, bak });
           fs.renameSync(tmp, target);
           testHook('after-primary-promote', { slot, target, tmp, bak });
@@ -283,15 +289,20 @@
     return true;
   }
 
-  function save(slot, payload, meta) {
+  function save(slot, payload, meta, options) {
     validateSlot(slot);
     const storage = getStorage();
     if (!storage) throw new Error('SAVE_STORAGE_UNAVAILABLE');
     assertSlotOverwriteCompatible(slot, storage);
     const envelope = makeEnvelope(slot, payload, meta || {});
     validateEnvelope(envelope);
-    storage.write(slot, envelope);
-    return { envelope, storageType: storage.type, path: storage.path(slot) };
+    storage.write(slot, envelope, options || {});
+    return {
+      envelope,
+      storageType: storage.type,
+      path: storage.path(slot),
+      preservedBackup: Boolean(options && options.preserveBackup)
+    };
   }
 
   function load(slot) {
@@ -418,7 +429,9 @@
         ? Date.parse(entry.loaded.envelope.savedAt) || 0
         : 0
     })).sort((a,b) => a.time - b.time);
-    return save(dated[0].slot, payload, meta);
+    const chosen = entries.find(entry => entry.slot === dated[0].slot);
+    const preserveBackup = Boolean(chosen && chosen.loaded && chosen.loaded.recoveredFromBackup);
+    return save(dated[0].slot, payload, meta, { preserveBackup });
   }
 
   return Object.freeze({
