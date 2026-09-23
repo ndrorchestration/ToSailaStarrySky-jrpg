@@ -86,6 +86,10 @@ assert(runtime.includes('RECOVERED PREVIOUS SAVE // PRIMARY INVALID'),
   'player must receive a visible recovery notice when backup semantics rescue a slot');
 assert(runtime.includes('NEWER VERSION SAVE — PRESERVED'),
   'save UI must clearly distinguish protected future-version saves from corrupt saves');
+assert(runtime.includes('RECOVERY BACKUP // NEWER V'),
+  'save UI must label an older recovery backup when a newer primary is preserved');
+assert(runtime.includes('RECOVERED OLDER SAVE // NEWER PRIMARY PRESERVED'),
+  'load recovery must explain mixed-version fallback to the player');
 assert(runtime.includes('futureSchemaProtected'),
   'save index must classify future-schema protection explicitly');
 assert(runtime.includes('function applySaveEnvelope(envelope)'), 'runtime restore path missing');
