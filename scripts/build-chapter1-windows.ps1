@@ -215,6 +215,15 @@ $folderName = "Aetherwake-Chapter1-$shortHead"
 $candidateDir = Join-Path $OutputDir $folderName
 Copy-Item -LiteralPath $package.FullName -Destination $candidateDir -Recurse
 
+$candidateProvenance = Join-Path $candidateDir "CHAPTER1_BUILD_PROVENANCE.json"
+if (-not (Test-Path -LiteralPath $candidateProvenance)) {
+  throw "Copied Chapter 1 candidate is missing build provenance."
+}
+$candidateProvenanceCheck = Get-Content -LiteralPath $candidateProvenance -Raw | ConvertFrom-Json
+if ($candidateProvenanceCheck.sourceCommit -ne $gitHead) {
+  throw "Copied Chapter 1 candidate provenance does not match exact Git source."
+}
+
 $zipName = "$folderName-Windows.zip"
 $zip = Join-Path $OutputDir $zipName
 Compress-Archive -Path (Join-Path $candidateDir "*") -DestinationPath $zip -CompressionLevel Optimal
@@ -242,6 +251,8 @@ $evidence = [ordered]@{
   canvas = "960x640"
   portableZip = $zipName
   portableZipSha256 = $hashLower
+  packagedProvenanceSourceCommit = $candidateProvenanceCheck.sourceCommit
+  packagedProvenanceVerified = $true
   windowsSaveCloseRelaunchContinue = "PASS"
   persistenceStorageType = $createEvidence.storageType
   persistenceSavePath = $createEvidence.savePath
