@@ -599,13 +599,6 @@ function draw() {
     startGame();
   }
 
-  if (gameState === STATE.WORLD && previewEndAt > 0 && millis() >= previewEndAt) {
-    previewEndAt = 0;
-    gameState = STATE.PREVIEW_END;
-    window.gameState = gameState;
-    prevState = null;
-  }
-
   // Subtle corner brackets — confirm canvas is live without distracting
   noFill();
   stroke(C.teal[0], C.teal[1], C.teal[2], 50);
@@ -1261,9 +1254,9 @@ function advanceFirstWakeOpening() {
     gameState = STATE.WORLD;
     window.gameState = gameState;
     prevState = null;
-    showToast('AETHERWAKE PREVIEW 0.1 // FIRST WAKE', C.scioto, 1800);
-    showToast('WASD / ARROWS // MOVE   E // TALK', C.teal, 3200);
-    showToast('FIND IONIA // NORTHWEST TEAL MARKER', C.parchment, 4800);
+    showToast('CHAPTER I // FIRST WAKE', C.scioto, 1800);
+    showToast('WASD / ARROWS // MOVE   E // TALK   T // QUEST LOG', C.teal, 3200);
+    showToast('OBJECTIVE // FOLLOW THE SIGNAL CONTACTS', C.parchment, 4800);
   }
 }
 
@@ -1646,25 +1639,6 @@ function finishCombat() {
   prevState = null;
   combatReturnState = STATE.WORLD;
 
-  if (previewEncounterStarted && !previewEncounterFinished) {
-    const previewVictory = Boolean(
-      combatState &&
-      combatState.encounterOver &&
-      combatState.enemy &&
-      combatState.enemy.hp <= 0
-    );
-
-    if (previewVictory) {
-      previewEncounterFinished = true;
-      previewEndAt = millis() + 2400;
-      showToast('THE SKY GOES QUIET // FOR NOW', C.teal, 1800);
-      showToast('RETURNING TO THE WAKE...', C.parchment, 2200);
-    } else {
-      previewEncounterStarted = false;
-      previewEncounterArmed = true;
-      showToast('SKY-PREDATOR REMAINS // RETURN TO IONIA AND TRY AGAIN', C.rust, 2600);
-    }
-  }
 
   if (VIS.fadeTransitions) startFade(150);
 }
@@ -2370,10 +2344,27 @@ function drawQuestLogOverlay() {
     y += 24;
     textSize(11);
     if (qs.state === 'signal')      text('Signal — receive the call from the falling ship.', qx + 16, y);
-    else if (qs.state === 'crossing') text('Crossing — three hazards on the way to the ship.', qx + 16, y);
+    else if (qs.state === 'crossing') text('Crossing — four hazards on the way to the ship.', qx + 16, y);
     else if (qs.state === 'contact')  text('Contact — four souls await on the ship.', qx + 16, y);
     else if (qs.state === 'choice')   text('Choice — three paths open before you.', qx + 16, y);
     else if (qs.state === 'wake')     text('Wake — the ending unfolds.', qx + 16, y);
+
+    if (Array.isArray(qs.journal) && qs.journal.length) {
+      y += 30;
+      fill(C.scioto[0], C.scioto[1], C.scioto[2], 180);
+      textSize(10);
+      text('JOURNAL', qx + 16, y);
+      y += 18;
+      fill(C.parchment[0], C.parchment[1], C.parchment[2], 190);
+      textSize(11);
+      const recent = qs.journal.slice(-5);
+      for (const entry of recent) {
+        const label = (entry.state || 'note').toUpperCase();
+        text('[' + label + '] ' + entry.text, qx + 16, y, qw - 32, 42);
+        y += 42;
+        if (y > qy + qh - 62) break;
+      }
+    }
   }
 
   textFont('Press Start 2P');
@@ -3028,6 +3019,7 @@ function getQuestState() {
     npcsMet: quest.npcsMet.slice(),
     choiceMade: quest.choiceMade,
     choiceVariant: quest.choiceVariant,
+    choicePath: quest.choicePath || null,
     hullIntegrity: quest.hullIntegrity,
     morale: quest.morale,
     heatLevel: quest.heatLevel,
@@ -3036,6 +3028,7 @@ function getQuestState() {
     crossingHazards: quest.crossingHazards.map(h => ({ ...h })),
     contactNPCs: quest.contactNPCs.map(n => ({ ...n })),
     choicePaths: quest.choicePaths.map(p => ({ ...p })),
+    journal: quest.journal.map(entry => ({ ...entry })),
     epilogues: quest.epilogues.map(e => ({ id: e.id, name: e.name }))
   };
 }
@@ -3071,7 +3064,7 @@ function advanceSignal() {
   if (quest.hooksCompleted >= 3) {
     quest.state = QUEST_STATES.CROSSING;
     quest.act = 'crossing';
-    appendJournalEntry('crossing', 'The sky cracked open — three hazards block the way to the Aureate Wake. The core is waiting.');
+    appendJournalEntry('crossing', 'The sky cracked open — four hazards block the way to the Aureate Wake. The core is waiting.');
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   } else if (quest.hooksCompleted >= 1) {
     appendJournalEntry('signal', 'You picked up the first thread of the song. The Wake is talking to you.');
@@ -3079,7 +3072,7 @@ function advanceSignal() {
 }
 
 function advanceCrossing() {
-  if (quest.hazardsCompleted >= 3) {
+  if (quest.hazardsCompleted >= 4) {
     quest.state = QUEST_STATES.CONTACT;
     quest.act = 'contact';
     appendJournalEntry('contact', 'The crossing behind you. Four souls ahead. The core hums between them like a held breath.');
@@ -3339,31 +3332,22 @@ function startHazardEncounter(index) {
 }
 
 function checkHazardProximity(tx, ty) {
-  if (quest.state !== QUEST_STATES.CROSSING || pendingHazardIndex !== null) return;
+  if (quest.state !== QUEST_STATES.CROSSING || pendingHazardIndex !== null) return false;
 
-  if (tx >= 28 && ty >= 4 && ty <= 8 && !quest.crossingHazards[0].done) {
-    if (Math.random() < 0.15) {
-      startHazardEncounter(0);
-      return;
-    }
+  const zones = [
+    tx >= 28 && ty >= 4 && ty <= 8,
+    tx >= 10 && tx <= 20 && ty >= 8 && ty <= 14,
+    ty <= 5 && tx >= 15 && tx <= 25,
+    tx >= 4 && tx <= 12 && ty >= 9 && ty <= 16,
+  ];
+
+  for (let index = 0; index < zones.length; index++) {
+    const hazard = quest.crossingHazards[index];
+    if (!zones[index] || !hazard || hazard.done) continue;
+    startHazardEncounter(index);
+    return true;
   }
-  if (tx >= 10 && tx <= 20 && ty >= 8 && ty <= 14 && !quest.crossingHazards[1].done) {
-    if (Math.random() < 0.1) {
-      startHazardEncounter(1);
-      return;
-    }
-  }
-  if (ty <= 5 && tx >= 15 && tx <= 25 && !quest.crossingHazards[2].done) {
-    if (Math.random() < 0.08) {
-      startHazardEncounter(2);
-      return;
-    }
-  }
-  if (tx >= 4 && tx <= 12 && ty >= 9 && ty <= 16 && !quest.crossingHazards[3].done) {
-    if (Math.random() < 0.12) {
-      startHazardEncounter(3);
-    }
-  }
+  return false;
 }
 
 function completeHazard(index) {
@@ -3416,9 +3400,6 @@ function doTalk() {
     nearest.flags.met = true;
     if (!quest.npcsMet.includes(nearest.id)) {
       quest.npcsMet.push(nearest.id);
-    }
-    if (nearest.id === 'elder_farmer' && !previewEncounterStarted && !previewEncounterFinished) {
-      previewEncounterArmed = true;
     }
     if (quest.state === QUEST_STATES.CONTACT || quest.state === QUEST_STATES.CHOICE) {
       advanceQuest();
@@ -3572,13 +3553,6 @@ function nextDialogueLine() {
   closeWorldDialogue();
   if (gameState === STATE.DIALOGUE) closeOverlay();
 
-  if (completedNpcId === 'elder_farmer' && previewEncounterArmed &&
-      !previewEncounterStarted && !previewEncounterFinished) {
-    previewEncounterArmed = false;
-    previewEncounterStarted = true;
-    showToast('SKY-PREDATOR // INCOMING', C.rust, 1400);
-    startCombat('skyPredator', STATE.WORLD);
-  }
   return last;
 }
 
