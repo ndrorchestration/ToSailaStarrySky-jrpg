@@ -518,8 +518,8 @@ function initQuest() {
         label: 'Sing the core down / Scatter the people',
         description: 'End the core\'s song. Let the Wake fall where it may.',
         outcomes: {
-          '10+': 'The core sings itself to sleep. The Wake falls gently onto a stretch of clean ground below — nobody dies, but the ship is done. Ionia cries for a week. Lyra says the silence is beautiful. The people scatter to the wastes and start again. You walk away with your wrench and your silence.',
-          '7-9':  'The core goes quiet, but not cleanly. The Wake lands hard. Some don\'t make it off the decks. The frequencies scream on the way down. You live with the noise.',
+          strong: 'The core sings itself to sleep. The Wake falls gently onto a stretch of clean ground below — nobody dies, but the ship is done. Ionia cries for a week. Lyra says the silence is beautiful. The people scatter to the wastes and start again. You walk away with your wrench and your silence.',
+          strained:  'The core goes quiet, but not cleanly. The Wake lands hard. Some don\'t make it off the decks. The frequencies scream on the way down. You live with the noise.',
         }
       },
       {
@@ -527,8 +527,8 @@ function initQuest() {
         label: 'Sell the core / Evacuate the ship',
         description: 'Work with Verrick to box the core and move the people.',
         outcomes: {
-          '10+': 'The acquisition goes clean. Verrick pays out. The people get passage. You get a credential and a seat on the first evac shuttle. The core leaves this world in a crate, humming quietly. Verrick nods at you like you\'re one of them now.',
-          '7-9':  'The acquisition is messy. Two people refuse the evac — they stay with Ionia on the lower decks. The core is damaged in transit. You get paid, but the solar credits feel like they came with blood on them.'
+          strong: 'The acquisition goes clean. Verrick pays out. The people get passage. You get a credential and a seat on the first evac shuttle. The core leaves this world in a crate, humming quietly. Verrick nods at you like you\'re one of them now.',
+          strained:  'The acquisition is messy. Two people refuse the evac — they stay with Ionia on the lower decks. The core is damaged in transit. You get paid, but the solar credits feel like they came with blood on them.'
         }
       },
       {
@@ -536,8 +536,8 @@ function initQuest() {
         label: 'Drive the core up / Find what\'s above',
         description: 'Overdrive the core. Push the Wake up through the sky-layers into the unknown above.',
         outcomes: {
-          '10+': 'The core sings. The Wake rises through the sky-layers like a seed on the wind. You ride it up — and above the world is another world, upside-down and green, with its own sky and its own falling ships. The Core rides with you. You have a new route.',
-          '7-9':  'The Wake rises, but the core destabilises. Half the party stays below. You go up — but you\'re not sure you\'ll come back down. The Core looks at you like you made the wrong call.',
+          strong: 'The core sings. The Wake rises through the sky-layers like a seed on the wind. You ride it up — and above the world is another world, upside-down and green, with its own sky and its own falling ships. The Core rides with you. You have a new route.',
+          strained:  'The Wake rises, but the core destabilises. Half the party stays below. You go up — but you\'re not sure you\'ll come back down. The Core looks at you like you made the wrong call.',
         }
       }
     ],
