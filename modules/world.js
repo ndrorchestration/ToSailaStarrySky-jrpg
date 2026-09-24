@@ -14,7 +14,8 @@ const World = {
   movePlayer, interact, toggleLayer,
   plantField, boardShip,
   openLedger, openShop,
-  getQuestState, advanceQuest
+  getQuestState, advanceQuest,
+  snapshotPersistentState, preparePersistentState, restorePersistentState
 };
 
 // ---------------------------------------------------------------------------
@@ -85,6 +86,109 @@ function init() {
   dayTime = 0;
   isSkyLayerVisible = false;
   gameOver = false;
+}
+
+function clonePersistent(value) {
+  return value == null ? value : JSON.parse(JSON.stringify(value));
+}
+
+function snapshotPersistentState() {
+  return {
+    runtime: {
+      dayTime,
+      skyLayerVisible: Boolean(isSkyLayerVisible),
+    },
+    world: {
+      playerPosition: {
+        tileX: player.tileX,
+        tileY: player.tileY,
+        px: player.px,
+        py: player.py,
+      },
+      covenantField: clonePersistent(covenantField),
+      ledgerEntries: clonePersistent(ledger.entries || []),
+    },
+    quest: {
+      state: quest.state,
+      act: quest.act,
+      hooksCompleted: quest.hooksCompleted,
+      hazardsCompleted: quest.hazardsCompleted,
+      npcsMet: Array.isArray(quest.npcsMet) ? quest.npcsMet.slice() : [],
+      choiceMade: quest.choiceMade == null ? null : quest.choiceMade,
+      choiceVariant: quest.choiceVariant == null ? null : quest.choiceVariant,
+      choicePath: quest.choicePath == null ? null : quest.choicePath,
+      hullIntegrity: quest.hullIntegrity,
+      morale: quest.morale,
+      heatLevel: quest.heatLevel,
+      engineIntegration: quest.engineIntegration,
+      discoveries: clonePersistent(quest.discoveries || []),
+      journal: clonePersistent(quest.journal || []),
+      signalHooks: clonePersistent(quest.signalHooks || []),
+      crossingHazards: clonePersistent(quest.crossingHazards || []),
+      wakeEpilogueId: quest.wakeEpilogue ? quest.wakeEpilogue.id : null,
+    },
+  };
+}
+
+function preparePersistentState(worldPayload, questPayload) {
+  if (!worldPayload || !worldPayload.playerPosition) {
+    throw new Error('WORLD_PERSISTENCE_POSITION_MISSING');
+  }
+  if (!questPayload || typeof questPayload !== 'object') {
+    throw new Error('WORLD_PERSISTENCE_QUEST_MISSING');
+  }
+  const preparedWorld = clonePersistent(worldPayload);
+  const preparedQuest = clonePersistent(questPayload);
+  let wakeEpilogue = null;
+  if (preparedQuest.wakeEpilogueId != null) {
+    wakeEpilogue = (quest.epilogues || []).find(ep => ep.id === preparedQuest.wakeEpilogueId) || null;
+    if (!wakeEpilogue) throw new Error('SAVE_QUEST_EPILOGUE_UNKNOWN');
+  }
+  return Object.freeze({ world: preparedWorld, quest: preparedQuest, wakeEpilogue });
+}
+
+function restorePersistentState(prepared, runtimePayload) {
+  if (!prepared || !prepared.world || !prepared.quest) {
+    throw new Error('WORLD_PERSISTENCE_PREPARED_STATE_REQUIRED');
+  }
+  if (!runtimePayload || !Number.isFinite(runtimePayload.dayTime) ||
+      typeof runtimePayload.skyLayerVisible !== 'boolean') {
+    throw new Error('WORLD_PERSISTENCE_RUNTIME_INVALID');
+  }
+
+  const pos = prepared.world.playerPosition;
+  player.tileX = pos.tileX;
+  player.tileY = pos.tileY;
+  player.px = pos.px;
+  player.py = pos.py;
+  covenantField = clonePersistent(prepared.world.covenantField);
+  ledger.entries = clonePersistent(prepared.world.ledgerEntries || []);
+
+  const saved = prepared.quest;
+  quest.state = saved.state;
+  quest.act = saved.act;
+  quest.hooksCompleted = saved.hooksCompleted;
+  quest.hazardsCompleted = saved.hazardsCompleted;
+  quest.npcsMet = saved.npcsMet.slice();
+  quest.choiceMade = saved.choiceMade;
+  quest.choiceVariant = saved.choiceVariant;
+  quest.choicePath = saved.choicePath;
+  quest.hullIntegrity = saved.hullIntegrity;
+  quest.morale = saved.morale;
+  quest.heatLevel = saved.heatLevel;
+  quest.engineIntegration = saved.engineIntegration;
+  quest.discoveries = clonePersistent(saved.discoveries || []);
+  quest.journal = clonePersistent(saved.journal || []);
+  quest.signalHooks = clonePersistent(saved.signalHooks || []);
+  quest.crossingHazards = clonePersistent(saved.crossingHazards || []);
+  quest.wakeEpilogue = prepared.wakeEpilogue;
+
+  dayTime = runtimePayload.dayTime;
+  isSkyLayerVisible = runtimePayload.skyLayerVisible;
+  gameOver = false;
+  World.quest = quest;
+  World.player = player;
+  return true;
 }
 
 // ---------------------------------------------------------------------------
