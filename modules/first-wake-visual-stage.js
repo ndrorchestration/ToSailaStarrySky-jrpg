@@ -45,16 +45,22 @@
     }
 
     noStroke();
-    fill(29, 35, 43);
+    fill(132, 91, 53);
     rect(0, 430, width, 210);
-    fill(55, 65, 70);
+    fill(211, 163, 83);
     rect(0, 414, width, 20);
+    for (let x = 0; x < width; x += 48) {
+      fill(245, 200, 119, 110);
+      rect(x, 436, 2, 196);
+    }
 
     for (let x = 34; x < width; x += 110) {
-      fill(21, 26, 34);
+      fill(90, 67, 48);
       rect(x, 328, 10, 86);
-      fill(92, 107, 111, 100);
+      fill(115, 168, 142, 190);
       rect(x + 4, 332, 2, 82);
+      fill(250, 203, 112, 220);
+      rect(x + 2, 330, 5, 4);
     }
 
     const dragonfly = root.AetherDragonflyVisual;
@@ -109,37 +115,52 @@
 
   function drawInterior(scene, state, now) {
     noStroke();
-    fill(14, 20, 29);
+    fill(25, 76, 87);
     rect(0, 0, width, height);
 
-    // Structural ribs and deck planes.
-    fill(32, 40, 48);
+    // Sunlit teal hull, warm brass ribs, and a bright sky-facing instrument bay.
+    fill(54, 122, 119);
     rect(74, 98, width - 148, height - 166);
-    fill(52, 58, 61);
+    fill(93, 161, 128);
     rect(91, 116, width - 182, height - 202);
-    fill(25, 31, 37);
+    fill(53, 104, 91);
     rect(0, 420, width, 220);
 
+    // Pixel porthole makes the sky visible from inside the Wake.
+    fill(77, 188, 232);
+    rect(475, 142, 142, 105);
+    fill(255, 226, 133);
+    rect(579, 158, 20, 20);
+    fill(255, 249, 197);
+    rect(585, 153, 9, 4);
+    fill(112, 173, 91);
+    rect(475, 220, 142, 27);
+    fill(48, 100, 118);
+    rect(472, 139, 6, 111);
+    rect(614, 139, 6, 111);
+    rect(472, 139, 148, 6);
+    rect(472, 244, 148, 6);
+
     for (let x = 104; x < width - 90; x += 122) {
-      fill(80, 70, 58);
+      fill(177, 138, 71);
       rect(x, 137, 8, 275);
-      fill(42, 255, 181, 38);
+      fill(154, 214, 153, 100);
       rect(x + 2, 151, 4, 56);
     }
 
     // Shared table / lived-in equipment.
-    fill(101, 76, 57);
+    fill(151, 93, 52);
     rect(160, 351, 248, 25);
-    fill(135, 102, 68);
+    fill(201, 145, 69);
     rect(177, 331, 62, 20);
     rect(266, 337, 45, 14);
 
     // Instrument bank.
-    fill(31, 43, 52);
+    fill(27, 69, 91);
     rect(width - 330, 142, 190, 211);
-    fill(42, 255, 181, 45);
+    fill(42, 255, 181, 105);
     rect(width - 306, 166, 143, 4);
-    fill(124, 200, 232, 65);
+    fill(124, 200, 232, 130);
     rect(width - 306, 193, 102, 4);
     rect(width - 306, 220, 124, 4);
 
