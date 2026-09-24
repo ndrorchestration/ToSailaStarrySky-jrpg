@@ -86,8 +86,10 @@ assert(!runtime.includes('Simulate 2D6 roll for variant'),
   'Chapter 1 must not use the legacy hidden 2d6 choice roll');
 assert(!runtime.includes("quest.choiceVariant = roll >= 10 ? '10+' : '7-9';"),
   'Chapter 1 must not preserve dice-derived choice variants');
-assert(!runtime.includes("C: start combat encounter (dev/testing"),
+assert(!runtime.includes('start combat encounter (dev/testing)'),
   'normal Chapter 1 world input must not expose the developer combat shortcut');
+assert(!runtime.includes("else if (keyCode === 67) {\n      if (combat && typeof combat.beginEncounter === 'function')"),
+  'normal Chapter 1 world input must not retain the C-key combat injection path');
 assert(!runtime.includes("Three hazards between you and the core's last stable chamber"),
   'Chapter 1 journal must not retain the stale three-hazard route');
 assert(!runtime.includes("Three voices on the ship"),
