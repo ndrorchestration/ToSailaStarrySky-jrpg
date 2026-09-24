@@ -31,6 +31,10 @@ if ($LASTEXITCODE -ne 0) { throw "Playwright Chromium installation failed with c
 npm run test:chapter1-core
 if ($LASTEXITCODE -ne 0) { throw "Chapter 1 deterministic core gate failed with code $LASTEXITCODE." }
 
+npm run test:chapter1-visual
+if ($LASTEXITCODE -ne 0) { throw "Chapter 1 visual/presentation gate failed with code $LASTEXITCODE." }
+Write-Host 'CHAPTER1_VISUAL=PASS'
+
 npm run test:chapter1-browser
 if ($LASTEXITCODE -ne 0) { throw "Chapter 1 full browser player-route gate failed with code $LASTEXITCODE." }
 
@@ -203,6 +207,7 @@ $evidence = [ordered]@{
   sourceCommit = $gitHead
   generatedAtUtc = [DateTime]::UtcNow.ToString("o")
   chapter1Core = "PASS"
+  chapter1Visual = "PASS"
   chapter1BrowserRoute = "PASS"
   titleAudioReady = "PASS"
   chapter1SoundtrackReady = "PASS"
