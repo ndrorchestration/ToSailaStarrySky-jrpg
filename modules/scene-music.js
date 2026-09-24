@@ -8,18 +8,32 @@
     opening: { id:'first-wake-cinematic', src:'assets/audio/amonigio-umulula.mp3', volume:0.50 },
     exploration: { id:'solar-punk-airship', src:'assets/audio/solar-punk-airship.mp3', volume:0.46 },
     combat: { id:'nocturnal-resolve', src:'assets/audio/nocturnal-resolve.mp3', volume:0.52 },
+    ender: { id:'open-sky-signal', src:'assets/audio/open-sky-signal.mp3', volume:0.50 },
   });
 
   let audio = null;
   let currentId = null;
   let lastError = null;
   let timer = null;
+  let overrideId = null;
 
   function desiredTrack() {
     const state = typeof root.gameState === 'string' ? root.gameState : 'boot';
     if (state === 'boot' || state === 'menu') return null;
+    if (overrideId && TRACKS[overrideId]) return TRACKS[overrideId];
     if (state === 'combat') return TRACKS.combat;
     if (state === 'opening') return TRACKS.opening;
+
+    // The First Note ending is Ender's authored Chapter I musical payoff.
+    const questState = root._world && typeof root._world.getQuestState === 'function'
+      ? root._world.getQuestState()
+      : null;
+    if (questState &&
+        (questState.state === 'wake' || questState.state === 'done') &&
+        questState.wakeEpilogueId === 'epiline_10') {
+      return TRACKS.ender;
+    }
+
     if (state === 'world' || state === 'airship' || state === 'dialogue' ||
         state === 'questlog' || state === 'charsheet' || state === 'saveload') {
       return TRACKS.exploration;
@@ -75,6 +89,20 @@
     }
   }
 
+  function setCharacterTheme(characterId) {
+    if (characterId === 'ender') {
+      overrideId = 'ender';
+      sync(true);
+      return true;
+    }
+    return false;
+  }
+
+  function clearCharacterTheme() {
+    overrideId = null;
+    sync(true);
+  }
+
   function onGesture(){ sync(true); }
 
   function init(){
@@ -86,8 +114,8 @@
   }
 
   const api = Object.freeze({
-    VERSION, TRACKS, init, sync, stop,
-    get state(){ return Object.freeze({currentId,lastError,desiredId:desiredTrack()?.id || null}); }
+    VERSION, TRACKS, init, sync, stop, setCharacterTheme, clearCharacterTheme,
+    get state(){ return Object.freeze({currentId,lastError,overrideId,desiredId:desiredTrack()?.id || null}); }
   });
   root.AetherSceneMusic = api;
 
