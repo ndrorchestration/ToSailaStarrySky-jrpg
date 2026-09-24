@@ -190,6 +190,15 @@ assert.strictEqual(packageJson.scripts['admit:title-audio'], 'node scripts/admit
 assert.strictEqual(packageJson.scripts['test:chapter1-title-audio-ready'],
   'node tests/chapter1-title-audio-ready.test.js',
   'Chapter 1 candidate must expose strict title-audio readiness');
+assert.strictEqual(packageJson.scripts['admit:chapter1-soundtrack'],
+  'node scripts/admit-chapter1-soundtrack.js',
+  'Chapter 1 must expose governed soundtrack admission');
+assert.strictEqual(packageJson.scripts['test:chapter1-soundtrack-ready'],
+  'node tests/chapter1-soundtrack-ready.test.js',
+  'Chapter 1 candidate must expose strict soundtrack readiness');
+assert.strictEqual(packageJson.scripts['admit:chapter1-soundtrack:windows'],
+  'powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\admit-chapter1-soundtrack.ps1',
+  'Chapter 1 must expose one-command Windows soundtrack admission');
 assert(runtime.includes("saveToSlot('manual-6')") &&
        runtime.includes('continueLatestSave()'),
   'desktop persistence smoke must exercise real save and Continue paths');
