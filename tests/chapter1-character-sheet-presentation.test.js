@@ -38,4 +38,21 @@ assert(sheet.includes('copper hair') && sheet.includes('Brass goggles'),
 assert(!runtime.includes("text('ENDER — Rift Scholar', px + 20, py + 24);"),
   'character-sheet fallback must not hard-code a stale class label');
 
+
+const hudStart = runtime.indexOf('function drawWorldHUD()');
+const hudEnd = runtime.indexOf('// ─────────────────────────────────────────────\n// COMBAT UI PANEL', hudStart);
+assert(hudStart >= 0 && hudEnd > hudStart, 'compact world HUD renderer missing');
+const hud = runtime.slice(hudStart, hudEnd);
+for (const liveField of ['livePlayer','liveEchoes','liveAether','liveHeat','world.getQuestState']) {
+  assert(hud.includes(liveField), 'compact HUD must use live state: ' + liveField);
+}
+assert(hud.includes("qs.state === 'signal'") &&
+       hud.includes("qs.state === 'crossing'") &&
+       hud.includes("qs.state === 'contact'"),
+  'compact HUD must render live Chapter 1 quest progress');
+assert(!hud.includes("text('Rift Scholar  Lv.1'"),
+  'compact HUD must not hard-code Ender class/level');
+assert(!hud.includes("text('Signal 0/3'"),
+  'compact HUD must not hard-code initial quest progress');
+
 console.log('Aetherwake Chapter 1 character-sheet presentation: PASS');
