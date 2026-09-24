@@ -14,6 +14,12 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 
 const chapter1WindowsBuild = fs.readFileSync(
   path.join(root, 'scripts', 'build-chapter1-windows.ps1'), 'utf8'
 );
+const chapter1Workflow = fs.readFileSync(
+  path.join(root, '.github', 'workflows', 'chapter1-convergence.yml'), 'utf8'
+);
+const smokeWorkflow = fs.readFileSync(
+  path.join(root, '.github', 'workflows', 'smoke.yml'), 'utf8'
+);
 
 assert.strictEqual(opening.VERSION, '0.7.0',
   'Chapter 1 must use the explorable First Wake opening authority');
@@ -222,5 +228,23 @@ assert.strictEqual(packageJson.scripts['verify:chapter1:local'],
 assert(runtime.includes("saveToSlot('manual-6')") &&
        runtime.includes('continueLatestSave()'),
   'desktop persistence smoke must exercise real save and Continue paths');
+
+for (const [workflowName, workflow] of [
+  ['chapter1-convergence', chapter1Workflow],
+  ['smoke', smokeWorkflow],
+]) {
+  assert(!workflow.includes('actions/checkout@v4'),
+    workflowName + ' must not use mutable checkout tag');
+  assert(!workflow.includes('actions/setup-node@v4'),
+    workflowName + ' must not use mutable setup-node tag');
+  assert(workflow.includes('actions/checkout@11d5960a326750d5838078e36cf38b85af677262'),
+    workflowName + ' must pin checkout v4');
+  assert(workflow.includes('actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020'),
+    workflowName + ' must pin setup-node v4');
+}
+assert(!smokeWorkflow.includes('actions/upload-artifact@v4'),
+  'smoke visual-evidence lane must not use mutable upload-artifact tag');
+assert(smokeWorkflow.includes('actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02'),
+  'smoke visual-evidence lane must pin upload-artifact v4');
 
 console.log('Aetherwake Chapter 1 convergence contract: PASS');
