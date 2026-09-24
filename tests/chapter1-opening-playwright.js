@@ -274,8 +274,41 @@ function createServer() {
     assert.strictEqual(hazardCombat.quest.hazardsCompleted, 0,
       'hazard must not complete merely by entering combat');
 
+    // Win the encounter through real combat inputs. The loop intentionally
+    // uses only player-facing action keys and the live production resolver.
+    const actionPlan = ['2','1','5','1','5','1','5','1'];
+    for (const actionKey of actionPlan) {
+      const beforeCombatAction = await page.evaluate(() => window._combat.getState());
+      if (beforeCombatAction.encounterOver) break;
+      const beforeTurn = beforeCombatAction.turn;
+      await page.keyboard.press(actionKey);
+      await page.waitForFunction(previousTurn => {
+        const state = window._combat.getState();
+        return state.encounterOver || state.turn > previousTurn;
+      }, beforeTurn, { timeout: 4000 });
+    }
+
+    const wonCombat = await page.evaluate(() => window._combat.getState());
+    assert.strictEqual(wonCombat.encounterOver, true,
+      'real player actions did not reach a terminal Sky-Predator state');
+    assert(wonCombat.enemy && wonCombat.enemy.hp <= 0,
+      'Sky-Predator terminal state was not a victory');
+
+    // Production input requires confirm to return from a finished encounter.
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => window.gameState === 'world',
+      undefined, { timeout: 5000 });
+
+    const afterVictory = await page.evaluate(() => window._world.getQuestState());
+    assert.strictEqual(afterVictory.hazardsCompleted, 1,
+      'real Sky-Predator victory did not complete exactly one Crossing hazard');
+    assert.strictEqual(afterVictory.crossingHazards[0].done, true,
+      'Sky-Predator hazard was not marked complete after real victory');
+    assert.strictEqual(afterVictory.state, 'crossing',
+      'one hazard victory must not prematurely unlock CONTACT');
+
     assert.deepStrictEqual(errors, [], errors.join('\n'));
-    console.log('Aetherwake Chapter 1 opening + SIGNAL + deterministic hazard entry: PASS');
+    console.log('Aetherwake Chapter 1 opening + SIGNAL + real Sky-Predator victory: PASS');
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
