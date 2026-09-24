@@ -121,6 +121,21 @@ assert(runtime.includes("} else if (quest.state === QUEST_STATES.CONTACT)"),
 assert(runtime.includes('quest.choicePath = path.id;'),
   'numeric Chapter 1 choice must persist the canonical path ID before WAKE resolution');
 
+assert(runtime.includes("resolution.model === 'jrpg-stat-formula'"),
+  'live Chapter 1 combat must route admitted production actions through formula resolution');
+assert(runtime.includes('window.AetherCombatFormula.resolveAction('),
+  'live Chapter 1 combat must invoke the production formula engine');
+assert(!runtime.includes("'Uncover Truth  (2D6+Wits)'"),
+  'Chapter 1 character sheet must not advertise legacy 2D6 resolution');
+assert(!runtime.includes("'Shared Dream   (2D6+Spirit)'"),
+  'Chapter 1 character sheet must not advertise blocked legacy Shared Dream resolution');
+assert(!runtime.includes("'Resonator Staff: EMP 1d6+2'"),
+  'Chapter 1 character sheet must not advertise legacy die damage');
+assert(runtime.includes("'Stats + ability formula resolve the action'"),
+  'Chapter 1 turn UI must describe the production formula model');
+assert(runtime.includes('abils.forEach((a, i) => {'),
+  'Chapter 1 character sheet ability list must iterate its actual local ability data');
+
 
 assert(runtime.includes('if (gameOver && keyCode === 82)'),
   'epilogue [R] replay prompt must have a live input handler');
