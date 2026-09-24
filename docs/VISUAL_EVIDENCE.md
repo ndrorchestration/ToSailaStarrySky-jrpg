@@ -1,6 +1,6 @@
 # Aetherwake Visual Evidence Capture
 
-Status: **CAPTURE HARNESS ESTABLISHED / VISUAL ACCEPTANCE HUMAN-REVIEWED**
+Status: **CAPTURE HARNESS ESTABLISHED / EXACT-HEAD VISUAL REVIEW PENDING**
 
 This lane exists to turn the Visual Bible's propagation gates plus title/opening/aerial-context surfaces into exact-head rendered evidence. It does **not** decide visual quality automatically.
 
@@ -35,7 +35,7 @@ The harness:
 - hashes every screenshot;
 - fails if page/runtime errors are observed.
 
-The manual `Aetherwake visual evidence` workflow performs the same capture and uploads the bundle as an Actions artifact when a hosted runner is available.
+The PR smoke workflow now checks out the exact pull-request head, verifies that checkout against the supplied head SHA, captures the same bundle, and uploads it as an Actions artifact. The manual workflow remains available after it is present on the default branch.
 
 ## Acceptance boundary
 
