@@ -141,7 +141,7 @@ function applyEnvelope(envelope) {
 }
 
 const before = {
-  world: world.snapshotPersistentState(),
+  world: clone(world.snapshotPersistentState()),
   roster: windowObject.ROSTER.map(clone),
   activeIds: windowObject.ACTIVE_PARTY.map(character => character.id),
   air: air.exportPersistentState(airState),
@@ -179,7 +179,7 @@ assert(loaded && loaded.envelope, 'manual-1 could not be reloaded');
 applyEnvelope(loaded.envelope);
 
 const after = {
-  world: world.snapshotPersistentState(),
+  world: clone(world.snapshotPersistentState()),
   roster: windowObject.ROSTER.map(clone),
   activeIds: windowObject.ACTIVE_PARTY.map(character => character.id),
   air: air.exportPersistentState(airState),
