@@ -38,6 +38,8 @@ assert(stageScript.includes("nwbuild: {") && stageScript.includes("app: {") &&
   'nw-builder app config must resolve the generated Windows .ico from the repository working directory');
 assert(stageScript.includes("version: '0.1.0'") && stageScript.includes("author: 'NDR Orchestration'"),
   'staged manifest must provide stable Windows resource metadata');
+assert(stageScript.includes("description: 'Aetherwake Chapter 1 — First Wake'"),
+  'staged desktop manifest must identify the Chapter 1 candidate rather than Preview 0.1');
 assert(stageScript.includes("writeWindowsIcon(path.join(www, 'icon.ico'))"),
   'desktop staging must generate the Windows .ico before nw-builder validates the app');
 assert(packageJson.scripts['package:windows'].includes('.desktop-runtime'),
