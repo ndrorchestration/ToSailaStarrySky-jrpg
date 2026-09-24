@@ -167,6 +167,7 @@ assert.strictEqual(
 for (const marker of [
   'npm run test:chapter1-core',
   'npm run test:chapter1-browser',
+  'npm run test:chapter1-title-audio-ready',
   'npm run package:windows',
   'CHAPTER1_DESKTOP_RENDER_READINESS=PASS',
   'sourceCommit = $gitHead',
@@ -184,6 +185,11 @@ assert(chapter1WindowsBuild.includes('git status --porcelain --untracked-files=n
   'Chapter 1 Windows candidate must reject tracked source drift');
 assert(runtime.includes('function runChapter1PersistenceSmokeOnce()'),
   'desktop runtime must expose the isolated Chapter 1 persistence smoke seam');
+assert.strictEqual(packageJson.scripts['admit:title-audio'], 'node scripts/admit-title-audio.js',
+  'Chapter 1 must expose governed title-audio admission');
+assert.strictEqual(packageJson.scripts['test:chapter1-title-audio-ready'],
+  'node tests/chapter1-title-audio-ready.test.js',
+  'Chapter 1 candidate must expose strict title-audio readiness');
 assert(runtime.includes("saveToSlot('manual-6')") &&
        runtime.includes('continueLatestSave()'),
   'desktop persistence smoke must exercise real save and Continue paths');
