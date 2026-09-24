@@ -42,7 +42,15 @@ assert(html.indexOf('modules/first-wake-visual-stage.js') >= 0,
   'First Wake visual stage script missing');
 assert(html.indexOf('modules/first-wake-visual-stage.js') < html.indexOf('aetherwake.js'),
   'First Wake visual authority must load before runtime');
-assert(runtime.includes('AetherFirstWakeVisual.draw'),
+const openingStart = runtime.indexOf('function drawFirstWakeOpening() {');
+const openingEnd = runtime.indexOf('\n// ── Open-sky flight ──', openingStart);
+assert(openingStart >= 0 && openingEnd > openingStart, 'First Wake opening renderer missing');
+const openingFunction = runtime.slice(openingStart, openingEnd);
+assert(openingFunction.includes('const visual = window.AetherFirstWakeVisual;'),
+  'opening renderer must acquire the shared First Wake visual authority');
+assert(openingFunction.includes("typeof visual.draw === 'function'"),
+  'opening renderer must verify the shared draw method');
+assert(openingFunction.includes('visual.draw(scene, state, { now: millis(), width, height });'),
   'opening runtime does not delegate to shared visual stage');
 
 console.log('Aetherwake First Wake visual stage contract: PASS');
