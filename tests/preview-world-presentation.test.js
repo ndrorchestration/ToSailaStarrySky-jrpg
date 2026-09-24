@@ -58,8 +58,13 @@ ground[1][1] = 3;
 ground[2][2] = 4;
 ground[3][3] = 5;
 ground[4][4] = 6;
+ground[2][3] = 5;
+ground[2][4] = 6;
 const player = { px: 16 * 16, py: 16 * 16 };
-const npcs = [{ id: 'elder_farmer', tileX: 7, tileY: 7, name: 'Captain Ionia' }];
+const npcs = [
+  { id: 'elder_farmer', tileX: 7, tileY: 7, name: 'Captain Ionia' },
+  { id: 'child_prophet', tileX: 8, tileY: 7, name: 'Lyra' },
+];
 
 assert.strictEqual(presentation.draw({
   groundLayer: ground,
@@ -74,8 +79,16 @@ assert(calls.images.length >= 1, 'cached tile map was not composited into the wo
 const atlas = calls.images[0][0];
 const grassAt = (atlas.width + 17) * 4;
 const pathAt = (15 * 16 * atlas.width + 15 * 16) * 4;
+const pixelAt = (x, y) => Array.from(atlas.pixels.slice((y * atlas.width + x) * 4, (y * atlas.width + x) * 4 + 3));
+assert(calls.sprites.includes('lyra'), 'world presentation must draw Lyra using her shared character sprite');
 assert.notDeepStrictEqual(Array.from(atlas.pixels.slice(grassAt, grassAt + 3)), [0, 0, 0],
   'map raster must use the shared tile palette');
+assert.deepStrictEqual(pixelAt(2 * 16, 2 * 16), [112, 151, 82],
+  'floating-island ground must use the authored float tile');
+assert.deepStrictEqual(pixelAt(3 * 16, 2 * 16), [47, 97, 127],
+  'water ground must use the authored water tile');
+assert.deepStrictEqual(pixelAt(4 * 16, 2 * 16), [46, 47, 54],
+  'undiscovered lore ground must use the authored lore tile');
 assert.notDeepStrictEqual(Array.from(atlas.pixels.slice(pathAt, pathAt + 3)),
   Array.from(atlas.pixels.slice(grassAt, grassAt + 3)),
   'authored route must be visible in the map raster');
