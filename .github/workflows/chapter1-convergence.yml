@@ -57,5 +57,5 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Verify authored Chapter 1 opening route
-        run: npm run test:chapter1-opening-browser
+      - name: Verify complete authored Chapter 1 route
+        run: npm run test:chapter1-browser
