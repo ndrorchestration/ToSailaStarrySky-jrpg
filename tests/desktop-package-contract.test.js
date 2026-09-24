@@ -117,9 +117,13 @@ assert(localReleaseScript.includes('AETHERWAKE_DESKTOP_SMOKE_MARKER'),
   'local Windows release fallback must require application-level render readiness');
 assert(localReleaseScript.includes('DESKTOP_RENDER_READINESS=PASS'),
   'local Windows release fallback must verify a rendered first frame');
-assert(localReleaseScript.includes('Get-ChildItem -LiteralPath $distRoot -Filter "Aetherwake.exe" -File -Recurse'),
+const previewBuildScript = fs.readFileSync(
+  path.join(__dirname, '..', 'scripts', 'build-preview-windows.ps1'),
+  'utf8'
+);
+assert(previewBuildScript.includes('Get-ChildItem -LiteralPath $distRoot -Filter "Aetherwake.exe" -File -Recurse'),
   'Preview build must discover Aetherwake.exe whether nw-builder emits it at the dist root or in a child directory');
-assert(localReleaseScript.includes('PREVIEW_PACKAGE_ROOT='),
+assert(previewBuildScript.includes('PREVIEW_PACKAGE_ROOT='),
   'Preview build must report the discovered package root before runtime verification');
 
 console.log('Aetherwake desktop package contract: PASS');
