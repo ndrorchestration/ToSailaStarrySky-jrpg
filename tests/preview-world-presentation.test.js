@@ -8,20 +8,12 @@ const vm = require('vm');
 const root = path.resolve(__dirname, '..');
 const file = path.join(root, 'modules', 'preview-world-presentation.js');
 const source = fs.readFileSync(file, 'utf8');
+const tileSource = fs.readFileSync(path.join(root, 'modules', 'pixel-tiles.js'), 'utf8');
+const spriteSource = fs.readFileSync(path.join(root, 'modules', 'pixel-sprites.js'), 'utf8');
 const calls = { images: [], imageCreates: 0, rects: 0, translates: [] };
 
 const sandbox = {
-  window: {
-    AetherPixelTiles: {
-      PALETTE: { G: [20, 180, 60], P: [220, 180, 90] },
-      get(id) {
-        return { frames: [Array(16).fill(id === 'path' ? 'P'.repeat(16) : 'G'.repeat(16))] };
-      },
-    },
-    AetherPixelSprites: {
-      draw(id) { calls.sprites.push(id); return true; },
-    },
-  },
+  window: {},
   globalThis: {},
   calls,
   createImage(width, height) {
@@ -34,7 +26,7 @@ const sandbox = {
       updatePixels() {},
     };
   },
-  noStroke() {}, fill() {}, rect() { calls.rects++; },
+  noStroke() {}, noSmooth() {}, fill() {}, rect() { calls.rects++; },
   push() {}, pop() {}, scale() {},
   translate(x, y) { calls.translates.push([x, y]); },
   image(...args) { calls.images.push(args); },
@@ -44,6 +36,16 @@ const sandbox = {
   width: 960, height: 640, frameCount: 20,
 };
 calls.sprites = [];
+vm.runInNewContext(tileSource, sandbox, { filename: 'pixel-tiles.js' });
+vm.runInNewContext(spriteSource, sandbox, { filename: 'pixel-sprites.js' });
+const spriteAuthority = sandbox.window.AetherPixelSprites;
+sandbox.window.AetherPixelSprites = Object.freeze({
+  ...spriteAuthority,
+  draw(id, ...args) {
+    calls.sprites.push(id);
+    return spriteAuthority.draw(id, ...args);
+  },
+});
 vm.runInNewContext(source, sandbox, { filename: 'preview-world-presentation.js' });
 
 const presentation = sandbox.window.AetherPreviewWorldPresentation;
@@ -69,6 +71,14 @@ assert.strictEqual(presentation.draw({
 }), true);
 assert.strictEqual(calls.imageCreates, 1, 'tile map should be rasterized once, not redrawn cell-by-cell each frame');
 assert(calls.images.length >= 1, 'cached tile map was not composited into the world scene');
+const atlas = calls.images[0][0];
+const grassAt = (atlas.width + 17) * 4;
+const pathAt = (15 * 16 * atlas.width + 15 * 16) * 4;
+assert.notDeepStrictEqual(Array.from(atlas.pixels.slice(grassAt, grassAt + 3)), [0, 0, 0],
+  'map raster must use the shared tile palette');
+assert.notDeepStrictEqual(Array.from(atlas.pixels.slice(pathAt, pathAt + 3)),
+  Array.from(atlas.pixels.slice(grassAt, grassAt + 3)),
+  'authored route must be visible in the map raster');
 assert(calls.sprites.includes('ender'), 'world presentation must draw Ender using the shared sprite authority');
 assert(calls.sprites.includes('ionia'), 'world presentation must draw Ionia using the shared sprite authority');
 
