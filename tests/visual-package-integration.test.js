@@ -31,6 +31,7 @@ for (const file of moduleRefs) {
 for (const required of [
   'pixel-sprites.js',
   'pixel-tiles.js',
+  'preview-world-presentation.js',
   'dragonfly-visual.js',
   'title-visual-stage.js',
   'first-wake-visual-stage.js',
@@ -53,6 +54,8 @@ assert(stage.includes('fs.cpSync(assetsSrc, assetsDst'),
 assert(!html.includes('aetherwake-themed.html'),
   'consolidated runtime must not depend on retired iframe wrapper');
 
+assert(pkg.scripts['test:preview-world-presentation'],
+  'Preview tile-map and sprite rendering test missing');
 assert(pkg.scripts['capture:visual-evidence'],
   'visual evidence capture script missing');
 assert(pkg.scripts['test:visual-evidence-contract'],
