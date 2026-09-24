@@ -10,7 +10,7 @@ const file = path.join(root, 'modules', 'preview-world-presentation.js');
 const source = fs.readFileSync(file, 'utf8');
 const tileSource = fs.readFileSync(path.join(root, 'modules', 'pixel-tiles.js'), 'utf8');
 const spriteSource = fs.readFileSync(path.join(root, 'modules', 'pixel-sprites.js'), 'utf8');
-const calls = { images: [], imageCreates: 0, rects: 0, translates: [] };
+const calls = { images: [], imageCreates: 0, rects: [], translates: [], spriteFrames: [] };
 
 const sandbox = {
   window: {},
@@ -26,7 +26,7 @@ const sandbox = {
       updatePixels() {},
     };
   },
-  noStroke() {}, noSmooth() {}, fill() {}, rect() { calls.rects++; },
+  noStroke() {}, noSmooth() {}, fill() {}, rect(x, y, w, h) { calls.rects.push({ x, y, w, h }); },
   push() {}, pop() {}, scale() {},
   translate(x, y) { calls.translates.push([x, y]); },
   image(...args) { calls.images.push(args); },
@@ -43,6 +43,7 @@ sandbox.window.AetherPixelSprites = Object.freeze({
   ...spriteAuthority,
   draw(id, ...args) {
     calls.sprites.push(id);
+    calls.spriteFrames.push({ id, frame: args[2] && args[2].frame });
     return spriteAuthority.draw(id, ...args);
   },
 });
@@ -60,9 +61,9 @@ ground[3][3] = 5;
 ground[4][4] = 6;
 ground[2][3] = 5;
 ground[2][4] = 6;
-const player = { px: 16 * 16, py: 16 * 16 };
+const player = { px: 16 * 16, py: 16 * 16, tileX: 16, tileY: 16 };
 const npcs = [
-  { id: 'elder_farmer', tileX: 7, tileY: 7, name: 'Captain Ionia' },
+  { id: 'elder_farmer', tileX: 7, tileY: 7, name: 'Captain Ionia', flags: { questMarker: true } },
   { id: 'child_prophet', tileX: 8, tileY: 7, name: 'Lyra' },
 ];
 
@@ -94,8 +95,35 @@ assert.notDeepStrictEqual(Array.from(atlas.pixels.slice(pathAt, pathAt + 3)),
   'authored route must be visible in the map raster');
 assert(calls.sprites.includes('ender'), 'world presentation must draw Ender using the shared sprite authority');
 assert(calls.sprites.includes('ionia'), 'world presentation must draw Ionia using the shared sprite authority');
+const namePlaques = calls.rects.filter(rect => rect.w === 36 && rect.h === 9);
+assert.strictEqual(namePlaques.length, 2, 'Ender and Ionia should each have one name plaque');
+assert(namePlaques[0].y + namePlaques[0].h <= player.py + 16 - 32,
+  'Ender name plaque must sit fully above the 2x sprite');
+assert(namePlaques[1].y + namePlaques[1].h <= 7 * 16 + 16 - 32,
+  'Ionia name plaque must sit fully above the 2x sprite');
+const questMarker = calls.rects.find(rect => rect.w === 7 && rect.h === 7);
+assert(questMarker, 'Ionia quest marker should be visible');
+assert(questMarker.y + questMarker.h <= namePlaques[1].y,
+  'Ionia quest marker must sit above the name plaque without covering the sprite');
 
 presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1016 });
 assert.strictEqual(calls.imageCreates, 1, 'unchanged map should reuse its raster cache');
+assert(calls.spriteFrames.filter(sprite => sprite.id !== 'ender').every(sprite => sprite.frame === 0),
+  'stationary NPCs must remain on their idle sprite frame');
+assert(calls.spriteFrames.filter(sprite => sprite.id === 'ender').every(sprite => sprite.frame === 0),
+  'stationary Ender must remain on his idle sprite frame');
+
+const priorFrameCount = calls.spriteFrames.length;
+player.tileX += 1;
+player.px += 16;
+presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1032 });
+sandbox.frameCount += 3;
+presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1048 });
+const movementFrames = calls.spriteFrames.slice(priorFrameCount)
+  .filter(sprite => sprite.id === 'ender').map(sprite => sprite.frame);
+assert.deepStrictEqual(movementFrames, [0, 1],
+  'Ender should use the walk cycle only briefly after changing map tiles');
+assert(calls.spriteFrames.filter(sprite => sprite.id !== 'ender').every(sprite => sprite.frame === 0),
+  'NPCs must stay idle while Ender moves');
 
 console.log('Aetherwake Preview world presentation: PASS');
