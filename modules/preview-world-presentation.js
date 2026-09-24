@@ -17,6 +17,23 @@
 
   let cachedGround = null;
   let cachedMap = null;
+  let lastPlayerTile = null;
+  let lastPlayerMovementFrame = -Infinity;
+
+  function playerWalkFrame(player) {
+    if (!Number.isFinite(player.tileX) || !Number.isFinite(player.tileY)) return 0;
+    const tile = player.tileX + ',' + player.tileY;
+    if (lastPlayerTile === null) {
+      lastPlayerTile = tile;
+      return 0;
+    }
+    if (tile !== lastPlayerTile) {
+      lastPlayerTile = tile;
+      lastPlayerMovementFrame = frameCount;
+    }
+    const age = frameCount - lastPlayerMovementFrame;
+    return age >= 0 && age < 12 ? Math.floor(age / 3) % 2 : 0;
+  }
 
   function drawIsland(x, y, w, h, tone) {
     noStroke();
@@ -113,23 +130,23 @@
     return img;
   }
 
-  function drawSprite(id, x, y, name, scale) {
+  function drawSprite(id, x, y, name, scale, frame = 0) {
     const sprites = root.AetherPixelSprites;
     if (!sprites || typeof sprites.draw !== 'function') return false;
     sprites.draw(id, x + CELL / 2, y + CELL, {
       anchor: 'bottom-center',
       scale,
-      frame: Math.floor(frameCount / 14) % 2,
+      frame,
     });
     if (name) {
       noStroke();
       fill(20, 42, 57, 220);
-      rect(x - 10, y - 11, 36, 9);
+      rect(x - 10, y - 27, 36, 9);
       fill(255, 250, 222);
       textAlign(CENTER, CENTER);
       textSize(8);
       textFont('VT323');
-      text(name, x + 8, y - 7);
+      text(name, x + 8, y - 22.5);
     }
     return true;
   }
@@ -170,7 +187,7 @@
         rect(Math.round(cx + Math.cos(angle) * r), Math.round(cy + Math.sin(angle) * r), 2, 2);
       }
     }
-    drawSprite('ender', player.px || 0, player.py || 0, 'Ender', 2);
+    drawSprite('ender', player.px || 0, player.py || 0, 'Ender', 2, playerWalkFrame(player));
 
     for (const npc of input.npcs || []) {
       if (!npc || !Number.isFinite(npc.tileX) || !Number.isFinite(npc.tileY)) continue;
@@ -181,9 +198,9 @@
       if (npc.flags && npc.flags.questMarker) {
         noStroke();
         fill(255, 211, 72);
-        rect(x + 5, y - 20, 7, 7);
+        rect(x + 5, y - 38, 7, 7);
         fill(255, 248, 205);
-        rect(x + 7, y - 18, 3, 3);
+        rect(x + 7, y - 36, 3, 3);
       }
     }
     pop();
