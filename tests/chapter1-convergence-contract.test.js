@@ -93,4 +93,14 @@ assert(!runtime.includes("Three hazards between you and the core's last stable c
 assert(!runtime.includes("Three voices on the ship"),
   'Chapter 1 journal must not retain stale three-contact copy');
 
+
+assert(runtime.includes("function getChoiceOutcomeText()"),
+  'Chapter 1 must expose the authored path consequence during WAKE');
+assert(runtime.includes("'epiline_10',  // best path-C ending: First Note"),
+  'First Note must have explicit high-priority ending resolution');
+assert(runtime.includes('const choiceOutcome = getChoiceOutcomeText();'),
+  'WAKE presentation must render the selected path consequence');
+assert(runtime.includes("} else if (quest.state === QUEST_STATES.CONTACT)"),
+  'SIGNAL and CONTACT conversation progress must be separate');
+
 console.log('Aetherwake Chapter 1 convergence contract: PASS');
