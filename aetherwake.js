@@ -3487,30 +3487,39 @@ function render() {
 
     if (benchmarkActive) benchmark.drawBackdrop(benchmarkCtx);
 
-    drawGroundLayer();
-    if (isSkyLayerVisible) {
-      drawSkyLayer();
-    }
-
-    if (benchmarkActive) {
-      benchmark.drawDragonfly({
-        x: 535,
-        y: 258,
+    const previewPresentation = window.AetherPreviewWorldPresentation;
+    const previewRendered = !benchmarkActive && previewPresentation &&
+      typeof previewPresentation.draw === 'function' && previewPresentation.draw({
+        groundLayer,
+        skyLayer,
+        player,
+        npcs,
+        covenantField,
+        width,
+        height,
         now: millis(),
-        moored: true
+        dayTime,
+        isSkyLayerVisible,
+        quest,
       });
-    }
 
-    drawCovenantField();
-    drawWorldAmbient();
-    drawGrassWind();
-    drawClouds();
-    drawStars();
-    drawEnginePulse();
-    drawQuestWorldReactions();
-    drawPlayer();
-    drawNPCs();
-    drawPlayerVisualEvolution();
+    if (!previewRendered) {
+      drawGroundLayer();
+      if (isSkyLayerVisible) drawSkyLayer();
+      if (benchmarkActive) {
+        benchmark.drawDragonfly({ x: 535, y: 258, now: millis(), moored: true });
+      }
+      drawCovenantField();
+      drawWorldAmbient();
+      drawGrassWind();
+      drawClouds();
+      drawStars();
+      drawEnginePulse();
+      drawQuestWorldReactions();
+      drawPlayer();
+      drawNPCs();
+      drawPlayerVisualEvolution();
+    }
 
     if (benchmarkActive) {
       benchmark.drawLighting(benchmarkCtx);
