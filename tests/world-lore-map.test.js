@@ -25,6 +25,8 @@ for (const [name, moduleSource] of [
     name + ' must not attach lore metadata to numeric tile cells');
   assert(world.player && world.player.tileX === 16 && world.player.tileY === 16,
     name + ' must expose the player after building the map');
+  assert(world.quest && world.quest.state === 'signal',
+    name + ' must expose the initialized quest state');
   for (let step = 0; step < 9; step++) world.movePlayer(0, -1);
   for (let step = 0; step < 3; step++) world.movePlayer(1, 0);
   const firstLore = vm.runInNewContext(
