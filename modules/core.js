@@ -305,12 +305,6 @@ function keyPressed() {
     else if (keyCode === 9) window.interactionKey = 'tab';
     else if (keyCode === 76) window.interactionKey = 'l';
     else if (keyCode === 77) window.interactionKey = 'm';
-    // C = 67: start combat encounter (dev/testing)
-    else if (keyCode === 67) {
-      if (combat && typeof combat.beginEncounter === 'function') {
-        startCombat('skyPredator');
-      }
-    }
   }
   // Shop buy-by-number (1-9)
   if (gameState === STATE.SHOP) {
@@ -337,13 +331,6 @@ function keyTyped() {
       startGame();
     }
     // Remove return; to allow fall-through from BOOT→MENU→WORLD in same key event
-  }
-  if (gameState === STATE.WORLD) {
-    if (key === 'c' || key === 'C') {
-      if (combat && typeof combat.beginEncounter === 'function') {
-        startCombat('skyPredator');
-      }
-    }
   }
   if (gameState === STATE.BOOT) {
     // Also allow character keys to skip boot
