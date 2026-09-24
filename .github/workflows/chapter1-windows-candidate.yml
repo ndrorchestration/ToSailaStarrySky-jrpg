@@ -1,0 +1,66 @@
+name: Chapter 1 Windows candidate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-chapter1-windows:
+    runs-on: windows-2022
+    timeout-minutes: 40
+    steps:
+      - name: Checkout exact selected ref
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Build and verify Chapter 1 Windows candidate
+        shell: pwsh
+        run: npm run build:chapter1:windows
+
+      - name: Locate candidate evidence
+        id: candidate
+        shell: pwsh
+        run: |
+          $root = Join-Path $PWD "chapter1-release"
+          if (-not (Test-Path -LiteralPath $root)) { throw "chapter1-release directory missing" }
+          $zip = Get-ChildItem -LiteralPath $root -Filter "Aetherwake-Chapter1-*-Windows.zip" -File | Select-Object -First 1
+          $evidence = Join-Path $root "CHAPTER1_RELEASE_EVIDENCE.json"
+          $hashes = Join-Path $root "SHA256SUMS.txt"
+          if (-not $zip) { throw "Chapter 1 portable ZIP missing" }
+          if (-not (Test-Path -LiteralPath $evidence)) { throw "Chapter 1 release evidence missing" }
+          if (-not (Test-Path -LiteralPath $hashes)) { throw "Chapter 1 SHA256 manifest missing" }
+          "zip=$($zip.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "evidence=$evidence" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "hashes=$hashes" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Get-Content -LiteralPath $evidence
+          Get-Content -LiteralPath $hashes
+
+      - name: Upload verified Chapter 1 candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: aetherwake-chapter1-windows-${{ github.sha }}
+          path: |
+            ${{ steps.candidate.outputs.zip }}
+            ${{ steps.candidate.outputs.evidence }}
+            ${{ steps.candidate.outputs.hashes }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish Chapter 1 prerelease
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        with:
+          tag_name: aetherwake-chapter1-${{ github.sha }}
+          name: Aetherwake Chapter 1 Candidate ${{ github.sha }}
+          prerelease: true
+          generate_release_notes: false
+          files: |
+            ${{ steps.candidate.outputs.zip }}
+            ${{ steps.candidate.outputs.evidence }}
+            ${{ steps.candidate.outputs.hashes }}
