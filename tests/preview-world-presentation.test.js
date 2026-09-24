@@ -66,7 +66,8 @@ ground[18][22] = 3;
 const player = { px: 16 * 16, py: 16 * 16, tileX: 16, tileY: 16 };
 const npcs = [
   { id: 'elder_farmer', tileX: 7, tileY: 7, name: 'Captain Ionia', flags: { questMarker: true } },
-  { id: 'child_prophet', tileX: 8, tileY: 7, name: 'Lyra' },
+  { id: 'child_prophet', tileX: 8, tileY: 20, name: 'Lyra' },
+  { id: 'corporate_salvager', tileX: 26, tileY: 24, name: 'Verrick' },
 ];
 
 assert.strictEqual(presentation.draw({
@@ -83,6 +84,14 @@ const atlas = calls.images[0][0];
 const grassAt = (atlas.width + 17) * 4;
 const pathAt = (15 * 16 * atlas.width + 15 * 16) * 4;
 const pixelAt = (x, y) => Array.from(atlas.pixels.slice((y * atlas.width + x) * 4, (y * atlas.width + x) * 4 + 3));
+const tilePixelsAt = (tileX, tileY, target = atlas) => {
+  const bytes = [];
+  for (let y = 0; y < 16; y++) {
+    const start = ((tileY * 16 + y) * target.width + tileX * 16) * 4;
+    bytes.push(...target.pixels.slice(start, start + 16 * 4));
+  }
+  return bytes;
+};
 assert(calls.sprites.includes('lyra'), 'world presentation must draw Lyra using her shared character sprite');
 assert.notDeepStrictEqual(Array.from(atlas.pixels.slice(grassAt, grassAt + 3)), [0, 0, 0],
   'map raster must use the shared tile palette');
@@ -100,19 +109,33 @@ assert.deepStrictEqual(pixelAt(2 * 16 + 3, 10 * 16 + 2), [255, 196, 91],
   'playable meadow should include authored flower accents away from the objective path');
 assert.deepStrictEqual(pixelAt(21 * 16 + 2, 18 * 16 + 2), [112, 151, 82],
   'playable meadow should include authored grass accents away from the objective path');
-for (const [x, y, label] of [[16, 16, 'Ender'], [8, 7, 'Lyra']]) {
-  assert.deepStrictEqual(pixelAt(x * 16, y * 16), [78, 162, 74],
+for (const [x, y, label] of [
+  [16, 16, 'Ender'],
+  [7, 19, 'Lyra upper-left sprite cell'], [7, 20, 'Lyra lower-left sprite cell'],
+  [25, 23, 'Verrick upper-left sprite cell'], [26, 23, 'Verrick upper-center sprite cell'],
+  [27, 23, 'Verrick upper-right sprite cell'], [25, 24, 'Verrick lower-left sprite cell'],
+  [26, 24, 'Verrick lower-center sprite cell'], [27, 24, 'Verrick lower-right sprite cell'],
+]) {
+  assert.deepStrictEqual(tilePixelsAt(x, y), tilePixelsAt(18, 17),
     label + ' starting tile must remain clear of decorative terrain accents');
 }
 assert.deepStrictEqual(pixelAt(7 * 16, 7 * 16), [184, 163, 119],
   'Ionia starting tile must retain the authored objective route');
 assert.deepStrictEqual(pixelAt(15 * 16, 15 * 16), [184, 163, 119],
   'Ionia objective route must remain clear of decorative terrain accents');
+const routePixels = tilePixelsAt(15, 15);
+const routeColors = new Set();
+for (let i = 0; i < routePixels.length; i += 4) {
+  routeColors.add(routePixels.slice(i, i + 3).join(','));
+}
+assert.deepStrictEqual(Array.from(routeColors).sort(), ['184,163,119', '230,210,151'],
+  'objective route tile must retain its complete authored path pattern');
 assert.notDeepStrictEqual(Array.from(atlas.pixels.slice(pathAt, pathAt + 3)),
   Array.from(atlas.pixels.slice(grassAt, grassAt + 3)),
   'authored route must be visible in the map raster');
 assert(calls.sprites.includes('ender'), 'world presentation must draw Ender using the shared sprite authority');
 assert(calls.sprites.includes('ionia'), 'world presentation must draw Ionia using the shared sprite authority');
+assert(calls.sprites.includes('corporateSalvager'), 'world presentation must draw Verrick using his shared character sprite');
 const namePlaques = calls.rects.filter(rect => rect.w === 36 && rect.h === 9);
 assert.strictEqual(namePlaques.length, 2, 'Ender and Ionia should each have one name plaque');
 assert(namePlaques[0].y + namePlaques[0].h <= player.py + 16 - 32,
@@ -147,5 +170,15 @@ assert.deepStrictEqual(movementFrames, [0, 1, 1, 1, 0],
   'Ender should animate by elapsed time through repeated steps, then return to idle');
 assert(calls.spriteFrames.filter(sprite => sprite.id !== 'ender').every(sprite => sprite.frame === 0),
   'NPCs must stay idle while Ender moves');
+
+const imageCreatesBeforeNpcMove = calls.imageCreates;
+npcs[1].tileX = 3;
+npcs[1].tileY = 11;
+presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1685 });
+assert.strictEqual(calls.imageCreates, imageCreatesBeforeNpcMove + 1,
+  'moving an NPC must refresh actor-aware terrain accents');
+const movedAtlas = calls.images[calls.images.length - 1][0];
+assert.deepStrictEqual(tilePixelsAt(2, 10, movedAtlas), tilePixelsAt(18, 17, movedAtlas),
+  'terrain accents must clear from the footprint of an NPC moved into a decorated patch');
 
 console.log('Aetherwake Preview world presentation: PASS');
