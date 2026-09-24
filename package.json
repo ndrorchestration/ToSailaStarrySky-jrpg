@@ -102,9 +102,11 @@
     "test:world-entry-onboarding": "node tests/world-entry-onboarding.test.js",
     "test:wake-transition-pacing": "node tests/wake-transition-pacing.test.js",
     "build:preview:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\build-preview-windows.ps1",
-    "test:persistence-foundation": "node tests/save-system-contract.test.js && node tests/save-payload-validator.test.js && node tests/save-interrupted-write.test.js && node tests/preview-persistence-runtime-seam.test.js && node tests/preview-persistence-snapshot-contract.test.js && node tests/preview-manual-save-load.test.js && node tests/preview-persistence-roundtrip-node.test.js",
+    "test:persistence-foundation": "node tests/save-system-contract.test.js && node tests/save-payload-validator.test.js && node tests/save-interrupted-write.test.js && node tests/preview-persistence-runtime-seam.test.js && node tests/preview-persistence-snapshot-contract.test.js && node tests/chapter1-persistence-ux.test.js && node tests/preview-persistence-roundtrip-node.test.js",
     "test:persistence-roundtrip": "node tests/preview-persistence-roundtrip-playwright.js",
     "test:persistence-roundtrip:node": "node tests/preview-persistence-roundtrip-node.test.js",
-    "test:chapter1-convergence": "node tests/chapter1-convergence-contract.test.js"
+    "test:chapter1-convergence": "node tests/chapter1-convergence-contract.test.js",
+    "test:chapter1-persistence": "node tests/chapter1-persistence-ux.test.js",
+    "test:chapter1-core": "npm run test:chapter1-convergence && npm run test:persistence-foundation"
   }
 }
