@@ -107,6 +107,7 @@
     "test:persistence-roundtrip:node": "node tests/preview-persistence-roundtrip-node.test.js",
     "test:chapter1-convergence": "node tests/chapter1-convergence-contract.test.js",
     "test:chapter1-persistence": "node tests/chapter1-persistence-ux.test.js",
-    "test:chapter1-core": "npm run test:chapter1-convergence && npm run test:persistence-foundation"
+    "test:chapter1-core": "npm run test:chapter1-convergence && npm run test:persistence-foundation",
+    "test:chapter1-opening-browser": "node tests/chapter1-opening-playwright.js"
   }
 }
