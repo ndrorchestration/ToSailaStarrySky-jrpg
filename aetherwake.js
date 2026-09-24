@@ -243,7 +243,13 @@ function currentPlaytimeMs() {
 }
 
 function canSnapshotPersistentState() {
-  return gameState === STATE.WORLD || gameState === STATE.AIRSHIP;
+  if (gameState !== STATE.WORLD && gameState !== STATE.AIRSHIP) return false;
+  if (!world || typeof world.getQuestState !== 'function') return false;
+  const questState = world.getQuestState();
+  return Boolean(
+    questState &&
+    ['signal', 'crossing', 'contact', 'choice'].includes(questState.state)
+  );
 }
 
 function buildSavePayload() {
@@ -406,6 +412,10 @@ function requestAutosave(reason) {
 function flushPendingAutosaveIfStable() {
   if (!pendingAutosaveReason) return false;
   if (gameState !== STATE.WORLD && gameState !== STATE.AIRSHIP) return false;
+  if (!canSnapshotPersistentState()) {
+    pendingAutosaveReason = null;
+    return false;
+  }
 
   const reason = pendingAutosaveReason;
   pendingAutosaveReason = null;
