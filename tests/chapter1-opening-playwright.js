@@ -242,6 +242,8 @@ function createServer() {
     assert.strictEqual(signal.state, 'crossing',
       'all three authored signal contacts must unlock CROSSING');
     assert.strictEqual(signal.hazardsCompleted, 0);
+    assert.strictEqual(signal.npcsMet.length, 0,
+      'SIGNAL conversations must not silently pre-complete the later CONTACT phase');
 
     // From Verrick (26,24), enter the Sky-Predator zone at x>=28,y<=8.
     // No random roll is permitted: the first valid zone entry must start combat.
