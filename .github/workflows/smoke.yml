@@ -33,6 +33,8 @@ jobs:
 
       - name: Verify Preview world presentation
         run: npm run test:preview-world-presentation
+      - name: Verify lore tile initialization
+        run: npm run test:world-lore-map
 
       - name: Verify crossing hazards require combat
         run: npm run test:crossing-hazard-combat
