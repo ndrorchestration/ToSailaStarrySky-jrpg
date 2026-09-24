@@ -325,7 +325,7 @@ function initNPCs() {
       dialogue: {
         intro: [
           '"The Aureate Wake is the last ship that still flies. I\'ve captained the Aureate Wake long enough to know every change in her voice. The sky-lanes closed one by one, and now it\'s just us. The people below want passage. The corporate syndicates want the core. The sky above wants someone brave enough to find out what\'s up there. You\'ve got three problems and you\'ve only just boarded."',
-          '"My first officer used to say a captain owes her ship a proper send-off and her crew a straight answer. Captain Denith taught me a captain owes her ship a proper send-off and her crew a straight answer. I\'m still working on both. You look like someone who appreciates a straight answer. So here it is: this ship has a core that sings wrong. And it\'s going to keep singing wrong until someone makes it stop."',
+          '"Captain Denith taught me a captain owes her ship a proper send-off and her crew a straight answer. I\'m still working on both. You look like someone who appreciates a straight answer. So here it is: this ship has a core that sings wrong. And it\'s going to keep singing wrong until someone makes it stop."',
           '"You can work the decks. You can talk to the people. You can listen to the frequencies. Or you can do nothing. The Wake will keep flying either way. But the core won\'t. It\'s getting louder each time the sun drops."',
           '"I\'ve watched the sky-lanes die one by one. Copper-slicked smoke on the horizon. A city going quiet. Another one. Then another. We\'re the last ship flying a sky-lanes route no one else can hold anymore. If we go down, the sky-lanes go with us."',
           '"If you\'re looking for the honest part of this story — it\'s me. I\'m tired. I\'ve been tired for a very long time. But I\'m still flying. Sometimes that\'s the only honest thing left in a sky-lanes world."'
@@ -421,7 +421,7 @@ function initNPCs() {
         deep: [
           '"I\'ve heard the captain and the acquisition officer and the core. I\'ve heard all four of us. You\'ve heard them too. You know what each of us wants. You decide what the Wake does. That\'s the choice."',
           '"The core hums wrong and I hum with it. That\'s been the whole story since I was born. The frequencies hum and the core hums with them and the Wake hums with the core. That\'s the Aureate Wake. That\'s the whole ship."',
-          '"You\'ll find out which one I am — the kid who hears wrong, or the kid who saves the ship by hearing right. The answer\'s coming."'
+          '"You\'ll find out which one I am — the listener who hears wrong, or the one who helps save the ship by hearing right. The answer\'s coming."'
         ]
       },
       flags: { met: false, questMarker: true }
@@ -438,7 +438,7 @@ function initNPCs() {
       tileY: 24,
       dialogue: {
         intro: [
-          '"Holt. Acquisition officer, Copper Syndicate. You\'ve got an aether-core sitting on a ship above a copper-blighted world, and the sky-lanes are gone. That\'s a solvable problem. Mostly. The sky-lanes bit is the hard part."',
+          '"Verrick. Acquisition officer, Copper Syndicate. You\'ve got an aether-core sitting on a ship above a copper-blighted world, and the sky-lanes are gone. That\'s a solvable problem. Mostly. The sky-lanes bit is the hard part."',
           '"The Aureate Wake is the last active sky-lane route left above the copper world. When the sky-lanes closed, the Wake was the last ship that could still hear the route. Now it\'s just us — a ship, a core that sings wrong, and a copper world below that wants passage. The syndicate wants the core. The people below want passage. We\'ve got three problems and not enough sky-lane routes. Mostly you\'ve just got the one ship."',
           '"I\'m not here to convince you of anything. I\'m here to tell you what the syndicate can do, what the core is worth, and what happens to the sketchy bits of this story if nobody makes a decision. The acquisition officer\'s job is to make the transaction clean. The decision\'s yours."',
           '"The copper world below — that\'s where the sky-lanes closed. When the airships stopped flying, the copper-blight finally owned the sky. If we can fly the Wake out of the copper blight and begin the sky-lanes again — against the copper world, against the Syndicate\'s interests, for the people below who can\'t leave — that\'s possible. But it\'s hard, it\'s expensive, and it\'s not the syndicate\'s first choice."',
@@ -447,12 +447,12 @@ function initNPCs() {
         class_corporate: [
           '"You\'re one of us. Rift Scholar with a corporate badge — I can smell the credential on you. Good. We\'ll need someone who understands the core\'s resonance signature. Your Uncover Truth ability — we\'ll use it on the core before acquisition."',
           '"Here\'s the deal: we acquire the core, we pay you in aether credits, and the crew gets evacuation passage on the next sky-lane run. The ship falls — yes — but the people don\'t. That\'s a win. Your prophet friend will scream about the sky, but the sky doesn\'t feed anyone."',
-          '"You go with us — Path B — you get scrap, aether, and a syndicate credential that opens every port in the copper-blight sky-lanes. You betray us — well. Meridian has provisions for betrayal. Don\'t make me use them."'
+          '"You go with us — Path B — you get scrap, aether, and a syndicate credential that opens every port in the copper-blight sky-lanes. You betray us — well. The Copper Syndicate has provisions for betrayal. Don\'t make me use them."'
         ],
         class_ender: [
           '"Rift Scholar. I\'ve seen your kind before. You see too much. That\'s a liability in my trade. But it\'s also an asset — if you\'re willing to sell it."',
           '"Your Mycelial Ledger ability — we\'d like to borrow that. Track the core\'s aether output before we acquire it. You get a cut. 15% of the salvage value, paid in scrap."',
-          '"The choice is yours, Scholar. Meridian offers you a place in the world that\'s coming. The copper world, the sky-lanes — they\'re both gone. What\'s your next contract?"'
+          '"The choice is yours, Scholar. The Copper Syndicate offers you a place in the world that\'s coming. The copper world, the sky-lanes — they\'re both gone. What\'s your next contract?"'
         ],
         generic_follow: [
           '"My offer stands until the sky-lanes stabilise. After that — it\'s either your way or ours. And ours has a lot more lawyers."'
