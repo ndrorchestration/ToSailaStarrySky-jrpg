@@ -105,6 +105,70 @@ finally {
   Remove-Item Env:AETHERWAKE_DESKTOP_SMOKE_MARKER -ErrorAction SilentlyContinue
 }
 
+# Prove standalone file persistence across two separate NW.js processes.
+# Use an isolated save root so this verification never reads or overwrites a player's saves.
+$persistenceRoot = Join-Path $env:TEMP ("aetherwake-chapter1-persistence-" + $shortHead)
+if (Test-Path -LiteralPath $persistenceRoot) {
+  Remove-Item -LiteralPath $persistenceRoot -Recurse -Force
+}
+New-Item -ItemType Directory -Path $persistenceRoot | Out-Null
+
+function Invoke-Chapter1PersistencePhase([string]$Mode) {
+  $phaseMarker = Join-Path $env:TEMP ("aetherwake-chapter1-persistence-" + $Mode + ".json")
+  if (Test-Path -LiteralPath $phaseMarker) {
+    Remove-Item -LiteralPath $phaseMarker -Force
+  }
+
+  $env:AETHERWAKE_SAVE_ROOT_OVERRIDE = $persistenceRoot
+  $env:AETHERWAKE_CHAPTER1_PERSISTENCE_MODE = $Mode
+  $env:AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER = $phaseMarker
+
+  $phaseGame = Start-Process -FilePath $exe -PassThru
+  try {
+    $phaseDeadline = (Get-Date).AddSeconds(20)
+    while ((Get-Date) -lt $phaseDeadline -and -not (Test-Path -LiteralPath $phaseMarker)) {
+      if ($phaseGame.HasExited) {
+        throw "Chapter 1 persistence $Mode phase exited before evidence with code $($phaseGame.ExitCode)."
+      }
+      Start-Sleep -Milliseconds 250
+    }
+    if (-not (Test-Path -LiteralPath $phaseMarker)) {
+      throw "Chapter 1 persistence $Mode phase did not emit evidence within 20 seconds."
+    }
+    $phaseEvidence = Get-Content -LiteralPath $phaseMarker -Raw | ConvertFrom-Json
+    if ($phaseEvidence.result -ne "PASS" -or $phaseEvidence.phase -ne $Mode) {
+      throw "Chapter 1 persistence $Mode phase failed: $($phaseEvidence.error)"
+    }
+    return $phaseEvidence
+  }
+  finally {
+    if ($phaseGame -and -not $phaseGame.HasExited) {
+      Stop-Process -Id $phaseGame.Id -Force
+    }
+    Remove-Item Env:AETHERWAKE_CHAPTER1_PERSISTENCE_MODE -ErrorAction SilentlyContinue
+    Remove-Item Env:AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER -ErrorAction SilentlyContinue
+    Remove-Item Env:AETHERWAKE_SAVE_ROOT_OVERRIDE -ErrorAction SilentlyContinue
+  }
+}
+
+$createEvidence = Invoke-Chapter1PersistencePhase "create"
+if ($createEvidence.storageType -ne "nw-file" -or
+    $createEvidence.slot -ne "manual-6" -or
+    $createEvidence.tileX -ne 17 -or
+    $createEvidence.tileY -ne 16) {
+  throw "Chapter 1 persistence create evidence did not prove isolated NW-file storage."
+}
+
+$continueEvidence = Invoke-Chapter1PersistencePhase "continue"
+if ($continueEvidence.gameState -ne "world" -or
+    $continueEvidence.slot -ne "manual-6" -or
+    $continueEvidence.tileX -ne 17 -or
+    $continueEvidence.tileY -ne 16 -or
+    $continueEvidence.questState -ne "signal") {
+  throw "Chapter 1 relaunch Continue evidence did not restore the expected save state."
+}
+Write-Host "CHAPTER1_WINDOWS_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS"
+
 if (Test-Path -LiteralPath $OutputDir) {
   Remove-Item -LiteralPath $OutputDir -Recurse -Force
 }
@@ -136,8 +200,14 @@ $evidence = [ordered]@{
   canvas = "960x640"
   portableZip = $zipName
   portableZipSha256 = $hashLower
-  windowsSaveCloseRelaunchContinue = "NOT_YET_VERIFIED"
-  acceptance = "TECHNICAL_CANDIDATE_MANUAL_RELAUNCH_AND_PLAYER_ACCEPTANCE_PENDING"
+  windowsSaveCloseRelaunchContinue = "PASS"
+  persistenceStorageType = $createEvidence.storageType
+  persistenceSavePath = $createEvidence.savePath
+  persistenceSlot = $continueEvidence.slot
+  restoredTileX = $continueEvidence.tileX
+  restoredTileY = $continueEvidence.tileY
+  restoredQuestState = $continueEvidence.questState
+  acceptance = "TECHNICAL_CANDIDATE_PLAYER_ACCEPTANCE_PENDING"
 }
 $evidencePath = Join-Path $OutputDir "CHAPTER1_RELEASE_EVIDENCE.json"
 $evidence | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $evidencePath -Encoding UTF8
@@ -149,4 +219,4 @@ Write-Host "PORTABLE_EXE=$(Join-Path $candidateDir 'Aetherwake.exe')"
 Write-Host "PORTABLE_ZIP=$zip"
 Write-Host "SHA256=$hashLower"
 Write-Host "EVIDENCE=$evidencePath"
-Write-Host "WINDOWS_SAVE_CLOSE_RELAUNCH_CONTINUE=NOT_YET_VERIFIED"
+Write-Host "WINDOWS_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS"
