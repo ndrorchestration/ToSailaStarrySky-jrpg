@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "authority": "Aetherwake Chapter 1 governed runtime audio assets",
+  "titleTheme": {
+    "id": "title-main",
+    "title": "Aetherwake — Skyward Arpeggio Main Title",
+    "canonicalPath": "assets/audio/aetherwake-skyward-arpeggio-main-title.mp3",
+    "sourceFilename": "Aetherwake - Skyward Arpeggio Main Title.mp3",
+    "sourceVerification": {
+      "sha256": "7ac5fe9c2ee0bc8d0cbfa36441dbb7783dbe2ef0cc5e2ee665086a527a7bc350",
+      "bytes": 4233081
+    },
+    "repositoryStatus": "source-verified-repository-missing",
+    "runtimeController": "modules/title-music.js",
+    "runtimeRegistration": false,
+    "packagingRule": "assets/** stages to www/assets/**",
+    "sourceRecovery": {
+      "status": "exact-source-recovered-and-reverified",
+      "reverifiedDate": "2026-09-24",
+      "sha256": "7ac5fe9c2ee0bc8d0cbfa36441dbb7783dbe2ef0cc5e2ee665086a527a7bc350",
+      "bytes": 4233081,
+      "sourceClass": "user-owned ChatGPT Library file",
+      "repositoryTransfer": "pending-binary-handoff"
+    }
+  }
+}
