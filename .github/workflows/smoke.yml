@@ -207,6 +207,9 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Verify manual persistence browser round trip
+        run: npm run test:persistence-roundtrip
+
       - name: Run smoke test
         run: npm run test:smoke
 
