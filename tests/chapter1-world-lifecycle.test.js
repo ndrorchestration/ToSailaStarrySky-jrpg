@@ -86,4 +86,71 @@ assert(state.journal.some(entry =>
   /Four souls ahead/.test(entry.text)),
   'CONTACT transition was not journaled');
 
+// CONTACT must require all four post-Crossing voices, even when some were
+// already encountered earlier in the chapter.
+const contacts = [
+  { id: 'elder_farmer', x: 7, y: 7 },
+  { id: 'engine_spirit', x: 22, y: 10 },
+  { id: 'child_prophet', x: 8, y: 20 },
+  { id: 'corporate_salvager', x: 26, y: 24 },
+];
+
+for (let i = 0; i < contacts.length; i++) {
+  const contact = contacts[i];
+  const current = world.snapshotPersistentState();
+  current.world.playerPosition = {
+    tileX: contact.x,
+    tileY: contact.y,
+    px: contact.x * 16,
+    py: contact.y * 16,
+  };
+  const repositioned = world.preparePersistentState(current.world, current.quest);
+  world.restorePersistentState(repositioned, current.runtime);
+  windowObject.interactionKey = 'e';
+  world.interact();
+  windowObject.interactionKey = null;
+
+  state = world.getQuestState();
+  assert.strictEqual(state.npcsMet.length, i + 1,
+    'CONTACT voice count did not advance exactly once');
+  if (i < 3) {
+    assert.strictEqual(state.state, 'contact',
+      'CHOICE unlocked before all four CONTACT voices were heard');
+  }
+}
+
+state = world.getQuestState();
+assert.strictEqual(state.state, 'choice');
+assert.strictEqual(state.npcsMet.length, 4);
+assert(state.journal.some(entry => /All four voices heard/.test(entry.text)),
+  'CHOICE transition was not journaled');
+
+// Deterministically restore a completed choice record, then prove the
+// deliberate WAKE beat exists before DONE.
+let chosen = world.snapshotPersistentState();
+chosen.quest.state = 'choice';
+chosen.quest.act = 'choice';
+chosen.quest.choiceMade = 'Drive the core up / Find what\'s above';
+chosen.quest.choicePath = 'path_c';
+chosen.quest.choiceVariant = 'strong';
+chosen.quest.hullIntegrity = 80;
+chosen.quest.morale = 65;
+chosen.quest.engineIntegration = 80;
+let preparedChoice = world.preparePersistentState(chosen.world, chosen.quest);
+world.restorePersistentState(preparedChoice, chosen.runtime);
+
+world.advanceQuest();
+state = world.getQuestState();
+assert.strictEqual(state.state, 'wake',
+  'completed CHOICE must enter the deliberate WAKE resolution beat');
+assert(state.wakeEpilogueId || state.epilogues,
+  'WAKE must resolve an epilogue candidate before final closure');
+
+world.advanceQuest();
+state = world.getQuestState();
+assert.strictEqual(state.state, 'done',
+  'WAKE confirmation must close Chapter I into DONE');
+assert(state.journal.some(entry => /The ending found you/.test(entry.text)),
+  'Chapter I DONE transition was not journaled');
+
 console.log('Aetherwake Chapter 1 world lifecycle: PASS');
