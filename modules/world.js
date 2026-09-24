@@ -52,6 +52,7 @@ const QUEST_STATES = {
 // ---------------------------------------------------------------------------
 let groundLayer = [];
 let skyLayer    = [];
+let loreTextLayer = [];
 let player = {};
 let dayTime = 0;
 let covenantField = null;
@@ -93,9 +94,11 @@ function init() {
 function buildMap() {
   groundLayer = [];
   skyLayer    = [];
+  loreTextLayer = [];
   for (let y = 0; y < MAP_SIZE; y++) {
     groundLayer[y] = new Array(MAP_SIZE);
     skyLayer[y]    = new Array(MAP_SIZE);
+    loreTextLayer[y] = new Array(MAP_SIZE);
   }
 
   // Fill ground with grass by default
@@ -139,7 +142,7 @@ function buildMap() {
   for (const l of loreSpots) {
     if (inBounds(l.x, l.y)) {
       groundLayer[l.y][l.x] = TILE_TYPES.GROUND_LORE;
-      groundLayer[l.y][l.x]._loreText = l.text;
+      loreTextLayer[l.y][l.x] = l.text;
     }
   }
 
@@ -615,8 +618,9 @@ function checkLoreTile(tx, ty) {
   if (t === TILE_TYPES.GROUND_LORE) {
     // Check if already discovered
     if (!quest.discoveries.some(d => d.x === tx && d.y === ty)) {
-      const tile = groundLayer[ty][tx];
-      const loreText = tile._loreText || 'Something hums beneath your feet.';
+      const loreText = loreTextLayer[ty] && loreTextLayer[ty][tx]
+        ? loreTextLayer[ty][tx]
+        : 'Something hums beneath your feet.';
       quest.discoveries.push({ x: tx, y: ty, text: loreText });
       addLedgerEntry('discovery', 'You found something: ' + loreText);
       // Add a journal entry referencing the discovery
@@ -1204,8 +1208,6 @@ function drawTileWater(px, py, s) {
 }
 
 function drawTileLore(px, py, s) {
-  const tile = groundLayer[py / s] && groundLayer[py / s][px / s];
-  const loreText = tile && tile._loreText ? tile._loreText : '';
   const discovered = quest.discoveries.some(d => d.x === px / s && d.y === py / s);
 
   // Base: dark crate with subtle cyan outline
