@@ -48,11 +48,25 @@ assert.strictEqual(
   '4/4 Crossing completion must remain a valid save payload'
 );
 
-const staleThreeHazards = JSON.parse(JSON.stringify(original));
-staleThreeHazards.quest.crossingHazards = staleThreeHazards.quest.crossingHazards.slice(0, 3);
+const previewThreeHazards = JSON.parse(JSON.stringify(original));
+previewThreeHazards.quest.crossingHazards = [
+  previewThreeHazards.quest.crossingHazards[0],
+  previewThreeHazards.quest.crossingHazards[1],
+  previewThreeHazards.quest.crossingHazards[3],
+];
+previewThreeHazards.quest.hazardsCompleted =
+  previewThreeHazards.quest.crossingHazards.filter(hazard => hazard.done).length;
+assert.strictEqual(
+  validator.validatePayload(previewThreeHazards, { validateAirNavigation() { return true; } }),
+  true,
+  'current Preview three-hazard layout must remain save-compatible'
+);
+
+const unknownThreeHazards = JSON.parse(JSON.stringify(previewThreeHazards));
+unknownThreeHazards.quest.crossingHazards[2].id = 'unknown_hazard';
 assert.throws(
-  () => validator.validatePayload(staleThreeHazards, { validateAirNavigation() { return true; } }),
-  /SAVE_QUEST_CROSSING_HAZARD_COUNT_DRIFT/
+  () => validator.validatePayload(unknownThreeHazards, { validateAirNavigation() { return true; } }),
+  /SAVE_QUEST_CROSSING_HAZARD_LAYOUT_DRIFT/
 );
 
 // Persisted quest state must match the runtime's stable-save policy.
