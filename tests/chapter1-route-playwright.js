@@ -323,7 +323,54 @@ function createServer() {
     assert.strictEqual(hazardCombat.quest.hazardsCompleted, 0,
       'hazard must not complete merely by entering combat');
 
-    // Win through the real production combat input path.
+    // First exercise the real defeat/retry path. Hold consumes turns without
+    // damaging the enemy; with the seeded runtime the Sky-Predator will
+    // eventually defeat Ender. No internal combat state is patched.
+    for (let turn = 0; turn < 60; turn++) {
+      const state = await page.evaluate(() => window._combat.getState());
+      if (state.encounterOver) break;
+      const beforeTurn = state.turn;
+      await page.keyboard.press('5');
+      await page.waitForFunction(previousTurn => {
+        const current = window._combat.getState();
+        return current.encounterOver || current.turn > previousTurn;
+      }, beforeTurn, { timeout: 4000 });
+    }
+
+    const defeated = await page.evaluate(() => window._combat.getState());
+    assert.strictEqual(defeated.encounterOver, true,
+      'Sky-Predator defeat path did not reach a terminal encounter');
+    assert(defeated.player.vit === 1 && defeated.enemy.hp > 0,
+      'first terminal Sky-Predator state was not the intended defeat');
+
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => window.gameState === 'world',
+      undefined, { timeout: 5000 });
+
+    const retryState = await page.evaluate(() => ({
+      quest: window._world.getQuestState(),
+      vit: window._world.player.vit,
+      maxVit: window._world.player.maxVit,
+      charges: window._world.player.staffCharges,
+      maxCharges: window._world.player.maxStaffCharges || 2,
+    }));
+    assert.strictEqual(retryState.quest.hazardsCompleted, 0,
+      'defeat must not complete the Sky-Predator hazard');
+    assert.strictEqual(retryState.quest.crossingHazards[0].done, false,
+      'defeat must leave Sky-Predator unresolved');
+    assert(retryState.vit >= Math.ceil(retryState.maxVit * 0.5),
+      'defeat did not restore bounded regroup vitality');
+    assert.strictEqual(retryState.charges, retryState.maxCharges,
+      'defeat did not recharge the staff for a real retry');
+
+    // Step out of the zone and re-enter it; the same unresolved hazard must
+    // launch again without requiring a reload or hidden reset.
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowUp');
+    await page.waitForFunction(() => window.gameState === 'combat',
+      undefined, { timeout: 5000 });
+
+    // Now win through the real production combat input path.
     await winCurrentCombat('Sky-Predator');
 
     const afterVictory = await page.evaluate(() => window._world.getQuestState());
