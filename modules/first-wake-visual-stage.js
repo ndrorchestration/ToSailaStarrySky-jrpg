@@ -10,7 +10,8 @@
 
   const VERSION = '0.1.0';
   let lastDockWalkX = null;
-  let dockWalkChangedAt = 0;
+  let dockWalkChangedAt = -Infinity;
+  let dockWalkStartedAt = null;
 
   function dockWalkFrame(scene, state, now) {
     if (scene.id !== 'dock_walk' || !state || !state.dockWalk) return 0;
@@ -20,11 +21,18 @@
       return 0;
     }
     if (x !== lastDockWalkX) {
+      const continuesWalking = now - dockWalkChangedAt < 520;
       lastDockWalkX = x;
+      if (!continuesWalking || dockWalkStartedAt === null) dockWalkStartedAt = now;
       dockWalkChangedAt = now;
     }
-    const elapsed = now - dockWalkChangedAt;
-    return elapsed >= 0 && elapsed < 520 ? Math.floor(elapsed / 130) % 2 : 0;
+    if (now - dockWalkChangedAt >= 520) {
+      dockWalkStartedAt = null;
+      return 0;
+    }
+    return dockWalkStartedAt === null
+      ? 0
+      : Math.floor((now - dockWalkStartedAt) / 130) % 2;
   }
 
   function bandedSky(top, mid, low) {
