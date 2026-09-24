@@ -8112,46 +8112,84 @@ function drawCharSheet(px, py, pw, ph) {
  */
 function drawWorldHUD() {
   push();
-  // Top bar — vitals + quest phase
   const hudX = 8, hudY = 8, hudW = width - 512, hudH = 52;
-  
-  // Panel background
+  const livePlayer = world && world.player ? world.player : null;
+  const qs = world && typeof world.getQuestState === 'function'
+    ? world.getQuestState()
+    : null;
+
   noStroke();
   fill(PAL.NAVY);
   rect(hudX, hudY, hudW, hudH);
   drawPixelBorder(hudX, hudY, hudW, hudH, 2, PAL.SHADOW, PAL.TEAL);
-  
-  // Character name + level
+
+  const liveName = livePlayer && (livePlayer.canonicalName || livePlayer.name)
+    ? (livePlayer.canonicalName || livePlayer.name)
+    : 'Ender';
+  const liveClass = livePlayer
+    ? (livePlayer.nativeJob || livePlayer.class || 'Rift Scholar')
+    : 'Rift Scholar';
+  const liveLevel = livePlayer && Number.isFinite(livePlayer.level)
+    ? livePlayer.level
+    : 1;
+
   textFont(FONT_UI);
   textSize(9);
-  drawGlowText('ENDER', hudX + 12, hudY + 8, PAL.TEAL, 9);
+  drawGlowText(String(liveName).toUpperCase(), hudX + 12, hudY + 8, PAL.TEAL, 9);
   fill(PAL.PARCHMENT);
   textSize(9);
-  text('Rift Scholar  Lv.1', hudX + 64, hudY + 8);
-  
-  // Vitals row
+  text(liveClass + '  Lv.' + liveLevel, hudX + 64, hudY + 8);
+
+  const liveEchoes = livePlayer && typeof livePlayer.echoes === 'object'
+    ? livePlayer.echoes.current
+    : (livePlayer ? livePlayer.echoes : 3);
+  const liveEchoesMax = livePlayer && typeof livePlayer.echoes === 'object'
+    ? livePlayer.echoes.max
+    : (livePlayer ? (livePlayer.echoesMax || 3) : 3);
+  const liveAether = livePlayer && typeof livePlayer.aether === 'object'
+    ? livePlayer.aether.current
+    : (livePlayer ? livePlayer.aether : 4);
+  const liveAetherMax = livePlayer && typeof livePlayer.aether === 'object'
+    ? livePlayer.aether.max
+    : (livePlayer ? (livePlayer.aetherMax || 6) : 6);
+  const liveHeat = livePlayer && typeof livePlayer.heat === 'object'
+    ? livePlayer.heat.current
+    : (livePlayer ? livePlayer.heat : 1);
+  const liveHeatMax = livePlayer && typeof livePlayer.heat === 'object'
+    ? livePlayer.heat.max
+    : (livePlayer ? (livePlayer.heatMax || 3) : 3);
+
   textFont(FONT_BODY);
   textSize(12);
   const vY = hudY + 28;
-  drawStatLabel('Vit', hudX + 12, vY, '13', PAL.RUST);
-  drawStatLabel('Echoes', hudX + 80, vY, '3/3', PAL.BIO);
-  drawStatLabel('Scrap', hudX + 160, vY, '7', PAL.DUST);
-  drawStatLabel('Aether', hudX + 220, vY, '4/6', PAL.SCIOTO);
-  drawStatLabel('Heat', hudX + 290, vY, '1/3', PAL.AMBER);
-  
-  // Right side — quest phase indicator
-  const qX = hudX + hudW - 130;
+  drawStatLabel('Vit', hudX + 12, vY,
+    String(livePlayer ? livePlayer.vit : 13), PAL.RUST);
+  drawStatLabel('Echoes', hudX + 80, vY,
+    String(liveEchoes) + '/' + String(liveEchoesMax), PAL.BIO);
+  drawStatLabel('Scrap', hudX + 160, vY,
+    String(livePlayer ? livePlayer.scrap : 7), PAL.DUST);
+  drawStatLabel('Aether', hudX + 220, vY,
+    String(liveAether) + '/' + String(liveAetherMax), PAL.SCIOTO);
+  drawStatLabel('Heat', hudX + 290, vY,
+    String(liveHeat) + '/' + String(liveHeatMax), PAL.AMBER);
+
+  const qX = hudX + hudW - 150;
   const qY = hudY + 8;
   textFont(FONT_UI);
   textSize(9);
   drawGlowText('QUEST', qX, qY, PAL.TEAL, 9);
   fill(PAL.PARCHMENT);
   textSize(10);
-  text('Signal 0/3', qX + 44, qY);
-  
-  // Day-night mini indicator
+  const phase = qs && qs.state ? String(qs.state).toUpperCase() : 'SIGNAL';
+  let progress = '';
+  if (qs) {
+    if (qs.state === 'signal') progress = ' ' + qs.hooksCompleted + '/3';
+    else if (qs.state === 'crossing') progress = ' ' + qs.hazardsCompleted + '/4';
+    else if (qs.state === 'contact') progress = ' ' + qs.npcsMet.length + '/4';
+  }
+  text(phase + progress, qX + 44, qY);
+
   drawDayNightIndicatorHUD(hudX + hudW - 36, hudY + 32, 20);
-  
   pop();
 }
 
