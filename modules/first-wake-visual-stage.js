@@ -9,6 +9,23 @@
   'use strict';
 
   const VERSION = '0.1.0';
+  let lastDockWalkX = null;
+  let dockWalkChangedAt = 0;
+
+  function dockWalkFrame(scene, state, now) {
+    if (scene.id !== 'dock_walk' || !state || !state.dockWalk) return 0;
+    const x = state.dockWalk.x;
+    if (lastDockWalkX === null) {
+      lastDockWalkX = x;
+      return 0;
+    }
+    if (x !== lastDockWalkX) {
+      lastDockWalkX = x;
+      dockWalkChangedAt = now;
+    }
+    const elapsed = now - dockWalkChangedAt;
+    return elapsed >= 0 && elapsed < 520 ? Math.floor(elapsed / 130) % 2 : 0;
+  }
 
   function bandedSky(top, mid, low) {
     const bands = [top, mid, low];
@@ -88,14 +105,14 @@
       sprites.draw('ender', enderX, 430, {
         anchor: 'bottom-center',
         scale: 3,
-        frame: Math.floor(now / 240) % 2,
+        frame: dockWalkFrame(scene, state, now),
       });
 
       sprites.drawShadow(620, 430, 2);
       sprites.draw('ionia', 620, 430, {
         anchor: 'bottom-center',
         scale: 3,
-        frame: Math.floor(now / 300) % 2,
+        frame: 0,
       });
     }
 
@@ -200,7 +217,7 @@
         sprites.draw(id, x, 420, {
           anchor: 'bottom-center',
           scale: 3,
-          frame: Math.floor(now / 260) % 2,
+          frame: 0,
         });
       }
     }
