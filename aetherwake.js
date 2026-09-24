@@ -194,6 +194,19 @@ function setup() {
   });
   window._airNavigation = window.AetherAirNavigation;
   window._airNavigationState = airNavigationState;
+  if (!window.AetherSaveSystem ||
+      typeof window.AetherSaveSystem.save !== 'function' ||
+      typeof window.AetherSaveSystem.load !== 'function') {
+    throw new Error('AETHER_SAVE_SYSTEM_UNAVAILABLE');
+  }
+  if (!window.AetherSavePayloadValidator ||
+      typeof window.AetherSavePayloadValidator.validatePayload !== 'function') {
+    throw new Error('AETHER_SAVE_PAYLOAD_VALIDATOR_UNAVAILABLE');
+  }
+  // Foundation-only exposure. Live snapshot/restore hooks are intentionally
+  // added in a later bounded tranche after this module seam is verified.
+  window._saveSystem = window.AetherSaveSystem;
+  window._savePayloadValidator = window.AetherSavePayloadValidator;
   window._setupOrder = window._setupOrder + '→party-state-done';
   window._setupOrder = window._setupOrder + '→combat-start';
   if (typeof window.AetherCombat !== 'undefined') {
