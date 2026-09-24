@@ -7945,12 +7945,12 @@ function drawCharSheet(px, py, pw, ph) {
   textFont(FONT_BODY);
   textSize(13);
   const abils = [
-    'Uncover Truth  (2D6+Wits)',
-    'Shared Dream   (2D6+Spirit)',
-    'Mycelial Ledger (2D6+Presence)',
-    'Resonator Staff: EMP 1d6+2',
+    'Resonator Staff: Formula EMP strike',
+    'Uncover Truth: Analyze weakness',
+    'Mycelial Ledger: Read commons network',
+    'Hold: Recharge Resonator Staff',
   ];
-  abilities.forEach((a, i) => {
+  abils.forEach((a, i) => {
     const ay = sheet.abilitiesY + 22 + i * 18;
     fill(PAL.PARCHMENT);
     noStroke();
@@ -9058,9 +9058,9 @@ function drawTurnOverlay(actor, phase) {
   fill(PAL.PARCHMENT);
   noStroke();
   textAlign(CENTER, CENTER);
-  const sub = phase === 'INITIATIVE' ? 'Roll Grace + Wits for turn order' :
+  const sub = phase === 'INITIATIVE' ? 'Grace + Wits determine turn order' :
               phase === 'ACTION' ? 'Choose action — main or secondary' :
-              phase === 'RESOLUTION' ? 'Roll 2D6 + relevant stat' :
+              phase === 'RESOLUTION' ? 'Stats + ability formula resolve the action' :
               phase === 'END' ? 'Press SPACE for next turn' : '';
   if (sub) {
     drawGlowTextCenter(sub, width / 2, height / 2 + 40, PAL.PARCHMENT, 11);
