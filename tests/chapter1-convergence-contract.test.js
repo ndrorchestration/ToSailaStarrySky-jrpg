@@ -170,12 +170,22 @@ for (const marker of [
   'npm run package:windows',
   'CHAPTER1_DESKTOP_RENDER_READINESS=PASS',
   'sourceCommit = $gitHead',
-  'windowsSaveCloseRelaunchContinue = "NOT_YET_VERIFIED"',
+  'windowsSaveCloseRelaunchContinue = "PASS"',
+  'AETHERWAKE_SAVE_ROOT_OVERRIDE',
+  'AETHERWAKE_CHAPTER1_PERSISTENCE_MODE',
+  'Invoke-Chapter1PersistencePhase "create"',
+  'Invoke-Chapter1PersistencePhase "continue"',
+  'CHAPTER1_WINDOWS_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS',
 ]) {
   assert(chapter1WindowsBuild.includes(marker),
     'Chapter 1 Windows candidate lane missing evidence marker: ' + marker);
 }
 assert(chapter1WindowsBuild.includes('git status --porcelain --untracked-files=no'),
   'Chapter 1 Windows candidate must reject tracked source drift');
+assert(runtime.includes('function runChapter1PersistenceSmokeOnce()'),
+  'desktop runtime must expose the isolated Chapter 1 persistence smoke seam');
+assert(runtime.includes("saveToSlot('manual-6')") &&
+       runtime.includes('continueLatestSave()'),
+  'desktop persistence smoke must exercise real save and Continue paths');
 
 console.log('Aetherwake Chapter 1 convergence contract: PASS');
