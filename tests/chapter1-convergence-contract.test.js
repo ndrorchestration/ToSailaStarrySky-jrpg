@@ -216,6 +216,9 @@ assert.strictEqual(packageJson.scripts['admit:chapter1-soundtrack:windows'],
 assert.strictEqual(packageJson.scripts['admit:chapter1-audio:windows'],
   'powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\admit-chapter1-audio.ps1',
   'Chapter 1 must expose one-command unified Windows audio admission');
+assert.strictEqual(packageJson.scripts['verify:chapter1:local'],
+  'powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\verify-chapter1-local.ps1',
+  'Chapter 1 must expose one-command exact-head local verification');
 assert(runtime.includes("saveToSlot('manual-6')") &&
        runtime.includes('continueLatestSave()'),
   'desktop persistence smoke must exercise real save and Continue paths');
