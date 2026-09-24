@@ -117,6 +117,7 @@
     "admit:chapter1-soundtrack": "node scripts/admit-chapter1-soundtrack.js",
     "test:chapter1-soundtrack-ready": "node tests/chapter1-soundtrack-ready.test.js",
     "admit:chapter1-soundtrack:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\admit-chapter1-soundtrack.ps1",
-    "test:chapter1-audio-routing": "node tests/chapter1-scene-music.test.js"
+    "test:chapter1-audio-routing": "node tests/chapter1-scene-music.test.js",
+    "admit:chapter1-audio:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\admit-chapter1-audio.ps1"
   }
 }
