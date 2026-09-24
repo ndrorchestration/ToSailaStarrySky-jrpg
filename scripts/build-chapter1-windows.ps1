@@ -438,6 +438,12 @@ $evidence = [ordered]@{
 $evidencePath = Join-Path $OutputDir "CHAPTER1_RELEASE_EVIDENCE.json"
 $evidence | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $evidencePath -Encoding UTF8
 
+node scripts/verify-chapter1-release-evidence.js $OutputDir
+if ($LASTEXITCODE -ne 0) {
+  throw "Independent Chapter 1 release-evidence verification failed with code $LASTEXITCODE."
+}
+Write-Host "CHAPTER1_RELEASE_EVIDENCE_INDEPENDENT_VERIFY=PASS"
+
 Write-Host ""
 Write-Host "AETHERWAKE_CHAPTER1_WINDOWS_CANDIDATE=PASS"
 Write-Host "SOURCE_COMMIT=$gitHead"
