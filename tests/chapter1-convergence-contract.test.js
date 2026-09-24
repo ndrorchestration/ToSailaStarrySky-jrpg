@@ -93,6 +93,18 @@ assert(!runtime.includes("Three hazards between you and the core's last stable c
 assert(!runtime.includes("Three voices on the ship"),
   'Chapter 1 journal must not retain stale three-contact copy');
 
+for (const staleCanon of [
+  '"Holt. Acquisition officer, Copper Syndicate.',
+  'Meridian has provisions for betrayal.',
+  'Meridian offers you a place in the world',
+  'the kid who hears wrong, or the kid who saves the ship by hearing right.',
+]) {
+  assert(!worldMirror.includes(staleCanon),
+    'Chapter 1 character dialogue contains stale canon: ' + staleCanon);
+}
+assert(worldMirror.includes('"Verrick. Acquisition officer, Copper Syndicate.'),
+  'Verrick must introduce himself with his current canonical name');
+
 
 assert(runtime.includes("function getChoiceOutcomeText()"),
   'Chapter 1 must expose the authored path consequence during WAKE');
