@@ -56,16 +56,21 @@ vm.runInNewContext(source, behaviorSandbox, { filename: 'first-wake-visual-stage
 const dockVisual = behaviorSandbox.window.AetherFirstWakeVisual;
 dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 1, max: 8 } }, 1000);
 dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 1, max: 8 } }, 1500);
-assert(dockSpriteCalls.filter(sprite => sprite.id === 'ender' || sprite.id === 'ionia')
+assert.deepStrictEqual(dockSpriteCalls.filter(sprite => sprite.id === 'ender').map(sprite => sprite.frame), [0, 0],
+  'stationary Ender must remain on the idle sprite frame');
+assert(dockSpriteCalls.filter(sprite => sprite.id === 'ionia')
   .every(sprite => sprite.frame === 0),
   'stationary First Wake characters must not play the walk cycle in place');
 dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 2, max: 8 } }, 1600);
 dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 2, max: 8 } }, 1730);
+dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 3, max: 8 } }, 1760);
+dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 4, max: 8 } }, 1860);
+dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 4, max: 8 } }, 2380);
 assert.notStrictEqual(dockSpriteCalls[0].x, dockSpriteCalls[4].x,
   'Ender should advance along the dock when the walk state advances');
 assert.deepStrictEqual(dockSpriteCalls.filter(sprite => sprite.id === 'ender').slice(2)
-  .map(sprite => sprite.frame), [0, 1],
-  'Ender should briefly animate after moving along the dock');
+  .map(sprite => sprite.frame), [0, 1, 1, 0, 0],
+  'Ender should keep a steady walk cycle through repeated steps, then return to idle');
 assert(dockSpriteCalls.filter(sprite => sprite.id === 'ionia').every(sprite => sprite.frame === 0),
   'Ionia must remain idle while Ender walks');
 
