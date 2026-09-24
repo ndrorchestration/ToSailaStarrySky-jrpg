@@ -8,6 +8,7 @@ const vm = require('vm');
 const root = path.resolve(__dirname, '..');
 const file = path.join(root, 'modules', 'preview-world-presentation.js');
 const source = fs.readFileSync(file, 'utf8');
+const worldSource = fs.readFileSync(path.join(root, 'modules', 'world.js'), 'utf8');
 const tileSource = fs.readFileSync(path.join(root, 'modules', 'pixel-tiles.js'), 'utf8');
 const spriteSource = fs.readFileSync(path.join(root, 'modules', 'pixel-sprites.js'), 'utf8');
 const calls = { images: [], imageCreates: 0, rects: [], translates: [], spriteFrames: [] };
@@ -83,7 +84,7 @@ assert(calls.images.length >= 1, 'cached tile map was not composited into the wo
 const atlas = calls.images[0][0];
 const grassAt = (atlas.width + 17) * 4;
 const pathAt = (15 * 16 * atlas.width + 15 * 16) * 4;
-const pixelAt = (x, y) => Array.from(atlas.pixels.slice((y * atlas.width + x) * 4, (y * atlas.width + x) * 4 + 3));
+const pixelAt = (x, y, target = atlas) => Array.from(target.pixels.slice((y * target.width + x) * 4, (y * target.width + x) * 4 + 3));
 const tilePixelsAt = (tileX, tileY, target = atlas) => {
   const bytes = [];
   for (let y = 0; y < 16; y++) {
@@ -109,6 +110,12 @@ assert.deepStrictEqual(pixelAt(2 * 16 + 3, 10 * 16 + 2), [255, 196, 91],
   'playable meadow should include authored flower accents away from the objective path');
 assert.deepStrictEqual(pixelAt(21 * 16 + 2, 18 * 16 + 2), [112, 151, 82],
   'playable meadow should include authored grass accents away from the objective path');
+assert.deepStrictEqual(pixelAt(10 * 16 + 6, 21 * 16 + 6), [82, 121, 68],
+  'scenic lore landmark should include the authored forest tile');
+assert.deepStrictEqual(pixelAt(11 * 16 + 7, 21 * 16 + 8), [42, 255, 181],
+  'scenic lore landmark should include the authored glowing ruins tile');
+assert.deepStrictEqual(pixelAt(11 * 16 + 3, 22 * 16 + 2), [255, 196, 91],
+  'scenic lore landmark should include bright flowers at its approach');
 for (const [x, y, label] of [
   [16, 16, 'Ender'],
   [7, 19, 'Lyra upper-left sprite cell'], [7, 20, 'Lyra lower-left sprite cell'],
@@ -180,5 +187,32 @@ assert.strictEqual(calls.imageCreates, imageCreatesBeforeNpcMove + 1,
 const movedAtlas = calls.images[calls.images.length - 1][0];
 assert.deepStrictEqual(tilePixelsAt(2, 10, movedAtlas), tilePixelsAt(18, 17, movedAtlas),
   'terrain accents must clear from the footprint of an NPC moved into a decorated patch');
+
+const worldSandbox = { window: {}, globalThis: {} };
+vm.runInNewContext(worldSource, worldSandbox, { filename: 'world.js' });
+const actualWorld = worldSandbox.window.AetherWorld({}, {});
+assert.doesNotThrow(() => actualWorld.init(), 'the playable world must initialize before its scenic map is drawn');
+const actualGround = vm.runInNewContext('groundLayer', worldSandbox);
+const realMapImageCount = calls.imageCreates;
+presentation.invalidate();
+assert.strictEqual(presentation.draw({
+  groundLayer: actualGround,
+  player: actualWorld.player,
+  npcs: actualWorld.npcs,
+  width: 960,
+  height: 640,
+  now: 1800,
+}), true);
+assert.strictEqual(calls.imageCreates, realMapImageCount + 1,
+  'preview renderer must rasterize the initialized playable-world map');
+const realMapAtlas = calls.images[calls.images.length - 1][0];
+assert.strictEqual(actualGround[21][10], 2, 'forest landmark must be placed on a real meadow cell');
+assert.strictEqual(actualGround[21][11], 2, 'ruins landmark must be placed on a real meadow cell');
+assert.deepStrictEqual(pixelAt(11 * 16 + 7, 21 * 16 + 8, realMapAtlas), [42, 255, 181],
+  'initialized playable map must show the authored ruins landmark');
+for (const [x, y, label] of [[7, 19, 'Lyra'], [7, 20, 'Lyra'], [25, 23, 'Verrick'], [27, 24, 'Verrick']]) {
+  assert.deepStrictEqual(tilePixelsAt(x, y, realMapAtlas), tilePixelsAt(18, 17, realMapAtlas),
+    label + ' sprite footprint on the playable map must stay free of scenic overlays');
+}
 
 console.log('Aetherwake Preview world presentation: PASS');
