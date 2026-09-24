@@ -45,7 +45,7 @@ if ($LASTEXITCODE -ne 0) {
 
 npm run test:chapter1-soundtrack-ready
 if ($LASTEXITCODE -ne 0) {
-  throw "Chapter 1 soundtrack is not fully admitted/verified. Admit the three governed Chapter 1 tracks before building the candidate."
+  throw "Chapter 1 soundtrack is not fully admitted/verified. Admit the four governed non-title Chapter 1 tracks before building the candidate."
 }
 
 npm run test:desktop-package
@@ -331,6 +331,64 @@ finally {
   Remove-Item Env:AETHERWAKE_DESKTOP_SMOKE_MARKER -ErrorAction SilentlyContinue
 }
 
+# Re-run the save/close/relaunch/Continue proof against the installed executable,
+# not only the portable package.
+$installedPersistenceRoot = Join-Path $env:TEMP ("aetherwake-chapter1-installed-persistence-" + $shortHead)
+if (Test-Path -LiteralPath $installedPersistenceRoot) {
+  Remove-Item -LiteralPath $installedPersistenceRoot -Recurse -Force
+}
+New-Item -ItemType Directory -Path $installedPersistenceRoot | Out-Null
+
+function Invoke-InstalledChapter1PersistencePhase([string]$Mode) {
+  $phaseMarker = Join-Path $env:TEMP ("aetherwake-chapter1-installed-persistence-" + $Mode + ".json")
+  if (Test-Path -LiteralPath $phaseMarker) {
+    Remove-Item -LiteralPath $phaseMarker -Force
+  }
+
+  $env:AETHERWAKE_SAVE_ROOT_OVERRIDE = $installedPersistenceRoot
+  $env:AETHERWAKE_CHAPTER1_PERSISTENCE_MODE = $Mode
+  $env:AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER = $phaseMarker
+
+  $phaseGame = Start-Process -FilePath $installedExe -PassThru
+  try {
+    $phaseDeadline = (Get-Date).AddSeconds(20)
+    while ((Get-Date) -lt $phaseDeadline -and -not (Test-Path -LiteralPath $phaseMarker)) {
+      if ($phaseGame.HasExited) {
+        throw "Installed Chapter 1 persistence $Mode phase exited before evidence with code $($phaseGame.ExitCode)."
+      }
+      Start-Sleep -Milliseconds 250
+    }
+    if (-not (Test-Path -LiteralPath $phaseMarker)) {
+      throw "Installed Chapter 1 persistence $Mode phase did not emit evidence within 20 seconds."
+    }
+    $phaseEvidence = Get-Content -LiteralPath $phaseMarker -Raw | ConvertFrom-Json
+    if ($phaseEvidence.result -ne "PASS" -or $phaseEvidence.phase -ne $Mode) {
+      throw "Installed Chapter 1 persistence $Mode phase failed: $($phaseEvidence.error)"
+    }
+    return $phaseEvidence
+  }
+  finally {
+    if ($phaseGame -and -not $phaseGame.HasExited) {
+      Stop-Process -Id $phaseGame.Id -Force
+    }
+    Remove-Item Env:AETHERWAKE_CHAPTER1_PERSISTENCE_MODE -ErrorAction SilentlyContinue
+    Remove-Item Env:AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER -ErrorAction SilentlyContinue
+    Remove-Item Env:AETHERWAKE_SAVE_ROOT_OVERRIDE -ErrorAction SilentlyContinue
+  }
+}
+
+$installedCreateEvidence = Invoke-InstalledChapter1PersistencePhase "create"
+$installedContinueEvidence = Invoke-InstalledChapter1PersistencePhase "continue"
+if ($installedCreateEvidence.storageType -ne "nw-file" -or
+    $installedContinueEvidence.gameState -ne "world" -or
+    $installedContinueEvidence.slot -ne "manual-6" -or
+    $installedContinueEvidence.tileX -ne 17 -or
+    $installedContinueEvidence.tileY -ne 16 -or
+    $installedContinueEvidence.questState -ne "signal") {
+  throw "Installed Chapter 1 save/close/relaunch/Continue proof did not restore the expected state."
+}
+Write-Host "CHAPTER1_INSTALLER_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS"
+
 $installerHash = Get-FileHash -Algorithm SHA256 -LiteralPath $installer
 $installerHashLower = $installerHash.Hash.ToLower()
 $manifest = Join-Path $OutputDir "SHA256SUMS.txt"
@@ -362,6 +420,10 @@ $evidence = [ordered]@{
   installerInstall = "PASS"
   installerRuntimeReady = $true
   installerProvenanceVerified = $true
+  installerSaveCloseRelaunchContinue = "PASS"
+  installerPersistenceStorageType = $installedCreateEvidence.storageType
+  installerRestoredSlot = $installedContinueEvidence.slot
+  installerRestoredQuestState = $installedContinueEvidence.questState
   packagedProvenanceSourceCommit = $candidateProvenanceCheck.sourceCommit
   packagedProvenanceVerified = $true
   windowsSaveCloseRelaunchContinue = "PASS"
@@ -386,3 +448,4 @@ Write-Host "PORTABLE_ZIP_SHA256=$hashLower"
 Write-Host "INSTALLER_SHA256=$installerHashLower"
 Write-Host "EVIDENCE=$evidencePath"
 Write-Host "WINDOWS_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS"
+Write-Host "INSTALLER_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS"
