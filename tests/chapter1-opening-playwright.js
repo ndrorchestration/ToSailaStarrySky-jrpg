@@ -77,6 +77,42 @@ function createServer() {
       undefined, { timeout: 5000 });
   }
 
+  async function winCurrentCombat(expectedName) {
+    await page.waitForFunction(() =>
+      window.gameState === 'combat' &&
+      window._combat &&
+      window._combat.getState &&
+      window._combat.getState().enemy
+    , undefined, { timeout: 5000 });
+
+    const start = await page.evaluate(() => window._combat.getState());
+    assert(new RegExp(expectedName, 'i').test(String(start.enemy.name || start.enemy.id || '')),
+      'unexpected Chapter 1 hazard enemy: ' + (start.enemy.name || start.enemy.id));
+
+    const actionPlan = ['2','1','5','1','5','1','5','1'];
+    for (const actionKey of actionPlan) {
+      const before = await page.evaluate(() => window._combat.getState());
+      if (before.encounterOver) break;
+      const beforeTurn = before.turn;
+      await page.keyboard.press(actionKey);
+      await page.waitForFunction(previousTurn => {
+        const state = window._combat.getState();
+        return state.encounterOver || state.turn > previousTurn;
+      }, beforeTurn, { timeout: 4000 });
+    }
+
+    const terminal = await page.evaluate(() => window._combat.getState());
+    assert.strictEqual(terminal.encounterOver, true,
+      expectedName + ' did not reach a terminal state through player actions');
+    assert(terminal.enemy && terminal.enemy.hp <= 0,
+      expectedName + ' terminal state was not a victory');
+
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => window.gameState === 'world',
+      undefined, { timeout: 5000 });
+    return terminal;
+  }
+
   try {
     const response = await page.goto(
       'http://127.0.0.1:' + PORT + '/index-embedded.html',
@@ -274,30 +310,8 @@ function createServer() {
     assert.strictEqual(hazardCombat.quest.hazardsCompleted, 0,
       'hazard must not complete merely by entering combat');
 
-    // Win the encounter through real combat inputs. The loop intentionally
-    // uses only player-facing action keys and the live production resolver.
-    const actionPlan = ['2','1','5','1','5','1','5','1'];
-    for (const actionKey of actionPlan) {
-      const beforeCombatAction = await page.evaluate(() => window._combat.getState());
-      if (beforeCombatAction.encounterOver) break;
-      const beforeTurn = beforeCombatAction.turn;
-      await page.keyboard.press(actionKey);
-      await page.waitForFunction(previousTurn => {
-        const state = window._combat.getState();
-        return state.encounterOver || state.turn > previousTurn;
-      }, beforeTurn, { timeout: 4000 });
-    }
-
-    const wonCombat = await page.evaluate(() => window._combat.getState());
-    assert.strictEqual(wonCombat.encounterOver, true,
-      'real player actions did not reach a terminal Sky-Predator state');
-    assert(wonCombat.enemy && wonCombat.enemy.hp <= 0,
-      'Sky-Predator terminal state was not a victory');
-
-    // Production input requires confirm to return from a finished encounter.
-    await page.keyboard.press('Enter');
-    await page.waitForFunction(() => window.gameState === 'world',
-      undefined, { timeout: 5000 });
+    // Win through the real production combat input path.
+    await winCurrentCombat('Sky-Predator');
 
     const afterVictory = await page.evaluate(() => window._world.getQuestState());
     assert.strictEqual(afterVictory.hazardsCompleted, 1,
@@ -307,8 +321,36 @@ function createServer() {
     assert.strictEqual(afterVictory.state, 'crossing',
       'one hazard victory must not prematurely unlock CONTACT');
 
+    // Hazard 2: Harmonic Shear. From (28,8), enter x<=20,y=8.
+    await pressMany('ArrowLeft', 8);
+    await winCurrentCombat('Harmonic Shear');
+    let crossing = await page.evaluate(() => window._world.getQuestState());
+    assert.strictEqual(crossing.hazardsCompleted, 2);
+    assert.strictEqual(crossing.crossingHazards[1].done, true);
+    assert.strictEqual(crossing.state, 'crossing');
+
+    // Hazard 3: Aether Leak. From (20,8), enter x=20,y<=5.
+    await pressMany('ArrowUp', 3);
+    await winCurrentCombat('Aether Leak');
+    crossing = await page.evaluate(() => window._world.getQuestState());
+    assert.strictEqual(crossing.hazardsCompleted, 3);
+    assert.strictEqual(crossing.crossingHazards[2].done, true);
+    assert.strictEqual(crossing.state, 'crossing');
+
+    // Hazard 4: Corporate Intercept. Enter x=12,y=9.
+    await pressMany('ArrowLeft', 8);
+    await pressMany('ArrowDown', 4);
+    await winCurrentCombat('Corporate Salvager');
+    crossing = await page.evaluate(() => window._world.getQuestState());
+    assert.strictEqual(crossing.hazardsCompleted, 4);
+    assert.strictEqual(crossing.crossingHazards[3].done, true);
+    assert.strictEqual(crossing.state, 'contact',
+      'four real hazard victories must unlock CONTACT');
+    assert.strictEqual(crossing.npcsMet.length, 0,
+      'CONTACT must begin with all four post-Crossing voices still required');
+
     assert.deepStrictEqual(errors, [], errors.join('\n'));
-    console.log('Aetherwake Chapter 1 opening + SIGNAL + real Sky-Predator victory: PASS');
+    console.log('Aetherwake Chapter 1 opening + SIGNAL + all four real Crossing victories: PASS');
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
