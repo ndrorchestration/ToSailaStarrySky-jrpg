@@ -49,6 +49,10 @@ jobs:
           Get-Content -LiteralPath $evidence
           Get-Content -LiteralPath $hashes
 
+      - name: Re-verify release evidence before publication
+        shell: pwsh
+        run: npm run verify:chapter1:release-evidence -- .\chapter1-release
+
       - name: Upload verified Chapter 1 candidate
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
