@@ -16,6 +16,10 @@
   const QUEST_STATES = Object.freeze(['signal','crossing','contact','choice','wake','done']);
   const PERSISTABLE_QUEST_STATES = Object.freeze(['signal','crossing','contact','choice']);
   const CONTACT_NPC_IDS = Object.freeze(['elder_farmer','engine_spirit','child_prophet','corporate_salvager']);
+  const CROSSING_HAZARD_LAYOUTS = Object.freeze([
+    Object.freeze(['sky_predator','wind_shear','corporate_intercept']),
+    Object.freeze(['sky_predator','wind_shear','aether_leak','corporate_intercept']),
+  ]);
   const STABLE_SCENES = Object.freeze(['world','airship']);
 
   function assert(condition, code) {
@@ -107,7 +111,11 @@
     assert(Array.isArray(quest.signalHooks), 'SAVE_QUEST_SIGNAL_HOOKS_INVALID');
     assert(Array.isArray(quest.crossingHazards), 'SAVE_QUEST_CROSSING_HAZARDS_INVALID');
     assert(quest.signalHooks.length === 3, 'SAVE_QUEST_SIGNAL_HOOK_COUNT_DRIFT');
-    assert(quest.crossingHazards.length === 4, 'SAVE_QUEST_CROSSING_HAZARD_COUNT_DRIFT');
+    const hazardIds = quest.crossingHazards.map(entry => entry && entry.id);
+    assert(CROSSING_HAZARD_LAYOUTS.some(layout =>
+      layout.length === hazardIds.length &&
+      layout.every((id, index) => hazardIds[index] === id)
+    ), 'SAVE_QUEST_CROSSING_HAZARD_LAYOUT_DRIFT');
 
     const doneHooks = quest.signalHooks.filter(x => x && x.done === true).length;
     const doneHazards = quest.crossingHazards.filter(x => x && x.done === true).length;
@@ -189,6 +197,7 @@
     QUEST_STATES: QUEST_STATES.slice(),
     PERSISTABLE_QUEST_STATES: PERSISTABLE_QUEST_STATES.slice(),
     CONTACT_NPC_IDS: CONTACT_NPC_IDS.slice(),
+    CROSSING_HAZARD_LAYOUTS: CROSSING_HAZARD_LAYOUTS.map(layout => layout.slice()),
     STABLE_SCENES: STABLE_SCENES.slice(),
     validatePayload,
     validateRuntime,
