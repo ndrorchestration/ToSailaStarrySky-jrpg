@@ -25,7 +25,7 @@ assert(runtime.includes("chapter: 'Chapter I — First Wake'"),
   'save metadata must identify Chapter I');
 assert(runtime.includes("['signal', 'crossing', 'contact', 'choice'].includes(questState.state)"),
   'manual/autosave snapshot eligibility must reject WAKE/DONE');
-assert(runtime.includes('if (!canSnapshotPersistentState()) {\n    pendingAutosaveReason = null;'),
+assert(/if \(!canSnapshotPersistentState\(\)\) \{\s*pendingAutosaveReason = null;/.test(runtime),
   'deferred autosave must discard non-persistable ending states cleanly');
 
 const continueStart = runtime.indexOf('function continueLatestSave()');
