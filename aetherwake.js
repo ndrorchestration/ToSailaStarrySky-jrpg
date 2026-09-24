@@ -2664,7 +2664,10 @@ function drawCharSheetOverlay() {
     textFont('Press Start 2P');
     textSize(10);
     fill(C.teal[0], C.teal[1], C.teal[2], 180);
-    text('ENDER — Rift Scholar', px + 20, py + 24);
+    const fallbackClass = world && world.player
+      ? (world.player.nativeJob || world.player.class || 'Rift Scholar')
+      : 'Rift Scholar';
+    text('ENDER — ' + fallbackClass, px + 20, py + 24);
   }
 
   textFont('Press Start 2P');
@@ -7917,7 +7920,7 @@ function drawCharSheet(px, py, pw, ph) {
   fill(PAL.SHADOW);
   rect(portX + 4, portY + 4, portW - 8, portH - 8);
 
-  // Portrait placeholder: Ender — green goggles, trimmed beard, mycelial tattoos
+  // Portrait fallback: Ender — copper hair, brass goggles, practical fieldwear
   const cx = portX + portW / 2;
   const cy = portY + portH / 2 - 10;
   const headR = 32;
@@ -7927,48 +7930,21 @@ function drawCharSheet(px, py, pw, ph) {
   noStroke();
   ellipse(cx, cy, headR * 2, headR * 2.1);
 
-  // Mycelial tattoos — teal branching on face
-  stroke(PAL.TEAL);
-  strokeWeight(1.5);
-  noFill();
-  // Left branch
-  beginShape();
-  vertex(cx - 18, cy - 10);
-  vertex(cx - 24, cy - 4);
-  vertex(cx - 22, cy + 4);
-  vertex(cx - 16, cy + 8);
-  endShape();
-  // Right branch
-  beginShape();
-  vertex(cx + 18, cy - 10);
-  vertex(cx + 24, cy - 4);
-  vertex(cx + 22, cy + 4);
-  vertex(cx + 16, cy + 8);
-  endShape();
-  // Forehead line
-  line(cx - 14, cy - 18, cx + 14, cy - 18);
-
-  // Goggles — green
+  // Freckles / fieldwear detail.
   noStroke();
-  fill(PAL.BIO);
+  fill(PAL.RUST);
+  rect(cx - 19, cy + 4, 2, 2);
+  rect(cx - 14, cy + 6, 2, 2);
+  rect(cx + 12, cy + 6, 2, 2);
+  rect(cx + 17, cy + 4, 2, 2);
+
+  // Brass goggles with pale lenses.
+  fill(PAL.DUST);
   ellipse(cx - 12, cy - 4, 14, 10);
   ellipse(cx + 12, cy - 4, 14, 10);
   fill(PAL.SCIOTO);
   ellipse(cx - 12, cy - 4, 8, 6);
   ellipse(cx + 12, cy - 4, 8, 6);
-
-  // Trimmed beard
-  fill(PAL.SOIL);
-  noStroke();
-  beginShape();
-  vertex(cx - 16, cy + 6);
-  vertex(cx - 20, cy + 18);
-  vertex(cx - 12, cy + 22);
-  vertex(cx, cy + 20);
-  vertex(cx + 12, cy + 22);
-  vertex(cx + 20, cy + 18);
-  vertex(cx + 16, cy + 6);
-  endShape(CLOSE);
 
   // Eyes
   fill(PAL.NAVY);
@@ -7976,8 +7952,8 @@ function drawCharSheet(px, py, pw, ph) {
   ellipse(cx - 12, cy - 4, 4, 4);
   ellipse(cx + 12, cy - 4, 4, 4);
 
-  // Short trimmed hair (beard top)
-  fill(PAL.SOIL);
+  // Short copper hair.
+  fill(PAL.RUST);
   noStroke();
   beginShape();
   vertex(cx - 22, cy - 22);
@@ -7999,31 +7975,39 @@ function drawCharSheet(px, py, pw, ph) {
   noStroke();
   rect(cx - 18, cy + 22, 36, 8);
 
+  const livePlayer = world && world.player ? world.player : null;
+  const production = livePlayer && livePlayer.productionStats ? livePlayer.productionStats : null;
+  const liveClass = livePlayer
+    ? (livePlayer.nativeJob || livePlayer.class || 'Rift Scholar')
+    : 'Rift Scholar';
+  const liveLevel = livePlayer && Number.isFinite(livePlayer.level) ? livePlayer.level : 1;
+
   // ── Class + Level ──
   textFont(FONT_UI);
   textSize(10);
   textAlign(LEFT, TOP);
   drawGlowText('CLASS', sheet.classX, sheet.classY, PAL.TEAL, 10);
   fill(PAL.PARCHMENT);
-  text('Rift Scholar', sheet.classX + 44, sheet.classY);
+  text(liveClass, sheet.classX + 44, sheet.classY);
 
   drawGlowText('LEVEL', sheet.levelX, sheet.levelY, PAL.TEAL, 10);
   fill(PAL.PARCHMENT);
-  text('Rank 1', sheet.levelX + 44, sheet.levelY);
+  text('Lv. ' + liveLevel, sheet.levelX + 44, sheet.levelY);
 
   // ── Stats ──
   textFont(FONT_BODY);
   textSize(14);
   const statsY = sheet.statsY;
-  const statColor = PAL.PARCHMENT;
   const statAccent = PAL.TEAL;
   const stats = [
-    { label: 'Vit',    value: '13',   accent: PAL.RUST },
-    { label: 'Echoes', value: '3/3',  accent: PAL.BIO },
-    { label: 'Wits',   value: '+2',   accent: PAL.SCIOTO },
-    { label: 'Presence', value: '+1', accent: PAL.TEAL },
-    { label: 'Spirit', value: '+1',   accent: PAL.TEAL },
-    { label: 'Might',  value: '-1',   accent: PAL.RUST },
+    { label: 'Vit', value: String(livePlayer ? livePlayer.vit : 13), accent: PAL.RUST },
+    { label: 'Echoes', value: String(livePlayer ? livePlayer.echoes : 3) + '/' +
+        String(livePlayer ? (livePlayer.echoesMax || 3) : 3), accent: PAL.BIO },
+    { label: 'Wits', value: String(production ? production.wits : 8), accent: PAL.SCIOTO },
+    { label: 'Presence', value: String(production ? production.presence : 4), accent: PAL.TEAL },
+    { label: 'Spirit', value: String(production ? production.spirit : 12), accent: PAL.TEAL },
+    { label: 'Might', value: String(production ? production.might : 3), accent: PAL.RUST },
+    { label: 'Grace', value: String(production ? production.grace : 4), accent: PAL.SCIOTO },
   ];
   stats.forEach((s, i) => {
     const sy = statsY + i * 18;
@@ -8074,6 +8058,7 @@ function drawCharSheet(px, py, pw, ph) {
     { name: 'Resonator Staff', desc: 'Gunmetal shaft, claw mount, cyan crystal' },
   ];
   gear.forEach((g, i) => {
+    const gy = sheet.gearY + 22 + i * 42;
     drawGlowText(g.name, sheet.gearX + 10, gy, PAL.BIO, 13);
     fill(PAL.DIM);
     noStroke();
