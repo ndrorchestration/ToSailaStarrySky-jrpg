@@ -7891,11 +7891,11 @@ function drawCharSheet(px, py, pw, ph) {
     statsX: px + 160,
     statsY: py + 80,
     abilitiesX: px + 16,
-    abilitiesY: py + 170,
+    abilitiesY: py + 220,
     gearX: px + 300,
-    gearY: py + 170,
+    gearY: py + 220,
     resourcesX: px + 16,
-    resourcesY: py + 290,
+    resourcesY: py + 360,
     panelW: pw - 32,
     panelH: ph - 32,
   };
@@ -8074,11 +8074,26 @@ function drawCharSheet(px, py, pw, ph) {
   textFont(FONT_BODY);
   textSize(14);
   const resY = sheet.resourcesY + 22;
+  const liveAether = livePlayer && typeof livePlayer.aether === 'object'
+    ? livePlayer.aether.current
+    : (livePlayer ? livePlayer.aether : 4);
+  const liveAetherMax = livePlayer && typeof livePlayer.aether === 'object'
+    ? livePlayer.aether.max
+    : (livePlayer ? (livePlayer.aetherMax || 6) : 6);
+  const liveHeat = livePlayer && typeof livePlayer.heat === 'object'
+    ? livePlayer.heat.current
+    : (livePlayer ? livePlayer.heat : 1);
+  const liveHeatMax = livePlayer && typeof livePlayer.heat === 'object'
+    ? livePlayer.heat.max
+    : (livePlayer ? (livePlayer.heatMax || 3) : 3);
+  const liveCharge = livePlayer && Number.isFinite(livePlayer.solarCharge)
+    ? livePlayer.solarCharge
+    : 1.0;
   const res = [
-    { label: 'Scrap',   value: '7',    unit: '' },
-    { label: 'Aether',  value: '4',    unit: '/6' },
-    { label: 'Heat',    value: '1',    unit: '/3' },
-    { label: 'Charge',  value: '2.0',  unit: 'kWh / 400W' },
+    { label: 'Scrap', value: String(livePlayer ? livePlayer.scrap : 7), unit: '' },
+    { label: 'Aether', value: String(liveAether), unit: '/' + liveAetherMax },
+    { label: 'Heat', value: String(liveHeat), unit: '/' + liveHeatMax },
+    { label: 'Charge', value: Number(liveCharge).toFixed(1), unit: 'kWh / 400W' },
   ];
   res.forEach((r, i) => {
     const ry = resY + i * 20;
