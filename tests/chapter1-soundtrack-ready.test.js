@@ -30,5 +30,18 @@ assert.strictEqual(enderTheme.trackId,'open-sky-signal');
 assert.strictEqual(enderTheme.canonicalPath,'assets/audio/open-sky-signal.mp3');
 assert.strictEqual(enderTheme.sourceVerification.sha256,'831a195d060e22107c9b38ac1655b0ae879485e87eba601d41d3af46d8518484');
 assert.strictEqual(enderTheme.sourceVerification.bytes,4171250);
+assert.strictEqual(enderTheme.repositoryStatus,'admitted','Ender theme must be admitted for Chapter 1 candidate');
+assert.strictEqual(enderTheme.runtimeRegistration,true,'Ender theme must be runtime-registered for Chapter 1 candidate');
+const enderPath=path.join(repo,enderTheme.canonicalPath);
+assert(fs.existsSync(enderPath),'missing Ender character-theme asset');
+const enderBytes=fs.readFileSync(enderPath);
+assert.strictEqual(enderBytes.length,enderTheme.sourceVerification.bytes);
+assert.strictEqual(
+  crypto.createHash('sha256').update(enderBytes).digest('hex'),
+  enderTheme.sourceVerification.sha256
+);
+assert(scene.includes("ender: { id:'open-sky-signal'"));
+assert(scene.includes("questState.wakeEpilogueId === 'epiline_10'"));
+assert(scene.includes('setCharacterTheme'));
 
 console.log('Aetherwake Chapter 1 soundtrack readiness: PASS');
