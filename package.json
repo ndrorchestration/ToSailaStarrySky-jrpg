@@ -111,6 +111,8 @@
     "test:chapter1-world": "node tests/chapter1-world-lifecycle.test.js",
     "test:chapter1-browser": "node tests/chapter1-route-playwright.js",
     "test:chapter1-balance": "node tests/chapter1-combat-balance.test.js",
-    "build:chapter1:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\build-chapter1-windows.ps1"
+    "build:chapter1:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\build-chapter1-windows.ps1",
+    "admit:title-audio": "node scripts/admit-title-audio.js",
+    "test:chapter1-title-audio-ready": "node tests/chapter1-title-audio-ready.test.js"
   }
 }
