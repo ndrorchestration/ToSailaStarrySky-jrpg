@@ -19,9 +19,14 @@ assert(runtime.includes("return 'corporateSalvager'"),
   'Verrick dialogue portrait binding missing');
 assert(runtime.includes('function drawDialoguePortrait('),
   'dialogue portrait renderer missing');
-assert(runtime.includes('const scale = Math.max(1, Math.floor(size / 16));') &&
-       runtime.includes("anchor: 'bottom-center'") &&
-       runtime.includes('    scale\n  });'),
+const portraitStart = runtime.indexOf('function drawDialoguePortrait(');
+const portraitEnd = runtime.indexOf('function drawDialogueOverlay()', portraitStart);
+assert(portraitStart >= 0 && portraitEnd > portraitStart,
+  'dialogue portrait renderer boundary missing');
+const portrait = runtime.slice(portraitStart, portraitEnd);
+assert(portrait.includes('const scale = Math.max(1, Math.floor(size / 16));') &&
+       portrait.includes("anchor: 'bottom-center'") &&
+       /sprites\.draw\([\s\S]*?\bscale\s*\n?\s*\}\);/.test(portrait),
   'dialogue portrait must use integer-scaled shared sprite authority');
 assert(runtime.includes('const bw = Math.min(820, width - 64)'),
   'cinematic dialogue stage width contract missing');
