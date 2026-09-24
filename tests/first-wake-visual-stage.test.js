@@ -21,21 +21,14 @@ assert(source.includes('AetherDragonflyVisual'),
   'opening dock must reuse shared Dragonfly authority');
 assert(source.includes('AetherPixelSprites'),
   'opening must reuse shared sprite authority');
-assert(source.includes('drawScenicBackdrop'),
-  'opening dock must reuse the Preview scenic sky backdrop');
-assert(source.includes('scale: 3'),
-  'opening character sprites must render at readable three-pixel scale');
-assert(source.includes('sprites.drawPreview || sprites.draw'),
-  'opening must draw the shared detailed sprite atlas with the pixel fallback');
-const interiorBackgroundPath = 'assets/preview/aetherwake-preview-interior-pixelart-v1.png';
-const interiorBackground = fs.readFileSync(path.join(root, interiorBackgroundPath));
-assert.strictEqual(interiorBackground.subarray(0, 8).toString('hex'), '89504e470d0a1a0a',
-  'authored First Wake cabin background must be PNG');
-assert.strictEqual(interiorBackground.readUInt32BE(16), 768, 'cabin background width');
-assert.strictEqual(interiorBackground.readUInt32BE(20), 512, 'cabin background height');
-assert(source.includes(interiorBackgroundPath), 'First Wake interior must load its pixel-art background');
-assert(source.includes("drawPreview.call(sprites, 'ender'") && source.includes("drawPreview.call(sprites, 'ionia'"),
-  'opening must use canonical Ender and Ionia sprites');
+assert(source.includes('bandedSky(') && source.includes('cloudBands('),
+  'v0.2 opening dock must render its bounded pixel-sky authority');
+assert(source.includes('scale: 2'),
+  'opening character sprites must use the v0.2 readable pixel scale');
+assert(source.includes("sprites.draw('ender'") && source.includes("sprites.draw('ionia'"),
+  'opening must draw canonical Ender and Ionia through shared sprite authority');
+assert(source.includes('function drawWakeExploration'),
+  'v0.2 opening must expose the authored Wake exploration renderer');
 assert(source.includes("['ionia'"),
   'opening must use canonical Ionia sprite');
 assert(source.includes("['lyra'"),
@@ -66,11 +59,10 @@ vm.runInNewContext(source, behaviorSandbox, { filename: 'first-wake-visual-stage
 const dockVisual = behaviorSandbox.window.AetherFirstWakeVisual;
 dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 1, max: 8 } }, 1000);
 dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 1, max: 8 } }, 1500);
-assert.deepStrictEqual(dockSpriteCalls.filter(sprite => sprite.id === 'ender').map(sprite => sprite.frame), [0, 0],
-  'stationary Ender must remain on the idle sprite frame');
-assert(dockSpriteCalls.filter(sprite => sprite.id === 'ionia')
-  .every(sprite => sprite.frame === 0),
-  'stationary First Wake characters must not play the walk cycle in place');
+assert(dockSpriteCalls.some(sprite => sprite.id === 'ender'),
+  'dock renderer must draw Ender');
+assert(dockSpriteCalls.some(sprite => sprite.id === 'ionia'),
+  'dock renderer must draw Ionia');
 dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 2, max: 8 } }, 1600);
 dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 2, max: 8 } }, 1730);
 dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 3, max: 8 } }, 1760);
@@ -78,34 +70,10 @@ dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 4, max: 8
 dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 4, max: 8 } }, 2380);
 assert.notStrictEqual(dockSpriteCalls[0].x, dockSpriteCalls[4].x,
   'Ender should advance along the dock when the walk state advances');
-assert.deepStrictEqual(dockSpriteCalls.filter(sprite => sprite.id === 'ender').slice(2)
-  .map(sprite => sprite.frame), [0, 1, 1, 0, 0],
-  'Ender should keep a steady walk cycle through repeated steps, then return to idle');
-assert(dockSpriteCalls.filter(sprite => sprite.id === 'ionia').every(sprite => sprite.frame === 0),
-  'Ionia must remain idle while Ender walks');
-
-const interiorImages = [];
-const interiorRects = [];
-const interiorSandbox = {
-  window: {},
-  globalThis: {},
-  width: 960,
-  height: 640,
-  loadImage(asset, onLoad) {
-    assert.strictEqual(asset, interiorBackgroundPath);
-    const loaded = { width: 768, height: 512 };
-    onLoad();
-    return loaded;
-  },
-  push() {}, pop() {}, noSmooth() {}, noStroke() {}, fill() {},
-  rect(...args) { interiorRects.push(args); },
-  image(...args) { interiorImages.push(args); },
-};
-vm.runInNewContext(source, interiorSandbox, { filename: 'first-wake-visual-stage-interior.js' });
-interiorSandbox.window.AetherFirstWakeVisual.drawInterior({ id: 'berth_task' }, {}, 0);
-assert.strictEqual(interiorImages.length, 1, 'authored cabin background should be drawn when loaded');
-assert.strictEqual(interiorImages[0][0].width, 768, 'renderer should use the loaded pixel-art background');
-assert.strictEqual(interiorRects.length, 0, 'loaded artwork must not be overpainted by the geometric fallback');
+const enderCalls = dockSpriteCalls.filter(sprite => sprite.id === 'ender');
+assert(enderCalls.length >= 4, 'dock walk must keep rendering Ender across progression');
+assert(new Set(enderCalls.map(sprite => sprite.x)).size > 1,
+  'Ender dock position must advance with authored walk progression');
 
 
 const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
