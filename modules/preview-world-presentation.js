@@ -347,7 +347,8 @@
       const x = npc.tileX * CELL;
       const y = npc.tileY * CELL;
       drawSprite(id, x, y, npc.id === 'elder_farmer' ? 'Ionia' : '', 2);
-      if (npc.flags && npc.flags.questMarker) {
+      // Preview 0.1 opens on Ionia's first conversation; avoid duplicating the marker over every talkable NPC.
+      if (npc.id === 'elder_farmer' && npc.flags && npc.flags.questMarker && !npc.flags.met) {
         noStroke();
         fill(255, 211, 72);
         rect(x + 5, y - 38, 7, 7);
