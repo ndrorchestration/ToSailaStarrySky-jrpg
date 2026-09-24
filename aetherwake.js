@@ -110,6 +110,8 @@ window.gameState = gameState;
 // Timing
 let lastTime = 0;
 let dt = 0;
+let loadedPlaytimeMs = 0;
+let playSessionStartMs = 0;
 
 // Input
 const keys = {};
@@ -223,8 +225,139 @@ function setup() {
   }
   window._setupOrder = window._setupOrder + '→setup-done';
   lastTime = millis();
+  playSessionStartMs = lastTime;
   window.__awRuntimeReady = true;
 }
+
+function cloneSaveJson(value) {
+  return value == null ? value : JSON.parse(JSON.stringify(value));
+}
+
+function currentPlaytimeMs() {
+  const now = typeof millis === 'function' ? millis() : 0;
+  return Math.max(0, loadedPlaytimeMs + Math.max(0, now - playSessionStartMs));
+}
+
+function canSnapshotPersistentState() {
+  return gameState === STATE.WORLD || gameState === STATE.AIRSHIP;
+}
+
+function buildSavePayload() {
+  if (!canSnapshotPersistentState()) {
+    throw new Error('SAVE_NOT_ALLOWED_IN_CURRENT_STATE');
+  }
+  if (!world || typeof world.snapshotPersistentState !== 'function') {
+    throw new Error('WORLD_PERSISTENCE_SNAPSHOT_UNAVAILABLE');
+  }
+  const worldSnapshot = world.snapshotPersistentState();
+  const payload = {
+    runtime: {
+      scene: gameState === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD,
+      dayTime: worldSnapshot.runtime.dayTime,
+      skyLayerVisible: worldSnapshot.runtime.skyLayerVisible,
+      playtimeMs: currentPlaytimeMs(),
+    },
+    world: worldSnapshot.world,
+    quest: worldSnapshot.quest,
+    party: {
+      roster: Array.isArray(window.ROSTER)
+        ? window.ROSTER.map(character => cloneSaveJson(character))
+        : [],
+      activeIds: Array.isArray(window.ACTIVE_PARTY)
+        ? window.ACTIVE_PARTY.map(character => character.id)
+        : [],
+    },
+    airNavigation: window.AetherAirNavigation && airNavigationState
+      ? window.AetherAirNavigation.exportPersistentState(airNavigationState)
+      : null,
+  };
+
+  window.AetherSavePayloadValidator.validatePayload(payload, {
+    validateAirNavigation(candidate) {
+      return window.AetherAirNavigation.validatePersistentState(candidate);
+    },
+  });
+  return payload;
+}
+
+function prepareSaveEnvelopeForApply(envelope) {
+  if (!envelope || !envelope.payload) {
+    throw new Error('SAVE_ENVELOPE_PAYLOAD_MISSING');
+  }
+  const payload = cloneSaveJson(envelope.payload);
+
+  window.AetherSavePayloadValidator.validatePayload(payload, {
+    validateAirNavigation(candidate) {
+      return window.AetherAirNavigation.validatePersistentState(candidate);
+    },
+  });
+
+  if (!world || typeof world.preparePersistentState !== 'function') {
+    throw new Error('WORLD_PERSISTENCE_PREPARE_UNAVAILABLE');
+  }
+  const preparedWorld = world.preparePersistentState(payload.world, payload.quest);
+
+  if (!window.ROSTER || window.ROSTER.length !== 5 ||
+      !window.AetherPartyState || typeof window.AetherPartyState.setActivePartyIds !== 'function') {
+    throw new Error('PARTY_PERSISTENCE_RUNTIME_UNAVAILABLE');
+  }
+  const preparedRoster = payload.party.roster.map((record, index) => {
+    const target = window.ROSTER[index];
+    if (!target || record.id !== target.id) {
+      throw new Error('SAVE_PARTY_IDENTITY_MISMATCH');
+    }
+    return cloneSaveJson(record);
+  });
+
+  const preparedAirNavigation = payload.airNavigation
+    ? window.AetherAirNavigation.restorePersistentState(payload.airNavigation)
+    : null;
+
+  return Object.freeze({
+    payload,
+    preparedWorld,
+    preparedRoster,
+    preparedActiveIds: payload.party.activeIds.slice(),
+    preparedAirNavigation,
+  });
+}
+
+function applySaveEnvelope(envelope) {
+  // No canonical live state changes before this preflight completes.
+  const prepared = prepareSaveEnvelopeForApply(envelope);
+  const payload = prepared.payload;
+
+  prepared.preparedRoster.forEach((record, index) => {
+    Object.assign(window.ROSTER[index], cloneSaveJson(record));
+  });
+  window.AetherPartyState.setActivePartyIds(prepared.preparedActiveIds);
+  window.AetherPartyState.validate();
+
+  world.restorePersistentState(prepared.preparedWorld, payload.runtime);
+
+  airNavigationState = prepared.preparedAirNavigation;
+  window._airNavigationState = airNavigationState;
+
+  loadedPlaytimeMs = payload.runtime.playtimeMs;
+  playSessionStartMs = typeof millis === 'function' ? millis() : 0;
+
+  pendingHazardIndex = null;
+  combatReturnState = STATE.WORLD;
+  previewEncounterStarted = false;
+  previewEncounterFinished = false;
+  previewEndAt = 0;
+  gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
+  window.gameState = gameState;
+  prevState = null;
+  return true;
+}
+
+window._persistenceRuntime = Object.freeze({
+  buildSavePayload,
+  prepareSaveEnvelopeForApply,
+  applySaveEnvelope,
+  currentPlaytimeMs,
+});
 
 function writeDesktopSmokeMarkerOnce() {
   if (window.__awDesktopSmokeMarkerWritten) return;
