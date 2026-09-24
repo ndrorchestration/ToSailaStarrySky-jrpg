@@ -89,10 +89,23 @@ function createServer() {
     assert(new RegExp(expectedName, 'i').test(String(start.enemy.name || start.enemy.id || '')),
       'unexpected Chapter 1 hazard enemy: ' + (start.enemy.name || start.enemy.id));
 
-    const actionPlan = ['2','1','5','1','5','1','5','1'];
-    for (const actionKey of actionPlan) {
+    let analyzed = false;
+    for (let step = 0; step < 12; step++) {
       const before = await page.evaluate(() => window._combat.getState());
       if (before.encounterOver) break;
+
+      let actionKey;
+      if (!analyzed &&
+          Array.isArray(before.usableActionIds) &&
+          before.usableActionIds.includes('uncoverTruth')) {
+        actionKey = '2';
+        analyzed = true;
+      } else if (Number(before.player.staffCharges || 0) > 0) {
+        actionKey = '1';
+      } else {
+        actionKey = '5'; // Hold: recharge the Resonator Staff.
+      }
+
       const beforeTurn = before.turn;
       await page.keyboard.press(actionKey);
       await page.waitForFunction(previousTurn => {
