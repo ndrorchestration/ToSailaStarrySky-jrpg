@@ -828,19 +828,23 @@ function interact() {
 function doTalk() {
   const nearest = findNearestNPC(2);
   if (!nearest) return;
+  const firstContact = !nearest.flags.met;
 
-  if (!nearest.flags.met) {
+  if (firstContact) {
     nearest.flags.met = true;
-    if (!quest.npcsMet.includes(nearest.id)) {
-      quest.npcsMet.push(nearest.id);
-    }
-    if (quest.state === QUEST_STATES.CONTACT || quest.state === QUEST_STATES.CHOICE) {
-      advanceQuest();
-    }
   }
 
   if (quest.state === QUEST_STATES.SIGNAL) {
     checkSignalHook(nearest);
+  } else if (quest.state === QUEST_STATES.CONTACT) {
+    if (!quest.npcsMet.includes(nearest.id)) {
+      quest.npcsMet.push(nearest.id);
+      appendJournalEntry(
+        'contact',
+        nearest.name + ' heard // ' + quest.npcsMet.length + ' of 4 voices'
+      );
+    }
+    advanceQuest();
   }
 
   openDialogue(nearest);
@@ -848,13 +852,13 @@ function doTalk() {
 
 function checkSignalHook(npc) {
   if (npc.id === 'engine_spirit') {
-    completeSignalHook('distress');
+    completeSignalHook('harmonic_buoy');
   }
   if (npc.id === 'corporate_salvager') {
-    completeSignalHook('bounty');
+    completeSignalHook('sky_lane_warning');
   }
   if (npc.id === 'child_prophet') {
-    completeSignalHook('prophet');
+    completeSignalHook('below_frequency');
   }
 }
 
