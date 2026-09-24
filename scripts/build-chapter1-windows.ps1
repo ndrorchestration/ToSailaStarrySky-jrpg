@@ -34,6 +34,11 @@ if ($LASTEXITCODE -ne 0) { throw "Chapter 1 deterministic core gate failed with 
 npm run test:chapter1-browser
 if ($LASTEXITCODE -ne 0) { throw "Chapter 1 full browser player-route gate failed with code $LASTEXITCODE." }
 
+npm run test:chapter1-title-audio-ready
+if ($LASTEXITCODE -ne 0) {
+  throw "Chapter 1 title audio is not admitted/verified. Run scripts\\admit-title-audio.ps1 with the exact Skyward Arpeggio source first."
+}
+
 npm run test:desktop-package
 if ($LASTEXITCODE -ne 0) { throw "Desktop package contract failed with code $LASTEXITCODE." }
 
@@ -194,6 +199,7 @@ $evidence = [ordered]@{
   generatedAtUtc = [DateTime]::UtcNow.ToString("o")
   chapter1Core = "PASS"
   chapter1BrowserRoute = "PASS"
+  titleAudioReady = "PASS"
   desktopPackageContract = "PASS"
   desktopRuntimeReady = $true
   desktopFirstFrame = $true
