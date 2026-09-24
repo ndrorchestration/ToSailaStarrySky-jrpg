@@ -36,8 +36,13 @@
   }
 
   function drawDock(scene, state, now) {
-    bandedSky([18, 24, 46], [55, 68, 101], [176, 125, 105]);
-    cloudBands(now, 348, [212, 224, 229], 48);
+    const previewPresentation = root.AetherPreviewWorldPresentation;
+    if (previewPresentation && typeof previewPresentation.drawScenicBackdrop === 'function') {
+      previewPresentation.drawScenicBackdrop(width, height, now);
+    } else {
+      bandedSky([67, 174, 244], [145, 224, 250], [229, 247, 242]);
+      cloudBands(now, 348, [245, 253, 255], 130);
+    }
 
     noStroke();
     fill(29, 35, 43);
@@ -76,14 +81,14 @@
       sprites.drawShadow(enderX, 430, 2);
       sprites.draw('ender', enderX, 430, {
         anchor: 'bottom-center',
-        scale: 2,
+        scale: 3,
         frame: Math.floor(now / 240) % 2,
       });
 
       sprites.drawShadow(620, 430, 2);
       sprites.draw('ionia', 620, 430, {
         anchor: 'bottom-center',
-        scale: 2,
+        scale: 3,
         frame: Math.floor(now / 300) % 2,
       });
     }
@@ -173,7 +178,7 @@
         sprites.drawShadow(x, 420, 2);
         sprites.draw(id, x, 420, {
           anchor: 'bottom-center',
-          scale: 2,
+          scale: 3,
           frame: Math.floor(now / 260) % 2,
         });
       }
