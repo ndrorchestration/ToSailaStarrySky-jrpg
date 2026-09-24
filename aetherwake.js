@@ -26,7 +26,7 @@ const STATE = {
   BOOT: 'boot', MENU: 'menu', WORLD: 'world', COMBAT: 'combat',
   DIALOGUE: 'dialogue', SHOP: 'shop', LEDGER: 'ledger',
   QUESTLOG: 'questlog', CHARSHEET: 'charsheet', AIRSHIP: 'airship',
-  OPENING: 'opening', CHARCREATE: 'charcreate', PREVIEW_END: 'preview-end',
+  SAVELOAD: 'saveload', OPENING: 'opening', CHARCREATE: 'charcreate', PREVIEW_END: 'preview-end',
 };
 let gameState = STATE.BOOT;
 window.gameState = gameState;  // expose for debug
@@ -103,6 +103,9 @@ let previewEncounterArmed = false;
 let previewEncounterStarted = false;
 let previewEncounterFinished = false;
 let previewEndAt = 0;
+let saveMenuMode = 'save';
+let saveMenuIndex = 0;
+let saveMenuReturnState = STATE.WORLD;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -359,6 +362,176 @@ window._persistenceRuntime = Object.freeze({
   currentPlaytimeMs,
 });
 
+function buildLoadableSaveIndex() {
+  if (!window.AetherSaveSystem) return [];
+  return window.AetherSaveSystem.list().map(meta => {
+    if (!meta.exists || meta.valid === false) return meta;
+    try {
+      const loaded = window.AetherSaveSystem.load(meta.slot);
+      if (!loaded || !loaded.envelope) {
+        return { ...meta, valid: false, semanticValid: false, error: 'SAVE_ENVELOPE_MISSING' };
+      }
+      prepareSaveEnvelopeForApply(loaded.envelope);
+      return { ...meta, semanticValid: true };
+    } catch (error) {
+      return { ...meta, valid: false, semanticValid: false, error: error.message };
+    }
+  });
+}
+
+function saveMetadata() {
+  return {
+    gameVersion: '0.1.0-preview.1',
+    playtimeMs: currentPlaytimeMs(),
+    chapter: 'Preview 0.1 — First Wake',
+    location: gameState === STATE.AIRSHIP ? 'Open Sky' : 'Aureate Wake',
+    partySummary: Array.isArray(window.ACTIVE_PARTY)
+      ? window.ACTIVE_PARTY.map(character => character.name || character.id)
+      : ['Ender'],
+  };
+}
+
+function saveToSlot(slot) {
+  if (!canSnapshotPersistentState()) {
+    showToast('CANNOT SAVE HERE', C.rust, 1400);
+    return false;
+  }
+  try {
+    const result = window.AetherSaveSystem.save(slot, buildSavePayload(), saveMetadata());
+    window._lastSaveResult = result;
+    window._saveSlotIndex = buildLoadableSaveIndex();
+    showToast('GAME SAVED // ' + slot.toUpperCase(), C.teal, 1300);
+    return true;
+  } catch (error) {
+    window._lastSaveError = error.message;
+    console.error('SAVE_FAILED', error);
+    showToast('SAVE FAILED // ' + error.message, C.rust, 2200);
+    return false;
+  }
+}
+
+function loadFromSlot(slot) {
+  try {
+    const loaded = window.AetherSaveSystem.load(slot);
+    if (!loaded) {
+      showToast('NO SAVE IN ' + slot.toUpperCase(), C.rust, 1400);
+      return false;
+    }
+    prepareSaveEnvelopeForApply(loaded.envelope);
+    window._lastLoadResult = loaded;
+    applySaveEnvelope(loaded.envelope);
+    window._saveSlotIndex = buildLoadableSaveIndex();
+    showToast('GAME LOADED // ' + slot.toUpperCase(), C.teal, 1500);
+    return true;
+  } catch (error) {
+    window._lastLoadError = error.message;
+    console.error('LOAD_FAILED', error);
+    showToast('LOAD FAILED // ' + error.message, C.rust, 2200);
+    return false;
+  }
+}
+
+function openSaveLoadMenu(mode) {
+  if (mode === 'save' && !canSnapshotPersistentState()) {
+    showToast('CANNOT SAVE HERE', C.rust, 1400);
+    return false;
+  }
+  if (gameState !== STATE.WORLD && gameState !== STATE.AIRSHIP) return false;
+  saveMenuReturnState = gameState;
+  saveMenuMode = mode === 'load' ? 'load' : 'save';
+  saveMenuIndex = 0;
+  window._saveSlotIndex = buildLoadableSaveIndex();
+  gameState = STATE.SAVELOAD;
+  window.gameState = gameState;
+  prevState = null;
+  return true;
+}
+
+function handleSaveLoadInput() {
+  const slots = window.AetherSaveSystem.MANUAL_SLOTS;
+  if (keysPressed[27]) {
+    gameState = saveMenuReturnState;
+    window.gameState = gameState;
+    prevState = null;
+    return;
+  }
+  if (keysPressed[LEFT_ARROW] || keysPressed[RIGHT_ARROW]) {
+    saveMenuMode = saveMenuMode === 'save' ? 'load' : 'save';
+  }
+  if (keysPressed[UP_ARROW]) saveMenuIndex = (saveMenuIndex + slots.length - 1) % slots.length;
+  if (keysPressed[DOWN_ARROW]) saveMenuIndex = (saveMenuIndex + 1) % slots.length;
+  if (keysPressed[13] || keysPressed[32]) {
+    const slot = slots[saveMenuIndex];
+    if (saveMenuMode === 'save') {
+      const returnState = saveMenuReturnState;
+      gameState = returnState;
+      window.gameState = gameState;
+      if (saveToSlot(slot)) {
+        openSaveLoadMenu('save');
+        saveMenuIndex = slots.indexOf(slot);
+      } else {
+        openSaveLoadMenu('save');
+      }
+    } else {
+      loadFromSlot(slot);
+    }
+  }
+}
+
+function drawSaveLoadOverlay() {
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 238);
+  rect(0, 0, width, height);
+  const slots = window.AetherSaveSystem.MANUAL_SLOTS;
+  const listing = buildLoadableSaveIndex();
+
+  textAlign(LEFT, TOP);
+  textFont('Press Start 2P');
+  textSize(13);
+  fill(C.teal[0], C.teal[1], C.teal[2]);
+  text('SAVE / LOAD', 90, 56);
+
+  textSize(9);
+  fill(C.parchment[0], C.parchment[1], C.parchment[2]);
+  text('MODE: ' + saveMenuMode.toUpperCase() + '   LEFT / RIGHT SWITCH', 90, 84);
+
+  for (let i = 0; i < slots.length; i++) {
+    const slot = slots[i];
+    const meta = listing.find(entry => entry.slot === slot);
+    const y = 120 + i * 62;
+    if (i === saveMenuIndex) {
+      fill(C.teal[0], C.teal[1], C.teal[2], 35);
+      rect(80, y - 8, width - 160, 52);
+    }
+
+    fill(i === saveMenuIndex ? C.teal[0] : C.parchment[0],
+         i === saveMenuIndex ? C.teal[1] : C.parchment[1],
+         i === saveMenuIndex ? C.teal[2] : C.parchment[2]);
+    textFont('Press Start 2P');
+    textSize(9);
+    text('SLOT ' + (i + 1), 100, y);
+
+    textFont('VT323');
+    textSize(15);
+    if (meta && meta.exists && meta.valid !== false && meta.semanticValid === true) {
+      const mins = Math.floor((meta.playtimeMs || 0) / 60000);
+      text((meta.chapter || 'Aetherwake') + ' // ' + mins + ' min', 220, y - 2);
+      text((meta.partySummary || []).join(' + '), 220, y + 18);
+    } else if (meta && meta.exists) {
+      fill(C.rust[0], C.rust[1], C.rust[2]);
+      const reason = meta.semanticValid === false ? 'INVALID SAVE STATE' : 'CORRUPT / UNREADABLE';
+      text(reason + ' — ORIGINAL RETAINED', 220, y + 6);
+    } else {
+      text('EMPTY', 220, y + 6);
+    }
+  }
+
+  textFont('Press Start 2P');
+  textSize(8);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2]);
+  text('UP / DOWN SLOT   ENTER CONFIRM   ESC RETURN   F5 SAVE   F9 LOAD', 90, height - 42);
+}
+
 function writeDesktopSmokeMarkerOnce() {
   if (window.__awDesktopSmokeMarkerWritten) return;
   try {
@@ -580,6 +753,11 @@ function draw() {
     if (world && typeof world.render === 'function') world.render();
     drawCharSheetOverlay();
   }
+  else if (gameState === STATE.SAVELOAD) {
+    if (saveMenuReturnState === STATE.WORLD && world && typeof world.render === 'function') world.render();
+    else if (saveMenuReturnState === STATE.AIRSHIP) drawAirNavigationScene();
+    drawSaveLoadOverlay();
+  }
 
   // ── Vignette (intensifies at night) ──
   if (VIS.vignette) {
@@ -634,6 +812,17 @@ let interactionKey = null;
 function keyPressed() {
   keys[keyCode] = true;
   keysPressed[keyCode] = true;
+
+  if ((gameState === STATE.WORLD || gameState === STATE.AIRSHIP) && keyCode === 116) { // F5
+    openSaveLoadMenu('save');
+    delete keysPressed[keyCode];
+    return false;
+  }
+  if ((gameState === STATE.WORLD || gameState === STATE.AIRSHIP) && keyCode === 120) { // F9
+    openSaveLoadMenu('load');
+    delete keysPressed[keyCode];
+    return false;
+  }
 
   if (gameState === STATE.OPENING) {
     const opening = window.AetherFirstWakeOpening;
@@ -883,7 +1072,10 @@ function handleInput() {
     return;
   }
 
-  if (gameState === STATE.WORLD) {
+  if (gameState === STATE.SAVELOAD) {
+    handleSaveLoadInput();
+  }
+  else if (gameState === STATE.WORLD) {
     handleWorldInput();
   }
   else if (gameState === STATE.DIALOGUE) {
