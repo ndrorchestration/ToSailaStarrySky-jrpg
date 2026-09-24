@@ -119,6 +119,7 @@
     "admit:chapter1-soundtrack:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\admit-chapter1-soundtrack.ps1",
     "test:chapter1-audio-routing": "node tests/chapter1-scene-music.test.js",
     "admit:chapter1-audio:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\admit-chapter1-audio.ps1",
-    "test:chapter1-character-sheet": "node tests/chapter1-character-sheet-presentation.test.js"
+    "test:chapter1-character-sheet": "node tests/chapter1-character-sheet-presentation.test.js",
+    "verify:chapter1:local": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\verify-chapter1-local.ps1"
   }
 }
