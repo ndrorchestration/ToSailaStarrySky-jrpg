@@ -7,6 +7,7 @@ const vm = require('vm');
 
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'modules', 'world.js'), 'utf8');
+const statModelSource = fs.readFileSync(path.join(root, 'modules', 'jrpg-stat-model.js'), 'utf8');
 const windowObject = { interactionKey: null, UI: {} };
 const context = vm.createContext({
   window: windowObject,
@@ -23,6 +24,26 @@ const context = vm.createContext({
   Map,
   Date,
 });
+new vm.Script(statModelSource, { filename: 'modules/jrpg-stat-model.js' }).runInContext(context);
+assert(windowObject.AetherJRPGStatModel,
+  'production JRPG stat model did not load into lifecycle test harness');
+windowObject.AetherPartyState = {
+  refreshProductionStats(character) {
+    const model = windowObject.AetherJRPGStatModel;
+    const level = character.level || 1;
+    character.productionStats = model.getPrimaryStats(character.id, level);
+    character.productionDerivedStats = model.derive(
+      character.productionStats,
+      level,
+      character.productionEquipment || {}
+    );
+    character.productionStatModelVersion = model.VERSION;
+    return {
+      primary: character.productionStats,
+      derived: character.productionDerivedStats,
+    };
+  },
+};
 new vm.Script(source, { filename: 'modules/world.js' }).runInContext(context);
 
 assert.strictEqual(typeof windowObject.AetherWorld, 'function',
