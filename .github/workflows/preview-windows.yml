@@ -1,0 +1,102 @@
+name: Aetherwake Preview 0.1 Windows ZIP
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - 'aetherwake.js'
+      - 'index-embedded.html'
+      - 'modules/**'
+      - 'assets/**'
+      - 'tts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/build-preview-windows.ps1'
+      - 'scripts/stage-memories-desktop.js'
+      - 'tests/**'
+      - '.github/workflows/preview-windows.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-windows-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview-windows:
+    runs-on: windows-2022
+    timeout-minutes: 40
+    env:
+      AETHERWAKE_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Verify Windows build contract
+        run: node tests/preview-windows-ci-contract.test.js
+
+      - name: Verify exact source SHA
+        shell: pwsh
+        run: |
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $env:AETHERWAKE_PR_HEAD_SHA) {
+            throw "Checked out $actual instead of PR head $env:AETHERWAKE_PR_HEAD_SHA."
+          }
+
+      - name: Build and first-frame-check portable ZIP
+        run: npm run build:preview:windows
+
+      - name: Retain source and first-frame evidence
+        shell: pwsh
+        run: |
+          $releaseRoot = Join-Path $PWD 'preview-release'
+          $zip = Join-Path $releaseRoot 'Aetherwake-Preview-0.1-Windows.zip'
+          $manifest = Join-Path $releaseRoot 'SHA256SUMS.txt'
+          $marker = Join-Path $env:TEMP 'aetherwake-preview-ready.json'
+          foreach ($path in @($zip, $manifest, $marker)) {
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Required Preview build evidence is missing: $path"
+            }
+          }
+
+          $ready = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
+          if (-not $ready.runtimeReady -or -not $ready.firstFrame -or
+              $ready.width -ne 960 -or $ready.height -ne 640 -or
+              $ready.setupOrder -notlike '*setup-done*') {
+            throw 'First-frame readiness evidence did not satisfy the Preview contract.'
+          }
+
+          $sourceSha = (git rev-parse HEAD).Trim()
+          if ($sourceSha -ne $env:AETHERWAKE_PR_HEAD_SHA) {
+            throw 'Source SHA changed during the Preview build.'
+          }
+          Set-Content -LiteralPath (Join-Path $releaseRoot 'SOURCE_SHA.txt') `
+            -Value $sourceSha -Encoding ASCII
+          Copy-Item -LiteralPath $marker `
+            -Destination (Join-Path $releaseRoot 'first-frame-readiness.json')
+
+      - name: Upload exact-head Windows ZIP and evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: aetherwake-preview-windows-${{ github.event.pull_request.head.sha }}
+          path: |
+            preview-release/Aetherwake-Preview-0.1-Windows.zip
+            preview-release/SHA256SUMS.txt
+            preview-release/SOURCE_SHA.txt
+            preview-release/first-frame-readiness.json
+          if-no-files-found: error
+          retention-days: 14
