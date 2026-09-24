@@ -48,9 +48,11 @@ windowObject.AetherwakeCharacterMagicProfile = {
   },
 };
 
+loadBrowserModule('modules/jrpg-stat-model.js', windowObject);
 loadBrowserModule('modules/party-state.js', windowObject);
 loadBrowserModule('modules/world.js', windowObject);
 
+assert(windowObject.AetherJRPGStatModel, 'production JRPG stat model did not load');
 assert(windowObject.AetherPartyState, 'actual party-state module did not load');
 assert(windowObject.AetherWorld, 'actual world module did not load');
 
