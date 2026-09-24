@@ -135,6 +135,7 @@
   }
 
   function draw(input) {
+    if (!root.AetherPixelTiles || !root.AetherPixelSprites) return false;
     const w = input.width || width;
     const h = input.height || height;
     const now = input.now || 0;
@@ -146,7 +147,7 @@
     }
     if (!cachedMap) return false;
 
-    const zoom = 1.22;
+    const zoom = 1.25;
     const player = input.player || { px: 16 * CELL, py: 16 * CELL };
     const focusX = Number.isFinite(player.px) ? player.px + CELL / 2 : 16 * CELL;
     const focusY = Number.isFinite(player.py) ? player.py + CELL / 2 : 16 * CELL;
@@ -156,7 +157,19 @@
     push();
     translate(cameraX, cameraY);
     scale(zoom);
+    noSmooth();
     image(cachedMap, 0, 0, MAP * CELL, MAP * CELL);
+    const field = input.covenantField;
+    if (field && field.planted) {
+      const cx = field.x * CELL + 8;
+      const cy = field.y * CELL + 8;
+      fill(63, 255, 190, 190);
+      for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2 + now * 0.0004;
+        const r = 12 + Math.sin(now * 0.004 + i) * 2;
+        rect(Math.round(cx + Math.cos(angle) * r), Math.round(cy + Math.sin(angle) * r), 2, 2);
+      }
+    }
     drawSprite('ender', player.px || 0, player.py || 0, 'Ender', 2);
 
     for (const npc of input.npcs || []) {
@@ -182,5 +195,10 @@
     cachedMap = null;
   }
 
-  root.AetherPreviewWorldPresentation = Object.freeze({ VERSION, draw, invalidate });
+  root.AetherPreviewWorldPresentation = Object.freeze({
+    VERSION,
+    draw,
+    drawScenicBackdrop: (w, h, now) => drawBackdrop(w || width, h || height, now || 0),
+    invalidate,
+  });
 })(typeof window !== 'undefined' ? window : globalThis);
