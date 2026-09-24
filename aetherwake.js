@@ -1098,11 +1098,6 @@ function keyTyped() {
     // Remove return; to allow fall-through from BOOT→MENU→WORLD in same key event
   }
   if (gameState === STATE.WORLD) {
-    if (key === 'c' || key === 'C') {
-      if (combat && typeof combat.beginEncounter === 'function') {
-        startCombat('skyPredator');
-      }
-    }
     // Disembark ship: L or Esc
     if ((key === 'l' || key === 'L' || key === 'escape') && world && player && player.shipBoarded) {
       player.shipBoarded = false;
@@ -1327,12 +1322,6 @@ function handleWorldInput() {
   }
   if (keysPressed[84]) {   // T
     openState(STATE.QUESTLOG);
-  }
-  // C: start combat encounter (dev/testing — triggers a Sky-Predator fight)
-  if (keysPressed[67]) {   // C
-    if (combat && typeof combat.beginEncounter === 'function') {
-      startCombat('skyPredator');
-    }
   }
   if (keysPressed[27]) {   // ESC
     closeOverlay();
@@ -3078,7 +3067,7 @@ function initQuest() {
   journal: [
     { state: 'signal', text: 'The Wake rings hollow. The core is singing wrong — the harmonics are slipping.' },
     { state: 'crossing', text: 'Three hazards between you and the core\'s last stable chamber. The ship is waiting.' },
-    { state: 'contact', text: 'Three voices on the ship. Each one carries a piece of the choice. None of them know it yet.' },
+    { state: 'contact', text: 'Four voices on the ship. Each one carries a piece of the choice. None of them know it yet.' },
     { state: 'choice', text: 'Four voices heard. The ship holds still. The core waits for your answer — and the silence after the humming is where you\'ll find it.' }
   ],          // auto-populated journal entries
   journalToggle: false, // whether player has opened journal view
@@ -3105,8 +3094,8 @@ function initQuest() {
         label: 'Sing the core down / Scatter the people',
         description: 'End the core\'s song. Let the Wake fall where it may.',
         outcomes: {
-          '10+': 'The core sings itself to sleep. The Wake falls gently onto a stretch of clean ground below — nobody dies, but the ship is done. Ionia cries for a week. Lyra says the silence is beautiful. The people scatter to the wastes and start again. You walk away with your wrench and your silence.',
-          '7-9':  'The core goes quiet, but not cleanly. The Wake lands hard. Some don\'t make it off the decks. The frequencies scream on the way down. You live with the noise.'
+          strong: 'The core sings itself to sleep. The Wake falls gently onto a stretch of clean ground below — nobody dies, but the ship is done. Ionia cries for a week. Lyra says the silence is beautiful. The people scatter to the wastes and start again. You walk away with your wrench and your silence.',
+          strained:  'The core goes quiet, but not cleanly. The Wake lands hard. Some don\'t make it off the decks. The frequencies scream on the way down. You live with the noise.'
         }
       },
       {
@@ -3114,8 +3103,8 @@ function initQuest() {
         label: 'Sell the core / Evacuate the ship',
         description: 'Work with Verrick to box the core and move the people.',
         outcomes: {
-          '10+': 'The acquisition goes clean. Verrick pays out. The people get passage. You get a credential and a seat on the first evac shuttle. The core leaves this world in a crate, humming quietly. Verrick nods at you like you\'re one of them now.',
-          '7-9':  'The acquisition is messy. Two people refuse the evac — they stay with Ionia on the lower decks. The core is damaged in transit. You get paid, but the solar credits feel like they came with blood on them.'
+          strong: 'The acquisition goes clean. Verrick pays out. The people get passage. You get a credential and a seat on the first evac shuttle. The core leaves this world in a crate, humming quietly. Verrick nods at you like you\'re one of them now.',
+          strained:  'The acquisition is messy. Two people refuse the evac — they stay with Ionia on the lower decks. The core is damaged in transit. You get paid, but the solar credits feel like they came with blood on them.'
         }
       },
       {
@@ -3123,8 +3112,8 @@ function initQuest() {
         label: 'Drive the core up / Find what\'s above',
         description: 'Overdrive the core. Push the Wake up through the sky-layers into the unknown above.',
         outcomes: {
-          '10+': 'The core sings. The Wake rises through the sky-layers like a seed on the wind. You ride it up — and above the world is another world, upside-down and green, with its own sky and its own falling ships. The Core rides with you. You have a new route.',
-          '7-9':  'The Wake rises, but the core destabilises. Half the party stays below. You go up — but you\'re not sure you\'ll come back down. The Core looks at you like you made the wrong call.'
+          strong: 'The core sings. The Wake rises through the sky-layers like a seed on the wind. You ride it up — and above the world is another world, upside-down and green, with its own sky and its own falling ships. The Core rides with you. You have a new route.',
+          strained:  'The Wake rises, but the core destabilises. Half the party stays below. You go up — but you\'re not sure you\'ll come back down. The Core looks at you like you made the wrong call.'
         }
       }
     ],
@@ -3387,16 +3376,31 @@ function handleChoiceInput() {
   }
 }
 
+function determineChoiceOutcome(pathId) {
+  let score = 0;
+  if (pathId === 'path_a') {
+    score = quest.hullIntegrity * 0.55 + quest.morale * 0.45;
+  } else if (pathId === 'path_b') {
+    score = quest.morale * 0.60 + quest.hullIntegrity * 0.40;
+  } else if (pathId === 'path_c') {
+    score = quest.engineIntegration * 0.50 +
+      quest.hullIntegrity * 0.30 +
+      quest.morale * 0.20;
+  }
+  return score >= 60 ? 'strong' : 'strained';
+}
+
 function selectChoicePath(idx) {
   if (idx < 0 || idx >= quest.choicePaths.length) return;
   const path = quest.choicePaths[idx];
 
-  // Simulate 2D6 roll for variant
-  const roll = Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
-  quest.choiceVariant = roll >= 10 ? '10+' : '7-9';
+  quest.choiceVariant = determineChoiceOutcome(path.id);
   quest.choiceMade = path.label;
 
-  addLedgerEntry('quest', 'You chose: ' + path.label + ' (roll: ' + quest.choiceVariant + ')');
+  addLedgerEntry(
+    'quest',
+    'You chose: ' + path.label + ' (resolution: ' + quest.choiceVariant + ')'
+  );
   advanceChoice();
 }
 
