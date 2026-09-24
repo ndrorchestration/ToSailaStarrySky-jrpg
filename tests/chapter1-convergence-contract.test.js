@@ -223,6 +223,10 @@ assert(chapter1WindowsBuild.includes('installerProvenanceVerified = $true'),
   'Chapter 1 release evidence must prove installed-candidate provenance');
 assert(chapter1WindowsBuild.includes('installerSha256 = $installerHashLower'),
   'Chapter 1 release evidence must record installer SHA-256');
+assert(chapter1WindowsBuild.includes('CHAPTER1_INSTALLER_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS'),
+  'installed Chapter 1 candidate must prove save/close/relaunch/Continue');
+assert(chapter1WindowsBuild.includes('installerSaveCloseRelaunchContinue = "PASS"'),
+  'Chapter 1 release evidence must record installed persistence proof');
 assert(runtime.includes('function runChapter1PersistenceSmokeOnce()'),
   'desktop runtime must expose the isolated Chapter 1 persistence smoke seam');
 assert.strictEqual(packageJson.scripts['admit:title-audio'], 'node scripts/admit-title-audio.js',
