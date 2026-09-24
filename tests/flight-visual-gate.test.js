@@ -29,13 +29,20 @@ const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
 assert(html.indexOf('modules/flight-visual-stage.js') >= 0, 'flight visual stage script missing');
 assert(html.indexOf('modules/flight-visual-stage.js') < html.indexOf('aetherwake.js'),
   'flight visual stage must load before runtime');
+const flightStart = runtime.indexOf('function drawAirNavigationScene()');
+const flightEnd = runtime.indexOf('// ── Combat launcher:', flightStart);
+assert(flightStart >= 0 && flightEnd > flightStart,
+  'live flight renderer boundary missing');
+const flightRuntime = runtime.slice(flightStart, flightEnd);
+assert(flightRuntime.includes('const visual = window.AetherFlightVisual;'),
+  'live flight renderer must acquire shared visual authority');
 for (const binding of [
-  'AetherFlightVisual.drawBackdrop',
-  'AetherFlightVisual.drawDragonfly',
-  'AetherFlightVisual.drawRouteOverlay',
-  'AetherFlightVisual.drawLandmarkBeacons'
+  'visual.drawBackdrop(',
+  'visual.drawDragonfly(',
+  'visual.drawRouteOverlay(',
+  'visual.drawLandmarkBeacons('
 ]) {
-  assert(runtime.includes(binding), 'missing live flight visual binding: ' + binding);
+  assert(flightRuntime.includes(binding), 'missing live flight visual binding: ' + binding);
 }
 
 console.log('Aetherwake Dragonfly flight visual gate: PASS');
