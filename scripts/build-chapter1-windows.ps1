@@ -230,8 +230,114 @@ Compress-Archive -Path (Join-Path $candidateDir "*") -DestinationPath $zip -Comp
 
 $hash = Get-FileHash -Algorithm SHA256 -LiteralPath $zip
 $hashLower = $hash.Hash.ToLower()
+
+# Build a no-admin, one-click installer from the exact verified candidate.
+$makensis = @(
+  "C:\Program Files (x86)\NSIS\makensis.exe",
+  "C:\Program Files\NSIS\makensis.exe"
+) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+
+if (-not $makensis) {
+  throw "NSIS makensis.exe not found. Install NSIS so the Chapter 1 one-click installer can be produced and verified."
+}
+
+$installerName = "Aetherwake-Chapter1-$shortHead-Setup.exe"
+$installer = Join-Path $OutputDir $installerName
+$nsi = Join-Path $OutputDir "Aetherwake-Chapter1-$shortHead-Setup.nsi"
+$source = $candidateDir.Replace('\','\\')
+$outFile = $installer.Replace('\','\\')
+$nsiTemplate = @'
+Unicode true
+Name "Aetherwake Chapter 1 — First Wake"
+OutFile "__OUTPUT__"
+InstallDir "$LOCALAPPDATA\Programs\Aetherwake Chapter 1"
+RequestExecutionLevel user
+SetCompressor /SOLID lzma
+
+Page directory
+Page instfiles
+
+Section "Aetherwake Chapter 1" SEC_MAIN
+  SetOutPath "$INSTDIR"
+  File /r "__SOURCE__\*"
+  CreateShortCut "$DESKTOP\Aetherwake Chapter 1.lnk" "$INSTDIR\Aetherwake.exe"
+  CreateDirectory "$SMPROGRAMS\Aetherwake"
+  CreateShortCut "$SMPROGRAMS\Aetherwake\Aetherwake Chapter 1.lnk" "$INSTDIR\Aetherwake.exe"
+  WriteUninstaller "$INSTDIR\Uninstall.exe"
+SectionEnd
+
+Section "Uninstall"
+  Delete "$DESKTOP\Aetherwake Chapter 1.lnk"
+  Delete "$SMPROGRAMS\Aetherwake\Aetherwake Chapter 1.lnk"
+  RMDir "$SMPROGRAMS\Aetherwake"
+  RMDir /r "$INSTDIR"
+SectionEnd
+'@
+$nsiTemplate.Replace('__OUTPUT__', $outFile).Replace('__SOURCE__', $source) |
+  Set-Content -LiteralPath $nsi -Encoding UTF8
+
+& $makensis $nsi
+if ($LASTEXITCODE -ne 0) { throw "Chapter 1 NSIS compilation failed with code $LASTEXITCODE." }
+if (-not (Test-Path -LiteralPath $installer)) { throw "Chapter 1 installer was not created." }
+
+# Install silently into an isolated location and launch the installed executable.
+$installerSmokeRoot = Join-Path $env:TEMP ("AetherwakeChapter1Installer-" + $shortHead)
+if (Test-Path -LiteralPath $installerSmokeRoot) {
+  Remove-Item -LiteralPath $installerSmokeRoot -Recurse -Force
+}
+$installProcess = Start-Process -FilePath $installer -ArgumentList @("/S", "/D=$installerSmokeRoot") -Wait -PassThru
+if ($installProcess.ExitCode -ne 0) {
+  throw "Chapter 1 installer exited with code $($installProcess.ExitCode)."
+}
+$installedExe = Join-Path $installerSmokeRoot "Aetherwake.exe"
+if (-not (Test-Path -LiteralPath $installedExe)) {
+  throw "Installed Chapter 1 Aetherwake.exe was not found."
+}
+$installedProvenance = Join-Path $installerSmokeRoot "CHAPTER1_BUILD_PROVENANCE.json"
+if (-not (Test-Path -LiteralPath $installedProvenance)) {
+  throw "Installed Chapter 1 candidate is missing build provenance."
+}
+$installedProv = Get-Content -LiteralPath $installedProvenance -Raw | ConvertFrom-Json
+if ($installedProv.sourceCommit -ne $gitHead) {
+  throw "Installed Chapter 1 candidate provenance does not match exact Git source."
+}
+
+$installedMarker = Join-Path $env:TEMP ("aetherwake-chapter1-installer-ready-" + $shortHead + ".json")
+if (Test-Path -LiteralPath $installedMarker) { Remove-Item -LiteralPath $installedMarker -Force }
+$env:AETHERWAKE_DESKTOP_SMOKE_MARKER = $installedMarker
+$installedGame = Start-Process -FilePath $installedExe -PassThru
+try {
+  $installedDeadline = (Get-Date).AddSeconds(20)
+  while ((Get-Date) -lt $installedDeadline -and -not (Test-Path -LiteralPath $installedMarker)) {
+    if ($installedGame.HasExited) {
+      throw "Installed Chapter 1 executable exited before first-frame readiness with code $($installedGame.ExitCode)."
+    }
+    Start-Sleep -Milliseconds 250
+  }
+  if (-not (Test-Path -LiteralPath $installedMarker)) {
+    throw "Installed Chapter 1 executable did not report first-frame readiness within 20 seconds."
+  }
+  $installedReady = Get-Content -LiteralPath $installedMarker -Raw | ConvertFrom-Json
+  if (-not $installedReady.runtimeReady -or -not $installedReady.firstFrame -or
+      $installedReady.setupOrder -notlike "*setup-done*") {
+    throw "Installed Chapter 1 executable did not satisfy runtime readiness."
+  }
+  Write-Host "CHAPTER1_INSTALLER_RENDER_READINESS=PASS"
+}
+finally {
+  if ($installedGame -and -not $installedGame.HasExited) {
+    Stop-Process -Id $installedGame.Id -Force
+  }
+  Remove-Item Env:AETHERWAKE_DESKTOP_SMOKE_MARKER -ErrorAction SilentlyContinue
+}
+
+$installerHash = Get-FileHash -Algorithm SHA256 -LiteralPath $installer
+$installerHashLower = $installerHash.Hash.ToLower()
 $manifest = Join-Path $OutputDir "SHA256SUMS.txt"
-"$hashLower  $zipName" | Set-Content -LiteralPath $manifest -Encoding ASCII
+@(
+  "$hashLower  $zipName",
+  "$installerHashLower  $installerName"
+) | Set-Content -LiteralPath $manifest -Encoding ASCII
 
 $evidence = [ordered]@{
   schemaVersion = 1
@@ -251,6 +357,11 @@ $evidence = [ordered]@{
   canvas = "960x640"
   portableZip = $zipName
   portableZipSha256 = $hashLower
+  installer = $installerName
+  installerSha256 = $installerHashLower
+  installerInstall = "PASS"
+  installerRuntimeReady = $true
+  installerProvenanceVerified = $true
   packagedProvenanceSourceCommit = $candidateProvenanceCheck.sourceCommit
   packagedProvenanceVerified = $true
   windowsSaveCloseRelaunchContinue = "PASS"
@@ -270,6 +381,8 @@ Write-Host "AETHERWAKE_CHAPTER1_WINDOWS_CANDIDATE=PASS"
 Write-Host "SOURCE_COMMIT=$gitHead"
 Write-Host "PORTABLE_EXE=$(Join-Path $candidateDir 'Aetherwake.exe')"
 Write-Host "PORTABLE_ZIP=$zip"
-Write-Host "SHA256=$hashLower"
+Write-Host "INSTALLER=$installer"
+Write-Host "PORTABLE_ZIP_SHA256=$hashLower"
+Write-Host "INSTALLER_SHA256=$installerHashLower"
 Write-Host "EVIDENCE=$evidencePath"
 Write-Host "WINDOWS_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS"
