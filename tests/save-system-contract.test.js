@@ -49,6 +49,7 @@ const nwRoot = {
   require(name) {
     if (name === 'fs') return fs;
     if (name === 'path') return path;
+    if (name === 'process') return process;
     throw new Error('unexpected module: ' + name);
   }
 };
