@@ -107,4 +107,10 @@ assert(runtime.includes("} else if (quest.state === QUEST_STATES.CONTACT)"),
 assert(runtime.includes('quest.choicePath = path.id;'),
   'numeric Chapter 1 choice must persist the canonical path ID before WAKE resolution');
 
+
+assert(runtime.includes('if (gameOver && keyCode === 82)'),
+  'epilogue [R] replay prompt must have a live input handler');
+assert(runtime.includes('window.location.reload()'),
+  'Chapter 1 replay must perform a clean runtime restart');
+
 console.log('Aetherwake Chapter 1 convergence contract: PASS');
