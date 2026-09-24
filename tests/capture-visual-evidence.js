@@ -330,7 +330,7 @@ async function capture(page, id, description) {
     const manifest = {
       contract: 'AETHERWAKE_VISUAL_EVIDENCE_V1',
       generatedAt: new Date().toISOString(),
-      sourceSha: process.env.GITHUB_SHA || process.env.AETHERWAKE_SOURCE_SHA || 'LOCAL_UNBOUND',
+      sourceSha: process.env.AETHERWAKE_SOURCE_SHA || process.env.GITHUB_SHA || 'LOCAL_UNBOUND',
       rendering: {
         browser: 'playwright-chromium',
         viewport: { width: 1440, height: 960 },
