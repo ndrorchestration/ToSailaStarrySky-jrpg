@@ -215,6 +215,14 @@ assert(chapter1WindowsBuild.includes('candidateProvenanceCheck.sourceCommit -ne 
   'Chapter 1 Windows candidate must verify provenance after copying the packaged runtime');
 assert(chapter1WindowsBuild.includes('packagedProvenanceVerified = $true'),
   'Chapter 1 release evidence must record packaged provenance verification');
+assert(chapter1WindowsBuild.includes('Aetherwake-Chapter1-$shortHead-Setup.exe'),
+  'Chapter 1 Windows candidate must produce a commit-bound installer');
+assert(chapter1WindowsBuild.includes('CHAPTER1_INSTALLER_RENDER_READINESS=PASS'),
+  'Chapter 1 Windows candidate must launch and verify the installed executable');
+assert(chapter1WindowsBuild.includes('installerProvenanceVerified = $true'),
+  'Chapter 1 release evidence must prove installed-candidate provenance');
+assert(chapter1WindowsBuild.includes('installerSha256 = $installerHashLower'),
+  'Chapter 1 release evidence must record installer SHA-256');
 assert(runtime.includes('function runChapter1PersistenceSmokeOnce()'),
   'desktop runtime must expose the isolated Chapter 1 persistence smoke seam');
 assert.strictEqual(packageJson.scripts['admit:title-audio'], 'node scripts/admit-title-audio.js',
@@ -275,5 +283,9 @@ assert(chapter1WindowsWorkflow.includes('actions/upload-artifact@ea165f8d65b6e75
   'Chapter 1 Windows workflow must pin upload-artifact');
 assert(chapter1WindowsWorkflow.includes('softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65'),
   'Chapter 1 Windows workflow must pin release publishing action');
+assert(chapter1WindowsWorkflow.includes('choco install nsis -y --no-progress'),
+  'Chapter 1 Windows workflow must install NSIS for one-click installer production');
+assert(chapter1WindowsWorkflow.includes('steps.candidate.outputs.installer'),
+  'Chapter 1 Windows workflow must publish the verified installer');
 
 console.log('Aetherwake Chapter 1 convergence contract: PASS');
