@@ -26,9 +26,14 @@ assert(runtime.includes('window._saveSystem = window.AetherSaveSystem;'),
   'runtime must expose the bound save-system authority');
 assert(runtime.includes('window._savePayloadValidator = window.AetherSavePayloadValidator;'),
   'runtime must expose the bound save validator authority');
-assert(!runtime.includes('function buildSavePayload()'),
-  'foundation seam must not silently claim live snapshot ownership');
-assert(!runtime.includes('function applySaveEnvelope(envelope)'),
-  'foundation seam must not silently claim live restore ownership');
+assert(runtime.includes('function buildSavePayload()'),
+  'runtime snapshot ownership must now be explicit');
+assert(runtime.includes('function prepareSaveEnvelopeForApply(envelope)'),
+  'restore must have a preflight phase');
+assert(runtime.includes('function applySaveEnvelope(envelope)'),
+  'runtime restore ownership must now be explicit');
+assert(runtime.indexOf('const prepared = prepareSaveEnvelopeForApply(envelope);') <
+       runtime.indexOf('prepared.preparedRoster.forEach'),
+  'restore preflight must complete before party mutation');
 
 console.log('Aetherwake Preview persistence runtime seam: PASS');
