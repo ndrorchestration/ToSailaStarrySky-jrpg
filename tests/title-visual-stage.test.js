@@ -32,7 +32,15 @@ assert(html.indexOf('modules/title-visual-stage.js') >= 0,
   'title visual stage script missing');
 assert(html.indexOf('modules/title-visual-stage.js') < html.indexOf('aetherwake.js'),
   'title visual stage must load before runtime');
-assert(runtime.includes('AetherTitleVisual.draw'),
+const titleStart = runtime.indexOf('function drawTitleScreen() {');
+const titleEnd = runtime.indexOf('\nfunction getDialogueSpriteId', titleStart);
+assert(titleStart >= 0 && titleEnd > titleStart, 'title screen renderer missing');
+const titleFunction = runtime.slice(titleStart, titleEnd);
+assert(titleFunction.includes('const visual = window.AetherTitleVisual;'),
+  'title renderer must acquire the shared title visual authority');
+assert(titleFunction.includes("typeof visual.draw === 'function'"),
+  'title renderer must verify the shared draw method');
+assert(titleFunction.includes('visual.draw({ now: millis(), width, height });'),
   'runtime title screen does not delegate to title visual stage');
 
 console.log('Aetherwake title visual stage contract: PASS');
