@@ -439,8 +439,28 @@ function createServer() {
     assert(ending.quest.journal.some(entry => /The ending found you/.test(entry.text)),
       'final Chapter I closure was not journaled');
 
+    // The advertised epilogue replay control must perform a clean runtime restart.
+    const navigation = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 8000 });
+    await page.keyboard.press('r');
+    await navigation;
+    await page.waitForFunction(() =>
+      window.__awRuntimeReady === true &&
+      window.gameState === 'boot' &&
+      window.AetherSaveSystem
+    , undefined, { timeout: 10000 });
+
+    const afterReplay = await page.evaluate(() => ({
+      gameState: window.gameState,
+      validSaves: window.AetherSaveSystem.list().filter(entry =>
+        entry.exists && entry.valid !== false
+      ).length,
+    }));
+    assert.strictEqual(afterReplay.gameState, 'boot');
+    assert(afterReplay.validSaves >= 1,
+      'clean replay unexpectedly destroyed Chapter I save history');
+
     assert.deepStrictEqual(errors, [], errors.join('\n'));
-    console.log('Aetherwake complete Chapter 1 browser route: PASS');
+    console.log('Aetherwake complete Chapter 1 browser route + replay: PASS');
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
