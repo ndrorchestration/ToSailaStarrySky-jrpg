@@ -11,7 +11,10 @@ const source = fs.readFileSync(file, 'utf8');
 const worldSource = fs.readFileSync(path.join(root, 'modules', 'world.js'), 'utf8');
 const tileSource = fs.readFileSync(path.join(root, 'modules', 'pixel-tiles.js'), 'utf8');
 const spriteSource = fs.readFileSync(path.join(root, 'modules', 'pixel-sprites.js'), 'utf8');
-const calls = { images: [], imageCreates: 0, rects: [], translates: [], spriteFrames: [] };
+const calls = {
+  images: [], imageCreates: 0, rects: [], translates: [], scales: [], fillColors: [],
+  spriteFrames: [], spriteScales: [], shadowScales: [],
+};
 
 const sandbox = {
   window: {},
@@ -27,8 +30,8 @@ const sandbox = {
       updatePixels() {},
     };
   },
-  noStroke() {}, noSmooth() {}, fill() {}, rect(x, y, w, h) { calls.rects.push({ x, y, w, h }); },
-  push() {}, pop() {}, scale() {},
+  noStroke() {}, noSmooth() {}, fill(...color) { calls.fillColors.push(color); }, rect(x, y, w, h) { calls.rects.push({ x, y, w, h }); },
+  push() {}, pop() {}, scale(...args) { calls.scales.push(args); },
   translate(x, y) { calls.translates.push([x, y]); },
   image(...args) { calls.images.push(args); },
   text() {}, textAlign() {}, textFont() {}, textSize() {},
@@ -45,7 +48,12 @@ sandbox.window.AetherPixelSprites = Object.freeze({
   draw(id, ...args) {
     calls.sprites.push(id);
     calls.spriteFrames.push({ id, frame: args[2] && args[2].frame });
+    calls.spriteScales.push(args[2] && args[2].scale);
     return spriteAuthority.draw(id, ...args);
+  },
+  drawShadow(...args) {
+    calls.shadowScales.push(args[2]);
+    return spriteAuthority.drawShadow(...args);
   },
 });
 vm.runInNewContext(source, sandbox, { filename: 'preview-world-presentation.js' });
@@ -81,6 +89,19 @@ assert.strictEqual(presentation.draw({
 }), true);
 assert.strictEqual(calls.imageCreates, 1, 'tile map should be rasterized once, not redrawn cell-by-cell each frame');
 assert(calls.images.length >= 1, 'cached tile map was not composited into the world scene');
+assert.deepStrictEqual(calls.fillColors.slice(0, 5), [
+  [38, 88, 181], [43, 126, 216], [71, 180, 231], [177, 227, 237], [255, 222, 166],
+], 'the backdrop should move from vivid cobalt into a warm JRPG horizon');
+for (const color of [[55, 187, 111], [223, 156, 77], [60, 229, 218, 230]]) {
+  assert(calls.fillColors.some(fill => fill.length === color.length && fill.every((channel, index) => channel === color[index])),
+    'floating islands should have vivid greenery, warm metal, and luminous aether accents');
+}
+assert.deepStrictEqual(calls.scales[0], [1.5], 'world framing should make the playable tiles read clearly');
+assert.deepStrictEqual(calls.translates[0], [84, -76], 'camera should center Ender at the chosen world zoom');
+assert(calls.spriteScales.slice(0, 4).every(scale => scale === 2),
+  'party sprites should preserve their pixel-art scale at the larger world camera scale');
+assert.deepStrictEqual(calls.shadowScales.slice(0, 4), [2, 2, 2, 2],
+  'party sprites should have grounded pixel shadows');
 const atlas = calls.images[0][0];
 const grassAt = (atlas.width + 17) * 4;
 const pathAt = (15 * 16 * atlas.width + 15 * 16) * 4;
@@ -116,9 +137,20 @@ assert.deepStrictEqual(pixelAt(11 * 16 + 7, 21 * 16 + 8), [42, 255, 181],
   'scenic lore landmark should include the authored glowing ruins tile');
 assert.deepStrictEqual(pixelAt(11 * 16 + 3, 22 * 16 + 2), [255, 196, 91],
   'scenic lore landmark should include bright flowers at its approach');
+assert.deepStrictEqual(pixelAt(2 * 16 + 6, 7 * 16 + 6), [82, 121, 68],
+  'the preserved child drawing should sit beside a small forest vignette');
+assert.deepStrictEqual(pixelAt(3 * 16 + 3, 7 * 16 + 2), [255, 196, 91],
+  'the northern story vignette should use bright flower pixels');
+assert.deepStrictEqual(pixelAt(23 * 16 + 7, 12 * 16 + 2), [118, 58, 33],
+  'the copper-slate lore point should have a warm village landmark');
+assert.deepStrictEqual(pixelAt(23 * 16, 13 * 16), [47, 97, 127],
+  'the copper-slate landmark should have a blue bridge approach');
+assert.deepStrictEqual(pixelAt(23 * 16 + 3, 13 * 16), [118, 58, 33],
+  'the bridge should retain its warm timber detail');
 for (const [x, y, label] of [
   [16, 16, 'Ender'],
-  [7, 19, 'Lyra upper-left sprite cell'], [7, 20, 'Lyra lower-left sprite cell'],
+  [7, 19, 'Lyra upper-left sprite cell'], [8, 19, 'Lyra upper-center sprite cell'], [9, 19, 'Lyra upper-right sprite cell'],
+  [7, 20, 'Lyra lower-left sprite cell'], [8, 20, 'Lyra lower-center sprite cell'], [9, 20, 'Lyra lower-right sprite cell'],
   [25, 23, 'Verrick upper-left sprite cell'], [26, 23, 'Verrick upper-center sprite cell'],
   [27, 23, 'Verrick upper-right sprite cell'], [25, 24, 'Verrick lower-left sprite cell'],
   [26, 24, 'Verrick lower-center sprite cell'], [27, 24, 'Verrick lower-right sprite cell'],
@@ -146,9 +178,9 @@ assert(calls.sprites.includes('corporateSalvager'), 'world presentation must dra
 const namePlaques = calls.rects.filter(rect => rect.w === 36 && rect.h === 9);
 assert.strictEqual(namePlaques.length, 2, 'Ender and Ionia should each have one name plaque');
 assert(namePlaques[0].y + namePlaques[0].h <= player.py + 16 - 32,
-  'Ender name plaque must sit fully above the 2x sprite');
+  'Ender name plaque must sit fully above the sprite');
 assert(namePlaques[1].y + namePlaques[1].h <= 7 * 16 + 16 - 32,
-  'Ionia name plaque must sit fully above the 2x sprite');
+  'Ionia name plaque must sit fully above the sprite');
 const questMarker = calls.rects.find(rect => rect.w === 7 && rect.h === 7);
 assert(questMarker, 'Ionia quest marker should be visible');
 assert(questMarker.y + questMarker.h <= namePlaques[1].y,
@@ -165,6 +197,8 @@ const priorFrameCount = calls.spriteFrames.length;
 player.tileX += 1;
 player.px += 16;
 presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1032 });
+assert.deepStrictEqual(calls.translates[2], [60, -76],
+  'a one-tile walk should move the zoomed camera by 24 logical pixels');
 presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1162 });
 player.tileX += 1;
 player.px += 16;
@@ -208,8 +242,14 @@ assert.strictEqual(calls.imageCreates, realMapImageCount + 1,
 const realMapAtlas = calls.images[calls.images.length - 1][0];
 assert.strictEqual(actualGround[21][10], 2, 'forest landmark must be placed on a real meadow cell');
 assert.strictEqual(actualGround[21][11], 2, 'ruins landmark must be placed on a real meadow cell');
+assert.strictEqual(actualGround[7][2], 2, 'northern garden must be placed on a real meadow cell');
+assert.strictEqual(actualGround[12][23], 2, 'sky-port landmark must be placed on a real meadow cell');
 assert.deepStrictEqual(pixelAt(11 * 16 + 7, 21 * 16 + 8, realMapAtlas), [42, 255, 181],
   'initialized playable map must show the authored ruins landmark');
+assert.deepStrictEqual(pixelAt(2 * 16 + 6, 7 * 16 + 6, realMapAtlas), [82, 121, 68],
+  'initialized playable map must show the northern garden');
+assert.deepStrictEqual(pixelAt(23 * 16 + 7, 12 * 16 + 2, realMapAtlas), [118, 58, 33],
+  'initialized playable map must show the village beside the aether-core');
 for (const [x, y, label] of [[7, 19, 'Lyra'], [7, 20, 'Lyra'], [25, 23, 'Verrick'], [27, 24, 'Verrick']]) {
   assert.deepStrictEqual(tilePixelsAt(x, y, realMapAtlas), tilePixelsAt(18, 17, realMapAtlas),
     label + ' sprite footprint on the playable map must stay free of scenic overlays');
