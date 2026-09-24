@@ -31,6 +31,9 @@ jobs:
       - name: Verify Visual Package v1 integration
         run: npm run test:visual-package-integration
 
+      - name: Verify Preview world presentation
+        run: npm run test:preview-world-presentation
+
       - name: Verify crossing hazards require combat
         run: npm run test:crossing-hazard-combat
 
