@@ -302,8 +302,14 @@ function initPlayer() {
     xpToNext: 50,
     unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
     equipment: { staff: null, backpack: null },
-    class: 'ender'
+    class: 'ender',
+    id: 'ender'
   };
+  if (!window.AetherPartyState ||
+      typeof window.AetherPartyState.refreshProductionStats !== 'function') {
+    throw new Error('WORLD_PLAYER_PRODUCTION_STATS_UNAVAILABLE');
+  }
+  window.AetherPartyState.refreshProductionStats(player);
   World.player = player;
 }
 
@@ -450,18 +456,18 @@ function initNPCs() {
           '"You go with us — Path B — you get scrap, aether, and a syndicate credential that opens every port in the copper-blight sky-lanes. You betray us — well. The Copper Syndicate has provisions for betrayal. Don\'t make me use them."'
         ],
         class_ender: [
-          '"Rift Scholar. I\'ve seen your kind before. You see too much. That\'s a liability in my trade. But it\'s also an asset — if you\'re willing to sell it."',
+          '"Listener-engineer. I\'ve seen your kind before. You notice too much. That\'s a liability in my trade. But it\'s also an asset — if you\'re willing to sell it."',
           '"Your Mycelial Ledger ability — we\'d like to borrow that. Track the core\'s aether output before we acquire it. You get a cut. 15% of the salvage value, paid in scrap."',
-          '"The choice is yours, Scholar. The Copper Syndicate offers you a place in the world that\'s coming. The copper world, the sky-lanes — they\'re both gone. What\'s your next contract?"'
+          '"The choice is yours, Ender. The Copper Syndicate offers you a place in the world that\'s coming. The copper world, the sky-lanes — they\'re both gone. What\'s your next contract?"'
         ],
         generic_follow: [
           '"My offer stands until the sky-lanes stabilise. After that — it\'s either your way or ours. And ours has a lot more lawyers."'
         ],
         deep: [
-          '"You\'ve walked the whole ship, haven\'t you? Every deck. Every soul. You\'ve heard what they all want. Let me tell you something the others won\'t — I\'m not here because I believe in Meridian\'s mission."',
-          '"I\'m here because Meridian pays better than the alternative. And because — I\'ll be honest — I\'m tired of watching sky-lane routes dock with nothing to show for it but graves. If acquiring this core means someone gets to live somewhere that isn\'t copper-blight — I can live with that."',
+          '"You\'ve walked the whole ship, haven\'t you? Every deck. Every soul. You\'ve heard what they all want. Let me tell you something the others won\'t — I\'m not here because I believe in Copper Syndicate\'s mission."',
+          '"I\'m here because Copper Syndicate pays better than the alternative. And because — I\'ll be honest — I\'m tired of watching sky-lane routes dock with nothing to show for it but graves. If acquiring this core means someone gets to live somewhere that isn\'t copper-blight — I can live with that."',
           '"Here\'s what keeps me up: the core didn\'t ask to be saved. It didn\'t ask to be acquired. It\'s been singing this whole time — a song with no ending, lifting ships that didn\'t know they were leaving. Maybe it\'s not a machine at all. Maybe it\'s a promise."',
-          '"Whatever you choose, Scholar — choose something. Because the core is going to keep singing until someone finally decides what song it is. And if nobody decides — well. The sky fills up with unfinished things. I\'ve seen what that looks like. It\'s worse than the fall."'
+          '"Whatever you choose, Ender — choose something. Because the core is going to keep singing until someone finally decides what song it is. And if nobody decides — well. The sky fills up with unfinished things. I\'ve seen what that looks like. It\'s worse than the fall."'
         ]
       },
       flags: { met: false, questMarker: true, classLock: 'corporate' }
