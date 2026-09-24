@@ -19,6 +19,7 @@
   let cachedMap = null;
   let lastPlayerTile = null;
   let lastPlayerMovementFrame = -Infinity;
+  let playerWalkStartedFrame = null;
 
   function playerWalkFrame(player) {
     if (!Number.isFinite(player.tileX) || !Number.isFinite(player.tileY)) return 0;
@@ -28,11 +29,20 @@
       return 0;
     }
     if (tile !== lastPlayerTile) {
+      const continuesWalking = frameCount - lastPlayerMovementFrame < 32;
       lastPlayerTile = tile;
+      if (!continuesWalking || playerWalkStartedFrame === null) {
+        playerWalkStartedFrame = frameCount;
+      }
       lastPlayerMovementFrame = frameCount;
     }
-    const age = frameCount - lastPlayerMovementFrame;
-    return age >= 0 && age < 12 ? Math.floor(age / 3) % 2 : 0;
+    if (frameCount - lastPlayerMovementFrame >= 32) {
+      playerWalkStartedFrame = null;
+      return 0;
+    }
+    return playerWalkStartedFrame === null
+      ? 0
+      : Math.floor((frameCount - playerWalkStartedFrame) / 8) % 2;
   }
 
   function drawIsland(x, y, w, h, tone) {
