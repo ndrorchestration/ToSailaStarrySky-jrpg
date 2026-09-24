@@ -85,8 +85,8 @@ ground[18][22] = 3;
 const player = { px: 16 * 16, py: 16 * 16, tileX: 16, tileY: 16 };
 const npcs = [
   { id: 'elder_farmer', tileX: 7, tileY: 7, name: 'Captain Ionia', flags: { questMarker: true } },
-  { id: 'child_prophet', tileX: 8, tileY: 20, name: 'Lyra' },
-  { id: 'corporate_salvager', tileX: 26, tileY: 24, name: 'Verrick' },
+  { id: 'child_prophet', tileX: 8, tileY: 20, name: 'Lyra', flags: { questMarker: true } },
+  { id: 'corporate_salvager', tileX: 26, tileY: 24, name: 'Verrick', flags: { questMarker: true } },
 ];
 
 assert.strictEqual(presentation.draw({
@@ -114,6 +114,8 @@ assert(calls.spriteScales.slice(0, 4).every(scale => scale === 2),
   'party sprites should preserve their pixel-art scale at the larger world camera scale');
 assert.deepStrictEqual(calls.shadowScales.slice(0, 4), [2, 2, 2, 2],
   'party sprites should have grounded pixel shadows');
+assert.strictEqual(calls.rects.filter(rect => rect.w === 7 && rect.h === 7).length, 1,
+  'the opening objective marker should point only to Ionia');
 const atlas = calls.images[0][0];
 const grassAt = (atlas.width + 17) * 4;
 const pathAt = (15 * 16 * atlas.width + 15 * 16) * 4;
@@ -240,6 +242,7 @@ const actualWorld = worldSandbox.window.AetherWorld({}, {});
 assert.doesNotThrow(() => actualWorld.init(), 'the playable world must initialize before its scenic map is drawn');
 const actualGround = vm.runInNewContext('groundLayer', worldSandbox);
 const realMapImageCount = calls.imageCreates;
+const worldMarkersBefore = calls.rects.filter(rect => rect.w === 7 && rect.h === 7).length;
 presentation.invalidate();
 assert.strictEqual(presentation.draw({
   groundLayer: actualGround,
@@ -251,6 +254,8 @@ assert.strictEqual(presentation.draw({
 }), true);
 assert.strictEqual(calls.imageCreates, realMapImageCount + 1,
   'preview renderer must rasterize the initialized playable-world map');
+assert.strictEqual(calls.rects.filter(rect => rect.w === 7 && rect.h === 7).length - worldMarkersBefore, 1,
+  'the initialized playable map should show only the active Ionia objective marker');
 const realMapAtlas = calls.images[calls.images.length - 1][0];
 assert.strictEqual(actualGround[21][10], 2, 'forest landmark must be placed on a real meadow cell');
 assert.strictEqual(actualGround[21][11], 2, 'ruins landmark must be placed on a real meadow cell');
