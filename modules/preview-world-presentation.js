@@ -10,7 +10,7 @@
   const CELL = 16;
   const MAP = 32;
   const TILE_IDS = Object.freeze({ 1: 'cliff', 2: 'meadow', 3: 'crate', 4: 'float', 5: 'water', 6: 'loreUnknown' });
-  const INITIAL_ACTOR_CELLS = new Set(['16,16', '7,7', '8,7']);
+  const INITIAL_ACTOR_CELLS = new Set(spriteFootprintCells(16, 16));
   const DECORATION_PATCHES = Object.freeze([
     Object.freeze({ x: 2, y: 10, width: 3, height: 3, tile: 'flowers' }),
     Object.freeze({ x: 5, y: 18, width: 3, height: 3, tile: 'grass' }),
@@ -27,6 +27,7 @@
 
   let cachedGround = null;
   let cachedMap = null;
+  let cachedNpcSignature = null;
   let lastPlayerTile = null;
   let lastPlayerMovementTime = -Infinity;
   let playerWalkStartedAt = null;
@@ -137,7 +138,36 @@
     return false;
   }
 
-  function paintMeadowAccents(image, ground, tiles) {
+  function spriteFootprintCells(tileX, tileY) {
+    const cells = [];
+    const left = Math.floor(tileX - 0.5);
+    const right = Math.ceil(tileX + 1.5) - 1;
+    const top = Math.floor(tileY - 1);
+    const bottom = Math.ceil(tileY + 1) - 1;
+    for (let y = top; y <= bottom; y++) {
+      for (let x = left; x <= right; x++) cells.push(x + ',' + y);
+    }
+    return cells;
+  }
+
+  function npcPositionSignature(npcs) {
+    return (npcs || [])
+      .filter(npc => npc && Number.isFinite(npc.tileX) && Number.isFinite(npc.tileY))
+      .map(npc => (npc.id || '') + ':' + npc.tileX + ',' + npc.tileY)
+      .sort()
+      .join('|');
+  }
+
+  function actorCells(npcs) {
+    const cells = new Set(INITIAL_ACTOR_CELLS);
+    for (const npc of npcs || []) {
+      if (!npc || !Number.isFinite(npc.tileX) || !Number.isFinite(npc.tileY)) continue;
+      for (const key of spriteFootprintCells(npc.tileX, npc.tileY)) cells.add(key);
+    }
+    return cells;
+  }
+
+  function paintMeadowAccents(image, ground, tiles, protectedActorCells) {
     for (const patch of DECORATION_PATCHES) {
       const tile = tiles.get(patch.tile);
       if (!tile) continue;
@@ -145,7 +175,7 @@
         for (let x = patch.x; x < patch.x + patch.width; x++) {
           const key = x + ',' + y;
           const cell = ground[y] && ground[y][x];
-          if (resolveTile(cell) !== 'meadow' || isObjectiveRouteBuffer(x, y) || INITIAL_ACTOR_CELLS.has(key)) continue;
+          if (resolveTile(cell) !== 'meadow' || isObjectiveRouteBuffer(x, y) || protectedActorCells.has(key)) continue;
           const frame = (x + y) % tile.frames.length;
           tilePixels(image, patch.tile, x * CELL, y * CELL, tiles, frame, TRANSPARENT_GROUND_TOKENS);
         }
@@ -153,7 +183,7 @@
     }
   }
 
-  function buildMap(ground) {
+  function buildMap(ground, npcs) {
     const tiles = root.AetherPixelTiles;
     if (!tiles || typeof createImage !== 'function') return null;
     const img = createImage(MAP * CELL, MAP * CELL);
@@ -166,7 +196,7 @@
     }
 
     // Add low-profile authored flowers and grass without changing collision or the Ionia route.
-    paintMeadowAccents(img, ground, tiles);
+    paintMeadowAccents(img, ground, tiles, actorCells(npcs));
 
     // A readable stepping-stone route guides the first walk toward Ionia.
     for (let i = 0; i <= 8; i++) {
@@ -206,9 +236,12 @@
     const now = input.now || 0;
     drawBackdrop(w, h, now);
 
-    if (!cachedMap || cachedGround !== input.groundLayer) {
-      cachedMap = buildMap(input.groundLayer || []);
+    const npcs = input.npcs || [];
+    const nextNpcSignature = npcPositionSignature(npcs);
+    if (!cachedMap || cachedGround !== input.groundLayer || cachedNpcSignature !== nextNpcSignature) {
+      cachedMap = buildMap(input.groundLayer || [], npcs);
       cachedGround = input.groundLayer;
+      cachedNpcSignature = nextNpcSignature;
     }
     if (!cachedMap) return false;
 
@@ -237,7 +270,7 @@
     }
     drawSprite('ender', player.px || 0, player.py || 0, 'Ender', 2, playerWalkFrame(player, now));
 
-    for (const npc of input.npcs || []) {
+    for (const npc of npcs) {
       if (!npc || !Number.isFinite(npc.tileX) || !Number.isFinite(npc.tileY)) continue;
       const id = SPRITE_IDS[npc.id] || 'settler';
       const x = npc.tileX * CELL;
@@ -258,6 +291,7 @@
   function invalidate() {
     cachedGround = null;
     cachedMap = null;
+    cachedNpcSignature = null;
   }
 
   root.AetherPreviewWorldPresentation = Object.freeze({
