@@ -301,7 +301,7 @@
   //      hide the loading overlay — like Graphics.endLoading() → upper canvas cleared
   // ============================================================
   (function() {
-    var REF_MAX_WAIT = 8000;  // max ms to wait before forcing reveal (safety net)
+    var REF_MAX_WAIT = 20000;  // match the portable Windows build's first-frame deadline
     var startTime = performance.now();
     var checkTimer = null;
     var forceTimer = null;
@@ -339,6 +339,7 @@
       if (hasCanvas && p5ok && runtimeReady && firstFrameReady) {
         // Reveal only after setup and a completed frame. A canvas node alone can
         // exist while setup has failed, which would otherwise expose a blank screen.
+        window.__awLoadingError = false;
         p5.disableFriendlyErrors = true;
         console.log('[launch] runtime ready, hiding loading screen');
         hideLoadingScreen();
@@ -349,19 +350,24 @@
       // revealing a blank canvas when setup or the first frame failed.
       var elapsed = performance.now() - startTime;
       if (elapsed > REF_MAX_WAIT) {
-        window.__awLoadingError = true;
-        var title = document.querySelector('.loading-text');
-        var sub = document.querySelector('.loading-sub');
-        if (title) {
-          title.textContent = 'AETHERWAKE FAILED TO START';
-          title.style.color = '#FF8066';
-          title.style.animation = 'none';
+        if (!window.__awLoadingError) {
+          window.__awLoadingError = true;
+          var title = document.querySelector('.loading-text');
+          var sub = document.querySelector('.loading-sub');
+          if (title) {
+            title.textContent = 'STARTUP IS TAKING LONGER THAN EXPECTED';
+            title.style.color = '#FFB36B';
+            title.style.animation = 'none';
+          }
+          if (sub) {
+            sub.textContent = 'Still waiting for the game to finish starting…';
+            sub.style.color = '#E8DCC6';
+          }
+          console.warn('[launch] runtime readiness is delayed; continuing to wait for the first frame');
         }
-        if (sub) {
-          sub.textContent = 'Close and relaunch. If this repeats, report the exact error.';
-          sub.style.color = '#E8DCC6';
-        }
-        console.error('[launch] runtime readiness timeout; loading screen remains visible');
+        // Keep polling: NW.js can finish loading after the initial timeout.
+        // A completed runtime/frame should recover automatically and hide the overlay.
+        checkTimer = setTimeout(check, 500);
         return;
       }
 
