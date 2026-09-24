@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "gameVersion": "0.2.0",
+  "slot": "manual-1",
+  "kind": "manual",
+  "savedAt": "2026-09-22T16:20:00.000Z",
+  "playtimeMs": 123456,
+  "chapter": "Chapter I — First Wake",
+  "location": "Aureate Wake",
+  "partySummary": [
+    "Ender",
+    "Lyra"
+  ],
+  "payload": {
+    "runtime": {
+      "scene": "world",
+      "dayTime": 18.5,
+      "skyLayerVisible": false,
+      "playtimeMs": 123456
+    },
+    "world": {
+      "playerPosition": {
+        "tileX": 16,
+        "tileY": 16,
+        "px": 256,
+        "py": 256
+      },
+      "covenantField": {
+        "x": 0,
+        "y": 0,
+        "planted": false,
+        "life": 0
+      },
+      "ledgerEntries": []
+    },
+    "quest": {
+      "state": "signal",
+      "act": "signal",
+      "hooksCompleted": 0,
+      "hazardsCompleted": 0,
+      "npcsMet": [],
+      "choiceMade": null,
+      "choiceVariant": null,
+      "choicePath": null,
+      "hullIntegrity": 100,
+      "morale": 50,
+      "heatLevel": 1,
+      "engineIntegration": 0,
+      "discoveries": [],
+      "journal": [],
+      "signalHooks": [
+        {
+          "id": "harmonic_buoy",
+          "label": "Harmonic Buoy",
+          "done": false
+        },
+        {
+          "id": "sky_lane_warning",
+          "label": "Sky-Lane Warning",
+          "done": false
+        },
+        {
+          "id": "below_frequency",
+          "label": "Below-Frequency Caller",
+          "done": false
+        }
+      ],
+      "crossingHazards": [
+        {
+          "id": "sky_predator",
+          "label": "Sky-Predator",
+          "done": false,
+          "stat": "grace"
+        },
+        {
+          "id": "wind_shear",
+          "label": "Harmonic Shear",
+          "done": false,
+          "stat": "grace"
+        },
+        {
+          "id": "aether_leak",
+          "label": "Aether Leak",
+          "done": false,
+          "stat": "wits"
+        },
+        {
+          "id": "corporate_intercept",
+          "label": "Corporate Intercept",
+          "done": false,
+          "stat": "might"
+        }
+      ],
+      "wakeEpilogueId": null
+    },
+    "party": {
+      "roster": [
+        {
+          "id": "ender",
+          "level": 1,
+          "vit": 13,
+          "maxVit": 13,
+          "aether": 4,
+          "aetherMax": 6,
+          "heat": 1,
+          "heatMax": 3,
+          "echoes": 3,
+          "echoesMax": 3,
+          "scrap": 7,
+          "playable": true
+        },
+        {
+          "id": "lyra",
+          "level": 1,
+          "vit": 10,
+          "maxVit": 10,
+          "aether": 5,
+          "aetherMax": 7,
+          "heat": 0,
+          "heatMax": 3,
+          "echoes": 3,
+          "echoesMax": 3,
+          "scrap": 5,
+          "playable": true
+        },
+        {
+          "id": "ionia",
+          "level": 1,
+          "vit": 12,
+          "maxVit": 12,
+          "aether": 3,
+          "aetherMax": 5,
+          "heat": 0,
+          "heatMax": 3,
+          "echoes": 2,
+          "echoesMax": 3,
+          "scrap": 5,
+          "playable": false
+        },
+        {
+          "id": "reson",
+          "level": 1,
+          "vit": 15,
+          "maxVit": 15,
+          "aether": 2,
+          "aetherMax": 4,
+          "heat": 0,
+          "heatMax": 3,
+          "echoes": 2,
+          "echoesMax": 3,
+          "scrap": 5,
+          "playable": false
+        },
+        {
+          "id": "aepex",
+          "level": 1,
+          "vit": 11,
+          "maxVit": 11,
+          "aether": 4,
+          "aetherMax": 6,
+          "heat": 0,
+          "heatMax": 3,
+          "echoes": 2,
+          "echoesMax": 3,
+          "scrap": 5,
+          "playable": false
+        }
+      ],
+      "activeIds": [
+        "ender",
+        "lyra"
+      ]
+    },
+    "airNavigation": null
+  },
+  "checksum": "577c2d04"
+}
