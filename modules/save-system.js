@@ -135,7 +135,14 @@
     if (!root || typeof root.require !== 'function' || !root.nw || !root.nw.App || !root.nw.App.dataPath) return null;
     const fs = root.require('fs');
     const path = root.require('path');
-    const dir = path.join(root.nw.App.dataPath, 'saves');
+    const processObject = root.require('process');
+    const smokeRoot = processObject && processObject.env
+      ? processObject.env.AETHERWAKE_SAVE_ROOT_OVERRIDE
+      : null;
+    const dataRoot = smokeRoot
+      ? path.resolve(smokeRoot)
+      : root.nw.App.dataPath;
+    const dir = path.join(dataRoot, 'saves');
     fs.mkdirSync(dir, { recursive: true });
 
     function testHook(stage, context) {
