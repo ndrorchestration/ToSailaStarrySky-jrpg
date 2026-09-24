@@ -22,6 +22,7 @@ for (const stage of stages) {
     require(name) {
       if (name === 'fs') return fs;
       if (name === 'path') return path;
+      if (name === 'process') return process;
       throw new Error('unexpected module: ' + name);
     },
     __AETHERWAKE_SAVE_TEST_HOOK__(current) {
