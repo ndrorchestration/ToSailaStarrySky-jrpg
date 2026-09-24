@@ -14,7 +14,7 @@ const World = {
   movePlayer, interact, toggleLayer,
   plantField, boardShip,
   openLedger, openShop,
-  getQuestState, advanceQuest,
+  getQuestState, advanceQuest, resolveHazardEncounter,
   snapshotPersistentState, preparePersistentState, restorePersistentState
 };
 
@@ -490,7 +490,7 @@ function initQuest() {
     discoveries: [],      // lore tiles discovered so far
   journal: [
     { state: 'signal', text: 'Ender boards the Aureate Wake, the last solarpunk airship still flying. The sky is copper above a copper-blighted world. The Wake\'s core is singing wrong.' },
-    { state: 'crossing', text: 'Three hazards wait between Ender and the core\'s song. Each one tests whether the Wake can still fly.' },
+    { state: 'crossing', text: 'Four hazards wait between Ender and the core\'s song. Each one tests whether the Wake can still fly.' },
     { state: 'contact', text: 'Ender meets the four voices. Each one has a price and a plan. None of them can decide alone.' },
     { state: 'choice', text: 'The core is singing wrong. Ender has to choose what song it should sing instead.' }
   ],          // auto-populated journal entries
@@ -503,6 +503,7 @@ function initQuest() {
     crossingHazards: [
       { id: 'sky_predator', label: 'Sky-Predator', done: false, stat: 'grace' },
       { id: 'wind_shear', label: 'Harmonic Shear', done: false, stat: 'grace' },
+      { id: 'aether_leak', label: 'Aether Leak', done: false, stat: 'wits' },
       { id: 'corporate_intercept', label: 'Corporate Intercept', done: false, stat: 'might' }
     ],
     contactNPCs: [
@@ -588,6 +589,7 @@ function getQuestState() {
     npcsMet: quest.npcsMet.slice(),
     choiceMade: quest.choiceMade,
     choiceVariant: quest.choiceVariant,
+    choicePath: quest.choicePath || null,
     hullIntegrity: quest.hullIntegrity,
     morale: quest.morale,
     heatLevel: quest.heatLevel,
@@ -596,6 +598,7 @@ function getQuestState() {
     crossingHazards: quest.crossingHazards.map(h => ({ ...h })),
     contactNPCs: quest.contactNPCs.map(n => ({ ...n })),
     choicePaths: quest.choicePaths.map(p => ({ ...p })),
+    journal: quest.journal.map(entry => ({ ...entry })),
     epilogues: quest.epilogues.map(e => ({ id: e.id, name: e.name }))
   };
 }
@@ -631,7 +634,7 @@ function advanceSignal() {
   if (quest.hooksCompleted >= 3) {
     quest.state = QUEST_STATES.CROSSING;
     quest.act = 'crossing';
-    appendJournalEntry('crossing', 'The sky cracked open — three hazards block the way to the Aureate Wake. The core is waiting.');
+    appendJournalEntry('crossing', 'The sky cracked open — four hazards block the way to the Aureate Wake. The core is waiting.');
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   } else if (quest.hooksCompleted >= 1) {
     appendJournalEntry('signal', 'You picked up the first thread of the song. The Wake is talking to you.');
@@ -639,7 +642,7 @@ function advanceSignal() {
 }
 
 function advanceCrossing() {
-  if (quest.hazardsCompleted >= 3) {
+  if (quest.hazardsCompleted >= 4) {
     quest.state = QUEST_STATES.CONTACT;
     quest.act = 'contact';
     appendJournalEntry('contact', 'The crossing behind you. Four souls ahead. The core hums between them like a held breath.');
@@ -704,17 +707,18 @@ function resolveEpilogue() {
  * movePlayer(dx, dy) — dx,dy in tile units (-1,0,1).
  */
 function movePlayer(dx, dy) {
-  if (gameOver) return;
+  if (gameOver) return { moved: false, hazard: null };
   const nx = player.tileX + dx;
   const ny = player.tileY + dy;
-  if (!inBounds(nx, ny)) return;
-  if (groundLayer[ny][nx] === TILE_TYPES.GROUND_SOLID) return;
+  if (!inBounds(nx, ny)) return { moved: false, hazard: null };
+  if (groundLayer[ny][nx] === TILE_TYPES.GROUND_SOLID) return { moved: false, hazard: null };
   player.tileX = nx;
   player.tileY = ny;
   player.px = player.tileX * 16;
   player.py = player.tileY * 16;
-  checkHazardProximity(nx, ny);
+  const hazard = checkHazardProximity(nx, ny);
   checkLoreTile(nx, ny);
+  return { moved: true, hazard };
 }
 
 function checkLoreTile(tx, ty) {
@@ -736,28 +740,58 @@ function checkLoreTile(tx, ty) {
   }
 }
 
-function checkHazardProximity(tx, ty) {
-  if (tx >= 28 && ty >= 4 && ty <= 8 && !quest.crossingHazards[0].done) {
-    if (Math.random() < 0.15) {
-      completeHazard(0);
-    }
-  }
-  if (tx >= 10 && tx <= 20 && ty >= 8 && ty <= 14 && !quest.crossingHazards[1].done) {
-    if (Math.random() < 0.1) {
-      completeHazard(1);
-    }
-  }
-  if (ty <= 5 && tx >= 15 && tx <= 25 && !quest.crossingHazards[2].done) {
-    if (Math.random() < 0.08) {
-      completeHazard(2);
-    }
-  }
+function hazardEncounterId(hazardId) {
+  const encounters = {
+    sky_predator: 'skyPredator',
+    wind_shear: 'windShear',
+    aether_leak: 'aetherLeak',
+    corporate_intercept: 'corporateSalvager',
+  };
+  return encounters[hazardId] || null;
 }
 
-function completeHazard(index) {
-  quest.crossingHazards[index].done = true;
-  quest.hazardsCompleted++;
-  advanceQuest();
+function checkHazardProximity(tx, ty) {
+  if (quest.state !== QUEST_STATES.CROSSING) return null;
+
+  const zones = [
+    tx >= 28 && ty >= 4 && ty <= 8,
+    tx >= 10 && tx <= 20 && ty >= 8 && ty <= 14,
+    ty <= 5 && tx >= 15 && tx <= 25,
+    tx >= 4 && tx <= 12 && ty >= 9 && ty <= 16,
+  ];
+
+  for (let index = 0; index < zones.length; index++) {
+    const hazard = quest.crossingHazards[index];
+    if (!zones[index] || !hazard || hazard.done) continue;
+    const encounterId = hazardEncounterId(hazard.id);
+    if (!encounterId) continue;
+    return {
+      index,
+      id: hazard.id,
+      label: hazard.label,
+      encounterId,
+    };
+  }
+  return null;
+}
+
+function resolveHazardEncounter(index, victory) {
+  const hazard = quest.crossingHazards[index];
+  if (!hazard) throw new Error('CROSSING_HAZARD_UNKNOWN:' + index);
+
+  if (!victory) {
+    appendJournalEntry('crossing', hazard.label + ' remains on the route. Regroup and try again.');
+    return { completed: false, hazard: { ...hazard } };
+  }
+
+  if (!hazard.done) {
+    hazard.done = true;
+    quest.hazardsCompleted++;
+    addLedgerEntry('hazard', hazard.label + ' cleared.');
+    appendJournalEntry('crossing', hazard.label + ' cleared.');
+    advanceQuest();
+  }
+  return { completed: true, hazard: { ...hazard } };
 }
 
 function toggleLayer() {
