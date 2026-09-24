@@ -206,3 +206,42 @@ jobs:
 
       - name: Run smoke test
         run: npm run test:smoke
+
+  visual-evidence:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify capture contract
+        run: npm run test:visual-evidence-contract
+
+      - name: Capture exact PR-head visual evidence
+        env:
+          AETHERWAKE_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          test "$AETHERWAKE_SOURCE_SHA" = "$(git rev-parse HEAD)"
+          npm run capture:visual-evidence
+
+      - name: Upload visual evidence bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: aetherwake-visual-evidence-${{ github.event.pull_request.head.sha }}
+          path: visual-evidence/
+          if-no-files-found: error
+          retention-days: 14
