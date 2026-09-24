@@ -225,6 +225,14 @@ assert.strictEqual(packageJson.scripts['admit:chapter1-audio:windows'],
 assert.strictEqual(packageJson.scripts['verify:chapter1:local'],
   'powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\verify-chapter1-local.ps1',
   'Chapter 1 must expose one-command exact-head local verification');
+assert.strictEqual(packageJson.scripts['test:chapter1-visual'],
+  'npm run test:title-visual && npm run test:first-wake-visual && npm run test:dialogue-visual && npm run test:combat-visual && npm run test:flight-visual && npm run test:visual-package-integration && npm run test:16bit-world-art && npm run test:chapter1-character-sheet',
+  'Chapter 1 must expose a bounded visual/presentation acceptance suite');
+assert(chapter1WindowsBuild.includes('npm run test:chapter1-visual'),
+  'Windows candidate must run Chapter 1 visual acceptance');
+assert(chapter1Workflow.includes('chapter1-visual:') &&
+       chapter1Workflow.includes('npm run test:chapter1-visual'),
+  'Chapter 1 hosted workflow must include a visual acceptance job');
 assert(runtime.includes("saveToSlot('manual-6')") &&
        runtime.includes('continueLatestSave()'),
   'desktop persistence smoke must exercise real save and Continue paths');
