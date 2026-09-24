@@ -8,6 +8,8 @@ const opening = require('../modules/first-wake-opening.js');
 const root = path.resolve(__dirname, '..');
 const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
 const worldMirror = fs.readFileSync(path.join(root, 'modules', 'world.js'), 'utf8');
+const coreMirror = fs.readFileSync(path.join(root, 'modules', 'core.js'), 'utf8');
+const uiMirror = fs.readFileSync(path.join(root, 'modules', 'ui-adapter.js'), 'utf8');
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const chapter1WindowsBuild = fs.readFileSync(
   path.join(root, 'scripts', 'build-chapter1-windows.ps1'), 'utf8'
@@ -110,6 +112,18 @@ for (const staleCanon of [
 }
 assert(worldMirror.includes('"Verrick. Acquisition officer, Copper Syndicate.'),
   'Verrick must introduce himself with his current canonical name');
+assert(!worldMirror.includes('Meridian'),
+  'world mirror must not retain superseded Meridian naming');
+assert(worldMirror.includes("id: 'ender'") &&
+       worldMirror.includes('window.AetherPartyState.refreshProductionStats(player);'),
+  'world mirror must preserve Ender production-stat initialization');
+assert(!coreMirror.includes('start combat encounter (dev/testing)') &&
+       !coreMirror.includes("if (key === 'c' || key === 'C')"),
+  'core mirror must not retain direct developer combat shortcuts');
+for (const staleUi of ['2D6+Wits','2D6+Spirit','2D6+Presence','EMP 1d6+2']) {
+  assert(!uiMirror.includes(staleUi),
+    'UI mirror must not advertise legacy dice combat: ' + staleUi);
+}
 
 
 assert(runtime.includes("function getChoiceOutcomeText()"),
