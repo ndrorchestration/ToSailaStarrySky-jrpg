@@ -125,6 +125,11 @@ assert(runtime.includes("resolution.model === 'jrpg-stat-formula'"),
   'live Chapter 1 combat must route admitted production actions through formula resolution');
 assert(runtime.includes('window.AetherCombatFormula.resolveAction('),
   'live Chapter 1 combat must invoke the production formula engine');
+assert(runtime.includes("id: 'ender'") &&
+       runtime.includes('window.AetherPartyState.refreshProductionStats(player);'),
+  'Ender production stats must be attached before the first Chapter 1 combat');
+assert(runtime.includes("throw new Error('WORLD_PLAYER_PRODUCTION_STATS_UNAVAILABLE')"),
+  'Chapter 1 must fail visibly rather than silently fall back when production stats are unavailable');
 assert(!runtime.includes("'Uncover Truth  (2D6+Wits)'"),
   'Chapter 1 character sheet must not advertise legacy 2D6 resolution');
 assert(!runtime.includes("'Shared Dream   (2D6+Spirit)'"),
