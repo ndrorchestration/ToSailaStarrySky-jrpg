@@ -1772,8 +1772,22 @@ function finishCombat() {
     } else {
       const hazard = quest.crossingHazards[resolvedHazardIndex];
       if (hazard) {
-        appendJournalEntry('crossing', hazard.label + ' remains on the route. Regroup and try again.');
-        showToast('HAZARD REMAINS // ' + hazard.label.toUpperCase(), C.rust, 1400);
+        // A failed mandatory encounter must remain retryable rather than
+        // returning Ender to the route at the combat engine's 1-Vit defeat clamp.
+        // Preserve earned/spent resources except the minimum regroup support
+        // necessary to avoid a mandatory-hazard death loop.
+        const regroupVit = Math.max(1, Math.ceil((world.player.maxVit || 13) * 0.5));
+        world.player.vit = Math.max(world.player.vit, regroupVit);
+        world.player.staffCharges = world.player.maxStaffCharges || 2;
+        if (window.ROSTER && window.ROSTER[0] === world.player) {
+          window.ROSTER[0].vit = world.player.vit;
+          window.ROSTER[0].staffCharges = world.player.staffCharges;
+        }
+        appendJournalEntry(
+          'crossing',
+          hazard.label + ' remains on the route. Ender regroups before trying again.'
+        );
+        showToast('HAZARD REMAINS // REGROUP AND TRY AGAIN', C.rust, 1700);
       }
     }
   }
