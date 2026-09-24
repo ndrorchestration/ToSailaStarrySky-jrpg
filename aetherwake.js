@@ -1058,12 +1058,7 @@ function keyPressed() {
     else if (keyCode === 9) window.interactionKey = 'tab';
     else if (keyCode === 76) window.interactionKey = 'l';
     else if (keyCode === 77) window.interactionKey = 'm';
-    // C = 67: start combat encounter (dev/testing)
-    else if (keyCode === 67) {
-      if (combat && typeof combat.beginEncounter === 'function') {
-        startCombat('skyPredator');
-      }
-    }
+
   }
   // Shop buy-by-number (1-8 only; 9 is reserved for debug)
   if (gameState === STATE.SHOP) {
