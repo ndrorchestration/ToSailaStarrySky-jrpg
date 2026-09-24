@@ -77,6 +77,8 @@ state = world.getQuestState();
 assert.strictEqual(state.hazardsCompleted, 4);
 assert.strictEqual(state.state, 'contact');
 assert.strictEqual(state.act, 'contact');
+assert.strictEqual(state.npcsMet.length, 0,
+  'CONTACT must begin with four post-Crossing conversations still required');
 assert(state.journal.some(entry =>
   /Corporate Intercept cleared/.test(entry.text)),
   'fourth hazard resolution was not journaled');
