@@ -27,6 +27,13 @@ assert(source.includes('scale: 3'),
   'opening character sprites must render at readable three-pixel scale');
 assert(source.includes('sprites.drawPreview || sprites.draw'),
   'opening must draw the shared detailed sprite atlas with the pixel fallback');
+const interiorBackgroundPath = 'assets/preview/aetherwake-preview-interior-pixelart-v1.png';
+const interiorBackground = fs.readFileSync(path.join(root, interiorBackgroundPath));
+assert.strictEqual(interiorBackground.subarray(0, 8).toString('hex'), '89504e470d0a1a0a',
+  'authored First Wake cabin background must be PNG');
+assert.strictEqual(interiorBackground.readUInt32BE(16), 768, 'cabin background width');
+assert.strictEqual(interiorBackground.readUInt32BE(20), 512, 'cabin background height');
+assert(source.includes(interiorBackgroundPath), 'First Wake interior must load its pixel-art background');
 assert(source.includes("drawPreview.call(sprites, 'ender'") && source.includes("drawPreview.call(sprites, 'ionia'"),
   'opening must use canonical Ender and Ionia sprites');
 assert(source.includes("['ionia'"),
@@ -76,6 +83,29 @@ assert.deepStrictEqual(dockSpriteCalls.filter(sprite => sprite.id === 'ender').s
   'Ender should keep a steady walk cycle through repeated steps, then return to idle');
 assert(dockSpriteCalls.filter(sprite => sprite.id === 'ionia').every(sprite => sprite.frame === 0),
   'Ionia must remain idle while Ender walks');
+
+const interiorImages = [];
+const interiorRects = [];
+const interiorSandbox = {
+  window: {},
+  globalThis: {},
+  width: 960,
+  height: 640,
+  loadImage(asset, onLoad) {
+    assert.strictEqual(asset, interiorBackgroundPath);
+    const loaded = { width: 768, height: 512 };
+    onLoad();
+    return loaded;
+  },
+  push() {}, pop() {}, noSmooth() {}, noStroke() {}, fill() {},
+  rect(...args) { interiorRects.push(args); },
+  image(...args) { interiorImages.push(args); },
+};
+vm.runInNewContext(source, interiorSandbox, { filename: 'first-wake-visual-stage-interior.js' });
+interiorSandbox.window.AetherFirstWakeVisual.drawInterior({ id: 'berth_task' }, {}, 0);
+assert.strictEqual(interiorImages.length, 1, 'authored cabin background should be drawn when loaded');
+assert.strictEqual(interiorImages[0][0].width, 768, 'renderer should use the loaded pixel-art background');
+assert.strictEqual(interiorRects.length, 0, 'loaded artwork must not be overpainted by the geometric fallback');
 
 
 const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
