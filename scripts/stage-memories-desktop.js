@@ -95,8 +95,16 @@ if (fs.existsSync(assetsSrc)) {
 
 const manifest = {
   name: 'Aetherwake',
+  version: '0.1.0',
+  description: 'Aetherwake Preview 0.1',
+  author: 'NDR Orchestration',
   main: 'www/index-embedded.html',
   'js-flags': '--expose-gc',
+  nwbuild: {
+    app: {
+      icon: 'www/icon.ico'
+    }
+  },
   window: {
     title: 'AETHERWAKE — THE LAST SOLARPUNK AIRSHIP',
     width: 1440,
