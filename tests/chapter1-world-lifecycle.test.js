@@ -143,8 +143,10 @@ world.advanceQuest();
 state = world.getQuestState();
 assert.strictEqual(state.state, 'wake',
   'completed CHOICE must enter the deliberate WAKE resolution beat');
-assert(state.wakeEpilogueId || state.epilogues,
-  'WAKE must resolve an epilogue candidate before final closure');
+assert.strictEqual(state.wakeEpilogueId, 'epiline_10',
+  'high-state path-C resolution must reach The First Note instead of a generic ending');
+assert(typeof state.choiceOutcomeText === 'string' && state.choiceOutcomeText.length > 40,
+  'WAKE must expose the chosen strong/strained path consequence');
 
 world.advanceQuest();
 state = world.getQuestState();
