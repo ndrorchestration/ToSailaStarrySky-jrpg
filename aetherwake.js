@@ -862,6 +862,14 @@ function keyPressed() {
   keys[keyCode] = true;
   keysPressed[keyCode] = true;
 
+  if (gameOver && keyCode === 82) { // R — begin Chapter I again.
+    if (window.location && typeof window.location.reload === 'function') {
+      window.location.reload();
+    }
+    delete keysPressed[keyCode];
+    return false;
+  }
+
   if ((gameState === STATE.WORLD || gameState === STATE.AIRSHIP) && keyCode === 116) { // F5
     openSaveLoadMenu('save');
     delete keysPressed[keyCode];
