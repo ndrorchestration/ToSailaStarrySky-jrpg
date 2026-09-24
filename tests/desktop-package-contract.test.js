@@ -34,8 +34,8 @@ assert(stageScript.includes("path.join(stage, 'www')"),
 assert(stageScript.includes("icon: 'www/icon.ico'"),
   'staged Windows manifest must declare the generated .ico executable icon');
 assert(stageScript.includes("nwbuild: {") && stageScript.includes("app: {") &&
-       stageScript.includes("icon: 'www/icon.ico'"),
-  'nw-builder app config must explicitly receive the generated Windows .ico');
+       stageScript.includes("icon: '.desktop-runtime/www/icon.ico'"),
+  'nw-builder app config must resolve the generated Windows .ico from the repository working directory');
 assert(stageScript.includes("version: '0.1.0'") && stageScript.includes("author: 'NDR Orchestration'"),
   'staged manifest must provide stable Windows resource metadata');
 assert(stageScript.includes("writeWindowsIcon(path.join(www, 'icon.ico'))"),
