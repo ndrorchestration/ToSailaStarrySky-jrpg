@@ -18,10 +18,10 @@
   let cachedGround = null;
   let cachedMap = null;
   let lastPlayerTile = null;
-  let lastPlayerMovementFrame = -Infinity;
-  let playerWalkStartedFrame = null;
+  let lastPlayerMovementTime = -Infinity;
+  let playerWalkStartedAt = null;
 
-  function playerWalkFrame(player) {
+  function playerWalkFrame(player, now) {
     if (!Number.isFinite(player.tileX) || !Number.isFinite(player.tileY)) return 0;
     const tile = player.tileX + ',' + player.tileY;
     if (lastPlayerTile === null) {
@@ -29,20 +29,20 @@
       return 0;
     }
     if (tile !== lastPlayerTile) {
-      const continuesWalking = frameCount - lastPlayerMovementFrame < 32;
+      const continuesWalking = now - lastPlayerMovementTime < 520;
       lastPlayerTile = tile;
-      if (!continuesWalking || playerWalkStartedFrame === null) {
-        playerWalkStartedFrame = frameCount;
+      if (!continuesWalking || playerWalkStartedAt === null) {
+        playerWalkStartedAt = now;
       }
-      lastPlayerMovementFrame = frameCount;
+      lastPlayerMovementTime = now;
     }
-    if (frameCount - lastPlayerMovementFrame >= 32) {
-      playerWalkStartedFrame = null;
+    if (now - lastPlayerMovementTime >= 520) {
+      playerWalkStartedAt = null;
       return 0;
     }
-    return playerWalkStartedFrame === null
+    return playerWalkStartedAt === null
       ? 0
-      : Math.floor((frameCount - playerWalkStartedFrame) / 8) % 2;
+      : Math.floor((now - playerWalkStartedAt) / 130) % 2;
   }
 
   function drawIsland(x, y, w, h, tone) {
@@ -197,7 +197,7 @@
         rect(Math.round(cx + Math.cos(angle) * r), Math.round(cy + Math.sin(angle) * r), 2, 2);
       }
     }
-    drawSprite('ender', player.px || 0, player.py || 0, 'Ender', 2, playerWalkFrame(player));
+    drawSprite('ender', player.px || 0, player.py || 0, 'Ender', 2, playerWalkFrame(player, now));
 
     for (const npc of input.npcs || []) {
       if (!npc || !Number.isFinite(npc.tileX) || !Number.isFinite(npc.tileY)) continue;
