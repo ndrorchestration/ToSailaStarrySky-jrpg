@@ -21,6 +21,10 @@ assert(source.includes('AetherDragonflyVisual'),
   'opening dock must reuse shared Dragonfly authority');
 assert(source.includes('AetherPixelSprites'),
   'opening must reuse shared sprite authority');
+assert(source.includes('drawScenicBackdrop'),
+  'opening dock must reuse the Preview scenic sky backdrop');
+assert(source.includes('scale: 3'),
+  'opening character sprites must render at readable three-pixel scale');
 assert(source.includes("sprites.draw('ender'"),
   'opening must use canonical Ender sprite');
 assert(source.includes("sprites.draw('ionia'") || source.includes("['ionia'"),
