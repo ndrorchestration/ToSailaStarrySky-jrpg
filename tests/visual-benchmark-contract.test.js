@@ -35,15 +35,19 @@ const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
 assert(html.indexOf('modules/visual-benchmark.js') >= 0, 'visual benchmark script missing');
 assert(html.indexOf('modules/visual-benchmark.js') < html.indexOf('aetherwake.js'),
   'visual benchmark authority must load before runtime');
-assert(runtime.includes('AetherVisualBenchmark.isActive'),
+const renderStart = runtime.indexOf('function render() {');
+const renderEnd = runtime.indexOf('\n// --- Ship Interior', renderStart);
+assert(renderStart >= 0 && renderEnd > renderStart, 'world render function missing');
+const renderFunction = runtime.slice(renderStart, renderEnd);
+assert(renderFunction.includes('const benchmark = window.AetherVisualBenchmark;'),
+  'runtime must acquire the benchmark visual authority');
+assert(renderFunction.includes("typeof benchmark.isActive === 'function'"),
+  'runtime must verify the benchmark activation method');
+assert(renderFunction.includes('benchmark.isActive(player, airNavigationState)'),
   'runtime does not gate benchmark against real world/navigation state');
-assert(runtime.includes('drawBackdrop'),
-  'runtime benchmark backdrop integration missing');
-assert(runtime.includes('drawDragonfly'),
-  'runtime Dragonfly benchmark integration missing');
-assert(runtime.includes('drawLighting'),
-  'runtime dusk lighting integration missing');
-assert(runtime.includes('drawForeground'),
-  'runtime foreground depth integration missing');
+for (const method of ['drawBackdrop', 'drawDragonfly', 'drawLighting', 'drawForeground']) {
+  assert(renderFunction.includes('benchmark.' + method + '('),
+    'runtime benchmark ' + method + ' integration missing');
+}
 
 console.log('Aetherwake Dragonfly Dusk Dock benchmark contract: PASS');
