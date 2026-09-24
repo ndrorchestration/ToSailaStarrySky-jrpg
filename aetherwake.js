@@ -3173,6 +3173,8 @@ function getQuestState() {
     choiceMade: quest.choiceMade,
     choiceVariant: quest.choiceVariant,
     choicePath: quest.choicePath || null,
+    choiceOutcomeText: getChoiceOutcomeText(),
+    wakeEpilogueId: quest.wakeEpilogue ? quest.wakeEpilogue.id : null,
     hullIntegrity: quest.hullIntegrity,
     morale: quest.morale,
     heatLevel: quest.heatLevel,
@@ -3420,21 +3422,42 @@ function appendJournalEntry(state, text) {
   quest.journal.push({ state, text });
 }
 
+function getChoiceOutcomeText() {
+  if (!quest.choicePath || !quest.choiceVariant) return null;
+  const path = quest.choicePaths.find(candidate => candidate.id === quest.choicePath);
+  if (!path || !path.outcomes) return null;
+  return path.outcomes[quest.choiceVariant] || null;
+}
+
 function resolveEpilogue() {
-  // Re-order so the best (stat + path) ending is tried last: a player
-  // who maxed everything and picked path_c should get 'The First Note',
-  // not a stat-only epilogue that also matches.
-  for (const ep of quest.epilogues) {
-    if (ep.trigger()) {
+  // Resolve from most specific authored consequence to broad fallback.
+  // This prevents a generic stat-only ending from swallowing a stronger
+  // path-specific ending that also matches the same final state.
+  const priority = [
+    'epiline_5',   // catastrophic state: Blight-Touched
+    'epiline_10',  // best path-C ending: First Note
+    'epiline_8',   // path-A high-state ending: Wake's Gardener
+    'epiline_7',   // path-C integrated ending: Sky-Singer
+    'epiline_9',   // path-B damaged ending: Syndicate Ghost
+    'epiline_4',   // path-C Above-Breaker
+    'epiline_6',   // path-A Seedwright
+    'epiline_3',   // path-B Verrick's Ledger
+    'epiline_2',   // broad Core-Bound
+    'epiline_1',   // broad Sky-Lane Drifter
+  ];
+
+  for (const id of priority) {
+    const ep = quest.epilogues.find(candidate => candidate.id === id);
+    if (ep && ep.trigger()) {
       quest.wakeEpilogue = ep;
-      return;
+      return ep;
     }
   }
-  // Fallback: the player pushed through but nothing matched cleanly.
-  // The Blight-Touched is the canonical 'things went badly' ending, so
-  // prefer it over a random epilogue[0].
-  const fallbacks = quest.epilogues.filter(e => e.id === 'epiline_5');
-  quest.wakeEpilogue = (fallbacks.length ? fallbacks[0] : quest.epilogues[0]);
+
+  const fallback = quest.epilogues.find(candidate => candidate.id === 'epiline_1') ||
+    quest.epilogues[0] || null;
+  quest.wakeEpilogue = fallback;
+  return fallback;
 }
 
 // ---------------------------------------------------------------------------
@@ -4776,12 +4799,14 @@ function drawWakeResolutionScreen() {
   textFont('VT323');
   textSize(18);
   fill(color(232, 220, 198, 210));
+  const choiceOutcome = getChoiceOutcomeText();
   text(
-    'The ship responds to your choice.\nThe core changes its song — and the world waits for the consequence.',
+    choiceOutcome ||
+      'The ship responds to your choice.\nThe core changes its song — and the world waits for the consequence.',
     width / 2,
     height / 2 - 12,
     width - 220,
-    110
+    150
   );
 
   textFont('Press Start 2P');
