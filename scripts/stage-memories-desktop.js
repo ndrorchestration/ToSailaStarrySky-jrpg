@@ -96,7 +96,7 @@ if (fs.existsSync(assetsSrc)) {
 const manifest = {
   name: 'Aetherwake',
   version: '0.1.0',
-  description: 'Aetherwake Preview 0.1',
+  description: 'Aetherwake Chapter 1 — First Wake',
   author: 'NDR Orchestration',
   main: 'www/index-embedded.html',
   'js-flags': '--expose-gc',
