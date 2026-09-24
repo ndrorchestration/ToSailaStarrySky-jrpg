@@ -11,6 +11,9 @@ Write-Host "== Aetherwake Preview 0.1 portable Windows build =="
 npm ci
 if ($LASTEXITCODE -ne 0) { throw "npm ci failed with code $LASTEXITCODE." }
 
+npm run test:preview-slice
+if ($LASTEXITCODE -ne 0) { throw "Preview playable-slice regression tests failed with code $LASTEXITCODE." }
+
 npm run test:embedded-launch-readiness
 if ($LASTEXITCODE -ne 0) { throw "embedded launch readiness recovery test failed with code $LASTEXITCODE." }
 

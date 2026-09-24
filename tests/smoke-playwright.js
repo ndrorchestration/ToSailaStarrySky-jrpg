@@ -11,6 +11,36 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+async function walkToTile(page, targetX, targetY) {
+  for (let step = 0; step < 64; step++) {
+    const position = await page.evaluate(() => ({
+      tileX: window._world.player.tileX,
+      tileY: window._world.player.tileY,
+    }));
+    if (position.tileX === targetX && position.tileY === targetY) return position;
+
+    let axis;
+    let direction;
+    let expected;
+    if (position.tileX !== targetX) {
+      axis = 'tileX';
+      expected = position.tileX + Math.sign(targetX - position.tileX);
+      direction = targetX < position.tileX ? 'ArrowLeft' : 'ArrowRight';
+    } else {
+      axis = 'tileY';
+      expected = position.tileY + Math.sign(targetY - position.tileY);
+      direction = targetY < position.tileY ? 'ArrowUp' : 'ArrowDown';
+    }
+
+    await page.keyboard.press(direction);
+    await page.waitForFunction(({ axis: expectedAxis, tile }) =>
+      window._world && window._world.player[expectedAxis] === tile,
+    { axis, tile: expected }, { timeout: 2000 });
+  }
+
+  throw new Error(`Player did not reach tile ${targetX},${targetY} through movement input`);
+}
+
 function createServer() {
   return http.createServer((req, res) => {
     const parsed = new URL(req.url, `http://127.0.0.1:${PORT}`);
@@ -241,6 +271,8 @@ function createServer() {
       className: window._world.player.class,
       level: window._world.player.level,
       xp: window._world.player.xp,
+      tileX: window._world.player.tileX,
+      tileY: window._world.player.tileY,
       openingComplete: window._firstWakeOpeningState.complete,
       activeIds: window.ACTIVE_PARTY.map(character => character.id),
     }));
@@ -253,13 +285,11 @@ function createServer() {
       'First Wake opening did not mark completion at chapter-card handoff');
     assert(worldBeforeCombat.activeIds.join('|') === 'ender|lyra',
       'chapter-card handoff did not preserve authored two-member party');
+    assert(worldBeforeCombat.tileX === 16 && worldBeforeCombat.tileY === 16,
+      'First Wake handoff did not place Ender at the authored world spawn');
 
     // Exercise real input/overlay paths before combat: movement, proximity-gated
     // shop, ledger data, and first-contact dialogue.
-    await page.evaluate(() => {
-      const p = window._world.player;
-      p.tileX = 16; p.tileY = 16; p.x = 16; p.y = 16; p.px = 16 * 16; p.py = 16 * 16;
-    });
     await page.keyboard.press('d');
     await page.waitForFunction(() => window._world.player.tileX === 17);
 
@@ -268,10 +298,7 @@ function createServer() {
     assert((await page.evaluate(() => window.gameState)) === 'world',
       'shop must not open outside Repair Cafe proximity');
 
-    await page.evaluate(() => {
-      const p = window._world.player;
-      p.tileX = 14; p.tileY = 22; p.x = 14; p.y = 22; p.px = 14 * 16; p.py = 22 * 16;
-    });
+    await walkToTile(page, 14, 22);
     await page.keyboard.press('m');
     await page.waitForFunction(() => window.gameState === 'shop');
     const shopBefore = await page.evaluate(() => ({
@@ -301,23 +328,38 @@ function createServer() {
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => window.gameState === 'world');
 
-    await page.evaluate(() => {
-      const p = window._world.player;
-      p.tileX = 7; p.tileY = 7; p.x = 7; p.y = 7; p.px = 7 * 16; p.py = 7 * 16;
-    });
+    const ioniaApproach = await walkToTile(page, 8, 7);
+    assert(ioniaApproach.tileX === 8 && ioniaApproach.tileY === 7,
+      'real movement did not reach Ionia from the world spawn route');
     await page.keyboard.press('e');
     await page.waitForFunction(() => window.gameState === 'dialogue');
     const firstDialogue = await page.evaluate(() => ({
+      npcId: window.UI.dialogueNPC && window.UI.dialogueNPC.id,
+      npcName: window.UI.dialogueNPC && window.UI.dialogueNPC.name,
       lines: window.UI.dialogueLines,
       lineIndex: window.UI.dialogueLineIndex,
     }));
+    assert(firstDialogue.npcId === 'elder_farmer' && firstDialogue.npcName === 'Captain Ionia',
+      'the northwest route did not reach Captain Ionia');
     assert(firstDialogue.lines[0].includes('harmonics are slipping'),
       'first NPC contact did not select the authored intro dialogue');
     assert(firstDialogue.lineIndex === 0, 'dialogue did not start at line zero');
-    await page.keyboard.press('e');
-    await page.waitForFunction(() => window.UI.dialogueLineIndex === 1);
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => window.gameState === 'world');
+    assert(firstDialogue.lines.length > 0, 'Ionia intro dialogue is empty');
+    for (let lineIndex = 0; lineIndex < firstDialogue.lines.length; lineIndex++) {
+      await page.keyboard.press('e');
+      if (lineIndex + 1 < firstDialogue.lines.length) {
+        await page.waitForFunction(expected =>
+          window.gameState === 'dialogue' && window.UI.dialogueLineIndex === expected,
+        lineIndex + 1, { timeout: 5000 });
+      } else {
+        await page.waitForFunction(() =>
+          window.gameState === 'combat' &&
+          window._combat &&
+          window._combat.getState &&
+          window._combat.getState().enemy
+        , undefined, { timeout: 5000 });
+      }
+    }
 
     const partyArchitecture = await page.evaluate(() => ({
       rosterLength: window.ROSTER && window.ROSTER.length,
@@ -379,7 +421,6 @@ function createServer() {
     assert(partyArchitecture.derivedReady,
       'production derived stats are not initialized for all roster records');
 
-    await page.keyboard.press('KeyC');
     await page.waitForFunction(() =>
       window.gameState === 'combat' &&
       window._combat &&
@@ -389,6 +430,8 @@ function createServer() {
 
     const combatStart = await page.evaluate(() => window._combat.getState());
     assert(combatStart.turn === 0, 'combat did not start at turn 0');
+    assert(combatStart.enemy && combatStart.enemy.name === 'Sky-Predator',
+      'Ionia conversation did not start the authored Sky-Predator encounter');
     assert(combatStart.player.productionStats &&
            combatStart.player.productionStats.spirit === 12,
       'combat state did not receive Ender production stats');
@@ -875,13 +918,40 @@ function createServer() {
       line.includes('[Turn 2]') && line.includes('Uncover Truth')),
       'turn 2 action text was not logged correctly');
 
-    // Deterministic state-transition check. We test real keyboard combat
-    // actions above; direct finishCombat avoids making the smoke test depend on
-    // random damage rolls reaching victory.
-    await page.evaluate(() => {
+    // The real conversation started this encounter and the keyboard actions
+    // above exercise combat input. Supply a deterministic terminal snapshot so
+    // this smoke test can verify the victory handoff without relying on damage
+    // rolls to end the battle.
+    const previewFinish = await page.evaluate(() => {
       if (typeof finishCombat !== 'function') throw new Error('finishCombat is unavailable');
-      finishCombat();
+      const originalGetState = window._combat.getState;
+      const terminalState = originalGetState();
+      if (!terminalState || !terminalState.enemy) throw new Error('Active enemy is unavailable');
+      window._combat.getState = () => ({
+        ...terminalState,
+        encounterOver: true,
+        enemy: { ...terminalState.enemy, hp: 0 },
+      });
+      try {
+        finishCombat();
+        const result = {
+          gameState: window.gameState,
+          encounterFinished: previewEncounterFinished,
+          encounterStarted: previewEncounterStarted,
+          endAt: previewEndAt,
+        };
+        // Later smoke sections test independent combat and flight contracts on
+        // this page, so consume the deadline after asserting it was scheduled.
+        previewEndAt = 0;
+        return result;
+      } finally {
+        window._combat.getState = originalGetState;
+      }
     });
+    assert(previewFinish.gameState === 'world' && previewFinish.encounterStarted,
+      'authored encounter victory did not return to the world');
+    assert(previewFinish.encounterFinished && previewFinish.endAt > 0,
+      'Sky-Predator victory did not schedule the Preview end screen');
 
     await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
 

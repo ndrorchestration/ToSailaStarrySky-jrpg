@@ -19,6 +19,8 @@ assert(workflow.includes('git rev-parse HEAD'),
   'Preview Windows build must verify the checked-out source SHA');
 assert(workflow.includes('npm run build:preview:windows'),
   'Preview Windows build must call the existing bounded builder');
+assert(builder.includes('npm run test:preview-slice'),
+  'Preview Windows build must gate the encounter outcome and authored route regressions');
 assert(builder.includes('npm run test:preview-world-presentation'),
   'Preview Windows build must test the tile map and character atlas');
 assert(builder.includes('npm run test:combat-visual'),

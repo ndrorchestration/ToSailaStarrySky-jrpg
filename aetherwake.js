@@ -1263,10 +1263,23 @@ function finishCombat() {
   combatReturnState = STATE.WORLD;
 
   if (previewEncounterStarted && !previewEncounterFinished) {
-    previewEncounterFinished = true;
-    previewEndAt = millis() + 2400;
-    showToast('THE SKY GOES QUIET // FOR NOW', C.teal, 1800);
-    showToast('RETURNING TO THE WAKE...', C.parchment, 2200);
+    const previewVictory = Boolean(
+      combatState &&
+      combatState.encounterOver &&
+      combatState.enemy &&
+      combatState.enemy.hp <= 0
+    );
+
+    if (previewVictory) {
+      previewEncounterFinished = true;
+      previewEndAt = millis() + 2400;
+      showToast('THE SKY GOES QUIET // FOR NOW', C.teal, 1800);
+      showToast('RETURNING TO THE WAKE...', C.parchment, 2200);
+    } else {
+      previewEncounterStarted = false;
+      previewEncounterArmed = true;
+      showToast('SKY-PREDATOR REMAINS // RETURN TO IONIA AND TRY AGAIN', C.rust, 2600);
+    }
   }
 
   if (VIS.fadeTransitions) startFade(150);
@@ -8599,5 +8612,4 @@ function drawScreenFlashLegacy() {
   fill(color(255, 255, 255, alpha));
   rect(0, 0, width, height);
 }
-
 
