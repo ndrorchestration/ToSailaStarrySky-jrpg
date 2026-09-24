@@ -19,6 +19,14 @@
     Object.freeze({ x: 10, y: 24, width: 3, height: 3, tile: 'flowers' }),
     Object.freeze({ x: 25, y: 22, width: 3, height: 3, tile: 'grass' }),
   ]);
+  const SCENIC_LANDMARK = Object.freeze([
+    Object.freeze({ x: 10, y: 21, tile: 'forest' }),
+    Object.freeze({ x: 11, y: 21, tile: 'ruins' }),
+    Object.freeze({ x: 12, y: 21, tile: 'forest' }),
+    Object.freeze({ x: 10, y: 22, tile: 'forest' }),
+    Object.freeze({ x: 11, y: 22, tile: 'flowers' }),
+    Object.freeze({ x: 12, y: 22, tile: 'forest' }),
+  ]);
   const TRANSPARENT_GROUND_TOKENS = new Set(['T']);
   const SPRITE_IDS = Object.freeze({
     elder_farmer: 'ionia', engine_spirit: 'engineSpirit',
@@ -183,6 +191,15 @@
     }
   }
 
+  function paintScenicLandmark(image, ground, tiles, protectedActorCells) {
+    for (const detail of SCENIC_LANDMARK) {
+      const key = detail.x + ',' + detail.y;
+      if (resolveTile(ground[detail.y] && ground[detail.y][detail.x]) !== 'meadow' ||
+          isObjectiveRouteBuffer(detail.x, detail.y) || protectedActorCells.has(key)) continue;
+      tilePixels(image, detail.tile, detail.x * CELL, detail.y * CELL, tiles, 0, TRANSPARENT_GROUND_TOKENS);
+    }
+  }
+
   function buildMap(ground, npcs) {
     const tiles = root.AetherPixelTiles;
     if (!tiles || typeof createImage !== 'function') return null;
@@ -195,8 +212,11 @@
       }
     }
 
+    const protectedActorCells = actorCells(npcs);
     // Add low-profile authored flowers and grass without changing collision or the Ionia route.
-    paintMeadowAccents(img, ground, tiles, actorCells(npcs));
+    paintMeadowAccents(img, ground, tiles, protectedActorCells);
+    // Frame the southern lore point with a small forest ruin vignette from the shared tile set.
+    paintScenicLandmark(img, ground, tiles, protectedActorCells);
 
     // A readable stepping-stone route guides the first walk toward Ionia.
     for (let i = 0; i <= 8; i++) {
