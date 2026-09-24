@@ -8,36 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.1.0';
-  const PIXEL_INTERIOR_BACKGROUND = 'assets/preview/aetherwake-preview-interior-pixelart-v1.png';
-  let lastDockWalkX = null;
-  let dockWalkChangedAt = -Infinity;
-  let dockWalkStartedAt = null;
-  let pixelInteriorBackground = null;
-  let pixelInteriorBackgroundRequested = false;
-  let pixelInteriorBackgroundReady = false;
-
-  function dockWalkFrame(scene, state, now) {
-    if (scene.id !== 'dock_walk' || !state || !state.dockWalk) return 0;
-    const x = state.dockWalk.x;
-    if (lastDockWalkX === null) {
-      lastDockWalkX = x;
-      return 0;
-    }
-    if (x !== lastDockWalkX) {
-      const continuesWalking = now - dockWalkChangedAt < 520;
-      lastDockWalkX = x;
-      if (!continuesWalking || dockWalkStartedAt === null) dockWalkStartedAt = now;
-      dockWalkChangedAt = now;
-    }
-    if (now - dockWalkChangedAt >= 520) {
-      dockWalkStartedAt = null;
-      return 0;
-    }
-    return dockWalkStartedAt === null
-      ? 0
-      : Math.floor((now - dockWalkStartedAt) / 130) % 2;
-  }
+  const VERSION = '0.2.0';
 
   function bandedSky(top, mid, low) {
     const bands = [top, mid, low];
@@ -65,31 +36,20 @@
   }
 
   function drawDock(scene, state, now) {
-    const previewPresentation = root.AetherPreviewWorldPresentation;
-    if (previewPresentation && typeof previewPresentation.drawScenicBackdrop === 'function') {
-      previewPresentation.drawScenicBackdrop(width, height, now);
-    } else {
-      bandedSky([67, 174, 244], [145, 224, 250], [229, 247, 242]);
-      cloudBands(now, 348, [245, 253, 255], 130);
-    }
+    bandedSky([18, 24, 46], [55, 68, 101], [176, 125, 105]);
+    cloudBands(now, 348, [212, 224, 229], 48);
 
     noStroke();
-    fill(132, 91, 53);
+    fill(29, 35, 43);
     rect(0, 430, width, 210);
-    fill(211, 163, 83);
+    fill(55, 65, 70);
     rect(0, 414, width, 20);
-    for (let x = 0; x < width; x += 48) {
-      fill(245, 200, 119, 110);
-      rect(x, 436, 2, 196);
-    }
 
     for (let x = 34; x < width; x += 110) {
-      fill(90, 67, 48);
+      fill(21, 26, 34);
       rect(x, 328, 10, 86);
-      fill(115, 168, 142, 190);
+      fill(92, 107, 111, 100);
       rect(x + 4, 332, 2, 82);
-      fill(250, 203, 112, 220);
-      rect(x + 2, 330, 5, 4);
     }
 
     const dragonfly = root.AetherDragonflyVisual;
@@ -113,19 +73,18 @@
         progress = 1;
       }
       const enderX = Math.round(145 + progress * 405);
-      const drawPreview = sprites.drawPreview || sprites.draw;
-      sprites.drawShadow(enderX, 430, 3, 22);
-      drawPreview.call(sprites, 'ender', enderX, 430, {
+      sprites.drawShadow(enderX, 430, 2);
+      sprites.draw('ender', enderX, 430, {
         anchor: 'bottom-center',
-        scale: 3,
-        frame: dockWalkFrame(scene, state, now),
+        scale: 2,
+        frame: Math.floor(now / 240) % 2,
       });
 
-      sprites.drawShadow(620, 430, 3, 22);
-      drawPreview.call(sprites, 'ionia', 620, 430, {
+      sprites.drawShadow(620, 430, 2);
+      sprites.draw('ionia', 620, 430, {
         anchor: 'bottom-center',
-        scale: 3,
-        frame: 0,
+        scale: 2,
+        frame: Math.floor(now / 300) % 2,
       });
     }
 
@@ -143,84 +102,41 @@
     noStroke();
   }
 
-  function drawInteriorBackdrop() {
-    if (!pixelInteriorBackgroundRequested && typeof loadImage === 'function') {
-      pixelInteriorBackgroundRequested = true;
-      try {
-        pixelInteriorBackground = loadImage(
-          PIXEL_INTERIOR_BACKGROUND,
-          () => { pixelInteriorBackgroundReady = true; },
-          () => { pixelInteriorBackground = null; }
-        );
-      } catch (error) {
-        pixelInteriorBackground = null;
-      }
-    }
-    if (!pixelInteriorBackgroundReady || !pixelInteriorBackground || typeof image !== 'function') return false;
-
-    push();
-    noSmooth();
-    const cover = Math.max(width / pixelInteriorBackground.width, height / pixelInteriorBackground.height);
-    const drawWidth = pixelInteriorBackground.width * cover;
-    const drawHeight = pixelInteriorBackground.height * cover;
-    image(pixelInteriorBackground, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
-    pop();
-    return true;
-  }
-
   function drawInterior(scene, state, now) {
-    const hasPixelInterior = drawInteriorBackdrop();
-    if (!hasPixelInterior) {
-      noStroke();
-      fill(25, 76, 87);
-      rect(0, 0, width, height);
+    noStroke();
+    fill(14, 20, 29);
+    rect(0, 0, width, height);
 
-      // Keep a legible geometric room while the authored background is loading.
-      fill(54, 122, 119);
-      rect(74, 98, width - 148, height - 166);
-      fill(93, 161, 128);
-      rect(91, 116, width - 182, height - 202);
-      fill(53, 104, 91);
-      rect(0, 420, width, 220);
+    // Structural ribs and deck planes.
+    fill(32, 40, 48);
+    rect(74, 98, width - 148, height - 166);
+    fill(52, 58, 61);
+    rect(91, 116, width - 182, height - 202);
+    fill(25, 31, 37);
+    rect(0, 420, width, 220);
 
-      // Pixel porthole makes the sky visible from inside the Wake.
-      fill(77, 188, 232);
-      rect(475, 142, 142, 105);
-      fill(255, 226, 133);
-      rect(579, 158, 20, 20);
-      fill(255, 249, 197);
-      rect(585, 153, 9, 4);
-      fill(112, 173, 91);
-      rect(475, 220, 142, 27);
-      fill(48, 100, 118);
-      rect(472, 139, 6, 111);
-      rect(614, 139, 6, 111);
-      rect(472, 139, 148, 6);
-      rect(472, 244, 148, 6);
-
-      for (let x = 104; x < width - 90; x += 122) {
-        fill(177, 138, 71);
-        rect(x, 137, 8, 275);
-        fill(154, 214, 153, 100);
-        rect(x + 2, 151, 4, 56);
-      }
-
-      // Shared table / lived-in equipment.
-      fill(151, 93, 52);
-      rect(160, 351, 248, 25);
-      fill(201, 145, 69);
-      rect(177, 331, 62, 20);
-      rect(266, 337, 45, 14);
-
-      // Instrument bank.
-      fill(27, 69, 91);
-      rect(width - 330, 142, 190, 211);
-      fill(42, 255, 181, 105);
-      rect(width - 306, 166, 143, 4);
-      fill(124, 200, 232, 130);
-      rect(width - 306, 193, 102, 4);
-      rect(width - 306, 220, 124, 4);
+    for (let x = 104; x < width - 90; x += 122) {
+      fill(80, 70, 58);
+      rect(x, 137, 8, 275);
+      fill(42, 255, 181, 38);
+      rect(x + 2, 151, 4, 56);
     }
+
+    // Shared table / lived-in equipment.
+    fill(101, 76, 57);
+    rect(160, 351, 248, 25);
+    fill(135, 102, 68);
+    rect(177, 331, 62, 20);
+    rect(266, 337, 45, 14);
+
+    // Instrument bank.
+    fill(31, 43, 52);
+    rect(width - 330, 142, 190, 211);
+    fill(42, 255, 181, 45);
+    rect(width - 306, 166, 143, 4);
+    fill(124, 200, 232, 65);
+    rect(width - 306, 193, 102, 4);
+    rect(width - 306, 220, 124, 4);
 
     if (scene.id === 'wrong_song') {
       // Frequency mismatch rendered as pixel wavefronts.
@@ -253,13 +169,12 @@
         core_walk: [['ender', 310], ['lyra', 470]],
       };
       const actors = positions[scene.id] || [['ender', 310]];
-      const drawPreview = sprites.drawPreview || sprites.draw;
       for (const [id, x] of actors) {
-        sprites.drawShadow(x, 420, 3, 22);
-        drawPreview.call(sprites, id, x, 420, {
+        sprites.drawShadow(x, 420, 2);
+        sprites.draw(id, x, 420, {
           anchor: 'bottom-center',
-          scale: 3,
-          frame: 0,
+          scale: 2,
+          frame: Math.floor(now / 260) % 2,
         });
       }
     }
@@ -292,6 +207,228 @@
       textSize(14);
       text('TALEN // ' + talenStep + ' / ' + (state.talenBeat ? state.talenBeat.max : 2), 423, 392);
     }
+  }
+
+  function wakeMapPoint(x, y) {
+    return {
+      x: Math.round(128 + (x - 1) * 49),
+      y: Math.round(156 + (y - 1) * 47),
+    };
+  }
+
+  function drawWakeRoomLabel(label, x, y, active) {
+    noStroke();
+    fill(active ? 42 : 185, active ? 255 : 158, active ? 181 : 116, active ? 210 : 120);
+    rect(x, y, Math.max(54, label.length * 7 + 12), 18);
+    fill(8, 12, 18, 230);
+    textAlign(LEFT, TOP);
+    textFont('VT323');
+    textSize(13);
+    text(label, x + 6, y + 2);
+  }
+
+  function drawWakeExploration(scene, state, now) {
+    const opening = root.AetherFirstWakeOpening;
+    const view = opening && typeof opening.wakeExplorationView === 'function'
+      ? opening.wakeExplorationView(state)
+      : null;
+    const e = state.wakeExploration;
+    if (!view || !e) {
+      drawInterior(scene, state, now);
+      return;
+    }
+
+    noStroke();
+    fill(8, 13, 20);
+    rect(0, 0, width, height);
+
+    // Hull frame.
+    fill(24, 31, 38);
+    rect(70, 94, width - 140, 432);
+    fill(49, 54, 55);
+    rect(90, 114, width - 180, 392);
+    fill(31, 37, 42);
+    rect(108, 132, width - 216, 354);
+
+    // Connected interior floor — intentionally one readable space, not a corridor of cards.
+    fill(72, 64, 54);
+    rect(122, 145, 690, 330);
+    fill(42, 47, 49);
+    rect(136, 159, 662, 302);
+
+    // Soft room zoning.
+    fill(91, 73, 55, 125);   // berth
+    rect(136, 330, 172, 131);
+    fill(93, 73, 62, 100);   // shared table
+    rect(136, 159, 220, 144);
+    fill(77, 63, 82, 105);   // Lyra/Talen
+    rect(374, 159, 182, 144);
+    fill(48, 67, 76, 120);   // nav
+    rect(574, 159, 224, 144);
+    fill(49, 55, 58, 125);   // maintenance
+    rect(374, 330, 244, 131);
+    fill(29, 37, 47, 150);   // core approach
+    rect(636, 330, 162, 131);
+
+    // Walkable connectors.
+    fill(58, 58, 55);
+    rect(308, 221, 66, 42);
+    rect(556, 221, 18, 42);
+    rect(308, 369, 66, 42);
+    rect(618, 369, 18, 42);
+
+    // Shared table and galley.
+    fill(119, 86, 60);
+    rect(176, 226, 126, 20);
+    rect(190, 246, 10, 35);
+    rect(278, 246, 10, 35);
+    fill(149, 112, 72);
+    rect(153, 181, 70, 20);
+    fill(73, 100, 76);
+    rect(237, 181, 28, 20);
+
+    // Ender's berth and Talen's block-built Wake.
+    fill(111, 91, 68);
+    rect(164, 372, 112, 34);
+    fill(151, 112, 72);
+    rect(232, 422, 44, 16);
+    fill(76, 111, 121);
+    rect(247, 408, 19, 14);
+
+    // Lyra's sensory objects and fabric.
+    fill(142, 77, 74);
+    rect(407, 180, 88, 7);
+    fill(185, 116, 94, 120);
+    rect(410, 190, 5, 72);
+    rect(489, 190, 5, 72);
+    fill(124, 200, 232, 75);
+    rect(449, 254, 56, 3);
+
+    // Navigation station.
+    fill(27, 43, 52);
+    rect(612, 179, 145, 80);
+    fill(42, 255, 181, 70);
+    rect(630, 195, 102, 4);
+    fill(124, 200, 232, 70);
+    rect(630, 214, 84, 4);
+    rect(630, 233, 111, 4);
+
+    // Maintenance wall and telemetry.
+    fill(35, 42, 46);
+    rect(420, 355, 148, 72);
+    fill(185, 158, 116, 90);
+    rect(441, 373, 40, 5);
+    fill(42, 255, 181, e.clues.includes('frequency') ? 150 : 45);
+    rect(493, 373, 52, 5);
+
+    fill(31, 43, 52);
+    rect(549, 397, 52, 38);
+    fill(124, 200, 232, e.clues.includes('systems') ? 160 : 55);
+    rect(558, 407, 34, 4);
+    rect(558, 417, 26, 4);
+
+    // Structural route chart.
+    fill(46, 42, 39);
+    rect(201, 172, 92, 42);
+    fill(181, 103, 91, e.clues.includes('structural') ? 65 : 125);
+    rect(214, 187, 62, 3);
+    rect(236, 179, 3, 26);
+    if (e.clues.includes('structural')) {
+      fill(42, 255, 181, 140);
+      rect(214, 201, 62, 3);
+    }
+
+    // Core threshold.
+    fill(8, 12, 19);
+    rect(713, 351, 58, 92);
+    fill(e.coreUnlocked ? 42 : 98, e.coreUnlocked ? 255 : 108, e.coreUnlocked ? 181 : 116, e.coreUnlocked ? 120 : 70);
+    rect(723, 361, 38, 72);
+    if (e.coreUnlocked) {
+      fill(205, 245, 232, 150);
+      rect(741, 370, 3, 54);
+    }
+
+    // Wrong Song distortion: small errors in otherwise stable architecture.
+    if (scene.id === 'wrong_song' || e.anomalyTriggered) {
+      for (let i = 0; i < 8; i++) {
+        const xx = 354 + i * 43;
+        const yy = 118 + ((Math.floor(now / 120) + i * 7) % 9);
+        fill(124, 200, 232, 35 + i * 5);
+        rect(xx, yy, 29, 2);
+        if (i % 2 === 0) {
+          fill(42, 255, 181, 28);
+          rect(xx + 7, yy + 8, 17, 2);
+        }
+      }
+    }
+
+    const sprites = root.AetherPixelSprites;
+    if (sprites && sprites.validate()) {
+      const ep = wakeMapPoint(e.x, e.y);
+      sprites.drawShadow(ep.x, ep.y, 2);
+      sprites.draw('ender', ep.x, ep.y, {
+        anchor: 'bottom-center',
+        scale: 2,
+        frame: Math.floor(now / 220) % 2,
+      });
+
+      const lp = wakeMapPoint(7, 3);
+      sprites.drawShadow(lp.x, lp.y, 2);
+      sprites.draw('lyra', lp.x, lp.y, {
+        anchor: 'bottom-center',
+        scale: 2,
+        frame: Math.floor(now / 310) % 2,
+      });
+
+      const ip = wakeMapPoint(12, 2);
+      sprites.drawShadow(ip.x, ip.y, 2);
+      sprites.draw('ionia', ip.x, ip.y, {
+        anchor: 'bottom-center',
+        scale: 2,
+        frame: Math.floor(now / 290) % 2,
+      });
+    }
+
+    // Context cue only for what is close enough to inspect.
+    const nearby = opening.nearbyWakeHotspot(state, 1);
+    if (nearby) {
+      const p = wakeMapPoint(nearby.x, nearby.y);
+      fill(42, 255, 181, 130);
+      rect(p.x - 18, p.y - 42, 36, 3);
+      rect(p.x - 18, p.y - 42, 3, 10);
+      rect(p.x + 15, p.y - 42, 3, 10);
+    }
+
+    drawWakeRoomLabel('BERTH', 145, 443, view.zone === 'berth');
+    drawWakeRoomLabel('TABLE', 145, 282, view.zone === 'shared-table');
+    drawWakeRoomLabel('LYRA', 392, 282, view.zone === 'lyra-space');
+    drawWakeRoomLabel('NAV', 590, 282, view.zone === 'navigation');
+    drawWakeRoomLabel('MAINT', 392, 443, view.zone === 'maintenance');
+    drawWakeRoomLabel('CORE', 651, 443, view.zone === 'core-approach');
+
+    // Exploration HUD: objective, not a cutscene card.
+    fill(5, 8, 13, 205);
+    rect(84, 36, width - 168, 65);
+    textAlign(LEFT, TOP);
+    textFont('Press Start 2P');
+    textSize(10);
+    fill(42, 255, 181);
+    text(view.objective, 108, 55, width - 216, 28);
+
+    fill(5, 8, 13, 215);
+    rect(106, 535, width - 212, 65);
+    textFont('VT323');
+    textSize(17);
+    fill(232, 220, 198);
+    text(view.lastMessage || 'Explore.', 128, 548, width - 256, 27);
+    fill(185, 158, 116);
+    textSize(14);
+    const clueText = scene.id === 'core_walk'
+      ? 'CLUES ' + e.clues.length + ' / 3  //  2 REQUIRED'
+      : 'WASD / ARROWS MOVE   E INSPECT';
+    text(clueText, 128, 575, width - 256, 20);
+
+    textAlign(LEFT, TOP);
   }
 
   function drawChapter(now) {
@@ -329,6 +466,12 @@
 
   function draw(scene, state, ctx) {
     const now = ctx.now || 0;
+
+    if (scene.sequence >= 5 && scene.sequence <= 8) {
+      drawWakeExploration(scene, state, now);
+      return true;
+    }
+
     drawFrame(scene, state, now);
 
     // Cinematic framing.
@@ -416,6 +559,7 @@
     draw,
     drawDock,
     drawInterior,
+    drawWakeExploration,
     drawChapter,
   });
 })(typeof window !== 'undefined' ? window : globalThis);
