@@ -2,14 +2,25 @@
    Aetherwake — Pixel Sprite Foundation
    modules/pixel-sprites.js
 
-   Data-driven 16×16 character sprites for the playable vertical slice.
-   These are intentionally code-authored sprite cells rather than procedural
-   silhouette geometry so every surface can share one visual authority.
+   Shared code-authored fallback sprites plus a generated atlas for Preview 0.1.
+   Other runtime surfaces retain the compact cell sprites; the opening and
+   exploration scenes use the higher-detail atlas when its local asset loads.
    ============================================================ */
 (function (root) {
   'use strict';
 
   const TRANSPARENT = '.';
+  const PREVIEW_ATLAS_PATH = 'assets/preview/aetherwake-character-sprites.png';
+  const PREVIEW_COLUMNS = Object.freeze({
+    ender: 0,
+    ionia: 1,
+    lyra: 2,
+    corporateSalvager: 3,
+  });
+  const PREVIEW_WIDTH = 22;
+  const PREVIEW_HEIGHT = 28;
+  let previewAtlas = null;
+  let previewAtlasState = 'idle';
 
   const PALETTES = Object.freeze({
     ender: Object.freeze({
@@ -419,25 +430,88 @@
     return true;
   }
 
-  function drawShadow(x, y, scale) {
+  function drawPreview(id, x, y, options) {
+    const column = PREVIEW_COLUMNS[id];
+    if (column === undefined || !SPRITES[id]) return draw(id, x, y, options);
+
+    if (previewAtlasState === 'idle') {
+      if (typeof loadImage !== 'function') {
+        previewAtlasState = 'unavailable';
+      } else {
+        previewAtlasState = 'loading';
+        try {
+          previewAtlas = loadImage(
+            PREVIEW_ATLAS_PATH,
+            () => { previewAtlasState = 'ready'; },
+            () => { previewAtlas = null; previewAtlasState = 'failed'; }
+          );
+        } catch (error) {
+          previewAtlas = null;
+          previewAtlasState = 'failed';
+        }
+      }
+    }
+
+    if (previewAtlasState !== 'ready' || !previewAtlas || typeof image !== 'function') {
+      return draw(id, x, y, options);
+    }
+
+    const opts = options || {};
+    const scale = Math.max(1, Math.floor(opts.scale || 1));
+    const frameIndex = Math.abs(Math.floor(opts.frame || 0)) % 2;
+    const anchor = opts.anchor || 'top-left';
+    let ox = x;
+    let oy = y;
+    if (anchor === 'center') {
+      ox -= (PREVIEW_WIDTH * scale) / 2;
+      oy -= (PREVIEW_HEIGHT * scale) / 2;
+    } else if (anchor === 'bottom-center') {
+      ox -= (PREVIEW_WIDTH * scale) / 2;
+      oy -= PREVIEW_HEIGHT * scale;
+    }
+
+    const cellWidth = previewAtlas.width / 4;
+    const cellHeight = previewAtlas.height / 2;
+    const sourceWidth = Math.min(cellWidth, cellHeight * 0.76);
+    const sourceX = column * cellWidth + (cellWidth - sourceWidth) / 2;
+    const sourceY = frameIndex * cellHeight;
+    if (typeof noSmooth === 'function') noSmooth();
+    image(
+      previewAtlas,
+      Math.round(ox),
+      Math.round(oy),
+      PREVIEW_WIDTH * scale,
+      PREVIEW_HEIGHT * scale,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      cellHeight
+    );
+    return true;
+  }
+
+  function drawShadow(x, y, scale, spriteWidth = 10) {
     const s = Math.max(1, Number(scale) || 1);
+    const width = Math.max(1, Number(spriteWidth) || 10);
     noStroke();
     fill(0, 0, 0, 80);
     rect(
-      Math.round(x - 5 * s),
+      Math.round(x - (width * s) / 2),
       Math.round(y - 2 * s),
-      Math.round(10 * s),
+      Math.round(width * s),
       Math.max(1, Math.round(2 * s))
     );
   }
 
   const api = Object.freeze({
-    VERSION: '0.2.0',
+    VERSION: '0.3.0',
     CELL_SIZE: 1,
+    PREVIEW_ATLAS_PATH,
     SPRITES,
     PALETTES,
     get,
     draw,
+    drawPreview,
     drawShadow,
     validate,
   });

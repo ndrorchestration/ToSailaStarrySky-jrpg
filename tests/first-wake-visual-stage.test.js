@@ -25,9 +25,11 @@ assert(source.includes('drawScenicBackdrop'),
   'opening dock must reuse the Preview scenic sky backdrop');
 assert(source.includes('scale: 3'),
   'opening character sprites must render at readable three-pixel scale');
-assert(source.includes("sprites.draw('ender'"),
-  'opening must use canonical Ender sprite');
-assert(source.includes("sprites.draw('ionia'") || source.includes("['ionia'"),
+assert(source.includes('sprites.drawPreview || sprites.draw'),
+  'opening must draw the shared detailed sprite atlas with the pixel fallback');
+assert(source.includes("drawPreview.call(sprites, 'ender'") && source.includes("drawPreview.call(sprites, 'ionia'"),
+  'opening must use canonical Ender and Ionia sprites');
+assert(source.includes("['ionia'"),
   'opening must use canonical Ionia sprite');
 assert(source.includes("['lyra'"),
   'opening must use canonical Lyra sprite');
@@ -45,6 +47,7 @@ const behaviorSandbox = {
       validate: () => true,
       drawShadow() {},
       draw(id, x, y, options) { dockSpriteCalls.push({ id, x, frame: options.frame }); },
+      drawPreview(id, x, y, options) { dockSpriteCalls.push({ id, x, frame: options.frame }); },
     },
   },
   globalThis: {},

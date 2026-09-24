@@ -109,15 +109,16 @@
         progress = 1;
       }
       const enderX = Math.round(145 + progress * 405);
-      sprites.drawShadow(enderX, 430, 2);
-      sprites.draw('ender', enderX, 430, {
+      const drawPreview = sprites.drawPreview || sprites.draw;
+      sprites.drawShadow(enderX, 430, 3, 22);
+      drawPreview.call(sprites, 'ender', enderX, 430, {
         anchor: 'bottom-center',
         scale: 3,
         frame: dockWalkFrame(scene, state, now),
       });
 
-      sprites.drawShadow(620, 430, 2);
-      sprites.draw('ionia', 620, 430, {
+      sprites.drawShadow(620, 430, 3, 22);
+      drawPreview.call(sprites, 'ionia', 620, 430, {
         anchor: 'bottom-center',
         scale: 3,
         frame: 0,
@@ -220,9 +221,10 @@
         core_walk: [['ender', 310], ['lyra', 470]],
       };
       const actors = positions[scene.id] || [['ender', 310]];
+      const drawPreview = sprites.drawPreview || sprites.draw;
       for (const [id, x] of actors) {
-        sprites.drawShadow(x, 420, 2);
-        sprites.draw(id, x, 420, {
+        sprites.drawShadow(x, 420, 3, 22);
+        drawPreview.call(sprites, id, x, 420, {
           anchor: 'bottom-center',
           scale: 3,
           frame: 0,

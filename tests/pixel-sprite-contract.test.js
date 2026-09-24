@@ -13,7 +13,7 @@ vm.runInNewContext(source, sandbox, { filename: spritePath });
 
 const api = sandbox.window.AetherPixelSprites;
 assert(api, 'pixel sprite authority was not exposed');
-assert.strictEqual(api.VERSION, '0.2.0');
+assert.strictEqual(api.VERSION, '0.3.0');
 assert.strictEqual(api.validate(), true, 'pixel sprite registry failed validation');
 
 for (const id of ['ender','lyra','ionia','skyPredator','engineSpirit','corporateSalvager','settler']) {

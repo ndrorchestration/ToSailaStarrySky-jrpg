@@ -15,7 +15,8 @@ const spriteSource = fs.readFileSync(path.join(root, 'modules', 'pixel-sprites.j
 const calls = {
   images: [], imageCreates: 0, rects: [], translates: [], scales: [], fillColors: [],
   spriteFrames: [], spriteScales: [], shadowScales: [], backgroundRequests: [],
-  backgroundImage: null, completeBackgroundLoad: null,
+  spriteRequests: [],
+  spriteImage: null, backgroundImage: null, completeBackgroundLoad: null,
 };
 assert.match(skyBackdrop, /<image[^>]+href="data:image\/webp;base64,/,
   'the scenic sky-lanes background should be self-contained for offline desktop builds');
@@ -35,6 +36,13 @@ const sandbox = {
     };
   },
   loadImage(assetPath, onLoad) {
+    if (assetPath.endsWith('.png')) {
+      calls.spriteRequests.push(assetPath);
+      const spriteImage = { assetPath, width: 1772, height: 886 };
+      calls.spriteImage = spriteImage;
+      onLoad();
+      return spriteImage;
+    }
     calls.backgroundRequests.push(assetPath);
     calls.backgroundImage = { assetPath, width: 1536, height: 1024 };
     calls.completeBackgroundLoad = onLoad;
@@ -60,6 +68,12 @@ sandbox.window.AetherPixelSprites = Object.freeze({
     calls.spriteFrames.push({ id, frame: args[2] && args[2].frame });
     calls.spriteScales.push(args[2] && args[2].scale);
     return spriteAuthority.draw(id, ...args);
+  },
+  drawPreview(id, ...args) {
+    calls.sprites.push(id);
+    calls.spriteFrames.push({ id, frame: args[2] && args[2].frame });
+    calls.spriteScales.push(args[2] && args[2].scale);
+    return spriteAuthority.drawPreview(id, ...args);
   },
   drawShadow(...args) {
     calls.shadowScales.push(args[2]);
@@ -99,8 +113,12 @@ assert.strictEqual(presentation.draw({
 }), true);
 assert.strictEqual(calls.imageCreates, 1, 'tile map should be rasterized once, not redrawn cell-by-cell each frame');
 assert(calls.images.length >= 1, 'cached tile map was not composited into the world scene');
+assert(calls.images.some(args => args[0] === calls.spriteImage),
+  'loaded character atlas should render over the cached gameplay map');
 assert.deepStrictEqual(calls.backgroundRequests, ['assets/preview/aetherwake-sky-lanes.svg'],
   'the authored Aetherwake sky-lanes vista should load as the scenic world backdrop');
+assert.deepStrictEqual(calls.spriteRequests, ['assets/preview/aetherwake-character-sprites.png'],
+  'the playable slice should load its generated character atlas once');
 assert.deepStrictEqual(calls.fillColors.slice(0, 5), [
   [38, 88, 181], [43, 126, 216], [71, 180, 231], [177, 227, 237], [255, 222, 166],
 ], 'the backdrop should move from vivid cobalt into a warm JRPG horizon');
@@ -189,11 +207,11 @@ assert.notDeepStrictEqual(Array.from(atlas.pixels.slice(pathAt, pathAt + 3)),
 assert(calls.sprites.includes('ender'), 'world presentation must draw Ender using the shared sprite authority');
 assert(calls.sprites.includes('ionia'), 'world presentation must draw Ionia using the shared sprite authority');
 assert(calls.sprites.includes('corporateSalvager'), 'world presentation must draw Verrick using his shared character sprite');
-const namePlaques = calls.rects.filter(rect => rect.w === 36 && rect.h === 9);
+const namePlaques = calls.rects.filter(rect => rect.w === 50 && rect.h === 12);
 assert.strictEqual(namePlaques.length, 2, 'Ender and Ionia should each have one name plaque');
-assert(namePlaques[0].y + namePlaques[0].h <= player.py + 16 - 32,
+assert(namePlaques[0].y + namePlaques[0].h <= player.py + 16 - 56,
   'Ender name plaque must sit fully above the sprite');
-assert(namePlaques[1].y + namePlaques[1].h <= 7 * 16 + 16 - 32,
+assert(namePlaques[1].y + namePlaques[1].h <= 7 * 16 + 16 - 56,
   'Ionia name plaque must sit fully above the sprite');
 const questMarker = calls.rects.find(rect => rect.w === 7 && rect.h === 7);
 assert(questMarker, 'Ionia quest marker should be visible');
@@ -232,7 +250,7 @@ npcs[1].tileY = 11;
 presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1685 });
 assert.strictEqual(calls.imageCreates, imageCreatesBeforeNpcMove + 1,
   'moving an NPC must refresh actor-aware terrain accents');
-const movedAtlas = calls.images[calls.images.length - 1][0];
+const movedAtlas = calls.images.map(args => args[0]).reverse().find(image => image && image.pixels);
 assert.deepStrictEqual(tilePixelsAt(2, 10, movedAtlas), tilePixelsAt(18, 17, movedAtlas),
   'terrain accents must clear from the footprint of an NPC moved into a decorated patch');
 
@@ -256,7 +274,7 @@ assert.strictEqual(calls.imageCreates, realMapImageCount + 1,
   'preview renderer must rasterize the initialized playable-world map');
 assert.strictEqual(calls.rects.filter(rect => rect.w === 7 && rect.h === 7).length - worldMarkersBefore, 1,
   'the initialized playable map should show only the active Ionia objective marker');
-const realMapAtlas = calls.images[calls.images.length - 1][0];
+const realMapAtlas = calls.images.map(args => args[0]).reverse().find(image => image && image.pixels);
 assert.strictEqual(actualGround[21][10], 2, 'forest landmark must be placed on a real meadow cell');
 assert.strictEqual(actualGround[21][11], 2, 'ruins landmark must be placed on a real meadow cell');
 assert.strictEqual(actualGround[7][2], 2, 'northern garden must be placed on a real meadow cell');
@@ -284,7 +302,7 @@ presentation.draw({
   height: 640,
   now: 1816,
 });
-assert.strictEqual(calls.images.length, backgroundFrameStart + 2,
+assert(calls.images.length >= backgroundFrameStart + 2,
   'a loaded scenic background should render behind the cached gameplay map');
 assert.strictEqual(calls.images[backgroundFrameStart][0], calls.backgroundImage,
   'the generated sky-lanes artwork must render first, behind the map');

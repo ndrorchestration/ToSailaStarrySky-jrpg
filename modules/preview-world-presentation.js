@@ -196,10 +196,14 @@
 
   function spriteFootprintCells(tileX, tileY) {
     const cells = [];
-    const left = Math.floor(tileX - 0.5);
-    const right = Math.ceil(tileX + 1.5) - 1;
-    const top = Math.floor(tileY - 1);
-    const bottom = Math.ceil(tileY + 1) - 1;
+    const width = 22 * 2;
+    const height = 28 * 2;
+    const centerX = (tileX + 0.5) * CELL;
+    const bottomY = (tileY + 1) * CELL;
+    const left = Math.floor((centerX - width / 2) / CELL);
+    const right = Math.floor((centerX + width / 2 - 1) / CELL);
+    const top = Math.floor((bottomY - height) / CELL);
+    const bottom = Math.floor((bottomY - 1) / CELL);
     for (let y = top; y <= bottom; y++) {
       for (let x = left; x <= right; x++) cells.push(x + ',' + y);
     }
@@ -280,9 +284,10 @@
     const sprites = root.AetherPixelSprites;
     if (!sprites || typeof sprites.draw !== 'function') return false;
     if (typeof sprites.drawShadow === 'function') {
-      sprites.drawShadow(x + CELL / 2, y + CELL, scale);
+      sprites.drawShadow(x + CELL / 2, y + CELL, scale, 22);
     }
-    sprites.draw(id, x + CELL / 2, y + CELL, {
+    const drawPreview = sprites.drawPreview || sprites.draw;
+    drawPreview.call(sprites, id, x + CELL / 2, y + CELL, {
       anchor: 'bottom-center',
       scale,
       frame,
@@ -290,12 +295,12 @@
     if (name) {
       noStroke();
       fill(20, 42, 57, 220);
-      rect(x - 10, y - 27, 36, 9);
+      rect(x - 17, y - 58, 50, 12);
       fill(255, 250, 222);
       textAlign(CENTER, CENTER);
-      textSize(8);
+      textSize(9);
       textFont('VT323');
-      text(name, x + 8, y - 22.5);
+      text(name, x + 8, y - 52);
     }
     return true;
   }
@@ -351,7 +356,7 @@
       if (npc.id === 'elder_farmer' && npc.flags && npc.flags.questMarker && !npc.flags.met) {
         noStroke();
         fill(255, 211, 72);
-        rect(x + 5, y - 38, 7, 7);
+        rect(x + 5, y - 66, 7, 7);
         fill(255, 248, 205);
         rect(x + 7, y - 36, 3, 3);
       }
