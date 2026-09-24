@@ -77,4 +77,20 @@ assert(!runtime.includes("completedNpcId === 'elder_farmer' && previewEncounterA
 assert(!runtime.includes("nearest.id === 'elder_farmer' && !previewEncounterStarted"),
   'Ionia contact must not arm the old Preview-only encounter');
 
+
+assert(runtime.includes('function determineChoiceOutcome(pathId)'),
+  'Chapter 1 final choice must use deterministic state-based resolution');
+assert(runtime.includes("return score >= 60 ? 'strong' : 'strained';"),
+  'Chapter 1 final choice must resolve to deterministic strong/strained outcomes');
+assert(!runtime.includes('Simulate 2D6 roll for variant'),
+  'Chapter 1 must not use the legacy hidden 2d6 choice roll');
+assert(!runtime.includes("quest.choiceVariant = roll >= 10 ? '10+' : '7-9';"),
+  'Chapter 1 must not preserve dice-derived choice variants');
+assert(!runtime.includes("C: start combat encounter (dev/testing"),
+  'normal Chapter 1 world input must not expose the developer combat shortcut');
+assert(!runtime.includes("Three hazards between you and the core's last stable chamber"),
+  'Chapter 1 journal must not retain the stale three-hazard route');
+assert(!runtime.includes("Three voices on the ship"),
+  'Chapter 1 journal must not retain stale three-contact copy');
+
 console.log('Aetherwake Chapter 1 convergence contract: PASS');
