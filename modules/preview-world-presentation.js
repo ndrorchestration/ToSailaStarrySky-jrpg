@@ -19,7 +19,22 @@
     Object.freeze({ x: 10, y: 24, width: 3, height: 3, tile: 'flowers' }),
     Object.freeze({ x: 25, y: 22, width: 3, height: 3, tile: 'grass' }),
   ]);
-  const SCENIC_LANDMARK = Object.freeze([
+  const SCENIC_DETAILS = Object.freeze([
+    // A small garden beside Lyra's northern story spot.
+    Object.freeze({ x: 2, y: 7, tile: 'forest' }),
+    Object.freeze({ x: 3, y: 7, tile: 'flowers' }),
+    Object.freeze({ x: 4, y: 7, tile: 'forest' }),
+    Object.freeze({ x: 2, y: 8, tile: 'flowers' }),
+    Object.freeze({ x: 3, y: 8, tile: 'forest' }),
+    Object.freeze({ x: 4, y: 8, tile: 'flowers' }),
+    // A warm little sky-port landmark near the aether-core story point.
+    Object.freeze({ x: 22, y: 12, tile: 'forest' }),
+    Object.freeze({ x: 23, y: 12, tile: 'village' }),
+    Object.freeze({ x: 24, y: 12, tile: 'forest' }),
+    Object.freeze({ x: 22, y: 13, tile: 'flowers' }),
+    Object.freeze({ x: 23, y: 13, tile: 'bridge' }),
+    Object.freeze({ x: 24, y: 13, tile: 'flowers' }),
+    // Frame the southern lore point with a forest ruin vignette.
     Object.freeze({ x: 10, y: 21, tile: 'forest' }),
     Object.freeze({ x: 11, y: 21, tile: 'ruins' }),
     Object.freeze({ x: 12, y: 21, tile: 'forest' }),
@@ -68,21 +83,31 @@
     noStroke();
     fill(tone[0], tone[1], tone[2]);
     rect(x, y, w, Math.max(4, h * 0.38));
+    fill(Math.round(tone[0] * 0.82), Math.round(tone[1] * 0.82), Math.round(tone[2] * 0.88));
     rect(x + w * 0.12, y + h * 0.38, w * 0.76, h * 0.2);
+    fill(37, 73, 117);
     rect(x + w * 0.28, y + h * 0.58, w * 0.44, h * 0.2);
     rect(x + w * 0.42, y + h * 0.78, w * 0.16, h * 0.16);
-    fill(76, 176, 78);
+    fill(55, 187, 111);
     rect(x + w * 0.14, y - 3, w * 0.34, 4);
     rect(x + w * 0.57, y - 2, w * 0.22, 3);
-    fill(91, 215, 235, 190);
+    fill(174, 238, 172);
+    rect(x + w * 0.2, y - 3, w * 0.08, 2);
+    rect(x + w * 0.62, y - 2, w * 0.06, 2);
+    // Warm hull seams and aether-light veins make each island feel inhabited.
+    fill(223, 156, 77);
+    rect(x + w * 0.31, y + h * 0.42, w * 0.19, 2);
+    fill(60, 229, 218, 230);
+    rect(x + w * 0.6, y + h * 0.63, Math.max(3, w * 0.025), h * 0.12);
+    fill(111, 230, 247, 220);
     rect(x + w * 0.26, y + h * 0.55, Math.max(2, w * 0.035), h * 0.8);
   }
 
   function drawBackdrop(w, h, now) {
     noStroke();
     const bands = [
-      [67, 174, 244], [91, 197, 249], [145, 224, 250],
-      [207, 244, 251], [229, 247, 242],
+      [38, 88, 181], [43, 126, 216], [71, 180, 231],
+      [177, 227, 237], [255, 222, 166],
     ];
     const bh = Math.ceil(h / bands.length);
     bands.forEach((c, i) => {
@@ -91,9 +116,9 @@
     });
 
     // Far islands and waterfalls establish the sky-island setting behind play.
-    drawIsland(w * 0.06, h * 0.19, w * 0.25, h * 0.3, [113, 135, 166]);
-    drawIsland(w * 0.65, h * 0.12, w * 0.28, h * 0.36, [117, 143, 172]);
-    drawIsland(w * 0.4, h * 0.34, w * 0.14, h * 0.19, [135, 154, 175]);
+    drawIsland(w * 0.06, h * 0.19, w * 0.25, h * 0.3, [98, 119, 190]);
+    drawIsland(w * 0.65, h * 0.12, w * 0.28, h * 0.36, [56, 133, 166]);
+    drawIsland(w * 0.4, h * 0.34, w * 0.14, h * 0.19, [127, 114, 190]);
 
     // Layered block clouds move gently, retaining crisp pixel edges.
     for (let layer = 0; layer < 3; layer++) {
@@ -191,8 +216,8 @@
     }
   }
 
-  function paintScenicLandmark(image, ground, tiles, protectedActorCells) {
-    for (const detail of SCENIC_LANDMARK) {
+  function paintScenicLandmarks(image, ground, tiles, protectedActorCells) {
+    for (const detail of SCENIC_DETAILS) {
       const key = detail.x + ',' + detail.y;
       if (resolveTile(ground[detail.y] && ground[detail.y][detail.x]) !== 'meadow' ||
           isObjectiveRouteBuffer(detail.x, detail.y) || protectedActorCells.has(key)) continue;
@@ -215,8 +240,8 @@
     const protectedActorCells = actorCells(npcs);
     // Add low-profile authored flowers and grass without changing collision or the Ionia route.
     paintMeadowAccents(img, ground, tiles, protectedActorCells);
-    // Frame the southern lore point with a small forest ruin vignette from the shared tile set.
-    paintScenicLandmark(img, ground, tiles, protectedActorCells);
+    // Add small story landmarks from the shared tile set without changing collision.
+    paintScenicLandmarks(img, ground, tiles, protectedActorCells);
 
     // A readable stepping-stone route guides the first walk toward Ionia.
     for (let i = 0; i <= 8; i++) {
@@ -231,6 +256,9 @@
   function drawSprite(id, x, y, name, scale, frame = 0) {
     const sprites = root.AetherPixelSprites;
     if (!sprites || typeof sprites.draw !== 'function') return false;
+    if (typeof sprites.drawShadow === 'function') {
+      sprites.drawShadow(x + CELL / 2, y + CELL, scale);
+    }
     sprites.draw(id, x + CELL / 2, y + CELL, {
       anchor: 'bottom-center',
       scale,
@@ -265,7 +293,7 @@
     }
     if (!cachedMap) return false;
 
-    const zoom = 1.25;
+    const zoom = 1.5;
     const player = input.player || { px: 16 * CELL, py: 16 * CELL };
     const focusX = Number.isFinite(player.px) ? player.px + CELL / 2 : 16 * CELL;
     const focusY = Number.isFinite(player.py) ? player.py + CELL / 2 : 16 * CELL;
