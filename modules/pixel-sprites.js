@@ -10,16 +10,15 @@
   'use strict';
 
   const TRANSPARENT = '.';
-  const PREVIEW_ATLAS_PATH = 'assets/preview/aetherwake-character-sprites.png';
+  const PREVIEW_ATLAS_PATH = 'assets/preview/aetherwake-preview-party-atlas-v2.png';
   const BATTLE_ENEMY_ATLAS_PATH = 'assets/preview/aetherwake-sky-predator-battle.png';
   const PREVIEW_COLUMNS = Object.freeze({
     ender: 0,
-    ionia: 1,
-    lyra: 2,
-    corporateSalvager: 3,
+    lyra: 1,
+    ionia: 2,
   });
-  const PREVIEW_WIDTH = 22;
-  const PREVIEW_HEIGHT = 28;
+  const PREVIEW_WIDTH = 28;
+  const PREVIEW_HEIGHT = 36;
   const BATTLE_ENEMY_WIDTH = 42;
   const BATTLE_ENEMY_HEIGHT = 36;
   let previewAtlas = null;
@@ -567,6 +566,8 @@
     VERSION: '0.3.0',
     CELL_SIZE: 1,
     PREVIEW_ATLAS_PATH,
+    PREVIEW_WIDTH,
+    PREVIEW_HEIGHT,
     BATTLE_ENEMY_ATLAS_PATH,
     SPRITES,
     PALETTES,

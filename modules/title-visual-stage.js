@@ -8,8 +8,35 @@
   'use strict';
 
   const VERSION = '0.1.0';
+  const TITLE_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
+  let titleBackground = null;
+  let titleBackgroundRequested = false;
+  let titleBackgroundReady = false;
 
   function drawSky(now) {
+    if (!titleBackgroundRequested && typeof loadImage === 'function') {
+      titleBackgroundRequested = true;
+      try {
+        titleBackground = loadImage(
+          TITLE_BACKGROUND_PATH,
+          () => { titleBackgroundReady = true; },
+          () => { titleBackground = null; }
+        );
+      } catch (error) {
+        titleBackground = null;
+      }
+    }
+    if (titleBackgroundReady && titleBackground && typeof image === 'function') {
+      push();
+      noSmooth();
+      const cover = Math.max(width / titleBackground.width, height / titleBackground.height);
+      const drawWidth = titleBackground.width * cover;
+      const drawHeight = titleBackground.height * cover;
+      image(titleBackground, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
+      pop();
+      return;
+    }
+
     const bands = [
       [8, 12, 24],
       [15, 24, 43],

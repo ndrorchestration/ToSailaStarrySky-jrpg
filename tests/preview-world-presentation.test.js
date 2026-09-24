@@ -8,7 +8,9 @@ const vm = require('vm');
 const root = path.resolve(__dirname, '..');
 const file = path.join(root, 'modules', 'preview-world-presentation.js');
 const source = fs.readFileSync(file, 'utf8');
-const skyBackdrop = fs.readFileSync(path.join(root, 'assets', 'preview', 'aetherwake-sky-lanes.svg'), 'utf8');
+const pixelWorldBackdrop = fs.readFileSync(
+  path.join(root, 'assets', 'preview', 'aetherwake-preview-world-pixelart-v2.png')
+);
 const worldSource = fs.readFileSync(path.join(root, 'modules', 'world.js'), 'utf8');
 const tileSource = fs.readFileSync(path.join(root, 'modules', 'pixel-tiles.js'), 'utf8');
 const spriteSource = fs.readFileSync(path.join(root, 'modules', 'pixel-sprites.js'), 'utf8');
@@ -18,8 +20,12 @@ const calls = {
   spriteRequests: [],
   spriteImage: null, backgroundImage: null, completeBackgroundLoad: null,
 };
-assert.match(skyBackdrop, /<image[^>]+href="data:image\/webp;base64,/,
-  'the scenic sky-lanes background should be self-contained for offline desktop builds');
+assert.strictEqual(pixelWorldBackdrop.subarray(0, 8).toString('hex'), '89504e470d0a1a0a',
+  'the Preview world should ship its pixel-art scenery as a local PNG');
+assert.strictEqual(pixelWorldBackdrop.readUInt32BE(16), 768,
+  'the world backdrop should preserve its low-resolution pixel-art frame');
+assert.strictEqual(pixelWorldBackdrop.readUInt32BE(20), 512,
+  'the world backdrop should preserve its low-resolution pixel-art frame');
 
 const sandbox = {
   window: {},
@@ -27,16 +33,18 @@ const sandbox = {
   calls,
   createImage(width, height) {
     calls.imageCreates++;
-    return {
+    const image = {
       width,
       height,
       pixels: new Uint8ClampedArray(width * height * 4),
       loadPixels() {},
       updatePixels() {},
     };
+    calls.mapImage = image;
+    return image;
   },
   loadImage(assetPath, onLoad) {
-    if (assetPath.endsWith('.png')) {
+    if (assetPath.endsWith('aetherwake-preview-party-atlas-v2.png')) {
       calls.spriteRequests.push(assetPath);
       const spriteImage = { assetPath, width: 1772, height: 886 };
       calls.spriteImage = spriteImage;
@@ -44,7 +52,7 @@ const sandbox = {
       return spriteImage;
     }
     calls.backgroundRequests.push(assetPath);
-    calls.backgroundImage = { assetPath, width: 1536, height: 1024 };
+    calls.backgroundImage = { assetPath, width: 768, height: 512 };
     calls.completeBackgroundLoad = onLoad;
     return calls.backgroundImage;
   },
@@ -115,17 +123,10 @@ assert.strictEqual(calls.imageCreates, 1, 'tile map should be rasterized once, n
 assert(calls.images.length >= 1, 'cached tile map was not composited into the world scene');
 assert(calls.images.some(args => args[0] === calls.spriteImage),
   'loaded character atlas should render over the cached gameplay map');
-assert.deepStrictEqual(calls.backgroundRequests, ['assets/preview/aetherwake-sky-lanes.svg'],
-  'the authored Aetherwake sky-lanes vista should load as the scenic world backdrop');
-assert.deepStrictEqual(calls.spriteRequests, ['assets/preview/aetherwake-character-sprites.png'],
+assert.deepStrictEqual(calls.backgroundRequests, ['assets/preview/aetherwake-preview-world-pixelart-v2.png'],
+  'the authored floating-island pixel-art vista should load as the scenic world backdrop');
+assert.deepStrictEqual(calls.spriteRequests, ['assets/preview/aetherwake-preview-party-atlas-v2.png'],
   'the playable slice should load its generated character atlas once');
-assert.deepStrictEqual(calls.fillColors.slice(0, 5), [
-  [38, 88, 181], [43, 126, 216], [71, 180, 231], [177, 227, 237], [255, 222, 166],
-], 'the backdrop should move from vivid cobalt into a warm JRPG horizon');
-for (const color of [[55, 187, 111], [223, 156, 77], [60, 229, 218, 230]]) {
-  assert(calls.fillColors.some(fill => fill.length === color.length && fill.every((channel, index) => channel === color[index])),
-    'floating islands should have vivid greenery, warm metal, and luminous aether accents');
-}
 assert.deepStrictEqual(calls.scales[0], [1.2], 'world framing should leave room for the scenic sky vista');
 assert.deepStrictEqual(calls.translates[0], [163, 3], 'camera should center Ender inside the scenic frame');
 assert(calls.spriteScales.slice(0, 4).every(scale => scale === 2),
@@ -134,7 +135,8 @@ assert.deepStrictEqual(calls.shadowScales.slice(0, 4), [2, 2, 2, 2],
   'party sprites should have grounded pixel shadows');
 assert.strictEqual(calls.rects.filter(rect => rect.w === 7 && rect.h === 7).length, 1,
   'the opening objective marker should point only to Ionia');
-const atlas = calls.images[0][0];
+const atlas = calls.mapImage;
+assert(atlas, 'the cached 32×32 gameplay tile map was not created');
 const grassAt = (atlas.width + 17) * 4;
 const pathAt = (15 * 16 * atlas.width + 15 * 16) * 4;
 const pixelAt = (x, y, target = atlas) => Array.from(target.pixels.slice((y * target.width + x) * 4, (y * target.width + x) * 4 + 3));
@@ -209,9 +211,9 @@ assert(calls.sprites.includes('ionia'), 'world presentation must draw Ionia usin
 assert(calls.sprites.includes('corporateSalvager'), 'world presentation must draw Verrick using his shared character sprite');
 const namePlaques = calls.rects.filter(rect => rect.w === 50 && rect.h === 12);
 assert.strictEqual(namePlaques.length, 2, 'Ender and Ionia should each have one name plaque');
-assert(namePlaques[0].y + namePlaques[0].h <= player.py + 16 - 56,
+assert(namePlaques[0].y + namePlaques[0].h <= player.py + 16 - 72,
   'Ender name plaque must sit fully above the sprite');
-assert(namePlaques[1].y + namePlaques[1].h <= 7 * 16 + 16 - 56,
+assert(namePlaques[1].y + namePlaques[1].h <= 7 * 16 + 16 - 72,
   'Ionia name plaque must sit fully above the sprite');
 const questMarker = calls.rects.find(rect => rect.w === 7 && rect.h === 7);
 assert(questMarker, 'Ionia quest marker should be visible');
@@ -305,7 +307,7 @@ presentation.draw({
 assert(calls.images.length >= backgroundFrameStart + 2,
   'a loaded scenic background should render behind the cached gameplay map');
 assert.strictEqual(calls.images[backgroundFrameStart][0], calls.backgroundImage,
-  'the generated sky-lanes artwork must render first, behind the map');
+  'the generated pixel-art scenery must render first, behind the map');
 assert.strictEqual(calls.images[backgroundFrameStart + 1][0], realMapAtlas,
   'the tile map must remain the foreground gameplay layer');
 

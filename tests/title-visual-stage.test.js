@@ -7,6 +7,11 @@ const vm = require('vm');
 
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'modules', 'title-visual-stage.js'), 'utf8');
+const titleBackground = fs.readFileSync(
+  path.join(root, 'assets', 'preview', 'aetherwake-preview-world-pixelart-v2.png')
+);
+assert.strictEqual(titleBackground.subarray(0, 8).toString('hex'), '89504e470d0a1a0a',
+  'title should reuse the shipped pixel-art world scenery');
 const sandbox = { window: {}, globalThis: {} };
 vm.runInNewContext(source, sandbox, { filename: 'title-visual-stage.js' });
 
@@ -19,6 +24,8 @@ for (const fn of ['draw','drawSky','drawHero','drawTitleCopy']) {
 
 assert(source.includes('AetherDragonflyVisual'),
   'title must reuse shared Dragonfly visual authority');
+assert(source.includes('aetherwake-preview-world-pixelart-v2.png'),
+  'title should show the authored pixel-art sky-island landscape');
 assert(source.includes("scale: 1.45"),
   'title must present Dragonfly as a hero-scale object');
 assert(!source.includes('ellipse('),

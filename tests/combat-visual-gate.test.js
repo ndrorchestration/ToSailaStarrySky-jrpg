@@ -7,6 +7,11 @@ const vm = require('vm');
 
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'modules', 'combat-visual-stage.js'), 'utf8');
+const battleBackdrop = fs.readFileSync(
+  path.join(root, 'assets', 'preview', 'aetherwake-preview-battle-pixelart-v2.png')
+);
+assert.strictEqual(battleBackdrop.subarray(0, 8).toString('hex'), '89504e470d0a1a0a',
+  'Sky Predator combat should ship its pixel-art battle vista');
 const sandbox = { window: {}, globalThis: {} };
 vm.runInNewContext(source, sandbox, { filename: 'combat-visual-stage.js' });
 const api = sandbox.window.AetherCombatVisual;
@@ -43,6 +48,34 @@ assert(runtime.includes('visualStage.drawEnemy'),
   'combat renderer must use enemy visual stage');
 assert(runtime.includes('visualStage.drawTurnRail'),
   'combat renderer must use turn hierarchy rail');
+assert(source.includes('aetherwake-preview-battle-pixelart-v2.png'),
+  'Sky Predator combat should use the authored pixel-art arena');
+
+const backdropCalls = { requested: [], images: [] };
+const backdropSandbox = {
+  window: {},
+  globalThis: {},
+  loadImage(asset, onLoad) {
+    backdropCalls.requested.push(asset);
+    const image = { width: 768, height: 512 };
+    onLoad();
+    return image;
+  },
+  image(...args) { backdropCalls.images.push(args); },
+  noSmooth() {}, noStroke() {}, push() {}, pop() {}, fill() {}, rect() {},
+};
+vm.runInNewContext(source, backdropSandbox, { filename: 'combat-visual-stage-pixel-art.js' });
+backdropSandbox.window.AetherCombatVisual.drawBackdrop({
+  width: 960,
+  height: 640,
+  now: 0,
+  domain: 'ground',
+  enemy: { type: 'skyPredator' },
+});
+assert.deepStrictEqual(backdropCalls.requested, ['assets/preview/aetherwake-preview-battle-pixelart-v2.png'],
+  'the battle vista should be requested once for the encounter');
+assert.strictEqual(backdropCalls.images.length, 1,
+  'the Sky Predator encounter should use the authored pixel-art battle vista');
 
 const actorDraws = [];
 const behaviorSandbox = {

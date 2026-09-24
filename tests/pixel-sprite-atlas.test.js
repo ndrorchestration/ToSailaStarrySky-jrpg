@@ -6,7 +6,7 @@ const path = require('path');
 const vm = require('vm');
 
 const root = path.resolve(__dirname, '..');
-const atlasPath = path.join(root, 'assets', 'preview', 'aetherwake-character-sprites.png');
+const atlasPath = path.join(root, 'assets', 'preview', 'aetherwake-preview-party-atlas-v2.png');
 const png = fs.readFileSync(atlasPath);
 const predatorAtlasPath = path.join(root, 'assets', 'preview', 'aetherwake-sky-predator-battle.png');
 const predatorPng = fs.readFileSync(predatorAtlasPath);
@@ -54,26 +54,28 @@ const api = sandbox.window.AetherPixelSprites;
 assert(api, 'shared pixel sprite authority was not exposed');
 assert.strictEqual(typeof api.drawPreview, 'function', 'preview sprite atlas renderer is missing');
 assert.strictEqual(typeof api.drawBattleEnemy, 'function', 'battle enemy atlas renderer is missing');
-assert.strictEqual(api.PREVIEW_ATLAS_PATH, 'assets/preview/aetherwake-character-sprites.png');
+assert.strictEqual(api.PREVIEW_ATLAS_PATH, 'assets/preview/aetherwake-preview-party-atlas-v2.png');
 assert.strictEqual(api.BATTLE_ENEMY_ATLAS_PATH, 'assets/preview/aetherwake-sky-predator-battle.png');
+assert.strictEqual(api.PREVIEW_WIDTH, 28, 'the new Preview party sprites should use readable 28-pixel widths');
+assert.strictEqual(api.PREVIEW_HEIGHT, 36, 'the new Preview party sprites should use readable 36-pixel heights');
 
 assert.strictEqual(api.drawPreview('ender', 100, 200, {
   anchor: 'bottom-center',
   scale: 2,
   frame: 1,
 }), true);
-assert.deepStrictEqual(calls.requested, ['assets/preview/aetherwake-character-sprites.png']);
+assert.deepStrictEqual(calls.requested, ['assets/preview/aetherwake-preview-party-atlas-v2.png']);
 assert.strictEqual(calls.images.length, 1, 'loaded atlas must render the detailed Ender sprite');
 assert.strictEqual(calls.images[0][0], atlas);
-assert.deepStrictEqual(calls.images[0].slice(1, 5), [78, 144, 44, 56],
-  'preview characters must render at a readable 22×28 pixel size with 2× nearest-neighbor scaling');
+assert.deepStrictEqual(calls.images[0].slice(1, 5), [72, 128, 56, 72],
+  'preview characters must render at a readable 28×36 pixel size with 2× nearest-neighbor scaling');
 assert.strictEqual(calls.images[0][6], atlas.height / 2,
   'walking frame must sample the second atlas row');
 assert.strictEqual(calls.requested.length, 1, 'character atlas should load once');
 
 const cellWidth = atlas.width / 4;
 const sourceWidth = Math.min(cellWidth, (atlas.height / 2) * 0.76);
-for (const [id, column] of [['ionia', 1], ['lyra', 2], ['corporateSalvager', 3]]) {
+for (const [id, column] of [['lyra', 1], ['ionia', 2]]) {
   api.drawPreview(id, 100, 200, { anchor: 'bottom-center', scale: 2, frame: 0 });
   const rendered = calls.images[calls.images.length - 1];
   const expectedX = column * cellWidth + (cellWidth - sourceWidth) / 2;
@@ -81,6 +83,14 @@ for (const [id, column] of [['ionia', 1], ['lyra', 2], ['corporateSalvager', 3]]
     id + ' must sample its assigned character column');
   assert.strictEqual(rendered[6], 0, id + ' idle frame must sample the first atlas row');
 }
+const imageCountBeforeLegacySalvager = calls.images.length;
+const rectCountBeforeLegacySalvager = calls.rects.length;
+assert.strictEqual(api.drawPreview('corporateSalvager', 100, 200, { scale: 2 }), true,
+  'the salvager should retain a visible sprite while it has no authored atlas cell');
+assert.strictEqual(calls.images.length, imageCountBeforeLegacySalvager,
+  'the repeated Ender column must not be mislabeled as a corporate salvager');
+assert(calls.rects.length > rectCountBeforeLegacySalvager,
+  'the existing pixel-authored salvager fallback should remain visible');
 
 assert.strictEqual(api.drawBattleEnemy('skyPredator', 100, 200, {
   anchor: 'bottom-center', scale: 2, frame: 1,

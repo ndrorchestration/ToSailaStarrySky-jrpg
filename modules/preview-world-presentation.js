@@ -9,7 +9,10 @@
   const VERSION = '0.1.0';
   const CELL = 16;
   const MAP = 32;
-  const SKY_LANES_BACKGROUND = 'assets/preview/aetherwake-sky-lanes.svg';
+  const PIXEL_WORLD_BACKGROUND = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
+  const SPRITE_WIDTH = 28;
+  const SPRITE_HEIGHT = 36;
+  const SPRITE_SCALE = 2;
   const TILE_IDS = Object.freeze({ 1: 'cliff', 2: 'meadow', 3: 'crate', 4: 'float', 5: 'water', 6: 'loreUnknown' });
   const INITIAL_ACTOR_CELLS = new Set(spriteFootprintCells(16, 16));
   const DECORATION_PATCHES = Object.freeze([
@@ -55,9 +58,9 @@
   let lastPlayerTile = null;
   let lastPlayerMovementTime = -Infinity;
   let playerWalkStartedAt = null;
-  let skyLanesBackground = null;
-  let skyLanesBackgroundRequested = false;
-  let skyLanesBackgroundReady = false;
+  let pixelWorldBackground = null;
+  let pixelWorldBackgroundRequested = false;
+  let pixelWorldBackgroundReady = false;
 
   function playerWalkFrame(player, now) {
     if (!Number.isFinite(player.tileX) || !Number.isFinite(player.tileY)) return 0;
@@ -108,21 +111,25 @@
   }
 
   function drawBackdrop(w, h, now) {
-    if (!skyLanesBackgroundRequested && typeof loadImage === 'function') {
-      skyLanesBackgroundRequested = true;
+    if (!pixelWorldBackgroundRequested && typeof loadImage === 'function') {
+      pixelWorldBackgroundRequested = true;
       try {
-        skyLanesBackground = loadImage(
-          SKY_LANES_BACKGROUND,
-          () => { skyLanesBackgroundReady = true; },
-          () => { skyLanesBackground = null; }
+        pixelWorldBackground = loadImage(
+          PIXEL_WORLD_BACKGROUND,
+          () => { pixelWorldBackgroundReady = true; },
+          () => { pixelWorldBackground = null; }
         );
       } catch (error) {
-        skyLanesBackground = null;
+        pixelWorldBackground = null;
       }
     }
-    if (skyLanesBackgroundReady && skyLanesBackground) {
+    if (pixelWorldBackgroundReady && pixelWorldBackground) {
       push();
-      image(skyLanesBackground, 0, 0, w, h);
+      noSmooth();
+      const cover = Math.max(w / pixelWorldBackground.width, h / pixelWorldBackground.height);
+      const drawWidth = pixelWorldBackground.width * cover;
+      const drawHeight = pixelWorldBackground.height * cover;
+      image(pixelWorldBackground, (w - drawWidth) / 2, (h - drawHeight) / 2, drawWidth, drawHeight);
       pop();
       return;
     }
@@ -196,8 +203,8 @@
 
   function spriteFootprintCells(tileX, tileY) {
     const cells = [];
-    const width = 22 * 2;
-    const height = 28 * 2;
+    const width = SPRITE_WIDTH * SPRITE_SCALE;
+    const height = SPRITE_HEIGHT * SPRITE_SCALE;
     const centerX = (tileX + 0.5) * CELL;
     const bottomY = (tileY + 1) * CELL;
     const left = Math.floor((centerX - width / 2) / CELL);
@@ -283,8 +290,10 @@
   function drawSprite(id, x, y, name, scale, frame = 0) {
     const sprites = root.AetherPixelSprites;
     if (!sprites || typeof sprites.draw !== 'function') return false;
+    const spriteWidth = sprites.PREVIEW_WIDTH || SPRITE_WIDTH;
+    const spriteHeight = sprites.PREVIEW_HEIGHT || SPRITE_HEIGHT;
     if (typeof sprites.drawShadow === 'function') {
-      sprites.drawShadow(x + CELL / 2, y + CELL, scale, 22);
+      sprites.drawShadow(x + CELL / 2, y + CELL, scale, spriteWidth);
     }
     const drawPreview = sprites.drawPreview || sprites.draw;
     drawPreview.call(sprites, id, x + CELL / 2, y + CELL, {
@@ -293,14 +302,15 @@
       frame,
     });
     if (name) {
+      const spriteTop = y + CELL - spriteHeight * scale;
       noStroke();
       fill(20, 42, 57, 220);
-      rect(x - 17, y - 58, 50, 12);
+      rect(x - 17, spriteTop - 14, 50, 12);
       fill(255, 250, 222);
       textAlign(CENTER, CENTER);
       textSize(9);
       textFont('VT323');
-      text(name, x + 8, y - 52);
+      text(name, x + 8, spriteTop - 8);
     }
     return true;
   }
@@ -354,11 +364,13 @@
       drawSprite(id, x, y, npc.id === 'elder_farmer' ? 'Ionia' : '', 2);
       // Preview 0.1 opens on Ionia's first conversation; avoid duplicating the marker over every talkable NPC.
       if (npc.id === 'elder_farmer' && npc.flags && npc.flags.questMarker && !npc.flags.met) {
+        const spriteHeight = root.AetherPixelSprites.PREVIEW_HEIGHT || SPRITE_HEIGHT;
+        const markerY = y + CELL - spriteHeight * SPRITE_SCALE - 25;
         noStroke();
         fill(255, 211, 72);
-        rect(x + 5, y - 66, 7, 7);
+        rect(x + 5, markerY, 7, 7);
         fill(255, 248, 205);
-        rect(x + 7, y - 36, 3, 3);
+        rect(x + 7, markerY + 2, 3, 3);
       }
     }
     pop();

@@ -9,6 +9,10 @@
   'use strict';
 
   const VERSION = '0.2.0';
+  const SKY_BATTLE_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-battle-pixelart-v2.png';
+  let skyBattleBackground = null;
+  let skyBattleBackgroundRequested = false;
+  let skyBattleBackgroundReady = false;
 
   function stage(width, height) {
     return Object.freeze({
@@ -30,6 +34,56 @@
     const altitude = ctx.altitude || 'cruise';
 
     noStroke();
+
+    if (!skyBattleBackgroundRequested && typeof loadImage === 'function') {
+      skyBattleBackgroundRequested = true;
+      try {
+        skyBattleBackground = loadImage(
+          SKY_BATTLE_BACKGROUND_PATH,
+          () => { skyBattleBackgroundReady = true; },
+          () => { skyBattleBackground = null; }
+        );
+      } catch (error) {
+        skyBattleBackground = null;
+      }
+    }
+    const skyPredatorEncounter = ctx.enemy && ctx.enemy.type === 'skyPredator';
+    if (skyBattleBackgroundReady && skyBattleBackground &&
+        typeof image === 'function' && (domain === 'sky' || skyPredatorEncounter)) {
+      push();
+      noSmooth();
+      const cover = Math.max(w / skyBattleBackground.width, h / skyBattleBackground.height);
+      const drawWidth = skyBattleBackground.width * cover;
+      const drawHeight = skyBattleBackground.height * cover;
+      image(skyBattleBackground, (w - drawWidth) / 2, (h - drawHeight) / 2, drawWidth, drawHeight);
+      pop();
+
+      if (weatherId === 'crosswind') {
+        stroke(205, 240, 244, 110);
+        strokeWeight(1);
+        for (let i = 0; i < 12; i++) {
+          const yy = 92 + i * 38;
+          const xx = Math.round((now * 0.06 + i * 101) % (w + 90)) - 45;
+          line(xx, yy, xx + 48, yy - 7);
+        }
+        noStroke();
+      } else if (weatherId === 'aether-squall') {
+        fill(42, 255, 181, 110);
+        for (let i = 0; i < 22; i++) {
+          const xx = Math.round((i * 83 + now * 0.019) % w);
+          const yy = 46 + ((i * 67) % Math.round(h * 0.78));
+          rect(xx, yy, 2, 3);
+        }
+      }
+      if (altitude === 'high') {
+        fill(14, 21, 38, 35);
+        rect(0, 0, w, Math.round(h * 0.22));
+      } else if (altitude === 'low') {
+        fill(205, 225, 230, 18);
+        rect(0, Math.round(h * 0.42), w, Math.round(h * 0.2));
+      }
+      return;
+    }
 
     // Pixel-banded sky gives the encounter a composed horizon rather than a
     // flat prototype field.
@@ -147,9 +201,9 @@
 
     noStroke();
     fill(42, 255, 181, Math.round(22 * pulse));
-    rect(x - 36, y - 82, 72, 88);
+    rect(x - 50, y - 112, 100, 118);
 
-    sprites.drawShadow(x, y + 5, 3, 22);
+    sprites.drawShadow(x, y + 5, 3, sprites.PREVIEW_WIDTH || 22);
     const drawPreview = sprites.drawPreview || sprites.draw;
     drawPreview.call(sprites, 'ender', x, y + 5, {
       anchor: 'bottom-center',
