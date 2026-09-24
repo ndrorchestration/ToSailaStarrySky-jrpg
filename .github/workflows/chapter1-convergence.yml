@@ -1,0 +1,37 @@
+name: Chapter 1 convergence
+
+on:
+  pull_request:
+    paths:
+      - 'aetherwake.js'
+      - 'index-embedded.html'
+      - 'modules/**'
+      - 'tests/**'
+      - 'package.json'
+      - '.github/workflows/chapter1-convergence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chapter1-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact candidate head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Verify Chapter 1 convergence and persistence
+        run: npm run test:chapter1-core
