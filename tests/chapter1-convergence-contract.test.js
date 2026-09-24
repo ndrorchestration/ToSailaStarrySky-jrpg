@@ -20,6 +20,9 @@ const chapter1Workflow = fs.readFileSync(
 const smokeWorkflow = fs.readFileSync(
   path.join(root, '.github', 'workflows', 'smoke.yml'), 'utf8'
 );
+const chapter1WindowsWorkflow = fs.readFileSync(
+  path.join(root, '.github', 'workflows', 'chapter1-windows-candidate.yml'), 'utf8'
+);
 
 assert.strictEqual(opening.VERSION, '0.7.0',
   'Chapter 1 must use the explorable First Wake opening authority');
@@ -254,5 +257,14 @@ assert(!smokeWorkflow.includes('actions/upload-artifact@v4'),
   'smoke visual-evidence lane must not use mutable upload-artifact tag');
 assert(smokeWorkflow.includes('actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02'),
   'smoke visual-evidence lane must pin upload-artifact v4');
+assert(chapter1WindowsWorkflow.includes('npm run build:chapter1:windows'),
+  'Chapter 1 Windows workflow must execute the canonical candidate builder');
+assert(chapter1WindowsWorkflow.includes('CHAPTER1_RELEASE_EVIDENCE.json') &&
+       chapter1WindowsWorkflow.includes('SHA256SUMS.txt'),
+  'Chapter 1 Windows workflow must publish commit-bound evidence and hashes');
+assert(chapter1WindowsWorkflow.includes('actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02'),
+  'Chapter 1 Windows workflow must pin upload-artifact');
+assert(chapter1WindowsWorkflow.includes('softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65'),
+  'Chapter 1 Windows workflow must pin release publishing action');
 
 console.log('Aetherwake Chapter 1 convergence contract: PASS');
