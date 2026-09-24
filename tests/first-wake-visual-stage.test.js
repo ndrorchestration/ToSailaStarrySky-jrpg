@@ -36,6 +36,40 @@ assert(!source.includes('ellipse('),
 assert(!source.includes('triangle('),
   'opening must not reintroduce a separate procedural ship silhouette');
 
+const dockSpriteCalls = [];
+const behaviorSandbox = {
+  window: {
+    AetherPreviewWorldPresentation: { drawScenicBackdrop() {} },
+    AetherDragonflyVisual: { draw() {} },
+    AetherPixelSprites: {
+      validate: () => true,
+      drawShadow() {},
+      draw(id, x, y, options) { dockSpriteCalls.push({ id, x, frame: options.frame }); },
+    },
+  },
+  globalThis: {},
+  width: 960,
+  height: 640,
+  noStroke() {}, fill() {}, rect() {}, stroke() {}, strokeWeight() {}, line() {},
+};
+vm.runInNewContext(source, behaviorSandbox, { filename: 'first-wake-visual-stage-behavior.js' });
+const dockVisual = behaviorSandbox.window.AetherFirstWakeVisual;
+dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 1, max: 8 } }, 1000);
+dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 1, max: 8 } }, 1500);
+assert(dockSpriteCalls.filter(sprite => sprite.id === 'ender' || sprite.id === 'ionia')
+  .every(sprite => sprite.frame === 0),
+  'stationary First Wake characters must not play the walk cycle in place');
+dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 2, max: 8 } }, 1600);
+dockVisual.drawDock({ id: 'dock_walk', sequence: 1 }, { dockWalk: { x: 2, max: 8 } }, 1730);
+assert.notStrictEqual(dockSpriteCalls[0].x, dockSpriteCalls[4].x,
+  'Ender should advance along the dock when the walk state advances');
+assert.deepStrictEqual(dockSpriteCalls.filter(sprite => sprite.id === 'ender').slice(2)
+  .map(sprite => sprite.frame), [0, 1],
+  'Ender should briefly animate after moving along the dock');
+assert(dockSpriteCalls.filter(sprite => sprite.id === 'ionia').every(sprite => sprite.frame === 0),
+  'Ionia must remain idle while Ender walks');
+
+
 const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
 const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
 assert(html.indexOf('modules/first-wake-visual-stage.js') >= 0,
