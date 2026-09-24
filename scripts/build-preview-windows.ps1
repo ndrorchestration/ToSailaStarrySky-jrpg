@@ -11,6 +11,9 @@ Write-Host "== Aetherwake Preview 0.1 portable Windows build =="
 npm ci
 if ($LASTEXITCODE -ne 0) { throw "npm ci failed with code $LASTEXITCODE." }
 
+npm run test:embedded-launch-readiness
+if ($LASTEXITCODE -ne 0) { throw "embedded launch readiness recovery test failed with code $LASTEXITCODE." }
+
 npm run test:desktop-package
 if ($LASTEXITCODE -ne 0) { throw "desktop package contract failed with code $LASTEXITCODE." }
 
