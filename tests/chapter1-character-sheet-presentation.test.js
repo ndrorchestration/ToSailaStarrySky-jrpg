@@ -40,8 +40,8 @@ assert(!runtime.includes("text('ENDER — Rift Scholar', px + 20, py + 24);"),
 
 
 const hudStart = runtime.indexOf('function drawWorldHUD()');
-const hudEnd = runtime.indexOf('// ─────────────────────────────────────────────\n// COMBAT UI PANEL', hudStart);
-assert(hudStart >= 0 && hudEnd > hudStart, 'compact world HUD renderer missing');
+const hudEnd = runtime.indexOf('function drawActionIcon(', hudStart);
+assert(hudStart >= 0 && hudEnd > hudStart, 'compact world HUD renderer missing or boundary locator drifted');
 const hud = runtime.slice(hudStart, hudEnd);
 for (const liveField of ['livePlayer','liveEchoes','liveAether','liveHeat','world.getQuestState']) {
   assert(hud.includes(liveField), 'compact HUD must use live state: ' + liveField);
