@@ -117,19 +117,16 @@ const priorFrameCount = calls.spriteFrames.length;
 player.tileX += 1;
 player.px += 16;
 presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1032 });
-sandbox.frameCount += 8;
-presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1048 });
+presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1162 });
 player.tileX += 1;
 player.px += 16;
-presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1064 });
-sandbox.frameCount += 8;
-presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1080 });
-sandbox.frameCount += 24;
-presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1128 });
+presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1163 });
+presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1453 });
+presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1684 });
 const movementFrames = calls.spriteFrames.slice(priorFrameCount)
   .filter(sprite => sprite.id === 'ender').map(sprite => sprite.frame);
-assert.deepStrictEqual(movementFrames, [0, 1, 1, 0, 0],
-  'Ender should keep a steady walk cycle through repeated steps, then return to idle');
+assert.deepStrictEqual(movementFrames, [0, 1, 1, 1, 0],
+  'Ender should animate by elapsed time through repeated steps, then return to idle');
 assert(calls.spriteFrames.filter(sprite => sprite.id !== 'ender').every(sprite => sprite.frame === 0),
   'NPCs must stay idle while Ender moves');
 
