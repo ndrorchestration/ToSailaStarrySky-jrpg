@@ -50,12 +50,17 @@ if (require.main === module) {
     const aliases = {
       'first-wake-cinematic':'amonigio',
       'nocturnal-resolve':'nocturnal',
-      'solar-punk-airship':'solar'
+      'solar-punk-airship':'solar',
+      'open-sky-signal':'openSky'
     };
     const results=[];
-    for (const track of manifest.chapter1Tracks || []) {
-      const source = map[aliases[track.id]];
-      if (!source) throw new Error('SOUNDTRACK_SOURCE_REQUIRED:' + aliases[track.id]);
+    const tracks = []
+      .concat(manifest.chapter1Tracks || [])
+      .concat(manifest.characterThemes || []);
+    for (const track of tracks) {
+      const source = map[aliases[track.trackId || track.id]];
+      if (!source) throw new Error('SOUNDTRACK_SOURCE_REQUIRED:' + aliases[track.trackId || track.id]);
+      if (!track.id && track.trackId) track.id = track.trackId;
       results.push(admitOne(track, path.resolve(source), checkOnly));
     }
     if (!checkOnly) {
