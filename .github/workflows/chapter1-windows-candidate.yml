@@ -20,6 +20,10 @@ jobs:
           node-version: '22'
           cache: npm
 
+      - name: Install NSIS
+        shell: pwsh
+        run: choco install nsis -y --no-progress
+
       - name: Build and verify Chapter 1 Windows candidate
         shell: pwsh
         run: npm run build:chapter1:windows
@@ -31,12 +35,15 @@ jobs:
           $root = Join-Path $PWD "chapter1-release"
           if (-not (Test-Path -LiteralPath $root)) { throw "chapter1-release directory missing" }
           $zip = Get-ChildItem -LiteralPath $root -Filter "Aetherwake-Chapter1-*-Windows.zip" -File | Select-Object -First 1
+          $installer = Get-ChildItem -LiteralPath $root -Filter "Aetherwake-Chapter1-*-Setup.exe" -File | Select-Object -First 1
           $evidence = Join-Path $root "CHAPTER1_RELEASE_EVIDENCE.json"
           $hashes = Join-Path $root "SHA256SUMS.txt"
           if (-not $zip) { throw "Chapter 1 portable ZIP missing" }
+          if (-not $installer) { throw "Chapter 1 one-click installer missing" }
           if (-not (Test-Path -LiteralPath $evidence)) { throw "Chapter 1 release evidence missing" }
           if (-not (Test-Path -LiteralPath $hashes)) { throw "Chapter 1 SHA256 manifest missing" }
           "zip=$($zip.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "installer=$($installer.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "evidence=$evidence" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "hashes=$hashes" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           Get-Content -LiteralPath $evidence
@@ -48,6 +55,7 @@ jobs:
           name: aetherwake-chapter1-windows-${{ github.sha }}
           path: |
             ${{ steps.candidate.outputs.zip }}
+            ${{ steps.candidate.outputs.installer }}
             ${{ steps.candidate.outputs.evidence }}
             ${{ steps.candidate.outputs.hashes }}
           if-no-files-found: error
@@ -62,5 +70,6 @@ jobs:
           generate_release_notes: false
           files: |
             ${{ steps.candidate.outputs.zip }}
+            ${{ steps.candidate.outputs.installer }}
             ${{ steps.candidate.outputs.evidence }}
             ${{ steps.candidate.outputs.hashes }}
