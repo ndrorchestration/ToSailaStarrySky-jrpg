@@ -102,7 +102,7 @@ const manifest = {
   'js-flags': '--expose-gc',
   nwbuild: {
     app: {
-      icon: 'www/icon.ico'
+      icon: '.desktop-runtime/www/icon.ico'
     }
   },
   window: {
