@@ -31,6 +31,10 @@ assert(stageScript.includes("path.join(stage, 'package.json')"),
   'production desktop manifest must live at the launcher root');
 assert(stageScript.includes("path.join(stage, 'www')"),
   'production game payload must live under www');
+assert(stageScript.includes("icon: 'www/icon.ico'"),
+  'staged Windows manifest must declare the generated .ico executable icon');
+assert(stageScript.includes("writeWindowsIcon(path.join(www, 'icon.ico'))"),
+  'desktop staging must generate the Windows .ico before nw-builder validates the app');
 assert(packageJson.scripts['package:windows'].includes('.desktop-runtime'),
   'Windows packaging must consume only the staged production runtime');
 
