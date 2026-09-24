@@ -102,6 +102,6 @@
     "test:world-entry-onboarding": "node tests/world-entry-onboarding.test.js",
     "test:wake-transition-pacing": "node tests/wake-transition-pacing.test.js",
     "build:preview:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\build-preview-windows.ps1",
-    "test:persistence-foundation": "node tests/save-system-contract.test.js && node tests/save-payload-validator.test.js && node tests/save-interrupted-write.test.js && node tests/preview-persistence-runtime-seam.test.js && node tests/preview-persistence-snapshot-contract.test.js"
+    "test:persistence-foundation": "node tests/save-system-contract.test.js && node tests/save-payload-validator.test.js && node tests/save-interrupted-write.test.js && node tests/preview-persistence-runtime-seam.test.js && node tests/preview-persistence-snapshot-contract.test.js && node tests/preview-manual-save-load.test.js"
   }
 }
