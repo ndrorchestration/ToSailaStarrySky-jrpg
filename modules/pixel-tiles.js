@@ -30,6 +30,9 @@
     S: [230, 210, 151],
     K: [91, 68, 61],
     H: [211, 239, 241],
+    X: [78, 162, 74],
+    x: [139, 207, 91],
+    Z: [40, 116, 66],
   });
 
   function freezeFrame(rows) {
@@ -37,6 +40,20 @@
   }
 
   const TILES = Object.freeze({
+
+    meadow: Object.freeze({
+      id: 'meadow',
+      frames: Object.freeze([freezeFrame((() => {
+        const rows = Array.from({ length: 16 }, () => Array(16).fill('X'));
+        const marks = [
+          [3, 2, 'x'], [11, 2, 'x'], [1, 5, 'Z'], [7, 4, 'x'], [13, 5, 'Z'],
+          [4, 8, 'x'], [10, 7, 'Z'], [14, 9, 'x'], [2, 12, 'Z'], [8, 11, 'x'],
+          [12, 13, 'Y'], [5, 14, 'W'], [1, 9, 'Y'], [9, 3, 'W'], [6, 6, 'Z'],
+        ];
+        for (const [x, y, token] of marks) rows[y][x] = token;
+        return rows.map(row => row.join(''));
+      })())]),
+    }),
     hull: Object.freeze({
       id: 'hull',
       frames: Object.freeze([
