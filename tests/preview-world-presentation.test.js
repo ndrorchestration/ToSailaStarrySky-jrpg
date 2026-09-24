@@ -90,6 +90,18 @@ assert.deepStrictEqual(pixelAt(3 * 16, 2 * 16), [47, 97, 127],
   'water ground must use the authored water tile');
 assert.deepStrictEqual(pixelAt(4 * 16, 2 * 16), [46, 47, 54],
   'undiscovered lore ground must use the authored lore tile');
+assert.deepStrictEqual(pixelAt(2 * 16 + 3, 10 * 16 + 2), [255, 196, 91],
+  'playable meadow should include authored flower accents away from the objective path');
+assert.deepStrictEqual(pixelAt(21 * 16 + 2, 18 * 16 + 2), [112, 151, 82],
+  'playable meadow should include authored grass accents away from the objective path');
+for (const [x, y, label] of [[16, 16, 'Ender'], [8, 7, 'Lyra']]) {
+  assert.deepStrictEqual(pixelAt(x * 16, y * 16), [78, 162, 74],
+    label + ' starting tile must remain clear of decorative terrain accents');
+}
+assert.deepStrictEqual(pixelAt(7 * 16, 7 * 16), [184, 163, 119],
+  'Ionia starting tile must retain the authored objective route');
+assert.deepStrictEqual(pixelAt(15 * 16, 15 * 16), [184, 163, 119],
+  'objective route must remain clear of decorative terrain accents');
 assert.notDeepStrictEqual(Array.from(atlas.pixels.slice(pathAt, pathAt + 3)),
   Array.from(atlas.pixels.slice(grassAt, grassAt + 3)),
   'authored route must be visible in the map raster');
