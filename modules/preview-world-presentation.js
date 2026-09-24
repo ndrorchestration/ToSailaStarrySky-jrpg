@@ -10,6 +10,16 @@
   const CELL = 16;
   const MAP = 32;
   const TILE_IDS = Object.freeze({ 1: 'cliff', 2: 'meadow', 3: 'crate', 4: 'float', 5: 'water', 6: 'loreUnknown' });
+  const INITIAL_ACTOR_CELLS = new Set(['16,16', '7,7', '8,7']);
+  const DECORATION_PATCHES = Object.freeze([
+    Object.freeze({ x: 2, y: 10, width: 3, height: 3, tile: 'flowers' }),
+    Object.freeze({ x: 5, y: 18, width: 3, height: 3, tile: 'grass' }),
+    Object.freeze({ x: 17, y: 11, width: 3, height: 3, tile: 'flowers' }),
+    Object.freeze({ x: 21, y: 18, width: 3, height: 3, tile: 'grass' }),
+    Object.freeze({ x: 10, y: 24, width: 3, height: 3, tile: 'flowers' }),
+    Object.freeze({ x: 25, y: 22, width: 3, height: 3, tile: 'grass' }),
+  ]);
+  const TRANSPARENT_GROUND_TOKENS = new Set(['T']);
   const SPRITE_IDS = Object.freeze({
     elder_farmer: 'ionia', engine_spirit: 'engineSpirit',
     corporate_salvager: 'corporateSalvager', child_prophet: 'lyra',
@@ -99,14 +109,14 @@
     return TILE_IDS[value] || 'meadow';
   }
 
-  function tilePixels(image, tileId, dx, dy, tiles) {
+  function tilePixels(image, tileId, dx, dy, tiles, frameIndex = 0, transparentTokens = null) {
     const tile = tiles.get(tileId) || tiles.get('meadow');
     if (!tile) return;
-    const frame = tile.frames[0];
+    const frame = tile.frames[frameIndex % tile.frames.length];
     for (let y = 0; y < CELL; y++) {
       for (let x = 0; x < CELL; x++) {
         const token = frame[y][x];
-        if (token === '.') continue;
+        if (token === '.' || (transparentTokens && transparentTokens.has(token))) continue;
         const rgb = tiles.PALETTE[token];
         if (!rgb) continue;
         const at = ((dy + y) * image.width + dx + x) * 4;
@@ -114,6 +124,31 @@
         image.pixels[at + 1] = rgb[1];
         image.pixels[at + 2] = rgb[2];
         image.pixels[at + 3] = 255;
+      }
+    }
+  }
+
+  function isObjectiveRouteBuffer(x, y) {
+    for (let i = 0; i <= 8; i++) {
+      const routeX = 15 - i;
+      const routeY = 15 - i;
+      if (Math.abs(x - routeX) <= 1 && Math.abs(y - routeY) <= 1) return true;
+    }
+    return false;
+  }
+
+  function paintMeadowAccents(image, ground, tiles) {
+    for (const patch of DECORATION_PATCHES) {
+      const tile = tiles.get(patch.tile);
+      if (!tile) continue;
+      for (let y = patch.y; y < patch.y + patch.height; y++) {
+        for (let x = patch.x; x < patch.x + patch.width; x++) {
+          const key = x + ',' + y;
+          const cell = ground[y] && ground[y][x];
+          if (resolveTile(cell) !== 'meadow' || isObjectiveRouteBuffer(x, y) || INITIAL_ACTOR_CELLS.has(key)) continue;
+          const frame = (x + y) % tile.frames.length;
+          tilePixels(image, patch.tile, x * CELL, y * CELL, tiles, frame, TRANSPARENT_GROUND_TOKENS);
+        }
       }
     }
   }
@@ -129,6 +164,9 @@
         tilePixels(img, resolveTile(cell), x * CELL, y * CELL, tiles);
       }
     }
+
+    // Add low-profile authored flowers and grass without changing collision or the Ionia route.
+    paintMeadowAccents(img, ground, tiles);
 
     // A readable stepping-stone route guides the first walk toward Ionia.
     for (let i = 0; i <= 8; i++) {
