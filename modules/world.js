@@ -77,8 +77,8 @@ function init() {
   initNPCs();
   initPlayer();
   World.npcs = npcs;
-  World.quest = quest;
   initQuest();
+  World.quest = quest;
   initShop();
   initLedgerPlaceholder();
   covenantField = { x: 0, y: 0, planted: false, life: 0 };
