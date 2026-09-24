@@ -9,10 +9,10 @@
   const VERSION = '0.1.0';
   const CELL = 16;
   const MAP = 32;
-  const TILE_IDS = Object.freeze({ 1: 'cliff', 2: 'meadow', 3: 'crate', 4: 'forest', 5: 'shore', 6: 'ruins' });
+  const TILE_IDS = Object.freeze({ 1: 'cliff', 2: 'meadow', 3: 'crate', 4: 'float', 5: 'water', 6: 'loreUnknown' });
   const SPRITE_IDS = Object.freeze({
     elder_farmer: 'ionia', engine_spirit: 'engineSpirit',
-    corporate_salvager: 'corporateSalvager', child_prophet: 'settler',
+    corporate_salvager: 'corporateSalvager', child_prophet: 'lyra',
   });
 
   let cachedGround = null;
