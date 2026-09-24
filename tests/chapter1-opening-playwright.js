@@ -243,8 +243,37 @@ function createServer() {
       'all three authored signal contacts must unlock CROSSING');
     assert.strictEqual(signal.hazardsCompleted, 0);
 
+    // From Verrick (26,24), enter the Sky-Predator zone at x>=28,y<=8.
+    // No random roll is permitted: the first valid zone entry must start combat.
+    await pressMany('ArrowRight', 2);
+    await pressMany('ArrowUp', 16);
+    await page.waitForFunction(() => window.gameState === 'combat',
+      undefined, { timeout: 5000 });
+
+    const hazardCombat = await page.evaluate(() => {
+      const state = window._combat && window._combat.getState ? window._combat.getState() : null;
+      return {
+        gameState: window.gameState,
+        enemy: state && state.enemy ? {
+          id: state.enemy.id || null,
+          name: state.enemy.name || null,
+          hp: state.enemy.hp,
+        } : null,
+        quest: window._world.getQuestState(),
+      };
+    });
+    assert.strictEqual(hazardCombat.gameState, 'combat');
+    assert(hazardCombat.enemy, 'hazard zone did not create a combat enemy');
+    assert(
+      hazardCombat.enemy.id === 'skyPredator' ||
+      /sky.?predator/i.test(String(hazardCombat.enemy.name || '')),
+      'first Crossing hazard did not launch the Sky-Predator encounter'
+    );
+    assert.strictEqual(hazardCombat.quest.hazardsCompleted, 0,
+      'hazard must not complete merely by entering combat');
+
     assert.deepStrictEqual(errors, [], errors.join('\n'));
-    console.log('Aetherwake Chapter 1 opening + SIGNAL browser route: PASS');
+    console.log('Aetherwake Chapter 1 opening + SIGNAL + deterministic hazard entry: PASS');
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
