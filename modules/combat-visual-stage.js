@@ -140,17 +140,18 @@
 
   function drawPlayer(ctx) {
     const sprites = root.AetherPixelSprites;
-    if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) return false;
+    if (!sprites || typeof (sprites.drawPreview || sprites.draw) !== 'function' || !sprites.validate()) return false;
     const x = Math.round(ctx.x);
     const y = Math.round(ctx.y + (ctx.dodgeBob || 0));
     const pulse = 0.75 + Math.sin((ctx.now || 0) * 0.004) * 0.25;
 
     noStroke();
     fill(42, 255, 181, Math.round(22 * pulse));
-    rect(x - 30, y - 54, 60, 58);
+    rect(x - 36, y - 82, 72, 88);
 
-    sprites.drawShadow(x, y + 5, 3);
-    sprites.draw('ender', x, y + 5, {
+    sprites.drawShadow(x, y + 5, 3, 22);
+    const drawPreview = sprites.drawPreview || sprites.draw;
+    drawPreview.call(sprites, 'ender', x, y + 5, {
       anchor: 'bottom-center',
       scale: 3,
       frame: Math.floor((ctx.now || 0) / 220) % 2,
@@ -172,12 +173,21 @@
     // Grounding shadow.
     noStroke();
     fill(0, 0, 0, 70);
-    rect(x - 34, y + 25, 68, 7);
+    const shadowWidth = enemy.type === 'skyPredator' ? 92 : 68;
+    rect(x - shadowWidth / 2, y + 25, shadowWidth, 7);
 
     const spriteId = enemySpriteId(enemy);
-    if (spriteId && sprites && typeof sprites.draw === 'function' && sprites.validate()) {
-      const scale = spriteId === 'skyPredator' ? 4 : 3;
-      sprites.draw(spriteId, x, y + 25, {
+    const hasSpriteRenderer = sprites && (
+      typeof sprites.drawBattleEnemy === 'function' ||
+      typeof sprites.drawPreview === 'function' ||
+      typeof sprites.draw === 'function'
+    );
+    if (spriteId && hasSpriteRenderer && sprites.validate()) {
+      const scale = spriteId === 'skyPredator' ? 2 : 3;
+      const drawEnemySprite = spriteId === 'skyPredator' && typeof sprites.drawBattleEnemy === 'function'
+        ? sprites.drawBattleEnemy
+        : (sprites.drawPreview || sprites.draw);
+      drawEnemySprite.call(sprites, spriteId, x, y + 25, {
         anchor: 'bottom-center',
         scale,
         frame: Math.floor(now / 180) % 2,

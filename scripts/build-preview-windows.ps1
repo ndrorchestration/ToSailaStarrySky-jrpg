@@ -20,6 +20,9 @@ if ($LASTEXITCODE -ne 0) { throw "desktop package contract failed with code $LAS
 npm run test:preview-world-presentation
 if ($LASTEXITCODE -ne 0) { throw "Preview world presentation test failed with code $LASTEXITCODE." }
 
+npm run test:combat-visual
+if ($LASTEXITCODE -ne 0) { throw "Preview combat visual test failed with code $LASTEXITCODE." }
+
 npm run package:windows
 if ($LASTEXITCODE -ne 0) { throw "Windows package build failed with code $LASTEXITCODE." }
 

@@ -33,15 +33,45 @@ const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
 assert(html.indexOf('modules/combat-visual-stage.js') >= 0, 'combat visual stage script missing');
 assert(html.indexOf('modules/combat-visual-stage.js') < html.indexOf('aetherwake.js'),
   'combat visual stage must load before runtime');
-assert(runtime.includes('AetherCombatVisual.stage'),
+assert(runtime.includes('visualStage.stage'),
   'combat renderer must use fixed cinematic stage anchors');
-assert(runtime.includes('AetherCombatVisual.drawBackdrop'),
+assert(runtime.includes('visualStage.drawBackdrop'),
   'combat renderer must use visual-stage backdrop');
-assert(runtime.includes('AetherCombatVisual.drawPlayer'),
+assert(runtime.includes('visualStage.drawPlayer'),
   'combat renderer must use shared Ender visual');
-assert(runtime.includes('AetherCombatVisual.drawEnemy'),
+assert(runtime.includes('visualStage.drawEnemy'),
   'combat renderer must use enemy visual stage');
-assert(runtime.includes('AetherCombatVisual.drawTurnRail'),
+assert(runtime.includes('visualStage.drawTurnRail'),
   'combat renderer must use turn hierarchy rail');
+
+const actorDraws = [];
+const behaviorSandbox = {
+  window: {
+    AetherPixelSprites: {
+      validate: () => true,
+      drawShadow() {},
+      drawPreview(id, x, y, options) { actorDraws.push({ mode: 'preview', id, frame: options.frame }); },
+      drawBattleEnemy(id, x, y, options) { actorDraws.push({ mode: 'battle', id, frame: options.frame }); },
+      draw() { actorDraws.push({ mode: 'fallback' }); },
+    },
+  },
+  globalThis: {},
+  noStroke() {},
+  fill() {},
+  rect() {},
+};
+vm.runInNewContext(source, behaviorSandbox, { filename: 'combat-visual-stage-behavior.js' });
+const behaviorApi = behaviorSandbox.window.AetherCombatVisual;
+behaviorApi.drawPlayer({ x: 326, y: 371, now: 440 });
+behaviorApi.drawEnemy({
+  x: 691,
+  y: 320,
+  now: 360,
+  enemy: { type: 'skyPredator', hp: 100, maxHp: 100 },
+});
+assert.deepStrictEqual(actorDraws, [
+  { mode: 'preview', id: 'ender', frame: 0 },
+  { mode: 'battle', id: 'skyPredator', frame: 0 },
+], 'combat should use the detailed Ender atlas and Sky Predator battle atlas');
 
 console.log('Aetherwake representative combat visual gate: PASS');

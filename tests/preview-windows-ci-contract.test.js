@@ -7,6 +7,7 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const workflowPath = path.join(root, '.github', 'workflows', 'preview-windows.yml');
 const workflow = fs.readFileSync(workflowPath, 'utf8');
+const builder = fs.readFileSync(path.join(root, 'scripts', 'build-preview-windows.ps1'), 'utf8');
 
 assert(/^\s+pull_request:/m.test(workflow),
   'Preview Windows build must run for pull requests');
@@ -18,6 +19,10 @@ assert(workflow.includes('git rev-parse HEAD'),
   'Preview Windows build must verify the checked-out source SHA');
 assert(workflow.includes('npm run build:preview:windows'),
   'Preview Windows build must call the existing bounded builder');
+assert(builder.includes('npm run test:preview-world-presentation'),
+  'Preview Windows build must test the tile map and character atlas');
+assert(builder.includes('npm run test:combat-visual'),
+  'Preview Windows build must test the Sky Predator battle presentation');
 assert(workflow.includes('aetherwake-preview-ready.json') &&
   workflow.includes('first-frame-readiness.json'),
   'Preview artifact must retain first-frame readiness evidence');

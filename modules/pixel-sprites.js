@@ -11,6 +11,7 @@
 
   const TRANSPARENT = '.';
   const PREVIEW_ATLAS_PATH = 'assets/preview/aetherwake-character-sprites.png';
+  const BATTLE_ENEMY_ATLAS_PATH = 'assets/preview/aetherwake-sky-predator-battle.png';
   const PREVIEW_COLUMNS = Object.freeze({
     ender: 0,
     ionia: 1,
@@ -19,8 +20,12 @@
   });
   const PREVIEW_WIDTH = 22;
   const PREVIEW_HEIGHT = 28;
+  const BATTLE_ENEMY_WIDTH = 42;
+  const BATTLE_ENEMY_HEIGHT = 36;
   let previewAtlas = null;
   let previewAtlasState = 'idle';
+  let battleEnemyAtlas = null;
+  let battleEnemyAtlasState = 'idle';
 
   const PALETTES = Object.freeze({
     ender: Object.freeze({
@@ -490,6 +495,61 @@
     return true;
   }
 
+  function drawBattleEnemy(id, x, y, options) {
+    if (id !== 'skyPredator') return drawPreview(id, x, y, options);
+
+    if (battleEnemyAtlasState === 'idle') {
+      if (typeof loadImage !== 'function') {
+        battleEnemyAtlasState = 'unavailable';
+      } else {
+        battleEnemyAtlasState = 'loading';
+        try {
+          battleEnemyAtlas = loadImage(
+            BATTLE_ENEMY_ATLAS_PATH,
+            () => { battleEnemyAtlasState = 'ready'; },
+            () => { battleEnemyAtlas = null; battleEnemyAtlasState = 'failed'; }
+          );
+        } catch (error) {
+          battleEnemyAtlas = null;
+          battleEnemyAtlasState = 'failed';
+        }
+      }
+    }
+
+    if (battleEnemyAtlasState !== 'ready' || !battleEnemyAtlas || typeof image !== 'function') {
+      return draw(id, x, y, options);
+    }
+
+    const opts = options || {};
+    const scale = Math.max(1, Math.floor(opts.scale || 1));
+    const frameIndex = Math.abs(Math.floor(opts.frame || 0)) % 2;
+    const anchor = opts.anchor || 'top-left';
+    let ox = x;
+    let oy = y;
+    if (anchor === 'center') {
+      ox -= (BATTLE_ENEMY_WIDTH * scale) / 2;
+      oy -= (BATTLE_ENEMY_HEIGHT * scale) / 2;
+    } else if (anchor === 'bottom-center') {
+      ox -= (BATTLE_ENEMY_WIDTH * scale) / 2;
+      oy -= BATTLE_ENEMY_HEIGHT * scale;
+    }
+
+    const cellWidth = battleEnemyAtlas.width / 2;
+    if (typeof noSmooth === 'function') noSmooth();
+    image(
+      battleEnemyAtlas,
+      Math.round(ox),
+      Math.round(oy),
+      BATTLE_ENEMY_WIDTH * scale,
+      BATTLE_ENEMY_HEIGHT * scale,
+      frameIndex * cellWidth,
+      0,
+      cellWidth,
+      battleEnemyAtlas.height
+    );
+    return true;
+  }
+
   function drawShadow(x, y, scale, spriteWidth = 10) {
     const s = Math.max(1, Number(scale) || 1);
     const width = Math.max(1, Number(spriteWidth) || 10);
@@ -507,11 +567,13 @@
     VERSION: '0.3.0',
     CELL_SIZE: 1,
     PREVIEW_ATLAS_PATH,
+    BATTLE_ENEMY_ATLAS_PATH,
     SPRITES,
     PALETTES,
     get,
     draw,
     drawPreview,
+    drawBattleEnemy,
     drawShadow,
     validate,
   });
