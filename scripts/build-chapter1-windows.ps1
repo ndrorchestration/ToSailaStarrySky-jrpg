@@ -39,6 +39,11 @@ if ($LASTEXITCODE -ne 0) {
   throw "Chapter 1 title audio is not admitted/verified. Run scripts\\admit-title-audio.ps1 with the exact Skyward Arpeggio source first."
 }
 
+npm run test:chapter1-soundtrack-ready
+if ($LASTEXITCODE -ne 0) {
+  throw "Chapter 1 soundtrack is not fully admitted/verified. Admit the three governed Chapter 1 tracks before building the candidate."
+}
+
 npm run test:desktop-package
 if ($LASTEXITCODE -ne 0) { throw "Desktop package contract failed with code $LASTEXITCODE." }
 
@@ -200,6 +205,7 @@ $evidence = [ordered]@{
   chapter1Core = "PASS"
   chapter1BrowserRoute = "PASS"
   titleAudioReady = "PASS"
+  chapter1SoundtrackReady = "PASS"
   desktopPackageContract = "PASS"
   desktopRuntimeReady = $true
   desktopFirstFrame = $true
