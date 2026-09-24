@@ -3398,6 +3398,7 @@ function selectChoicePath(idx) {
 
   quest.choiceVariant = determineChoiceOutcome(path.id);
   quest.choiceMade = path.label;
+  quest.choicePath = path.id;
 
   addLedgerEntry(
     'quest',
