@@ -586,6 +586,96 @@ function drawSaveLoadOverlay() {
   text('UP / DOWN SLOT   ENTER CONFIRM   ESC RETURN   F5 SAVE   F9 LOAD', 90, height - 42);
 }
 
+function runChapter1PersistenceSmokeOnce() {
+  if (window.__awChapter1PersistenceSmokeDone) return;
+  try {
+    if (typeof process === 'undefined' || !process.env) return;
+    const mode = process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MODE;
+    const markerPath = process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER;
+    const isolatedRoot = process.env.AETHERWAKE_SAVE_ROOT_OVERRIDE;
+    if (!mode || !markerPath || !isolatedRoot) return;
+    if (!window.__awRuntimeReady || !window.__awFirstFrame) return;
+    if (typeof require !== 'function') return;
+    if (!window.AetherSaveSystem || !world || !world.player) {
+      throw new Error('CHAPTER1_PERSISTENCE_SMOKE_RUNTIME_UNAVAILABLE');
+    }
+
+    const fs = require('fs');
+    let payload = null;
+
+    if (mode === 'create') {
+      // Smoke-only mutation in an isolated save root. The distinctive position
+      // proves the second process restored bytes written by the first process.
+      gameState = STATE.WORLD;
+      window.gameState = gameState;
+      world.player.tileX = 17;
+      world.player.tileY = 16;
+      world.player.px = 17 * 16;
+      world.player.py = 16 * 16;
+      const saved = saveToSlot('manual-6');
+      if (!saved) throw new Error('CHAPTER1_PERSISTENCE_SMOKE_SAVE_FAILED');
+      const latest = latestLoadableSave();
+      if (!latest || latest.slot !== 'manual-6') {
+        throw new Error('CHAPTER1_PERSISTENCE_SMOKE_SAVE_NOT_LOADABLE');
+      }
+      const stored = window.AetherSaveSystem.load('manual-6');
+      payload = {
+        phase: 'create',
+        result: 'PASS',
+        storageType: stored && stored.storageType,
+        savePath: stored && stored.path,
+        slot: 'manual-6',
+        tileX: world.player.tileX,
+        tileY: world.player.tileY,
+        questState: world.getQuestState().state,
+      };
+    } else if (mode === 'continue') {
+      gameState = STATE.MENU;
+      window.gameState = gameState;
+      if (!continueLatestSave()) {
+        throw new Error('CHAPTER1_PERSISTENCE_SMOKE_CONTINUE_FAILED');
+      }
+      const questState = world.getQuestState();
+      if (gameState !== STATE.WORLD ||
+          world.player.tileX !== 17 ||
+          world.player.tileY !== 16 ||
+          !questState || questState.state !== QUEST_STATES.SIGNAL) {
+        throw new Error('CHAPTER1_PERSISTENCE_SMOKE_RESTORE_MISMATCH');
+      }
+      const latest = latestLoadableSave();
+      payload = {
+        phase: 'continue',
+        result: 'PASS',
+        gameState,
+        slot: latest && latest.slot,
+        tileX: world.player.tileX,
+        tileY: world.player.tileY,
+        questState: questState.state,
+      };
+    } else {
+      throw new Error('CHAPTER1_PERSISTENCE_SMOKE_MODE_INVALID:' + mode);
+    }
+
+    fs.writeFileSync(markerPath, JSON.stringify(payload), 'utf8');
+    window.__awChapter1PersistenceSmokeDone = true;
+  } catch (error) {
+    window.__awChapter1PersistenceSmokeDone = true;
+    try {
+      if (typeof require === 'function' &&
+          typeof process !== 'undefined' && process.env &&
+          process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER) {
+        require('fs').writeFileSync(
+          process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER,
+          JSON.stringify({ phase: process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MODE || null,
+            result: 'FAIL', error: error.message }),
+          'utf8'
+        );
+      }
+    } catch (_) {}
+    console.error('CHAPTER1_PERSISTENCE_SMOKE_FAILED', error);
+  }
+}
+
 function writeDesktopSmokeMarkerOnce() {
   if (window.__awDesktopSmokeMarkerWritten) return;
   try {
@@ -851,6 +941,7 @@ function draw() {
 
   // The embedded loader waits for a completed frame, not merely a canvas node.
   window.__awFirstFrame = true;
+  runChapter1PersistenceSmokeOnce();
   writeDesktopSmokeMarkerOnce();
 }
 
