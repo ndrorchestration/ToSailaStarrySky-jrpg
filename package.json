@@ -113,6 +113,8 @@
     "test:chapter1-balance": "node tests/chapter1-combat-balance.test.js",
     "build:chapter1:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\build-chapter1-windows.ps1",
     "admit:title-audio": "node scripts/admit-title-audio.js",
-    "test:chapter1-title-audio-ready": "node tests/chapter1-title-audio-ready.test.js"
+    "test:chapter1-title-audio-ready": "node tests/chapter1-title-audio-ready.test.js",
+    "admit:chapter1-soundtrack": "node scripts/admit-chapter1-soundtrack.js",
+    "test:chapter1-soundtrack-ready": "node tests/chapter1-soundtrack-ready.test.js"
   }
 }
