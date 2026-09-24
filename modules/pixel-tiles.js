@@ -33,6 +33,10 @@
     X: [78, 162, 74],
     x: [139, 207, 91],
     Z: [40, 116, 66],
+    I: [169, 217, 109],
+    q: [239, 118, 165],
+    U: [255, 231, 139],
+    u: [255, 247, 209],
   });
 
   function freezeFrame(rows) {
@@ -43,16 +47,28 @@
 
     meadow: Object.freeze({
       id: 'meadow',
-      frames: Object.freeze([freezeFrame((() => {
-        const rows = Array.from({ length: 16 }, () => Array(16).fill('X'));
-        const marks = [
+      frames: Object.freeze([
+        [
           [3, 2, 'x'], [11, 2, 'x'], [1, 5, 'Z'], [7, 4, 'x'], [13, 5, 'Z'],
           [4, 8, 'x'], [10, 7, 'Z'], [14, 9, 'x'], [2, 12, 'Z'], [8, 11, 'x'],
           [12, 13, 'Y'], [5, 14, 'W'], [1, 9, 'Y'], [9, 3, 'W'], [6, 6, 'Z'],
-        ];
+        ],
+        [
+          [2, 2, 'I'], [3, 2, 'x'], [10, 3, 'Z'], [11, 3, 'x'], [6, 5, 'I'],
+          [7, 5, 'x'], [13, 6, 'Z'], [3, 8, 'x'], [4, 8, 'I'], [11, 9, 'Z'],
+          [12, 9, 'x'], [1, 11, 'Z'], [2, 11, 'x'], [8, 13, 'I'], [9, 13, 'x'],
+          [13, 14, 'q'],
+        ],
+        [
+          [4, 1, 'x'], [5, 1, 'I'], [12, 3, 'Z'], [13, 3, 'x'], [2, 5, 'Z'],
+          [3, 5, 'x'], [9, 6, 'I'], [10, 6, 'x'], [5, 9, 'Z'], [6, 9, 'x'],
+          [14, 10, 'I'], [1, 12, 'x'], [2, 12, 'I'], [10, 14, 'U'], [11, 14, 'u'],
+        ],
+      ].map(marks => freezeFrame((() => {
+        const rows = Array.from({ length: 16 }, () => Array(16).fill('X'));
         for (const [x, y, token] of marks) rows[y][x] = token;
         return rows.map(row => row.join(''));
-      })())]),
+      })()))),
     }),
     hull: Object.freeze({
       id: 'hull',
@@ -190,12 +206,26 @@
 
     flowers: Object.freeze({
       id: 'flowers',
-      frames: Object.freeze([freezeFrame([
-        'TTTTTTTTTTTTTTTT','TTTTTTTTTTTTTTTT','TTTYTTTTTTTTATTT','TTTgTTTTTTTTgTTT',
-        'TTTGTTTTTTTTGTTT','TTTTTTTTTTTTTTTT','TTTTTCTTTTTTTTTT','TTTTTgTTTTTYTTTT',
-        'TTTTTGTTTTTgTTTT','TTTTTTTTTTTGTTTT','TTATTTTTTTTTTTTT','TTgTTTTTTCTTTTTT',
-        'TTGTTTTTTgTTTTTT','TTTTTTTTTGTTTTTT','TTTTTTTTTTTTTTTT','TTTTTTTTTTTTTTTT',
-      ])]),
+      frames: Object.freeze([
+        freezeFrame([
+          'TTTTTTTTTTTTTTTT','TTTTTTTTTTTTTTTT','TTTYTTTTTTTTATTT','TTTgTTTTTTTTgTTT',
+          'TTTGTTTTTTTTGTTT','TTTTTTTTTTTTTTTT','TTTTTCTTTTTTTTTT','TTTTTgTTTTTYTTTT',
+          'TTTTTGTTTTTgTTTT','TTTTTTTTTTTGTTTT','TTATTTTTTTTTTTTT','TTgTTTTTTCTTTTTT',
+          'TTGTTTTTTgTTTTTT','TTTTTTTTTGTTTTTT','TTTTTTTTTTTTTTTT','TTTTTTTTTTTTTTTT',
+        ]),
+        freezeFrame([
+          'TTTTTTTTTTTTTTTT','TTTTTTTTTTTTTTTT','TTTqTTTTTTTTATTT','TTTgTTTTTTTTgTTT',
+          'TTTGTTTTTTTTGTTT','TTTTTTTTTTTTTTTT','TTTTTCTTTTTTTTTT','TTTTTgTTTTTqTTTT',
+          'TTTTTGTTTTTgTTTT','TTTTTTTTTTTGTTTT','TTATTTTTTTTTTTTT','TTgTTTTTTCTTTTTT',
+          'TTGTTTTTTgTTTTTT','TTTTTTTTTGTTTTTT','TTTTTTTTTTTTTTTT','TTTTTTTTTTTTTTTT',
+        ]),
+        freezeFrame([
+          'TTTTTTTTTTTTTTTT','TTTTTTTTTTTTTTTT','TTTUUTTTTTTTATTT','TTTgTTTTTTTTgTTT',
+          'TTTGTTTTTTTTGTTT','TTTTTTTTTTTTTTTT','TTTTTCTTTTTTTTTT','TTTTTgTTTTTUUTTT',
+          'TTTTTGTTTTTgTTTT','TTTTTTTTTTTGTTTT','TTATTTTTTTTTTTTT','TTgTTTTTTCTTTTTT',
+          'TTGTTTTTTgTTTTTT','TTTTTTTTTGTTTTTT','TTTTTTTTTTTTTTTT','TTTTTTTTTTTTTTTT',
+        ]),
+      ]),
     }),
 
     ruins: Object.freeze({

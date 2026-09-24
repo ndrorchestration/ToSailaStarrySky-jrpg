@@ -192,6 +192,16 @@
     }
   }
 
+  function terrainFrame(tileId, x, y, tiles) {
+    const tile = tiles.get(tileId);
+    if (!tile || tile.frames.length < 2) return 0;
+    // Stable cell variation breaks up repeated grass and water without adding
+    // randomness to route geometry or rebuilding the map every frame.
+    let hash = Math.imul(x + 1, 374761393) ^ Math.imul(y + 1, 668265263);
+    hash = Math.imul(hash ^ (hash >>> 13), 1274126177);
+    return ((hash ^ (hash >>> 16)) >>> 0) % tile.frames.length;
+  }
+
   function isObjectiveRouteBuffer(x, y) {
     for (let i = 0; i <= 8; i++) {
       const routeX = 15 - i;
@@ -267,7 +277,8 @@
     for (let y = 0; y < MAP; y++) {
       for (let x = 0; x < MAP; x++) {
         const cell = ground[y] && ground[y][x];
-        tilePixels(img, resolveTile(cell), x * CELL, y * CELL, tiles);
+        const tileId = resolveTile(cell);
+        tilePixels(img, tileId, x * CELL, y * CELL, tiles, terrainFrame(tileId, x, y, tiles));
       }
     }
 

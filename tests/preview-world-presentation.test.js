@@ -148,6 +148,18 @@ const tilePixelsAt = (tileX, tileY, target = atlas) => {
   }
   return bytes;
 };
+const expectedGrassTilePixels = (tileX, tileY) => {
+  const tiles = sandbox.window.AetherPixelTiles;
+  const meadow = tiles.get('meadow');
+  let hash = Math.imul(tileX + 1, 374761393) ^ Math.imul(tileY + 1, 668265263);
+  hash = Math.imul(hash ^ (hash >>> 13), 1274126177);
+  const frame = meadow.frames[((hash ^ (hash >>> 16)) >>> 0) % meadow.frames.length];
+  const bytes = [];
+  for (const row of frame) {
+    for (const token of row) bytes.push(...tiles.PALETTE[token], 255);
+  }
+  return bytes;
+};
 assert(calls.sprites.includes('lyra'), 'world presentation must draw Lyra using her shared character sprite');
 assert.notDeepStrictEqual(Array.from(atlas.pixels.slice(grassAt, grassAt + 3)), [0, 0, 0],
   'map raster must use the shared tile palette');
@@ -189,8 +201,8 @@ for (const [x, y, label] of [
   [27, 23, 'Verrick upper-right sprite cell'], [25, 24, 'Verrick lower-left sprite cell'],
   [26, 24, 'Verrick lower-center sprite cell'], [27, 24, 'Verrick lower-right sprite cell'],
 ]) {
-  assert.deepStrictEqual(tilePixelsAt(x, y), tilePixelsAt(18, 17),
-    label + ' starting tile must remain clear of decorative terrain accents');
+  assert.deepStrictEqual(tilePixelsAt(x, y), expectedGrassTilePixels(x, y),
+    label + ' starting tile must keep authored ground clear of decorative overlays');
 }
 assert.deepStrictEqual(pixelAt(7 * 16, 7 * 16), [184, 163, 119],
   'Ionia starting tile must retain the authored objective route');
@@ -253,7 +265,7 @@ presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, 
 assert.strictEqual(calls.imageCreates, imageCreatesBeforeNpcMove + 1,
   'moving an NPC must refresh actor-aware terrain accents');
 const movedAtlas = calls.images.map(args => args[0]).reverse().find(image => image && image.pixels);
-assert.deepStrictEqual(tilePixelsAt(2, 10, movedAtlas), tilePixelsAt(18, 17, movedAtlas),
+assert.deepStrictEqual(tilePixelsAt(2, 10, movedAtlas), expectedGrassTilePixels(2, 10),
   'terrain accents must clear from the footprint of an NPC moved into a decorated patch');
 
 const worldSandbox = { window: {}, globalThis: {} };
@@ -288,8 +300,8 @@ assert.deepStrictEqual(pixelAt(2 * 16 + 6, 7 * 16 + 6, realMapAtlas), [82, 121, 
 assert.deepStrictEqual(pixelAt(23 * 16 + 7, 12 * 16 + 2, realMapAtlas), [118, 58, 33],
   'initialized playable map must show the village beside the aether-core');
 for (const [x, y, label] of [[7, 19, 'Lyra'], [7, 20, 'Lyra'], [25, 23, 'Verrick'], [27, 24, 'Verrick']]) {
-  assert.deepStrictEqual(tilePixelsAt(x, y, realMapAtlas), tilePixelsAt(18, 17, realMapAtlas),
-    label + ' sprite footprint on the playable map must stay free of scenic overlays');
+  assert.deepStrictEqual(tilePixelsAt(x, y, realMapAtlas), expectedGrassTilePixels(x, y),
+    label + ' sprite footprint on the playable map must retain unpainted authored ground');
 }
 
 assert.strictEqual(typeof calls.completeBackgroundLoad, 'function',

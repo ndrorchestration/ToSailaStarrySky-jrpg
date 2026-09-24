@@ -15,6 +15,12 @@ assert(api, 'pixel tile authority was not exposed');
 assert.strictEqual(api.VERSION, '0.3.0');
 assert.strictEqual(api.TILE_SIZE, 16);
 assert.strictEqual(api.validate(), true);
+assert(api.get('meadow').frames.length >= 3,
+  'meadow ground should have several authored pixel patterns to prevent visible tiling');
+assert(new Set(api.get('meadow').frames).size >= 3,
+  'meadow tile variations should be distinct authored frames');
+assert(api.get('flowers').frames.length >= 3,
+  'flower accents should vary across the island instead of repeating a single patch');
 
 for (const id of [
   'hull','grass','crate','float','water','loreUnknown','loreKnown','cloud','astro',
