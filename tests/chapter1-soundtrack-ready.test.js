@@ -23,4 +23,12 @@ for(const track of manifest.chapter1Tracks || []){
 assert(scene.includes("if (state === 'combat') return TRACKS.combat;"));
 assert(scene.includes("if (state === 'opening') return TRACKS.opening;"));
 assert(scene.includes("state === 'world' || state === 'airship'"));
+
+const enderTheme=(manifest.characterThemes||[]).find(t=>t.characterId==='ender');
+assert(enderTheme,'Ender character-theme authority missing');
+assert.strictEqual(enderTheme.trackId,'open-sky-signal');
+assert.strictEqual(enderTheme.canonicalPath,'assets/audio/open-sky-signal.mp3');
+assert.strictEqual(enderTheme.sourceVerification.sha256,'831a195d060e22107c9b38ac1655b0ae879485e87eba601d41d3af46d8518484');
+assert.strictEqual(enderTheme.sourceVerification.bytes,4171250);
+
 console.log('Aetherwake Chapter 1 soundtrack readiness: PASS');
