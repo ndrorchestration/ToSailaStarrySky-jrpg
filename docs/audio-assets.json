@@ -91,6 +91,36 @@
     "exploration": "Solar Punk Airship",
     "airship": "Solar Punk Airship",
     "combat": "Nocturnal Resolve",
-    "transitions": "Scene music is non-fatal and may not block boot/input/progression if an asset is absent."
-  }
+    "transitions": "Scene music is non-fatal and may not block boot/input/progression if an asset is absent.",
+    "enderCharacterTheme": "Open Sky Signal",
+    "leitmotifPolicy": "Open Sky Signal is the primary source of Ender's recurring First Note leitmotif; later battle/revelation/master-magic arrangements should transform rather than replace that motif."
+  },
+  "characterThemes": [
+    {
+      "characterId": "ender",
+      "trackId": "open-sky-signal",
+      "title": "Open Sky Signal",
+      "role": "primary-character-theme",
+      "canonicalPath": "assets/audio/open-sky-signal.mp3",
+      "sourceFilename": "Open Sky Signal.mp3",
+      "intendedUse": [
+        "Ender character theme",
+        "First Note motif",
+        "personal revelations",
+        "Ender-focused dialogue",
+        "late-Chapter-1 resolve"
+      ],
+      "sourceVerification": {
+        "sha256": "831a195d060e22107c9b38ac1655b0ae879485e87eba601d41d3af46d8518484",
+        "bytes": 4171250,
+        "durationSeconds": 179.7335,
+        "channels": 2,
+        "sampleRateHz": 48000,
+        "estimatedTempoBpm": 127.84
+      },
+      "repositoryStatus": "source-verified-repository-missing",
+      "runtimeRegistration": false,
+      "designNote": "Use as Ender's identity cue, not as generic exploration music. Preserve its recurring bright motif as the First Note leitmotif for later arrangements."
+    }
+  ]
 }
