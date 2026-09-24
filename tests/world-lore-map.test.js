@@ -27,7 +27,10 @@ for (const [name, moduleSource] of [
     name + ' must expose the player after building the map');
   for (let step = 0; step < 9; step++) world.movePlayer(0, -1);
   for (let step = 0; step < 3; step++) world.movePlayer(1, 0);
-  const firstLore = world.quest.discoveries.find(entry => entry.x === 19 && entry.y === 7);
+  const firstLore = vm.runInNewContext(
+    'quest.discoveries.find(entry => entry.x === 19 && entry.y === 7)',
+    sandbox
+  );
   assert(firstLore, name + ' must preserve lore text for the first accessible lore tile');
   assert.strictEqual(firstLore.text,
     'Ionia\'s watch log, half-buried in deck plating: "Day 47. The core sings wrong. The harmonics slip at dusk. The frequencies hum in the hull."',
