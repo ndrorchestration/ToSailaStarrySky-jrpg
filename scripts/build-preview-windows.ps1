@@ -30,15 +30,17 @@ npm run package:windows
 if ($LASTEXITCODE -ne 0) { throw "Windows package build failed with code $LASTEXITCODE." }
 
 $distRoot = (Resolve-Path (Join-Path $repo "..\aetherwake-dist")).Path
-$package = Get-ChildItem -LiteralPath $distRoot -Directory |
+$exeFile = Get-ChildItem -LiteralPath $distRoot -Filter "Aetherwake.exe" -File -Recurse |
   Sort-Object LastWriteTime -Descending |
   Select-Object -First 1
-if (-not $package) { throw "NW.js did not produce a package directory." }
-
-$exe = Join-Path $package.FullName "Aetherwake.exe"
-if (-not (Test-Path -LiteralPath $exe)) {
-  throw "Aetherwake.exe not found in packaged runtime."
+if (-not $exeFile) {
+  throw "Aetherwake.exe not found anywhere under packaged runtime root: $distRoot"
 }
+
+$exe = $exeFile.FullName
+$package = Get-Item -LiteralPath $exeFile.DirectoryName
+Write-Host "PREVIEW_PACKAGE_ROOT=$($package.FullName)"
+Write-Host "PREVIEW_PACKAGE_EXE=$exe"
 
 # Preview 0.1 deliberately verifies the portable runtime directly.
 # Formal NSIS installation, publication, and milestone evidence are not on this critical path.
