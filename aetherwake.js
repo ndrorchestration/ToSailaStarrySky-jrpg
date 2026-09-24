@@ -106,6 +106,7 @@ let previewEndAt = 0;
 let saveMenuMode = 'save';
 let saveMenuIndex = 0;
 let saveMenuReturnState = STATE.WORLD;
+let pendingAutosaveReason = null;
 
 // Expose state for debugging
 window.gameState = gameState;
@@ -346,6 +347,7 @@ function applySaveEnvelope(envelope) {
 
   pendingHazardIndex = null;
   combatReturnState = STATE.WORLD;
+  pendingAutosaveReason = null;
   previewEncounterStarted = false;
   previewEncounterFinished = false;
   previewEndAt = 0;
@@ -379,11 +381,53 @@ function buildLoadableSaveIndex() {
   });
 }
 
+function latestLoadableSave() {
+  const classified = buildLoadableSaveIndex();
+  const latest = classified
+    .filter(entry => entry.exists && entry.valid !== false && entry.semanticValid === true && entry.savedAt)
+    .sort((a, b) => String(b.savedAt).localeCompare(String(a.savedAt)))[0] || null;
+  window._latestSaveMeta = latest;
+  return latest;
+}
+
+function continueLatestSave() {
+  const latest = latestLoadableSave();
+  if (!latest) {
+    showToast('NO VALID SAVE FOUND', C.rust, 1400);
+    return false;
+  }
+  return loadFromSlot(latest.slot);
+}
+
+function requestAutosave(reason) {
+  pendingAutosaveReason = reason || 'checkpoint';
+}
+
+function flushPendingAutosaveIfStable() {
+  if (!pendingAutosaveReason) return false;
+  if (gameState !== STATE.WORLD && gameState !== STATE.AIRSHIP) return false;
+
+  const reason = pendingAutosaveReason;
+  pendingAutosaveReason = null;
+  try {
+    const result = window.AetherSaveSystem.rotateAutosave(buildSavePayload(), saveMetadata());
+    window._lastSaveResult = result;
+    window._lastAutosaveReason = reason;
+    window._saveSlotIndex = buildLoadableSaveIndex();
+    showToast('AUTOSAVED // ' + reason.toUpperCase(), C.teal, 900);
+    return true;
+  } catch (error) {
+    window._lastSaveError = error.message;
+    console.error('AUTOSAVE_FAILED', error);
+    return false;
+  }
+}
+
 function saveMetadata() {
   return {
-    gameVersion: '0.1.0-preview.1',
+    gameVersion: '0.1.0-chapter1',
     playtimeMs: currentPlaytimeMs(),
-    chapter: 'Preview 0.1 — First Wake',
+    chapter: 'Chapter I — First Wake',
     location: gameState === STATE.AIRSHIP ? 'Open Sky' : 'Aureate Wake',
     partySummary: Array.isArray(window.ACTIVE_PARTY)
       ? window.ACTIVE_PARTY.map(character => character.name || character.id)
@@ -598,6 +642,8 @@ function draw() {
              millis() - menuAutoStartTimer > 3000) {
     startGame();
   }
+
+  flushPendingAutosaveIfStable();
 
   // Subtle corner brackets — confirm canvas is live without distracting
   noFill();
@@ -1032,6 +1078,10 @@ function keyTyped() {
     return;
   }
   if (gameState === STATE.MENU) {
+    if (key === 'c' || key === 'C') {
+      continueLatestSave();
+      return;
+    }
     if (key === 'n' || key === 'N' || key === 'Enter' || key === ' ') {
       startGame();
     }
@@ -1110,6 +1160,10 @@ function handleInput() {
     // (intentionally fall through — MENU handler below also runs)
   }
   if (gameState === STATE.MENU) {
+    if (keysPressed[67] || keysPressed[99] ||
+        (typeof key !== 'undefined' && (key === 'c' || key === 'C'))) {
+      if (continueLatestSave()) return;
+    }
     // Start game on Enter/Space/N (from both keyPressed path and character path).
     // For headless Chromium (Playwright testing): keyTyped may not fire reliably
     // for letter keys, so also handle keyPressed keyCode path explicitly.
@@ -1339,6 +1393,7 @@ function advanceFirstWakeOpening() {
     showToast('CHAPTER I // FIRST WAKE', C.scioto, 1800);
     showToast('WASD / ARROWS // MOVE   E // TALK   T // QUEST LOG', C.teal, 3200);
     showToast('OBJECTIVE // FOLLOW THE SIGNAL CONTACTS', C.parchment, 4800);
+    requestAutosave('chapter-handoff');
   }
 }
 
@@ -1720,7 +1775,9 @@ function finishCombat() {
   window.gameState = gameState;
   prevState = null;
   combatReturnState = STATE.WORLD;
-
+  if (combatState && combatState.encounterOver) {
+    requestAutosave('combat-resolution');
+  }
 
   if (VIS.fadeTransitions) startFade(150);
 }
@@ -1875,6 +1932,7 @@ function triggerAbilityFeedback(success) {
 function triggerQuestAdvance() {
   if (typeof window.playQuestAdvance === 'function') window.playQuestAdvance();
   showToast('QUEST ADVANCED', [42, 255, 181], 1800);
+  requestAutosave('quest-advance');
 }
 
 /** Notify level up. */
@@ -2102,6 +2160,16 @@ function drawTitleScreen() {
     push();
     visual.draw({ now: millis(), width, height });
     pop();
+    const latest = latestLoadableSave();
+    if (latest) {
+      push();
+      textAlign(CENTER, CENTER);
+      textFont('Press Start 2P');
+      textSize(9);
+      fill(C.teal[0], C.teal[1], C.teal[2], 220);
+      text('CONTINUE — C', width / 2, height - 72);
+      pop();
+    }
     return;
   }
 
@@ -2117,6 +2185,10 @@ function drawTitleScreen() {
   textSize(10);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
   text('NEW GAME // N OR ENTER', width / 2, height / 2 + 30);
+  if (latestLoadableSave()) {
+    fill(C.teal[0], C.teal[1], C.teal[2]);
+    text('CONTINUE // C', width / 2, height / 2 + 52);
+  }
 }
 
 function getDialogueSpriteId(npc) {
