@@ -1,0 +1,35 @@
+'use strict';
+
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
+
+const root = path.resolve(__dirname, '..');
+const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
+
+const start = runtime.indexOf('function drawCharSheet(px, py, pw, ph)');
+const end = runtime.indexOf('function drawWorldHUD()', start);
+assert(start >= 0 && end > start, 'canonical character sheet renderer missing');
+const sheet = runtime.slice(start, end);
+
+assert(sheet.includes('const livePlayer = world && world.player ? world.player : null;'),
+  'character sheet must read the live player');
+assert(sheet.includes('livePlayer.productionStats'),
+  'character sheet must read production stats');
+for (const stat of ['wits','presence','spirit','might','grace']) {
+  assert(sheet.includes('production.' + stat),
+    'character sheet must render production stat: ' + stat);
+}
+assert(sheet.includes('const gy = sheet.gearY + 22 + i * 42;'),
+  'gear rows must calculate their own y-coordinate');
+assert(!sheet.includes('Mycelial tattoos'),
+  'Ender portrait fallback must not retain superseded tattoo prototype');
+assert(!sheet.includes('Trimmed beard'),
+  'Ender portrait fallback must not retain superseded beard prototype');
+assert(sheet.includes('copper hair') && sheet.includes('Brass goggles'),
+  'Ender portrait fallback must match current visual canon');
+
+assert(!runtime.includes("text('ENDER — Rift Scholar', px + 20, py + 24);"),
+  'character-sheet fallback must not hard-code a stale class label');
+
+console.log('Aetherwake Chapter 1 character-sheet presentation: PASS');
