@@ -104,6 +104,7 @@
     "build:preview:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\build-preview-windows.ps1",
     "test:persistence-foundation": "node tests/save-system-contract.test.js && node tests/save-payload-validator.test.js && node tests/save-interrupted-write.test.js && node tests/preview-persistence-runtime-seam.test.js && node tests/preview-persistence-snapshot-contract.test.js && node tests/preview-manual-save-load.test.js && node tests/preview-persistence-roundtrip-node.test.js",
     "test:persistence-roundtrip": "node tests/preview-persistence-roundtrip-playwright.js",
-    "test:persistence-roundtrip:node": "node tests/preview-persistence-roundtrip-node.test.js"
+    "test:persistence-roundtrip:node": "node tests/preview-persistence-roundtrip-node.test.js",
+    "test:chapter1-convergence": "node tests/chapter1-convergence-contract.test.js"
   }
 }
