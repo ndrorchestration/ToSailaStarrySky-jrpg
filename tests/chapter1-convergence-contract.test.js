@@ -113,4 +113,12 @@ assert(runtime.includes('if (gameOver && keyCode === 82)'),
 assert(runtime.includes('window.location.reload()'),
   'Chapter 1 replay must perform a clean runtime restart');
 
+
+assert(runtime.includes('const regroupVit = Math.max(1, Math.ceil((world.player.maxVit || 13) * 0.5));'),
+  'mandatory hazard defeat must recover enough vitality for a real retry');
+assert(runtime.includes('world.player.staffCharges = world.player.maxStaffCharges || 2;'),
+  'mandatory hazard defeat must restore the staff to a retryable state');
+assert(runtime.includes('Ender regroups before trying again.'),
+  'hazard defeat journal must describe the retry boundary');
+
 console.log('Aetherwake Chapter 1 convergence contract: PASS');
