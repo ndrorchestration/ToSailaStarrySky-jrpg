@@ -103,4 +103,8 @@ assert(runtime.includes('const choiceOutcome = getChoiceOutcomeText();'),
 assert(runtime.includes("} else if (quest.state === QUEST_STATES.CONTACT)"),
   'SIGNAL and CONTACT conversation progress must be separate');
 
+
+assert(runtime.includes('quest.choicePath = path.id;'),
+  'numeric Chapter 1 choice must persist the canonical path ID before WAKE resolution');
+
 console.log('Aetherwake Chapter 1 convergence contract: PASS');
