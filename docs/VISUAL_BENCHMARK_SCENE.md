@@ -147,7 +147,7 @@ Current candidate establishes:
 
 
 ## Evidence capture binding
-The benchmark acceptance screenshot is captured as `01-dragonfly-dusk-dock.png` by the exact-head visual-evidence harness. The screenshot and manifest SHA must correspond to the candidate under review. Capture alone does not promote this benchmark to PASS.
+The benchmark acceptance screenshot is captured as `02-dragonfly-dusk-dock.png` by the exact-head visual-evidence harness. The screenshot and manifest SHA must correspond to the candidate under review. Capture alone does not promote this benchmark to PASS.
 
 
 ## Shared Dragonfly binding
