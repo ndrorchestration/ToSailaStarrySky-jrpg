@@ -35,6 +35,10 @@ npm run test:chapter1-core
 if ($LASTEXITCODE -ne 0) { throw "Chapter 1 core gate failed with code $LASTEXITCODE." }
 Write-Host 'CHAPTER1_CORE=PASS'
 
+npm run test:chapter1-visual
+if ($LASTEXITCODE -ne 0) { throw "Chapter 1 visual/presentation gate failed with code $LASTEXITCODE." }
+Write-Host 'CHAPTER1_VISUAL=PASS'
+
 npm run test:chapter1-browser
 if ($LASTEXITCODE -ne 0) { throw "Chapter 1 browser route failed with code $LASTEXITCODE." }
 Write-Host 'CHAPTER1_BROWSER=PASS'
@@ -58,6 +62,7 @@ $evidence = [ordered]@{
   sourceCommit = $head
   sourceBranch = $branchName
   chapter1Core = 'PASS'
+  chapter1Visual = 'PASS'
   chapter1BrowserRoute = 'PASS'
   desktopPackageContract = 'PASS'
   audioBinaryAdmission = 'NOT_EVALUATED_BY_THIS_LANE'
