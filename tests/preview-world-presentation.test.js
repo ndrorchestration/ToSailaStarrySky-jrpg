@@ -11,14 +11,17 @@ const source = fs.readFileSync(file, 'utf8');
 const pixelWorldBackdrop = fs.readFileSync(
   path.join(root, 'assets', 'preview', 'aetherwake-preview-world-pixelart-v2.png')
 );
+const pixelWorldPropsAtlas = fs.readFileSync(
+  path.join(root, 'assets', 'preview', 'aetherwake-preview-world-props-agent-v1.png')
+);
 const worldSource = fs.readFileSync(path.join(root, 'modules', 'world.js'), 'utf8');
 const tileSource = fs.readFileSync(path.join(root, 'modules', 'pixel-tiles.js'), 'utf8');
 const spriteSource = fs.readFileSync(path.join(root, 'modules', 'pixel-sprites.js'), 'utf8');
 const calls = {
   images: [], imageCreates: 0, rects: [], translates: [], scales: [], fillColors: [],
   spriteFrames: [], spriteScales: [], shadowScales: [], backgroundRequests: [],
-  spriteRequests: [],
-  spriteImage: null, backgroundImage: null, completeBackgroundLoad: null,
+  spriteRequests: [], propRequests: [],
+  spriteImage: null, propAtlasImage: null, backgroundImage: null, completeBackgroundLoad: null,
 };
 assert.strictEqual(pixelWorldBackdrop.subarray(0, 8).toString('hex'), '89504e470d0a1a0a',
   'the Preview world should ship its pixel-art scenery as a local PNG');
@@ -26,6 +29,16 @@ assert.strictEqual(pixelWorldBackdrop.readUInt32BE(16), 768,
   'the world backdrop should preserve its low-resolution pixel-art frame');
 assert.strictEqual(pixelWorldBackdrop.readUInt32BE(20), 512,
   'the world backdrop should preserve its low-resolution pixel-art frame');
+assert.strictEqual(pixelWorldPropsAtlas.subarray(0, 8).toString('hex'), '89504e470d0a1a0a',
+  'the Preview world should ship its environmental props as a local PNG atlas');
+assert.strictEqual(pixelWorldPropsAtlas.readUInt32BE(16), 256,
+  'the environmental prop atlas should provide four 64px source columns');
+assert.strictEqual(pixelWorldPropsAtlas.readUInt32BE(20), 192,
+  'the environmental prop atlas should provide three 64px source rows');
+assert.strictEqual(pixelWorldPropsAtlas.readUInt8(25), 3,
+  'the environmental prop atlas should preserve its indexed transparency');
+assert(pixelWorldPropsAtlas.includes(Buffer.from('tRNS')),
+  'the indexed environmental prop atlas should retain an alpha table');
 
 const sandbox = {
   window: {},
@@ -50,6 +63,13 @@ const sandbox = {
       calls.spriteImage = spriteImage;
       onLoad();
       return spriteImage;
+    }
+    if (assetPath.endsWith('aetherwake-preview-world-props-agent-v1.png')) {
+      calls.propRequests.push(assetPath);
+      const propAtlas = { assetPath, width: 256, height: 192 };
+      calls.propAtlasImage = propAtlas;
+      onLoad();
+      return propAtlas;
     }
     calls.backgroundRequests.push(assetPath);
     calls.backgroundImage = { assetPath, width: 768, height: 512 };
@@ -127,6 +147,23 @@ assert.deepStrictEqual(calls.backgroundRequests, ['assets/preview/aetherwake-pre
   'the authored floating-island pixel-art vista should load as the scenic world backdrop');
 assert.deepStrictEqual(calls.spriteRequests, ['assets/preview/aetherwake-preview-party-atlas-v2.png'],
   'the playable slice should load its generated character atlas once');
+assert.deepStrictEqual(calls.propRequests, ['assets/preview/aetherwake-preview-world-props-agent-v1.png'],
+  'the environmental prop atlas should load exactly once');
+const propDraws = calls.images.filter(args => args[0] === calls.propAtlasImage);
+assert.deepStrictEqual(propDraws.map(args => args.slice(5, 9)), [
+  [0, 0, 64, 64], [128, 0, 64, 64], [0, 64, 64, 64],
+  [128, 64, 64, 64], [0, 128, 64, 64], [128, 128, 64, 64],
+], 'props should crop exact 64px cells from the 4×3 atlas');
+assert.deepStrictEqual(propDraws.map(args => [args[1], args[2]]), [
+  [16, 400], [432, 16], [16, 288], [304, 400], [416, 176], [176, 400],
+], 'props should stay at the fixed spawn- and route-safe map anchors');
+assert(propDraws.every(args => args.length === 9 && args[3] === 64 && args[4] === 64),
+  'each environmental prop should render at its 64px source-cell size');
+const firstMapDraw = calls.images.findIndex(args => args[0] === calls.mapImage);
+const firstPropDraw = calls.images.findIndex(args => args[0] === calls.propAtlasImage);
+const firstCharacterDraw = calls.images.findIndex(args => args[0] === calls.spriteImage);
+assert(firstMapDraw < firstPropDraw && firstPropDraw < firstCharacterDraw,
+  'environmental props should render after the map and behind character sprites');
 assert.deepStrictEqual(calls.scales[0], [1.2], 'world framing should leave room for the scenic sky vista');
 assert.deepStrictEqual(calls.translates[0], [163, 3], 'camera should center Ender inside the scenic frame');
 assert(calls.spriteScales.slice(0, 4).every(scale => scale === 2),
@@ -234,6 +271,7 @@ assert(questMarker.y + questMarker.h <= namePlaques[1].y,
 
 presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1016 });
 assert.strictEqual(calls.imageCreates, 1, 'unchanged map should reuse its raster cache');
+assert.strictEqual(calls.propRequests.length, 1, 'the environmental atlas request should remain one-shot across frames');
 assert(calls.spriteFrames.filter(sprite => sprite.id !== 'ender').every(sprite => sprite.frame === 0),
   'stationary NPCs must remain on their idle sprite frame');
 assert(calls.spriteFrames.filter(sprite => sprite.id === 'ender').every(sprite => sprite.frame === 0),
@@ -258,6 +296,24 @@ assert.deepStrictEqual(movementFrames, [0, 1, 1, 1, 0],
 assert(calls.spriteFrames.filter(sprite => sprite.id !== 'ender').every(sprite => sprite.frame === 0),
   'NPCs must stay idle while Ender moves');
 
+player.tileX = 19;
+player.tileY = 25;
+player.px = 19 * 16;
+player.py = 25 * 16;
+const propCallsBeforePlayerOverlap = calls.images.length;
+presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1685 });
+const propsAfterPlayerOverlap = calls.images.slice(propCallsBeforePlayerOverlap)
+  .filter(args => args[0] === calls.propAtlasImage);
+assert.strictEqual(propsAfterPlayerOverlap.length, 6,
+  'walking through a prop footprint must not make that prop blink out');
+assert(propsAfterPlayerOverlap.some(args => args[1] === 19 * 16 && args[2] === 25 * 16 &&
+  args[5] === 128 && args[6] === 64),
+'the bridge should remain drawn while the live player overlaps its footprint');
+player.tileX = 18;
+player.tileY = 16;
+player.px = 18 * 16;
+player.py = 16 * 16;
+
 const imageCreatesBeforeNpcMove = calls.imageCreates;
 npcs[1].tileX = 3;
 npcs[1].tileY = 11;
@@ -267,6 +323,17 @@ assert.strictEqual(calls.imageCreates, imageCreatesBeforeNpcMove + 1,
 const movedAtlas = calls.images.map(args => args[0]).reverse().find(image => image && image.pixels);
 assert.deepStrictEqual(tilePixelsAt(2, 10, movedAtlas), expectedGrassTilePixels(2, 10),
   'terrain accents must clear from the footprint of an NPC moved into a decorated patch');
+npcs[1].tileX = 2;
+npcs[1].tileY = 26;
+const propCallsBeforeNpcOverlap = calls.images.length;
+presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1686 });
+const propsAfterNpcOverlap = calls.images.slice(propCallsBeforeNpcOverlap)
+  .filter(args => args[0] === calls.propAtlasImage);
+assert.strictEqual(propsAfterNpcOverlap.length, 6,
+  'moving an NPC through a prop footprint must not make that prop blink out');
+assert(propsAfterNpcOverlap.some(args => args[1] === 1 * 16 && args[2] === 25 * 16 &&
+  args[5] === 0 && args[6] === 0),
+'the tree should remain drawn while a live NPC overlaps its footprint');
 
 const worldSandbox = { window: {}, globalThis: {} };
 vm.runInNewContext(worldSource, worldSandbox, { filename: 'world.js' });

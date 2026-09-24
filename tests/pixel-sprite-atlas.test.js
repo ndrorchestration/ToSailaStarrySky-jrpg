@@ -92,6 +92,44 @@ assert.strictEqual(calls.images.length, imageCountBeforeLegacySalvager,
 assert(calls.rects.length > rectCountBeforeLegacySalvager,
   'the existing pixel-authored salvager fallback should remain visible');
 
+function previewPixelBounds(rects) {
+  return [
+    Math.min(...rects.map(rect => rect[0])),
+    Math.min(...rects.map(rect => rect[1])),
+    Math.max(...rects.map(rect => rect[0] + rect[2])),
+    Math.max(...rects.map(rect => rect[1] + rect[3])),
+  ];
+}
+
+for (const id of ['settler', 'corporateSalvager']) {
+  for (const frame of [0, 1]) {
+    const rectStart = calls.rects.length;
+    const imageStart = calls.images.length;
+    assert.strictEqual(api.drawPreview(id, 100, 200, {
+      anchor: 'bottom-center', scale: 2, frame,
+    }), true, id + ' Preview fallback should draw');
+    const rects = calls.rects.slice(rectStart);
+    assert(rects.length > 0, id + ' Preview fallback drew no pixel rectangles');
+    assert.strictEqual(calls.images.length, imageStart,
+      id + ' Preview fallback must stay code-authored');
+    assert(rects.every(rect => rect[2] === 2 && rect[3] === 2),
+      id + ' Preview fallback must use crisp 2×2 logical pixels without stretching');
+    assert.deepStrictEqual(previewPixelBounds(rects), [86, 164, 114, 200],
+      id + ' Preview fallback should occupy its centered 28×36 frame at scale 2');
+  }
+}
+
+const engineSpiritRectStart = calls.rects.length;
+api.drawPreview('engineSpirit', 100, 200, {
+  anchor: 'bottom-center', scale: 2, frame: 0,
+});
+const engineSpiritRects = calls.rects.slice(engineSpiritRectStart);
+assert(engineSpiritRects.length > 0, 'Engine Spirit Preview fallback should stay visible');
+assert(engineSpiritRects.every(rect => rect[2] === 2 && rect[3] === 2),
+  'Engine Spirit should retain crisp fallback pixels');
+assert(previewPixelBounds(engineSpiritRects)[3] - previewPixelBounds(engineSpiritRects)[1] < 36,
+  'Engine Spirit should remain intentionally smaller than the adult Preview fallbacks');
+
 assert.strictEqual(api.drawBattleEnemy('skyPredator', 100, 200, {
   anchor: 'bottom-center', scale: 2, frame: 1,
 }), true);

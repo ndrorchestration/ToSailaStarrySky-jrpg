@@ -931,15 +931,62 @@ function advanceFirstWakeOpening() {
 
 function drawPreviewEndScreen() {
   push();
+  noSmooth();
   noStroke();
   fill(C.navy[0], C.navy[1], C.navy[2], 248);
   rect(0, 0, width, height);
 
   const pulse = 0.72 + Math.sin(millis() * 0.003) * 0.12;
-  fill(C.teal[0], C.teal[1], C.teal[2], 34);
-  ellipse(width / 2, height / 2 - 34, 340 * pulse, 118 * pulse);
-  fill(C.scioto[0], C.scioto[1], C.scioto[2], 28);
-  ellipse(width / 2, height / 2 - 34, 230 * pulse, 76 * pulse);
+  const centerX = Math.round(width / 2);
+  const signalY = Math.round(height / 2 - 78);
+
+  // The aether signal resolves into stepped scan lines instead of a soft glow.
+  const signalBands = [92, 144, 196, 144, 92];
+  for (let i = 0; i < signalBands.length; i++) {
+    fill(C.teal[0], C.teal[1], C.teal[2], Math.round(13 + pulse * 11));
+    rect(centerX - signalBands[i] / 2, signalY + i * 4, signalBands[i], 2);
+  }
+
+  // Sparse sky pixels keep the end card in the same crisp visual language.
+  const stars = [
+    [0.07,0.12,2],[0.18,0.24,3],[0.29,0.10,2],[0.39,0.19,2],[0.52,0.10,3],
+    [0.64,0.18,2],[0.78,0.11,2],[0.92,0.24,3],[0.04,0.52,2],[0.12,0.69,3],
+    [0.89,0.58,2],[0.96,0.73,3],[0.13,0.88,2],[0.25,0.94,3],[0.42,0.86,2],
+    [0.59,0.93,3],[0.76,0.87,2],[0.91,0.91,3],[0.33,0.34,2],[0.67,0.32,2],
+  ];
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 115);
+  for (const [nx, ny, size] of stars) {
+    rect(Math.round(width * nx), Math.round(height * ny), size, size);
+  }
+
+  // Two small floating-island silhouettes frame the copy without crossing it.
+  const islandY = Math.round(height * 0.37);
+  for (const islandX of [Math.round(width * 0.07), Math.round(width * 0.82)]) {
+    fill(55, 187, 111, 185);
+    rect(islandX + 20, islandY, 62, 4);
+    rect(islandX + 8, islandY + 4, 86, 5);
+    fill(46, 47, 54, 235);
+    rect(islandX + 14, islandY + 9, 74, 7);
+    rect(islandX + 25, islandY + 16, 52, 6);
+    rect(islandX + 39, islandY + 22, 24, 6);
+    fill(C.teal[0], C.teal[1], C.teal[2], 205);
+    rect(islandX + 28, islandY + 11, 4, 4);
+  }
+
+  // A low floating ledge anchors the replay prompt in the sky setting.
+  const ledgeY = height - 72;
+  fill(55, 187, 111, 190);
+  rect(centerX - 112, ledgeY, 72, 4);
+  rect(centerX - 40, ledgeY - 4, 80, 4);
+  rect(centerX + 40, ledgeY, 72, 4);
+  fill(46, 47, 54, 235);
+  rect(centerX - 104, ledgeY + 4, 208, 7);
+  rect(centerX - 78, ledgeY + 11, 156, 6);
+  rect(centerX - 50, ledgeY + 17, 100, 6);
+  rect(centerX - 25, ledgeY + 23, 50, 5);
+  fill(C.teal[0], C.teal[1], C.teal[2], 205);
+  rect(centerX - 78, ledgeY + 6, 4, 4);
+  rect(centerX + 66, ledgeY + 6, 4, 4);
 
   textAlign(CENTER, CENTER);
   textFont('Press Start 2P');
@@ -968,7 +1015,6 @@ function drawPreviewEndScreen() {
   text('ENTER / SPACE — PLAY AGAIN', width / 2, height / 2 + 150);
   pop();
 }
-
 function drawFirstWakeOpening() {
   const opening = window.AetherFirstWakeOpening;
   const state = window._firstWakeOpeningState;

@@ -192,6 +192,38 @@
     return null;
   }
 
+  function drawSkyPredatorPulse(x, y, now, spriteFrame) {
+    const phase = Math.floor((now || 0) / 260) % 4;
+    const radius = 7 + phase * 2;
+    // The eye sits at cell pixels (9,13) and (4,10) in the two 42×36
+    // frames. Map those through the 2× bottom-center sprite draw origin.
+    const centerX = x + (spriteFrame === 0 ? -23 : -33);
+    const centerY = y + (spriteFrame === 0 ? -20 : -26);
+    const points = [
+      [0, -radius], [radius - 2, -radius], [radius, -radius + 2],
+      [radius, 0], [radius, radius - 2], [radius - 2, radius],
+      [0, radius], [-radius + 2, radius], [-radius, radius - 2],
+      [-radius, 0], [-radius, -radius + 2], [-radius + 2, -radius],
+    ];
+
+    noStroke();
+    fill(24, 29, 42, 220);
+    for (const point of points) {
+      rect(centerX + point[0] - 2, centerY + point[1] - 2, 4, 4);
+    }
+
+    fill(42, 255, 181, Math.round(220 - phase * 28));
+    for (const point of points) {
+      rect(centerX + point[0] - 1, centerY + point[1] - 1, 2, 2);
+    }
+
+    if (phase === 1 || phase === 3) {
+      fill(255, 179, 71, 230);
+      rect(centerX + radius - 1, centerY - 1, 2, 2);
+      rect(centerX - radius - 1, centerY - 1, 2, 2);
+    }
+  }
+
   function drawPlayer(ctx) {
     const sprites = root.AetherPixelSprites;
     if (!sprites || typeof (sprites.drawPreview || sprites.draw) !== 'function' || !sprites.validate()) return false;
@@ -221,6 +253,7 @@
     const x = Math.round(ctx.x);
     const y = Math.round(ctx.y);
     const now = ctx.now || 0;
+    const spriteFrame = Math.floor(now / 180) % 2;
     const hpRatio = enemy.maxHp > 0 ? Math.max(0, enemy.hp / enemy.maxHp) : 0;
     const danger = 1 - hpRatio;
 
@@ -244,7 +277,7 @@
       drawEnemySprite.call(sprites, spriteId, x, y + 25, {
         anchor: 'bottom-center',
         scale,
-        frame: Math.floor(now / 180) % 2,
+        frame: spriteFrame,
       });
     } else if (enemy.type === 'windShear') {
       // Pixel pressure ribbons for the non-humanoid elemental.
@@ -263,6 +296,10 @@
       rect(x - 17, y - 22, 34, 36);
       fill(124, 200, 232, 170);
       rect(x - 8, y - 13, 16, 17);
+    }
+
+    if (enemy.type === 'skyPredator') {
+      drawSkyPredatorPulse(x, y, now, spriteFrame);
     }
 
     // Low-health fracture accents, visual only.

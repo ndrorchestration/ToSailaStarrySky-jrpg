@@ -33,7 +33,7 @@
   },
   "private": true,
   "scripts": {
-    "test:preview-slice": "node tests/preview-encounter-outcome.test.js && node tests/preview-authored-route.test.js",
+    "test:preview-slice": "node tests/preview-encounter-outcome.test.js && node tests/preview-authored-route.test.js && node tests/preview-end-screen-visual.test.js",
     "test:smoke": "npm run test:preview-slice && node tests/smoke-playwright.js",
     "playwright:install": "playwright install chromium",
     "test:effects": "node tests/effect-vocabulary.test.js",
@@ -85,7 +85,7 @@
     "test:16bit-world-art": "node tests/16bit-world-art-contract.test.js",
     "test:visual-benchmark": "node tests/visual-benchmark-contract.test.js",
     "test:dialogue-visual": "node tests/dialogue-visual-gate.test.js",
-    "test:combat-visual": "node tests/combat-visual-gate.test.js",
+    "test:combat-visual": "node tests/combat-visual-gate.test.js && node tests/combat-visual-fx.test.js",
     "test:flight-visual": "node tests/flight-visual-gate.test.js",
     "test:visual-evidence-contract": "node tests/visual-evidence-contract.test.js",
     "capture:visual-evidence": "node tests/capture-visual-evidence.js",

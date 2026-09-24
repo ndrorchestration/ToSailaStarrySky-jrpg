@@ -375,6 +375,103 @@
     }),
   });
 
+  // Preview-only adult fallbacks keep the existing compact 16×16 sprites for
+  // legacy drawing surfaces while using a taller 14×18 grid at Preview scale 2.
+  const PREVIEW_FALLBACKS = Object.freeze({
+    settler: Object.freeze({
+      width: 14,
+      height: 18,
+      frames: Object.freeze([
+        Object.freeze([
+          '.....HHHH.....',
+          '....HHHHHH....',
+          '...HHSSSSHH...',
+          '...HSSSSSSH...',
+          '..HHSS..SSHH..',
+          '...HSSSSSSH...',
+          '....HSSSSH....',
+          '.....SSSS.....',
+          '....CCCCCC....',
+          'CC..CCCCCC..CC',
+          'CC..CCACAC..CC',
+          'CC..CCCCCC..CC',
+          '...CCCCCCCC...',
+          '...CC....CC...',
+          '....LL..LL....',
+          '...LLL..LLL...',
+          '...BB....BB...',
+          '..BBB....BBB..',
+        ]),
+        Object.freeze([
+          '.....HHHH.....',
+          '....HHHHHH....',
+          '...HHSSSSHH...',
+          '...HSSSSSSH...',
+          '..HHSS..SSHH..',
+          '...HSSSSSSH...',
+          '....HSSSSH....',
+          '.....SSSS.....',
+          '....CCCCCC....',
+          'CC..CCCCCC..CC',
+          'CC..CCACAC..CC',
+          'CC..CCCCCC..CC',
+          '...CCCCCCCC...',
+          '...CC....CC...',
+          '....LL...LL...',
+          '...LLL...LLL..',
+          '...BB.....BB..',
+          '..BBB.....BBB.',
+        ]),
+      ]),
+    }),
+    corporateSalvager: Object.freeze({
+      width: 14,
+      height: 18,
+      frames: Object.freeze([
+        Object.freeze([
+          '.....HHHH.....',
+          '....HHHHHH....',
+          '...HHSSSSHH...',
+          '...HSSSSSSH...',
+          '..HHSS..SSHH..',
+          '...HSSSSSSH...',
+          '....HSSSSH....',
+          '.....SSSS.....',
+          '....CCCCCC....',
+          'CC.CCCCCCCC.CC',
+          'CC.CCAACCCC.CC',
+          'CC.CCCACCCC.CC',
+          '..CCCCCCCCCC..',
+          '...CC....CC...',
+          '....LL..LL....',
+          '...LLL..LLL...',
+          '...BB....BB...',
+          '..BBB....BBB..',
+        ]),
+        Object.freeze([
+          '.....HHHH.....',
+          '....HHHHHH....',
+          '...HHSSSSHH...',
+          '...HSSSSSSH...',
+          '..HHSS..SSHH..',
+          '...HSSSSSSH...',
+          '....HSSSSH....',
+          '.....SSSS.....',
+          '....CCCCCC....',
+          'CC.CCCCCCCC.CC',
+          'CC.CCAACCCC.CC',
+          'CC.CCCACCCC.CC',
+          '..CCCCCCCCCC..',
+          '...CC....CC...',
+          '....LL...LL...',
+          '...LLL...LLL..',
+          '....BB...BB...',
+          '...BBB...BBB..',
+        ]),
+      ]),
+    }),
+  });
+
   function validateSprite(sprite, palette) {
     if (!sprite || sprite.width !== 16 || sprite.height !== 16) return false;
     if (!Array.isArray(sprite.frames) || sprite.frames.length < 1) return false;
@@ -388,17 +485,29 @@
     );
   }
 
+  function validatePreviewFallback(sprite, palette) {
+    if (!sprite || sprite.width !== 14 || sprite.height !== 18) return false;
+    if (!Array.isArray(sprite.frames) || sprite.frames.length < 2) return false;
+    return sprite.frames.every(frame =>
+      frame.length === sprite.height &&
+      frame.every(row =>
+        typeof row === 'string' &&
+        row.length === sprite.width &&
+        Array.from(row).every(cell => cell === TRANSPARENT || palette[cell])
+      )
+    );
+  }
+
   function validate() {
-    return Object.keys(SPRITES).every(id => validateSprite(SPRITES[id], PALETTES[id]));
+    return Object.keys(SPRITES).every(id => validateSprite(SPRITES[id], PALETTES[id])) &&
+      Object.keys(PREVIEW_FALLBACKS).every(id => validatePreviewFallback(PREVIEW_FALLBACKS[id], PALETTES[id]));
   }
 
   function get(id) {
     return SPRITES[id] || null;
   }
 
-  function draw(id, x, y, options) {
-    const sprite = SPRITES[id];
-    const palette = PALETTES[id];
+  function drawPixelSprite(sprite, palette, x, y, options) {
     if (!sprite || !palette) return false;
 
     const opts = options || {};
@@ -434,9 +543,18 @@
     return true;
   }
 
+  function draw(id, x, y, options) {
+    return drawPixelSprite(SPRITES[id], PALETTES[id], x, y, options);
+  }
+
   function drawPreview(id, x, y, options) {
     const column = PREVIEW_COLUMNS[id];
-    if (column === undefined || !SPRITES[id]) return draw(id, x, y, options);
+    if (column === undefined || !SPRITES[id]) {
+      const previewFallback = PREVIEW_FALLBACKS[id];
+      return previewFallback
+        ? drawPixelSprite(previewFallback, PALETTES[id], x, y, options)
+        : draw(id, x, y, options);
+    }
 
     if (previewAtlasState === 'idle') {
       if (typeof loadImage !== 'function') {

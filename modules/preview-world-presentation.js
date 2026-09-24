@@ -10,11 +10,22 @@
   const CELL = 16;
   const MAP = 32;
   const PIXEL_WORLD_BACKGROUND = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
+  const PIXEL_WORLD_PROPS_ATLAS = 'assets/preview/aetherwake-preview-world-props-agent-v1.png';
+  const PROP_CELL_SIZE = 64;
+  const PROP_ATLAS_COLUMNS = 4;
+  const PROP_ATLAS_ROWS = 3;
+  const PROP_TILE_FOOTPRINT = PROP_CELL_SIZE / CELL;
   const SPRITE_WIDTH = 28;
   const SPRITE_HEIGHT = 36;
   const SPRITE_SCALE = 2;
   const TILE_IDS = Object.freeze({ 1: 'cliff', 2: 'meadow', 3: 'crate', 4: 'float', 5: 'water', 6: 'loreUnknown' });
   const INITIAL_ACTOR_CELLS = new Set(spriteFootprintCells(16, 16));
+  const INITIAL_NPC_SPAWNS = Object.freeze([[7, 7], [22, 10], [8, 20], [26, 24]]);
+  // Keep fixed opening spawn cells clear; props remain visible while actors walk through them.
+  const FIXED_ACTOR_CELLS = new Set([
+    ...INITIAL_ACTOR_CELLS,
+    ...INITIAL_NPC_SPAWNS.flatMap(([x, y]) => spriteFootprintCells(x, y)),
+  ]);
   const DECORATION_PATCHES = Object.freeze([
     Object.freeze({ x: 2, y: 10, width: 3, height: 3, tile: 'flowers' }),
     Object.freeze({ x: 5, y: 18, width: 3, height: 3, tile: 'grass' }),
@@ -46,6 +57,14 @@
     Object.freeze({ x: 11, y: 22, tile: 'flowers' }),
     Object.freeze({ x: 12, y: 22, tile: 'forest' }),
   ]);
+  const WORLD_PROPS = Object.freeze([
+    Object.freeze({ x: 1, y: 25, column: 0, row: 0 }), // floating tree
+    Object.freeze({ x: 27, y: 1, column: 2, row: 0 }), // ruin pillar
+    Object.freeze({ x: 1, y: 18, column: 0, row: 1 }), // aether crystal
+    Object.freeze({ x: 19, y: 25, column: 2, row: 1 }), // short bridge
+    Object.freeze({ x: 26, y: 11, column: 0, row: 2 }), // lantern
+    Object.freeze({ x: 11, y: 25, column: 2, row: 2 }), // mossy well
+  ]);
   const TRANSPARENT_GROUND_TOKENS = new Set(['T']);
   const SPRITE_IDS = Object.freeze({
     elder_farmer: 'ionia', engine_spirit: 'engineSpirit',
@@ -61,6 +80,9 @@
   let pixelWorldBackground = null;
   let pixelWorldBackgroundRequested = false;
   let pixelWorldBackgroundReady = false;
+  let pixelWorldPropsAtlas = null;
+  let pixelWorldPropsAtlasRequested = false;
+  let pixelWorldPropsAtlasReady = false;
 
   function playerWalkFrame(player, now) {
     if (!Number.isFinite(player.tileX) || !Number.isFinite(player.tileY)) return 0;
@@ -244,6 +266,47 @@
     return cells;
   }
 
+  function drawWorldProps(ground) {
+    if (!pixelWorldPropsAtlasRequested && typeof loadImage === 'function') {
+      pixelWorldPropsAtlasRequested = true;
+      try {
+        pixelWorldPropsAtlas = loadImage(
+          PIXEL_WORLD_PROPS_ATLAS,
+          () => { pixelWorldPropsAtlasReady = true; },
+          () => { pixelWorldPropsAtlas = null; pixelWorldPropsAtlasReady = false; }
+        );
+      } catch (error) {
+        pixelWorldPropsAtlas = null;
+        pixelWorldPropsAtlasReady = false;
+      }
+    }
+    if (!pixelWorldPropsAtlasReady || !pixelWorldPropsAtlas ||
+        pixelWorldPropsAtlas.width !== PROP_ATLAS_COLUMNS * PROP_CELL_SIZE ||
+        pixelWorldPropsAtlas.height !== PROP_ATLAS_ROWS * PROP_CELL_SIZE) return;
+
+    noSmooth();
+    for (const prop of WORLD_PROPS) {
+      let safe = true;
+      for (let y = prop.y; y < prop.y + PROP_TILE_FOOTPRINT && safe; y++) {
+        for (let x = prop.x; x < prop.x + PROP_TILE_FOOTPRINT; x++) {
+          const key = x + ',' + y;
+          if (!ground[y] || resolveTile(ground[y][x]) !== 'meadow' ||
+              FIXED_ACTOR_CELLS.has(key) || isObjectiveRouteBuffer(x, y)) {
+            safe = false;
+            break;
+          }
+        }
+      }
+      if (!safe) continue;
+      image(
+        pixelWorldPropsAtlas,
+        prop.x * CELL, prop.y * CELL, PROP_CELL_SIZE, PROP_CELL_SIZE,
+        prop.column * PROP_CELL_SIZE, prop.row * PROP_CELL_SIZE,
+        PROP_CELL_SIZE, PROP_CELL_SIZE
+      );
+    }
+  }
+
   function paintMeadowAccents(image, ground, tiles, protectedActorCells) {
     for (const patch of DECORATION_PATCHES) {
       const tile = tiles.get(patch.tile);
@@ -354,6 +417,7 @@
     scale(zoom);
     noSmooth();
     image(cachedMap, 0, 0, MAP * CELL, MAP * CELL);
+    drawWorldProps(input.groundLayer || []);
     const field = input.covenantField;
     if (field && field.planted) {
       const cx = field.x * CELL + 8;
