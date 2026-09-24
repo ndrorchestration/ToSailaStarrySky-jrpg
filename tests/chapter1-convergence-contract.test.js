@@ -291,5 +291,12 @@ assert(chapter1WindowsWorkflow.includes('choco install nsis -y --no-progress'),
   'Chapter 1 Windows workflow must install NSIS for one-click installer production');
 assert(chapter1WindowsWorkflow.includes('steps.candidate.outputs.installer'),
   'Chapter 1 Windows workflow must publish the verified installer');
+assert.strictEqual(packageJson.scripts['verify:chapter1:release-evidence'],
+  'node scripts/verify-chapter1-release-evidence.js',
+  'Chapter 1 must expose independent release-evidence verification');
+assert(chapter1WindowsBuild.includes('CHAPTER1_RELEASE_EVIDENCE_INDEPENDENT_VERIFY=PASS'),
+  'Windows candidate must run independent release-evidence verification');
+assert(chapter1WindowsWorkflow.includes('verify:chapter1:release-evidence'),
+  'publication workflow must reverify release evidence before upload/release');
 
 console.log('Aetherwake Chapter 1 convergence contract: PASS');
