@@ -8,6 +8,10 @@ const opening = require('../modules/first-wake-opening.js');
 const root = path.resolve(__dirname, '..');
 const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
 const worldMirror = fs.readFileSync(path.join(root, 'modules', 'world.js'), 'utf8');
+const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+const chapter1WindowsBuild = fs.readFileSync(
+  path.join(root, 'scripts', 'build-chapter1-windows.ps1'), 'utf8'
+);
 
 assert.strictEqual(opening.VERSION, '0.7.0',
   'Chapter 1 must use the explorable First Wake opening authority');
@@ -154,5 +158,24 @@ assert(runtime.includes('world.player.staffCharges = world.player.maxStaffCharge
   'mandatory hazard defeat must restore the staff to a retryable state');
 assert(runtime.includes('Ender regroups before trying again.'),
   'hazard defeat journal must describe the retry boundary');
+
+assert.strictEqual(
+  packageJson.scripts['build:chapter1:windows'],
+  'powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\build-chapter1-windows.ps1',
+  'Chapter 1 must expose a one-command Windows candidate build'
+);
+for (const marker of [
+  'npm run test:chapter1-core',
+  'npm run test:chapter1-browser',
+  'npm run package:windows',
+  'CHAPTER1_DESKTOP_RENDER_READINESS=PASS',
+  'sourceCommit = $gitHead',
+  'windowsSaveCloseRelaunchContinue = "NOT_YET_VERIFIED"',
+]) {
+  assert(chapter1WindowsBuild.includes(marker),
+    'Chapter 1 Windows candidate lane missing evidence marker: ' + marker);
+}
+assert(chapter1WindowsBuild.includes('git status --porcelain --untracked-files=no'),
+  'Chapter 1 Windows candidate must reject tracked source drift');
 
 console.log('Aetherwake Chapter 1 convergence contract: PASS');
