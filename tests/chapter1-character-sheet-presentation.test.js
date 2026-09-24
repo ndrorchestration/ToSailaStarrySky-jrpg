@@ -22,6 +22,12 @@ for (const stat of ['wits','presence','spirit','might','grace']) {
 }
 assert(sheet.includes('const gy = sheet.gearY + 22 + i * 42;'),
   'gear rows must calculate their own y-coordinate');
+assert(sheet.includes('abilitiesY: py + 220') && sheet.includes('resourcesY: py + 360'),
+  'character sheet must leave room for all production stats before abilities/resources');
+for (const liveResource of ['liveAether','liveAetherMax','liveHeat','liveHeatMax','liveCharge']) {
+  assert(sheet.includes(liveResource),
+    'character sheet must render live resource state: ' + liveResource);
+}
 assert(!sheet.includes('Mycelial tattoos'),
   'Ender portrait fallback must not retain superseded tattoo prototype');
 assert(!sheet.includes('Trimmed beard'),
