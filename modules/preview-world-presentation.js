@@ -9,6 +9,7 @@
   const VERSION = '0.1.0';
   const CELL = 16;
   const MAP = 32;
+  const SKY_LANES_BACKGROUND = 'assets/preview/aetherwake-sky-lanes.svg';
   const TILE_IDS = Object.freeze({ 1: 'cliff', 2: 'meadow', 3: 'crate', 4: 'float', 5: 'water', 6: 'loreUnknown' });
   const INITIAL_ACTOR_CELLS = new Set(spriteFootprintCells(16, 16));
   const DECORATION_PATCHES = Object.freeze([
@@ -54,6 +55,9 @@
   let lastPlayerTile = null;
   let lastPlayerMovementTime = -Infinity;
   let playerWalkStartedAt = null;
+  let skyLanesBackground = null;
+  let skyLanesBackgroundRequested = false;
+  let skyLanesBackgroundReady = false;
 
   function playerWalkFrame(player, now) {
     if (!Number.isFinite(player.tileX) || !Number.isFinite(player.tileY)) return 0;
@@ -104,6 +108,25 @@
   }
 
   function drawBackdrop(w, h, now) {
+    if (!skyLanesBackgroundRequested && typeof loadImage === 'function') {
+      skyLanesBackgroundRequested = true;
+      try {
+        skyLanesBackground = loadImage(
+          SKY_LANES_BACKGROUND,
+          () => { skyLanesBackgroundReady = true; },
+          () => { skyLanesBackground = null; }
+        );
+      } catch (error) {
+        skyLanesBackground = null;
+      }
+    }
+    if (skyLanesBackgroundReady && skyLanesBackground) {
+      push();
+      image(skyLanesBackground, 0, 0, w, h);
+      pop();
+      return;
+    }
+
     noStroke();
     const bands = [
       [38, 88, 181], [43, 126, 216], [71, 180, 231],
@@ -293,7 +316,7 @@
     }
     if (!cachedMap) return false;
 
-    const zoom = 1.5;
+    const zoom = 1.2;
     const player = input.player || { px: 16 * CELL, py: 16 * CELL };
     const focusX = Number.isFinite(player.px) ? player.px + CELL / 2 : 16 * CELL;
     const focusY = Number.isFinite(player.py) ? player.py + CELL / 2 : 16 * CELL;
