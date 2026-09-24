@@ -107,7 +107,7 @@
     "test:persistence-roundtrip:node": "node tests/preview-persistence-roundtrip-node.test.js",
     "test:chapter1-convergence": "node tests/chapter1-convergence-contract.test.js",
     "test:chapter1-persistence": "node tests/chapter1-persistence-ux.test.js",
-    "test:chapter1-core": "npm run test:chapter1-convergence && npm run test:chapter1-world && npm run test:chapter1-balance && npm run test:chapter1-audio-routing && npm run test:persistence-foundation",
+    "test:chapter1-core": "npm run test:chapter1-convergence && npm run test:chapter1-world && npm run test:chapter1-balance && npm run test:chapter1-audio-routing && npm run test:chapter1-character-sheet && npm run test:persistence-foundation",
     "test:chapter1-world": "node tests/chapter1-world-lifecycle.test.js",
     "test:chapter1-browser": "node tests/chapter1-route-playwright.js",
     "test:chapter1-balance": "node tests/chapter1-combat-balance.test.js",
@@ -118,6 +118,7 @@
     "test:chapter1-soundtrack-ready": "node tests/chapter1-soundtrack-ready.test.js",
     "admit:chapter1-soundtrack:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\admit-chapter1-soundtrack.ps1",
     "test:chapter1-audio-routing": "node tests/chapter1-scene-music.test.js",
-    "admit:chapter1-audio:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\admit-chapter1-audio.ps1"
+    "admit:chapter1-audio:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\admit-chapter1-audio.ps1",
+    "test:chapter1-character-sheet": "node tests/chapter1-character-sheet-presentation.test.js"
   }
 }
