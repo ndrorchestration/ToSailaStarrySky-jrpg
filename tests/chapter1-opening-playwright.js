@@ -67,6 +67,16 @@ function createServer() {
     for (let i = 0; i < count; i++) await page.keyboard.press(key);
   }
 
+  async function finishDialogue() {
+    for (let i = 0; i < 10; i++) {
+      const state = await page.evaluate(() => window.gameState);
+      if (state !== 'dialogue') break;
+      await page.keyboard.press('e');
+    }
+    await page.waitForFunction(() => window.gameState === 'world',
+      undefined, { timeout: 5000 });
+  }
+
   try {
     const response = await page.goto(
       'http://127.0.0.1:' + PORT + '/index-embedded.html',
@@ -191,8 +201,50 @@ function createServer() {
     assert.strictEqual(handoff.quest.crossingHazards.length, 4,
       'Chapter I world must own the canonical four-hazard Crossing route');
 
+    // Continue with actual world movement: Ender starts at (16,16).
+    // Signal contact 1: The Core at (22,10).
+    await pressMany('ArrowRight', 6);
+    await pressMany('ArrowUp', 6);
+    await page.keyboard.press('e');
+    await page.waitForFunction(() => window.gameState === 'dialogue',
+      undefined, { timeout: 3000 });
+    await finishDialogue();
+
+    let signal = await page.evaluate(() => window._world.getQuestState());
+    assert.strictEqual(signal.hooksCompleted, 1);
+    assert.strictEqual(signal.state, 'signal');
+    assert.strictEqual(signal.signalHooks[0].done, true);
+
+    // Signal contact 2: Lyra at (8,20).
+    await pressMany('ArrowLeft', 14);
+    await pressMany('ArrowDown', 10);
+    await page.keyboard.press('e');
+    await page.waitForFunction(() => window.gameState === 'dialogue',
+      undefined, { timeout: 3000 });
+    await finishDialogue();
+
+    signal = await page.evaluate(() => window._world.getQuestState());
+    assert.strictEqual(signal.hooksCompleted, 2);
+    assert.strictEqual(signal.state, 'signal');
+    assert.strictEqual(signal.signalHooks[2].done, true);
+
+    // Signal contact 3: Verrick at (26,24). The third hook must unlock CROSSING.
+    await pressMany('ArrowRight', 18);
+    await pressMany('ArrowDown', 4);
+    await page.keyboard.press('e');
+    await page.waitForFunction(() => window.gameState === 'dialogue',
+      undefined, { timeout: 3000 });
+    await finishDialogue();
+
+    signal = await page.evaluate(() => window._world.getQuestState());
+    assert.strictEqual(signal.hooksCompleted, 3);
+    assert.strictEqual(signal.signalHooks[1].done, true);
+    assert.strictEqual(signal.state, 'crossing',
+      'all three authored signal contacts must unlock CROSSING');
+    assert.strictEqual(signal.hazardsCompleted, 0);
+
     assert.deepStrictEqual(errors, [], errors.join('\n'));
-    console.log('Aetherwake Chapter 1 authored opening browser route: PASS');
+    console.log('Aetherwake Chapter 1 opening + SIGNAL browser route: PASS');
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
