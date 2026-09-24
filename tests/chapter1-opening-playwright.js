@@ -349,8 +349,85 @@ function createServer() {
     assert.strictEqual(crossing.npcsMet.length, 0,
       'CONTACT must begin with all four post-Crossing voices still required');
 
+    // CONTACT voice 1: Ionia at (7,7), from Corporate Intercept return (12,9).
+    await pressMany('ArrowLeft', 5);
+    await pressMany('ArrowUp', 2);
+    await page.keyboard.press('e');
+    await page.waitForFunction(() => window.gameState === 'dialogue',
+      undefined, { timeout: 3000 });
+    await finishDialogue();
+    let contact = await page.evaluate(() => window._world.getQuestState());
+    assert.strictEqual(contact.npcsMet.length, 1);
+    assert.strictEqual(contact.state, 'contact');
+
+    // CONTACT voice 2: The Core at (22,10).
+    await pressMany('ArrowRight', 15);
+    await pressMany('ArrowDown', 3);
+    await page.keyboard.press('e');
+    await page.waitForFunction(() => window.gameState === 'dialogue',
+      undefined, { timeout: 3000 });
+    await finishDialogue();
+    contact = await page.evaluate(() => window._world.getQuestState());
+    assert.strictEqual(contact.npcsMet.length, 2);
+    assert.strictEqual(contact.state, 'contact');
+
+    // CONTACT voice 3: Lyra at (8,20).
+    await pressMany('ArrowLeft', 14);
+    await pressMany('ArrowDown', 10);
+    await page.keyboard.press('e');
+    await page.waitForFunction(() => window.gameState === 'dialogue',
+      undefined, { timeout: 3000 });
+    await finishDialogue();
+    contact = await page.evaluate(() => window._world.getQuestState());
+    assert.strictEqual(contact.npcsMet.length, 3);
+    assert.strictEqual(contact.state, 'contact');
+
+    // CONTACT voice 4: Verrick at (26,24). This must unlock CHOICE.
+    await pressMany('ArrowRight', 18);
+    await pressMany('ArrowDown', 4);
+    await page.keyboard.press('e');
+    await page.waitForFunction(() => window.gameState === 'dialogue',
+      undefined, { timeout: 3000 });
+    await finishDialogue();
+    contact = await page.evaluate(() => window._world.getQuestState());
+    assert.strictEqual(contact.npcsMet.length, 4);
+    assert.strictEqual(contact.state, 'choice',
+      'all four post-Crossing voices must unlock CHOICE');
+
+    // Choose Path C through the real numeric player input.
+    await page.keyboard.press('3');
+    await page.waitForFunction(() =>
+      window._world.getQuestState().state === 'wake',
+      undefined, { timeout: 3000 });
+
+    const wake = await page.evaluate(() => window._world.getQuestState());
+    assert.strictEqual(wake.choicePath, 'path_c');
+    assert(['strong','strained'].includes(wake.choiceVariant),
+      'final choice did not use deterministic strong/strained resolution');
+    assert.strictEqual(wake.choiceVariant, 'strained',
+      'baseline Chapter I Path C outcome drifted unexpectedly');
+    assert.strictEqual(wake.wakeEpilogueId, 'epiline_4',
+      'baseline Path C should resolve to Above-Breaker before closure');
+    assert(typeof wake.choiceOutcomeText === 'string' && wake.choiceOutcomeText.length > 40,
+      'WAKE did not expose the authored Path C consequence');
+
+    // WAKE is a deliberate final beat; Enter closes the chapter into DONE.
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window._world.getQuestState().state === 'done',
+      undefined, { timeout: 3000 });
+
+    const ending = await page.evaluate(() => ({
+      quest: window._world.getQuestState(),
+      gameState: window.gameState,
+    }));
+    assert.strictEqual(ending.quest.state, 'done');
+    assert.strictEqual(ending.quest.wakeEpilogueId, 'epiline_4');
+    assert(ending.quest.journal.some(entry => /The ending found you/.test(entry.text)),
+      'final Chapter I closure was not journaled');
+
     assert.deepStrictEqual(errors, [], errors.join('\n'));
-    console.log('Aetherwake Chapter 1 opening + SIGNAL + all four real Crossing victories: PASS');
+    console.log('Aetherwake complete Chapter 1 browser route: PASS');
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
