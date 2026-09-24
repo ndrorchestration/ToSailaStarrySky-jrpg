@@ -2906,8 +2906,14 @@ function initPlayer() {
     xpToNext: 50,
     unlockedAbilities: ['uncoverTruth', 'sharedDream', 'mycelialLedger'],
     equipment: { staff: null, backpack: null },
-    class: 'ender'
+    class: 'ender',
+    id: 'ender'
   };
+  if (!window.AetherPartyState ||
+      typeof window.AetherPartyState.refreshProductionStats !== 'function') {
+    throw new Error('WORLD_PLAYER_PRODUCTION_STATS_UNAVAILABLE');
+  }
+  window.AetherPartyState.refreshProductionStats(player);
   World.player = player;
 }
 
