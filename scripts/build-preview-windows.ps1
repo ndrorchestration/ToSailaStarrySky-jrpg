@@ -14,6 +14,9 @@ if ($LASTEXITCODE -ne 0) { throw "npm ci failed with code $LASTEXITCODE." }
 npm run test:desktop-package
 if ($LASTEXITCODE -ne 0) { throw "desktop package contract failed with code $LASTEXITCODE." }
 
+npm run test:preview-world-presentation
+if ($LASTEXITCODE -ne 0) { throw "Preview world presentation test failed with code $LASTEXITCODE." }
+
 npm run package:windows
 if ($LASTEXITCODE -ne 0) { throw "Windows package build failed with code $LASTEXITCODE." }
 
