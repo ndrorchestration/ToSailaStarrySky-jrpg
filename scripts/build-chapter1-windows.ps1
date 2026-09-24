@@ -51,6 +51,12 @@ if ($LASTEXITCODE -ne 0) {
 npm run test:desktop-package
 if ($LASTEXITCODE -ne 0) { throw "Desktop package contract failed with code $LASTEXITCODE." }
 
+$distPath = Join-Path $repo "..\aetherwake-dist"
+if (Test-Path -LiteralPath $distPath) {
+  Remove-Item -LiteralPath $distPath -Recurse -Force
+}
+Write-Host "CHAPTER1_DIST_CLEAN=PASS"
+
 npm run package:windows
 if ($LASTEXITCODE -ne 0) { throw "Windows package build failed with code $LASTEXITCODE." }
 
@@ -74,8 +80,25 @@ if (-not $exeFile) {
 
 $package = Get-Item -LiteralPath $exeFile.DirectoryName
 $exe = $exeFile.FullName
+
+$buildProvenance = [ordered]@{
+  schemaVersion = 1
+  kind = "AETHERWAKE_CHAPTER1_BUILD_PROVENANCE"
+  sourceCommit = $gitHead
+  sourceBranch = (git branch --show-current).Trim()
+  builtAtUtc = [DateTime]::UtcNow.ToString("o")
+}
+$provenancePath = Join-Path $package.FullName "CHAPTER1_BUILD_PROVENANCE.json"
+$buildProvenance | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $provenancePath -Encoding UTF8
+
+$provenanceCheck = Get-Content -LiteralPath $provenancePath -Raw | ConvertFrom-Json
+if ($provenanceCheck.sourceCommit -ne $gitHead) {
+  throw "Packaged build provenance does not match exact Git source."
+}
+
 Write-Host "CHAPTER1_PACKAGE_ROOT=$($package.FullName)"
 Write-Host "CHAPTER1_PACKAGE_EXE=$exe"
+Write-Host "CHAPTER1_PACKAGE_PROVENANCE=$provenancePath"
 
 $marker = Join-Path $env:TEMP "aetherwake-chapter1-ready.json"
 if (Test-Path -LiteralPath $marker) {
@@ -212,6 +235,8 @@ $evidence = [ordered]@{
   titleAudioReady = "PASS"
   chapter1SoundtrackReady = "PASS"
   desktopPackageContract = "PASS"
+  buildProvenance = "PASS"
+  buildProvenanceFile = "CHAPTER1_BUILD_PROVENANCE.json"
   desktopRuntimeReady = $true
   desktopFirstFrame = $true
   canvas = "960x640"
