@@ -206,6 +206,11 @@ for (const marker of [
 }
 assert(chapter1WindowsBuild.includes('git status --porcelain --untracked-files=no'),
   'Chapter 1 Windows candidate must reject tracked source drift');
+assert(chapter1WindowsBuild.includes('CHAPTER1_DIST_CLEAN=PASS'),
+  'Chapter 1 Windows candidate must clean stale distribution output before packaging');
+assert(chapter1WindowsBuild.includes('CHAPTER1_BUILD_PROVENANCE.json') &&
+       chapter1WindowsBuild.includes('sourceCommit = $gitHead'),
+  'Chapter 1 Windows candidate must embed exact source provenance into the package');
 assert(runtime.includes('function runChapter1PersistenceSmokeOnce()'),
   'desktop runtime must expose the isolated Chapter 1 persistence smoke seam');
 assert.strictEqual(packageJson.scripts['admit:title-audio'], 'node scripts/admit-title-audio.js',
