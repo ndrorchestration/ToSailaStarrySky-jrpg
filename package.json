@@ -121,6 +121,7 @@
     "admit:chapter1-audio:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\admit-chapter1-audio.ps1",
     "test:chapter1-character-sheet": "node tests/chapter1-character-sheet-presentation.test.js",
     "verify:chapter1:local": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\verify-chapter1-local.ps1",
-    "test:chapter1-visual": "npm run test:title-visual && npm run test:first-wake-visual && npm run test:dialogue-visual && npm run test:combat-visual && npm run test:flight-visual && npm run test:visual-package-integration && npm run test:16bit-world-art && npm run test:chapter1-character-sheet"
+    "test:chapter1-visual": "npm run test:title-visual && npm run test:first-wake-visual && npm run test:dialogue-visual && npm run test:combat-visual && npm run test:flight-visual && npm run test:visual-package-integration && npm run test:16bit-world-art && npm run test:chapter1-character-sheet",
+    "verify:chapter1:release-evidence": "node scripts/verify-chapter1-release-evidence.js"
   }
 }
