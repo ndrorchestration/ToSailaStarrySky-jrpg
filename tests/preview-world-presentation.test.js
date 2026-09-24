@@ -8,13 +8,17 @@ const vm = require('vm');
 const root = path.resolve(__dirname, '..');
 const file = path.join(root, 'modules', 'preview-world-presentation.js');
 const source = fs.readFileSync(file, 'utf8');
+const skyBackdrop = fs.readFileSync(path.join(root, 'assets', 'preview', 'aetherwake-sky-lanes.svg'), 'utf8');
 const worldSource = fs.readFileSync(path.join(root, 'modules', 'world.js'), 'utf8');
 const tileSource = fs.readFileSync(path.join(root, 'modules', 'pixel-tiles.js'), 'utf8');
 const spriteSource = fs.readFileSync(path.join(root, 'modules', 'pixel-sprites.js'), 'utf8');
 const calls = {
   images: [], imageCreates: 0, rects: [], translates: [], scales: [], fillColors: [],
-  spriteFrames: [], spriteScales: [], shadowScales: [],
+  spriteFrames: [], spriteScales: [], shadowScales: [], backgroundRequests: [],
+  backgroundImage: null, completeBackgroundLoad: null,
 };
+assert.match(skyBackdrop, /<image[^>]+href="data:image\/webp;base64,/,
+  'the scenic sky-lanes background should be self-contained for offline desktop builds');
 
 const sandbox = {
   window: {},
@@ -29,6 +33,12 @@ const sandbox = {
       loadPixels() {},
       updatePixels() {},
     };
+  },
+  loadImage(assetPath, onLoad) {
+    calls.backgroundRequests.push(assetPath);
+    calls.backgroundImage = { assetPath, width: 1536, height: 1024 };
+    calls.completeBackgroundLoad = onLoad;
+    return calls.backgroundImage;
   },
   noStroke() {}, noSmooth() {}, fill(...color) { calls.fillColors.push(color); }, rect(x, y, w, h) { calls.rects.push({ x, y, w, h }); },
   push() {}, pop() {}, scale(...args) { calls.scales.push(args); },
@@ -89,6 +99,8 @@ assert.strictEqual(presentation.draw({
 }), true);
 assert.strictEqual(calls.imageCreates, 1, 'tile map should be rasterized once, not redrawn cell-by-cell each frame');
 assert(calls.images.length >= 1, 'cached tile map was not composited into the world scene');
+assert.deepStrictEqual(calls.backgroundRequests, ['assets/preview/aetherwake-sky-lanes.svg'],
+  'the authored Aetherwake sky-lanes vista should load as the scenic world backdrop');
 assert.deepStrictEqual(calls.fillColors.slice(0, 5), [
   [38, 88, 181], [43, 126, 216], [71, 180, 231], [177, 227, 237], [255, 222, 166],
 ], 'the backdrop should move from vivid cobalt into a warm JRPG horizon');
@@ -96,8 +108,8 @@ for (const color of [[55, 187, 111], [223, 156, 77], [60, 229, 218, 230]]) {
   assert(calls.fillColors.some(fill => fill.length === color.length && fill.every((channel, index) => channel === color[index])),
     'floating islands should have vivid greenery, warm metal, and luminous aether accents');
 }
-assert.deepStrictEqual(calls.scales[0], [1.5], 'world framing should make the playable tiles read clearly');
-assert.deepStrictEqual(calls.translates[0], [84, -76], 'camera should center Ender at the chosen world zoom');
+assert.deepStrictEqual(calls.scales[0], [1.2], 'world framing should leave room for the scenic sky vista');
+assert.deepStrictEqual(calls.translates[0], [163, 3], 'camera should center Ender inside the scenic frame');
 assert(calls.spriteScales.slice(0, 4).every(scale => scale === 2),
   'party sprites should preserve their pixel-art scale at the larger world camera scale');
 assert.deepStrictEqual(calls.shadowScales.slice(0, 4), [2, 2, 2, 2],
@@ -197,8 +209,8 @@ const priorFrameCount = calls.spriteFrames.length;
 player.tileX += 1;
 player.px += 16;
 presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1032 });
-assert.deepStrictEqual(calls.translates[2], [60, -76],
-  'a one-tile walk should move the zoomed camera by 24 logical pixels');
+assert.deepStrictEqual(calls.translates[2], [144, 3],
+  'a one-tile walk should keep Ender centered over the scenic map frame');
 presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1162 });
 player.tileX += 1;
 player.px += 16;
@@ -254,5 +266,24 @@ for (const [x, y, label] of [[7, 19, 'Lyra'], [7, 20, 'Lyra'], [25, 23, 'Verrick
   assert.deepStrictEqual(tilePixelsAt(x, y, realMapAtlas), tilePixelsAt(18, 17, realMapAtlas),
     label + ' sprite footprint on the playable map must stay free of scenic overlays');
 }
+
+assert.strictEqual(typeof calls.completeBackgroundLoad, 'function',
+  'the world renderer should retain the scenic image load callback');
+calls.completeBackgroundLoad();
+const backgroundFrameStart = calls.images.length;
+presentation.draw({
+  groundLayer: actualGround,
+  player: actualWorld.player,
+  npcs: actualWorld.npcs,
+  width: 960,
+  height: 640,
+  now: 1816,
+});
+assert.strictEqual(calls.images.length, backgroundFrameStart + 2,
+  'a loaded scenic background should render behind the cached gameplay map');
+assert.strictEqual(calls.images[backgroundFrameStart][0], calls.backgroundImage,
+  'the generated sky-lanes artwork must render first, behind the map');
+assert.strictEqual(calls.images[backgroundFrameStart + 1][0], realMapAtlas,
+  'the tile map must remain the foreground gameplay layer');
 
 console.log('Aetherwake Preview world presentation: PASS');
