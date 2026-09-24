@@ -500,10 +500,10 @@ window.AetherUI = function(p, C) {
     textFont('VT323');
     textSize(12);
     const abilities = [
-      { name: 'Uncover Truth', desc: '2D6+Wits — reveal enemy weakness' },
-      { name: 'Shared Dream', desc: '2D6+Spirit — ally +1 or heal 1-2 Vit' },
-      { name: 'Mycelial Ledger', desc: '2D6+Presence — gain scrap/aether' },
-      { name: 'Resonator Staff', desc: 'EMP 1d6+2, 2 charges, 10ft/60ft beam' },
+      { name: 'Uncover Truth', desc: 'Analyze weakness with Wits' },
+      { name: 'Mycelial Ledger', desc: 'Read the commons network' },
+      { name: 'Hold', desc: 'Recharge the Resonator Staff' },
+      { name: 'Resonator Staff', desc: 'Formula EMP strike — 2 charges' },
     ];
     for (let i = 0; i < abilities.length; i++) {
       const a = abilities[i];
