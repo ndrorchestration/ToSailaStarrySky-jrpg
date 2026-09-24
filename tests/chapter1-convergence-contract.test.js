@@ -211,6 +211,10 @@ assert(chapter1WindowsBuild.includes('CHAPTER1_DIST_CLEAN=PASS'),
 assert(chapter1WindowsBuild.includes('CHAPTER1_BUILD_PROVENANCE.json') &&
        chapter1WindowsBuild.includes('sourceCommit = $gitHead'),
   'Chapter 1 Windows candidate must embed exact source provenance into the package');
+assert(chapter1WindowsBuild.includes('candidateProvenanceCheck.sourceCommit -ne $gitHead'),
+  'Chapter 1 Windows candidate must verify provenance after copying the packaged runtime');
+assert(chapter1WindowsBuild.includes('packagedProvenanceVerified = $true'),
+  'Chapter 1 release evidence must record packaged provenance verification');
 assert(runtime.includes('function runChapter1PersistenceSmokeOnce()'),
   'desktop runtime must expose the isolated Chapter 1 persistence smoke seam');
 assert.strictEqual(packageJson.scripts['admit:title-audio'], 'node scripts/admit-title-audio.js',
