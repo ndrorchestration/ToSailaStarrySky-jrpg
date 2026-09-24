@@ -22,5 +22,75 @@
       "sourceClass": "user-owned ChatGPT Library file",
       "repositoryTransfer": "pending-binary-handoff"
     }
+  },
+  "chapter1Tracks": [
+    {
+      "id": "first-wake-cinematic",
+      "title": "Amonigio Umulula",
+      "sourceFilename": "Amonigio Umulula.mp3",
+      "canonicalPath": "assets/audio/amonigio-umulula.mp3",
+      "intendedUse": [
+        "opening",
+        "wake-resolution",
+        "cinematic-progression"
+      ],
+      "sourceVerification": {
+        "sha256": "bce86fc575323b99573e420dcb6c0d19bfe1eb8e6ba637edc2b72c1edf20cd98",
+        "bytes": 5364037,
+        "durationSeconds": 234.014,
+        "channels": 2,
+        "sampleRateHz": 48000
+      },
+      "repositoryStatus": "source-verified-repository-missing",
+      "runtimeRegistration": false
+    },
+    {
+      "id": "nocturnal-resolve",
+      "title": "Nocturnal Resolve",
+      "sourceFilename": "Nocturnal Resolve.mp3",
+      "canonicalPath": "assets/audio/nocturnal-resolve.mp3",
+      "intendedUse": [
+        "combat",
+        "crossing-hazards",
+        "danger"
+      ],
+      "sourceVerification": {
+        "sha256": "c8a35d42762705011f8a9eeefebea91736b333677a9b1117087490bbf0dbc65c",
+        "bytes": 6500031,
+        "durationSeconds": 274.414,
+        "channels": 2,
+        "sampleRateHz": 48000
+      },
+      "repositoryStatus": "source-verified-repository-missing",
+      "runtimeRegistration": false
+    },
+    {
+      "id": "solar-punk-airship",
+      "title": "Solar Punk Airship",
+      "sourceFilename": "Solar Punk Airship.mp3",
+      "canonicalPath": "assets/audio/solar-punk-airship.mp3",
+      "intendedUse": [
+        "world-exploration",
+        "airship",
+        "travel"
+      ],
+      "sourceVerification": {
+        "sha256": "d5d1561c1ef056978342732e363df5411860611739fb485bb707c6e98800335c",
+        "bytes": 4432217,
+        "durationSeconds": 187.574,
+        "channels": 2,
+        "sampleRateHz": 48000
+      },
+      "repositoryStatus": "source-verified-repository-missing",
+      "runtimeRegistration": false
+    }
+  ],
+  "soundtrackPolicy": {
+    "title": "Skyward Arpeggio remains exclusive to boot/menu.",
+    "opening": "Amonigio Umulula",
+    "exploration": "Solar Punk Airship",
+    "airship": "Solar Punk Airship",
+    "combat": "Nocturnal Resolve",
+    "transitions": "Scene music is non-fatal and may not block boot/input/progression if an asset is absent."
   }
 }
