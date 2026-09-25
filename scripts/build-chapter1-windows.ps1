@@ -391,7 +391,7 @@ if ($installerEngine -eq "NSIS") {
   # IExpress does not honor NSIS /D= semantics. The embedded PowerShell
   # installer inherits this override and installs into the isolated smoke root.
   $env:AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE = $installerSmokeRoot
-  $installerArgs = @("/Q")
+  $installerArgs = @("/Q:U")
 }
 
 try {
