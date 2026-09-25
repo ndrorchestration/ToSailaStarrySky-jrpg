@@ -124,6 +124,8 @@ try {
     schemaVersion: 1,
     candidate: 'Aetherwake Chapter 1',
     sourceCommit,
+    releaseToolCommit: sourceCommit,
+    releaseOnlyDeltaVerified: true,
     generatedAtUtc: '2026-09-24T20:00:00.000Z',
     chapter1Core: 'PASS',
     chapter1Visual: 'PASS',
@@ -186,6 +188,13 @@ try {
   assert(provenanceFail.stderr.includes('portable ZIP embedded sourceCommit does not match release sourceCommit'));
 
   writeCandidateZip(sourceCommit);
+  evidence.releaseOnlyDeltaVerified = false;
+  writeEvidenceAndManifest();
+  const deltaAttestationFail = runVerifier();
+  assert.notStrictEqual(deltaAttestationFail.status, 0, 'missing release-only delta attestation must fail');
+  assert(deltaAttestationFail.stderr.includes('releaseOnlyDeltaVerified must be true'));
+
+  evidence.releaseOnlyDeltaVerified = true;
   evidence.packagedTreeSha256 = 'invalid';
   writeEvidenceAndManifest();
   const treeHashFail = runVerifier();
