@@ -217,6 +217,11 @@ assert(chapter1WindowsBuild.includes('packagedProvenanceVerified = $true'),
   'Chapter 1 release evidence must record packaged provenance verification');
 assert(chapter1WindowsBuild.includes('Aetherwake-Chapter1-$shortHead-Setup.exe'),
   'Chapter 1 Windows candidate must produce a commit-bound installer');
+assert(chapter1WindowsBuild.includes('CHAPTER1_INSTALLER_ENGINE=$installerEngine'),
+  'Chapter 1 Windows candidate must record which no-admin installer engine was used');
+assert(chapter1WindowsBuild.includes('IEXPRESS') &&
+       chapter1WindowsBuild.includes('System32\\iexpress.exe'),
+  'Chapter 1 Windows candidate must support built-in IExpress when NSIS is unavailable');
 assert(chapter1WindowsBuild.includes('CHAPTER1_INSTALLER_RENDER_READINESS=PASS'),
   'Chapter 1 Windows candidate must launch and verify the installed executable');
 assert(chapter1WindowsBuild.includes('installerProvenanceVerified = $true'),
@@ -287,8 +292,8 @@ assert(chapter1WindowsWorkflow.includes('actions/upload-artifact@ea165f8d65b6e75
   'Chapter 1 Windows workflow must pin upload-artifact');
 assert(chapter1WindowsWorkflow.includes('softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65'),
   'Chapter 1 Windows workflow must pin release publishing action');
-assert(chapter1WindowsWorkflow.includes('choco install nsis -y --no-progress'),
-  'Chapter 1 Windows workflow must install NSIS for one-click installer production');
+assert(!chapter1WindowsWorkflow.includes('choco install nsis -y --no-progress'),
+  'Chapter 1 Windows workflow must not require privileged NSIS installation');
 assert(chapter1WindowsWorkflow.includes('steps.candidate.outputs.installer'),
   'Chapter 1 Windows workflow must publish the verified installer');
 assert.strictEqual(packageJson.scripts['verify:chapter1:release-evidence'],
