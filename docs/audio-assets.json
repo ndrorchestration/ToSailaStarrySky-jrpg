@@ -10,9 +10,9 @@
       "sha256": "7ac5fe9c2ee0bc8d0cbfa36441dbb7783dbe2ef0cc5e2ee665086a527a7bc350",
       "bytes": 4233081
     },
-    "repositoryStatus": "source-verified-repository-missing",
+    "repositoryStatus": "admitted",
     "runtimeController": "modules/title-music.js",
-    "runtimeRegistration": false,
+    "runtimeRegistration": true,
     "packagingRule": "assets/** stages to www/assets/**",
     "sourceRecovery": {
       "status": "exact-source-recovered-and-reverified",
@@ -20,7 +20,13 @@
       "sha256": "7ac5fe9c2ee0bc8d0cbfa36441dbb7783dbe2ef0cc5e2ee665086a527a7bc350",
       "bytes": 4233081,
       "sourceClass": "user-owned ChatGPT Library file",
-      "repositoryTransfer": "pending-binary-handoff"
+      "repositoryTransfer": "completed"
+    },
+    "admission": {
+      "admittedAt": "2026-09-25T00:01:14.054Z",
+      "verifiedSha256": "7ac5fe9c2ee0bc8d0cbfa36441dbb7783dbe2ef0cc5e2ee665086a527a7bc350",
+      "verifiedBytes": 4233081,
+      "method": "scripts/admit-title-audio.js"
     }
   },
   "chapter1Tracks": [
@@ -41,8 +47,8 @@
         "channels": 2,
         "sampleRateHz": 48000
       },
-      "repositoryStatus": "source-verified-repository-missing",
-      "runtimeRegistration": false
+      "repositoryStatus": "admitted",
+      "runtimeRegistration": true
     },
     {
       "id": "nocturnal-resolve",
@@ -61,8 +67,8 @@
         "channels": 2,
         "sampleRateHz": 48000
       },
-      "repositoryStatus": "source-verified-repository-missing",
-      "runtimeRegistration": false
+      "repositoryStatus": "admitted",
+      "runtimeRegistration": true
     },
     {
       "id": "solar-punk-airship",
@@ -81,8 +87,8 @@
         "channels": 2,
         "sampleRateHz": 48000
       },
-      "repositoryStatus": "source-verified-repository-missing",
-      "runtimeRegistration": false
+      "repositoryStatus": "admitted",
+      "runtimeRegistration": true
     }
   ],
   "soundtrackPolicy": {
@@ -118,9 +124,10 @@
         "sampleRateHz": 48000,
         "estimatedTempoBpm": 127.84
       },
-      "repositoryStatus": "source-verified-repository-missing",
-      "runtimeRegistration": false,
-      "designNote": "Use as Ender's identity cue, not as generic exploration music. Preserve its recurring bright motif as the First Note leitmotif for later arrangements."
+      "repositoryStatus": "admitted",
+      "runtimeRegistration": true,
+      "designNote": "Use as Ender's identity cue, not as generic exploration music. Preserve its recurring bright motif as the First Note leitmotif for later arrangements.",
+      "id": "open-sky-signal"
     }
   ]
 }
