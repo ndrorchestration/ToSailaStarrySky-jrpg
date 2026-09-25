@@ -53,13 +53,17 @@ try {
     installerProvenanceVerified: true,
     installerSaveCloseRelaunchContinue: 'PASS',
     installerPersistenceStorageType: 'nw-file',
+    installerRestoredGameState: 'world',
     installerRestoredSlot: 'manual-6',
+    installerRestoredTileX: 17,
+    installerRestoredTileY: 16,
     installerRestoredQuestState: 'signal',
     packagedProvenanceSourceCommit: 'a'.repeat(40),
     packagedProvenanceVerified: true,
     windowsSaveCloseRelaunchContinue: 'PASS',
     persistenceStorageType: 'nw-file',
     persistenceSlot: 'manual-6',
+    restoredGameState: 'world',
     restoredTileX: 17,
     restoredTileY: 16,
     restoredQuestState: 'signal',
@@ -75,6 +79,13 @@ try {
   assert.strictEqual(pass.status, 0, pass.stderr || pass.stdout);
   assert(pass.stdout.includes('CHAPTER1_RELEASE_EVIDENCE_VERIFY=PASS'));
 
+  evidence.installerRestoredTileX = 99;
+  fs.writeFileSync(evidencePath, JSON.stringify(evidence, null, 2) + '\n');
+  const coordinateFail = runVerifier();
+  assert.notStrictEqual(coordinateFail.status, 0, 'installed coordinate mismatch must fail release verification');
+  assert(coordinateFail.stderr.includes('installed persistence coordinates must restore tile 17,16'));
+
+  evidence.installerRestoredTileX = 17;
   evidence.installerRestoredQuestState = 'contact';
   fs.writeFileSync(evidencePath, JSON.stringify(evidence, null, 2) + '\n');
   const semanticFail = runVerifier();
