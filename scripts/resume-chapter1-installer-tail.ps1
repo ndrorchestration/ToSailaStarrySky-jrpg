@@ -9,6 +9,31 @@ Set-Location $repo
 
 Write-Host "== Aetherwake Chapter 1 installer-tail resume =="
 
+function Stop-ProcessAndWait($Process, [int]$TimeoutMs = 5000) {
+  if (-not $Process) { return }
+  try {
+    if (-not $Process.HasExited) {
+      Stop-Process -Id $Process.Id -Force -ErrorAction SilentlyContinue
+    }
+    [void]$Process.WaitForExit($TimeoutMs)
+  } catch {
+    # Cleanup retry below remains the final authority for file-release timing.
+  }
+}
+
+function Remove-PathWithRetry([string]$Path, [int]$Attempts = 20, [int]$DelayMs = 250) {
+  if (-not $Path -or -not (Test-Path -LiteralPath $Path)) { return }
+  for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+    try {
+      Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop
+      return
+    } catch {
+      if ($attempt -eq $Attempts) { throw }
+      Start-Sleep -Milliseconds $DelayMs
+    }
+  }
+}
+
 $gitHead = (git rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or -not $gitHead) {
   throw "Unable to resolve Git HEAD."
@@ -372,7 +397,7 @@ try {
   }
 } finally {
   if ($game -and -not $game.HasExited) {
-    Stop-Process -Id $game.Id -Force
+    Stop-ProcessAndWait $game
   }
   Remove-Item Env:AETHERWAKE_DESKTOP_SMOKE_MARKER -ErrorAction SilentlyContinue
 }
@@ -413,7 +438,7 @@ function Invoke-InstalledPersistence([string]$Mode) {
     return $result
   } finally {
     if ($phase -and -not $phase.HasExited) {
-      Stop-Process -Id $phase.Id -Force
+      Stop-ProcessAndWait $phase
     }
     Remove-Item Env:AETHERWAKE_CHAPTER1_PERSISTENCE_MODE -ErrorAction SilentlyContinue
     Remove-Item Env:AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER -ErrorAction SilentlyContinue
@@ -498,7 +523,7 @@ Write-Host "CHAPTER1_RELEASE_EVIDENCE_INDEPENDENT_VERIFY=PASS"
 # Keep failure-state material for diagnosis; clean only after the complete tail passes.
 foreach ($cleanupPath in @($installRoot, $persistenceRoot)) {
   if ($cleanupPath -and (Test-Path -LiteralPath $cleanupPath)) {
-    Remove-Item -LiteralPath $cleanupPath -Recurse -Force
+    Remove-PathWithRetry $cleanupPath
   }
 }
 foreach ($debris in @($nsi, $sed, $installScript)) {
