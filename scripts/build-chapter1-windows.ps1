@@ -261,14 +261,14 @@ Page instfiles
 Section "Aetherwake Chapter 1" SEC_MAIN
   SetOutPath "$INSTDIR"
   File /r "__SOURCE__\*"
+  WriteUninstaller "$INSTDIR\Uninstall.exe"
+  ReadEnvStr $0 "AETHERWAKE_CHAPTER1_INSTALL_SMOKE"
+  StrCmp $0 "1" skip_player_shell
   CreateShortCut "$DESKTOP\Aetherwake Chapter 1.lnk" "$INSTDIR\Aetherwake.exe"
   CreateDirectory "$SMPROGRAMS\Aetherwake"
   CreateShortCut "$SMPROGRAMS\Aetherwake\Aetherwake Chapter 1.lnk" "$INSTDIR\Aetherwake.exe"
-  WriteUninstaller "$INSTDIR\Uninstall.exe"
-  ReadEnvStr $0 "AETHERWAKE_CHAPTER1_INSTALL_SMOKE"
-  StrCmp $0 "1" skip_player_launch
   Exec '"$INSTDIR\Aetherwake.exe"'
-  skip_player_launch:
+  skip_player_shell:
 SectionEnd
 
 Section "Uninstall"
@@ -304,21 +304,21 @@ Expand-Archive -LiteralPath (Join-Path $PSScriptRoot $Archive) -DestinationPath 
 $exe = Join-Path $installRoot "Aetherwake.exe"
 if (-not (Test-Path -LiteralPath $exe)) { throw "Installed Aetherwake.exe missing after extraction." }
 
-$shell = New-Object -ComObject WScript.Shell
-$desktop = [Environment]::GetFolderPath("Desktop")
-$desktopShortcut = $shell.CreateShortcut((Join-Path $desktop "Aetherwake Chapter 1.lnk"))
-$desktopShortcut.TargetPath = $exe
-$desktopShortcut.WorkingDirectory = $installRoot
-$desktopShortcut.Save()
-
-$startMenu = Join-Path ([Environment]::GetFolderPath("Programs")) "Aetherwake"
-New-Item -ItemType Directory -Path $startMenu -Force | Out-Null
-$menuShortcut = $shell.CreateShortcut((Join-Path $startMenu "Aetherwake Chapter 1.lnk"))
-$menuShortcut.TargetPath = $exe
-$menuShortcut.WorkingDirectory = $installRoot
-$menuShortcut.Save()
-
 if ($env:AETHERWAKE_CHAPTER1_INSTALL_SMOKE -ne "1") {
+  $shell = New-Object -ComObject WScript.Shell
+  $desktop = [Environment]::GetFolderPath("Desktop")
+  $desktopShortcut = $shell.CreateShortcut((Join-Path $desktop "Aetherwake Chapter 1.lnk"))
+  $desktopShortcut.TargetPath = $exe
+  $desktopShortcut.WorkingDirectory = $installRoot
+  $desktopShortcut.Save()
+
+  $startMenu = Join-Path ([Environment]::GetFolderPath("Programs")) "Aetherwake"
+  New-Item -ItemType Directory -Path $startMenu -Force | Out-Null
+  $menuShortcut = $shell.CreateShortcut((Join-Path $startMenu "Aetherwake Chapter 1.lnk"))
+  $menuShortcut.TargetPath = $exe
+  $menuShortcut.WorkingDirectory = $installRoot
+  $menuShortcut.Save()
+
   Start-Process -FilePath $exe | Out-Null
 }
 '@
