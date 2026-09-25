@@ -206,6 +206,34 @@ if ($continueEvidence.gameState -ne "world" -or
 }
 Write-Host "CHAPTER1_WINDOWS_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS"
 
+$portableCheckpoint = [ordered]@{
+  schemaVersion = 1
+  kind = "AETHERWAKE_CHAPTER1_PORTABLE_CHECKPOINT"
+  sourceCommit = $gitHead
+  sourceBranch = $gitBranch
+  generatedAtUtc = [DateTime]::UtcNow.ToString("o")
+  chapter1Core = "PASS"
+  chapter1Visual = "PASS"
+  chapter1BrowserRoute = "PASS"
+  titleAudioReady = "PASS"
+  chapter1SoundtrackReady = "PASS"
+  desktopPackageContract = "PASS"
+  buildProvenance = "PASS"
+  desktopRuntimeReady = $true
+  desktopFirstFrame = $true
+  windowsSaveCloseRelaunchContinue = "PASS"
+  persistenceStorageType = $createEvidence.storageType
+  persistenceSavePath = $createEvidence.savePath
+  persistenceSlot = $continueEvidence.slot
+  restoredGameState = $continueEvidence.gameState
+  restoredTileX = $continueEvidence.tileX
+  restoredTileY = $continueEvidence.tileY
+  restoredQuestState = $continueEvidence.questState
+}
+$portableCheckpointPath = Join-Path $PSScriptRoot "..\CHAPTER1_PORTABLE_CHECKPOINT.json"
+$portableCheckpoint | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $portableCheckpointPath -Encoding UTF8
+Write-Host "CHAPTER1_PORTABLE_CHECKPOINT=$portableCheckpointPath"
+
 if (Test-Path -LiteralPath $OutputDir) {
   Remove-Item -LiteralPath $OutputDir -Recurse -Force
 }
