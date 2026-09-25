@@ -12,10 +12,13 @@ $gitHead = (git rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or -not $gitHead) {
   throw "Unable to resolve Git HEAD. Run from an authenticated Git checkout."
 }
-$status = @(git status --porcelain --untracked-files=no)
+$gitBranch = (git branch --show-current).Trim()
+if (-not $gitBranch) { $gitBranch = "DETACHED" }
+
+$status = @(git status --porcelain --untracked-files=all)
 if ($LASTEXITCODE -ne 0) { throw "git status failed." }
 if ($status.Count -gt 0) {
-  throw "Tracked/staged source changes are present. Commit or restore them before candidate verification."
+  throw "Candidate checkout is not clean, including untracked non-ignored files. Commit, restore, remove, or ignore generated files before candidate verification."
 }
 $shortHead = $gitHead.Substring(0, 12)
 Write-Host "CHAPTER1_SOURCE_COMMIT=$gitHead"
@@ -65,9 +68,9 @@ $afterBuildHead = (git rev-parse HEAD).Trim()
 if ($afterBuildHead -ne $gitHead) {
   throw "Git HEAD changed during Chapter 1 candidate build."
 }
-$afterBuildStatus = @(git status --porcelain --untracked-files=no)
+$afterBuildStatus = @(git status --porcelain --untracked-files=all)
 if ($afterBuildStatus.Count -gt 0) {
-  throw "Tracked/staged source changed during Chapter 1 candidate build."
+  throw "Candidate checkout changed during Chapter 1 build, including untracked non-ignored files."
 }
 
 $distRoot = (Resolve-Path (Join-Path $repo "..\aetherwake-dist")).Path
