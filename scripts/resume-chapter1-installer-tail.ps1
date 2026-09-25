@@ -9,8 +9,10 @@ Set-Location $repo
 
 $gitHead = (git rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or -not $gitHead) { throw "Unable to resolve Git HEAD." }
-$status = @(git status --porcelain --untracked-files=no)
-if ($status.Count -gt 0) { throw "Tracked/staged source changes are present." }
+$status = @(git status --porcelain --untracked-files=all)
+if ($status.Count -gt 0) {
+  throw "Resume checkout is not clean, including untracked non-ignored files."
+}
 $shortHead = $gitHead.Substring(0, 12)
 
 if (-not (Test-Path -LiteralPath $Checkpoint)) {
@@ -75,10 +77,18 @@ if (-not (Test-Path -LiteralPath $exe)) { throw "Installed Aetherwake.exe missin
 if ($env:AETHERWAKE_CHAPTER1_INSTALL_SMOKE -ne "1") {
   $shell = New-Object -ComObject WScript.Shell
   $desktop = [Environment]::GetFolderPath("Desktop")
-  $shortcut = $shell.CreateShortcut((Join-Path $desktop "Aetherwake Chapter 1.lnk"))
-  $shortcut.TargetPath = $exe
-  $shortcut.WorkingDirectory = $installRoot
-  $shortcut.Save()
+  $desktopShortcut = $shell.CreateShortcut((Join-Path $desktop "Aetherwake Chapter 1.lnk"))
+  $desktopShortcut.TargetPath = $exe
+  $desktopShortcut.WorkingDirectory = $installRoot
+  $desktopShortcut.Save()
+
+  $startMenu = Join-Path ([Environment]::GetFolderPath("Programs")) "Aetherwake"
+  New-Item -ItemType Directory -Path $startMenu -Force | Out-Null
+  $menuShortcut = $shell.CreateShortcut((Join-Path $startMenu "Aetherwake Chapter 1.lnk"))
+  $menuShortcut.TargetPath = $exe
+  $menuShortcut.WorkingDirectory = $installRoot
+  $menuShortcut.Save()
+
   Start-Process -FilePath $exe | Out-Null
 }
 '@ | Set-Content -LiteralPath $installScript -Encoding UTF8
@@ -267,6 +277,7 @@ Remove-Item -LiteralPath $installRoot -Recurse -Force -ErrorAction SilentlyConti
 Remove-Item -LiteralPath $persistenceRoot -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $sed -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath $installScript -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $Checkpoint -Force -ErrorAction SilentlyContinue
 
 Write-Host "CHAPTER1_INSTALLER_TAIL_RESUME=PASS"
 Write-Host "SOURCE_COMMIT=$gitHead"
