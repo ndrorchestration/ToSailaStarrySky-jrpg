@@ -41,12 +41,30 @@ if (!script.includes(embeddedInstallRoot)) {
 
 const nsisLaunchGuard =
   script.includes('ReadEnvStr $0 "AETHERWAKE_CHAPTER1_INSTALL_SMOKE"') &&
-  script.includes('StrCmp $0 "1" skip_player_launch');
+  script.includes('StrCmp $0 "1" skip_player_shell');
 if (!nsisLaunchGuard) {
   fail('NSIS player auto-launch must be suppressed during automated installer smoke');
 }
 if (!script.includes('if ($env:AETHERWAKE_CHAPTER1_INSTALL_SMOKE -ne "1")')) {
-  fail('IExpress player auto-launch must be suppressed during automated installer smoke');
+  fail('IExpress player shell changes must be suppressed during automated installer smoke');
+}
+
+const nsisSectionStart = script.indexOf('Section "Aetherwake Chapter 1" SEC_MAIN');
+const nsisGuard = script.indexOf('StrCmp $0 "1" skip_player_shell', nsisSectionStart);
+const nsisDesktopShortcut = script.indexOf('CreateShortCut "$DESKTOP\\Aetherwake Chapter 1.lnk"', nsisSectionStart);
+const nsisLaunch = script.indexOf('Exec \'"$INSTDIR\\Aetherwake.exe"\'', nsisSectionStart);
+const nsisSkip = script.indexOf('skip_player_shell:', nsisSectionStart);
+if (!(nsisSectionStart >= 0 && nsisGuard < nsisDesktopShortcut && nsisDesktopShortcut < nsisSkip &&
+      nsisLaunch < nsisSkip)) {
+  fail('NSIS smoke guard must bypass player shortcuts and auto-launch');
+}
+
+const ieGuard = script.indexOf('if ($env:AETHERWAKE_CHAPTER1_INSTALL_SMOKE -ne "1")');
+const ieDesktopShortcut = script.indexOf('$desktopShortcut = $shell.CreateShortcut', ieGuard);
+const ieLaunch = script.indexOf('Start-Process -FilePath $exe | Out-Null', ieGuard);
+const ieGuardEnd = script.indexOf("\n}", ieLaunch);
+if (!(ieGuard >= 0 && ieDesktopShortcut > ieGuard && ieLaunch > ieDesktopShortcut && ieGuardEnd > ieLaunch)) {
+  fail('IExpress smoke guard must contain player shortcuts and auto-launch');
 }
 if (!script.includes('AdminQuietInstCmd=$appLaunched') ||
     !script.includes('UserQuietInstCmd=$appLaunched')) {
