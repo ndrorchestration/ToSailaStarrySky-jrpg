@@ -63,6 +63,6 @@ Only evidence-producing gates remain:
 1. Reconnect the Windows device and execute the current Chapter 1 branch through installer creation, isolated install, installed first-frame/provenance, and installed save → close → relaunch → Continue.
 2. Run `npm run verify:chapter1:release-evidence` against the resulting ZIP, Setup.exe, SHA256SUMS and evidence JSON and require PASS.
 3. Correct only defects actually revealed by that current-head run.
-4. Perform uncoached player acceptance on the exact verified standalone candidate.
+4. Perform uncoached player acceptance on the exact verified standalone candidate using `docs/CHAPTER1_PLAYER_ACCEPTANCE.md`.
 
 Until those are observed, PR #151 remains draft and Chapter 1 is not represented as fully accepted.
