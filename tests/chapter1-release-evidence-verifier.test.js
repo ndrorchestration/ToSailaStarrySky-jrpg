@@ -152,6 +152,7 @@ try {
     installerRestoredQuestState: 'signal',
     packagedProvenanceSourceCommit: sourceCommit,
     packagedProvenanceVerified: true,
+    packagedTreeSha256: 'c'.repeat(64),
     windowsSaveCloseRelaunchContinue: 'PASS',
     persistenceStorageType: 'nw-file',
     persistenceSlot: 'manual-6',
@@ -185,6 +186,13 @@ try {
   assert(provenanceFail.stderr.includes('portable ZIP embedded sourceCommit does not match release sourceCommit'));
 
   writeCandidateZip(sourceCommit);
+  evidence.packagedTreeSha256 = 'invalid';
+  writeEvidenceAndManifest();
+  const treeHashFail = runVerifier();
+  assert.notStrictEqual(treeHashFail.status, 0, 'invalid package-tree hash must fail release verification');
+  assert(treeHashFail.stderr.includes('packagedTreeSha256 must be a lowercase SHA-256'));
+
+  evidence.packagedTreeSha256 = 'c'.repeat(64);
   evidence.installerRestoredTileX = 99;
   writeEvidenceAndManifest();
   const coordinateFail = runVerifier();
