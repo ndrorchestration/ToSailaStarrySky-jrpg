@@ -16,7 +16,7 @@ for (const required of [
   'AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE',
   '$installerEngine -eq "NSIS"',
   '$installerEngine -eq "IEXPRESS"',
-  '$installerArgs = @("/S", "/D=$installerSmokeRoot")',
+  '$installerArgs = @("/S")',
   '$installerArgs = @("/Q:U")',
   'Remove-Item Env:AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE -ErrorAction SilentlyContinue',
   'AETHERWAKE_CHAPTER1_INSTALL_SMOKE',
@@ -32,8 +32,13 @@ for (const required of [
   if (!script.includes(required)) fail('missing installer fallback contract: ' + required);
 }
 
-if (script.includes('Start-Process -FilePath $installer -ArgumentList @("/S", "/D=$installerSmokeRoot")')) {
-  fail('installer smoke must not apply NSIS-only /D= semantics unconditionally');
+if (script.includes('"/D=$installerSmokeRoot"')) {
+  fail('installer smoke must not depend on NSIS /D= path parsing');
+}
+if (!script.includes('Function .onInit') ||
+    !script.includes('ReadEnvStr $1 "AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE"') ||
+    !script.includes('StrCpy $INSTDIR $1')) {
+  fail('NSIS must honor the same isolated install-root override as IExpress');
 }
 
 const embeddedInstallRoot = '$installRoot = if ($env:AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE)';
