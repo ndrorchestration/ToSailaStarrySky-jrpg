@@ -295,8 +295,8 @@ SourceFiles0=$sourceDir
   $previousTmp = $env:TMP
   $env:TMP = $OutputDir
   try {
-    & $iexpress /N /Q $sed
-    $iexpressExitCode = $LASTEXITCODE
+    $iexpressProcess = Start-Process -FilePath $iexpress -ArgumentList @("/N", "/Q", $sed) -Wait -PassThru
+    $iexpressExitCode = $iexpressProcess.ExitCode
   } finally {
     if ([string]::IsNullOrEmpty($previousTmp)) {
       Remove-Item Env:TMP -ErrorAction SilentlyContinue
