@@ -318,6 +318,16 @@ assert.strictEqual(packageJson.scripts['verify:chapter1:release-evidence'],
   'Chapter 1 must expose independent release-evidence verification');
 assert(chapter1WindowsBuild.includes('CHAPTER1_RELEASE_EVIDENCE_INDEPENDENT_VERIFY=PASS'),
   'Windows candidate must run independent release-evidence verification');
+assert.strictEqual(packageJson.scripts['resume:chapter1:installer'],
+  'powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\resume-chapter1-installer-tail.ps1',
+  'Chapter 1 must expose resumable installer-tail verification');
+const installerResume = fs.readFileSync(path.join(ROOT, 'scripts', 'resume-chapter1-installer-tail.ps1'), 'utf8');
+assert(installerResume.includes('AETHERWAKE_CHAPTER1_PORTABLE_CHECKPOINT'),
+  'installer resume lane must require the portable checkpoint');
+assert(installerResume.includes('CHAPTER1_INSTALLER_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS'),
+  'installer resume lane must re-prove installed save/relaunch/Continue');
+assert(installerResume.includes('verify-chapter1-release-evidence.js'),
+  'installer resume lane must independently verify final release evidence');
 assert(chapter1WindowsWorkflow.includes('verify:chapter1:release-evidence'),
   'publication workflow must reverify release evidence before upload/release');
 
