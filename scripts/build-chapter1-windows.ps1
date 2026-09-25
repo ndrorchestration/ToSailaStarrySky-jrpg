@@ -236,17 +236,18 @@ $makensis = @(
   "C:\Program Files (x86)\NSIS\makensis.exe",
   "C:\Program Files\NSIS\makensis.exe"
 ) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-
-if (-not $makensis) {
-  throw "NSIS makensis.exe not found. Install NSIS so the Chapter 1 one-click installer can be produced and verified."
-}
+$iexpress = Join-Path $env:WINDIR "System32\iexpress.exe"
 
 $installerName = "Aetherwake-Chapter1-$shortHead-Setup.exe"
 $installer = Join-Path $OutputDir $installerName
-$nsi = Join-Path $OutputDir "Aetherwake-Chapter1-$shortHead-Setup.nsi"
-$source = $candidateDir.Replace('\','\\')
-$outFile = $installer.Replace('\','\\')
-$nsiTemplate = @'
+$installerEngine = $null
+
+if ($makensis) {
+  $installerEngine = "NSIS"
+  $nsi = Join-Path $OutputDir "Aetherwake-Chapter1-$shortHead-Setup.nsi"
+  $source = $candidateDir.Replace('\','\\')
+  $outFile = $installer.Replace('\','\\')
+  $nsiTemplate = @'
 Unicode true
 Name "Aetherwake Chapter 1 — First Wake"
 OutFile "__OUTPUT__"
@@ -273,12 +274,97 @@ Section "Uninstall"
   RMDir /r "$INSTDIR"
 SectionEnd
 '@
-$nsiTemplate.Replace('__OUTPUT__', $outFile).Replace('__SOURCE__', $source) |
-  Set-Content -LiteralPath $nsi -Encoding UTF8
+  $nsiTemplate.Replace('__OUTPUT__', $outFile).Replace('__SOURCE__', $source) |
+    Set-Content -LiteralPath $nsi -Encoding UTF8
 
-& $makensis $nsi
-if ($LASTEXITCODE -ne 0) { throw "Chapter 1 NSIS compilation failed with code $LASTEXITCODE." }
+  & $makensis $nsi
+  if ($LASTEXITCODE -ne 0) { throw "Chapter 1 NSIS compilation failed with code $LASTEXITCODE." }
+} elseif (Test-Path -LiteralPath $iexpress) {
+  $installerEngine = "IEXPRESS"
+  $installScriptName = "install-chapter1-$shortHead.ps1"
+  $installScript = Join-Path $OutputDir $installScriptName
+  $installScriptContent = @'
+param([Parameter(Mandatory=$true)][string]$Archive)
+$ErrorActionPreference = "Stop"
+$installRoot = Join-Path $env:LOCALAPPDATA "Programs\Aetherwake Chapter 1"
+if (Test-Path -LiteralPath $installRoot) {
+  Remove-Item -LiteralPath $installRoot -Recurse -Force
+}
+New-Item -ItemType Directory -Path $installRoot -Force | Out-Null
+Expand-Archive -LiteralPath (Join-Path $PSScriptRoot $Archive) -DestinationPath $installRoot -Force
+
+$exe = Join-Path $installRoot "Aetherwake.exe"
+if (-not (Test-Path -LiteralPath $exe)) { throw "Installed Aetherwake.exe missing after extraction." }
+
+$shell = New-Object -ComObject WScript.Shell
+$desktop = [Environment]::GetFolderPath("Desktop")
+$desktopShortcut = $shell.CreateShortcut((Join-Path $desktop "Aetherwake Chapter 1.lnk"))
+$desktopShortcut.TargetPath = $exe
+$desktopShortcut.WorkingDirectory = $installRoot
+$desktopShortcut.Save()
+
+$startMenu = Join-Path ([Environment]::GetFolderPath("Programs")) "Aetherwake"
+New-Item -ItemType Directory -Path $startMenu -Force | Out-Null
+$menuShortcut = $shell.CreateShortcut((Join-Path $startMenu "Aetherwake Chapter 1.lnk"))
+$menuShortcut.TargetPath = $exe
+$menuShortcut.WorkingDirectory = $installRoot
+$menuShortcut.Save()
+'@
+  Set-Content -LiteralPath $installScript -Value $installScriptContent -Encoding UTF8
+
+  $sed = Join-Path $OutputDir "Aetherwake-Chapter1-$shortHead-Setup.sed"
+  $sourceDir = $OutputDir.TrimEnd('\') + '\'
+  $appLaunched = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $installScriptName + '" -Archive "' + $zipName + '"'
+  $sedText = @"
+[Version]
+Class=IEXPRESS
+SEDVersion=3
+[Options]
+PackagePurpose=InstallApp
+ShowInstallProgramWindow=0
+HideExtractAnimation=1
+UseLongFileName=1
+InsideCompressed=0
+CAB_FixedSize=0
+CAB_ResvCodeSigning=0
+RebootMode=N
+InstallPrompt=%InstallPrompt%
+DisplayLicense=%DisplayLicense%
+FinishMessage=%FinishMessage%
+TargetName=%TargetName%
+FriendlyName=%FriendlyName%
+AppLaunched=%AppLaunched%
+PostInstallCmd=%PostInstallCmd%
+AdminQuietInstCmd=%AdminQuietInstCmd%
+UserQuietInstCmd=%UserQuietInstCmd%
+SourceFiles=SourceFiles
+[Strings]
+InstallPrompt=
+DisplayLicense=
+FinishMessage=
+TargetName=$installer
+FriendlyName=Aetherwake Chapter 1 - First Wake
+AppLaunched=$appLaunched
+PostInstallCmd=<None>
+AdminQuietInstCmd=
+UserQuietInstCmd=
+FILE0="$zipName"
+FILE1="$installScriptName"
+[SourceFiles]
+SourceFiles0=$sourceDir
+[SourceFiles0]
+%FILE0%=
+%FILE1%=
+"@
+  Set-Content -LiteralPath $sed -Value $sedText -Encoding ASCII
+  & $iexpress /N /Q $sed
+  if ($LASTEXITCODE -ne 0) { throw "Chapter 1 IExpress compilation failed with code $LASTEXITCODE." }
+} else {
+  throw "No supported no-admin installer engine found (NSIS or Windows IExpress)."
+}
+
 if (-not (Test-Path -LiteralPath $installer)) { throw "Chapter 1 installer was not created." }
+Write-Host "CHAPTER1_INSTALLER_ENGINE=$installerEngine"
 
 # Install silently into an isolated location and launch the installed executable.
 $installerSmokeRoot = Join-Path $env:TEMP ("AetherwakeChapter1Installer-" + $shortHead)
@@ -416,6 +502,7 @@ $evidence = [ordered]@{
   portableZip = $zipName
   portableZipSha256 = $hashLower
   installer = $installerName
+  installerEngine = $installerEngine
   installerSha256 = $installerHashLower
   installerInstall = "PASS"
   installerRuntimeReady = $true
