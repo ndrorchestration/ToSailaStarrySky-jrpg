@@ -17,7 +17,7 @@ for (const required of [
   '$installerEngine -eq "NSIS"',
   '$installerEngine -eq "IEXPRESS"',
   '$installerArgs = @("/S", "/D=$installerSmokeRoot")',
-  '$installerArgs = @("/Q")',
+  '$installerArgs = @("/Q:U")',
   'Remove-Item Env:AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE -ErrorAction SilentlyContinue',
   'AETHERWAKE_CHAPTER1_INSTALL_SMOKE',
   'Exec \'"$INSTDIR\\Aetherwake.exe"\'',
