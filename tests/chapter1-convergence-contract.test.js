@@ -204,53 +204,48 @@ assert.strictEqual(
   'powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\build-chapter1-windows.ps1',
   'Chapter 1 must expose a one-command Windows candidate build'
 );
+
 for (const marker of [
   'npm run test:chapter1-core',
+  'npm run test:chapter1-visual',
   'npm run test:chapter1-browser',
   'npm run test:chapter1-title-audio-ready',
+  'npm run test:chapter1-soundtrack-ready',
+  'npm run test:desktop-package',
   'npm run package:windows',
   'CHAPTER1_DESKTOP_RENDER_READINESS=PASS',
-  'sourceCommit = $gitHead',
-  'windowsSaveCloseRelaunchContinue = "PASS"',
-  'AETHERWAKE_SAVE_ROOT_OVERRIDE',
-  'AETHERWAKE_CHAPTER1_PERSISTENCE_MODE',
-  'Invoke-Chapter1PersistencePhase "create"',
-  'Invoke-Chapter1PersistencePhase "continue"',
   'CHAPTER1_WINDOWS_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS',
+  'AETHERWAKE_CHAPTER1_PORTABLE_CHECKPOINT',
+  'packageTreeSha256 = $packageTreeSha256',
+  'resume-chapter1-installer-tail.ps1',
 ]) {
   assert(chapter1WindowsBuild.includes(marker),
-    'Chapter 1 Windows candidate lane missing evidence marker: ' + marker);
+    'Chapter 1 Windows portable lane missing marker: ' + marker);
 }
-assert(chapter1WindowsBuild.includes('git status --porcelain --untracked-files=no'),
-  'Chapter 1 Windows candidate must reject tracked source drift');
+
+assert(chapter1WindowsBuild.includes('git status --porcelain --untracked-files=all'),
+  'Chapter 1 Windows candidate must reject untracked non-ignored checkout contamination');
 assert(chapter1WindowsBuild.includes('CHAPTER1_DIST_CLEAN=PASS'),
   'Chapter 1 Windows candidate must clean stale distribution output before packaging');
 assert(chapter1WindowsBuild.includes('CHAPTER1_BUILD_PROVENANCE.json') &&
        chapter1WindowsBuild.includes('sourceCommit = $gitHead'),
   'Chapter 1 Windows candidate must embed exact source provenance into the package');
-assert(chapter1WindowsBuild.includes('candidateProvenanceCheck.sourceCommit -ne $gitHead'),
-  'Chapter 1 Windows candidate must verify provenance after copying the packaged runtime');
-assert(chapter1WindowsBuild.includes('packagedProvenanceVerified = $true'),
-  'Chapter 1 release evidence must record packaged provenance verification');
-assert(chapter1WindowsBuild.includes('Aetherwake-Chapter1-$shortHead-Setup.exe'),
-  'Chapter 1 Windows candidate must produce a commit-bound installer');
-assert(chapter1WindowsBuild.includes('CHAPTER1_INSTALLER_ENGINE=$installerEngine'),
-  'Chapter 1 Windows candidate must record which no-admin installer engine was used');
-assert(chapter1WindowsBuild.includes('IEXPRESS') &&
-       chapter1WindowsBuild.includes('System32\\iexpress.exe'),
-  'Chapter 1 Windows candidate must support built-in IExpress when NSIS is unavailable');
-assert(chapter1WindowsBuild.includes('CHAPTER1_INSTALLER_RENDER_READINESS=PASS'),
-  'Chapter 1 Windows candidate must launch and verify the installed executable');
-assert(chapter1WindowsBuild.includes('installerProvenanceVerified = $true'),
-  'Chapter 1 release evidence must prove installed-candidate provenance');
-assert(chapter1WindowsBuild.includes('installerSha256 = $installerHashLower'),
-  'Chapter 1 release evidence must record installer SHA-256');
-assert(chapter1WindowsBuild.includes('CHAPTER1_INSTALLER_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS'),
-  'installed Chapter 1 candidate must prove save/close/relaunch/Continue');
-assert(chapter1WindowsBuild.includes('installerSaveCloseRelaunchContinue = "PASS"'),
-  'Chapter 1 release evidence must record installed persistence proof');
+assert(chapter1WindowsBuild.includes('node scripts/hash-chapter1-package.js $package.FullName'),
+  'Chapter 1 Windows candidate must fingerprint the complete packaged runtime');
+assert(chapter1WindowsBuild.includes('& powershell -NoProfile -ExecutionPolicy Bypass -File $resumeScript'),
+  'full Chapter 1 builder must delegate the installer tail to the canonical resume authority');
+assert(chapter1WindowsBuild.includes('Installer tail reported success but did not consume the portable checkpoint.'),
+  'full Chapter 1 builder must require checkpoint consumption after installer-tail success');
+assert(!chapter1WindowsBuild.includes('AdminQuietInstCmd=$appLaunched') &&
+       !chapter1WindowsBuild.includes('Section "Aetherwake Chapter 1" SEC_MAIN'),
+  'full Chapter 1 builder must not duplicate installer implementation owned by the resume tail');
+
 assert(runtime.includes('function runChapter1PersistenceSmokeOnce()'),
   'desktop runtime must expose the isolated Chapter 1 persistence smoke seam');
+assert(runtime.includes("saveToSlot('manual-6')") &&
+       runtime.includes('continueLatestSave()'),
+  'desktop persistence smoke must exercise real save and Continue paths');
+
 assert.strictEqual(packageJson.scripts['admit:title-audio'], 'node scripts/admit-title-audio.js',
   'Chapter 1 must expose governed title-audio admission');
 assert.strictEqual(packageJson.scripts['test:chapter1-title-audio-ready'],
@@ -274,14 +269,10 @@ assert.strictEqual(packageJson.scripts['verify:chapter1:local'],
 assert.strictEqual(packageJson.scripts['test:chapter1-visual'],
   'npm run test:title-visual && npm run test:first-wake-visual && npm run test:dialogue-visual && npm run test:combat-visual && npm run test:flight-visual && npm run test:visual-package-integration && npm run test:16bit-world-art && npm run test:chapter1-character-sheet',
   'Chapter 1 must expose a bounded visual/presentation acceptance suite');
-assert(chapter1WindowsBuild.includes('npm run test:chapter1-visual'),
-  'Windows candidate must run Chapter 1 visual acceptance');
+
 assert(chapter1Workflow.includes('chapter1-visual:') &&
        chapter1Workflow.includes('npm run test:chapter1-visual'),
   'Chapter 1 hosted workflow must include a visual acceptance job');
-assert(runtime.includes("saveToSlot('manual-6')") &&
-       runtime.includes('continueLatestSave()'),
-  'desktop persistence smoke must exercise real save and Continue paths');
 
 for (const [workflowName, workflow] of [
   ['chapter1-convergence', chapter1Workflow],
@@ -300,6 +291,7 @@ assert(!smokeWorkflow.includes('actions/upload-artifact@v4'),
   'smoke visual-evidence lane must not use mutable upload-artifact tag');
 assert(smokeWorkflow.includes('actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02'),
   'smoke visual-evidence lane must pin upload-artifact v4');
+
 assert(chapter1WindowsWorkflow.includes('npm run build:chapter1:windows'),
   'Chapter 1 Windows workflow must execute the canonical candidate builder');
 assert(chapter1WindowsWorkflow.includes('CHAPTER1_RELEASE_EVIDENCE.json') &&
@@ -313,43 +305,35 @@ assert(!chapter1WindowsWorkflow.includes('choco install nsis -y --no-progress'),
   'Chapter 1 Windows workflow must not require privileged NSIS installation');
 assert(chapter1WindowsWorkflow.includes('steps.candidate.outputs.installer'),
   'Chapter 1 Windows workflow must publish the verified installer');
+
 assert.strictEqual(packageJson.scripts['verify:chapter1:release-evidence'],
   'node scripts/verify-chapter1-release-evidence.js',
   'Chapter 1 must expose independent release-evidence verification');
-assert(chapter1WindowsBuild.includes('CHAPTER1_RELEASE_EVIDENCE_INDEPENDENT_VERIFY=PASS'),
-  'Windows candidate must run independent release-evidence verification');
 assert.strictEqual(packageJson.scripts['resume:chapter1:installer'],
   'powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\resume-chapter1-installer-tail.ps1',
   'Chapter 1 must expose resumable installer-tail verification');
-const installerResume = fs.readFileSync(path.join(ROOT, 'scripts', 'resume-chapter1-installer-tail.ps1'), 'utf8');
+assert.strictEqual(packageJson.scripts['test:chapter1-package-fingerprint'],
+  'node tests/chapter1-package-fingerprint.test.js',
+  'Chapter 1 must expose deterministic package-fingerprint regression coverage');
+
+const installerResume = fs.readFileSync(
+  path.join(root, 'scripts', 'resume-chapter1-installer-tail.ps1'), 'utf8'
+);
 assert(installerResume.includes('AETHERWAKE_CHAPTER1_PORTABLE_CHECKPOINT'),
   'installer resume lane must require the portable checkpoint');
 assert(installerResume.includes('CHAPTER1_INSTALLER_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS'),
   'installer resume lane must re-prove installed save/relaunch/Continue');
-assert(installerResume.includes('verify-chapter1-release-evidence.js'),
+assert(installerResume.includes('CHAPTER1_RELEASE_EVIDENCE_INDEPENDENT_VERIFY=PASS') &&
+       installerResume.includes('verify-chapter1-release-evidence.js'),
   'installer resume lane must independently verify final release evidence');
 assert(installerResume.includes('git status --porcelain --untracked-files=all'),
   'installer resume lane must reject untracked non-ignored checkout contamination');
 assert(installerResume.includes('Aetherwake Chapter 1.lnk') &&
        installerResume.includes('[Environment]::GetFolderPath("Programs")'),
-  'installer resume lane must preserve the same Desktop/Start-menu player shell behavior');
+  'installer resume lane must preserve Desktop/Start-menu player shell behavior');
 assert(installerResume.includes('Remove-Item -LiteralPath $Checkpoint'),
   'successful installer-tail resume must clear its consumed portable checkpoint');
-assert(installerResume.includes("$candidateSourceCommit -notmatch '^[0-9a-f]{40}
-assert(chapter1WindowsBuild.includes('git status --porcelain --untracked-files=all'),
-  'full Chapter 1 candidate must reject untracked non-ignored checkout contamination');
-assert(chapter1WindowsBuild.includes('$portableCheckpointPath') &&
-       chapter1WindowsBuild.includes('CHAPTER1_SUCCESS_CLEANUP=PASS'),
-  'full Chapter 1 candidate must retain checkpoint on failure and clear it on success');
-const chapter1Gitignore = fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8');
-assert(chapter1Gitignore.includes('chapter1-release/') &&
-       chapter1Gitignore.includes('CHAPTER1_PORTABLE_CHECKPOINT.json'),
-  'generated Chapter 1 release/checkpoint outputs must be ignored so strict source cleanliness remains usable');
-assert(chapter1WindowsWorkflow.includes('verify:chapter1:release-evidence'),
-  'publication workflow must reverify release evidence before upload/release');
-
-console.log('Aetherwake Chapter 1 convergence contract: PASS');
-"),
+assert(installerResume.includes("$candidateSourceCommit -notmatch '^[0-9a-f]{40}$'"),
   'installer resume must validate the checkpoint candidate commit');
 assert(installerResume.indexOf('$candidateSourceCommit = [string]$checkpointData.sourceCommit') <
        installerResume.indexOf('$shortHead = $candidateSourceCommit.Substring(0, 12)'),
@@ -360,17 +344,17 @@ assert(installerResume.includes('git merge-base --is-ancestor $candidateSourceCo
 assert(installerResume.includes('packageTreeSha256') &&
        installerResume.includes('Packaged runtime tree changed after portable checkpoint.'),
   'installer resume must bind the resumed package to the portable checkpoint tree fingerprint');
+assert(installerResume.includes('installerEngine = $installerEngine') &&
+       installerResume.includes('releaseToolCommit = $gitHead'),
+  'resumed release evidence must identify installer engine and later release-tooling commit');
 assert((installerResume.match(/CHAPTER1_INSTALLER_TAIL_RESUME=PASS/g) || []).length === 1,
   'installer resume script must contain exactly one terminal PASS path');
-assert(chapter1WindowsBuild.includes('git status --porcelain --untracked-files=all'),
-  'full Chapter 1 candidate must reject untracked non-ignored checkout contamination');
-assert(chapter1WindowsBuild.includes('$portableCheckpointPath') &&
-       chapter1WindowsBuild.includes('CHAPTER1_SUCCESS_CLEANUP=PASS'),
-  'full Chapter 1 candidate must retain checkpoint on failure and clear it on success');
-const chapter1Gitignore = fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8');
+
+const chapter1Gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
 assert(chapter1Gitignore.includes('chapter1-release/') &&
        chapter1Gitignore.includes('CHAPTER1_PORTABLE_CHECKPOINT.json'),
   'generated Chapter 1 release/checkpoint outputs must be ignored so strict source cleanliness remains usable');
+
 assert(chapter1WindowsWorkflow.includes('verify:chapter1:release-evidence'),
   'publication workflow must reverify release evidence before upload/release');
 
