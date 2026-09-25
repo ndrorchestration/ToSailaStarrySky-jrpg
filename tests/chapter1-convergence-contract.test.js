@@ -335,6 +335,33 @@ assert(installerResume.includes('Aetherwake Chapter 1.lnk') &&
   'installer resume lane must preserve the same Desktop/Start-menu player shell behavior');
 assert(installerResume.includes('Remove-Item -LiteralPath $Checkpoint'),
   'successful installer-tail resume must clear its consumed portable checkpoint');
+assert(installerResume.includes("$candidateSourceCommit -notmatch '^[0-9a-f]{40}
+assert(chapter1WindowsBuild.includes('git status --porcelain --untracked-files=all'),
+  'full Chapter 1 candidate must reject untracked non-ignored checkout contamination');
+assert(chapter1WindowsBuild.includes('$portableCheckpointPath') &&
+       chapter1WindowsBuild.includes('CHAPTER1_SUCCESS_CLEANUP=PASS'),
+  'full Chapter 1 candidate must retain checkpoint on failure and clear it on success');
+const chapter1Gitignore = fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8');
+assert(chapter1Gitignore.includes('chapter1-release/') &&
+       chapter1Gitignore.includes('CHAPTER1_PORTABLE_CHECKPOINT.json'),
+  'generated Chapter 1 release/checkpoint outputs must be ignored so strict source cleanliness remains usable');
+assert(chapter1WindowsWorkflow.includes('verify:chapter1:release-evidence'),
+  'publication workflow must reverify release evidence before upload/release');
+
+console.log('Aetherwake Chapter 1 convergence contract: PASS');
+"),
+  'installer resume must validate the checkpoint candidate commit');
+assert(installerResume.indexOf('$candidateSourceCommit = [string]$checkpointData.sourceCommit') <
+       installerResume.indexOf('$shortHead = $candidateSourceCommit.Substring(0, 12)'),
+  'installer resume must resolve candidateSourceCommit before deriving shortHead');
+assert(installerResume.includes('git merge-base --is-ancestor $candidateSourceCommit $gitHead') &&
+       installerResume.includes('CHAPTER1_RESUME_RELEASE_ONLY_DELTA=PASS'),
+  'installer resume must allow later tooling only through an explicit release-only delta gate');
+assert(installerResume.includes('packageTreeSha256') &&
+       installerResume.includes('Packaged runtime tree changed after portable checkpoint.'),
+  'installer resume must bind the resumed package to the portable checkpoint tree fingerprint');
+assert((installerResume.match(/CHAPTER1_INSTALLER_TAIL_RESUME=PASS/g) || []).length === 1,
+  'installer resume script must contain exactly one terminal PASS path');
 assert(chapter1WindowsBuild.includes('git status --porcelain --untracked-files=all'),
   'full Chapter 1 candidate must reject untracked non-ignored checkout contamination');
 assert(chapter1WindowsBuild.includes('$portableCheckpointPath') &&
