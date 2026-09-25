@@ -69,6 +69,8 @@ if (!['NSIS', 'IEXPRESS'].includes(evidence.installerEngine)) {
 for (const [key, expected] of [
   ['persistenceStorageType', 'nw-file'],
   ['installerPersistenceStorageType', 'nw-file'],
+  ['restoredGameState', 'world'],
+  ['installerRestoredGameState', 'world'],
   ['persistenceSlot', 'manual-6'],
   ['installerRestoredSlot', 'manual-6'],
   ['restoredQuestState', 'signal'],
@@ -78,6 +80,9 @@ for (const [key, expected] of [
 }
 if (evidence.restoredTileX !== 17 || evidence.restoredTileY !== 16) {
   fail('portable persistence coordinates must restore tile 17,16');
+}
+if (evidence.installerRestoredTileX !== 17 || evidence.installerRestoredTileY !== 16) {
+  fail('installed persistence coordinates must restore tile 17,16');
 }
 if (!Number.isFinite(Date.parse(evidence.generatedAtUtc || ''))) {
   fail('generatedAtUtc must be a valid timestamp');
