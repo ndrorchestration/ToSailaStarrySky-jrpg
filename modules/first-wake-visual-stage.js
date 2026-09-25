@@ -1,14 +1,14 @@
 /* ============================================================
-   Aetherwake — First Wake Visual Stage
+   Aetherwake ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â First Wake Visual Stage
    modules/first-wake-visual-stage.js
 
-   Presentation-only renderer for Sequences 00–09.
+   Presentation-only renderer for Sequences 00ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“09.
    Reuses shared sprite and Dragonfly authorities; does not own story state.
    ============================================================ */
 (function (root) {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.4.0';
 
   function bandedSky(top, mid, low) {
     const bands = [top, mid, low];
@@ -36,59 +36,113 @@
   }
 
   function drawDock(scene, state, now) {
-    bandedSky([18, 24, 46], [55, 68, 101], [176, 125, 105]);
-    cloudBands(now, 348, [212, 224, 229], 48);
+    const cinematicRatio = scene.cinematic && Number.isFinite(scene.minimumTicks) && scene.minimumTicks > 0
+      ? Math.max(0, Math.min(1, (state.sceneTicks || 0) / scene.minimumTicks))
+      : 1;
+    const settle = cinematicRatio * cinematicRatio * (3 - 2 * cinematicRatio);
+
+    bandedSky([12, 22, 45], [52, 78, 111], [190, 132, 108]);
+
+    // Far atmospheric depth and cloud strata.
+    cloudBands(now, 300, [212, 224, 229], 34);
+    cloudBands(now * 0.72, 365, [235, 235, 222], 48);
 
     noStroke();
-    fill(29, 35, 43);
-    rect(0, 430, width, 210);
-    fill(55, 65, 70);
-    rect(0, 414, width, 20);
+    fill(22, 31, 47, 185);
+    rect(72, 212, 132, 24);
+    rect(95, 236, 86, 9);
+    rect(685, 178, 164, 28);
+    rect(721, 206, 94, 10);
+    fill(48, 63, 77, 155);
+    rect(248, 250, 88, 16);
+    rect(774, 267, 66, 12);
 
-    for (let x = 34; x < width; x += 110) {
-      fill(21, 26, 34);
-      rect(x, 328, 10, 86);
-      fill(92, 107, 111, 100);
-      rect(x + 4, 332, 2, 82);
+    // Distant warm lights establish inhabited scale.
+    fill(243, 176, 96, 135);
+    rect(105, 221, 3, 3);
+    rect(138, 226, 3, 3);
+    rect(704, 188, 3, 3);
+    rect(748, 192, 3, 3);
+    rect(802, 187, 3, 3);
+
+    // Vertical dock pylons and gantry.
+    fill(18, 25, 34);
+    rect(44, 270, 18, 180);
+    rect(width - 70, 246, 20, 204);
+    rect(44, 272, width - 94, 12);
+    fill(82, 98, 105, 90);
+    rect(51, 280, 3, 158);
+    rect(width - 62, 257, 3, 180);
+
+    // Perspective deck bands: wider toward camera, narrower toward horizon.
+    for (let i = 0; i < 9; i++) {
+      const y = 330 + i * 27;
+      const inset = Math.max(18, 128 - i * 13);
+      fill(30 + i * 3, 37 + i * 3, 43 + i * 3);
+      rect(inset, y, width - inset * 2, 29);
+      fill(78, 88, 89, 95);
+      rect(inset, y, width - inset * 2, 2);
+    }
+
+    // Perspective seams and rails pull the eye toward the ship.
+    stroke(111, 125, 127, 85);
+    strokeWeight(1);
+    line(width / 2, 330, width / 2, height);
+    line(width / 2 - 105, 330, 145, height);
+    line(width / 2 + 105, 330, width - 145, height);
+    line(115, 348, 45, 570);
+    line(width - 115, 348, width - 45, 570);
+    noStroke();
+
+    // Cloud drop below the deck makes altitude continuously visible.
+    fill(210, 222, 226, 55);
+    for (let x = -20; x < width; x += 118) {
+      const drift = Math.round((now * 0.006 + x) % 44);
+      rect(x + drift, 565, 88, 7);
+      rect(x + drift + 21, 556, 46, 5);
     }
 
     const dragonfly = root.AetherDragonflyVisual;
     if (dragonfly && typeof dragonfly.draw === 'function') {
       dragonfly.draw({
         mode: 'dock',
-        x: Math.round(width * 0.72),
-        y: 383,
+        x: Math.round(width * (scene.sequence <= 1 ? 0.79 - settle * 0.07 : 0.72)),
+        y: Math.round(scene.sequence <= 1 ? 404 - settle * 16 : 388),
         now,
         speed: 0,
-        heading: 0
+        heading: 0,
+        scale: scene.sequence <= 1 ? 1.38 + settle * 0.34 : 1.48,
       });
     }
 
     const sprites = root.AetherPixelSprites;
-    if (sprites && sprites.validate()) {
+    if (sprites && sprites.validate() && scene.sequence >= 1) {
       let progress = 0;
       if (scene.id === 'dock_walk' && state && state.dockWalk) {
         progress = state.dockWalk.max > 0 ? state.dockWalk.x / state.dockWalk.max : 0;
       } else if (scene.sequence > 2) {
         progress = 1;
       }
-      const enderX = Math.round(145 + progress * 405);
-      sprites.drawShadow(enderX, 430, 2);
-      sprites.draw('ender', enderX, 430, {
+      const arrivalOffset = scene.sequence === 1 ? Math.round((1 - settle) * -48) : 0;
+      const ioniaOffset = scene.sequence === 1 ? Math.round((1 - settle) * 34) : 0;
+      const enderX = Math.round(145 + progress * 405 + arrivalOffset);
+      const enderY = Math.round(442 + progress * -16);
+      sprites.drawShadow(enderX, enderY, 2);
+      sprites.draw('ender', enderX, enderY, {
         anchor: 'bottom-center',
         scale: 2,
         frame: Math.floor(now / 240) % 2,
       });
 
-      sprites.drawShadow(620, 430, 2);
-      sprites.draw('ionia', 620, 430, {
+      sprites.drawShadow(612 + ioniaOffset, 416, 2);
+      sprites.draw('ionia', 612 + ioniaOffset, 416, {
         anchor: 'bottom-center',
         scale: 2,
         frame: Math.floor(now / 300) % 2,
       });
     }
 
-    // Closed-route board — pixel-authored environmental storytelling.
+    // Closed-route board and foreground cable silhouettes.
     fill(37, 43, 48);
     rect(246, 338, 84, 58);
     fill(181, 103, 91, 180);
@@ -99,7 +153,53 @@
     strokeWeight(3);
     line(258, 347, 318, 383);
     line(318, 347, 258, 383);
+    stroke(8, 12, 18, 170);
+    strokeWeight(5);
+    line(18, 0, 88, 182);
+    line(width - 22, 0, width - 102, 198);
     noStroke();
+  }
+
+  function drawInteriorDepthFrame(now, floorY) {
+    const fy = Number.isFinite(floorY) ? floorY : 420;
+
+    // Hull windows expose the same sky world as the exterior scenes.
+    noStroke();
+    fill(16, 35, 58);
+    rect(126, 126, 156, 64);
+    rect(width - 306, 126, 156, 64);
+    fill(102, 139, 162, 125);
+    rect(132, 132, 144, 52);
+    rect(width - 300, 132, 144, 52);
+    fill(214, 226, 228, 55);
+    const cloudShift = Math.round((now * 0.005) % 58);
+    rect(139 + cloudShift, 158, 61, 4);
+    rect(width - 286 + cloudShift, 151, 54, 4);
+
+    // Structural ribs create foreground/midground overlap and hull curvature.
+    for (let x = 86; x <= width - 86; x += 132) {
+      fill(69, 61, 53);
+      rect(x, 92, 11, fy - 92);
+      fill(42, 255, 181, 28);
+      rect(x + 3, 116, 3, 74);
+    }
+
+    // Perspective seams converge toward the rear center of the ship.
+    stroke(116, 105, 88, 62);
+    strokeWeight(1);
+    line(width / 2, 248, width / 2, height);
+    line(width / 2 - 72, 255, 218, height);
+    line(width / 2 + 72, 255, width - 218, height);
+    for (let y = fy + 18; y < height; y += 34) {
+      line(106, y, width - 106, y);
+    }
+    noStroke();
+
+    // Warm practical pools and cool aether strips establish mixed lighting.
+    fill(243, 176, 96, 22);
+    rect(150, 292, 228, 82);
+    fill(42, 255, 181, 18);
+    rect(width - 390, 274, 236, 96);
   }
 
   function drawInterior(scene, state, now) {
@@ -114,6 +214,7 @@
     rect(91, 116, width - 182, height - 202);
     fill(25, 31, 37);
     rect(0, 420, width, 220);
+    drawInteriorDepthFrame(now, 420);
 
     for (let x = 104; x < width - 90; x += 122) {
       fill(80, 70, 58);
@@ -160,7 +261,7 @@
     }
 
     const sprites = root.AetherPixelSprites;
-    if (sprites && sprites.validate()) {
+    if (sprites && sprites.validate() && scene.sequence >= 1) {
       const positions = {
         berth_task: [['ender', 305], ['ionia', 535]],
         lyra_family: [['ender', 285], ['lyra', 455], ['ionia', 590]],
@@ -218,13 +319,45 @@
 
   function drawWakeRoomLabel(label, x, y, active) {
     noStroke();
-    fill(active ? 42 : 185, active ? 255 : 158, active ? 181 : 116, active ? 210 : 120);
+    fill(active ? 42 : 185, active ? 255 : 158, active ? 181 : 116, active ? 178 : 72);
     rect(x, y, Math.max(54, label.length * 7 + 12), 18);
-    fill(8, 12, 18, 230);
+    fill(8, 12, 18, active ? 230 : 185);
     textAlign(LEFT, TOP);
     textFont('VT323');
     textSize(13);
     text(label, x + 6, y + 2);
+  }
+
+  function drawWakeForegroundDepth(now) {
+    // Near-camera ribs and hanging services deliberately pass in front of the
+    // sprite plane. This is presentation-only occlusion: gameplay coordinates
+    // remain untouched while the interior gains a real foreground layer.
+    noStroke();
+    fill(10, 15, 21, 220);
+    rect(76, 468, 20, 118);
+    rect(width - 96, 456, 20, 130);
+    fill(55, 49, 43, 235);
+    rect(82, 478, 7, 96);
+    rect(width - 89, 466, 7, 108);
+
+    stroke(12, 17, 23, 215);
+    strokeWeight(5);
+    line(116, 96, 151, 211);
+    line(width - 120, 96, width - 164, 226);
+    stroke(94, 75, 58, 145);
+    strokeWeight(2);
+    line(151, 211, 141, 326);
+    line(width - 164, 226, width - 151, 344);
+    noStroke();
+
+    // A very low-opacity moving vapor sheet separates the close hull from the
+    // play plane without softening pixel sprites.
+    const drift = Math.round((now * 0.004) % 96);
+    fill(124, 200, 232, 18);
+    for (let x = -120; x < width + 120; x += 128) {
+      rect(x + drift, 492, 82, 5);
+      rect(x + drift + 24, 500, 48, 3);
+    }
   }
 
   function drawWakeExploration(scene, state, now) {
@@ -250,25 +383,40 @@
     fill(31, 37, 42);
     rect(108, 132, width - 216, 354);
 
-    // Connected interior floor — intentionally one readable space, not a corridor of cards.
+    // Connected interior floor ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â intentionally one readable space, not a corridor of cards.
     fill(72, 64, 54);
     rect(122, 145, 690, 330);
     fill(42, 47, 49);
     rect(136, 159, 662, 302);
+    drawInteriorDepthFrame(now, 461);
 
-    // Soft room zoning.
-    fill(91, 73, 55, 125);   // berth
+    // Soft architectural light pools replace debug-like room blocks. The floor
+    // remains continuous; identity comes from props, structure, and lighting.
+    fill(116, 82, 55, 56);   // berth practical warmth
     rect(136, 330, 172, 131);
-    fill(93, 73, 62, 100);   // shared table
+    fill(126, 89, 61, 42);   // shared table / galley
     rect(136, 159, 220, 144);
-    fill(77, 63, 82, 105);   // Lyra/Talen
+    fill(106, 72, 101, 44);  // Lyra/Talen fabric and sensory light
     rect(374, 159, 182, 144);
-    fill(48, 67, 76, 120);   // nav
+    fill(53, 91, 111, 56);   // navigation cool instrumentation
     rect(574, 159, 224, 144);
-    fill(49, 55, 58, 125);   // maintenance
+    fill(67, 63, 58, 44);    // maintenance neutral work light
     rect(374, 330, 244, 131);
-    fill(29, 37, 47, 150);   // core approach
+    fill(24, 37, 51, 82);    // core approach depth
     rect(636, 330, 162, 131);
+
+    // Low walls, thresholds, and ribs make the zoning architectural instead of
+    // diagrammatic while leaving the logical walk grid untouched.
+    fill(83, 73, 63, 190);
+    rect(356, 159, 8, 144);
+    rect(556, 159, 8, 144);
+    rect(356, 330, 8, 131);
+    rect(618, 330, 8, 131);
+    fill(118, 103, 83, 105);
+    rect(356, 219, 8, 46);
+    rect(556, 219, 8, 46);
+    rect(356, 368, 8, 44);
+    rect(618, 368, 8, 44);
 
     // Walkable connectors.
     fill(58, 58, 55);
@@ -363,7 +511,7 @@
     }
 
     const sprites = root.AetherPixelSprites;
-    if (sprites && sprites.validate()) {
+    if (sprites && sprites.validate() && scene.sequence >= 1) {
       const ep = wakeMapPoint(e.x, e.y);
       sprites.drawShadow(ep.x, ep.y, 2);
       sprites.draw('ender', ep.x, ep.y, {
@@ -388,6 +536,8 @@
         frame: Math.floor(now / 290) % 2,
       });
     }
+
+    drawWakeForegroundDepth(now);
 
     // Context cue only for what is close enough to inspect.
     const nearby = opening.nearbyWakeHotspot(state, 1);
@@ -480,9 +630,9 @@
     rect(0, 0, width, 24);
     rect(0, height - 24, width, 24);
 
-    const textPanelY = scene.chapterCard ? 92 : 52;
-    fill(6, 9, 14, scene.chapterCard ? 150 : 205);
-    rect(86, textPanelY, width - 172, scene.chapterCard ? 138 : 132);
+    const textPanelY = scene.chapterCard ? 92 : 58;
+    fill(6, 9, 14, scene.chapterCard ? 150 : 152);
+    rect(86, textPanelY, width - 172, scene.chapterCard ? 138 : 72);
 
     textAlign(CENTER, TOP);
     textFont('Press Start 2P');
@@ -514,7 +664,7 @@
       textFont('VT323');
       textSize(20);
       fill(232, 220, 198, 220);
-      text(scene.lines.join('   •   '), width / 2, 330, width - 250, 120);
+      text(scene.lines.join('   ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢   '), width / 2, 330, width - 250, 120);
     }
 
     textAlign(LEFT, BOTTOM);
@@ -537,17 +687,17 @@
       ? root.AetherFirstWakeOpening.presentationReady(state)
       : true;
     if (scene.id === 'dock_walk' && state.dockWalk && !state.dockWalk.ready) {
-      text('A / D OR LEFT / RIGHT — WALK TO THE DRAGONFLY', width / 2, height - 29);
+      text('A / D OR LEFT / RIGHT ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â WALK TO THE DRAGONFLY', width / 2, height - 29);
     } else if (scene.id === 'dock_walk') {
-      text('ENTER — BOARD THE DRAGONFLY', width / 2, height - 29);
+      text('ENTER ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â BOARD THE DRAGONFLY', width / 2, height - 29);
     } else if (scene.id === 'berth_task' && state.berthTask && !state.berthTask.ready) {
-      text('E — WORK ON THE BERTH', width / 2, height - 29);
+      text('E ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â WORK ON THE BERTH', width / 2, height - 29);
     } else if (scene.id === 'talen_staying' && state.talenBeat && !state.talenBeat.ready) {
-      text('E — RESPOND TO TALEN', width / 2, height - 29);
+      text('E ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â RESPOND TO TALEN', width / 2, height - 29);
     } else if (scene.cinematic && !presentationReady) {
       text('', width / 2, height - 29);
     } else {
-      text('ENTER / SPACE — CONTINUE', width / 2, height - 29);
+      text('ENTER / SPACE ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â CONTINUE', width / 2, height - 29);
     }
 
     textAlign(LEFT, TOP);

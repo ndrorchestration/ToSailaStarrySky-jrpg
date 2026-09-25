@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'first-wake-visual-stage.js' });
 
 const api = sandbox.window.AetherFirstWakeVisual;
 assert(api, 'First Wake visual stage missing');
-assert.strictEqual(api.VERSION, '0.2.0');
+assert.strictEqual(api.VERSION, '0.4.0');
 for (const fn of ['draw','drawDock','drawInterior','drawChapter']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -22,7 +22,17 @@ assert(source.includes('AetherDragonflyVisual'),
 assert(source.includes('AetherPixelSprites'),
   'opening must reuse shared sprite authority');
 assert(source.includes('bandedSky(') && source.includes('cloudBands('),
-  'v0.2 opening dock must render its bounded pixel-sky authority');
+  'v0.3 opening dock must render its bounded pixel-sky authority');
+assert(source.includes('Perspective deck bands'),
+  'v0.3 dock must retain perspective deck staging');
+assert(source.includes('Cloud drop below the deck'),
+  'v0.3 dock must continuously communicate altitude');
+assert(source.includes('cinematicRatio') && source.includes('const settle ='),
+  'v0.4 opening must preserve authored cinematic settle timing');
+assert(source.includes('scene.sequence >= 1'),
+  'v0.4 Sequence 00 must remain a ship-and-sky establishing shot before sprite reveal');
+assert(source.includes('1.38 + settle * 0.34'),
+  'v0.4 opening must preserve the Dragonfly hero reveal scale transition');
 assert(source.includes('scale: 2'),
   'opening character sprites must use the v0.2 readable pixel scale');
 assert(source.includes("sprites.draw('ender'") && source.includes("sprites.draw('ionia'"),
@@ -83,7 +93,7 @@ assert(html.indexOf('modules/first-wake-visual-stage.js') >= 0,
 assert(html.indexOf('modules/first-wake-visual-stage.js') < html.indexOf('aetherwake.js'),
   'First Wake visual authority must load before runtime');
 const openingStart = runtime.indexOf('function drawFirstWakeOpening() {');
-const openingEnd = runtime.indexOf('\n// ── Open-sky flight ──', openingStart);
+const openingEnd = runtime.indexOf('\nfunction ensureAirNavigationState()', openingStart);
 assert(openingStart >= 0 && openingEnd > openingStart, 'First Wake opening renderer missing');
 const openingFunction = runtime.slice(openingStart, openingEnd);
 assert(openingFunction.includes('const visual = window.AetherFirstWakeVisual;'),

@@ -389,12 +389,213 @@
     return true;
   }
 
+  function projectWorldPoint(worldX, worldY, focusX, focusY, w, h) {
+    const centerX = w * 0.5;
+    const centerY = h * 0.58;
+    const scaleX = 1.34;
+    const scaleY = 0.68;
+    const angle = Math.PI / 4;
+    const dx = (worldX - focusX) * scaleX;
+    const dy = (worldY - focusY) * scaleY;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return {
+      x: centerX + dx * cos - dy * sin,
+      y: centerY + dx * sin + dy * cos,
+    };
+  }
+
+  function drawProjectedSprite(id, tileX, tileY, name, focusX, focusY, w, h, scale, frame) {
+    const sprites = root.AetherPixelSprites;
+    if (!sprites || typeof sprites.draw !== 'function') return false;
+    const worldX = tileX * CELL + CELL / 2;
+    const worldY = tileY * CELL + CELL;
+    const p = projectWorldPoint(worldX, worldY, focusX, focusY, w, h);
+    const depth = Math.max(0.86, Math.min(1.16, 1 + (p.y - h * 0.58) / 900));
+    const spriteScale = scale * depth;
+    if (typeof sprites.drawShadow === 'function') {
+      sprites.drawShadow(p.x, p.y, spriteScale, sprites.PREVIEW_WIDTH || SPRITE_WIDTH);
+    }
+    const drawPreview = sprites.drawPreview || sprites.draw;
+    drawPreview.call(sprites, id, p.x, p.y, {
+      anchor: 'bottom-center',
+      scale: spriteScale,
+      frame: frame || 0,
+    });
+    if (name) {
+      noStroke();
+      fill(9, 13, 24, 210);
+      rect(p.x - 28, p.y - (sprites.PREVIEW_HEIGHT || SPRITE_HEIGHT) * spriteScale - 16, 56, 12);
+      fill(232, 220, 198, 230);
+      textAlign(CENTER, CENTER);
+      textSize(9);
+      textFont('VT323');
+      text(name, p.x, p.y - (sprites.PREVIEW_HEIGHT || SPRITE_HEIGHT) * spriteScale - 10);
+    }
+    return true;
+  }
+
+  function drawProjectedTerrainMass(focusX, focusY, w, h) {
+    const corners = [
+      projectWorldPoint(0, 0, focusX, focusY, w, h),
+      projectWorldPoint(MAP * CELL, 0, focusX, focusY, w, h),
+      projectWorldPoint(MAP * CELL, MAP * CELL, focusX, focusY, w, h),
+      projectWorldPoint(0, MAP * CELL, focusX, focusY, w, h),
+    ];
+    const drop = 52;
+
+    // Only the near/right cliff faces are drawn. The logical map remains flat;
+    // these faces are a visual extrusion that gives the island measurable mass.
+    noStroke();
+    fill(29, 40, 49, 220);
+    beginShape();
+    vertex(corners[2].x, corners[2].y);
+    vertex(corners[3].x, corners[3].y);
+    vertex(corners[3].x, corners[3].y + drop);
+    vertex(corners[2].x, corners[2].y + drop);
+    endShape(CLOSE);
+
+    fill(20, 31, 42, 225);
+    beginShape();
+    vertex(corners[1].x, corners[1].y);
+    vertex(corners[2].x, corners[2].y);
+    vertex(corners[2].x, corners[2].y + drop);
+    vertex(corners[1].x, corners[1].y + drop);
+    endShape(CLOSE);
+
+    // Broken vertical strata and aether seams stop the extrusion reading as a
+    // single flat slab while remaining independent of collision geometry.
+    stroke(105, 92, 72, 95);
+    strokeWeight(2);
+    for (let i = 1; i < 7; i++) {
+      const t = i / 7;
+      const x = corners[3].x + (corners[2].x - corners[3].x) * t;
+      const y = corners[3].y + (corners[2].y - corners[3].y) * t;
+      line(x, y + 4, x, y + drop - 5);
+    }
+    stroke(42, 255, 181, 58);
+    strokeWeight(1);
+    line(corners[3].x + 34, corners[3].y + 17, corners[3].x + 34, corners[3].y + drop - 7);
+    line(corners[2].x - 58, corners[2].y + 11, corners[2].x - 58, corners[2].y + drop - 10);
+    noStroke();
+  }
+
+  function drawProjectedForeground(w, h, now) {
+    // Close cloud wisps and dark structural silhouettes establish a camera-side
+    // layer. They never alter logical world coordinates or hide the center path.
+    const drift = Math.round((now * 0.009) % 150);
+    noStroke();
+    fill(226, 239, 242, 40);
+    for (let x = -170; x < w + 170; x += 190) {
+      const xx = x + drift;
+      if (xx > w * 0.33 && xx < w * 0.67) continue;
+      rect(xx, h - 104, 126, 9);
+      rect(xx + 28, h - 115, 72, 8);
+      rect(xx + 51, h - 93, 98, 6);
+    }
+
+    fill(7, 11, 18, 170);
+    beginShape();
+    vertex(0, h);
+    vertex(0, h - 72);
+    vertex(28, h - 98);
+    vertex(61, h - 57);
+    vertex(92, h);
+    endShape(CLOSE);
+    beginShape();
+    vertex(w, h);
+    vertex(w, h - 66);
+    vertex(w - 24, h - 91);
+    vertex(w - 58, h - 54);
+    vertex(w - 88, h);
+    endShape(CLOSE);
+  }
+
+  function drawProjectedWorld(input, w, h, now, player, npcs, focusX, focusY) {
+    const centerX = w * 0.5;
+    const centerY = h * 0.58;
+
+    // Shadow mass beneath the tilted play plane grounds the island in the sky.
+    noStroke();
+    fill(8, 12, 22, 105);
+    ellipse(centerX, centerY + 185, Math.min(w * 0.92, 900), 120);
+    drawProjectedTerrainMass(focusX, focusY, w, h);
+
+    push();
+    translate(centerX, centerY);
+    rotate(Math.PI / 4);
+    scale(1.34, 0.68);
+    translate(-focusX, -focusY);
+    noSmooth();
+    image(cachedMap, 0, 0, MAP * CELL, MAP * CELL);
+    drawWorldProps(input.groundLayer || []);
+    pop();
+
+    // Add a low atmospheric veil where the projected island meets the cloud sea.
+    fill(205, 225, 230, 24);
+    rect(0, Math.round(h * 0.73), w, Math.round(h * 0.08));
+
+    const actors = [];
+    actors.push({
+      id: 'ender',
+      tileX: Number.isFinite(player.tileX) ? player.tileX : Math.round((player.px || 0) / CELL),
+      tileY: Number.isFinite(player.tileY) ? player.tileY : Math.round((player.py || 0) / CELL),
+      name: 'Ender',
+      frame: playerWalkFrame(player, now),
+      scale: 2,
+      questMarker: false,
+    });
+    for (const npc of npcs) {
+      if (!npc || !Number.isFinite(npc.tileX) || !Number.isFinite(npc.tileY)) continue;
+      actors.push({
+        id: SPRITE_IDS[npc.id] || 'settler',
+        tileX: npc.tileX,
+        tileY: npc.tileY,
+        name: npc.id === 'elder_farmer' ? 'Ionia' : '',
+        frame: 0,
+        scale: 2,
+        questMarker: Boolean(npc.id === 'elder_farmer' && npc.flags && npc.flags.questMarker && !npc.flags.met),
+      });
+    }
+    actors.sort((a, b) => (a.tileX + a.tileY) - (b.tileX + b.tileY));
+
+    for (const actor of actors) {
+      drawProjectedSprite(
+        actor.id, actor.tileX, actor.tileY, actor.name,
+        focusX, focusY, w, h, actor.scale, actor.frame
+      );
+      if (actor.questMarker) {
+        const p = projectWorldPoint(
+          actor.tileX * CELL + CELL / 2,
+          actor.tileY * CELL + CELL,
+          focusX, focusY, w, h
+        );
+        fill(255, 211, 72, 230);
+        noStroke();
+        beginShape();
+        vertex(p.x, p.y - 92);
+        vertex(p.x - 6, p.y - 103);
+        vertex(p.x + 6, p.y - 103);
+        endShape(CLOSE);
+      }
+    }
+
+    drawProjectedForeground(w, h, now);
+
+    // Near-plane framing makes the world read as a photographed space, not a board.
+    fill(7, 10, 18, 120);
+    rect(0, h - 28, w, 28);
+    fill(42, 255, 181, 28);
+    rect(0, h - 31, w, 2);
+    return true;
+  }
+
   function draw(input) {
     if (!root.AetherPixelTiles || !root.AetherPixelSprites) return false;
     const w = input.width || width;
     const h = input.height || height;
     const now = input.now || 0;
-    drawBackdrop(w, h, now);
+    if (!input.skipBackdrop) drawBackdrop(w, h, now);
 
     const npcs = input.npcs || [];
     const nextNpcSignature = npcPositionSignature(npcs);
@@ -409,6 +610,14 @@
     const player = input.player || { px: 16 * CELL, py: 16 * CELL };
     const focusX = Number.isFinite(player.px) ? player.px + CELL / 2 : 16 * CELL;
     const focusY = Number.isFinite(player.py) ? player.py + CELL / 2 : 16 * CELL;
+
+    // Real browser/runtime path: project the deterministic logical map into a
+    // three-quarter 2.5D presentation while keeping the legacy raster path as
+    // a non-rotating fallback for deterministic/headless compatibility.
+    if (typeof rotate === 'function' && typeof beginShape === 'function') {
+      return drawProjectedWorld(input, w, h, now, player, npcs, focusX, focusY);
+    }
+
     const cameraX = Math.round(w / 2 - focusX * zoom);
     const cameraY = Math.round(h / 2 - focusY * zoom);
 

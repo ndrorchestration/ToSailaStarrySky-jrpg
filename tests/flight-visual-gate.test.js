@@ -12,8 +12,8 @@ vm.runInNewContext(source, sandbox, { filename: 'flight-visual-stage.js' });
 const api = sandbox.window.AetherFlightVisual;
 
 assert(api, 'flight visual API missing');
-assert.strictEqual(api.VERSION, '0.1.0');
-for (const fn of ['altitudeProfile','weatherPalette','drawBackdrop','drawDragonfly','drawRouteOverlay','drawLandmarkBeacons']) {
+assert.strictEqual(api.VERSION, '0.2.0');
+for (const fn of ['altitudeProfile','weatherPalette','drawBackdrop','drawDragonfly','drawForeground','drawRouteOverlay','drawLandmarkBeacons']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
 assert(api.altitudeProfile('high').cloudBase > api.altitudeProfile('low').cloudBase,
@@ -23,6 +23,9 @@ assert.deepStrictEqual(Array.from(api.weatherPalette('aether-squall').accent), [
 assert(!source.includes('encounterSteps ='), 'flight visuals must not mutate encounter state');
 assert(!source.includes('mooredLandmarkId ='), 'flight visuals must not mutate docking state');
 assert(!source.includes('discovered.push'), 'flight visuals must not mutate discovery');
+assert(source.includes('function drawFarLandmarks'), 'flight stage must retain dimensional far-landmark staging');
+assert(source.includes('function drawForeground'), 'flight stage must retain a near-camera occlusion pass');
+assert(source.includes('Speed streaks live in the foreground'), 'flight stage must retain speed-responsive foreground motion');
 
 const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
@@ -39,6 +42,7 @@ assert(flightRuntime.includes('const visual = window.AetherFlightVisual;'),
 for (const binding of [
   'visual.drawBackdrop(',
   'visual.drawDragonfly(',
+  'visual.drawForeground(',
   'visual.drawRouteOverlay(',
   'visual.drawLandmarkBeacons('
 ]) {

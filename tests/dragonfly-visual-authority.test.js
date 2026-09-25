@@ -11,8 +11,12 @@ const sandbox = { window: {}, globalThis: {} };
 vm.runInNewContext(source, sandbox, { filename: 'dragonfly-visual.js' });
 
 assert(sandbox.window.AetherDragonflyVisual, 'shared Dragonfly visual authority missing');
-assert.strictEqual(sandbox.window.AetherDragonflyVisual.VERSION, '0.1.0');
+assert.strictEqual(sandbox.window.AetherDragonflyVisual.VERSION, '0.2.0');
 assert.strictEqual(typeof sandbox.window.AetherDragonflyVisual.draw, 'function');
+assert(source.includes('function drawWingPair'), 'Dragonfly must retain articulated paired-wing authority');
+assert(source.includes('function drawHull'), 'Dragonfly must retain a dedicated tapered-hull renderer');
+assert(source.includes('function drawWake'), 'Dragonfly must retain speed-responsive propulsion-wake rendering');
+assert(source.includes('Warm cabin windows'), 'Dragonfly must retain inhabited warm-light detail');
 
 const benchmark = fs.readFileSync(path.join(root, 'modules', 'visual-benchmark.js'), 'utf8');
 const flight = fs.readFileSync(path.join(root, 'modules', 'flight-visual-stage.js'), 'utf8');

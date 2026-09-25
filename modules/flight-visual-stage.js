@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
 
   function altitudeProfile(altitude) {
     if (altitude === 'high') return { horizon: 0.60, cloudBase: 0.72, haze: 0.18 };
@@ -54,6 +54,12 @@
     const horizonY = Math.round(h * profile.horizon);
 
     noStroke();
+
+    // Clear the full frame opaquely first. The previous renderer only painted
+    // opaque bands above the horizon, allowing old dialogue/toast pixels to
+    // persist under translucent lower cloud layers during state transitions.
+    fill(palette.low[0], palette.low[1], palette.low[2]);
+    rect(0, 0, w, h);
 
     const bands = [palette.top, palette.mid, palette.low];
     const bandH = Math.ceil(horizonY / bands.length);
@@ -104,6 +110,8 @@
       if (iw > 70) rect(x + 36, y + 10, 2, 2);
     }
 
+    drawFarLandmarks(ctx, horizonY, palette);
+
     // Weather-specific motion cues.
     if (ctx.travel.weather.id === 'crosswind') {
       stroke(palette.accent[0], palette.accent[1], palette.accent[2], 55);
@@ -124,6 +132,139 @@
         rect(x, y, 2, 3);
       }
     }
+
+    // Near-plane cloud banks and cliff silhouettes create a strong parallax
+    // frame around the hero ship without obscuring the navigation corridor.
+    fill(palette.cloud[0], palette.cloud[1], palette.cloud[2], 54);
+    const nearDrift = Math.round((now * 0.018 * Math.max(0.35, ctx.travel.effectiveSpeed || 0.35)) % 120);
+    for (let x = -160; x < w + 160; x += 190) {
+      const xx = x + nearDrift;
+      rect(xx, h - 92, 132, 18);
+      rect(xx + 26, h - 105, 78, 15);
+      rect(xx + 57, h - 72, 116, 11);
+    }
+
+    fill(12, 18, 29, 185);
+    beginShape();
+    vertex(0, h);
+    vertex(0, h - 122);
+    vertex(54, h - 146);
+    vertex(104, h - 116);
+    vertex(138, h - 78);
+    vertex(166, h);
+    endShape(CLOSE);
+    beginShape();
+    vertex(w, h);
+    vertex(w, h - 104);
+    vertex(w - 43, h - 132);
+    vertex(w - 94, h - 108);
+    vertex(w - 126, h - 67);
+    vertex(w - 151, h);
+    endShape(CLOSE);
+
+    fill(42, 255, 181, 34);
+    rect(39, h - 111, 3, 36);
+    rect(w - 64, h - 99, 3, 29);
+  }
+
+  function drawFarLandmarks(ctx, horizonY, palette) {
+    const w = ctx.width;
+    const h = ctx.height;
+    const now = ctx.now || 0;
+    const speed = Math.max(0.2, ctx.travel.effectiveSpeed || 0.2);
+    const drift = Math.round((now * 0.0018 * speed) % 90);
+
+    // Distant vertical silhouettes give scale and route identity without
+    // becoming gameplay geometry. They live behind the Dragonfly.
+    noStroke();
+    fill(16, 25, 39, 138);
+    const towers = [
+      [0.18, -12, 18, 66],
+      [0.37, 18, 13, 46],
+      [0.68, -24, 22, 82],
+      [0.84, 11, 12, 38],
+    ];
+    for (let i = 0; i < towers.length; i++) {
+      const [nx, offsetY, tw, th] = towers[i];
+      const x = Math.round(w * nx) + (i % 2 ? drift : -drift) * 0.12;
+      const y = horizonY + offsetY - th;
+      rect(x, y, tw, th);
+      rect(x - 9, y + th - 9, tw + 18, 9);
+      fill(244, 174, 91, 72 + i * 10);
+      rect(x + Math.floor(tw / 2), y + 8, 2, 2);
+      fill(16, 25, 39, 138);
+    }
+
+    // Suspended route arches echo the dimensional sky-lane infrastructure.
+    noFill();
+    stroke(palette.accent[0], palette.accent[1], palette.accent[2], 30);
+    strokeWeight(2);
+    for (let i = 0; i < 3; i++) {
+      const cx = Math.round(w * (0.27 + i * 0.24));
+      const ry = horizonY + 18 + i * 6;
+      arc(cx, ry, 92 + i * 24, 32 + i * 5, Math.PI, Math.PI * 2);
+    }
+    noStroke();
+  }
+
+  function drawForeground(ctx) {
+    const w = ctx.width;
+    const h = ctx.height;
+    const now = ctx.now || 0;
+    const palette = weatherPalette(ctx.travel.weather.id);
+    const speed = Math.max(0.25, ctx.travel.effectiveSpeed || 0.25);
+    const heading = ctx.state.heading || 0;
+    const dir = Math.cos(heading) >= 0 ? 1 : -1;
+
+    // Near cloud volume deliberately crosses the hero-object plane. The gap in
+    // the center keeps controls readable while producing intermittent occlusion.
+    noStroke();
+    fill(palette.cloud[0], palette.cloud[1], palette.cloud[2], 78);
+    const drift = Math.round((now * 0.028 * speed * dir) % 230);
+    for (let i = -2; i < 7; i++) {
+      const xx = i * 210 + drift - 180;
+      const y = h - 106 + (i % 2) * 18;
+      if (xx > w * 0.36 && xx < w * 0.64) continue;
+      rect(xx, y, 162, 22);
+      rect(xx + 31, y - 15, 93, 18);
+      rect(xx + 68, y + 17, 128, 13);
+    }
+
+    // Close cliff fragments frame aggressive low-altitude flying and reinforce
+    // parallax; high altitude suppresses most of this near geometry.
+    if (ctx.state.altitude !== 'high') {
+      fill(8, 13, 22, ctx.state.altitude === 'low' ? 225 : 150);
+      beginShape();
+      vertex(0, h);
+      vertex(0, h - 82);
+      vertex(32, h - 112);
+      vertex(64, h - 74);
+      vertex(96, h - 42);
+      vertex(122, h);
+      endShape(CLOSE);
+      beginShape();
+      vertex(w, h);
+      vertex(w, h - 74);
+      vertex(w - 31, h - 102);
+      vertex(w - 70, h - 73);
+      vertex(w - 102, h - 36);
+      vertex(w - 126, h);
+      endShape(CLOSE);
+    }
+
+    // Speed streaks live in the foreground, becoming visible only once travel
+    // speed is high enough to communicate acceleration rather than idle noise.
+    if (speed > 0.72) {
+      stroke(205, 235, 238, Math.round(28 + Math.min(1, speed - 0.72) * 60));
+      strokeWeight(1);
+      const streakLength = Math.round(24 + speed * 30);
+      for (let i = 0; i < 12; i++) {
+        const sy = 100 + ((i * 47 + Math.round(now * 0.018)) % Math.max(120, h - 190));
+        const sx = (i * 127 + Math.round(now * 0.06 * dir)) % (w + 120) - 60;
+        line(sx, sy, sx - streakLength * dir, sy + Math.sin(heading) * 8);
+      }
+      noStroke();
+    }
   }
 
   function drawDragonfly(ctx) {
@@ -137,7 +278,8 @@
       y: ctx.y,
       now: ctx.now || 0,
       speed: ctx.travel ? ctx.travel.effectiveSpeed : 0,
-      heading: ctx.state ? ctx.state.heading : 0
+      heading: ctx.state ? ctx.state.heading : 0,
+      scale: 2.05
     });
   }
 
@@ -237,6 +379,7 @@
     weatherPalette,
     drawBackdrop,
     drawDragonfly,
+    drawForeground,
     drawRouteOverlay,
     drawLandmarkBeacons,
   });

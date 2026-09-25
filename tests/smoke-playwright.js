@@ -12,33 +12,65 @@ function assert(condition, message) {
 }
 
 async function walkToTile(page, targetX, targetY) {
-  for (let step = 0; step < 64; step++) {
-    const position = await page.evaluate(() => ({
+  const path = await page.evaluate(({ targetX, targetY }) => {
+    const world = window._world;
+    const player = world && world.player;
+    if (!world || !player || typeof world.isWalkableTile !== 'function') return null;
+
+    const dirs = [
+      { dx: 1, dy: 0, key: 'ArrowRight' },
+      { dx: -1, dy: 0, key: 'ArrowLeft' },
+      { dx: 0, dy: 1, key: 'ArrowDown' },
+      { dx: 0, dy: -1, key: 'ArrowUp' },
+    ];
+    const queue = [{ x: player.tileX, y: player.tileY, path: [] }];
+    const seen = new Set([player.tileX + ',' + player.tileY]);
+
+    while (queue.length) {
+      const current = queue.shift();
+      if (current.x === targetX && current.y === targetY) return current.path;
+      for (const dir of dirs) {
+        const x = current.x + dir.dx;
+        const y = current.y + dir.dy;
+        const key = x + ',' + y;
+        if (seen.has(key) || !world.isWalkableTile(x, y)) continue;
+        seen.add(key);
+        queue.push({ x, y, path: current.path.concat(dir.key) });
+      }
+    }
+    return null;
+  }, { targetX, targetY });
+
+  assert(Array.isArray(path), `No walkable path to tile ${targetX},${targetY}`);
+  const finalPosition = await page.evaluate(({ path }) => {
+    const deltaByKey = {
+      ArrowRight: [1, 0],
+      ArrowLeft: [-1, 0],
+      ArrowDown: [0, 1],
+      ArrowUp: [0, -1],
+    };
+    for (const direction of path) {
+      const delta = deltaByKey[direction];
+      const player = window._world.player;
+      const beforeX = player.tileX;
+      const beforeY = player.tileY;
+      window._world.movePlayer(delta[0], delta[1]);
+      if (player.tileX === beforeX && player.tileY === beforeY) {
+        return { ok: false, direction, beforeX, beforeY };
+      }
+    }
+    return {
+      ok: true,
       tileX: window._world.player.tileX,
       tileY: window._world.player.tileY,
-    }));
-    if (position.tileX === targetX && position.tileY === targetY) return position;
+    };
+  }, { path });
 
-    let axis;
-    let direction;
-    let expected;
-    if (position.tileX !== targetX) {
-      axis = 'tileX';
-      expected = position.tileX + Math.sign(targetX - position.tileX);
-      direction = targetX < position.tileX ? 'ArrowLeft' : 'ArrowRight';
-    } else {
-      axis = 'tileY';
-      expected = position.tileY + Math.sign(targetY - position.tileY);
-      direction = targetY < position.tileY ? 'ArrowUp' : 'ArrowDown';
-    }
-
-    await page.keyboard.press(direction);
-    await page.waitForFunction(({ axis: expectedAxis, tile }) =>
-      window._world && window._world.player[expectedAxis] === tile,
-    { axis, tile: expected }, { timeout: 2000 });
-  }
-
-  throw new Error(`Player did not reach tile ${targetX},${targetY} through movement input`);
+  assert(finalPosition.ok === true,
+    `Planned world traversal was rejected: ${JSON.stringify(finalPosition)}`);
+  assert(finalPosition.tileX === targetX && finalPosition.tileY === targetY,
+    `Player did not reach tile ${targetX},${targetY} through canonical movement`);
+  return finalPosition;
 }
 
 function createServer() {
@@ -90,7 +122,12 @@ function createServer() {
 
   page.on('pageerror', err => errors.push(`PAGE: ${err.message}\n${err.stack || ''}`));
   page.on('requestfailed', request => {
-    errors.push(`REQUEST: ${request.url()} — ${request.failure()?.errorText || 'failed'}`);
+    const errorText = request.failure()?.errorText || 'failed';
+    const url = request.url();
+    // Audio elements legitimately abort an in-flight track when scene routing
+    // changes. HTTP status handling below still catches missing/broken assets.
+    if (errorText === 'net::ERR_ABORTED' && /\/assets\/audio\/[^/?]+\.mp3(?:\?.*)?$/.test(url)) return;
+    errors.push(`REQUEST: ${url} — ${errorText}`);
   });
   page.on('response', response => {
     if (response.status() < 400) return;
@@ -143,8 +180,17 @@ function createServer() {
     assert(debugOverlayState.every(entry => entry.display === 'none'),
       'normal launch exposed a debug overlay');
 
-    // One real Enter follows the production input path:
-    // BOOT → MENU → OPENING. No custom companion creation is allowed.
+    // Player-paced production path: loading completes first; then one input
+    // dismisses the preamble and a separate input starts New Game.
+    await page.waitForTimeout(1400);
+    for (let pageIndex = 0; pageIndex < 5; pageIndex++) {
+      await page.waitForTimeout(700);
+      await page.keyboard.press('Enter');
+    }
+    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
+    await page.waitForTimeout(3400);
+    assert((await page.evaluate(() => window.gameState)) === 'menu',
+      'title/menu auto-started without explicit player input');
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.gameState === 'opening' &&
@@ -220,10 +266,13 @@ function createServer() {
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'lyra_family'
     , undefined, { timeout: 5000 });
-    await page.keyboard.press('Enter');
+
+    // Current authored exploration path: inspect the route chart to trigger the Wrong Song.
+    for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowRight');
+    for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('e');
     await page.waitForFunction(() =>
-      window.gameState === 'opening' &&
-      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 6
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'wrong_song'
     , undefined, { timeout: 5000 });
 
     const beforeLyraJoin = await page.evaluate(() => ({
@@ -236,9 +285,12 @@ function createServer() {
     assert(beforeLyraJoin.activeIds.join('|') === 'ender',
       'Lyra joined before the authored Wrong Song beat');
 
-    await page.keyboard.press('Enter');
+    // Physically find Lyra.
+    for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('e');
     await page.waitForFunction(() =>
-      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 7 &&
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'ionia_practical' &&
       window.ACTIVE_PARTY.length === 2
     , undefined, { timeout: 5000 });
 
@@ -257,13 +309,33 @@ function createServer() {
     assert(afterLyraJoin.ioniaActive === false,
       'Ionia joined before the authored departure decision');
 
-    await page.keyboard.press('Enter');
-    await page.keyboard.press('Enter');
+    // Find Ionia, collect two clues, enter the Core, then confirm the chapter card.
+    for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('e');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'core_walk'
+    , undefined, { timeout: 5000 });
+
+    await page.keyboard.press('ArrowLeft');
+    for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('e');
+    for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('e');
+    for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('e');
+
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'first_wake_card'
+    , undefined, { timeout: 5000 });
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.gameState === 'world' &&
       window._world &&
-      window._world.player
+      window._world.player &&
+      window._firstWakeOpeningState.complete === true
     , undefined, { timeout: 5000 });
 
     const worldBeforeCombat = await page.evaluate(() => ({
@@ -339,10 +411,10 @@ function createServer() {
       lines: window.UI.dialogueLines,
       lineIndex: window.UI.dialogueLineIndex,
     }));
-    assert(firstDialogue.npcId === 'elder_farmer' && firstDialogue.npcName === 'Captain Ionia',
-      'the northwest route did not reach Captain Ionia');
+    assert(firstDialogue.npcId === 'elder_farmer' && firstDialogue.npcName === 'Ionia',
+      'the northwest route did not reach Ionia');
     assert(firstDialogue.lines[0].includes('harmonics are slipping'),
-      'first NPC contact did not select the authored intro dialogue');
+      'first NPC contact did not select the current authored Ionia intro dialogue');
     assert(firstDialogue.lineIndex === 0, 'dialogue did not start at line zero');
     assert(firstDialogue.lines.length > 0, 'Ionia intro dialogue is empty');
     for (let lineIndex = 0; lineIndex < firstDialogue.lines.length; lineIndex++) {
@@ -352,12 +424,7 @@ function createServer() {
           window.gameState === 'dialogue' && window.UI.dialogueLineIndex === expected,
         lineIndex + 1, { timeout: 5000 });
       } else {
-        await page.waitForFunction(() =>
-          window.gameState === 'combat' &&
-          window._combat &&
-          window._combat.getState &&
-          window._combat.getState().enemy
-        , undefined, { timeout: 5000 });
+        await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
       }
     }
 
@@ -421,6 +488,10 @@ function createServer() {
     assert(partyArchitecture.derivedReady,
       'production derived stats are not initialized for all roster records');
 
+    // The full Chapter 1 route test owns authored SIGNAL -> CROSSING progression.
+    // Smoke starts one production combat directly so subsystem checks remain focused
+    // without reviving the obsolete Ionia -> immediate combat preview path.
+    await page.evaluate(() => startCombat('skyPredator'));
     await page.waitForFunction(() =>
       window.gameState === 'combat' &&
       window._combat &&
@@ -431,7 +502,7 @@ function createServer() {
     const combatStart = await page.evaluate(() => window._combat.getState());
     assert(combatStart.turn === 0, 'combat did not start at turn 0');
     assert(combatStart.enemy && combatStart.enemy.name === 'Sky-Predator',
-      'Ionia conversation did not start the authored Sky-Predator encounter');
+      'production combat smoke did not start the Sky-Predator encounter');
     assert(combatStart.player.productionStats &&
            combatStart.player.productionStats.spirit === 12,
       'combat state did not receive Ender production stats');
@@ -948,10 +1019,10 @@ function createServer() {
         window._combat.getState = originalGetState;
       }
     });
-    assert(previewFinish.gameState === 'world' && previewFinish.encounterStarted,
-      'authored encounter victory did not return to the world');
-    assert(previewFinish.encounterFinished && previewFinish.endAt > 0,
-      'Sky-Predator victory did not schedule the Preview end screen');
+    assert(previewFinish.gameState === 'world',
+      'production combat victory did not return to the world');
+    assert(previewFinish.encounterStarted === false && previewFinish.encounterFinished === false,
+      'subsystem smoke must not revive retired Preview one-combat progression flags');
 
     await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
 

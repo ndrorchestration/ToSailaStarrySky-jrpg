@@ -336,6 +336,14 @@ assert(propsAfterNpcOverlap.some(args => args[1] === 1 * 16 && args[2] === 25 * 
 'the tree should remain drawn while a live NPC overlaps its footprint');
 
 const worldSandbox = { window: {}, globalThis: {} };
+worldSandbox.window.AetherPartyState = {
+  refreshProductionStats(player) {
+    player.productionStats = { spirit: 12 };
+    player.productionDerivedStats = { maxHp: player.maxVit || 13 };
+    player.productionStatModelVersion = '0.1.0';
+    return player;
+  },
+};
 vm.runInNewContext(worldSource, worldSandbox, { filename: 'world.js' });
 const actualWorld = worldSandbox.window.AetherWorld({}, {});
 assert.doesNotThrow(() => actualWorld.init(), 'the playable world must initialize before its scenic map is drawn');

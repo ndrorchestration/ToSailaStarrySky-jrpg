@@ -112,7 +112,8 @@
       y: ctx.y,
       now: ctx.now || 0,
       speed: 0,
-      heading: 0
+      heading: 0,
+      scale: 1.75
     });
   }
 

@@ -35,13 +35,40 @@ let prevState = null;
 // frame for transition effects, so it cannot safely carry the state beneath
 // an overlay.
 let overlayReturnState = null;
-let menuAutoStartTimer = 0;  // one-shot: auto-start from MENU after 3s idle (prevents single-press hang)
 
 // Boot sequence timing
 let bootTime = 0;
-const BOOT_LOAD_MS = 1200;   // how long loading text shows
-const PREAMBLE_DURATION = 9000; // preamble text scroll duration
+const BOOT_LOAD_MS = 1200;   // loading-only motion may advance autonomously
+const PREAMBLE_PAGE_MIN_MS = 650; // prevents accidental double-tap skips between story pages
 let preambleStart = 0;
+let preamblePage = 0;
+let preamblePageShownAt = 0;
+const PREAMBLE_PAGES = Object.freeze([
+  Object.freeze([
+    'A ship above a broken world.',
+    'A core that has begun to sing wrong.',
+  ]),
+  Object.freeze([
+    'Below, the copper ground is tired — rusted, cracked,',
+    'choking on its own dust.',
+    'Above, the sky-lanes are still open.',
+  ]),
+  Object.freeze([
+    'For three hundred years, the aether-cores',
+    'kept the arcologies aloft.',
+    'Now the cores are failing.',
+  ]),
+  Object.freeze([
+    'You are Ender.',
+    'Deckhand. Engineer-in-training.',
+    'You carry a wrench, a passport, and a decision',
+    'you have not yet admitted you have to make.',
+  ]),
+  Object.freeze([
+    "The Aureate Wake's core is singing wrong.",
+    'Something has to be done about that.',
+  ]),
+]);
 let titleVisible = 0;        // 0..1 fade-in for title
 let titleFlash = 0;          // flash effect on title
 
@@ -733,16 +760,6 @@ function draw() {
   // Only run world/combat updates if hit stop is NOT active
   const updatesEnabled = !hitStop.active;
 
-  // Auto-start from MENU after 3s idle — bridges the BOOT→MENU→WORLD gap
-  // so a single N press (or no press) still reaches the world.
-  if (gameState === STATE.MENU && menuAutoStartTimer === 0) {
-    menuAutoStartTimer = millis();
-  } else if (gameState === STATE.MENU &&
-             menuAutoStartTimer > 0 &&
-             millis() - menuAutoStartTimer > 3000) {
-    startGame();
-  }
-
   flushPendingAutosaveIfStable();
 
   // Subtle corner brackets — confirm canvas is live without distracting
@@ -970,6 +987,32 @@ function keyPressed() {
     openSaveLoadMenu('load');
     delete keysPressed[keyCode];
     return false;
+  }
+
+  // Story-bearing boot presentation is fully player-paced after loading.
+  // Each preamble page is held until explicit input; the final page then hands
+  // control to the title. A small minimum dwell prevents accidental double taps.
+  if (gameState === STATE.BOOT) {
+    const now = millis();
+    const elapsed = bootTime > 0 ? now - bootTime : 0;
+    if (elapsed >= BOOT_LOAD_MS) {
+      if (preamblePageShownAt === 0) preamblePageShownAt = now;
+      if (now - preamblePageShownAt >= PREAMBLE_PAGE_MIN_MS) {
+        if (preamblePage < PREAMBLE_PAGES.length - 1) {
+          preamblePage += 1;
+          preamblePageShownAt = now;
+        } else {
+          gameState = STATE.MENU;
+          window.gameState = gameState;
+          titleVisible = 0;
+          titleFlash = 0;
+        }
+      }
+      delete keysPressed[keyCode];
+      if (typeof ensureAudio === 'function') ensureAudio();
+      if (typeof resumeAudio === 'function') resumeAudio();
+      return false;
+    }
   }
 
   if (gameState === STATE.OPENING) {
@@ -1447,7 +1490,6 @@ function startFirstWakeOpening() {
   gameState = STATE.OPENING;
   window.gameState = gameState;
   prevState = null;
-  menuAutoStartTimer = 0;
 }
 
 function advanceFirstWakeOpening() {
@@ -1716,6 +1758,17 @@ function drawAirNavigationScene() {
       state: airNavigationState,
       travel,
     });
+
+    if (typeof visual.drawForeground === 'function') {
+      visual.drawForeground({
+        width,
+        height,
+        now: millis(),
+        state: airNavigationState,
+        travel,
+        nav,
+      });
+    }
 
     visual.drawRouteOverlay({
       width,
@@ -1997,13 +2050,27 @@ function triggerHitStop(ms) {
 
 /** Show a toast message — auto-fading overlay text. */
 function showToast(text, color, duration) {
+  const now = millis();
+  // Purge expired notices before adding another and refresh duplicates instead
+  // of creating a vertical history log over the game view.
+  window.toasts = window.toasts.filter(t => now - t.startTime <= t.duration);
+  const duplicate = window.toasts.find(t => t.text === text);
+  if (duplicate) {
+    duplicate.startTime = now;
+    duplicate.duration = duration || duplicate.duration || 2000;
+    duplicate.color = color || duplicate.color || [42, 255, 181];
+    return;
+  }
   window.toasts.push({
     text: text,
     color: color || [42, 255, 181],
-    startTime: millis(),
+    startTime: now,
     duration: duration || 2000,
     alpha: 255,
   });
+  // Two messages are readable; more becomes UI history. Retain a small queue
+  // for timing continuity but never allow unbounded accumulation.
+  if (window.toasts.length > 4) window.toasts.splice(0, window.toasts.length - 4);
 }
 
 /** Trigger all combat-hit feedback: shake + hit stop on crits + sound. */
@@ -2100,70 +2167,49 @@ function drawBootSequence() {
     return;
   }
   
-  // ── Preamble phase (1.2s\u201310.2s) ──
-  if (elapsed < BOOT_LOAD_MS + PREAMBLE_DURATION) {
-    const t = (elapsed - BOOT_LOAD_MS) / PREAMBLE_DURATION;
-    
-    // Fade in
-    const fadeIn = Math.min(1, t * 3);
-    const scrollPos = Math.max(0, (t - 0.33) * 0.6); // scrolling starts at 33%
-    
-    // Story text
-    const preambleLines = [
-      'A ship above a broken world.',
-      'A core that has begun to sing wrong.',
-      '',
-      'Below, the copper ground is tired \u2014 rusted, cracked,',
-      'choking on its own dust.',
-      'Above, the sky-lanes are still open.',
-      '',
-      'For three hundred years, the aether-cores',
-      'kept the arcologies aloft.',
-      'Now the cores are failing.',
-      '',
-      'You are Ender.',
-      'Deckhand. Engineer-in-training.',
-      'You carry a wrench, a passport, and a decision',
-      'you have not yet admitted you have to make.',
-      '',
-      'The Aureate Wake\'s core is singing wrong.',
-      'Something has to be done about that.',
-    ];
-    
-    // Calculate which lines visible
-    const lineHeight = 18;
-    const visibleLines = Math.floor((height - 120) / lineHeight);
-    const startLine = Math.max(0, Math.floor(scrollPos * preambleLines.length) - Math.floor(visibleLines/2));
-    const endLine = Math.min(preambleLines.length, startLine + visibleLines);
-    
-    for (let i = startLine; i < endLine; i++) {
-      const lineY = height/2 - 10 + (i - scrollPos * preambleLines.length) * lineHeight;
-      if (preambleLines[i] === '') continue;
-      const lineAlpha = (i === endLine - 1 && t < 0.5) ? t * 2 : 1;
-      
-      noStroke();
-      fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * lineAlpha);
-      textSize(13);
-      textAlign(CENTER, CENTER);
-      text(preambleLines[i], width/2, lineY);
-    }
-    
-    // Bottom hint
+  // ── Player-paced story preamble ──
+  if (elapsed >= BOOT_LOAD_MS) {
+    const now = millis();
+    if (preamblePageShownAt === 0) preamblePageShownAt = now;
+    const page = PREAMBLE_PAGES[Math.max(0, Math.min(preamblePage, PREAMBLE_PAGES.length - 1))];
+    const age = Math.max(0, now - preamblePageShownAt);
+    const fadeIn = Math.min(1, age / 320);
+    const pageReady = age >= PREAMBLE_PAGE_MIN_MS;
+
+    // Dim the moving world without removing it; the player should feel that
+    // the story text belongs to the same sky they are about to enter.
     noStroke();
-    textSize(9);
-    fill(C.teal[0], C.teal[1], C.teal[2], 100 * fadeIn);
+    fill(C.navy[0], C.navy[1], C.navy[2], 118);
+    rect(0, 0, width, height);
+
+    // Thin cinematic horizon rules provide a stable reading frame while the
+    // parallax islands continue moving behind the held story page.
+    fill(C.teal[0], C.teal[1], C.teal[2], 34);
+    rect(width * 0.16, height * 0.28, width * 0.68, 1);
+    rect(width * 0.16, height * 0.72, width * 0.68, 1);
+
+    const lineHeight = 27;
+    const startY = height / 2 - ((page.length - 1) * lineHeight) / 2;
+    noStroke();
     textAlign(CENTER, CENTER);
-    text('[ any key to skip ]', width/2, height - 30);
+    textSize(15);
+    for (let i = 0; i < page.length; i++) {
+      const localDelay = i * 90;
+      const lineAlpha = Math.max(0, Math.min(1, (age - localDelay) / 260));
+      fill(C.parchment[0], C.parchment[1], C.parchment[2], 210 * lineAlpha);
+      text(page[i], width / 2, startY + i * lineHeight);
+    }
 
-    return;
-  }
+    // Page position is visible but understated: pacing belongs to the player,
+    // not to an invisible timer.
+    textSize(9);
+    fill(C.scioto[0], C.scioto[1], C.scioto[2], 90 * fadeIn);
+    text((preamblePage + 1) + ' / ' + PREAMBLE_PAGES.length, width / 2, height - 52);
+    fill(C.teal[0], C.teal[1], C.teal[2], (pageReady ? 155 : 70) * fadeIn);
+    text(pageReady
+      ? (preamblePage < PREAMBLE_PAGES.length - 1 ? '[ press any key for next ]' : '[ press any key for title ]')
+      : '[ hold ]', width / 2, height - 30);
 
-  // After preamble completes, auto-transition to MENU state so the game is
-  // ready for input. The title continues rendering (it's the MENU screen).
-  if (elapsed >= BOOT_LOAD_MS + PREAMBLE_DURATION && gameState === STATE.BOOT) {
-    gameState = STATE.MENU;
-    window.gameState = gameState;
-    drawTitleScreen();
     return;
   }
 
@@ -2735,22 +2781,32 @@ function drawToasts() {
   const now = millis();
   for (let i = window.toasts.length - 1; i >= 0; i--) {
     const t = window.toasts[i];
+    if (now - t.startTime > t.duration) window.toasts.splice(i, 1);
+  }
+
+  // Transient notices live on a right-side rail so the center remains reserved
+  // for characters, vehicle silhouettes, combat, and environmental composition.
+  const visible = window.toasts.slice(-2).reverse();
+  const cardW = Math.min(292, Math.max(220, width * 0.31));
+  const cardX = width - cardW - 24;
+  for (let i = 0; i < visible.length; i++) {
+    const t = visible[i];
     const age = now - t.startTime;
-    if (age > t.duration) {
-      window.toasts.splice(i, 1);
-      continue;
-    }
-    const alpha = age < 200 ? (age / 200) * 255 : (age > t.duration - 400 ? (t.duration - age) / 400 * 255 : 255);
-    const y = height - 60 - (window.toasts.length - 1 - i) * 26;
+    const alpha = age < 180 ? (age / 180) * 255 :
+      (age > t.duration - 350 ? Math.max(0, (t.duration - age) / 350) * 255 : 255);
+    const y = 112 + i * 34;
     noStroke();
-    fill(t.color[0], t.color[1], t.color[2], alpha * 0.15);
-    rect(width / 2 - 110, y - 8, 220, 22, 4);
+    fill(7, 11, 19, alpha * 0.72);
+    rect(cardX, y, cardW, 27, 3);
+    fill(t.color[0], t.color[1], t.color[2], alpha * 0.24);
+    rect(cardX, y, 3, 27);
     fill(t.color[0], t.color[1], t.color[2], alpha);
     textFont('VT323');
-    textSize(14);
-    textAlign(CENTER, CENTER);
-    text(t.text, width / 2, y + 2);
+    textSize(12);
+    textAlign(RIGHT, CENTER);
+    text(t.text, cardX + cardW - 10, y + 13);
   }
+  textAlign(LEFT, BASELINE);
   textFont('sans-serif');
 }
 
@@ -4285,7 +4341,7 @@ function render() {
     if (benchmarkActive) benchmark.drawBackdrop(benchmarkCtx);
 
     const previewPresentation = window.AetherPreviewWorldPresentation;
-    const previewRendered = !benchmarkActive && previewPresentation &&
+    const previewRendered = previewPresentation &&
       typeof previewPresentation.draw === 'function' && previewPresentation.draw({
         groundLayer,
         skyLayer,
@@ -4298,6 +4354,7 @@ function render() {
         dayTime,
         isSkyLayerVisible,
         quest,
+        skipBackdrop: benchmarkActive,
       });
 
     if (!previewRendered) {
@@ -4319,6 +4376,16 @@ function render() {
     }
 
     if (benchmarkActive) {
+      // Keep the Dragonfly as the dock scene's hero object even when the
+      // projected 2.5D world renderer owns the play plane.
+      if (previewRendered && typeof benchmark.drawDragonfly === 'function') {
+        benchmark.drawDragonfly({
+          x: Math.round(width * 0.72),
+          y: Math.round(height * 0.43),
+          now: millis(),
+          moored: true
+        });
+      }
       benchmark.drawLighting(benchmarkCtx);
       benchmark.drawDockLights(benchmarkCtx);
       benchmark.drawForeground(benchmarkCtx);

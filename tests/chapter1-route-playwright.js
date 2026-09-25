@@ -267,7 +267,17 @@ function createServer() {
       document.querySelector('canvas')
     , undefined, { timeout: 15000 });
 
-    // BOOT -> MENU -> OPENING through the real production input path.
+    // Player-paced production path: loading completes first; then one input
+    // dismisses the preamble and a separate input starts New Game.
+    await page.waitForTimeout(1400);
+    for (let pageIndex = 0; pageIndex < 5; pageIndex++) {
+      await page.waitForTimeout(700);
+      await page.keyboard.press('Enter');
+    }
+    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
+    await page.waitForTimeout(3400);
+    assert.strictEqual(await page.evaluate(() => window.gameState), 'menu',
+      'title/menu auto-started without explicit player input');
     await page.keyboard.press('Enter');
     await waitScene('arrival_horizon');
 
@@ -554,12 +564,12 @@ function createServer() {
 
     // Choose Path C through the same bounded world contract used by the
     // player-facing choice menu; digit-key delivery is not stable in headless p5.
-    await page.evaluate(() => window._world.selectChoicePath(2));
-    await page.waitForFunction(() =>
-      window._world.getQuestState().state === 'wake',
-      undefined, { timeout: 3000 });
-
-    const wake = await page.evaluate(() => window._world.getQuestState());
+    const wake = await page.evaluate(() => {
+      window._world.selectChoicePath(2);
+      return window._world.getQuestState();
+    });
+    assert.strictEqual(wake.state, 'wake',
+      'Path C selection must synchronously enter WAKE');
     assert.strictEqual(wake.choicePath, 'path_c');
     assert(['strong','strained'].includes(wake.choiceVariant),
       'final choice did not use deterministic strong/strained resolution');
@@ -572,15 +582,13 @@ function createServer() {
 
     // WAKE is a deliberate final beat; advance through the public quest
     // contract because synthetic Enter delivery is not stable in headless p5.
-    await page.evaluate(() => window._world.advanceQuest());
-    await page.waitForFunction(() =>
-      window._world.getQuestState().state === 'done',
-      undefined, { timeout: 3000 });
-
-    const ending = await page.evaluate(() => ({
-      quest: window._world.getQuestState(),
-      gameState: window.gameState,
-    }));
+    const ending = await page.evaluate(() => {
+      window._world.advanceQuest();
+      return {
+        quest: window._world.getQuestState(),
+        gameState: window.gameState,
+      };
+    });
     assert.strictEqual(ending.quest.state, 'done');
     assert.strictEqual(ending.quest.wakeEpilogueId, 'epiline_4');
     assert(ending.quest.journal.some(entry => /The ending found you/.test(entry.text)),

@@ -11,61 +11,51 @@ const end = runtime.indexOf('\nfunction openState(', start);
 assert.notEqual(start, -1, 'runtime must define finishCombat');
 assert.notEqual(end, -1, 'finishCombat must end before openState');
 
-function completePreviewEncounter({ encounterOver, enemyHp, playerVit }) {
-  const toasts = [];
+function completeEncounter({ encounterOver, enemyHp, playerVit, returnState = 'world' }) {
+  const autosaves = [];
   const sandbox = {
     combat: {
       getState() {
         return {
           encounterOver,
           enemy: { hp: enemyHp },
-          player: { vit: playerVit, scrap: 0 },
+          player: { vit: playerVit, scrap: 3 },
         };
       },
     },
-    world: { player: { vit: 8 } },
+    world: { player: { vit: 8, scrap: 0 } },
     window: {},
     pendingHazardIndex: null,
     gameState: 'combat',
-    combatReturnState: 'world',
+    combatReturnState: returnState,
     prevState: 'combat',
     STATE: { WORLD: 'world' },
-    previewEncounterStarted: true,
-    previewEncounterFinished: false,
-    previewEncounterArmed: false,
-    previewEndAt: 0,
     VIS: { fadeTransitions: false },
-    C: { teal: 'teal', rust: 'rust', parchment: 'parchment' },
-    millis: () => 1000,
-    showToast: message => toasts.push(message),
+    requestAutosave: reason => autosaves.push(reason),
   };
 
   vm.runInNewContext(runtime.slice(start, end), sandbox, { filename: runtimePath });
   vm.runInNewContext('finishCombat()', sandbox);
-  return { sandbox, toasts };
+  return { sandbox, autosaves };
 }
 
-const victory = completePreviewEncounter({ encounterOver: true, enemyHp: 0, playerVit: 7 });
-assert.equal(victory.sandbox.gameState, 'world', 'combat should return to the world');
-assert.equal(victory.sandbox.previewEncounterFinished, true,
-  'a real enemy defeat should finish the preview encounter');
-assert.equal(victory.sandbox.previewEndAt, 3400,
-  'victory should schedule the end card after the return transition');
-assert(victory.toasts.includes('THE SKY GOES QUIET // FOR NOW'),
-  'victory should show the authored return toast');
+const victory = completeEncounter({ encounterOver: true, enemyHp: 0, playerVit: 7 });
+assert.equal(victory.sandbox.gameState, 'world', 'combat should restore the configured return state');
+assert.equal(victory.sandbox.window.gameState, 'world', 'window game state should mirror restored return state');
+assert.equal(victory.sandbox.world.player.vit, 7, 'combat vitality must write back to world player');
+assert.equal(victory.sandbox.world.player.scrap, 3, 'combat scrap must write back to world player');
+assert.deepEqual(victory.autosaves, ['combat-resolution'],
+  'terminal combat should request the combat-resolution autosave');
 
-const defeat = completePreviewEncounter({ encounterOver: true, enemyHp: 18, playerVit: 1 });
-assert.equal(defeat.sandbox.gameState, 'world', 'defeat should return to the world');
-assert.equal(defeat.sandbox.previewEncounterFinished, false,
-  'defeat must not mark the preview encounter complete');
-assert.equal(defeat.sandbox.previewEncounterStarted, false,
-  'defeat should leave the encounter available to retry');
-assert.equal(defeat.sandbox.previewEncounterArmed, true,
-  'returning to Ionia should be able to start a retry');
-assert.equal(defeat.sandbox.previewEndAt, 0, 'defeat must not schedule the end card');
-assert(defeat.toasts.some(message => /SKY-PREDATOR.*(REMAINS|TRY AGAIN)/.test(message)),
-  'defeat should tell the player the encounter remains retryable');
-assert(!defeat.toasts.includes('THE SKY GOES QUIET // FOR NOW'),
-  'defeat must not display the victory-only toast');
+const defeat = completeEncounter({ encounterOver: true, enemyHp: 18, playerVit: 1 });
+assert.equal(defeat.sandbox.gameState, 'world', 'terminal defeat should still restore the configured return state');
+assert.equal(defeat.sandbox.world.player.vit, 1,
+  'generic finishCombat must preserve combat-engine vitality when no mandatory hazard is pending');
+assert.deepEqual(defeat.autosaves, ['combat-resolution'],
+  'terminal defeat should request the combat-resolution autosave');
 
-console.log('Preview encounter outcomes: victory completes; defeat remains retryable.');
+const unfinished = completeEncounter({ encounterOver: false, enemyHp: 12, playerVit: 6 });
+assert.deepEqual(unfinished.autosaves, [],
+  'non-terminal combat must not request a combat-resolution autosave');
+
+console.log('Combat finish smoke: write-back, return state, and autosave semantics PASS.');

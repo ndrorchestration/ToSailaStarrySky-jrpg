@@ -390,3 +390,21 @@ Requirements:
 - use one renderer for the final boot title frame and steady MENU state.
 
 The verified Skyward Arpeggio title track identity is reserved for this surface, but audio integration is a separate runtime/media concern and must not require a wrapper or iframe.
+
+## 18. Canonical 2.5D production standard
+
+Aetherwake's current visual target is an original **2.5D solarpunk JRPG** presentation: crisp 2D pixel-authored characters staged inside dimensional environments with modern lighting, atmosphere, camera depth, and effects. The structural reference is the broad 2D-character / dimensional-environment approach associated with modern 2.5D JRPGs; Aetherwake must retain its own silhouettes, materials, compositions, interfaces, world, and identity.
+
+Required rules:
+- gameplay sprites remain crisp, pixel-authored, and integer-scaled;
+- environments are composed in foreground, play-plane, midground, far-geometry/weather, and horizon layers;
+- maps keep deterministic logical coordinates while presentation may project them into dimensional screen space;
+- character depth placement uses contact shadows, occlusion, scale/fog cues, and environment-aware lighting rather than sprite blur;
+- the opening-to-gameplay handoff must preserve visual quality, camera language, lighting continuity, and environmental depth;
+- no story-bearing opening screen may auto-advance solely because a timer elapsed;
+- the Dragonfly is a hero asset and requires a distinctive insect-like silhouette, paired articulated wings, inhabited warm-light details, a readable helm and aether core, and different dock/flight/damage states;
+- Wake interiors communicate room identity primarily through architecture, props, lighting, and depth, not debug-like colored rectangles or labels;
+- exterior maps use vertical drop, parallax, atmospheric perspective, authored landmarks, foreground occlusion, and environmental motion;
+- a mechanically correct scene may still fail visual acceptance.
+
+The implementation and remediation checklist is maintained in docs/CHAPTER1_2_5D_REMEDIATION.md.

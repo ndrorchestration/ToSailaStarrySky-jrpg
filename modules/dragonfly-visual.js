@@ -2,13 +2,144 @@
    Aetherwake — Shared Dragonfly Visual Authority
    modules/dragonfly-visual.js
 
-   One hero-object renderer for docked and open-sky presentation.
+   2.5D hero-object renderer for docked and open-sky presentation.
    Presentation only; no navigation, combat, quest, or persistence mutation.
    ============================================================ */
 (function (root) {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
+
+  function wingMembrane(x0, y0, length, widthPx, sweep, alpha, warm) {
+    push();
+    translate(x0, y0);
+    rotate(sweep);
+    noStroke();
+    fill(warm ? 205 : 124, warm ? 225 : 200, warm ? 190 : 232, alpha);
+    beginShape();
+    vertex(0, -2);
+    vertex(length * 0.34, -widthPx);
+    vertex(length, -Math.round(widthPx * 0.45));
+    vertex(length * 0.82, Math.round(widthPx * 0.35));
+    vertex(length * 0.22, Math.round(widthPx * 0.58));
+    endShape(CLOSE);
+    stroke(205, 235, 238, Math.min(175, alpha + 45));
+    strokeWeight(1);
+    line(3, 0, length - 3, -Math.round(widthPx * 0.28));
+    line(Math.round(length * 0.25), 0, Math.round(length * 0.54), -Math.round(widthPx * 0.68));
+    noStroke();
+    pop();
+  }
+
+  function drawWingPair(now, mode, speed, bank) {
+    const beatRate = mode === 'flight' ? 0.005 + speed * 0.0012 : 0.0022;
+    const beat = Math.sin(now * beatRate);
+    const spread = mode === 'flight' ? 1 : 0.82;
+    const foreSweep = -0.12 + beat * 0.035;
+    const aftSweep = 0.16 - beat * 0.025;
+    const upperBias = Math.round(bank * 2);
+    const lowerBias = Math.round(-bank * 2);
+
+    wingMembrane(-11, -11 + upperBias, 69 * spread, 17, foreSweep, 88, false);
+    wingMembrane(-14, -5 + upperBias, 58 * spread, 13, aftSweep, 67, true);
+
+    push();
+    scale(1, -1);
+    wingMembrane(-11, -11 + lowerBias, 69 * spread, 17, foreSweep, 88, false);
+    wingMembrane(-14, -5 + lowerBias, 58 * spread, 13, aftSweep, 67, true);
+    pop();
+  }
+
+  function drawHull(pulse, mode) {
+    // Tapered lived-in fuselage: broad cabin, narrow tail, pointed helm.
+    noStroke();
+    fill(25, 34, 45);
+    beginShape();
+    vertex(-60, -6);
+    vertex(-42, -14);
+    vertex(15, -16);
+    vertex(48, -9);
+    vertex(60, 0);
+    vertex(48, 9);
+    vertex(15, 16);
+    vertex(-42, 14);
+    endShape(CLOSE);
+
+    fill(64, 58, 52);
+    beginShape();
+    vertex(-38, -12);
+    vertex(13, -13);
+    vertex(34, -7);
+    vertex(28, -2);
+    vertex(-34, -3);
+    endShape(CLOSE);
+
+    // Helm glazing.
+    fill(75, 122, 145, 175);
+    beginShape();
+    vertex(34, -7);
+    vertex(50, -5);
+    vertex(56, 0);
+    vertex(50, 5);
+    vertex(34, 7);
+    vertex(27, 0);
+    endShape(CLOSE);
+    fill(195, 230, 235, 115);
+    beginShape();
+    vertex(38, -4);
+    vertex(48, -3);
+    vertex(52, 0);
+    vertex(47, 1);
+    vertex(37, 0);
+    endShape(CLOSE);
+
+    // Warm cabin windows make the ship feel inhabited.
+    fill(243, 176, 96, mode === 'flight' ? 175 : 205);
+    rect(-25, -8, 6, 3);
+    rect(-15, -8, 6, 3);
+    rect(-5, -8, 6, 3);
+    fill(243, 176, 96, 105);
+    rect(-22, 6, 5, 2);
+    rect(-12, 6, 5, 2);
+
+    // Aether core heart.
+    fill(42, 255, 181, Math.round(80 + pulse * 55));
+    ellipse(7, 0, 20, 20);
+    fill(205, 245, 232, Math.round(150 + pulse * 95));
+    ellipse(7, 0, 8, 8);
+
+    // Tail boom and pressure vane.
+    fill(40, 47, 57);
+    beginShape();
+    vertex(-60, -5);
+    vertex(-82, -3);
+    vertex(-88, 0);
+    vertex(-82, 3);
+    vertex(-60, 5);
+    endShape(CLOSE);
+    fill(124, 200, 232, 120);
+    rect(-86, -13, 3, 26);
+    fill(181, 103, 91, 150);
+    rect(-81, -9, 8, 3);
+    rect(-81, 6, 8, 3);
+  }
+
+  function drawWake(now, mode, speed) {
+    const wake = mode === 'flight'
+      ? Math.round(18 + speed * 25 + Math.sin(now * 0.008) * 4)
+      : 8 + Math.round(Math.sin(now * 0.006) * 3);
+    noStroke();
+    fill(124, 200, 232, mode === 'flight' ? 74 : 45);
+    beginShape();
+    vertex(-82, -4);
+    vertex(-82 - wake, -2);
+    vertex(-91 - Math.round(wake * 1.25), 0);
+    vertex(-82 - wake, 2);
+    vertex(-82, 4);
+    endShape(CLOSE);
+    fill(42, 255, 181, mode === 'flight' ? 62 : 38);
+    rect(-83 - Math.round(wake * 0.82), -1, Math.round(wake * 0.82), 2);
+  }
 
   function draw(ctx) {
     const x = Math.round(ctx.x);
@@ -18,10 +149,8 @@
     const heading = Number.isFinite(ctx.heading) ? ctx.heading : 0;
     const speed = Math.max(0, Number(ctx.speed) || 0);
     const shipScale = Number.isFinite(ctx.scale) && ctx.scale > 0 ? ctx.scale : 1;
-    const wingAmp = mode === 'flight' ? 5 : 3;
-    const wingRate = mode === 'flight' ? (0.004 + speed * 0.001) : 0.0022;
-    const wing = Math.round(Math.sin(now * wingRate) * wingAmp);
     const pulse = 0.72 + Math.sin(now * 0.005) * 0.28;
+    const bank = mode === 'flight' ? Math.sin(heading) * Math.min(1, speed * 0.6 + 0.25) : 0;
 
     push();
     translate(x, y);
@@ -30,69 +159,28 @@
 
     if (mode === 'dock') {
       noStroke();
-      fill(10, 12, 22, 75);
-      rect(-48, 19, 102, 8);
+      fill(5, 8, 15, 95);
+      ellipse(-4, 25, 132, 18);
     } else {
       noFill();
-      stroke(42, 255, 181, Math.round(38 + pulse * 20));
+      stroke(42, 255, 181, Math.round(24 + pulse * 18));
       strokeWeight(1);
-      rect(-52, -34, 104, 68);
+      ellipse(0, 0, 142, 72);
       noStroke();
     }
 
-    fill(78, 126, 151, mode === 'flight' ? 78 : 70);
-    rect(-20, -35 - wing, 56, 17);
-    rect(-20, 18 + wing, 56, 17);
-    fill(124, 200, 232, 55);
-    rect(-13, -31 - wing, 42, 8);
-    rect(-13, 23 + wing, 42, 8);
-    stroke(124, 200, 232, 100);
-    line(-18, -27 - wing, 27, -22 - wing);
-    line(-18, 27 + wing, 27, 22 + wing);
-    noStroke();
+    drawWake(now, mode, speed);
+    drawWingPair(now, mode, speed, bank);
+    drawHull(pulse, mode);
 
-    fill(35, 42, 55);
-    rect(-42, -13, 78, 27);
-    fill(78, 66, 58);
-    rect(-36, -17, 60, 5);
-    fill(120, 82, 56);
-    rect(-38, 11, 67, 5);
-
-    fill(37, 70, 85);
-    rect(25, -9, 18, 18);
-    fill(124, 200, 232, 150);
-    rect(29, -5, 10, 6);
-
-    fill(48, 52, 64);
-    rect(-58, -5, 17, 10);
-    rect(-64, -12, 6, 24);
-    fill(124, 200, 232, 85);
-    rect(-64, -14, 2, 28);
-
-    fill(42, 255, 181, Math.round(75 * pulse));
-    rect(-16, -7, 23, 14);
-    fill(205, 245, 232, Math.round(190 * pulse));
-    rect(-9, -3, 8, 6);
-    fill(42, 255, 181, Math.round(185 * pulse));
-    for (const [nx, ny] of [[12,-15],[12,13],[-34,-15],[-34,13]]) rect(nx, ny, 3, 3);
-
-    fill(243, 176, 96, 165);
-    rect(-28, -8, 4, 3);
-    rect(-21, -8, 4, 3);
-
-    const wake = mode === 'flight'
-      ? Math.round(12 + speed * 18 + Math.sin(now * 0.008) * 3)
-      : 8 + Math.round(Math.sin(now * 0.006) * 3);
-    fill(124, 200, 232, mode === 'flight' ? 72 : 60);
-    rect(-58 - wake, -3, wake, 6);
-    fill(42, 255, 181, mode === 'flight' ? 55 : 45);
-    rect(-55 - Math.floor(wake * 0.72), -1, Math.floor(wake * 0.72), 2);
-
+    // Docking struts disappear into the hull in flight.
     if (mode === 'dock') {
-      stroke(94, 75, 58, 170);
-      strokeWeight(1);
-      line(-22, 14, -40, 32);
-      line(18, 14, 36, 33);
+      stroke(94, 75, 58, 190);
+      strokeWeight(2);
+      line(-28, 13, -42, 30);
+      line(20, 13, 37, 30);
+      line(-42, 30, -52, 30);
+      line(37, 30, 47, 30);
       noStroke();
     }
 
