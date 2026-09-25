@@ -564,6 +564,23 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "CHAPTER1_RELEASE_EVIDENCE_INDEPENDENT_VERIFY=PASS"
 
+# Preserve failure-state material for diagnosis, but leave a successful run clean.
+foreach ($cleanupPath in @($installerSmokeRoot, $persistenceRoot, $installedPersistenceRoot)) {
+  if ($cleanupPath -and (Test-Path -LiteralPath $cleanupPath)) {
+    Remove-Item -LiteralPath $cleanupPath -Recurse -Force
+  }
+}
+foreach ($buildDebris in @(
+  (Join-Path $OutputDir "Aetherwake-Chapter1-$shortHead-Setup.nsi"),
+  (Join-Path $OutputDir "Aetherwake-Chapter1-$shortHead-Setup.sed"),
+  (Join-Path $OutputDir "install-chapter1-$shortHead.ps1")
+)) {
+  if (Test-Path -LiteralPath $buildDebris) {
+    Remove-Item -LiteralPath $buildDebris -Force
+  }
+}
+Write-Host "CHAPTER1_SUCCESS_CLEANUP=PASS"
+
 Write-Host ""
 Write-Host "AETHERWAKE_CHAPTER1_WINDOWS_CANDIDATE=PASS"
 Write-Host "SOURCE_COMMIT=$gitHead"
