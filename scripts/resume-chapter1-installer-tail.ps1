@@ -290,9 +290,22 @@ SourceFiles0=$sourceDir
 %FILE1%=
 "@
   Set-Content -LiteralPath $sed -Value $sedText -Encoding ASCII
-  & $iexpress /N /Q $sed
-  if ($LASTEXITCODE -ne 0) {
-    throw "Chapter 1 IExpress compilation failed with code $LASTEXITCODE."
+  # IExpress delegates CAB creation to MakeCab, which requires TMP to resolve to
+  # a writable directory. Some remote/non-interactive Windows sessions leave TMP unset.
+  $previousTmp = $env:TMP
+  $env:TMP = $OutputDir
+  try {
+    & $iexpress /N /Q $sed
+    $iexpressExitCode = $LASTEXITCODE
+  } finally {
+    if ([string]::IsNullOrEmpty($previousTmp)) {
+      Remove-Item Env:TMP -ErrorAction SilentlyContinue
+    } else {
+      $env:TMP = $previousTmp
+    }
+  }
+  if ($iexpressExitCode -ne 0) {
+    throw "Chapter 1 IExpress compilation failed with code $iexpressExitCode."
   }
 } else {
   throw "No supported no-admin installer engine found (NSIS or Windows IExpress)."
