@@ -28,6 +28,8 @@ for (const required of [
   'install-chapter1-$shortHead.ps1',
   'CHAPTER1_INSTALLER_TAIL_RESUME=PASS',
   'Remove-Item -LiteralPath $Checkpoint',
+  '$env:TMP = $OutputDir',
+  'Remove-Item Env:TMP -ErrorAction SilentlyContinue',
 ]) {
   if (!script.includes(required)) fail('missing installer-tail contract: ' + required);
 }
