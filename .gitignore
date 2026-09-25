@@ -82,4 +82,8 @@ nwjs-win64.zip
 .desktop-runtime/
 local-release/
 
+# Generated Chapter 1 release/checkpoint outputs
+chapter1-release/
+CHAPTER1_PORTABLE_CHECKPOINT.json
+
 visual-evidence/
