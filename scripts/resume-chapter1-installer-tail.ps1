@@ -34,6 +34,26 @@ function Remove-PathWithRetry([string]$Path, [int]$Attempts = 20, [int]$DelayMs 
   }
 }
 
+function Stop-ProcessesFromRoot([string]$Root, [int]$Attempts = 20, [int]$DelayMs = 250) {
+  if (-not $Root) { return }
+  for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+    $rooted = @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object {
+      $_.ExecutablePath -and $_.ExecutablePath.StartsWith($Root, [System.StringComparison]::OrdinalIgnoreCase)
+    })
+    if ($rooted.Count -eq 0) { return }
+    foreach ($proc in $rooted) {
+      Stop-Process -Id $proc.ProcessId -Force -ErrorAction SilentlyContinue
+    }
+    Start-Sleep -Milliseconds $DelayMs
+  }
+  $remaining = @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object {
+    $_.ExecutablePath -and $_.ExecutablePath.StartsWith($Root, [System.StringComparison]::OrdinalIgnoreCase)
+  })
+  if ($remaining.Count -gt 0) {
+    throw "Processes remain rooted in temporary Chapter 1 install path: $($remaining.ProcessId -join ', ')"
+  }
+}
+
 $gitHead = (git rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or -not $gitHead) {
   throw "Unable to resolve Git HEAD."
@@ -344,7 +364,8 @@ Write-Host "CHAPTER1_INSTALLER_ENGINE=$installerEngine"
 # Install silently into an isolated location; player shortcuts/auto-launch stay suppressed.
 $installRoot = Join-Path $env:TEMP ("AetherwakeChapter1Installer-" + $shortHead)
 if (Test-Path -LiteralPath $installRoot) {
-  Remove-Item -LiteralPath $installRoot -Recurse -Force
+  Stop-ProcessesFromRoot $installRoot
+  Remove-PathWithRetry $installRoot
 }
 $env:AETHERWAKE_CHAPTER1_INSTALL_SMOKE = "1"
 $env:AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE = $installRoot
@@ -521,6 +542,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "CHAPTER1_RELEASE_EVIDENCE_INDEPENDENT_VERIFY=PASS"
 
 # Keep failure-state material for diagnosis; clean only after the complete tail passes.
+Stop-ProcessesFromRoot $installRoot
 foreach ($cleanupPath in @($installRoot, $persistenceRoot)) {
   if ($cleanupPath -and (Test-Path -LiteralPath $cleanupPath)) {
     Remove-PathWithRetry $cleanupPath
