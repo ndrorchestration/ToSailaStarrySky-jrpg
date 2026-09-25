@@ -30,6 +30,8 @@ for (const required of [
   'Remove-Item -LiteralPath $Checkpoint',
   '$env:TMP = $OutputDir',
   'Remove-Item Env:TMP -ErrorAction SilentlyContinue',
+  'Start-Process -FilePath $iexpress',
+  '-Wait -PassThru',
 ]) {
   if (!script.includes(required)) fail('missing installer-tail contract: ' + required);
 }
