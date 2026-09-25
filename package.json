@@ -107,7 +107,7 @@
     "test:persistence-roundtrip:node": "node tests/preview-persistence-roundtrip-node.test.js",
     "test:chapter1-convergence": "node tests/chapter1-convergence-contract.test.js",
     "test:chapter1-persistence": "node tests/chapter1-persistence-ux.test.js",
-    "test:chapter1-core": "npm run test:chapter1-convergence && npm run test:chapter1-world && npm run test:chapter1-balance && npm run test:chapter1-audio-routing && npm run test:chapter1-character-sheet && npm run test:chapter1-installer && npm run test:chapter1-release-verifier && npm run test:persistence-foundation",
+    "test:chapter1-core": "npm run test:chapter1-convergence && npm run test:chapter1-world && npm run test:chapter1-balance && npm run test:chapter1-audio-routing && npm run test:chapter1-character-sheet && npm run test:chapter1-installer && npm run test:chapter1-release-verifier && npm run test:chapter1-package-fingerprint && npm run test:persistence-foundation",
     "test:chapter1-release-verifier": "node tests/chapter1-release-evidence-verifier.test.js",
     "test:chapter1-installer": "node tests/chapter1-installer-fallback-contract.test.js",
     "test:chapter1-world": "node tests/chapter1-world-lifecycle.test.js",
@@ -125,6 +125,7 @@
     "verify:chapter1:local": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\verify-chapter1-local.ps1",
     "test:chapter1-visual": "npm run test:title-visual && npm run test:first-wake-visual && npm run test:dialogue-visual && npm run test:combat-visual && npm run test:flight-visual && npm run test:visual-package-integration && npm run test:16bit-world-art && npm run test:chapter1-character-sheet",
     "verify:chapter1:release-evidence": "node scripts/verify-chapter1-release-evidence.js",
-    "resume:chapter1:installer": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\resume-chapter1-installer-tail.ps1"
+    "resume:chapter1:installer": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\resume-chapter1-installer-tail.ps1",
+    "test:chapter1-package-fingerprint": "node tests/chapter1-package-fingerprint.test.js"
   }
 }
