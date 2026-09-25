@@ -175,8 +175,13 @@ if (!Number.isFinite(Date.parse(evidence.generatedAtUtc || ''))) {
 for (const [key, value] of [
   ['portableZipSha256', evidence.portableZipSha256],
   ['installerSha256', evidence.installerSha256],
+  ['packagedTreeSha256', evidence.packagedTreeSha256],
 ]) {
   if (!/^[0-9a-f]{64}$/.test(value || '')) fail(key + ' must be a lowercase SHA-256');
+}
+if (evidence.releaseToolCommit !== undefined &&
+    !/^[0-9a-f]{40}$/.test(evidence.releaseToolCommit || '')) {
+  fail('releaseToolCommit must be a full Git SHA when present');
 }
 for (const [key, value] of [
   ['portableZip', evidence.portableZip],
@@ -242,4 +247,5 @@ for (const name of expectedLines.keys()) {
 console.log('CHAPTER1_RELEASE_EVIDENCE_VERIFY=PASS');
 console.log('SOURCE_COMMIT=' + evidence.sourceCommit);
 console.log('PORTABLE_ZIP_SHA256=' + zipHash);
+console.log('PACKAGE_TREE_SHA256=' + evidence.packagedTreeSha256);
 console.log('INSTALLER_SHA256=' + installerHash);
