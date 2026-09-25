@@ -358,8 +358,8 @@ TargetName=$installer
 FriendlyName=Aetherwake Chapter 1 - First Wake
 AppLaunched=$appLaunched
 PostInstallCmd=<None>
-AdminQuietInstCmd=
-UserQuietInstCmd=
+AdminQuietInstCmd=$appLaunched
+UserQuietInstCmd=$appLaunched
 FILE0="$zipName"
 FILE1="$installScriptName"
 [SourceFiles]
