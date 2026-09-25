@@ -611,9 +611,10 @@ foreach ($cleanupPath in @($installerSmokeRoot, $persistenceRoot, $installedPers
 foreach ($buildDebris in @(
   (Join-Path $OutputDir "Aetherwake-Chapter1-$shortHead-Setup.nsi"),
   (Join-Path $OutputDir "Aetherwake-Chapter1-$shortHead-Setup.sed"),
-  (Join-Path $OutputDir "install-chapter1-$shortHead.ps1")
+  (Join-Path $OutputDir "install-chapter1-$shortHead.ps1"),
+  $portableCheckpointPath
 )) {
-  if (Test-Path -LiteralPath $buildDebris) {
+  if ($buildDebris -and (Test-Path -LiteralPath $buildDebris)) {
     Remove-Item -LiteralPath $buildDebris -Force
   }
 }
