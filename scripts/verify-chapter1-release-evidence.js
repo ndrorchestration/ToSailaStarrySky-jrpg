@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const zlib = require('zlib');
 
 function sha256(file) {
   const h = crypto.createHash('sha256');
@@ -15,6 +16,90 @@ function sha256(file) {
     fs.closeSync(fd);
   }
   return h.digest('hex');
+}
+
+function inspectZip(file, extractNames = new Set()) {
+  const fd = fs.openSync(file, 'r');
+  try {
+    const size = fs.fstatSync(fd).size;
+    const tailLength = Math.min(size, 22 + 0xffff);
+    const tail = Buffer.alloc(tailLength);
+    fs.readSync(fd, tail, 0, tail.length, size - tailLength);
+
+    let eocd = -1;
+    for (let i = tail.length - 22; i >= 0; i--) {
+      if (tail.readUInt32LE(i) === 0x06054b50) {
+        eocd = i;
+        break;
+      }
+    }
+    if (eocd < 0) throw new Error('ZIP end-of-central-directory record missing');
+
+    const entryCount = tail.readUInt16LE(eocd + 10);
+    const centralSize = tail.readUInt32LE(eocd + 12);
+    const centralOffset = tail.readUInt32LE(eocd + 16);
+    if (centralOffset === 0xffffffff || centralSize === 0xffffffff) {
+      throw new Error('ZIP64 portable candidates are not supported by this verifier');
+    }
+    if (centralOffset + centralSize > size) throw new Error('ZIP central directory exceeds file size');
+
+    const central = Buffer.alloc(centralSize);
+    fs.readSync(fd, central, 0, central.length, centralOffset);
+
+    const names = new Set();
+    const extracted = new Map();
+    let pos = 0;
+    let parsed = 0;
+    while (pos < central.length) {
+      if (pos + 46 > central.length || central.readUInt32LE(pos) !== 0x02014b50) {
+        throw new Error('invalid ZIP central-directory entry');
+      }
+      const method = central.readUInt16LE(pos + 10);
+      const compressedSize = central.readUInt32LE(pos + 20);
+      const uncompressedSize = central.readUInt32LE(pos + 24);
+      const nameLength = central.readUInt16LE(pos + 28);
+      const extraLength = central.readUInt16LE(pos + 30);
+      const commentLength = central.readUInt16LE(pos + 32);
+      const localOffset = central.readUInt32LE(pos + 42);
+      if (compressedSize === 0xffffffff || uncompressedSize === 0xffffffff || localOffset === 0xffffffff) {
+        throw new Error('ZIP64 entry is not supported by this verifier');
+      }
+
+      const nameStart = pos + 46;
+      const nameEnd = nameStart + nameLength;
+      if (nameEnd > central.length) throw new Error('ZIP filename exceeds central directory');
+      const name = central.subarray(nameStart, nameEnd).toString('utf8').replace(/\\/g, '/');
+      names.add(name);
+
+      if (extractNames.has(name)) {
+        const local = Buffer.alloc(30);
+        fs.readSync(fd, local, 0, local.length, localOffset);
+        if (local.readUInt32LE(0) !== 0x04034b50) throw new Error('invalid ZIP local header for ' + name);
+        const localNameLength = local.readUInt16LE(26);
+        const localExtraLength = local.readUInt16LE(28);
+        const dataOffset = localOffset + 30 + localNameLength + localExtraLength;
+        const compressed = Buffer.alloc(compressedSize);
+        fs.readSync(fd, compressed, 0, compressed.length, dataOffset);
+
+        let data;
+        if (method === 0) data = compressed;
+        else if (method === 8) data = zlib.inflateRawSync(compressed);
+        else throw new Error('unsupported ZIP compression method ' + method + ' for ' + name);
+
+        if (data.length !== uncompressedSize) {
+          throw new Error('ZIP uncompressed size mismatch for ' + name);
+        }
+        extracted.set(name, data);
+      }
+
+      pos += 46 + nameLength + extraLength + commentLength;
+      parsed += 1;
+    }
+    if (parsed !== entryCount) throw new Error('ZIP entry-count mismatch');
+    return { names, extracted };
+  } finally {
+    fs.closeSync(fd);
+  }
 }
 
 function fail(message) {
@@ -109,6 +194,33 @@ const zipHash = sha256(zip);
 const installerHash = sha256(installer);
 if (zipHash !== evidence.portableZipSha256) fail('portable ZIP SHA-256 mismatch');
 if (installerHash !== evidence.installerSha256) fail('installer SHA-256 mismatch');
+
+let zipInspection;
+try {
+  zipInspection = inspectZip(zip, new Set(['CHAPTER1_BUILD_PROVENANCE.json']));
+} catch (err) {
+  fail('portable ZIP structure invalid: ' + err.message);
+}
+if (!zipInspection.names.has('Aetherwake.exe')) {
+  fail('portable ZIP must contain root Aetherwake.exe');
+}
+if (!zipInspection.extracted.has('CHAPTER1_BUILD_PROVENANCE.json')) {
+  fail('portable ZIP must contain root CHAPTER1_BUILD_PROVENANCE.json');
+}
+let packagedProvenance;
+try {
+  packagedProvenance = JSON.parse(
+    zipInspection.extracted.get('CHAPTER1_BUILD_PROVENANCE.json').toString('utf8').replace(/^\uFEFF/, '')
+  );
+} catch (err) {
+  fail('portable ZIP build provenance is not valid JSON');
+}
+if (packagedProvenance.kind !== 'AETHERWAKE_CHAPTER1_BUILD_PROVENANCE') {
+  fail('portable ZIP build provenance kind mismatch');
+}
+if (packagedProvenance.sourceCommit !== evidence.sourceCommit) {
+  fail('portable ZIP embedded sourceCommit does not match release sourceCommit');
+}
 
 const manifest = fs.readFileSync(manifestPath, 'utf8').trim().split(/\r?\n/);
 if (manifest.length !== 2) fail('SHA256SUMS must contain exactly the portable ZIP and installer');
