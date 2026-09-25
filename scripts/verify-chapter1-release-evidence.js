@@ -179,9 +179,11 @@ for (const [key, value] of [
 ]) {
   if (!/^[0-9a-f]{64}$/.test(value || '')) fail(key + ' must be a lowercase SHA-256');
 }
-if (evidence.releaseToolCommit !== undefined &&
-    !/^[0-9a-f]{40}$/.test(evidence.releaseToolCommit || '')) {
-  fail('releaseToolCommit must be a full Git SHA when present');
+if (!/^[0-9a-f]{40}$/.test(evidence.releaseToolCommit || '')) {
+  fail('releaseToolCommit must be a full Git SHA');
+}
+if (evidence.releaseOnlyDeltaVerified !== true) {
+  fail('releaseOnlyDeltaVerified must be true');
 }
 for (const [key, value] of [
   ['portableZip', evidence.portableZip],
