@@ -23,6 +23,8 @@ for (const required of [
   'Exec \'"$INSTDIR\\Aetherwake.exe"\'',
   'Start-Process -FilePath $exe | Out-Null',
   'Remove-Item Env:AETHERWAKE_CHAPTER1_INSTALL_SMOKE -ErrorAction SilentlyContinue',
+  'AdminQuietInstCmd=$appLaunched',
+  'UserQuietInstCmd=$appLaunched',
 ]) {
   if (!script.includes(required)) fail('missing installer fallback contract: ' + required);
 }
@@ -45,6 +47,10 @@ if (!nsisLaunchGuard) {
 }
 if (!script.includes('if ($env:AETHERWAKE_CHAPTER1_INSTALL_SMOKE -ne "1")')) {
   fail('IExpress player auto-launch must be suppressed during automated installer smoke');
+}
+if (!script.includes('AdminQuietInstCmd=$appLaunched') ||
+    !script.includes('UserQuietInstCmd=$appLaunched')) {
+  fail('IExpress quiet smoke must execute the same embedded installer command');
 }
 
 console.log('CHAPTER1_INSTALLER_FALLBACK_CONTRACT=PASS');
