@@ -11,7 +11,7 @@
 // ---------------------------------------------------------------------------
 const World = {
   init, update, render,
-  movePlayer, interact, toggleLayer,
+  movePlayer, isWalkableTile, interact, toggleLayer,
   plantField, boardShip,
   openLedger, openShop,
   getQuestState, advanceQuest, resolveHazardEncounter,
@@ -742,12 +742,15 @@ function resolveEpilogue() {
 /**
  * movePlayer(dx, dy) — dx,dy in tile units (-1,0,1).
  */
+function isWalkableTile(tx, ty) {
+  return inBounds(tx, ty) && groundLayer[ty][tx] !== TILE_TYPES.GROUND_SOLID;
+}
+
 function movePlayer(dx, dy) {
   if (gameOver) return { moved: false, hazard: null };
   const nx = player.tileX + dx;
   const ny = player.tileY + dy;
-  if (!inBounds(nx, ny)) return { moved: false, hazard: null };
-  if (groundLayer[ny][nx] === TILE_TYPES.GROUND_SOLID) return { moved: false, hazard: null };
+  if (!isWalkableTile(nx, ny)) return { moved: false, hazard: null };
   player.tileX = nx;
   player.tileY = ny;
   player.px = player.tileX * 16;

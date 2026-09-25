@@ -2811,11 +2811,12 @@ window.startDialogueTypeIn = startDialogueTypeIn;
 // ---------------------------------------------------------------------------
 const World = {
   init, update, render,
-  movePlayer, interact, toggleLayer,
+  movePlayer, isWalkableTile, interact, toggleLayer,
   plantField, boardShip,
   openLedger, openShop,
   closeShop, getShopItems, purchaseItem,
-  getQuestState, advanceQuest, getLedger,
+  getQuestState, advanceQuest, selectChoicePath, getLedger,
+  snapshotPersistentState, preparePersistentState, restorePersistentState,
   nextDialogueLine, closeDialogue: closeWorldDialogue
 };
 
@@ -2887,6 +2888,109 @@ function init() {
   dayTime = 0;
   isSkyLayerVisible = false;
   gameOver = false;
+}
+
+function clonePersistent(value) {
+  return value == null ? value : JSON.parse(JSON.stringify(value));
+}
+
+function snapshotPersistentState() {
+  return {
+    runtime: {
+      dayTime,
+      skyLayerVisible: Boolean(isSkyLayerVisible),
+    },
+    world: {
+      playerPosition: {
+        tileX: player.tileX,
+        tileY: player.tileY,
+        px: player.px,
+        py: player.py,
+      },
+      covenantField: clonePersistent(covenantField),
+      ledgerEntries: clonePersistent(ledger.entries || []),
+    },
+    quest: {
+      state: quest.state,
+      act: quest.act,
+      hooksCompleted: quest.hooksCompleted,
+      hazardsCompleted: quest.hazardsCompleted,
+      npcsMet: Array.isArray(quest.npcsMet) ? quest.npcsMet.slice() : [],
+      choiceMade: quest.choiceMade == null ? null : quest.choiceMade,
+      choiceVariant: quest.choiceVariant == null ? null : quest.choiceVariant,
+      choicePath: quest.choicePath == null ? null : quest.choicePath,
+      hullIntegrity: quest.hullIntegrity,
+      morale: quest.morale,
+      heatLevel: quest.heatLevel,
+      engineIntegration: quest.engineIntegration,
+      discoveries: clonePersistent(quest.discoveries || []),
+      journal: clonePersistent(quest.journal || []),
+      signalHooks: clonePersistent(quest.signalHooks || []),
+      crossingHazards: clonePersistent(quest.crossingHazards || []),
+      wakeEpilogueId: quest.wakeEpilogue ? quest.wakeEpilogue.id : null,
+    },
+  };
+}
+
+function preparePersistentState(worldPayload, questPayload) {
+  if (!worldPayload || !worldPayload.playerPosition) {
+    throw new Error('WORLD_PERSISTENCE_POSITION_MISSING');
+  }
+  if (!questPayload || typeof questPayload !== 'object') {
+    throw new Error('WORLD_PERSISTENCE_QUEST_MISSING');
+  }
+  const preparedWorld = clonePersistent(worldPayload);
+  const preparedQuest = clonePersistent(questPayload);
+  let wakeEpilogue = null;
+  if (preparedQuest.wakeEpilogueId != null) {
+    wakeEpilogue = (quest.epilogues || []).find(ep => ep.id === preparedQuest.wakeEpilogueId) || null;
+    if (!wakeEpilogue) throw new Error('SAVE_QUEST_EPILOGUE_UNKNOWN');
+  }
+  return Object.freeze({ world: preparedWorld, quest: preparedQuest, wakeEpilogue });
+}
+
+function restorePersistentState(prepared, runtimePayload) {
+  if (!prepared || !prepared.world || !prepared.quest) {
+    throw new Error('WORLD_PERSISTENCE_PREPARED_STATE_REQUIRED');
+  }
+  if (!runtimePayload || !Number.isFinite(runtimePayload.dayTime) ||
+      typeof runtimePayload.skyLayerVisible !== 'boolean') {
+    throw new Error('WORLD_PERSISTENCE_RUNTIME_INVALID');
+  }
+
+  const pos = prepared.world.playerPosition;
+  player.tileX = pos.tileX;
+  player.tileY = pos.tileY;
+  player.px = pos.px;
+  player.py = pos.py;
+  covenantField = clonePersistent(prepared.world.covenantField);
+  ledger.entries = clonePersistent(prepared.world.ledgerEntries || []);
+
+  const saved = prepared.quest;
+  quest.state = saved.state;
+  quest.act = saved.act;
+  quest.hooksCompleted = saved.hooksCompleted;
+  quest.hazardsCompleted = saved.hazardsCompleted;
+  quest.npcsMet = saved.npcsMet.slice();
+  quest.choiceMade = saved.choiceMade;
+  quest.choiceVariant = saved.choiceVariant;
+  quest.choicePath = saved.choicePath;
+  quest.hullIntegrity = saved.hullIntegrity;
+  quest.morale = saved.morale;
+  quest.heatLevel = saved.heatLevel;
+  quest.engineIntegration = saved.engineIntegration;
+  quest.discoveries = clonePersistent(saved.discoveries || []);
+  quest.journal = clonePersistent(saved.journal || []);
+  quest.signalHooks = clonePersistent(saved.signalHooks || []);
+  quest.crossingHazards = clonePersistent(saved.crossingHazards || []);
+  quest.wakeEpilogue = prepared.wakeEpilogue;
+
+  dayTime = runtimePayload.dayTime;
+  isSkyLayerVisible = runtimePayload.skyLayerVisible;
+  gameOver = false;
+  World.quest = quest;
+  World.player = player;
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -3101,13 +3205,13 @@ function initNPCs() {
           '"I hear the sky coming undone. Not falling — unspooling. Like a spool of thread the world was wrapped in, and something pulled the thread."',
           '"There\'s a man in a grey coat. He says he\'s here to buy the core. He wants to put it in a box and take it to a city that doesn\'t dream."',
           '"Captain Ionia says you\'re the one who can hear the core. Can you? Or do you just pretend so people will leave you alone?"',
-          '"I\'m not very big, but my dreams are. Sometimes they\'re bigger than this ship. Sometimes they\'re bigger than the sky. Do you believe in dreams that big?"',
+          '"I hear farther than most people do, and sometimes the signal feels bigger than this ship - bigger than the sky. Do you believe a frequency can carry a dream that far?"',
           '"The core hums in my dreams every night now. It has a voice. It sounds like someone singing underwater. I think it wants to be heard. I think it\'s been waiting for someone who knows how to listen."'
         ],
         class_ender: [
           '"Your goggles — you see more than light, don\'t you? You see the frequencies between things. I dreamed you would come. The dream was green."',
           '"If you sell the core — the Wake becomes a box. If you sing it down — the ship falls, but the people scatter. If you drive it up — we find out what\'s above the world."',
-          '"I\'m just a kid. But I know which choice feels like the right kind of wrong."'
+          '"I know which choice feels like the right kind of wrong. Listening this long teaches you the difference."'
         ],
         generic_follow: [
           '"I\'ll keep dreaming. Tell me what happens when you decide."'
@@ -3183,7 +3287,7 @@ function initQuest() {
     discoveries: [],      // lore tiles discovered so far
   journal: [
     { state: 'signal', text: 'The Wake rings hollow. The core is singing wrong — the harmonics are slipping.' },
-    { state: 'crossing', text: 'Three hazards between you and the core\'s last stable chamber. The ship is waiting.' },
+    { state: 'crossing', text: 'Four hazards between you and the core\'s last stable chamber. The ship is waiting.' },
     { state: 'contact', text: 'Four voices on the ship. Each one carries a piece of the choice. None of them know it yet.' },
     { state: 'choice', text: 'Four voices heard. The ship holds still. The core waits for your answer — and the silence after the humming is where you\'ll find it.' }
   ],          // auto-populated journal entries
@@ -3585,12 +3689,15 @@ function resolveEpilogue() {
 /**
  * movePlayer(dx, dy) — dx,dy in tile units (-1,0,1).
  */
+function isWalkableTile(tx, ty) {
+  return inBounds(tx, ty) && groundLayer[ty][tx] !== TILE_TYPES.GROUND_SOLID;
+}
+
 function movePlayer(dx, dy) {
   if (gameOver) return;
   const nx = player.tileX + dx;
   const ny = player.tileY + dy;
-  if (!inBounds(nx, ny)) return;
-  if (groundLayer[ny][nx] === TILE_TYPES.GROUND_SOLID) return;
+  if (!isWalkableTile(nx, ny)) return;
   player.tileX = nx;
   player.tileY = ny;
   player.px = player.tileX * 16;

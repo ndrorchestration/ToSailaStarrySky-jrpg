@@ -126,6 +126,23 @@ assert(!worldMirror.includes('Meridian'),
 assert(worldMirror.includes("id: 'ender'") &&
        worldMirror.includes('window.AetherPartyState.refreshProductionStats(player);'),
   'world mirror must preserve Ender production-stat initialization');
+for (const persistenceFn of [
+  'snapshotPersistentState',
+  'preparePersistentState',
+  'restorePersistentState',
+]) {
+  assert(runtime.includes('function ' + persistenceFn + '('),
+    'canonical runtime must implement world persistence helper: ' + persistenceFn);
+  assert(runtime.includes(persistenceFn + ',') ||
+         runtime.includes(persistenceFn + '\n'),
+    'canonical World export must expose persistence helper: ' + persistenceFn);
+}
+assert(runtime.includes('function isWalkableTile(tx, ty)'),
+  'canonical world must expose bounded walkability for deterministic route verification');
+assert(!runtime.includes("I'm just a kid."),
+  'canonical Lyra dialogue must not retain superseded child-language');
+assert(!runtime.includes("Three hazards between you"),
+  'canonical Chapter I journal must not retain the superseded three-hazard route');
 assert(!coreMirror.includes('start combat encounter (dev/testing)') &&
        !coreMirror.includes("if (key === 'c' || key === 'C')"),
   'core mirror must not retain direct developer combat shortcuts');
