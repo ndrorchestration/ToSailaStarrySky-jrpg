@@ -258,6 +258,13 @@ SetCompressor /SOLID lzma
 Page directory
 Page instfiles
 
+Function .onInit
+  ReadEnvStr $1 "AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE"
+  StrCmp $1 "" install_root_ready
+  StrCpy $INSTDIR $1
+  install_root_ready:
+FunctionEnd
+
 Section "Aetherwake Chapter 1" SEC_MAIN
   SetOutPath "$INSTDIR"
   File /r "__SOURCE__\*"
@@ -385,12 +392,12 @@ if (Test-Path -LiteralPath $installerSmokeRoot) {
 }
 $installerArgs = @()
 $env:AETHERWAKE_CHAPTER1_INSTALL_SMOKE = "1"
+$env:AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE = $installerSmokeRoot
 if ($installerEngine -eq "NSIS") {
-  $installerArgs = @("/S", "/D=$installerSmokeRoot")
+  # NSIS reads the same isolated-root override as IExpress. Avoid /D= quoting
+  # edge cases when the Windows temp path or user profile contains spaces.
+  $installerArgs = @("/S")
 } elseif ($installerEngine -eq "IEXPRESS") {
-  # IExpress does not honor NSIS /D= semantics. The embedded PowerShell
-  # installer inherits this override and installs into the isolated smoke root.
-  $env:AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE = $installerSmokeRoot
   $installerArgs = @("/Q:U")
 }
 
