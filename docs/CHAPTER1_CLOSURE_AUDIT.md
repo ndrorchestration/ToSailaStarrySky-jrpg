@@ -1,6 +1,6 @@
 # Chapter 1 Closure Audit — 2026-09-24
 
-Status: **implementation-converged / execution evidence pending**
+Status: **implementation-converged / installer-tail re-execution pending**
 
 This audit is intentionally bounded to Chapter 1 / First Wake. It does not authorize Chapter 2 expansion.
 
@@ -16,50 +16,53 @@ PASS at implementation level.
 - Stale three-hazard / three-voice / Meridian / Holt residue is regression-guarded.
 
 ### 2. Combat and balance
-PASS at implementation level.
+PASS at implementation level and previously executed on Windows head `f8c255565bf89e20eaeb1305623f6fe9a81239cc`.
 - Real Chapter 1 encounters initialize from the live world player.
 - Production JRPG stats are attached before first combat.
 - Admitted actions use the formula engine.
 - Legacy dice compatibility remains bounded behind non-admitted actions and is not player-facing Chapter 1 resolution.
 - Four mandatory hazards have a numerical balance contract and retry recovery.
+- Human/player calibration remains a final acceptance concern rather than an implementation blocker.
 
 ### 3. UI and visual presentation
-PASS at implementation-review level; execution evidence still required.
+PASS at bounded automated-gate level on Windows head `f8c255565bf89e20eaeb1305623f6fe9a81239cc`.
 - Character sheet renders live production stats/resources.
 - Undefined gear-row coordinate fixed.
 - Compact HUD renders live vitals and quest progress.
 - Ender fallback portrait reconciled toward current visual canon.
-- Bounded Chapter 1 visual acceptance suite covers title, First Wake, dialogue, combat, flight, visual-package integration, 16-bit world composition and character sheet.
+- Bounded Chapter 1 visual suite covers title, First Wake, dialogue, combat, flight, visual-package integration, 16-bit world composition and character sheet.
 - Desktop staged manifest identifies Chapter 1 rather than Preview 0.1.
+- Uncoached human/player visual acceptance remains pending.
 
 ### 4. Audio
-PASS at design/runtime/tooling level; binary repository admission pending.
+PASS for governed Chapter 1 admission and readiness on Windows head `f8c255565bf89e20eaeb1305623f6fe9a81239cc`.
 - Skyward Arpeggio: title/menu.
 - Amonigio Umulula: opening/cinematic progression.
 - Solar Punk Airship: exploration/airship.
 - Nocturnal Resolve: combat/Crossing hazards.
 - Open Sky Signal: Ender / First Note leitmotif.
-- All five source files have exact byte-count and SHA-256 authority.
-- Unified Windows admission validates all five before repository mutation.
-- Title and scene controllers are state-separated; transition is bounded title fade → scene cue.
+- All five governed source files are admitted on the Chapter 1 branch and exact-hash verified.
+- Title and scene controllers remain state-separated; transition is bounded title fade → scene cue.
 
-### 5. Packaging, persistence and evidence
-PASS at implementation level; Windows execution evidence pending.
+### 5. Packaging, persistence and release evidence
+Portable/runtime proof is established on Windows head `f8c255565bf89e20eaeb1305623f6fe9a81239cc`; installer-tail proof remains pending on the current head.
 - Desktop staging recursively includes modules and assets.
-- Exact-head local verification command exists.
-- Windows candidate lane runs core, visual, browser, audio, package and live executable readiness gates.
-- Two-process save → close → relaunch → Continue proof uses an isolated temporary save root.
-- Candidate emits commit-bound ZIP, SHA-256 and CHAPTER1_RELEASE_EVIDENCE.json.
-- Hosted Chapter 1/smoke workflows now use immutable action commits.
-- Hosted Actions continue to terminate before any runner step; no application PASS/FAIL is inferred.
+- Windows execution passed Chapter 1 core, bounded visual, full browser route, desktop package contract, fresh package provenance, standalone runtime-ready/first-frame, and standalone save → close → relaunch → Continue.
+- The device disconnected during installer creation/install/evidence verification, so those later claims were not promoted.
+- Audit of the interrupted path found a real fallback defect: IExpress installed to fixed LocalAppData while smoke verification expected NSIS-style isolated `/D=` semantics.
+- Current branch hardens the fallback with an inherited `AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE`, engine-specific installer arguments, cleanup, and `tests/chapter1-installer-fallback-contract.test.js` wired into `test:chapter1-core`.
+- Fresh hosted runs on the hardened head again terminated with zero steps and no logs; they remain infrastructure non-execution, not application evidence.
+
+## Evidence boundary
+
+The Windows PASS on `f8c255565bf89e20eaeb1305623f6fe9a81239cc` remains valid evidence for the unchanged gameplay/runtime path through portable persistence. The current branch head contains release-lane/test-only hardening after that run and therefore requires a fresh Windows installer-tail execution before current-head release evidence is claimed.
 
 ## Remaining closure gates
 
 Only evidence-producing gates remain:
-1. Exact-head local/core/browser/visual execution.
-2. Exact-byte admission of the five governed MP3 files into the repository checkout.
-3. Exact-head Windows candidate execution, including live first-frame and relaunch/Continue proof.
-4. Any balance correction warranted by real execution/player evidence.
-5. Uncoached player acceptance of the resulting standalone candidate.
+1. Reconnect the Windows device and execute the current Chapter 1 branch through installer creation, isolated install, installed first-frame/provenance, and installed save → close → relaunch → Continue.
+2. Run `npm run verify:chapter1:release-evidence` against the resulting ZIP, Setup.exe, SHA256SUMS and evidence JSON and require PASS.
+3. Correct only defects actually revealed by that current-head run.
+4. Perform uncoached player acceptance on the exact verified standalone candidate.
 
 Until those are observed, PR #151 remains draft and Chapter 1 is not represented as fully accepted.
