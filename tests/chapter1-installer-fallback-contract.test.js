@@ -32,6 +32,10 @@ for (const required of [
   'Remove-Item Env:TMP -ErrorAction SilentlyContinue',
   'Start-Process -FilePath $iexpress',
   '-Wait -PassThru',
+  'function Stop-ProcessAndWait',
+  '[void]$Process.WaitForExit($TimeoutMs)',
+  'function Remove-PathWithRetry',
+  'Remove-PathWithRetry $cleanupPath',
 ]) {
   if (!script.includes(required)) fail('missing installer-tail contract: ' + required);
 }
