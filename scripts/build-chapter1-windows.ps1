@@ -265,6 +265,10 @@ Section "Aetherwake Chapter 1" SEC_MAIN
   CreateDirectory "$SMPROGRAMS\Aetherwake"
   CreateShortCut "$SMPROGRAMS\Aetherwake\Aetherwake Chapter 1.lnk" "$INSTDIR\Aetherwake.exe"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
+  ReadEnvStr $0 "AETHERWAKE_CHAPTER1_INSTALL_SMOKE"
+  StrCmp $0 "1" skip_player_launch
+  Exec '"$INSTDIR\Aetherwake.exe"'
+  skip_player_launch:
 SectionEnd
 
 Section "Uninstall"
@@ -313,6 +317,10 @@ $menuShortcut = $shell.CreateShortcut((Join-Path $startMenu "Aetherwake Chapter 
 $menuShortcut.TargetPath = $exe
 $menuShortcut.WorkingDirectory = $installRoot
 $menuShortcut.Save()
+
+if ($env:AETHERWAKE_CHAPTER1_INSTALL_SMOKE -ne "1") {
+  Start-Process -FilePath $exe | Out-Null
+}
 '@
   Set-Content -LiteralPath $installScript -Value $installScriptContent -Encoding UTF8
 
@@ -376,6 +384,7 @@ if (Test-Path -LiteralPath $installerSmokeRoot) {
   Remove-Item -LiteralPath $installerSmokeRoot -Recurse -Force
 }
 $installerArgs = @()
+$env:AETHERWAKE_CHAPTER1_INSTALL_SMOKE = "1"
 if ($installerEngine -eq "NSIS") {
   $installerArgs = @("/S", "/D=$installerSmokeRoot")
 } elseif ($installerEngine -eq "IEXPRESS") {
@@ -393,6 +402,7 @@ try {
 }
 finally {
   Remove-Item Env:AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE -ErrorAction SilentlyContinue
+  Remove-Item Env:AETHERWAKE_CHAPTER1_INSTALL_SMOKE -ErrorAction SilentlyContinue
 }
 $installedExe = Join-Path $installerSmokeRoot "Aetherwake.exe"
 if (-not (Test-Path -LiteralPath $installedExe)) {
