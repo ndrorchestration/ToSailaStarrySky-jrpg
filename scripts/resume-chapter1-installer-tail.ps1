@@ -488,10 +488,13 @@ foreach ($cleanupPath in @($installRoot, $persistenceRoot)) {
     Remove-Item -LiteralPath $cleanupPath -Recurse -Force
   }
 }
-foreach ($debris in @($nsi, $sed, $installScript, $Checkpoint)) {
+foreach ($debris in @($nsi, $sed, $installScript)) {
   if ($debris -and (Test-Path -LiteralPath $debris)) {
     Remove-Item -LiteralPath $debris -Force
   }
+}
+if (Test-Path -LiteralPath $Checkpoint) {
+  Remove-Item -LiteralPath $Checkpoint -Force
 }
 
 Write-Host "CHAPTER1_INSTALLER_TAIL_RESUME=PASS"
