@@ -328,6 +328,22 @@ assert(installerResume.includes('CHAPTER1_INSTALLER_SAVE_CLOSE_RELAUNCH_CONTINUE
   'installer resume lane must re-prove installed save/relaunch/Continue');
 assert(installerResume.includes('verify-chapter1-release-evidence.js'),
   'installer resume lane must independently verify final release evidence');
+assert(installerResume.includes('git status --porcelain --untracked-files=all'),
+  'installer resume lane must reject untracked non-ignored checkout contamination');
+assert(installerResume.includes('Aetherwake Chapter 1.lnk') &&
+       installerResume.includes('[Environment]::GetFolderPath("Programs")'),
+  'installer resume lane must preserve the same Desktop/Start-menu player shell behavior');
+assert(installerResume.includes('Remove-Item -LiteralPath $Checkpoint'),
+  'successful installer-tail resume must clear its consumed portable checkpoint');
+assert(chapter1WindowsBuild.includes('git status --porcelain --untracked-files=all'),
+  'full Chapter 1 candidate must reject untracked non-ignored checkout contamination');
+assert(chapter1WindowsBuild.includes('$portableCheckpointPath') &&
+       chapter1WindowsBuild.includes('CHAPTER1_SUCCESS_CLEANUP=PASS'),
+  'full Chapter 1 candidate must retain checkpoint on failure and clear it on success');
+const chapter1Gitignore = fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8');
+assert(chapter1Gitignore.includes('chapter1-release/') &&
+       chapter1Gitignore.includes('CHAPTER1_PORTABLE_CHECKPOINT.json'),
+  'generated Chapter 1 release/checkpoint outputs must be ignored so strict source cleanliness remains usable');
 assert(chapter1WindowsWorkflow.includes('verify:chapter1:release-evidence'),
   'publication workflow must reverify release evidence before upload/release');
 
