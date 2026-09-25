@@ -57,6 +57,25 @@ Portable/runtime proof is established on Windows head `f8c255565bf89e20eaeb13056
 
 The Windows PASS on `f8c255565bf89e20eaeb1305623f6fe9a81239cc` remains valid evidence for the unchanged gameplay/runtime path through portable persistence. The current branch head contains release-lane/test-only hardening after that run and therefore requires a fresh Windows installer-tail execution before current-head release evidence is claimed.
 
+## Promotion chain after acceptance
+
+Current clean stack:
+- PR #149 `release/preview-0.1` → `main`;
+- PR #150 `integration/preview-persistence-foundation-2026-09-24` → PR #149 branch;
+- PR #151 `integration/chapter1-first-wake-convergence-2026-09-24` → PR #150 branch.
+
+Observed ancestry is clean with no behind drift, and all three PRs are currently mergeable/draft.
+
+After the exact PR #151 candidate passes Windows release evidence and uncoached player acceptance, preserve the tested tree by promoting **top-down through the stack**:
+1. merge #151 into #150;
+2. verify #150's resulting tree matches the accepted #151 candidate tree;
+3. merge #150 into #149;
+4. verify #149's resulting tree still matches the accepted candidate tree;
+5. merge #149 into `main`;
+6. verify protected `main` has the same tree as the accepted candidate.
+
+Prefer merge commits for this promotion. A squash, rebase, conflict resolution, or content edit that changes the candidate tree requires re-verification before calling the landed result equivalent to the accepted candidate.
+
 ## Remaining closure gates
 
 Only evidence-producing gates remain:
