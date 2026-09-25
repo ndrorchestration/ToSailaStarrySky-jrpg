@@ -55,7 +55,7 @@ Portable/runtime proof is established on Windows head `f8c255565bf89e20eaeb13056
 
 ## Evidence boundary
 
-The Windows PASS on `f8c255565bf89e20eaeb1305623f6fe9a81239cc` remains valid evidence for the unchanged gameplay/runtime path through portable persistence. The current branch head contains release-lane/test-only hardening after that run and therefore requires a fresh Windows installer-tail execution before current-head release evidence is claimed.
+The Windows PASS on `f8c255565bf89e20eaeb1305623f6fe9a81239cc` remains valid evidence for the unchanged gameplay/runtime path through portable persistence. A Git compare from that tested head through the current release-hardening line shows only closure/player-acceptance documentation, `package.json` test wiring, Windows release scripts, and release regression tests; no gameplay runtime, modules, assets, or authored content changed. The current branch still requires fresh Windows installer-tail execution before current-head release evidence is claimed.
 
 ## Promotion chain after acceptance
 
