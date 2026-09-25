@@ -25,6 +25,9 @@ for (const required of [
   'Remove-Item Env:AETHERWAKE_CHAPTER1_INSTALL_SMOKE -ErrorAction SilentlyContinue',
   'AdminQuietInstCmd=$appLaunched',
   'UserQuietInstCmd=$appLaunched',
+  'CHAPTER1_SUCCESS_CLEANUP=PASS',
+  'Aetherwake-Chapter1-$shortHead-Setup.sed',
+  'install-chapter1-$shortHead.ps1',
 ]) {
   if (!script.includes(required)) fail('missing installer fallback contract: ' + required);
 }
