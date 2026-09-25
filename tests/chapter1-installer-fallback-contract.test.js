@@ -36,6 +36,10 @@ for (const required of [
   '[void]$Process.WaitForExit($TimeoutMs)',
   'function Remove-PathWithRetry',
   'Remove-PathWithRetry $cleanupPath',
+  'function Stop-ProcessesFromRoot',
+  'Get-CimInstance Win32_Process',
+  'ExecutablePath.StartsWith($Root',
+  'Stop-ProcessesFromRoot $installRoot',
 ]) {
   if (!script.includes(required)) fail('missing installer-tail contract: ' + required);
 }
