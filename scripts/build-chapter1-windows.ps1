@@ -286,7 +286,11 @@ SectionEnd
   $installScriptContent = @'
 param([Parameter(Mandatory=$true)][string]$Archive)
 $ErrorActionPreference = "Stop"
-$installRoot = Join-Path $env:LOCALAPPDATA "Programs\Aetherwake Chapter 1"
+$installRoot = if ($env:AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE) {
+  $env:AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE
+} else {
+  Join-Path $env:LOCALAPPDATA "Programs\Aetherwake Chapter 1"
+}
 if (Test-Path -LiteralPath $installRoot) {
   Remove-Item -LiteralPath $installRoot -Recurse -Force
 }
@@ -371,9 +375,24 @@ $installerSmokeRoot = Join-Path $env:TEMP ("AetherwakeChapter1Installer-" + $sho
 if (Test-Path -LiteralPath $installerSmokeRoot) {
   Remove-Item -LiteralPath $installerSmokeRoot -Recurse -Force
 }
-$installProcess = Start-Process -FilePath $installer -ArgumentList @("/S", "/D=$installerSmokeRoot") -Wait -PassThru
-if ($installProcess.ExitCode -ne 0) {
-  throw "Chapter 1 installer exited with code $($installProcess.ExitCode)."
+$installerArgs = @()
+if ($installerEngine -eq "NSIS") {
+  $installerArgs = @("/S", "/D=$installerSmokeRoot")
+} elseif ($installerEngine -eq "IEXPRESS") {
+  # IExpress does not honor NSIS /D= semantics. The embedded PowerShell
+  # installer inherits this override and installs into the isolated smoke root.
+  $env:AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE = $installerSmokeRoot
+  $installerArgs = @("/Q")
+}
+
+try {
+  $installProcess = Start-Process -FilePath $installer -ArgumentList $installerArgs -Wait -PassThru
+  if ($installProcess.ExitCode -ne 0) {
+    throw "Chapter 1 installer exited with code $($installProcess.ExitCode)."
+  }
+}
+finally {
+  Remove-Item Env:AETHERWAKE_CHAPTER1_INSTALL_ROOT_OVERRIDE -ErrorAction SilentlyContinue
 }
 $installedExe = Join-Path $installerSmokeRoot "Aetherwake.exe"
 if (-not (Test-Path -LiteralPath $installedExe)) {
