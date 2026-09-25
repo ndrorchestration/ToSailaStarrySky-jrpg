@@ -72,6 +72,7 @@ generate_npc_tts_v2.py
 nul
 
 # Build artifacts and dependencies — do not commit
+cache/
 node_modules/
 nw-package/
 standalone/
