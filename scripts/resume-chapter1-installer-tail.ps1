@@ -432,6 +432,7 @@ $evidence = [ordered]@{
   candidate = "Aetherwake Chapter 1"
   sourceCommit = $candidateSourceCommit
   releaseToolCommit = $gitHead
+  releaseOnlyDeltaVerified = $true
   generatedAtUtc = [DateTime]::UtcNow.ToString("o")
   chapter1Core = $checkpointData.chapter1Core
   chapter1Visual = $checkpointData.chapter1Visual
