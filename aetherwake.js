@@ -8485,7 +8485,7 @@ function drawCombatPanel(combatState, layoutBox) {
   if (!combatState) return;
   push();
   const uiVisual = window.AetherUIVisualSystem;
-  const fallback = { x: 24, y: 24, w: 200, h: 544 };
+  const fallback = { x: 24, y: 24, w: 184, h: 400 };
   const box = layoutBox || fallback;
   const px = box.x, py = box.y, pw = box.w, ph = box.h;
 
@@ -8506,7 +8506,7 @@ function drawCombatPanel(combatState, layoutBox) {
   // Enemy section
   if (combatState.enemy) {
     const ey = py + 36;
-    drawPixelBorder(px + 8, ey, pw - 16, 48, 2, PAL.SHADOW, PAL.RUST);
+    drawPixelBorder(px + 8, ey, pw - 16, 44, 2, PAL.SHADOW, PAL.RUST);
     textFont(FONT_UI);
     textSize(8);
     drawGlowText(combatState.enemy.name.toUpperCase(), px + 14, ey + 4, PAL.RUST, 8);
@@ -8535,8 +8535,8 @@ function drawCombatPanel(combatState, layoutBox) {
   }
 
   // Player status section
-  const sY = py + 96;
-  drawPixelBorder(px + 8, sY, pw - 16, 88, 2, PAL.SHADOW, PAL.TEAL);
+  const sY = py + 90;
+  drawPixelBorder(px + 8, sY, pw - 16, 76, 2, PAL.SHADOW, PAL.TEAL);
   textFont(FONT_UI);
   textSize(8);
   drawGlowText('ENDER', px + 14, sY + 6, PAL.TEAL, 8);
@@ -8547,9 +8547,9 @@ function drawCombatPanel(combatState, layoutBox) {
   textSize(10);
   const col1 = px + 14;
   const col2 = px + Math.round(pw * 0.53);
-  const row1 = sY + 26;
-  const row2 = sY + 48;
-  const row3 = sY + 70;
+  const row1 = sY + 22;
+  const row2 = sY + 41;
+  const row3 = sY + 60;
   fill(PAL.RUST); text('HP', col1, row1);
   fill(PAL.PARCHMENT); text(combatState.player.vit + '/' + combatState.player.maxVit, col1 + 23, row1);
   fill(PAL.SCIOTO); text('AETHER', col2, row1);
@@ -8564,9 +8564,9 @@ function drawCombatPanel(combatState, layoutBox) {
   // Actions grid — eight stable number-key slots. Locked actions stay visible
   // so progression is legible without making key bindings move.
   const aX = px + 8;
-  const aY = sY + 100;
+  const aY = sY + 86;
   const aW = pw - 16;
-  const aH = 146;
+  const aH = 132;
   drawPixelBorder(aX, aY, aW, aH, 2, PAL.SHADOW, PAL.TEAL);
 
   textFont(FONT_UI);
@@ -8577,8 +8577,8 @@ function drawCombatPanel(combatState, layoutBox) {
   const eligibleActionIds = new Set(
     combatState.eligibleActionIds || actions.map(action => action.id)
   );
-  const actH = 16;
-  const actStartY = aY + 22;
+  const actH = 14;
+  const actStartY = aY + 20;
   actions.forEach((action, idx) => {
     const ay = actStartY + idx * actH;
     const unlocked = eligibleActionIds.has(action.id);
@@ -8589,15 +8589,15 @@ function drawCombatPanel(combatState, layoutBox) {
     // Number circle
     fill(usable ? PAL.TEAL : PAL.DIM);
     noStroke();
-    ellipse(aX + 12, ay + 7, 9, 9);
+    ellipse(aX + 12, ay + 6, 8, 8);
     fill(PAL.NAVY);
     textFont(FONT_UI);
     textSize(7);
     textAlign(CENTER, CENTER);
-    text(String(idx + 1), aX + 12, ay + 7);
+    text(String(idx + 1), aX + 12, ay + 6);
     // Action label
     textFont(FONT_BODY);
-    textSize(10);
+    textSize(9);
     textAlign(LEFT, CENTER);
     const label = action.label || action.id;
     const compactLabel = label.split(/\s+[^A-Za-z0-9]+\s+/)[0].trim();
@@ -8609,7 +8609,7 @@ function drawCombatPanel(combatState, layoutBox) {
         ? 'N/A ? '
         : (usable ? '' : 'NO RES ? '));
     const maxLabelChars = statePrefix ? 13 : 17;
-    text(statePrefix + compactLabel.substring(0, maxLabelChars), aX + 24, ay + 1);
+    text(statePrefix + compactLabel.substring(0, maxLabelChars), aX + 23, ay);
     // Cost indicator uses the exact same centralized legacy cost function as
     // runtime admission/payment.
     const totalCost = window.AetherAbilityDefs.getActionResourceCost(action);
@@ -8617,20 +8617,20 @@ function drawCombatPanel(combatState, layoutBox) {
       textFont(FONT_UI);
       textSize(7);
       fill(usable ? PAL.AMBER : PAL.DIM);
-      text('COST: ' + totalCost, aX + aW - 62, ay + 2);
+      text('COST ' + totalCost, aX + aW - 48, ay + 1);
     }
     // Icon
-    if (usable) drawActionIcon(aX + aW - 16, ay + 7, 14, action.id);
+    if (usable) drawActionIcon(aX + aW - 13, ay + 6, 11, action.id);
   });
 
   // Enemy special ability hint
   if (combatState.enemy && combatState.enemy.abilityDesc) {
     const abY = aY + aH + 10;
-    drawPixelBorder(px + 8, abY, pw - 16, 28, 1, PAL.SHADOW, PAL.RUST);
+    drawPixelBorder(px + 8, abY, pw - 16, 26, 1, PAL.SHADOW, PAL.RUST);
     textFont(FONT_UI);
     textSize(7);
     fill(PAL.RUST);
-    text('ENEMY ABILITY:', px + 14, abY + 5);
+    text('ENEMY ABILITY', px + 14, abY + 4);
     textFont(FONT_BODY);
     textSize(9);
     fill(PAL.PARCHMENT);
@@ -8649,7 +8649,7 @@ function drawCombatPanel(combatState, layoutBox) {
     }
     if (line) lines.push(line);
     lines.forEach((l, i) => {
-      text(l, px + 14, abY + 14 + i * 10);
+      text(l, px + 14, abY + 13 + i * 9);
     });
   }
 

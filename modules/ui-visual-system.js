@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.4.0';
+  const VERSION = '0.5.0';
   const TOKENS = Object.freeze({
     gridPx: 8,
     safeMarginPx: 24,
@@ -26,8 +26,8 @@
 
   function layoutCombat(w, h, hasLog) {
     const safe = TOKENS.safeMarginPx;
-    const leftWidth = snap(Math.min(208, Math.max(184, w * 0.205)));
-    const leftHeight = snap(Math.min(h - safe * 2, 432));
+    const leftWidth = snap(Math.min(184, Math.max(176, w * 0.185)));
+    const leftHeight = snap(Math.min(h - safe * 2, 400));
     const logWidth = snap(Math.min(184, Math.max(160, w * 0.175)));
     const logHeight = snap(Math.min(184, Math.max(136, h * 0.22)));
     return Object.freeze({

@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.3.0';
+  const VERSION = '0.4.0';
   const SKY_BATTLE_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-battle-pixelart-v2.png';
   let skyBattleBackground = null;
   let skyBattleBackgroundRequested = false;
@@ -16,8 +16,8 @@
 
   function stage(width, height) {
     return Object.freeze({
-      playerX: Math.round(width * 0.34),
-      playerY: Math.round(height * 0.58),
+      playerX: Math.round(width * 0.39),
+      playerY: Math.round(height * 0.60),
       enemyX: Math.round(width * 0.72),
       enemyY: Math.round(height * 0.50),
       horizonY: Math.round(height * 0.47),
@@ -245,7 +245,7 @@
 
     if (characters && characters.validate && characters.validate()) {
       characters.draw('ender', x, y + 7, {
-        scale: 1.96,
+        scale: 2.18,
         depth: 0.90,
         now: ctx.now || 0,
         speed: 0,
