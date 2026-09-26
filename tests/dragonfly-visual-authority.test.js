@@ -11,12 +11,22 @@ const sandbox = { window: {}, globalThis: {} };
 vm.runInNewContext(source, sandbox, { filename: 'dragonfly-visual.js' });
 
 assert(sandbox.window.AetherDragonflyVisual, 'shared Dragonfly visual authority missing');
-assert.strictEqual(sandbox.window.AetherDragonflyVisual.VERSION, '0.2.0');
+assert.strictEqual(sandbox.window.AetherDragonflyVisual.VERSION, '0.3.0');
 assert.strictEqual(typeof sandbox.window.AetherDragonflyVisual.draw, 'function');
 assert(source.includes('function drawWingPair'), 'Dragonfly must retain articulated paired-wing authority');
 assert(source.includes('function drawHull'), 'Dragonfly must retain a dedicated tapered-hull renderer');
 assert(source.includes('function drawWake'), 'Dragonfly must retain speed-responsive propulsion-wake rendering');
 assert(source.includes('Warm cabin windows'), 'Dragonfly must retain inhabited warm-light detail');
+assert(sandbox.window.AetherDragonflyVisual.PROPORTIONS, 'Dragonfly proportion contract missing');
+assert.strictEqual(sandbox.window.AetherDragonflyVisual.PROPORTIONS.bodyLengthAdultHeights, 3.0);
+assert.strictEqual(sandbox.window.AetherDragonflyVisual.PROPORTIONS.wingSpanBodyLengths, 2.4);
+assert(sandbox.window.AetherDragonflyVisual.PROPORTIONS.normalFlightMaxScreenWidthRatio <= 0.28,
+  'normal-flight Dragonfly width budget drifted above 28%');
+assert(sandbox.window.AetherDragonflyVisual.PROPORTIONS.combatMaxScreenWidthRatio <= 0.25,
+  'combat Dragonfly width budget drifted above 25%');
+assert(source.includes('Four long translucent wings'), 'Dragonfly recognition wing cue missing');
+assert(source.includes('Segmented tail boom'), 'Dragonfly insect-like segmented tail cue missing');
+assert(source.includes('Four shield nodes'), 'Dragonfly four-node shield cue missing');
 
 const benchmark = fs.readFileSync(path.join(root, 'modules', 'visual-benchmark.js'), 'utf8');
 const flight = fs.readFileSync(path.join(root, 'modules', 'flight-visual-stage.js'), 'utf8');

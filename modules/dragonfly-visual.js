@@ -1,5 +1,5 @@
 /* ============================================================
-   Aetherwake — Shared Dragonfly Visual Authority
+   Aetherwake ? Shared Dragonfly Visual Authority
    modules/dragonfly-visual.js
 
    2.5D hero-object renderer for docked and open-sky presentation.
@@ -8,186 +8,203 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
+  const PROPORTIONS = Object.freeze({
+    adultHeightUnits: 1,
+    bodyLengthAdultHeights: 3.0,
+    wingSpanBodyLengths: 2.4,
+    runtimeBodyLengthPx: 146,
+    runtimeWingSpanPx: 350,
+    normalFlightMaxScreenWidthRatio: 0.28,
+    combatMaxScreenWidthRatio: 0.25,
+  });
 
-  function wingMembrane(x0, y0, length, widthPx, sweep, alpha, warm) {
-    push();
-    translate(x0, y0);
-    rotate(sweep);
+  const PALETTE = Object.freeze({
+    hullDark: [43, 48, 47],
+    hullMid: [69, 73, 68],
+    reclaimedBronze: [121, 91, 57],
+    brass: [182, 131, 64],
+    canopy: [65, 121, 145],
+    glassLight: [196, 232, 235],
+    aether: [42, 255, 181],
+    aetherBlue: [124, 200, 232],
+    cabin: [243, 176, 96],
+    navRed: [255, 111, 88],
+  });
+
+  function membrane(points, alpha, warm) {
     noStroke();
-    fill(warm ? 205 : 124, warm ? 225 : 200, warm ? 190 : 232, alpha);
+    const c = warm ? [205,225,190] : PALETTE.aetherBlue;
+    fill(c[0], c[1], c[2], alpha);
     beginShape();
-    vertex(0, -2);
-    vertex(length * 0.34, -widthPx);
-    vertex(length, -Math.round(widthPx * 0.45));
-    vertex(length * 0.82, Math.round(widthPx * 0.35));
-    vertex(length * 0.22, Math.round(widthPx * 0.58));
+    for (const point of points) vertex(point[0], point[1]);
     endShape(CLOSE);
-    stroke(205, 235, 238, Math.min(175, alpha + 45));
-    strokeWeight(1);
-    line(3, 0, length - 3, -Math.round(widthPx * 0.28));
-    line(Math.round(length * 0.25), 0, Math.round(length * 0.54), -Math.round(widthPx * 0.68));
+
+    stroke(205, 235, 238, Math.min(185, alpha + 55));
+    strokeWeight(0.8);
+    for (let i = 1; i < points.length - 1; i++) {
+      line(points[0][0], points[0][1], points[i][0], points[i][1]);
+    }
     noStroke();
-    pop();
   }
 
   function drawWingPair(now, mode, speed, bank) {
-    const beatRate = mode === 'flight' ? 0.005 + speed * 0.0012 : 0.0022;
+    // Four long translucent wings are the primary Dragonfly recognition cue.
+    const beatRate = mode === 'flight' ? 0.0048 + speed * 0.0011 : 0.0021;
     const beat = Math.sin(now * beatRate);
-    const spread = mode === 'flight' ? 1 : 0.82;
-    const foreSweep = -0.12 + beat * 0.035;
-    const aftSweep = 0.16 - beat * 0.025;
-    const upperBias = Math.round(bank * 2);
-    const lowerBias = Math.round(-bank * 2);
+    const flare = mode === 'flight' ? 1.0 : 0.83;
+    const vertical = beat * (mode === 'flight' ? 5.5 : 2.5);
+    const bankBias = bank * 5;
 
-    wingMembrane(-11, -11 + upperBias, 69 * spread, 17, foreSweep, 88, false);
-    wingMembrane(-14, -5 + upperBias, 58 * spread, 13, aftSweep, 67, true);
+    const drawSide = sign => {
+      const y = sign * (11 + bankBias * sign);
+      const foreTipY = sign * (34 + vertical * sign);
+      const aftTipY = sign * (28 - vertical * 0.65 * sign);
+      membrane([
+        [-12, y], [26, sign * 17], [94 * flare, foreTipY], [74 * flare, sign * 7], [8, sign * 5]
+      ], mode === 'flight' ? 88 : 72, false);
+      membrane([
+        [-17, sign * 7], [18, sign * 13], [78 * flare, aftTipY], [61 * flare, sign * 4], [-5, sign * 2]
+      ], mode === 'flight' ? 68 : 58, true);
+    };
 
-    push();
-    scale(1, -1);
-    wingMembrane(-11, -11 + lowerBias, 69 * spread, 17, foreSweep, 88, false);
-    wingMembrane(-14, -5 + lowerBias, 58 * spread, 13, aftSweep, 67, true);
-    pop();
+    drawSide(-1);
+    drawSide(1);
+
+    // Wing roots and articulation pivots.
+    fill(...PALETTE.brass);
+    ellipse(-10, -10, 5, 5);
+    ellipse(-10, 10, 5, 5);
+    ellipse(-17, -6, 4, 4);
+    ellipse(-17, 6, 4, 4);
   }
 
   function drawHull(pulse, mode) {
-    // Tapered lived-in fuselage: broad cabin, narrow tail, pointed helm.
+    // Long, narrow fuselage with a distinct thorax/cabin and segmented tail.
     noStroke();
-    fill(58, 62, 60);
+    fill(...PALETTE.hullDark);
     beginShape();
-    vertex(-60, -6);
-    vertex(-42, -14);
-    vertex(15, -16);
-    vertex(48, -9);
-    vertex(60, 0);
-    vertex(48, 9);
-    vertex(15, 16);
-    vertex(-42, 14);
+    vertex(-56,-7); vertex(-35,-15); vertex(6,-18); vertex(30,-14);
+    vertex(57,-7); vertex(72,0); vertex(57,7); vertex(30,14);
+    vertex(6,18); vertex(-35,15); vertex(-56,7);
     endShape(CLOSE);
 
-    fill(112, 88, 61);
+    // Reclaimed upper shell and thorax cap.
+    fill(...PALETTE.reclaimedBronze);
     beginShape();
-    vertex(-38, -12);
-    vertex(13, -13);
-    vertex(34, -7);
-    vertex(28, -2);
-    vertex(-34, -3);
+    vertex(-34,-13); vertex(8,-15); vertex(31,-11); vertex(40,-6);
+    vertex(19,-3); vertex(-31,-4);
     endShape(CLOSE);
 
-    // Helm glazing.
-    fill(75, 122, 145, 175);
+    // Distinct forward helm glazing.
+    fill(PALETTE.canopy[0],PALETTE.canopy[1],PALETTE.canopy[2],205);
     beginShape();
-    vertex(34, -7);
-    vertex(50, -5);
-    vertex(56, 0);
-    vertex(50, 5);
-    vertex(34, 7);
-    vertex(27, 0);
+    vertex(39,-9); vertex(59,-6); vertex(70,0); vertex(59,6); vertex(39,9); vertex(29,0);
     endShape(CLOSE);
-    fill(195, 230, 235, 115);
+    fill(PALETTE.glassLight[0],PALETTE.glassLight[1],PALETTE.glassLight[2],105);
     beginShape();
-    vertex(38, -4);
-    vertex(48, -3);
-    vertex(52, 0);
-    vertex(47, 1);
-    vertex(37, 0);
+    vertex(43,-5); vertex(57,-4); vertex(64,0); vertex(53,1); vertex(39,0);
     endShape(CLOSE);
 
-    // Warm cabin windows make the ship feel inhabited.
-    fill(243, 176, 96, mode === 'flight' ? 175 : 205);
-    rect(-25, -8, 6, 3);
-    rect(-15, -8, 6, 3);
-    rect(-5, -8, 6, 3);
-    fill(243, 176, 96, 105);
-    rect(-22, 6, 5, 2);
-    rect(-12, 6, 5, 2);
+    // Thorax ring visually separates cabin/core from the abdomen-like tail.
+    noFill();
+    stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],190);
+    strokeWeight(2);
+    ellipse(4,0,31,36);
+    noStroke();
 
     // Aether core heart.
-    fill(42, 255, 181, Math.round(80 + pulse * 55));
-    ellipse(7, 0, 20, 20);
-    fill(205, 245, 232, Math.round(150 + pulse * 95));
-    ellipse(7, 0, 8, 8);
+    fill(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],Math.round(92 + pulse * 70));
+    ellipse(7,0,22,22);
+    fill(218,250,239,Math.round(160 + pulse * 90));
+    ellipse(7,0,8,8);
 
-    // Tail boom and pressure vane.
-    fill(70, 75, 72);
+    // Warm cabin windows make the ship feel inhabited.
+    fill(PALETTE.cabin[0],PALETTE.cabin[1],PALETTE.cabin[2],mode === 'flight' ? 185 : 215);
+    rect(-28,-8,7,3,1); rect(-17,-9,7,3,1); rect(-6,-9,6,3,1);
+    fill(PALETTE.cabin[0],PALETTE.cabin[1],PALETTE.cabin[2],105);
+    rect(-25,6,6,2,1); rect(-14,7,5,2,1);
+
+    // Segmented tail boom: narrower than the hull and unmistakably insect-like.
+    const tail = [
+      [-56,0,18,9],[-72,0,15,7],[-85,0,13,6],[-96,0,10,5]
+    ];
+    for (let i = 0; i < tail.length; i++) {
+      const [cx,cy,w,h] = tail[i];
+      fill(i % 2 ? 61 : 72, i % 2 ? 66 : 72, i % 2 ? 64 : 68);
+      ellipse(cx,cy,w,h);
+      fill(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],135);
+      rect(cx - w*0.08, -h*0.5, Math.max(1,w*0.12), h);
+    }
+
+    // Tail pressure vane / rudder.
+    fill(PALETTE.aetherBlue[0],PALETTE.aetherBlue[1],PALETTE.aetherBlue[2],125);
     beginShape();
-    vertex(-60, -5);
-    vertex(-82, -3);
-    vertex(-88, 0);
-    vertex(-82, 3);
-    vertex(-60, 5);
+    vertex(-101,-2); vertex(-111,-12); vertex(-108,0); vertex(-111,12); vertex(-101,2);
     endShape(CLOSE);
-    fill(124, 200, 232, 120);
-    rect(-86, -13, 3, 26);
-    fill(181, 103, 91, 150);
-    rect(-81, -9, 8, 3);
-    rect(-81, 6, 8, 3);
   }
 
   function drawMechanicalDetail(now, mode, pulse) {
-    const spin = now * 0.02;
-    // Twin articulated engine pods.
-    for (const side of [-1, 1]) {
-      const py = side * 15;
-      fill(74, 72, 64);
-      ellipse(-8, py, 22, 11);
-      fill(129, 111, 82);
-      ellipse(-8, py, 12, 8);
+    const spin = now * 0.018;
+
+    // Twin articulated engine pods beneath/above the thorax.
+    for (const side of [-1,1]) {
+      const py = side * 18;
+      fill(63,66,61);
+      ellipse(-1,py,23,10);
+      fill(131,109,76);
+      ellipse(-1,py,12,7);
       noFill();
-      stroke(94, 225, 211, 90 + pulse * 60);
-      strokeWeight(1.2);
-      arc(-8, py, 17, 17, spin, spin + PI * 1.35);
+      stroke(94,225,211,95 + pulse*65);
+      strokeWeight(1.1);
+      arc(-1,py,17,17,spin,spin + PI*1.35);
       noStroke();
     }
 
-    // Brass panel seams and access hatches.
-    stroke(170, 116, 57, 150);
+    // Brass ribs and service seams.
+    stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],155);
     strokeWeight(1);
-    line(-34, -10, -34, 10);
-    line(-18, -13, -18, 13);
-    line(16, -13, 16, 13);
+    line(-38,-11,-38,11); line(-26,-14,-26,14); line(23,-12,23,12);
     noFill();
-    rect(-6, -9, 14, 18, 3);
+    rect(-12,-10,15,20,3);
     noStroke();
+
+    // Four shield nodes are a canonical technology cue.
+    const nodes=[[-20,-15],[-20,15],[23,-12],[23,12]];
+    for (const [x,y] of nodes) {
+      fill(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],150 + pulse*70);
+      ellipse(x,y,3.5,3.5);
+    }
 
     // Navigation lamps.
-    fill(255, 111, 88, 180 + pulse * 50);
-    ellipse(-46, -10, 3, 3);
-    fill(79, 231, 188, 180 + pulse * 50);
-    ellipse(-46, 10, 3, 3);
+    fill(PALETTE.navRed[0],PALETTE.navRed[1],PALETTE.navRed[2],180 + pulse*50);
+    ellipse(-48,-9,3,3);
+    fill(79,231,188,180 + pulse*50);
+    ellipse(-48,9,3,3);
 
-    // Deck canopy and rigging silhouette.
-    fill(78, 70, 58, 235);
-    quad(-24,-16,12,-18,24,-13,-12,-12);
-    stroke(205, 178, 126, 145);
+    // Deck canopy and light solar strip keep the craft handmade/solarpunk.
+    fill(71,64,54,235);
+    quad(-23,-17,12,-19,28,-13,-10,-12);
+    stroke(205,178,126,145);
     strokeWeight(1);
-    line(-19,-16,-11,-31);
-    line(7,-17,13,-30);
-    line(-11,-31,13,-30);
+    line(-18,-17,-10,-31); line(7,-18,14,-30); line(-10,-31,14,-30);
     noStroke();
-
-    // Solar sail strip.
-    fill(132, 198, 190, mode === 'flight' ? 155 : 125);
-    quad(-10,-31,25,-30,34,-24,-2,-25);
-    fill(205, 235, 238, 75);
-    line(-1,-27,25,-28);
+    fill(132,198,190,mode === 'flight' ? 160 : 130);
+    quad(-9,-31,27,-30,36,-24,-1,-25);
   }
 
   function drawWake(now, mode, speed) {
     const wake = mode === 'flight'
-      ? Math.round(18 + speed * 25 + Math.sin(now * 0.008) * 4)
-      : 8 + Math.round(Math.sin(now * 0.006) * 3);
+      ? Math.round(22 + speed*27 + Math.sin(now*0.008)*4)
+      : 9 + Math.round(Math.sin(now*0.006)*3);
     noStroke();
-    fill(124, 200, 232, mode === 'flight' ? 74 : 45);
+    fill(PALETTE.aetherBlue[0],PALETTE.aetherBlue[1],PALETTE.aetherBlue[2],mode === 'flight' ? 72 : 42);
     beginShape();
-    vertex(-82, -4);
-    vertex(-82 - wake, -2);
-    vertex(-91 - Math.round(wake * 1.25), 0);
-    vertex(-82 - wake, 2);
-    vertex(-82, 4);
+    vertex(-102,-3); vertex(-102-wake,-2); vertex(-110-Math.round(wake*1.15),0);
+    vertex(-102-wake,2); vertex(-102,3);
     endShape(CLOSE);
-    fill(42, 255, 181, mode === 'flight' ? 62 : 38);
-    rect(-83 - Math.round(wake * 0.82), -1, Math.round(wake * 0.82), 2);
+    fill(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],mode === 'flight' ? 64 : 36);
+    rect(-103-Math.round(wake*0.82),-1,Math.round(wake*0.82),2);
   }
 
   function draw(ctx) {
@@ -196,41 +213,35 @@
     const now = ctx.now || 0;
     const mode = ctx.mode === 'flight' ? 'flight' : 'dock';
     const heading = Number.isFinite(ctx.heading) ? ctx.heading : 0;
-    const speed = Math.max(0, Number(ctx.speed) || 0);
+    const speed = Math.max(0,Number(ctx.speed)||0);
     const shipScale = Number.isFinite(ctx.scale) && ctx.scale > 0 ? ctx.scale : 1;
-    const pulse = 0.72 + Math.sin(now * 0.005) * 0.28;
-    const bank = mode === 'flight' ? Math.sin(heading) * Math.min(1, speed * 0.6 + 0.25) : 0;
+    const pulse = 0.72 + Math.sin(now*0.005)*0.28;
+    const bank = mode === 'flight' ? Math.sin(heading)*Math.min(1,speed*0.6+0.25) : 0;
 
     push();
-    translate(x, y);
+    translate(x,y);
     if (mode === 'flight') rotate(heading);
     if (shipScale !== 1) scale(shipScale);
 
     if (mode === 'dock') {
-      noStroke();
-      fill(5, 8, 15, 95);
-      ellipse(-4, 25, 132, 18);
+      noStroke(); fill(5,8,15,90); ellipse(-9,27,152,18);
     } else {
       noFill();
-      stroke(42, 255, 181, Math.round(24 + pulse * 18));
+      stroke(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],Math.round(22+pulse*20));
       strokeWeight(1);
-      ellipse(0, 0, 142, 72);
+      ellipse(-4,0,168,78);
       noStroke();
     }
 
-    drawWake(now, mode, speed);
-    drawWingPair(now, mode, speed, bank);
-    drawHull(pulse, mode);
-    drawMechanicalDetail(now, mode, pulse);
+    drawWake(now,mode,speed);
+    drawWingPair(now,mode,speed,bank);
+    drawHull(pulse,mode);
+    drawMechanicalDetail(now,mode,pulse);
 
-    // Docking struts disappear into the hull in flight.
     if (mode === 'dock') {
-      stroke(94, 75, 58, 190);
-      strokeWeight(2);
-      line(-28, 13, -42, 30);
-      line(20, 13, 37, 30);
-      line(-42, 30, -52, 30);
-      line(37, 30, 47, 30);
+      stroke(94,75,58,190); strokeWeight(2);
+      line(-31,13,-45,31); line(24,13,41,31);
+      line(-45,31,-55,31); line(41,31,51,31);
       noStroke();
     }
 
@@ -238,5 +249,5 @@
     return true;
   }
 
-  root.AetherDragonflyVisual = Object.freeze({ VERSION, draw });
+  root.AetherDragonflyVisual = Object.freeze({ VERSION, PROPORTIONS, PALETTE, draw });
 })(typeof window !== 'undefined' ? window : globalThis);
