@@ -4886,11 +4886,16 @@ function drawPlayer() {
     typeof sprites.isFieldArtCandidateRequested === 'function' &&
     sprites.isFieldArtCandidateRequested('ender');
   const fieldFrame = moving ? Math.floor(frameCount / 8) % 2 : 0;
-  let rendered = fieldCandidateRequested && typeof sprites.drawFieldCandidate === 'function' &&
+  const fieldCandidateDrawn = fieldCandidateRequested &&
+    typeof sprites.drawFieldCandidate === 'function' &&
     sprites.drawFieldCandidate('ender', px + 8, py + 16, {
       anchor: 'bottom-center',
       frame: fieldFrame
     });
+  if (fieldCandidateDrawn && typeof sprites.drawShadow === 'function') {
+    sprites.drawShadow(px + 8, py + 16, 1, 20);
+  }
+  let rendered = fieldCandidateDrawn;
 
   const characters = window.AetherCharacterRenderer;
   if (!rendered && characters && characters.validate && characters.validate()) {
@@ -4917,7 +4922,7 @@ function drawPlayer() {
   textAlign(CENTER, TOP);
   textSize(8);
   textFont('Segoe UI');
-  text('Ender', px + 8, fieldCandidateRequested ? py - 28 : py - 6);
+  text('Ender', px + 8, fieldCandidateDrawn ? py - 28 : py - 6);
   textSize(9);
   textFont('Segoe UI');
 }
