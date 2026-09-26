@@ -9,7 +9,7 @@ const ids=['ender','lyra','ionia','reson','aepex'];
 for (const id of ids) {
   const c=manifest.characters[id];
   if(!c) fail('missing character entry: '+id);
-  if(!['planned','ready'].includes(c.status)) fail('invalid status: '+id);
+  if(!['planned','portrait-ready','ready'].includes(c.status)) fail('invalid status: '+id);
   const p=c.portraitAtlas;
   if(p.width!==768||p.height!==512||p.cellWidth!==256||p.cellHeight!==256||p.expressions.length!==6) fail('portrait contract mismatch: '+id);
   const expected={idle:8,walk:6,talk:4,focus:6,attack:8};
@@ -21,7 +21,7 @@ for (const id of ids) {
       if(!fs.existsSync(fp)) fail('ready strip missing: '+strip.path);
     }
   }
-  if(c.status==='ready' && !fs.existsSync(path.join(root,p.path))) fail('ready portrait missing: '+p.path);
+  if((c.status==='portrait-ready'||c.status==='ready') && !fs.existsSync(path.join(root,p.path))) fail('admitted portrait missing: '+p.path);
 }
 const renderer=fs.readFileSync(path.join(root,'modules','character-renderer.js'),'utf8');
 if(!renderer.includes("['ender','reson','aepex','ionia','lyra']") && !renderer.includes("['ender','lyra','ionia','reson','aepex']")) fail('procedural fallback roster authority missing');

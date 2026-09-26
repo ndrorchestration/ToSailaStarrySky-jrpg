@@ -1,6 +1,6 @@
 {
   "schema": "AETHERWAKE_AUTHORED_CHARACTER_ASSET_MANIFEST_V1",
-  "status": "planned",
+  "status": "partial-authored",
   "authority": "docs/CHARACTER_ART_ASSET_CONTRACT.md",
   "runtimeFallback": "modules/character-renderer.js",
   "characters": {
@@ -109,7 +109,7 @@
       "sourceReference": "canonical Drive visual-bible authority"
     },
     "ionia": {
-      "status": "planned",
+      "status": "portrait-ready",
       "portraitAtlas": {
         "path": "assets/characters/v1/ionia/portrait-atlas.png",
         "width": 768,
@@ -123,7 +123,16 @@
           "focus",
           "hurt",
           "smile"
-        ]
+        ],
+        "sourceMediaIds": {
+          "neutral": "MAHWRHcUg7E",
+          "talk": "MAHWREn9G8k",
+          "concern": "MAHWRA996TY",
+          "focus": "MAHWRMknKps",
+          "hurt": "MAHWREojHyY",
+          "smile": "MAHWRAaBaus"
+        },
+        "source": "Canva generated candidates reviewed against canonical Drive/Notion authority; local atlas derived from 200px authoring previews for 88px dialogue display."
       },
       "fieldStrips": {
         "idle": {

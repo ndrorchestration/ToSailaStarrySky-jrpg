@@ -2371,6 +2371,7 @@ function getDialogueSpriteId(npc) {
 }
 
 function drawDialoguePortrait(npc, x, y, size) {
+  const authoredCharacters = window.AetherAuthoredCharacterArt;
   const characters = window.AetherCharacterRenderer;
   const sprites = window.AetherPixelSprites;
   const id = getDialogueSpriteId(npc);
@@ -2380,7 +2381,13 @@ function drawDialoguePortrait(npc, x, y, size) {
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 28);
   rect(x + 4, y + 4, size - 8, size - 8);
 
-  if (characters && characters.validate &&
+  let authoredDrawn = false;
+  if (authoredCharacters && typeof authoredCharacters.drawPortrait === 'function' &&
+      authoredCharacters.isPortraitReady && authoredCharacters.isPortraitReady(id)) {
+    authoredDrawn = authoredCharacters.drawPortrait(id, x + 4, y + 4, size - 8, { expression: 'talk' });
+  }
+
+  if (!authoredDrawn && characters && characters.validate &&
       characters.validate() && ['ender','reson','aepex','ionia','lyra'].includes(id)) {
     push();
     drawingContext.save();
@@ -2397,13 +2404,13 @@ function drawDialoguePortrait(npc, x, y, size) {
     });
     drawingContext.restore();
     pop();
-  } else if (sprites && typeof sprites.draw === 'function' && sprites.validate()) {
+  } else if (!authoredDrawn && sprites && typeof sprites.draw === 'function' && sprites.validate()) {
     const scale = Math.max(1, Math.floor(size / 16));
     sprites.drawShadow(x + size / 2, y + size - 8, Math.max(1, scale * 0.8));
     sprites.draw(id, x + size / 2, y + size - 9, {
       anchor: 'bottom-center', scale
     });
-  } else {
+  } else if (!authoredDrawn) {
     return false;
   }
 
