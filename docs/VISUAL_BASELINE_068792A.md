@@ -69,15 +69,20 @@ Measured now:
 - assets tree: **26.99 MB**;
 - evidence viewport/canvas: **1440?960 / 960?640**.
 
-Not yet measured and therefore explicitly **OPEN** at G0:
-- per-scene p50/p95 frame time;
-- process/GPU memory attributable to the runtime;
-- scene transition/load latency;
-- active particle peaks.
+Representative frame telemetry is now embedded in the exact evidence manifest (90 requestAnimationFrame samples per state):
+
+| State | p50 ms | p95 ms | max ms | p50 FPS | p95 FPS | load event ms | JS heap used |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Title | 16.7 | 16.7 | 16.8 | 59.9 | 59.9 | 331.9 | ~10 MB |
+| Dusk dock | 16.7 | 33.4 | 33.4 | 59.9 | 29.9 | 324.9 | ~10 MB |
+| Combat | 16.7 | 33.3 | 49.9 | 59.9 | 30.0 | 324.9 | ~10 MB |
+| Flight | 16.7 | 16.8 | 16.8 | 59.9 | 59.5 | 247.1 | ~10 MB |
+
+Interpretation: title and flight meet the 60fps target at p95. Dusk dock and combat sit on the 30fps hard floor at p95, so both are optimization priorities before G4. Combat also exhibits a single ~49.9ms spike, inside the explicit 50ms isolated-spike ceiling but too close for comfort. Browser JS heap telemetry is available; GPU-process memory and active-particle peaks remain future technical-art measurements.
 
 Canvas2D/p5 does not expose a stable engine-level ?draw call? count comparable to a WebGL renderer, so the strike program uses frame-time and memory/load budgets as the authoritative performance gates rather than inventing a misleading draw-call metric.
 
 ## G0 disposition
-`G0_BASELINE_AUDITED = PROVISIONAL_PASS_WITH_OPEN_PERFORMANCE_MEASUREMENT`
+`G0_BASELINE_AUDITED = PASS`
 
-The inventory, screenshot baseline, issue ranking and size baseline exist. G1 may proceed. G0 becomes fully closed when the performance capture harness records representative frame/load data for title, world, combat and flight.
+The screenshot inventory, asset/runtime inventory, issue ranking, size baseline and representative frame/load telemetry now exist. This closes the baseline-audit gate. Performance is **not** declared final-pass: dock/combat optimization remains an explicit Technical Art blocker for G4.

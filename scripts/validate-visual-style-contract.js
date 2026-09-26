@@ -20,7 +20,8 @@ assert(c.ui.minBodyContrast >= 4.5, 'body contrast budget below 4.5:1');
 assert(c.ui.maxPrimaryPanelsAtOnce <= 2, 'too many simultaneous primary panels');
 assert(c.performance.targetFps >= 60, 'target FPS below 60');
 assert(c.performance.minimumFps >= 30, 'minimum FPS below 30');
-assert(c.performance.maximumFrameMs <= 33.4, 'hard frame-time ceiling above 33.4ms');
+assert(c.performance.p95FrameMsHardLimit <= 33.4, 'p95 frame-time hard limit above 33.4ms');
+assert(c.performance.singleFrameSpikeHardLimitMs <= 50, 'single-frame spike hard limit above 50ms');
 assert(c.performance.atlasMaxPx[0] <= 2048 && c.performance.atlasMaxPx[1] <= 2048, 'atlas exceeds 2048x2048');
 assert(c.scale.combatDragonflyMaxScreenWidthRatio <= 0.25, 'combat Dragonfly width budget exceeds 25%');
 

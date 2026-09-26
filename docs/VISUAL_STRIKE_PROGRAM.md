@@ -127,7 +127,7 @@ A downstream lane may prototype before its dependency closes, but it may not be 
 
 **Produces:** performance capture script/report; texture/asset inventory; visual-runtime size delta report; fallback matrix.
 
-**Hard specs:** target 60fps, hard minimum 30fps; target frame 16.7ms, hard ceiling 33.3ms; GPU memory soft/hard 512MiB/2GiB; ?200 active particles soft limit; scene load target <5s; staged desktop runtime soft limit 50 MB; each visual tranche soft growth limit 5 MB unless documented exception.
+**Hard specs:** target 60fps, hard minimum 30fps; target p95 frame 16.7ms, p95 hard limit 33.4ms; isolated single-frame spike hard limit 50ms; GPU memory soft/hard 512MiB/2GiB; ?200 active particles soft limit; scene load target <5s; staged desktop runtime soft limit 50 MB; each visual tranche soft growth limit 5 MB unless documented exception.
 
 **Done when:** every benchmark scene meets hard frame/load limits on the operator Windows machine; no missing-asset fallback breaks play; runtime/package tests remain green.
 

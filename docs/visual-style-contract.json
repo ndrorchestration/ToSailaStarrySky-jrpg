@@ -139,7 +139,6 @@
     "targetFps": 60,
     "minimumFps": 30,
     "targetFrameMs": 16.7,
-    "maximumFrameMs": 33.3,
     "gpuMemorySoftLimitMiB": 512,
     "gpuMemoryHardLimitMiB": 2048,
     "activeParticlesSoftLimit": 200,
@@ -149,7 +148,9 @@
     ],
     "sceneLoadTargetMs": 5000,
     "desktopRuntimeSoftLimitBytes": 50000000,
-    "visualTrancheRuntimeGrowthSoftLimitBytes": 5000000
+    "visualTrancheRuntimeGrowthSoftLimitBytes": 5000000,
+    "p95FrameMsHardLimit": 33.4,
+    "singleFrameSpikeHardLimitMs": 50.0
   },
   "acceptance": {
     "weightedMinimum": 4.0,

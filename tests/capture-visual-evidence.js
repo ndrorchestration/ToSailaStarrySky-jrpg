@@ -164,6 +164,39 @@ function sha256(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
 
+async function measureFrameTiming(page, id, sampleFrames = 90) {
+  const stats = await page.evaluate(async ({ sampleFrames }) => {
+    const deltas = [];
+    let previous = performance.now();
+    await new Promise(resolve => {
+      function tick(now) {
+        deltas.push(now - previous);
+        previous = now;
+        if (deltas.length >= sampleFrames) resolve();
+        else requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+    deltas.sort((a, b) => a - b);
+    const pick = q => deltas[Math.min(deltas.length - 1, Math.floor((deltas.length - 1) * q))];
+    const nav = performance.getEntriesByType('navigation')[0];
+    const memory = performance.memory || null;
+    return {
+      sampleFrames: deltas.length,
+      frameMsP50: Number(pick(0.50).toFixed(2)),
+      frameMsP95: Number(pick(0.95).toFixed(2)),
+      frameMsMax: Number(deltas[deltas.length - 1].toFixed(2)),
+      estimatedFpsP50: Number((1000 / pick(0.50)).toFixed(1)),
+      estimatedFpsP95: Number((1000 / pick(0.95)).toFixed(1)),
+      loadEventMs: nav ? Number(nav.loadEventEnd.toFixed(2)) : null,
+      jsHeapUsedBytes: memory ? memory.usedJSHeapSize : null,
+      jsHeapTotalBytes: memory ? memory.totalJSHeapSize : null,
+      deviceMemoryGiB: navigator.deviceMemory || null,
+    };
+  }, { sampleFrames });
+  return { id, ...stats };
+}
+
 async function capture(page, id, description) {
   await page.waitForTimeout(220);
   const file = path.join(OUT, id + '.png');
@@ -216,6 +249,7 @@ async function capture(page, id, description) {
 
   try {
     const captures = [];
+    const performanceSamples = [];
 
     // 0 â€” Shared-authority title screen after real boot/preamble.
     await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
@@ -235,6 +269,7 @@ async function capture(page, id, description) {
       '00-title-screen',
       'Shared-authority Aetherwake title screen'
     ));
+    performanceSamples.push(await measureFrameTiming(page, '00-title-screen'));
 
     // 1 â€” First Wake interactive dock-walk presentation.
     await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
@@ -296,6 +331,7 @@ async function capture(page, id, description) {
       '02-dragonfly-dusk-dock',
       'Dragonfly Dusk Dock benchmark candidate'
     ));
+    performanceSamples.push(await measureFrameTiming(page, '02-dragonfly-dusk-dock'));
 
     // 2 â€” Representative dialogue.
     await page.evaluate(() => {
@@ -333,6 +369,7 @@ async function capture(page, id, description) {
       '04-combat-sky-predator',
       'Representative Sky-Predator combat visual gate'
     ));
+    performanceSamples.push(await measureFrameTiming(page, '04-combat-sky-predator'));
 
     // 4 â€” Dragonfly flight.
     await bootToWorld(page);
@@ -360,6 +397,7 @@ async function capture(page, id, description) {
       '05-dragonfly-flight',
       'Representative Dragonfly open-sky flight visual gate'
     ));
+    performanceSamples.push(await measureFrameTiming(page, '05-dragonfly-flight'));
 
     // 6 â€” Aerial combat context inherited from real flight state.
     await page.evaluate(() => {
@@ -398,6 +436,7 @@ async function capture(page, id, description) {
       acceptanceBoundary:
         'CAPTURE_ONLY_NOT_VISUAL_PASS: screenshots require human review against docs/VISUAL_BIBLE.md and docs/VISUAL_BENCHMARK_SCENE.md',
       captures,
+      performanceSamples,
     };
 
     const manifestPath = path.join(OUT, 'manifest.json');
@@ -405,6 +444,7 @@ async function capture(page, id, description) {
 
     console.log('AETHERWAKE_VISUAL_EVIDENCE=CAPTURED');
     console.log('AETHERWAKE_VISUAL_EVIDENCE_COUNT=' + captures.length);
+    console.log('AETHERWAKE_VISUAL_PERFORMANCE_SAMPLES=' + performanceSamples.length);
     console.log('AETHERWAKE_VISUAL_EVIDENCE_MANIFEST=' + manifestPath);
   } finally {
     await browser.close();
