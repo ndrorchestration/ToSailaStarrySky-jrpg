@@ -2862,24 +2862,32 @@ function drawToasts() {
     .sort((a,b) => ((a.kind === 'priority') ? 1 : 0) - ((b.kind === 'priority') ? 1 : 0) || a.startTime - b.startTime)
     .slice(-1)[0] || null;
   const systemToast = active.filter(t => t.kind === 'system').slice(-1)[0] || null;
-  const cardW = Math.min(276, Math.max(216, width * 0.29));
+  const cardW = Math.min(232, Math.max(192, width * 0.24));
   const cardX = width - cardW - 24;
   if (cardToast) {
     const t = cardToast;
     const age = now - t.startTime;
     const alpha = age < 180 ? (age / 180) * 255 :
       (age > t.duration - 350 ? Math.max(0, (t.duration - age) / 350) * 255 : 255);
-    const y = 112;
+    const y = 96;
+    const isObjective = String(t.text || '').toUpperCase().startsWith('OBJECTIVE //');
+    const label = isObjective ? 'OBJECTIVE' : (t.kind === 'priority' ? 'PRIORITY' : 'NOTICE');
+    const message = isObjective ? String(t.text).replace(/^OBJECTIVE\s*\/\/\s*/i, '') : String(t.text || '');
     noStroke();
-    fill(7, 11, 19, alpha * 0.72);
-    rect(cardX, y, cardW, 27, 3);
-    fill(t.color[0], t.color[1], t.color[2], alpha * 0.24);
-    rect(cardX, y, 3, 27);
-    fill(t.color[0], t.color[1], t.color[2], alpha);
+    fill(7, 11, 19, alpha * 0.68);
+    rect(cardX, y, cardW, 24, 5);
+    fill(t.color[0], t.color[1], t.color[2], alpha * 0.30);
+    rect(cardX, y, 3, 24, 2);
+    textFont('Segoe UI Semibold');
+    textSize(7);
+    textAlign(LEFT, CENTER);
+    fill(t.color[0], t.color[1], t.color[2], alpha * 0.85);
+    text(label, cardX + 9, y + 12);
     textFont('Segoe UI');
-    textSize(12);
+    textSize(9);
     textAlign(RIGHT, CENTER);
-    text(t.text, cardX + cardW - 10, y + 13);
+    fill(232, 220, 198, alpha * 0.94);
+    text(message, cardX + cardW - 9, y + 12);
   }
   if (systemToast && !cardToast) {
     const t = systemToast;
