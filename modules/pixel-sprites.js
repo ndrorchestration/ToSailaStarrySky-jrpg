@@ -23,8 +23,17 @@
   const BATTLE_ENEMY_HEIGHT = 36;
   const ENDER_FIELD_PREVIEW_PARAM = 'aetherwakeFieldArtPreview';
   const ENDER_FIELD_CANDIDATE_PATH = 'assets/characters/v1/ender/field-idle-walk-candidate.png';
+  const LYRA_FIELD_CANDIDATE_PATH = 'assets/characters/v1/lyra/field-idle-walk-candidate.png';
   const ENDER_FIELD_CELL_WIDTH = 28;
   const ENDER_FIELD_CELL_HEIGHT = 36;
+  const FIELD_ART_CANDIDATES = Object.freeze({
+    ender: Object.freeze({ path: ENDER_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
+    lyra: Object.freeze({ path: LYRA_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
+  });
+  const fieldArtCandidateStates = {
+    ender: { state: 'idle', image: null },
+    lyra: { state: 'idle', image: null },
+  };
   let previewAtlas = null;
   let previewAtlasState = 'idle';
   let battleEnemyAtlas = null;
@@ -551,49 +560,49 @@
     return drawPixelSprite(SPRITES[id], PALETTES[id], x, y, options);
   }
 
-  let enderFieldCandidate = null;
-  let enderFieldCandidateState = 'idle';
-
-  function isEnderFieldCandidateRequested() {
+  function isFieldArtCandidateRequested(id) {
+    if (!Object.prototype.hasOwnProperty.call(FIELD_ART_CANDIDATES, id)) return false;
     const search = root.location && root.location.search ? root.location.search : '';
     try {
-      return new URLSearchParams(search).get(ENDER_FIELD_PREVIEW_PARAM) === 'ender';
+      return new URLSearchParams(search).get(ENDER_FIELD_PREVIEW_PARAM) === id;
     } catch (error) {
       return false;
     }
   }
 
-  function drawEnderFieldCandidate(x, y, options) {
-    if (!isEnderFieldCandidateRequested()) return false;
-    if (enderFieldCandidateState === 'idle') {
+  function drawFieldCandidate(id, x, y, options) {
+    const config = FIELD_ART_CANDIDATES[id];
+    const candidate = fieldArtCandidateStates[id];
+    if (!config || !candidate || !isFieldArtCandidateRequested(id)) return false;
+    if (candidate.state === 'idle') {
       if (typeof loadImage !== 'function') {
-        enderFieldCandidateState = 'unavailable';
+        candidate.state = 'unavailable';
       } else {
-        enderFieldCandidateState = 'loading';
+        candidate.state = 'loading';
         try {
-          enderFieldCandidate = loadImage(
-            ENDER_FIELD_CANDIDATE_PATH,
+          candidate.image = loadImage(
+            config.path,
             (loaded) => {
-              enderFieldCandidate = loaded || enderFieldCandidate;
-              enderFieldCandidateState = enderFieldCandidate &&
-                enderFieldCandidate.width === ENDER_FIELD_CELL_WIDTH * 2 &&
-                enderFieldCandidate.height === ENDER_FIELD_CELL_HEIGHT
+              candidate.image = loaded || candidate.image;
+              candidate.state = candidate.image &&
+                candidate.image.width === config.width * 2 &&
+                candidate.image.height === config.height
                 ? 'ready'
                 : 'failed';
             },
             () => {
-              enderFieldCandidate = null;
-              enderFieldCandidateState = 'failed';
+              candidate.image = null;
+              candidate.state = 'failed';
             }
           );
         } catch (error) {
-          enderFieldCandidate = null;
-          enderFieldCandidateState = 'failed';
+          candidate.image = null;
+          candidate.state = 'failed';
         }
       }
     }
 
-    if (enderFieldCandidateState !== 'ready' || !enderFieldCandidate ||
+    if (candidate.state !== 'ready' || !candidate.image ||
         typeof image !== 'function') return false;
 
     const opts = options || {};
@@ -603,37 +612,29 @@
     let ox = x;
     let oy = y;
     if (anchor === 'center') {
-      ox -= (ENDER_FIELD_CELL_WIDTH * scale) / 2;
-      oy -= (ENDER_FIELD_CELL_HEIGHT * scale) / 2;
+      ox -= (config.width * scale) / 2;
+      oy -= (config.height * scale) / 2;
     } else if (anchor === 'bottom-center') {
-      ox -= (ENDER_FIELD_CELL_WIDTH * scale) / 2;
-      oy -= ENDER_FIELD_CELL_HEIGHT * scale;
+      ox -= (config.width * scale) / 2;
+      oy -= config.height * scale;
     }
     if (typeof noSmooth === 'function') noSmooth();
     image(
-      enderFieldCandidate,
+      candidate.image,
       Math.round(ox),
       Math.round(oy),
-      ENDER_FIELD_CELL_WIDTH * scale,
-      ENDER_FIELD_CELL_HEIGHT * scale,
-      frameIndex * ENDER_FIELD_CELL_WIDTH,
+      config.width * scale,
+      config.height * scale,
+      frameIndex * config.width,
       0,
-      ENDER_FIELD_CELL_WIDTH,
-      ENDER_FIELD_CELL_HEIGHT
+      config.width,
+      config.height
     );
     return true;
   }
 
-  function isFieldArtCandidateRequested(id) {
-    return id === 'ender' && isEnderFieldCandidateRequested();
-  }
-
-  function drawFieldCandidate(id, x, y, options) {
-    return id === 'ender' ? drawEnderFieldCandidate(x, y, options) : false;
-  }
-
   function drawPreview(id, x, y, options) {
-    if (id === 'ender' && drawEnderFieldCandidate(x, y, options)) return true;
+    if (isFieldArtCandidateRequested(id) && drawFieldCandidate(id, x, y, options)) return true;
     const column = PREVIEW_COLUMNS[id];
     if (column === undefined || !SPRITES[id]) {
       const previewFallback = PREVIEW_FALLBACKS[id];
@@ -709,8 +710,6 @@
         try {
           battleEnemyAtlas = loadImage(
             BATTLE_ENEMY_ATLAS_PATH,
-    ENDER_FIELD_PREVIEW_PARAM,
-    ENDER_FIELD_CANDIDATE_PATH,
             () => { battleEnemyAtlasState = 'ready'; },
             () => { battleEnemyAtlas = null; battleEnemyAtlasState = 'failed'; }
           );
@@ -771,6 +770,7 @@
   const api = Object.freeze({
     ENDER_FIELD_PREVIEW_PARAM,
     ENDER_FIELD_CANDIDATE_PATH,
+    LYRA_FIELD_CANDIDATE_PATH,
     isFieldArtCandidateRequested,
     drawFieldCandidate,
     VERSION: '0.3.0',
