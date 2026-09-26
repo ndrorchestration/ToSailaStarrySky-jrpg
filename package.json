@@ -134,6 +134,7 @@
     "test:toast-visual-hierarchy": "node tests/toast-visual-hierarchy.test.js",
     "verify:visual-performance": "node scripts/verify-visual-performance.js",
     "test:visual-acceptance-scoring": "node tests/visual-acceptance-scoring.test.js",
-    "score:visual-acceptance": "node scripts/score-visual-acceptance.js"
+    "score:visual-acceptance": "node scripts/score-visual-acceptance.js",
+    "test:authored-character-assets": "node tests/authored-character-asset-contract.test.js"
   }
 }

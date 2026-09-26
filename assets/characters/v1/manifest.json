@@ -1,0 +1,268 @@
+{
+  "schema": "AETHERWAKE_AUTHORED_CHARACTER_ASSET_MANIFEST_V1",
+  "status": "planned",
+  "authority": "docs/CHARACTER_ART_ASSET_CONTRACT.md",
+  "runtimeFallback": "modules/character-renderer.js",
+  "characters": {
+    "ender": {
+      "status": "planned",
+      "portraitAtlas": {
+        "path": "assets/characters/v1/ender/portrait-atlas.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ]
+      },
+      "fieldStrips": {
+        "idle": {
+          "path": "assets/characters/v1/ender/field-idle.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        },
+        "walk": {
+          "path": "assets/characters/v1/ender/field-walk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "talk": {
+          "path": "assets/characters/v1/ender/field-talk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 4
+        },
+        "focus": {
+          "path": "assets/characters/v1/ender/field-focus.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "attack": {
+          "path": "assets/characters/v1/ender/field-attack.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        }
+      },
+      "silhouetteTestRequired": true,
+      "sourceReference": "canonical Drive visual-bible authority"
+    },
+    "lyra": {
+      "status": "planned",
+      "portraitAtlas": {
+        "path": "assets/characters/v1/lyra/portrait-atlas.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ]
+      },
+      "fieldStrips": {
+        "idle": {
+          "path": "assets/characters/v1/lyra/field-idle.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        },
+        "walk": {
+          "path": "assets/characters/v1/lyra/field-walk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "talk": {
+          "path": "assets/characters/v1/lyra/field-talk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 4
+        },
+        "focus": {
+          "path": "assets/characters/v1/lyra/field-focus.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "attack": {
+          "path": "assets/characters/v1/lyra/field-attack.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        }
+      },
+      "silhouetteTestRequired": true,
+      "sourceReference": "canonical Drive visual-bible authority"
+    },
+    "ionia": {
+      "status": "planned",
+      "portraitAtlas": {
+        "path": "assets/characters/v1/ionia/portrait-atlas.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ]
+      },
+      "fieldStrips": {
+        "idle": {
+          "path": "assets/characters/v1/ionia/field-idle.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        },
+        "walk": {
+          "path": "assets/characters/v1/ionia/field-walk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "talk": {
+          "path": "assets/characters/v1/ionia/field-talk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 4
+        },
+        "focus": {
+          "path": "assets/characters/v1/ionia/field-focus.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "attack": {
+          "path": "assets/characters/v1/ionia/field-attack.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        }
+      },
+      "silhouetteTestRequired": true,
+      "sourceReference": "canonical Drive visual-bible authority"
+    },
+    "reson": {
+      "status": "planned",
+      "portraitAtlas": {
+        "path": "assets/characters/v1/reson/portrait-atlas.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ]
+      },
+      "fieldStrips": {
+        "idle": {
+          "path": "assets/characters/v1/reson/field-idle.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        },
+        "walk": {
+          "path": "assets/characters/v1/reson/field-walk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "talk": {
+          "path": "assets/characters/v1/reson/field-talk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 4
+        },
+        "focus": {
+          "path": "assets/characters/v1/reson/field-focus.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "attack": {
+          "path": "assets/characters/v1/reson/field-attack.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        }
+      },
+      "silhouetteTestRequired": true,
+      "sourceReference": "canonical Drive visual-bible authority"
+    },
+    "aepex": {
+      "status": "planned",
+      "portraitAtlas": {
+        "path": "assets/characters/v1/aepex/portrait-atlas.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ]
+      },
+      "fieldStrips": {
+        "idle": {
+          "path": "assets/characters/v1/aepex/field-idle.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        },
+        "walk": {
+          "path": "assets/characters/v1/aepex/field-walk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "talk": {
+          "path": "assets/characters/v1/aepex/field-talk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 4
+        },
+        "focus": {
+          "path": "assets/characters/v1/aepex/field-focus.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "attack": {
+          "path": "assets/characters/v1/aepex/field-attack.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        }
+      },
+      "silhouetteTestRequired": true,
+      "sourceReference": "canonical Drive visual-bible authority"
+    }
+  }
+}
