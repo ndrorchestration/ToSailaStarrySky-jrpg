@@ -271,7 +271,25 @@
         }
       },
       "silhouetteTestRequired": true,
-      "sourceReference": "canonical Drive visual-bible authority"
+      "sourceReference": "canonical Drive visual-bible authority",
+      "candidatePortraitAtlas": {
+        "status": "candidate",
+        "path": "assets/characters/v1/aepex/portrait-atlas-candidate.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "transparent": true,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ],
+        "source": "Generated from creator-supplied Aepex reference; opt-in preview candidate, not admitted."
+      }
     }
   }
 }
