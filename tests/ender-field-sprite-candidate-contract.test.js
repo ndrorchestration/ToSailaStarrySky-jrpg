@@ -21,6 +21,8 @@ const playerEnd=runtimeSource.indexOf('// --- NPCs',playerStart);
 const playerRenderer=runtimeSource.slice(playerStart,playerEnd);
 assert(playerRenderer.includes("sprites.drawFieldCandidate('ender', px + 8, py + 16"),
   'opt-in candidate must be wired into the live player renderer');
+assert(playerRenderer.includes('fieldCandidateDrawn ? py - 28 : py - 6'),
+  'Ender name label must track the taller candidate only while it is actually drawn');
 assert(playerRenderer.includes("sprites.draw('ender', px, py, { frame: fieldFrame });"),
   'existing runtime fallback must remain available');
 const moduleSource=fs.readFileSync(path.join(root,'modules/pixel-sprites.js'),'utf8');
