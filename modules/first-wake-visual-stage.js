@@ -8,7 +8,11 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.4.0';
+  const VERSION = '0.5.0';
+  const OPENING_WORLD_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
+  let openingWorld = null;
+  let openingWorldRequested = false;
+  let openingWorldReady = false;
 
   function bandedSky(top, mid, low) {
     noStroke();
@@ -108,31 +112,77 @@
     }
   }
 
+  function drawPaintedDockBackdrop(scene, now) {
+    if (!openingWorldRequested && typeof loadImage === 'function') {
+      openingWorldRequested = true;
+      try {
+        openingWorld = loadImage(
+          OPENING_WORLD_PATH,
+          () => { openingWorldReady = true; },
+          () => { openingWorld = null; openingWorldReady = false; }
+        );
+      } catch (error) {
+        openingWorld = null;
+        openingWorldReady = false;
+      }
+    }
+    if (!openingWorldReady || !openingWorld || typeof image !== 'function') return false;
+
+    push();
+    noSmooth();
+    const cover = Math.max(width / openingWorld.width, height / openingWorld.height);
+    const dw = openingWorld.width * cover;
+    const dh = openingWorld.height * cover;
+    const pan = scene && scene.sequence <= 1 ? -18 : 0;
+    image(openingWorld, (width - dw) / 2 + pan, (height - dh) / 2, dw, dh);
+    pop();
+
+    // First Wake starts cooler and quieter than free-flight daylight. The grade
+    // keeps continuity with title key art while preserving room for warm dock practicals.
+    noStroke();
+    fill(32, 48, 74, scene && scene.sequence <= 1 ? 64 : 48);
+    rect(0, 0, width, height);
+    fill(235, 170, 104, 18);
+    rect(0, Math.round(height * 0.52), width, Math.round(height * 0.48));
+
+    // Slow distant traffic prevents the painted plate from reading as a static splash.
+    for (let i = 0; i < 3; i++) {
+      const x = Math.round((now * (0.006 + i * 0.002) + 140 + i * 260) % (width + 90)) - 45;
+      const y = Math.round(height * (0.20 + i * 0.065));
+      fill(225, 238, 242, 110); rect(x, y, 8, 1);
+      fill(42, 255, 181, 80); rect(x - 2, y, 1, 1);
+    }
+    return true;
+  }
+
   function drawDock(scene, state, now) {
     const cinematicRatio = scene.cinematic && Number.isFinite(scene.minimumTicks) && scene.minimumTicks > 0
       ? Math.max(0, Math.min(1, (state.sceneTicks || 0) / scene.minimumTicks))
       : 1;
     const settle = cinematicRatio * cinematicRatio * (3 - 2 * cinematicRatio);
 
-    bandedSky([52, 73, 108], [117, 151, 176], [241, 185, 126]);
+    const paintedBackdrop = drawPaintedDockBackdrop(scene, now);
+    if (!paintedBackdrop) {
+      bandedSky([52, 73, 108], [117, 151, 176], [241, 185, 126]);
 
-    // Far atmospheric depth and cloud strata.
-    noStroke();
-    fill(255, 222, 156, 185);
-    ellipse(width * 0.16, 118, 72, 72);
-    fill(255, 239, 197, 62);
-    ellipse(width * 0.16, 118, 150, 150);
-    fill(255, 224, 172, 16);
-    quad(70, 0, 220, 0, 470, height, 280, height);
+      // Far atmospheric depth and cloud strata fallback.
+      noStroke();
+      fill(255, 222, 156, 185);
+      ellipse(width * 0.16, 118, 72, 72);
+      fill(255, 239, 197, 62);
+      ellipse(width * 0.16, 118, 150, 150);
+      fill(255, 224, 172, 16);
+      quad(70, 0, 220, 0, 470, height, 280, height);
 
-    cloudBands(now, 300, [232, 238, 235], 38);
-    cloudBands(now * 0.72, 365, [235, 235, 222], 48);
+      cloudBands(now, 300, [232, 238, 235], 38);
+      cloudBands(now * 0.72, 365, [235, 235, 222], 48);
 
-    // Dimensional floating settlements establish inhabited scale.
-    drawDistantIsland(128, 205, 150, 70, now, false);
-    drawDistantIsland(742, 166, 208, 92, now * 0.92, true);
-    drawDistantIsland(302, 244, 92, 46, now * 0.78, false);
-    drawDistantIsland(833, 254, 78, 38, now * 0.72, false);
+      // Dimensional floating settlements establish inhabited scale.
+      drawDistantIsland(128, 205, 150, 70, now, false);
+      drawDistantIsland(742, 166, 208, 92, now * 0.92, true);
+      drawDistantIsland(302, 244, 92, 46, now * 0.78, false);
+      drawDistantIsland(833, 254, 78, 38, now * 0.72, false);
+    }
 
     // Vertical dock pylons and gantry.
     fill(18, 25, 34);
@@ -151,7 +201,7 @@
       const t1 = (i + 1) / 10;
       const inset0 = 150 * (1 - t0);
       const inset1 = 150 * (1 - t1);
-      fill(28 + i * 3, 35 + i * 3, 42 + i * 3);
+      fill(38 + i * 2, 47 + i * 2, 52 + i * 2);
       quad(inset0, y0, width - inset0, y0, width - inset1, y1, inset1, y1);
       stroke(116, 126, 124, 48);
       strokeWeight(1);
@@ -167,7 +217,31 @@
     line(width / 2 + 105, 330, width - 145, height);
     line(115, 348, 45, 570);
     line(width - 115, 348, width - 45, 570);
+    // Reclaimed-brass service seams break the apron into intentional modules.
+    stroke(183, 132, 64, 82);
+    strokeWeight(2);
+    line(172, 454, width - 132, 437);
+    line(118, 516, width - 82, 505);
     noStroke();
+
+    // Reuse the shared dock prop language so the opening and playable dock feel
+    // like the same working place rather than two unrelated presentation sets.
+    const environment = root.AetherEnvironmentVisualKit;
+    if (environment) {
+      if (typeof environment.drawBollard === 'function') {
+        environment.drawBollard(695, 446, 0.85);
+        environment.drawBollard(765, 468, 0.72);
+      }
+      if (typeof environment.drawRopeCoil === 'function') {
+        environment.drawRopeCoil(718, 485, 0.78);
+      }
+      if (typeof environment.drawRepairBench === 'function') {
+        environment.drawRepairBench(826, 430, 0.78);
+      }
+      if (typeof environment.drawPlanter === 'function') {
+        environment.drawPlanter(180, 469, 0.72, now);
+      }
+    }
 
     // Cloud drop below the deck makes altitude continuously visible.
     fill(210, 222, 226, 55);

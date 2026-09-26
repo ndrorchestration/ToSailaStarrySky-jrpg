@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'first-wake-visual-stage.js' });
 
 const api = sandbox.window.AetherFirstWakeVisual;
 assert(api, 'First Wake visual stage missing');
-assert.strictEqual(api.VERSION, '0.4.0');
+assert.strictEqual(api.VERSION, '0.5.0');
 for (const fn of ['draw','drawDock','drawInterior','drawChapter']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -21,10 +21,16 @@ assert(source.includes('AetherDragonflyVisual'),
   'opening dock must reuse shared Dragonfly authority');
 assert(source.includes('AetherCharacterRenderer'),
   'opening must prefer the articulated character authority');
+assert(source.includes('AetherEnvironmentVisualKit'),
+  'v0.5 opening dock must reuse the shared environment-kit prop language');
 assert(source.includes('AetherPixelSprites'),
   'opening must retain pixel sprites only as a compatibility fallback');
+assert(source.includes('aetherwake-preview-world-pixelart-v2.png'),
+  'v0.5 opening dock must bind the admitted painted-world authority');
+assert(source.includes('drawPaintedDockBackdrop') && source.includes('openingWorldReady'),
+  'v0.5 opening dock must retain painted-backdrop readiness and procedural fallback');
 assert(source.includes('bandedSky(') && source.includes('cloudBands('),
-  'opening dock must render layered atmospheric sky depth');
+  'opening dock must retain layered atmospheric fallback depth');
 assert(source.includes('continuous trapezoid planes'),
   'opening dock must use continuous perspective deck geometry rather than horizontal bands');
 assert(source.includes('Cloud drop below the deck'),
