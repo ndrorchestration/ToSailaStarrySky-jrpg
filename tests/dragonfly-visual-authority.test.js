@@ -11,7 +11,7 @@ const sandbox = { window: {}, globalThis: {} };
 vm.runInNewContext(source, sandbox, { filename: 'dragonfly-visual.js' });
 
 assert(sandbox.window.AetherDragonflyVisual, 'shared Dragonfly visual authority missing');
-assert.strictEqual(sandbox.window.AetherDragonflyVisual.VERSION, '0.3.0');
+assert.strictEqual(sandbox.window.AetherDragonflyVisual.VERSION, '0.4.0');
 assert.strictEqual(typeof sandbox.window.AetherDragonflyVisual.draw, 'function');
 assert(source.includes('function drawWingPair'), 'Dragonfly must retain articulated paired-wing authority');
 assert(source.includes('function drawHull'), 'Dragonfly must retain a dedicated tapered-hull renderer');
@@ -26,6 +26,11 @@ assert(sandbox.window.AetherDragonflyVisual.PROPORTIONS.combatMaxScreenWidthRati
   'combat Dragonfly width budget drifted above 25%');
 assert(source.includes('Four long translucent wings'), 'Dragonfly recognition wing cue missing');
 assert(source.includes('Segmented tail boom'), 'Dragonfly insect-like segmented tail cue missing');
+assert(source.includes('Lower hull shadow and brass chine'), 'Dragonfly 2.5D hull-volume cue missing');
+assert(source.includes('Framed canopy panes'), 'Dragonfly constructed helm-glazing cue missing');
+assert(source.includes('Dark structural spar'), 'Dragonfly engineered wing-spar cue missing');
+assert(source.includes('Dorsal service spine'), 'Dragonfly handcrafted dorsal silhouette cue missing');
+assert(source.includes('exposed conduit'), 'Dragonfly visible aether conduit cue missing');
 assert(source.includes('Four shield nodes'), 'Dragonfly four-node shield cue missing');
 
 const benchmark = fs.readFileSync(path.join(root, 'modules', 'visual-benchmark.js'), 'utf8');

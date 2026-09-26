@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.3.0';
+  const VERSION = '0.4.0';
   const PROPORTIONS = Object.freeze({
     adultHeightUnits: 1,
     bodyLengthAdultHeights: 3.0,
@@ -32,7 +32,7 @@
     navRed: [255, 111, 88],
   });
 
-  function membrane(points, alpha, warm) {
+  function membrane(points, alpha, warm, detailed = true) {
     noStroke();
     const c = warm ? [205,225,190] : PALETTE.aetherBlue;
     fill(c[0], c[1], c[2], alpha);
@@ -42,7 +42,7 @@
 
     stroke(205, 235, 238, Math.min(185, alpha + 55));
     strokeWeight(0.8);
-    for (let i = 1; i < points.length - 1; i++) {
+    for (let i = 1; i < points.length - 1; i += (detailed ? 1 : 2)) {
       line(points[0][0], points[0][1], points[i][0], points[i][1]);
     }
     noStroke();
@@ -62,10 +62,20 @@
       const aftTipY = sign * (28 - vertical * 0.65 * sign);
       membrane([
         [-12, y], [26, sign * 17], [94 * flare, foreTipY], [74 * flare, sign * 7], [8, sign * 5]
-      ], mode === 'flight' ? 88 : 72, false);
+      ], mode === 'flight' ? 88 : 72, false, mode === 'flight');
       membrane([
         [-17, sign * 7], [18, sign * 13], [78 * flare, aftTipY], [61 * flare, sign * 4], [-5, sign * 2]
-      ], mode === 'flight' ? 68 : 58, true);
+      ], mode === 'flight' ? 68 : 58, true, mode === 'flight');
+      // Dark structural spar and bright leading edge give the membrane thickness
+      // and make each wing read as engineered, not just translucent geometry.
+      if (mode === 'flight') {
+        stroke(54,67,66,145); strokeWeight(1.25);
+        line(-10, y, 92*flare, foreTipY);
+        stroke(PALETTE.glassLight[0],PALETTE.glassLight[1],PALETTE.glassLight[2],90);
+        strokeWeight(0.7);
+        line(7, sign*5, 73*flare, sign*7);
+        noStroke();
+      }
     };
 
     drawSide(-1);
@@ -96,6 +106,16 @@
     vertex(19,-3); vertex(-31,-4);
     endShape(CLOSE);
 
+    // Lower hull shadow and brass chine create a readable 2.5D body volume.
+    fill(26,31,31,180);
+    beginShape();
+    vertex(-44,5); vertex(4,10); vertex(33,7); vertex(54,3);
+    vertex(39,10); vertex(5,16); vertex(-35,13); vertex(-53,7);
+    endShape(CLOSE);
+    stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],145);
+    strokeWeight(1.15);
+    line(-34,11,28,10); line(28,10,49,5); noStroke();
+
     // Distinct forward helm glazing.
     fill(PALETTE.canopy[0],PALETTE.canopy[1],PALETTE.canopy[2],205);
     beginShape();
@@ -105,6 +125,10 @@
     beginShape();
     vertex(43,-5); vertex(57,-4); vertex(64,0); vertex(53,1); vertex(39,0);
     endShape(CLOSE);
+    // Framed canopy panes make the helm feel constructed and habitable.
+    stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],150);
+    strokeWeight(0.9);
+    line(42,-8,42,8); line(52,-6,52,6); line(61,-4,61,4); noStroke();
 
     // Thorax ring visually separates cabin/core from the abdomen-like tail.
     noFill();
@@ -136,6 +160,12 @@
       fill(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],135);
       rect(cx - w*0.08, -h*0.5, Math.max(1,w*0.12), h);
     }
+
+    // Dorsal service spine adds a small handcrafted silhouette break.
+    fill(...PALETTE.reclaimedBronze);
+    quad(-50,-5,-25,-8,-20,-5,-48,-2);
+    fill(...PALETTE.brass);
+    rect(-39,-8,2,4,0.5); rect(-30,-9,2,4,0.5);
 
     // Tail pressure vane / rudder.
     fill(PALETTE.aetherBlue[0],PALETTE.aetherBlue[1],PALETTE.aetherBlue[2],125);
@@ -181,6 +211,12 @@
     ellipse(-48,-9,3,3);
     fill(79,231,188,180 + pulse*50);
     ellipse(-48,9,3,3);
+
+    // Small exposed conduit ties the aether core to the helm and reinforces
+    // the handmade/maintainable solarpunk machinery language.
+    stroke(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],95 + pulse*45);
+    strokeWeight(1);
+    line(17,-6,33,-5); line(17,6,33,5); noStroke();
 
     // Deck canopy and light solar strip keep the craft handmade/solarpunk.
     fill(71,64,54,235);
