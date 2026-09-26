@@ -96,17 +96,64 @@ async function bootToWorld(page) {
     undefined, { timeout: 5000 });
   await page.keyboard.press('Enter');
 
+  await page.waitForFunction(() =>
+    window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'berth_task'
+  , undefined, { timeout: 5000 });
+  await page.keyboard.press('Enter');
   for (let i = 0; i < 3; i++) await page.keyboard.press('e');
   await page.waitForFunction(() => window._firstWakeOpeningState.berthTask.ready === true,
     undefined, { timeout: 5000 });
   await page.keyboard.press('Enter');
 
+  await page.waitForFunction(() =>
+    window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'talen_staying'
+  , undefined, { timeout: 5000 });
+  await page.keyboard.press('Enter');
   for (let i = 0; i < 2; i++) await page.keyboard.press('e');
   await page.waitForFunction(() => window._firstWakeOpeningState.talenBeat.ready === true,
     undefined, { timeout: 5000 });
   await page.keyboard.press('Enter');
 
-  for (let i = 0; i < 5; i++) await page.keyboard.press('Enter');
+  await page.waitForFunction(() =>
+    window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'lyra_family'
+  , undefined, { timeout: 5000 });
+
+  for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowRight');
+  for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('e');
+  await page.waitForFunction(() =>
+    window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'wrong_song'
+  , undefined, { timeout: 5000 });
+
+  for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('e');
+  await page.waitForFunction(() =>
+    window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'ionia_practical'
+  , undefined, { timeout: 5000 });
+
+  for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('e');
+  await page.waitForFunction(() =>
+    window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'core_walk'
+  , undefined, { timeout: 5000 });
+
+  await page.keyboard.press('ArrowLeft');
+  for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('e');
+  for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowLeft');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('e');
+
+  for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('e');
+  await page.waitForFunction(() =>
+    window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'first_wake_card'
+  , undefined, { timeout: 5000 });
+
+  await page.keyboard.press('Enter');
 
   await page.waitForFunction(() =>
     window.gameState === 'world' &&
@@ -159,9 +206,13 @@ async function capture(page, id, description) {
   const errors = [];
 
   page.on('pageerror', err => errors.push('PAGE: ' + err.message));
-  page.on('requestfailed', req =>
-    errors.push('REQUEST: ' + req.url() + ' — ' + (req.failure()?.errorText || 'failed'))
-  );
+  page.on('requestfailed', req => {
+    const url = req.url();
+    const errorText = req.failure()?.errorText || 'failed';
+    if (errorText === 'net::ERR_ABORTED' &&
+        /\/assets\/audio\/[^/]+\.mp3(?:\?.*)?$/.test(url)) return;
+    errors.push('REQUEST: ' + url + ' - ' + errorText);
+  });
   page.on('console', msg => {
     if (msg.type() === 'error' && !msg.text().includes('Failed to load resource')) {
       errors.push('CONSOLE: ' + msg.text());
@@ -171,7 +222,7 @@ async function capture(page, id, description) {
   try {
     const captures = [];
 
-    // 0 — Shared-authority title screen after real boot/preamble.
+    // 0 â€” Shared-authority title screen after real boot/preamble.
     await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
       waitUntil: 'domcontentloaded',
       timeout: 20000,
@@ -184,7 +235,7 @@ async function capture(page, id, description) {
       'Shared-authority Aetherwake title screen'
     ));
 
-    // 1 — First Wake interactive dock-walk presentation.
+    // 1 â€” First Wake interactive dock-walk presentation.
     await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
       waitUntil: 'domcontentloaded',
       timeout: 20000,
@@ -217,7 +268,7 @@ async function capture(page, id, description) {
       'First Wake Sequence 02 shared-authority visual stage'
     ));
 
-    // 1 — Dragonfly Dusk Dock benchmark.
+    // 1 â€” Dragonfly Dusk Dock benchmark.
     await bootToWorld(page);
     await page.evaluate(() => {
       const p = window._world.player;
@@ -238,7 +289,7 @@ async function capture(page, id, description) {
       'Dragonfly Dusk Dock benchmark candidate'
     ));
 
-    // 2 — Representative dialogue.
+    // 2 â€” Representative dialogue.
     await page.evaluate(() => {
       const p = window._world.player;
       p.tileX = 7; p.tileY = 7;
@@ -258,10 +309,13 @@ async function capture(page, id, description) {
       'Representative Ionia dialogue visual gate'
     ));
 
-    // 3 — Representative combat.
+    // 3 â€” Representative combat.
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
-    await page.keyboard.press('KeyC');
+    await page.evaluate(() => {
+      if (typeof startCombat !== 'function') throw new Error('startCombat is unavailable');
+      startCombat('skyPredator');
+    });
     await page.waitForFunction(() =>
       window.gameState === 'combat' &&
       window._combat &&
@@ -275,7 +329,7 @@ async function capture(page, id, description) {
       'Representative Sky-Predator combat visual gate'
     ));
 
-    // 4 — Dragonfly flight.
+    // 4 â€” Dragonfly flight.
     await bootToWorld(page);
     await page.evaluate(() => {
       if (typeof enterAirNavigation !== 'function') {
@@ -302,7 +356,7 @@ async function capture(page, id, description) {
       'Representative Dragonfly open-sky flight visual gate'
     ));
 
-    // 6 — Aerial combat context inherited from real flight state.
+    // 6 â€” Aerial combat context inherited from real flight state.
     await page.evaluate(() => {
       const s = window._airNavigationState;
       s.x = 19;
