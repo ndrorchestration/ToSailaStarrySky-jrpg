@@ -137,6 +137,10 @@ assert(source.includes('Camera-side vegetation and masonry silhouettes'),
   'normal projected exploration must include a dedicated near-plane material layer');
 assert(source.includes('Sparse foreground aether motes'),
   'normal projected exploration must include sparse near-plane aether continuity cues');
+assert(source.includes('Non-benchmark horizon integration'),
+  'normal projected exploration must soften the crown/backdrop seam');
+assert(source.includes('Boolean(input.dockBenchmark)'),
+  'dock benchmark must explicitly bypass extra horizon integration detail');
 
 const ground = Array.from({ length: 32 }, () => Array(32).fill(2));
 ground[0][0] = 1;

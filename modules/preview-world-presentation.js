@@ -462,7 +462,7 @@
     return true;
   }
 
-  function drawProjectedTerrainMass(focusX, focusY, w, h) {
+  function drawProjectedTerrainMass(focusX, focusY, w, h, reducedDetail = false) {
     const corners = [
       projectWorldPoint(0, 0, focusX, focusY, w, h),
       projectWorldPoint(MAP * CELL, 0, focusX, focusY, w, h),
@@ -505,6 +505,35 @@
     line(corners[3].x + 34, corners[3].y + 17, corners[3].x + 34, corners[3].y + drop - 7);
     line(corners[2].x - 58, corners[2].y + 11, corners[2].x - 58, corners[2].y + drop - 10);
     noStroke();
+
+    if (!reducedDetail) {
+      // Non-benchmark horizon integration: a thin grass lip, broken stone shelf,
+      // and sparse hanging growth soften the projected crown/painterly-sky seam.
+      const left = corners[3];
+      const right = corners[2];
+      stroke(118, 154, 92, 125);
+      strokeWeight(3);
+      line(left.x, left.y - 1, right.x, right.y - 1);
+      stroke(189, 198, 151, 55);
+      strokeWeight(1);
+      for (let i = 1; i < 10; i++) {
+        const t = i / 10;
+        const x = left.x + (right.x - left.x) * t;
+        const y = left.y + (right.y - left.y) * t;
+        const len = 6 + (i % 3) * 4;
+        line(x, y + 3, x + ((i % 2) ? 2 : -2), y + len);
+      }
+      noStroke();
+      for (let i = 0; i < 5; i++) {
+        const t = (i + 0.7) / 5.8;
+        const x = left.x + (right.x - left.x) * t;
+        const y = left.y + (right.y - left.y) * t;
+        fill(57, 71, 62, 105);
+        quad(x - 18, y + 9, x + 16, y + 7, x + 11, y + 15, x - 14, y + 17);
+        fill(93, 123, 77, 78);
+        ellipse(x, y + 4, 22, 7);
+      }
+    }
   }
 
   function drawProjectedForeground(w, h, now) {
@@ -763,7 +792,7 @@
     // Close camera deliberately keeps island/map boundaries outside the frame.
     // Distant sky remains visible above the terrain, while the near play surface
     // fills the lower two-thirds like a 3D JRPG environment.
-    drawProjectedTerrainMass(focusX, focusY, w, h);
+    drawProjectedTerrainMass(focusX, focusY, w, h, Boolean(input.dockBenchmark));
     push();
     const a = 2.85;
     const b = -0.10;
