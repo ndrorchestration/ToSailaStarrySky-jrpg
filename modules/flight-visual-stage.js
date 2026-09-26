@@ -8,7 +8,11 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
+  const FLIGHT_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
+  let flightBackground = null;
+  let flightBackgroundRequested = false;
+  let flightBackgroundReady = false;
 
   function altitudeProfile(altitude) {
     if (altitude === 'high') return { horizon: 0.60, cloudBase: 0.72, haze: 0.18 };
@@ -28,19 +32,19 @@
     }
     if (weatherId === 'crosswind') {
       return {
-        top: [22, 31, 54],
-        mid: [47, 70, 91],
-        low: [88, 108, 125],
-        cloud: [150, 169, 181],
-        accent: [205, 225, 230],
+        top: [42, 67, 105],
+        mid: [91, 124, 150],
+        low: [176, 181, 170],
+        cloud: [194, 205, 207],
+        accent: [219, 234, 236],
       };
     }
     return {
-      top: [18, 33, 58],
-      mid: [47, 82, 112],
-      low: [105, 137, 155],
-      cloud: [190, 206, 213],
-      accent: [124, 200, 232],
+      top: [55, 88, 132],
+      mid: [121, 157, 178],
+      low: [235, 194, 145],
+      cloud: [231, 232, 218],
+      accent: [137, 209, 226],
     };
   }
 
@@ -61,12 +65,58 @@
     fill(palette.low[0], palette.low[1], palette.low[2]);
     rect(0, 0, w, h);
 
-    const bands = [palette.top, palette.mid, palette.low];
-    const bandH = Math.ceil(horizonY / bands.length);
-    for (let i = 0; i < bands.length; i++) {
-      const c = bands[i];
-      fill(c[0], c[1], c[2]);
-      rect(0, i * bandH, w, bandH + 1);
+    if (!flightBackgroundRequested && typeof loadImage === 'function') {
+      flightBackgroundRequested = true;
+      try {
+        flightBackground = loadImage(
+          FLIGHT_BACKGROUND_PATH,
+          () => { flightBackgroundReady = true; },
+          () => { flightBackground = null; }
+        );
+      } catch (error) {
+        flightBackground = null;
+      }
+    }
+
+    let paintedBackdrop = false;
+    if (flightBackgroundReady && flightBackground && typeof image === 'function') {
+      push();
+      noSmooth();
+      const cover = Math.max(w / flightBackground.width, h / flightBackground.height);
+      const dw = flightBackground.width * cover;
+      const dh = flightBackground.height * cover;
+      const driftRange = Math.max(0, dw - w);
+      const travel = Math.max(0.2, ctx.travel.effectiveSpeed || 0.2);
+      const phase = (now * 0.003 * travel) % Math.max(1, driftRange + 1);
+      const pan = driftRange ? -phase : (Math.sin(now * 0.00035) * 12);
+      image(flightBackground, (w - dw) / 2 + pan, (h - dh) / 2, dw, dh);
+      pop();
+      // Weather remains readable without replacing the finished painted world.
+      if (ctx.travel.weather.id === 'crosswind') fill(82, 112, 139, 52);
+      else if (ctx.travel.weather.id === 'aether-squall') fill(36, 24, 66, 78);
+      else fill(255, 210, 150, 20);
+      rect(0, 0, w, h);
+      paintedBackdrop = true;
+    }
+
+    if (!paintedBackdrop) {
+    if (typeof drawingContext !== 'undefined' && drawingContext.createLinearGradient) {
+      const gradient = drawingContext.createLinearGradient(0, 0, 0, horizonY);
+      gradient.addColorStop(0, 'rgb(' + palette.top.join(',') + ')');
+      gradient.addColorStop(0.56, 'rgb(' + palette.mid.join(',') + ')');
+      gradient.addColorStop(1, 'rgb(' + palette.low.join(',') + ')');
+      drawingContext.save();
+      drawingContext.fillStyle = gradient;
+      drawingContext.fillRect(0, 0, w, horizonY + 6);
+      drawingContext.restore();
+    } else {
+      const bands = [palette.top, palette.mid, palette.low];
+      const bandH = Math.ceil(horizonY / bands.length);
+      for (let i = 0; i < bands.length; i++) {
+        const c = bands[i];
+        fill(c[0], c[1], c[2]);
+        rect(0, i * bandH, w, bandH + 1);
+      }
     }
 
     // Horizon haze line.
@@ -81,11 +131,11 @@
       const offset = Math.round((now * (0.01 + layer * 0.005) * speed * dir + layer * 89) % 180);
       const alpha = 35 + layer * 16;
       fill(palette.cloud[0], palette.cloud[1], palette.cloud[2], alpha);
-      for (let x = -240; x < w + 240; x += 140) {
+      for (let x = -260; x < w + 260; x += 185) {
         const xx = x + offset;
-        rect(xx, y, 94, 8 + layer * 2);
-        rect(xx + 20, y - 6, 48, 6);
-        rect(xx + 55, y + 7, 72, 5);
+        ellipse(xx, y, 145 + layer * 18, 24 + layer * 4);
+        ellipse(xx + 48, y - 9, 92 + layer * 13, 29 + layer * 4);
+        ellipse(xx + 102, y + 7, 124 + layer * 15, 22 + layer * 3);
       }
     }
 
@@ -101,16 +151,24 @@
       const shift = Math.round(Math.sin(now * 0.0004 + i) * 7 * drift);
       const x = Math.round(w * nx) + shift;
       const y = Math.round(h * ny);
-      fill(22, 30, 46, 205);
-      rect(x, y, iw, ih);
-      rect(x + Math.floor(iw * 0.18), y + ih, Math.floor(iw * 0.64), 5);
-      rect(x + Math.floor(iw * 0.34), y + ih + 5, Math.floor(iw * 0.30), 4);
+      fill(31, 45, 56, 205);
+      beginShape();
+      vertex(x, y + ih * 0.25);
+      vertex(x + iw * 0.18, y);
+      vertex(x + iw * 0.82, y + ih * 0.03);
+      vertex(x + iw, y + ih * 0.28);
+      vertex(x + iw * 0.72, y + ih * 0.58);
+      vertex(x + iw * 0.55, y + ih * 1.45);
+      vertex(x + iw * 0.38, y + ih * 0.62);
+      vertex(x + iw * 0.12, y + ih * 0.48);
+      endShape(CLOSE);
       fill(244, 174, 91, 120);
       if (i !== 1) rect(x + 12, y + 6, 2, 2);
       if (iw > 70) rect(x + 36, y + 10, 2, 2);
     }
 
     drawFarLandmarks(ctx, horizonY, palette);
+    }
 
     // Weather-specific motion cues.
     if (ctx.travel.weather.id === 'crosswind') {
@@ -279,7 +337,7 @@
       now: ctx.now || 0,
       speed: ctx.travel ? ctx.travel.effectiveSpeed : 0,
       heading: ctx.state ? ctx.state.heading : 0,
-      scale: 2.05
+      scale: 1.75
     });
   }
 
@@ -298,12 +356,12 @@
     rect(34, 31, 112, 2);
 
     textAlign(LEFT, TOP);
-    textFont('Press Start 2P');
+    textFont('Segoe UI Semibold');
     textSize(8);
     fill(232, 220, 198, 220);
     text('OPEN-SKY FLIGHT', 34, 39);
 
-    textFont('VT323');
+    textFont('Trebuchet MS');
     textSize(13);
     fill(124, 200, 232, 220);
     text(
@@ -325,7 +383,7 @@
     }
 
     textAlign(RIGHT, TOP);
-    textFont('Press Start 2P');
+    textFont('Segoe UI Semibold');
     textSize(7);
     fill(232, 220, 198, 130);
     text('ARROWS STEER  Q/E ALT  D DOCK  L/ESC LAND', w - 28, 24);
@@ -348,11 +406,11 @@
       fill(9, 13, 24, 190);
       rect(w - 268, h - 74, 246, 48);
       textAlign(LEFT, TOP);
-      textFont('Press Start 2P');
+      textFont('Segoe UI Semibold');
       textSize(7);
       fill(42, 255, 181, 180);
       text('NEAREST SIGNAL', w - 254, h - 62);
-      textFont('VT323');
+      textFont('Trebuchet MS');
       textSize(13);
       fill(232, 220, 198, 215);
       text(nearest.landmark.label + '  ' + nearest.distance.toFixed(1), w - 254, h - 47);
@@ -362,7 +420,7 @@
       fill(244, 174, 91, 180);
       rect(w / 2 - 72, h - 31, 144, 3);
       textAlign(CENTER, TOP);
-      textFont('Press Start 2P');
+      textFont('Segoe UI Semibold');
       textSize(7);
       fill(244, 174, 91, 200);
       text(

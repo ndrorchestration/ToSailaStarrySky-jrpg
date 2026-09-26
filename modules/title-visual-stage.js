@@ -94,6 +94,9 @@
   }
 
   function drawHero(now) {
+    // The painted title authority already contains its own hero airship.
+    // Do not composite the procedural Dragonfly over that finished key art.
+    if (titleBackgroundReady && titleBackground) return true;
     const dragonfly = root.AetherDragonflyVisual;
     if (!dragonfly || typeof dragonfly.draw !== 'function') return false;
 
@@ -123,7 +126,7 @@
     for (let i = 0; i < 7; i++) rect(left + i * 18, top - 16, 1, 10);
 
     textAlign(LEFT, TOP);
-    textFont('Press Start 2P');
+    textFont('Segoe UI Semibold');
     textSize(30);
     fill(42, 255, 181);
     text('AETHERWAKE', left, top);
@@ -132,18 +135,18 @@
     fill(124, 200, 232, 220);
     text('THE LAST SOLARPUNK AIRSHIP', left + 2, top + 48);
 
-    textFont('VT323');
+    textFont('Trebuchet MS');
     textSize(17);
     fill(232, 220, 198, 215);
     text('A small ship. A broken world. A song beginning to fail.', left + 2, top + 79);
 
-    textFont('Press Start 2P');
+    textFont('Segoe UI Semibold');
     textSize(9);
     const pulse = 150 + Math.round((Math.sin(now * 0.004) * 0.5 + 0.5) * 90);
     fill(232, 220, 198, pulse);
     text('NEW GAME  //  N OR ENTER', left + 2, top + 126);
 
-    textFont('VT323');
+    textFont('Trebuchet MS');
     textSize(13);
     fill(185, 158, 116, 195);
     text('ENTER THE FIRST WAKE', left + 2, top + 157);
@@ -156,7 +159,7 @@
 
   function drawFooter() {
     textAlign(CENTER, BOTTOM);
-    textFont('Press Start 2P');
+    textFont('Segoe UI Semibold');
     textSize(7);
     fill(42, 255, 181, 115);
     text('THE DRAGONFLY // FIRST WAKE', width / 2, height - 18);

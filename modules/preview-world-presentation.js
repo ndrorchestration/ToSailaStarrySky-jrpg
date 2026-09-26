@@ -10,6 +10,7 @@
   const CELL = 16;
   const MAP = 32;
   const PIXEL_WORLD_BACKGROUND = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
+  const USE_LEGACY_PIXEL_BACKDROP = false;
   const PIXEL_WORLD_PROPS_ATLAS = 'assets/preview/aetherwake-preview-world-props-agent-v1.png';
   const PROP_CELL_SIZE = 64;
   const PROP_ATLAS_COLUMNS = 4;
@@ -110,30 +111,36 @@
 
   function drawIsland(x, y, w, h, tone) {
     noStroke();
-    fill(tone[0], tone[1], tone[2]);
-    rect(x, y, w, Math.max(4, h * 0.38));
-    fill(Math.round(tone[0] * 0.82), Math.round(tone[1] * 0.82), Math.round(tone[2] * 0.88));
-    rect(x + w * 0.12, y + h * 0.38, w * 0.76, h * 0.2);
-    fill(37, 73, 117);
-    rect(x + w * 0.28, y + h * 0.58, w * 0.44, h * 0.2);
-    rect(x + w * 0.42, y + h * 0.78, w * 0.16, h * 0.16);
-    fill(55, 187, 111);
-    rect(x + w * 0.14, y - 3, w * 0.34, 4);
-    rect(x + w * 0.57, y - 2, w * 0.22, 3);
-    fill(174, 238, 172);
-    rect(x + w * 0.2, y - 3, w * 0.08, 2);
-    rect(x + w * 0.62, y - 2, w * 0.06, 2);
-    // Warm hull seams and aether-light veins make each island feel inhabited.
-    fill(223, 156, 77);
-    rect(x + w * 0.31, y + h * 0.42, w * 0.19, 2);
-    fill(60, 229, 218, 230);
-    rect(x + w * 0.6, y + h * 0.63, Math.max(3, w * 0.025), h * 0.12);
-    fill(111, 230, 247, 220);
-    rect(x + w * 0.26, y + h * 0.55, Math.max(2, w * 0.035), h * 0.8);
+    fill(tone[0], tone[1], tone[2], 235);
+    beginShape();
+    vertex(x + w * 0.06, y + h * 0.18);
+    vertex(x + w * 0.2, y + h * 0.03);
+    vertex(x + w * 0.78, y);
+    vertex(x + w * 0.96, y + h * 0.16);
+    vertex(x + w * 0.84, y + h * 0.42);
+    vertex(x + w * 0.64, y + h * 0.62);
+    vertex(x + w * 0.51, y + h * 0.96);
+    vertex(x + w * 0.38, y + h * 0.64);
+    vertex(x + w * 0.18, y + h * 0.46);
+    endShape(CLOSE);
+
+    fill(66, 139, 87, 220);
+    ellipse(x + w * 0.36, y + h * 0.13, w * 0.46, h * 0.18);
+    ellipse(x + w * 0.68, y + h * 0.12, w * 0.28, h * 0.13);
+
+    fill(205, 238, 245, 150);
+    const fallX = x + w * 0.63;
+    rect(fallX, y + h * 0.15, Math.max(2, w * 0.018), h * 0.64, 2);
+    fill(205, 238, 245, 45);
+    ellipse(fallX, y + h * 0.84, w * 0.12, h * 0.1);
+
+    fill(222, 169, 88, 180);
+    ellipse(x + w * 0.3, y + h * 0.22, 4, 4);
+    ellipse(x + w * 0.76, y + h * 0.18, 3, 3);
   }
 
   function drawBackdrop(w, h, now) {
-    if (!pixelWorldBackgroundRequested && typeof loadImage === 'function') {
+    if (USE_LEGACY_PIXEL_BACKDROP && !pixelWorldBackgroundRequested && typeof loadImage === 'function') {
       pixelWorldBackgroundRequested = true;
       try {
         pixelWorldBackground = loadImage(
@@ -145,7 +152,7 @@
         pixelWorldBackground = null;
       }
     }
-    if (pixelWorldBackgroundReady && pixelWorldBackground) {
+    if (USE_LEGACY_PIXEL_BACKDROP && pixelWorldBackgroundReady && pixelWorldBackground) {
       push();
       noSmooth();
       const cover = Math.max(w / pixelWorldBackground.width, h / pixelWorldBackground.height);
@@ -172,22 +179,23 @@
     drawIsland(w * 0.65, h * 0.12, w * 0.28, h * 0.36, [56, 133, 166]);
     drawIsland(w * 0.4, h * 0.34, w * 0.14, h * 0.19, [127, 114, 190]);
 
-    // Layered block clouds move gently, retaining crisp pixel edges.
+    // Layered cloud masses move gently at different depths.
+    smooth();
     for (let layer = 0; layer < 3; layer++) {
-      const y = Math.round(h * (0.17 + layer * 0.16));
-      const drift = Math.round((now * (0.004 + layer * 0.002)) % 190);
-      fill(245, 253, 255, 180 - layer * 24);
-      for (let x = -210; x < w + 210; x += 185) {
+      const y = h * (0.18 + layer * 0.17);
+      const drift = (now * (0.004 + layer * 0.002)) % 230;
+      fill(245, 253, 255, 115 - layer * 20);
+      for (let x = -260; x < w + 260; x += 220) {
         const xx = x + drift;
-        rect(xx, y, 78, 9);
-        rect(xx + 18, y - 6, 52, 7);
-        rect(xx + 41, y + 8, 58, 5);
+        ellipse(xx, y, 150, 32);
+        ellipse(xx + 52, y - 10, 105, 34);
+        ellipse(xx + 102, y + 6, 135, 27);
       }
     }
-    fill(255, 231, 138, 190);
-    rect(w * 0.83, h * 0.08, 34, 34);
-    fill(255, 246, 192, 130);
-    rect(w * 0.83 - 7, h * 0.08 - 7, 48, 48);
+    fill(255, 226, 147, 210);
+    ellipse(w * 0.84, h * 0.11, 42, 42);
+    fill(255, 244, 194, 70);
+    ellipse(w * 0.84, h * 0.11, 88, 88);
   }
 
   function resolveTile(value) {
@@ -383,7 +391,7 @@
       fill(255, 250, 222);
       textAlign(CENTER, CENTER);
       textSize(9);
-      textFont('VT323');
+      textFont('Trebuchet MS');
       text(name, x + 8, spriteTop - 8);
     }
     return true;
@@ -391,46 +399,59 @@
 
   function projectWorldPoint(worldX, worldY, focusX, focusY, w, h) {
     const centerX = w * 0.5;
-    const centerY = h * 0.58;
-    const scaleX = 1.34;
-    const scaleY = 0.68;
-    const angle = Math.PI / 4;
-    const dx = (worldX - focusX) * scaleX;
-    const dy = (worldY - focusY) * scaleY;
-    const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
+    const centerY = h * 0.69;
+    const dx = worldX - focusX;
+    const dy = worldY - focusY;
+    // Close three-quarter camera: only the local neighborhood is visible.
+    // Logical map edges stay off-screen so the world reads as a place,
+    // not a board displayed in its entirety.
     return {
-      x: centerX + dx * cos - dy * sin,
-      y: centerY + dx * sin + dy * cos,
+      x: centerX + dx * 2.85 + dy * 0.34,
+      y: centerY - dx * 0.10 + dy * 1.38,
     };
   }
 
   function drawProjectedSprite(id, tileX, tileY, name, focusX, focusY, w, h, scale, frame) {
+    const characters = root.AetherCharacterRenderer;
     const sprites = root.AetherPixelSprites;
-    if (!sprites || typeof sprites.draw !== 'function') return false;
     const worldX = tileX * CELL + CELL / 2;
     const worldY = tileY * CELL + CELL;
     const p = projectWorldPoint(worldX, worldY, focusX, focusY, w, h);
-    const depth = Math.max(0.86, Math.min(1.16, 1 + (p.y - h * 0.58) / 900));
-    const spriteScale = scale * depth;
-    if (typeof sprites.drawShadow === 'function') {
-      sprites.drawShadow(p.x, p.y, spriteScale, sprites.PREVIEW_WIDTH || SPRITE_WIDTH);
+    const depth = Math.max(0.12, Math.min(0.95, 0.55 + (p.y - h * 0.58) / 620));
+    const modernCharacter = characters && characters.validate && characters.validate() &&
+      ['ender','reson','aepex','ionia','lyra'].includes(id);
+
+    if (modernCharacter) {
+      characters.draw(id, p.x, p.y, {
+        scale: Math.max(0.76, scale * 0.78),
+        depth,
+        now: typeof millis === 'function' ? millis() : 0,
+        speed: frame ? 0.72 : 0,
+        facing: 'right',
+        highlight: name === 'Ender',
+      });
+    } else if (sprites && typeof sprites.draw === 'function') {
+      const spriteScale = scale * Math.max(0.86, Math.min(1.16, 1 + (p.y - h * 0.58) / 900));
+      if (typeof sprites.drawShadow === 'function') {
+        sprites.drawShadow(p.x, p.y, spriteScale, sprites.PREVIEW_WIDTH || SPRITE_WIDTH);
+      }
+      const drawPreview = sprites.drawPreview || sprites.draw;
+      drawPreview.call(sprites, id, p.x, p.y, {
+        anchor: 'bottom-center', scale: spriteScale, frame: frame || 0,
+      });
+    } else {
+      return false;
     }
-    const drawPreview = sprites.drawPreview || sprites.draw;
-    drawPreview.call(sprites, id, p.x, p.y, {
-      anchor: 'bottom-center',
-      scale: spriteScale,
-      frame: frame || 0,
-    });
+
     if (name) {
       noStroke();
-      fill(9, 13, 24, 210);
-      rect(p.x - 28, p.y - (sprites.PREVIEW_HEIGHT || SPRITE_HEIGHT) * spriteScale - 16, 56, 12);
-      fill(232, 220, 198, 230);
+      fill(9, 13, 24, 190);
+      rect(p.x - 34, p.y - 96, 68, 15, 3);
+      fill(238, 228, 207, 235);
       textAlign(CENTER, CENTER);
-      textSize(9);
-      textFont('VT323');
-      text(name, p.x, p.y - (sprites.PREVIEW_HEIGHT || SPRITE_HEIGHT) * spriteScale - 10);
+      textSize(10);
+      textFont('sans-serif');
+      text(name, p.x, p.y - 88);
     }
     return true;
   }
@@ -511,25 +532,182 @@
     endShape(CLOSE);
   }
 
+  function drawDimensionalGround(input, now) {
+    const ground = input.groundLayer || [];
+    const t = Number(now) || 0;
+
+    const island = [
+      [CELL*1.1,CELL*5.1],[CELL*3.2,CELL*2.0],[CELL*8.4,CELL*1.25],
+      [CELL*13.2,CELL*2.15],[CELL*18.7,CELL*1.0],[CELL*24.8,CELL*2.2],
+      [CELL*30.3,CELL*5.4],[CELL*30.9,CELL*11.7],[CELL*29.6,CELL*17.4],
+      [CELL*30.6,CELL*24.8],[CELL*27.5,CELL*29.8],[CELL*21.2,CELL*30.5],
+      [CELL*16.4,CELL*29.1],[CELL*11.0,CELL*30.6],[CELL*5.1,CELL*28.8],
+      [CELL*1.7,CELL*24.2],[CELL*2.4,CELL*18.3],[CELL*0.9,CELL*12.2]
+    ];
+
+    // Dark under-rim first, then the green playable crown. Logical tiles remain
+    // authoritative; this is only a continuous 2.5D skin over them.
+    noStroke();
+    fill(41, 49, 47);
+    beginShape();
+    for (const [x,y] of island) vertex(x, y + CELL*0.75);
+    endShape(CLOSE);
+
+    fill(74, 111, 80);
+    beginShape();
+    for (const [x,y] of island) vertex(x, y);
+    endShape(CLOSE);
+
+    // Sun-facing crown highlight and shaded far shelf.
+    fill(105, 139, 93, 86);
+    beginShape();
+    vertex(CELL*3.0,CELL*6.2); vertex(CELL*8.5,CELL*2.3);
+    vertex(CELL*18.7,CELL*2.1); vertex(CELL*26.9,CELL*4.4);
+    vertex(CELL*24.2,CELL*8.0); vertex(CELL*12.0,CELL*7.4);
+    endShape(CLOSE);
+    fill(42, 78, 62, 75);
+    beginShape();
+    vertex(CELL*2.0,CELL*22.4); vertex(CELL*8.0,CELL*26.8);
+    vertex(CELL*17.2,CELL*28.8); vertex(CELL*27.9,CELL*25.4);
+    vertex(CELL*28.6,CELL*29.1); vertex(CELL*12.0,CELL*31.0);
+    endShape(CLOSE);
+
+    // Curved travel routes read like worn ground rather than rectangular strips.
+    noFill();
+    stroke(111, 91, 65, 190);
+    strokeWeight(CELL*1.55);
+    bezier(CELL*2.8,CELL*26.3, CELL*8.5,CELL*21.4, CELL*18.4,CELL*19.2, CELL*29.0,CELL*7.1);
+    bezier(CELL*4.0,CELL*8.2, CELL*10.0,CELL*12.0, CELL*21.3,CELL*12.9, CELL*28.0,CELL*23.2);
+    stroke(201, 177, 129, 82);
+    strokeWeight(CELL*0.36);
+    bezier(CELL*2.8,CELL*26.3, CELL*8.5,CELL*21.4, CELL*18.4,CELL*19.2, CELL*29.0,CELL*7.1);
+    bezier(CELL*4.0,CELL*8.2, CELL*10.0,CELL*12.0, CELL*21.3,CELL*12.9, CELL*28.0,CELL*23.2);
+
+    // Raised garden terraces give local landmarks and vertical rhythm.
+    noStroke();
+    const terraces = [
+      [CELL*5.2,CELL*7.1,CELL*6.2,CELL*3.0],
+      [CELL*20.6,CELL*6.2,CELL*6.0,CELL*3.4],
+      [CELL*22.0,CELL*22.0,CELL*5.4,CELL*3.1]
+    ];
+    for (let i=0;i<terraces.length;i++) {
+      const [x,y,tw,th]=terraces[i];
+      fill(48,65,55,145); ellipse(x,y+CELL*0.36,tw,th);
+      fill(83 + i*5,128 + i*4,83,170); ellipse(x,y,tw,th);
+      fill(137,167,99,78); ellipse(x-CELL*0.45,y-CELL*0.18,tw*0.56,th*0.42);
+    }
+
+    // Broad vegetation patches and tree clusters break the open platform read.
+    noStroke();
+    for (let i = 0; i < 24; i++) {
+      const x = CELL * (2.8 + ((i * 11) % 26));
+      const y = CELL * (3.1 + ((i * 17) % 25));
+      const sway = Math.sin(t * 0.0018 + i) * 2;
+      fill(46 + (i % 3) * 7, 104 + (i % 4) * 7, 64 + (i % 2) * 9, 115);
+      ellipse(x + sway, y, 30 + (i % 5) * 6, 15 + (i % 4) * 4);
+    }
+    const trees = [[4,5],[7,6],[24,5],[27,8],[5,24],[25,25],[28,21],[10,27]];
+    for (let i=0;i<trees.length;i++) {
+      const [tx,ty]=trees[i]; const x=tx*CELL, y=ty*CELL;
+      fill(77,62,45,210); rect(x-2,y-10,4,12,1);
+      fill(48,95,61,220); ellipse(x,y-13,18,14);
+      fill(76,128,74,170); ellipse(x-4,y-17,11,9);
+      fill(104,148,84,110); ellipse(x+4,y-18,9,7);
+    }
+
+    // Render semantically special logical cells as dimensional authored props.
+    for (let y = 1; y < Math.min(MAP - 1, ground.length); y++) {
+      const row = ground[y] || [];
+      for (let x = 1; x < Math.min(MAP - 1, row.length); x++) {
+        const type = Number(row[x] && row[x].type !== undefined ? row[x].type : row[x]);
+        const px = x * CELL + CELL * 0.5;
+        const py = y * CELL + CELL * 0.5;
+        if (type === 3) {
+          fill(55,42,32,90); rect(px-8,py-3,17,9,2);
+          fill(118,79,48); rect(px-7,py-9,14,12,2);
+          fill(163,116,65); quad(px-7,py-9,px+7,py-9,px+4,py-12,px-4,py-12);
+          stroke(205,154,83,190); strokeWeight(1.3);
+          line(px-5,py-7,px+5,py+1); line(px+5,py-7,px-5,py+1); noStroke();
+        } else if (type === 4) {
+          fill(62,75,70,70); ellipse(px+2,py+3,19,8);
+          fill(129,145,132,180);
+          beginShape(); vertex(px-8,py+1); vertex(px-5,py-7); vertex(px+2,py-10);
+          vertex(px+8,py-3); vertex(px+6,py+4); endShape(CLOSE);
+          fill(189,211,190,60); ellipse(px-2,py-5,7,3);
+        } else if (type === 5) {
+          fill(45,129,154,110); ellipse(px,py,24,12);
+          fill(186,232,239,105); ellipse(px-3,py-2,11,3);
+          fill(61,177,186,55); ellipse(px+4,py+2,15,5);
+        } else if (type === 6) {
+          const pulse = 0.5 + 0.5 * Math.sin(t * 0.004 + x + y);
+          fill(95,224,210,38+pulse*70); ellipse(px,py,21+pulse*8,11+pulse*4);
+          fill(205,245,232,205);
+          beginShape(); vertex(px,py-12); vertex(px+4,py-2); vertex(px+1,py+5);
+          vertex(px-4,py-2); endShape(CLOSE);
+        }
+      }
+    }
+
+    // Wind-driven grass silhouettes create motion at character scale.
+    stroke(57, 91, 57, 175);
+    strokeWeight(1.5);
+    for (let i = 0; i < 42; i++) {
+      const x = CELL * (2 + ((i * 19) % 28));
+      const y = CELL * (2 + ((i * 13) % 28));
+      const wind = Math.sin(t * 0.003 + i * 0.7) * 3;
+      line(x, y, x + wind, y - 8 - (i % 5));
+    }
+    noStroke();
+  }
+  function drawProjectedAtmosphere(now, w, h) {
+    const t = Number(now) || 0;
+    noStroke();
+
+    // Far cloud ribbons move slowly, establishing depth without obscuring play.
+    for (let i = 0; i < 7; i++) {
+      const drift = ((t * (0.008 + i * 0.0009)) + i * 173) % (w + 260) - 130;
+      const y = h * (0.16 + i * 0.075);
+      fill(220, 235, 239, 12 + i * 3);
+      ellipse(drift, y, 190 + i * 24, 24 + i * 3);
+      ellipse(drift + 72, y - 5, 115 + i * 14, 18 + i * 2);
+    }
+
+    // Warm vertical light shafts keep the environment tied to the sky.
+    const pulse = 0.5 + 0.5 * Math.sin(t * 0.0007);
+    fill(255, 211, 145, 10 + pulse * 8);
+    quad(w * 0.12, 0, w * 0.24, 0, w * 0.43, h, w * 0.29, h);
+    fill(180, 225, 235, 8 + (1 - pulse) * 6);
+    quad(w * 0.67, 0, w * 0.76, 0, w * 0.65, h, w * 0.55, h);
+
+    // Near-plane vapor travels faster to create parallax.
+    const near = (t * 0.028) % (w + 320) - 160;
+    fill(205, 229, 235, 20);
+    ellipse(near, h * 0.82, 280, 42);
+    ellipse(near + 310, h * 0.86, 340, 48);
+    ellipse(near + 690, h * 0.80, 250, 38);
+  }
+
   function drawProjectedWorld(input, w, h, now, player, npcs, focusX, focusY) {
     const centerX = w * 0.5;
-    const centerY = h * 0.58;
+    const centerY = h * 0.69;
 
-    // Shadow mass beneath the tilted play plane grounds the island in the sky.
-    noStroke();
-    fill(8, 12, 22, 105);
-    ellipse(centerX, centerY + 185, Math.min(w * 0.92, 900), 120);
+    // Close camera deliberately keeps island/map boundaries outside the frame.
+    // Distant sky remains visible above the terrain, while the near play surface
+    // fills the lower two-thirds like a 3D JRPG environment.
     drawProjectedTerrainMass(focusX, focusY, w, h);
-
     push();
-    translate(centerX, centerY);
-    rotate(Math.PI / 4);
-    scale(1.34, 0.68);
-    translate(-focusX, -focusY);
-    noSmooth();
-    image(cachedMap, 0, 0, MAP * CELL, MAP * CELL);
-    drawWorldProps(input.groundLayer || []);
+    const a = 2.85;
+    const b = -0.10;
+    const c = 0.34;
+    const d = 1.38;
+    const e = centerX - a * focusX - c * focusY;
+    const f = centerY - b * focusX - d * focusY;
+    applyMatrix(a, b, c, d, e, f);
+    smooth();
+    drawDimensionalGround(input, now);
     pop();
+
+    drawProjectedAtmosphere(now, w, h);
 
     // Add a low atmospheric veil where the projected island meets the cloud sea.
     fill(205, 225, 230, 24);
@@ -542,7 +720,7 @@
       tileY: Number.isFinite(player.tileY) ? player.tileY : Math.round((player.py || 0) / CELL),
       name: 'Ender',
       frame: playerWalkFrame(player, now),
-      scale: 2,
+      scale: 2.55,
       questMarker: false,
     });
     for (const npc of npcs) {
@@ -553,7 +731,7 @@
         tileY: npc.tileY,
         name: npc.id === 'elder_farmer' ? 'Ionia' : '',
         frame: 0,
-        scale: 2,
+        scale: 2.45,
         questMarker: Boolean(npc.id === 'elder_farmer' && npc.flags && npc.flags.questMarker && !npc.flags.met),
       });
     }

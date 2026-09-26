@@ -34,7 +34,7 @@ assert(runtime.includes('const bh = 126'),
   'cinematic dialogue stage height contract missing');
 assert(runtime.includes('wrapText(window.UI.dialogueText'),
   'dialogue text flow must remain live');
-assert(runtime.includes("text('E / ENTER  CONTINUE'"),
+assert(runtime.includes("text('E / ENTER   Continue'"),
   'dialogue continue interaction cue missing');
 
 console.log('Aetherwake representative dialogue visual gate: PASS');

@@ -53,7 +53,7 @@
   function drawHull(pulse, mode) {
     // Tapered lived-in fuselage: broad cabin, narrow tail, pointed helm.
     noStroke();
-    fill(25, 34, 45);
+    fill(58, 62, 60);
     beginShape();
     vertex(-60, -6);
     vertex(-42, -14);
@@ -65,7 +65,7 @@
     vertex(-42, 14);
     endShape(CLOSE);
 
-    fill(64, 58, 52);
+    fill(112, 88, 61);
     beginShape();
     vertex(-38, -12);
     vertex(13, -13);
@@ -109,7 +109,7 @@
     ellipse(7, 0, 8, 8);
 
     // Tail boom and pressure vane.
-    fill(40, 47, 57);
+    fill(70, 75, 72);
     beginShape();
     vertex(-60, -5);
     vertex(-82, -3);
@@ -122,6 +122,55 @@
     fill(181, 103, 91, 150);
     rect(-81, -9, 8, 3);
     rect(-81, 6, 8, 3);
+  }
+
+  function drawMechanicalDetail(now, mode, pulse) {
+    const spin = now * 0.02;
+    // Twin articulated engine pods.
+    for (const side of [-1, 1]) {
+      const py = side * 15;
+      fill(74, 72, 64);
+      ellipse(-8, py, 22, 11);
+      fill(129, 111, 82);
+      ellipse(-8, py, 12, 8);
+      noFill();
+      stroke(94, 225, 211, 90 + pulse * 60);
+      strokeWeight(1.2);
+      arc(-8, py, 17, 17, spin, spin + PI * 1.35);
+      noStroke();
+    }
+
+    // Brass panel seams and access hatches.
+    stroke(170, 116, 57, 150);
+    strokeWeight(1);
+    line(-34, -10, -34, 10);
+    line(-18, -13, -18, 13);
+    line(16, -13, 16, 13);
+    noFill();
+    rect(-6, -9, 14, 18, 3);
+    noStroke();
+
+    // Navigation lamps.
+    fill(255, 111, 88, 180 + pulse * 50);
+    ellipse(-46, -10, 3, 3);
+    fill(79, 231, 188, 180 + pulse * 50);
+    ellipse(-46, 10, 3, 3);
+
+    // Deck canopy and rigging silhouette.
+    fill(78, 70, 58, 235);
+    quad(-24,-16,12,-18,24,-13,-12,-12);
+    stroke(205, 178, 126, 145);
+    strokeWeight(1);
+    line(-19,-16,-11,-31);
+    line(7,-17,13,-30);
+    line(-11,-31,13,-30);
+    noStroke();
+
+    // Solar sail strip.
+    fill(132, 198, 190, mode === 'flight' ? 155 : 125);
+    quad(-10,-31,25,-30,34,-24,-2,-25);
+    fill(205, 235, 238, 75);
+    line(-1,-27,25,-28);
   }
 
   function drawWake(now, mode, speed) {
@@ -172,6 +221,7 @@
     drawWake(now, mode, speed);
     drawWingPair(now, mode, speed, bank);
     drawHull(pulse, mode);
+    drawMechanicalDetail(now, mode, pulse);
 
     // Docking struts disappear into the hull in flight.
     if (mode === 'dock') {

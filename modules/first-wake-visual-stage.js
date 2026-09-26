@@ -11,27 +11,100 @@
   const VERSION = '0.4.0';
 
   function bandedSky(top, mid, low) {
-    const bands = [top, mid, low];
-    const bh = Math.ceil(height / bands.length);
     noStroke();
-    for (let i = 0; i < bands.length; i++) {
-      const c = bands[i];
-      fill(c[0], c[1], c[2]);
+    if (typeof drawingContext !== 'undefined' && drawingContext.createLinearGradient) {
+      const gradient = drawingContext.createLinearGradient(0, 0, 0, height);
+      gradient.addColorStop(0, 'rgb(' + top.join(',') + ')');
+      gradient.addColorStop(0.54, 'rgb(' + mid.join(',') + ')');
+      gradient.addColorStop(1, 'rgb(' + low.join(',') + ')');
+      drawingContext.save();
+      drawingContext.fillStyle = gradient;
+      drawingContext.fillRect(0, 0, width, height);
+      drawingContext.restore();
+      return;
+    }
+    const count = 56;
+    const bh = Math.ceil(height / count);
+    for (let i = 0; i < count; i++) {
+      const t = i / (count - 1);
+      const a = t < 0.55 ? top : mid;
+      const b = t < 0.55 ? mid : low;
+      const u = t < 0.55 ? t / 0.55 : (t - 0.55) / 0.45;
+      fill(
+        Math.round(a[0] + (b[0] - a[0]) * u),
+        Math.round(a[1] + (b[1] - a[1]) * u),
+        Math.round(a[2] + (b[2] - a[2]) * u)
+      );
       rect(0, i * bh, width, bh + 1);
     }
   }
 
   function cloudBands(now, yBase, palette, alphaBase) {
     noStroke();
+    smooth();
     for (let layer = 0; layer < 3; layer++) {
-      const y = Math.round(yBase + layer * 38);
-      const off = Math.round((now * (0.004 + layer * 0.002) + layer * 79) % 170);
+      const y = yBase + layer * 42;
+      const off = (now * (0.004 + layer * 0.002) + layer * 97) % 220;
       fill(palette[0], palette[1], palette[2], alphaBase + layer * 14);
-      for (let x = -220; x < width + 220; x += 136) {
-        rect(x + off, y, 92, 7 + layer * 2);
-        rect(x + off + 18, y - 5, 44, 5);
-        rect(x + off + 50, y + 6, 67, 4);
+      for (let x = -260; x < width + 260; x += 210) {
+        const xx = x + off;
+        ellipse(xx, y, 145 + layer * 18, 28 + layer * 6);
+        ellipse(xx + 52, y - 10, 105 + layer * 13, 30 + layer * 5);
+        ellipse(xx + 104, y + 7, 132 + layer * 12, 24 + layer * 4);
       }
+    }
+  }
+
+  function drawDistantIsland(cx, cy, iw, ih, now, detail) {
+    const sway = Math.sin(now * 0.00035 + cx * 0.01) * 3;
+    const x = cx + sway;
+    const topY = cy;
+
+    noStroke();
+    fill(53, 72, 75, 205);
+    beginShape();
+    vertex(x - iw * 0.48, topY + ih * 0.08);
+    vertex(x - iw * 0.34, topY - ih * 0.05);
+    vertex(x + iw * 0.36, topY - ih * 0.03);
+    vertex(x + iw * 0.49, topY + ih * 0.10);
+    vertex(x + iw * 0.24, topY + ih * 0.38);
+    vertex(x + iw * 0.10, topY + ih);
+    vertex(x - iw * 0.08, topY + ih * 0.72);
+    vertex(x - iw * 0.25, topY + ih * 0.36);
+    endShape(CLOSE);
+
+    fill(73, 111, 78, 215);
+    ellipse(x, topY, iw * 0.96, ih * 0.27);
+    fill(114, 149, 91, 130);
+    ellipse(x - iw * 0.08, topY - ih * 0.02, iw * 0.64, ih * 0.14);
+
+    // Long waterfalls disappear into the cloud sea.
+    fill(176, 224, 235, 118);
+    const falls = detail ? [-0.22, 0.08, 0.27] : [-0.12, 0.16];
+    for (let i = 0; i < falls.length; i++) {
+      const fx = x + iw * falls[i];
+      const fh = ih * (0.34 + i * 0.10);
+      rect(fx, topY + ih * 0.02, Math.max(2, iw * 0.018), fh);
+      fill(220, 244, 244, 48);
+      ellipse(fx, topY + fh + ih * 0.04, iw * 0.13, ih * 0.09);
+      fill(176, 224, 235, 118);
+    }
+
+    // Distant architecture reads as a city silhouette, not geometry blocks.
+    fill(39, 53, 61, 220);
+    const towerCount = detail ? 7 : 4;
+    for (let i = 0; i < towerCount; i++) {
+      const tx = x - iw * 0.30 + (iw * 0.60) * (i / Math.max(1, towerCount - 1));
+      const th = ih * (0.15 + ((i * 37) % 5) * 0.035);
+      const tw = Math.max(3, iw * 0.035);
+      rect(tx - tw / 2, topY - th - ih * 0.04, tw, th);
+      triangle(tx - tw, topY - th - ih * 0.04, tx, topY - th - ih * 0.12, tx + tw, topY - th - ih * 0.04);
+    }
+
+    fill(247, 183, 101, 145);
+    for (let i = 0; i < (detail ? 6 : 3); i++) {
+      const wx = x - iw * 0.23 + i * iw * 0.085;
+      rect(wx, topY - ih * 0.09 - (i % 2) * 4, 2, 2);
     }
   }
 
@@ -41,29 +114,25 @@
       : 1;
     const settle = cinematicRatio * cinematicRatio * (3 - 2 * cinematicRatio);
 
-    bandedSky([12, 22, 45], [52, 78, 111], [190, 132, 108]);
+    bandedSky([52, 73, 108], [117, 151, 176], [241, 185, 126]);
 
     // Far atmospheric depth and cloud strata.
-    cloudBands(now, 300, [212, 224, 229], 34);
+    noStroke();
+    fill(255, 222, 156, 185);
+    ellipse(width * 0.16, 118, 72, 72);
+    fill(255, 239, 197, 62);
+    ellipse(width * 0.16, 118, 150, 150);
+    fill(255, 224, 172, 16);
+    quad(70, 0, 220, 0, 470, height, 280, height);
+
+    cloudBands(now, 300, [232, 238, 235], 38);
     cloudBands(now * 0.72, 365, [235, 235, 222], 48);
 
-    noStroke();
-    fill(22, 31, 47, 185);
-    rect(72, 212, 132, 24);
-    rect(95, 236, 86, 9);
-    rect(685, 178, 164, 28);
-    rect(721, 206, 94, 10);
-    fill(48, 63, 77, 155);
-    rect(248, 250, 88, 16);
-    rect(774, 267, 66, 12);
-
-    // Distant warm lights establish inhabited scale.
-    fill(243, 176, 96, 135);
-    rect(105, 221, 3, 3);
-    rect(138, 226, 3, 3);
-    rect(704, 188, 3, 3);
-    rect(748, 192, 3, 3);
-    rect(802, 187, 3, 3);
+    // Dimensional floating settlements establish inhabited scale.
+    drawDistantIsland(128, 205, 150, 70, now, false);
+    drawDistantIsland(742, 166, 208, 92, now * 0.92, true);
+    drawDistantIsland(302, 244, 92, 46, now * 0.78, false);
+    drawDistantIsland(833, 254, 78, 38, now * 0.72, false);
 
     // Vertical dock pylons and gantry.
     fill(18, 25, 34);
@@ -74,14 +143,20 @@
     rect(51, 280, 3, 158);
     rect(width - 62, 257, 3, 180);
 
-    // Perspective deck bands: wider toward camera, narrower toward horizon.
-    for (let i = 0; i < 9; i++) {
-      const y = 330 + i * 27;
-      const inset = Math.max(18, 128 - i * 13);
-      fill(30 + i * 3, 37 + i * 3, 43 + i * 3);
-      rect(inset, y, width - inset * 2, 29);
-      fill(78, 88, 89, 95);
-      rect(inset, y, width - inset * 2, 2);
+    // Perspective deck: continuous trapezoid planes instead of horizontal bands.
+    for (let i = 0; i < 10; i++) {
+      const y0 = 314 + i * 29;
+      const y1 = y0 + 31;
+      const t0 = i / 10;
+      const t1 = (i + 1) / 10;
+      const inset0 = 150 * (1 - t0);
+      const inset1 = 150 * (1 - t1);
+      fill(28 + i * 3, 35 + i * 3, 42 + i * 3);
+      quad(inset0, y0, width - inset0, y0, width - inset1, y1, inset1, y1);
+      stroke(116, 126, 124, 48);
+      strokeWeight(1);
+      line(inset1, y1, width - inset1, y1);
+      noStroke();
     }
 
     // Perspective seams and rails pull the eye toward the ship.
@@ -111,35 +186,57 @@
         now,
         speed: 0,
         heading: 0,
-        scale: scene.sequence <= 1 ? 1.38 + settle * 0.34 : 1.48,
+        scale: scene.sequence <= 1 ? 1.55 + settle * 0.55 : 1.95,
       });
     }
 
+    const characters = root.AetherCharacterRenderer;
     const sprites = root.AetherPixelSprites;
-    if (sprites && sprites.validate() && scene.sequence >= 1) {
+    if (scene.sequence >= 1) {
       let progress = 0;
       if (scene.id === 'dock_walk' && state && state.dockWalk) {
         progress = state.dockWalk.max > 0 ? state.dockWalk.x / state.dockWalk.max : 0;
       } else if (scene.sequence > 2) {
         progress = 1;
       }
-      const arrivalOffset = scene.sequence === 1 ? Math.round((1 - settle) * -48) : 0;
-      const ioniaOffset = scene.sequence === 1 ? Math.round((1 - settle) * 34) : 0;
-      const enderX = Math.round(145 + progress * 405 + arrivalOffset);
-      const enderY = Math.round(442 + progress * -16);
-      sprites.drawShadow(enderX, enderY, 2);
-      sprites.draw('ender', enderX, enderY, {
-        anchor: 'bottom-center',
-        scale: 2,
-        frame: Math.floor(now / 240) % 2,
-      });
+      const cinematic = scene.sequence === 1;
+      const arrivalOffset = cinematic ? Math.round((1 - settle) * -64) : 0;
+      const ioniaOffset = cinematic ? Math.round((1 - settle) * 52) : 0;
+      const enderX = cinematic
+        ? Math.round(300 + settle * 34 + arrivalOffset)
+        : Math.round(145 + progress * 405);
+      const enderY = cinematic ? Math.round(500 - settle * 18) : Math.round(442 + progress * -16);
+      const ioniaX = cinematic ? Math.round(660 - settle * 28 + ioniaOffset) : 612;
+      const ioniaY = cinematic ? Math.round(493 - settle * 14) : 416;
+      const moving = scene.id === 'dock_walk' && progress < 0.98;
 
-      sprites.drawShadow(612 + ioniaOffset, 416, 2);
-      sprites.draw('ionia', 612 + ioniaOffset, 416, {
-        anchor: 'bottom-center',
-        scale: 2,
-        frame: Math.floor(now / 300) % 2,
-      });
+      if (characters && characters.validate()) {
+        characters.draw('ender', enderX, enderY, {
+          scale: cinematic ? 2.45 : 1.85,
+          depth: cinematic ? 0.9 : 0.72,
+          now,
+          speed: moving ? 0.72 : 0,
+          facing: 'right',
+          action: cinematic ? 'focus' : 'idle',
+        });
+        characters.draw('ionia', ioniaX, ioniaY, {
+          scale: cinematic ? 2.25 : 1.72,
+          depth: cinematic ? 0.86 : 0.68,
+          now,
+          speed: 0,
+          facing: 'left',
+          action: cinematic ? 'talk' : (scene.id === 'ionia_practical' ? 'talk' : 'idle'),
+        });
+      } else if (sprites && sprites.validate()) {
+        sprites.drawShadow(enderX, enderY, 2);
+        sprites.draw('ender', enderX, enderY, {
+          anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 240) % 2,
+        });
+        sprites.drawShadow(612 + ioniaOffset, 416, 2);
+        sprites.draw('ionia', 612 + ioniaOffset, 416, {
+          anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 300) % 2,
+        });
+      }
     }
 
     // Closed-route board and foreground cable silhouettes.
@@ -260,8 +357,9 @@
       rect(width - 194, 181, 4, 191);
     }
 
+    const characters = root.AetherCharacterRenderer;
     const sprites = root.AetherPixelSprites;
-    if (sprites && sprites.validate() && scene.sequence >= 1) {
+    if (scene.sequence >= 1) {
       const positions = {
         berth_task: [['ender', 305], ['ionia', 535]],
         lyra_family: [['ender', 285], ['lyra', 455], ['ionia', 590]],
@@ -271,12 +369,21 @@
       };
       const actors = positions[scene.id] || [['ender', 310]];
       for (const [id, x] of actors) {
-        sprites.drawShadow(x, 420, 2);
-        sprites.draw(id, x, 420, {
-          anchor: 'bottom-center',
-          scale: 2,
-          frame: Math.floor(now / 260) % 2,
-        });
+        if (characters && characters.validate()) {
+          characters.draw(id, x, 420, {
+            scale: id === 'lyra' ? 0.88 : 0.98,
+            depth: 0.7,
+            now,
+            speed: 0,
+            facing: id === 'ionia' ? 'left' : 'right',
+            action: scene.id === 'wrong_song' && id === 'lyra' ? 'focus' : 'idle',
+          });
+        } else if (sprites && sprites.validate()) {
+          sprites.drawShadow(x, 420, 2);
+          sprites.draw(id, x, 420, {
+            anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 260) % 2,
+          });
+        }
       }
     }
 
@@ -286,7 +393,7 @@
       rect(185, 338, Math.max(8, step * 54), 4);
       fill(232, 220, 198, 180);
       textAlign(LEFT, TOP);
-      textFont('VT323');
+      textFont('Trebuchet MS');
       textSize(14);
       text('BERTH WORK // ' + step + ' / ' + state.berthTask.max, 185, 383);
     }
@@ -304,7 +411,7 @@
       }
       fill(232, 220, 198, 180);
       textAlign(LEFT, TOP);
-      textFont('VT323');
+      textFont('Trebuchet MS');
       textSize(14);
       text('TALEN // ' + talenStep + ' / ' + (state.talenBeat ? state.talenBeat.max : 2), 423, 392);
     }
@@ -323,7 +430,7 @@
     rect(x, y, Math.max(54, label.length * 7 + 12), 18);
     fill(8, 12, 18, active ? 230 : 185);
     textAlign(LEFT, TOP);
-    textFont('VT323');
+    textFont('Trebuchet MS');
     textSize(13);
     text(label, x + 6, y + 2);
   }
@@ -510,31 +617,37 @@
       }
     }
 
+    const characters = root.AetherCharacterRenderer;
     const sprites = root.AetherPixelSprites;
-    if (sprites && sprites.validate() && scene.sequence >= 1) {
+    if (scene.sequence >= 1) {
       const ep = wakeMapPoint(e.x, e.y);
-      sprites.drawShadow(ep.x, ep.y, 2);
-      sprites.draw('ender', ep.x, ep.y, {
-        anchor: 'bottom-center',
-        scale: 2,
-        frame: Math.floor(now / 220) % 2,
-      });
-
       const lp = wakeMapPoint(7, 3);
-      sprites.drawShadow(lp.x, lp.y, 2);
-      sprites.draw('lyra', lp.x, lp.y, {
-        anchor: 'bottom-center',
-        scale: 2,
-        frame: Math.floor(now / 310) % 2,
-      });
-
       const ip = wakeMapPoint(12, 2);
-      sprites.drawShadow(ip.x, ip.y, 2);
-      sprites.draw('ionia', ip.x, ip.y, {
-        anchor: 'bottom-center',
-        scale: 2,
-        frame: Math.floor(now / 290) % 2,
-      });
+      if (characters && characters.validate()) {
+        characters.draw('ender', ep.x, ep.y, {
+          scale: 0.92, depth: 0.64, now,
+          speed: e.moving ? 0.8 : 0, facing: e.facing || 'right',
+        });
+        characters.draw('lyra', lp.x, lp.y, {
+          scale: 0.82, depth: 0.62, now, speed: 0, facing: 'right',
+        });
+        characters.draw('ionia', ip.x, ip.y, {
+          scale: 0.89, depth: 0.63, now, speed: 0, facing: 'left',
+        });
+      } else if (sprites && sprites.validate()) {
+        sprites.drawShadow(ep.x, ep.y, 2);
+        sprites.draw('ender', ep.x, ep.y, {
+          anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 220) % 2,
+        });
+        sprites.drawShadow(lp.x, lp.y, 2);
+        sprites.draw('lyra', lp.x, lp.y, {
+          anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 310) % 2,
+        });
+        sprites.drawShadow(ip.x, ip.y, 2);
+        sprites.draw('ionia', ip.x, ip.y, {
+          anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 290) % 2,
+        });
+      }
     }
 
     drawWakeForegroundDepth(now);
@@ -560,14 +673,14 @@
     fill(5, 8, 13, 205);
     rect(84, 36, width - 168, 65);
     textAlign(LEFT, TOP);
-    textFont('Press Start 2P');
+    textFont('Segoe UI Semibold');
     textSize(10);
     fill(42, 255, 181);
     text(view.objective, 108, 55, width - 216, 28);
 
     fill(5, 8, 13, 215);
     rect(106, 535, width - 212, 65);
-    textFont('VT323');
+    textFont('Trebuchet MS');
     textSize(17);
     fill(232, 220, 198);
     text(view.lastMessage || 'Explore.', 128, 548, width - 256, 27);
@@ -626,16 +739,16 @@
 
     // Cinematic framing.
     noStroke();
-    fill(5, 8, 13, 150);
-    rect(0, 0, width, 24);
-    rect(0, height - 24, width, 24);
+    fill(5, 8, 13, 42);
+    rect(0, 0, width, 18);
+    rect(0, height - 18, width, 18);
 
     const textPanelY = scene.chapterCard ? 92 : 58;
-    fill(6, 9, 14, scene.chapterCard ? 150 : 152);
-    rect(86, textPanelY, width - 172, scene.chapterCard ? 138 : 72);
+    fill(6, 9, 14, scene.chapterCard ? 96 : 54);
+    rect(124, textPanelY, width - 248, scene.chapterCard ? 118 : 56, 10);
 
     textAlign(CENTER, TOP);
-    textFont('Press Start 2P');
+    textFont('Segoe UI Semibold');
     textSize(scene.chapterCard ? 24 : 12);
     fill(42, 255, 181);
     text(scene.title, width / 2, textPanelY + 24);
@@ -647,11 +760,11 @@
     }
 
     if (!scene.chapterCard) {
-      fill(6, 9, 14, 218);
-      rect(112, 468, width - 224, 124);
+      fill(6, 9, 14, 148);
+      rect(132, 476, width - 264, 106, 12);
 
       textAlign(LEFT, TOP);
-      textFont('VT323');
+      textFont('Trebuchet MS');
       textSize(18);
       fill(232, 220, 198);
       let y = 486;
@@ -661,43 +774,32 @@
       }
     } else {
       textAlign(CENTER, TOP);
-      textFont('VT323');
+      textFont('Trebuchet MS');
       textSize(20);
       fill(232, 220, 198, 220);
       text(scene.lines.join('   ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢   '), width / 2, 330, width - 250, 120);
     }
 
-    textAlign(LEFT, BOTTOM);
-    textFont('VT323');
-    textSize(13);
-    fill(185, 158, 116, 210);
-    text('SEQUENCE ' + String(scene.sequence).padStart(2, '0'), 28, height - 31);
-
+    // Player-facing opening keeps production metadata out of the cinematic.
     textAlign(CENTER, BOTTOM);
+    textFont('Segoe UI Semibold');
     textSize(14);
-    fill(185, 158, 116);
-    text(
-      'ACTIVE PARTY // ' + root.AetherFirstWakeOpening.expectedPartyIds(state).map(id => id.toUpperCase()).join(' + '),
-      width / 2,
-      height - 52
-    );
-
-    fill(42, 255, 181);
+    fill(235, 230, 214, 225);
     const presentationReady = typeof root.AetherFirstWakeOpening.presentationReady === 'function'
       ? root.AetherFirstWakeOpening.presentationReady(state)
       : true;
     if (scene.id === 'dock_walk' && state.dockWalk && !state.dockWalk.ready) {
-      text('A / D OR LEFT / RIGHT ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â WALK TO THE DRAGONFLY', width / 2, height - 29);
+      text('A / D or Left / Right  —  Walk to the Dragonfly', width / 2, height - 29);
     } else if (scene.id === 'dock_walk') {
-      text('ENTER ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â BOARD THE DRAGONFLY', width / 2, height - 29);
+      text('Enter  —  Board the Dragonfly', width / 2, height - 29);
     } else if (scene.id === 'berth_task' && state.berthTask && !state.berthTask.ready) {
-      text('E ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â WORK ON THE BERTH', width / 2, height - 29);
+      text('E  —  Work on the berth', width / 2, height - 29);
     } else if (scene.id === 'talen_staying' && state.talenBeat && !state.talenBeat.ready) {
-      text('E ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â RESPOND TO TALEN', width / 2, height - 29);
+      text('E  —  Respond to Talen', width / 2, height - 29);
     } else if (scene.cinematic && !presentationReady) {
       text('', width / 2, height - 29);
     } else {
-      text('ENTER / SPACE ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â CONTINUE', width / 2, height - 29);
+      text('Enter / Space  —  Continue', width / 2, height - 29);
     }
 
     textAlign(LEFT, TOP);

@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'flight-visual-stage.js' });
 const api = sandbox.window.AetherFlightVisual;
 
 assert(api, 'flight visual API missing');
-assert.strictEqual(api.VERSION, '0.2.0');
+assert.strictEqual(api.VERSION, '0.3.0');
 for (const fn of ['altitudeProfile','weatherPalette','drawBackdrop','drawDragonfly','drawForeground','drawRouteOverlay','drawLandmarkBeacons']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -23,6 +23,10 @@ assert.deepStrictEqual(Array.from(api.weatherPalette('aether-squall').accent), [
 assert(!source.includes('encounterSteps ='), 'flight visuals must not mutate encounter state');
 assert(!source.includes('mooredLandmarkId ='), 'flight visuals must not mutate docking state');
 assert(!source.includes('discovered.push'), 'flight visuals must not mutate discovery');
+assert(source.includes('aetherwake-preview-world-pixelart-v2.png'),
+  'flight stage must bind the painted world backdrop authority when available');
+assert(source.includes('paintedBackdrop'),
+  'flight stage must distinguish painted-backdrop and procedural fallback composition');
 assert(source.includes('function drawFarLandmarks'), 'flight stage must retain dimensional far-landmark staging');
 assert(source.includes('function drawForeground'), 'flight stage must retain a near-camera occlusion pass');
 assert(source.includes('Speed streaks live in the foreground'), 'flight stage must retain speed-responsive foreground motion');

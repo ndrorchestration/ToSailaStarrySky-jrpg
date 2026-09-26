@@ -225,16 +225,30 @@
   }
 
   function drawPlayer(ctx) {
+    const characters = root.AetherCharacterRenderer;
     const sprites = root.AetherPixelSprites;
-    if (!sprites || typeof (sprites.drawPreview || sprites.draw) !== 'function' || !sprites.validate()) return false;
     const x = Math.round(ctx.x);
     const y = Math.round(ctx.y + (ctx.dodgeBob || 0));
     const pulse = 0.75 + Math.sin((ctx.now || 0) * 0.004) * 0.25;
 
     noStroke();
-    fill(42, 255, 181, Math.round(22 * pulse));
-    rect(x - 50, y - 112, 100, 118);
+    fill(42, 255, 181, Math.round(18 * pulse));
+    rect(x - 58, y - 128, 116, 134);
 
+    if (characters && characters.validate && characters.validate()) {
+      characters.draw('ender', x, y + 5, {
+        scale: 1.72,
+        depth: 0.82,
+        now: ctx.now || 0,
+        speed: 0,
+        facing: 'right',
+        action: ctx.attacking ? 'attack' : (ctx.focused ? 'focus' : 'idle'),
+        highlight: true,
+      });
+      return true;
+    }
+
+    if (!sprites || typeof (sprites.drawPreview || sprites.draw) !== 'function' || !sprites.validate()) return false;
     sprites.drawShadow(x, y + 5, 3, sprites.PREVIEW_WIDTH || 22);
     const drawPreview = sprites.drawPreview || sprites.draw;
     drawPreview.call(sprites, 'ender', x, y + 5, {
@@ -242,7 +256,6 @@
       scale: 3,
       frame: Math.floor((ctx.now || 0) / 220) % 2,
     });
-
     return true;
   }
 

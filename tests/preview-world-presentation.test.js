@@ -81,8 +81,8 @@ const sandbox = {
   translate(x, y) { calls.translates.push([x, y]); },
   image(...args) { calls.images.push(args); },
   text() {}, textAlign() {}, textFont() {}, textSize() {},
-  stroke() {}, strokeWeight() {}, line() {}, ellipse() {},
-  CENTER: 'center', LEFT: 'left', TOP: 'top',
+  stroke() {}, strokeWeight() {}, line() {}, ellipse() {}, beginShape() {}, vertex() {}, endShape() {}, quad() {}, bezier() {}, smooth() {}, applyMatrix() {},
+  CENTER: 'center', LEFT: 'left', TOP: 'top', CLOSE: 'close',
   width: 960, height: 640, frameCount: 20,
 };
 calls.sprites = [];
@@ -143,8 +143,8 @@ assert.strictEqual(calls.imageCreates, 1, 'tile map should be rasterized once, n
 assert(calls.images.length >= 1, 'cached tile map was not composited into the world scene');
 assert(calls.images.some(args => args[0] === calls.spriteImage),
   'loaded character atlas should render over the cached gameplay map');
-assert.deepStrictEqual(calls.backgroundRequests, ['assets/preview/aetherwake-preview-world-pixelart-v2.png'],
-  'the authored floating-island pixel-art vista should load as the scenic world backdrop');
+assert.deepStrictEqual(calls.backgroundRequests, [],
+  'the modern world path must not load the retired pixel-art scenic backdrop');
 assert.deepStrictEqual(calls.spriteRequests, ['assets/preview/aetherwake-preview-party-atlas-v2.png'],
   'the playable slice should load its generated character atlas once');
 assert.deepStrictEqual(calls.propRequests, ['assets/preview/aetherwake-preview-world-props-agent-v1.png'],
@@ -379,23 +379,6 @@ for (const [x, y, label] of [[7, 19, 'Lyra'], [7, 20, 'Lyra'], [25, 23, 'Verrick
     label + ' sprite footprint on the playable map must retain unpainted authored ground');
 }
 
-assert.strictEqual(typeof calls.completeBackgroundLoad, 'function',
-  'the world renderer should retain the scenic image load callback');
-calls.completeBackgroundLoad();
-const backgroundFrameStart = calls.images.length;
-presentation.draw({
-  groundLayer: actualGround,
-  player: actualWorld.player,
-  npcs: actualWorld.npcs,
-  width: 960,
-  height: 640,
-  now: 1816,
-});
-assert(calls.images.length >= backgroundFrameStart + 2,
-  'a loaded scenic background should render behind the cached gameplay map');
-assert.strictEqual(calls.images[backgroundFrameStart][0], calls.backgroundImage,
-  'the generated pixel-art scenery must render first, behind the map');
-assert.strictEqual(calls.images[backgroundFrameStart + 1][0], realMapAtlas,
-  'the tile map must remain the foreground gameplay layer');
-
+assert.strictEqual(calls.completeBackgroundLoad, null,
+  'the modern world renderer must not retain the retired pixel-scenery load callback');
 console.log('Aetherwake Preview world presentation: PASS');

@@ -159,7 +159,7 @@ function setup() {
   frameRate(60);
   pixelDensity(1);
   colorMode(RGB, 255);
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(16);
   textLeading(20);
   if (typeof document !== 'undefined' && document.fonts) {
@@ -592,7 +592,7 @@ function drawSaveLoadOverlay() {
     textSize(9);
     text('SLOT ' + (i + 1), 100, y);
 
-    textFont('VT323');
+    textFont('Segoe UI');
     textSize(15);
     if (meta && meta.exists && meta.valid !== false && meta.semanticValid === true) {
       const mins = Math.floor((meta.playtimeMs || 0) / 60000);
@@ -1601,7 +1601,7 @@ function drawPreviewEndScreen() {
   fill(C.teal[0], C.teal[1], C.teal[2], 235);
   text('END OF PREVIEW', width / 2, height / 2 - 48);
 
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(20);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 220);
   text(
@@ -1643,7 +1643,7 @@ function drawFirstWakeOpening() {
   textSize(12);
   fill(C.teal[0], C.teal[1], C.teal[2]);
   text(scene.title, width / 2, height / 2 - 30);
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(18);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
   text(scene.lines.join('  '), width / 2, height / 2 + 18, width - 220, 120);
@@ -1834,6 +1834,9 @@ function startCombat(enemyId, returnState) {
     productionStatModelVersion: world.player.productionStatModelVersion,
   });
   combat.beginEncounter(enemyId || 'skyPredator');
+  // Combat owns the frame; clear transient world/navigation notices so they
+  // cannot obscure enemy staging or command readability.
+  if (Array.isArray(window.toasts)) window.toasts.length = 0;
   gameState = STATE.COMBAT;
   window.gameState = gameState;
 }
@@ -2249,7 +2252,7 @@ function drawBootSequence() {
   
   // Title text (same content as drawTitleScreen, with alpha fade)
   noStroke();
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(36 * v);
   textAlign(CENTER, CENTER);
   textLeading(40);
@@ -2354,30 +2357,50 @@ function getDialogueSpriteId(npc) {
 }
 
 function drawDialoguePortrait(npc, x, y, size) {
+  const characters = window.AetherCharacterRenderer;
   const sprites = window.AetherPixelSprites;
-  if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
-    return false;
-  }
   const id = getDialogueSpriteId(npc);
-  const scale = Math.max(1, Math.floor(size / 16));
   noStroke();
   fill(C.navy[0] + 5, C.navy[1] + 7, C.navy[2] + 10, 245);
   rect(x, y, size, size);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 28);
   rect(x + 4, y + 4, size - 8, size - 8);
-  sprites.drawShadow(x + size / 2, y + size - 8, Math.max(1, scale * 0.8));
-  sprites.draw(id, x + size / 2, y + size - 9, {
-    anchor: 'bottom-center',
-    scale
-  });
+
+  if (characters && characters.validate &&
+      characters.validate() && ['ender','reson','aepex','ionia','lyra'].includes(id)) {
+    push();
+    drawingContext.save();
+    drawingContext.beginPath();
+    drawingContext.rect(x + 4, y + 4, size - 8, size - 8);
+    drawingContext.clip();
+    characters.drawPortrait(id, x + size / 2, y + size + 8, {
+      scale: Math.max(1.35, size / 45),
+      depth: 0.82,
+      now: millis(),
+      facing: 'right',
+      action: 'talk',
+      expression: 'talk',
+    });
+    drawingContext.restore();
+    pop();
+  } else if (sprites && typeof sprites.draw === 'function' && sprites.validate()) {
+    const scale = Math.max(1, Math.floor(size / 16));
+    sprites.drawShadow(x + size / 2, y + size - 8, Math.max(1, scale * 0.8));
+    sprites.draw(id, x + size / 2, y + size - 9, {
+      anchor: 'bottom-center', scale
+    });
+  } else {
+    return false;
+  }
+
   drawPixelBorder(x, y, size, size, 2, C.shadow, C.scioto);
   return true;
 }
 
 function drawDialogueOverlay() {
-  // Preserve the live scene as context instead of replacing it with a flat modal.
+  // Keep the live 2.5D scene readable behind dialogue instead of flattening it.
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2], 118);
+  fill(C.navy[0], C.navy[1], C.navy[2], 48);
   rect(0, 0, width, height);
 
   const tone = window.UI.windowTone || null;
@@ -2430,31 +2453,31 @@ function drawDialogueOverlay() {
 
   // Speaker plate.
   textAlign(LEFT, TOP);
-  textFont('Press Start 2P');
-  textSize(10);
-  fill(C.teal[0], C.teal[1], C.teal[2], 220 * alpha);
+  textFont('Segoe UI Semibold');
+  textSize(13);
+  fill(C.teal[0], C.teal[1], C.teal[2], 235 * alpha);
   text(npcName.toUpperCase(), textX, by + 24);
 
   if (npcTitle) {
-    textFont('VT323');
+    textFont('Segoe UI');
     textSize(12);
     fill(C.scioto[0], C.scioto[1], C.scioto[2], 190 * alpha);
     text(npcTitle, textX, by + 39);
   }
 
   // Dialogue copy.
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(15);
   textLeading(18);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 245 * alpha);
   wrapText(window.UI.dialogueText || '...', textX, by + 56, textW);
 
   // Continue cue as a quiet instrument readout.
-  textFont('Press Start 2P');
-  textSize(7);
-  fill(C.teal[0], C.teal[1], C.teal[2], 125 * alpha);
+  textFont('Segoe UI');
+  textSize(11);
+  fill(C.teal[0], C.teal[1], C.teal[2], 165 * alpha);
   textAlign(RIGHT, TOP);
-  text('E / ENTER  CONTINUE', bx + bw - 14, by + bh - 14);
+  text('E / ENTER   Continue', bx + bw - 14, by + bh - 18);
   textAlign(LEFT, TOP);
 }
 
@@ -2500,7 +2523,7 @@ function drawShopOverlay() {
   const scrap = world && world.player
     ? world.player.scrap
     : (combat && combat.getScrap ? combat.getScrap() : 0);
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(12);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
   text('Scrap: ' + scrap, sx + sw - 110, sy + 12);
@@ -2585,7 +2608,7 @@ function drawLedgerOverlay() {
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
   text('MYCELIAL LEDGER', lx + 16, ly + 12);
 
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(13);
   const entries = world && world.getLedger ? world.getLedger() : [];
   for (let i = 0; i < entries.length; i++) {
@@ -2635,7 +2658,7 @@ function drawQuestLogOverlay() {
 
   if (world && typeof world.getQuestState === 'function') {
     const qs = world.getQuestState();
-    textFont('VT323');
+    textFont('Segoe UI');
     textSize(13);
     fill(C.parchment[0], C.parchment[1], C.parchment[2]);
 
@@ -2756,24 +2779,35 @@ function wrapText(content, x, y, maxWidth) {
 
 // ── Vignette effect ──────────────────────────────────────────────────────
 function drawVignette() {
-  noStroke();
-  const nightFactor = window._isNight ? 0.6 : 0.18;
-  const alpha = nightFactor * 180;
-  const gradSteps = 20;
-  for (let i = gradSteps; i >= 0; i--) {
-    const t = i / gradSteps;
-    const r = t * max(width, height) * 0.75;
-    const a = alpha * (1 - t * t);
-    fill(color(C.navy[0], C.navy[1], C.navy[2], a));
-    ellipse(width / 2, height / 2, r * 2, r * 2);
+  // Opening/title/flight need clean cinematic color and horizon depth.
+  if (gameState === STATE.BOOT || gameState === STATE.MENU ||
+      gameState === STATE.OPENING || gameState === STATE.AIRSHIP) return;
+
+  const nightFactor = window._isNight ? 0.52 : 0.12;
+  const edgeAlpha = Math.round(255 * nightFactor);
+
+  if (typeof drawingContext !== 'undefined' && drawingContext.createRadialGradient) {
+    const radius = Math.max(width, height) * 0.78;
+    const gradient = drawingContext.createRadialGradient(
+      width * 0.5, height * 0.48, radius * 0.28,
+      width * 0.5, height * 0.48, radius
+    );
+    gradient.addColorStop(0, 'rgba(' + C.navy[0] + ',' + C.navy[1] + ',' + C.navy[2] + ',0)');
+    gradient.addColorStop(0.64, 'rgba(' + C.navy[0] + ',' + C.navy[1] + ',' + C.navy[2] + ',0)');
+    gradient.addColorStop(0.86, 'rgba(' + C.navy[0] + ',' + C.navy[1] + ',' + C.navy[2] + ',' + (edgeAlpha / 510) + ')');
+    gradient.addColorStop(1, 'rgba(' + C.navy[0] + ',' + C.navy[1] + ',' + C.navy[2] + ',' + (edgeAlpha / 255) + ')');
+    drawingContext.save();
+    drawingContext.fillStyle = gradient;
+    drawingContext.fillRect(0, 0, width, height);
+    drawingContext.restore();
+    return;
   }
-  // Extra dark corners
+
+  // Lightweight fallback: edges only, never concentric center rings.
   noStroke();
-  fill(color(C.navy[0], C.navy[1], C.navy[2], 120));
-  rect(0, 0, width * 0.08, height);
-  rect(width * 0.92, 0, width * 0.08, height);
-  rect(0, 0, width, height * 0.06);
-  rect(0, height * 0.94, width, height * 0.06);
+  fill(C.navy[0], C.navy[1], C.navy[2], edgeAlpha);
+  rect(0, 0, width * 0.035, height);
+  rect(width * 0.965, 0, width * 0.035, height);
 }
 
 // ── Toast rendering ──────────────────────────────────────────────────────
@@ -2801,7 +2835,7 @@ function drawToasts() {
     fill(t.color[0], t.color[1], t.color[2], alpha * 0.24);
     rect(cardX, y, 3, 27);
     fill(t.color[0], t.color[1], t.color[2], alpha);
-    textFont('VT323');
+    textFont('Segoe UI');
     textSize(12);
     textAlign(RIGHT, CENTER);
     text(t.text, cardX + cardW - 10, y + 13);
@@ -3567,7 +3601,7 @@ function drawChoiceMenu() {
   textFont('Press Start 2P');
   text('CHOOSE YOUR PATH', width / 2, py + 14);
   textSize(9);
-  textFont('VT323');
+  textFont('Segoe UI');
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
   text('The core waits. The ship holds still. What do you do?', width / 2, py + 30);
   textSize(10);
@@ -3605,7 +3639,7 @@ function drawChoiceMenu() {
     text('[' + (i + 1) + ']  ' + path.label, px + 18, optY + 6);
 
     // Description
-    textFont('VT323');
+    textFont('Segoe UI');
     textSize(11);
     fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
     wrapText(path.description, px + 18, optY + 22, pw - 40);
@@ -4451,7 +4485,7 @@ function drawShipInterior() {
   fill(C.teal[0], C.teal[1], C.teal[2], 150);
   textAlign(CENTER, CENTER);
   textSize(8);
-  textFont('VT323');
+  textFont('Segoe UI');
   text('CORE', cx, cy - 22);
   textSize(10);
   textFont('sans-serif');
@@ -4479,7 +4513,7 @@ function drawShipInterior() {
   fill(C.teal[0], C.teal[1], C.teal[2], 180);
   textAlign(CENTER, CENTER);
   textSize(9);
-  textFont('VT323');
+  textFont('Segoe UI');
   text('[ L ] or [ ESC ] to disembark', width / 2, height - 14);
   textSize(10);
   textFont('sans-serif');
@@ -4783,10 +4817,10 @@ function drawPlayer() {
   noStroke();
   textAlign(CENTER, TOP);
   textSize(8);
-  textFont('VT323');
+  textFont('Segoe UI');
   text('Ender', px + 8, py - 6);
   textSize(9);
-  textFont('VT323');
+  textFont('Segoe UI');
 }
 
 // --- NPCs -------------------------------------------------------------------
@@ -4835,10 +4869,10 @@ function drawNPC(npc) {
   fill(color(232, 220, 198, 200));
   textAlign(CENTER, TOP);
   textSize(7);
-  textFont('VT323');
+  textFont('Segoe UI');
   text(npc.name, px, py - 12);
   textSize(9);
-  textFont('VT323');
+  textFont('Segoe UI');
 }
 
 function drawNPCElder(px, py) {
@@ -5037,7 +5071,7 @@ function drawQuestOverlay() {
   textFont('Press Start 2P');
   text(stateLabel, 630, 11);
   textSize(10);
-  textFont('VT323');
+  textFont('Segoe UI');
 
   fill(color(232, 220, 198, 150));
   textAlign(LEFT, TOP);
@@ -5088,7 +5122,7 @@ function drawWakeResolutionScreen() {
   fill(color(42, 255, 181, 220));
   text('THE WAKE ANSWERS', width / 2, height / 2 - 82);
 
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(18);
   fill(color(232, 220, 198, 210));
   const choiceOutcome = getChoiceOutcomeText();
@@ -5122,7 +5156,7 @@ function drawEpilogueScreen() {
     text(ep.name.toUpperCase(), width/2, height/2 - 40);
     fill(color(232, 220, 198, 200));
     textSize(14);
-    textFont('VT323');
+    textFont('Segoe UI');
     textAlign(CENTER, CENTER);
     text(ep.text, width/2, height/2 + 20, width - 80, 100);
     fill(color(42, 255, 181, 120));
@@ -5161,7 +5195,7 @@ function drawSolarMeter() {
   noStroke();
   textAlign(LEFT, BOTTOM);
   textSize(8);
-  textFont('VT323');
+  textFont('Segoe UI');
   text('SOLAR ' + player.solarCharge.toFixed(2) + 'kWh', mx, my - 2);
   textSize(10);
   textFont('sans-serif');
@@ -5186,7 +5220,7 @@ function drawSolarMeter() {
   fill(color(232, 220, 198, 160));
   textAlign(LEFT, BOTTOM);
   textSize(8);
-  textFont('VT323');
+  textFont('Segoe UI');
   text('⚡ FIRE ' + player.staffCharges + '/2', fx, fy - 2);
   textSize(10);
   textFont('sans-serif');
@@ -5252,7 +5286,7 @@ function drawDayNightIndicator() {
   fill(color(232, 220, 198, 140));
   textAlign(CENTER, CENTER);
   textSize(7);
-  textFont('VT323');
+  textFont('Segoe UI');
   const label = phase < 0.25 ? 'DAWN' : phase < 0.5 ? 'DAY' :
                 phase < 0.75 ? 'DUSK' : 'NIGHT';
   text(label, cx, cy + r + 10);
@@ -5288,7 +5322,7 @@ function drawInteractionHints() {
   fill(color(42, 255, 181, 200 * pulse));
   textAlign(CENTER, TOP);
   textSize(8);
-  textFont('VT323');
+  textFont('Segoe UI');
   text(label, px, py - 4);
   textSize(10);
   textFont('sans-serif');
@@ -6801,7 +6835,7 @@ function AetherCombat(p, C) {
     // ── Combat intro banner ──
     if (state.enemy && state.turn <= 3) {
       const bannerT = Math.min(1, state.turn / 3);
-      p.textFont('VT323');
+      p.textFont('Segoe UI');
       p.textSize(20 * bannerT);
       p.textAlign(p.CENTER, p.CENTER);
       p.fill(C.teal[0], C.teal[1], C.teal[2], 160 * bannerT);
@@ -7170,7 +7204,7 @@ const PAL = {
 // p5 has no font fallback control per-call, so we approximate with size/weight calls.
 // In core.js, setTextFont should be called once to load these.
 
-const FONT_BODY  = 'VT323';
+const FONT_BODY  = 'Segoe UI';
 const FONT_UI    = 'Press Start 2P';
 
 // ─────────────────────────────────────────────
