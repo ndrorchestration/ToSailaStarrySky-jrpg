@@ -46,6 +46,15 @@ function boot(search){
   vm.runInContext(moduleSource,sandbox);
   return {api:sandbox.window.AetherPixelSprites,events};
 }
+const runtimePreview=boot('?aetherwakeFieldArtPreview=ender');
+assert.strictEqual(runtimePreview.api.isFieldArtCandidateRequested('ender'),true);
+assert.strictEqual(runtimePreview.api.isFieldArtCandidateRequested('lyra'),false);
+assert.strictEqual(runtimePreview.api.drawFieldCandidate('ender',100,200,{anchor:'bottom-center',scale:1,frame:1}),true,
+  'live player preview should draw Ender through the dedicated candidate hook');
+assert.deepStrictEqual(runtimePreview.events.requested,[ender.candidateFieldSprite.path]);
+assert.strictEqual(runtimePreview.events.images[0][5],28,'live player walk frame should sample the second cell');
+assert.strictEqual(runtimePreview.api.drawFieldCandidate('lyra',100,200,{frame:1}),false,
+  'the dedicated field preview hook must refuse unrelated characters');
 const normal=boot('');
 assert.strictEqual(normal.api.drawPreview('ender',100,200,{anchor:'bottom-center',scale:2,frame:1}),true);
 assert(!normal.events.requested.includes(ender.candidateFieldSprite.path),'normal game must not load candidate');
