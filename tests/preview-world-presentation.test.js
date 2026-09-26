@@ -118,9 +118,9 @@ assert(source.includes('drawCargoCrate') && source.includes('drawAetherStone') &
   'projected world must route prototype cell props through shared authored prop renderers');
 assert(source.includes('if (reducedDetail && type !== 6) continue'),
   'dock benchmark must suppress duplicate generic debris while preserving story signal props');
-assert(source.includes('Low-cost material breakup') && source.includes('const grassPatches = reducedDetail ? 6 : 12'),
+assert(source.includes('Low-cost material breakup') && source.includes('const grassPatches = reducedDetail ? 4 : 12'),
   'projected world must apply bounded grass/stone material breakup rather than one flat crown');
-assert(source.includes('const rimMarks = reducedDetail ? 8 : 14'),
+assert(source.includes('const rimMarks = reducedDetail ? 5 : 14'),
   'projected world must retain bounded cliff-edge material accents');
 const presentation = sandbox.window.AetherPreviewWorldPresentation;
 assert(presentation, 'Preview world presentation module is missing');
@@ -133,6 +133,10 @@ assert(source.includes('if (!input.dockBenchmark) drawProjectedAtmosphere'),
   'benchmark mode must avoid duplicating generic projected atmosphere over its painted backdrop');
 assert(source.includes('if (!input.dockBenchmark) drawProjectedForeground'),
   'benchmark mode must avoid duplicating generic projected foreground over benchmark foreground');
+assert(source.includes('Camera-side vegetation and masonry silhouettes'),
+  'normal projected exploration must include a dedicated near-plane material layer');
+assert(source.includes('Sparse foreground aether motes'),
+  'normal projected exploration must include sparse near-plane aether continuity cues');
 
 const ground = Array.from({ length: 32 }, () => Array(32).fill(2));
 ground[0][0] = 1;

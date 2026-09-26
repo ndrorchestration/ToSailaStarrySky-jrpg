@@ -536,6 +536,32 @@
     vertex(w - 58, h - 54);
     vertex(w - 88, h);
     endShape(CLOSE);
+
+    // Camera-side vegetation and masonry silhouettes create a third depth plane
+    // without touching the dock benchmark path or logical collision geometry.
+    const clumps = [
+      [34, h-48, 54, 25], [102, h-31, 68, 20], [w-42, h-45, 58, 24], [w-115, h-28, 72, 18]
+    ];
+    for (let i = 0; i < clumps.length; i++) {
+      const [cx,cy,cw,ch] = clumps[i];
+      fill(17, 35, 28, 185);
+      ellipse(cx, cy, cw, ch);
+      fill(53, 86, 54, 105);
+      ellipse(cx + (i % 2 ? -10 : 9), cy - 7, cw * 0.56, ch * 0.62);
+    }
+    fill(41, 48, 52, 205);
+    rect(0, h - 18, 138, 18);
+    rect(w - 126, h - 16, 126, 16);
+    fill(113, 105, 84, 80);
+    rect(12, h - 21, 94, 3);
+    rect(w - 104, h - 19, 82, 3);
+
+    // Sparse foreground aether motes bridge the playable plane to the painted sky.
+    const motePulse = 0.5 + 0.5 * Math.sin((Number(now) || 0) * 0.003);
+    fill(42, 255, 181, 34 + motePulse * 22);
+    for (const [mx,my] of [[76,h-126],[148,h-92],[w-92,h-118],[w-166,h-82]]) {
+      ellipse(mx, my, 3, 3);
+    }
   }
 
   function drawDimensionalGround(input, now, reducedDetail = false) {
@@ -581,7 +607,7 @@
     // Low-cost material breakup: authored grass shelves, stone service pads,
     // and cliff-edge flecks stop the playable crown reading as one flat green polygon.
     // Counts are intentionally bounded so the projected world remains inside the visual budget.
-    const grassPatches = reducedDetail ? 6 : 12;
+    const grassPatches = reducedDetail ? 4 : 12;
     noStroke();
     for (let i = 0; i < grassPatches; i++) {
       const gx = CELL * (3.4 + ((i * 7) % 25));
@@ -607,7 +633,7 @@
     // Broken rim accents imply grass over stone without tracing every edge.
     stroke(133,145,108,reducedDetail ? 36 : 52);
     strokeWeight(1.2);
-    const rimMarks = reducedDetail ? 8 : 14;
+    const rimMarks = reducedDetail ? 5 : 14;
     for (let i = 0; i < rimMarks; i++) {
       const x = CELL * (2.2 + ((i * 13) % 28));
       const y = CELL * (27.2 + ((i * 5) % 3));
@@ -642,7 +668,7 @@
 
     // Broad vegetation patches and tree clusters break the open platform read.
     noStroke();
-    for (let i = 0; i < (reducedDetail ? 12 : 24); i++) {
+    for (let i = 0; i < (reducedDetail ? 8 : 24); i++) {
       const x = CELL * (2.8 + ((i * 11) % 26));
       const y = CELL * (3.1 + ((i * 17) % 25));
       const sway = Math.sin(t * 0.0018 + i) * 2;
@@ -694,7 +720,7 @@
     // Wind-driven grass silhouettes create motion at character scale.
     stroke(57, 91, 57, 175);
     strokeWeight(1.5);
-    for (let i = 0; i < (reducedDetail ? 10 : 42); i++) {
+    for (let i = 0; i < (reducedDetail ? 6 : 42); i++) {
       const x = CELL * (2 + ((i * 19) % 28));
       const y = CELL * (2 + ((i * 13) % 28));
       const wind = Math.sin(t * 0.003 + i * 0.7) * 3;
