@@ -124,7 +124,25 @@
         }
       },
       "silhouetteTestRequired": true,
-      "sourceReference": "canonical Drive visual-bible authority"
+      "sourceReference": "canonical Drive visual-bible authority",
+      "candidatePortraitAtlas": {
+        "status": "candidate",
+        "path": "assets/characters/v1/lyra/portrait-atlas-candidate.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "transparent": true,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ],
+        "source": "Generated from the previously selected Lyra portrait concept and the creator-supplied Aetherwake character compendium; opt-in only, not admitted."
+      }
     },
     "ionia": {
       "status": "portrait-ready",

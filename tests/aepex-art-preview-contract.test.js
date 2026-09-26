@@ -5,7 +5,7 @@ const path=require('path');
 const vm=require('vm');
 const root=path.resolve(__dirname,'..');
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'assets/characters/v1/manifest.json'),'utf8'));
-const candidateIds=['aepex','reson','ender'];
+const candidateIds=['aepex','reson','ender','lyra'];
 for(const id of candidateIds){
   const character=manifest.characters[id];
   assert.strictEqual(character.status,'planned',id+' candidate must not be runtime-admitted');
@@ -50,7 +50,7 @@ for(const id of candidateIds)assert.strictEqual(normal.api.drawPortrait(id,0,0,8
 assert.strictEqual(normal.events.length,0,'normal runtime must not load or draw candidate');
 const preview=boot('?aetherwakeArtPreview=aepex');
 assert.strictEqual(preview.api.getPreviewCharacterId(),'aepex');
-assert.deepStrictEqual(Array.from(preview.api.CHARACTERS),['aepex','reson','ender']);
+assert.deepStrictEqual(Array.from(preview.api.CHARACTERS),['aepex','reson','ender','lyra']);
 assert.strictEqual(preview.api.normalizeExpression('speaking'),'talk');
 assert.strictEqual(preview.api.drawPortrait('reson',0,0,88,{expression:'neutral'}),false);
 assert.strictEqual(preview.api.drawPortrait('aepex',4,8,88,{expression:'smile'}),true);
@@ -67,6 +67,10 @@ const enderPreview=boot('?aetherwakeArtPreview=ender');
 assert.strictEqual(enderPreview.api.getPreviewCharacterId(),'ender');
 assert.strictEqual(enderPreview.api.drawPortrait('ender',0,0,88,{expression:'neutral'}),true);
 assert(enderPreview.events.some(event=>event.type==='load'&&event.file.includes('/ender/')));
+const lyraPreview=boot('?aetherwakeArtPreview=lyra');
+assert.strictEqual(lyraPreview.api.getPreviewCharacterId(),'lyra');
+assert.strictEqual(lyraPreview.api.drawPortrait('lyra',0,0,88,{expression:'neutral'}),true);
+assert(lyraPreview.events.some(event=>event.type==='load'&&event.file.includes('/lyra/')));
 assert(resonPreview.events.some(event=>event.type==='load'&&event.file.includes('/reson/')));
-console.log('Aetherwake opt-in art preview contract (Aepex + Reson + Ender): PASS');
+console.log('Aetherwake opt-in art preview contract (Aepex + Reson + Ender + Lyra): PASS');
 

@@ -5,7 +5,8 @@
   const PATHS=Object.freeze({
     aepex:'assets/characters/v1/aepex/portrait-atlas-candidate.png',
     reson:'assets/characters/v1/reson/portrait-atlas-candidate.png',
-    ender:'assets/characters/v1/ender/portrait-atlas-candidate.png'
+    ender:'assets/characters/v1/ender/portrait-atlas-candidate.png',
+    lyra:'assets/characters/v1/lyra/portrait-atlas-candidate.png'
   });
   const CELL=256,WIDTH=768,HEIGHT=512;
   const ORDER=Object.freeze(['neutral','talk','concern','focus','hurt','smile']);
