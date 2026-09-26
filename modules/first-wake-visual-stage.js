@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.6.0';
+  const VERSION = '0.7.0';
   const OPENING_WORLD_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   let openingWorld = null;
   let openingWorldRequested = false;
@@ -863,17 +863,24 @@
     }
 
     if (!scene.chapterCard) {
-      fill(6, 9, 14, 148);
-      rect(132, 476, width - 264, 106, 12);
+      const visibleLines = scene.lines.slice(0, 3);
+      const narrativePanelH = Math.min(90, 28 + visibleLines.length * 21);
+      const narrativePanelY = height - 18 - 38 - narrativePanelH;
+      const narrativePanelX = 148;
+      const narrativePanelW = width - 296;
+      fill(6, 9, 14, 128);
+      rect(narrativePanelX, narrativePanelY, narrativePanelW, narrativePanelH, 10);
+      fill(42,255,181,42);
+      rect(narrativePanelX + 10, narrativePanelY + 8, narrativePanelW - 20, 2);
 
       textAlign(LEFT, TOP);
       textFont('Trebuchet MS');
-      textSize(18);
+      textSize(15);
       fill(232, 220, 198);
-      let y = 486;
-      for (const line of scene.lines.slice(0, 3)) {
-        text(line, 136, y, width - 272, 27);
-        y += 30;
+      let y = narrativePanelY + 16;
+      for (const line of visibleLines) {
+        text(line, narrativePanelX + 10, y, narrativePanelW - 20, 22);
+        y += 21;
       }
     } else {
       textAlign(CENTER, TOP);

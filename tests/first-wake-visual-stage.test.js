@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'first-wake-visual-stage.js' });
 
 const api = sandbox.window.AetherFirstWakeVisual;
 assert(api, 'First Wake visual stage missing');
-assert.strictEqual(api.VERSION, '0.6.0');
+assert.strictEqual(api.VERSION, '0.7.0');
 for (const fn of ['draw','drawDock','drawInterior','drawChapter']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -118,3 +118,5 @@ assert(openingFunction.includes('visual.draw(scene, state, { now: millis(), widt
   'opening runtime does not delegate to shared visual stage');
 
 console.log('Aetherwake First Wake visual stage contract: PASS');
+
+assert(source.includes('const narrativePanelH = Math.min(90, 28 + visibleLines.length * 21)'));
