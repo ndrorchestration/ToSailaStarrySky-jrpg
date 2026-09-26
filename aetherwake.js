@@ -2387,7 +2387,7 @@ function drawDialoguePortrait(npc, x, y, size, expression = 'talk') {
     : null;
   let authoredDrawn = false;
   if (previewCharacterId && artPreview && typeof artPreview.drawPortrait === 'function') {
-    authoredDrawn = artPreview.drawPortrait(previewCharacterId, x + 4, y + 4, size - 8, { expression });
+    authoredDrawn = artPreview.drawPortrait(id, x + 4, y + 4, size - 8, { expression });
   }
   if (!authoredDrawn && authoredCharacters && typeof authoredCharacters.drawPortrait === 'function' &&
       authoredCharacters.isPortraitReady && authoredCharacters.isPortraitReady(id)) {
