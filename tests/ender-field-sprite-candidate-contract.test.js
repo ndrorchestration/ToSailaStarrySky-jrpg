@@ -130,3 +130,19 @@ assert.strictEqual(battle.events.images.length,1,
   'battle atlas should become ready and draw instead of silently falling back');
 console.log('Ender, Lyra, and Ionia selected-reference field-sprite candidate contract: PASS');
 
+
+const aepex = manifest.characters.aepex;
+assert.strictEqual(aepex.status, 'planned', 'field candidate must not admit Aepex runtime art');
+assert.strictEqual(aepex.candidateFieldSprite.status, 'candidate');
+assert.deepStrictEqual(aepex.candidateFieldSprite.frames, ['idle','walk']);
+const aepexImagePath = path.join(root, aepex.candidateFieldSprite.path);
+const aepexPng = fs.readFileSync(aepexImagePath);
+assert.strictEqual(aepexPng.readUInt32BE(16), 56);
+assert.strictEqual(aepexPng.readUInt32BE(20), 36);
+assert.strictEqual(aepexPng[25], 6, 'Aepex candidate PNG must carry an alpha channel');
+const aepexPreview = boot('?aetherwakeFieldArtPreview=aepex');
+assert.strictEqual(aepexPreview.api.isFieldArtCandidateRequested('aepex'), true);
+assert.strictEqual(aepexPreview.api.drawFieldCandidate('aepex',100,200,{anchor:'bottom-center',scale:1,frame:1}), true);
+assert.deepStrictEqual(aepexPreview.events.requested, [aepex.candidateFieldSprite.path]);
+assert.strictEqual(aepexPreview.events.images[0][5], 28);
+console.log('Aepex selected-reference field-sprite candidate contract: PASS');

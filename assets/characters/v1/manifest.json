@@ -71,7 +71,7 @@
           "hurt",
           "smile"
         ],
-        "source": "Regenerated from the creator-supplied enderbest1.jpg reference at the user\u2019s direction; this is the selected likeness and outfit, opt-in preview only."
+        "source": "Regenerated from the creator-supplied enderbest1.jpg reference at the user’s direction; this is the selected likeness and outfit, opt-in preview only."
       },
       "candidateFieldSprite": {
         "status": "candidate",
@@ -385,6 +385,20 @@
           "smile"
         ],
         "source": "Generated from creator-supplied Aepex reference; opt-in preview candidate, not admitted."
+      },
+      "candidateFieldSprite": {
+        "status": "candidate",
+        "path": "assets/characters/v1/aepex/field-idle-walk-candidate.png",
+        "width": 56,
+        "height": 36,
+        "cellWidth": 28,
+        "cellHeight": 36,
+        "frames": [
+          "idle",
+          "walk"
+        ],
+        "transparent": true,
+        "source": "Generated from the creator-selected Aepex character reference; opt-in field-art preview only."
       }
     }
   }
