@@ -4,7 +4,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.6.0';
+  const VERSION = '0.7.0';
   const PROFILES = Object.freeze({
     ender: Object.freeze({
       skin:[214,170,132], hair:[154,94,50], hairDark:[100,57,37],
@@ -325,7 +325,7 @@
     }
   }
 
-  function drawHead(profile, s, motion, expression) {
+  function drawHead(profile, s, motion, expression, portraitMode = false) {
     const faceY = -49*s;
     const nod = motion.talk ? Math.sin(motion.phase*1.7)*0.7*s : 0;
 
@@ -432,6 +432,36 @@
       ellipse(3*s,faceY-5.6*s+nod,4.3*s,3.6*s);
       line(-0.8*s,faceY-5.6*s+nod,0.8*s,faceY-5.6*s+nod);
       noStroke();
+    }
+
+    if (portraitMode) {
+      // Portrait-only micro-detail raises dialogue fidelity without adding cost
+      // to every animated field frame. Keep features graphic rather than realistic.
+      fill(255, 231, 202, 30);
+      ellipse(-2.6*s, faceY-0.8*s+nod, 1.4*s, 0.8*s);
+      ellipse(2.6*s, faceY-0.8*s+nod, 1.4*s, 0.8*s);
+      fill(112, 71, 58, 70);
+      ellipse(-4.1*s*(profile.faceWidth||1), faceY+1.2*s+nod, 1.5*s, 1.0*s);
+      ellipse(4.1*s*(profile.faceWidth||1), faceY+1.2*s+nod, 1.5*s, 1.0*s);
+      stroke(86, 58, 49, 95);
+      strokeWeight(0.45*s);
+      line(-2.4*s, faceY+5.2*s+nod, 2.4*s, faceY+5.2*s+nod);
+      noStroke();
+
+      // One highlight mass per hair family makes the silhouette dimensional at
+      // dialogue scale while retaining the same canonical colors.
+      fill(255, 236, 192, 24);
+      if (profile.hairMode === 'curlyShoulder') {
+        ellipse(-3.8*s, faceY-4.5*s+nod, 4.2*s, 2.1*s);
+      } else if (profile.hairMode === 'longRed') {
+        ellipse(-2.2*s, faceY-5.0*s+nod, 5.4*s, 2.0*s);
+      } else if (profile.hairMode === 'undercut') {
+        quad(-2.8*s,faceY-6.2*s+nod,1.5*s,faceY-8.1*s+nod,3.1*s,faceY-6.2*s+nod,-1*s,faceY-5.2*s+nod);
+      } else if (profile.hairMode === 'cap') {
+        rect(-4.6*s,faceY-6.4*s+nod,6.4*s,0.9*s,0.4*s);
+      } else {
+        ellipse(-1.8*s, faceY-5.1*s+nod, 4.8*s, 1.8*s);
+      }
     }
   }
 
@@ -597,7 +627,7 @@
 
     push();
     translate(0,19*s);
-    drawHead(profile,s*1.18,m,o.expression || 'talk');
+    drawHead(profile,s*1.24,m,o.expression || 'talk',true);
     pop();
 
     pop();

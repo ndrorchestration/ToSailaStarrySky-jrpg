@@ -13,7 +13,7 @@ vm.runInNewContext(source, sandbox, { filename: 'character-renderer.js' });
 const api = sandbox.window.AetherCharacterRenderer;
 
 assert(api, 'articulated character renderer missing');
-assert.strictEqual(api.VERSION, '0.6.0');
+assert.strictEqual(api.VERSION, '0.7.0');
 assert(api.validate(), 'articulated character profiles must validate');
 for (const id of ['ender','reson','aepex','ionia','lyra']) {
   assert(api.PROFILES[id], id + ' articulated profile missing');
@@ -90,4 +90,6 @@ assert(world.includes('AetherCharacterRenderer'), 'world must prefer articulated
 assert(wake.includes('AetherCharacterRenderer'), 'opening must prefer articulated characters');
 assert(runtime.includes('AetherCharacterRenderer'), 'dialogue must prefer articulated characters');
 
+assert(source.includes('Portrait-only micro-detail'), 'portrait-only facial fidelity pass missing');
+assert(source.includes('s*1.24'), 'dialogue portrait head scale must retain V24 emphasis');
 console.log('Aetherwake articulated character renderer contract: PASS');
