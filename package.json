@@ -139,6 +139,7 @@
     "test:authored-character-art": "node tests/authored-character-art.test.js",
     "test:dialogue-portrait-expression": "node tests/dialogue-portrait-expression.test.js",
     "test:ionia-world-visual": "node tests/ionia-world-visual-authority.test.js",
-    "test:ender-world-visual": "node tests/ender-world-visual-authority.test.js"
+    "test:ender-world-visual": "node tests/ender-world-visual-authority.test.js",
+    "test:lyra-world-visual": "node tests/lyra-world-visual-authority.test.js"
   }
 }

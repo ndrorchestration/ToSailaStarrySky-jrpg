@@ -4940,7 +4940,7 @@ function drawNPC(npc) {
       drawNPCSpirit(px, py);
       break;
     case 'child_prophet':
-      drawNPCChild(px, py);
+      drawNPCLyra(px, py);
       break;
     case 'corporate_salvager':
       drawNPCSavager(px, py);
@@ -5002,16 +5002,35 @@ function drawNPCSpirit(px, py) {
   });
 }
 
-function drawNPCChild(px, py) {
+function drawNPCLyra(px, py) {
+  const characters = window.AetherCharacterRenderer;
+  if (characters && characters.validate && characters.validate()) {
+    characters.draw('lyra', px, py + 8, {
+      scale: 0.80,
+      depth: 0.88,
+      now: millis(),
+      facing: 'right',
+      action: 'idle',
+      expression: 'neutral'
+    });
+    return;
+  }
+
+  // Compatibility fallback only: legacy top-down sprite authority.
   const sprites = window.AetherPixelSprites;
-  if (!sprites || typeof sprites.draw !== 'function') {
-    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
+  if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
+    throw new Error('AETHER_LYRA_VISUAL_UNAVAILABLE');
   }
   sprites.drawShadow(px, py + 9, 1);
   sprites.draw('lyra', px, py + 8, {
     anchor: 'bottom-center',
     frame: Math.floor(frameCount / 16) % 2
   });
+}
+
+// Legacy function name retained only for compatibility; rendering authority is Lyra.
+function drawNPCChild(px, py) {
+  return drawNPCLyra(px, py);
 }
 
 function drawNPCSavager(px, py) {
