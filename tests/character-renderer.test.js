@@ -13,7 +13,7 @@ vm.runInNewContext(source, sandbox, { filename: 'character-renderer.js' });
 const api = sandbox.window.AetherCharacterRenderer;
 
 assert(api, 'articulated character renderer missing');
-assert.strictEqual(api.VERSION, '0.4.0');
+assert.strictEqual(api.VERSION, '0.5.0');
 assert(api.validate(), 'articulated character profiles must validate');
 for (const id of ['ender','reson','aepex','ionia','lyra']) {
   assert(api.PROFILES[id], id + ' articulated profile missing');
@@ -36,6 +36,12 @@ assert(api.PROFILES.reson.mustache === true && api.PROFILES.reson.cap, 'Reson ca
 assert(api.PROFILES.aepex.eyebrowNotch === true, 'Aepex eyebrow-notch authority missing');
 assert(api.PROFILES.ionia.hairMode === 'curlyShoulder', 'Ionia curly shoulder-length hair authority missing');
 assert(api.PROFILES.lyra.hairMode === 'longRed', 'Lyra long red hair authority missing');
+assert(api.PROFILES.reson.pants && api.PROFILES.aepex.pants && api.PROFILES.lyra.pants,
+  'profile-specific lower-body palette authority missing');
+assert(source.includes("Lyra's rust-and-cream layered silhouette"), 'Lyra layered costume silhouette cue missing');
+assert(source.includes('clean captain/engineer'), 'Ionia tailored captain silhouette cue missing');
+assert(source.includes('one-sided shoulder plate'), 'Aepex asymmetric engineer silhouette cue missing');
+assert(source.includes('open field-scholar collar'), 'Ender field-scholar collar cue missing');
 assert(api.PROFILES.ender.fieldVest && api.PROFILES.ender.embroidery,
   'Ender reference-backed embroidered field-vest silhouette missing');
 assert(api.PROFILES.reson.heavyHarness && api.PROFILES.reson.utilityRig && api.PROFILES.reson.rolledSleeves,

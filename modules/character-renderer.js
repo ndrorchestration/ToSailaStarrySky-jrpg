@@ -4,39 +4,39 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.4.0';
+  const VERSION = '0.5.0';
   const PROFILES = Object.freeze({
     ender: Object.freeze({
       skin:[214,170,132], hair:[154,94,50], hairDark:[100,57,37],
       shirt:[55,61,65], vest:[172,149,104], accent:[58,105,66],
-      leather:[81,55,38], metal:[176,130,57], boot:[50,39,34],
+      leather:[81,55,38], metal:[176,130,57], boot:[50,39,34], pants:[58,55,49],
       build:0.98, shoulder:1.0, leg:1.02, heightScale:1.00, hairMode:'crop',
       goggles:true, freckles:true, embroidery:true, fieldVest:true, collarOpen:true, posture:'focused'
     }),
     reson: Object.freeze({
       skin:[220,178,143], hair:[70,45,33], hairDark:[48,32,27],
       shirt:[216,202,176], vest:[78,62,48], accent:[133,50,40],
-      leather:[75,50,35], metal:[172,121,52], boot:[47,36,31],
+      leather:[75,50,35], metal:[172,121,52], boot:[47,36,31], pants:[71,62,53],
       build:1.16, shoulder:1.16, leg:1.0, heightScale:1.08, hairMode:'cap',
       scarf:[133,50,40], cap:[150,43,45], mustache:true, heavyHarness:true, utilityRig:true, rolledSleeves:true, posture:'open'
     }),
     aepex: Object.freeze({
       skin:[211,165,132], hair:[194,164,122], hairDark:[119,98,79],
       shirt:[39,40,44], vest:[52,49,48], accent:[181,134,60],
-      leather:[52,43,39], metal:[174,127,54], boot:[35,31,30],
+      leather:[52,43,39], metal:[174,127,54], boot:[35,31,30], pants:[38,38,42],
       build:0.94, shoulder:0.98, leg:1.05, heightScale:1.05, hairMode:'undercut',
       tattoos:true, eyebrowNotch:true, harness:true, techRig:true, neckGoggles:true, asymmetry:true, posture:'guarded'
     }),
     ionia: Object.freeze({
       skin:[202,158,126], hair:[205,169,92], hairDark:[139,103,57],
       shirt:[48,63,67], vest:[111,102,82], accent:[69,132,137],
-      leather:[72,54,42], metal:[145,115,71], boot:[46,40,38],
+      leather:[72,54,42], metal:[145,115,71], boot:[46,40,38], pants:[46,50,51],
       build:0.96, shoulder:0.98, leg:1.0, heightScale:0.96, hairMode:'curlyShoulder', curls:true, tailoredLayer:true, posture:'steady'
     }),
     lyra: Object.freeze({
       skin:[218,178,145], hair:[163,58,43], hairDark:[104,39,34],
       shirt:[70,76,86], vest:[145,111,85], accent:[118,159,164],
-      leather:[80,58,46], metal:[151,119,75], boot:[51,43,40],
+      leather:[80,58,46], metal:[151,119,75], boot:[51,43,40], pants:[79,61,56],
       build:0.84, shoulder:0.88, leg:0.94, heightScale:0.96, hairMode:'longRed', longHair:true, layeredDrape:true, posture:'light'
     })
   });
@@ -92,7 +92,7 @@
     const footX = side * 5.0*s + stride*0.68;
     const footY = -1.5*s - lift*1.8*s;
 
-    capsule(hipX, hipY, kneeX, kneeY, 5.8*s, [68,59,53]);
+    capsule(hipX, hipY, kneeX, kneeY, 5.8*s, profile.pants || [68,59,53]);
     capsule(kneeX, kneeY, footX, footY, 5.0*s, profile.boot);
     fill(...profile.leather);
     rect(footX - 4.3*s, footY - 1.1*s, 8.6*s, 2.7*s, 1.2*s);
@@ -217,11 +217,44 @@
       noStroke();
     }
     if (profile.layeredDrape) {
+      // Lyra's rust-and-cream layered silhouette: longer asymmetric coat tails
+      // separate her immediately from the four trouser-and-harness builds.
       fill(...profile.vest);
       beginShape();
-      vertex(-waist*0.55,7*s); vertex(-waist*0.30,14*s);
-      vertex(0,10*s); vertex(waist*0.30,14*s); vertex(waist*0.55,7*s);
+      vertex(-waist*0.64,6*s); vertex(-waist*0.54,18*s); vertex(-1.4*s,13*s);
+      vertex(0,10*s); vertex(waist*0.30,17*s); vertex(waist*0.60,7*s);
       endShape(CLOSE);
+      fill(223,211,188,150);
+      beginShape();
+      vertex(-waist*0.32,8*s); vertex(-waist*0.20,16*s); vertex(0,12*s);
+      vertex(waist*0.16,15*s); vertex(waist*0.28,8*s); endShape(CLOSE);
+    }
+    if (profile.tailoredLayer) {
+      // Ionia reads as a clean captain/engineer through narrow lapels and a
+      // structured waist rather than additional bulk.
+      stroke(...profile.accent);
+      strokeWeight(0.9*s);
+      line(-shoulder*0.28,-7*s,-2*s,2*s);
+      line(shoulder*0.28,-7*s,2*s,2*s);
+      noStroke();
+      fill(...profile.leather);
+      rect(-waist*0.55,5*s,waist*1.1,2*s,0.6*s);
+    }
+    if (profile.asymmetry) {
+      // Aepex's one-sided shoulder plate and hanging tool strap create a
+      // recognisable maverick/engineer silhouette even without facial detail.
+      fill(...profile.metal);
+      quad(4*s,-11*s,9*s,-10*s,10*s,-5*s,5*s,-6*s);
+      stroke(...profile.accent);
+      strokeWeight(1.1*s);
+      line(7*s,-7*s,9*s,10*s);
+      noStroke();
+    }
+    if (profile.fieldVest && profile.collarOpen) {
+      // Ender's open field-scholar collar leaves a small light V beneath the
+      // goggles/vest silhouette instead of reading as another closed uniform.
+      fill(205,194,170,145);
+      triangle(-3.1*s,-8*s,3.1*s,-8*s,0,-2*s);
     }
 
     if (profile.scarf) {
