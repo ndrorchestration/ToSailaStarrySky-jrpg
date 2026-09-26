@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.6.0';
   const OPENING_WORLD_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   let openingWorld = null;
   let openingWorldRequested = false;
@@ -801,6 +801,34 @@
     drawInterior(scene, state, now);
   }
 
+  function drawSceneTransition(scene, state) {
+    const ticks = state && Number.isFinite(state.sceneTicks) ? state.sceneTicks : 999;
+    const introTicks = scene && scene.chapterCard ? 30 : 18;
+    if (ticks >= introTicks) return false;
+    const t = Math.max(0, Math.min(1, ticks / introTicks));
+    const eased = 1 - Math.pow(1 - t, 3);
+    const alpha = Math.round((1 - eased) * 190);
+    const sweepX = Math.round(width * eased);
+
+    // Presentation-only scene handoff: a short dark veil and aether scan sweep
+    // hide hard visual cuts without delaying input or mutating opening state.
+    noStroke();
+    fill(4, 7, 13, alpha);
+    rect(0, 0, width, height);
+    fill(42, 255, 181, Math.round((1 - t) * 100));
+    rect(Math.max(0, sweepX - 2), 18, 2, height - 36);
+
+    if (scene && scene.sequence !== undefined && ticks < Math.ceil(introTicks * 0.62)) {
+      textAlign(RIGHT, TOP);
+      textFont('Segoe UI Semibold');
+      textSize(9);
+      fill(124, 200, 232, Math.round((1 - t) * 185));
+      text('FIRST WAKE // ' + String(scene.sequence).padStart(2, '0'), width - 28, 30);
+      textAlign(LEFT, TOP);
+    }
+    return true;
+  }
+
   function draw(scene, state, ctx) {
     const now = ctx.now || 0;
 
@@ -810,6 +838,7 @@
     }
 
     drawFrame(scene, state, now);
+    drawSceneTransition(scene, state);
 
     // Cinematic framing.
     noStroke();
@@ -887,5 +916,6 @@
     drawInterior,
     drawWakeExploration,
     drawChapter,
+    drawSceneTransition,
   });
 })(typeof window !== 'undefined' ? window : globalThis);
