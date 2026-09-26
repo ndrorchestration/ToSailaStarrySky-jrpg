@@ -7,6 +7,7 @@ const root=path.resolve(__dirname,'..');
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'assets/characters/v1/manifest.json'),'utf8'));
 const ender=manifest.characters.ender;
 const lyra=manifest.characters.lyra;
+const ionia=manifest.characters.ionia;
 assert.strictEqual(ender.status,'planned','field candidate must not admit Ender runtime art');
 assert.strictEqual(ender.candidateFieldSprite.status,'candidate');
 assert.deepStrictEqual(ender.candidateFieldSprite.frames,['idle','walk']);
@@ -25,6 +26,15 @@ assert.strictEqual(lyraPng.subarray(0,8).toString('hex'),'89504e470d0a1a0a','Lyr
 assert.strictEqual(lyraPng.readUInt32BE(16),56);
 assert.strictEqual(lyraPng.readUInt32BE(20),36);
 assert.strictEqual(lyraPng[25],6,'Lyra candidate PNG must carry an alpha channel');
+assert.strictEqual(ionia.status,'portrait-ready','field candidate must not change Ionia portrait admission');
+assert.strictEqual(ionia.candidateFieldSprite.status,'candidate');
+assert.deepStrictEqual(ionia.candidateFieldSprite.frames,['idle','walk']);
+const ioniaImagePath=path.join(root,ionia.candidateFieldSprite.path);
+const ioniaPng=fs.readFileSync(ioniaImagePath);
+assert.strictEqual(ioniaPng.subarray(0,8).toString('hex'),'89504e470d0a1a0a','Ionia candidate must be PNG');
+assert.strictEqual(ioniaPng.readUInt32BE(16),56);
+assert.strictEqual(ioniaPng.readUInt32BE(20),36);
+assert.strictEqual(ioniaPng[25],6,'Ionia candidate PNG must carry an alpha channel');
 const runtimeSource=fs.readFileSync(path.join(root,'aetherwake.js'),'utf8');
 const playerStart=runtimeSource.indexOf('function drawPlayer()');
 const playerEnd=runtimeSource.indexOf('// --- NPCs',playerStart);
@@ -40,6 +50,10 @@ const lyraEnd=runtimeSource.indexOf('// Legacy function name retained only for c
 const lyraRenderer=runtimeSource.slice(lyraStart,lyraEnd);
 assert(lyraRenderer.includes("sprites.drawFieldCandidate('lyra', px, py + 8"),
   'opt-in Lyra candidate must be wired into her live NPC renderer');
+assert(runtimeSource.includes("sprites.drawFieldCandidate('ionia', px, py + 8"),
+  'opt-in Ionia candidate must be wired into her live NPC renderer');
+assert(runtimeSource.includes('ioniaFieldCandidateDrawn ? py - 32 : (lyraFieldCandidateDrawn'),
+  'Ionia name label must clear the taller candidate only while it is drawn');
 assert(runtimeSource.includes('lyraFieldCandidateDrawn ? py - 32 : py - 12'),
   'Lyra name label must clear the taller candidate only while it is drawn');
 const moduleSource=fs.readFileSync(path.join(root,'modules/pixel-sprites.js'),'utf8');
@@ -79,6 +93,15 @@ assert.strictEqual(lyraPreview.api.drawFieldCandidate('lyra',100,200,{anchor:'bo
   'live NPC preview should draw Lyra through the dedicated candidate hook');
 assert.deepStrictEqual(lyraPreview.events.requested,[lyra.candidateFieldSprite.path]);
 assert.strictEqual(lyraPreview.events.images[0][5],28,'Lyra walk frame should sample the second cell');
+const ioniaPreview=boot('?aetherwakeFieldArtPreview=ionia');
+assert.strictEqual(ioniaPreview.api.isFieldArtCandidateRequested('ionia'),true);
+assert.strictEqual(ioniaPreview.api.drawFieldCandidate('ionia',100,200,{anchor:'bottom-center',scale:1,frame:1}),true,
+  'live NPC preview should draw Ionia through the dedicated candidate hook');
+assert.deepStrictEqual(ioniaPreview.events.requested,[ionia.candidateFieldSprite.path]);
+assert.strictEqual(ioniaPreview.events.images[0][5],28,'Ionia walk frame should sample the second cell');
+const normalIonia=boot('');
+assert.strictEqual(normalIonia.api.drawFieldCandidate('ionia',100,200,{frame:1}),false);
+assert.deepStrictEqual(normalIonia.events.requested,[],'normal game must not load Ionia candidate');
 const normalLyra=boot('');
 assert.strictEqual(normalLyra.api.drawFieldCandidate('lyra',100,200,{frame:1}),false);
 assert.deepStrictEqual(normalLyra.events.requested,[],'normal game must not load Lyra candidate');
@@ -105,4 +128,5 @@ assert.deepStrictEqual(battle.events.requested,['assets/preview/aetherwake-sky-p
   'battle atlas loader must receive its normal path/callback signature');
 assert.strictEqual(battle.events.images.length,1,
   'battle atlas should become ready and draw instead of silently falling back');
-console.log('Ender and Lyra selected-reference field-sprite candidate contract: PASS');
+console.log('Ender, Lyra, and Ionia selected-reference field-sprite candidate contract: PASS');
+

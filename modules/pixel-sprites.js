@@ -24,15 +24,18 @@
   const ENDER_FIELD_PREVIEW_PARAM = 'aetherwakeFieldArtPreview';
   const ENDER_FIELD_CANDIDATE_PATH = 'assets/characters/v1/ender/field-idle-walk-candidate.png';
   const LYRA_FIELD_CANDIDATE_PATH = 'assets/characters/v1/lyra/field-idle-walk-candidate.png';
+  const IONIA_FIELD_CANDIDATE_PATH = 'assets/characters/v1/ionia/field-idle-walk-candidate.png';
   const ENDER_FIELD_CELL_WIDTH = 28;
   const ENDER_FIELD_CELL_HEIGHT = 36;
   const FIELD_ART_CANDIDATES = Object.freeze({
     ender: Object.freeze({ path: ENDER_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
     lyra: Object.freeze({ path: LYRA_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
+    ionia: Object.freeze({ path: IONIA_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
   });
   const fieldArtCandidateStates = {
     ender: { state: 'idle', image: null },
     lyra: { state: 'idle', image: null },
+    ionia: { state: 'idle', image: null },
   };
   let previewAtlas = null;
   let previewAtlasState = 'idle';
@@ -771,6 +774,7 @@
     ENDER_FIELD_PREVIEW_PARAM,
     ENDER_FIELD_CANDIDATE_PATH,
     LYRA_FIELD_CANDIDATE_PATH,
+    IONIA_FIELD_CANDIDATE_PATH,
     isFieldArtCandidateRequested,
     drawFieldCandidate,
     VERSION: '0.3.0',
@@ -795,3 +799,4 @@
 
   root.AetherPixelSprites = api;
 })(typeof window !== 'undefined' ? window : globalThis);
+

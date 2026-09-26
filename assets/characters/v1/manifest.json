@@ -71,7 +71,7 @@
           "hurt",
           "smile"
         ],
-        "source": "Regenerated from the creator-supplied enderbest1.jpg reference at the user’s direction; this is the selected likeness and outfit, opt-in preview only."
+        "source": "Regenerated from the creator-supplied enderbest1.jpg reference at the user\u2019s direction; this is the selected likeness and outfit, opt-in preview only."
       },
       "candidateFieldSprite": {
         "status": "candidate",
@@ -231,7 +231,21 @@
         }
       },
       "silhouetteTestRequired": true,
-      "sourceReference": "canonical Drive visual-bible authority"
+      "sourceReference": "canonical Drive visual-bible authority",
+      "candidateFieldSprite": {
+        "status": "candidate",
+        "path": "assets/characters/v1/ionia/field-idle-walk-candidate.png",
+        "width": 56,
+        "height": 36,
+        "cellWidth": 28,
+        "cellHeight": 36,
+        "frames": [
+          "idle",
+          "walk"
+        ],
+        "transparent": true,
+        "source": "Generated in Canva from the Aetherwake Skybound Character Compendium; opt-in field-art preview only."
+      }
     },
     "reson": {
       "status": "planned",
