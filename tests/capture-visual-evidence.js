@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const { URL } = require('url');
 
 const BASE = path.resolve(__dirname, '..');
@@ -16,6 +17,18 @@ const OUT = path.resolve(
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function resolveSourceBinding() {
+  const explicit = process.env.AETHERWAKE_SOURCE_SHA || process.env.GITHUB_SHA;
+  if (explicit) return { sha: explicit, mode: 'environment', workingTreeClean: null };
+  try {
+    const sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: BASE, encoding: 'utf8' }).trim();
+    const status = execFileSync('git', ['status', '--porcelain'], { cwd: BASE, encoding: 'utf8' }).trim();
+    return { sha, mode: 'local-git-head', workingTreeClean: status.length === 0 };
+  } catch (error) {
+    return { sha: 'LOCAL_UNBOUND', mode: 'unbound', workingTreeClean: null };
+  }
 }
 
 function createServer() {
@@ -465,7 +478,8 @@ async function capture(page, id, description) {
     const manifest = {
       contract: 'AETHERWAKE_VISUAL_EVIDENCE_V1',
       generatedAt: new Date().toISOString(),
-      sourceSha: process.env.AETHERWAKE_SOURCE_SHA || process.env.GITHUB_SHA || 'LOCAL_UNBOUND',
+      sourceSha: resolveSourceBinding().sha,
+      sourceBinding: resolveSourceBinding(),
       rendering: {
         browser: 'playwright-chromium',
         viewport: { width: 1440, height: 960 },

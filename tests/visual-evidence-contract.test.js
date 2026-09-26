@@ -23,8 +23,12 @@ assert(source.includes('AETHERWAKE_VISUAL_EVIDENCE_V1'),
   'visual evidence manifest contract missing');
 assert(source.includes('CAPTURE_ONLY_NOT_VISUAL_PASS'),
   'capture harness must not self-promote screenshots to visual PASS');
-assert(source.includes("sourceSha: process.env.AETHERWAKE_SOURCE_SHA || process.env.GITHUB_SHA || 'LOCAL_UNBOUND'"),
-  'visual evidence must prefer the exact PR-head SHA over the synthetic merge SHA');
+assert(source.includes('function resolveSourceBinding()'),
+  'visual evidence must resolve a concrete local or CI source binding');
+assert(source.includes("execFileSync('git', ['rev-parse', 'HEAD']"),
+  'local visual evidence must bind to git HEAD when CI SHA is unavailable');
+assert(source.includes('workingTreeClean'),
+  'local evidence binding must record working-tree cleanliness');
 assert(source.includes("sha256(file)"),
   'visual evidence screenshots must be hashed');
 assert(source.includes("viewport: { width: 1440, height: 960 }"),
