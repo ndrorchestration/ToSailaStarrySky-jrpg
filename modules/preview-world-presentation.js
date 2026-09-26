@@ -578,6 +578,43 @@
     vertex(CELL*28.6,CELL*29.1); vertex(CELL*12.0,CELL*31.0);
     endShape(CLOSE);
 
+    // Low-cost material breakup: authored grass shelves, stone service pads,
+    // and cliff-edge flecks stop the playable crown reading as one flat green polygon.
+    // Counts are intentionally bounded so the projected world remains inside the visual budget.
+    const grassPatches = reducedDetail ? 6 : 12;
+    noStroke();
+    for (let i = 0; i < grassPatches; i++) {
+      const gx = CELL * (3.4 + ((i * 7) % 25));
+      const gy = CELL * (4.1 + ((i * 11) % 23));
+      const gw = CELL * (2.0 + (i % 4) * 0.55);
+      const gh = CELL * (0.65 + (i % 3) * 0.18);
+      fill(96 + (i % 3) * 6, 137 + (i % 4) * 5, 88 + (i % 2) * 5, reducedDetail ? 30 : 42);
+      ellipse(gx, gy, gw, gh);
+    }
+
+    // Three stone/service islands add hard material contrast near travel routes.
+    const pads = [
+      [CELL*8.0,CELL*19.6,CELL*4.5,CELL*1.4],
+      [CELL*18.4,CELL*10.8,CELL*4.2,CELL*1.25],
+      [CELL*24.2,CELL*21.1,CELL*3.8,CELL*1.15],
+    ];
+    for (let i = 0; i < pads.length; i++) {
+      const [px,py,pw,ph] = pads[i];
+      fill(74,84,78,reducedDetail ? 48 : 64); ellipse(px,py,pw,ph);
+      fill(137,139,116,reducedDetail ? 28 : 40); ellipse(px-CELL*0.35,py-CELL*0.10,pw*0.58,ph*0.40);
+    }
+
+    // Broken rim accents imply grass over stone without tracing every edge.
+    stroke(133,145,108,reducedDetail ? 36 : 52);
+    strokeWeight(1.2);
+    const rimMarks = reducedDetail ? 8 : 14;
+    for (let i = 0; i < rimMarks; i++) {
+      const x = CELL * (2.2 + ((i * 13) % 28));
+      const y = CELL * (27.2 + ((i * 5) % 3));
+      line(x,y,x+CELL*(0.45+(i%3)*0.12),y-CELL*0.12);
+    }
+    noStroke();
+
     // Curved travel routes read like worn ground rather than rectangular strips.
     noFill();
     stroke(111, 91, 65, 190);

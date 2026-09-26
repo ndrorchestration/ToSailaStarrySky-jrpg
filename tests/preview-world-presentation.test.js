@@ -118,6 +118,10 @@ assert(source.includes('drawCargoCrate') && source.includes('drawAetherStone') &
   'projected world must route prototype cell props through shared authored prop renderers');
 assert(source.includes('if (reducedDetail && type !== 6) continue'),
   'dock benchmark must suppress duplicate generic debris while preserving story signal props');
+assert(source.includes('Low-cost material breakup') && source.includes('const grassPatches = reducedDetail ? 6 : 12'),
+  'projected world must apply bounded grass/stone material breakup rather than one flat crown');
+assert(source.includes('const rimMarks = reducedDetail ? 8 : 14'),
+  'projected world must retain bounded cliff-edge material accents');
 const presentation = sandbox.window.AetherPreviewWorldPresentation;
 assert(presentation, 'Preview world presentation module is missing');
 assert.strictEqual(typeof presentation.draw, 'function');
