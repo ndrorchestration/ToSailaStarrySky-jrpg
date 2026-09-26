@@ -2388,7 +2388,7 @@ function drawDialoguePortrait(npc, x, y, size) {
     drawingContext.rect(x + 4, y + 4, size - 8, size - 8);
     drawingContext.clip();
     characters.drawPortrait(id, x + size / 2, y + size + 8, {
-      scale: Math.max(1.35, size / 45),
+      scale: Math.max(1.45, size / 43),
       depth: 0.82,
       now: millis(),
       facing: 'right',
@@ -2434,10 +2434,10 @@ function drawDialogueOverlay() {
   const bh = dialogueLayout.h;
   const bx = dialogueLayout.x;
   const by = dialogueLayout.y;
-  const portraitSize = 80;
+  const portraitSize = 88;
   const gap = 16;
   const px = bx + 14;
-  const py = by + 22;
+  const py = by + 18;
   const textX = px + portraitSize + gap;
   const textW = bw - portraitSize - gap - 34;
 
