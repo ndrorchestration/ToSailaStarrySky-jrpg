@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'visual-benchmark.js' });
 const api = sandbox.window.AetherVisualBenchmark;
 
 assert(api, 'visual benchmark API missing');
-assert.strictEqual(api.VERSION, '0.1.0');
+assert.strictEqual(api.VERSION, '0.5.0');
 for (const fn of ['isActive','drawBackdrop','drawDragonfly','drawLighting','drawDockLights','drawForeground']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -29,6 +29,8 @@ assert.strictEqual(
 );
 assert(!source.includes('groundLayer['), 'benchmark presentation must not mutate/read collision topology');
 assert(!source.includes('quest.'), 'benchmark presentation must not mutate/read quest authority');
+assert(source.includes('aetherwake-preview-world-pixelart-v2.png'), 'benchmark must bind the admitted painted-world authority');
+assert(source.includes('paintedWorldReady'), 'benchmark painted-world fallback state missing');
 
 const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
@@ -45,6 +47,8 @@ assert(renderFunction.includes("typeof benchmark.isActive === 'function'"),
   'runtime must verify the benchmark activation method');
 assert(renderFunction.includes('benchmark.isActive(player, airNavigationState)'),
   'runtime does not gate benchmark against real world/navigation state');
+assert(renderFunction.includes('dockBenchmark: benchmarkActive'),
+  'runtime must bind benchmark mode into world presentation for correct environment render ordering');
 for (const method of ['drawBackdrop', 'drawDragonfly', 'drawLighting', 'drawForeground']) {
   assert(renderFunction.includes('benchmark.' + method + '('),
     'runtime benchmark ' + method + ' integration missing');

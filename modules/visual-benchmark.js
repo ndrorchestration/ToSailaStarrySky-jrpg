@@ -8,7 +8,11 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.5.0';
+  const PAINTED_WORLD_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
+  let paintedWorld = null;
+  let paintedWorldRequested = false;
+  let paintedWorldReady = false;
 
   function isActive(player, airNavigationState) {
     if (!player || !airNavigationState) return false;
@@ -29,6 +33,48 @@
     const dusk = duskFactor(ctx.dayTime);
 
     noStroke();
+
+    if (!paintedWorldRequested && typeof loadImage === 'function') {
+      paintedWorldRequested = true;
+      try {
+        paintedWorld = loadImage(
+          PAINTED_WORLD_PATH,
+          () => { paintedWorldReady = true; },
+          () => { paintedWorld = null; paintedWorldReady = false; }
+        );
+      } catch (error) {
+        paintedWorld = null;
+        paintedWorldReady = false;
+      }
+    }
+
+    if (paintedWorldReady && paintedWorld && typeof image === 'function') {
+      push();
+      noSmooth();
+      const cover = Math.max(w / paintedWorld.width, h / paintedWorld.height);
+      const dw = paintedWorld.width * cover;
+      const dh = paintedWorld.height * cover;
+      image(paintedWorld, (w - dw) / 2, (h - dh) / 2, dw, dh);
+      pop();
+      // Late-dusk grade preserves the benchmark's cool ambient / warm practical rule.
+      fill(20, 24, 55, Math.round(92 + dusk * 40));
+      rect(0, 0, w, h);
+      fill(104, 73, 112, Math.round(22 + dusk * 18));
+      rect(0, Math.round(h * 0.48), w, Math.round(h * 0.52));
+
+      // Tiny distant air traffic and first stars keep the scene alive without
+      // re-running the heavier procedural island/cloud backdrop.
+      for (let i = 0; i < 3; i++) {
+        const x = Math.round((now * (0.008 + i * 0.003) + 120 + i * 220) % (w + 80)) - 40;
+        const y = Math.round(h * (0.20 + i * 0.07));
+        fill(205, 225, 230, 105); rect(x, y, 7, 1);
+        fill(42, 255, 181, 88); rect(x - 2, y, 1, 1);
+      }
+      fill(224, 232, 245, 110);
+      const stars = [[71,54],[132,89],[218,46],[321,74],[417,39],[542,82],[646,51],[778,97],[889,48]];
+      for (const [sx, sy] of stars) rect(sx % w, sy, 1, 1);
+      return;
+    }
 
     // Banded dusk gradient: deliberately pixel-authored rather than a smooth
     // vector gradient. The map remains the playable plane over this sky.
@@ -101,6 +147,7 @@
     for (const [sx, sy] of stars) rect(sx % w, sy, 1, 1);
   }
 
+
   function drawDragonfly(ctx) {
     const visual = root.AetherDragonflyVisual;
     if (!visual || typeof visual.draw !== 'function') {
@@ -151,6 +198,9 @@
     const w = ctx.width;
     const h = ctx.height;
     const now = ctx.now || 0;
+
+    const kit = root.AetherEnvironmentVisualKit;
+    if (kit && typeof kit.drawDockForeground === 'function') kit.drawDockForeground(ctx);
 
     // Near railing/cable silhouette creates a foreground depth band.
     noStroke();

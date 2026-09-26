@@ -532,7 +532,7 @@
     endShape(CLOSE);
   }
 
-  function drawDimensionalGround(input, now) {
+  function drawDimensionalGround(input, now, reducedDetail = false) {
     const ground = input.groundLayer || [];
     const t = Number(now) || 0;
 
@@ -599,7 +599,7 @@
 
     // Broad vegetation patches and tree clusters break the open platform read.
     noStroke();
-    for (let i = 0; i < 24; i++) {
+    for (let i = 0; i < (reducedDetail ? 12 : 24); i++) {
       const x = CELL * (2.8 + ((i * 11) % 26));
       const y = CELL * (3.1 + ((i * 17) % 25));
       const sway = Math.sin(t * 0.0018 + i) * 2;
@@ -651,7 +651,7 @@
     // Wind-driven grass silhouettes create motion at character scale.
     stroke(57, 91, 57, 175);
     strokeWeight(1.5);
-    for (let i = 0; i < 42; i++) {
+    for (let i = 0; i < (reducedDetail ? 18 : 42); i++) {
       const x = CELL * (2 + ((i * 19) % 28));
       const y = CELL * (2 + ((i * 13) % 28));
       const wind = Math.sin(t * 0.003 + i * 0.7) * 3;
@@ -704,10 +704,17 @@
     const f = centerY - b * focusX - d * focusY;
     applyMatrix(a, b, c, d, e, f);
     smooth();
-    drawDimensionalGround(input, now);
+    drawDimensionalGround(input, now, Boolean(input.dockBenchmark));
     pop();
 
     drawProjectedAtmosphere(now, w, h);
+
+    // Benchmark dock service geometry belongs below actors, not over them.
+    if (input.dockBenchmark) {
+      const kit = root.AetherEnvironmentVisualKit;
+      if (kit && typeof kit.drawDockSurface === 'function') kit.drawDockSurface({ width: w, height: h, now });
+      if (kit && typeof kit.drawDockMidground === 'function') kit.drawDockMidground({ width: w, height: h, now });
+    }
 
     // Add a low atmospheric veil where the projected island meets the cloud sea.
     fill(205, 225, 230, 24);

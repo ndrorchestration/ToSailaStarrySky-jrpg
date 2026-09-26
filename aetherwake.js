@@ -4389,6 +4389,7 @@ function render() {
         isSkyLayerVisible,
         quest,
         skipBackdrop: benchmarkActive,
+        dockBenchmark: benchmarkActive,
       });
 
     if (!previewRendered) {

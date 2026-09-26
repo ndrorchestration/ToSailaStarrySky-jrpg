@@ -124,10 +124,11 @@
     "admit:chapter1-audio:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\admit-chapter1-audio.ps1",
     "test:chapter1-character-sheet": "node tests/chapter1-character-sheet-presentation.test.js",
     "verify:chapter1:local": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\verify-chapter1-local.ps1",
-    "test:chapter1-visual": "npm run test:visual-style-contract && npm run test:title-visual && npm run test:first-wake-visual && npm run test:dialogue-visual && npm run test:combat-visual && npm run test:flight-visual && npm run test:visual-package-integration && npm run test:16bit-world-art && npm run test:chapter1-character-sheet",
+    "test:chapter1-visual": "npm run test:visual-style-contract && npm run test:environment-visual-kit && npm run test:title-visual && npm run test:first-wake-visual && npm run test:dialogue-visual && npm run test:combat-visual && npm run test:flight-visual && npm run test:visual-package-integration && npm run test:16bit-world-art && npm run test:chapter1-character-sheet",
     "verify:chapter1:release-evidence": "node scripts/verify-chapter1-release-evidence.js",
     "resume:chapter1:installer": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\resume-chapter1-installer-tail.ps1",
     "test:chapter1-package-fingerprint": "node tests/chapter1-package-fingerprint.test.js",
-    "test:visual-style-contract": "node scripts/validate-visual-style-contract.js"
+    "test:visual-style-contract": "node scripts/validate-visual-style-contract.js",
+    "test:environment-visual-kit": "node tests/environment-visual-kit.test.js"
   }
 }
