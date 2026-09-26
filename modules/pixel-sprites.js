@@ -573,8 +573,6 @@
         try {
           enderFieldCandidate = loadImage(
             ENDER_FIELD_CANDIDATE_PATH,
-    isFieldArtCandidateRequested,
-    drawFieldCandidate,
             (loaded) => {
               enderFieldCandidate = loaded || enderFieldCandidate;
               enderFieldCandidateState = enderFieldCandidate &&
@@ -771,6 +769,10 @@
   }
 
   const api = Object.freeze({
+    ENDER_FIELD_PREVIEW_PARAM,
+    ENDER_FIELD_CANDIDATE_PATH,
+    isFieldArtCandidateRequested,
+    drawFieldCandidate,
     VERSION: '0.3.0',
     CELL_SIZE: 1,
     PREVIEW_ATLAS_PATH,
