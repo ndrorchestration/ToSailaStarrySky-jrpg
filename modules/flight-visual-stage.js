@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.3.0';
+  const VERSION = '0.4.0';
   const FLIGHT_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   let flightBackground = null;
   let flightBackgroundRequested = false;
@@ -347,19 +347,27 @@
     const travel = ctx.travel;
     const state = ctx.state;
 
-    // Keep HUD diegetic and compact: route ribbon, not a giant debug map.
+    // Shared UI geometry keeps flight inside the same instrument family.
+    const uiVisual = root.AetherUIVisualSystem;
+    const layout = uiVisual && typeof uiVisual.layoutFlight === 'function'
+      ? uiVisual.layoutFlight(w, h)
+      : { routeRibbon: { x: 24, y: 24, w: Math.min(544, w - 48), h: 64 } };
+    const ribbon = layout.routeRibbon;
+    const panel = uiVisual && typeof uiVisual.panelRGBA === 'function'
+      ? uiVisual.panelRGBA()
+      : [9, 13, 24, 214];
     noStroke();
-    fill(9, 13, 24, 205);
-    rect(22, 20, Math.min(550, w - 44), 62);
+    fill(...panel);
+    rect(ribbon.x, ribbon.y, ribbon.w, ribbon.h, 8);
 
     fill(42, 255, 181, 120);
-    rect(34, 31, 112, 2);
+    rect(ribbon.x + 12, ribbon.y + 11, 112, 2);
 
     textAlign(LEFT, TOP);
     textFont('Segoe UI Semibold');
     textSize(8);
     fill(232, 220, 198, 220);
-    text('OPEN-SKY FLIGHT', 34, 39);
+    text('OPEN-SKY FLIGHT', ribbon.x + 12, ribbon.y + 19);
 
     textFont('Trebuchet MS');
     textSize(13);
@@ -369,24 +377,24 @@
       '  WEATHER ' + travel.weather.label +
       '  SPEED ' + travel.effectiveSpeed.toFixed(2) +
       '  PRESSURE ' + travel.encounterPressure,
-      34, 56
+      ribbon.x + 12, ribbon.y + 36
     );
 
     if (travel.route && travel.route.route) {
       const progress = Math.round(travel.route.progress * 100);
       fill(205, 225, 230, 185);
-      text('ROUTE ' + travel.route.route.label + '  //  ' + progress + '%', 290, 39);
+      text('ROUTE ' + travel.route.route.label + '  //  ' + progress + '%', ribbon.x + 268, ribbon.y + 19);
       fill(31, 44, 63, 230);
-      rect(290, 60, 218, 6);
+      rect(ribbon.x + 268, ribbon.y + 40, 218, 6);
       fill(42, 255, 181, 170);
-      rect(291, 61, Math.round(216 * travel.route.progress), 4);
+      rect(ribbon.x + 269, ribbon.y + 41, Math.round(216 * travel.route.progress), 4);
     }
 
     textAlign(RIGHT, TOP);
     textFont('Segoe UI Semibold');
     textSize(7);
     fill(232, 220, 198, 130);
-    text('ARROWS STEER  Q/E ALT  D DOCK  L/ESC LAND', w - 28, 24);
+    text('ARROWS STEER  Q/E ALT  D DOCK  L/ESC LAND', w - 24, 24);
     textAlign(LEFT, TOP);
   }
 
@@ -402,18 +410,26 @@
     const approach = ctx.travel.approach;
 
     if (nearest && nearest.landmark) {
+      const uiVisual = root.AetherUIVisualSystem;
+      const flightLayout = uiVisual && typeof uiVisual.layoutFlight === 'function'
+        ? uiVisual.layoutFlight(w, h)
+        : { nearestSignal: { x: w - 264, y: h - 72, w: 240, h: 48 } };
+      const signal = flightLayout.nearestSignal;
+      const panel = uiVisual && typeof uiVisual.panelRGBA === 'function'
+        ? uiVisual.panelRGBA()
+        : [9, 13, 24, 214];
       noStroke();
-      fill(9, 13, 24, 190);
-      rect(w - 268, h - 74, 246, 48);
+      fill(...panel);
+      rect(signal.x, signal.y, signal.w, signal.h, 8);
       textAlign(LEFT, TOP);
       textFont('Segoe UI Semibold');
       textSize(7);
       fill(42, 255, 181, 180);
-      text('NEAREST SIGNAL', w - 254, h - 62);
+      text('NEAREST SIGNAL', signal.x + 14, signal.y + 12);
       textFont('Trebuchet MS');
       textSize(13);
       fill(232, 220, 198, 215);
-      text(nearest.landmark.label + '  ' + nearest.distance.toFixed(1), w - 254, h - 47);
+      text(nearest.landmark.label + '  ' + nearest.distance.toFixed(1), signal.x + 14, signal.y + 27);
     }
 
     if (approach && approach.active && approach.landmark) {

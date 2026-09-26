@@ -42,9 +42,24 @@
     });
   }
 
+  function layoutDialogue(w, h) {
+    const safe = TOKENS.safeMarginPx;
+    const panelW = Math.min(820, w - safe * 2);
+    const panelH = 128;
+    return Object.freeze({ x: Math.round((w - panelW) / 2), y: h - safe - panelH, w: panelW, h: panelH });
+  }
+
+  function layoutFlight(w, h) {
+    const safe = TOKENS.safeMarginPx;
+    return Object.freeze({
+      routeRibbon: Object.freeze({ x: safe, y: safe, w: Math.min(544, w - safe * 2), h: 64 }),
+      nearestSignal: Object.freeze({ x: w - safe - 240, y: h - safe - 48, w: 240, h: 48 }),
+    });
+  }
+
   function panelRGBA() {
     return [11, 16, 33, Math.round(255 * TOKENS.panelOpacity)];
   }
 
-  root.AetherUIVisualSystem = Object.freeze({ VERSION, TOKENS, snap, layoutCombat, panelRGBA });
+  root.AetherUIVisualSystem = Object.freeze({ VERSION, TOKENS, snap, layoutCombat, layoutDialogue, layoutFlight, panelRGBA });
 })(typeof window !== 'undefined' ? window : globalThis);

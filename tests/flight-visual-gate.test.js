@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'flight-visual-stage.js' });
 const api = sandbox.window.AetherFlightVisual;
 
 assert(api, 'flight visual API missing');
-assert.strictEqual(api.VERSION, '0.3.0');
+assert.strictEqual(api.VERSION, '0.4.0');
 for (const fn of ['altitudeProfile','weatherPalette','drawBackdrop','drawDragonfly','drawForeground','drawRouteOverlay','drawLandmarkBeacons']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }

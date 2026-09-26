@@ -19,6 +19,20 @@ const noLog = api.layoutCombat(960, 640, false);
 assert.strictEqual(noLog.logPanel, null, 'empty combat log must not reserve a primary panel');
 assert(noLog.statusPanel.x >= api.TOKENS.safeMarginPx, 'combat status panel violates safe margin');
 assert(noLog.statusPanel.h <= 432, 'combat status panel must not reserve unused lower-screen space');
+const dialogue = api.layoutDialogue(960, 640);
+assert.strictEqual(dialogue.x, 70, 'dialogue panel must remain centered inside 24px safe area');
+assert.strictEqual(dialogue.y, 488, 'dialogue panel must respect bottom safe margin');
+assert.strictEqual(dialogue.w, 820);
+assert.strictEqual(dialogue.h, 128);
+const flight = api.layoutFlight(960, 640);
+assert.strictEqual(flight.routeRibbon.x, 24);
+assert.strictEqual(flight.routeRibbon.y, 24);
+assert(flight.routeRibbon.w <= 544 && flight.routeRibbon.h === 64,
+  'flight route ribbon exceeds shared HUD budget');
+assert.strictEqual(flight.nearestSignal.x + flight.nearestSignal.w, 936,
+  'nearest-signal card must respect right safe margin');
+assert.strictEqual(flight.nearestSignal.y + flight.nearestSignal.h, 616,
+  'nearest-signal card must respect bottom safe margin');
 const withLog = api.layoutCombat(960, 640, true);
 assert(withLog.logPanel && withLog.logPanel.w <= 184 && withLog.logPanel.h <= 184,
   'combat log must remain compact');

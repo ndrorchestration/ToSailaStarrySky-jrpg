@@ -2418,10 +2418,14 @@ function drawDialogueOverlay() {
   rect(0, 0, width, 20);
   rect(0, height - 20, width, 20);
 
-  const bw = Math.min(820, width - 64);
-  const bh = 126;
-  const bx = Math.round((width - bw) / 2);
-  const by = height - bh - 34;
+  const uiVisual = window.AetherUIVisualSystem;
+  const dialogueLayout = uiVisual && typeof uiVisual.layoutDialogue === 'function'
+    ? uiVisual.layoutDialogue(width, height)
+    : { x: 32, y: height - 160, w: width - 64, h: 126 };
+  const bw = dialogueLayout.w;
+  const bh = dialogueLayout.h;
+  const bx = dialogueLayout.x;
+  const by = dialogueLayout.y;
   const portraitSize = 80;
   const gap = 16;
   const px = bx + 14;
@@ -2431,8 +2435,11 @@ function drawDialogueOverlay() {
 
   // Main window with layered instrument-panel depth.
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2], 248 * alpha);
-  rect(bx, by, bw, bh);
+  const dialoguePanel = uiVisual && typeof uiVisual.panelRGBA === 'function'
+    ? uiVisual.panelRGBA()
+    : [C.navy[0], C.navy[1], C.navy[2], 214];
+  fill(dialoguePanel[0], dialoguePanel[1], dialoguePanel[2], dialoguePanel[3] * alpha);
+  rect(bx, by, bw, bh, 8);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 18 * alpha);
   rect(bx + 4, by + 4, bw - 8, bh - 8);
 
