@@ -4865,17 +4865,37 @@ function drawCovenantField() {
 // --- Player -----------------------------------------------------------------
 
 function drawPlayer() {
-  const sprites = window.AetherPixelSprites;
-  if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
-    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
-  }
   const px = player.px;
   const py = player.py;
   const moving = Math.abs(player.px - player.tileX * 16) > 0.5 ||
     Math.abs(player.py - player.tileY * 16) > 0.5;
-  const frame = moving ? Math.floor(frameCount / 8) % 2 : 0;
-  sprites.drawShadow(px + 8, py + 16, 1);
-  sprites.draw('ender', px, py, { frame });
+  const previousX = Number.isFinite(drawPlayer._lastX) ? drawPlayer._lastX : px;
+  const facing = px < previousX - 0.1 ? 'left' : (px > previousX + 0.1 ? 'right' : (drawPlayer._facing || 'right'));
+  drawPlayer._lastX = px;
+  drawPlayer._facing = facing;
+
+  let rendered = false;
+  const characters = window.AetherCharacterRenderer;
+  if (characters && characters.validate && characters.validate()) {
+    rendered = characters.draw('ender', px + 8, py + 16, {
+      scale: 0.82,
+      depth: 0.88,
+      now: millis(),
+      facing,
+      action: moving ? 'walk' : 'idle',
+      expression: 'neutral'
+    });
+  }
+
+  if (!rendered) {
+    const sprites = window.AetherPixelSprites;
+    if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
+      throw new Error('AETHER_ENDER_VISUAL_UNAVAILABLE');
+    }
+    const frame = moving ? Math.floor(frameCount / 8) % 2 : 0;
+    sprites.drawShadow(px + 8, py + 16, 1);
+    sprites.draw('ender', px, py, { frame });
+  }
 
   fill(color(232, 220, 198));
   noStroke();
