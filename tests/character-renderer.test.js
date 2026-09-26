@@ -13,7 +13,7 @@ vm.runInNewContext(source, sandbox, { filename: 'character-renderer.js' });
 const api = sandbox.window.AetherCharacterRenderer;
 
 assert(api, 'articulated character renderer missing');
-assert.strictEqual(api.VERSION, '0.2.0');
+assert.strictEqual(api.VERSION, '0.3.0');
 assert(api.validate(), 'articulated character profiles must validate');
 for (const id of ['ender','reson','aepex','ionia','lyra']) {
   assert(api.PROFILES[id], id + ' articulated profile missing');
@@ -31,6 +31,13 @@ assert(source.includes('profile.harness'), 'Aepex harness cue missing');
 assert(source.includes('profile.tattoos'), 'Aepex tattoo silhouette cue missing');
 assert(source.includes('profile.goggles'), 'Ender goggles silhouette cue missing');
 assert(source.includes('profile.scarf'), 'Reson scarf secondary-motion cue missing');
+assert(api.PROFILES.ender.freckles === true, 'Ender freckles cue missing');
+assert(api.PROFILES.reson.mustache === true && api.PROFILES.reson.cap, 'Reson cap/mustache authority missing');
+assert(api.PROFILES.aepex.eyebrowNotch === true, 'Aepex eyebrow-notch authority missing');
+assert(api.PROFILES.ionia.hairMode === 'curlyShoulder', 'Ionia curly shoulder-length hair authority missing');
+assert(api.PROFILES.lyra.hairMode === 'longRed', 'Lyra long red hair authority missing');
+assert(api.PROFILES.ionia.hair[0] > api.PROFILES.ionia.hair[2], 'Ionia hair must read blond/warm rather than brown');
+assert(api.PROFILES.lyra.hair[0] > api.PROFILES.lyra.hair[1] * 2, 'Lyra hair must read red');
 
 const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
 assert(html.includes('modules/character-renderer.js'), 'character renderer script missing from packaged runtime');

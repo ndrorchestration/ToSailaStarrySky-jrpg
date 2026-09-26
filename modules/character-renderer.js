@@ -4,40 +4,40 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
   const PROFILES = Object.freeze({
     ender: Object.freeze({
       skin:[214,170,132], hair:[154,94,50], hairDark:[100,57,37],
       shirt:[55,61,65], vest:[172,149,104], accent:[58,105,66],
       leather:[81,55,38], metal:[176,130,57], boot:[50,39,34],
       build:0.98, shoulder:1.0, leg:1.02, hairMode:'crop',
-      goggles:true, embroidery:true, posture:'focused'
+      goggles:true, freckles:true, embroidery:true, posture:'focused'
     }),
     reson: Object.freeze({
       skin:[220,178,143], hair:[70,45,33], hairDark:[48,32,27],
       shirt:[216,202,176], vest:[78,62,48], accent:[133,50,40],
       leather:[75,50,35], metal:[172,121,52], boot:[47,36,31],
       build:1.16, shoulder:1.16, leg:1.0, hairMode:'cap',
-      scarf:[133,50,40], cap:[115,48,40], posture:'open'
+      scarf:[133,50,40], cap:[150,43,45], mustache:true, posture:'open'
     }),
     aepex: Object.freeze({
       skin:[211,165,132], hair:[194,164,122], hairDark:[119,98,79],
       shirt:[39,40,44], vest:[52,49,48], accent:[181,134,60],
       leather:[52,43,39], metal:[174,127,54], boot:[35,31,30],
       build:0.94, shoulder:0.98, leg:1.05, hairMode:'undercut',
-      tattoos:true, harness:true, posture:'guarded'
+      tattoos:true, eyebrowNotch:true, harness:true, posture:'guarded'
     }),
     ionia: Object.freeze({
-      skin:[202,158,126], hair:[82,61,47], hairDark:[57,43,35],
+      skin:[202,158,126], hair:[205,169,92], hairDark:[139,103,57],
       shirt:[48,63,67], vest:[111,102,82], accent:[69,132,137],
       leather:[72,54,42], metal:[145,115,71], boot:[46,40,38],
-      build:0.96, shoulder:0.98, leg:1.0, hairMode:'braid', posture:'steady'
+      build:0.96, shoulder:0.98, leg:1.0, hairMode:'curlyShoulder', curls:true, posture:'steady'
     }),
     lyra: Object.freeze({
-      skin:[218,178,145], hair:[113,78,52], hairDark:[78,53,39],
+      skin:[218,178,145], hair:[163,58,43], hairDark:[104,39,34],
       shirt:[70,76,86], vest:[145,111,85], accent:[118,159,164],
       leather:[80,58,46], metal:[151,119,75], boot:[51,43,40],
-      build:0.84, shoulder:0.88, leg:0.94, hairMode:'bob', posture:'light'
+      build:0.84, shoulder:0.88, leg:0.94, hairMode:'longRed', longHair:true, posture:'light'
     })
   });
 
@@ -246,13 +246,21 @@
       fill(...profile.cap);
       arc(-1*s,faceY-5*s+nod,15*s,7*s,Math.PI,Math.PI*2);
       rect(-7*s,faceY-6*s+nod,4*s,1.5*s,0.5*s);
-    } else if (profile.hairMode === 'braid') {
-      arc(0,faceY-4.2*s+nod,12*s,8*s,Math.PI,Math.PI*2);
-      ellipse(5.8*s,faceY+1*s+nod,2.4*s,8*s);
-    } else if (profile.hairMode === 'bob') {
-      arc(0,faceY-2*s+nod,13*s,13*s,Math.PI,Math.PI*2);
-      rect(-6*s,faceY-3*s+nod,2.2*s,7*s,1*s);
-      rect(4*s,faceY-3*s+nod,2.2*s,7*s,1*s);
+    } else if (profile.hairMode === 'curlyShoulder') {
+      arc(0,faceY-4.0*s+nod,13*s,8*s,Math.PI,Math.PI*2);
+      for (const side of [-1,1]) {
+        ellipse(side*5.2*s,faceY-1.2*s+nod,3.5*s,4.4*s);
+        ellipse(side*5.7*s,faceY+2.0*s+nod,3.8*s,4.8*s);
+        ellipse(side*5.0*s,faceY+5.0*s+nod,3.2*s,4.0*s);
+      }
+    } else if (profile.hairMode === 'longRed') {
+      arc(0,faceY-3.4*s+nod,13*s,9*s,Math.PI,Math.PI*2);
+      beginShape();
+      vertex(-6*s,faceY-2*s+nod); vertex(-7.5*s,faceY+4*s+nod);
+      vertex(-6.2*s,faceY+11*s+nod); vertex(-3.7*s,faceY+6*s+nod);
+      vertex(3.7*s,faceY+6*s+nod); vertex(6.2*s,faceY+11*s+nod);
+      vertex(7.5*s,faceY+4*s+nod); vertex(6*s,faceY-2*s+nod);
+      endShape(CLOSE);
     } else {
       arc(0,faceY-4.3*s+nod,12*s,8*s,Math.PI,Math.PI*2);
       triangle(-5*s,faceY-4*s+nod,-1*s,faceY-8*s+nod,1*s,faceY-4*s+nod);
@@ -267,11 +275,28 @@
     fill(35,30,28);
     ellipse(-2.2*s,faceY-0.5*s+nod,1.1*s,0.9*s);
     ellipse(2.2*s,faceY-0.5*s+nod,1.1*s,0.9*s);
+    if (profile.freckles) {
+      fill(151,94,70,170);
+      for (const fx of [-3.4,-2.1,2.1,3.4]) ellipse(fx*s,faceY+1.7*s+nod,0.65*s,0.65*s);
+    }
+    if (profile.eyebrowNotch) {
+      stroke(...profile.skin);
+      strokeWeight(0.8*s);
+      line(2.4*s,faceY-2.7*s+nod,3.0*s,faceY-2.1*s+nod);
+      noStroke();
+    }
     stroke(116,75,60,150);
     strokeWeight(0.5*s);
     line(0,faceY+0.2*s+nod,0.8*s,faceY+2.4*s+nod);
     noStroke();
 
+    if (profile.mustache) {
+      stroke(...profile.hairDark);
+      strokeWeight(0.75*s);
+      line(-2.3*s,faceY+3.1*s+nod,-0.3*s,faceY+3.5*s+nod);
+      line(0.3*s,faceY+3.5*s+nod,2.3*s,faceY+3.1*s+nod);
+      noStroke();
+    }
     if (expression === 'talk') {
       fill(96,53,47);
       ellipse(0,faceY+4*s+nod,2.5*s,1.6*s);
