@@ -4952,6 +4952,7 @@ function drawNPC(npc) {
   fill(color(0, 0, 0, 60));
   ellipse(px + 4, py + 8, 10, 4);
 
+  let lyraFieldCandidateDrawn = false;
   switch (npc.id) {
     case 'elder_farmer':
       drawNPCIonia(px, py);
@@ -4960,7 +4961,7 @@ function drawNPC(npc) {
       drawNPCSpirit(px, py);
       break;
     case 'child_prophet':
-      drawNPCLyra(px, py);
+      lyraFieldCandidateDrawn = drawNPCLyra(px, py);
       break;
     case 'corporate_salvager':
       drawNPCSavager(px, py);
@@ -4974,7 +4975,7 @@ function drawNPC(npc) {
   textAlign(CENTER, TOP);
   textSize(7);
   textFont('Segoe UI');
-  text(npc.name, px, py - 12);
+  text(npc.name, px, lyraFieldCandidateDrawn ? py - 32 : py - 12);
   textSize(9);
   textFont('Segoe UI');
 }
@@ -5023,6 +5024,17 @@ function drawNPCSpirit(px, py) {
 }
 
 function drawNPCLyra(px, py) {
+  const sprites = window.AetherPixelSprites;
+  if (sprites && typeof sprites.isFieldArtCandidateRequested === 'function' &&
+      sprites.isFieldArtCandidateRequested('lyra') &&
+      typeof sprites.drawFieldCandidate === 'function' &&
+      sprites.drawFieldCandidate('lyra', px, py + 8, {
+        anchor: 'bottom-center',
+        frame: Math.floor(frameCount / 16) % 2
+      })) {
+    return true;
+  }
+
   const characters = window.AetherCharacterRenderer;
   if (characters && characters.validate && characters.validate()) {
     characters.draw('lyra', px, py + 8, {
@@ -5033,11 +5045,10 @@ function drawNPCLyra(px, py) {
       action: 'idle',
       expression: 'neutral'
     });
-    return;
+    return false;
   }
 
   // Compatibility fallback only: legacy top-down sprite authority.
-  const sprites = window.AetherPixelSprites;
   if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
     throw new Error('AETHER_LYRA_VISUAL_UNAVAILABLE');
   }
@@ -5046,6 +5057,7 @@ function drawNPCLyra(px, py) {
     anchor: 'bottom-center',
     frame: Math.floor(frameCount / 16) % 2
   });
+  return false;
 }
 
 // Legacy function name retained only for compatibility; rendering authority is Lyra.
