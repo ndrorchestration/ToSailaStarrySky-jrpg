@@ -2370,7 +2370,7 @@ function getDialogueSpriteId(npc) {
   return 'settler';
 }
 
-function drawDialoguePortrait(npc, x, y, size) {
+function drawDialoguePortrait(npc, x, y, size, expression = 'talk') {
   const authoredCharacters = window.AetherAuthoredCharacterArt;
   const characters = window.AetherCharacterRenderer;
   const sprites = window.AetherPixelSprites;
@@ -2384,7 +2384,7 @@ function drawDialoguePortrait(npc, x, y, size) {
   let authoredDrawn = false;
   if (authoredCharacters && typeof authoredCharacters.drawPortrait === 'function' &&
       authoredCharacters.isPortraitReady && authoredCharacters.isPortraitReady(id)) {
-    authoredDrawn = authoredCharacters.drawPortrait(id, x + 4, y + 4, size - 8, { expression: 'talk' });
+    authoredDrawn = authoredCharacters.drawPortrait(id, x + 4, y + 4, size - 8, { expression });
   }
 
   if (!authoredDrawn && characters && characters.validate &&
@@ -2400,7 +2400,7 @@ function drawDialoguePortrait(npc, x, y, size) {
       now: millis(),
       facing: 'right',
       action: 'talk',
-      expression: 'talk',
+      expression,
     });
     drawingContext.restore();
     pop();
@@ -2477,7 +2477,7 @@ function drawDialogueOverlay() {
   const npcName = npc ? npc.name : '???';
   const npcTitle = npc && npc.title ? npc.title : '';
 
-  drawDialoguePortrait(npc, px, py, portraitSize);
+  drawDialoguePortrait(npc, px, py, portraitSize, window.UI.dialoguePortraitExpression || 'talk');
 
   // Speaker plate.
   textAlign(LEFT, TOP);
@@ -3286,6 +3286,13 @@ function initNPCs() {
           '"You want to know what I think? I think the choice isn\'t about the core or the ship or even the sky. It\'s about what you\'re willing to become when the song finally ends. Listen for it. The silence after. That\'s where the decision lives."'
         ]
       },
+      dialoguePortraitExpressions: {
+        intro: ['concern','focus','concern','concern','focus'],
+        class_ender: ['concern','concern','focus'],
+        generic_follow: ['smile'],
+        deep: ['focus','talk','concern','focus']
+      },
+
       flags: { met: false, questMarker: true }
     },
 
@@ -4007,6 +4014,13 @@ function findNearestNPC(range) {
 // Dialogue state
 // ---------------------------------------------------------------------------
 
+function resolveDialoguePortraitExpression(npc, batch, lineIndex) {
+  if (!npc || !npc.dialoguePortraitExpressions) return 'talk';
+  const schedule = npc.dialoguePortraitExpressions[batch];
+  if (!Array.isArray(schedule) || schedule.length === 0) return 'talk';
+  return schedule[Math.max(0, Math.min(schedule.length - 1, Number(lineIndex) || 0))] || 'talk';
+}
+
 function openDialogue(npc, forceIntro) {
   const classKey = getClassLockKey(npc);
   let lines = [];
@@ -4052,6 +4066,7 @@ function openDialogue(npc, forceIntro) {
   // TTS audio state
   window.UI.dialogueAudioNPC = npc.id;
   window.UI.dialogueAudioBatch = batch;
+  window.UI.dialoguePortraitExpression = resolveDialoguePortraitExpression(npc, batch, 0);
   window.UI.dialogueAudioPlayed = false;
 
   // ── Dialogue type-in effect ──
@@ -4068,6 +4083,7 @@ function openDialogue(npc, forceIntro) {
     npc: npc,
     lines: lines,
     lineIndex: 0,
+    batch: batch,
     closed: false
   };
 
@@ -4090,6 +4106,7 @@ function closeWorldDialogue() {
   window.UI.dialogueOpen = false;
   window.UI.dialogueNPC = null;
   window.UI.dialogueText = '';
+  window.UI.dialoguePortraitExpression = 'talk';
 }
 
 function nextDialogueLine() {
@@ -4098,6 +4115,9 @@ function nextDialogueLine() {
     activeDialogue.lineIndex++;
     window.UI.dialogueLineIndex = activeDialogue.lineIndex;
     window.UI.dialogueText = activeDialogue.lines[activeDialogue.lineIndex];
+    window.UI.dialoguePortraitExpression = resolveDialoguePortraitExpression(
+      activeDialogue.npc, activeDialogue.batch || window.UI.dialogueAudioBatch || 'intro', activeDialogue.lineIndex
+    );
     // Advance TTS to the next line's audio clip
     window.UI.dialogueAudioPlayed = false;
     playDialogueAudioLine();
