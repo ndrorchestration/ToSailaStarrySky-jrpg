@@ -1,0 +1,33 @@
+'use strict';
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+const root = path.resolve(__dirname, '..');
+const source = fs.readFileSync(path.join(root, 'modules', 'ui-visual-system.js'), 'utf8');
+const sandbox = { window: {}, globalThis: {} };
+vm.runInNewContext(source, sandbox, { filename: 'ui-visual-system.js' });
+const api = sandbox.window.AetherUIVisualSystem;
+assert(api, 'shared UI visual system missing');
+assert.strictEqual(api.VERSION, '0.1.0');
+assert.strictEqual(api.TOKENS.gridPx, 8);
+assert.strictEqual(api.TOKENS.safeMarginPx, 24);
+assert(api.TOKENS.panelOpacity >= 0.78 && api.TOKENS.panelOpacity <= 0.90);
+assert(api.TOKENS.minBodyContrast >= 4.5);
+assert(api.TOKENS.maxPrimaryPanels <= 2);
+const noLog = api.layoutCombat(960, 640, false);
+assert.strictEqual(noLog.logPanel, null, 'empty combat log must not reserve a primary panel');
+assert(noLog.statusPanel.x >= api.TOKENS.safeMarginPx, 'combat status panel violates safe margin');
+assert(noLog.statusPanel.h <= 432, 'combat status panel must not reserve unused lower-screen space');
+const withLog = api.layoutCombat(960, 640, true);
+assert(withLog.logPanel && withLog.logPanel.w <= 184 && withLog.logPanel.h <= 184,
+  'combat log must remain compact');
+assert(withLog.centerReserve.w >= 480, 'combat UI must preserve a large central encounter reserve');
+const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
+assert(html.includes('modules/ui-visual-system.js'), 'UI visual system missing from runtime');
+assert(html.indexOf('modules/ui-visual-system.js') < html.indexOf('aetherwake.js'),
+  'UI system must load before runtime');
+const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
+assert(runtime.includes('AetherUIVisualSystem'), 'runtime must bind shared UI visual system');
+assert(runtime.includes('hasCombatLog'), 'runtime must collapse an empty combat log');
+console.log('Aetherwake shared UI visual system: PASS');

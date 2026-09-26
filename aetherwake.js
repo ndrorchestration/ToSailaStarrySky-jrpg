@@ -880,13 +880,19 @@ function draw() {
         }
       );
     }
-    // Draw combat UI panel
+    // Shared UI layout preserves the encounter stage instead of reserving two
+    // full-height opaque sidebars. An empty combat log consumes no panel space.
+    const uiVisual = window.AetherUIVisualSystem;
+    const hasCombatLog = Boolean(window.UI && Array.isArray(window.UI.combatLog) && window.UI.combatLog.length);
+    const combatLayout = uiVisual && typeof uiVisual.layoutCombat === 'function'
+      ? uiVisual.layoutCombat(width, height, hasCombatLog)
+      : null;
     if (typeof drawCombatPanel === 'function' && combat && typeof combat.getState === 'function') {
-      drawCombatPanel(combat.getState());
+      drawCombatPanel(combat.getState(), combatLayout && combatLayout.statusPanel);
     }
-    // Draw combat log on the right
-    if (typeof drawCombatLog === 'function') {
-      drawCombatLog(width - 240, 100, 224, 280);
+    if (hasCombatLog && typeof drawCombatLog === 'function') {
+      const logBox = combatLayout && combatLayout.logPanel;
+      if (logBox) drawCombatLog(logBox.x, logBox.y, logBox.w, logBox.h);
     }
   }
   else if (gameState === STATE.DIALOGUE) {
@@ -8445,22 +8451,27 @@ function drawActionIcon(cx, cy, size, actionId) {
 }
 
 /** Draw the full combat UI panel — left side of screen */
-function drawCombatPanel(combatState) {
+function drawCombatPanel(combatState, layoutBox) {
   if (!combatState) return;
   push();
-  const px = 8, py = 8, pw = 220, ph = 580;
+  const uiVisual = window.AetherUIVisualSystem;
+  const fallback = { x: 24, y: 24, w: 200, h: 544 };
+  const box = layoutBox || fallback;
+  const px = box.x, py = box.y, pw = box.w, ph = box.h;
 
-  // Panel background
-  fill(PAL.NAVY);
+  // Panel background follows the shared translucent instrument-panel token.
+  const panelColor = uiVisual && typeof uiVisual.panelRGBA === 'function'
+    ? uiVisual.panelRGBA()
+    : [11, 16, 33, 214];
+  fill(...panelColor);
   noStroke();
-  rect(px, py, pw, ph);
+  rect(px, py, pw, ph, 8);
   drawPixelBorder(px, py, pw, ph, 3, PAL.SHADOW, PAL.TEAL);
 
   // Header
   textFont(FONT_UI);
   textSize(9);
   drawGlowText('COMBAT', px + 12, py + 8, PAL.TEAL, 9);
-  text('TURN ' + combatState.turn, px + pw - 60, py + 10);
 
   // Enemy section
   if (combatState.enemy) {
@@ -8488,7 +8499,9 @@ function drawCombatPanel(combatState) {
     textFont(FONT_UI);
     textSize(7);
     fill(PAL.DIM);
-    text('WEAKNESS: ' + (combatState.enemy.weakness || 'unknown'), px + 14, ey + 32);
+    const weakness = String(combatState.enemy.weakness || 'unknown');
+    const weaknessShort = weakness.length > 18 ? weakness.substring(0, 17).trimEnd() + '..' : weakness;
+    text('WEAK: ' + weaknessShort, px + 14, ey + 32);
   }
 
   // Player status section
@@ -8498,53 +8511,32 @@ function drawCombatPanel(combatState) {
   textSize(8);
   drawGlowText('ENDER', px + 14, sY + 6, PAL.TEAL, 8);
 
-  // Player resources
+  // Player resources use a fixed compact grid; values never compete for the
+  // same horizontal lane when the shared UI system narrows the panel.
   textFont(FONT_BODY);
-  textSize(12);
-  let rX = px + 14;
-  const rY = sY + 24;
-  // Vit
-  fill(PAL.RUST);
-  text('HP', rX, rY);
-  rX += 20;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.vit + '/' + combatState.player.maxVit, rX, rY);
-  // Echoes
-  rX += 48;
-  fill(PAL.BIO);
-  text('ECHO', rX, rY);
-  rX += 36;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.echoes.current + '/' + combatState.player.echoes.max, rX, rY);
-  // Aether
-  rX += 52;
-  fill(PAL.SCIOTO);
-  text('AETHER', rX, rY);
-  rX += 44;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.aether.current + '/' + combatState.player.aether.max, rX, rY);
-  // Staff charges
-  rX = px + 14;
-  const rY2 = sY + 48;
-  fill(PAL.TEAL);
-  text('STAFF', rX, rY2);
-  rX += 36;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.staffCharges + '/' + combatState.player.maxStaffCharges, rX, rY2);
-  // Scrap
-  rX += 52;
-  fill(PAL.DUST);
-  text('SCRAP', rX, rY2);
-  rX += 36;
-  fill(PAL.PARCHMENT);
-  text(String(combatState.player.scrap), rX, rY2);
+  textSize(10);
+  const col1 = px + 14;
+  const col2 = px + Math.round(pw * 0.53);
+  const row1 = sY + 26;
+  const row2 = sY + 48;
+  const row3 = sY + 70;
+  fill(PAL.RUST); text('HP', col1, row1);
+  fill(PAL.PARCHMENT); text(combatState.player.vit + '/' + combatState.player.maxVit, col1 + 23, row1);
+  fill(PAL.SCIOTO); text('AETHER', col2, row1);
+  fill(PAL.PARCHMENT); text(combatState.player.aether.current + '/' + combatState.player.aether.max, col2 + 45, row1);
+  fill(PAL.BIO); text('ECHO', col1, row2);
+  fill(PAL.PARCHMENT); text(combatState.player.echoes.current + '/' + combatState.player.echoes.max, col1 + 33, row2);
+  fill(PAL.TEAL); text('STAFF', col2, row2);
+  fill(PAL.PARCHMENT); text(combatState.player.staffCharges + '/' + combatState.player.maxStaffCharges, col2 + 38, row2);
+  fill(PAL.DUST); text('SCRAP', col1, row3);
+  fill(PAL.PARCHMENT); text(String(combatState.player.scrap), col1 + 38, row3);
 
   // Actions grid — eight stable number-key slots. Locked actions stay visible
   // so progression is legible without making key bindings move.
   const aX = px + 8;
   const aY = sY + 100;
   const aW = pw - 16;
-  const aH = 154;
+  const aH = 146;
   drawPixelBorder(aX, aY, aW, aH, 2, PAL.SHADOW, PAL.TEAL);
 
   textFont(FONT_UI);
@@ -8578,14 +8570,16 @@ function drawCombatPanel(combatState) {
     textSize(10);
     textAlign(LEFT, CENTER);
     const label = action.label || action.id;
+    const compactLabel = label.split(/\s+[^A-Za-z0-9]+\s+/)[0].trim();
     fill(usable ? PAL.PARCHMENT : PAL.DIM);
     noStroke();
     const statePrefix = !unlocked
-      ? 'LOCKED · '
+      ? 'LOCK ? '
       : (useEligibility && useEligibility.reason === 'ssot_blocked'
-        ? 'UNAVAILABLE · '
-        : (usable ? '' : 'NO RES · '));
-    text(statePrefix + label.substring(0, statePrefix ? 19 : 28), aX + 24, ay + 1);
+        ? 'N/A ? '
+        : (usable ? '' : 'NO RES ? '));
+    const maxLabelChars = statePrefix ? 13 : 17;
+    text(statePrefix + compactLabel.substring(0, maxLabelChars), aX + 24, ay + 1);
     // Cost indicator uses the exact same centralized legacy cost function as
     // runtime admission/payment.
     const totalCost = window.AetherAbilityDefs.getActionResourceCost(action);
@@ -8641,9 +8635,13 @@ function drawCombatPanel(combatState) {
  */
 function drawCombatLog(lx, ly, lw, lh) {
   push();
-  fill(PAL.NAVY);
+  const uiVisual = window.AetherUIVisualSystem;
+  const panelColor = uiVisual && typeof uiVisual.panelRGBA === 'function'
+    ? uiVisual.panelRGBA()
+    : [11, 16, 33, 214];
+  fill(...panelColor);
   noStroke();
-  rect(lx, ly, lw, lh);
+  rect(lx, ly, lw, lh, 8);
   drawPixelBorder(lx, ly, lw, lh, 3, PAL.SHADOW, PAL.TEAL);
 
   // Header

@@ -32,6 +32,7 @@ for (const required of [
   'pixel-sprites.js',
   'pixel-tiles.js',
   'environment-visual-kit.js',
+  'ui-visual-system.js',
   'preview-world-presentation.js',
   'dragonfly-visual.js',
   'title-visual-stage.js',
