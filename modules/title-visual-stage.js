@@ -7,7 +7,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
   const TITLE_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   let titleBackground = null;
   let titleBackgroundRequested = false;
@@ -114,47 +114,54 @@
   }
 
   function drawTitleCopy(now) {
-    const left = 88;
-    const top = 118;
+    const uiVisual = root.AetherUIVisualSystem;
+    const layout = uiVisual && typeof uiVisual.layoutTitle === 'function'
+      ? uiVisual.layoutTitle(width, height)
+      : { panel: { x: 64, y: 84, w: 448, h: 216 } };
+    const panel = layout.panel;
+    const left = panel.x + 24;
+    const top = panel.y + 28;
 
     noStroke();
-    fill(4, 7, 13, 145);
-    rect(left - 22, top - 31, 512, 245);
+    fill(5, 10, 20, 178);
+    rect(panel.x, panel.y, panel.w, panel.h, 8);
+    fill(124, 200, 232, 18);
+    rect(panel.x + 4, panel.y + 4, panel.w - 8, panel.h - 8, 6);
 
-    fill(42, 255, 181, 105);
+    fill(42, 255, 181, 125);
     rect(left, top - 12, 112, 2);
     for (let i = 0; i < 7; i++) rect(left + i * 18, top - 16, 1, 10);
 
     textAlign(LEFT, TOP);
     textFont('Segoe UI Semibold');
-    textSize(30);
+    textSize(28);
     fill(42, 255, 181);
     text('AETHERWAKE', left, top);
 
     textSize(10);
-    fill(124, 200, 232, 220);
+    fill(153, 215, 229, 235);
     text('THE LAST SOLARPUNK AIRSHIP', left + 2, top + 48);
 
     textFont('Trebuchet MS');
-    textSize(17);
+    textSize(16);
     fill(232, 220, 198, 215);
-    text('A small ship. A broken world. A song beginning to fail.', left + 2, top + 79);
+    text('A small ship. A broken world. A song beginning to fail.', left + 2, top + 76);
 
     textFont('Segoe UI Semibold');
     textSize(9);
     const pulse = 150 + Math.round((Math.sin(now * 0.004) * 0.5 + 0.5) * 90);
     fill(232, 220, 198, pulse);
-    text('NEW GAME  //  N OR ENTER', left + 2, top + 126);
+    text('NEW GAME  //  N OR ENTER', left + 2, top + 119);
 
     textFont('Trebuchet MS');
     textSize(13);
     fill(185, 158, 116, 195);
-    text('ENTER THE FIRST WAKE', left + 2, top + 157);
+    text('ENTER THE FIRST WAKE', left + 2, top + 148);
 
     // Minimal controls; deeper instructions belong in gameplay, not the hero screen.
     textSize(12);
-    fill(124, 200, 232, 145);
-    text('WASD / ARROWS move   •   E interact   •   ESC back', left + 2, top + 185);
+    fill(151, 213, 226, 195);
+    text('WASD / ARROWS move   •   E interact   •   ESC back', left + 2, top + 177);
   }
 
   function drawFooter() {

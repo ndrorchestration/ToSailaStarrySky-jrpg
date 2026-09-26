@@ -9,7 +9,7 @@ const sandbox = { window: {}, globalThis: {} };
 vm.runInNewContext(source, sandbox, { filename: 'ui-visual-system.js' });
 const api = sandbox.window.AetherUIVisualSystem;
 assert(api, 'shared UI visual system missing');
-assert.strictEqual(api.VERSION, '0.1.0');
+assert.strictEqual(api.VERSION, '0.3.0');
 assert.strictEqual(api.TOKENS.gridPx, 8);
 assert.strictEqual(api.TOKENS.safeMarginPx, 24);
 assert(api.TOKENS.panelOpacity >= 0.78 && api.TOKENS.panelOpacity <= 0.90);
@@ -33,6 +33,12 @@ assert.strictEqual(flight.nearestSignal.x + flight.nearestSignal.w, 936,
   'nearest-signal card must respect right safe margin');
 assert.strictEqual(flight.nearestSignal.y + flight.nearestSignal.h, 616,
   'nearest-signal card must respect bottom safe margin');
+const title = api.layoutTitle(960, 640);
+assert(title.panel.x >= api.TOKENS.safeMarginPx && title.panel.y >= api.TOKENS.safeMarginPx,
+  'title panel must respect shared safe area');
+assert(title.panel.w <= 448 && title.panel.h === 216,
+  'title panel must stay compact enough to preserve hero art');
+assert(title.artReserve.w >= 400, 'title layout must preserve a substantial hero-art reserve');
 const withLog = api.layoutCombat(960, 640, true);
 assert(withLog.logPanel && withLog.logPanel.w <= 184 && withLog.logPanel.h <= 184,
   'combat log must remain compact');

@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.3.0';
   const TOKENS = Object.freeze({
     gridPx: 8,
     safeMarginPx: 24,
@@ -57,9 +57,21 @@
     });
   }
 
+  function layoutTitle(w, h) {
+    const safe = TOKENS.safeMarginPx;
+    const panelW = snap(Math.min(448, Math.max(400, w * 0.47)));
+    const panelH = 216;
+    const x = Math.max(safe, 64);
+    const y = Math.max(safe, 84);
+    return Object.freeze({
+      panel: Object.freeze({ x, y, w: panelW, h: panelH }),
+      artReserve: Object.freeze({ x: x + panelW + 24, y: safe, w: Math.max(0, w - (x + panelW + 48)), h: h - safe * 2 }),
+    });
+  }
+
   function panelRGBA() {
     return [11, 16, 33, Math.round(255 * TOKENS.panelOpacity)];
   }
 
-  root.AetherUIVisualSystem = Object.freeze({ VERSION, TOKENS, snap, layoutCombat, layoutDialogue, layoutFlight, panelRGBA });
+  root.AetherUIVisualSystem = Object.freeze({ VERSION, TOKENS, snap, layoutCombat, layoutDialogue, layoutFlight, layoutTitle, panelRGBA });
 })(typeof window !== 'undefined' ? window : globalThis);
