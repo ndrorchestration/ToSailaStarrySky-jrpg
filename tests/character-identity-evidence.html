@@ -8,10 +8,21 @@ html,body{margin:0;padding:0;background:#0e1421;overflow:hidden;width:100%;heigh
 canvas{display:block;width:1440px!important;height:960px!important;image-rendering:pixelated}
 </style>
 <script src="../p5.min.js"></script>
+<script src="../modules/authored-character-art.js"></script>
 <script src="../modules/character-renderer.js"></script>
 </head>
 <body>
 <script>
+const authoredAtlases={};
+function preload(){
+  if(window.AetherAuthoredCharacterArt && window.AetherAuthoredCharacterArt.PACKS){
+    for(const [id,pack] of Object.entries(window.AetherAuthoredCharacterArt.PACKS)){
+      if(pack.status==='portrait-ready' && pack.portraitAtlas){
+        authoredAtlases[id]=loadImage('../'+pack.portraitAtlas);
+      }
+    }
+  }
+}
 function setup(){
   createCanvas(960,640);
   pixelDensity(1);
@@ -28,12 +39,23 @@ function setup(){
   for(let i=0;i<ids.length;i++){
     fill(9,13,24,205); rect(xs[i]-76,92,152,474,8);
     fill(42,255,181,45); rect(xs[i]-66,104,132,2);
-    AetherCharacterRenderer.drawPortrait(ids[i],xs[i],245,{scale:2.6,now:2200,action:'idle'});
+    const authoredReady = window.AetherAuthoredCharacterArt &&
+      window.AetherAuthoredCharacterArt.isPortraitReady &&
+      window.AetherAuthoredCharacterArt.isPortraitReady(ids[i]);
+    if (authoredReady && authoredAtlases[ids[i]]) {
+      const atlas=authoredAtlases[ids[i]];
+      noSmooth();
+      image(atlas,xs[i]-54,120,108,108,0,0,256,256);
+    } else {
+      AetherCharacterRenderer.drawPortrait(ids[i],xs[i],245,{scale:2.6,now:2200,action:'idle'});
+    }
+    fill(authoredReady ? 42 : 124, authoredReady ? 255 : 200, authoredReady ? 181 : 232, authoredReady ? 215 : 155);
+    textSize(9); text(authoredReady ? 'AUTHORED PORTRAIT' : 'PROCEDURAL PORTRAIT',xs[i],292);
     AetherCharacterRenderer.draw(ids[i],xs[i],485,{scale:3.0,depth:0.72,now:2200,speed:0,facing:'right',action:'idle'});
     fill(232,220,198); textAlign(CENTER,TOP); textSize(14); text(labels[i],xs[i],530);
   }
   fill(124,200,232,180); textSize(11);
-  text('DIAGNOSTIC // portrait + field silhouette // reference-backed runtime authority',width/2,594);
+  text('DIAGNOSTIC // authored portrait readiness + procedural field silhouette',width/2,594);
   window.__identityEvidenceReady=true;
 }
 </script>
