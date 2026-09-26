@@ -1,0 +1,13 @@
+"use strict";
+const assert = require('assert');
+const { scoreResults } = require('../scripts/score-visual-acceptance.js');
+const scores = { cohesion:4.2, readability:4.3, appeal:4.0, identity:4.2, worldDepth:4.0, characterQuality:3.8, shipQuality:4.2, productionCredibility:4.1 };
+const passing = { schema:'AETHERWAKE_VISUAL_ACCEPTANCE_RESULTS_V1', participants:Array.from({length:5},(_,i)=>({id:'P'+(i+1),minutes:20,scores:{...scores},sameGamePass:true,dragonflyRecallPass:true,severity1Blocker:false})) };
+const result = scoreResults(passing);
+assert(result.weightedAverage >= 4.0);
+assert.strictEqual(result.sameGameRate, 1);
+assert.strictEqual(result.dragonflyRecallRate, 1);
+const failing = JSON.parse(JSON.stringify(passing));
+failing.participants[0].scores.cohesion = null;
+assert.throws(() => scoreResults(failing), /VISUAL_ACCEPTANCE_FAIL/);
+console.log('Aetherwake visual acceptance scorer: PASS');
