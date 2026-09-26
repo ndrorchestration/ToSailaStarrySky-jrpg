@@ -23,6 +23,10 @@ for(const id of candidateIds){
   }
   assert(hasTransparentPaletteEntry,id+' candidate must retain transparent background');
 }
+const gameplay=fs.readFileSync(path.join(root,'aetherwake.js'),'utf8');
+const dialogueRenderer=gameplay.slice(gameplay.indexOf('function drawDialoguePortrait'),gameplay.indexOf('function ',gameplay.indexOf('function drawDialoguePortrait')+10));
+assert(dialogueRenderer.includes('artPreview.drawPortrait(id,'),'preview must be restricted to the actual dialogue speaker');
+assert(!dialogueRenderer.includes('artPreview.drawPortrait(previewCharacterId,'),'preview selector must not replace every speaker');
 const source=fs.readFileSync(path.join(root,'modules/character-art-preview.js'),'utf8');
 function boot(search){
   const events=[];
