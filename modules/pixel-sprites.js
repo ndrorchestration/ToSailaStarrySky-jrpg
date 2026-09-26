@@ -21,6 +21,10 @@
   const PREVIEW_HEIGHT = 36;
   const BATTLE_ENEMY_WIDTH = 42;
   const BATTLE_ENEMY_HEIGHT = 36;
+  const ENDER_FIELD_PREVIEW_PARAM = 'aetherwakeFieldArtPreview';
+  const ENDER_FIELD_CANDIDATE_PATH = 'assets/characters/v1/ender/field-idle-walk-candidate.png';
+  const ENDER_FIELD_CELL_WIDTH = 28;
+  const ENDER_FIELD_CELL_HEIGHT = 36;
   let previewAtlas = null;
   let previewAtlasState = 'idle';
   let battleEnemyAtlas = null;
@@ -547,7 +551,81 @@
     return drawPixelSprite(SPRITES[id], PALETTES[id], x, y, options);
   }
 
+  let enderFieldCandidate = null;
+  let enderFieldCandidateState = 'idle';
+
+  function isEnderFieldCandidateRequested() {
+    const search = root.location && root.location.search ? root.location.search : '';
+    try {
+      return new URLSearchParams(search).get(ENDER_FIELD_PREVIEW_PARAM) === 'ender';
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function drawEnderFieldCandidate(x, y, options) {
+    if (!isEnderFieldCandidateRequested()) return false;
+    if (enderFieldCandidateState === 'idle') {
+      if (typeof loadImage !== 'function') {
+        enderFieldCandidateState = 'unavailable';
+      } else {
+        enderFieldCandidateState = 'loading';
+        try {
+          enderFieldCandidate = loadImage(
+            ENDER_FIELD_CANDIDATE_PATH,
+            (loaded) => {
+              enderFieldCandidate = loaded || enderFieldCandidate;
+              enderFieldCandidateState = enderFieldCandidate &&
+                enderFieldCandidate.width === ENDER_FIELD_CELL_WIDTH * 2 &&
+                enderFieldCandidate.height === ENDER_FIELD_CELL_HEIGHT
+                ? 'ready'
+                : 'failed';
+            },
+            () => {
+              enderFieldCandidate = null;
+              enderFieldCandidateState = 'failed';
+            }
+          );
+        } catch (error) {
+          enderFieldCandidate = null;
+          enderFieldCandidateState = 'failed';
+        }
+      }
+    }
+
+    if (enderFieldCandidateState !== 'ready' || !enderFieldCandidate ||
+        typeof image !== 'function') return false;
+
+    const opts = options || {};
+    const scale = Math.max(1, Math.floor(opts.scale || 1));
+    const frameIndex = Math.abs(Math.floor(opts.frame || 0)) % 2;
+    const anchor = opts.anchor || 'top-left';
+    let ox = x;
+    let oy = y;
+    if (anchor === 'center') {
+      ox -= (ENDER_FIELD_CELL_WIDTH * scale) / 2;
+      oy -= (ENDER_FIELD_CELL_HEIGHT * scale) / 2;
+    } else if (anchor === 'bottom-center') {
+      ox -= (ENDER_FIELD_CELL_WIDTH * scale) / 2;
+      oy -= ENDER_FIELD_CELL_HEIGHT * scale;
+    }
+    if (typeof noSmooth === 'function') noSmooth();
+    image(
+      enderFieldCandidate,
+      Math.round(ox),
+      Math.round(oy),
+      ENDER_FIELD_CELL_WIDTH * scale,
+      ENDER_FIELD_CELL_HEIGHT * scale,
+      frameIndex * ENDER_FIELD_CELL_WIDTH,
+      0,
+      ENDER_FIELD_CELL_WIDTH,
+      ENDER_FIELD_CELL_HEIGHT
+    );
+    return true;
+  }
+
   function drawPreview(id, x, y, options) {
+    if (id === 'ender' && drawEnderFieldCandidate(x, y, options)) return true;
     const column = PREVIEW_COLUMNS[id];
     if (column === undefined || !SPRITES[id]) {
       const previewFallback = PREVIEW_FALLBACKS[id];
@@ -623,6 +701,8 @@
         try {
           battleEnemyAtlas = loadImage(
             BATTLE_ENEMY_ATLAS_PATH,
+    ENDER_FIELD_PREVIEW_PARAM,
+    ENDER_FIELD_CANDIDATE_PATH,
             () => { battleEnemyAtlasState = 'ready'; },
             () => { battleEnemyAtlas = null; battleEnemyAtlasState = 'failed'; }
           );

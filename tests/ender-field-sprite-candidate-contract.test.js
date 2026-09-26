@@ -1,0 +1,53 @@
+'use strict';
+const assert=require('assert');
+const fs=require('fs');
+const path=require('path');
+const vm=require('vm');
+const root=path.resolve(__dirname,'..');
+const manifest=JSON.parse(fs.readFileSync(path.join(root,'assets/characters/v1/manifest.json'),'utf8'));
+const ender=manifest.characters.ender;
+assert.strictEqual(ender.status,'planned','field candidate must not admit Ender runtime art');
+assert.strictEqual(ender.candidateFieldSprite.status,'candidate');
+assert.deepStrictEqual(ender.candidateFieldSprite.frames,['idle','walk']);
+const imagePath=path.join(root,ender.candidateFieldSprite.path);
+const png=fs.readFileSync(imagePath);
+assert.strictEqual(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a','candidate must be PNG');
+assert.strictEqual(png.readUInt32BE(16),56);
+assert.strictEqual(png.readUInt32BE(20),36);
+assert.strictEqual(png[25],6,'candidate PNG must carry an alpha channel');
+const moduleSource=fs.readFileSync(path.join(root,'modules/pixel-sprites.js'),'utf8');
+function boot(search){
+  const events={requested:[],images:[],rects:[]};
+  const sandbox={
+    URLSearchParams,
+    window:{location:{search}},
+    loadImage(asset,onLoad){
+      events.requested.push(asset);
+      const loaded=asset.includes('field-idle-walk-candidate.png')
+        ? {width:56,height:36}
+        : {width:224,height:72};
+      if(onLoad)onLoad(loaded);
+      return loaded;
+    },
+    image(...args){events.images.push(args);},
+    noSmooth(){},noStroke(){},fill(){},rect(...args){events.rects.push(args);}
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(moduleSource,sandbox);
+  return {api:sandbox.window.AetherPixelSprites,events};
+}
+const normal=boot('');
+assert.strictEqual(normal.api.drawPreview('ender',100,200,{anchor:'bottom-center',scale:2,frame:1}),true);
+assert(!normal.events.requested.includes(ender.candidateFieldSprite.path),'normal game must not load candidate');
+const review=boot('?aetherwakeFieldArtPreview=ender');
+assert.strictEqual(review.api.drawPreview('ender',100,200,{anchor:'bottom-center',scale:2,frame:0}),true);
+assert.deepStrictEqual(review.events.requested,[ender.candidateFieldSprite.path]);
+assert.deepStrictEqual(review.events.images[0].slice(1,5),[72,128,56,72]);
+assert.strictEqual(review.events.images[0][5],0,'idle frame samples the first cell');
+assert.strictEqual(review.api.drawPreview('ender',100,200,{anchor:'bottom-center',scale:2,frame:1}),true);
+assert.strictEqual(review.events.images[1][5],28,'walk frame samples the second cell');
+const unrelated=boot('?aetherwakeFieldArtPreview=ender');
+assert.strictEqual(unrelated.api.drawPreview('lyra',100,200,{anchor:'bottom-center',scale:2,frame:0}),true);
+assert.deepStrictEqual(unrelated.events.requested,['assets/preview/aetherwake-preview-party-atlas-v2.png'],
+  'Ender candidate must not replace Lyra or load outside its opt-in identity');
+console.log('Ender selected-reference field-sprite candidate contract: PASS');
