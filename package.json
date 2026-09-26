@@ -142,6 +142,7 @@
     "test:ender-world-visual": "node tests/ender-world-visual-authority.test.js",
     "test:lyra-world-visual": "node tests/lyra-world-visual-authority.test.js",
     "test:character-identity-evidence": "node tests/character-identity-evidence-contract.test.js",
-    "test:aepex-art-preview": "node tests/aepex-art-preview-contract.test.js"
+    "test:aepex-art-preview": "node tests/aepex-art-preview-contract.test.js",
+    "test:field-sprite-roster": "node tests/field-sprite-roster-review.test.js"
   }
 }
