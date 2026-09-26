@@ -130,6 +130,7 @@
     "test:chapter1-package-fingerprint": "node tests/chapter1-package-fingerprint.test.js",
     "test:visual-style-contract": "node scripts/validate-visual-style-contract.js",
     "test:environment-visual-kit": "node tests/environment-visual-kit.test.js",
-    "test:ui-visual-system": "node tests/ui-visual-system.test.js"
+    "test:ui-visual-system": "node tests/ui-visual-system.test.js",
+    "verify:visual-performance": "node scripts/verify-visual-performance.js"
   }
 }

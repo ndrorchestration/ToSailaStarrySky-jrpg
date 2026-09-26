@@ -164,36 +164,62 @@ function sha256(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
 
-async function measureFrameTiming(page, id, sampleFrames = 90) {
-  const stats = await page.evaluate(async ({ sampleFrames }) => {
-    const deltas = [];
-    let previous = performance.now();
-    await new Promise(resolve => {
-      function tick(now) {
-        deltas.push(now - previous);
-        previous = now;
-        if (deltas.length >= sampleFrames) resolve();
-        else requestAnimationFrame(tick);
-      }
-      requestAnimationFrame(tick);
-    });
-    deltas.sort((a, b) => a - b);
-    const pick = q => deltas[Math.min(deltas.length - 1, Math.floor((deltas.length - 1) * q))];
+async function measureFrameTiming(page, id, sampleFramesPerWindow = 60, sampleWindows = 3) {
+  const stats = await page.evaluate(async ({ sampleFramesPerWindow, sampleWindows }) => {
+    const windows = [];
+    for (let windowIndex = 0; windowIndex < sampleWindows; windowIndex++) {
+      const deltas = [];
+      let previous = performance.now();
+      await new Promise(resolve => {
+        function tick(now) {
+          deltas.push(now - previous);
+          previous = now;
+          if (deltas.length >= sampleFramesPerWindow) resolve();
+          else requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      });
+      deltas.sort((a, b) => a - b);
+      const pick = q => deltas[Math.min(deltas.length - 1, Math.floor((deltas.length - 1) * q))];
+      windows.push({
+        sampleFrames: deltas.length,
+        p50: pick(0.50),
+        p95: pick(0.95),
+        max: deltas[deltas.length - 1],
+      });
+    }
+
+    const all = windows.flatMap(item => item.sampleFrames ? [] : []);
+    const p95s = windows.map(item => item.p95).sort((a,b) => a-b);
+    const p50s = windows.map(item => item.p50).sort((a,b) => a-b);
+    const median = values => values[Math.floor(values.length / 2)];
     const nav = performance.getEntriesByType('navigation')[0];
     const memory = performance.memory || null;
+    const medianP50 = median(p50s);
+    const medianP95 = median(p95s);
     return {
-      sampleFrames: deltas.length,
-      frameMsP50: Number(pick(0.50).toFixed(2)),
-      frameMsP95: Number(pick(0.95).toFixed(2)),
-      frameMsMax: Number(deltas[deltas.length - 1].toFixed(2)),
-      estimatedFpsP50: Number((1000 / pick(0.50)).toFixed(1)),
-      estimatedFpsP95: Number((1000 / pick(0.95)).toFixed(1)),
+      sampleFrames: sampleFramesPerWindow * sampleWindows,
+      sampleFramesPerWindow,
+      sampleWindows,
+      frameMsP50: Number(medianP50.toFixed(2)),
+      frameMsP95: Number(medianP95.toFixed(2)),
+      frameMsMax: Number(Math.max(...windows.map(item => item.max)).toFixed(2)),
+      windowP95Median: Number(medianP95.toFixed(2)),
+      windowP95Worst: Number(Math.max(...p95s).toFixed(2)),
+      estimatedFpsP50: Number((1000 / medianP50).toFixed(1)),
+      estimatedFpsP95: Number((1000 / medianP95).toFixed(1)),
       loadEventMs: nav ? Number(nav.loadEventEnd.toFixed(2)) : null,
       jsHeapUsedBytes: memory ? memory.usedJSHeapSize : null,
       jsHeapTotalBytes: memory ? memory.totalJSHeapSize : null,
       deviceMemoryGiB: navigator.deviceMemory || null,
+      windows: windows.map((item, index) => ({
+        index,
+        p50: Number(item.p50.toFixed(2)),
+        p95: Number(item.p95.toFixed(2)),
+        max: Number(item.max.toFixed(2)),
+      })),
     };
-  }, { sampleFrames });
+  }, { sampleFramesPerWindow, sampleWindows });
   return { id, ...stats };
 }
 

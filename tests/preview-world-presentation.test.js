@@ -113,6 +113,10 @@ vm.runInNewContext(source, sandbox, { filename: 'preview-world-presentation.js' 
 const presentation = sandbox.window.AetherPreviewWorldPresentation;
 assert(presentation, 'Preview world presentation module is missing');
 assert.strictEqual(typeof presentation.draw, 'function');
+assert(source.includes('if (!input.dockBenchmark) drawProjectedAtmosphere'),
+  'benchmark mode must avoid duplicating generic projected atmosphere over its painted backdrop');
+assert(source.includes('if (!input.dockBenchmark) drawProjectedForeground'),
+  'benchmark mode must avoid duplicating generic projected foreground over benchmark foreground');
 
 const ground = Array.from({ length: 32 }, () => Array(32).fill(2));
 ground[0][0] = 1;

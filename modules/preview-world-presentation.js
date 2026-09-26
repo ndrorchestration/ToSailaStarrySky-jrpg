@@ -707,7 +707,7 @@
     drawDimensionalGround(input, now, Boolean(input.dockBenchmark));
     pop();
 
-    drawProjectedAtmosphere(now, w, h);
+    if (!input.dockBenchmark) drawProjectedAtmosphere(now, w, h);
 
     // Benchmark dock service geometry belongs below actors, not over them.
     if (input.dockBenchmark) {
@@ -765,7 +765,7 @@
       }
     }
 
-    drawProjectedForeground(w, h, now);
+    if (!input.dockBenchmark) drawProjectedForeground(w, h, now);
 
     // Near-plane framing makes the world read as a photographed space, not a board.
     fill(7, 10, 18, 120);
