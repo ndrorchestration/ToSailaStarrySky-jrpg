@@ -250,7 +250,7 @@ async function capture(page, id, description) {
       window.gameState === 'dialogue' &&
       window.UI &&
       window.UI.dialogueNPC &&
-      window.UI.dialogueNPC.name === 'Ionia'
+      window.UI.dialogueNPC.name === 'Captain Ionia'
     , undefined, { timeout: 5000 });
     captures.push(await capture(
       page,

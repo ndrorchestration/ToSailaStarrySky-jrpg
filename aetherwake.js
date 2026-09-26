@@ -1164,6 +1164,8 @@ function keyPressed() {
 
 function keyReleased() {
   keys[keyCode] = false;
+  delete keyRepeat[keyCode];
+  delete keyRepeatFirst[keyCode];
   if (keyCode === 69 || keyCode === 81 || keyCode === 70 || keyCode === 9 || keyCode === 76 || keyCode === 77) {
     window.interactionKey = null;
   }
@@ -3124,7 +3126,7 @@ function initNPCs() {
     // 1 — Captain Ionia (old sky-lane navigator, exact, tired, fond of Ender)
     {
       id: 'elder_farmer',
-      name: 'Ionia',
+      name: 'Captain Ionia',
       title: 'Captain of the Third Watch',
       x: 7,
       y: 7,

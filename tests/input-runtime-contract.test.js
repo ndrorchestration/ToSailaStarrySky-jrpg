@@ -19,8 +19,11 @@ assert(source.includes('if (code === UP_ARROW || code === 87)'),
   'WASD north movement is not mapped');
 assert(source.includes('if (code === RIGHT_ARROW || code === 68)'),
   'WASD east movement is not mapped');
-assert(source.includes('keyRepeatFirst[code] = true;\n        doMove(code);'),
+assert(/keyRepeatFirst\[code\] = true;\r?\n\s+doMove\(code\);/.test(source),
   'the first movement keypress must move immediately');
+assert(source.includes('delete keyRepeat[keyCode];') &&
+       source.includes('delete keyRepeatFirst[keyCode];'),
+  'movement repeat state must clear on key release so discrete taps are not swallowed');
 
 assert(source.includes("const firstContact = !nearest.flags.met;"),
   'dialogue must capture first-contact state before mutating the NPC');

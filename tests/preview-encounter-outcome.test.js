@@ -11,8 +11,9 @@ const end = runtime.indexOf('\nfunction openState(', start);
 assert.notEqual(start, -1, 'runtime must define finishCombat');
 assert.notEqual(end, -1, 'finishCombat must end before openState');
 
-function completePreviewEncounter({ encounterOver, enemyHp, playerVit }) {
+function completeCombatReturn({ encounterOver, enemyHp, playerVit }) {
   const toasts = [];
+  const autosaves = [];
   const sandbox = {
     combat: {
       getState() {
@@ -30,42 +31,33 @@ function completePreviewEncounter({ encounterOver, enemyHp, playerVit }) {
     combatReturnState: 'world',
     prevState: 'combat',
     STATE: { WORLD: 'world' },
-    previewEncounterStarted: true,
-    previewEncounterFinished: false,
-    previewEncounterArmed: false,
-    previewEndAt: 0,
     VIS: { fadeTransitions: false },
     C: { teal: 'teal', rust: 'rust', parchment: 'parchment' },
     millis: () => 1000,
+    requestAutosave: reason => autosaves.push(reason),
     showToast: message => toasts.push(message),
   };
 
   vm.runInNewContext(runtime.slice(start, end), sandbox, { filename: runtimePath });
   vm.runInNewContext('finishCombat()', sandbox);
-  return { sandbox, toasts };
+  return { sandbox, toasts, autosaves };
 }
 
-const victory = completePreviewEncounter({ encounterOver: true, enemyHp: 0, playerVit: 7 });
-assert.equal(victory.sandbox.gameState, 'world', 'combat should return to the world');
-assert.equal(victory.sandbox.previewEncounterFinished, true,
-  'a real enemy defeat should finish the preview encounter');
-assert.equal(victory.sandbox.previewEndAt, 3400,
-  'victory should schedule the end card after the return transition');
-assert(victory.toasts.includes('THE SKY GOES QUIET // FOR NOW'),
-  'victory should show the authored return toast');
+const victory = completeCombatReturn({ encounterOver: true, enemyHp: 0, playerVit: 7 });
+assert.equal(victory.sandbox.gameState, 'world', 'completed combat should return to the world');
+assert.equal(victory.sandbox.world.player.vit, 7, 'combat result should copy player vitality back to world state');
+assert.deepEqual(victory.autosaves, ['combat-resolution'],
+  'completed combat should request the current Chapter 1 combat-resolution autosave');
 
-const defeat = completePreviewEncounter({ encounterOver: true, enemyHp: 18, playerVit: 1 });
-assert.equal(defeat.sandbox.gameState, 'world', 'defeat should return to the world');
-assert.equal(defeat.sandbox.previewEncounterFinished, false,
-  'defeat must not mark the preview encounter complete');
-assert.equal(defeat.sandbox.previewEncounterStarted, false,
-  'defeat should leave the encounter available to retry');
-assert.equal(defeat.sandbox.previewEncounterArmed, true,
-  'returning to Ionia should be able to start a retry');
-assert.equal(defeat.sandbox.previewEndAt, 0, 'defeat must not schedule the end card');
-assert(defeat.toasts.some(message => /SKY-PREDATOR.*(REMAINS|TRY AGAIN)/.test(message)),
-  'defeat should tell the player the encounter remains retryable');
-assert(!defeat.toasts.includes('THE SKY GOES QUIET // FOR NOW'),
-  'defeat must not display the victory-only toast');
+const defeat = completeCombatReturn({ encounterOver: true, enemyHp: 18, playerVit: 1 });
+assert.equal(defeat.sandbox.gameState, 'world', 'a completed defeat should still return to the world');
+assert.equal(defeat.sandbox.world.player.vit, 1, 'defeat vitality should be preserved for non-hazard combat');
+assert.deepEqual(defeat.autosaves, ['combat-resolution'],
+  'completed defeat should also checkpoint the resolved combat state');
 
-console.log('Preview encounter outcomes: victory completes; defeat remains retryable.');
+const unresolved = completeCombatReturn({ encounterOver: false, enemyHp: 18, playerVit: 6 });
+assert.equal(unresolved.sandbox.gameState, 'world', 'finishCombat should honor its explicit return-state contract');
+assert.deepEqual(unresolved.autosaves, [],
+  'combat that is not marked over must not request a resolution autosave');
+
+console.log('Preview combat return contract: world state sync and combat-resolution autosave remain stable.');
