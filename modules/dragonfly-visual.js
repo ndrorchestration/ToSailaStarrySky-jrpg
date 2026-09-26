@@ -8,12 +8,12 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.4.0';
+  const VERSION = '0.5.0';
   const PROPORTIONS = Object.freeze({
     adultHeightUnits: 1,
     bodyLengthAdultHeights: 3.0,
     wingSpanBodyLengths: 2.4,
-    runtimeBodyLengthPx: 146,
+    runtimeBodyLengthPx: 164,
     runtimeWingSpanPx: 350,
     normalFlightMaxScreenWidthRatio: 0.28,
     combatMaxScreenWidthRatio: 0.25,
@@ -49,129 +49,141 @@
   }
 
   function drawWingPair(now, mode, speed, bank) {
-    // Four long translucent wings are the primary Dragonfly recognition cue.
-    const beatRate = mode === 'flight' ? 0.0048 + speed * 0.0011 : 0.0021;
+    // Four swept translucent sail-wings preserve the Dragonfly identity while
+    // matching the visual-bible airship silhouette more closely than insect paddles.
+    const beatRate = mode === 'flight' ? 0.0035 + speed * 0.0007 : 0.0016;
     const beat = Math.sin(now * beatRate);
-    const flare = mode === 'flight' ? 1.0 : 0.83;
-    const vertical = beat * (mode === 'flight' ? 5.5 : 2.5);
-    const bankBias = bank * 5;
+    const flare = mode === 'flight' ? 1.0 : 0.90;
+    const vertical = beat * (mode === 'flight' ? 3.2 : 1.4);
+    const bankBias = bank * 3.2;
 
     const drawSide = sign => {
-      const y = sign * (11 + bankBias * sign);
-      const foreTipY = sign * (34 + vertical * sign);
-      const aftTipY = sign * (28 - vertical * 0.65 * sign);
+      const rootY = sign * (12 + bankBias * sign);
+      const foreTipY = sign * (45 + vertical * sign);
+      const aftTipY = sign * (31 - vertical * 0.55 * sign);
+
+      // Forward sail: long leading spar, broad translucent fabric, tapered tip.
       membrane([
-        [-12, y], [26, sign * 17], [94 * flare, foreTipY], [74 * flare, sign * 7], [8, sign * 5]
-      ], mode === 'flight' ? 88 : 72, false, mode === 'flight');
+        [-8, rootY], [24, sign * 18], [102 * flare, foreTipY],
+        [83 * flare, sign * 9], [19, sign * 6]
+      ], mode === 'flight' ? 92 : 80, false, true);
+
+      // Aft sail: slightly shorter/lower and visually subordinate.
       membrane([
-        [-17, sign * 7], [18, sign * 13], [78 * flare, aftTipY], [61 * flare, sign * 4], [-5, sign * 2]
-      ], mode === 'flight' ? 68 : 58, true, mode === 'flight');
-      // Dark structural spar and bright leading edge give the membrane thickness
-      // and make each wing read as engineered, not just translucent geometry.
-      if (mode === 'flight') {
-        stroke(54,67,66,145); strokeWeight(1.25);
-        line(-10, y, 92*flare, foreTipY);
-        stroke(PALETTE.glassLight[0],PALETTE.glassLight[1],PALETTE.glassLight[2],90);
-        strokeWeight(0.7);
-        line(7, sign*5, 73*flare, sign*7);
-        noStroke();
-      }
+        [-16, sign * 8], [14, sign * 14], [82 * flare, aftTipY],
+        [65 * flare, sign * 5], [-4, sign * 3]
+      ], mode === 'flight' ? 70 : 62, true, true);
+
+      // Dark spars + brass root sleeve make the wing read as engineered sailcloth.
+      stroke(47,58,59,175); strokeWeight(1.35);
+      line(-7,rootY,101*flare,foreTipY);
+      line(-14,sign*8,81*flare,aftTipY);
+      stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],145);
+      strokeWeight(0.8);
+      line(18,sign*7,81*flare,sign*10);
+      noStroke();
     };
 
     drawSide(-1);
     drawSide(1);
 
-    // Wing roots and articulation pivots.
     fill(...PALETTE.brass);
-    ellipse(-10, -10, 5, 5);
-    ellipse(-10, 10, 5, 5);
-    ellipse(-17, -6, 4, 4);
-    ellipse(-17, 6, 4, 4);
+    ellipse(-8,-11,6,6); ellipse(-8,11,6,6);
+    ellipse(-16,-7,5,5); ellipse(-16,7,5,5);
   }
 
   function drawHull(pulse, mode) {
-    // Long, narrow fuselage with a distinct thorax/cabin and segmented tail.
+    // Visual-bible hull: elongated reclaimed-wood/brass airship with a pointed
+    // prow, continuous blue glazing and tapered stern. It keeps the Dragonfly's
+    // aether core and maintainable machinery but reads first as a lived-in ship.
     noStroke();
+
+    // Deep lower hull establishes the long nautical profile.
     fill(...PALETTE.hullDark);
     beginShape();
-    vertex(-56,-7); vertex(-35,-15); vertex(6,-18); vertex(30,-14);
-    vertex(57,-7); vertex(72,0); vertex(57,7); vertex(30,14);
-    vertex(6,18); vertex(-35,15); vertex(-56,7);
+    vertex(-82,-8); vertex(-62,-16); vertex(20,-18); vertex(58,-13);
+    vertex(82,-5); vertex(97,0); vertex(82,6); vertex(57,14);
+    vertex(18,19); vertex(-60,15); vertex(-86,7);
     endShape(CLOSE);
 
-    // Reclaimed upper shell and thorax cap.
-    fill(...PALETTE.reclaimedBronze);
+    // Warm reclaimed-wood side panels are the primary material identity.
+    fill(109,76,48);
     beginShape();
-    vertex(-34,-13); vertex(8,-15); vertex(31,-11); vertex(40,-6);
-    vertex(19,-3); vertex(-31,-4);
+    vertex(-67,-11); vertex(18,-14); vertex(55,-10); vertex(78,-4);
+    vertex(66,2); vertex(20,6); vertex(-68,4);
+    endShape(CLOSE);
+    fill(148,104,58,185);
+    beginShape();
+    vertex(-58,-8); vertex(9,-11); vertex(45,-8); vertex(61,-4);
+    vertex(43,-2); vertex(5,1); vertex(-58,0);
     endShape(CLOSE);
 
-    // Lower hull shadow and brass chine create a readable 2.5D body volume.
-    fill(26,31,31,180);
-    beginShape();
-    vertex(-44,5); vertex(4,10); vertex(33,7); vertex(54,3);
-    vertex(39,10); vertex(5,16); vertex(-35,13); vertex(-53,7);
-    endShape(CLOSE);
-    stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],145);
-    strokeWeight(1.15);
-    line(-34,11,28,10); line(28,10,49,5); noStroke();
-
-    // Distinct forward helm glazing.
-    fill(PALETTE.canopy[0],PALETTE.canopy[1],PALETTE.canopy[2],205);
-    beginShape();
-    vertex(39,-9); vertex(59,-6); vertex(70,0); vertex(59,6); vertex(39,9); vertex(29,0);
-    endShape(CLOSE);
-    fill(PALETTE.glassLight[0],PALETTE.glassLight[1],PALETTE.glassLight[2],105);
-    beginShape();
-    vertex(43,-5); vertex(57,-4); vertex(64,0); vertex(53,1); vertex(39,0);
-    endShape(CLOSE);
-    // Framed canopy panes make the helm feel constructed and habitable.
-    stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],150);
-    strokeWeight(0.9);
-    line(42,-8,42,8); line(52,-6,52,6); line(61,-4,61,4); noStroke();
-
-    // Thorax ring visually separates cabin/core from the abdomen-like tail.
-    noFill();
-    stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],190);
-    strokeWeight(2);
-    ellipse(4,0,31,36);
+    // Brass chine and ribs bind the wood skin to the darker lower hull.
+    stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],180);
+    strokeWeight(1.2);
+    line(-67,4,66,2);
+    for (const rx of [-49,-30,-10,13,36,58]) line(rx,-10,rx,7);
     noStroke();
 
-    // Aether core heart.
-    fill(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],Math.round(92 + pulse * 70));
-    ellipse(7,0,22,22);
-    fill(218,250,239,Math.round(160 + pulse * 90));
-    ellipse(7,0,8,8);
+    // Continuous Scioto-blue window band: strongest compendium recognition cue.
+    fill(PALETTE.canopy[0],PALETTE.canopy[1],PALETTE.canopy[2],218);
+    beginShape();
+    vertex(-45,-7); vertex(26,-9); vertex(59,-7); vertex(77,-3);
+    vertex(61,0); vertex(24,-1); vertex(-45,1);
+    endShape(CLOSE);
+    fill(PALETTE.glassLight[0],PALETTE.glassLight[1],PALETTE.glassLight[2],80);
+    beginShape();
+    vertex(-40,-6); vertex(23,-8); vertex(51,-6); vertex(63,-4);
+    vertex(45,-3); vertex(10,-3); vertex(-40,-1);
+    endShape(CLOSE);
+    stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],145);
+    strokeWeight(0.8);
+    for (const wx of [-34,-18,-2,14,30,46,60]) line(wx,-8,wx,0);
+    noStroke();
 
-    // Warm cabin windows make the ship feel inhabited.
-    fill(PALETTE.cabin[0],PALETTE.cabin[1],PALETTE.cabin[2],mode === 'flight' ? 185 : 215);
-    rect(-28,-8,7,3,1); rect(-17,-9,7,3,1); rect(-6,-9,6,3,1);
-    fill(PALETTE.cabin[0],PALETTE.cabin[1],PALETTE.cabin[2],105);
-    rect(-25,6,6,2,1); rect(-14,7,5,2,1);
+    // Pointed prow / helm glazing pushes the silhouette forward like the compendium ship.
+    fill(PALETTE.canopy[0],PALETTE.canopy[1],PALETTE.canopy[2],225);
+    triangle(63,-7,99,0,64,7);
+    fill(PALETTE.glassLight[0],PALETTE.glassLight[1],PALETTE.glassLight[2],115);
+    triangle(73,-4,92,0,73,3);
+    stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],180);
+    strokeWeight(1.1); line(64,-7,64,7); line(79,-4,79,4); noStroke();
 
-    // Segmented tail boom: narrower than the hull and unmistakably insect-like.
-    const tail = [
-      [-56,0,18,9],[-72,0,15,7],[-85,0,13,6],[-96,0,10,5]
-    ];
-    for (let i = 0; i < tail.length; i++) {
-      const [cx,cy,w,h] = tail[i];
-      fill(i % 2 ? 61 : 72, i % 2 ? 66 : 72, i % 2 ? 64 : 68);
-      ellipse(cx,cy,w,h);
-      fill(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],135);
-      rect(cx - w*0.08, -h*0.5, Math.max(1,w*0.12), h);
-    }
+    // Aether-heart window is retained as the technology/identity anchor.
+    noFill();
+    stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],195);
+    strokeWeight(2); ellipse(10,8,27,20); noStroke();
+    fill(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],Math.round(95+pulse*75));
+    ellipse(10,8,17,13);
+    fill(218,250,239,Math.round(160+pulse*90)); ellipse(10,8,6,6);
 
-    // Dorsal service spine adds a small handcrafted silhouette break.
+    // Warm lower-deck lamps make the hull inhabited at dock and in flight.
+    fill(PALETTE.cabin[0],PALETTE.cabin[1],PALETTE.cabin[2],mode === 'flight' ? 175 : 220);
+    for (const lx of [-48,-28,-8,31,50]) rect(lx,7,7,2,1);
+
+    // Tapered stern replaces bead-like segmentation with one clean tail boom.
+    fill(62,65,61);
+    beginShape();
+    vertex(-82,-6); vertex(-105,-4); vertex(-125,-1); vertex(-132,0);
+    vertex(-125,2); vertex(-104,5); vertex(-82,6);
+    endShape(CLOSE);
     fill(...PALETTE.reclaimedBronze);
-    quad(-50,-5,-25,-8,-20,-5,-48,-2);
-    fill(...PALETTE.brass);
-    rect(-39,-8,2,4,0.5); rect(-30,-9,2,4,0.5);
+    quad(-88,-4,-111,-3,-119,0,-89,2);
+    stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],145);
+    strokeWeight(1); line(-100,-4,-100,4); line(-114,-3,-114,3); noStroke();
 
-    // Tail pressure vane / rudder.
+    // Tail pressure vane / rudder echoes the sail geometry without adding bulk.
     fill(PALETTE.aetherBlue[0],PALETTE.aetherBlue[1],PALETTE.aetherBlue[2],125);
     beginShape();
-    vertex(-101,-2); vertex(-111,-12); vertex(-108,0); vertex(-111,12); vertex(-101,2);
+    vertex(-124,-2); vertex(-140,-14); vertex(-136,0); vertex(-140,14); vertex(-124,2);
     endShape(CLOSE);
+
+    // Dorsal service deck and compact solar awning keep the solarpunk language.
+    fill(74,61,48); quad(-36,-14,20,-17,42,-11,-20,-9);
+    stroke(205,178,126,145); strokeWeight(1);
+    line(-24,-14,-14,-28); line(12,-16,20,-27); line(-14,-28,20,-27); noStroke();
+    fill(132,198,190,mode === 'flight' ? 155 : 125);
+    quad(-13,-28,26,-27,37,-21,-3,-22);
   }
 
   function drawMechanicalDetail(now, mode, pulse) {
@@ -236,11 +248,11 @@
     noStroke();
     fill(PALETTE.aetherBlue[0],PALETTE.aetherBlue[1],PALETTE.aetherBlue[2],mode === 'flight' ? 72 : 42);
     beginShape();
-    vertex(-102,-3); vertex(-102-wake,-2); vertex(-110-Math.round(wake*1.15),0);
-    vertex(-102-wake,2); vertex(-102,3);
+    vertex(-132,-3); vertex(-132-wake,-2); vertex(-140-Math.round(wake*1.15),0);
+    vertex(-132-wake,2); vertex(-132,3);
     endShape(CLOSE);
     fill(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],mode === 'flight' ? 64 : 36);
-    rect(-103-Math.round(wake*0.82),-1,Math.round(wake*0.82),2);
+    rect(-133-Math.round(wake*0.82),-1,Math.round(wake*0.82),2);
   }
 
   function draw(ctx) {
@@ -260,7 +272,7 @@
     if (shipScale !== 1) scale(shipScale);
 
     if (mode === 'dock') {
-      noStroke(); fill(5,8,15,90); ellipse(-9,27,152,18);
+      noStroke(); fill(5,8,15,90); ellipse(-12,27,202,18);
     } else {
       noFill();
       stroke(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],Math.round(22+pulse*20));

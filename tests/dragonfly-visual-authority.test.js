@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const assert = require('assert');
 const fs = require('fs');
@@ -11,12 +11,12 @@ const sandbox = { window: {}, globalThis: {} };
 vm.runInNewContext(source, sandbox, { filename: 'dragonfly-visual.js' });
 
 assert(sandbox.window.AetherDragonflyVisual, 'shared Dragonfly visual authority missing');
-assert.strictEqual(sandbox.window.AetherDragonflyVisual.VERSION, '0.4.0');
+assert.strictEqual(sandbox.window.AetherDragonflyVisual.VERSION, '0.5.0');
 assert.strictEqual(typeof sandbox.window.AetherDragonflyVisual.draw, 'function');
 assert(source.includes('function drawWingPair'), 'Dragonfly must retain articulated paired-wing authority');
 assert(source.includes('function drawHull'), 'Dragonfly must retain a dedicated tapered-hull renderer');
 assert(source.includes('function drawWake'), 'Dragonfly must retain speed-responsive propulsion-wake rendering');
-assert(source.includes('Warm cabin windows'), 'Dragonfly must retain inhabited warm-light detail');
+assert(source.includes('Warm lower-deck lamps'), 'Dragonfly must retain inhabited warm-light detail');
 assert(sandbox.window.AetherDragonflyVisual.PROPORTIONS, 'Dragonfly proportion contract missing');
 assert.strictEqual(sandbox.window.AetherDragonflyVisual.PROPORTIONS.bodyLengthAdultHeights, 3.0);
 assert.strictEqual(sandbox.window.AetherDragonflyVisual.PROPORTIONS.wingSpanBodyLengths, 2.4);
@@ -24,13 +24,13 @@ assert(sandbox.window.AetherDragonflyVisual.PROPORTIONS.normalFlightMaxScreenWid
   'normal-flight Dragonfly width budget drifted above 28%');
 assert(sandbox.window.AetherDragonflyVisual.PROPORTIONS.combatMaxScreenWidthRatio <= 0.25,
   'combat Dragonfly width budget drifted above 25%');
-assert(source.includes('Four long translucent wings'), 'Dragonfly recognition wing cue missing');
-assert(source.includes('Segmented tail boom'), 'Dragonfly insect-like segmented tail cue missing');
-assert(source.includes('Lower hull shadow and brass chine'), 'Dragonfly 2.5D hull-volume cue missing');
-assert(source.includes('Framed canopy panes'), 'Dragonfly constructed helm-glazing cue missing');
-assert(source.includes('Dark structural spar'), 'Dragonfly engineered wing-spar cue missing');
-assert(source.includes('Dorsal service spine'), 'Dragonfly handcrafted dorsal silhouette cue missing');
-assert(source.includes('exposed conduit'), 'Dragonfly visible aether conduit cue missing');
+assert(source.includes('Four swept translucent sail-wings'), 'Dragonfly four-sail recognition cue missing');
+assert(source.includes('Tapered stern replaces bead-like segmentation'), 'Dragonfly clean tapered-stern cue missing');
+assert(source.includes('Deep lower hull establishes the long nautical profile'), 'Dragonfly elongated hull-volume cue missing');
+assert(source.includes('Pointed prow / helm glazing'), 'Dragonfly pointed-prow cue missing');
+assert(source.includes('engineered sailcloth'), 'Dragonfly engineered sail-wing cue missing');
+assert(source.includes('Dorsal service deck'), 'Dragonfly handcrafted dorsal deck cue missing');
+assert(source.includes('Continuous Scioto-blue window band'), 'Dragonfly continuous window-band cue missing');
 assert(source.includes('Four shield nodes'), 'Dragonfly four-node shield cue missing');
 
 const benchmark = fs.readFileSync(path.join(root, 'modules', 'visual-benchmark.js'), 'utf8');
