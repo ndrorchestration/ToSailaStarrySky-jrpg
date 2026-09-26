@@ -6,11 +6,11 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
   const CELL = 16;
   const MAP = 32;
   const PIXEL_WORLD_BACKGROUND = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
-  const USE_LEGACY_PIXEL_BACKDROP = false;
+  const USE_PAINTED_WORLD_BACKDROP = true;
   const PIXEL_WORLD_PROPS_ATLAS = 'assets/preview/aetherwake-preview-world-props-agent-v1.png';
   const PROP_CELL_SIZE = 64;
   const PROP_ATLAS_COLUMNS = 4;
@@ -140,7 +140,7 @@
   }
 
   function drawBackdrop(w, h, now) {
-    if (USE_LEGACY_PIXEL_BACKDROP && !pixelWorldBackgroundRequested && typeof loadImage === 'function') {
+    if (USE_PAINTED_WORLD_BACKDROP && !pixelWorldBackgroundRequested && typeof loadImage === 'function') {
       pixelWorldBackgroundRequested = true;
       try {
         pixelWorldBackground = loadImage(
@@ -152,7 +152,7 @@
         pixelWorldBackground = null;
       }
     }
-    if (USE_LEGACY_PIXEL_BACKDROP && pixelWorldBackgroundReady && pixelWorldBackground) {
+    if (USE_PAINTED_WORLD_BACKDROP && pixelWorldBackgroundReady && pixelWorldBackground) {
       push();
       noSmooth();
       const cover = Math.max(w / pixelWorldBackground.width, h / pixelWorldBackground.height);
@@ -160,6 +160,12 @@
       const drawHeight = pixelWorldBackground.height * cover;
       image(pixelWorldBackground, (w - drawWidth) / 2, (h - drawHeight) / 2, drawWidth, drawHeight);
       pop();
+      // Keep the projected playable island legible over the high-detail plate.
+      noStroke();
+      fill(42, 72, 82, 24);
+      rect(0, 0, w, h);
+      fill(245, 211, 153, 10);
+      rect(0, Math.round(h * 0.45), w, Math.round(h * 0.55));
       return;
     }
 

@@ -113,6 +113,10 @@ vm.runInNewContext(source, sandbox, { filename: 'preview-world-presentation.js' 
 const presentation = sandbox.window.AetherPreviewWorldPresentation;
 assert(presentation, 'Preview world presentation module is missing');
 assert.strictEqual(typeof presentation.draw, 'function');
+assert(source.includes('USE_PAINTED_WORLD_BACKDROP = true'),
+  'normal world/dialogue scenes must bind the admitted painted-world backdrop authority');
+assert(source.includes('aetherwake-preview-world-pixelart-v2.png'),
+  'painted world asset binding missing from world presentation');
 assert(source.includes('if (!input.dockBenchmark) drawProjectedAtmosphere'),
   'benchmark mode must avoid duplicating generic projected atmosphere over its painted backdrop');
 assert(source.includes('if (!input.dockBenchmark) drawProjectedForeground'),
@@ -147,8 +151,8 @@ assert.strictEqual(calls.imageCreates, 1, 'tile map should be rasterized once, n
 assert(calls.images.length >= 1, 'cached tile map was not composited into the world scene');
 assert(calls.images.some(args => args[0] === calls.spriteImage),
   'loaded character atlas should render over the cached gameplay map');
-assert.deepStrictEqual(calls.backgroundRequests, [],
-  'the modern world path must not load the retired pixel-art scenic backdrop');
+assert.deepStrictEqual(calls.backgroundRequests, ['assets/preview/aetherwake-preview-world-pixelart-v2.png'],
+  'v0.2 world presentation must load the admitted painted-world backdrop exactly once');
 assert.deepStrictEqual(calls.spriteRequests, ['assets/preview/aetherwake-preview-party-atlas-v2.png'],
   'the playable slice should load its generated character atlas once');
 assert.deepStrictEqual(calls.propRequests, ['assets/preview/aetherwake-preview-world-props-agent-v1.png'],
@@ -383,6 +387,18 @@ for (const [x, y, label] of [[7, 19, 'Lyra'], [7, 20, 'Lyra'], [25, 23, 'Verrick
     label + ' sprite footprint on the playable map must retain unpainted authored ground');
 }
 
-assert.strictEqual(calls.completeBackgroundLoad, null,
-  'the modern world renderer must not retain the retired pixel-scenery load callback');
+assert.strictEqual(typeof calls.completeBackgroundLoad, 'function',
+  'painted-world authority should register its asynchronous load completion');
+calls.completeBackgroundLoad();
+const paintedDrawCount = calls.images.length;
+assert.strictEqual(presentation.draw({
+  groundLayer: actualGround,
+  player: actualWorld.player,
+  npcs: actualWorld.npcs,
+  width: 960,
+  height: 640,
+  now: 2200,
+}), true);
+assert(calls.images.slice(paintedDrawCount).some(args => args[0] === calls.backgroundImage),
+  'loaded painted-world authority must composite behind the projected playable world');
 console.log('Aetherwake Preview world presentation: PASS');
