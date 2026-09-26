@@ -5,7 +5,7 @@ const path=require('path');
 const vm=require('vm');
 const root=path.resolve(__dirname,'..');
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'assets/characters/v1/manifest.json'),'utf8'));
-const candidateIds=['aepex','reson'];
+const candidateIds=['aepex','reson','ender'];
 for(const id of candidateIds){
   const character=manifest.characters[id];
   assert.strictEqual(character.status,'planned',id+' candidate must not be runtime-admitted');
@@ -46,11 +46,11 @@ function boot(search){
 }
 const normal=boot('');
 assert.strictEqual(normal.api.getPreviewCharacterId(),null);
-assert.strictEqual(normal.api.drawPortrait('aepex',0,0,88,{expression:'talk'}),false);
+for(const id of candidateIds)assert.strictEqual(normal.api.drawPortrait(id,0,0,88,{expression:'talk'}),false,id+' preview stays off in normal runtime');
 assert.strictEqual(normal.events.length,0,'normal runtime must not load or draw candidate');
 const preview=boot('?aetherwakeArtPreview=aepex');
 assert.strictEqual(preview.api.getPreviewCharacterId(),'aepex');
-assert.deepStrictEqual(Array.from(preview.api.CHARACTERS),['aepex','reson']);
+assert.deepStrictEqual(Array.from(preview.api.CHARACTERS),['aepex','reson','ender']);
 assert.strictEqual(preview.api.normalizeExpression('speaking'),'talk');
 assert.strictEqual(preview.api.drawPortrait('reson',0,0,88,{expression:'neutral'}),false);
 assert.strictEqual(preview.api.drawPortrait('aepex',4,8,88,{expression:'smile'}),true);
@@ -63,6 +63,10 @@ const resonPreview=boot('?aetherwakeArtPreview=reson');
 assert.strictEqual(resonPreview.api.getPreviewCharacterId(),'reson');
 assert.strictEqual(resonPreview.api.drawPortrait('aepex',0,0,88,{expression:'neutral'}),false);
 assert.strictEqual(resonPreview.api.drawPortrait('reson',0,0,88,{expression:'neutral'}),true);
+const enderPreview=boot('?aetherwakeArtPreview=ender');
+assert.strictEqual(enderPreview.api.getPreviewCharacterId(),'ender');
+assert.strictEqual(enderPreview.api.drawPortrait('ender',0,0,88,{expression:'neutral'}),true);
+assert(enderPreview.events.some(event=>event.type==='load'&&event.file.includes('/ender/')));
 assert(resonPreview.events.some(event=>event.type==='load'&&event.file.includes('/reson/')));
-console.log('Aetherwake opt-in art preview contract (Aepex + Reson): PASS');
+console.log('Aetherwake opt-in art preview contract (Aepex + Reson + Ender): PASS');
 

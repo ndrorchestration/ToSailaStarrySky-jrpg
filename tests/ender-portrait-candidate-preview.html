@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aetherwake — Ender Portrait Candidate</title>
+<style>html,body{margin:0;background:#09131f;color:#f1e6d2;font-family:system-ui,sans-serif}body{display:grid;place-items:center;min-height:100vh}canvas{display:block;max-width:100%;height:auto}</style>
+<script src="../p5.min.js"></script>
+</head>
+<body>
+<script>
+let atlas;
+const expressions=['NEUTRAL','TALK','CONCERN','FOCUS','HURT','SMILE'];
+function preload(){atlas=loadImage('../assets/characters/v1/ender/portrait-atlas-candidate.png');}
+function setup(){createCanvas(960,640);pixelDensity(1);noLoop();}
+function draw(){
+  background(9,19,31);fill(236,222,193);textAlign(LEFT,TOP);textSize(20);
+  text('ENDER // PORTRAIT ATLAS CANDIDATE',32,24);fill(255,190,96);textSize(12);
+  text('CANDIDATE PREVIEW — NOT ADMITTED TO RUNTIME',32,52);
+  const x0=28,y0=92,w=286,h=260,g=15;
+  for(let i=0;i<6;i++){
+    const x=x0+(i%3)*(w+g),y=y0+Math.floor(i/3)*(h+20);
+    fill(17,34,48);stroke(93,126,132);strokeWeight(1);rect(x,y,w,h,4);noStroke();
+    image(atlas,x+15,y+10,256,220,(i%3)*256,Math.floor(i/3)*256,256,256);
+    fill(236,222,193);textAlign(CENTER,CENTER);textSize(12);text(expressions[i],x+w/2,y+241);
+  }
+}
+</script>
+</body>
+</html>
