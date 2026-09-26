@@ -33,7 +33,7 @@ Each specialist reviews the same exact-head screenshot set. The integrator recor
 A downstream lane may prototype before its dependency closes, but it may not be promoted as visual authority.
 
 ## Lane A ? Art Direction / Style Authority
-**Exists now:** `VISUAL_BIBLE.md`, seven-frame evidence capture, painted world/battle/interior assets, current 2.5D runtime pass.
+**Exists now:** `VISUAL_BIBLE.md`, seven primary scene frames plus one diagnostic character-lineup frame, painted world/battle/interior assets, current 2.5D runtime pass.
 
 **Produces:**
 - `docs/visual-style-contract.json`
@@ -134,7 +134,7 @@ A downstream lane may prototype before its dependency closes, but it may not be 
 **Depends / blocks:** continuous lane; can block every merge.
 
 ## Lane H ? Player Acceptance / QA
-**Exists now:** technical candidate acceptance procedure; seven-frame visual evidence harness; no current blind visual study.
+**Exists now:** technical candidate acceptance procedure; seven primary scene frames plus one diagnostic character-lineup evidence frame; no current blind visual study.
 
 **Produces:** five-player 20-minute visual acceptance record; blind screenshot same-game test; character/ship recognition sheet; confusion log.
 

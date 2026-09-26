@@ -448,6 +448,18 @@ async function capture(page, id, description) {
       'Sky-Predator aerial combat under Crosswind flight context'
     ));
 
+    // 7 ? Diagnostic five-character identity lineup on an isolated one-shot
+    // canvas so the live game loop cannot overwrite the review artifact.
+    await page.goto(`http://127.0.0.1:${PORT}/tests/character-identity-evidence.html`, {
+      waitUntil: 'domcontentloaded', timeout: 20000,
+    });
+    await page.waitForFunction(() => window.__identityEvidenceReady === true, undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '07-character-identity-lineup',
+      'Diagnostic five-character field-silhouette and portrait identity lineup'
+    ));
+
     assert(errors.length === 0, 'visual capture runtime errors:\n' + errors.join('\n'));
 
     const manifest = {

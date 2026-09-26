@@ -13,7 +13,7 @@ vm.runInNewContext(source, sandbox, { filename: 'character-renderer.js' });
 const api = sandbox.window.AetherCharacterRenderer;
 
 assert(api, 'articulated character renderer missing');
-assert.strictEqual(api.VERSION, '0.3.0');
+assert.strictEqual(api.VERSION, '0.4.0');
 assert(api.validate(), 'articulated character profiles must validate');
 for (const id of ['ender','reson','aepex','ionia','lyra']) {
   assert(api.PROFILES[id], id + ' articulated profile missing');
@@ -36,6 +36,27 @@ assert(api.PROFILES.reson.mustache === true && api.PROFILES.reson.cap, 'Reson ca
 assert(api.PROFILES.aepex.eyebrowNotch === true, 'Aepex eyebrow-notch authority missing');
 assert(api.PROFILES.ionia.hairMode === 'curlyShoulder', 'Ionia curly shoulder-length hair authority missing');
 assert(api.PROFILES.lyra.hairMode === 'longRed', 'Lyra long red hair authority missing');
+assert(api.PROFILES.ender.fieldVest && api.PROFILES.ender.embroidery,
+  'Ender reference-backed embroidered field-vest silhouette missing');
+assert(api.PROFILES.reson.heavyHarness && api.PROFILES.reson.utilityRig && api.PROFILES.reson.rolledSleeves,
+  'Reson reference-backed protector harness/utility silhouette missing');
+assert(api.PROFILES.aepex.techRig && api.PROFILES.aepex.neckGoggles && api.PROFILES.aepex.asymmetry,
+  'Aepex reference-backed technical rig/asymmetry silhouette missing');
+assert(api.PROFILES.ionia.tailoredLayer, 'Ionia tailored layered silhouette missing');
+assert(api.PROFILES.lyra.layeredDrape, 'Lyra layered drape silhouette missing');
+assert(api.PROFILES.reson.heightScale > api.PROFILES.aepex.heightScale,
+  'Reson must remain taller than Aepex');
+assert(api.PROFILES.aepex.heightScale > api.PROFILES.ender.heightScale,
+  'Aepex must remain taller than Ender');
+assert(api.PROFILES.ender.heightScale > api.PROFILES.ionia.heightScale &&
+       api.PROFILES.ender.heightScale > api.PROFILES.lyra.heightScale,
+  'Ender must remain taller than the Ionia/Lyra shortest tier');
+assert.strictEqual(api.PROFILES.ionia.heightScale, api.PROFILES.lyra.heightScale,
+  'Ionia/Lyra exact relative height remains unresolved and must stay tied');
+assert(source.includes('Reference-backed costume silhouette cues'),
+  'renderer must document reference-backed costume boundary');
+assert(source.includes('Dialogue-scale identity'),
+  'dialogue portraits must retain reference-backed costume identity cues');
 assert(api.PROFILES.ionia.hair[0] > api.PROFILES.ionia.hair[2], 'Ionia hair must read blond/warm rather than brown');
 assert(api.PROFILES.lyra.hair[0] > api.PROFILES.lyra.hair[1] * 2, 'Lyra hair must read red');
 

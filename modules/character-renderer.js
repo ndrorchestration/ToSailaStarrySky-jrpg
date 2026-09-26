@@ -4,40 +4,40 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.3.0';
+  const VERSION = '0.4.0';
   const PROFILES = Object.freeze({
     ender: Object.freeze({
       skin:[214,170,132], hair:[154,94,50], hairDark:[100,57,37],
       shirt:[55,61,65], vest:[172,149,104], accent:[58,105,66],
       leather:[81,55,38], metal:[176,130,57], boot:[50,39,34],
-      build:0.98, shoulder:1.0, leg:1.02, hairMode:'crop',
-      goggles:true, freckles:true, embroidery:true, posture:'focused'
+      build:0.98, shoulder:1.0, leg:1.02, heightScale:1.00, hairMode:'crop',
+      goggles:true, freckles:true, embroidery:true, fieldVest:true, collarOpen:true, posture:'focused'
     }),
     reson: Object.freeze({
       skin:[220,178,143], hair:[70,45,33], hairDark:[48,32,27],
       shirt:[216,202,176], vest:[78,62,48], accent:[133,50,40],
       leather:[75,50,35], metal:[172,121,52], boot:[47,36,31],
-      build:1.16, shoulder:1.16, leg:1.0, hairMode:'cap',
-      scarf:[133,50,40], cap:[150,43,45], mustache:true, posture:'open'
+      build:1.16, shoulder:1.16, leg:1.0, heightScale:1.08, hairMode:'cap',
+      scarf:[133,50,40], cap:[150,43,45], mustache:true, heavyHarness:true, utilityRig:true, rolledSleeves:true, posture:'open'
     }),
     aepex: Object.freeze({
       skin:[211,165,132], hair:[194,164,122], hairDark:[119,98,79],
       shirt:[39,40,44], vest:[52,49,48], accent:[181,134,60],
       leather:[52,43,39], metal:[174,127,54], boot:[35,31,30],
-      build:0.94, shoulder:0.98, leg:1.05, hairMode:'undercut',
-      tattoos:true, eyebrowNotch:true, harness:true, posture:'guarded'
+      build:0.94, shoulder:0.98, leg:1.05, heightScale:1.05, hairMode:'undercut',
+      tattoos:true, eyebrowNotch:true, harness:true, techRig:true, neckGoggles:true, asymmetry:true, posture:'guarded'
     }),
     ionia: Object.freeze({
       skin:[202,158,126], hair:[205,169,92], hairDark:[139,103,57],
       shirt:[48,63,67], vest:[111,102,82], accent:[69,132,137],
       leather:[72,54,42], metal:[145,115,71], boot:[46,40,38],
-      build:0.96, shoulder:0.98, leg:1.0, hairMode:'curlyShoulder', curls:true, posture:'steady'
+      build:0.96, shoulder:0.98, leg:1.0, heightScale:0.96, hairMode:'curlyShoulder', curls:true, tailoredLayer:true, posture:'steady'
     }),
     lyra: Object.freeze({
       skin:[218,178,145], hair:[163,58,43], hairDark:[104,39,34],
       shirt:[70,76,86], vest:[145,111,85], accent:[118,159,164],
       leather:[80,58,46], metal:[151,119,75], boot:[51,43,40],
-      build:0.84, shoulder:0.88, leg:0.94, hairMode:'longRed', longHair:true, posture:'light'
+      build:0.84, shoulder:0.88, leg:0.94, heightScale:0.96, hairMode:'longRed', longHair:true, layeredDrape:true, posture:'light'
     })
   });
 
@@ -171,6 +171,59 @@
       ellipse(6*s,4*s,2.4*s,2.4*s);
     }
 
+    // Reference-backed costume silhouette cues. These are visual only and do
+    // not imply equipment canon beyond the approved modeling references.
+    if (profile.fieldVest) {
+      stroke(...profile.leather);
+      strokeWeight(1.15*s);
+      line(-shoulder*0.42,-7*s,-waist*0.48,10*s);
+      line(shoulder*0.42,-7*s,waist*0.48,10*s);
+      noStroke();
+      fill(...profile.leather);
+      rect(-shoulder*0.44,7*s,shoulder*0.88,2.2*s,0.8*s);
+    }
+    if (profile.heavyHarness) {
+      stroke(...profile.leather);
+      strokeWeight(2.3*s);
+      line(-shoulder*0.38,-8*s,waist*0.52,10*s);
+      line(shoulder*0.38,-8*s,-waist*0.52,10*s);
+      noStroke();
+      fill(...profile.metal);
+      for (const x of [-5.5,0,5.5]) rect(x*s-1.1*s,5*s,2.2*s,3.1*s,0.5*s);
+    }
+    if (profile.utilityRig) {
+      fill(...profile.leather);
+      rect(-9*s,8*s,5*s,7*s,1*s);
+      rect(4*s,8*s,5*s,7*s,1*s);
+      fill(...profile.metal);
+      rect(-7.8*s,9.2*s,2.2*s,1.4*s,0.4*s);
+      rect(5.2*s,9.2*s,2.2*s,1.4*s,0.4*s);
+    }
+    if (profile.techRig) {
+      fill(...profile.leather);
+      rect(-8*s,5*s,4*s,8*s,1*s);
+      rect(4*s,6*s,5*s,7*s,1*s);
+      fill(...profile.metal);
+      rect(-6.8*s,6*s,1.8*s,4.5*s,0.5*s);
+      rect(5.2*s,7*s,2.2*s,3.5*s,0.5*s);
+      fill(...profile.accent);
+      rect(6*s,8*s,1.2*s,1.2*s);
+    }
+    if (profile.tailoredLayer) {
+      stroke(...profile.metal);
+      strokeWeight(0.8*s);
+      line(-shoulder*0.34,-6*s,-waist*0.38,9*s);
+      line(shoulder*0.34,-6*s,waist*0.38,9*s);
+      noStroke();
+    }
+    if (profile.layeredDrape) {
+      fill(...profile.vest);
+      beginShape();
+      vertex(-waist*0.55,7*s); vertex(-waist*0.30,14*s);
+      vertex(0,10*s); vertex(waist*0.30,14*s); vertex(waist*0.55,7*s);
+      endShape(CLOSE);
+    }
+
     if (profile.scarf) {
       fill(...profile.scarf);
       arc(0,-9*s,17*s,7*s,0,Math.PI);
@@ -179,6 +232,16 @@
       vertex(4*s,-7*s); vertex(8*s,-6*s);
       vertex(8*s+wind,2*s); vertex(4*s+wind*0.55,0);
       endShape(CLOSE);
+    }
+
+    if (profile.neckGoggles) {
+      noFill();
+      stroke(...profile.metal);
+      strokeWeight(1.0*s);
+      ellipse(-3.0*s,-7.2*s,4.6*s,3.6*s);
+      ellipse(3.0*s,-7.2*s,4.6*s,3.6*s);
+      line(-0.7*s,-7.2*s,0.7*s,-7.2*s);
+      noStroke();
     }
 
     if (motion.focus) {
@@ -209,6 +272,12 @@
     }
 
     capsule(shoulderX,shoulderY,elbowX,elbowY,4.8*s,profile.shirt);
+    if (profile.rolledSleeves) {
+      stroke(...profile.leather);
+      strokeWeight(1.3*s);
+      line((shoulderX+elbowX)*0.48,(shoulderY+elbowY)*0.48,(shoulderX+elbowX)*0.55,(shoulderY+elbowY)*0.55);
+      noStroke();
+    }
     capsule(elbowX,elbowY,handX,handY,3.8*s,profile.skin);
 
     fill(...profile.leather);
@@ -226,6 +295,18 @@
   function drawHead(profile, s, motion, expression) {
     const faceY = -49*s;
     const nod = motion.talk ? Math.sin(motion.phase*1.7)*0.7*s : 0;
+
+    if (profile.hairMode === 'longRed') {
+      noStroke();
+      fill(...profile.hairDark);
+      beginShape();
+      vertex(-6.5*s,faceY-4*s+nod); vertex(-8.8*s,faceY+2*s+nod);
+      vertex(-9.2*s,faceY+13*s+nod); vertex(-5.8*s,faceY+16*s+nod);
+      vertex(-3.8*s,faceY+7*s+nod); vertex(3.8*s,faceY+7*s+nod);
+      vertex(5.8*s,faceY+16*s+nod); vertex(9.2*s,faceY+13*s+nod);
+      vertex(8.8*s,faceY+2*s+nod); vertex(6.5*s,faceY-4*s+nod);
+      endShape(CLOSE);
+    }
 
     stroke(46,34,30,175);
     strokeWeight(0.85*s);
@@ -254,13 +335,9 @@
         ellipse(side*5.0*s,faceY+5.0*s+nod,3.2*s,4.0*s);
       }
     } else if (profile.hairMode === 'longRed') {
-      arc(0,faceY-3.4*s+nod,13*s,9*s,Math.PI,Math.PI*2);
-      beginShape();
-      vertex(-6*s,faceY-2*s+nod); vertex(-7.5*s,faceY+4*s+nod);
-      vertex(-6.2*s,faceY+11*s+nod); vertex(-3.7*s,faceY+6*s+nod);
-      vertex(3.7*s,faceY+6*s+nod); vertex(6.2*s,faceY+11*s+nod);
-      vertex(7.5*s,faceY+4*s+nod); vertex(6*s,faceY-2*s+nod);
-      endShape(CLOSE);
+      arc(0,faceY-3.8*s+nod,13.5*s,9*s,Math.PI,Math.PI*2);
+      ellipse(-5.6*s,faceY+1.3*s+nod,2.8*s,8*s);
+      ellipse(5.6*s,faceY+1.3*s+nod,2.8*s,8*s);
     } else {
       arc(0,faceY-4.3*s+nod,12*s,8*s,Math.PI,Math.PI*2);
       triangle(-5*s,faceY-4*s+nod,-1*s,faceY-8*s+nod,1*s,faceY-4*s+nod);
@@ -342,6 +419,11 @@
 
     drawGroundShadow(s,depth,m);
 
+    // Height authority scales vertically around the grounded foot origin; build
+    // and shoulder factors remain independent so tall does not mean bulky.
+    push();
+    scale(1, profile.heightScale || 1);
+
     // Rear limbs, torso, front limbs produce consistent depth during gait.
     drawLeg(profile,-1,-22*s,s, stride,liftL,false);
     drawArm(profile,-1,s,armSwing,0,false,m);
@@ -369,6 +451,7 @@
       ellipse(0,-27*s,29*s,61*s);
       noStroke();
     }
+    pop(); // height authority
     pop();
     return true;
   }
@@ -416,6 +499,50 @@
       ellipse(10*s,-10*s,7*s,7*s);
       line(7*s,-14*s,13*s,-6*s);
       noStroke();
+    }
+
+    // Dialogue-scale identity: retain the costume cues that distinguish the
+    // five protagonists in the approved modeling references.
+    if (profile.heavyHarness) {
+      stroke(...profile.leather);
+      strokeWeight(2.3*s);
+      line(-10*s,-18*s,8*s,-2*s);
+      line(10*s,-18*s,-8*s,-2*s);
+      noStroke();
+      fill(...profile.metal);
+      rect(-1.8*s,-10*s,3.6*s,3*s,0.7*s);
+    }
+    if (profile.techRig) {
+      stroke(...profile.metal);
+      strokeWeight(1.4*s);
+      line(-9*s,-17*s,8*s,-2*s);
+      noStroke();
+      fill(...profile.leather);
+      rect(7*s,-12*s,5*s,8*s,1*s);
+      fill(...profile.accent);
+      rect(8.5*s,-9*s,2*s,2*s,0.4*s);
+    }
+    if (profile.neckGoggles) {
+      noFill();
+      stroke(...profile.metal);
+      strokeWeight(1.2*s);
+      ellipse(-3.4*s,-18*s,5.2*s,4*s);
+      ellipse(3.4*s,-18*s,5.2*s,4*s);
+      line(-0.8*s,-18*s,0.8*s,-18*s);
+      noStroke();
+    }
+    if (profile.tailoredLayer) {
+      stroke(...profile.metal);
+      strokeWeight(0.9*s);
+      line(-9*s,-17*s,-7*s,-3*s);
+      line(9*s,-17*s,7*s,-3*s);
+      noStroke();
+    }
+    if (profile.layeredDrape) {
+      fill(...profile.vest);
+      beginShape();
+      vertex(-11*s,-8*s); vertex(-7*s,0); vertex(0,-4*s); vertex(7*s,0); vertex(11*s,-8*s);
+      endShape(CLOSE);
     }
 
     push();
