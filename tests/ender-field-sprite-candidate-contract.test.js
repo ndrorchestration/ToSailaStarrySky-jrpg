@@ -15,6 +15,14 @@ assert.strictEqual(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a','candida
 assert.strictEqual(png.readUInt32BE(16),56);
 assert.strictEqual(png.readUInt32BE(20),36);
 assert.strictEqual(png[25],6,'candidate PNG must carry an alpha channel');
+const runtimeSource=fs.readFileSync(path.join(root,'aetherwake.js'),'utf8');
+const playerStart=runtimeSource.indexOf('function drawPlayer()');
+const playerEnd=runtimeSource.indexOf('// --- NPCs',playerStart);
+const playerRenderer=runtimeSource.slice(playerStart,playerEnd);
+assert(playerRenderer.includes("sprites.drawFieldCandidate('ender', px + 8, py + 16"),
+  'opt-in candidate must be wired into the live player renderer');
+assert(playerRenderer.includes("sprites.draw('ender', px, py, { frame: fieldFrame });"),
+  'existing runtime fallback must remain available');
 const moduleSource=fs.readFileSync(path.join(root,'modules/pixel-sprites.js'),'utf8');
 function boot(search){
   const events={requested:[],images:[],rects:[]};
