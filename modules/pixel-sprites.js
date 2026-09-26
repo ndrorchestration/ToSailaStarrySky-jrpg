@@ -573,6 +573,8 @@
         try {
           enderFieldCandidate = loadImage(
             ENDER_FIELD_CANDIDATE_PATH,
+    isFieldArtCandidateRequested,
+    drawFieldCandidate,
             (loaded) => {
               enderFieldCandidate = loaded || enderFieldCandidate;
               enderFieldCandidateState = enderFieldCandidate &&
@@ -622,6 +624,14 @@
       ENDER_FIELD_CELL_HEIGHT
     );
     return true;
+  }
+
+  function isFieldArtCandidateRequested(id) {
+    return id === 'ender' && isEnderFieldCandidateRequested();
+  }
+
+  function drawFieldCandidate(id, x, y, options) {
+    return id === 'ender' ? drawEnderFieldCandidate(x, y, options) : false;
   }
 
   function drawPreview(id, x, y, options) {
