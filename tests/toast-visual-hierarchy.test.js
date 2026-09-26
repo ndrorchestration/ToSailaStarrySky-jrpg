@@ -10,5 +10,8 @@ assert(source.includes("filter(t => t.kind !== 'system')"), 'full-card hierarchy
 assert(source.includes("slice(-1)[0] || null"), 'full-card hierarchy must render at most one notice');
 assert(source.includes('if (systemToast && !cardToast)'), 'system micro-status must yield whenever a higher-priority notice is visible');
 assert(source.includes("textSize(9)") && source.includes("height - 24"), 'system toast must collapse to compact safe-area micro-status');
+assert(source.includes('const cardW = Math.min(232'), 'priority card must remain compact');
+assert(source.includes("const isObjective = String(t.text || '').toUpperCase().startsWith('OBJECTIVE //')"), 'objective notice must receive compact labeled treatment');
+assert(source.includes("replace(/^OBJECTIVE\\s*\\/\\/\\s*/i, '')"), 'objective card must avoid repeating its prefix in the message');
 assert(!source.includes('window.toasts.slice(-2).reverse()'), 'old two-card toast stack must not return');
 console.log('Aetherwake toast visual hierarchy: PASS');
