@@ -1999,12 +1999,19 @@ function triggerHitStop(ms) {
 
 /** Show a toast message — auto-fading overlay text. */
 function showToast(text, color, duration) {
+  const upper = String(text || '').toUpperCase();
+  const kind = upper.startsWith('AUTOSAVED //') || upper.startsWith('GAME SAVED //')
+    ? 'system'
+    : (upper.startsWith('OBJECTIVE //') || upper.startsWith('HAZARD //') || upper.includes('FAILED') || upper.includes('DENIED'))
+      ? 'priority'
+      : 'notice';
   window.toasts.push({
     text: text,
     color: color || [42, 255, 181],
     startTime: millis(),
     duration: duration || 2000,
     alpha: 255,
+    kind,
   });
 }
 
@@ -2737,26 +2744,56 @@ function drawToasts() {
   const now = millis();
   for (let i = window.toasts.length - 1; i >= 0; i--) {
     const t = window.toasts[i];
-    const age = now - t.startTime;
-    if (age > t.duration) {
-      window.toasts.splice(i, 1);
-      continue;
-    }
-    const alpha = age < 200 ? (age / 200) * 255 : (age > t.duration - 400 ? (t.duration - age) / 400 * 255 : 255);
-    const y = height - 60 - (window.toasts.length - 1 - i) * 26;
-    noStroke();
-    fill(t.color[0], t.color[1], t.color[2], alpha * 0.15);
-    rect(width / 2 - 110, y - 8, 220, 22, 4);
-    fill(t.color[0], t.color[1], t.color[2], alpha);
-    textFont('VT323');
-    textSize(14);
-    textAlign(CENTER, CENTER);
-    text(t.text, width / 2, y + 2);
+    if (now - t.startTime > t.duration) window.toasts.splice(i, 1);
   }
+
+  const active = window.toasts.slice();
+  const cardToast = active.filter(t => t.kind !== 'system')
+    .sort((a,b) => ((a.kind === 'priority') ? 1 : 0) - ((b.kind === 'priority') ? 1 : 0) || a.startTime - b.startTime)
+    .slice(-1)[0] || null;
+  const systemToast = active.filter(t => t.kind === 'system').slice(-1)[0] || null;
+  const cardW = Math.min(232, Math.max(192, width * 0.24));
+  const cardX = width - cardW - 24;
+  if (cardToast) {
+    const t = cardToast;
+    const age = now - t.startTime;
+    const alpha = age < 180 ? (age / 180) * 255 :
+      (age > t.duration - 350 ? Math.max(0, (t.duration - age) / 350) * 255 : 255);
+    const y = 96;
+    const isObjective = String(t.text || '').toUpperCase().startsWith('OBJECTIVE //');
+    const label = isObjective ? 'OBJECTIVE' : (t.kind === 'priority' ? 'PRIORITY' : 'NOTICE');
+    const message = isObjective ? String(t.text).replace(/^OBJECTIVE\s*\/\/\s*/i, '') : String(t.text || '');
+    noStroke();
+    fill(7, 11, 19, alpha * 0.68);
+    rect(cardX, y, cardW, 24, 5);
+    fill(t.color[0], t.color[1], t.color[2], alpha * 0.30);
+    rect(cardX, y, 3, 24, 2);
+    textFont('Segoe UI Semibold');
+    textSize(7);
+    textAlign(LEFT, CENTER);
+    fill(t.color[0], t.color[1], t.color[2], alpha * 0.85);
+    text(label, cardX + 9, y + 12);
+    textFont('Segoe UI');
+    textSize(9);
+    textAlign(RIGHT, CENTER);
+    fill(232, 220, 198, alpha * 0.94);
+    text(message, cardX + cardW - 9, y + 12);
+  }
+  if (systemToast && !cardToast) {
+    const t = systemToast;
+    const age = now - t.startTime;
+    const alpha = age < 140 ? (age / 140) * 190 :
+      (age > t.duration - 250 ? Math.max(0, (t.duration - age) / 250) * 190 : 190);
+    fill(t.color[0], t.color[1], t.color[2], alpha);
+    textFont('Segoe UI');
+    textSize(9);
+    textAlign(RIGHT, BOTTOM);
+    text(t.text, width - 24, height - 24);
+  }
+  textAlign(LEFT, BASELINE);
   textFont('sans-serif');
 }
 
-// ── Fade overlay ─────────────────────────────────────────────────────────
 function drawFadeOverlay() {
   if (!fade.active) return;
   const age = millis() - fade.startTime;
