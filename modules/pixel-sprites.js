@@ -21,6 +21,28 @@
   const PREVIEW_HEIGHT = 36;
   const BATTLE_ENEMY_WIDTH = 42;
   const BATTLE_ENEMY_HEIGHT = 36;
+  const ENDER_FIELD_PREVIEW_PARAM = 'aetherwakeFieldArtPreview';
+  const ENDER_FIELD_CANDIDATE_PATH = 'assets/characters/v1/ender/field-idle-walk-candidate.png';
+  const LYRA_FIELD_CANDIDATE_PATH = 'assets/characters/v1/lyra/field-idle-walk-candidate.png';
+  const IONIA_FIELD_CANDIDATE_PATH = 'assets/characters/v1/ionia/field-idle-walk-candidate.png';
+  const AEPEX_FIELD_CANDIDATE_PATH = 'assets/characters/v1/aepex/field-idle-walk-candidate.png';
+  const RESON_FIELD_CANDIDATE_PATH = 'assets/characters/v1/reson/field-idle-walk-candidate.png';
+  const ENDER_FIELD_CELL_WIDTH = 28;
+  const ENDER_FIELD_CELL_HEIGHT = 36;
+  const FIELD_ART_CANDIDATES = Object.freeze({
+    ender: Object.freeze({ path: ENDER_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
+    lyra: Object.freeze({ path: LYRA_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
+    ionia: Object.freeze({ path: IONIA_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
+    aepex: Object.freeze({ path: AEPEX_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
+    reson: Object.freeze({ path: RESON_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
+  });
+  const fieldArtCandidateStates = {
+    ender: { state: 'idle', image: null },
+    lyra: { state: 'idle', image: null },
+    ionia: { state: 'idle', image: null },
+    aepex: { state: 'idle', image: null },
+    reson: { state: 'idle', image: null },
+  };
   let previewAtlas = null;
   let previewAtlasState = 'idle';
   let battleEnemyAtlas = null;
@@ -547,7 +569,81 @@
     return drawPixelSprite(SPRITES[id], PALETTES[id], x, y, options);
   }
 
+  function isFieldArtCandidateRequested(id) {
+    if (!Object.prototype.hasOwnProperty.call(FIELD_ART_CANDIDATES, id)) return false;
+    const search = root.location && root.location.search ? root.location.search : '';
+    try {
+      return new URLSearchParams(search).get(ENDER_FIELD_PREVIEW_PARAM) === id;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function drawFieldCandidate(id, x, y, options) {
+    const config = FIELD_ART_CANDIDATES[id];
+    const candidate = fieldArtCandidateStates[id];
+    if (!config || !candidate || !isFieldArtCandidateRequested(id)) return false;
+    if (candidate.state === 'idle') {
+      if (typeof loadImage !== 'function') {
+        candidate.state = 'unavailable';
+      } else {
+        candidate.state = 'loading';
+        try {
+          candidate.image = loadImage(
+            config.path,
+            (loaded) => {
+              candidate.image = loaded || candidate.image;
+              candidate.state = candidate.image &&
+                candidate.image.width === config.width * 2 &&
+                candidate.image.height === config.height
+                ? 'ready'
+                : 'failed';
+            },
+            () => {
+              candidate.image = null;
+              candidate.state = 'failed';
+            }
+          );
+        } catch (error) {
+          candidate.image = null;
+          candidate.state = 'failed';
+        }
+      }
+    }
+
+    if (candidate.state !== 'ready' || !candidate.image ||
+        typeof image !== 'function') return false;
+
+    const opts = options || {};
+    const scale = Math.max(1, Math.floor(opts.scale || 1));
+    const frameIndex = Math.abs(Math.floor(opts.frame || 0)) % 2;
+    const anchor = opts.anchor || 'top-left';
+    let ox = x;
+    let oy = y;
+    if (anchor === 'center') {
+      ox -= (config.width * scale) / 2;
+      oy -= (config.height * scale) / 2;
+    } else if (anchor === 'bottom-center') {
+      ox -= (config.width * scale) / 2;
+      oy -= config.height * scale;
+    }
+    if (typeof noSmooth === 'function') noSmooth();
+    image(
+      candidate.image,
+      Math.round(ox),
+      Math.round(oy),
+      config.width * scale,
+      config.height * scale,
+      frameIndex * config.width,
+      0,
+      config.width,
+      config.height
+    );
+    return true;
+  }
+
   function drawPreview(id, x, y, options) {
+    if (isFieldArtCandidateRequested(id) && drawFieldCandidate(id, x, y, options)) return true;
     const column = PREVIEW_COLUMNS[id];
     if (column === undefined || !SPRITES[id]) {
       const previewFallback = PREVIEW_FALLBACKS[id];
@@ -681,6 +777,14 @@
   }
 
   const api = Object.freeze({
+    ENDER_FIELD_PREVIEW_PARAM,
+    ENDER_FIELD_CANDIDATE_PATH,
+    LYRA_FIELD_CANDIDATE_PATH,
+    IONIA_FIELD_CANDIDATE_PATH,
+    AEPEX_FIELD_CANDIDATE_PATH,
+    RESON_FIELD_CANDIDATE_PATH,
+    isFieldArtCandidateRequested,
+    drawFieldCandidate,
     VERSION: '0.3.0',
     CELL_SIZE: 1,
     PREVIEW_ATLAS_PATH,
@@ -703,3 +807,4 @@
 
   root.AetherPixelSprites = api;
 })(typeof window !== 'undefined' ? window : globalThis);
+

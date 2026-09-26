@@ -81,8 +81,8 @@ const sandbox = {
   translate(x, y) { calls.translates.push([x, y]); },
   image(...args) { calls.images.push(args); },
   text() {}, textAlign() {}, textFont() {}, textSize() {},
-  stroke() {}, strokeWeight() {}, line() {}, ellipse() {},
-  CENTER: 'center', LEFT: 'left', TOP: 'top',
+  stroke() {}, strokeWeight() {}, line() {}, ellipse() {}, beginShape() {}, vertex() {}, endShape() {}, quad() {}, bezier() {}, smooth() {}, applyMatrix() {},
+  CENTER: 'center', LEFT: 'left', TOP: 'top', CLOSE: 'close',
   width: 960, height: 640, frameCount: 20,
 };
 calls.sprites = [];
@@ -110,9 +110,37 @@ sandbox.window.AetherPixelSprites = Object.freeze({
 });
 vm.runInNewContext(source, sandbox, { filename: 'preview-world-presentation.js' });
 
+
+assert(source.includes('AetherEnvironmentVisualKit'),
+  'projected world must bind the shared environment visual kit');
+assert(source.includes('drawCargoCrate') && source.includes('drawAetherStone') &&
+  source.includes('drawSkyPool') && source.includes('drawSignalCrystal'),
+  'projected world must route prototype cell props through shared authored prop renderers');
+assert(source.includes('if (reducedDetail && type !== 6) continue'),
+  'dock benchmark must suppress duplicate generic debris while preserving story signal props');
+assert(source.includes('Low-cost material breakup') && source.includes('const grassPatches = reducedDetail ? 4 : 12'),
+  'projected world must apply bounded grass/stone material breakup rather than one flat crown');
+assert(source.includes('const rimMarks = reducedDetail ? 5 : 14'),
+  'projected world must retain bounded cliff-edge material accents');
 const presentation = sandbox.window.AetherPreviewWorldPresentation;
 assert(presentation, 'Preview world presentation module is missing');
 assert.strictEqual(typeof presentation.draw, 'function');
+assert(source.includes('USE_PAINTED_WORLD_BACKDROP = true'),
+  'normal world/dialogue scenes must bind the admitted painted-world backdrop authority');
+assert(source.includes('aetherwake-preview-world-pixelart-v2.png'),
+  'painted world asset binding missing from world presentation');
+assert(source.includes('if (!input.dockBenchmark) drawProjectedAtmosphere'),
+  'benchmark mode must avoid duplicating generic projected atmosphere over its painted backdrop');
+assert(source.includes('if (!input.dockBenchmark) drawProjectedForeground'),
+  'benchmark mode must avoid duplicating generic projected foreground over benchmark foreground');
+assert(source.includes('Camera-side vegetation and masonry silhouettes'),
+  'normal projected exploration must include a dedicated near-plane material layer');
+assert(source.includes('Sparse foreground aether motes'),
+  'normal projected exploration must include sparse near-plane aether continuity cues');
+assert(source.includes('Non-benchmark horizon integration'),
+  'normal projected exploration must soften the crown/backdrop seam');
+assert(source.includes('Boolean(input.dockBenchmark)'),
+  'dock benchmark must explicitly bypass extra horizon integration detail');
 
 const ground = Array.from({ length: 32 }, () => Array(32).fill(2));
 ground[0][0] = 1;
@@ -144,7 +172,7 @@ assert(calls.images.length >= 1, 'cached tile map was not composited into the wo
 assert(calls.images.some(args => args[0] === calls.spriteImage),
   'loaded character atlas should render over the cached gameplay map');
 assert.deepStrictEqual(calls.backgroundRequests, ['assets/preview/aetherwake-preview-world-pixelart-v2.png'],
-  'the authored floating-island pixel-art vista should load as the scenic world backdrop');
+  'v0.2 world presentation must load the admitted painted-world backdrop exactly once');
 assert.deepStrictEqual(calls.spriteRequests, ['assets/preview/aetherwake-preview-party-atlas-v2.png'],
   'the playable slice should load its generated character atlas once');
 assert.deepStrictEqual(calls.propRequests, ['assets/preview/aetherwake-preview-world-props-agent-v1.png'],
@@ -336,6 +364,14 @@ assert(propsAfterNpcOverlap.some(args => args[1] === 1 * 16 && args[2] === 25 * 
 'the tree should remain drawn while a live NPC overlaps its footprint');
 
 const worldSandbox = { window: {}, globalThis: {} };
+worldSandbox.window.AetherPartyState = {
+  refreshProductionStats(player) {
+    player.productionStats = { spirit: 12 };
+    player.productionDerivedStats = { maxHp: player.maxVit || 13 };
+    player.productionStatModelVersion = '0.1.0';
+    return player;
+  },
+};
 vm.runInNewContext(worldSource, worldSandbox, { filename: 'world.js' });
 const actualWorld = worldSandbox.window.AetherWorld({}, {});
 assert.doesNotThrow(() => actualWorld.init(), 'the playable world must initialize before its scenic map is drawn');
@@ -372,22 +408,17 @@ for (const [x, y, label] of [[7, 19, 'Lyra'], [7, 20, 'Lyra'], [25, 23, 'Verrick
 }
 
 assert.strictEqual(typeof calls.completeBackgroundLoad, 'function',
-  'the world renderer should retain the scenic image load callback');
+  'painted-world authority should register its asynchronous load completion');
 calls.completeBackgroundLoad();
-const backgroundFrameStart = calls.images.length;
-presentation.draw({
+const paintedDrawCount = calls.images.length;
+assert.strictEqual(presentation.draw({
   groundLayer: actualGround,
   player: actualWorld.player,
   npcs: actualWorld.npcs,
   width: 960,
   height: 640,
-  now: 1816,
-});
-assert(calls.images.length >= backgroundFrameStart + 2,
-  'a loaded scenic background should render behind the cached gameplay map');
-assert.strictEqual(calls.images[backgroundFrameStart][0], calls.backgroundImage,
-  'the generated pixel-art scenery must render first, behind the map');
-assert.strictEqual(calls.images[backgroundFrameStart + 1][0], realMapAtlas,
-  'the tile map must remain the foreground gameplay layer');
-
+  now: 2200,
+}), true);
+assert(calls.images.slice(paintedDrawCount).some(args => args[0] === calls.backgroundImage),
+  'loaded painted-world authority must composite behind the projected playable world');
 console.log('Aetherwake Preview world presentation: PASS');

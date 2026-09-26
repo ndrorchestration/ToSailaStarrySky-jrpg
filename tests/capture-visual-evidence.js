@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const { URL } = require('url');
 
 const BASE = path.resolve(__dirname, '..');
@@ -16,6 +17,18 @@ const OUT = path.resolve(
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function resolveSourceBinding() {
+  const explicit = process.env.AETHERWAKE_SOURCE_SHA || process.env.GITHUB_SHA;
+  if (explicit) return { sha: explicit, mode: 'environment', workingTreeClean: null };
+  try {
+    const sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: BASE, encoding: 'utf8' }).trim();
+    const status = execFileSync('git', ['status', '--porcelain'], { cwd: BASE, encoding: 'utf8' }).trim();
+    return { sha, mode: 'local-git-head', workingTreeClean: status.length === 0 };
+  } catch (error) {
+    return { sha: 'LOCAL_UNBOUND', mode: 'unbound', workingTreeClean: null };
+  }
 }
 
 function createServer() {
@@ -75,6 +88,13 @@ async function bootToWorld(page) {
   });
   await waitForRuntime(page);
 
+  await page.waitForTimeout(1800);
+  await page.locator('canvas').click({ position: { x: 480, y: 320 } });
+  for (let pageIndex = 0; pageIndex < 5; pageIndex++) {
+    await page.waitForTimeout(700);
+    await page.keyboard.press('Enter');
+  }
+  await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => window.gameState === 'opening', undefined, { timeout: 5000 });
 
@@ -117,7 +137,6 @@ async function bootToWorld(page) {
   await page.waitForFunction(() =>
     window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'lyra_family'
   , undefined, { timeout: 5000 });
-
   for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowRight');
   for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowUp');
   await page.keyboard.press('e');
@@ -145,16 +164,14 @@ async function bootToWorld(page) {
   for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowLeft');
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('e');
-
   for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
   await page.keyboard.press('ArrowUp');
   await page.keyboard.press('e');
+
   await page.waitForFunction(() =>
     window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'first_wake_card'
   , undefined, { timeout: 5000 });
-
   await page.keyboard.press('Enter');
-
   await page.waitForFunction(() =>
     window.gameState === 'world' &&
     window._firstWakeOpeningState &&
@@ -166,6 +183,65 @@ async function bootToWorld(page) {
 
 function sha256(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+}
+
+async function measureFrameTiming(page, id, sampleFramesPerWindow = 60, sampleWindows = 3) {
+  const stats = await page.evaluate(async ({ sampleFramesPerWindow, sampleWindows }) => {
+    const windows = [];
+    for (let windowIndex = 0; windowIndex < sampleWindows; windowIndex++) {
+      const deltas = [];
+      let previous = performance.now();
+      await new Promise(resolve => {
+        function tick(now) {
+          deltas.push(now - previous);
+          previous = now;
+          if (deltas.length >= sampleFramesPerWindow) resolve();
+          else requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      });
+      deltas.sort((a, b) => a - b);
+      const pick = q => deltas[Math.min(deltas.length - 1, Math.floor((deltas.length - 1) * q))];
+      windows.push({
+        sampleFrames: deltas.length,
+        p50: pick(0.50),
+        p95: pick(0.95),
+        max: deltas[deltas.length - 1],
+      });
+    }
+
+    const all = windows.flatMap(item => item.sampleFrames ? [] : []);
+    const p95s = windows.map(item => item.p95).sort((a,b) => a-b);
+    const p50s = windows.map(item => item.p50).sort((a,b) => a-b);
+    const median = values => values[Math.floor(values.length / 2)];
+    const nav = performance.getEntriesByType('navigation')[0];
+    const memory = performance.memory || null;
+    const medianP50 = median(p50s);
+    const medianP95 = median(p95s);
+    return {
+      sampleFrames: sampleFramesPerWindow * sampleWindows,
+      sampleFramesPerWindow,
+      sampleWindows,
+      frameMsP50: Number(medianP50.toFixed(2)),
+      frameMsP95: Number(medianP95.toFixed(2)),
+      frameMsMax: Number(Math.max(...windows.map(item => item.max)).toFixed(2)),
+      windowP95Median: Number(medianP95.toFixed(2)),
+      windowP95Worst: Number(Math.max(...p95s).toFixed(2)),
+      estimatedFpsP50: Number((1000 / medianP50).toFixed(1)),
+      estimatedFpsP95: Number((1000 / medianP95).toFixed(1)),
+      loadEventMs: nav ? Number(nav.loadEventEnd.toFixed(2)) : null,
+      jsHeapUsedBytes: memory ? memory.usedJSHeapSize : null,
+      jsHeapTotalBytes: memory ? memory.totalJSHeapSize : null,
+      deviceMemoryGiB: navigator.deviceMemory || null,
+      windows: windows.map((item, index) => ({
+        index,
+        p50: Number(item.p50.toFixed(2)),
+        p95: Number(item.p95.toFixed(2)),
+        max: Number(item.max.toFixed(2)),
+      })),
+    };
+  }, { sampleFramesPerWindow, sampleWindows });
+  return { id, ...stats };
 }
 
 async function capture(page, id, description) {
@@ -221,6 +297,7 @@ async function capture(page, id, description) {
 
   try {
     const captures = [];
+    const performanceSamples = [];
 
     // 0 â€” Shared-authority title screen after real boot/preamble.
     await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
@@ -228,12 +305,19 @@ async function capture(page, id, description) {
       timeout: 20000,
     });
     await waitForRuntime(page);
-    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 13000 });
+    await page.waitForTimeout(1800);
+    await page.locator('canvas').click({ position: { x: 480, y: 320 } });
+    for (let pageIndex = 0; pageIndex < 5; pageIndex++) {
+      await page.waitForTimeout(700);
+      await page.keyboard.press('Enter');
+    }
+    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
     captures.push(await capture(
       page,
       '00-title-screen',
       'Shared-authority Aetherwake title screen'
     ));
+    performanceSamples.push(await measureFrameTiming(page, '00-title-screen'));
 
     // 1 â€” First Wake interactive dock-walk presentation.
     await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
@@ -241,6 +325,13 @@ async function capture(page, id, description) {
       timeout: 20000,
     });
     await waitForRuntime(page);
+    await page.waitForTimeout(1800);
+    await page.locator('canvas').click({ position: { x: 480, y: 320 } });
+    for (let pageIndex = 0; pageIndex < 5; pageIndex++) {
+      await page.waitForTimeout(700);
+      await page.keyboard.press('Enter');
+    }
+    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
     await page.keyboard.press('Enter');
     await page.waitForFunction(() => window.gameState === 'opening', undefined, { timeout: 5000 });
     await page.waitForFunction(() =>
@@ -288,6 +379,7 @@ async function capture(page, id, description) {
       '02-dragonfly-dusk-dock',
       'Dragonfly Dusk Dock benchmark candidate'
     ));
+    performanceSamples.push(await measureFrameTiming(page, '02-dragonfly-dusk-dock'));
 
     // 2 â€” Representative dialogue.
     await page.evaluate(() => {
@@ -328,6 +420,7 @@ async function capture(page, id, description) {
       '04-combat-sky-predator',
       'Representative Sky-Predator combat visual gate'
     ));
+    performanceSamples.push(await measureFrameTiming(page, '04-combat-sky-predator'));
 
     // 4 â€” Dragonfly flight.
     await bootToWorld(page);
@@ -355,6 +448,7 @@ async function capture(page, id, description) {
       '05-dragonfly-flight',
       'Representative Dragonfly open-sky flight visual gate'
     ));
+    performanceSamples.push(await measureFrameTiming(page, '05-dragonfly-flight'));
 
     // 6 â€” Aerial combat context inherited from real flight state.
     await page.evaluate(() => {
@@ -379,12 +473,25 @@ async function capture(page, id, description) {
       'Sky-Predator aerial combat under Crosswind flight context'
     ));
 
+    // 7 ? Diagnostic five-character identity lineup on an isolated one-shot
+    // canvas so the live game loop cannot overwrite the review artifact.
+    await page.goto(`http://127.0.0.1:${PORT}/tests/character-identity-evidence.html`, {
+      waitUntil: 'domcontentloaded', timeout: 20000,
+    });
+    await page.waitForFunction(() => window.__identityEvidenceReady === true, undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '07-character-identity-lineup',
+      'Diagnostic five-character field-silhouette and portrait identity lineup'
+    ));
+
     assert(errors.length === 0, 'visual capture runtime errors:\n' + errors.join('\n'));
 
     const manifest = {
       contract: 'AETHERWAKE_VISUAL_EVIDENCE_V1',
       generatedAt: new Date().toISOString(),
-      sourceSha: process.env.AETHERWAKE_SOURCE_SHA || process.env.GITHUB_SHA || 'LOCAL_UNBOUND',
+      sourceSha: resolveSourceBinding().sha,
+      sourceBinding: resolveSourceBinding(),
       rendering: {
         browser: 'playwright-chromium',
         viewport: { width: 1440, height: 960 },
@@ -393,6 +500,7 @@ async function capture(page, id, description) {
       acceptanceBoundary:
         'CAPTURE_ONLY_NOT_VISUAL_PASS: screenshots require human review against docs/VISUAL_BIBLE.md and docs/VISUAL_BENCHMARK_SCENE.md',
       captures,
+      performanceSamples,
     };
 
     const manifestPath = path.join(OUT, 'manifest.json');
@@ -400,6 +508,7 @@ async function capture(page, id, description) {
 
     console.log('AETHERWAKE_VISUAL_EVIDENCE=CAPTURED');
     console.log('AETHERWAKE_VISUAL_EVIDENCE_COUNT=' + captures.length);
+    console.log('AETHERWAKE_VISUAL_PERFORMANCE_SAMPLES=' + performanceSamples.length);
     console.log('AETHERWAKE_VISUAL_EVIDENCE_MANIFEST=' + manifestPath);
   } finally {
     await browser.close();

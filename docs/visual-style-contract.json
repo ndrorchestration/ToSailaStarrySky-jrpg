@@ -1,0 +1,203 @@
+{
+  "schema": "AETHERWAKE_VISUAL_STYLE_CONTRACT_V1",
+  "authority": {
+    "parent": "docs/VISUAL_BIBLE.md",
+    "program": "docs/VISUAL_STRIKE_PROGRAM.md",
+    "logicalCanvas": [
+      960,
+      640
+    ],
+    "evidenceViewport": [
+      1440,
+      960
+    ]
+  },
+  "palette": {
+    "deepNavy": "#0B1021",
+    "violetShadow": "#1A1633",
+    "sciotoBlue": "#4C7E99",
+    "skyBlue": "#75B8D2",
+    "solarTeal": "#2AFFB5",
+    "aetherSilver": "#CDE1E6",
+    "parchment": "#E8DCC6",
+    "warmIvory": "#F5E8CF",
+    "copper": "#B57A39",
+    "rust": "#A74E38",
+    "amber": "#F4AE5B",
+    "moss": "#577A48",
+    "bark": "#49382F",
+    "danger": "#DF5B4F",
+    "ink": "#11151F",
+    "white": "#F4F6F5"
+  },
+  "lighting": {
+    "keyAngleDegrees": -35,
+    "ambientToKeyRatio": 0.45,
+    "rimRule": "cool rim only when silhouette separates from similarly valued background",
+    "presets": [
+      "day-clear",
+      "dusk-cool-warm-practicals",
+      "night-color-preserving",
+      "aether-squall"
+    ]
+  },
+  "lineTreatment": {
+    "characterOutlinePxAt1x": 1,
+    "heroPropOutlinePxAt1x": 1,
+    "uiStrokePxAt1x": 2,
+    "rule": "integer-scale authored pixel edges; smooth geometry only for atmosphere, light, and selected 2.5D projection"
+  },
+  "camera": {
+    "world": {
+      "projection": "2.5D projected logical plane",
+      "horizonRatio": 0.34,
+      "characterScreenHeightRatioRange": [
+        0.08,
+        0.17
+      ]
+    },
+    "combat": {
+      "projection": "fixed cinematic stage",
+      "characterMaxWidthRatio": 0.18,
+      "enemyTellReservedCenterRatio": 0.38
+    },
+    "flight": {
+      "projection": "side/chase hybrid",
+      "dragonflyMaxWidthRatio": 0.28,
+      "uiReservedTopRatio": 0.15,
+      "uiReservedRightRatio": 0.28
+    }
+  },
+  "scale": {
+    "adultHeightUnits": 1.0,
+    "heightOrder": [
+      "reson",
+      "aepex",
+      "ender",
+      "ionia|lyra"
+    ],
+    "dragonflyBodyLengthAdultHeights": 3.0,
+    "dragonflyWingSpanBodyLengths": 2.4,
+    "combatDragonflyMaxScreenWidthRatio": 0.25,
+    "doorHeightAdultHeights": 1.35,
+    "crateHeightAdultHeights": 0.38
+  },
+  "characters": {
+    "portraitSourcePx": [
+      512,
+      512
+    ],
+    "portraitEmotions": 6,
+    "states": {
+      "idle": {
+        "frames": 8,
+        "fps": 8
+      },
+      "walk": {
+        "frames": 6,
+        "fps": 10
+      },
+      "talk": {
+        "frames": 4,
+        "fps": 6
+      },
+      "focus": {
+        "frames": 6,
+        "fps": 12
+      },
+      "attack": {
+        "frames": 8,
+        "fps": 15
+      }
+    },
+    "silhouetteBlindTest": {
+      "participants": 10,
+      "requiredCorrect": 8
+    }
+  },
+  "ui": {
+    "gridPx": 8,
+    "panelCornerRadiusPx": 8,
+    "panelStrokePx": 2,
+    "panelOpacityRange": [
+      0.78,
+      0.9
+    ],
+    "safeMarginPx": 24,
+    "typography": {
+      "h1": 28,
+      "h2": 18,
+      "body": 16,
+      "caption": 12,
+      "micro": 10
+    },
+    "minBodyContrast": 4.5,
+    "maxPrimaryPanelsAtOnce": 2,
+    "enemyTellOcclusionMaxRatio": 0.1
+  },
+  "performance": {
+    "targetFps": 60,
+    "minimumFps": 30,
+    "targetFrameMs": 16.7,
+    "gpuMemorySoftLimitMiB": 512,
+    "gpuMemoryHardLimitMiB": 2048,
+    "activeParticlesSoftLimit": 200,
+    "atlasMaxPx": [
+      2048,
+      2048
+    ],
+    "sceneLoadTargetMs": 5000,
+    "desktopRuntimeSoftLimitBytes": 50000000,
+    "visualTrancheRuntimeGrowthSoftLimitBytes": 5000000,
+    "p95FrameMsHardLimit": 33.4,
+    "singleFrameSpikeHardLimitMs": 50.0
+  },
+  "acceptance": {
+    "weightedMinimum": 4.0,
+    "categories": {
+      "cohesion": {
+        "weight": 0.2,
+        "minimum": 4.0
+      },
+      "readability": {
+        "weight": 0.2,
+        "minimum": 4.0
+      },
+      "appeal": {
+        "weight": 0.15,
+        "minimum": 3.5
+      },
+      "identity": {
+        "weight": 0.15,
+        "minimum": 4.0
+      },
+      "worldDepth": {
+        "weight": 0.1,
+        "minimum": 3.5
+      },
+      "characterQuality": {
+        "weight": 0.1,
+        "minimum": 3.5
+      },
+      "shipQuality": {
+        "weight": 0.05,
+        "minimum": 4.0
+      },
+      "productionCredibility": {
+        "weight": 0.05,
+        "minimum": 4.0
+      }
+    },
+    "playtesters": 5,
+    "sessionMinutes": 20,
+    "sameGameBlindTestMinimum": 0.8,
+    "dragonflyRecallMinimum": 0.8
+  },
+  "gates": [
+    "G0_BASELINE_AUDITED",
+    "G1_STYLE_CONTRACT_LOCKED",
+    "G2_CHARACTER_DRAGONFLY_IDENTITY_LOCKED",
+    "G3_WORLD_UI_SYSTEM_LOCKED",
+    "G4_POLISH_QA_ACCEPTED"
+  ]
+}

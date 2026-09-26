@@ -17,7 +17,7 @@ vm.runInNewContext(source, sandbox, { filename: 'title-visual-stage.js' });
 
 const api = sandbox.window.AetherTitleVisual;
 assert(api, 'title visual stage missing');
-assert.strictEqual(api.VERSION, '0.1.0');
+assert.strictEqual(api.VERSION, '0.2.0');
 for (const fn of ['draw','drawSky','drawHero','drawTitleCopy']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -32,6 +32,10 @@ assert(!source.includes('ellipse('),
   'title visual stage must avoid old smooth ellipse island treatment');
 assert(source.includes('NEW GAME  //  N OR ENTER'),
   'title New Game affordance missing');
+assert(source.includes('AetherUIVisualSystem') && source.includes('layoutTitle'),
+  'title copy must bind the shared UI layout authority');
+assert(source.includes('panel.w') && source.includes('panel.h'),
+  'title panel must be sized by shared layout rather than a fixed oversized plate');
 
 const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
 const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');

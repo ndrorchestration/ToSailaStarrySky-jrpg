@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ionia field sprite candidate — Aetherwake</title>
+  <style>
+    :root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; }
+    body { margin: 0; padding: 2rem; background: #151827; color: #eee6d8; }
+    main { max-width: 42rem; margin: auto; }
+    h1 { color: #7cc8e8; font-size: 1.5rem; }
+    .frames { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+    figure { margin: 0; padding: 1rem; border: 1px solid #3c5063; background-color: #20273a;
+      background-image: linear-gradient(45deg,#283147 25%,transparent 25%),linear-gradient(-45deg,#283147 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#283147 75%),linear-gradient(-45deg,transparent 75%,#283147 75%);
+      background-size: 16px 16px; background-position: 0 0,0 8px,8px -8px,-8px 0; }
+    figcaption { margin-bottom: .5rem; color: #cdbb9e; font-size: .85rem; }
+    canvas { display: block; width: 224px; height: 288px; image-rendering: pixelated; }
+    p { color: #bfc6d5; max-width: 38rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Ionia — field sprite candidate</h1>
+    <p>Two 28×36 px frames, enlarged 8× for review. Candidate art only; default game rendering is unchanged. Preview in game with <code>?aetherwakeFieldArtPreview=ionia</code>.</p>
+    <div class="frames">
+      <figure><figcaption>Idle</figcaption><canvas id="idle" width="224" height="288"></canvas></figure>
+      <figure><figcaption>Walk</figcaption><canvas id="walk" width="224" height="288"></canvas></figure>
+    </div>
+    <p id="status">Loading sprite sheet…</p>
+  </main>
+  <script>
+    const sheet = new Image();
+    const status = document.getElementById('status');
+    const frames = [document.getElementById('idle'), document.getElementById('walk')];
+    sheet.onload = () => {
+      frames.forEach((canvas, index) => {
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(sheet, index * 28, 0, 28, 36, 0, 0, 224, 288);
+      });
+      status.textContent = '56×36 transparent PNG · idle and walk frames verified.';
+    };
+    sheet.onerror = () => { status.textContent = 'Could not load the candidate sprite sheet.'; };
+    sheet.src = '../assets/characters/v1/ionia/field-idle-walk-candidate.png';
+  </script>
+</body>
+</html>
+

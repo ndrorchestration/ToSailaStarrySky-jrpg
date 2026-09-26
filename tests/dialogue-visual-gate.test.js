@@ -28,13 +28,22 @@ assert(portrait.includes('const scale = Math.max(1, Math.floor(size / 16));') &&
        portrait.includes("anchor: 'bottom-center'") &&
        /sprites\.draw\([\s\S]*?\bscale\s*\n?\s*\}\);/.test(portrait),
   'dialogue portrait must use integer-scaled shared sprite authority');
-assert(runtime.includes('const bw = Math.min(820, width - 64)'),
-  'cinematic dialogue stage width contract missing');
-assert(runtime.includes('const bh = 126'),
-  'cinematic dialogue stage height contract missing');
+assert(runtime.includes('const dialogueLayout = uiVisual'),
+  'dialogue must resolve shared UI layout before panel geometry');
+assert(runtime.includes('const bw = dialogueLayout.w') && runtime.includes('const bh = dialogueLayout.h'),
+  'dialogue panel dimensions must come from shared UI layout authority');
 assert(runtime.includes('wrapText(window.UI.dialogueText'),
   'dialogue text flow must remain live');
-assert(runtime.includes("text('E / ENTER  CONTINUE'"),
+assert(runtime.includes("text('E / ENTER   Continue'"),
   'dialogue continue interaction cue missing');
+
+assert(runtime.includes('layoutDialogue(width, height)'),
+  'dialogue overlay must use shared UI layout authority');
+assert(runtime.includes('uiVisual.panelRGBA'),
+  'dialogue overlay must use shared UI panel token');
+assert(runtime.includes('const portraitSize = 88'),
+  'dialogue portrait emphasis must retain the larger 88px visual budget');
+assert(portrait.includes('size / 43'),
+  'canon-correct articulated dialogue portraits must use the stronger portrait scale');
 
 console.log('Aetherwake representative dialogue visual gate: PASS');

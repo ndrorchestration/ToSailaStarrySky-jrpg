@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.4.0';
   const SKY_BATTLE_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-battle-pixelart-v2.png';
   let skyBattleBackground = null;
   let skyBattleBackgroundRequested = false;
@@ -16,8 +16,8 @@
 
   function stage(width, height) {
     return Object.freeze({
-      playerX: Math.round(width * 0.34),
-      playerY: Math.round(height * 0.58),
+      playerX: Math.round(width * 0.39),
+      playerY: Math.round(height * 0.60),
       enemyX: Math.round(width * 0.72),
       enemyY: Math.round(height * 0.50),
       horizonY: Math.round(height * 0.47),
@@ -225,16 +225,38 @@
   }
 
   function drawPlayer(ctx) {
+    const characters = root.AetherCharacterRenderer;
     const sprites = root.AetherPixelSprites;
-    if (!sprites || typeof (sprites.drawPreview || sprites.draw) !== 'function' || !sprites.validate()) return false;
     const x = Math.round(ctx.x);
     const y = Math.round(ctx.y + (ctx.dodgeBob || 0));
     const pulse = 0.75 + Math.sin((ctx.now || 0) * 0.004) * 0.25;
 
+    // Grounded combat focus: a low elliptical contact pool and narrow rim light
+    // frame Ender without placing a large translucent rectangle over the arena art.
     noStroke();
-    fill(42, 255, 181, Math.round(22 * pulse));
-    rect(x - 50, y - 112, 100, 118);
+    fill(4, 9, 16, 78);
+    ellipse(x, y + 8, 96, 18);
+    fill(42, 255, 181, Math.round(12 * pulse));
+    ellipse(x, y - 26, 78, 118);
+    stroke(42, 255, 181, Math.round(55 * pulse));
+    strokeWeight(1);
+    line(x - 28, y + 3, x + 28, y + 3);
+    noStroke();
 
+    if (characters && characters.validate && characters.validate()) {
+      characters.draw('ender', x, y + 7, {
+        scale: 2.18,
+        depth: 0.90,
+        now: ctx.now || 0,
+        speed: 0,
+        facing: 'right',
+        action: ctx.attacking ? 'attack' : (ctx.focused ? 'focus' : 'idle'),
+        highlight: true,
+      });
+      return true;
+    }
+
+    if (!sprites || typeof (sprites.drawPreview || sprites.draw) !== 'function' || !sprites.validate()) return false;
     sprites.drawShadow(x, y + 5, 3, sprites.PREVIEW_WIDTH || 22);
     const drawPreview = sprites.drawPreview || sprites.draw;
     drawPreview.call(sprites, 'ender', x, y + 5, {
@@ -242,7 +264,6 @@
       scale: 3,
       frame: Math.floor((ctx.now || 0) / 220) % 2,
     });
-
     return true;
   }
 

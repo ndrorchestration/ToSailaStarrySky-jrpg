@@ -1,0 +1,99 @@
+{
+  "schema": "AETHERWAKE_VISUAL_ACCEPTANCE_RESULTS_V1",
+  "candidate": {
+    "commit": "REPLACE",
+    "packageSha256": "REPLACE"
+  },
+  "participants": [
+    {
+      "id": "P1",
+      "minutes": 20,
+      "scores": {
+        "cohesion": null,
+        "readability": null,
+        "appeal": null,
+        "identity": null,
+        "worldDepth": null,
+        "characterQuality": null,
+        "shipQuality": null,
+        "productionCredibility": null
+      },
+      "sameGamePass": null,
+      "dragonflyRecallPass": null,
+      "severity1Blocker": false,
+      "notes": ""
+    },
+    {
+      "id": "P2",
+      "minutes": 20,
+      "scores": {
+        "cohesion": null,
+        "readability": null,
+        "appeal": null,
+        "identity": null,
+        "worldDepth": null,
+        "characterQuality": null,
+        "shipQuality": null,
+        "productionCredibility": null
+      },
+      "sameGamePass": null,
+      "dragonflyRecallPass": null,
+      "severity1Blocker": false,
+      "notes": ""
+    },
+    {
+      "id": "P3",
+      "minutes": 20,
+      "scores": {
+        "cohesion": null,
+        "readability": null,
+        "appeal": null,
+        "identity": null,
+        "worldDepth": null,
+        "characterQuality": null,
+        "shipQuality": null,
+        "productionCredibility": null
+      },
+      "sameGamePass": null,
+      "dragonflyRecallPass": null,
+      "severity1Blocker": false,
+      "notes": ""
+    },
+    {
+      "id": "P4",
+      "minutes": 20,
+      "scores": {
+        "cohesion": null,
+        "readability": null,
+        "appeal": null,
+        "identity": null,
+        "worldDepth": null,
+        "characterQuality": null,
+        "shipQuality": null,
+        "productionCredibility": null
+      },
+      "sameGamePass": null,
+      "dragonflyRecallPass": null,
+      "severity1Blocker": false,
+      "notes": ""
+    },
+    {
+      "id": "P5",
+      "minutes": 20,
+      "scores": {
+        "cohesion": null,
+        "readability": null,
+        "appeal": null,
+        "identity": null,
+        "worldDepth": null,
+        "characterQuality": null,
+        "shipQuality": null,
+        "productionCredibility": null
+      },
+      "sameGamePass": null,
+      "dragonflyRecallPass": null,
+      "severity1Blocker": false,
+      "notes": ""
+    }
+  ]
+}

@@ -33,6 +33,7 @@ The harness:
 - captures at a 1440×960 browser viewport while preserving the 960×640 logical canvas;
 - binds the evidence bundle to `GITHUB_SHA` when executed in Actions;
 - hashes every screenshot;
+- records 90-frame timing samples for title, benchmark dock, representative combat, and flight;
 - fails if page/runtime errors are observed.
 
 The PR smoke workflow now checks out the exact pull-request head, verifies that checkout against the supplied head SHA, captures the same bundle, and uploads it as an Actions artifact. The manual workflow remains available after it is present on the default branch.
@@ -57,3 +58,8 @@ At minimum, verify:
 - the benchmark screenshot could plausibly serve as a store-page image without retouching.
 
 Only after that review may a gate be recorded as **VISUAL PASS**.
+
+## Character identity diagnostic ? V8
+- `07-character-identity-lineup.png` is a non-gameplay diagnostic frame showing all five protagonist portrait + field-silhouette authorities on one isolated p5 canvas.
+- It is **not** substituted for any gameplay acceptance frame or blind same-game test input by default.
+- It exists to expose cross-character scale, silhouette, hair, accessory, and costume-authority drift that may be invisible when only one protagonist is present in a scene.

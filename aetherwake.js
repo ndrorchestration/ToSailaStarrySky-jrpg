@@ -35,13 +35,40 @@ let prevState = null;
 // frame for transition effects, so it cannot safely carry the state beneath
 // an overlay.
 let overlayReturnState = null;
-let menuAutoStartTimer = 0;  // one-shot: auto-start from MENU after 3s idle (prevents single-press hang)
 
 // Boot sequence timing
 let bootTime = 0;
-const BOOT_LOAD_MS = 1200;   // how long loading text shows
-const PREAMBLE_DURATION = 9000; // preamble text scroll duration
+const BOOT_LOAD_MS = 1200;   // loading-only motion may advance autonomously
+const PREAMBLE_PAGE_MIN_MS = 650; // prevents accidental double-tap skips between story pages
 let preambleStart = 0;
+let preamblePage = 0;
+let preamblePageShownAt = 0;
+const PREAMBLE_PAGES = Object.freeze([
+  Object.freeze([
+    'A ship above a broken world.',
+    'A core that has begun to sing wrong.',
+  ]),
+  Object.freeze([
+    'Below, the copper ground is tired — rusted, cracked,',
+    'choking on its own dust.',
+    'Above, the sky-lanes are still open.',
+  ]),
+  Object.freeze([
+    'For three hundred years, the aether-cores',
+    'kept the arcologies aloft.',
+    'Now the cores are failing.',
+  ]),
+  Object.freeze([
+    'You are Ender.',
+    'Deckhand. Engineer-in-training.',
+    'You carry a wrench, a passport, and a decision',
+    'you have not yet admitted you have to make.',
+  ]),
+  Object.freeze([
+    "The Aureate Wake's core is singing wrong.",
+    'Something has to be done about that.',
+  ]),
+]);
 let titleVisible = 0;        // 0..1 fade-in for title
 let titleFlash = 0;          // flash effect on title
 
@@ -132,7 +159,7 @@ function setup() {
   frameRate(60);
   pixelDensity(1);
   colorMode(RGB, 255);
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(16);
   textLeading(20);
   if (typeof document !== 'undefined' && document.fonts) {
@@ -565,7 +592,7 @@ function drawSaveLoadOverlay() {
     textSize(9);
     text('SLOT ' + (i + 1), 100, y);
 
-    textFont('VT323');
+    textFont('Segoe UI');
     textSize(15);
     if (meta && meta.exists && meta.valid !== false && meta.semanticValid === true) {
       const mins = Math.floor((meta.playtimeMs || 0) / 60000);
@@ -733,16 +760,6 @@ function draw() {
   // Only run world/combat updates if hit stop is NOT active
   const updatesEnabled = !hitStop.active;
 
-  // Auto-start from MENU after 3s idle — bridges the BOOT→MENU→WORLD gap
-  // so a single N press (or no press) still reaches the world.
-  if (gameState === STATE.MENU && menuAutoStartTimer === 0) {
-    menuAutoStartTimer = millis();
-  } else if (gameState === STATE.MENU &&
-             menuAutoStartTimer > 0 &&
-             millis() - menuAutoStartTimer > 3000) {
-    startGame();
-  }
-
   flushPendingAutosaveIfStable();
 
   // Subtle corner brackets — confirm canvas is live without distracting
@@ -863,13 +880,19 @@ function draw() {
         }
       );
     }
-    // Draw combat UI panel
+    // Shared UI layout preserves the encounter stage instead of reserving two
+    // full-height opaque sidebars. An empty combat log consumes no panel space.
+    const uiVisual = window.AetherUIVisualSystem;
+    const hasCombatLog = Boolean(window.UI && Array.isArray(window.UI.combatLog) && window.UI.combatLog.length);
+    const combatLayout = uiVisual && typeof uiVisual.layoutCombat === 'function'
+      ? uiVisual.layoutCombat(width, height, hasCombatLog)
+      : null;
     if (typeof drawCombatPanel === 'function' && combat && typeof combat.getState === 'function') {
-      drawCombatPanel(combat.getState());
+      drawCombatPanel(combat.getState(), combatLayout && combatLayout.statusPanel);
     }
-    // Draw combat log on the right
-    if (typeof drawCombatLog === 'function') {
-      drawCombatLog(width - 240, 100, 224, 280);
+    if (hasCombatLog && typeof drawCombatLog === 'function') {
+      const logBox = combatLayout && combatLayout.logPanel;
+      if (logBox) drawCombatLog(logBox.x, logBox.y, logBox.w, logBox.h);
     }
   }
   else if (gameState === STATE.DIALOGUE) {
@@ -970,6 +993,32 @@ function keyPressed() {
     openSaveLoadMenu('load');
     delete keysPressed[keyCode];
     return false;
+  }
+
+  // Story-bearing boot presentation is fully player-paced after loading.
+  // Each preamble page is held until explicit input; the final page then hands
+  // control to the title. A small minimum dwell prevents accidental double taps.
+  if (gameState === STATE.BOOT) {
+    const now = millis();
+    const elapsed = bootTime > 0 ? now - bootTime : 0;
+    if (elapsed >= BOOT_LOAD_MS) {
+      if (preamblePageShownAt === 0) preamblePageShownAt = now;
+      if (now - preamblePageShownAt >= PREAMBLE_PAGE_MIN_MS) {
+        if (preamblePage < PREAMBLE_PAGES.length - 1) {
+          preamblePage += 1;
+          preamblePageShownAt = now;
+        } else {
+          gameState = STATE.MENU;
+          window.gameState = gameState;
+          titleVisible = 0;
+          titleFlash = 0;
+        }
+      }
+      delete keysPressed[keyCode];
+      if (typeof ensureAudio === 'function') ensureAudio();
+      if (typeof resumeAudio === 'function') resumeAudio();
+      return false;
+    }
   }
 
   if (gameState === STATE.OPENING) {
@@ -1449,7 +1498,6 @@ function startFirstWakeOpening() {
   gameState = STATE.OPENING;
   window.gameState = gameState;
   prevState = null;
-  menuAutoStartTimer = 0;
 }
 
 function advanceFirstWakeOpening() {
@@ -1561,7 +1609,7 @@ function drawPreviewEndScreen() {
   fill(C.teal[0], C.teal[1], C.teal[2], 235);
   text('END OF PREVIEW', width / 2, height / 2 - 48);
 
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(20);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 220);
   text(
@@ -1603,7 +1651,7 @@ function drawFirstWakeOpening() {
   textSize(12);
   fill(C.teal[0], C.teal[1], C.teal[2]);
   text(scene.title, width / 2, height / 2 - 30);
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(18);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
   text(scene.lines.join('  '), width / 2, height / 2 + 18, width - 220, 120);
@@ -1719,6 +1767,17 @@ function drawAirNavigationScene() {
       travel,
     });
 
+    if (typeof visual.drawForeground === 'function') {
+      visual.drawForeground({
+        width,
+        height,
+        now: millis(),
+        state: airNavigationState,
+        travel,
+        nav,
+      });
+    }
+
     visual.drawRouteOverlay({
       width,
       height,
@@ -1783,6 +1842,9 @@ function startCombat(enemyId, returnState) {
     productionStatModelVersion: world.player.productionStatModelVersion,
   });
   combat.beginEncounter(enemyId || 'skyPredator');
+  // Combat owns the frame; clear transient world/navigation notices so they
+  // cannot obscure enemy staging or command readability.
+  if (Array.isArray(window.toasts)) window.toasts.length = 0;
   gameState = STATE.COMBAT;
   window.gameState = gameState;
 }
@@ -1999,13 +2061,35 @@ function triggerHitStop(ms) {
 
 /** Show a toast message — auto-fading overlay text. */
 function showToast(text, color, duration) {
+  const now = millis();
+  const upper = String(text || '').toUpperCase();
+  const kind = upper.startsWith('AUTOSAVED //') || upper.startsWith('GAME SAVED //')
+    ? 'system'
+    : (upper.startsWith('OBJECTIVE //') || upper.startsWith('HAZARD //') || upper.includes('FAILED') || upper.includes('DENIED'))
+      ? 'priority'
+      : 'notice';
+  // Purge expired notices before adding another and refresh duplicates instead
+  // of creating a vertical history log over the game view.
+  window.toasts = window.toasts.filter(t => now - t.startTime <= t.duration);
+  const duplicate = window.toasts.find(t => t.text === text);
+  if (duplicate) {
+    duplicate.startTime = now;
+    duplicate.duration = duration || duplicate.duration || 2000;
+    duplicate.color = color || duplicate.color || [42, 255, 181];
+    duplicate.kind = kind;
+    return;
+  }
   window.toasts.push({
     text: text,
     color: color || [42, 255, 181],
-    startTime: millis(),
+    startTime: now,
     duration: duration || 2000,
     alpha: 255,
+    kind,
   });
+  // Two messages are readable; more becomes UI history. Retain a small queue
+  // for timing continuity but never allow unbounded accumulation.
+  if (window.toasts.length > 4) window.toasts.splice(0, window.toasts.length - 4);
 }
 
 /** Trigger all combat-hit feedback: shake + hit stop on crits + sound. */
@@ -2102,70 +2186,49 @@ function drawBootSequence() {
     return;
   }
   
-  // ── Preamble phase (1.2s\u201310.2s) ──
-  if (elapsed < BOOT_LOAD_MS + PREAMBLE_DURATION) {
-    const t = (elapsed - BOOT_LOAD_MS) / PREAMBLE_DURATION;
-    
-    // Fade in
-    const fadeIn = Math.min(1, t * 3);
-    const scrollPos = Math.max(0, (t - 0.33) * 0.6); // scrolling starts at 33%
-    
-    // Story text
-    const preambleLines = [
-      'A ship above a broken world.',
-      'A core that has begun to sing wrong.',
-      '',
-      'Below, the copper ground is tired \u2014 rusted, cracked,',
-      'choking on its own dust.',
-      'Above, the sky-lanes are still open.',
-      '',
-      'For three hundred years, the aether-cores',
-      'kept the arcologies aloft.',
-      'Now the cores are failing.',
-      '',
-      'You are Ender.',
-      'Deckhand. Engineer-in-training.',
-      'You carry a wrench, a passport, and a decision',
-      'you have not yet admitted you have to make.',
-      '',
-      'The Aureate Wake\'s core is singing wrong.',
-      'Something has to be done about that.',
-    ];
-    
-    // Calculate which lines visible
-    const lineHeight = 18;
-    const visibleLines = Math.floor((height - 120) / lineHeight);
-    const startLine = Math.max(0, Math.floor(scrollPos * preambleLines.length) - Math.floor(visibleLines/2));
-    const endLine = Math.min(preambleLines.length, startLine + visibleLines);
-    
-    for (let i = startLine; i < endLine; i++) {
-      const lineY = height/2 - 10 + (i - scrollPos * preambleLines.length) * lineHeight;
-      if (preambleLines[i] === '') continue;
-      const lineAlpha = (i === endLine - 1 && t < 0.5) ? t * 2 : 1;
-      
-      noStroke();
-      fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * lineAlpha);
-      textSize(13);
-      textAlign(CENTER, CENTER);
-      text(preambleLines[i], width/2, lineY);
-    }
-    
-    // Bottom hint
+  // ── Player-paced story preamble ──
+  if (elapsed >= BOOT_LOAD_MS) {
+    const now = millis();
+    if (preamblePageShownAt === 0) preamblePageShownAt = now;
+    const page = PREAMBLE_PAGES[Math.max(0, Math.min(preamblePage, PREAMBLE_PAGES.length - 1))];
+    const age = Math.max(0, now - preamblePageShownAt);
+    const fadeIn = Math.min(1, age / 320);
+    const pageReady = age >= PREAMBLE_PAGE_MIN_MS;
+
+    // Dim the moving world without removing it; the player should feel that
+    // the story text belongs to the same sky they are about to enter.
     noStroke();
-    textSize(9);
-    fill(C.teal[0], C.teal[1], C.teal[2], 100 * fadeIn);
+    fill(C.navy[0], C.navy[1], C.navy[2], 118);
+    rect(0, 0, width, height);
+
+    // Thin cinematic horizon rules provide a stable reading frame while the
+    // parallax islands continue moving behind the held story page.
+    fill(C.teal[0], C.teal[1], C.teal[2], 34);
+    rect(width * 0.16, height * 0.28, width * 0.68, 1);
+    rect(width * 0.16, height * 0.72, width * 0.68, 1);
+
+    const lineHeight = 27;
+    const startY = height / 2 - ((page.length - 1) * lineHeight) / 2;
+    noStroke();
     textAlign(CENTER, CENTER);
-    text('[ any key to skip ]', width/2, height - 30);
+    textSize(15);
+    for (let i = 0; i < page.length; i++) {
+      const localDelay = i * 90;
+      const lineAlpha = Math.max(0, Math.min(1, (age - localDelay) / 260));
+      fill(C.parchment[0], C.parchment[1], C.parchment[2], 210 * lineAlpha);
+      text(page[i], width / 2, startY + i * lineHeight);
+    }
 
-    return;
-  }
+    // Page position is visible but understated: pacing belongs to the player,
+    // not to an invisible timer.
+    textSize(9);
+    fill(C.scioto[0], C.scioto[1], C.scioto[2], 90 * fadeIn);
+    text((preamblePage + 1) + ' / ' + PREAMBLE_PAGES.length, width / 2, height - 52);
+    fill(C.teal[0], C.teal[1], C.teal[2], (pageReady ? 155 : 70) * fadeIn);
+    text(pageReady
+      ? (preamblePage < PREAMBLE_PAGES.length - 1 ? '[ press any key for next ]' : '[ press any key for title ]')
+      : '[ hold ]', width / 2, height - 30);
 
-  // After preamble completes, auto-transition to MENU state so the game is
-  // ready for input. The title continues rendering (it's the MENU screen).
-  if (elapsed >= BOOT_LOAD_MS + PREAMBLE_DURATION && gameState === STATE.BOOT) {
-    gameState = STATE.MENU;
-    window.gameState = gameState;
-    drawTitleScreen();
     return;
   }
 
@@ -2205,7 +2268,7 @@ function drawBootSequence() {
   
   // Title text (same content as drawTitleScreen, with alpha fade)
   noStroke();
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(36 * v);
   textAlign(CENTER, CENTER);
   textLeading(40);
@@ -2309,31 +2372,65 @@ function getDialogueSpriteId(npc) {
   return 'settler';
 }
 
-function drawDialoguePortrait(npc, x, y, size) {
+function drawDialoguePortrait(npc, x, y, size, expression = 'talk') {
+  const authoredCharacters = window.AetherAuthoredCharacterArt;
+  const characters = window.AetherCharacterRenderer;
   const sprites = window.AetherPixelSprites;
-  if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
-    return false;
-  }
   const id = getDialogueSpriteId(npc);
-  const scale = Math.max(1, Math.floor(size / 16));
   noStroke();
   fill(C.navy[0] + 5, C.navy[1] + 7, C.navy[2] + 10, 245);
   rect(x, y, size, size);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 28);
   rect(x + 4, y + 4, size - 8, size - 8);
-  sprites.drawShadow(x + size / 2, y + size - 8, Math.max(1, scale * 0.8));
-  sprites.draw(id, x + size / 2, y + size - 9, {
-    anchor: 'bottom-center',
-    scale
-  });
+
+  const artPreview = window.AetherCharacterArtPreview;
+  const previewCharacterId = artPreview && typeof artPreview.getPreviewCharacterId === 'function'
+    ? artPreview.getPreviewCharacterId()
+    : null;
+  let authoredDrawn = false;
+  if (previewCharacterId && artPreview && typeof artPreview.drawPortrait === 'function') {
+    authoredDrawn = artPreview.drawPortrait(id, x + 4, y + 4, size - 8, { expression });
+  }
+  if (!authoredDrawn && authoredCharacters && typeof authoredCharacters.drawPortrait === 'function' &&
+      authoredCharacters.isPortraitReady && authoredCharacters.isPortraitReady(id)) {
+    authoredDrawn = authoredCharacters.drawPortrait(id, x + 4, y + 4, size - 8, { expression });
+  }
+
+  if (!authoredDrawn && characters && characters.validate &&
+      characters.validate() && ['ender','reson','aepex','ionia','lyra'].includes(id)) {
+    push();
+    drawingContext.save();
+    drawingContext.beginPath();
+    drawingContext.rect(x + 4, y + 4, size - 8, size - 8);
+    drawingContext.clip();
+    characters.drawPortrait(id, x + size / 2, y + size + 8, {
+      scale: Math.max(1.45, size / 43),
+      depth: 0.82,
+      now: millis(),
+      facing: 'right',
+      action: 'talk',
+      expression,
+    });
+    drawingContext.restore();
+    pop();
+  } else if (!authoredDrawn && sprites && typeof sprites.draw === 'function' && sprites.validate()) {
+    const scale = Math.max(1, Math.floor(size / 16));
+    sprites.drawShadow(x + size / 2, y + size - 8, Math.max(1, scale * 0.8));
+    sprites.draw(id, x + size / 2, y + size - 9, {
+      anchor: 'bottom-center', scale
+    });
+  } else if (!authoredDrawn) {
+    return false;
+  }
+
   drawPixelBorder(x, y, size, size, 2, C.shadow, C.scioto);
   return true;
 }
 
 function drawDialogueOverlay() {
-  // Preserve the live scene as context instead of replacing it with a flat modal.
+  // Keep the live 2.5D scene readable behind dialogue instead of flattening it.
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2], 118);
+  fill(C.navy[0], C.navy[1], C.navy[2], 48);
   rect(0, 0, width, height);
 
   const tone = window.UI.windowTone || null;
@@ -2345,21 +2442,28 @@ function drawDialogueOverlay() {
   rect(0, 0, width, 20);
   rect(0, height - 20, width, 20);
 
-  const bw = Math.min(820, width - 64);
-  const bh = 126;
-  const bx = Math.round((width - bw) / 2);
-  const by = height - bh - 34;
-  const portraitSize = 80;
+  const uiVisual = window.AetherUIVisualSystem;
+  const dialogueLayout = uiVisual && typeof uiVisual.layoutDialogue === 'function'
+    ? uiVisual.layoutDialogue(width, height)
+    : { x: 32, y: height - 160, w: width - 64, h: 126 };
+  const bw = dialogueLayout.w;
+  const bh = dialogueLayout.h;
+  const bx = dialogueLayout.x;
+  const by = dialogueLayout.y;
+  const portraitSize = 88;
   const gap = 16;
   const px = bx + 14;
-  const py = by + 22;
+  const py = by + 18;
   const textX = px + portraitSize + gap;
   const textW = bw - portraitSize - gap - 34;
 
   // Main window with layered instrument-panel depth.
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2], 248 * alpha);
-  rect(bx, by, bw, bh);
+  const dialoguePanel = uiVisual && typeof uiVisual.panelRGBA === 'function'
+    ? uiVisual.panelRGBA()
+    : [C.navy[0], C.navy[1], C.navy[2], 214];
+  fill(dialoguePanel[0], dialoguePanel[1], dialoguePanel[2], dialoguePanel[3] * alpha);
+  rect(bx, by, bw, bh, 8);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 18 * alpha);
   rect(bx + 4, by + 4, bw - 8, bh - 8);
 
@@ -2382,35 +2486,35 @@ function drawDialogueOverlay() {
   const npcName = npc ? npc.name : '???';
   const npcTitle = npc && npc.title ? npc.title : '';
 
-  drawDialoguePortrait(npc, px, py, portraitSize);
+  drawDialoguePortrait(npc, px, py, portraitSize, window.UI.dialoguePortraitExpression || 'talk');
 
   // Speaker plate.
   textAlign(LEFT, TOP);
-  textFont('Press Start 2P');
-  textSize(10);
-  fill(C.teal[0], C.teal[1], C.teal[2], 220 * alpha);
+  textFont('Segoe UI Semibold');
+  textSize(13);
+  fill(C.teal[0], C.teal[1], C.teal[2], 235 * alpha);
   text(npcName.toUpperCase(), textX, by + 24);
 
   if (npcTitle) {
-    textFont('VT323');
+    textFont('Segoe UI');
     textSize(12);
     fill(C.scioto[0], C.scioto[1], C.scioto[2], 190 * alpha);
     text(npcTitle, textX, by + 39);
   }
 
   // Dialogue copy.
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(15);
   textLeading(18);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 245 * alpha);
   wrapText(window.UI.dialogueText || '...', textX, by + 56, textW);
 
   // Continue cue as a quiet instrument readout.
-  textFont('Press Start 2P');
-  textSize(7);
-  fill(C.teal[0], C.teal[1], C.teal[2], 125 * alpha);
+  textFont('Segoe UI');
+  textSize(11);
+  fill(C.teal[0], C.teal[1], C.teal[2], 165 * alpha);
   textAlign(RIGHT, TOP);
-  text('E / ENTER  CONTINUE', bx + bw - 14, by + bh - 14);
+  text('E / ENTER   Continue', bx + bw - 14, by + bh - 18);
   textAlign(LEFT, TOP);
 }
 
@@ -2456,7 +2560,7 @@ function drawShopOverlay() {
   const scrap = world && world.player
     ? world.player.scrap
     : (combat && combat.getScrap ? combat.getScrap() : 0);
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(12);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
   text('Scrap: ' + scrap, sx + sw - 110, sy + 12);
@@ -2541,7 +2645,7 @@ function drawLedgerOverlay() {
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
   text('MYCELIAL LEDGER', lx + 16, ly + 12);
 
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(13);
   const entries = world && world.getLedger ? world.getLedger() : [];
   for (let i = 0; i < entries.length; i++) {
@@ -2591,7 +2695,7 @@ function drawQuestLogOverlay() {
 
   if (world && typeof world.getQuestState === 'function') {
     const qs = world.getQuestState();
-    textFont('VT323');
+    textFont('Segoe UI');
     textSize(13);
     fill(C.parchment[0], C.parchment[1], C.parchment[2]);
 
@@ -2712,24 +2816,35 @@ function wrapText(content, x, y, maxWidth) {
 
 // ── Vignette effect ──────────────────────────────────────────────────────
 function drawVignette() {
-  noStroke();
-  const nightFactor = window._isNight ? 0.6 : 0.18;
-  const alpha = nightFactor * 180;
-  const gradSteps = 20;
-  for (let i = gradSteps; i >= 0; i--) {
-    const t = i / gradSteps;
-    const r = t * max(width, height) * 0.75;
-    const a = alpha * (1 - t * t);
-    fill(color(C.navy[0], C.navy[1], C.navy[2], a));
-    ellipse(width / 2, height / 2, r * 2, r * 2);
+  // Opening/title/flight need clean cinematic color and horizon depth.
+  if (gameState === STATE.BOOT || gameState === STATE.MENU ||
+      gameState === STATE.OPENING || gameState === STATE.AIRSHIP) return;
+
+  const nightFactor = window._isNight ? 0.52 : 0.12;
+  const edgeAlpha = Math.round(255 * nightFactor);
+
+  if (typeof drawingContext !== 'undefined' && drawingContext.createRadialGradient) {
+    const radius = Math.max(width, height) * 0.78;
+    const gradient = drawingContext.createRadialGradient(
+      width * 0.5, height * 0.48, radius * 0.28,
+      width * 0.5, height * 0.48, radius
+    );
+    gradient.addColorStop(0, 'rgba(' + C.navy[0] + ',' + C.navy[1] + ',' + C.navy[2] + ',0)');
+    gradient.addColorStop(0.64, 'rgba(' + C.navy[0] + ',' + C.navy[1] + ',' + C.navy[2] + ',0)');
+    gradient.addColorStop(0.86, 'rgba(' + C.navy[0] + ',' + C.navy[1] + ',' + C.navy[2] + ',' + (edgeAlpha / 510) + ')');
+    gradient.addColorStop(1, 'rgba(' + C.navy[0] + ',' + C.navy[1] + ',' + C.navy[2] + ',' + (edgeAlpha / 255) + ')');
+    drawingContext.save();
+    drawingContext.fillStyle = gradient;
+    drawingContext.fillRect(0, 0, width, height);
+    drawingContext.restore();
+    return;
   }
-  // Extra dark corners
+
+  // Lightweight fallback: edges only, never concentric center rings.
   noStroke();
-  fill(color(C.navy[0], C.navy[1], C.navy[2], 120));
-  rect(0, 0, width * 0.08, height);
-  rect(width * 0.92, 0, width * 0.08, height);
-  rect(0, 0, width, height * 0.06);
-  rect(0, height * 0.94, width, height * 0.06);
+  fill(C.navy[0], C.navy[1], C.navy[2], edgeAlpha);
+  rect(0, 0, width * 0.035, height);
+  rect(width * 0.965, 0, width * 0.035, height);
 }
 
 // ── Toast rendering ──────────────────────────────────────────────────────
@@ -2737,22 +2852,47 @@ function drawToasts() {
   const now = millis();
   for (let i = window.toasts.length - 1; i >= 0; i--) {
     const t = window.toasts[i];
-    const age = now - t.startTime;
-    if (age > t.duration) {
-      window.toasts.splice(i, 1);
-      continue;
-    }
-    const alpha = age < 200 ? (age / 200) * 255 : (age > t.duration - 400 ? (t.duration - age) / 400 * 255 : 255);
-    const y = height - 60 - (window.toasts.length - 1 - i) * 26;
-    noStroke();
-    fill(t.color[0], t.color[1], t.color[2], alpha * 0.15);
-    rect(width / 2 - 110, y - 8, 220, 22, 4);
-    fill(t.color[0], t.color[1], t.color[2], alpha);
-    textFont('VT323');
-    textSize(14);
-    textAlign(CENTER, CENTER);
-    text(t.text, width / 2, y + 2);
+    if (now - t.startTime > t.duration) window.toasts.splice(i, 1);
   }
+
+  // Hierarchy rule: at most one full notice card is allowed to compete with
+  // the scene. Autosave/save confirmations collapse to a micro-status line.
+  const active = window.toasts.slice();
+  const cardToast = active.filter(t => t.kind !== 'system')
+    .sort((a,b) => ((a.kind === 'priority') ? 1 : 0) - ((b.kind === 'priority') ? 1 : 0) || a.startTime - b.startTime)
+    .slice(-1)[0] || null;
+  const systemToast = active.filter(t => t.kind === 'system').slice(-1)[0] || null;
+  const cardW = Math.min(276, Math.max(216, width * 0.29));
+  const cardX = width - cardW - 24;
+  if (cardToast) {
+    const t = cardToast;
+    const age = now - t.startTime;
+    const alpha = age < 180 ? (age / 180) * 255 :
+      (age > t.duration - 350 ? Math.max(0, (t.duration - age) / 350) * 255 : 255);
+    const y = 112;
+    noStroke();
+    fill(7, 11, 19, alpha * 0.72);
+    rect(cardX, y, cardW, 27, 3);
+    fill(t.color[0], t.color[1], t.color[2], alpha * 0.24);
+    rect(cardX, y, 3, 27);
+    fill(t.color[0], t.color[1], t.color[2], alpha);
+    textFont('Segoe UI');
+    textSize(12);
+    textAlign(RIGHT, CENTER);
+    text(t.text, cardX + cardW - 10, y + 13);
+  }
+  if (systemToast && !cardToast) {
+    const t = systemToast;
+    const age = now - t.startTime;
+    const alpha = age < 140 ? (age / 140) * 190 :
+      (age > t.duration - 250 ? Math.max(0, (t.duration - age) / 250) * 190 : 190);
+    fill(t.color[0], t.color[1], t.color[2], alpha);
+    textFont('Segoe UI');
+    textSize(9);
+    textAlign(RIGHT, BOTTOM);
+    text(t.text, width - 24, height - 24);
+  }
+  textAlign(LEFT, BASELINE);
   textFont('sans-serif');
 }
 
@@ -3155,6 +3295,13 @@ function initNPCs() {
           '"You want to know what I think? I think the choice isn\'t about the core or the ship or even the sky. It\'s about what you\'re willing to become when the song finally ends. Listen for it. The silence after. That\'s where the decision lives."'
         ]
       },
+      dialoguePortraitExpressions: {
+        intro: ['concern','focus','concern','concern','focus'],
+        class_ender: ['concern','concern','focus'],
+        generic_follow: ['smile'],
+        deep: ['focus','talk','concern','focus']
+      },
+
       flags: { met: false, questMarker: true }
     },
 
@@ -3513,7 +3660,7 @@ function drawChoiceMenu() {
   textFont('Press Start 2P');
   text('CHOOSE YOUR PATH', width / 2, py + 14);
   textSize(9);
-  textFont('VT323');
+  textFont('Segoe UI');
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
   text('The core waits. The ship holds still. What do you do?', width / 2, py + 30);
   textSize(10);
@@ -3551,7 +3698,7 @@ function drawChoiceMenu() {
     text('[' + (i + 1) + ']  ' + path.label, px + 18, optY + 6);
 
     // Description
-    textFont('VT323');
+    textFont('Segoe UI');
     textSize(11);
     fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
     wrapText(path.description, px + 18, optY + 22, pw - 40);
@@ -3876,6 +4023,13 @@ function findNearestNPC(range) {
 // Dialogue state
 // ---------------------------------------------------------------------------
 
+function resolveDialoguePortraitExpression(npc, batch, lineIndex) {
+  if (!npc || !npc.dialoguePortraitExpressions) return 'talk';
+  const schedule = npc.dialoguePortraitExpressions[batch];
+  if (!Array.isArray(schedule) || schedule.length === 0) return 'talk';
+  return schedule[Math.max(0, Math.min(schedule.length - 1, Number(lineIndex) || 0))] || 'talk';
+}
+
 function openDialogue(npc, forceIntro) {
   const classKey = getClassLockKey(npc);
   let lines = [];
@@ -3921,6 +4075,7 @@ function openDialogue(npc, forceIntro) {
   // TTS audio state
   window.UI.dialogueAudioNPC = npc.id;
   window.UI.dialogueAudioBatch = batch;
+  window.UI.dialoguePortraitExpression = resolveDialoguePortraitExpression(npc, batch, 0);
   window.UI.dialogueAudioPlayed = false;
 
   // ── Dialogue type-in effect ──
@@ -3937,6 +4092,7 @@ function openDialogue(npc, forceIntro) {
     npc: npc,
     lines: lines,
     lineIndex: 0,
+    batch: batch,
     closed: false
   };
 
@@ -3959,6 +4115,7 @@ function closeWorldDialogue() {
   window.UI.dialogueOpen = false;
   window.UI.dialogueNPC = null;
   window.UI.dialogueText = '';
+  window.UI.dialoguePortraitExpression = 'talk';
 }
 
 function nextDialogueLine() {
@@ -3967,6 +4124,9 @@ function nextDialogueLine() {
     activeDialogue.lineIndex++;
     window.UI.dialogueLineIndex = activeDialogue.lineIndex;
     window.UI.dialogueText = activeDialogue.lines[activeDialogue.lineIndex];
+    window.UI.dialoguePortraitExpression = resolveDialoguePortraitExpression(
+      activeDialogue.npc, activeDialogue.batch || window.UI.dialogueAudioBatch || 'intro', activeDialogue.lineIndex
+    );
     // Advance TTS to the next line's audio clip
     window.UI.dialogueAudioPlayed = false;
     playDialogueAudioLine();
@@ -4287,7 +4447,7 @@ function render() {
     if (benchmarkActive) benchmark.drawBackdrop(benchmarkCtx);
 
     const previewPresentation = window.AetherPreviewWorldPresentation;
-    const previewRendered = !benchmarkActive && previewPresentation &&
+    const previewRendered = previewPresentation &&
       typeof previewPresentation.draw === 'function' && previewPresentation.draw({
         groundLayer,
         skyLayer,
@@ -4300,6 +4460,8 @@ function render() {
         dayTime,
         isSkyLayerVisible,
         quest,
+        skipBackdrop: benchmarkActive,
+        dockBenchmark: benchmarkActive,
       });
 
     if (!previewRendered) {
@@ -4321,6 +4483,16 @@ function render() {
     }
 
     if (benchmarkActive) {
+      // Keep the Dragonfly as the dock scene's hero object even when the
+      // projected 2.5D world renderer owns the play plane.
+      if (previewRendered && typeof benchmark.drawDragonfly === 'function') {
+        benchmark.drawDragonfly({
+          x: Math.round(width * 0.72),
+          y: Math.round(height * 0.43),
+          now: millis(),
+          moored: true
+        });
+      }
       benchmark.drawLighting(benchmarkCtx);
       benchmark.drawDockLights(benchmarkCtx);
       benchmark.drawForeground(benchmarkCtx);
@@ -4386,7 +4558,7 @@ function drawShipInterior() {
   fill(C.teal[0], C.teal[1], C.teal[2], 150);
   textAlign(CENTER, CENTER);
   textSize(8);
-  textFont('VT323');
+  textFont('Segoe UI');
   text('CORE', cx, cy - 22);
   textSize(10);
   textFont('sans-serif');
@@ -4414,7 +4586,7 @@ function drawShipInterior() {
   fill(C.teal[0], C.teal[1], C.teal[2], 180);
   textAlign(CENTER, CENTER);
   textSize(9);
-  textFont('VT323');
+  textFont('Segoe UI');
   text('[ L ] or [ ESC ] to disembark', width / 2, height - 14);
   textSize(10);
   textFont('sans-serif');
@@ -4702,26 +4874,59 @@ function drawCovenantField() {
 // --- Player -----------------------------------------------------------------
 
 function drawPlayer() {
-  const sprites = window.AetherPixelSprites;
-  if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
-    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
-  }
   const px = player.px;
   const py = player.py;
   const moving = Math.abs(player.px - player.tileX * 16) > 0.5 ||
     Math.abs(player.py - player.tileY * 16) > 0.5;
-  const frame = moving ? Math.floor(frameCount / 8) % 2 : 0;
-  sprites.drawShadow(px + 8, py + 16, 1);
-  sprites.draw('ender', px, py, { frame });
+  const previousX = Number.isFinite(drawPlayer._lastX) ? drawPlayer._lastX : px;
+  const facing = px < previousX - 0.1 ? 'left' : (px > previousX + 0.1 ? 'right' : (drawPlayer._facing || 'right'));
+  drawPlayer._lastX = px;
+  drawPlayer._facing = facing;
+
+  const sprites = window.AetherPixelSprites;
+  const fieldCandidateRequested = sprites &&
+    typeof sprites.isFieldArtCandidateRequested === 'function' &&
+    sprites.isFieldArtCandidateRequested('ender');
+  const fieldFrame = moving ? Math.floor(frameCount / 8) % 2 : 0;
+  const fieldCandidateDrawn = fieldCandidateRequested &&
+    typeof sprites.drawFieldCandidate === 'function' &&
+    sprites.drawFieldCandidate('ender', px + 8, py + 16, {
+      anchor: 'bottom-center',
+      frame: fieldFrame
+    });
+  if (fieldCandidateDrawn && typeof sprites.drawShadow === 'function') {
+    sprites.drawShadow(px + 8, py + 16, 1, 20);
+  }
+  let rendered = fieldCandidateDrawn;
+
+  const characters = window.AetherCharacterRenderer;
+  if (!rendered && characters && characters.validate && characters.validate()) {
+    rendered = characters.draw('ender', px + 8, py + 16, {
+      scale: 0.82,
+      depth: 0.88,
+      now: millis(),
+      facing,
+      action: moving ? 'walk' : 'idle',
+      expression: 'neutral'
+    });
+  }
+
+  if (!rendered) {
+    if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
+      throw new Error('AETHER_ENDER_VISUAL_UNAVAILABLE');
+    }
+    sprites.drawShadow(px + 8, py + 16, 1);
+    sprites.draw('ender', px, py, { frame: fieldFrame });
+  }
 
   fill(color(232, 220, 198));
   noStroke();
   textAlign(CENTER, TOP);
   textSize(8);
-  textFont('VT323');
-  text('Ender', px + 8, py - 6);
+  textFont('Segoe UI');
+  text('Ender', px + 8, fieldCandidateDrawn ? py - 28 : py - 6);
   textSize(9);
-  textFont('VT323');
+  textFont('Segoe UI');
 }
 
 // --- NPCs -------------------------------------------------------------------
@@ -4749,15 +4954,17 @@ function drawNPC(npc) {
   fill(color(0, 0, 0, 60));
   ellipse(px + 4, py + 8, 10, 4);
 
+  let ioniaFieldCandidateDrawn = false;
+  let lyraFieldCandidateDrawn = false;
   switch (npc.id) {
     case 'elder_farmer':
-      drawNPCElder(px, py);
+      ioniaFieldCandidateDrawn = drawNPCIonia(px, py);
       break;
     case 'engine_spirit':
       drawNPCSpirit(px, py);
       break;
     case 'child_prophet':
-      drawNPCChild(px, py);
+      lyraFieldCandidateDrawn = drawNPCLyra(px, py);
       break;
     case 'corporate_salvager':
       drawNPCSavager(px, py);
@@ -4770,22 +4977,52 @@ function drawNPC(npc) {
   fill(color(232, 220, 198, 200));
   textAlign(CENTER, TOP);
   textSize(7);
-  textFont('VT323');
-  text(npc.name, px, py - 12);
+  textFont('Segoe UI');
+  text(npc.name, px, ioniaFieldCandidateDrawn ? py - 32 : (lyraFieldCandidateDrawn ? py - 32 : py - 12));
   textSize(9);
-  textFont('VT323');
+  textFont('Segoe UI');
 }
 
-function drawNPCElder(px, py) {
+function drawNPCIonia(px, py) {
   const sprites = window.AetherPixelSprites;
+  if (sprites && typeof sprites.isFieldArtCandidateRequested === 'function' &&
+      sprites.isFieldArtCandidateRequested('ionia') &&
+      typeof sprites.drawFieldCandidate === 'function' &&
+      sprites.drawFieldCandidate('ionia', px, py + 8, {
+        anchor: 'bottom-center',
+        frame: Math.floor(frameCount / 16) % 2
+      })) {
+    return true;
+  }
+
+  const characters = window.AetherCharacterRenderer;
+  if (characters && characters.validate && characters.validate()) {
+    characters.draw('ionia', px, py + 8, {
+      scale: 0.82,
+      depth: 0.88,
+      now: millis(),
+      facing: 'right',
+      action: 'idle',
+      expression: 'neutral'
+    });
+    return false;
+  }
+
+  // Compatibility fallback only: legacy top-down sprite authority.
   if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
-    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
+    throw new Error('AETHER_IONIA_VISUAL_UNAVAILABLE');
   }
   sprites.drawShadow(px, py + 9, 1);
   sprites.draw('ionia', px, py + 8, {
     anchor: 'bottom-center',
     frame: Math.floor(frameCount / 18) % 2
   });
+  return false;
+}
+
+// Legacy function name retained only for external/debug callers; rendering authority is Ionia.
+function drawNPCElder(px, py) {
+  drawNPCIonia(px, py);
 }
 
 function drawNPCSpirit(px, py) {
@@ -4800,16 +5037,46 @@ function drawNPCSpirit(px, py) {
   });
 }
 
-function drawNPCChild(px, py) {
+function drawNPCLyra(px, py) {
   const sprites = window.AetherPixelSprites;
-  if (!sprites || typeof sprites.draw !== 'function') {
-    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
+  if (sprites && typeof sprites.isFieldArtCandidateRequested === 'function' &&
+      sprites.isFieldArtCandidateRequested('lyra') &&
+      typeof sprites.drawFieldCandidate === 'function' &&
+      sprites.drawFieldCandidate('lyra', px, py + 8, {
+        anchor: 'bottom-center',
+        frame: Math.floor(frameCount / 16) % 2
+      })) {
+    return true;
+  }
+
+  const characters = window.AetherCharacterRenderer;
+  if (characters && characters.validate && characters.validate()) {
+    characters.draw('lyra', px, py + 8, {
+      scale: 0.80,
+      depth: 0.88,
+      now: millis(),
+      facing: 'right',
+      action: 'idle',
+      expression: 'neutral'
+    });
+    return false;
+  }
+
+  // Compatibility fallback only: legacy top-down sprite authority.
+  if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
+    throw new Error('AETHER_LYRA_VISUAL_UNAVAILABLE');
   }
   sprites.drawShadow(px, py + 9, 1);
   sprites.draw('lyra', px, py + 8, {
     anchor: 'bottom-center',
     frame: Math.floor(frameCount / 16) % 2
   });
+  return false;
+}
+
+// Legacy function name retained only for compatibility; rendering authority is Lyra.
+function drawNPCChild(px, py) {
+  return drawNPCLyra(px, py);
 }
 
 function drawNPCSavager(px, py) {
@@ -4972,7 +5239,7 @@ function drawQuestOverlay() {
   textFont('Press Start 2P');
   text(stateLabel, 630, 11);
   textSize(10);
-  textFont('VT323');
+  textFont('Segoe UI');
 
   fill(color(232, 220, 198, 150));
   textAlign(LEFT, TOP);
@@ -5023,7 +5290,7 @@ function drawWakeResolutionScreen() {
   fill(color(42, 255, 181, 220));
   text('THE WAKE ANSWERS', width / 2, height / 2 - 82);
 
-  textFont('VT323');
+  textFont('Segoe UI');
   textSize(18);
   fill(color(232, 220, 198, 210));
   const choiceOutcome = getChoiceOutcomeText();
@@ -5057,7 +5324,7 @@ function drawEpilogueScreen() {
     text(ep.name.toUpperCase(), width/2, height/2 - 40);
     fill(color(232, 220, 198, 200));
     textSize(14);
-    textFont('VT323');
+    textFont('Segoe UI');
     textAlign(CENTER, CENTER);
     text(ep.text, width/2, height/2 + 20, width - 80, 100);
     fill(color(42, 255, 181, 120));
@@ -5096,7 +5363,7 @@ function drawSolarMeter() {
   noStroke();
   textAlign(LEFT, BOTTOM);
   textSize(8);
-  textFont('VT323');
+  textFont('Segoe UI');
   text('SOLAR ' + player.solarCharge.toFixed(2) + 'kWh', mx, my - 2);
   textSize(10);
   textFont('sans-serif');
@@ -5121,7 +5388,7 @@ function drawSolarMeter() {
   fill(color(232, 220, 198, 160));
   textAlign(LEFT, BOTTOM);
   textSize(8);
-  textFont('VT323');
+  textFont('Segoe UI');
   text('⚡ FIRE ' + player.staffCharges + '/2', fx, fy - 2);
   textSize(10);
   textFont('sans-serif');
@@ -5187,7 +5454,7 @@ function drawDayNightIndicator() {
   fill(color(232, 220, 198, 140));
   textAlign(CENTER, CENTER);
   textSize(7);
-  textFont('VT323');
+  textFont('Segoe UI');
   const label = phase < 0.25 ? 'DAWN' : phase < 0.5 ? 'DAY' :
                 phase < 0.75 ? 'DUSK' : 'NIGHT';
   text(label, cx, cy + r + 10);
@@ -5223,7 +5490,7 @@ function drawInteractionHints() {
   fill(color(42, 255, 181, 200 * pulse));
   textAlign(CENTER, TOP);
   textSize(8);
-  textFont('VT323');
+  textFont('Segoe UI');
   text(label, px, py - 4);
   textSize(10);
   textFont('sans-serif');
@@ -6736,7 +7003,7 @@ function AetherCombat(p, C) {
     // ── Combat intro banner ──
     if (state.enemy && state.turn <= 3) {
       const bannerT = Math.min(1, state.turn / 3);
-      p.textFont('VT323');
+      p.textFont('Segoe UI');
       p.textSize(20 * bannerT);
       p.textAlign(p.CENTER, p.CENTER);
       p.fill(C.teal[0], C.teal[1], C.teal[2], 160 * bannerT);
@@ -7105,7 +7372,7 @@ const PAL = {
 // p5 has no font fallback control per-call, so we approximate with size/weight calls.
 // In core.js, setTextFont should be called once to load these.
 
-const FONT_BODY  = 'VT323';
+const FONT_BODY  = 'Segoe UI';
 const FONT_UI    = 'Press Start 2P';
 
 // ─────────────────────────────────────────────
@@ -8345,27 +8612,32 @@ function drawActionIcon(cx, cy, size, actionId) {
 }
 
 /** Draw the full combat UI panel — left side of screen */
-function drawCombatPanel(combatState) {
+function drawCombatPanel(combatState, layoutBox) {
   if (!combatState) return;
   push();
-  const px = 8, py = 8, pw = 220, ph = 580;
+  const uiVisual = window.AetherUIVisualSystem;
+  const fallback = { x: 24, y: 24, w: 184, h: 400 };
+  const box = layoutBox || fallback;
+  const px = box.x, py = box.y, pw = box.w, ph = box.h;
 
-  // Panel background
-  fill(PAL.NAVY);
+  // Panel background follows the shared translucent instrument-panel token.
+  const panelColor = uiVisual && typeof uiVisual.panelRGBA === 'function'
+    ? uiVisual.panelRGBA()
+    : [11, 16, 33, 214];
+  fill(...panelColor);
   noStroke();
-  rect(px, py, pw, ph);
+  rect(px, py, pw, ph, 8);
   drawPixelBorder(px, py, pw, ph, 3, PAL.SHADOW, PAL.TEAL);
 
   // Header
   textFont(FONT_UI);
   textSize(9);
   drawGlowText('COMBAT', px + 12, py + 8, PAL.TEAL, 9);
-  text('TURN ' + combatState.turn, px + pw - 60, py + 10);
 
   // Enemy section
   if (combatState.enemy) {
     const ey = py + 36;
-    drawPixelBorder(px + 8, ey, pw - 16, 48, 2, PAL.SHADOW, PAL.RUST);
+    drawPixelBorder(px + 8, ey, pw - 16, 44, 2, PAL.SHADOW, PAL.RUST);
     textFont(FONT_UI);
     textSize(8);
     drawGlowText(combatState.enemy.name.toUpperCase(), px + 14, ey + 4, PAL.RUST, 8);
@@ -8388,63 +8660,44 @@ function drawCombatPanel(combatState) {
     textFont(FONT_UI);
     textSize(7);
     fill(PAL.DIM);
-    text('WEAKNESS: ' + (combatState.enemy.weakness || 'unknown'), px + 14, ey + 32);
+    const weakness = String(combatState.enemy.weakness || 'unknown');
+    const weaknessShort = weakness.length > 18 ? weakness.substring(0, 17).trimEnd() + '..' : weakness;
+    text('WEAK: ' + weaknessShort, px + 14, ey + 32);
   }
 
   // Player status section
-  const sY = py + 96;
-  drawPixelBorder(px + 8, sY, pw - 16, 88, 2, PAL.SHADOW, PAL.TEAL);
+  const sY = py + 90;
+  drawPixelBorder(px + 8, sY, pw - 16, 76, 2, PAL.SHADOW, PAL.TEAL);
   textFont(FONT_UI);
   textSize(8);
   drawGlowText('ENDER', px + 14, sY + 6, PAL.TEAL, 8);
 
-  // Player resources
+  // Player resources use a fixed compact grid; values never compete for the
+  // same horizontal lane when the shared UI system narrows the panel.
   textFont(FONT_BODY);
-  textSize(12);
-  let rX = px + 14;
-  const rY = sY + 24;
-  // Vit
-  fill(PAL.RUST);
-  text('HP', rX, rY);
-  rX += 20;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.vit + '/' + combatState.player.maxVit, rX, rY);
-  // Echoes
-  rX += 48;
-  fill(PAL.BIO);
-  text('ECHO', rX, rY);
-  rX += 36;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.echoes.current + '/' + combatState.player.echoes.max, rX, rY);
-  // Aether
-  rX += 52;
-  fill(PAL.SCIOTO);
-  text('AETHER', rX, rY);
-  rX += 44;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.aether.current + '/' + combatState.player.aether.max, rX, rY);
-  // Staff charges
-  rX = px + 14;
-  const rY2 = sY + 48;
-  fill(PAL.TEAL);
-  text('STAFF', rX, rY2);
-  rX += 36;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.staffCharges + '/' + combatState.player.maxStaffCharges, rX, rY2);
-  // Scrap
-  rX += 52;
-  fill(PAL.DUST);
-  text('SCRAP', rX, rY2);
-  rX += 36;
-  fill(PAL.PARCHMENT);
-  text(String(combatState.player.scrap), rX, rY2);
+  textSize(10);
+  const col1 = px + 14;
+  const col2 = px + Math.round(pw * 0.53);
+  const row1 = sY + 22;
+  const row2 = sY + 41;
+  const row3 = sY + 60;
+  fill(PAL.RUST); text('HP', col1, row1);
+  fill(PAL.PARCHMENT); text(combatState.player.vit + '/' + combatState.player.maxVit, col1 + 23, row1);
+  fill(PAL.SCIOTO); text('AETHER', col2, row1);
+  fill(PAL.PARCHMENT); text(combatState.player.aether.current + '/' + combatState.player.aether.max, col2 + 45, row1);
+  fill(PAL.BIO); text('ECHO', col1, row2);
+  fill(PAL.PARCHMENT); text(combatState.player.echoes.current + '/' + combatState.player.echoes.max, col1 + 33, row2);
+  fill(PAL.TEAL); text('STAFF', col2, row2);
+  fill(PAL.PARCHMENT); text(combatState.player.staffCharges + '/' + combatState.player.maxStaffCharges, col2 + 38, row2);
+  fill(PAL.DUST); text('SCRAP', col1, row3);
+  fill(PAL.PARCHMENT); text(String(combatState.player.scrap), col1 + 38, row3);
 
   // Actions grid — eight stable number-key slots. Locked actions stay visible
   // so progression is legible without making key bindings move.
   const aX = px + 8;
-  const aY = sY + 100;
+  const aY = sY + 86;
   const aW = pw - 16;
-  const aH = 154;
+  const aH = 132;
   drawPixelBorder(aX, aY, aW, aH, 2, PAL.SHADOW, PAL.TEAL);
 
   textFont(FONT_UI);
@@ -8455,8 +8708,8 @@ function drawCombatPanel(combatState) {
   const eligibleActionIds = new Set(
     combatState.eligibleActionIds || actions.map(action => action.id)
   );
-  const actH = 16;
-  const actStartY = aY + 22;
+  const actH = 14;
+  const actStartY = aY + 20;
   actions.forEach((action, idx) => {
     const ay = actStartY + idx * actH;
     const unlocked = eligibleActionIds.has(action.id);
@@ -8467,25 +8720,27 @@ function drawCombatPanel(combatState) {
     // Number circle
     fill(usable ? PAL.TEAL : PAL.DIM);
     noStroke();
-    ellipse(aX + 12, ay + 7, 9, 9);
+    ellipse(aX + 12, ay + 6, 8, 8);
     fill(PAL.NAVY);
     textFont(FONT_UI);
     textSize(7);
     textAlign(CENTER, CENTER);
-    text(String(idx + 1), aX + 12, ay + 7);
+    text(String(idx + 1), aX + 12, ay + 6);
     // Action label
     textFont(FONT_BODY);
-    textSize(10);
+    textSize(9);
     textAlign(LEFT, CENTER);
     const label = action.label || action.id;
+    const compactLabel = label.split(/\s+[^A-Za-z0-9]+\s+/)[0].trim();
     fill(usable ? PAL.PARCHMENT : PAL.DIM);
     noStroke();
     const statePrefix = !unlocked
-      ? 'LOCKED · '
+      ? 'LOCK ? '
       : (useEligibility && useEligibility.reason === 'ssot_blocked'
-        ? 'UNAVAILABLE · '
-        : (usable ? '' : 'NO RES · '));
-    text(statePrefix + label.substring(0, statePrefix ? 19 : 28), aX + 24, ay + 1);
+        ? 'N/A ? '
+        : (usable ? '' : 'NO RES ? '));
+    const maxLabelChars = statePrefix ? 13 : 17;
+    text(statePrefix + compactLabel.substring(0, maxLabelChars), aX + 23, ay);
     // Cost indicator uses the exact same centralized legacy cost function as
     // runtime admission/payment.
     const totalCost = window.AetherAbilityDefs.getActionResourceCost(action);
@@ -8493,20 +8748,20 @@ function drawCombatPanel(combatState) {
       textFont(FONT_UI);
       textSize(7);
       fill(usable ? PAL.AMBER : PAL.DIM);
-      text('COST: ' + totalCost, aX + aW - 62, ay + 2);
+      text('COST ' + totalCost, aX + aW - 48, ay + 1);
     }
     // Icon
-    if (usable) drawActionIcon(aX + aW - 16, ay + 7, 14, action.id);
+    if (usable) drawActionIcon(aX + aW - 13, ay + 6, 11, action.id);
   });
 
   // Enemy special ability hint
   if (combatState.enemy && combatState.enemy.abilityDesc) {
     const abY = aY + aH + 10;
-    drawPixelBorder(px + 8, abY, pw - 16, 28, 1, PAL.SHADOW, PAL.RUST);
+    drawPixelBorder(px + 8, abY, pw - 16, 26, 1, PAL.SHADOW, PAL.RUST);
     textFont(FONT_UI);
     textSize(7);
     fill(PAL.RUST);
-    text('ENEMY ABILITY:', px + 14, abY + 5);
+    text('ENEMY ABILITY', px + 14, abY + 4);
     textFont(FONT_BODY);
     textSize(9);
     fill(PAL.PARCHMENT);
@@ -8525,7 +8780,7 @@ function drawCombatPanel(combatState) {
     }
     if (line) lines.push(line);
     lines.forEach((l, i) => {
-      text(l, px + 14, abY + 14 + i * 10);
+      text(l, px + 14, abY + 13 + i * 9);
     });
   }
 
@@ -8541,9 +8796,13 @@ function drawCombatPanel(combatState) {
  */
 function drawCombatLog(lx, ly, lw, lh) {
   push();
-  fill(PAL.NAVY);
+  const uiVisual = window.AetherUIVisualSystem;
+  const panelColor = uiVisual && typeof uiVisual.panelRGBA === 'function'
+    ? uiVisual.panelRGBA()
+    : [11, 16, 33, 214];
+  fill(...panelColor);
   noStroke();
-  rect(lx, ly, lw, lh);
+  rect(lx, ly, lw, lh, 8);
   drawPixelBorder(lx, ly, lw, lh, 3, PAL.SHADOW, PAL.TEAL);
 
   // Header

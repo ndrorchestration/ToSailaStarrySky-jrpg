@@ -1,0 +1,14 @@
+'use strict';
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+const source = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
+assert(source.includes("? 'system'"), 'save/autosave toast classification missing');
+assert(source.includes("? 'priority'"), 'priority toast classification missing');
+assert(source.includes("filter(t => t.kind !== 'system')"), 'full-card hierarchy must exclude system toasts');
+assert(source.includes("slice(-1)[0] || null"), 'full-card hierarchy must render at most one notice');
+assert(source.includes('if (systemToast && !cardToast)'), 'system micro-status must yield whenever a higher-priority notice is visible');
+assert(source.includes("textSize(9)") && source.includes("height - 24"), 'system toast must collapse to compact safe-area micro-status');
+assert(!source.includes('window.toasts.slice(-2).reverse()'), 'old two-card toast stack must not return');
+console.log('Aetherwake toast visual hierarchy: PASS');
