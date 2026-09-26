@@ -4,40 +4,40 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.6.0';
   const PROFILES = Object.freeze({
     ender: Object.freeze({
       skin:[214,170,132], hair:[154,94,50], hairDark:[100,57,37],
       shirt:[55,61,65], vest:[172,149,104], accent:[58,105,66],
       leather:[81,55,38], metal:[176,130,57], boot:[50,39,34], pants:[58,55,49],
-      build:0.98, shoulder:1.0, leg:1.02, heightScale:1.00, hairMode:'crop',
+      build:0.98, shoulder:1.0, leg:1.02, heightScale:1.00, faceWidth:0.96, faceHeight:1.00, browTilt:-0.02, hairMode:'crop',
       goggles:true, freckles:true, embroidery:true, fieldVest:true, collarOpen:true, posture:'focused'
     }),
     reson: Object.freeze({
       skin:[220,178,143], hair:[70,45,33], hairDark:[48,32,27],
       shirt:[216,202,176], vest:[78,62,48], accent:[133,50,40],
       leather:[75,50,35], metal:[172,121,52], boot:[47,36,31], pants:[71,62,53],
-      build:1.16, shoulder:1.16, leg:1.0, heightScale:1.08, hairMode:'cap',
+      build:1.16, shoulder:1.16, leg:1.0, heightScale:1.08, faceWidth:1.08, faceHeight:1.02, browTilt:0.03, hairMode:'cap',
       scarf:[133,50,40], cap:[150,43,45], mustache:true, heavyHarness:true, utilityRig:true, rolledSleeves:true, posture:'open'
     }),
     aepex: Object.freeze({
       skin:[211,165,132], hair:[194,164,122], hairDark:[119,98,79],
       shirt:[39,40,44], vest:[52,49,48], accent:[181,134,60],
       leather:[52,43,39], metal:[174,127,54], boot:[35,31,30], pants:[38,38,42],
-      build:0.94, shoulder:0.98, leg:1.05, heightScale:1.05, hairMode:'undercut',
+      build:0.94, shoulder:0.98, leg:1.05, heightScale:1.05, faceWidth:0.92, faceHeight:1.04, browTilt:-0.07, hairMode:'undercut',
       tattoos:true, eyebrowNotch:true, harness:true, techRig:true, neckGoggles:true, asymmetry:true, posture:'guarded'
     }),
     ionia: Object.freeze({
       skin:[202,158,126], hair:[205,169,92], hairDark:[139,103,57],
       shirt:[48,63,67], vest:[111,102,82], accent:[69,132,137],
       leather:[72,54,42], metal:[145,115,71], boot:[46,40,38], pants:[46,50,51],
-      build:0.96, shoulder:0.98, leg:1.0, heightScale:0.96, hairMode:'curlyShoulder', curls:true, tailoredLayer:true, posture:'steady'
+      build:0.96, shoulder:0.98, leg:1.0, heightScale:0.96, faceWidth:0.96, faceHeight:0.98, browTilt:0.01, hairMode:'curlyShoulder', curls:true, tailoredLayer:true, posture:'steady'
     }),
     lyra: Object.freeze({
       skin:[218,178,145], hair:[163,58,43], hairDark:[104,39,34],
       shirt:[70,76,86], vest:[145,111,85], accent:[118,159,164],
       leather:[80,58,46], metal:[151,119,75], boot:[51,43,40], pants:[79,61,56],
-      build:0.84, shoulder:0.88, leg:0.94, heightScale:0.96, hairMode:'longRed', longHair:true, layeredDrape:true, posture:'light'
+      build:0.84, shoulder:0.88, leg:0.94, heightScale:0.96, faceWidth:0.93, faceHeight:1.02, browTilt:-0.03, hairMode:'longRed', longHair:true, layeredDrape:true, posture:'light'
     })
   });
 
@@ -344,10 +344,16 @@
     stroke(46,34,30,175);
     strokeWeight(0.85*s);
     fill(...profile.skin);
-    ellipse(0,faceY+nod,11.5*s,14.5*s);
+    ellipse(0,faceY+nod,11.5*s*(profile.faceWidth||1),14.5*s*(profile.faceHeight||1));
     noStroke();
     fill(120,76,62,34);
-    arc(2.2*s,faceY+0.4*s+nod,7.2*s,12*s,-Math.PI/2,Math.PI/2);
+    arc(2.2*s,faceY+0.4*s+nod,7.2*s*(profile.faceWidth||1),12*s*(profile.faceHeight||1),-Math.PI/2,Math.PI/2);
+    // Small ear/cheek cues make dialogue portraits read as faces rather than masks.
+    fill(...profile.skin);
+    ellipse(-5.6*s*(profile.faceWidth||1),faceY+0.3*s+nod,1.7*s,3.0*s);
+    ellipse(5.6*s*(profile.faceWidth||1),faceY+0.3*s+nod,1.7*s,3.0*s);
+    fill(255,226,188,28);
+    ellipse(-2.8*s,faceY+1.4*s+nod,2.8*s,1.4*s);
 
     fill(...profile.hair);
     if (profile.hairMode === 'undercut') {
@@ -379,8 +385,9 @@
 
     stroke(74,48,40,170);
     strokeWeight(0.55*s);
-    line(-4*s,faceY-2*s+nod,-1.2*s,faceY-2.6*s+nod);
-    line(1.2*s,faceY-2.6*s+nod,4*s,faceY-2*s+nod);
+    const browTilt = (profile.browTilt || 0) * s * 12;
+    line(-4*s,faceY-2*s+nod+browTilt,-1.2*s,faceY-2.6*s+nod-browTilt);
+    line(1.2*s,faceY-2.6*s+nod-browTilt,4*s,faceY-2*s+nod+browTilt);
     noStroke();
     fill(35,30,28);
     ellipse(-2.2*s,faceY-0.5*s+nod,1.1*s,0.9*s);
@@ -500,11 +507,21 @@
     if (o.facing === 'left') scale(-1,1);
 
     noStroke();
+    // Portrait shoulders inherit each character's field silhouette rather than
+    // forcing everyone through the same bust width.
+    const portraitShoulder = 15*s*(profile.shoulder||1);
+    const portraitWaist = 9.5*s*(profile.build||1);
     fill(...profile.shirt);
     beginShape();
-    vertex(-15*s,0); vertex(-11*s,-14*s); vertex(-7*s,-21*s);
-    vertex(7*s,-21*s); vertex(11*s,-14*s); vertex(15*s,0);
+    vertex(-portraitShoulder,0); vertex(-portraitShoulder*0.74,-14*s); vertex(-7*s,-21*s);
+    vertex(7*s,-21*s); vertex(portraitShoulder*0.74,-14*s); vertex(portraitShoulder,0);
     endShape(CLOSE);
+    fill(255,231,192,22);
+    quad(-portraitShoulder*0.72,-12*s,-2*s,-18*s,-1*s,-4*s,-portraitWaist*0.72,-3*s);
+
+    // Neck bridge prevents the head from appearing detached at dialogue scale.
+    fill(...profile.skin);
+    rect(-3.4*s,-24*s,6.8*s,7*s,2*s);
 
     fill(...profile.vest);
     quad(-10*s,-18*s,10*s,-18*s,8*s,-2*s,-8*s,-2*s);

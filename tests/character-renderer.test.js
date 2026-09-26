@@ -13,7 +13,7 @@ vm.runInNewContext(source, sandbox, { filename: 'character-renderer.js' });
 const api = sandbox.window.AetherCharacterRenderer;
 
 assert(api, 'articulated character renderer missing');
-assert.strictEqual(api.VERSION, '0.5.0');
+assert.strictEqual(api.VERSION, '0.6.0');
 assert(api.validate(), 'articulated character profiles must validate');
 for (const id of ['ender','reson','aepex','ionia','lyra']) {
   assert(api.PROFILES[id], id + ' articulated profile missing');
@@ -42,6 +42,16 @@ assert(source.includes("Lyra's rust-and-cream layered silhouette"), 'Lyra layere
 assert(source.includes('clean captain/engineer'), 'Ionia tailored captain silhouette cue missing');
 assert(source.includes('one-sided shoulder plate'), 'Aepex asymmetric engineer silhouette cue missing');
 assert(source.includes('open field-scholar collar'), 'Ender field-scholar collar cue missing');
+assert(api.PROFILES.reson.faceWidth > api.PROFILES.aepex.faceWidth,
+  'face-shape authority must distinguish broad Reson from narrow Aepex');
+assert(api.PROFILES.lyra.faceHeight > api.PROFILES.ionia.faceHeight,
+  'face-height authority must preserve protagonist facial variation');
+assert(source.includes('Portrait shoulders inherit each character'),
+  'portrait bust width must inherit per-character silhouette authority');
+assert(source.includes('Neck bridge prevents the head'),
+  'dialogue portraits must include a grounded neck transition');
+assert(source.includes('const browTilt ='),
+  'face renderer must support per-character brow attitude');
 assert(api.PROFILES.ender.fieldVest && api.PROFILES.ender.embroidery,
   'Ender reference-backed embroidered field-vest silhouette missing');
 assert(api.PROFILES.reson.heavyHarness && api.PROFILES.reson.utilityRig && api.PROFILES.reson.rolledSleeves,
