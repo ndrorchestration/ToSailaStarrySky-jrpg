@@ -2381,8 +2381,15 @@ function drawDialoguePortrait(npc, x, y, size, expression = 'talk') {
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 28);
   rect(x + 4, y + 4, size - 8, size - 8);
 
+  const artPreview = window.AetherCharacterArtPreview;
+  const previewCharacterId = artPreview && typeof artPreview.getPreviewCharacterId === 'function'
+    ? artPreview.getPreviewCharacterId()
+    : null;
   let authoredDrawn = false;
-  if (authoredCharacters && typeof authoredCharacters.drawPortrait === 'function' &&
+  if (previewCharacterId && artPreview && typeof artPreview.drawPortrait === 'function') {
+    authoredDrawn = artPreview.drawPortrait(previewCharacterId, x + 4, y + 4, size - 8, { expression });
+  }
+  if (!authoredDrawn && authoredCharacters && typeof authoredCharacters.drawPortrait === 'function' &&
       authoredCharacters.isPortraitReady && authoredCharacters.isPortraitReady(id)) {
     authoredDrawn = authoredCharacters.drawPortrait(id, x + 4, y + 4, size - 8, { expression });
   }
