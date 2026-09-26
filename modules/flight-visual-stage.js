@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.4.0';
+  const VERSION = '0.5.0';
   const FLIGHT_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   let flightBackground = null;
   let flightBackgroundRequested = false;
@@ -365,36 +365,42 @@
 
     textAlign(LEFT, TOP);
     textFont('Segoe UI Semibold');
-    textSize(8);
-    fill(232, 220, 198, 220);
-    text('OPEN-SKY FLIGHT', ribbon.x + 12, ribbon.y + 19);
+    textSize(7);
+    fill(232, 220, 198, 225);
+    text('OPEN-SKY FLIGHT', ribbon.x + 12, ribbon.y + 16);
 
     textFont('Trebuchet MS');
-    textSize(13);
-    fill(124, 200, 232, 220);
+    textSize(11);
+    fill(153, 215, 229, 230);
     text(
-      'ALT ' + state.altitude.toUpperCase() +
-      '  WEATHER ' + travel.weather.label +
-      '  SPEED ' + travel.effectiveSpeed.toFixed(2) +
-      '  PRESSURE ' + travel.encounterPressure,
-      ribbon.x + 12, ribbon.y + 36
+      state.altitude.toUpperCase() + '  ?  ' + travel.weather.label +
+      '  ?  SPD ' + travel.effectiveSpeed.toFixed(2) +
+      '  ?  P ' + travel.encounterPressure,
+      ribbon.x + 12, ribbon.y + 33
     );
 
     if (travel.route && travel.route.route) {
       const progress = Math.round(travel.route.progress * 100);
-      fill(205, 225, 230, 185);
-      text('ROUTE ' + travel.route.route.label + '  //  ' + progress + '%', ribbon.x + 268, ribbon.y + 19);
+      textAlign(RIGHT, TOP);
+      textSize(8);
+      fill(205, 225, 230, 195);
+      text('ROUTE ' + travel.route.route.label + '  //  ' + progress + '%', ribbon.x + ribbon.w - 12, ribbon.y + 16);
+      const progressW = 148;
       fill(31, 44, 63, 230);
-      rect(ribbon.x + 268, ribbon.y + 40, 218, 6);
-      fill(42, 255, 181, 170);
-      rect(ribbon.x + 269, ribbon.y + 41, Math.round(216 * travel.route.progress), 4);
+      rect(ribbon.x + ribbon.w - progressW - 12, ribbon.y + 39, progressW, 5);
+      fill(42, 255, 181, 180);
+      rect(ribbon.x + ribbon.w - progressW - 11, ribbon.y + 40, Math.round((progressW - 2) * travel.route.progress), 3);
+      textAlign(LEFT, TOP);
     }
 
-    textAlign(RIGHT, TOP);
+    const controls = layout.controlsHint || { x: w - 256, y: 24, w: 232, h: 24 };
+    fill(7, 11, 19, 176);
+    rect(controls.x, controls.y, controls.w, controls.h, 6);
+    textAlign(CENTER, CENTER);
     textFont('Segoe UI Semibold');
     textSize(7);
-    fill(232, 220, 198, 130);
-    text('ARROWS STEER  Q/E ALT  D DOCK  L/ESC LAND', w - 24, 24);
+    fill(232, 220, 198, 205);
+    text('ARROWS STEER  ?  Q/E ALT  ?  D DOCK  ?  ESC LAND', controls.x + controls.w / 2, controls.y + controls.h / 2);
     textAlign(LEFT, TOP);
   }
 
@@ -424,12 +430,12 @@
       textAlign(LEFT, TOP);
       textFont('Segoe UI Semibold');
       textSize(7);
-      fill(42, 255, 181, 180);
-      text('NEAREST SIGNAL', signal.x + 14, signal.y + 12);
+      fill(42, 255, 181, 190);
+      text('NEAREST SIGNAL', signal.x + 12, signal.y + 9);
       textFont('Trebuchet MS');
-      textSize(13);
-      fill(232, 220, 198, 215);
-      text(nearest.landmark.label + '  ' + nearest.distance.toFixed(1), signal.x + 14, signal.y + 27);
+      textSize(11);
+      fill(232, 220, 198, 220);
+      text(nearest.landmark.label + '  ' + nearest.distance.toFixed(1), signal.x + 12, signal.y + 24);
     }
 
     if (approach && approach.active && approach.landmark) {

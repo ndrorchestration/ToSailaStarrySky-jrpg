@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.3.0';
+  const VERSION = '0.4.0';
   const TOKENS = Object.freeze({
     gridPx: 8,
     safeMarginPx: 24,
@@ -51,9 +51,14 @@
 
   function layoutFlight(w, h) {
     const safe = TOKENS.safeMarginPx;
+    const routeWidth = Math.min(456, w - safe * 2);
+    const controlsWidth = 232;
+    const signalWidth = 216;
     return Object.freeze({
-      routeRibbon: Object.freeze({ x: safe, y: safe, w: Math.min(544, w - safe * 2), h: 64 }),
-      nearestSignal: Object.freeze({ x: w - safe - 240, y: h - safe - 48, w: 240, h: 48 }),
+      routeRibbon: Object.freeze({ x: safe, y: safe, w: routeWidth, h: 56 }),
+      controlsHint: Object.freeze({ x: w - safe - controlsWidth, y: safe, w: controlsWidth, h: 24 }),
+      nearestSignal: Object.freeze({ x: w - safe - signalWidth, y: h - safe - 44, w: signalWidth, h: 44 }),
+      artReserve: Object.freeze({ x: safe, y: safe + 72, w: w - safe * 2, h: h - safe * 2 - 132 }),
     });
   }
 

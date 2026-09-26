@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'flight-visual-stage.js' });
 const api = sandbox.window.AetherFlightVisual;
 
 assert(api, 'flight visual API missing');
-assert.strictEqual(api.VERSION, '0.4.0');
+assert.strictEqual(api.VERSION, '0.5.0');
 for (const fn of ['altitudeProfile','weatherPalette','drawBackdrop','drawDragonfly','drawForeground','drawRouteOverlay','drawLandmarkBeacons']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -30,6 +30,8 @@ assert(source.includes('paintedBackdrop'),
 assert(source.includes('function drawFarLandmarks'), 'flight stage must retain dimensional far-landmark staging');
 assert(source.includes('function drawForeground'), 'flight stage must retain a near-camera occlusion pass');
 assert(source.includes('Speed streaks live in the foreground'), 'flight stage must retain speed-responsive foreground motion');
+assert(source.includes('controlsHint'), 'flight stage must use the shared compact controls-hint layout');
+assert(source.includes('progressW = 148'), 'flight route progress must use the compact progress treatment');
 
 const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');

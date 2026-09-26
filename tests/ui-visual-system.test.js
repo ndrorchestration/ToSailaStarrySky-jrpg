@@ -9,7 +9,7 @@ const sandbox = { window: {}, globalThis: {} };
 vm.runInNewContext(source, sandbox, { filename: 'ui-visual-system.js' });
 const api = sandbox.window.AetherUIVisualSystem;
 assert(api, 'shared UI visual system missing');
-assert.strictEqual(api.VERSION, '0.3.0');
+assert.strictEqual(api.VERSION, '0.4.0');
 assert.strictEqual(api.TOKENS.gridPx, 8);
 assert.strictEqual(api.TOKENS.safeMarginPx, 24);
 assert(api.TOKENS.panelOpacity >= 0.78 && api.TOKENS.panelOpacity <= 0.90);
@@ -27,12 +27,17 @@ assert.strictEqual(dialogue.h, 128);
 const flight = api.layoutFlight(960, 640);
 assert.strictEqual(flight.routeRibbon.x, 24);
 assert.strictEqual(flight.routeRibbon.y, 24);
-assert(flight.routeRibbon.w <= 544 && flight.routeRibbon.h === 64,
-  'flight route ribbon exceeds shared HUD budget');
+assert(flight.routeRibbon.w <= 456 && flight.routeRibbon.h === 56,
+  'flight route ribbon exceeds compact shared HUD budget');
+assert(flight.controlsHint && flight.controlsHint.w <= 232 && flight.controlsHint.h === 24,
+  'flight controls hint must remain a compact readable chip');
+assert(flight.artReserve.h >= 450, 'flight HUD must preserve a large central art reserve');
 assert.strictEqual(flight.nearestSignal.x + flight.nearestSignal.w, 936,
   'nearest-signal card must respect right safe margin');
 assert.strictEqual(flight.nearestSignal.y + flight.nearestSignal.h, 616,
   'nearest-signal card must respect bottom safe margin');
+assert(flight.nearestSignal.w <= 216 && flight.nearestSignal.h === 44,
+  'nearest-signal card must remain compact');
 const title = api.layoutTitle(960, 640);
 assert(title.panel.x >= api.TOKENS.safeMarginPx && title.panel.y >= api.TOKENS.safeMarginPx,
   'title panel must respect shared safe area');
