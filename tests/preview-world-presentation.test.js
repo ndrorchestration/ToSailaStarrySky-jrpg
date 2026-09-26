@@ -110,6 +110,14 @@ sandbox.window.AetherPixelSprites = Object.freeze({
 });
 vm.runInNewContext(source, sandbox, { filename: 'preview-world-presentation.js' });
 
+
+assert(source.includes('AetherEnvironmentVisualKit'),
+  'projected world must bind the shared environment visual kit');
+assert(source.includes('drawCargoCrate') && source.includes('drawAetherStone') &&
+  source.includes('drawSkyPool') && source.includes('drawSignalCrystal'),
+  'projected world must route prototype cell props through shared authored prop renderers');
+assert(source.includes('if (reducedDetail && type !== 6) continue'),
+  'dock benchmark must suppress duplicate generic debris while preserving story signal props');
 const presentation = sandbox.window.AetherPreviewWorldPresentation;
 assert(presentation, 'Preview world presentation module is missing');
 assert.strictEqual(typeof presentation.draw, 'function');

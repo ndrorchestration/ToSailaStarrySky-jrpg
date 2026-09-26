@@ -9,10 +9,10 @@ const sandbox = { window: {}, globalThis: {} };
 vm.runInNewContext(source, sandbox, { filename: 'environment-visual-kit.js' });
 const api = sandbox.window.AetherEnvironmentVisualKit;
 assert(api, 'environment visual kit missing');
-assert.strictEqual(api.VERSION, '0.1.0');
+assert.strictEqual(api.VERSION, '0.2.0');
 assert.strictEqual(api.SCALE.doorHeightAdultHeights, 1.35);
 assert.strictEqual(api.SCALE.crateHeightAdultHeights, 0.38);
-for (const fn of ['drawDockSurface','drawDockMidground','drawDockForeground','drawBollard','drawRopeCoil','drawPlanter','drawRepairBench','drawWindVane','drawRepairCanopy','drawCrane']) {
+for (const fn of ['drawDockSurface','drawDockMidground','drawDockForeground','drawBollard','drawRopeCoil','drawPlanter','drawRepairBench','drawWindVane','drawRepairCanopy','drawCrane','drawCargoCrate','drawAetherStone','drawSkyPool','drawSignalCrystal']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
 for (const forbidden of ['quest.', 'gameState =', 'mooredLandmarkId =', 'groundLayer[']) {

@@ -626,30 +626,30 @@
       const row = ground[y] || [];
       for (let x = 1; x < Math.min(MAP - 1, row.length); x++) {
         const type = Number(row[x] && row[x].type !== undefined ? row[x].type : row[x]);
+        // The dedicated dock kit already supplies authored service props. Suppress
+        // duplicate logical-cell debris there to reduce clutter and render cost;
+        // retain only the story-bearing signal crystal.
+        if (reducedDetail && type !== 6) continue;
         const px = x * CELL + CELL * 0.5;
         const py = y * CELL + CELL * 0.5;
-        if (type === 3) {
-          fill(55,42,32,90); rect(px-8,py-3,17,9,2);
+        const environmentKit = root.AetherEnvironmentVisualKit;
+        if (type === 3 && environmentKit && typeof environmentKit.drawCargoCrate === 'function') {
+          environmentKit.drawCargoCrate(px, py, 0.72, (x + y) % 3);
+        } else if (type === 4 && environmentKit && typeof environmentKit.drawAetherStone === 'function') {
+          environmentKit.drawAetherStone(px, py, 0.78, (x * 3 + y) % 2);
+        } else if (type === 5 && environmentKit && typeof environmentKit.drawSkyPool === 'function') {
+          environmentKit.drawSkyPool(px, py, 0.78, t);
+        } else if (type === 6 && environmentKit && typeof environmentKit.drawSignalCrystal === 'function') {
+          environmentKit.drawSignalCrystal(px, py, 0.82, t);
+        } else if (type === 3) {
           fill(118,79,48); rect(px-7,py-9,14,12,2);
-          fill(163,116,65); quad(px-7,py-9,px+7,py-9,px+4,py-12,px-4,py-12);
-          stroke(205,154,83,190); strokeWeight(1.3);
-          line(px-5,py-7,px+5,py+1); line(px+5,py-7,px-5,py+1); noStroke();
         } else if (type === 4) {
-          fill(62,75,70,70); ellipse(px+2,py+3,19,8);
-          fill(129,145,132,180);
-          beginShape(); vertex(px-8,py+1); vertex(px-5,py-7); vertex(px+2,py-10);
-          vertex(px+8,py-3); vertex(px+6,py+4); endShape(CLOSE);
-          fill(189,211,190,60); ellipse(px-2,py-5,7,3);
+          fill(129,145,132,180); ellipse(px,py,18,11);
         } else if (type === 5) {
           fill(45,129,154,110); ellipse(px,py,24,12);
-          fill(186,232,239,105); ellipse(px-3,py-2,11,3);
-          fill(61,177,186,55); ellipse(px+4,py+2,15,5);
         } else if (type === 6) {
           const pulse = 0.5 + 0.5 * Math.sin(t * 0.004 + x + y);
           fill(95,224,210,38+pulse*70); ellipse(px,py,21+pulse*8,11+pulse*4);
-          fill(205,245,232,205);
-          beginShape(); vertex(px,py-12); vertex(px+4,py-2); vertex(px+1,py+5);
-          vertex(px-4,py-2); endShape(CLOSE);
         }
       }
     }
@@ -657,7 +657,7 @@
     // Wind-driven grass silhouettes create motion at character scale.
     stroke(57, 91, 57, 175);
     strokeWeight(1.5);
-    for (let i = 0; i < (reducedDetail ? 18 : 42); i++) {
+    for (let i = 0; i < (reducedDetail ? 10 : 42); i++) {
       const x = CELL * (2 + ((i * 19) % 28));
       const y = CELL * (2 + ((i * 13) % 28));
       const wind = Math.sin(t * 0.003 + i * 0.7) * 3;

@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
   const SCALE = Object.freeze({
     adultHeightUnits: 1,
     doorHeightAdultHeights: 1.35,
@@ -104,6 +104,53 @@
     vertex(31,-14); vertex(-31,-14); endShape(CLOSE);
     fill(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],75);
     rect(-30,-21,60,2);
+    pop();
+  }
+
+  function drawCargoCrate(x, y, s = 1, variant = 0) {
+    push(); translate(x,y); scale(s);
+    noStroke();
+    fill(15,18,22,70); ellipse(1,7,28,8);
+    const body = variant % 2 ? PALETTE.reclaimedWood : [128,86,49];
+    fill(...body); rect(-11,-9,22,16,2);
+    fill(...PALETTE.woodLight); quad(-11,-9,11,-9,7,-13,-7,-13);
+    fill(...PALETTE.brass); rect(-12,-9,2,16); rect(10,-9,2,16);
+    stroke(PALETTE.brass[0],PALETTE.brass[1],PALETTE.brass[2],170); strokeWeight(1.2);
+    line(-8,-7,8,5); line(8,-7,-8,5); noStroke();
+    if (variant % 3 === 2) {
+      fill(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],125); rect(-3,-5,6,2,1);
+    }
+    pop();
+  }
+
+  function drawAetherStone(x, y, s = 1, variant = 0) {
+    push(); translate(x,y); scale(s);
+    noStroke(); fill(12,16,22,70); ellipse(1,6,26,7);
+    fill(104 + (variant%2)*15,119,108,220);
+    beginShape(); vertex(-10,2); vertex(-7,-6); vertex(-1,-11); vertex(7,-6); vertex(10,1); vertex(5,6); vertex(-6,6); endShape(CLOSE);
+    fill(184,211,190,72); quad(-5,-5,0,-8,4,-5,-1,-2);
+    stroke(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],75); strokeWeight(1);
+    line(-2,-5,1,2); noStroke();
+    pop();
+  }
+
+  function drawSkyPool(x, y, s = 1, now = 0) {
+    push(); translate(x,y); scale(s);
+    noStroke(); fill(15,24,31,55); ellipse(0,4,34,14);
+    fill(52,139,158,150); ellipse(0,0,30,12);
+    fill(187,229,235,105); ellipse(-4,-2,13,3);
+    const pulse=0.5+0.5*Math.sin(now*0.003+x*0.01);
+    fill(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],35+pulse*45); ellipse(5,1,12,4);
+    pop();
+  }
+
+  function drawSignalCrystal(x, y, s = 1, now = 0) {
+    push(); translate(x,y); scale(s);
+    const pulse=0.5+0.5*Math.sin(now*0.004+x*0.017);
+    noStroke(); fill(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],28+pulse*45); ellipse(0,0,28+pulse*8,14+pulse*4);
+    fill(205,245,232,220);
+    beginShape(); vertex(0,-14); vertex(5,-3); vertex(2,7); vertex(-5,-3); endShape(CLOSE);
+    fill(PALETTE.aetherBlue[0],PALETTE.aetherBlue[1],PALETTE.aetherBlue[2],120); triangle(0,-11,3,-3,-2,-4);
     pop();
   }
 
@@ -218,5 +265,9 @@
     drawWindVane,
     drawRepairCanopy,
     drawCrane,
+    drawCargoCrate,
+    drawAetherStone,
+    drawSkyPool,
+    drawSignalCrystal,
   });
 })(typeof window !== 'undefined' ? window : globalThis);
