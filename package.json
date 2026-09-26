@@ -137,6 +137,7 @@
     "score:visual-acceptance": "node scripts/score-visual-acceptance.js",
     "test:authored-character-assets": "node tests/authored-character-asset-contract.test.js",
     "test:authored-character-art": "node tests/authored-character-art.test.js",
-    "test:dialogue-portrait-expression": "node tests/dialogue-portrait-expression.test.js"
+    "test:dialogue-portrait-expression": "node tests/dialogue-portrait-expression.test.js",
+    "test:ionia-world-visual": "node tests/ionia-world-visual-authority.test.js"
   }
 }

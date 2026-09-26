@@ -4914,7 +4914,7 @@ function drawNPC(npc) {
 
   switch (npc.id) {
     case 'elder_farmer':
-      drawNPCElder(px, py);
+      drawNPCIonia(px, py);
       break;
     case 'engine_spirit':
       drawNPCSpirit(px, py);
@@ -4939,16 +4939,35 @@ function drawNPC(npc) {
   textFont('Segoe UI');
 }
 
-function drawNPCElder(px, py) {
+function drawNPCIonia(px, py) {
+  const characters = window.AetherCharacterRenderer;
+  if (characters && characters.validate && characters.validate()) {
+    characters.draw('ionia', px, py + 8, {
+      scale: 0.82,
+      depth: 0.88,
+      now: millis(),
+      facing: 'right',
+      action: 'idle',
+      expression: 'neutral'
+    });
+    return;
+  }
+
+  // Compatibility fallback only: legacy top-down sprite authority.
   const sprites = window.AetherPixelSprites;
   if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
-    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
+    throw new Error('AETHER_IONIA_VISUAL_UNAVAILABLE');
   }
   sprites.drawShadow(px, py + 9, 1);
   sprites.draw('ionia', px, py + 8, {
     anchor: 'bottom-center',
     frame: Math.floor(frameCount / 18) % 2
   });
+}
+
+// Legacy function name retained only for external/debug callers; rendering authority is Ionia.
+function drawNPCElder(px, py) {
+  return drawNPCIonia(px, py);
 }
 
 function drawNPCSpirit(px, py) {
