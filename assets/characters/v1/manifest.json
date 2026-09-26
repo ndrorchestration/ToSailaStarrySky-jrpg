@@ -315,6 +315,20 @@
           "smile"
         ],
         "source": "Generated from creator-supplied Reson reference; explicit opt-in preview only, not admitted."
+      },
+      "candidateFieldSprite": {
+        "status": "candidate",
+        "path": "assets/characters/v1/reson/field-idle-walk-candidate.png",
+        "width": 56,
+        "height": 36,
+        "cellWidth": 28,
+        "cellHeight": 36,
+        "frames": [
+          "idle",
+          "walk"
+        ],
+        "transparent": true,
+        "source": "Generated from the creator-selected Reson character reference; opt-in field-art preview only."
       }
     },
     "aepex": {

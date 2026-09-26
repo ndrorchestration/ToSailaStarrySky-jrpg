@@ -26,6 +26,7 @@
   const LYRA_FIELD_CANDIDATE_PATH = 'assets/characters/v1/lyra/field-idle-walk-candidate.png';
   const IONIA_FIELD_CANDIDATE_PATH = 'assets/characters/v1/ionia/field-idle-walk-candidate.png';
   const AEPEX_FIELD_CANDIDATE_PATH = 'assets/characters/v1/aepex/field-idle-walk-candidate.png';
+  const RESON_FIELD_CANDIDATE_PATH = 'assets/characters/v1/reson/field-idle-walk-candidate.png';
   const ENDER_FIELD_CELL_WIDTH = 28;
   const ENDER_FIELD_CELL_HEIGHT = 36;
   const FIELD_ART_CANDIDATES = Object.freeze({
@@ -33,12 +34,14 @@
     lyra: Object.freeze({ path: LYRA_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
     ionia: Object.freeze({ path: IONIA_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
     aepex: Object.freeze({ path: AEPEX_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
+    reson: Object.freeze({ path: RESON_FIELD_CANDIDATE_PATH, width: ENDER_FIELD_CELL_WIDTH, height: ENDER_FIELD_CELL_HEIGHT }),
   });
   const fieldArtCandidateStates = {
     ender: { state: 'idle', image: null },
     lyra: { state: 'idle', image: null },
     ionia: { state: 'idle', image: null },
     aepex: { state: 'idle', image: null },
+    reson: { state: 'idle', image: null },
   };
   let previewAtlas = null;
   let previewAtlasState = 'idle';
@@ -779,6 +782,7 @@
     LYRA_FIELD_CANDIDATE_PATH,
     IONIA_FIELD_CANDIDATE_PATH,
     AEPEX_FIELD_CANDIDATE_PATH,
+    RESON_FIELD_CANDIDATE_PATH,
     isFieldArtCandidateRequested,
     drawFieldCandidate,
     VERSION: '0.3.0',

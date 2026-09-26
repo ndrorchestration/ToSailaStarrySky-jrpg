@@ -146,3 +146,19 @@ assert.strictEqual(aepexPreview.api.drawFieldCandidate('aepex',100,200,{anchor:'
 assert.deepStrictEqual(aepexPreview.events.requested, [aepex.candidateFieldSprite.path]);
 assert.strictEqual(aepexPreview.events.images[0][5], 28);
 console.log('Aepex selected-reference field-sprite candidate contract: PASS');
+
+const reson = manifest.characters.reson;
+assert.strictEqual(reson.status, 'planned', 'field candidate must not admit Reson runtime art');
+assert.strictEqual(reson.candidateFieldSprite.status, 'candidate');
+assert.deepStrictEqual(reson.candidateFieldSprite.frames, ['idle','walk']);
+const resonImagePath = path.join(root, reson.candidateFieldSprite.path);
+const resonPng = fs.readFileSync(resonImagePath);
+assert.strictEqual(resonPng.readUInt32BE(16), 56);
+assert.strictEqual(resonPng.readUInt32BE(20), 36);
+assert.strictEqual(resonPng[25], 6, 'Reson candidate PNG must carry an alpha channel');
+const resonPreview = boot('?aetherwakeFieldArtPreview=reson');
+assert.strictEqual(resonPreview.api.isFieldArtCandidateRequested('reson'), true);
+assert.strictEqual(resonPreview.api.drawFieldCandidate('reson',100,200,{anchor:'bottom-center',scale:1,frame:1}), true);
+assert.deepStrictEqual(resonPreview.events.requested, [reson.candidateFieldSprite.path]);
+assert.strictEqual(resonPreview.events.images[0][5], 28);
+console.log('Reson selected-reference field-sprite candidate contract: PASS');
