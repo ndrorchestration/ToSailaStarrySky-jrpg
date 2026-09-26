@@ -156,6 +156,20 @@
           "smile"
         ],
         "source": "Generated from the previously selected Lyra portrait concept and the creator-supplied Aetherwake character compendium; opt-in only, not admitted."
+      },
+      "candidateFieldSprite": {
+        "status": "candidate",
+        "path": "assets/characters/v1/lyra/field-idle-walk-candidate.png",
+        "width": 56,
+        "height": 36,
+        "cellWidth": 28,
+        "cellHeight": 36,
+        "frames": [
+          "idle",
+          "walk"
+        ],
+        "transparent": true,
+        "source": "Generated in Canva from the Aetherwake Skybound Character Compendium; opt-in field-art preview only."
       }
     },
     "ionia": {
