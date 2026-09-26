@@ -1,10 +1,10 @@
 {
   "name": "Aetherwake",
   "version": "0.1.0-preview.1",
-  "description": "Aetherwake pre-alpha \u2014 a solarpunk turn-based JRPG built with p5.js",
+  "description": "Aetherwake pre-alpha — a solarpunk turn-based JRPG built with p5.js",
   "main": "index-embedded.html",
   "window": {
-    "title": "AETHERWAKE \u2014 THE LAST SOLARPUNK AIRSHIP",
+    "title": "AETHERWAKE — THE LAST SOLARPUNK AIRSHIP",
     "width": 1440,
     "height": 960,
     "min_width": 960,
@@ -141,6 +141,7 @@
     "test:ionia-world-visual": "node tests/ionia-world-visual-authority.test.js",
     "test:ender-world-visual": "node tests/ender-world-visual-authority.test.js",
     "test:lyra-world-visual": "node tests/lyra-world-visual-authority.test.js",
-    "test:character-identity-evidence": "node tests/character-identity-evidence-contract.test.js"
+    "test:character-identity-evidence": "node tests/character-identity-evidence-contract.test.js",
+    "test:aepex-art-preview": "node tests/aepex-art-preview-contract.test.js"
   }
 }
