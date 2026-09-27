@@ -7010,17 +7010,30 @@ function AetherCombat(p, C) {
       rect(0, p.height * 0.55, p.width, p.height * 0.45);
     }
 
-    // ── Combat intro banner ──
-    if (state.enemy && state.turn <= 3) {
-      const bannerT = Math.min(1, state.turn / 3);
-      p.textFont('Segoe UI');
-      p.textSize(20 * bannerT);
-      p.textAlign(p.CENTER, p.CENTER);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 160 * bannerT);
-      p.text('⚔ COMBAT ⚔', p.width/2, 38);
-      p.textSize(12 * bannerT);
-      p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * bannerT);
-      p.text(state.enemy.name + ' approaches.', p.width/2, 58);
+    // ── JRPG encounter title rail ──
+    if (state.enemy && state.turn <= 1) {
+      const bannerT = Math.max(0.72, Math.min(1, (state.turn + 1) / 2));
+      const railW = Math.min(456, Math.round(p.width * 0.48));
+      const railX = Math.round((p.width - railW) / 2);
+      p.noStroke();
+      p.fill(5, 10, 20, 145 * bannerT);
+      p.rect(railX, 21, railW, 58, 8);
+      p.fill(C.teal[0], C.teal[1], C.teal[2], 34 * bannerT);
+      p.rect(railX + 8, 50, railW - 16, 1);
+      p.fill(C.rust[0], C.rust[1], C.rust[2], 165 * bannerT);
+      p.rect(railX + 14, 29, 44, 3);
+      p.fill(C.teal[0], C.teal[1], C.teal[2], 165 * bannerT);
+      p.rect(railX + railW - 58, 29, 44, 3);
+
+      p.textAlign(p.CENTER, p.TOP);
+      p.textFont('Segoe UI Semibold');
+      p.textSize(10);
+      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 205 * bannerT);
+      p.text('GROUND ENCOUNTER  //  TURN ' + Math.max(1, state.turn), p.width/2, 28);
+      p.textFont('Trebuchet MS');
+      p.textSize(18);
+      p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 235 * bannerT);
+      p.text(state.enemy.name.toUpperCase(), p.width/2, 46);
     }
 
     // ── Enemy ──
@@ -7328,7 +7341,7 @@ function AetherCombat(p, C) {
     p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 180);
     p.rect(px - 15, py - 41 + dodgeBob, 30 * Math.max(0, vitRatio), 1.5);
 
-    if (visualStage && typeof visualStage.drawTurnRail === 'function') {
+    if (visualStage && typeof visualStage.drawTurnRail === 'function' && state.turn > 1) {
       visualStage.drawTurnRail({
         width: p.width,
         height: p.height,
