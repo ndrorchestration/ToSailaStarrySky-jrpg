@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'first-wake-visual-stage.js' });
 
 const api = sandbox.window.AetherFirstWakeVisual;
 assert(api, 'First Wake visual stage missing');
-assert.strictEqual(api.VERSION, '0.7.0');
+assert.strictEqual(api.VERSION, '0.8.0');
 for (const fn of ['draw','drawDock','drawInterior','drawChapter']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -37,6 +37,10 @@ assert(source.includes('bandedSky(') && source.includes('cloudBands('),
   'opening dock must retain layered atmospheric fallback depth');
 assert(source.includes('continuous trapezoid planes'),
   'opening dock must use continuous perspective deck geometry rather than horizontal bands');
+assert(source.includes('function drawDockSkyportArchitecture') && source.includes('drawDockSkyportArchitecture(now)'),
+  'v0.8 opening dock must include authored midground skyport architecture');
+assert(source.includes('function drawDockLivingDetails') && source.includes('drawDockLivingDetails(now)'),
+  'v0.8 opening dock must include solarpunk planters, flowers, and warm practical lighting');
 assert(source.includes('Cloud drop below the deck'),
   'v0.3 dock must continuously communicate altitude');
 assert(source.includes('cinematicRatio') && source.includes('const settle ='),

@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.7.0';
+  const VERSION = '0.8.0';
   const OPENING_WORLD_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   let openingWorld = null;
   let openingWorldRequested = false;
@@ -155,6 +155,59 @@
     return true;
   }
 
+  function drawDockSkyportArchitecture(now) {
+    noStroke();
+    // Midground skyport buildings keep the playable apron inside an inhabited place.
+    fill(37, 49, 54, 230);
+    rect(82, 278, 176, 96);
+    fill(91, 74, 57, 240);
+    rect(94, 292, 152, 82);
+    fill(229, 216, 178, 235);
+    rect(104, 304, 132, 54);
+    fill(146, 79, 61, 240);
+    triangle(91, 300, 170, 248, 249, 300);
+    fill(64, 92, 91, 235);
+    rect(122, 326, 34, 32);
+    rect(187, 318, 28, 40);
+    fill(255, 196, 107, 205);
+    rect(129, 334, 8, 10);
+    rect(194, 328, 7, 9);
+
+    // Wind-tossed fabric and solar awnings create silhouette language above the deck.
+    fill(189, 104, 79, 225);
+    quad(266, 278, 346, 267, 342, 286, 268, 294);
+    fill(229, 190, 112, 210);
+    quad(271, 281, 302, 277, 300, 290, 270, 292);
+    const flutter = Math.sin(now * 0.003) * 7;
+    fill(70, 151, 137, 220);
+    beginShape();
+    vertex(334, 242); vertex(369, 248 + flutter * 0.15);
+    vertex(357, 270 + flutter); vertex(334, 263); endShape(CLOSE);
+    fill(48, 61, 61, 230);
+    rect(330, 236, 5, 70);
+  }
+
+  function drawDockLivingDetails(now) {
+    noStroke();
+    // Planters, flowers and warm lamps are deliberate solarpunk signals.
+    const planters = [[108,468],[250,451],[842,456]];
+    for (let i = 0; i < planters.length; i++) {
+      const x = planters[i][0], y = planters[i][1];
+      fill(110, 78, 54, 245); rect(x, y, 54, 18);
+      fill(65, 121, 76, 245); rect(x + 5, y - 11, 44, 12);
+      fill(103, 169, 87, 230); ellipse(x + 12, y - 15, 15, 11);
+      ellipse(x + 29, y - 18, 18, 13); ellipse(x + 43, y - 13, 13, 10);
+      fill(242, 184, 94, 230); rect(x + 18, y - 20, 3, 3);
+      fill(220, 125, 143, 220); rect(x + 37, y - 18, 3, 3);
+    }
+    const lamps = [[74,392],[366,405],[874,385]];
+    for (const [x,y] of lamps) {
+      fill(54, 63, 62, 245); rect(x, y, 6, 80);
+      fill(248, 190, 91, 230); rect(x - 5, y + 4, 16, 12);
+      fill(255, 214, 143, 28); ellipse(x + 3, y + 10, 58, 48);
+    }
+  }
+
   function drawDock(scene, state, now) {
     const cinematicRatio = scene.cinematic && Number.isFinite(scene.minimumTicks) && scene.minimumTicks > 0
       ? Math.max(0, Math.min(1, (state.sceneTicks || 0) / scene.minimumTicks))
@@ -183,6 +236,8 @@
       drawDistantIsland(302, 244, 92, 46, now * 0.78, false);
       drawDistantIsland(833, 254, 78, 38, now * 0.72, false);
     }
+
+    drawDockSkyportArchitecture(now);
 
     // Vertical dock pylons and gantry.
     fill(18, 25, 34);
@@ -223,6 +278,8 @@
     line(172, 454, width - 132, 437);
     line(118, 516, width - 82, 505);
     noStroke();
+
+    drawDockLivingDetails(now);
 
     // Reuse the shared dock prop language so the opening and playable dock feel
     // like the same working place rather than two unrelated presentation sets.
