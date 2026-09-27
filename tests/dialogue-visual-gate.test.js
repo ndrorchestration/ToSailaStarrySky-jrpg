@@ -41,8 +41,8 @@ assert(runtime.includes('layoutDialogue(width, height)'),
   'dialogue overlay must use shared UI layout authority');
 assert(runtime.includes('uiVisual.panelRGBA'),
   'dialogue overlay must use shared UI panel token');
-assert(runtime.includes('const portraitSize = 88'),
-  'dialogue portrait emphasis must retain the larger 88px visual budget');
+assert(runtime.includes('const portraitSize = 108'),
+  'dialogue portrait emphasis must use the 108px JRPG portrait budget');
 assert(portrait.includes('size / 43'),
   'canon-correct articulated dialogue portraits must use the stronger portrait scale');
 

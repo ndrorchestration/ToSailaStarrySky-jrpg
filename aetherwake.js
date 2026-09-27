@@ -2450,10 +2450,10 @@ function drawDialogueOverlay() {
   const bh = dialogueLayout.h;
   const bx = dialogueLayout.x;
   const by = dialogueLayout.y;
-  const portraitSize = 88;
-  const gap = 16;
-  const px = bx + 14;
-  const py = by + 18;
+  const portraitSize = 108;
+  const gap = 20;
+  const px = bx + 16;
+  const py = by + 22;
   const textX = px + portraitSize + gap;
   const textW = bw - portraitSize - gap - 34;
 
@@ -2488,26 +2488,28 @@ function drawDialogueOverlay() {
 
   drawDialoguePortrait(npc, px, py, portraitSize, window.UI.dialoguePortraitExpression || 'talk');
 
-  // Speaker plate.
+  // Speaker plate: character name reads first, then role, then dialogue.
   textAlign(LEFT, TOP);
+  fill(C.teal[0], C.teal[1], C.teal[2], 42 * alpha);
+  rect(textX - 8, by + 22, Math.min(250, textW * 0.48), 24, 4);
   textFont('Segoe UI Semibold');
-  textSize(13);
-  fill(C.teal[0], C.teal[1], C.teal[2], 235 * alpha);
-  text(npcName.toUpperCase(), textX, by + 24);
+  textSize(15);
+  fill(C.teal[0], C.teal[1], C.teal[2], 245 * alpha);
+  text(npcName.toUpperCase(), textX, by + 25);
 
   if (npcTitle) {
     textFont('Segoe UI');
     textSize(12);
-    fill(C.scioto[0], C.scioto[1], C.scioto[2], 190 * alpha);
-    text(npcTitle, textX, by + 39);
+    fill(C.scioto[0], C.scioto[1], C.scioto[2], 210 * alpha);
+    text(npcTitle, textX, by + 49);
   }
 
-  // Dialogue copy.
+  // Dialogue copy gets a little more breathing room at JRPG reading scale.
   textFont('Segoe UI');
-  textSize(15);
-  textLeading(18);
-  fill(C.parchment[0], C.parchment[1], C.parchment[2], 245 * alpha);
-  wrapText(window.UI.dialogueText || '...', textX, by + 56, textW);
+  textSize(16);
+  textLeading(20);
+  fill(C.parchment[0], C.parchment[1], C.parchment[2], 248 * alpha);
+  wrapText(window.UI.dialogueText || '...', textX, by + 72, textW);
 
   // Continue cue as a quiet instrument readout.
   textFont('Segoe UI');

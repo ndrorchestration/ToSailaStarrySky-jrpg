@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.6.0';
   const TOKENS = Object.freeze({
     gridPx: 8,
     safeMarginPx: 24,
@@ -45,7 +45,7 @@
   function layoutDialogue(w, h) {
     const safe = TOKENS.safeMarginPx;
     const panelW = Math.min(820, w - safe * 2);
-    const panelH = 128;
+    const panelH = 152;
     return Object.freeze({ x: Math.round((w - panelW) / 2), y: h - safe - panelH, w: panelW, h: panelH });
   }
 
