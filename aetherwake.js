@@ -8633,21 +8633,31 @@ function drawCombatPanel(combatState, layoutBox) {
   // Panel background follows the shared translucent instrument-panel token.
   const panelColor = uiVisual && typeof uiVisual.panelRGBA === 'function'
     ? uiVisual.panelRGBA()
-    : [11, 16, 33, 214];
-  fill(...panelColor);
+    : [11, 16, 33, 190];
+  fill(panelColor[0], panelColor[1], panelColor[2], Math.min(panelColor[3] || 190, 190));
   noStroke();
-  rect(px, py, pw, ph, 8);
-  drawPixelBorder(px, py, pw, ph, 3, PAL.SHADOW, PAL.TEAL);
+  rect(px, py, pw, ph, 10);
+  // Softer glass edge replaces the heavy debug-frame read.
+  stroke(42, 255, 181, 72);
+  strokeWeight(1);
+  noFill();
+  rect(px + 1, py + 1, pw - 2, ph - 2, 10);
+  noStroke();
+  fill(42, 255, 181, 28);
+  rect(px + 8, py + 27, pw - 16, 1);
 
   // Header
   textFont(FONT_UI);
-  textSize(9);
-  drawGlowText('COMBAT', px + 12, py + 8, PAL.TEAL, 9);
+  textSize(8);
+  drawGlowText('BATTLE COMMAND', px + 12, py + 8, PAL.TEAL, 8);
 
   // Enemy section
   if (combatState.enemy) {
     const ey = py + 36;
-    drawPixelBorder(px + 8, ey, pw - 16, 44, 2, PAL.SHADOW, PAL.RUST);
+    fill(160, 74, 44, 18);
+    rect(px + 8, ey, pw - 16, 44, 5);
+    stroke(160, 74, 44, 72);
+    strokeWeight(1); noFill(); rect(px + 8, ey, pw - 16, 44, 5); noStroke();
     textFont(FONT_UI);
     textSize(8);
     drawGlowText(combatState.enemy.name.toUpperCase(), px + 14, ey + 4, PAL.RUST, 8);
@@ -8677,7 +8687,10 @@ function drawCombatPanel(combatState, layoutBox) {
 
   // Player status section
   const sY = py + 90;
-  drawPixelBorder(px + 8, sY, pw - 16, 76, 2, PAL.SHADOW, PAL.TEAL);
+  fill(42, 255, 181, 14);
+  rect(px + 8, sY, pw - 16, 76, 5);
+  stroke(42, 255, 181, 62);
+  strokeWeight(1); noFill(); rect(px + 8, sY, pw - 16, 76, 5); noStroke();
   textFont(FONT_UI);
   textSize(8);
   drawGlowText('ENDER', px + 14, sY + 6, PAL.TEAL, 8);
@@ -8708,11 +8721,14 @@ function drawCombatPanel(combatState, layoutBox) {
   const aY = sY + 86;
   const aW = pw - 16;
   const aH = 132;
-  drawPixelBorder(aX, aY, aW, aH, 2, PAL.SHADOW, PAL.TEAL);
+  fill(26, 16, 46, 72);
+  rect(aX, aY, aW, aH, 6);
+  stroke(42, 255, 181, 56);
+  strokeWeight(1); noFill(); rect(aX, aY, aW, aH, 6); noStroke();
 
   textFont(FONT_UI);
   textSize(8);
-  drawGlowText('ACTIONS [1-8]', aX + 12, aY + 6, PAL.TEAL, 8);
+  drawGlowText('COMMANDS  1–8', aX + 12, aY + 6, PAL.TEAL, 8);
 
   const actions = combatState.actions || [];
   const eligibleActionIds = new Set(
