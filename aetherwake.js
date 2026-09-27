@@ -5020,7 +5020,7 @@ function drawNPCIonia(px, py) {
 
 // Legacy function name retained only for external/debug callers; rendering authority is Ionia.
 function drawNPCElder(px, py) {
-  drawNPCIonia(px, py);
+  return drawNPCIonia(px, py);
 }
 
 function drawNPCSpirit(px, py) {
