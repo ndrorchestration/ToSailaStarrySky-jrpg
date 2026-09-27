@@ -17,7 +17,7 @@ vm.runInNewContext(source, sandbox, { filename: 'title-visual-stage.js' });
 
 const api = sandbox.window.AetherTitleVisual;
 assert(api, 'title visual stage missing');
-assert.strictEqual(api.VERSION, '0.2.0');
+assert.strictEqual(api.VERSION, '0.3.0');
 for (const fn of ['draw','drawSky','drawHero','drawTitleCopy']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }

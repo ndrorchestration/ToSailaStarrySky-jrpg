@@ -7,7 +7,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
   const TITLE_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   let titleBackground = null;
   let titleBackgroundRequested = false;
@@ -120,48 +120,68 @@
       : { panel: { x: 64, y: 84, w: 448, h: 216 } };
     const panel = layout.panel;
     const left = panel.x + 24;
-    const top = panel.y + 28;
+    const top = panel.y + 24;
+    const pulse = 0.5 + Math.sin(now * 0.004) * 0.5;
 
+    // Layered glass-and-brass title card: substantial enough to read over the vista,
+    // but transparent enough that the world remains the hero image.
     noStroke();
-    fill(5, 10, 20, 178);
-    rect(panel.x, panel.y, panel.w, panel.h, 8);
-    fill(124, 200, 232, 18);
-    rect(panel.x + 4, panel.y + 4, panel.w - 8, panel.h - 8, 6);
+    fill(4, 9, 18, 150);
+    rect(panel.x, panel.y, panel.w, panel.h, 10);
+    fill(21, 48, 59, 42);
+    rect(panel.x + 4, panel.y + 4, panel.w - 8, panel.h - 8, 8);
+    fill(5, 10, 18, 88);
+    rect(panel.x, panel.y + panel.h - 62, panel.w, 62, 0, 0, 10, 10);
 
-    fill(42, 255, 181, 125);
-    rect(left, top - 12, 112, 2);
-    for (let i = 0; i < 7; i++) rect(left + i * 18, top - 16, 1, 10);
+    // JRPG logo lockup: horizontal rule, central aether glyph, and small brass endcaps.
+    fill(42, 255, 181, 145);
+    rect(left, top - 8, 136, 2);
+    fill(197, 151, 78, 190);
+    rect(left - 2, top - 11, 4, 8);
+    rect(left + 134, top - 11, 4, 8);
+    fill(124, 220, 232, 120 + Math.round(pulse * 75));
+    rect(left + 66, top - 14, 6, 14);
+    fill(42, 255, 181, 40 + Math.round(pulse * 30));
+    rect(left + 61, top - 9, 16, 4);
 
     textAlign(LEFT, TOP);
-    textFont('Segoe UI Semibold');
-    textSize(28);
-    fill(42, 255, 181);
+    textFont('Trebuchet MS');
+    textSize(31);
+    fill(238, 226, 198, 245);
     text('AETHERWAKE', left, top);
-
-    textSize(10);
-    fill(153, 215, 229, 235);
-    text('THE LAST SOLARPUNK AIRSHIP', left + 2, top + 48);
-
-    textFont('Trebuchet MS');
-    textSize(16);
-    fill(232, 220, 198, 215);
-    text('A small ship. A broken world. A song beginning to fail.', left + 2, top + 76);
+    fill(42, 255, 181, 170);
+    rect(left + 1, top + 38, 204, 2);
 
     textFont('Segoe UI Semibold');
-    textSize(9);
-    const pulse = 150 + Math.round((Math.sin(now * 0.004) * 0.5 + 0.5) * 90);
-    fill(232, 220, 198, pulse);
-    text('NEW GAME  //  N OR ENTER', left + 2, top + 119);
+    textSize(10);
+    fill(151, 219, 229, 230);
+    text('THE LAST SOLARPUNK AIRSHIP', left + 2, top + 47);
 
     textFont('Trebuchet MS');
-    textSize(13);
-    fill(185, 158, 116, 195);
-    text('ENTER THE FIRST WAKE', left + 2, top + 148);
+    textSize(15);
+    fill(237, 222, 199, 225);
+    text('A small ship. A broken world. A song beginning to fail.', left + 2, top + 73);
 
-    // Minimal controls; deeper instructions belong in gameplay, not the hero screen.
+    // Primary action reads as a selectable JRPG command instead of another line of copy.
+    const actionY = top + 111;
+    fill(42, 255, 181, 25 + Math.round(pulse * 20));
+    rect(left, actionY - 5, 248, 28, 4);
+    fill(42, 255, 181, 185 + Math.round(pulse * 55));
+    rect(left, actionY - 5, 3, 28, 2);
+    textFont('Segoe UI Semibold');
     textSize(12);
-    fill(151, 213, 226, 195);
-    text('WASD / ARROWS move   •   E interact   •   ESC back', left + 2, top + 177);
+    fill(238, 226, 198, 235);
+    text('NEW GAME  //  N OR ENTER', left + 12, actionY);
+
+    textFont('Trebuchet MS');
+    textSize(12);
+    fill(198, 160, 93, 215);
+    text('ENTER THE FIRST WAKE', left + 12, top + 145);
+
+    // Keep controls quiet and secondary; the title screen should sell the world first.
+    textSize(10);
+    fill(151, 213, 226, 170);
+    text('WASD / ARROWS move   •   E interact   •   ESC back', left + 2, top + 178);
   }
 
   function drawFooter() {
