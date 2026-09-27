@@ -78,6 +78,8 @@ nw-package/
 standalone/
 nwjs-win64.zip
 *.log
+__pycache__/
+*.pyc
 
 # Staged player runtime
 .desktop-runtime/
