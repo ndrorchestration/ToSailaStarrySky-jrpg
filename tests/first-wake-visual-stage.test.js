@@ -39,8 +39,8 @@ assert(!source.includes('state.sceneTicks ='),
   'visual transition must not mutate opening scene timing state');
 assert(source.includes('bandedSky(') && source.includes('cloudBands('),
   'opening dock must retain layered atmospheric fallback depth');
-assert(source.includes('continuous trapezoid planes'),
-  'opening dock must use continuous perspective deck geometry rather than horizontal bands');
+assert(source.includes('Perspective deck occupies the lower third') && source.includes('quad(inset0, y0'),
+  'opening dock must preserve perspective deck geometry while keeping authored skyport art dominant');
 assert(source.includes('function drawDockSkyportArchitecture') && source.includes('drawDockSkyportArchitecture(now)'),
   'v0.8 opening dock must include authored midground skyport architecture');
 assert(source.includes('function drawDockLivingDetails') && source.includes('drawDockLivingDetails(now)'),

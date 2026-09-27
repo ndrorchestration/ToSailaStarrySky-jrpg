@@ -252,17 +252,17 @@
     rect(51, 280, 3, 158);
     rect(width - 62, 257, 3, 180);
 
-    // Perspective deck: continuous trapezoid planes instead of horizontal bands.
-    for (let i = 0; i < 10; i++) {
-      const y0 = 314 + i * 29;
-      const y1 = y0 + 31;
-      const t0 = i / 10;
-      const t1 = (i + 1) / 10;
-      const inset0 = 150 * (1 - t0);
-      const inset1 = 150 * (1 - t1);
-      fill(38 + i * 2, 47 + i * 2, 52 + i * 2);
+    // Perspective deck occupies the lower third so the authored skyport remains dominant.
+    for (let i = 0; i < 8; i++) {
+      const y0 = 382 + i * 32;
+      const y1 = y0 + 34;
+      const t0 = i / 8;
+      const t1 = (i + 1) / 8;
+      const inset0 = 108 * (1 - t0);
+      const inset1 = 108 * (1 - t1);
+      fill(42 + i * 2, 50 + i * 2, 53 + i * 2, paintedBackdrop ? 228 : 255);
       quad(inset0, y0, width - inset0, y0, width - inset1, y1, inset1, y1);
-      stroke(116, 126, 124, 48);
+      stroke(126, 137, 132, 52);
       strokeWeight(1);
       line(inset1, y1, width - inset1, y1);
       noStroke();
@@ -271,11 +271,11 @@
     // Perspective seams and rails pull the eye toward the ship.
     stroke(111, 125, 127, 85);
     strokeWeight(1);
-    line(width / 2, 330, width / 2, height);
-    line(width / 2 - 105, 330, 145, height);
-    line(width / 2 + 105, 330, width - 145, height);
-    line(115, 348, 45, 570);
-    line(width - 115, 348, width - 45, 570);
+    line(width / 2, 390, width / 2, height);
+    line(width / 2 - 92, 390, 145, height);
+    line(width / 2 + 92, 390, width - 145, height);
+    line(115, 401, 45, 570);
+    line(width - 115, 401, width - 45, 570);
     // Reclaimed-brass service seams break the apron into intentional modules.
     stroke(183, 132, 64, 82);
     strokeWeight(2);

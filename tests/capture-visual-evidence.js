@@ -359,7 +359,21 @@ async function capture(page, id, description) {
       'First Wake Sequence 02 shared-authority visual stage'
     ));
 
-    // 1 â€” Dragonfly Dusk Dock benchmark.
+    // 1b — First Wake cabin/interior authored substrate.
+    for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() => window._firstWakeOpeningState.dockWalk.ready === true,
+      undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'berth_task'
+    , undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '01b-first-wake-cabin',
+      'First Wake authored cabin substrate with live character staging'
+    ));
+
+    // 2 — Dragonfly Dusk Dock benchmark.
     await bootToWorld(page);
     await page.evaluate(() => {
       const p = window._world.player;
