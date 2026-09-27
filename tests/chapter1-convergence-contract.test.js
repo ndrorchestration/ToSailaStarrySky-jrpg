@@ -267,8 +267,8 @@ assert.strictEqual(packageJson.scripts['verify:chapter1:local'],
   'powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\verify-chapter1-local.ps1',
   'Chapter 1 must expose one-command exact-head local verification');
 assert.strictEqual(packageJson.scripts['test:chapter1-visual'],
-  'npm run test:title-visual && npm run test:first-wake-visual && npm run test:dialogue-visual && npm run test:combat-visual && npm run test:flight-visual && npm run test:visual-package-integration && npm run test:16bit-world-art && npm run test:chapter1-character-sheet',
-  'Chapter 1 must expose a bounded visual/presentation acceptance suite');
+  'npm run test:visual-style-contract && npm run test:environment-visual-kit && npm run test:ui-visual-system && npm run test:toast-visual-hierarchy && npm run test:title-visual && npm run test:first-wake-visual && npm run test:dialogue-visual && npm run test:combat-visual && npm run test:flight-visual && npm run test:visual-package-integration && npm run test:16bit-world-art && npm run test:chapter1-character-sheet',
+  'Chapter 1 must expose the current bounded visual/presentation acceptance suite');
 
 assert(chapter1Workflow.includes('chapter1-visual:') &&
        chapter1Workflow.includes('npm run test:chapter1-visual'),
