@@ -8,11 +8,15 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.8.0';
+  const VERSION = '0.9.0';
   const OPENING_WORLD_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
+  const OPENING_INTERIOR_PATH = 'assets/preview/aetherwake-preview-interior-pixelart-v1.png';
   let openingWorld = null;
   let openingWorldRequested = false;
   let openingWorldReady = false;
+  let openingInterior = null;
+  let openingInteriorRequested = false;
+  let openingInteriorReady = false;
 
   function bandedSky(top, mid, low) {
     noStroke();
@@ -430,20 +434,61 @@
     rect(width - 390, 274, 236, 96);
   }
 
-  function drawInterior(scene, state, now) {
+  function drawPaintedInteriorBackdrop(now) {
+    if (!openingInteriorRequested && typeof loadImage === 'function') {
+      openingInteriorRequested = true;
+      try {
+        openingInterior = loadImage(
+          OPENING_INTERIOR_PATH,
+          () => { openingInteriorReady = true; },
+          () => { openingInterior = null; openingInteriorReady = false; }
+        );
+      } catch (error) {
+        openingInterior = null;
+        openingInteriorReady = false;
+      }
+    }
+    if (!openingInteriorReady || !openingInterior || typeof image !== 'function') return false;
+
+    push();
+    noSmooth();
+    const cover = Math.max(width / openingInterior.width, height / openingInterior.height);
+    const dw = openingInterior.width * cover;
+    const dh = openingInterior.height * cover;
+    image(openingInterior, (width - dw) / 2, (height - dh) / 2, dw, dh);
+    pop();
+
+    // Cool aether grade keeps the warm cabin plate inside Aetherwake's palette.
     noStroke();
-    fill(14, 20, 29);
+    fill(19, 39, 55, 36);
     rect(0, 0, width, height);
+    fill(245, 181, 103, 12);
+    rect(0, Math.round(height * 0.52), width, Math.round(height * 0.48));
+    return true;
+  }
 
-    // Structural ribs and deck planes.
-    fill(32, 40, 48);
-    rect(74, 98, width - 148, height - 166);
-    fill(52, 58, 61);
-    rect(91, 116, width - 182, height - 202);
-    fill(25, 31, 37);
-    rect(0, 420, width, 220);
-    drawInteriorDepthFrame(now, 420);
+  function drawInterior(scene, state, now) {
+    const paintedInterior = drawPaintedInteriorBackdrop(now);
+    noStroke();
+    if (!paintedInterior) {
+      fill(14, 20, 29);
+      rect(0, 0, width, height);
+      fill(32, 40, 48);
+      rect(74, 98, width - 148, height - 166);
+      fill(52, 58, 61);
+      rect(91, 116, width - 182, height - 202);
+      fill(25, 31, 37);
+      rect(0, 420, width, 220);
+      drawInteriorDepthFrame(now, 420);
+    } else {
+      // Runtime overlays stay translucent so authored cabin art remains the room.
+      fill(14, 20, 29, 28);
+      rect(72, 92, width - 144, height - 150);
+      fill(42, 255, 181, 12);
+      rect(96, 112, width - 192, 2);
+    }
 
+    if (!paintedInterior) {
     for (let x = 104; x < width - 90; x += 122) {
       fill(80, 70, 58);
       rect(x, 137, 8, 275);
@@ -466,6 +511,7 @@
     fill(124, 200, 232, 65);
     rect(width - 306, 193, 102, 4);
     rect(width - 306, 220, 124, 4);
+    }
 
     if (scene.id === 'wrong_song') {
       // Frequency mismatch rendered as pixel wavefronts.
@@ -609,24 +655,31 @@
       return;
     }
 
+    const paintedInterior = drawPaintedInteriorBackdrop(now);
     noStroke();
-    fill(8, 13, 20);
-    rect(0, 0, width, height);
-
-    // Hull frame.
-    fill(24, 31, 38);
-    rect(70, 94, width - 140, 432);
-    fill(49, 54, 55);
-    rect(90, 114, width - 180, 392);
-    fill(31, 37, 42);
-    rect(108, 132, width - 216, 354);
-
-    // Connected interior floor ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â intentionally one readable space, not a corridor of cards.
-    fill(72, 64, 54);
-    rect(122, 145, 690, 330);
-    fill(42, 47, 49);
-    rect(136, 159, 662, 302);
-    drawInteriorDepthFrame(now, 461);
+    if (!paintedInterior) {
+      fill(8, 13, 20);
+      rect(0, 0, width, height);
+      fill(24, 31, 38);
+      rect(70, 94, width - 140, 432);
+      fill(49, 54, 55);
+      rect(90, 114, width - 180, 392);
+      fill(31, 37, 42);
+      rect(108, 132, width - 216, 354);
+      fill(72, 64, 54);
+      rect(122, 145, 690, 330);
+      fill(42, 47, 49);
+      rect(136, 159, 662, 302);
+      drawInteriorDepthFrame(now, 461);
+    } else {
+      // Keep the authored cabin visible; logical room zones become light-only overlays.
+      fill(9, 15, 21, 24);
+      rect(92, 110, width - 184, 376);
+      fill(238, 181, 105, 14);
+      rect(118, 320, 210, 151);
+      fill(87, 179, 173, 12);
+      rect(568, 150, 226, 156);
+    }
 
     // Soft architectural light pools replace debug-like room blocks. The floor
     // remains continuous; identity comes from props, structure, and lighting.

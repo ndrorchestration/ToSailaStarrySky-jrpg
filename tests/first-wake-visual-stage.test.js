@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'first-wake-visual-stage.js' });
 
 const api = sandbox.window.AetherFirstWakeVisual;
 assert(api, 'First Wake visual stage missing');
-assert.strictEqual(api.VERSION, '0.8.0');
+assert.strictEqual(api.VERSION, '0.9.0');
 for (const fn of ['draw','drawDock','drawInterior','drawChapter']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -29,6 +29,10 @@ assert(source.includes('aetherwake-preview-world-pixelart-v2.png'),
   'v0.5 opening dock must bind the admitted painted-world authority');
 assert(source.includes('drawPaintedDockBackdrop') && source.includes('openingWorldReady'),
   'v0.5 opening dock must retain painted-backdrop readiness and procedural fallback');
+assert(source.includes('aetherwake-preview-interior-pixelart-v1.png'),
+  'v0.9 opening interior must bind the authored cabin plate');
+assert(source.includes('drawPaintedInteriorBackdrop') && source.includes('openingInteriorReady'),
+  'v0.9 opening interior must preserve authored-cabin readiness with procedural fallback');
 assert(source.includes('Presentation-only scene handoff') && source.includes('state.sceneTicks'),
   'opening visual stage must provide bounded scene-transition polish from presentation ticks');
 assert(!source.includes('state.sceneTicks ='),
