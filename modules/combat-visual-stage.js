@@ -243,6 +243,17 @@
     line(x - 22, y + 3, x + 22, y + 3);
     noStroke();
 
+    const authored = root.AetherAuthoredCharacterArt;
+    if (authored && typeof authored.drawFieldCharacter === 'function') {
+      const drawn = authored.drawFieldCharacter('ender', x, y + 7, {
+        anchor: 'bottom-center',
+        scale: 0.76,
+        action: ctx.attacking ? 'attack' : (ctx.focused ? 'focus' : 'idle'),
+        frame: Math.floor((ctx.now || 0) / (ctx.attacking ? 70 : 150)),
+      });
+      if (drawn) return true;
+    }
+
     if (characters && characters.validate && characters.validate()) {
       characters.draw('ender', x, y + 7, {
         scale: 1.48,

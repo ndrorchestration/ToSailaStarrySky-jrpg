@@ -353,8 +353,23 @@
       const ioniaY = cinematic ? Math.round(493 - settle * 14) : 416;
       const moving = scene.id === 'dock_walk' && progress < 0.98;
 
+      const authored = root.AetherAuthoredCharacterArt;
+      const enderAuthored = authored && typeof authored.drawFieldCharacter === 'function'
+        ? authored.drawFieldCharacter('ender', enderX, enderY, {
+            anchor: 'bottom-center', scale: cinematic ? 0.82 : 0.70,
+            action: moving ? 'walk' : (cinematic ? 'focus' : 'idle'),
+            frame: Math.floor(now / (moving ? 100 : 160)),
+          })
+        : false;
+      const ioniaAuthored = authored && typeof authored.drawFieldCharacter === 'function'
+        ? authored.drawFieldCharacter('ionia', ioniaX, ioniaY, {
+            anchor: 'bottom-center', scale: cinematic ? 0.78 : 0.66,
+            action: cinematic || scene.id === 'ionia_practical' ? 'talk' : 'idle',
+            frame: Math.floor(now / 170),
+          })
+        : false;
       if (characters && characters.validate()) {
-        characters.draw('ender', enderX, enderY, {
+        if (!enderAuthored) characters.draw('ender', enderX, enderY, {
           scale: cinematic ? 1.72 : 1.42,
           depth: cinematic ? 0.78 : 0.64,
           now,
@@ -362,7 +377,7 @@
           facing: 'right',
           action: cinematic ? 'focus' : 'idle',
         });
-        characters.draw('ionia', ioniaX, ioniaY, {
+        if (!ioniaAuthored) characters.draw('ionia', ioniaX, ioniaY, {
           scale: cinematic ? 1.62 : 1.34,
           depth: cinematic ? 0.76 : 0.62,
           now,

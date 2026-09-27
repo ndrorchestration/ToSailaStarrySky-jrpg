@@ -1,13 +1,21 @@
 /* Aetherwake authored character art runtime bridge. */
 (function(root){
   'use strict';
-  const VERSION='0.1.0';
+  const VERSION='0.2.0';
   const CELL=256;
+  const FIELD_CELL_W=64;
+  const FIELD_CELL_H=96;
   const EXPRESSION_ORDER=Object.freeze(['neutral','talk','concern','focus','hurt','smile']);
   const PACKS=Object.freeze({
     ionia:Object.freeze({status:'portrait-ready',portraitAtlas:'assets/characters/v1/ionia/portrait-atlas.png',width:768,height:512})
   });
+  const FIELD_PACKS=Object.freeze({
+    ender:Object.freeze({status:'planned',base:'assets/characters/v1/ender'}),
+    ionia:Object.freeze({status:'planned',base:'assets/characters/v1/ionia'})
+  });
+  const FIELD_FRAMES=Object.freeze({idle:8,walk:6,talk:4,focus:6,attack:8});
   const state=Object.create(null);
+  const fieldState=Object.create(null);
   function normalizeExpression(expression){
     const v=String(expression||'neutral').toLowerCase();
     if(EXPRESSION_ORDER.includes(v)) return v;
@@ -47,6 +55,51 @@
     pop();
     return true;
   }
+  function fieldAction(action){
+    const v=String(action||'idle').toLowerCase();
+    if(v==='run') return 'walk';
+    if(v==='speaking') return 'talk';
+    if(v==='focused') return 'focus';
+    return Object.prototype.hasOwnProperty.call(FIELD_FRAMES,v)?v:'idle';
+  }
+  function ensureFieldStrip(id,action){
+    const pack=FIELD_PACKS[id];
+    if(!pack||pack.status!=='ready'||typeof loadImage!=='function') return null;
+    const key=id+':'+action;
+    if(!fieldState[key]) fieldState[key]={requested:false,ready:false,failed:false,image:null};
+    const entry=fieldState[key];
+    if(!entry.requested){
+      entry.requested=true;
+      const expectedW=FIELD_CELL_W*FIELD_FRAMES[action];
+      const path=pack.base+'/field-'+action+'.png';
+      try{
+        entry.image=loadImage(path,
+          img=>{entry.image=img;entry.ready=Boolean(img&&img.width===expectedW&&img.height===FIELD_CELL_H);entry.failed=!entry.ready;},
+          ()=>{entry.failed=true;entry.ready=false;entry.image=null;});
+      }catch(error){entry.failed=true;entry.ready=false;entry.image=null;}
+    }
+    return entry;
+  }
+  function drawFieldCharacter(id,x,y,options={}){
+    const pack=FIELD_PACKS[id];
+    if(!pack||pack.status!=='ready'||typeof image!=='function') return false;
+    const action=fieldAction(options.action || (options.speed>0?'walk':'idle'));
+    const entry=ensureFieldStrip(id,action);
+    if(!entry||!entry.ready||!entry.image) return false;
+    const count=FIELD_FRAMES[action];
+    const frame=Math.abs(Math.floor(Number(options.frame)||0))%count;
+    const scale=Math.max(0.25,Number(options.scale)||1);
+    const dw=FIELD_CELL_W*scale, dh=FIELD_CELL_H*scale;
+    const dx=options.anchor==='top-left'?x:x-dw/2;
+    const dy=options.anchor==='top-left'?y:y-dh;
+    push();
+    imageMode(CORNER);
+    noSmooth();
+    image(entry.image,dx,dy,dw,dh,frame*FIELD_CELL_W,0,FIELD_CELL_W,FIELD_CELL_H);
+    pop();
+    return true;
+  }
+  function isFieldReady(id){const pack=FIELD_PACKS[id];return Boolean(pack&&pack.status==='ready');}
   function isPortraitReady(id){const pack=PACKS[id];return Boolean(pack&&pack.status==='portrait-ready');}
-  root.AetherAuthoredCharacterArt=Object.freeze({VERSION,PACKS,EXPRESSION_ORDER,normalizeExpression,drawPortrait,isPortraitReady});
+  root.AetherAuthoredCharacterArt=Object.freeze({VERSION,PACKS,FIELD_PACKS,FIELD_FRAMES,EXPRESSION_ORDER,normalizeExpression,drawPortrait,isPortraitReady,drawFieldCharacter,isFieldReady});
 })(typeof window!=='undefined'?window:globalThis);
