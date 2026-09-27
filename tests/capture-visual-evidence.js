@@ -373,6 +373,35 @@ async function capture(page, id, description) {
       'First Wake authored cabin substrate with live character staging'
     ));
 
+    // 1c — Wrong Song dramatic beat.
+    await page.keyboard.press('Enter');
+    for (let i = 0; i < 3; i++) await page.keyboard.press('e');
+    await page.waitForFunction(() => window._firstWakeOpeningState.berthTask.ready === true,
+      undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'talen_staying'
+    , undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+    for (let i = 0; i < 2; i++) await page.keyboard.press('e');
+    await page.waitForFunction(() => window._firstWakeOpeningState.talenBeat.ready === true,
+      undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'lyra_family'
+    , undefined, { timeout: 5000 });
+    for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowRight');
+    for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('e');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'wrong_song'
+    , undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '01c-first-wake-wrong-song',
+      'First Wake Wrong Song dramatic visual set piece'
+    ));
+
     // 2 — Dragonfly Dusk Dock benchmark.
     await bootToWorld(page);
     await page.evaluate(() => {

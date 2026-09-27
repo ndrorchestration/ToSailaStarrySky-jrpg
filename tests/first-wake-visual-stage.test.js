@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'first-wake-visual-stage.js' });
 
 const api = sandbox.window.AetherFirstWakeVisual;
 assert(api, 'First Wake visual stage missing');
-assert.strictEqual(api.VERSION, '0.9.0');
+assert.strictEqual(api.VERSION, '1.0.0');
 for (const fn of ['draw','drawDock','drawInterior','drawChapter']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -53,14 +53,18 @@ assert(source.includes('scene.sequence >= 1'),
   'v0.4 Sequence 00 must remain a ship-and-sky establishing shot before sprite reveal');
 assert(source.includes('1.55 + settle * 0.55'),
   'opening must preserve the Dragonfly reveal scale transition without oversized foreground figures');
-assert(source.includes('scale: cinematic ? 2.45 : 1.85'),
-  'opening must keep Ender readable while preserving JRPG scene scale and environmental composition');
+assert(source.includes('scale: cinematic ? 1.72 : 1.42'),
+  'opening must keep Ender readable at a restrained JRPG scene scale against authored environments');
+assert(source.includes('scale: cinematic ? 1.62 : 1.34'),
+  'opening must keep Ionia proportionate to the authored dock and Dragonfly');
 assert(source.includes("characters.draw('ender'") && source.includes("characters.draw('ionia'"),
   'opening must draw canonical Ender and Ionia through articulated character authority');
 assert(source.includes("sprites.draw('ender'") && source.includes("sprites.draw('ionia'"),
   'opening must retain the old sprite path only as fallback');
 assert(source.includes('function drawWakeExploration'),
   'v0.2 opening must expose the authored Wake exploration renderer');
+assert(source.includes('function drawWrongSongSetPiece') && source.includes('drawWrongSongSetPiece(now'),
+  'v1.0 opening must stage the Wrong Song as a bounded visual set piece');
 assert(source.includes("['ionia'"),
   'opening must use canonical Ionia sprite');
 assert(source.includes("['lyra'"),

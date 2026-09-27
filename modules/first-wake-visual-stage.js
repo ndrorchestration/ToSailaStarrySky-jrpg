@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.9.0';
+  const VERSION = '1.0.0';
   const OPENING_WORLD_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   const OPENING_INTERIOR_PATH = 'assets/preview/aetherwake-preview-interior-pixelart-v1.png';
   let openingWorld = null;
@@ -161,34 +161,42 @@
 
   function drawDockSkyportArchitecture(now) {
     noStroke();
-    // Midground skyport buildings keep the playable apron inside an inhabited place.
-    fill(37, 49, 54, 230);
-    rect(82, 278, 176, 96);
-    fill(91, 74, 57, 240);
-    rect(94, 292, 152, 82);
-    fill(229, 216, 178, 235);
-    rect(104, 304, 132, 54);
-    fill(146, 79, 61, 240);
-    triangle(91, 300, 170, 248, 249, 300);
-    fill(64, 92, 91, 235);
-    rect(122, 326, 34, 32);
-    rect(187, 318, 28, 40);
-    fill(255, 196, 107, 205);
-    rect(129, 334, 8, 10);
-    rect(194, 328, 7, 9);
+    // Keep added skyport forms subordinate to the authored background: open canopies,
+    // signal masts, hanging cloth and service rails instead of flat building blocks.
+    fill(45, 58, 60, 220);
+    rect(108, 337, 8, 78);
+    rect(266, 324, 7, 92);
+    fill(91, 76, 57, 205);
+    rect(105, 337, 171, 7);
 
-    // Wind-tossed fabric and solar awnings create silhouette language above the deck.
-    fill(189, 104, 79, 225);
-    quad(266, 278, 346, 267, 342, 286, 268, 294);
-    fill(229, 190, 112, 210);
-    quad(271, 281, 302, 277, 300, 290, 270, 292);
-    const flutter = Math.sin(now * 0.003) * 7;
-    fill(70, 151, 137, 220);
+    // Solar-cloth canopy with a warm reclaimed-brass edge.
+    fill(64, 132, 126, 205);
+    quad(116, 344, 265, 331, 250, 360, 124, 366);
+    fill(201, 150, 78, 190);
+    quad(124, 365, 250, 359, 248, 364, 125, 370);
+    fill(118, 190, 169, 38);
+    quad(127, 349, 252, 338, 243, 350, 132, 358);
+
+    // Suspended repair pennants establish wind and inhabited scale without hiding the vista.
+    const flutter = Math.sin(now * 0.003) * 6;
+    fill(190, 103, 82, 210);
     beginShape();
-    vertex(334, 242); vertex(369, 248 + flutter * 0.15);
-    vertex(357, 270 + flutter); vertex(334, 263); endShape(CLOSE);
-    fill(48, 61, 61, 230);
-    rect(330, 236, 5, 70);
+    vertex(284, 314); vertex(320, 318 + flutter * 0.12);
+    vertex(309, 337 + flutter); vertex(284, 332); endShape(CLOSE);
+    fill(231, 188, 108, 200);
+    beginShape();
+    vertex(322, 318); vertex(350, 322 - flutter * 0.08);
+    vertex(340, 340 - flutter * 0.7); vertex(322, 335); endShape(CLOSE);
+
+    // Slender signal mast and aether beacon echo the richer background architecture.
+    fill(46, 58, 60, 230);
+    rect(360, 284, 6, 98);
+    fill(190, 148, 78, 230);
+    rect(354, 297, 18, 4);
+    fill(42, 255, 181, 150);
+    ellipse(363, 285, 11, 11);
+    fill(42, 255, 181, 22);
+    ellipse(363, 285, 36, 36);
   }
 
   function drawDockLivingDetails(now) {
@@ -347,16 +355,16 @@
 
       if (characters && characters.validate()) {
         characters.draw('ender', enderX, enderY, {
-          scale: cinematic ? 2.45 : 1.85,
-          depth: cinematic ? 0.9 : 0.72,
+          scale: cinematic ? 1.72 : 1.42,
+          depth: cinematic ? 0.78 : 0.64,
           now,
           speed: moving ? 0.72 : 0,
           facing: 'right',
           action: cinematic ? 'focus' : 'idle',
         });
         characters.draw('ionia', ioniaX, ioniaY, {
-          scale: cinematic ? 2.25 : 1.72,
-          depth: cinematic ? 0.86 : 0.68,
+          scale: cinematic ? 1.62 : 1.34,
+          depth: cinematic ? 0.76 : 0.62,
           now,
           speed: 0,
           facing: 'left',
@@ -467,6 +475,48 @@
     return true;
   }
 
+  function drawWrongSongSetPiece(now, intensity = 1) {
+    const pulse = 0.5 + Math.sin(now * 0.007) * 0.5;
+    const tremor = Math.sin(now * 0.021) * 2;
+
+    // Cold aether wash interrupts the cabin's warm visual language.
+    noStroke();
+    fill(28, 104, 124, Math.round(22 * intensity + 24 * pulse * intensity));
+    rect(0, 0, width, height);
+
+    // Edge pressure keeps the center readable while making the room feel suddenly wrong.
+    fill(5, 10, 20, Math.round(72 * intensity));
+    rect(0, 0, 58, height);
+    rect(width - 58, 0, 58, height);
+    rect(0, 0, width, 34);
+    rect(0, height - 42, width, 42);
+
+    // Broken frequency rings radiate from the ship core side of frame.
+    noFill();
+    for (let i = 0; i < 5; i++) {
+      const radius = 62 + i * 54 + pulse * 18;
+      stroke(124, 218, 232, Math.max(18, 82 - i * 12));
+      strokeWeight(2);
+      ellipse(width - 178 + tremor, 278, radius * 1.5, radius);
+    }
+    noStroke();
+
+    // Aether motes snap into short horizontal faults rather than drifting gently.
+    for (let i = 0; i < 17; i++) {
+      const xx = Math.round((i * 61 + now * (0.012 + (i % 3) * 0.004)) % width);
+      const yy = 118 + ((i * 47) % 334);
+      fill(i % 4 === 0 ? 238 : 124, i % 4 === 0 ? 179 : 220, i % 4 === 0 ? 91 : 232,
+        78 + Math.round(pulse * 70));
+      rect(xx, yy, 10 + (i % 5) * 4, 2);
+    }
+
+    // One restrained central flare gives the beat a memorable visual accent.
+    fill(205, 245, 232, Math.round(34 + pulse * 46));
+    ellipse(width - 178 + tremor, 278, 18 + pulse * 10, 18 + pulse * 10);
+    fill(42, 255, 181, Math.round(28 + pulse * 35));
+    ellipse(width - 178 + tremor, 278, 48 + pulse * 18, 48 + pulse * 18);
+  }
+
   function drawInterior(scene, state, now) {
     const paintedInterior = drawPaintedInteriorBackdrop(now);
     noStroke();
@@ -514,6 +564,7 @@
     }
 
     if (scene.id === 'wrong_song') {
+      drawWrongSongSetPiece(now, 0.78);
       // Frequency mismatch rendered as pixel wavefronts.
       for (let i = 0; i < 8; i++) {
         const xx = 414 + i * 24;
@@ -681,6 +732,7 @@
       rect(568, 150, 226, 156);
     }
 
+    if (!paintedInterior) {
     // Soft architectural light pools replace debug-like room blocks. The floor
     // remains continuous; identity comes from props, structure, and lighting.
     fill(116, 82, 55, 56);   // berth practical warmth
@@ -786,9 +838,11 @@
       fill(205, 245, 232, 150);
       rect(741, 370, 3, 54);
     }
+    }
 
-    // Wrong Song distortion: small errors in otherwise stable architecture.
+    // Wrong Song distortion escalates from subtle architectural errors into a real set piece.
     if (scene.id === 'wrong_song' || e.anomalyTriggered) {
+      drawWrongSongSetPiece(now, scene.id === 'wrong_song' ? 0.68 : 0.34);
       for (let i = 0; i < 8; i++) {
         const xx = 354 + i * 43;
         const yy = 118 + ((Math.floor(now / 120) + i * 7) % 9);
