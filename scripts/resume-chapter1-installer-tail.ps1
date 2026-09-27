@@ -290,8 +290,28 @@ if ($env:AETHERWAKE_CHAPTER1_INSTALL_SMOKE -ne "1") {
 '@
   Set-Content -LiteralPath $installScript -Value $installScriptContent -Encoding UTF8
 
-  $sed = Join-Path $OutputDir "Aetherwake-Chapter1-$shortHead-Setup.sed"
-  $sourceDir = $OutputDir.TrimEnd('\') + '\'
+  # IExpress is brittle when its source/target workspace contains spaces.
+  # Stage only the self-extractor inputs in a short temporary path, then copy
+  # the completed installer back to the requested release directory.
+  $iexpressUsesStaging = $OutputDir -match '\s'
+  $iexpressWorkDir = $OutputDir
+  if ($iexpressUsesStaging) {
+    $iexpressWorkDir = Join-Path $env:TEMP ("AetherwakeChapter1IExpress-" + $shortHead)
+    if (Test-Path -LiteralPath $iexpressWorkDir) {
+      Remove-PathWithRetry $iexpressWorkDir
+    }
+    New-Item -ItemType Directory -Path $iexpressWorkDir -Force | Out-Null
+    Copy-Item -LiteralPath $zip -Destination (Join-Path $iexpressWorkDir $zipName) -Force
+    Copy-Item -LiteralPath $installScript -Destination (Join-Path $iexpressWorkDir $installScriptName) -Force
+  }
+  $iexpressInstaller = if ($iexpressUsesStaging) {
+    Join-Path $iexpressWorkDir ([System.IO.Path]::GetFileName($installer))
+  } else {
+    $installer
+  }
+  $sedName = "Aetherwake-Chapter1-$shortHead-Setup.sed"
+  $sed = Join-Path $iexpressWorkDir $sedName
+  $sourceDir = $iexpressWorkDir.TrimEnd('\') + '\'
   $appLaunched = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $installScriptName + '" -Archive "' + $zipName + '"'
   $sedText = @"
 [Version]
@@ -320,7 +340,7 @@ SourceFiles=SourceFiles
 InstallPrompt=
 DisplayLicense=
 FinishMessage=
-TargetName=$installer
+TargetName=$iexpressInstaller
 FriendlyName=Aetherwake Chapter 1 - First Wake
 AppLaunched=$appLaunched
 PostInstallCmd=<None>
@@ -338,7 +358,7 @@ SourceFiles0=$sourceDir
   # IExpress delegates CAB creation to MakeCab, which requires TMP to resolve to
   # a writable directory. Some remote/non-interactive Windows sessions leave TMP unset.
   $previousTmp = $env:TMP
-  $env:TMP = $OutputDir
+  $env:TMP = $iexpressWorkDir
   try {
     $iexpressProcess = Start-Process -FilePath $iexpress -ArgumentList @("/N", "/Q", $sed) -Wait -PassThru
     $iexpressExitCode = $iexpressProcess.ExitCode
@@ -351,6 +371,14 @@ SourceFiles0=$sourceDir
   }
   if ($iexpressExitCode -ne 0) {
     throw "Chapter 1 IExpress compilation failed with code $iexpressExitCode."
+  }
+  if ($iexpressUsesStaging) {
+    if (-not (Test-Path -LiteralPath $iexpressInstaller)) {
+      throw "Chapter 1 staged IExpress installer was not created."
+    }
+    Copy-Item -LiteralPath $iexpressInstaller -Destination $installer -Force
+    Copy-Item -LiteralPath $sed -Destination (Join-Path $OutputDir $sedName) -Force
+    Remove-PathWithRetry $iexpressWorkDir
   }
 } else {
   throw "No supported no-admin installer engine found (NSIS or Windows IExpress)."
