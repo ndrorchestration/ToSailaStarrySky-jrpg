@@ -752,10 +752,13 @@
     }
   }
 
-  function wakeMapPoint(x, y) {
+  function wakeMapPoint(x, y, paintedInterior) {
     return {
       x: Math.round(128 + (x - 1) * 49),
-      y: Math.round(156 + (y - 1) * 47),
+      // The authored cabin plate's playable floor begins much lower than the
+      // logical exploration grid. Shift presentation anchors downward so field
+      // sprites stand on the deck instead of floating across the windows/walls.
+      y: Math.round((paintedInterior ? 326 : 156) + (y - 1) * 47),
     };
   }
 
@@ -966,9 +969,9 @@
     const characters = root.AetherCharacterRenderer;
     const sprites = root.AetherPixelSprites;
     if (scene.sequence >= 1) {
-      const ep = wakeMapPoint(e.x, e.y);
-      const lp = wakeMapPoint(7, 3);
-      const ip = wakeMapPoint(12, 2);
+      const ep = wakeMapPoint(e.x, e.y, paintedInterior);
+      const lp = wakeMapPoint(7, 3, paintedInterior);
+      const ip = wakeMapPoint(12, 2, paintedInterior);
 
       // Keep interactive exploration in the same pixel character language as the
       // authored opening. Full field-pack readiness is unchanged and remains NOT_READY.
@@ -976,7 +979,9 @@
         if (!authored || typeof authored.drawProvisionalFieldCharacter !== 'function') return false;
         return authored.drawProvisionalFieldCharacter(id, p.x, p.y, {
           anchor: 'bottom-center',
-          scale: id === 'lyra' ? 2.15 : (id === 'ionia' ? 2.20 : 2.28),
+          scale: paintedInterior
+            ? (id === 'lyra' ? 1.72 : (id === 'ionia' ? 1.76 : 1.82))
+            : (id === 'lyra' ? 2.15 : (id === 'ionia' ? 2.20 : 2.28)),
           action: moving ? 'walk' : 'idle',
           frame: Math.floor(now / (moving ? 150 : 260)),
           facing,
@@ -1059,15 +1064,20 @@
       text(String(view.objective || '').replace(/[.]$/, '').toUpperCase(), width / 2, 52);
     }
 
-    const messageW = Math.min(690, width - 260);
+    // Exploration feedback is a subtitle-like cue, not a persistent dialogue box.
+    const messageW = Math.min(520, width - 360);
     const messageX = width / 2 - messageW / 2;
-    fill(5, 8, 13, 150);
-    rect(messageX, 548, messageW, 46, 8);
+    fill(5, 8, 13, 102);
+    rect(messageX, 552, messageW, 32, 7);
     textFont('Trebuchet MS');
-    textSize(16);
-    fill(232, 220, 198, 225);
-    textAlign(LEFT, TOP);
-    text(view.lastMessage || 'Explore.', messageX + 16, 558, messageW - 32, 24);
+    textSize(14);
+    fill(232, 220, 198, 218);
+    textAlign(CENTER, TOP);
+    const explorationMessage = String(view.lastMessage || 'Explore.');
+    const displayMessage = explorationMessage.length > 72
+      ? explorationMessage.slice(0, 69) + '…'
+      : explorationMessage;
+    text(displayMessage, width / 2, 559);
 
     textFont('Segoe UI Semibold');
     textSize(9);

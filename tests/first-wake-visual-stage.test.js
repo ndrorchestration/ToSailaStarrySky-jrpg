@@ -69,10 +69,18 @@ assert(source.includes('drawProvisionalFieldCharacter'),
   'v1.2 opening must use reviewed pixel field sheets as the provisional fallback before procedural figures');
 assert(source.includes("const enderPixel = drawProvisional('ender'") && source.includes("const lyraPixel = drawProvisional('lyra'") && source.includes("const ioniaPixel = drawProvisional('ionia'"),
   'interactive Wake exploration must preserve provisional pixel protagonist continuity before articulated fallback');
+assert(source.includes('wakeMapPoint(x, y, paintedInterior)') && source.includes('(paintedInterior ? 326 : 156)'),
+  'authored cabin exploration must floor-anchor logical grid positions instead of floating sprites across the windows');
+assert(source.includes("id === 'lyra' ? 1.72") && source.includes("id === 'ionia' ? 1.76") && source.includes(': 1.82'),
+  'authored cabin protagonist scale must stay subordinate to the environment');
 assert(source.includes('sceneTicks < 36'),
   'v1.1 non-cinematic scene titles must clear quickly instead of becoming permanent HUD chrome');
 assert(source.includes('(!scene.interactive || Boolean(scene.speaker))') && source.includes('} else if (!scene.interactive) {'),
   'interactive exploration must not keep narration copy floating over the authored field when no character is speaking');
+assert(source.includes('Exploration feedback is a subtitle-like cue') && source.includes('const messageW = Math.min(520'),
+  'interactive exploration feedback must remain compact rather than becoming a wide dialogue panel');
+assert(source.includes('const displayMessage = explorationMessage.length > 72') && source.includes('text(displayMessage, width / 2, 559)'),
+  'exploration feedback must remain bounded and explicitly centered');
 assert(source.includes('authored.drawPortrait') && source.includes('portraitDrawn'),
   'v1.1 opening narration must use admitted speaker portrait art when available');
 assert(source.includes('function drawHorizonEstablishing') && source.includes("scene.id === 'arrival_horizon'"),
