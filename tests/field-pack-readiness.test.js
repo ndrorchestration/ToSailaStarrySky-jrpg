@@ -33,8 +33,14 @@ for (const gate of ['visualSuite', 'browserRouteReplay', 'exactHeadEvidenceCaptu
 }
 assert(source.includes('actualEvidenceManifestSha256') && source.includes('evidenceManifestMatches'),
   'runtime evidence must compare the recorded evidence-manifest hash to the actual manifest bytes');
-assert(source.includes('currentGitHead') && source.includes('runtimeHeadMatches'),
-  'runtime evidence must compare the recorded exact head to the current repository head');
+assert(source.includes('admissionTransitionMatches') && source.includes('BOUNDED_ADMISSION_CHILD'),
+  'runtime evidence must allow only the exact reviewed head or one bounded admission child commit');
+assert(source.includes("'assets/characters/v1/manifest.json'") &&
+       source.includes("'assets/characters/v1/admission/ender.json'") &&
+       source.includes("'assets/characters/v1/admission/ionia.json'"),
+  'bounded admission commit must restrict changed files to manifest + Ender/Ionia admission receipts');
+assert(source.includes("gitText(['status', '--porcelain'])"),
+  'post-review bounded admission child must require a clean worktree');
 assert(source.includes('/^[0-9a-f]{40}$/i.test(runtime.exactHead)'),
   'runtime evidence must bind a full 40-character exact commit SHA');
 assert(source.includes('--require-complete') && source.includes('--require-ready') && source.includes('--require-evidence'),
