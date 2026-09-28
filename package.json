@@ -144,7 +144,7 @@
     "test:authored-character-art": "node tests/authored-character-art.test.js",
     "test:field-pack-readiness": "node tests/field-pack-readiness.test.js",
     "verify:field-pack-readiness": "node scripts/verify-field-pack-readiness.js",
-    "verify:field-pack-readiness:strict": "node scripts/verify-field-pack-readiness.js --require-ready",
+    "verify:field-pack-readiness:strict": "node scripts/verify-field-pack-readiness.js --require-complete",
     "pack:field-art:ender": "python scripts/pack-field-art.py ender",
     "pack:field-art:ionia": "python scripts/pack-field-art.py ionia",
     "test:field-art-packer": "python tests/field-art-packer.test.py",
@@ -157,6 +157,7 @@
     "test:character-identity-evidence": "node tests/character-identity-evidence-contract.test.js",
     "test:aepex-art-preview": "node tests/aepex-art-preview-contract.test.js",
     "test:field-sprite-roster": "node tests/field-sprite-roster-review.test.js",
-    "test:portrait-roster": "node tests/roster-portrait-review.test.js"
+    "test:portrait-roster": "node tests/roster-portrait-review.test.js",
+    "verify:field-pack-admission": "node scripts/verify-field-pack-readiness.js --require-ready --require-evidence"
   }
 }
