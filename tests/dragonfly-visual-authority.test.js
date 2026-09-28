@@ -38,8 +38,12 @@ assert(source.includes('drawPixelHeroShip(now,mode,speed,pulse)'),
   'production-facing Dragonfly draw path must use the pixel-built hero presentation');
 assert(source.includes('Stepped dock shadow keeps the hero object inside the pixel-art grammar'),
   'docked Dragonfly must avoid a smooth placeholder shadow language');
-assert(source.includes('Broad translucent membrane establishes the unmistakable four-wing Dragonfly silhouette') && source.includes('vertex(-91'),
+assert(source.includes('Broad translucent membrane establishes the unmistakable four-wing Dragonfly silhouette') && source.includes('vertex(-82') && source.includes('vertex(96'),
   'pixel hero path must preserve clearly separated fore/aft Dragonfly wing geometry');
+assert(source.includes('The body is intentionally shorter than the wing span') && source.includes('rect(-24, -13, 52, 26)'),
+  'Dragonfly hero silhouette must keep the inhabited thorax visually deeper than the segmented abdomen');
+assert(source.includes('Scioto-blue glazing concentrates in the thorax/helm'),
+  'Dragonfly glazing must cluster around the inhabited thorax/helm rather than form a train-window band');
 
 const benchmark = fs.readFileSync(path.join(root, 'modules', 'visual-benchmark.js'), 'utf8');
 const flight = fs.readFileSync(path.join(root, 'modules', 'flight-visual-stage.js'), 'utf8');

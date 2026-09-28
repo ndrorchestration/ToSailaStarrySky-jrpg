@@ -263,32 +263,42 @@
     const stepX = fore ? 11 : -11;
     const stepY = fore ? 3 : 3;
     const baseY = fore ? 9 : 6;
-    const alpha = fore ? (mode === 'flight' ? 148 : 128) : (mode === 'flight' ? 118 : 102);
+    const alpha = fore ? (mode === 'flight' ? 184 : 148) : (mode === 'flight' ? 152 : 122);
     const c = fore ? PALETTE.aetherBlue : [205,225,190];
 
     // Broad translucent membrane establishes the unmistakable four-wing Dragonfly silhouette.
     // Pixel bars below add authored texture so the membrane does not read as a smooth vector paddle.
     noStroke();
-    fill(c[0], c[1], c[2], fore ? 62 : 54);
+    fill(c[0], c[1], c[2], fore ? (mode === 'flight' ? 102 : 76) : (mode === 'flight' ? 86 : 66));
     beginShape();
     if (fore) {
-      vertex(-4, sign * 5);
-      vertex(18, sign * 10);
-      vertex(102, sign * (43 + flap));
-      vertex(76, sign * 18);
-      vertex(6, sign * 4);
+      vertex(-2, sign * 6);
+      vertex(22, sign * 12);
+      vertex(96, sign * (50 + flap));
+      vertex(66, sign * 22);
+      vertex(7, sign * 5);
     } else {
-      vertex(8, sign * 4);
-      vertex(-18, sign * 8);
-      vertex(-91, sign * (36 + flap));
-      vertex(-68, sign * 14);
-      vertex(-4, sign * 3);
+      vertex(5, sign * 5);
+      vertex(-18, sign * 10);
+      vertex(-82, sign * (44 + flap));
+      vertex(-56, sign * 20);
+      vertex(-5, sign * 4);
     }
     endShape(CLOSE);
-    stroke(205,235,238,fore ? 135 : 108);
+    // Dark rim + bright leading spar keeps each membrane legible against blue sky.
+    stroke(PALETTE.hullDark[0], PALETTE.hullDark[1], PALETTE.hullDark[2], mode === 'flight' ? 180 : 135);
+    strokeWeight(2);
+    if (fore) {
+      line(-2, sign * 6, 96, sign * (50 + flap));
+      line(96, sign * (50 + flap), 66, sign * 22);
+    } else {
+      line(5, sign * 5, -82, sign * (44 + flap));
+      line(-82, sign * (44 + flap), -56, sign * 20);
+    }
+    stroke(220,245,244,fore ? 175 : 148);
     strokeWeight(1);
-    if (fore) line(-2, sign * 6, 101, sign * (43 + flap));
-    else line(4, sign * 5, -90, sign * (36 + flap));
+    if (fore) line(-2, sign * 6, 94, sign * (48 + flap));
+    else line(4, sign * 5, -80, sign * (42 + flap));
     noStroke();
 
     for (let i = 0; i < segments; i++) {
@@ -312,8 +322,10 @@
       const y = sign < 0 ? -yAbs - 1 : yAbs + 1;
       rect(x, y, Math.max(3, Math.abs(stepX) - 2), 1);
     }
-    fill(PALETTE.brass[0], PALETTE.brass[1], PALETTE.brass[2], 210);
+    fill(PALETTE.brass[0], PALETTE.brass[1], PALETTE.brass[2], 225);
     rect(x0 - 4, sign < 0 ? -baseY - 4 : baseY - 1, 8, 4);
+    // Visible root arm helps the four-wing architecture survive small flight scale.
+    rect(fore ? -2 : -10, sign < 0 ? -12 : 8, fore ? 24 : 20, 3);
   }
 
   function drawPixelHeroShip(now, mode, speed, pulse) {
@@ -328,45 +340,53 @@
       const wake = Math.round(18 + Math.min(1.8, speed) * 16);
       noStroke();
       fill(PALETTE.aetherBlue[0], PALETTE.aetherBlue[1], PALETTE.aetherBlue[2], 72);
-      rect(-120 - wake, -2, wake, 2);
+      rect(-108 - wake, -2, wake, 2);
       fill(PALETTE.aether[0], PALETTE.aether[1], PALETTE.aether[2], 58);
-      rect(-120 - Math.round(wake * 0.72), 2, Math.round(wake * 0.72), 1);
+      rect(-108 - Math.round(wake * 0.72), 2, Math.round(wake * 0.72), 1);
     }
 
     noStroke();
-    // Dragonfly silhouette: narrow abdomen/tail, deeper thorax/cabin, compact pointed head.
+    // Dragonfly silhouette: segmented abdomen, deep inhabited thorax, compact helm/head.
+    // The body is intentionally shorter than the wing span so flight reads as an
+    // insect-inspired skyship rather than a horizontal bus with fins.
     fill(...PALETTE.hullDark);
-    rect(-70, -8, 120, 16);
-    rect(-22, -12, 54, 24);
-    rect(-106, -5, 36, 10);
-    rect(-120, -3, 14, 6);
-    rect(50, -7, 25, 14);
-    rect(75, -4, 16, 8);
+    rect(-52, -7, 74, 14);      // abdomen root
+    rect(-76, -5, 24, 10);
+    rect(-94, -4, 18, 8);
+    rect(-108, -3, 14, 6);
+    rect(-24, -13, 52, 26);     // thorax / inhabited cabin
+    rect(28, -8, 28, 16);       // neck
+    rect(56, -7, 22, 14);       // helm/head
+    rect(78, -4, 10, 8);        // nose
 
-    // Reclaimed wood body skin; the central thorax is visibly deeper than the tail.
-    fill(111,78,48);
-    rect(-61, -6, 105, 11);
-    fill(147,103,58,215);
-    rect(-16, -9, 42, 17);
+    // Reclaimed wood body skin, with brighter thorax so the cabin reads as the visual center.
+    fill(102,72,46);
+    rect(-49, -5, 70, 10);
+    rect(-73, -3, 22, 6);
+    rect(-91, -2, 17, 4);
+    fill(154,109,60,225);
+    rect(-19, -10, 41, 20);
+    fill(132,91,52,220);
+    rect(29, -6, 24, 12);
     fill(...PALETTE.brass);
-    rect(-62, 5, 108, 2);
-    rect(-18, -10, 2, 19);
-    rect(4, -10, 2, 19);
-    rect(25, -10, 2, 19);
+    rect(-50, 4, 104, 2);
+    rect(-20, -11, 2, 21);
+    rect(1, -11, 2, 21);
+    rect(21, -11, 2, 21);
 
-    // Scioto-blue glazing clusters around the inhabited thorax and helm, not like a train window band.
-    for (const wx of [-52,-35,-13,7,29]) {
-      fill(PALETTE.canopy[0], PALETTE.canopy[1], PALETTE.canopy[2], 235);
-      rect(wx, -5, wx >= -13 ? 12 : 10, 5);
-      fill(PALETTE.glassLight[0], PALETTE.glassLight[1], PALETTE.glassLight[2], 120);
-      rect(wx + 1, -4, wx >= -13 ? 9 : 7, 1);
+    // Scioto-blue glazing concentrates in the thorax/helm, avoiding a train-window band.
+    for (const wx of [-13, 5, 31]) {
+      fill(PALETTE.canopy[0], PALETTE.canopy[1], PALETTE.canopy[2], 238);
+      rect(wx, -6, wx === 31 ? 14 : 12, 6);
+      fill(PALETTE.glassLight[0], PALETTE.glassLight[1], PALETTE.glassLight[2], 130);
+      rect(wx + 1, -5, wx === 31 ? 11 : 9, 1);
     }
-    fill(PALETTE.canopy[0], PALETTE.canopy[1], PALETTE.canopy[2], 242);
-    rect(50, -6, 22, 11);
-    rect(72, -3, 13, 6);
-    fill(PALETTE.glassLight[0], PALETTE.glassLight[1], PALETTE.glassLight[2], 155);
-    rect(54, -5, 14, 2);
-    rect(75, -2, 7, 2);
+    fill(PALETTE.canopy[0], PALETTE.canopy[1], PALETTE.canopy[2], 244);
+    rect(56, -6, 20, 12);
+    rect(76, -3, 9, 6);
+    fill(PALETTE.glassLight[0], PALETTE.glassLight[1], PALETTE.glassLight[2], 165);
+    rect(60, -5, 12, 2);
+    rect(78, -2, 5, 2);
 
     // Aether heart: compact pixel cluster, not a smooth glowing ellipse.
     fill(PALETTE.brass[0], PALETTE.brass[1], PALETTE.brass[2], 240);
@@ -398,8 +418,8 @@
 
     // Tail vane and navigation lamps.
     fill(PALETTE.aetherBlue[0], PALETTE.aetherBlue[1], PALETTE.aetherBlue[2], 135);
-    rect(-124, -10, 4, 20);
-    rect(-128, -6, 4, 12);
+    rect(-112, -10, 4, 20);
+    rect(-116, -6, 4, 12);
     fill(PALETTE.navRed[0], PALETTE.navRed[1], PALETTE.navRed[2], 220);
     rect(-65, -11, 3, 3);
     fill(79,231,188,220);
