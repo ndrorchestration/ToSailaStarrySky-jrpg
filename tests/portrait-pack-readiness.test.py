@@ -14,6 +14,10 @@ manifest = json.loads((ROOT / "assets" / "characters" / "v1" / "manifest.json").
 for character_id in mod.IDS:
     result = mod.inspect_character(manifest, character_id)
     assert result["valid"], result
+for character_id in mod.HELD_IDS:
+    result = mod.inspect_character(manifest, character_id)
+    assert result["manifestStatus"] not in ("portrait-ready", "ready"), result
+    assert not result["statusValid"], result
 
 with TemporaryDirectory() as tmp:
     base = Path(tmp)
