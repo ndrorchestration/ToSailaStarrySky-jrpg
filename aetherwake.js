@@ -7131,16 +7131,24 @@ function AetherCombat(p, C) {
       p.ellipse(combatPlayerX, combatPlayerY + dodgeBob, 50 * hitScale, 50 * hitScale);
     }
 
-    // ── Player ability flash — teal burst on ability use ──
+    // ── Player ability flash — pixel starburst, not a smooth debug bubble ──
     if (state._abilityFlashTurn && state._abilityFlashTurn > now - 300) {
       const aAge = now - state._abilityFlashTurn;
-      const aAlpha = map(aAge, 0, 300, 120, 0);
-      const aScale = map(aAge, 0, 300, 1, 2);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], aAlpha);
+      const aAlpha = map(aAge, 0, 300, 190, 0);
+      const aReach = Math.round(map(aAge, 0, 300, 18, 42));
+      const ax = combatPlayerX;
+      const ay = combatPlayerY + dodgeBob - 16;
       p.noStroke();
-      p.ellipse(combatPlayerX, combatPlayerY + dodgeBob, 35 * aScale, 35 * aScale);
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], aAlpha * 0.5);
-      p.ellipse(combatPlayerX, combatPlayerY + dodgeBob, 45 * aScale, 45 * aScale);
+      p.fill(C.teal[0], C.teal[1], C.teal[2], aAlpha);
+      p.rect(ax - 2, ay - aReach, 4, 10);
+      p.rect(ax - 2, ay + aReach - 10, 4, 10);
+      p.rect(ax - aReach, ay - 2, 10, 4);
+      p.rect(ax + aReach - 10, ay - 2, 10, 4);
+      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], aAlpha * 0.78);
+      p.rect(ax - Math.round(aReach * 0.68), ay - Math.round(aReach * 0.68), 7, 3);
+      p.rect(ax + Math.round(aReach * 0.68) - 7, ay - Math.round(aReach * 0.68), 7, 3);
+      p.rect(ax - Math.round(aReach * 0.68), ay + Math.round(aReach * 0.68), 7, 3);
+      p.rect(ax + Math.round(aReach * 0.68) - 7, ay + Math.round(aReach * 0.68), 7, 3);
     }
 
     // ── Wind knockback visual — screen shake effect ──
@@ -7160,66 +7168,50 @@ function AetherCombat(p, C) {
       p.noStroke();
     }
 
-    // ── Fire package (staff) ──
+    // ── Resonator staff cue — attached to Ender, never floating as a separate HUD prop ──
     if (state.player.staffCharges > 0) {
-      const fx = 72, fy = p.height * 0.62;
-
-      // Staff glow
+      const fx = combatPlayerX - 18;
+      const fy = combatPlayerY + dodgeBob - 2;
       const chargeGlow = Math.sin(now * 0.004) * 0.3 + 0.7;
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 25 * chargeGlow);
-      p.noStroke();
-      p.ellipse(fx, fy, 44, 44);
 
-      // Staff shaft
-      p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], 150);
-      p.strokeWeight(2.5);
-      p.line(fx, fy - 16, fx, fy - 40);
+      p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], 185);
+      p.strokeWeight(3);
+      p.line(fx, fy, fx + 8, fy - 42);
       p.noStroke();
 
-      // Staff tip glow
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 60 * chargeGlow);
-      p.noStroke();
-      p.ellipse(fx, fy - 40, 10, 10);
+      // Pixel charge crown at the staff tip.
+      const tipX = fx + 8;
+      const tipY = fy - 42;
+      p.fill(C.teal[0], C.teal[1], C.teal[2], 155 * chargeGlow);
+      p.rect(tipX - 3, tipY - 3, 6, 6);
+      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 120 * chargeGlow);
+      p.rect(tipX - 1, tipY - 10, 2, 5);
+      p.rect(tipX - 1, tipY + 5, 2, 5);
+      p.rect(tipX - 10, tipY - 1, 5, 2);
+      p.rect(tipX + 5, tipY - 1, 5, 2);
 
-      // Charge orb
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 180 * chargeGlow);
-      p.ellipse(fx, fy - 40, 8, 8);
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 120);
-      p.ellipse(fx, fy - 40, 13, 13);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 40);
-      p.ellipse(fx, fy - 40, 18, 18);
-
-      // Charge count
-      p.textFont('Press Start 2P');
-      p.textSize(8);
-      p.textAlign(p.CENTER, p.TOP);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 200);
-      p.text('\u26A1 ' + state.player.staffCharges + '/' + staffMax, fx, fy + 10);
     } else {
-      // Empty staff
-      const fx = 72, fy = p.height * 0.62;
-      p.stroke(C.soil[0], C.soil[1], C.soil[2], 110);
-      p.strokeWeight(2);
-      p.line(fx, fy - 16, fx, fy - 40);
+      // Empty staff remains physically attached to Ender; resource state is carried by the command window.
+      const fx = combatPlayerX - 18;
+      const fy = combatPlayerY + dodgeBob - 2;
+      p.stroke(C.soil[0], C.soil[1], C.soil[2], 125);
+      p.strokeWeight(3);
+      p.line(fx, fy, fx + 8, fy - 42);
       p.noStroke();
-      p.textFont('Press Start 2P');
-      p.textSize(8);
-      p.textAlign(p.CENTER, p.TOP);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 70);
-      p.text('EMPTY', fx, fy + 10);
     }
 
-    // ── Fire particles ──
+    // ── Staff aether motes — local to Ender rather than a detached HUD effect ──
     if (state.player.staffCharges > 0) {
       for (let i = 0; i < 5; i++) {
         const pi = (now * 0.02 + i * 7) % 5;
-        const fx = 72 + Math.sin(now * 0.015 + i * 2.1) * 8;
-        const fy = p.height * 0.58 - pi * 7;
-        const particleAlpha = Math.max(0, 60 - pi * 12 - Math.sin(now * 0.025 + i) * 15);
+        const fx = combatPlayerX - 10 + Math.sin(now * 0.015 + i * 2.1) * 8;
+        const fy = combatPlayerY + dodgeBob - 44 - pi * 7;
+        const particleAlpha = Math.max(0, 70 - pi * 12 - Math.sin(now * 0.025 + i) * 15);
         if (particleAlpha > 0) {
           p.fill(C.teal[0], C.teal[1], C.teal[2], particleAlpha);
           p.noStroke();
-          p.ellipse(fx, fy, 5 - pi * 0.7, 5 - pi * 0.7);
+          const mote = Math.max(2, Math.round(5 - pi * 0.7));
+          p.rect(Math.round(fx), Math.round(fy), mote, mote);
         }
       }
     }
