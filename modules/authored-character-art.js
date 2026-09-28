@@ -21,12 +21,16 @@
   const CANDIDATE_FIELD=Object.freeze({
     ender:Object.freeze({path:'assets/characters/v1/ender/field-idle-walk-candidate.png',width:56,height:36,cellW:28,cellH:36}),
     ionia:Object.freeze({path:'assets/characters/v1/ionia/field-idle-walk-candidate.png',width:56,height:36,cellW:28,cellH:36}),
-    lyra:Object.freeze({path:'assets/characters/v1/lyra/field-idle-walk-candidate.png',width:56,height:36,cellW:28,cellH:36})
+    lyra:Object.freeze({path:'assets/characters/v1/lyra/field-idle-walk-candidate.png',width:56,height:36,cellW:28,cellH:36}),
+    reson:Object.freeze({path:'assets/characters/v1/reson/field-idle-walk-candidate.png',width:56,height:36,cellW:28,cellH:36}),
+    aepex:Object.freeze({path:'assets/characters/v1/aepex/field-idle-walk-candidate.png',width:56,height:36,cellW:28,cellH:36})
   });
   const PROVISIONAL_FIELD=Object.freeze({
     ender:Object.freeze({base:'assets/characters/v1/ender'}),
     ionia:Object.freeze({base:'assets/characters/v1/ionia'}),
-    lyra:Object.freeze({base:'assets/characters/v1/lyra'})
+    lyra:Object.freeze({base:'assets/characters/v1/lyra'}),
+    reson:Object.freeze({base:'assets/characters/v1/reson'}),
+    aepex:Object.freeze({base:'assets/characters/v1/aepex'})
   });
   const state=Object.create(null);
   const fieldState=Object.create(null);
