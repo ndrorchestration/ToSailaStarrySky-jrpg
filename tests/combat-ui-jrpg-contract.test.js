@@ -25,5 +25,8 @@ assert(runtime.includes('Math.min(panelColor[3] || 150, 150)') && runtime.includ
   'combat command surface must remain translucent, player-focused, and free of nested enemy dashboard cards');
 assert(runtime.includes('Actions remain grouped by spacing and typography rather than another opaque card'),
   'combat action list must not regress to an opaque nested panel');
+assert(runtime.includes("authoredCombatArt.drawPortrait('ender'") &&
+  runtime.includes("combatExpression = vitRatio <= 0.30 ? 'hurt' : 'focus'"),
+  'combat command surface must anchor Ender identity with the admitted authored portrait and bounded expression routing');
 
 console.log('Aetherwake combat UI JRPG presentation contract: PASS');

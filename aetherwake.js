@@ -8583,6 +8583,15 @@ function drawCombatPanel(combatState, layoutBox) {
   textSize(8);
   drawGlowText('ENDER', px + 14, sY + 6, PAL.TEAL, 8);
 
+  // A compact authored portrait anchors battle identity without creating another
+  // nested status card or covering the field sprite. It fails safely when art is unavailable.
+  const authoredCombatArt = window.AetherAuthoredCharacterArt;
+  if (authoredCombatArt && typeof authoredCombatArt.drawPortrait === 'function') {
+    const vitRatio = combatState.player.maxVit > 0 ? combatState.player.vit / combatState.player.maxVit : 1;
+    const combatExpression = vitRatio <= 0.30 ? 'hurt' : 'focus';
+    authoredCombatArt.drawPortrait('ender', px + pw - 48, sY + 4, 34, { expression: combatExpression });
+  }
+
   // Player resources use a fixed compact grid; values never compete for the
   // same horizontal lane when the shared UI system narrows the panel.
   textFont(FONT_BODY);
