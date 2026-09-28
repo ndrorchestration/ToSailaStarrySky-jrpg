@@ -159,64 +159,51 @@
     return true;
   }
 
-  function drawDockSkyportArchitecture(now) {
+  function drawDockSkyportArchitecture(now, paintedBackdrop) {
     noStroke();
-    // Keep added skyport forms subordinate to the authored background: open canopies,
-    // signal masts, hanging cloth and service rails instead of flat building blocks.
-    fill(45, 58, 60, 220);
-    rect(108, 337, 8, 78);
-    rect(266, 324, 7, 92);
-    fill(91, 76, 57, 205);
-    rect(105, 337, 171, 7);
+    // Finished painted plates already carry architecture. Do not reconstruct a
+    // second canopy/building layer over them; retain only wind and light cues.
+    if (!paintedBackdrop) {
+      fill(45, 58, 60, 220); rect(108, 337, 8, 78); rect(266, 324, 7, 92);
+      fill(91, 76, 57, 205); rect(105, 337, 171, 7);
+      fill(64, 132, 126, 205); quad(116, 344, 265, 331, 250, 360, 124, 366);
+      fill(201, 150, 78, 190); quad(124, 365, 250, 359, 248, 364, 125, 370);
+    }
 
-    // Solar-cloth canopy with a warm reclaimed-brass edge.
-    fill(64, 132, 126, 205);
-    quad(116, 344, 265, 331, 250, 360, 124, 366);
-    fill(201, 150, 78, 190);
-    quad(124, 365, 250, 359, 248, 364, 125, 370);
-    fill(118, 190, 169, 38);
-    quad(127, 349, 252, 338, 243, 350, 132, 358);
+    // Small repair pennants establish wind and inhabited scale without hiding the vista.
+    const flutter = Math.sin(now * 0.003) * 5;
+    const clothAlpha = paintedBackdrop ? 145 : 210;
+    fill(190, 103, 82, clothAlpha);
+    triangle(286, 326, 306, 328, 299, 340 + flutter * 0.45);
+    fill(231, 188, 108, clothAlpha);
+    triangle(309, 329, 327, 331, 320, 342 - flutter * 0.35);
 
-    // Suspended repair pennants establish wind and inhabited scale without hiding the vista.
-    const flutter = Math.sin(now * 0.003) * 6;
-    fill(190, 103, 82, 210);
-    beginShape();
-    vertex(284, 314); vertex(320, 318 + flutter * 0.12);
-    vertex(309, 337 + flutter); vertex(284, 332); endShape(CLOSE);
-    fill(231, 188, 108, 200);
-    beginShape();
-    vertex(322, 318); vertex(350, 322 - flutter * 0.08);
-    vertex(340, 340 - flutter * 0.7); vertex(322, 335); endShape(CLOSE);
-
-    // Slender signal mast and aether beacon echo the richer background architecture.
-    fill(46, 58, 60, 230);
-    rect(360, 284, 6, 98);
-    fill(190, 148, 78, 230);
-    rect(354, 297, 18, 4);
-    fill(42, 255, 181, 150);
-    ellipse(363, 285, 11, 11);
-    fill(42, 255, 181, 22);
-    ellipse(363, 285, 36, 36);
+    // One slender signal mast is enough to bind runtime motion to the painted dock.
+    fill(46, 58, 60, paintedBackdrop ? 155 : 230); rect(360, 302, 4, 77);
+    fill(190, 148, 78, paintedBackdrop ? 150 : 230); rect(356, 312, 12, 3);
+    fill(42, 255, 181, paintedBackdrop ? 115 : 150); rect(360, 300, 5, 5, 2);
+    fill(42, 255, 181, paintedBackdrop ? 14 : 22); ellipse(362, 302, 26, 26);
   }
 
-  function drawDockLivingDetails(now) {
+  function drawDockLivingDetails(now, paintedBackdrop) {
     noStroke();
-    // Planters, flowers and warm lamps are deliberate solarpunk signals.
-    const planters = [[108,468],[250,451],[842,456]];
-    for (let i = 0; i < planters.length; i++) {
-      const x = planters[i][0], y = planters[i][1];
-      fill(110, 78, 54, 245); rect(x, y, 54, 18);
-      fill(65, 121, 76, 245); rect(x + 5, y - 11, 44, 12);
-      fill(103, 169, 87, 230); ellipse(x + 12, y - 15, 15, 11);
-      ellipse(x + 29, y - 18, 18, 13); ellipse(x + 43, y - 13, 13, 10);
-      fill(242, 184, 94, 230); rect(x + 18, y - 20, 3, 3);
-      fill(220, 125, 143, 220); rect(x + 37, y - 18, 3, 3);
+    // On authored plates, keep added solarpunk detail at prop scale instead of
+    // painting large blocky planters over finished scenery.
+    const environment = root.AetherEnvironmentVisualKit;
+    const planters = paintedBackdrop
+      ? [[116, 462, 0.72], [258, 447, 0.62], [838, 451, 0.66]]
+      : [[135, 470, 1.18], [278, 455, 1.05], [824, 462, 1.12]];
+    if (environment && typeof environment.drawPlanter === 'function') {
+      for (const [x, y, s] of planters) environment.drawPlanter(x, y, s, now);
     }
-    const lamps = [[74,392],[366,405],[874,385]];
+
+    // Warm practicals remain narrow vertical accents so they read as dock
+    // lighting rather than UI bars or rectangular foreground blockers.
+    const lamps = paintedBackdrop ? [[76, 399], [866, 393]] : [[74,392],[366,405],[874,385]];
     for (const [x,y] of lamps) {
-      fill(54, 63, 62, 245); rect(x, y, 6, 80);
-      fill(248, 190, 91, 230); rect(x - 5, y + 4, 16, 12);
-      fill(255, 214, 143, 28); ellipse(x + 3, y + 10, 58, 48);
+      fill(45, 54, 56, paintedBackdrop ? 155 : 235); rect(x, y, 4, 66);
+      fill(190, 148, 78, paintedBackdrop ? 155 : 220); rect(x - 3, y + 4, 10, 6, 2);
+      fill(255, 214, 143, paintedBackdrop ? 16 : 26); ellipse(x + 2, y + 7, 34, 30);
     }
   }
 
@@ -274,7 +261,7 @@
       drawDistantIsland(833, 254, 78, 38, now * 0.72, false);
     }
 
-    drawDockSkyportArchitecture(now);
+    drawDockSkyportArchitecture(now, paintedBackdrop);
 
     // Slender dock gantry: enough foreground structure for depth without boxing in the vista.
     fill(45, 54, 56, paintedBackdrop ? 168 : 225);
@@ -331,7 +318,7 @@
     if (!paintedBackdrop) line(118, 516, width - 82, 505);
     noStroke();
 
-    drawDockLivingDetails(now);
+    drawDockLivingDetails(now, paintedBackdrop);
 
     // Reuse the shared dock prop language so the opening and playable dock feel
     // like the same working place rather than two unrelated presentation sets.

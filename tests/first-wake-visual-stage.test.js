@@ -41,9 +41,9 @@ assert(source.includes('bandedSky(') && source.includes('cloudBands('),
   'opening dock must retain layered atmospheric fallback depth');
 assert(source.includes('Only procedural fallback gets a full deck reconstruction') && source.includes('quad(inset0, y0'),
   'procedural dock fallback must retain perspective deck geometry while authored skyport art avoids overlay-board reconstruction');
-assert(source.includes('function drawDockSkyportArchitecture') && source.includes('drawDockSkyportArchitecture(now)'),
+assert(source.includes('function drawDockSkyportArchitecture') && source.includes('drawDockSkyportArchitecture(now, paintedBackdrop)'),
   'v0.8 opening dock must include authored midground skyport architecture');
-assert(source.includes('function drawDockLivingDetails') && source.includes('drawDockLivingDetails(now)'),
+assert(source.includes('function drawDockLivingDetails') && source.includes('drawDockLivingDetails(now, paintedBackdrop)'),
   'v0.8 opening dock must include solarpunk planters, flowers, and warm practical lighting');
 assert(source.includes('Cloud drop below the deck'),
   'v0.3 dock must continuously communicate altitude');

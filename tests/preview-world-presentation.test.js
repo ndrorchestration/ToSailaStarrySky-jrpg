@@ -133,8 +133,8 @@ assert(source.includes('aetherwake-preview-world-pixelart-v2.png'),
   'painted world asset binding missing from world presentation');
 assert(source.includes('drawProjectedAtmosphere(now, w, h);') && source.includes('if (input.dockBenchmark) {'),
   'generic projected atmosphere must remain on the normal-world branch rather than the benchmark dock branch');
-assert(source.includes('if (!input.dockBenchmark) drawProjectedForeground'),
-  'benchmark mode must avoid duplicating generic projected foreground over benchmark foreground');
+assert(source.includes('if (!input.dockBenchmark && !input.dialogueActive) drawProjectedForeground'),
+  'benchmark and dialogue staging must avoid duplicating generic projected foreground over their dedicated composition');
 assert(source.includes('Camera-side vegetation and masonry silhouettes'),
   'normal projected exploration must include a dedicated near-plane material layer');
 assert(source.includes('Sparse foreground aether motes'),

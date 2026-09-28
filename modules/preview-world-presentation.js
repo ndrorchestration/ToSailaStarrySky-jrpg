@@ -857,52 +857,46 @@
   }
 
   function drawDialogueTerrace(w, h, now) {
-    // Dialogue gets a bounded authored-looking terrace rather than the full
-    // projected island crown. This keeps the sky world visible and frames the
-    // two speakers like a classic JRPG conversation scene.
-    const topY = Math.round(h * 0.47);
+    // Conversation staging should occupy only the lower play plane. The painted
+    // sky remains the dominant composition instead of being covered by a dark board.
+    const topY = Math.round(h * 0.56);
     noStroke();
-    fill(48, 62, 55, 238);
+    fill(72, 76, 64, 205);
     beginShape();
-    vertex(-20, topY + 28);
-    vertex(w * 0.16, topY - 6);
-    vertex(w * 0.38, topY + 10);
-    vertex(w * 0.57, topY - 12);
-    vertex(w * 0.78, topY + 8);
-    vertex(w + 24, topY - 18);
+    vertex(-20, topY + 20);
+    vertex(w * 0.18, topY - 5);
+    vertex(w * 0.40, topY + 5);
+    vertex(w * 0.61, topY - 8);
+    vertex(w * 0.80, topY + 3);
+    vertex(w + 24, topY - 12);
     vertex(w + 24, h);
     vertex(-20, h);
     endShape(CLOSE);
 
-    fill(72, 98, 70, 150);
-    ellipse(w * 0.24, topY + 88, 250, 54);
-    ellipse(w * 0.69, topY + 72, 300, 62);
-    fill(108, 126, 92, 82);
-    ellipse(w * 0.46, topY + 40, 190, 34);
-
-    // Stone service path and scattered reclaimed cargo keep the ground physical.
-    stroke(128, 113, 86, 135);
-    strokeWeight(18);
-    bezier(-40, h * 0.78, w * 0.26, h * 0.64, w * 0.58, h * 0.66, w + 30, h * 0.58);
-    stroke(202, 178, 126, 58);
-    strokeWeight(3);
-    bezier(-40, h * 0.78, w * 0.26, h * 0.64, w * 0.58, h * 0.66, w + 30, h * 0.58);
+    // Narrow masonry lip gives the actors a believable floor edge without
+    // rebuilding the generic projected terrain shelf.
+    stroke(132, 121, 94, 150);
+    strokeWeight(5);
+    line(-10, topY + 18, w + 10, topY - 8);
+    stroke(205, 187, 145, 70);
+    strokeWeight(1);
+    line(-10, topY + 14, w + 10, topY - 12);
     noStroke();
 
-    for (const [cx,cy] of [[w*0.23,h*0.61],[w*0.74,h*0.59],[w*0.86,h*0.67]]) {
-      fill(105, 76, 49, 210);
-      rect(cx - 14, cy - 9, 28, 18, 3);
-      stroke(170, 125, 72, 150);
-      strokeWeight(1);
-      line(cx - 10, cy - 6, cx + 10, cy + 6);
-      line(cx + 10, cy - 6, cx - 10, cy + 6);
-      noStroke();
+    // Small planted pockets carry the solarpunk material language at prop scale.
+    const environment = root.AetherEnvironmentVisualKit;
+    if (environment && typeof environment.drawPlanter === 'function') {
+      environment.drawPlanter(w * 0.18, topY + 58, 0.82, now);
+      environment.drawPlanter(w * 0.82, topY + 43, 0.72, now);
     }
+    fill(74, 112, 74, 92);
+    ellipse(w * 0.30, topY + 72, 118, 24);
+    ellipse(w * 0.68, topY + 62, 136, 26);
 
     const pulse = 0.5 + 0.5 * Math.sin((now || 0) * 0.003);
-    fill(42, 255, 181, 36 + pulse * 24);
-    ellipse(w * 0.32, topY + 94, 38, 12);
-    ellipse(w * 0.63, topY + 108, 44, 14);
+    fill(42, 255, 181, 22 + pulse * 18);
+    rect(w * 0.43, topY + 38, 30, 3, 2);
+    rect(w * 0.58, topY + 46, 34, 3, 2);
   }
 
   function drawProjectedWorld(input, w, h, now, player, npcs, focusX, focusY) {
@@ -954,7 +948,7 @@
       tileY: Number.isFinite(player.tileY) ? player.tileY : Math.round((player.py || 0) / CELL),
       name: dialogueActive ? '' : 'Ender',
       frame: playerWalkFrame(player, now),
-      scale: 2.55,
+      scale: dialogueActive ? 1.80 : 2.55,
       questMarker: false,
     });
     for (const npc of npcs) {
@@ -965,7 +959,7 @@
         tileY: npc.tileY,
         name: dialogueActive ? '' : (npc.id === 'elder_farmer' ? 'Ionia' : ''),
         frame: 0,
-        scale: 2.45,
+        scale: dialogueActive && npc.id === activeDialogueNpcId ? 1.75 : 2.45,
         questMarker: Boolean(npc.id === 'elder_farmer' && npc.flags && npc.flags.questMarker && !npc.flags.met),
       });
     }
@@ -992,7 +986,7 @@
       }
     }
 
-    if (!input.dockBenchmark) drawProjectedForeground(w, h, now);
+    if (!input.dockBenchmark && !input.dialogueActive) drawProjectedForeground(w, h, now);
 
     // Near-plane framing makes the world read as a photographed space, not a board.
     fill(7, 10, 18, 120);
