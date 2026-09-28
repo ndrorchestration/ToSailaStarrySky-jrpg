@@ -75,6 +75,8 @@ function inspectAdmissionEvidence(id, stripHashes) {
       runtime.exactHeadEvidenceCapture === 'PASS' &&
       runtime.visualPerformance === 'PASS' &&
       runtime.beforeAfterCohesion === 'PASS' &&
+      typeof runtime.evidenceManifestSha256 === 'string' &&
+      /^[0-9a-f]{64}$/i.test(runtime.evidenceManifestSha256) &&
       typeof runtime.exactHead === 'string' &&
       /^[0-9a-f]{40}$/i.test(runtime.exactHead)
     );
@@ -91,6 +93,7 @@ function inspectAdmissionEvidence(id, stripHashes) {
       exactHeadEvidenceCapture: runtime.exactHeadEvidenceCapture || null,
       visualPerformance: runtime.visualPerformance || null,
       beforeAfterCohesion: runtime.beforeAfterCohesion || null,
+      evidenceManifestSha256: typeof runtime.evidenceManifestSha256 === 'string' ? runtime.evidenceManifestSha256 : null,
       exactHead: typeof runtime.exactHead === 'string' ? runtime.exactHead : null,
       hashesMatch,
       assetSha256: ACTION_NAMES.reduce((out, action) => {
