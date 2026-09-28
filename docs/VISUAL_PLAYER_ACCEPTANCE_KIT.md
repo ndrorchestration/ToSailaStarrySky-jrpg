@@ -15,7 +15,7 @@ Record for each participant:
 1. candidate commit / package hash;
 2. session start/end;
 3. whether help was requested and what help was given;
-4. eight 1?5 visual scores;
+4. eight 1–5 visual scores;
 5. same-game blind test result;
 6. Dragonfly recall result;
 7. free-response confusion/unfinished notes.
@@ -43,10 +43,10 @@ After the play session, remove the game from view and ask:
 - Describe its silhouette in one sentence.
 - Choose the Dragonfly from a small silhouette set if available.
 
-Pass rule: participant names or unambiguously recalls the Dragonfly and identifies the silhouette. Final package rule: **?80%** participant pass rate.
+Pass rule: participant names or unambiguously recalls the Dragonfly and identifies the silhouette. Final package rule: **≥80%** participant pass rate.
 
 ## Weighted visual score
-Use 1?5 integer or half-point scores:
+Use 1–5 integer or half-point scores:
 
 | Category | Weight | Floor |
 |---|---:|---:|
@@ -60,10 +60,10 @@ Use 1?5 integer or half-point scores:
 | Production credibility | 5% | 4.0 |
 
 Final visual acceptance requires:
-- weighted group average **?4.0**;
+- weighted group average **≥4.0**;
 - every category group average at or above its floor;
-- same-game participant pass rate **?80%**;
-- Dragonfly participant pass rate **?80%**;
+- same-game participant pass rate **≥80%**;
+- Dragonfly participant pass rate **≥80%**;
 - no unresolved severity-1 visual/readability blocker;
 - technical visual performance verifier remains PASS on the exact candidate.
 
