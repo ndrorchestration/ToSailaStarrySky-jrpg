@@ -33,7 +33,8 @@
   ],
   "presentation": {
     "orderSeed": "REPLACE_WITH_FIXED_SEED_BEFORE_FIRST_SESSION",
-    "instructions": "Show the same ten frozen image artifacts to every participant; order may be deterministically shuffled from this seed but the artifact set must not change."
+    "instructions": "Show the same ten frozen image artifacts to every participant; order may be deterministically shuffled from this seed but the artifact set must not change.",
+    "order": []
   },
   "frozenBeforeFirstSession": false,
   "participantPlan": {
