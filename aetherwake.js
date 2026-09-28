@@ -8613,7 +8613,7 @@ function drawCombatPanel(combatState, layoutBox) {
   // Header
   textFont(FONT_UI);
   textSize(8);
-  drawGlowText('BATTLE COMMAND', px + 12, py + 8, PAL.TEAL, 8);
+  drawGlowText('COMMAND', px + 12, py + 8, PAL.TEAL, 8);
 
   // Enemy section
   if (combatState.enemy) {
@@ -8692,7 +8692,7 @@ function drawCombatPanel(combatState, layoutBox) {
 
   textFont(FONT_UI);
   textSize(8);
-  drawGlowText('COMMANDS  1–8', aX + 12, aY + 6, PAL.TEAL, 8);
+  drawGlowText('ACTIONS', aX + 12, aY + 6, PAL.TEAL, 8);
 
   const actions = combatState.actions || [];
   const eligibleActionIds = new Set(
@@ -8724,21 +8724,15 @@ function drawCombatPanel(combatState, layoutBox) {
     const compactLabel = label.split(/\s+[^A-Za-z0-9]+\s+/)[0].trim();
     fill(usable ? PAL.PARCHMENT : PAL.DIM);
     noStroke();
-    const statePrefix = !unlocked
-      ? 'LOCK ? '
-      : (useEligibility && useEligibility.reason === 'ssot_blocked'
-        ? 'N/A ? '
-        : (usable ? '' : 'NO RES ? '));
-    const maxLabelChars = statePrefix ? 13 : 17;
-    text(statePrefix + compactLabel.substring(0, maxLabelChars), aX + 23, ay);
-    // Cost indicator uses the exact same centralized legacy cost function as
-    // runtime admission/payment.
+    const maxLabelChars = 17;
+    text(compactLabel.substring(0, maxLabelChars), aX + 23, ay);
+    // Resource cost stays legible without dashboard-style COST / LOCK / N/A prefixes.
     const totalCost = window.AetherAbilityDefs.getActionResourceCost(action);
     if (unlocked && totalCost > 0) {
       textFont(FONT_UI);
       textSize(7);
       fill(usable ? PAL.AMBER : PAL.DIM);
-      text('COST ' + totalCost, aX + aW - 48, ay + 1);
+      text('◆' + totalCost, aX + aW - 36, ay + 1);
     }
     // Icon
     if (usable) drawActionIcon(aX + aW - 13, ay + 6, 11, action.id);
@@ -8751,7 +8745,7 @@ function drawCombatPanel(combatState, layoutBox) {
     textFont(FONT_UI);
     textSize(7);
     fill(PAL.RUST);
-    text('ENEMY ABILITY', px + 14, abY + 4);
+    text('TRAIT', px + 14, abY + 4);
     textFont(FONT_BODY);
     textSize(9);
     fill(PAL.PARCHMENT);
