@@ -268,28 +268,34 @@
 </script>
 <script src="p5.min.js"></script>
 <script>
-  // p5.js v1.11.3: if window.setup/window.draw exist and no instance yet, p5 creates one.
-  // But the webpack bundle may not execute the auto-creation due to module quirks.
-  // Force it here so the game always starts.
-  if (window.setup || window.draw) {
-    if (!window.p5) { console.error('[aw] window.p5 missing after p5.min.js'); }
-    else if (!window.p5.instance) {
-      console.log('[aw] No p5 instance — creating one now');
-      try { window.p5.instance = new window.p5(); }
-      catch(e) { console.error('[aw] instance creation failed:', e.message); }
-    } else {
-      console.log('[aw] p5 instance already exists');
+  // p5 global mode normally creates its instance on window load. Creating an
+  // instance synchronously here races that bootstrap under NW.js and can leave
+  // the packaged desktop runtime with no canvas. Let p5 own the load event,
+  // then use a bounded post-load watchdog only if auto-start did not occur.
+  (function () {
+    function reportCanvas() {
+      const canvas = document.querySelector('canvas');
+      console.log('[aw] gameState:', window.gameState);
+      console.log('[aw] canvas:', canvas ? 'present' : 'MISSING');
+      if (canvas) console.log('[aw] canvas size:', canvas.width, 'x', canvas.height);
     }
-  } else {
-    console.warn('[aw] No window.setup or window.draw — sketch functions missing');
-  }
-  // Mirror the loading-screen gating on gameState
-  console.log('[aw] gameState:', window.gameState);
-  console.log('[aw] canvas:', document.querySelector('canvas') ? 'present' : 'MISSING');
-  if (document.querySelector('canvas')) {
-    const c = document.querySelector('canvas');
-    console.log('[aw] canvas size:', c.width, 'x', c.height);
-  }
+
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        const canvas = document.querySelector('canvas');
+        if (!canvas && (window.setup || window.draw)) {
+          if (!window.p5) {
+            console.error('[aw] window.p5 missing after p5.min.js');
+          } else if (!window.p5.instance) {
+            console.warn('[aw] p5 auto-start missing after load — invoking bounded fallback');
+            try { window.p5.instance = new window.p5(); }
+            catch(e) { console.error('[aw] fallback instance creation failed:', e.message); }
+          }
+        }
+        reportCanvas();
+      }, 250);
+    }, { once: true });
+  })();
 </script>
 <script>
   // ============================================================
