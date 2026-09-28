@@ -1,0 +1,14 @@
+{
+  "schema": "AETHERWAKE_FIELD_ART_ADMISSION_V1",
+  "characterId": "REPLACE_WITH_CHARACTER_ID",
+  "silhouetteRecognition": {
+    "status": "PENDING",
+    "participants": 0,
+    "correctRate": 0
+  },
+  "runtimeReview": {
+    "status": "PENDING",
+    "exactHead": ""
+  },
+  "notes": []
+}
