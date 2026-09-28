@@ -6,7 +6,7 @@ This procedure is intentionally separate from developer review. A participant sh
 
 ## Participants
 - Exactly **5 preregistered participant slots** (`P1`–`P5`) for the scored package, each filled by a person who did not implement the current visual tranche.
-- Session: **20 minutes** each.
+- Session: **at least 20 elapsed minutes** each, derived from recorded start/end timestamps rather than a manually entered duration.
 - Use the same exact-head packaged candidate for every participant.
 - Do not explain character names, the Dragonfly, controls, or intended art direction before the session beyond normal launch instructions.
 
@@ -20,7 +20,7 @@ Bind the session to one immutable candidate before testing:
 Record for each participant:
 1. a unique participant ID;
 2. explicit confirmation that the participant did **not** implement the tested visual tranche;
-3. session start/end and total minutes;
+3. raw session start and end timestamps; the scorer derives elapsed minutes and enforces the minimum;
 4. whether help was requested and exactly what help was given;
 5. eight 1–5 visual scores;
 6. raw same-game counts: how many of the 7 Aetherwake frames were correctly grouped and how many of the 3 decoys were correctly rejected;
