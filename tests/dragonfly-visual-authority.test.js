@@ -11,7 +11,7 @@ const sandbox = { window: {}, globalThis: {} };
 vm.runInNewContext(source, sandbox, { filename: 'dragonfly-visual.js' });
 
 assert(sandbox.window.AetherDragonflyVisual, 'shared Dragonfly visual authority missing');
-assert.strictEqual(sandbox.window.AetherDragonflyVisual.VERSION, '0.6.0');
+assert.strictEqual(sandbox.window.AetherDragonflyVisual.VERSION, '0.7.0');
 assert.strictEqual(typeof sandbox.window.AetherDragonflyVisual.draw, 'function');
 assert(source.includes('function drawWingPair'), 'Dragonfly must retain articulated paired-wing authority');
 assert(source.includes('function drawHull'), 'Dragonfly must retain a dedicated tapered-hull renderer');
@@ -20,6 +20,8 @@ assert(source.includes('Warm lower-deck lamps'), 'Dragonfly must retain inhabite
 assert(sandbox.window.AetherDragonflyVisual.PROPORTIONS, 'Dragonfly proportion contract missing');
 assert.strictEqual(sandbox.window.AetherDragonflyVisual.PROPORTIONS.bodyLengthAdultHeights, 3.0);
 assert.strictEqual(sandbox.window.AetherDragonflyVisual.PROPORTIONS.wingSpanBodyLengths, 2.4);
+assert.strictEqual(sandbox.window.AetherDragonflyVisual.PROPORTIONS.runtimeBodyLengthPx, 126,
+  'Dragonfly runtime body must remain compact relative to the four-wing span');
 assert(sandbox.window.AetherDragonflyVisual.PROPORTIONS.normalFlightMaxScreenWidthRatio <= 0.28,
   'normal-flight Dragonfly width budget drifted above 28%');
 assert(sandbox.window.AetherDragonflyVisual.PROPORTIONS.combatMaxScreenWidthRatio <= 0.25,
@@ -40,7 +42,7 @@ assert(source.includes('Stepped dock shadow keeps the hero object inside the pix
   'docked Dragonfly must avoid a smooth placeholder shadow language');
 assert(source.includes('Broad translucent membrane establishes the unmistakable four-wing Dragonfly silhouette') && source.includes('vertex(-82') && source.includes('vertex(96'),
   'pixel hero path must preserve clearly separated fore/aft Dragonfly wing geometry');
-assert(source.includes('The body is intentionally shorter than the wing span') && source.includes('rect(-24, -14, 52, 28)'),
+assert(source.includes('The body is intentionally shorter than the wing span') && source.includes('rect(-22, -16, 46, 32)'),
   'Dragonfly hero silhouette must keep the inhabited thorax visually deeper than the segmented abdomen');
 assert(source.includes('Scioto-blue glazing concentrates in the thorax/helm'),
   'Dragonfly glazing must cluster around the inhabited thorax/helm rather than form a train-window band');
