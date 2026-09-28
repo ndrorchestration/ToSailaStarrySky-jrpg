@@ -9,5 +9,7 @@ assert(src.includes('function preload()') && src.includes('authoredAtlases[id]=l
 assert(src.includes('image(atlas,xs[i]-54,120,108,108,0,0,256,256)'),
   'identity evidence must visibly render the neutral authored atlas cell');
 assert(src.includes("'AUTHORED PORTRAIT' : 'PROCEDURAL PORTRAIT'"), 'identity evidence must label portrait source honestly');
-assert(src.includes('AetherCharacterRenderer.draw(ids[i]'), 'identity evidence must retain procedural field silhouette comparison');
+assert(src.includes('PROVISIONAL_FIELD') && src.includes("'/provisional-idle.png'"), 'identity evidence must preload provisional full-roster field silhouettes');
+assert(src.includes("text('PROVISIONAL FIELD'"), 'identity evidence must label provisional field art honestly');
+assert(src.includes('AetherCharacterRenderer.draw(ids[i]'), 'identity evidence must retain procedural field fallback when provisional art is unavailable');
 console.log('Aetherwake character identity evidence contract: PASS');
