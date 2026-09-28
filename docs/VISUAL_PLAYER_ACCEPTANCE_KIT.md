@@ -118,3 +118,7 @@ The preparer requires a clean exact-head worktree, hashes the packaged candidate
 The frozen protocol includes exactly five pseudonymous scored slots: `P1` through `P5`. The scored result must contain that exact set.
 
 Do not silently omit a failed or inconvenient completed session and do not replace a participant after seeing their scores. If a session becomes genuinely unusable for a procedural reason (for example, corrupted recording, wrong candidate launched, or participant turns out not to be independent), document the exclusion and create an explicit protocol amendment before collecting the replacement session. The original attempted session record should remain available for audit.
+
+
+## Frozen presentation order
+The fixed protocol seed is not merely recorded. Protocol preparation deterministically derives and stores the exact ten-image order using IDs for all seven Aetherwake frames and all three decoys. Every scored participant must receive that same frozen artifact order. The G4 scorer rejects a protocol whose stored order does not contain exactly those ten unique artifacts.
