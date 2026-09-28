@@ -101,8 +101,8 @@ assert(source.includes('Math.min(286, width - 420)') && source.includes("promptT
   'opening location labels and interaction prompts must remain compact and JRPG-like');
 assert(!source.includes('A / D or Left / Right  —  Walk to the Dragonfly') && !source.includes('Enter / Space  —  Continue'),
   'opening must not regress to verbose tutorial-style prompts');
-assert(source.includes("text('SETTLING IN', 184, 374)") && source.includes("text('TALK WITH TALEN', 420, 390)"),
-  'opening task progress must use compact labels plus pips');
+assert(source.includes("text('SETTLING IN', 40, 91)") && source.includes("text('TALK WITH TALEN', 40, 91)") && source.includes('upper-left quest chip'),
+  'opening task progress must use compact upper-left JRPG quest chips plus pips');
 assert(source.includes("if (!paintedInterior) {") && source.includes("drawWakeRoomLabel('BERTH'"),
   'authored Wake interior must suppress map-like room labels while procedural fallback may retain them');
 assert(source.includes('const objectiveW = 286') && source.includes("text('E   INSPECT', width / 2, 580)"),
@@ -181,5 +181,5 @@ assert(openingFunction.includes('visual.draw(scene, state, { now: millis(), widt
 
 console.log('Aetherwake First Wake visual stage contract: PASS');
 
-assert(source.includes('const narrativePanelH = Math.min(98, 30 + visibleLines.length * 21)'),
-  'v1.1 narration panel must reserve enough height for admitted speaker portrait presentation');
+assert(source.includes('const narrativePanelH = Math.min(112, 40 + visibleLines.length * 21)') && source.includes('String(scene.speaker || \'\').toUpperCase()'),
+  'opening narration must use the expanded JRPG dialogue panel with admitted speaker-name treatment');

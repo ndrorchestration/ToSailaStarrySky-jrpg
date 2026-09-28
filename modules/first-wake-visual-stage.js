@@ -700,16 +700,20 @@
 
     if (scene.id === 'berth_task' && state.berthTask) {
       const step = state.berthTask.step;
-      fill(6, 10, 16, 92);
-      rect(172, 367, 164, 28, 6);
-      fill(232, 220, 198, 195);
+      // Task progress lives in a compact upper-left quest chip rather than floating
+      // beside the character in world space.
+      fill(6, 10, 16, 150);
+      rect(28, 78, 184, 30, 6);
+      fill(42, 255, 181, 62);
+      rect(38, 86, 34, 2, 1);
+      fill(232, 220, 198, 210);
       textAlign(LEFT, TOP);
       textFont('Trebuchet MS');
       textSize(10);
-      text('SETTLING IN', 184, 374);
+      text('SETTLING IN', 40, 91);
       for (let i = 0; i < state.berthTask.max; i++) {
         fill(i < step ? color(42,255,181,190) : color(83,103,107,95));
-        rect(266 + i * 14, 376, 8, 4, 1);
+        rect(154 + i * 14, 94, 8, 4, 1);
       }
     }
 
@@ -724,17 +728,19 @@
         rect(418, 373, 6, 3);
         rect(467, 373, 6, 3);
       }
-      fill(6, 10, 16, 92);
-      rect(409, 383, 178, 28, 6);
-      fill(232, 220, 198, 195);
+      fill(6, 10, 16, 150);
+      rect(28, 78, 194, 30, 6);
+      fill(42, 255, 181, 62);
+      rect(38, 86, 34, 2, 1);
+      fill(232, 220, 198, 210);
       textAlign(LEFT, TOP);
       textFont('Trebuchet MS');
       textSize(10);
-      text('TALK WITH TALEN', 420, 390);
+      text('TALK WITH TALEN', 40, 91);
       const talenMax = state.talenBeat ? state.talenBeat.max : 2;
       for (let i = 0; i < talenMax; i++) {
         fill(i < talenStep ? color(42,255,181,190) : color(83,103,107,95));
-        rect(542 + i * 14, 392, 8, 4, 1);
+        rect(174 + i * 14, 94, 8, 4, 1);
       }
     }
   }
@@ -1213,43 +1219,55 @@
       }
     } else if (showNarrative) {
       const visibleLines = scene.lines.slice(0, 3);
-      const narrativePanelH = Math.min(98, 30 + visibleLines.length * 21);
-      const narrativePanelY = height - 18 - 38 - narrativePanelH;
-      const narrativePanelX = 148;
-      const narrativePanelW = width - 296;
-      fill(6, 9, 14, 122);
+      const narrativePanelH = Math.min(112, 40 + visibleLines.length * 21);
+      const narrativePanelY = height - 18 - 34 - narrativePanelH;
+      const narrativePanelX = 110;
+      const narrativePanelW = width - 220;
+      fill(6, 9, 14, 178);
       rect(narrativePanelX, narrativePanelY, narrativePanelW, narrativePanelH, 10);
-      fill(42,255,181,42);
-      rect(narrativePanelX + 10, narrativePanelY + 8, narrativePanelW - 20, 2);
+      noFill();
+      stroke(42, 255, 181, 92);
+      strokeWeight(1);
+      rect(narrativePanelX + 2, narrativePanelY + 2, narrativePanelW - 4, narrativePanelH - 4, 9);
+      noStroke();
+      fill(42,255,181,55);
+      rect(narrativePanelX + 12, narrativePanelY + 10, narrativePanelW - 24, 2);
+      fill(191, 144, 76, 110);
+      rect(narrativePanelX + 18, narrativePanelY + narrativePanelH - 7, 92, 2);
 
       const authored = root.AetherAuthoredCharacterArt;
       const speakerId = scene.speaker ? String(scene.speaker).toLowerCase() : null;
-      const portraitSize = Math.min(72, narrativePanelH - 18);
-      const portraitX = narrativePanelX + 12;
-      const portraitY = narrativePanelY + 14;
+      const portraitSize = Math.min(78, narrativePanelH - 26);
+      const portraitX = narrativePanelX + 14;
+      const portraitY = narrativePanelY + 18;
       const portraitDrawn = speakerId && authored && typeof authored.drawPortrait === 'function'
         ? authored.drawPortrait(speakerId, portraitX, portraitY, portraitSize, { expression: 'talk' })
         : false;
+
+      const copyX = portraitDrawn ? portraitX + portraitSize + 18 : narrativePanelX + 16;
+      const copyW = portraitDrawn ? narrativePanelW - (copyX - narrativePanelX) - 16 : narrativePanelW - 32;
+      let copyY = narrativePanelY + 18;
       if (portraitDrawn) {
         noFill();
-        stroke(42, 255, 181, 92);
+        stroke(42, 255, 181, 118);
         strokeWeight(1);
         rect(portraitX - 2, portraitY - 2, portraitSize + 4, portraitSize + 4, 5);
         noStroke();
-        fill(232, 220, 198, 208);
+        fill(24, 80, 80, 205);
+        rect(copyX, narrativePanelY + 14, Math.min(176, copyW), 20, 4);
+        fill(42, 255, 181, 235);
         textAlign(LEFT, TOP);
         textFont('Segoe UI Semibold');
-        textSize(10);
-        text(scene.speaker, portraitX, narrativePanelY - 1);
+        textSize(11);
+        text(String(scene.speaker || '').toUpperCase(), copyX + 10, narrativePanelY + 17);
+        copyY = narrativePanelY + 42;
       }
 
-      const copyX = portraitDrawn ? portraitX + portraitSize + 16 : narrativePanelX + 10;
-      const copyW = portraitDrawn ? narrativePanelW - (copyX - narrativePanelX) - 12 : narrativePanelW - 20;
       textAlign(LEFT, TOP);
       textFont('Trebuchet MS');
       textSize(15);
-      fill(232, 220, 198);
-      let y = narrativePanelY + 16;
+      fill(238, 229, 210);
+      let y = copyY;
       for (const line of visibleLines) {
         text(line, copyX, y, copyW, 22);
         y += 21;
