@@ -160,6 +160,8 @@
     "test:portrait-roster": "node tests/roster-portrait-review.test.js",
     "verify:field-pack-admission": "node scripts/verify-field-pack-readiness.js --require-ready --require-evidence",
     "verify:portrait-pack-readiness": "python scripts/verify-portrait-pack-readiness.py",
-    "test:portrait-pack-readiness": "python tests/portrait-pack-readiness.test.py"
+    "test:portrait-pack-readiness": "python tests/portrait-pack-readiness.test.py",
+    "test:field-silhouette-recognition": "node tests/field-silhouette-recognition-scoring.test.js",
+    "score:field-silhouette-recognition": "node scripts/score-field-silhouette-recognition.js"
   }
 }
