@@ -1,6 +1,10 @@
 "use strict";
 const assert = require('assert');
-const { scoreResults } = require('../scripts/score-visual-acceptance.js');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const crypto = require('crypto');
+const { scoreResults, verifyProtocolBinding } = require('../scripts/score-visual-acceptance.js');
 
 const scores = {
   cohesion:4.2, readability:4.3, appeal:4.0, identity:4.2,
@@ -72,3 +76,31 @@ undocumentedHelp.participants[0].helpGiven = '';
 assert.throws(() => scoreResults(undocumentedHelp), /help requested but not documented/);
 
 console.log('Aetherwake visual acceptance scorer: PASS');
+
+
+const protocol = {
+  schema:'AETHERWAKE_VISUAL_ACCEPTANCE_PROTOCOL_V1',
+  candidate:{
+    commit:candidate.commit,
+    packageSha256:candidate.packageSha256,
+    evidenceManifestSha256:candidate.evidenceManifestSha256
+  },
+  aetherwakeFrames:['a','b','c','d','e','f','g'],
+  decoys:[
+    {id:'D1',sha256:'1'.repeat(64)},
+    {id:'D2',sha256:'2'.repeat(64)},
+    {id:'D3',sha256:'3'.repeat(64)}
+  ],
+  frozenBeforeFirstSession:true
+};
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aetherwake-g4-'));
+const protocolPath = path.join(tempDir, 'protocol.json');
+fs.writeFileSync(protocolPath, JSON.stringify(protocol));
+const protocolHash = crypto.createHash('sha256').update(fs.readFileSync(protocolPath)).digest('hex');
+const bound = JSON.parse(JSON.stringify(passing));
+bound.candidate.protocolSha256 = protocolHash;
+assert.strictEqual(verifyProtocolBinding(bound, protocolPath).schema, 'AETHERWAKE_VISUAL_ACCEPTANCE_PROTOCOL_V1');
+
+const mismatched = JSON.parse(JSON.stringify(bound));
+mismatched.candidate.protocolSha256 = 'e'.repeat(64);
+assert.throws(() => verifyProtocolBinding(mismatched, protocolPath), /protocol SHA-256 mismatch/);
