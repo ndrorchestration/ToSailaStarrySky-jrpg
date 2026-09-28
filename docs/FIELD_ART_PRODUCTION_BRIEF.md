@@ -65,3 +65,14 @@ Commands:
 Every production strip is SHA-256 hashed by the field-pack readiness verifier. The per-character admission receipt must record the exact hashes under `assetSha256.idle|walk|talk|focus|attack`. Post-promotion admission compares those recorded hashes to the actual PNG bytes and fails closed on any mismatch.
 
 This means the strips that pass human silhouette/runtime review must be byte-identical to the strips later admitted. Re-exporting, optimizing, or replacing any reviewed PNG invalidates the receipt until review evidence is rebound to the new hashes.
+
+
+## Receipt preparation workflow
+After production strips are mechanically complete and fresh exact-head visual evidence has been captured, prepare the non-authorizing receipt skeleton with:
+
+- `npm run prepare:field-art-admission:ender`
+- `npm run prepare:field-art-admission:ionia`
+
+The preparer refuses a dirty worktree, resolves the full 40-character Git head, hashes all five strip PNGs, hashes `visual-evidence/manifest.json`, and writes the corresponding receipt under `assets/characters/v1/admission/`.
+
+The generated receipt remains **PENDING** for silhouette and runtime review fields. Preparing a receipt is not admission and must never be treated as evidence that human or runtime gates passed.
