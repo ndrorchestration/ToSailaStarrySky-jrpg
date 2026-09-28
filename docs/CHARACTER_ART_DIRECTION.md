@@ -6,11 +6,11 @@ This document mirrors the canonical Notion character dossiers for implementation
 
 The five protagonists should read as one coherent party: compact heroic proportions, painterly/illustrative portrait treatment, simplified but distinctive costumes, strong silhouettes, warm fantasy-material rendering, and Aetherwake's solarpunk/aether-tech identity. Final Fantasy Tactics is an art-direction reference for proportion/readability/material warmth, not a character-copying target.
 
-Hair color, eye color, ethnicity, and exact costume remain open art-direction decisions unless later creator canon fixes them.
+Hair color, eye color, ethnicity, and exact costume remain open art-direction decisions unless later creator canon fixes them. **Ender is an explicit exception:** his creator-approved reference now locks very short dark copper-brown/auburn hair and bright green eyes.
 
 | Character | Canon visual constraints | Avoid |
 | --- | --- | --- |
-| **Ender, 22** | Rift Scholar; slender-to-average and explicitly not especially brawny; anxious, idealistic, intellectually oriented; relatively new aboard the Wake; study/spatial-aetheric instrumentation/practical shipboard language | bodybuilder proportions; generic wizard robes; generic battle mage |
+| **Ender, 22** | Rift Scholar; slender-to-average and explicitly not especially brawny; anxious, idealistic, intellectually oriented; relatively new aboard the Wake; **very short dark copper-brown/auburn hair; bright green eyes; light freckles; brass/bronze forehead goggles with green lenses**; study/spatial-aetheric instrumentation/practical shipboard language | bodybuilder proportions; generic wizard robes; generic battle mage; dark medium-length/tousled hair; hazel/light-brown eye substitution |
 | **Lyra, 24** | Adult frequency/dream-sensitive receiver; comparatively untrained; single mother of Talen, age 5; listening/resonance/dream motifs | childlike presentation; green nature mage; forest priestess |
 | **Ionia, 28** | Captain and owner of the Aureate Wake; Lyra's cousin; caretaker presence; served Captain Denith for 10 years; navigator/sky-lane/Core expertise | elderly captain; farmer archetype; invented spellcaster identity |
 | **Reson, 25** | Young, burly Weapon Master; former military service after paramilitary upbringing; very high durability; combat-rifle-type firearm + pike + sword vocabulary; broadest/heaviest party silhouette | frail build; magic-first silhouette; invented faction insignia |
@@ -23,7 +23,7 @@ Do not silently canonize:
 - Ionia's final class, weapon, or any spellcasting identity.
 - Aepex's final class or exact weapon/tool loadout.
 - Reson's single signature weapon or invented former-service faction insignia.
-- Any protagonist's hair color, eye color, ethnicity, or exact costume.
+- Any protagonist's hair color, eye color, ethnicity, or exact costume **except Ender's hair and eye color, which are creator-locked**.
 
 ## Implementation binding
 
