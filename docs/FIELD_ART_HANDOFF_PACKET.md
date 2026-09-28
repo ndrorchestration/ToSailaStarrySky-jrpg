@@ -143,8 +143,8 @@ Until a final weapon is canonically established, keep the animation compatible w
 Before export:
 - same head height and body scale across all strips;
 - same palette and costume colors;
-- identical foot baseline;
-- no frame clipped by cell edge;
+- identical foot baseline (validator permits at most 1px total variance across the character pack);
+- at least 1px horizontal/top clearance from every 64×96 cell edge; no frame clipped by cell edge;
 - no accidental one-pixel outline-color drift;
 - goggles/hair/shoulder silhouette recognizable at runtime scale;
 - transparent alpha outside the sprite;
@@ -158,7 +158,7 @@ Before export:
 2. Review those proofs beside the current authored dock, cabin, dialogue, and combat evidence.
 3. Only after silhouette approval, animate the five strips.
 4. Export the ten exact PNG strips.
-5. Run `npm run verify:field-pack-readiness:strict`. This verifies production-file completeness **before** any manifest promotion.
+5. Run `npm run verify:field-pack-readiness:strict`. This verifies production-file completeness **before** any manifest promotion, including exact dimensions/alpha plus cell-edge clearance and ≤1px grounded-foot-line variance within and across actions.
 6. Regenerate exact-head runtime evidence and compare against the provisional bridge art at actual runtime scale.
 7. Run the human silhouette-recognition check using `docs/FIELD_SILHOUETTE_RECOGNITION_KIT.md` with at least 5 independent participants and require ≥80% overall correct identification.
 8. Create per-character admission receipts from `docs/field-art-admission-template.json` under `assets/characters/v1/admission/<character>.json`, binding the human result and exact-head runtime review. The runtime receipt must separately show PASS for the visual suite, browser route + replay, exact-head evidence capture, visual performance, and before/after cohesion review.
