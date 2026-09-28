@@ -35,5 +35,16 @@
     "orderSeed": "REPLACE_WITH_FIXED_SEED_BEFORE_FIRST_SESSION",
     "instructions": "Show the same ten frozen image artifacts to every participant; order may be deterministically shuffled from this seed but the artifact set must not change."
   },
-  "frozenBeforeFirstSession": false
+  "frozenBeforeFirstSession": false,
+  "participantPlan": {
+    "requiredCount": 5,
+    "ids": [
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5"
+    ],
+    "rule": "All preregistered participant slots must appear in the scored result. Do not silently replace or omit a completed/attempted session; document unusable sessions separately and rerun only under an explicit protocol amendment."
+  }
 }
