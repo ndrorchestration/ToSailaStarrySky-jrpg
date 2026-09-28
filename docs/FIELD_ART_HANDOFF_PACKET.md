@@ -41,9 +41,13 @@ Canonical requirements:
 - compact scholar-traveler silhouette rather than a battle mage;
 - anxious/idealistic/intellectually oriented read;
 - practical shipboard clothing;
-- goggles and the established green/tan vest treatment from the selected visual reference;
+- **very short dark copper-brown/auburn hair**;
+- **bright green eyes**;
+- light freckles;
+- brass/bronze forehead goggles with green lenses;
+- the creator-approved olive/green + tan/cream field-scholar clothing language from the selected reference;
 - resonator staff or scholarly instrumentation may support the silhouette;
-- avoid bodybuilder proportions, wizard robes, and generic battle-mage posing.
+- avoid bodybuilder proportions, wizard robes, generic battle-mage posing, dark medium-length/tousled hair, or hazel/light-brown eye substitution.
 
 ### Ender frame direction
 
@@ -194,3 +198,9 @@ Do not edit, optimize, recompress, crop, or regenerate an admitted strip after i
 
 ### Exact-head finalization rule
 The receipt records the reviewed candidate head. Admission may then be committed exactly once as a **bounded child commit** containing only the character admission receipt(s) and manifest-state transition. That one child is mechanically permitted; unrelated or later commits are not. Exact evidence-manifest bytes must remain unchanged.
+
+
+## Ender creator-lock update — 2026-09-28
+The corrected visual montage was approved by the project owner after specifically correcting Ender's hair and eye color. For production field art, treat **very short dark copper-brown/auburn hair** and **bright green eyes** as locked likeness traits. These supersede older contradictory references that described Ender's eyes as hazel/light-brown or depicted darker/tousled hair.
+
+This approval locks identity direction only. It does not itself admit any field strip, close G4, or change `AETHERWAKE_FIELD_PACK_READINESS=NOT_READY`.
