@@ -4,6 +4,7 @@ Status: ACTIVE / ASSET-PRODUCTION LANE
 Authority: docs/CHARACTER_ART_ASSET_CONTRACT.md
 Tracking: GitHub Issue #207
 Visual lane: Visual V46 / PR #206
+Artist handoff: docs/FIELD_ART_HANDOFF_PACKET.md
 
 ## Purpose
 Produce production-ready JRPG field art that visually belongs inside the authored Aetherwake environments.
