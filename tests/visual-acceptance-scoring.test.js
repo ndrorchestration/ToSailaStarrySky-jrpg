@@ -98,6 +98,7 @@ const protocol = {
     {id:'D2',sha256:'2'.repeat(64)},
     {id:'D3',sha256:'3'.repeat(64)}
   ],
+  participantPlan:{requiredCount:5,ids:['P1','P2','P3','P4','P5']},
   frozenBeforeFirstSession:true
 };
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aetherwake-g4-'));
@@ -111,3 +112,12 @@ assert.strictEqual(verifyProtocolBinding(bound, protocolPath).schema, 'AETHERWAK
 const mismatched = JSON.parse(JSON.stringify(bound));
 mismatched.candidate.protocolSha256 = 'e'.repeat(64);
 assert.throws(() => verifyProtocolBinding(mismatched, protocolPath), /protocol SHA-256 mismatch/);
+
+
+const omittedParticipant = JSON.parse(JSON.stringify(bound));
+omittedParticipant.participants.pop();
+assert.throws(() => verifyProtocolBinding(omittedParticipant, protocolPath), /frozen participant plan/);
+
+const replacedParticipant = JSON.parse(JSON.stringify(bound));
+replacedParticipant.participants[4].id = 'P6';
+assert.throws(() => verifyProtocolBinding(replacedParticipant, protocolPath), /frozen participant plan/);
