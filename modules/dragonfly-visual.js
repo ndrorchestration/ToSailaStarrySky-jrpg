@@ -261,8 +261,8 @@
     const segments = fore ? 9 : 8;
     const x0 = fore ? -4 : 8;
     const stepX = fore ? 11 : -11;
-    const stepY = fore ? 3 : 3;
-    const baseY = fore ? 9 : 6;
+    const stepY = fore ? 5 : 5;
+    const baseY = fore ? 10 : 8;
     const alpha = fore ? (mode === 'flight' ? 184 : 148) : (mode === 'flight' ? 152 : 122);
     const c = fore ? PALETTE.aetherBlue : [205,225,190];
 
@@ -274,14 +274,14 @@
     if (fore) {
       vertex(-2, sign * 6);
       vertex(22, sign * 12);
-      vertex(96, sign * (50 + flap));
-      vertex(66, sign * 22);
+      vertex(96, sign * (78 + flap));
+      vertex(62, sign * 32);
       vertex(7, sign * 5);
     } else {
       vertex(5, sign * 5);
       vertex(-18, sign * 10);
-      vertex(-82, sign * (44 + flap));
-      vertex(-56, sign * 20);
+      vertex(-82, sign * (68 + flap));
+      vertex(-52, sign * 30);
       vertex(-5, sign * 4);
     }
     endShape(CLOSE);
@@ -289,16 +289,16 @@
     stroke(PALETTE.hullDark[0], PALETTE.hullDark[1], PALETTE.hullDark[2], mode === 'flight' ? 180 : 135);
     strokeWeight(2);
     if (fore) {
-      line(-2, sign * 6, 96, sign * (50 + flap));
-      line(96, sign * (50 + flap), 66, sign * 22);
+      line(-2, sign * 6, 96, sign * (78 + flap));
+      line(96, sign * (78 + flap), 62, sign * 32);
     } else {
-      line(5, sign * 5, -82, sign * (44 + flap));
-      line(-82, sign * (44 + flap), -56, sign * 20);
+      line(5, sign * 5, -82, sign * (68 + flap));
+      line(-82, sign * (68 + flap), -52, sign * 30);
     }
     stroke(220,245,244,fore ? 175 : 148);
     strokeWeight(1);
-    if (fore) line(-2, sign * 6, 94, sign * (48 + flap));
-    else line(4, sign * 5, -80, sign * (42 + flap));
+    if (fore) line(-2, sign * 6, 94, sign * (76 + flap));
+    else line(4, sign * 5, -80, sign * (66 + flap));
     noStroke();
 
     for (let i = 0; i < segments; i++) {
@@ -340,9 +340,9 @@
       const wake = Math.round(18 + Math.min(1.8, speed) * 16);
       noStroke();
       fill(PALETTE.aetherBlue[0], PALETTE.aetherBlue[1], PALETTE.aetherBlue[2], 72);
-      rect(-108 - wake, -2, wake, 2);
+      rect(-88 - wake, -2, wake, 2);
       fill(PALETTE.aether[0], PALETTE.aether[1], PALETTE.aether[2], 58);
-      rect(-108 - Math.round(wake * 0.72), 2, Math.round(wake * 0.72), 1);
+      rect(-88 - Math.round(wake * 0.72), 2, Math.round(wake * 0.72), 1);
     }
 
     noStroke();
@@ -350,43 +350,48 @@
     // The body is intentionally shorter than the wing span so flight reads as an
     // insect-inspired skyship rather than a horizontal bus with fins.
     fill(...PALETTE.hullDark);
-    rect(-52, -7, 74, 14);      // abdomen root
-    rect(-76, -5, 24, 10);
-    rect(-94, -4, 18, 8);
-    rect(-108, -3, 14, 6);
-    rect(-24, -13, 52, 26);     // thorax / inhabited cabin
-    rect(28, -8, 28, 16);       // neck
-    rect(56, -7, 22, 14);       // helm/head
-    rect(78, -4, 10, 8);        // nose
+    rect(-42, -7, 58, 14);      // abdomen root
+    rect(-60, -5, 18, 10);
+    rect(-74, -4, 14, 8);
+    rect(-86, -3, 12, 6);
+    rect(-24, -14, 52, 28);     // thorax / inhabited cabin
+    rect(28, -8, 22, 16);       // neck
+    rect(50, -7, 18, 14);       // helm/head
+    rect(68, -4, 8, 8);         // nose
 
-    // Reclaimed wood body skin, with brighter thorax so the cabin reads as the visual center.
-    fill(102,72,46);
-    rect(-49, -5, 70, 10);
-    rect(-73, -3, 22, 6);
-    rect(-91, -2, 17, 4);
-    fill(154,109,60,225);
-    rect(-19, -10, 41, 20);
-    fill(132,91,52,220);
-    rect(29, -6, 24, 12);
+    // Reclaimed wood skin follows the insect anatomy: a darker segmented abdomen,
+    // a deep bright thorax, then a compact tapered neck into the helm.
+    fill(92,64,43);
+    rect(-39, -4, 30, 8);
+    rect(-55, -3, 16, 6);
+    rect(-69, -2, 12, 4);
+    fill(116,79,48,230);
+    rect(-8, -6, 18, 12);
+    fill(158,111,62,235);
+    rect(-18, -11, 38, 22);
+    rect(-14, -13, 30, 2);
+    fill(128,88,52,220);
+    rect(29, -5, 16, 10);
+    rect(45, -4, 8, 8);
     fill(...PALETTE.brass);
-    rect(-50, 4, 104, 2);
+    rect(-40, 4, 88, 2);
     rect(-20, -11, 2, 21);
     rect(1, -11, 2, 21);
     rect(21, -11, 2, 21);
 
     // Scioto-blue glazing concentrates in the thorax/helm, avoiding a train-window band.
-    for (const wx of [-13, 5, 31]) {
+    for (const wx of [-11, 7]) {
       fill(PALETTE.canopy[0], PALETTE.canopy[1], PALETTE.canopy[2], 238);
-      rect(wx, -6, wx === 31 ? 14 : 12, 6);
+      rect(wx, -6, 11, 6);
       fill(PALETTE.glassLight[0], PALETTE.glassLight[1], PALETTE.glassLight[2], 130);
-      rect(wx + 1, -5, wx === 31 ? 11 : 9, 1);
+      rect(wx + 1, -5, 8, 1);
     }
     fill(PALETTE.canopy[0], PALETTE.canopy[1], PALETTE.canopy[2], 244);
-    rect(56, -6, 20, 12);
-    rect(76, -3, 9, 6);
+    rect(50, -6, 17, 12);
+    rect(67, -3, 8, 6);
     fill(PALETTE.glassLight[0], PALETTE.glassLight[1], PALETTE.glassLight[2], 165);
-    rect(60, -5, 12, 2);
-    rect(78, -2, 5, 2);
+    rect(53, -5, 10, 2);
+    rect(69, -2, 4, 2);
 
     // Aether heart: compact pixel cluster, not a smooth glowing ellipse.
     fill(PALETTE.brass[0], PALETTE.brass[1], PALETTE.brass[2], 240);
@@ -398,7 +403,7 @@
 
     // Warm inhabited lower-deck lamps.
     fill(PALETTE.cabin[0], PALETTE.cabin[1], PALETTE.cabin[2], mode === 'flight' ? 190 : 235);
-    for (const lx of [-54,-36,-18,33,50]) rect(lx, 7, 7, 2);
+    for (const lx of [-36,-22,-8,30,41]) rect(lx, 7, 5, 2);
 
     // Dorsal service deck + compact solar awning.
     fill(72,61,49);
@@ -418,12 +423,12 @@
 
     // Tail vane and navigation lamps.
     fill(PALETTE.aetherBlue[0], PALETTE.aetherBlue[1], PALETTE.aetherBlue[2], 135);
-    rect(-112, -10, 4, 20);
-    rect(-116, -6, 4, 12);
+    rect(-90, -10, 4, 20);
+    rect(-94, -6, 4, 12);
     fill(PALETTE.navRed[0], PALETTE.navRed[1], PALETTE.navRed[2], 220);
-    rect(-65, -11, 3, 3);
+    rect(-58, -11, 3, 3);
     fill(79,231,188,220);
-    rect(-65, 9, 3, 3);
+    rect(-58, 9, 3, 3);
 
     // Distinct dock rig; absent in flight silhouette.
     if (mode === 'dock') {
@@ -462,7 +467,7 @@
       noFill();
       stroke(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],Math.round(18+pulse*16));
       strokeWeight(1);
-      rect(-96,-31,178,62,5);
+      rect(-92,-86,184,172,5);
       noStroke();
     }
 

@@ -40,7 +40,7 @@ assert(source.includes('Stepped dock shadow keeps the hero object inside the pix
   'docked Dragonfly must avoid a smooth placeholder shadow language');
 assert(source.includes('Broad translucent membrane establishes the unmistakable four-wing Dragonfly silhouette') && source.includes('vertex(-82') && source.includes('vertex(96'),
   'pixel hero path must preserve clearly separated fore/aft Dragonfly wing geometry');
-assert(source.includes('The body is intentionally shorter than the wing span') && source.includes('rect(-24, -13, 52, 26)'),
+assert(source.includes('The body is intentionally shorter than the wing span') && source.includes('rect(-24, -14, 52, 28)'),
   'Dragonfly hero silhouette must keep the inhabited thorax visually deeper than the segmented abdomen');
 assert(source.includes('Scioto-blue glazing concentrates in the thorax/helm'),
   'Dragonfly glazing must cluster around the inhabited thorax/helm rather than form a train-window band');
