@@ -1034,26 +1034,35 @@
     }
 
     // Exploration HUD is now a restrained JRPG objective cue rather than a map/debug card.
+    // When a priority notice is already telling the player what changed, do not echo
+    // the same objective directly underneath it.
+    const hasPriorityNotice = Array.isArray(root.toasts) && root.toasts.some(t =>
+      t && t.kind === 'priority' && now - Number(t.startTime || 0) <= Number(t.duration || 0)
+    );
     const objectiveW = 286;
-    fill(5, 8, 13, 118);
-    rect(width / 2 - objectiveW / 2, 42, objectiveW, 30, 7);
-    textAlign(CENTER, TOP);
-    textFont('Segoe UI Semibold');
-    textSize(9);
-    fill(42, 255, 181, 215);
-    text(String(view.objective || '').replace(/[.]$/, '').toUpperCase(), width / 2, 52);
+    if (!hasPriorityNotice) {
+      fill(5, 8, 13, 118);
+      rect(width / 2 - objectiveW / 2, 42, objectiveW, 30, 7);
+      textAlign(CENTER, TOP);
+      textFont('Segoe UI Semibold');
+      textSize(9);
+      fill(42, 255, 181, 215);
+      text(String(view.objective || '').replace(/[.]$/, '').toUpperCase(), width / 2, 52);
+    }
 
     const messageW = Math.min(690, width - 260);
+    const messageX = width / 2 - messageW / 2;
     fill(5, 8, 13, 150);
-    rect(width / 2 - messageW / 2, 548, messageW, 46, 8);
+    rect(messageX, 548, messageW, 46, 8);
     textFont('Trebuchet MS');
     textSize(16);
     fill(232, 220, 198, 225);
-    textAlign(CENTER, TOP);
-    text(view.lastMessage || 'Explore.', width / 2, 558, messageW - 32, 24);
+    textAlign(LEFT, TOP);
+    text(view.lastMessage || 'Explore.', messageX + 16, 558, messageW - 32, 24);
 
     textFont('Segoe UI Semibold');
     textSize(9);
+    textAlign(CENTER, TOP);
     fill(185, 158, 116, 185);
     if (scene.id === 'core_walk') {
       const pipX = width / 2 - 25;
