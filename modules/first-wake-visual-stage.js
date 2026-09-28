@@ -399,18 +399,22 @@
       }
     }
 
-    // Closed-route board and foreground cable silhouettes.
-    fill(37, 43, 48);
-    rect(246, 338, 84, 58);
-    fill(181, 103, 91, 180);
-    for (let i = 0; i < 26; i++) {
-      rect(258 + i * 2, 349 + Math.floor(i / 13) * 22, 2, 2);
+    // Closed-route board belongs to the walk/exploration beat, not the character-introduction cinematic.
+    if (scene.id === 'dock_walk') {
+      fill(37, 43, 48, 218);
+      rect(246, 346, 74, 50, 3);
+      fill(181, 103, 91, 176);
+      for (let i = 0; i < 20; i++) {
+        rect(257 + i * 2, 356 + Math.floor(i / 10) * 19, 2, 2);
+      }
+      stroke(181, 103, 91, 185);
+      strokeWeight(2);
+      line(257, 354, 309, 386);
+      line(309, 354, 257, 386);
+      noStroke();
     }
-    stroke(181, 103, 91, 190);
-    strokeWeight(3);
-    line(258, 347, 318, 383);
-    line(318, 347, 258, 383);
-    stroke(8, 12, 18, 170);
+    // Foreground cable silhouettes retain depth without becoming an opaque frame.
+    stroke(8, 12, 18, 150);
     strokeWeight(5);
     line(18, 0, 88, 182);
     line(width - 22, 0, width - 102, 198);
