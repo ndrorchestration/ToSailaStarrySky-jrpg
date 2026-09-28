@@ -1,7 +1,7 @@
 /* Aetherwake authored character art runtime bridge. */
 (function(root){
   'use strict';
-  const VERSION='0.3.0';
+  const VERSION='0.4.0';
   const CELL=256;
   const FIELD_CELL_W=64;
   const FIELD_CELL_H=96;
@@ -18,8 +18,13 @@
     ender:Object.freeze({path:'assets/characters/v1/ender/field-idle-walk-candidate.png',width:56,height:36,cellW:28,cellH:36}),
     ionia:Object.freeze({path:'assets/characters/v1/ionia/field-idle-walk-candidate.png',width:56,height:36,cellW:28,cellH:36})
   });
+  const PROVISIONAL_FIELD=Object.freeze({
+    ender:Object.freeze({base:'assets/characters/v1/ender'}),
+    ionia:Object.freeze({base:'assets/characters/v1/ionia'})
+  });
   const state=Object.create(null);
   const fieldState=Object.create(null);
+  const provisionalState=Object.create(null);
   const candidateState=Object.create(null);
   function normalizeExpression(expression){
     const v=String(expression||'neutral').toLowerCase();
@@ -143,10 +148,45 @@
   function drawCandidateFieldCharacter(id,x,y,options={}){
     return drawCandidateSheet(id,x,y,options,true);
   }
+  function ensureProvisionalStrip(id,action){
+    const pack=PROVISIONAL_FIELD[id];
+    if(!pack||typeof loadImage!=='function') return null;
+    const key=id+':'+action;
+    if(!provisionalState[key]) provisionalState[key]={requested:false,ready:false,failed:false,image:null};
+    const entry=provisionalState[key];
+    if(!entry.requested){
+      entry.requested=true;
+      const expectedW=FIELD_CELL_W*FIELD_FRAMES[action];
+      const path=pack.base+'/provisional-'+action+'.png';
+      try{
+        entry.image=loadImage(path,
+          img=>{entry.image=img;entry.ready=Boolean(img&&img.width===expectedW&&img.height===FIELD_CELL_H);entry.failed=!entry.ready;},
+          ()=>{entry.failed=true;entry.ready=false;entry.image=null;});
+      }catch(error){entry.failed=true;entry.ready=false;entry.image=null;}
+    }
+    return entry;
+  }
   function drawProvisionalFieldCharacter(id,x,y,options={}){
+    const action=fieldAction(options.action || (options.speed>0?'walk':'idle'));
+    const entry=ensureProvisionalStrip(id,action);
+    if(entry&&entry.ready&&entry.image&&typeof image==='function'){
+      const count=FIELD_FRAMES[action];
+      const frame=Math.abs(Math.floor(Number(options.frame)||0))%count;
+      // Existing call sites express scale in the 28x36 candidate-space contract.
+      // Provisional strips contain a 2x nearest-neighbor sprite inside 64x96 cells,
+      // so halve the requested scale to preserve on-screen character size.
+      const scale=Math.max(0.25,(Number(options.scale)||2)*0.5);
+      const dw=FIELD_CELL_W*scale, dh=FIELD_CELL_H*scale;
+      const dx=options.anchor==='top-left'?x:x-dw/2;
+      const dy=options.anchor==='top-left'?y:y-dh;
+      push(); imageMode(CORNER); noSmooth();
+      image(entry.image,dx,dy,dw,dh,frame*FIELD_CELL_W,0,FIELD_CELL_W,FIELD_CELL_H);
+      pop();
+      return true;
+    }
     return drawCandidateSheet(id,x,y,options,false);
   }
   function isFieldReady(id){const pack=FIELD_PACKS[id];return Boolean(pack&&pack.status==='ready');}
   function isPortraitReady(id){const pack=PACKS[id];return Boolean(pack&&pack.status==='portrait-ready');}
-  root.AetherAuthoredCharacterArt=Object.freeze({VERSION,PACKS,FIELD_PACKS,FIELD_FRAMES,CANDIDATE_FIELD,EXPRESSION_ORDER,normalizeExpression,drawPortrait,isPortraitReady,drawFieldCharacter,isFieldReady,candidateReviewEnabled,drawCandidateFieldCharacter,drawProvisionalFieldCharacter});
+  root.AetherAuthoredCharacterArt=Object.freeze({VERSION,PACKS,FIELD_PACKS,FIELD_FRAMES,CANDIDATE_FIELD,PROVISIONAL_FIELD,EXPRESSION_ORDER,normalizeExpression,drawPortrait,isPortraitReady,drawFieldCharacter,isFieldReady,candidateReviewEnabled,drawCandidateFieldCharacter,drawProvisionalFieldCharacter});
 })(typeof window!=='undefined'?window:globalThis);
