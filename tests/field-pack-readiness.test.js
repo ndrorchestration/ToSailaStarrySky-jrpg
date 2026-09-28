@@ -12,6 +12,10 @@ assert(source.includes("['ender', 'ionia']"), 'default admission targets must re
 assert(source.includes('FIELD_CELL') && source.includes('EXPECTED_ACTIONS'),
   'validator must bind canonical 64x96 cells and action frame counts independently of manifest claims');
 assert(source.includes('manifestContractValid'), 'validator must report manifest contract drift explicitly');
+assert(source.includes("require('crypto')") && source.includes('sha256File'),
+  'validator must hash production strips before admission');
+assert(source.includes('hashesMatch') && source.includes('assetSha256'),
+  'admission evidence must bind the reviewed receipt to exact strip SHA-256 values');
 assert(source.includes('transparentCapable') && source.includes('transparentCapable &&'),
   'validator must require an alpha-capable PNG before a strip can be admitted');
 assert(source.includes('ADMISSION_SCHEMA') && source.includes('inspectAdmissionEvidence'),
