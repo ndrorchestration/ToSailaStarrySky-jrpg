@@ -37,10 +37,30 @@ function admissionTransitionMatches(reviewedHead) {
   }
   const reviewed = reviewedHead.toLowerCase();
 
+  const allowed = new Set([
+    'assets/characters/v1/manifest.json',
+    'assets/characters/v1/admission/ender.json',
+    'assets/characters/v1/admission/ionia.json'
+  ]);
+
   // Before the bounded admission commit is created, the working tree may carry
-  // the receipt/manifest changes while HEAD remains the exact reviewed candidate.
+  // only the receipt/manifest changes while HEAD remains the exact reviewed candidate.
   if (current === reviewed) {
-    return { valid: true, mode: 'REVIEWED_HEAD_WORKTREE', currentHead: current, parentHead: null, changedFiles: [] };
+    const status = gitText(['status', '--porcelain']);
+    if (status === null) {
+      return { valid: false, mode: 'STATUS_UNAVAILABLE', currentHead: current, parentHead: null, changedFiles: [] };
+    }
+    const changedFiles = status
+      ? status.split(/\r?\n/).filter(Boolean).map(line => line.slice(3).trim())
+      : [];
+    const valid = changedFiles.every(file => allowed.has(file));
+    return {
+      valid,
+      mode: valid ? 'REVIEWED_HEAD_WORKTREE' : 'UNBOUNDED_REVIEWED_WORKTREE',
+      currentHead: current,
+      parentHead: null,
+      changedFiles
+    };
   }
 
   const parent = gitText(['rev-parse', 'HEAD^']);
@@ -60,11 +80,6 @@ function admissionTransitionMatches(reviewedHead) {
     return { valid: false, mode: 'DIFF_UNAVAILABLE', currentHead: current, parentHead: parent.toLowerCase(), changedFiles: [] };
   }
   const changedFiles = diff ? diff.split(/\r?\n/).filter(Boolean) : [];
-  const allowed = new Set([
-    'assets/characters/v1/manifest.json',
-    'assets/characters/v1/admission/ender.json',
-    'assets/characters/v1/admission/ionia.json'
-  ]);
   const valid = changedFiles.length > 0 && changedFiles.every(file => allowed.has(file));
   return {
     valid,
