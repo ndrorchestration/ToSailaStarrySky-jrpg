@@ -66,6 +66,13 @@ weakSameGame.participants[0].sameGame.aetherwakeCorrect = 5;
 const weakResult = scoreResults(weakSameGame);
 assert.strictEqual(weakResult.sameGameRate, 0.8);
 
+const allMarkedAetherwake = JSON.parse(JSON.stringify(passing));
+allMarkedAetherwake.participants[0].sameGame.aetherwakeCorrect = 7;
+allMarkedAetherwake.participants[0].sameGame.decoyCorrect = 0;
+const allMarkedResult = scoreResults(allMarkedAetherwake);
+assert.strictEqual(allMarkedResult.sameGameRate, 0.8,
+  'a participant who labels every screenshot as Aetherwake must fail the blind same-game test');
+
 const incompleteRecall = JSON.parse(JSON.stringify(passing));
 incompleteRecall.participants[0].dragonflyRecall.silhouetteChoiceCorrect = null;
 assert.throws(() => scoreResults(incompleteRecall), /incomplete Dragonfly recall evidence/);
