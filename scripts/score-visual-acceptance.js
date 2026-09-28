@@ -1,9 +1,45 @@
 "use strict";
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const root = path.resolve(__dirname, '..');
 const contract = JSON.parse(fs.readFileSync(path.join(root, 'docs', 'visual-style-contract.json'), 'utf8'));
+
+function sha256File(file) {
+  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+}
+
+function verifyProtocolBinding(results, protocolPath) {
+  if (!fs.existsSync(protocolPath)) throw new Error('VISUAL_ACCEPTANCE_FAIL: frozen protocol file missing');
+  const actualProtocolSha256 = sha256File(protocolPath);
+  if (actualProtocolSha256.toLowerCase() !== results.candidate.protocolSha256.toLowerCase()) {
+    throw new Error('VISUAL_ACCEPTANCE_FAIL: protocol SHA-256 mismatch');
+  }
+
+  const protocol = JSON.parse(fs.readFileSync(protocolPath, 'utf8'));
+  if (protocol.schema !== 'AETHERWAKE_VISUAL_ACCEPTANCE_PROTOCOL_V1') {
+    throw new Error('VISUAL_ACCEPTANCE_FAIL: protocol schema mismatch');
+  }
+  if (protocol.frozenBeforeFirstSession !== true) {
+    throw new Error('VISUAL_ACCEPTANCE_FAIL: protocol was not frozen before testing');
+  }
+  for (const key of ['commit', 'packageSha256', 'evidenceManifestSha256']) {
+    const expected = results.candidate[key];
+    const actual = protocol.candidate && protocol.candidate[key];
+    if (typeof actual !== 'string' || actual.toLowerCase() !== expected.toLowerCase()) {
+      throw new Error('VISUAL_ACCEPTANCE_FAIL: protocol candidate mismatch for ' + key);
+    }
+  }
+  if (!Array.isArray(protocol.aetherwakeFrames) || protocol.aetherwakeFrames.length !== 7) {
+    throw new Error('VISUAL_ACCEPTANCE_FAIL: protocol must freeze exactly seven Aetherwake frames');
+  }
+  if (!Array.isArray(protocol.decoys) || protocol.decoys.length !== 3 ||
+      protocol.decoys.some(decoy => !decoy || !/^[0-9a-f]{64}$/i.test(decoy.sha256 || ''))) {
+    throw new Error('VISUAL_ACCEPTANCE_FAIL: protocol must bind exactly three decoy hashes');
+  }
+  return protocol;
+}
 
 function scoreResults(results) {
   if (!results || results.schema !== 'AETHERWAKE_VISUAL_ACCEPTANCE_RESULTS_V1') throw new Error('VISUAL_ACCEPTANCE_FAIL: schema mismatch');
@@ -86,9 +122,12 @@ function scoreResults(results) {
 
 if (require.main === module) {
   const input = process.argv[2] || path.join(root, 'visual-acceptance-results.json');
+  const protocolPath = process.argv[3] || path.join(root, 'visual-acceptance-protocol.json');
   if (!fs.existsSync(input)) throw new Error('VISUAL_ACCEPTANCE_FAIL: result file missing: ' + input);
-  const result = scoreResults(JSON.parse(fs.readFileSync(input, 'utf8')));
+  const results = JSON.parse(fs.readFileSync(input, 'utf8'));
+  verifyProtocolBinding(results, protocolPath);
+  const result = scoreResults(results);
   console.log('AETHERWAKE_VISUAL_ACCEPTANCE=PASS');
   console.log(JSON.stringify(result, null, 2));
 }
-module.exports = { scoreResults };
+module.exports = { scoreResults, verifyProtocolBinding };
