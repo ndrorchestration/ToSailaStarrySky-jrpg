@@ -754,6 +754,10 @@ function writeDesktopSmokeMarkerOnce() {
 
 // ── draw() ──
 function draw() {
+  if (!window.__awDrawStartedDiagnostic) {
+    window.__awDrawStartedDiagnostic = true;
+    console.log('[aw] draw loop entered');
+  }
   dt = millis() - lastTime;
   lastTime = millis();
 
@@ -986,6 +990,7 @@ function draw() {
   }
 
   // The embedded loader waits for a completed frame, not merely a canvas node.
+  if (!window.__awFirstFrame) console.log('[aw] first draw completed');
   window.__awFirstFrame = true;
   runChapter1PersistenceSmokeOnce();
   writeDesktopSmokeMarkerOnce();
