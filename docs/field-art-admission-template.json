@@ -15,5 +15,12 @@
     "visualPerformance": "PENDING",
     "beforeAfterCohesion": "PENDING"
   },
-  "notes": []
+  "notes": [],
+  "assetSha256": {
+    "idle": "",
+    "walk": "",
+    "talk": "",
+    "focus": "",
+    "attack": ""
+  }
 }
