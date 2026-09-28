@@ -8598,11 +8598,11 @@ function drawCombatPanel(combatState, layoutBox) {
   const panelColor = uiVisual && typeof uiVisual.panelRGBA === 'function'
     ? uiVisual.panelRGBA()
     : [11, 16, 33, 190];
-  fill(panelColor[0], panelColor[1], panelColor[2], Math.min(panelColor[3] || 190, 190));
+  fill(panelColor[0], panelColor[1], panelColor[2], Math.min(panelColor[3] || 150, 150));
   noStroke();
   rect(px, py, pw, ph, 10);
   // Softer glass edge replaces the heavy debug-frame read.
-  stroke(42, 255, 181, 72);
+  stroke(42, 255, 181, 42);
   strokeWeight(1);
   noFill();
   rect(px + 1, py + 1, pw - 2, ph - 2, 10);
@@ -8618,10 +8618,10 @@ function drawCombatPanel(combatState, layoutBox) {
   // Enemy section
   if (combatState.enemy) {
     const ey = py + 36;
-    fill(160, 74, 44, 18);
-    rect(px + 8, ey, pw - 16, 44, 5);
-    stroke(160, 74, 44, 72);
-    strokeWeight(1); noFill(); rect(px + 8, ey, pw - 16, 44, 5); noStroke();
+    // Enemy readout is text-led; a single rust rule replaces the nested dashboard card.
+    noStroke();
+    fill(160, 74, 44, 90);
+    rect(px + 12, ey + 1, pw - 24, 1);
     textFont(FONT_UI);
     textSize(8);
     drawGlowText(combatState.enemy.name.toUpperCase(), px + 14, ey + 4, PAL.RUST, 8);
@@ -8651,10 +8651,10 @@ function drawCombatPanel(combatState, layoutBox) {
 
   // Player status section
   const sY = py + 90;
-  fill(42, 255, 181, 14);
-  rect(px + 8, sY, pw - 16, 76, 5);
-  stroke(42, 255, 181, 62);
-  strokeWeight(1); noFill(); rect(px + 8, sY, pw - 16, 76, 5); noStroke();
+  // Player state shares the same open instrument surface; no nested status card.
+  noStroke();
+  fill(42, 255, 181, 72);
+  rect(px + 12, sY + 1, pw - 24, 1);
   textFont(FONT_UI);
   textSize(8);
   drawGlowText('ENDER', px + 14, sY + 6, PAL.TEAL, 8);
@@ -8685,10 +8685,10 @@ function drawCombatPanel(combatState, layoutBox) {
   const aY = sY + 86;
   const aW = pw - 16;
   const aH = 132;
-  fill(26, 16, 46, 72);
-  rect(aX, aY, aW, aH, 6);
-  stroke(42, 255, 181, 56);
-  strokeWeight(1); noFill(); rect(aX, aY, aW, aH, 6); noStroke();
+  // Actions remain grouped by spacing and typography rather than another opaque card.
+  noStroke();
+  fill(42, 255, 181, 58);
+  rect(aX + 4, aY, aW - 8, 1);
 
   textFont(FONT_UI);
   textSize(8);

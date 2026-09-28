@@ -18,5 +18,9 @@ assert(runtime.includes("text('◆' + totalCost"),
   'combat resource costs must retain compact JRPG-readable cost marks');
 assert(runtime.includes("text('TRAIT'"),
   'enemy special ability presentation must use concise JRPG terminology');
+assert(runtime.includes('Math.min(panelColor[3] || 150, 150)') && runtime.includes('single rust rule replaces the nested dashboard card'),
+  'combat command surface must remain translucent and text-led rather than nested dashboard cards');
+assert(runtime.includes('Actions remain grouped by spacing and typography rather than another opaque card'),
+  'combat action list must not regress to an opaque nested panel');
 
 console.log('Aetherwake combat UI JRPG presentation contract: PASS');
