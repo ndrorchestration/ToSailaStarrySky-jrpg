@@ -67,6 +67,8 @@ assert(source.includes('authored.drawFieldCharacter') && source.includes('author
   'v1.1 opening interiors must prefer admitted authored field packs with fail-safe fallback');
 assert(source.includes('drawProvisionalFieldCharacter'),
   'v1.2 opening must use reviewed pixel field sheets as the provisional fallback before procedural figures');
+assert(source.includes("const enderPixel = drawProvisional('ender'") && source.includes("const lyraPixel = drawProvisional('lyra'") && source.includes("const ioniaPixel = drawProvisional('ionia'"),
+  'interactive Wake exploration must preserve provisional pixel protagonist continuity before articulated fallback');
 assert(source.includes('sceneTicks < 36'),
   'v1.1 non-cinematic scene titles must clear quickly instead of becoming permanent HUD chrome');
 assert(source.includes('authored.drawPortrait') && source.includes('portraitDrawn'),

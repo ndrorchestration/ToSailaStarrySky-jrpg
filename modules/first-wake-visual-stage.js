@@ -938,36 +938,60 @@
       }
     }
 
+    const authored = root.AetherAuthoredCharacterArt;
     const characters = root.AetherCharacterRenderer;
     const sprites = root.AetherPixelSprites;
     if (scene.sequence >= 1) {
       const ep = wakeMapPoint(e.x, e.y);
       const lp = wakeMapPoint(7, 3);
       const ip = wakeMapPoint(12, 2);
-      if (characters && characters.validate()) {
-        characters.draw('ender', ep.x, ep.y, {
+
+      // Keep interactive exploration in the same pixel character language as the
+      // authored opening. Full field-pack readiness is unchanged and remains NOT_READY.
+      const drawProvisional = (id, p, moving, facing) => {
+        if (!authored || typeof authored.drawProvisionalFieldCharacter !== 'function') return false;
+        return authored.drawProvisionalFieldCharacter(id, p.x, p.y, {
+          anchor: 'bottom-center',
+          scale: id === 'lyra' ? 2.15 : (id === 'ionia' ? 2.20 : 2.28),
+          action: moving ? 'walk' : 'idle',
+          frame: Math.floor(now / (moving ? 150 : 260)),
+          facing,
+        });
+      };
+      const enderPixel = drawProvisional('ender', ep, e.moving, e.facing || 'right');
+      const lyraPixel = drawProvisional('lyra', lp, false, 'right');
+      const ioniaPixel = drawProvisional('ionia', ip, false, 'left');
+
+      if ((!enderPixel || !lyraPixel || !ioniaPixel) && characters && characters.validate()) {
+        if (!enderPixel) characters.draw('ender', ep.x, ep.y, {
           scale: 0.92, depth: 0.64, now,
           speed: e.moving ? 0.8 : 0, facing: e.facing || 'right',
         });
-        characters.draw('lyra', lp.x, lp.y, {
+        if (!lyraPixel) characters.draw('lyra', lp.x, lp.y, {
           scale: 0.82, depth: 0.62, now, speed: 0, facing: 'right',
         });
-        characters.draw('ionia', ip.x, ip.y, {
+        if (!ioniaPixel) characters.draw('ionia', ip.x, ip.y, {
           scale: 0.89, depth: 0.63, now, speed: 0, facing: 'left',
         });
-      } else if (sprites && sprites.validate()) {
-        sprites.drawShadow(ep.x, ep.y, 2);
-        sprites.draw('ender', ep.x, ep.y, {
-          anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 220) % 2,
-        });
-        sprites.drawShadow(lp.x, lp.y, 2);
-        sprites.draw('lyra', lp.x, lp.y, {
-          anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 310) % 2,
-        });
-        sprites.drawShadow(ip.x, ip.y, 2);
-        sprites.draw('ionia', ip.x, ip.y, {
-          anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 290) % 2,
-        });
+      } else if ((!enderPixel || !lyraPixel || !ioniaPixel) && sprites && sprites.validate()) {
+        if (!enderPixel) {
+          sprites.drawShadow(ep.x, ep.y, 2);
+          sprites.draw('ender', ep.x, ep.y, {
+            anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 220) % 2,
+          });
+        }
+        if (!lyraPixel) {
+          sprites.drawShadow(lp.x, lp.y, 2);
+          sprites.draw('lyra', lp.x, lp.y, {
+            anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 310) % 2,
+          });
+        }
+        if (!ioniaPixel) {
+          sprites.drawShadow(ip.x, ip.y, 2);
+          sprites.draw('ionia', ip.x, ip.y, {
+            anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 290) % 2,
+          });
+        }
       }
     }
 
