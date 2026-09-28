@@ -91,7 +91,7 @@ The verifier derives the participant count, correct count, and correct rate. Dup
 `runtimeReview.exactHead` records the **reviewed candidate head**, not the later bookkeeping commit that admits it.
 
 The verifier accepts exactly two states:
-1. **Reviewed-head worktree:** current HEAD is the reviewed candidate head while receipt/manifest changes are being prepared.
+1. **Reviewed-head worktree:** current HEAD is the reviewed candidate head while receipt/manifest changes are being prepared, and every dirty path is restricted to the manifest and Ender/Ionia admission receipt files.
 2. **Bounded admission child:** current HEAD is exactly one child commit after the reviewed head, the worktree is clean, and that child changes only:
    - `assets/characters/v1/manifest.json`
    - `assets/characters/v1/admission/ender.json`
