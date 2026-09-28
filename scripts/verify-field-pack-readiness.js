@@ -50,6 +50,26 @@ function inspectAdmissionEvidence(id, stripHashes) {
   try {
     const receipt = JSON.parse(fs.readFileSync(file, 'utf8'));
     const silhouette = receipt.silhouetteRecognition || {};
+    const rawParticipants = Array.isArray(silhouette.participants) ? silhouette.participants : [];
+    const silhouetteIds = new Set();
+    let silhouetteCorrect = 0;
+    let silhouetteEvidenceValid = rawParticipants.length >= 5;
+    for (const participant of rawParticipants) {
+      if (!participant || typeof participant.id !== 'string' || !participant.id.trim() ||
+          silhouetteIds.has(participant.id) ||
+          participant.independentOfImplementation !== true ||
+          typeof participant.correct !== 'boolean') {
+        silhouetteEvidenceValid = false;
+        continue;
+      }
+      silhouetteIds.add(participant.id);
+      if (participant.correct) silhouetteCorrect++;
+    }
+    const silhouetteRate = rawParticipants.length ? silhouetteCorrect / rawParticipants.length : 0;
+    silhouetteEvidenceValid = silhouetteEvidenceValid &&
+      silhouetteIds.size === rawParticipants.length &&
+      silhouetteRate >= 0.80;
+
     const runtime = receipt.runtimeReview || {};
     const assetSha256 = receipt.assetSha256 || {};
     const hashesMatch = ACTION_NAMES.every(action => {
@@ -66,9 +86,7 @@ function inspectAdmissionEvidence(id, stripHashes) {
       receipt.characterId === id &&
       hashesMatch &&
       silhouette.status === 'PASS' &&
-      Number.isInteger(silhouette.participants) &&
-      silhouette.participants >= 5 &&
-      Number(silhouette.correctRate) >= 0.80 &&
+      silhouetteEvidenceValid &&
       runtime.status === 'PASS' &&
       runtime.visualSuite === 'PASS' &&
       runtime.browserRouteReplay === 'PASS' &&
@@ -85,8 +103,10 @@ function inspectAdmissionEvidence(id, stripHashes) {
       exists: true,
       valid,
       silhouetteStatus: silhouette.status || null,
-      participants: Number.isInteger(silhouette.participants) ? silhouette.participants : null,
-      correctRate: Number.isFinite(Number(silhouette.correctRate)) ? Number(silhouette.correctRate) : null,
+      participants: rawParticipants.length,
+      correctCount: silhouetteCorrect,
+      correctRate: silhouetteRate,
+      silhouetteEvidenceValid,
       runtimeStatus: runtime.status || null,
       visualSuite: runtime.visualSuite || null,
       browserRouteReplay: runtime.browserRouteReplay || null,
