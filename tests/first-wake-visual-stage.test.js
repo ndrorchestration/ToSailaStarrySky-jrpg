@@ -83,6 +83,10 @@ assert(source.includes('Math.min(286, width - 420)') && source.includes("promptT
   'opening location labels and interaction prompts must remain compact and JRPG-like');
 assert(!source.includes('A / D or Left / Right  —  Walk to the Dragonfly') && !source.includes('Enter / Space  —  Continue'),
   'opening must not regress to verbose tutorial-style prompts');
+assert(source.includes("text('SETTLING IN', 184, 374)") && source.includes("text('TALK WITH TALEN', 420, 390)"),
+  'opening task progress must use compact labels plus pips');
+assert(!source.includes("'SETTLING IN  ·  ' + step + ' / '") && !source.includes("'TALK WITH TALEN  ·  ' + talenStep + ' / '"),
+  'opening task progress must not expose dashboard-style numeric counters');
 assert(source.includes('function drawWrongSongSetPiece') && source.includes('drawWrongSongSetPiece(now'),
   'v1.0 opening must stage the Wrong Song as a bounded visual set piece');
 assert(source.includes("['ionia'"),

@@ -696,15 +696,17 @@
 
     if (scene.id === 'berth_task' && state.berthTask) {
       const step = state.berthTask.step;
-      fill(6, 10, 16, 125);
-      rect(172, 367, 196, 30, 6);
-      fill(42, 255, 181, 38 + step * 32);
-      rect(184, 389, Math.max(8, step * 54), 2);
-      fill(232, 220, 198, 205);
+      fill(6, 10, 16, 92);
+      rect(172, 367, 164, 28, 6);
+      fill(232, 220, 198, 195);
       textAlign(LEFT, TOP);
       textFont('Trebuchet MS');
-      textSize(12);
-      text('SETTLING IN  ·  ' + step + ' / ' + state.berthTask.max, 184, 374);
+      textSize(10);
+      text('SETTLING IN', 184, 374);
+      for (let i = 0; i < state.berthTask.max; i++) {
+        fill(i < step ? color(42,255,181,190) : color(83,103,107,95));
+        rect(266 + i * 14, 376, 8, 4, 1);
+      }
     }
 
     if (scene.id === 'talen_staying') {
@@ -718,13 +720,18 @@
         rect(418, 373, 6, 3);
         rect(467, 373, 6, 3);
       }
-      fill(6, 10, 16, 120);
-      rect(409, 383, 194, 28, 6);
-      fill(232, 220, 198, 202);
+      fill(6, 10, 16, 92);
+      rect(409, 383, 178, 28, 6);
+      fill(232, 220, 198, 195);
       textAlign(LEFT, TOP);
       textFont('Trebuchet MS');
-      textSize(12);
-      text('TALK WITH TALEN  ·  ' + talenStep + ' / ' + (state.talenBeat ? state.talenBeat.max : 2), 420, 390);
+      textSize(10);
+      text('TALK WITH TALEN', 420, 390);
+      const talenMax = state.talenBeat ? state.talenBeat.max : 2;
+      for (let i = 0; i < talenMax; i++) {
+        fill(i < talenStep ? color(42,255,181,190) : color(83,103,107,95));
+        rect(542 + i * 14, 392, 8, 4, 1);
+      }
     }
   }
 

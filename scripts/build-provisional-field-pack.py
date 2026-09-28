@@ -3,7 +3,7 @@ from pathlib import Path
 from PIL import Image, ImageFilter, ImageChops
 
 ROOT = Path(__file__).resolve().parents[1]
-CHARACTERS = ("ender","ionia")
+CHARACTERS = ("ender","ionia","lyra")
 FRAME_W, FRAME_H = 64, 96
 ACTIONS = {"idle":8,"walk":6,"talk":4,"focus":6,"attack":8}
 

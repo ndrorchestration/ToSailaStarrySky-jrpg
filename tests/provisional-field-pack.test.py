@@ -3,7 +3,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 ACTIONS = {"idle":8,"walk":6,"talk":4,"focus":6,"attack":8}
-for character in ("ender","ionia"):
+for character in ("ender","ionia","lyra"):
     for action,count in ACTIONS.items():
         path = ROOT / "assets" / "characters" / "v1" / character / f"provisional-{action}.png"
         assert path.exists(), f"missing {path}"

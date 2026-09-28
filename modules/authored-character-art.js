@@ -16,11 +16,13 @@
   const FIELD_FRAMES=Object.freeze({idle:8,walk:6,talk:4,focus:6,attack:8});
   const CANDIDATE_FIELD=Object.freeze({
     ender:Object.freeze({path:'assets/characters/v1/ender/field-idle-walk-candidate.png',width:56,height:36,cellW:28,cellH:36}),
-    ionia:Object.freeze({path:'assets/characters/v1/ionia/field-idle-walk-candidate.png',width:56,height:36,cellW:28,cellH:36})
+    ionia:Object.freeze({path:'assets/characters/v1/ionia/field-idle-walk-candidate.png',width:56,height:36,cellW:28,cellH:36}),
+    lyra:Object.freeze({path:'assets/characters/v1/lyra/field-idle-walk-candidate.png',width:56,height:36,cellW:28,cellH:36})
   });
   const PROVISIONAL_FIELD=Object.freeze({
     ender:Object.freeze({base:'assets/characters/v1/ender'}),
-    ionia:Object.freeze({base:'assets/characters/v1/ionia'})
+    ionia:Object.freeze({base:'assets/characters/v1/ionia'}),
+    lyra:Object.freeze({base:'assets/characters/v1/lyra'})
   });
   const state=Object.create(null);
   const fieldState=Object.create(null);
