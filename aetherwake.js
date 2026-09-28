@@ -712,10 +712,28 @@ function writeDesktopSmokeMarkerOnce() {
   if (window.__awDesktopSmokeMarkerWritten) return;
   try {
     const bridge = desktopNodeBridge();
-    if (!bridge) return;
+    if (!bridge) {
+      if (!window.__awDesktopBridgeDiagnosticLogged && typeof nw !== 'undefined') {
+        window.__awDesktopBridgeDiagnosticLogged = true;
+        console.warn('[aw] desktop node bridge unavailable',
+          'process=' + typeof process,
+          'require=' + typeof require,
+          'nw=' + typeof nw,
+          'nw.require=' + (nw && typeof nw.require));
+      }
+      return;
+    }
     const markerPath = bridge.process.env.AETHERWAKE_DESKTOP_SMOKE_MARKER;
     if (!markerPath) return;
-    if (!window.__awRuntimeReady || !window.__awFirstFrame) return;
+    if (!window.__awRuntimeReady || !window.__awFirstFrame) {
+      if (!window.__awDesktopMarkerFlagsLogged) {
+        window.__awDesktopMarkerFlagsLogged = true;
+        console.warn('[aw] desktop marker waiting for runtime flags',
+          'runtimeReady=' + Boolean(window.__awRuntimeReady),
+          'firstFrame=' + Boolean(window.__awFirstFrame));
+      }
+      return;
+    }
 
     const fs = bridge.require('fs');
     const payload = {
