@@ -20,6 +20,12 @@ assert(source.includes('silhouette.participants >= 5') && source.includes('Numbe
   'human silhouette evidence must enforce the minimum participant count and recognition threshold');
 assert(source.includes("runtime.status === 'PASS'") && source.includes('runtime.exactHead'),
   'admission evidence must bind a passing runtime review to an exact head');
+for (const gate of ['visualSuite', 'browserRouteReplay', 'exactHeadEvidenceCapture', 'visualPerformance', 'beforeAfterCohesion']) {
+  assert(source.includes("runtime." + gate + " === 'PASS'"),
+    'admission evidence must explicitly require runtime gate ' + gate);
+}
+assert(source.includes('/^[0-9a-f]{40}$/i.test(runtime.exactHead)'),
+  'runtime evidence must bind a full 40-character exact commit SHA');
 assert(source.includes('--require-complete') && source.includes('--require-ready') && source.includes('--require-evidence'),
   'validator must separate pre-promotion completeness from post-promotion admission');
 assert(source.includes('AETHERWAKE_FIELD_PACK_READINESS=BLOCKED'),
