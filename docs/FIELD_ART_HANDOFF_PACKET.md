@@ -190,3 +190,7 @@ A visually appealing sheet is not sufficient. The pack remains **NOT READY** unt
 
 ### Provenance rule
 Do not edit, optimize, recompress, crop, or regenerate an admitted strip after its review receipt has been created. Any byte change produces a different SHA-256 and intentionally invalidates the receipt until the new artifact is reviewed and rebound.
+
+
+### Exact-head finalization rule
+The admission receipt is valid only for the exact repository head and exact evidence-manifest bytes it records. Any subsequent commit invalidates the receipt. Treat receipt preparation and admission as a final candidate-head operation, not an intermediate step followed by unrelated commits.
