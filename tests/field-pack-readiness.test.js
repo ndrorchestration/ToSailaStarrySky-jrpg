@@ -31,8 +31,10 @@ for (const gate of ['visualSuite', 'browserRouteReplay', 'exactHeadEvidenceCaptu
   assert(source.includes("runtime." + gate + " === 'PASS'"),
     'admission evidence must explicitly require runtime gate ' + gate);
 }
-assert(source.includes('/^[0-9a-f]{64}$/i.test(runtime.evidenceManifestSha256)'),
-  'runtime evidence must bind the exact visual-evidence manifest SHA-256');
+assert(source.includes('actualEvidenceManifestSha256') && source.includes('evidenceManifestMatches'),
+  'runtime evidence must compare the recorded evidence-manifest hash to the actual manifest bytes');
+assert(source.includes('currentGitHead') && source.includes('runtimeHeadMatches'),
+  'runtime evidence must compare the recorded exact head to the current repository head');
 assert(source.includes('/^[0-9a-f]{40}$/i.test(runtime.exactHead)'),
   'runtime evidence must bind a full 40-character exact commit SHA');
 assert(source.includes('--require-complete') && source.includes('--require-ready') && source.includes('--require-evidence'),
