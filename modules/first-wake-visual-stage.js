@@ -1034,13 +1034,13 @@
     }
 
     // Exploration HUD is now a restrained JRPG objective cue rather than a map/debug card.
-    // When a priority notice is already telling the player what changed, do not echo
+    // When a scene notice is already telling the player what changed, do not echo
     // the same objective directly underneath it.
-    const hasPriorityNotice = Array.isArray(root.toasts) && root.toasts.some(t =>
-      t && t.kind === 'priority' && now - Number(t.startTime || 0) <= Number(t.duration || 0)
+    const hasSceneNotice = Array.isArray(root.toasts) && root.toasts.some(t =>
+      t && t.kind !== 'system' && now - Number(t.startTime || 0) <= Number(t.duration || 0)
     );
     const objectiveW = 286;
-    if (!hasPriorityNotice) {
+    if (!hasSceneNotice) {
       fill(5, 8, 13, 118);
       rect(width / 2 - objectiveW / 2, 42, objectiveW, 30, 7);
       textAlign(CENTER, TOP);

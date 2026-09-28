@@ -91,8 +91,8 @@ assert(source.includes("if (!paintedInterior) {") && source.includes("drawWakeRo
   'authored Wake interior must suppress map-like room labels while procedural fallback may retain them');
 assert(source.includes('const objectiveW = 286') && source.includes("text('E   INSPECT', width / 2, 580)"),
   'interactive Wake HUD must use compact JRPG objective/inspect cues');
-assert(source.includes("t.kind === 'priority'") && source.includes('if (!hasPriorityNotice)') && source.includes('const messageX = width / 2 - messageW / 2'),
-  'interactive Wake HUD must suppress duplicate objective notices and keep narrative copy aligned inside its panel');
+assert(source.includes("t.kind !== 'system'") && source.includes('if (!hasSceneNotice)') && source.includes('const messageX = width / 2 - messageW / 2'),
+  'interactive Wake HUD must suppress duplicate scene notices and keep narrative copy aligned inside its panel');
 assert(!source.includes('WASD / ARROWS MOVE   E INSPECT') && !source.includes("'CLUES ' + e.clues.length + ' / 3  //  2 REQUIRED'"),
   'interactive Wake HUD must not expose tutorial/debug control strings or numeric clue counters');
 assert(!source.includes("'SETTLING IN  ·  ' + step + ' / '") && !source.includes("'TALK WITH TALEN  ·  ' + talenStep + ' / '"),
