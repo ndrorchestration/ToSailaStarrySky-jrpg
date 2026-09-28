@@ -17,6 +17,9 @@ function scoreResults(results) {
   if (typeof candidate.evidenceManifestSha256 !== 'string' || !/^[0-9a-f]{64}$/i.test(candidate.evidenceManifestSha256)) {
     throw new Error('VISUAL_ACCEPTANCE_FAIL: candidate evidenceManifestSha256 must be an exact SHA-256');
   }
+  if (typeof candidate.protocolSha256 !== 'string' || !/^[0-9a-f]{64}$/i.test(candidate.protocolSha256)) {
+    throw new Error('VISUAL_ACCEPTANCE_FAIL: candidate protocolSha256 must be an exact SHA-256');
+  }
 
   const participants = results.participants || [];
   if (participants.length < contract.acceptance.playtesters) throw new Error('VISUAL_ACCEPTANCE_FAIL: fewer than required participants');
@@ -43,10 +46,28 @@ function scoreResults(results) {
       if (!Number.isFinite(value) || value < 1 || value > 5) throw new Error('VISUAL_ACCEPTANCE_FAIL: invalid/missing ' + key + ' for ' + participant.id);
       sums[key] += value;
     }
-    if (participant.sameGamePass === true) sameGame++;
-    else if (participant.sameGamePass !== false) throw new Error('VISUAL_ACCEPTANCE_FAIL: missing sameGamePass for ' + participant.id);
-    if (participant.dragonflyRecallPass === true) dragonfly++;
-    else if (participant.dragonflyRecallPass !== false) throw new Error('VISUAL_ACCEPTANCE_FAIL: missing dragonflyRecallPass for ' + participant.id);
+    const same = participant.sameGame || {};
+    if (!Number.isInteger(same.aetherwakeCorrect) || same.aetherwakeCorrect < 0 || same.aetherwakeCorrect > 7) {
+      throw new Error('VISUAL_ACCEPTANCE_FAIL: invalid same-game Aetherwake count for ' + participant.id);
+    }
+    if (!Number.isInteger(same.decoyCorrect) || same.decoyCorrect < 0 || same.decoyCorrect > 3) {
+      throw new Error('VISUAL_ACCEPTANCE_FAIL: invalid same-game decoy count for ' + participant.id);
+    }
+    const sameGameRateForParticipant = same.aetherwakeCorrect / 7;
+    if (sameGameRateForParticipant >= contract.acceptance.sameGameBlindTestMinimum) sameGame++;
+
+    const recall = participant.dragonflyRecall || {};
+    if (typeof recall.nameRecalled !== 'boolean' ||
+        typeof recall.silhouetteDescriptionUnambiguous !== 'boolean' ||
+        typeof recall.silhouetteChoiceCorrect !== 'boolean') {
+      throw new Error('VISUAL_ACCEPTANCE_FAIL: incomplete Dragonfly recall evidence for ' + participant.id);
+    }
+    if (recall.nameRecalled && recall.silhouetteDescriptionUnambiguous && recall.silhouetteChoiceCorrect) dragonfly++;
+
+    if (participant.helpRequested === true &&
+        (typeof participant.helpGiven !== 'string' || participant.helpGiven.trim().length === 0)) {
+      throw new Error('VISUAL_ACCEPTANCE_FAIL: help requested but not documented for ' + participant.id);
+    }
   }
   const averages = {};
   let weighted = 0;
