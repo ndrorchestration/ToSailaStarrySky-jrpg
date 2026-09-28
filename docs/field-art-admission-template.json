@@ -8,7 +8,12 @@
   },
   "runtimeReview": {
     "status": "PENDING",
-    "exactHead": ""
+    "exactHead": "",
+    "visualSuite": "PENDING",
+    "browserRouteReplay": "PENDING",
+    "exactHeadEvidenceCapture": "PENDING",
+    "visualPerformance": "PENDING",
+    "beforeAfterCohesion": "PENDING"
   },
   "notes": []
 }
