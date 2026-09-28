@@ -9,7 +9,6 @@
   "participants": [
     {
       "id": "P1",
-      "minutes": 20,
       "scores": {
         "cohesion": null,
         "readability": null,
@@ -33,11 +32,14 @@
         "nameRecalled": null,
         "silhouetteDescriptionUnambiguous": null,
         "silhouetteChoiceCorrect": null
+      },
+      "session": {
+        "startedAt": null,
+        "endedAt": null
       }
     },
     {
       "id": "P2",
-      "minutes": 20,
       "scores": {
         "cohesion": null,
         "readability": null,
@@ -61,11 +63,14 @@
         "nameRecalled": null,
         "silhouetteDescriptionUnambiguous": null,
         "silhouetteChoiceCorrect": null
+      },
+      "session": {
+        "startedAt": null,
+        "endedAt": null
       }
     },
     {
       "id": "P3",
-      "minutes": 20,
       "scores": {
         "cohesion": null,
         "readability": null,
@@ -89,11 +94,14 @@
         "nameRecalled": null,
         "silhouetteDescriptionUnambiguous": null,
         "silhouetteChoiceCorrect": null
+      },
+      "session": {
+        "startedAt": null,
+        "endedAt": null
       }
     },
     {
       "id": "P4",
-      "minutes": 20,
       "scores": {
         "cohesion": null,
         "readability": null,
@@ -117,11 +125,14 @@
         "nameRecalled": null,
         "silhouetteDescriptionUnambiguous": null,
         "silhouetteChoiceCorrect": null
+      },
+      "session": {
+        "startedAt": null,
+        "endedAt": null
       }
     },
     {
       "id": "P5",
-      "minutes": 20,
       "scores": {
         "cohesion": null,
         "readability": null,
@@ -145,6 +156,10 @@
         "nameRecalled": null,
         "silhouetteDescriptionUnambiguous": null,
         "silhouetteChoiceCorrect": null
+      },
+      "session": {
+        "startedAt": null,
+        "endedAt": null
       }
     }
   ]
