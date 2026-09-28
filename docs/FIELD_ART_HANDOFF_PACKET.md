@@ -46,7 +46,8 @@ Canonical requirements:
 - light freckles;
 - brass/bronze forehead goggles with green lenses;
 - the creator-approved olive/green + tan/cream field-scholar clothing language from the selected reference;
-- resonator staff or scholarly instrumentation may support the silhouette;
+- **fighting staff is Ender's locked main weapon**; it should read as a practical combat staff, not a wizard-focus prerequisite;
+- scholarly instrumentation may coexist with the staff;
 - avoid bodybuilder proportions, wizard robes, generic battle-mage posing, dark medium-length/tousled hair, or hazel/light-brown eye substitution.
 
 ### Ender frame direction
@@ -204,3 +205,14 @@ The receipt records the reviewed candidate head. Admission may then be committed
 The corrected visual montage was approved by the project owner after specifically correcting Ender's hair and eye color. For production field art, treat **very short dark copper-brown/auburn hair** and **bright green eyes** as locked likeness traits. These supersede older contradictory references that described Ender's eyes as hazel/light-brown or depicted darker/tousled hair.
 
 This approval locks identity direction only. It does not itself admit any field strip, close G4, or change `AETHERWAKE_FIELD_PACK_READINESS=NOT_READY`.
+
+
+## Starting weapon authority — 2026-09-28
+For animation and silhouette production, use these main-weapon identities:
+- Ender — fighting staff;
+- Reson — sword, with assault-style rifle as the only currently locked secondary/ranged weapon;
+- Aepex — martial arts;
+- Ionia — mace;
+- Lyra — chakram.
+
+Secondary/ranged options for Ender, Aepex, Ionia, and Lyra remain open and should not be animated into permanent canon yet. Magic remains independent of weapon possession unless a future ability explicitly requires a weapon family.
