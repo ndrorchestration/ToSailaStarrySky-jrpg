@@ -34,6 +34,18 @@ function verifyProtocolBinding(results, protocolPath) {
   if (!Array.isArray(protocol.aetherwakeFrames) || protocol.aetherwakeFrames.length !== 7) {
     throw new Error('VISUAL_ACCEPTANCE_FAIL: protocol must freeze exactly seven Aetherwake frames');
   }
+  const expectedPresentationIds = [
+    ...protocol.aetherwakeFrames.map(name => 'A:' + name),
+    ...protocol.decoys.map(decoy => 'D:' + decoy.id)
+  ].sort();
+  const actualPresentationIds = protocol.presentation && Array.isArray(protocol.presentation.order)
+    ? [...protocol.presentation.order].sort()
+    : [];
+  if (actualPresentationIds.length !== 10 ||
+      new Set(actualPresentationIds).size !== 10 ||
+      actualPresentationIds.some((id, index) => id !== expectedPresentationIds[index])) {
+    throw new Error('VISUAL_ACCEPTANCE_FAIL: frozen presentation order is missing or invalid');
+  }
   if (!Array.isArray(protocol.decoys) || protocol.decoys.length !== 3 ||
       protocol.decoys.some(decoy => !decoy || !/^[0-9a-f]{64}$/i.test(decoy.sha256 || ''))) {
     throw new Error('VISUAL_ACCEPTANCE_FAIL: protocol must bind exactly three decoy hashes');
