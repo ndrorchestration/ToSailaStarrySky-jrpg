@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.6.0';
   const PROPORTIONS = Object.freeze({
     adultHeightUnits: 1,
     bodyLengthAdultHeights: 3.0,
@@ -255,6 +255,166 @@
     rect(-133-Math.round(wake*0.82),-1,Math.round(wake*0.82),2);
   }
 
+  function drawPixelWing(sign, fore, now, mode, speed) {
+    const beatRate = mode === 'flight' ? 0.0038 + speed * 0.0006 : 0.0015;
+    const flap = Math.round(Math.sin(now * beatRate) * (mode === 'flight' ? 3 : 1));
+    const segments = fore ? 9 : 8;
+    const x0 = fore ? -4 : 8;
+    const stepX = fore ? 11 : -11;
+    const stepY = fore ? 3 : 3;
+    const baseY = fore ? 9 : 6;
+    const alpha = fore ? (mode === 'flight' ? 148 : 128) : (mode === 'flight' ? 118 : 102);
+    const c = fore ? PALETTE.aetherBlue : [205,225,190];
+
+    // Broad translucent membrane establishes the unmistakable four-wing Dragonfly silhouette.
+    // Pixel bars below add authored texture so the membrane does not read as a smooth vector paddle.
+    noStroke();
+    fill(c[0], c[1], c[2], fore ? 62 : 54);
+    beginShape();
+    if (fore) {
+      vertex(-4, sign * 5);
+      vertex(18, sign * 10);
+      vertex(102, sign * (43 + flap));
+      vertex(76, sign * 18);
+      vertex(6, sign * 4);
+    } else {
+      vertex(8, sign * 4);
+      vertex(-18, sign * 8);
+      vertex(-91, sign * (36 + flap));
+      vertex(-68, sign * 14);
+      vertex(-4, sign * 3);
+    }
+    endShape(CLOSE);
+    stroke(205,235,238,fore ? 135 : 108);
+    strokeWeight(1);
+    if (fore) line(-2, sign * 6, 101, sign * (43 + flap));
+    else line(4, sign * 5, -90, sign * (36 + flap));
+    noStroke();
+
+    for (let i = 0; i < segments; i++) {
+      const x = x0 + i * stepX;
+      const yAbs = baseY + i * stepY + flap;
+      const y = sign < 0 ? -yAbs - 2 : yAbs;
+      const w = Math.max(7, (fore ? 22 : 18) - i);
+      fill(c[0], c[1], c[2], alpha);
+      rect(x, y, w, 4);
+      if (i < segments - 1) {
+        fill(PALETTE.glassLight[0], PALETTE.glassLight[1], PALETTE.glassLight[2], Math.min(190, alpha + 38));
+        rect(x + w - 3, y + (sign < 0 ? -1 : 4), 5, 1);
+      }
+    }
+
+    // Pixel spars keep the membrane engineered instead of reading as magic wings.
+    fill(47,58,59,190);
+    for (let i = 0; i < segments - 1; i++) {
+      const x = x0 + i * stepX + 4;
+      const yAbs = baseY + i * stepY + flap;
+      const y = sign < 0 ? -yAbs - 1 : yAbs + 1;
+      rect(x, y, Math.max(3, Math.abs(stepX) - 2), 1);
+    }
+    fill(PALETTE.brass[0], PALETTE.brass[1], PALETTE.brass[2], 210);
+    rect(x0 - 4, sign < 0 ? -baseY - 4 : baseY - 1, 8, 4);
+  }
+
+  function drawPixelHeroShip(now, mode, speed, pulse) {
+    // Default production-facing Dragonfly presentation is deliberately pixel-built.
+    // It keeps the canonical silhouette/material cues while matching the authored JRPG plates.
+    drawPixelWing(-1, true, now, mode, speed);
+    drawPixelWing(1, true, now, mode, speed);
+    drawPixelWing(-1, false, now + 140, mode, speed);
+    drawPixelWing(1, false, now + 140, mode, speed);
+
+    if (mode === 'flight') {
+      const wake = Math.round(18 + Math.min(1.8, speed) * 16);
+      noStroke();
+      fill(PALETTE.aetherBlue[0], PALETTE.aetherBlue[1], PALETTE.aetherBlue[2], 72);
+      rect(-120 - wake, -2, wake, 2);
+      fill(PALETTE.aether[0], PALETTE.aether[1], PALETTE.aether[2], 58);
+      rect(-120 - Math.round(wake * 0.72), 2, Math.round(wake * 0.72), 1);
+    }
+
+    noStroke();
+    // Dragonfly silhouette: narrow abdomen/tail, deeper thorax/cabin, compact pointed head.
+    fill(...PALETTE.hullDark);
+    rect(-70, -8, 120, 16);
+    rect(-22, -12, 54, 24);
+    rect(-106, -5, 36, 10);
+    rect(-120, -3, 14, 6);
+    rect(50, -7, 25, 14);
+    rect(75, -4, 16, 8);
+
+    // Reclaimed wood body skin; the central thorax is visibly deeper than the tail.
+    fill(111,78,48);
+    rect(-61, -6, 105, 11);
+    fill(147,103,58,215);
+    rect(-16, -9, 42, 17);
+    fill(...PALETTE.brass);
+    rect(-62, 5, 108, 2);
+    rect(-18, -10, 2, 19);
+    rect(4, -10, 2, 19);
+    rect(25, -10, 2, 19);
+
+    // Scioto-blue glazing clusters around the inhabited thorax and helm, not like a train window band.
+    for (const wx of [-52,-35,-13,7,29]) {
+      fill(PALETTE.canopy[0], PALETTE.canopy[1], PALETTE.canopy[2], 235);
+      rect(wx, -5, wx >= -13 ? 12 : 10, 5);
+      fill(PALETTE.glassLight[0], PALETTE.glassLight[1], PALETTE.glassLight[2], 120);
+      rect(wx + 1, -4, wx >= -13 ? 9 : 7, 1);
+    }
+    fill(PALETTE.canopy[0], PALETTE.canopy[1], PALETTE.canopy[2], 242);
+    rect(50, -6, 22, 11);
+    rect(72, -3, 13, 6);
+    fill(PALETTE.glassLight[0], PALETTE.glassLight[1], PALETTE.glassLight[2], 155);
+    rect(54, -5, 14, 2);
+    rect(75, -2, 7, 2);
+
+    // Aether heart: compact pixel cluster, not a smooth glowing ellipse.
+    fill(PALETTE.brass[0], PALETTE.brass[1], PALETTE.brass[2], 240);
+    rect(2, 7, 22, 11);
+    fill(PALETTE.aether[0], PALETTE.aether[1], PALETTE.aether[2], Math.round(150 + pulse * 70));
+    rect(5, 9, 16, 7);
+    fill(224,255,242,Math.round(180 + pulse * 70));
+    rect(10, 11, 6, 3);
+
+    // Warm inhabited lower-deck lamps.
+    fill(PALETTE.cabin[0], PALETTE.cabin[1], PALETTE.cabin[2], mode === 'flight' ? 190 : 235);
+    for (const lx of [-54,-36,-18,33,50]) rect(lx, 7, 7, 2);
+
+    // Dorsal service deck + compact solar awning.
+    fill(72,61,49);
+    rect(-31, -18, 57, 4);
+    fill(PALETTE.brass[0], PALETTE.brass[1], PALETTE.brass[2], 220);
+    rect(-21, -24, 2, 7); rect(15, -23, 2, 6);
+    fill(132,198,190,170);
+    rect(-19, -26, 39, 4);
+    rect(20, -25, 10, 3);
+
+    // Four shield/aether nodes preserve the canonical technology cue.
+    const nodes = [[-20,-12],[-20,12],[27,-11],[27,11]];
+    for (const [nx,ny] of nodes) {
+      fill(PALETTE.aether[0], PALETTE.aether[1], PALETTE.aether[2], Math.round(155 + pulse * 65));
+      rect(nx, ny, 3, 3);
+    }
+
+    // Tail vane and navigation lamps.
+    fill(PALETTE.aetherBlue[0], PALETTE.aetherBlue[1], PALETTE.aetherBlue[2], 135);
+    rect(-124, -10, 4, 20);
+    rect(-128, -6, 4, 12);
+    fill(PALETTE.navRed[0], PALETTE.navRed[1], PALETTE.navRed[2], 220);
+    rect(-65, -11, 3, 3);
+    fill(79,231,188,220);
+    rect(-65, 9, 3, 3);
+
+    // Distinct dock rig; absent in flight silhouette.
+    if (mode === 'dock') {
+      fill(73,61,49);
+      rect(-40, 14, 3, 17); rect(31, 14, 3, 17);
+      rect(-47, 29, 12, 3); rect(29, 29, 12, 3);
+      fill(PALETTE.brass[0], PALETTE.brass[1], PALETTE.brass[2], 190);
+      rect(-42, 20, 2, 7); rect(33, 20, 2, 7);
+    }
+  }
+
   function draw(ctx) {
     const x = Math.round(ctx.x);
     const y = Math.round(ctx.y);
@@ -264,7 +424,6 @@
     const speed = Math.max(0,Number(ctx.speed)||0);
     const shipScale = Number.isFinite(ctx.scale) && ctx.scale > 0 ? ctx.scale : 1;
     const pulse = 0.72 + Math.sin(now*0.005)*0.28;
-    const bank = mode === 'flight' ? Math.sin(heading)*Math.min(1,speed*0.6+0.25) : 0;
 
     push();
     translate(x,y);
@@ -272,26 +431,22 @@
     if (shipScale !== 1) scale(shipScale);
 
     if (mode === 'dock') {
-      noStroke(); fill(5,8,15,90); ellipse(-12,27,202,18);
+      // Stepped dock shadow keeps the hero object inside the pixel-art grammar.
+      noStroke();
+      fill(5,8,15,72);
+      rect(-102,27,180,5);
+      rect(-84,32,144,4);
+      rect(-61,36,98,3);
     } else {
+      // Restrained rectangular shield envelope; active presentation only, not a permanent glow bubble.
       noFill();
-      stroke(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],Math.round(22+pulse*20));
+      stroke(PALETTE.aether[0],PALETTE.aether[1],PALETTE.aether[2],Math.round(18+pulse*16));
       strokeWeight(1);
-      ellipse(-4,0,168,78);
+      rect(-96,-31,178,62,5);
       noStroke();
     }
 
-    drawWake(now,mode,speed);
-    drawWingPair(now,mode,speed,bank);
-    drawHull(pulse,mode);
-    drawMechanicalDetail(now,mode,pulse);
-
-    if (mode === 'dock') {
-      stroke(94,75,58,190); strokeWeight(2);
-      line(-31,13,-45,31); line(24,13,41,31);
-      line(-45,31,-55,31); line(41,31,51,31);
-      noStroke();
-    }
+    drawPixelHeroShip(now,mode,speed,pulse);
 
     pop();
     return true;

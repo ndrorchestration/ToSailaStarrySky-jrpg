@@ -11,7 +11,7 @@ const sandbox = { window: {}, globalThis: {} };
 vm.runInNewContext(source, sandbox, { filename: 'dragonfly-visual.js' });
 
 assert(sandbox.window.AetherDragonflyVisual, 'shared Dragonfly visual authority missing');
-assert.strictEqual(sandbox.window.AetherDragonflyVisual.VERSION, '0.5.0');
+assert.strictEqual(sandbox.window.AetherDragonflyVisual.VERSION, '0.6.0');
 assert.strictEqual(typeof sandbox.window.AetherDragonflyVisual.draw, 'function');
 assert(source.includes('function drawWingPair'), 'Dragonfly must retain articulated paired-wing authority');
 assert(source.includes('function drawHull'), 'Dragonfly must retain a dedicated tapered-hull renderer');
@@ -32,6 +32,14 @@ assert(source.includes('engineered sailcloth'), 'Dragonfly engineered sail-wing 
 assert(source.includes('Dorsal service deck'), 'Dragonfly handcrafted dorsal deck cue missing');
 assert(source.includes('Continuous Scioto-blue window band'), 'Dragonfly continuous window-band cue missing');
 assert(source.includes('Four shield nodes'), 'Dragonfly four-node shield cue missing');
+assert(source.includes('function drawPixelHeroShip') && source.includes('function drawPixelWing'),
+  'Dragonfly must expose the pixel-built JRPG hero presentation');
+assert(source.includes('drawPixelHeroShip(now,mode,speed,pulse)'),
+  'production-facing Dragonfly draw path must use the pixel-built hero presentation');
+assert(source.includes('Stepped dock shadow keeps the hero object inside the pixel-art grammar'),
+  'docked Dragonfly must avoid a smooth placeholder shadow language');
+assert(source.includes('Broad translucent membrane establishes the unmistakable four-wing Dragonfly silhouette') && source.includes('vertex(-91'),
+  'pixel hero path must preserve clearly separated fore/aft Dragonfly wing geometry');
 
 const benchmark = fs.readFileSync(path.join(root, 'modules', 'visual-benchmark.js'), 'utf8');
 const flight = fs.readFileSync(path.join(root, 'modules', 'flight-visual-stage.js'), 'utf8');

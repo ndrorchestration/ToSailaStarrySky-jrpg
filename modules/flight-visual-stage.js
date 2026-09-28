@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.6.0';
   const FLIGHT_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   let flightBackground = null;
   let flightBackgroundRequested = false;
@@ -337,7 +337,7 @@
       now: ctx.now || 0,
       speed: ctx.travel ? ctx.travel.effectiveSpeed : 0,
       heading: ctx.state ? ctx.state.heading : 0,
-      scale: 1.75
+      scale: 1.22
     });
   }
 
@@ -347,60 +347,61 @@
     const travel = ctx.travel;
     const state = ctx.state;
 
-    // Shared UI geometry keeps flight inside the same instrument family.
+    // Flight UI is instrumentation, not a debug dashboard. Keep the world and ship dominant.
     const uiVisual = root.AetherUIVisualSystem;
     const layout = uiVisual && typeof uiVisual.layoutFlight === 'function'
       ? uiVisual.layoutFlight(w, h)
-      : { routeRibbon: { x: 24, y: 24, w: Math.min(544, w - 48), h: 64 } };
-    const ribbon = layout.routeRibbon;
+      : {};
     const panel = uiVisual && typeof uiVisual.panelRGBA === 'function'
       ? uiVisual.panelRGBA()
       : [9, 13, 24, 214];
+
+    // Small weather/altitude plaque.
+    const statusX = 24;
+    const statusY = 24;
+    const statusW = 196;
+    const statusH = 42;
     noStroke();
-    fill(...panel);
-    rect(ribbon.x, ribbon.y, ribbon.w, ribbon.h, 8);
-
-    fill(42, 255, 181, 120);
-    rect(ribbon.x + 12, ribbon.y + 11, 112, 2);
-
+    fill(panel[0], panel[1], panel[2], 166);
+    rect(statusX, statusY, statusW, statusH, 7);
+    fill(42, 255, 181, 105);
+    rect(statusX + 10, statusY + 9, 42, 2);
     textAlign(LEFT, TOP);
     textFont('Segoe UI Semibold');
-    textSize(7);
-    fill(232, 220, 198, 225);
-    text('OPEN-SKY FLIGHT', ribbon.x + 12, ribbon.y + 16);
-
+    textSize(8);
+    fill(232, 220, 198, 220);
+    text(state.altitude.toUpperCase(), statusX + 10, statusY + 14);
     textFont('Trebuchet MS');
-    textSize(11);
-    fill(153, 215, 229, 230);
-    text(
-      state.altitude.toUpperCase() + '  ?  ' + travel.weather.label +
-      '  ?  SPD ' + travel.effectiveSpeed.toFixed(2) +
-      '  ?  P ' + travel.encounterPressure,
-      ribbon.x + 12, ribbon.y + 33
-    );
+    textSize(10);
+    fill(153, 215, 229, 220);
+    text(travel.weather.label, statusX + 10, statusY + 27);
 
+    // Route progress gets one quiet center-top strip rather than a second dashboard.
     if (travel.route && travel.route.route) {
-      const progress = Math.round(travel.route.progress * 100);
-      textAlign(RIGHT, TOP);
+      const progressW = 214;
+      const routeX = Math.round(w / 2 - progressW / 2);
+      const routeY = 28;
+      fill(panel[0], panel[1], panel[2], 142);
+      rect(routeX, routeY, progressW, 28, 6);
+      textAlign(CENTER, TOP);
+      textFont('Segoe UI Semibold');
       textSize(8);
-      fill(205, 225, 230, 195);
-      text('ROUTE ' + travel.route.route.label + '  //  ' + progress + '%', ribbon.x + ribbon.w - 12, ribbon.y + 16);
-      const progressW = 148;
-      fill(31, 44, 63, 230);
-      rect(ribbon.x + ribbon.w - progressW - 12, ribbon.y + 39, progressW, 5);
-      fill(42, 255, 181, 180);
-      rect(ribbon.x + ribbon.w - progressW - 11, ribbon.y + 40, Math.round((progressW - 2) * travel.route.progress), 3);
-      textAlign(LEFT, TOP);
+      fill(232, 220, 198, 205);
+      text(travel.route.route.label.toUpperCase(), w / 2, routeY + 6);
+      fill(31, 44, 63, 210);
+      rect(routeX + 16, routeY + 19, progressW - 32, 3);
+      fill(42, 255, 181, 175);
+      rect(routeX + 16, routeY + 19, Math.round((progressW - 32) * travel.route.progress), 3);
     }
 
-    const controls = layout.controlsHint || { x: w - 256, y: 24, w: 232, h: 24 };
-    fill(7, 11, 19, 176);
-    rect(controls.x, controls.y, controls.w, controls.h, 6);
-    textAlign(CENTER, CENTER);
+    // Shared controlsHint remains a layout hook, but the player-facing copy is minimal.
+    const controlsHint = layout.controlsHint || {};
+    void controlsHint;
+    textAlign(CENTER, BOTTOM);
     textFont('Segoe UI Semibold');
     textSize(7);
-    fill(232, 220, 198, 205);
-    text('ARROWS STEER  ?  Q/E ALT  ?  D DOCK  ?  ESC LAND', controls.x + controls.w / 2, controls.y + controls.h / 2);
+    fill(232, 220, 198, 138);
+    text('Q / E  altitude     D  dock', w / 2, h - 16);
     textAlign(LEFT, TOP);
   }
 
@@ -419,23 +420,30 @@
       const uiVisual = root.AetherUIVisualSystem;
       const flightLayout = uiVisual && typeof uiVisual.layoutFlight === 'function'
         ? uiVisual.layoutFlight(w, h)
-        : { nearestSignal: { x: w - 264, y: h - 72, w: 240, h: 48 } };
-      const signal = flightLayout.nearestSignal;
+        : {};
+      const nearestSignal = flightLayout.nearestSignal || {};
+      void nearestSignal;
       const panel = uiVisual && typeof uiVisual.panelRGBA === 'function'
         ? uiVisual.panelRGBA()
         : [9, 13, 24, 214];
+      const signalW = 176;
+      const signalH = 34;
+      const signalX = w - signalW - 24;
+      const signalY = h - signalH - 26;
       noStroke();
-      fill(...panel);
-      rect(signal.x, signal.y, signal.w, signal.h, 8);
+      fill(panel[0], panel[1], panel[2], 148);
+      rect(signalX, signalY, signalW, signalH, 7);
+      fill(42, 255, 181, 105);
+      rect(signalX + 9, signalY + 9, 3, 16);
       textAlign(LEFT, TOP);
+      textFont('Trebuchet MS');
+      textSize(9);
+      fill(232, 220, 198, 215);
+      text(nearest.landmark.label, signalX + 20, signalY + 7);
       textFont('Segoe UI Semibold');
       textSize(7);
-      fill(42, 255, 181, 190);
-      text('NEAREST SIGNAL', signal.x + 12, signal.y + 9);
-      textFont('Trebuchet MS');
-      textSize(11);
-      fill(232, 220, 198, 220);
-      text(nearest.landmark.label + '  ' + nearest.distance.toFixed(1), signal.x + 12, signal.y + 24);
+      fill(153, 215, 229, 180);
+      text(nearest.distance.toFixed(1) + '  away', signalX + 20, signalY + 20);
     }
 
     if (approach && approach.active && approach.landmark) {
