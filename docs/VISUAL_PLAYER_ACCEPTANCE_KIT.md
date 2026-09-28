@@ -79,7 +79,11 @@ Final visual acceptance requires:
 - technical visual performance verifier remains PASS on the exact candidate.
 
 ## Result file
-Create `visual-acceptance-results.json` from `docs/visual-acceptance-template.json`. Replace all candidate placeholders with the exact commit, package SHA-256, and evidence-manifest SHA-256, and set `independentOfImplementation: true` only when that fact is established for the participant. Then run:
+After the frozen protocol exists, generate `visual-acceptance-results.json` with:
+
+`npm run prepare:visual-acceptance-results`
+
+This copies the exact candidate commit, package SHA-256, evidence-manifest SHA-256, and actual frozen-protocol SHA-256 directly from `visual-acceptance-protocol.json`; do not manually transcribe those bindings. Then fill only the participant observation fields. Set `independentOfImplementation: true` only when that fact is established for the participant. Then run:
 
 `npm run score:visual-acceptance`
 
