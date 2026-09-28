@@ -1189,14 +1189,20 @@
     const showNarrative = !scene.chapterCard && (scene.id !== 'arrival_horizon' || sceneTicks >= 142);
     if (scene.id === 'arrival_horizon' && showNarrative) {
       const lineIndex = sceneTicks < 194 ? 0 : 1;
-      const cinematicLine = scene.lines[Math.min(lineIndex, scene.lines.length - 1)];
-      textAlign(CENTER, TOP);
+      const cinematicLines = lineIndex === 0
+        ? ['Dawn gathers beneath', 'a sea of clouds.']
+        : ['A small patched vessel hangs', 'against a very large sky.'];
+      textAlign(LEFT, TOP);
       textFont('Trebuchet MS');
       textSize(18);
-      fill(3, 8, 15, 170);
-      text(cinematicLine, width / 2 + 2, height - 112 + 2);
-      fill(244, 233, 210, 238);
-      text(cinematicLine, width / 2, height - 112);
+      for (let i = 0; i < cinematicLines.length; i++) {
+        const cy = height - 128 + i * 24;
+        const cx = Math.round((width - textWidth(cinematicLines[i])) / 2);
+        fill(3, 8, 15, 180);
+        text(cinematicLines[i], cx + 2, cy + 2);
+        fill(244, 233, 210, 238);
+        text(cinematicLines[i], cx, cy);
+      }
     } else if (showNarrative) {
       const visibleLines = scene.lines.slice(0, 3);
       const narrativePanelH = Math.min(98, 30 + visibleLines.length * 21);

@@ -79,6 +79,8 @@ assert(source.includes('paintedBackdrop ? 54 : 245') && source.includes('A narro
   'painted dock path must remain translucent and lane-led instead of becoming a gray overlay board');
 assert(source.includes("sceneTicks >= 90 && sceneTicks < 160") && source.includes("sceneTicks >= 142"),
   'v1.2 opening must stage location and narration after a sustained world reveal rather than immediately');
+assert(source.includes("['Dawn gathers beneath', 'a sea of clouds.']") && source.includes("['A small patched vessel hangs', 'against a very large sky.']"),
+  'arrival-horizon narration must use centered bounded cinematic line breaks rather than overflow the vista');
 assert(!source.includes("FIRST WAKE // ' + String(scene.sequence)"),
   'player-facing scene transition must not expose sequence metadata');
 assert(source.includes('Math.min(286, width - 420)') && source.includes("promptText = '← / →   WALK'"),
