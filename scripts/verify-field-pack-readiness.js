@@ -9,6 +9,16 @@ const requireReady = process.argv.includes('--require-ready');
 const ids = process.argv.slice(2).filter(v => !v.startsWith('--'));
 const targets = ids.length ? ids : ['ender', 'ionia'];
 
+const FIELD_CELL = Object.freeze({ width: 64, height: 96 });
+const EXPECTED_ACTIONS = Object.freeze({
+  idle: 8,
+  walk: 6,
+  talk: 4,
+  focus: 6,
+  attack: 8,
+});
+const ACTION_NAMES = Object.freeze(Object.keys(EXPECTED_ACTIONS));
+
 function pngInfo(file) {
   if (!fs.existsSync(file)) return { exists: false };
   const buf = fs.readFileSync(file);
@@ -26,32 +36,58 @@ function pngInfo(file) {
   };
 }
 
+function sameActions(fieldStrips) {
+  const names = Object.keys(fieldStrips || {}).sort();
+  return names.length === ACTION_NAMES.length &&
+    names.every((name, index) => name === [...ACTION_NAMES].sort()[index]);
+}
+
 function inspect(id) {
   const record = manifest.characters && manifest.characters[id];
   if (!record) return { id, status: 'MISSING_RECORD', valid: false, strips: [] };
-  const strips = Object.entries(record.fieldStrips || {}).map(([action, spec]) => {
-    const file = path.join(root, spec.path);
-    const info = pngInfo(file);
-    const expectedWidth = spec.frameWidth * spec.frames;
+
+  const fieldStrips = record.fieldStrips || {};
+  const actionsMatch = sameActions(fieldStrips);
+  const strips = ACTION_NAMES.map(action => {
+    const spec = fieldStrips[action] || null;
+    const expectedFrames = EXPECTED_ACTIONS[action];
+    const expectedWidth = FIELD_CELL.width * expectedFrames;
+    const contractValid = Boolean(
+      spec &&
+      spec.frameWidth === FIELD_CELL.width &&
+      spec.frameHeight === FIELD_CELL.height &&
+      spec.frames === expectedFrames &&
+      typeof spec.path === 'string' &&
+      spec.path.length > 0
+    );
+    const file = contractValid ? path.join(root, spec.path) : null;
+    const info = file ? pngInfo(file) : { exists: false };
+    const transparentCapable = Boolean(info.png && [4, 6].includes(info.colorType));
     const valid = Boolean(
+      contractValid &&
       info.exists && info.png &&
+      transparentCapable &&
       info.width === expectedWidth &&
-      info.height === spec.frameHeight
+      info.height === FIELD_CELL.height
     );
     return {
       action,
-      path: spec.path,
-      expected: [expectedWidth, spec.frameHeight],
+      path: spec && spec.path ? spec.path : null,
+      expected: [expectedWidth, FIELD_CELL.height],
+      expectedFrames,
+      manifestContractValid: contractValid,
       actual: info.exists && info.png ? [info.width, info.height] : null,
-      transparentCapable: info.png ? [4, 6].includes(info.colorType) : false,
+      transparentCapable,
       valid,
     };
   });
-  const complete = strips.length === 5 && strips.every(s => s.valid);
+
+  const complete = actionsMatch && strips.every(s => s.valid);
   const declaredReady = record.status === 'ready' || record.status === 'field-ready';
   return {
     id,
     manifestStatus: record.status,
+    actionsMatch,
     complete,
     declaredReady,
     valid: declaredReady ? complete : !requireReady,
@@ -60,9 +96,8 @@ function inspect(id) {
 }
 
 const results = targets.map(inspect);
-for (const result of results) {
-  console.log(JSON.stringify(result));
-}
+for (const result of results) console.log(JSON.stringify(result));
+
 const invalidDeclaredReady = results.some(r => r.declaredReady && !r.complete);
 const unmetRequiredReady = requireReady && results.some(r => !r.declaredReady || !r.complete);
 if (invalidDeclaredReady || unmetRequiredReady) {
