@@ -3,7 +3,8 @@
   "candidate": {
     "commit": "REPLACE",
     "packageSha256": "REPLACE",
-    "evidenceManifestSha256": "REPLACE"
+    "evidenceManifestSha256": "REPLACE",
+    "protocolSha256": "REPLACE"
   },
   "participants": [
     {
@@ -19,13 +20,20 @@
         "shipQuality": null,
         "productionCredibility": null
       },
-      "sameGamePass": null,
-      "dragonflyRecallPass": null,
       "severity1Blocker": false,
       "notes": "",
       "independentOfImplementation": null,
       "helpRequested": false,
-      "helpGiven": ""
+      "helpGiven": "",
+      "sameGame": {
+        "aetherwakeCorrect": null,
+        "decoyCorrect": null
+      },
+      "dragonflyRecall": {
+        "nameRecalled": null,
+        "silhouetteDescriptionUnambiguous": null,
+        "silhouetteChoiceCorrect": null
+      }
     },
     {
       "id": "P2",
@@ -40,13 +48,20 @@
         "shipQuality": null,
         "productionCredibility": null
       },
-      "sameGamePass": null,
-      "dragonflyRecallPass": null,
       "severity1Blocker": false,
       "notes": "",
       "independentOfImplementation": null,
       "helpRequested": false,
-      "helpGiven": ""
+      "helpGiven": "",
+      "sameGame": {
+        "aetherwakeCorrect": null,
+        "decoyCorrect": null
+      },
+      "dragonflyRecall": {
+        "nameRecalled": null,
+        "silhouetteDescriptionUnambiguous": null,
+        "silhouetteChoiceCorrect": null
+      }
     },
     {
       "id": "P3",
@@ -61,13 +76,20 @@
         "shipQuality": null,
         "productionCredibility": null
       },
-      "sameGamePass": null,
-      "dragonflyRecallPass": null,
       "severity1Blocker": false,
       "notes": "",
       "independentOfImplementation": null,
       "helpRequested": false,
-      "helpGiven": ""
+      "helpGiven": "",
+      "sameGame": {
+        "aetherwakeCorrect": null,
+        "decoyCorrect": null
+      },
+      "dragonflyRecall": {
+        "nameRecalled": null,
+        "silhouetteDescriptionUnambiguous": null,
+        "silhouetteChoiceCorrect": null
+      }
     },
     {
       "id": "P4",
@@ -82,13 +104,20 @@
         "shipQuality": null,
         "productionCredibility": null
       },
-      "sameGamePass": null,
-      "dragonflyRecallPass": null,
       "severity1Blocker": false,
       "notes": "",
       "independentOfImplementation": null,
       "helpRequested": false,
-      "helpGiven": ""
+      "helpGiven": "",
+      "sameGame": {
+        "aetherwakeCorrect": null,
+        "decoyCorrect": null
+      },
+      "dragonflyRecall": {
+        "nameRecalled": null,
+        "silhouetteDescriptionUnambiguous": null,
+        "silhouetteChoiceCorrect": null
+      }
     },
     {
       "id": "P5",
@@ -103,13 +132,20 @@
         "shipQuality": null,
         "productionCredibility": null
       },
-      "sameGamePass": null,
-      "dragonflyRecallPass": null,
       "severity1Blocker": false,
       "notes": "",
       "independentOfImplementation": null,
       "helpRequested": false,
-      "helpGiven": ""
+      "helpGiven": "",
+      "sameGame": {
+        "aetherwakeCorrect": null,
+        "decoyCorrect": null
+      },
+      "dragonflyRecall": {
+        "nameRecalled": null,
+        "silhouetteDescriptionUnambiguous": null,
+        "silhouetteChoiceCorrect": null
+      }
     }
   ]
 }
