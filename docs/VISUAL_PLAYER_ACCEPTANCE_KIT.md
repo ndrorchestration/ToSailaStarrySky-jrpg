@@ -5,7 +5,7 @@ Status: **G4 HUMAN EVIDENCE PROCEDURE**
 This procedure is intentionally separate from developer review. A participant should use the exact candidate build without being coached on what the visuals are supposed to communicate.
 
 ## Participants
-- Minimum: **5** people who did not implement the current visual tranche.
+- Exactly **5 preregistered participant slots** (`P1`–`P5`) for the scored package, each filled by a person who did not implement the current visual tranche.
 - Session: **20 minutes** each.
 - Use the same exact-head packaged candidate for every participant.
 - Do not explain character names, the Dragonfly, controls, or intended art direction before the session beyond normal launch instructions.
@@ -112,3 +112,9 @@ Add exactly three legally usable decoy image files and choose a fixed order seed
 The preparer requires a clean exact-head worktree, hashes the packaged candidate, evidence manifest, all seven Aetherwake frames, and all three decoys, and writes `visual-acceptance-protocol.json`. Its SHA-256 goes into `candidate.protocolSha256` in the result file.
 
 `npm run score:visual-acceptance` now hashes the real protocol artifact and cross-checks its commit/package/evidence bindings before scoring participants. Changing the frame set, decoys, candidate, or protocol bytes after testing begins invalidates the binding.
+
+
+## Participant-slot preregistration
+The frozen protocol includes exactly five pseudonymous scored slots: `P1` through `P5`. The scored result must contain that exact set.
+
+Do not silently omit a failed or inconvenient completed session and do not replace a participant after seeing their scores. If a session becomes genuinely unusable for a procedural reason (for example, corrupted recording, wrong candidate launched, or participant turns out not to be independent), document the exclusion and create an explicit protocol amendment before collecting the replacement session. The original attempted session record should remain available for audit.
