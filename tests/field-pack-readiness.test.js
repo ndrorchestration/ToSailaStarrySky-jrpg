@@ -20,8 +20,11 @@ assert(source.includes('transparentCapable') && source.includes('transparentCapa
   'validator must require an alpha-capable PNG before a strip can be admitted');
 assert(source.includes('ADMISSION_SCHEMA') && source.includes('inspectAdmissionEvidence'),
   'validator must bind a separate evidence receipt for post-promotion admission');
-assert(source.includes('silhouette.participants >= 5') && source.includes('Number(silhouette.correctRate) >= 0.80'),
-  'human silhouette evidence must enforce the minimum participant count and recognition threshold');
+assert(source.includes('rawParticipants.length >= 5') && source.includes('silhouetteRate >= 0.80'),
+  'human silhouette evidence must derive the minimum participant count and recognition threshold from raw observations');
+assert(source.includes('participant.independentOfImplementation !== true') &&
+       source.includes("typeof participant.correct !== 'boolean'"),
+  'silhouette evidence must require independent participants and raw correctness booleans');
 assert(source.includes("runtime.status === 'PASS'") && source.includes('runtime.exactHead'),
   'admission evidence must bind a passing runtime review to an exact head');
 for (const gate of ['visualSuite', 'browserRouteReplay', 'exactHeadEvidenceCapture', 'visualPerformance', 'beforeAfterCohesion']) {
