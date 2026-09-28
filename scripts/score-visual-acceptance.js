@@ -34,6 +34,12 @@ function verifyProtocolBinding(results, protocolPath) {
   if (!Array.isArray(protocol.aetherwakeFrames) || protocol.aetherwakeFrames.length !== 7) {
     throw new Error('VISUAL_ACCEPTANCE_FAIL: protocol must freeze exactly seven Aetherwake frames');
   }
+  if (!Array.isArray(protocol.decoys) || protocol.decoys.length !== 3 ||
+      protocol.decoys.some(decoy => !decoy || typeof decoy.id !== 'string' ||
+        !decoy.id.trim() || !/^[0-9a-f]{64}$/i.test(decoy.sha256 || ''))) {
+    throw new Error('VISUAL_ACCEPTANCE_FAIL: protocol must bind exactly three decoy hashes');
+  }
+
   const expectedPresentationIds = [
     ...protocol.aetherwakeFrames.map(name => 'A:' + name),
     ...protocol.decoys.map(decoy => 'D:' + decoy.id)
@@ -45,10 +51,6 @@ function verifyProtocolBinding(results, protocolPath) {
       new Set(actualPresentationIds).size !== 10 ||
       actualPresentationIds.some((id, index) => id !== expectedPresentationIds[index])) {
     throw new Error('VISUAL_ACCEPTANCE_FAIL: frozen presentation order is missing or invalid');
-  }
-  if (!Array.isArray(protocol.decoys) || protocol.decoys.length !== 3 ||
-      protocol.decoys.some(decoy => !decoy || !/^[0-9a-f]{64}$/i.test(decoy.sha256 || ''))) {
-    throw new Error('VISUAL_ACCEPTANCE_FAIL: protocol must bind exactly three decoy hashes');
   }
 
   const plan = protocol.participantPlan || {};
