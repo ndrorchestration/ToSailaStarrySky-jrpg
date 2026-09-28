@@ -11,14 +11,22 @@ This procedure is intentionally separate from developer review. A participant sh
 - Do not explain character names, the Dragonfly, controls, or intended art direction before the session beyond normal launch instructions.
 
 ## Evidence bundle
+Bind the session to one immutable candidate before testing:
+- exact 40-character candidate commit SHA;
+- packaged-candidate SHA-256;
+- exact visual-evidence `manifest.json` SHA-256.
+
 Record for each participant:
-1. candidate commit / package hash;
-2. session start/end;
-3. whether help was requested and what help was given;
-4. eight 1–5 visual scores;
-5. same-game blind test result;
-6. Dragonfly recall result;
-7. free-response confusion/unfinished notes.
+1. a unique participant ID;
+2. explicit confirmation that the participant did **not** implement the tested visual tranche;
+3. session start/end and total minutes;
+4. whether help was requested and exactly what help was given;
+5. eight 1–5 visual scores;
+6. same-game blind test result;
+7. Dragonfly recall result;
+8. free-response confusion/unfinished notes.
+
+The scorer fails closed if candidate hashes are placeholders, participant IDs are duplicated, or participant independence is not explicitly established.
 
 ## 20-minute session prompts
 Ask only after play unless the participant is blocked:
@@ -33,7 +41,9 @@ Ask only after play unless the participant is blocked:
 - Did any scene look like it belonged to a different game?
 
 ## Blind same-game test
-Show the seven exact-head evidence frames in randomized order alongside three unrelated decoy JRPG/fantasy screenshots that are legally usable for internal testing. Ask which screenshots belong to the same game.
+Before the first participant session, choose and record a fixed seven-frame subset from the exact-head evidence bundle. Use the same subset for every participant; do not change it after seeing responses. The subset should span the title/opening, authored environment, dialogue, combat, Dragonfly/flight, and character identity rather than selecting seven near-duplicates.
+
+Show those seven exact-head frames in randomized order alongside three unrelated decoy JRPG/fantasy screenshots that are legally usable for internal testing. Ask which screenshots belong to the same game.
 
 Pass rule: participant correctly groups at least **80%** of the seven Aetherwake frames as one game family. Final package rule: at least **80% of participants** pass.
 
@@ -68,7 +78,7 @@ Final visual acceptance requires:
 - technical visual performance verifier remains PASS on the exact candidate.
 
 ## Result file
-Create `visual-acceptance-results.json` from `docs/visual-acceptance-template.json`, then run:
+Create `visual-acceptance-results.json` from `docs/visual-acceptance-template.json`. Replace all candidate placeholders with the exact commit, package SHA-256, and evidence-manifest SHA-256, and set `independentOfImplementation: true` only when that fact is established for the participant. Then run:
 
 `npm run score:visual-acceptance`
 
