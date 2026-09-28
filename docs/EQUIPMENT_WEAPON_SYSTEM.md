@@ -71,3 +71,22 @@ This document does not admit assets, finalize job balance, define final loot tab
 Detailed visual/animation candidate: `docs/ENDER_STARTER_STAFF_PRODUCTION_BRIEF.md`.
 
 The locked rule is weapon family + function: **fighting staff, physical combat weapon, magic-independent**. The brief's exact construction/material/name details remain provisional until visually accepted.
+
+
+## Implemented foundation — 2026-09-28
+Machine-readable source: `modules/equipment-system.js`.
+
+The implementation currently authorizes only the creator-locked starting loadouts:
+- Ender: `ender-starter-staff` in `mainWeapon`;
+- Reson: `reson-starter-sword` + `reson-starter-rifle`;
+- Aepex: `aepex-martial-arts`;
+- Ionia: `ionia-starter-mace`;
+- Lyra: `lyra-starter-chakram`.
+
+For unresolved equipment, the system deliberately fails closed:
+- Ender/Aepex/Ionia/Lyra secondary slots are null + `OPEN`;
+- job/class permission model reports `JOB_CLASS_PERMISSION_MODEL_OPEN`;
+- auto-equip throws `EQUIPMENT_AUTO_EQUIP_NOT_AUTHORIZED` until scoring/permission rules are specified;
+- starter item names and numerical stats are marked provisional/open rather than silently canonized.
+
+Ender's staff record explicitly sets `magicRequirement:false` and links to `docs/ENDER_STARTER_STAFF_PRODUCTION_BRIEF.md`.
