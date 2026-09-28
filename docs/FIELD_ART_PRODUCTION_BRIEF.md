@@ -59,3 +59,9 @@ Commands:
 - `npm run test:field-art-geometry` — synthetic regression coverage.
 - `npm run verify:field-pack-readiness:strict` — now composes file completeness plus geometry and blocks while either fails.
 - `npm run verify:field-pack-admission` — also rechecks geometry after promotion/evidence.
+
+
+## Asset provenance binding
+Every production strip is SHA-256 hashed by the field-pack readiness verifier. The per-character admission receipt must record the exact hashes under `assetSha256.idle|walk|talk|focus|attack`. Post-promotion admission compares those recorded hashes to the actual PNG bytes and fails closed on any mismatch.
+
+This means the strips that pass human silhouette/runtime review must be byte-identical to the strips later admitted. Re-exporting, optimizing, or replacing any reviewed PNG invalidates the receipt until review evidence is rebound to the new hashes.
