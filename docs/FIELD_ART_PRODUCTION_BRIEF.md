@@ -87,7 +87,16 @@ Do not enter an aggregate participant count or correct-rate by hand. The admissi
 The verifier derives the participant count, correct count, and correct rate. Duplicate IDs, non-independent participants, incomplete correctness fields, fewer than five observations, or a derived recognition rate below 80% fail closed.
 
 
-## Exact-head invalidation rule
-Post-promotion admission compares the receipt's `runtimeReview.exactHead` to the repository's **current** 40-character Git head and compares `runtimeReview.evidenceManifestSha256` to the **actual bytes** of `visual-evidence/manifest.json`.
+## Exact-head admission transition rule
+`runtimeReview.exactHead` records the **reviewed candidate head**, not the later bookkeeping commit that admits it.
 
-Therefore, any commit after a receipt is generated intentionally invalidates that receipt until exact-head evidence is regenerated and the receipt is rebound. The correct sequencing is: finish source/art changes → reach a clean candidate head → capture evidence → prepare/review receipt → make the admission-state change as the final bounded transition. Do not make unrelated documentation or code commits afterward while claiming the prior receipt still admits the new head.
+The verifier accepts exactly two states:
+1. **Reviewed-head worktree:** current HEAD is the reviewed candidate head while receipt/manifest changes are being prepared.
+2. **Bounded admission child:** current HEAD is exactly one child commit after the reviewed head, the worktree is clean, and that child changes only:
+   - `assets/characters/v1/manifest.json`
+   - `assets/characters/v1/admission/ender.json`
+   - `assets/characters/v1/admission/ionia.json`
+
+Any other child commit, grandchild commit, unrelated documentation/code change, dirty post-commit worktree, or mismatched evidence-manifest bytes invalidates admission.
+
+This avoids the self-invalidating receipt paradox while preserving exact-head review provenance.
