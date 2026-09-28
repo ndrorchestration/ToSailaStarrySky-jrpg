@@ -87,6 +87,12 @@ assert(!source.includes('A / D or Left / Right  —  Walk to the Dragonfly') && 
   'opening must not regress to verbose tutorial-style prompts');
 assert(source.includes("text('SETTLING IN', 184, 374)") && source.includes("text('TALK WITH TALEN', 420, 390)"),
   'opening task progress must use compact labels plus pips');
+assert(source.includes("if (!paintedInterior) {") && source.includes("drawWakeRoomLabel('BERTH'"),
+  'authored Wake interior must suppress map-like room labels while procedural fallback may retain them');
+assert(source.includes('const objectiveW = 286') && source.includes("text('E   INSPECT', width / 2, 580)"),
+  'interactive Wake HUD must use compact JRPG objective/inspect cues');
+assert(!source.includes('WASD / ARROWS MOVE   E INSPECT') && !source.includes("'CLUES ' + e.clues.length + ' / 3  //  2 REQUIRED'"),
+  'interactive Wake HUD must not expose tutorial/debug control strings or numeric clue counters');
 assert(!source.includes("'SETTLING IN  ·  ' + step + ' / '") && !source.includes("'TALK WITH TALEN  ·  ' + talenStep + ' / '"),
   'opening task progress must not expose dashboard-style numeric counters');
 assert(source.includes('function drawWrongSongSetPiece') && source.includes('drawWrongSongSetPiece(now'),

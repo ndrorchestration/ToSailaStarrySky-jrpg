@@ -1022,34 +1022,49 @@
       rect(p.x + 15, p.y - 42, 3, 10);
     }
 
-    drawWakeRoomLabel('BERTH', 145, 443, view.zone === 'berth');
-    drawWakeRoomLabel('TABLE', 145, 282, view.zone === 'shared-table');
-    drawWakeRoomLabel('LYRA', 392, 282, view.zone === 'lyra-space');
-    drawWakeRoomLabel('NAV', 590, 282, view.zone === 'navigation');
-    drawWakeRoomLabel('MAINT', 392, 443, view.zone === 'maintenance');
-    drawWakeRoomLabel('CORE', 651, 443, view.zone === 'core-approach');
+    // Painted interiors already communicate room identity visually. Keep labels only
+    // on the procedural fallback so authored spaces do not become a debug map.
+    if (!paintedInterior) {
+      drawWakeRoomLabel('BERTH', 145, 443, view.zone === 'berth');
+      drawWakeRoomLabel('TABLE', 145, 282, view.zone === 'shared-table');
+      drawWakeRoomLabel('LYRA', 392, 282, view.zone === 'lyra-space');
+      drawWakeRoomLabel('NAV', 590, 282, view.zone === 'navigation');
+      drawWakeRoomLabel('MAINT', 392, 443, view.zone === 'maintenance');
+      drawWakeRoomLabel('CORE', 651, 443, view.zone === 'core-approach');
+    }
 
-    // Exploration HUD: objective, not a cutscene card.
-    fill(5, 8, 13, 205);
-    rect(84, 36, width - 168, 65);
-    textAlign(LEFT, TOP);
+    // Exploration HUD is now a restrained JRPG objective cue rather than a map/debug card.
+    const objectiveW = 286;
+    fill(5, 8, 13, 118);
+    rect(width / 2 - objectiveW / 2, 42, objectiveW, 30, 7);
+    textAlign(CENTER, TOP);
     textFont('Segoe UI Semibold');
-    textSize(10);
-    fill(42, 255, 181);
-    text(view.objective, 108, 55, width - 216, 28);
+    textSize(9);
+    fill(42, 255, 181, 215);
+    text(String(view.objective || '').replace(/[.]$/, '').toUpperCase(), width / 2, 52);
 
-    fill(5, 8, 13, 215);
-    rect(106, 535, width - 212, 65);
+    const messageW = Math.min(690, width - 260);
+    fill(5, 8, 13, 150);
+    rect(width / 2 - messageW / 2, 548, messageW, 46, 8);
     textFont('Trebuchet MS');
-    textSize(17);
-    fill(232, 220, 198);
-    text(view.lastMessage || 'Explore.', 128, 548, width - 256, 27);
-    fill(185, 158, 116);
-    textSize(14);
-    const clueText = scene.id === 'core_walk'
-      ? 'CLUES ' + e.clues.length + ' / 3  //  2 REQUIRED'
-      : 'WASD / ARROWS MOVE   E INSPECT';
-    text(clueText, 128, 575, width - 256, 20);
+    textSize(16);
+    fill(232, 220, 198, 225);
+    textAlign(CENTER, TOP);
+    text(view.lastMessage || 'Explore.', width / 2, 558, messageW - 32, 24);
+
+    textFont('Segoe UI Semibold');
+    textSize(9);
+    fill(185, 158, 116, 185);
+    if (scene.id === 'core_walk') {
+      const pipX = width / 2 - 25;
+      text('CLUES', pipX - 34, 580);
+      for (let i = 0; i < 3; i++) {
+        fill(i < e.clues.length ? color(42,255,181,190) : color(83,103,107,90));
+        rect(pipX + i * 14, 581, 8, 4, 1);
+      }
+    } else if (nearby) {
+      text('E   INSPECT', width / 2, 580);
+    }
 
     textAlign(LEFT, TOP);
   }
