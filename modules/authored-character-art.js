@@ -10,8 +10,8 @@
     ender:Object.freeze({status:'portrait-ready',portraitAtlas:'assets/characters/v1/ender/portrait-atlas.png',width:768,height:512}),
     lyra:Object.freeze({status:'portrait-ready',portraitAtlas:'assets/characters/v1/lyra/portrait-atlas.png',width:768,height:512}),
     ionia:Object.freeze({status:'portrait-ready',portraitAtlas:'assets/characters/v1/ionia/portrait-atlas.png',width:768,height:512}),
-    reson:Object.freeze({status:'portrait-ready',portraitAtlas:'assets/characters/v1/reson/portrait-atlas.png',width:768,height:512}),
-    aepex:Object.freeze({status:'portrait-ready',portraitAtlas:'assets/characters/v1/aepex/portrait-atlas.png',width:768,height:512})
+    reson:Object.freeze({status:'planned',portraitAtlas:'assets/characters/v1/reson/portrait-atlas.png',width:768,height:512}),
+    aepex:Object.freeze({status:'planned',portraitAtlas:'assets/characters/v1/aepex/portrait-atlas.png',width:768,height:512})
   });
   const FIELD_PACKS=Object.freeze({
     ender:Object.freeze({status:'planned',base:'assets/characters/v1/ender'}),
