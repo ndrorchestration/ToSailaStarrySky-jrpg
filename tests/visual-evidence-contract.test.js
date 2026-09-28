@@ -22,6 +22,7 @@ for (const id of [
 
 assert(source.includes('AETHERWAKE_VISUAL_EVIDENCE_V1'),
   'visual evidence manifest contract missing');
+assert(source.includes('01c-first-wake-lyra-family'), 'visual evidence must retain Lyra family/interior identity coverage');
 assert(source.includes('CAPTURE_ONLY_NOT_VISUAL_PASS'),
   'capture harness must not self-promote screenshots to visual PASS');
 assert(source.includes('function resolveSourceBinding()'),
