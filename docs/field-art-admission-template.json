@@ -13,7 +13,8 @@
     "browserRouteReplay": "PENDING",
     "exactHeadEvidenceCapture": "PENDING",
     "visualPerformance": "PENDING",
-    "beforeAfterCohesion": "PENDING"
+    "beforeAfterCohesion": "PENDING",
+    "evidenceManifestSha256": ""
   },
   "notes": [],
   "assetSha256": {
