@@ -58,6 +58,10 @@ assert(source.includes('scale: 1.48') && source.includes('depth: 0.68'),
   'combat Ender must retain the bounded articulated fallback if provisional art is unavailable');
 assert(!source.includes('rect(x - 58, y - 128, 116, 134)'),
   'combat player staging must not restore the old arena-obscuring glow rectangle');
+assert(!source.includes("'GROUND ENCOUNTER'") && !source.includes("'  //  TURN '"),
+  'combat turn rail must not expose prototype/debug-style encounter telemetry');
+assert(!source.includes("'  //  PRESSURE '"),
+  'sky combat rail must not expose raw encounter-pressure telemetry');
 
 const backdropCalls = { requested: [], images: [] };
 const backdropSandbox = {

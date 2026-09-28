@@ -359,11 +359,9 @@
   function drawTurnRail(ctx) {
     const w = ctx.width;
     const enemy = ctx.enemy;
-    const turn = ctx.turn || 1;
     const domain = ctx.domain === 'sky' ? 'sky' : 'ground';
     const weatherId = ctx.weatherId || 'clear';
     const altitude = ctx.altitude || null;
-    const pressure = Number.isFinite(ctx.encounterPressure) ? ctx.encounterPressure : 0;
 
     noStroke();
     fill(10, 13, 23, 205);
@@ -376,17 +374,15 @@
     textFont('Press Start 2P');
     textSize(8);
     fill(232, 220, 198, 210);
-    const encounterLabel = domain === 'sky' ? 'SKY ENCOUNTER' : 'GROUND ENCOUNTER';
-    text(encounterLabel + '  //  TURN ' + turn + (enemy ? '  //  ' + enemy.name.toUpperCase() : ''), w / 2, 26);
+    text(enemy ? enemy.name.toUpperCase() : (domain === 'sky' ? 'SKY CONTACT' : 'ENCOUNTER'), w / 2, 26);
 
     if (domain === 'sky') {
       textFont('VT323');
       textSize(11);
-      fill(124, 200, 232, 195);
-      const telemetry = 'ALT ' + String(altitude || 'cruise').toUpperCase() +
-        '  //  ' + String(weatherId).toUpperCase().replace('-', ' ') +
-        '  //  PRESSURE ' + pressure;
-      text(telemetry, w / 2, 43);
+      fill(124, 200, 232, 185);
+      const skyContext = String(altitude || 'cruise').toUpperCase() +
+        '  ·  ' + String(weatherId).toUpperCase().replace('-', ' ');
+      text(skyContext, w / 2, 43);
     }
     textAlign(LEFT, TOP);
   }

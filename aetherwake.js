@@ -7000,9 +7000,9 @@ function AetherCombat(p, C) {
 
       p.textAlign(p.CENTER, p.TOP);
       p.textFont('Segoe UI Semibold');
-      p.textSize(10);
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 205 * bannerT);
-      p.text('GROUND ENCOUNTER  //  TURN ' + Math.max(1, state.turn), p.width/2, 28);
+      p.textSize(9);
+      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 185 * bannerT);
+      p.text('ENCOUNTER', p.width/2, 28);
       p.textFont('Trebuchet MS');
       p.textSize(18);
       p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 235 * bannerT);
@@ -7081,10 +7081,6 @@ function AetherCombat(p, C) {
       p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 180);
       p.text(state.enemy.name, ex, ey - 38);
 
-      // ── Turn counter ──
-      p.textSize(8);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 130);
-      p.text('TURN ' + state.turn, ex, ey + 22);
 
       // ── Enemy attack flash — bigger, brighter ──
       if (state._flashTurn && state._flashTurn > now - 300) {
