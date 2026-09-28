@@ -856,6 +856,55 @@
     noStroke();
   }
 
+  function drawDialogueTerrace(w, h, now) {
+    // Dialogue gets a bounded authored-looking terrace rather than the full
+    // projected island crown. This keeps the sky world visible and frames the
+    // two speakers like a classic JRPG conversation scene.
+    const topY = Math.round(h * 0.47);
+    noStroke();
+    fill(48, 62, 55, 238);
+    beginShape();
+    vertex(-20, topY + 28);
+    vertex(w * 0.16, topY - 6);
+    vertex(w * 0.38, topY + 10);
+    vertex(w * 0.57, topY - 12);
+    vertex(w * 0.78, topY + 8);
+    vertex(w + 24, topY - 18);
+    vertex(w + 24, h);
+    vertex(-20, h);
+    endShape(CLOSE);
+
+    fill(72, 98, 70, 150);
+    ellipse(w * 0.24, topY + 88, 250, 54);
+    ellipse(w * 0.69, topY + 72, 300, 62);
+    fill(108, 126, 92, 82);
+    ellipse(w * 0.46, topY + 40, 190, 34);
+
+    // Stone service path and scattered reclaimed cargo keep the ground physical.
+    stroke(128, 113, 86, 135);
+    strokeWeight(18);
+    bezier(-40, h * 0.78, w * 0.26, h * 0.64, w * 0.58, h * 0.66, w + 30, h * 0.58);
+    stroke(202, 178, 126, 58);
+    strokeWeight(3);
+    bezier(-40, h * 0.78, w * 0.26, h * 0.64, w * 0.58, h * 0.66, w + 30, h * 0.58);
+    noStroke();
+
+    for (const [cx,cy] of [[w*0.23,h*0.61],[w*0.74,h*0.59],[w*0.86,h*0.67]]) {
+      fill(105, 76, 49, 210);
+      rect(cx - 14, cy - 9, 28, 18, 3);
+      stroke(170, 125, 72, 150);
+      strokeWeight(1);
+      line(cx - 10, cy - 6, cx + 10, cy + 6);
+      line(cx + 10, cy - 6, cx - 10, cy + 6);
+      noStroke();
+    }
+
+    const pulse = 0.5 + 0.5 * Math.sin((now || 0) * 0.003);
+    fill(42, 255, 181, 36 + pulse * 24);
+    ellipse(w * 0.32, topY + 94, 38, 12);
+    ellipse(w * 0.63, topY + 108, 44, 14);
+  }
+
   function drawProjectedWorld(input, w, h, now, player, npcs, focusX, focusY) {
     const centerX = w * 0.5;
     const centerY = h * 0.69;
@@ -864,6 +913,8 @@
     // Benchmark mode uses a dedicated dock plane instead of the generic island crown.
     if (input.dockBenchmark) {
       drawBenchmarkDockPlane(w, h, now);
+    } else if (input.dialogueActive) {
+      drawDialogueTerrace(w, h, now);
     } else {
       drawProjectedTerrainMass(focusX, focusY, w, h, false);
       push();
@@ -892,11 +943,16 @@
     rect(0, Math.round(h * 0.73), w, Math.round(h * 0.08));
 
     const actors = [];
+    const dialogueActive = Boolean(input.dialogueActive);
+    const activeDialogueNpcId = input.dialogueNpcId || null;
+    const playerTileX = Number.isFinite(player.tileX) ? player.tileX : Math.round((player.px || 0) / CELL);
     actors.push({
       id: 'ender',
-      tileX: Number.isFinite(player.tileX) ? player.tileX : Math.round((player.px || 0) / CELL),
+      // Dialogue composition gets a small presentation-only separation so the
+      // speaker and player read as two figures rather than one overlapped sprite.
+      tileX: playerTileX + (dialogueActive ? -0.85 : 0),
       tileY: Number.isFinite(player.tileY) ? player.tileY : Math.round((player.py || 0) / CELL),
-      name: 'Ender',
+      name: dialogueActive ? '' : 'Ender',
       frame: playerWalkFrame(player, now),
       scale: 2.55,
       questMarker: false,
@@ -905,9 +961,9 @@
       if (!npc || !Number.isFinite(npc.tileX) || !Number.isFinite(npc.tileY)) continue;
       actors.push({
         id: SPRITE_IDS[npc.id] || 'settler',
-        tileX: npc.tileX,
+        tileX: npc.tileX + (dialogueActive && npc.id === activeDialogueNpcId ? 0.85 : 0),
         tileY: npc.tileY,
-        name: npc.id === 'elder_farmer' ? 'Ionia' : '',
+        name: dialogueActive ? '' : (npc.id === 'elder_farmer' ? 'Ionia' : ''),
         frame: 0,
         scale: 2.45,
         questMarker: Boolean(npc.id === 'elder_farmer' && npc.flags && npc.flags.questMarker && !npc.flags.met),

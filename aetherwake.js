@@ -4444,6 +4444,8 @@ function render() {
         dayTime,
         isSkyLayerVisible,
         quest,
+        dialogueActive: Boolean(window.UI && window.UI.dialogueOpen),
+        dialogueNpcId: window.UI && window.UI.dialogueNPC ? window.UI.dialogueNPC.id : null,
         skipBackdrop: benchmarkActive,
         dockBenchmark: benchmarkActive,
       });

@@ -147,6 +147,10 @@ assert(source.includes('if (input.dockBenchmark) {') && source.includes('drawPro
   'normal projected terrain must remain isolated from the benchmark dock path');
 assert(source.includes('drawProvisionalFieldCharacter') && source.includes('provisionalDrawn'),
   'projected world must prefer reviewed provisional pixel protagonists before articulated fallback');
+assert(source.includes('const dialogueActive = Boolean(input.dialogueActive)') && source.includes('dialogueActive ? -0.85 : 0') && source.includes('activeDialogueNpcId ? 0.85 : 0'),
+  'dialogue composition must separate player and active speaker presentation-only instead of overlapping their field sprites');
+assert(source.includes('function drawDialogueTerrace') && source.includes('drawDialogueTerrace(w, h, now)'),
+  'dialogue presentation must use a bounded authored-looking terrace instead of the full projected island crown');
 assert(source.includes('if (name && !protagonist)') && source.includes('not floating debug-style nameplates'),
   'protagonists must not carry floating debug-style world nameplates');
 assert(source.includes('readiness remains NOT_READY'),
