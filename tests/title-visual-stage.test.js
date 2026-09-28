@@ -30,6 +30,8 @@ assert(source.includes("scale: 1.45"),
   'title must present Dragonfly as a hero-scale object');
 assert(!source.includes('ellipse('),
   'title visual stage must avoid old smooth ellipse island treatment');
+assert(source.includes("textFont('Georgia')") && source.includes('Layered serif wordmark'),
+  'title must use the layered JRPG wordmark treatment');
 assert(source.includes("text('NEW GAME', cx, menuY)"),
   'title New Game affordance missing');
 assert(source.includes("text('ENTER', cx, menuY + 21)"),

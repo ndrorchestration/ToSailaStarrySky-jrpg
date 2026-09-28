@@ -125,22 +125,38 @@
     rect(0, 0, width, Math.round(height * 0.34));
 
     textAlign(CENTER, TOP);
-    textFont('Trebuchet MS');
-    textSize(54);
-    fill(4, 8, 16, 120);
+    // Layered serif wordmark gives the title a recognizable JRPG logo treatment
+    // without introducing a raster logo dependency or covering the world key art.
+    textFont('Georgia');
+    textSize(56);
+    fill(3, 7, 15, 175);
+    text('AETHERWAKE', cx - 2, logoY + 2);
     text('AETHERWAKE', cx + 2, logoY + 2);
-    fill(242, 229, 199, 250);
+    text('AETHERWAKE', cx, logoY + 4);
+    fill(103, 205, 211, 210);
+    text('AETHERWAKE', cx, logoY - 1);
+    fill(244, 232, 204, 252);
     text('AETHERWAKE', cx, logoY);
 
-    fill(42, 255, 181, 165);
-    rect(cx - 142, logoY + 66, 284, 2);
-    fill(198, 153, 79, 210);
-    rect(cx - 20, logoY + 62, 40, 6);
+    // Brass/aether ornament reads as a title-logo device rather than a generic divider.
+    const ornamentY = logoY + 69;
+    fill(42, 255, 181, 150);
+    rect(cx - 156, ornamentY, 118, 2);
+    rect(cx + 38, ornamentY, 118, 2);
+    fill(198, 153, 79, 220);
+    beginShape();
+    vertex(cx, ornamentY - 5);
+    vertex(cx + 8, ornamentY + 1);
+    vertex(cx, ornamentY + 7);
+    vertex(cx - 8, ornamentY + 1);
+    endShape(CLOSE);
+    fill(224, 255, 242, 220);
+    rect(cx - 2, ornamentY - 1, 4, 4, 1);
 
     textFont('Segoe UI Semibold');
     textSize(11);
-    fill(173, 224, 230, 235);
-    text('THE LAST SOLARPUNK AIRSHIP', cx, logoY + 78);
+    fill(183, 224, 228, 235);
+    text('THE LAST SOLARPUNK AIRSHIP', cx, logoY + 82);
 
     // Minimal JRPG menu treatment. The world and music establish mood before instructions.
     const menuY = Math.round(height * 0.72);
