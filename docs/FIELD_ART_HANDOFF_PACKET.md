@@ -161,7 +161,7 @@ Before export:
 5. Run `npm run verify:field-pack-readiness:strict`. This verifies production-file completeness **before** any manifest promotion, including exact dimensions/alpha plus cell-edge clearance and ≤1px grounded-foot-line variance within and across actions.
 6. Regenerate exact-head runtime evidence and compare against the provisional bridge art at actual runtime scale.
 7. Run the human silhouette-recognition check using `docs/FIELD_SILHOUETTE_RECOGNITION_KIT.md` with at least 5 independent participants and require ≥80% overall correct identification.
-8. Create per-character admission receipts from `docs/field-art-admission-template.json` under `assets/characters/v1/admission/<character>.json`, binding the human result and exact-head runtime review. The runtime receipt must separately show PASS for the visual suite, browser route + replay, exact-head evidence capture, visual performance, and before/after cohesion review.
+8. Create per-character admission receipts from `docs/field-art-admission-template.json` under `assets/characters/v1/admission/<character>.json`, binding the human result, exact-head runtime review, and SHA-256 of all five production strips. The runtime receipt must separately show PASS for the visual suite, browser route + replay, exact-head evidence capture, visual performance, and before/after cohesion review.
 9. Only after mechanical completeness, runtime review, and silhouette evidence pass, change the manifest status to `ready` / `field-ready`.
 10. Run `npm run verify:field-pack-admission` as the post-promotion fail-closed admission check.
 11. Re-run Chapter 1 visual/browser/performance verification and regenerate final exact-head evidence.
@@ -186,3 +186,7 @@ Before export:
 A visually appealing sheet is not sufficient. The pack remains **NOT READY** until file dimensions, alpha, canon identity, runtime readability, regression tests, exact-head evidence, performance, and human acceptance gates are satisfied.
 
 `AETHERWAKE_FIELD_PACK_READINESS=NOT_READY` remains the controlling state until those gates are met. Mechanical completeness may reach `COMPLETE_NOT_PROMOTED` before admission; that intermediate state is intentionally non-authorizing.
+
+
+### Provenance rule
+Do not edit, optimize, recompress, crop, or regenerate an admitted strip after its review receipt has been created. Any byte change produces a different SHA-256 and intentionally invalidates the receipt until the new artifact is reviewed and rebound.
