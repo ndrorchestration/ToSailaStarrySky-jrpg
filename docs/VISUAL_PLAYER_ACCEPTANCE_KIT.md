@@ -46,7 +46,7 @@ Before the first participant session, choose and record a fixed seven-frame subs
 
 Show those seven exact-head frames in randomized order alongside three unrelated decoy JRPG/fantasy screenshots that are legally usable for internal testing. Ask which screenshots belong to the same game.
 
-Pass rule is derived by the scorer from the raw Aetherwake count: at least **6 of 7** Aetherwake frames must be grouped as one game family. Decoy correctness is recorded separately for auditability. Final package rule: at least **80% of participants** pass.
+Pass rule is derived from the complete ten-image classification: the participant must correctly group at least **6 of 7** Aetherwake frames **and** achieve at least **80% total accuracy across all 10 images**, including decoy rejection. This prevents an all-positive “everything is Aetherwake” response from passing. Final package rule: at least **80% of participants** pass.
 
 ## Dragonfly recognition / recall
 After the play session, remove the game from view and ask:
