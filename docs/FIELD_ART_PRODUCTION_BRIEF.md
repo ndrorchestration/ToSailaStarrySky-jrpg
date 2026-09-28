@@ -40,9 +40,11 @@ These references do not change manifest status and are not runtime strips.
 ## Admission sequence
 1. Review reference sheets against canon.
 2. Produce all five strips per character.
-3. Run npm run verify:field-pack-readiness:strict.
-4. Change manifest status only after the strict gate can pass.
-5. Regenerate exact-head visual evidence.
-6. Compare before/after player-eye results.
-7. Complete human silhouette recognition check.
+3. Run `npm run verify:field-pack-readiness:strict`. This is the **pre-promotion mechanical completeness gate**: exact action set, canonical frame counts, 64×96 cells, exact strip dimensions, PNG validity, and alpha capability.
+4. Regenerate exact-head runtime evidence and compare the production strips against the provisional bridge art at actual display scale.
+5. Complete the independent human silhouette-recognition check (minimum 5 participants; ≥80% correct) and record the result plus the exact-head runtime review using `docs/field-art-admission-template.json`.
+6. Only after steps 3–5 pass, change the character manifest status to `ready` / `field-ready`.
+7. Run `npm run verify:field-pack-admission`. This is the **post-promotion admission gate** and requires both ready status and valid evidence receipts.
+8. Run the Chapter 1 visual/browser/performance regression gates and regenerate the final exact-head evidence bundle.
+9. Human/player G4 acceptance remains a separate final visual gate and is not implied by field-art admission.
 
