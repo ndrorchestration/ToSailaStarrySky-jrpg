@@ -14,7 +14,8 @@ This procedure is intentionally separate from developer review. A participant sh
 Bind the session to one immutable candidate before testing:
 - exact 40-character candidate commit SHA;
 - packaged-candidate SHA-256;
-- exact visual-evidence `manifest.json` SHA-256.
+- exact visual-evidence `manifest.json` SHA-256;
+- SHA-256 of the frozen blind-test protocol.
 
 Record for each participant:
 1. a unique participant ID;
@@ -22,11 +23,11 @@ Record for each participant:
 3. session start/end and total minutes;
 4. whether help was requested and exactly what help was given;
 5. eight 1–5 visual scores;
-6. same-game blind test result;
-7. Dragonfly recall result;
+6. raw same-game counts: how many of the 7 Aetherwake frames were correctly grouped and how many of the 3 decoys were correctly rejected;
+7. raw Dragonfly recall observations: name recalled, silhouette description unambiguous, silhouette choice correct;
 8. free-response confusion/unfinished notes.
 
-The scorer fails closed if candidate hashes are placeholders, participant IDs are duplicated, or participant independence is not explicitly established.
+The scorer fails closed if candidate/protocol hashes are placeholders, participant IDs are duplicated, participant independence is not explicitly established, raw same-game counts are invalid, Dragonfly recall fields are incomplete, or requested help is not documented.
 
 ## 20-minute session prompts
 Ask only after play unless the participant is blocked:
@@ -45,7 +46,7 @@ Before the first participant session, choose and record a fixed seven-frame subs
 
 Show those seven exact-head frames in randomized order alongside three unrelated decoy JRPG/fantasy screenshots that are legally usable for internal testing. Ask which screenshots belong to the same game.
 
-Pass rule: participant correctly groups at least **80%** of the seven Aetherwake frames as one game family. Final package rule: at least **80% of participants** pass.
+Pass rule is derived by the scorer from the raw Aetherwake count: at least **6 of 7** Aetherwake frames must be grouped as one game family. Decoy correctness is recorded separately for auditability. Final package rule: at least **80% of participants** pass.
 
 ## Dragonfly recognition / recall
 After the play session, remove the game from view and ask:
@@ -53,7 +54,7 @@ After the play session, remove the game from view and ask:
 - Describe its silhouette in one sentence.
 - Choose the Dragonfly from a small silhouette set if available.
 
-Pass rule: participant names or unambiguously recalls the Dragonfly and identifies the silhouette. Final package rule: **≥80%** participant pass rate.
+Pass rule is derived from three raw observations: the participant recalls the Dragonfly name, gives an unambiguous silhouette description, and correctly chooses its silhouette. All three must be true for that participant to pass. Final package rule: **≥80%** participant pass rate.
 
 ## Weighted visual score
 Use 1–5 integer or half-point scores:
