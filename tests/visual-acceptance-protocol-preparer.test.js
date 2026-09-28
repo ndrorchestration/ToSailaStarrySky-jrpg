@@ -17,6 +17,7 @@ for (const required of [
   'protocol.candidate.evidenceManifestSha256',
   'protocol.aetherwakeFrameSha256',
   'protocol.presentation.orderSeed',
+  'protocol.presentation.order = deterministicOrder',
   'protocol.frozenBeforeFirstSession = true',
   'AETHERWAKE_VISUAL_ACCEPTANCE_PROTOCOL_SHA256'
 ]) {
