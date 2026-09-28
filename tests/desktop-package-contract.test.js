@@ -136,6 +136,10 @@ assert(runtimeSource.includes('function writeDesktopSmokeMarkerOnce()'),
 assert(runtimeSource.includes('window.__awRuntimeReady') &&
        runtimeSource.includes('window.__awFirstFrame'),
   'desktop readiness marker must be bound to runtime-ready and completed-first-frame signals');
+assert(runtimeSource.includes('function desktopNodeBridge()') &&
+       runtimeSource.includes("nw.require.bind(nw)") &&
+       runtimeSource.includes("nodeRequire('process')"),
+  'desktop evidence seams must bridge NW.js node context when CommonJS globals are not directly exposed');
 
 const embeddedHtmlForCanvas = fs.readFileSync(path.join(__dirname, '..', 'index-embedded.html'), 'utf8');
 const runtimeSourceForCanvas = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8');
