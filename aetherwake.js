@@ -7021,10 +7021,7 @@ function AetherCombat(p, C) {
         rose: C.rose,
       };
       const eBodyColor = colorMap[eColor] || C.soil;
-
-      // Enemy HP/glow state remains local because downstream HUD/effects use it.
       const hpRatio = state.enemy.hp / state.enemy.maxHp;
-      const glowColor = hpRatio > 0.5 ? C.scioto : (hpRatio > 0.25 ? C.rust : C.teal);
 
       // Shared visual-stage enemy treatment. Mechanical state remains local.
       if (visualStage && typeof visualStage.drawEnemy === 'function') {
@@ -7041,36 +7038,8 @@ function AetherCombat(p, C) {
         p.rect(ex - 14, ey - 18, 28, 36);
       }
 
-      // ── HP bar ──
-      p.stroke(C.navy[0], C.navy[1], C.navy[2], 200);
-      p.strokeWeight(1);
-      p.noFill();
-      p.rect(ex - 32, ey - 32, 64, 5);
-      p.noStroke();
-      const hpFill = 60 * hpRatio;
-      if (hpFill > 0) {
-        p.fill(glowColor[0], glowColor[1], glowColor[2], 220);
-        p.rect(ex - 31, ey - 31, hpFill, 3);
-        // HP bar glow
-        p.fill(glowColor[0], glowColor[1], glowColor[2], 40);
-        p.rect(ex - 31, ey - 31, hpFill, 3);
-      }
-
-      // HP bar border ticks
-      p.stroke(C.teal[0], C.teal[1], C.teal[2], 80);
-      p.strokeWeight(1);
-      p.noFill();
-      for (let h = 0; h <= 4; h++) {
-        p.line(ex - 32 + h * 15, ey - 32, ex - 32 + h * 15, ey - 27);
-      }
-
-      // ── Enemy name ──
-      p.textFont('Press Start 2P');
-      p.textSize(9);
-      p.textAlign(p.CENTER, p.TOP);
-      p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 180);
-      p.text(state.enemy.name, ex, ey - 38);
-
+      // Enemy identity and HP are already carried by the compact command window.
+      // Keep the battlefield sprite clean rather than attaching HUD labels/bars to it.
 
       // ── Enemy attack flash — bigger, brighter ──
       if (state._flashTurn && state._flashTurn > now - 300) {
@@ -7282,23 +7251,7 @@ function AetherCombat(p, C) {
       p.rect(px - 10, py - 20 + dodgeBob, 20, 20);
     }
 
-    // Player name
-    p.textFont('Press Start 2P');
-    p.textSize(8);
-    p.textAlign(p.CENTER, p.TOP);
-    p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 170);
-    p.text('ENDER', px, py - 58 + dodgeBob);
-
-    // Player Vit bar
-    const vitRatio = (combat && combat.getState) ? 
-      (combat.getState().player.vit / combat.getState().player.maxVit) : 1;
-    p.stroke(C.navy[0], C.navy[1], C.navy[2], 150);
-    p.strokeWeight(1);
-    p.noFill();
-    p.rect(px - 16, py - 42 + dodgeBob, 32, 3);
-    p.noStroke();
-    p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 180);
-    p.rect(px - 15, py - 41 + dodgeBob, 30 * Math.max(0, vitRatio), 1.5);
+    // Player identity and HP live in the command window; keep the field sprite unobstructed.
 
     if (visualStage && typeof visualStage.drawTurnRail === 'function' && state.turn > 1) {
       visualStage.drawTurnRail({

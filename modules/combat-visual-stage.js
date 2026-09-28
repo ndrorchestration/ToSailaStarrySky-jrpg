@@ -259,9 +259,9 @@
     if (authored && typeof authored.drawProvisionalFieldCharacter === 'function') {
       const provisional = authored.drawProvisionalFieldCharacter('ender', x, y + 7, {
         anchor: 'bottom-center',
-        scale: 2.45,
-        action: ctx.attacking ? 'walk' : 'idle',
-        frame: Math.floor((ctx.now || 0) / (ctx.attacking ? 90 : 180)),
+        scale: 3.05,
+        action: ctx.attacking ? 'attack' : (ctx.focused ? 'focus' : 'idle'),
+        frame: Math.floor((ctx.now || 0) / (ctx.attacking ? 80 : (ctx.focused ? 130 : 180))),
       });
       if (provisional) return true;
     }

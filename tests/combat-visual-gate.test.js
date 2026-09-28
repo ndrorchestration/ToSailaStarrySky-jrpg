@@ -52,8 +52,10 @@ assert(source.includes('aetherwake-preview-battle-pixelart-v2.png'),
   'Sky Predator combat should use the authored pixel-art arena');
 assert(source.includes('Grounded combat focus'),
   'combat player staging must use grounded contact-light treatment');
-assert(source.includes('drawProvisionalFieldCharacter') && source.includes('scale: 2.45'),
-  'combat Ender must prefer the reviewed provisional pixel field art before articulated fallback');
+assert(source.includes('drawProvisionalFieldCharacter') && source.includes('scale: 3.05'),
+  'combat Ender must prefer a larger reviewed provisional pixel hero silhouette before articulated fallback');
+assert(source.includes("ctx.attacking ? 'attack' : (ctx.focused ? 'focus' : 'idle')"),
+  'combat Ender must use provisional attack/focus actions rather than collapsing combat back to walk/idle');
 assert(source.includes('scale: 1.48') && source.includes('depth: 0.68'),
   'combat Ender must retain the bounded articulated fallback if provisional art is unavailable');
 assert(!source.includes('rect(x - 58, y - 128, 116, 134)'),
