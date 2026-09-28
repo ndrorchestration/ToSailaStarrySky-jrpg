@@ -41,7 +41,7 @@ These references do not change manifest status and are not runtime strips.
 ## Admission sequence
 1. Review reference sheets against canon.
 2. Produce all five strips per character.
-3. Run `npm run verify:field-pack-readiness:strict`. This is the **pre-promotion mechanical completeness gate**: exact action set, canonical frame counts, 64×96 cells, exact strip dimensions, PNG validity, and alpha capability.
+3. Run `npm run verify:field-pack-readiness:strict`. This is the **pre-promotion mechanical completeness gate**: exact action set, canonical frame counts, 64×96 cells, exact strip dimensions, PNG validity, alpha capability, per-frame cell-edge clearance, and grounded foot-line consistency within and across all five actions.
 4. Regenerate exact-head runtime evidence and compare the production strips against the provisional bridge art at actual display scale.
 5. Complete the independent human silhouette-recognition check (minimum 5 participants; ≥80% correct) and record the result plus the exact-head runtime review using `docs/field-art-admission-template.json`. The runtime receipt must explicitly record **PASS** for the Chapter 1 visual suite, complete browser route + replay, exact-head evidence capture, visual-performance verification, and before/after cohesion review; a single summary PASS is insufficient.
 6. Only after steps 3–5 pass, change the character manifest status to `ready` / `field-ready`.
@@ -49,3 +49,13 @@ These references do not change manifest status and are not runtime strips.
 8. Run the Chapter 1 visual/browser/performance regression gates and regenerate the final exact-head evidence bundle.
 9. Human/player G4 acceptance remains a separate final visual gate and is not implied by field-art admission.
 
+
+
+## Geometry quality gate
+`scripts/verify-field-art-geometry.py` provides the production-sheet geometry check that dimensions alone cannot establish. For every 64×96 frame it inspects alpha bounds and fails closed on empty frames, horizontal cell-edge contact, top-edge contact, excessive vertical occupancy, implausibly tiny silhouettes, per-strip foot-line drift greater than 1px, or cross-action foot-line drift greater than 1px.
+
+Commands:
+- `npm run verify:field-art-geometry` — development-state report; missing production strips report NOT_READY without pretending success.
+- `npm run test:field-art-geometry` — synthetic regression coverage.
+- `npm run verify:field-pack-readiness:strict` — now composes file completeness plus geometry and blocks while either fails.
+- `npm run verify:field-pack-admission` — also rechecks geometry after promotion/evidence.
