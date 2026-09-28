@@ -15,7 +15,7 @@
 })(typeof window!=='undefined'?window:(typeof globalThis!=='undefined'?globalThis:null),function(){
   'use strict';
 
-  const VERSION='0.2.0';
+  const VERSION='0.3.0';
   const SOURCE='Notion canonical character dossiers';
 
   function freeze(value){
@@ -36,6 +36,11 @@
         build:'slender-to-average; explicitly not especially brawny',
         disposition:['anxious','idealistic','intellectually oriented'],
         wakeStatus:'relatively new aboard the Aureate Wake',
+        equipmentAuthority:{
+          mainWeapon:'staff',
+          secondaryWeapon:'OPEN',
+          magicRequiresWeapon:false,
+        },
       },
       art:{
         silhouette:'compact scholar-traveler rather than generic battle mage',
@@ -49,7 +54,7 @@
         motifs:['study','spatial/aetheric pattern work','practical shipboard life','resonator-staff or scholarly instrumentation'],
         avoid:['bodybuilder proportions','generic wizard robes','generic battle-mage presentation','dark medium-length/tousled hair','hazel/light-brown eye substitution'],
       },
-      openVisualDecisions:['ethnicity','exactCostume'],
+      openVisualDecisions:['ethnicity','exactCostume','secondaryWeapon'],
     },
     lyra:{
       id:'lyra',name:'Lyra',age:24,nativeJob:null,
@@ -57,13 +62,18 @@
         role:'frequency/dream-sensitive receiver',
         training:'comparatively untrained; perceives before she can necessarily formalize',
         family:'single mother of Talen, age 5',
+        equipmentAuthority:{
+          mainWeapon:'chakram',
+          secondaryWeapon:'OPEN',
+          magicRequiresWeapon:false,
+        },
       },
       art:{
         silhouette:'adult, grounded, perceptive receiver',
         motifs:['listening','resonance','dreams','subtle frequency phenomena'],
         avoid:['childlike presentation','green nature mage','forest priestess'],
       },
-      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['finalClass']),
+      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['finalClass','secondaryWeapon']),
     },
     ionia:{
       id:'ionia',name:'Ionia',age:28,nativeJob:null,
@@ -73,13 +83,18 @@
         experience:'served Captain Denith for 10 years',
         expertise:['navigation','sky-lanes','Core knowledge'],
         spellcastingIdentity:'not established',
+        equipmentAuthority:{
+          mainWeapon:'mace',
+          secondaryWeapon:'OPEN',
+          magicRequiresWeapon:false,
+        },
       },
       art:{
         silhouette:'experienced young-adult captain/navigator with command posture',
         motifs:['sky-navigation gear','weathered expedition clothing','Wake-specific instruments'],
         avoid:['elderly presentation','farmer archetype','invented spellcaster identity'],
       },
-      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['weapon','finalClass']),
+      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['secondaryWeapon','finalClass']),
     },
     reson:{
       id:'reson',name:'Reson',age:25,nativeJob:null,
@@ -89,13 +104,19 @@
         durability:'very high',
         temperament:['gruff','heart of gold','wise beyond his years','still recognizably young'],
         weapons:['combat-rifle-type firearm','pike','sword'],
+        equipmentAuthority:{
+          mainWeapon:'sword',
+          secondaryWeapon:'assault-style rifle',
+          magicRequiresWeapon:false,
+          note:'pike remains historical/weapon-vocabulary canon but is not selected as the starting main or secondary weapon',
+        },
       },
       art:{
         silhouette:'broadest and heaviest-built protagonist; visibly martial',
         motifs:['disciplined equipment','rifle','pike/sword vocabulary','former-service practicality'],
         avoid:['frail build','magic-first silhouette','invented faction insignia'],
       },
-      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['singleSignatureWeapon','exactFormerServiceInsignia']),
+      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['exactFormerServiceInsignia']),
     },
     aepex:{
       id:'aepex',name:'Aepex',age:27,nativeJob:null,
@@ -104,13 +125,18 @@
         temperament:['brainy','confident','chill','cool under pressure'],
         education:'formally educated plus self-taught curiosity',
         interests:['computers','technology','mechanics','invention'],
+        equipmentAuthority:{
+          mainWeapon:'martial arts',
+          secondaryWeapon:'OPEN',
+          magicRequiresWeapon:false,
+        },
       },
       art:{
         silhouette:'relaxed systems specialist / field engineer',
         motifs:['solarpunk engineering','diagnostics','computation/interfaces','tools','configurable gizmos','brass/rootwood/aether-tech materials'],
         avoid:['generic wizard imagery','magic-staff default','pure mechanic-without-computation presentation'],
       },
-      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['weaponOrToolLoadout','finalClass']),
+      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['secondaryWeapon','finalClass']),
     },
   });
 
