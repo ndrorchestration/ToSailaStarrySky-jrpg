@@ -75,6 +75,8 @@ assert(source.includes('authored.drawPortrait') && source.includes('portraitDraw
   'v1.1 opening narration must use admitted speaker portrait art when available');
 assert(source.includes('function drawHorizonEstablishing') && source.includes("scene.id === 'arrival_horizon'"),
   'v1.2 opening must begin with a HUD-light establishing shot rather than the dock gameplay composition');
+assert(source.includes('paintedBackdrop ? 54 : 245') && source.includes('A narrow reclaimed-timber lane anchors traversal'),
+  'painted dock path must remain translucent and lane-led instead of becoming a gray overlay board');
 assert(source.includes("sceneTicks >= 90 && sceneTicks < 160") && source.includes("sceneTicks >= 142"),
   'v1.2 opening must stage location and narration after a sustained world reveal rather than immediately');
 assert(!source.includes("FIRST WAKE // ' + String(scene.sequence)"),

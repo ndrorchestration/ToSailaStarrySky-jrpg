@@ -295,16 +295,24 @@
       const t1 = (i + 1) / 8;
       const inset0 = 108 * (1 - t0);
       const inset1 = 108 * (1 - t1);
-      fill(42 + i * 2, 50 + i * 2, 53 + i * 2, paintedBackdrop ? 112 : 245);
+      fill(42 + i * 2, 50 + i * 2, 53 + i * 2, paintedBackdrop ? 54 : 245);
       quad(inset0, y0, width - inset0, y0, width - inset1, y1, inset1, y1);
-      stroke(126, 137, 132, 52);
+      stroke(126, 137, 132, paintedBackdrop ? 24 : 52);
       strokeWeight(1);
       line(inset1, y1, width - inset1, y1);
       noStroke();
     }
 
+    // A narrow reclaimed-timber lane anchors traversal without covering the painted dock.
+    noStroke();
+    fill(104, 80, 56, paintedBackdrop ? 72 : 165);
+    quad(width / 2 - 64, 390, width / 2 + 64, 390, width / 2 + 238, height, width / 2 - 238, height);
+    fill(191, 144, 76, paintedBackdrop ? 54 : 105);
+    quad(width / 2 - 57, 392, width / 2 - 53, 392, width / 2 - 196, height, width / 2 - 203, height);
+    quad(width / 2 + 53, 392, width / 2 + 57, 392, width / 2 + 203, height, width / 2 + 196, height);
+
     // Perspective seams and rails pull the eye toward the ship.
-    stroke(111, 125, 127, 85);
+    stroke(111, 125, 127, paintedBackdrop ? 44 : 85);
     strokeWeight(1);
     line(width / 2, 390, width / 2, height);
     line(width / 2 - 92, 390, 145, height);
@@ -312,7 +320,7 @@
     line(115, 401, 45, 570);
     line(width - 115, 401, width - 45, 570);
     // Reclaimed-brass service seams break the apron into intentional modules.
-    stroke(183, 132, 64, 82);
+    stroke(183, 132, 64, paintedBackdrop ? 48 : 82);
     strokeWeight(2);
     line(172, 454, width - 132, 437);
     line(118, 516, width - 82, 505);
