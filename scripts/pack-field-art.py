@@ -16,9 +16,24 @@ ACTIONS = {
 def load_frame(path: Path) -> Image.Image:
     if not path.exists():
         raise FileNotFoundError(path)
-    image = Image.open(path).convert("RGBA")
-    if image.size != (FRAME_W, FRAME_H):
-        raise ValueError(f"{path}: expected {FRAME_W}x{FRAME_H}, got {image.size[0]}x{image.size[1]}")
+
+    with Image.open(path) as source:
+        if source.format != "PNG":
+            raise ValueError(f"{path}: production field frames must be PNG")
+        if source.size != (FRAME_W, FRAME_H):
+            raise ValueError(
+                f"{path}: expected {FRAME_W}x{FRAME_H}, got {source.size[0]}x{source.size[1]}"
+            )
+        image = source.convert("RGBA")
+
+    alpha = image.getchannel("A")
+    alpha_min, alpha_max = alpha.getextrema()
+    if alpha_min == 255:
+        raise ValueError(f"{path}: transparent background required; frame is fully opaque")
+    if alpha_max == 0:
+        raise ValueError(f"{path}: frame is fully transparent")
+    if image.getbbox() is None:
+        raise ValueError(f"{path}: frame contains no visible pixels")
     return image
 
 def pack_action(root: Path, character: str, action: str, count: int, output_root: Path) -> Path:
