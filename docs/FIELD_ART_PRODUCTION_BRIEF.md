@@ -76,3 +76,12 @@ After production strips are mechanically complete and fresh exact-head visual ev
 The preparer refuses a dirty worktree, resolves the full 40-character Git head, hashes all five strip PNGs, hashes `visual-evidence/manifest.json`, and writes the corresponding receipt under `assets/characters/v1/admission/`.
 
 The generated receipt remains **PENDING** for silhouette and runtime review fields. Preparing a receipt is not admission and must never be treated as evidence that human or runtime gates passed.
+
+
+## Raw silhouette-recognition evidence
+Do not enter an aggregate participant count or correct-rate by hand. The admission receipt records at least five pseudonymous raw observations under `silhouetteRecognition.participants[]`, each with:
+- unique participant ID;
+- `independentOfImplementation: true` only when established;
+- raw `correct: true|false` recognition outcome.
+
+The verifier derives the participant count, correct count, and correct rate. Duplicate IDs, non-independent participants, incomplete correctness fields, fewer than five observations, or a derived recognition rate below 80% fail closed.
