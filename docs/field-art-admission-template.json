@@ -3,8 +3,33 @@
   "characterId": "REPLACE_WITH_CHARACTER_ID",
   "silhouetteRecognition": {
     "status": "PENDING",
-    "participants": 0,
-    "correctRate": 0
+    "participants": [
+      {
+        "id": "S1",
+        "independentOfImplementation": null,
+        "correct": null
+      },
+      {
+        "id": "S2",
+        "independentOfImplementation": null,
+        "correct": null
+      },
+      {
+        "id": "S3",
+        "independentOfImplementation": null,
+        "correct": null
+      },
+      {
+        "id": "S4",
+        "independentOfImplementation": null,
+        "correct": null
+      },
+      {
+        "id": "S5",
+        "independentOfImplementation": null,
+        "correct": null
+      }
+    ]
   },
   "runtimeReview": {
     "status": "PENDING",
