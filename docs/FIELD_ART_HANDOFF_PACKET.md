@@ -160,7 +160,7 @@ Before export:
 4. Export the ten exact PNG strips.
 5. Run `npm run verify:field-pack-readiness:strict`. This verifies production-file completeness **before** any manifest promotion.
 6. Regenerate exact-head runtime evidence and compare against the provisional bridge art at actual runtime scale.
-7. Run the human silhouette-recognition check with at least 5 independent participants and require ≥80% correct identification.
+7. Run the human silhouette-recognition check using `docs/FIELD_SILHOUETTE_RECOGNITION_KIT.md` with at least 5 independent participants and require ≥80% overall correct identification.
 8. Create per-character admission receipts from `docs/field-art-admission-template.json` under `assets/characters/v1/admission/<character>.json`, binding the human result and exact-head runtime review. The runtime receipt must separately show PASS for the visual suite, browser route + replay, exact-head evidence capture, visual performance, and before/after cohesion review.
 9. Only after mechanical completeness, runtime review, and silhouette evidence pass, change the manifest status to `ready` / `field-ready`.
 10. Run `npm run verify:field-pack-admission` as the post-promotion fail-closed admission check.
