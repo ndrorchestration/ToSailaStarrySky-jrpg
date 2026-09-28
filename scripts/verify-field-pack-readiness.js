@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const root = path.resolve(__dirname, '..');
 const manifestPath = path.join(root, 'assets', 'characters', 'v1', 'manifest.json');
@@ -15,6 +16,11 @@ const FIELD_CELL = Object.freeze({ width: 64, height: 96 });
 const EXPECTED_ACTIONS = Object.freeze({ idle: 8, walk: 6, talk: 4, focus: 6, attack: 8 });
 const ACTION_NAMES = Object.freeze(Object.keys(EXPECTED_ACTIONS));
 const ADMISSION_SCHEMA = 'AETHERWAKE_FIELD_ART_ADMISSION_V1';
+
+function sha256File(file) {
+  if (!file || !fs.existsSync(file)) return null;
+  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+}
 
 function pngInfo(file) {
   if (!fs.existsSync(file)) return { exists: false };
@@ -37,7 +43,7 @@ function sameActions(fieldStrips) {
   return names.length === expected.length && names.every((name, index) => name === expected[index]);
 }
 
-function inspectAdmissionEvidence(id) {
+function inspectAdmissionEvidence(id, stripHashes) {
   const relativePath = path.join('assets', 'characters', 'v1', 'admission', id + '.json');
   const file = path.join(root, relativePath);
   if (!fs.existsSync(file)) return { path: relativePath.replace(/\\/g, '/'), exists: false, valid: false };
@@ -45,9 +51,20 @@ function inspectAdmissionEvidence(id) {
     const receipt = JSON.parse(fs.readFileSync(file, 'utf8'));
     const silhouette = receipt.silhouetteRecognition || {};
     const runtime = receipt.runtimeReview || {};
+    const assetSha256 = receipt.assetSha256 || {};
+    const hashesMatch = ACTION_NAMES.every(action => {
+      const actual = stripHashes && stripHashes[action];
+      const recorded = assetSha256[action];
+      return typeof actual === 'string' &&
+        /^[0-9a-f]{64}$/i.test(actual) &&
+        typeof recorded === 'string' &&
+        /^[0-9a-f]{64}$/i.test(recorded) &&
+        actual.toLowerCase() === recorded.toLowerCase();
+    });
     const valid = Boolean(
       receipt.schema === ADMISSION_SCHEMA &&
       receipt.characterId === id &&
+      hashesMatch &&
       silhouette.status === 'PASS' &&
       Number.isInteger(silhouette.participants) &&
       silhouette.participants >= 5 &&
@@ -75,6 +92,11 @@ function inspectAdmissionEvidence(id) {
       visualPerformance: runtime.visualPerformance || null,
       beforeAfterCohesion: runtime.beforeAfterCohesion || null,
       exactHead: typeof runtime.exactHead === 'string' ? runtime.exactHead : null,
+      hashesMatch,
+      assetSha256: ACTION_NAMES.reduce((out, action) => {
+        out[action] = typeof assetSha256[action] === 'string' ? assetSha256[action] : null;
+        return out;
+      }, {}),
     };
   } catch (error) {
     return { path: relativePath.replace(/\\/g, '/'), exists: true, valid: false, parseError: true };
@@ -83,7 +105,7 @@ function inspectAdmissionEvidence(id) {
 
 function inspect(id) {
   const record = manifest.characters && manifest.characters[id];
-  if (!record) return { id, status: 'MISSING_RECORD', valid: false, strips: [], evidence: inspectAdmissionEvidence(id) };
+  if (!record) return { id, status: 'MISSING_RECORD', valid: false, strips: [], evidence: inspectAdmissionEvidence(id, {}) };
 
   const fieldStrips = record.fieldStrips || {};
   const actionsMatch = sameActions(fieldStrips);
@@ -101,6 +123,7 @@ function inspect(id) {
     );
     const file = contractValid ? path.join(root, spec.path) : null;
     const info = file ? pngInfo(file) : { exists: false };
+    const sha256 = file && info.exists && info.png ? sha256File(file) : null;
     const transparentCapable = Boolean(info.png && [4, 6].includes(info.colorType));
     const valid = Boolean(
       contractValid &&
@@ -117,13 +140,18 @@ function inspect(id) {
       manifestContractValid: contractValid,
       actual: info.exists && info.png ? [info.width, info.height] : null,
       transparentCapable,
+      sha256,
       valid,
     };
   });
 
   const complete = actionsMatch && strips.every(s => s.valid);
   const declaredReady = record.status === 'ready' || record.status === 'field-ready';
-  const evidence = inspectAdmissionEvidence(id);
+  const stripHashes = strips.reduce((out, strip) => {
+    out[strip.action] = strip.sha256;
+    return out;
+  }, {});
+  const evidence = inspectAdmissionEvidence(id, stripHashes);
   return { id, manifestStatus: record.status, actionsMatch, complete, declaredReady, evidence, strips };
 }
 
