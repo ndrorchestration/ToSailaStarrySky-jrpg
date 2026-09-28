@@ -138,7 +138,7 @@
     "test:ui-visual-system": "node tests/ui-visual-system.test.js",
     "test:toast-visual-hierarchy": "node tests/toast-visual-hierarchy.test.js",
     "verify:visual-performance": "node scripts/verify-visual-performance.js",
-    "test:visual-acceptance-scoring": "node tests/visual-acceptance-scoring.test.js",
+    "test:visual-acceptance-scoring": "node tests/visual-acceptance-scoring.test.js && node tests/visual-acceptance-protocol-preparer.test.js",
     "score:visual-acceptance": "node scripts/score-visual-acceptance.js",
     "test:authored-character-assets": "node tests/authored-character-asset-contract.test.js",
     "test:authored-character-art": "node tests/authored-character-art.test.js",
@@ -170,6 +170,8 @@
     "verify:field-art-geometry": "python scripts/verify-field-art-geometry.py",
     "prepare:field-art-admission:ender": "node scripts/prepare-field-art-admission.js ender",
     "prepare:field-art-admission:ionia": "node scripts/prepare-field-art-admission.js ionia",
-    "test:field-art-admission-preparer": "node tests/field-art-admission-preparer.test.js"
+    "test:field-art-admission-preparer": "node tests/field-art-admission-preparer.test.js",
+    "prepare:visual-acceptance-protocol": "node scripts/prepare-visual-acceptance-protocol.js",
+    "test:visual-acceptance-protocol-preparer": "node tests/visual-acceptance-protocol-preparer.test.js"
   }
 }
