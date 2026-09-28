@@ -99,6 +99,10 @@ const protocol = {
     {id:'D3',sha256:'3'.repeat(64)}
   ],
   participantPlan:{requiredCount:5,ids:['P1','P2','P3','P4','P5']},
+  presentation:{
+    orderSeed:'fixed-seed',
+    order:['A:a','A:b','A:c','A:d','A:e','A:f','A:g','D:D1','D:D2','D:D3']
+  },
   frozenBeforeFirstSession:true
 };
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aetherwake-g4-'));
@@ -121,3 +125,13 @@ assert.throws(() => verifyProtocolBinding(omittedParticipant, protocolPath), /fr
 const replacedParticipant = JSON.parse(JSON.stringify(bound));
 replacedParticipant.participants[4].id = 'P6';
 assert.throws(() => verifyProtocolBinding(replacedParticipant, protocolPath), /frozen participant plan/);
+
+
+const invalidOrderProtocol = JSON.parse(JSON.stringify(protocol));
+invalidOrderProtocol.presentation.order = invalidOrderProtocol.presentation.order.slice(0, 9);
+const invalidOrderPath = path.join(tempDir, 'invalid-order.json');
+fs.writeFileSync(invalidOrderPath, JSON.stringify(invalidOrderProtocol));
+const invalidOrderHash = crypto.createHash('sha256').update(fs.readFileSync(invalidOrderPath)).digest('hex');
+const invalidOrderResults = JSON.parse(JSON.stringify(passing));
+invalidOrderResults.candidate.protocolSha256 = invalidOrderHash;
+assert.throws(() => verifyProtocolBinding(invalidOrderResults, invalidOrderPath), /presentation order/);
