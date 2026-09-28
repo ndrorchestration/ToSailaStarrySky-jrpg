@@ -50,6 +50,8 @@ Canonical requirements:
 - scholarly instrumentation may coexist with the staff;
 - avoid bodybuilder proportions, wizard robes, generic battle-mage posing, dark medium-length/tousled hair, or hazel/light-brown eye substitution.
 
+Detailed staff-motion authority: `docs/ENDER_STARTER_STAFF_PRODUCTION_BRIEF.md`.
+
 ### Ender frame direction
 
 **Idle — 8 frames**
@@ -88,15 +90,15 @@ Ender should look thoughtful rather than theatrical.
 No generic spell-casting flourish.
 
 **Attack — 8 frames**
-1. anticipation;
-2. load;
-3. committed forward motion;
-4. strike/release;
-5. peak extension;
-6. recovery begins;
-7. regain balance;
+1. compact staff-ready stance;
+2. two-hand load / weight shift;
+3. first-end thrust or short strike;
+4. committed physical contact frame;
+5. reverse-end follow-through;
+6. recovery sweep;
+7. regain grounded stance;
 8. return toward idle.
-Keep the action practical and character-specific rather than a large heroic fighter pose.
+The baseline attack is **physical two-ended staff combat**, not an aether slash or wizard-casting animation.
 
 ## Ionia identity lock
 
