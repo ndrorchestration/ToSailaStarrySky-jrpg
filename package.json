@@ -144,7 +144,7 @@
     "test:authored-character-art": "node tests/authored-character-art.test.js",
     "test:field-pack-readiness": "node tests/field-pack-readiness.test.js",
     "verify:field-pack-readiness": "node scripts/verify-field-pack-readiness.js",
-    "verify:field-pack-readiness:strict": "node scripts/verify-field-pack-readiness.js --require-complete",
+    "verify:field-pack-readiness:strict": "node scripts/verify-field-pack-readiness.js --require-complete && python scripts/verify-field-art-geometry.py --require-complete",
     "pack:field-art:ender": "python scripts/pack-field-art.py ender",
     "pack:field-art:ionia": "python scripts/pack-field-art.py ionia",
     "test:field-art-packer": "python tests/field-art-packer.test.py",
@@ -158,13 +158,15 @@
     "test:aepex-art-preview": "node tests/aepex-art-preview-contract.test.js",
     "test:field-sprite-roster": "node tests/field-sprite-roster-review.test.js",
     "test:portrait-roster": "node tests/roster-portrait-review.test.js",
-    "verify:field-pack-admission": "node scripts/verify-field-pack-readiness.js --require-ready --require-evidence",
+    "verify:field-pack-admission": "node scripts/verify-field-pack-readiness.js --require-ready --require-evidence && python scripts/verify-field-art-geometry.py --require-complete",
     "verify:portrait-pack-readiness": "python scripts/verify-portrait-pack-readiness.py",
     "test:portrait-pack-readiness": "python tests/portrait-pack-readiness.test.py",
     "test:field-silhouette-recognition": "node tests/field-silhouette-recognition-scoring.test.js",
     "score:field-silhouette-recognition": "node scripts/score-field-silhouette-recognition.js",
     "test:field-silhouette-cards": "python tests/field-silhouette-card-generator.test.py",
     "verify:visual-v46:dragonfly:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\verify-visual-v46-dragonfly.ps1",
-    "test:dragonfly-resume-verifier": "node tests/dragonfly-resume-verifier.test.js"
+    "test:dragonfly-resume-verifier": "node tests/dragonfly-resume-verifier.test.js",
+    "test:field-art-geometry": "python tests/field-art-geometry.test.py",
+    "verify:field-art-geometry": "python scripts/verify-field-art-geometry.py"
   }
 }
