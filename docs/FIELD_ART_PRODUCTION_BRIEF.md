@@ -85,3 +85,9 @@ Do not enter an aggregate participant count or correct-rate by hand. The admissi
 - raw `correct: true|false` recognition outcome.
 
 The verifier derives the participant count, correct count, and correct rate. Duplicate IDs, non-independent participants, incomplete correctness fields, fewer than five observations, or a derived recognition rate below 80% fail closed.
+
+
+## Exact-head invalidation rule
+Post-promotion admission compares the receipt's `runtimeReview.exactHead` to the repository's **current** 40-character Git head and compares `runtimeReview.evidenceManifestSha256` to the **actual bytes** of `visual-evidence/manifest.json`.
+
+Therefore, any commit after a receipt is generated intentionally invalidates that receipt until exact-head evidence is regenerated and the receipt is rebound. The correct sequencing is: finish source/art changes → reach a clean candidate head → capture evidence → prepare/review receipt → make the admission-state change as the final bounded transition. Do not make unrelated documentation or code commits afterward while claiming the prior receipt still admits the new head.
