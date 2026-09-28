@@ -87,3 +87,24 @@ The scorer is fail-closed: incomplete participant/category data does not produce
 
 ## G4 authority boundary
 Automated visual tests, screenshots, and developer scoring can prepare G4 but cannot close it. G4 closes only from the exact candidate's human evidence plus the technical gates.
+
+
+## Frozen blind-test protocol
+Before participant P1 begins, create the protocol artifact from `docs/visual-acceptance-protocol-template.json`.
+
+The preregistered Aetherwake set is fixed to these seven exact evidence frames:
+- `00-title-screen.png`
+- `00a-opening-world-reveal.png`
+- `01-first-wake-dock-walk.png`
+- `00b-first-wake-ionia-arrival.png`
+- `03-dialogue-ionia.png`
+- `04-combat-sky-predator.png`
+- `05-dragonfly-flight.png`
+
+Add exactly three legally usable decoy image files and choose a fixed order seed. Then run:
+
+`npm run prepare:visual-acceptance-protocol -- --package <candidate-package> --seed <fixed-seed> --decoy <d1> --decoy <d2> --decoy <d3>`
+
+The preparer requires a clean exact-head worktree, hashes the packaged candidate, evidence manifest, all seven Aetherwake frames, and all three decoys, and writes `visual-acceptance-protocol.json`. Its SHA-256 goes into `candidate.protocolSha256` in the result file.
+
+`npm run score:visual-acceptance` now hashes the real protocol artifact and cross-checks its commit/package/evidence bindings before scoring participants. Changing the frame set, decoys, candidate, or protocol bytes after testing begins invalidates the binding.
