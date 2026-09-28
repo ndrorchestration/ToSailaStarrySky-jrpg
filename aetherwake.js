@@ -5182,6 +5182,14 @@ function drawElderFarmerBody(px, py) {
 // --- Quest Overlay -----------------------------------------------------------
 
 function drawQuestOverlay() {
+  // When a priority objective ribbon is already visible, suppress the persistent
+  // quest cue for that moment so the player never sees two competing objective UIs.
+  const objectiveToastActive = Array.isArray(window.toasts) && window.toasts.some(t =>
+    t && t.kind !== 'system' && String(t.text || '').toUpperCase().startsWith('OBJECTIVE //') &&
+    (millis() - t.startTime) <= t.duration
+  );
+  if (objectiveToastActive) return;
+
   if (gameOver && quest.wakeEpilogue) {
     drawEpilogueScreen();
     return;

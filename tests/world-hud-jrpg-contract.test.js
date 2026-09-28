@@ -18,5 +18,7 @@ assert(runtime.includes("text('AETHER', x, y - 3)") && runtime.includes("text('S
   'field resources must use compact JRPG-style pip cues');
 assert(runtime.includes('const solarPips = 4'),
   'Aether resource cue must remain compact and discrete');
+assert(runtime.includes('const objectiveToastActive = Array.isArray(window.toasts)') && runtime.includes('if (objectiveToastActive) return;'),
+  'persistent quest HUD must yield while the centered objective ribbon is active');
 
 console.log('Aetherwake world HUD JRPG presentation contract: PASS');
