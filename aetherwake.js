@@ -8590,7 +8590,7 @@ function drawCombatPanel(combatState, layoutBox) {
   if (!combatState) return;
   push();
   const uiVisual = window.AetherUIVisualSystem;
-  const fallback = { x: 24, y: 24, w: 184, h: 400 };
+  const fallback = { x: 24, y: height - 264, w: 232, h: 240 };
   const box = layoutBox || fallback;
   const px = box.x, py = box.y, pw = box.w, ph = box.h;
 
@@ -8617,7 +8617,7 @@ function drawCombatPanel(combatState, layoutBox) {
 
   // Enemy section
   if (combatState.enemy) {
-    const ey = py + 36;
+    const ey = py + 30;
     // Enemy readout is text-led; a single rust rule replaces the nested dashboard card.
     noStroke();
     fill(160, 74, 44, 90);
@@ -8650,7 +8650,7 @@ function drawCombatPanel(combatState, layoutBox) {
   }
 
   // Player status section
-  const sY = py + 90;
+  const sY = py + 70;
   // Player state shares the same open instrument surface; no nested status card.
   noStroke();
   fill(42, 255, 181, 72);
@@ -8665,9 +8665,9 @@ function drawCombatPanel(combatState, layoutBox) {
   textSize(10);
   const col1 = px + 14;
   const col2 = px + Math.round(pw * 0.53);
-  const row1 = sY + 22;
-  const row2 = sY + 41;
-  const row3 = sY + 60;
+  const row1 = sY + 20;
+  const row2 = sY + 37;
+  const row3 = sY + 54;
   fill(PAL.RUST); text('HP', col1, row1);
   fill(PAL.PARCHMENT); text(combatState.player.vit + '/' + combatState.player.maxVit, col1 + 23, row1);
   fill(PAL.SCIOTO); text('AETHER', col2, row1);
@@ -8682,9 +8682,9 @@ function drawCombatPanel(combatState, layoutBox) {
   // Actions grid — eight stable number-key slots. Locked actions stay visible
   // so progression is legible without making key bindings move.
   const aX = px + 8;
-  const aY = sY + 86;
+  const aY = sY + 64;
   const aW = pw - 16;
-  const aH = 132;
+  const aH = 76;
   // Actions remain grouped by spacing and typography rather than another opaque card.
   noStroke();
   fill(42, 255, 181, 58);
@@ -8698,74 +8698,60 @@ function drawCombatPanel(combatState, layoutBox) {
   const eligibleActionIds = new Set(
     combatState.eligibleActionIds || actions.map(action => action.id)
   );
+  // Two-column 4-row command grid keeps all eight actions visible without a tall sidebar.
   const actH = 14;
-  const actStartY = aY + 20;
+  const actStartY = aY + 19;
+  const actionColW = Math.floor(aW / 2);
   actions.forEach((action, idx) => {
-    const ay = actStartY + idx * actH;
+    const actionCol = idx % 2;
+    const actionRow = Math.floor(idx / 2);
+    const ax = aX + actionCol * actionColW;
+    const ay = actStartY + actionRow * actH;
     const unlocked = eligibleActionIds.has(action.id);
     const useEligibility = combatState.actionUseEligibility
       ? combatState.actionUseEligibility[action.id]
       : null;
     const usable = unlocked && (!useEligibility || useEligibility.canUse);
-    // Number circle
     fill(usable ? PAL.TEAL : PAL.DIM);
     noStroke();
-    ellipse(aX + 12, ay + 6, 8, 8);
+    ellipse(ax + 8, ay + 6, 8, 8);
     fill(PAL.NAVY);
     textFont(FONT_UI);
     textSize(7);
     textAlign(CENTER, CENTER);
-    text(String(idx + 1), aX + 12, ay + 6);
-    // Action label
+    text(String(idx + 1), ax + 8, ay + 6);
     textFont(FONT_BODY);
-    textSize(9);
+    textSize(8);
     textAlign(LEFT, CENTER);
     const label = action.label || action.id;
     const compactLabel = label.split(/\s+[^A-Za-z0-9]+\s+/)[0].trim();
     fill(usable ? PAL.PARCHMENT : PAL.DIM);
     noStroke();
-    const maxLabelChars = 17;
-    text(compactLabel.substring(0, maxLabelChars), aX + 23, ay);
-    // Resource cost stays legible without dashboard-style COST / LOCK / N/A prefixes.
+    text(compactLabel.substring(0, 10), ax + 17, ay);
     const totalCost = window.AetherAbilityDefs.getActionResourceCost(action);
     if (unlocked && totalCost > 0) {
       textFont(FONT_UI);
       textSize(7);
       fill(usable ? PAL.AMBER : PAL.DIM);
-      text('◆' + totalCost, aX + aW - 36, ay + 1);
+      text('◆' + totalCost, ax + actionColW - 20, ay + 1);
     }
-    // Icon
-    if (usable) drawActionIcon(aX + aW - 13, ay + 6, 11, action.id);
   });
 
-  // Enemy special ability hint
+  // Enemy trait remains a single quiet footer line inside the compact command window.
   if (combatState.enemy && combatState.enemy.abilityDesc) {
-    const abY = aY + aH + 10;
-    drawPixelBorder(px + 8, abY, pw - 16, 26, 1, PAL.SHADOW, PAL.RUST);
+    const abY = aY + aH + 3;
+    fill(PAL.RUST);
+    noStroke();
+    rect(px + 12, abY, pw - 24, 1);
     textFont(FONT_UI);
     textSize(7);
-    fill(PAL.RUST);
+    textAlign(LEFT, TOP);
     text('TRAIT', px + 14, abY + 4);
     textFont(FONT_BODY);
-    textSize(9);
+    textSize(8);
     fill(PAL.PARCHMENT);
-    const abText = combatState.enemy.abilityDesc;
-    const maxW = pw - 40;
-    const words = abText.split(' ');
-    let line = '';
-    let lines = [];
-    for (const w of words) {
-      if (textWidth(line + ' ' + w) > maxW && line) {
-        lines.push(line);
-        line = w;
-      } else {
-        line = line ? line + ' ' + w : w;
-      }
-    }
-    if (line) lines.push(line);
-    lines.forEach((l, i) => {
-      text(l, px + 14, abY + 13 + i * 9);
-    });
+    const abText = String(combatState.enemy.abilityDesc || '');
+    text(abText.substring(0, 30), px + 48, abY + 3);
   }
 
   pop();
