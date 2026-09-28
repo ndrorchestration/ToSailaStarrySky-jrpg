@@ -5,7 +5,7 @@
   "runtimeFallback": "modules/character-renderer.js",
   "characters": {
     "ender": {
-      "status": "planned",
+      "status": "portrait-ready",
       "portraitAtlas": {
         "path": "assets/characters/v1/ender/portrait-atlas.png",
         "width": 768,
@@ -19,7 +19,8 @@
           "focus",
           "hurt",
           "smile"
-        ]
+        ],
+        "source": "Creator-selected canonical portrait candidate promoted to runtime portrait authority; field art remains unadmitted."
       },
       "fieldStrips": {
         "idle": {
@@ -71,7 +72,7 @@
           "hurt",
           "smile"
         ],
-        "source": "Regenerated from the creator-supplied enderbest1.jpg reference at the user’s direction; this is the selected likeness and outfit, opt-in preview only."
+        "source": "Regenerated from the creator-supplied enderbest1.jpg reference at the user\u00e2\u20ac\u2122s direction; this is the selected likeness and outfit, opt-in preview only."
       },
       "candidateFieldSprite": {
         "status": "candidate",
@@ -89,7 +90,7 @@
       }
     },
     "lyra": {
-      "status": "planned",
+      "status": "portrait-ready",
       "portraitAtlas": {
         "path": "assets/characters/v1/lyra/portrait-atlas.png",
         "width": 768,
@@ -103,7 +104,8 @@
           "focus",
           "hurt",
           "smile"
-        ]
+        ],
+        "source": "Creator-selected canonical portrait candidate promoted to runtime portrait authority; field art remains unadmitted."
       },
       "fieldStrips": {
         "idle": {
@@ -248,7 +250,7 @@
       }
     },
     "reson": {
-      "status": "planned",
+      "status": "portrait-ready",
       "portraitAtlas": {
         "path": "assets/characters/v1/reson/portrait-atlas.png",
         "width": 768,
@@ -262,7 +264,8 @@
           "focus",
           "hurt",
           "smile"
-        ]
+        ],
+        "source": "Creator-selected canonical portrait candidate promoted to runtime portrait authority; field art remains unadmitted."
       },
       "fieldStrips": {
         "idle": {
@@ -332,7 +335,7 @@
       }
     },
     "aepex": {
-      "status": "planned",
+      "status": "portrait-ready",
       "portraitAtlas": {
         "path": "assets/characters/v1/aepex/portrait-atlas.png",
         "width": 768,
@@ -346,7 +349,8 @@
           "focus",
           "hurt",
           "smile"
-        ]
+        ],
+        "source": "Creator-selected canonical portrait candidate promoted to runtime portrait authority; field art remains unadmitted."
       },
       "fieldStrips": {
         "idle": {

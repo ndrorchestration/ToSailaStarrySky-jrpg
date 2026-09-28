@@ -7,8 +7,7 @@ const sandbox={window:{},globalThis:{}}; vm.createContext(sandbox); vm.runInCont
 const api=sandbox.window.AetherAuthoredCharacterArt;
 if(!api) throw new Error('authored character art API missing');
 if(api.VERSION!=='0.4.0') throw new Error('version drift');
-if(!api.isPortraitReady('ionia')) throw new Error('Ionia portrait pack must be admitted');
-if(api.isPortraitReady('ender')) throw new Error('Ender portrait must remain unadmitted');
+for(const id of ['ender','lyra','ionia','reson','aepex']) if(!api.isPortraitReady(id)) throw new Error(id+' portrait pack must be admitted');
 if(api.EXPRESSION_ORDER.join(',')!=='neutral,talk,concern,focus,hurt,smile') throw new Error('expression order drift');
 if(api.normalizeExpression('speaking')!=='talk') throw new Error('speaking alias drift');
 if(api.normalizeExpression('nonsense')!=='neutral') throw new Error('unknown expressions must fail to neutral');

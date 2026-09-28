@@ -7,7 +7,11 @@
   const FIELD_CELL_H=96;
   const EXPRESSION_ORDER=Object.freeze(['neutral','talk','concern','focus','hurt','smile']);
   const PACKS=Object.freeze({
-    ionia:Object.freeze({status:'portrait-ready',portraitAtlas:'assets/characters/v1/ionia/portrait-atlas.png',width:768,height:512})
+    ender:Object.freeze({status:'portrait-ready',portraitAtlas:'assets/characters/v1/ender/portrait-atlas.png',width:768,height:512}),
+    lyra:Object.freeze({status:'portrait-ready',portraitAtlas:'assets/characters/v1/lyra/portrait-atlas.png',width:768,height:512}),
+    ionia:Object.freeze({status:'portrait-ready',portraitAtlas:'assets/characters/v1/ionia/portrait-atlas.png',width:768,height:512}),
+    reson:Object.freeze({status:'portrait-ready',portraitAtlas:'assets/characters/v1/reson/portrait-atlas.png',width:768,height:512}),
+    aepex:Object.freeze({status:'portrait-ready',portraitAtlas:'assets/characters/v1/aepex/portrait-atlas.png',width:768,height:512})
   });
   const FIELD_PACKS=Object.freeze({
     ender:Object.freeze({status:'planned',base:'assets/characters/v1/ender'}),
