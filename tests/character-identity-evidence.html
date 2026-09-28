@@ -14,12 +14,16 @@ canvas{display:block;width:1440px!important;height:960px!important;image-renderi
 <body>
 <script>
 const authoredAtlases={};
+const provisionalFields={};
 function preload(){
   if(window.AetherAuthoredCharacterArt && window.AetherAuthoredCharacterArt.PACKS){
     for(const [id,pack] of Object.entries(window.AetherAuthoredCharacterArt.PACKS)){
       if(pack.status==='portrait-ready' && pack.portraitAtlas){
         authoredAtlases[id]=loadImage('../'+pack.portraitAtlas);
       }
+    }
+    for(const [id,pack] of Object.entries(window.AetherAuthoredCharacterArt.PROVISIONAL_FIELD||{})){
+      provisionalFields[id]=loadImage('../'+pack.base+'/provisional-idle.png');
     }
   }
 }
@@ -51,11 +55,19 @@ function setup(){
     }
     fill(authoredReady ? 42 : 124, authoredReady ? 255 : 200, authoredReady ? 181 : 232, authoredReady ? 215 : 155);
     textSize(9); text(authoredReady ? 'AUTHORED PORTRAIT' : 'PROCEDURAL PORTRAIT',xs[i],292);
-    AetherCharacterRenderer.draw(ids[i],xs[i],485,{scale:3.0,depth:0.72,now:2200,speed:0,facing:'right',action:'idle'});
+    const provisional=provisionalFields[ids[i]];
+    if(provisional){
+      noSmooth();
+      image(provisional,xs[i]-40,365,80,120,0,0,64,96);
+      fill(124,200,232,180); textSize(8); text('PROVISIONAL FIELD',xs[i],494);
+    }else{
+      AetherCharacterRenderer.draw(ids[i],xs[i],485,{scale:3.0,depth:0.72,now:2200,speed:0,facing:'right',action:'idle'});
+      fill(124,200,232,150); textSize(8); text('PROCEDURAL FIELD',xs[i],494);
+    }
     fill(232,220,198); textAlign(CENTER,TOP); textSize(14); text(labels[i],xs[i],530);
   }
   fill(124,200,232,180); textSize(11);
-  text('DIAGNOSTIC // authored portrait readiness + procedural field silhouette',width/2,594);
+  text('DIAGNOSTIC // authored portrait readiness + provisional field silhouette',width/2,594);
   window.__identityEvidenceReady=true;
 }
 </script>
