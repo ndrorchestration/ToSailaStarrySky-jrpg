@@ -602,21 +602,38 @@ function drawSaveLoadOverlay() {
   text('UP / DOWN SLOT   ENTER CONFIRM   ESC RETURN   F5 SAVE   F9 LOAD', 90, height - 42);
 }
 
+function desktopNodeBridge() {
+  let nodeRequire = typeof require === 'function' ? require : null;
+  if (!nodeRequire && typeof nw !== 'undefined' && nw && typeof nw.require === 'function') {
+    nodeRequire = nw.require.bind(nw);
+  }
+  if (!nodeRequire && window.nw && typeof window.nw.require === 'function') {
+    nodeRequire = window.nw.require.bind(window.nw);
+  }
+
+  let nodeProcess = typeof process !== 'undefined' && process && process.env ? process : null;
+  if (!nodeProcess && nodeRequire) {
+    try { nodeProcess = nodeRequire('process'); } catch (_) {}
+  }
+  if (!nodeRequire || !nodeProcess || !nodeProcess.env) return null;
+  return { require: nodeRequire, process: nodeProcess };
+}
+
 function runChapter1PersistenceSmokeOnce() {
   if (window.__awChapter1PersistenceSmokeDone) return;
   try {
-    if (typeof process === 'undefined' || !process.env) return;
-    const mode = process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MODE;
-    const markerPath = process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER;
-    const isolatedRoot = process.env.AETHERWAKE_SAVE_ROOT_OVERRIDE;
+    const bridge = desktopNodeBridge();
+    if (!bridge) return;
+    const mode = bridge.process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MODE;
+    const markerPath = bridge.process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER;
+    const isolatedRoot = bridge.process.env.AETHERWAKE_SAVE_ROOT_OVERRIDE;
     if (!mode || !markerPath || !isolatedRoot) return;
     if (!window.__awRuntimeReady || !window.__awFirstFrame) return;
-    if (typeof require !== 'function') return;
     if (!window.AetherSaveSystem || !world || !world.player) {
       throw new Error('CHAPTER1_PERSISTENCE_SMOKE_RUNTIME_UNAVAILABLE');
     }
 
-    const fs = require('fs');
+    const fs = bridge.require('fs');
     let payload = null;
 
     if (mode === 'create') {
@@ -677,12 +694,11 @@ function runChapter1PersistenceSmokeOnce() {
   } catch (error) {
     window.__awChapter1PersistenceSmokeDone = true;
     try {
-      if (typeof require === 'function' &&
-          typeof process !== 'undefined' && process.env &&
-          process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER) {
-        require('fs').writeFileSync(
-          process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER,
-          JSON.stringify({ phase: process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MODE || null,
+      const bridge = desktopNodeBridge();
+      if (bridge && bridge.process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER) {
+        bridge.require('fs').writeFileSync(
+          bridge.process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER,
+          JSON.stringify({ phase: bridge.process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MODE || null,
             result: 'FAIL', error: error.message }),
           'utf8'
         );
@@ -695,13 +711,13 @@ function runChapter1PersistenceSmokeOnce() {
 function writeDesktopSmokeMarkerOnce() {
   if (window.__awDesktopSmokeMarkerWritten) return;
   try {
-    if (typeof process === 'undefined' || !process.env) return;
-    const markerPath = process.env.AETHERWAKE_DESKTOP_SMOKE_MARKER;
+    const bridge = desktopNodeBridge();
+    if (!bridge) return;
+    const markerPath = bridge.process.env.AETHERWAKE_DESKTOP_SMOKE_MARKER;
     if (!markerPath) return;
     if (!window.__awRuntimeReady || !window.__awFirstFrame) return;
-    if (typeof require !== 'function') return;
 
-    const fs = require('fs');
+    const fs = bridge.require('fs');
     const payload = {
       runtimeReady: true,
       firstFrame: true,
