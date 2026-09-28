@@ -5,7 +5,8 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT / "assets" / "characters" / "v1" / "manifest.json"
-IDS = ("ender", "lyra", "ionia", "reson", "aepex")
+IDS = ("ender", "lyra", "ionia")
+HELD_IDS = ("reson", "aepex")
 EXPRESSIONS = ("neutral", "talk", "concern", "focus", "hurt", "smile")
 ATLAS_SIZE = (768, 512)
 CELL_SIZE = (256, 256)
@@ -84,12 +85,14 @@ def inspect_character(manifest: dict, character_id: str) -> dict:
 def main() -> int:
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
     results = [inspect_character(manifest, character_id) for character_id in IDS]
-    for result in results:
+    held = [inspect_character(manifest, character_id) for character_id in HELD_IDS]
+    for result in results + held:
         print(json.dumps(result, separators=(",", ":")))
-    if any(not result["valid"] for result in results):
+    held_violation = any(result.get("manifestStatus") in ("portrait-ready", "ready") for result in held)
+    if any(not result["valid"] for result in results) or held_violation:
         print("AETHERWAKE_PORTRAIT_PACK_READINESS=BLOCKED")
         return 1
-    print("AETHERWAKE_PORTRAIT_PACK_READINESS=READY")
+    print("AETHERWAKE_PORTRAIT_PACK_READINESS=READY_SCOPED")
     return 0
 
 if __name__ == "__main__":
