@@ -14,6 +14,14 @@ function sha256File(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 }
 
+function deterministicOrder(seed, ids) {
+  return [...ids].sort((a, b) => {
+    const ah = crypto.createHash('sha256').update(String(seed) + ':' + a).digest('hex');
+    const bh = crypto.createHash('sha256').update(String(seed) + ':' + b).digest('hex');
+    return ah.localeCompare(bh) || a.localeCompare(b);
+  });
+}
+
 function exactHead() {
   const result = cp.spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' });
   if (result.status !== 0) throw new Error('VISUAL_PROTOCOL_PREP_FAIL: unable to resolve Git head');
@@ -87,6 +95,14 @@ function prepare(options) {
   });
 
   protocol.presentation.orderSeed = String(options.seed);
+  const presentationIds = [
+    ...protocol.aetherwakeFrames.map(name => 'A:' + name),
+    ...protocol.decoys.map(decoy => 'D:' + decoy.id)
+  ];
+  protocol.presentation.order = deterministicOrder(protocol.presentation.orderSeed, presentationIds);
+  if (protocol.presentation.order.length !== 10 || new Set(protocol.presentation.order).size !== 10) {
+    throw new Error('VISUAL_PROTOCOL_PREP_FAIL: deterministic presentation order is invalid');
+  }
   protocol.frozenBeforeFirstSession = true;
 
   const output = path.join(root, 'visual-acceptance-protocol.json');
@@ -108,4 +124,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { parseArgs, prepare, sha256File };
+module.exports = { parseArgs, prepare, sha256File, deterministicOrder };
