@@ -31,7 +31,8 @@ assert(source.includes('function drawFarLandmarks'), 'flight stage must retain d
 assert(source.includes('function drawForeground'), 'flight stage must retain a near-camera occlusion pass');
 assert(source.includes('Speed streaks live in the foreground'), 'flight stage must retain speed-responsive foreground motion');
 assert(source.includes('controlsHint'), 'flight stage must retain the shared controls-hint layout hook');
-assert(source.includes('progressW = 214'), 'flight route progress must use the restrained center-top progress treatment');
+assert(source.includes('progressW = statusW - 20') && source.includes('Keeping the center-top clear'),
+  'flight route progress must stay inside the compact navigation plaque and leave center-top clear');
 assert(source.includes("text('Q / E  altitude     D  dock'"),
   'flight controls must stay minimal and subordinate to the world');
 assert(!source.includes("text('OPEN-SKY FLIGHT'") && !source.includes("'  ?  SPD '") && !source.includes("'  ?  P '"),

@@ -356,13 +356,15 @@
       ? uiVisual.panelRGBA()
       : [9, 13, 24, 214];
 
-    // Small weather/altitude plaque.
+    // One compact navigation plaque carries altitude, weather, and route progress.
+    // Keeping the center-top clear prevents the flight HUD from competing with
+    // cinematic objective ribbons and preserves the Dragonfly/world as the focal point.
     const statusX = 24;
     const statusY = 24;
-    const statusW = 196;
-    const statusH = 42;
+    const statusW = 220;
+    const statusH = travel.route && travel.route.route ? 60 : 42;
     noStroke();
-    fill(panel[0], panel[1], panel[2], 166);
+    fill(panel[0], panel[1], panel[2], 154);
     rect(statusX, statusY, statusW, statusH, 7);
     fill(42, 255, 181, 105);
     rect(statusX + 10, statusY + 9, 42, 2);
@@ -376,22 +378,16 @@
     fill(153, 215, 229, 220);
     text(travel.weather.label, statusX + 10, statusY + 27);
 
-    // Route progress gets one quiet center-top strip rather than a second dashboard.
     if (travel.route && travel.route.route) {
-      const progressW = 214;
-      const routeX = Math.round(w / 2 - progressW / 2);
-      const routeY = 28;
-      fill(panel[0], panel[1], panel[2], 142);
-      rect(routeX, routeY, progressW, 28, 6);
-      textAlign(CENTER, TOP);
+      const progressW = statusW - 20;
       textFont('Segoe UI Semibold');
-      textSize(8);
-      fill(232, 220, 198, 205);
-      text(travel.route.route.label.toUpperCase(), w / 2, routeY + 6);
-      fill(31, 44, 63, 210);
-      rect(routeX + 16, routeY + 19, progressW - 32, 3);
-      fill(42, 255, 181, 175);
-      rect(routeX + 16, routeY + 19, Math.round((progressW - 32) * travel.route.progress), 3);
+      textSize(7);
+      fill(232, 220, 198, 188);
+      text(travel.route.route.label.toUpperCase(), statusX + 10, statusY + 41);
+      fill(31, 44, 63, 205);
+      rect(statusX + 10, statusY + 53, progressW, 3);
+      fill(42, 255, 181, 170);
+      rect(statusX + 10, statusY + 53, Math.round(progressW * travel.route.progress), 3);
     }
 
     // Shared controlsHint remains a layout hook, but the player-facing copy is minimal.
