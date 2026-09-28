@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.7.0';
+  const VERSION = '0.8.0';
   const TOKENS = Object.freeze({
     gridPx: 8,
     safeMarginPx: 24,
@@ -28,7 +28,7 @@
     const safe = TOKENS.safeMarginPx;
     // Combat uses a compact lower-left JRPG command window rather than a full-height sidebar.
     const leftWidth = snap(Math.min(240, Math.max(224, w * 0.24)));
-    const leftHeight = snap(Math.min(h - safe * 2, 240));
+    const leftHeight = snap(Math.min(h - safe * 2, 200));
     const logWidth = snap(Math.min(184, Math.max(160, w * 0.175)));
     const logHeight = snap(Math.min(184, Math.max(136, h * 0.22)));
     return Object.freeze({

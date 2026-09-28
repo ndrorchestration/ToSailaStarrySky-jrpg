@@ -364,8 +364,8 @@
     const altitude = ctx.altitude || null;
 
     noStroke();
-    fill(10, 13, 23, 205);
-    rect(Math.round(w / 2 - 150), 18, 300, 33);
+    fill(10, 13, 23, 188);
+    rect(Math.round(w / 2 - 150), 18, 300, 42);
     fill(42, 255, 181, 135);
     rect(Math.round(w / 2 - 136), 27, 58, 2);
     rect(Math.round(w / 2 + 78), 27, 58, 2);
@@ -374,7 +374,17 @@
     textFont('Press Start 2P');
     textSize(8);
     fill(232, 220, 198, 210);
-    text(enemy ? enemy.name.toUpperCase() : (domain === 'sky' ? 'SKY CONTACT' : 'ENCOUNTER'), w / 2, 26);
+    text(enemy ? enemy.name.toUpperCase() : (domain === 'sky' ? 'SKY CONTACT' : 'ENCOUNTER'), w / 2, 25);
+
+    if (enemy && Number.isFinite(enemy.hp) && Number.isFinite(enemy.maxHp) && enemy.maxHp > 0) {
+      const hpRatio = Math.max(0, Math.min(1, enemy.hp / enemy.maxHp));
+      const hpW = 132;
+      const hpX = Math.round(w / 2 - hpW / 2);
+      fill(29, 38, 48, 220);
+      rect(hpX, 41, hpW, 4, 2);
+      fill(42, 255, 181, 185);
+      rect(hpX, 41, Math.round(hpW * hpRatio), 4, 2);
+    }
 
     if (domain === 'sky') {
       textFont('VT323');
@@ -382,7 +392,7 @@
       fill(124, 200, 232, 185);
       const skyContext = String(altitude || 'cruise').toUpperCase() +
         '  ·  ' + String(weatherId).toUpperCase().replace('-', ' ');
-      text(skyContext, w / 2, 43);
+      text(skyContext, w / 2, 48);
     }
     textAlign(LEFT, TOP);
   }

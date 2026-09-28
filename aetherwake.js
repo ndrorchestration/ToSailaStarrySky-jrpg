@@ -8578,42 +8578,11 @@ function drawCombatPanel(combatState, layoutBox) {
   textSize(8);
   drawGlowText('COMMAND', px + 12, py + 8, PAL.TEAL, 8);
 
-  // Enemy section
-  if (combatState.enemy) {
-    const ey = py + 30;
-    // Enemy readout is text-led; a single rust rule replaces the nested dashboard card.
-    noStroke();
-    fill(160, 74, 44, 90);
-    rect(px + 12, ey + 1, pw - 24, 1);
-    textFont(FONT_UI);
-    textSize(8);
-    drawGlowText(combatState.enemy.name.toUpperCase(), px + 14, ey + 4, PAL.RUST, 8);
-    textFont(FONT_BODY);
-    textSize(11);
-    fill(PAL.PARCHMENT);
-    noStroke();
-    const eNameW = textWidth(combatState.enemy.name);
-    text('HP ' + combatState.enemy.hp + '/' + combatState.enemy.maxHp, px + pw - 64, ey + 6);
-    // HP bar
-    const hpRatio = combatState.enemy.hp / combatState.enemy.maxHp;
-    const barW = pw - 32;
-    noStroke();
-    fill(PAL.SHADOW);
-    rect(px + 14, ey + 24, barW, 5);
-    const hpCol = hpRatio > 0.5 ? PAL.SCIOTO : (hpRatio > 0.25 ? PAL.AMBER : PAL.RED);
-    fill(hpCol);
-    rect(px + 14, ey + 24, barW * hpRatio, 5);
-    // Weakness hint
-    textFont(FONT_UI);
-    textSize(7);
-    fill(PAL.DIM);
-    const weakness = String(combatState.enemy.weakness || 'unknown');
-    const weaknessShort = weakness.length > 18 ? weakness.substring(0, 17).trimEnd() + '..' : weakness;
-    text('WEAK: ' + weaknessShort, px + 14, ey + 32);
-  }
+  // Enemy identity/HP live in the centered encounter rail, leaving this window
+  // dedicated to the player's state and choices like a classic JRPG command box.
 
   // Player status section
-  const sY = py + 70;
+  const sY = py + 30;
   // Player state shares the same open instrument surface; no nested status card.
   noStroke();
   fill(42, 255, 181, 72);
@@ -8630,7 +8599,6 @@ function drawCombatPanel(combatState, layoutBox) {
   const col2 = px + Math.round(pw * 0.53);
   const row1 = sY + 20;
   const row2 = sY + 37;
-  const row3 = sY + 54;
   fill(PAL.RUST); text('HP', col1, row1);
   fill(PAL.PARCHMENT); text(combatState.player.vit + '/' + combatState.player.maxVit, col1 + 23, row1);
   fill(PAL.SCIOTO); text('AETHER', col2, row1);
@@ -8639,13 +8607,11 @@ function drawCombatPanel(combatState, layoutBox) {
   fill(PAL.PARCHMENT); text(combatState.player.echoes.current + '/' + combatState.player.echoes.max, col1 + 33, row2);
   fill(PAL.TEAL); text('STAFF', col2, row2);
   fill(PAL.PARCHMENT); text(combatState.player.staffCharges + '/' + combatState.player.maxStaffCharges, col2 + 38, row2);
-  fill(PAL.DUST); text('SCRAP', col1, row3);
-  fill(PAL.PARCHMENT); text(String(combatState.player.scrap), col1 + 38, row3);
 
   // Actions grid — eight stable number-key slots. Locked actions stay visible
   // so progression is legible without making key bindings move.
   const aX = px + 8;
-  const aY = sY + 64;
+  const aY = sY + 48;
   const aW = pw - 16;
   const aH = 76;
   // Actions remain grouped by spacing and typography rather than another opaque card.

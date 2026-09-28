@@ -21,8 +21,8 @@ assert(runtime.includes("text('TRAIT'"),
 assert(runtime.includes('Enemy identity and HP are already carried by the compact command window') &&
   runtime.includes('Player identity and HP live in the command window'),
   'combat sprites must remain free of duplicate floating name/HP HUD attachments');
-assert(runtime.includes('Math.min(panelColor[3] || 150, 150)') && runtime.includes('single rust rule replaces the nested dashboard card'),
-  'combat command surface must remain translucent and text-led rather than nested dashboard cards');
+assert(runtime.includes('Math.min(panelColor[3] || 150, 150)') && runtime.includes('Enemy identity/HP live in the centered encounter rail'),
+  'combat command surface must remain translucent, player-focused, and free of nested enemy dashboard cards');
 assert(runtime.includes('Actions remain grouped by spacing and typography rather than another opaque card'),
   'combat action list must not regress to an opaque nested panel');
 
