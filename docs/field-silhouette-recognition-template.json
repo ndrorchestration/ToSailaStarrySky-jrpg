@@ -1,0 +1,141 @@
+{
+  "schema": "AETHERWAKE_FIELD_SILHOUETTE_RECOGNITION_V1",
+  "exactHead": "REPLACE_WITH_40_CHARACTER_SHA",
+  "participants": [
+    {
+      "id": "P1",
+      "independentOfImplementation": null,
+      "trials": [
+        {
+          "targetId": "ender",
+          "answerId": null
+        },
+        {
+          "targetId": "lyra",
+          "answerId": null
+        },
+        {
+          "targetId": "ionia",
+          "answerId": null
+        },
+        {
+          "targetId": "reson",
+          "answerId": null
+        },
+        {
+          "targetId": "aepex",
+          "answerId": null
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P2",
+      "independentOfImplementation": null,
+      "trials": [
+        {
+          "targetId": "ender",
+          "answerId": null
+        },
+        {
+          "targetId": "lyra",
+          "answerId": null
+        },
+        {
+          "targetId": "ionia",
+          "answerId": null
+        },
+        {
+          "targetId": "reson",
+          "answerId": null
+        },
+        {
+          "targetId": "aepex",
+          "answerId": null
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P3",
+      "independentOfImplementation": null,
+      "trials": [
+        {
+          "targetId": "ender",
+          "answerId": null
+        },
+        {
+          "targetId": "lyra",
+          "answerId": null
+        },
+        {
+          "targetId": "ionia",
+          "answerId": null
+        },
+        {
+          "targetId": "reson",
+          "answerId": null
+        },
+        {
+          "targetId": "aepex",
+          "answerId": null
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P4",
+      "independentOfImplementation": null,
+      "trials": [
+        {
+          "targetId": "ender",
+          "answerId": null
+        },
+        {
+          "targetId": "lyra",
+          "answerId": null
+        },
+        {
+          "targetId": "ionia",
+          "answerId": null
+        },
+        {
+          "targetId": "reson",
+          "answerId": null
+        },
+        {
+          "targetId": "aepex",
+          "answerId": null
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P5",
+      "independentOfImplementation": null,
+      "trials": [
+        {
+          "targetId": "ender",
+          "answerId": null
+        },
+        {
+          "targetId": "lyra",
+          "answerId": null
+        },
+        {
+          "targetId": "ionia",
+          "answerId": null
+        },
+        {
+          "targetId": "reson",
+          "answerId": null
+        },
+        {
+          "targetId": "aepex",
+          "answerId": null
+        }
+      ],
+      "notes": ""
+    }
+  ]
+}
