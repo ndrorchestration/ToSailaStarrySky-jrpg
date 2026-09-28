@@ -107,9 +107,10 @@ Canonical requirements:
 - captain and owner of the Aureate Wake;
 - experienced young-adult captain/navigator with command posture;
 - navigation, sky-lane, and Core expertise;
-- blonde shoulder curls and structured gray/black tailoring consistent with the admitted portrait authority;
+- **shoulder-length curly blonde hair** and **green eyes**;
+- creator-approved cream/light blouse + brown leather captain/explorer harness language;
 - elegant feminine silhouette without losing practical command presence;
-- avoid elderly presentation, farmer archetype, or invented spellcaster identity.
+- avoid elderly presentation, farmer archetype, invented spellcaster identity, blue/lavender hair, or Lyra-style red hair.
 
 ### Ionia frame direction
 
@@ -218,3 +219,18 @@ For animation and silhouette production, use these main-weapon identities:
 - Lyra — chakram.
 
 Secondary/ranged options for Ender, Aepex, Ionia, and Lyra remain open and should not be animated into permanent canon yet. Magic remains independent of weapon possession unless a future ability explicitly requires a weapon family.
+
+
+## Team likeness authority — approved alignment sheet — 2026-09-28
+Use the approved five-character visual alignment as the current likeness target for all new sprite work.
+
+Critical mapping:
+- **Ionia = curly blonde captain/explorer.**
+- **Lyra = long red/copper-red-haired receiver/support.**
+
+Also preserve:
+- Ender = approved green-eyed goggled field scholar;
+- Reson = red-cap, mustached muscular tactical specialist;
+- Aepex = sandy/dirty-blond asymmetric undercut, tattoos, dark techwear engineer.
+
+Any sprite or portrait that swaps Ionia/Lyra hair identity or reverts Aepex/Reson to the earlier anime-like approximations should be rejected at art review.
