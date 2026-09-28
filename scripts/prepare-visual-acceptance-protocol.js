@@ -58,6 +58,12 @@ function prepare(options) {
   if (!Array.isArray(protocol.aetherwakeFrames) || protocol.aetherwakeFrames.length !== 7) {
     throw new Error('VISUAL_PROTOCOL_PREP_FAIL: protocol must contain exactly seven frozen Aetherwake frames');
   }
+  const participantPlan = protocol.participantPlan || {};
+  if (participantPlan.requiredCount !== 5 ||
+      !Array.isArray(participantPlan.ids) ||
+      participantPlan.ids.join(',') !== 'P1,P2,P3,P4,P5') {
+    throw new Error('VISUAL_PROTOCOL_PREP_FAIL: participant plan must be frozen to P1-P5');
+  }
 
   protocol.candidate.commit = head;
   protocol.candidate.packageSha256 = sha256File(packagePath);
