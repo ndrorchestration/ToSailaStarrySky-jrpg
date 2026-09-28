@@ -415,7 +415,7 @@ async function capture(page, id, description) {
     captures.push(await capture(
       page,
       '01c-first-wake-lyra-family',
-      'First Wake Lyra family beat with admitted authored portrait'
+      'First Wake Lyra family beat with authored cabin and provisional field identity'
     ));
     for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowRight');
     for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowUp');
