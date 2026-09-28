@@ -10,6 +10,7 @@ const source = fs.readFileSync(path.join(root, 'tests', 'capture-visual-evidence
 for (const id of [
   '00-title-screen',
   '01-first-wake-dock-walk',
+  '01c-first-wake-lyra-family',
   '02-dragonfly-dusk-dock',
   '03-dialogue-ionia',
   '04-combat-sky-predator',
