@@ -1,4 +1,4 @@
-# Aetherwake Authored Character Asset Contract × V26
+# Aetherwake Authored Character Asset Contract — V26
 
 Status: **INTEGRATION CONTRACT ESTABLISHED / ASSETS NOT YET AUTHORIZED**
 
@@ -10,7 +10,7 @@ The five protagonists are **Ender, Lyra, Ionia, Reson, Aepex**. The canonical Dr
 
 ## Required portrait package per character
 
-- `portrait-atlas.png` × 768×512.
+- `portrait-atlas.png` — 768×512.
 - Cell: 256×256.
 - Layout: 3 columns × 2 rows.
 - Expressions in order: neutral, talk, concern, focus, hurt, smile.
@@ -58,9 +58,9 @@ The current `modules/character-renderer.js` is authoritative until a manifest en
 
 ## Promotion order
 
-1. Ionia portrait pack × representative dialogue quality gate.
-2. Ender portrait + field pack × protagonist visibility in world/combat.
-3. Reson / Aepex / Lyra packs × lineup and future party surfaces.
+1. Ionia portrait pack → representative dialogue quality gate.
+2. Ender portrait + field pack → protagonist visibility in world/combat.
+3. Reson / Aepex / Lyra packs → lineup and future party surfaces.
 4. Full five-character exact-head and human silhouette review.
 
 This contract exists so the next visual improvement is an actual asset-quality tranche rather than another round of procedural-detail accumulation.
