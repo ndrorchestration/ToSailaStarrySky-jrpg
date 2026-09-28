@@ -22,7 +22,7 @@ const passing = {
   participants:Array.from({length:5},(_,i)=>({
     id:'P'+(i+1),
     independentOfImplementation:true,
-    minutes:20,
+    session:{startedAt:'2026-09-28T12:00:00-04:00',endedAt:'2026-09-28T12:20:00-04:00'},
     scores:{...scores},
     sameGame:{aetherwakeCorrect:7,decoyCorrect:3},
     dragonflyRecall:{
@@ -135,3 +135,12 @@ const invalidOrderHash = crypto.createHash('sha256').update(fs.readFileSync(inva
 const invalidOrderResults = JSON.parse(JSON.stringify(passing));
 invalidOrderResults.candidate.protocolSha256 = invalidOrderHash;
 assert.throws(() => verifyProtocolBinding(invalidOrderResults, invalidOrderPath), /presentation order/);
+
+
+const shortSession = JSON.parse(JSON.stringify(passing));
+shortSession.participants[0].session.endedAt = '2026-09-28T12:19:59-04:00';
+assert.throws(() => scoreResults(shortSession), /session shorter than required/);
+
+const invalidSession = JSON.parse(JSON.stringify(passing));
+invalidSession.participants[0].session.startedAt = 'not-a-date';
+assert.throws(() => scoreResults(invalidSession), /invalid session timestamps/);
