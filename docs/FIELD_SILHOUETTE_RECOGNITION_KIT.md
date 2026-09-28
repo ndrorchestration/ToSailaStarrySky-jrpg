@@ -16,6 +16,10 @@ Before showing anything to a participant:
 
 The participant must not have implemented the tested character art.
 
+## Generate the frozen cards
+
+Use `docs/FIELD_SILHOUETTE_CARD_GENERATOR.md` to generate the five black-silhouette cards from the exact production field strips. This fixes frame selection, hashes the source/output files, and prevents per-character manual cropping from biasing the recognition test.
+
 ## Participant procedure
 
 Use at least **5 independent participants**. Each participant sees all five silhouettes, one at a time, in a randomized order. For every silhouette, ask only:
