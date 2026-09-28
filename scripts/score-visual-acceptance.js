@@ -38,6 +38,18 @@ function verifyProtocolBinding(results, protocolPath) {
       protocol.decoys.some(decoy => !decoy || !/^[0-9a-f]{64}$/i.test(decoy.sha256 || ''))) {
     throw new Error('VISUAL_ACCEPTANCE_FAIL: protocol must bind exactly three decoy hashes');
   }
+
+  const plan = protocol.participantPlan || {};
+  if (!Number.isInteger(plan.requiredCount) || plan.requiredCount !== 5 ||
+      !Array.isArray(plan.ids) || plan.ids.length !== plan.requiredCount) {
+    throw new Error('VISUAL_ACCEPTANCE_FAIL: participant plan missing or invalid');
+  }
+  const plannedIds = [...plan.ids].sort();
+  const resultIds = (results.participants || []).map(p => p && p.id).sort();
+  if (resultIds.length !== plannedIds.length ||
+      resultIds.some((id, index) => id !== plannedIds[index])) {
+    throw new Error('VISUAL_ACCEPTANCE_FAIL: result participants do not match frozen participant plan');
+  }
   return protocol;
 }
 
