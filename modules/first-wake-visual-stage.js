@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '1.1.0';
+  const VERSION = '1.2.0';
   const OPENING_WORLD_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   const OPENING_INTERIOR_PATH = 'assets/preview/aetherwake-preview-interior-pixelart-v1.png';
   let openingWorld = null;
@@ -220,6 +220,31 @@
     }
   }
 
+  function drawHorizonEstablishing(scene, state, now) {
+    const painted = drawPaintedDockBackdrop(scene, now);
+    if (!painted) {
+      bandedSky([38, 58, 91], [105, 146, 178], [238, 188, 126]);
+      cloudBands(now * 0.72, 360, [235, 239, 232], 52);
+      drawDistantIsland(210, 238, 138, 62, now, false);
+      drawDistantIsland(724, 194, 196, 84, now * 0.84, true);
+    }
+
+    // Slow cinematic atmosphere only: no dock rails, prompts, characters, or debug geometry.
+    noStroke();
+    const ticks = state && Number.isFinite(state.sceneTicks) ? state.sceneTicks : 0;
+    const fade = Math.max(0, 1 - ticks / 34);
+    fill(3, 7, 14, Math.round(220 * fade));
+    rect(0, 0, width, height);
+
+    // Feathered lower haze gives the shot depth without turning into HUD chrome.
+    fill(226, 236, 239, 24);
+    rect(0, Math.round(height * 0.78), width, Math.round(height * 0.22));
+    fill(6, 12, 20, 28);
+    rect(0, 0, width, 26);
+    rect(0, height - 26, width, 26);
+    return true;
+  }
+
   function drawDock(scene, state, now) {
     const cinematicRatio = scene.cinematic && Number.isFinite(scene.minimumTicks) && scene.minimumTicks > 0
       ? Math.max(0, Math.min(1, (state.sceneTicks || 0) / scene.minimumTicks))
@@ -372,15 +397,16 @@
             action: ioniaAction, frame: ioniaFrame,
           })
         : false;
-      // Candidate sheets may be previewed only with ?candidateFieldArt=1.
-      // This does not change field-pack readiness or manifest status.
-      if (!enderAuthored && authored && typeof authored.drawCandidateFieldCharacter === 'function') {
-        enderAuthored = authored.drawCandidateFieldCharacter('ender', enderX, enderY, {
+      // Until full 64x96 packs are admitted, the opening may use the existing
+      // reviewed two-frame pixel sheets as a provisional visual fallback.
+      // Readiness remains NOT_READY and the manifest is unchanged.
+      if (!enderAuthored && authored && typeof authored.drawProvisionalFieldCharacter === 'function') {
+        enderAuthored = authored.drawProvisionalFieldCharacter('ender', enderX, enderY, {
           anchor: 'bottom-center', scale: cinematic ? 2.55 : 2.20, action: enderAction, frame: enderFrame,
         });
       }
-      if (!ioniaAuthored && authored && typeof authored.drawCandidateFieldCharacter === 'function') {
-        ioniaAuthored = authored.drawCandidateFieldCharacter('ionia', ioniaX, ioniaY, {
+      if (!ioniaAuthored && authored && typeof authored.drawProvisionalFieldCharacter === 'function') {
+        ioniaAuthored = authored.drawProvisionalFieldCharacter('ionia', ioniaX, ioniaY, {
           anchor: 'bottom-center', scale: cinematic ? 2.45 : 2.10, action: ioniaAction, frame: ioniaFrame,
         });
       }
@@ -642,8 +668,8 @@
               frame: Math.floor(now / 160),
             })
           : false;
-        if (!authoredDrawn && authored && typeof authored.drawCandidateFieldCharacter === 'function') {
-          authoredDrawn = authored.drawCandidateFieldCharacter(id, x, 420, {
+        if (!authoredDrawn && authored && typeof authored.drawProvisionalFieldCharacter === 'function') {
+          authoredDrawn = authored.drawProvisionalFieldCharacter(id, x, 420, {
             anchor: 'bottom-center',
             scale: id === 'ionia' ? 2.2 : 2.3,
             action,
@@ -1015,6 +1041,10 @@
       drawChapter(now);
       return;
     }
+    if (scene.id === 'arrival_horizon') {
+      drawHorizonEstablishing(scene, state, now);
+      return;
+    }
     if (scene.sequence <= 2) {
       drawDock(scene, state, now);
       return;
@@ -1039,14 +1069,7 @@
     fill(42, 255, 181, Math.round((1 - t) * 100));
     rect(Math.max(0, sweepX - 2), 18, 2, height - 36);
 
-    if (scene && scene.sequence !== undefined && ticks < Math.ceil(introTicks * 0.62)) {
-      textAlign(RIGHT, TOP);
-      textFont('Segoe UI Semibold');
-      textSize(9);
-      fill(124, 200, 232, Math.round((1 - t) * 185));
-      text('FIRST WAKE // ' + String(scene.sequence).padStart(2, '0'), width - 28, 30);
-      textAlign(LEFT, TOP);
-    }
+    // No sequence/debug metadata in player-facing scene transitions.
     return true;
   }
 
@@ -1069,7 +1092,10 @@
 
     const textPanelY = scene.chapterCard ? 92 : 50;
     const sceneTicks = state && Number.isFinite(state.sceneTicks) ? state.sceneTicks : 999;
-    const showSceneTitle = scene.chapterCard || scene.cinematic || sceneTicks < 36;
+    const showSceneTitle = scene.chapterCard ||
+      (scene.id === 'arrival_horizon'
+        ? sceneTicks >= 90 && sceneTicks < 160
+        : (scene.cinematic || sceneTicks < 36));
     if (showSceneTitle) {
       const titlePanelW = scene.chapterCard ? width - 248 : Math.min(420, width - 280);
       const titlePanelH = scene.chapterCard ? 118 : 38;
@@ -1097,7 +1123,18 @@
       }
     }
 
-    if (!scene.chapterCard) {
+    const showNarrative = !scene.chapterCard && (scene.id !== 'arrival_horizon' || sceneTicks >= 142);
+    if (scene.id === 'arrival_horizon' && showNarrative) {
+      const lineIndex = sceneTicks < 194 ? 0 : 1;
+      const cinematicLine = scene.lines[Math.min(lineIndex, scene.lines.length - 1)];
+      textAlign(CENTER, TOP);
+      textFont('Trebuchet MS');
+      textSize(18);
+      fill(3, 8, 15, 170);
+      text(cinematicLine, width / 2 + 2, height - 112 + 2);
+      fill(244, 233, 210, 238);
+      text(cinematicLine, width / 2, height - 112);
+    } else if (showNarrative) {
       const visibleLines = scene.lines.slice(0, 3);
       const narrativePanelH = Math.min(98, 30 + visibleLines.length * 21);
       const narrativePanelY = height - 18 - 38 - narrativePanelH;

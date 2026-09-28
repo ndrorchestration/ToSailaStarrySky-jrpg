@@ -7,7 +7,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.3.0';
+  const VERSION = '0.4.0';
   const TITLE_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   let titleBackground = null;
   let titleBackgroundRequested = false;
@@ -114,83 +114,53 @@
   }
 
   function drawTitleCopy(now) {
-    const uiVisual = root.AetherUIVisualSystem;
-    const layout = uiVisual && typeof uiVisual.layoutTitle === 'function'
-      ? uiVisual.layoutTitle(width, height)
-      : { panel: { x: 64, y: 84, w: 448, h: 216 } };
-    const panel = layout.panel;
-    const left = panel.x + 24;
-    const top = panel.y + 24;
     const pulse = 0.5 + Math.sin(now * 0.004) * 0.5;
+    const cx = Math.round(width * 0.5);
+    const logoY = Math.round(height * 0.16);
 
-    // Layered glass-and-brass title card: substantial enough to read over the vista,
-    // but transparent enough that the world remains the hero image.
+    // The title is treated as key art first, menu second. No tutorial or pitch copy.
+    // A soft veil keeps the logo readable without boxing the world into a UI panel.
     noStroke();
-    fill(4, 9, 18, 150);
-    rect(panel.x, panel.y, panel.w, panel.h, 10);
-    fill(21, 48, 59, 42);
-    rect(panel.x + 4, panel.y + 4, panel.w - 8, panel.h - 8, 8);
-    fill(5, 10, 18, 88);
-    rect(panel.x, panel.y + panel.h - 62, panel.w, 62, 0, 0, 10, 10);
+    fill(4, 8, 16, 70);
+    rect(0, 0, width, Math.round(height * 0.34));
 
-    // JRPG logo lockup: horizontal rule, central aether glyph, and small brass endcaps.
-    fill(42, 255, 181, 145);
-    rect(left, top - 8, 136, 2);
-    fill(197, 151, 78, 190);
-    rect(left - 2, top - 11, 4, 8);
-    rect(left + 134, top - 11, 4, 8);
-    fill(124, 220, 232, 120 + Math.round(pulse * 75));
-    rect(left + 66, top - 14, 6, 14);
-    fill(42, 255, 181, 40 + Math.round(pulse * 30));
-    rect(left + 61, top - 9, 16, 4);
-
-    textAlign(LEFT, TOP);
+    textAlign(CENTER, TOP);
     textFont('Trebuchet MS');
-    textSize(31);
-    fill(238, 226, 198, 245);
-    text('AETHERWAKE', left, top);
-    fill(42, 255, 181, 170);
-    rect(left + 1, top + 38, 204, 2);
+    textSize(54);
+    fill(4, 8, 16, 120);
+    text('AETHERWAKE', cx + 2, logoY + 2);
+    fill(242, 229, 199, 250);
+    text('AETHERWAKE', cx, logoY);
+
+    fill(42, 255, 181, 165);
+    rect(cx - 142, logoY + 66, 284, 2);
+    fill(198, 153, 79, 210);
+    rect(cx - 20, logoY + 62, 40, 6);
 
     textFont('Segoe UI Semibold');
-    textSize(10);
-    fill(151, 219, 229, 230);
-    text('THE LAST SOLARPUNK AIRSHIP', left + 2, top + 47);
+    textSize(11);
+    fill(173, 224, 230, 235);
+    text('THE LAST SOLARPUNK AIRSHIP', cx, logoY + 78);
 
-    textFont('Trebuchet MS');
-    textSize(15);
-    fill(237, 222, 199, 225);
-    text('A small ship. A broken world. A song beginning to fail.', left + 2, top + 73);
-
-    // Primary action reads as a selectable JRPG command instead of another line of copy.
-    const actionY = top + 111;
-    fill(42, 255, 181, 25 + Math.round(pulse * 20));
-    rect(left, actionY - 5, 248, 28, 4);
-    fill(42, 255, 181, 185 + Math.round(pulse * 55));
-    rect(left, actionY - 5, 3, 28, 2);
+    // Minimal JRPG menu treatment. The world and music establish mood before instructions.
+    const menuY = Math.round(height * 0.72);
+    fill(5, 10, 18, 128);
+    rect(cx - 126, menuY - 10, 252, 42, 8);
+    fill(42, 255, 181, 28 + Math.round(pulse * 30));
+    rect(cx - 122, menuY - 6, 244, 34, 6);
+    fill(42, 255, 181, 170 + Math.round(pulse * 60));
+    rect(cx - 122, menuY - 6, 3, 34, 2);
     textFont('Segoe UI Semibold');
-    textSize(12);
-    fill(238, 226, 198, 235);
-    text('NEW GAME  //  N OR ENTER', left + 12, actionY);
-
-    textFont('Trebuchet MS');
-    textSize(12);
-    fill(198, 160, 93, 215);
-    text('ENTER THE FIRST WAKE', left + 12, top + 145);
-
-    // Keep controls quiet and secondary; the title screen should sell the world first.
-    textSize(10);
-    fill(151, 213, 226, 170);
-    text('WASD / ARROWS move   •   E interact   •   ESC back', left + 2, top + 178);
+    textSize(14);
+    fill(242, 229, 199, 245);
+    text('NEW GAME', cx, menuY);
+    textSize(9);
+    fill(170, 216, 223, 175);
+    text('ENTER', cx, menuY + 21);
   }
 
   function drawFooter() {
-    textAlign(CENTER, BOTTOM);
-    textFont('Segoe UI Semibold');
-    textSize(7);
-    fill(42, 255, 181, 115);
-    text('THE DRAGONFLY // FIRST WAKE', width / 2, height - 18);
-    textAlign(LEFT, TOP);
+    // Deliberately empty: the first frame should feel like key art, not a debug/build screen.
   }
 
   function draw(ctx) {

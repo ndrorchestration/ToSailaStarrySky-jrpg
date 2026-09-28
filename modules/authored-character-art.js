@@ -109,9 +109,9 @@
       return Boolean(root && root.location && /(?:\?|&)candidateFieldArt=1(?:&|$)/.test(String(root.location.search||'')));
     }catch(error){return false;}
   }
-  function ensureCandidateField(id){
+  function ensureCandidateField(id, requireReviewFlag=true){
     const spec=CANDIDATE_FIELD[id];
-    if(!spec||!candidateReviewEnabled()||typeof loadImage!=='function') return null;
+    if(!spec||(requireReviewFlag&&!candidateReviewEnabled())||typeof loadImage!=='function') return null;
     if(!candidateState[id]) candidateState[id]={requested:false,ready:false,failed:false,image:null};
     const entry=candidateState[id];
     if(!entry.requested){
@@ -124,9 +124,9 @@
     }
     return entry;
   }
-  function drawCandidateFieldCharacter(id,x,y,options={}){
+  function drawCandidateSheet(id,x,y,options={},requireReviewFlag=true){
     const spec=CANDIDATE_FIELD[id];
-    const entry=ensureCandidateField(id);
+    const entry=ensureCandidateField(id,requireReviewFlag);
     if(!spec||!entry||!entry.ready||!entry.image||typeof image!=='function') return false;
     const action=fieldAction(options.action || (options.speed>0?'walk':'idle'));
     const moving=action==='walk';
@@ -140,7 +140,13 @@
     pop();
     return true;
   }
+  function drawCandidateFieldCharacter(id,x,y,options={}){
+    return drawCandidateSheet(id,x,y,options,true);
+  }
+  function drawProvisionalFieldCharacter(id,x,y,options={}){
+    return drawCandidateSheet(id,x,y,options,false);
+  }
   function isFieldReady(id){const pack=FIELD_PACKS[id];return Boolean(pack&&pack.status==='ready');}
   function isPortraitReady(id){const pack=PACKS[id];return Boolean(pack&&pack.status==='portrait-ready');}
-  root.AetherAuthoredCharacterArt=Object.freeze({VERSION,PACKS,FIELD_PACKS,FIELD_FRAMES,CANDIDATE_FIELD,EXPRESSION_ORDER,normalizeExpression,drawPortrait,isPortraitReady,drawFieldCharacter,isFieldReady,candidateReviewEnabled,drawCandidateFieldCharacter});
+  root.AetherAuthoredCharacterArt=Object.freeze({VERSION,PACKS,FIELD_PACKS,FIELD_FRAMES,CANDIDATE_FIELD,EXPRESSION_ORDER,normalizeExpression,drawPortrait,isPortraitReady,drawFieldCharacter,isFieldReady,candidateReviewEnabled,drawCandidateFieldCharacter,drawProvisionalFieldCharacter});
 })(typeof window!=='undefined'?window:globalThis);

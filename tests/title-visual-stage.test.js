@@ -17,7 +17,7 @@ vm.runInNewContext(source, sandbox, { filename: 'title-visual-stage.js' });
 
 const api = sandbox.window.AetherTitleVisual;
 assert(api, 'title visual stage missing');
-assert.strictEqual(api.VERSION, '0.3.0');
+assert.strictEqual(api.VERSION, '0.4.0');
 for (const fn of ['draw','drawSky','drawHero','drawTitleCopy']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -30,12 +30,14 @@ assert(source.includes("scale: 1.45"),
   'title must present Dragonfly as a hero-scale object');
 assert(!source.includes('ellipse('),
   'title visual stage must avoid old smooth ellipse island treatment');
-assert(source.includes('NEW GAME  //  N OR ENTER'),
+assert(source.includes("text('NEW GAME', cx, menuY)"),
   'title New Game affordance missing');
-assert(source.includes('AetherUIVisualSystem') && source.includes('layoutTitle'),
-  'title copy must bind the shared UI layout authority');
-assert(source.includes('panel.w') && source.includes('panel.h'),
-  'title panel must be sized by shared layout rather than a fixed oversized plate');
+assert(source.includes("text('ENTER', cx, menuY + 21)"),
+  'title must keep input hint minimal');
+assert(!source.includes('WASD / ARROWS') && !source.includes('A small ship. A broken world.'),
+  'title must not lead with tutorial or pitch copy');
+assert(!source.includes('AetherUIVisualSystem') && !source.includes('layoutTitle'),
+  'title must behave as key art rather than a framed application panel');
 
 const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
 const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');

@@ -24,9 +24,11 @@ const chapter1WindowsWorkflow = fs.readFileSync(
   path.join(root, '.github', 'workflows', 'chapter1-windows-candidate.yml'), 'utf8'
 );
 
-assert.strictEqual(opening.VERSION, '0.7.0',
+assert.strictEqual(opening.VERSION, '0.8.0',
   'Chapter 1 must use the explorable First Wake opening authority');
 assert.strictEqual(opening.validate(), true);
+assert(opening.SCENES[0].id === 'arrival_horizon' && opening.SCENES[0].minimumTicks >= 240,
+  'First Wake must open with a sustained establishing cinematic before gameplay/UI takeover');
 for (const expected of [
   ['lyra_family','wake-free-roam'],
   ['wrong_song','wrong-song'],
@@ -267,7 +269,7 @@ assert.strictEqual(packageJson.scripts['verify:chapter1:local'],
   'powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\verify-chapter1-local.ps1',
   'Chapter 1 must expose one-command exact-head local verification');
 assert.strictEqual(packageJson.scripts['test:chapter1-visual'],
-  'npm run test:visual-style-contract && npm run test:environment-visual-kit && npm run test:ui-visual-system && npm run test:toast-visual-hierarchy && npm run test:field-sprite-roster && npm run test:portrait-roster && npm run test:title-visual && npm run test:first-wake-visual && npm run test:dialogue-visual && npm run test:combat-visual && npm run test:flight-visual && npm run test:visual-package-integration && npm run test:16bit-world-art && npm run test:chapter1-character-sheet',
+  'npm run test:visual-style-contract && npm run test:environment-visual-kit && npm run test:ui-visual-system && npm run test:toast-visual-hierarchy && npm run test:field-sprite-roster && npm run test:field-pack-readiness && npm run test:field-art-packer && npm run test:portrait-roster && npm run test:title-visual && npm run test:first-wake-visual && npm run test:dialogue-visual && npm run test:combat-visual && npm run test:flight-visual && npm run test:visual-package-integration && npm run test:16bit-world-art && npm run test:chapter1-character-sheet',
   'Chapter 1 must expose the bounded expanded visual/presentation acceptance suite');
 
 assert(chapter1Workflow.includes('chapter1-visual:') &&

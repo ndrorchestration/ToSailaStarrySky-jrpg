@@ -14,7 +14,7 @@ if(api.normalizeExpression('speaking')!=='talk') throw new Error('speaking alias
 if(api.normalizeExpression('nonsense')!=='neutral') throw new Error('unknown expressions must fail to neutral');
 if(api.isFieldReady('ender')||api.isFieldReady('ionia')) throw new Error('field packs must remain unadmitted until full ready assets exist');
 if(typeof api.drawFieldCharacter!=='function') throw new Error('field-pack runtime seam missing');
-if(typeof api.drawCandidateFieldCharacter!=='function'||typeof api.candidateReviewEnabled!=='function') throw new Error('candidate review seam missing');
+if(typeof api.drawCandidateFieldCharacter!=='function'||typeof api.drawProvisionalFieldCharacter!=='function'||typeof api.candidateReviewEnabled!=='function') throw new Error('candidate/provisional field seam missing');
 if(!api.CANDIDATE_FIELD||api.CANDIDATE_FIELD.ender.width!==56||api.CANDIDATE_FIELD.ionia.cellW!==28) throw new Error('candidate field metadata drift');
 if(api.candidateReviewEnabled()) throw new Error('candidate field review must default off');
 if(api.FIELD_FRAMES.idle!==8||api.FIELD_FRAMES.walk!==6||api.FIELD_FRAMES.talk!==4||api.FIELD_FRAMES.focus!==6||api.FIELD_FRAMES.attack!==8) throw new Error('field frame contract drift');

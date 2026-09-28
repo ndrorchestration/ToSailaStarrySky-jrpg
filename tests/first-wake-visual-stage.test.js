@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'first-wake-visual-stage.js' });
 
 const api = sandbox.window.AetherFirstWakeVisual;
 assert(api, 'First Wake visual stage missing');
-assert.strictEqual(api.VERSION, '1.1.0');
+assert.strictEqual(api.VERSION, '1.2.0');
 for (const fn of ['draw','drawDock','drawInterior','drawChapter']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -65,10 +65,18 @@ assert(source.includes('function drawWakeExploration'),
   'v0.2 opening must expose the authored Wake exploration renderer');
 assert(source.includes('authored.drawFieldCharacter') && source.includes('authoredDrawn'),
   'v1.1 opening interiors must prefer admitted authored field packs with fail-safe fallback');
+assert(source.includes('drawProvisionalFieldCharacter'),
+  'v1.2 opening must use reviewed pixel field sheets as the provisional fallback before procedural figures');
 assert(source.includes('sceneTicks < 36'),
   'v1.1 non-cinematic scene titles must clear quickly instead of becoming permanent HUD chrome');
 assert(source.includes('authored.drawPortrait') && source.includes('portraitDrawn'),
   'v1.1 opening narration must use admitted speaker portrait art when available');
+assert(source.includes('function drawHorizonEstablishing') && source.includes("scene.id === 'arrival_horizon'"),
+  'v1.2 opening must begin with a HUD-light establishing shot rather than the dock gameplay composition');
+assert(source.includes("sceneTicks >= 90 && sceneTicks < 160") && source.includes("sceneTicks >= 142"),
+  'v1.2 opening must stage location and narration after a sustained world reveal rather than immediately');
+assert(!source.includes("FIRST WAKE // ' + String(scene.sequence)"),
+  'player-facing scene transition must not expose sequence metadata');
 assert(source.includes('function drawWrongSongSetPiece') && source.includes('drawWrongSongSetPiece(now'),
   'v1.0 opening must stage the Wrong Song as a bounded visual set piece');
 assert(source.includes("['ionia'"),

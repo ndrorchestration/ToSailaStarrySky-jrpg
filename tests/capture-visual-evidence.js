@@ -339,6 +339,20 @@ async function capture(page, id, description) {
     await page.keyboard.press('Enter');
     await page.waitForFunction(() => window.gameState === 'opening', undefined, { timeout: 5000 });
     await page.waitForFunction(() =>
+      window._firstWakeOpeningState && window._firstWakeOpeningState.sceneTicks >= 20
+    , undefined, { timeout: 5000 });
+    await page.evaluate(() => {
+      window._firstWakeOpeningState.sceneTicks = 34;
+      if (typeof window.noLoop === 'function') window.noLoop();
+      if (typeof window.redraw === 'function') window.redraw();
+    });
+    captures.push(await capture(
+      page,
+      '00a-opening-world-reveal',
+      'HUD-light First Wake establishing shot before location/title narration appears'
+    ));
+    await page.evaluate(() => { if (typeof window.loop === 'function') window.loop(); });
+    await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.presentationReady(window._firstWakeOpeningState) === true
     , undefined, { timeout: 5000 });
     await page.keyboard.press('Enter');
