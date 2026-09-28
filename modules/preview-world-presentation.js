@@ -463,7 +463,8 @@
       return false;
     }
 
-    if (name) {
+    // Protagonists are identified by portrait/sprite continuity, not floating debug-style nameplates.
+    if (name && !protagonist) {
       noStroke();
       fill(9, 13, 24, 190);
       rect(p.x - 34, p.y - 96, 68, 15, 3);
@@ -628,19 +629,24 @@
     for (const [x,y] of island) vertex(x, y + CELL*0.75);
     endShape(CLOSE);
 
-    fill(74, 111, 80);
+    if (reducedDetail) fill(53, 61, 61);
+    else fill(74, 111, 80);
     beginShape();
     for (const [x,y] of island) vertex(x, y);
     endShape(CLOSE);
 
-    // Sun-facing crown highlight and shaded far shelf.
-    fill(105, 139, 93, 86);
+    // Sun-facing crown highlight and shaded far shelf. Benchmark/dock mode uses
+    // reclaimed slate/timber tones so the playable plane reads as a working port,
+    // not a giant green board laid over the authored sky world.
+    if (reducedDetail) fill(126, 111, 82, 54);
+    else fill(105, 139, 93, 86);
     beginShape();
     vertex(CELL*3.0,CELL*6.2); vertex(CELL*8.5,CELL*2.3);
     vertex(CELL*18.7,CELL*2.1); vertex(CELL*26.9,CELL*4.4);
     vertex(CELL*24.2,CELL*8.0); vertex(CELL*12.0,CELL*7.4);
     endShape(CLOSE);
-    fill(42, 78, 62, 75);
+    if (reducedDetail) fill(28, 39, 43, 96);
+    else fill(42, 78, 62, 75);
     beginShape();
     vertex(CELL*2.0,CELL*22.4); vertex(CELL*8.0,CELL*26.8);
     vertex(CELL*17.2,CELL*28.8); vertex(CELL*27.9,CELL*25.4);
@@ -650,7 +656,7 @@
     // Low-cost material breakup: authored grass shelves, stone service pads,
     // and cliff-edge flecks stop the playable crown reading as one flat green polygon.
     // Counts are intentionally bounded so the projected world remains inside the visual budget.
-    const grassPatches = reducedDetail ? 4 : 12;
+    const grassPatches = reducedDetail ? 0 : 12;
     noStroke();
     for (let i = 0; i < grassPatches; i++) {
       const gx = CELL * (3.4 + ((i * 7) % 25));
@@ -697,7 +703,7 @@
 
     // Raised garden terraces give local landmarks and vertical rhythm.
     noStroke();
-    const terraces = [
+    const terraces = reducedDetail ? [] : [
       [CELL*5.2,CELL*7.1,CELL*6.2,CELL*3.0],
       [CELL*20.6,CELL*6.2,CELL*6.0,CELL*3.4],
       [CELL*22.0,CELL*22.0,CELL*5.4,CELL*3.1]
@@ -711,14 +717,14 @@
 
     // Broad vegetation patches and tree clusters break the open platform read.
     noStroke();
-    for (let i = 0; i < (reducedDetail ? 8 : 24); i++) {
+    for (let i = 0; i < (reducedDetail ? 0 : 24); i++) {
       const x = CELL * (2.8 + ((i * 11) % 26));
       const y = CELL * (3.1 + ((i * 17) % 25));
       const sway = Math.sin(t * 0.0018 + i) * 2;
       fill(46 + (i % 3) * 7, 104 + (i % 4) * 7, 64 + (i % 2) * 9, 115);
       ellipse(x + sway, y, 30 + (i % 5) * 6, 15 + (i % 4) * 4);
     }
-    const trees = [[4,5],[7,6],[24,5],[27,8],[5,24],[25,25],[28,21],[10,27]];
+    const trees = reducedDetail ? [] : [[4,5],[7,6],[24,5],[27,8],[5,24],[25,25],[28,21],[10,27]];
     for (let i=0;i<trees.length;i++) {
       const [tx,ty]=trees[i]; const x=tx*CELL, y=ty*CELL;
       fill(77,62,45,210); rect(x-2,y-10,4,12,1);
@@ -763,7 +769,7 @@
     // Wind-driven grass silhouettes create motion at character scale.
     stroke(57, 91, 57, 175);
     strokeWeight(1.5);
-    for (let i = 0; i < (reducedDetail ? 6 : 42); i++) {
+    for (let i = 0; i < (reducedDetail ? 0 : 42); i++) {
       const x = CELL * (2 + ((i * 19) % 28));
       const y = CELL * (2 + ((i * 13) % 28));
       const wind = Math.sin(t * 0.003 + i * 0.7) * 3;
@@ -799,27 +805,80 @@
     ellipse(near + 690, h * 0.80, 250, 38);
   }
 
+  function drawBenchmarkDockPlane(w, h, now) {
+    // Screen-space dock plane for the hero benchmark: a real location, not the
+    // generic projected island crown. It deliberately preserves the authored sky.
+    const topLeftY = Math.round(h * 0.51);
+    const topRightY = Math.round(h * 0.46);
+    noStroke();
+    fill(38, 43, 45, 232);
+    beginShape();
+    vertex(0, topLeftY);
+    vertex(w, topRightY);
+    vertex(w, h);
+    vertex(0, h);
+    endShape(CLOSE);
+
+    // Reclaimed timber lanes lead the eye toward the Dragonfly.
+    stroke(101, 82, 60, 190);
+    strokeWeight(11);
+    line(-30, h * 0.84, w * 0.79, h * 0.48);
+    line(w * 0.12, h, w * 0.67, h * 0.49);
+    stroke(204, 174, 117, 92);
+    strokeWeight(2);
+    line(-30, h * 0.84, w * 0.79, h * 0.48);
+    line(w * 0.12, h, w * 0.67, h * 0.49);
+
+    // Sparse panel seams imply constructed deck depth without becoming a grid.
+    stroke(85, 91, 88, 105);
+    strokeWeight(1);
+    for (let i = 1; i < 6; i++) {
+      const y = topLeftY + i * ((h - topLeftY) / 6);
+      line(0, y, w, y - i * 6);
+    }
+    noStroke();
+
+    // Upper safety rail and small aether lamps separate dock from open sky.
+    stroke(22, 28, 31, 220);
+    strokeWeight(4);
+    line(0, topLeftY + 2, w, topRightY + 2);
+    stroke(170, 135, 76, 150);
+    strokeWeight(1);
+    for (let x = 40; x < w; x += 112) {
+      const t = x / w;
+      const railY = topLeftY + (topRightY - topLeftY) * t;
+      line(x, railY - 22, x, railY + 7);
+      noStroke();
+      fill(42, 255, 181, 80 + Math.sin((now || 0) * 0.004 + x) * 28);
+      rect(x - 2, railY - 25, 4, 4, 1);
+      stroke(170, 135, 76, 150);
+    }
+    noStroke();
+  }
+
   function drawProjectedWorld(input, w, h, now, player, npcs, focusX, focusY) {
     const centerX = w * 0.5;
     const centerY = h * 0.69;
 
     // Close camera deliberately keeps island/map boundaries outside the frame.
-    // Distant sky remains visible above the terrain, while the near play surface
-    // fills the lower two-thirds like a 3D JRPG environment.
-    drawProjectedTerrainMass(focusX, focusY, w, h, Boolean(input.dockBenchmark));
-    push();
-    const a = 2.85;
-    const b = -0.10;
-    const c = 0.34;
-    const d = 1.38;
-    const e = centerX - a * focusX - c * focusY;
-    const f = centerY - b * focusX - d * focusY;
-    applyMatrix(a, b, c, d, e, f);
-    smooth();
-    drawDimensionalGround(input, now, Boolean(input.dockBenchmark));
-    pop();
-
-    if (!input.dockBenchmark) drawProjectedAtmosphere(now, w, h);
+    // Benchmark mode uses a dedicated dock plane instead of the generic island crown.
+    if (input.dockBenchmark) {
+      drawBenchmarkDockPlane(w, h, now);
+    } else {
+      drawProjectedTerrainMass(focusX, focusY, w, h, false);
+      push();
+      const a = 2.85;
+      const b = -0.10;
+      const c = 0.34;
+      const d = 1.38;
+      const e = centerX - a * focusX - c * focusY;
+      const f = centerY - b * focusX - d * focusY;
+      applyMatrix(a, b, c, d, e, f);
+      smooth();
+      drawDimensionalGround(input, now, false);
+      pop();
+      drawProjectedAtmosphere(now, w, h);
+    }
 
     // Benchmark dock service geometry belongs below actors, not over them.
     if (input.dockBenchmark) {
