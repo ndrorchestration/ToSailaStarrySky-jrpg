@@ -72,7 +72,7 @@
           "hurt",
           "smile"
         ],
-        "source": "Regenerated from the creator-supplied enderbest1.jpg reference at the user\u00e2\u20ac\u2122s direction; this is the selected likeness and outfit, opt-in preview only."
+        "source": "Regenerated from the creator-supplied enderbest1.jpg reference at the userâ€™s direction; this is the selected likeness and outfit, opt-in preview only."
       },
       "candidateFieldSprite": {
         "status": "candidate",
@@ -250,7 +250,7 @@
       }
     },
     "reson": {
-      "status": "portrait-ready",
+      "status": "planned",
       "portraitAtlas": {
         "path": "assets/characters/v1/reson/portrait-atlas.png",
         "width": 768,
@@ -265,7 +265,7 @@
           "hurt",
           "smile"
         ],
-        "source": "Creator-selected canonical portrait candidate promoted to runtime portrait authority; field art remains unadmitted."
+        "source": "Creator-selected canonical portrait retained as review material; runtime portrait authority remains NOT AUTHORIZED in Visual V46."
       },
       "fieldStrips": {
         "idle": {
@@ -335,7 +335,7 @@
       }
     },
     "aepex": {
-      "status": "portrait-ready",
+      "status": "planned",
       "portraitAtlas": {
         "path": "assets/characters/v1/aepex/portrait-atlas.png",
         "width": 768,
@@ -350,7 +350,7 @@
           "hurt",
           "smile"
         ],
-        "source": "Creator-selected canonical portrait candidate promoted to runtime portrait authority; field art remains unadmitted."
+        "source": "Creator-selected canonical portrait retained as review material; runtime portrait authority remains NOT AUTHORIZED in Visual V46."
       },
       "fieldStrips": {
         "idle": {
