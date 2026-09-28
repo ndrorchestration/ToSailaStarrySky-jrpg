@@ -67,6 +67,8 @@ assert(source.includes('authored.drawFieldCharacter') && source.includes('author
   'v1.1 opening interiors must prefer admitted authored field packs with fail-safe fallback');
 assert(source.includes('sceneTicks < 36'),
   'v1.1 non-cinematic scene titles must clear quickly instead of becoming permanent HUD chrome');
+assert(source.includes('authored.drawPortrait') && source.includes('portraitDrawn'),
+  'v1.1 opening narration must use admitted speaker portrait art when available');
 assert(source.includes('function drawWrongSongSetPiece') && source.includes('drawWrongSongSetPiece(now'),
   'v1.0 opening must stage the Wrong Song as a bounded visual set piece');
 assert(source.includes("['ionia'"),
@@ -135,4 +137,5 @@ assert(openingFunction.includes('visual.draw(scene, state, { now: millis(), widt
 
 console.log('Aetherwake First Wake visual stage contract: PASS');
 
-assert(source.includes('const narrativePanelH = Math.min(90, 28 + visibleLines.length * 21)'));
+assert(source.includes('const narrativePanelH = Math.min(98, 30 + visibleLines.length * 21)'),
+  'v1.1 narration panel must reserve enough height for admitted speaker portrait presentation');

@@ -1073,22 +1073,45 @@
 
     if (!scene.chapterCard) {
       const visibleLines = scene.lines.slice(0, 3);
-      const narrativePanelH = Math.min(90, 28 + visibleLines.length * 21);
+      const narrativePanelH = Math.min(98, 30 + visibleLines.length * 21);
       const narrativePanelY = height - 18 - 38 - narrativePanelH;
       const narrativePanelX = 148;
       const narrativePanelW = width - 296;
-      fill(6, 9, 14, 128);
+      fill(6, 9, 14, 122);
       rect(narrativePanelX, narrativePanelY, narrativePanelW, narrativePanelH, 10);
       fill(42,255,181,42);
       rect(narrativePanelX + 10, narrativePanelY + 8, narrativePanelW - 20, 2);
 
+      const authored = root.AetherAuthoredCharacterArt;
+      const speakerId = scene.speaker ? String(scene.speaker).toLowerCase() : null;
+      const portraitSize = Math.min(72, narrativePanelH - 18);
+      const portraitX = narrativePanelX + 12;
+      const portraitY = narrativePanelY + 14;
+      const portraitDrawn = speakerId && authored && typeof authored.drawPortrait === 'function'
+        ? authored.drawPortrait(speakerId, portraitX, portraitY, portraitSize, { expression: 'talk' })
+        : false;
+      if (portraitDrawn) {
+        noFill();
+        stroke(42, 255, 181, 92);
+        strokeWeight(1);
+        rect(portraitX - 2, portraitY - 2, portraitSize + 4, portraitSize + 4, 5);
+        noStroke();
+        fill(232, 220, 198, 208);
+        textAlign(LEFT, TOP);
+        textFont('Segoe UI Semibold');
+        textSize(10);
+        text(scene.speaker, portraitX, narrativePanelY - 1);
+      }
+
+      const copyX = portraitDrawn ? portraitX + portraitSize + 16 : narrativePanelX + 10;
+      const copyW = portraitDrawn ? narrativePanelW - (copyX - narrativePanelX) - 12 : narrativePanelW - 20;
       textAlign(LEFT, TOP);
       textFont('Trebuchet MS');
       textSize(15);
       fill(232, 220, 198);
       let y = narrativePanelY + 16;
       for (const line of visibleLines) {
-        text(line, narrativePanelX + 10, y, narrativePanelW - 20, 22);
+        text(line, copyX, y, copyW, 22);
         y += 21;
       }
     } else {

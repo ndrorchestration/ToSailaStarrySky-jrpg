@@ -344,6 +344,11 @@ async function capture(page, id, description) {
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.presentationReady(window._firstWakeOpeningState) === true
     , undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '00b-first-wake-ionia-arrival',
+      'First character introduction with admitted Ionia portrait presentation'
+    ));
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'dock_walk'
