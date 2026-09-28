@@ -193,4 +193,4 @@ Do not edit, optimize, recompress, crop, or regenerate an admitted strip after i
 
 
 ### Exact-head finalization rule
-The admission receipt is valid only for the exact repository head and exact evidence-manifest bytes it records. Any subsequent commit invalidates the receipt. Treat receipt preparation and admission as a final candidate-head operation, not an intermediate step followed by unrelated commits.
+The receipt records the reviewed candidate head. Admission may then be committed exactly once as a **bounded child commit** containing only the character admission receipt(s) and manifest-state transition. That one child is mechanically permitted; unrelated or later commits are not. Exact evidence-manifest bytes must remain unchanged.
