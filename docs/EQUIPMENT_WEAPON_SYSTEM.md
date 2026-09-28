@@ -65,3 +65,9 @@ Do **not** build permanent secondary-weapon silhouettes for Ender, Aepex, Ionia,
 ## Boundary
 
 This document does not admit assets, finalize job balance, define final loot tables, or authorize secondary weapon choices beyond Reson's rifle.
+
+
+## Ender starter staff production binding
+Detailed visual/animation candidate: `docs/ENDER_STARTER_STAFF_PRODUCTION_BRIEF.md`.
+
+The locked rule is weapon family + function: **fighting staff, physical combat weapon, magic-independent**. The brief's exact construction/material/name details remain provisional until visually accepted.
