@@ -158,11 +158,14 @@ Before export:
 2. Review those proofs beside the current authored dock, cabin, dialogue, and combat evidence.
 3. Only after silhouette approval, animate the five strips.
 4. Export the ten exact PNG strips.
-5. Run `npm run verify:field-pack-readiness:strict`.
-6. Do not change manifest status until the strict gate can pass.
-7. Regenerate exact-head visual evidence.
-8. Compare against the provisional bridge art at actual runtime scale.
-9. Run the human silhouette and player-eye acceptance procedures.
+5. Run `npm run verify:field-pack-readiness:strict`. This verifies production-file completeness **before** any manifest promotion.
+6. Regenerate exact-head runtime evidence and compare against the provisional bridge art at actual runtime scale.
+7. Run the human silhouette-recognition check with at least 5 independent participants and require ≥80% correct identification.
+8. Create per-character admission receipts from `docs/field-art-admission-template.json` under `assets/characters/v1/admission/<character>.json`, binding the human result and exact-head runtime review.
+9. Only after mechanical completeness, runtime review, and silhouette evidence pass, change the manifest status to `ready` / `field-ready`.
+10. Run `npm run verify:field-pack-admission` as the post-promotion fail-closed admission check.
+11. Re-run Chapter 1 visual/browser/performance verification and regenerate final exact-head evidence.
+12. Run the broader human/player G4 acceptance procedure separately; field-art admission does not close G4.
 
 ## Required filenames
 
@@ -182,4 +185,4 @@ Before export:
 
 A visually appealing sheet is not sufficient. The pack remains **NOT READY** until file dimensions, alpha, canon identity, runtime readability, regression tests, exact-head evidence, performance, and human acceptance gates are satisfied.
 
-`AETHERWAKE_FIELD_PACK_READINESS=NOT_READY` remains the controlling state until those gates are met.
+`AETHERWAKE_FIELD_PACK_READINESS=NOT_READY` remains the controlling state until those gates are met. Mechanical completeness may reach `COMPLETE_NOT_PROMOTED` before admission; that intermediate state is intentionally non-authorizing.
