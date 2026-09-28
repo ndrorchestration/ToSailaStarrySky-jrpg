@@ -2837,32 +2837,33 @@ function drawToasts() {
     .sort((a,b) => ((a.kind === 'priority') ? 1 : 0) - ((b.kind === 'priority') ? 1 : 0) || a.startTime - b.startTime)
     .slice(-1)[0] || null;
   const systemToast = active.filter(t => t.kind === 'system').slice(-1)[0] || null;
-  const cardW = Math.min(232, Math.max(192, width * 0.24));
-  const cardX = width - cardW - 24;
+  const cardW = Math.min(420, Math.max(300, width * 0.42));
+  const cardX = Math.round((width - cardW) / 2);
   if (cardToast) {
     const t = cardToast;
     const age = now - t.startTime;
     const alpha = age < 180 ? (age / 180) * 255 :
       (age > t.duration - 350 ? Math.max(0, (t.duration - age) / 350) * 255 : 255);
-    const y = 96;
+    const y = 76;
     const isObjective = String(t.text || '').toUpperCase().startsWith('OBJECTIVE //');
     const label = isObjective ? 'OBJECTIVE' : (t.kind === 'priority' ? 'PRIORITY' : 'NOTICE');
     const message = isObjective ? String(t.text).replace(/^OBJECTIVE\s*\/\/\s*/i, '') : String(t.text || '');
     noStroke();
-    fill(7, 11, 19, alpha * 0.68);
-    rect(cardX, y, cardW, 24, 5);
-    fill(t.color[0], t.color[1], t.color[2], alpha * 0.30);
-    rect(cardX, y, 3, 24, 2);
+    fill(7, 11, 19, alpha * 0.52);
+    rect(cardX, y, cardW, 34, 7);
+    fill(t.color[0], t.color[1], t.color[2], alpha * 0.42);
+    rect(cardX + 14, y + 9, 52, 2);
+    rect(cardX + cardW - 66, y + 9, 52, 2);
     textFont('Segoe UI Semibold');
     textSize(7);
-    textAlign(LEFT, CENTER);
-    fill(t.color[0], t.color[1], t.color[2], alpha * 0.85);
-    text(label, cardX + 9, y + 12);
-    textFont('Segoe UI');
-    textSize(9);
-    textAlign(RIGHT, CENTER);
+    textAlign(CENTER, TOP);
+    fill(t.color[0], t.color[1], t.color[2], alpha * 0.78);
+    text(label, cardX + cardW / 2, y + 5);
+    textFont('Trebuchet MS');
+    textSize(10);
+    textAlign(CENTER, TOP);
     fill(232, 220, 198, alpha * 0.94);
-    text(message, cardX + cardW - 9, y + 12);
+    text(message, cardX + cardW / 2, y + 18);
   }
   if (systemToast && !cardToast) {
     const t = systemToast;
@@ -5210,21 +5211,22 @@ function drawQuestOverlay() {
     done: 'DONE'
   }[quest.state] || '—';
 
+  // Chapter objective HUD should read like a JRPG quest cue, not a dashboard widget.
+  // Keep it text-led and translucent so the authored world remains dominant.
+  const qx = width - 250;
+  const qy = 18;
   noStroke();
-  fill(color(26, 16, 46, 200));
-  rect(620, 8, 170, 22, 4);
+  fill(color(8, 14, 24, 118));
+  rect(qx, qy, 226, 44, 6);
   fill(col);
-  noStroke();
-  rect(620, 8, 4, 22);
-  fill(col);
+  rect(qx + 10, qy + 10, 34, 2);
   textAlign(LEFT, TOP);
-  textSize(11);
-  textFont('Press Start 2P');
-  text(stateLabel, 630, 11);
-  textSize(10);
-  textFont('Segoe UI');
+  textSize(8);
+  textFont('Segoe UI Semibold');
+  fill(color(232, 220, 198, 205));
+  text(stateLabel, qx + 10, qy + 14);
 
-  fill(color(232, 220, 198, 150));
+  fill(color(232, 220, 198, 155));
   textAlign(LEFT, TOP);
   textSize(8);
   let progressText = '';
@@ -5249,7 +5251,7 @@ function drawQuestOverlay() {
   } else if (quest.state === 'done') {
     progressText = quest.wakeEpilogue ? quest.wakeEpilogue.name : '—';
   }
-  text(progressText, 630, 23);
+  text(progressText, qx + 10, qy + 27);
   textSize(10);
   textFont('sans-serif');
 }
@@ -5322,57 +5324,37 @@ function drawEpilogueScreen() {
 // --- Solar Meter ------------------------------------------------------------
 
 function drawSolarMeter() {
-  const mx = 12;
-  const my = 540;
-  const mw = 120;
-  const mh = 10;
-
+  // Compact JRPG field resource cue. Avoid paired telemetry bars and engineering units.
+  const x = 18;
+  const y = height - 34;
   noStroke();
-  fill(color(26, 16, 46, 200));
-  rect(mx, my, mw, mh, 3);
+  fill(color(8, 14, 24, 118));
+  rect(x - 6, y - 12, 104, 26, 6);
 
-  const fillW = (player.solarCharge / SOLAR_MAX_KWH) * (mw - 4);
-  noStroke();
-  fill(color(42, 255, 181, 180));
-  rect(mx + 2, my + 2, fillW, mh - 4, 2);
+  textAlign(LEFT, CENTER);
+  textFont('Segoe UI Semibold');
+  textSize(8);
+  fill(color(232, 220, 198, 180));
+  text('AETHER', x, y - 3);
 
-  if (player.solarCharge > 1.5) {
-    noStroke();
-    fill(color(42, 255, 181, 40));
-    rect(mx + 2, my + 2, fillW, mh - 4, 2);
+  const solarPips = 4;
+  const solarRatio = Math.max(0, Math.min(1, player.solarCharge / SOLAR_MAX_KWH));
+  for (let i = 0; i < solarPips; i++) {
+    fill(i < Math.ceil(solarRatio * solarPips)
+      ? color(42, 255, 181, 185)
+      : color(70, 87, 97, 100));
+    rect(x + 42 + i * 10, y - 7, 7, 4, 1);
   }
 
-  fill(color(232, 220, 198, 160));
-  noStroke();
-  textAlign(LEFT, BOTTOM);
-  textSize(8);
-  textFont('Segoe UI');
-  text('SOLAR ' + player.solarCharge.toFixed(2) + 'kWh', mx, my - 2);
-  textSize(10);
-  textFont('sans-serif');
-
-  // ── Fire bar (staff charges) ──
-  const fx = 12, fy = 556, fw = 120, fh = 10;
-  noStroke();
-  fill(color(26, 16, 46, 200));
-  rect(fx, fy, fw, fh, 3);
-  const chargeFill = (player.staffCharges / 2) * (fw - 4);
-  if (chargeFill > 0) {
-    noStroke();
-    fill(color(42, 255, 181, 180));
-    rect(fx + 2, fy + 2, chargeFill, fh - 4, 2);
-    if (player.staffCharges > 1) {
-      noStroke();
-      fill(color(42, 255, 181, 40));
-      rect(fx + 2, fy + 2, chargeFill, fh - 4, 2);
-    }
+  fill(color(232, 220, 198, 155));
+  text('STAFF', x, y + 7);
+  for (let i = 0; i < 2; i++) {
+    fill(i < player.staffCharges
+      ? color(124, 200, 232, 190)
+      : color(70, 87, 97, 100));
+    rect(x + 42 + i * 12, y + 5, 8, 4, 1);
   }
-  noStroke();
-  fill(color(232, 220, 198, 160));
-  textAlign(LEFT, BOTTOM);
-  textSize(8);
-  textFont('Segoe UI');
-  text('⚡ FIRE ' + player.staffCharges + '/2', fx, fy - 2);
+
   textSize(10);
   textFont('sans-serif');
 }
