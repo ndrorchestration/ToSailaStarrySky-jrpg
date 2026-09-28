@@ -15,7 +15,7 @@
 })(typeof window!=='undefined'?window:(typeof globalThis!=='undefined'?globalThis:null),function(){
   'use strict';
 
-  const VERSION='0.3.0';
+  const VERSION='0.4.0';
   const SOURCE='Notion canonical character dossiers';
 
   function freeze(value){
@@ -70,10 +70,15 @@
       },
       art:{
         silhouette:'adult, grounded, perceptive receiver',
+        appearance:{
+          hair:'long natural red / copper-red hair',
+          eyes:'green',
+          costumeLanguage:'creator-approved blue-toned fitted vest/dress layers over a light blouse; warm practical solarpunk detailing',
+        },
         motifs:['listening','resonance','dreams','subtle frequency phenomena'],
-        avoid:['childlike presentation','green nature mage','forest priestess'],
+        avoid:['childlike presentation','green nature mage','forest priestess','blonde hair substitution','Ionia-style captain-blue visual identity'],
       },
-      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['finalClass','secondaryWeapon']),
+      openVisualDecisions:['ethnicity','exactCostume','finalClass','secondaryWeapon'],
     },
     ionia:{
       id:'ionia',name:'Ionia',age:28,nativeJob:null,
@@ -91,10 +96,15 @@
       },
       art:{
         silhouette:'experienced young-adult captain/navigator with command posture',
+        appearance:{
+          hair:'shoulder-length curly blonde hair',
+          eyes:'green',
+          costumeLanguage:'creator-approved practical captain/explorer look with cream/light blouse, brown leather harness/utility layers, and restrained brass hardware',
+        },
         motifs:['sky-navigation gear','weathered expedition clothing','Wake-specific instruments'],
-        avoid:['elderly presentation','farmer archetype','invented spellcaster identity'],
+        avoid:['elderly presentation','farmer archetype','invented spellcaster identity','blue or lavender hair substitution','Lyra-style red hair substitution'],
       },
-      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['secondaryWeapon','finalClass']),
+      openVisualDecisions:['ethnicity','exactCostume','secondaryWeapon','finalClass'],
     },
     reson:{
       id:'reson',name:'Reson',age:25,nativeJob:null,
@@ -113,8 +123,14 @@
       },
       art:{
         silhouette:'broadest and heaviest-built protagonist; visibly martial',
+        appearance:{
+          hair:'dark brown, short-to-medium, worn under/around a backward red cap',
+          facialHair:'distinct dark mustache',
+          build:'powerful muscular young-adult build',
+          costumeLanguage:'cream work shirt, red scarf, dark brown leather tactical harness and utility rigging',
+        },
         motifs:['disciplined equipment','rifle','pike/sword vocabulary','former-service practicality'],
-        avoid:['frail build','magic-first silhouette','invented faction insignia'],
+        avoid:['frail build','magic-first silhouette','invented faction insignia','clean-shaven generic swordsman','slender elegant duelist presentation'],
       },
       openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['exactFormerServiceInsignia']),
     },
@@ -133,8 +149,14 @@
       },
       art:{
         silhouette:'relaxed systems specialist / field engineer',
+        appearance:{
+          hair:'dirty-blond / sandy-blond asymmetric undercut with longer swept top',
+          build:'lean athletic adult build',
+          markings:'visible technical/geometric tattoos on arms and neck',
+          costumeLanguage:'dark charcoal/black layered techwear with leather harnesses, brass hardware, goggles/tools, and compact engineering modules',
+        },
         motifs:['solarpunk engineering','diagnostics','computation/interfaces','tools','configurable gizmos','brass/rootwood/aether-tech materials'],
-        avoid:['generic wizard imagery','magic-staff default','pure mechanic-without-computation presentation'],
+        avoid:['generic wizard imagery','magic-staff default','pure mechanic-without-computation presentation','white-haired anime mechanic substitution','clean unmarked formal engineer'],
       },
       openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['secondaryWeapon','finalClass']),
     },
