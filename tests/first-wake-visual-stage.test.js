@@ -39,8 +39,8 @@ assert(!source.includes('state.sceneTicks ='),
   'visual transition must not mutate opening scene timing state');
 assert(source.includes('bandedSky(') && source.includes('cloudBands('),
   'opening dock must retain layered atmospheric fallback depth');
-assert(source.includes('Perspective deck occupies the lower third') && source.includes('quad(inset0, y0'),
-  'opening dock must preserve perspective deck geometry while keeping authored skyport art dominant');
+assert(source.includes('Only procedural fallback gets a full deck reconstruction') && source.includes('quad(inset0, y0'),
+  'procedural dock fallback must retain perspective deck geometry while authored skyport art avoids overlay-board reconstruction');
 assert(source.includes('function drawDockSkyportArchitecture') && source.includes('drawDockSkyportArchitecture(now)'),
   'v0.8 opening dock must include authored midground skyport architecture');
 assert(source.includes('function drawDockLivingDetails') && source.includes('drawDockLivingDetails(now)'),
@@ -71,12 +71,18 @@ assert(source.includes("const enderPixel = drawProvisional('ender'") && source.i
   'interactive Wake exploration must preserve provisional pixel protagonist continuity before articulated fallback');
 assert(source.includes('sceneTicks < 36'),
   'v1.1 non-cinematic scene titles must clear quickly instead of becoming permanent HUD chrome');
+assert(source.includes('(!scene.interactive || Boolean(scene.speaker))') && source.includes('} else if (!scene.interactive) {'),
+  'interactive exploration must not keep narration copy floating over the authored field when no character is speaking');
 assert(source.includes('authored.drawPortrait') && source.includes('portraitDrawn'),
   'v1.1 opening narration must use admitted speaker portrait art when available');
 assert(source.includes('function drawHorizonEstablishing') && source.includes("scene.id === 'arrival_horizon'"),
   'v1.2 opening must begin with a HUD-light establishing shot rather than the dock gameplay composition');
-assert(source.includes('paintedBackdrop ? 54 : 245') && source.includes('A narrow reclaimed-timber lane anchors traversal'),
-  'painted dock path must remain translucent and lane-led instead of becoming a gray overlay board');
+assert(source.includes('if (!paintedBackdrop) {') && source.includes('broad translucent quads read like a prototype board laid'),
+  'painted dock must suppress full-deck overlay reconstruction and preserve the authored plate');
+assert(source.includes('paintedBackdrop ? 52 : 165') && source.includes('A narrow reclaimed-timber lane anchors traversal'),
+  'painted dock traversal must remain lane-led and subordinate to the authored environment');
+assert(source.includes('physical dock') && source.includes('triangle(277, 365, 291, 362, 286, 375)'),
+  'closed-route cue must read as a physical barricade rather than a floating board');
 assert(source.includes("sceneTicks >= 90 && sceneTicks < 160") && source.includes("sceneTicks >= 142"),
   'v1.2 opening must stage location and narration after a sustained world reveal rather than immediately');
 assert(source.includes("['Dawn gathers beneath', 'a sea of clouds.']") && source.includes("['A small patched vessel hangs', 'against a very large sky.']"),

@@ -287,43 +287,48 @@
     fill(42, 255, 181, paintedBackdrop ? 22 : 38);
     rect(60, 339, width - 120, 2);
 
-    // Perspective deck occupies the lower third so the authored skyport remains dominant.
-    for (let i = 0; i < 8; i++) {
-      const y0 = 382 + i * 32;
-      const y1 = y0 + 34;
-      const t0 = i / 8;
-      const t1 = (i + 1) / 8;
-      const inset0 = 108 * (1 - t0);
-      const inset1 = 108 * (1 - t1);
-      fill(42 + i * 2, 50 + i * 2, 53 + i * 2, paintedBackdrop ? 54 : 245);
-      quad(inset0, y0, width - inset0, y0, width - inset1, y1, inset1, y1);
-      stroke(126, 137, 132, paintedBackdrop ? 24 : 52);
-      strokeWeight(1);
-      line(inset1, y1, width - inset1, y1);
-      noStroke();
+    // Only procedural fallback gets a full deck reconstruction. On the authored
+    // painted skyport, broad translucent quads read like a prototype board laid
+    // over finished art, so preserve the plate and add only traversal accents.
+    if (!paintedBackdrop) {
+      for (let i = 0; i < 8; i++) {
+        const y0 = 382 + i * 32;
+        const y1 = y0 + 34;
+        const t0 = i / 8;
+        const t1 = (i + 1) / 8;
+        const inset0 = 108 * (1 - t0);
+        const inset1 = 108 * (1 - t1);
+        fill(42 + i * 2, 50 + i * 2, 53 + i * 2, 245);
+        quad(inset0, y0, width - inset0, y0, width - inset1, y1, inset1, y1);
+        stroke(126, 137, 132, 52);
+        strokeWeight(1);
+        line(inset1, y1, width - inset1, y1);
+        noStroke();
+      }
     }
 
     // A narrow reclaimed-timber lane anchors traversal without covering the painted dock.
     noStroke();
-    fill(104, 80, 56, paintedBackdrop ? 72 : 165);
+    fill(104, 80, 56, paintedBackdrop ? 52 : 165);
     quad(width / 2 - 64, 390, width / 2 + 64, 390, width / 2 + 238, height, width / 2 - 238, height);
     fill(191, 144, 76, paintedBackdrop ? 54 : 105);
     quad(width / 2 - 57, 392, width / 2 - 53, 392, width / 2 - 196, height, width / 2 - 203, height);
     quad(width / 2 + 53, 392, width / 2 + 57, 392, width / 2 + 203, height, width / 2 + 196, height);
 
-    // Perspective seams and rails pull the eye toward the ship.
-    stroke(111, 125, 127, paintedBackdrop ? 44 : 85);
+    // Perspective cues pull the eye toward the ship, but stay sparse on painted art.
+    stroke(111, 125, 127, paintedBackdrop ? 26 : 85);
     strokeWeight(1);
-    line(width / 2, 390, width / 2, height);
     line(width / 2 - 92, 390, 145, height);
     line(width / 2 + 92, 390, width - 145, height);
-    line(115, 401, 45, 570);
-    line(width - 115, 401, width - 45, 570);
-    // Reclaimed-brass service seams break the apron into intentional modules.
-    stroke(183, 132, 64, paintedBackdrop ? 48 : 82);
+    if (!paintedBackdrop) {
+      line(width / 2, 390, width / 2, height);
+      line(115, 401, 45, 570);
+      line(width - 115, 401, width - 45, 570);
+    }
+    stroke(183, 132, 64, paintedBackdrop ? 34 : 82);
     strokeWeight(2);
     line(172, 454, width - 132, 437);
-    line(118, 516, width - 82, 505);
+    if (!paintedBackdrop) line(118, 516, width - 82, 505);
     noStroke();
 
     drawDockLivingDetails(now);
@@ -447,19 +452,23 @@
       }
     }
 
-    // Closed-route board belongs to the walk/exploration beat, not the character-introduction cinematic.
+    // Closed-route cue belongs to the walk beat, but reads as a physical dock
+    // barricade rather than a floating UI board.
     if (scene.id === 'dock_walk') {
-      fill(37, 43, 48, 218);
-      rect(246, 346, 74, 50, 3);
-      fill(181, 103, 91, 176);
-      for (let i = 0; i < 20; i++) {
-        rect(257 + i * 2, 356 + Math.floor(i / 10) * 19, 2, 2);
-      }
-      stroke(181, 103, 91, 185);
-      strokeWeight(2);
-      line(257, 354, 309, 386);
-      line(309, 354, 257, 386);
+      stroke(76, 61, 48, 220);
+      strokeWeight(5);
+      line(248, 372, 314, 356);
+      line(252, 389, 318, 373);
+      stroke(181, 103, 91, 200);
+      strokeWeight(3);
+      line(258, 370, 311, 360);
+      line(261, 385, 315, 375);
       noStroke();
+      fill(191, 144, 76, 190);
+      rect(246, 365, 5, 31, 2);
+      rect(316, 352, 5, 34, 2);
+      fill(181, 103, 91, 175);
+      triangle(277, 365, 291, 362, 286, 375);
     }
     // Foreground cable silhouettes retain depth without becoming an opaque frame.
     stroke(8, 12, 18, 150);
@@ -1186,7 +1195,9 @@
       }
     }
 
-    const showNarrative = !scene.chapterCard && (scene.id !== 'arrival_horizon' || sceneTicks >= 142);
+    const showNarrative = !scene.chapterCard &&
+      (!scene.interactive || Boolean(scene.speaker)) &&
+      (scene.id !== 'arrival_horizon' || sceneTicks >= 142);
     if (scene.id === 'arrival_horizon' && showNarrative) {
       const lineIndex = sceneTicks < 194 ? 0 : 1;
       const cinematicLines = lineIndex === 0
@@ -1246,7 +1257,7 @@
         text(line, copyX, y, copyW, 22);
         y += 21;
       }
-    } else {
+    } else if (!scene.interactive) {
       textAlign(CENTER, TOP);
       textFont('Trebuchet MS');
       textSize(20);
