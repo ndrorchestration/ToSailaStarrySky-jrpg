@@ -6,7 +6,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
   const CELL = 16;
   const MAP = 32;
   const PIXEL_WORLD_BACKGROUND = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
@@ -418,15 +418,29 @@
   }
 
   function drawProjectedSprite(id, tileX, tileY, name, focusX, focusY, w, h, scale, frame) {
+    const authored = root.AetherAuthoredCharacterArt;
     const characters = root.AetherCharacterRenderer;
     const sprites = root.AetherPixelSprites;
     const worldX = tileX * CELL + CELL / 2;
     const worldY = tileY * CELL + CELL;
     const p = projectWorldPoint(worldX, worldY, focusX, focusY, w, h);
     const depth = Math.max(0.12, Math.min(0.95, 0.55 + (p.y - h * 0.58) / 620));
-    const modernCharacter = characters && characters.validate && characters.validate() &&
-      ['ender','reson','aepex','ionia','lyra'].includes(id);
+    const protagonist = ['ender','reson','aepex','ionia','lyra'].includes(id);
 
+    // Production-facing exploration now prefers the reviewed pixel candidate sheets
+    // as an explicitly provisional fallback until full 64x96 field packs are admitted.
+    // This changes presentation only; readiness remains NOT_READY.
+    let provisionalDrawn = false;
+    if (protagonist && authored && typeof authored.drawProvisionalFieldCharacter === 'function') {
+      provisionalDrawn = authored.drawProvisionalFieldCharacter(id, p.x, p.y, {
+        anchor: 'bottom-center',
+        scale: Math.max(1.6, scale * 1.55),
+        action: frame ? 'walk' : 'idle',
+        frame: frame || 0,
+      });
+    }
+
+    const modernCharacter = !provisionalDrawn && characters && characters.validate && characters.validate() && protagonist;
     if (modernCharacter) {
       characters.draw(id, p.x, p.y, {
         scale: Math.max(0.76, scale * 0.78),
@@ -436,7 +450,7 @@
         facing: 'right',
         highlight: name === 'Ender',
       });
-    } else if (sprites && typeof sprites.draw === 'function') {
+    } else if (!provisionalDrawn && sprites && typeof sprites.draw === 'function') {
       const spriteScale = scale * Math.max(0.86, Math.min(1.16, 1 + (p.y - h * 0.58) / 900));
       if (typeof sprites.drawShadow === 'function') {
         sprites.drawShadow(p.x, p.y, spriteScale, sprites.PREVIEW_WIDTH || SPRITE_WIDTH);
@@ -445,7 +459,7 @@
       drawPreview.call(sprites, id, p.x, p.y, {
         anchor: 'bottom-center', scale: spriteScale, frame: frame || 0,
       });
-    } else {
+    } else if (!provisionalDrawn) {
       return false;
     }
 

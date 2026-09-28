@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.6.0';
   const SKY_BATTLE_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-battle-pixelart-v2.png';
   let skyBattleBackground = null;
   let skyBattleBackgroundRequested = false;
@@ -252,6 +252,18 @@
         frame: Math.floor((ctx.now || 0) / (ctx.attacking ? 70 : 150)),
       });
       if (drawn) return true;
+    }
+
+    // Until Ender's full combat/field pack is admitted, use the reviewed pixel
+    // candidate before falling back to the articulated prototype renderer.
+    if (authored && typeof authored.drawProvisionalFieldCharacter === 'function') {
+      const provisional = authored.drawProvisionalFieldCharacter('ender', x, y + 7, {
+        anchor: 'bottom-center',
+        scale: 2.45,
+        action: ctx.attacking ? 'walk' : 'idle',
+        frame: Math.floor((ctx.now || 0) / (ctx.attacking ? 90 : 180)),
+      });
+      if (provisional) return true;
     }
 
     if (characters && characters.validate && characters.validate()) {

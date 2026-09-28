@@ -17,7 +17,7 @@ vm.runInNewContext(source, sandbox, { filename: 'combat-visual-stage.js' });
 const api = sandbox.window.AetherCombatVisual;
 
 assert(api, 'combat visual stage API missing');
-assert.strictEqual(api.VERSION, '0.5.0');
+assert.strictEqual(api.VERSION, '0.6.0');
 for (const fn of ['stage','drawBackdrop','drawPlayer','drawEnemy','drawTurnRail','enemySpriteId']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -52,8 +52,10 @@ assert(source.includes('aetherwake-preview-battle-pixelart-v2.png'),
   'Sky Predator combat should use the authored pixel-art arena');
 assert(source.includes('Grounded combat focus'),
   'combat player staging must use grounded contact-light treatment');
+assert(source.includes('drawProvisionalFieldCharacter') && source.includes('scale: 2.45'),
+  'combat Ender must prefer the reviewed provisional pixel field art before articulated fallback');
 assert(source.includes('scale: 1.48') && source.includes('depth: 0.68'),
-  'combat Ender must stay subordinate to the authored battle vista at JRPG field scale');
+  'combat Ender must retain the bounded articulated fallback if provisional art is unavailable');
 assert(!source.includes('rect(x - 58, y - 128, 116, 134)'),
   'combat player staging must not restore the old arena-obscuring glow rectangle');
 

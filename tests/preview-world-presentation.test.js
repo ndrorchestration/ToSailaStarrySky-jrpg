@@ -141,6 +141,10 @@ assert(source.includes('Non-benchmark horizon integration'),
   'normal projected exploration must soften the crown/backdrop seam');
 assert(source.includes('Boolean(input.dockBenchmark)'),
   'dock benchmark must explicitly bypass extra horizon integration detail');
+assert(source.includes('drawProvisionalFieldCharacter') && source.includes('provisionalDrawn'),
+  'projected world must prefer reviewed provisional pixel protagonists before articulated fallback');
+assert(source.includes('readiness remains NOT_READY'),
+  'provisional world sprite usage must preserve the field-pack readiness boundary');
 
 const ground = Array.from({ length: 32 }, () => Array(32).fill(2));
 ground[0][0] = 1;
