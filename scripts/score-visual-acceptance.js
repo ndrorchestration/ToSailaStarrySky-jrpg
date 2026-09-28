@@ -89,8 +89,12 @@ function scoreResults(results) {
     if (!Number.isInteger(same.decoyCorrect) || same.decoyCorrect < 0 || same.decoyCorrect > 3) {
       throw new Error('VISUAL_ACCEPTANCE_FAIL: invalid same-game decoy count for ' + participant.id);
     }
-    const sameGameRateForParticipant = same.aetherwakeCorrect / 7;
-    if (sameGameRateForParticipant >= contract.acceptance.sameGameBlindTestMinimum) sameGame++;
+    const aetherwakeRecognitionRate = same.aetherwakeCorrect / 7;
+    const blindSetAccuracy = (same.aetherwakeCorrect + same.decoyCorrect) / 10;
+    if (aetherwakeRecognitionRate >= contract.acceptance.sameGameBlindTestMinimum &&
+        blindSetAccuracy >= contract.acceptance.sameGameBlindTestMinimum) {
+      sameGame++;
+    }
 
     const recall = participant.dragonflyRecall || {};
     if (typeof recall.nameRecalled !== 'boolean' ||
