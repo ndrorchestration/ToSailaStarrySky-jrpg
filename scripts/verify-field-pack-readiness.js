@@ -19,11 +19,60 @@ const ACTION_NAMES = Object.freeze(Object.keys(EXPECTED_ACTIONS));
 const ADMISSION_SCHEMA = 'AETHERWAKE_FIELD_ART_ADMISSION_V1';
 const evidenceManifestPath = path.join(root, 'visual-evidence', 'manifest.json');
 
-function currentGitHead() {
-  const result = cp.spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' });
+function gitText(args) {
+  const result = cp.spawnSync('git', args, { cwd: root, encoding: 'utf8' });
   if (result.status !== 0) return null;
-  const head = result.stdout.trim();
-  return /^[0-9a-f]{40}$/i.test(head) ? head.toLowerCase() : null;
+  return result.stdout.trim();
+}
+
+function currentGitHead() {
+  const head = gitText(['rev-parse', 'HEAD']);
+  return head && /^[0-9a-f]{40}$/i.test(head) ? head.toLowerCase() : null;
+}
+
+function admissionTransitionMatches(reviewedHead) {
+  const current = currentGitHead();
+  if (!current || typeof reviewedHead !== 'string' || !/^[0-9a-f]{40}$/i.test(reviewedHead)) {
+    return { valid: false, mode: 'INVALID_HEAD', currentHead: current, parentHead: null, changedFiles: [] };
+  }
+  const reviewed = reviewedHead.toLowerCase();
+
+  // Before the bounded admission commit is created, the working tree may carry
+  // the receipt/manifest changes while HEAD remains the exact reviewed candidate.
+  if (current === reviewed) {
+    return { valid: true, mode: 'REVIEWED_HEAD_WORKTREE', currentHead: current, parentHead: null, changedFiles: [] };
+  }
+
+  const parent = gitText(['rev-parse', 'HEAD^']);
+  const status = gitText(['status', '--porcelain']);
+  if (!parent || parent.toLowerCase() !== reviewed || status === null || status.length > 0) {
+    return {
+      valid: false,
+      mode: 'NOT_BOUNDED_CHILD',
+      currentHead: current,
+      parentHead: parent ? parent.toLowerCase() : null,
+      changedFiles: []
+    };
+  }
+
+  const diff = gitText(['diff', '--name-only', parent, current]);
+  if (diff === null) {
+    return { valid: false, mode: 'DIFF_UNAVAILABLE', currentHead: current, parentHead: parent.toLowerCase(), changedFiles: [] };
+  }
+  const changedFiles = diff ? diff.split(/\r?\n/).filter(Boolean) : [];
+  const allowed = new Set([
+    'assets/characters/v1/manifest.json',
+    'assets/characters/v1/admission/ender.json',
+    'assets/characters/v1/admission/ionia.json'
+  ]);
+  const valid = changedFiles.length > 0 && changedFiles.every(file => allowed.has(file));
+  return {
+    valid,
+    mode: valid ? 'BOUNDED_ADMISSION_CHILD' : 'UNBOUNDED_CHILD',
+    currentHead: current,
+    parentHead: parent.toLowerCase(),
+    changedFiles
+  };
 }
 
 function sha256File(file) {
@@ -90,12 +139,8 @@ function inspectAdmissionEvidence(id, stripHashes, actualHead, actualEvidenceMan
         /^[0-9a-f]{64}$/i.test(recorded) &&
         actual.toLowerCase() === recorded.toLowerCase();
     });
-    const runtimeHeadMatches = Boolean(
-      actualHead &&
-      typeof runtime.exactHead === 'string' &&
-      /^[0-9a-f]{40}$/i.test(runtime.exactHead) &&
-      runtime.exactHead.toLowerCase() === actualHead
-    );
+    const admissionTransition = admissionTransitionMatches(runtime.exactHead);
+    const runtimeHeadMatches = admissionTransition.valid;
     const evidenceManifestMatches = Boolean(
       actualEvidenceManifestSha256 &&
       typeof runtime.evidenceManifestSha256 === 'string' &&
@@ -138,6 +183,7 @@ function inspectAdmissionEvidence(id, stripHashes, actualHead, actualEvidenceMan
       exactHead: typeof runtime.exactHead === 'string' ? runtime.exactHead : null,
       actualHead,
       runtimeHeadMatches,
+      admissionTransition,
       hashesMatch,
       assetSha256: ACTION_NAMES.reduce((out, action) => {
         out[action] = typeof assetSha256[action] === 'string' ? assetSha256[action] : null;
