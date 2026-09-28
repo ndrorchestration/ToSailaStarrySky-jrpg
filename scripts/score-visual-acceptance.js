@@ -7,14 +7,36 @@ const contract = JSON.parse(fs.readFileSync(path.join(root, 'docs', 'visual-styl
 
 function scoreResults(results) {
   if (!results || results.schema !== 'AETHERWAKE_VISUAL_ACCEPTANCE_RESULTS_V1') throw new Error('VISUAL_ACCEPTANCE_FAIL: schema mismatch');
+  const candidate = results.candidate || {};
+  if (typeof candidate.commit !== 'string' || !/^[0-9a-f]{40}$/i.test(candidate.commit)) {
+    throw new Error('VISUAL_ACCEPTANCE_FAIL: candidate commit must be an exact 40-character SHA');
+  }
+  if (typeof candidate.packageSha256 !== 'string' || !/^[0-9a-f]{64}$/i.test(candidate.packageSha256)) {
+    throw new Error('VISUAL_ACCEPTANCE_FAIL: candidate packageSha256 must be an exact SHA-256');
+  }
+  if (typeof candidate.evidenceManifestSha256 !== 'string' || !/^[0-9a-f]{64}$/i.test(candidate.evidenceManifestSha256)) {
+    throw new Error('VISUAL_ACCEPTANCE_FAIL: candidate evidenceManifestSha256 must be an exact SHA-256');
+  }
+
   const participants = results.participants || [];
   if (participants.length < contract.acceptance.playtesters) throw new Error('VISUAL_ACCEPTANCE_FAIL: fewer than required participants');
   const categories = contract.acceptance.categories;
   const sums = Object.fromEntries(Object.keys(categories).map(key => [key, 0]));
   let sameGame = 0;
   let dragonfly = 0;
+  const participantIds = new Set();
   for (const participant of participants) {
-    if (participant.minutes < contract.acceptance.sessionMinutes) throw new Error('VISUAL_ACCEPTANCE_FAIL: ' + participant.id + ' session shorter than required');
+    if (!participant || typeof participant.id !== 'string' || !participant.id.trim()) {
+      throw new Error('VISUAL_ACCEPTANCE_FAIL: participant id missing');
+    }
+    if (participantIds.has(participant.id)) {
+      throw new Error('VISUAL_ACCEPTANCE_FAIL: duplicate participant id ' + participant.id);
+    }
+    participantIds.add(participant.id);
+    if (participant.independentOfImplementation !== true) {
+      throw new Error('VISUAL_ACCEPTANCE_FAIL: participant independence not established for ' + participant.id);
+    }
+    if (!Number.isFinite(participant.minutes) || participant.minutes < contract.acceptance.sessionMinutes) throw new Error('VISUAL_ACCEPTANCE_FAIL: ' + participant.id + ' session shorter than required');
     if (participant.severity1Blocker) throw new Error('VISUAL_ACCEPTANCE_FAIL: severity-1 blocker reported by ' + participant.id);
     for (const key of Object.keys(categories)) {
       const value = participant.scores && participant.scores[key];
