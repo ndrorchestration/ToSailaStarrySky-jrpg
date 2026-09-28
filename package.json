@@ -90,6 +90,7 @@
     "test:visual-evidence-contract": "node tests/visual-evidence-contract.test.js",
     "capture:visual-evidence": "node tests/capture-visual-evidence.js",
     "capture:visual-evidence:candidate-field": "node scripts/capture-candidate-field-review.js",
+    "review:candidate-field": "node scripts/serve-candidate-field-review.js",
     "test:dragonfly-visual": "node tests/dragonfly-visual-authority.test.js",
     "test:first-wake-visual": "node tests/first-wake-visual-stage.test.js",
     "test:title-music": "node tests/title-music-contract.test.js",
