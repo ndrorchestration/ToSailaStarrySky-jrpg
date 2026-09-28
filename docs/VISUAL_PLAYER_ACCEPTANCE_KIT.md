@@ -1,4 +1,4 @@
-# Aetherwake Chapter 1 ? Visual Player Acceptance Kit
+# Aetherwake Chapter 1 — Visual Player Acceptance Kit
 
 Status: **G4 HUMAN EVIDENCE PROCEDURE**
 
