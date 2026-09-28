@@ -15,7 +15,7 @@
 })(typeof window!=='undefined'?window:(typeof globalThis!=='undefined'?globalThis:null),function(){
   'use strict';
 
-  const VERSION='0.1.0';
+  const VERSION='0.2.0';
   const SOURCE='Notion canonical character dossiers';
 
   function freeze(value){
@@ -39,10 +39,17 @@
       },
       art:{
         silhouette:'compact scholar-traveler rather than generic battle mage',
+        appearance:{
+          hair:'very short dark copper-brown / auburn buzz cut',
+          eyes:'bright green',
+          face:'lean youthful adult face with light freckles',
+          goggles:'worn brass/bronze goggles with green lenses across the forehead',
+          costumeLanguage:'creator-approved natural-tone field-scholar treatment; olive/green and tan/cream practical layers',
+        },
         motifs:['study','spatial/aetheric pattern work','practical shipboard life','resonator-staff or scholarly instrumentation'],
-        avoid:['bodybuilder proportions','generic wizard robes','generic battle-mage presentation'],
+        avoid:['bodybuilder proportions','generic wizard robes','generic battle-mage presentation','dark medium-length/tousled hair','hazel/light-brown eye substitution'],
       },
-      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS,
+      openVisualDecisions:['ethnicity','exactCostume'],
     },
     lyra:{
       id:'lyra',name:'Lyra',age:24,nativeJob:null,
