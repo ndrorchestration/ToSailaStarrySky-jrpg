@@ -45,28 +45,17 @@ let preamblePage = 0;
 let preamblePageShownAt = 0;
 const PREAMBLE_PAGES = Object.freeze([
   Object.freeze([
-    'A ship above a broken world.',
-    'A core that has begun to sing wrong.',
-  ]),
-  Object.freeze([
-    'Below, the copper ground is tired — rusted, cracked,',
-    'choking on its own dust.',
-    'Above, the sky-lanes are still open.',
-  ]),
-  Object.freeze([
-    'For three hundred years, the aether-cores',
-    'kept the arcologies aloft.',
+    'For three hundred years, the aether-cores kept the arcologies aloft.',
     'Now the cores are failing.',
+  ]),
+  Object.freeze([
+    'Above the copper world, one patched ship still flies.',
+    "The Aureate Wake's core has begun to sing wrong.",
   ]),
   Object.freeze([
     'You are Ender.',
     'Deckhand. Engineer-in-training.',
-    'You carry a wrench, a passport, and a decision',
-    'you have not yet admitted you have to make.',
-  ]),
-  Object.freeze([
-    "The Aureate Wake's core is singing wrong.",
-    'Something has to be done about that.',
+    'Today, you step aboard.',
   ]),
 ]);
 let titleVisible = 0;        // 0..1 fade-in for title
@@ -2144,47 +2133,34 @@ function drawBootSequence() {
   const progress = Math.min(1, elapsed / BOOT_LOAD_MS);
   const preambleElapsed = millis() - preambleStart;
   
-  // Background: navy
+  // Boot uses the same authored sky-world plate as the title so frame one
+  // already belongs to Aetherwake rather than a generic loading/debug shell.
+  const titleVisual = window.AetherTitleVisual;
+  let paintedBoot = false;
+  if (titleVisual && typeof titleVisual.drawSky === 'function') {
+    push();
+    paintedBoot = titleVisual.drawSky(millis()) !== false;
+    pop();
+  }
+  if (!paintedBoot) {
+    noStroke();
+    fill(C.navy[0], C.navy[1], C.navy[2]);
+    rect(0, 0, width, height);
+  }
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2]);
+  fill(C.navy[0], C.navy[1], C.navy[2], 112);
   rect(0, 0, width, height);
   
-  // Subtle teal grid (static)
-  stroke(C.teal[0], C.teal[1], C.teal[2], 10);
-  strokeWeight(1);
-  for (let x = 0; x < width; x += 32) line(x, 0, x, height);
-  for (let y = 0; y < height; y += 32) line(0, y, width, y);
-  
-  // Floating islands parallax (always visible during boot)
-  for (const island of titleIslands) {
-    const px = ((island.x + elapsed * 0.01 * island.drift) % 60 + 60) % 60 * 16;
-    const py = island.y + Math.sin(elapsed * 0.001 * island.speed + island.drift) * 6;
-    
-    noStroke();
-    fill(C.soil[0], C.soil[1], C.soil[2], 160);
-    ellipse(px, py, island.size, island.size * 0.6);
-    
-    noFill();
-    stroke(C.teal[0], C.teal[1], C.teal[2], 80);
-    strokeWeight(1);
-    ellipse(px, py, island.size, island.size * 0.6);
-    noStroke();
-    
-    fill(C.teal[0], C.teal[1], C.teal[2], 50);
-    ellipse(px - 3, py - 3, island.size * 0.3, island.size * 0.2);
-  }
-  
-  // ── Loading phase (0-1.2s) ──
+  // ── Opening sting (0-1.2s) ──
   if (elapsed < BOOT_LOAD_MS) {
-    noStroke();
-    textSize(12);
-    fill(C.teal[0], C.teal[1], C.teal[2], 150);
+    const sting = Math.min(1, elapsed / 420);
     textAlign(CENTER, CENTER);
-    const loadText = 'LOADING' + '.'.repeat(Math.floor((elapsed / 300) % 4));
-    text(loadText, width/2, height/2 - 20);
-    textSize(9);
-    fill(C.parchment[0], C.parchment[1], C.parchment[2], 100);
-    text('initializing the weave\u2026', width/2, height/2 + 8);
+    textFont('Trebuchet MS');
+    textSize(22);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2], 225 * sting);
+    text('AETHERWAKE', width / 2, height / 2 - 2);
+    fill(C.teal[0], C.teal[1], C.teal[2], 90 * sting);
+    rect(width / 2 - 54, height / 2 + 22, 108, 1);
     return;
   }
   
@@ -2197,39 +2173,34 @@ function drawBootSequence() {
     const fadeIn = Math.min(1, age / 320);
     const pageReady = age >= PREAMBLE_PAGE_MIN_MS;
 
-    // Dim the moving world without removing it; the player should feel that
-    // the story text belongs to the same sky they are about to enter.
+    // Dim the authored world as a cinematic plate rather than turning it into a UI screen.
     noStroke();
-    fill(C.navy[0], C.navy[1], C.navy[2], 118);
+    fill(C.navy[0], C.navy[1], C.navy[2], 138);
     rect(0, 0, width, height);
+    fill(C.navy[0], C.navy[1], C.navy[2], 70);
+    rect(0, 0, width, 44);
+    rect(0, height - 44, width, 44);
 
-    // Thin cinematic horizon rules provide a stable reading frame while the
-    // parallax islands continue moving behind the held story page.
-    fill(C.teal[0], C.teal[1], C.teal[2], 34);
-    rect(width * 0.16, height * 0.28, width * 0.68, 1);
-    rect(width * 0.16, height * 0.72, width * 0.68, 1);
-
-    const lineHeight = 27;
+    const lineHeight = 31;
     const startY = height / 2 - ((page.length - 1) * lineHeight) / 2;
     noStroke();
     textAlign(CENTER, CENTER);
-    textSize(15);
     for (let i = 0; i < page.length; i++) {
-      const localDelay = i * 90;
-      const lineAlpha = Math.max(0, Math.min(1, (age - localDelay) / 260));
-      fill(C.parchment[0], C.parchment[1], C.parchment[2], 210 * lineAlpha);
+      const localDelay = i * 110;
+      const lineAlpha = Math.max(0, Math.min(1, (age - localDelay) / 300));
+      textFont(i === 0 ? 'Trebuchet MS' : 'Segoe UI');
+      textSize(i === 0 ? 19 : 16);
+      fill(C.parchment[0], C.parchment[1], C.parchment[2], 225 * lineAlpha);
       text(page[i], width / 2, startY + i * lineHeight);
     }
 
-    // Page position is visible but understated: pacing belongs to the player,
-    // not to an invisible timer.
+    // JRPG-style page cue: no counters or bracketed developer-like instructions.
+    const cueAlpha = (pageReady ? 185 : 65) * fadeIn;
+    fill(C.teal[0], C.teal[1], C.teal[2], cueAlpha);
+    rect(width / 2 - 18, height - 44, 36, 1);
+    textFont('Segoe UI Semibold');
     textSize(9);
-    fill(C.scioto[0], C.scioto[1], C.scioto[2], 90 * fadeIn);
-    text((preamblePage + 1) + ' / ' + PREAMBLE_PAGES.length, width / 2, height - 52);
-    fill(C.teal[0], C.teal[1], C.teal[2], (pageReady ? 155 : 70) * fadeIn);
-    text(pageReady
-      ? (preamblePage < PREAMBLE_PAGES.length - 1 ? '[ press any key for next ]' : '[ press any key for title ]')
-      : '[ hold ]', width / 2, height - 30);
+    text(preamblePage < PREAMBLE_PAGES.length - 1 ? 'CONTINUE' : 'TO TITLE', width / 2, height - 28);
 
     return;
   }

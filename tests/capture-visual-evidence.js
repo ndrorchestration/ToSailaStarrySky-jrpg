@@ -85,6 +85,17 @@ async function waitForRuntime(page) {
   , undefined, { timeout: 15000 });
 }
 
+async function advanceBootToMenu(page) {
+  await page.waitForTimeout(1800);
+  await page.locator('canvas').click({ position: { x: 480, y: 320 } });
+  for (let advance = 0; advance < 8; advance++) {
+    if (await page.evaluate(() => window.gameState === 'menu')) break;
+    await page.waitForTimeout(700);
+    await page.keyboard.press('Enter');
+  }
+  await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
+}
+
 async function bootToWorld(page) {
   await page.goto(RUNTIME_URL, {
     waitUntil: 'domcontentloaded',
@@ -92,13 +103,7 @@ async function bootToWorld(page) {
   });
   await waitForRuntime(page);
 
-  await page.waitForTimeout(1800);
-  await page.locator('canvas').click({ position: { x: 480, y: 320 } });
-  for (let pageIndex = 0; pageIndex < 5; pageIndex++) {
-    await page.waitForTimeout(700);
-    await page.keyboard.press('Enter');
-  }
-  await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
+  await advanceBootToMenu(page);
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => window.gameState === 'opening', undefined, { timeout: 5000 });
 
@@ -310,12 +315,12 @@ async function capture(page, id, description) {
     });
     await waitForRuntime(page);
     await page.waitForTimeout(1800);
-    await page.locator('canvas').click({ position: { x: 480, y: 320 } });
-    for (let pageIndex = 0; pageIndex < 5; pageIndex++) {
-      await page.waitForTimeout(700);
-      await page.keyboard.press('Enter');
-    }
-    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '00-prologue-page',
+      'Authored sky-world prologue page with cinematic JRPG continuation cue'
+    ));
+    await advanceBootToMenu(page);
     captures.push(await capture(
       page,
       '00-title-screen',
@@ -329,13 +334,7 @@ async function capture(page, id, description) {
       timeout: 20000,
     });
     await waitForRuntime(page);
-    await page.waitForTimeout(1800);
-    await page.locator('canvas').click({ position: { x: 480, y: 320 } });
-    for (let pageIndex = 0; pageIndex < 5; pageIndex++) {
-      await page.waitForTimeout(700);
-      await page.keyboard.press('Enter');
-    }
-    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
+    await advanceBootToMenu(page);
     await page.keyboard.press('Enter');
     await page.waitForFunction(() => window.gameState === 'opening', undefined, { timeout: 5000 });
     await page.waitForFunction(() =>

@@ -267,10 +267,11 @@ function createServer() {
       document.querySelector('canvas')
     , undefined, { timeout: 15000 });
 
-    // Player-paced production path: loading completes first; then one input
-    // dismisses the preamble and a separate input starts New Game.
+    // Player-paced production path: opening sting completes first; story pages
+    // advance explicitly until the title is reached, then a separate input starts New Game.
     await page.waitForTimeout(1400);
-    for (let pageIndex = 0; pageIndex < 5; pageIndex++) {
+    for (let advance = 0; advance < 8; advance++) {
+      if (await page.evaluate(() => window.gameState === 'menu')) break;
       await page.waitForTimeout(700);
       await page.keyboard.press('Enter');
     }
