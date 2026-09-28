@@ -356,20 +356,34 @@
       const moving = scene.id === 'dock_walk' && progress < 0.98;
 
       const authored = root.AetherAuthoredCharacterArt;
-      const enderAuthored = authored && typeof authored.drawFieldCharacter === 'function'
+      const enderAction = moving ? 'walk' : (cinematic ? 'focus' : 'idle');
+      const ioniaAction = cinematic || scene.id === 'ionia_practical' ? 'talk' : 'idle';
+      const enderFrame = Math.floor(now / (moving ? 100 : 160));
+      const ioniaFrame = Math.floor(now / 170);
+      let enderAuthored = authored && typeof authored.drawFieldCharacter === 'function'
         ? authored.drawFieldCharacter('ender', enderX, enderY, {
             anchor: 'bottom-center', scale: cinematic ? 0.82 : 0.70,
-            action: moving ? 'walk' : (cinematic ? 'focus' : 'idle'),
-            frame: Math.floor(now / (moving ? 100 : 160)),
+            action: enderAction, frame: enderFrame,
           })
         : false;
-      const ioniaAuthored = authored && typeof authored.drawFieldCharacter === 'function'
+      let ioniaAuthored = authored && typeof authored.drawFieldCharacter === 'function'
         ? authored.drawFieldCharacter('ionia', ioniaX, ioniaY, {
             anchor: 'bottom-center', scale: cinematic ? 0.78 : 0.66,
-            action: cinematic || scene.id === 'ionia_practical' ? 'talk' : 'idle',
-            frame: Math.floor(now / 170),
+            action: ioniaAction, frame: ioniaFrame,
           })
         : false;
+      // Candidate sheets may be previewed only with ?candidateFieldArt=1.
+      // This does not change field-pack readiness or manifest status.
+      if (!enderAuthored && authored && typeof authored.drawCandidateFieldCharacter === 'function') {
+        enderAuthored = authored.drawCandidateFieldCharacter('ender', enderX, enderY, {
+          anchor: 'bottom-center', scale: cinematic ? 2.55 : 2.20, action: enderAction, frame: enderFrame,
+        });
+      }
+      if (!ioniaAuthored && authored && typeof authored.drawCandidateFieldCharacter === 'function') {
+        ioniaAuthored = authored.drawCandidateFieldCharacter('ionia', ioniaX, ioniaY, {
+          anchor: 'bottom-center', scale: cinematic ? 2.45 : 2.10, action: ioniaAction, frame: ioniaFrame,
+        });
+      }
       if (characters && characters.validate()) {
         if (!enderAuthored) characters.draw('ender', enderX, enderY, {
           scale: cinematic ? 1.72 : 1.42,
@@ -620,7 +634,7 @@
       const authored = root.AetherAuthoredCharacterArt;
       for (const [id, x] of actors) {
         const action = scene.id === 'wrong_song' && id === 'lyra' ? 'focus' : 'idle';
-        const authoredDrawn = authored && typeof authored.drawFieldCharacter === 'function'
+        let authoredDrawn = authored && typeof authored.drawFieldCharacter === 'function'
           ? authored.drawFieldCharacter(id, x, 420, {
               anchor: 'bottom-center',
               scale: id === 'lyra' ? 0.68 : 0.72,
@@ -628,6 +642,14 @@
               frame: Math.floor(now / 160),
             })
           : false;
+        if (!authoredDrawn && authored && typeof authored.drawCandidateFieldCharacter === 'function') {
+          authoredDrawn = authored.drawCandidateFieldCharacter(id, x, 420, {
+            anchor: 'bottom-center',
+            scale: id === 'ionia' ? 2.2 : 2.3,
+            action,
+            frame: Math.floor(now / 160),
+          });
+        }
         if (!authoredDrawn && characters && characters.validate()) {
           characters.draw(id, x, 420, {
             scale: id === 'lyra' ? 0.88 : 0.98,

@@ -14,6 +14,10 @@ const OUT = path.resolve(
   process.env.AETHERWAKE_VISUAL_EVIDENCE_DIR ||
   path.join(BASE, 'visual-evidence')
 );
+const RUNTIME_QUERY = process.env.AETHERWAKE_CANDIDATE_FIELD_REVIEW === '1'
+  ? '?candidateFieldArt=1'
+  : '';
+const RUNTIME_URL = `http://127.0.0.1:${PORT}/index-embedded.html${RUNTIME_QUERY}`;
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -82,7 +86,7 @@ async function waitForRuntime(page) {
 }
 
 async function bootToWorld(page) {
-  await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
+  await page.goto(RUNTIME_URL, {
     waitUntil: 'domcontentloaded',
     timeout: 20000,
   });
@@ -300,7 +304,7 @@ async function capture(page, id, description) {
     const performanceSamples = [];
 
     // 0 â€” Shared-authority title screen after real boot/preamble.
-    await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
+    await page.goto(RUNTIME_URL, {
       waitUntil: 'domcontentloaded',
       timeout: 20000,
     });
@@ -320,7 +324,7 @@ async function capture(page, id, description) {
     performanceSamples.push(await measureFrameTiming(page, '00-title-screen'));
 
     // 1 â€” First Wake interactive dock-walk presentation.
-    await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
+    await page.goto(RUNTIME_URL, {
       waitUntil: 'domcontentloaded',
       timeout: 20000,
     });
