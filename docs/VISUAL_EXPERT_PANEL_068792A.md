@@ -39,11 +39,11 @@ This is a structured multi-perspective review. It does not replace human player 
 **Do not propagate until:** dock, dialogue, combat and flight all clear the same cohesion threshold.
 
 ## Dragonfly / Vehicle Design
-**Current read:** the shared renderer solved authority fragmentation but not final art quality. The craft is recognizable by position/context more than by an iconic authored silhouette. Painted title art currently contains a stronger airship visual language than the runtime craft.
+**Current read:** the shared renderer now has a substantially stronger four-wing geometry and a compact-body revision that explicitly shortens the fuselage around a deep inhabited thorax. This addresses the earlier 'long flying platform' read at the source-contract level, but final exact-head rendered acceptance is still pending.
 
-**Required next artifact:** orthographic blueprint + silhouette/state sheet + runtime-authority implementation.
+**Required next artifact:** fresh exact-head dock + flight captures of the compact-body authority, followed by orthographic silhouette/state proof if the rendered read still diverges from the intended Dragonfly identity.
 
-**Priority:** establish body/wing/helm/core proportions before adding more effects. Effects cannot rescue a weak base silhouette.
+**Priority:** verify the new 126px body / deep-thorax / four-wing proportion change in rendered evidence before adding any more effects. Effects cannot substitute for silhouette acceptance.
 
 **Do not merge until:** blind Dragonfly recognition reaches 9/10 and title/dock/flight/combat no longer disagree on body language.
 
@@ -102,3 +102,7 @@ This is a structured multi-perspective review. It does not replace human player 
 
 ## Integrator disposition
 `REVISE / CONTINUE` ? the direction is coherent enough to invest in, but current evidence does not support final visual acceptance. The next authoritative production work should be character + Dragonfly identity, not additional unrelated environments or systems.
+
+
+### Visual V46 source-head note
+The current compact Dragonfly authority is source-bound at `b4567520b705ae3bd2118472a399939bd7ec6ba7` before subsequent documentation commits. The renderer version is 0.7.0 and binds `runtimeBodyLengthPx=126`. Because local desktop execution reached its monthly quota immediately afterward, the panel must treat this as **SOURCE IMPLEMENTED / EXACT-HEAD RENDER REVIEW PENDING**, not as a visual PASS.
