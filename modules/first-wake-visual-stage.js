@@ -1121,24 +1121,24 @@
         ? sceneTicks >= 90 && sceneTicks < 160
         : (scene.cinematic || sceneTicks < 36));
     if (showSceneTitle) {
-      const titlePanelW = scene.chapterCard ? width - 248 : Math.min(420, width - 280);
-      const titlePanelH = scene.chapterCard ? 118 : 38;
+      const titlePanelW = scene.chapterCard ? width - 248 : Math.min(286, width - 420);
+      const titlePanelH = scene.chapterCard ? 118 : 28;
       const titlePanelX = Math.round((width - titlePanelW) / 2);
-      fill(6, 9, 14, scene.chapterCard ? 96 : 82);
+      fill(6, 9, 14, scene.chapterCard ? 96 : 62);
       rect(titlePanelX, textPanelY, titlePanelW, titlePanelH, 8);
       if (!scene.chapterCard) {
-        fill(42, 255, 181, 105);
-        rect(titlePanelX + 28, textPanelY + titlePanelH - 2, titlePanelW - 56, 2);
-        fill(191, 144, 76, 145);
-        rect(titlePanelX + 10, textPanelY + 10, 28, 2);
-        rect(titlePanelX + titlePanelW - 38, textPanelY + 10, 28, 2);
+        fill(42, 255, 181, 76);
+        rect(titlePanelX + 46, textPanelY + titlePanelH - 2, titlePanelW - 92, 1);
+        fill(191, 144, 76, 118);
+        rect(titlePanelX + 14, textPanelY + 8, 20, 1);
+        rect(titlePanelX + titlePanelW - 34, textPanelY + 8, 20, 1);
       }
 
       textAlign(CENTER, TOP);
       textFont('Segoe UI Semibold');
-      textSize(scene.chapterCard ? 24 : 11);
+      textSize(scene.chapterCard ? 24 : 9);
       fill(scene.chapterCard ? 42 : 232, scene.chapterCard ? 255 : 220, scene.chapterCard ? 181 : 198);
-      text(scene.title, width / 2, textPanelY + (scene.chapterCard ? 24 : 11));
+      text(scene.title, width / 2, textPanelY + (scene.chapterCard ? 24 : 8));
 
       if (scene.subtitle) {
         textSize(10);
@@ -1206,29 +1206,35 @@
       textFont('Trebuchet MS');
       textSize(20);
       fill(232, 220, 198, 220);
-      text(scene.lines.join('   ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢   '), width / 2, 330, width - 250, 120);
+      text(scene.lines.join('   •   '), width / 2, 330, width - 250, 120);
     }
 
     // Player-facing opening keeps production metadata out of the cinematic.
     textAlign(CENTER, BOTTOM);
     textFont('Segoe UI Semibold');
-    textSize(14);
-    fill(235, 230, 214, 225);
+    textSize(10);
     const presentationReady = typeof root.AetherFirstWakeOpening.presentationReady === 'function'
       ? root.AetherFirstWakeOpening.presentationReady(state)
       : true;
+    let promptText = '';
     if (scene.id === 'dock_walk' && state.dockWalk && !state.dockWalk.ready) {
-      text('A / D or Left / Right  —  Walk to the Dragonfly', width / 2, height - 29);
+      promptText = '← / →   WALK';
     } else if (scene.id === 'dock_walk') {
-      text('Enter  —  Board the Dragonfly', width / 2, height - 29);
+      promptText = 'ENTER   BOARD';
     } else if (scene.id === 'berth_task' && state.berthTask && !state.berthTask.ready) {
-      text('E  —  Work on the berth', width / 2, height - 29);
+      promptText = 'E   WORK';
     } else if (scene.id === 'talen_staying' && state.talenBeat && !state.talenBeat.ready) {
-      text('E  —  Respond to Talen', width / 2, height - 29);
+      promptText = 'E   RESPOND';
     } else if (scene.cinematic && !presentationReady) {
-      text('', width / 2, height - 29);
+      promptText = '';
     } else {
-      text('Enter / Space  —  Continue', width / 2, height - 29);
+      promptText = 'ENTER   CONTINUE';
+    }
+    if (promptText) {
+      fill(5, 9, 15, 96);
+      rect(width / 2 - 84, height - 43, 168, 24, 7);
+      fill(235, 230, 214, 210);
+      text(promptText, width / 2, height - 27);
     }
 
     textAlign(LEFT, TOP);

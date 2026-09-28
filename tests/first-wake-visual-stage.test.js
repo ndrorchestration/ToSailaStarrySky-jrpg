@@ -79,6 +79,10 @@ assert(source.includes("sceneTicks >= 90 && sceneTicks < 160") && source.include
   'v1.2 opening must stage location and narration after a sustained world reveal rather than immediately');
 assert(!source.includes("FIRST WAKE // ' + String(scene.sequence)"),
   'player-facing scene transition must not expose sequence metadata');
+assert(source.includes('Math.min(286, width - 420)') && source.includes("promptText = '← / →   WALK'"),
+  'opening location labels and interaction prompts must remain compact and JRPG-like');
+assert(!source.includes('A / D or Left / Right  —  Walk to the Dragonfly') && !source.includes('Enter / Space  —  Continue'),
+  'opening must not regress to verbose tutorial-style prompts');
 assert(source.includes('function drawWrongSongSetPiece') && source.includes('drawWrongSongSetPiece(now'),
   'v1.0 opening must stage the Wrong Song as a bounded visual set piece');
 assert(source.includes("['ionia'"),
