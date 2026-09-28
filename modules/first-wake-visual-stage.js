@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '1.0.0';
+  const VERSION = '1.1.0';
   const OPENING_WORLD_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   const OPENING_INTERIOR_PATH = 'assets/preview/aetherwake-preview-interior-pixelart-v1.png';
   let openingWorld = null;
@@ -251,14 +251,16 @@
 
     drawDockSkyportArchitecture(now);
 
-    // Vertical dock pylons and gantry.
-    fill(18, 25, 34);
-    rect(44, 270, 18, 180);
-    rect(width - 70, 246, 20, 204);
-    rect(44, 272, width - 94, 12);
-    fill(82, 98, 105, 90);
-    rect(51, 280, 3, 158);
-    rect(width - 62, 257, 3, 180);
+    // Slender dock gantry: enough foreground structure for depth without boxing in the vista.
+    fill(45, 54, 56, paintedBackdrop ? 168 : 225);
+    rect(52, 332, 8, 118);
+    rect(width - 64, 316, 8, 134);
+    rect(52, 332, width - 108, 6);
+    fill(191, 144, 76, paintedBackdrop ? 110 : 165);
+    rect(56, 337, 2, 102);
+    rect(width - 61, 322, 2, 116);
+    fill(42, 255, 181, paintedBackdrop ? 22 : 38);
+    rect(60, 339, width - 120, 2);
 
     // Perspective deck occupies the lower third so the authored skyport remains dominant.
     for (let i = 0; i < 8; i++) {
@@ -268,7 +270,7 @@
       const t1 = (i + 1) / 8;
       const inset0 = 108 * (1 - t0);
       const inset1 = 108 * (1 - t1);
-      fill(42 + i * 2, 50 + i * 2, 53 + i * 2, paintedBackdrop ? 228 : 255);
+      fill(42 + i * 2, 50 + i * 2, 53 + i * 2, paintedBackdrop ? 112 : 245);
       quad(inset0, y0, width - inset0, y0, width - inset1, y1, inset1, y1);
       stroke(126, 137, 132, 52);
       strokeWeight(1);
@@ -329,7 +331,7 @@
         now,
         speed: 0,
         heading: 0,
-        scale: scene.sequence <= 1 ? 1.55 + settle * 0.55 : 1.95,
+        scale: scene.sequence <= 1 ? 1.38 + settle * 0.34 : 1.62,
       });
     }
 
@@ -611,17 +613,27 @@
         core_walk: [['ender', 310], ['lyra', 470]],
       };
       const actors = positions[scene.id] || [['ender', 310]];
+      const authored = root.AetherAuthoredCharacterArt;
       for (const [id, x] of actors) {
-        if (characters && characters.validate()) {
+        const action = scene.id === 'wrong_song' && id === 'lyra' ? 'focus' : 'idle';
+        const authoredDrawn = authored && typeof authored.drawFieldCharacter === 'function'
+          ? authored.drawFieldCharacter(id, x, 420, {
+              anchor: 'bottom-center',
+              scale: id === 'lyra' ? 0.68 : 0.72,
+              action,
+              frame: Math.floor(now / 160),
+            })
+          : false;
+        if (!authoredDrawn && characters && characters.validate()) {
           characters.draw(id, x, 420, {
             scale: id === 'lyra' ? 0.88 : 0.98,
             depth: 0.7,
             now,
             speed: 0,
             facing: id === 'ionia' ? 'left' : 'right',
-            action: scene.id === 'wrong_song' && id === 'lyra' ? 'focus' : 'idle',
+            action,
           });
-        } else if (sprites && sprites.validate()) {
+        } else if (!authoredDrawn && sprites && sprites.validate()) {
           sprites.drawShadow(x, 420, 2);
           sprites.draw(id, x, 420, {
             anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 260) % 2,
@@ -632,13 +644,15 @@
 
     if (scene.id === 'berth_task' && state.berthTask) {
       const step = state.berthTask.step;
-      fill(42, 255, 181, 45 + step * 35);
-      rect(185, 338, Math.max(8, step * 54), 4);
-      fill(232, 220, 198, 180);
+      fill(6, 10, 16, 125);
+      rect(172, 367, 196, 30, 6);
+      fill(42, 255, 181, 38 + step * 32);
+      rect(184, 389, Math.max(8, step * 54), 2);
+      fill(232, 220, 198, 205);
       textAlign(LEFT, TOP);
       textFont('Trebuchet MS');
-      textSize(14);
-      text('BERTH WORK // ' + step + ' / ' + state.berthTask.max, 185, 383);
+      textSize(12);
+      text('SETTLING IN  ·  ' + step + ' / ' + state.berthTask.max, 184, 374);
     }
 
     if (scene.id === 'talen_staying') {
@@ -652,11 +666,13 @@
         rect(418, 373, 6, 3);
         rect(467, 373, 6, 3);
       }
-      fill(232, 220, 198, 180);
+      fill(6, 10, 16, 120);
+      rect(409, 383, 194, 28, 6);
+      fill(232, 220, 198, 202);
       textAlign(LEFT, TOP);
       textFont('Trebuchet MS');
-      textSize(14);
-      text('TALEN // ' + talenStep + ' / ' + (state.talenBeat ? state.talenBeat.max : 2), 423, 392);
+      textSize(12);
+      text('TALK WITH TALEN  ·  ' + talenStep + ' / ' + (state.talenBeat ? state.talenBeat.max : 2), 420, 390);
     }
   }
 
@@ -1025,20 +1041,34 @@
     rect(0, 0, width, 18);
     rect(0, height - 18, width, 18);
 
-    const textPanelY = scene.chapterCard ? 92 : 58;
-    fill(6, 9, 14, scene.chapterCard ? 96 : 54);
-    rect(124, textPanelY, width - 248, scene.chapterCard ? 118 : 56, 10);
+    const textPanelY = scene.chapterCard ? 92 : 50;
+    const sceneTicks = state && Number.isFinite(state.sceneTicks) ? state.sceneTicks : 999;
+    const showSceneTitle = scene.chapterCard || scene.cinematic || sceneTicks < 36;
+    if (showSceneTitle) {
+      const titlePanelW = scene.chapterCard ? width - 248 : Math.min(420, width - 280);
+      const titlePanelH = scene.chapterCard ? 118 : 38;
+      const titlePanelX = Math.round((width - titlePanelW) / 2);
+      fill(6, 9, 14, scene.chapterCard ? 96 : 82);
+      rect(titlePanelX, textPanelY, titlePanelW, titlePanelH, 8);
+      if (!scene.chapterCard) {
+        fill(42, 255, 181, 105);
+        rect(titlePanelX + 28, textPanelY + titlePanelH - 2, titlePanelW - 56, 2);
+        fill(191, 144, 76, 145);
+        rect(titlePanelX + 10, textPanelY + 10, 28, 2);
+        rect(titlePanelX + titlePanelW - 38, textPanelY + 10, 28, 2);
+      }
 
-    textAlign(CENTER, TOP);
-    textFont('Segoe UI Semibold');
-    textSize(scene.chapterCard ? 24 : 12);
-    fill(42, 255, 181);
-    text(scene.title, width / 2, textPanelY + 24);
+      textAlign(CENTER, TOP);
+      textFont('Segoe UI Semibold');
+      textSize(scene.chapterCard ? 24 : 11);
+      fill(scene.chapterCard ? 42 : 232, scene.chapterCard ? 255 : 220, scene.chapterCard ? 181 : 198);
+      text(scene.title, width / 2, textPanelY + (scene.chapterCard ? 24 : 11));
 
-    if (scene.subtitle) {
-      textSize(10);
-      fill(124, 200, 232);
-      text(scene.subtitle, width / 2, textPanelY + 65);
+      if (scene.subtitle) {
+        textSize(10);
+        fill(124, 200, 232);
+        text(scene.subtitle, width / 2, textPanelY + 65);
+      }
     }
 
     if (!scene.chapterCard) {

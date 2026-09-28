@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'first-wake-visual-stage.js' });
 
 const api = sandbox.window.AetherFirstWakeVisual;
 assert(api, 'First Wake visual stage missing');
-assert.strictEqual(api.VERSION, '1.0.0');
+assert.strictEqual(api.VERSION, '1.1.0');
 for (const fn of ['draw','drawDock','drawInterior','drawChapter']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -51,8 +51,8 @@ assert(source.includes('cinematicRatio') && source.includes('const settle ='),
   'v0.4 opening must preserve authored cinematic settle timing');
 assert(source.includes('scene.sequence >= 1'),
   'v0.4 Sequence 00 must remain a ship-and-sky establishing shot before sprite reveal');
-assert(source.includes('1.55 + settle * 0.55'),
-  'opening must preserve the Dragonfly reveal scale transition without oversized foreground figures');
+assert(source.includes('1.38 + settle * 0.34') && source.includes(': 1.62'),
+  'opening must preserve a restrained Dragonfly reveal scale that leaves authored skyport art dominant');
 assert(source.includes('scale: cinematic ? 1.72 : 1.42'),
   'opening must keep Ender readable at a restrained JRPG scene scale against authored environments');
 assert(source.includes('scale: cinematic ? 1.62 : 1.34'),
@@ -63,6 +63,10 @@ assert(source.includes("sprites.draw('ender'") && source.includes("sprites.draw(
   'opening must retain the old sprite path only as fallback');
 assert(source.includes('function drawWakeExploration'),
   'v0.2 opening must expose the authored Wake exploration renderer');
+assert(source.includes('authored.drawFieldCharacter') && source.includes('authoredDrawn'),
+  'v1.1 opening interiors must prefer admitted authored field packs with fail-safe fallback');
+assert(source.includes('sceneTicks < 36'),
+  'v1.1 non-cinematic scene titles must clear quickly instead of becoming permanent HUD chrome');
 assert(source.includes('function drawWrongSongSetPiece') && source.includes('drawWrongSongSetPiece(now'),
   'v1.0 opening must stage the Wrong Song as a bounded visual set piece');
 assert(source.includes("['ionia'"),

@@ -1031,7 +1031,7 @@ function keyPressed() {
       const delta = (keyCode === LEFT_ARROW || keyCode === 65) ? -1 : 1;
       const movement = opening.moveDock(openingState, delta);
       if (movement.ready && !window.__awDockWalkReadyToastShown) {
-        showToast('AUREATE WAKE REACHED // ENTER TO BOARD', C.teal, 1400);
+        showToast('The Aureate Wake is just ahead.', C.teal, 750);
         window.__awDockWalkReadyToastShown = true;
       }
       delete keysPressed[keyCode];
@@ -1517,6 +1517,8 @@ function advanceFirstWakeOpening() {
   }
 
   if (!state.complete && beforeScene && state.sceneIndex !== beforeScene.sequence) {
+    // Scene-local notices should not linger across cinematic handoffs.
+    window.toasts = window.toasts.filter(toast => toast.kind !== 'notice');
     const nextScene = opening.currentScene(state);
     if (nextScene.id === 'lyra_family') {
       showToast('THE WAKE IS YOURS TO EXPLORE // E TO INSPECT', C.teal, 2000);
