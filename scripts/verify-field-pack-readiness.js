@@ -53,8 +53,13 @@ function inspectAdmissionEvidence(id) {
       silhouette.participants >= 5 &&
       Number(silhouette.correctRate) >= 0.80 &&
       runtime.status === 'PASS' &&
+      runtime.visualSuite === 'PASS' &&
+      runtime.browserRouteReplay === 'PASS' &&
+      runtime.exactHeadEvidenceCapture === 'PASS' &&
+      runtime.visualPerformance === 'PASS' &&
+      runtime.beforeAfterCohesion === 'PASS' &&
       typeof runtime.exactHead === 'string' &&
-      /^[0-9a-f]{7,40}$/i.test(runtime.exactHead)
+      /^[0-9a-f]{40}$/i.test(runtime.exactHead)
     );
     return {
       path: relativePath.replace(/\\/g, '/'),
@@ -64,6 +69,11 @@ function inspectAdmissionEvidence(id) {
       participants: Number.isInteger(silhouette.participants) ? silhouette.participants : null,
       correctRate: Number.isFinite(Number(silhouette.correctRate)) ? Number(silhouette.correctRate) : null,
       runtimeStatus: runtime.status || null,
+      visualSuite: runtime.visualSuite || null,
+      browserRouteReplay: runtime.browserRouteReplay || null,
+      exactHeadEvidenceCapture: runtime.exactHeadEvidenceCapture || null,
+      visualPerformance: runtime.visualPerformance || null,
+      beforeAfterCohesion: runtime.beforeAfterCohesion || null,
       exactHead: typeof runtime.exactHead === 'string' ? runtime.exactHead : null,
     };
   } catch (error) {
