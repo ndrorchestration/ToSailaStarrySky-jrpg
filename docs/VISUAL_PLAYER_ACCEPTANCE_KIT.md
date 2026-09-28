@@ -122,3 +122,7 @@ Do not silently omit a failed or inconvenient completed session and do not repla
 
 ## Frozen presentation order
 The fixed protocol seed is not merely recorded. Protocol preparation deterministically derives and stores the exact ten-image order using IDs for all seven Aetherwake frames and all three decoys. Every scored participant must receive that same frozen artifact order. The G4 scorer rejects a protocol whose stored order does not contain exactly those ten unique artifacts.
+
+
+## Controlled malformed-protocol failure
+Protocol validation now validates decoy structure before deriving presentation IDs. Missing or malformed decoy arrays fail with the explicit `VISUAL_ACCEPTANCE_FAIL` family rather than leaking an implementation-level JavaScript exception. This keeps invalid evidence distinguishable from a broken scoring tool.
