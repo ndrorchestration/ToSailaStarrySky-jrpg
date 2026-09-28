@@ -2,7 +2,8 @@
   "schema": "AETHERWAKE_VISUAL_ACCEPTANCE_RESULTS_V1",
   "candidate": {
     "commit": "REPLACE",
-    "packageSha256": "REPLACE"
+    "packageSha256": "REPLACE",
+    "evidenceManifestSha256": "REPLACE"
   },
   "participants": [
     {
@@ -21,7 +22,10 @@
       "sameGamePass": null,
       "dragonflyRecallPass": null,
       "severity1Blocker": false,
-      "notes": ""
+      "notes": "",
+      "independentOfImplementation": null,
+      "helpRequested": false,
+      "helpGiven": ""
     },
     {
       "id": "P2",
@@ -39,7 +43,10 @@
       "sameGamePass": null,
       "dragonflyRecallPass": null,
       "severity1Blocker": false,
-      "notes": ""
+      "notes": "",
+      "independentOfImplementation": null,
+      "helpRequested": false,
+      "helpGiven": ""
     },
     {
       "id": "P3",
@@ -57,7 +64,10 @@
       "sameGamePass": null,
       "dragonflyRecallPass": null,
       "severity1Blocker": false,
-      "notes": ""
+      "notes": "",
+      "independentOfImplementation": null,
+      "helpRequested": false,
+      "helpGiven": ""
     },
     {
       "id": "P4",
@@ -75,7 +85,10 @@
       "sameGamePass": null,
       "dragonflyRecallPass": null,
       "severity1Blocker": false,
-      "notes": ""
+      "notes": "",
+      "independentOfImplementation": null,
+      "helpRequested": false,
+      "helpGiven": ""
     },
     {
       "id": "P5",
@@ -93,7 +106,10 @@
       "sameGamePass": null,
       "dragonflyRecallPass": null,
       "severity1Blocker": false,
-      "notes": ""
+      "notes": "",
+      "independentOfImplementation": null,
+      "helpRequested": false,
+      "helpGiven": ""
     }
   ]
 }
