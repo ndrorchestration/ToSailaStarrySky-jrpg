@@ -42,6 +42,12 @@ function prepare() {
   if (!Array.isArray(protocol.decoys) || protocol.decoys.length !== 3) {
     throw new Error('VISUAL_RESULTS_PREP_FAIL: protocol must contain three decoys');
   }
+  const participantPlan = protocol.participantPlan || {};
+  if (participantPlan.requiredCount !== 5 ||
+      !Array.isArray(participantPlan.ids) ||
+      participantPlan.ids.join(',') !== 'P1,P2,P3,P4,P5') {
+    throw new Error('VISUAL_RESULTS_PREP_FAIL: participant plan must be frozen to P1-P5');
+  }
 
   const candidate = protocol.candidate || {};
   const commit = requireSha(candidate.commit, 40, 'protocol commit');
@@ -59,6 +65,10 @@ function prepare() {
     evidenceManifestSha256,
     protocolSha256
   };
+  const resultIds = results.participants.map(p => p.id);
+  if (resultIds.join(',') !== participantPlan.ids.join(',')) {
+    throw new Error('VISUAL_RESULTS_PREP_FAIL: results template does not match frozen participant plan');
+  }
 
   fs.writeFileSync(outputPath, JSON.stringify(results, null, 2) + '\n');
 
