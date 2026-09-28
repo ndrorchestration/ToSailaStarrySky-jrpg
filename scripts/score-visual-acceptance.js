@@ -99,7 +99,16 @@ function scoreResults(results) {
     if (participant.independentOfImplementation !== true) {
       throw new Error('VISUAL_ACCEPTANCE_FAIL: participant independence not established for ' + participant.id);
     }
-    if (!Number.isFinite(participant.minutes) || participant.minutes < contract.acceptance.sessionMinutes) throw new Error('VISUAL_ACCEPTANCE_FAIL: ' + participant.id + ' session shorter than required');
+    const session = participant.session || {};
+    const startedAtMs = Date.parse(session.startedAt);
+    const endedAtMs = Date.parse(session.endedAt);
+    if (!Number.isFinite(startedAtMs) || !Number.isFinite(endedAtMs) || endedAtMs <= startedAtMs) {
+      throw new Error('VISUAL_ACCEPTANCE_FAIL: invalid session timestamps for ' + participant.id);
+    }
+    const sessionMinutes = (endedAtMs - startedAtMs) / 60000;
+    if (sessionMinutes < contract.acceptance.sessionMinutes) {
+      throw new Error('VISUAL_ACCEPTANCE_FAIL: ' + participant.id + ' session shorter than required');
+    }
     if (participant.severity1Blocker) throw new Error('VISUAL_ACCEPTANCE_FAIL: severity-1 blocker reported by ' + participant.id);
     for (const key of Object.keys(categories)) {
       const value = participant.scores && participant.scores[key];
