@@ -144,3 +144,17 @@ assert.throws(() => scoreResults(shortSession), /session shorter than required/)
 const invalidSession = JSON.parse(JSON.stringify(passing));
 invalidSession.participants[0].session.startedAt = 'not-a-date';
 assert.throws(() => scoreResults(invalidSession), /invalid session timestamps/);
+
+
+const malformedDecoysProtocol = JSON.parse(JSON.stringify(protocol));
+delete malformedDecoysProtocol.decoys;
+const malformedDecoysPath = path.join(tempDir, 'malformed-decoys.json');
+fs.writeFileSync(malformedDecoysPath, JSON.stringify(malformedDecoysProtocol));
+const malformedDecoysHash = crypto.createHash('sha256').update(fs.readFileSync(malformedDecoysPath)).digest('hex');
+const malformedDecoysResults = JSON.parse(JSON.stringify(passing));
+malformedDecoysResults.candidate.protocolSha256 = malformedDecoysHash;
+assert.throws(
+  () => verifyProtocolBinding(malformedDecoysResults, malformedDecoysPath),
+  /exactly three decoy hashes/,
+  'malformed decoy structures must fail with the controlled G4 error family rather than a raw TypeError'
+);
