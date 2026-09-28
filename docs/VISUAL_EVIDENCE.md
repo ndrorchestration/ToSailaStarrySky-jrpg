@@ -6,16 +6,25 @@ This lane exists to turn the Visual Bible's propagation gates plus title/opening
 
 ## Required evidence set
 
-A complete bundle contains:
+A complete bundle currently contains **14 rendered frames plus `manifest.json`**:
 
 1. `00-title-screen.png` — shared-authority title screen.
-2. `01-first-wake-dock-walk.png` — First Wake Sequence 02 mid-walk.
-3. `02-dragonfly-dusk-dock.png` — benchmark dock scene.
-4. `03-dialogue-ionia.png` — representative dialogue scene.
-5. `04-combat-sky-predator.png` — representative combat scene.
-6. `05-dragonfly-flight.png` — representative Dragonfly flight scene.
-7. `06-sky-combat-crosswind.png` — aerial combat inheriting Crosswind/altitude/wake-pressure context.
-8. `manifest.json` — source SHA, viewport/canvas dimensions, capture boundary, and SHA-256 for every screenshot.
+2. `00-prologue-page.png` — opening prologue text/visual page.
+3. `00a-opening-world-reveal.png` — opening sky-world establishing reveal.
+4. `00b-first-wake-ionia-arrival.png` — First Wake arrival composition with Ionia dialogue treatment.
+5. `01-first-wake-dock-walk.png` — First Wake Sequence 02 mid-walk.
+6. `01b-first-wake-cabin.png` — authored cabin substrate and berth interaction.
+7. `01c-first-wake-lyra-family.png` — Lyra-family/free-roam interior identity beat.
+8. `01c-first-wake-wrong-song.png` — Wrong Song dramatic interior beat.
+9. `02-dragonfly-dusk-dock.png` — benchmark dock scene.
+10. `03-dialogue-ionia.png` — representative authored-portrait dialogue scene.
+11. `04-combat-sky-predator.png` — representative combat scene.
+12. `05-dragonfly-flight.png` — representative Dragonfly flight scene.
+13. `06-sky-combat-crosswind.png` — aerial combat inheriting Crosswind/altitude/wake-pressure context.
+14. `07-character-identity-lineup.png` — non-gameplay identity diagnostic showing all five authored portraits and provisional field silhouettes.
+15. `manifest.json` — source SHA, working-tree state, viewport/canvas dimensions, capture boundary, performance samples, and SHA-256 for every screenshot.
+
+The gameplay acceptance set and the non-gameplay identity diagnostic remain distinguishable in the manifest/review procedure; adding diagnostic coverage does not silently substitute it for a gameplay visual gate.
 
 ## Capture contract
 
