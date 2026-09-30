@@ -33,6 +33,11 @@ for (const gate of ['visualSuite', 'browserRouteReplay', 'exactHeadEvidenceCaptu
 }
 assert(source.includes('actualEvidenceManifestSha256') && source.includes('evidenceManifestMatches'),
   'runtime evidence must compare the recorded evidence-manifest hash to the actual manifest bytes');
+assert(source.includes('likenessAuthorityMatches') &&
+       source.includes("likeness.status === 'PASS'") &&
+       source.includes('actualLikenessAuthoritySha256') &&
+       source.includes('approvedReferenceSha256'),
+  'admission evidence must bind a passing human likeness review to the approved alignment document and reference hash');
 assert(source.includes('admissionTransitionMatches') && source.includes('BOUNDED_ADMISSION_CHILD'),
   'runtime evidence must allow only the exact reviewed head or one bounded admission child commit');
 assert(source.includes("'assets/characters/v1/manifest.json'") &&
