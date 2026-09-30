@@ -18,6 +18,7 @@ const EXPECTED_ACTIONS = Object.freeze({ idle: 8, walk: 6, talk: 4, focus: 6, at
 const ACTION_NAMES = Object.freeze(Object.keys(EXPECTED_ACTIONS));
 const ADMISSION_SCHEMA = 'AETHERWAKE_FIELD_ART_ADMISSION_V1';
 const evidenceManifestPath = path.join(root, 'visual-evidence', 'manifest.json');
+const likenessAuthorityPath = path.join(root, 'docs', 'PROTAGONIST_VISUAL_ALIGNMENT_V1.md');
 
 function gitText(args) {
   const result = cp.spawnSync('git', args, { cwd: root, encoding: 'utf8' });
@@ -144,6 +145,29 @@ function inspectAdmissionEvidence(id, stripHashes, actualHead, actualEvidenceMan
       silhouetteRate >= 0.80;
 
     const runtime = receipt.runtimeReview || {};
+    const likeness = receipt.likenessReview || {};
+    const projectLikeness = manifest.likenessAuthority || {};
+    const characterRecord = manifest.characters && manifest.characters[id] ? manifest.characters[id] : {};
+    const characterLikeness = characterRecord.likenessAuthority || {};
+    const actualLikenessAuthoritySha256 = fs.existsSync(likenessAuthorityPath)
+      ? sha256File(likenessAuthorityPath)
+      : null;
+    const likenessAuthorityMatches = Boolean(
+      likeness.status === 'PASS' &&
+      projectLikeness.status === 'CREATOR_APPROVED_V1' &&
+      characterLikeness.status === 'LOCKED_TO_APPROVED_ALIGNMENT_V1' &&
+      likeness.authorityStatus === projectLikeness.status &&
+      likeness.characterAuthorityStatus === characterLikeness.status &&
+      likeness.authorityDocument === projectLikeness.document &&
+      actualLikenessAuthoritySha256 &&
+      typeof likeness.authorityDocumentSha256 === 'string' &&
+      /^[0-9a-f]{64}$/i.test(likeness.authorityDocumentSha256) &&
+      likeness.authorityDocumentSha256.toLowerCase() === actualLikenessAuthoritySha256 &&
+      typeof projectLikeness.referenceSha256 === 'string' &&
+      /^[0-9a-f]{64}$/i.test(projectLikeness.referenceSha256) &&
+      typeof likeness.approvedReferenceSha256 === 'string' &&
+      likeness.approvedReferenceSha256.toLowerCase() === projectLikeness.referenceSha256.toLowerCase()
+    );
     const assetSha256 = receipt.assetSha256 || {};
     const hashesMatch = ACTION_NAMES.every(action => {
       const actual = stripHashes && stripHashes[action];
@@ -166,6 +190,7 @@ function inspectAdmissionEvidence(id, stripHashes, actualHead, actualEvidenceMan
       receipt.schema === ADMISSION_SCHEMA &&
       receipt.characterId === id &&
       hashesMatch &&
+      likenessAuthorityMatches &&
       silhouette.status === 'PASS' &&
       silhouetteEvidenceValid &&
       runtime.status === 'PASS' &&
@@ -200,6 +225,14 @@ function inspectAdmissionEvidence(id, stripHashes, actualHead, actualEvidenceMan
       runtimeHeadMatches,
       admissionTransition,
       hashesMatch,
+      likenessStatus: likeness.status || null,
+      likenessAuthorityMatches,
+      authorityStatus: likeness.authorityStatus || null,
+      characterAuthorityStatus: likeness.characterAuthorityStatus || null,
+      authorityDocument: likeness.authorityDocument || null,
+      authorityDocumentSha256: likeness.authorityDocumentSha256 || null,
+      actualLikenessAuthoritySha256,
+      approvedReferenceSha256: likeness.approvedReferenceSha256 || null,
       assetSha256: ACTION_NAMES.reduce((out, action) => {
         out[action] = typeof assetSha256[action] === 'string' ? assetSha256[action] : null;
         return out;
