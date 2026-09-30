@@ -1,6 +1,14 @@
 {
   "schema": "AETHERWAKE_FIELD_ART_ADMISSION_V1",
   "characterId": "REPLACE_WITH_CHARACTER_ID",
+  "likenessReview": {
+    "status": "PENDING",
+    "authorityStatus": "",
+    "characterAuthorityStatus": "",
+    "authorityDocument": "",
+    "authorityDocumentSha256": "",
+    "approvedReferenceSha256": ""
+  },
   "silhouetteRecognition": {
     "status": "PENDING",
     "participants": [
