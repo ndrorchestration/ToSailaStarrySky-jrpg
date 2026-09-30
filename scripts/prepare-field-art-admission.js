@@ -9,6 +9,7 @@ const root = path.resolve(__dirname, '..');
 const manifestPath = path.join(root, 'assets', 'characters', 'v1', 'manifest.json');
 const templatePath = path.join(root, 'docs', 'field-art-admission-template.json');
 const evidenceManifestPath = path.join(root, 'visual-evidence', 'manifest.json');
+const likenessAuthorityPath = path.join(root, 'docs', 'PROTAGONIST_VISUAL_ALIGNMENT_V1.md');
 const ACTIONS = ['idle', 'walk', 'talk', 'focus', 'attack'];
 
 function sha256File(file) {
@@ -38,6 +39,20 @@ function prepare(character) {
   const record = manifest.characters && manifest.characters[character];
   if (!record) throw new Error('FIELD_ART_ADMISSION_PREP_FAIL: unknown character ' + character);
 
+  const projectLikeness = manifest.likenessAuthority || {};
+  const characterLikeness = record.likenessAuthority || {};
+  if (projectLikeness.status !== 'CREATOR_APPROVED_V1' ||
+      characterLikeness.status !== 'LOCKED_TO_APPROVED_ALIGNMENT_V1') {
+    throw new Error('FIELD_ART_ADMISSION_PREP_FAIL: approved likeness authority is not locked');
+  }
+  if (projectLikeness.document !== 'docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md' ||
+      !/^[0-9a-f]{64}$/i.test(projectLikeness.referenceSha256 || '')) {
+    throw new Error('FIELD_ART_ADMISSION_PREP_FAIL: likeness authority metadata is invalid');
+  }
+  if (!fs.existsSync(likenessAuthorityPath)) {
+    throw new Error('FIELD_ART_ADMISSION_PREP_FAIL: likeness authority document missing');
+  }
+
   cleanWorktree();
   const head = exactHead();
 
@@ -57,6 +72,11 @@ function prepare(character) {
   const receipt = loadJson(templatePath);
   receipt.characterId = character;
   receipt.assetSha256 = stripHashes;
+  receipt.likenessReview.authorityStatus = projectLikeness.status;
+  receipt.likenessReview.characterAuthorityStatus = characterLikeness.status;
+  receipt.likenessReview.authorityDocument = projectLikeness.document;
+  receipt.likenessReview.authorityDocumentSha256 = sha256File(likenessAuthorityPath);
+  receipt.likenessReview.approvedReferenceSha256 = projectLikeness.referenceSha256;
   receipt.runtimeReview.exactHead = head;
   receipt.runtimeReview.evidenceManifestSha256 = sha256File(evidenceManifestPath);
 
@@ -68,7 +88,13 @@ function prepare(character) {
   console.log('AETHERWAKE_FIELD_ART_ADMISSION_PREPARED=' + character);
   console.log('AETHERWAKE_FIELD_ART_EXACT_HEAD=' + head);
   console.log('AETHERWAKE_FIELD_ART_RECEIPT=' + path.relative(root, output).replace(/\\/g, '/'));
-  console.log(JSON.stringify({ character, assetSha256: stripHashes, evidenceManifestSha256: receipt.runtimeReview.evidenceManifestSha256 }, null, 2));
+  console.log(JSON.stringify({
+    character,
+    assetSha256: stripHashes,
+    evidenceManifestSha256: receipt.runtimeReview.evidenceManifestSha256,
+    likenessAuthorityDocumentSha256: receipt.likenessReview.authorityDocumentSha256,
+    approvedReferenceSha256: receipt.likenessReview.approvedReferenceSha256
+  }, null, 2));
   return output;
 }
 
