@@ -17,6 +17,13 @@ for (const required of [
   'receipt.assetSha256 = stripHashes',
   'receipt.runtimeReview.exactHead = head',
   'receipt.runtimeReview.evidenceManifestSha256',
+  'receipt.likenessReview.authorityStatus',
+  'receipt.likenessReview.characterAuthorityStatus',
+  'receipt.likenessReview.authorityDocumentSha256',
+  'receipt.likenessReview.approvedReferenceSha256',
+  'CREATOR_APPROVED_V1',
+  'LOCKED_TO_APPROVED_ALIGNMENT_V1',
+  'likeness authority document missing',
   "assets', 'characters', 'v1', 'admission'",
   "['ender', 'ionia'].includes(character)"
 ]) {
