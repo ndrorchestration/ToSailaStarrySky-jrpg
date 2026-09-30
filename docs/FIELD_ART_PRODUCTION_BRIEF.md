@@ -29,8 +29,10 @@ This brief does not promote any candidate asset. The runtime remains fail-safe a
 - attack: 8 frames, 512 x 96
 
 ## Identity requirements
-Ender: compact field-scholar silhouette, goggles, green/tan vest, focused stance.
-Ionia: composed captain/engineer, blonde shoulder curls, structured gray/black tailoring, elegant feminine silhouette.
+Ender: lean young-adult field scholar with very short dark copper-brown/auburn hair, bright green eyes, green-lensed brass/bronze goggles, practical olive/green + tan/cream clothing, focused stance, and staff-primary silhouette.
+Ionia: confident young-adult captain/explorer with shoulder-length curly blonde hair, green eyes, cream/light blouse, brown leather harness/utility layers, restrained brass hardware, elegant feminine silhouette, and mace-primary silhouette.
+
+These requirements are subordinate to `docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md`; if the prose here ever conflicts with that creator-approved authority, the alignment document wins and this brief must be reconciled before asset review.
 
 ## Current production-reference candidates
 - Ionia Canva MEDIA: MAHWb1JSSeI, 1536 x 1024. Reference sheet only.
@@ -43,7 +45,7 @@ These references do not change manifest status and are not runtime strips.
 2. Produce all five strips per character.
 3. Run `npm run verify:field-pack-readiness:strict`. This is the **pre-promotion mechanical completeness gate**: exact action set, canonical frame counts, 64×96 cells, exact strip dimensions, PNG validity, alpha capability, per-frame cell-edge clearance, and grounded foot-line consistency within and across all five actions.
 4. Regenerate exact-head runtime evidence and compare the production strips against the provisional bridge art at actual display scale.
-5. Complete the independent human silhouette-recognition check (minimum 5 participants; ≥80% correct) and record the result plus the exact-head runtime review using `docs/field-art-admission-template.json`. The runtime receipt must explicitly record **PASS** for the Chapter 1 visual suite, complete browser route + replay, exact-head evidence capture, visual-performance verification, and before/after cohesion review; a single summary PASS is insufficient.
+5. Complete the independent human silhouette-recognition check (minimum 5 participants; ≥80% correct), complete a human likeness review against the creator-approved `docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md` authority, and record both results plus the exact-head runtime review using `docs/field-art-admission-template.json`. The receipt must explicitly set `likenessReview.status=PASS`, preserve the preparer's alignment-document/reference hashes, and explicitly record **PASS** for the Chapter 1 visual suite, complete browser route + replay, exact-head evidence capture, visual-performance verification, and before/after cohesion review; a single summary PASS is insufficient.
 6. Only after steps 3–5 pass, change the character manifest status to `ready` / `field-ready`.
 7. Run `npm run verify:field-pack-admission`. This is the **post-promotion admission gate** and requires both ready status and valid evidence receipts.
 8. Run the Chapter 1 visual/browser/performance regression gates and regenerate the final exact-head evidence bundle.
@@ -73,9 +75,9 @@ After production strips are mechanically complete and fresh exact-head visual ev
 - `npm run prepare:field-art-admission:ender`
 - `npm run prepare:field-art-admission:ionia`
 
-The preparer refuses a dirty worktree, resolves the full 40-character Git head, hashes all five strip PNGs, hashes `visual-evidence/manifest.json`, and writes the corresponding receipt under `assets/characters/v1/admission/`.
+The preparer refuses a dirty worktree, resolves the full 40-character Git head, hashes all five strip PNGs, hashes `visual-evidence/manifest.json`, hashes the creator-approved protagonist-alignment document, binds the approved visual-reference SHA-256 plus per-character locked likeness status, and writes the corresponding receipt under `assets/characters/v1/admission/`.
 
-The generated receipt remains **PENDING** for silhouette and runtime review fields. Preparing a receipt is not admission and must never be treated as evidence that human or runtime gates passed.
+The generated receipt remains **PENDING** for likeness, silhouette, and runtime review fields. Preparing a receipt is not admission and must never be treated as evidence that human or runtime gates passed.
 
 
 ## Raw silhouette-recognition evidence
