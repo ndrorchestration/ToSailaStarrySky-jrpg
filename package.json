@@ -176,6 +176,7 @@
     "prepare:visual-acceptance-results": "node scripts/prepare-visual-acceptance-results.js",
     "test:visual-acceptance-results-preparer": "node tests/visual-acceptance-results-preparer.test.js",
     "test:equipment-system": "node tests/equipment-system.test.js",
-    "test:protagonist-likeness": "node tests/protagonist-likeness-authority.test.js"
+    "test:protagonist-likeness": "node tests/protagonist-likeness-authority.test.js",
+    "test:route-network-schema-v2-proof": "node tests/route-network-schema-v2-proof.test.js"
   }
 }
