@@ -68,7 +68,7 @@
     "test:aether-seal-contract": "node tests/aether-seal-contract.test.js",
     "test:character-canon": "node tests/character-canon-alignment.test.js",
     "test:runtime-ssot": "node tests/runtime-ssot-contract.test.js",
-    "test:air-navigation": "node tests/air-navigation.test.js",
+    "test:air-navigation": "node tests/air-navigation.test.js && npm run test:rootline-west-runtime",
     "test:open-sky-runtime": "node tests/open-sky-runtime-contract.test.js",
     "test:first-wake-opening": "node tests/first-wake-opening.test.js",
     "test:overlay-contract": "node tests/runtime-overlay-contract.test.js",
@@ -180,6 +180,7 @@
     "test:persistence-semantic-backup": "node tests/persistence-semantic-backup-contract.test.js",
     "test:persistence-transactional-load": "node tests/persistence-transactional-load-contract.test.js",
     "test:route-network-state": "node tests/route-network-state.test.js",
-    "test:save-schema-v2-runtime": "node tests/save-schema-v2-runtime.test.js"
+    "test:save-schema-v2-runtime": "node tests/save-schema-v2-runtime.test.js",
+    "test:rootline-west-runtime": "node tests/rootline-west-runtime.test.js"
   }
 }
