@@ -23,8 +23,8 @@ assert(visual.includes("weatherId === 'crosswind'"),
   'combat visual stage must render crosswind context');
 assert(visual.includes("weatherId === 'aether-squall'"),
   'combat visual stage must render aether squall context');
-assert(visual.includes("'  //  PRESSURE ' + pressure"),
-  'combat turn rail must display wake pressure');
+assert(!visual.includes('PRESSURE'),
+  'combat turn rail must not expose raw wake-pressure telemetry');
 assert(visual.includes("String(altitude || 'cruise').toUpperCase()"),
   'combat turn rail must display altitude');
 
