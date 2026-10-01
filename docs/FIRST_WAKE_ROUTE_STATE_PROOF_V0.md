@@ -2,7 +2,7 @@
 
 **Status:** DESIGN/IMPLEMENTATION CANDIDATE — NOT RUNTIME-ADMITTED
 
-**Stacked on:** V46 visual branch. This tranche is intentionally isolated and does not change the V46 player-facing runtime, Chapter 1 progression, collision, combat, field-art admission, release state, or existing air-navigation persistence contract.
+**Based on:** stable V45 Chapter 1 convergence branch `integration/chapter1-visual-v45-convergence-2026-09-26` at `9e17bc0f7812057a18a65651c5c4488adf3744cd`. This tranche is intentionally isolated from the moving V46 visual branch and does not change the player-facing runtime, Chapter 1 progression, collision, combat, field-art admission, release state, or existing air-navigation persistence contract.
 
 ## Purpose
 
