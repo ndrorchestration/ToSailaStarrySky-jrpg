@@ -149,6 +149,7 @@
     if (!navState || typeof navState !== 'object') throw new Error('ROUTE_NETWORK_NAV_STATE_REQUIRED');
     return ROUTE_CLUES
       .filter(clue => clue.altitudes.includes(navState.altitude))
+      .filter(clue => Array.isArray(navState.discoveredRoutes) && navState.discoveredRoutes.includes(clue.routeId))
       .filter(clue => Math.hypot(clue.x - navState.x, clue.y - navState.y) <= clue.radius)
       .map(clue => Object.assign({}, clue, { altitudes: clue.altitudes.slice() }));
   }
