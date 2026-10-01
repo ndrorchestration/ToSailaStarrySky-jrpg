@@ -18,11 +18,20 @@ if (buildScript.includes('(git branch --show-current).Trim()')) {
   fail('Chapter 1 Windows builder must not call Trim directly on a possibly empty detached-HEAD branch result');
 }
 for (const required of [
+  'python -m pip install --disable-pip-version-check --no-cache-dir Pillow==12.3.0',
+  'Pinned Python visual-test dependency installation failed',
   '$gitBranchOutput = @(git branch --show-current)',
   'if ($gitBranchOutput.Count -gt 0 -and $null -ne $gitBranchOutput[0])',
   'if (-not $gitBranch) { $gitBranch = "DETACHED" }',
 ]) {
   if (!buildScript.includes(required)) fail('missing detached-HEAD builder contract: ' + required);
+}
+
+
+const pillowInstall = buildScript.indexOf('Pillow==12.3.0');
+const visualGate = buildScript.indexOf('npm run test:chapter1-visual');
+if (!(pillowInstall >= 0 && visualGate > pillowInstall)) {
+  fail('Chapter 1 Windows builder must install the pinned visual dependency before the visual gate');
 }
 
 const scriptPath = path.join(__dirname, '..', 'scripts', 'resume-chapter1-installer-tail.ps1');
