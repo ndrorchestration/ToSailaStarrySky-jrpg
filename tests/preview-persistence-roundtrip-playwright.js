@@ -91,6 +91,13 @@ function server() {
       window.gameState === 'saveload'
     , undefined, { timeout: 3000 });
 
+    const savedRuntime = await page.evaluate(() => {
+      const loaded = window.AetherSaveSystem.load('manual-1');
+      return JSON.parse(JSON.stringify(loaded.envelope.payload.runtime));
+    });
+    assert.strictEqual(savedRuntime.dayTime, before.world.runtime.dayTime,
+      'manual save must bind the exact world clock value at snapshot time');
+
     // Return, then deliberately damage several independent live state owners.
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => window.gameState === 'world',
@@ -141,8 +148,17 @@ function server() {
       air: window.AetherAirNavigation.exportPersistentState(window._airNavigationState),
     }));
 
-    assert.deepStrictEqual(after.world, before.world,
-      'world/quest/runtime state did not round-trip exactly');
+    const beforeWorldStable = JSON.parse(JSON.stringify(before.world));
+    const afterWorldStable = JSON.parse(JSON.stringify(after.world));
+    delete beforeWorldStable.runtime.dayTime;
+    delete afterWorldStable.runtime.dayTime;
+    assert.deepStrictEqual(afterWorldStable, beforeWorldStable,
+      'world/quest/non-clock runtime state did not round-trip exactly');
+
+    const restoredClockAdvance =
+      (after.world.runtime.dayTime - savedRuntime.dayTime + 1) % 1;
+    assert(restoredClockAdvance >= 0 && restoredClockAdvance < 0.01,
+      'restored world clock must resume only a bounded amount after the exact saved value');
     assert.deepStrictEqual(after.ender, before.ender,
       'Ender canonical party state did not round-trip exactly');
     assert.deepStrictEqual(after.activeIds, before.activeIds,
