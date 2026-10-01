@@ -40,6 +40,9 @@ if ($LASTEXITCODE -ne 0) { throw "Playwright Chromium installation failed with c
 npm run test:chapter1-core
 if ($LASTEXITCODE -ne 0) { throw "Chapter 1 deterministic core gate failed with code $LASTEXITCODE." }
 
+python -m pip install --disable-pip-version-check --no-cache-dir Pillow==12.3.0
+if ($LASTEXITCODE -ne 0) { throw "Pinned Python visual-test dependency installation failed with code $LASTEXITCODE." }
+
 npm run test:chapter1-visual
 if ($LASTEXITCODE -ne 0) { throw "Chapter 1 visual/presentation gate failed with code $LASTEXITCODE." }
 Write-Host "CHAPTER1_VISUAL=PASS"
