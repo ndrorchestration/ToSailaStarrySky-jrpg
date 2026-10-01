@@ -298,12 +298,21 @@ function buildSavePayload() {
       : null,
   };
 
+  validateSavePayloadBeforeWrite(payload);
+  return payload;
+}
+
+function validateSavePayloadBeforeWrite(payload) {
+  if (!window.AetherSavePayloadValidator ||
+      typeof window.AetherSavePayloadValidator.validatePayload !== 'function') {
+    throw new Error('SAVE_PAYLOAD_VALIDATOR_UNAVAILABLE');
+  }
   window.AetherSavePayloadValidator.validatePayload(payload, {
     validateAirNavigation(candidate) {
       return window.AetherAirNavigation.validatePersistentState(candidate);
     },
   });
-  return payload;
+  return true;
 }
 
 function prepareSaveEnvelopeForApply(envelope) {
@@ -312,11 +321,7 @@ function prepareSaveEnvelopeForApply(envelope) {
   }
   const payload = cloneSaveJson(envelope.payload);
 
-  window.AetherSavePayloadValidator.validatePayload(payload, {
-    validateAirNavigation(candidate) {
-      return window.AetherAirNavigation.validatePersistentState(candidate);
-    },
-  });
+  validateSavePayloadBeforeWrite(payload);
 
   if (!world || typeof world.preparePersistentState !== 'function') {
     throw new Error('WORLD_PERSISTENCE_PREPARE_UNAVAILABLE');
@@ -348,57 +353,227 @@ function prepareSaveEnvelopeForApply(envelope) {
   });
 }
 
-function applySaveEnvelope(envelope) {
-  // No canonical live state changes before this preflight completes.
-  const prepared = prepareSaveEnvelopeForApply(envelope);
-  const payload = prepared.payload;
+function captureLiveRuntimeForLoadRollback() {
+  if (!world || typeof world.snapshotPersistentState !== 'function') {
+    throw new Error('LOAD_ROLLBACK_WORLD_SNAPSHOT_UNAVAILABLE');
+  }
+  return {
+    worldSnapshot: cloneSaveJson(world.snapshotPersistentState()),
+    roster: Array.isArray(window.ROSTER)
+      ? window.ROSTER.map(character => cloneSaveJson(character))
+      : [],
+    activeIds: Array.isArray(window.ACTIVE_PARTY)
+      ? window.ACTIVE_PARTY.map(character => character.id)
+      : [],
+    airNavigation: airNavigationState && window.AetherAirNavigation
+      ? window.AetherAirNavigation.exportPersistentState(airNavigationState)
+      : null,
+    runtime: {
+      loadedPlaytimeMs,
+      playSessionStartMs,
+      gameState,
+      pendingHazardIndex,
+      combatReturnState,
+      pendingAutosaveReason,
+      previewEncounterStarted,
+      previewEncounterFinished,
+      previewEndAt,
+      prevState,
+    },
+  };
+}
 
-  prepared.preparedRoster.forEach((record, index) => {
-    Object.assign(window.ROSTER[index], cloneSaveJson(record));
+function restoreLiveRuntimeAfterFailedLoad(snapshot) {
+  if (!snapshot || !snapshot.worldSnapshot) {
+    throw new Error('LOAD_ROLLBACK_SNAPSHOT_MISSING');
+  }
+  if (!window.ROSTER || snapshot.roster.length !== window.ROSTER.length) {
+    throw new Error('LOAD_ROLLBACK_ROSTER_INVALID');
+  }
+
+  snapshot.roster.forEach((record, index) => {
+    const target = window.ROSTER[index];
+    if (!target || target.id !== record.id) {
+      throw new Error('LOAD_ROLLBACK_ROSTER_IDENTITY_MISMATCH');
+    }
+    Object.assign(target, cloneSaveJson(record));
   });
-  window.AetherPartyState.setActivePartyIds(prepared.preparedActiveIds);
+  window.AetherPartyState.setActivePartyIds(snapshot.activeIds);
   window.AetherPartyState.validate();
 
-  world.restorePersistentState(prepared.preparedWorld, payload.runtime);
+  const preparedWorld = world.preparePersistentState(
+    snapshot.worldSnapshot.world,
+    snapshot.worldSnapshot.quest
+  );
+  world.restorePersistentState(preparedWorld, snapshot.worldSnapshot.runtime);
 
-  airNavigationState = prepared.preparedAirNavigation;
+  airNavigationState = snapshot.airNavigation
+    ? window.AetherAirNavigation.restorePersistentState(snapshot.airNavigation)
+    : null;
   window._airNavigationState = airNavigationState;
 
-  loadedPlaytimeMs = payload.runtime.playtimeMs;
-  playSessionStartMs = typeof millis === 'function' ? millis() : 0;
-
-  pendingHazardIndex = null;
-  combatReturnState = STATE.WORLD;
-  pendingAutosaveReason = null;
-  previewEncounterStarted = false;
-  previewEncounterFinished = false;
-  previewEndAt = 0;
-  gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
+  loadedPlaytimeMs = snapshot.runtime.loadedPlaytimeMs;
+  playSessionStartMs = snapshot.runtime.playSessionStartMs;
+  pendingHazardIndex = snapshot.runtime.pendingHazardIndex;
+  combatReturnState = snapshot.runtime.combatReturnState;
+  pendingAutosaveReason = snapshot.runtime.pendingAutosaveReason;
+  previewEncounterStarted = snapshot.runtime.previewEncounterStarted;
+  previewEncounterFinished = snapshot.runtime.previewEncounterFinished;
+  previewEndAt = snapshot.runtime.previewEndAt;
+  gameState = snapshot.runtime.gameState;
   window.gameState = gameState;
-  prevState = null;
+  prevState = snapshot.runtime.prevState;
   return true;
+}
+
+function runLoadTestHook(stage) {
+  if (window && typeof window.__AETHERWAKE_LOAD_TEST_HOOK__ === 'function') {
+    window.__AETHERWAKE_LOAD_TEST_HOOK__(stage);
+  }
+}
+
+function applySaveEnvelope(envelope) {
+  const prepared = prepareSaveEnvelopeForApply(envelope);
+  const payload = prepared.payload;
+  const rollbackSnapshot = captureLiveRuntimeForLoadRollback();
+
+  try {
+    runLoadTestHook('before-apply');
+
+    prepared.preparedRoster.forEach((record, index) => {
+      Object.assign(window.ROSTER[index], cloneSaveJson(record));
+    });
+    window.AetherPartyState.setActivePartyIds(prepared.preparedActiveIds);
+    window.AetherPartyState.validate();
+    runLoadTestHook('after-party');
+
+    world.restorePersistentState(prepared.preparedWorld, payload.runtime);
+    runLoadTestHook('after-world');
+
+    airNavigationState = prepared.preparedAirNavigation;
+    window._airNavigationState = airNavigationState;
+    runLoadTestHook('after-air-navigation');
+
+    loadedPlaytimeMs = payload.runtime.playtimeMs;
+    playSessionStartMs = typeof millis === 'function' ? millis() : 0;
+
+    pendingHazardIndex = null;
+    combatReturnState = STATE.WORLD;
+    pendingAutosaveReason = null;
+    previewEncounterStarted = false;
+    previewEncounterFinished = false;
+    previewEndAt = 0;
+    gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
+    window.gameState = gameState;
+    prevState = null;
+    runLoadTestHook('before-commit');
+  } catch (error) {
+    try {
+      restoreLiveRuntimeAfterFailedLoad(rollbackSnapshot);
+      window._lastLoadRollback = { ok: true, error: error.message };
+    } catch (rollbackError) {
+      window._lastLoadRollback = {
+        ok: false,
+        error: error.message,
+        rollbackError: rollbackError.message,
+      };
+      throw new Error(
+        'LOAD_APPLY_AND_ROLLBACK_FAILED:' +
+        error.message + '|' + rollbackError.message
+      );
+    }
+    throw error;
+  }
+
+  window._lastLoadRollback = null;
+  return true;
+}
+
+function loadSemanticallyValidSaveCandidate(slot) {
+  let primaryError = null;
+  try {
+    const loaded = window.AetherSaveSystem.load(slot);
+    if (!loaded || !loaded.envelope) return null;
+    prepareSaveEnvelopeForApply(loaded.envelope);
+    if (loaded.recoveredFromBackup) {
+      return {
+        ...loaded,
+        semanticBackupRecovery: true,
+        primarySemanticError: loaded.primaryLoadError || null,
+      };
+    }
+    return loaded;
+  } catch (error) {
+    primaryError = error;
+  }
+
+  if (typeof window.AetherSaveSystem.loadBackup === 'function') {
+    try {
+      const backup = window.AetherSaveSystem.loadBackup(slot);
+      if (backup && backup.envelope) {
+        prepareSaveEnvelopeForApply(backup.envelope);
+        return {
+          ...backup,
+          semanticBackupRecovery: true,
+          primarySemanticError: primaryError ? primaryError.message : null,
+        };
+      }
+    } catch (backupError) {
+      const primaryMessage = primaryError ? primaryError.message : 'unknown';
+      throw new Error(
+        'SAVE_PRIMARY_AND_BACKUP_UNLOADABLE:' +
+        primaryMessage + '|' + backupError.message
+      );
+    }
+  }
+
+  if (primaryError) throw primaryError;
+  return null;
 }
 
 window._persistenceRuntime = Object.freeze({
   buildSavePayload,
+  validateSavePayloadBeforeWrite,
   prepareSaveEnvelopeForApply,
+  captureLiveRuntimeForLoadRollback,
+  restoreLiveRuntimeAfterFailedLoad,
   applySaveEnvelope,
+  loadSemanticallyValidSaveCandidate,
   currentPlaytimeMs,
 });
 
 function buildLoadableSaveIndex() {
   if (!window.AetherSaveSystem) return [];
   return window.AetherSaveSystem.list().map(meta => {
-    if (!meta.exists || meta.valid === false) return meta;
+    if (!meta.exists) return meta;
     try {
-      const loaded = window.AetherSaveSystem.load(meta.slot);
+      const loaded = loadSemanticallyValidSaveCandidate(meta.slot);
       if (!loaded || !loaded.envelope) {
         return { ...meta, valid: false, semanticValid: false, error: 'SAVE_ENVELOPE_MISSING' };
       }
-      prepareSaveEnvelopeForApply(loaded.envelope);
-      return { ...meta, semanticValid: true };
+      const envelope = loaded.envelope;
+      return {
+        ...meta,
+        valid: true,
+        semanticValid: true,
+        semanticBackupRecovery: Boolean(loaded.semanticBackupRecovery),
+        savedAt: envelope.savedAt,
+        playtimeMs: envelope.playtimeMs,
+        chapter: envelope.chapter,
+        location: envelope.location,
+        partySummary: Array.isArray(envelope.partySummary) ? envelope.partySummary.slice() : [],
+        gameVersion: envelope.gameVersion,
+      };
     } catch (error) {
-      return { ...meta, valid: false, semanticValid: false, error: error.message };
+      const futureSchemaProtected = Boolean(meta.futureSchemaProtected) ||
+        /SAVE_SCHEMA_FUTURE_UNSUPPORTED|SAVE_SLOT_FUTURE_SCHEMA_PROTECTED/.test(error.message);
+      return {
+        ...meta,
+        valid: false,
+        semanticValid: false,
+        futureSchemaProtected,
+        error: error.message,
+      };
     }
   });
 }
@@ -436,13 +611,21 @@ function flushPendingAutosaveIfStable() {
   const reason = pendingAutosaveReason;
   pendingAutosaveReason = null;
   try {
-    const result = window.AetherSaveSystem.rotateAutosave(buildSavePayload(), saveMetadata());
+    const payload = buildSavePayload();
+    validateSavePayloadBeforeWrite(payload);
+    const result = window.AetherSaveSystem.rotateAutosave(
+      payload,
+      saveMetadata(),
+      { candidateResolver: loadSemanticallyValidSaveCandidate }
+    );
     window._lastSaveResult = result;
+    window._lastSaveError = null;
     window._lastAutosaveReason = reason;
     window._saveSlotIndex = buildLoadableSaveIndex();
     showToast('AUTOSAVED // ' + reason.toUpperCase(), C.teal, 900);
     return true;
   } catch (error) {
+    window._lastSaveResult = null;
     window._lastSaveError = error.message;
     console.error('AUTOSAVE_FAILED', error);
     return false;
@@ -467,34 +650,80 @@ function saveToSlot(slot) {
     return false;
   }
   try {
-    const result = window.AetherSaveSystem.save(slot, buildSavePayload(), saveMetadata());
+    const payload = buildSavePayload();
+    validateSavePayloadBeforeWrite(payload);
+
+    let preserveBackup = false;
+    try {
+      const priorCandidate = loadSemanticallyValidSaveCandidate(slot);
+      preserveBackup = Boolean(priorCandidate && priorCandidate.semanticBackupRecovery);
+    } catch (_) {
+      preserveBackup = false;
+    }
+
+    const result = window.AetherSaveSystem.save(
+      slot,
+      payload,
+      saveMetadata(),
+      { preserveBackup }
+    );
     window._lastSaveResult = result;
+    window._lastSaveError = null;
     window._saveSlotIndex = buildLoadableSaveIndex();
     showToast('GAME SAVED // ' + slot.toUpperCase(), C.teal, 1300);
     return true;
   } catch (error) {
+    window._lastSaveResult = null;
     window._lastSaveError = error.message;
     console.error('SAVE_FAILED', error);
-    showToast('SAVE FAILED // ' + error.message, C.rust, 2200);
+    if (/SAVE_SLOT_FUTURE_SCHEMA_PROTECTED|SAVE_AUTOSAVE_ALL_SLOTS_FUTURE_PROTECTED/.test(error.message)) {
+      showToast('NEWER VERSION SAVE DATA — PRESERVED', C.scioto, 2400);
+    } else {
+      showToast('SAVE FAILED // ' + error.message, C.rust, 2200);
+    }
     return false;
   }
 }
 
 function loadFromSlot(slot) {
   try {
-    const loaded = window.AetherSaveSystem.load(slot);
+    const loaded = loadSemanticallyValidSaveCandidate(slot);
     if (!loaded) {
       showToast('NO SAVE IN ' + slot.toUpperCase(), C.rust, 1400);
       return false;
     }
-    prepareSaveEnvelopeForApply(loaded.envelope);
+    const applied = applySaveEnvelope(loaded.envelope);
+    if (!applied) throw new Error('LOAD_APPLY_RETURNED_FALSE');
+
     window._lastLoadResult = loaded;
-    applySaveEnvelope(loaded.envelope);
+    window._lastLoadError = null;
     window._saveSlotIndex = buildLoadableSaveIndex();
-    showToast('GAME LOADED // ' + slot.toUpperCase(), C.teal, 1500);
+
+    if (loaded.semanticBackupRecovery) {
+      window._lastLoadRecovery = {
+        slot,
+        source: 'backup',
+        primarySemanticError: loaded.primarySemanticError || null,
+        path: loaded.path,
+      };
+      const newerPrimaryPreserved =
+        /SAVE_SCHEMA_FUTURE_UNSUPPORTED/.test(loaded.primarySemanticError || '');
+      showToast(
+        newerPrimaryPreserved
+          ? 'RECOVERED OLDER SAVE // NEWER PRIMARY PRESERVED'
+          : 'RECOVERED PREVIOUS SAVE // PRIMARY INVALID',
+        C.scioto,
+        2200
+      );
+    } else {
+      window._lastLoadRecovery = null;
+      showToast('GAME LOADED // ' + slot.toUpperCase(), C.teal, 1500);
+    }
     return true;
   } catch (error) {
+    window._lastLoadResult = null;
     window._lastLoadError = error.message;
+    window._lastLoadRecovery = null;
     console.error('LOAD_FAILED', error);
     showToast('LOAD FAILED // ' + error.message, C.rust, 2200);
     return false;
