@@ -34,9 +34,9 @@ assert.throws(() => api.validateManifest({...manifest, blocksProgression: true})
   /CINEMATIC_PROGRESS_AUTHORITY_FORBIDDEN/);
 assert(source.includes("status: 'fallback'"),
   'cinematic player must expose fallback completion state');
-assert(source.includes("status: 'skipped'"),
+assert(source.includes("finalize('skipped', 'USER_SKIP')"),
   'cinematic player must expose skip completion state');
-assert(source.includes("status: 'played'"),
+assert(source.includes("finalize('played', 'ENDED')"),
   'cinematic player must expose normal completion state');
 assert(source.includes("aetherwake:cinematic-fallback"),
   'cinematic player must emit a fallback event');
