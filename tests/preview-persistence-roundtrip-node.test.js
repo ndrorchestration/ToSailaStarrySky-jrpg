@@ -9,6 +9,7 @@ const root = path.resolve(__dirname, '..');
 const saveBase = require('../modules/save-system.js');
 const validator = require('../modules/save-payload-validator.js');
 const air = require('../modules/air-navigation.js');
+const routeNetwork = require('../modules/route-network-state.js');
 
 function loadBrowserModule(file, windowObject) {
   const source = fs.readFileSync(path.join(root, file), 'utf8');
@@ -70,6 +71,7 @@ const save = saveBase._createForTesting({
 });
 
 let airState = air.createState({ mooredLandmarkId: 'wake-dock', speed: 0 });
+let routeState = routeNetwork.createState();
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -91,10 +93,14 @@ function buildPayload() {
       activeIds: windowObject.ACTIVE_PARTY.map(character => character.id),
     },
     airNavigation: air.exportPersistentState(airState),
+    routeNetwork: routeNetwork.exportPersistentState(routeState),
   };
   validator.validatePayload(payload, {
     validateAirNavigation(candidate) {
       return air.validatePersistentState(candidate);
+    },
+    validateRouteNetwork(candidate) {
+      return routeNetwork.validatePersistentState(candidate);
     },
   });
   return payload;
@@ -105,6 +111,9 @@ function prepareEnvelope(envelope) {
   validator.validatePayload(payload, {
     validateAirNavigation(candidate) {
       return air.validatePersistentState(candidate);
+    },
+    validateRouteNetwork(candidate) {
+      return routeNetwork.validatePersistentState(candidate);
     },
   });
 
@@ -117,6 +126,7 @@ function prepareEnvelope(envelope) {
   const preparedAir = payload.airNavigation
     ? air.restorePersistentState(payload.airNavigation)
     : null;
+  const preparedRoute = routeNetwork.restorePersistentState(payload.routeNetwork);
 
   return {
     payload,
@@ -124,6 +134,7 @@ function prepareEnvelope(envelope) {
     preparedRoster,
     preparedActiveIds: payload.party.activeIds.slice(),
     preparedAir,
+    preparedRoute,
   };
 }
 
@@ -138,6 +149,7 @@ function applyEnvelope(envelope) {
 
   world.restorePersistentState(prepared.preparedWorld, prepared.payload.runtime);
   airState = prepared.preparedAir;
+  routeState = prepared.preparedRoute;
 }
 
 const before = {
@@ -145,6 +157,7 @@ const before = {
   roster: windowObject.ROSTER.map(clone),
   activeIds: windowObject.ACTIVE_PARTY.map(character => character.id),
   air: air.exportPersistentState(airState),
+  route: routeNetwork.exportPersistentState(routeState),
 };
 
 const saved = save.save('manual-1', buildPayload(), {
@@ -169,10 +182,12 @@ airState = air.createState({
   speed: 2,
   mooredLandmarkId: null,
 });
+routeState = routeNetwork.setCondition(routeState, 'rootline-west', 'shifted');
 
 assert.notStrictEqual(windowObject.ROSTER[0].scrap, before.roster[0].scrap);
 assert.strictEqual(world.player.tileX, 2);
 assert.strictEqual(airState.x, 21);
+assert.strictEqual(routeNetwork.conditionFor(routeState, 'rootline-west'), 'shifted');
 
 const loaded = save.load('manual-1');
 assert(loaded && loaded.envelope, 'manual-1 could not be reloaded');
@@ -183,6 +198,7 @@ const after = {
   roster: windowObject.ROSTER.map(clone),
   activeIds: windowObject.ACTIVE_PARTY.map(character => character.id),
   air: air.exportPersistentState(airState),
+  route: routeNetwork.exportPersistentState(routeState),
 };
 
 assert.deepStrictEqual(after.world, before.world,
@@ -193,6 +209,8 @@ assert.deepStrictEqual(after.activeIds, before.activeIds,
   'actual party-state active IDs did not round-trip');
 assert.deepStrictEqual(after.air, before.air,
   'actual air-navigation persistence did not round-trip');
+assert.deepStrictEqual(after.route, before.route,
+  'actual route-network persistence did not round-trip');
 
 // Bind the executable subsystem proof back to the production coordinator.
 const runtimeSource = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
@@ -205,6 +223,7 @@ for (const expected of [
   'world.restorePersistentState(prepared.preparedWorld, payload.runtime);',
   'window.AetherPartyState.setActivePartyIds(prepared.preparedActiveIds);',
   'window.AetherAirNavigation.restorePersistentState(payload.airNavigation)',
+  'window.AetherRouteNetworkState.restorePersistentState(payload.routeNetwork)',
 ]) {
   assert(runtimeSource.includes(expected),
     'production persistence coordinator lost binding: ' + expected);
