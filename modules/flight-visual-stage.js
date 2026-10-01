@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.6.1';
+  const VERSION = '0.6.2';
   const FLIGHT_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   let flightBackground = null;
   let flightBackgroundRequested = false;
@@ -424,9 +424,24 @@
     else if (ctx.routeAssistAvailable) contextualHint = 'R  engage lane';
 
     if (travel.route && travel.route.route && contextualHint) {
-      textAlign(RIGHT, BOTTOM);
-      fill(232, 220, 198, 215);
-      text(contextualHint, w - 24, h - 16);
+      const contextualHintW = ctx.routeClueActionAvailable ? 174 : 138;
+      const contextualHintH = 20;
+      const contextualHintX = w - contextualHintW - 18;
+      const contextualHintY = h - contextualHintH - 4;
+      noStroke();
+      fill(panel[0], panel[1], panel[2], 212);
+      rect(contextualHintX, contextualHintY, contextualHintW, contextualHintH, 6);
+      fill(42, 255, 181, 185);
+      rect(contextualHintX + 8, contextualHintY + 5, 3, 10);
+      textAlign(RIGHT, CENTER);
+      textFont('Segoe UI Semibold');
+      textSize(10);
+      fill(244, 239, 226, 245);
+      text(
+        contextualHint,
+        contextualHintX + contextualHintW - 9,
+        contextualHintY + contextualHintH / 2
+      );
     }
     textAlign(LEFT, TOP);
   }
