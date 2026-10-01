@@ -1,0 +1,30 @@
+name: Save schema v2 proof
+
+on:
+  push:
+    branches:
+      - feat/save-schema-v2-route-network-proof-2026-10-01
+  pull_request:
+    branches:
+      - fix/persistence-authority-recovery-v46-2026-10-01
+
+permissions:
+  contents: read
+
+jobs:
+  schema-v2-proof:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact proof head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Verify schema v2 migration and downgrade safety
+        run: npm run test:save-schema-v2-proof
+
+      - name: Re-verify protected v1 persistence substrate
+        run: npm run test:persistence-foundation
