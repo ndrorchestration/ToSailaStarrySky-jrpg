@@ -9,6 +9,45 @@ Set-Location $repo
 
 Write-Host "== Aetherwake Chapter 1 installer-tail resume =="
 
+function Get-Sha256Hex([string]$Path) {
+  if (-not $Path -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+    throw "SHA-256 source file missing: $Path"
+  }
+
+  $fileHashCommand = Get-Command Get-FileHash -ErrorAction SilentlyContinue
+  if ($fileHashCommand) {
+    $nativeHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $Path).Hash
+    if ($nativeHash -notmatch '^[0-9A-Fa-f]{64}$') {
+      throw "Get-FileHash returned an invalid SHA-256 value for $Path"
+    }
+    return $nativeHash.ToLowerInvariant()
+  }
+
+  $stream = [System.IO.File]::Open(
+    $Path,
+    [System.IO.FileMode]::Open,
+    [System.IO.FileAccess]::Read,
+    [System.IO.FileShare]::Read
+  )
+  try {
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+      $hashBytes = $sha256.ComputeHash($stream)
+      $fallbackHash = ([System.BitConverter]::ToString($hashBytes)).Replace('-', '').ToLowerInvariant()
+      if ($fallbackHash -notmatch '^[0-9a-f]{64}$') {
+        throw "Fallback SHA-256 computation returned an invalid value for $Path"
+      }
+      return $fallbackHash
+    }
+    finally {
+      if ($sha256) { $sha256.Dispose() }
+    }
+  }
+  finally {
+    $stream.Dispose()
+  }
+}
+
 function Stop-ProcessAndWait($Process, [int]$TimeoutMs = 5000) {
   if (-not $Process) { return }
   try {
@@ -182,7 +221,7 @@ if ($LASTEXITCODE -ne 0 -or $candidateTreeSha256 -ne $packageTreeSha256) {
 $zipName = "$folderName-Windows.zip"
 $zip = Join-Path $OutputDir $zipName
 Compress-Archive -Path (Join-Path $candidateDir "*") -DestinationPath $zip -CompressionLevel Optimal
-$zipHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash.ToLower()
+$zipHash = Get-Sha256Hex $zip
 
 # Build the same no-admin installer shape as the full candidate lane.
 $makensis = @(
@@ -507,7 +546,7 @@ if ($created.storageType -ne "nw-file" -or
 }
 Write-Host "CHAPTER1_INSTALLER_SAVE_CLOSE_RELAUNCH_CONTINUE=PASS"
 
-$installerHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer).Hash.ToLower()
+$installerHash = Get-Sha256Hex $installer
 $manifest = Join-Path $OutputDir "SHA256SUMS.txt"
 @(
   "$zipHash  $zipName",
