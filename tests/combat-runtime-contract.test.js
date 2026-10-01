@@ -44,8 +44,12 @@ assertIncludes(
   'combat defeat must expose an explicit terminal marker'
 );
 assertIncludes(
-  "'UNAVAILABLE · '",
-  'SSOT-blocked actions must not be mislabeled as resource failures'
+  "'Action blocked by current SSOT: '",
+  'SSOT-blocked actions must retain a distinct runtime reason'
+);
+assertIncludes(
+  "'Not enough resources — '",
+  'resource failures must remain distinct from SSOT-blocked actions'
 );
 assert(!source.includes('The remaining five actions stay on the legacy 2D6 compatibility'),
   'combat boundary comment must not claim live contract actions are legacy');
