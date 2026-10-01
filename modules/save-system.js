@@ -116,18 +116,39 @@
 
   function browserStorage() {
     if (!root || !root.localStorage) return null;
+    function key(slot) { return STORAGE_PREFIX + slot; }
     return {
       type: 'localStorage',
-      write(slot, envelope) {
-        root.localStorage.setItem(STORAGE_PREFIX + slot, JSON.stringify(envelope));
+      write(slot, envelope, options) {
+        const primaryKey = key(slot);
+        const previous = root.localStorage.getItem(primaryKey);
+        const preserveBackup = Boolean(options && options.preserveBackup);
+        if (!preserveBackup && previous !== null) {
+          root.localStorage.setItem(primaryKey + '.bak', previous);
+        }
+        root.localStorage.setItem(primaryKey, JSON.stringify(envelope));
       },
       read(slot) {
-        const raw = root.localStorage.getItem(STORAGE_PREFIX + slot);
+        const raw = root.localStorage.getItem(key(slot));
         return raw ? JSON.parse(raw) : null;
       },
-      remove(slot) { root.localStorage.removeItem(STORAGE_PREFIX + slot); },
-      exists(slot) { return root.localStorage.getItem(STORAGE_PREFIX + slot) !== null; },
-      path(slot) { return 'localStorage://' + STORAGE_PREFIX + slot; }
+      readPrimary(slot) {
+        const raw = root.localStorage.getItem(key(slot));
+        return raw ? JSON.parse(raw) : null;
+      },
+      readBackup(slot) {
+        const raw = root.localStorage.getItem(key(slot) + '.bak');
+        return raw ? JSON.parse(raw) : null;
+      },
+      remove(slot) {
+        root.localStorage.removeItem(key(slot));
+        root.localStorage.removeItem(key(slot) + '.bak');
+      },
+      exists(slot) {
+        return root.localStorage.getItem(key(slot)) !== null ||
+          root.localStorage.getItem(key(slot) + '.bak') !== null;
+      },
+      path(slot) { return 'localStorage://' + key(slot); }
     };
   }
 
@@ -154,12 +175,13 @@
     function file(slot) { return path.join(dir, slot + '.json'); }
     return {
       type: 'nw-file',
-      write(slot, envelope) {
+      write(slot, envelope, options) {
         const target = file(slot);
         const tmp = target + '.tmp';
         const bak = target + '.bak';
         const json = JSON.stringify(envelope, null, 2) + '\n';
-        testHook('before-temp-write', { slot, target, tmp, bak });
+        const preserveBackup = Boolean(options && options.preserveBackup);
+        testHook('before-temp-write', { slot, target, tmp, bak, preserveBackup });
 
         const fd = fs.openSync(tmp, 'w');
         try {
@@ -172,10 +194,14 @@
 
         try {
           if (fs.existsSync(target)) {
-            if (fs.existsSync(bak)) fs.unlinkSync(bak);
-            fs.renameSync(target, bak);
+            if (preserveBackup) {
+              fs.unlinkSync(target);
+            } else {
+              if (fs.existsSync(bak)) fs.unlinkSync(bak);
+              fs.renameSync(target, bak);
+            }
           }
-          testHook('after-backup-promote', { slot, target, tmp, bak });
+          testHook('after-backup-promote', { slot, target, tmp, bak, preserveBackup });
           testHook('before-primary-promote', { slot, target, tmp, bak });
           fs.renameSync(tmp, target);
           testHook('after-primary-promote', { slot, target, tmp, bak });
@@ -205,13 +231,26 @@
           return backup;
         }
       },
+      readPrimary(slot) {
+        const target = file(slot);
+        if (!fs.existsSync(target)) return null;
+        return JSON.parse(fs.readFileSync(target, 'utf8'));
+      },
+      readBackup(slot) {
+        const bak = file(slot) + '.bak';
+        if (!fs.existsSync(bak)) return null;
+        return JSON.parse(fs.readFileSync(bak, 'utf8'));
+      },
       remove(slot) {
         const target = file(slot);
         for (const p of [target, target + '.bak', target + '.tmp']) {
           if (fs.existsSync(p)) fs.unlinkSync(p);
         }
       },
-      exists(slot) { return fs.existsSync(file(slot)); },
+      exists(slot) {
+        const target = file(slot);
+        return fs.existsSync(target) || fs.existsSync(target + '.bak');
+      },
       path(slot) { return file(slot); }
     };
   }
@@ -220,21 +259,129 @@
     return nwStorage() || browserStorage() || null;
   }
 
-  function save(slot, payload, meta) {
+  function futureSchemaVersion(envelope) {
+    if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) return null;
+    try {
+      validateEnvelopeIntegrity(envelope);
+    } catch (_) {
+      return null;
+    }
+    return Number.isInteger(envelope.schemaVersion) && envelope.schemaVersion > SCHEMA_VERSION
+      ? envelope.schemaVersion
+      : null;
+  }
+
+  function futureProtectedSlot(slot, storageOverride) {
+    validateSlot(slot);
+    const storage = storageOverride || getStorage();
+    if (!storage) return null;
+    const candidates = [];
+    for (const reader of ['readPrimary','readBackup']) {
+      if (typeof storage[reader] !== 'function') continue;
+      try {
+        const envelope = storage[reader](slot);
+        const version = futureSchemaVersion(envelope);
+        if (version != null) candidates.push({ source: reader === 'readPrimary' ? 'primary' : 'backup', version });
+      } catch (_) {
+        // Unreadable/corrupt records are not future-schema protection claims.
+      }
+    }
+    if (!candidates.length) return null;
+    candidates.sort((a,b) => b.version - a.version);
+    return candidates[0];
+  }
+
+  function assertSlotOverwriteCompatible(slot, storage) {
+    const protectedState = futureProtectedSlot(slot, storage);
+    if (protectedState) {
+      throw new Error(
+        'SAVE_SLOT_FUTURE_SCHEMA_PROTECTED:' +
+        slot + ':' + protectedState.version + ':' + protectedState.source
+      );
+    }
+    return true;
+  }
+
+  function save(slot, payload, meta, options) {
     validateSlot(slot);
     const storage = getStorage();
     if (!storage) throw new Error('SAVE_STORAGE_UNAVAILABLE');
+    assertSlotOverwriteCompatible(slot, storage);
     const envelope = makeEnvelope(slot, payload, meta || {});
     validateEnvelope(envelope);
-    storage.write(slot, envelope);
-    return { envelope, storageType: storage.type, path: storage.path(slot) };
+    storage.write(slot, envelope, options || {});
+    return {
+      envelope,
+      storageType: storage.type,
+      path: storage.path(slot),
+      preservedBackup: Boolean(options && options.preserveBackup)
+    };
   }
 
   function load(slot) {
     validateSlot(slot);
     const storage = getStorage();
     if (!storage) throw new Error('SAVE_STORAGE_UNAVAILABLE');
-    const envelope = storage.read(slot);
+
+    let primary = null;
+    let primaryError = null;
+    try {
+      primary = typeof storage.readPrimary === 'function'
+        ? storage.readPrimary(slot)
+        : storage.read(slot);
+      if (primary) {
+        const migrated = migrateEnvelope(primary);
+        return {
+          envelope: migrated,
+          migratedFromSchemaVersion: primary.schemaVersion === migrated.schemaVersion
+            ? null
+            : primary.schemaVersion,
+          storageType: storage.type,
+          path: storage.path(slot),
+          recoveredFromBackup: false
+        };
+      }
+    } catch (error) {
+      primaryError = error;
+    }
+
+    if (typeof storage.readBackup === 'function') {
+      try {
+        const backup = storage.readBackup(slot);
+        if (backup) {
+          const migrated = migrateEnvelope(backup);
+          return {
+            envelope: migrated,
+            migratedFromSchemaVersion: backup.schemaVersion === migrated.schemaVersion
+              ? null
+              : backup.schemaVersion,
+            storageType: storage.type,
+            path: storage.path(slot) + '.bak',
+            recoveredFromBackup: true,
+            primaryLoadError: primaryError ? primaryError.message : 'SAVE_PRIMARY_MISSING'
+          };
+        }
+      } catch (backupError) {
+        if (primaryError) {
+          throw new Error(
+            'SAVE_PRIMARY_AND_BACKUP_INTEGRITY_UNLOADABLE:' +
+            primaryError.message + '|' + backupError.message
+          );
+        }
+        throw backupError;
+      }
+    }
+
+    if (primaryError) throw primaryError;
+    return null;
+  }
+
+  function loadBackup(slot) {
+    validateSlot(slot);
+    const storage = getStorage();
+    if (!storage) throw new Error('SAVE_STORAGE_UNAVAILABLE');
+    if (typeof storage.readBackup !== 'function') return null;
+    const envelope = storage.readBackup(slot);
     if (!envelope) return null;
     const migrated = migrateEnvelope(envelope);
     return {
@@ -243,7 +390,8 @@
         ? null
         : envelope.schemaVersion,
       storageType: storage.type,
-      path: storage.path(slot)
+      path: storage.path(slot) + '.bak',
+      recoveredFromBackup: true
     };
   }
 
@@ -262,10 +410,15 @@
       try {
         const loaded = load(slot);
         const e = loaded.envelope;
+        const protectedState = futureProtectedSlot(slot, storage);
         return {
           slot, exists: true, valid: true, kind: e.kind, savedAt: e.savedAt,
           playtimeMs: e.playtimeMs, chapter: e.chapter, location: e.location,
-          partySummary: e.partySummary, gameVersion: e.gameVersion
+          partySummary: e.partySummary, gameVersion: e.gameVersion,
+          recoveredFromBackup: Boolean(loaded.recoveredFromBackup),
+          futureSchemaProtected: Boolean(protectedState),
+          futureSchemaVersion: protectedState ? protectedState.version : null,
+          futureSchemaSource: protectedState ? protectedState.source : null
         };
       } catch (error) {
         return { slot, exists: true, valid: false, error: error.message, kind: slot.startsWith('autosave-') ? 'autosave' : 'manual' };
@@ -279,17 +432,31 @@
     return valid[0] || null;
   }
 
-  function rotateAutosave(payload, meta) {
-    const entries = AUTOSAVE_SLOTS.map(slot => {
-      try { return load(slot); } catch (_) { return null; }
+  function rotateAutosave(payload, meta, options) {
+    const storage = getStorage();
+    if (!storage) throw new Error('SAVE_STORAGE_UNAVAILABLE');
+    const candidates = AUTOSAVE_SLOTS.filter(slot => !futureProtectedSlot(slot, storage));
+    if (!candidates.length) throw new Error('SAVE_AUTOSAVE_ALL_SLOTS_FUTURE_PROTECTED');
+
+    const resolver = options && typeof options.candidateResolver === 'function'
+      ? options.candidateResolver
+      : load;
+    const entries = candidates.map(slot => {
+      try { return { slot, loaded: resolver(slot) }; } catch (_) { return { slot, loaded: null }; }
     });
-    const dated = entries.map((entry, i) => ({
-      slot: AUTOSAVE_SLOTS[i],
-      time: entry && entry.envelope && entry.envelope.savedAt
-        ? Date.parse(entry.envelope.savedAt) || 0
+    const dated = entries.map(entry => ({
+      slot: entry.slot,
+      time: entry.loaded && entry.loaded.envelope && entry.loaded.envelope.savedAt
+        ? Date.parse(entry.loaded.envelope.savedAt) || 0
         : 0
     })).sort((a,b) => a.time - b.time);
-    return save(dated[0].slot, payload, meta);
+    const chosen = entries.find(entry => entry.slot === dated[0].slot);
+    const preserveBackup = Boolean(
+      chosen &&
+      chosen.loaded &&
+      (chosen.loaded.recoveredFromBackup || chosen.loaded.semanticBackupRecovery)
+    );
+    return save(dated[0].slot, payload, meta, { preserveBackup });
   }
 
   return Object.freeze({
@@ -297,7 +464,8 @@
     MANUAL_SLOTS: MANUAL_SLOTS.slice(),
     AUTOSAVE_SLOTS: AUTOSAVE_SLOTS.slice(),
     makeEnvelope, validateEnvelopeIntegrity, migrateEnvelope, validateEnvelope,
-    checksum, getStorage, save, load, remove, list, latest, rotateAutosave,
+    checksum, getStorage, futureSchemaVersion, futureProtectedSlot, assertSlotOverwriteCompatible,
+    save, load, loadBackup, remove, list, latest, rotateAutosave,
     _createForTesting: createSaveSystem
   });
 }));
