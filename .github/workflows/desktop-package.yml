@@ -285,7 +285,8 @@ jobs:
           gh release download "$RELEASE_TAG"             --pattern CHAPTER1_RELEASE_EVIDENCE.json             --dir tag-repair-evidence
           node - <<'NODE'
           const fs = require('fs');
-          const p = JSON.parse(fs.readFileSync('tag-repair-evidence/CHAPTER1_RELEASE_EVIDENCE.json','utf8'));
+          const raw = fs.readFileSync('tag-repair-evidence/CHAPTER1_RELEASE_EVIDENCE.json','utf8').replace(/^\\uFEFF/, '');
+          const p = JSON.parse(raw);
           const source = process.env.SOURCE_SHA;
           if (p.sourceCommit !== source || p.releaseToolCommit !== source) {
             throw new Error('Release evidence source binding mismatch');
@@ -317,7 +318,12 @@ jobs:
           test "$remote" = "$SOURCE_SHA"
           target="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" --jq '.target_commitish')"
           test "$target" = "$SOURCE_SHA"
-          asset_source="$(gh release download "$RELEASE_TAG" --pattern CHAPTER1_RELEASE_EVIDENCE.json --output - | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>process.stdout.write(JSON.parse(s).sourceCommit))")"
+          rm -rf tag-repair-verify
+          mkdir tag-repair-verify
+          gh release download "$RELEASE_TAG" \
+            --pattern CHAPTER1_RELEASE_EVIDENCE.json \
+            --dir tag-repair-verify
+          asset_source="$(node -e "const fs=require('fs');const s=fs.readFileSync('tag-repair-verify/CHAPTER1_RELEASE_EVIDENCE.json','utf8').replace(/^\\uFEFF/,'');process.stdout.write(JSON.parse(s).sourceCommit)")"
           test "$asset_source" = "$SOURCE_SHA"
           echo "CHAPTER1_RELEASE_TAG_SOURCE=$remote"
           echo "CHAPTER1_RELEASE_TARGET_COMMITISH=$target"
