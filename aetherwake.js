@@ -112,6 +112,7 @@ let world = null;
 let combat = null;
 let airNavigationState = null;
 let routeNetworkState = null;
+let activeRouteAssistId = null;
 let combatReturnState = STATE.WORLD;
 let pendingHazardIndex = null;
 
@@ -1976,8 +1977,57 @@ function ensureAirNavigationState() {
   return true;
 }
 
+function ensureRouteNetworkState() {
+  if (!window.AetherRouteNetworkState) return false;
+  if (!routeNetworkState) routeNetworkState = window.AetherRouteNetworkState.createState();
+  window._routeNetworkState = routeNetworkState;
+  window._activeRouteAssistId = activeRouteAssistId;
+  return true;
+}
+
+function scanNearbyRouteClues() {
+  if (!ensureAirNavigationState() || !ensureRouteNetworkState()) return [];
+  const result = window.AetherRouteNetworkState.discoverNearbyClues(
+    airNavigationState,
+    routeNetworkState
+  );
+  routeNetworkState = result.state;
+  window._routeNetworkState = routeNetworkState;
+  if (result.discoveredNow.length) {
+    showToast('ROUTE CLUE // UPPER WAKE TRACE', C.scioto, 1500);
+  }
+  return result.discoveredNow;
+}
+
+function confirmRootlineShift() {
+  if (!ensureAirNavigationState() || !ensureRouteNetworkState()) return false;
+  const route = window.AetherRouteNetworkState;
+  const clueId = 'rootline-west-upper-trace';
+  const nearby = route.cluesAt(airNavigationState).some(clue => clue.id === clueId);
+  if (!nearby || !routeNetworkState.discoveredClues.includes(clueId)) {
+    showToast('NO ROUTE SHIFT EVIDENCE IN RANGE', C.rust, 1100);
+    return false;
+  }
+  const current = route.conditionFor(routeNetworkState, 'rootline-west');
+  if (current === 'shifted') {
+    showToast('ROOTLINE WEST // SHIFT ALREADY CHARTED', C.scioto, 1000);
+    return false;
+  }
+  if (current === 'closed') {
+    showToast('ROOTLINE WEST // CLOSED', C.rust, 1000);
+    return false;
+  }
+  routeNetworkState = route.setCondition(routeNetworkState, 'rootline-west', 'shifted');
+  routeNetworkState = route.recordPrecedent(routeNetworkState, 'LOCAL_ROUTE_ASSISTANCE');
+  activeRouteAssistId = null;
+  window._routeNetworkState = routeNetworkState;
+  window._activeRouteAssistId = activeRouteAssistId;
+  showToast('ROOTLINE WEST // SHIFT RECHARTED', C.teal, 1700);
+  return true;
+}
+
 function enterAirNavigation() {
-  if (!ensureAirNavigationState()) return false;
+  if (!ensureAirNavigationState() || !ensureRouteNetworkState()) return false;
   gameState = STATE.AIRSHIP;
   window.gameState = gameState;
   prevState = null;
@@ -2012,16 +2062,60 @@ function handleAirNavigationInput() {
   if (keysPressed[81]) { // Q
     airNavigationState = nav.changeAltitude(airNavigationState, -1);
     showToast('ALTITUDE // ' + airNavigationState.altitude.toUpperCase(), C.scioto, 900);
+    scanNearbyRouteClues();
   }
   if (keysPressed[69]) { // E
     airNavigationState = nav.changeAltitude(airNavigationState, 1);
     showToast('ALTITUDE // ' + airNavigationState.altitude.toUpperCase(), C.scioto, 900);
+    scanNearbyRouteClues();
   }
   if (keysPressed[68]) { // D
     const result = nav.dock(airNavigationState);
     airNavigationState = result.state;
-    if (result.ok) showToast('MOORED // ' + result.landmark.label, C.teal, 1200);
-    else showToast('NO STABLE BERTH IN RANGE', C.rust, 1000);
+    activeRouteAssistId = null;
+    window._activeRouteAssistId = activeRouteAssistId;
+    if (result.ok) {
+      const reported = result.landmark.id === 'wake-dock' &&
+        routeNetworkState &&
+        routeNetworkState.precedents.includes('LOCAL_ROUTE_ASSISTANCE');
+      showToast(
+        reported ? 'WAKE DOCK // ROOTLINE REPORT ACKNOWLEDGED' : 'MOORED // ' + result.landmark.label,
+        C.teal,
+        reported ? 1600 : 1200
+      );
+    } else {
+      showToast('NO STABLE BERTH IN RANGE', C.rust, 1000);
+    }
+  }
+
+  if (keysPressed[82]) { // R — deliberately engage/disengage bounded lane assist
+    if (activeRouteAssistId) {
+      activeRouteAssistId = null;
+      window._activeRouteAssistId = activeRouteAssistId;
+      showToast('LANE ASSIST // DISENGAGED', C.scioto, 900);
+    } else {
+      const context = nav.routeContext(airNavigationState);
+      if (!context.onRoute || !context.discovered || !context.route ||
+          context.route.id !== 'rootline-west') {
+        showToast('LANE ASSIST // ROOTLINE WEST NOT ACQUIRED', C.rust, 1100);
+      } else {
+        const condition = window.AetherRouteNetworkState.conditionFor(
+          routeNetworkState,
+          context.route.id
+        );
+        if (condition === 'shifted' || condition === 'closed') {
+          showToast('LANE ASSIST // ROUTE ' + condition.toUpperCase(), C.rust, 1100);
+        } else {
+          activeRouteAssistId = context.route.id;
+          window._activeRouteAssistId = activeRouteAssistId;
+          showToast('LANE ASSIST // ROOTLINE WEST ENGAGED', C.teal, 1100);
+        }
+      }
+    }
+  }
+
+  if (keysPressed[70]) { // F — confirm the bounded upper-trace interpretation
+    confirmRootlineShift();
   }
 
   let dx = 0, dy = 0;
@@ -2035,7 +2129,33 @@ function handleAirNavigationInput() {
       airNavigationState = nav.undock(airNavigationState);
       showToast('CAST OFF // OPEN SKY', C.scioto, 800);
     }
-    airNavigationState = nav.move(airNavigationState, dx, dy);
+    const routeFactor = activeRouteAssistId
+      ? window.AetherRouteNetworkState.travelFactor(
+          airNavigationState,
+          routeNetworkState,
+          dx,
+          dy,
+          activeRouteAssistId
+        )
+      : 1;
+    airNavigationState = nav.move(airNavigationState, dx * routeFactor, dy * routeFactor);
+    scanNearbyRouteClues();
+
+    if (activeRouteAssistId) {
+      const afterContext = nav.routeContext(airNavigationState);
+      const afterCondition = window.AetherRouteNetworkState.conditionFor(
+        routeNetworkState,
+        activeRouteAssistId
+      );
+      if (!afterContext.onRoute || !afterContext.discovered || !afterContext.route ||
+          afterContext.route.id !== activeRouteAssistId ||
+          afterCondition === 'shifted' || afterCondition === 'closed') {
+        activeRouteAssistId = null;
+        window._activeRouteAssistId = activeRouteAssistId;
+        showToast('LANE ASSIST // RELEASED TO FREE FLIGHT', C.scioto, 900);
+      }
+    }
+
     const encounter = nav.encounterCheck(airNavigationState);
     airNavigationState = encounter.state;
     if (encounter.triggered) {
@@ -2083,12 +2203,22 @@ function drawAirNavigationScene() {
       });
     }
 
+    const routeId = travel.route && travel.route.route ? travel.route.route.id : null;
+    const routeCondition = routeId && routeNetworkState
+      ? window.AetherRouteNetworkState.conditionFor(routeNetworkState, routeId)
+      : null;
+
     visual.drawRouteOverlay({
       width,
       height,
       state: airNavigationState,
       travel,
       nav,
+      routeCondition,
+      routeAssistActive: Boolean(routeId && activeRouteAssistId === routeId),
+      routeClueNearby: routeNetworkState
+        ? window.AetherRouteNetworkState.cluesAt(airNavigationState).length > 0
+        : false,
     });
 
     visual.drawLandmarkBeacons({
@@ -2116,7 +2246,7 @@ function drawAirNavigationScene() {
     width / 2, height / 2 + 8
   );
   textSize(10);
-  text('ARROWS steer  Q/E altitude  D dock  L/Esc land', width / 2, height / 2 + 32);
+  text('ARROWS steer  Q/E altitude  D dock  R lane assist  F chart  L/Esc land', width / 2, height / 2 + 32);
   textAlign(LEFT, BASELINE);
 }
 
