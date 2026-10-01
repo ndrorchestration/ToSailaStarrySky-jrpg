@@ -111,8 +111,8 @@ for (const marker of [
   "String(ctx.routeCondition || 'open').toUpperCase()",
   "ctx.routeAssistActive ? ' // ASSIST' : ''",
   'TRACE IN RANGE // F CHART',
-  'R lane',
-  'F chart',
+  'R  lane assist',
+  'F  chart trace',
 ]) {
   assert(visual.includes(marker), 'Rootline HUD binding missing: ' + marker);
 }
