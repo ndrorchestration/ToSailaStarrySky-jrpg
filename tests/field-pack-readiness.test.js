@@ -48,7 +48,7 @@ assert(source.includes("gitText(['status', '--porcelain'])"),
   'admission transition must inspect worktree cleanliness/content');
 assert(source.includes('UNBOUNDED_REVIEWED_WORKTREE'),
   'reviewed-head pre-commit state must reject unrelated dirty paths');
-assert(source.includes('/^[0-9a-f]{40}$/i.test(runtime.exactHead)'),
+assert(source.includes("typeof reviewedHead !== 'string' || !/^[0-9a-f]{40}$/i.test(reviewedHead)"),
   'runtime evidence must bind a full 40-character exact commit SHA');
 assert(source.includes('--require-complete') && source.includes('--require-ready') && source.includes('--require-evidence'),
   'validator must separate pre-promotion completeness from post-promotion admission');
