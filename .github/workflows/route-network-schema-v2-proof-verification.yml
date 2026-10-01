@@ -1,0 +1,30 @@
+name: Route network schema v2 design proof
+
+on:
+  push:
+    branches:
+      - verify/route-network-schema-v2-proof-2026-10-01
+  pull_request:
+    branches:
+      - proof/route-network-schema-v2-2026-10-01
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout verification head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Verify route-network schema v2 design proof
+        run: npm run test:route-network-schema-v2-proof
+
+      - name: Verify existing air-navigation authority
+        run: npm run test:air-navigation
