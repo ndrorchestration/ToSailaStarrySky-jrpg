@@ -12,7 +12,15 @@ $gitHead = (git rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or -not $gitHead) {
   throw "Unable to resolve Git HEAD. Run from an authenticated Git checkout."
 }
-$gitBranch = (git branch --show-current).Trim()
+$gitBranchOutput = @(git branch --show-current)
+if ($LASTEXITCODE -ne 0) {
+  throw "Unable to resolve Git branch state."
+}
+$gitBranch = if ($gitBranchOutput.Count -gt 0 -and $null -ne $gitBranchOutput[0]) {
+  ([string]$gitBranchOutput[0]).Trim()
+} else {
+  ""
+}
 if (-not $gitBranch) { $gitBranch = "DETACHED" }
 
 $status = @(git status --porcelain --untracked-files=all)

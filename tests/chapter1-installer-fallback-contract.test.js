@@ -9,6 +9,22 @@ function fail(message) {
   process.exit(1);
 }
 
+const buildScript = fs.readFileSync(
+  path.join(__dirname, '..', 'scripts', 'build-chapter1-windows.ps1'),
+  'utf8'
+);
+
+if (buildScript.includes('(git branch --show-current).Trim()')) {
+  fail('Chapter 1 Windows builder must not call Trim directly on a possibly empty detached-HEAD branch result');
+}
+for (const required of [
+  '$gitBranchOutput = @(git branch --show-current)',
+  'if ($gitBranchOutput.Count -gt 0 -and $null -ne $gitBranchOutput[0])',
+  'if (-not $gitBranch) { $gitBranch = "DETACHED" }',
+]) {
+  if (!buildScript.includes(required)) fail('missing detached-HEAD builder contract: ' + required);
+}
+
 const scriptPath = path.join(__dirname, '..', 'scripts', 'resume-chapter1-installer-tail.ps1');
 const script = fs.readFileSync(scriptPath, 'utf8');
 
