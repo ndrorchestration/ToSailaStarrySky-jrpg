@@ -245,3 +245,80 @@ jobs:
             Aetherwake-Setup.exe
             Aetherwake-Windows.zip
             SHA256SUMS.txt
+
+
+  repair-current-chapter1-release-tag:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'verify/repair-chapter1-release-tag-2026-10-01' && github.actor != 'github-actions[bot]'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SOURCE_SHA: 7a32497dc7aa1bc664999d24e5d3a90d46c17201
+      EXPECTED_WRONG_SHA: e67b684a9463b6b9c6384ab831dd20fd85b0e070
+      RELEASE_TAG: aetherwake-chapter1-7a32497dc7aa1bc664999d24e5d3a90d46c17201
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout verification head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Verify verification-only delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t delta < <(git diff --name-only "$SOURCE_SHA" HEAD)
+          test "${#delta[@]}" -eq 1
+          test "${delta[0]}" = ".github/workflows/desktop-package.yml"
+          git cat-file -e "$SOURCE_SHA^{commit}"
+
+      - name: Verify current defective tag and exact release evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$(git ls-remote origin "refs/tags/$RELEASE_TAG" | awk '{print $1}')"
+          test "$current" = "$EXPECTED_WRONG_SHA"
+          rm -rf tag-repair-evidence
+          mkdir tag-repair-evidence
+          gh release download "$RELEASE_TAG"             --pattern CHAPTER1_RELEASE_EVIDENCE.json             --dir tag-repair-evidence
+          node - <<'NODE'
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync('tag-repair-evidence/CHAPTER1_RELEASE_EVIDENCE.json','utf8'));
+          const source = process.env.SOURCE_SHA;
+          if (p.sourceCommit !== source || p.releaseToolCommit !== source) {
+            throw new Error('Release evidence source binding mismatch');
+          }
+          if (p.acceptance !== 'TECHNICAL_CANDIDATE_PLAYER_ACCEPTANCE_PENDING') {
+            throw new Error('Release evidence crossed player-acceptance boundary');
+          }
+          if (p.chapter1Core !== 'PASS' || p.chapter1Visual !== 'PASS' ||
+              p.chapter1BrowserRoute !== 'PASS' || p.installerInstall !== 'PASS' ||
+              p.installerSaveCloseRelaunchContinue !== 'PASS' ||
+              p.windowsSaveCloseRelaunchContinue !== 'PASS') {
+            throw new Error('Release evidence is not technically complete');
+          }
+          NODE
+
+      - name: Repair prerelease tag and release target
+        shell: bash
+        run: |
+          set -euo pipefail
+          git tag -f "$RELEASE_TAG" "$SOURCE_SHA"
+          git push --force origin "refs/tags/$RELEASE_TAG"
+          gh release edit "$RELEASE_TAG" --target "$SOURCE_SHA"
+
+      - name: Verify repaired provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="$(git ls-remote origin "refs/tags/$RELEASE_TAG" | awk '{print $1}')"
+          test "$remote" = "$SOURCE_SHA"
+          target="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" --jq '.target_commitish')"
+          test "$target" = "$SOURCE_SHA"
+          asset_source="$(gh release download "$RELEASE_TAG" --pattern CHAPTER1_RELEASE_EVIDENCE.json --output - | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>process.stdout.write(JSON.parse(s).sourceCommit))")"
+          test "$asset_source" = "$SOURCE_SHA"
+          echo "CHAPTER1_RELEASE_TAG_SOURCE=$remote"
+          echo "CHAPTER1_RELEASE_TARGET_COMMITISH=$target"
+          echo "CHAPTER1_RELEASE_TAG_REPAIR=PASS"
