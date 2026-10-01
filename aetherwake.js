@@ -2220,6 +2220,14 @@ function drawAirNavigationScene() {
       routeCondition !== 'shifted' &&
       routeCondition !== 'closed'
     );
+    const routeClueActionAvailable = Boolean(
+      routeNetworkState &&
+      routeCondition !== 'shifted' &&
+      routeCondition !== 'closed' &&
+      window.AetherRouteNetworkState.cluesAt(airNavigationState).some(
+        clue => routeNetworkState.discoveredClues.includes(clue.id)
+      )
+    );
 
     visual.drawRouteOverlay({
       width,
@@ -2230,9 +2238,7 @@ function drawAirNavigationScene() {
       routeCondition,
       routeAssistAvailable,
       routeAssistActive: Boolean(routeId && activeRouteAssistId === routeId),
-      routeClueNearby: routeNetworkState
-        ? window.AetherRouteNetworkState.cluesAt(airNavigationState).length > 0
-        : false,
+      routeClueActionAvailable,
     });
 
     visual.drawLandmarkBeacons({
