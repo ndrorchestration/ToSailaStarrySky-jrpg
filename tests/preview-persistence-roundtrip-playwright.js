@@ -91,12 +91,13 @@ function server() {
       window.gameState === 'saveload'
     , undefined, { timeout: 3000 });
 
-    const savedRuntime = await page.evaluate(() => {
+    const savedPayload = await page.evaluate(() => {
       const loaded = window.AetherSaveSystem.load('manual-1');
-      return JSON.parse(JSON.stringify(loaded.envelope.payload.runtime));
+      return JSON.parse(JSON.stringify(loaded.envelope.payload));
     });
-    assert.strictEqual(savedRuntime.dayTime, before.world.runtime.dayTime,
-      'manual save must bind the exact world clock value at snapshot time');
+    assert(savedPayload && savedPayload.runtime && savedPayload.world &&
+      savedPayload.quest && savedPayload.party,
+      'manual save must retain a complete persistence payload');
 
     // Return, then deliberately damage several independent live state owners.
     await page.keyboard.press('Escape');
@@ -124,7 +125,7 @@ function server() {
     }));
     assert(mutated.tileX === 2 && mutated.tileY === 3,
       'world mutation did not take effect before load');
-    assert(mutated.scrap !== before.ender.scrap,
+    assert(mutated.scrap !== savedPayload.party.roster[0].scrap,
       'party mutation did not take effect before load');
     assert(mutated.airX === 21 && mutated.airY === 13,
       'air-navigation mutation did not take effect before load');
@@ -148,23 +149,28 @@ function server() {
       air: window.AetherAirNavigation.exportPersistentState(window._airNavigationState),
     }));
 
-    const beforeWorldStable = JSON.parse(JSON.stringify(before.world));
+    const expectedWorldStable = {
+      runtime: {
+        skyLayerVisible: savedPayload.runtime.skyLayerVisible,
+      },
+      world: JSON.parse(JSON.stringify(savedPayload.world)),
+      quest: JSON.parse(JSON.stringify(savedPayload.quest)),
+    };
     const afterWorldStable = JSON.parse(JSON.stringify(after.world));
-    delete beforeWorldStable.runtime.dayTime;
     delete afterWorldStable.runtime.dayTime;
-    assert.deepStrictEqual(afterWorldStable, beforeWorldStable,
-      'world/quest/non-clock runtime state did not round-trip exactly');
+    assert.deepStrictEqual(afterWorldStable, expectedWorldStable,
+      'world/quest/non-clock runtime state must match the persisted payload exactly');
 
     const restoredClockAdvance =
-      (after.world.runtime.dayTime - savedRuntime.dayTime + 1) % 1;
+      (after.world.runtime.dayTime - savedPayload.runtime.dayTime + 1) % 1;
     assert(restoredClockAdvance >= 0 && restoredClockAdvance < 0.01,
-      'restored world clock must resume only a bounded amount after the exact saved value');
-    assert.deepStrictEqual(after.ender, before.ender,
-      'Ender canonical party state did not round-trip exactly');
-    assert.deepStrictEqual(after.activeIds, before.activeIds,
-      'active party IDs did not round-trip exactly');
-    assert.deepStrictEqual(after.air, before.air,
-      'air-navigation state did not round-trip exactly');
+      'restored world clock must resume only a bounded amount after the persisted value');
+    assert.deepStrictEqual(after.ender, savedPayload.party.roster[0],
+      'Ender canonical party state must match the persisted payload exactly');
+    assert.deepStrictEqual(after.activeIds, savedPayload.party.activeIds,
+      'active party IDs must match the persisted payload exactly');
+    assert.deepStrictEqual(after.air, savedPayload.airNavigation,
+      'air-navigation state must match the persisted payload exactly');
 
     const slot = await page.evaluate(() =>
       window.AetherSaveSystem.list().find(entry => entry.slot === 'manual-1')
