@@ -7,9 +7,9 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
 
-assert(runtime.includes("showToast('T // QUEST LOG   E // TALK   R // CHARACTER'"),
+assert(runtime.includes("showToast('WASD / ARROWS // MOVE   E // TALK   T // QUEST LOG'"),
   'world-entry controls onboarding missing');
-assert(runtime.includes("FOLLOW THE TEAL SIGNAL MARKERS // FIND 3 HOOKS"),
+assert(runtime.includes("showToast('THE WAKE IS YOURS TO EXPLORE // E TO INSPECT'"),
   'world-entry first objective onboarding missing');
 assert(runtime.includes("if (keysPressed[84])"),
   'T quest-log input binding missing');
