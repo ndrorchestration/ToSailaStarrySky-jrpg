@@ -110,7 +110,7 @@ assert(runtime.includes('activeRouteAssistId = null;') &&
 const visual = fs.readFileSync(path.join(__dirname, '..', 'modules', 'flight-visual-stage.js'), 'utf8');
 for (const marker of [
   "String(ctx.routeCondition || 'open').toUpperCase()",
-  "ctx.routeAssistActive ? ' // ASSIST' : ''",
+  "ctx.routeAssistActive ? ' // ASSIST ENGAGED' : ''",
   'UPPER TRACE // F CHART',
   'R  engage lane',
   'R  release lane',
