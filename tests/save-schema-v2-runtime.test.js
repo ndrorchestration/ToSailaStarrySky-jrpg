@@ -51,7 +51,8 @@ for (const marker of [
   "throw new Error('AETHER_ROUTE_NETWORK_STATE_UNAVAILABLE')",
   'window._routeNetworkState = routeNetworkState;',
   'window.AetherRouteNetworkState.exportPersistentState(routeNetworkState)',
-  'window.AetherRouteNetworkState.restorePersistentState(payload.routeNetwork)',
+  'window.AetherRouteNetworkState.restorePersistentState(',
+  'payload.routeNetwork',
   'validateRouteNetwork(candidate)',
   'preparedRouteNetwork',
 ]) {
