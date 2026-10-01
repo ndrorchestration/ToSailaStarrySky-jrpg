@@ -223,7 +223,8 @@ for (const expected of [
   'world.restorePersistentState(prepared.preparedWorld, payload.runtime);',
   'window.AetherPartyState.setActivePartyIds(prepared.preparedActiveIds);',
   'window.AetherAirNavigation.restorePersistentState(payload.airNavigation)',
-  'window.AetherRouteNetworkState.restorePersistentState(payload.routeNetwork)',
+  'window.AetherRouteNetworkState.restorePersistentState(',
+  'payload.routeNetwork',
 ]) {
   assert(runtimeSource.includes(expected),
     'production persistence coordinator lost binding: ' + expected);
