@@ -412,7 +412,12 @@
     textFont('Segoe UI Semibold');
     textSize(7);
     fill(232, 220, 198, 138);
-    text('Q / E altitude   D dock   R lane   F chart', w / 2, h - 16);
+    text('Q / E  altitude     D  dock', w / 2, h - 16);
+    if (travel.route && travel.route.route && (ctx.routeAssistActive || ctx.routeClueNearby)) {
+      textAlign(RIGHT, BOTTOM);
+      fill(232, 220, 198, 150);
+      text(ctx.routeClueNearby ? 'F  chart trace' : 'R  lane assist', w - 24, h - 16);
+    }
     textAlign(LEFT, TOP);
   }
 
