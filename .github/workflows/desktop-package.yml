@@ -245,3 +245,82 @@ jobs:
             Aetherwake-Setup.exe
             Aetherwake-Windows.zip
             SHA256SUMS.txt
+
+
+  build-current-chapter1-candidate-r5:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'verify/chapter1-current-windows-candidate-r5-2026-10-01' && github.actor != 'github-actions[bot]'
+    permissions:
+      contents: write
+    runs-on: windows-2022
+    timeout-minutes: 45
+    env:
+      SOURCE_SHA: 7a32497dc7aa1bc664999d24e5d3a90d46c17201
+    steps:
+      - name: Checkout verification head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Verify verification-only delta
+        shell: pwsh
+        run: |
+          $delta = @(git diff --name-only "$env:SOURCE_SHA" HEAD)
+          if ($LASTEXITCODE -ne 0) { throw "Unable to compare verification head with source." }
+          if ($delta.Count -ne 1 -or $delta[0] -ne ".github/workflows/desktop-package.yml") {
+            throw "Verification branch contains non-workflow delta: $($delta -join ', ')"
+          }
+          git checkout --detach $env:SOURCE_SHA
+          if ((git rev-parse HEAD).Trim() -ne $env:SOURCE_SHA) { throw "Exact source checkout failed." }
+          if (@(git status --porcelain --untracked-files=all).Count -gt 0) { throw "Exact source checkout is not clean." }
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Build and verify exact Chapter 1 Windows candidate
+        shell: pwsh
+        run: npm run build:chapter1:windows
+
+      - name: Re-verify release evidence
+        shell: pwsh
+        run: npm run verify:chapter1:release-evidence -- .\chapter1-release
+
+      - name: Bind publication inputs
+        id: candidate
+        shell: pwsh
+        run: |
+          $root = Join-Path $PWD "chapter1-release"
+          $zip = Get-ChildItem -LiteralPath $root -Filter "Aetherwake-Chapter1-*-Windows.zip" -File | Select-Object -First 1
+          $installer = Get-ChildItem -LiteralPath $root -Filter "Aetherwake-Chapter1-*-Setup.exe" -File | Select-Object -First 1
+          $evidence = Join-Path $root "CHAPTER1_RELEASE_EVIDENCE.json"
+          $hashes = Join-Path $root "SHA256SUMS.txt"
+          if (-not $zip -or -not $installer -or -not (Test-Path $evidence) -or -not (Test-Path $hashes)) {
+            throw "Verified Chapter 1 candidate outputs are incomplete."
+          }
+          $data = Get-Content -LiteralPath $evidence -Raw | ConvertFrom-Json
+          if ($data.sourceCommit -ne $env:SOURCE_SHA) { throw "Release evidence sourceCommit mismatch." }
+          if ($data.acceptance -ne "TECHNICAL_CANDIDATE_PLAYER_ACCEPTANCE_PENDING") {
+            throw "Release evidence crossed the player-acceptance boundary."
+          }
+          "zip=$($zip.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "installer=$($installer.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "evidence=$evidence" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "hashes=$hashes" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Get-Content -LiteralPath $evidence
+          Get-Content -LiteralPath $hashes
+
+      - name: Publish exact technical candidate prerelease
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        with:
+          tag_name: aetherwake-chapter1-${{ env.SOURCE_SHA }}
+          name: Aetherwake Chapter 1 Candidate ${{ env.SOURCE_SHA }}
+          prerelease: true
+          generate_release_notes: false
+          files: |
+            ${{ steps.candidate.outputs.zip }}
+            ${{ steps.candidate.outputs.installer }}
+            ${{ steps.candidate.outputs.evidence }}
+            ${{ steps.candidate.outputs.hashes }}
