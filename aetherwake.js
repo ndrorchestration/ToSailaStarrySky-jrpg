@@ -408,6 +408,7 @@ function captureLiveRuntimeForLoadRollback() {
       previewEncounterStarted,
       previewEncounterFinished,
       previewEndAt,
+      activeRouteAssistId,
     },
   };
 }
@@ -456,6 +457,8 @@ function restoreLiveRuntimeAfterFailedLoad(snapshot) {
   previewEncounterStarted = snapshot.runtime.previewEncounterStarted;
   previewEncounterFinished = snapshot.runtime.previewEncounterFinished;
   previewEndAt = snapshot.runtime.previewEndAt;
+  activeRouteAssistId = snapshot.runtime.activeRouteAssistId || null;
+  window._activeRouteAssistId = activeRouteAssistId;
   gameState = snapshot.runtime.gameState;
   window.gameState = gameState;
   prevState = snapshot.runtime.prevState;
@@ -498,6 +501,8 @@ function applySaveEnvelope(envelope) {
     previewEncounterStarted = false;
     previewEncounterFinished = false;
     previewEndAt = 0;
+    activeRouteAssistId = null;
+    window._activeRouteAssistId = activeRouteAssistId;
     gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
     window.gameState = gameState;
     prevState = null;
