@@ -90,3 +90,13 @@ For unresolved equipment, the system deliberately fails closed:
 - starter item names and numerical stats are marked provisional/open rather than silently canonized.
 
 Ender's staff record explicitly sets `magicRequirement:false` and links to `docs/ENDER_STARTER_STAFF_PRODUCTION_BRIEF.md`.
+
+
+## Weapon mastery proposal boundary — 2026-10-01
+
+A refreshed design-only weapon-technique progression proposal is recorded in:
+`docs/WEAPON_MASTERY_ARCHITECTURE_PROPOSAL.md`.
+
+It preserves the useful Rank 1–5 weapon-mastery concept from historical PR #144 while keeping it explicitly **PROPOSAL / NOT RUNTIME AUTHORITY**.
+
+This link does not change the locked starting weapon identities, authorize job/class permissions, define auto-equip scoring, or admit weapon mastery into the current runtime.
