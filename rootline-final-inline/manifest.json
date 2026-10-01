@@ -1,0 +1,32 @@
+{
+  "contract": "ROOTLINE_FINAL_INLINE_V1",
+  "runtimeSourceSha": "503ef836c1c0b4e7a08fe6e44a5b902576354c41",
+  "verificationChildOnly": true,
+  "transport": "960x640 JPEG quality 88 encoded as Base64 text",
+  "frames": [
+    {
+      "id": "05a0-rootline-west-available",
+      "jpegSha256": "abeae9458a0c739196c64352163c2cd983589aefb8691f100097b41f885a16cd",
+      "jpegBytes": 253033,
+      "base64File": "05a0-rootline-west-available.b64.txt"
+    },
+    {
+      "id": "05a-rootline-west-assist",
+      "jpegSha256": "95612e976bc1232284edf3d805033b5caac1bc87410a58397654a9f7cd21621b",
+      "jpegBytes": 253097,
+      "base64File": "05a-rootline-west-assist.b64.txt"
+    },
+    {
+      "id": "05b-rootline-west-upper-trace",
+      "jpegSha256": "c4e9dd80985e6b715cf08cb310e193c1690310614edbbcb4dd144d3bd17ad128",
+      "jpegBytes": 253649,
+      "base64File": "05b-rootline-west-upper-trace.b64.txt"
+    },
+    {
+      "id": "05c-rootline-west-shifted",
+      "jpegSha256": "169654b4e47a26be350ddcc3e1b5df7a635e18799b017fcc949584d10cb11dc3",
+      "jpegBytes": 253056,
+      "base64File": "05c-rootline-west-shifted.b64.txt"
+    }
+  ]
+}
