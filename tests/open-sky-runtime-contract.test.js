@@ -23,8 +23,10 @@ assert(runtime.includes('function drawAirNavigationScene()'),
   'flight renderer missing');
 assert(runtime.includes('nav.undock(airNavigationState)'),
   'moored movement does not cast off');
-assert(runtime.includes('nav.move(airNavigationState, dx, dy)'),
-  'navigation movement not bound');
+assert(runtime.includes('const routeFactor = activeRouteAssistId'),
+  'route-aware navigation factor is not bound');
+assert(runtime.includes('nav.move(airNavigationState, dx * routeFactor, dy * routeFactor)'),
+  'route-aware navigation movement not bound');
 assert(runtime.includes('nav.changeAltitude(airNavigationState'),
   'altitude controls not bound');
 assert(runtime.includes('nav.dock(airNavigationState)'),
