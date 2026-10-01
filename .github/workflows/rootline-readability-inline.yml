@@ -1,0 +1,100 @@
+name: Rootline readability inline evidence
+
+on:
+  push:
+    branches:
+      - verify/rootline-readability-inline-2026-10-01
+
+permissions:
+  contents: write
+
+jobs:
+  capture-review:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SOURCE_SHA: b634e59a5dbcf739f0753d69e8862f98ab1f9173
+    steps:
+      - name: Checkout verification child
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 2
+
+      - name: Verify runtime tree equivalence
+        run: |
+          test "$(git rev-parse HEAD^)" = "$SOURCE_SHA"
+          test "$(git diff --name-only "$SOURCE_SHA" HEAD)" = ".github/workflows/rootline-readability-inline.yml"
+          git diff --exit-code "$SOURCE_SHA" HEAD -- . ':(exclude).github/workflows/rootline-readability-inline.yml'
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify capture contract
+        run: npm run test:visual-evidence-contract
+
+      - name: Capture source-equivalent visual evidence
+        env:
+          AETHERWAKE_SOURCE_SHA: ${{ env.SOURCE_SHA }}
+        run: npm run capture:visual-evidence
+
+      - name: Prepare four review previews
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir Pillow==12.3.0
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import base64, hashlib, json
+
+          source_sha = "b634e59a5dbcf739f0753d69e8862f98ab1f9173"
+          ids = [
+              "05a0-rootline-west-available",
+              "05a-rootline-west-assist",
+              "05b-rootline-west-upper-trace",
+              "05c-rootline-west-shifted",
+          ]
+          out = Path("rootline-readability-inline")
+          out.mkdir(exist_ok=True)
+          manifest = {
+              "contract": "ROOTLINE_READABILITY_INLINE_V1",
+              "runtimeSourceSha": source_sha,
+              "verificationChildOnly": True,
+              "transport": "960x640 JPEG quality 88 encoded as Base64 text",
+              "frames": [],
+          }
+          for frame_id in ids:
+              src = Path("visual-evidence") / f"{frame_id}.png"
+              if not src.exists():
+                  raise SystemExit(f"missing frame: {src}")
+              img = Image.open(src).convert("RGB").resize((960, 640), Image.Resampling.LANCZOS)
+              jpg = out / f"{frame_id}.jpg"
+              img.save(jpg, "JPEG", quality=88, optimize=True)
+              data = jpg.read_bytes()
+              txt = out / f"{frame_id}.b64.txt"
+              txt.write_text(base64.b64encode(data).decode("ascii") + "\n", encoding="ascii")
+              manifest["frames"].append({
+                  "id": frame_id,
+                  "jpegSha256": hashlib.sha256(data).hexdigest(),
+                  "jpegBytes": len(data),
+                  "base64File": txt.name,
+              })
+              jpg.unlink()
+          (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Commit review transport
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rootline-readability-inline/
+          git commit -m "evidence: inline Rootline readability previews [verification only]"
+          git push origin HEAD:verify/rootline-readability-inline-2026-10-01
