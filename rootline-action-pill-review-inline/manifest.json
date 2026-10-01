@@ -1,0 +1,32 @@
+{
+  "contract": "ROOTLINE_ACTION_PILL_REVIEW_V1",
+  "runtimeSourceSha": "52cbe6ba38d50954e6a1eb1dca20ae91bc118e60",
+  "verificationChildOnly": true,
+  "transport": "720x480 JPEG quality 78 encoded as Base64 text",
+  "frames": [
+    {
+      "id": "05a0-rootline-west-available",
+      "jpegSha256": "3f0edd14b509475b0284c42edbb7fbe9f76f6c10df8936724f98b6ae848ed55b",
+      "jpegBytes": 107614,
+      "base64File": "05a0-rootline-west-available.b64.txt"
+    },
+    {
+      "id": "05a-rootline-west-assist",
+      "jpegSha256": "a6c0e50762d668100fbe528dcb01ee1c561566681f1b0a68f37d773a255ca07d",
+      "jpegBytes": 107810,
+      "base64File": "05a-rootline-west-assist.b64.txt"
+    },
+    {
+      "id": "05b-rootline-west-upper-trace",
+      "jpegSha256": "2c2c2b4cf60275290d47a6e0d4a3a907358301f908e9b702e1a6355a58dabc7a",
+      "jpegBytes": 107951,
+      "base64File": "05b-rootline-west-upper-trace.b64.txt"
+    },
+    {
+      "id": "05c-rootline-west-shifted",
+      "jpegSha256": "d6a90e15ea8ca88dfbb7a33fad44dace9c0568375d3b927d08b09915ddfd2d37",
+      "jpegBytes": 107721,
+      "base64File": "05c-rootline-west-shifted.b64.txt"
+    }
+  ]
+}
