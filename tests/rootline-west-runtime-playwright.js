@@ -98,7 +98,9 @@ async function reachMenu(page) {
   try {
     const initial = makeStartingV1Envelope();
     await page.addInitScript(({ key, value }) => {
-      window.localStorage.setItem(key, value);
+      if (window.localStorage.getItem(key) === null) {
+        window.localStorage.setItem(key, value);
+      }
     }, { key: STORAGE_KEY, value: JSON.stringify(initial) });
 
     let response = await page.goto('http://127.0.0.1:' + PORT + '/index-embedded.html',
