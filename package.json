@@ -108,7 +108,7 @@
     "test:wake-transition-pacing": "node tests/wake-transition-pacing.test.js",
     "test:chapter1-opening-pacing": "node tests/chapter1-opening-pacing.test.js",
     "build:preview:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\build-preview-windows.ps1",
-    "test:persistence-foundation": "node tests/save-system-contract.test.js && node tests/save-payload-validator.test.js && node tests/save-interrupted-write.test.js && node tests/preview-persistence-runtime-seam.test.js && node tests/preview-persistence-snapshot-contract.test.js && node tests/chapter1-persistence-ux.test.js && node tests/preview-persistence-roundtrip-node.test.js && npm run test:persistence-semantic-backup && npm run test:persistence-transactional-load",
+    "test:persistence-foundation": "node tests/save-system-contract.test.js && node tests/save-payload-validator.test.js && node tests/save-interrupted-write.test.js && node tests/preview-persistence-runtime-seam.test.js && node tests/preview-persistence-snapshot-contract.test.js && node tests/chapter1-persistence-ux.test.js && node tests/preview-persistence-roundtrip-node.test.js && npm run test:persistence-semantic-backup && npm run test:persistence-transactional-load && npm run test:route-network-state && npm run test:save-schema-v2-runtime",
     "test:persistence-roundtrip": "node tests/preview-persistence-roundtrip-playwright.js",
     "test:persistence-roundtrip:node": "node tests/preview-persistence-roundtrip-node.test.js",
     "test:chapter1-convergence": "node tests/chapter1-convergence-contract.test.js",
@@ -178,6 +178,8 @@
     "test:equipment-system": "node tests/equipment-system.test.js",
     "test:protagonist-likeness": "node tests/protagonist-likeness-authority.test.js",
     "test:persistence-semantic-backup": "node tests/persistence-semantic-backup-contract.test.js",
-    "test:persistence-transactional-load": "node tests/persistence-transactional-load-contract.test.js"
+    "test:persistence-transactional-load": "node tests/persistence-transactional-load-contract.test.js",
+    "test:route-network-state": "node tests/route-network-state.test.js",
+    "test:save-schema-v2-runtime": "node tests/save-schema-v2-runtime.test.js"
   }
 }
