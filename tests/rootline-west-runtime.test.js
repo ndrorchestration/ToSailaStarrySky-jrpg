@@ -96,10 +96,15 @@ for (const marker of [
   'routeCondition,',
   'routeAssistAvailable,',
   'routeAssistActive:',
-  'routeClueNearby:',
+  'routeClueActionAvailable,',
 ]) {
   assert(runtime.includes(marker), 'Rootline runtime binding missing: ' + marker);
 }
+
+assert(runtime.includes('routeClueActionAvailable = Boolean(') &&
+       runtime.includes("routeCondition !== 'shifted'") &&
+       runtime.includes("routeCondition !== 'closed'"),
+  'Rootline trace action must disappear once the route is shifted or closed');
 
 assert(runtime.includes('routeNetwork: window.AetherRouteNetworkState && routeNetworkState'),
   'Rootline operational state must remain inside canonical schema-v2 persistence');
