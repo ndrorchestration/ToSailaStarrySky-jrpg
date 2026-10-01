@@ -202,7 +202,7 @@ for (const expected of [
   'window.AetherSaveSystem.save(',
   '{ preserveBackup }',
   'loadSemanticallyValidSaveCandidate(slot)',
-  'const applied = applySaveEnvelope(loaded.envelope);'
+  'const applied = applySaveEnvelope(loaded.envelope);',
   'world.restorePersistentState(prepared.preparedWorld, payload.runtime);',
   'window.AetherPartyState.setActivePartyIds(prepared.preparedActiveIds);',
   'window.AetherAirNavigation.restorePersistentState(payload.airNavigation)',
