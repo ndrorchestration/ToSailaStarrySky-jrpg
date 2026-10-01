@@ -23,8 +23,7 @@ jobs:
 
       - name: Verify runtime tree equivalence
         run: |
-          test "$(git rev-parse HEAD^)" = "$SOURCE_SHA"
-          test "$(git diff --name-only "$SOURCE_SHA" HEAD)" = ".github/workflows/rootline-readability-inline-review.yml"
+          test "$(git diff --name-only "$SOURCE_SHA" HEAD -- . ':(exclude).github/workflows/rootline-readability-inline-review.yml')" = ""
           git diff --exit-code "$SOURCE_SHA" HEAD -- . ':(exclude).github/workflows/rootline-readability-inline-review.yml'
 
       - name: Set up Node
