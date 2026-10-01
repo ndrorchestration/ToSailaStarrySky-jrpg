@@ -1,0 +1,40 @@
+name: Save schema v2 cross-version guard
+
+on:
+  push:
+    branches:
+      - feat/save-schema-v2-route-network-runtime-2026-10-01
+  pull_request:
+    branches:
+      - fix/persistence-transactional-load-rollback-v46-2026-10-01
+
+permissions:
+  contents: read
+
+jobs:
+  downgrade-guard:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout schema v2 candidate
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: current
+
+      - name: Checkout exact protected schema v1 baseline
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: de2e513f3b88813e2e69e3ccfc038227d4d1daaf
+          path: legacy-v1
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Verify v1 cannot overwrite v2
+        working-directory: current
+        run: node tests/save-schema-v2-downgrade-cross-version.test.js ../legacy-v1
+
+      - name: Verify production v2 persistence
+        working-directory: current
+        run: npm run test:persistence-foundation
