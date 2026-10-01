@@ -221,7 +221,7 @@ assert(mixedMeta && mixedMeta.valid === true,
   'mixed-version slot should remain loadable through its older backup');
 assert.strictEqual(mixedMeta.recoveredFromBackup, true);
 assert.strictEqual(mixedMeta.futureSchemaProtected, true);
-assert.strictEqual(mixedMeta.futureSchemaVersion, 2);
+assert.strictEqual(mixedMeta.futureSchemaVersion, 3);
 assert.strictEqual(mixedMeta.futureSchemaSource, 'primary');
 assert.throws(
   () => nwSave.save('manual-6', { value: 63 }, { gameVersion: '0.2.0' }),
@@ -283,6 +283,31 @@ assert.deepStrictEqual(migratedFixture.payload.routeNetwork, {
   discoveredClues: [],
   precedents: [],
 }, 'v1 migration must add a neutral route-network record');
+
+const fixtureV2 = JSON.parse(fs.readFileSync(
+  path.join(__dirname, 'fixtures', 'saves', 'schema-v2-manual-1.json'),
+  'utf8'
+));
+assert.strictEqual(base.validateEnvelope(fixtureV2), true,
+  'golden schema-v2 fixture must validate directly');
+assert.strictEqual(base.migrateEnvelope(fixtureV2).schemaVersion, 2,
+  'schema-v2 fixture must remain on schema v2');
+
+const pollutedV1 = JSON.parse(JSON.stringify(fixture));
+pollutedV1.payload.routeNetwork = {
+  persistenceVersion: 1,
+  operationalStates: {},
+  discoveredClues: [],
+  precedents: [],
+};
+const pollutedBody = { ...pollutedV1 };
+delete pollutedBody.checksum;
+pollutedV1.checksum = base.checksum(pollutedBody);
+assert.throws(
+  () => base.migrateEnvelope(pollutedV1),
+  /SAVE_MIGRATION_V1_ROUTE_NETWORK_UNEXPECTED/,
+  'schema-v1 migration must not silently reinterpret pre-existing routeNetwork data'
+);
 const future = JSON.parse(JSON.stringify(fixture));
 future.schemaVersion = 3;
 const futureBody = { ...future };
