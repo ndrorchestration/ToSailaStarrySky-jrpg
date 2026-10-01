@@ -13,7 +13,9 @@ for (const marker of [
   "key === 'c' || key === 'C'",
   'function requestAutosave(reason)',
   'function flushPendingAutosaveIfStable()',
-  "window.AetherSaveSystem.rotateAutosave(buildSavePayload(), saveMetadata())",
+  "window.AetherSaveSystem.rotateAutosave(",
+  "{ candidateResolver: loadSemanticallyValidSaveCandidate }",
+  "validateSavePayloadBeforeWrite(payload);",
   "requestAutosave('chapter-handoff')",
   "requestAutosave('quest-advance')",
   "requestAutosave('combat-resolution')",
@@ -27,6 +29,15 @@ assert(runtime.includes("['signal', 'crossing', 'contact', 'choice'].includes(qu
   'manual/autosave snapshot eligibility must reject WAKE/DONE');
 assert(/if \(!canSnapshotPersistentState\(\)\) \{\s*pendingAutosaveReason = null;/.test(runtime),
   'deferred autosave must discard non-persistable ending states cleanly');
+
+const autosaveStart = runtime.indexOf('function flushPendingAutosaveIfStable()');
+const autosaveEnd = runtime.indexOf('function saveMetadata()', autosaveStart);
+const autosaveFn = runtime.slice(autosaveStart, autosaveEnd);
+assert(autosaveFn.indexOf('validateSavePayloadBeforeWrite(payload);') <
+       autosaveFn.indexOf('window.AetherSaveSystem.rotateAutosave('),
+  'deferred autosave must semantic-preflight before rotating save slots');
+assert(autosaveFn.includes('{ candidateResolver: loadSemanticallyValidSaveCandidate }'),
+  'deferred autosave must classify existing slots through semantic recovery');
 
 const continueStart = runtime.indexOf('function continueLatestSave()');
 const continueEnd = runtime.indexOf('function requestAutosave(reason)', continueStart);
