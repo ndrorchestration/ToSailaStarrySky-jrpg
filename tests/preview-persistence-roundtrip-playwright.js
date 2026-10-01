@@ -165,8 +165,18 @@ function server() {
       (after.world.runtime.dayTime - savedPayload.runtime.dayTime + 1) % 1;
     assert(restoredClockAdvance >= 0 && restoredClockAdvance < 0.01,
       'restored world clock must resume only a bounded amount after the persisted value');
-    assert.deepStrictEqual(after.ender, savedPayload.party.roster[0],
-      'Ender canonical party state must match the persisted payload exactly');
+    const expectedEnderStable = JSON.parse(JSON.stringify(savedPayload.party.roster[0]));
+    const afterEnderStable = JSON.parse(JSON.stringify(after.ender));
+    const savedSolarCharge = expectedEnderStable.solarCharge;
+    const restoredSolarCharge = afterEnderStable.solarCharge;
+    delete expectedEnderStable.solarCharge;
+    delete afterEnderStable.solarCharge;
+    assert.deepStrictEqual(afterEnderStable, expectedEnderStable,
+      'Ender non-solar canonical party state must match the persisted payload exactly');
+    assert(Number.isFinite(savedSolarCharge) && Number.isFinite(restoredSolarCharge) &&
+      restoredSolarCharge >= savedSolarCharge &&
+      restoredSolarCharge - savedSolarCharge < 0.001,
+      'restored solar charge must resume only a bounded amount after the persisted value');
     assert.deepStrictEqual(after.activeIds, savedPayload.party.activeIds,
       'active party IDs must match the persisted payload exactly');
     assert.deepStrictEqual(after.air, savedPayload.airNavigation,
