@@ -84,7 +84,8 @@ if (script.includes('$zipHash = (Get-FileHash') ||
     script.includes('$installerHash = (Get-FileHash')) {
   fail('installer tail must not rely directly on Get-FileHash for release artifact hashes');
 }
-if ((script.match(/Get-Sha256Hex \\$/g) || []).length < 2) {
+if (!script.includes('$zipHash = Get-Sha256Hex $zip') ||
+    !script.includes('$installerHash = Get-Sha256Hex $installer')) {
   fail('installer tail must route both ZIP and installer hashing through the resilient SHA-256 helper');
 }
 const nativeHashBranch = script.indexOf('Get-Command Get-FileHash -ErrorAction SilentlyContinue');
