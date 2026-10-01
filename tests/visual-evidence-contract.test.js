@@ -15,6 +15,7 @@ for (const id of [
   '03-dialogue-ionia',
   '04-combat-sky-predator',
   '05-dragonfly-flight',
+  '05a0-rootline-west-available',
   '05a-rootline-west-assist',
   '05b-rootline-west-upper-trace',
   '05c-rootline-west-shifted',
