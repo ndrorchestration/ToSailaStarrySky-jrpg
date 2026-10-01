@@ -3,7 +3,7 @@
 const assert = require('assert');
 const routeNetwork = require('../modules/route-network-state.js');
 
-assert.strictEqual(routeNetwork.VERSION, '0.1.0');
+assert.strictEqual(routeNetwork.VERSION, '0.2.0');
 assert.strictEqual(routeNetwork.PERSISTENCE_VERSION, 1);
 assert.strictEqual(routeNetwork.DEFAULT_CONDITION, 'open');
 assert.deepStrictEqual(routeNetwork.OPERATIONAL_STATES,
