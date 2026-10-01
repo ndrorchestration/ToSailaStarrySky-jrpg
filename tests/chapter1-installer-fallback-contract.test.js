@@ -62,6 +62,12 @@ for (const required of [
   'Remove-Item Env:TMP -ErrorAction SilentlyContinue',
   'Start-Process -FilePath $iexpress',
   '-Wait -PassThru',
+  'function Get-Sha256Hex([string]$Path)',
+  'Get-Command Get-FileHash -ErrorAction SilentlyContinue',
+  '[System.Security.Cryptography.SHA256]::Create()',
+  '[System.BitConverter]::ToString($hashBytes)',
+  '$zipHash = Get-Sha256Hex $zip',
+  '$installerHash = Get-Sha256Hex $installer',
   'function Stop-ProcessAndWait',
   '[void]$Process.WaitForExit($TimeoutMs)',
   'function Remove-PathWithRetry',
@@ -72,6 +78,19 @@ for (const required of [
   'Stop-ProcessesFromRoot $installRoot',
 ]) {
   if (!script.includes(required)) fail('missing installer-tail contract: ' + required);
+}
+
+if (script.includes('$zipHash = (Get-FileHash') ||
+    script.includes('$installerHash = (Get-FileHash')) {
+  fail('installer tail must not rely directly on Get-FileHash for release artifact hashes');
+}
+if ((script.match(/Get-Sha256Hex \\$/g) || []).length < 2) {
+  fail('installer tail must route both ZIP and installer hashing through the resilient SHA-256 helper');
+}
+const nativeHashBranch = script.indexOf('Get-Command Get-FileHash -ErrorAction SilentlyContinue');
+const dotNetHashBranch = script.indexOf('[System.Security.Cryptography.SHA256]::Create()');
+if (!(nativeHashBranch >= 0 && dotNetHashBranch > nativeHashBranch)) {
+  fail('installer tail must retain a .NET SHA-256 fallback after the native Get-FileHash branch');
 }
 
 if (script.includes('"/D=$installerSmokeRoot"') || script.includes('"/D=$installRoot"')) {
