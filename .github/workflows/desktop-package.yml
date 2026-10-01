@@ -285,7 +285,7 @@ jobs:
           gh release download "$RELEASE_TAG"             --pattern CHAPTER1_RELEASE_EVIDENCE.json             --dir tag-repair-evidence
           node - <<'NODE'
           const fs = require('fs');
-          const raw = fs.readFileSync('tag-repair-evidence/CHAPTER1_RELEASE_EVIDENCE.json','utf8').replace(/^\\uFEFF/, '');
+          const raw = fs.readFileSync('tag-repair-evidence/CHAPTER1_RELEASE_EVIDENCE.json','utf8').replace(/^\uFEFF/, '');
           const p = JSON.parse(raw);
           const source = process.env.SOURCE_SHA;
           if (p.sourceCommit !== source || p.releaseToolCommit !== source) {
@@ -323,7 +323,7 @@ jobs:
           gh release download "$RELEASE_TAG" \
             --pattern CHAPTER1_RELEASE_EVIDENCE.json \
             --dir tag-repair-verify
-          asset_source="$(node -e "const fs=require('fs');const s=fs.readFileSync('tag-repair-verify/CHAPTER1_RELEASE_EVIDENCE.json','utf8').replace(/^\\uFEFF/,'');process.stdout.write(JSON.parse(s).sourceCommit)")"
+          asset_source="$(node -e "const fs=require('fs');const s=fs.readFileSync('tag-repair-verify/CHAPTER1_RELEASE_EVIDENCE.json','utf8').replace(/^\uFEFF/,'');process.stdout.write(JSON.parse(s).sourceCommit)")"
           test "$asset_source" = "$SOURCE_SHA"
           echo "CHAPTER1_RELEASE_TAG_SOURCE=$remote"
           echo "CHAPTER1_RELEASE_TARGET_COMMITISH=$target"
