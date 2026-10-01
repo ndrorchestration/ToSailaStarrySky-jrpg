@@ -94,6 +94,7 @@ for (const marker of [
   "recordPrecedent(routeNetworkState, 'LOCAL_ROUTE_ASSISTANCE')",
   'WAKE DOCK // ROOTLINE REPORT ACKNOWLEDGED',
   'routeCondition,',
+  'routeAssistAvailable,',
   'routeAssistActive:',
   'routeClueNearby:',
 ]) {
@@ -110,9 +111,10 @@ const visual = fs.readFileSync(path.join(__dirname, '..', 'modules', 'flight-vis
 for (const marker of [
   "String(ctx.routeCondition || 'open').toUpperCase()",
   "ctx.routeAssistActive ? ' // ASSIST' : ''",
-  'TRACE IN RANGE // F CHART',
-  'R  lane assist',
-  'F  chart trace',
+  'UPPER TRACE // F CHART',
+  'R  engage lane',
+  'R  release lane',
+  'F  chart upper trace',
 ]) {
   assert(visual.includes(marker), 'Rootline HUD binding missing: ' + marker);
 }
