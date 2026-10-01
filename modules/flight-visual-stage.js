@@ -363,7 +363,7 @@
     const statusY = 24;
     const statusW = 264;
     const statusH = travel.route && travel.route.route
-      ? (ctx.routeClueNearby ? 90 : 80)
+      ? (ctx.routeClueActionAvailable ? 90 : 80)
       : 42;
     noStroke();
     fill(panel[0], panel[1], panel[2], 154);
@@ -391,7 +391,7 @@
       fill(153, 215, 229, 220);
       text(condition + assist, statusX + 10, statusY + 54);
 
-      if (ctx.routeClueNearby) {
+      if (ctx.routeClueActionAvailable) {
         textSize(8);
         fill(232, 220, 198, 225);
         text('UPPER TRACE // F CHART', statusX + 10, statusY + 66);
@@ -419,7 +419,7 @@
     text('Q / E  altitude     D  dock', w / 2, h - 16);
 
     let contextualHint = null;
-    if (ctx.routeClueNearby) contextualHint = 'F  chart upper trace';
+    if (ctx.routeClueActionAvailable) contextualHint = 'F  chart upper trace';
     else if (ctx.routeAssistActive) contextualHint = 'R  release lane';
     else if (ctx.routeAssistAvailable) contextualHint = 'R  engage lane';
 
