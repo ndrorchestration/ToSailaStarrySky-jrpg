@@ -251,3 +251,90 @@ jobs:
           path: visual-evidence/
           if-no-files-found: error
           retention-days: 14
+
+
+  rootline-inline-review:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'verify/rootline-readability-inline-review-2026-10-01' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    env:
+      SOURCE_SHA: 503ef836c1c0b4e7a08fe6e44a5b902576354c41
+    steps:
+      - name: Checkout verification head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Verify source-equivalent runtime tree
+        run: |
+          test "$(git diff --name-only "$SOURCE_SHA" HEAD -- . ':(exclude).github/workflows/smoke.yml' ':(exclude).github/workflows/rootline-readability-inline-review.yml')" = ""
+          git diff --exit-code "$SOURCE_SHA" HEAD -- . ':(exclude).github/workflows/smoke.yml' ':(exclude).github/workflows/rootline-readability-inline-review.yml'
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Capture canonical evidence
+        env:
+          AETHERWAKE_SOURCE_SHA: ${{ env.SOURCE_SHA }}
+        run: npm run capture:visual-evidence
+
+      - name: Prepare inline review transport
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir Pillow==12.3.0
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import base64, hashlib, json
+
+          ids = [
+              "05a0-rootline-west-available",
+              "05a-rootline-west-assist",
+              "05b-rootline-west-upper-trace",
+              "05c-rootline-west-shifted",
+          ]
+          out = Path("rootline-readability-review-inline")
+          out.mkdir(exist_ok=True)
+          manifest = {
+              "contract": "ROOTLINE_READABILITY_INLINE_REVIEW_V1",
+              "runtimeSourceSha": "503ef836c1c0b4e7a08fe6e44a5b902576354c41",
+              "verificationChildOnly": True,
+              "transport": "720x480 JPEG quality 78 encoded as Base64 text",
+              "frames": [],
+          }
+          for frame_id in ids:
+              img = Image.open(Path("visual-evidence") / f"{frame_id}.png").convert("RGB")
+              img = img.resize((720, 480), Image.Resampling.LANCZOS)
+              jpg = out / f"{frame_id}.jpg"
+              img.save(jpg, "JPEG", quality=78, optimize=True)
+              data = jpg.read_bytes()
+              txt = out / f"{frame_id}.b64.txt"
+              txt.write_text(base64.b64encode(data).decode("ascii") + "\n", encoding="ascii")
+              manifest["frames"].append({
+                  "id": frame_id,
+                  "jpegSha256": hashlib.sha256(data).hexdigest(),
+                  "jpegBytes": len(data),
+                  "base64File": txt.name,
+              })
+              jpg.unlink()
+          (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Commit inline review evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rootline-readability-review-inline/
+          git commit -m "evidence: inline Rootline readability frames [verification only]"
+          git push origin HEAD:verify/rootline-readability-inline-review-2026-10-01
