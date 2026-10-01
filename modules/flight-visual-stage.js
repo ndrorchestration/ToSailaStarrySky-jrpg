@@ -361,8 +361,8 @@
     // cinematic objective ribbons and preserves the Dragonfly/world as the focal point.
     const statusX = 24;
     const statusY = 24;
-    const statusW = 220;
-    const statusH = travel.route && travel.route.route ? 60 : 42;
+    const statusW = 240;
+    const statusH = travel.route && travel.route.route ? 74 : 42;
     noStroke();
     fill(panel[0], panel[1], panel[2], 154);
     rect(statusX, statusY, statusW, statusH, 7);
@@ -384,10 +384,25 @@
       textSize(7);
       fill(232, 220, 198, 188);
       text(travel.route.route.label.toUpperCase(), statusX + 10, statusY + 41);
+      const condition = String(ctx.routeCondition || 'open').toUpperCase();
+      const assist = ctx.routeAssistActive ? ' // ASSIST' : '';
+      fill(153, 215, 229, 190);
+      text(condition + assist, statusX + 10, statusY + 52);
+
       fill(31, 44, 63, 205);
-      rect(statusX + 10, statusY + 53, progressW, 3);
-      fill(42, 255, 181, 170);
-      rect(statusX + 10, statusY + 53, Math.round(progressW * travel.route.progress), 3);
+      rect(statusX + 10, statusY + 66, progressW, 3);
+      fill(
+        ctx.routeCondition === 'shifted' || ctx.routeCondition === 'closed' ? 210 : 42,
+        ctx.routeCondition === 'shifted' || ctx.routeCondition === 'closed' ? 122 : 255,
+        ctx.routeCondition === 'shifted' || ctx.routeCondition === 'closed' ? 104 : 181,
+        170
+      );
+      rect(statusX + 10, statusY + 66, Math.round(progressW * travel.route.progress), 3);
+
+      if (ctx.routeClueNearby) {
+        fill(232, 220, 198, 210);
+        text('TRACE IN RANGE // F CHART', statusX + 112, statusY + 52);
+      }
     }
 
     // Shared controlsHint remains a layout hook, but the player-facing copy is minimal.
@@ -397,7 +412,7 @@
     textFont('Segoe UI Semibold');
     textSize(7);
     fill(232, 220, 198, 138);
-    text('Q / E  altitude     D  dock', w / 2, h - 16);
+    text('Q / E altitude   D dock   R lane   F chart', w / 2, h - 16);
     textAlign(LEFT, TOP);
   }
 
