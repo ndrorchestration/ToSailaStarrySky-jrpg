@@ -27,8 +27,12 @@ const stageScript = fs.readFileSync(
 );
 assert(stageScript.includes("main: 'www/index-embedded.html'"),
   'production desktop manifest must use the RPG Maker MV-style www entrypoint');
-assert(packageJson.scripts['package:windows'].includes('--app.icon='),
-  'Windows packaging must pass nw-builder app icon metadata through the effective CLI configuration');
+assert(stageScript.includes("'icon.ico'"),
+  'production desktop runtime must stage a Windows ICO asset');
+assert(stageScript.includes('version: rootPackage.version'),
+  'production desktop manifest must carry the project version for Windows metadata');
+assert(packageJson.scripts['package:windows'].includes('--app.icon=.desktop-runtime/www/icon.ico'),
+  'Windows packaging must pass the staged ICO through nw-builder app icon metadata');
 assert(stageScript.includes("path.join(stage, 'package.json')"),
   'production desktop manifest must live at the launcher root');
 assert(stageScript.includes("path.join(stage, 'www')"),
