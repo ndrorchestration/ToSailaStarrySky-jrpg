@@ -144,10 +144,10 @@ function createServer() {
       activeIds: window.ACTIVE_PARTY.map(character => character.id),
       playable: window.ROSTER.map(character => Boolean(character.playable)),
     }));
-    assert(beforeLyraJoin.sceneId === 'wrong_song',
-      'First Wake did not reach the Wrong Song join scene');
+    assert(beforeLyraJoin.sceneId === 'lyra_join',
+      'First Wake did not reach the Lyra join scene');
     assert(beforeLyraJoin.activeIds.join('|') === 'ender',
-      'Lyra joined before the authored Wrong Song beat');
+      'Lyra joined before the authored Lyra join beat');
 
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
