@@ -69,9 +69,9 @@ corporate intercept, engine spirit, child prophet, elder farmer. These labels ar
 | Harmonic Shear | ✅ Delivered (as "windShear") | `windShear` enemy + crossing hazard `wind_shear` (stat: grace). |
 | Corporate Intercept | ✅ Historical delivery (superseded label) | Former `corporateSalvager` enemy has been story-renamed in the current runtime; do not reintroduce syndicate/core acquisition language. |
 | Aether Leak | ✅ Delivered | `aetherLeak` combat enemy + `aether_leak` crossing hazard (stat: wits). |
-| Engine Spirit | ✅ Historical delivery (superseded label) | Current story-facing language uses Wakeheart/diagnostic resonance rather than a core-spirit premise. |
-| Child Prophet | ✅ Historical delivery (superseded label) | Current Lyra-facing language emphasizes frequency sensitivity and protective reach, not prophecy as an enemy role. |
-| Elder Farmer (Ionia) | ✅ Historical delivery (superseded label) | Current Ionia-facing language is captain/helm authority in the storm-shield sequence, not an elder-farmer combat identity. |
+| Superseded Wakeheart-combat label | ✅ Historical delivery | Current story-facing language uses Wakeheart/diagnostic resonance rather than a core-spirit premise. |
+| Superseded Lyra-combat label | ✅ Historical delivery | Current Lyra-facing language emphasizes frequency sensitivity and protective reach, not prophecy as an enemy role. |
+| Superseded Ionia-combat label | ✅ Historical delivery | Current Ionia-facing language is captain/helm authority in the storm-shield sequence, not a farming combat identity. |
 
 **Gap summary:** Historical enemy coverage was implemented for the earlier prototype. Current story-facing runtime has since been reconciled toward the Act I storm/shield premise; this table is evidence history, not a naming source.
 
