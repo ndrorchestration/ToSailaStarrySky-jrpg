@@ -524,7 +524,7 @@ function AetherCombat(p, C) {
           state.player.vit = Math.max(0, state.player.vit - dmg);
           enemyText = state.enemy.name + ' dive-bombs — ' + dmg + ' damage (ignores dodge)!';
         } else if (eType === 'corporateSalvager') {
-          // Contract Clause: lose 1 scrap
+          // Hold Order: lose 1 scrap to emergency repairs
           if (state.player.scrap > 0) {
             state.player.scrap -= 1;
             enemyText = state.enemy.name + ' enforces a hold order — 1 scrap spent on emergency compliance!';
@@ -627,7 +627,7 @@ function AetherCombat(p, C) {
       let xpReward = 0;
       const eName = state.enemy.name;
       if (eName === 'Sky-Predator') xpReward = 15;
-      else if (eName === 'Corporate Salvager') xpReward = 12;
+      else if (eName === 'Dock Authority Enforcer') xpReward = 12;
       else if (eName === 'Wind Shear') xpReward = 20;
       else if (eName === 'Aether Leak') xpReward = 18;
       else xpReward = 10;
