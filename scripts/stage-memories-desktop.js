@@ -33,9 +33,6 @@ fs.cpSync(modulesSrc, modulesDst, { recursive: true });
 
 const manifest = {
   name: 'Aetherwake',
-  app: {
-    icon: 'www/icon.svg'
-  },
   main: 'www/index-embedded.html',
   'js-flags': '--expose-gc',
   window: {
