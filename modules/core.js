@@ -709,20 +709,24 @@ function drawBootSequence() {
     
     // Story text
     const preambleLines = [
-      'The skies remember what the earth forgot.',
+      'A ship above a broken world.',
+      'A core that has begun to sing wrong.',
       '',
-      'Above Columbus, the archipelago of fallen islands',
-      'hangs in the aether \u2014 seventeen shards of a world',
-      'that broke its own gravity.',
+      'Below, the copper ground is tired \\u2014 rusted, cracked,',
+      'choking on its own dust.',
+      'Above, the sky-lanes are still open.',
       '',
-      'Beneath them, the last aether-core still hums.',
-      'A ship that lifted cities and has not come down.',
+      'For three hundred years, the aether-cores',
+      'kept the arcologies aloft.',
+      'Now the cores are failing.',
       '',
-      'You are Ender. Deckhand. Engineer-in-training.',
-      'You carry the song in your bones.',
+      'You are Ender.',
+      'Deckhand. Engineer-in-training.',
+      'You carry a wrench, a passport, and a decision',
+      'you have not yet admitted you have to make.',
       '',
-      'The Aureate Wake, the last solarpunk airship,',
-      'has chosen you to finish it.',
+      'The Aureate Wake\\'s core is singing wrong.',
+      'Something has to be done about that.',
     ];
     
     // Calculate which lines visible
@@ -816,7 +820,7 @@ function drawBootSequence() {
   
   textSize(16 * v);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 200 * v);
-  text('THE SKIES REMEMBER', cx, cy + 25);
+  text('THE AUREATE WAKE — THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
   
   textSize(13 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
@@ -834,7 +838,7 @@ function drawBootSequence() {
   textFont('Press Start 2P');
   textSize(8 * v);
   fill(C.teal[0], C.teal[1], C.teal[2], 100 * v);
-  text('AETHERWAKE // YOUNG ENDER  //  TURN-BASED 2D6 PbtA', cx, height - 20);
+  text('THE AUREATE WAKE // TURN-BASED JRPG', cx, height - 20);
   
   // Subtle flash every 4 seconds
   const flashCycle = (millis() - bootTime) / 4000;
@@ -910,7 +914,7 @@ function drawTitleScreen() {
 
   textSize(16);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 200);
-  text('THE SKIES REMEMBER', cx, cy + 25);
+  text('THE AUREATE WAKE — THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
 
   textSize(13);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
@@ -928,7 +932,7 @@ function drawTitleScreen() {
   textFont('Press Start 2P');
   textSize(8);
   fill(C.teal[0], C.teal[1], C.teal[2], 100);
-  text('AETHERWAKE // YOUNG ENDER  //  TURN-BASED 2D6 PbtA', cx, height - 20);
+  text('THE AUREATE WAKE // TURN-BASED JRPG', cx, height - 20);
 }
 
 function drawDialogueOverlay() {
