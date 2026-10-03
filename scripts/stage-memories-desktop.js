@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const repo = path.resolve(__dirname, '..');
+const rootPackage = require(path.join(repo, 'package.json'));
 const stage = path.join(repo, '.desktop-runtime');
 const www = path.join(stage, 'www');
 
@@ -13,7 +14,8 @@ const runtimeFiles = [
   'aetherwake.js',
   'p5.min.js',
   'embedded-fonts.css',
-  'icon.svg'
+  'icon.svg',
+  'icon.ico'
 ];
 
 for (const file of runtimeFiles) {
@@ -32,7 +34,8 @@ if (!fs.existsSync(modulesSrc)) {
 fs.cpSync(modulesSrc, modulesDst, { recursive: true });
 
 const manifest = {
-  name: 'Aetherwake',
+  name: rootPackage.name,
+  version: rootPackage.version,
   main: 'www/index-embedded.html',
   'js-flags': '--expose-gc',
   window: {
