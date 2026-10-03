@@ -55,6 +55,8 @@ assert(workflow.includes('npm run test:desktop-package'),
   'desktop workflow must run the packaging contract before building');
 assert(workflow.includes('npm run package:windows'),
   'desktop workflow must build the Windows NW.js package');
+assert(workflow.includes('Get-ChildItem -LiteralPath $dist -Filter "Aetherwake.exe" -File -Recurse'),
+  'desktop workflow must locate the emitted executable at any supported package depth');
 assert(workflow.includes('makensis'),
   'desktop workflow must compile a conventional NSIS installer');
 assert(workflow.includes('RequestExecutionLevel user'),
