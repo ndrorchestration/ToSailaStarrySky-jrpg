@@ -45,7 +45,7 @@
     "test:progression-reachability": "node tests/progression-reachability.test.js",
     "test:secondary-action": "node tests/secondary-action-contract.test.js",
     "test:magic-defs": "node tests/magic-defs-contract.test.js",
-    "package:windows": "npm run stage:desktop && nwbuild --mode=build --glob=false --platform=win --arch=x64 --version=0.116.0 --outDir=../aetherwake-dist --app.icon=.desktop-runtime/www/icon.svg .desktop-runtime",
+    "package:windows": "npm run stage:desktop && nwbuild --mode=build --glob=false --platform=win --arch=x64 --version=0.116.0 --outDir=../aetherwake-dist --app.icon=.desktop-runtime/www/icon.ico .desktop-runtime",
     "package:windows:clean": "npm run package:windows",
     "test:desktop-package": "node tests/desktop-package-contract.test.js",
     "test:magic-mastery": "node tests/magic-mastery-contract.test.js",
