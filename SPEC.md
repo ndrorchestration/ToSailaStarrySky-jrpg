@@ -103,7 +103,7 @@ Rules:
 The development branch now contains a persistent party-state bridge:
 
 - `ROSTER` has exactly five stable identities in canonical order: Ender, Lyra, Ionia, Reson, Aepex;
-- `ACTIVE_PARTY` supports 1–5 direct references into `ROSTER`; First Wake starts with Ender alone, adds Lyra at Sequence 06, and times Ionia's official party role to the early storm/shield sequence;
+- `ACTIVE_PARTY` supports 1–5 direct references into `ROSTER`; First Wake starts with Ender alone and adds Lyra at Sequence 06, then times Ionia's official party role to the early storm/shield sequence;
 - `world.player === ROSTER[0] === ACTIVE_PARTY[0]`, so the lead character is no longer duplicated across WORLD and persistent party state;
 - the normal New Game path no longer uses custom companion creation;
 - `modules/char-create.js` remains compatibility provenance only, and its custom companion/job assumptions are not authored canon;
