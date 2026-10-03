@@ -128,13 +128,13 @@ function buildMap() {
 
   // Lore tiles — walk over them to reveal story fragments
   const loreSpots = [
-    { x: 3, y: 6, text: 'A child\'s drawing, preserved on a scrap of hull plating. A ship with too many sails, rising into a sky that had no up anymore.' },
-    { x: 11, y: 5, text: 'The Aureate Wake\'s manifest, water-stained but legible: "Cargo: one sky-lane. Destination: above. Status: song slipping."' },
-    { x: 19, y: 7, text: 'Ionia\'s watch log, half-buried in deck plating: "Day 47. The core sings wrong. The harmonics slip at dusk. The frequencies hum in the hull."' },
-    { x: 24, y: 14, text: 'A Copper Syndicate data-slate, cracked but still glowing. "Acquisition Protocol 7: when the local Dreamwright refuses, override their dream."' },
-    { x: 16, y: 20, text: 'Lyra\'s drawing of the core: a great bird made of gears, singing. She wrote beneath it: "If it stops singing, the sky will forget how to hold us."' },
-    { x: 9, y: 24, text: 'A salvager\'s note, pinned to a bulkhead with a rusted nail: "The core doesn\'t belong to the Syndicate. It never did. It belongs to whoever remembers what it was for."' },
-    { x: 28, y: 19, text: 'The Core\'s log — the last entry: "The song has three missing notes. I have been hunting them since the first sky-lane opened. I think one is in your chest, Ender."' }
+    { x: 3, y: 6, text: 'A child\'s drawing, preserved on a scrap of hull plating. The Dragonfly spreads four bright wings over three little ships while storm marks gather at the page edge.' },
+    { x: 11, y: 5, text: 'The Aureate Wake\'s manifest, water-stained but legible: "Storm posture: local shielding unreliable. Maintain reserve power until dock authority clears the berth."' },
+    { x: 19, y: 7, text: 'Ionia\'s watch log, tucked behind a cracked gauge: "Day 47. Standard systems answer the helm. The wider responses remain intermittent. Lyra says the ship listens."' },
+    { x: 24, y: 14, text: 'A dock weather slate, cracked but still glowing: "Colony shield cycling irregularly. Adjacent berths vulnerable to lateral shear at stormfall."' },
+    { x: 16, y: 20, text: 'Lyra\'s drawing of the Wakeheart: a brass insect made of winglight. She wrote beneath it: "If it opens wide enough, maybe it can hold more than us."' },
+    { x: 9, y: 24, text: 'A salvager\'s note, pinned to a bulkhead with a rusted nail: "A vessel is not only its engine. Sometimes the missing part is the people brave enough to ask what it can do."' },
+    { x: 28, y: 19, text: 'The Wakeheart diagnostic repeats one quiet line: "Helm, reach, and stranger-current detected. Patterns unresolved. Awaiting stable chord."' }
   ];
   for (const l of loreSpots) {
     if (inBounds(l.x, l.y)) {
@@ -206,7 +206,7 @@ function initPlayer() {
 
 function initNPCs() {
   npcs = [
-    // 1 — Captain Ionia
+    // 1 - Captain Ionia
     {
       id: 'elder_farmer',
       name: 'Captain Ionia',
@@ -217,72 +217,72 @@ function initNPCs() {
       tileY: 7,
       dialogue: {
         intro: [
-          '"The Aureate Wake is the last ship that still flies. I\'ve captained the Aureate Wake long enough to know every change in her voice. The sky-lanes closed one by one, and now it\'s just us. The people below want passage. The corporate syndicates want the core. The sky above wants someone brave enough to find out what\'s up there. You\'ve got three problems and you\'ve only just boarded."',
-          '"My first officer used to say a captain owes her ship a proper send-off and her crew a straight answer. Captain Denith taught me a captain owes her ship a proper send-off and her crew a straight answer. I\'m still working on both. You look like someone who appreciates a straight answer. So here it is: this ship has a core that sings wrong. And it\'s going to keep singing wrong until someone makes it stop."',
-          '"You can work the decks. You can talk to the people. You can listen to the frequencies. Or you can do nothing. The Wake will keep flying either way. But the core won\'t. It\'s getting louder each time the sun drops."',
-          '"I\'ve watched the sky-lanes die one by one. Copper-slicked smoke on the horizon. A city going quiet. Another one. Then another. We\'re the last ship flying a sky-lanes route no one else can hold anymore. If we go down, the sky-lanes go with us."',
-          '"If you\'re looking for the honest part of this story — it\'s me. I\'m tired. I\'ve been tired for a very long time. But I\'m still flying. Sometimes that\'s the only honest thing left in a sky-lanes world."'
+          '"The Aureate Wake can fly. That is not the mystery. The mystery is why some systems answer like a ship, and some answer like they are waiting for a crew I have not yet found."',
+          '"Captain Denith left me a vessel, a set of impossible notes, and the bad habit of telling the truth when a comforting lie would travel faster. So here it is: the dock shield is failing, the storm is early, and this ship may be our best shelter."',
+          '"Lyra has been able to coax responses from the Wake that my instruments only half-record. Useful responses. Incomplete ones. Then you came aboard, and the panels started disagreeing with their own limits."',
+          '"I do not need a miracle from you, Ender. I need honest hands, a clear head, and someone willing to stand beside Lyra while we find out what the Wake is actually hearing."',
+          '"If the storm reaches the berths before the colony shield steadies, the ships beside us take the shear first. We either leave early, hold dock, or ask the Wake to do something it has only hinted it can do."'
         ],
         class_ender: [
-          '"Your hands are on the rigging. You\'re not a navigator or an engineer — you\'re the one who makes things work when they\'re already supposed to be working. That\'s worth more than either of those titles. The Wake needs hands like yours. It doesn\'t say so out loud, but it does."',
-          '"The frequencies hum when you walk the decks. Your class — an engineer who listens — that\'s you. You feel the wrongness before anyone else can name it. That\'s why I let you board."',
-          '"The people below want passage. The syndicates want the core. The frequencies want a decision. You\'re the only one who doesn\'t have a price on this ship. That\'s not an accident. That\'s the point."'
+          '"Your hands are on the rigging. You are not a navigator or a captain, and that may be why the ship is listening differently. You fix from inside the problem."',
+          '"The frequencies settle when you cross the deck. Not enough for a doctrine. Enough for me to notice."',
+          '"Do not mistake this for destiny. Ships do not need worship. They need crews who can hear one another under pressure."'
         ],
         class_farmer: [
           '"Navigation teaches the same lesson every watch: the sky tells the truth if you know how to read it. You notice wrongness before most people can name it. I can work with that."',
-          '"Captain Denith taught me to trust instruments, weather, and people in that order only when the first two agree. The Wake needs someone who listens before acting."'
+          '"Captain Denith taught me to trust instruments, weather, and people in that order only when the first two agree. Today, none of them agree cleanly."'
         ],
         generic_follow: [
-          '"The aether-core is the heart of this ship. It hums — a wrong kind of hum. You\'ll feel it in the rigging before you see it in the decks."'
+          '"Check the dock reports, then the shield console. Meaning can wait until the shielding holds."'
         ],
         deep: [
-          '"You\'ve walked the ship and talked to everyone. I\'ve told you that. The crew is trying. The people below keep asking. The corporate officers keep calling. The core keeps singing wrong. What are you going to do with that?"',
-          '"I can\'t make this decision for you. Nobody can. The Aureate Wake flies because people believe it should. Someone has to keep believing. Or stop. That\'s the choice."',
-          '"You\'ll find out which one I am — the captain who quit, or the captain who didn\'t. The answer\'s coming."'
+          '"You have heard Lyra, the Wakeheart, and Verrick. None of them are wrong. That is what makes command unpleasant."',
+          '"A captain can order a ship to leave. A crew decides whether leaving is the only kind of survival left."',
+          '"If the Wake answers, it will not be because one person is special. It will be because, for one dangerous moment, we finally become legible to one another."'
         ]
       },
       flags: { met: false, questMarker: true }
     },
 
-    // 2 — The Core
+    // 2 - The Wakeheart
     {
       id: 'engine_spirit',
-      name: 'The Core',
-      title: 'Aether-Core of the Aureate Wake',
+      name: 'Wakeheart',
+      title: 'Harmonic Console of the Aureate Wake',
       x: 22,
       y: 10,
       tileX: 22,
       tileY: 10,
       dialogue: {
         intro: [
-          '"The Aureate Wake is a solarpunk airship. You\'ve heard that. The core is the heart of it — the aether-core, the part that sings the frequencies. And it sings wrong. That\'s the whole story."',
-          '"The sky-lanes are a network of currents and routes above a copper-blighted world. The Wake rides them. The core gives us the lift to ride them. When the core starts singing wrong, the sky-lanes go wrong with it. The Wake is the last ship that can still hear the sky-lanes. We\'re the last one."',
-          '"I\'m the voice of the aether-core. I speak through copper and light. You\'ll feel me in the rigging before you hear me in your chest. You\'ll hear me in the hull. Listen for the wrong note. That\'s the one I\'m singing."',
-          '"The people below — they live in the copper blight. They drink from copper canals and eat from copper soil. They want passage off the copper world, but the sky-lanes are gone. The Wake is the last route that still works. If the core stops singing wrong, the Wake can fly them out. If it doesn\'t, nobody leaves."',
-          '"The frequencies above — you\'ll hear them when you stand on the deck at night. Birds that don\'t exist anymore, singing in sky-lanes that don\'t exist anymore. The core remembers them. I do too. I can\'t stop singing them."'
+          '"Primary lift: nominal. Solar intake: nominal. Shield lattice: partial. Crew resonance: unstable, increasing."',
+          '"Captain authority recognized. Lyra-pattern recognized. New harmonic variable recognized. Cross-response exceeds prior thresholds."',
+          '"Storm vectors converging on Wake Dock. Colony shield cycling below reliable tolerance. Adjacent berth stress rising."',
+          '"Directional projection routine available. Warning: lateral shield faces will weaken while forward umbrella is extended."',
+          '"Request: captain confirmation, reach stabilization, stranger-current consent."'
         ],
         class_ender: [
-          '"The shared dream — the ability you\'ve been developing — it reaches me. I can feel it through the hull. That\'s the whole engine-level story, in one sentence. The player has an ability that the core can hear. Everyone else on the ship is guessing."',
-          '"The frequencies hum and I hum with them. Your dream reaches into the frequencies and the frequencies reach back. That\'s how the whole ship works. That\'s the Aureate Wake."',
-          '"When you reach the choice — sing the core down, sell the core, or drive the core up — the answer is in what you\'ve heard on this ship. I\'ve been singing wrong. You can hear it. The answer is already in the listening."'
+          '"Ender-pattern produces nonstandard agreement across helm, reach, and hull. Diagnostic category unavailable."',
+          '"Your adjustments do not add power. They reduce disagreement."',
+          '"If command is given, shield geometry can widen beyond the Wake\'s own silhouette. Survival probability improves for adjacent berths."'
         ],
         class_witch: [
-          '"The frequencies are a kind of witch\'s craft. Copper and light and wrong song. You hear them. The core hears you hearing them. That\'s the whole engine-level story."',
-          '"The aether-core sings wrong and you\'re the one who can hear it. That\'s the point of the entire ship. That\'s the whole story."'
+          '"Listening pattern recognized. Harmonic access improves when observation is gentle."',
+          '"The Wake does not require force. It requires accord."'
         ],
         generic_follow: [
-          '"The frequencies hum in the hull. Listen. That\'s the story."'
+          '"Awaiting stable chord."'
         ],
         deep: [
-          '"You\'ve heard the captain and the dreamer and the acquisition officer. You\'ve heard me singing wrong in the rigging. What you haven\'t heard is this — the frequencies above. Someone\'s singing up there too."',
-          '"The sky-lanes still exist. The frequencies still hum. But the route is gone. The Aureate Wake was the last ship that flew a live sky-lane. Now there\'s no route — just the wrong song."',
-          '"The frequencies above — you\'ll find them if you keep listening. I can\'t tell you where they are, because I don\'t know. But I know they\'re there. And I know the core is the only way to reach them."'
+          '"Earlier crews produced flight. Current pattern suggests shelter."',
+          '"Future capability cannot be extrapolated from present crew state. Additional voices may alter combat response, environmental envelope, and lane access."',
+          '"Auroral-lane topology remains inaccessible. Requirement unknown. Crew-state insufficient."'
         ]
       },
       flags: { met: false, questMarker: true }
     },
 
-    // 3 — Lyra
+    // 3 - Lyra
     {
       id: 'child_prophet',
       name: 'Lyra',
@@ -293,68 +293,68 @@ function initNPCs() {
       tileY: 20,
       dialogue: {
         intro: [
-          '"The core hums in the hull. I can hear it. I can hear it wrong. That\'s the whole story, really. A ship that sings wrong. That\'s the Aureate Wake."',
-          '"The sky-lanes are gone. The copper-blighted world below wants passage. The Wake is the only route left. If the core stops singing wrong, the Wake can fly the people out. If it doesn\'t — nobody leaves. That\'s the whole engine-level story, in one sentence."',
-          '"I\'m not a navigator. I\'m not an engineer. I\'m the one who hears the frequencies wrong. That\'s the point of me. That\'s the whole crew-level story."',
-          '"The corporate officers want the core. They\'ll say anything. They won\'t say the honest thing — which is that if the Wake falls, the sky-lanes go with it, and nobody gets to fly anymore. That\'s the whole campaign-level story."',
-          '"If you destroy the core, the Wake falls. If you sell the core, the Wake flies — but the people below don\'t get the sky-lanes. If you overdrive the core, the Wake might fly up into the clear sky above the copper world. Or it might fall. I don\'t know which. I\'m just the one who hears the wrong song."'
+          '"The ship is not asleep. People keep saying that because it makes them feel better. It is awake in the way a hand is awake before it knows what it is reaching for."',
+          '"I can hear the shield lattice when it tries to open. It gets lonely halfway through."',
+          '"When Ionia gives an order, the Wake stands up straighter. When you touch the console, Ender, it stops bracing for the wrong kind of answer."',
+          '"The storm has teeth on the front edge. The little ships beside us are going to feel it first."',
+          '"If the Wake can make an umbrella, we should let it. I know that sounds impossible. It also sounds kind."'
         ],
         class_ender: [
-          '"You hear the frequencies too. I can tell. The frequency hums in your chest — that\'s the engineer in you. You\'ve heard the captain and the acquisition officer talk about the core, and now you\'ve heard me. You\'ve heard all four of us. You know what each of us wants. You decide what the Wake does."',
-          '"The core hums in the hull and I hum with it. You can hear it wrong. The Aureate Wake is the last ship that can still hear the sky-lanes. We\'re the last one. If we go down, the sky-lanes go with us."',
-          '"The shared dream — when you reach for it, the frequencies reach back. That\'s your class, your ability, the whole engine-level story in one sentence. You\'ve been building it since you boarded. Now you use it on the core."'
+          '"You hear it too, just lower than I do. Like something green under a floorboard."',
+          '"Ionia is the helm. I am the reach. You are... I do not know yet. The place where the answer says yes, maybe."',
+          '"Do not tell the ship what it is. Ask what it can hold."'
         ],
         class_witch: [
-          '"The frequencies hum and I hum with them. You hear them too. That\'s the whole engine-level story. The core sings wrong and you can hear it. The player\'s ability — the shared dream — it reaches into the frequencies. Everyone else is guessing. You\'re not."',
-          '"The sky-lanes are gone and the Wake is the last route. If the core stops singing wrong, the Wake can fly them out. If it doesn\'t — nobody leaves. That\'s the whole campaign-level story."'
+          '"The frequencies get shy when people stare at them. Listen sideways."',
+          '"The Wake hums better when nobody is trying to win an argument with it."'
         ],
         generic_follow: [
-          '"The frequencies hum in the hull. Listen. That\'s the story."'
+          '"The storm is closer. The ship knows. I think it wants us to notice the same thing at the same time."'
         ],
         deep: [
-          '"I\'ve heard the captain and the acquisition officer and the core. I\'ve heard all four of us. You\'ve heard them too. You know what each of us wants. You decide what the Wake does. That\'s the choice."',
-          '"The core hums wrong and I hum with it. That\'s been the whole story since I was born. The frequencies hum and the core hums with them and the Wake hums with the core. That\'s the Aureate Wake. That\'s the whole ship."',
-          '"You\'ll find out which one I am — the kid who hears wrong, or the kid who saves the ship by hearing right. The answer\'s coming."'
+          '"I heard the wide shield before I saw the alert. It sounded like opening both hands."',
+          '"If we leave now, we live smaller. If we stay, we might learn what the Wake thinks shelter means."',
+          '"I am scared. That does not make the listening wrong."'
         ]
       },
       flags: { met: false, questMarker: true }
     },
 
-    // 4 — Verrick
+    // 4 - Verrick
     {
       id: 'corporate_salvager',
       name: 'Verrick',
-      title: 'Acquisition Officer, Copper Syndicate',
+      title: 'Harbor Shield Officer',
       x: 26,
       y: 24,
       tileX: 26,
       tileY: 24,
       dialogue: {
         intro: [
-          '"Holt. Acquisition officer, Copper Syndicate. You\'ve got an aether-core sitting on a ship above a copper-blighted world, and the sky-lanes are gone. That\'s a solvable problem. Mostly. The sky-lanes bit is the hard part."',
-          '"The Aureate Wake is the last active sky-lane route left above the copper world. When the sky-lanes closed, the Wake was the last ship that could still hear the route. Now it\'s just us — a ship, a core that sings wrong, and a copper world below that wants passage. The syndicate wants the core. The people below want passage. We\'ve got three problems and not enough sky-lane routes. Mostly you\'ve just got the one ship."',
-          '"I\'m not here to convince you of anything. I\'m here to tell you what the syndicate can do, what the core is worth, and what happens to the sketchy bits of this story if nobody makes a decision. The acquisition officer\'s job is to make the transaction clean. The decision\'s yours."',
-          '"The copper world below — that\'s where the sky-lanes closed. When the airships stopped flying, the copper-blight finally owned the sky. If we can fly the Wake out of the copper blight and begin the sky-lanes again — against the copper world, against the Syndicate\'s interests, for the people below who can\'t leave — that\'s possible. But it\'s hard, it\'s expensive, and it\'s not the syndicate\'s first choice."',
-          '"So that\'s the story. A copper-blighted world below. A sky-lane route above that nobody else can hear anymore. A ship that\'s the last one that can still fly it. A core that sings wrong. You\'re the captain\'s acquisition officer and I\'m tired. Let\'s make a decision."'
+          '"Verrick, harbor shield office. If you are with the Wake, tell your captain the colony shield is cycling dirty and I am out of polite ways to describe bad math."',
+          '"Procedure says every vessel clears dock before stormfall unless its berth shield is certified. Your berth shield is not certified. Your ship, however, keeps returning numbers my board insists are impossible."',
+          '"The two craft beside you are lighter than they should be and crewed by people who waited too long to undock. If shear hits from the east, they peel before you do."',
+          '"I do not care about legends. I care about vectors, hull stress, and whether somebody is about to turn a solvable weather event into paperwork with names on it."',
+          '"So make a choice: launch before the front arrives, stay and stabilize your own berth, or prove the Wake can throw a shield wide without tearing herself open."'
         ],
         class_corporate: [
-          '"You\'re one of us. Rift Scholar with a corporate badge — I can smell the credential on you. Good. We\'ll need someone who understands the core\'s resonance signature. Your Uncover Truth ability — we\'ll use it on the core before acquisition."',
-          '"Here\'s the deal: we acquire the core, we pay you in aether credits, and the crew gets evacuation passage on the next sky-lane run. The ship falls — yes — but the people don\'t. That\'s a win. Your prophet friend will scream about the sky, but the sky doesn\'t feed anyone."',
-          '"You go with us — Path B — you get scrap, aether, and a syndicate credential that opens every port in the copper-blight sky-lanes. You betray us — well. Meridian has provisions for betrayal. Don\'t make me use them."'
+          '"You understand systems, so here is the system: authority hates uncertainty, weather exploits delay, and captains hate being told both at once."',
+          '"If you can give me a stable projection number, I can keep the dock from ordering you out."',
+          '"A clean evacuation is a victory. A heroic mess is still a mess."'
         ],
         class_ender: [
-          '"Rift Scholar. I\'ve seen your kind before. You see too much. That\'s a liability in my trade. But it\'s also an asset — if you\'re willing to sell it."',
-          '"Your Mycelial Ledger ability — we\'d like to borrow that. Track the core\'s aether output before we acquire it. You get a cut. 15% of the salvage value, paid in scrap."',
-          '"The choice is yours, Scholar. Meridian offers you a place in the world that\'s coming. The copper world, the sky-lanes — they\'re both gone. What\'s your next contract?"'
+          '"You are the new variable? Good. Variables are annoying, but sometimes they are where the answer is hiding."',
+          '"If your ledger can track shield draw, track it now. I need proof before the dock board panics."',
+          '"Do not sell me poetry, Ender. Give me a number I can defend and a reason not to clear this berth."'
         ],
         generic_follow: [
-          '"My offer stands until the sky-lanes stabilise. After that — it\'s either your way or ours. And ours has a lot more lawyers."'
+          '"My hold order stands until the stormfront crosses the outer pylons. After that, math gets rude."'
         ],
         deep: [
-          '"You\'ve walked the whole ship, haven\'t you? Every deck. Every soul. You\'ve heard what they all want. Let me tell you something the others won\'t — I\'m not here because I believe in Meridian\'s mission."',
-          '"I\'m here because Meridian pays better than the alternative. And because — I\'ll be honest — I\'m tired of watching sky-lane routes dock with nothing to show for it but graves. If acquiring this core means someone gets to live somewhere that isn\'t copper-blight — I can live with that."',
-          '"Here\'s what keeps me up: the core didn\'t ask to be saved. It didn\'t ask to be acquired. It\'s been singing this whole time — a song with no ending, lifting ships that didn\'t know they were leaving. Maybe it\'s not a machine at all. Maybe it\'s a promise."',
-          '"Whatever you choose, Scholar — choose something. Because the core is going to keep singing until someone finally decides what song it is. And if nobody decides — well. The sky fills up with unfinished things. I\'ve seen what that looks like. It\'s worse than the fall."'
+          '"I have watched captains gamble with other people\'s hulls and call it vision. I have also watched cautious people preserve a rule while a person died beside it."',
+          '"If the Wake can shield the neighboring berths, I will sign the exception myself."',
+          '"Just understand the cost. Push every shield face forward and your sides go soft. One bad cross-gust and the heroic answer becomes an expensive wreck."',
+          '"Choose something you can live with after the sky clears."'
         ]
       },
       flags: { met: false, questMarker: true, classLock: 'corporate' }
@@ -706,13 +706,13 @@ function doTalk() {
 
 function checkSignalHook(npc) {
   if (npc.id === 'engine_spirit') {
-    completeSignalHook('distress');
+    completeSignalHook('harmonic_buoy');
   }
   if (npc.id === 'corporate_salvager') {
-    completeSignalHook('bounty');
+    completeSignalHook('sky_lane_warning');
   }
   if (npc.id === 'child_prophet') {
-    completeSignalHook('prophet');
+    completeSignalHook('below_frequency');
   }
 }
 
