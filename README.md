@@ -102,7 +102,7 @@ Persistent progression belongs to the five-character roster. The target combat/m
 The development runtime now has the first persistent party-state layer:
 
 - `modules/party-state.js` owns exactly five stable roster identities: `ender`, `lyra`, `ionia`, `reson`, and `aepex`;
-- `ACTIVE_PARTY` is validated for 1–5 direct references into `ROSTER`; authored New Game begins with Ender alone, then recruits Lyra at First Wake Sequence 06;
+- `ACTIVE_PARTY` is validated for 1–5 direct references into `ROSTER`; First Wake now begins with Ender alone, recruits Lyra at Sequence 06, and brings Ionia officially into the early storm/shield sequence;
 - `world.player`, `ROSTER[0]`, and `ACTIVE_PARTY[0]` are the same object, so combat write-back updates the canonical lead record;
 - the preserved character-creation flow still creates two player-named prototype companions and prototype jobs, then adapts them into the Lyra/Ionia roster slots;
 - Reson and Aepex are identity-only runtime shells until authored onboarding/mechanics are migrated;
