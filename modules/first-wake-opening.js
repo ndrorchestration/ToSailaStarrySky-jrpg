@@ -109,7 +109,7 @@
       title: 'MAKE IT PRACTICAL',
       speaker: 'IONIA',
       lines: Object.freeze([
-        'Core load just moved twelve percent.',
+        'Wakeheart load just moved twelve percent.',
         "LYRA: That's not what I meant.",
         "IONIA: It's what keeps the rooms warm. Meaning can wait until the shielding holds.",
       ]),
@@ -118,7 +118,7 @@
     Object.freeze({
       id: 'core_walk',
       sequence: 8,
-      title: 'TO THE CORE',
+      title: 'TO THE WAKEHEART',
       speaker: null,
       lines: Object.freeze([
         'They pass the shared table, unreliable galley, and exposed conduit.',
