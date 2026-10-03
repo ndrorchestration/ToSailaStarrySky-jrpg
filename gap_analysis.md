@@ -1,4 +1,4 @@
-> **Historical prototype audit — not current runtime SSOT.** This document records earlier preservation-era implementation checks, including 2D6/PbtA combat. Current runtime authority is `aetherwake.js` plus the loaded contract modules and current Notion SSOT. Do not treat the “delivered” labels below as current production semantics.
+> **Historical prototype audit — not current runtime SSOT.** This document records earlier preservation-era implementation checks, including 2D6/PbtA combat and superseded enemy/story labels. Current runtime authority is `aetherwake.js` plus the loaded contract modules and current Notion SSOT. Do not treat the “delivered” labels below as current production semantics or current Aetherwake canon.
 
 > **Current desktop/release overlay — 2026-09-22.** The player-facing launcher has since been restructured around a clean RPG Maker MV/NW.js-style deployment: root launcher manifest → `www/index-embedded.html` → isolated `www/` payload. The correction is merged at `304835c12555e35061870a54d61f7c95996d0bdd`. Hosted verification is presently blocked before runner allocation (`runner_id: 0`, zero steps), so no fresh installer is currently promoted as verified. Any older packaging conclusions below are historical audit evidence only.
 
@@ -52,7 +52,7 @@ Shared Dream, Mycelial Ledger, Resonator Staff. 3 unlockable: wind ward, aether 
 
 **Gaps resolved by §6 expansion (2026-09-18):** Shared Dream both branches; Aether Seal L4 gating;
 ENEMY_ABILITIES definition + population; keys 1–8; secondary action S-key; tiered resource spend;
-3 new enemy types (engine_spirit, child_prophet, elder_farmer).
+3 now-superseded prototype enemy labels (engine_spirit, child_prophet, elder_farmer). Current canon-facing text uses Wakeheart/stormfall language instead.
 
 **Remaining gaps in §6:** None. All combat action requirements delivered.
 
@@ -60,21 +60,20 @@ ENEMY_ABILITIES definition + population; keys 1–8; secondary action S-key; tie
 
 ## §7 — Enemy Types — HISTORICAL SNAPSHOT
 
-**SPEC requirement (lines 25–29, combat context):** *6 enemy types: sky predator, harmonic shear,
-corporate intercept, engine spirit, child prophet, elder farmer*
+**SPEC requirement (lines 25–29, combat context):** *Historical enemy-label snapshot: sky predator, harmonic shear,
+corporate intercept, engine spirit, child prophet, elder farmer. These labels are no longer current story canon.*
 
 | Enemy Type | Status | Detail |
 |---|---|---|
 | Sky Predator | ✅ Delivered | `skyPredator` enemy + crossing hazard `sky_predator` (stat: might). |
 | Harmonic Shear | ✅ Delivered (as "windShear") | `windShear` enemy + crossing hazard `wind_shear` (stat: grace). |
-| Corporate Intercept | ✅ Delivered (as "corporateSalvager") | `corporateSalvager` enemy + crossing hazard `corporate_intercept` (stat: presence). |
+| Corporate Intercept | ✅ Historical delivery (superseded label) | Former `corporateSalvager` enemy has been story-renamed in the current runtime; do not reintroduce syndicate/core acquisition language. |
 | Aether Leak | ✅ Delivered | `aetherLeak` combat enemy + `aether_leak` crossing hazard (stat: wits). |
-| Engine Spirit | ✅ Delivered | `engine_spirit` NPC + combat enemy. HP 10, `harmonic_pulse` ability (2D6+presence, drains 1 aether on 7-9+). |
-| Child Prophet | ✅ Delivered | `child_prophet` NPC + combat enemy. HP 8, `prophecy_voice` ability (2D6+grace, lowers enemy confidence). |
-| Elder Farmer (Ionia) | ✅ Delivered | `elder_farmer` NPC + combat enemy. HP 16, `soil_anchor` ability (2D6+might, roots enemy in place). |
+| Engine Spirit | ✅ Historical delivery (superseded label) | Current story-facing language uses Wakeheart/diagnostic resonance rather than a core-spirit premise. |
+| Child Prophet | ✅ Historical delivery (superseded label) | Current Lyra-facing language emphasizes frequency sensitivity and protective reach, not prophecy as an enemy role. |
+| Elder Farmer (Ionia) | ✅ Historical delivery (superseded label) | Current Ionia-facing language is captain/helm authority in the storm-shield sequence, not an elder-farmer combat identity. |
 
-**Gap summary:** All 6 SPEC enemy types now have both world NPC presence AND combat encounter
-counterparts. Each enemy type has a `draw{NPCName}Body()` function for rendering.
+**Gap summary:** Historical enemy coverage was implemented for the earlier prototype. Current story-facing runtime has since been reconciled toward the Act I storm/shield premise; this table is evidence history, not a naming source.
 
 ---
 
@@ -125,7 +124,7 @@ counterparts. Each enemy type has a `draw{NPCName}Body()` function for rendering
 | G4 | **5-action key binding only** | Was `aetherwake.js:410–415` | Resolved | ✅ RESOLVED — keys 1–8 |
 | G5 | **Shared Dream lacks +1 alternate** | Was `aetherwake.js:3740–3743` | Resolved | ✅ RESOLVED |
 | G6 | **Aether Seal not level-gated** | Was `levelUp()` | Resolved | ✅ RESOLVED — L4 |
-| G7 | **Crossing hazard naming/mapping diverges from SPEC** | `crossingHazards` | ⚠️ PARTIAL | ✅ LARGELY RESOLVED — aether_leak added, sky_predator stat corrected to might, corporate_intercept label improved |
+| G7 | **Crossing hazard naming/mapping diverges from SPEC** | `crossingHazards` | Historical | ✅ SUPERSEDED — current labels are storm/dock/shield-oriented rather than core-acquisition-oriented |
 | G8 | **Signal hook labels don't match SPEC** | `signalHooks` | Low | ⚠️ RETAINED — labels differ but mechanic identical |
 | G9 | **Ship has no interior** | `boardShip()` | Medium | ✅ RESOLVED — `drawShipInterior()` renders deck view, L/Esc disembark |
 | G10 | **`drawDayNightIndicator` not wired into HUD** | Was `aetherwake.js:2377–2394` | Resolved | ✅ RESOLVED |
