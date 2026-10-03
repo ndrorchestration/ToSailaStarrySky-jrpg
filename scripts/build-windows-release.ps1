@@ -12,11 +12,10 @@ npm ci
 npm run test:desktop-package
 npm run package:windows
 
-$package = Get-ChildItem -Path (Join-Path $repo "..\aetherwake-dist") -Directory | Select-Object -First 1
-if (-not $package) { throw "NW.js did not produce a package directory." }
-
-$exe = Join-Path $package.FullName "Aetherwake.exe"
-if (-not (Test-Path -LiteralPath $exe)) { throw "Aetherwake.exe not found in packaged runtime." }
+$dist = Join-Path $repo "..\aetherwake-dist"
+$exe = Get-ChildItem -LiteralPath $dist -Filter "Aetherwake.exe" -File -Recurse | Select-Object -First 1
+if (-not $exe) { throw "Aetherwake.exe not found in packaged runtime." }
+$package = $exe.Directory
 
 if (Test-Path -LiteralPath $OutputDir) {
   Remove-Item -LiteralPath $OutputDir -Recurse -Force
