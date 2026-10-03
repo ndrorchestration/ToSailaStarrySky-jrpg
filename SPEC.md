@@ -103,7 +103,7 @@ Rules:
 The development branch now contains a persistent party-state bridge:
 
 - `ROSTER` has exactly five stable identities in canonical order: Ender, Lyra, Ionia, Reson, Aepex;
-- `ACTIVE_PARTY` supports 1–5 direct references into `ROSTER`; First Wake starts with Ender alone and adds Lyra at Sequence 06;
+- `ACTIVE_PARTY` supports 1–5 direct references into `ROSTER`; First Wake starts with Ender alone, adds Lyra at Sequence 06, and times Ionia's official party role to the early storm/shield sequence;
 - `world.player === ROSTER[0] === ACTIVE_PARTY[0]`, so the lead character is no longer duplicated across WORLD and persistent party state;
 - the normal New Game path no longer uses custom companion creation;
 - `modules/char-create.js` remains compatibility provenance only, and its custom companion/job assumptions are not authored canon;
@@ -219,7 +219,7 @@ The development branch now separates current combat metadata from execution:
 
 Known semantic debt remains explicit rather than being silently upgraded:
 
-- Shared Dream remains compatibility residue because current SSOT reserves true Dreaming for Talen;
+- Shared Dream remains compatibility residue until renamed or replaced by an Ender-appropriate resonance/connection action; current SSOT reserves true Dreaming for Talen;
 - Wind Ward remains compatibility residue because canonical owner/domain are unresolved;
 - current legacy cost/tier behavior is still preserved where not yet redesigned;
 - modifier/reveal/status/movement execution is not generalized merely because those kinds exist in the vocabulary;
@@ -426,7 +426,7 @@ The current quest is a vertical slice, not the complete campaign.
 
 ### TARGET CAMPAIGN
 
-The full campaign will expand story acts, recruitment timing, character arcs, relationships, regions, bosses, exploration interactions, and the Wake/Core mystery after the underlying character/combat architecture is stable.
+The full campaign will expand story acts, recruitment timing, character arcs, relationships, regions, bosses, exploration interactions, the Wakeheart/resonance mystery, and Auroral-lane access after the underlying character/combat architecture is stable.
 
 ---
 
@@ -442,7 +442,7 @@ The full campaign will expand story acts, recruitment timing, character arcs, re
 - `aetherwake.js` is the current integrated runtime/preservation artifact and remains the current combat executor.
 - `modules/first-wake-opening.js` is the active authored New Game onboarding controller through the FIRST WAKE chapter card.
 - `modules/char-create.js` remains loaded only as historical compatibility surface and is not the normal New Game route.
-- several other `modules/*.js` files are older mirrors/reference copies and may not match the integrated runtime.
+- several other `modules/*.js` files are older mirrors/reference copies and may not match the integrated runtime; story-facing mirrors should preserve the Act I storm/shield premise when edited.
 
 ### TARGET ARCHITECTURE
 
