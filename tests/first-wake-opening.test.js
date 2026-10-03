@@ -16,7 +16,7 @@ const state = opening.createState();
 assert.deepStrictEqual(opening.expectedPartyIds(state), ['ender']);
 
 for (let i = 0; i < 6; i++) opening.advance(state);
-assert.strictEqual(opening.currentScene(state).id, 'wrong_song');
+assert.strictEqual(opening.currentScene(state).id, 'lyra_join');
 assert.deepStrictEqual(opening.expectedPartyIds(state), ['ender']);
 const join = opening.advance(state);
 assert(join.event && join.event.type === 'party-join');
