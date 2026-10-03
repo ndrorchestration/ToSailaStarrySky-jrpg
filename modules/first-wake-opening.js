@@ -26,7 +26,7 @@
       speaker: null,
       lines: Object.freeze([
         'Dawn gathers beneath a sea of clouds.',
-        'A small patched vessel hangs against a very large sky.',
+        'A compact patched vessel hangs against a very large sky.',
       ]),
       activePartyIds: Object.freeze(['ender']),
     }),
@@ -38,7 +38,7 @@
       lines: Object.freeze([
         'You said you could fix things.',
         'ENDER: I said I was willing to learn how.',
-        "IONIA: Good. That's usually cheaper.",
+        "IONIA: Good. The Wake respects honest uncertainty more than confident nonsense.",
       ]),
       activePartyIds: Object.freeze(['ender']),
     }),
@@ -111,7 +111,7 @@
       lines: Object.freeze([
         'Core load just moved twelve percent.',
         "LYRA: That's not what I meant.",
-        "IONIA: It's what keeps the rooms warm.",
+        "IONIA: It's what keeps the rooms warm. Meaning can wait until the shielding holds.",
       ]),
       activePartyIds: Object.freeze(['ender', 'lyra']),
     }),
@@ -122,7 +122,7 @@
       speaker: null,
       lines: Object.freeze([
         'They pass the shared table, unreliable galley, and exposed conduit.',
-        'A sealed Core-room door waits at the end of the passage.',
+        'Beyond the hull, stormlight gathers over the dock shields.',
         'LYRA: This one listened back.',
       ]),
       activePartyIds: Object.freeze(['ender', 'lyra']),
@@ -134,8 +134,8 @@
       subtitle: 'CHAPTER I — FIRST WAKE',
       speaker: null,
       lines: Object.freeze([
-        'Geometry. Frequency. Failing instrumentation.',
-        'Three ways of knowing face the same impossible signal.',
+        "Ionia's instruments. Lyra's reach. Ender's impossible yes.",
+        'Three ways of knowing approach the same storm.',
       ]),
       activePartyIds: Object.freeze(['ender', 'lyra']),
       chapterCard: true,
