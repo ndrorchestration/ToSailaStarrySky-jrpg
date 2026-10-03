@@ -5,6 +5,7 @@ tts/
 screenshot_*.png
 sc_*.png
 shot_*.png
+evidence/player-acceptance/
 
 # Font source files (embedded-fonts.css has the base64 data URIs)
 *.ttf

@@ -129,6 +129,9 @@ jobs:
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
+      - name: Verify player evidence capture contract
+        run: npm run test:player-evidence-capture
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 

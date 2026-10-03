@@ -73,6 +73,8 @@
     "test:input-runtime": "node tests/input-runtime-contract.test.js",
     "test:combat-runtime": "node tests/combat-runtime-contract.test.js",
     "stage:desktop": "node scripts/stage-memories-desktop.js",
-    "test:cinematics": "node tests/cinematic-manifest-contract.test.js"
+    "test:cinematics": "node tests/cinematic-manifest-contract.test.js",
+    "capture:player-evidence": "node scripts/capture-player-evidence.js",
+    "test:player-evidence-capture": "node tests/player-evidence-capture-contract.test.js"
   }
 }
