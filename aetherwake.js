@@ -2386,98 +2386,79 @@ function initQuest() {
     wakeEpilogue: null,
     discoveries: [],      // lore tiles discovered so far
   journal: [
-    { state: 'signal', text: 'The Wake rings hollow. The core is singing wrong — the harmonics are slipping.' },
-    { state: 'crossing', text: 'Three hazards between you and the core\'s last stable chamber. The ship is waiting.' },
-    { state: 'contact', text: 'Three voices on the ship. Each one carries a piece of the choice. None of them know it yet.' },
-    { state: 'choice', text: 'Four voices heard. The ship holds still. The core waits for your answer — and the silence after the humming is where you\'ll find it.' }
+    { state: 'signal', text: 'Ender boards the Aureate Wake as Wake Dock prepares for stormfall. The ship flies, but its deeper shield responses need the right crew to become clear.' },
+    { state: 'crossing', text: 'Three dockside hazards stand between the crew and shield readiness. Each one tests whether the Wake can protect more than itself.' },
+    { state: 'contact', text: 'Ender hears Ionia, Lyra, the Wakeheart, and Verrick. Each voice names a different cost of waiting, leaving, or reaching wider.' },
+    { state: 'choice', text: 'The storm is turning. The crew must choose whether to leave early, hold dock, or project the Wake\'s shield across the neighboring berths.' }
   ],          // auto-populated journal entries
   journalToggle: false, // whether player has opened journal view
     signalHooks: [
-      { id: 'harmonic_buoy', label: 'Harmonic Buoy', done: false },
-      { id: 'sky_lane_warning', label: 'Sky-Lane Warning', done: false },
-      { id: 'below_frequency', label: 'Below-Frequency Caller', done: false }
+      { id: 'harmonic_buoy', label: 'Wakeheart Diagnostic', done: false },
+      { id: 'sky_lane_warning', label: 'Dock Shield Warning', done: false },
+      { id: 'below_frequency', label: 'Lyra\'s Frequency Sketch', done: false }
     ],
     crossingHazards: [
-      { id: 'sky_predator',   label: 'Sky-Predator',    done: false, stat: 'might' },
-      { id: 'wind_shear',     label: 'Wind Shear',      done: false, stat: 'grace' },
-      { id: 'aether_leak',    label: 'Aether Leak',     done: false, stat: 'wits' },
-      { id: 'corporate_intercept', label: 'Corporate Intercept', done: false, stat: 'might' }
+      { id: 'sky_predator', label: 'Loose Cargo Sweep', done: false, stat: 'grace' },
+      { id: 'wind_shear', label: 'Wind Shear', done: false, stat: 'grace' },
+      { id: 'corporate_intercept', label: 'Dock Authority Hold', done: false, stat: 'wits' }
     ],
     contactNPCs: [
       { id: 'elder_farmer', label: 'Ionia' },
-      { id: 'engine_spirit', label: 'The Core' },
+      { id: 'engine_spirit', label: 'Wakeheart' },
       { id: 'child_prophet', label: 'Lyra' },
       { id: 'corporate_salvager', label: 'Verrick' }
     ],
     choicePaths: [
       {
         id: 'path_a',
-        label: 'Sing the core down / Scatter the people',
-        description: 'End the core\'s song. Let the Wake fall where it may.',
+        label: 'Leave early / Beat the storm',
+        description: 'Launch before the front arrives. Save the Wake by refusing the wider risk.',
         outcomes: {
-          '10+': 'The core sings itself to sleep. The Wake falls gently onto a stretch of clean ground below — nobody dies, but the ship is done. Ionia cries for a week. Lyra says the silence is beautiful. The people scatter to the wastes and start again. You walk away with your wrench and your silence.',
-          '7-9':  'The core goes quiet, but not cleanly. The Wake lands hard. Some don\'t make it off the decks. The frequencies scream on the way down. You live with the noise.'
+          '10+': 'The Wake clears the dock ahead of the storm. Ionia keeps everyone alive, but the berths behind you vanish into weather static. Lyra watches the empty horizon and says the ship wanted to try.',
+          '7-9':  'The Wake launches late and takes shear along the port wing. You survive, but the flight is rough and the dock calls after you until the signal breaks.'
         }
       },
       {
         id: 'path_b',
-        label: 'Sell the core / Evacuate the ship',
-        description: 'Work with Verrick to box the core and move the people.',
+        label: 'Hold dock / Stabilize the colony shield',
+        description: 'Stay moored and route power into the local shield grid.',
         outcomes: {
-          '10+': 'The acquisition goes clean. Verrick pays out. The people get passage. You get a credential and a seat on the first evac shuttle. The core leaves this world in a crate, humming quietly. Verrick nods at you like you\'re one of them now.',
-          '7-9':  'The acquisition is messy. Two people refuse the evac — they stay with Ionia on the lower decks. The core is damaged in transit. You get paid, but the solar credits feel like they came with blood on them.'
+          '10+': 'The colony shield steadies long enough for the neighboring crews to brace. The Wake remains safe, though the deeper alert on the console fades unanswered.',
+          '7-9':  'The local shield catches, but only in pulses. The Wake holds her berth while smaller craft take damage at the edge of the umbrella.'
         }
       },
       {
         id: 'path_c',
-        label: 'Drive the core up / Find what\'s above',
-        description: 'Overdrive the core. Push the Wake up through the sky-layers into the unknown above.',
+        label: 'Project shield / Cover the berths',
+        description: 'Let the Wake front-load her shield into a wide stormward umbrella.',
         outcomes: {
-          '10+': 'The core sings. The Wake rises through the sky-layers like a seed on the wind. You ride it up — and above the world is another world, upside-down and green, with its own sky and its own falling ships. The Core rides with you. You have a new route.',
-          '7-9':  'The Wake rises, but the core destabilises. Half the party stays below. You go up — but you\'re not sure you\'ll come back down. The Core looks at you like you made the wrong call.'
+          '10+': 'The Wake turns her shield like a bright wing into the storm. For one impossible minute, three vessels survive under one shelter. Ionia, Lyra, and Ender feel the ship answer as if a hidden circuit finally closed.',
+          '7-9':  'The umbrella holds, but the Wake pays for it. Side shielding thins, alarms bloom, and everyone aboard learns that miracles still need engineering.'
         }
       }
     ],
     epilogues: [
-      // Stat-driven endings first — reachable through play alone,
-      // regardless of which path the player chose.
-      { id: 'epiline_5', name: 'The Blight-Touched',
+      { id: 'epiline_5', name: 'The Weather-Bruised',
         trigger: () => quest.hullIntegrity < 40 || quest.morale < 20,
-        text: 'The Wake broke before you could finish the song. You survived. Barely. The frequencies are silent. You are what\'s left of the Aureate Wake — a person with a hull\'s worth of silence inside them. But you\'re alive, and the sky-lanes still call. That counts for something, even if you can\'t hear it yet.' },
-      { id: 'epiline_1', name: 'The Sky-Lane Drifter',
+        text: 'The Wake survives stormfall damaged and shaken. The crew has proof that the ship can answer them, but also proof that courage without balance has a cost.' },
+      { id: 'epiline_1', name: 'The Clear Departure',
         trigger: () => quest.hullIntegrity >= 60 && quest.morale >= 45 && (quest.engineIntegration < 50 || quest.choicePath === 'path_a'),
-        text: 'You left the core behind and walked off the Wake. The sky-lanes call you back — there are more ships failing, more frequencies going wrong. You are a Sky-Lane Drifter now. Your next route is already singing.' },
-      { id: 'epiline_2', name: 'The Core-Bound',
-        trigger: () => quest.hullIntegrity >= 45 && quest.engineIntegration >= 65,
-        text: 'You bound yourself to the core. It lives in your chest now — a low hum, a copper light under your ribs. You are the new heart of the Wake. The frequencies will never be finished, but you will keep singing them.' },
-      // Path-specific endings — only fire when the player actually chose
-      // that path. Tried after stat-only ones.
-      { id: 'epiline_3', name: 'Verrick\'s Ledger',
-        trigger: () => quest.choicePath === 'path_b' && quest.morale >= 35 && quest.hullIntegrity >= 35,
-        text: 'The Syndicate made you a partner. You wear their credential like a second skin. The failing sky-lanes are your territory now. You tell yourself you\'re saving people. You are. But the core remembers.' },
-      { id: 'epiline_9', name: 'The Syndicate Ghost',
-        trigger: () => quest.choicePath === 'path_b' && quest.hullIntegrity < 50,
-        text: 'The acquisition broke you as much as the core. You took the Syndicate\'s money and you took their credential, but you never took their world. You haunt the failing sky-lanes now — an acquisition ghost with a ledger full of names you couldn\'t save. The core remembers you too.' },
-      { id: 'epiline_4', name: 'The Above-Breaker',
-        trigger: () => quest.choicePath === 'path_c' && quest.hullIntegrity >= 55,
-        text: 'You drove the Wake above the world. What you found there has no name yet. You are the first Above-Breaker. The sky-lanes below will remember you as a ghost story. You don\'t care.' },
-      { id: 'epiline_7', name: 'The Sky-Singer',
-        trigger: () => quest.choicePath === 'path_c' && quest.engineIntegration >= 55 && quest.morale >= 45,
-        text: 'You drove the Wake up with the core and you listened. Above the world, the song wasn\'t unfinished — it was waiting. You caught the last note and brought it back down. Now you teach others how to hear it. The sky-lanes have a new singer.' },
-      { id: 'epiline_6', name: 'The Seedwright\'s Road',
-        trigger: () => quest.choicePath === 'path_a' && quest.engineIntegration >= 35 && quest.morale >= 35,
-        text: 'You sang the core to sleep, but the song didn\'t die. It went into the ground, the roots, the stones. You can hear it now — everywhere. You\'re a Seedwright of the fall. The world will fall again. You\'ll be ready.' },
-      { id: 'epiline_8', name: 'The Wake\'s Gardener',
-        trigger: () => quest.choicePath === 'path_a' && quest.hullIntegrity >= 65 && quest.morale >= 55,
-        text: 'The Wake fell, but gently. The people scattered and found new ground. You stayed. The ground where the core stood grew green first — faster than anything should. You farm that spot now. The crops don\'t taste like copper anymore. They taste like endings.' },
-      // Best ending — tried last, requires the most ambitious path AND
-      // strong stats across the board. A player who did everything right
-      // gets this.
-      { id: 'epiline_10', name: 'The First Note',
-        trigger: () => quest.engineIntegration >= 75 && quest.morale >= 55 && quest.hullIntegrity >= 55 && quest.choicePath === 'path_c',
-        text: 'You didn\'t choose a path — you sang the core a new one. The song finished itself through you. Above the world, the sky-lanes heard it and answered. You are the first note of the new world. The old one will fall. This one will rise. You\'ll be there to sing it up.' }
+        text: 'The Wake beats the storm into open sky. You are alive, the ship is steady, and the unanswered shield alert follows you like a question waiting for better weather.' },
+      { id: 'epiline_2', name: 'The Shield-Bound',
+        trigger: () => quest.hullIntegrity >= 50 && quest.engineIntegration >= 70,
+        text: 'The Wake\'s shield lattice remembers the three of you. After stormfall, the console keeps offering patterns no captain has seen since Denith.' },
+      { id: 'epiline_3', name: 'Verrick\'s Weather Ledger',
+        trigger: () => quest.morale >= 40 && quest.hullIntegrity >= 40 && quest.choicePath === 'path_b',
+        text: 'Verrick files the exception with no jokes in the margins. The colony shield held because the Wake stayed, and official records become a little less certain about what counts as impossible.' },
+      { id: 'epiline_4', name: 'Lyra\'s Wide Wing',
+        trigger: () => quest.choicePath === 'path_c' && quest.morale >= 60,
+        text: 'Lyra draws the storm afterward: one bright wing, three small ships, and a crew shaped like a chord. She does not know what it means yet. She only knows it happened.' },
+      { id: 'epiline_6', name: 'The First Chord',
+        trigger: () => quest.choicePath === 'path_c' && quest.engineIntegration >= 60 && quest.hullIntegrity >= 50,
+        text: 'The umbrella vector becomes the first real secret the Wake gives back. Not a prophecy. Not a chosen one. A crew, briefly aligned, and a ship that can do more when it is understood.' }
     ]
   };
+  World.quest = quest;
 }
 
 // ---------------------------------------------------------------------------
@@ -2572,9 +2553,9 @@ function advanceChoice() {
     // read quest.choicePath. choiceMade is the human-readable label;
     // choicePath is the machine id used by epilogue triggers.
     const pathMap = {
-      'Sing the core down / Scatter the people': 'path_a',
-      'Sell the core / Evacuate the ship':       'path_b',
-      'Drive the core up / Find what\'s above': 'path_c'
+      'Leave early / Beat the storm': 'path_a',
+      'Hold dock / Stabilize the colony shield': 'path_b',
+      'Project shield / Cover the berths': 'path_c'
     };
     quest.choicePath = pathMap[quest.choiceMade] || 'path_a';
     quest.state = QUEST_STATES.WAKE;
