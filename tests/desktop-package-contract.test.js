@@ -106,6 +106,8 @@ assert(desktopGuide.includes('Aetherwake-Setup.exe'),
   'desktop guide must advertise the standard installer');
 assert(!desktopGuide.includes('Aetherwake-OneClick.exe'),
   'desktop guide must not advertise superseded self-extracting artifacts');
+assert(localReleaseScript.includes('Get-ChildItem -LiteralPath $dist -Filter "Aetherwake.exe" -File -Recurse'),
+  'local Windows release fallback must locate direct or nested nw-builder output');
 assert(localReleaseScript.includes('LOCAL_WINDOWS_RELEASE=PASS'),
   'local Windows release fallback must emit an explicit success marker');
 assert(localReleaseScript.includes('Start-Process -FilePath $installer'),
