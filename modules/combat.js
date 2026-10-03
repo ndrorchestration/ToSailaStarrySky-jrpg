@@ -77,14 +77,14 @@ function AetherCombat(p, C) {
       bodyShape: 'predator',
     },
     corporateSalvager: {
-      name: 'Corporate Salvager',
-      goal: 'Secure the island\'s engine core for the corporation.',
+      name: 'Dock Authority Enforcer',
+      goal: 'Force the Wake to clear berth before the stormfront arrives.',
       hp: 10, maxHp: 10, might: 0, presence: 2, grace: 1, wits: 1,
-      weakness: 'Class-locked dialogue — the commons outlasts the contract.',
+      weakness: 'Procedure pressure overreaches — clear evidence can hold the berth.',
       status: 'negotiating',
       type: 'corporateSalvager',
       ability: 'contractClause',
-      abilityDesc: 'Contract Clause — you lose 1 scrap',
+      abilityDesc: 'Hold Order — you lose 1 scrap to emergency repairs',
       color: 'soil',
       bodyShape: 'humanoid',
     },
@@ -527,7 +527,7 @@ function AetherCombat(p, C) {
           // Contract Clause: lose 1 scrap
           if (state.player.scrap > 0) {
             state.player.scrap -= 1;
-            enemyText = state.enemy.name + ' invokes a contract clause — 1 scrap seized!';
+            enemyText = state.enemy.name + ' enforces a hold order — 1 scrap spent on emergency compliance!';
           } else {
             // Fallback to strike
             state.player.vit = Math.max(0, state.player.vit - 1);
@@ -560,7 +560,7 @@ function AetherCombat(p, C) {
       } else {
         // Enemy holds — but some enemies have conditional pressure
         if (eType === 'corporateSalvager' && floor(random(1, 4)) >= 3) {
-          log('[Enemy] ' + state.enemy.name + ' exerts corporate pressure — you feel restrained.');
+          log('[Enemy] ' + state.enemy.name + ' exerts dock pressure — the berth feels smaller.');
           state._pressureTurn = millis();
         } else {
           log('[Enemy] ' + state.enemy.name + ' holds.');
@@ -808,7 +808,7 @@ function AetherCombat(p, C) {
         p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 50);
         p.ellipse(ex - 4, ey - 2, 16, 12);
       } else if (eType === 'humanoid') {
-        // Corporate Salvager: taller, narrower
+        // Dock authority enforcer: taller, narrower
         p.ellipse(ex, ey, 26, 36);
         p.fill(C.soil[0], C.soil[1], C.soil[2], 180);
         p.rect(ex - 8, ey - 18, 16, 18);
