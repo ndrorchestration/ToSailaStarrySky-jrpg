@@ -134,8 +134,9 @@
       subtitle: 'CHAPTER I — FIRST WAKE',
       speaker: null,
       lines: Object.freeze([
-        "Ionia's instruments. Lyra's reach. Ender's impossible yes.",
-        'Three ways of knowing approach the same storm.',
+        "The Wake is not awakened by one chosen hand, but by a crew becoming legible to itself.",
+        "Ionia holds command. Lyra hears the reach. Ender says yes where the hull expected no.",
+        "Beyond the storm, the high lanes remain closed; first, the ship must learn what shelter means.",
       ]),
       activePartyIds: Object.freeze(['ender', 'lyra']),
       chapterCard: true,
