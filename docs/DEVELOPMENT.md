@@ -68,6 +68,22 @@ Canonical command:
 npm run test:smoke
 ```
 
+## Player evidence capture
+
+When technical gates are green but human/player acceptance remains pending, generate a local evidence bundle instead of treating CI artifact availability as visual approval:
+
+```bash
+npm run capture:player-evidence
+```
+
+The command captures the current `index-embedded.html` browser route into `evidence/player-acceptance/<source-sha>-<timestamp>/`, writes a `manifest.json`, and keeps `humanAcceptance`, `visualAcceptance`, and `gameplayCaptureInspected` explicitly pending. This bundle is review input only; it does not establish visual approval or player acceptance.
+
+The smoke workflow guards the capture lane with:
+
+```bash
+npm run test:player-evidence-capture
+```
+
 The smoke test should verify:
 
 ```text

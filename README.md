@@ -164,6 +164,14 @@ npm run test:smoke
 
 The verification suite covers the playable path from startup through the authored First Wake opening, world/overlay interactions, combat, flight-return seams, and return to the correct originating state. It also verifies roster/reference invariants, effect-vocabulary coverage, registry/runtime equivalence, transactional action affordability, progression reachability, party capacity, magic contracts, air-navigation behavior, live resolver routing, and post-combat write-back into the canonical lead record.
 
+To produce local review material without converting it into acceptance, run:
+
+```bash
+npm run capture:player-evidence
+```
+
+This creates `evidence/player-acceptance/<source-sha>-<timestamp>/` with screenshots and a manifest whose human/player and visual acceptance fields remain explicitly pending.
+
 ## Visual authority
 
 The canonical project-wide visual direction is defined in:
