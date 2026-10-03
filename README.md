@@ -218,3 +218,12 @@ The intended player experience is **download one Windows artifact, launch/instal
 - A local Windows fallback script, `scripts/build-windows-release.ps1`, performs build → installer compile → clean install → launch smoke → SHA-256 generation when hosted CI is unavailable.
 - Current GitHub-hosted verification is **blocked before execution**, not failing inside Aetherwake: on `main` `313d7eb2aee003ce51a23edf48532f64d30f2bc0`, Windows package run `35694446836` and smoke run `35694446855` both ended with `runner_id: 0` and zero steps.
 - Therefore **no newly generated installer is currently authorized as verified player-facing output**. Older installers and self-extracting wrappers remain historical artifacts and should not be presented as the current answer merely because they compiled or passed an older CI lane.
+
+When a fresh candidate passes the exact Windows install/launch gate, the primary player artifact will be:
+
+- **Aetherwake-Setup.exe** — conventional per-user installer; no administrator elevation; creates normal Start Menu and desktop shortcuts.
+- **Aetherwake-Windows.zip** — portable fallback. Extract completely, then run **Aetherwake.exe**.
+
+If Windows Defender flags an executable, do not whitelist or bypass it. Record the exact detection name and SHA-256 so the artifact can be audited.
+
+See `docs/DESKTOP_BUILD.md` for the canonical packaging and verification contract.
