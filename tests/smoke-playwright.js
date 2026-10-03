@@ -254,8 +254,8 @@ function createServer() {
       lines: window.UI.dialogueLines,
       lineIndex: window.UI.dialogueLineIndex,
     }));
-    assert(firstDialogue.lines[0].includes('harmonics are slipping'),
-      'first NPC contact did not select the authored intro dialogue');
+    assert(firstDialogue.lines[0].includes('The Aureate Wake can fly'),
+      'first NPC contact did not select Captain Ionia\'s authored intro dialogue');
     assert(firstDialogue.lineIndex === 0, 'dialogue did not start at line zero');
     await page.keyboard.press('e');
     await page.waitForFunction(() => window.UI.dialogueLineIndex === 1);
