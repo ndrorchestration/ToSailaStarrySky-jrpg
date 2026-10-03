@@ -1341,24 +1341,44 @@ function drawBootSequence() {
     
     // Story text
     const preambleLines = [
-      'A ship above a broken world.',
-      'A core that has begun to sing wrong.',
+      'Some vessels are built to fly.',
       '',
-      'Below, the copper ground is tired \u2014 rusted, cracked,',
-      'choking on its own dust.',
-      'Above, the sky-lanes are still open.',
+      'A few are built to listen.',
       '',
-      'For three hundred years, the aether-cores',
-      'kept the arcologies aloft.',
-      'Now the cores are failing.',
+      'Not only to orders.',
+      'Not only to engines.',
+      'Not only to the hand upon the helm.',
       '',
-      'You are Ender.',
-      'Deckhand. Engineer-in-training.',
-      'You carry a wrench, a passport, and a decision',
-      'you have not yet admitted you have to make.',
+      'To weather.',
+      'To fear.',
+      'To the distance between one heart',
+      'and another.',
       '',
-      'The Aureate Wake\'s core is singing wrong.',
-      'Something has to be done about that.',
+      'Long ago,',
+      'the sky was not a border.',
+      '',
+      'It was a promise',
+      'people learned to cross together.',
+      '',
+      'Then the high routes dimmed.',
+      'Harbors drew closer to home.',
+      'Captains learned smaller skies.',
+      '',
+      'Still,',
+      'some vessels kept faith',
+      'with roads no map could prove.',
+      '',
+      'One waits now at Wake Dock,',
+      'patched in brass and winglight,',
+      'faithful beneath a brightening sky.',
+      '',
+      'Not broken.',
+      '',
+      'Not silent.',
+      '',
+      'Only listening',
+      'for the moment',
+      'a crew becomes a chord.',
     ];
     
     // Calculate which lines visible
@@ -1452,11 +1472,11 @@ function drawBootSequence() {
   
   textSize(16 * v);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 200 * v);
-  text('THE AUREATE WAKE — THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
+  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
   
   textSize(13 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
-  text('THE AUREATE WAKE — CHRONICLE OF THE LAST SOLARPUNK AIRSHIP', cx, cy + 48);
+  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 48);
   
   textSize(14 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
@@ -1470,7 +1490,7 @@ function drawBootSequence() {
   textFont('Press Start 2P');
   textSize(8 * v);
   fill(C.teal[0], C.teal[1], C.teal[2], 100 * v);
-  text('THE AUREATE WAKE // TURN-BASED JRPG', cx, height - 20);
+  text('A SOLARPUNK SKYBOUND JRPG', cx, height - 20);
   
   // Subtle flash every 4 seconds
   const flashCycle = (millis() - bootTime) / 4000;
@@ -1550,7 +1570,7 @@ function drawTitleScreen() {
 
   textSize(13);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
-  text('THE AUREATE WAKE — CHRONICLE OF THE LAST SOLARPUNK AIRSHIP', cx, cy + 48);
+  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 48);
 
   textSize(14);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
@@ -1564,7 +1584,7 @@ function drawTitleScreen() {
   textFont('Press Start 2P');
   textSize(8);
   fill(C.teal[0], C.teal[1], C.teal[2], 100);
-  text('THE AUREATE WAKE // TURN-BASED JRPG', cx, height - 20);
+  text('A SOLARPUNK SKYBOUND JRPG', cx, height - 20);
 }
 
 function drawDialogueOverlay() {
