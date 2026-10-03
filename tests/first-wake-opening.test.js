@@ -5,7 +5,7 @@ assert.strictEqual(opening.VERSION, '0.1.0');
 assert.strictEqual(opening.validate(), true);
 assert.strictEqual(opening.SCENES.length, 10);
 assert.strictEqual(opening.SCENES[0].id, 'arrival_horizon');
-assert.strictEqual(opening.SCENES[6].id, 'wrong_song');
+assert.strictEqual(opening.SCENES[6].id, 'lyra_join');
 assert.strictEqual(opening.SCENES[6].joinCharacterId, 'lyra');
 assert.deepStrictEqual(opening.SCENES[6].activePartyIds, ['ender']);
 assert.strictEqual(opening.SCENES[9].chapterCard, true);
