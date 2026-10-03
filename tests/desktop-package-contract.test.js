@@ -27,6 +27,8 @@ const stageScript = fs.readFileSync(
 );
 assert(stageScript.includes("main: 'www/index-embedded.html'"),
   'production desktop manifest must use the RPG Maker MV-style www entrypoint');
+assert(stageScript.includes("app: {") && stageScript.includes("icon: 'www/icon.svg'"),
+  'production desktop manifest must provide nw-builder app icon metadata');
 assert(stageScript.includes("path.join(stage, 'package.json')"),
   'production desktop manifest must live at the launcher root');
 assert(stageScript.includes("path.join(stage, 'www')"),
