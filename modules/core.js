@@ -725,7 +725,7 @@ function drawBootSequence() {
       'You carry a wrench, a passport, and a decision',
       'you have not yet admitted you have to make.',
       '',
-      'The Aureate Wake\\'s core is singing wrong.',
+      'The Aureate Wake\'s core is singing wrong.',
       'Something has to be done about that.',
     ];
     
