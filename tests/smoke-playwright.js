@@ -603,7 +603,7 @@ function createServer() {
     assert(aetherLeakMetadata && aetherLeakMetadata.aetherDependent === true,
       'Aether Leak Wraith lost explicit Aether-dependence metadata');
     assert(engineSpiritMetadata && engineSpiritMetadata.aetherDependent == null,
-      'Engine Spirit Aether dependence was inferred without authority');
+      'Wakeheart Echo Aether dependence was inferred without authority');
 
     const effectContract = await page.evaluate(() => {
       const vocabulary = window.AetherEffectVocabulary;
