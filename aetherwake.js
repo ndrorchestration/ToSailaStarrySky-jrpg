@@ -2517,10 +2517,10 @@ function advanceSignal() {
   if (quest.hooksCompleted >= 3) {
     quest.state = QUEST_STATES.CROSSING;
     quest.act = 'crossing';
-    appendJournalEntry('crossing', 'The sky cracked open — three hazards block the way to the Aureate Wake. The core is waiting.');
+    appendJournalEntry('crossing', 'The stormfront turns toward Wake Dock. Three hazards now stand between the crew and a usable shield posture.');
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   } else if (quest.hooksCompleted >= 1) {
-    appendJournalEntry('signal', 'You picked up the first thread of the song. The Wake is talking to you.');
+    appendJournalEntry('signal', 'You found the first useful reading. The Wake is not explaining itself, but it is answering.');
   }
 }
 
@@ -2528,10 +2528,10 @@ function advanceCrossing() {
   if (quest.hazardsCompleted >= 3) {
     quest.state = QUEST_STATES.CONTACT;
     quest.act = 'contact';
-    appendJournalEntry('contact', 'The crossing behind you. Four souls ahead. The core hums between them like a held breath.');
+    appendJournalEntry('contact', 'The dockside hazards are behind you. Four voices now frame the same question: leave, hold, or shelter wider.');
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   } else if (quest.hazardsCompleted >= 1) {
-    appendJournalEntry('crossing', 'A hazard behind you. The sky is quieter now. The core can hear you breathing.');
+    appendJournalEntry('crossing', 'One hazard is under control. The storm is closer, and the shield math is getting less theoretical.');
   }
 }
 
@@ -2539,7 +2539,7 @@ function advanceContact() {
   if (quest.npcsMet.length >= 4) {
     quest.state = QUEST_STATES.CHOICE;
     quest.act = 'choice';
-    appendJournalEntry('choice', 'All four voices heard. The ship holds still. The core waits for your answer.');
+    appendJournalEntry('choice', 'All four voices heard. The ship holds steady while the storm asks for a decision.');
     if (typeof triggerQuestAdvance === 'function') triggerQuestAdvance();
   } else if (quest.npcsMet.length >= 1) {
     const met = quest.npcsMet.length;
@@ -3350,7 +3350,7 @@ function drawShipInterior() {
   textAlign(CENTER, CENTER);
   textSize(8);
   textFont('VT323');
-  text('CORE', cx, cy - 22);
+  text('WAKEHEART', cx, cy - 22);
   textSize(10);
   textFont('sans-serif');
 
@@ -4470,7 +4470,7 @@ function drawPlayerVisualEvolution() {
 // --- NPC daily routines ------------------------------------------------------
 // Each NPC has a small idle animation / drift loop.
 // Ionia: rests forearms on bulkhead, occasional glance toward the lower cargo hatch.
-// The Core: aether glow breathes, rotation drifts slowly.
+// Wakeheart: aether glow breathes, rotation drifts slowly.
 // Lyra: plays with a small dream-fragment orb that orbits her head.
 // Verrick: shifts weight between deck and bulkhead, posture change.
 
@@ -8026,18 +8026,18 @@ function drawQuestLog(lx, ly, lw, lh) {
     drawGlowText(entry, msgX, eY, PAL.PARCHMENT, 12);
   }
 
-  // Quest stages summary (hardcoded from SPEC)
+  // Quest stages summary for the current Act I stormfall slice
   const stagesY = ly + lh - 36;
   textFont(FONT_UI);
   textSize(8);
   fill(PAL.DIM);
   noStroke();
   const stages = [
-    'SIGNAL: distress / bounty / dream',
-    'CROSSING: Wind Shear / Aether Leak / Sky-Predator',
-    'CONTACT: elder / engine spirit / child / salvager',
-    'CHOICE: Save / Preserve / Allow Ascent',
-    'WAKE: 6 epilogues'
+    'SIGNAL: diagnostic / warning / sketch',
+    'CROSSING: Cargo / Shear / Hold Order',
+    'CONTACT: Ionia / Wakeheart / Lyra / Verrick',
+    'CHOICE: Leave / Hold / Project Shield',
+    'WAKE: stormfall outcomes'
   ];
   stages.forEach((s, i) => {
     const sx = lx + 14 + (i % 2) * (lw / 2);
