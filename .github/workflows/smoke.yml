@@ -132,6 +132,9 @@ jobs:
       - name: Verify player evidence capture contract
         run: npm run test:player-evidence-capture
 
+      - name: Verify player evidence workflow contract
+        run: npm run test:player-evidence-workflow
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
