@@ -188,6 +188,102 @@ function server() {
     assert(slot && slot.exists && slot.valid,
       'manual-1 was not retained as a valid save after round trip');
 
+    // Semantic-backup recovery: a checksum-valid but semantically impossible
+    // primary must fall back to the previous valid backup.
+    const recoveryFixture = await page.evaluate(() => {
+      window.AetherSaveSystem.remove('manual-2');
+      const payload = window._persistenceRuntime.buildSavePayload();
+      const meta = {
+        gameVersion: '0.1.0-semantic-backup-test',
+        playtimeMs: payload.runtime.playtimeMs,
+        chapter: 'Chapter I — First Wake',
+        location: 'Aureate Wake',
+        partySummary: window.ACTIVE_PARTY.map(character => character.name || character.id),
+      };
+
+      const first = window.AetherSaveSystem.save('manual-2', payload, meta);
+      window.AetherSaveSystem.save('manual-2', payload, meta);
+      const key = first.path.replace('localStorage://', '');
+      const backupBefore = window.localStorage.getItem(key + '.bak');
+
+      const impossible = JSON.parse(JSON.stringify(payload));
+      impossible.world.playerPosition.px += 1;
+      const badPrimary = window.AetherSaveSystem.makeEnvelope('manual-2', impossible, meta);
+      window.localStorage.setItem(key, JSON.stringify(badPrimary));
+
+      const recovered = window._persistenceRuntime.loadSemanticallyValidSaveCandidate('manual-2');
+      return {
+        key,
+        backupBefore,
+        recovered: {
+          semanticBackupRecovery: Boolean(recovered && recovered.semanticBackupRecovery),
+          primarySemanticError: recovered && recovered.primarySemanticError,
+          path: recovered && recovered.path,
+          payload: recovered && recovered.envelope
+            ? JSON.parse(JSON.stringify(recovered.envelope.payload))
+            : null,
+        },
+      };
+    });
+
+    assert.strictEqual(recoveryFixture.recovered.semanticBackupRecovery, true,
+      'semantic-invalid primary must recover through the valid backup');
+    assert(/SAVE_WORLD_PX_MISMATCH/.test(recoveryFixture.recovered.primarySemanticError || ''),
+      'semantic recovery must retain the primary semantic failure reason');
+    assert(recoveryFixture.recovered.path.endsWith('.bak'),
+      'semantic recovery must identify the backup path');
+
+    // Real player Load path must consume the same semantic backup candidate.
+    await page.keyboard.press('F9');
+    await page.waitForFunction(() => window.gameState === 'saveload',
+      undefined, { timeout: 3000 });
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window._lastLoadRecovery &&
+      window._lastLoadRecovery.slot === 'manual-2' &&
+      window._lastLoadRecovery.source === 'backup' &&
+      window.gameState === 'world'
+    , undefined, { timeout: 3000 });
+
+    const recoveryEvidence = await page.evaluate(() => ({
+      recovery: JSON.parse(JSON.stringify(window._lastLoadRecovery)),
+      backupRaw: window.localStorage.getItem(
+        window.AetherSaveSystem.getStorage().path('manual-2').replace('localStorage://', '') + '.bak'
+      ),
+    }));
+    assert(/SAVE_WORLD_PX_MISMATCH/.test(recoveryEvidence.recovery.primarySemanticError || ''),
+      'player Load recovery lost the semantic primary error');
+
+    // The next manual save to that recovered slot must preserve the known-good backup.
+    await page.keyboard.press('F5');
+    await page.waitForFunction(() => window.gameState === 'saveload',
+      undefined, { timeout: 3000 });
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window._lastSaveResult &&
+      window._lastSaveResult.envelope &&
+      window._lastSaveResult.envelope.slot === 'manual-2' &&
+      window.gameState === 'saveload'
+    , undefined, { timeout: 3000 });
+
+    const afterRecoverySave = await page.evaluate(() => {
+      const key = window.AetherSaveSystem.getStorage().path('manual-2').replace('localStorage://', '');
+      return {
+        preservedBackup: Boolean(window._lastSaveResult && window._lastSaveResult.preservedBackup),
+        backupRaw: window.localStorage.getItem(key + '.bak'),
+      };
+    });
+    assert.strictEqual(afterRecoverySave.preservedBackup, true,
+      'manual save after semantic recovery must request backup preservation');
+    assert.strictEqual(afterRecoverySave.backupRaw, recoveryFixture.backupBefore,
+      'manual save after semantic recovery replaced the known-good backup');
+
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => window.gameState === 'world',
+      undefined, { timeout: 3000 });
+
     assert.deepStrictEqual(errors, [], errors.join('\n'));
     console.log('Aetherwake manual persistence browser round trip: PASS');
   } finally {

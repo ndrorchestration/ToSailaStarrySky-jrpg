@@ -198,7 +198,8 @@ assert.deepStrictEqual(after.air, before.air,
 const runtimeSource = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
 for (const expected of [
   'world.snapshotPersistentState()',
-  'window.AetherSaveSystem.save(slot, buildSavePayload(), saveMetadata())',
+  'window.AetherSaveSystem.save(',
+  '{ preserveBackup }',
   'prepareSaveEnvelopeForApply(loaded.envelope);',
   'applySaveEnvelope(loaded.envelope);',
   'world.restorePersistentState(prepared.preparedWorld, payload.runtime);',

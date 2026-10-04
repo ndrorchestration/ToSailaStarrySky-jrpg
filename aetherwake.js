@@ -383,22 +383,86 @@ window._persistenceRuntime = Object.freeze({
   buildSavePayload,
   prepareSaveEnvelopeForApply,
   applySaveEnvelope,
+  loadSemanticallyValidSaveCandidate,
+  buildLoadableSaveIndex,
   currentPlaytimeMs,
 });
+
+function loadSemanticallyValidSaveCandidate(slot) {
+  let primaryError = null;
+  try {
+    const loaded = window.AetherSaveSystem.load(slot);
+    if (!loaded || !loaded.envelope) return null;
+    prepareSaveEnvelopeForApply(loaded.envelope);
+    if (loaded.recoveredFromBackup) {
+      return {
+        ...loaded,
+        semanticBackupRecovery: true,
+        primarySemanticError: loaded.primaryLoadError || null,
+      };
+    }
+    return loaded;
+  } catch (error) {
+    primaryError = error;
+  }
+
+  if (typeof window.AetherSaveSystem.loadBackup === 'function') {
+    try {
+      const backup = window.AetherSaveSystem.loadBackup(slot);
+      if (backup && backup.envelope) {
+        prepareSaveEnvelopeForApply(backup.envelope);
+        return {
+          ...backup,
+          semanticBackupRecovery: true,
+          primarySemanticError: primaryError ? primaryError.message : null,
+        };
+      }
+    } catch (backupError) {
+      const primaryMessage = primaryError ? primaryError.message : 'unknown';
+      throw new Error(
+        'SAVE_PRIMARY_AND_BACKUP_UNLOADABLE:' +
+        primaryMessage + '|' + backupError.message
+      );
+    }
+  }
+
+  if (primaryError) throw primaryError;
+  return null;
+}
 
 function buildLoadableSaveIndex() {
   if (!window.AetherSaveSystem) return [];
   return window.AetherSaveSystem.list().map(meta => {
-    if (!meta.exists || meta.valid === false) return meta;
+    if (!meta.exists) return meta;
     try {
-      const loaded = window.AetherSaveSystem.load(meta.slot);
+      const loaded = loadSemanticallyValidSaveCandidate(meta.slot);
       if (!loaded || !loaded.envelope) {
         return { ...meta, valid: false, semanticValid: false, error: 'SAVE_ENVELOPE_MISSING' };
       }
-      prepareSaveEnvelopeForApply(loaded.envelope);
-      return { ...meta, semanticValid: true };
+      const envelope = loaded.envelope;
+      return {
+        ...meta,
+        valid: true,
+        semanticValid: true,
+        semanticBackupRecovery: Boolean(loaded.semanticBackupRecovery),
+        primarySemanticError: loaded.primarySemanticError || null,
+        savedAt: envelope.savedAt,
+        playtimeMs: envelope.playtimeMs,
+        chapter: envelope.chapter,
+        location: envelope.location,
+        partySummary: Array.isArray(envelope.partySummary) ? envelope.partySummary.slice() : [],
+        gameVersion: envelope.gameVersion,
+      };
     } catch (error) {
-      return { ...meta, valid: false, semanticValid: false, error: error.message };
+      return {
+        ...meta,
+        valid: false,
+        semanticValid: false,
+        futureSchemaProtected:
+          meta.futureSchemaProtected === true ||
+          /SAVE_SCHEMA_FUTURE_UNSUPPORTED|SAVE_SLOT_FUTURE_SCHEMA_PROTECTED/.test(error.message),
+        error: error.message,
+      };
     }
   });
 }
@@ -436,14 +500,21 @@ function flushPendingAutosaveIfStable() {
   const reason = pendingAutosaveReason;
   pendingAutosaveReason = null;
   try {
-    const result = window.AetherSaveSystem.rotateAutosave(buildSavePayload(), saveMetadata());
+    const payload = buildSavePayload();
+    const result = window.AetherSaveSystem.rotateAutosave(
+      payload,
+      saveMetadata(),
+      { candidateResolver: loadSemanticallyValidSaveCandidate }
+    );
     window._lastSaveResult = result;
+    window._lastSaveError = null;
     window._lastAutosaveReason = reason;
     window._saveSlotIndex = buildLoadableSaveIndex();
     showToast('AUTOSAVED // ' + reason.toUpperCase(), C.teal, 900);
     return true;
   } catch (error) {
     window._lastSaveError = error.message;
+    window._lastSaveResult = null;
     console.error('AUTOSAVE_FAILED', error);
     return false;
   }
@@ -467,34 +538,83 @@ function saveToSlot(slot) {
     return false;
   }
   try {
-    const result = window.AetherSaveSystem.save(slot, buildSavePayload(), saveMetadata());
+    const payload = buildSavePayload();
+    let preserveBackup = false;
+    try {
+      const priorCandidate = loadSemanticallyValidSaveCandidate(slot);
+      preserveBackup = Boolean(priorCandidate && priorCandidate.semanticBackupRecovery);
+    } catch (_) {
+      // An unrecoverable current slot may be replaced by an explicit manual save.
+      // Future-schema overwrite protection is still enforced by AetherSaveSystem.save().
+      preserveBackup = false;
+    }
+
+    const result = window.AetherSaveSystem.save(
+      slot,
+      payload,
+      saveMetadata(),
+      { preserveBackup }
+    );
     window._lastSaveResult = result;
+    window._lastSaveError = null;
     window._saveSlotIndex = buildLoadableSaveIndex();
     showToast('GAME SAVED // ' + slot.toUpperCase(), C.teal, 1300);
     return true;
   } catch (error) {
     window._lastSaveError = error.message;
+    window._lastSaveResult = null;
     console.error('SAVE_FAILED', error);
-    showToast('SAVE FAILED // ' + error.message, C.rust, 2200);
+    if (/SAVE_SLOT_FUTURE_SCHEMA_PROTECTED|SAVE_AUTOSAVE_ALL_SLOTS_FUTURE_PROTECTED/.test(error.message)) {
+      showToast('NEWER VERSION SAVE DATA — PRESERVED', C.rust, 2400);
+    } else {
+      showToast('SAVE FAILED // ' + error.message, C.rust, 2200);
+    }
     return false;
   }
 }
 
 function loadFromSlot(slot) {
   try {
-    const loaded = window.AetherSaveSystem.load(slot);
+    const loaded = loadSemanticallyValidSaveCandidate(slot);
     if (!loaded) {
       showToast('NO SAVE IN ' + slot.toUpperCase(), C.rust, 1400);
       return false;
     }
-    prepareSaveEnvelopeForApply(loaded.envelope);
+
+    const applied = applySaveEnvelope(loaded.envelope);
+    if (!applied) throw new Error('LOAD_APPLY_RETURNED_FALSE');
+
     window._lastLoadResult = loaded;
-    applySaveEnvelope(loaded.envelope);
+    window._lastLoadError = null;
+    window._lastLoadRecovery = loaded.semanticBackupRecovery
+      ? {
+          slot,
+          source: 'backup',
+          primarySemanticError: loaded.primarySemanticError || null,
+          path: loaded.path,
+        }
+      : null;
     window._saveSlotIndex = buildLoadableSaveIndex();
-    showToast('GAME LOADED // ' + slot.toUpperCase(), C.teal, 1500);
+
+    if (loaded.semanticBackupRecovery) {
+      const newerPrimaryPreserved = /SAVE_SCHEMA_FUTURE_UNSUPPORTED/.test(
+        loaded.primarySemanticError || ''
+      );
+      showToast(
+        newerPrimaryPreserved
+          ? 'RECOVERED OLDER SAVE // NEWER PRIMARY PRESERVED'
+          : 'RECOVERED PREVIOUS SAVE // PRIMARY INVALID',
+        C.teal,
+        2200
+      );
+    } else {
+      showToast('GAME LOADED // ' + slot.toUpperCase(), C.teal, 1500);
+    }
     return true;
   } catch (error) {
     window._lastLoadError = error.message;
+    window._lastLoadResult = null;
+    window._lastLoadRecovery = null;
     console.error('LOAD_FAILED', error);
     showToast('LOAD FAILED // ' + error.message, C.rust, 2200);
     return false;
