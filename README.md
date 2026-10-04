@@ -9,7 +9,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 - **Stage:** late prototype / pre-alpha
 - **Playable baseline:** boot → First Wake opening → world exploration → dialogue/quest systems → combat
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
-- **Combat party target:** supports 1–5 active authored protagonists, growing through recruitment; First Wake begins with Ender alone, adds Lyra first, and brings Ionia officially into the early storm/shield sequence
+- **Combat party target:** supports 1–5 active authored protagonists, growing through recruitment; First Wake now begins with Ender alone, adds Lyra first, and brings Ionia officially into the early storm/shield sequence
 - **Current migration:** smoke-green persistent roster, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; higher-order effect semantics remain separate gates
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
