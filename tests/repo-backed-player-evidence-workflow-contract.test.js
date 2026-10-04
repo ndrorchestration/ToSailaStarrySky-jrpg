@@ -20,7 +20,7 @@ const requiredFragments = [
   ['node tests/repo-backed-player-evidence-workflow-contract.test.js', 'workflow must verify this branch-only export contract'],
   ['npx playwright install --with-deps chromium', 'workflow must install Chromium before browser capture'],
   ['npm run capture:player-evidence', 'workflow must run the player evidence capture command'],
-  ['git add evidence/player-acceptance/', 'workflow must stage only the player evidence output directory'],
+  ['git add -f evidence/player-acceptance/', 'workflow must force-stage only the ignored player evidence output directory'],
   ['git commit -m "evidence: publish player review bundle for ${GITHUB_SHA}"', 'workflow must commit with a bounded evidence message'],
   ['git push origin HEAD:evidence/repo-backed-player-evidence-87550366', 'workflow must push only to the temporary evidence branch'],
   ['VISUAL_ACCEPTANCE=PENDING', 'workflow must preserve visual acceptance boundary'],
