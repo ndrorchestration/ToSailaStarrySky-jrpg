@@ -2,6 +2,9 @@ name: Aetherwake player evidence
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - 'evidence/player-evidence-export-*'
 
 permissions:
   contents: read
@@ -9,6 +12,9 @@ permissions:
 defaults:
   run:
     shell: bash
+
+env:
+  TEMPORARY_BRANCH_EXPORT_ONLY: 'true'
 
 jobs:
   capture-player-evidence:
@@ -29,6 +35,9 @@ jobs:
 
       - name: Verify player evidence capture contract
         run: npm run test:player-evidence-capture
+
+      - name: Verify temporary export workflow contract
+        run: npm run test:player-evidence-workflow
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
