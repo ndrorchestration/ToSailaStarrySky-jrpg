@@ -25,5 +25,9 @@ assert(workflow.includes('if-no-files-found: error'),
   'workflow must fail closed when capture output is missing');
 assert(workflow.includes('retention-days:'),
   'workflow must set an explicit artifact retention period');
+assert(workflow.includes("'evidence/player-evidence-export-*'"),
+  'temporary export branch trigger must be limited to evidence/player-evidence-export-* branches');
+assert(workflow.includes('TEMPORARY_BRANCH_EXPORT_ONLY'),
+  'temporary branch export must carry an explicit non-main boundary marker');
 
 console.log('Aetherwake player evidence workflow contract: PASS');
