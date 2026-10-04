@@ -1,0 +1,60 @@
+{
+  "repository": "ndrorchestration/aetherwake-jrpg",
+  "sourceCommit": "85396d44b6cffbc5112bdf65038a68ce38d114b1",
+  "capturedAt": "2026-10-04T17:52:46.825Z",
+  "viewport": {
+    "width": 960,
+    "height": 640
+  },
+  "entrypoint": "index-embedded.html",
+  "desktopExecutable": "Aetherwake.exe",
+  "humanAcceptance": "PENDING",
+  "visualAcceptance": "PENDING",
+  "gameplayCaptureInspected": false,
+  "authorityBoundary": "evidence bundle only; does not establish visual approval or player acceptance",
+  "captures": [
+    {
+      "id": "title-ready",
+      "description": "boot/title/menu canvas before starting First Wake",
+      "file": "00-title-ready.png"
+    },
+    {
+      "id": "arrival-horizon",
+      "description": "First Wake arrival_horizon opening beat",
+      "file": "01-arrival-horizon.png"
+    },
+    {
+      "id": "lyra-join",
+      "description": "Lyra join beat before active-party mutation",
+      "file": "02-lyra-join.png"
+    },
+    {
+      "id": "ender-lyra-party",
+      "description": "post-join First Wake party boundary",
+      "file": "03-ender-lyra-party.png"
+    },
+    {
+      "id": "world-handoff",
+      "description": "world handoff after authored First Wake opening",
+      "file": "04-world-handoff.png"
+    },
+    {
+      "id": "captain-ionia-dialogue",
+      "description": "Captain Ionia authored first-contact dialogue",
+      "file": "05-captain-ionia-dialogue.png"
+    },
+    {
+      "id": "combat-entry",
+      "description": "representative combat entry frame for human review",
+      "file": "06-combat-entry.png"
+    }
+  ],
+  "browserErrors": [],
+  "runtimeChecks": {
+    "arrivalScene": "arrival_horizon",
+    "joinScene": "lyra_join",
+    "ioniaDialogueNpc": "Captain Ionia",
+    "captureCount": 7
+  },
+  "status": "CAPTURED_PENDING_HUMAN_REVIEW"
+}
