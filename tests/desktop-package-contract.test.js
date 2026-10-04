@@ -27,6 +27,12 @@ const stageScript = fs.readFileSync(
 );
 assert(stageScript.includes("main: 'www/index-embedded.html'"),
   'production desktop manifest must use the RPG Maker MV-style www entrypoint');
+assert(stageScript.includes("'icon.ico'"),
+  'production desktop runtime must stage a Windows ICO asset');
+assert(stageScript.includes('version: rootPackage.version'),
+  'production desktop manifest must carry the project version for Windows metadata');
+assert(packageJson.scripts['package:windows'].includes('--app.icon=.desktop-runtime/www/icon.ico'),
+  'Windows packaging must pass the staged ICO through nw-builder app icon metadata');
 assert(stageScript.includes("path.join(stage, 'package.json')"),
   'production desktop manifest must live at the launcher root');
 assert(stageScript.includes("path.join(stage, 'www')"),
@@ -49,6 +55,8 @@ assert(workflow.includes('npm run test:desktop-package'),
   'desktop workflow must run the packaging contract before building');
 assert(workflow.includes('npm run package:windows'),
   'desktop workflow must build the Windows NW.js package');
+assert(workflow.includes('Get-ChildItem -LiteralPath $dist -Filter "Aetherwake.exe" -File -Recurse'),
+  'desktop workflow must locate the emitted executable at any supported package depth');
 assert(workflow.includes('makensis'),
   'desktop workflow must compile a conventional NSIS installer');
 assert(workflow.includes('RequestExecutionLevel user'),
@@ -98,6 +106,8 @@ assert(desktopGuide.includes('Aetherwake-Setup.exe'),
   'desktop guide must advertise the standard installer');
 assert(!desktopGuide.includes('Aetherwake-OneClick.exe'),
   'desktop guide must not advertise superseded self-extracting artifacts');
+assert(localReleaseScript.includes('Get-ChildItem -LiteralPath $dist -Filter "Aetherwake.exe" -File -Recurse'),
+  'local Windows release fallback must locate direct or nested nw-builder output');
 assert(localReleaseScript.includes('LOCAL_WINDOWS_RELEASE=PASS'),
   'local Windows release fallback must emit an explicit success marker');
 assert(localReleaseScript.includes('Start-Process -FilePath $installer'),

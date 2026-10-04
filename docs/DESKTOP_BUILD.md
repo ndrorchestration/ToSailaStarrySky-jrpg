@@ -17,14 +17,13 @@ The standard installer installs the packaged runtime per-user under `%LOCALAPPDA
 
 Do not use superseded self-extracting/SFX artifacts. If Windows Defender flags an artifact, do not whitelist or bypass it; preserve the exact detection name and SHA-256 for a false-positive report.
 
-## Current verification state — 2026-09-22
+## Current verification state — 2026-10-03
 
-- Memories-style launcher correction merged at `304835c12555e35061870a54d61f7c95996d0bdd`; the release-critical no-artifact-storage hardening is current on `main` at `313d7eb2aee003ce51a23edf48532f64d30f2bc0`.
-- Staging validation confirms the production manifest shape is `package.json → main: www/index-embedded.html`, with the game payload under `www/`.
-- Runtime-resource audit confirms the loading artwork used at boot is embedded as a data URI; there is no required external `img/system/Loading.png` file to package.
-- Hosted GitHub Actions verification is currently blocked before checkout. On current `main` `313d7eb2aee003ce51a23edf48532f64d30f2bc0`, Windows package run `35694446836` and browser smoke run `35694446855` both ended with `runner_id: 0` and zero steps.
-- These are runner-admission/infrastructure failures. They do **not** establish that current code tests passed or failed.
-- No fresh installer is player-authorized until the exact candidate completes a real Windows install/launch verification. Historical CI-green packaging results remain provenance only and must not be substituted for this current gate.
+- Hosted checkpoint `ff83d023f9633119f24723ab5ab7c53566b38a60` passed browser smoke run `37139742677`.
+- The same checkpoint passed Windows packaging run `37139742595`: staged runtime contract, NW.js build, direct-output package discovery, portable ZIP, per-user NSIS installer, exact-candidate install/launch, `DESKTOP_RENDER_READINESS=PASS`, portable layout, and SHA-256 generation.
+- Release publication was skipped because this was an ordinary push rather than a tagged or manually dispatched release.
+- The local fallback script remains available and now uses the same direct-or-nested executable discovery rule as hosted CI.
+- Technical verification is green. Human/player acceptance and visual acceptance remain pending; tests and readiness markers do not establish aesthetic approval.
 
 ## For maintainers
 

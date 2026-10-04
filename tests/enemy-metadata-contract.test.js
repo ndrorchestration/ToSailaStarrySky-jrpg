@@ -37,4 +37,4 @@ console.log('Aetherwake enemy metadata contract: PASS');
 assert(source.includes("aetherDependent: true"),
   'Aether Leak Wraith template must establish explicit Aether dependence');
 assert(!source.includes("engine_spirit: {\n      aetherDependent: true"),
-  'Engine Spirit must not be inferred Aether-dependent');
+  'Wakeheart Echo must not be inferred Aether-dependent');

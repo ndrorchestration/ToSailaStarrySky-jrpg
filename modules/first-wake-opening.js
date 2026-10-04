@@ -90,15 +90,15 @@
       activePartyIds: Object.freeze(['ender']),
     }),
     Object.freeze({
-      id: 'wrong_song',
+      id: 'lyra_join',
       sequence: 6,
-      title: 'THE WRONG SONG',
+      title: 'THE FIRST REACH',
       speaker: 'LYRA',
       lines: Object.freeze([
         '...Did you hear that?',
         "ENDER: I didn't hear it.",
         'ENDER: But yes.',
-        'A frequency distortion and a displaced spatial relation overlap.',
+        'A shield-frequency echo and a displaced spatial relation overlap.'
       ]),
       joinCharacterId: 'lyra',
       activePartyIds: Object.freeze(['ender']),

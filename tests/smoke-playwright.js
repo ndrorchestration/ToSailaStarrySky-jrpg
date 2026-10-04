@@ -144,10 +144,10 @@ function createServer() {
       activeIds: window.ACTIVE_PARTY.map(character => character.id),
       playable: window.ROSTER.map(character => Boolean(character.playable)),
     }));
-    assert(beforeLyraJoin.sceneId === 'wrong_song',
-      'First Wake did not reach the Wrong Song join scene');
+    assert(beforeLyraJoin.sceneId === 'lyra_join',
+      'First Wake did not reach the Lyra join scene');
     assert(beforeLyraJoin.activeIds.join('|') === 'ender',
-      'Lyra joined before the authored Wrong Song beat');
+      'Lyra joined before the authored Lyra join beat');
 
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
@@ -254,8 +254,8 @@ function createServer() {
       lines: window.UI.dialogueLines,
       lineIndex: window.UI.dialogueLineIndex,
     }));
-    assert(firstDialogue.lines[0].includes('harmonics are slipping'),
-      'first NPC contact did not select the authored intro dialogue');
+    assert(firstDialogue.lines[0].includes('The Aureate Wake can fly'),
+      'first NPC contact did not select Captain Ionia\'s authored intro dialogue');
     assert(firstDialogue.lineIndex === 0, 'dialogue did not start at line zero');
     await page.keyboard.press('e');
     await page.waitForFunction(() => window.UI.dialogueLineIndex === 1);
@@ -603,7 +603,7 @@ function createServer() {
     assert(aetherLeakMetadata && aetherLeakMetadata.aetherDependent === true,
       'Aether Leak Wraith lost explicit Aether-dependence metadata');
     assert(engineSpiritMetadata && engineSpiritMetadata.aetherDependent == null,
-      'Engine Spirit Aether dependence was inferred without authority');
+      'Wakeheart Echo Aether dependence was inferred without authority');
 
     const effectContract = await page.evaluate(() => {
       const vocabulary = window.AetherEffectVocabulary;

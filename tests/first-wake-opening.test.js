@@ -5,7 +5,7 @@ assert.strictEqual(opening.VERSION, '0.1.0');
 assert.strictEqual(opening.validate(), true);
 assert.strictEqual(opening.SCENES.length, 10);
 assert.strictEqual(opening.SCENES[0].id, 'arrival_horizon');
-assert.strictEqual(opening.SCENES[6].id, 'wrong_song');
+assert.strictEqual(opening.SCENES[6].id, 'lyra_join');
 assert.strictEqual(opening.SCENES[6].joinCharacterId, 'lyra');
 assert.deepStrictEqual(opening.SCENES[6].activePartyIds, ['ender']);
 assert.strictEqual(opening.SCENES[9].chapterCard, true);
@@ -34,7 +34,7 @@ const state = opening.createState();
 assert.deepStrictEqual(opening.expectedPartyIds(state), ['ender']);
 
 for (let i = 0; i < 6; i++) opening.advance(state);
-assert.strictEqual(opening.currentScene(state).id, 'wrong_song');
+assert.strictEqual(opening.currentScene(state).id, 'lyra_join');
 assert.deepStrictEqual(opening.expectedPartyIds(state), ['ender']);
 const join = opening.advance(state);
 assert(join.event && join.event.type === 'party-join');

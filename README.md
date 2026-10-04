@@ -102,7 +102,7 @@ Persistent progression belongs to the five-character roster. The target combat/m
 The development runtime now has the first persistent party-state layer:
 
 - `modules/party-state.js` owns exactly five stable roster identities: `ender`, `lyra`, `ionia`, `reson`, and `aepex`;
-- `ACTIVE_PARTY` is validated for 1–5 direct references into `ROSTER`; authored New Game begins with Ender alone, then recruits Lyra at First Wake Sequence 06;
+- `ACTIVE_PARTY` is validated for 1–5 direct references into `ROSTER`; First Wake now begins with Ender alone, recruits Lyra at Sequence 06, and brings Ionia officially into the early storm/shield sequence;
 - `world.player`, `ROSTER[0]`, and `ACTIVE_PARTY[0]` are the same object, so combat write-back updates the canonical lead record;
 - the preserved character-creation flow still creates two player-named prototype companions and prototype jobs, then adapts them into the Lyra/Ionia roster slots;
 - Reson and Aepex are identity-only runtime shells until authored onboarding/mechanics are migrated;
@@ -164,6 +164,14 @@ npm run test:smoke
 
 The verification suite covers the playable path from startup through the authored First Wake opening, world/overlay interactions, combat, flight-return seams, and return to the correct originating state. It also verifies roster/reference invariants, effect-vocabulary coverage, registry/runtime equivalence, transactional action affordability, progression reachability, party capacity, magic contracts, air-navigation behavior, live resolver routing, and post-combat write-back into the canonical lead record.
 
+To produce local review material without converting it into acceptance, run:
+
+```bash
+npm run capture:player-evidence
+```
+
+This creates `evidence/player-acceptance/<source-sha>-<timestamp>/` with screenshots and a manifest whose human/player and visual acceptance fields remain explicitly pending.
+
 ## Visual authority
 
 The canonical project-wide visual direction is defined in:
@@ -209,15 +217,12 @@ Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts includ
 
 The intended player experience is **download one Windows artifact, launch/install it, and run Aetherwake in its own large resizable/maximizable desktop window**. The desktop presentation defaults to **1440×960** and scales proportionally when maximized, while preserving the 960×640 logical game layout. **Alt+Enter** or **F11** toggles native fullscreen; **Escape** exits fullscreen. Browser/HTTP instructions above are development and diagnostic paths, not the desired end-user experience.
 
-### Current release authority — 2026-09-22
+### Current release authority — 2026-10-03
 
-- The desktop launcher architecture was corrected at `304835c12555e35061870a54d61f7c95996d0bdd`; the release-critical single-Windows-job hardening that removes Actions artifact storage/transfer is current on `main` at `313d7eb2aee003ce51a23edf48532f64d30f2bc0`.
-- Production packaging now follows the RPG Maker MV/NW.js structural pattern used by the Memories reference: a minimal launcher-root `package.json` points to `www/index-embedded.html`, while the player runtime lives under `www/`.
-- Development-only files are excluded from the staged player runtime.
-- The release system produces **Aetherwake-Setup.exe** plus **Aetherwake-Windows.zip**, verifies those exact bytes on the same pinned Windows job, records SHA-256 hashes, and publishes only after install/launch verification. GitHub Actions artifact storage is deliberately excluded from the release-critical path because that quota has already caused a real packaging failure.
-- A local Windows fallback script, `scripts/build-windows-release.ps1`, performs build → installer compile → clean install → launch smoke → SHA-256 generation when hosted CI is unavailable.
-- Current GitHub-hosted verification is **blocked before execution**, not failing inside Aetherwake: on `main` `313d7eb2aee003ce51a23edf48532f64d30f2bc0`, Windows package run `35694446836` and smoke run `35694446855` both ended with `runner_id: 0` and zero steps.
-- Therefore **no newly generated installer is currently authorized as verified player-facing output**. Older installers and self-extracting wrappers remain historical artifacts and should not be presented as the current answer merely because they compiled or passed an older CI lane.
+- The launcher architecture remains the isolated `package.json → www/index-embedded.html` layout, with development-only files excluded from the player runtime.
+- Hosted checkpoint `ff83d023f9633119f24723ab5ab7c53566b38a60` passed browser smoke run `37139742677` and Windows package/install/launch run `37139742595`.
+- The Windows gate verified the exact generated candidate through package discovery, portable ZIP creation, per-user installer compilation, clean install, application-level runtime readiness, portable layout, and SHA-256 generation.
+- Ordinary pushes do not publish a release. The current technical candidate is green, while human/player acceptance and visual acceptance remain pending.
 
 When a fresh candidate passes the exact Windows install/launch gate, the primary player artifact will be:
 

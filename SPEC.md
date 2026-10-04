@@ -42,7 +42,7 @@ The launcher manifest points to `www/index-embedded.html`. Windows packaging con
 
 A compiled installer is not sufficient evidence of a working release. A player-facing installer may be called verified only when the **exact generated candidate** has been installed on Windows and the installed `Aetherwake.exe` has successfully launched through the release smoke gate.
 
-Current status as of 2026-09-22: launcher-layout correction is merged (`304835c12555e35061870a54d61f7c95996d0bdd`), but hosted CI is blocked before runner allocation; therefore no fresh installer is currently promoted as verified.
+Current status as of 2026-10-03: hosted checkpoint `ff83d023f9633119f24723ab5ab7c53566b38a60` passed browser smoke (`37139742677`) and the Windows package/install/launch gate (`37139742595`), including `DESKTOP_RENDER_READINESS=PASS` and portable-package verification. The ordinary push did not publish a release. Human/player acceptance and visual acceptance remain separate pending gates.
 
 ---
 
@@ -103,7 +103,7 @@ Rules:
 The development branch now contains a persistent party-state bridge:
 
 - `ROSTER` has exactly five stable identities in canonical order: Ender, Lyra, Ionia, Reson, Aepex;
-- `ACTIVE_PARTY` supports 1–5 direct references into `ROSTER`; First Wake starts with Ender alone and adds Lyra at Sequence 06, and times Ionia's official party role to the early storm/shield sequence;
+- `ACTIVE_PARTY` supports 1–5 direct references into `ROSTER`; First Wake starts with Ender alone and adds Lyra at Sequence 06, then times Ionia's official party role to the early storm/shield sequence;
 - `world.player === ROSTER[0] === ACTIVE_PARTY[0]`, so the lead character is no longer duplicated across WORLD and persistent party state;
 - the normal New Game path no longer uses custom companion creation;
 - `modules/char-create.js` remains compatibility provenance only, and its custom companion/job assumptions are not authored canon;

@@ -37,10 +37,10 @@ jobs:
         id: package
         shell: pwsh
         run: |
-          $package = Get-ChildItem -Path (Join-Path $PWD "..\aetherwake-dist") -Directory | Select-Object -First 1
-          if (-not $package) { throw "NW.js did not produce a package directory" }
-          $exe = Join-Path $package.FullName "Aetherwake.exe"
-          if (-not (Test-Path -LiteralPath $exe)) { throw "NW.js package is missing Aetherwake.exe" }
+          $dist = Join-Path $PWD "..\aetherwake-dist"
+          $exe = Get-ChildItem -LiteralPath $dist -Filter "Aetherwake.exe" -File -Recurse | Select-Object -First 1
+          if (-not $exe) { throw "NW.js package is missing Aetherwake.exe" }
+          $package = $exe.Directory
           "dir=$($package.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Build portable ZIP
