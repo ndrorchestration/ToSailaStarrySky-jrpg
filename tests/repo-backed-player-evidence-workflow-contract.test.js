@@ -2,15 +2,15 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const workflowPath = path.resolve(__dirname, '..', '.github', 'workflows', 'player-evidence-repo-export.yml');
-assert(fs.existsSync(workflowPath), 'repo-backed player evidence export workflow must exist');
+const workflowPath = path.resolve(__dirname, '..', '.github', 'workflows', 'player-evidence.yml');
+assert(fs.existsSync(workflowPath), 'player evidence workflow must exist');
 
 const workflow = fs.readFileSync(workflowPath, 'utf8');
 
 const requiredFragments = [
-  ['name: Aetherwake player evidence repo export', 'workflow must have a stable repo-export name'],
-  ['branches:', 'workflow must be branch-scoped'],
-  ['evidence/repo-backed-player-evidence-87550366', 'workflow must only run on the temporary evidence branch'],
+  ['name: Aetherwake player evidence', 'workflow must preserve the stable player evidence name'],
+  ['branches:', 'workflow must be branch-scoped for the repo-backed fallback'],
+  ['evidence/repo-backed-player-evidence-87550366', 'workflow must only auto-run repo-backed export on the temporary evidence branch'],
   ['paths-ignore:', 'workflow must avoid infinite loops after committing evidence files'],
   ['evidence/player-acceptance/**', 'workflow must ignore committed evidence-output paths'],
   ['contents: write', 'workflow must have write permission only for committing evidence back to the temporary branch'],
@@ -32,8 +32,8 @@ for (const [fragment, message] of requiredFragments) {
 }
 
 assert(!workflow.includes('actions/upload-artifact@'),
-  'repo-backed fallback must not rely on Actions artifact storage');
+  'repo-backed fallback must not rely on Actions artifact storage on this temporary branch');
 assert(!workflow.includes('retention-days:'),
-  'repo-backed fallback must not imply artifact retention semantics');
+  'repo-backed fallback must not imply artifact retention semantics on this temporary branch');
 
 console.log('REPO_BACKED_PLAYER_EVIDENCE_WORKFLOW_CONTRACT=PASS');
