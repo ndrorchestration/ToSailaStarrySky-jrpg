@@ -7,13 +7,13 @@ Current implementation frontier: `068792a49c38b0d3ba236de5fafa84c9e295c45a` / PR
 
 ## Program rule
 Every visual lane must answer exactly five questions before merge:
-1. What exists now? ? baseline evidence, files, screenshots, measured constraints.
-2. What exact artifact will be produced? ? named files/specs/sheets/runtime modules.
-3. What are the hard specs? ? dimensions, counts, palette, scale, budgets, states.
-4. How do we know it is done? ? automated contract + exact-head screenshots + human acceptance evidence.
-5. What does it depend on / what does it block? ? explicit gate and downstream lanes.
+1. What exists now? — baseline evidence, files, screenshots, measured constraints.
+2. What exact artifact will be produced? — named files/specs/sheets/runtime modules.
+3. What are the hard specs? — dimensions, counts, palette, scale, budgets, states.
+4. How do we know it is done? — automated contract + exact-head screenshots + human acceptance evidence.
+5. What does it depend on / what does it block? — explicit gate and downstream lanes.
 
-No visual PR is accepted on intent language such as ?improve,? ?refine,? or ?make more elegant? without the artifact/spec/evidence tuple above.
+No visual PR is accepted on intent language such as “improve,” “refine,” or “make more elegant” without the artifact/spec/evidence tuple above.
 
 ## Integrator and expert panel
 The **Art Director / Integrator** is a merge gate, not a parallel art lane. It resolves conflicts among these specialist lenses:
@@ -28,11 +28,11 @@ The **Art Director / Integrator** is a merge gate, not a parallel art lane. It r
 Each specialist reviews the same exact-head screenshot set. The integrator records one disposition: `ACCEPT`, `REVISE`, or `BLOCKED_BY_DEPENDENCY`.
 
 ## Gate graph
-`G0 BASELINE_AUDITED` ? `G1 STYLE_CONTRACT_LOCKED` ? `G2 CHARACTER_DRAGONFLY_IDENTITY_LOCKED` ? `G3 WORLD_UI_SYSTEM_LOCKED` ? `G4 POLISH_QA_ACCEPTED`.
+`G0 BASELINE_AUDITED` → `G1 STYLE_CONTRACT_LOCKED` → `G2 CHARACTER_DRAGONFLY_IDENTITY_LOCKED` → `G3 WORLD_UI_SYSTEM_LOCKED` → `G4 POLISH_QA_ACCEPTED`.
 
 A downstream lane may prototype before its dependency closes, but it may not be promoted as visual authority.
 
-## Lane A ? Art Direction / Style Authority
+## Lane A — Art Direction / Style Authority
 **Exists now:** `VISUAL_BIBLE.md`, seven primary scene frames plus one diagnostic character-lineup frame, painted world/battle/interior assets, current 2.5D runtime pass.
 
 **Produces:**
@@ -41,29 +41,29 @@ A downstream lane may prototype before its dependency closes, but it may not be 
 - `docs/VISUAL_STRIKE_PROGRAM.md`
 - later: `docs/art/style-tile.png` and annotated do/don't board.
 
-**Hard specs:** 16-role palette; 960?640 logical canvas; 1440?960 evidence viewport; exact line, camera, scale, UI, performance and acceptance constants in the JSON contract.
+**Hard specs:** 16-role palette; 960×640 logical canvas; 1440×960 evidence viewport; exact line, camera, scale, UI, performance and acceptance constants in the JSON contract.
 
 **Done when:** contract validator passes; exact-head baseline is complete; no unresolved contradiction with Visual Bible or character canon; Art Director signs `G1`.
 
 **Depends / blocks:** depends on G0; blocks all authoritative asset production.
 
-## Lane B ? Character Design + Animation
+## Lane B — Character Design + Animation
 **Exists now:** articulated runtime renderer, current character-art library in Drive, creator-canon appearance authority in Notion, legacy pixel fallback.
 
 **Produces:**
 - 5 canonical turnaround sheets: front / 3/4 / side / back
-- 30 portraits: 512?512, six emotions per protagonist
+- 30 portraits: 512×512, six emotions per protagonist
 - 5 gameplay animation sheets and manifests
 - `docs/art/characters/character-scale-chart.png`
 - updated `modules/character-renderer.js` or replacement atlas-backed renderer
 
 **Hard specs:** idle 8f@8fps; walk 6f@10fps; talk 4f@6fps; focus 6f@12fps; attack 8f@15fps. Relative height order: Reson > Aepex > Ender > Ionia/Lyra. Ender copper/auburn buzz cut + brass goggles + freckles; Lyra long red hair; Ionia shoulder-length curly blond; Reson backwards red cap + light mustache; Aepex dirty-blond undercut + eyebrow notch/tattoos. Portrait/body/sprite identity must match.
 
-**Done when:** 8/10 silhouette identification per protagonist; no canon drift; all animation states run without fallback in benchmark scenes; weighted character-quality score ?3.5 and cohesion ?4.0.
+**Done when:** 8/10 silhouette identification per protagonist; no canon drift; all animation states run without fallback in benchmark scenes; weighted character-quality score ≥3.5 and cohesion ≥4.0.
 
 **Depends / blocks:** depends on G1; jointly blocks G2 and final dialogue/combat polish.
 
-## Lane C ? Dragonfly / Vehicle Design
+## Lane C — Dragonfly / Vehicle Design
 **Exists now:** shared procedural renderer in `modules/dragonfly-visual.js`; current title/background contains a separate painted airship language; scale drift remains.
 
 **Produces:**
@@ -73,13 +73,13 @@ A downstream lane may prototype before its dependency closes, but it may not be 
 - runtime authority replacing conflicting ship depictions
 - `docs/art/dragonfly/scale-chart.png`
 
-**Hard specs:** body length ?3 adult heights; wingspan ?2.4? body length; ?28% screen width in normal flight; ?25% in combat; paired insect-like wing membranes; readable helm glazing; aether core; warm inhabited cabin detail; four shield-node language preserved.
+**Hard specs:** body length ≈3 adult heights; wingspan ≈2.4× body length; ≤28% screen width in normal flight; ≤25% in combat; paired insect-like wing membranes; readable helm glazing; aether core; warm inhabited cabin detail; four shield-node language preserved.
 
-**Done when:** 9/10 blind silhouette recognition; no scene uses an independent conflicting hull; dock/flight/title/combat scales pass the scale chart; ship-quality score ?4.0.
+**Done when:** 9/10 blind silhouette recognition; no scene uses an independent conflicting hull; dock/flight/title/combat scales pass the scale chart; ship-quality score ≥4.0.
 
 **Depends / blocks:** depends on G1; jointly blocks G2, flight and title authority.
 
-## Lane D ? Environment / World Presentation
+## Lane D — Environment / World Presentation
 **Exists now:** painted world/battle/interior assets; projected world renderer; dock benchmark; procedural depth layers and props.
 
 **Produces:**
@@ -88,13 +88,13 @@ A downstream lane may prototype before its dependency closes, but it may not be 
 - environment scale chart
 - exact-head benchmark replacements for title/opening/world/flight/combat backgrounds
 
-**Hard specs:** ?3 immediately perceptible depth planes in every major exterior; 1 foreground occlusion family; 1 playable plane; ?2 mid/far layers; door=1.35 adult heights; crate=0.38 adult heights; atlas ?2048?; no repeated tile pattern may dominate >25% of a hero screenshot.
+**Hard specs:** ≥3 immediately perceptible depth planes in every major exterior; 1 foreground occlusion family; 1 playable plane; ≥2 mid/far layers; door=1.35 adult heights; crate=0.38 adult heights; atlas ≤2048²; no repeated tile pattern may dominate >25% of a hero screenshot.
 
-**Done when:** world-depth ?3.5 and cohesion ?4.0 on all seven evidence frames; no obvious placeholder geometry in benchmark set; runtime stays inside technical budget.
+**Done when:** world-depth ≥3.5 and cohesion ≥4.0 on all seven evidence frames; no obvious placeholder geometry in benchmark set; runtime stays inside technical budget.
 
 **Depends / blocks:** begins after G1; authoritative propagation waits on G2; blocks G3.
 
-## Lane E ? UI / HUD / UX
+## Lane E — UI / HUD / UX
 **Exists now:** functional dialogue/combat/flight panels with inconsistent density and overlap behavior.
 
 **Produces:**
@@ -105,20 +105,20 @@ A downstream lane may prototype before its dependency closes, but it may not be 
 - 16:9 and 16:10 safe-area diagrams
 - runtime UI token module
 
-**Hard specs:** 8px grid; 24px safe margin; 8px radius; 2px stroke; panel opacity 0.78?0.90; body text ?16px logical presentation equivalent; contrast ?4.5:1; max two primary panels simultaneously; UI may obscure ?10% of an enemy tell region.
+**Hard specs:** 8px grid; 24px safe margin; 8px radius; 2px stroke; panel opacity 0.78–0.90; body text ≥16px logical presentation equivalent; contrast ≥4.5:1; max two primary panels simultaneously; UI may obscure ≤10% of an enemy tell region.
 
-**Done when:** representative combat HP/status can be located/read in <2s in moderated test; no panel covers critical enemy tell; readability ?4.0; no collision in evidence set.
+**Done when:** representative combat HP/status can be located/read in <2s in moderated test; no panel covers critical enemy tell; readability ≥4.0; no collision in evidence set.
 
 **Depends / blocks:** depends on G2 plus stable world composition; blocks G3.
 
-## Lane F ? Cinematic / Narrative Presentation
+## Lane F — Cinematic / Narrative Presentation
 **Exists now:** First Wake staged opening, transition cards, authored path, title and scene-music routing.
 
-**Produces:** shot list + timing sheet for New Game ? world; camera bible; transition spec; selected high-value animatics only where runtime presentation cannot carry the moment.
+**Produces:** shot list + timing sheet for New Game → world; camera bible; transition spec; selected high-value animatics only where runtime presentation cannot carry the moment.
 
 **Hard specs:** every shot has focal subject, duration band, camera motion rule, entry/exit state and fallback; story-bearing screens never auto-advance only by timer; camera movement must preserve gameplay orientation at handoff.
 
-**Done when:** first-time player can identify protagonist, Dragonfly, immediate objective and next interaction without coaching; opening visual continuity scores ?4.0.
+**Done when:** first-time player can identify protagonist, Dragonfly, immediate objective and next interaction without coaching; opening visual continuity scores ≥4.0.
 
 **Depends / blocks:** depends on G2 and core UI tokens; blocks G4.
 

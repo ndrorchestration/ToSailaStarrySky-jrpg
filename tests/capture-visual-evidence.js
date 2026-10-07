@@ -14,6 +14,10 @@ const OUT = path.resolve(
   process.env.AETHERWAKE_VISUAL_EVIDENCE_DIR ||
   path.join(BASE, 'visual-evidence')
 );
+const RUNTIME_QUERY = process.env.AETHERWAKE_CANDIDATE_FIELD_REVIEW === '1'
+  ? '?candidateFieldArt=1'
+  : '';
+const RUNTIME_URL = `http://127.0.0.1:${PORT}/index-embedded.html${RUNTIME_QUERY}`;
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -81,20 +85,25 @@ async function waitForRuntime(page) {
   , undefined, { timeout: 15000 });
 }
 
+async function advanceBootToMenu(page) {
+  await page.waitForTimeout(1800);
+  await page.locator('canvas').click({ position: { x: 480, y: 320 } });
+  for (let advance = 0; advance < 8; advance++) {
+    if (await page.evaluate(() => window.gameState === 'menu')) break;
+    await page.waitForTimeout(700);
+    await page.keyboard.press('Enter');
+  }
+  await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
+}
+
 async function bootToWorld(page) {
-  await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
+  await page.goto(RUNTIME_URL, {
     waitUntil: 'domcontentloaded',
     timeout: 20000,
   });
   await waitForRuntime(page);
 
-  await page.waitForTimeout(1800);
-  await page.locator('canvas').click({ position: { x: 480, y: 320 } });
-  for (let pageIndex = 0; pageIndex < 5; pageIndex++) {
-    await page.waitForTimeout(700);
-    await page.keyboard.press('Enter');
-  }
-  await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
+  await advanceBootToMenu(page);
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => window.gameState === 'opening', undefined, { timeout: 5000 });
 
@@ -300,18 +309,18 @@ async function capture(page, id, description) {
     const performanceSamples = [];
 
     // 0 â€” Shared-authority title screen after real boot/preamble.
-    await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
+    await page.goto(RUNTIME_URL, {
       waitUntil: 'domcontentloaded',
       timeout: 20000,
     });
     await waitForRuntime(page);
     await page.waitForTimeout(1800);
-    await page.locator('canvas').click({ position: { x: 480, y: 320 } });
-    for (let pageIndex = 0; pageIndex < 5; pageIndex++) {
-      await page.waitForTimeout(700);
-      await page.keyboard.press('Enter');
-    }
-    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '00-prologue-page',
+      'Authored sky-world prologue page with cinematic JRPG continuation cue'
+    ));
+    await advanceBootToMenu(page);
     captures.push(await capture(
       page,
       '00-title-screen',
@@ -320,20 +329,28 @@ async function capture(page, id, description) {
     performanceSamples.push(await measureFrameTiming(page, '00-title-screen'));
 
     // 1 â€” First Wake interactive dock-walk presentation.
-    await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
+    await page.goto(RUNTIME_URL, {
       waitUntil: 'domcontentloaded',
       timeout: 20000,
     });
     await waitForRuntime(page);
-    await page.waitForTimeout(1800);
-    await page.locator('canvas').click({ position: { x: 480, y: 320 } });
-    for (let pageIndex = 0; pageIndex < 5; pageIndex++) {
-      await page.waitForTimeout(700);
-      await page.keyboard.press('Enter');
-    }
-    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 5000 });
+    await advanceBootToMenu(page);
     await page.keyboard.press('Enter');
     await page.waitForFunction(() => window.gameState === 'opening', undefined, { timeout: 5000 });
+    await page.waitForFunction(() =>
+      window._firstWakeOpeningState && window._firstWakeOpeningState.sceneTicks >= 20
+    , undefined, { timeout: 5000 });
+    await page.evaluate(() => {
+      window._firstWakeOpeningState.sceneTicks = 34;
+      if (typeof window.noLoop === 'function') window.noLoop();
+      if (typeof window.redraw === 'function') window.redraw();
+    });
+    captures.push(await capture(
+      page,
+      '00a-opening-world-reveal',
+      'HUD-light First Wake establishing shot before location/title narration appears'
+    ));
+    await page.evaluate(() => { if (typeof window.loop === 'function') window.loop(); });
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.presentationReady(window._firstWakeOpeningState) === true
     , undefined, { timeout: 5000 });
@@ -344,6 +361,11 @@ async function capture(page, id, description) {
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.presentationReady(window._firstWakeOpeningState) === true
     , undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '00b-first-wake-ionia-arrival',
+      'First character introduction with admitted Ionia portrait presentation'
+    ));
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'dock_walk'
@@ -359,7 +381,55 @@ async function capture(page, id, description) {
       'First Wake Sequence 02 shared-authority visual stage'
     ));
 
-    // 1 â€” Dragonfly Dusk Dock benchmark.
+    // 1b — First Wake cabin/interior authored substrate.
+    for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() => window._firstWakeOpeningState.dockWalk.ready === true,
+      undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'berth_task'
+    , undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '01b-first-wake-cabin',
+      'First Wake authored cabin substrate with live character staging'
+    ));
+
+    // 1c — Wrong Song dramatic beat.
+    await page.keyboard.press('Enter');
+    for (let i = 0; i < 3; i++) await page.keyboard.press('e');
+    await page.waitForFunction(() => window._firstWakeOpeningState.berthTask.ready === true,
+      undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'talen_staying'
+    , undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+    for (let i = 0; i < 2; i++) await page.keyboard.press('e');
+    await page.waitForFunction(() => window._firstWakeOpeningState.talenBeat.ready === true,
+      undefined, { timeout: 5000 });
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'lyra_family'
+    , undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '01c-first-wake-lyra-family',
+      'First Wake Lyra family beat with authored cabin and provisional field identity'
+    ));
+    for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowRight');
+    for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('e');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'wrong_song'
+    , undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '01c-first-wake-wrong-song',
+      'First Wake Wrong Song dramatic visual set piece'
+    ));
+
+    // 2 — Dragonfly Dusk Dock benchmark.
     await bootToWorld(page);
     await page.evaluate(() => {
       const p = window._world.player;
@@ -449,6 +519,63 @@ async function capture(page, id, description) {
       'Representative Dragonfly open-sky flight visual gate'
     ));
     performanceSamples.push(await measureFrameTiming(page, '05-dragonfly-flight'));
+
+    // 5a — Rootline West deliberate lane-assist review state.
+    await page.evaluate(() => {
+      const s = window._airNavigationState;
+      s.x = 12;
+      s.y = 19;
+      s.altitude = 'cruise';
+      s.speed = 1;
+      s.mooredLandmarkId = null;
+      if (!s.discoveredRoutes.includes('rootline-west')) s.discoveredRoutes.push('rootline-west');
+    });
+    captures.push(await capture(
+      page,
+      '05a0-rootline-west-available',
+      'Rootline West OPEN discovered corridor before lane assist engagement'
+    ));
+    await page.keyboard.press('r');
+    await page.waitForFunction(() => window._activeRouteAssistId === 'rootline-west',
+      undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '05a-rootline-west-assist',
+      'Rootline West OPEN route with deliberate lane assist engaged'
+    ));
+
+    // 5b — High-altitude upper-trace evidence and contextual chart cue.
+    await page.keyboard.press('r');
+    await page.evaluate(() => {
+      const s = window._airNavigationState;
+      s.x = 12;
+      s.y = 18;
+      s.altitude = 'cruise';
+      s.speed = 1;
+      s.mooredLandmarkId = null;
+    });
+    await page.keyboard.press('e');
+    await page.waitForFunction(() =>
+      window._routeNetworkState &&
+      window._routeNetworkState.discoveredClues.includes('rootline-west-upper-trace'),
+      undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '05b-rootline-west-upper-trace',
+      'Rootline West high-altitude upper trace in range with contextual chart cue'
+    ));
+
+    // 5c — Persistable shifted-route presentation after chart confirmation.
+    await page.keyboard.press('f');
+    await page.waitForFunction(() =>
+      window._routeNetwork &&
+      window._routeNetwork.conditionFor(window._routeNetworkState, 'rootline-west') === 'shifted',
+      undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '05c-rootline-west-shifted',
+      'Rootline West SHIFTED operational condition after upper-trace chart confirmation'
+    ));
 
     // 6 â€” Aerial combat context inherited from real flight state.
     await page.evaluate(() => {

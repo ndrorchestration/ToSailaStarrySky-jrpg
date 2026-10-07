@@ -1,0 +1,51 @@
+{
+  "schema": "AETHERWAKE_VISUAL_ACCEPTANCE_PROTOCOL_V1",
+  "candidate": {
+    "commit": "REPLACE",
+    "packageSha256": "REPLACE",
+    "evidenceManifestSha256": "REPLACE"
+  },
+  "aetherwakeFrames": [
+    "00-title-screen.png",
+    "00a-opening-world-reveal.png",
+    "01-first-wake-dock-walk.png",
+    "00b-first-wake-ionia-arrival.png",
+    "03-dialogue-ionia.png",
+    "04-combat-sky-predator.png",
+    "05-dragonfly-flight.png"
+  ],
+  "decoys": [
+    {
+      "id": "D1",
+      "source": "REPLACE_WITH_LEGALLY_USABLE_SOURCE_LABEL",
+      "sha256": "REPLACE"
+    },
+    {
+      "id": "D2",
+      "source": "REPLACE_WITH_LEGALLY_USABLE_SOURCE_LABEL",
+      "sha256": "REPLACE"
+    },
+    {
+      "id": "D3",
+      "source": "REPLACE_WITH_LEGALLY_USABLE_SOURCE_LABEL",
+      "sha256": "REPLACE"
+    }
+  ],
+  "presentation": {
+    "orderSeed": "REPLACE_WITH_FIXED_SEED_BEFORE_FIRST_SESSION",
+    "instructions": "Show the same ten frozen image artifacts to every participant; order may be deterministically shuffled from this seed but the artifact set must not change.",
+    "order": []
+  },
+  "frozenBeforeFirstSession": false,
+  "participantPlan": {
+    "requiredCount": 5,
+    "ids": [
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5"
+    ],
+    "rule": "All preregistered participant slots must appear in the scored result. Do not silently replace or omit a completed/attempted session; document unusable sessions separately and rerun only under an explicit protocol amendment."
+  }
+}

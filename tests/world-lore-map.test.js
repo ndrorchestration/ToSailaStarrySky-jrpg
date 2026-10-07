@@ -17,12 +17,27 @@ for (const [name, moduleSource] of [
   ['world.js', source],
   ['aetherwake.js embedded world module', runtime.slice(sectionStart, sectionEnd)],
 ]) {
-  const sandbox = { window: {}, globalThis: {} };
+  let productionRefreshes = 0;
+  const sandbox = {
+    window: {
+      AetherPartyState: {
+        refreshProductionStats(player) {
+          productionRefreshes++;
+          player.productionStats = {};
+          player.productionDerivedStats = {};
+          player.productionStatModelVersion = 'test-harness';
+        },
+      },
+    },
+    globalThis: {},
+  };
   vm.runInNewContext(moduleSource, sandbox, { filename: name });
   const world = sandbox.window.AetherWorld({}, {});
 
   assert.doesNotThrow(() => world.init(),
     name + ' must not attach lore metadata to numeric tile cells');
+  assert.strictEqual(productionRefreshes, 1,
+    name + ' must initialize through the required production-stat authority');
   assert(world.player && world.player.tileX === 16 && world.player.tileY === 16,
     name + ' must expose the player after building the map');
   assert(world.quest && world.quest.state === 'signal',

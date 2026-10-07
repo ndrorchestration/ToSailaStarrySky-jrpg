@@ -2,12 +2,13 @@
   "schema": "AETHERWAKE_VISUAL_ACCEPTANCE_RESULTS_V1",
   "candidate": {
     "commit": "REPLACE",
-    "packageSha256": "REPLACE"
+    "packageSha256": "REPLACE",
+    "evidenceManifestSha256": "REPLACE",
+    "protocolSha256": "REPLACE"
   },
   "participants": [
     {
       "id": "P1",
-      "minutes": 20,
       "scores": {
         "cohesion": null,
         "readability": null,
@@ -18,14 +19,27 @@
         "shipQuality": null,
         "productionCredibility": null
       },
-      "sameGamePass": null,
-      "dragonflyRecallPass": null,
       "severity1Blocker": false,
-      "notes": ""
+      "notes": "",
+      "independentOfImplementation": null,
+      "helpRequested": false,
+      "helpGiven": "",
+      "sameGame": {
+        "aetherwakeCorrect": null,
+        "decoyCorrect": null
+      },
+      "dragonflyRecall": {
+        "nameRecalled": null,
+        "silhouetteDescriptionUnambiguous": null,
+        "silhouetteChoiceCorrect": null
+      },
+      "session": {
+        "startedAt": null,
+        "endedAt": null
+      }
     },
     {
       "id": "P2",
-      "minutes": 20,
       "scores": {
         "cohesion": null,
         "readability": null,
@@ -36,14 +50,27 @@
         "shipQuality": null,
         "productionCredibility": null
       },
-      "sameGamePass": null,
-      "dragonflyRecallPass": null,
       "severity1Blocker": false,
-      "notes": ""
+      "notes": "",
+      "independentOfImplementation": null,
+      "helpRequested": false,
+      "helpGiven": "",
+      "sameGame": {
+        "aetherwakeCorrect": null,
+        "decoyCorrect": null
+      },
+      "dragonflyRecall": {
+        "nameRecalled": null,
+        "silhouetteDescriptionUnambiguous": null,
+        "silhouetteChoiceCorrect": null
+      },
+      "session": {
+        "startedAt": null,
+        "endedAt": null
+      }
     },
     {
       "id": "P3",
-      "minutes": 20,
       "scores": {
         "cohesion": null,
         "readability": null,
@@ -54,14 +81,27 @@
         "shipQuality": null,
         "productionCredibility": null
       },
-      "sameGamePass": null,
-      "dragonflyRecallPass": null,
       "severity1Blocker": false,
-      "notes": ""
+      "notes": "",
+      "independentOfImplementation": null,
+      "helpRequested": false,
+      "helpGiven": "",
+      "sameGame": {
+        "aetherwakeCorrect": null,
+        "decoyCorrect": null
+      },
+      "dragonflyRecall": {
+        "nameRecalled": null,
+        "silhouetteDescriptionUnambiguous": null,
+        "silhouetteChoiceCorrect": null
+      },
+      "session": {
+        "startedAt": null,
+        "endedAt": null
+      }
     },
     {
       "id": "P4",
-      "minutes": 20,
       "scores": {
         "cohesion": null,
         "readability": null,
@@ -72,14 +112,27 @@
         "shipQuality": null,
         "productionCredibility": null
       },
-      "sameGamePass": null,
-      "dragonflyRecallPass": null,
       "severity1Blocker": false,
-      "notes": ""
+      "notes": "",
+      "independentOfImplementation": null,
+      "helpRequested": false,
+      "helpGiven": "",
+      "sameGame": {
+        "aetherwakeCorrect": null,
+        "decoyCorrect": null
+      },
+      "dragonflyRecall": {
+        "nameRecalled": null,
+        "silhouetteDescriptionUnambiguous": null,
+        "silhouetteChoiceCorrect": null
+      },
+      "session": {
+        "startedAt": null,
+        "endedAt": null
+      }
     },
     {
       "id": "P5",
-      "minutes": 20,
       "scores": {
         "cohesion": null,
         "readability": null,
@@ -90,10 +143,24 @@
         "shipQuality": null,
         "productionCredibility": null
       },
-      "sameGamePass": null,
-      "dragonflyRecallPass": null,
       "severity1Blocker": false,
-      "notes": ""
+      "notes": "",
+      "independentOfImplementation": null,
+      "helpRequested": false,
+      "helpGiven": "",
+      "sameGame": {
+        "aetherwakeCorrect": null,
+        "decoyCorrect": null
+      },
+      "dragonflyRecall": {
+        "nameRecalled": null,
+        "silhouetteDescriptionUnambiguous": null,
+        "silhouetteChoiceCorrect": null
+      },
+      "session": {
+        "startedAt": null,
+        "endedAt": null
+      }
     }
   ]
 }

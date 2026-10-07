@@ -136,6 +136,10 @@ assert(runtimeSource.includes('function writeDesktopSmokeMarkerOnce()'),
 assert(runtimeSource.includes('window.__awRuntimeReady') &&
        runtimeSource.includes('window.__awFirstFrame'),
   'desktop readiness marker must be bound to runtime-ready and completed-first-frame signals');
+assert(runtimeSource.includes('function desktopNodeBridge()') &&
+       runtimeSource.includes("nw.require.bind(nw)") &&
+       runtimeSource.includes("nodeRequire('process')"),
+  'desktop evidence seams must bridge NW.js node context when CommonJS globals are not directly exposed');
 
 const embeddedHtmlForCanvas = fs.readFileSync(path.join(__dirname, '..', 'index-embedded.html'), 'utf8');
 const runtimeSourceForCanvas = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8');
@@ -143,6 +147,11 @@ assert(runtimeSourceForCanvas.includes('createCanvas(960, 640)'),
   'logical game canvas must remain 960x640 to preserve authored layout coordinates');
 assert(embeddedHtmlForCanvas.includes('width: min(100vw, calc(100vh * 1.5))'),
   'desktop presentation must scale the 3:2 canvas to the largest fitting window area');
+assert(embeddedHtmlForCanvas.includes("window.addEventListener('load'") &&
+       embeddedHtmlForCanvas.includes('p5 auto-start missing after load — invoking bounded fallback'),
+  'desktop p5 bootstrap must defer fallback instance creation until after the load event');
+assert(!embeddedHtmlForCanvas.includes("console.log('[aw] No p5 instance — creating one now')"),
+  'desktop entrypoint must not synchronously create a competing p5 instance before window load');
 
 const embeddedDesktopControls = fs.readFileSync(path.join(__dirname, '..', 'index-embedded.html'), 'utf8');
 assert(embeddedDesktopControls.includes('win.toggleFullscreen()'),

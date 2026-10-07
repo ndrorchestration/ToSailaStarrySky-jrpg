@@ -86,9 +86,10 @@ assert(html.indexOf('modules/character-renderer.js') < html.indexOf('modules/fir
 const world = fs.readFileSync(path.join(root, 'modules', 'preview-world-presentation.js'), 'utf8');
 const wake = fs.readFileSync(path.join(root, 'modules', 'first-wake-visual-stage.js'), 'utf8');
 const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
-assert(world.includes('AetherCharacterRenderer'), 'world must prefer articulated characters');
-assert(wake.includes('AetherCharacterRenderer'), 'opening must prefer articulated characters');
-assert(runtime.includes('AetherCharacterRenderer'), 'dialogue must prefer articulated characters');
+assert(world.includes('AetherCharacterRenderer'), 'world must retain articulated-character fallback');
+assert(world.includes('drawProvisionalFieldCharacter'), 'world must prefer reviewed provisional pixel field art before articulated fallback');
+assert(wake.includes('AetherCharacterRenderer'), 'opening must retain articulated-character fallback');
+assert(runtime.includes('AetherCharacterRenderer'), 'dialogue must retain articulated-character support');
 
 assert(source.includes('Portrait-only micro-detail'), 'portrait-only facial fidelity pass missing');
 assert(source.includes('s*1.24'), 'dialogue portrait head scale must retain V24 emphasis');

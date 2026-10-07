@@ -152,3 +152,16 @@ The benchmark acceptance screenshot is captured as `02-dragonfly-dusk-dock.png` 
 
 ## Shared Dragonfly binding
 The benchmark's ship rendering delegates to `AetherDragonflyVisual` in dock mode. The benchmark may adjust placement and environmental lighting, but it must not maintain an independent Dragonfly hull/silhouette implementation.
+
+
+## Visual V46 Dragonfly silhouette benchmark note
+The shared Dragonfly source authority now targets a **126px body-length / four-wing-dominant** silhouette. Benchmark review should explicitly check, in this order:
+
+1. the body reads shorter than the total wing spread;
+2. the abdomen reads segmented and tapered rather than rectangular;
+3. the thorax reads as the inhabited visual center;
+4. fore and aft wing pairs remain independently legible against bright sky;
+5. the helm reads as a compact forward head rather than an extension of a long cabin;
+6. warm cabin/aether details remain secondary to silhouette.
+
+The next benchmark screenshot must be regenerated from the exact source head before this revision can be considered visually accepted.

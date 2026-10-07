@@ -6,17 +6,29 @@ const path = require('path');
 
 const validator = require('../modules/save-payload-validator.js');
 const saveSystem = require('../modules/save-system.js');
+const routeNetwork = require('../modules/route-network-state.js');
 
-assert.strictEqual(validator.VERSION, '1.0.0');
+assert.strictEqual(validator.VERSION, '1.1.0');
 
 const fixturePath = path.join(__dirname, 'fixtures', 'saves', 'schema-v1-manual-1.json');
-const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+const fixtureV1 = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+const fixture = saveSystem.migrateEnvelope(fixtureV1);
 
-assert.strictEqual(saveSystem.validateEnvelope(fixture), true,
-  'golden schema-v1 fixture must remain envelope-valid');
-assert.strictEqual(validator.validatePayload(fixture.payload, {
-  validateAirNavigation() { return true; }
-}), true, 'golden schema-v1 fixture must remain semantically valid');
+function validationContext(overrides) {
+  return Object.assign({
+    validateAirNavigation() { return true; },
+    validateRouteNetwork(candidate) {
+      return routeNetwork.validatePersistentState(candidate);
+    },
+  }, overrides || {});
+}
+
+assert.strictEqual(saveSystem.validateEnvelope(fixtureV1), true,
+  'golden schema-v1 fixture must remain envelope-valid through migration');
+assert.strictEqual(fixture.schemaVersion, 2,
+  'golden schema-v1 fixture must migrate to schema v2');
+assert.strictEqual(validator.validatePayload(fixture.payload, validationContext()), true,
+  'migrated schema-v1 fixture must remain semantically valid');
 
 const original = JSON.parse(JSON.stringify(fixture.payload));
 
@@ -24,7 +36,7 @@ const original = JSON.parse(JSON.stringify(fixture.payload));
 const badPosition = JSON.parse(JSON.stringify(original));
 badPosition.world.playerPosition.px = 999;
 assert.throws(
-  () => validator.validatePayload(badPosition, { validateAirNavigation() { return true; } }),
+  () => validator.validatePayload(badPosition, validationContext()),
   /SAVE_WORLD_PX_MISMATCH/
 );
 
@@ -32,7 +44,7 @@ assert.throws(
 const badQuest = JSON.parse(JSON.stringify(original));
 badQuest.quest.hooksCompleted = 2;
 assert.throws(
-  () => validator.validatePayload(badQuest, { validateAirNavigation() { return true; } }),
+  () => validator.validatePayload(badQuest, validationContext()),
   /SAVE_QUEST_HOOK_COUNTER_MISMATCH/
 );
 
@@ -43,7 +55,7 @@ fourHazards.quest.act = 'contact';
 fourHazards.quest.hazardsCompleted = 4;
 fourHazards.quest.crossingHazards.forEach(hazard => { hazard.done = true; });
 assert.strictEqual(
-  validator.validatePayload(fourHazards, { validateAirNavigation() { return true; } }),
+  validator.validatePayload(fourHazards, validationContext()),
   true,
   '4/4 Crossing completion must remain a valid save payload'
 );
@@ -57,7 +69,7 @@ previewThreeHazards.quest.crossingHazards = [
 previewThreeHazards.quest.hazardsCompleted =
   previewThreeHazards.quest.crossingHazards.filter(hazard => hazard.done).length;
 assert.strictEqual(
-  validator.validatePayload(previewThreeHazards, { validateAirNavigation() { return true; } }),
+  validator.validatePayload(previewThreeHazards, validationContext()),
   true,
   'current Preview three-hazard layout must remain save-compatible'
 );
@@ -65,7 +77,7 @@ assert.strictEqual(
 const unknownThreeHazards = JSON.parse(JSON.stringify(previewThreeHazards));
 unknownThreeHazards.quest.crossingHazards[2].id = 'unknown_hazard';
 assert.throws(
-  () => validator.validatePayload(unknownThreeHazards, { validateAirNavigation() { return true; } }),
+  () => validator.validatePayload(unknownThreeHazards, validationContext()),
   /SAVE_QUEST_CROSSING_HAZARD_LAYOUT_DRIFT/
 );
 
@@ -74,14 +86,14 @@ const wakeState = JSON.parse(JSON.stringify(original));
 wakeState.quest.state = 'wake';
 wakeState.quest.act = 'wake';
 assert.throws(
-  () => validator.validatePayload(wakeState, { validateAirNavigation() { return true; } }),
+  () => validator.validatePayload(wakeState, validationContext()),
   /SAVE_QUEST_STATE_NOT_PERSISTABLE/
 );
 
 const unknownContact = JSON.parse(JSON.stringify(original));
 unknownContact.quest.npcsMet = ['engine_spirit', 'not_a_real_contact'];
 assert.throws(
-  () => validator.validatePayload(unknownContact, { validateAirNavigation() { return true; } }),
+  () => validator.validatePayload(unknownContact, validationContext()),
   /SAVE_QUEST_NPC_UNKNOWN/
 );
 
@@ -89,7 +101,7 @@ assert.throws(
 const badParty = JSON.parse(JSON.stringify(original));
 badParty.party.roster[1].id = 'reson';
 assert.throws(
-  () => validator.validatePayload(badParty, { validateAirNavigation() { return true; } }),
+  () => validator.validatePayload(badParty, validationContext()),
   /SAVE_PARTY_IDENTITY_MISMATCH/
 );
 
@@ -97,7 +109,7 @@ assert.throws(
 const badResource = JSON.parse(JSON.stringify(original));
 badResource.party.roster[0].vit = 999;
 assert.throws(
-  () => validator.validatePayload(badResource, { validateAirNavigation() { return true; } }),
+  () => validator.validatePayload(badResource, validationContext()),
   /SAVE_PARTY_VIT_OVER_MAX/
 );
 
@@ -105,14 +117,14 @@ assert.throws(
 const inactivePlayable = JSON.parse(JSON.stringify(original));
 inactivePlayable.party.roster.find(record => record.id === 'lyra').playable = false;
 assert.throws(
-  () => validator.validatePayload(inactivePlayable, { validateAirNavigation() { return true; } }),
+  () => validator.validatePayload(inactivePlayable, validationContext()),
   /SAVE_PARTY_ACTIVE_NOT_PLAYABLE:lyra/
 );
 
 const missingPlayableFlag = JSON.parse(JSON.stringify(original));
 delete missingPlayableFlag.party.roster[0].playable;
 assert.throws(
-  () => validator.validatePayload(missingPlayableFlag, { validateAirNavigation() { return true; } }),
+  () => validator.validatePayload(missingPlayableFlag, validationContext()),
   /SAVE_PARTY_PLAYABLE_FLAG_INVALID:ender/
 );
 
@@ -120,7 +132,7 @@ assert.throws(
 const missingAir = JSON.parse(JSON.stringify(original));
 missingAir.runtime.scene = 'airship';
 assert.throws(
-  () => validator.validatePayload(missingAir, { validateAirNavigation() { return true; } }),
+  () => validator.validatePayload(missingAir, validationContext()),
   /SAVE_AIRSHIP_STATE_MISSING/
 );
 
@@ -128,10 +140,32 @@ const badAir = JSON.parse(JSON.stringify(original));
 badAir.runtime.scene = 'airship';
 badAir.airNavigation = { persistenceVersion: 1 };
 assert.throws(
-  () => validator.validatePayload(badAir, {
+  () => validator.validatePayload(badAir, validationContext({
     validateAirNavigation() { throw new Error('AIR_NAV_STATE_INVALID'); }
-  }),
+  })),
   /AIR_NAV_STATE_INVALID/
+);
+
+// Schema-v2 route-network state is required and independently validated.
+const missingRouteNetwork = JSON.parse(JSON.stringify(original));
+delete missingRouteNetwork.routeNetwork;
+assert.throws(
+  () => validator.validatePayload(missingRouteNetwork, validationContext()),
+  /SAVE_ROUTE_NETWORK_INVALID/
+);
+
+const badRouteNetwork = JSON.parse(JSON.stringify(original));
+badRouteNetwork.routeNetwork.operationalStates['rootline-west'] = 'mystery';
+assert.throws(
+  () => validator.validatePayload(badRouteNetwork, validationContext()),
+  /ROUTE_NETWORK_CONDITION_INVALID:mystery/
+);
+
+const unknownTopLevel = JSON.parse(JSON.stringify(original));
+unknownTopLevel.futureTopLevel = true;
+assert.throws(
+  () => validator.validatePayload(unknownTopLevel, validationContext()),
+  /SAVE_PAYLOAD_UNKNOWN_KEY:futureTopLevel/
 );
 
 console.log('Aetherwake semantic save-payload validator: PASS');

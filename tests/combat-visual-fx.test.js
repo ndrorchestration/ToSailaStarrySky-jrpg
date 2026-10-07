@@ -72,4 +72,14 @@ assert.deepStrictEqual(pulseCenter(nextPulse), { x: 167, y: 134 },
 assert.strictEqual(renderEnemy('corporateSalvager', 0).length, 0,
   'Sky Predator pulse must not appear on other enemy types');
 
-console.log('Aetherwake Sky Predator pixel VFX: PASS');
+const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
+assert(runtime.includes('Player ability flash — pixel starburst, not a smooth debug bubble'),
+  'ability feedback must use the pixel-starburst JRPG treatment');
+assert(runtime.includes('Resonator staff cue — attached to Ender, never floating as a separate HUD prop'),
+  'staff presentation must stay attached to the combat character');
+assert(runtime.includes('Staff aether motes — local to Ender rather than a detached HUD effect'),
+  'staff charge motes must remain local to Ender');
+assert(!runtime.includes("const fx = 72, fy = p.height * 0.62"),
+  'combat must not restore the detached fixed-position staff prop');
+
+console.log('Aetherwake Sky Predator + player pixel VFX: PASS');

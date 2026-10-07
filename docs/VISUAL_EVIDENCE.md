@@ -1,21 +1,30 @@
 # Aetherwake Visual Evidence Capture
 
-Status: **CAPTURE HARNESS ESTABLISHED / EXACT-HEAD VISUAL REVIEW PENDING**
+Status: **CAPTURE HARNESS ESTABLISHED / 14-FRAME LOCAL EVIDENCE CURRENT / HUMAN G4 PENDING**
 
 This lane exists to turn the Visual Bible's propagation gates plus title/opening/aerial-context surfaces into exact-head rendered evidence. It does **not** decide visual quality automatically.
 
 ## Required evidence set
 
-A complete bundle contains:
+A complete bundle currently contains **14 rendered frames plus `manifest.json`**:
 
 1. `00-title-screen.png` — shared-authority title screen.
-2. `01-first-wake-dock-walk.png` — First Wake Sequence 02 mid-walk.
-3. `02-dragonfly-dusk-dock.png` — benchmark dock scene.
-4. `03-dialogue-ionia.png` — representative dialogue scene.
-5. `04-combat-sky-predator.png` — representative combat scene.
-6. `05-dragonfly-flight.png` — representative Dragonfly flight scene.
-7. `06-sky-combat-crosswind.png` — aerial combat inheriting Crosswind/altitude/wake-pressure context.
-8. `manifest.json` — source SHA, viewport/canvas dimensions, capture boundary, and SHA-256 for every screenshot.
+2. `00-prologue-page.png` — opening prologue text/visual page.
+3. `00a-opening-world-reveal.png` — opening sky-world establishing reveal.
+4. `00b-first-wake-ionia-arrival.png` — First Wake arrival composition with Ionia dialogue treatment.
+5. `01-first-wake-dock-walk.png` — First Wake Sequence 02 mid-walk.
+6. `01b-first-wake-cabin.png` — authored cabin substrate and berth interaction.
+7. `01c-first-wake-lyra-family.png` — Lyra-family/free-roam interior identity beat.
+8. `01c-first-wake-wrong-song.png` — Wrong Song dramatic interior beat.
+9. `02-dragonfly-dusk-dock.png` — benchmark dock scene.
+10. `03-dialogue-ionia.png` — representative authored-portrait dialogue scene.
+11. `04-combat-sky-predator.png` — representative combat scene.
+12. `05-dragonfly-flight.png` — representative Dragonfly flight scene.
+13. `06-sky-combat-crosswind.png` — aerial combat inheriting Crosswind/altitude/wake-pressure context.
+14. `07-character-identity-lineup.png` — non-gameplay identity diagnostic showing current runtime portrait authority (Ender/Lyra/Ionia authored; Reson/Aepex held on non-authored fallback) beside provisional field silhouettes.
+15. `manifest.json` — source SHA, working-tree state, viewport/canvas dimensions, capture boundary, performance samples, and SHA-256 for every screenshot.
+
+The gameplay acceptance set and the non-gameplay identity diagnostic remain distinguishable in the manifest/review procedure; adding diagnostic coverage does not silently substitute it for a gameplay visual gate.
 
 ## Capture contract
 
@@ -59,7 +68,9 @@ At minimum, verify:
 
 Only after that review may a gate be recorded as **VISUAL PASS**.
 
-## Character identity diagnostic ? V8
-- `07-character-identity-lineup.png` is a non-gameplay diagnostic frame showing all five protagonist portrait + field-silhouette authorities on one isolated p5 canvas.
+## Character identity diagnostic — V9
+- `07-character-identity-lineup.png` is a non-gameplay diagnostic frame showing the five protagonist portrait-authority states plus provisional field silhouettes on one isolated p5 canvas.
 - It is **not** substituted for any gameplay acceptance frame or blind same-game test input by default.
-- It exists to expose cross-character scale, silhouette, hair, accessory, and costume-authority drift that may be invisible when only one protagonist is present in a scene.
+- It exists to expose cross-character scale, silhouette, hair, accessory, costume-authority, and admission-state drift that may be invisible when only one protagonist is present in a scene.
+- Reson and Aepex remaining on fallback portrait presentation is intentional Visual V46 scope evidence, not a claim that their retained candidate portraits are absent.
+- The current local evidence tranche also reflects the layered JRPG title wordmark, consolidated upper-left flight navigation plaque, and First Wake framed dialogue / quest-chip hierarchy.

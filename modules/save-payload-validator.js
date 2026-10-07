@@ -1,5 +1,5 @@
 /*
- * Aetherwake — Save Payload Validator v1
+ * Aetherwake — Save Payload Validator v2
  * Pure semantic preflight for gameplay payloads.
  * No live runtime state is mutated by this module.
  */
@@ -10,7 +10,7 @@
 }(typeof window !== 'undefined' ? window : globalThis, function createValidator() {
   'use strict';
 
-  const VERSION = '1.0.0';
+  const VERSION = '1.1.0';
   const MAP_SIZE = 32;
   const ROSTER_IDS = Object.freeze(['ender','lyra','ionia','reson','aepex']);
   const QUEST_STATES = Object.freeze(['signal','crossing','contact','choice','wake','done']);
@@ -28,6 +28,15 @@
 
   function isPlainObject(value) {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+  }
+
+  function assertKnownKeys(value, allowed, code) {
+    assert(isPlainObject(value), code + '_INVALID');
+    const allowedSet = new Set(allowed);
+    for (const key of Object.keys(value)) {
+      assert(allowedSet.has(key), code + '_UNKNOWN_KEY:' + key);
+    }
+    return true;
   }
 
   function finite(value, code) {
@@ -177,13 +186,27 @@
     return true;
   }
 
+  function validateRouteNetwork(routeNetwork, context) {
+    assert(isPlainObject(routeNetwork), 'SAVE_ROUTE_NETWORK_INVALID');
+    assert(context && typeof context.validateRouteNetwork === 'function',
+      'SAVE_ROUTE_NETWORK_VALIDATOR_REQUIRED');
+    context.validateRouteNetwork(routeNetwork);
+    return true;
+  }
+
   function validatePayload(payload, context) {
     assert(isPlainObject(payload), 'SAVE_PAYLOAD_SEMANTIC_INVALID');
+    assertKnownKeys(
+      payload,
+      ['runtime','world','quest','party','airNavigation','routeNetwork'],
+      'SAVE_PAYLOAD'
+    );
     validateRuntime(payload.runtime);
     validateWorld(payload.world);
     validateQuest(payload.quest);
     validateParty(payload.party);
     validateAirNavigation(payload.airNavigation, context || null);
+    validateRouteNetwork(payload.routeNetwork, context || null);
     if (payload.runtime.scene === 'airship') {
       assert(payload.airNavigation != null, 'SAVE_AIRSHIP_STATE_MISSING');
     }
@@ -205,5 +228,6 @@
     validateQuest,
     validateParty,
     validateAirNavigation,
+    validateRouteNetwork,
   });
 }));

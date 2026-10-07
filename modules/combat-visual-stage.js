@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.4.0';
+  const VERSION = '0.6.0';
   const SKY_BATTLE_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-battle-pixelart-v2.png';
   let skyBattleBackground = null;
   let skyBattleBackgroundRequested = false;
@@ -234,19 +234,42 @@
     // Grounded combat focus: a low elliptical contact pool and narrow rim light
     // frame Ender without placing a large translucent rectangle over the arena art.
     noStroke();
-    fill(4, 9, 16, 78);
-    ellipse(x, y + 8, 96, 18);
-    fill(42, 255, 181, Math.round(12 * pulse));
-    ellipse(x, y - 26, 78, 118);
-    stroke(42, 255, 181, Math.round(55 * pulse));
+    fill(4, 9, 16, 72);
+    ellipse(x, y + 7, 72, 14);
+    fill(42, 255, 181, Math.round(9 * pulse));
+    ellipse(x, y - 18, 56, 86);
+    stroke(42, 255, 181, Math.round(48 * pulse));
     strokeWeight(1);
-    line(x - 28, y + 3, x + 28, y + 3);
+    line(x - 22, y + 3, x + 22, y + 3);
     noStroke();
+
+    const authored = root.AetherAuthoredCharacterArt;
+    if (authored && typeof authored.drawFieldCharacter === 'function') {
+      const drawn = authored.drawFieldCharacter('ender', x, y + 7, {
+        anchor: 'bottom-center',
+        scale: 0.76,
+        action: ctx.attacking ? 'attack' : (ctx.focused ? 'focus' : 'idle'),
+        frame: Math.floor((ctx.now || 0) / (ctx.attacking ? 70 : 150)),
+      });
+      if (drawn) return true;
+    }
+
+    // Until Ender's full combat/field pack is admitted, use the reviewed pixel
+    // candidate before falling back to the articulated prototype renderer.
+    if (authored && typeof authored.drawProvisionalFieldCharacter === 'function') {
+      const provisional = authored.drawProvisionalFieldCharacter('ender', x, y + 7, {
+        anchor: 'bottom-center',
+        scale: 2.25,
+        action: ctx.attacking ? 'attack' : (ctx.focused ? 'focus' : 'idle'),
+        frame: Math.floor((ctx.now || 0) / (ctx.attacking ? 80 : (ctx.focused ? 130 : 180))),
+      });
+      if (provisional) return true;
+    }
 
     if (characters && characters.validate && characters.validate()) {
       characters.draw('ender', x, y + 7, {
-        scale: 2.18,
-        depth: 0.90,
+        scale: 1.48,
+        depth: 0.68,
         now: ctx.now || 0,
         speed: 0,
         facing: 'right',
@@ -336,15 +359,13 @@
   function drawTurnRail(ctx) {
     const w = ctx.width;
     const enemy = ctx.enemy;
-    const turn = ctx.turn || 1;
     const domain = ctx.domain === 'sky' ? 'sky' : 'ground';
     const weatherId = ctx.weatherId || 'clear';
     const altitude = ctx.altitude || null;
-    const pressure = Number.isFinite(ctx.encounterPressure) ? ctx.encounterPressure : 0;
 
     noStroke();
-    fill(10, 13, 23, 205);
-    rect(Math.round(w / 2 - 150), 18, 300, 33);
+    fill(10, 13, 23, 188);
+    rect(Math.round(w / 2 - 150), 18, 300, 42);
     fill(42, 255, 181, 135);
     rect(Math.round(w / 2 - 136), 27, 58, 2);
     rect(Math.round(w / 2 + 78), 27, 58, 2);
@@ -353,17 +374,25 @@
     textFont('Press Start 2P');
     textSize(8);
     fill(232, 220, 198, 210);
-    const encounterLabel = domain === 'sky' ? 'SKY ENCOUNTER' : 'GROUND ENCOUNTER';
-    text(encounterLabel + '  //  TURN ' + turn + (enemy ? '  //  ' + enemy.name.toUpperCase() : ''), w / 2, 26);
+    text(enemy ? enemy.name.toUpperCase() : (domain === 'sky' ? 'SKY CONTACT' : 'ENCOUNTER'), w / 2, 25);
+
+    if (enemy && Number.isFinite(enemy.hp) && Number.isFinite(enemy.maxHp) && enemy.maxHp > 0) {
+      const hpRatio = Math.max(0, Math.min(1, enemy.hp / enemy.maxHp));
+      const hpW = 132;
+      const hpX = Math.round(w / 2 - hpW / 2);
+      fill(29, 38, 48, 220);
+      rect(hpX, 41, hpW, 4, 2);
+      fill(42, 255, 181, 185);
+      rect(hpX, 41, Math.round(hpW * hpRatio), 4, 2);
+    }
 
     if (domain === 'sky') {
       textFont('VT323');
       textSize(11);
-      fill(124, 200, 232, 195);
-      const telemetry = 'ALT ' + String(altitude || 'cruise').toUpperCase() +
-        '  //  ' + String(weatherId).toUpperCase().replace('-', ' ') +
-        '  //  PRESSURE ' + pressure;
-      text(telemetry, w / 2, 43);
+      fill(124, 200, 232, 185);
+      const skyContext = String(altitude || 'cruise').toUpperCase() +
+        '  ·  ' + String(weatherId).toUpperCase().replace('-', ' ');
+      text(skyContext, w / 2, 48);
     }
     textAlign(LEFT, TOP);
   }

@@ -1,14 +1,14 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Aetherwake — Five-Protagonist Portrait Candidate Review</title>
+<title>Aetherwake — Five-Protagonist Portrait Runtime Review</title>
 <style>
 :root{color-scheme:dark;font-family:Segoe UI,system-ui,sans-serif;background:#09131b;color:#e8f5ef}
 body{max-width:1180px;margin:32px auto;padding:0 24px}h1{color:#2affb5;letter-spacing:.04em}p{color:#9fc7c2}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:18px}article{background:#11222b;border:1px solid #27545a;border-radius:12px;padding:14px}canvas{width:288px;height:192px;image-rendering:auto;background:#0a151c;border-radius:8px}.meta{color:#75b7b1;font-size:13px;margin-top:8px}
 </style>
-<h1>Portrait Atlas Candidate Review</h1>
-<p>Candidate-only comparison for the five authored protagonists. Each atlas is shown as a six-expression strip. This page does not change runtime admission.</p>
+<h1>Portrait Atlas Runtime Review</h1>
+<p>Runtime-authority review for Ender, Lyra, and Ionia, with Reson and Aepex retained as candidate-only comparison. Each atlas is shown as a six-expression strip.</p>
 <div class="grid" id="grid"></div>
 <script>
-const roster=[["ender","assets/characters/v1/ender/portrait-atlas-candidate.png",["neutral","talk","concern","focus","hurt","smile"]],["lyra","assets/characters/v1/lyra/portrait-atlas-candidate.png",["neutral","talk","concern","focus","hurt","smile"]],["ionia","assets/characters/v1/ionia/portrait-atlas.png",["neutral","talk","concern","focus","hurt","smile"]],["aepex","assets/characters/v1/aepex/portrait-atlas-candidate.png",["neutral","talk","concern","focus","hurt","smile"]],["reson","assets/characters/v1/reson/portrait-atlas-candidate.png",["neutral","talk","concern","focus","hurt","smile"]]];
+const roster=[["ender","assets/characters/v1/ender/portrait-atlas.png",["neutral","talk","concern","focus","hurt","smile"]],["lyra","assets/characters/v1/lyra/portrait-atlas.png",["neutral","talk","concern","focus","hurt","smile"]],["ionia","assets/characters/v1/ionia/portrait-atlas.png",["neutral","talk","concern","focus","hurt","smile"]],["aepex","assets/characters/v1/aepex/portrait-atlas-candidate.png",["neutral","talk","concern","focus","hurt","smile"]],["reson","assets/characters/v1/reson/portrait-atlas-candidate.png",["neutral","talk","concern","focus","hurt","smile"]]];
 for(const [name,path,expressions] of roster){const card=document.createElement('article');card.innerHTML='<h2>'+name+'</h2><canvas width="288" height="192"></canvas><div class="meta">'+expressions.join(' · ')+'</div>';document.querySelector('#grid').append(card);const ctx=card.querySelector('canvas').getContext('2d');const img=new Image();img.onload=()=>{ctx.clearRect(0,0,288,192);ctx.drawImage(img,0,0,768,512,0,0,288,192)};img.onerror=()=>{ctx.fillStyle='#ffb347';ctx.fillText('portrait unavailable',12,96)};img.src='../../'+path}
 </script>

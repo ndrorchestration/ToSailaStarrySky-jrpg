@@ -118,8 +118,10 @@ assert(source.includes('drawCargoCrate') && source.includes('drawAetherStone') &
   'projected world must route prototype cell props through shared authored prop renderers');
 assert(source.includes('if (reducedDetail && type !== 6) continue'),
   'dock benchmark must suppress duplicate generic debris while preserving story signal props');
-assert(source.includes('Low-cost material breakup') && source.includes('const grassPatches = reducedDetail ? 4 : 12'),
-  'projected world must apply bounded grass/stone material breakup rather than one flat crown');
+assert(source.includes('Low-cost material breakup') && source.includes('const grassPatches = reducedDetail ? 0 : 12'),
+  'normal projected world must apply bounded grass/stone material breakup while dock benchmark suppresses generic green clutter');
+assert(source.includes('not a giant green board laid over the authored sky world'),
+  'dock benchmark must use working-port material treatment rather than the generic green crown');
 assert(source.includes('const rimMarks = reducedDetail ? 5 : 14'),
   'projected world must retain bounded cliff-edge material accents');
 const presentation = sandbox.window.AetherPreviewWorldPresentation;
@@ -129,18 +131,30 @@ assert(source.includes('USE_PAINTED_WORLD_BACKDROP = true'),
   'normal world/dialogue scenes must bind the admitted painted-world backdrop authority');
 assert(source.includes('aetherwake-preview-world-pixelart-v2.png'),
   'painted world asset binding missing from world presentation');
-assert(source.includes('if (!input.dockBenchmark) drawProjectedAtmosphere'),
-  'benchmark mode must avoid duplicating generic projected atmosphere over its painted backdrop');
-assert(source.includes('if (!input.dockBenchmark) drawProjectedForeground'),
-  'benchmark mode must avoid duplicating generic projected foreground over benchmark foreground');
+assert(source.includes('drawProjectedAtmosphere(now, w, h);') && source.includes('if (input.dockBenchmark) {'),
+  'generic projected atmosphere must remain on the normal-world branch rather than the benchmark dock branch');
+assert(source.includes('if (!input.dockBenchmark && !input.dialogueActive) drawProjectedForeground'),
+  'benchmark and dialogue staging must avoid duplicating generic projected foreground over their dedicated composition');
 assert(source.includes('Camera-side vegetation and masonry silhouettes'),
   'normal projected exploration must include a dedicated near-plane material layer');
 assert(source.includes('Sparse foreground aether motes'),
   'normal projected exploration must include sparse near-plane aether continuity cues');
 assert(source.includes('Non-benchmark horizon integration'),
   'normal projected exploration must soften the crown/backdrop seam');
-assert(source.includes('Boolean(input.dockBenchmark)'),
-  'dock benchmark must explicitly bypass extra horizon integration detail');
+assert(source.includes('function drawBenchmarkDockPlane') && source.includes('drawBenchmarkDockPlane(w, h, now)'),
+  'dock benchmark must use its dedicated screen-space working-dock plane instead of the generic projected island crown');
+assert(source.includes('if (input.dockBenchmark) {') && source.includes('drawProjectedTerrainMass(focusX, focusY, w, h, false)'),
+  'normal projected terrain must remain isolated from the benchmark dock path');
+assert(source.includes('drawProvisionalFieldCharacter') && source.includes('provisionalDrawn'),
+  'projected world must prefer reviewed provisional pixel protagonists before articulated fallback');
+assert(source.includes('const dialogueActive = Boolean(input.dialogueActive)') && source.includes('dialogueActive ? -0.85 : 0') && source.includes('activeDialogueNpcId ? 0.85 : 0'),
+  'dialogue composition must separate player and active speaker presentation-only instead of overlapping their field sprites');
+assert(source.includes('function drawDialogueTerrace') && source.includes('drawDialogueTerrace(w, h, now)'),
+  'dialogue presentation must use a bounded authored-looking terrace instead of the full projected island crown');
+assert(source.includes('if (name && !protagonist)') && source.includes('not floating debug-style nameplates'),
+  'protagonists must not carry floating debug-style world nameplates');
+assert(source.includes('readiness remains NOT_READY'),
+  'provisional world sprite usage must preserve the field-pack readiness boundary');
 
 const ground = Array.from({ length: 32 }, () => Array(32).fill(2));
 ground[0][0] = 1;

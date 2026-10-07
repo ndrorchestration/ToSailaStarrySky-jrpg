@@ -45,28 +45,17 @@ let preamblePage = 0;
 let preamblePageShownAt = 0;
 const PREAMBLE_PAGES = Object.freeze([
   Object.freeze([
-    'A ship above a broken world.',
-    'A core that has begun to sing wrong.',
-  ]),
-  Object.freeze([
-    'Below, the copper ground is tired — rusted, cracked,',
-    'choking on its own dust.',
-    'Above, the sky-lanes are still open.',
-  ]),
-  Object.freeze([
-    'For three hundred years, the aether-cores',
-    'kept the arcologies aloft.',
+    'For three hundred years, the aether-cores kept the arcologies aloft.',
     'Now the cores are failing.',
+  ]),
+  Object.freeze([
+    'Above the copper world, one patched ship still flies.',
+    "The Aureate Wake's core has begun to sing wrong.",
   ]),
   Object.freeze([
     'You are Ender.',
     'Deckhand. Engineer-in-training.',
-    'You carry a wrench, a passport, and a decision',
-    'you have not yet admitted you have to make.',
-  ]),
-  Object.freeze([
-    "The Aureate Wake's core is singing wrong.",
-    'Something has to be done about that.',
+    'Today, you step aboard.',
   ]),
 ]);
 let titleVisible = 0;        // 0..1 fade-in for title
@@ -122,6 +111,8 @@ for (let i = 0; i < 14; i++) {
 let world = null;
 let combat = null;
 let airNavigationState = null;
+let routeNetworkState = null;
+let activeRouteAssistId = null;
 let combatReturnState = STATE.WORLD;
 let pendingHazardIndex = null;
 
@@ -227,6 +218,16 @@ function setup() {
   });
   window._airNavigation = window.AetherAirNavigation;
   window._airNavigationState = airNavigationState;
+
+  if (!window.AetherRouteNetworkState ||
+      typeof window.AetherRouteNetworkState.createState !== 'function' ||
+      typeof window.AetherRouteNetworkState.validatePersistentState !== 'function') {
+    throw new Error('AETHER_ROUTE_NETWORK_STATE_UNAVAILABLE');
+  }
+  routeNetworkState = window.AetherRouteNetworkState.createState();
+  window._routeNetwork = window.AetherRouteNetworkState;
+  window._routeNetworkState = routeNetworkState;
+
   if (!window.AetherSaveSystem ||
       typeof window.AetherSaveSystem.save !== 'function' ||
       typeof window.AetherSaveSystem.load !== 'function') {
@@ -307,11 +308,17 @@ function buildSavePayload() {
     airNavigation: window.AetherAirNavigation && airNavigationState
       ? window.AetherAirNavigation.exportPersistentState(airNavigationState)
       : null,
+    routeNetwork: window.AetherRouteNetworkState && routeNetworkState
+      ? window.AetherRouteNetworkState.exportPersistentState(routeNetworkState)
+      : null,
   };
 
   window.AetherSavePayloadValidator.validatePayload(payload, {
     validateAirNavigation(candidate) {
       return window.AetherAirNavigation.validatePersistentState(candidate);
+    },
+    validateRouteNetwork(candidate) {
+      return window.AetherRouteNetworkState.validatePersistentState(candidate);
     },
   });
   return payload;
@@ -326,6 +333,9 @@ function prepareSaveEnvelopeForApply(envelope) {
   window.AetherSavePayloadValidator.validatePayload(payload, {
     validateAirNavigation(candidate) {
       return window.AetherAirNavigation.validatePersistentState(candidate);
+    },
+    validateRouteNetwork(candidate) {
+      return window.AetherRouteNetworkState.validatePersistentState(candidate);
     },
   });
 
@@ -349,6 +359,9 @@ function prepareSaveEnvelopeForApply(envelope) {
   const preparedAirNavigation = payload.airNavigation
     ? window.AetherAirNavigation.restorePersistentState(payload.airNavigation)
     : null;
+  const preparedRouteNetwork = window.AetherRouteNetworkState.restorePersistentState(
+    payload.routeNetwork
+  );
 
   return Object.freeze({
     payload,
@@ -356,60 +369,261 @@ function prepareSaveEnvelopeForApply(envelope) {
     preparedRoster,
     preparedActiveIds: payload.party.activeIds.slice(),
     preparedAirNavigation,
+    preparedRouteNetwork,
   });
 }
 
-function applySaveEnvelope(envelope) {
-  // No canonical live state changes before this preflight completes.
-  const prepared = prepareSaveEnvelopeForApply(envelope);
-  const payload = prepared.payload;
+function runLoadTestHook(stage, context) {
+  if (window && typeof window.__AETHERWAKE_LOAD_TEST_HOOK__ === 'function') {
+    window.__AETHERWAKE_LOAD_TEST_HOOK__(stage, context || {});
+  }
+}
 
-  prepared.preparedRoster.forEach((record, index) => {
-    Object.assign(window.ROSTER[index], cloneSaveJson(record));
+function captureLiveRuntimeForLoadRollback() {
+  if (!world || typeof world.snapshotPersistentState !== 'function') {
+    throw new Error('LOAD_ROLLBACK_WORLD_SNAPSHOT_UNAVAILABLE');
+  }
+  return {
+    worldSnapshot: cloneSaveJson(world.snapshotPersistentState()),
+    roster: Array.isArray(window.ROSTER)
+      ? window.ROSTER.map(character => cloneSaveJson(character))
+      : [],
+    activeIds: Array.isArray(window.ACTIVE_PARTY)
+      ? window.ACTIVE_PARTY.map(character => character.id)
+      : [],
+    airNavigation: window.AetherAirNavigation && airNavigationState
+      ? window.AetherAirNavigation.exportPersistentState(airNavigationState)
+      : null,
+    routeNetwork: window.AetherRouteNetworkState && routeNetworkState
+      ? window.AetherRouteNetworkState.exportPersistentState(routeNetworkState)
+      : null,
+    runtime: {
+      loadedPlaytimeMs,
+      playSessionStartMs,
+      gameState,
+      prevState,
+      pendingHazardIndex,
+      combatReturnState,
+      pendingAutosaveReason,
+      previewEncounterStarted,
+      previewEncounterFinished,
+      previewEndAt,
+      activeRouteAssistId,
+    },
+  };
+}
+
+function restoreLiveRuntimeAfterFailedLoad(snapshot) {
+  if (!snapshot || !snapshot.worldSnapshot || !snapshot.runtime) {
+    throw new Error('LOAD_ROLLBACK_SNAPSHOT_MISSING');
+  }
+  runLoadTestHook('rollback-start', snapshot);
+
+  if (!Array.isArray(window.ROSTER) || window.ROSTER.length !== snapshot.roster.length) {
+    throw new Error('LOAD_ROLLBACK_ROSTER_UNAVAILABLE');
+  }
+  snapshot.roster.forEach((record, index) => {
+    const target = window.ROSTER[index];
+    if (!target || target.id !== record.id) {
+      throw new Error('LOAD_ROLLBACK_ROSTER_IDENTITY_MISMATCH');
+    }
+    Object.assign(target, cloneSaveJson(record));
   });
-  window.AetherPartyState.setActivePartyIds(prepared.preparedActiveIds);
+
+  window.AetherPartyState.setActivePartyIds(snapshot.activeIds);
   window.AetherPartyState.validate();
 
-  world.restorePersistentState(prepared.preparedWorld, payload.runtime);
+  const preparedWorld = world.preparePersistentState(
+    snapshot.worldSnapshot.world,
+    snapshot.worldSnapshot.quest
+  );
+  world.restorePersistentState(preparedWorld, snapshot.worldSnapshot.runtime);
 
-  airNavigationState = prepared.preparedAirNavigation;
+  airNavigationState = snapshot.airNavigation
+    ? window.AetherAirNavigation.restorePersistentState(snapshot.airNavigation)
+    : null;
   window._airNavigationState = airNavigationState;
 
-  loadedPlaytimeMs = payload.runtime.playtimeMs;
-  playSessionStartMs = typeof millis === 'function' ? millis() : 0;
+  routeNetworkState = snapshot.routeNetwork
+    ? window.AetherRouteNetworkState.restorePersistentState(snapshot.routeNetwork)
+    : window.AetherRouteNetworkState.createState();
+  window._routeNetworkState = routeNetworkState;
 
-  pendingHazardIndex = null;
-  combatReturnState = STATE.WORLD;
-  pendingAutosaveReason = null;
-  previewEncounterStarted = false;
-  previewEncounterFinished = false;
-  previewEndAt = 0;
-  gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
+  loadedPlaytimeMs = snapshot.runtime.loadedPlaytimeMs;
+  playSessionStartMs = snapshot.runtime.playSessionStartMs;
+  pendingHazardIndex = snapshot.runtime.pendingHazardIndex;
+  combatReturnState = snapshot.runtime.combatReturnState;
+  pendingAutosaveReason = snapshot.runtime.pendingAutosaveReason;
+  previewEncounterStarted = snapshot.runtime.previewEncounterStarted;
+  previewEncounterFinished = snapshot.runtime.previewEncounterFinished;
+  previewEndAt = snapshot.runtime.previewEndAt;
+  activeRouteAssistId = snapshot.runtime.activeRouteAssistId || null;
+  window._activeRouteAssistId = activeRouteAssistId;
+  gameState = snapshot.runtime.gameState;
   window.gameState = gameState;
-  prevState = null;
+  prevState = snapshot.runtime.prevState;
+
+  runLoadTestHook('rollback-complete', snapshot);
   return true;
+}
+
+function applySaveEnvelope(envelope) {
+  // Complete semantic validation and rehydration planning before mutation.
+  const prepared = prepareSaveEnvelopeForApply(envelope);
+  const payload = prepared.payload;
+  const rollbackSnapshot = captureLiveRuntimeForLoadRollback();
+
+  try {
+    runLoadTestHook('before-apply', { envelope });
+
+    prepared.preparedRoster.forEach((record, index) => {
+      Object.assign(window.ROSTER[index], cloneSaveJson(record));
+    });
+    window.AetherPartyState.setActivePartyIds(prepared.preparedActiveIds);
+    window.AetherPartyState.validate();
+    runLoadTestHook('after-party', { envelope });
+
+    world.restorePersistentState(prepared.preparedWorld, payload.runtime);
+    runLoadTestHook('after-world', { envelope });
+
+    airNavigationState = prepared.preparedAirNavigation;
+    window._airNavigationState = airNavigationState;
+
+    routeNetworkState = prepared.preparedRouteNetwork;
+    window._routeNetworkState = routeNetworkState;
+
+    loadedPlaytimeMs = payload.runtime.playtimeMs;
+    playSessionStartMs = typeof millis === 'function' ? millis() : 0;
+
+    pendingHazardIndex = null;
+    combatReturnState = STATE.WORLD;
+    pendingAutosaveReason = null;
+    previewEncounterStarted = false;
+    previewEncounterFinished = false;
+    previewEndAt = 0;
+    activeRouteAssistId = null;
+    window._activeRouteAssistId = activeRouteAssistId;
+    gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
+    window.gameState = gameState;
+    prevState = null;
+    runLoadTestHook('before-commit', { envelope });
+
+    window._lastLoadRollback = null;
+    return true;
+  } catch (error) {
+    let rollbackError = null;
+    try {
+      restoreLiveRuntimeAfterFailedLoad(rollbackSnapshot);
+    } catch (candidateRollbackError) {
+      rollbackError = candidateRollbackError;
+    }
+
+    if (rollbackError) {
+      window._lastLoadRollback = {
+        restored: false,
+        error: error.message,
+        rollbackError: rollbackError.message,
+      };
+      throw new Error(
+        'LOAD_APPLY_AND_ROLLBACK_FAILED:' +
+        error.message + '|' + rollbackError.message
+      );
+    }
+
+    window._lastLoadRollback = {
+      restored: true,
+      error: error.message,
+    };
+    throw error;
+  }
 }
 
 window._persistenceRuntime = Object.freeze({
   buildSavePayload,
   prepareSaveEnvelopeForApply,
   applySaveEnvelope,
+  captureLiveRuntimeForLoadRollback,
+  restoreLiveRuntimeAfterFailedLoad,
+  loadSemanticallyValidSaveCandidate,
+  buildLoadableSaveIndex,
   currentPlaytimeMs,
 });
+
+function loadSemanticallyValidSaveCandidate(slot) {
+  let primaryError = null;
+  try {
+    const loaded = window.AetherSaveSystem.load(slot);
+    if (!loaded || !loaded.envelope) return null;
+    prepareSaveEnvelopeForApply(loaded.envelope);
+    if (loaded.recoveredFromBackup) {
+      return {
+        ...loaded,
+        semanticBackupRecovery: true,
+        primarySemanticError: loaded.primaryLoadError || null,
+      };
+    }
+    return loaded;
+  } catch (error) {
+    primaryError = error;
+  }
+
+  if (typeof window.AetherSaveSystem.loadBackup === 'function') {
+    try {
+      const backup = window.AetherSaveSystem.loadBackup(slot);
+      if (backup && backup.envelope) {
+        prepareSaveEnvelopeForApply(backup.envelope);
+        return {
+          ...backup,
+          semanticBackupRecovery: true,
+          primarySemanticError: primaryError ? primaryError.message : null,
+        };
+      }
+    } catch (backupError) {
+      const primaryMessage = primaryError ? primaryError.message : 'unknown';
+      throw new Error(
+        'SAVE_PRIMARY_AND_BACKUP_UNLOADABLE:' +
+        primaryMessage + '|' + backupError.message
+      );
+    }
+  }
+
+  if (primaryError) throw primaryError;
+  return null;
+}
 
 function buildLoadableSaveIndex() {
   if (!window.AetherSaveSystem) return [];
   return window.AetherSaveSystem.list().map(meta => {
-    if (!meta.exists || meta.valid === false) return meta;
+    if (!meta.exists) return meta;
     try {
-      const loaded = window.AetherSaveSystem.load(meta.slot);
+      const loaded = loadSemanticallyValidSaveCandidate(meta.slot);
       if (!loaded || !loaded.envelope) {
         return { ...meta, valid: false, semanticValid: false, error: 'SAVE_ENVELOPE_MISSING' };
       }
-      prepareSaveEnvelopeForApply(loaded.envelope);
-      return { ...meta, semanticValid: true };
+      const envelope = loaded.envelope;
+      return {
+        ...meta,
+        valid: true,
+        semanticValid: true,
+        semanticBackupRecovery: Boolean(loaded.semanticBackupRecovery),
+        primarySemanticError: loaded.primarySemanticError || null,
+        savedAt: envelope.savedAt,
+        playtimeMs: envelope.playtimeMs,
+        chapter: envelope.chapter,
+        location: envelope.location,
+        partySummary: Array.isArray(envelope.partySummary) ? envelope.partySummary.slice() : [],
+        gameVersion: envelope.gameVersion,
+      };
     } catch (error) {
-      return { ...meta, valid: false, semanticValid: false, error: error.message };
+      return {
+        ...meta,
+        valid: false,
+        semanticValid: false,
+        futureSchemaProtected:
+          meta.futureSchemaProtected === true ||
+          /SAVE_SCHEMA_FUTURE_UNSUPPORTED|SAVE_SLOT_FUTURE_SCHEMA_PROTECTED/.test(error.message),
+        error: error.message,
+      };
     }
   });
 }
@@ -447,14 +661,21 @@ function flushPendingAutosaveIfStable() {
   const reason = pendingAutosaveReason;
   pendingAutosaveReason = null;
   try {
-    const result = window.AetherSaveSystem.rotateAutosave(buildSavePayload(), saveMetadata());
+    const payload = buildSavePayload();
+    const result = window.AetherSaveSystem.rotateAutosave(
+      payload,
+      saveMetadata(),
+      { candidateResolver: loadSemanticallyValidSaveCandidate }
+    );
     window._lastSaveResult = result;
+    window._lastSaveError = null;
     window._lastAutosaveReason = reason;
     window._saveSlotIndex = buildLoadableSaveIndex();
     showToast('AUTOSAVED // ' + reason.toUpperCase(), C.teal, 900);
     return true;
   } catch (error) {
     window._lastSaveError = error.message;
+    window._lastSaveResult = null;
     console.error('AUTOSAVE_FAILED', error);
     return false;
   }
@@ -478,34 +699,83 @@ function saveToSlot(slot) {
     return false;
   }
   try {
-    const result = window.AetherSaveSystem.save(slot, buildSavePayload(), saveMetadata());
+    const payload = buildSavePayload();
+    let preserveBackup = false;
+    try {
+      const priorCandidate = loadSemanticallyValidSaveCandidate(slot);
+      preserveBackup = Boolean(priorCandidate && priorCandidate.semanticBackupRecovery);
+    } catch (_) {
+      // An unrecoverable current slot may be replaced by an explicit manual save.
+      // Future-schema overwrite protection is still enforced by AetherSaveSystem.save().
+      preserveBackup = false;
+    }
+
+    const result = window.AetherSaveSystem.save(
+      slot,
+      payload,
+      saveMetadata(),
+      { preserveBackup }
+    );
     window._lastSaveResult = result;
+    window._lastSaveError = null;
     window._saveSlotIndex = buildLoadableSaveIndex();
     showToast('GAME SAVED // ' + slot.toUpperCase(), C.teal, 1300);
     return true;
   } catch (error) {
     window._lastSaveError = error.message;
+    window._lastSaveResult = null;
     console.error('SAVE_FAILED', error);
-    showToast('SAVE FAILED // ' + error.message, C.rust, 2200);
+    if (/SAVE_SLOT_FUTURE_SCHEMA_PROTECTED|SAVE_AUTOSAVE_ALL_SLOTS_FUTURE_PROTECTED/.test(error.message)) {
+      showToast('NEWER VERSION SAVE DATA — PRESERVED', C.rust, 2400);
+    } else {
+      showToast('SAVE FAILED // ' + error.message, C.rust, 2200);
+    }
     return false;
   }
 }
 
 function loadFromSlot(slot) {
   try {
-    const loaded = window.AetherSaveSystem.load(slot);
+    const loaded = loadSemanticallyValidSaveCandidate(slot);
     if (!loaded) {
       showToast('NO SAVE IN ' + slot.toUpperCase(), C.rust, 1400);
       return false;
     }
-    prepareSaveEnvelopeForApply(loaded.envelope);
+
+    const applied = applySaveEnvelope(loaded.envelope);
+    if (!applied) throw new Error('LOAD_APPLY_RETURNED_FALSE');
+
     window._lastLoadResult = loaded;
-    applySaveEnvelope(loaded.envelope);
+    window._lastLoadError = null;
+    window._lastLoadRecovery = loaded.semanticBackupRecovery
+      ? {
+          slot,
+          source: 'backup',
+          primarySemanticError: loaded.primarySemanticError || null,
+          path: loaded.path,
+        }
+      : null;
     window._saveSlotIndex = buildLoadableSaveIndex();
-    showToast('GAME LOADED // ' + slot.toUpperCase(), C.teal, 1500);
+
+    if (loaded.semanticBackupRecovery) {
+      const newerPrimaryPreserved = /SAVE_SCHEMA_FUTURE_UNSUPPORTED/.test(
+        loaded.primarySemanticError || ''
+      );
+      showToast(
+        newerPrimaryPreserved
+          ? 'RECOVERED OLDER SAVE // NEWER PRIMARY PRESERVED'
+          : 'RECOVERED PREVIOUS SAVE // PRIMARY INVALID',
+        C.teal,
+        2200
+      );
+    } else {
+      showToast('GAME LOADED // ' + slot.toUpperCase(), C.teal, 1500);
+    }
     return true;
   } catch (error) {
     window._lastLoadError = error.message;
+    window._lastLoadResult = null;
+    window._lastLoadRecovery = null;
     console.error('LOAD_FAILED', error);
     showToast('LOAD FAILED // ' + error.message, C.rust, 2200);
     return false;
@@ -613,21 +883,38 @@ function drawSaveLoadOverlay() {
   text('UP / DOWN SLOT   ENTER CONFIRM   ESC RETURN   F5 SAVE   F9 LOAD', 90, height - 42);
 }
 
+function desktopNodeBridge() {
+  let nodeRequire = typeof require === 'function' ? require : null;
+  if (!nodeRequire && typeof nw !== 'undefined' && nw && typeof nw.require === 'function') {
+    nodeRequire = nw.require.bind(nw);
+  }
+  if (!nodeRequire && window.nw && typeof window.nw.require === 'function') {
+    nodeRequire = window.nw.require.bind(window.nw);
+  }
+
+  let nodeProcess = typeof process !== 'undefined' && process && process.env ? process : null;
+  if (!nodeProcess && nodeRequire) {
+    try { nodeProcess = nodeRequire('process'); } catch (_) {}
+  }
+  if (!nodeRequire || !nodeProcess || !nodeProcess.env) return null;
+  return { require: nodeRequire, process: nodeProcess };
+}
+
 function runChapter1PersistenceSmokeOnce() {
   if (window.__awChapter1PersistenceSmokeDone) return;
   try {
-    if (typeof process === 'undefined' || !process.env) return;
-    const mode = process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MODE;
-    const markerPath = process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER;
-    const isolatedRoot = process.env.AETHERWAKE_SAVE_ROOT_OVERRIDE;
+    const bridge = desktopNodeBridge();
+    if (!bridge) return;
+    const mode = bridge.process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MODE;
+    const markerPath = bridge.process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER;
+    const isolatedRoot = bridge.process.env.AETHERWAKE_SAVE_ROOT_OVERRIDE;
     if (!mode || !markerPath || !isolatedRoot) return;
     if (!window.__awRuntimeReady || !window.__awFirstFrame) return;
-    if (typeof require !== 'function') return;
     if (!window.AetherSaveSystem || !world || !world.player) {
       throw new Error('CHAPTER1_PERSISTENCE_SMOKE_RUNTIME_UNAVAILABLE');
     }
 
-    const fs = require('fs');
+    const fs = bridge.require('fs');
     let payload = null;
 
     if (mode === 'create') {
@@ -688,12 +975,11 @@ function runChapter1PersistenceSmokeOnce() {
   } catch (error) {
     window.__awChapter1PersistenceSmokeDone = true;
     try {
-      if (typeof require === 'function' &&
-          typeof process !== 'undefined' && process.env &&
-          process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER) {
-        require('fs').writeFileSync(
-          process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER,
-          JSON.stringify({ phase: process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MODE || null,
+      const bridge = desktopNodeBridge();
+      if (bridge && bridge.process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER) {
+        bridge.require('fs').writeFileSync(
+          bridge.process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MARKER,
+          JSON.stringify({ phase: bridge.process.env.AETHERWAKE_CHAPTER1_PERSISTENCE_MODE || null,
             result: 'FAIL', error: error.message }),
           'utf8'
         );
@@ -706,13 +992,31 @@ function runChapter1PersistenceSmokeOnce() {
 function writeDesktopSmokeMarkerOnce() {
   if (window.__awDesktopSmokeMarkerWritten) return;
   try {
-    if (typeof process === 'undefined' || !process.env) return;
-    const markerPath = process.env.AETHERWAKE_DESKTOP_SMOKE_MARKER;
+    const bridge = desktopNodeBridge();
+    if (!bridge) {
+      if (!window.__awDesktopBridgeDiagnosticLogged && typeof nw !== 'undefined') {
+        window.__awDesktopBridgeDiagnosticLogged = true;
+        console.warn('[aw] desktop node bridge unavailable',
+          'process=' + typeof process,
+          'require=' + typeof require,
+          'nw=' + typeof nw,
+          'nw.require=' + (nw && typeof nw.require));
+      }
+      return;
+    }
+    const markerPath = bridge.process.env.AETHERWAKE_DESKTOP_SMOKE_MARKER;
     if (!markerPath) return;
-    if (!window.__awRuntimeReady || !window.__awFirstFrame) return;
-    if (typeof require !== 'function') return;
+    if (!window.__awRuntimeReady || !window.__awFirstFrame) {
+      if (!window.__awDesktopMarkerFlagsLogged) {
+        window.__awDesktopMarkerFlagsLogged = true;
+        console.warn('[aw] desktop marker waiting for runtime flags',
+          'runtimeReady=' + Boolean(window.__awRuntimeReady),
+          'firstFrame=' + Boolean(window.__awFirstFrame));
+      }
+      return;
+    }
 
-    const fs = require('fs');
+    const fs = bridge.require('fs');
     const payload = {
       runtimeReady: true,
       firstFrame: true,
@@ -731,6 +1035,10 @@ function writeDesktopSmokeMarkerOnce() {
 
 // ── draw() ──
 function draw() {
+  if (!window.__awDrawStartedDiagnostic) {
+    window.__awDrawStartedDiagnostic = true;
+    console.log('[aw] draw loop entered');
+  }
   dt = millis() - lastTime;
   lastTime = millis();
 
@@ -963,6 +1271,7 @@ function draw() {
   }
 
   // The embedded loader waits for a completed frame, not merely a canvas node.
+  if (!window.__awFirstFrame) console.log('[aw] first draw completed');
   window.__awFirstFrame = true;
   runChapter1PersistenceSmokeOnce();
   writeDesktopSmokeMarkerOnce();
@@ -1031,7 +1340,7 @@ function keyPressed() {
       const delta = (keyCode === LEFT_ARROW || keyCode === 65) ? -1 : 1;
       const movement = opening.moveDock(openingState, delta);
       if (movement.ready && !window.__awDockWalkReadyToastShown) {
-        showToast('AUREATE WAKE REACHED // ENTER TO BOARD', C.teal, 1400);
+        showToast('The Aureate Wake is just ahead.', C.teal, 750);
         window.__awDockWalkReadyToastShown = true;
       }
       delete keysPressed[keyCode];
@@ -1517,6 +1826,8 @@ function advanceFirstWakeOpening() {
   }
 
   if (!state.complete && beforeScene && state.sceneIndex !== beforeScene.sequence) {
+    // Scene-local notices should not linger across cinematic handoffs.
+    window.toasts = window.toasts.filter(toast => toast.kind !== 'notice');
     const nextScene = opening.currentScene(state);
     if (nextScene.id === 'lyra_family') {
       showToast('THE WAKE IS YOURS TO EXPLORE // E TO INSPECT', C.teal, 2000);
@@ -1671,8 +1982,57 @@ function ensureAirNavigationState() {
   return true;
 }
 
+function ensureRouteNetworkState() {
+  if (!window.AetherRouteNetworkState) return false;
+  if (!routeNetworkState) routeNetworkState = window.AetherRouteNetworkState.createState();
+  window._routeNetworkState = routeNetworkState;
+  window._activeRouteAssistId = activeRouteAssistId;
+  return true;
+}
+
+function scanNearbyRouteClues() {
+  if (!ensureAirNavigationState() || !ensureRouteNetworkState()) return [];
+  const result = window.AetherRouteNetworkState.discoverNearbyClues(
+    airNavigationState,
+    routeNetworkState
+  );
+  routeNetworkState = result.state;
+  window._routeNetworkState = routeNetworkState;
+  if (result.discoveredNow.length) {
+    showToast('ROUTE CLUE // UPPER WAKE TRACE', C.scioto, 1500);
+  }
+  return result.discoveredNow;
+}
+
+function confirmRootlineShift() {
+  if (!ensureAirNavigationState() || !ensureRouteNetworkState()) return false;
+  const route = window.AetherRouteNetworkState;
+  const clueId = 'rootline-west-upper-trace';
+  const nearby = route.cluesAt(airNavigationState).some(clue => clue.id === clueId);
+  if (!nearby || !routeNetworkState.discoveredClues.includes(clueId)) {
+    showToast('NO ROUTE SHIFT EVIDENCE IN RANGE', C.rust, 1100);
+    return false;
+  }
+  const current = route.conditionFor(routeNetworkState, 'rootline-west');
+  if (current === 'shifted') {
+    showToast('ROOTLINE WEST // SHIFT ALREADY CHARTED', C.scioto, 1000);
+    return false;
+  }
+  if (current === 'closed') {
+    showToast('ROOTLINE WEST // CLOSED', C.rust, 1000);
+    return false;
+  }
+  routeNetworkState = route.setCondition(routeNetworkState, 'rootline-west', 'shifted');
+  routeNetworkState = route.recordPrecedent(routeNetworkState, 'LOCAL_ROUTE_ASSISTANCE');
+  activeRouteAssistId = null;
+  window._routeNetworkState = routeNetworkState;
+  window._activeRouteAssistId = activeRouteAssistId;
+  showToast('ROOTLINE WEST // SHIFT RECHARTED', C.teal, 1700);
+  return true;
+}
+
 function enterAirNavigation() {
-  if (!ensureAirNavigationState()) return false;
+  if (!ensureAirNavigationState() || !ensureRouteNetworkState()) return false;
   gameState = STATE.AIRSHIP;
   window.gameState = gameState;
   prevState = null;
@@ -1707,16 +2067,60 @@ function handleAirNavigationInput() {
   if (keysPressed[81]) { // Q
     airNavigationState = nav.changeAltitude(airNavigationState, -1);
     showToast('ALTITUDE // ' + airNavigationState.altitude.toUpperCase(), C.scioto, 900);
+    scanNearbyRouteClues();
   }
   if (keysPressed[69]) { // E
     airNavigationState = nav.changeAltitude(airNavigationState, 1);
     showToast('ALTITUDE // ' + airNavigationState.altitude.toUpperCase(), C.scioto, 900);
+    scanNearbyRouteClues();
   }
   if (keysPressed[68]) { // D
     const result = nav.dock(airNavigationState);
     airNavigationState = result.state;
-    if (result.ok) showToast('MOORED // ' + result.landmark.label, C.teal, 1200);
-    else showToast('NO STABLE BERTH IN RANGE', C.rust, 1000);
+    activeRouteAssistId = null;
+    window._activeRouteAssistId = activeRouteAssistId;
+    if (result.ok) {
+      const reported = result.landmark.id === 'wake-dock' &&
+        routeNetworkState &&
+        routeNetworkState.precedents.includes('LOCAL_ROUTE_ASSISTANCE');
+      showToast(
+        reported ? 'WAKE DOCK // ROOTLINE REPORT ACKNOWLEDGED' : 'MOORED // ' + result.landmark.label,
+        C.teal,
+        reported ? 1600 : 1200
+      );
+    } else {
+      showToast('NO STABLE BERTH IN RANGE', C.rust, 1000);
+    }
+  }
+
+  if (keysPressed[82]) { // R — deliberately engage/disengage bounded lane assist
+    if (activeRouteAssistId) {
+      activeRouteAssistId = null;
+      window._activeRouteAssistId = activeRouteAssistId;
+      showToast('LANE ASSIST // DISENGAGED', C.scioto, 900);
+    } else {
+      const context = nav.routeContext(airNavigationState);
+      if (!context.onRoute || !context.discovered || !context.route ||
+          context.route.id !== 'rootline-west') {
+        showToast('LANE ASSIST // ROOTLINE WEST NOT ACQUIRED', C.rust, 1100);
+      } else {
+        const condition = window.AetherRouteNetworkState.conditionFor(
+          routeNetworkState,
+          context.route.id
+        );
+        if (condition === 'shifted' || condition === 'closed') {
+          showToast('LANE ASSIST // ROUTE ' + condition.toUpperCase(), C.rust, 1100);
+        } else {
+          activeRouteAssistId = context.route.id;
+          window._activeRouteAssistId = activeRouteAssistId;
+          showToast('LANE ASSIST // ROOTLINE WEST ENGAGED', C.teal, 1100);
+        }
+      }
+    }
+  }
+
+  if (keysPressed[70]) { // F — confirm the bounded upper-trace interpretation
+    confirmRootlineShift();
   }
 
   let dx = 0, dy = 0;
@@ -1730,7 +2134,33 @@ function handleAirNavigationInput() {
       airNavigationState = nav.undock(airNavigationState);
       showToast('CAST OFF // OPEN SKY', C.scioto, 800);
     }
-    airNavigationState = nav.move(airNavigationState, dx, dy);
+    const routeFactor = activeRouteAssistId
+      ? window.AetherRouteNetworkState.travelFactor(
+          airNavigationState,
+          routeNetworkState,
+          dx,
+          dy,
+          activeRouteAssistId
+        )
+      : 1;
+    airNavigationState = nav.move(airNavigationState, dx * routeFactor, dy * routeFactor);
+    scanNearbyRouteClues();
+
+    if (activeRouteAssistId) {
+      const afterContext = nav.routeContext(airNavigationState);
+      const afterCondition = window.AetherRouteNetworkState.conditionFor(
+        routeNetworkState,
+        activeRouteAssistId
+      );
+      if (!afterContext.onRoute || !afterContext.discovered || !afterContext.route ||
+          afterContext.route.id !== activeRouteAssistId ||
+          afterCondition === 'shifted' || afterCondition === 'closed') {
+        activeRouteAssistId = null;
+        window._activeRouteAssistId = activeRouteAssistId;
+        showToast('LANE ASSIST // RELEASED TO FREE FLIGHT', C.scioto, 900);
+      }
+    }
+
     const encounter = nav.encounterCheck(airNavigationState);
     airNavigationState = encounter.state;
     if (encounter.triggered) {
@@ -1778,12 +2208,37 @@ function drawAirNavigationScene() {
       });
     }
 
+    const routeId = travel.route && travel.route.route ? travel.route.route.id : null;
+    const routeCondition = routeId && routeNetworkState
+      ? window.AetherRouteNetworkState.conditionFor(routeNetworkState, routeId)
+      : null;
+    const routeAssistAvailable = Boolean(
+      routeId === 'rootline-west' &&
+      travel.route &&
+      travel.route.onRoute &&
+      travel.route.discovered &&
+      routeCondition !== 'shifted' &&
+      routeCondition !== 'closed'
+    );
+    const routeClueActionAvailable = Boolean(
+      routeNetworkState &&
+      routeCondition !== 'shifted' &&
+      routeCondition !== 'closed' &&
+      window.AetherRouteNetworkState.cluesAt(airNavigationState).some(
+        clue => routeNetworkState.discoveredClues.includes(clue.id)
+      )
+    );
+
     visual.drawRouteOverlay({
       width,
       height,
       state: airNavigationState,
       travel,
       nav,
+      routeCondition,
+      routeAssistAvailable,
+      routeAssistActive: Boolean(routeId && activeRouteAssistId === routeId),
+      routeClueActionAvailable,
     });
 
     visual.drawLandmarkBeacons({
@@ -1811,7 +2266,7 @@ function drawAirNavigationScene() {
     width / 2, height / 2 + 8
   );
   textSize(10);
-  text('ARROWS steer  Q/E altitude  D dock  L/Esc land', width / 2, height / 2 + 32);
+  text('ARROWS steer  Q/E altitude  D dock  R lane assist  F chart  L/Esc land', width / 2, height / 2 + 32);
   textAlign(LEFT, BASELINE);
 }
 
@@ -2142,47 +2597,34 @@ function drawBootSequence() {
   const progress = Math.min(1, elapsed / BOOT_LOAD_MS);
   const preambleElapsed = millis() - preambleStart;
   
-  // Background: navy
+  // Boot uses the same authored sky-world plate as the title so frame one
+  // already belongs to Aetherwake rather than a generic loading/debug shell.
+  const titleVisual = window.AetherTitleVisual;
+  let paintedBoot = false;
+  if (titleVisual && typeof titleVisual.drawSky === 'function') {
+    push();
+    paintedBoot = titleVisual.drawSky(millis()) !== false;
+    pop();
+  }
+  if (!paintedBoot) {
+    noStroke();
+    fill(C.navy[0], C.navy[1], C.navy[2]);
+    rect(0, 0, width, height);
+  }
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2]);
+  fill(C.navy[0], C.navy[1], C.navy[2], 112);
   rect(0, 0, width, height);
   
-  // Subtle teal grid (static)
-  stroke(C.teal[0], C.teal[1], C.teal[2], 10);
-  strokeWeight(1);
-  for (let x = 0; x < width; x += 32) line(x, 0, x, height);
-  for (let y = 0; y < height; y += 32) line(0, y, width, y);
-  
-  // Floating islands parallax (always visible during boot)
-  for (const island of titleIslands) {
-    const px = ((island.x + elapsed * 0.01 * island.drift) % 60 + 60) % 60 * 16;
-    const py = island.y + Math.sin(elapsed * 0.001 * island.speed + island.drift) * 6;
-    
-    noStroke();
-    fill(C.soil[0], C.soil[1], C.soil[2], 160);
-    ellipse(px, py, island.size, island.size * 0.6);
-    
-    noFill();
-    stroke(C.teal[0], C.teal[1], C.teal[2], 80);
-    strokeWeight(1);
-    ellipse(px, py, island.size, island.size * 0.6);
-    noStroke();
-    
-    fill(C.teal[0], C.teal[1], C.teal[2], 50);
-    ellipse(px - 3, py - 3, island.size * 0.3, island.size * 0.2);
-  }
-  
-  // ── Loading phase (0-1.2s) ──
+  // ── Opening sting (0-1.2s) ──
   if (elapsed < BOOT_LOAD_MS) {
-    noStroke();
-    textSize(12);
-    fill(C.teal[0], C.teal[1], C.teal[2], 150);
+    const sting = Math.min(1, elapsed / 420);
     textAlign(CENTER, CENTER);
-    const loadText = 'LOADING' + '.'.repeat(Math.floor((elapsed / 300) % 4));
-    text(loadText, width/2, height/2 - 20);
-    textSize(9);
-    fill(C.parchment[0], C.parchment[1], C.parchment[2], 100);
-    text('initializing the weave\u2026', width/2, height/2 + 8);
+    textFont('Trebuchet MS');
+    textSize(22);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2], 225 * sting);
+    text('AETHERWAKE', width / 2, height / 2 - 2);
+    fill(C.teal[0], C.teal[1], C.teal[2], 90 * sting);
+    rect(width / 2 - 54, height / 2 + 22, 108, 1);
     return;
   }
   
@@ -2195,39 +2637,34 @@ function drawBootSequence() {
     const fadeIn = Math.min(1, age / 320);
     const pageReady = age >= PREAMBLE_PAGE_MIN_MS;
 
-    // Dim the moving world without removing it; the player should feel that
-    // the story text belongs to the same sky they are about to enter.
+    // Dim the authored world as a cinematic plate rather than turning it into a UI screen.
     noStroke();
-    fill(C.navy[0], C.navy[1], C.navy[2], 118);
+    fill(C.navy[0], C.navy[1], C.navy[2], 138);
     rect(0, 0, width, height);
+    fill(C.navy[0], C.navy[1], C.navy[2], 70);
+    rect(0, 0, width, 44);
+    rect(0, height - 44, width, 44);
 
-    // Thin cinematic horizon rules provide a stable reading frame while the
-    // parallax islands continue moving behind the held story page.
-    fill(C.teal[0], C.teal[1], C.teal[2], 34);
-    rect(width * 0.16, height * 0.28, width * 0.68, 1);
-    rect(width * 0.16, height * 0.72, width * 0.68, 1);
-
-    const lineHeight = 27;
+    const lineHeight = 31;
     const startY = height / 2 - ((page.length - 1) * lineHeight) / 2;
     noStroke();
     textAlign(CENTER, CENTER);
-    textSize(15);
     for (let i = 0; i < page.length; i++) {
-      const localDelay = i * 90;
-      const lineAlpha = Math.max(0, Math.min(1, (age - localDelay) / 260));
-      fill(C.parchment[0], C.parchment[1], C.parchment[2], 210 * lineAlpha);
+      const localDelay = i * 110;
+      const lineAlpha = Math.max(0, Math.min(1, (age - localDelay) / 300));
+      textFont(i === 0 ? 'Trebuchet MS' : 'Segoe UI');
+      textSize(i === 0 ? 19 : 16);
+      fill(C.parchment[0], C.parchment[1], C.parchment[2], 225 * lineAlpha);
       text(page[i], width / 2, startY + i * lineHeight);
     }
 
-    // Page position is visible but understated: pacing belongs to the player,
-    // not to an invisible timer.
+    // JRPG-style page cue: no counters or bracketed developer-like instructions.
+    const cueAlpha = (pageReady ? 185 : 65) * fadeIn;
+    fill(C.teal[0], C.teal[1], C.teal[2], cueAlpha);
+    rect(width / 2 - 18, height - 44, 36, 1);
+    textFont('Segoe UI Semibold');
     textSize(9);
-    fill(C.scioto[0], C.scioto[1], C.scioto[2], 90 * fadeIn);
-    text((preamblePage + 1) + ' / ' + PREAMBLE_PAGES.length, width / 2, height - 52);
-    fill(C.teal[0], C.teal[1], C.teal[2], (pageReady ? 155 : 70) * fadeIn);
-    text(pageReady
-      ? (preamblePage < PREAMBLE_PAGES.length - 1 ? '[ press any key for next ]' : '[ press any key for title ]')
-      : '[ hold ]', width / 2, height - 30);
+    text(preamblePage < PREAMBLE_PAGES.length - 1 ? 'CONTINUE' : 'TO TITLE', width / 2, height - 28);
 
     return;
   }
@@ -2450,10 +2887,10 @@ function drawDialogueOverlay() {
   const bh = dialogueLayout.h;
   const bx = dialogueLayout.x;
   const by = dialogueLayout.y;
-  const portraitSize = 88;
-  const gap = 16;
-  const px = bx + 14;
-  const py = by + 18;
+  const portraitSize = 108;
+  const gap = 20;
+  const px = bx + 16;
+  const py = by + 22;
   const textX = px + portraitSize + gap;
   const textW = bw - portraitSize - gap - 34;
 
@@ -2488,26 +2925,28 @@ function drawDialogueOverlay() {
 
   drawDialoguePortrait(npc, px, py, portraitSize, window.UI.dialoguePortraitExpression || 'talk');
 
-  // Speaker plate.
+  // Speaker plate: character name reads first, then role, then dialogue.
   textAlign(LEFT, TOP);
+  fill(C.teal[0], C.teal[1], C.teal[2], 42 * alpha);
+  rect(textX - 8, by + 22, Math.min(250, textW * 0.48), 24, 4);
   textFont('Segoe UI Semibold');
-  textSize(13);
-  fill(C.teal[0], C.teal[1], C.teal[2], 235 * alpha);
-  text(npcName.toUpperCase(), textX, by + 24);
+  textSize(15);
+  fill(C.teal[0], C.teal[1], C.teal[2], 245 * alpha);
+  text(npcName.toUpperCase(), textX, by + 25);
 
   if (npcTitle) {
     textFont('Segoe UI');
     textSize(12);
-    fill(C.scioto[0], C.scioto[1], C.scioto[2], 190 * alpha);
-    text(npcTitle, textX, by + 39);
+    fill(C.scioto[0], C.scioto[1], C.scioto[2], 210 * alpha);
+    text(npcTitle, textX, by + 49);
   }
 
-  // Dialogue copy.
+  // Dialogue copy gets a little more breathing room at JRPG reading scale.
   textFont('Segoe UI');
-  textSize(15);
-  textLeading(18);
-  fill(C.parchment[0], C.parchment[1], C.parchment[2], 245 * alpha);
-  wrapText(window.UI.dialogueText || '...', textX, by + 56, textW);
+  textSize(16);
+  textLeading(20);
+  fill(C.parchment[0], C.parchment[1], C.parchment[2], 248 * alpha);
+  wrapText(window.UI.dialogueText || '...', textX, by + 72, textW);
 
   // Continue cue as a quiet instrument readout.
   textFont('Segoe UI');
@@ -2862,32 +3301,33 @@ function drawToasts() {
     .sort((a,b) => ((a.kind === 'priority') ? 1 : 0) - ((b.kind === 'priority') ? 1 : 0) || a.startTime - b.startTime)
     .slice(-1)[0] || null;
   const systemToast = active.filter(t => t.kind === 'system').slice(-1)[0] || null;
-  const cardW = Math.min(232, Math.max(192, width * 0.24));
-  const cardX = width - cardW - 24;
+  const cardW = Math.min(420, Math.max(300, width * 0.42));
+  const cardX = Math.round((width - cardW) / 2);
   if (cardToast) {
     const t = cardToast;
     const age = now - t.startTime;
     const alpha = age < 180 ? (age / 180) * 255 :
       (age > t.duration - 350 ? Math.max(0, (t.duration - age) / 350) * 255 : 255);
-    const y = 96;
+    const y = 76;
     const isObjective = String(t.text || '').toUpperCase().startsWith('OBJECTIVE //');
     const label = isObjective ? 'OBJECTIVE' : (t.kind === 'priority' ? 'PRIORITY' : 'NOTICE');
     const message = isObjective ? String(t.text).replace(/^OBJECTIVE\s*\/\/\s*/i, '') : String(t.text || '');
     noStroke();
-    fill(7, 11, 19, alpha * 0.68);
-    rect(cardX, y, cardW, 24, 5);
-    fill(t.color[0], t.color[1], t.color[2], alpha * 0.30);
-    rect(cardX, y, 3, 24, 2);
+    fill(7, 11, 19, alpha * 0.52);
+    rect(cardX, y, cardW, 34, 7);
+    fill(t.color[0], t.color[1], t.color[2], alpha * 0.42);
+    rect(cardX + 14, y + 9, 52, 2);
+    rect(cardX + cardW - 66, y + 9, 52, 2);
     textFont('Segoe UI Semibold');
     textSize(7);
-    textAlign(LEFT, CENTER);
-    fill(t.color[0], t.color[1], t.color[2], alpha * 0.85);
-    text(label, cardX + 9, y + 12);
-    textFont('Segoe UI');
-    textSize(9);
-    textAlign(RIGHT, CENTER);
+    textAlign(CENTER, TOP);
+    fill(t.color[0], t.color[1], t.color[2], alpha * 0.78);
+    text(label, cardX + cardW / 2, y + 5);
+    textFont('Trebuchet MS');
+    textSize(10);
+    textAlign(CENTER, TOP);
     fill(232, 220, 198, alpha * 0.94);
-    text(message, cardX + cardW - 9, y + 12);
+    text(message, cardX + cardW / 2, y + 18);
   }
   if (systemToast && !cardToast) {
     const t = systemToast;
@@ -4468,6 +4908,8 @@ function render() {
         dayTime,
         isSkyLayerVisible,
         quest,
+        dialogueActive: Boolean(window.UI && window.UI.dialogueOpen),
+        dialogueNpcId: window.UI && window.UI.dialogueNPC ? window.UI.dialogueNPC.id : null,
         skipBackdrop: benchmarkActive,
         dockBenchmark: benchmarkActive,
       });
@@ -5206,6 +5648,14 @@ function drawElderFarmerBody(px, py) {
 // --- Quest Overlay -----------------------------------------------------------
 
 function drawQuestOverlay() {
+  // When a priority objective ribbon is already visible, suppress the persistent
+  // quest cue for that moment so the player never sees two competing objective UIs.
+  const objectiveToastActive = Array.isArray(window.toasts) && window.toasts.some(t =>
+    t && t.kind !== 'system' && String(t.text || '').toUpperCase().startsWith('OBJECTIVE //') &&
+    (millis() - t.startTime) <= t.duration
+  );
+  if (objectiveToastActive) return;
+
   if (gameOver && quest.wakeEpilogue) {
     drawEpilogueScreen();
     return;
@@ -5235,21 +5685,22 @@ function drawQuestOverlay() {
     done: 'DONE'
   }[quest.state] || '—';
 
+  // Chapter objective HUD should read like a JRPG quest cue, not a dashboard widget.
+  // Keep it text-led and translucent so the authored world remains dominant.
+  const qx = width - 250;
+  const qy = 18;
   noStroke();
-  fill(color(26, 16, 46, 200));
-  rect(620, 8, 170, 22, 4);
+  fill(color(8, 14, 24, 118));
+  rect(qx, qy, 226, 44, 6);
   fill(col);
-  noStroke();
-  rect(620, 8, 4, 22);
-  fill(col);
+  rect(qx + 10, qy + 10, 34, 2);
   textAlign(LEFT, TOP);
-  textSize(11);
-  textFont('Press Start 2P');
-  text(stateLabel, 630, 11);
-  textSize(10);
-  textFont('Segoe UI');
+  textSize(8);
+  textFont('Segoe UI Semibold');
+  fill(color(232, 220, 198, 205));
+  text(stateLabel, qx + 10, qy + 14);
 
-  fill(color(232, 220, 198, 150));
+  fill(color(232, 220, 198, 155));
   textAlign(LEFT, TOP);
   textSize(8);
   let progressText = '';
@@ -5274,7 +5725,7 @@ function drawQuestOverlay() {
   } else if (quest.state === 'done') {
     progressText = quest.wakeEpilogue ? quest.wakeEpilogue.name : '—';
   }
-  text(progressText, 630, 23);
+  text(progressText, qx + 10, qy + 27);
   textSize(10);
   textFont('sans-serif');
 }
@@ -5347,57 +5798,37 @@ function drawEpilogueScreen() {
 // --- Solar Meter ------------------------------------------------------------
 
 function drawSolarMeter() {
-  const mx = 12;
-  const my = 540;
-  const mw = 120;
-  const mh = 10;
-
+  // Compact JRPG field resource cue. Avoid paired telemetry bars and engineering units.
+  const x = 18;
+  const y = height - 34;
   noStroke();
-  fill(color(26, 16, 46, 200));
-  rect(mx, my, mw, mh, 3);
+  fill(color(8, 14, 24, 118));
+  rect(x - 6, y - 12, 104, 26, 6);
 
-  const fillW = (player.solarCharge / SOLAR_MAX_KWH) * (mw - 4);
-  noStroke();
-  fill(color(42, 255, 181, 180));
-  rect(mx + 2, my + 2, fillW, mh - 4, 2);
+  textAlign(LEFT, CENTER);
+  textFont('Segoe UI Semibold');
+  textSize(8);
+  fill(color(232, 220, 198, 180));
+  text('AETHER', x, y - 3);
 
-  if (player.solarCharge > 1.5) {
-    noStroke();
-    fill(color(42, 255, 181, 40));
-    rect(mx + 2, my + 2, fillW, mh - 4, 2);
+  const solarPips = 4;
+  const solarRatio = Math.max(0, Math.min(1, player.solarCharge / SOLAR_MAX_KWH));
+  for (let i = 0; i < solarPips; i++) {
+    fill(i < Math.ceil(solarRatio * solarPips)
+      ? color(42, 255, 181, 185)
+      : color(70, 87, 97, 100));
+    rect(x + 42 + i * 10, y - 7, 7, 4, 1);
   }
 
-  fill(color(232, 220, 198, 160));
-  noStroke();
-  textAlign(LEFT, BOTTOM);
-  textSize(8);
-  textFont('Segoe UI');
-  text('SOLAR ' + player.solarCharge.toFixed(2) + 'kWh', mx, my - 2);
-  textSize(10);
-  textFont('sans-serif');
-
-  // ── Fire bar (staff charges) ──
-  const fx = 12, fy = 556, fw = 120, fh = 10;
-  noStroke();
-  fill(color(26, 16, 46, 200));
-  rect(fx, fy, fw, fh, 3);
-  const chargeFill = (player.staffCharges / 2) * (fw - 4);
-  if (chargeFill > 0) {
-    noStroke();
-    fill(color(42, 255, 181, 180));
-    rect(fx + 2, fy + 2, chargeFill, fh - 4, 2);
-    if (player.staffCharges > 1) {
-      noStroke();
-      fill(color(42, 255, 181, 40));
-      rect(fx + 2, fy + 2, chargeFill, fh - 4, 2);
-    }
+  fill(color(232, 220, 198, 155));
+  text('STAFF', x, y + 7);
+  for (let i = 0; i < 2; i++) {
+    fill(i < player.staffCharges
+      ? color(124, 200, 232, 190)
+      : color(70, 87, 97, 100));
+    rect(x + 42 + i * 12, y + 5, 8, 4, 1);
   }
-  noStroke();
-  fill(color(232, 220, 198, 160));
-  textAlign(LEFT, BOTTOM);
-  textSize(8);
-  textFont('Segoe UI');
-  text('⚡ FIRE ' + player.staffCharges + '/2', fx, fy - 2);
+
   textSize(10);
   textFont('sans-serif');
 }
@@ -7008,17 +7439,30 @@ function AetherCombat(p, C) {
       rect(0, p.height * 0.55, p.width, p.height * 0.45);
     }
 
-    // ── Combat intro banner ──
-    if (state.enemy && state.turn <= 3) {
-      const bannerT = Math.min(1, state.turn / 3);
-      p.textFont('Segoe UI');
-      p.textSize(20 * bannerT);
-      p.textAlign(p.CENTER, p.CENTER);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 160 * bannerT);
-      p.text('⚔ COMBAT ⚔', p.width/2, 38);
-      p.textSize(12 * bannerT);
-      p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * bannerT);
-      p.text(state.enemy.name + ' approaches.', p.width/2, 58);
+    // ── JRPG encounter title rail ──
+    if (state.enemy && state.turn <= 1) {
+      const bannerT = Math.max(0.72, Math.min(1, (state.turn + 1) / 2));
+      const railW = Math.min(456, Math.round(p.width * 0.48));
+      const railX = Math.round((p.width - railW) / 2);
+      p.noStroke();
+      p.fill(5, 10, 20, 145 * bannerT);
+      p.rect(railX, 21, railW, 58, 8);
+      p.fill(C.teal[0], C.teal[1], C.teal[2], 34 * bannerT);
+      p.rect(railX + 8, 50, railW - 16, 1);
+      p.fill(C.rust[0], C.rust[1], C.rust[2], 165 * bannerT);
+      p.rect(railX + 14, 29, 44, 3);
+      p.fill(C.teal[0], C.teal[1], C.teal[2], 165 * bannerT);
+      p.rect(railX + railW - 58, 29, 44, 3);
+
+      p.textAlign(p.CENTER, p.TOP);
+      p.textFont('Segoe UI Semibold');
+      p.textSize(9);
+      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 185 * bannerT);
+      p.text('ENCOUNTER', p.width/2, 28);
+      p.textFont('Trebuchet MS');
+      p.textSize(18);
+      p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 235 * bannerT);
+      p.text(state.enemy.name.toUpperCase(), p.width/2, 46);
     }
 
     // ── Enemy ──
@@ -7043,10 +7487,7 @@ function AetherCombat(p, C) {
         rose: C.rose,
       };
       const eBodyColor = colorMap[eColor] || C.soil;
-
-      // Enemy HP/glow state remains local because downstream HUD/effects use it.
       const hpRatio = state.enemy.hp / state.enemy.maxHp;
-      const glowColor = hpRatio > 0.5 ? C.scioto : (hpRatio > 0.25 ? C.rust : C.teal);
 
       // Shared visual-stage enemy treatment. Mechanical state remains local.
       if (visualStage && typeof visualStage.drawEnemy === 'function') {
@@ -7063,40 +7504,8 @@ function AetherCombat(p, C) {
         p.rect(ex - 14, ey - 18, 28, 36);
       }
 
-      // ── HP bar ──
-      p.stroke(C.navy[0], C.navy[1], C.navy[2], 200);
-      p.strokeWeight(1);
-      p.noFill();
-      p.rect(ex - 32, ey - 32, 64, 5);
-      p.noStroke();
-      const hpFill = 60 * hpRatio;
-      if (hpFill > 0) {
-        p.fill(glowColor[0], glowColor[1], glowColor[2], 220);
-        p.rect(ex - 31, ey - 31, hpFill, 3);
-        // HP bar glow
-        p.fill(glowColor[0], glowColor[1], glowColor[2], 40);
-        p.rect(ex - 31, ey - 31, hpFill, 3);
-      }
-
-      // HP bar border ticks
-      p.stroke(C.teal[0], C.teal[1], C.teal[2], 80);
-      p.strokeWeight(1);
-      p.noFill();
-      for (let h = 0; h <= 4; h++) {
-        p.line(ex - 32 + h * 15, ey - 32, ex - 32 + h * 15, ey - 27);
-      }
-
-      // ── Enemy name ──
-      p.textFont('Press Start 2P');
-      p.textSize(9);
-      p.textAlign(p.CENTER, p.TOP);
-      p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 180);
-      p.text(state.enemy.name, ex, ey - 38);
-
-      // ── Turn counter ──
-      p.textSize(8);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 130);
-      p.text('TURN ' + state.turn, ex, ey + 22);
+      // Enemy identity and HP are already carried by the compact command window.
+      // Keep the battlefield sprite clean rather than attaching HUD labels/bars to it.
 
       // ── Enemy attack flash — bigger, brighter ──
       if (state._flashTurn && state._flashTurn > now - 300) {
@@ -7186,16 +7595,24 @@ function AetherCombat(p, C) {
       p.ellipse(combatPlayerX, combatPlayerY + dodgeBob, 50 * hitScale, 50 * hitScale);
     }
 
-    // ── Player ability flash — teal burst on ability use ──
+    // ── Player ability flash — pixel starburst, not a smooth debug bubble ──
     if (state._abilityFlashTurn && state._abilityFlashTurn > now - 300) {
       const aAge = now - state._abilityFlashTurn;
-      const aAlpha = map(aAge, 0, 300, 120, 0);
-      const aScale = map(aAge, 0, 300, 1, 2);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], aAlpha);
+      const aAlpha = map(aAge, 0, 300, 190, 0);
+      const aReach = Math.round(map(aAge, 0, 300, 18, 42));
+      const ax = combatPlayerX;
+      const ay = combatPlayerY + dodgeBob - 16;
       p.noStroke();
-      p.ellipse(combatPlayerX, combatPlayerY + dodgeBob, 35 * aScale, 35 * aScale);
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], aAlpha * 0.5);
-      p.ellipse(combatPlayerX, combatPlayerY + dodgeBob, 45 * aScale, 45 * aScale);
+      p.fill(C.teal[0], C.teal[1], C.teal[2], aAlpha);
+      p.rect(ax - 2, ay - aReach, 4, 10);
+      p.rect(ax - 2, ay + aReach - 10, 4, 10);
+      p.rect(ax - aReach, ay - 2, 10, 4);
+      p.rect(ax + aReach - 10, ay - 2, 10, 4);
+      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], aAlpha * 0.78);
+      p.rect(ax - Math.round(aReach * 0.68), ay - Math.round(aReach * 0.68), 7, 3);
+      p.rect(ax + Math.round(aReach * 0.68) - 7, ay - Math.round(aReach * 0.68), 7, 3);
+      p.rect(ax - Math.round(aReach * 0.68), ay + Math.round(aReach * 0.68), 7, 3);
+      p.rect(ax + Math.round(aReach * 0.68) - 7, ay + Math.round(aReach * 0.68), 7, 3);
     }
 
     // ── Wind knockback visual — screen shake effect ──
@@ -7215,66 +7632,50 @@ function AetherCombat(p, C) {
       p.noStroke();
     }
 
-    // ── Fire package (staff) ──
+    // ── Resonator staff cue — attached to Ender, never floating as a separate HUD prop ──
     if (state.player.staffCharges > 0) {
-      const fx = 72, fy = p.height * 0.62;
-
-      // Staff glow
+      const fx = combatPlayerX - 18;
+      const fy = combatPlayerY + dodgeBob - 2;
       const chargeGlow = Math.sin(now * 0.004) * 0.3 + 0.7;
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 25 * chargeGlow);
-      p.noStroke();
-      p.ellipse(fx, fy, 44, 44);
 
-      // Staff shaft
-      p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], 150);
-      p.strokeWeight(2.5);
-      p.line(fx, fy - 16, fx, fy - 40);
+      p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], 185);
+      p.strokeWeight(3);
+      p.line(fx, fy, fx + 8, fy - 42);
       p.noStroke();
 
-      // Staff tip glow
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 60 * chargeGlow);
-      p.noStroke();
-      p.ellipse(fx, fy - 40, 10, 10);
+      // Pixel charge crown at the staff tip.
+      const tipX = fx + 8;
+      const tipY = fy - 42;
+      p.fill(C.teal[0], C.teal[1], C.teal[2], 155 * chargeGlow);
+      p.rect(tipX - 3, tipY - 3, 6, 6);
+      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 120 * chargeGlow);
+      p.rect(tipX - 1, tipY - 10, 2, 5);
+      p.rect(tipX - 1, tipY + 5, 2, 5);
+      p.rect(tipX - 10, tipY - 1, 5, 2);
+      p.rect(tipX + 5, tipY - 1, 5, 2);
 
-      // Charge orb
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 180 * chargeGlow);
-      p.ellipse(fx, fy - 40, 8, 8);
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 120);
-      p.ellipse(fx, fy - 40, 13, 13);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 40);
-      p.ellipse(fx, fy - 40, 18, 18);
-
-      // Charge count
-      p.textFont('Press Start 2P');
-      p.textSize(8);
-      p.textAlign(p.CENTER, p.TOP);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 200);
-      p.text('\u26A1 ' + state.player.staffCharges + '/' + staffMax, fx, fy + 10);
     } else {
-      // Empty staff
-      const fx = 72, fy = p.height * 0.62;
-      p.stroke(C.soil[0], C.soil[1], C.soil[2], 110);
-      p.strokeWeight(2);
-      p.line(fx, fy - 16, fx, fy - 40);
+      // Empty staff remains physically attached to Ender; resource state is carried by the command window.
+      const fx = combatPlayerX - 18;
+      const fy = combatPlayerY + dodgeBob - 2;
+      p.stroke(C.soil[0], C.soil[1], C.soil[2], 125);
+      p.strokeWeight(3);
+      p.line(fx, fy, fx + 8, fy - 42);
       p.noStroke();
-      p.textFont('Press Start 2P');
-      p.textSize(8);
-      p.textAlign(p.CENTER, p.TOP);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 70);
-      p.text('EMPTY', fx, fy + 10);
     }
 
-    // ── Fire particles ──
+    // ── Staff aether motes — local to Ender rather than a detached HUD effect ──
     if (state.player.staffCharges > 0) {
       for (let i = 0; i < 5; i++) {
         const pi = (now * 0.02 + i * 7) % 5;
-        const fx = 72 + Math.sin(now * 0.015 + i * 2.1) * 8;
-        const fy = p.height * 0.58 - pi * 7;
-        const particleAlpha = Math.max(0, 60 - pi * 12 - Math.sin(now * 0.025 + i) * 15);
+        const fx = combatPlayerX - 10 + Math.sin(now * 0.015 + i * 2.1) * 8;
+        const fy = combatPlayerY + dodgeBob - 44 - pi * 7;
+        const particleAlpha = Math.max(0, 70 - pi * 12 - Math.sin(now * 0.025 + i) * 15);
         if (particleAlpha > 0) {
           p.fill(C.teal[0], C.teal[1], C.teal[2], particleAlpha);
           p.noStroke();
-          p.ellipse(fx, fy, 5 - pi * 0.7, 5 - pi * 0.7);
+          const mote = Math.max(2, Math.round(5 - pi * 0.7));
+          p.rect(Math.round(fx), Math.round(fy), mote, mote);
         }
       }
     }
@@ -7308,25 +7709,9 @@ function AetherCombat(p, C) {
       p.rect(px - 10, py - 20 + dodgeBob, 20, 20);
     }
 
-    // Player name
-    p.textFont('Press Start 2P');
-    p.textSize(8);
-    p.textAlign(p.CENTER, p.TOP);
-    p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 170);
-    p.text('ENDER', px, py - 58 + dodgeBob);
+    // Player identity and HP live in the command window; keep the field sprite unobstructed.
 
-    // Player Vit bar
-    const vitRatio = (combat && combat.getState) ? 
-      (combat.getState().player.vit / combat.getState().player.maxVit) : 1;
-    p.stroke(C.navy[0], C.navy[1], C.navy[2], 150);
-    p.strokeWeight(1);
-    p.noFill();
-    p.rect(px - 16, py - 42 + dodgeBob, 32, 3);
-    p.noStroke();
-    p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 180);
-    p.rect(px - 15, py - 41 + dodgeBob, 30 * Math.max(0, vitRatio), 1.5);
-
-    if (visualStage && typeof visualStage.drawTurnRail === 'function') {
+    if (visualStage && typeof visualStage.drawTurnRail === 'function' && state.turn > 1) {
       visualStage.drawTurnRail({
         width: p.width,
         height: p.height,
@@ -8624,61 +9009,52 @@ function drawCombatPanel(combatState, layoutBox) {
   if (!combatState) return;
   push();
   const uiVisual = window.AetherUIVisualSystem;
-  const fallback = { x: 24, y: 24, w: 184, h: 400 };
+  const fallback = { x: 24, y: height - 264, w: 232, h: 240 };
   const box = layoutBox || fallback;
   const px = box.x, py = box.y, pw = box.w, ph = box.h;
 
   // Panel background follows the shared translucent instrument-panel token.
   const panelColor = uiVisual && typeof uiVisual.panelRGBA === 'function'
     ? uiVisual.panelRGBA()
-    : [11, 16, 33, 214];
-  fill(...panelColor);
+    : [11, 16, 33, 190];
+  fill(panelColor[0], panelColor[1], panelColor[2], Math.min(panelColor[3] || 150, 150));
   noStroke();
-  rect(px, py, pw, ph, 8);
-  drawPixelBorder(px, py, pw, ph, 3, PAL.SHADOW, PAL.TEAL);
+  rect(px, py, pw, ph, 10);
+  // Softer glass edge replaces the heavy debug-frame read.
+  stroke(42, 255, 181, 42);
+  strokeWeight(1);
+  noFill();
+  rect(px + 1, py + 1, pw - 2, ph - 2, 10);
+  noStroke();
+  fill(42, 255, 181, 28);
+  rect(px + 8, py + 27, pw - 16, 1);
 
   // Header
   textFont(FONT_UI);
-  textSize(9);
-  drawGlowText('COMBAT', px + 12, py + 8, PAL.TEAL, 9);
+  textSize(8);
+  drawGlowText('COMMAND', px + 12, py + 8, PAL.TEAL, 8);
 
-  // Enemy section
-  if (combatState.enemy) {
-    const ey = py + 36;
-    drawPixelBorder(px + 8, ey, pw - 16, 44, 2, PAL.SHADOW, PAL.RUST);
-    textFont(FONT_UI);
-    textSize(8);
-    drawGlowText(combatState.enemy.name.toUpperCase(), px + 14, ey + 4, PAL.RUST, 8);
-    textFont(FONT_BODY);
-    textSize(11);
-    fill(PAL.PARCHMENT);
-    noStroke();
-    const eNameW = textWidth(combatState.enemy.name);
-    text('HP ' + combatState.enemy.hp + '/' + combatState.enemy.maxHp, px + pw - 64, ey + 6);
-    // HP bar
-    const hpRatio = combatState.enemy.hp / combatState.enemy.maxHp;
-    const barW = pw - 32;
-    noStroke();
-    fill(PAL.SHADOW);
-    rect(px + 14, ey + 24, barW, 5);
-    const hpCol = hpRatio > 0.5 ? PAL.SCIOTO : (hpRatio > 0.25 ? PAL.AMBER : PAL.RED);
-    fill(hpCol);
-    rect(px + 14, ey + 24, barW * hpRatio, 5);
-    // Weakness hint
-    textFont(FONT_UI);
-    textSize(7);
-    fill(PAL.DIM);
-    const weakness = String(combatState.enemy.weakness || 'unknown');
-    const weaknessShort = weakness.length > 18 ? weakness.substring(0, 17).trimEnd() + '..' : weakness;
-    text('WEAK: ' + weaknessShort, px + 14, ey + 32);
-  }
+  // Enemy identity/HP live in the centered encounter rail, leaving this window
+  // dedicated to the player's state and choices like a classic JRPG command box.
 
   // Player status section
-  const sY = py + 90;
-  drawPixelBorder(px + 8, sY, pw - 16, 76, 2, PAL.SHADOW, PAL.TEAL);
+  const sY = py + 30;
+  // Player state shares the same open instrument surface; no nested status card.
+  noStroke();
+  fill(42, 255, 181, 72);
+  rect(px + 12, sY + 1, pw - 24, 1);
   textFont(FONT_UI);
   textSize(8);
   drawGlowText('ENDER', px + 14, sY + 6, PAL.TEAL, 8);
+
+  // A compact authored portrait anchors battle identity without creating another
+  // nested status card or covering the field sprite. It fails safely when art is unavailable.
+  const authoredCombatArt = window.AetherAuthoredCharacterArt;
+  if (authoredCombatArt && typeof authoredCombatArt.drawPortrait === 'function') {
+    const vitRatio = combatState.player.maxVit > 0 ? combatState.player.vit / combatState.player.maxVit : 1;
+    const combatExpression = vitRatio <= 0.30 ? 'hurt' : 'focus';
+    authoredCombatArt.drawPortrait('ender', px + pw - 48, sY + 4, 34, { expression: combatExpression });
+  }
 
   // Player resources use a fixed compact grid; values never compete for the
   // same horizontal lane when the shared UI system narrows the panel.
@@ -8686,9 +9062,8 @@ function drawCombatPanel(combatState, layoutBox) {
   textSize(10);
   const col1 = px + 14;
   const col2 = px + Math.round(pw * 0.53);
-  const row1 = sY + 22;
-  const row2 = sY + 41;
-  const row3 = sY + 60;
+  const row1 = sY + 20;
+  const row2 = sY + 37;
   fill(PAL.RUST); text('HP', col1, row1);
   fill(PAL.PARCHMENT); text(combatState.player.vit + '/' + combatState.player.maxVit, col1 + 23, row1);
   fill(PAL.SCIOTO); text('AETHER', col2, row1);
@@ -8697,99 +9072,80 @@ function drawCombatPanel(combatState, layoutBox) {
   fill(PAL.PARCHMENT); text(combatState.player.echoes.current + '/' + combatState.player.echoes.max, col1 + 33, row2);
   fill(PAL.TEAL); text('STAFF', col2, row2);
   fill(PAL.PARCHMENT); text(combatState.player.staffCharges + '/' + combatState.player.maxStaffCharges, col2 + 38, row2);
-  fill(PAL.DUST); text('SCRAP', col1, row3);
-  fill(PAL.PARCHMENT); text(String(combatState.player.scrap), col1 + 38, row3);
 
   // Actions grid — eight stable number-key slots. Locked actions stay visible
   // so progression is legible without making key bindings move.
   const aX = px + 8;
-  const aY = sY + 86;
+  const aY = sY + 48;
   const aW = pw - 16;
-  const aH = 132;
-  drawPixelBorder(aX, aY, aW, aH, 2, PAL.SHADOW, PAL.TEAL);
+  const aH = 76;
+  // Actions remain grouped by spacing and typography rather than another opaque card.
+  noStroke();
+  fill(42, 255, 181, 58);
+  rect(aX + 4, aY, aW - 8, 1);
 
   textFont(FONT_UI);
   textSize(8);
-  drawGlowText('ACTIONS [1-8]', aX + 12, aY + 6, PAL.TEAL, 8);
+  drawGlowText('ACTIONS', aX + 12, aY + 6, PAL.TEAL, 8);
 
   const actions = combatState.actions || [];
   const eligibleActionIds = new Set(
     combatState.eligibleActionIds || actions.map(action => action.id)
   );
+  // Two-column 4-row command grid keeps all eight actions visible without a tall sidebar.
   const actH = 14;
-  const actStartY = aY + 20;
+  const actStartY = aY + 19;
+  const actionColW = Math.floor(aW / 2);
   actions.forEach((action, idx) => {
-    const ay = actStartY + idx * actH;
+    const actionCol = idx % 2;
+    const actionRow = Math.floor(idx / 2);
+    const ax = aX + actionCol * actionColW;
+    const ay = actStartY + actionRow * actH;
     const unlocked = eligibleActionIds.has(action.id);
     const useEligibility = combatState.actionUseEligibility
       ? combatState.actionUseEligibility[action.id]
       : null;
     const usable = unlocked && (!useEligibility || useEligibility.canUse);
-    // Number circle
     fill(usable ? PAL.TEAL : PAL.DIM);
     noStroke();
-    ellipse(aX + 12, ay + 6, 8, 8);
+    ellipse(ax + 8, ay + 6, 8, 8);
     fill(PAL.NAVY);
     textFont(FONT_UI);
     textSize(7);
     textAlign(CENTER, CENTER);
-    text(String(idx + 1), aX + 12, ay + 6);
-    // Action label
+    text(String(idx + 1), ax + 8, ay + 6);
     textFont(FONT_BODY);
-    textSize(9);
+    textSize(8);
     textAlign(LEFT, CENTER);
     const label = action.label || action.id;
     const compactLabel = label.split(/\s+[^A-Za-z0-9]+\s+/)[0].trim();
     fill(usable ? PAL.PARCHMENT : PAL.DIM);
     noStroke();
-    const statePrefix = !unlocked
-      ? 'LOCK ? '
-      : (useEligibility && useEligibility.reason === 'ssot_blocked'
-        ? 'N/A ? '
-        : (usable ? '' : 'NO RES ? '));
-    const maxLabelChars = statePrefix ? 13 : 17;
-    text(statePrefix + compactLabel.substring(0, maxLabelChars), aX + 23, ay);
-    // Cost indicator uses the exact same centralized legacy cost function as
-    // runtime admission/payment.
+    text(compactLabel.substring(0, 10), ax + 17, ay);
     const totalCost = window.AetherAbilityDefs.getActionResourceCost(action);
     if (unlocked && totalCost > 0) {
       textFont(FONT_UI);
       textSize(7);
       fill(usable ? PAL.AMBER : PAL.DIM);
-      text('COST ' + totalCost, aX + aW - 48, ay + 1);
+      text('◆' + totalCost, ax + actionColW - 20, ay + 1);
     }
-    // Icon
-    if (usable) drawActionIcon(aX + aW - 13, ay + 6, 11, action.id);
   });
 
-  // Enemy special ability hint
+  // Enemy trait remains a single quiet footer line inside the compact command window.
   if (combatState.enemy && combatState.enemy.abilityDesc) {
-    const abY = aY + aH + 10;
-    drawPixelBorder(px + 8, abY, pw - 16, 26, 1, PAL.SHADOW, PAL.RUST);
+    const abY = aY + aH + 3;
+    fill(PAL.RUST);
+    noStroke();
+    rect(px + 12, abY, pw - 24, 1);
     textFont(FONT_UI);
     textSize(7);
-    fill(PAL.RUST);
-    text('ENEMY ABILITY', px + 14, abY + 4);
+    textAlign(LEFT, TOP);
+    text('TRAIT', px + 14, abY + 4);
     textFont(FONT_BODY);
-    textSize(9);
+    textSize(8);
     fill(PAL.PARCHMENT);
-    const abText = combatState.enemy.abilityDesc;
-    const maxW = pw - 40;
-    const words = abText.split(' ');
-    let line = '';
-    let lines = [];
-    for (const w of words) {
-      if (textWidth(line + ' ' + w) > maxW && line) {
-        lines.push(line);
-        line = w;
-      } else {
-        line = line ? line + ' ' + w : w;
-      }
-    }
-    if (line) lines.push(line);
-    lines.forEach((l, i) => {
-      text(l, px + 14, abY + 13 + i * 9);
-    });
+    const abText = String(combatState.enemy.abilityDesc || '');
+    text(abText.substring(0, 30), px + 48, abY + 3);
   }
 
   pop();

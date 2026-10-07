@@ -5,7 +5,7 @@
   "runtimeFallback": "modules/character-renderer.js",
   "characters": {
     "ender": {
-      "status": "planned",
+      "status": "portrait-ready",
       "portraitAtlas": {
         "path": "assets/characters/v1/ender/portrait-atlas.png",
         "width": 768,
@@ -19,7 +19,9 @@
           "focus",
           "hurt",
           "smile"
-        ]
+        ],
+        "source": "Creator-selected canonical portrait candidate promoted to runtime portrait authority; field art remains unadmitted.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
       },
       "fieldStrips": {
         "idle": {
@@ -71,7 +73,8 @@
           "hurt",
           "smile"
         ],
-        "source": "Regenerated from the creator-supplied enderbest1.jpg reference at the user’s direction; this is the selected likeness and outfit, opt-in preview only."
+        "source": "Regenerated from the creator-supplied enderbest1.jpg reference at the userâ€™s direction; this is the selected likeness and outfit, opt-in preview only.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
       },
       "candidateFieldSprite": {
         "status": "candidate",
@@ -85,11 +88,23 @@
           "walk"
         ],
         "transparent": true,
-        "source": "Generated from the creator-selected enderbest1.jpg reference; opt-in field-art preview only."
+        "source": "Generated from the creator-selected enderbest1.jpg reference; opt-in field-art preview only.",
+        "likenessStatus": "SUPERSEDED_REGENERATE",
+        "promotionBlocked": true,
+        "supersededBy": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md"
+      },
+      "likenessAuthority": {
+        "status": "LOCKED_TO_APPROVED_ALIGNMENT_V1",
+        "document": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md",
+        "traits": {
+          "hair": "very short dark copper-brown / auburn",
+          "eyes": "bright green",
+          "signature": "green-lensed brass goggles; olive/tan field scholar"
+        }
       }
     },
     "lyra": {
-      "status": "planned",
+      "status": "portrait-ready",
       "portraitAtlas": {
         "path": "assets/characters/v1/lyra/portrait-atlas.png",
         "width": 768,
@@ -103,7 +118,9 @@
           "focus",
           "hurt",
           "smile"
-        ]
+        ],
+        "source": "Creator-selected canonical portrait candidate promoted to runtime portrait authority; field art remains unadmitted.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
       },
       "fieldStrips": {
         "idle": {
@@ -155,7 +172,8 @@
           "hurt",
           "smile"
         ],
-        "source": "Generated from the previously selected Lyra portrait concept and the creator-supplied Aetherwake character compendium; opt-in only, not admitted."
+        "source": "Generated from the previously selected Lyra portrait concept and the creator-supplied Aetherwake character compendium; opt-in only, not admitted.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
       },
       "candidateFieldSprite": {
         "status": "candidate",
@@ -169,7 +187,19 @@
           "walk"
         ],
         "transparent": true,
-        "source": "Generated in Canva from the Aetherwake Skybound Character Compendium; opt-in field-art preview only."
+        "source": "Generated in Canva from the Aetherwake Skybound Character Compendium; opt-in field-art preview only.",
+        "likenessStatus": "SUPERSEDED_REGENERATE",
+        "promotionBlocked": true,
+        "supersededBy": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md"
+      },
+      "likenessAuthority": {
+        "status": "LOCKED_TO_APPROVED_ALIGNMENT_V1",
+        "document": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md",
+        "traits": {
+          "hair": "long natural red / copper-red",
+          "eyes": "green",
+          "signature": "adult receiver/support; blue-toned fitted layers over light blouse"
+        }
       }
     },
     "ionia": {
@@ -196,7 +226,8 @@
           "hurt": "MAHWREojHyY",
           "smile": "MAHWRAaBaus"
         },
-        "source": "Canva generated candidates reviewed against canonical Drive/Notion authority; local atlas derived from 200px authoring previews for 88px dialogue display."
+        "source": "Canva generated candidates reviewed against canonical Drive/Notion authority; local atlas derived from 200px authoring previews for 88px dialogue display.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
       },
       "fieldStrips": {
         "idle": {
@@ -244,7 +275,19 @@
           "walk"
         ],
         "transparent": true,
-        "source": "Generated in Canva from the Aetherwake Skybound Character Compendium; opt-in field-art preview only."
+        "source": "Generated in Canva from the Aetherwake Skybound Character Compendium; opt-in field-art preview only.",
+        "likenessStatus": "SUPERSEDED_REGENERATE",
+        "promotionBlocked": true,
+        "supersededBy": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md"
+      },
+      "likenessAuthority": {
+        "status": "LOCKED_TO_APPROVED_ALIGNMENT_V1",
+        "document": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md",
+        "traits": {
+          "hair": "shoulder-length curly blonde",
+          "eyes": "green",
+          "signature": "young captain/explorer; cream blouse; brown leather harness"
+        }
       }
     },
     "reson": {
@@ -262,7 +305,9 @@
           "focus",
           "hurt",
           "smile"
-        ]
+        ],
+        "source": "Creator-selected canonical portrait retained as review material; runtime portrait authority remains NOT AUTHORIZED in Visual V46.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
       },
       "fieldStrips": {
         "idle": {
@@ -314,7 +359,8 @@
           "hurt",
           "smile"
         ],
-        "source": "Generated from creator-supplied Reson reference; explicit opt-in preview only, not admitted."
+        "source": "Generated from creator-supplied Reson reference; explicit opt-in preview only, not admitted.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
       },
       "candidateFieldSprite": {
         "status": "candidate",
@@ -328,7 +374,19 @@
           "walk"
         ],
         "transparent": true,
-        "source": "Generated from the creator-selected Reson character reference; opt-in field-art preview only."
+        "source": "Generated from the creator-selected Reson character reference; opt-in field-art preview only.",
+        "likenessStatus": "SUPERSEDED_REGENERATE",
+        "promotionBlocked": true,
+        "supersededBy": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md"
+      },
+      "likenessAuthority": {
+        "status": "LOCKED_TO_APPROVED_ALIGNMENT_V1",
+        "document": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md",
+        "traits": {
+          "hair": "dark brown under backward red cap",
+          "facialHair": "distinct mustache",
+          "signature": "muscular tactical build; red scarf; dark leather harness"
+        }
       }
     },
     "aepex": {
@@ -346,7 +404,9 @@
           "focus",
           "hurt",
           "smile"
-        ]
+        ],
+        "source": "Creator-selected canonical portrait retained as review material; runtime portrait authority remains NOT AUTHORIZED in Visual V46.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
       },
       "fieldStrips": {
         "idle": {
@@ -398,7 +458,8 @@
           "hurt",
           "smile"
         ],
-        "source": "Generated from creator-supplied Aepex reference; opt-in preview candidate, not admitted."
+        "source": "Generated from creator-supplied Aepex reference; opt-in preview candidate, not admitted.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
       },
       "candidateFieldSprite": {
         "status": "candidate",
@@ -412,8 +473,25 @@
           "walk"
         ],
         "transparent": true,
-        "source": "Generated from the creator-selected Aepex character reference; opt-in field-art preview only."
+        "source": "Generated from the creator-selected Aepex character reference; opt-in field-art preview only.",
+        "likenessStatus": "SUPERSEDED_REGENERATE",
+        "promotionBlocked": true,
+        "supersededBy": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md"
+      },
+      "likenessAuthority": {
+        "status": "LOCKED_TO_APPROVED_ALIGNMENT_V1",
+        "document": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md",
+        "traits": {
+          "hair": "dirty/sandy-blond asymmetric undercut",
+          "signature": "technical/geometric tattoos; dark techwear; brass engineering hardware"
+        }
       }
     }
+  },
+  "likenessAuthority": {
+    "status": "CREATOR_APPROVED_V1",
+    "document": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md",
+    "referenceFilename": "wide_detailed_concept_art_and_game_ui_collage_pos.png",
+    "referenceSha256": "e973be82a026e0d2df441471fa5dd0fd5214265152757bec07d9c493563b93de"
   }
 }

@@ -15,7 +15,7 @@
 })(typeof window!=='undefined'?window:(typeof globalThis!=='undefined'?globalThis:null),function(){
   'use strict';
 
-  const VERSION='0.1.0';
+  const VERSION='0.4.0';
   const SOURCE='Notion canonical character dossiers';
 
   function freeze(value){
@@ -36,13 +36,25 @@
         build:'slender-to-average; explicitly not especially brawny',
         disposition:['anxious','idealistic','intellectually oriented'],
         wakeStatus:'relatively new aboard the Aureate Wake',
+        equipmentAuthority:{
+          mainWeapon:'staff',
+          secondaryWeapon:'OPEN',
+          magicRequiresWeapon:false,
+        },
       },
       art:{
         silhouette:'compact scholar-traveler rather than generic battle mage',
+        appearance:{
+          hair:'very short dark copper-brown / auburn buzz cut',
+          eyes:'bright green',
+          face:'lean youthful adult face with light freckles',
+          goggles:'worn brass/bronze goggles with green lenses across the forehead',
+          costumeLanguage:'creator-approved natural-tone field-scholar treatment; olive/green and tan/cream practical layers',
+        },
         motifs:['study','spatial/aetheric pattern work','practical shipboard life','resonator-staff or scholarly instrumentation'],
-        avoid:['bodybuilder proportions','generic wizard robes','generic battle-mage presentation'],
+        avoid:['bodybuilder proportions','generic wizard robes','generic battle-mage presentation','dark medium-length/tousled hair','hazel/light-brown eye substitution'],
       },
-      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS,
+      openVisualDecisions:['ethnicity','exactCostume','secondaryWeapon'],
     },
     lyra:{
       id:'lyra',name:'Lyra',age:24,nativeJob:null,
@@ -50,13 +62,23 @@
         role:'frequency/dream-sensitive receiver',
         training:'comparatively untrained; perceives before she can necessarily formalize',
         family:'single mother of Talen, age 5',
+        equipmentAuthority:{
+          mainWeapon:'chakram',
+          secondaryWeapon:'OPEN',
+          magicRequiresWeapon:false,
+        },
       },
       art:{
         silhouette:'adult, grounded, perceptive receiver',
+        appearance:{
+          hair:'long natural red / copper-red hair',
+          eyes:'green',
+          costumeLanguage:'creator-approved blue-toned fitted vest/dress layers over a light blouse; warm practical solarpunk detailing',
+        },
         motifs:['listening','resonance','dreams','subtle frequency phenomena'],
-        avoid:['childlike presentation','green nature mage','forest priestess'],
+        avoid:['childlike presentation','green nature mage','forest priestess','blonde hair substitution','Ionia-style captain-blue visual identity'],
       },
-      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['finalClass']),
+      openVisualDecisions:['ethnicity','exactCostume','finalClass','secondaryWeapon'],
     },
     ionia:{
       id:'ionia',name:'Ionia',age:28,nativeJob:null,
@@ -66,13 +88,23 @@
         experience:'served Captain Denith for 10 years',
         expertise:['navigation','sky-lanes','Core knowledge'],
         spellcastingIdentity:'not established',
+        equipmentAuthority:{
+          mainWeapon:'mace',
+          secondaryWeapon:'OPEN',
+          magicRequiresWeapon:false,
+        },
       },
       art:{
         silhouette:'experienced young-adult captain/navigator with command posture',
+        appearance:{
+          hair:'shoulder-length curly blonde hair',
+          eyes:'green',
+          costumeLanguage:'creator-approved practical captain/explorer look with cream/light blouse, brown leather harness/utility layers, and restrained brass hardware',
+        },
         motifs:['sky-navigation gear','weathered expedition clothing','Wake-specific instruments'],
-        avoid:['elderly presentation','farmer archetype','invented spellcaster identity'],
+        avoid:['elderly presentation','farmer archetype','invented spellcaster identity','blue or lavender hair substitution','Lyra-style red hair substitution'],
       },
-      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['weapon','finalClass']),
+      openVisualDecisions:['ethnicity','exactCostume','secondaryWeapon','finalClass'],
     },
     reson:{
       id:'reson',name:'Reson',age:25,nativeJob:null,
@@ -82,13 +114,25 @@
         durability:'very high',
         temperament:['gruff','heart of gold','wise beyond his years','still recognizably young'],
         weapons:['combat-rifle-type firearm','pike','sword'],
+        equipmentAuthority:{
+          mainWeapon:'sword',
+          secondaryWeapon:'assault-style rifle',
+          magicRequiresWeapon:false,
+          note:'pike remains historical/weapon-vocabulary canon but is not selected as the starting main or secondary weapon',
+        },
       },
       art:{
         silhouette:'broadest and heaviest-built protagonist; visibly martial',
+        appearance:{
+          hair:'dark brown, short-to-medium, worn under/around a backward red cap',
+          facialHair:'distinct dark mustache',
+          build:'powerful muscular young-adult build',
+          costumeLanguage:'cream work shirt, red scarf, dark brown leather tactical harness and utility rigging',
+        },
         motifs:['disciplined equipment','rifle','pike/sword vocabulary','former-service practicality'],
-        avoid:['frail build','magic-first silhouette','invented faction insignia'],
+        avoid:['frail build','magic-first silhouette','invented faction insignia','clean-shaven generic swordsman','slender elegant duelist presentation'],
       },
-      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['singleSignatureWeapon','exactFormerServiceInsignia']),
+      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['exactFormerServiceInsignia']),
     },
     aepex:{
       id:'aepex',name:'Aepex',age:27,nativeJob:null,
@@ -97,13 +141,24 @@
         temperament:['brainy','confident','chill','cool under pressure'],
         education:'formally educated plus self-taught curiosity',
         interests:['computers','technology','mechanics','invention'],
+        equipmentAuthority:{
+          mainWeapon:'martial arts',
+          secondaryWeapon:'OPEN',
+          magicRequiresWeapon:false,
+        },
       },
       art:{
         silhouette:'relaxed systems specialist / field engineer',
+        appearance:{
+          hair:'dirty-blond / sandy-blond asymmetric undercut with longer swept top',
+          build:'lean athletic adult build',
+          markings:'visible technical/geometric tattoos on arms and neck',
+          costumeLanguage:'dark charcoal/black layered techwear with leather harnesses, brass hardware, goggles/tools, and compact engineering modules',
+        },
         motifs:['solarpunk engineering','diagnostics','computation/interfaces','tools','configurable gizmos','brass/rootwood/aether-tech materials'],
-        avoid:['generic wizard imagery','magic-staff default','pure mechanic-without-computation presentation'],
+        avoid:['generic wizard imagery','magic-staff default','pure mechanic-without-computation presentation','white-haired anime mechanic substitution','clean unmarked formal engineer'],
       },
-      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['weaponOrToolLoadout','finalClass']),
+      openVisualDecisions:SHARED_OPEN_VISUAL_DECISIONS.concat(['secondaryWeapon','finalClass']),
     },
   });
 

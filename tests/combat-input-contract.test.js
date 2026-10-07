@@ -31,10 +31,12 @@ assert(combatSource.includes("if (actionText) log('[Turn ' + state.turn + '] ' +
 assert(!combatSource.includes("if (text) log('[Turn ' + state.turn + '] ' + text);"),
   'legacy p5 text-symbol logging bug remains');
 
-assert(source.includes("drawGlowText('ACTIONS [1-8]'"),
-  'combat action panel still advertises the wrong key range');
-assert(source.includes('const aH = 154;'),
-  'combat action panel is not sized for eight stable slots');
+assert(source.includes("drawGlowText('ACTIONS'"),
+  'combat action panel heading is missing');
+assert(source.includes('text(String(idx + 1), ax + 8, ay + 6);'),
+  'combat action panel must keep stable numbered action slots');
+assert(source.includes('const aH = 76;'),
+  'combat action panel must retain the compact V46 command-window height');
 assert(!combatSource.includes("const resourceCost = (action.tier || 0) + action.cost;"),
   'resolveTurn still duplicates the action resource-cost formula');
 assert(source.includes('window.AetherAbilityDefs.getActionResourceCost(action)'),

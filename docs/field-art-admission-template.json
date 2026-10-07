@@ -1,0 +1,60 @@
+{
+  "schema": "AETHERWAKE_FIELD_ART_ADMISSION_V1",
+  "characterId": "REPLACE_WITH_CHARACTER_ID",
+  "likenessReview": {
+    "status": "PENDING",
+    "authorityStatus": "",
+    "characterAuthorityStatus": "",
+    "authorityDocument": "",
+    "authorityDocumentSha256": "",
+    "approvedReferenceSha256": ""
+  },
+  "silhouetteRecognition": {
+    "status": "PENDING",
+    "participants": [
+      {
+        "id": "S1",
+        "independentOfImplementation": null,
+        "correct": null
+      },
+      {
+        "id": "S2",
+        "independentOfImplementation": null,
+        "correct": null
+      },
+      {
+        "id": "S3",
+        "independentOfImplementation": null,
+        "correct": null
+      },
+      {
+        "id": "S4",
+        "independentOfImplementation": null,
+        "correct": null
+      },
+      {
+        "id": "S5",
+        "independentOfImplementation": null,
+        "correct": null
+      }
+    ]
+  },
+  "runtimeReview": {
+    "status": "PENDING",
+    "exactHead": "",
+    "visualSuite": "PENDING",
+    "browserRouteReplay": "PENDING",
+    "exactHeadEvidenceCapture": "PENDING",
+    "visualPerformance": "PENDING",
+    "beforeAfterCohesion": "PENDING",
+    "evidenceManifestSha256": ""
+  },
+  "notes": [],
+  "assetSha256": {
+    "idle": "",
+    "walk": "",
+    "talk": "",
+    "focus": "",
+    "attack": ""
+  }
+}

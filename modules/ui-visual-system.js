@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.5.0';
+  const VERSION = '0.8.0';
   const TOKENS = Object.freeze({
     gridPx: 8,
     safeMarginPx: 24,
@@ -26,12 +26,13 @@
 
   function layoutCombat(w, h, hasLog) {
     const safe = TOKENS.safeMarginPx;
-    const leftWidth = snap(Math.min(184, Math.max(176, w * 0.185)));
-    const leftHeight = snap(Math.min(h - safe * 2, 400));
+    // Combat uses a compact lower-left JRPG command window rather than a full-height sidebar.
+    const leftWidth = snap(Math.min(240, Math.max(224, w * 0.24)));
+    const leftHeight = snap(Math.min(h - safe * 2, 200));
     const logWidth = snap(Math.min(184, Math.max(160, w * 0.175)));
     const logHeight = snap(Math.min(184, Math.max(136, h * 0.22)));
     return Object.freeze({
-      statusPanel: Object.freeze({ x: safe, y: safe, w: leftWidth, h: leftHeight }),
+      statusPanel: Object.freeze({ x: safe, y: h - safe - leftHeight, w: leftWidth, h: leftHeight }),
       logPanel: hasLog ? Object.freeze({ x: w - safe - logWidth, y: safe + 72, w: logWidth, h: logHeight }) : null,
       centerReserve: Object.freeze({
         x: safe + leftWidth + 16,
@@ -45,7 +46,7 @@
   function layoutDialogue(w, h) {
     const safe = TOKENS.safeMarginPx;
     const panelW = Math.min(820, w - safe * 2);
-    const panelH = 128;
+    const panelH = 152;
     return Object.freeze({ x: Math.round((w - panelW) / 2), y: h - safe - panelH, w: panelW, h: panelH });
   }
 

@@ -19,7 +19,7 @@ assert(runtime.includes('keysPressed[13] || keysPressed[32]'),
   'WAKE transition must accept Enter/Space');
 assert(runtime.includes("typeof world.advanceQuest === 'function'"),
   'WAKE transition must route through quest authority');
-assert(runtime.includes('  advanceQuest,\n  getQuestState,'),
+assert(runtime.includes('getQuestState, advanceQuest, selectChoicePath, getLedger'),
   'world public API must expose advanceQuest for deterministic WAKE progression');
 assert(runtime.includes('if (quest.state === QUEST_STATES.WAKE)'),
   'quest overlay must render WAKE transition before standard HUD');

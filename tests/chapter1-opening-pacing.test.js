@@ -19,8 +19,10 @@ assert(runtime.includes('PREAMBLE_PAGE_MIN_MS'),
   'opening story pages must retain an anti-double-tap minimum dwell');
 assert(runtime.includes('if (preamblePage < PREAMBLE_PAGES.length - 1)'),
   'boot input must advance one story page before handing off to title');
-assert(runtime.includes('[ press any key for next ]') && runtime.includes('[ press any key for title ]'),
-  'preamble must expose explicit page and final-title advance prompts');
+assert(runtime.includes("? 'CONTINUE' : 'TO TITLE'"),
+  'preamble must expose understated JRPG page and final-title advance cues');
+assert(!runtime.includes('[ press any key for next ]') && !runtime.includes("text((preamblePage + 1) + ' / ' + PREAMBLE_PAGES.length"),
+  'preamble must not expose bracketed instructions or page counters');
 assert(!runtime.includes('PREAMBLE_DURATION'),
   'story-bearing preamble must not depend on autonomous duration/scroll progression');
 assert(runtime.includes('if (gameState === STATE.BOOT)'),

@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'flight-visual-stage.js' });
 const api = sandbox.window.AetherFlightVisual;
 
 assert(api, 'flight visual API missing');
-assert.strictEqual(api.VERSION, '0.5.0');
+assert.strictEqual(api.VERSION, '0.6.2');
 for (const fn of ['altitudeProfile','weatherPalette','drawBackdrop','drawDragonfly','drawForeground','drawRouteOverlay','drawLandmarkBeacons']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -30,8 +30,23 @@ assert(source.includes('paintedBackdrop'),
 assert(source.includes('function drawFarLandmarks'), 'flight stage must retain dimensional far-landmark staging');
 assert(source.includes('function drawForeground'), 'flight stage must retain a near-camera occlusion pass');
 assert(source.includes('Speed streaks live in the foreground'), 'flight stage must retain speed-responsive foreground motion');
-assert(source.includes('controlsHint'), 'flight stage must use the shared compact controls-hint layout');
-assert(source.includes('progressW = 148'), 'flight route progress must use the compact progress treatment');
+assert(source.includes('controlsHint'), 'flight stage must retain the shared controls-hint layout hook');
+assert(source.includes('progressW = statusW - 20') && source.includes('Keeping the center-top clear'),
+  'flight route progress must stay inside the compact navigation plaque and leave center-top clear');
+assert(source.includes("text('Q / E  altitude     D  dock'"),
+  'flight controls must stay minimal and subordinate to the world');
+assert(source.includes("'R  engage lane'") && source.includes("'R  release lane'"),
+  'Rootline lane control must explain both the available action and the active release action');
+assert(source.includes("'F  chart upper trace'"),
+  'in-range Rootline evidence must expose a direct chart action');
+assert(source.includes('const contextualHintH = 20') &&
+       source.includes('textSize(10)') &&
+       source.includes('rect(contextualHintX, contextualHintY, contextualHintW, contextualHintH, 6)'),
+  'contextual route action must have a dedicated high-salience pill instead of bare 8px text');
+assert(!source.includes("text('OPEN-SKY FLIGHT'") && !source.includes("'  ?  SPD '") && !source.includes("'  ?  P '"),
+  'flight HUD must not expose dashboard/debug-style labels or raw telemetry');
+assert(source.includes('scale: 1.22'),
+  'flight Dragonfly must respect the reduced hero-object width budget');
 
 const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');

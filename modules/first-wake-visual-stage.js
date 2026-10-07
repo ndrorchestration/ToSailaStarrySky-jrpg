@@ -8,11 +8,15 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.7.0';
+  const VERSION = '1.2.0';
   const OPENING_WORLD_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
+  const OPENING_INTERIOR_PATH = 'assets/preview/aetherwake-preview-interior-pixelart-v1.png';
   let openingWorld = null;
   let openingWorldRequested = false;
   let openingWorldReady = false;
+  let openingInterior = null;
+  let openingInteriorRequested = false;
+  let openingInteriorReady = false;
 
   function bandedSky(top, mid, low) {
     noStroke();
@@ -155,6 +159,79 @@
     return true;
   }
 
+  function drawDockSkyportArchitecture(now, paintedBackdrop) {
+    noStroke();
+    // Finished painted plates already carry architecture. Do not reconstruct a
+    // second canopy/building layer over them; retain only wind and light cues.
+    if (!paintedBackdrop) {
+      fill(45, 58, 60, 220); rect(108, 337, 8, 78); rect(266, 324, 7, 92);
+      fill(91, 76, 57, 205); rect(105, 337, 171, 7);
+      fill(64, 132, 126, 205); quad(116, 344, 265, 331, 250, 360, 124, 366);
+      fill(201, 150, 78, 190); quad(124, 365, 250, 359, 248, 364, 125, 370);
+    }
+
+    // Small repair pennants establish wind and inhabited scale without hiding the vista.
+    const flutter = Math.sin(now * 0.003) * 5;
+    const clothAlpha = paintedBackdrop ? 145 : 210;
+    fill(190, 103, 82, clothAlpha);
+    triangle(286, 326, 306, 328, 299, 340 + flutter * 0.45);
+    fill(231, 188, 108, clothAlpha);
+    triangle(309, 329, 327, 331, 320, 342 - flutter * 0.35);
+
+    // One slender signal mast is enough to bind runtime motion to the painted dock.
+    fill(46, 58, 60, paintedBackdrop ? 155 : 230); rect(360, 302, 4, 77);
+    fill(190, 148, 78, paintedBackdrop ? 150 : 230); rect(356, 312, 12, 3);
+    fill(42, 255, 181, paintedBackdrop ? 115 : 150); rect(360, 300, 5, 5, 2);
+    fill(42, 255, 181, paintedBackdrop ? 14 : 22); ellipse(362, 302, 26, 26);
+  }
+
+  function drawDockLivingDetails(now, paintedBackdrop) {
+    noStroke();
+    // On authored plates, keep added solarpunk detail at prop scale instead of
+    // painting large blocky planters over finished scenery.
+    const environment = root.AetherEnvironmentVisualKit;
+    const planters = paintedBackdrop
+      ? [[116, 462, 0.72], [258, 447, 0.62], [838, 451, 0.66]]
+      : [[135, 470, 1.18], [278, 455, 1.05], [824, 462, 1.12]];
+    if (environment && typeof environment.drawPlanter === 'function') {
+      for (const [x, y, s] of planters) environment.drawPlanter(x, y, s, now);
+    }
+
+    // Warm practicals remain narrow vertical accents so they read as dock
+    // lighting rather than UI bars or rectangular foreground blockers.
+    const lamps = paintedBackdrop ? [[76, 399], [866, 393]] : [[74,392],[366,405],[874,385]];
+    for (const [x,y] of lamps) {
+      fill(45, 54, 56, paintedBackdrop ? 155 : 235); rect(x, y, 4, 66);
+      fill(190, 148, 78, paintedBackdrop ? 155 : 220); rect(x - 3, y + 4, 10, 6, 2);
+      fill(255, 214, 143, paintedBackdrop ? 16 : 26); ellipse(x + 2, y + 7, 34, 30);
+    }
+  }
+
+  function drawHorizonEstablishing(scene, state, now) {
+    const painted = drawPaintedDockBackdrop(scene, now);
+    if (!painted) {
+      bandedSky([38, 58, 91], [105, 146, 178], [238, 188, 126]);
+      cloudBands(now * 0.72, 360, [235, 239, 232], 52);
+      drawDistantIsland(210, 238, 138, 62, now, false);
+      drawDistantIsland(724, 194, 196, 84, now * 0.84, true);
+    }
+
+    // Slow cinematic atmosphere only: no dock rails, prompts, characters, or debug geometry.
+    noStroke();
+    const ticks = state && Number.isFinite(state.sceneTicks) ? state.sceneTicks : 0;
+    const fade = Math.max(0, 1 - ticks / 34);
+    fill(3, 7, 14, Math.round(220 * fade));
+    rect(0, 0, width, height);
+
+    // Feathered lower haze gives the shot depth without turning into HUD chrome.
+    fill(226, 236, 239, 24);
+    rect(0, Math.round(height * 0.78), width, Math.round(height * 0.22));
+    fill(6, 12, 20, 28);
+    rect(0, 0, width, 26);
+    rect(0, height - 26, width, 26);
+    return true;
+  }
+
   function drawDock(scene, state, now) {
     const cinematicRatio = scene.cinematic && Number.isFinite(scene.minimumTicks) && scene.minimumTicks > 0
       ? Math.max(0, Math.min(1, (state.sceneTicks || 0) / scene.minimumTicks))
@@ -184,45 +261,64 @@
       drawDistantIsland(833, 254, 78, 38, now * 0.72, false);
     }
 
-    // Vertical dock pylons and gantry.
-    fill(18, 25, 34);
-    rect(44, 270, 18, 180);
-    rect(width - 70, 246, 20, 204);
-    rect(44, 272, width - 94, 12);
-    fill(82, 98, 105, 90);
-    rect(51, 280, 3, 158);
-    rect(width - 62, 257, 3, 180);
+    drawDockSkyportArchitecture(now, paintedBackdrop);
 
-    // Perspective deck: continuous trapezoid planes instead of horizontal bands.
-    for (let i = 0; i < 10; i++) {
-      const y0 = 314 + i * 29;
-      const y1 = y0 + 31;
-      const t0 = i / 10;
-      const t1 = (i + 1) / 10;
-      const inset0 = 150 * (1 - t0);
-      const inset1 = 150 * (1 - t1);
-      fill(38 + i * 2, 47 + i * 2, 52 + i * 2);
-      quad(inset0, y0, width - inset0, y0, width - inset1, y1, inset1, y1);
-      stroke(116, 126, 124, 48);
-      strokeWeight(1);
-      line(inset1, y1, width - inset1, y1);
-      noStroke();
+    // Slender dock gantry: enough foreground structure for depth without boxing in the vista.
+    fill(45, 54, 56, paintedBackdrop ? 168 : 225);
+    rect(52, 332, 8, 118);
+    rect(width - 64, 316, 8, 134);
+    rect(52, 332, width - 108, 6);
+    fill(191, 144, 76, paintedBackdrop ? 110 : 165);
+    rect(56, 337, 2, 102);
+    rect(width - 61, 322, 2, 116);
+    fill(42, 255, 181, paintedBackdrop ? 22 : 38);
+    rect(60, 339, width - 120, 2);
+
+    // Only procedural fallback gets a full deck reconstruction. On the authored
+    // painted skyport, broad translucent quads read like a prototype board laid
+    // over finished art, so preserve the plate and add only traversal accents.
+    if (!paintedBackdrop) {
+      for (let i = 0; i < 8; i++) {
+        const y0 = 382 + i * 32;
+        const y1 = y0 + 34;
+        const t0 = i / 8;
+        const t1 = (i + 1) / 8;
+        const inset0 = 108 * (1 - t0);
+        const inset1 = 108 * (1 - t1);
+        fill(42 + i * 2, 50 + i * 2, 53 + i * 2, 245);
+        quad(inset0, y0, width - inset0, y0, width - inset1, y1, inset1, y1);
+        stroke(126, 137, 132, 52);
+        strokeWeight(1);
+        line(inset1, y1, width - inset1, y1);
+        noStroke();
+      }
     }
 
-    // Perspective seams and rails pull the eye toward the ship.
-    stroke(111, 125, 127, 85);
+    // A narrow reclaimed-timber lane anchors traversal without covering the painted dock.
+    noStroke();
+    fill(104, 80, 56, paintedBackdrop ? 52 : 165);
+    quad(width / 2 - 64, 390, width / 2 + 64, 390, width / 2 + 238, height, width / 2 - 238, height);
+    fill(191, 144, 76, paintedBackdrop ? 54 : 105);
+    quad(width / 2 - 57, 392, width / 2 - 53, 392, width / 2 - 196, height, width / 2 - 203, height);
+    quad(width / 2 + 53, 392, width / 2 + 57, 392, width / 2 + 203, height, width / 2 + 196, height);
+
+    // Perspective cues pull the eye toward the ship, but stay sparse on painted art.
+    stroke(111, 125, 127, paintedBackdrop ? 26 : 85);
     strokeWeight(1);
-    line(width / 2, 330, width / 2, height);
-    line(width / 2 - 105, 330, 145, height);
-    line(width / 2 + 105, 330, width - 145, height);
-    line(115, 348, 45, 570);
-    line(width - 115, 348, width - 45, 570);
-    // Reclaimed-brass service seams break the apron into intentional modules.
-    stroke(183, 132, 64, 82);
+    line(width / 2 - 92, 390, 145, height);
+    line(width / 2 + 92, 390, width - 145, height);
+    if (!paintedBackdrop) {
+      line(width / 2, 390, width / 2, height);
+      line(115, 401, 45, 570);
+      line(width - 115, 401, width - 45, 570);
+    }
+    stroke(183, 132, 64, paintedBackdrop ? 34 : 82);
     strokeWeight(2);
     line(172, 454, width - 132, 437);
-    line(118, 516, width - 82, 505);
+    if (!paintedBackdrop) line(118, 516, width - 82, 505);
     noStroke();
+
+    drawDockLivingDetails(now, paintedBackdrop);
 
     // Reuse the shared dock prop language so the opening and playable dock feel
     // like the same working place rather than two unrelated presentation sets.
@@ -260,7 +356,7 @@
         now,
         speed: 0,
         heading: 0,
-        scale: scene.sequence <= 1 ? 1.55 + settle * 0.55 : 1.95,
+        scale: scene.sequence <= 1 ? 1.38 + settle * 0.34 : 1.62,
       });
     }
 
@@ -284,18 +380,48 @@
       const ioniaY = cinematic ? Math.round(493 - settle * 14) : 416;
       const moving = scene.id === 'dock_walk' && progress < 0.98;
 
+      const authored = root.AetherAuthoredCharacterArt;
+      const enderAction = moving ? 'walk' : (cinematic ? 'focus' : 'idle');
+      const ioniaAction = cinematic || scene.id === 'ionia_practical' ? 'talk' : 'idle';
+      const enderFrame = Math.floor(now / (moving ? 100 : 160));
+      const ioniaFrame = Math.floor(now / 170);
+      let enderAuthored = authored && typeof authored.drawFieldCharacter === 'function'
+        ? authored.drawFieldCharacter('ender', enderX, enderY, {
+            anchor: 'bottom-center', scale: cinematic ? 0.82 : 0.70,
+            action: enderAction, frame: enderFrame,
+          })
+        : false;
+      let ioniaAuthored = authored && typeof authored.drawFieldCharacter === 'function'
+        ? authored.drawFieldCharacter('ionia', ioniaX, ioniaY, {
+            anchor: 'bottom-center', scale: cinematic ? 0.78 : 0.66,
+            action: ioniaAction, frame: ioniaFrame,
+          })
+        : false;
+      // Until full 64x96 packs are admitted, the opening may use the existing
+      // reviewed two-frame pixel sheets as a provisional visual fallback.
+      // Readiness remains NOT_READY and the manifest is unchanged.
+      if (!enderAuthored && authored && typeof authored.drawProvisionalFieldCharacter === 'function') {
+        enderAuthored = authored.drawProvisionalFieldCharacter('ender', enderX, enderY, {
+          anchor: 'bottom-center', scale: cinematic ? 2.55 : 2.20, action: enderAction, frame: enderFrame,
+        });
+      }
+      if (!ioniaAuthored && authored && typeof authored.drawProvisionalFieldCharacter === 'function') {
+        ioniaAuthored = authored.drawProvisionalFieldCharacter('ionia', ioniaX, ioniaY, {
+          anchor: 'bottom-center', scale: cinematic ? 2.45 : 2.10, action: ioniaAction, frame: ioniaFrame,
+        });
+      }
       if (characters && characters.validate()) {
-        characters.draw('ender', enderX, enderY, {
-          scale: cinematic ? 2.45 : 1.85,
-          depth: cinematic ? 0.9 : 0.72,
+        if (!enderAuthored) characters.draw('ender', enderX, enderY, {
+          scale: cinematic ? 1.72 : 1.42,
+          depth: cinematic ? 0.78 : 0.64,
           now,
           speed: moving ? 0.72 : 0,
           facing: 'right',
           action: cinematic ? 'focus' : 'idle',
         });
-        characters.draw('ionia', ioniaX, ioniaY, {
-          scale: cinematic ? 2.25 : 1.72,
-          depth: cinematic ? 0.86 : 0.68,
+        if (!ioniaAuthored) characters.draw('ionia', ioniaX, ioniaY, {
+          scale: cinematic ? 1.62 : 1.34,
+          depth: cinematic ? 0.76 : 0.62,
           now,
           speed: 0,
           facing: 'left',
@@ -313,18 +439,26 @@
       }
     }
 
-    // Closed-route board and foreground cable silhouettes.
-    fill(37, 43, 48);
-    rect(246, 338, 84, 58);
-    fill(181, 103, 91, 180);
-    for (let i = 0; i < 26; i++) {
-      rect(258 + i * 2, 349 + Math.floor(i / 13) * 22, 2, 2);
+    // Closed-route cue belongs to the walk beat, but reads as a physical dock
+    // barricade rather than a floating UI board.
+    if (scene.id === 'dock_walk') {
+      stroke(76, 61, 48, 220);
+      strokeWeight(5);
+      line(248, 372, 314, 356);
+      line(252, 389, 318, 373);
+      stroke(181, 103, 91, 200);
+      strokeWeight(3);
+      line(258, 370, 311, 360);
+      line(261, 385, 315, 375);
+      noStroke();
+      fill(191, 144, 76, 190);
+      rect(246, 365, 5, 31, 2);
+      rect(316, 352, 5, 34, 2);
+      fill(181, 103, 91, 175);
+      triangle(277, 365, 291, 362, 286, 375);
     }
-    stroke(181, 103, 91, 190);
-    strokeWeight(3);
-    line(258, 347, 318, 383);
-    line(318, 347, 258, 383);
-    stroke(8, 12, 18, 170);
+    // Foreground cable silhouettes retain depth without becoming an opaque frame.
+    stroke(8, 12, 18, 150);
     strokeWeight(5);
     line(18, 0, 88, 182);
     line(width - 22, 0, width - 102, 198);
@@ -373,20 +507,103 @@
     rect(width - 390, 274, 236, 96);
   }
 
-  function drawInterior(scene, state, now) {
+  function drawPaintedInteriorBackdrop(now) {
+    if (!openingInteriorRequested && typeof loadImage === 'function') {
+      openingInteriorRequested = true;
+      try {
+        openingInterior = loadImage(
+          OPENING_INTERIOR_PATH,
+          () => { openingInteriorReady = true; },
+          () => { openingInterior = null; openingInteriorReady = false; }
+        );
+      } catch (error) {
+        openingInterior = null;
+        openingInteriorReady = false;
+      }
+    }
+    if (!openingInteriorReady || !openingInterior || typeof image !== 'function') return false;
+
+    push();
+    noSmooth();
+    const cover = Math.max(width / openingInterior.width, height / openingInterior.height);
+    const dw = openingInterior.width * cover;
+    const dh = openingInterior.height * cover;
+    image(openingInterior, (width - dw) / 2, (height - dh) / 2, dw, dh);
+    pop();
+
+    // Cool aether grade keeps the warm cabin plate inside Aetherwake's palette.
     noStroke();
-    fill(14, 20, 29);
+    fill(19, 39, 55, 36);
+    rect(0, 0, width, height);
+    fill(245, 181, 103, 12);
+    rect(0, Math.round(height * 0.52), width, Math.round(height * 0.48));
+    return true;
+  }
+
+  function drawWrongSongSetPiece(now, intensity = 1) {
+    const pulse = 0.5 + Math.sin(now * 0.007) * 0.5;
+    const tremor = Math.sin(now * 0.021) * 2;
+
+    // Cold aether wash interrupts the cabin's warm visual language.
+    noStroke();
+    fill(28, 104, 124, Math.round(22 * intensity + 24 * pulse * intensity));
     rect(0, 0, width, height);
 
-    // Structural ribs and deck planes.
-    fill(32, 40, 48);
-    rect(74, 98, width - 148, height - 166);
-    fill(52, 58, 61);
-    rect(91, 116, width - 182, height - 202);
-    fill(25, 31, 37);
-    rect(0, 420, width, 220);
-    drawInteriorDepthFrame(now, 420);
+    // Edge pressure keeps the center readable while making the room feel suddenly wrong.
+    fill(5, 10, 20, Math.round(72 * intensity));
+    rect(0, 0, 58, height);
+    rect(width - 58, 0, 58, height);
+    rect(0, 0, width, 34);
+    rect(0, height - 42, width, 42);
 
+    // Broken frequency rings radiate from the ship core side of frame.
+    noFill();
+    for (let i = 0; i < 5; i++) {
+      const radius = 62 + i * 54 + pulse * 18;
+      stroke(124, 218, 232, Math.max(18, 82 - i * 12));
+      strokeWeight(2);
+      ellipse(width - 178 + tremor, 278, radius * 1.5, radius);
+    }
+    noStroke();
+
+    // Aether motes snap into short horizontal faults rather than drifting gently.
+    for (let i = 0; i < 17; i++) {
+      const xx = Math.round((i * 61 + now * (0.012 + (i % 3) * 0.004)) % width);
+      const yy = 118 + ((i * 47) % 334);
+      fill(i % 4 === 0 ? 238 : 124, i % 4 === 0 ? 179 : 220, i % 4 === 0 ? 91 : 232,
+        78 + Math.round(pulse * 70));
+      rect(xx, yy, 10 + (i % 5) * 4, 2);
+    }
+
+    // One restrained central flare gives the beat a memorable visual accent.
+    fill(205, 245, 232, Math.round(34 + pulse * 46));
+    ellipse(width - 178 + tremor, 278, 18 + pulse * 10, 18 + pulse * 10);
+    fill(42, 255, 181, Math.round(28 + pulse * 35));
+    ellipse(width - 178 + tremor, 278, 48 + pulse * 18, 48 + pulse * 18);
+  }
+
+  function drawInterior(scene, state, now) {
+    const paintedInterior = drawPaintedInteriorBackdrop(now);
+    noStroke();
+    if (!paintedInterior) {
+      fill(14, 20, 29);
+      rect(0, 0, width, height);
+      fill(32, 40, 48);
+      rect(74, 98, width - 148, height - 166);
+      fill(52, 58, 61);
+      rect(91, 116, width - 182, height - 202);
+      fill(25, 31, 37);
+      rect(0, 420, width, 220);
+      drawInteriorDepthFrame(now, 420);
+    } else {
+      // Runtime overlays stay translucent so authored cabin art remains the room.
+      fill(14, 20, 29, 28);
+      rect(72, 92, width - 144, height - 150);
+      fill(42, 255, 181, 12);
+      rect(96, 112, width - 192, 2);
+    }
+
+    if (!paintedInterior) {
     for (let x = 104; x < width - 90; x += 122) {
       fill(80, 70, 58);
       rect(x, 137, 8, 275);
@@ -409,8 +626,10 @@
     fill(124, 200, 232, 65);
     rect(width - 306, 193, 102, 4);
     rect(width - 306, 220, 124, 4);
+    }
 
     if (scene.id === 'wrong_song') {
+      drawWrongSongSetPiece(now, 0.78);
       // Frequency mismatch rendered as pixel wavefronts.
       for (let i = 0; i < 8; i++) {
         const xx = 414 + i * 24;
@@ -442,17 +661,35 @@
         core_walk: [['ender', 310], ['lyra', 470]],
       };
       const actors = positions[scene.id] || [['ender', 310]];
+      const authored = root.AetherAuthoredCharacterArt;
       for (const [id, x] of actors) {
-        if (characters && characters.validate()) {
+        const action = scene.id === 'wrong_song' && id === 'lyra' ? 'focus' : 'idle';
+        let authoredDrawn = authored && typeof authored.drawFieldCharacter === 'function'
+          ? authored.drawFieldCharacter(id, x, 420, {
+              anchor: 'bottom-center',
+              scale: id === 'lyra' ? 0.68 : 0.72,
+              action,
+              frame: Math.floor(now / 160),
+            })
+          : false;
+        if (!authoredDrawn && authored && typeof authored.drawProvisionalFieldCharacter === 'function') {
+          authoredDrawn = authored.drawProvisionalFieldCharacter(id, x, 420, {
+            anchor: 'bottom-center',
+            scale: id === 'ionia' ? 2.2 : 2.3,
+            action,
+            frame: Math.floor(now / 160),
+          });
+        }
+        if (!authoredDrawn && characters && characters.validate()) {
           characters.draw(id, x, 420, {
             scale: id === 'lyra' ? 0.88 : 0.98,
             depth: 0.7,
             now,
             speed: 0,
             facing: id === 'ionia' ? 'left' : 'right',
-            action: scene.id === 'wrong_song' && id === 'lyra' ? 'focus' : 'idle',
+            action,
           });
-        } else if (sprites && sprites.validate()) {
+        } else if (!authoredDrawn && sprites && sprites.validate()) {
           sprites.drawShadow(x, 420, 2);
           sprites.draw(id, x, 420, {
             anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 260) % 2,
@@ -463,13 +700,21 @@
 
     if (scene.id === 'berth_task' && state.berthTask) {
       const step = state.berthTask.step;
-      fill(42, 255, 181, 45 + step * 35);
-      rect(185, 338, Math.max(8, step * 54), 4);
-      fill(232, 220, 198, 180);
+      // Task progress lives in a compact upper-left quest chip rather than floating
+      // beside the character in world space.
+      fill(6, 10, 16, 150);
+      rect(28, 78, 184, 30, 6);
+      fill(42, 255, 181, 62);
+      rect(38, 86, 34, 2, 1);
+      fill(232, 220, 198, 210);
       textAlign(LEFT, TOP);
       textFont('Trebuchet MS');
-      textSize(14);
-      text('BERTH WORK // ' + step + ' / ' + state.berthTask.max, 185, 383);
+      textSize(10);
+      text('SETTLING IN', 40, 91);
+      for (let i = 0; i < state.berthTask.max; i++) {
+        fill(i < step ? color(42,255,181,190) : color(83,103,107,95));
+        rect(154 + i * 14, 94, 8, 4, 1);
+      }
     }
 
     if (scene.id === 'talen_staying') {
@@ -483,18 +728,30 @@
         rect(418, 373, 6, 3);
         rect(467, 373, 6, 3);
       }
-      fill(232, 220, 198, 180);
+      fill(6, 10, 16, 150);
+      rect(28, 78, 194, 30, 6);
+      fill(42, 255, 181, 62);
+      rect(38, 86, 34, 2, 1);
+      fill(232, 220, 198, 210);
       textAlign(LEFT, TOP);
       textFont('Trebuchet MS');
-      textSize(14);
-      text('TALEN // ' + talenStep + ' / ' + (state.talenBeat ? state.talenBeat.max : 2), 423, 392);
+      textSize(10);
+      text('TALK WITH TALEN', 40, 91);
+      const talenMax = state.talenBeat ? state.talenBeat.max : 2;
+      for (let i = 0; i < talenMax; i++) {
+        fill(i < talenStep ? color(42,255,181,190) : color(83,103,107,95));
+        rect(174 + i * 14, 94, 8, 4, 1);
+      }
     }
   }
 
-  function wakeMapPoint(x, y) {
+  function wakeMapPoint(x, y, paintedInterior) {
     return {
       x: Math.round(128 + (x - 1) * 49),
-      y: Math.round(156 + (y - 1) * 47),
+      // The authored cabin plate's playable floor begins much lower than the
+      // logical exploration grid. Shift presentation anchors downward so field
+      // sprites stand on the deck instead of floating across the windows/walls.
+      y: Math.round((paintedInterior ? 326 : 156) + (y - 1) * 47),
     };
   }
 
@@ -552,25 +809,33 @@
       return;
     }
 
+    const paintedInterior = drawPaintedInteriorBackdrop(now);
     noStroke();
-    fill(8, 13, 20);
-    rect(0, 0, width, height);
+    if (!paintedInterior) {
+      fill(8, 13, 20);
+      rect(0, 0, width, height);
+      fill(24, 31, 38);
+      rect(70, 94, width - 140, 432);
+      fill(49, 54, 55);
+      rect(90, 114, width - 180, 392);
+      fill(31, 37, 42);
+      rect(108, 132, width - 216, 354);
+      fill(72, 64, 54);
+      rect(122, 145, 690, 330);
+      fill(42, 47, 49);
+      rect(136, 159, 662, 302);
+      drawInteriorDepthFrame(now, 461);
+    } else {
+      // Keep the authored cabin visible; logical room zones become light-only overlays.
+      fill(9, 15, 21, 24);
+      rect(92, 110, width - 184, 376);
+      fill(238, 181, 105, 14);
+      rect(118, 320, 210, 151);
+      fill(87, 179, 173, 12);
+      rect(568, 150, 226, 156);
+    }
 
-    // Hull frame.
-    fill(24, 31, 38);
-    rect(70, 94, width - 140, 432);
-    fill(49, 54, 55);
-    rect(90, 114, width - 180, 392);
-    fill(31, 37, 42);
-    rect(108, 132, width - 216, 354);
-
-    // Connected interior floor ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â intentionally one readable space, not a corridor of cards.
-    fill(72, 64, 54);
-    rect(122, 145, 690, 330);
-    fill(42, 47, 49);
-    rect(136, 159, 662, 302);
-    drawInteriorDepthFrame(now, 461);
-
+    if (!paintedInterior) {
     // Soft architectural light pools replace debug-like room blocks. The floor
     // remains continuous; identity comes from props, structure, and lighting.
     fill(116, 82, 55, 56);   // berth practical warmth
@@ -676,9 +941,11 @@
       fill(205, 245, 232, 150);
       rect(741, 370, 3, 54);
     }
+    }
 
-    // Wrong Song distortion: small errors in otherwise stable architecture.
+    // Wrong Song distortion escalates from subtle architectural errors into a real set piece.
     if (scene.id === 'wrong_song' || e.anomalyTriggered) {
+      drawWrongSongSetPiece(now, scene.id === 'wrong_song' ? 0.68 : 0.34);
       for (let i = 0; i < 8; i++) {
         const xx = 354 + i * 43;
         const yy = 118 + ((Math.floor(now / 120) + i * 7) % 9);
@@ -691,36 +958,62 @@
       }
     }
 
+    const authored = root.AetherAuthoredCharacterArt;
     const characters = root.AetherCharacterRenderer;
     const sprites = root.AetherPixelSprites;
     if (scene.sequence >= 1) {
-      const ep = wakeMapPoint(e.x, e.y);
-      const lp = wakeMapPoint(7, 3);
-      const ip = wakeMapPoint(12, 2);
-      if (characters && characters.validate()) {
-        characters.draw('ender', ep.x, ep.y, {
+      const ep = wakeMapPoint(e.x, e.y, paintedInterior);
+      const lp = wakeMapPoint(7, 3, paintedInterior);
+      const ip = wakeMapPoint(12, 2, paintedInterior);
+
+      // Keep interactive exploration in the same pixel character language as the
+      // authored opening. Full field-pack readiness is unchanged and remains NOT_READY.
+      const drawProvisional = (id, p, moving, facing) => {
+        if (!authored || typeof authored.drawProvisionalFieldCharacter !== 'function') return false;
+        return authored.drawProvisionalFieldCharacter(id, p.x, p.y, {
+          anchor: 'bottom-center',
+          scale: paintedInterior
+            ? (id === 'lyra' ? 1.72 : (id === 'ionia' ? 1.76 : 1.82))
+            : (id === 'lyra' ? 2.15 : (id === 'ionia' ? 2.20 : 2.28)),
+          action: moving ? 'walk' : 'idle',
+          frame: Math.floor(now / (moving ? 150 : 260)),
+          facing,
+        });
+      };
+      const enderPixel = drawProvisional('ender', ep, e.moving, e.facing || 'right');
+      const lyraPixel = drawProvisional('lyra', lp, false, 'right');
+      const ioniaPixel = drawProvisional('ionia', ip, false, 'left');
+
+      if ((!enderPixel || !lyraPixel || !ioniaPixel) && characters && characters.validate()) {
+        if (!enderPixel) characters.draw('ender', ep.x, ep.y, {
           scale: 0.92, depth: 0.64, now,
           speed: e.moving ? 0.8 : 0, facing: e.facing || 'right',
         });
-        characters.draw('lyra', lp.x, lp.y, {
+        if (!lyraPixel) characters.draw('lyra', lp.x, lp.y, {
           scale: 0.82, depth: 0.62, now, speed: 0, facing: 'right',
         });
-        characters.draw('ionia', ip.x, ip.y, {
+        if (!ioniaPixel) characters.draw('ionia', ip.x, ip.y, {
           scale: 0.89, depth: 0.63, now, speed: 0, facing: 'left',
         });
-      } else if (sprites && sprites.validate()) {
-        sprites.drawShadow(ep.x, ep.y, 2);
-        sprites.draw('ender', ep.x, ep.y, {
-          anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 220) % 2,
-        });
-        sprites.drawShadow(lp.x, lp.y, 2);
-        sprites.draw('lyra', lp.x, lp.y, {
-          anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 310) % 2,
-        });
-        sprites.drawShadow(ip.x, ip.y, 2);
-        sprites.draw('ionia', ip.x, ip.y, {
-          anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 290) % 2,
-        });
+      } else if ((!enderPixel || !lyraPixel || !ioniaPixel) && sprites && sprites.validate()) {
+        if (!enderPixel) {
+          sprites.drawShadow(ep.x, ep.y, 2);
+          sprites.draw('ender', ep.x, ep.y, {
+            anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 220) % 2,
+          });
+        }
+        if (!lyraPixel) {
+          sprites.drawShadow(lp.x, lp.y, 2);
+          sprites.draw('lyra', lp.x, lp.y, {
+            anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 310) % 2,
+          });
+        }
+        if (!ioniaPixel) {
+          sprites.drawShadow(ip.x, ip.y, 2);
+          sprites.draw('ionia', ip.x, ip.y, {
+            anchor: 'bottom-center', scale: 2, frame: Math.floor(now / 290) % 2,
+          });
+        }
       }
     }
 
@@ -736,34 +1029,63 @@
       rect(p.x + 15, p.y - 42, 3, 10);
     }
 
-    drawWakeRoomLabel('BERTH', 145, 443, view.zone === 'berth');
-    drawWakeRoomLabel('TABLE', 145, 282, view.zone === 'shared-table');
-    drawWakeRoomLabel('LYRA', 392, 282, view.zone === 'lyra-space');
-    drawWakeRoomLabel('NAV', 590, 282, view.zone === 'navigation');
-    drawWakeRoomLabel('MAINT', 392, 443, view.zone === 'maintenance');
-    drawWakeRoomLabel('CORE', 651, 443, view.zone === 'core-approach');
+    // Painted interiors already communicate room identity visually. Keep labels only
+    // on the procedural fallback so authored spaces do not become a debug map.
+    if (!paintedInterior) {
+      drawWakeRoomLabel('BERTH', 145, 443, view.zone === 'berth');
+      drawWakeRoomLabel('TABLE', 145, 282, view.zone === 'shared-table');
+      drawWakeRoomLabel('LYRA', 392, 282, view.zone === 'lyra-space');
+      drawWakeRoomLabel('NAV', 590, 282, view.zone === 'navigation');
+      drawWakeRoomLabel('MAINT', 392, 443, view.zone === 'maintenance');
+      drawWakeRoomLabel('CORE', 651, 443, view.zone === 'core-approach');
+    }
 
-    // Exploration HUD: objective, not a cutscene card.
-    fill(5, 8, 13, 205);
-    rect(84, 36, width - 168, 65);
-    textAlign(LEFT, TOP);
-    textFont('Segoe UI Semibold');
-    textSize(10);
-    fill(42, 255, 181);
-    text(view.objective, 108, 55, width - 216, 28);
+    // Exploration HUD is now a restrained JRPG objective cue rather than a map/debug card.
+    // When a scene notice is already telling the player what changed, do not echo
+    // the same objective directly underneath it.
+    const hasSceneNotice = Array.isArray(root.toasts) && root.toasts.some(t =>
+      t && t.kind !== 'system' && now - Number(t.startTime || 0) <= Number(t.duration || 0)
+    );
+    const objectiveW = 286;
+    if (!hasSceneNotice) {
+      fill(5, 8, 13, 118);
+      rect(width / 2 - objectiveW / 2, 42, objectiveW, 30, 7);
+      textAlign(CENTER, TOP);
+      textFont('Segoe UI Semibold');
+      textSize(9);
+      fill(42, 255, 181, 215);
+      text(String(view.objective || '').replace(/[.]$/, '').toUpperCase(), width / 2, 52);
+    }
 
-    fill(5, 8, 13, 215);
-    rect(106, 535, width - 212, 65);
+    // Exploration feedback is a subtitle-like cue, not a persistent dialogue box.
+    const messageW = Math.min(520, width - 360);
+    const messageX = width / 2 - messageW / 2;
+    fill(5, 8, 13, 102);
+    rect(messageX, 552, messageW, 32, 7);
     textFont('Trebuchet MS');
-    textSize(17);
-    fill(232, 220, 198);
-    text(view.lastMessage || 'Explore.', 128, 548, width - 256, 27);
-    fill(185, 158, 116);
     textSize(14);
-    const clueText = scene.id === 'core_walk'
-      ? 'CLUES ' + e.clues.length + ' / 3  //  2 REQUIRED'
-      : 'WASD / ARROWS MOVE   E INSPECT';
-    text(clueText, 128, 575, width - 256, 20);
+    fill(232, 220, 198, 218);
+    textAlign(CENTER, TOP);
+    const explorationMessage = String(view.lastMessage || 'Explore.');
+    const displayMessage = explorationMessage.length > 72
+      ? explorationMessage.slice(0, 69) + '…'
+      : explorationMessage;
+    text(displayMessage, width / 2, 559);
+
+    textFont('Segoe UI Semibold');
+    textSize(9);
+    textAlign(CENTER, TOP);
+    fill(185, 158, 116, 185);
+    if (scene.id === 'core_walk') {
+      const pipX = width / 2 - 25;
+      text('CLUES', pipX - 34, 580);
+      for (let i = 0; i < 3; i++) {
+        fill(i < e.clues.length ? color(42,255,181,190) : color(83,103,107,90));
+        rect(pipX + i * 14, 581, 8, 4, 1);
+      }
+    } else if (nearby) {
+      text('E   INSPECT', width / 2, 580);
+    }
 
     textAlign(LEFT, TOP);
   }
@@ -794,6 +1116,10 @@
       drawChapter(now);
       return;
     }
+    if (scene.id === 'arrival_horizon') {
+      drawHorizonEstablishing(scene, state, now);
+      return;
+    }
     if (scene.sequence <= 2) {
       drawDock(scene, state, now);
       return;
@@ -818,14 +1144,7 @@
     fill(42, 255, 181, Math.round((1 - t) * 100));
     rect(Math.max(0, sweepX - 2), 18, 2, height - 36);
 
-    if (scene && scene.sequence !== undefined && ticks < Math.ceil(introTicks * 0.62)) {
-      textAlign(RIGHT, TOP);
-      textFont('Segoe UI Semibold');
-      textSize(9);
-      fill(124, 200, 232, Math.round((1 - t) * 185));
-      text('FIRST WAKE // ' + String(scene.sequence).padStart(2, '0'), width - 28, 30);
-      textAlign(LEFT, TOP);
-    }
+    // No sequence/debug metadata in player-facing scene transitions.
     return true;
   }
 
@@ -846,70 +1165,147 @@
     rect(0, 0, width, 18);
     rect(0, height - 18, width, 18);
 
-    const textPanelY = scene.chapterCard ? 92 : 58;
-    fill(6, 9, 14, scene.chapterCard ? 96 : 54);
-    rect(124, textPanelY, width - 248, scene.chapterCard ? 118 : 56, 10);
+    const textPanelY = scene.chapterCard ? 92 : 50;
+    const sceneTicks = state && Number.isFinite(state.sceneTicks) ? state.sceneTicks : 999;
+    const showSceneTitle = scene.chapterCard ||
+      (scene.id === 'arrival_horizon'
+        ? sceneTicks >= 90 && sceneTicks < 160
+        : (scene.cinematic || sceneTicks < 36));
+    if (showSceneTitle) {
+      const titlePanelW = scene.chapterCard ? width - 248 : Math.min(286, width - 420);
+      const titlePanelH = scene.chapterCard ? 118 : 28;
+      const titlePanelX = Math.round((width - titlePanelW) / 2);
+      fill(6, 9, 14, scene.chapterCard ? 96 : 62);
+      rect(titlePanelX, textPanelY, titlePanelW, titlePanelH, 8);
+      if (!scene.chapterCard) {
+        fill(42, 255, 181, 76);
+        rect(titlePanelX + 46, textPanelY + titlePanelH - 2, titlePanelW - 92, 1);
+        fill(191, 144, 76, 118);
+        rect(titlePanelX + 14, textPanelY + 8, 20, 1);
+        rect(titlePanelX + titlePanelW - 34, textPanelY + 8, 20, 1);
+      }
 
-    textAlign(CENTER, TOP);
-    textFont('Segoe UI Semibold');
-    textSize(scene.chapterCard ? 24 : 12);
-    fill(42, 255, 181);
-    text(scene.title, width / 2, textPanelY + 24);
+      textAlign(CENTER, TOP);
+      textFont('Segoe UI Semibold');
+      textSize(scene.chapterCard ? 24 : 9);
+      fill(scene.chapterCard ? 42 : 232, scene.chapterCard ? 255 : 220, scene.chapterCard ? 181 : 198);
+      text(scene.title, width / 2, textPanelY + (scene.chapterCard ? 24 : 8));
 
-    if (scene.subtitle) {
-      textSize(10);
-      fill(124, 200, 232);
-      text(scene.subtitle, width / 2, textPanelY + 65);
+      if (scene.subtitle) {
+        textSize(10);
+        fill(124, 200, 232);
+        text(scene.subtitle, width / 2, textPanelY + 65);
+      }
     }
 
-    if (!scene.chapterCard) {
+    const showNarrative = !scene.chapterCard &&
+      (!scene.interactive || Boolean(scene.speaker)) &&
+      (scene.id !== 'arrival_horizon' || sceneTicks >= 142);
+    if (scene.id === 'arrival_horizon' && showNarrative) {
+      const lineIndex = sceneTicks < 194 ? 0 : 1;
+      const cinematicLines = lineIndex === 0
+        ? ['Dawn gathers beneath', 'a sea of clouds.']
+        : ['A small patched vessel hangs', 'against a very large sky.'];
+      textAlign(LEFT, TOP);
+      textFont('Trebuchet MS');
+      textSize(18);
+      for (let i = 0; i < cinematicLines.length; i++) {
+        const cy = height - 128 + i * 24;
+        const cx = Math.round((width - textWidth(cinematicLines[i])) / 2);
+        fill(3, 8, 15, 180);
+        text(cinematicLines[i], cx + 2, cy + 2);
+        fill(244, 233, 210, 238);
+        text(cinematicLines[i], cx, cy);
+      }
+    } else if (showNarrative) {
       const visibleLines = scene.lines.slice(0, 3);
-      const narrativePanelH = Math.min(90, 28 + visibleLines.length * 21);
-      const narrativePanelY = height - 18 - 38 - narrativePanelH;
-      const narrativePanelX = 148;
-      const narrativePanelW = width - 296;
-      fill(6, 9, 14, 128);
+      const narrativePanelH = Math.min(112, 40 + visibleLines.length * 21);
+      const narrativePanelY = height - 18 - 34 - narrativePanelH;
+      const narrativePanelX = 110;
+      const narrativePanelW = width - 220;
+      fill(6, 9, 14, 178);
       rect(narrativePanelX, narrativePanelY, narrativePanelW, narrativePanelH, 10);
-      fill(42,255,181,42);
-      rect(narrativePanelX + 10, narrativePanelY + 8, narrativePanelW - 20, 2);
+      noFill();
+      stroke(42, 255, 181, 92);
+      strokeWeight(1);
+      rect(narrativePanelX + 2, narrativePanelY + 2, narrativePanelW - 4, narrativePanelH - 4, 9);
+      noStroke();
+      fill(42,255,181,55);
+      rect(narrativePanelX + 12, narrativePanelY + 10, narrativePanelW - 24, 2);
+      fill(191, 144, 76, 110);
+      rect(narrativePanelX + 18, narrativePanelY + narrativePanelH - 7, 92, 2);
+
+      const authored = root.AetherAuthoredCharacterArt;
+      const speakerId = scene.speaker ? String(scene.speaker).toLowerCase() : null;
+      const portraitSize = Math.min(78, narrativePanelH - 26);
+      const portraitX = narrativePanelX + 14;
+      const portraitY = narrativePanelY + 18;
+      const portraitDrawn = speakerId && authored && typeof authored.drawPortrait === 'function'
+        ? authored.drawPortrait(speakerId, portraitX, portraitY, portraitSize, { expression: 'talk' })
+        : false;
+
+      const copyX = portraitDrawn ? portraitX + portraitSize + 18 : narrativePanelX + 16;
+      const copyW = portraitDrawn ? narrativePanelW - (copyX - narrativePanelX) - 16 : narrativePanelW - 32;
+      let copyY = narrativePanelY + 18;
+      if (portraitDrawn) {
+        noFill();
+        stroke(42, 255, 181, 118);
+        strokeWeight(1);
+        rect(portraitX - 2, portraitY - 2, portraitSize + 4, portraitSize + 4, 5);
+        noStroke();
+        fill(24, 80, 80, 205);
+        rect(copyX, narrativePanelY + 14, Math.min(176, copyW), 20, 4);
+        fill(42, 255, 181, 235);
+        textAlign(LEFT, TOP);
+        textFont('Segoe UI Semibold');
+        textSize(11);
+        text(String(scene.speaker || '').toUpperCase(), copyX + 10, narrativePanelY + 17);
+        copyY = narrativePanelY + 42;
+      }
 
       textAlign(LEFT, TOP);
       textFont('Trebuchet MS');
       textSize(15);
-      fill(232, 220, 198);
-      let y = narrativePanelY + 16;
+      fill(238, 229, 210);
+      let y = copyY;
       for (const line of visibleLines) {
-        text(line, narrativePanelX + 10, y, narrativePanelW - 20, 22);
+        text(line, copyX, y, copyW, 22);
         y += 21;
       }
-    } else {
+    } else if (!scene.interactive) {
       textAlign(CENTER, TOP);
       textFont('Trebuchet MS');
       textSize(20);
       fill(232, 220, 198, 220);
-      text(scene.lines.join('   ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢   '), width / 2, 330, width - 250, 120);
+      text(scene.lines.join('   •   '), width / 2, 330, width - 250, 120);
     }
 
     // Player-facing opening keeps production metadata out of the cinematic.
     textAlign(CENTER, BOTTOM);
     textFont('Segoe UI Semibold');
-    textSize(14);
-    fill(235, 230, 214, 225);
+    textSize(10);
     const presentationReady = typeof root.AetherFirstWakeOpening.presentationReady === 'function'
       ? root.AetherFirstWakeOpening.presentationReady(state)
       : true;
+    let promptText = '';
     if (scene.id === 'dock_walk' && state.dockWalk && !state.dockWalk.ready) {
-      text('A / D or Left / Right  —  Walk to the Dragonfly', width / 2, height - 29);
+      promptText = '← / →   WALK';
     } else if (scene.id === 'dock_walk') {
-      text('Enter  —  Board the Dragonfly', width / 2, height - 29);
+      promptText = 'ENTER   BOARD';
     } else if (scene.id === 'berth_task' && state.berthTask && !state.berthTask.ready) {
-      text('E  —  Work on the berth', width / 2, height - 29);
+      promptText = 'E   WORK';
     } else if (scene.id === 'talen_staying' && state.talenBeat && !state.talenBeat.ready) {
-      text('E  —  Respond to Talen', width / 2, height - 29);
+      promptText = 'E   RESPOND';
     } else if (scene.cinematic && !presentationReady) {
-      text('', width / 2, height - 29);
+      promptText = '';
     } else {
-      text('Enter / Space  —  Continue', width / 2, height - 29);
+      promptText = 'ENTER   CONTINUE';
+    }
+    if (promptText) {
+      fill(5, 9, 15, 96);
+      rect(width / 2 - 84, height - 43, 168, 24, 7);
+      fill(235, 230, 214, 210);
+      text(promptText, width / 2, height - 27);
     }
 
     textAlign(LEFT, TOP);

@@ -10,10 +10,15 @@ const source = fs.readFileSync(path.join(root, 'tests', 'capture-visual-evidence
 for (const id of [
   '00-title-screen',
   '01-first-wake-dock-walk',
+  '01c-first-wake-lyra-family',
   '02-dragonfly-dusk-dock',
   '03-dialogue-ionia',
   '04-combat-sky-predator',
   '05-dragonfly-flight',
+  '05a0-rootline-west-available',
+  '05a-rootline-west-assist',
+  '05b-rootline-west-upper-trace',
+  '05c-rootline-west-shifted',
   '06-sky-combat-crosswind',
 ]) {
   assert(source.includes(id), 'visual evidence capture missing scene: ' + id);
@@ -21,6 +26,7 @@ for (const id of [
 
 assert(source.includes('AETHERWAKE_VISUAL_EVIDENCE_V1'),
   'visual evidence manifest contract missing');
+assert(source.includes('01c-first-wake-lyra-family'), 'visual evidence must retain Lyra family/interior identity coverage');
 assert(source.includes('CAPTURE_ONLY_NOT_VISUAL_PASS'),
   'capture harness must not self-promote screenshots to visual PASS');
 assert(source.includes('function resolveSourceBinding()'),

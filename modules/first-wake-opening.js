@@ -16,7 +16,7 @@
    (typeof globalThis !== 'undefined' ? globalThis : null), function () {
   'use strict';
 
-  const VERSION = '0.7.0';
+  const VERSION = '0.8.0';
 
   const SCENES = Object.freeze([
     Object.freeze({
@@ -24,8 +24,8 @@
       sequence: 0,
       visual: 'dock-horizon',
       cinematic: true,
-      minimumTicks: 75,
-      title: 'WAKE DOCK — LOWER VERDANT REACH',
+      minimumTicks: 240,
+      title: 'LOWER VERDANT REACH',
       speaker: null,
       lines: Object.freeze([
         'Dawn gathers beneath a sea of clouds.',
