@@ -60,7 +60,13 @@ jobs:
 
           git show "$SOURCE_SHA:aetherwake.js" > source-aetherwake.js
           unzip -p tag-repair-evidence/Aetherwake-Windows.zip package.nw/www/aetherwake.js > packaged-aetherwake.js
-          cmp -s source-aetherwake.js packaged-aetherwake.js
+          node - <<'NODE'
+          const fs = require('fs');
+          const normalize = (p) => fs.readFileSync(p, 'utf8').replace(/\r\n/g, '\n');
+          if (normalize('source-aetherwake.js') !== normalize('packaged-aetherwake.js')) {
+            throw new Error('Packaged runtime does not match exact source after line-ending normalization');
+          }
+          NODE
           grep -F 'shadowScanline.setAlpha(40)' packaged-aetherwake.js
           grep -F 'tealScanline.setAlpha(6)' packaged-aetherwake.js
           ! grep -F 'fill(color(PAL.SHADOW), 40)' packaged-aetherwake.js
