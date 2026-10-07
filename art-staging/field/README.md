@@ -26,8 +26,8 @@ The packer refuses missing or incorrectly sized frames. It does not resize, inve
 After packing:
 1. npm run verify:field-pack-readiness
 2. inspect the strips visually
-3. only after review, update manifest status
-4. npm run verify:field-pack-readiness:strict
+3. npm run verify:field-pack-readiness:strict
+4. only after review, update manifest status
 5. npm run test:chapter1-visual
 6. npm run test:chapter1-browser
 7. regenerate exact-head screenshots

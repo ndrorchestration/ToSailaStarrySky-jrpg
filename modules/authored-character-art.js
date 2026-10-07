@@ -27,10 +27,7 @@
   });
   const PROVISIONAL_FIELD=Object.freeze({
     ender:Object.freeze({base:'assets/characters/v1/ender'}),
-    ionia:Object.freeze({base:'assets/characters/v1/ionia'}),
-    lyra:Object.freeze({base:'assets/characters/v1/lyra'}),
-    reson:Object.freeze({base:'assets/characters/v1/reson'}),
-    aepex:Object.freeze({base:'assets/characters/v1/aepex'})
+    ionia:Object.freeze({base:'assets/characters/v1/ionia'})
   });
   const state=Object.create(null);
   const fieldState=Object.create(null);
@@ -160,7 +157,7 @@
   }
   function ensureProvisionalStrip(id,action){
     const pack=PROVISIONAL_FIELD[id];
-    if(!pack||typeof loadImage!=='function') return null;
+    if(!pack||pack.status!=='ready'||typeof loadImage!=='function') return null;
     const key=id+':'+action;
     if(!provisionalState[key]) provisionalState[key]={requested:false,ready:false,failed:false,image:null};
     const entry=provisionalState[key];
@@ -194,7 +191,7 @@
       pop();
       return true;
     }
-    return drawCandidateSheet(id,x,y,options,false);
+    return drawCandidateSheet(id,x,y,options,true);
   }
   function isFieldReady(id){const pack=FIELD_PACKS[id];return Boolean(pack&&pack.status==='ready');}
   function isPortraitReady(id){const pack=PACKS[id];return Boolean(pack&&pack.status==='portrait-ready');}
