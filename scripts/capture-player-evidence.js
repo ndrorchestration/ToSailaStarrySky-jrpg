@@ -141,7 +141,9 @@ async function pressEnter(page, count = 1) {
     });
     assert(response && response.ok(), 'index-embedded.html did not load successfully');
     await waitForRuntime(page);
-    await capture(page, outputRoot, captures, 'title-ready', 'boot/title/menu canvas before starting First Wake');
+    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 15000 });
+    await page.waitForTimeout(250);
+    await capture(page, outputRoot, captures, 'title-ready', 'title/menu canvas before starting First Wake');
 
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
