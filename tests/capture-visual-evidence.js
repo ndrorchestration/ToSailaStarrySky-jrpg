@@ -520,6 +520,58 @@ async function capture(page, id, description) {
     ));
     performanceSamples.push(await measureFrameTiming(page, '05-dragonfly-flight'));
 
+    // 5a — Rootline West deliberate lane-assist review state.
+    await page.evaluate(() => {
+      const s = window._airNavigationState;
+      s.x = 12;
+      s.y = 19;
+      s.altitude = 'cruise';
+      s.speed = 1;
+      s.mooredLandmarkId = null;
+      if (!s.discoveredRoutes.includes('rootline-west')) s.discoveredRoutes.push('rootline-west');
+    });
+    await page.keyboard.press('r');
+    await page.waitForFunction(() => window._activeRouteAssistId === 'rootline-west',
+      undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '05a-rootline-west-assist',
+      'Rootline West OPEN route with deliberate lane assist engaged'
+    ));
+
+    // 5b — High-altitude upper-trace evidence and contextual chart cue.
+    await page.keyboard.press('r');
+    await page.evaluate(() => {
+      const s = window._airNavigationState;
+      s.x = 12;
+      s.y = 18;
+      s.altitude = 'cruise';
+      s.speed = 1;
+      s.mooredLandmarkId = null;
+    });
+    await page.keyboard.press('e');
+    await page.waitForFunction(() =>
+      window._routeNetworkState &&
+      window._routeNetworkState.discoveredClues.includes('rootline-west-upper-trace'),
+      undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '05b-rootline-west-upper-trace',
+      'Rootline West high-altitude upper trace in range with contextual chart cue'
+    ));
+
+    // 5c — Persistable shifted-route presentation after chart confirmation.
+    await page.keyboard.press('f');
+    await page.waitForFunction(() =>
+      window._routeNetwork &&
+      window._routeNetwork.conditionFor(window._routeNetworkState, 'rootline-west') === 'shifted',
+      undefined, { timeout: 5000 });
+    captures.push(await capture(
+      page,
+      '05c-rootline-west-shifted',
+      'Rootline West SHIFTED operational condition after upper-trace chart confirmation'
+    ));
+
     // 6 â€” Aerial combat context inherited from real flight state.
     await page.evaluate(() => {
       const s = window._airNavigationState;

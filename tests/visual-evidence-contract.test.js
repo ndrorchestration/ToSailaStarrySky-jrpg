@@ -15,6 +15,9 @@ for (const id of [
   '03-dialogue-ionia',
   '04-combat-sky-predator',
   '05-dragonfly-flight',
+  '05a-rootline-west-assist',
+  '05b-rootline-west-upper-trace',
+  '05c-rootline-west-shifted',
   '06-sky-combat-crosswind',
 ]) {
   assert(source.includes(id), 'visual evidence capture missing scene: ' + id);
