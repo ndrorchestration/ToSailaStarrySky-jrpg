@@ -217,12 +217,35 @@ Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts includ
 
 The intended player experience is **download one Windows artifact, launch/install it, and run Aetherwake in its own large resizable/maximizable desktop window**. The desktop presentation defaults to **1440×960** and scales proportionally when maximized, while preserving the 960×640 logical game layout. **Alt+Enter** or **F11** toggles native fullscreen; **Escape** exits fullscreen. Browser/HTTP instructions above are development and diagnostic paths, not the desired end-user experience.
 
-### Current release authority — 2026-10-03
+### Current Preview 0.1 release authority — 2026-10-06
 
-- The launcher architecture remains the isolated `package.json → www/index-embedded.html` layout, with development-only files excluded from the player runtime.
-- Hosted checkpoint `ff83d023f9633119f24723ab5ab7c53566b38a60` passed browser smoke run `37139742677` and Windows package/install/launch run `37139742595`.
-- The Windows gate verified the exact generated candidate through package discovery, portable ZIP creation, per-user installer compilation, clean install, application-level runtime readiness, portable layout, and SHA-256 generation.
-- Ordinary pushes do not publish a release. The current technical candidate is green, while human/player acceptance and visual acceptance remain pending.
+Protected `main` remains `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. The current bounded Preview 0.1 remediation/review candidate is PR #250 at exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`.
+
+Technical candidate verification is complete for that exact head:
+
+- hosted smoke run `37557721548`: **PASS**;
+- fresh seven-frame player-evidence capture on NeonPC: **CAPTURED** from exact head `46f50c...`;
+- title/menu evidence timing: **corrected and observed**;
+- prior opaque cyan/teal scanline defect: **not reproduced**;
+- local packaged `Aetherwake.exe` first-frame readiness on NeonPC: **PASS**;
+- workflow-dispatch Windows run `37559269564`: **SUCCESS** through package build, no-admin installer, exact installed launch, portable verification, SHA-256 manifest, and prerelease publication;
+- the published installer was independently downloaded, SHA-256 checked, installed, and launched on NeonPC: **PASS**.
+
+Current published Preview 0.1 candidate:
+
+```text
+SOURCE_SHA=46f50c581d992bf581bb6b6d7961a9421b8b779d
+INSTALLER_SHA256=7feb6de364264617095a59dd9329a99ebfa77a144b0f5887a7ae7ff064f6221d
+PORTABLE_ZIP_SHA256=4c6efc6ea1cecf6468fb983fd8ff5fd5d0ce8645262779551841f663c5326173
+TECHNICAL_CANDIDATE_VERIFICATION=PASS
+HUMAN_REVIEW=NOT_RUN
+VISUAL_ACCEPTANCE=PENDING
+HUMAN_PLAYER_ACCEPTANCE=PENDING
+```
+
+PR #250 is ready for human review but is not merged. The historical Google Drive one-click launchers still point to older candidates and must not be treated as the current acceptance target.
+
+For the exact uncoached human/player acceptance protocol, see `docs/PREVIEW_0_1_ACCEPTANCE.md`.
 
 When a fresh candidate passes the exact Windows install/launch gate, the primary player artifact will be:
 
