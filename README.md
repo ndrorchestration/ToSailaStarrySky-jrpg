@@ -219,7 +219,7 @@ The intended player experience is **download one Windows artifact, launch/instal
 
 ### Current Preview 0.1 release authority — 2026-10-06
 
-Protected `main` remains `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. The current bounded Preview 0.1 remediation/review candidate is PR #250 at exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`.
+The runtime baseline before the documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. Documentation merges may advance protected `main` without changing player-runtime bytes. The current bounded Preview 0.1 remediation/review candidate remains PR #250 at exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; candidate identity is bound to that exact SHA and artifact hashes, not to a moving `main` pointer.
 
 Technical candidate verification is complete for that exact head:
 
