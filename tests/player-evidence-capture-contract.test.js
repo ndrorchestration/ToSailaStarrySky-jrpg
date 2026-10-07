@@ -49,6 +49,8 @@ for (const required of [
   'gameplayCaptureInspected: false',
   'git rev-parse HEAD',
   'index-embedded.html',
+  "window.gameState === 'menu'",
+  'title/menu canvas before starting First Wake',
   'arrival_horizon',
   'lyra_join',
   'Captain Ionia',
