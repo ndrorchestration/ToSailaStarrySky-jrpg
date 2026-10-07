@@ -284,6 +284,93 @@ function server() {
     await page.waitForFunction(() => window.gameState === 'world',
       undefined, { timeout: 3000 });
 
+    // Transactional load apply: failures after canonical mutation must restore
+    // the exact pre-attempt runtime rather than leave a half-loaded game.
+    async function exerciseRollbackFault(stage, tag) {
+      const evidence = await page.evaluate(({ stage, tag }) => {
+        const target = window.AetherSaveSystem.load('manual-1').envelope;
+
+        // Establish a live baseline that is deliberately different from target.
+        window.ROSTER[0].scrap = (window.ROSTER[0].scrap || 0) + (tag === 'party' ? 17 : 23);
+        window._world.player.tileX = tag === 'party' ? 4 : 5;
+        window._world.player.tileY = tag === 'party' ? 6 : 7;
+        window._world.player.px = window._world.player.tileX * 16;
+        window._world.player.py = window._world.player.tileY * 16;
+        window._airNavigationState.x = tag === 'party' ? 31 : 29;
+        window._airNavigationState.y = tag === 'party' ? 14 : 12;
+        window._airNavigationState.mooredLandmarkId = null;
+
+        const before = window._persistenceRuntime.captureLiveRuntimeForLoadRollback();
+        window.__AETHERWAKE_LOAD_TEST_HOOK__ = currentStage => {
+          if (currentStage === stage) throw new Error('TEST_LOAD_FAULT_' + tag.toUpperCase());
+        };
+
+        let error = null;
+        try {
+          window._persistenceRuntime.applySaveEnvelope(target);
+        } catch (candidate) {
+          error = candidate.message;
+        } finally {
+          delete window.__AETHERWAKE_LOAD_TEST_HOOK__;
+        }
+
+        const after = window._persistenceRuntime.captureLiveRuntimeForLoadRollback();
+        return {
+          error,
+          rollback: JSON.parse(JSON.stringify(window._lastLoadRollback)),
+          before: JSON.parse(JSON.stringify(before)),
+          after: JSON.parse(JSON.stringify(after)),
+        };
+      }, { stage, tag });
+
+      assert.strictEqual(evidence.error, 'TEST_LOAD_FAULT_' + tag.toUpperCase(),
+        tag + ' fault did not escape the transactional apply path');
+      assert(evidence.rollback && evidence.rollback.restored === true,
+        tag + ' fault did not record a successful rollback');
+      assert.strictEqual(
+        JSON.stringify(evidence.after),
+        JSON.stringify(evidence.before),
+        tag + ' fault left live runtime state changed after rollback'
+      );
+    }
+
+    await exerciseRollbackFault('after-party', 'party');
+    await exerciseRollbackFault('after-world', 'world');
+
+    // If rollback itself fails, the transaction must report both failures
+    // rather than claiming recovery.
+    const combinedFailure = await page.evaluate(() => {
+      const target = window.AetherSaveSystem.load('manual-1').envelope;
+      window.ROSTER[0].scrap = (window.ROSTER[0].scrap || 0) + 31;
+
+      window.__AETHERWAKE_LOAD_TEST_HOOK__ = stage => {
+        if (stage === 'after-party') throw new Error('TEST_PRIMARY_APPLY_FAILURE');
+        if (stage === 'rollback-start') throw new Error('TEST_ROLLBACK_FAILURE');
+      };
+
+      let error = null;
+      try {
+        window._persistenceRuntime.applySaveEnvelope(target);
+      } catch (candidate) {
+        error = candidate.message;
+      } finally {
+        delete window.__AETHERWAKE_LOAD_TEST_HOOK__;
+      }
+      return {
+        error,
+        rollback: JSON.parse(JSON.stringify(window._lastLoadRollback)),
+      };
+    });
+
+    assert(/LOAD_APPLY_AND_ROLLBACK_FAILED:TEST_PRIMARY_APPLY_FAILURE\|TEST_ROLLBACK_FAILURE/.test(
+      combinedFailure.error || ''
+    ), 'rollback failure did not produce a combined fail-closed error');
+    assert(combinedFailure.rollback &&
+      combinedFailure.rollback.restored === false &&
+      combinedFailure.rollback.error === 'TEST_PRIMARY_APPLY_FAILURE' &&
+      combinedFailure.rollback.rollbackError === 'TEST_ROLLBACK_FAILURE',
+      'rollback-failure evidence did not preserve both error causes');
+
     assert.deepStrictEqual(errors, [], errors.join('\n'));
     console.log('Aetherwake manual persistence browser round trip: PASS');
   } finally {

@@ -348,41 +348,161 @@ function prepareSaveEnvelopeForApply(envelope) {
   });
 }
 
-function applySaveEnvelope(envelope) {
-  // No canonical live state changes before this preflight completes.
-  const prepared = prepareSaveEnvelopeForApply(envelope);
-  const payload = prepared.payload;
+function runLoadTestHook(stage, context) {
+  if (window && typeof window.__AETHERWAKE_LOAD_TEST_HOOK__ === 'function') {
+    window.__AETHERWAKE_LOAD_TEST_HOOK__(stage, context || {});
+  }
+}
 
-  prepared.preparedRoster.forEach((record, index) => {
-    Object.assign(window.ROSTER[index], cloneSaveJson(record));
+function captureLiveRuntimeForLoadRollback() {
+  if (!world || typeof world.snapshotPersistentState !== 'function') {
+    throw new Error('LOAD_ROLLBACK_WORLD_SNAPSHOT_UNAVAILABLE');
+  }
+  return {
+    worldSnapshot: cloneSaveJson(world.snapshotPersistentState()),
+    roster: Array.isArray(window.ROSTER)
+      ? window.ROSTER.map(character => cloneSaveJson(character))
+      : [],
+    activeIds: Array.isArray(window.ACTIVE_PARTY)
+      ? window.ACTIVE_PARTY.map(character => character.id)
+      : [],
+    airNavigation: window.AetherAirNavigation && airNavigationState
+      ? window.AetherAirNavigation.exportPersistentState(airNavigationState)
+      : null,
+    runtime: {
+      loadedPlaytimeMs,
+      playSessionStartMs,
+      gameState,
+      prevState,
+      pendingHazardIndex,
+      combatReturnState,
+      pendingAutosaveReason,
+      previewEncounterStarted,
+      previewEncounterFinished,
+      previewEndAt,
+    },
+  };
+}
+
+function restoreLiveRuntimeAfterFailedLoad(snapshot) {
+  if (!snapshot || !snapshot.worldSnapshot || !snapshot.runtime) {
+    throw new Error('LOAD_ROLLBACK_SNAPSHOT_MISSING');
+  }
+  runLoadTestHook('rollback-start', snapshot);
+
+  if (!Array.isArray(window.ROSTER) || window.ROSTER.length !== snapshot.roster.length) {
+    throw new Error('LOAD_ROLLBACK_ROSTER_UNAVAILABLE');
+  }
+  snapshot.roster.forEach((record, index) => {
+    const target = window.ROSTER[index];
+    if (!target || target.id !== record.id) {
+      throw new Error('LOAD_ROLLBACK_ROSTER_IDENTITY_MISMATCH');
+    }
+    Object.assign(target, cloneSaveJson(record));
   });
-  window.AetherPartyState.setActivePartyIds(prepared.preparedActiveIds);
+
+  window.AetherPartyState.setActivePartyIds(snapshot.activeIds);
   window.AetherPartyState.validate();
 
-  world.restorePersistentState(prepared.preparedWorld, payload.runtime);
+  const preparedWorld = world.preparePersistentState(
+    snapshot.worldSnapshot.world,
+    snapshot.worldSnapshot.quest
+  );
+  world.restorePersistentState(preparedWorld, snapshot.worldSnapshot.runtime);
 
-  airNavigationState = prepared.preparedAirNavigation;
+  airNavigationState = snapshot.airNavigation
+    ? window.AetherAirNavigation.restorePersistentState(snapshot.airNavigation)
+    : null;
   window._airNavigationState = airNavigationState;
 
-  loadedPlaytimeMs = payload.runtime.playtimeMs;
-  playSessionStartMs = typeof millis === 'function' ? millis() : 0;
-
-  pendingHazardIndex = null;
-  combatReturnState = STATE.WORLD;
-  pendingAutosaveReason = null;
-  previewEncounterStarted = false;
-  previewEncounterFinished = false;
-  previewEndAt = 0;
-  gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
+  loadedPlaytimeMs = snapshot.runtime.loadedPlaytimeMs;
+  playSessionStartMs = snapshot.runtime.playSessionStartMs;
+  pendingHazardIndex = snapshot.runtime.pendingHazardIndex;
+  combatReturnState = snapshot.runtime.combatReturnState;
+  pendingAutosaveReason = snapshot.runtime.pendingAutosaveReason;
+  previewEncounterStarted = snapshot.runtime.previewEncounterStarted;
+  previewEncounterFinished = snapshot.runtime.previewEncounterFinished;
+  previewEndAt = snapshot.runtime.previewEndAt;
+  gameState = snapshot.runtime.gameState;
   window.gameState = gameState;
-  prevState = null;
+  prevState = snapshot.runtime.prevState;
+
+  runLoadTestHook('rollback-complete', snapshot);
   return true;
+}
+
+function applySaveEnvelope(envelope) {
+  // Complete semantic validation and rehydration planning before mutation.
+  const prepared = prepareSaveEnvelopeForApply(envelope);
+  const payload = prepared.payload;
+  const rollbackSnapshot = captureLiveRuntimeForLoadRollback();
+
+  try {
+    runLoadTestHook('before-apply', { envelope });
+
+    prepared.preparedRoster.forEach((record, index) => {
+      Object.assign(window.ROSTER[index], cloneSaveJson(record));
+    });
+    window.AetherPartyState.setActivePartyIds(prepared.preparedActiveIds);
+    window.AetherPartyState.validate();
+    runLoadTestHook('after-party', { envelope });
+
+    world.restorePersistentState(prepared.preparedWorld, payload.runtime);
+    runLoadTestHook('after-world', { envelope });
+
+    airNavigationState = prepared.preparedAirNavigation;
+    window._airNavigationState = airNavigationState;
+
+    loadedPlaytimeMs = payload.runtime.playtimeMs;
+    playSessionStartMs = typeof millis === 'function' ? millis() : 0;
+
+    pendingHazardIndex = null;
+    combatReturnState = STATE.WORLD;
+    pendingAutosaveReason = null;
+    previewEncounterStarted = false;
+    previewEncounterFinished = false;
+    previewEndAt = 0;
+    gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
+    window.gameState = gameState;
+    prevState = null;
+    runLoadTestHook('before-commit', { envelope });
+
+    window._lastLoadRollback = null;
+    return true;
+  } catch (error) {
+    let rollbackError = null;
+    try {
+      restoreLiveRuntimeAfterFailedLoad(rollbackSnapshot);
+    } catch (candidateRollbackError) {
+      rollbackError = candidateRollbackError;
+    }
+
+    if (rollbackError) {
+      window._lastLoadRollback = {
+        restored: false,
+        error: error.message,
+        rollbackError: rollbackError.message,
+      };
+      throw new Error(
+        'LOAD_APPLY_AND_ROLLBACK_FAILED:' +
+        error.message + '|' + rollbackError.message
+      );
+    }
+
+    window._lastLoadRollback = {
+      restored: true,
+      error: error.message,
+    };
+    throw error;
+  }
 }
 
 window._persistenceRuntime = Object.freeze({
   buildSavePayload,
   prepareSaveEnvelopeForApply,
   applySaveEnvelope,
+  captureLiveRuntimeForLoadRollback,
+  restoreLiveRuntimeAfterFailedLoad,
   loadSemanticallyValidSaveCandidate,
   buildLoadableSaveIndex,
   currentPlaytimeMs,
