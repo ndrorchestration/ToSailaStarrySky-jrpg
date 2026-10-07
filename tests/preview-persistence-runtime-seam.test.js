@@ -9,6 +9,7 @@ const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
 const runtime = fs.readFileSync(path.join(root, 'aetherwake.js'), 'utf8');
 
 for (const script of [
+  'modules/route-network-state.js',
   'modules/save-system.js',
   'modules/save-payload-validator.js',
 ]) {
@@ -18,6 +19,10 @@ for (const script of [
     script + ' must load before aetherwake.js');
 }
 
+assert(runtime.includes("throw new Error('AETHER_ROUTE_NETWORK_STATE_UNAVAILABLE')"),
+  'setup must fail closed when route-network authority is unavailable');
+assert(runtime.includes('window._routeNetworkState = routeNetworkState;'),
+  'runtime must expose the bound route-network state');
 assert(runtime.includes("throw new Error('AETHER_SAVE_SYSTEM_UNAVAILABLE')"),
   'setup must fail closed when the save system is unavailable');
 assert(runtime.includes("throw new Error('AETHER_SAVE_PAYLOAD_VALIDATOR_UNAVAILABLE')"),

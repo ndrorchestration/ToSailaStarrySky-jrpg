@@ -1,5 +1,5 @@
 /*
- * Aetherwake — Save System v1
+ * Aetherwake — Save System v2
  * Durable, versioned, corruption-aware save storage.
  * Desktop: NW.js app-data JSON files with temp-write + rename + backup.
  * Browser/tests: localStorage fallback using the same envelope format.
@@ -10,13 +10,29 @@
 }(typeof window !== 'undefined' ? window : globalThis, function createSaveSystem(root) {
   'use strict';
 
-  const VERSION = '1.1.0';
-  const SCHEMA_VERSION = 1;
+  const VERSION = '1.2.0';
+  const SCHEMA_VERSION = 2;
   const MIGRATIONS = Object.freeze({
-    // Future entries are keyed by their source schema version.
-    // Example: 1: envelopeV1 => envelopeV2
-    // Keeping the registry live before v2 exists prevents ad-hoc migration logic later.
+    1(envelopeV1) {
+      if (!envelopeV1 || !envelopeV1.payload ||
+          typeof envelopeV1.payload !== 'object' ||
+          Array.isArray(envelopeV1.payload)) {
+        throw new Error('SAVE_MIGRATION_V1_PAYLOAD_INVALID');
+      }
+      if (Object.prototype.hasOwnProperty.call(envelopeV1.payload, 'routeNetwork')) {
+        throw new Error('SAVE_MIGRATION_V1_ROUTE_NETWORK_UNEXPECTED');
+      }
+      envelopeV1.payload.routeNetwork = {
+        persistenceVersion: 1,
+        operationalStates: {},
+        discoveredClues: [],
+        precedents: [],
+      };
+      envelopeV1.schemaVersion = 2;
+      return envelopeV1;
+    },
   });
+  // Stable storage namespace: changing this would orphan schema-v1 saves before migration.
   const STORAGE_PREFIX = 'aetherwake.save.v1.';
   const MANUAL_SLOTS = Object.freeze(['manual-1','manual-2','manual-3','manual-4','manual-5','manual-6']);
   const AUTOSAVE_SLOTS = Object.freeze(['autosave-0','autosave-1','autosave-2']);

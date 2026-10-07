@@ -111,6 +111,7 @@ for (let i = 0; i < 14; i++) {
 let world = null;
 let combat = null;
 let airNavigationState = null;
+let routeNetworkState = null;
 let combatReturnState = STATE.WORLD;
 let pendingHazardIndex = null;
 
@@ -216,6 +217,16 @@ function setup() {
   });
   window._airNavigation = window.AetherAirNavigation;
   window._airNavigationState = airNavigationState;
+
+  if (!window.AetherRouteNetworkState ||
+      typeof window.AetherRouteNetworkState.createState !== 'function' ||
+      typeof window.AetherRouteNetworkState.validatePersistentState !== 'function') {
+    throw new Error('AETHER_ROUTE_NETWORK_STATE_UNAVAILABLE');
+  }
+  routeNetworkState = window.AetherRouteNetworkState.createState();
+  window._routeNetwork = window.AetherRouteNetworkState;
+  window._routeNetworkState = routeNetworkState;
+
   if (!window.AetherSaveSystem ||
       typeof window.AetherSaveSystem.save !== 'function' ||
       typeof window.AetherSaveSystem.load !== 'function') {
@@ -296,11 +307,17 @@ function buildSavePayload() {
     airNavigation: window.AetherAirNavigation && airNavigationState
       ? window.AetherAirNavigation.exportPersistentState(airNavigationState)
       : null,
+    routeNetwork: window.AetherRouteNetworkState && routeNetworkState
+      ? window.AetherRouteNetworkState.exportPersistentState(routeNetworkState)
+      : null,
   };
 
   window.AetherSavePayloadValidator.validatePayload(payload, {
     validateAirNavigation(candidate) {
       return window.AetherAirNavigation.validatePersistentState(candidate);
+    },
+    validateRouteNetwork(candidate) {
+      return window.AetherRouteNetworkState.validatePersistentState(candidate);
     },
   });
   return payload;
@@ -315,6 +332,9 @@ function prepareSaveEnvelopeForApply(envelope) {
   window.AetherSavePayloadValidator.validatePayload(payload, {
     validateAirNavigation(candidate) {
       return window.AetherAirNavigation.validatePersistentState(candidate);
+    },
+    validateRouteNetwork(candidate) {
+      return window.AetherRouteNetworkState.validatePersistentState(candidate);
     },
   });
 
@@ -338,6 +358,9 @@ function prepareSaveEnvelopeForApply(envelope) {
   const preparedAirNavigation = payload.airNavigation
     ? window.AetherAirNavigation.restorePersistentState(payload.airNavigation)
     : null;
+  const preparedRouteNetwork = window.AetherRouteNetworkState.restorePersistentState(
+    payload.routeNetwork
+  );
 
   return Object.freeze({
     payload,
@@ -345,6 +368,7 @@ function prepareSaveEnvelopeForApply(envelope) {
     preparedRoster,
     preparedActiveIds: payload.party.activeIds.slice(),
     preparedAirNavigation,
+    preparedRouteNetwork,
   });
 }
 
@@ -368,6 +392,9 @@ function captureLiveRuntimeForLoadRollback() {
       : [],
     airNavigation: window.AetherAirNavigation && airNavigationState
       ? window.AetherAirNavigation.exportPersistentState(airNavigationState)
+      : null,
+    routeNetwork: window.AetherRouteNetworkState && routeNetworkState
+      ? window.AetherRouteNetworkState.exportPersistentState(routeNetworkState)
       : null,
     runtime: {
       loadedPlaytimeMs,
@@ -415,6 +442,11 @@ function restoreLiveRuntimeAfterFailedLoad(snapshot) {
     : null;
   window._airNavigationState = airNavigationState;
 
+  routeNetworkState = snapshot.routeNetwork
+    ? window.AetherRouteNetworkState.restorePersistentState(snapshot.routeNetwork)
+    : window.AetherRouteNetworkState.createState();
+  window._routeNetworkState = routeNetworkState;
+
   loadedPlaytimeMs = snapshot.runtime.loadedPlaytimeMs;
   playSessionStartMs = snapshot.runtime.playSessionStartMs;
   pendingHazardIndex = snapshot.runtime.pendingHazardIndex;
@@ -452,6 +484,9 @@ function applySaveEnvelope(envelope) {
 
     airNavigationState = prepared.preparedAirNavigation;
     window._airNavigationState = airNavigationState;
+
+    routeNetworkState = prepared.preparedRouteNetwork;
+    window._routeNetworkState = routeNetworkState;
 
     loadedPlaytimeMs = payload.runtime.playtimeMs;
     playSessionStartMs = typeof millis === 'function' ? millis() : 0;

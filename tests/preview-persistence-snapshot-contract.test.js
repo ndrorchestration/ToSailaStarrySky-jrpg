@@ -23,6 +23,8 @@ assert(runtime.includes('world.snapshotPersistentState()'),
   'payload composition must use world-owned snapshot authority');
 assert(runtime.includes('window.AetherAirNavigation.exportPersistentState(airNavigationState)'),
   'payload must use air-navigation persistence authority');
+assert(runtime.includes('window.AetherRouteNetworkState.exportPersistentState(routeNetworkState)'),
+  'payload must use route-network persistence authority');
 assert(runtime.includes('window.AetherSavePayloadValidator.validatePayload(payload'),
   'snapshot and restore must use semantic payload validation');
 assert(runtime.includes('function prepareSaveEnvelopeForApply(envelope)'),
@@ -31,6 +33,8 @@ assert(runtime.includes('world.preparePersistentState(payload.world, payload.que
   'restore preflight must delegate world rehydration planning');
 assert(runtime.includes('window.AetherAirNavigation.restorePersistentState(payload.airNavigation)'),
   'restore preflight must rehydrate air navigation before mutation');
+assert(runtime.includes('window.AetherRouteNetworkState.restorePersistentState('),
+  'restore preflight must rehydrate route-network state before mutation');
 assert(runtime.includes('const prepared = prepareSaveEnvelopeForApply(envelope);'),
   'apply must require successful preflight');
 assert(runtime.indexOf('const prepared = prepareSaveEnvelopeForApply(envelope);') <

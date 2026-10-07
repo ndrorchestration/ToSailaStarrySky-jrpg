@@ -5,10 +5,10 @@ const path = require('path');
 
 const base = require('../modules/save-system.js');
 
-assert.strictEqual(base.VERSION, '1.1.0');
-assert.strictEqual(base.SCHEMA_VERSION, 1);
-assert.deepStrictEqual(Object.keys(base.MIGRATIONS), [],
-  'schema v1 should have no migration steps yet, but the registry must exist');
+assert.strictEqual(base.VERSION, '1.2.0');
+assert.strictEqual(base.SCHEMA_VERSION, 2);
+assert.deepStrictEqual(Object.keys(base.MIGRATIONS), ['1'],
+  'schema v2 must expose the deterministic v1 migration step');
 assert.strictEqual(typeof base.migrateEnvelope, 'function');
 assert.deepStrictEqual(base.MANUAL_SLOTS, ['manual-1','manual-2','manual-3','manual-4','manual-5','manual-6']);
 assert.deepStrictEqual(base.AUTOSAVE_SLOTS, ['autosave-0','autosave-1','autosave-2']);
@@ -202,9 +202,9 @@ const futureManualPath = path.join(saveDir, 'manual-4.json');
 fs.writeFileSync(futureManualPath, JSON.stringify(futureEnvelope('manual-4', 99)), 'utf8');
 assert.throws(
   () => nwSave.save('manual-4', { value: 4 }, { gameVersion: '0.2.0' }),
-  /SAVE_SLOT_FUTURE_SCHEMA_PROTECTED:manual-4:2:primary/
+  /SAVE_SLOT_FUTURE_SCHEMA_PROTECTED:manual-4:3:primary/
 );
-assert.strictEqual(JSON.parse(fs.readFileSync(futureManualPath, 'utf8')).schemaVersion, 2,
+assert.strictEqual(JSON.parse(fs.readFileSync(futureManualPath, 'utf8')).schemaVersion, 3,
   'future-schema manual primary must remain untouched');
 
 // Mixed-version recovery: newer primary + older valid backup may load the backup,
@@ -221,11 +221,11 @@ assert(mixedMeta && mixedMeta.valid === true,
   'mixed-version slot should remain loadable through its older backup');
 assert.strictEqual(mixedMeta.recoveredFromBackup, true);
 assert.strictEqual(mixedMeta.futureSchemaProtected, true);
-assert.strictEqual(mixedMeta.futureSchemaVersion, 2);
+assert.strictEqual(mixedMeta.futureSchemaVersion, 3);
 assert.strictEqual(mixedMeta.futureSchemaSource, 'primary');
 assert.throws(
   () => nwSave.save('manual-6', { value: 63 }, { gameVersion: '0.2.0' }),
-  /SAVE_SLOT_FUTURE_SCHEMA_PROTECTED:manual-6:2:primary/
+  /SAVE_SLOT_FUTURE_SCHEMA_PROTECTED:manual-6:3:primary/
 );
 
 // A future backup is also protected even when the primary itself is corrupt.
@@ -235,9 +235,9 @@ fs.writeFileSync(protectedPrimary, '{"broken":', 'utf8');
 fs.writeFileSync(protectedBackup, JSON.stringify(futureEnvelope('manual-5', 88)), 'utf8');
 assert.throws(
   () => nwSave.save('manual-5', { value: 5 }, { gameVersion: '0.2.0' }),
-  /SAVE_SLOT_FUTURE_SCHEMA_PROTECTED:manual-5:2:backup/
+  /SAVE_SLOT_FUTURE_SCHEMA_PROTECTED:manual-5:3:backup/
 );
-assert.strictEqual(JSON.parse(fs.readFileSync(protectedBackup, 'utf8')).schemaVersion, 2,
+assert.strictEqual(JSON.parse(fs.readFileSync(protectedBackup, 'utf8')).schemaVersion, 3,
   'future-schema backup must remain untouched behind a corrupt primary');
 
 for (let i = 0; i < 4; i++) {
@@ -253,7 +253,7 @@ fs.writeFileSync(protectedAuto0, JSON.stringify(futureEnvelope('autosave-0', 70)
 const rotated = nwSave.rotateAutosave({ seq: 100 }, { gameVersion: '0.2.0' });
 assert.notStrictEqual(rotated.envelope.slot, 'autosave-0',
   'autosave rotation must not overwrite a protected future-schema slot');
-assert.strictEqual(JSON.parse(fs.readFileSync(protectedAuto0, 'utf8')).schemaVersion, 2);
+assert.strictEqual(JSON.parse(fs.readFileSync(protectedAuto0, 'utf8')).schemaVersion, 3);
 
 // If every autosave slot belongs to a newer schema, fail closed instead of deleting one.
 for (const slot of nwSave.AUTOSAVE_SLOTS) {
@@ -274,11 +274,43 @@ const fixture = JSON.parse(fs.readFileSync(
 ));
 assert.strictEqual(base.validateEnvelope(fixture), true,
   'golden schema-v1 fixture stopped validating');
-assert.strictEqual(base.migrateEnvelope(fixture).schemaVersion, 1,
-  'current historical fixture must normalize to current schema');
+const migratedFixture = base.migrateEnvelope(fixture);
+assert.strictEqual(migratedFixture.schemaVersion, 2,
+  'schema-v1 fixture must migrate to current schema v2');
+assert.deepStrictEqual(migratedFixture.payload.routeNetwork, {
+  persistenceVersion: 1,
+  operationalStates: {},
+  discoveredClues: [],
+  precedents: [],
+}, 'v1 migration must add a neutral route-network record');
+
+const fixtureV2 = JSON.parse(fs.readFileSync(
+  path.join(__dirname, 'fixtures', 'saves', 'schema-v2-manual-1.json'),
+  'utf8'
+));
+assert.strictEqual(base.validateEnvelope(fixtureV2), true,
+  'golden schema-v2 fixture must validate directly');
+assert.strictEqual(base.migrateEnvelope(fixtureV2).schemaVersion, 2,
+  'schema-v2 fixture must remain on schema v2');
+
+const pollutedV1 = JSON.parse(JSON.stringify(fixture));
+pollutedV1.payload.routeNetwork = {
+  persistenceVersion: 1,
+  operationalStates: {},
+  discoveredClues: [],
+  precedents: [],
+};
+const pollutedBody = { ...pollutedV1 };
+delete pollutedBody.checksum;
+pollutedV1.checksum = base.checksum(pollutedBody);
+assert.throws(
+  () => base.migrateEnvelope(pollutedV1),
+  /SAVE_MIGRATION_V1_ROUTE_NETWORK_UNEXPECTED/,
+  'schema-v1 migration must not silently reinterpret pre-existing routeNetwork data'
+);
 const future = JSON.parse(JSON.stringify(fixture));
-future.schemaVersion = 2;
+future.schemaVersion = 3;
 const futureBody = { ...future };
 delete futureBody.checksum;
 future.checksum = base.checksum(futureBody);
-assert.throws(() => base.migrateEnvelope(future), /SAVE_SCHEMA_FUTURE_UNSUPPORTED/);
+assert.throws(() => base.migrateEnvelope(future), /SAVE_SCHEMA_FUTURE_UNSUPPORTED:3/);
