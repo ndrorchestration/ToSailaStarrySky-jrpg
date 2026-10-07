@@ -8,7 +8,7 @@
 (function (root) {
   'use strict';
 
-  const VERSION = '0.6.0';
+  const VERSION = '0.6.2';
   const FLIGHT_BACKGROUND_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
   let flightBackground = null;
   let flightBackgroundRequested = false;
@@ -361,8 +361,10 @@
     // cinematic objective ribbons and preserves the Dragonfly/world as the focal point.
     const statusX = 24;
     const statusY = 24;
-    const statusW = 240;
-    const statusH = travel.route && travel.route.route ? 74 : 42;
+    const statusW = 264;
+    const statusH = travel.route && travel.route.route
+      ? (ctx.routeClueActionAvailable ? 90 : 80)
+      : 42;
     noStroke();
     fill(panel[0], panel[1], panel[2], 154);
     rect(statusX, statusY, statusW, statusH, 7);
@@ -381,28 +383,30 @@
     if (travel.route && travel.route.route) {
       const progressW = statusW - 20;
       textFont('Segoe UI Semibold');
-      textSize(7);
-      fill(232, 220, 198, 188);
+      textSize(8);
+      fill(232, 220, 198, 205);
       text(travel.route.route.label.toUpperCase(), statusX + 10, statusY + 41);
       const condition = String(ctx.routeCondition || 'open').toUpperCase();
-      const assist = ctx.routeAssistActive ? ' // ASSIST' : '';
-      fill(153, 215, 229, 190);
-      text(condition + assist, statusX + 10, statusY + 52);
+      const assist = ctx.routeAssistActive ? ' // ASSIST ENGAGED' : '';
+      fill(153, 215, 229, 220);
+      text(condition + assist, statusX + 10, statusY + 54);
 
+      if (ctx.routeClueActionAvailable) {
+        textSize(8);
+        fill(232, 220, 198, 225);
+        text('UPPER TRACE // F CHART', statusX + 10, statusY + 66);
+      }
+
+      const progressY = statusY + statusH - 8;
       fill(31, 44, 63, 205);
-      rect(statusX + 10, statusY + 66, progressW, 3);
+      rect(statusX + 10, progressY, progressW, 3);
       fill(
         ctx.routeCondition === 'shifted' || ctx.routeCondition === 'closed' ? 210 : 42,
         ctx.routeCondition === 'shifted' || ctx.routeCondition === 'closed' ? 122 : 255,
         ctx.routeCondition === 'shifted' || ctx.routeCondition === 'closed' ? 104 : 181,
-        170
+        185
       );
-      rect(statusX + 10, statusY + 66, Math.round(progressW * travel.route.progress), 3);
-
-      if (ctx.routeClueNearby) {
-        fill(232, 220, 198, 210);
-        text('TRACE IN RANGE // F CHART', statusX + 112, statusY + 52);
-      }
+      rect(statusX + 10, progressY, Math.round(progressW * travel.route.progress), 3);
     }
 
     // Shared controlsHint remains a layout hook, but the player-facing copy is minimal.
@@ -410,13 +414,34 @@
     void controlsHint;
     textAlign(CENTER, BOTTOM);
     textFont('Segoe UI Semibold');
-    textSize(7);
-    fill(232, 220, 198, 138);
+    textSize(8);
+    fill(232, 220, 198, 175);
     text('Q / E  altitude     D  dock', w / 2, h - 16);
-    if (travel.route && travel.route.route && (ctx.routeAssistActive || ctx.routeClueNearby)) {
-      textAlign(RIGHT, BOTTOM);
-      fill(232, 220, 198, 150);
-      text(ctx.routeClueNearby ? 'F  chart trace' : 'R  lane assist', w - 24, h - 16);
+
+    let contextualHint = null;
+    if (ctx.routeClueActionAvailable) contextualHint = 'F  chart upper trace';
+    else if (ctx.routeAssistActive) contextualHint = 'R  release lane';
+    else if (ctx.routeAssistAvailable) contextualHint = 'R  engage lane';
+
+    if (travel.route && travel.route.route && contextualHint) {
+      const contextualHintW = ctx.routeClueActionAvailable ? 174 : 138;
+      const contextualHintH = 20;
+      const contextualHintX = w - contextualHintW - 18;
+      const contextualHintY = h - contextualHintH - 4;
+      noStroke();
+      fill(panel[0], panel[1], panel[2], 212);
+      rect(contextualHintX, contextualHintY, contextualHintW, contextualHintH, 6);
+      fill(42, 255, 181, 185);
+      rect(contextualHintX + 8, contextualHintY + 5, 3, 10);
+      textAlign(RIGHT, CENTER);
+      textFont('Segoe UI Semibold');
+      textSize(10);
+      fill(244, 239, 226, 245);
+      text(
+        contextualHint,
+        contextualHintX + contextualHintW - 9,
+        contextualHintY + contextualHintH / 2
+      );
     }
     textAlign(LEFT, TOP);
   }

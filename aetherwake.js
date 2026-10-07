@@ -2212,6 +2212,22 @@ function drawAirNavigationScene() {
     const routeCondition = routeId && routeNetworkState
       ? window.AetherRouteNetworkState.conditionFor(routeNetworkState, routeId)
       : null;
+    const routeAssistAvailable = Boolean(
+      routeId === 'rootline-west' &&
+      travel.route &&
+      travel.route.onRoute &&
+      travel.route.discovered &&
+      routeCondition !== 'shifted' &&
+      routeCondition !== 'closed'
+    );
+    const routeClueActionAvailable = Boolean(
+      routeNetworkState &&
+      routeCondition !== 'shifted' &&
+      routeCondition !== 'closed' &&
+      window.AetherRouteNetworkState.cluesAt(airNavigationState).some(
+        clue => routeNetworkState.discoveredClues.includes(clue.id)
+      )
+    );
 
     visual.drawRouteOverlay({
       width,
@@ -2220,10 +2236,9 @@ function drawAirNavigationScene() {
       travel,
       nav,
       routeCondition,
+      routeAssistAvailable,
       routeAssistActive: Boolean(routeId && activeRouteAssistId === routeId),
-      routeClueNearby: routeNetworkState
-        ? window.AetherRouteNetworkState.cluesAt(airNavigationState).length > 0
-        : false,
+      routeClueActionAvailable,
     });
 
     visual.drawLandmarkBeacons({

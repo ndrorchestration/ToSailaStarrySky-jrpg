@@ -12,7 +12,7 @@ vm.runInNewContext(source, sandbox, { filename: 'flight-visual-stage.js' });
 const api = sandbox.window.AetherFlightVisual;
 
 assert(api, 'flight visual API missing');
-assert.strictEqual(api.VERSION, '0.6.0');
+assert.strictEqual(api.VERSION, '0.6.2');
 for (const fn of ['altitudeProfile','weatherPalette','drawBackdrop','drawDragonfly','drawForeground','drawRouteOverlay','drawLandmarkBeacons']) {
   assert.strictEqual(typeof api[fn], 'function', fn + ' missing');
 }
@@ -35,6 +35,14 @@ assert(source.includes('progressW = statusW - 20') && source.includes('Keeping t
   'flight route progress must stay inside the compact navigation plaque and leave center-top clear');
 assert(source.includes("text('Q / E  altitude     D  dock'"),
   'flight controls must stay minimal and subordinate to the world');
+assert(source.includes("'R  engage lane'") && source.includes("'R  release lane'"),
+  'Rootline lane control must explain both the available action and the active release action');
+assert(source.includes("'F  chart upper trace'"),
+  'in-range Rootline evidence must expose a direct chart action');
+assert(source.includes('const contextualHintH = 20') &&
+       source.includes('textSize(10)') &&
+       source.includes('rect(contextualHintX, contextualHintY, contextualHintW, contextualHintH, 6)'),
+  'contextual route action must have a dedicated high-salience pill instead of bare 8px text');
 assert(!source.includes("text('OPEN-SKY FLIGHT'") && !source.includes("'  ?  SPD '") && !source.includes("'  ?  P '"),
   'flight HUD must not expose dashboard/debug-style labels or raw telemetry');
 assert(source.includes('scale: 1.22'),

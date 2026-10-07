@@ -530,6 +530,11 @@ async function capture(page, id, description) {
       s.mooredLandmarkId = null;
       if (!s.discoveredRoutes.includes('rootline-west')) s.discoveredRoutes.push('rootline-west');
     });
+    captures.push(await capture(
+      page,
+      '05a0-rootline-west-available',
+      'Rootline West OPEN discovered corridor before lane assist engagement'
+    ));
     await page.keyboard.press('r');
     await page.waitForFunction(() => window._activeRouteAssistId === 'rootline-west',
       undefined, { timeout: 5000 });

@@ -94,11 +94,17 @@ for (const marker of [
   "recordPrecedent(routeNetworkState, 'LOCAL_ROUTE_ASSISTANCE')",
   'WAKE DOCK // ROOTLINE REPORT ACKNOWLEDGED',
   'routeCondition,',
+  'routeAssistAvailable,',
   'routeAssistActive:',
-  'routeClueNearby:',
+  'routeClueActionAvailable,',
 ]) {
   assert(runtime.includes(marker), 'Rootline runtime binding missing: ' + marker);
 }
+
+assert(runtime.includes('routeClueActionAvailable = Boolean(') &&
+       runtime.includes("routeCondition !== 'shifted'") &&
+       runtime.includes("routeCondition !== 'closed'"),
+  'Rootline trace action must disappear once the route is shifted or closed');
 
 assert(runtime.includes('routeNetwork: window.AetherRouteNetworkState && routeNetworkState'),
   'Rootline operational state must remain inside canonical schema-v2 persistence');
@@ -109,10 +115,11 @@ assert(runtime.includes('activeRouteAssistId = null;') &&
 const visual = fs.readFileSync(path.join(__dirname, '..', 'modules', 'flight-visual-stage.js'), 'utf8');
 for (const marker of [
   "String(ctx.routeCondition || 'open').toUpperCase()",
-  "ctx.routeAssistActive ? ' // ASSIST' : ''",
-  'TRACE IN RANGE // F CHART',
-  'R  lane assist',
-  'F  chart trace',
+  "ctx.routeAssistActive ? ' // ASSIST ENGAGED' : ''",
+  'UPPER TRACE // F CHART',
+  'R  engage lane',
+  'R  release lane',
+  'F  chart upper trace',
 ]) {
   assert(visual.includes(marker), 'Rootline HUD binding missing: ' + marker);
 }
