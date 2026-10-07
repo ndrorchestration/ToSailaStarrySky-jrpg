@@ -4,7 +4,7 @@
 
 Aetherwake is a late-prototype / pre-alpha project.
 
-The authoritative `main` line now contains the authored First Wake onboarding path, persistent `ROSTER[5]`, validated reference-based `ACTIVE_PARTY[1..5]`, the JRPG combat/formula and magic contract stack, open-sky navigation, live dialogue/shop/ledger paths, and fail-closed compatibility guards. Protected `main` is currently `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. Preview 0.1 remediation/review candidate PR #250 is separately bound to exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; do not project candidate-only changes onto `main` before merge.
+The authoritative `main` line now contains the authored First Wake onboarding path, persistent `ROSTER[5]`, validated reference-based `ACTIVE_PARTY[1..5]`, the JRPG combat/formula and magic contract stack, open-sky navigation, live dialogue/shop/ledger paths, and fail-closed compatibility guards. The runtime baseline before the documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`; documentation-only merges may advance protected `main` without changing player-runtime bytes. Preview 0.1 remediation/review candidate PR #250 is separately bound to exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; do not project candidate-only changes onto `main` before merge.
 
 ## Desktop / release authority
 
