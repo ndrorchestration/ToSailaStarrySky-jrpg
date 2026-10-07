@@ -42,7 +42,7 @@ The launcher manifest points to `www/index-embedded.html`. Windows packaging con
 
 A compiled installer is not sufficient evidence of a working release. A player-facing installer may be called verified only when the **exact generated candidate** has been installed on Windows and the installed `Aetherwake.exe` has successfully launched through the release smoke gate.
 
-Current status as of 2026-10-03: hosted checkpoint `ff83d023f9633119f24723ab5ab7c53566b38a60` passed browser smoke (`37139742677`) and the Windows package/install/launch gate (`37139742595`), including `DESKTOP_RENDER_READINESS=PASS` and portable-package verification. The ordinary push did not publish a release. Human/player acceptance and visual acceptance remain separate pending gates.
+Current status as of 2026-10-06: protected `main` remains `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`; Preview 0.1 candidate PR #250 is bound to exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`. Hosted smoke run `37557721548` passed. Windows workflow-dispatch run `37559269564` passed package build, no-admin installer compilation, exact installed launch with `DESKTOP_RENDER_READINESS=PASS`, portable verification, SHA-256 generation, and prerelease publication. The published installer was independently re-downloaded, hash-verified, installed, and launched on NeonPC. Technical candidate verification is `PASS`; human review, visual acceptance, and human/player acceptance remain pending.
 
 ---
 
