@@ -1,7 +1,9 @@
-name: Aetherwake player evidence
+name: Aetherwake player evidence log transport
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - verify/player-evidence-pr250-log-2026-10-06
 
 permissions:
   contents: read
@@ -16,8 +18,21 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Checkout
+      - name: Checkout verification branch
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify workflow-only delta
+        env:
+          SOURCE_SHA: 20029e03e67768495a8660e2b88c737e00b0bb6e
+        run: |
+          test "$(git diff --name-only "$SOURCE_SHA" HEAD)" = ".github/workflows/player-evidence.yml"
+
+      - name: Checkout exact PR 250 source
+        run: |
+          git checkout --detach 20029e03e67768495a8660e2b88c737e00b0bb6e
+          test "$(git rev-parse HEAD)" = "20029e03e67768495a8660e2b88c737e00b0bb6e"
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -33,13 +48,17 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Capture player evidence
+      - name: Capture exact-source player evidence
+        env:
+          AETHERWAKE_PLAYER_EVIDENCE_DIR: /tmp/pr250-player-evidence
         run: npm run capture:player-evidence
 
-      - name: Upload player evidence artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: aetherwake-player-evidence-${{ github.sha }}
-          path: evidence/player-acceptance/
-          if-no-files-found: error
-          retention-days: 14
+      - name: Emit bounded evidence to log
+        run: |
+          cat /tmp/pr250-player-evidence/manifest.json
+          for f in /tmp/pr250-player-evidence/*.png; do
+            echo "AETHERWAKE_IMAGE_BEGIN=$(basename "$f")"
+            base64 -w0 "$f"
+            echo
+            echo "AETHERWAKE_IMAGE_END=$(basename "$f")"
+          done
