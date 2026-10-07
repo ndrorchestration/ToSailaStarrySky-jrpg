@@ -17,13 +17,35 @@ The standard installer installs the packaged runtime per-user under `%LOCALAPPDA
 
 Do not use superseded self-extracting/SFX artifacts. If Windows Defender flags an artifact, do not whitelist or bypass it; preserve the exact detection name and SHA-256 for a false-positive report.
 
-## Current verification state — 2026-10-03
+## Current verification state — 2026-10-06
 
-- Hosted checkpoint `ff83d023f9633119f24723ab5ab7c53566b38a60` passed browser smoke run `37139742677`.
-- The same checkpoint passed Windows packaging run `37139742595`: staged runtime contract, NW.js build, direct-output package discovery, portable ZIP, per-user NSIS installer, exact-candidate install/launch, `DESKTOP_RENDER_READINESS=PASS`, portable layout, and SHA-256 generation.
-- Release publication was skipped because this was an ordinary push rather than a tagged or manually dispatched release.
-- The local fallback script remains available and now uses the same direct-or-nested executable discovery rule as hosted CI.
-- Technical verification is green. Human/player acceptance and visual acceptance remain pending; tests and readiness markers do not establish aesthetic approval.
+The exact current Preview 0.1 candidate is PR #250 head `46f50c581d992bf581bb6b6d7961a9421b8b779d`.
+
+Technical evidence on that exact source is green:
+
+- hosted smoke run `37557721548`: **SUCCESS**;
+- current-head seven-frame evidence captured locally on NeonPC with no browser errors;
+- title-ready evidence now shows the actual title/menu;
+- the earlier opaque cyan/teal scanline failure is not reproduced;
+- local packaged `Aetherwake.exe` reached runtime-ready + first-frame on NeonPC;
+- Windows workflow-dispatch run `37559269564`: **SUCCESS**;
+- no-admin installer build: **PASS**;
+- exact installed-candidate launch: **PASS** with `DESKTOP_RENDER_READINESS=PASS`;
+- portable ZIP verification: **PASS**;
+- SHA-256 manifest generation: **PASS**;
+- prerelease publication: **PASS**;
+- published installer re-download, hash verification, isolated install, and installed launch on NeonPC: **PASS**.
+
+Published candidate hashes:
+
+```text
+7feb6de364264617095a59dd9329a99ebfa77a144b0f5887a7ae7ff064f6221d  Aetherwake-Setup.exe
+4c6efc6ea1cecf6468fb983fd8ff5fd5d0ce8645262779551841f663c5326173  Aetherwake-Windows.zip
+```
+
+The remaining release gate is **human/player acceptance**, not Windows packaging. Technical PASS does not establish visual approval or player acceptance. The exact protocol and acceptance boundary are documented in `docs/PREVIEW_0_1_ACCEPTANCE.md`.
+
+The GitHub Actions artifact-quota issue remains open as infrastructure debt, but it is no longer blocking current Preview 0.1 human review because exact-head review evidence is available through the RDC/local handoff.
 
 ## For maintainers
 
