@@ -4,7 +4,7 @@
 
 Aetherwake is a late-prototype / pre-alpha project.
 
-The authoritative `main` line now contains the authored First Wake onboarding path, persistent `ROSTER[5]`, validated reference-based `ACTIVE_PARTY[1..5]`, the JRPG combat/formula and magic contract stack, open-sky navigation, live dialogue/shop/ledger paths, and fail-closed compatibility guards. The current source is newer than the last fully executed green checkpoint; when hosted runners are unavailable, preserve that verification distinction rather than treating runner-admission failures as code failures.
+The authoritative `main` line now contains the authored First Wake onboarding path, persistent `ROSTER[5]`, validated reference-based `ACTIVE_PARTY[1..5]`, the JRPG combat/formula and magic contract stack, open-sky navigation, live dialogue/shop/ledger paths, and fail-closed compatibility guards. Protected `main` is currently `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. Preview 0.1 remediation/review candidate PR #250 is separately bound to exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; do not project candidate-only changes onto `main` before merge.
 
 ## Desktop / release authority
 
@@ -15,8 +15,9 @@ The current production desktop structure is intentionally separate from the deve
 - The game payload lives under `www/`; tests, docs, GitHub metadata, npm development files, and other repository-only material are not player-runtime authority.
 - `npm run package:windows` packages only that staged runtime.
 - `scripts/build-windows-release.ps1` is the maintainer-local Windows fallback and must reach `LOCAL_WINDOWS_RELEASE=PASS` only after build, installer compilation, clean installation, launch smoke, and hash generation.
-- Hosted CI currently cannot execute even checkout because jobs are receiving no runner. Treat `runner_id: 0` + zero steps as infrastructure/admission evidence, not as test evidence.
-- Do not call any new installer verified until the exact generated candidate has completed Windows install/launch verification.
+- Hosted CI is currently executing normally for the Preview 0.1 lane. Exact candidate `46f50c581d992bf581bb6b6d7961a9421b8b779d` passed smoke run `37557721548` and Windows workflow-dispatch run `37559269564`.
+- The published installer from that exact run was independently downloaded, SHA-256 verified, installed, and launched on NeonPC. Technical candidate verification is therefore `PASS` for that exact source.
+- Human review, visual acceptance, and human/player acceptance remain separate gates and are still pending.
 
 Launcher-layout correction lineage: `304835c12555e35061870a54d61f7c95996d0bdd`.
 
@@ -83,6 +84,23 @@ The smoke workflow guards the capture lane with:
 ```bash
 npm run test:player-evidence-capture
 ```
+
+### Preview 0.1 human acceptance boundary
+
+The exact current acceptance target is documented in `docs/PREVIEW_0_1_ACCEPTANCE.md`.
+
+Current boundary:
+
+```text
+SOURCE_SHA=46f50c581d992bf581bb6b6d7961a9421b8b779d
+INSTALLER_SHA256=7feb6de364264617095a59dd9329a99ebfa77a144b0f5887a7ae7ff064f6221d
+TECHNICAL_CANDIDATE_VERIFICATION=PASS
+HUMAN_REVIEW=NOT_RUN
+VISUAL_ACCEPTANCE=PENDING
+HUMAN_PLAYER_ACCEPTANCE=PENDING
+```
+
+A creator self-test may discover defects but does not substitute for the uncoached human/player acceptance run. Do not merge or rebind the historical one-click Drive handoff solely from technical verification.
 
 The smoke test should verify:
 
