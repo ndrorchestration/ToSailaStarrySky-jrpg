@@ -1,0 +1,98 @@
+name: Repair Preview 0.1 release provenance
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  repair-preview-release-tag:
+    if: github.event.pull_request.head.ref == 'verify/repair-preview-0-1-release-tag-2026-10-07' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SOURCE_SHA: 46f50c581d992bf581bb6b6d7961a9421b8b779d
+      EXPECTED_WRONG_SHA: 875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3
+      RELEASE_TAG: aetherwake-desktop-46f50c581d992bf581bb6b6d7961a9421b8b779d
+      EXPECTED_ZIP_SHA256: 4c6efc6ea1cecf6468fb983fd8ff5fd5d0ce8645262779551841f663c5326173
+      EXPECTED_INSTALLER_SHA256: 7feb6de364264617095a59dd9329a99ebfa77a144b0f5887a7ae7ff064f6221d
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Checkout verification head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Verify verification-only delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t delta < <(git diff --name-only "$SOURCE_SHA" HEAD)
+          test "${#delta[@]}" -eq 1
+          test "${delta[0]}" = ".github/workflows/repair-preview-0-1-release-tag.yml"
+          git cat-file -e "$SOURCE_SHA^{commit}"
+
+      - name: Verify defective tag and exact published assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$(git ls-remote origin "refs/tags/$RELEASE_TAG" | awk '{print $1}')"
+          test "$current" = "$EXPECTED_WRONG_SHA"
+
+          rm -rf tag-repair-evidence
+          mkdir tag-repair-evidence
+          gh release download "$RELEASE_TAG" \
+            --pattern Aetherwake-Windows.zip \
+            --pattern Aetherwake-Setup.exe \
+            --pattern SHA256SUMS.txt \
+            --dir tag-repair-evidence
+
+          zip_hash="$(sha256sum tag-repair-evidence/Aetherwake-Windows.zip | awk '{print $1}')"
+          installer_hash="$(sha256sum tag-repair-evidence/Aetherwake-Setup.exe | awk '{print $1}')"
+          test "$zip_hash" = "$EXPECTED_ZIP_SHA256"
+          test "$installer_hash" = "$EXPECTED_INSTALLER_SHA256"
+
+          grep -F "$EXPECTED_ZIP_SHA256  Aetherwake-Windows.zip" tag-repair-evidence/SHA256SUMS.txt
+          grep -F "$EXPECTED_INSTALLER_SHA256  Aetherwake-Setup.exe" tag-repair-evidence/SHA256SUMS.txt
+
+          git show "$SOURCE_SHA:aetherwake.js" > source-aetherwake.js
+          unzip -p tag-repair-evidence/Aetherwake-Windows.zip package.nw/www/aetherwake.js > packaged-aetherwake.js
+          cmp -s source-aetherwake.js packaged-aetherwake.js
+          grep -F 'shadowScanline.setAlpha(40)' packaged-aetherwake.js
+          grep -F 'tealScanline.setAlpha(6)' packaged-aetherwake.js
+          ! grep -F 'fill(color(PAL.SHADOW), 40)' packaged-aetherwake.js
+          ! grep -F 'fill(color(PAL.TEAL), 6)' packaged-aetherwake.js
+
+          acceptance="TECHNICAL_CANDIDATE_PLAYER_ACCEPTANCE_PENDING"
+          echo "PREVIEW_RELEASE_ASSET_SOURCE_BINDING=PASS"
+          echo "PREVIEW_RELEASE_ACCEPTANCE=$acceptance"
+
+      - name: Repair prerelease tag and release target
+        shell: bash
+        run: |
+          set -euo pipefail
+          git tag -f "$RELEASE_TAG" "$SOURCE_SHA"
+          git push --force origin "refs/tags/$RELEASE_TAG"
+          gh release edit "$RELEASE_TAG" --target "$SOURCE_SHA"
+
+      - name: Verify repaired provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="$(git ls-remote origin "refs/tags/$RELEASE_TAG" | awk '{print $1}')"
+          test "$remote" = "$SOURCE_SHA"
+          target="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" --jq '.target_commitish')"
+          test "$target" = "$SOURCE_SHA"
+
+          zip_digest="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" --jq '.assets[] | select(.name=="Aetherwake-Windows.zip") | .digest')"
+          installer_digest="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" --jq '.assets[] | select(.name=="Aetherwake-Setup.exe") | .digest')"
+          test "$zip_digest" = "sha256:$EXPECTED_ZIP_SHA256"
+          test "$installer_digest" = "sha256:$EXPECTED_INSTALLER_SHA256"
+
+          echo "PREVIEW_RELEASE_TAG_SOURCE=$remote"
+          echo "PREVIEW_RELEASE_TARGET_COMMITISH=$target"
+          echo "PREVIEW_RELEASE_TAG_REPAIR=PASS"
+          echo "HUMAN_PLAYER_ACCEPTANCE=PENDING"
