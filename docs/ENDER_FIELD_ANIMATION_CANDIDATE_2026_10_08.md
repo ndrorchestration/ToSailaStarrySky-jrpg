@@ -25,3 +25,9 @@ No independent recognition test, human gameplay acceptance or field admission ha
 ## Documentation rule
 
 Before an art tranche, reconcile the Notion Visual Bible, Character Art Direction & Implementation Contract, Character Art Library, character dossier and scene-specific authorities with repository contracts and the latest creator decisions. After the tranche, update affected records with actual artifacts, revision, approval scope, verification and remaining work, then read back. Historical evidence stays labeled as historical.
+
+## Verification of first runtime candidate
+
+Clean reviewed head `d7ca64ef862f07c3686216be9d03b152700bd7d7`: complete Chapter 1 visual suite and browser route + replay PASS. Candidate gameplay capture produced 18 frames and 4 timing samples at 1440×960 with 960×640 logical canvas. Evidence manifest SHA-256 `8fb1352707fc2bc25206b64b9d14fae6b8270ddb36692eea49740055c90665e9`. Actual dock, cabin and combat images show the staged Ender sprite. This is technical/review evidence, not aesthetic acceptance. The candidate manifest was copied without byte changes into the verifier’s fixed `visual-evidence/manifest.json` location for performance validation.
+
+`tests/ender-field-review.html` is a self-contained animation viewer with action selection, play/pause, frame scrubbing and 1×–4× scale. Its source can be regenerated with `scripts/build-ender-review-page.js`. The review player is independent of gameplay; use the linked opt-in runtime for scene cohesion.
