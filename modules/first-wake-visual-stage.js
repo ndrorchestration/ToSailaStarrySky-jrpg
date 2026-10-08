@@ -381,7 +381,10 @@
       const moving = scene.id === 'dock_walk' && progress < 0.98;
 
       const authored = root.AetherAuthoredCharacterArt;
-      const enderAction = moving ? 'walk' : (cinematic ? 'focus' : 'idle');
+      const riftFocus = scene.id === 'dock_walk' && state && state.dockWalk &&
+        state.dockWalk.x >= 2 && state.dockWalk.x <= 5 &&
+        state.dockWalk.rift && state.dockWalk.rift.stage >= 2;
+      const enderAction = riftFocus ? 'focus' : moving ? 'walk' : (cinematic ? 'focus' : 'idle');
       const ioniaAction = cinematic || scene.id === 'ionia_practical' ? 'talk' : 'idle';
       const enderFrame = Math.floor(now / (moving ? 100 : 160));
       const ioniaFrame = Math.floor(now / 170);
@@ -417,7 +420,7 @@
           now,
           speed: moving ? 0.72 : 0,
           facing: 'right',
-          action: cinematic ? 'focus' : 'idle',
+          action: riftFocus || cinematic ? 'focus' : 'idle',
         });
         if (!ioniaAuthored) characters.draw('ionia', ioniaX, ioniaY, {
           scale: cinematic ? 1.62 : 1.34,
@@ -463,6 +466,102 @@
     line(18, 0, 88, 182);
     line(width - 22, 0, width - 102, 198);
     noStroke();
+  }
+
+  // Ender's first Rift Scholar investigation: unaided observation precedes
+  // instrumental evidence. No portal, teleport effect, spell, or false certainty.
+  function drawDockRiftInspection(state, now) {
+    if (!state || !state.dockWalk || !root.AetherFirstWakeOpening ||
+        typeof root.AetherFirstWakeOpening.dockRiftView !== 'function') return;
+    const view = root.AetherFirstWakeOpening.dockRiftView(state);
+    if (!view.discovered) return;
+
+    push();
+    const pulse = 0.5 + 0.5 * Math.sin(now * 0.004);
+    const cx = 284;
+    const cy = 360;
+    noFill();
+    strokeWeight(1);
+    // Thin offset sightlines are deliberately restrained over painted art.
+    stroke(134, 237, 217, 102 + pulse * 66);
+    arc(cx, cy, 64 + pulse * 5, 64 + pulse * 5, -1.2, 1.4);
+    stroke(245, 198, 128, 112 + pulse * 40);
+    arc(cx + 9, cy - 4, 64 + pulse * 5, 64 + pulse * 5, 1.9, 4.6);
+    stroke(167, 227, 234, 145);
+    line(cx - 12, cy, cx + 2, cy);
+    line(cx + 9, cy - 8, cx + 9, cy + 8);
+    noStroke();
+
+    const panelX = Math.max(18, width - 356);
+    const panelY = 91;
+    const panelW = Math.min(331, width - panelX - 18);
+    const panelH = view.measured ? 220 : 127;
+    fill(8, 18, 28, 213);
+    rect(panelX, panelY, panelW, panelH, 9);
+    noFill();
+    stroke(104, 186, 181, 188);
+    strokeWeight(1);
+    rect(panelX + 2, panelY + 2, panelW - 4, panelH - 4, 7);
+    noStroke();
+    fill(226, 183, 116);
+    rect(panelX + 13, panelY + 16, 24, 2);
+    fill(230, 223, 203);
+    textFont('Segoe UI Semibold');
+    textAlign(LEFT, TOP);
+    textSize(13);
+    text(view.measured ? 'ENDER  /  FIELD GOGGLES' : 'ENDER  /  SOMETHING IS WRONG', panelX + 14, panelY + 27);
+    textFont('Trebuchet MS');
+    textSize(12);
+    fill(206, 224, 221);
+    text(view.measured ? 'Chart and observed lines\ndo not coincide.' :
+      'The far beacon and the dock markers\nshould agree. They do not.',
+      panelX + 14, panelY + 55, view.measured ? panelW - 125 : panelW - 28, 43);
+    if (view.measured) {
+      // Reuse the approved realistic Ender portrait atlas, not a generated
+      // likeness or an unadmitted sprite strip.
+      const authored = root.AetherAuthoredCharacterArt;
+      const px = panelX + panelW - 96;
+      const py = panelY + 16;
+      const portraitShown = authored && typeof authored.drawPortrait === 'function' &&
+        authored.drawPortrait('ender', px, py, 78, { expression: 'focus' });
+      if (portraitShown) {
+        noFill();
+        stroke(175, 204, 192, 168);
+        strokeWeight(1);
+        rect(px - 2, py - 2, 82, 82, 3);
+        noStroke();
+      }
+    }
+    if (view.measured) {
+      const lineY = panelY + 104;
+      stroke(86, 164, 173, 160);
+      line(panelX + 15, lineY, panelX + panelW - 15, lineY);
+      noStroke();
+      textSize(10);
+      fill(133, 208, 202);
+      text('CHART LINE', panelX + 15, lineY + 11);
+      fill(240, 195, 118);
+      text('OBSERVED LINE', panelX + 168, lineY + 11);
+      strokeWeight(2);
+      stroke(133, 208, 202, 220);
+      line(panelX + 16, lineY + 40, panelX + 120, lineY + 40);
+      stroke(240, 195, 118, 220);
+      line(panelX + 168, lineY + 35, panelX + 272, lineY + 39);
+      noStroke();
+      textSize(10);
+      fill(view.recorded ? 166 : 231, view.recorded ? 224 : 207, 184);
+      text(view.recorded ? 'FIELD NOTES SAVED // CAUSE UNKNOWN' :
+        'INSTRUMENT ERROR NOT EXCLUDED', panelX + 14, lineY + 56);
+    }
+    if (view.inRange && !view.recorded) {
+      fill(10, 31, 39, 200);
+      rect(panelX + 14, panelY + panelH - 27, panelW - 28, 20, 4);
+      fill(243, 226, 186);
+      textSize(10);
+      text(view.measured ? 'E  RECORD FINDING' : 'E  LOWER FIELD GOGGLES',
+        panelX + 22, panelY + panelH - 24);
+    }
+    pop();
   }
 
   function drawInteriorDepthFrame(now, floorY) {
@@ -1157,6 +1256,7 @@
     }
 
     drawFrame(scene, state, now);
+    if (scene.id === 'dock_walk') drawDockRiftInspection(state, now);
     drawSceneTransition(scene, state);
 
     // Cinematic framing.
@@ -1288,7 +1388,12 @@
       ? root.AetherFirstWakeOpening.presentationReady(state)
       : true;
     let promptText = '';
-    if (scene.id === 'dock_walk' && state.dockWalk && !state.dockWalk.ready) {
+    if (scene.id === 'dock_walk' && state.dockWalk &&
+        state.dockWalk.rift && state.dockWalk.rift.stage >= 1 &&
+        state.dockWalk.x >= 2 && state.dockWalk.x <= 5 &&
+        state.dockWalk.rift.stage < 3) {
+      promptText = state.dockWalk.rift.stage === 1 ? 'E   INSPECT   /   ARROWS   WALK' : 'E   RECORD   /   ARROWS   WALK';
+    } else if (scene.id === 'dock_walk' && state.dockWalk && !state.dockWalk.ready) {
       promptText = '← / →   WALK';
     } else if (scene.id === 'dock_walk') {
       promptText = 'ENTER   BOARD';

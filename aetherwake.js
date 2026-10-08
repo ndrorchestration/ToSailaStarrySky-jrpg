@@ -1339,9 +1339,24 @@ function keyPressed() {
         (keyCode === LEFT_ARROW || keyCode === 65 || keyCode === RIGHT_ARROW || keyCode === 68)) {
       const delta = (keyCode === LEFT_ARROW || keyCode === 65) ? -1 : 1;
       const movement = opening.moveDock(openingState, delta);
+      if (movement.event && movement.event.type === 'rift-noticed') {
+        showToast('ENDER: THE BEACON AND THE CHART DO NOT AGREE.', C.parchment, 1800);
+      }
       if (movement.ready && !window.__awDockWalkReadyToastShown) {
         showToast('The Aureate Wake is just ahead.', C.teal, 750);
         window.__awDockWalkReadyToastShown = true;
+      }
+      delete keysPressed[keyCode];
+      if (typeof ensureAudio === 'function') ensureAudio();
+      if (typeof resumeAudio === 'function') resumeAudio();
+      return;
+    }
+
+    if (openingScene && openingScene.id === 'dock_walk' && keyCode === 69) {
+      const inspection = opening.interactDockRift(openingState);
+      if (inspection.advanced) {
+        const view = opening.dockRiftView(openingState);
+        showToast(view.lastMessage.toUpperCase(), inspection.stage === 3 ? C.teal : C.parchment, 2100);
       }
       delete keysPressed[keyCode];
       if (typeof ensureAudio === 'function') ensureAudio();
