@@ -59,7 +59,7 @@ jobs:
             ${{ steps.candidate.outputs.evidence }}
             ${{ steps.candidate.outputs.hashes }}
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 1
 
       - name: Publish Chapter 1 prerelease
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65

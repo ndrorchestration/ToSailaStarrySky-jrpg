@@ -35,4 +35,4 @@ jobs:
           name: aetherwake-visual-evidence-${{ github.sha }}
           path: visual-evidence/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 1
