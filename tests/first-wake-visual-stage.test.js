@@ -75,8 +75,8 @@ assert(source.includes("id === 'lyra' ? 1.72") && source.includes("id === 'ionia
   'authored cabin protagonist scale must stay subordinate to the environment');
 assert(source.includes('sceneTicks < 36'),
   'v1.1 non-cinematic scene titles must clear quickly instead of becoming permanent HUD chrome');
-assert(source.includes('(!scene.interactive || Boolean(scene.speaker))') && source.includes('} else if (!scene.interactive) {'),
-  'interactive exploration must not keep narration copy floating over the authored field when no character is speaking');
+// Narration visibility and canvas bounds are exercised by the real renderer
+// in smoke-playwright.js, including the interactive dock and chapter card.
 assert(source.includes('Exploration feedback is a subtitle-like cue') && source.includes('const messageW = Math.min(520'),
   'interactive exploration feedback must remain compact rather than becoming a wide dialogue panel');
 assert(source.includes('const displayMessage = explorationMessage.length > 72') && source.includes('text(displayMessage, width / 2, 559)'),
