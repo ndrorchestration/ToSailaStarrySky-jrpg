@@ -224,7 +224,41 @@ function createServer() {
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'dock_walk'
     , undefined, { timeout: 5000 });
 
-    for (let i = 0; i < 8; i++) await page.keyboard.press('ArrowRight');
+    // Optional Rift Scholar scene: Ender notices a discrepancy unaided,
+    // then checks it with his goggles and files an unresolved field note.
+    for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.dockRiftView(window._firstWakeOpeningState).stage === 1
+    , undefined, { timeout: 5000 });
+    if (process.env.AETHERWAKE_ENDER_CAPTURE_DIR) {
+      fs.mkdirSync(process.env.AETHERWAKE_ENDER_CAPTURE_DIR, { recursive: true });
+      await page.screenshot({
+        path: path.join(process.env.AETHERWAKE_ENDER_CAPTURE_DIR, '01-ender-notices-rift.png'),
+      });
+    }
+    await page.keyboard.press('e');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening.dockRiftView(window._firstWakeOpeningState).stage === 2
+    , undefined, { timeout: 5000 });
+    if (process.env.AETHERWAKE_ENDER_CAPTURE_DIR) {
+      // Portrait atlases load asynchronously after the inspection panel opens.
+      await page.waitForTimeout(900);
+      await page.screenshot({
+        path: path.join(process.env.AETHERWAKE_ENDER_CAPTURE_DIR, '02-ender-field-goggles.png'),
+      });
+    }
+    await page.keyboard.press('e');
+    const riftNote = await page.evaluate(() =>
+      window.AetherFirstWakeOpening.dockRiftView(window._firstWakeOpeningState)
+    );
+    assert(riftNote.recorded && riftNote.conclusion === 'UNRESOLVED // CHART REVIEW NEEDED',
+      'Ender did not record an uncertainty-bounded Rift Scholar observation');
+    if (process.env.AETHERWAKE_ENDER_CAPTURE_DIR) {
+      await page.screenshot({
+        path: path.join(process.env.AETHERWAKE_ENDER_CAPTURE_DIR, '03-ender-field-notes.png'),
+      });
+    }
+    for (let i = 0; i < 6; i++) await page.keyboard.press('ArrowRight');
     await page.waitForFunction(() => window._firstWakeOpeningState.dockWalk.ready === true,
       undefined, { timeout: 5000 });
     await page.keyboard.press('Enter');
@@ -306,6 +340,12 @@ function createServer() {
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'core_walk'
     , undefined, { timeout: 5000 });
+
+    const ioniaCrossCheck = await page.evaluate(() =>
+      window.AetherFirstWakeOpening.dockRiftView(window._firstWakeOpeningState)
+    );
+    assert(ioniaCrossCheck.ioniaCrossChecked && ioniaCrossCheck.recorded,
+      'Ionia did not cross-check Ender\'s earlier dock observation against navigation charts');
 
     // Sequence 08: gather two independent clues, then enter the Core threshold.
     await page.keyboard.press('ArrowLeft');

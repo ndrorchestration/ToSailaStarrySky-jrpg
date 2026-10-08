@@ -233,6 +233,7 @@
         x: 0,
         max: 8,
         ready: false,
+        rift: { stage: 0, lastMessage: '', ioniaCrossChecked: false },
       },
       berthTask: {
         step: 0,
@@ -360,7 +361,61 @@
     if (step === 0) return { state, moved: false, ready: Boolean(state.dockWalk.ready) };
     state.dockWalk.x = Math.max(0, Math.min(state.dockWalk.max, state.dockWalk.x + step));
     state.dockWalk.ready = state.dockWalk.x >= state.dockWalk.max;
-    return { state, moved: true, ready: state.dockWalk.ready };
+    // The first discovery is *unaided*: Ender notices an inconsistency
+    // before consulting his field goggles. This does not cast a spell.
+    let event = null;
+    if (state.dockWalk.rift && state.dockWalk.rift.stage === 0 &&
+        state.dockWalk.x >= 2 && state.dockWalk.x <= 5) {
+      state.dockWalk.rift.stage = 1;
+      state.dockWalk.rift.lastMessage = 'ENDER: Wait. The far beacon seems closer than the dock markers allow.';
+      event = Object.freeze({ type: 'rift-noticed' });
+    }
+    return { state, moved: true, ready: state.dockWalk.ready, event };
+  }
+
+  // A deliberate two-step field investigation: measure, then record.
+  // Optional and observational only; it does not alter route availability,
+  // magical mastery, party membership, or any live combat capability.
+  function interactDockRift(state) {
+    if (!state || !state.dockWalk || !state.dockWalk.rift) {
+      throw new Error('FIRST_WAKE_RIFT_INSPECTION_STATE_REQUIRED');
+    }
+    const rift = state.dockWalk.rift;
+    if (currentScene(state).id !== 'dock_walk' ||
+        state.dockWalk.x < 2 || state.dockWalk.x > 5 || rift.stage < 1) {
+      return { state, advanced: false, stage: rift.stage, event: null };
+    }
+    if (rift.stage === 1) {
+      rift.stage = 2;
+      rift.lastMessage = 'GOGGLES: Two reference lines disagree. Instrument error is still possible.';
+      return { state, advanced: true, stage: 2,
+        event: Object.freeze({ type: 'rift-measured' }) };
+    }
+    if (rift.stage === 2) {
+      rift.stage = 3;
+      rift.lastMessage = 'FIELD NOTES: Repeating offset. Cause unknown. Ask Ionia to check the route charts.';
+      return { state, advanced: true, stage: 3,
+        event: Object.freeze({ type: 'rift-recorded' }) };
+    }
+    return { state, advanced: false, stage: 3, event: null };
+  }
+
+  function dockRiftView(state) {
+    if (!state || !state.dockWalk || !state.dockWalk.rift) {
+      throw new Error('FIRST_WAKE_RIFT_VIEW_STATE_REQUIRED');
+    }
+    const rift = state.dockWalk.rift;
+    return Object.freeze({
+      stage: rift.stage,
+      discovered: rift.stage >= 1,
+      measured: rift.stage >= 2,
+      recorded: rift.stage >= 3,
+      ioniaCrossChecked: rift.ioniaCrossChecked === true,
+      inRange: currentScene(state).id === 'dock_walk' &&
+        state.dockWalk.x >= 2 && state.dockWalk.x <= 5,
+      lastMessage: rift.lastMessage,
+      conclusion: rift.stage >= 3 ? 'UNRESOLVED // CHART REVIEW NEEDED' : 'NOT VERIFIED',
+    });
   }
 
   function dockWalkProgress(state) {
@@ -539,7 +594,14 @@
         return { state, event: Object.freeze({ type: 'seek-ionia' }), hotspot: spot };
       }
       e.ioniaFound = true;
-      e.lastMessage = 'IONIA: Core load just moved twelve percent. That keeps the rooms warm.';
+      if (state.dockWalk && state.dockWalk.rift && state.dockWalk.rift.stage >= 3) {
+        // A second observer checks the records; this corroborates the anomaly,
+        // not a portal, cause, destination, or safe traversal route.
+        state.dockWalk.rift.ioniaCrossChecked = true;
+        e.lastMessage = 'IONIA: The beacon is fixed on my chart. Your mismatch deserves study. Cause unknown.';
+      } else {
+        e.lastMessage = 'IONIA: Core load just moved twelve percent. That keeps the rooms warm.';
+      }
       return { state, event: Object.freeze({ type: 'ionia-found' }), hotspot: spot };
     }
 
@@ -627,6 +689,8 @@
     tickPresentation,
     presentationReady,
     moveDock,
+    interactDockRift,
+    dockRiftView,
     dockWalkProgress,
     interactBerth,
     berthTaskProgress,

@@ -71,6 +71,7 @@
     "test:air-navigation": "node tests/air-navigation.test.js && npm run test:rootline-west-runtime",
     "test:open-sky-runtime": "node tests/open-sky-runtime-contract.test.js",
     "test:first-wake-opening": "node tests/first-wake-opening.test.js",
+    "test:ender-rift-investigation": "node tests/ender-rift-investigation.test.js",
     "test:overlay-contract": "node tests/runtime-overlay-contract.test.js",
     "test:input-runtime": "node tests/input-runtime-contract.test.js",
     "test:combat-runtime": "node tests/combat-runtime-contract.test.js",
