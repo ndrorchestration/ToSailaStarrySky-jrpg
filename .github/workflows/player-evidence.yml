@@ -1,51 +1,40 @@
 name: Aetherwake player evidence
 
-
 on:
   workflow_dispatch:
-
 
 permissions:
   contents: read
 
-
 defaults:
   run:
     shell: bash
-
 
 jobs:
   capture-player-evidence:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
-
 
       - name: Verify player evidence capture contract
         run: npm run test:player-evidence-capture
 
-
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-
       - name: Capture player evidence
         run: npm run capture:player-evidence
-
 
       - name: Upload player evidence artifact
         uses: actions/upload-artifact@v4
