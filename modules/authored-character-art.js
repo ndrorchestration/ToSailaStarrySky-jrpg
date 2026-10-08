@@ -121,6 +121,31 @@
       return Boolean(root && root.location && /(?:\?|&)candidateFieldArt=1(?:&|$)/.test(String(root.location.search||'')));
     }catch(error){return false;}
   }
+  const authoredCandidateState=Object.create(null);
+  function drawAuthoredFieldCandidate(id,x,y,options={}){
+    if(id!=='ender'||!candidateReviewEnabled()||typeof loadImage!=='function'||typeof image!=='function') return false;
+    const action=fieldAction(options.action || (options.speed>0?'walk':'idle'));
+    const key=id+':'+action;
+    if(!authoredCandidateState[key]){
+      const entry=authoredCandidateState[key]={ready:false,image:null};
+      try{
+        loadImage('art-staging/field/ender/candidate/field-'+action+'.png',
+          img=>{entry.image=img;entry.ready=Boolean(img&&img.width===FIELD_CELL_W*FIELD_FRAMES[action]&&img.height===FIELD_CELL_H);},
+          ()=>{entry.ready=false;entry.image=null;});
+      }catch(error){entry.ready=false;entry.image=null;}
+    }
+    const entry=authoredCandidateState[key];
+    if(!entry.ready||!entry.image) return false;
+    const frame=Math.abs(Math.floor(Number(options.frame)||0))%FIELD_FRAMES[action];
+    // Review call sites use old 28x36 scale units; this sheet has a 67px body.
+    const scale=Math.max(0.25,(Number(options.scale)||2)*0.5);
+    const dw=FIELD_CELL_W*scale,dh=FIELD_CELL_H*scale;
+    const dx=options.anchor==='top-left'?x:x-dw/2;
+    const dy=options.anchor==='top-left'?y:y-dh;
+    push();imageMode(CORNER);noSmooth();
+    image(entry.image,dx,dy,dw,dh,frame*FIELD_CELL_W,0,FIELD_CELL_W,FIELD_CELL_H);
+    pop();return true;
+  }
   function ensureCandidateField(id, requireReviewFlag=true){
     const spec=CANDIDATE_FIELD[id];
     if(!spec||(requireReviewFlag&&!candidateReviewEnabled())||typeof loadImage!=='function') return null;
@@ -153,6 +178,7 @@
     return true;
   }
   function drawCandidateFieldCharacter(id,x,y,options={}){
+    if(drawAuthoredFieldCandidate(id,x,y,options)) return true;
     return drawCandidateSheet(id,x,y,options,true);
   }
   function ensureProvisionalStrip(id,action){
@@ -174,6 +200,7 @@
     return entry;
   }
   function drawProvisionalFieldCharacter(id,x,y,options={}){
+    if(drawAuthoredFieldCandidate(id,x,y,options)) return true;
     const action=fieldAction(options.action || (options.speed>0?'walk':'idle'));
     const entry=ensureProvisionalStrip(id,action);
     if(entry&&entry.ready&&entry.image&&typeof image==='function'){
@@ -195,5 +222,6 @@
   }
   function isFieldReady(id){const pack=FIELD_PACKS[id];return Boolean(pack&&pack.status==='ready');}
   function isPortraitReady(id){const pack=PACKS[id];return Boolean(pack&&pack.status==='portrait-ready');}
-  root.AetherAuthoredCharacterArt=Object.freeze({VERSION,PACKS,FIELD_PACKS,FIELD_FRAMES,CANDIDATE_FIELD,PROVISIONAL_FIELD,EXPRESSION_ORDER,normalizeExpression,drawPortrait,isPortraitReady,drawFieldCharacter,isFieldReady,candidateReviewEnabled,drawCandidateFieldCharacter,drawProvisionalFieldCharacter});
+  root.AetherAuthoredCharacterArt=Object.freeze({VERSION,PACKS,FIELD_PACKS,FIELD_FRAMES,CANDIDATE_FIELD,PROVISIONAL_FIELD,EXPRESSION_ORDER,normalizeExpression,drawPortrait,isPortraitReady,drawFieldCharacter,isFieldReady,candidateReviewEnabled,drawAuthoredFieldCandidate,drawCandidateFieldCharacter,drawProvisionalFieldCharacter});
 })(typeof window!=='undefined'?window:globalThis);
+
