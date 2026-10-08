@@ -1372,12 +1372,12 @@
         text(line, copyX, y, copyW, 22);
         y += 21;
       }
-    } else if (!scene.interactive) {
+    } else if (scene.chapterCard) {
       textAlign(CENTER, TOP);
       textFont('Trebuchet MS');
       textSize(20);
       fill(232, 220, 198, 220);
-      text(scene.lines.join('   •   '), width / 2, 330, width - 250, 120);
+      text(scene.lines.join('   •   '), 125, 330, width - 250, 120);
     }
 
     // Player-facing opening keeps production metadata out of the cinematic.

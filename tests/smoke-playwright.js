@@ -188,6 +188,45 @@ function createServer() {
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 0
     , undefined, { timeout: 5000 });
 
+    // Exercise the real renderer: quiet establishing shot, timed narration,
+    // bounded chapter copy, and no passive prose over interactive dock movement.
+    const narrationFrames = await page.evaluate(() => {
+      const opening = window.AetherFirstWakeOpening;
+      const originalText = window.text;
+      const frames = [];
+      try {
+        for (const [index, ticks] of [[0, 0], [0, 141], [0, 142],
+          [0, 193], [0, 194], [0, 240], [9, 240], [2, 240]]) {
+          const scene = opening.SCENES[index];
+          const calls = [];
+          window.text = function (...args) {
+            calls.push({ copy: String(args[0]), x: args[1],
+              w: args[3] || window.textWidth(String(args[0])) });
+            return originalText.apply(this, args);
+          };
+          window.push();
+          try {
+            window.AetherFirstWakeVisual.draw(scene,
+              { ...opening.createState(), sceneTicks: ticks }, { now: 0 });
+          } finally { window.pop(); }
+          frames.push({ index, ticks, calls, lines: scene.lines });
+        }
+      } finally { window.text = originalText; }
+      return frames;
+    });
+    for (const frame of narrationFrames) {
+      const narrative = frame.calls.filter(call => frame.index === 0
+        ? /Dawn gathers|sea of clouds|small patched vessel|very large sky/.test(call.copy)
+        : frame.lines.some(line => call.copy.includes(line)));
+      const shouldShow = frame.index === 9 || (frame.index === 0 && frame.ticks >= 142);
+      assert(shouldShow ? narrative.length > 0 : narrative.length === 0,
+        'opening narration visibility mismatch for scene/tick ' + frame.index + '/' + frame.ticks);
+      for (const call of narrative) {
+        assert(call.x >= 0 && call.x + call.w <= 960,
+          'opening narration extends outside the canvas for scene ' + frame.index);
+      }
+    }
+
     const openingBootstrap = await page.evaluate(() => ({
       sceneId: window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id,
       activeIds: window.ACTIVE_PARTY.map(character => character.id),
