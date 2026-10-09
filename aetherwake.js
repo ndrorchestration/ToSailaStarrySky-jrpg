@@ -1,12 +1,12 @@
 // === modules/core.js ===
 // ============================================================
-// Aetherwake JRPG — Main p5.js Sketch (GLOBAL MODE)
+// Aetherwake JRPG â€” Main p5.js Sketch (GLOBAL MODE)
 // ============================================================
 // Single-file HTML: index.html loads p5.js CDN then this script.
-// All modules use bare p5 globals — this sketch does too.
+// All modules use bare p5 globals â€” this sketch does too.
 // ============================================================
 
-// ── Palette ──
+// â”€â”€ Palette â”€â”€
 const C = {
   teal:     [42, 255, 181],
   scioto:   [124, 200, 232],
@@ -21,7 +21,7 @@ const C = {
   dim:      [80, 70, 90],   // muted blue-gray for labels/indicators (char-create module expects this)
 };
 
-// ── State ──
+// â”€â”€ State â”€â”€
 const STATE = {
   BOOT: 'boot', MENU: 'menu', WORLD: 'world', COMBAT: 'combat',
   DIALOGUE: 'dialogue', SHOP: 'shop', LEDGER: 'ledger',
@@ -45,16 +45,16 @@ let preambleStart = 0;
 let titleVisible = 0;        // 0..1 fade-in for title
 let titleFlash = 0;          // flash effect on title
 
-// ── Screen shake (combat / impact) ──
+// â”€â”€ Screen shake (combat / impact) â”€â”€
 let shake = { intensity: 0, duration: 0, startTime: 0 };
 
-// ── Hit stop / freeze frames (critical hits) ──
+// â”€â”€ Hit stop / freeze frames (critical hits) â”€â”€
 let hitStop = { active: false, remaining: 0 };
 
-// ── Screen fade transitions ──
+// â”€â”€ Screen fade transitions â”€â”€
 let fade = { active: false, from: null, to: null, startTime: 0, duration: 400, alpha: 0 };
 
-// ── UI polish state (Memories adaptation patterns) ──
+// â”€â”€ UI polish state (Memories adaptation patterns) â”€â”€
 // panelOpenness: window slide-open animation progress (0-255)
 let panelOpenness = 0;
 // uiWindowTone: panel ambiance tint accumulator for scene-state shifts
@@ -62,10 +62,10 @@ let uiWindowTone = 0;
 // lastCmdIdx: last-chosen menu command index for last-command memory
 let lastCmdIdx = -1;
 
-// ── Dialogue type-in ──
+// â”€â”€ Dialogue type-in â”€â”€
 let dialogueTypeIn = { active: false, fullText: '', displayText: '', charIndex: 0, speed: 22, lastCharTime: 0 };
 
-// ── Global visual settings ──
+// â”€â”€ Global visual settings â”€â”€
 const VIS = {
   screenShake: true,
   hitStop: true,
@@ -74,9 +74,11 @@ const VIS = {
   vignette: true,
   particles: true,
   hudAnimations: true,
+  // CRT scanlines are an optional retro effect, not the production visual default.
+  scanlines: false,
 };
 
-// ── Toast messages ──
+// â”€â”€ Toast messages â”€â”€
 window.toasts = [];
 
 // Floating islands for title parallax (recreated for boot seq)
@@ -110,11 +112,11 @@ const keysPressed = {};
 const keyRepeat = {};
 const keyRepeatFirst = {};
 
-// ── setup() ──
+// â”€â”€ setup() â”€â”€
 function setup() {
-  window._setupOrder = window._setupOrder ? window._setupOrder + '→setup-start' : 'setup-start';
+  window._setupOrder = window._setupOrder ? window._setupOrder + 'â†’setup-start' : 'setup-start';
   const canvas = createCanvas(960, 640);
-  window._setupOrder = window._setupOrder + '→canvas-done';
+  window._setupOrder = window._setupOrder + 'â†’canvas-done';
   // Now proceed with normal setup
   frameRate(60);
   pixelDensity(1);
@@ -131,7 +133,7 @@ function setup() {
   randomSeed(42);
   noiseSeed(42);
 
-  window._setupOrder = window._setupOrder + '→world-start';
+  window._setupOrder = window._setupOrder + 'â†’world-start';
   if (typeof window.AetherWorld !== 'undefined') {
     world = window.AetherWorld(p5, C);
     window._world = world;
@@ -187,21 +189,21 @@ function setup() {
   });
   window._airNavigation = window.AetherAirNavigation;
   window._airNavigationState = airNavigationState;
-  window._setupOrder = window._setupOrder + '→party-state-done';
-  window._setupOrder = window._setupOrder + '→combat-start';
+  window._setupOrder = window._setupOrder + 'â†’party-state-done';
+  window._setupOrder = window._setupOrder + 'â†’combat-start';
   if (typeof window.AetherCombat !== 'undefined') {
     combat = new window.AetherCombat(window, C);
     window._combat = combat;
     if (combat && typeof combat.init === 'function') combat.init();
   }
-  window._setupOrder = window._setupOrder + '→combat-done';
-  // Character creation module (if present — loaded via index-embedded.html <script>)
+  window._setupOrder = window._setupOrder + 'â†’combat-done';
+  // Character creation module (if present â€” loaded via index-embedded.html <script>)
   if (typeof window.AetherCharCreate !== 'undefined') {
     window._charcreate = window.AetherCharCreate;
     if (window._charcreate && typeof window._charcreate.init === 'function') window._charcreate.init();
-    window._setupOrder = window._setupOrder + '→charcreate-done';
+    window._setupOrder = window._setupOrder + 'â†’charcreate-done';
   }
-  window._setupOrder = window._setupOrder + '→setup-done';
+  window._setupOrder = window._setupOrder + 'â†’setup-done';
   lastTime = millis();
   window.__awRuntimeReady = true;
 }
@@ -232,12 +234,12 @@ function writeDesktopSmokeMarkerOnce() {
   }
 }
 
-// ── draw() ──
+// â”€â”€ draw() â”€â”€
 function draw() {
   dt = millis() - lastTime;
   lastTime = millis();
 
-  // Boot sequence timer — only set once when entering BOOT
+  // Boot sequence timer â€” only set once when entering BOOT
   if (gameState === STATE.BOOT && bootTime === 0) {
     bootTime = millis();
   }
@@ -247,7 +249,7 @@ function draw() {
 
   background(C.navy[0], C.navy[1], C.navy[2]);
 
-  // ── Hit stop: freeze the frame if active ──
+  // â”€â”€ Hit stop: freeze the frame if active â”€â”€
   if (hitStop.active) {
     hitStop.remaining -= dt;
     if (hitStop.remaining <= 0) {
@@ -263,7 +265,7 @@ function draw() {
   // Only run world/combat updates if hit stop is NOT active
   const updatesEnabled = !hitStop.active;
 
-  // Auto-start from MENU after 3s idle — bridges the BOOT→MENU→WORLD gap
+  // Auto-start from MENU after 3s idle â€” bridges the BOOTâ†’MENUâ†’WORLD gap
   // so a single N press (or no press) still reaches the world.
   if (gameState === STATE.MENU && menuAutoStartTimer === 0) {
     menuAutoStartTimer = millis();
@@ -273,7 +275,7 @@ function draw() {
     startGame();
   }
 
-  // Subtle corner brackets — confirm canvas is live without distracting
+  // Subtle corner brackets â€” confirm canvas is live without distracting
   noFill();
   stroke(C.teal[0], C.teal[1], C.teal[2], 50);
   strokeWeight(2);
@@ -370,15 +372,37 @@ function draw() {
       const py = world ? world.player.py : 380;
       const aetherInfo = combat.getAether ? combat.getAether() : { max: 6 };
       const chargeInfo = combat.getCharges ? combat.getCharges() : { max: 2 };
-      combat.drawCombatScene(px, py, aetherInfo.max, chargeInfo.max);
+      const skyCombat = combatReturnState === STATE.AIRSHIP;
+      const skyTravel = skyCombat && airNavigationState && window.AetherAirNavigation &&
+        typeof window.AetherAirNavigation.travelProfile === 'function'
+        ? window.AetherAirNavigation.travelProfile(airNavigationState)
+        : null;
+      combat.drawCombatScene(
+        px,
+        py,
+        aetherInfo.max,
+        chargeInfo.max,
+        {
+          domain: skyCombat ? 'sky' : 'ground',
+          weatherId: skyTravel && skyTravel.weather ? skyTravel.weather.id : 'clear',
+          altitude: skyCombat && airNavigationState ? airNavigationState.altitude : null,
+          encounterPressure: skyTravel ? skyTravel.encounterPressure : 0,
+        }
+      );
     }
-    // Draw combat UI panel
+    // Shared UI layout preserves the encounter stage instead of reserving two
+    // full-height opaque sidebars. An empty combat log consumes no panel space.
+    const uiVisual = window.AetherUIVisualSystem;
+    const hasCombatLog = Boolean(window.UI && Array.isArray(window.UI.combatLog) && window.UI.combatLog.length);
+    const combatLayout = uiVisual && typeof uiVisual.layoutCombat === 'function'
+      ? uiVisual.layoutCombat(width, height, hasCombatLog)
+      : null;
     if (typeof drawCombatPanel === 'function' && combat && typeof combat.getState === 'function') {
-      drawCombatPanel(combat.getState());
+      drawCombatPanel(combat.getState(), combatLayout && combatLayout.statusPanel);
     }
-    // Draw combat log on the right
-    if (typeof drawCombatLog === 'function') {
-      drawCombatLog(width - 240, 100, 224, 280);
+    if (hasCombatLog && typeof drawCombatLog === 'function') {
+      const logBox = combatLayout && combatLayout.logPanel;
+      if (logBox) drawCombatLog(logBox.x, logBox.y, logBox.w, logBox.h);
     }
   }
   else if (gameState === STATE.DIALOGUE) {
@@ -402,21 +426,21 @@ function draw() {
     drawCharSheetOverlay();
   }
 
-  // ── Vignette (intensifies at night) ──
+  // â”€â”€ Vignette (intensifies at night) â”€â”€
   if (VIS.vignette) {
     drawVignette();
   }
 
-  // ── Toast messages ──
+  // â”€â”€ Toast messages â”€â”€
   drawToasts();
 
-  // ── Screen flash ──
+  // â”€â”€ Screen flash â”€â”€
   drawScreenFlash();
 
-  // ── Fade transition overlay ──
+  // â”€â”€ Fade transition overlay â”€â”€
   drawFadeOverlay();
 
-  // ── Dialogue type-in effect ──
+  // â”€â”€ Dialogue type-in effect â”€â”€
   updateDialogueTypeIn();
   if (dialogueTypeIn.active && gameState === STATE.DIALOGUE) {
     // Override the dialogue text with the type-in version
@@ -425,12 +449,12 @@ function draw() {
     }
   }
 
-  drawScanlines();
+  if (VIS.scanlines) drawScanlines();
 
-  // ── Scene fade: track previous state for next-frame detection ──
+  // â”€â”€ Scene fade: track previous state for next-frame detection â”€â”€
   prevState = gameState;
 
-  // ── Window openness animation (Memories §1.2) ──
+  // â”€â”€ Window openness animation (Memories Â§1.2) â”€â”€
   if (window.UI.opening) {
     window.UI.openness = Math.min(255, window.UI.openness + 32);
     if (window.UI.openness >= 255) window.UI.opening = false;
@@ -448,7 +472,7 @@ function draw() {
   writeDesktopSmokeMarkerOnce();
 }
 
-// ── Input ──
+// â”€â”€ Input â”€â”€
 // Interaction key for world module (set by keyPressed, read by world.interact)
 let interactionKey = null;
 
@@ -497,7 +521,7 @@ function keyPressed() {
     }
   }
 
-  // Set interaction key for world module — write to window so world.interact()
+  // Set interaction key for world module â€” write to window so world.interact()
   // and drawInteractionHints() can read the same source.
   // E = 69, Q = 81, F = 70, Tab = 9, L = 76, M = 77
   if (gameState === STATE.WORLD) {
@@ -548,7 +572,7 @@ function keyTyped() {
     if (key === 'n' || key === 'N' || key === 'Enter' || key === ' ') {
       startGame();
     }
-    // Remove return; to allow fall-through from BOOT→MENU→WORLD in same key event
+    // Remove return; to allow fall-through from BOOTâ†’MENUâ†’WORLD in same key event
   }
   if (gameState === STATE.WORLD) {
     if (key === 'c' || key === 'C') {
@@ -578,7 +602,7 @@ function windowResized() {
 }
 
 function handleInput() {
-  // ── Scene fade transition on state change ──
+  // â”€â”€ Scene fade transition on state change â”€â”€
   if (prevState !== null && prevState !== gameState && VIS.fadeTransitions) {
     fade.active = true;
     fade.from = prevState;
@@ -587,7 +611,7 @@ function handleInput() {
     fade.duration = 250;
   }
 
-  // ── Debug logging for key events ──
+  // â”€â”€ Debug logging for key events â”€â”€
   window._lastStateTransition = {
     from: prevState,
     to: gameState,
@@ -603,7 +627,7 @@ function handleInput() {
 
   if (gameState === STATE.BOOT) {
     // Any key skips the boot sequence, goes straight to menu.
-    // The same key press also triggers MENU→WORLD in the same frame so a
+    // The same key press also triggers MENUâ†’WORLD in the same frame so a
     // single keypress (or test) gets the player into the world.
     if (keysPressed[13] || keysPressed[32] || keysPressed[78] || keysPressed[110] ||
         (typeof key !== 'undefined' && (key === 'Enter' || key === ' ' || key === 'n' || key === 'N'))) {
@@ -611,9 +635,9 @@ function handleInput() {
       titleVisible = 0;
       titleFlash = 0;
       // Fall through to MENU handler in the same handleInput() call.
-      // Do NOT return — let the MENU branch below also run.
+      // Do NOT return â€” let the MENU branch below also run.
     }
-    // (intentionally fall through — MENU handler below also runs)
+    // (intentionally fall through â€” MENU handler below also runs)
   }
   if (gameState === STATE.MENU) {
     // Start game on Enter/Space/N (from both keyPressed path and character path).
@@ -624,7 +648,7 @@ function handleInput() {
       startGame();
     }
     // If startGame() routed us into CHARCREATE, run the char-create handler
-    // for this same key press so the title→name transition works on first Enter.
+    // for this same key press so the titleâ†’name transition works on first Enter.
     if (gameState === STATE.CHARCREATE &&
         window._charcreate && typeof window._charcreate.handleInput === 'function') {
       window._charcreate.handleInput(keys, keysPressed);
@@ -687,7 +711,7 @@ function handleInput() {
     }
   }
   else {
-    // Overlay states — ESC or Enter to close
+    // Overlay states â€” ESC or Enter to close
     if (keysPressed[ENTER] || keysPressed[27]) {
       closeOverlay();
     }
@@ -755,7 +779,7 @@ function handleWorldInput() {
   if (keysPressed[84]) {   // T
     openState(STATE.QUESTLOG);
   }
-  // C: start combat encounter (dev/testing — triggers a Sky-Predator fight)
+  // C: start combat encounter (dev/testing â€” triggers a Sky-Predator fight)
   if (keysPressed[67]) {   // C
     if (combat && typeof combat.beginEncounter === 'function') {
       startCombat('skyPredator');
@@ -794,6 +818,9 @@ function advanceFirstWakeOpening() {
   const opening = window.AetherFirstWakeOpening;
   const state = window._firstWakeOpeningState;
   if (!opening || !state) throw new Error('FIRST_WAKE_OPENING_STATE_UNAVAILABLE');
+  if (typeof opening.canAdvancePresentation === 'function' && !opening.canAdvancePresentation(state)) {
+    return { state, event: Object.freeze({ type: 'presentation-hold' }) };
+  }
 
   const result = opening.advance(state);
   if (result.event && result.event.type === 'party-join') {
@@ -818,6 +845,15 @@ function drawFirstWakeOpening() {
   const state = window._firstWakeOpeningState;
   if (!opening || !state) return;
   const scene = opening.currentScene(state);
+  const visual = window.AetherFirstWakeVisual;
+  if (typeof opening.tickPresentation === 'function') opening.tickPresentation(state, 1);
+
+  if (visual && typeof visual.draw === 'function') {
+    push();
+    visual.draw(scene, state, { now: millis(), width, height });
+    pop();
+    return;
+  }
 
   push();
   noStroke();
@@ -862,11 +898,11 @@ function drawFirstWakeOpening() {
     height - 58
   );
   fill(C.teal[0], C.teal[1], C.teal[2]);
-  text('ENTER / SPACE — CONTINUE', width / 2, height - 26);
+  text('ENTER / SPACE â€” CONTINUE', width / 2, height - 26);
   pop();
 }
 
-// ── Open-sky flight ──
+// â”€â”€ Open-sky flight â”€â”€
 function ensureAirNavigationState() {
   if (!window.AetherAirNavigation) return false;
   if (!airNavigationState) {
@@ -955,79 +991,131 @@ function drawAirNavigationScene() {
   if (!ensureAirNavigationState()) return;
   const nav = window.AetherAirNavigation;
   const travel = nav.travelProfile(airNavigationState);
+  const visual = window.AetherFlightVisual;
 
-  background(16, 28, 52);
-  noStroke();
-  fill(34, 56, 92);
-  rect(0, 0, width, height * 0.58);
-  fill(22, 36, 64);
-  rect(0, height * 0.58, width, height * 0.42);
+  if (visual && typeof visual.drawBackdrop === 'function') {
+    visual.drawBackdrop({
+      width,
+      height,
+      now: millis(),
+      state: airNavigationState,
+      travel,
+      nav,
+    });
+  } else {
+    background(16, 28, 52);
+    noStroke();
+    fill(34, 56, 92);
+    rect(0, 0, width, height * 0.58);
+    fill(22, 36, 64);
+    rect(0, height * 0.58, width, height * 0.42);
+  }
 
   const left = 90, top = 76, mapW = width - 180, mapH = height - 170;
   const sx = x => left + (x / (nav.SKY_WIDTH - 1)) * mapW;
   const sy = y => top + (y / (nav.SKY_HEIGHT - 1)) * mapH;
 
-  stroke(124, 200, 232, 70);
-  strokeWeight(2);
-  for (const route of nav.SKY_ROUTES) {
-    const a = nav.LANDMARKS.find(mark => mark.id === route.from);
-    const b = nav.LANDMARKS.find(mark => mark.id === route.to);
-    if (!a || !b) continue;
-    line(sx(a.x), sy(a.y), sx(b.x), sy(b.y));
-  }
+  const modernFlightVisual = Boolean(
+    visual &&
+    typeof visual.drawLandmarkBeacons === 'function' &&
+    typeof visual.drawRouteOverlay === 'function'
+  );
+  if (!modernFlightVisual) {
+    stroke(124, 200, 232, 70);
+    strokeWeight(2);
+    for (const route of nav.SKY_ROUTES) {
+      const a = nav.LANDMARKS.find(mark => mark.id === route.from);
+      const b = nav.LANDMARKS.find(mark => mark.id === route.to);
+      if (!a || !b) continue;
+      line(sx(a.x), sy(a.y), sx(b.x), sy(b.y));
+    }
 
-  textAlign(CENTER, CENTER);
-  textSize(12);
-  for (const mark of nav.LANDMARKS) {
-    const discovered = airNavigationState.discovered.includes(mark.id);
-    noStroke();
-    fill(discovered ? 42 : 90, discovered ? 255 : 100, discovered ? 181 : 120);
-    ellipse(sx(mark.x), sy(mark.y), mark.dockable ? 13 : 9, mark.dockable ? 13 : 9);
-    fill(232, 220, 198, discovered ? 210 : 100);
-    text(discovered ? mark.label : 'UNCHARTED SIGNAL', sx(mark.x), sy(mark.y) - 14);
+    textAlign(CENTER, CENTER);
+    textSize(12);
+    for (const mark of nav.LANDMARKS) {
+      const discovered = airNavigationState.discovered.includes(mark.id);
+      noStroke();
+      fill(discovered ? 42 : 90, discovered ? 255 : 100, discovered ? 181 : 120);
+      ellipse(sx(mark.x), sy(mark.y), mark.dockable ? 13 : 9, mark.dockable ? 13 : 9);
+      fill(232, 220, 198, discovered ? 210 : 100);
+      text(discovered ? mark.label : 'UNCHARTED SIGNAL', sx(mark.x), sy(mark.y) - 14);
+    }
   }
 
   const shipX = sx(airNavigationState.x);
   const shipY = sy(airNavigationState.y);
-  push();
-  translate(shipX, shipY);
-  rotate(airNavigationState.heading || 0);
-  noStroke();
-  fill(232, 220, 198);
-  triangle(12, 0, -9, -7, -9, 7);
-  fill(42, 255, 181);
-  rect(-8, -2, 11, 4);
-  pop();
+  let renderedDragonfly = false;
+  if (visual && typeof visual.drawDragonfly === 'function') {
+    try {
+      renderedDragonfly = visual.drawDragonfly({
+        x: shipX,
+        y: shipY,
+        width,
+        height,
+        now: millis(),
+        state: airNavigationState,
+        travel,
+      }) !== false;
+    } catch (error) {
+      console.warn('[visual] Dragonfly flight fallback:', error && error.message ? error.message : error);
+    }
+  }
+  if (!renderedDragonfly) {
+    push();
+    translate(shipX, shipY);
+    rotate(airNavigationState.heading || 0);
+    noStroke();
+    fill(232, 220, 198);
+    triangle(12, 0, -9, -7, -9, 7);
+    fill(42, 255, 181);
+    rect(-8, -2, 11, 4);
+    pop();
+  }
 
-  textAlign(LEFT, TOP);
-  fill(232, 220, 198);
-  textSize(14);
-  text('OPEN-SKY FLIGHT', 24, 22);
-  textSize(12);
-  text(
-    'ALT ' + airNavigationState.altitude.toUpperCase() +
-    '  WEATHER ' + travel.weather.label +
-    '  SPEED ' + travel.effectiveSpeed.toFixed(2) +
-    '  PRESSURE ' + travel.encounterPressure,
-    24, 44
-  );
-  if (travel.route && travel.route.route) {
+  if (visual && typeof visual.drawLandmarkBeacons === 'function') {
+    visual.drawLandmarkBeacons({ width, height, now: millis(), state: airNavigationState, travel, nav });
+  }
+  if (visual && typeof visual.drawRouteOverlay === 'function') {
+    visual.drawRouteOverlay({ width, height, now: millis(), state: airNavigationState, travel, nav });
+  }
+  if (visual && typeof visual.drawForeground === 'function') {
+    visual.drawForeground({ width, height, now: millis(), state: airNavigationState, travel, nav });
+  }
+
+  // The compact flight visual owns player-facing instrumentation when loaded.
+  // Retain the original telemetry only as a fail-closed fallback if that module
+  // is unavailable; never stack both HUD systems over the artwork.
+  if (!visual || typeof visual.drawRouteOverlay !== 'function') {
+    textAlign(LEFT, TOP);
+    fill(232, 220, 198);
+    textSize(14);
+    text('OPEN-SKY FLIGHT', 24, 22);
+    textSize(12);
     text(
-      'ROUTE ' + travel.route.route.label +
-      '  ' + Math.round(travel.route.progress * 100) + '%',
-      24, 62
+      'ALT ' + airNavigationState.altitude.toUpperCase() +
+      '  WEATHER ' + travel.weather.label +
+      '  SPEED ' + travel.effectiveSpeed.toFixed(2) +
+      '  PRESSURE ' + travel.encounterPressure,
+      24, 44
     );
+    if (travel.route && travel.route.route) {
+      text(
+        'ROUTE ' + travel.route.route.label +
+        '  ' + Math.round(travel.route.progress * 100) + '%',
+        24, 62
+      );
+    }
+    if (airNavigationState.mooredLandmarkId) {
+      const moored = nav.LANDMARKS.find(mark => mark.id === airNavigationState.mooredLandmarkId);
+      if (moored) text('MOORED // ' + moored.label, 24, height - 54);
+    }
+    textAlign(RIGHT, TOP);
+    text('ARROWS steer  Q/E altitude  D dock  L/Esc land', width - 24, 22);
+    textAlign(LEFT, BASELINE);
   }
-  if (airNavigationState.mooredLandmarkId) {
-    const moored = nav.LANDMARKS.find(mark => mark.id === airNavigationState.mooredLandmarkId);
-    if (moored) text('MOORED // ' + moored.label, 24, height - 54);
-  }
-  textAlign(RIGHT, TOP);
-  text('ARROWS steer  Q/E altitude  D dock  L/Esc land', width - 24, 22);
-  textAlign(LEFT, BASELINE);
 }
 
-// ── Combat launcher: triggers an encounter ──
+// â”€â”€ Combat launcher: triggers an encounter â”€â”€
 function startCombat(enemyId, returnState) {
   if (!combat || !world) return;
   combatReturnState = returnState || STATE.WORLD;
@@ -1130,10 +1218,10 @@ function openState(s) {
   if (VIS.fadeTransitions) {
     startFade(150);  // quick fade-in overlay
   }
-  // ── Window openness slide-in (Memories §1.2) ──
+  // â”€â”€ Window openness slide-in (Memories Â§1.2) â”€â”€
   window.UI.opening = true;
   window.UI.openness = 0;
-  // ── Per-state window tones (Memories §1.3) ──
+  // â”€â”€ Per-state window tones (Memories Â§1.3) â”€â”€
   switch (s) {
     case STATE.DIALOGUE:
       window.UI.windowTone = [124, 200, 232]; // cool blue
@@ -1210,7 +1298,7 @@ function startFade(duration) {
   fade.to = null;
 }
 
-/** Trigger screen shake — intensity 1..10, duration in ms. */
+/** Trigger screen shake â€” intensity 1..10, duration in ms. */
 function triggerShake(intensity, duration) {
   if (!VIS.screenShake) return;
   intensity = Math.max(1, Math.min(10, intensity || 4));
@@ -1220,14 +1308,14 @@ function triggerShake(intensity, duration) {
   shake.startTime = millis();
 }
 
-/** Trigger hit stop (freeze frames) — ms to freeze, typically 80-150 for crits. */
+/** Trigger hit stop (freeze frames) â€” ms to freeze, typically 80-150 for crits. */
 function triggerHitStop(ms) {
   if (!VIS.hitStop) return;
   hitStop.active = true;
   hitStop.remaining = ms || 100;
 }
 
-/** Show a toast message — auto-fading overlay text. */
+/** Show a toast message â€” auto-fading overlay text. */
 function showToast(text, color, duration) {
   window.toasts.push({
     text: text,
@@ -1258,7 +1346,7 @@ function triggerCombatHitFeedback(enemyDmg, playerDmg, rollTotal, isPlayerAttack
   }
 }
 
-/** Notify that an ability resolved — success or fail sound. */
+/** Notify that an ability resolved â€” success or fail sound. */
 function triggerAbilityFeedback(success) {
   if (success) {
     if (typeof window.playAbilitySuccess === 'function') window.playAbilitySuccess();
@@ -1279,17 +1367,29 @@ function triggerLevelUp() {
   showToast('LEVEL UP', [255, 179, 71], 2200);
 }
 
-// ── Drawing helpers ──
+// â”€â”€ Drawing helpers â”€â”€
 
-/** Boot sequence: loading → story preamble → title with parallax islands */
+/** Boot sequence: loading â†’ story preamble â†’ title with parallax islands */
 function drawBootSequence() {
   const elapsed = millis() - bootTime;
   const progress = Math.min(1, elapsed / BOOT_LOAD_MS);
   const preambleElapsed = millis() - preambleStart;
   
-  // Background: navy
+  // Frame one belongs to Aetherwake: reuse the authored sky-world plate.
+  const titleVisual = window.AetherTitleVisual;
+  let paintedBoot = false;
+  if (titleVisual && typeof titleVisual.drawSky === 'function') {
+    push();
+    paintedBoot = titleVisual.drawSky(millis()) !== false;
+    pop();
+  }
+  if (!paintedBoot) {
+    noStroke();
+    fill(C.navy[0], C.navy[1], C.navy[2]);
+    rect(0, 0, width, height);
+  }
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2]);
+  fill(C.navy[0], C.navy[1], C.navy[2], 112);
   rect(0, 0, width, height);
   
   // Subtle teal grid (static)
@@ -1317,21 +1417,21 @@ function drawBootSequence() {
     ellipse(px - 3, py - 3, island.size * 0.3, island.size * 0.2);
   }
   
-  // ── Loading phase (0-1.2s) ──
+  // Opening sting (0-1.2s): logo, not technical loading UI.
   if (elapsed < BOOT_LOAD_MS) {
+    const sting = Math.min(1, elapsed / 420);
     noStroke();
-    textSize(12);
-    fill(C.teal[0], C.teal[1], C.teal[2], 150);
     textAlign(CENTER, CENTER);
-    const loadText = 'LOADING' + '.'.repeat(Math.floor((elapsed / 300) % 4));
-    text(loadText, width/2, height/2 - 20);
-    textSize(9);
-    fill(C.parchment[0], C.parchment[1], C.parchment[2], 100);
-    text('initializing the weave\u2026', width/2, height/2 + 8);
+    textFont('Trebuchet MS');
+    textSize(22);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2], 225 * sting);
+    text('AETHERWAKE', width / 2, height / 2 - 2);
+    fill(C.teal[0], C.teal[1], C.teal[2], 90 * sting);
+    rect(width / 2 - 54, height / 2 + 22, 108, 1);
     return;
   }
   
-  // ── Preamble phase (1.2s\u201310.2s) ──
+  // â”€â”€ Preamble phase (1.2s\u201310.2s) â”€â”€
   if (elapsed < BOOT_LOAD_MS + PREAMBLE_DURATION) {
     const t = (elapsed - BOOT_LOAD_MS) / PREAMBLE_DURATION;
     
@@ -1404,7 +1504,8 @@ function drawBootSequence() {
     textSize(9);
     fill(C.teal[0], C.teal[1], C.teal[2], 100 * fadeIn);
     textAlign(CENTER, CENTER);
-    text('[ any key to skip ]', width/2, height - 30);
+    const preambleCue = elapsed < BOOT_LOAD_MS + PREAMBLE_DURATION - 800 ? 'CONTINUE' : 'TO TITLE';
+    text(preambleCue, width/2, height - 30);
 
     return;
   }
@@ -1417,7 +1518,7 @@ function drawBootSequence() {
   }
 
   // Draw parallax islands BEHIND everything (already drawn above grid)
-  // But grid may cover them — redraw islands after grid with proper z-order
+  // But grid may cover them â€” redraw islands after grid with proper z-order
   // Redraw grid at lower opacity during title phase
   stroke(C.teal[0], C.teal[1], C.teal[2], 6);
   strokeWeight(1);
@@ -1472,11 +1573,9 @@ function drawBootSequence() {
   
   textSize(16 * v);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 200 * v);
-  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
   
   textSize(13 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
-  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 48);
   
   textSize(14 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
@@ -1520,6 +1619,14 @@ function drawScanlines() {
 }
 
 function drawTitleScreen() {
+  const visual = window.AetherTitleVisual;
+  if (visual && typeof visual.draw === 'function') {
+    push();
+    visual.draw({ now: millis(), width, height });
+    pop();
+    return;
+  }
+
   noStroke();
   fill(C.navy[0], C.navy[1], C.navy[2]);
   rect(0, 0, width, height);
@@ -1564,17 +1671,9 @@ function drawTitleScreen() {
   fill(C.teal[0], C.teal[1], C.teal[2], 100);
   text('AETHERWAKE', cx, cy);
 
-  textSize(16);
-  fill(C.scioto[0], C.scioto[1], C.scioto[2], 200);
-  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
-
-  textSize(13);
-  fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
-  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 48);
-
   textSize(14);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
-  text('NEW GAME — N or ENTER', cx, cy + 78);
+  text('NEW GAME â€” N or ENTER', cx, cy + 78);
 
   textSize(11);
   fill(C.rust[0], C.rust[1], C.rust[2], 140);
@@ -1587,50 +1686,160 @@ function drawTitleScreen() {
   text('A SOLARPUNK SKYBOUND JRPG', cx, height - 20);
 }
 
-function drawDialogueOverlay() {
+function getDialogueSpriteId(npc) {
+  if (!npc) return 'settler';
+  if (npc.id === 'elder_farmer' || npc.name === 'Ionia') return 'ionia';
+  if (npc.id === 'child_prophet' || npc.name === 'Lyra') return 'lyra';
+  if (npc.id === 'engine_spirit' || npc.name === 'The Core') return 'engineSpirit';
+  if (npc.id === 'corporate_salvager' || npc.name === 'Verrick') return 'corporateSalvager';
+  return 'settler';
+}
+
+function drawDialoguePortrait(npc, x, y, size, expression = 'talk') {
+  const authoredCharacters = window.AetherAuthoredCharacterArt;
+  const characters = window.AetherCharacterRenderer;
+  const sprites = window.AetherPixelSprites;
+  const id = getDialogueSpriteId(npc);
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2], 180);
-  rect(0, 0, width, height);
+  fill(C.navy[0] + 5, C.navy[1] + 7, C.navy[2] + 10, 245);
+  rect(x, y, size, size);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 28);
+  rect(x + 4, y + 4, size - 8, size - 8);
 
-  // ── Window tone (Memories §1.3): cool tint for dialogue ──
-  const tone = window.UI.windowTone || null;
-
-  // ── Window openness (Memories §1.2): alpha multiplier ──
-  const openness = window.UI.openness || 255;
-
-  // Backdrop dimmer tied to openness
-  fill(C.navy[0], C.navy[1], C.navy[2], 180 * (openness / 255));
-  rect(0, 0, width, height);
-
-  const bx = width/2 - 240, by = height - 100, bw = 480, bh = 80;
-  fill(C.navy[0], C.navy[1], C.navy[2]);
-  noStroke();
-  rect(bx, by, bw, bh);
-  // Tint overlay
-  if (tone) {
-    fill(tone[0], tone[1], tone[2], 30);
-    noStroke();
-    rect(bx, by, bw, bh);
+  const artPreview = window.AetherCharacterArtPreview;
+  const previewCharacterId = artPreview && typeof artPreview.getPreviewCharacterId === 'function'
+    ? artPreview.getPreviewCharacterId()
+    : null;
+  let authoredDrawn = false;
+  if (previewCharacterId && artPreview && typeof artPreview.drawPortrait === 'function') {
+    authoredDrawn = artPreview.drawPortrait(id, x + 4, y + 4, size - 8, { expression });
   }
+  if (!authoredDrawn && authoredCharacters && typeof authoredCharacters.drawPortrait === 'function' &&
+      authoredCharacters.isPortraitReady && authoredCharacters.isPortraitReady(id)) {
+    authoredDrawn = authoredCharacters.drawPortrait(id, x + 4, y + 4, size - 8, { expression });
+  }
+
+  if (!authoredDrawn && characters && characters.validate &&
+      characters.validate() && ['ender','reson','aepex','ionia','lyra'].includes(id)) {
+    push();
+    drawingContext.save();
+    drawingContext.beginPath();
+    drawingContext.rect(x + 4, y + 4, size - 8, size - 8);
+    drawingContext.clip();
+    characters.drawPortrait(id, x + size / 2, y + size + 8, {
+      scale: Math.max(1.45, size / 43),
+      depth: 0.82,
+      now: millis(),
+      facing: 'right',
+      action: 'talk',
+      expression,
+    });
+    drawingContext.restore();
+    pop();
+  } else if (!authoredDrawn && sprites && typeof sprites.draw === 'function' && sprites.validate()) {
+    const scale = Math.max(1, Math.floor(size / 16));
+    sprites.drawShadow(x + size / 2, y + size - 8, Math.max(1, scale * 0.8));
+    sprites.draw(id, x + size / 2, y + size - 9, {
+      anchor: 'bottom-center', scale
+    });
+  } else if (!authoredDrawn) {
+    return false;
+  }
+
+  drawPixelBorder(x, y, size, size, 2, C.shad, C.scioto);
+  return true;
+}
+
+function drawDialogueOverlay() {
+  // Keep the live 2.5D scene readable behind dialogue instead of flattening it.
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 48);
+  rect(0, 0, width, height);
+
+  const tone = window.UI.windowTone || null;
+  const openness = window.UI.openness || 255;
+  const alpha = openness / 255;
+
+  // Cinematic letterbox framing keeps dialogue focused without obscuring the world.
+  fill(8, 10, 20, 190 * alpha);
+  rect(0, 0, width, 20);
+  rect(0, height - 20, width, 20);
+
+  const uiVisual = window.AetherUIVisualSystem;
+  const dialogueLayout = uiVisual && typeof uiVisual.layoutDialogue === 'function'
+    ? uiVisual.layoutDialogue(width, height)
+    : { x: 32, y: height - 160, w: width - 64, h: 126 };
+  const bw = dialogueLayout.w;
+  const bh = dialogueLayout.h;
+  const bx = dialogueLayout.x;
+  const by = dialogueLayout.y;
+  const portraitSize = 108;
+  const gap = 20;
+  const px = bx + 16;
+  const py = by + 22;
+  const textX = px + portraitSize + gap;
+  const textW = bw - portraitSize - gap - 34;
+
+  // Main window with layered instrument-panel depth.
+  noStroke();
+  const dialoguePanel = uiVisual && typeof uiVisual.panelRGBA === 'function'
+    ? uiVisual.panelRGBA()
+    : [C.navy[0], C.navy[1], C.navy[2], 214];
+  fill(dialoguePanel[0], dialoguePanel[1], dialoguePanel[2], dialoguePanel[3] * alpha);
+  rect(bx, by, bw, bh, 8);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 18 * alpha);
+  rect(bx + 4, by + 4, bw - 8, bh - 8);
+
+  if (tone) {
+    fill(tone[0], tone[1], tone[2], 24 * alpha);
+    rect(bx + 4, by + 4, bw - 8, bh - 8);
+  }
+
+  // Thin aether instrumentation rail.
+  fill(C.teal[0], C.teal[1], C.teal[2], 110 * alpha);
+  rect(bx + 14, by + 12, bw - 28, 2);
+  for (let i = 0; i < 7; i++) {
+    const tick = bx + 24 + i * Math.floor((bw - 48) / 6);
+    rect(tick, by + 10, 1, 6);
+  }
+
   drawPixelBorder(bx, by, bw, bh, 3);
 
-  textFont('Press Start 2P');
-  textSize(9);
-  fill(C.teal[0], C.teal[1], C.teal[2], 180);
-  const npcName = window.UI.dialogueNPC ? window.UI.dialogueNPC.name : '???';
-  text(npcName, bx + 10, by + 10);
+  const npc = window.UI.dialogueNPC || null;
+  const npcName = npc ? npc.name : '???';
+  const npcTitle = npc && npc.title ? npc.title : '';
 
-  textFont('VT323');
-  textSize(13);
-  textLeading(16);
-  fill(C.parchment[0], C.parchment[1], C.parchment[2]);
-  wrapText(window.UI.dialogueText || '...', bx + 10, by + 28, bw - 20);
+  drawDialoguePortrait(npc, px, py, portraitSize, window.UI.dialoguePortraitExpression || 'talk');
 
-  textFont('Press Start 2P');
-  textSize(8);
-  fill(C.teal[0], C.teal[1], C.teal[2], 120);
-  textAlign(CENTER, TOP);
-  text('E / ENTER to continue', width/2, by + bh + 6);
+  // Speaker plate: character name reads first, then role, then dialogue.
+  textAlign(LEFT, TOP);
+  fill(C.teal[0], C.teal[1], C.teal[2], 42 * alpha);
+  rect(textX - 8, by + 22, Math.min(250, textW * 0.48), 24, 4);
+  textFont('Segoe UI Semibold');
+  textSize(15);
+  fill(C.teal[0], C.teal[1], C.teal[2], 245 * alpha);
+  text(npcName.toUpperCase(), textX, by + 25);
+
+  if (npcTitle) {
+    textFont('Segoe UI');
+    textSize(12);
+    fill(C.scioto[0], C.scioto[1], C.scioto[2], 210 * alpha);
+    text(npcTitle, textX, by + 49);
+  }
+
+  // Dialogue copy gets a little more breathing room at JRPG reading scale.
+  textFont('Segoe UI');
+  textSize(16);
+  textLeading(20);
+  fill(C.parchment[0], C.parchment[1], C.parchment[2], 248 * alpha);
+  wrapText(window.UI.dialogueText || '...', textX, by + 72, textW);
+
+  // Continue cue as a quiet instrument readout.
+  textFont('Segoe UI');
+  textSize(11);
+  fill(C.teal[0], C.teal[1], C.teal[2], 165 * alpha);
+  textAlign(RIGHT, TOP);
+  text('E / ENTER   Continue', bx + bw - 14, by + bh - 18);
   textAlign(LEFT, TOP);
 }
 
@@ -1639,10 +1848,10 @@ function drawShopOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2], 190);
   rect(0, 0, width, height);
 
-  // ── Window tone (Memories §1.3): warm tint for shop ──
+  // â”€â”€ Window tone (Memories Â§1.3): warm tint for shop â”€â”€
   const tone = window.UI.windowTone || null;
 
-  // ── Window openness (Memories §1.2): alpha multiplier ──
+  // â”€â”€ Window openness (Memories Â§1.2): alpha multiplier â”€â”€
   const openness = window.UI.openness || 255;
   fill(C.navy[0], C.navy[1], C.navy[2], 190 * (openness / 255));
   rect(0, 0, width, height);
@@ -1705,7 +1914,7 @@ function drawShopOverlay() {
     rect(sx + 12, iy, sw - 24, 26);
 
     const buyable = scrap >= item.cost;
-    // Last-command memory highlight (Memories §3.5)
+    // Last-command memory highlight (Memories Â§3.5)
     const lastSel = window.UI.lastShopSelection;
     const isLastSelected = (lastSel !== undefined && i === lastSel);
     fill(buyable ? C.parchment[0] : C.rust[0], buyable ? C.parchment[1] : C.rust[1], buyable ? C.parchment[2] : C.rust[2]);
@@ -1738,7 +1947,7 @@ function drawLedgerOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2], 190);
   rect(0, 0, width, height);
 
-  // ── Window openness (Memories §1.2): alpha multiplier ──
+  // â”€â”€ Window openness (Memories Â§1.2): alpha multiplier â”€â”€
   const openness = window.UI.openness || 255;
   fill(C.navy[0], C.navy[1], C.navy[2], 190 * (openness / 255));
   rect(0, 0, width, height);
@@ -1786,7 +1995,7 @@ function drawQuestLogOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2], 190);
   rect(0, 0, width, height);
 
-  // ── Window openness (Memories §1.2): alpha multiplier ──
+  // â”€â”€ Window openness (Memories Â§1.2): alpha multiplier â”€â”€
   const openness = window.UI.openness || 255;
   fill(C.navy[0], C.navy[1], C.navy[2], 190 * (openness / 255));
   rect(0, 0, width, height);
@@ -1807,7 +2016,7 @@ function drawQuestLogOverlay() {
   textFont('Press Start 2P');
   textSize(10);
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
-  text('QUEST LOG — THE AUREATE WAKE', qx + 16, qy + 12);
+  text('QUEST LOG â€” THE AUREATE WAKE', qx + 16, qy + 12);
 
   if (world && typeof world.getQuestState === 'function') {
     const qs = world.getQuestState();
@@ -1826,11 +2035,11 @@ function drawQuestLogOverlay() {
     text('NPCs: ' + (qs.npcsMet ? qs.npcsMet.length : 0) + '/4  |  Choice: ' + (qs.choiceMade || 'none'), qx + 16, y);
     y += 24;
     textSize(11);
-    if (qs.state === 'signal')      text('Signal — receive the call from the falling ship.', qx + 16, y);
-    else if (qs.state === 'crossing') text('Crossing — three hazards on the way to the ship.', qx + 16, y);
-    else if (qs.state === 'contact')  text('Contact — four souls await on the ship.', qx + 16, y);
-    else if (qs.state === 'choice')   text('Choice — three paths open before you.', qx + 16, y);
-    else if (qs.state === 'wake')     text('Wake — the ending unfolds.', qx + 16, y);
+    if (qs.state === 'signal')      text('Signal â€” receive the call from the falling ship.', qx + 16, y);
+    else if (qs.state === 'crossing') text('Crossing â€” three hazards on the way to the ship.', qx + 16, y);
+    else if (qs.state === 'contact')  text('Contact â€” four souls await on the ship.', qx + 16, y);
+    else if (qs.state === 'choice')   text('Choice â€” three paths open before you.', qx + 16, y);
+    else if (qs.state === 'wake')     text('Wake â€” the ending unfolds.', qx + 16, y);
   }
 
   textFont('Press Start 2P');
@@ -1845,7 +2054,7 @@ function drawCharSheetOverlay() {
   fill(C.navy[0], C.navy[1], C.navy[2], 190);
   rect(0, 0, width, height);
 
-  // ── Window openness (Memories §1.2): alpha multiplier ──
+  // â”€â”€ Window openness (Memories Â§1.2): alpha multiplier â”€â”€
   const openness = window.UI.openness || 255;
   fill(C.navy[0], C.navy[1], C.navy[2], 190 * (openness / 255));
   rect(0, 0, width, height);
@@ -1869,7 +2078,7 @@ function drawCharSheetOverlay() {
     textFont('Press Start 2P');
     textSize(10);
     fill(C.teal[0], C.teal[1], C.teal[2], 180);
-    text('ENDER — Rift Scholar', px + 20, py + 24);
+    text('ENDER â€” Rift Scholar', px + 20, py + 24);
   }
 
   textFont('Press Start 2P');
@@ -1910,7 +2119,7 @@ function wrapText(content, x, y, maxWidth) {
   if (line) text(line, x, ly);
 }
 
-// ── Vignette effect ──────────────────────────────────────────────────────
+// â”€â”€ Vignette effect â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function drawVignette() {
   noStroke();
   const nightFactor = window._isNight ? 0.6 : 0.18;
@@ -1932,7 +2141,7 @@ function drawVignette() {
   rect(0, height * 0.94, width, height * 0.06);
 }
 
-// ── Toast rendering ──────────────────────────────────────────────────────
+// â”€â”€ Toast rendering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function drawToasts() {
   const now = millis();
   for (let i = window.toasts.length - 1; i >= 0; i--) {
@@ -1956,7 +2165,7 @@ function drawToasts() {
   textFont('sans-serif');
 }
 
-// ── Fade overlay ─────────────────────────────────────────────────────────
+// â”€â”€ Fade overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function drawFadeOverlay() {
   if (!fade.active) return;
   const age = millis() - fade.startTime;
@@ -1971,7 +2180,7 @@ function drawFadeOverlay() {
   rect(0, 0, width, height);
 }
 
-// ── Dialogue type-in ─────────────────────────────────────────────────────
+// â”€â”€ Dialogue type-in â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function startDialogueTypeIn(fullText) {
   dialogueTypeIn.active = true;
   dialogueTypeIn.fullText = fullText || '';
@@ -1990,7 +2199,7 @@ function updateDialogueTypeIn() {
       dialogueTypeIn.lastCharTime = now;
     }
   } else {
-    // Type-in complete — keep displaying full text
+    // Type-in complete â€” keep displaying full text
     dialogueTypeIn.active = false;
   }
 }
@@ -2009,7 +2218,7 @@ window.startDialogueTypeIn = startDialogueTypeIn;
 'use strict';
 
 // ---------------------------------------------------------------------------
-// Export surface — every name the rest of the app can reach
+// Export surface â€” every name the rest of the app can reach
 // ---------------------------------------------------------------------------
 const World = {
   init, update, render,
@@ -2031,7 +2240,7 @@ const TILE_TYPES = {
   GROUND_CRATE  : 3,
   GROUND_FLOAT  : 4,   // floating island chunk
   GROUND_WATER  : 5,
-  GROUND_LORE   : 6,   // lore tile — reveals story text when walked
+  GROUND_LORE   : 6,   // lore tile â€” reveals story text when walked
   SKY_EMPTY     : 0,
   SKY_CLOUD     : 1,
   SKY_ASTRO     : 2    // distant celestial drift
@@ -2056,6 +2265,7 @@ const QUEST_STATES = {
 // ---------------------------------------------------------------------------
 let groundLayer = [];
 let skyLayer    = [];
+let loreTextByCoord = Object.create(null);
 let player = {};
 let dayTime = 0;
 let covenantField = null;
@@ -2069,11 +2279,11 @@ let wakeVariants = [];
 let currentInteractionKey = null;
 let activeDialogue = null;
 
-// p5 hooks — called by core.js setup()/draw()/update()
+// p5 hooks â€” called by core.js setup()/draw()/update()
 // ---------------------------------------------------------------------------
 
 /**
- * init() — called once from core.js setup(). Builds map, NPCs, default state.
+ * init() â€” called once from core.js setup(). Builds map, NPCs, default state.
  */
 function init() {
   buildMap();
@@ -2097,6 +2307,7 @@ function init() {
 function buildMap() {
   groundLayer = [];
   skyLayer    = [];
+  loreTextByCoord = Object.create(null);
   for (let y = 0; y < MAP_SIZE; y++) {
     groundLayer[y] = new Array(MAP_SIZE);
     skyLayer[y]    = new Array(MAP_SIZE);
@@ -2130,7 +2341,7 @@ function buildMap() {
     if (inBounds(x, y)) groundLayer[y][x] = TILE_TYPES.GROUND_CRATE;
   }
 
-  // Lore tiles — walk over them to reveal story fragments
+  // Lore tiles â€” walk over them to reveal story fragments
   const loreSpots = [
     { x: 3, y: 6, text: 'A child\'s drawing, preserved on a scrap of hull plating. The Dragonfly spreads four bright wings over three little ships while storm marks gather at the page edge.' },
     { x: 11, y: 5, text: 'The Aureate Wake\'s manifest, water-stained but legible: "Storm posture: local shielding unreliable. Maintain reserve power until dock authority clears the berth."' },
@@ -2143,7 +2354,7 @@ function buildMap() {
   for (const l of loreSpots) {
     if (inBounds(l.x, l.y)) {
       groundLayer[l.y][l.x] = TILE_TYPES.GROUND_LORE;
-      groundLayer[l.y][l.x]._loreText = l.text;
+      loreTextByCoord[l.x + ',' + l.y] = l.text;
     }
   }
 
@@ -2367,7 +2578,7 @@ function initNPCs() {
 }
 
 // ---------------------------------------------------------------------------
-// Quest FSM — 'The Aureate Wake'
+// Quest FSM â€” 'The Aureate Wake'
 // ---------------------------------------------------------------------------
 
 function initQuest() {
@@ -2487,7 +2698,7 @@ function getQuestState() {
 }
 
 /**
- * advanceQuest() — re-derives the next state from current progress.
+ * advanceQuest() â€” re-derives the next state from current progress.
  */
 function advanceQuest() {
   if (gameOver) return;
@@ -2727,7 +2938,7 @@ function resolveEpilogue() {
 // ---------------------------------------------------------------------------
 
 /**
- * movePlayer(dx, dy) — dx,dy in tile units (-1,0,1).
+ * movePlayer(dx, dy) â€” dx,dy in tile units (-1,0,1).
  */
 function movePlayer(dx, dy) {
   if (gameOver) return;
@@ -2748,8 +2959,7 @@ function checkLoreTile(tx, ty) {
   if (t === TILE_TYPES.GROUND_LORE) {
     // Check if already discovered
     if (!quest.discoveries.some(d => d.x === tx && d.y === ty)) {
-      const tile = groundLayer[ty][tx];
-      const loreText = tile._loreText || 'Something hums beneath your feet.';
+      const loreText = loreTextByCoord[tx + ',' + ty] || 'Something hums beneath your feet.';
       quest.discoveries.push({ x: tx, y: ty, text: loreText });
       addLedgerEntry('discovery', 'You found something: ' + loreText);
       // Add a journal entry referencing the discovery
@@ -2795,14 +3005,14 @@ function toggleLayer() {
   isSkyLayerVisible = !isSkyLayerVisible;
   // Re-draw prompt
   if (isSkyLayerVisible) {
-    addLedgerEntry('toggle', 'Sky layer revealed — the 14 falling islands hang above.');
+    addLedgerEntry('toggle', 'Sky layer revealed â€” the 14 falling islands hang above.');
   } else {
-    addLedgerEntry('toggle', 'Sky layer hidden — only the ground remains.');
+    addLedgerEntry('toggle', 'Sky layer hidden â€” only the ground remains.');
   }
 }
 
 /**
- * interact() — dispatches on the key passed from core.js.
+ * interact() â€” dispatches on the key passed from core.js.
  */
 function interact() {
   if (gameOver) return;
@@ -2820,7 +3030,7 @@ function interact() {
 }
 
 /**
- * doTalk() — find nearest NPC within 2 tiles, show dialogue.
+ * doTalk() â€” find nearest NPC within 2 tiles, show dialogue.
  */
 function doTalk() {
   const nearest = findNearestNPC(2);
@@ -2922,7 +3132,7 @@ function openDialogue(npc, forceIntro) {
   window.UI.dialogueText = lines[0] || '...';
   window.UI.dialogueLines = lines;
   window.UI.dialogueLineIndex = 0;
-  // ── Window openness slide-in (Memories §1.2) ──
+  // â”€â”€ Window openness slide-in (Memories Â§1.2) â”€â”€
   window.UI.opening = true;
   window.UI.openness = 0;
   // TTS audio state
@@ -2930,12 +3140,12 @@ function openDialogue(npc, forceIntro) {
   window.UI.dialogueAudioBatch = batch;
   window.UI.dialogueAudioPlayed = false;
 
-  // ── Dialogue type-in effect ──
+  // â”€â”€ Dialogue type-in effect â”€â”€
   if (typeof startDialogueTypeIn === 'function') {
     startDialogueTypeIn(lines[0] || '...');
   }
 
-  // ── NPC name reveal animation trigger ──
+  // â”€â”€ NPC name reveal animation trigger â”€â”€
   if (typeof triggerScreenFlash === 'function') {
     triggerScreenFlash(42, 255, 181, 200, 60);
   }
@@ -3036,7 +3246,7 @@ function stopDialogueAudio() {
 }
 
 // ---------------------------------------------------------------------------
-// Covenant Field — Q press
+// Covenant Field â€” Q press
 // ---------------------------------------------------------------------------
 
 function plantField() {
@@ -3056,7 +3266,7 @@ function plantField() {
     covenantField.planted = false;
     return;
   }
-  // Visual feedback — ring expansion
+  // Visual feedback â€” ring expansion
   if (typeof emitRing === 'function') {
     emitRing(covenantField.x * 16 + 8, covenantField.y * 16 + 8, 12, 30, 50, [42, 255, 181]);
   }
@@ -3074,7 +3284,7 @@ function updateCovenantField(dt) {
 }
 
 // ---------------------------------------------------------------------------
-// Board ship — F press
+// Board ship â€” F press
 // ---------------------------------------------------------------------------
 
 function boardShip() {
@@ -3099,7 +3309,7 @@ function boardShip() {
 }
 
 // ---------------------------------------------------------------------------
-// Ledger — L press
+// Ledger â€” L press
 // ---------------------------------------------------------------------------
 
 function initLedgerPlaceholder() {
@@ -3111,10 +3321,10 @@ function initLedgerPlaceholder() {
 
 function openLedger() {
   ledger.open = true;
-  // ── Window openness slide-in (Memories §1.2) ──
+  // â”€â”€ Window openness slide-in (Memories Â§1.2) â”€â”€
   window.UI.opening = true;
   window.UI.openness = 0;
-  // Last-command memory: restore last filter (catalog §3.5)
+  // Last-command memory: restore last filter (catalog Â§3.5)
   if (window.UI.lastLedgerFilter === undefined) window.UI.lastLedgerFilter = 'all';
 }
 
@@ -3131,7 +3341,7 @@ function getLedger() {
 }
 
 // ---------------------------------------------------------------------------
-// Shop — M press (Repair Cafe)
+// Shop â€” M press (Repair Cafe)
 // ---------------------------------------------------------------------------
 
 function initShop() {
@@ -3158,7 +3368,7 @@ function openShop() {
     return false;
   }
   shop.open = true;
-  // ── Window openness slide-in (Memories §1.2) ──
+  // â”€â”€ Window openness slide-in (Memories Â§1.2) â”€â”€
   window.UI.opening = true;
   window.UI.openness = 0;
   // Last-command memory: restore last selected shop slot
@@ -3271,23 +3481,80 @@ function update(dt) {
 // ---------------------------------------------------------------------------
 
 function render() {
+  const visualAirNavigationState = (typeof window !== 'undefined' && window._airNavigationState) ? window._airNavigationState : null;
   if (player.shipBoarded) {
     drawShipInterior();
   } else {
-    drawGroundLayer();
-    if (isSkyLayerVisible) {
-      drawSkyLayer();
+    const benchmark = window.AetherVisualBenchmark;
+    const benchmarkActive = Boolean(
+      benchmark &&
+      typeof benchmark.isActive === 'function' &&
+      benchmark.isActive(player, visualAirNavigationState)
+    );
+    const benchmarkCtx = benchmarkActive ? {
+      width,
+      height,
+      now: millis(),
+      dayTime,
+      player,
+      airNavigationState: visualAirNavigationState
+    } : null;
+
+    if (benchmarkActive) benchmark.drawBackdrop(benchmarkCtx);
+
+    const previewPresentation = window.AetherPreviewWorldPresentation;
+    const previewRendered = previewPresentation &&
+      typeof previewPresentation.draw === 'function' && previewPresentation.draw({
+        groundLayer,
+        skyLayer,
+        player,
+        npcs,
+        covenantField,
+        width,
+        height,
+        now: millis(),
+        dayTime,
+        isSkyLayerVisible,
+        quest,
+        dialogueActive: Boolean(window.UI && window.UI.dialogueOpen),
+        dialogueNpcId: window.UI && window.UI.dialogueNPC ? window.UI.dialogueNPC.id : null,
+        skipBackdrop: benchmarkActive,
+        dockBenchmark: benchmarkActive,
+      });
+
+    if (!previewRendered) {
+      drawGroundLayer();
+      if (isSkyLayerVisible) drawSkyLayer();
+      if (benchmarkActive) {
+        benchmark.drawDragonfly({ x: 535, y: 258, now: millis(), moored: true });
+      }
+      drawCovenantField();
+      drawWorldAmbient();
+      drawGrassWind();
+      drawClouds();
+      drawStars();
+      drawEnginePulse();
+      drawQuestWorldReactions();
+      drawPlayer();
+      drawNPCs();
+      drawPlayerVisualEvolution();
     }
-    drawCovenantField();
-    drawWorldAmbient();
-    drawGrassWind();
-    drawClouds();
-    drawStars();
-    drawEnginePulse();
-    drawQuestWorldReactions();
-    drawPlayer();
-    drawNPCs();
-    drawPlayerVisualEvolution();
+
+    if (benchmarkActive) {
+      // Keep the Dragonfly as the dock scene's hero object even when the
+      // projected 2.5D world renderer owns the play plane.
+      if (previewRendered && typeof benchmark.drawDragonfly === 'function') {
+        benchmark.drawDragonfly({
+          x: Math.round(width * 0.72),
+          y: Math.round(height * 0.43),
+          now: millis(),
+          moored: true
+        });
+      }
+      benchmark.drawLighting(benchmarkCtx);
+      benchmark.drawDockLights(benchmarkCtx);
+      benchmark.drawForeground(benchmarkCtx);
+    }
   }
   drawQuestOverlay();
   drawSolarMeter();
@@ -3302,7 +3569,18 @@ function render() {
 // --- Ship Interior ----------------------------------------------------------
 
 function drawShipInterior() {
-  // The Unfinished Song — top-down deck view
+  const visual = window.AetherShipInteriorVisual;
+  if (visual && typeof visual.draw === 'function') {
+    const rendered = visual.draw({
+      now: millis(),
+      width,
+      height,
+      party: window.ACTIVE_PARTY || [],
+      player,
+    });
+    if (rendered) return;
+  }
+  // The Unfinished Song â€” top-down deck view
   noStroke();
   fill(C.navy[0], C.navy[1], C.navy[2]);
   rect(0, 0, width, height);
@@ -3316,7 +3594,7 @@ function drawShipInterior() {
   textSize(10);
   textFont('sans-serif');
 
-  // Deck outline — main hull
+  // Deck outline â€” main hull
   const deckX = 80, deckY = 60, deckW = width - 160, deckH = height - 120;
   noFill();
   stroke(C.soil[0], C.soil[1], C.soil[2], 180);
@@ -3498,8 +3776,7 @@ function drawTileWater(px, py, s) {
 }
 
 function drawTileLore(px, py, s) {
-  const tile = groundLayer[py / s] && groundLayer[py / s][px / s];
-  const loreText = tile && tile._loreText ? tile._loreText : '';
+  const loreText = loreTextByCoord[(px / s) + ',' + (py / s)] || '';
   const discovered = quest.discoveries.some(d => d.x === px / s && d.y === py / s);
 
   // Base: dark crate with subtle cyan outline
@@ -3601,7 +3878,7 @@ function drawFallingIslands() {
 function drawWorldAmbient() {
   const now = millis();
 
-  // ── Floating aether motes (ambient atmosphere — teal-blue motes drifting) ──
+  // â”€â”€ Floating aether motes (ambient atmosphere â€” teal-blue motes drifting) â”€â”€
   for (let i = 0; i < 12; i++) {
     const seed = i * 137.5;
     const bx = (seed + player.px * 0.2) % width;
@@ -3620,7 +3897,7 @@ function drawWorldAmbient() {
     ellipse(bx + driftX, by + driftY, moteSize * 1.8, moteSize * 1.8);
   }
 
-  // ── Ground mist wisps (bottom of screen — low teal fog) ──
+  // â”€â”€ Ground mist wisps (bottom of screen â€” low teal fog) â”€â”€
   for (let i = 0; i < 4; i++) {
     const mistX = (i * 220 + (now * 0.02 + i * 50) % width) % width;
     const mistY = height - 40 - i * 12 + Math.sin(now * 0.001 + i * 2) * 8;
@@ -3631,7 +3908,7 @@ function drawWorldAmbient() {
     ellipse(mistX + 30, mistY - 5, 140, 12);
   }
 
-  // ── Aether drift particles (slow rise from below) ──
+  // â”€â”€ Aether drift particles (slow rise from below) â”€â”€
   for (let i = 0; i < 6; i++) {
     const riseBase = ((i * 193 + 47) % width);
     const riseY = (height - 20 - (now * 0.002 + i * 30) % (height * 0.7));
@@ -3643,7 +3920,7 @@ function drawWorldAmbient() {
     }
   }
 
-  // ── Quest-state atmospheric tint ──
+  // â”€â”€ Quest-state atmospheric tint â”€â”€
   const tint = {
     signal:   { r: 42, g: 255, b: 181 },
     crossing: { r: 255, g: 160, b: 60 },
@@ -3658,7 +3935,7 @@ function drawWorldAmbient() {
   fill(tint.r, tint.g, tint.b, alphaBase);
   rect(0, 0, width, height);
 
-  // ── Floating accent motes (quest-state colored, intensifies in choice/wake) ──
+  // â”€â”€ Floating accent motes (quest-state colored, intensifies in choice/wake) â”€â”€
   const accentCount = (quest.state === 'choice' || quest.state === 'wake') ? 16 : 8;
   const accentSpeed = (quest.state === 'choice' || quest.state === 'wake') ? 0.004 : 0.0025;
   for (let i = 0; i < accentCount; i++) {
@@ -3712,65 +3989,57 @@ function drawCovenantField() {
 function drawPlayer() {
   const px = player.px;
   const py = player.py;
+  const moving = Math.abs(player.px - player.tileX * 16) > 0.5 ||
+    Math.abs(player.py - player.tileY * 16) > 0.5;
+  const previousX = Number.isFinite(drawPlayer._lastX) ? drawPlayer._lastX : px;
+  const facing = px < previousX - 0.1 ? 'left' : (px > previousX + 0.1 ? 'right' : (drawPlayer._facing || 'right'));
+  drawPlayer._lastX = px;
+  drawPlayer._facing = facing;
 
-  noStroke();
-  fill(color(0, 0, 0, 80));
-  ellipse(px + 8, py + 14, 14, 5);
+  const sprites = window.AetherPixelSprites;
+  const fieldCandidateRequested = sprites &&
+    typeof sprites.isFieldArtCandidateRequested === 'function' &&
+    sprites.isFieldArtCandidateRequested('ender');
+  const fieldFrame = moving ? Math.floor(frameCount / 8) % 2 : 0;
+  const fieldCandidateDrawn = fieldCandidateRequested &&
+    typeof sprites.drawFieldCandidate === 'function' &&
+    sprites.drawFieldCandidate('ender', px + 8, py + 16, {
+      anchor: 'bottom-center',
+      frame: fieldFrame
+    });
+  if (fieldCandidateDrawn && typeof sprites.drawShadow === 'function') {
+    sprites.drawShadow(px + 8, py + 16, 1, 20);
+  }
+  let rendered = fieldCandidateDrawn;
 
-  fill(color(40, 45, 60));
-  noStroke();
-  rect(px + 5, py + 9, 4, 5);
-  rect(px + 9, py + 9, 4, 5);
+  const characters = window.AetherCharacterRenderer;
+  if (!rendered && characters && characters.validate && characters.validate()) {
+    rendered = characters.draw('ender', px + 8, py + 16, {
+      scale: 0.82,
+      depth: 0.88,
+      now: millis(),
+      facing,
+      action: moving ? 'walk' : 'idle',
+      expression: 'neutral'
+    });
+  }
 
-  fill(color(30, 50, 40));
-  rect(px + 4, py + 4, 10, 6);
-  fill(color(42, 255, 181, 120));
-  rect(px + 2, py + 5, 3, 4);
-  rect(px + 13, py + 5, 3, 4);
-  noStroke();
-  fill(color(42, 255, 181, 60));
-  ellipse(px + 3.5, py + 7, 3, 2);
-  ellipse(px + 14.5, py + 7, 3, 2);
-
-  fill(color(220, 200, 170));
-  rect(px + 5, py + 1, 8, 4);
-  fill(color(42, 255, 181, 180));
-  rect(px + 5, py + 2, 3, 2);
-  rect(px + 10, py + 2, 3, 2);
-  noFill();
-  stroke(color(60, 60, 60));
-  strokeWeight(1);
-  line(px + 5, py + 2, px + 5, py);
-  line(px + 13, py + 2, px + 13, py);
-  noStroke();
-
-  noFill();
-  stroke(color(42, 255, 181, 120));
-  strokeWeight(1);
-  line(px + 13, py + 2, px + 15, py + 3);
-  line(px + 15, py + 3, px + 16, py + 2);
-  noStroke();
-
-  const staffX = px + 14;
-  const staffY = py + 1;
-  fill(color(80, 80, 90));
-  noStroke();
-  rect(staffX, staffY, 2, 12);
-  fill(color(42, 255, 181, 200));
-  rect(staffX - 1, staffY - 1, 4, 3);
-  noStroke();
-  fill(color(42, 255, 181, 80));
-  ellipse(staffX + 1, staffY, 4, 3);
-  noStroke();
+  if (!rendered) {
+    if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
+      throw new Error('AETHER_ENDER_VISUAL_UNAVAILABLE');
+    }
+    sprites.drawShadow(px + 8, py + 16, 1);
+    sprites.draw('ender', px, py, { frame: fieldFrame });
+  }
 
   fill(color(232, 220, 198));
   noStroke();
   textAlign(CENTER, TOP);
   textSize(8);
-  textFont('VT323');
-  text('Ender', px + 8, py - 6);
+  textFont('Segoe UI');
+  text('Ender', px + 8, fieldCandidateDrawn ? py - 28 : py - 6);
   textSize(9);
-  textFont('VT323');
+  textFont('Segoe UI');
 }
 
 // --- NPCs -------------------------------------------------------------------
@@ -3798,22 +4067,20 @@ function drawNPC(npc) {
   fill(color(0, 0, 0, 60));
   ellipse(px + 4, py + 8, 10, 4);
 
+  let ioniaFieldCandidateDrawn = false;
+  let lyraFieldCandidateDrawn = false;
   switch (npc.id) {
     case 'elder_farmer':
-      drawNPCElder(px, py);
-      drawNPCElderRoutine(px, py);
+      ioniaFieldCandidateDrawn = drawNPCIonia(px, py);
       break;
     case 'engine_spirit':
       drawNPCSpirit(px, py);
-      drawNPCSpiritRoutine(px, py);
       break;
     case 'child_prophet':
-      drawNPCChild(px, py);
-      drawNPCChildRoutine(px, py);
+      lyraFieldCandidateDrawn = drawNPCLyra(px, py);
       break;
     case 'corporate_salvager':
       drawNPCSavager(px, py);
-      drawNPCSavagerRoutine(px, py);
       break;
     default:
       drawNPCDefault(px, py, npc.name);
@@ -3823,112 +4090,134 @@ function drawNPC(npc) {
   fill(color(232, 220, 198, 200));
   textAlign(CENTER, TOP);
   textSize(7);
-  textFont('VT323');
-  text(npc.name, px, py - 12);
+  textFont('Segoe UI');
+  text(npc.name, px, ioniaFieldCandidateDrawn ? py - 32 : (lyraFieldCandidateDrawn ? py - 32 : py - 12));
   textSize(9);
-  textFont('VT323');
+  textFont('Segoe UI');
 }
 
+function drawNPCIonia(px, py) {
+  const sprites = window.AetherPixelSprites;
+  if (sprites && typeof sprites.isFieldArtCandidateRequested === 'function' &&
+      sprites.isFieldArtCandidateRequested('ionia') &&
+      typeof sprites.drawFieldCandidate === 'function' &&
+      sprites.drawFieldCandidate('ionia', px, py + 8, {
+        anchor: 'bottom-center',
+        frame: Math.floor(frameCount / 16) % 2
+      })) {
+    return true;
+  }
+
+  const characters = window.AetherCharacterRenderer;
+  if (characters && characters.validate && characters.validate()) {
+    characters.draw('ionia', px, py + 8, {
+      scale: 0.82,
+      depth: 0.88,
+      now: millis(),
+      facing: 'right',
+      action: 'idle',
+      expression: 'neutral'
+    });
+    return false;
+  }
+
+  // Compatibility fallback only: legacy top-down sprite authority.
+  if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
+    throw new Error('AETHER_IONIA_VISUAL_UNAVAILABLE');
+  }
+  sprites.drawShadow(px, py + 9, 1);
+  sprites.draw('ionia', px, py + 8, {
+    anchor: 'bottom-center',
+    frame: Math.floor(frameCount / 18) % 2
+  });
+  return false;
+}
+
+// Legacy function name retained only for external/debug callers; rendering authority is Ionia.
 function drawNPCElder(px, py) {
-  fill(color(80, 60, 40));
-  noStroke();
-  rect(px - 4, py - 4, 16, 4);
-  rect(px - 2, py - 8, 12, 5);
-  fill(color(130, 110, 80));
-  rect(px - 3, py - 1, 14, 8);
-  fill(color(110, 90, 60));
-  rect(px - 2, py + 5, 5, 6);
-  rect(px + 3, py + 5, 5, 6);
-  fill(color(200, 180, 150));
-  rect(px - 2, py - 3, 12, 4);
-  fill(color(40, 30, 20));
-  rect(px + 1, py - 2, 2, 1);
-  rect(px + 7, py - 2, 2, 1);
-  fill(color(100, 70, 40));
-  noStroke();
-  rect(px + 10, py - 6, 2, 14);
+  return drawNPCIonia(px, py);
 }
 
 function drawNPCSpirit(px, py) {
-  fill(color(120, 200, 220, 140));
-  noStroke();
-  ellipse(px, py, 14, 16);
-  noStroke();
-  fill(color(42, 255, 181, 180));
-  ellipse(px, py - 2, 6, 6);
-  noFill();
-  stroke(color(42, 255, 181, 120));
-  strokeWeight(1);
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2 + frameCount * 0.02;
-    line(px, py, px + Math.cos(a) * 12, py + Math.sin(a) * 12);
+  const sprites = window.AetherPixelSprites;
+  if (!sprites || typeof sprites.draw !== 'function') {
+    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
   }
-  noStroke();
-  fill(color(200, 230, 240, 150));
-  rect(px - 3, py - 2, 10, 4);
-  fill(color(40, 60, 80, 150));
-  rect(px - 1, py - 1, 2, 1);
-  rect(px + 4, py - 1, 2, 1);
+  sprites.drawShadow(px, py + 9, 1);
+  sprites.draw('engineSpirit', px, py + 8, {
+    anchor: 'bottom-center',
+    frame: Math.floor(frameCount / 18) % 2
+  });
 }
 
+function drawNPCLyra(px, py) {
+  const sprites = window.AetherPixelSprites;
+  if (sprites && typeof sprites.isFieldArtCandidateRequested === 'function' &&
+      sprites.isFieldArtCandidateRequested('lyra') &&
+      typeof sprites.drawFieldCandidate === 'function' &&
+      sprites.drawFieldCandidate('lyra', px, py + 8, {
+        anchor: 'bottom-center',
+        frame: Math.floor(frameCount / 16) % 2
+      })) {
+    return true;
+  }
+
+  const characters = window.AetherCharacterRenderer;
+  if (characters && characters.validate && characters.validate()) {
+    characters.draw('lyra', px, py + 8, {
+      scale: 0.80,
+      depth: 0.88,
+      now: millis(),
+      facing: 'right',
+      action: 'idle',
+      expression: 'neutral'
+    });
+    return false;
+  }
+
+  // Compatibility fallback only: legacy top-down sprite authority.
+  if (!sprites || typeof sprites.draw !== 'function' || !sprites.validate()) {
+    throw new Error('AETHER_LYRA_VISUAL_UNAVAILABLE');
+  }
+  sprites.drawShadow(px, py + 9, 1);
+  sprites.draw('lyra', px, py + 8, {
+    anchor: 'bottom-center',
+    frame: Math.floor(frameCount / 16) % 2
+  });
+  return false;
+}
+
+// Legacy function name retained only for compatibility; rendering authority is Lyra.
 function drawNPCChild(px, py) {
-  fill(color(180, 60, 80));
-  noStroke();
-  rect(px - 4, py - 4, 16, 4);
-  fill(color(60, 60, 100));
-  rect(px - 3, py - 7, 12, 4);
-  fill(color(200, 180, 160));
-  rect(px - 2, py - 5, 12, 4);
-  fill(color(42, 255, 181, 200));
-  rect(px, py - 4, 3, 2);
-  rect(px + 6, py - 4, 3, 2);
-  fill(color(100, 80, 120));
-  rect(px - 3, py, 12, 7);
-  fill(color(60, 50, 80));
-  rect(px - 2, py + 6, 4, 4);
-  rect(px + 2, py + 6, 4, 4);
-  noFill();
-  stroke(color(42, 255, 181, 40));
-  strokeWeight(1);
-  ellipse(px, py - 2, 20, 16);
-  noStroke();
+  return drawNPCLyra(px, py);
 }
 
 function drawNPCSavager(px, py) {
-  fill(color(100, 100, 105));
-  noStroke();
-  rect(px - 4, py - 3, 16, 10);
-  fill(color(80, 80, 85));
-  rect(px - 3, py - 3, 14, 3);
-  fill(color(180, 170, 160));
-  rect(px - 3, py - 8, 12, 6);
-  fill(color(30, 30, 35));
-  rect(px, py - 7, 2, 1);
-  rect(px + 6, py - 7, 2, 1);
-  fill(color(42, 255, 181, 160));
-  rect(px + 8, py - 4, 4, 3);
-  fill(color(10, 10, 10));
-  rect(px + 9, py - 3, 2, 1);
-  fill(color(60, 60, 65));
-  rect(px - 3, py + 6, 5, 5);
-  rect(px + 2, py + 6, 5, 5);
-  fill(color(100, 100, 105));
-  rect(px + 11, py, 3, 7);
+  const sprites = window.AetherPixelSprites;
+  if (!sprites || typeof sprites.draw !== 'function') {
+    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
+  }
+  sprites.drawShadow(px, py + 9, 1);
+  sprites.draw('corporateSalvager', px, py + 8, {
+    anchor: 'bottom-center',
+    frame: Math.floor(frameCount / 20) % 2
+  });
 }
 
 function drawNPCDefault(px, py, name) {
-  fill(color(160, 140, 110));
-  noStroke();
-  rect(px - 3, py - 2, 12, 9);
-  fill(color(200, 180, 150));
-  rect(px - 2, py - 6, 10, 5);
-  fill(color(40, 30, 20));
-  rect(px + 1, py - 5, 2, 1);
-  rect(px + 6, py - 5, 2, 1);
+  const sprites = window.AetherPixelSprites;
+  if (!sprites || typeof sprites.draw !== 'function') {
+    throw new Error('AETHER_PIXEL_SPRITES_UNAVAILABLE');
+  }
+  sprites.drawShadow(px, py + 9, 1);
+  sprites.draw('settler', px, py + 8, {
+    anchor: 'bottom-center',
+    frame: Math.floor(frameCount / 22) % 2
+  });
 }
 
 function drawEngineSpiritBody(px, py) {
-  // Glowing core shape — biolum green
+  // Glowing core shape â€” biolum green
   noStroke();
   // Outer glow
   fill(color(42, 255, 181, 40));
@@ -3983,7 +4272,7 @@ function drawChildProphetBody(px, py) {
 }
 
 function drawElderFarmerBody(px, py) {
-  // Sturdy figure — soil brown
+  // Sturdy figure â€” soil brown
   noStroke();
   // Body (broad, sturdy)
   fill(color(120, 90, 60));
@@ -4044,7 +4333,7 @@ function drawQuestOverlay() {
     choice: 'CHOICE',
     wake: 'WAKE',
     done: 'DONE'
-  }[quest.state] || '—';
+  }[quest.state] || 'â€”';
 
   noStroke();
   fill(color(26, 16, 46, 200));
@@ -4081,9 +4370,9 @@ function drawQuestOverlay() {
       progressText = 'Choose a path (talk to any contact)';
     }
   } else if (quest.state === 'wake') {
-    progressText = 'Epilogue resolving…';
+    progressText = 'Epilogue resolvingâ€¦';
   } else if (quest.state === 'done') {
-    progressText = quest.wakeEpilogue ? quest.wakeEpilogue.name : '—';
+    progressText = quest.wakeEpilogue ? quest.wakeEpilogue.name : 'â€”';
   }
   text(progressText, 630, 23);
   textSize(10);
@@ -4148,7 +4437,7 @@ function drawSolarMeter() {
   textSize(10);
   textFont('sans-serif');
 
-  // ── Fire bar (staff charges) ──
+  // â”€â”€ Fire bar (staff charges) â”€â”€
   const fx = 12, fy = 556, fw = 120, fh = 10;
   noStroke();
   fill(color(26, 16, 46, 200));
@@ -4169,7 +4458,7 @@ function drawSolarMeter() {
   textAlign(LEFT, BOTTOM);
   textSize(8);
   textFont('VT323');
-  text('⚡ FIRE ' + player.staffCharges + '/2', fx, fy - 2);
+  text('âš¡ FIRE ' + player.staffCharges + '/2', fx, fy - 2);
   textSize(10);
   textFont('sans-serif');
 }
@@ -4252,12 +4541,12 @@ function drawInteractionHints() {
   const py = player.py - 16;
 
   const labels = {
-    e:    'E — Talk',
-    q:    'Q — Covenant Field',
-    f:    'F — Board Ship',
-    tab:  'Tab — Toggle Sky',
-    l:    'L — Ledger',
-    m:    'M — Repair Cafe'
+    e:    'E â€” Talk',
+    q:    'Q â€” Covenant Field',
+    f:    'F â€” Board Ship',
+    tab:  'Tab â€” Toggle Sky',
+    l:    'L â€” Ledger',
+    m:    'M â€” Repair Cafe'
   };
 
   const label = labels[key] || key.toUpperCase();
@@ -4495,7 +4784,7 @@ const NPC_ROUTINES = {
 };
 
 function updateNPCSchedulers(dt) {
-  // Nothing stateful required — routines are driven from millis()/frameCount
+  // Nothing stateful required â€” routines are driven from millis()/frameCount
   // at draw time. This hook exists so the renderer can stay declarative.
 }
 
@@ -4617,7 +4906,7 @@ if (typeof window !== 'undefined') {
 
 
 // === modules/combat.js ===
-// AetherCombat — Turn-based 2D6 PbtA combat module for Aetherwake JRPG.
+// AetherCombat â€” Turn-based 2D6 PbtA combat module for Aetherwake JRPG.
 // Exposes window.AetherCombat as a constructor: new AetherCombat(p, C)
 // Also compatible with direct call: AetherCombat(p, C) returns the namespace.
 
@@ -4721,7 +5010,7 @@ function AetherCombat(p, C) {
       status: 'roosting',
       type: 'skyPredator',
       ability: 'diveBomb',
-      abilityDesc: 'Dive Bomb — 2 damage, ignores dodge',
+      abilityDesc: 'Dive Bomb â€” 2 damage, ignores dodge',
       color: 'rust',
       bodyShape: 'predator',
     },
@@ -4729,23 +5018,23 @@ function AetherCombat(p, C) {
       name: 'Dock Authority Enforcer',
       goal: 'Force the Wake to clear berth before the stormfront arrives.',
       hp: 10, maxHp: 10, might: 0, presence: 2, grace: 1, wits: 1,
-      weakness: 'Procedure pressure overreaches — clear evidence can hold the berth.',
+      weakness: 'Procedure pressure overreaches â€” clear evidence can hold the berth.',
       status: 'negotiating',
       type: 'corporateSalvager',
       ability: 'contractClause',
-      abilityDesc: 'Hold Order — you lose 1 scrap to emergency repairs',
+      abilityDesc: 'Hold Order â€” you lose 1 scrap to emergency repairs',
       color: 'soil',
       bodyShape: 'humanoid',
     },
     windShear: {
       name: 'Harmonic Shear Elemental',
-      goal: 'Tear across the berth — harmonic shear strips stability from every exposed hull.',
+      goal: 'Tear across the berth â€” harmonic shear strips stability from every exposed hull.',
       hp: 14, maxHp: 14, might: 2, presence: 0, grace: 0, wits: 1,
-      weakness: 'Uncover Truth reveals the wind pattern — exposing it to EMP.',
+      weakness: 'Uncover Truth reveals the wind pattern â€” exposing it to EMP.',
       status: 'howling',
       type: 'windShear',
       ability: 'galeForce',
-      abilityDesc: 'Gale Force — 2 damage, knocks you back',
+      abilityDesc: 'Gale Force â€” 2 damage, knocks you back',
       color: 'scioto',
       bodyShape: 'elemental',
     },
@@ -4758,7 +5047,7 @@ function AetherCombat(p, C) {
       type: 'aetherLeak',
       aetherDependent: true,
       ability: 'drain',
-      abilityDesc: 'Drain — removes 1 aether from you',
+      abilityDesc: 'Drain â€” removes 1 aether from you',
       color: 'teal',
       bodyShape: 'wraith',
     },
@@ -4766,11 +5055,11 @@ function AetherCombat(p, C) {
       name: 'Wakeheart Echo',
       goal: 'Overload the shield lattice with unresolved feedback.',
       hp: 10, maxHp: 10, might: 0, presence: 2, grace: 0, wits: 1,
-      weakness: 'Harmonic Pulse backlashes — the spirit feeds on its own resonance.',
+      weakness: 'Harmonic Pulse backlashes â€” the spirit feeds on its own resonance.',
       status: 'pulsing',
       type: 'engine_spirit',
       ability: 'harmonic_pulse',
-      abilityDesc: 'Harmonic Pulse — 2D6+Presence, drains 1 aether on 7-9+',
+      abilityDesc: 'Harmonic Pulse â€” 2D6+Presence, drains 1 aether on 7-9+',
       color: 'biolum',
       bodyShape: 'core',
     },
@@ -4778,11 +5067,11 @@ function AetherCombat(p, C) {
       name: 'Frequency Mirage',
       goal: 'Turn half-heard warnings into panic before the crew can align.',
       hp: 8, maxHp: 8, might: -1, presence: 0, grace: 2, wits: 1,
-      weakness: 'Prophecy Voice overreaches — the child hears too much and falters.',
+      weakness: 'Prophecy Voice overreaches â€” the child hears too much and falters.',
       status: 'chanting',
       type: 'child_prophet',
       ability: 'prophecy_voice',
-      abilityDesc: 'Prophecy Voice — 2D6+Grace, on 10+ target loses 1 turn confidence',
+      abilityDesc: 'Prophecy Voice â€” 2D6+Grace, on 10+ target loses 1 turn confidence',
       color: 'rose',
       bodyShape: 'prophet',
     },
@@ -4790,17 +5079,17 @@ function AetherCombat(p, C) {
       name: 'Mooring Rootbulwark',
       goal: 'Hold the berth too tightly while the storm tries to tear everything loose.',
       hp: 16, maxHp: 16, might: 2, presence: 1, grace: 0, wits: 0,
-      weakness: 'Soil Anchor roots too deep — the earth tires of holding.',
+      weakness: 'Soil Anchor roots too deep â€” the earth tires of holding.',
       status: 'anchored',
       type: 'elder_farmer',
       ability: 'soil_anchor',
-      abilityDesc: 'Soil Anchor — 2D6+Might, on 10+ root enemy in place for 1 turn',
+      abilityDesc: 'Soil Anchor â€” 2D6+Might, on 10+ root enemy in place for 1 turn',
       color: 'soil',
       bodyShape: 'farmer',
     },
   };
 
-  // ── Enemy ability lookup (for display / UI) ──
+  // â”€â”€ Enemy ability lookup (for display / UI) â”€â”€
   const ENEMY_ABILITIES = {
     diveBomb: { name: 'Dive Bomb', desc: '2 damage, ignores dodge' },
     contractClause: { name: 'Contract Clause', desc: 'Lose 1 scrap' },
@@ -4811,7 +5100,7 @@ function AetherCombat(p, C) {
     soilAnchor: { name: 'Soil Anchor', desc: 'Roots enemy in place' },
   };
 
-  // ── Helpers ──
+  // â”€â”€ Helpers â”€â”€
   function roll2d6() {
     return floor(random(1, 7)) + floor(random(1, 7));
   }
@@ -4831,7 +5120,7 @@ function AetherCombat(p, C) {
     if (state.log.length > 20) state.log.shift();
   }
 
-  // ── Public API ──
+  // â”€â”€ Public API â”€â”€
   this.init = function(options) {
     options = options || {};
     if (options.seed !== undefined) {
@@ -4924,15 +5213,15 @@ function AetherCombat(p, C) {
     } else {
       if (p.level === 3 && !p.unlockedAbilities.includes('windWard')) {
         p.unlockedAbilities.push('windWard');
-        log('── LEVEL 3: Wind Ward unlocked! ──');
+        log('â”€â”€ LEVEL 3: Wind Ward unlocked! â”€â”€');
       }
       if (p.level === 4 && !p.unlockedAbilities.includes('aetherSeal')) {
         p.unlockedAbilities.push('aetherSeal');
-        log('── LEVEL 4: Aether Seal unlocked! ──');
+        log('â”€â”€ LEVEL 4: Aether Seal unlocked! â”€â”€');
       }
       if (p.level === 5 && !p.unlockedAbilities.includes('rest')) {
         p.unlockedAbilities.push('rest');
-        log('── LEVEL 5: Rest unlocked! ──');
+        log('â”€â”€ LEVEL 5: Rest unlocked! â”€â”€');
       }
     }
 
@@ -4940,10 +5229,10 @@ function AetherCombat(p, C) {
       ? progression.getMilestone(p.level)
       : null;
     if (milestone) {
-      log('── MILESTONE: ' + milestone.label + ' ──');
+      log('â”€â”€ MILESTONE: ' + milestone.label + ' â”€â”€');
     }
 
-    log('── LEVEL UP! You are now level ' + p.level + '. Production stats refreshed. ──');
+    log('â”€â”€ LEVEL UP! You are now level ' + p.level + '. Production stats refreshed. â”€â”€');
 
     if (p.level >= hardCap) {
       p.xp = 0;
@@ -5059,7 +5348,7 @@ function AetherCombat(p, C) {
     state.turn = 0;
     state.encounterOver = false;
     state.initiative = state.player.wits + (state.player.grace || 0);
-    log('Encounter: ' + state.enemy.name + ' — ' + state.enemy.goal);
+    log('Encounter: ' + state.enemy.name + ' â€” ' + state.enemy.goal);
     log(state.enemy.name + ' weakness: ' + state.enemy.weakness);
   };
 
@@ -5087,7 +5376,7 @@ function AetherCombat(p, C) {
         );
       } else if (useEligibility.reason === 'insufficient_resources') {
         log(
-          'Not enough resources — ' + action.label +
+          'Not enough resources â€” ' + action.label +
           ' needs ' + useEligibility.resourceCost +
           ', but only ' + useEligibility.availableResource + ' is available.'
         );
@@ -5189,7 +5478,7 @@ function AetherCombat(p, C) {
         source: 'aetherSeal',
       };
       r = { dice: null, stat: null, total: 0, outcome: 'success' };
-      actionText = 'Aether Seal — ' + state.enemy.name +
+      actionText = 'Aether Seal â€” ' + state.enemy.name +
         ' is Aether-suppressed for ' + effect.durationTurns + ' turns.';
       state._abilityFlashTurn = millis();
     } else if (action.resolution && action.resolution.model === 'commons-readonly') {
@@ -5207,7 +5496,7 @@ function AetherCombat(p, C) {
       }
       r = { dice: null, stat: null, total: 0, outcome: 'success' };
       const summary = window.AetherCommonsLedger.summarize(ledgerEntry);
-      actionText = 'Mycelial Ledger — ' +
+      actionText = 'Mycelial Ledger â€” ' +
         (summary || 'No network facts confirmed.') +
         (ledgerEntry.unknowns.length
           ? ' Unknown: ' + ledgerEntry.unknowns.join(', ') + '.'
@@ -5252,9 +5541,9 @@ function AetherCombat(p, C) {
           if (state.enemy.analysis.charges === 0) state.enemy.analysis = null;
         }
         actionText = formulaResolution.hit
-          ? action.label + ' — ' + enemyDmg + ' EMP damage' +
-            (attackCritical ? ' — CRITICAL!' : '') + '.'
-          : action.label + ' — attack missed.';
+          ? action.label + ' â€” ' + enemyDmg + ' EMP damage' +
+            (attackCritical ? ' â€” CRITICAL!' : '') + '.'
+          : action.label + ' â€” attack missed.';
       } else if (formulaResolution.kind === 'analysis') {
         state.enemy.analysis = {
           revealedWeakness: formulaResolution.weakness,
@@ -5262,7 +5551,7 @@ function AetherCombat(p, C) {
           charges: formulaResolution.modifier.charges,
           source: 'uncoverTruth',
         };
-        actionText = 'Uncover Truth — ' +
+        actionText = 'Uncover Truth â€” ' +
           (formulaResolution.weakness
             ? formulaResolution.weakness
             : 'No discrete weakness can be confirmed.') +
@@ -5278,11 +5567,11 @@ function AetherCombat(p, C) {
             effectVocabulary.RESOURCE.STAFF_CHARGES,
             formulaResolution.delta
           );
-          actionText = 'Hold — Resonator recharges. +' +
+          actionText = 'Hold â€” Resonator recharges. +' +
             formulaResolution.delta + ' charge' +
             (formulaResolution.delta === 1 ? '.' : 's.');
         } else {
-          actionText = 'Hold — Resonator already at full charge.';
+          actionText = 'Hold â€” Resonator already at full charge.';
         }
       } else if (formulaResolution.kind === 'recovery') {
         if (formulaResolution.heatReduction > 0) {
@@ -5301,8 +5590,8 @@ function AetherCombat(p, C) {
         }
         if (heal > 0) recoveryParts.push('+' + heal + ' Vit');
         actionText = recoveryParts.length
-          ? 'Rest — ' + recoveryParts.join(', ') + '.'
-          : 'Rest — already fully recovered.';
+          ? 'Rest â€” ' + recoveryParts.join(', ') + '.'
+          : 'Rest â€” already fully recovered.';
       } else {
         throw new Error('FORMULA_RESULT_KIND_UNSUPPORTED:' + formulaResolution.kind);
       }
@@ -5320,7 +5609,7 @@ function AetherCombat(p, C) {
           if (secondaryEligibility.canUse) {
             state._secondaryAvailable = true;
             log(
-              'Press S for secondary action — repeat the last ability at its normal resource cost' +
+              'Press S for secondary action â€” repeat the last ability at its normal resource cost' +
               (secondaryEligibility.resourceCost > 0
                 ? ' (' + secondaryEligibility.resourceCost + ').'
                 : ' (free).')
@@ -5329,64 +5618,64 @@ function AetherCombat(p, C) {
         }
         if (action.type === 'attack') {
           if (state.player.staffCharges <= 0) {
-            actionText = 'Staff Strike — no charges left. The weapon falls silent. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            actionText = 'Staff Strike â€” no charges left. The weapon falls silent. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           } else {
             enemyDmg = floor(random(1, 7)) + 2; // 1d6+2
             applyDamage(effectVocabulary.TARGET.ENEMY, enemyDmg, 'emp');
             changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, -1);
-            actionText = action.label + ' — ' + enemyDmg + ' EMP damage. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
+            actionText = action.label + ' â€” ' + enemyDmg + ' EMP damage. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
           }
         } else if (action.type === 'ability') {
           // Visual: ability flash for all abilities
           state._abilityFlashTurn = millis();
           if (action.id === 'uncoverTruth') {
             nextRollBonus = 1;
-            actionText = 'Uncover Truth — the weave reveals its pattern. +1 to next roll. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            actionText = 'Uncover Truth â€” the weave reveals its pattern. +1 to next roll. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           } else if (action.id === 'sharedDream') {
             // 50/50: heal 1-2 Vit OR +1 next roll bonus
             if (random(0, 2) < 1) {
               heal = floor(random(1, 3));
               applyRestore(effectVocabulary.TARGET.SELF, heal);
-              actionText = 'Shared Dream — ' + heal + ' Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+              actionText = 'Shared Dream â€” ' + heal + ' Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
             } else {
               nextRollBonus = 1;
-              actionText = 'Shared Dream — ally\'s next action gets +1. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+              actionText = 'Shared Dream â€” ally\'s next action gets +1. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
             }
           } else if (action.id === 'mycelialLedger') {
             const gain = floor(random(1, 3));
             if (floor(random(2)) === 0) {
               changeResource(effectVocabulary.RESOURCE.AETHER, gain);
-              actionText = 'Mycelial Ledger — +' + gain + ' Aether stored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+              actionText = 'Mycelial Ledger â€” +' + gain + ' Aether stored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
             } else {
               changeResource(effectVocabulary.RESOURCE.SCRAP, gain);
-              actionText = 'Mycelial Ledger — +' + gain + ' Scrap recorded. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+              actionText = 'Mycelial Ledger â€” +' + gain + ' Scrap recorded. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
             }
           }
         } else if (action.type === 'hold') {
           if (state.player.staffCharges < state.player.maxStaffCharges) {
             changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, 1);
-            actionText = 'Hold — Resonator recharges in light. +1 charge. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            actionText = 'Hold â€” Resonator recharges in light. +1 charge. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           } else {
-            actionText = 'Hold — the weave passes through you. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            actionText = 'Hold â€” the weave passes through you. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           }
         } else if (action.type === 'defense') {
           if (action.id === 'windWard') {
             if (r.outcome === 'success') {
               heal = 1;
               applyRestore(effectVocabulary.TARGET.SELF, heal);
-              actionText = 'Wind Ward — you brace against the gale. 1 Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+              actionText = 'Wind Ward â€” you brace against the gale. 1 Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
             } else {
               playerDmg = 1;
-              actionText = 'Wind Ward — the wind knocks you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+              actionText = 'Wind Ward â€” the wind knocks you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
             }
           } else if (action.id === 'aetherSeal') {
             if (r.outcome === 'success') {
               const gain = floor(random(1, 3));
               changeResource(effectVocabulary.RESOURCE.SCRAP, gain);
-              actionText = 'Aether Seal — the leak closes. +' + gain + ' Scrap. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+              actionText = 'Aether Seal â€” the leak closes. +' + gain + ' Scrap. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
             } else {
               playerDmg = 1;
-              actionText = 'Aether Seal — the aether burns you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+              actionText = 'Aether Seal â€” the aether burns you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
             }
           }
         } else if (action.type === 'rest') {
@@ -5394,10 +5683,10 @@ function AetherCombat(p, C) {
             changeResource(effectVocabulary.RESOURCE.HEAT, -2);
             heal = floor(random(1, 3));
             applyRestore(effectVocabulary.TARGET.SELF, heal);
-            actionText = 'Rest — heat eases, ' + heal + ' Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            actionText = 'Rest â€” heat eases, ' + heal + ' Vit restored. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           } else {
             playerDmg = 1;
-            actionText = 'Rest — you cannot find peace. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            actionText = 'Rest â€” you cannot find peace. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           }
         }
       } else if (r.outcome === 'partial') {
@@ -5406,51 +5695,51 @@ function AetherCombat(p, C) {
           applyDamage(effectVocabulary.TARGET.ENEMY, enemyDmg, 'emp');
           changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, -1);
           playerDmg = 1;
-          actionText = action.label + ' — ' + enemyDmg + ' damage, but the enemy counters. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
+          actionText = action.label + ' â€” ' + enemyDmg + ' damage, but the enemy counters. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
         } else if (action.type === 'ability') {
           if (action.id === 'uncoverTruth') {
-            actionText = 'Uncover Truth — a glimpse, but it slips. No bonus. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            actionText = 'Uncover Truth â€” a glimpse, but it slips. No bonus. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           } else if (action.id === 'sharedDream') {
             heal = 1;
             applyRestore(effectVocabulary.TARGET.SELF, heal);
-            actionText = 'Shared Dream — faint echo, ' + heal + ' Vit. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            actionText = 'Shared Dream â€” faint echo, ' + heal + ' Vit. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           } else if (action.id === 'mycelialLedger') {
             changeResource(effectVocabulary.RESOURCE.SCRAP, 1);
-            actionText = 'Mycelial Ledger — +1 Scrap. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            actionText = 'Mycelial Ledger â€” +1 Scrap. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           }
         } else if (action.type === 'hold') {
           if (state.player.staffCharges < state.player.maxStaffCharges) {
             changeResource(effectVocabulary.RESOURCE.STAFF_CHARGES, 1);
           }
           playerDmg = 1;
-          actionText = 'Hold — but the enemy finds you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          actionText = 'Hold â€” but the enemy finds you. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         } else if (action.type === 'defense') {
           playerDmg = 1;
           if (action.id === 'windWard') {
-            actionText = 'Wind Ward — the wind pushes through. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            actionText = 'Wind Ward â€” the wind pushes through. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           } else {
-            actionText = 'Aether Seal — the leak persists. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+            actionText = 'Aether Seal â€” the leak persists. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           }
         } else if (action.type === 'rest') {
-          actionText = 'Rest — tension keeps you awake. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          actionText = 'Rest â€” tension keeps you awake. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         }
       } else {
         // Failure
         if (action.type === 'attack') {
           playerDmg = Math.floor(random(1, 4)) + 1;
-          actionText = action.label + ' — misfires. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
+          actionText = action.label + ' â€” misfires. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total + ' (' + r.outcome + ')';
         } else if (action.type === 'ability') {
-          actionText = action.label + ' — the weave resists. Nothing gained. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          actionText = action.label + ' â€” the weave resists. Nothing gained. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
           playerDmg = 1;
         } else if (action.type === 'hold') {
           playerDmg = 1;
-          actionText = 'Hold — the enemy finds you. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          actionText = 'Hold â€” the enemy finds you. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         } else if (action.type === 'defense') {
           playerDmg = floor(random(1, 4)) + 1;
-          actionText = action.label + ' — overwhelmed. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          actionText = action.label + ' â€” overwhelmed. ' + playerDmg + ' Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         } else if (action.type === 'rest') {
           playerDmg = 1;
-          actionText = 'Rest — exhaustion hits hard. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
+          actionText = 'Rest â€” exhaustion hits hard. 1 Vit lost. Roll: ' + r.dice + '+' + r.stat + '=' + r.total;
         }
       }
 
@@ -5498,7 +5787,7 @@ function AetherCombat(p, C) {
     if (heal > 0) log('Healed ' + heal + ' Vit.');
     if (actionText) log('[Turn ' + state.turn + '] ' + actionText);
 
-    // Enemy turn — use special abilities by type
+    // Enemy turn â€” use special abilities by type
     if (state.enemy.hp > 0) {
       const eHit = floor(random(1, 4)) >= 3 ? 1 : 0;
       const eType = state.enemy.type || 'generic';
@@ -5508,22 +5797,22 @@ function AetherCombat(p, C) {
           // Dive Bomb: 2 damage, ignores dodge
           const dmg = 2;
           applyDamage(effectVocabulary.TARGET.SELF, dmg);
-          enemyText = state.enemy.name + ' dive-bombs — ' + dmg + ' damage (ignores dodge)!';
+          enemyText = state.enemy.name + ' dive-bombs â€” ' + dmg + ' damage (ignores dodge)!';
         } else if (eType === 'corporateSalvager') {
           // Contract Clause: lose 1 scrap
           if (state.player.scrap > 0) {
             changeResource(effectVocabulary.RESOURCE.SCRAP, -1);
-            enemyText = state.enemy.name + ' enforces a hold order — 1 scrap spent on emergency compliance!';
+            enemyText = state.enemy.name + ' enforces a hold order â€” 1 scrap spent on emergency compliance!';
           } else {
             // Fallback to strike
             applyDamage(effectVocabulary.TARGET.SELF, 1);
-            enemyText = state.enemy.name + ' strikes — 1 Vit lost.';
+            enemyText = state.enemy.name + ' strikes â€” 1 Vit lost.';
           }
         } else if (eType === 'windShear') {
           // Gale Force: 2 damage, knockback feel
           const dmg = 2;
           applyDamage(effectVocabulary.TARGET.SELF, dmg);
-          enemyText = state.enemy.name + ' unleashes gale force — ' + dmg + ' damage, wind knocks you back!';
+          enemyText = state.enemy.name + ' unleashes gale force â€” ' + dmg + ' damage, wind knocks you back!';
           state._windKnockTurn = millis();
         } else if (eType === 'aetherLeak') {
           // Drain: explicitly Aether-dependent and therefore suppressible.
@@ -5537,11 +5826,11 @@ function AetherCombat(p, C) {
               ' tries to drain Aether, but the Seal collapses the current.';
           } else if (state.player.aether.current > 0) {
             changeResource(effectVocabulary.RESOURCE.AETHER, -drainAmount);
-            enemyText = state.enemy.name + ' drains your aether — ' +
+            enemyText = state.enemy.name + ' drains your aether â€” ' +
               drainAmount + ' aether lost!';
           } else {
             applyDamage(effectVocabulary.TARGET.SELF, 1);
-            enemyText = state.enemy.name + ' strikes desperately — 1 Vit lost.';
+            enemyText = state.enemy.name + ' strikes desperately â€” 1 Vit lost.';
           }
         } else if (eType === 'engine_spirit') {
           // Harmonic Pulse: 2D6+Presence, drains 1 aether on 7-9+
@@ -5549,50 +5838,50 @@ function AetherCombat(p, C) {
           if (pulseRoll >= 7) {
             if (state.player.aether.current > 0) {
               changeResource(effectVocabulary.RESOURCE.AETHER, -1);
-              enemyText = state.enemy.name + ' emits harmonic pulse — drains 1 aether!';
+              enemyText = state.enemy.name + ' emits harmonic pulse â€” drains 1 aether!';
             } else {
               applyDamage(effectVocabulary.TARGET.SELF, 1);
-              enemyText = state.enemy.name + ' pulses — backlashes for 1 Vit!';
+              enemyText = state.enemy.name + ' pulses â€” backlashes for 1 Vit!';
             }
           } else {
             applyDamage(effectVocabulary.TARGET.SELF, 1);
-            enemyText = state.enemy.name + ' pulses harmlessly — 1 Vit lost.';
+            enemyText = state.enemy.name + ' pulses harmlessly â€” 1 Vit lost.';
           }
         } else if (eType === 'child_prophet') {
           // Prophecy Voice: on hit, lower player confidence (reduce echoes by 1)
           if (state.player.echoes.current > 0) {
             changeResource(effectVocabulary.RESOURCE.ECHOES, -1);
-            enemyText = state.enemy.name + ' chants prophecy — your confidence wavers, -1 echo!';
+            enemyText = state.enemy.name + ' chants prophecy â€” your confidence wavers, -1 echo!';
           } else {
             applyDamage(effectVocabulary.TARGET.SELF, 1);
-            enemyText = state.enemy.name + ' prophesies — 1 Vit lost.';
+            enemyText = state.enemy.name + ' prophesies â€” 1 Vit lost.';
           }
         } else if (eType === 'elder_farmer') {
           // Soil Anchor: 2D6+Might, on 10+ root player (skip next turn)
           const anchorRoll = floor(random(1, 7)) + floor(random(1, 7)) + state.enemy.might;
           if (anchorRoll >= 10) {
             state._rootedTurn = millis();
-            enemyText = state.enemy.name + ' plants soil anchor — you are rooted for 1 turn!';
+            enemyText = state.enemy.name + ' plants soil anchor â€” you are rooted for 1 turn!';
           } else if (anchorRoll >= 7) {
             applyDamage(effectVocabulary.TARGET.SELF, 1);
-            enemyText = state.enemy.name + ' anchors imperfectly — 1 Vit lost.';
+            enemyText = state.enemy.name + ' anchors imperfectly â€” 1 Vit lost.';
           } else {
             applyDamage(effectVocabulary.TARGET.SELF, 1);
-            enemyText = state.enemy.name + ' stumbles in the soil — 1 Vit lost.';
+            enemyText = state.enemy.name + ' stumbles in the soil â€” 1 Vit lost.';
           }
         } else {
           // Generic strike
           applyDamage(effectVocabulary.TARGET.SELF, 1);
-          enemyText = state.enemy.name + ' strikes — 1 Vit lost.';
+          enemyText = state.enemy.name + ' strikes â€” 1 Vit lost.';
         }
         log('[Enemy] ' + enemyText);
         if (eType === 'skyPredator' || eType === 'windShear') {
           state._flashTurn = millis();
         }
       } else {
-        // Enemy holds — but some enemies have conditional pressure
+        // Enemy holds â€” but some enemies have conditional pressure
         if (eType === 'corporateSalvager' && floor(random(1, 4)) >= 3) {
-          log('[Enemy] ' + state.enemy.name + ' exerts dock pressure — the berth feels smaller.');
+          log('[Enemy] ' + state.enemy.name + ' exerts dock pressure â€” the berth feels smaller.');
           state._pressureTurn = millis();
         } else {
           log('[Enemy] ' + state.enemy.name + ' holds.');
@@ -5642,22 +5931,22 @@ function AetherCombat(p, C) {
       } else {
         state._lastTurnCrit = false;
       }
-      // Base reward — scales with fight performance
+      // Base reward â€” scales with fight performance
       let scrapReward = 1 + floor(random(1, 3));
       let echoReward = 1;
       // Bonus for critical success on final turn (last successful attack that ended it)
       if (state._lastTurnCrit) {
         scrapReward += 2;
         echoReward = 2;
-        log('── Critical finish! Bonus rewards awarded. ──');
+        log('â”€â”€ Critical finish! Bonus rewards awarded. â”€â”€');
       }
       // Bonus for surviving near-death
       if (state.player.vit <= 3 && state.player.vit > 0) {
         scrapReward += 1;
-        log('── You fought through the brink — resilience reward. ──');
+        log('â”€â”€ You fought through the brink â€” resilience reward. â”€â”€');
       }
       changeResource(effectVocabulary.RESOURCE.SCRAP, scrapReward);
-      log('── ' + state.enemy.name + ' defeated. +' + scrapReward + ' Scrap. ──');
+      log('â”€â”€ ' + state.enemy.name + ' defeated. +' + scrapReward + ' Scrap. â”€â”€');
       changeResource(effectVocabulary.RESOURCE.ECHOES, echoReward);
       log('+' + echoReward + ' Echo' + (echoReward > 1 ? 's' : '') + '. The weave settles.');
       // XP reward based on enemy difficulty
@@ -5687,7 +5976,7 @@ function AetherCombat(p, C) {
       state.player.vit = 1;
       state.encounterOver = true;
       state._defeat = true;
-      log('Your vitality fails. The dream fades — for now. Press Enter to return.');
+      log('Your vitality fails. The dream fades â€” for now. Press Enter to return.');
     }
   };
 
@@ -5738,71 +6027,79 @@ function AetherCombat(p, C) {
     return;
   };
 
-  // ── Rendering (called from core.js drawCombatScene wiring) ──
-  this.drawCombatScene = function(playerX, playerY, aetherMax, staffMax) {
+  // â”€â”€ Rendering (called from core.js drawCombatScene wiring) â”€â”€
+  this.drawCombatScene = function(playerX, playerY, aetherMax, staffMax, sceneOptions) {
     const now = millis();
     const dodgeBob = state._dodgeTurn && state._dodgeTurn > now - 200
       ? Math.sin((now - state._dodgeTurn) * 0.02) * 4
       : 0;
     
-    // ── Background ──
-    noStroke();
-    fill(C.navy[0], C.navy[1], C.navy[2]);
-    rect(0, 0, p.width, p.height);
+    // ── Visual stage authority ──
+    const visualStage = window.AetherCombatVisual;
+    const stage = visualStage && typeof visualStage.stage === 'function'
+      ? visualStage.stage(p.width, p.height)
+      : {
+          playerX: Math.round(p.width * 0.34),
+          playerY: Math.round(p.height * 0.58),
+          enemyX: Math.round(p.width * 0.72),
+          enemyY: Math.round(p.height * 0.50),
+          horizonY: Math.round(p.height * 0.47),
+        };
 
-    // Ground
-    fill(C.soil[0], C.soil[1], C.soil[2]);
-    rect(0, p.height * 0.55, p.width, p.height * 0.45);
+    const combatPlayerX = stage.playerX;
+    const combatPlayerY = stage.playerY;
 
-    // Sky gradient overlay
-    for (let i = 0; i < p.height * 0.55; i += 2) {
-      const t = i / (p.height * 0.55);
-      p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], Math.floor(15 * (1 - t)));
-      p.strokeWeight(2);
-      p.line(0, i, p.width, i);
+    if (visualStage && typeof visualStage.drawBackdrop === 'function') {
+      visualStage.drawBackdrop({
+        width: p.width,
+        height: p.height,
+        now,
+        enemy: state.enemy,
+        turn: state.turn,
+        domain: sceneOptions && sceneOptions.domain ? sceneOptions.domain : 'ground',
+        weatherId: sceneOptions && sceneOptions.weatherId ? sceneOptions.weatherId : 'clear',
+        altitude: sceneOptions ? sceneOptions.altitude : null,
+        encounterPressure: sceneOptions && Number.isFinite(sceneOptions.encounterPressure)
+          ? sceneOptions.encounterPressure : 0,
+      });
+    } else {
+      noStroke();
+      fill(C.navy[0], C.navy[1], C.navy[2]);
+      rect(0, 0, p.width, p.height);
+      fill(C.soil[0], C.soil[1], C.soil[2]);
+      rect(0, p.height * 0.55, p.width, p.height * 0.45);
     }
-    p.noStroke();
 
-    // ── Stars ──
-    for (let i = 0; i < 30; i++) {
-      const sx = (i * 137.5 + 50 + Math.sin(now * 0.0003 + i) * 8) % p.width;
-      const sy = (i * 97.3 + 20 + Math.cos(now * 0.0002 + i * 1.3) * 6) % (p.height * 0.45);
-      const twinkle = Math.sin(now * 0.002 + i * 3) * 0.3 + 0.7;
-      p.fill(C.teal[0], C.teal[1], C.teal[2], Math.floor(20 + 20 * twinkle));
+    // ── JRPG encounter title rail ──
+    if (state.enemy && state.turn <= 1) {
+      const bannerT = Math.max(0.72, Math.min(1, (state.turn + 1) / 2));
+      const railW = Math.min(456, Math.round(p.width * 0.48));
+      const railX = Math.round((p.width - railW) / 2);
       p.noStroke();
-      p.ellipse(sx, sy, 1.5 + twinkle * 0.5, 1.5 + twinkle * 0.5);
-    }
+      p.fill(5, 10, 20, 145 * bannerT);
+      p.rect(railX, 21, railW, 58, 8);
+      p.fill(C.teal[0], C.teal[1], C.teal[2], 34 * bannerT);
+      p.rect(railX + 8, 50, railW - 16, 1);
+      p.fill(C.rust[0], C.rust[1], C.rust[2], 165 * bannerT);
+      p.rect(railX + 14, 29, 44, 3);
+      p.fill(C.teal[0], C.teal[1], C.teal[2], 165 * bannerT);
+      p.rect(railX + railW - 58, 29, 44, 3);
 
-    // ── Aether wisps ──
-    const t = now * 0.001;
-    for (let i = 0; i < 5; i++) {
-      const wx = (p.width * 0.12 * i + p.width * 0.08 + Math.sin(t + i * 2.5) * 50) % p.width;
-      const wy = p.height * 0.15 + Math.sin(t * 0.6 + i * 3.7) * 35;
-      const wispAlpha = 30 + Math.sin(t * 1.1 + i * 1.7) * 18;
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], wispAlpha);
-      p.noStroke();
-      p.ellipse(wx, wy, 22 + Math.sin(t * 1.2 + i * 0.9) * 6, 6 + Math.cos(t * 0.8 + i * 1.1) * 3);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], wispAlpha * 0.4);
-      p.ellipse(wx - 4, wy - 2, 14 + Math.sin(t * 1.3 + i) * 4, 4 + Math.cos(t * 0.9 + i) * 2);
-    }
-
-    // ── Combat intro banner ──
-    if (state.enemy && state.turn <= 3) {
-      const bannerT = Math.min(1, state.turn / 3);
-      p.textFont('VT323');
-      p.textSize(20 * bannerT);
-      p.textAlign(p.CENTER, p.CENTER);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 160 * bannerT);
-      p.text('⚔ COMBAT ⚔', p.width/2, 38);
-      p.textSize(12 * bannerT);
-      p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * bannerT);
-      p.text(state.enemy.name + ' approaches.', p.width/2, 58);
+      p.textAlign(p.CENTER, p.TOP);
+      p.textFont('Segoe UI Semibold');
+      p.textSize(9);
+      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 185 * bannerT);
+      p.text('ENCOUNTER', p.width/2, 28);
+      p.textFont('Trebuchet MS');
+      p.textSize(18);
+      p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 235 * bannerT);
+      p.text(state.enemy.name.toUpperCase(), p.width/2, 46);
     }
 
     // ── Enemy ──
     if (state.enemy) {
-      const ex = p.width * 0.75;
-      const ey = p.height * 0.52;
+      const ex = stage.enemyX;
+      const ey = stage.enemyY;
       const eType = state.enemy.type || 'generic';
       const eVisual = state.enemy.bodyShape || ({
         windShear: 'elemental',
@@ -5821,124 +6118,25 @@ function AetherCombat(p, C) {
         rose: C.rose,
       };
       const eBodyColor = colorMap[eColor] || C.soil;
-
-      // Enemy glow (changes with HP)
       const hpRatio = state.enemy.hp / state.enemy.maxHp;
-      const glowColor = hpRatio > 0.5 ? C.scioto : (hpRatio > 0.25 ? C.rust : C.teal);
-      p.fill(glowColor[0], glowColor[1], glowColor[2], 30 + Math.sin(now * 0.005) * 10);
-      p.noStroke();
-      p.ellipse(ex, ey, 70 + Math.sin(now * 0.003) * 4, 52 + Math.cos(now * 0.004) * 3);
 
-      // ── Enemy wings (animated) ──
-      const wingFlap = Math.sin(now * 0.005 + state.turn * 0.5) * 10 + 22;
-      // Per-enemy-type wing color
-      const wingColorMap = {
-        skyPredator: C.scioto,
-        corporateSalvager: C.soil,
-        windShear: C.scioto,
-        aetherLeak: C.teal,
-      };
-      const wingColor = wingColorMap[eType] || C.teal;
-      p.fill(wingColor[0], wingColor[1], wingColor[2], 140 + Math.sin(now * 0.004 + state.turn) * 20);
-      p.noStroke();
-      p.ellipse(ex - 26, ey - 8, 30, wingFlap);
-      p.ellipse(ex + 26, ey - 8, 30, wingFlap * 0.85);
-
-      // Wing-edge glow
-      p.stroke(C.teal[0], C.teal[1], C.teal[2], 60);
-      p.strokeWeight(1);
-      p.noFill();
-      p.ellipse(ex - 26, ey - 8, 30, wingFlap);
-      p.ellipse(ex + 26, ey - 8, 30, wingFlap * 0.85);
-      p.noStroke();
-
-      // ── Enemy body ──
-      const bodyColor = eBodyColor;
-      p.fill(bodyColor[0], bodyColor[1], bodyColor[2], 220);
-      p.noStroke();
-      // Different body shapes per enemy type
-      if (eVisual === 'elemental') {
-        // Wind Shear: angular, swirling body
-        p.ellipse(ex, ey, 34, 28);
-        p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 80);
-        p.ellipse(ex - 8, ey - 4, 18, 14);
-        // Wind streaks
-        p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], 100);
-        p.strokeWeight(1.5);
-        p.noFill();
-        for (let w = 0; w < 3; w++) {
-          const wa = now * 0.005 + w * 2.1;
-          p.line(ex - 12 + Math.sin(wa) * 8, ey - 6 + Math.cos(wa * 0.7) * 4,
-                 ex - 4 + Math.sin(wa + 1) * 10, ey - 2 + Math.cos(wa * 0.7 + 1) * 5);
-        }
-        p.noStroke();
-      } else if (eVisual === 'wraith') {
-        // Aether Leak: translucent, irregular blob
-        p.ellipse(ex, ey, 32, 26);
-        // Corrosive aura
-        p.fill(C.teal[0], C.teal[1], C.teal[2], 30 + Math.sin(now * 0.008) * 15);
-        p.ellipse(ex, ey, 44, 36);
-        p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 50);
-        p.ellipse(ex - 4, ey - 2, 16, 12);
-      } else if (eVisual === 'humanoid') {
-        // Dock authority enforcer: taller, narrower
-        p.ellipse(ex, ey, 26, 36);
-        p.fill(C.soil[0], C.soil[1], C.soil[2], 180);
-        p.rect(ex - 8, ey - 18, 16, 18);
+      // Shared visual-stage enemy treatment. Mechanical state remains local.
+      if (visualStage && typeof visualStage.drawEnemy === 'function') {
+        visualStage.drawEnemy({
+          x: ex,
+          y: ey,
+          now,
+          enemy: state.enemy,
+          turn: state.turn,
+        });
       } else {
-        // Sky-Predator (default): original body
-        p.ellipse(ex, ey, 30, 34);
+        p.fill(eBodyColor[0], eBodyColor[1], eBodyColor[2], 220);
+        p.noStroke();
+        p.rect(ex - 14, ey - 18, 28, 36);
       }
 
-      // Body highlight
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 40);
-      p.ellipse(ex - 5, ey - 8, 14, 10);
-
-      // ── Enemy eye (glows) ──
-      const eyeGlow = Math.sin(now * 0.006) * 0.2 + 0.8;
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 200 * eyeGlow);
-      p.noStroke();
-      p.ellipse(ex + 7, ey - 5, 7, 7);
-      p.fill(C.navy[0], C.navy[1], C.navy[2]);
-      p.ellipse(ex + 8, ey - 5, 3.5, 3.5);
-      // Eye highlight
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 160);
-      p.ellipse(ex + 9, ey - 6, 1.5, 1.5);
-
-      // ── HP bar ──
-      p.stroke(C.navy[0], C.navy[1], C.navy[2], 200);
-      p.strokeWeight(1);
-      p.noFill();
-      p.rect(ex - 32, ey - 32, 64, 5);
-      p.noStroke();
-      const hpFill = 60 * hpRatio;
-      if (hpFill > 0) {
-        p.fill(glowColor[0], glowColor[1], glowColor[2], 220);
-        p.rect(ex - 31, ey - 31, hpFill, 3);
-        // HP bar glow
-        p.fill(glowColor[0], glowColor[1], glowColor[2], 40);
-        p.rect(ex - 31, ey - 31, hpFill, 3);
-      }
-
-      // HP bar border ticks
-      p.stroke(C.teal[0], C.teal[1], C.teal[2], 80);
-      p.strokeWeight(1);
-      p.noFill();
-      for (let h = 0; h <= 4; h++) {
-        p.line(ex - 32 + h * 15, ey - 32, ex - 32 + h * 15, ey - 27);
-      }
-
-      // ── Enemy name ──
-      p.textFont('Press Start 2P');
-      p.textSize(9);
-      p.textAlign(p.CENTER, p.TOP);
-      p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 180);
-      p.text(state.enemy.name, ex, ey - 38);
-
-      // ── Turn counter ──
-      p.textSize(8);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 130);
-      p.text('TURN ' + state.turn, ex, ey + 22);
+      // Enemy identity and HP are already carried by the compact command window.
+      // Keep the battlefield sprite clean rather than attaching HUD labels/bars to it.
 
       // ── Enemy attack flash — bigger, brighter ──
       if (state._flashTurn && state._flashTurn > now - 300) {
@@ -6023,21 +6221,29 @@ function AetherCombat(p, C) {
       const hitScale = map(hitAge, 0, 400, 1, 3);
       p.fill(C.rust[0], C.rust[1], C.rust[2], hitAlpha);
       p.noStroke();
-      p.ellipse(playerX, playerY + dodgeBob, 40 * hitScale, 40 * hitScale);
+      p.ellipse(combatPlayerX, combatPlayerY + dodgeBob, 40 * hitScale, 40 * hitScale);
       p.fill(C.teal[0], C.teal[1], C.teal[2], hitAlpha * 0.3);
-      p.ellipse(playerX, playerY + dodgeBob, 50 * hitScale, 50 * hitScale);
+      p.ellipse(combatPlayerX, combatPlayerY + dodgeBob, 50 * hitScale, 50 * hitScale);
     }
 
-    // ── Player ability flash — teal burst on ability use ──
+    // ── Player ability flash — pixel starburst, not a smooth debug bubble ──
     if (state._abilityFlashTurn && state._abilityFlashTurn > now - 300) {
       const aAge = now - state._abilityFlashTurn;
-      const aAlpha = map(aAge, 0, 300, 120, 0);
-      const aScale = map(aAge, 0, 300, 1, 2);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], aAlpha);
+      const aAlpha = map(aAge, 0, 300, 190, 0);
+      const aReach = Math.round(map(aAge, 0, 300, 18, 42));
+      const ax = combatPlayerX;
+      const ay = combatPlayerY + dodgeBob - 16;
       p.noStroke();
-      p.ellipse(playerX, playerY + dodgeBob, 35 * aScale, 35 * aScale);
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], aAlpha * 0.5);
-      p.ellipse(playerX, playerY + dodgeBob, 45 * aScale, 45 * aScale);
+      p.fill(C.teal[0], C.teal[1], C.teal[2], aAlpha);
+      p.rect(ax - 2, ay - aReach, 4, 10);
+      p.rect(ax - 2, ay + aReach - 10, 4, 10);
+      p.rect(ax - aReach, ay - 2, 10, 4);
+      p.rect(ax + aReach - 10, ay - 2, 10, 4);
+      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], aAlpha * 0.78);
+      p.rect(ax - Math.round(aReach * 0.68), ay - Math.round(aReach * 0.68), 7, 3);
+      p.rect(ax + Math.round(aReach * 0.68) - 7, ay - Math.round(aReach * 0.68), 7, 3);
+      p.rect(ax - Math.round(aReach * 0.68), ay + Math.round(aReach * 0.68), 7, 3);
+      p.rect(ax + Math.round(aReach * 0.68) - 7, ay + Math.round(aReach * 0.68), 7, 3);
     }
 
     // ── Wind knockback visual — screen shake effect ──
@@ -6057,66 +6263,50 @@ function AetherCombat(p, C) {
       p.noStroke();
     }
 
-    // ── Fire package (staff) ──
+    // ── Resonator staff cue — attached to Ender, never floating as a separate HUD prop ──
     if (state.player.staffCharges > 0) {
-      const fx = 72, fy = p.height * 0.62;
-
-      // Staff glow
+      const fx = combatPlayerX - 18;
+      const fy = combatPlayerY + dodgeBob - 2;
       const chargeGlow = Math.sin(now * 0.004) * 0.3 + 0.7;
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 25 * chargeGlow);
-      p.noStroke();
-      p.ellipse(fx, fy, 44, 44);
 
-      // Staff shaft
-      p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], 150);
-      p.strokeWeight(2.5);
-      p.line(fx, fy - 16, fx, fy - 40);
+      p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], 185);
+      p.strokeWeight(3);
+      p.line(fx, fy, fx + 8, fy - 42);
       p.noStroke();
 
-      // Staff tip glow
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 60 * chargeGlow);
-      p.noStroke();
-      p.ellipse(fx, fy - 40, 10, 10);
+      // Pixel charge crown at the staff tip.
+      const tipX = fx + 8;
+      const tipY = fy - 42;
+      p.fill(C.teal[0], C.teal[1], C.teal[2], 155 * chargeGlow);
+      p.rect(tipX - 3, tipY - 3, 6, 6);
+      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 120 * chargeGlow);
+      p.rect(tipX - 1, tipY - 10, 2, 5);
+      p.rect(tipX - 1, tipY + 5, 2, 5);
+      p.rect(tipX - 10, tipY - 1, 5, 2);
+      p.rect(tipX + 5, tipY - 1, 5, 2);
 
-      // Charge orb
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 180 * chargeGlow);
-      p.ellipse(fx, fy - 40, 8, 8);
-      p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 120);
-      p.ellipse(fx, fy - 40, 13, 13);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 40);
-      p.ellipse(fx, fy - 40, 18, 18);
-
-      // Charge count
-      p.textFont('Press Start 2P');
-      p.textSize(8);
-      p.textAlign(p.CENTER, p.TOP);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 200);
-      p.text('\u26A1 ' + state.player.staffCharges + '/' + staffMax, fx, fy + 10);
     } else {
-      // Empty staff
-      const fx = 72, fy = p.height * 0.62;
-      p.stroke(C.soil[0], C.soil[1], C.soil[2], 110);
-      p.strokeWeight(2);
-      p.line(fx, fy - 16, fx, fy - 40);
+      // Empty staff remains physically attached to Ender; resource state is carried by the command window.
+      const fx = combatPlayerX - 18;
+      const fy = combatPlayerY + dodgeBob - 2;
+      p.stroke(C.soil[0], C.soil[1], C.soil[2], 125);
+      p.strokeWeight(3);
+      p.line(fx, fy, fx + 8, fy - 42);
       p.noStroke();
-      p.textFont('Press Start 2P');
-      p.textSize(8);
-      p.textAlign(p.CENTER, p.TOP);
-      p.fill(C.teal[0], C.teal[1], C.teal[2], 70);
-      p.text('EMPTY', fx, fy + 10);
     }
 
-    // ── Fire particles ──
+    // ── Staff aether motes — local to Ender rather than a detached HUD effect ──
     if (state.player.staffCharges > 0) {
       for (let i = 0; i < 5; i++) {
         const pi = (now * 0.02 + i * 7) % 5;
-        const fx = 72 + Math.sin(now * 0.015 + i * 2.1) * 8;
-        const fy = p.height * 0.58 - pi * 7;
-        const particleAlpha = Math.max(0, 60 - pi * 12 - Math.sin(now * 0.025 + i) * 15);
+        const fx = combatPlayerX - 10 + Math.sin(now * 0.015 + i * 2.1) * 8;
+        const fy = combatPlayerY + dodgeBob - 44 - pi * 7;
+        const particleAlpha = Math.max(0, 70 - pi * 12 - Math.sin(now * 0.025 + i) * 15);
         if (particleAlpha > 0) {
           p.fill(C.teal[0], C.teal[1], C.teal[2], particleAlpha);
           p.noStroke();
-          p.ellipse(fx, fy, 5 - pi * 0.7, 5 - pi * 0.7);
+          const mote = Math.max(2, Math.round(5 - pi * 0.7));
+          p.rect(Math.round(fx), Math.round(fy), mote, mote);
         }
       }
     }
@@ -6135,47 +6325,36 @@ function AetherCombat(p, C) {
     }
 
     // ── Player character ──
-    const px = playerX, py = playerY;
-    const pulse = Math.sin(now * 0.003) * 3 + 20;
+    const px = combatPlayerX, py = combatPlayerY;
+    if (visualStage && typeof visualStage.drawPlayer === 'function') {
+      visualStage.drawPlayer({
+        x: px,
+        y: py,
+        now,
+        dodgeBob,
+        player: state.player,
+      });
+    } else {
+      p.fill(C.teal[0], C.teal[1], C.teal[2], 190);
+      p.noStroke();
+      p.rect(px - 10, py - 20 + dodgeBob, 20, 20);
+    }
 
-    // Player glow
-    p.fill(C.teal[0], C.teal[1], C.teal[2], 50);
-    p.noStroke();
-    p.ellipse(px, py + dodgeBob, pulse + 10, pulse + 10);
+    // Player identity and HP live in the command window; keep the field sprite unobstructed.
 
-    // Player body
-    p.fill(C.teal[0], C.teal[1], C.teal[2], 190);
-    p.noStroke();
-    p.ellipse(px, py + dodgeBob, pulse, pulse);
-
-    // Player highlight
-    p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 160);
-    p.ellipse(px - 4, py - 4 + dodgeBob, pulse * 0.35, pulse * 0.35);
-
-    // Player outline
-    p.stroke(C.teal[0], C.teal[1], C.teal[2], 100);
-    p.strokeWeight(1.5);
-    p.noFill();
-    p.ellipse(px, py + dodgeBob, pulse + 2, pulse + 2);
-    p.noStroke();
-
-    // Player name
-    p.textFont('Press Start 2P');
-    p.textSize(8);
-    p.textAlign(p.CENTER, p.TOP);
-    p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 170);
-    p.text('ENDER', px, py - 30 + dodgeBob);
-
-    // Player Vit bar
-    const vitRatio = (combat && combat.getState) ? 
-      (combat.getState().player.vit / combat.getState().player.maxVit) : 1;
-    p.stroke(C.navy[0], C.navy[1], C.navy[2], 150);
-    p.strokeWeight(1);
-    p.noFill();
-    p.rect(px - 16, py - 42 + dodgeBob, 32, 3);
-    p.noStroke();
-    p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 180);
-    p.rect(px - 15, py - 41 + dodgeBob, 30 * Math.max(0, vitRatio), 1.5);
+    if (visualStage && typeof visualStage.drawTurnRail === 'function' && state.turn > 1) {
+      visualStage.drawTurnRail({
+        width: p.width,
+        height: p.height,
+        turn: state.turn,
+        enemy: state.enemy,
+        domain: sceneOptions && sceneOptions.domain ? sceneOptions.domain : 'ground',
+        weatherId: sceneOptions && sceneOptions.weatherId ? sceneOptions.weatherId : 'clear',
+        altitude: sceneOptions ? sceneOptions.altitude : null,
+        encounterPressure: sceneOptions && Number.isFinite(sceneOptions.encounterPressure)
+          ? sceneOptions.encounterPressure : 0,
+      });
+    }
   };
 };
 
@@ -6186,24 +6365,24 @@ if (typeof window !== 'undefined') {
 
 // === modules/ui.js ===
 /**
- * Aetherwake JRPG — UI Module
+ * Aetherwake JRPG â€” UI Module
  * All drawing via p5 primitives. No DOM creation.
  * Exports a global UI object consumed by core.js.
  */
 'use strict';
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // 16-COLOR PALETTE (from SPEC.md)
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PAL = {
-  TEAL:       '#2AFFB5',  // Solar Teal — primary accent / glow
-  SCIOTO:     '#7CC8E8',  // Scioto Blue — secondary / sky
-  NAVY:       '#1A102E',  // Deep Navy — background
-  PARCHMENT:  '#E8DCC6',  // Parchment — text / ports
+  TEAL:       '#2AFFB5',  // Solar Teal â€” primary accent / glow
+  SCIOTO:     '#7CC8E8',  // Scioto Blue â€” secondary / sky
+  NAVY:       '#1A102E',  // Deep Navy â€” background
+  PARCHMENT:  '#E8DCC6',  // Parchment â€” text / ports
   DUST:       '#C4A882',  // Dust Tan
   RUST:       '#A04A2C',  // Rust
   SOIL:       '#4A3520',  // Soil Brown
-  BIO:        '#4AEB6B',  // Biolum Green — mycelial / gear
+  BIO:        '#4AEB6B',  // Biolum Green â€” mycelial / gear
   WHITE:      '#F0F4F8',
   OFFWHITE:   '#D8DDE3',
   DIM:        '#8A7F99',
@@ -6213,16 +6392,16 @@ const PAL = {
   GREEN:      '#5CFF8A',  // dice success / heal
 };
 
-// VT323 ≈ monospace 16px–24px feel; Press Start 2P ≈ heavy pixel 8–12px.
+// VT323 â‰ˆ monospace 16pxâ€“24px feel; Press Start 2P â‰ˆ heavy pixel 8â€“12px.
 // p5 has no font fallback control per-call, so we approximate with size/weight calls.
 // In core.js, setTextFont should be called once to load these.
 
 const FONT_BODY  = 'VT323';
 const FONT_UI    = 'Press Start 2P';
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GLOBAL STATE (shared with core.js via window.UI)
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.UI = {
   // Menu
   menuOpen: false,
@@ -6256,9 +6435,9 @@ window.UI = {
   dayNightPhase: 0,
 };
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // HELPERS
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /** Push a string into the combat log, keep last 6. */
 function logCombat(msg) {
@@ -6277,9 +6456,9 @@ function addInventory(item) {
   window.UI.inventory.push(item);
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // AESTHETIC PRIMITIVES
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Draw the global background: dark navy + teal grid overlay at low opacity.
@@ -6314,7 +6493,7 @@ function drawBackground() {
 }
 
 /**
- * Scanline overlay — horizontal lines across the whole canvas.
+ * Scanline overlay â€” horizontal lines across the whole canvas.
  * Call AFTER all content, semi-transparent dark teal lines.
  */
 function drawScanlines() {
@@ -6334,10 +6513,10 @@ function drawScanlines() {
 
 /**
  * Pixel border: nested rects to simulate box-shadow depth.
- * @param {number} x,y,w,h — outer rect
- * @param {number} layers — how many nested border layers
- * @param {string} colorOuter — outer border color (default NAVY shadow)
- * @param {string} colorInner — inner border color (default TEAL)
+ * @param {number} x,y,w,h â€” outer rect
+ * @param {number} layers â€” how many nested border layers
+ * @param {string} colorOuter â€” outer border color (default NAVY shadow)
+ * @param {string} colorInner â€” inner border color (default TEAL)
  */
 function drawPixelBorder(x, y, w, h, layers = 3,
                          colorOuter = PAL.SHADOW, colorInner = PAL.TEAL) {
@@ -6358,13 +6537,13 @@ function drawPixelBorder(x, y, w, h, layers = 3,
 }
 
 /**
- * Teal glow text — simulates text-shadow 0 0 8px #2AFFB5 via multiple offset draws.
+ * Teal glow text â€” simulates text-shadow 0 0 8px #2AFFB5 via multiple offset draws.
  * Calls fill(textColor) once, then draws the same string several times offset with low-alpha TEAL.
  * @param {string} txt
  * @param {number} x, y
- * @param {string} textColor — main text color
- * @param {number} size — font size
- * @param {string} font — 'VT323' or 'Press Start 2P'
+ * @param {string} textColor â€” main text color
+ * @param {number} size â€” font size
+ * @param {string} font â€” 'VT323' or 'Press Start 2P'
  */
 function drawGlowText(txt, x, y, textColor = PAL.TEAL, size = 18,
                       font = FONT_BODY) {
@@ -6374,7 +6553,7 @@ function drawGlowText(txt, x, y, textColor = PAL.TEAL, size = 18,
   textAlign(LEFT, TOP);
   textLeading(size * 1.2);
 
-  // Glow pass — 6 offset draws with low-alpha TEAL
+  // Glow pass â€” 6 offset draws with low-alpha TEAL
   const glowColor = color(PAL.TEAL);
   glowColor.setAlpha(60);
   fill(glowColor);
@@ -6444,15 +6623,15 @@ function drawStatLabel(label, x, y, value, valueColor = PAL.PARCHMENT,
   pop();
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // VISUAL EFFECTS STATE (shared)
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-/** Screen flash overlay — set by combat.js / core.js on big moments. */
+/** Screen flash overlay â€” set by combat.js / core.js on big moments. */
 window.screenFlash = { active: false, color: null, alpha: 0, startTime: 0 };
 
 /**
- * Trigger a screen flash — color [r,g,b], duration ms, peak alpha 0..255.
+ * Trigger a screen flash â€” color [r,g,b], duration ms, peak alpha 0..255.
  */
 function triggerScreenFlash(r, g, b, duration, peakAlpha) {
   window.screenFlash.active = true;
@@ -6480,18 +6659,18 @@ function drawScreenFlash() {
   rect(0, 0, width, height);
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // ANIMATED STAT BARS
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /** Track smoothed bar values so they animate instead of snapping. */
 const _barAnim = new Map();
 
 /**
- * Get smoothed bar value — lerps toward target each frame.
- * @param {string} key — unique bar identifier (e.g. 'playerVit', 'enemyHp')
- * @param {number} target — current target value (pixels or 0..1)
- * @param {number} [speed=0.12] — lerp speed per frame
+ * Get smoothed bar value â€” lerps toward target each frame.
+ * @param {string} key â€” unique bar identifier (e.g. 'playerVit', 'enemyHp')
+ * @param {number} target â€” current target value (pixels or 0..1)
+ * @param {number} [speed=0.12] â€” lerp speed per frame
  * @returns {number} smoothed current value
  */
 function animBar(key, target, speed) {
@@ -6507,15 +6686,15 @@ function resetBarAnimations() {
   _barAnim.clear();
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // PARTICLE SYSTEM (simple, p5-primitive based)
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.particles = [];
 
 /**
  * Emit a particle burst at (x, y). Color as [r,g,b] or PAL key.
  * @param {number} x, y
- * @param {object} opts — { count, color, speed, life, size, spread, upward }
+ * @param {object} opts â€” { count, color, speed, life, size, spread, upward }
  */
 function emitParticles(x, y, opts) {
   if (!VIS.particles) return;
@@ -6546,9 +6725,9 @@ function emitParticles(x, y, opts) {
 /**
  * Emit a ring expansion (for covenant field activation, ability effects).
  * @param {number} cx, cy
- * @param {number} maxRadius — ring start radius
- * @param {number} expandDist — how far it expands
- * @param {number} life — frames to live
+ * @param {number} maxRadius â€” ring start radius
+ * @param {number} expandDist â€” how far it expands
+ * @param {number} life â€” frames to live
  * @param {array} color
  */
 function emitRing(cx, cy, maxRadius, expandDist, life, color) {
@@ -6609,19 +6788,19 @@ function drawParticles() {
   }
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // HUD IMPROVEMENTS
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /** Pulses when vit is low (< 5). */
 let _lowVitPulse = 0;
 
 /**
- * Draw animated HP bar — smooth transition, color shifts with health.
- * @param {number} x, y, w, h — bar rect
- * @param {number} current — current HP
- * @param {number} max — max HP
- * @param {string} label — optional label text above
+ * Draw animated HP bar â€” smooth transition, color shifts with health.
+ * @param {number} x, y, w, h â€” bar rect
+ * @param {number} current â€” current HP
+ * @param {number} max â€” max HP
+ * @param {string} label â€” optional label text above
  * @param {string} lowColor
  * @param {string} highColor
  */
@@ -6641,7 +6820,7 @@ function drawAnimatedHPBar(x, y, w, h, current, max, label,
   rect(x, y, w, h, 2);
   drawPixelBorder(x, y, w, h, 1, PAL.SHADOW, PAL.DIM);
 
-  // Fill bar — color blends from low to high
+  // Fill bar â€” color blends from low to high
   const fillW = max(0, (w - 2) * smoothRatio);
   if (fillW > 0) {
     // Blend color based on ratio
@@ -6658,7 +6837,7 @@ function drawAnimatedHPBar(x, y, w, h, current, max, label,
     rect(x + 1, y + 1, fillW, h - 2, 1.5);
   }
 
-  // Low HP pulse — red flash overlay
+  // Low HP pulse â€” red flash overlay
   if (current > 0 && current < 5) {
     _lowVitPulse = (millis() * 0.005) % 1;
     const pulseAlpha = sin(_lowVitPulse * TWO_PI) * 0.4 + 0.4;
@@ -6680,8 +6859,8 @@ function drawAnimatedHPBar(x, y, w, h, current, max, label,
 }
 
 /**
- * Draw echo diamonds — small diamond icons showing current/max echoes.
- * @param {number} x, y — position
+ * Draw echo diamonds â€” small diamond icons showing current/max echoes.
+ * @param {number} x, y â€” position
  * @param {number} current
  * @param {number} max
  * @param {number} size
@@ -6726,7 +6905,7 @@ function drawEchoDiamonds(x, y, current, max, size) {
 }
 
 /**
- * Draw heat warning indicator — orange glow when heat > 2.
+ * Draw heat warning indicator â€” orange glow when heat > 2.
  * @param {number} x, y
  * @param {number} current
  * @param {number} max
@@ -6745,13 +6924,13 @@ function drawHeatWarning(x, y, current, max) {
     ellipse(x, y, 24, 24);
   }
 
-  // Icon — warning diamond/exclamation
+  // Icon â€” warning diamond/exclamation
   textFont(FONT_UI);
   textSize(10);
   textAlign(CENTER, CENTER);
   fill(warning ? PAL.AMBER : PAL.DIM, warning ? 220 : 100);
   noStroke();
-  text('⚠', x, y);
+  text('âš ', x, y);
 
   // Heat bar to the right
   const barW = 30, barH = 4;
@@ -6779,8 +6958,8 @@ function drawHeatWarning(x, y, current, max) {
 }
 
 /**
- * Draw aether crystal visual — glowing crystal when aether > 0.
- * @param {number} x, y — center
+ * Draw aether crystal visual â€” glowing crystal when aether > 0.
+ * @param {number} x, y â€” center
  * @param {number} current
  * @param {number} max
  */
@@ -6797,7 +6976,7 @@ function drawAetherCrystal(x, y, current, max) {
   fill(PAL.SCIOTO, glowAlpha * 0.3);
   ellipse(0, 0, 22 + glowAlpha * 0.05, 22 + glowAlpha * 0.05);
 
-  // Crystal shape — diamond/hex
+  // Crystal shape â€” diamond/hex
   const s = 7;
   noStroke();
   fill(hasAether ? PAL.SCIOTO : PAL.DIM, hasAether ? 220 : 80);
@@ -6835,7 +7014,7 @@ function drawAetherCrystal(x, y, current, max) {
 
 /**
  * Draw solar charge meter with sun/moon icon.
- * @param {number} x, y — top-left of meter
+ * @param {number} x, y â€” top-left of meter
  * @param {number} current kWh
  * @param {number} max kWh
  * @param {number} dayNightPhase 0..1 (0=noon day, 0.5=night)
@@ -6855,7 +7034,7 @@ function drawSolarMeterHUD(x, y, current, max, dayNightPhase) {
   const isDay = dayNightPhase != null ? dayNightPhase < 0.5 : ratio > 0.2;
   noStroke();
   if (isDay) {
-    // Sun — circle with rays
+    // Sun â€” circle with rays
     fill(PAL.SCIOTO, 200);
     ellipse(iconX, iconY, 8, 8);
     fill(PAL.SCIOTO, 80);
@@ -6871,7 +7050,7 @@ function drawSolarMeterHUD(x, y, current, max, dayNightPhase) {
     }
     noStroke();
   } else {
-    // Moon — crescent
+    // Moon â€” crescent
     fill(PAL.TEAL, 200);
     ellipse(iconX, iconY, 8, 8);
     fill(PAL.NAVY, 200);
@@ -6907,7 +7086,7 @@ function drawSolarMeterHUD(x, y, current, max, dayNightPhase) {
   textAlign(LEFT, CENTER);
   fill(PAL.PARCHMENT, 170);
   noStroke();
-  const label = isDay ? '☀ SOLAR' : '☽ SOLAR';
+  const label = isDay ? 'â˜€ SOLAR' : 'â˜½ SOLAR';
   text(label, barX + barW + 6, barY + barH / 2);
 
   textFont(FONT_UI);
@@ -6920,9 +7099,9 @@ function drawSolarMeterHUD(x, y, current, max, dayNightPhase) {
 }
 
 /**
- * Draw quest progress indicator — dots for each stage.
- * @param {number} x, y — position
- * @param {string} currentState — 'signal' | 'crossing' | 'contact' | 'choice' | 'wake'
+ * Draw quest progress indicator â€” dots for each stage.
+ * @param {number} x, y â€” position
+ * @param {string} currentState â€” 'signal' | 'crossing' | 'contact' | 'choice' | 'wake'
  */
 function drawQuestProgress(x, y, currentState) {
   push();
@@ -6976,14 +7155,14 @@ function drawQuestProgress(x, y, currentState) {
 /**
  * Draw day-night indicator. 0 = noon (bright), 0.5 = night (dark), 1 = noon again.
  * Phase maps to angle: 0 = top (noon), PI = bottom (night).
- * arc / ellipse with scioto-blue → dark navy gradient.
+ * arc / ellipse with scioto-blue â†’ dark navy gradient.
  */
 function drawDayNightIndicatorHUD(cx, cy, r = 28) {
   push();
   const phase = window.UI.dayNightPhase; // 0..1
   const angle = phase * TWO_PI;
 
-  // Outer ring — pixel border
+  // Outer ring â€” pixel border
   drawPixelBorder(cx - r - 6, cy - r - 6, (r + 6) * 2, (r + 6) * 2, 2,
                    PAL.SHADOW, PAL.TEAL);
 
@@ -6992,7 +7171,7 @@ function drawDayNightIndicatorHUD(cx, cy, r = 28) {
   fill(PAL.NAVY);
   ellipse(cx, cy, r * 2);
 
-  // Day arc (top half, scioto blue) — drawn from -PI/2 to PI/2 based on phase
+  // Day arc (top half, scioto blue) â€” drawn from -PI/2 to PI/2 based on phase
   const dayStart = -HALF_PI;
   const dayEnd = dayStart + TWO_PI * phase;
   stroke(PAL.SCIOTO);
@@ -7044,21 +7223,21 @@ function drawDayNightIndicatorHUD(cx, cy, r = 28) {
   pop();
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // COVENANT FIELD (teal circle)
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
- * Draw a Covenant Field — a teal circle with glow, pulsing ring, and mycelial accents.
- * @param {number} x, y — center
- * @param {number} radius — field radius (pixels)
- * @param {number} pulse — 0..1 pulse phase for animation
+ * Draw a Covenant Field â€” a teal circle with glow, pulsing ring, and mycelial accents.
+ * @param {number} x, y â€” center
+ * @param {number} radius â€” field radius (pixels)
+ * @param {number} pulse â€” 0..1 pulse phase for animation
  */
 function drawCovenantFieldHUD(x, y, radius = 60, pulse = 0) {
   push();
   translate(x, y);
 
-  // Outer glow — large soft teal ellipse
+  // Outer glow â€” large soft teal ellipse
   noStroke();
   for (let g = 5; g >= 0; g--) {
     const alpha = map(g, 0, 5, 5, 40);
@@ -7072,7 +7251,7 @@ function drawCovenantFieldHUD(x, y, radius = 60, pulse = 0) {
   fill(color(PAL.TEAL), 18); // very low opacity fill
   ellipse(0, 0, radius * 2);
 
-  // Inner ring — pulsing
+  // Inner ring â€” pulsing
   const pulseRadius = radius * (0.85 + 0.15 * sin(pulse * TWO_PI));
   noFill();
   stroke(PAL.TEAL);
@@ -7090,7 +7269,7 @@ function drawCovenantFieldHUD(x, y, radius = 60, pulse = 0) {
     line(cos(a) * r1, sin(a) * r1, cos(a) * r2, sin(a) * r2);
   }
 
-  // Center glyph — diamond / hex
+  // Center glyph â€” diamond / hex
   push();
   rotate(pulse * TWO_PI * 0.5);
   stroke(PAL.TEAL);
@@ -7109,9 +7288,9 @@ function drawCovenantFieldHUD(x, y, radius = 60, pulse = 0) {
   pop();
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // CHARACTER SHEET HUD
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Draw the full character sheet HUD: portrait, class/level, stats, abilities, gear, resources.
@@ -7146,13 +7325,13 @@ function drawCharSheet(px, py, pw, ph) {
   rect(px, py, pw, ph);
   drawPixelBorder(px, py, pw, ph, 3, PAL.SHADOW, PAL.TEAL);
 
-  // ── Portrait Area ──
+  // â”€â”€ Portrait Area â”€â”€
   const portX = sheet.portraitX;
   const portY = sheet.portraitY;
   const portW = sheet.portraitW;
   const portH = sheet.portraitH;
 
-  // Portrait frame — pixel border
+  // Portrait frame â€” pixel border
   drawPixelBorder(portX, portY, portW, portH, 3, PAL.SHADOW, PAL.TEAL);
 
   // Portrait bg
@@ -7160,7 +7339,7 @@ function drawCharSheet(px, py, pw, ph) {
   fill(PAL.SHADOW);
   rect(portX + 4, portY + 4, portW - 8, portH - 8);
 
-  // Portrait placeholder: Ender — green goggles, trimmed beard, mycelial tattoos
+  // Portrait placeholder: Ender â€” green goggles, trimmed beard, mycelial tattoos
   const cx = portX + portW / 2;
   const cy = portY + portH / 2 - 10;
   const headR = 32;
@@ -7170,7 +7349,7 @@ function drawCharSheet(px, py, pw, ph) {
   noStroke();
   ellipse(cx, cy, headR * 2, headR * 2.1);
 
-  // Mycelial tattoos — teal branching on face
+  // Mycelial tattoos â€” teal branching on face
   stroke(PAL.TEAL);
   strokeWeight(1.5);
   noFill();
@@ -7191,7 +7370,7 @@ function drawCharSheet(px, py, pw, ph) {
   // Forehead line
   line(cx - 14, cy - 18, cx + 14, cy - 18);
 
-  // Goggles — green
+  // Goggles â€” green
   noStroke();
   fill(PAL.BIO);
   ellipse(cx - 12, cy - 4, 14, 10);
@@ -7242,7 +7421,7 @@ function drawCharSheet(px, py, pw, ph) {
   noStroke();
   rect(cx - 18, cy + 22, 36, 8);
 
-  // ── Class + Level ──
+  // â”€â”€ Class + Level â”€â”€
   textFont(FONT_UI);
   textSize(10);
   textAlign(LEFT, TOP);
@@ -7254,7 +7433,7 @@ function drawCharSheet(px, py, pw, ph) {
   fill(PAL.PARCHMENT);
   text('Rank 1', sheet.levelX + 44, sheet.levelY);
 
-  // ── Stats ──
+  // â”€â”€ Stats â”€â”€
   textFont(FONT_BODY);
   textSize(14);
   const statsY = sheet.statsY;
@@ -7277,7 +7456,7 @@ function drawCharSheet(px, py, pw, ph) {
     text(s.value, sheet.statsX + textWidth(s.label) + 8, sy - 2);
   });
 
-  // ── Abilities ──
+  // â”€â”€ Abilities â”€â”€
   textFont(FONT_UI);
   textSize(9);
   drawGlowText('ABILITIES', sheet.abilitiesX, sheet.abilitiesY,
@@ -7306,7 +7485,7 @@ function drawCharSheet(px, py, pw, ph) {
     }
   });
 
-  // ── Gear ──
+  // â”€â”€ Gear â”€â”€
   textFont(FONT_UI);
   textSize(9);
   drawGlowText('GEAR', sheet.gearX, sheet.gearY, PAL.TEAL, 9);
@@ -7324,7 +7503,7 @@ function drawCharSheet(px, py, pw, ph) {
     text(g.desc, sheet.gearX + 10, gy + 16);
   });
 
-  // ── Resources ──
+  // â”€â”€ Resources â”€â”€
   textFont(FONT_UI);
   textSize(9);
   drawGlowText('RESOURCES', sheet.resourcesX, sheet.resourcesY,
@@ -7351,11 +7530,11 @@ function drawCharSheet(px, py, pw, ph) {
 }
 
 /**
- * Minimal HUD version — smaller, top-bar style.
+ * Minimal HUD version â€” smaller, top-bar style.
  */
 function drawWorldHUD() {
   push();
-  // Top bar — vitals + quest phase
+  // Top bar â€” vitals + quest phase
   const hudX = 8, hudY = 8, hudW = width - 512, hudH = 52;
   
   // Panel background
@@ -7382,7 +7561,7 @@ function drawWorldHUD() {
   drawStatLabel('Aether', hudX + 220, vY, '4/6', PAL.SCIOTO);
   drawStatLabel('Heat', hudX + 290, vY, '1/3', PAL.AMBER);
   
-  // Right side — quest phase indicator
+  // Right side â€” quest phase indicator
   const qX = hudX + hudW - 130;
   const qY = hudY + 8;
   textFont(FONT_UI);
@@ -7398,11 +7577,11 @@ function drawWorldHUD() {
   pop();
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // COMBAT UI PANEL
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-/** Action icon glyphs — simple p5 shapes for each action type */
+/** Action icon glyphs â€” simple p5 shapes for each action type */
 function drawActionIcon(cx, cy, size, actionId) {
   push();
   translate(cx, cy);
@@ -7440,108 +7619,85 @@ function drawActionIcon(cx, cy, size, actionId) {
   pop();
 }
 
-/** Draw the full combat UI panel — left side of screen */
-function drawCombatPanel(combatState) {
+/** Draw the full combat UI panel â€” left side of screen */
+function drawCombatPanel(combatState, layoutBox) {
   if (!combatState) return;
   push();
-  const px = 8, py = 8, pw = 220, ph = 580;
+  const uiVisual = window.AetherUIVisualSystem;
+  const fallback = { x: 24, y: height - 264, w: 232, h: 240 };
+  const box = layoutBox || fallback;
+  const px = box.x, py = box.y, pw = box.w, ph = box.h;
 
-  // Panel background
-  fill(PAL.NAVY);
+  // Panel background follows the shared translucent instrument-panel token.
+  const panelColor = uiVisual && typeof uiVisual.panelRGBA === 'function'
+    ? uiVisual.panelRGBA()
+    : [11, 16, 33, 190];
+  fill(panelColor[0], panelColor[1], panelColor[2], Math.min(panelColor[3] || 150, 150));
   noStroke();
-  rect(px, py, pw, ph);
-  drawPixelBorder(px, py, pw, ph, 3, PAL.SHADOW, PAL.TEAL);
+  rect(px, py, pw, ph, 10);
+  // Softer glass edge replaces the heavy debug-frame read.
+  stroke(42, 255, 181, 42);
+  strokeWeight(1);
+  noFill();
+  rect(px + 1, py + 1, pw - 2, ph - 2, 10);
+  noStroke();
+  fill(42, 255, 181, 28);
+  rect(px + 8, py + 27, pw - 16, 1);
 
   // Header
   textFont(FONT_UI);
-  textSize(9);
-  drawGlowText('COMBAT', px + 12, py + 8, PAL.TEAL, 9);
-  text('TURN ' + combatState.turn, px + pw - 60, py + 10);
+  textSize(8);
+  drawGlowText('COMMAND', px + 12, py + 8, PAL.TEAL, 8);
 
-  // Enemy section
-  if (combatState.enemy) {
-    const ey = py + 36;
-    drawPixelBorder(px + 8, ey, pw - 16, 48, 2, PAL.SHADOW, PAL.RUST);
-    textFont(FONT_UI);
-    textSize(8);
-    drawGlowText(combatState.enemy.name.toUpperCase(), px + 14, ey + 4, PAL.RUST, 8);
-    textFont(FONT_BODY);
-    textSize(11);
-    fill(PAL.PARCHMENT);
-    noStroke();
-    const eNameW = textWidth(combatState.enemy.name);
-    text('HP ' + combatState.enemy.hp + '/' + combatState.enemy.maxHp, px + pw - 64, ey + 6);
-    // HP bar
-    const hpRatio = combatState.enemy.hp / combatState.enemy.maxHp;
-    const barW = pw - 32;
-    noStroke();
-    fill(PAL.SHADOW);
-    rect(px + 14, ey + 24, barW, 5);
-    const hpCol = hpRatio > 0.5 ? PAL.SCIOTO : (hpRatio > 0.25 ? PAL.AMBER : PAL.RED);
-    fill(hpCol);
-    rect(px + 14, ey + 24, barW * hpRatio, 5);
-    // Weakness hint
-    textFont(FONT_UI);
-    textSize(7);
-    fill(PAL.DIM);
-    text('WEAKNESS: ' + (combatState.enemy.weakness || 'unknown'), px + 14, ey + 32);
-  }
+  // Enemy identity/HP live in the centered encounter rail, leaving this window
+  // dedicated to the player's state and choices like a classic JRPG command box.
 
   // Player status section
-  const sY = py + 96;
-  drawPixelBorder(px + 8, sY, pw - 16, 88, 2, PAL.SHADOW, PAL.TEAL);
+  const sY = py + 30;
+  // Player state shares the same open instrument surface; no nested status card.
+  noStroke();
+  fill(42, 255, 181, 72);
+  rect(px + 12, sY + 1, pw - 24, 1);
   textFont(FONT_UI);
   textSize(8);
   drawGlowText('ENDER', px + 14, sY + 6, PAL.TEAL, 8);
 
-  // Player resources
+  // A compact authored portrait anchors battle identity without creating another
+  // nested status card or covering the field sprite. It fails safely when art is unavailable.
+  const authoredCombatArt = window.AetherAuthoredCharacterArt;
+  if (authoredCombatArt && typeof authoredCombatArt.drawPortrait === 'function') {
+    const vitRatio = combatState.player.maxVit > 0 ? combatState.player.vit / combatState.player.maxVit : 1;
+    const combatExpression = vitRatio <= 0.30 ? 'hurt' : 'focus';
+    authoredCombatArt.drawPortrait('ender', px + pw - 48, sY + 4, 34, { expression: combatExpression });
+  }
+
+  // Player resources use a fixed compact grid; values never compete for the
+  // same horizontal lane when the shared UI system narrows the panel.
   textFont(FONT_BODY);
-  textSize(12);
-  let rX = px + 14;
-  const rY = sY + 24;
-  // Vit
-  fill(PAL.RUST);
-  text('HP', rX, rY);
-  rX += 20;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.vit + '/' + combatState.player.maxVit, rX, rY);
-  // Echoes
-  rX += 48;
-  fill(PAL.BIO);
-  text('ECHO', rX, rY);
-  rX += 36;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.echoes.current + '/' + combatState.player.echoes.max, rX, rY);
-  // Aether
-  rX += 52;
-  fill(PAL.SCIOTO);
-  text('AETHER', rX, rY);
-  rX += 44;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.aether.current + '/' + combatState.player.aether.max, rX, rY);
-  // Staff charges
-  rX = px + 14;
-  const rY2 = sY + 48;
-  fill(PAL.TEAL);
-  text('STAFF', rX, rY2);
-  rX += 36;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.staffCharges + '/' + combatState.player.maxStaffCharges, rX, rY2);
-  // Scrap
-  rX += 52;
-  fill(PAL.DUST);
-  text('SCRAP', rX, rY2);
-  rX += 36;
-  fill(PAL.PARCHMENT);
-  text(String(combatState.player.scrap), rX, rY2);
+  textSize(10);
+  const col1 = px + 14;
+  const col2 = px + Math.round(pw * 0.53);
+  const row1 = sY + 20;
+  const row2 = sY + 37;
+  fill(PAL.RUST); text('HP', col1, row1);
+  fill(PAL.PARCHMENT); text(combatState.player.vit + '/' + combatState.player.maxVit, col1 + 23, row1);
+  fill(PAL.SCIOTO); text('AETHER', col2, row1);
+  fill(PAL.PARCHMENT); text(combatState.player.aether.current + '/' + combatState.player.aether.max, col2 + 45, row1);
+  fill(PAL.BIO); text('ECHO', col1, row2);
+  fill(PAL.PARCHMENT); text(combatState.player.echoes.current + '/' + combatState.player.echoes.max, col1 + 33, row2);
+  fill(PAL.TEAL); text('STAFF', col2, row2);
+  fill(PAL.PARCHMENT); text(combatState.player.staffCharges + '/' + combatState.player.maxStaffCharges, col2 + 38, row2);
 
   // Actions grid — eight stable number-key slots. Locked actions stay visible
   // so progression is legible without making key bindings move.
   const aX = px + 8;
-  const aY = sY + 100;
+  const aY = sY + 48;
   const aW = pw - 16;
-  const aH = 154;
-  drawPixelBorder(aX, aY, aW, aH, 2, PAL.SHADOW, PAL.TEAL);
+  const aH = 76;
+  // Actions remain grouped by spacing and typography rather than another opaque card.
+  noStroke();
+  fill(42, 255, 181, 58);
+  rect(aX + 4, aY, aW - 8, 1);
 
   textFont(FONT_UI);
   textSize(8);
@@ -7551,78 +7707,65 @@ function drawCombatPanel(combatState) {
   const eligibleActionIds = new Set(
     combatState.eligibleActionIds || actions.map(action => action.id)
   );
-  const actH = 16;
-  const actStartY = aY + 22;
+  // Two-column 4-row command grid keeps all eight actions visible without a tall sidebar.
+  const actH = 14;
+  const actStartY = aY + 19;
+  const actionColW = Math.floor(aW / 2);
   actions.forEach((action, idx) => {
-    const ay = actStartY + idx * actH;
+    const actionCol = idx % 2;
+    const actionRow = Math.floor(idx / 2);
+    const ax = aX + actionCol * actionColW;
+    const ay = actStartY + actionRow * actH;
     const unlocked = eligibleActionIds.has(action.id);
     const useEligibility = combatState.actionUseEligibility
       ? combatState.actionUseEligibility[action.id]
       : null;
     const usable = unlocked && (!useEligibility || useEligibility.canUse);
-    // Number circle
     fill(usable ? PAL.TEAL : PAL.DIM);
     noStroke();
-    ellipse(aX + 12, ay + 7, 9, 9);
+    ellipse(ax + 8, ay + 6, 8, 8);
     fill(PAL.NAVY);
     textFont(FONT_UI);
     textSize(7);
     textAlign(CENTER, CENTER);
-    text(String(idx + 1), aX + 12, ay + 7);
-    // Action label
+    text(String(idx + 1), ax + 8, ay + 6);
     textFont(FONT_BODY);
-    textSize(10);
+    textSize(8);
     textAlign(LEFT, CENTER);
     const label = action.label || action.id;
-    fill(usable ? PAL.PARCHMENT : PAL.DIM);
-    noStroke();
+    const compactLabel = label.split(/\s+[^A-Za-z0-9]+\s+/)[0].trim();
     const statePrefix = !unlocked
       ? 'LOCKED · '
       : (useEligibility && useEligibility.reason === 'ssot_blocked'
         ? 'UNAVAILABLE · '
         : (usable ? '' : 'NO RES · '));
-    text(statePrefix + label.substring(0, statePrefix ? 19 : 28), aX + 24, ay + 1);
-    // Cost indicator uses the exact same centralized legacy cost function as
-    // runtime admission/payment.
+    fill(usable ? PAL.PARCHMENT : PAL.DIM);
+    noStroke();
+    text((statePrefix + compactLabel).substring(0, 13), ax + 17, ay);
     const totalCost = window.AetherAbilityDefs.getActionResourceCost(action);
     if (unlocked && totalCost > 0) {
       textFont(FONT_UI);
       textSize(7);
       fill(usable ? PAL.AMBER : PAL.DIM);
-      text('COST: ' + totalCost, aX + aW - 62, ay + 2);
+      text('◆' + totalCost, ax + actionColW - 20, ay + 1);
     }
-    // Icon
-    if (usable) drawActionIcon(aX + aW - 16, ay + 7, 14, action.id);
   });
 
-  // Enemy special ability hint
+  // Enemy trait remains a single quiet footer line inside the compact command window.
   if (combatState.enemy && combatState.enemy.abilityDesc) {
-    const abY = aY + aH + 10;
-    drawPixelBorder(px + 8, abY, pw - 16, 28, 1, PAL.SHADOW, PAL.RUST);
+    const abY = aY + aH + 3;
+    fill(PAL.RUST);
+    noStroke();
+    rect(px + 12, abY, pw - 24, 1);
     textFont(FONT_UI);
     textSize(7);
-    fill(PAL.RUST);
-    text('ENEMY ABILITY:', px + 14, abY + 5);
+    textAlign(LEFT, TOP);
+    text('TRAIT', px + 14, abY + 4);
     textFont(FONT_BODY);
-    textSize(9);
+    textSize(8);
     fill(PAL.PARCHMENT);
-    const abText = combatState.enemy.abilityDesc;
-    const maxW = pw - 40;
-    const words = abText.split(' ');
-    let line = '';
-    let lines = [];
-    for (const w of words) {
-      if (textWidth(line + ' ' + w) > maxW && line) {
-        lines.push(line);
-        line = w;
-      } else {
-        line = line ? line + ' ' + w : w;
-      }
-    }
-    if (line) lines.push(line);
-    lines.forEach((l, i) => {
-      text(l, px + 14, abY + 14 + i * 10);
-    });
+    const abText = String(combatState.enemy.abilityDesc || '');
+    text(abText.substring(0, 30), px + 48, abY + 3);
   }
 
   pop();
@@ -7637,9 +7780,13 @@ function drawCombatPanel(combatState) {
  */
 function drawCombatLog(lx, ly, lw, lh) {
   push();
-  fill(PAL.NAVY);
+  const uiVisual = window.AetherUIVisualSystem;
+  const panelColor = uiVisual && typeof uiVisual.panelRGBA === 'function'
+    ? uiVisual.panelRGBA()
+    : [11, 16, 33, 214];
+  fill(...panelColor);
   noStroke();
-  rect(lx, ly, lw, lh);
+  rect(lx, ly, lw, lh, 8);
   drawPixelBorder(lx, ly, lw, lh, 3, PAL.SHADOW, PAL.TEAL);
 
   // Header
@@ -7694,14 +7841,14 @@ function drawCombatLog(lx, ly, lw, lh) {
 
 // ─────────────────────────────────────────────
 // DICE ROLL DISPLAY (2D6)
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Draw a 2D6 dice roll result with PbtA framing.
- * @param {number} result — sum of 2D6 (2..12)
- * @param {string} description — what was rolled (e.g. 'Uncover Truth + Wits')
- * @param {number} cx, cy — center position
- * @param {number} size — die size in pixels
+ * @param {number} result â€” sum of 2D6 (2..12)
+ * @param {string} description â€” what was rolled (e.g. 'Uncover Truth + Wits')
+ * @param {number} cx, cy â€” center position
+ * @param {number} size â€” die size in pixels
  */
 function drawDiceRoll(result, description, cx, cy, size = 64) {
   push();
@@ -7716,12 +7863,12 @@ function drawDiceRoll(result, description, cx, cy, size = 64) {
   drawPixelBorder(-panelW / 2, -panelH / 2, panelW, panelH, 3,
                    PAL.SHADOW, PAL.TEAL);
 
-  // Two dice — left and right
+  // Two dice â€” left and right
   const dieOff = size / 2 + 6;
   drawDie(size, -dieOff, 0, result >= 6 ? 6 : result - 6);
   drawDie(size, dieOff, 0, result >= 6 ? 6 : result);
 
-  // Result sum — big glow text
+  // Result sum â€” big glow text
   const sumColor = result >= 10 ? PAL.GREEN :
                    result >= 7  ? PAL.AMBER : PAL.RED;
   textFont(FONT_UI);
@@ -7738,10 +7885,10 @@ function drawDiceRoll(result, description, cx, cy, size = 64) {
     frame = '10+  FULL SUCCESS';
     frameColor = PAL.GREEN;
   } else if (result >= 7) {
-    frame = '7-9  PARTIAL — COST';
+    frame = '7-9  PARTIAL â€” COST';
     frameColor = PAL.AMBER;
   } else {
-    frame = '6-  FAILURE — GM MOVE';
+    frame = '6-  FAILURE â€” GM MOVE';
     frameColor = PAL.RED;
   }
   drawGlowTextCenter(frame, 0, size / 2 + 10, frameColor, 9);
@@ -7760,15 +7907,15 @@ function drawDiceRoll(result, description, cx, cy, size = 64) {
 
 /**
  * Draw a single D6 die face with pips.
- * @param {number} size — side length in pixels
- * @param {number} dx, dy — position
- * @param {number} value — 1..6
+ * @param {number} size â€” side length in pixels
+ * @param {number} dx, dy â€” position
+ * @param {number} value â€” 1..6
  */
 function drawDie(size, dx, dy, value) {
   push();
   translate(dx, dy);
 
-  // Die body — rounded rect with pixel border
+  // Die body â€” rounded rect with pixel border
   const r = 4; // corner radius
   fill(PAL.WHITE);
   noStroke();
@@ -7819,9 +7966,9 @@ function drawDie(size, dx, dy, value) {
   pop();
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // MENU SYSTEM
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Draw a menu popup: title + option list + callback.
@@ -7935,7 +8082,7 @@ function drawMenu() {
  * Open a menu.
  * @param {string} title
  * @param {string[]} options
- * @param {function} callback — called with option text when selected
+ * @param {function} callback â€” called with option text when selected
  */
 function openMenu(title, options, callback) {
   window.UI.menuOpen = true;
@@ -7955,7 +8102,7 @@ function closeMenu() {
 }
 
 /**
- * Handle menu input — to be called from core.js on keypress.
+ * Handle menu input â€” to be called from core.js on keypress.
  * Returns the selected option text, or null.
  */
 function handleMenuInput() {
@@ -7977,12 +8124,12 @@ function selectMenuOption(index = 0) {
   closeMenu();
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // QUEST LOG
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
- * Draw the quest log panel — left or right side, scrollable.
+ * Draw the quest log panel â€” left or right side, scrollable.
  */
 function drawQuestLog(lx, ly, lw, lh) {
   push();
@@ -8050,12 +8197,12 @@ function drawQuestLog(lx, ly, lw, lh) {
   pop();
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // INVENTORY DISPLAY
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
- * Draw the inventory panel — grid of item slots.
+ * Draw the inventory panel â€” grid of item slots.
  */
 function drawInventory(ix, iy, iw, ih) {
   push();
@@ -8123,14 +8270,14 @@ function drawInventory(ix, iy, iw, ih) {
   pop();
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // NPC DIALOGUE BOX
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Draw an NPC dialogue box at the bottom of the screen.
- * @param {object} npc — { name, title? }
- * @param {string} text — dialogue text (wraps)
+ * @param {object} npc â€” { name, title? }
+ * @param {string} text â€” dialogue text (wraps)
  */
 function drawNPCDialogue(npc, text) {
   push();
@@ -8159,7 +8306,7 @@ function drawNPCDialogue(npc, text) {
   textSize(9);
   textAlign(LEFT, TOP);
   const npcName = npc.name || 'UNKNOWN';
-  const npcTitle = npc.title ? ' — ' + npc.title : '';
+  const npcTitle = npc.title ? ' â€” ' + npc.title : '';
   drawGlowText(npcName + npcTitle, bx + 12, by + 8, PAL.TEAL, 9);
 
   // Divider
@@ -8167,7 +8314,7 @@ function drawNPCDialogue(npc, text) {
   strokeWeight(1);
   line(bx + 12, by + 22, bx + bw - 12, by + 22);
 
-  // Dialogue text — wrap manually
+  // Dialogue text â€” wrap manually
   textFont(FONT_BODY);
   textSize(13);
   textAlign(LEFT, TOP);
@@ -8222,13 +8369,13 @@ function clearDialogueOverlay() {
   window.UI.dialogueText = '';
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SHOP INTERFACE (Repair Cafe)
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Draw the Repair Cafe shop interface.
- * @param {Array} items — [{ name, desc, cost, repair?, buy? }]
+ * @param {Array} items â€” [{ name, desc, cost, repair?, buy? }]
  */
 function drawShop(items) {
   push();
@@ -8262,7 +8409,7 @@ function drawShop(items) {
   fill(PAL.DIM);
   noStroke();
   textAlign(CENTER, CENTER);
-  text('— Salvager\'s Row —', sx + sw / 2, sy + 34);
+  text('â€” Salvager\'s Row â€”', sx + sw / 2, sy + 34);
 
   // Divider
   stroke(PAL.TEAL);
@@ -8303,7 +8450,7 @@ function drawShop(items) {
     rect(ix, iy, itemW, itemH);
     drawPixelBorder(ix, iy, itemW, itemH, 2, PAL.SHADOW, PAL.TEAL);
 
-    // Item icon placeholder — colored square
+    // Item icon placeholder â€” colored square
     noStroke();
     fill(PAL.BIO);
     rect(ix + 10, iy + 10, 30, 30);
@@ -8331,7 +8478,7 @@ function drawShop(items) {
     textFont(FONT_UI);
     textSize(9);
     textAlign(LEFT, TOP);
-    const costStr = item.cost ? `SCRAP ${item.cost}` : '—';
+    const costStr = item.cost ? `SCRAP ${item.cost}` : 'â€”';
     drawGlowText(costStr, ix + 12, iy + 74, item.cost ? PAL.DUST : PAL.DIM, 9);
 
     // Action hint
@@ -8363,20 +8510,20 @@ function clearShopOverlay() {
   window.UI.shopItems = [];
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // TURN OVERLAY
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
- * Draw a turn overlay — full-screen announcement of whose turn it is.
- * @param {string} actor — actor name
- * @param {string} phase — 'INITIATIVE' | 'ACTION' | 'RESOLUTION' | 'END'
+ * Draw a turn overlay â€” full-screen announcement of whose turn it is.
+ * @param {string} actor â€” actor name
+ * @param {string} phase â€” 'INITIATIVE' | 'ACTION' | 'RESOLUTION' | 'END'
  */
 function drawTurnOverlay(actor, phase) {
   push();
   window.UI.turnOverlay = true;
 
-  const overlayMsg = phase + ' — ' + actor;
+  const overlayMsg = phase + ' â€” ' + actor;
 
   // Dim backdrop
   fill(color(PAL.NAVY), 200);
@@ -8399,7 +8546,7 @@ function drawTurnOverlay(actor, phase) {
   noStroke();
   textAlign(CENTER, CENTER);
   const sub = phase === 'INITIATIVE' ? 'Roll Grace + Wits for turn order' :
-              phase === 'ACTION' ? 'Choose action — main or secondary' :
+              phase === 'ACTION' ? 'Choose action â€” main or secondary' :
               phase === 'RESOLUTION' ? 'Roll 2D6 + relevant stat' :
               phase === 'END' ? 'Press SPACE for next turn' : '';
   if (sub) {
@@ -8416,13 +8563,13 @@ function clearTurnOverlay() {
   window.UI.turnOverlay = false;
 }
 
-// ─────────────────────────────────────────────
-// DRAW HUD (main entry — composites all HUD layers)
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// DRAW HUD (main entry â€” composites all HUD layers)
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
- * Main HUD draw — called each frame. Composites background, HUD, day-night, scanlines.
- * @param {object} gameState — { showCharSheet, showCombatLog, showQuestLog, showInventory, showDice, diceResult, diceDesc, showMenu, menuArgs, showDialogue, npc, dialogueText, showShop, shopItems, showTurnOverlay, turnActor, turnPhase }
+ * Main HUD draw â€” called each frame. Composites background, HUD, day-night, scanlines.
+ * @param {object} gameState â€” { showCharSheet, showCombatLog, showQuestLog, showInventory, showDice, diceResult, diceDesc, showMenu, menuArgs, showDialogue, npc, dialogueText, showShop, shopItems, showTurnOverlay, turnActor, turnPhase }
  */
 function drawHUDFrame(gameState) {
   push();
@@ -8474,9 +8621,9 @@ function drawHUDFrame(gameState) {
   if (mode.showShop) {
     drawShop(mode.shopItems || [
       { name: 'Resonator Tuning', desc: 'Realign cyan crystal, +1 EMP', cost: 3, repair: true },
-      { name: 'Loom Patch Kit', desc: 'Solar tube repair — restore 0.5kWh', cost: 2, repair: true },
-      { name: 'Mycelial Ink', desc: 'Tattoo refresh — +1 Presence temp', cost: 4, buy: true },
-      { name: 'Goggle Lens', desc: 'Green filter — +1 Wits in aether', cost: 5, buy: true },
+      { name: 'Loom Patch Kit', desc: 'Solar tube repair â€” restore 0.5kWh', cost: 2, repair: true },
+      { name: 'Mycelial Ink', desc: 'Tattoo refresh â€” +1 Presence temp', cost: 4, buy: true },
+      { name: 'Goggle Lens', desc: 'Green filter â€” +1 Wits in aether', cost: 5, buy: true },
     ]);
   }
 
@@ -8506,15 +8653,15 @@ function drawHUDFrame(gameState) {
   drawScreenFlashLegacy();
 
   // Scanlines on top of everything
-  drawScanlines();
+  if (VIS.scanlines) drawScanlines();
 
   pop();
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // MODULE INIT
-// ─────────────────────────────────────────────
-console.log('[UI] Aetherwake UI module loaded —',
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+console.log('[UI] Aetherwake UI module loaded â€”',
             Object.keys(window.UI).join(', '));
 
 function drawScreenFlashLegacy() {

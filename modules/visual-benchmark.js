@@ -1,0 +1,242 @@
+/* ============================================================
+   Aetherwake — Dragonfly Dusk Dock Benchmark Presentation
+   modules/visual-benchmark.js
+
+   Presentation only. This module must not mutate gameplay topology,
+   quest state, party state, save state, or navigation state.
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  const VERSION = '0.5.0';
+  const PAINTED_WORLD_PATH = 'assets/preview/aetherwake-preview-world-pixelart-v2.png';
+  let paintedWorld = null;
+  let paintedWorldRequested = false;
+  let paintedWorldReady = false;
+
+  function isActive(player, airNavigationState) {
+    if (!player || !airNavigationState) return false;
+    if (airNavigationState.mooredLandmarkId !== 'wake-dock') return false;
+    return player.tileX >= 18 && player.tileY >= 9 && player.tileY <= 24;
+  }
+
+  function duskFactor(dayTime) {
+    const t = Number.isFinite(dayTime) ? dayTime : 0.78;
+    const dist = Math.min(Math.abs(t - 0.78), Math.abs((t + 1) - 0.78), Math.abs(t - (0.78 + 1)));
+    return Math.max(0.55, 1 - dist * 2.2);
+  }
+
+  function drawBackdrop(ctx) {
+    const w = ctx.width;
+    const h = ctx.height;
+    const now = ctx.now || 0;
+    const dusk = duskFactor(ctx.dayTime);
+
+    noStroke();
+
+    if (!paintedWorldRequested && typeof loadImage === 'function') {
+      paintedWorldRequested = true;
+      try {
+        paintedWorld = loadImage(
+          PAINTED_WORLD_PATH,
+          () => { paintedWorldReady = true; },
+          () => { paintedWorld = null; paintedWorldReady = false; }
+        );
+      } catch (error) {
+        paintedWorld = null;
+        paintedWorldReady = false;
+      }
+    }
+
+    if (paintedWorldReady && paintedWorld && typeof image === 'function') {
+      push();
+      noSmooth();
+      const cover = Math.max(w / paintedWorld.width, h / paintedWorld.height);
+      const dw = paintedWorld.width * cover;
+      const dh = paintedWorld.height * cover;
+      image(paintedWorld, (w - dw) / 2, (h - dh) / 2, dw, dh);
+      pop();
+      // Late-dusk grade preserves the benchmark's cool ambient / warm practical rule.
+      fill(20, 24, 55, Math.round(92 + dusk * 40));
+      rect(0, 0, w, h);
+      fill(104, 73, 112, Math.round(22 + dusk * 18));
+      rect(0, Math.round(h * 0.48), w, Math.round(h * 0.52));
+
+      // Tiny distant air traffic and first stars keep the scene alive without
+      // re-running the heavier procedural island/cloud backdrop.
+      for (let i = 0; i < 3; i++) {
+        const x = Math.round((now * (0.008 + i * 0.003) + 120 + i * 220) % (w + 80)) - 40;
+        const y = Math.round(h * (0.20 + i * 0.07));
+        fill(205, 225, 230, 105); rect(x, y, 7, 1);
+        fill(42, 255, 181, 88); rect(x - 2, y, 1, 1);
+      }
+      fill(224, 232, 245, 110);
+      const stars = [[71,54],[132,89],[218,46],[321,74],[417,39],[542,82],[646,51],[778,97],[889,48]];
+      for (const [sx, sy] of stars) rect(sx % w, sy, 1, 1);
+      return;
+    }
+
+    // Banded dusk gradient: deliberately pixel-authored rather than a smooth
+    // vector gradient. The map remains the playable plane over this sky.
+    const bands = [
+      [16, 18, 38],
+      [28, 31, 61],
+      [47, 54, 88],
+      [73, 82, 116],
+      [105, 102, 132],
+      [155, 116, 126],
+      [205, 138, 105],
+    ];
+    const bandH = Math.ceil(h / bands.length);
+    for (let i = 0; i < bands.length; i++) {
+      const c = bands[i];
+      const mix = 0.72 + dusk * 0.28;
+      fill(Math.round(c[0] * mix), Math.round(c[1] * mix), Math.round(c[2] * mix));
+      rect(0, i * bandH, w, bandH + 1);
+    }
+
+    // Distant luminous cloud sea.
+    for (let layer = 0; layer < 4; layer++) {
+      const baseY = h * (0.56 + layer * 0.075);
+      const speed = 0.0025 + layer * 0.0014;
+      const offset = Math.round((now * speed + layer * 97) % 180);
+      const alpha = 34 + layer * 14;
+      fill(180 + layer * 8, 190 + layer * 8, 212 + layer * 6, alpha);
+      for (let x = -220; x < w + 220; x += 120) {
+        const xx = x + offset;
+        rect(xx, Math.round(baseY), 88, 8 + layer * 3);
+        rect(xx + 18, Math.round(baseY - 6), 48, 6);
+        rect(xx + 42, Math.round(baseY + 7), 70, 5);
+      }
+    }
+
+    // Distant floating-island silhouettes and warm settlement pin-lights.
+    const islands = [
+      [0.61, 0.35, 70, 22],
+      [0.73, 0.29, 46, 15],
+      [0.84, 0.39, 92, 28],
+      [0.94, 0.24, 38, 13],
+    ];
+    for (let i = 0; i < islands.length; i++) {
+      const [nx, ny, iw, ih] = islands[i];
+      const x = Math.round(w * nx);
+      const y = Math.round(h * ny);
+      fill(24, 31, 48, 215);
+      rect(x, y, iw, ih);
+      rect(x + Math.floor(iw * 0.18), y + ih, Math.floor(iw * 0.65), 5);
+      rect(x + Math.floor(iw * 0.34), y + ih + 5, Math.floor(iw * 0.31), 4);
+      fill(244, 174, 91, 150);
+      rect(x + 10, y + 5, 2, 2);
+      if (iw > 50) rect(x + 24, y + 9, 2, 2);
+      if (iw > 70) rect(x + 43, y + 5, 2, 2);
+    }
+
+    // Tiny distant air traffic: slow enough to read as scale, not UI noise.
+    for (let i = 0; i < 3; i++) {
+      const x = Math.round((now * (0.008 + i * 0.003) + 120 + i * 220) % (w + 80)) - 40;
+      const y = Math.round(h * (0.22 + i * 0.08));
+      fill(205, 225, 230, 110);
+      rect(x, y, 6, 1);
+      fill(42, 255, 181, 90);
+      rect(x - 2, y, 1, 1);
+    }
+
+    // First stars emerge in the upper atmosphere.
+    fill(224, 232, 245, 110);
+    const stars = [[71,54],[132,89],[218,46],[321,74],[417,39],[542,82],[646,51],[778,97],[889,48]];
+    for (const [sx, sy] of stars) rect(sx % w, sy, 1, 1);
+  }
+
+
+  function drawDragonfly(ctx) {
+    const visual = root.AetherDragonflyVisual;
+    if (!visual || typeof visual.draw !== 'function') {
+      throw new Error('AETHER_DRAGONFLY_VISUAL_UNAVAILABLE');
+    }
+    return visual.draw({
+      mode: 'dock',
+      x: ctx.x,
+      y: ctx.y,
+      now: ctx.now || 0,
+      speed: 0,
+      heading: 0,
+      scale: 1.75
+    });
+  }
+
+  function drawLighting(ctx) {
+    const w = ctx.width;
+    const h = ctx.height;
+    const dusk = duskFactor(ctx.dayTime);
+    noStroke();
+    fill(28, 31, 62, Math.round(28 + dusk * 18));
+    rect(0, 0, w, h);
+    // Preserve warm human-scale light against the cool dusk grade.
+    fill(245, 167, 82, 18);
+    rect(360, 180, 188, 210);
+  }
+
+  function drawDockLights(ctx) {
+    const now = ctx.now || 0;
+    const lamps = [
+      [402, 238], [435, 270], [472, 306], [504, 337]
+    ];
+    for (let i = 0; i < lamps.length; i++) {
+      const [x, y] = lamps[i];
+      const pulse = 0.85 + Math.sin(now * 0.003 + i) * 0.15;
+      noStroke();
+      fill(244, 169, 82, Math.round(45 * pulse));
+      rect(x - 5, y - 5, 10, 10);
+      fill(255, 207, 126, Math.round(190 * pulse));
+      rect(x - 1, y - 2, 3, 4);
+      fill(68, 55, 46, 220);
+      rect(x, y + 2, 1, 11);
+    }
+  }
+
+  function drawForeground(ctx) {
+    const w = ctx.width;
+    const h = ctx.height;
+    const now = ctx.now || 0;
+
+    const kit = root.AetherEnvironmentVisualKit;
+    if (kit && typeof kit.drawDockForeground === 'function') kit.drawDockForeground(ctx);
+
+    // Near railing/cable silhouette creates a foreground depth band.
+    noStroke();
+    fill(12, 15, 26, 195);
+    rect(0, h - 31, w, 31);
+    for (let x = 18; x < w; x += 64) rect(x, h - 54, 4, 27);
+    rect(0, h - 50, w, 3);
+
+    // Hanging rope/cable sway.
+    stroke(58, 49, 43, 180);
+    strokeWeight(2);
+    for (let i = 0; i < 4; i++) {
+      const x = 90 + i * 210;
+      const sway = Math.round(Math.sin(now * 0.0018 + i) * 5);
+      line(x, h - 50, x + sway, h - 23);
+    }
+    noStroke();
+
+    // Windborne seeds/dust in the near plane.
+    fill(224, 211, 165, 100);
+    for (let i = 0; i < 9; i++) {
+      const x = Math.round((now * (0.011 + i * 0.0004) + i * 107) % (w + 20)) - 10;
+      const y = Math.round(h * 0.45 + ((i * 53) % 180) + Math.sin(now * 0.002 + i) * 8);
+      rect(x, y, 2, 1);
+    }
+  }
+
+  const api = Object.freeze({
+    VERSION,
+    isActive,
+    drawBackdrop,
+    drawDragonfly,
+    drawLighting,
+    drawDockLights,
+    drawForeground,
+  });
+
+  root.AetherVisualBenchmark = api;
+})(typeof window !== 'undefined' ? window : globalThis);

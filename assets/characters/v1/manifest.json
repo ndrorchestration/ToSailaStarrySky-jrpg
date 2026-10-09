@@ -1,0 +1,497 @@
+{
+  "schema": "AETHERWAKE_AUTHORED_CHARACTER_ASSET_MANIFEST_V1",
+  "status": "partial-authored",
+  "authority": "docs/CHARACTER_ART_ASSET_CONTRACT.md",
+  "runtimeFallback": "modules/character-renderer.js",
+  "characters": {
+    "ender": {
+      "status": "portrait-ready",
+      "portraitAtlas": {
+        "path": "assets/characters/v1/ender/portrait-atlas.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ],
+        "source": "Creator-selected canonical portrait candidate promoted to runtime portrait authority; field art remains unadmitted.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
+      },
+      "fieldStrips": {
+        "idle": {
+          "path": "assets/characters/v1/ender/field-idle.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        },
+        "walk": {
+          "path": "assets/characters/v1/ender/field-walk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "talk": {
+          "path": "assets/characters/v1/ender/field-talk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 4
+        },
+        "focus": {
+          "path": "assets/characters/v1/ender/field-focus.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "attack": {
+          "path": "assets/characters/v1/ender/field-attack.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        }
+      },
+      "silhouetteTestRequired": true,
+      "sourceReference": "canonical Drive visual-bible authority",
+      "candidatePortraitAtlas": {
+        "status": "candidate",
+        "path": "assets/characters/v1/ender/portrait-atlas-candidate.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "transparent": true,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ],
+        "source": "Regenerated from the creator-supplied enderbest1.jpg reference at the userâ€™s direction; this is the selected likeness and outfit, opt-in preview only.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
+      },
+      "candidateFieldSprite": {
+        "status": "candidate",
+        "path": "assets/characters/v1/ender/field-idle-walk-candidate.png",
+        "width": 56,
+        "height": 36,
+        "cellWidth": 28,
+        "cellHeight": 36,
+        "frames": [
+          "idle",
+          "walk"
+        ],
+        "transparent": true,
+        "source": "Generated from the creator-selected enderbest1.jpg reference; opt-in field-art preview only.",
+        "likenessStatus": "SUPERSEDED_REGENERATE",
+        "promotionBlocked": true,
+        "supersededBy": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md"
+      },
+      "likenessAuthority": {
+        "status": "LOCKED_TO_APPROVED_ALIGNMENT_V1",
+        "document": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md",
+        "traits": {
+          "hair": "very short dark copper-brown / auburn",
+          "eyes": "bright green",
+          "signature": "green-lensed brass goggles; olive/tan field scholar"
+        }
+      }
+    },
+    "lyra": {
+      "status": "portrait-ready",
+      "portraitAtlas": {
+        "path": "assets/characters/v1/lyra/portrait-atlas.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ],
+        "source": "Creator-selected canonical portrait candidate promoted to runtime portrait authority; field art remains unadmitted.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
+      },
+      "fieldStrips": {
+        "idle": {
+          "path": "assets/characters/v1/lyra/field-idle.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        },
+        "walk": {
+          "path": "assets/characters/v1/lyra/field-walk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "talk": {
+          "path": "assets/characters/v1/lyra/field-talk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 4
+        },
+        "focus": {
+          "path": "assets/characters/v1/lyra/field-focus.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "attack": {
+          "path": "assets/characters/v1/lyra/field-attack.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        }
+      },
+      "silhouetteTestRequired": true,
+      "sourceReference": "canonical Drive visual-bible authority",
+      "candidatePortraitAtlas": {
+        "status": "candidate",
+        "path": "assets/characters/v1/lyra/portrait-atlas-candidate.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "transparent": true,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ],
+        "source": "Generated from the previously selected Lyra portrait concept and the creator-supplied Aetherwake character compendium; opt-in only, not admitted.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
+      },
+      "candidateFieldSprite": {
+        "status": "candidate",
+        "path": "assets/characters/v1/lyra/field-idle-walk-candidate.png",
+        "width": 56,
+        "height": 36,
+        "cellWidth": 28,
+        "cellHeight": 36,
+        "frames": [
+          "idle",
+          "walk"
+        ],
+        "transparent": true,
+        "source": "Generated in Canva from the Aetherwake Skybound Character Compendium; opt-in field-art preview only.",
+        "likenessStatus": "SUPERSEDED_REGENERATE",
+        "promotionBlocked": true,
+        "supersededBy": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md"
+      },
+      "likenessAuthority": {
+        "status": "LOCKED_TO_APPROVED_ALIGNMENT_V1",
+        "document": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md",
+        "traits": {
+          "hair": "long natural red / copper-red",
+          "eyes": "green",
+          "signature": "adult receiver/support; blue-toned fitted layers over light blouse"
+        }
+      }
+    },
+    "ionia": {
+      "status": "portrait-ready",
+      "portraitAtlas": {
+        "path": "assets/characters/v1/ionia/portrait-atlas.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ],
+        "sourceMediaIds": {
+          "neutral": "MAHWRHcUg7E",
+          "talk": "MAHWREn9G8k",
+          "concern": "MAHWRA996TY",
+          "focus": "MAHWRMknKps",
+          "hurt": "MAHWREojHyY",
+          "smile": "MAHWRAaBaus"
+        },
+        "source": "Canva generated candidates reviewed against canonical Drive/Notion authority; local atlas derived from 200px authoring previews for 88px dialogue display.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
+      },
+      "fieldStrips": {
+        "idle": {
+          "path": "assets/characters/v1/ionia/field-idle.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        },
+        "walk": {
+          "path": "assets/characters/v1/ionia/field-walk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "talk": {
+          "path": "assets/characters/v1/ionia/field-talk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 4
+        },
+        "focus": {
+          "path": "assets/characters/v1/ionia/field-focus.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "attack": {
+          "path": "assets/characters/v1/ionia/field-attack.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        }
+      },
+      "silhouetteTestRequired": true,
+      "sourceReference": "canonical Drive visual-bible authority",
+      "candidateFieldSprite": {
+        "status": "candidate",
+        "path": "assets/characters/v1/ionia/field-idle-walk-candidate.png",
+        "width": 56,
+        "height": 36,
+        "cellWidth": 28,
+        "cellHeight": 36,
+        "frames": [
+          "idle",
+          "walk"
+        ],
+        "transparent": true,
+        "source": "Generated in Canva from the Aetherwake Skybound Character Compendium; opt-in field-art preview only.",
+        "likenessStatus": "SUPERSEDED_REGENERATE",
+        "promotionBlocked": true,
+        "supersededBy": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md"
+      },
+      "likenessAuthority": {
+        "status": "LOCKED_TO_APPROVED_ALIGNMENT_V1",
+        "document": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md",
+        "traits": {
+          "hair": "shoulder-length curly blonde",
+          "eyes": "green",
+          "signature": "young captain/explorer; cream blouse; brown leather harness"
+        }
+      }
+    },
+    "reson": {
+      "status": "planned",
+      "portraitAtlas": {
+        "path": "assets/characters/v1/reson/portrait-atlas.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ],
+        "source": "Creator-selected canonical portrait retained as review material; runtime portrait authority remains NOT AUTHORIZED in Visual V46.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
+      },
+      "fieldStrips": {
+        "idle": {
+          "path": "assets/characters/v1/reson/field-idle.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        },
+        "walk": {
+          "path": "assets/characters/v1/reson/field-walk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "talk": {
+          "path": "assets/characters/v1/reson/field-talk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 4
+        },
+        "focus": {
+          "path": "assets/characters/v1/reson/field-focus.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "attack": {
+          "path": "assets/characters/v1/reson/field-attack.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        }
+      },
+      "silhouetteTestRequired": true,
+      "sourceReference": "canonical Drive visual-bible authority",
+      "candidatePortraitAtlas": {
+        "status": "candidate",
+        "path": "assets/characters/v1/reson/portrait-atlas-candidate.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "transparent": true,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ],
+        "source": "Generated from creator-supplied Reson reference; explicit opt-in preview only, not admitted.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
+      },
+      "candidateFieldSprite": {
+        "status": "candidate",
+        "path": "assets/characters/v1/reson/field-idle-walk-candidate.png",
+        "width": 56,
+        "height": 36,
+        "cellWidth": 28,
+        "cellHeight": 36,
+        "frames": [
+          "idle",
+          "walk"
+        ],
+        "transparent": true,
+        "source": "Generated from the creator-selected Reson character reference; opt-in field-art preview only.",
+        "likenessStatus": "SUPERSEDED_REGENERATE",
+        "promotionBlocked": true,
+        "supersededBy": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md"
+      },
+      "likenessAuthority": {
+        "status": "LOCKED_TO_APPROVED_ALIGNMENT_V1",
+        "document": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md",
+        "traits": {
+          "hair": "dark brown under backward red cap",
+          "facialHair": "distinct mustache",
+          "signature": "muscular tactical build; red scarf; dark leather harness"
+        }
+      }
+    },
+    "aepex": {
+      "status": "planned",
+      "portraitAtlas": {
+        "path": "assets/characters/v1/aepex/portrait-atlas.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ],
+        "source": "Creator-selected canonical portrait retained as review material; runtime portrait authority remains NOT AUTHORIZED in Visual V46.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
+      },
+      "fieldStrips": {
+        "idle": {
+          "path": "assets/characters/v1/aepex/field-idle.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        },
+        "walk": {
+          "path": "assets/characters/v1/aepex/field-walk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "talk": {
+          "path": "assets/characters/v1/aepex/field-talk.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 4
+        },
+        "focus": {
+          "path": "assets/characters/v1/aepex/field-focus.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 6
+        },
+        "attack": {
+          "path": "assets/characters/v1/aepex/field-attack.png",
+          "frameWidth": 64,
+          "frameHeight": 96,
+          "frames": 8
+        }
+      },
+      "silhouetteTestRequired": true,
+      "sourceReference": "canonical Drive visual-bible authority",
+      "candidatePortraitAtlas": {
+        "status": "candidate",
+        "path": "assets/characters/v1/aepex/portrait-atlas-candidate.png",
+        "width": 768,
+        "height": 512,
+        "cellWidth": 256,
+        "cellHeight": 256,
+        "transparent": true,
+        "expressions": [
+          "neutral",
+          "talk",
+          "concern",
+          "focus",
+          "hurt",
+          "smile"
+        ],
+        "source": "Generated from creator-supplied Aepex reference; opt-in preview candidate, not admitted.",
+        "likenessReviewStatus": "REVIEW_AGAINST_APPROVED_ALIGNMENT_V1"
+      },
+      "candidateFieldSprite": {
+        "status": "candidate",
+        "path": "assets/characters/v1/aepex/field-idle-walk-candidate.png",
+        "width": 56,
+        "height": 36,
+        "cellWidth": 28,
+        "cellHeight": 36,
+        "frames": [
+          "idle",
+          "walk"
+        ],
+        "transparent": true,
+        "source": "Generated from the creator-selected Aepex character reference; opt-in field-art preview only.",
+        "likenessStatus": "SUPERSEDED_REGENERATE",
+        "promotionBlocked": true,
+        "supersededBy": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md"
+      },
+      "likenessAuthority": {
+        "status": "LOCKED_TO_APPROVED_ALIGNMENT_V1",
+        "document": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md",
+        "traits": {
+          "hair": "dirty/sandy-blond asymmetric undercut",
+          "signature": "technical/geometric tattoos; dark techwear; brass engineering hardware"
+        }
+      }
+    }
+  },
+  "likenessAuthority": {
+    "status": "CREATOR_APPROVED_V1",
+    "document": "docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md",
+    "referenceFilename": "wide_detailed_concept_art_and_game_ui_collage_pos.png",
+    "referenceSha256": "e973be82a026e0d2df441471fa5dd0fd5214265152757bec07d9c493563b93de"
+  }
+}

@@ -1,0 +1,597 @@
+{
+  "status": "CANDIDATE_NOT_ADMITTED",
+  "frameSize": [
+    64,
+    96
+  ],
+  "footLine": 93,
+  "alphaCutoff": 128,
+  "filter": "nearest",
+  "appearanceSha256": "619517944ebe12b295bf5f780abb1a49bce2449230654fb8c49b11e8380546fd",
+  "actions": {
+    "idle": {
+      "frames": 8,
+      "fps": 8,
+      "sourceSha256": "fdba36f71cdaa081327e9576f71df458defd50bdd45446966761b3bcc12ebc78",
+      "assetSha256": "1271c73e8f2b3071051268d45f91129077e51a9027d5544e8cda6f3b55c25032",
+      "conversion": [
+        {
+          "source": [
+            89,
+            40,
+            325,
+            529
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            16,
+            27,
+            32,
+            67
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "05afa1697e4fd77af5527cb6d7bbdffac2b7eb7d45282ea4b206d93f5b288ed1"
+        },
+        {
+          "source": [
+            444,
+            40,
+            680,
+            530
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            16,
+            27,
+            32,
+            67
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "5a93566c5388c9ac0c553f7e2145985fb68d7db3d994fe2b97ec1ffa335c42e6"
+        },
+        {
+          "source": [
+            798,
+            40,
+            1034,
+            530
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            16,
+            27,
+            32,
+            67
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "0af1e61be4ddea73033aa1891baa09f372cfd6faa263c9c0423ae2a2d1153196"
+        },
+        {
+          "source": [
+            1153,
+            40,
+            1392,
+            530
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            15,
+            27,
+            33,
+            67
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "c419285eb365a85849caee7d59f1bca78a4887a817e46270ab888db0adeb4116"
+        },
+        {
+          "source": [
+            89,
+            559,
+            329,
+            1050
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            15,
+            27,
+            33,
+            67
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "ff88c98bacede92d62e554e232c6fdb31a32091676fdfe98ebf93ae45dbabd06"
+        },
+        {
+          "source": [
+            444,
+            559,
+            686,
+            1050
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            15,
+            27,
+            33,
+            67
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "958249860bc99c8d7e9f5ba1c5775ee7d2e9dd7d935a8b07713822fd3a72331b"
+        },
+        {
+          "source": [
+            798,
+            559,
+            1039,
+            1050
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            15,
+            27,
+            33,
+            67
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "9c74cb56042a5fc512557e2980a3c8d10dc0df37c96e281753fb90a7e071432f"
+        },
+        {
+          "source": [
+            1153,
+            559,
+            1395,
+            1050
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            15,
+            27,
+            33,
+            67
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "d7e4cbe59bff6734c4f0f6cd011851f67322deae32f5e3f918c1909f3b451cd7"
+        }
+      ]
+    },
+    "walk": {
+      "frames": 6,
+      "fps": 10,
+      "sourceSha256": "e49f04bc22b304b3f750e1dfc9a3d90dc8d1d1cae7859ba4e4a59a6363018092",
+      "assetSha256": "fecb31df66b59266d2428b151cfb988ba15237c5387c8659c2f9d92ab7ef776c",
+      "conversion": [
+        {
+          "source": [
+            214,
+            10,
+            512,
+            499
+          ],
+          "scale": 0.14105263157894737,
+          "placed": [
+            11,
+            25,
+            42,
+            69
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "541841ae2ae1dd449bcf319061078e275f58a5f0814ef62335448d079b36b457"
+        },
+        {
+          "source": [
+            640,
+            9,
+            878,
+            500
+          ],
+          "scale": 0.14105263157894737,
+          "placed": [
+            15,
+            25,
+            34,
+            69
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "c79ec389ff8d61ad3dcaf0d17bcb7140a8663f5ff4c21e0927aeb2ed0fbb7c2a"
+        },
+        {
+          "source": [
+            1069,
+            10,
+            1353,
+            499
+          ],
+          "scale": 0.14105263157894737,
+          "placed": [
+            12,
+            25,
+            40,
+            69
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "90a509b2afef57f2d570e8825dac7a1eaa0d28c2db32aededb72c06da58223a7"
+        },
+        {
+          "source": [
+            223,
+            514,
+            512,
+            999
+          ],
+          "scale": 0.14105263157894737,
+          "placed": [
+            11,
+            26,
+            41,
+            68
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "9c22b8fde491784041caa7fed7748adc3528f86d41bd91b212fe5b592e548dec"
+        },
+        {
+          "source": [
+            641,
+            514,
+            897,
+            999
+          ],
+          "scale": 0.14105263157894737,
+          "placed": [
+            14,
+            26,
+            36,
+            68
+          ],
+          "removedDisconnectedPixels": 933,
+          "sha256": "4e33905513316f5002beea21d857f17255eb6a8e6451f614e84be525477b910d"
+        },
+        {
+          "source": [
+            1073,
+            514,
+            1347,
+            997
+          ],
+          "scale": 0.14105263157894737,
+          "placed": [
+            12,
+            26,
+            39,
+            68
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "1fe5ce602e462a4b60e410ea752d879f8db2212d244fc4806fafee408dbda9bb"
+        }
+      ]
+    },
+    "talk": {
+      "frames": 4,
+      "fps": 6,
+      "sourceSha256": "e85f5ea271908c6f0d9adf026fd12a51aadcfca2ad939a30d2a90cda5d984aa9",
+      "assetSha256": "75c78ea603c02fb2cec582b8767475407b4a6dede75fbae3d9bc769d195e76be",
+      "conversion": [
+        {
+          "source": [
+            171,
+            45,
+            483,
+            670
+          ],
+          "scale": 0.10983606557377049,
+          "placed": [
+            15,
+            25,
+            34,
+            69
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "28a9842897f6204aabeb0b9ccdb27aceda00965636f243adb729a51a47742aad"
+        },
+        {
+          "source": [
+            642,
+            45,
+            999,
+            670
+          ],
+          "scale": 0.10983606557377049,
+          "placed": [
+            12,
+            25,
+            39,
+            69
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "1a2b53531ebc1146899d3aa99687d911f57c70a2b4d57d54532778107ebfc596"
+        },
+        {
+          "source": [
+            171,
+            732,
+            512,
+            1356
+          ],
+          "scale": 0.10983606557377049,
+          "placed": [
+            13,
+            25,
+            37,
+            69
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "d4957bbaadaff68049065da06f68f8a7dfafa30ffdba7ea106f787ebf3de2d93"
+        },
+        {
+          "source": [
+            642,
+            732,
+            955,
+            1355
+          ],
+          "scale": 0.10983606557377049,
+          "placed": [
+            15,
+            26,
+            34,
+            68
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "1b189941ee3701c11a3719609aaa67da224e2a5ff2242fdbce90949dfdb095d0"
+        }
+      ]
+    },
+    "focus": {
+      "frames": 6,
+      "fps": 12,
+      "sourceSha256": "d35c96dbd151d270adf0361c96bb3b71470c68b6477977d3885a8a3bf6bf3b3a",
+      "assetSha256": "522bafb8365c9085700f00b69c314080a9590864c9a629f379be149e9fd08f38",
+      "conversion": [
+        {
+          "source": [
+            160,
+            5,
+            410,
+            512
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            15,
+            25,
+            34,
+            69
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "513cbc2825038aa07d61b63d0cd8602e4e57f33603c08d12fb7e7395e7b7fc74"
+        },
+        {
+          "source": [
+            652,
+            5,
+            903,
+            512
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            15,
+            25,
+            34,
+            69
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "31fa5b41b72a23b90724de7780c897cac734bdef59082e662a62a05de99de0fe"
+        },
+        {
+          "source": [
+            1137,
+            5,
+            1400,
+            512
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            14,
+            25,
+            36,
+            69
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "8c61603635648c33cc9d991717e9c55c5114c3152833a853d74d527671724426"
+        },
+        {
+          "source": [
+            163,
+            518,
+            434,
+            1015
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            13,
+            26,
+            37,
+            68
+          ],
+          "removedDisconnectedPixels": 65,
+          "sha256": "e264d3ab1a218834edd1a75c768ca32f78869f40772da79b284b181e6c1d2649"
+        },
+        {
+          "source": [
+            651,
+            518,
+            916,
+            1015
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            14,
+            26,
+            36,
+            68
+          ],
+          "removedDisconnectedPixels": 66,
+          "sha256": "d4daaba7757ebc9b3b52fb08f235d0d354e2409fe217943ae1d1bb6b95076d2e"
+        },
+        {
+          "source": [
+            1135,
+            518,
+            1393,
+            1017
+          ],
+          "scale": 0.13673469387755102,
+          "placed": [
+            14,
+            26,
+            35,
+            68
+          ],
+          "removedDisconnectedPixels": 106,
+          "sha256": "966b03430ab923136e702d07703c6e870041596295630f2afa97a93b1c7ecd50"
+        }
+      ]
+    },
+    "attack": {
+      "frames": 8,
+      "fps": 15,
+      "sourceSha256": "5535cd0713a330d36be9ecf94e49cac372ef9dd116af330354785620b62d03c1",
+      "assetSha256": "b8d47b1f0d88e7c81ab03177d243513294e9c78d9e4069c2c7da9bb06b02c80c",
+      "conversion": [
+        {
+          "source": [
+            38,
+            103,
+            224,
+            753
+          ],
+          "scale": 0.11166666666666666,
+          "placed": [
+            21,
+            21,
+            21,
+            73
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "ac42c39aee147932b9ac972551003e0d63ff3796e558a1c4626d6b3c51981bb3"
+        },
+        {
+          "source": [
+            272,
+            112,
+            505,
+            760
+          ],
+          "scale": 0.11166666666666666,
+          "placed": [
+            19,
+            22,
+            26,
+            72
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "0704f2f276ae174283616ccace2fbaac5ca46802ecfce8e4872b95e6dbbc126c"
+        },
+        {
+          "source": [
+            528,
+            43,
+            768,
+            760
+          ],
+          "scale": 0.11166666666666666,
+          "placed": [
+            18,
+            14,
+            27,
+            80
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "a9d097f33130f8bb155cf648f5636c8a204ac020d2b042206bf67901c140e207"
+        },
+        {
+          "source": [
+            782,
+            37,
+            1017,
+            766
+          ],
+          "scale": 0.11166666666666666,
+          "placed": [
+            19,
+            13,
+            26,
+            81
+          ],
+          "removedDisconnectedPixels": 85,
+          "sha256": "f1b4eabaaca1fa2609e751c4ff520ecf5063cc72be03b75bb3e630e0ee38f84b"
+        },
+        {
+          "source": [
+            35,
+            894,
+            256,
+            1454
+          ],
+          "scale": 0.11166666666666666,
+          "placed": [
+            19,
+            31,
+            25,
+            63
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "43061a50b6567e364a6c309a801d7e0fad57081c1ec87e027608bec24a02ef92"
+        },
+        {
+          "source": [
+            306,
+            800,
+            512,
+            1456
+          ],
+          "scale": 0.11166666666666666,
+          "placed": [
+            20,
+            21,
+            23,
+            73
+          ],
+          "removedDisconnectedPixels": 1560,
+          "sha256": "e341eafe2aa88feb240c4a4d9b6ba5db8401b4d9c4103081b638e356d5b12cdf"
+        },
+        {
+          "source": [
+            535,
+            800,
+            748,
+            1462
+          ],
+          "scale": 0.11166666666666666,
+          "placed": [
+            20,
+            20,
+            24,
+            74
+          ],
+          "removedDisconnectedPixels": 121,
+          "sha256": "a0bfe0ac04e20be7ce47b71dfc71c64bad0777ea20534a0f6a0442f673398660"
+        },
+        {
+          "source": [
+            805,
+            809,
+            994,
+            1462
+          ],
+          "scale": 0.11166666666666666,
+          "placed": [
+            21,
+            21,
+            21,
+            73
+          ],
+          "removedDisconnectedPixels": 0,
+          "sha256": "3486324a78cda2a1b1f6bdac5f7b4c76e58fe4b1cb98fc7ce65d04342cab72a0"
+        }
+      ]
+    }
+  }
+}

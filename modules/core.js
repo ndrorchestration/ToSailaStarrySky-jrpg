@@ -1,11 +1,11 @@
 // ============================================================
-// Aetherwake JRPG — Main p5.js Sketch (GLOBAL MODE)
+// Aetherwake JRPG Ã¢â‚¬â€ Main p5.js Sketch (GLOBAL MODE)
 // ============================================================
 // Single-file HTML: index.html loads p5.js CDN then this script.
-// All modules use bare p5 globals — this sketch does too.
+// All modules use bare p5 globals Ã¢â‚¬â€ this sketch does too.
 // ============================================================
 
-// ── Palette ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ Palette Ã¢â€â‚¬Ã¢â€â‚¬
 const C = {
   teal:     [42, 255, 181],
   scioto:   [124, 200, 232],
@@ -17,7 +17,7 @@ const C = {
   biolum:   [80, 240, 160],
 };
 
-// ── State ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ State Ã¢â€â‚¬Ã¢â€â‚¬
 const STATE = {
   BOOT: 'boot', MENU: 'menu', WORLD: 'world', COMBAT: 'combat',
   DIALOGUE: 'dialogue', SHOP: 'shop', LEDGER: 'ledger',
@@ -36,19 +36,19 @@ let preambleStart = 0;
 let titleVisible = 0;        // 0..1 fade-in for title
 let titleFlash = 0;          // flash effect on title
 
-// ── Screen shake (combat / impact) ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ Screen shake (combat / impact) Ã¢â€â‚¬Ã¢â€â‚¬
 let shake = { intensity: 0, duration: 0, startTime: 0 };
 
-// ── Hit stop / freeze frames (critical hits) ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ Hit stop / freeze frames (critical hits) Ã¢â€â‚¬Ã¢â€â‚¬
 let hitStop = { active: false, remaining: 0 };
 
-// ── Screen fade transitions ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ Screen fade transitions Ã¢â€â‚¬Ã¢â€â‚¬
 let fade = { active: false, from: null, to: null, startTime: 0, duration: 400, alpha: 0 };
 
-// ── Dialogue type-in ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ Dialogue type-in Ã¢â€â‚¬Ã¢â€â‚¬
 let dialogueTypeIn = { active: false, fullText: '', displayText: '', charIndex: 0, speed: 22, lastCharTime: 0 };
 
-// ── Global visual settings ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ Global visual settings Ã¢â€â‚¬Ã¢â€â‚¬
 const VIS = {
   screenShake: true,
   hitStop: true,
@@ -57,9 +57,11 @@ const VIS = {
   vignette: true,
   particles: true,
   hudAnimations: true,
+  // CRT scanlines are an optional retro effect, not the production visual default.
+  scanlines: false,
 };
 
-// ── Toast messages ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ Toast messages Ã¢â€â‚¬Ã¢â€â‚¬
 window.toasts = [];
 
 // Floating islands for title parallax (recreated for boot seq)
@@ -91,11 +93,11 @@ const keysPressed = {};
 const keyRepeat = {};
 const keyRepeatFirst = {};
 
-// ── setup() ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ setup() Ã¢â€â‚¬Ã¢â€â‚¬
 function setup() {
-  window._setupOrder = window._setupOrder ? window._setupOrder + '→setup-start' : 'setup-start';
+  window._setupOrder = window._setupOrder ? window._setupOrder + 'Ã¢â€ â€™setup-start' : 'setup-start';
   const canvas = createCanvas(960, 640);
-  window._setupOrder = window._setupOrder + '→canvas-done';
+  window._setupOrder = window._setupOrder + 'Ã¢â€ â€™canvas-done';
   frameRate(60);
   pixelDensity(1);
   colorMode(RGB, 255);
@@ -111,28 +113,28 @@ function setup() {
   randomSeed(42);
   noiseSeed(42);
 
-  window._setupOrder = window._setupOrder + '→world-start';
+  window._setupOrder = window._setupOrder + 'Ã¢â€ â€™world-start';
   if (typeof window.AetherWorld !== 'undefined') {
     world = window.AetherWorld(p5, C);
     window._world = world;
     if (world && typeof world.init === 'function') world.init();
   }
-  window._setupOrder = window._setupOrder + '→combat-start';
+  window._setupOrder = window._setupOrder + 'Ã¢â€ â€™combat-start';
   if (typeof window.AetherCombat !== 'undefined') {
     combat = new window.AetherCombat(p5, C);
     window._combat = combat;
     if (combat && typeof combat.init === 'function') combat.init();
   }
-  window._setupOrder = window._setupOrder + '→setup-done';
+  window._setupOrder = window._setupOrder + 'Ã¢â€ â€™setup-done';
   lastTime = millis();
 }
 
-// ── draw() ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ draw() Ã¢â€â‚¬Ã¢â€â‚¬
 function draw() {
   dt = millis() - lastTime;
   lastTime = millis();
 
-  // Boot sequence timer — only set once when entering BOOT
+  // Boot sequence timer Ã¢â‚¬â€ only set once when entering BOOT
   if (gameState === STATE.BOOT && bootTime === 0) {
     bootTime = millis();
   }
@@ -142,7 +144,7 @@ function draw() {
 
   background(C.navy[0], C.navy[1], C.navy[2]);
 
-  // ── Hit stop: freeze the frame if active ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Hit stop: freeze the frame if active Ã¢â€â‚¬Ã¢â€â‚¬
   if (hitStop.active) {
     hitStop.remaining -= dt;
     if (hitStop.remaining <= 0) {
@@ -158,7 +160,7 @@ function draw() {
   // Only run world/combat updates if hit stop is NOT active
   const updatesEnabled = !hitStop.active;
 
-  // Auto-start from MENU after 3s idle — bridges the BOOT→MENU→WORLD gap
+  // Auto-start from MENU after 3s idle Ã¢â‚¬â€ bridges the BOOTÃ¢â€ â€™MENUÃ¢â€ â€™WORLD gap
   // so a single N press (or no press) still reaches the world.
   if (gameState === STATE.MENU && menuAutoStartTimer === 0) {
     menuAutoStartTimer = millis();
@@ -168,7 +170,7 @@ function draw() {
     startGame();
   }
 
-  // Subtle corner brackets — confirm canvas is live without distracting
+  // Subtle corner brackets Ã¢â‚¬â€ confirm canvas is live without distracting
   noFill();
   stroke(C.teal[0], C.teal[1], C.teal[2], 50);
   strokeWeight(2);
@@ -214,15 +216,37 @@ function draw() {
       const py = world ? world.player.py : 380;
       const aetherInfo = combat.getAether ? combat.getAether() : { max: 6 };
       const chargeInfo = combat.getCharges ? combat.getCharges() : { max: 2 };
-      combat.drawCombatScene(px, py, aetherInfo.max, chargeInfo.max);
+      const skyCombat = combatReturnState === STATE.AIRSHIP;
+      const skyTravel = skyCombat && airNavigationState && window.AetherAirNavigation &&
+        typeof window.AetherAirNavigation.travelProfile === 'function'
+        ? window.AetherAirNavigation.travelProfile(airNavigationState)
+        : null;
+      combat.drawCombatScene(
+        px,
+        py,
+        aetherInfo.max,
+        chargeInfo.max,
+        {
+          domain: skyCombat ? 'sky' : 'ground',
+          weatherId: skyTravel && skyTravel.weather ? skyTravel.weather.id : 'clear',
+          altitude: skyCombat && airNavigationState ? airNavigationState.altitude : null,
+          encounterPressure: skyTravel ? skyTravel.encounterPressure : 0,
+        }
+      );
     }
-    // Draw combat UI panel
+    // Shared UI layout preserves the encounter stage instead of reserving two
+    // full-height opaque sidebars. An empty combat log consumes no panel space.
+    const uiVisual = window.AetherUIVisualSystem;
+    const hasCombatLog = Boolean(window.UI && Array.isArray(window.UI.combatLog) && window.UI.combatLog.length);
+    const combatLayout = uiVisual && typeof uiVisual.layoutCombat === 'function'
+      ? uiVisual.layoutCombat(width, height, hasCombatLog)
+      : null;
     if (typeof drawCombatPanel === 'function' && combat && typeof combat.getState === 'function') {
-      drawCombatPanel(combat.getState());
+      drawCombatPanel(combat.getState(), combatLayout && combatLayout.statusPanel);
     }
-    // Draw combat log on the right
-    if (typeof drawCombatLog === 'function') {
-      drawCombatLog(width - 240, 100, 224, 280);
+    if (hasCombatLog && typeof drawCombatLog === 'function') {
+      const logBox = combatLayout && combatLayout.logPanel;
+      if (logBox) drawCombatLog(logBox.x, logBox.y, logBox.w, logBox.h);
     }
   }
   else if (gameState === STATE.DIALOGUE) {
@@ -246,18 +270,18 @@ function draw() {
     drawCharSheetOverlay();
   }
 
-  // ── Vignette (intensifies at night) ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Vignette (intensifies at night) Ã¢â€â‚¬Ã¢â€â‚¬
   if (VIS.vignette) {
     drawVignette();
   }
 
-  // ── Toast messages ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Toast messages Ã¢â€â‚¬Ã¢â€â‚¬
   drawToasts();
 
-  // ── Fade transition overlay ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Fade transition overlay Ã¢â€â‚¬Ã¢â€â‚¬
   drawFadeOverlay();
 
-  // ── Dialogue type-in effect ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Dialogue type-in effect Ã¢â€â‚¬Ã¢â€â‚¬
   updateDialogueTypeIn();
   if (dialogueTypeIn.active && gameState === STATE.DIALOGUE) {
     // Override the dialogue text with the type-in version
@@ -266,10 +290,10 @@ function draw() {
     }
   }
 
-  drawScanlines();
+  if (VIS.scanlines) drawScanlines();
 }
 
-// ── Input ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ Input Ã¢â€â‚¬Ã¢â€â‚¬
 // Interaction key for world module (set by keyPressed, read by world.interact)
 let interactionKey = null;
 
@@ -295,7 +319,7 @@ function keyPressed() {
     }
   }
 
-  // Set interaction key for world module — write to window so world.interact()
+  // Set interaction key for world module Ã¢â‚¬â€ write to window so world.interact()
   // and drawInteractionHints() can read the same source.
   // E = 69, Q = 81, F = 70, Tab = 9, L = 76, M = 77
   if (gameState === STATE.WORLD) {
@@ -336,7 +360,7 @@ function keyTyped() {
     if (key === 'n' || key === 'N' || key === 'Enter' || key === ' ') {
       startGame();
     }
-    // Remove return; to allow fall-through from BOOT→MENU→WORLD in same key event
+    // Remove return; to allow fall-through from BOOTÃ¢â€ â€™MENUÃ¢â€ â€™WORLD in same key event
   }
   if (gameState === STATE.WORLD) {
     if (key === 'c' || key === 'C') {
@@ -360,7 +384,7 @@ function windowResized() {
 }
 
 function handleInput() {
-  // ── Debug logging for key events ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Debug logging for key events Ã¢â€â‚¬Ã¢â€â‚¬
   window._lastStateTransition = {
     from: prevState,
     to: gameState,
@@ -376,7 +400,7 @@ function handleInput() {
 
   if (gameState === STATE.BOOT) {
     // Any key skips the boot sequence, goes straight to menu.
-    // The same key press also triggers MENU→WORLD in the same frame so a
+    // The same key press also triggers MENUÃ¢â€ â€™WORLD in the same frame so a
     // single keypress (or test) gets the player into the world.
     if (keysPressed[13] || keysPressed[32] || keysPressed[78] || keysPressed[110] ||
         (typeof key !== 'undefined' && (key === 'Enter' || key === ' ' || key === 'n' || key === 'N'))) {
@@ -384,9 +408,9 @@ function handleInput() {
       titleVisible = 0;
       titleFlash = 0;
       // Fall through to MENU handler in the same handleInput() call.
-      // Do NOT return — let the MENU branch below also run.
+      // Do NOT return Ã¢â‚¬â€ let the MENU branch below also run.
     }
-    // (intentionally fall through — MENU handler below also runs)
+    // (intentionally fall through Ã¢â‚¬â€ MENU handler below also runs)
   }
   if (gameState === STATE.MENU) {
     // Start game on Enter/Space/N (from both keyPressed path and character path).
@@ -415,7 +439,7 @@ function handleInput() {
     }
   }
   else {
-    // Overlay states — ESC or Enter to close
+    // Overlay states Ã¢â‚¬â€ ESC or Enter to close
     if (keysPressed[ENTER] || keysPressed[27]) {
       closeOverlay();
     }
@@ -475,7 +499,7 @@ function handleWorldInput() {
   if (keysPressed[84]) {   // T
     openState(STATE.QUESTLOG);
   }
-  // C: start combat encounter (dev/testing — triggers a Sky-Predator fight)
+  // C: start combat encounter (dev/testing Ã¢â‚¬â€ triggers a Sky-Predator fight)
   if (keysPressed[67]) {   // C
     if (combat && typeof combat.beginEncounter === 'function') {
       startCombat('skyPredator');
@@ -495,7 +519,7 @@ function doMove(code) {
 }
 
 function startGame() {
-  // DO NOT call world.init() again — it was called in setup() and resets
+  // DO NOT call world.init() again Ã¢â‚¬â€ it was called in setup() and resets
   // the player, NPCs, quest, shop, and ledger to initial state. We only
   // transition to WORLD state so the draw/update loop starts rendering.
   if (combat && typeof combat.init === 'function') {
@@ -522,7 +546,7 @@ function startGame() {
   prevState = null;
 }
 
-// ── Combat launcher: triggers an encounter ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ Combat launcher: triggers an encounter Ã¢â€â‚¬Ã¢â€â‚¬
 function startCombat(enemyId) {
   if (!combat || !world) return;
   combat.init({
@@ -578,7 +602,7 @@ function startFade(duration) {
   fade.to = null;
 }
 
-/** Trigger screen shake — intensity 1..10, duration in ms. */
+/** Trigger screen shake Ã¢â‚¬â€ intensity 1..10, duration in ms. */
 function triggerShake(intensity, duration) {
   if (!VIS.screenShake) return;
   intensity = Math.max(1, Math.min(10, intensity || 4));
@@ -588,14 +612,14 @@ function triggerShake(intensity, duration) {
   shake.startTime = millis();
 }
 
-/** Trigger hit stop (freeze frames) — ms to freeze, typically 80-150 for crits. */
+/** Trigger hit stop (freeze frames) Ã¢â‚¬â€ ms to freeze, typically 80-150 for crits. */
 function triggerHitStop(ms) {
   if (!VIS.hitStop) return;
   hitStop.active = true;
   hitStop.remaining = ms || 100;
 }
 
-/** Show a toast message — auto-fading overlay text. */
+/** Show a toast message Ã¢â‚¬â€ auto-fading overlay text. */
 function showToast(text, color, duration) {
   window.toasts.push({
     text: text,
@@ -626,7 +650,7 @@ function triggerCombatHitFeedback(enemyDmg, playerDmg, rollTotal, isPlayerAttack
   }
 }
 
-/** Notify that an ability resolved — success or fail sound. */
+/** Notify that an ability resolved Ã¢â‚¬â€ success or fail sound. */
 function triggerAbilityFeedback(success) {
   if (success) {
     window.playAbilitySuccess();
@@ -647,17 +671,29 @@ function triggerLevelUp() {
   showToast('LEVEL UP', [255, 179, 71], 2200);
 }
 
-// ── Drawing helpers ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ Drawing helpers Ã¢â€â‚¬Ã¢â€â‚¬
 
-/** Boot sequence: loading → story preamble → title with parallax islands */
+/** Boot sequence: loading Ã¢â€ â€™ story preamble Ã¢â€ â€™ title with parallax islands */
 function drawBootSequence() {
   const elapsed = millis() - bootTime;
   const progress = Math.min(1, elapsed / BOOT_LOAD_MS);
   const preambleElapsed = millis() - preambleStart;
   
-  // Background: navy
+  // Frame one belongs to Aetherwake: reuse the authored sky-world plate.
+  const titleVisual = window.AetherTitleVisual;
+  let paintedBoot = false;
+  if (titleVisual && typeof titleVisual.drawSky === 'function') {
+    push();
+    paintedBoot = titleVisual.drawSky(millis()) !== false;
+    pop();
+  }
+  if (!paintedBoot) {
+    noStroke();
+    fill(C.navy[0], C.navy[1], C.navy[2]);
+    rect(0, 0, width, height);
+  }
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2]);
+  fill(C.navy[0], C.navy[1], C.navy[2], 112);
   rect(0, 0, width, height);
   
   // Subtle teal grid (static)
@@ -685,21 +721,21 @@ function drawBootSequence() {
     ellipse(px - 3, py - 3, island.size * 0.3, island.size * 0.2);
   }
   
-  // ── Loading phase (0-1.2s) ──
+  // Opening sting (0-1.2s): logo, not technical loading UI.
   if (elapsed < BOOT_LOAD_MS) {
+    const sting = Math.min(1, elapsed / 420);
     noStroke();
-    textSize(12);
-    fill(C.teal[0], C.teal[1], C.teal[2], 150);
     textAlign(CENTER, CENTER);
-    const loadText = 'LOADING' + '.'.repeat(Math.floor((elapsed / 300) % 4));
-    text(loadText, width/2, height/2 - 20);
-    textSize(9);
-    fill(C.parchment[0], C.parchment[1], C.parchment[2], 100);
-    text('initializing the weave\u2026', width/2, height/2 + 8);
+    textFont('Trebuchet MS');
+    textSize(22);
+    fill(C.parchment[0], C.parchment[1], C.parchment[2], 225 * sting);
+    text('AETHERWAKE', width / 2, height / 2 - 2);
+    fill(C.teal[0], C.teal[1], C.teal[2], 90 * sting);
+    rect(width / 2 - 54, height / 2 + 22, 108, 1);
     return;
   }
   
-  // ── Preamble phase (1.2s\u201310.2s) ──
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Preamble phase (1.2s\u201310.2s) Ã¢â€â‚¬Ã¢â€â‚¬
   if (elapsed < BOOT_LOAD_MS + PREAMBLE_DURATION) {
     const t = (elapsed - BOOT_LOAD_MS) / PREAMBLE_DURATION;
     
@@ -772,7 +808,8 @@ function drawBootSequence() {
     textSize(9);
     fill(C.teal[0], C.teal[1], C.teal[2], 100 * fadeIn);
     textAlign(CENTER, CENTER);
-    text('[ any key to skip ]', width/2, height - 30);
+    const preambleCue = elapsed < BOOT_LOAD_MS + PREAMBLE_DURATION - 800 ? 'CONTINUE' : 'TO TITLE';
+    text(preambleCue, width/2, height - 30);
 
     return;
   }
@@ -785,7 +822,7 @@ function drawBootSequence() {
   }
 
   // Draw parallax islands BEHIND everything (already drawn above grid)
-  // But grid may cover them — redraw islands after grid with proper z-order
+  // But grid may cover them Ã¢â‚¬â€ redraw islands after grid with proper z-order
   // Redraw grid at lower opacity during title phase
   stroke(C.teal[0], C.teal[1], C.teal[2], 6);
   strokeWeight(1);
@@ -840,7 +877,6 @@ function drawBootSequence() {
   
   textSize(16 * v);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 200 * v);
-  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
   
   textSize(13 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
@@ -888,6 +924,14 @@ function drawScanlines() {
 }
 
 function drawTitleScreen() {
+  const visual = window.AetherTitleVisual;
+  if (visual && typeof visual.draw === 'function') {
+    push();
+    visual.draw({ now: millis(), width, height });
+    pop();
+    return;
+  }
+
   noStroke();
   fill(C.navy[0], C.navy[1], C.navy[2]);
   rect(0, 0, width, height);
@@ -932,17 +976,13 @@ function drawTitleScreen() {
   fill(C.teal[0], C.teal[1], C.teal[2], 100);
   text('AETHERWAKE', cx, cy);
 
-  textSize(16);
-  fill(C.scioto[0], C.scioto[1], C.scioto[2], 200);
-  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
-
   textSize(13);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
   text('YOUNG ENDER\'S JOURNEY', cx, cy + 48);
 
   textSize(14);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
-  text('NEW GAME — N or ENTER', cx, cy + 78);
+  text('NEW GAME Ã¢â‚¬â€ N or ENTER', cx, cy + 78);
 
   textSize(11);
   fill(C.rust[0], C.rust[1], C.rust[2], 140);
@@ -955,34 +995,160 @@ function drawTitleScreen() {
   text('A SOLARPUNK SKYBOUND JRPG', cx, height - 20);
 }
 
-function drawDialogueOverlay() {
+function getDialogueSpriteId(npc) {
+  if (!npc) return 'settler';
+  if (npc.id === 'elder_farmer' || npc.name === 'Ionia') return 'ionia';
+  if (npc.id === 'child_prophet' || npc.name === 'Lyra') return 'lyra';
+  if (npc.id === 'engine_spirit' || npc.name === 'The Core') return 'engineSpirit';
+  if (npc.id === 'corporate_salvager' || npc.name === 'Verrick') return 'corporateSalvager';
+  return 'settler';
+}
+
+function drawDialoguePortrait(npc, x, y, size, expression = 'talk') {
+  const authoredCharacters = window.AetherAuthoredCharacterArt;
+  const characters = window.AetherCharacterRenderer;
+  const sprites = window.AetherPixelSprites;
+  const id = getDialogueSpriteId(npc);
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2], 180);
+  fill(C.navy[0] + 5, C.navy[1] + 7, C.navy[2] + 10, 245);
+  rect(x, y, size, size);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 28);
+  rect(x + 4, y + 4, size - 8, size - 8);
+
+  const artPreview = window.AetherCharacterArtPreview;
+  const previewCharacterId = artPreview && typeof artPreview.getPreviewCharacterId === 'function'
+    ? artPreview.getPreviewCharacterId()
+    : null;
+  let authoredDrawn = false;
+  if (previewCharacterId && artPreview && typeof artPreview.drawPortrait === 'function') {
+    authoredDrawn = artPreview.drawPortrait(id, x + 4, y + 4, size - 8, { expression });
+  }
+  if (!authoredDrawn && authoredCharacters && typeof authoredCharacters.drawPortrait === 'function' &&
+      authoredCharacters.isPortraitReady && authoredCharacters.isPortraitReady(id)) {
+    authoredDrawn = authoredCharacters.drawPortrait(id, x + 4, y + 4, size - 8, { expression });
+  }
+
+  if (!authoredDrawn && characters && characters.validate &&
+      characters.validate() && ['ender','reson','aepex','ionia','lyra'].includes(id)) {
+    push();
+    drawingContext.save();
+    drawingContext.beginPath();
+    drawingContext.rect(x + 4, y + 4, size - 8, size - 8);
+    drawingContext.clip();
+    characters.drawPortrait(id, x + size / 2, y + size + 8, {
+      scale: Math.max(1.45, size / 43),
+      depth: 0.82,
+      now: millis(),
+      facing: 'right',
+      action: 'talk',
+      expression,
+    });
+    drawingContext.restore();
+    pop();
+  } else if (!authoredDrawn && sprites && typeof sprites.draw === 'function' && sprites.validate()) {
+    const scale = Math.max(1, Math.floor(size / 16));
+    sprites.drawShadow(x + size / 2, y + size - 8, Math.max(1, scale * 0.8));
+    sprites.draw(id, x + size / 2, y + size - 9, {
+      anchor: 'bottom-center', scale
+    });
+  } else if (!authoredDrawn) {
+    return false;
+  }
+
+  drawPixelBorder(x, y, size, size, 2, C.shad, C.scioto);
+  return true;
+}
+
+function drawDialogueOverlay() {
+  // Keep the live 2.5D scene readable behind dialogue instead of flattening it.
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 48);
   rect(0, 0, width, height);
 
-  const bx = width/2 - 240, by = height - 100, bw = 480, bh = 80;
-  fill(C.navy[0], C.navy[1], C.navy[2]);
+  const tone = window.UI.windowTone || null;
+  const openness = window.UI.openness || 255;
+  const alpha = openness / 255;
+
+  // Cinematic letterbox framing keeps dialogue focused without obscuring the world.
+  fill(8, 10, 20, 190 * alpha);
+  rect(0, 0, width, 20);
+  rect(0, height - 20, width, 20);
+
+  const uiVisual = window.AetherUIVisualSystem;
+  const dialogueLayout = uiVisual && typeof uiVisual.layoutDialogue === 'function'
+    ? uiVisual.layoutDialogue(width, height)
+    : { x: 32, y: height - 160, w: width - 64, h: 126 };
+  const bw = dialogueLayout.w;
+  const bh = dialogueLayout.h;
+  const bx = dialogueLayout.x;
+  const by = dialogueLayout.y;
+  const portraitSize = 108;
+  const gap = 20;
+  const px = bx + 16;
+  const py = by + 22;
+  const textX = px + portraitSize + gap;
+  const textW = bw - portraitSize - gap - 34;
+
+  // Main window with layered instrument-panel depth.
   noStroke();
-  rect(bx, by, bw, bh);
+  const dialoguePanel = uiVisual && typeof uiVisual.panelRGBA === 'function'
+    ? uiVisual.panelRGBA()
+    : [C.navy[0], C.navy[1], C.navy[2], 214];
+  fill(dialoguePanel[0], dialoguePanel[1], dialoguePanel[2], dialoguePanel[3] * alpha);
+  rect(bx, by, bw, bh, 8);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 18 * alpha);
+  rect(bx + 4, by + 4, bw - 8, bh - 8);
+
+  if (tone) {
+    fill(tone[0], tone[1], tone[2], 24 * alpha);
+    rect(bx + 4, by + 4, bw - 8, bh - 8);
+  }
+
+  // Thin aether instrumentation rail.
+  fill(C.teal[0], C.teal[1], C.teal[2], 110 * alpha);
+  rect(bx + 14, by + 12, bw - 28, 2);
+  for (let i = 0; i < 7; i++) {
+    const tick = bx + 24 + i * Math.floor((bw - 48) / 6);
+    rect(tick, by + 10, 1, 6);
+  }
+
   drawPixelBorder(bx, by, bw, bh, 3);
 
-  textFont('Press Start 2P');
-  textSize(9);
-  fill(C.teal[0], C.teal[1], C.teal[2], 180);
-  const npcName = window.UI.dialogueNPC ? window.UI.dialogueNPC.name : '???';
-  text(npcName, bx + 10, by + 10);
+  const npc = window.UI.dialogueNPC || null;
+  const npcName = npc ? npc.name : '???';
+  const npcTitle = npc && npc.title ? npc.title : '';
 
-  textFont('VT323');
-  textSize(13);
-  textLeading(16);
-  fill(C.parchment[0], C.parchment[1], C.parchment[2]);
-  wrapText(window.UI.dialogueText || '...', bx + 10, by + 28, bw - 20);
+  drawDialoguePortrait(npc, px, py, portraitSize, window.UI.dialoguePortraitExpression || 'talk');
 
-  textFont('Press Start 2P');
-  textSize(8);
-  fill(C.teal[0], C.teal[1], C.teal[2], 120);
-  textAlign(CENTER, TOP);
-  text('E / ENTER to continue', width/2, by + bh + 6);
+  // Speaker plate: character name reads first, then role, then dialogue.
+  textAlign(LEFT, TOP);
+  fill(C.teal[0], C.teal[1], C.teal[2], 42 * alpha);
+  rect(textX - 8, by + 22, Math.min(250, textW * 0.48), 24, 4);
+  textFont('Segoe UI Semibold');
+  textSize(15);
+  fill(C.teal[0], C.teal[1], C.teal[2], 245 * alpha);
+  text(npcName.toUpperCase(), textX, by + 25);
+
+  if (npcTitle) {
+    textFont('Segoe UI');
+    textSize(12);
+    fill(C.scioto[0], C.scioto[1], C.scioto[2], 210 * alpha);
+    text(npcTitle, textX, by + 49);
+  }
+
+  // Dialogue copy gets a little more breathing room at JRPG reading scale.
+  textFont('Segoe UI');
+  textSize(16);
+  textLeading(20);
+  fill(C.parchment[0], C.parchment[1], C.parchment[2], 248 * alpha);
+  wrapText(window.UI.dialogueText || '...', textX, by + 72, textW);
+
+  // Continue cue as a quiet instrument readout.
+  textFont('Segoe UI');
+  textSize(11);
+  fill(C.teal[0], C.teal[1], C.teal[2], 165 * alpha);
+  textAlign(RIGHT, TOP);
+  text('E / ENTER   Continue', bx + bw - 14, by + bh - 18);
   textAlign(LEFT, TOP);
 }
 
@@ -1108,7 +1274,7 @@ function drawQuestLogOverlay() {
   textFont('Press Start 2P');
   textSize(10);
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
-  text('QUEST LOG — THE ISLAND THAT FALLS UPWARD', qx + 16, qy + 12);
+  text('QUEST LOG Ã¢â‚¬â€ THE ISLAND THAT FALLS UPWARD', qx + 16, qy + 12);
 
   if (world && typeof world.getQuestState === 'function') {
     const qs = world.getQuestState();
@@ -1127,11 +1293,11 @@ function drawQuestLogOverlay() {
     text('NPCs: ' + (qs.npcsMet ? qs.npcsMet.length : 0) + '/4  |  Choice: ' + (qs.choiceMade || 'none'), qx + 16, y);
     y += 24;
     textSize(11);
-    if (qs.state === 'signal')      text('Signal — receive the call from the falling island.', qx + 16, y);
-    else if (qs.state === 'crossing') text('Crossing — three hazards on the way to the island.', qx + 16, y);
-    else if (qs.state === 'contact')  text('Contact — four souls await on the island.', qx + 16, y);
-    else if (qs.state === 'choice')   text('Choice — three paths open before you.', qx + 16, y);
-    else if (qs.state === 'wake')     text('Wake — the ending unfolds.', qx + 16, y);
+    if (qs.state === 'signal')      text('Signal Ã¢â‚¬â€ receive the call from the falling island.', qx + 16, y);
+    else if (qs.state === 'crossing') text('Crossing Ã¢â‚¬â€ three hazards on the way to the island.', qx + 16, y);
+    else if (qs.state === 'contact')  text('Contact Ã¢â‚¬â€ four souls await on the island.', qx + 16, y);
+    else if (qs.state === 'choice')   text('Choice Ã¢â‚¬â€ three paths open before you.', qx + 16, y);
+    else if (qs.state === 'wake')     text('Wake Ã¢â‚¬â€ the ending unfolds.', qx + 16, y);
   }
 
   textFont('Press Start 2P');
@@ -1158,7 +1324,7 @@ function drawCharSheetOverlay() {
     textFont('Press Start 2P');
     textSize(10);
     fill(C.teal[0], C.teal[1], C.teal[2], 180);
-    text('ENDER — Deckhand / Engineer-in-training', px + 20, py + 24);
+    text('ENDER Ã¢â‚¬â€ Deckhand / Engineer-in-training', px + 20, py + 24);
   }
 
   textFont('Press Start 2P');
@@ -1199,7 +1365,7 @@ function wrapText(text, x, y, maxWidth) {
   if (line) text(line, x, ly);
 }
 
-// ── Vignette effect ──────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Vignette effect Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function drawVignette() {
   noStroke();
   const nightFactor = window._isNight ? 0.6 : 0.18;
@@ -1221,7 +1387,7 @@ function drawVignette() {
   rect(0, height * 0.94, width, height * 0.06);
 }
 
-// ── Toast rendering ──────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Toast rendering Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function drawToasts() {
   const now = millis();
   for (let i = window.toasts.length - 1; i >= 0; i--) {
@@ -1245,7 +1411,7 @@ function drawToasts() {
   textFont('sans-serif');
 }
 
-// ── Fade overlay ─────────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Fade overlay Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function drawFadeOverlay() {
   if (!fade.active) return;
   const age = millis() - fade.startTime;
@@ -1260,7 +1426,7 @@ function drawFadeOverlay() {
   rect(0, 0, width, height);
 }
 
-// ── Dialogue type-in ─────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Dialogue type-in Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function startDialogueTypeIn(fullText) {
   dialogueTypeIn.active = true;
   dialogueTypeIn.fullText = fullText || '';
@@ -1279,7 +1445,7 @@ function updateDialogueTypeIn() {
       dialogueTypeIn.lastCharTime = now;
     }
   } else {
-    // Type-in complete — keep displaying full text
+    // Type-in complete Ã¢â‚¬â€ keep displaying full text
     dialogueTypeIn.active = false;
   }
 }
