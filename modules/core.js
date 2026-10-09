@@ -840,7 +840,7 @@ function drawBootSequence() {
   
   textSize(16 * v);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 200 * v);
-  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
+  // Retired subtitle deliberately omitted from title rendering.
   
   textSize(13 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
@@ -934,7 +934,7 @@ function drawTitleScreen() {
 
   textSize(16);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 200);
-  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
+  // Retired subtitle deliberately omitted from title rendering.
 
   textSize(13);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
