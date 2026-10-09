@@ -11,7 +11,7 @@ else if(['','main','master'].includes(branch.stdout.trim()))fatal('Refuse defaul
 else if(status.stdout.trim())fatal('Dirty worktree; preserve user changes');
 else {
  const state=fs.existsSync(statePath)?JSON.parse(fs.readFileSync(statePath,'utf8')):{schema:1,completed:{},attempts:[]};
- const candidates=queue.tasks.filter(t=>t.status==='READY'&&!t.requires_approval&&!state.completed[t.id]&&t.depends_on.every(id=>state.completed[id]==='PASS')).sort((a,b)=>a.priority-b.priority);
+ const candidates=queue.tasks.filter(t=>t.status==='READY'&&!t.requires_approval&&!state.completed[t.id]&&!state.attempts.some(a=>a.id===t.id)&&t.depends_on.every(id=>state.completed[id]==='PASS')).sort((a,b)=>a.priority-b.priority);
  const selected=candidates[0];
  if(!selected)console.log('NO_ELIGIBLE_TASK; pending approvals/dependencies or queue exhausted');
  else if(dry)console.log(JSON.stringify({selected,branch:branch.stdout.trim(),mode:'DRY_RUN'},null,2));
