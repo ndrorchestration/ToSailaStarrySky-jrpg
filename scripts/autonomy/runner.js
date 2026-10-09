@@ -22,7 +22,7 @@ else {
   try{
    const sha=cmd('git',['rev-parse','HEAD']).stdout.trim();
    const prompt='Aetherwake task '+selected.id+': '+selected.title+'\nRead AGENTS.md and docs/autonomy/README.md. Never merge/push/release or change canon/approval. Work only in this branch and provide exact evidence. Stop after this one task.';
-   const result=cp.spawnSync('codex',['exec','--sandbox','workspace-write',prompt],{cwd:root,encoding:'utf8',shell:process.platform==='win32',timeout:45*60*1000,maxBuffer:8*1024*1024});
+   const result=cp.spawnSync('codex',['exec','--sandbox','workspace-write','-'],{cwd:root,encoding:'utf8',input:prompt,shell:process.platform==='win32',timeout:45*60*1000,maxBuffer:8*1024*1024});
    state.attempts.push({id:selected.id,base_sha:sha,finished_at:new Date().toISOString(),exit_status:result.status,phase:result.status===0?'REVIEW_REQUIRED':'BLOCKED',error:(result.error&&result.error.message)||null});
    fs.writeFileSync(statePath,JSON.stringify(state,null,2)+'\n');
    console.log(JSON.stringify(state.attempts[state.attempts.length-1]));
