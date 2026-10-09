@@ -179,6 +179,7 @@ function initPlayer() {
     echoes: 3,
     echoesMax: 3,
     scrap: 7,
+    gold: 60,
     aether: 4,
     aetherMax: 6,
     heat: 1,
@@ -967,16 +968,15 @@ function initShop() {
     y: 22,
     open: false,
     items: [
-      { name: 'Solar Resonator Recharge', cost: 3, kind: 'aether', desc: 'Restore 1 aether charge.' },
-      { name: 'Staff Crystal Polish',     cost: 2, kind: 'scrap', desc: 'Restore 1 staff charge.' },
-      { name: 'Mycelial Thread Sheaf',   cost: 4, kind: 'scrap', desc: '+1 echo capacity (permanent).' },
-      { name: 'Nav-Line Compass',         cost: 5, kind: 'scrap', desc: 'Survival advantage on sky crossings.' },
-      { name: 'Hull Patch Kit',           cost: 2, kind: 'scrap', desc: '+10 hull integrity.' },
-      { name: 'Heat Sink Fitting',        cost: 3, kind: 'scrap', desc: '+1 heat capacity.' }
+      { name: 'Solar Resonator Recharge', cost: 12, kind: 'gold', effect: 'aether', desc: 'Restore 1 aether charge.' },
+      { name: 'Staff Crystal Polish',     cost: 8,  kind: 'gold', effect: 'staffCharges', desc: 'Restore 1 staff charge.' },
+      { name: 'Mycelial Thread Sheaf',   cost: 18, kind: 'gold', effect: 'echoesMax', desc: '+1 echo capacity (permanent).' },
+      { name: 'Nav-Line Compass',         cost: 24, kind: 'gold', effect: 'navLineCompass', desc: 'Survival advantage on sky crossings.' },
+      { name: 'Hull Patch Kit',           cost: 10, kind: 'gold', effect: 'hullIntegrity', desc: '+10 hull integrity.' },
+      { name: 'Heat Sink Fitting',        cost: 16, kind: 'gold', effect: 'heatMax', desc: '+1 heat capacity.' }
     ]
   };
 }
-
 function openShop() {
   const dist = Math.abs(player.tileX - shop.x) + Math.abs(player.tileY - shop.y);
   if (dist > 3) {
@@ -992,25 +992,40 @@ function closeShop() {
 function purchaseItem(itemIndex) {
   if (!shop || !shop.items[itemIndex]) return false;
   const item = shop.items[itemIndex];
-  if (item.kind === 'aether' && player.aether >= item.cost) {
-    player.aether -= item.cost;
-    player.aether.current = Math.min(player.aetherMax, player.aether.current + 1);
-    addLedgerEntry('purchase', 'Bought ' + item.name + ' from Repair Cafe.');
-    return true;
-  } else if (item.kind === 'scrap' && player.scrap >= item.cost) {
-    player.scrap -= item.cost;
-    if (item.name === 'Mycelial Thread Sheaf') {
+  if (item.kind !== 'gold' || player.gold < item.cost) return false;
+
+  const maxStaffCharges = player.maxStaffCharges || 2;
+  if (item.effect === 'aether' && player.aether >= player.aetherMax) return false;
+  if (item.effect === 'staffCharges' && player.staffCharges >= maxStaffCharges) return false;
+  if (item.effect === 'navLineCompass' && player.navLineCompass === true) return false;
+
+  player.gold -= item.cost;
+  switch (item.effect) {
+    case 'aether':
+      player.aether = Math.min(player.aetherMax, player.aether + 1);
+      break;
+    case 'staffCharges':
+      player.staffCharges = Math.min(maxStaffCharges, player.staffCharges + 1);
+      break;
+    case 'echoesMax':
       player.echoesMax += 1;
       player.echoes = Math.min(player.echoesMax, player.echoes + 1);
-    } else if (item.name === 'Hull Patch Kit') {
+      break;
+    case 'navLineCompass':
+      player.navLineCompass = true;
+      break;
+    case 'hullIntegrity':
       quest.hullIntegrity = Math.min(100, quest.hullIntegrity + 10);
-    } else if (item.name === 'Heat Sink Fitting') {
+      break;
+    case 'heatMax':
       player.heatMax += 1;
-    }
-    addLedgerEntry('purchase', 'Bought ' + item.name + ' from Repair Cafe.');
-    return true;
+      break;
+    default:
+      player.gold += item.cost;
+      return false;
   }
-  return false;
+  addLedgerEntry('purchase', 'Bought ' + item.name + ' from Repair Cafe.');
+  return true;
 }
 
 // ---------------------------------------------------------------------------
