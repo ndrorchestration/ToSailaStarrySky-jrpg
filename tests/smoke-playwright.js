@@ -221,19 +221,25 @@ function createServer() {
       items: window.UI.shopItems.length,
       handler: typeof window.UI.shopBuyHandler,
       scrap: window._world.player.scrap,
+      gold: window._world.player.gold,
       aether: window._world.player.aether,
     }));
     assert(shopBefore.items === 6, 'Repair Cafe did not populate its live item list');
     assert(shopBefore.handler === 'function', 'Repair Cafe purchase handler is missing');
     await page.keyboard.press('1');
-    await page.waitForFunction(before => window._world.player.scrap < before,
-      shopBefore.scrap);
+    await page.waitForFunction(before => window._world.player.gold < before,
+      shopBefore.gold);
     const shopAfter = await page.evaluate(() => ({
       scrap: window._world.player.scrap,
+      gold: window._world.player.gold,
       aether: window._world.player.aether,
     }));
     assert(shopAfter.aether === shopBefore.aether + 1,
       'Repair Cafe aether purchase did not update numeric world state');
+    assert(shopAfter.gold < shopBefore.gold,
+      'Repair Cafe purchase did not spend gold');
+    assert(shopAfter.scrap === shopBefore.scrap,
+      'Repair Cafe ordinary purchase must not spend scrap');
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => window.gameState === 'world');
 
