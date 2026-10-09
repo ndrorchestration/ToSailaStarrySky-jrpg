@@ -46,14 +46,26 @@ questState.setWorldState(snapshot, 'WS-A1-001', {
   safety_state: 'PROVISIONAL',
   route_discrepancy_observed: true
 });
+questState.setRouteState(snapshot, 'RTE-A1-001', 'DEGRADED');
 const roundTrip = questState.hydrate(questState.serialize(snapshot));
 assert.deepStrictEqual(roundTrip.worldStates['WS-A1-001'], snapshot.worldStates['WS-A1-001']);
 assert.deepStrictEqual(roundTrip.discoveries['DSC-A1-001'], snapshot.discoveries['DSC-A1-001']);
 assert.deepStrictEqual(roundTrip.evidence['LOR-A1-001'], snapshot.evidence['LOR-A1-001']);
+assert.strictEqual(roundTrip.routes['RTE-A1-001'], 'DEGRADED');
 
-assert.strictEqual(questState.canAuthorizeAuroral(['ender','lyra','ionia','reson']), false);
-assert.strictEqual(questState.canAuthorizeAuroral(['ender','lyra','ionia','reson','aepex']), true);
-assert.strictEqual(questState.canAuthorizeAuroral(['ender','lyra','ionia','reson','reson']), false);
+assert.strictEqual(questState.hasRequiredAuroralCrew(['ender','lyra','ionia','reson']), false);
+assert.strictEqual(questState.hasRequiredAuroralCrew(['ender','lyra','ionia','reson','aepex']), true);
+assert.strictEqual(questState.hasRequiredAuroralCrew(['ender','lyra','ionia','reson','reson']), false);
+assert.strictEqual(questState.canAuthorizeAuroral({
+  partyIds: ['ender','lyra','ionia','reson','aepex']
+}), false, 'full crew alone must not authorize Auroral traversal');
+assert.strictEqual(questState.canAuthorizeAuroral({
+  partyIds: ['ender','lyra','ionia','reson','aepex'],
+  shipReady: true,
+  navigationReady: true,
+  couplingReady: true,
+  polarApproachKnown: true
+}), true);
 
 const malformed = {
   QUESTS: {
