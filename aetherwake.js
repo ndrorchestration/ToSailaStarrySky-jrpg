@@ -151,6 +151,13 @@ function setup() {
   }
   window.AetherFirstWakeOpening.validate();
   window._firstWakeOpeningState = window.AetherFirstWakeOpening.createState();
+  if (!window.AetherEconomy ||
+      typeof window.AetherEconomy.validate !== 'function' ||
+      typeof window.AetherEconomy.resolveEncounterRewards !== 'function') {
+    throw new Error('AETHER_ECONOMY_UNAVAILABLE');
+  }
+  window.AetherEconomy.validate();
+  window._economy = window.AetherEconomy;
   if (!window.AetherCombatSystemPolicy ||
       typeof window.AetherCombatSystemPolicy.validate !== 'function') {
     throw new Error('AETHER_COMBAT_SYSTEM_POLICY_UNAVAILABLE');
@@ -1673,13 +1680,11 @@ function drawShopOverlay() {
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
   text('REPAIR CAFE \u2014 SHOP', sx + 16, sy + 12);
 
-  const scrap = world && world.player
-    ? world.player.scrap
-    : (combat && combat.getScrap ? combat.getScrap() : 0);
+  const gold = world && world.player ? world.player.gold : 0;
   textFont('VT323');
   textSize(12);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
-  text('Scrap: ' + scrap, sx + sw - 110, sy + 12);
+  text('Gold: ' + gold, sx + sw - 110, sy + 12);
 
   // Tabs: Items | Aether | Charges
   textFont('Press Start 2P');
@@ -1704,7 +1709,7 @@ function drawShopOverlay() {
     strokeWeight(1);
     rect(sx + 12, iy, sw - 24, 26);
 
-    const buyable = scrap >= item.cost;
+    const buyable = gold >= item.cost;
     // Last-command memory highlight (Memories §3.5)
     const lastSel = window.UI.lastShopSelection;
     const isLastSelected = (lastSel !== undefined && i === lastSel);
@@ -1716,7 +1721,7 @@ function drawShopOverlay() {
     textSize(12);
 
     fill(buyable ? C.teal[0] : C.rust[0], buyable ? C.teal[1] : C.rust[1], buyable ? C.teal[2] : C.rust[2], buyable ? 180 : 60);
-    text('[' + (i+1) + '] ' + item.cost + ' scrap', sx + sw - 80, iy + 5);
+    text('[' + (i+1) + '] ' + item.cost + ' gold', sx + sw - 80, iy + 5);
     // Highlight last-selected slot
     if (isLastSelected) {
       noStroke();
@@ -2183,6 +2188,7 @@ function initPlayer() {
     echoes: 3,
     echoesMax: 3,
     scrap: 7,
+    gold: 60,
     aether: 4,
     aetherMax: 6,
     heat: 1,
@@ -3142,16 +3148,15 @@ function initShop() {
     y: 22,
     open: false,
     items: [
-      { name: 'Solar Resonator Recharge', cost: 3, kind: 'scrap', effect: 'aether', desc: 'Restore 1 aether charge.' },
-      { name: 'Staff Crystal Polish',     cost: 2, kind: 'scrap', effect: 'staffCharges', desc: 'Restore 1 staff charge.' },
-      { name: 'Mycelial Thread Sheaf',   cost: 4, kind: 'scrap', effect: 'echoesMax', desc: '+1 echo capacity (permanent).' },
-      { name: 'Nav-Line Compass',         cost: 5, kind: 'scrap', effect: 'navLineCompass', desc: 'Survival advantage on sky crossings.' },
-      { name: 'Hull Patch Kit',           cost: 2, kind: 'scrap', effect: 'hullIntegrity', desc: '+10 hull integrity.' },
-      { name: 'Heat Sink Fitting',        cost: 3, kind: 'scrap', effect: 'heatMax', desc: '+1 heat capacity.' }
+      { name: 'Solar Resonator Recharge', cost: 12, kind: 'gold', effect: 'aether', desc: 'Restore 1 aether charge.' },
+      { name: 'Staff Crystal Polish',     cost: 8,  kind: 'gold', effect: 'staffCharges', desc: 'Restore 1 staff charge.' },
+      { name: 'Mycelial Thread Sheaf',   cost: 18, kind: 'gold', effect: 'echoesMax', desc: '+1 echo capacity (permanent).' },
+      { name: 'Nav-Line Compass',         cost: 24, kind: 'gold', effect: 'navLineCompass', desc: 'Survival advantage on sky crossings.' },
+      { name: 'Hull Patch Kit',           cost: 10, kind: 'gold', effect: 'hullIntegrity', desc: '+10 hull integrity.' },
+      { name: 'Heat Sink Fitting',        cost: 16, kind: 'gold', effect: 'heatMax', desc: '+1 heat capacity.' }
     ]
   };
 }
-
 function openShop() {
   const dist = Math.abs(player.tileX - shop.x) + Math.abs(player.tileY - shop.y);
   if (dist > 3) {
@@ -3179,14 +3184,14 @@ function getShopItems() {
 function purchaseItem(itemIndex) {
   if (!shop || !shop.items[itemIndex]) return false;
   const item = shop.items[itemIndex];
-  if (item.kind !== 'scrap' || player.scrap < item.cost) return false;
+  if (item.kind !== 'gold' || player.gold < item.cost) return false;
 
   const maxStaffCharges = player.maxStaffCharges || 2;
   if (item.effect === 'aether' && player.aether >= player.aetherMax) return false;
   if (item.effect === 'staffCharges' && player.staffCharges >= maxStaffCharges) return false;
   if (item.effect === 'navLineCompass' && player.navLineCompass === true) return false;
 
-  player.scrap -= item.cost;
+  player.gold -= item.cost;
   switch (item.effect) {
     case 'aether':
       player.aether = Math.min(player.aetherMax, player.aether + 1);
@@ -3208,7 +3213,7 @@ function purchaseItem(itemIndex) {
       player.heatMax += 1;
       break;
     default:
-      player.scrap += item.cost;
+      player.gold += item.cost;
       return false;
   }
   addLedgerEntry('purchase', 'Bought ' + item.name + ' from Repair Cafe.');
