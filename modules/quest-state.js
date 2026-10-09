@@ -29,6 +29,7 @@
       quests: {},
       discoveries: {},
       worldStates: {},
+      routes: {},
       evidence: {},
       secretChains: {}
     };
@@ -136,10 +137,37 @@
       : null;
   }
 
-  function canAuthorizeAuroral(partyIds) {
+  function setRouteState(snapshot, id, value) {
+    requireSnapshot(snapshot);
+    const def = Defs.ROUTES[id];
+    if (!def) throw new Error('ROUTE_STATE_UNKNOWN:' + id);
+    if (!def.allowedStates.includes(value)) {
+      throw new Error('ROUTE_STATE_INVALID:' + id + ':' + value);
+    }
+    snapshot.routes[id] = value;
+    return snapshot.routes[id];
+  }
+
+  function getRouteState(snapshot, id) {
+    requireSnapshot(snapshot);
+    return Object.prototype.hasOwnProperty.call(snapshot.routes, id)
+      ? snapshot.routes[id]
+      : null;
+  }
+
+  function hasRequiredAuroralCrew(partyIds) {
     if (!Array.isArray(partyIds)) return false;
     const unique = new Set(partyIds);
     return Defs.AURORAL_REQUIRED_PARTY_IDS.every(id => unique.has(id));
+  }
+
+  function canAuthorizeAuroral(context) {
+    if (!context || typeof context !== 'object') return false;
+    return hasRequiredAuroralCrew(context.partyIds) &&
+      context.shipReady === true &&
+      context.navigationReady === true &&
+      context.couplingReady === true &&
+      context.polarApproachKnown === true;
   }
 
   function serialize(snapshot) {
@@ -181,6 +209,13 @@
     }
     for (const id of Object.keys(snapshot.worldStates || {})) {
       if (!Defs.WORLD_STATES[id]) throw new Error('QUEST_SNAPSHOT_UNKNOWN_WORLD_STATE:' + id);
+    }
+    for (const [id, value] of Object.entries(snapshot.routes || {})) {
+      const def = Defs.ROUTES[id];
+      if (!def) throw new Error('QUEST_SNAPSHOT_UNKNOWN_ROUTE:' + id);
+      if (!def.allowedStates.includes(value)) {
+        throw new Error('QUEST_SNAPSHOT_INVALID_ROUTE_STATE:' + id + ':' + value);
+      }
     }
     return true;
   }
@@ -252,6 +287,9 @@
     recordEvidence,
     setWorldState,
     getWorldState,
+    setRouteState,
+    getRouteState,
+    hasRequiredAuroralCrew,
     canAuthorizeAuroral,
     serialize,
     hydrate,
