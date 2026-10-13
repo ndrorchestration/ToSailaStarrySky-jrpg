@@ -82,3 +82,4 @@ nwjs-win64.zip
 # Staged player runtime
 .desktop-runtime/
 local-release/
+.autonomy/

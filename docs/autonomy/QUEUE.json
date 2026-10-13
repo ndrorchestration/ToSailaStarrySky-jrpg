@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "policy": "FAIL_CLOSED",
+  "tasks": [
+    {
+      "id": "AW-001",
+      "priority": 1,
+      "title": "Audit Chapter 1 exact current branch and art contract",
+      "status": "READY",
+      "depends_on": [],
+      "requires_approval": false,
+      "tests": [
+        "npm run test:smoke"
+      ]
+    },
+    {
+      "id": "AW-002",
+      "priority": 2,
+      "title": "Audit title-only branding PR 263 for current candidate applicability",
+      "status": "READY",
+      "depends_on": [],
+      "requires_approval": false,
+      "tests": [
+        "npm run test:smoke"
+      ]
+    },
+    {
+      "id": "AW-003",
+      "priority": 3,
+      "title": "Character field-pack integrity audit Ender 32 frames",
+      "status": "READY",
+      "depends_on": [
+        "AW-001"
+      ],
+      "requires_approval": false,
+      "tests": [
+        "npm run test:chapter1-visual"
+      ]
+    },
+    {
+      "id": "AW-004",
+      "priority": 4,
+      "title": "Refine Ender walking phase and staff continuity in draft assets",
+      "status": "READY",
+      "depends_on": [
+        "AW-003"
+      ],
+      "requires_approval": false,
+      "tests": [
+        "npm run test:chapter1-visual"
+      ]
+    },
+    {
+      "id": "AW-005",
+      "priority": 5,
+      "title": "Generate Ionia field-pack candidate using approved appearance",
+      "status": "BLOCKED_APPROVAL",
+      "depends_on": [
+        "AW-001"
+      ],
+      "requires_approval": true,
+      "tests": [
+        "npm run test:chapter1-visual"
+      ]
+    },
+    {
+      "id": "AW-006",
+      "priority": 6,
+      "title": "Audit Lyra portrait and field art in runtime",
+      "status": "READY",
+      "depends_on": [
+        "AW-001"
+      ],
+      "requires_approval": false,
+      "tests": [
+        "npm run test:chapter1-browser"
+      ]
+    },
+    {
+      "id": "AW-007",
+      "priority": 7,
+      "title": "Review First Wake cinematic title/reveal and scene transitions",
+      "status": "READY",
+      "depends_on": [
+        "AW-001"
+      ],
+      "requires_approval": false,
+      "tests": [
+        "npm run test:first-wake-opening"
+      ]
+    },
+    {
+      "id": "AW-008",
+      "priority": 8,
+      "title": "Capture opening dock cabin flight combat current-head evidence",
+      "status": "READY",
+      "depends_on": [
+        "AW-001"
+      ],
+      "requires_approval": false,
+      "tests": [
+        "npm run test:chapter1-visual"
+      ]
+    },
+    {
+      "id": "AW-009",
+      "priority": 9,
+      "title": "Review Dragonfly flight visual contract and readability",
+      "status": "READY",
+      "depends_on": [
+        "AW-008"
+      ],
+      "requires_approval": false,
+      "tests": [
+        "npm run test:chapter1-browser"
+      ]
+    },
+    {
+      "id": "AW-010",
+      "priority": 10,
+      "title": "Audit world-map and Chapter 1 location graph gaps",
+      "status": "READY",
+      "depends_on": [
+        "AW-001"
+      ],
+      "requires_approval": false,
+      "tests": [
+        "npm run test:chapter1-browser"
+      ]
+    },
+    {
+      "id": "AW-011",
+      "priority": 11,
+      "title": "Review save backup and schema v2 promotion blockers",
+      "status": "READY",
+      "depends_on": [
+        "AW-001"
+      ],
+      "requires_approval": false,
+      "tests": [
+        "npm run test:smoke"
+      ]
+    },
+    {
+      "id": "AW-012",
+      "priority": 12,
+      "title": "Uncoached player and visual acceptance",
+      "status": "BLOCKED_APPROVAL",
+      "depends_on": [
+        "AW-004",
+        "AW-005",
+        "AW-006",
+        "AW-007",
+        "AW-009"
+      ],
+      "requires_approval": true,
+      "tests": []
+    },
+    {
+      "id": "AW-013",
+      "priority": 13,
+      "title": "Package/merge/release accepted Chapter 1",
+      "status": "BLOCKED_APPROVAL",
+      "depends_on": [
+        "AW-012"
+      ],
+      "requires_approval": true,
+      "tests": []
+    }
+  ]
+}
