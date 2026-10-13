@@ -135,6 +135,9 @@ jobs:
       - name: Verify player evidence workflow contract
         run: npm run test:player-evidence-workflow
 
+      - name: Verify projected-world six-frame walk regression
+        run: node tests/preview-world-presentation.test.js
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 

@@ -104,9 +104,11 @@
       playerWalkStartedAt = null;
       return 0;
     }
+    // Zero means idle; 1..6 identify the six authored walking poses.
+    // Keep the walk cycle continuous across successive tile transitions.
     return playerWalkStartedAt === null
       ? 0
-      : Math.floor((now - playerWalkStartedAt) / 130) % 2;
+      : 1 + Math.floor((now - playerWalkStartedAt) / 90) % 6;
   }
 
   function drawIsland(x, y, w, h, tone) {
@@ -441,7 +443,8 @@
         anchor: 'bottom-center',
         scale: Math.max(1.45, scale * 1.32),
         action: frame ? 'walk' : 'idle',
-        frame: frame || 0,
+        // Walking state uses 1..6 so the first authored frame is zero-based.
+        frame: frame ? frame - 1 : 0,
       });
     }
     if (!provisionalDrawn && protagonist && authored &&

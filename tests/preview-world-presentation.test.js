@@ -339,8 +339,12 @@ presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, 
 presentation.draw({ groundLayer: ground, player, npcs, width: 960, height: 640, now: 1684 });
 const movementFrames = calls.spriteFrames.slice(priorFrameCount)
   .filter(sprite => sprite.id === 'ender').map(sprite => sprite.frame);
-assert.deepStrictEqual(movementFrames, [0, 1, 1, 1, 0],
-  'Ender should animate by elapsed time through repeated steps, then return to idle');
+assert.deepStrictEqual(movementFrames, [1, 2, 2, 5, 0],
+  'Ender should traverse authored walking frames as time advances and return to idle');
+assert(source.includes('1 + Math.floor((now - playerWalkStartedAt) / 90) % 6'),
+  'the continuous walking phase must expose all six authored pose indices');
+assert(source.includes('frame: frame ? frame - 1 : 0'),
+  'authored strip must translate nonzero walking state to zero-based frames');
 assert(calls.spriteFrames.filter(sprite => sprite.id !== 'ender').every(sprite => sprite.frame === 0),
   'NPCs must stay idle while Ender moves');
 
