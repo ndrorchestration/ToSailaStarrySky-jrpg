@@ -1052,25 +1052,26 @@
     const hasSceneNotice = Array.isArray(root.toasts) && root.toasts.some(t =>
       t && t.kind !== 'system' && now - Number(t.startTime || 0) <= Number(t.duration || 0)
     );
-    const objectiveW = 286;
+    const objectiveW = 320;
     if (!hasSceneNotice) {
-      fill(5, 8, 13, 118);
-      rect(width / 2 - objectiveW / 2, 42, objectiveW, 30, 7);
+      // A darker, taller chip keeps short objectives readable over painted scenery.
+      fill(5, 8, 13, 190);
+      rect(width / 2 - objectiveW / 2, 42, objectiveW, 36, 7);
       textAlign(CENTER, TOP);
       textFont('Segoe UI Semibold');
-      textSize(9);
-      fill(42, 255, 181, 215);
+      textSize(12);
+      fill(235, 250, 240, 248);
       text(String(view.objective || '').replace(/[.]$/, '').toUpperCase(), width / 2, 52);
     }
 
     // Exploration feedback is a subtitle-like cue, not a persistent dialogue box.
     const messageW = Math.min(520, width - 360);
     const messageX = width / 2 - messageW / 2;
-    fill(5, 8, 13, 102);
+    fill(5, 8, 13, 184);
     rect(messageX, 552, messageW, 32, 7);
     textFont('Trebuchet MS');
     textSize(14);
-    fill(232, 220, 198, 218);
+    fill(245, 237, 216, 246);
     textAlign(CENTER, TOP);
     const explorationMessage = String(view.lastMessage || 'Explore.');
     const displayMessage = explorationMessage.length > 72
@@ -1078,19 +1079,26 @@
       : explorationMessage;
     text(displayMessage, width / 2, 559);
 
-    textFont('Segoe UI Semibold');
-    textSize(9);
-    textAlign(CENTER, TOP);
-    fill(185, 158, 116, 185);
-    if (scene.id === 'core_walk') {
-      const pipX = width / 2 - 25;
-      text('CLUES', pipX - 34, 580);
-      for (let i = 0; i < 3; i++) {
-        fill(i < e.clues.length ? color(42,255,181,190) : color(83,103,107,90));
-        rect(pipX + i * 14, 581, 8, 4, 1);
+    // Interactive hints should be high-contrast and only appear when actionable.
+    // Keep the three-clue readout non-numeric and separated from feedback copy.
+    if (scene.id === 'core_walk' || nearby) {
+      noStroke();
+      fill(5, 8, 13, 190);
+      rect(width / 2 - 88, 579, 176, 25, 6);
+      textFont('Segoe UI Semibold');
+      textSize(11);
+      textAlign(CENTER, TOP);
+      fill(245, 237, 216, 246);
+      if (scene.id === 'core_walk') {
+        const pipX = width / 2 - 25;
+        text('CLUES', pipX - 34, 585);
+        for (let i = 0; i < 3; i++) {
+          fill(i < e.clues.length ? color(42,255,181,224) : color(123,150,153,140));
+          rect(pipX + i * 14, 587, 8, 5, 1);
+        }
+      } else {
+        text('E   INSPECT', width / 2, 585);
       }
-    } else if (nearby) {
-      text('E   INSPECT', width / 2, 580);
     }
 
     textAlign(LEFT, TOP);

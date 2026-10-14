@@ -105,8 +105,27 @@ assert(source.includes("text('SETTLING IN', 40, 91)") && source.includes("text('
   'opening task progress must use compact upper-left JRPG quest chips plus pips');
 assert(source.includes("if (!paintedInterior) {") && source.includes("drawWakeRoomLabel('BERTH'"),
   'authored Wake interior must suppress map-like room labels while procedural fallback may retain them');
-assert(source.includes('const objectiveW = 286') && source.includes("text('E   INSPECT', width / 2, 580)"),
-  'interactive Wake HUD must use compact JRPG objective/inspect cues');
+assert(source.includes('const objectiveW = 320') && source.includes("text('E   INSPECT', width / 2, 585)"),
+  'interactive Wake HUD must keep compact JRPG objective/inspect cues');
+const hudStart = source.indexOf('const objectiveW = 320');
+const hudEnd = source.indexOf('textAlign(LEFT, TOP);', hudStart);
+assert(hudStart > -1 && hudEnd > hudStart, 'exploration HUD segment missing');
+const hud = source.slice(hudStart, hudEnd);
+assert(hud.includes('fill(5, 8, 13, 190)') &&
+  hud.includes('rect(width / 2 - objectiveW / 2, 42, objectiveW, 36, 7)') &&
+  hud.includes('textSize(12)') &&
+  hud.includes('fill(235, 250, 240, 248)'),
+  'objective chip must remain legible over busy bright or dark scenery');
+assert(hud.includes('fill(5, 8, 13, 184)') &&
+  hud.includes('fill(245, 237, 216, 246)'),
+  'feedback panel must preserve readable foreground/background contrast');
+assert(hud.includes("if (scene.id === 'core_walk' || nearby)") &&
+  hud.includes('rect(width / 2 - 88, 579, 176, 25, 6)') &&
+  hud.includes('textSize(11)') &&
+  hud.includes('color(123,150,153,140)'),
+  'actionable inspect and clue cues must remain backed and readable');
+assert(!hud.includes("'CLUES ' + e.clues.length"),
+  'clue cue must not expose a debug counter');
 assert(source.includes("t.kind !== 'system'") && source.includes('if (!hasSceneNotice)') && source.includes('const messageX = width / 2 - messageW / 2'),
   'interactive Wake HUD must suppress duplicate scene notices and keep narrative copy aligned inside its panel');
 assert(!source.includes('WASD / ARROWS MOVE   E INSPECT') && !source.includes("'CLUES ' + e.clues.length + ' / 3  //  2 REQUIRED'"),
