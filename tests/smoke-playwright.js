@@ -253,6 +253,14 @@ function createServer() {
       const p = window._world.player;
       p.tileX = 7; p.tileY = 7; p.x = 7; p.y = 7; p.px = 7 * 16; p.py = 7 * 16;
     });
+    await page.evaluate(() => {
+      const original = window.wrapText;
+      window.__dialogueRenderedText = null;
+      window.wrapText = function (value, ...args) {
+        if (window.gameState === 'dialogue') window.__dialogueRenderedText = value;
+        return original(value, ...args);
+      };
+    });
     await page.keyboard.press('e');
     await page.waitForFunction(() => window.gameState === 'dialogue');
     const firstDialogue = await page.evaluate(() => ({
@@ -262,8 +270,30 @@ function createServer() {
     assert(firstDialogue.lines[0].includes('The Aureate Wake can fly'),
       'first NPC contact did not select Captain Ionia\'s authored intro dialogue');
     assert(firstDialogue.lineIndex === 0, 'dialogue did not start at line zero');
+    // Observe actual text passed to the live renderer, not just selected source lines.
+    await page.waitForFunction(() =>
+      !dialogueTypeIn.active &&
+      window.__dialogueRenderedText === window.UI.dialogueLines[0]
+    , undefined, { timeout: 20000 });
+    assert(await page.evaluate(() => window.UI.dialogueText === window.UI.dialogueLines[0]),
+      'Ionia first line did not settle into the live display');
+    // Re-enter an unfinished first-line animation and advance with real input.
+    await page.evaluate(() => window.startDialogueTypeIn(window.UI.dialogueLines[0]));
+    await page.waitForFunction(() =>
+      window.UI.dialogueText.length > 0 &&
+      window.UI.dialogueText.length < window.UI.dialogueLines[0].length
+    );
     await page.keyboard.press('e');
     await page.waitForFunction(() => window.UI.dialogueLineIndex === 1);
+    await page.waitForFunction(() =>
+      !dialogueTypeIn.active &&
+      window.__dialogueRenderedText === window.UI.dialogueLines[1]
+    , undefined, { timeout: 20000 });
+    // Completion must precede this persistence check; selected full text can be
+    // visible for one render before the new type-in prefix is applied.
+    await page.waitForTimeout(100);
+    assert(await page.evaluate(() => window.UI.dialogueText === window.UI.dialogueLines[1]),
+      'an unfinished prior line overwrote the next dialogue line');
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => window.gameState === 'world');
 

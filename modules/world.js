@@ -817,6 +817,10 @@ function nextDialogueLine() {
     activeDialogue.lineIndex++;
     window.UI.dialogueLineIndex = activeDialogue.lineIndex;
     window.UI.dialogueText = activeDialogue.lines[activeDialogue.lineIndex];
+    // A previous unfinished line must not overwrite the newly selected line.
+    if (typeof startDialogueTypeIn === 'function') {
+      startDialogueTypeIn(window.UI.dialogueText);
+    }
     // Advance TTS to the next line's audio clip
     window.UI.dialogueAudioPlayed = false;
     playDialogueAudioLine();
