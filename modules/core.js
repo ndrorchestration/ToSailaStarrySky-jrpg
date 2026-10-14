@@ -284,10 +284,8 @@ function draw() {
   // Ã¢â€â‚¬Ã¢â€â‚¬ Dialogue type-in effect Ã¢â€â‚¬Ã¢â€â‚¬
   updateDialogueTypeIn();
   if (dialogueTypeIn.active && gameState === STATE.DIALOGUE) {
-    // Override the dialogue text with the type-in version
-    if (window.UI.dialogueText) {
-      window.UI.dialogueText = dialogueTypeIn.displayText;
-    }
+    // Empty is a valid initial prefix; keep updating until the line is visible.
+    window.UI.dialogueText = dialogueTypeIn.displayText;
   }
 
   if (VIS.scanlines) drawScanlines();
