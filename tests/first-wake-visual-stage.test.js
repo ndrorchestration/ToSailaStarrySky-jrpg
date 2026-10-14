@@ -75,7 +75,7 @@ assert(source.includes("id === 'lyra' ? 1.72") && source.includes("id === 'ionia
   'authored cabin protagonist scale must stay subordinate to the environment');
 assert(source.includes('sceneTicks < 36'),
   'v1.1 non-cinematic scene titles must clear quickly instead of becoming permanent HUD chrome');
-assert(source.includes('(!scene.interactive || Boolean(scene.speaker))') && source.includes('} else if (!scene.interactive) {'),
+assert(source.includes('(!scene.interactive || Boolean(scene.speaker))') && source.includes("} else if (!scene.interactive && scene.id !== 'arrival_horizon') {"),
   'interactive exploration must not keep narration copy floating over the authored field when no character is speaking');
 assert(source.includes('Exploration feedback is a subtitle-like cue') && source.includes('const messageW = Math.min(520'),
   'interactive exploration feedback must remain compact rather than becoming a wide dialogue panel');
