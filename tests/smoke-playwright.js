@@ -261,6 +261,27 @@ function createServer() {
         return original(value, ...args);
       };
     });
+    const vignetteSamples = await page.evaluate(() => {
+      const priorNight = window._isNight;
+      const ctx = document.querySelector('canvas').getContext('2d');
+      const values = [];
+      noLoop();
+      try {
+        for (const night of [false, true]) {
+          window._isNight = night; background(255); drawVignette();
+          const sample = (x,y) => Array.from(ctx.getImageData(x,y,1,1).data);
+          values.push({night,center:sample(480,320),corner:sample(24,24)});
+        }
+      } finally { window._isNight = priorNight; loop(); }
+      return values;
+    });
+    for (const sample of vignetteSamples) {
+      assert(sample.center.slice(0,3).every(value => value >= 250),
+        'vignette darkened the central reading area');
+      assert(sample.corner[0] < sample.center[0], 'vignette did not shade scene edges');
+    }
+    assert(vignetteSamples[1].corner[0] < vignetteSamples[0].corner[0],
+      'night vignette must retain stronger edge shading than daylight');
     await page.keyboard.press('e');
     await page.waitForFunction(() => window.gameState === 'dialogue');
     const firstDialogue = await page.evaluate(() => ({

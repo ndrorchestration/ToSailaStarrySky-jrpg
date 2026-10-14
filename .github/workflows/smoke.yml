@@ -138,6 +138,9 @@ jobs:
       - name: Verify projected-world six-frame walk regression
         run: node tests/preview-world-presentation.test.js
 
+      - name: Verify live opening presentation clock
+        run: node tests/opening-readability.test.js
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 

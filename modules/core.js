@@ -1365,24 +1365,23 @@ function wrapText(text, x, y, maxWidth) {
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Vignette effect Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function drawVignette() {
-  noStroke();
-  const nightFactor = window._isNight ? 0.6 : 0.18;
-  const alpha = nightFactor * 180;
-  const gradSteps = 20;
-  for (let i = gradSteps; i >= 0; i--) {
-    const t = i / gradSteps;
-    const r = t * max(width, height) * 0.75;
-    const a = alpha * (1 - t * t);
-    fill(color(C.navy[0], C.navy[1], C.navy[2], a));
-    ellipse(width / 2, height / 2, r * 2, r * 2);
+  if (typeof drawingContext === 'undefined' ||
+      typeof drawingContext.createRadialGradient !== 'function') return;
+  const edgeAlpha = (window._isNight ? 0.6 : 0.18) * 180 / 255;
+  const cx = width / 2, cy = height / 2;
+  const innerRadius = Math.min(width, height) * 0.35;
+  const outerRadius = Math.hypot(cx, cy);
+  drawingContext.save();
+  try {
+    // One transparent-center edge wash avoids cumulative shading over copy/HUD.
+    const gradient = drawingContext.createRadialGradient(cx, cy, innerRadius, cx, cy, outerRadius);
+    gradient.addColorStop(0, 'rgba(' + C.navy.join(',') + ',0)');
+    gradient.addColorStop(1, 'rgba(' + C.navy.join(',') + ',' + edgeAlpha + ')');
+    drawingContext.fillStyle = gradient;
+    drawingContext.fillRect(0, 0, width, height);
+  } finally {
+    drawingContext.restore();
   }
-  // Extra dark corners
-  noStroke();
-  fill(color(C.navy[0], C.navy[1], C.navy[2], 120));
-  rect(0, 0, width * 0.08, height);
-  rect(width * 0.92, 0, width * 0.08, height);
-  rect(0, 0, width, height * 0.06);
-  rect(0, height * 0.94, width, height * 0.06);
 }
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Toast rendering Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬

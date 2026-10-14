@@ -18,6 +18,12 @@
   let openingInteriorRequested = false;
   let openingInteriorReady = false;
 
+  // Current controller owns presentationTicks; retain sceneTicks for older review states.
+  function scenePresentationTicks(state, fallback) {
+    if (state && Number.isFinite(state.presentationTicks)) return state.presentationTicks;
+    return state && Number.isFinite(state.sceneTicks) ? state.sceneTicks : fallback;
+  }
+
   function bandedSky(top, mid, low) {
     noStroke();
     if (typeof drawingContext !== 'undefined' && drawingContext.createLinearGradient) {
@@ -218,7 +224,7 @@
 
     // Slow cinematic atmosphere only: no dock rails, prompts, characters, or debug geometry.
     noStroke();
-    const ticks = state && Number.isFinite(state.sceneTicks) ? state.sceneTicks : 0;
+    const ticks = scenePresentationTicks(state, 0);
     const fade = Math.max(0, 1 - ticks / 34);
     fill(3, 7, 14, Math.round(220 * fade));
     rect(0, 0, width, height);
@@ -234,7 +240,7 @@
 
   function drawDock(scene, state, now) {
     const cinematicRatio = scene.cinematic && Number.isFinite(scene.minimumTicks) && scene.minimumTicks > 0
-      ? Math.max(0, Math.min(1, (state.sceneTicks || 0) / scene.minimumTicks))
+      ? Math.max(0, Math.min(1, scenePresentationTicks(state, 0) / scene.minimumTicks))
       : 1;
     const settle = cinematicRatio * cinematicRatio * (3 - 2 * cinematicRatio);
 
@@ -1128,7 +1134,7 @@
   }
 
   function drawSceneTransition(scene, state) {
-    const ticks = state && Number.isFinite(state.sceneTicks) ? state.sceneTicks : 999;
+    const ticks = scenePresentationTicks(state, 999);
     const introTicks = scene && scene.chapterCard ? 30 : 18;
     if (ticks >= introTicks) return false;
     const t = Math.max(0, Math.min(1, ticks / introTicks));
@@ -1166,7 +1172,7 @@
     rect(0, height - 18, width, 18);
 
     const textPanelY = scene.chapterCard ? 92 : 50;
-    const sceneTicks = state && Number.isFinite(state.sceneTicks) ? state.sceneTicks : 999;
+    const sceneTicks = scenePresentationTicks(state, 999);
     const showSceneTitle = scene.chapterCard ||
       (scene.id === 'arrival_horizon'
         ? sceneTicks >= 90 && sceneTicks < 160
@@ -1272,7 +1278,7 @@
         text(line, copyX, y, copyW, 22);
         y += 21;
       }
-    } else if (!scene.interactive) {
+    } else if (!scene.interactive && scene.id !== 'arrival_horizon') {
       textAlign(CENTER, TOP);
       textFont('Trebuchet MS');
       textSize(20);
