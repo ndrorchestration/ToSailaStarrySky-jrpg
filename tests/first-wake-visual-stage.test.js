@@ -124,7 +124,7 @@ assert(hud.includes("if (scene.id === 'core_walk' || nearby)") &&
   hud.includes('textSize(11)') &&
   hud.includes('color(123,150,153,140)'),
   'actionable inspect and clue cues must remain backed and readable');
-assert(!hud.includes('CLUES ' + " + "e.clues.length),
+assert(!hud.includes("'CLUES ' + e.clues.length"),
   'clue cue must not expose a debug counter');
 assert(source.includes("t.kind !== 'system'") && source.includes('if (!hasSceneNotice)') && source.includes('const messageX = width / 2 - messageW / 2'),
   'interactive Wake HUD must suppress duplicate scene notices and keep narrative copy aligned inside its panel');
