@@ -272,6 +272,7 @@ function createServer() {
     assert(firstDialogue.lineIndex === 0, 'dialogue did not start at line zero');
     // Observe actual text passed to the live renderer, not just selected source lines.
     await page.waitForFunction(() =>
+      !dialogueTypeIn.active &&
       window.__dialogueRenderedText === window.UI.dialogueLines[0]
     , undefined, { timeout: 20000 });
     assert(await page.evaluate(() => window.UI.dialogueText === window.UI.dialogueLines[0]),
@@ -285,8 +286,11 @@ function createServer() {
     await page.keyboard.press('e');
     await page.waitForFunction(() => window.UI.dialogueLineIndex === 1);
     await page.waitForFunction(() =>
+      !dialogueTypeIn.active &&
       window.__dialogueRenderedText === window.UI.dialogueLines[1]
     , undefined, { timeout: 20000 });
+    // Completion must precede this persistence check; selected full text can be
+    // visible for one render before the new type-in prefix is applied.
     await page.waitForTimeout(100);
     assert(await page.evaluate(() => window.UI.dialogueText === window.UI.dialogueLines[1]),
       'an unfinished prior line overwrote the next dialogue line');
