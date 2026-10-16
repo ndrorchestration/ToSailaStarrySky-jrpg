@@ -141,6 +141,9 @@ jobs:
       - name: Verify live opening presentation clock
         run: node tests/opening-readability.test.js
 
+      - name: Verify desktop packaging title and manifest contract
+        run: npm run test:desktop-package
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
