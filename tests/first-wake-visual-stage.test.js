@@ -111,6 +111,25 @@ const hudStart = source.indexOf('const objectiveW = 320');
 const hudEnd = source.indexOf('textAlign(LEFT, TOP);', hudStart);
 assert(hudStart > -1 && hudEnd > hudStart, 'exploration HUD segment missing');
 const hud = source.slice(hudStart, hudEnd);
+// Execute the bounded helper independently with proportional glyph widths.
+// This is an algorithmic regression, not a screenshot/visual-acceptance substitute.
+const fitStart = hud.indexOf('function fitHudText(value, maxWidth)');
+const fitEnd = hud.indexOf('    const objectiveW = 320;', fitStart);
+assert(fitStart >= 0 && fitEnd > fitStart, 'measured text helper missing');
+const measuredGlyph = ch => ch === 'W' ? 12 : ch === 'i' ? 3 : ch === '…' ? 7 : 6;
+const measureText = value => [...String(value)].reduce((sum, ch) => sum + measuredGlyph(ch), 0);
+const fitHudText = vm.runInNewContext('(' + hud.slice(fitStart, fitEnd).trim() + ')', {
+  textWidth: measureText
+});
+assert.strictEqual(fitHudText('Wiii', 22), 'Wiii', 'text exactly at the limit must remain intact');
+assert.strictEqual(fitHudText('WWWW', 31), 'WW…', 'wide glyphs must ellipsize using measured width');
+assert.strictEqual(fitHudText('iiiiiiii', 31), 'iiiiiiii', 'narrow glyphs must not truncate prematurely');
+assert.strictEqual(fitHudText('A very long HUD objective', 43), 'A ver…',
+  'overlong copy must fit while preserving the original prefix');
+for (const [value, limit] of [['WWWW', 31], ['A very long HUD objective', 43], ['iiiiiiii', 31]]) {
+  assert(measureText(fitHudText(value, limit)) <= limit,
+    'fitted text exceeded its available panel width');
+}
 assert(hud.includes('function fitHudText(value, maxWidth)') &&
   hud.includes('textWidth(raw) <= maxWidth') &&
   hud.includes('textWidth(raw.slice(0, mid).trimEnd() + suffix) <= maxWidth') &&
