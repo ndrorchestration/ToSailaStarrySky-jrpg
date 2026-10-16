@@ -804,6 +804,15 @@
     }
   }
 
+  function fitWakeHudText(value, maxWidth) {
+    const original = String(value);
+    if (textWidth(original) <= maxWidth) return original;
+    if (textWidth('…') > maxWidth) return '';
+    const characters = Array.from(original);
+    while (characters.length && textWidth(characters.join('') + '…') > maxWidth) characters.pop();
+    return characters.join('') + '…';
+  }
+
   function drawWakeExploration(scene, state, now) {
     const opening = root.AetherFirstWakeOpening;
     const view = opening && typeof opening.wakeExplorationView === 'function'
@@ -1074,9 +1083,7 @@
     fill(245, 237, 216, 246);
     textAlign(CENTER, TOP);
     const explorationMessage = String(view.lastMessage || 'Explore.');
-    const displayMessage = explorationMessage.length > 72
-      ? explorationMessage.slice(0, 69) + '…'
-      : explorationMessage;
+    const displayMessage = fitWakeHudText(explorationMessage, messageW - 24);
     text(displayMessage, width / 2, 559);
 
     // Interactive hints should be high-contrast and only appear when actionable.

@@ -79,7 +79,7 @@ assert(source.includes('(!scene.interactive || Boolean(scene.speaker))') && sour
   'interactive exploration must not keep narration copy floating over the authored field when no character is speaking');
 assert(source.includes('Exploration feedback is a subtitle-like cue') && source.includes('const messageW = Math.min(520'),
   'interactive exploration feedback must remain compact rather than becoming a wide dialogue panel');
-assert(source.includes('const displayMessage = explorationMessage.length > 72') && source.includes('text(displayMessage, width / 2, 559)'),
+assert(source.includes('fitWakeHudText(explorationMessage, messageW - 24)') && source.includes('text(displayMessage, width / 2, 559)'),
   'exploration feedback must remain bounded and explicitly centered');
 assert(source.includes('authored.drawPortrait') && source.includes('portraitDrawn'),
   'v1.1 opening narration must use admitted speaker portrait art when available');

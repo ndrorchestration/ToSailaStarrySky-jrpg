@@ -50,6 +50,29 @@ fs.mkdirSync(out, {recursive:true});
       for(const line of probe.authoredLines) assert(probe.canvasText.includes(line),probe.sceneId+': canvas omitted authored narrative: '+line);
       assert(probe.canvasText.includes('ENTER   CONTINUE'),probe.sceneId+': canvas omitted continuation cue');
     }
+    // Diagnostic input fixtures exercise glyph bounds without admitting the older
+    // V46 controller. First line is authored candidate copy from PR258 f6798f4.
+    const textBounds = await page.evaluate(() => {
+      const savedOpening=window.AetherFirstWakeOpening, savedText=window.text, savedNight=window._isNight;
+      const results=[];
+      const messages=['The Core route stays sealed. You need more than one way of seeing the problem.',
+        'A short observation.', 'W'.repeat(72), '🧭'.repeat(72), ''];
+      try {
+        for(const night of [false,true]) for(const clues of [[],['structural'],['structural','frequency'],['structural','frequency','systems']]) for(const message of messages) {
+          let feedback;
+          window._isNight=night;
+          window.AetherFirstWakeOpening={wakeExplorationView:()=>({zone:'berth',objective:'Bounds probe',lastMessage:message}),nearbyWakeHotspot:()=>null};
+          window.text=function(value,...args){if(args[1]===559)feedback={text:String(value),width:textWidth(String(value))};return savedText(value,...args);};
+          window.AetherFirstWakeVisual.draw({id:'core_walk',sequence:8,lines:[]},
+            {wakeExploration:{x:2,y:2,clues:clues.slice()}},{now:3000});
+          if(!feedback || feedback.width>496)throw new Error('Feedback exceeds measured 496px content width');
+          if(message==='A short observation.' && feedback.text!==message)throw new Error('Short message changed');
+          results.push({night,clueCount:clues.length,...feedback});
+        }
+        return results;
+      } finally {window.AetherFirstWakeOpening=savedOpening;window.text=savedText;window._isNight=savedNight;}
+    });
+    assert.strictEqual(textBounds.length,40,'all bounded diagnostic cases must run');
     // Settle the actual admitted interior plate and sprite loads before capture.
     await page.waitForTimeout(1200);
     for (const night of [false,true]) {
@@ -63,7 +86,7 @@ fs.mkdirSync(out, {recursive:true});
       capturedAt:new Date().toISOString(),viewport:{width:960,height:640},
       browser:browser.version(),environment:'Linux scratch; RDC devices offline',
       method:'Production index-embedded modules; real controller createState/advance; direct renderer probe at settled tick180. Day/night _isNight vignette flag only, not authored distinct scenes.',
-      probes,pageErrors,
+      probes,pageErrors,textBounds,
       result:'AUTHORED_NARRATIVE_FALLBACK_PASS_HUD_STILL_BLOCKED',
       limitation:'Partial exact-ref materialization includes loaded JS and interior/sprite assets, not every optional asset. No invented objective/feedback or clue state. Cannot establish longest-authored-copy containment.',
       VISUAL_ACCEPTANCE:'PENDING',HUMAN_PLAYER_ACCEPTANCE:'PENDING',PROMOTION:'NOT_AUTHORIZED'};

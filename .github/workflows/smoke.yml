@@ -144,6 +144,9 @@ jobs:
       - name: Verify authored narrative fallback
         run: node tests/first-wake-narrative-fallback.test.js
 
+      - name: Verify feedback measured text bounds
+        run: node tests/first-wake-hud-text-bounds.test.js
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
