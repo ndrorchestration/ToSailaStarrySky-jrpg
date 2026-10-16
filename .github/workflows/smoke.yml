@@ -141,8 +141,16 @@ jobs:
       - name: Verify live opening presentation clock
         run: node tests/opening-readability.test.js
 
+      - name: Verify authored narrative fallback
+        run: node tests/first-wake-narrative-fallback.test.js
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+
+      - name: Verify authored narrative on Chromium canvas
+        env:
+          AETHERWAKE_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/first-wake-narrative-fallback-playwright.js
 
       - name: Run smoke test
         run: npm run test:smoke
