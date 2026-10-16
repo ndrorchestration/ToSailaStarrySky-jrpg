@@ -1165,7 +1165,13 @@
   function draw(scene, state, ctx) {
     const now = ctx.now || 0;
 
-    if (scene.sequence >= 5 && scene.sequence <= 8) {
+    // Older live controllers have authored narrative but no exploration state/API.
+    // Keep their dialogue and continuation cue in the normal presentation path.
+    const opening = root.AetherFirstWakeOpening;
+    const canExplore = state && state.wakeExploration && opening &&
+      typeof opening.wakeExplorationView === 'function' &&
+      typeof opening.nearbyWakeHotspot === 'function';
+    if (scene.sequence >= 5 && scene.sequence <= 8 && canExplore) {
       drawWakeExploration(scene, state, now);
       return true;
     }
