@@ -13,16 +13,30 @@ async function narrative(page,id) {
     const o=window.AetherFirstWakeOpening,s=window._firstWakeOpeningState;
     return o.currentScene(s).id===id && !s.wakeExploration.active && s.presentationTicks>=40;
   },id,{timeout:10000});
-  if(await page.evaluate(()=>!!window.__wakeCanvasText)) {
-    const probe=await page.evaluate(()=>({scene:window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState),text:[...window.__wakeCanvasText]}));
-    for(const line of probe.scene.lines.slice(0,3)) assert(probe.text.includes(line),id+': authored narrative missing on canvas');
-    assert(probe.text.includes('ENTER   CONTINUE'),id+': narrative confirmation missing');
+  const observeCanvas=await page.evaluate(()=>!!window.__wakeCanvasText);
+  let entered=false;
+  for(let budget=0;budget<10;budget++) {
+    const view=await page.evaluate(()=>window.AetherFirstWakeOpening.narrativeView(window._firstWakeOpeningState));
+    if(observeCanvas) {
+      await page.evaluate(()=>{window.__wakePageText=new Set();});
+      await page.waitForFunction(({lines,prompt})=>lines.every(line=>window.__wakePageText.has(line))&&window.__wakePageText.has(prompt),
+        {lines:view.lines,prompt:view.hasMore?'ENTER   NEXT':'ENTER   CONTINUE'});
+      await page.evaluate(({id,lines,hasMore})=>{
+        window.__wakeNarrativePages=window.__wakeNarrativePages||[];
+        window.__wakeNarrativePages.push({scene:id,lineCount:lines.length,hasMore});
+      },{id,lines:view.lines,hasMore:view.hasMore});
+    }
+    const s=await snapshot(page);
+    await page.keyboard.press('ArrowRight');await page.keyboard.press('e');
+    assert.deepStrictEqual((await snapshot(page)).exploration,s.exploration,id+': narrative keys changed exploration');
+    await page.keyboard.press('Enter');
+    const after=await snapshot(page);
+    assert.strictEqual(after.scene,id,id+': reading a page changed the scene');
+    if(view.hasMore) {assert(!after.exploration.active,id+': exploration began before remaining dialogue');continue;}
+    assert(after.exploration.active,id+': final confirmation did not enter exploration');entered=true;break;
   }
-  const s=await snapshot(page);
-  await page.keyboard.press('ArrowRight');await page.keyboard.press('e');
-  assert.deepStrictEqual((await snapshot(page)).exploration,s.exploration,id+': narrative keys changed exploration');
-  await page.keyboard.press('Enter');
-  assert((await snapshot(page)).exploration.active,id+': confirmation did not enter exploration');
+  assert(entered,id+': bounded dialogue pages did not reach exploration');
+  if(observeCanvas)assert(await page.evaluate(()=>window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).lines.every(line=>window.__wakeCanvasText.has(line))),id+': some authored lines never reached the canvas');
   // Attempting to skip the interaction must hold at the same scene.
   await page.keyboard.press('Enter');
   assert.strictEqual((await snapshot(page)).scene,id,id+': interaction gate was bypassed');

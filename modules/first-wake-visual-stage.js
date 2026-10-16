@@ -1199,6 +1199,8 @@
 
     drawFrame(scene, state, now);
     drawSceneTransition(scene, state);
+    const narrative = state && state.wakeExploration && opening &&
+      typeof opening.narrativeView === 'function' ? opening.narrativeView(state) : null;
 
     // Cinematic framing.
     noStroke();
@@ -1259,7 +1261,7 @@
         text(cinematicLines[i], cx, cy);
       }
     } else if (showNarrative) {
-      const visibleLines = scene.lines.slice(0, 3);
+      const visibleLines = narrative ? narrative.lines : scene.lines.slice(0, 3);
       const narrativePanelH = Math.min(112, 40 + visibleLines.length * 21);
       const narrativePanelY = height - 18 - 34 - narrativePanelH;
       const narrativePanelX = 110;
@@ -1339,6 +1341,8 @@
       promptText = 'E   RESPOND';
     } else if (scene.cinematic && !presentationReady) {
       promptText = '';
+    } else if (narrative && narrative.hasMore) {
+      promptText = 'ENTER   NEXT';
     } else {
       promptText = 'ENTER   CONTINUE';
     }

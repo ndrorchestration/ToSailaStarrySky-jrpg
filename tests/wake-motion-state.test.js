@@ -38,6 +38,7 @@ assert.strictEqual(JSON.stringify(state),wall);
 while(e.x<5)opening.moveWake(state,1,0);while(e.y>2)opening.moveWake(state,0,-1);
 opening.interactWake(state);assert(e.anomalyTriggered);opening.advance(state);
 assert.strictEqual(e.active,false);assert.strictEqual(e.moving,false);assert.strictEqual(e.movingUntilTick,0);
+opening.advance(state);assert.strictEqual(e.active,false,'remaining dialogue page must precede exploration');
 opening.advance(state);assert.strictEqual(e.active,true);assert.strictEqual(e.moving,false);
 // Valid boundary-state fixture: a diagonal API request may move only vertically.
 const edge=opening.createState({exploration:true});for(let i=0;i<6;i++)opening.advance(edge);
