@@ -24,7 +24,7 @@ Protected main also has no exploration API (opening blob `37d59c4a6329a14535db21
 
 ## Capture packet
 Local source packet: `evidence/hud-reachability-20261016/`.
-Manifest and expected-red output accompany this draft. PNGs are retained in the separately delivered capture packet:
+Manifest and expected-red output accompany this draft. PNGs remain internal scratch captures only; no screenshot deliverable is published. Reproduce them with the capture script. Recorded hashes:
 - core-walk-day.png SHA256 `9aeb4a020692640c02e6f6ddf62ec00dadb10aa97f22bbb767927df7ba42ed66`
 - core-walk-night.png SHA256 `4fabb17fdf0709f50bec8d46dc05dc90debfe0a0a4ae0db9a21fb379be5e5223`
 
