@@ -1059,8 +1059,11 @@
       if (textWidth(raw) <= maxWidth) return raw;
       const suffix = '…';
       if (textWidth(suffix) > maxWidth) return '';
-      // Count Unicode code points to avoid cutting a surrogate pair in half.
-      const glyphs = Array.from(raw);
+      // Keep joined emoji and combining marks together when the runtime supports it.
+      // The code-point fallback still avoids splitting surrogate pairs.
+      const glyphs = typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function'
+        ? Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(raw), part => part.segment)
+        : Array.from(raw);
       let low = 0, high = glyphs.length;
       while (low < high) {
         const mid = Math.ceil((low + high) / 2);
