@@ -1,6 +1,6 @@
 # First Wake feedback: measured text containment
 
-This candidate changes feedback truncation only. It does not integrate an older controller or alter authored copy, scene gates, sprites or canon.
+This candidate combines #278's narrative fallback with the existing measured HUD fitting in #279 (`70f499c6c5ee2cea0ce7c889e8cec65ffeb93426`). It adds runtime/browser coverage, fixes a dormant test-oracle lookup, and preserves Unicode code points in the reused helper. It does not integrate an older controller or alter authored copy, scene gates, sprites or canon.
 
 ## Recovered source and reproduced defect
 
@@ -13,17 +13,17 @@ Both provide `wakeExploration`, `wakeExplorationView` and `nearbyWakeHotspot`. T
 
 A Linux Chromium153 direct-renderer compatibility probe combined the exact #258 controller with #278 renderer `001df164c49a56ee72b04bd5a1713d3a6b50e3f5` at 960x640. It invoked actual controller interactions/views in 144 distinct diagnostic states and both day/night vignette modes (288 draws). These direct state probes are not a player route or an admitted mixed-source build.
 
-Existing candidate feedback `The Core route stays sealed. You need more than one way of seeing the problem.` was clipped by the old 72-character rule to a rendered line **522px wide inside a 520px panel**. Four probes reproduced overflow (two clue states, two vignette modes). Longest measured objective was311px inside its320px backing; no objective layout repair was made.
+Existing candidate feedback `The Core route stays sealed. You need more than one way of seeing the problem.` was clipped by the old 72-character rule to a rendered line **522px wide inside a 520px panel**. Four probes reproduced overflow (two clue states, two vignette modes). Longest measured objective was 311px inside its 320px backing. Existing #279 fitting is reused for both objective and feedback, including its 12px side padding.
 
 ## Bounded repair and checks
 
-Feedback now measures the active font with `textWidth`, preserving short strings and shortening only until the line plus ellipsis fits `messageW - 24` (12px side padding). Unicode code points are removed intact. Font, panel, color, coordinates, authored strings and interaction semantics stay the same.
+The reused binary-search helper measures the active font with `textWidth`, preserving short strings and shortening only until the line plus ellipsis fits its content width. A new regression exposed a surrogate-pair split in the original #279 helper; searching code points fixes it. Font, panel, color, coordinates, authored strings and interaction semantics stay the same.
 
 - Runtime regression RED before repair, GREEN after: authored candidate message, short text, wide glyphs, Unicode and empty fallback.
 - Same recovered-controller compatibility probe after repair: 288 draws, zero overflow or page errors, maximum feedback495px within496px content width. No state mutation.
 - Real Chromium regression: 40 diagnostic width cases across both vignette modes and 0–3 clue pips; all fit, short text unchanged; four existing narrative scenes still render authored text/continue cues.
 - Existing First Wake visual contract, narrative fallback and presentation clock checks pass locally.
-- Node width regression is explicitly added to smoke; browser width cases extend the already wired Chromium canvas test. Hosted results must be read at the final candidate head.
+- The inherited visual test searched for the helper after its declaration and failed when actually executed. Its extraction now uses the full source. The visual contract and Node width regression are explicitly added to smoke; browser width cases extend the already wired Chromium canvas test. Hosted results must be read at the final candidate head.
 
 ## Integration remains separate
 

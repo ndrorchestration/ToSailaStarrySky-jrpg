@@ -147,6 +147,9 @@ jobs:
       - name: Verify feedback measured text bounds
         run: node tests/first-wake-hud-text-bounds.test.js
 
+      - name: Verify First Wake visual presentation and width helper
+        run: node tests/first-wake-visual-stage.test.js
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 

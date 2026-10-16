@@ -59,15 +59,16 @@ fs.mkdirSync(out, {recursive:true});
         'A short observation.', 'W'.repeat(72), '🧭'.repeat(72), ''];
       try {
         for(const night of [false,true]) for(const clues of [[],['structural'],['structural','frequency'],['structural','frequency','systems']]) for(const message of messages) {
-          let feedback;
+          let feedback,objective;
           window._isNight=night;
-          window.AetherFirstWakeOpening={wakeExplorationView:()=>({zone:'berth',objective:'Bounds probe',lastMessage:message}),nearbyWakeHotspot:()=>null};
-          window.text=function(value,...args){if(args[1]===559)feedback={text:String(value),width:textWidth(String(value))};return savedText(value,...args);};
+          window.AetherFirstWakeOpening={wakeExplorationView:()=>({zone:'berth',objective:'Investigate the anomaly: 0 / 2 required clues.',lastMessage:message}),nearbyWakeHotspot:()=>null};
+          window.text=function(value,...args){const measured={text:String(value),width:textWidth(String(value))};if(args[1]===559)feedback=measured;if(args[1]===52)objective=measured;return savedText(value,...args);};
           window.AetherFirstWakeVisual.draw({id:'core_walk',sequence:8,lines:[]},
             {wakeExploration:{x:2,y:2,clues:clues.slice()}},{now:3000});
           if(!feedback || feedback.width>496)throw new Error('Feedback exceeds measured 496px content width');
+          if(!objective || objective.width>296)throw new Error('Objective exceeds measured 296px content width');
           if(message==='A short observation.' && feedback.text!==message)throw new Error('Short message changed');
-          results.push({night,clueCount:clues.length,...feedback});
+          results.push({night,clueCount:clues.length,...feedback,objective});
         }
         return results;
       } finally {window.AetherFirstWakeOpening=savedOpening;window.text=savedText;window._isNight=savedNight;}

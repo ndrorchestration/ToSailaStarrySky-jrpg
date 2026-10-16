@@ -804,15 +804,6 @@
     }
   }
 
-  function fitWakeHudText(value, maxWidth) {
-    const original = String(value);
-    if (textWidth(original) <= maxWidth) return original;
-    if (textWidth('…') > maxWidth) return '';
-    const characters = Array.from(original);
-    while (characters.length && textWidth(characters.join('') + '…') > maxWidth) characters.pop();
-    return characters.join('') + '…';
-  }
-
   function drawWakeExploration(scene, state, now) {
     const opening = root.AetherFirstWakeOpening;
     const view = opening && typeof opening.wakeExplorationView === 'function'
@@ -1061,6 +1052,22 @@
     const hasSceneNotice = Array.isArray(root.toasts) && root.toasts.some(t =>
       t && t.kind !== 'system' && now - Number(t.startTime || 0) <= Number(t.duration || 0)
     );
+    // Canvas glyph widths, not character counts, determine what fits the chip.
+    // Bounded ellipsis keeps authored copy intact in state and only shortens the view.
+    function fitHudText(value, maxWidth) {
+      const raw = String(value || '');
+      if (textWidth(raw) <= maxWidth) return raw;
+      const suffix = '…';
+      if (textWidth(suffix) > maxWidth) return '';
+      const glyphs = Array.from(raw);
+      let low = 0, high = glyphs.length;
+      while (low < high) {
+        const mid = Math.ceil((low + high) / 2);
+        if (textWidth(glyphs.slice(0, mid).join('').trimEnd() + suffix) <= maxWidth) low = mid;
+        else high = mid - 1;
+      }
+      return glyphs.slice(0, low).join('').trimEnd() + suffix;
+    }
     const objectiveW = 320;
     if (!hasSceneNotice) {
       // A darker, taller chip keeps short objectives readable over painted scenery.
@@ -1070,7 +1077,7 @@
       textFont('Segoe UI Semibold');
       textSize(12);
       fill(235, 250, 240, 248);
-      text(String(view.objective || '').replace(/[.]$/, '').toUpperCase(), width / 2, 52);
+      text(fitHudText(String(view.objective || '').replace(/[.]$/, '').toUpperCase(), objectiveW - 24), width / 2, 52);
     }
 
     // Exploration feedback is a subtitle-like cue, not a persistent dialogue box.
@@ -1083,7 +1090,7 @@
     fill(245, 237, 216, 246);
     textAlign(CENTER, TOP);
     const explorationMessage = String(view.lastMessage || 'Explore.');
-    const displayMessage = fitWakeHudText(explorationMessage, messageW - 24);
+    const displayMessage = fitHudText(explorationMessage, messageW - 24);
     text(displayMessage, width / 2, 559);
 
     // Interactive hints should be high-contrast and only appear when actionable.
