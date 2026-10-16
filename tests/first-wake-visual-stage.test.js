@@ -124,7 +124,7 @@ const fitHudText = vm.runInNewContext('(' + hud.slice(fitStart, fitEnd).trim() +
 assert.strictEqual(fitHudText('Wiii', 22), 'Wiii', 'text exactly at the limit must remain intact');
 assert.strictEqual(fitHudText('WWWW', 31), 'WW…', 'wide glyphs must ellipsize using measured width');
 assert.strictEqual(fitHudText('iiiiiiii', 31), 'iiiiiiii', 'narrow glyphs must not truncate prematurely');
-assert.strictEqual(fitHudText('A😀B', 26), 'A😀…',
+assert.strictEqual(fitHudText('A😀BBB', 19), 'A😀…',
   'ellipsis must not bisect an astral-plane character');
 assert.strictEqual(fitHudText('A😀B', 6), '',
   'a panel narrower than the ellipsis must not render overflowing content');
