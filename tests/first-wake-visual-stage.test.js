@@ -79,7 +79,7 @@ assert(source.includes('(!scene.interactive || Boolean(scene.speaker))') && sour
   'interactive exploration must not keep narration copy floating over the authored field when no character is speaking');
 assert(source.includes('Exploration feedback is a subtitle-like cue') && source.includes('const messageW = Math.min(520'),
   'interactive exploration feedback must remain compact rather than becoming a wide dialogue panel');
-assert(source.includes('const displayMessage = explorationMessage.length > 72') && source.includes('text(displayMessage, width / 2, 559)'),
+assert(source.includes('const displayMessage = fitHudText(explorationMessage, messageW - 24)') && source.includes('text(displayMessage, width / 2, 559)'),
   'exploration feedback must remain bounded and explicitly centered');
 assert(source.includes('authored.drawPortrait') && source.includes('portraitDrawn'),
   'v1.1 opening narration must use admitted speaker portrait art when available');
@@ -111,6 +111,31 @@ const hudStart = source.indexOf('const objectiveW = 320');
 const hudEnd = source.indexOf('textAlign(LEFT, TOP);', hudStart);
 assert(hudStart > -1 && hudEnd > hudStart, 'exploration HUD segment missing');
 const hud = source.slice(hudStart, hudEnd);
+// Execute the bounded helper independently with proportional glyph widths.
+// This is an algorithmic regression, not a screenshot/visual-acceptance substitute.
+const fitStart = source.indexOf('function fitHudText(value, maxWidth)');
+const fitEnd = source.indexOf('    const objectiveW = 320;', fitStart);
+assert(fitStart >= 0 && fitEnd > fitStart, 'measured text helper missing');
+const measuredGlyph = ch => ch === 'W' ? 12 : ch === 'i' ? 3 : ch === '…' ? 7 : 6;
+const measureText = value => [...String(value)].reduce((sum, ch) => sum + measuredGlyph(ch), 0);
+const fitHudText = vm.runInNewContext('(' + source.slice(fitStart, fitEnd).trim() + ')', {
+  textWidth: measureText
+});
+assert.strictEqual(fitHudText('Wiii', 22), 'Wiii', 'text exactly at the limit must remain intact');
+assert.strictEqual(fitHudText('WWWW', 31), 'WW…', 'wide glyphs must ellipsize using measured width');
+assert.strictEqual(fitHudText('iiiiiiii', 31), 'iiiiiiii', 'narrow glyphs must not truncate prematurely');
+assert.strictEqual(fitHudText('A very long HUD objective', 43), 'A very…',
+  'overlong copy must fit while preserving the original prefix');
+for (const [value, limit] of [['WWWW', 31], ['A very long HUD objective', 43], ['iiiiiiii', 31]]) {
+  assert(measureText(fitHudText(value, limit)) <= limit,
+    'fitted text exceeded its available panel width');
+}
+assert(source.includes('function fitHudText(value, maxWidth)') &&
+  source.includes('textWidth(raw) <= maxWidth') &&
+  source.includes("textWidth(glyphs.slice(0, mid).join('').trimEnd() + suffix) <= maxWidth") &&
+  hud.includes('objectiveW - 24') &&
+  hud.includes('messageW - 24'),
+  'visible objective and feedback copy must fit the measured canvas text bounds');
 assert(hud.includes('fill(5, 8, 13, 190)') &&
   hud.includes('rect(width / 2 - objectiveW / 2, 42, objectiveW, 36, 7)') &&
   hud.includes('textSize(12)') &&
