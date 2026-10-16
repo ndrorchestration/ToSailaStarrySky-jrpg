@@ -344,6 +344,15 @@
     return ACTIVE_PARTY;
   }
 
+  function resetOpeningAvailability() {
+    if (!boundWorldPlayer || ROSTER.length !== 5) {
+      throw new Error('PARTY_STATE_NOT_BOOTSTRAPPED');
+    }
+    validate();
+    for (const character of ROSTER) character.playable = character.id === 'ender';
+    return setActivePartyIds(['ender']);
+  }
+
   function bootstrap(worldPlayer) {
     if (!worldPlayer || typeof worldPlayer !== 'object') {
       throw new Error('PARTY_STATE_BOOTSTRAP_REQUIRES_WORLD_PLAYER');
@@ -472,6 +481,7 @@
     recruitCharacter,
     replaceMagicProfile,
     setActivePartyIds,
+    resetOpeningAvailability,
     validate,
     snapshot,
     refreshProductionStats,

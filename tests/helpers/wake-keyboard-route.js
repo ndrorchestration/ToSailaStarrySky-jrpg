@@ -5,7 +5,7 @@ async function snapshot(page) {
     const o=window.AetherFirstWakeOpening,s=window._firstWakeOpeningState;
     return {scene:o.currentScene(s).id,sequence:o.currentScene(s).sequence,
       exploration:s.wakeExploration ? JSON.parse(JSON.stringify(s.wakeExploration)):null,
-      party:window.ACTIVE_PARTY.map(c=>c.id),complete:s.complete};
+      party:window.ACTIVE_PARTY.map(c=>c.id),playable:window.ROSTER.map(c=>Boolean(c.playable)),complete:s.complete};
   });
 }
 async function narrative(page,id) {
@@ -67,6 +67,7 @@ async function reachLyra(page,{checkMotion=false}={}) {
   await visit(page,5,2);await page.keyboard.press('Enter');
   await narrative(page,'lyra_join');
   assert.deepStrictEqual((await snapshot(page)).party,['ender'],'Lyra joined before acknowledgement');
+  assert.deepStrictEqual((await snapshot(page)).playable,[true,false,false,false,false],'unjoined companions became playable before acknowledgement');
 }
 async function acknowledgeLyra(page) {
   await visit(page,7,3);await page.keyboard.press('Enter');

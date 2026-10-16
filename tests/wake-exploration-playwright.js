@@ -33,6 +33,23 @@ const root=path.resolve(__dirname,'..');
       }};
     });
     await page.keyboard.press('Enter');
+    const runs=[];
+    for(let replay=0;replay<2;replay++) {
+      if(replay===1) {
+        const reset=await page.evaluate(()=>{
+          const previous=window._firstWakeOpeningState,roster=window.ROSTER,members=window.ROSTER.slice(),active=window.ACTIVE_PARTY;
+          // Invoke the production New Game entrypoint; do not assign game/scene state.
+          window.startGame();
+          const state=window._firstWakeOpeningState,e=state.wakeExploration;
+          window.__wakeMotionRecords=[];window.__wakeCanvasText.clear();window.__wakePageText=new Set();window.__wakeNarrativePages=[];
+          return {freshOpening:state!==previous&&state.sceneIndex===0&&!state.complete&&state.appliedJoinIds.length===0,
+            freshExploration:!e.active&&!e.moving&&e.narrativeOffset===0&&e.clues.length===0&&!e.anomalyTriggered&&!e.wrongSongAcknowledged&&!e.ioniaFound&&!e.coreUnlocked&&!e.coreEntered&&e.steps===0&&e.x===3&&e.y===5,
+            canonicalReferences:roster===window.ROSTER&&active===window.ACTIVE_PARTY&&members.every((c,i)=>c===window.ROSTER[i]),
+            playable:window.ROSTER.map(c=>Boolean(c.playable)),party:window.ACTIVE_PARTY.map(c=>c.id)};
+        });
+        assert(reset.freshOpening&&reset.freshExploration&&reset.canonicalReferences,'replay failed to reset opening state while retaining canonical references');
+        assert.deepStrictEqual(reset.playable,[true,false,false,false,false]);assert.deepStrictEqual(reset.party,['ender']);
+      }
     await throughLyra(page,{checkMotion:true});await throughCore(page);
     const final=await snapshot(page);
     assert.deepStrictEqual(errors,[]);
@@ -43,6 +60,9 @@ const root=path.resolve(__dirname,'..');
     assert(motion.walking&&motion.idle&&motion.left,'existing rendered fallback must receive walk, settled idle and left-facing states');
     const narrativePages=await page.evaluate(()=>window.__wakeNarrativePages);
     assert.deepStrictEqual(narrativePages.filter(p=>p.scene==='lyra_join').map(p=>p.lineCount),[3,1],'all four Lyra scene lines must reach separate canvas pages');
-    console.log(JSON.stringify({result:'PASS',route:'physical keyboard from New Game through Core and world handoff',source:process.env.AETHERWAKE_SOURCE_SHA||'local candidate',motion,narrativePages,final,pageErrors:errors}));
+    assert.deepStrictEqual(final.playable,[true,true,false,false,false]);
+    runs.push({run:replay+1,motion,narrativePages,final});
+    }
+    console.log(JSON.stringify({result:'PASS',route:'two physical-keyboard opening routes; replay triggered by production startGame call',source:process.env.AETHERWAKE_SOURCE_SHA||'local candidate',runs,pageErrors:errors}));
   } finally {if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

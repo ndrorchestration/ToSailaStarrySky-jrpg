@@ -13,7 +13,7 @@ function body(name,next) {
   assert(start>=0 && end>start); return source.slice(start,end);
 }
 const joins=[];
-const context={window:{AetherFirstWakeOpening:opening,AetherPartyState:{setActivePartyIds(){},recruitCharacter(id){joins.push(id);}}},
+const context={window:{AetherFirstWakeOpening:opening,AetherPartyState:{resetOpeningAvailability(){},recruitCharacter(id){joins.push(id);}}},
   STATE:Object.fromEntries(['OPENING','WORLD','MENU','BOOT','CHARCREATE','DIALOGUE','AIRSHIP','COMBAT','SHOP'].map(x=>[x,x])),
   gameState:'MENU',prevState:null,menuAutoStartTimer:0,keys:{},keysPressed:{},keyCode:0,key:'',
   ENTER:13,UP_ARROW:38,DOWN_ARROW:40,LEFT_ARROW:37,RIGHT_ARROW:39,millis:()=>1000,C:{},showToast(){}};

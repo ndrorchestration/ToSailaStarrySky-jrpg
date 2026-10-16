@@ -1,0 +1,54 @@
+'use strict';
+const assert=require('assert'),fs=require('fs'),path=require('path'),vm=require('vm');
+const opening=require('../modules/first-wake-opening.js');
+const source=fs.readFileSync(path.join(__dirname,'../aetherwake.js'),'utf8');
+const partySource=fs.readFileSync(path.join(__dirname,'../modules/party-state.js'),'utf8');
+const window={AetherFirstWakeOpening:opening,AetherwakeCharacterMagicProfile:require('../modules/character-magic-profile.js')};
+const context={window,console,STATE:{OPENING:'opening'},gameState:'world',prevState:null,menuAutoStartTimer:0};
+vm.createContext(context);vm.runInContext(partySource,context);
+const party=window.AetherPartyState;
+const ender={name:'Ender',level:1,xp:0,xpToNext:50,unlockedAbilities:[],equipment:{staff:null,backpack:null}};
+party.bootstrap(ender);
+const roster=party.roster,active=party.activeParty,characters=Array.from(roster),profiles=Array.from(roster,c=>c.magicProfile);
+const begin=source.indexOf('function startFirstWakeOpening()'),end=source.indexOf('function advanceFirstWakeOpening()',begin);
+vm.runInContext(source.slice(begin,end),context);
+context.startFirstWakeOpening();
+party.recruitCharacter('lyra');party.recruitCharacter('ionia');
+// Late-progress availability fixture, not authorization to recruit these characters in the opening.
+roster[3].playable=true;roster[4].playable=true;
+party.setActivePartyIds(['ender']);
+assert.strictEqual(roster[1].playable,true,'ordinary formation changes must retain unlocked companions');
+const prior=window._firstWakeOpeningState;
+prior.sceneIndex=8;prior.appliedJoinIds.push('lyra');prior.wakeExploration.narrativeOffset=3;
+prior.wakeExploration.clues.push('structural','frequency');prior.wakeExploration.coreUnlocked=true;
+prior.wakeExploration.moving=true;prior.wakeExploration.anomalyTriggered=true;
+context.startFirstWakeOpening();
+assert.deepStrictEqual(Array.from(roster,c=>Boolean(c.playable)),[true,false,false,false,false],
+  'restarting the opening must reset companion availability, not just active formation');
+assert.deepStrictEqual(Array.from(active,c=>c.id),['ender']);
+assert.notStrictEqual(window._firstWakeOpeningState,prior);
+assert.deepStrictEqual(window._firstWakeOpeningState,opening.createState({exploration:true}),
+  'replay must start with fresh narrative, clues, motion and join history');
+assert.strictEqual(party.roster,roster);assert.strictEqual(party.activeParty,active);assert.strictEqual(roster[0],ender);
+characters.forEach((character,i)=>{assert.strictEqual(roster[i],character);assert.strictEqual(character.magicProfile,profiles[i]);});
+party.recruitCharacter('lyra');party.recruitCharacter('lyra');
+assert.deepStrictEqual(Array.from(active,c=>c.id),['ender','lyra'],'replayed recruitment must not duplicate roster references');
+assert.strictEqual(party.validate(),true);
+const unboot={AetherwakeCharacterMagicProfile:require('../modules/character-magic-profile.js')};
+vm.runInNewContext(partySource,{window:unboot});
+assert.throws(()=>unboot.AetherPartyState.resetOpeningAvailability(),/PARTY_STATE_NOT_BOOTSTRAPPED/);
+const retained=window._firstWakeOpeningState;
+window.AetherPartyState=unboot.AetherPartyState;
+assert.throws(()=>context.startFirstWakeOpening(),/PARTY_STATE_NOT_BOOTSTRAPPED/);
+assert.strictEqual(window._firstWakeOpeningState,retained,'failed party reset must not replace the retained opening');
+window.AetherPartyState={};
+assert.throws(()=>context.startFirstWakeOpening(),/FIRST_WAKE_OPENING_RUNTIME_UNAVAILABLE/);
+assert.strictEqual(window._firstWakeOpeningState,retained,'missing reset contract must fail before changing the opening');
+window.AetherPartyState=party;
+const originalProfile=ender.magicProfile,availability=Array.from(roster,c=>Boolean(c.playable));
+ender.magicProfile=roster[1].magicProfile; // Valid profile with the wrong canonical owner.
+assert.throws(()=>context.startFirstWakeOpening(),/PARTY_STATE_MAGIC_PROFILE_CHARACTER_MISMATCH/);
+assert.deepStrictEqual(Array.from(roster,c=>Boolean(c.playable)),availability,'failed prevalidation must preserve availability');
+assert.strictEqual(window._firstWakeOpeningState,retained,'failed prevalidation must preserve the prior opening');
+ender.magicProfile=originalProfile;assert.strictEqual(party.validate(),true);
+console.log('Wake replay party availability and fresh opening state: PASS');
