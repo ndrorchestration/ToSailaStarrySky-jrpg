@@ -135,6 +135,9 @@ jobs:
       - name: Verify Wake walk and idle motion state
         run: node tests/wake-motion-state.test.js
 
+      - name: Verify complete Wake authored narrative pages
+        run: node tests/wake-narrative-pages.test.js
+
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 

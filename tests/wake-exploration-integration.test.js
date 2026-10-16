@@ -39,7 +39,9 @@ function visit(x,y){let budget=30;while(state.wakeExploration.x!==x || state.wak
 visit(5,2); assert(state.wakeExploration.anomalyTriggered);press(13);
 assert.strictEqual(scene(),'lyra_join'); assert.deepStrictEqual(joins,[]);
 assert.strictEqual(state.wakeExploration.active,false);
-press(13);press(13);assert.strictEqual(scene(),'lyra_join','Lyra acknowledgement gate must hold');
+press(13);assert.strictEqual(state.wakeExploration.active,false,'remaining authored dialogue must precede exploration');
+press(13);assert.strictEqual(state.wakeExploration.active,true);
+press(13);assert.strictEqual(scene(),'lyra_join','Lyra acknowledgement gate must hold after all dialogue pages');
 visit(7,3);assert(state.wakeExploration.wrongSongAcknowledged);press(13);
 assert.strictEqual(scene(),'ionia_practical');assert.deepStrictEqual(joins,['lyra']);
 press(13);press(13);assert.strictEqual(scene(),'ionia_practical','Ionia gate must hold');

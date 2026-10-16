@@ -18,6 +18,7 @@
 
   const VERSION = '0.1.0';
   const WALK_PULSE_TICKS = 12;
+  const NARRATIVE_PAGE_LINES = 3;
 
   const SCENES = Object.freeze([
     Object.freeze({
@@ -172,7 +173,7 @@
       appliedJoinIds: [],
       ...(options && options.exploration === true ? { wakeExploration: {
         active: false, x: 3, y: 5, steps: 0, visited: ['berth'], interactions: [],
-        moving: false, movingUntilTick: 0, facing: 'right',
+        moving: false, movingUntilTick: 0, facing: 'right', narrativeOffset: 0,
         anomalyTriggered: false, wrongSongAcknowledged: false, ioniaFound: false,
         clues: [], coreUnlocked: false, coreEntered: false,
         lastMessage: 'Your berth is behind you. The Wake is open.',
@@ -210,6 +211,10 @@
     const scene = currentScene(state);
     if (state.wakeExploration && scene.sequence >= 5 && scene.sequence <= 8) {
       if (!state.wakeExploration.active) {
+        if (narrativeView(state).hasMore) {
+          state.wakeExploration.narrativeOffset = (state.wakeExploration.narrativeOffset || 0) + NARRATIVE_PAGE_LINES;
+          return { state, event: Object.freeze({ type: 'narrative-page' }) };
+        }
         state.wakeExploration.active = true;
         state.wakeExploration.moving = false;
         state.wakeExploration.movingUntilTick = 0;
@@ -222,6 +227,7 @@
       state.wakeExploration.active = false;
       state.wakeExploration.moving = false;
       state.wakeExploration.movingUntilTick = 0;
+      state.wakeExploration.narrativeOffset = 0;
     }
     const event = scene.joinCharacterId && !state.appliedJoinIds.includes(scene.joinCharacterId)
       ? Object.freeze({ type: 'party-join', characterId: scene.joinCharacterId })
@@ -461,6 +467,17 @@
     });
   }
 
+  function narrativeView(state) {
+    const scene = currentScene(state);
+    const e = state.wakeExploration;
+    const paged = e && !e.active && scene.sequence >= 5 && scene.sequence <= 8;
+    const offset = paged ? (e.narrativeOffset || 0) : 0;
+    return Object.freeze({
+      lines: scene.lines.slice(offset, offset + NARRATIVE_PAGE_LINES),
+      hasMore: Boolean(paged && offset + NARRATIVE_PAGE_LINES < scene.lines.length),
+    });
+  }
+
   function expectedPartyIds(state) {
     return currentScene(state).activePartyIds.slice();
   }
@@ -483,5 +500,6 @@
     interactWake,
     wakeExplorationView,
     nearbyWakeHotspot,
+    narrativeView,
   });
 });

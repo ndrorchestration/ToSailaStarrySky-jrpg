@@ -17,7 +17,7 @@ const root=path.resolve(__dirname,'..');
     const page=await browser.newPage({viewport:{width:960,height:640}}),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     await page.addInitScript(()=>{window.__wakeCanvasText=new Set();const original=CanvasRenderingContext2D.prototype.fillText;
-      CanvasRenderingContext2D.prototype.fillText=function(value,...args){window.__wakeCanvasText.add(String(value));return original.call(this,value,...args);};});
+      CanvasRenderingContext2D.prototype.fillText=function(value,...args){window.__wakeCanvasText.add(String(value));if(window.__wakePageText)window.__wakePageText.add(String(value));return original.call(this,value,...args);};});
     await page.goto('http://127.0.0.1:'+server.address().port+'/index-embedded.html',{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>document.querySelector('canvas')&&window._firstWakeOpeningState);
     await page.evaluate(()=>{
@@ -41,6 +41,8 @@ const root=path.resolve(__dirname,'..');
     assert(text.some(t=>t==='FIND LYRA'),'actual exploration objective missing');
     const motion=await page.evaluate(()=>({walking:window.__wakeMotionRecords.some(p=>p.speed>0),idle:window.__wakeMotionRecords.some(p=>p.speed===0),left:window.__wakeMotionRecords.some(p=>p.facing==='left')}));
     assert(motion.walking&&motion.idle&&motion.left,'existing rendered fallback must receive walk, settled idle and left-facing states');
-    console.log(JSON.stringify({result:'PASS',route:'physical keyboard from New Game through Core and world handoff',source:process.env.AETHERWAKE_SOURCE_SHA||'local candidate',motion,final,pageErrors:errors}));
+    const narrativePages=await page.evaluate(()=>window.__wakeNarrativePages);
+    assert.deepStrictEqual(narrativePages.filter(p=>p.scene==='lyra_join').map(p=>p.lineCount),[3,1],'all four Lyra scene lines must reach separate canvas pages');
+    console.log(JSON.stringify({result:'PASS',route:'physical keyboard from New Game through Core and world handoff',source:process.env.AETHERWAKE_SOURCE_SHA||'local candidate',motion,narrativePages,final,pageErrors:errors}));
   } finally {if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(e=>{console.error(e);process.exitCode=1;});
