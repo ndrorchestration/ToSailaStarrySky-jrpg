@@ -819,11 +819,13 @@ function startGame() {
 }
 
 function startFirstWakeOpening() {
-  if (!window.AetherFirstWakeOpening || !window.AetherPartyState) {
+  if (!window.AetherFirstWakeOpening || !window.AetherPartyState ||
+      typeof window.AetherPartyState.resetOpeningAvailability !== 'function') {
     throw new Error('FIRST_WAKE_OPENING_RUNTIME_UNAVAILABLE');
   }
-  window._firstWakeOpeningState = window.AetherFirstWakeOpening.createState({ exploration: true });
-  window.AetherPartyState.setActivePartyIds(['ender']);
+  const nextOpeningState = window.AetherFirstWakeOpening.createState({ exploration: true });
+  window.AetherPartyState.resetOpeningAvailability();
+  window._firstWakeOpeningState = nextOpeningState;
   gameState = STATE.OPENING;
   window.gameState = gameState;
   prevState = null;

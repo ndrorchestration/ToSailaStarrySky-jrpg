@@ -138,6 +138,9 @@ jobs:
       - name: Verify complete Wake authored narrative pages
         run: node tests/wake-narrative-pages.test.js
 
+      - name: Verify Wake replay party and story reset
+        run: node tests/wake-opening-replay.test.js
+
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
