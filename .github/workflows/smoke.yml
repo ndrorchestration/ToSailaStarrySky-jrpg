@@ -132,6 +132,9 @@ jobs:
       - name: Verify Wake inspection cue floor projection
         run: node tests/wake-inspection-cue.test.js
 
+      - name: Verify Wake walk and idle motion state
+        run: node tests/wake-motion-state.test.js
+
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 

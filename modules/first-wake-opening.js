@@ -17,6 +17,7 @@
   'use strict';
 
   const VERSION = '0.1.0';
+  const WALK_PULSE_TICKS = 12;
 
   const SCENES = Object.freeze([
     Object.freeze({
@@ -171,6 +172,7 @@
       appliedJoinIds: [],
       ...(options && options.exploration === true ? { wakeExploration: {
         active: false, x: 3, y: 5, steps: 0, visited: ['berth'], interactions: [],
+        moving: false, movingUntilTick: 0, facing: 'right',
         anomalyTriggered: false, wrongSongAcknowledged: false, ioniaFound: false,
         clues: [], coreUnlocked: false, coreEntered: false,
         lastMessage: 'Your berth is behind you. The Wake is open.',
@@ -189,6 +191,10 @@
     if (!state || state.complete) return 0;
     const delta = Number.isFinite(ticks) ? Math.max(0, ticks) : 1;
     state.presentationTicks = (state.presentationTicks || 0) + delta;
+    if (state.wakeExploration) {
+      const e = state.wakeExploration;
+      e.moving = isWakeExplorationActive(state) && state.presentationTicks < e.movingUntilTick;
+    }
     return state.presentationTicks;
   }
 
@@ -205,6 +211,8 @@
     if (state.wakeExploration && scene.sequence >= 5 && scene.sequence <= 8) {
       if (!state.wakeExploration.active) {
         state.wakeExploration.active = true;
+        state.wakeExploration.moving = false;
+        state.wakeExploration.movingUntilTick = 0;
         state.wakeExploration.lastMessage = scene.lines[0] || '';
         return { state, event: Object.freeze({ type: 'exploration-started' }) };
       }
@@ -212,6 +220,8 @@
         return { state, event: Object.freeze({ type: 'interaction-required', interaction: scene.id }) };
       }
       state.wakeExploration.active = false;
+      state.wakeExploration.moving = false;
+      state.wakeExploration.movingUntilTick = 0;
     }
     const event = scene.joinCharacterId && !state.appliedJoinIds.includes(scene.joinCharacterId)
       ? Object.freeze({ type: 'party-join', characterId: scene.joinCharacterId })
@@ -318,8 +328,12 @@
     const nextX = Math.max(WAKE_BOUNDS.minX, Math.min(WAKE_BOUNDS.maxX, e.x + sx));
     const nextY = Math.max(WAKE_BOUNDS.minY, Math.min(WAKE_BOUNDS.maxY, e.y + sy));
     if (nextX === e.x && nextY === e.y) return { state, moved: false, event: null };
+    const horizontalMove = nextX !== e.x;
     e.x = nextX;
     e.y = nextY;
+    if (horizontalMove) e.facing = sx < 0 ? 'left' : 'right';
+    e.moving = true;
+    e.movingUntilTick = state.presentationTicks + WALK_PULSE_TICKS;
     e.steps += 1;
     const zone = wakeZone(e.x, e.y);
     if (!e.visited.includes(zone)) e.visited.push(zone);
