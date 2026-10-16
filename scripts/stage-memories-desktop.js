@@ -39,7 +39,7 @@ const manifest = {
   main: 'www/index-embedded.html',
   'js-flags': '--expose-gc',
   window: {
-    title: 'AETHERWAKE — THE LAST SOLARPUNK AIRSHIP',
+    title: rootPackage.window.title,
     width: 1440,
     height: 960,
     min_width: 960,

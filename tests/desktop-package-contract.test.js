@@ -6,6 +6,8 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+assert(packageJson.window && packageJson.window.title === 'Aetherwake',
+  'development desktop title must retain the canonical game name without a subtitle');
 assert(packageJson.main === 'index-embedded.html',
   'development manifest must retain the embedded HTML entry point');
 assert(packageJson.window && packageJson.window.width === 1440,
@@ -25,6 +27,10 @@ const stageScript = fs.readFileSync(
   path.join(__dirname, '..', 'scripts', 'stage-memories-desktop.js'),
   'utf8'
 );
+assert(stageScript.includes('title: rootPackage.window.title'),
+  'staged production desktop title must inherit the canonical root package title');
+assert(!stageScript.includes('THE LAST SOLARPUNK AIRSHIP'),
+  'production desktop manifest must not restore the retired subtitle');
 assert(stageScript.includes("main: 'www/index-embedded.html'"),
   'production desktop manifest must use the RPG Maker MV-style www entrypoint');
 assert(stageScript.includes("'icon.ico'"),
@@ -96,6 +102,8 @@ const localReleaseScript = fs.readFileSync(
   path.join(__dirname, '..', 'scripts', 'build-windows-release.ps1'),
   'utf8'
 );
+assert(readme.startsWith('# Aetherwake\n'),
+  'README project heading must use the canonical subtitle-free game title');
 assert(readme.includes('Aetherwake-Setup.exe'),
   'README must advertise the standard installer');
 assert(readme.includes('Aetherwake-Windows.zip'),

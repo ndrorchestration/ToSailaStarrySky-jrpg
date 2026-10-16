@@ -141,6 +141,17 @@ jobs:
       - name: Verify live opening presentation clock
         run: node tests/opening-readability.test.js
 
+      - name: Verify First Wake visual stage and dock-motion contracts
+        run: node tests/first-wake-visual-stage.test.js
+
+      - name: Verify desktop packaging title and manifest contract
+        run: npm run test:desktop-package
+
+      - name: Verify actually staged desktop window title
+        run: |
+          npm run stage:desktop
+          node -e "const assert=require('node:assert/strict');const root=require('./package.json');const staged=require('./.desktop-runtime/package.json');assert.equal(staged.window.title,root.window.title);assert.equal(staged.window.title,'Aetherwake');assert.equal(staged.main,'www/index-embedded.html');console.log('STAGED_DESKTOP_TITLE=PASS');"
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 

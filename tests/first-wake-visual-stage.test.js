@@ -107,7 +107,7 @@ assert(source.includes("if (!paintedInterior) {") && source.includes("drawWakeRo
   'authored Wake interior must suppress map-like room labels while procedural fallback may retain them');
 assert(source.includes('const objectiveW = 320') && source.includes("text('E   INSPECT', width / 2, 585)"),
   'interactive Wake HUD must keep compact JRPG objective/inspect cues');
-const hudStart = source.indexOf('const objectiveW = 320');
+const hudStart = source.indexOf('function fitHudText(value, maxWidth)');
 const hudEnd = source.indexOf('textAlign(LEFT, TOP);', hudStart);
 assert(hudStart > -1 && hudEnd > hudStart, 'exploration HUD segment missing');
 const hud = source.slice(hudStart, hudEnd);
