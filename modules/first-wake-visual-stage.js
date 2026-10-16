@@ -1052,6 +1052,20 @@
     const hasSceneNotice = Array.isArray(root.toasts) && root.toasts.some(t =>
       t && t.kind !== 'system' && now - Number(t.startTime || 0) <= Number(t.duration || 0)
     );
+    // Canvas glyph widths, not character counts, determine what fits the chip.
+    // Bounded ellipsis keeps authored copy intact in state and only shortens the view.
+    function fitHudText(value, maxWidth) {
+      const raw = String(value || '');
+      if (textWidth(raw) <= maxWidth) return raw;
+      const suffix = '…';
+      let low = 0, high = raw.length;
+      while (low < high) {
+        const mid = Math.ceil((low + high) / 2);
+        if (textWidth(raw.slice(0, mid).trimEnd() + suffix) <= maxWidth) low = mid;
+        else high = mid - 1;
+      }
+      return raw.slice(0, low).trimEnd() + suffix;
+    }
     const objectiveW = 320;
     if (!hasSceneNotice) {
       // A darker, taller chip keeps short objectives readable over painted scenery.
@@ -1061,7 +1075,7 @@
       textFont('Segoe UI Semibold');
       textSize(12);
       fill(235, 250, 240, 248);
-      text(String(view.objective || '').replace(/[.]$/, '').toUpperCase(), width / 2, 52);
+      text(fitHudText(String(view.objective || '').replace(/[.]$/, '').toUpperCase(), objectiveW - 24), width / 2, 52);
     }
 
     // Exploration feedback is a subtitle-like cue, not a persistent dialogue box.
@@ -1074,9 +1088,7 @@
     fill(245, 237, 216, 246);
     textAlign(CENTER, TOP);
     const explorationMessage = String(view.lastMessage || 'Explore.');
-    const displayMessage = explorationMessage.length > 72
-      ? explorationMessage.slice(0, 69) + '…'
-      : explorationMessage;
+    const displayMessage = fitHudText(explorationMessage, messageW - 24);
     text(displayMessage, width / 2, 559);
 
     // Interactive hints should be high-contrast and only appear when actionable.
