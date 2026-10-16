@@ -4,7 +4,7 @@
   "description": "Aetherwake pre-alpha — a solarpunk turn-based JRPG built with p5.js",
   "main": "index-embedded.html",
   "window": {
-    "title": "AETHERWAKE — THE LAST SOLARPUNK AIRSHIP",
+    "title": "Aetherwake",
     "width": 1440,
     "height": 960,
     "min_width": 960,
