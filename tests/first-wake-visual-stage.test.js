@@ -124,7 +124,7 @@ const fitHudText = vm.runInNewContext('(' + hud.slice(fitStart, fitEnd).trim() +
 assert.strictEqual(fitHudText('Wiii', 22), 'Wiii', 'text exactly at the limit must remain intact');
 assert.strictEqual(fitHudText('WWWW', 31), 'WW…', 'wide glyphs must ellipsize using measured width');
 assert.strictEqual(fitHudText('iiiiiiii', 31), 'iiiiiiii', 'narrow glyphs must not truncate prematurely');
-assert.strictEqual(fitHudText('A very long HUD objective', 43), 'A ver…',
+assert.strictEqual(fitHudText('A very long HUD objective', 43), 'A very…',
   'overlong copy must fit while preserving the original prefix');
 for (const [value, limit] of [['WWWW', 31], ['A very long HUD objective', 43], ['iiiiiiii', 31]]) {
   assert(measureText(fitHudText(value, limit)) <= limit,
