@@ -126,6 +126,10 @@ assert.strictEqual(fitHudText('WWWW', 31), 'WW…', 'wide glyphs must ellipsize 
 assert.strictEqual(fitHudText('iiiiiiii', 31), 'iiiiiiii', 'narrow glyphs must not truncate prematurely');
 assert.strictEqual(fitHudText('A😀BBB', 19), 'A😀…',
   'ellipsis must not bisect an astral-plane character');
+assert.strictEqual(fitHudText('A👩‍🚀B', 31), 'A👩‍🚀…',
+  'ellipsis must preserve joined emoji as one visible grapheme');
+assert.strictEqual(fitHudText('Ae\u0301B', 25), 'Ae\u0301B',
+  'combining-mark text that fits must not be altered');
 assert.strictEqual(fitHudText('A😀B', 6), '',
   'a panel narrower than the ellipsis must not render overflowing content');
 assert.strictEqual(fitHudText('A very long HUD objective', 43), 'A very…',
