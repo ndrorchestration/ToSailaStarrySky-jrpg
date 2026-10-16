@@ -1,0 +1,123 @@
+{
+  "sourceSha": "44a63ea03b8874cb427b81f2f62c1763231cde0b",
+  "capturedAt": "2026-10-16T03:49:14.960Z",
+  "viewport": {
+    "width": 960,
+    "height": 640
+  },
+  "browser": "153.0.8010.0",
+  "environment": "Linux scratch; RDC devices offline",
+  "method": "Production index-embedded modules; real controller createState/advance; direct renderer probe at settled tick180. Day/night _isNight vignette flag only, not authored distinct scenes.",
+  "probes": [
+    {
+      "sequence": 5,
+      "sceneId": "lyra_family",
+      "controllerVersion": "0.1.0",
+      "controllerKeys": [
+        "VERSION",
+        "SCENES",
+        "validate",
+        "createState",
+        "currentScene",
+        "tickPresentation",
+        "canAdvancePresentation",
+        "advance",
+        "expectedPartyIds"
+      ],
+      "stateKeys": [
+        "sceneIndex",
+        "presentationTicks",
+        "complete",
+        "appliedJoinIds"
+      ],
+      "hasExplorationState": false,
+      "viewAPI": "undefined",
+      "hotspotAPI": "undefined",
+      "renderedText": []
+    },
+    {
+      "sequence": 6,
+      "sceneId": "lyra_join",
+      "controllerVersion": "0.1.0",
+      "controllerKeys": [
+        "VERSION",
+        "SCENES",
+        "validate",
+        "createState",
+        "currentScene",
+        "tickPresentation",
+        "canAdvancePresentation",
+        "advance",
+        "expectedPartyIds"
+      ],
+      "stateKeys": [
+        "sceneIndex",
+        "presentationTicks",
+        "complete",
+        "appliedJoinIds"
+      ],
+      "hasExplorationState": false,
+      "viewAPI": "undefined",
+      "hotspotAPI": "undefined",
+      "renderedText": []
+    },
+    {
+      "sequence": 7,
+      "sceneId": "ionia_practical",
+      "controllerVersion": "0.1.0",
+      "controllerKeys": [
+        "VERSION",
+        "SCENES",
+        "validate",
+        "createState",
+        "currentScene",
+        "tickPresentation",
+        "canAdvancePresentation",
+        "advance",
+        "expectedPartyIds"
+      ],
+      "stateKeys": [
+        "sceneIndex",
+        "presentationTicks",
+        "complete",
+        "appliedJoinIds"
+      ],
+      "hasExplorationState": false,
+      "viewAPI": "undefined",
+      "hotspotAPI": "undefined",
+      "renderedText": []
+    },
+    {
+      "sequence": 8,
+      "sceneId": "core_walk",
+      "controllerVersion": "0.1.0",
+      "controllerKeys": [
+        "VERSION",
+        "SCENES",
+        "validate",
+        "createState",
+        "currentScene",
+        "tickPresentation",
+        "canAdvancePresentation",
+        "advance",
+        "expectedPartyIds"
+      ],
+      "stateKeys": [
+        "sceneIndex",
+        "presentationTicks",
+        "complete",
+        "appliedJoinIds"
+      ],
+      "hasExplorationState": false,
+      "viewAPI": "undefined",
+      "hotspotAPI": "undefined",
+      "renderedText": []
+    }
+  ],
+  "pageErrors": [],
+  "result": "BLOCKED_MISSING_LIVE_HUD_CONTROLLER",
+  "limitation": "Partial exact-ref materialization includes loaded JS and interior/sprite assets, not every optional asset. No invented objective/feedback or clue state. Cannot establish longest-authored-copy containment.",
+  "VISUAL_ACCEPTANCE": "PENDING",
+  "HUMAN_PLAYER_ACCEPTANCE": "PENDING",
+  "PROMOTION": "NOT_AUTHORIZED"
+}
