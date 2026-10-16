@@ -478,6 +478,24 @@ function keyPressed() {
   keys[keyCode] = true;
   keysPressed[keyCode] = true;
 
+  if (gameState === STATE.OPENING) {
+    const opening = window.AetherFirstWakeOpening;
+    const openingState = window._firstWakeOpeningState;
+    if (opening && typeof opening.isWakeExplorationActive === 'function' &&
+        opening.isWakeExplorationActive(openingState)) {
+      const direction = { 37: [-1,0], 65: [-1,0], 39: [1,0], 68: [1,0],
+        38: [0,-1], 87: [0,-1], 40: [0,1], 83: [0,1] }[keyCode];
+      if (direction || keyCode === 69) {
+        if (direction) opening.moveWake(openingState, direction[0], direction[1]);
+        else opening.interactWake(openingState);
+        delete keysPressed[keyCode];
+        if (typeof ensureAudio === 'function') ensureAudio();
+        if (typeof resumeAudio === 'function') resumeAudio();
+        return;
+      }
+    }
+  }
+
   if (gameState === STATE.OPENING && (keyCode === 13 || keyCode === 32)) {
     advanceFirstWakeOpening();
     delete keysPressed[keyCode];
@@ -804,7 +822,7 @@ function startFirstWakeOpening() {
   if (!window.AetherFirstWakeOpening || !window.AetherPartyState) {
     throw new Error('FIRST_WAKE_OPENING_RUNTIME_UNAVAILABLE');
   }
-  window._firstWakeOpeningState = window.AetherFirstWakeOpening.createState();
+  window._firstWakeOpeningState = window.AetherFirstWakeOpening.createState({ exploration: true });
   window.AetherPartyState.setActivePartyIds(['ender']);
   gameState = STATE.OPENING;
   window.gameState = gameState;

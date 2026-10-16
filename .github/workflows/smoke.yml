@@ -126,6 +126,12 @@ jobs:
       - name: Verify First Wake opening runtime
         run: npm run test:first-wake-opening
 
+      - name: Verify Wake controller and input gates
+        run: node tests/wake-exploration-integration.test.js
+
+      - name: Verify Wake inspection cue floor projection
+        run: node tests/wake-inspection-cue.test.js
+
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
@@ -157,6 +163,11 @@ jobs:
         env:
           AETHERWAKE_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node tests/first-wake-narrative-fallback-playwright.js
+
+      - name: Verify Wake physical keyboard route
+        env:
+          AETHERWAKE_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/wake-exploration-playwright.js
 
       - name: Run smoke test
         run: npm run test:smoke

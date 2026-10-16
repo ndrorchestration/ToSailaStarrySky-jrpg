@@ -83,13 +83,13 @@ fs.mkdirSync(out, {recursive:true});
       await page.locator('canvas').screenshot({path:path.join(out,night?'core-walk-night.png':'core-walk-day.png')});
     }
     assert.strictEqual(pageErrors.length,0,'renderer emitted a page error');
-    const manifest={sourceSha:process.env.AETHERWAKE_SOURCE_SHA || 'working candidate based on 44a63ea03b8874cb427b81f2f62c1763231cde0b',
+    const manifest={sourceSha:process.env.AETHERWAKE_SOURCE_SHA || 'local unversioned candidate',
       capturedAt:new Date().toISOString(),viewport:{width:960,height:640},
       browser:browser.version(),environment:'Linux scratch; RDC devices offline',
-      method:'Production index-embedded modules; real controller createState/advance; direct renderer probe at settled tick180. Day/night _isNight vignette flag only, not authored distinct scenes.',
+      method:'Production index-embedded modules; default narrative-only createState/advance compatibility mode; direct renderer probe at settled tick180. Day/night vignette flag and synthetic width fixtures, not the live New Game route.',
       probes,pageErrors,textBounds,
-      result:'AUTHORED_NARRATIVE_FALLBACK_PASS_HUD_STILL_BLOCKED',
-      limitation:'Partial exact-ref materialization includes loaded JS and interior/sprite assets, not every optional asset. No invented objective/feedback or clue state. Cannot establish longest-authored-copy containment.',
+      result:'NARRATIVE_COMPATIBILITY_AND_DIAGNOSTIC_WIDTH_PASS',
+      limitation:'Direct compatibility/width probes do not establish the live exploration route. That route is separately tested by wake-exploration-playwright.js with physical keyboard input. Partial local materialization may omit unrelated optional assets.',
       VISUAL_ACCEPTANCE:'PENDING',HUMAN_PLAYER_ACCEPTANCE:'PENDING',PROMOTION:'NOT_AUTHORIZED'};
     fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
     console.log(JSON.stringify(manifest,null,2));

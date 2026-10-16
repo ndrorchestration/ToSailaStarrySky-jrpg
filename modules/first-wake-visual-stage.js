@@ -1028,7 +1028,7 @@
     // Context cue only for what is close enough to inspect.
     const nearby = opening.nearbyWakeHotspot(state, 1);
     if (nearby) {
-      const p = wakeMapPoint(nearby.x, nearby.y);
+      const p = wakeMapPoint(nearby.x, nearby.y, paintedInterior);
       fill(42, 255, 181, 130);
       rect(p.x - 18, p.y - 42, 36, 3);
       rect(p.x - 18, p.y - 42, 3, 10);
@@ -1115,6 +1115,13 @@
       }
     }
 
+    // Always show movement/inspection controls; confirmation appears only at a satisfied gate.
+    textFont('Segoe UI Semibold');
+    textSize(11);
+    textAlign(CENTER, TOP);
+    fill(245, 237, 216, 246);
+    const ready = typeof opening.canAdvanceWake === 'function' && opening.canAdvanceWake(state);
+    text(ready ? 'ENTER   CONTINUE' : 'ARROWS / WASD   MOVE     E   INSPECT', width / 2, 610);
     textAlign(LEFT, TOP);
   }
 
@@ -1182,7 +1189,7 @@
     // Older live controllers have authored narrative but no exploration state/API.
     // Keep their dialogue and continuation cue in the normal presentation path.
     const opening = root.AetherFirstWakeOpening;
-    const canExplore = state && state.wakeExploration && opening &&
+    const canExplore = state && state.wakeExploration && state.wakeExploration.active !== false && opening &&
       typeof opening.wakeExplorationView === 'function' &&
       typeof opening.nearbyWakeHotspot === 'function';
     if (scene.sequence >= 5 && scene.sequence <= 8 && canExplore) {
