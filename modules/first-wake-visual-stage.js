@@ -1058,13 +1058,16 @@
       const raw = String(value || '');
       if (textWidth(raw) <= maxWidth) return raw;
       const suffix = '…';
-      let low = 0, high = raw.length;
+      if (textWidth(suffix) > maxWidth) return '';
+      // Count Unicode code points to avoid cutting a surrogate pair in half.
+      const glyphs = Array.from(raw);
+      let low = 0, high = glyphs.length;
       while (low < high) {
         const mid = Math.ceil((low + high) / 2);
-        if (textWidth(raw.slice(0, mid).trimEnd() + suffix) <= maxWidth) low = mid;
+        if (textWidth(glyphs.slice(0, mid).join('').trimEnd() + suffix) <= maxWidth) low = mid;
         else high = mid - 1;
       }
-      return raw.slice(0, low).trimEnd() + suffix;
+      return glyphs.slice(0, low).join('').trimEnd() + suffix;
     }
     const objectiveW = 320;
     if (!hasSceneNotice) {
