@@ -20,13 +20,27 @@ const root=path.resolve(__dirname,'..');
       CanvasRenderingContext2D.prototype.fillText=function(value,...args){window.__wakeCanvasText.add(String(value));return original.call(this,value,...args);};});
     await page.goto('http://127.0.0.1:'+server.address().port+'/index-embedded.html',{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>document.querySelector('canvas')&&window._firstWakeOpeningState);
+    await page.evaluate(()=>{
+      const original=window.AetherCharacterRenderer;
+      window.__wakeMotionRecords=[];
+      window.AetherCharacterRenderer={...original,draw(id,x,y,opts){
+        const state=window._firstWakeOpeningState;
+        if(id==='ender'&&state.wakeExploration&&state.wakeExploration.active){
+          window.__wakeMotionRecords.push({speed:opts.speed,facing:opts.facing});
+          if(window.__wakeMotionRecords.length>600)window.__wakeMotionRecords.shift();
+        }
+        return original.draw(id,x,y,opts);
+      }};
+    });
     await page.keyboard.press('Enter');
-    await throughLyra(page);await throughCore(page);
+    await throughLyra(page,{checkMotion:true});await throughCore(page);
     const final=await snapshot(page);
     assert.deepStrictEqual(errors,[]);
     const text=await page.evaluate(()=>[...window.__wakeCanvasText]);
     assert(text.includes('ARROWS / WASD   MOVE     E   INSPECT'),'exploration controls missing from actual canvas');
     assert(text.some(t=>t==='FIND LYRA'),'actual exploration objective missing');
-    console.log(JSON.stringify({result:'PASS',route:'physical keyboard from New Game through Core and world handoff',source:process.env.AETHERWAKE_SOURCE_SHA||'local candidate',final,pageErrors:errors}));
+    const motion=await page.evaluate(()=>({walking:window.__wakeMotionRecords.some(p=>p.speed>0),idle:window.__wakeMotionRecords.some(p=>p.speed===0),left:window.__wakeMotionRecords.some(p=>p.facing==='left')}));
+    assert(motion.walking&&motion.idle&&motion.left,'existing rendered fallback must receive walk, settled idle and left-facing states');
+    console.log(JSON.stringify({result:'PASS',route:'physical keyboard from New Game through Core and world handoff',source:process.env.AETHERWAKE_SOURCE_SHA||'local candidate',motion,final,pageErrors:errors}));
   } finally {if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

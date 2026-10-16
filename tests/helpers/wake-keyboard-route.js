@@ -35,10 +35,22 @@ async function visit(page,x,y) {
   }
   throw Error('Keyboard route failed to reach '+x+','+y);
 }
-async function reachLyra(page) {
+async function reachLyra(page,{checkMotion=false}={}) {
   await page.waitForFunction(()=>window.AetherFirstWakeOpening.canAdvancePresentation(window._firstWakeOpeningState),undefined,{timeout:10000});
   for(let i=0;i<5;i++)await page.keyboard.press('Enter');
-  await narrative(page,'lyra_family');await visit(page,5,2);await page.keyboard.press('Enter');
+  await narrative(page,'lyra_family');
+  if(checkMotion) {
+    await page.keyboard.press('ArrowLeft');
+    await page.waitForFunction(()=>window.__wakeMotionRecords.some(p=>p.speed>0&&p.facing==='left'));
+    await page.waitForFunction(()=>{
+      const records=window.__wakeMotionRecords,last=records[records.length-1];
+      return !window._firstWakeOpeningState.wakeExploration.moving&&last&&last.speed===0&&last.facing==='left';
+    });
+    await page.keyboard.press('ArrowUp');
+    assert.strictEqual((await snapshot(page)).exploration.facing,'left','vertical input must retain supported lateral facing');
+    await page.waitForFunction(()=>{const records=window.__wakeMotionRecords,p=records[records.length-1];return p&&p.speed>0&&p.facing==='left';});
+  }
+  await visit(page,5,2);await page.keyboard.press('Enter');
   await narrative(page,'lyra_join');
   assert.deepStrictEqual((await snapshot(page)).party,['ender'],'Lyra joined before acknowledgement');
 }
@@ -46,7 +58,7 @@ async function acknowledgeLyra(page) {
   await visit(page,7,3);await page.keyboard.press('Enter');
   assert.deepStrictEqual((await snapshot(page)).party,['ender','lyra']);
 }
-async function throughLyra(page) {await reachLyra(page);await acknowledgeLyra(page);}
+async function throughLyra(page,options) {await reachLyra(page,options);await acknowledgeLyra(page);}
 async function throughCore(page) {
   await narrative(page,'ionia_practical');await visit(page,12,2);await page.keyboard.press('Enter');
   await narrative(page,'core_walk');await visit(page,13,5);await page.keyboard.press('Enter');
