@@ -141,6 +141,9 @@ jobs:
       - name: Verify live opening presentation clock
         run: node tests/opening-readability.test.js
 
+      - name: Verify First Wake visual stage and dock-motion contracts
+        run: node tests/first-wake-visual-stage.test.js
+
       - name: Verify desktop packaging title and manifest contract
         run: npm run test:desktop-package
 
