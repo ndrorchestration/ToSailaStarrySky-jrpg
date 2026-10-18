@@ -24,6 +24,16 @@ Across all current provisional idle/walk frames, the alpha-bounds height is stab
 
 The opaque-art calculation is materially more representative than whole-cell bounds. It **narrows the previously hypothesized discrepancy**: provisional art may be reasonably close to the 3:1 adult-height target rather than mismatched by the earlier cell-ratio figures. It remains a source/image-alpha estimate and not an exact rendered pixel assessment. Alpha outlines may include isolated decorations; actual ship body bounds, backdrop occlusion, projection, and movement states still require joint scene-level measurement. Do **not** resize characters or craft based on 1.933:1 cell comparison.
 
+## Docked hull and rig primitive geometry cross-check
+
+Follow-up inspection of the actual `drawPixelHeroShip` hull rectangles in `modules/dragonfly-visual.js` finds a distinct body silhouette from local x = -62 (tail tip) to x = +63 (pointed nose), **125 native pixels**; the nominal `runtimeBodyLengthPx=126` constant is within 1 pixel of this primitive-based span. At dock scale 1.62, the horizontal hull extent is therefore **202.5 logical px**, rather than the nominal 204.12.
+
+Using the same first-frame/all-animation alpha bounds above, source-geometry hull/body ratios are **202.5 / 74.8 = 2.707:1 for Ender** and **202.5 / 70.35 = 2.878:1 for Ionia**. These are internally consistent with the intended 3:1 adult-height reference at the level of visible sprite and hull authoring, but are **not** independent visual acceptance or verified real-world dimensions.
+
+For the dock-walk scene after the cinematic: Dragonfly anchor x = 0.72 ? 960 = 691.2 and y = 388 at scale 1.62. The body hull projects horizontally to approximately x = 590.76 .. 793.26. Its dock rig reaches local y = 33, i.e. logical y = 441.46; the visual boarding joint begins at y = 443 and connects to the seat around y = 457-459, so the vertical junction is nominally contiguous. Apparent overlap with wings or other props may still obscure it in the screenshot. The under-deck bridge remains a separate scene-level composition.
+
+**Audit interpretation:** No scale adjustment is justified solely by these measurements. More accurate on-screen contour/mask analysis should isolate hull from wings and rig, retain provenance for actual art paths loaded, and verify character-door and berth access in matched rendered frames. Do not mistake static primitive coordinate arithmetic for a human-reviewed pixel-visibility result.
+
 ## Before any scale correction
 
 1. Record actual opaque bounds (excluding shadow and wing membranes) for Ender, Ionia, and the Dragonfly hull in matched captured frames at the 960x640 logical canvas.
