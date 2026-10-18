@@ -11,6 +11,19 @@
 - The provisional sprite has 2x-nearest-neighbor art **inside** the 64x96 cell; transparent margins and actual opaque silhouette may make apparent height shorter. Therefore these ratios are drawable bounding-cell values, **not physical-height measurements** or a proven failure of the 3:1 canon.
 - The runtime `runtimeBodyLengthPx=126` also requires rendered-object measurements to establish alignment with visible hull pixels. Distinguish body from full wing span and platform/rig.
 
+## Direct provisional-alpha measurement (follow-up)
+
+Read actual first idle frames from `assets/characters/v1/ender/provisional-idle.png` and `assets/characters/v1/ionia/provisional-idle.png` (each 512x96 strip with 64x96 frame cells). Alpha-channel nonzero bounds in the first 64x96 frame:
+
+| Character | Opaque bounds (left, top, right, bottom) | Nonzero-alpha height | Applied dock scale | Estimated opaque height | Nominal ship body / opaque height |
+|---|---|---:|---:|---:|---:|
+| Ender | (19, 21, 53, 89) | 68 px | 2.20 * .5 = 1.10 | 74.8 logical px | 2.729:1 |
+| Ionia | (15, 25, 49, 92) | 67 px | 2.10 * .5 = 1.05 | 70.35 logical px | 2.901:1 |
+
+Across all current provisional idle/walk frames, the alpha-bounds height is stable: Ender idle 8/8 and walk 6/6 frames each span 68 pixels; Ionia idle 8/8 and walk 6/6 each span 67 pixels. This supports scale stability across those actions, not eventual art quality or gameplay acceptance.
+
+The opaque-art calculation is materially more representative than whole-cell bounds. It **narrows the previously hypothesized discrepancy**: provisional art may be reasonably close to the 3:1 adult-height target rather than mismatched by the earlier cell-ratio figures. It remains a source/image-alpha estimate and not an exact rendered pixel assessment. Alpha outlines may include isolated decorations; actual ship body bounds, backdrop occlusion, projection, and movement states still require joint scene-level measurement. Do **not** resize characters or craft based on 1.933:1 cell comparison.
+
 ## Before any scale correction
 
 1. Record actual opaque bounds (excluding shadow and wing membranes) for Ender, Ionia, and the Dragonfly hull in matched captured frames at the 960x640 logical canvas.
