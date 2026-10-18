@@ -311,6 +311,26 @@
       quad(88, 409, 743, 409, 724, 482, 72, 482);
       fill(90, 75, 56, 238);
       quad(88, 397, 743, 397, 724, 468, 72, 468);
+      // Under-deck braces make the suspended span read as built infrastructure,
+      // connecting the masonry approach to the Dragonfly service berth.
+      stroke(46, 44, 40, 225);
+      strokeWeight(7);
+      line(112, 467, 108, 524);
+      line(697, 467, 716, 526);
+      stroke(136, 107, 70, 200);
+      strokeWeight(3);
+      line(109, 518, 186, 470);
+      line(716, 518, 635, 468);
+      stroke(202, 165, 102, 205);
+      strokeWeight(3);
+      line(79, 398, 112, 398);
+      line(695, 398, 744, 398);
+      stroke(73, 65, 52, 200);
+      strokeWeight(1);
+      for (const x of [104, 699]) {
+        line(x - 6, 455, x + 6, 455);
+        line(x - 6, 462, x + 6, 462);
+      }
       stroke(168, 136, 88, 175);
       strokeWeight(2);
       line(88, 397, 743, 397);
