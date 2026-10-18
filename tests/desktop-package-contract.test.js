@@ -102,7 +102,7 @@ const localReleaseScript = fs.readFileSync(
   path.join(__dirname, '..', 'scripts', 'build-windows-release.ps1'),
   'utf8'
 );
-assert(readme.startsWith('# Aetherwake\n'),
+assert(/^# Aetherwake\r?\n/.test(readme),
   'README project heading must use the canonical subtitle-free game title');
 assert(readme.includes('Aetherwake-Setup.exe'),
   'README must advertise the standard installer');

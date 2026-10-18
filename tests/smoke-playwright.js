@@ -1,3 +1,4 @@
+const {reachLyra,acknowledgeLyra,throughCore}=require('./helpers/wake-keyboard-route');
 const { chromium } = require('playwright');
 const http = require('http');
 const fs = require('fs');
@@ -138,7 +139,7 @@ function createServer() {
       typeof window.AetherFirstWakeOpening.canAdvancePresentation === 'function' &&
       window.AetherFirstWakeOpening.canAdvancePresentation(window._firstWakeOpeningState)
     , undefined, { timeout: 5000 });
-    for (let i = 0; i < 6; i++) await page.keyboard.press('Enter');
+    await reachLyra(page);
     await page.waitForFunction(() =>
       window.gameState === 'opening' &&
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 6
@@ -154,7 +155,7 @@ function createServer() {
     assert(beforeLyraJoin.activeIds.join('|') === 'ender',
       'Lyra joined before the authored Lyra join beat');
 
-    await page.keyboard.press('Enter');
+    await acknowledgeLyra(page);
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 7 &&
       window.ACTIVE_PARTY.length === 2
@@ -175,9 +176,7 @@ function createServer() {
     assert(afterLyraJoin.ioniaActive === false,
       'Ionia joined before the authored departure decision');
 
-    await page.keyboard.press('Enter');
-    await page.keyboard.press('Enter');
-    await page.keyboard.press('Enter');
+    await throughCore(page);
     await page.waitForFunction(() =>
       window.gameState === 'world' &&
       window._world &&

@@ -126,6 +126,21 @@ jobs:
       - name: Verify First Wake opening runtime
         run: npm run test:first-wake-opening
 
+      - name: Verify Wake controller and input gates
+        run: node tests/wake-exploration-integration.test.js
+
+      - name: Verify Wake inspection cue floor projection
+        run: node tests/wake-inspection-cue.test.js
+
+      - name: Verify Wake walk and idle motion state
+        run: node tests/wake-motion-state.test.js
+
+      - name: Verify complete Wake authored narrative pages
+        run: node tests/wake-narrative-pages.test.js
+
+      - name: Verify Wake replay party and story reset
+        run: node tests/wake-opening-replay.test.js
+
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
@@ -152,8 +167,27 @@ jobs:
           npm run stage:desktop
           node -e "const assert=require('node:assert/strict');const root=require('./package.json');const staged=require('./.desktop-runtime/package.json');assert.equal(staged.window.title,root.window.title);assert.equal(staged.window.title,'Aetherwake');assert.equal(staged.main,'www/index-embedded.html');console.log('STAGED_DESKTOP_TITLE=PASS');"
 
+      - name: Verify authored narrative fallback
+        run: node tests/first-wake-narrative-fallback.test.js
+
+      - name: Verify feedback measured text bounds
+        run: node tests/first-wake-hud-text-bounds.test.js
+
+      - name: Verify dock bridge and dialogue stature
+        run: node tests/first-wake-dock-bridge-contract.test.js && node tests/chapter1-dialogue-scale-consistency.test.js
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+
+      - name: Verify authored narrative on Chromium canvas
+        env:
+          AETHERWAKE_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/first-wake-narrative-fallback-playwright.js
+
+      - name: Verify Wake physical keyboard route
+        env:
+          AETHERWAKE_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node tests/wake-exploration-playwright.js
 
       - name: Run smoke test
         run: npm run test:smoke

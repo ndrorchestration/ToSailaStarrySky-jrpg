@@ -967,7 +967,7 @@
       tileY: Number.isFinite(player.tileY) ? player.tileY : Math.round((player.py || 0) / CELL),
       name: dialogueActive ? '' : 'Ender',
       frame: playerWalkFrame(player, now),
-      scale: dialogueActive ? 1.80 : 1.95,
+      scale: 1.95, // Preserve current exploration stature during dialogue.
       questMarker: false,
     });
     for (const npc of npcs) {
@@ -978,7 +978,7 @@
         tileY: npc.tileY,
         name: dialogueActive ? '' : (npc.id === 'elder_farmer' ? 'Ionia' : ''),
         frame: 0,
-        scale: dialogueActive && npc.id === activeDialogueNpcId ? 1.75 : 1.88,
+        scale: 1.88, // Preserve current exploration stature during dialogue.
         questMarker: Boolean(npc.id === 'elder_farmer' && npc.flags && npc.flags.questMarker && !npc.flags.met),
       });
     }

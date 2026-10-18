@@ -113,12 +113,12 @@ assert(hudStart > -1 && hudEnd > hudStart, 'exploration HUD segment missing');
 const hud = source.slice(hudStart, hudEnd);
 // Execute the bounded helper independently with proportional glyph widths.
 // This is an algorithmic regression, not a screenshot/visual-acceptance substitute.
-const fitStart = hud.indexOf('function fitHudText(value, maxWidth)');
-const fitEnd = hud.indexOf('    const objectiveW = 320;', fitStart);
+const fitStart = source.indexOf('function fitHudText(value, maxWidth)');
+const fitEnd = source.indexOf('    const objectiveW = 320;', fitStart);
 assert(fitStart >= 0 && fitEnd > fitStart, 'measured text helper missing');
 const measuredGlyph = ch => ch === 'W' ? 12 : ch === 'i' ? 3 : ch === '…' ? 7 : 6;
 const measureText = value => [...String(value)].reduce((sum, ch) => sum + measuredGlyph(ch), 0);
-const fitHudText = vm.runInNewContext('(' + hud.slice(fitStart, fitEnd).trim() + ')', {
+const fitHudText = vm.runInNewContext('(' + source.slice(fitStart, fitEnd).trim() + ')', {
   textWidth: measureText
 });
 assert.strictEqual(fitHudText('Wiii', 22), 'Wiii', 'text exactly at the limit must remain intact');
