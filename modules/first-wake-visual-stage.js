@@ -331,6 +331,21 @@
         line(x - 6, 455, x + 6, 455);
         line(x - 6, 462, x + 6, 462);
       }
+      // Narrow bearing seats make both ends of the span visibly supported.
+      // They remain within the existing bridge footprint, not the sky plate.
+      noStroke();
+      fill(64, 67, 61, 242);
+      quad(73, 462, 116, 462, 120, 481, 69, 481);
+      fill(149, 135, 104, 228);
+      quad(71, 459, 118, 459, 116, 466, 73, 466);
+      fill(64, 61, 52, 225);
+      quad(676, 460, 726, 460, 733, 479, 672, 479);
+      fill(171, 143, 96, 220);
+      quad(674, 457, 728, 457, 726, 464, 676, 464);
+      stroke(191, 167, 120, 145);
+      strokeWeight(1);
+      line(78, 471, 109, 471);
+      line(681, 470, 722, 470);
       stroke(168, 136, 88, 175);
       strokeWeight(2);
       line(88, 397, 743, 397);
