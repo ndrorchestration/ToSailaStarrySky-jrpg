@@ -948,7 +948,8 @@
       tileY: Number.isFinite(player.tileY) ? player.tileY : Math.round((player.py || 0) / CELL),
       name: dialogueActive ? '' : 'Ender',
       frame: playerWalkFrame(player, now),
-      scale: dialogueActive ? 1.80 : 2.55,
+      // Dialogue can reposition the actor, but must not change physical stature.
+      scale: 2.55,
       questMarker: false,
     });
     for (const npc of npcs) {
@@ -959,7 +960,8 @@
         tileY: npc.tileY,
         name: dialogueActive ? '' : (npc.id === 'elder_farmer' ? 'Ionia' : ''),
         frame: 0,
-        scale: dialogueActive && npc.id === activeDialogueNpcId ? 1.75 : 2.45,
+        // NPC stature remains stable between exploration and dialogue.
+        scale: 2.45,
         questMarker: Boolean(npc.id === 'elder_farmer' && npc.flags && npc.flags.questMarker && !npc.flags.met),
       });
     }
