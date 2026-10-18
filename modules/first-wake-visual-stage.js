@@ -302,6 +302,29 @@
     quad(width / 2 - 57, 392, width / 2 - 53, 392, width / 2 - 196, height, width / 2 - 203, height);
     quad(width / 2 + 53, 392, width / 2 + 57, 392, width / 2 + 203, height, width / 2 + 196, height);
 
+    // Only the interactive dock walk needs a physical connection between the
+    // near-side masonry landing and the ship berth. Keep the original faint
+    // traversal lane and the painted backdrop; do not reconstruct a full board.
+    if (paintedBackdrop && scene.id === 'dock_walk') {
+      noStroke();
+      fill(34, 37, 36, 214);
+      quad(88, 409, 743, 409, 724, 482, 72, 482);
+      fill(90, 75, 56, 238);
+      quad(88, 397, 743, 397, 724, 468, 72, 468);
+      stroke(168, 136, 88, 175);
+      strokeWeight(2);
+      line(88, 397, 743, 397);
+      line(72, 468, 724, 468);
+      stroke(54, 51, 42, 175);
+      strokeWeight(2);
+      for (let i = 1; i < 5; i++) {
+        const y = 397 + i * 13;
+        const inset = i * 3;
+        line(88 - inset, y, 743 - inset, y);
+      }
+      noStroke();
+    }
+
     // Perspective cues pull the eye toward the ship, but stay sparse on painted art.
     stroke(111, 125, 127, paintedBackdrop ? 26 : 85);
     strokeWeight(1);
