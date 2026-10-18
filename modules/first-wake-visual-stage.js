@@ -342,6 +342,15 @@
       quad(676, 460, 726, 460, 733, 479, 672, 479);
       fill(171, 143, 96, 220);
       quad(674, 457, 728, 457, 726, 464, 676, 464);
+      // The docked Dragonfly's lower rig ends near y=440 at its fixed dock
+      // anchor/scale. A narrow boarding joint spans to the berth seat below.
+      fill(75, 68, 57, 232);
+      quad(679, 443, 718, 443, 727, 459, 674, 459);
+      stroke(194, 158, 103, 195);
+      strokeWeight(2);
+      line(681, 444, 715, 444);
+      line(674, 458, 727, 458);
+      noStroke();
       stroke(191, 167, 120, 145);
       strokeWeight(1);
       line(78, 471, 109, 471);

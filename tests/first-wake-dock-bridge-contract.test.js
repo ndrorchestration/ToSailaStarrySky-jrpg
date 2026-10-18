@@ -13,6 +13,8 @@ assert(section.includes('line(109, 518, 186, 470)') && section.includes('line(71
 assert(section.includes('quad(73, 462, 116, 462, 120, 481, 69, 481)') &&
   section.includes('quad(676, 460, 726, 460, 733, 479, 672, 479)'),
   'bridge ends must retain localized masonry and berth bearing seats');
+assert(section.includes('quad(679, 443, 718, 443, 727, 459, 674, 459)'),
+  'dock berth must retain a narrow rig-to-bearing-seat boarding joint');
 assert(!section.includes('width, height'), 'bridge must not become a full-screen overlay');
 assert(source.includes('paintedBackdrop ? 52 : 165'), 'preserve visually subordinate original traversal lane');
 console.log('First Wake dock bridge scope and structural contract: PASS');
