@@ -92,7 +92,7 @@
     "capture:visual-evidence:candidate-field": "node scripts/capture-candidate-field-review.js",
     "review:candidate-field": "node scripts/serve-candidate-field-review.js",
     "test:dragonfly-visual": "node tests/dragonfly-visual-authority.test.js",
-    "test:first-wake-visual": "node tests/first-wake-visual-stage.test.js",
+    "test:first-wake-visual": "node tests/first-wake-visual-stage.test.js && node tests/first-wake-dock-bridge-contract.test.js",
     "test:first-minute-jrpg": "node tests/first-minute-jrpg-contract.test.js",
     "test:world-hud-jrpg": "node tests/world-hud-jrpg-contract.test.js",
     "test:combat-ui-jrpg": "node tests/combat-ui-jrpg-contract.test.js",
