@@ -75,6 +75,7 @@
     "test:overlay-contract": "node tests/runtime-overlay-contract.test.js",
     "test:input-runtime": "node tests/input-runtime-contract.test.js",
     "test:combat-runtime": "node tests/combat-runtime-contract.test.js",
+    "test:turn-based-arena": "node tests/turn-based-arena-contract.test.js",
     "stage:desktop": "node scripts/stage-memories-desktop.js",
     "test:cinematics": "node tests/cinematic-manifest-contract.test.js",
     "test:pixel-world-ambient": "node tests/pixel-world-ambient-contract.test.js",
