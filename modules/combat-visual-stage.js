@@ -173,6 +173,39 @@
         line(0, y, w, y);
       }
       noStroke();
+
+      // Layered skyport terraces and distant vegetation lend the ground
+      // encounter a distinct location, while the combatants keep a clean
+      // high-contrast fighting plane in the middle of the screen.
+      fill(93, 111, 104, 118);
+      rect(0, s.horizonY - 29, Math.round(w * 0.35), 31);
+      rect(Math.round(w * 0.70), s.horizonY - 41, Math.round(w * 0.30), 43);
+      fill(124, 146, 118, 125);
+      rect(0, s.horizonY - 32, Math.round(w * 0.35), 6);
+      rect(Math.round(w * 0.70), s.horizonY - 44, Math.round(w * 0.30), 6);
+      fill(41, 69, 66, 155);
+      for (let i = 0; i < 9; i++) {
+        const xx = (i * 113 + 21) % w;
+        const tall = 16 + (i % 3) * 9;
+        rect(xx, s.horizonY - 18 - tall, 6, tall + 18);
+        rect(xx - 13, s.horizonY - tall - 12, 32, 5);
+        rect(xx - 8, s.horizonY - tall - 18, 20, 6);
+      }
+      // Ground contact and luminous aether seams. The seams taper toward the
+      // horizon; the player and enemy remain visually unobstructed.
+      fill(126, 111, 84, 92);
+      rect(0, s.horizonY + 5, w, 3);
+      fill(63, 115, 109, 82);
+      for (let row = 0; row < 5; row++) {
+        const yy = Math.round(s.horizonY + 42 + row * row * 13);
+        const segment = 10 + row * 8;
+        for (let col = 0; col < 7; col++) {
+          const xx = Math.round((col + 0.5) * w / 7 + (row % 2) * 17);
+          rect(xx, yy, segment, 2);
+        }
+      }
+      fill(147, 195, 164, 55);
+      rect(0, Math.round(h * 0.82), w, 2);
     }
 
     // Sparse stars/aether motes remain pixel blocks.
@@ -324,16 +357,59 @@
         frame: spriteFrame,
       });
     } else if (enemy.type === 'windShear') {
-      // Pixel pressure ribbons for the non-humanoid elemental.
-      fill(124, 200, 232, 120);
-      for (let i = 0; i < 5; i++) {
-        const wobble = Math.round(Math.sin(now * 0.006 + i) * 7);
-        rect(x - 34 + i * 10 + wobble, y - 28 + i * 10, 42 - i * 4, 4);
+      // Original layered, billowing elemental. A larger silhouette reads at
+      // game resolution and has a clear core/limb hierarchy rather than bars.
+      const sway = Math.round(Math.sin(now * 0.003) * 7);
+      const veil = Math.round(Math.sin(now * 0.005) * 5);
+      fill(44, 111, 163, 68);
+      rect(x - 49 + sway, y - 69, 98, 100);
+      fill(99, 184, 216, 130);
+      rect(x - 36 + sway, y - 55, 72, 67);
+      rect(x - 48 + veil, y - 11, 96, 14);
+      fill(183, 229, 241, 180);
+      rect(x - 23 + sway, y - 49, 46, 55);
+      rect(x - 33 + veil, y - 25, 66, 15);
+      fill(31, 71, 110, 215);
+      rect(x - 17 + sway, y - 34, 34, 26);
+      fill(240, 250, 239, 232);
+      rect(x - 12 + sway, y - 26, 7, 4);
+      rect(x + 5 + sway, y - 26, 7, 4);
+      fill(110, 223, 255, 175);
+      for (let i = 0; i < 6; i++) {
+        const displacement = Math.round(Math.sin(now * 0.005 + i * 1.2) * 8);
+        rect(x - 52 + i * 18 + displacement, y + 4 + i % 3 * 9, 12, 19);
       }
-      fill(205, 239, 241, 160);
-      rect(x - 8, y - 8, 16, 16);
+    } else if (enemy.type === 'aetherLeak') {
+      // Original aether wraith: hooded figure, drifting veil, visible face
+      // and hands. All dimensions are authored at native battle-stage scale.
+      const bob = Math.round(Math.sin(now * 0.004) * 4);
+      const wave = Math.round(Math.sin(now * 0.006) * 6);
+      fill(23, 113, 112, 70);
+      rect(x - 46 + wave, y - 61 + bob, 92, 98);
+      fill(35, 166, 151, 107);
+      rect(x - 35 + wave, y - 49 + bob, 70, 81);
+      fill(30, 54, 87, 226);
+      rect(x - 24, y - 56 + bob, 48, 66);
+      rect(x - 33, y - 30 + bob, 66, 31);
+      fill(58, 121, 134, 218);
+      rect(x - 18, y - 64 + bob, 36, 17);
+      rect(x - 27, y - 47 + bob, 54, 11);
+      fill(10, 24, 47, 245);
+      rect(x - 16, y - 45 + bob, 32, 27);
+      fill(60, 245, 200, 230);
+      rect(x - 13, y - 34 + bob, 10, 5);
+      rect(x + 4, y - 34 + bob, 10, 5);
+      fill(140, 236, 209, 196);
+      rect(x - 43 + wave, y - 21 + bob, 14, 15);
+      rect(x + 29 + wave, y - 21 + bob, 14, 15);
+      fill(31, 73, 92, 196);
+      rect(x - 27 + wave, y + 3 + bob, 20, 27);
+      rect(x + 6 - wave, y + 3 + bob, 21, 27);
+      fill(52, 222, 177, 130);
+      rect(x - 18 + wave, y + 23 + bob, 14, 11);
+      rect(x + 5 - wave, y + 24 + bob, 13, 11);
     } else {
-      // Aether-wraith / compatibility fallback: intentionally block-authored.
+      // Unrecognized enemies retain a bounded, distinguishable fallback.
       fill(42, 255, 181, 55);
       rect(x - 27, y - 31, 54, 57);
       fill(47, 97, 127, 170);

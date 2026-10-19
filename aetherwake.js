@@ -294,6 +294,7 @@ function buildSavePayload() {
       dayTime: worldSnapshot.runtime.dayTime,
       skyLayerVisible: worldSnapshot.runtime.skyLayerVisible,
       playtimeMs: currentPlaytimeMs(),
+      ...(randomEncounterReview ? { randomEncounterSteps: randomEncounterReview.getSteps() } : {}),
     },
     world: worldSnapshot.world,
     quest: worldSnapshot.quest,
@@ -409,6 +410,8 @@ function captureLiveRuntimeForLoadRollback() {
       previewEncounterFinished,
       previewEndAt,
       activeRouteAssistId,
+      randomEncounterSteps: randomEncounterReview ? randomEncounterReview.getSteps() : null,
+      randomEncounterPending,
     },
   };
 }
@@ -462,6 +465,10 @@ function restoreLiveRuntimeAfterFailedLoad(snapshot) {
   gameState = snapshot.runtime.gameState;
   window.gameState = gameState;
   prevState = snapshot.runtime.prevState;
+  if (randomEncounterReview) {
+    randomEncounterReview.restoreSteps(snapshot.runtime.randomEncounterSteps);
+  }
+  randomEncounterPending = Boolean(snapshot.runtime.randomEncounterPending);
 
   runLoadTestHook('rollback-complete', snapshot);
   return true;
@@ -506,6 +513,10 @@ function applySaveEnvelope(envelope) {
     gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
     window.gameState = gameState;
     prevState = null;
+    if (randomEncounterReview) {
+      randomEncounterReview.restoreSteps(payload.runtime.randomEncounterSteps ?? 0);
+    }
+    randomEncounterPending = false;
     runLoadTestHook('before-commit', { envelope });
 
     window._lastLoadRollback = null;
@@ -2412,6 +2423,24 @@ function finishCombat() {
     }
   }
 
+  // Optional random encounters may end in a defeat. Keep the return playable
+  // instead of leaving the player at the 1-Vit clamp, without touching
+  // mandatory hazard resolution, victory rewards or turn formulas.
+  if (randomEncounterPending) {
+    randomEncounterPending = false;
+    if (combatState && combatState.encounterOver &&
+        combatState.enemy && combatState.enemy.hp > 0) {
+      const regroupVit = Math.max(1, Math.ceil((world.player.maxVit || 13) * 0.5));
+      world.player.vit = Math.max(world.player.vit, regroupVit);
+      world.player.staffCharges = world.player.maxStaffCharges || 2;
+      if (window.ROSTER && window.ROSTER[0] === world.player) {
+        window.ROSTER[0].vit = world.player.vit;
+        window.ROSTER[0].staffCharges = world.player.staffCharges;
+      }
+      showToast('RETREAT // REGROUP AND CONTINUE', C.rust, 1500);
+    }
+  }
+
   gameState = combatReturnState || STATE.WORLD;
   window.gameState = gameState;
   prevState = null;
@@ -4305,6 +4334,14 @@ function isWalkableTile(tx, ty) {
   return inBounds(tx, ty) && groundLayer[ty][tx] !== TILE_TYPES.GROUND_SOLID;
 }
 
+// Optional encounter-development experiment; story hazards always take precedence.
+let randomEncounterPending = false;
+const randomEncounterReview = typeof window !== 'undefined' &&
+  /(?:\?|&)randomEncounters=1(?:&|$)/.test(String(window.location && window.location.search || '')) &&
+  window.AetherRandomEncounterDirector
+    ? window.AetherRandomEncounterDirector.create()
+    : null;
+
 function movePlayer(dx, dy) {
   if (gameOver) return;
   const nx = player.tileX + dx;
@@ -4314,8 +4351,16 @@ function movePlayer(dx, dy) {
   player.tileY = ny;
   player.px = player.tileX * 16;
   player.py = player.tileY * 16;
-  checkHazardProximity(nx, ny);
+  const scriptedHazardTriggered = checkHazardProximity(nx, ny);
   checkLoreTile(nx, ny);
+  // Random battles are strictly opt-in while the authored Chapter 1 route is
+  // being verified. Never roll on blocked movement or supersede story hazards.
+  if (randomEncounterReview && !scriptedHazardTriggered &&
+      gameState === STATE.WORLD && quest.state === QUEST_STATES.CROSSING &&
+      pendingHazardIndex === null && randomEncounterReview.onWalk()) {
+    randomEncounterPending = true;
+    startCombat(window.AetherRandomEncounterDirector.enemyForTile(nx, ny), STATE.WORLD);
+  }
 }
 
 function checkLoreTile(tx, ty) {
@@ -7334,16 +7379,19 @@ function AetherCombat(p, C) {
       changeResource(effectVocabulary.RESOURCE.ECHOES, echoReward);
       log('+' + echoReward + ' Echo' + (echoReward > 1 ? 's' : '') + '. The weave settles.');
       // XP reward based on enemy difficulty
-      let xpReward = 0;
-      const eName = state.enemy.name;
-      if (eName === 'Sky-Predator') xpReward = 15;
-      else if (eName === 'Corporate Salvager') xpReward = 12;
-      else if (eName === 'Harmonic Shear') xpReward = 20;
-      else if (eName === 'Aether Leak') xpReward = 18;
-      else if (eName === 'Engine Spirit') xpReward = 14;
-      else if (eName === 'Child Prophet') xpReward = 10;
-      else if (eName === 'Elder Farmer') xpReward = 22;
-      else xpReward = 10;
+      // Rewards bind to stable encounter types, never display names.
+      const enemyXP = Object.freeze({
+        skyPredator: 15,
+        corporateSalvager: 12,
+        windShear: 20,
+        aetherLeak: 18,
+        engine_spirit: 14,
+        child_prophet: 10,
+        elder_farmer: 22,
+      });
+      let xpReward = Object.prototype.hasOwnProperty.call(enemyXP, state.enemy.type)
+        ? enemyXP[state.enemy.type]
+        : 10;
       if (r.outcome === 'success' && action.type === 'attack') xpReward += 5;
       this.awardXP(xpReward);
       state._defeatTurn = millis();
@@ -9046,7 +9094,7 @@ function drawCombatPanel(combatState, layoutBox) {
 
   // Header
   textFont(FONT_UI);
-  textSize(8);
+  textSize(10);
   drawGlowText('COMMAND', px + 12, py + 8, PAL.TEAL, 8);
 
   // Enemy identity/HP live in the centered encounter rail, leaving this window
@@ -9093,14 +9141,14 @@ function drawCombatPanel(combatState, layoutBox) {
   const aX = px + 8;
   const aY = sY + 48;
   const aW = pw - 16;
-  const aH = 76;
+  const aH = 92;
   // Actions remain grouped by spacing and typography rather than another opaque card.
   noStroke();
   fill(42, 255, 181, 58);
   rect(aX + 4, aY, aW - 8, 1);
 
   textFont(FONT_UI);
-  textSize(8);
+  textSize(10);
   drawGlowText('ACTIONS', aX + 12, aY + 6, PAL.TEAL, 8);
 
   const actions = combatState.actions || [];
@@ -9108,7 +9156,7 @@ function drawCombatPanel(combatState, layoutBox) {
     combatState.eligibleActionIds || actions.map(action => action.id)
   );
   // Two-column 4-row command grid keeps all eight actions visible without a tall sidebar.
-  const actH = 14;
+  const actH = 18;
   const actStartY = aY + 19;
   const actionColW = Math.floor(aW / 2);
   actions.forEach((action, idx) => {
@@ -9126,17 +9174,17 @@ function drawCombatPanel(combatState, layoutBox) {
     ellipse(ax + 8, ay + 6, 8, 8);
     fill(PAL.NAVY);
     textFont(FONT_UI);
-    textSize(7);
+    textSize(8);
     textAlign(CENTER, CENTER);
     text(String(idx + 1), ax + 8, ay + 6);
     textFont(FONT_BODY);
-    textSize(8);
+    textSize(10);
     textAlign(LEFT, CENTER);
     const label = action.label || action.id;
     const compactLabel = label.split(/\s+[^A-Za-z0-9]+\s+/)[0].trim();
     fill(usable ? PAL.PARCHMENT : PAL.DIM);
     noStroke();
-    text(compactLabel.substring(0, 10), ax + 17, ay);
+    text(compactLabel.substring(0, 11), ax + 17, ay);
     const totalCost = window.AetherAbilityDefs.getActionResourceCost(action);
     if (unlocked && totalCost > 0) {
       textFont(FONT_UI);
@@ -9157,7 +9205,7 @@ function drawCombatPanel(combatState, layoutBox) {
     textAlign(LEFT, TOP);
     text('TRAIT', px + 14, abY + 4);
     textFont(FONT_BODY);
-    textSize(8);
+    textSize(10);
     fill(PAL.PARCHMENT);
     const abText = String(combatState.enemy.abilityDesc || '');
     text(abText.substring(0, 30), px + 48, abY + 3);

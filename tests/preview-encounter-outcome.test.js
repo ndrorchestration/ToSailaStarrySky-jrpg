@@ -27,6 +27,7 @@ function completeCombatReturn({ encounterOver, enemyHp, playerVit }) {
     world: { player: { vit: 8 } },
     window: {},
     pendingHazardIndex: null,
+    randomEncounterPending: false,
     gameState: 'combat',
     combatReturnState: 'world',
     prevState: 'combat',

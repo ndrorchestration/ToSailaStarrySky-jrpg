@@ -27,8 +27,8 @@
   function layoutCombat(w, h, hasLog) {
     const safe = TOKENS.safeMarginPx;
     // Combat uses a compact lower-left JRPG command window rather than a full-height sidebar.
-    const leftWidth = snap(Math.min(240, Math.max(224, w * 0.24)));
-    const leftHeight = snap(Math.min(h - safe * 2, 200));
+    const leftWidth = snap(Math.min(264, Math.max(232, w * 0.275)));
+    const leftHeight = snap(Math.min(h - safe * 2, 232));
     const logWidth = snap(Math.min(184, Math.max(160, w * 0.175)));
     const logHeight = snap(Math.min(184, Math.max(136, h * 0.22)));
     return Object.freeze({
