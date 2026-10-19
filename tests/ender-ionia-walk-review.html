@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aetherwake — Ender vs Ionia field review</title>
+<style>body{font:15px system-ui,sans-serif;background:#171d27;color:#e8e8df;margin:20px;max-width:1100px}
+h1{font-size:24px}p,small{color:#ccd0d3}.controls{display:flex;gap:15px;flex-wrap:wrap;margin:18px 0}
+label{display:flex;gap:7px;align-items:center}button,select,input{background:#293547;color:white;border:1px solid #8494a9;border-radius:5px;padding:5px}
+canvas{width:100%;max-width:960px;image-rendering:pixelated;background:#364756;border:1px solid #718399}
+.warning{border-left:3px solid #e1b56e;padding:8px 14px}a{color:#9dd8ec}
+</style></head><body>
+<h1>Aetherwake: Ender and Ionia — independent walk review</h1>
+<p class="warning"><strong>Unadmitted visual QA.</strong> This tool displays existing source-derived sprite candidates side-by-side, not finished character art or native gameplay. Judge actual Chapter 1 screenshots separately.</p>
+<div class="controls">
+<label>Ender source <select id="variant"><option value="nearest">Original nearest</option><option value="lanczos">Lanczos review</option><option value="bicubic">Bicubic review</option></select></label>
+<label>Frame scale <input id="scale" type="range" min="1" max="4" value="2"><output id="scaleLabel">2×</output></label>
+<label>Frames per second <input id="fps" type="range" min="3" max="16" value="10"><output id="fpsLabel">10</output></label>
+<button id="pause">Pause</button><button id="restart">Restart</button>
+</div>
+<canvas id="scene" width="960" height="430" aria-label="Animated Ender and Ionia sprite walk loops on flat diagnostic baseline"></canvas>
+<p><small>Preserves each sprite's 64×96 frame cell and nominal foot contact line. Transparent checker, test ground and dotted guides are diagnostic backgrounds, not world art. If any image fails to load, the page shows an explicit error.</small></p>
+<p id="state" aria-live="polite"></p>
+<script>
+'use strict';
+const root='../'; const imgEnder=new Image(); const imgIonia=new Image();
+let readyEnder=false,readyIonia=false,paused=false,frame=0,last=0,loadedVariant='';
+const ctx=document.querySelector('#scene').getContext('2d');ctx.imageSmoothingEnabled=false;
+function loadEnder(){const variant=document.querySelector('#variant').value;readyEnder=false;loadedVariant=variant;
+ imgEnder.onload=()=>{readyEnder=(imgEnder.naturalWidth===384&&imgEnder.naturalHeight===96);};
+ imgEnder.onerror=()=>{readyEnder=false;document.querySelector('#state').textContent='Ender image failed to load';};
+ imgEnder.src=variant==='nearest'?'../art-staging/field/ender/candidate/field-walk.png':
+ '../art-staging/field/ender/review-alt/field-walk-'+variant+'.png';}
+imgIonia.onload=()=>{readyIonia=(imgIonia.naturalWidth===384&&imgIonia.naturalHeight===96);};
+imgIonia.onerror=()=>{readyIonia=false;document.querySelector('#state').textContent='Ionia image failed to load';};
+imgIonia.src='../assets/characters/v1/ionia/provisional-walk.png';
+document.querySelector('#variant').addEventListener('change',loadEnder);
+document.querySelector('#scale').addEventListener('input',e=>document.querySelector('#scaleLabel').textContent=e.target.value+'×');
+document.querySelector('#fps').addEventListener('input',e=>document.querySelector('#fpsLabel').textContent=e.target.value);
+document.querySelector('#pause').addEventListener('click',()=>{paused=!paused;document.querySelector('#pause').textContent=paused?'Play':'Pause';});
+document.querySelector('#restart').addEventListener('click',()=>{frame=0;last=0;});
+function render(t){const scale=Number(document.querySelector('#scale').value);
+ if(!paused && (t-last)>=1000/Number(document.querySelector('#fps').value)){frame=(frame+1)%6;last=t;}
+ ctx.clearRect(0,0,960,430);ctx.fillStyle='#354858';ctx.fillRect(0,0,960,430);
+ for(let y=0;y<430;y+=32)for(let x=0;x<960;x+=32){ctx.fillStyle=(x/32+y/32)%2?'#3c5062':'#354858';ctx.fillRect(x,y,32,32);}
+ const feet=354, imageSize=96*scale, width=64*scale;
+ ctx.fillStyle='#a0bfac';ctx.fillRect(0,feet,960,3);
+ ctx.font='18px system-ui';ctx.fillStyle='#ffffff';ctx.fillText('Ender — '+loadedVariant,110,45);ctx.fillText('Ionia — provisional',605,45);
+ const spots=[240,730]; [imgEnder,imgIonia].forEach((im,i)=>{if((i===0?readyEnder:readyIonia)){ctx.drawImage(im,frame*64,0,64,96,spots[i]-width/2,feet-imageSize,width,imageSize);}});
+ ctx.font='14px system-ui';ctx.fillStyle='#d5d9dd';ctx.fillText('Frame '+(frame+1)+'/6',440,400);
+ requestAnimationFrame(render);
+}
+loadEnder();requestAnimationFrame(render);
+</script></body></html>

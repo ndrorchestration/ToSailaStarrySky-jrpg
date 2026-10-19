@@ -1,0 +1,678 @@
+{
+  "status": "REVIEW_ONLY_NOT_ADMITTED",
+  "basePr262": "ff6ae22eadb3aa373a47febdf4cfc57815f2657b",
+  "algorithms": {},
+  "actions": {
+    "idle": {
+      "originalSha256": "1271c73e8f2b3071051268d45f91129077e51a9027d5544e8cda6f3b55c25032",
+      "variants": {
+        "lanczos": {
+          "filename": "field-idle-lanczos.png",
+          "sha256": "e46d3806aa72bdb1d9a5df06b366079874438357c75201070ae5a5d6b28663f9",
+          "bytes": 34426,
+          "frames": [
+            {
+              "frame": 1,
+              "opaqueBounds": [
+                16,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 2,
+              "opaqueBounds": [
+                16,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 3,
+              "opaqueBounds": [
+                16,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 4,
+              "opaqueBounds": [
+                15,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 5,
+              "opaqueBounds": [
+                15,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 6,
+              "opaqueBounds": [
+                15,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 7,
+              "opaqueBounds": [
+                15,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 8,
+              "opaqueBounds": [
+                15,
+                27,
+                48,
+                94
+              ]
+            }
+          ]
+        },
+        "bicubic": {
+          "filename": "field-idle-bicubic.png",
+          "sha256": "fa0ff8b73851b658367ccb8d47e9a64431aedb88fba6a15aed7536f5bd92be67",
+          "bytes": 34021,
+          "frames": [
+            {
+              "frame": 1,
+              "opaqueBounds": [
+                16,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 2,
+              "opaqueBounds": [
+                16,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 3,
+              "opaqueBounds": [
+                16,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 4,
+              "opaqueBounds": [
+                15,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 5,
+              "opaqueBounds": [
+                15,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 6,
+              "opaqueBounds": [
+                15,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 7,
+              "opaqueBounds": [
+                15,
+                27,
+                48,
+                94
+              ]
+            },
+            {
+              "frame": 8,
+              "opaqueBounds": [
+                15,
+                27,
+                48,
+                94
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "walk": {
+      "originalSha256": "fecb31df66b59266d2428b151cfb988ba15237c5387c8659c2f9d92ab7ef776c",
+      "variants": {
+        "lanczos": {
+          "filename": "field-walk-lanczos.png",
+          "sha256": "e16dbde9c93b9a6b8d3fa53a4e3f1a01c1a1cd10fd9cf4c9327f42733ba4792a",
+          "bytes": 23427,
+          "frames": [
+            {
+              "frame": 1,
+              "opaqueBounds": [
+                11,
+                25,
+                53,
+                94
+              ]
+            },
+            {
+              "frame": 2,
+              "opaqueBounds": [
+                15,
+                25,
+                49,
+                94
+              ]
+            },
+            {
+              "frame": 3,
+              "opaqueBounds": [
+                12,
+                25,
+                52,
+                94
+              ]
+            },
+            {
+              "frame": 4,
+              "opaqueBounds": [
+                11,
+                26,
+                52,
+                94
+              ]
+            },
+            {
+              "frame": 5,
+              "opaqueBounds": [
+                14,
+                26,
+                50,
+                94
+              ]
+            },
+            {
+              "frame": 6,
+              "opaqueBounds": [
+                12,
+                26,
+                51,
+                94
+              ]
+            }
+          ]
+        },
+        "bicubic": {
+          "filename": "field-walk-bicubic.png",
+          "sha256": "6a71fae7a6ef4d349ab20a5617de103afc26e00070b884c8f9dbc94e2d72f058",
+          "bytes": 23071,
+          "frames": [
+            {
+              "frame": 1,
+              "opaqueBounds": [
+                11,
+                25,
+                53,
+                94
+              ]
+            },
+            {
+              "frame": 2,
+              "opaqueBounds": [
+                15,
+                25,
+                49,
+                94
+              ]
+            },
+            {
+              "frame": 3,
+              "opaqueBounds": [
+                12,
+                25,
+                52,
+                94
+              ]
+            },
+            {
+              "frame": 4,
+              "opaqueBounds": [
+                11,
+                26,
+                52,
+                94
+              ]
+            },
+            {
+              "frame": 5,
+              "opaqueBounds": [
+                14,
+                26,
+                50,
+                94
+              ]
+            },
+            {
+              "frame": 6,
+              "opaqueBounds": [
+                12,
+                26,
+                51,
+                94
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "talk": {
+      "originalSha256": "75c78ea603c02fb2cec582b8767475407b4a6dede75fbae3d9bc769d195e76be",
+      "variants": {
+        "lanczos": {
+          "filename": "field-talk-lanczos.png",
+          "sha256": "1121a13ca128327c5fcf2462eb4a849383f8c153b9ae2cab31fa769dcdc574cb",
+          "bytes": 18520,
+          "frames": [
+            {
+              "frame": 1,
+              "opaqueBounds": [
+                15,
+                25,
+                49,
+                94
+              ]
+            },
+            {
+              "frame": 2,
+              "opaqueBounds": [
+                12,
+                25,
+                51,
+                94
+              ]
+            },
+            {
+              "frame": 3,
+              "opaqueBounds": [
+                13,
+                25,
+                50,
+                94
+              ]
+            },
+            {
+              "frame": 4,
+              "opaqueBounds": [
+                15,
+                26,
+                49,
+                94
+              ]
+            }
+          ]
+        },
+        "bicubic": {
+          "filename": "field-talk-bicubic.png",
+          "sha256": "544e6a0405d19d3b6a77fa26a29b162cb8485b04048229edf376b1daa7a30337",
+          "bytes": 18429,
+          "frames": [
+            {
+              "frame": 1,
+              "opaqueBounds": [
+                15,
+                25,
+                49,
+                94
+              ]
+            },
+            {
+              "frame": 2,
+              "opaqueBounds": [
+                12,
+                25,
+                51,
+                94
+              ]
+            },
+            {
+              "frame": 3,
+              "opaqueBounds": [
+                13,
+                25,
+                50,
+                94
+              ]
+            },
+            {
+              "frame": 4,
+              "opaqueBounds": [
+                15,
+                26,
+                49,
+                94
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "focus": {
+      "originalSha256": "522bafb8365c9085700f00b69c314080a9590864c9a629f379be149e9fd08f38",
+      "variants": {
+        "lanczos": {
+          "filename": "field-focus-lanczos.png",
+          "sha256": "8acc7bb0a5e98a94f831f68dfdc5baef54632345af0eeb0d73e2eb4a3c60334c",
+          "bytes": 28105,
+          "frames": [
+            {
+              "frame": 1,
+              "opaqueBounds": [
+                15,
+                25,
+                49,
+                94
+              ]
+            },
+            {
+              "frame": 2,
+              "opaqueBounds": [
+                15,
+                25,
+                49,
+                94
+              ]
+            },
+            {
+              "frame": 3,
+              "opaqueBounds": [
+                14,
+                25,
+                50,
+                94
+              ]
+            },
+            {
+              "frame": 4,
+              "opaqueBounds": [
+                13,
+                26,
+                50,
+                94
+              ]
+            },
+            {
+              "frame": 5,
+              "opaqueBounds": [
+                14,
+                26,
+                50,
+                94
+              ]
+            },
+            {
+              "frame": 6,
+              "opaqueBounds": [
+                14,
+                26,
+                49,
+                94
+              ]
+            }
+          ]
+        },
+        "bicubic": {
+          "filename": "field-focus-bicubic.png",
+          "sha256": "51aed975014c0f99592bd6834bbee649598b2806c1f57bcfaebdc15f5c937fb4",
+          "bytes": 27709,
+          "frames": [
+            {
+              "frame": 1,
+              "opaqueBounds": [
+                15,
+                25,
+                49,
+                94
+              ]
+            },
+            {
+              "frame": 2,
+              "opaqueBounds": [
+                15,
+                25,
+                49,
+                94
+              ]
+            },
+            {
+              "frame": 3,
+              "opaqueBounds": [
+                14,
+                25,
+                50,
+                94
+              ]
+            },
+            {
+              "frame": 4,
+              "opaqueBounds": [
+                13,
+                26,
+                50,
+                94
+              ]
+            },
+            {
+              "frame": 5,
+              "opaqueBounds": [
+                14,
+                26,
+                50,
+                94
+              ]
+            },
+            {
+              "frame": 6,
+              "opaqueBounds": [
+                14,
+                26,
+                49,
+                94
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "attack": {
+      "originalSha256": "b8d47b1f0d88e7c81ab03177d243513294e9c78d9e4069c2c7da9bb06b02c80c",
+      "variants": {
+        "lanczos": {
+          "filename": "field-attack-lanczos.png",
+          "sha256": "c808b886bec76c32d45e792e287191bd6349c87a77b251596787d03cb5917ceb",
+          "bytes": 25838,
+          "frames": [
+            {
+              "frame": 1,
+              "opaqueBounds": [
+                21,
+                21,
+                42,
+                94
+              ]
+            },
+            {
+              "frame": 2,
+              "opaqueBounds": [
+                19,
+                22,
+                45,
+                94
+              ]
+            },
+            {
+              "frame": 3,
+              "opaqueBounds": [
+                18,
+                14,
+                45,
+                94
+              ]
+            },
+            {
+              "frame": 4,
+              "opaqueBounds": [
+                19,
+                13,
+                45,
+                94
+              ]
+            },
+            {
+              "frame": 5,
+              "opaqueBounds": [
+                19,
+                31,
+                44,
+                94
+              ]
+            },
+            {
+              "frame": 6,
+              "opaqueBounds": [
+                20,
+                21,
+                43,
+                94
+              ]
+            },
+            {
+              "frame": 7,
+              "opaqueBounds": [
+                20,
+                20,
+                44,
+                94
+              ]
+            },
+            {
+              "frame": 8,
+              "opaqueBounds": [
+                21,
+                21,
+                42,
+                94
+              ]
+            }
+          ]
+        },
+        "bicubic": {
+          "filename": "field-attack-bicubic.png",
+          "sha256": "5a570d26f598115a28c5da3d06615f83f6f7a1727f7b1a8b76310b60d05ec18e",
+          "bytes": 25420,
+          "frames": [
+            {
+              "frame": 1,
+              "opaqueBounds": [
+                21,
+                21,
+                42,
+                94
+              ]
+            },
+            {
+              "frame": 2,
+              "opaqueBounds": [
+                19,
+                22,
+                45,
+                94
+              ]
+            },
+            {
+              "frame": 3,
+              "opaqueBounds": [
+                18,
+                14,
+                45,
+                94
+              ]
+            },
+            {
+              "frame": 4,
+              "opaqueBounds": [
+                19,
+                13,
+                45,
+                94
+              ]
+            },
+            {
+              "frame": 5,
+              "opaqueBounds": [
+                19,
+                31,
+                44,
+                94
+              ]
+            },
+            {
+              "frame": 6,
+              "opaqueBounds": [
+                20,
+                21,
+                43,
+                94
+              ]
+            },
+            {
+              "frame": 7,
+              "opaqueBounds": [
+                20,
+                20,
+                44,
+                94
+              ]
+            },
+            {
+              "frame": 8,
+              "opaqueBounds": [
+                21,
+                21,
+                42,
+                94
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -121,15 +121,28 @@
       return Boolean(root && root.location && /(?:\?|&)candidateFieldArt=1(?:&|$)/.test(String(root.location.search||'')));
     }catch(error){return false;}
   }
+  // Explicit, reversible art-review switch: never applied to the normal game.
+  function enderResampleReviewMode(){
+    if(!candidateReviewEnabled()) return '';
+    try{
+      const query=String(root.location.search||'');
+      const match=query.match(/(?:\?|&)enderReviewResample=(lanczos|bicubic)(?:&|$)/);
+      return match ? match[1] : '';
+    }catch(error){return '';}
+  }
   const authoredCandidateState=Object.create(null);
   function drawAuthoredFieldCandidate(id,x,y,options={}){
     if(id!=='ender'||!candidateReviewEnabled()||typeof loadImage!=='function'||typeof image!=='function') return false;
     const action=fieldAction(options.action || (options.speed>0?'walk':'idle'));
-    const key=id+':'+action;
+    const reviewVariant=enderResampleReviewMode();
+    const key=id+':'+action+':'+reviewVariant;
     if(!authoredCandidateState[key]){
       const entry=authoredCandidateState[key]={ready:false,image:null};
       try{
-        loadImage('art-staging/field/ender/candidate/field-'+action+'.png',
+        const candidatePath=reviewVariant
+          ? 'art-staging/field/ender/review-alt/field-'+action+'-'+reviewVariant+'.png'
+          : 'art-staging/field/ender/candidate/field-'+action+'.png';
+        loadImage(candidatePath,
           img=>{entry.image=img;entry.ready=Boolean(img&&img.width===FIELD_CELL_W*FIELD_FRAMES[action]&&img.height===FIELD_CELL_H);},
           ()=>{entry.ready=false;entry.image=null;});
       }catch(error){entry.ready=false;entry.image=null;}
