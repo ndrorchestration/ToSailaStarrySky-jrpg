@@ -43,7 +43,7 @@ assert(packageJson.scripts['package:windows'].includes('.desktop-runtime'),
 const workflow = fs.readFileSync(
   path.join(__dirname, '..', '.github', 'workflows', 'desktop-package.yml'),
   'utf8'
-);
+).replace(/\r\n/g, '\n');
 
 assert(!workflow.includes('actions/upload-artifact@v4'),
   'release-critical path must not depend on GitHub Actions artifact storage');
@@ -155,6 +155,8 @@ assert(workflow.includes('throw "SECURITY_HOLD_293:') &&
   'Windows security hold must throw before checkout or installer build');
 assert(workflow.includes('permissions:\n  contents: read') && !workflow.includes('contents: write'),
   'Windows workflow cannot have publication token write scope during security hold');
+assert(!workflow.includes('continue-on-error:'),
+  'Windows workflow must not mask a failure in the security-hold or build steps');
 const releaseStep = workflow.slice(workflow.indexOf('      - name: Publish verified Windows release'));
 assert(releaseStep.includes('if: ${{ false }}'),
   'manual and tag Windows release publication must be disabled during security hold');
