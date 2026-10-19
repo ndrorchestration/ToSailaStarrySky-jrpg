@@ -136,6 +136,23 @@ assert(localReleaseScript.includes('AETHERWAKE_DESKTOP_SMOKE_MARKER'),
 assert(localReleaseScript.includes('DESKTOP_RENDER_READINESS=PASS'),
   'local Windows release fallback must verify a rendered first frame');
 
+// Security hold #293 must stop both Windows entry points before binary build.
+const securityHoldStep = 'Fail closed while generated NSIS uninstaller security hold is unresolved';
+assert(workflow.indexOf(securityHoldStep) >= 0 &&
+       workflow.indexOf(securityHoldStep) < workflow.indexOf('      - name: Check out source'),
+  'Windows workflow must fail closed before checkout and installer creation');
+assert(workflow.includes('throw "SECURITY_HOLD_293:'),
+  'workflow must expose an explicit failure, not a successful skipped job');
+assert(workflow.includes('permissions:\n  contents: read') &&
+       !workflow.includes('contents: write'),
+  'unadmitted release workflow must have no release write permission');
+const releaseStep = workflow.slice(workflow.indexOf('      - name: Publish verified Windows release'));
+assert(releaseStep.includes('if: ${{ false }}'),
+  'Windows release publication must be unconditionally disabled under hold');
+const localHoldAt = localReleaseScript.indexOf('throw "SECURITY_HOLD_293:');
+assert(localHoldAt >= 0 && localHoldAt < localReleaseScript.indexOf('npm ci') &&
+       localHoldAt < localReleaseScript.indexOf('Start-Process -FilePath $installer'),
+  'local installer script must stop before dependencies/build/install');
 console.log('Aetherwake desktop package contract: PASS');
 
 const runtimeSource = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8');

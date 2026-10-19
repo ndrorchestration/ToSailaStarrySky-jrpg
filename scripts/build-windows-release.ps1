@@ -3,6 +3,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+# #293: prohibit installer build, install and launch while Defender review is pending.
+# Portable package checks remain possible via npm run package:windows.
+throw "SECURITY_HOLD_293: local Windows installer build/install is disabled pending independent uninstaller security adjudication and authorization."
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $repo
 
