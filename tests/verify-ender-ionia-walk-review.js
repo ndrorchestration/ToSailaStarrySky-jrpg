@@ -1,4 +1,4 @@
-﻿const {chromium}=require('playwright');
+const {chromium}=require('playwright');
 const path=require('path');
 (async()=>{
  const browser=await chromium.launch({headless:true});
@@ -15,5 +15,3 @@ const path=require('path');
  await browser.close();
  console.log('END-IONIA SIDE-BY-SIDE REVIEW=PASS',baseline);
 })().catch(e=>{console.error(e);process.exit(1)});
-
-
