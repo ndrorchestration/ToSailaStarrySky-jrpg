@@ -21,3 +21,50 @@ Same-system read-only source review found no critical or important scoped regres
 ## Review boundary
 Candidate and provisional artwork stays unaccepted. Creator visual review, independent human player acceptance, Windows installer/launch verification for this combined candidate and release authorization remain open.
 The old draft PRs remain provenance; no automatic closure or merge. This review candidate does not authorize recruitment changes, progression changes, a ship rescale, public deployment or release.
+
+## Exact-head verification addendum — October 19, 2026 UTC
+
+This section supersedes **only** the original "Verification" section's pending exact-head evidence
+as a current-status statement. The original scope and source-lineage history remain intact.
+No review, human acceptance, release, or protected-branch promotion is implied.
+
+### Signed follow-up lineage and first-failure custody
+- Current [draft PR #290](https://github.com/ndrorchestration/aetherwake-jrpg/pull/290)
+  is OPEN / UNMERGED at signed head `15183c941c89852d1ea5f346119b7f463c9891b2`,
+  protected-main base `7364d43c202b2186e2d4eb3c752367afe61ee408`.
+  Earlier signed `e5ae903` and original consolidation commits remain historical.
+- [Signed commit `00178789`](https://github.com/ndrorchestration/aetherwake-jrpg/commit/00178789c6a3dbfb1a2a8a24a2226f7d5ba7cfdd)
+  repositions the opening toast above lower narrative dialogue with a contrast panel
+  and corrects both HTML page titles to `Aetherwake`. Existing overlay/desktop
+  regression tests cover these boundaries.
+- Preserve the [first failed hosted smoke run `39186884185`](https://github.com/ndrorchestration/aetherwake-jrpg/actions/runs/39186884185)
+  at `00178789`: a short physical-keyboard route exited the Lyra scene before
+  the canvas-render objective witness had sampled visible `FIND LYRA`.
+  An exact-source screenshot showed the production copy; this was a test
+  observation-timing defect, not established missing gameplay copy.
+- [Signed `15183c9` helper-only correction](https://github.com/ndrorchestration/aetherwake-jrpg/commit/15183c941c89852d1ea5f346119b7f463c9891b2)
+  waits for actual rendered `FIND LYRA` canvas evidence at the correct Lyra
+  exploration state, preserving physical input, four authored Lyra lines, party
+  and replay gates.
+- [Exact-head hosted smoke run `39187305492`](https://github.com/ndrorchestration/aetherwake-jrpg/actions/runs/39187305492)
+  at signed `15183c9` completed **SUCCESS**. The earlier failure stays recorded.
+
+### Exact-head private evidence and limitations
+- Current-head clean-source owner-local Chromium capture reports **10 PNG frames,
+  zero browser page errors**; manifest SHA-256
+  `46daff5f9cdc126745b84cddd151da2a66d8f9c550245907be823a7a94a63e64`.
+  A private owner-only gallery loaded ten of ten images. Same-system capture is
+  **not** human visual acceptance or an independent player trial.
+- Hosted Actions artifact publication remains quota-blocked under
+  [issue #222](https://github.com/ndrorchestration/aetherwake-jrpg/issues/222);
+  private evidence is not a hosted artifact.
+- An **isolated NSIS v3.13 compiler** was subsequently found on the authorized
+  Windows host and answered its version check. This corrects the earlier
+  absence-from-standard-install-paths preflight, but **does not** establish a
+  current-head installer build, installation, launch, or human acceptance.
+- Quiet-dock H is a browser-injected design illustration checked at *earlier*
+  `e5ae903`, **not** a committed component or validated navigation scheme
+  at the current `15183c9` head.
+- `VISUAL_ACCEPTANCE=PENDING`; `FIELD_ART=NOT_READY`;
+  `HUMAN_PLAYER_ACCEPTANCE=PENDING`; `WINDOWS_INSTALLER_ACCEPTANCE=PENDING`;
+  `PROMOTION=NOT_AUTHORIZED`. No release or public deployment occurred.
