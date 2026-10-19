@@ -1,0 +1,28 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const dir=require('../modules/random-encounter-director.js');
+let a=dir.create({minSteps:3,maxSteps:5,chance:0});
+assert.equal(a.onWalk(()=>0),false);
+assert.equal(a.onWalk(()=>0),false);
+assert.equal(a.onWalk(()=>0.99),false);
+assert.equal(a.onWalk(()=>0.99),false);
+assert.equal(a.onWalk(()=>0.99),true,'max step must force encounter');
+assert.equal(a.getSteps(),0);
+a=dir.create({minSteps:2,maxSteps:8,chance:0.2});
+assert.equal(a.onWalk(()=>0),false);
+assert.equal(a.onWalk(()=>0.19),true);
+assert.equal(a.onWalk(()=>0),false,'encounter resets counter');
+a.reset();
+assert.equal(a.getSteps(),0);
+for(const invalid of [{minSteps:0},{maxSteps:1,minSteps:3},{chance:2},{chance:-1}])
+ assert.throws(()=>dir.create(invalid));
+const runtime=fs.readFileSync(path.join(__dirname,'../aetherwake.js'),'utf8');
+const html=fs.readFileSync(path.join(__dirname,'../index-embedded.html'),'utf8');
+assert(html.indexOf('modules/random-encounter-director.js')<html.indexOf('aetherwake.js'));
+assert(runtime.includes('randomEncounters=1') && runtime.includes('randomEncounterReview.onWalk()'));
+assert(runtime.includes('!scriptedHazardTriggered') && runtime.includes('pendingHazardIndex === null'));
+assert(runtime.includes('quest.state === QUEST_STATES.CROSSING'));
+assert(runtime.includes("startCombat('aetherLeak', STATE.WORLD)"));
+console.log('Review-only random encounter pacing and story safety: PASS');

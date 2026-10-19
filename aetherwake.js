@@ -4305,6 +4305,13 @@ function isWalkableTile(tx, ty) {
   return inBounds(tx, ty) && groundLayer[ty][tx] !== TILE_TYPES.GROUND_SOLID;
 }
 
+// Optional encounter-development experiment; story hazards always take precedence.
+const randomEncounterReview = typeof window !== 'undefined' &&
+  /(?:\?|&)randomEncounters=1(?:&|$)/.test(String(window.location && window.location.search || '')) &&
+  window.AetherRandomEncounterDirector
+    ? window.AetherRandomEncounterDirector.create()
+    : null;
+
 function movePlayer(dx, dy) {
   if (gameOver) return;
   const nx = player.tileX + dx;
@@ -4314,8 +4321,15 @@ function movePlayer(dx, dy) {
   player.tileY = ny;
   player.px = player.tileX * 16;
   player.py = player.tileY * 16;
-  checkHazardProximity(nx, ny);
+  const scriptedHazardTriggered = checkHazardProximity(nx, ny);
   checkLoreTile(nx, ny);
+  // Random battles are strictly opt-in while the authored Chapter 1 route is
+  // being verified. Never roll on blocked movement or supersede story hazards.
+  if (randomEncounterReview && !scriptedHazardTriggered &&
+      gameState === STATE.WORLD && quest.state === QUEST_STATES.CROSSING &&
+      pendingHazardIndex === null && randomEncounterReview.onWalk()) {
+    startCombat('aetherLeak', STATE.WORLD);
+  }
 }
 
 function checkLoreTile(tx, ty) {
