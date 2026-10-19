@@ -8,6 +8,11 @@ function assert(condition, message) {
 
 assert(packageJson.window && packageJson.window.title === 'Aetherwake',
   'development desktop title must retain the canonical game name without a subtitle');
+for (const page of ['index.html', 'index-embedded.html']) {
+  const html = fs.readFileSync(path.join(__dirname, '..', page), 'utf8');
+  assert(/<title>Aetherwake<\/title>/.test(html),
+    page + ' must present the canonical subtitle-free title without mojibake');
+}
 assert(packageJson.main === 'index-embedded.html',
   'development manifest must retain the embedded HTML entry point');
 assert(packageJson.window && packageJson.window.width === 1440,

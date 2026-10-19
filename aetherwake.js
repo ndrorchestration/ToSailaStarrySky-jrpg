@@ -2169,11 +2169,23 @@ function drawToasts() {
       continue;
     }
     const alpha = age < 200 ? (age / 200) * 255 : (age > t.duration - 400 ? (t.duration - age) / 400 * 255 : 255);
-    const y = height - 60 - (window.toasts.length - 1 - i) * 26;
+    // Opening narration and its continuation prompt occupy the bottom of the canvas.
+    // Place short party/event notices below the top objective, away from those controls.
+    const openingNotice = gameState === STATE.OPENING;
+    const y = openingNotice
+      ? 112 + (window.toasts.length - 1 - i) * 26
+      : height - 60 - (window.toasts.length - 1 - i) * 26;
     noStroke();
-    fill(t.color[0], t.color[1], t.color[2], alpha * 0.15);
-    rect(width / 2 - 110, y - 8, 220, 22, 4);
-    fill(t.color[0], t.color[1], t.color[2], alpha);
+    if (openingNotice) {
+      // Preserve contrast against the painted sky; keep the dialogue panel clear.
+      fill(5, 9, 15, alpha * 0.82);
+      rect(width / 2 - 150, y - 10, 300, 26, 5);
+      fill(240, 247, 237, alpha);
+    } else {
+      fill(t.color[0], t.color[1], t.color[2], alpha * 0.15);
+      rect(width / 2 - 110, y - 8, 220, 22, 4);
+      fill(t.color[0], t.color[1], t.color[2], alpha);
+    }
     textFont('VT323');
     textSize(14);
     textAlign(CENTER, CENTER);
