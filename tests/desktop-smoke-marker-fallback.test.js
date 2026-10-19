@@ -28,9 +28,16 @@ function probe(options = {}) {
     process: options.noProcess ? undefined : {env: options.noEnv ? undefined : {AETHERWAKE_DESKTOP_SMOKE_MARKER: marker}},
     nw: options.noNW ? undefined : {App: {argv: args}},
     require: options.noRequire ? undefined : (module) => {
+      if (module === 'path') return require('node:path');
       assert.equal(module, 'fs');
       return {writeFileSync: (filename, data, encoding) => {
-        assert.equal(encoding, 'utf8');
+        assert.equal(encoding.encoding, 'utf8');
+        assert.equal(encoding.flag, 'wx');
+        if (options.simulateExisting) {
+          const error = new Error('File exists');
+          error.code = 'EEXIST';
+          throw error;
+        }
         writes.push({filename, payload: JSON.parse(data)});
       }};
     },
@@ -45,7 +52,7 @@ function probe(options = {}) {
 }
 
 test('NW.js argument supplies marker path when renderer env variable is missing', () => {
-  const destination = 'C:\\Test Directory\\First frame proof.json';
+  const destination = 'C:\\Test Directory\\aetherwake-desktop-ready.json';
   const result = probe({nwArgs: ['--aw-desktop-smoke-marker=' + destination]});
   assert.equal(result.writes.length, 1);
   assert.equal(result.writes[0].filename, destination);
@@ -59,14 +66,14 @@ test('NW.js argument supplies marker path when renderer env variable is missing'
 });
 
 test('environment path continues taking precedence over NW.js argument', () => {
-  const result = probe({envPath: 'C:\\Existing\\legacy-marker.json',
-    nwArgs: ['--aw-desktop-smoke-marker=C:\\Alternative\\marker.json']});
+  const result = probe({envPath: 'C:\\Existing\\aetherwake-desktop-ready.json',
+    nwArgs: ['--aw-desktop-smoke-marker=C:\\Alternative\\aetherwake-desktop-ready.json']});
   assert.equal(result.writes.length, 1);
-  assert.equal(result.writes[0].filename, 'C:\\Existing\\legacy-marker.json');
+  assert.equal(result.writes[0].filename, 'C:\\Existing\\aetherwake-desktop-ready.json');
 });
 
 test('no explicitly requested marker means no write', () => {
-  for(const input of [{}, {noNW: true}, {nwArgs: ['--unrelated-flag=C:\\tmp\\file.json']},
+  for(const input of [{}, {noNW: true}, {nwArgs: ['--unrelated-flag=C:\\tmp\\aetherwake-desktop-ready.json']},
     {nwArgs: ['--aw-desktop-smoke-marker']}, {noEnv: true}]) {
     const result = probe(input);
     assert.equal(result.writes.length, 0);
@@ -75,20 +82,20 @@ test('no explicitly requested marker means no write', () => {
 });
 
 test('readiness and first frame remain mandatory even with explicit marker arg', () => {
-  const arg = ['--aw-desktop-smoke-marker=C:\\Temp Folder\\marker.json'];
+  const arg = ['--aw-desktop-smoke-marker=C:\\Temp Folder\\aetherwake-desktop-ready.json'];
   assert.equal(probe({ready: false, nwArgs: arg}).writes.length, 0);
   assert.equal(probe({frame: false, nwArgs: arg}).writes.length, 0);
 });
 
 test('missing Node runtime environment or require fail closed', () => {
-  const arg = ['--aw-desktop-smoke-marker=C:\\Temp\\marker.json'];
+  const arg = ['--aw-desktop-smoke-marker=C:\\Temp\\aetherwake-desktop-ready.json'];
   assert.equal(probe({noProcess: true, nwArgs: arg}).writes.length, 0);
   assert.equal(probe({noEnv: true, nwArgs: arg}).writes.length, 0);
   assert.equal(probe({noRequire: true, nwArgs: arg}).writes.length, 0);
 });
 
 test('once-only marker guard remains effective', () => {
-  const arg = ['--aw-desktop-smoke-marker=C:\\Temp\\once.json'];
+  const arg = ['--aw-desktop-smoke-marker=C:\\Temp\\aetherwake-desktop-ready.json'];
   const result = probe({nwArgs: arg});
   result.compiled.runInNewContext(result.ctx, {timeout: 1000});
   assert.equal(result.writes.length, 1);
@@ -101,4 +108,25 @@ test('both Windows launchers explicitly quote marker paths', () => {
     assert.match(text, /-ArgumentList @\(\"`"--aw-desktop-smoke-marker=\$marker`"\"\)/,
       name + ' must preserve spaces in the explicit NW.js marker path');
   }
+});
+
+test('non-QA filename, relative path and UNC share are refused', () => {
+  for (const destination of [
+    'C:\\\\Temp\\\\other.json',
+    '..\\\\aetherwake-desktop-ready.json',
+    '\\\\Temp\\\\aetherwake-desktop-ready.json',
+    '\\\\\\\\server\\\\share\\\\aetherwake-desktop-ready.json',
+  ]) {
+    const result = probe({nwArgs: ['--aw-desktop-smoke-marker=' + destination]});
+    assert.equal(result.writes.length, 0, destination);
+    assert.equal(result.window.__awDesktopSmokeMarkerWritten, false);
+  }
+});
+
+test('existing file collision fails closed rather than overwriting', () => {
+  const arg = ['--aw-desktop-smoke-marker=C:\\\\Temp\\\\aetherwake-desktop-ready.json'];
+  const result = probe({...{nwArgs:arg}, simulateExisting:true});
+  assert.equal(result.writes.length, 0);
+  assert.equal(result.window.__awDesktopSmokeMarkerWritten, false);
+  assert.equal(result.errors.length, 1);
 });
