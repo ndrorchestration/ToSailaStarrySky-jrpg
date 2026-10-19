@@ -7368,16 +7368,19 @@ function AetherCombat(p, C) {
       changeResource(effectVocabulary.RESOURCE.ECHOES, echoReward);
       log('+' + echoReward + ' Echo' + (echoReward > 1 ? 's' : '') + '. The weave settles.');
       // XP reward based on enemy difficulty
-      let xpReward = 0;
-      const eName = state.enemy.name;
-      if (eName === 'Sky-Predator') xpReward = 15;
-      else if (eName === 'Corporate Salvager') xpReward = 12;
-      else if (eName === 'Harmonic Shear') xpReward = 20;
-      else if (eName === 'Aether Leak') xpReward = 18;
-      else if (eName === 'Engine Spirit') xpReward = 14;
-      else if (eName === 'Child Prophet') xpReward = 10;
-      else if (eName === 'Elder Farmer') xpReward = 22;
-      else xpReward = 10;
+      // Rewards bind to stable encounter types, never display names.
+      const enemyXP = Object.freeze({
+        skyPredator: 15,
+        corporateSalvager: 12,
+        windShear: 20,
+        aetherLeak: 18,
+        engine_spirit: 14,
+        child_prophet: 10,
+        elder_farmer: 22,
+      });
+      let xpReward = Object.prototype.hasOwnProperty.call(enemyXP, state.enemy.type)
+        ? enemyXP[state.enemy.type]
+        : 10;
       if (r.outcome === 'success' && action.type === 'attack') xpReward += 5;
       this.awardXP(xpReward);
       state._defeatTurn = millis();
