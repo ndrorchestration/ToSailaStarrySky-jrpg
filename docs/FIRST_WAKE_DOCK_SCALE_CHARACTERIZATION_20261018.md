@@ -34,6 +34,12 @@ For the dock-walk scene after the cinematic: Dragonfly anchor x = 0.72 ? 960 = 6
 
 **Audit interpretation:** No scale adjustment is justified solely by these measurements. More accurate on-screen contour/mask analysis should isolate hull from wings and rig, retain provenance for actual art paths loaded, and verify character-door and berth access in matched rendered frames. Do not mistake static primitive coordinate arithmetic for a human-reviewed pixel-visibility result.
 
+## Nine-step walk geometry check
+
+The canonical First Wake walk state uses `dockWalk.x` from 0 through 8; the dock renderer maps progress = step/8 to Ender x = round(145 + progress*405) and ground/foot y = round(442 - progress*16). The proposed bridge's principal visual deck envelope spans roughly x=72..743 and y=397..468 (top face x near 88..743), so all nine calculated actor anchors are contained within the **exact convex deck quadrilateral**. Ionia remains at fixed dock position x=612, y=416, also inside. This mapping is protected by `tests/first-wake-dock-bridge-contract.test.js` and the full visual suite.
+
+**Caveat:** Polygon containment is a logical 2D source-coordinate verification, not dynamic screenshot evidence or proof of visible ground contact. The actual bridge quadrilateral may slope across x, sprite shadows and animation can add optical offsets, and the regular Chapter 1 evidence capture currently samples the dock walk at x=4. Multi-position (0/4/8) rendered evaluation and real-scene door/crate landmark measurements remain needed before claiming all planning expectations met.
+
 ## Before any scale correction
 
 1. Record actual opaque bounds (excluding shadow and wing membranes) for Ender, Ionia, and the Dragonfly hull in matched captured frames at the 960x640 logical canvas.
