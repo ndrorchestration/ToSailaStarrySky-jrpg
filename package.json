@@ -78,6 +78,7 @@
     "test:turn-based-arena": "node tests/turn-based-arena-contract.test.js",
     "test:encounter-rewards": "node tests/encounter-reward-type-contract.test.js",
     "test:random-encounter-review": "node tests/random-encounter-director.test.js && node tests/random-encounter-integration.test.js && node tests/random-encounter-persistence.test.js",
+    "test:random-encounter-pacing": "node tests/random-encounter-pacing-simulation.test.js",
     "test:random-encounter-browser": "node tests/random-encounter-browser-playwright.js",
     "test:random-encounter-west-browser": "node tests/random-encounter-west-browser-playwright.js",
     "stage:desktop": "node scripts/stage-memories-desktop.js",

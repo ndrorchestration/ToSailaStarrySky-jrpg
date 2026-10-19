@@ -503,6 +503,45 @@ function createServer() {
       window._persistenceRuntime.buildSavePayload().runtime.randomEncounterSteps);
     assert.strictEqual(restoredCount,savedCount,'pacing counter not restored from manual save');
 
+    // Inject a failure *after* a candidate load has restored the saved random
+    // counter. Transactional rollback must recover the live, different value.
+    const failedLoad=await page.evaluate(()=>{
+      const target=window.AetherSaveSystem.load('manual-1').envelope;
+      const w=window._world;
+      for(let step=0;step<3;step++){
+        const x=w.player.tileX,y=w.player.tileY;
+        const move=[[1,0],[-1,0],[0,1],[0,-1]].find(([dx,dy])=>
+          w.isWalkableTile(x+dx,y+dy));
+        if(!move)throw Error('NO_SAFE_ROLLBACK_PREP_STEP');
+        w.movePlayer(...move);
+        if(window.gameState!=='world')throw Error('UNEXPECTED_ROLLBACK_PREP_BATTLE');
+      }
+      const before=window._persistenceRuntime.captureLiveRuntimeForLoadRollback();
+      window.__AETHERWAKE_LOAD_TEST_HOOK__=stage=>{
+        if(stage==='before-commit')throw Error('TEST_RANDOM_COUNTER_COMMIT_FAULT');
+      };
+      let failure=null;
+      try{window._persistenceRuntime.applySaveEnvelope(target);}
+      catch(error){failure=error.message;}
+      finally{delete window.__AETHERWAKE_LOAD_TEST_HOOK__;}
+      const after=window._persistenceRuntime.captureLiveRuntimeForLoadRollback();
+      return {failure,before:JSON.parse(JSON.stringify(before)),
+        after:JSON.parse(JSON.stringify(after)),
+        rollback:JSON.parse(JSON.stringify(window._lastLoadRollback))};
+    });
+    assert.strictEqual(failedLoad.failure,'TEST_RANDOM_COUNTER_COMMIT_FAULT');
+    assert(failedLoad.rollback?.restored===true,'failed load did not restore prior runtime');
+    assert.strictEqual(failedLoad.before.runtime.randomEncounterSteps,savedCount+3);
+    assert.deepStrictEqual(failedLoad.after,failedLoad.before,
+      'load fault must restore counter and all pre-attempt gameplay owners');
+    // Restore the manual save for repeatable random-encounter threshold checks.
+    const resumed=await page.evaluate(()=>{
+      const target=window.AetherSaveSystem.load('manual-1').envelope;
+      window._persistenceRuntime.applySaveEnvelope(target);
+      return window._persistenceRuntime.buildSavePayload().runtime.randomEncounterSteps;
+    });
+    assert.strictEqual(resumed,savedCount);
+
     // Review-mode random encounter is triggered through valid real world
     // steps, not via direct startCombat calls or state mutation.
     const walkResult = await page.evaluate(() => {
