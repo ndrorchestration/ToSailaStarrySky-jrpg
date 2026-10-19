@@ -1,4 +1,4 @@
-﻿# First Wake vessel identity and boarding entrance — authority reconciliation
+# First Wake vessel identity and boarding entrance — authority reconciliation
 
 Date: 2026-10-18
 Status: CHARACTERIZATION / DESIGN-DECISION REQUIRED / NO CANON RETCON
@@ -30,4 +30,3 @@ DO NOT rename the Aureate Wake, replace the Dragonfly renderer, invent a second 
 5. Preserve G4/independent player visual acceptance PENDING and field art NOT_READY until reviewed.
 
 Related: draft PRs #288/#289, boarding readability issue #291.
-
