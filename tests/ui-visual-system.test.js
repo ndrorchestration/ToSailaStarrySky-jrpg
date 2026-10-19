@@ -18,8 +18,9 @@ assert(api.TOKENS.maxPrimaryPanels <= 2);
 const noLog = api.layoutCombat(960, 640, false);
 assert.strictEqual(noLog.logPanel, null, 'empty combat log must not reserve a primary panel');
 assert(noLog.statusPanel.x >= api.TOKENS.safeMarginPx, 'combat status panel violates safe margin');
-assert(noLog.statusPanel.w <= 240, 'combat command window must remain compact enough to preserve arena art');
-assert(noLog.statusPanel.h <= 200, 'combat command window must remain a compact lower-left JRPG window');
+assert(noLog.statusPanel.w <= 264, 'combat command window must remain compact enough to preserve arena art');
+assert(noLog.statusPanel.h <= 232, 'combat command window must remain a compact lower-left JRPG window');
+assert(noLog.statusPanel.w >= 256 && noLog.statusPanel.h >= 224, 'combat command text needs additional legibility room');
 assert(noLog.statusPanel.y >= 360, 'combat command window must anchor low rather than occupy the full left edge');
 const dialogue = api.layoutDialogue(960, 640);
 assert.strictEqual(dialogue.x, 70, 'dialogue panel must remain centered inside 24px safe area');
@@ -49,7 +50,7 @@ assert(title.artReserve.w >= 400, 'title layout must preserve a substantial hero
 const withLog = api.layoutCombat(960, 640, true);
 assert(withLog.logPanel && withLog.logPanel.w <= 184 && withLog.logPanel.h <= 184,
   'combat log must remain compact');
-assert(withLog.centerReserve.w >= 480, 'combat UI must preserve a large central encounter reserve');
+assert(withLog.centerReserve.w >= 440, 'combat UI must preserve a large central encounter reserve');
 const html = fs.readFileSync(path.join(root, 'index-embedded.html'), 'utf8');
 assert(html.includes('modules/ui-visual-system.js'), 'UI visual system missing from runtime');
 assert(html.indexOf('modules/ui-visual-system.js') < html.indexOf('aetherwake.js'),

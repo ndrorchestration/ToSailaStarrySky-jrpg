@@ -9094,7 +9094,7 @@ function drawCombatPanel(combatState, layoutBox) {
 
   // Header
   textFont(FONT_UI);
-  textSize(8);
+  textSize(10);
   drawGlowText('COMMAND', px + 12, py + 8, PAL.TEAL, 8);
 
   // Enemy identity/HP live in the centered encounter rail, leaving this window
@@ -9141,14 +9141,14 @@ function drawCombatPanel(combatState, layoutBox) {
   const aX = px + 8;
   const aY = sY + 48;
   const aW = pw - 16;
-  const aH = 76;
+  const aH = 92;
   // Actions remain grouped by spacing and typography rather than another opaque card.
   noStroke();
   fill(42, 255, 181, 58);
   rect(aX + 4, aY, aW - 8, 1);
 
   textFont(FONT_UI);
-  textSize(8);
+  textSize(10);
   drawGlowText('ACTIONS', aX + 12, aY + 6, PAL.TEAL, 8);
 
   const actions = combatState.actions || [];
@@ -9156,7 +9156,7 @@ function drawCombatPanel(combatState, layoutBox) {
     combatState.eligibleActionIds || actions.map(action => action.id)
   );
   // Two-column 4-row command grid keeps all eight actions visible without a tall sidebar.
-  const actH = 14;
+  const actH = 18;
   const actStartY = aY + 19;
   const actionColW = Math.floor(aW / 2);
   actions.forEach((action, idx) => {
@@ -9174,17 +9174,17 @@ function drawCombatPanel(combatState, layoutBox) {
     ellipse(ax + 8, ay + 6, 8, 8);
     fill(PAL.NAVY);
     textFont(FONT_UI);
-    textSize(7);
+    textSize(8);
     textAlign(CENTER, CENTER);
     text(String(idx + 1), ax + 8, ay + 6);
     textFont(FONT_BODY);
-    textSize(8);
+    textSize(10);
     textAlign(LEFT, CENTER);
     const label = action.label || action.id;
     const compactLabel = label.split(/\s+[^A-Za-z0-9]+\s+/)[0].trim();
     fill(usable ? PAL.PARCHMENT : PAL.DIM);
     noStroke();
-    text(compactLabel.substring(0, 10), ax + 17, ay);
+    text(compactLabel.substring(0, 11), ax + 17, ay);
     const totalCost = window.AetherAbilityDefs.getActionResourceCost(action);
     if (unlocked && totalCost > 0) {
       textFont(FONT_UI);
@@ -9205,7 +9205,7 @@ function drawCombatPanel(combatState, layoutBox) {
     textAlign(LEFT, TOP);
     text('TRAIT', px + 14, abY + 4);
     textFont(FONT_BODY);
-    textSize(8);
+    textSize(10);
     fill(PAL.PARCHMENT);
     const abText = String(combatState.enemy.abilityDesc || '');
     text(abText.substring(0, 30), px + 48, abY + 3);
