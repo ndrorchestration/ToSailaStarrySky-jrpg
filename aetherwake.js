@@ -4348,7 +4348,7 @@ function movePlayer(dx, dy) {
       gameState === STATE.WORLD && quest.state === QUEST_STATES.CROSSING &&
       pendingHazardIndex === null && randomEncounterReview.onWalk()) {
     randomEncounterPending = true;
-    startCombat('aetherLeak', STATE.WORLD);
+    startCombat(window.AetherRandomEncounterDirector.enemyForTile(nx, ny), STATE.WORLD);
   }
 }
 

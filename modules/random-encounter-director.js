@@ -6,6 +6,13 @@
  if(root)root.AetherRandomEncounterDirector=api;
 })(typeof window!=='undefined'?window:null,function(){
  'use strict';
+ // A deliberately tiny, auditable area table for the isolated Chapter 1 pilot.
+ // Story hazard zones remain exclusively owned by authored quest logic.
+ function enemyForTile(tileX,tileY){
+   if(!Number.isInteger(tileX)||!Number.isInteger(tileY))
+     throw new Error('INVALID_ENCOUNTER_TILE');
+   return tileX<14 && tileY>=17 ? 'windShear' : 'aetherLeak';
+ }
  function create(options={}){
    const minSteps=Number.isInteger(options.minSteps)?options.minSteps:12;
    const maxSteps=Number.isInteger(options.maxSteps)?options.maxSteps:26;
@@ -25,5 +32,5 @@
      getSteps(){return steps;}
    });
  }
- return Object.freeze({create});
+ return Object.freeze({create,enemyForTile});
 });

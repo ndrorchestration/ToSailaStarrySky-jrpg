@@ -18,11 +18,15 @@ a.reset();
 assert.equal(a.getSteps(),0);
 for(const invalid of [{minSteps:0},{maxSteps:1,minSteps:3},{chance:2},{chance:-1}])
  assert.throws(()=>dir.create(invalid));
+assert.equal(dir.enemyForTile(26,24),'aetherLeak');
+assert.equal(dir.enemyForTile(9,23),'windShear');
+assert.equal(dir.enemyForTile(9,10),'aetherLeak');
+assert.throws(()=>dir.enemyForTile(9.3,23));
 const runtime=fs.readFileSync(path.join(__dirname,'../aetherwake.js'),'utf8');
 const html=fs.readFileSync(path.join(__dirname,'../index-embedded.html'),'utf8');
 assert(html.indexOf('modules/random-encounter-director.js')<html.indexOf('aetherwake.js'));
 assert(runtime.includes('randomEncounters=1') && runtime.includes('randomEncounterReview.onWalk()'));
 assert(runtime.includes('!scriptedHazardTriggered') && runtime.includes('pendingHazardIndex === null'));
 assert(runtime.includes('quest.state === QUEST_STATES.CROSSING'));
-assert(runtime.includes("startCombat('aetherLeak', STATE.WORLD)"));
+assert(runtime.includes('window.AetherRandomEncounterDirector.enemyForTile(nx, ny)'));
 console.log('Review-only random encounter pacing and story safety: PASS');
