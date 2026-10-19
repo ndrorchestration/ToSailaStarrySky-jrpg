@@ -279,6 +279,27 @@ async function capture(page, id, description) {
   };
 }
 
+
+async function captureDockWalk(page, id, description, expectedStep, expectedReady) {
+  const state = await page.evaluate(() => {
+    const opening = window._firstWakeOpeningState;
+    const scene = opening && window.AetherFirstWakeOpening.currentScene(opening);
+    const walk = opening && opening.dockWalk;
+    return {
+      sceneId: scene && scene.id,
+      step: walk && walk.x,
+      max: walk && walk.max,
+      ready: walk && walk.ready,
+    };
+  });
+  assert(state.sceneId === 'dock_walk' &&
+    state.step === expectedStep && state.max === 8 &&
+    state.ready === expectedReady,
+    'dock capture state mismatch: ' + id + ' ' + JSON.stringify(state));
+  const record = await capture(page, id, description);
+  return { ...record, dockWalkState: state };
+}
+
 (async () => {
   fs.rmSync(OUT, { recursive: true, force: true });
   fs.mkdirSync(OUT, { recursive: true });
@@ -370,21 +391,47 @@ async function capture(page, id, description) {
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'dock_walk'
     , undefined, { timeout: 5000 });
+    if (process.env.AETHERWAKE_DOCK_ENDPOINT_CAPTURE === '1') {
+      await page.waitForFunction(() =>
+        window._firstWakeOpeningState.dockWalk &&
+        window._firstWakeOpeningState.dockWalk.x === 0 &&
+        window._firstWakeOpeningState.dockWalk.ready === false
+      , undefined, { timeout: 5000 });
+      captures.push(await captureDockWalk(
+        page, '01a-dock-walk-start',
+        'Dock walk at logical step 0, actor contact and ship boarding', 0, false
+      ));
+    }
     for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
     await page.waitForFunction(() =>
       window._firstWakeOpeningState.dockWalk &&
       window._firstWakeOpeningState.dockWalk.x === 4
     , undefined, { timeout: 5000 });
-    captures.push(await capture(
-      page,
-      '01-first-wake-dock-walk',
-      'First Wake Sequence 02 shared-authority visual stage'
-    ));
+    captures.push(process.env.AETHERWAKE_DOCK_ENDPOINT_CAPTURE === '1'
+      ? await captureDockWalk(
+        page, '01-first-wake-dock-walk',
+        'First Wake Sequence 02 shared-authority visual stage', 4, false
+      )
+      : await capture(
+        page, '01-first-wake-dock-walk',
+        'First Wake Sequence 02 shared-authority visual stage'
+      ));
 
     // 1b — First Wake cabin/interior authored substrate.
     for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
     await page.waitForFunction(() => window._firstWakeOpeningState.dockWalk.ready === true,
       undefined, { timeout: 5000 });
+    if (process.env.AETHERWAKE_DOCK_ENDPOINT_CAPTURE === '1') {
+      await page.waitForFunction(() =>
+        window._firstWakeOpeningState.dockWalk &&
+        window._firstWakeOpeningState.dockWalk.x === 8 &&
+        window._firstWakeOpeningState.dockWalk.ready === true
+      , undefined, { timeout: 5000 });
+      captures.push(await captureDockWalk(
+        page, '01d-dock-walk-end',
+        'Dock walk at logical step 8, actor contact and ship boarding', 8, true
+      ));
+    }
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'berth_task'

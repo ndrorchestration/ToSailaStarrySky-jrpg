@@ -302,6 +302,73 @@
     quad(width / 2 - 57, 392, width / 2 - 53, 392, width / 2 - 196, height, width / 2 - 203, height);
     quad(width / 2 + 53, 392, width / 2 + 57, 392, width / 2 + 203, height, width / 2 + 196, height);
 
+    // Only the interactive dock walk needs a physical connection between the
+    // near-side masonry landing and the ship berth. Keep the original faint
+    // traversal lane and the painted backdrop; do not reconstruct a full board.
+    if (paintedBackdrop && scene.id === 'dock_walk') {
+      noStroke();
+      fill(34, 37, 36, 214);
+      quad(88, 409, 743, 409, 724, 482, 72, 482);
+      fill(90, 75, 56, 238);
+      quad(88, 397, 743, 397, 724, 468, 72, 468);
+      // Under-deck braces make the suspended span read as built infrastructure,
+      // connecting the masonry approach to the Dragonfly service berth.
+      stroke(46, 44, 40, 225);
+      strokeWeight(7);
+      line(112, 467, 108, 524);
+      line(697, 467, 716, 526);
+      stroke(136, 107, 70, 200);
+      strokeWeight(3);
+      line(109, 518, 186, 470);
+      line(716, 518, 635, 468);
+      stroke(202, 165, 102, 205);
+      strokeWeight(3);
+      line(79, 398, 112, 398);
+      line(695, 398, 744, 398);
+      stroke(73, 65, 52, 200);
+      strokeWeight(1);
+      for (const x of [104, 699]) {
+        line(x - 6, 455, x + 6, 455);
+        line(x - 6, 462, x + 6, 462);
+      }
+      // Narrow bearing seats make both ends of the span visibly supported.
+      // They remain within the existing bridge footprint, not the sky plate.
+      noStroke();
+      fill(64, 67, 61, 242);
+      quad(73, 462, 116, 462, 120, 481, 69, 481);
+      fill(149, 135, 104, 228);
+      quad(71, 459, 118, 459, 116, 466, 73, 466);
+      fill(64, 61, 52, 225);
+      quad(676, 460, 726, 460, 733, 479, 672, 479);
+      fill(171, 143, 96, 220);
+      quad(674, 457, 728, 457, 726, 464, 676, 464);
+      // The docked Dragonfly's lower rig ends near y=440 at its fixed dock
+      // anchor/scale. A narrow boarding joint spans to the berth seat below.
+      fill(75, 68, 57, 232);
+      quad(679, 443, 718, 443, 727, 459, 674, 459);
+      stroke(194, 158, 103, 195);
+      strokeWeight(2);
+      line(681, 444, 715, 444);
+      line(674, 458, 727, 458);
+      noStroke();
+      stroke(191, 167, 120, 145);
+      strokeWeight(1);
+      line(78, 471, 109, 471);
+      line(681, 470, 722, 470);
+      stroke(168, 136, 88, 175);
+      strokeWeight(2);
+      line(88, 397, 743, 397);
+      line(72, 468, 724, 468);
+      stroke(54, 51, 42, 175);
+      strokeWeight(2);
+      for (let i = 1; i < 5; i++) {
+        const y = 397 + i * 13;
+        const inset = i * 3;
+        line(88 - inset, y, 743 - inset, y);
+      }
+      noStroke();
+    }
+
     // Perspective cues pull the eye toward the ship, but stay sparse on painted art.
     stroke(111, 125, 127, paintedBackdrop ? 26 : 85);
     strokeWeight(1);
