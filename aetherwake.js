@@ -294,6 +294,7 @@ function buildSavePayload() {
       dayTime: worldSnapshot.runtime.dayTime,
       skyLayerVisible: worldSnapshot.runtime.skyLayerVisible,
       playtimeMs: currentPlaytimeMs(),
+      ...(randomEncounterReview ? { randomEncounterSteps: randomEncounterReview.getSteps() } : {}),
     },
     world: worldSnapshot.world,
     quest: worldSnapshot.quest,
@@ -409,6 +410,8 @@ function captureLiveRuntimeForLoadRollback() {
       previewEncounterFinished,
       previewEndAt,
       activeRouteAssistId,
+      randomEncounterSteps: randomEncounterReview ? randomEncounterReview.getSteps() : null,
+      randomEncounterPending,
     },
   };
 }
@@ -462,6 +465,10 @@ function restoreLiveRuntimeAfterFailedLoad(snapshot) {
   gameState = snapshot.runtime.gameState;
   window.gameState = gameState;
   prevState = snapshot.runtime.prevState;
+  if (randomEncounterReview) {
+    randomEncounterReview.restoreSteps(snapshot.runtime.randomEncounterSteps);
+  }
+  randomEncounterPending = Boolean(snapshot.runtime.randomEncounterPending);
 
   runLoadTestHook('rollback-complete', snapshot);
   return true;
@@ -506,6 +513,10 @@ function applySaveEnvelope(envelope) {
     gameState = payload.runtime.scene === STATE.AIRSHIP ? STATE.AIRSHIP : STATE.WORLD;
     window.gameState = gameState;
     prevState = null;
+    if (randomEncounterReview) {
+      randomEncounterReview.restoreSteps(payload.runtime.randomEncounterSteps ?? 0);
+    }
+    randomEncounterPending = false;
     runLoadTestHook('before-commit', { envelope });
 
     window._lastLoadRollback = null;

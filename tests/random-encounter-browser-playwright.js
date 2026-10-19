@@ -421,6 +421,88 @@ function createServer() {
     assert.strictEqual(signal.npcsMet.length, 0,
       'SIGNAL conversations must not silently pre-complete the later CONTACT phase');
 
+    // Verify optional pacing survives an actual manual Save/Load, not just
+    // a helper-state roundtrip. The move counter is stored only in opt-in
+    // saves; protected ordinary save payloads remain unchanged.
+    const savedCount = await page.evaluate(() => {
+      const w=window._world;
+      const safe=(x,y)=>w.isWalkableTile(x,y) &&
+        !(x>=28 && y>=4 && y<=8) &&
+        !(x>=10 && x<=20 && y>=8 && y<=14) &&
+        !(y<=5 && x>=15 && x<=25) &&
+        !(x>=4 && x<=12 && y>=9 && y<=16);
+      for(let step=0;step<4;step++){
+        const x=w.player.tileX,y=w.player.tileY;
+        const delta=[[1,0],[-1,0],[0,1],[0,-1]].find(([dx,dy])=>safe(x+dx,y+dy));
+        if(!delta)throw Error('NO_SAFE_PRE_SAVE_STEP');
+        w.movePlayer(...delta);
+        if(window.gameState!=='world')throw Error('EARLY_RANDOM_ENCOUNTER_BEFORE_SAVE');
+      }
+      return window._persistenceRuntime.buildSavePayload().runtime.randomEncounterSteps;
+    });
+    assert.strictEqual(savedCount,4);
+    await page.keyboard.press('F5');
+    await page.waitForFunction(()=>window.gameState==='saveload',undefined,{timeout:3000});
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(()=>window._lastSaveResult?.envelope?.slot==='manual-1',
+      undefined,{timeout:3000});
+    const actualSaved = await page.evaluate(()=>
+      window.AetherSaveSystem.load('manual-1').envelope.payload.runtime.randomEncounterSteps);
+    assert.strictEqual(actualSaved,savedCount);
+    const preflight=await page.evaluate(()=>{
+      const saved=window.AetherSaveSystem.load('manual-1').envelope;
+      const clone=x=>JSON.parse(JSON.stringify(x));
+      const verify=candidate=>{
+        try{
+          window._persistenceRuntime.prepareSaveEnvelopeForApply(candidate);
+          return 'ACCEPT';
+        }catch(error){return error.message;}
+      };
+      const original=clone(saved);
+      const older=clone(saved);
+      delete older.payload.runtime.randomEncounterSteps;
+      const invalidNegative=clone(saved);
+      invalidNegative.payload.runtime.randomEncounterSteps=-1;
+      const invalidFractional=clone(saved);
+      invalidFractional.payload.runtime.randomEncounterSteps=3.5;
+      const invalidTooLarge=clone(saved);
+      invalidTooLarge.payload.runtime.randomEncounterSteps=26;
+      return {
+        original:verify(original),older:verify(older),
+        negative:verify(invalidNegative),
+        fractional:verify(invalidFractional),
+        tooLarge:verify(invalidTooLarge)
+      };
+    });
+    assert.strictEqual(preflight.original,'ACCEPT');
+    assert.strictEqual(preflight.older,'ACCEPT');
+    assert(/SAVE_RANDOM_ENCOUNTER_STEPS_RANGE/.test(preflight.negative));
+    assert(/SAVE_RANDOM_ENCOUNTER_STEPS_INVALID/.test(preflight.fractional));
+    assert(/SAVE_RANDOM_ENCOUNTER_STEPS_RANGE/.test(preflight.tooLarge));
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(()=>window.gameState==='world',undefined,{timeout:3000});
+    const laterCount = await page.evaluate(() => {
+      const w=window._world;
+      for(let step=0;step<3;step++){
+        const x=w.player.tileX,y=w.player.tileY;
+        const move=[[1,0],[-1,0],[0,1],[0,-1]].find(([dx,dy])=>
+          w.isWalkableTile(x+dx,y+dy));
+        if(!move)throw Error('NO_SAFE_AFTER_SAVE_STEP');
+        w.movePlayer(...move);
+        if(window.gameState!=='world')throw Error('EARLY_RANDOM_ENCOUNTER_AFTER_SAVE');
+      }
+      return window._persistenceRuntime.buildSavePayload().runtime.randomEncounterSteps;
+    });
+    assert.strictEqual(laterCount,savedCount+3);
+    await page.keyboard.press('F9');
+    await page.waitForFunction(()=>window.gameState==='saveload',undefined,{timeout:3000});
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(()=>window._lastLoadResult?.envelope?.slot==='manual-1' &&
+      window.gameState==='world',undefined,{timeout:5000});
+    const restoredCount=await page.evaluate(()=>
+      window._persistenceRuntime.buildSavePayload().runtime.randomEncounterSteps);
+    assert.strictEqual(restoredCount,savedCount,'pacing counter not restored from manual save');
+
     // Review-mode random encounter is triggered through valid real world
     // steps, not via direct startCombat calls or state mutation.
     const walkResult = await page.evaluate(() => {
@@ -442,7 +524,7 @@ function createServer() {
     });
     assert.strictEqual(walkResult.gameState,'combat',
       'opt-in random encounter never reached dedicated battle: '+JSON.stringify(walkResult));
-    assert(walkResult.steps>=12 && walkResult.steps<=26,
+    assert(walkResult.steps+restoredCount>=12 && walkResult.steps+restoredCount<=26,
       'random encounter timing outside bounded range: '+JSON.stringify(walkResult));
     assert(walkResult.enemy && /aether.?leak/i.test(walkResult.enemy.name),
       'review random encounter must use expected enemy: '+JSON.stringify(walkResult));

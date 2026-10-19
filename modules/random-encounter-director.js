@@ -29,7 +29,12 @@
        return false;
      },
      reset(){steps=0;},
-     getSteps(){return steps;}
+     getSteps(){return steps;},
+     restoreSteps(value){
+       if(!Number.isInteger(value)||value<0||value>=maxSteps)
+         throw new Error('INVALID_ENCOUNTER_STEPS');
+       steps=value;
+     }
    });
  }
  return Object.freeze({create,enemyForTile});

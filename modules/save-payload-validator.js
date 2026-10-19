@@ -57,6 +57,13 @@
     assert(typeof runtime.skyLayerVisible === 'boolean', 'SAVE_RUNTIME_SKY_LAYER_INVALID');
     finite(runtime.playtimeMs, 'SAVE_RUNTIME_PLAYTIME_INVALID');
     assert(runtime.playtimeMs >= 0, 'SAVE_RUNTIME_PLAYTIME_NEGATIVE');
+    // The opt-in Chapter 1 random director persists only a bounded counter.
+    // Older saves omit it and remain valid; malformed values fail before apply.
+    if (runtime.randomEncounterSteps !== undefined) {
+      integer(runtime.randomEncounterSteps, 'SAVE_RANDOM_ENCOUNTER_STEPS_INVALID');
+      assert(runtime.randomEncounterSteps >= 0 && runtime.randomEncounterSteps < 26,
+        'SAVE_RANDOM_ENCOUNTER_STEPS_RANGE');
+    }
     return true;
   }
 

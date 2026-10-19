@@ -16,6 +16,14 @@ assert.equal(a.onWalk(()=>0.19),true);
 assert.equal(a.onWalk(()=>0),false,'encounter resets counter');
 a.reset();
 assert.equal(a.getSteps(),0);
+for(let n=0;n<5;n++)a.onWalk(()=>0.99);
+assert.equal(a.getSteps(),5);
+a.restoreSteps(4);
+assert.equal(a.getSteps(),4);
+assert.throws(()=>a.restoreSteps(-1),/INVALID_ENCOUNTER_STEPS/);
+assert.throws(()=>a.restoreSteps(8),/INVALID_ENCOUNTER_STEPS/);
+assert.throws(()=>a.restoreSteps(1.5),/INVALID_ENCOUNTER_STEPS/);
+a.restoreSteps(0);
 for(const invalid of [{minSteps:0},{maxSteps:1,minSteps:3},{chance:2},{chance:-1}])
  assert.throws(()=>dir.create(invalid));
 assert.equal(dir.enemyForTile(26,24),'aetherLeak');
