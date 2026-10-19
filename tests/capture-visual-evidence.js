@@ -14,8 +14,12 @@ const OUT = path.resolve(
   process.env.AETHERWAKE_VISUAL_EVIDENCE_DIR ||
   path.join(BASE, 'visual-evidence')
 );
+const RESAMPLE = process.env.AETHERWAKE_ENDER_RESAMPLE_REVIEW || '';
+if (RESAMPLE && !['lanczos', 'bicubic'].includes(RESAMPLE)) {
+  throw new Error('Invalid Ender resampling review mode');
+}
 const RUNTIME_QUERY = process.env.AETHERWAKE_CANDIDATE_FIELD_REVIEW === '1'
-  ? '?candidateFieldArt=1'
+  ? '?candidateFieldArt=1' + (RESAMPLE ? '&enderReviewResample=' + RESAMPLE : '')
   : '';
 const RUNTIME_URL = `http://127.0.0.1:${PORT}/index-embedded.html${RUNTIME_QUERY}`;
 
