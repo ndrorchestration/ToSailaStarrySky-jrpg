@@ -1,0 +1,70 @@
+{
+  "status": "ORIGINAL_PROCEDURAL_REVIEW_NOT_ADMITTED",
+  "provenance": "hand-authored geometry in scripts/make-ionia-walk-review.py",
+  "sourceVersion": 1,
+  "frameCell": [
+    64,
+    96
+  ],
+  "frames": [
+    {
+      "pose": 0,
+      "alphaBox": [
+        16,
+        13,
+        53,
+        94
+      ]
+    },
+    {
+      "pose": 1,
+      "alphaBox": [
+        16,
+        13,
+        52,
+        94
+      ]
+    },
+    {
+      "pose": 2,
+      "alphaBox": [
+        16,
+        13,
+        51,
+        94
+      ]
+    },
+    {
+      "pose": 3,
+      "alphaBox": [
+        14,
+        13,
+        51,
+        94
+      ]
+    },
+    {
+      "pose": 4,
+      "alphaBox": [
+        16,
+        13,
+        50,
+        94
+      ]
+    },
+    {
+      "pose": 5,
+      "alphaBox": [
+        16,
+        13,
+        51,
+        94
+      ]
+    }
+  ],
+  "assets": {
+    "ionia-walk-6frame-review.png": "20b819c9880232848662a479f9da4f1af5d0d24ba0793296dcebd64868d5dfb8",
+    "ionia-walk-source-6frame.png": "ff359e90178a1f178ad9ccdac8f174dbb4a8fdec4fd63eb5710c0bf9dcc3b911",
+    "ionia-walk-review.gif": "81715c01d01557cc82c69d00c2afb22606ae6084c78e013a7938d214fd248e7a"
+  }
+}
