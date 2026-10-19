@@ -1,5 +1,6 @@
 const { chromium } = require('playwright');
 const childProcess = require('child_process');
+const { reachLyra, acknowledgeLyra, throughCore } = require('../tests/helpers/wake-keyboard-route');
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
@@ -94,13 +95,6 @@ async function capture(page, outputRoot, captures, id, description) {
   captures.push({ id, description, file: fileName });
 }
 
-async function pressEnter(page, count = 1) {
-  for (let i = 0; i < count; i++) {
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(120);
-  }
-}
-
 (async () => {
   const { commit, outputRoot } = prepareEvidenceDir();
   const captures = [];
@@ -157,31 +151,32 @@ async function pressEnter(page, count = 1) {
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'arrival_horizon'
     , undefined, { timeout: 5000 });
 
-    await capture(page, outputRoot, captures, 'arrival-horizon', 'First Wake arrival_horizon opening beat');
-
+    // Capture the settled arrival, not the immediate dark fade-in frame.
     await page.waitForFunction(() =>
-      window.AetherFirstWakeOpening &&
-      typeof window.AetherFirstWakeOpening.canAdvancePresentation === 'function' &&
       window.AetherFirstWakeOpening.canAdvancePresentation(window._firstWakeOpeningState)
-    , undefined, { timeout: 5000 });
+    , undefined, { timeout: 10000 });
+    await page.waitForTimeout(250);
+    await capture(page, outputRoot, captures, 'arrival-horizon', 'settled First Wake arrival_horizon opening beat');
 
-    await pressEnter(page, 6);
-    await page.waitForFunction(() =>
-      window.gameState === 'opening' &&
-      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'lyra_join'
-    , undefined, { timeout: 5000 });
-    await capture(page, outputRoot, captures, 'lyra-join', 'Lyra join beat before active-party mutation');
+    // The revised opening gates Lyra's join on real keyboard exploration,
+    // a dialogue page, and an acknowledgement. Never skip those states.
+    await reachLyra(page);
+    await page.waitForTimeout(250);
+    await capture(page, outputRoot, captures, 'lyra-join', 'Lyra join exploration before acknowledgement and party mutation');
 
-    await page.keyboard.press('Enter');
+    await acknowledgeLyra(page);
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 7 &&
       window.ACTIVE_PARTY.map(character => character.id).join('|') === 'ender|lyra'
     , undefined, { timeout: 5000 });
-    await capture(page, outputRoot, captures, 'ender-lyra-party', 'post-join First Wake party boundary');
+    await page.waitForTimeout(250);
+    await capture(page, outputRoot, captures, 'ender-lyra-party', 'post-acknowledgement First Wake party boundary');
 
-    await pressEnter(page, 3);
+    // Complete the Ionia and Wakeheart route through the physical keyboard;
+    // do not infer a world handoff from a fixed Enter-key count.
+    await throughCore(page);
     await page.waitForFunction(() => window.gameState === 'world' && window._world && window._world.player,
-      undefined, { timeout: 5000 });
+      undefined, { timeout: 10000 });
     await page.waitForTimeout(450);
     await capture(page, outputRoot, captures, 'world-handoff', 'world handoff after authored First Wake opening');
 
@@ -197,8 +192,14 @@ async function pressEnter(page, count = 1) {
       firstLine: Array.isArray(window.UI.dialogueLines) ? window.UI.dialogueLines[0] : window.UI.dialogueText,
     }));
     assert(String(dialogueState.npc).includes('Captain Ionia'), 'Captain Ionia dialogue was not opened');
-    await page.waitForTimeout(420);
-    await capture(page, outputRoot, captures, 'captain-ionia-dialogue', 'Captain Ionia authored first-contact dialogue');
+    // Capture the finished line, rather than a normal partially typed prefix.
+    await page.waitForFunction(() =>
+      typeof dialogueTypeIn !== 'undefined' &&
+      !dialogueTypeIn.active &&
+      window.UI.dialogueText === dialogueTypeIn.fullText
+    , undefined, { timeout: 10000 });
+    await page.waitForTimeout(200);
+    await capture(page, outputRoot, captures, 'captain-ionia-dialogue', 'Captain Ionia authored first-contact dialogue after type-in completion');
 
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
