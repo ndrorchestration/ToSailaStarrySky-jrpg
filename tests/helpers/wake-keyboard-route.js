@@ -36,6 +36,12 @@ async function narrative(page,id) {
     assert(after.exploration.active,id+': final confirmation did not enter exploration');entered=true;break;
   }
   assert(entered,id+': bounded dialogue pages did not reach exploration');
+  if (observeCanvas && id === 'lyra_join') {
+    // Let the live renderer present its objective before walking away from this scene.
+    // The physical-keyboard route can otherwise cross the cue between canvas frames.
+    await page.waitForFunction(() => window.__wakeCanvasText.has('FIND LYRA'),
+      undefined, { timeout: 10000 });
+  }
   if(observeCanvas)assert(await page.evaluate(()=>window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).lines.every(line=>window.__wakeCanvasText.has(line))),id+': some authored lines never reached the canvas');
   // Attempting to skip the interaction must hold at the same scene.
   await page.keyboard.press('Enter');
