@@ -121,7 +121,7 @@ jobs:
           if (-not (Test-Path -LiteralPath $exe)) { throw "Installed Aetherwake.exe was not found" }
 
           $env:AETHERWAKE_DESKTOP_SMOKE_MARKER = $marker
-          $game = Start-Process -FilePath $exe -PassThru
+          $game = Start-Process -FilePath $exe -ArgumentList @("`"--aw-desktop-smoke-marker=$marker`"") -PassThru
 
           $deadline = (Get-Date).AddSeconds(20)
           while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $marker)) {

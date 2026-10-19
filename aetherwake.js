@@ -212,7 +212,15 @@ function writeDesktopSmokeMarkerOnce() {
   if (window.__awDesktopSmokeMarkerWritten) return;
   try {
     if (typeof process === 'undefined' || !process.env) return;
-    const markerPath = process.env.AETHERWAKE_DESKTOP_SMOKE_MARKER;
+    const envMarkerPath = process.env.AETHERWAKE_DESKTOP_SMOKE_MARKER;
+    // NW.js on Windows can expose startup args even when custom environment variables
+    // are absent from the renderer process. Neither source bypasses readiness checks.
+    const nwArgs = typeof nw !== 'undefined' && nw.App && Array.isArray(nw.App.argv)
+      ? nw.App.argv : [];
+    const markerArgument = nwArgs.find(arg =>
+      typeof arg === 'string' && arg.startsWith('--aw-desktop-smoke-marker='));
+    const markerPath = envMarkerPath || (markerArgument
+      ? markerArgument.slice('--aw-desktop-smoke-marker='.length) : null);
     if (!markerPath) return;
     if (!window.__awRuntimeReady || !window.__awFirstFrame) return;
     if (typeof require !== 'function') return;

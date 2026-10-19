@@ -86,6 +86,8 @@ assert(workflow.includes('runs-on: windows-2022'),
   'Windows verification must use a pinned runner image');
 assert(workflow.includes('Install and launch exact candidate'),
   'desktop workflow must install-smoke the exact candidate installer');
+assert(workflow.includes('--aw-desktop-smoke-marker='),
+  'hosted installed-launch script must pass NW.js argv marker fallback (quoted for space paths)');
 assert(workflow.includes('AETHERWAKE_DESKTOP_SMOKE_MARKER'),
   'desktop workflow must require an application-level readiness marker');
 assert(workflow.includes('DESKTOP_RENDER_READINESS=PASS'),
@@ -127,6 +129,8 @@ assert(localReleaseScript.includes('Start-Process -FilePath $installer'),
   'local Windows release fallback must install-smoke the generated installer');
 assert(localReleaseScript.includes('Start-Process -FilePath $installedExe'),
   'local Windows release fallback must launch-smoke the installed game');
+assert(localReleaseScript.includes('--aw-desktop-smoke-marker='),
+  'local installed-launch script must pass NW.js argv marker fallback (quoted for space paths)');
 assert(localReleaseScript.includes('AETHERWAKE_DESKTOP_SMOKE_MARKER'),
   'local Windows release fallback must require application-level render readiness');
 assert(localReleaseScript.includes('DESKTOP_RENDER_READINESS=PASS'),
@@ -137,6 +141,8 @@ console.log('Aetherwake desktop package contract: PASS');
 const runtimeSource = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8');
 assert(runtimeSource.includes('function writeDesktopSmokeMarkerOnce()'),
   'runtime must expose a guarded desktop readiness marker writer');
+assert(runtimeSource.includes('nw.App.argv') && runtimeSource.includes('--aw-desktop-smoke-marker='),
+  'runtime marker must read explicit NW.js argument when renderer environment is absent');
 assert(runtimeSource.includes('window.__awRuntimeReady') &&
        runtimeSource.includes('window.__awFirstFrame'),
   'desktop readiness marker must be bound to runtime-ready and completed-first-frame signals');

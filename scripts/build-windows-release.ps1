@@ -89,7 +89,7 @@ if (Test-Path -LiteralPath $marker) {
   Remove-Item -LiteralPath $marker -Force
 }
 $env:AETHERWAKE_DESKTOP_SMOKE_MARKER = $marker
-$game = Start-Process -FilePath $installedExe -PassThru
+$game = Start-Process -FilePath $installedExe -ArgumentList @("`"--aw-desktop-smoke-marker=$marker`"") -PassThru
 
 $deadline = (Get-Date).AddSeconds(20)
 while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $marker)) {
