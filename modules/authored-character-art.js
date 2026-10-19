@@ -130,6 +130,39 @@
       return match ? match[1] : '';
     }catch(error){return '';}
   }
+  function ioniaReviewEnabled(){
+    if(!candidateReviewEnabled()) return false;
+    try{
+      return Boolean(root && root.location &&
+        /(?:\?|&)ioniaReviewArt=1(?:&|$)/.test(String(root.location.search||'')));
+    }catch(error){return false;}
+  }
+  const ioniaReviewState=Object.create(null);
+  function drawIoniaReviewField(x,y,options={}){
+    if(!ioniaReviewEnabled() || typeof loadImage!=='function' || typeof image!=='function') return false;
+    const action=fieldAction(options.action || (options.speed>0?'walk':'idle'));
+    // No authored idle sequence: show static first pose only in the opt-in
+    // review scene; retain normal fallback for other missing actions.
+    if(action!=='walk' && action!=='idle') return false;
+    if(!ioniaReviewState.walk){
+      const entry=ioniaReviewState.walk={ready:false,image:null};
+      try{
+        loadImage('art-staging/field/ionia/review/ionia-walk-6frame-review.png',
+          img=>{entry.image=img;entry.ready=Boolean(img&&img.width===384&&img.height===96);},
+          ()=>{entry.ready=false;entry.image=null;});
+      }catch(error){entry.ready=false;}
+    }
+    const entry=ioniaReviewState.walk;
+    if(!entry.ready||!entry.image) return false;
+    const frame=action==='walk' ? Math.abs(Math.floor(Number(options.frame)||0))%6 : 0;
+    const scale=Math.max(0.25,(Number(options.scale)||2)*0.5);
+    const w=64*scale,h=96*scale;
+    const dx=options.anchor==='top-left'?x:x-w/2;
+    const dy=options.anchor==='top-left'?y:y-h;
+    push();imageMode(CORNER);noSmooth();
+    image(entry.image,dx,dy,w,h,frame*64,0,64,96);
+    pop();return true;
+  }
   const authoredCandidateState=Object.create(null);
   function drawAuthoredFieldCandidate(id,x,y,options={}){
     if(id!=='ender'||!candidateReviewEnabled()||typeof loadImage!=='function'||typeof image!=='function') return false;
@@ -213,6 +246,7 @@
     return entry;
   }
   function drawProvisionalFieldCharacter(id,x,y,options={}){
+    if(id==='ionia' && drawIoniaReviewField(x,y,options)) return true;
     if(drawAuthoredFieldCandidate(id,x,y,options)) return true;
     const action=fieldAction(options.action || (options.speed>0?'walk':'idle'));
     const entry=ensureProvisionalStrip(id,action);
