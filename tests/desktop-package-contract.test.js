@@ -6,6 +6,13 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+assert(packageJson.window && packageJson.window.title === 'Aetherwake',
+  'development desktop title must retain the canonical game name without a subtitle');
+for (const page of ['index.html', 'index-embedded.html']) {
+  const html = fs.readFileSync(path.join(__dirname, '..', page), 'utf8');
+  assert(/<title>Aetherwake<\/title>/.test(html),
+    page + ' must present the canonical subtitle-free title without mojibake');
+}
 assert(packageJson.main === 'index-embedded.html',
   'development manifest must retain the embedded HTML entry point');
 assert(packageJson.window && packageJson.window.width === 1440,
@@ -25,6 +32,10 @@ const stageScript = fs.readFileSync(
   path.join(__dirname, '..', 'scripts', 'stage-memories-desktop.js'),
   'utf8'
 );
+assert(stageScript.includes('title: rootPackage.window.title'),
+  'staged production desktop title must inherit the canonical root package title');
+assert(!stageScript.includes('THE LAST SOLARPUNK AIRSHIP'),
+  'production desktop manifest must not restore the retired subtitle');
 assert(stageScript.includes("main: 'www/index-embedded.html'"),
   'production desktop manifest must use the RPG Maker MV-style www entrypoint');
 assert(stageScript.includes("'icon.ico'"),
@@ -75,6 +86,8 @@ assert(workflow.includes('runs-on: windows-2022'),
   'Windows verification must use a pinned runner image');
 assert(workflow.includes('Install and launch exact candidate'),
   'desktop workflow must install-smoke the exact candidate installer');
+assert(workflow.includes('--aw-desktop-smoke-marker='),
+  'hosted installed-launch script must pass NW.js argv marker fallback (quoted for space paths)');
 assert(workflow.includes('AETHERWAKE_DESKTOP_SMOKE_MARKER'),
   'desktop workflow must require an application-level readiness marker');
 assert(workflow.includes('DESKTOP_RENDER_READINESS=PASS'),
@@ -96,6 +109,8 @@ const localReleaseScript = fs.readFileSync(
   path.join(__dirname, '..', 'scripts', 'build-windows-release.ps1'),
   'utf8'
 );
+assert(/^# Aetherwake\r?\n/.test(readme),
+  'README project heading must use the canonical subtitle-free game title');
 assert(readme.includes('Aetherwake-Setup.exe'),
   'README must advertise the standard installer');
 assert(readme.includes('Aetherwake-Windows.zip'),
@@ -114,16 +129,37 @@ assert(localReleaseScript.includes('Start-Process -FilePath $installer'),
   'local Windows release fallback must install-smoke the generated installer');
 assert(localReleaseScript.includes('Start-Process -FilePath $installedExe'),
   'local Windows release fallback must launch-smoke the installed game');
+assert(localReleaseScript.includes('--aw-desktop-smoke-marker='),
+  'local installed-launch script must pass NW.js argv marker fallback (quoted for space paths)');
 assert(localReleaseScript.includes('AETHERWAKE_DESKTOP_SMOKE_MARKER'),
   'local Windows release fallback must require application-level render readiness');
 assert(localReleaseScript.includes('DESKTOP_RENDER_READINESS=PASS'),
   'local Windows release fallback must verify a rendered first frame');
 
+// Security hold #293 must stop both Windows entry points before binary build.
+const securityHoldStep = 'Fail closed while generated NSIS uninstaller security hold is unresolved';
+assert(workflow.indexOf(securityHoldStep) >= 0 &&
+       workflow.indexOf(securityHoldStep) < workflow.indexOf('      - name: Check out source'),
+  'Windows workflow must fail closed before checkout and installer creation');
+assert(workflow.includes('throw "SECURITY_HOLD_293:'),
+  'workflow must expose an explicit failure, not a successful skipped job');
+assert(workflow.includes('permissions:\n  contents: read') &&
+       !workflow.includes('contents: write'),
+  'unadmitted release workflow must have no release write permission');
+const releaseStep = workflow.slice(workflow.indexOf('      - name: Publish verified Windows release'));
+assert(releaseStep.includes('if: ${{ false }}'),
+  'Windows release publication must be unconditionally disabled under hold');
+const localHoldAt = localReleaseScript.indexOf('throw "SECURITY_HOLD_293:');
+assert(localHoldAt >= 0 && localHoldAt < localReleaseScript.indexOf('npm ci') &&
+       localHoldAt < localReleaseScript.indexOf('Start-Process -FilePath $installer'),
+  'local installer script must stop before dependencies/build/install');
 console.log('Aetherwake desktop package contract: PASS');
 
 const runtimeSource = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8');
 assert(runtimeSource.includes('function writeDesktopSmokeMarkerOnce()'),
   'runtime must expose a guarded desktop readiness marker writer');
+assert(runtimeSource.includes('nw.App.argv') && runtimeSource.includes('--aw-desktop-smoke-marker='),
+  'runtime marker must read explicit NW.js argument when renderer environment is absent');
 assert(runtimeSource.includes('window.__awRuntimeReady') &&
        runtimeSource.includes('window.__awFirstFrame'),
   'desktop readiness marker must be bound to runtime-ready and completed-first-frame signals');

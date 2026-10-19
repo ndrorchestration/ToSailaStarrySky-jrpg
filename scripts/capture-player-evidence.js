@@ -1,5 +1,6 @@
 const { chromium } = require('playwright');
 const childProcess = require('child_process');
+const { reachLyra, acknowledgeLyra, throughCore } = require('../tests/helpers/wake-keyboard-route');
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
@@ -78,6 +79,13 @@ async function waitForRuntime(page) {
     document.querySelector('canvas').width === 960 &&
     document.querySelector('canvas').height === 640
   , undefined, { timeout: 15000 });
+
+  // Evidence labelled as title-ready must show the authored title/menu,
+  // never the HTML preloader or the timed boot/preamble canvas.
+  await page.waitForFunction(() =>
+    window.__awLoadingDone === true &&
+    window.gameState === 'menu'
+  , undefined, { timeout: 15000 });
 }
 
 async function capture(page, outputRoot, captures, id, description) {
@@ -85,13 +93,6 @@ async function capture(page, outputRoot, captures, id, description) {
   const filePath = path.join(outputRoot, fileName);
   await page.screenshot({ path: filePath, fullPage: false });
   captures.push({ id, description, file: fileName });
-}
-
-async function pressEnter(page, count = 1) {
-  for (let i = 0; i < count; i++) {
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(120);
-  }
 }
 
 (async () => {
@@ -103,7 +104,8 @@ async function pressEnter(page, count = 1) {
     sourceCommit: commit,
     capturedAt: new Date().toISOString(),
     viewport: VIEWPORT,
-    entrypoint: 'index-embedded.html',
+    entrypoint: 'index-embedded.html?candidateFieldArt=1',
+    fieldArtReviewMode: 'CANDIDATE_REVIEW_NOT_ADMITTED',
     desktopExecutable: 'Aetherwake.exe',
     humanAcceptance: 'PENDING',
     visualAcceptance: 'PENDING',
@@ -135,7 +137,7 @@ async function pressEnter(page, count = 1) {
   });
 
   try {
-    const response = await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html`, {
+    const response = await page.goto(`http://127.0.0.1:${PORT}/index-embedded.html?candidateFieldArt=1`, {
       waitUntil: 'domcontentloaded',
       timeout: 20000,
     });
@@ -149,25 +151,33 @@ async function pressEnter(page, count = 1) {
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'arrival_horizon'
     , undefined, { timeout: 5000 });
 
-    await capture(page, outputRoot, captures, 'arrival-horizon', 'First Wake arrival_horizon opening beat');
-
-    await pressEnter(page, 6);
+    // Capture the settled arrival, not the immediate dark fade-in frame.
     await page.waitForFunction(() =>
-      window.gameState === 'opening' &&
-      window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'lyra_join'
-    , undefined, { timeout: 5000 });
-    await capture(page, outputRoot, captures, 'lyra-join', 'Lyra join beat before active-party mutation');
+      window.AetherFirstWakeOpening.canAdvancePresentation(window._firstWakeOpeningState)
+    , undefined, { timeout: 10000 });
+    await page.waitForTimeout(250);
+    await capture(page, outputRoot, captures, 'arrival-horizon', 'settled First Wake arrival_horizon opening beat');
 
-    await page.keyboard.press('Enter');
+    // The revised opening gates Lyra's join on real keyboard exploration,
+    // a dialogue page, and an acknowledgement. Never skip those states.
+    await reachLyra(page);
+    await page.waitForTimeout(250);
+    await capture(page, outputRoot, captures, 'lyra-join', 'Lyra join exploration before acknowledgement and party mutation');
+
+    await acknowledgeLyra(page);
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 7 &&
       window.ACTIVE_PARTY.map(character => character.id).join('|') === 'ender|lyra'
     , undefined, { timeout: 5000 });
-    await capture(page, outputRoot, captures, 'ender-lyra-party', 'post-join First Wake party boundary');
+    await page.waitForTimeout(250);
+    await capture(page, outputRoot, captures, 'ender-lyra-party', 'post-acknowledgement First Wake party boundary');
 
-    await pressEnter(page, 3);
+    // Complete the Ionia and Wakeheart route through the physical keyboard;
+    // do not infer a world handoff from a fixed Enter-key count.
+    await throughCore(page);
     await page.waitForFunction(() => window.gameState === 'world' && window._world && window._world.player,
-      undefined, { timeout: 5000 });
+      undefined, { timeout: 10000 });
+    await page.waitForTimeout(450);
     await capture(page, outputRoot, captures, 'world-handoff', 'world handoff after authored First Wake opening');
 
     await page.evaluate(() => {
@@ -182,19 +192,75 @@ async function pressEnter(page, count = 1) {
       firstLine: Array.isArray(window.UI.dialogueLines) ? window.UI.dialogueLines[0] : window.UI.dialogueText,
     }));
     assert(String(dialogueState.npc).includes('Captain Ionia'), 'Captain Ionia dialogue was not opened');
-    await capture(page, outputRoot, captures, 'captain-ionia-dialogue', 'Captain Ionia authored first-contact dialogue');
+    // Capture the finished line, rather than a normal partially typed prefix.
+    await page.waitForFunction(() =>
+      typeof dialogueTypeIn !== 'undefined' &&
+      !dialogueTypeIn.active &&
+      window.UI.dialogueText === dialogueTypeIn.fullText
+    , undefined, { timeout: 10000 });
+    await page.waitForTimeout(200);
+    await capture(page, outputRoot, captures, 'captain-ionia-dialogue', 'Captain Ionia authored first-contact dialogue after type-in completion');
 
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => window.gameState === 'world', undefined, { timeout: 5000 });
     await page.keyboard.press('KeyC');
     await page.waitForFunction(() => window.gameState === 'combat' && window._combat && window._combat.getState().enemy,
       undefined, { timeout: 5000 });
+    await page.waitForTimeout(420);
     await capture(page, outputRoot, captures, 'combat-entry', 'representative combat entry frame for human review');
+
+    // Reuse the same bounded runtime transitions exercised by smoke to collect
+    // the two Part One visual surfaces missing from the earlier review packet.
+    // These are review staging steps, not proof of player-path acceptance.
+    const interiorState = await page.evaluate(() => {
+      finishCombat();
+      const p = window._world.player;
+      p.tileX = 23; p.tileY = 10; p.x = 23; p.y = 10; p.px = 23 * 16; p.py = 10 * 16;
+      window._world.boardShip();
+      return {
+        gameState: window.gameState,
+        shipBoarded: Boolean(window._world.player.shipBoarded),
+      };
+    });
+    assert(interiorState.gameState === 'world' && interiorState.shipBoarded,
+      'Dragonfly interior review staging did not enter the live boarded state');
+    await page.waitForTimeout(1800);
+    await capture(page, outputRoot, captures, 'dragonfly-interior',
+      'live Dragonfly interior after world.boardShip review staging');
+
+    const flightState = await page.evaluate(() => {
+      if (typeof enterAirNavigation !== 'function') throw new Error('enterAirNavigation unavailable');
+      const entered = enterAirNavigation();
+      return {
+        entered,
+        gameState: window.gameState,
+        moored: window._airNavigationState && window._airNavigationState.mooredLandmarkId,
+      };
+    });
+    assert(flightState.entered === true && flightState.gameState === 'airship',
+      'open-sky flight review staging did not activate');
+    assert(flightState.moored === 'wake-dock',
+      'flight review staging did not begin moored at Wake Dock');
+    await page.waitForTimeout(1550);
+    await capture(page, outputRoot, captures, 'flight-wake-dock',
+      'Dragonfly moored at Wake Dock in live flight presentation');
+
+    await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() =>
+      window.gameState === 'airship' &&
+      window._airNavigationState &&
+      window._airNavigationState.mooredLandmarkId === null
+    , undefined, { timeout: 5000 });
+    await page.waitForTimeout(950);
+    await capture(page, outputRoot, captures, 'flight-open-sky',
+      'Dragonfly cast off into the live open-sky presentation');
 
     verification.runtimeChecks = {
       arrivalScene: 'arrival_horizon',
       joinScene: 'lyra_join',
       ioniaDialogueNpc: dialogueState.npc,
+      interiorStagedViaWorldBoardShip: true,
+      flightStagedViaEnterAirNavigation: true,
       captureCount: captures.length,
     };
     verification.status = 'CAPTURED_PENDING_HUMAN_REVIEW';

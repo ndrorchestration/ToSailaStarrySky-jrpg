@@ -48,6 +48,12 @@ for (const required of [
   'arrival_horizon',
   'lyra_join',
   'Captain Ionia',
+  'dragonfly-interior',
+  'flight-wake-dock',
+  'flight-open-sky',
+  "fieldArtReviewMode: 'CANDIDATE_REVIEW_NOT_ADMITTED'",
+  'interiorStagedViaWorldBoardShip',
+  'flightStagedViaEnterAirNavigation',
   'Aetherwake.exe',
 ]) {
   assert(source.includes(required), `capture script must include required authority marker: ${required}`);
@@ -62,4 +68,16 @@ for (const forbidden of [
   assert(!source.includes(forbidden), `capture script must not contain unsafe shortcut/approval marker: ${forbidden}`);
 }
 
+for (const requiredRoute of [
+  "require('../tests/helpers/wake-keyboard-route')",
+  'await reachLyra(page)',
+  'await acknowledgeLyra(page)',
+  'await throughCore(page)',
+  'dialogueTypeIn.fullText',
+]) {
+  assert(source.includes(requiredRoute), 'capture must exercise the complete keyboard opening and settled dialogue: ' + requiredRoute);
+}
+for (const staleShortcut of ['await pressEnter(page, 6)', 'await pressEnter(page, 3)']) {
+  assert(!source.includes(staleShortcut), 'capture must not bypass the revised exploration gates: ' + staleShortcut);
+}
 console.log('PLAYER_EVIDENCE_CAPTURE_CONTRACT=PASS');

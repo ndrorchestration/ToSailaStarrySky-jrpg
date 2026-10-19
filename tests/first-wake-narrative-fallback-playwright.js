@@ -1,0 +1,97 @@
+'use strict';
+const assert = require('assert');
+const { chromium } = require('playwright');
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+const out = path.join(root, 'evidence/narrative-fallback-20261016');
+fs.mkdirSync(out, {recursive:true});
+(async () => {
+  const server = http.createServer((request,response) => {
+    const file = path.resolve(root, '.' + decodeURIComponent(request.url.split('?')[0]));
+    if (!file.startsWith(root + path.sep)) {response.writeHead(403); response.end(); return;}
+    fs.readFile(file,(error,data) => {
+      response.writeHead(error ? 404 : 200, {'Content-Type': ({'.js':'application/javascript','.png':'image/png','.css':'text/css'})[path.extname(file)] || 'text/html'});
+      response.end(error ? 'missing' : data);
+    });
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const browser = await chromium.launch({headless:true,
+    ...(process.env.AETHERWAKE_CHROMIUM ? {executablePath:process.env.AETHERWAKE_CHROMIUM}:{}),
+    args:['--no-sandbox']});
+  try {
+    const page = await browser.newPage({viewport:{width:960,height:640}});
+    const pageErrors = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+    await page.goto('http://127.0.0.1:' + server.address().port + '/index-embedded.html', {waitUntil:'domcontentloaded'});
+    await page.waitForFunction(() => document.querySelector('canvas') && window._firstWakeOpeningState);
+    await page.evaluate(() => {noLoop(); window.__hudText=[]; window.__canvasText=[]; const originalFill=CanvasRenderingContext2D.prototype.fillText;
+      CanvasRenderingContext2D.prototype.fillText=function(value,...args){window.__canvasText.push(String(value));return originalFill.call(this,value,...args);};
+      const original=window.text;
+      window.text=function(value,...args) {window.__hudText.push({value:String(value),args});return original(value,...args);};});
+    const probes=[];
+    for (const sequence of [5,6,7,8]) {
+      const probe = await page.evaluate(sequence => {
+        const opening=window.AetherFirstWakeOpening, state=opening.createState();
+        while (opening.currentScene(state).sequence < sequence) {
+          opening.tickPresentation(state,10000); opening.advance(state);
+        }
+        opening.tickPresentation(state,180);
+        window.__hudProbeState=state; window.__hudText=[];window.__canvasText=[];
+        window.AetherFirstWakeVisual.draw(opening.currentScene(state),state,{now:3000});
+        return {sequence,sceneId:opening.currentScene(state).id,
+          controllerVersion:opening.VERSION, controllerKeys:Object.keys(opening),
+          stateKeys:Object.keys(state),hasExplorationState:!!state.wakeExploration,
+          viewAPI:typeof opening.wakeExplorationView,hotspotAPI:typeof opening.nearbyWakeHotspot,
+          authoredLines:opening.currentScene(state).lines.slice(0,3), renderedText:window.__hudText, canvasText:window.__canvasText};
+      },sequence);
+      probes.push(probe);
+      for(const line of probe.authoredLines) assert(probe.canvasText.includes(line),probe.sceneId+': canvas omitted authored narrative: '+line);
+      assert(probe.canvasText.includes('ENTER   CONTINUE'),probe.sceneId+': canvas omitted continuation cue');
+    }
+    // Diagnostic input fixtures exercise glyph bounds without admitting the older
+    // V46 controller. First line is authored candidate copy from PR258 f6798f4.
+    const textBounds = await page.evaluate(() => {
+      const savedOpening=window.AetherFirstWakeOpening, savedText=window.text, savedNight=window._isNight;
+      const results=[];
+      const messages=['The Core route stays sealed. You need more than one way of seeing the problem.',
+        'A short observation.', 'W'.repeat(72), '🧭'.repeat(72), ''];
+      try {
+        for(const night of [false,true]) for(const clues of [[],['structural'],['structural','frequency'],['structural','frequency','systems']]) for(const message of messages) {
+          let feedback,objective;
+          window._isNight=night;
+          window.AetherFirstWakeOpening={wakeExplorationView:()=>({zone:'berth',objective:'Investigate the anomaly: 0 / 2 required clues.',lastMessage:message}),nearbyWakeHotspot:()=>null};
+          window.text=function(value,...args){const measured={text:String(value),width:textWidth(String(value))};if(args[1]===559)feedback=measured;if(args[1]===52)objective=measured;return savedText(value,...args);};
+          window.AetherFirstWakeVisual.draw({id:'core_walk',sequence:8,lines:[]},
+            {wakeExploration:{x:2,y:2,clues:clues.slice()}},{now:3000});
+          if(!feedback || feedback.width>496)throw new Error('Feedback exceeds measured 496px content width');
+          if(!objective || objective.width>296)throw new Error('Objective exceeds measured 296px content width');
+          if(message==='A short observation.' && feedback.text!==message)throw new Error('Short message changed');
+          results.push({night,clueCount:clues.length,...feedback,objective});
+        }
+        return results;
+      } finally {window.AetherFirstWakeOpening=savedOpening;window.text=savedText;window._isNight=savedNight;}
+    });
+    assert.strictEqual(textBounds.length,40,'all bounded diagnostic cases must run');
+    // Settle the actual admitted interior plate and sprite loads before capture.
+    await page.waitForTimeout(1200);
+    for (const night of [false,true]) {
+      await page.evaluate(night => {window._isNight=night;window.__hudText=[];
+        const o=window.AetherFirstWakeOpening,s=window.__hudProbeState;
+        background(0);window.AetherFirstWakeVisual.draw(o.currentScene(s),s,{now:3000});drawVignette();},night);
+      await page.locator('canvas').screenshot({path:path.join(out,night?'core-walk-night.png':'core-walk-day.png')});
+    }
+    assert.strictEqual(pageErrors.length,0,'renderer emitted a page error');
+    const manifest={sourceSha:process.env.AETHERWAKE_SOURCE_SHA || 'local unversioned candidate',
+      capturedAt:new Date().toISOString(),viewport:{width:960,height:640},
+      browser:browser.version(),environment:'Linux scratch; RDC devices offline',
+      method:'Production index-embedded modules; default narrative-only createState/advance compatibility mode; direct renderer probe at settled tick180. Day/night vignette flag and synthetic width fixtures, not the live New Game route.',
+      probes,pageErrors,textBounds,
+      result:'NARRATIVE_COMPATIBILITY_AND_DIAGNOSTIC_WIDTH_PASS',
+      limitation:'Direct compatibility/width probes do not establish the live exploration route. That route is separately tested by wake-exploration-playwright.js with physical keyboard input. Partial local materialization may omit unrelated optional assets.',
+      VISUAL_ACCEPTANCE:'PENDING',HUMAN_PLAYER_ACCEPTANCE:'PENDING',PROMOTION:'NOT_AUTHORIZED'};
+    fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
+    console.log(JSON.stringify(manifest,null,2));
+  } finally {await browser.close();await new Promise(resolve=>server.close(resolve));}
+})().catch(error=>{console.error(error);process.exitCode=1;});

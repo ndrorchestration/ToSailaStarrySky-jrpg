@@ -52,6 +52,7 @@ const QUEST_STATES = {
 // ---------------------------------------------------------------------------
 let groundLayer = [];
 let skyLayer    = [];
+let loreTextByCoord = Object.create(null);
 let player = {};
 let dayTime = 0;
 let covenantField = null;
@@ -93,6 +94,7 @@ function init() {
 function buildMap() {
   groundLayer = [];
   skyLayer    = [];
+  loreTextByCoord = Object.create(null);
   for (let y = 0; y < MAP_SIZE; y++) {
     groundLayer[y] = new Array(MAP_SIZE);
     skyLayer[y]    = new Array(MAP_SIZE);
@@ -139,7 +141,7 @@ function buildMap() {
   for (const l of loreSpots) {
     if (inBounds(l.x, l.y)) {
       groundLayer[l.y][l.x] = TILE_TYPES.GROUND_LORE;
-      groundLayer[l.y][l.x]._loreText = l.text;
+      loreTextByCoord[l.x + ',' + l.y] = l.text;
     }
   }
 
@@ -604,8 +606,7 @@ function checkLoreTile(tx, ty) {
   if (t === TILE_TYPES.GROUND_LORE) {
     // Check if already discovered
     if (!quest.discoveries.some(d => d.x === tx && d.y === ty)) {
-      const tile = groundLayer[ty][tx];
-      const loreText = tile._loreText || 'Something hums beneath your feet.';
+      const loreText = loreTextByCoord[tx + ',' + ty] || 'Something hums beneath your feet.';
       quest.discoveries.push({ x: tx, y: ty, text: loreText });
       addLedgerEntry('discovery', 'You found something: ' + loreText);
       // Add a journal entry referencing the discovery
@@ -816,6 +817,10 @@ function nextDialogueLine() {
     activeDialogue.lineIndex++;
     window.UI.dialogueLineIndex = activeDialogue.lineIndex;
     window.UI.dialogueText = activeDialogue.lines[activeDialogue.lineIndex];
+    // A previous unfinished line must not overwrite the newly selected line.
+    if (typeof startDialogueTypeIn === 'function') {
+      startDialogueTypeIn(window.UI.dialogueText);
+    }
     // Advance TTS to the next line's audio clip
     window.UI.dialogueAudioPlayed = false;
     playDialogueAudioLine();
@@ -1067,16 +1072,89 @@ function update(dt) {
 // ---------------------------------------------------------------------------
 
 function render() {
-  drawGroundLayer();
-  if (isSkyLayerVisible) {
-    drawSkyLayer();
+  const visualAirNavigationState = (typeof window !== 'undefined' && window._airNavigationState) ? window._airNavigationState : null;
+  if (player.shipBoarded) {
+    drawShipInterior();
+  } else {
+    const benchmark = window.AetherVisualBenchmark;
+    const benchmarkActive = Boolean(
+      benchmark &&
+      typeof benchmark.isActive === 'function' &&
+      benchmark.isActive(player, visualAirNavigationState)
+    );
+    const benchmarkCtx = benchmarkActive ? {
+      width,
+      height,
+      now: millis(),
+      dayTime,
+      player,
+      airNavigationState: visualAirNavigationState
+    } : null;
+
+    if (benchmarkActive) benchmark.drawBackdrop(benchmarkCtx);
+
+    const previewPresentation = window.AetherPreviewWorldPresentation;
+    const previewRendered = previewPresentation &&
+      typeof previewPresentation.draw === 'function' && previewPresentation.draw({
+        groundLayer,
+        skyLayer,
+        player,
+        npcs,
+        covenantField,
+        width,
+        height,
+        now: millis(),
+        dayTime,
+        isSkyLayerVisible,
+        quest,
+        dialogueActive: Boolean(window.UI && window.UI.dialogueOpen),
+        dialogueNpcId: window.UI && window.UI.dialogueNPC ? window.UI.dialogueNPC.id : null,
+        skipBackdrop: benchmarkActive,
+        dockBenchmark: benchmarkActive,
+      });
+
+    if (!previewRendered) {
+      drawGroundLayer();
+      if (isSkyLayerVisible) drawSkyLayer();
+      if (benchmarkActive) {
+        benchmark.drawDragonfly({ x: 535, y: 258, now: millis(), moored: true });
+      }
+      drawCovenantField();
+      drawWorldAmbient();
+      drawGrassWind();
+      drawClouds();
+      drawStars();
+      drawEnginePulse();
+      drawQuestWorldReactions();
+      drawPlayer();
+      drawNPCs();
+      drawPlayerVisualEvolution();
+    }
+
+    if (benchmarkActive) {
+      // Keep the Dragonfly as the dock scene's hero object even when the
+      // projected 2.5D world renderer owns the play plane.
+      if (previewRendered && typeof benchmark.drawDragonfly === 'function') {
+        benchmark.drawDragonfly({
+          x: Math.round(width * 0.72),
+          y: Math.round(height * 0.43),
+          now: millis(),
+          moored: true
+        });
+      }
+      benchmark.drawLighting(benchmarkCtx);
+      benchmark.drawDockLights(benchmarkCtx);
+      benchmark.drawForeground(benchmarkCtx);
+    }
   }
-  drawCovenantField();
-  drawWorldAmbient();
-  drawPlayer();
-  drawNPCs();
   drawQuestOverlay();
   drawSolarMeter();
+  if (gameState === STATE.WORLD || gameState === STATE.DIALOGUE || gameState === STATE.SHOP || gameState === STATE.COMBAT) {
+    drawDayNightIndicator();
+  }
+  if (quest && quest.state === QUEST_STATES.CHOICE && !quest.choiceMade) {
+    drawChoiceMenu();
+  }
 }
 
 // --- Ground Layer -----------------------------------------------------------
@@ -1193,8 +1271,7 @@ function drawTileWater(px, py, s) {
 }
 
 function drawTileLore(px, py, s) {
-  const tile = groundLayer[py / s] && groundLayer[py / s][px / s];
-  const loreText = tile && tile._loreText ? tile._loreText : '';
+  const loreText = loreTextByCoord[(px / s) + ',' + (py / s)] || '';
   const discovered = quest.discoveries.some(d => d.x === px / s && d.y === py / s);
 
   // Base: dark crate with subtle cyan outline

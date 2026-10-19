@@ -1,3 +1,4 @@
+const {reachLyra,acknowledgeLyra,throughCore}=require('./helpers/wake-keyboard-route');
 const { chromium } = require('playwright');
 const http = require('http');
 const fs = require('fs');
@@ -133,7 +134,12 @@ function createServer() {
     assert(openingBootstrap.charCreatePhase !== 'name',
       'normal New Game incorrectly entered custom companion creation');
 
-    for (let i = 0; i < 6; i++) await page.keyboard.press('Enter');
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening &&
+      typeof window.AetherFirstWakeOpening.canAdvancePresentation === 'function' &&
+      window.AetherFirstWakeOpening.canAdvancePresentation(window._firstWakeOpeningState)
+    , undefined, { timeout: 5000 });
+    await reachLyra(page);
     await page.waitForFunction(() =>
       window.gameState === 'opening' &&
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 6
@@ -149,7 +155,7 @@ function createServer() {
     assert(beforeLyraJoin.activeIds.join('|') === 'ender',
       'Lyra joined before the authored Lyra join beat');
 
-    await page.keyboard.press('Enter');
+    await acknowledgeLyra(page);
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).sequence === 7 &&
       window.ACTIVE_PARTY.length === 2
@@ -170,9 +176,7 @@ function createServer() {
     assert(afterLyraJoin.ioniaActive === false,
       'Ionia joined before the authored departure decision');
 
-    await page.keyboard.press('Enter');
-    await page.keyboard.press('Enter');
-    await page.keyboard.press('Enter');
+    await throughCore(page);
     await page.waitForFunction(() =>
       window.gameState === 'world' &&
       window._world &&
@@ -248,6 +252,35 @@ function createServer() {
       const p = window._world.player;
       p.tileX = 7; p.tileY = 7; p.x = 7; p.y = 7; p.px = 7 * 16; p.py = 7 * 16;
     });
+    await page.evaluate(() => {
+      const original = window.wrapText;
+      window.__dialogueRenderedText = null;
+      window.wrapText = function (value, ...args) {
+        if (window.gameState === 'dialogue') window.__dialogueRenderedText = value;
+        return original(value, ...args);
+      };
+    });
+    const vignetteSamples = await page.evaluate(() => {
+      const priorNight = window._isNight;
+      const ctx = document.querySelector('canvas').getContext('2d');
+      const values = [];
+      noLoop();
+      try {
+        for (const night of [false, true]) {
+          window._isNight = night; background(255); drawVignette();
+          const sample = (x,y) => Array.from(ctx.getImageData(x,y,1,1).data);
+          values.push({night,center:sample(480,320),corner:sample(24,24)});
+        }
+      } finally { window._isNight = priorNight; loop(); }
+      return values;
+    });
+    for (const sample of vignetteSamples) {
+      assert(sample.center.slice(0,3).every(value => value >= 250),
+        'vignette darkened the central reading area');
+      assert(sample.corner[0] < sample.center[0], 'vignette did not shade scene edges');
+    }
+    assert(vignetteSamples[1].corner[0] < vignetteSamples[0].corner[0],
+      'night vignette must retain stronger edge shading than daylight');
     await page.keyboard.press('e');
     await page.waitForFunction(() => window.gameState === 'dialogue');
     const firstDialogue = await page.evaluate(() => ({
@@ -257,8 +290,30 @@ function createServer() {
     assert(firstDialogue.lines[0].includes('The Aureate Wake can fly'),
       'first NPC contact did not select Captain Ionia\'s authored intro dialogue');
     assert(firstDialogue.lineIndex === 0, 'dialogue did not start at line zero');
+    // Observe actual text passed to the live renderer, not just selected source lines.
+    await page.waitForFunction(() =>
+      !dialogueTypeIn.active &&
+      window.__dialogueRenderedText === window.UI.dialogueLines[0]
+    , undefined, { timeout: 20000 });
+    assert(await page.evaluate(() => window.UI.dialogueText === window.UI.dialogueLines[0]),
+      'Ionia first line did not settle into the live display');
+    // Re-enter an unfinished first-line animation and advance with real input.
+    await page.evaluate(() => window.startDialogueTypeIn(window.UI.dialogueLines[0]));
+    await page.waitForFunction(() =>
+      window.UI.dialogueText.length > 0 &&
+      window.UI.dialogueText.length < window.UI.dialogueLines[0].length
+    );
     await page.keyboard.press('e');
     await page.waitForFunction(() => window.UI.dialogueLineIndex === 1);
+    await page.waitForFunction(() =>
+      !dialogueTypeIn.active &&
+      window.__dialogueRenderedText === window.UI.dialogueLines[1]
+    , undefined, { timeout: 20000 });
+    // Completion must precede this persistence check; selected full text can be
+    // visible for one render before the new type-in prefix is applied.
+    await page.waitForTimeout(100);
+    assert(await page.evaluate(() => window.UI.dialogueText === window.UI.dialogueLines[1]),
+      'an unfinished prior line overwrote the next dialogue line');
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => window.gameState === 'world');
 

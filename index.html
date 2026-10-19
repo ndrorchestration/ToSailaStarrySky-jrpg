@@ -7,7 +7,7 @@
   // Keep the historical filename aligned with the packaged, fully embedded entrypoint.
   window.location.replace('index-embedded.html');
 </script>
-<title>Aetherwake — Young Ender</title>
+<title>Aetherwake</title>
 <style>
   * { image-rendering: pixelated; }
   html, body { margin: 0; padding: 0; overflow: hidden; background: #1A102E; height: 100%; }
@@ -33,7 +33,7 @@
   .grid-bg { background-image: linear-gradient(rgba(42,255,181,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(42,255,181,0.06) 1px, transparent 1px); background-size: 32px 32px; z-index: 0; }
   .vignette { background: radial-gradient(ellipse at center, transparent 50%, rgba(10,4,20,0.6) 100%); z-index: 1; }
 
-  /* ===== EMBEDDED FONTS — works offline, ZERO network calls ===== */
+  /* ===== EMBEDDED FONTS Ã¢â‚¬â€ works offline, ZERO network calls ===== */
   @font-face {
     font-family: 'Press Start 2P';
     font-style: normal;
@@ -86,7 +86,20 @@
     update();
   })();
 </script>
-<script src="modules/air-navigation.js"></script>\n<script src="aetherwake.js"></script>
+<script src="modules/air-navigation.js"></script>\n<script src="modules/pixel-sprites.js"></script>
+<script src="modules/pixel-tiles.js"></script>
+<script src="modules/character-renderer.js"></script>
+<script src="modules/authored-character-art.js"></script>
+<script src="modules/character-art-preview.js"></script>
+<script src="modules/ui-visual-system.js"></script>
+<script src="modules/environment-visual-kit.js"></script>
+<script src="modules/dragonfly-visual.js"></script>
+<script src="modules/title-visual-stage.js"></script>
+<script src="modules/first-wake-visual-stage.js"></script>
+<script src="modules/ship-interior-visual-stage.js"></script>
+<script src="modules/flight-visual-stage.js"></script>
+<script src="modules/combat-visual-stage.js"></script>
+<script src="aetherwake.js"></script>
 <script src="p5.min.js"></script>
 <script>
   (function() {
@@ -99,7 +112,7 @@
     
     // p5 global mode auto-starts when setup/draw are globals at load time.
     // Scripts load aetherwake.js (defines setup/draw) before p5.min.js.
-    // p5 may take a frame or two to create the canvas — check again after a tick.
+    // p5 may take a frame or two to create the canvas Ã¢â‚¬â€ check again after a tick.
     let canvas = document.querySelector('canvas');
     if (canvas) {
       console.log('[p5] sketch auto-started, canvas present', canvas.width, 'x', canvas.height);
@@ -109,7 +122,7 @@
         if (canvas) {
           console.log('[p5] sketch started after delay, canvas', canvas.width, 'x', canvas.height);
         } else {
-          console.error('[p5] canvas still not created after delay — sketch did not start');
+          console.error('[p5] canvas still not created after delay Ã¢â‚¬â€ sketch did not start');
           console.error('[p5] setup:', typeof window.setup, 'draw:', typeof window.draw);
         }
       }, 100);

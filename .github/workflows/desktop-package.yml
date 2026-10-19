@@ -8,14 +8,20 @@ on:
     tags:
       - "v*"
 
+# Security hold: GitHub issue #293 (Defender alert on generated uninstaller).
+# No release-writing scope until separate authorized security review.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify-windows:
     runs-on: windows-2022
     timeout-minutes: 25
     steps:
+      - name: Fail closed while generated NSIS uninstaller security hold is unresolved
+        shell: pwsh
+        run: |
+          throw "SECURITY_HOLD_293: generated NSIS uninstaller requires independent adjudication; Windows installer build, install and publication are prohibited."
       - name: Check out source
         uses: actions/checkout@v4
 
@@ -121,7 +127,7 @@ jobs:
           if (-not (Test-Path -LiteralPath $exe)) { throw "Installed Aetherwake.exe was not found" }
 
           $env:AETHERWAKE_DESKTOP_SMOKE_MARKER = $marker
-          $game = Start-Process -FilePath $exe -PassThru
+          $game = Start-Process -FilePath $exe -ArgumentList @("`"--aw-desktop-smoke-marker=$marker`"") -PassThru
 
           $deadline = (Get-Date).AddSeconds(20)
           while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $marker)) {
@@ -175,7 +181,8 @@ jobs:
           Get-Content SHA256SUMS.txt
 
       - name: Publish verified Windows release
-        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+        # Independently adjudicate issue #293 and obtain explicit approval first.
+        if: ${{ false }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: aetherwake-desktop-${{ github.sha }}

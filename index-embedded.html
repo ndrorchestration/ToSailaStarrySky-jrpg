@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aetherwake — Ender</title>
+<title>Aetherwake</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <style>
   @font-face {
@@ -79,7 +79,7 @@
     z-index: 1;
   }
 
-  /* ===== LOADING SCREEN — mirrors reference-game Scene_Boot UX ===== */
+  /* ===== LOADING SCREEN ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â mirrors reference-game Scene_Boot UX ===== */
   /* Reference: RMMZ Graphics.setLoadingImage('img/system/Loading.png') shows
      the Loading.png sprite on an upper canvas overlay during Scene_Boot.
      Our mirror: Loading.png (the actual file from the reference package) shown
@@ -91,7 +91,10 @@
     bottom: 0;
     left: 0;
     z-index: 99999;
-    background: #000000;
+    background:
+      linear-gradient(rgba(8, 18, 32, 0.38), rgba(8, 18, 32, 0.72)),
+      url('assets/preview/aetherwake-preview-world-pixelart-v2.png') center / cover no-repeat,
+      #081220;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -101,9 +104,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: 28px 40px 30px;
+    border: 1px solid rgba(183, 224, 228, 0.22);
+    border-radius: 18px;
+    background: rgba(8, 18, 32, 0.58);
+    box-shadow: 0 18px 70px rgba(0, 0, 0, 0.34), inset 0 0 36px rgba(42, 255, 181, 0.035);
+    backdrop-filter: blur(3px);
   }
   .loading-ref-img {
-    display: block;
+    display: none;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     height: auto;
@@ -160,14 +169,14 @@
   <div class="loading-inner">
     <img class="loading-ref-img" src="data:image/png;base64,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" alt="Loading" width="300" height="169">
     <div class="loading-text">AETHERWAKE</div>
-    <div class="loading-sub">initializing the weave...</div>
+    <div class="loading-sub">PREPARING THE WAKE</div>
   </div>
 </div>
 <div id="debug-overlay" style="display:none"></div>
 
 <script>
   // ============================================================
-  // Embedded launch wrapper — mirrors the reference game's
+  // Embedded launch wrapper ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â mirrors the reference game's
   // Scene_Boot loading UX: spinner + "Now Loading" text until
   // p5 + the sketch are ready, then reveal the canvas.
   // ============================================================
@@ -251,6 +260,21 @@
 <script src="modules/first-wake-opening.js"></script>
 <script src="modules/party-state.js"></script>
 <script src="modules/air-navigation.js"></script>
+<script src="modules/pixel-sprites.js"></script>
+<script src="modules/pixel-tiles.js"></script>
+<script src="modules/character-renderer.js"></script>
+<script src="modules/authored-character-art.js"></script>
+<script src="modules/character-art-preview.js"></script>
+<script src="modules/ui-visual-system.js"></script>
+<script src="modules/environment-visual-kit.js"></script>
+<script src="modules/dragonfly-visual.js"></script>
+<script src="modules/title-visual-stage.js"></script>
+<script src="modules/preview-world-presentation.js"></script>
+<script src="modules/visual-benchmark.js"></script>
+<script src="modules/first-wake-visual-stage.js"></script>
+<script src="modules/ship-interior-visual-stage.js"></script>
+<script src="modules/flight-visual-stage.js"></script>
+<script src="modules/combat-visual-stage.js"></script>
 <script src="aetherwake.js"></script>
 <script src="modules/char-create.js"></script>
 <script>
@@ -265,14 +289,14 @@
   if (window.setup || window.draw) {
     if (!window.p5) { console.error('[aw] window.p5 missing after p5.min.js'); }
     else if (!window.p5.instance) {
-      console.log('[aw] No p5 instance — creating one now');
+      console.log('[aw] No p5 instance ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â creating one now');
       try { window.p5.instance = new window.p5(); }
       catch(e) { console.error('[aw] instance creation failed:', e.message); }
     } else {
       console.log('[aw] p5 instance already exists');
     }
   } else {
-    console.warn('[aw] No window.setup or window.draw — sketch functions missing');
+    console.warn('[aw] No window.setup or window.draw ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â sketch functions missing');
   }
   // Mirror the loading-screen gating on gameState
   console.log('[aw] gameState:', window.gameState);
@@ -286,18 +310,18 @@
   // ============================================================
   // Launch gating: mirrors reference game's Scene_Boot loading UX.
   // Reference flow:
-  //   Scene_Boot.create() → DataManager.loadDatabase() + loadSystemWindowImage()
-  //   Scene_Boot.start()  → SoundManager.preloadImportantSounds()
-  //                        → SceneManager.goto(Scene_Title)
-  //   During Scene_Boot: Graphics.startLoading() → Loading.png shown on upper canvas
-  //   When Scene_Boot.isReady() → DataManager.isDatabaseLoaded() && isGameFontLoaded()
-  //   → Scene_Title.create() → startFadeIn → player sees title
+  //   Scene_Boot.create() ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ DataManager.loadDatabase() + loadSystemWindowImage()
+  //   Scene_Boot.start()  ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ SoundManager.preloadImportantSounds()
+  //                        ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ SceneManager.goto(Scene_Title)
+  //   During Scene_Boot: Graphics.startLoading() ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Loading.png shown on upper canvas
+  //   When Scene_Boot.isReady() ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ DataManager.isDatabaseLoaded() && isGameFontLoaded()
+  //   ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Scene_Title.create() ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ startFadeIn ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ player sees title
   //
   // Our mirror:
-  //   1. Show Loading.png (reference image) immediately — like Graphics.setLoadingImage
+  //   1. Show Loading.png (reference image) immediately ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â like Graphics.setLoadingImage
   //   2. Let aetherwake.js run its BOOT state (preamble + title render)
   //   3. When sketch signals it's ready (gameState advances past BOOT),
-  //      hide the loading overlay — like Graphics.endLoading() → upper canvas cleared
+  //      hide the loading overlay ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â like Graphics.endLoading() ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ upper canvas cleared
   // ============================================================
   (function() {
     var REF_MAX_WAIT = 8000;  // max ms to wait before forcing reveal (safety net)
@@ -310,9 +334,9 @@
       // immediately during Scene_Boot; Graphics.endLoading() clears it the moment
       // Scene_Boot.isReady() returns true and Scene_Title begins. Our mirror:
       // hide the HTML overlay the moment the canvas is live and p5 is drawing,
-      // so the player sees the aetherwake.js BOOT rendering (loading→preamble→title)
+      // so the player sees the aetherwake.js BOOT rendering (loadingÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢preambleÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢title)
       // on the real canvas, not behind an HTML cover.
-      // Wait for the real p5 canvas (not a placeholder) — p5 creates it
+      // Wait for the real p5 canvas (not a placeholder) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â p5 creates it
       // in setup() after the sketch boots. A 300x150 canvas is p5's default
       // size before createCanvas(960,640) runs; we want the full-size canvas.
       var cvs = document.querySelector('canvas');
@@ -327,7 +351,7 @@
           'p5: ' + (p5ok ? 'ok' : 'MISSING') + '<br>' +
           'canvas: ' + (hasCanvas ? cvs.width + 'x' + cvs.height : 'MISSING') + '<br>' +
           '<span style="color:#E8DCC6;">' + (hasCanvas
-           ? 'canvas live — waiting for runtime frame'
+           ? 'canvas live ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â waiting for runtime frame'
            : 'waiting for canvas...') + '</span><br>' +
            'runtime: ' + (window.__awRuntimeReady ? 'ready' : 'pending') + '<br>' +
            'frame: ' + (window.__awFirstFrame ? 'ready' : 'pending');

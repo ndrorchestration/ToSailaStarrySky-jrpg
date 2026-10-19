@@ -80,4 +80,27 @@ assert.strictEqual(sandbox.player.scrap, 2,
 assert.strictEqual(sandbox.player.staffCharges, 2,
   'staff polish should restore a staff charge');
 
+// Production toast geometry must not collide with First Wake's bottom narration
+// or the Enter continuation prompt; normal world notifications keep their legacy position.
+for (const currentState of ['opening', 'world']) {
+  const noticeDraws = [];
+  const backplates = [];
+  const host = {
+    STATE: { OPENING: 'opening' }, gameState: currentState,
+    window: { toasts: [{ text: 'Lyra joined Ender', color: [42,255,181], startTime: 0, duration: 1600 }] },
+    millis: () => 400, height: 640, width: 960, CENTER: 'center',
+    noStroke(){}, fill(){}, rect(x,y,w,h){ backplates.push({x,y,w,h}); }, textFont(){}, textSize(){}, textAlign(){},
+    text(value,x,y){ noticeDraws.push({value,x,y}); }
+  };
+  vm.runInNewContext(extractFunction('drawToasts'), host);
+  host.drawToasts();
+  assert.strictEqual(noticeDraws.length, 1, 'one toast must draw exactly once');
+  const y = noticeDraws[0].y;
+  if (currentState === 'opening') {
+    assert(y < 400, 'opening toasts must not cover narration or continuation prompt');
+    assert(backplates.some(plate => plate.w === 300 && plate.h === 26), 'opening toast needs a high-contrast backplate');
+  } else {
+    assert.strictEqual(y, 582, 'normal world toast position must not change');
+  }
+}
 console.log('Aetherwake runtime overlay/economy contract: PASS');

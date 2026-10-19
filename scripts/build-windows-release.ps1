@@ -3,6 +3,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+# #293: prohibit installer build, install and launch while Defender review is pending.
+# Portable package checks remain possible via npm run package:windows.
+throw "SECURITY_HOLD_293: local Windows installer build/install is disabled pending independent uninstaller security adjudication and authorization."
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $repo
 
@@ -89,7 +92,7 @@ if (Test-Path -LiteralPath $marker) {
   Remove-Item -LiteralPath $marker -Force
 }
 $env:AETHERWAKE_DESKTOP_SMOKE_MARKER = $marker
-$game = Start-Process -FilePath $installedExe -PassThru
+$game = Start-Process -FilePath $installedExe -ArgumentList @("`"--aw-desktop-smoke-marker=$marker`"") -PassThru
 
 $deadline = (Get-Date).AddSeconds(20)
 while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $marker)) {
