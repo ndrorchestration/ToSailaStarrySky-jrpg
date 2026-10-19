@@ -310,26 +310,26 @@
         /(?:\?|&)candidateFieldArt=1(?:&|$)/.test(String(root.location.search || ''))) {
       noStroke();
       fill(34, 37, 36, 214);
-      quad(88, 409, 743, 409, 724, 482, 72, 482);
+      quad(288, 409, 743, 409, 724, 482, 282, 482);
       fill(90, 75, 56, 238);
-      quad(88, 397, 743, 397, 724, 468, 72, 468);
+      quad(288, 397, 743, 397, 724, 468, 282, 468);
       // Under-deck braces make the suspended span read as built infrastructure,
       // connecting the masonry approach to the Dragonfly service berth.
       stroke(46, 44, 40, 225);
       strokeWeight(7);
-      line(112, 467, 108, 524);
+      line(302, 467, 306, 514);
       line(697, 467, 716, 526);
       stroke(136, 107, 70, 200);
       strokeWeight(3);
-      line(109, 518, 186, 470);
+      line(306, 510, 354, 470);
       line(716, 518, 635, 468);
       stroke(202, 165, 102, 205);
       strokeWeight(3);
-      line(79, 398, 112, 398);
+      line(282, 398, 318, 398);
       line(695, 398, 744, 398);
       stroke(73, 65, 52, 200);
       strokeWeight(1);
-      for (const x of [104, 699]) {
+      for (const x of [304, 699]) {
         line(x - 6, 455, x + 6, 455);
         line(x - 6, 462, x + 6, 462);
       }
@@ -337,9 +337,9 @@
       // They remain within the existing bridge footprint, not the sky plate.
       noStroke();
       fill(64, 67, 61, 242);
-      quad(73, 462, 116, 462, 120, 481, 69, 481);
+      quad(280, 462, 322, 462, 326, 481, 276, 481);
       fill(149, 135, 104, 228);
-      quad(71, 459, 118, 459, 116, 466, 73, 466);
+      quad(278, 459, 324, 459, 322, 466, 280, 466);
       fill(64, 61, 52, 225);
       quad(676, 460, 726, 460, 733, 479, 672, 479);
       fill(171, 143, 96, 220);
@@ -355,18 +355,18 @@
       noStroke();
       stroke(191, 167, 120, 145);
       strokeWeight(1);
-      line(78, 471, 109, 471);
+      line(286, 471, 317, 471);
       line(681, 470, 722, 470);
       stroke(168, 136, 88, 175);
       strokeWeight(2);
-      line(88, 397, 743, 397);
-      line(72, 468, 724, 468);
+      line(288, 397, 743, 397);
+      line(282, 468, 724, 468);
       stroke(54, 51, 42, 175);
       strokeWeight(2);
       for (let i = 1; i < 5; i++) {
         const y = 397 + i * 13;
         const inset = i * 3;
-        line(88 - inset, y, 743 - inset, y);
+        line(288 - inset, y, 743 - inset, y);
       }
       noStroke();
     }
