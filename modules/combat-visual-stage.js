@@ -173,6 +173,39 @@
         line(0, y, w, y);
       }
       noStroke();
+
+      // Layered skyport terraces and distant vegetation lend the ground
+      // encounter a distinct location, while the combatants keep a clean
+      // high-contrast fighting plane in the middle of the screen.
+      fill(93, 111, 104, 118);
+      rect(0, s.horizonY - 29, Math.round(w * 0.35), 31);
+      rect(Math.round(w * 0.70), s.horizonY - 41, Math.round(w * 0.30), 43);
+      fill(124, 146, 118, 125);
+      rect(0, s.horizonY - 32, Math.round(w * 0.35), 6);
+      rect(Math.round(w * 0.70), s.horizonY - 44, Math.round(w * 0.30), 6);
+      fill(41, 69, 66, 155);
+      for (let i = 0; i < 9; i++) {
+        const xx = (i * 113 + 21) % w;
+        const tall = 16 + (i % 3) * 9;
+        rect(xx, s.horizonY - 18 - tall, 6, tall + 18);
+        rect(xx - 13, s.horizonY - tall - 12, 32, 5);
+        rect(xx - 8, s.horizonY - tall - 18, 20, 6);
+      }
+      // Ground contact and luminous aether seams. The seams taper toward the
+      // horizon; the player and enemy remain visually unobstructed.
+      fill(126, 111, 84, 92);
+      rect(0, s.horizonY + 5, w, 3);
+      fill(63, 115, 109, 82);
+      for (let row = 0; row < 5; row++) {
+        const yy = Math.round(s.horizonY + 42 + row * row * 13);
+        const segment = 10 + row * 8;
+        for (let col = 0; col < 7; col++) {
+          const xx = Math.round((col + 0.5) * w / 7 + (row % 2) * 17);
+          rect(xx, yy, segment, 2);
+        }
+      }
+      fill(147, 195, 164, 55);
+      rect(0, Math.round(h * 0.82), w, 2);
     }
 
     // Sparse stars/aether motes remain pixel blocks.
