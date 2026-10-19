@@ -20,7 +20,8 @@ if (RESAMPLE && !['lanczos', 'bicubic'].includes(RESAMPLE)) {
 }
 const RUNTIME_QUERY = process.env.AETHERWAKE_CANDIDATE_FIELD_REVIEW === '1'
   ? '?candidateFieldArt=1' + (RESAMPLE ? '&enderReviewResample=' + RESAMPLE : '') +
-      (process.env.AETHERWAKE_IONIA_REVIEW_ART === '1' ? '&ioniaReviewArt=1' : '')
+      (process.env.AETHERWAKE_IONIA_REVIEW_ART === '1' ? '&ioniaReviewArt=1' : '') +
+      (process.env.AETHERWAKE_FASTTRACK_SCENE === '1' ? '&fastTrackScene=1' : '')
   : '';
 const RUNTIME_URL = `http://127.0.0.1:${PORT}/index-embedded.html${RUNTIME_QUERY}`;
 

@@ -179,6 +179,12 @@ assert(openingFunction.includes("typeof visual.draw === 'function'"),
 assert(openingFunction.includes('visual.draw(scene, state, { now: millis(), width, height });'),
   'opening runtime does not delegate to shared visual stage');
 
+// Review-only cliff-to-berth contact is intentionally bounded: the grass
+// stays visible on the opening approach, and normal gameplay is unchanged.
+assert(source.includes("fastTrackScene=1") &&
+       source.includes("candidateFieldArt=1") &&
+       source.includes('quad(288, 397, 743, 397, 724, 468, 282, 468)'),
+  'fast-track review dock must begin at the cliff-side transition, not cover the grass');
 console.log('Aetherwake First Wake visual stage contract: PASS');
 
 assert(source.includes('const narrativePanelH = Math.min(112, 40 + visibleLines.length * 21)') && source.includes('String(scene.speaker || \'\').toUpperCase()'),
