@@ -222,8 +222,15 @@ function writeDesktopSmokeMarkerOnce() {
     const markerPath = envMarkerPath || (markerArgument
       ? markerArgument.slice('--aw-desktop-smoke-marker='.length) : null);
     if (!markerPath) return;
-    if (!window.__awRuntimeReady || !window.__awFirstFrame) return;
+    // Accept only a Windows-absolute path with the designated QA receipt name.
+    // The directory remains caller-selected; exclusive creation prevents
+    // overwriting existing files or symlinks, not arbitrary file placement.
     if (typeof require !== 'function') return;
+    const path = require('path');
+    if (!/^[A-Za-z]:[\\\/]/.test(markerPath) || !path.win32.isAbsolute(markerPath) ||
+        path.win32.basename(markerPath).toLowerCase() !== 'aetherwake-desktop-ready.json' ||
+        markerPath.startsWith('\\\\')) return;
+    if (!window.__awRuntimeReady || !window.__awFirstFrame) return;
 
     const fs = require('fs');
     const payload = {
@@ -235,7 +242,7 @@ function writeDesktopSmokeMarkerOnce() {
       setupOrder: window._setupOrder || null,
       timestamp: new Date().toISOString(),
     };
-    fs.writeFileSync(markerPath, JSON.stringify(payload), 'utf8');
+    fs.writeFileSync(markerPath, JSON.stringify(payload), {encoding: 'utf8', flag: 'wx'});
     window.__awDesktopSmokeMarkerWritten = true;
   } catch (error) {
     console.error('DESKTOP_SMOKE_MARKER_WRITE_FAILED', error);
