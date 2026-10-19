@@ -370,6 +370,11 @@ async function capture(page, id, description) {
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'dock_walk'
     , undefined, { timeout: 5000 });
+    if (process.env.AETHERWAKE_DOCK_ENDPOINT_CAPTURE === '1') {
+      captures.push(await capture(
+        page, '01a-dock-walk-start', 'Dock walk at logical step 0, actor contact and ship boarding'
+      ));
+    }
     for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
     await page.waitForFunction(() =>
       window._firstWakeOpeningState.dockWalk &&
@@ -385,6 +390,11 @@ async function capture(page, id, description) {
     for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
     await page.waitForFunction(() => window._firstWakeOpeningState.dockWalk.ready === true,
       undefined, { timeout: 5000 });
+    if (process.env.AETHERWAKE_DOCK_ENDPOINT_CAPTURE === '1') {
+      captures.push(await capture(
+        page, '01d-dock-walk-end', 'Dock walk at logical step 8, actor contact and ship boarding'
+      ));
+    }
     await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'berth_task'
