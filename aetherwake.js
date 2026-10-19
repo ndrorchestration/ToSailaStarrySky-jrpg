@@ -2412,6 +2412,24 @@ function finishCombat() {
     }
   }
 
+  // Optional random encounters may end in a defeat. Keep the return playable
+  // instead of leaving the player at the 1-Vit clamp, without touching
+  // mandatory hazard resolution, victory rewards or turn formulas.
+  if (randomEncounterPending) {
+    randomEncounterPending = false;
+    if (combatState && combatState.encounterOver &&
+        combatState.enemy && combatState.enemy.hp > 0) {
+      const regroupVit = Math.max(1, Math.ceil((world.player.maxVit || 13) * 0.5));
+      world.player.vit = Math.max(world.player.vit, regroupVit);
+      world.player.staffCharges = world.player.maxStaffCharges || 2;
+      if (window.ROSTER && window.ROSTER[0] === world.player) {
+        window.ROSTER[0].vit = world.player.vit;
+        window.ROSTER[0].staffCharges = world.player.staffCharges;
+      }
+      showToast('RETREAT // REGROUP AND CONTINUE', C.rust, 1500);
+    }
+  }
+
   gameState = combatReturnState || STATE.WORLD;
   window.gameState = gameState;
   prevState = null;
@@ -4306,6 +4324,7 @@ function isWalkableTile(tx, ty) {
 }
 
 // Optional encounter-development experiment; story hazards always take precedence.
+let randomEncounterPending = false;
 const randomEncounterReview = typeof window !== 'undefined' &&
   /(?:\?|&)randomEncounters=1(?:&|$)/.test(String(window.location && window.location.search || '')) &&
   window.AetherRandomEncounterDirector
@@ -4328,6 +4347,7 @@ function movePlayer(dx, dy) {
   if (randomEncounterReview && !scriptedHazardTriggered &&
       gameState === STATE.WORLD && quest.state === QUEST_STATES.CROSSING &&
       pendingHazardIndex === null && randomEncounterReview.onWalk()) {
+    randomEncounterPending = true;
     startCombat('aetherLeak', STATE.WORLD);
   }
 }

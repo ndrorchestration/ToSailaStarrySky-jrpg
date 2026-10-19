@@ -457,6 +457,51 @@ function createServer() {
     },turn0,{timeout:5000});
     await winCurrentCombat('Aether');
     assert.strictEqual(await page.evaluate(()=>window.gameState),'world');
+    const afterVictory=await page.evaluate(()=>({
+      hazards:window._world.getQuestState().hazardsCompleted,
+      vit:window._world.player.vit,
+      scrap:window._world.player.scrap
+    }));
+    assert.strictEqual(afterVictory.hazards,0,
+      'random encounter victory cannot complete authored crossing hazards');
+
+    // Start a second real random encounter through ordinary movement, then
+    // test defeat and world-return without a mock combat state.
+    const second=await page.evaluate(()=>{
+      const w=window._world,valid=(x,y)=>w.isWalkableTile(x,y)&&
+        !(x>=28&&y>=4&&y<=8)&&!(x>=10&&x<=20&&y>=8&&y<=14)&&
+        !(y<=5&&x>=15&&x<=25)&&!(x>=4&&x<=12&&y>=9&&y<=16);
+      let steps=0;
+      while(steps<26&&window.gameState==='world'){
+        const x=w.player.tileX,y=w.player.tileY;
+        const move=[[1,0],[-1,0],[0,1],[0,-1]].find(([dx,dy])=>valid(x+dx,y+dy));
+        if(!move)throw Error('NO_SAFE_RANDOM_RETRY_PATH');
+        w.movePlayer(move[0],move[1]);steps++;
+      }
+      return {steps,state:window.gameState};
+    });
+    assert.strictEqual(second.state,'combat','second opt-in random encounter did not launch');
+    for(let step=0;step<60;step++){
+      const before=await page.evaluate(()=>window._combat.getState());
+      if(before.encounterOver)break;
+      await page.keyboard.press('5');
+      await page.waitForFunction(turn=>{
+        const s=window._combat.getState();return s.encounterOver||s.turn>turn;
+      },before.turn,{timeout:4000});
+    }
+    const defeated=await page.evaluate(()=>window._combat.getState());
+    assert(defeated.encounterOver&&defeated.enemy.hp>0&&defeated.player.vit<=1,
+      'random battle could not reach actual defeat through Hold commands');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(()=>window.gameState==='world',undefined,{timeout:5000});
+    const afterDefeat=await page.evaluate(()=>({
+      hazards:window._world.getQuestState().hazardsCompleted,
+      vit:window._world.player.vit
+    }));
+    assert.strictEqual(afterDefeat.hazards,0,
+      'random defeat cannot complete scripted hazards');
+    assert(afterDefeat.vit>=Math.ceil(13*0.5),
+      'random defeat did not provide bounded return-to-world regroup vitality');
     assert.deepStrictEqual(errors,[],errors.join('\n'));
     console.log('Aetherwake opt-in random encounter: real movement ? arena ? turn commands ? victory ? world PASS');
   } finally {
