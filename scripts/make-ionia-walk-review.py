@@ -14,7 +14,8 @@ def draw_pose(frame):
  def line(points,c,w=1):d.line([(P(x),P(y)) for x,y in points],fill=c,width=P(w),joint='curve')
  # all six contact poses have deliberately independent leg silhouettes
  phases=[(-8,7),(-5,4),(0,0),(7,-7),(4,-5),(0,0)]
- f,b=phases[frame];hair_swing=[-2,0,1,2,0,-1][frame]
+ f,b=phases[frame];hair_swing=[-3,-1,0,3,1,-2][frame]
+ coat_sway=[-4,-3,0,4,3,0][frame]
  # long curly blonde hair, deep back mass, separately-shaded curved locks
  ellipse((18+hair_swing,21,49+hair_swing,66),'#735027','#493421')
  ellipse((21+hair_swing,19,46+hair_swing,62),'#c48a39','#5a4029')
@@ -31,9 +32,11 @@ def draw_pose(frame):
   poly([(foot-5,89),(foot+4,89),(foot+7,93),(foot-7,93)],'#352b35','#1b2026')
   line([(knee+2,78),(foot+2,88)],'#97774c',1)
  # captain white undercoat / split navy tails, large expressive silhouette
- poly([(23,41),(43,42),(48,67),(38,75),(34,62),(31,72),(21,67)],'#253c6b','#152441')
- poly([(23,45),(25,64),(31,70),(30,52)],'#375788')
- poly([(42,45),(42,64),(39,71),(37,53)],'#162d53')
+ poly([(23,41),(43,42),(48+coat_sway,67),(38+coat_sway,76),(34,62),(31+coat_sway,73),(21+coat_sway,68)],'#253c6b','#152441')
+ poly([(23,45),(25,64),(31+coat_sway,71),(30,52)],'#375788')
+ poly([(42,45),(42,64),(39+coat_sway,72),(37,53)],'#162d53')
+ line([(25,63),(28+coat_sway,68),(29+coat_sway,70)],'#cfab62',1)
+ line([(42,64),(40+coat_sway,69),(39+coat_sway,71)],'#b9a273',1)
  poly([(26,40),(39,40),(43,64),(33,67),(22,63)],'#e2e0d1','#55617b')
  poly([(22,43),(28,40),(32,63),(24,61)],'#243f75')
  poly([(39,41),(44,45),(40,61),(35,63)],'#324e83')
@@ -91,7 +94,7 @@ strip.save(OUT/'ionia-walk-6frame-review.png')
 hires.save(OUT/'ionia-walk-source-6frame.png')
 frames=[strip.crop((64*i,0,64*(i+1),96)).resize((256,384),Image.Resampling.NEAREST) for i in range(6)]
 frames[0].save(OUT/'ionia-walk-review.gif',save_all=True,append_images=frames[1:],duration=100,loop=0,disposal=2)
-receipt={'status':'ORIGINAL_PROCEDURAL_REVIEW_NOT_ADMITTED','provenance':'hand-authored geometry in scripts/make-ionia-walk-review.py','sourceVersion':1,'frameCell':[64,96],'frames':metrics,'assets':{}}
+receipt={'status':'ORIGINAL_PROCEDURAL_REVIEW_NOT_ADMITTED','provenance':'hand-authored geometry in scripts/make-ionia-walk-review.py','sourceVersion':2,'frameCell':[64,96],'frames':metrics,'assets':{}}
 for name in ['ionia-walk-6frame-review.png','ionia-walk-source-6frame.png','ionia-walk-review.gif']:
  receipt['assets'][name]=hashlib.sha256((OUT/name).read_bytes()).hexdigest()
 (OUT/'source-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8')
