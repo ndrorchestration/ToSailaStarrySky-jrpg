@@ -3,6 +3,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+# NSIS issue #293: portable tests remain available separately.
+throw "SECURITY_HOLD_293: local installer creation and installation prohibited pending independent security adjudication."
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $repo
 

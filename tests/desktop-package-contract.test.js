@@ -144,3 +144,21 @@ assert(embeddedDesktopControls.includes("event.key === 'F11'"),
   'desktop entrypoint must support F11 fullscreen');
 assert(embeddedDesktopControls.includes('win.leaveFullscreen()'),
   'desktop entrypoint must support leaving fullscreen with Escape');
+
+// Issue #293: release authorization is blocked independently of the game smoke suite.
+const firstWindowsStep = workflow.indexOf('      - name: ');
+const holdWindowsStep = workflow.indexOf('      - name: Fail closed while generated NSIS uninstaller security hold is unresolved');
+assert(firstWindowsStep >= 0 && holdWindowsStep === firstWindowsStep,
+  'Windows security hold must be the first workflow step');
+assert(workflow.includes('throw "SECURITY_HOLD_293:') &&
+       workflow.indexOf('SECURITY_HOLD_293:') < workflow.indexOf('      - name: Check out source'),
+  'Windows security hold must throw before checkout or installer build');
+assert(workflow.includes('permissions:\n  contents: read') && !workflow.includes('contents: write'),
+  'Windows workflow cannot have publication token write scope during security hold');
+const releaseStep = workflow.slice(workflow.indexOf('      - name: Publish verified Windows release'));
+assert(releaseStep.includes('if: ${{ false }}'),
+  'manual and tag Windows release publication must be disabled during security hold');
+const scriptHold = localReleaseScript.indexOf('throw "SECURITY_HOLD_293:');
+assert(scriptHold >= 0 && scriptHold < localReleaseScript.indexOf('npm ci') &&
+       scriptHold < localReleaseScript.indexOf('Start-Process -FilePath $installer'),
+  'local Windows installer build/install must stop under security hold');

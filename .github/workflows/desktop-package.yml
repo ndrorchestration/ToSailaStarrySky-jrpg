@@ -8,14 +8,19 @@ on:
     tags:
       - "v*"
 
+# Unadjudicated NSIS security issue #293: no release-write token
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify-windows:
     runs-on: windows-2022
     timeout-minutes: 25
     steps:
+      - name: Fail closed while generated NSIS uninstaller security hold is unresolved
+        shell: pwsh
+        run: |
+          throw "SECURITY_HOLD_293: generated NSIS uninstaller requires independent security adjudication; build/install/publication remain forbidden."
       - name: Check out source
         uses: actions/checkout@v4
 
@@ -175,7 +180,8 @@ jobs:
           Get-Content SHA256SUMS.txt
 
       - name: Publish verified Windows release
-        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+        # Security hold #293; re-enable only after separate approval
+        if: ${{ false }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: aetherwake-desktop-${{ github.sha }}
