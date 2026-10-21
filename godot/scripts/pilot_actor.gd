@@ -6,9 +6,11 @@ extends CharacterBody2D
 @export var walk_speed: float = 148.0
 ## Optional unapproved artwork preview; no production FIELD_PACK admission.
 @export var review_source_texture: Texture2D
+@export var review_aligned_texture: Texture2D
 
 var walking_bounds: Rect2 = Rect2(Vector2(145, 410), Vector2(670, 112))
 var review_sprite: Sprite2D
+var aligned_sprite: Sprite2D
 var walk_review_sprite: Sprite2D
 var travel_distance: float = 0.0
 var gait_step: float = 0.0
@@ -31,6 +33,16 @@ func _ready() -> void:
         review_sprite.position = Vector2(0, -42)
         review_sprite.visible = false
         add_child(review_sprite)
+    if review_aligned_texture != null and character_name == "Ionia":
+        aligned_sprite = Sprite2D.new()
+        aligned_sprite.name = "IoniaAlignmentReviewUnapproved"
+        aligned_sprite.texture = review_aligned_texture
+        aligned_sprite.centered = true
+        aligned_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+        aligned_sprite.scale = Vector2(0.13, 0.13)
+        aligned_sprite.position = Vector2(0, -42)
+        aligned_sprite.visible = false
+        add_child(aligned_sprite)
     if character_name == "Ender":
         walk_review_sprite = Sprite2D.new()
         walk_review_sprite.name = "EnderWalkReviewUnapproved"
@@ -50,10 +62,22 @@ func set_walk_review_enabled(enabled: bool) -> void:
 func set_review_art_enabled(enabled: bool) -> void:
     if review_sprite != null:
         review_sprite.visible = enabled
-        queue_redraw()
+    if aligned_sprite != null:
+        aligned_sprite.visible = false
+    queue_redraw()
+
+func set_aligned_review_enabled(enabled: bool) -> void:
+    if aligned_sprite != null:
+        aligned_sprite.visible = enabled
+    if review_sprite != null:
+        review_sprite.visible = false
+    queue_redraw()
+
+func is_aligned_review_enabled() -> bool:
+    return aligned_sprite != null and aligned_sprite.visible
 
 func is_review_art_enabled() -> bool:
-    return review_sprite != null and review_sprite.visible
+    return (review_sprite != null and review_sprite.visible) or (aligned_sprite != null and aligned_sprite.visible)
 
 func _physics_process(_delta: float) -> void:
     if not player_controlled:
