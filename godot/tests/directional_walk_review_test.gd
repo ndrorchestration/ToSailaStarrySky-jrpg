@@ -28,6 +28,8 @@ func _test() -> void:
     ender.set_walk_review_enabled(true)
     ender.position = Vector2(350, 518)
     Input.action_press("ui_up")
+    await physics_frame
+    await physics_frame
     var north_seen := {}
     for i in range(52):
         await physics_frame
@@ -48,6 +50,8 @@ func _test() -> void:
         quit(6)
         return
     Input.action_press("ui_down")
+    await physics_frame
+    await physics_frame
     var south_seen := {}
     for i in range(52):
         await physics_frame
