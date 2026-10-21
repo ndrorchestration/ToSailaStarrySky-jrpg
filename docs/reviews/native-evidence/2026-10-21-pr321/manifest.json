@@ -1,0 +1,118 @@
+{
+  "type": "IONIA_FULL_SIDE_V3_NATIVE_CORRECTION",
+  "private_repository": true,
+  "engine": "Godot 4.7.2 OpenGL3/Xvfb",
+  "original_scene_resolution": [
+    960,
+    640
+  ],
+  "actor_anchor": {
+    "Ender": [
+      350,
+      462
+    ],
+    "Ionia": [
+      570,
+      458
+    ]
+  },
+  "v2_baseline": {
+    "east": {
+      "sha256": "13e51e86f210cf3a7d6d034f8e0145fa29d1aa2f10c04ab11f8072b1b8e20457",
+      "git_blob_sha": "03f1ec9687e3e8812a8595a872a3059d9c653828",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr320/ionia-east-profile-v2-native-960x640.png",
+      "source_commit": "f1aff7723e0413620b9df153abff0504a67015f1"
+    },
+    "west": {
+      "sha256": "8f4222ad996d85da77aea6e5df1b4c35e4e0f6b3917a258150b9a6b0975bf1ff",
+      "git_blob_sha": "35dde13ab35199bf8d6a6fe296d37b4d87c85411",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr320/ionia-west-profile-v2-native-960x640.png",
+      "source_commit": "f1aff7723e0413620b9df153abff0504a67015f1"
+    }
+  },
+  "first_failed_initial_candidate": {
+    "commit": "c1e89028659ca013aeec9af84247954fc8d8c8cf",
+    "failure": "source x displaced by 230.4px from intended center; clipping and frame bleed",
+    "test_run": 39662583326
+  },
+  "corrected_candidate": {
+    "source_commit": "196954af10399672f84d9a7df3c8e9d1812f5f56",
+    "technical_waist_pixels": {
+      "east": {
+        "v2": 210,
+        "v3": 110,
+        "new_left": 189,
+        "new_right": 299
+      },
+      "west": {
+        "v2": 210,
+        "v3": 110,
+        "new_left": 212,
+        "new_right": 322
+      }
+    },
+    "native_run": 39663046434,
+    "source_test_run": 39663046501
+  },
+  "files": [
+    {
+      "label": "broken-east",
+      "file": "ionia-east-broken-actual-native-960x640.png",
+      "source_commit": "c1e89028659ca013aeec9af84247954fc8d8c8cf",
+      "run": 39662583110,
+      "job": 119439175553,
+      "pixels": [
+        960,
+        640
+      ],
+      "bytes": 48554,
+      "sha256": "7f0670572346b1b8062a2fe1021fb4eeef2e078aa19699126ed1e037421e5e8c",
+      "git_blob_sha": "610c23d214019cbf332af75624aa2ac753242c0a"
+    },
+    {
+      "label": "broken-west",
+      "file": "ionia-west-broken-actual-native-960x640.png",
+      "source_commit": "c1e89028659ca013aeec9af84247954fc8d8c8cf",
+      "run": 39662583110,
+      "job": 119439175553,
+      "pixels": [
+        960,
+        640
+      ],
+      "bytes": 48221,
+      "sha256": "5e33ce95527c45a4af2c9921288b3da3860a2edee657ec9e720645bb6bc585fb",
+      "git_blob_sha": "b608731c4d5f70a4d51e8319bbf0da9dc0807834"
+    },
+    {
+      "label": "corrected-east",
+      "file": "ionia-east-corrected-actual-native-960x640.png",
+      "source_commit": "196954af10399672f84d9a7df3c8e9d1812f5f56",
+      "run": 39663046434,
+      "job": 119440769694,
+      "pixels": [
+        960,
+        640
+      ],
+      "bytes": 48431,
+      "sha256": "1f83670eb7b6d253c2e6ef0b2baeeb63806fa5202463f5e291efd09e79a71e0a",
+      "git_blob_sha": "f26f36ce2e6c99e01542aa141fab4759773db054"
+    },
+    {
+      "label": "corrected-west",
+      "file": "ionia-west-corrected-actual-native-960x640.png",
+      "source_commit": "196954af10399672f84d9a7df3c8e9d1812f5f56",
+      "run": 39663046434,
+      "job": 119440769694,
+      "pixels": [
+        960,
+        640
+      ],
+      "bytes": 48018,
+      "sha256": "0b1270c706286fd3dd9f60636cf4cbab32b2e163972eb300889a14f7bd8c98ff",
+      "git_blob_sha": "8d6a13522249ce772fbc8d27f19593c4dddca906"
+    }
+  ],
+  "art_acceptance": "PENDING",
+  "staff_continuity": "NOT_ACCEPTED",
+  "production": "NOT_AUTHORIZED"
+}
