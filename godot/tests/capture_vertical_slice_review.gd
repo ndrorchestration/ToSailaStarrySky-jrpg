@@ -49,7 +49,7 @@ func _capture() -> void:
         return
     world.choose_path(false)
     world.start_encounter()
-    for action in ["strike", "strike", "strike"]:
+    for action in ["guard", "strike", "guard", "strike"]:
         world.encounter_action(action)
     if not world.finish_at_dock():
         push_error("SLICE_CAPTURE_FAIL: cannot reach real choice payoff")
