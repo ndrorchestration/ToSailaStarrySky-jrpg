@@ -1,0 +1,452 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="96" viewBox="0 0 384 96" shape-rendering="crispEdges" aria-label="Unapproved Ender south 6-frame refined field study with visible off-torso staff and leather center wrap">
+  <title>Ender south six-frame detail and staff visibility v2 — UNAPPROVED</title><desc>Review-only derived 6-phase source with unchanged contact poses; additional stitched vest, copper hair highlights, satchel study and full visible x53 staff y8–88, with leather grip y45–57 and genuine hand overlap y49–57. Creator visual acceptance pending.</desc>
+  <g transform="translate(0 0)">
+     <title>Ender south contact phase 1</title>
+     <g id="legs0">
+      <path d="M21 66 L30 66 L30 71 L19 71Z" fill="#4c5749" stroke="#28372f" stroke-width="1.3"/>
+      <path d="M34 66 L44 66 L44 71 L33 71Z" fill="#5a6653" stroke="#28372f" stroke-width="1.3"/>
+      <path d="M24 68 L24 71" stroke="#9e956c" stroke-width="1.3"/>
+      <path d="M39 68 L39 71" stroke="#9e956c" stroke-width="1.3"/>
+      <g transform="translate(25 90)">
+      <path d="M-6 -23 L6 -23 L7 -4 L9 0 L9 4 L-9 4 L-9 0 L-7 -5Z" fill="#29313a" stroke="#182630" stroke-width="1.1"/>
+      <path d="M-6 -21 H5 L5 -16 L-5 -17Z" fill="#6b5540"/>
+      <path d="M-7 -7 L8 -6 L9 -3 L-8 -3Z" fill="#bc965f"/>
+      <path d="M-8 1 L9 1" stroke="#b0b9ac" stroke-width="1.2"/>
+      </g><g transform="translate(38 90)">
+      <path d="M-6 -23 L6 -23 L7 -4 L9 0 L9 4 L-9 4 L-9 0 L-7 -5Z" fill="#29313a" stroke="#182630" stroke-width="1.1"/>
+      <path d="M-6 -21 H5 L5 -16 L-5 -17Z" fill="#6b5540"/>
+      <path d="M-7 -7 L8 -6 L9 -3 L-8 -3Z" fill="#bc965f"/>
+      <path d="M-8 1 L9 1" stroke="#b0b9ac" stroke-width="1.2"/>
+      </g></g><g transform="translate(0 0)">
+     <path d="M18 43 L12 55 L16 70 L22 66 L22 47Z" fill="#586a50" stroke="#25352f" stroke-width="1.5"/>
+     <path d="M46 43 L52 56 L48 71 L43 66 L42 48Z" fill="#596a51" stroke="#25352f" stroke-width="1.5"/>
+     <path d="M14 64 L17 70 L20 69 L19 63Z M45 63 L45 70 L49 70 L50 64Z" fill="#c69577"/>
+     <path d="M13 58 L17 60 M47 61 L50 59" stroke="#c5af86" stroke-width="2"/></g><g id="south-staff-v2-0">
+ <!-- Full vertical shaft x53, y8..88. Center-grip occupies y45..57. -->
+ <path d="M53 8 L53 88" stroke="#382b21" stroke-width="5" stroke-linecap="round"/>
+ <path d="M53 8 L53 88" stroke="#a57443" stroke-width="3" stroke-linecap="round"/>
+ <path d="M52 20 L52 42 M54 20 L54 42 M52 59 L52 77" stroke="#ddb077" stroke-width=".7"/>
+ <path d="M50 8 H56 V18 H50Z" fill="#c99d58" stroke="#63482d" stroke-width="1"/>
+ <path d="M51 10 H55 M51 14 H55 M51 16 H55" stroke="#ffe2a6" stroke-width=".8"/>
+ <path d="M50 78 H56 V88 H50Z" fill="#c99d58" stroke="#63482d" stroke-width="1"/>
+ <path d="M51 80 H55 M51 84 H55" stroke="#ffe2a6" stroke-width=".8"/>
+ <path d="M51 45 H55 V57 H51Z" fill="#50382e" stroke="#281e1b" stroke-width=".8"/>
+ <path d="M51 47 L55 51 M51 51 L55 55 M55 47 L51 51 M55 51 L51 55" stroke="#d3a17a" stroke-width="1"/>
+ </g><g transform="translate(0 0)">
+       <path d="M19 40 Q17 43 16 53 L17 70 Q31 76 47 70 L47 53 Q45 43 43 40Z" fill="#344739" stroke="#1d3028" stroke-width="1.5"/>
+       <path d="M19 44 L23 42 L43 66 L41 71 L20 51Z" fill="#cbb789"/>
+       <path d="M43 44 L40 42 L21 65 L23 70 L45 50Z" fill="#766343"/>
+       <path d="M18 65 Q32 69 47 65 L48 72 Q33 77 17 71Z" fill="#66503c" stroke="#2d332e" stroke-width="1.2"/>
+       <rect x="29" y="66" width="7" height="6" rx="1" fill="#cfab5f" stroke="#5d4b35" stroke-width="1"/>
+       <path d="M22 55 H26 M38 55 H42" stroke="#dab874" stroke-width="1.5"/>
+       <path d="M22 51 L20 62 M42 51 L44 62" stroke="#9bac85" stroke-width="1.4"/><g id="south-v2-costume-0">
+  <!-- Cream front shirt in vest opening, gold seams and a visible side satchel -->
+  <path d="M29 42 L35 42 L37 57 L32 62 L27 57Z" fill="#e8dfc2" stroke="#9b967c" stroke-width=".6"/>
+  <path d="M30 45 L32 49 L34 45 M32 49 V59" fill="none" stroke="#6b473c" stroke-width="1"/>
+  <path d="M21 46 L26 48 L28 63 M43 46 L39 48 L37 63" fill="none" stroke="#8aa07d" stroke-width="1.5"/>
+  <path d="M21 51 L23 62 M42 51 L41 62" fill="none" stroke="#c1a574" stroke-width=".8"/>
+  <circle cx="31.5" cy="53" r=".8" fill="#e1bd77"/><circle cx="31.5" cy="58" r=".8" fill="#e1bd77"/>
+  <path d="M42 60 L50 61 L51 75 L42 73Z" fill="#7e5033" stroke="#352a27" stroke-width="1"/>
+  <path d="M43 62 L49 63 L49 67 L43 66Z" fill="#a17145"/>
+  <path d="M44 68 L48 68 M44 71 L48 71" stroke="#d0aa70" stroke-width=".8"/>
+  <path d="M22 44 L43 67" stroke="#80583d" stroke-width="2" fill="none"/>
+  <rect x="40" y="61" width="3" height="4" rx=".5" fill="#cca663"/>
+  <!-- Actual hand touches the leather center section around y51–57 -->
+  <path d="M45 55 L49 52 L51 51" fill="none" stroke="#586a50" stroke-width="4"/>
+  <path d="M49 49 L55 49 L56 53 L53 57 L49 55Z" fill="#d7a183" stroke="#7a5244" stroke-width=".8"/>
+  <path d="M51 51 L55 51" stroke="#f2c1a3" stroke-width=".8"/>
+ </g>
+     </g><g transform="translate(0 0)">
+     <path d="M21 19 Q23 11 33 10 Q43 12 44 20 L44 31 Q42 39 32 40 Q22 38 21 30Z" fill="#e6b491" stroke="#603d30" stroke-width="1.5"/>
+     <path d="M21 18 Q21 10 29 8 L38 9 L45 15 L45 25 L40 22 L39 16 L32 19 L24 21 L23 27Z" fill="#753d2e" stroke="#4c2f2b" stroke-width="1"/>
+     <path d="M24 14 L29 10 L37 11 L42 16" stroke="#b86c45" stroke-width="3" fill="none"/>
+     <path d="M24 27 L29 27 M35 27 L40 27" stroke="#4cb98a" stroke-width="2.7"/>
+         <path d="M24 31 Q32 34 40 31" stroke="#ad7564" stroke-width="1" fill="none"/>
+     <path d="M21 20 L43 20" stroke="#967145" stroke-width="2.5"/>
+     <rect x="21" y="18" width="10" height="6" rx="2" fill="#baa36b" stroke="#49382b" stroke-width="1.5"/>
+     <rect x="33" y="18" width="10" height="6" rx="2" fill="#baa36b" stroke="#49382b" stroke-width="1.5"/>
+     <path d="M23 20 H29 V22 H23Z M35 20 H41 V22 H35Z" fill="#4b986a"/><g id="south-v2-face-0">
+  <path d="M24 20 L25 20 M36 20 L37 20" stroke="#bfe0b1" stroke-width=".9"/>
+  <path d="M25 13 L28 17 L26 19 M37 12 L39 17 L36 18" stroke="#c27c4b" stroke-width="2" fill="none"/>
+  <path d="M28 29 L29 29 M35 29 L36 29" stroke="#417659" stroke-width="1.4"/>
+  <path d="M30 33 L33 34 L35 33" stroke="#a76955" stroke-width=".9" fill="none"/>
+  <path d="M27 40 L32 43 L37 40" stroke="#e3d9bb" stroke-width="2" fill="none"/>
+  <path d="M31 42 L32 45 L34 42" fill="#4a4642"/>
+ </g>
+     </g>
+     </g>
+<g transform="translate(64 0)">
+     <title>Ender south contact phase 2</title>
+     <g id="legs1">
+      <path d="M21 66 L30 66 L25 71 L14 71Z" fill="#4c5749" stroke="#28372f" stroke-width="1.3"/>
+      <path d="M34 66 L44 66 L49 71 L38 71Z" fill="#5a6653" stroke="#28372f" stroke-width="1.3"/>
+      <path d="M24 68 L19 71" stroke="#9e956c" stroke-width="1.3"/>
+      <path d="M39 68 L44 71" stroke="#9e956c" stroke-width="1.3"/>
+      <g transform="translate(20 90)">
+      <path d="M-6 -23 L6 -23 L7 -4 L9 0 L9 4 L-9 4 L-9 0 L-7 -5Z" fill="#29313a" stroke="#182630" stroke-width="1.1"/>
+      <path d="M-6 -21 H5 L5 -16 L-5 -17Z" fill="#6b5540"/>
+      <path d="M-7 -7 L8 -6 L9 -3 L-8 -3Z" fill="#bc965f"/>
+      <path d="M-8 1 L9 1" stroke="#b0b9ac" stroke-width="1.2"/>
+      </g><g transform="translate(43 90)">
+      <path d="M-6 -23 L6 -23 L7 -4 L9 0 L9 4 L-9 4 L-9 0 L-7 -5Z" fill="#29313a" stroke="#182630" stroke-width="1.1"/>
+      <path d="M-6 -21 H5 L5 -16 L-5 -17Z" fill="#6b5540"/>
+      <path d="M-7 -7 L8 -6 L9 -3 L-8 -3Z" fill="#bc965f"/>
+      <path d="M-8 1 L9 1" stroke="#b0b9ac" stroke-width="1.2"/>
+      </g></g><g transform="translate(0 1)">
+     <path d="M18 43 L12 57 L16 71.5 L22 66 L22 47Z" fill="#586a50" stroke="#25352f" stroke-width="1.5"/>
+     <path d="M46 43 L52 54 L48 69.5 L43 66 L42 48Z" fill="#596a51" stroke="#25352f" stroke-width="1.5"/>
+     <path d="M14 64 L17 70 L20 69 L19 63Z M45 63 L45 70 L49 70 L50 64Z" fill="#c69577"/>
+     <path d="M13 58 L17 60 M47 61 L50 59" stroke="#c5af86" stroke-width="2"/></g><g id="south-staff-v2-1">
+ <!-- Full vertical shaft x53, y8..88. Center-grip occupies y45..57. -->
+ <path d="M53 8 L53 88" stroke="#382b21" stroke-width="5" stroke-linecap="round"/>
+ <path d="M53 8 L53 88" stroke="#a57443" stroke-width="3" stroke-linecap="round"/>
+ <path d="M52 20 L52 42 M54 20 L54 42 M52 59 L52 77" stroke="#ddb077" stroke-width=".7"/>
+ <path d="M50 8 H56 V18 H50Z" fill="#c99d58" stroke="#63482d" stroke-width="1"/>
+ <path d="M51 10 H55 M51 14 H55 M51 16 H55" stroke="#ffe2a6" stroke-width=".8"/>
+ <path d="M50 78 H56 V88 H50Z" fill="#c99d58" stroke="#63482d" stroke-width="1"/>
+ <path d="M51 80 H55 M51 84 H55" stroke="#ffe2a6" stroke-width=".8"/>
+ <path d="M51 45 H55 V57 H51Z" fill="#50382e" stroke="#281e1b" stroke-width=".8"/>
+ <path d="M51 47 L55 51 M51 51 L55 55 M55 47 L51 51 M55 51 L51 55" stroke="#d3a17a" stroke-width="1"/>
+ </g><g transform="translate(0 1)">
+       <path d="M19 40 Q17 43 16 53 L17 70 Q31 76 47 70 L47 53 Q45 43 43 40Z" fill="#344739" stroke="#1d3028" stroke-width="1.5"/>
+       <path d="M19 44 L23 42 L43 66 L41 71 L20 51Z" fill="#cbb789"/>
+       <path d="M43 44 L40 42 L21 65 L23 70 L45 50Z" fill="#766343"/>
+       <path d="M18 65 Q32 69 47 65 L48 72 Q33 77 17 71Z" fill="#66503c" stroke="#2d332e" stroke-width="1.2"/>
+       <rect x="29" y="66" width="7" height="6" rx="1" fill="#cfab5f" stroke="#5d4b35" stroke-width="1"/>
+       <path d="M22 55 H26 M38 55 H42" stroke="#dab874" stroke-width="1.5"/>
+       <path d="M22 51 L20 62 M42 51 L44 62" stroke="#9bac85" stroke-width="1.4"/><g id="south-v2-costume-1">
+  <!-- Cream front shirt in vest opening, gold seams and a visible side satchel -->
+  <path d="M29 42 L35 42 L37 57 L32 62 L27 57Z" fill="#e8dfc2" stroke="#9b967c" stroke-width=".6"/>
+  <path d="M30 45 L32 49 L34 45 M32 49 V59" fill="none" stroke="#6b473c" stroke-width="1"/>
+  <path d="M21 46 L26 48 L28 63 M43 46 L39 48 L37 63" fill="none" stroke="#8aa07d" stroke-width="1.5"/>
+  <path d="M21 51 L23 62 M42 51 L41 62" fill="none" stroke="#c1a574" stroke-width=".8"/>
+  <circle cx="31.5" cy="53" r=".8" fill="#e1bd77"/><circle cx="31.5" cy="58" r=".8" fill="#e1bd77"/>
+  <path d="M42 60 L50 61 L51 75 L42 73Z" fill="#7e5033" stroke="#352a27" stroke-width="1"/>
+  <path d="M43 62 L49 63 L49 67 L43 66Z" fill="#a17145"/>
+  <path d="M44 68 L48 68 M44 71 L48 71" stroke="#d0aa70" stroke-width=".8"/>
+  <path d="M22 44 L43 67" stroke="#80583d" stroke-width="2" fill="none"/>
+  <rect x="40" y="61" width="3" height="4" rx=".5" fill="#cca663"/>
+  <!-- Actual hand touches the leather center section around y51–57 -->
+  <path d="M45 55 L49 52 L51 51" fill="none" stroke="#586a50" stroke-width="4"/>
+  <path d="M49 49 L55 49 L56 53 L53 57 L49 55Z" fill="#d7a183" stroke="#7a5244" stroke-width=".8"/>
+  <path d="M51 51 L55 51" stroke="#f2c1a3" stroke-width=".8"/>
+ </g>
+     </g><g transform="translate(0 1)">
+     <path d="M21 19 Q23 11 33 10 Q43 12 44 20 L44 31 Q42 39 32 40 Q22 38 21 30Z" fill="#e6b491" stroke="#603d30" stroke-width="1.5"/>
+     <path d="M21 18 Q21 10 29 8 L38 9 L45 15 L45 25 L40 22 L39 16 L32 19 L24 21 L23 27Z" fill="#753d2e" stroke="#4c2f2b" stroke-width="1"/>
+     <path d="M24 14 L29 10 L37 11 L42 16" stroke="#b86c45" stroke-width="3" fill="none"/>
+     <path d="M24 27 L29 27 M35 27 L40 27" stroke="#4cb98a" stroke-width="2.7"/>
+         <path d="M24 31 Q32 34 40 31" stroke="#ad7564" stroke-width="1" fill="none"/>
+     <path d="M21 20 L43 20" stroke="#967145" stroke-width="2.5"/>
+     <rect x="21" y="18" width="10" height="6" rx="2" fill="#baa36b" stroke="#49382b" stroke-width="1.5"/>
+     <rect x="33" y="18" width="10" height="6" rx="2" fill="#baa36b" stroke="#49382b" stroke-width="1.5"/>
+     <path d="M23 20 H29 V22 H23Z M35 20 H41 V22 H35Z" fill="#4b986a"/><g id="south-v2-face-1">
+  <path d="M24 20 L25 20 M36 20 L37 20" stroke="#bfe0b1" stroke-width=".9"/>
+  <path d="M25 13 L28 17 L26 19 M37 12 L39 17 L36 18" stroke="#c27c4b" stroke-width="2" fill="none"/>
+  <path d="M28 29 L29 29 M35 29 L36 29" stroke="#417659" stroke-width="1.4"/>
+  <path d="M30 33 L33 34 L35 33" stroke="#a76955" stroke-width=".9" fill="none"/>
+  <path d="M27 40 L32 43 L37 40" stroke="#e3d9bb" stroke-width="2" fill="none"/>
+  <path d="M31 42 L32 45 L34 42" fill="#4a4642"/>
+ </g>
+     </g>
+     </g>
+<g transform="translate(128 0)">
+     <title>Ender south contact phase 3</title>
+     <g id="legs2">
+      <path d="M21 66 L30 66 L27 69 L16 69Z" fill="#4c5749" stroke="#28372f" stroke-width="1.3"/>
+      <path d="M34 66 L44 66 L47 71 L36 71Z" fill="#5a6653" stroke="#28372f" stroke-width="1.3"/>
+      <path d="M24 68 L21 69" stroke="#9e956c" stroke-width="1.3"/>
+      <path d="M39 68 L42 71" stroke="#9e956c" stroke-width="1.3"/>
+      <g transform="translate(22 88)">
+      <path d="M-6 -23 L6 -23 L7 -4 L9 0 L9 4 L-9 4 L-9 0 L-7 -5Z" fill="#29313a" stroke="#182630" stroke-width="1.1"/>
+      <path d="M-6 -21 H5 L5 -16 L-5 -17Z" fill="#6b5540"/>
+      <path d="M-7 -7 L8 -6 L9 -3 L-8 -3Z" fill="#bc965f"/>
+      <path d="M-8 1 L9 1" stroke="#b0b9ac" stroke-width="1.2"/>
+      </g><g transform="translate(41 90)">
+      <path d="M-6 -23 L6 -23 L7 -4 L9 0 L9 4 L-9 4 L-9 0 L-7 -5Z" fill="#29313a" stroke="#182630" stroke-width="1.1"/>
+      <path d="M-6 -21 H5 L5 -16 L-5 -17Z" fill="#6b5540"/>
+      <path d="M-7 -7 L8 -6 L9 -3 L-8 -3Z" fill="#bc965f"/>
+      <path d="M-8 1 L9 1" stroke="#b0b9ac" stroke-width="1.2"/>
+      </g></g><g transform="translate(0 0)">
+     <path d="M18 43 L12 56.2 L16 70.9 L22 66 L22 47Z" fill="#586a50" stroke="#25352f" stroke-width="1.5"/>
+     <path d="M46 43 L52 54.8 L48 70.1 L43 66 L42 48Z" fill="#596a51" stroke="#25352f" stroke-width="1.5"/>
+     <path d="M14 64 L17 70 L20 69 L19 63Z M45 63 L45 70 L49 70 L50 64Z" fill="#c69577"/>
+     <path d="M13 58 L17 60 M47 61 L50 59" stroke="#c5af86" stroke-width="2"/></g><g id="south-staff-v2-2">
+ <!-- Full vertical shaft x53, y8..88. Center-grip occupies y45..57. -->
+ <path d="M53 8 L53 88" stroke="#382b21" stroke-width="5" stroke-linecap="round"/>
+ <path d="M53 8 L53 88" stroke="#a57443" stroke-width="3" stroke-linecap="round"/>
+ <path d="M52 20 L52 42 M54 20 L54 42 M52 59 L52 77" stroke="#ddb077" stroke-width=".7"/>
+ <path d="M50 8 H56 V18 H50Z" fill="#c99d58" stroke="#63482d" stroke-width="1"/>
+ <path d="M51 10 H55 M51 14 H55 M51 16 H55" stroke="#ffe2a6" stroke-width=".8"/>
+ <path d="M50 78 H56 V88 H50Z" fill="#c99d58" stroke="#63482d" stroke-width="1"/>
+ <path d="M51 80 H55 M51 84 H55" stroke="#ffe2a6" stroke-width=".8"/>
+ <path d="M51 45 H55 V57 H51Z" fill="#50382e" stroke="#281e1b" stroke-width=".8"/>
+ <path d="M51 47 L55 51 M51 51 L55 55 M55 47 L51 51 M55 51 L51 55" stroke="#d3a17a" stroke-width="1"/>
+ </g><g transform="translate(0 0)">
+       <path d="M19 40 Q17 43 16 53 L17 70 Q31 76 47 70 L47 53 Q45 43 43 40Z" fill="#344739" stroke="#1d3028" stroke-width="1.5"/>
+       <path d="M19 44 L23 42 L43 66 L41 71 L20 51Z" fill="#cbb789"/>
+       <path d="M43 44 L40 42 L21 65 L23 70 L45 50Z" fill="#766343"/>
+       <path d="M18 65 Q32 69 47 65 L48 72 Q33 77 17 71Z" fill="#66503c" stroke="#2d332e" stroke-width="1.2"/>
+       <rect x="29" y="66" width="7" height="6" rx="1" fill="#cfab5f" stroke="#5d4b35" stroke-width="1"/>
+       <path d="M22 55 H26 M38 55 H42" stroke="#dab874" stroke-width="1.5"/>
+       <path d="M22 51 L20 62 M42 51 L44 62" stroke="#9bac85" stroke-width="1.4"/><g id="south-v2-costume-2">
+  <!-- Cream front shirt in vest opening, gold seams and a visible side satchel -->
+  <path d="M29 42 L35 42 L37 57 L32 62 L27 57Z" fill="#e8dfc2" stroke="#9b967c" stroke-width=".6"/>
+  <path d="M30 45 L32 49 L34 45 M32 49 V59" fill="none" stroke="#6b473c" stroke-width="1"/>
+  <path d="M21 46 L26 48 L28 63 M43 46 L39 48 L37 63" fill="none" stroke="#8aa07d" stroke-width="1.5"/>
+  <path d="M21 51 L23 62 M42 51 L41 62" fill="none" stroke="#c1a574" stroke-width=".8"/>
+  <circle cx="31.5" cy="53" r=".8" fill="#e1bd77"/><circle cx="31.5" cy="58" r=".8" fill="#e1bd77"/>
+  <path d="M42 60 L50 61 L51 75 L42 73Z" fill="#7e5033" stroke="#352a27" stroke-width="1"/>
+  <path d="M43 62 L49 63 L49 67 L43 66Z" fill="#a17145"/>
+  <path d="M44 68 L48 68 M44 71 L48 71" stroke="#d0aa70" stroke-width=".8"/>
+  <path d="M22 44 L43 67" stroke="#80583d" stroke-width="2" fill="none"/>
+  <rect x="40" y="61" width="3" height="4" rx=".5" fill="#cca663"/>
+  <!-- Actual hand touches the leather center section around y51–57 -->
+  <path d="M45 55 L49 52 L51 51" fill="none" stroke="#586a50" stroke-width="4"/>
+  <path d="M49 49 L55 49 L56 53 L53 57 L49 55Z" fill="#d7a183" stroke="#7a5244" stroke-width=".8"/>
+  <path d="M51 51 L55 51" stroke="#f2c1a3" stroke-width=".8"/>
+ </g>
+     </g><g transform="translate(0 0)">
+     <path d="M21 19 Q23 11 33 10 Q43 12 44 20 L44 31 Q42 39 32 40 Q22 38 21 30Z" fill="#e6b491" stroke="#603d30" stroke-width="1.5"/>
+     <path d="M21 18 Q21 10 29 8 L38 9 L45 15 L45 25 L40 22 L39 16 L32 19 L24 21 L23 27Z" fill="#753d2e" stroke="#4c2f2b" stroke-width="1"/>
+     <path d="M24 14 L29 10 L37 11 L42 16" stroke="#b86c45" stroke-width="3" fill="none"/>
+     <path d="M24 27 L29 27 M35 27 L40 27" stroke="#4cb98a" stroke-width="2.7"/>
+         <path d="M24 31 Q32 34 40 31" stroke="#ad7564" stroke-width="1" fill="none"/>
+     <path d="M21 20 L43 20" stroke="#967145" stroke-width="2.5"/>
+     <rect x="21" y="18" width="10" height="6" rx="2" fill="#baa36b" stroke="#49382b" stroke-width="1.5"/>
+     <rect x="33" y="18" width="10" height="6" rx="2" fill="#baa36b" stroke="#49382b" stroke-width="1.5"/>
+     <path d="M23 20 H29 V22 H23Z M35 20 H41 V22 H35Z" fill="#4b986a"/><g id="south-v2-face-2">
+  <path d="M24 20 L25 20 M36 20 L37 20" stroke="#bfe0b1" stroke-width=".9"/>
+  <path d="M25 13 L28 17 L26 19 M37 12 L39 17 L36 18" stroke="#c27c4b" stroke-width="2" fill="none"/>
+  <path d="M28 29 L29 29 M35 29 L36 29" stroke="#417659" stroke-width="1.4"/>
+  <path d="M30 33 L33 34 L35 33" stroke="#a76955" stroke-width=".9" fill="none"/>
+  <path d="M27 40 L32 43 L37 40" stroke="#e3d9bb" stroke-width="2" fill="none"/>
+  <path d="M31 42 L32 45 L34 42" fill="#4a4642"/>
+ </g>
+     </g>
+     </g>
+<g transform="translate(192 0)">
+     <title>Ender south contact phase 4</title>
+     <g id="legs3">
+      <path d="M21 66 L30 66 L30 71 L19 71Z" fill="#4c5749" stroke="#28372f" stroke-width="1.3"/>
+      <path d="M34 66 L44 66 L44 71 L33 71Z" fill="#5a6653" stroke="#28372f" stroke-width="1.3"/>
+      <path d="M24 68 L24 71" stroke="#9e956c" stroke-width="1.3"/>
+      <path d="M39 68 L39 71" stroke="#9e956c" stroke-width="1.3"/>
+      <g transform="translate(25 90)">
+      <path d="M-6 -23 L6 -23 L7 -4 L9 0 L9 4 L-9 4 L-9 0 L-7 -5Z" fill="#29313a" stroke="#182630" stroke-width="1.1"/>
+      <path d="M-6 -21 H5 L5 -16 L-5 -17Z" fill="#6b5540"/>
+      <path d="M-7 -7 L8 -6 L9 -3 L-8 -3Z" fill="#bc965f"/>
+      <path d="M-8 1 L9 1" stroke="#b0b9ac" stroke-width="1.2"/>
+      </g><g transform="translate(38 90)">
+      <path d="M-6 -23 L6 -23 L7 -4 L9 0 L9 4 L-9 4 L-9 0 L-7 -5Z" fill="#29313a" stroke="#182630" stroke-width="1.1"/>
+      <path d="M-6 -21 H5 L5 -16 L-5 -17Z" fill="#6b5540"/>
+      <path d="M-7 -7 L8 -6 L9 -3 L-8 -3Z" fill="#bc965f"/>
+      <path d="M-8 1 L9 1" stroke="#b0b9ac" stroke-width="1.2"/>
+      </g></g><g transform="translate(0 0)">
+     <path d="M18 43 L12 55 L16 70 L22 66 L22 47Z" fill="#586a50" stroke="#25352f" stroke-width="1.5"/>
+     <path d="M46 43 L52 56 L48 71 L43 66 L42 48Z" fill="#596a51" stroke="#25352f" stroke-width="1.5"/>
+     <path d="M14 64 L17 70 L20 69 L19 63Z M45 63 L45 70 L49 70 L50 64Z" fill="#c69577"/>
+     <path d="M13 58 L17 60 M47 61 L50 59" stroke="#c5af86" stroke-width="2"/></g><g id="south-staff-v2-3">
+ <!-- Full vertical shaft x53, y8..88. Center-grip occupies y45..57. -->
+ <path d="M53 8 L53 88" stroke="#382b21" stroke-width="5" stroke-linecap="round"/>
+ <path d="M53 8 L53 88" stroke="#a57443" stroke-width="3" stroke-linecap="round"/>
+ <path d="M52 20 L52 42 M54 20 L54 42 M52 59 L52 77" stroke="#ddb077" stroke-width=".7"/>
+ <path d="M50 8 H56 V18 H50Z" fill="#c99d58" stroke="#63482d" stroke-width="1"/>
+ <path d="M51 10 H55 M51 14 H55 M51 16 H55" stroke="#ffe2a6" stroke-width=".8"/>
+ <path d="M50 78 H56 V88 H50Z" fill="#c99d58" stroke="#63482d" stroke-width="1"/>
+ <path d="M51 80 H55 M51 84 H55" stroke="#ffe2a6" stroke-width=".8"/>
+ <path d="M51 45 H55 V57 H51Z" fill="#50382e" stroke="#281e1b" stroke-width=".8"/>
+ <path d="M51 47 L55 51 M51 51 L55 55 M55 47 L51 51 M55 51 L51 55" stroke="#d3a17a" stroke-width="1"/>
+ </g><g transform="translate(0 0)">
+       <path d="M19 40 Q17 43 16 53 L17 70 Q31 76 47 70 L47 53 Q45 43 43 40Z" fill="#344739" stroke="#1d3028" stroke-width="1.5"/>
+       <path d="M19 44 L23 42 L43 66 L41 71 L20 51Z" fill="#cbb789"/>
+       <path d="M43 44 L40 42 L21 65 L23 70 L45 50Z" fill="#766343"/>
+       <path d="M18 65 Q32 69 47 65 L48 72 Q33 77 17 71Z" fill="#66503c" stroke="#2d332e" stroke-width="1.2"/>
+       <rect x="29" y="66" width="7" height="6" rx="1" fill="#cfab5f" stroke="#5d4b35" stroke-width="1"/>
+       <path d="M22 55 H26 M38 55 H42" stroke="#dab874" stroke-width="1.5"/>
+       <path d="M22 51 L20 62 M42 51 L44 62" stroke="#9bac85" stroke-width="1.4"/><g id="south-v2-costume-3">
+  <!-- Cream front shirt in vest opening, gold seams and a visible side satchel -->
+  <path d="M29 42 L35 42 L37 57 L32 62 L27 57Z" fill="#e8dfc2" stroke="#9b967c" stroke-width=".6"/>
+  <path d="M30 45 L32 49 L34 45 M32 49 V59" fill="none" stroke="#6b473c" stroke-width="1"/>
+  <path d="M21 46 L26 48 L28 63 M43 46 L39 48 L37 63" fill="none" stroke="#8aa07d" stroke-width="1.5"/>
+  <path d="M21 51 L23 62 M42 51 L41 62" fill="none" stroke="#c1a574" stroke-width=".8"/>
+  <circle cx="31.5" cy="53" r=".8" fill="#e1bd77"/><circle cx="31.5" cy="58" r=".8" fill="#e1bd77"/>
+  <path d="M42 60 L50 61 L51 75 L42 73Z" fill="#7e5033" stroke="#352a27" stroke-width="1"/>
+  <path d="M43 62 L49 63 L49 67 L43 66Z" fill="#a17145"/>
+  <path d="M44 68 L48 68 M44 71 L48 71" stroke="#d0aa70" stroke-width=".8"/>
+  <path d="M22 44 L43 67" stroke="#80583d" stroke-width="2" fill="none"/>
+  <rect x="40" y="61" width="3" height="4" rx=".5" fill="#cca663"/>
+  <!-- Actual hand touches the leather center section around y51–57 -->
+  <path d="M45 55 L49 52 L51 51" fill="none" stroke="#586a50" stroke-width="4"/>
+  <path d="M49 49 L55 49 L56 53 L53 57 L49 55Z" fill="#d7a183" stroke="#7a5244" stroke-width=".8"/>
+  <path d="M51 51 L55 51" stroke="#f2c1a3" stroke-width=".8"/>
+ </g>
+     </g><g transform="translate(0 0)">
+     <path d="M21 19 Q23 11 33 10 Q43 12 44 20 L44 31 Q42 39 32 40 Q22 38 21 30Z" fill="#e6b491" stroke="#603d30" stroke-width="1.5"/>
+     <path d="M21 18 Q21 10 29 8 L38 9 L45 15 L45 25 L40 22 L39 16 L32 19 L24 21 L23 27Z" fill="#753d2e" stroke="#4c2f2b" stroke-width="1"/>
+     <path d="M24 14 L29 10 L37 11 L42 16" stroke="#b86c45" stroke-width="3" fill="none"/>
+     <path d="M24 27 L29 27 M35 27 L40 27" stroke="#4cb98a" stroke-width="2.7"/>
+         <path d="M24 31 Q32 34 40 31" stroke="#ad7564" stroke-width="1" fill="none"/>
+     <path d="M21 20 L43 20" stroke="#967145" stroke-width="2.5"/>
+     <rect x="21" y="18" width="10" height="6" rx="2" fill="#baa36b" stroke="#49382b" stroke-width="1.5"/>
+     <rect x="33" y="18" width="10" height="6" rx="2" fill="#baa36b" stroke="#49382b" stroke-width="1.5"/>
+     <path d="M23 20 H29 V22 H23Z M35 20 H41 V22 H35Z" fill="#4b986a"/><g id="south-v2-face-3">
+  <path d="M24 20 L25 20 M36 20 L37 20" stroke="#bfe0b1" stroke-width=".9"/>
+  <path d="M25 13 L28 17 L26 19 M37 12 L39 17 L36 18" stroke="#c27c4b" stroke-width="2" fill="none"/>
+  <path d="M28 29 L29 29 M35 29 L36 29" stroke="#417659" stroke-width="1.4"/>
+  <path d="M30 33 L33 34 L35 33" stroke="#a76955" stroke-width=".9" fill="none"/>
+  <path d="M27 40 L32 43 L37 40" stroke="#e3d9bb" stroke-width="2" fill="none"/>
+  <path d="M31 42 L32 45 L34 42" fill="#4a4642"/>
+ </g>
+     </g>
+     </g>
+<g transform="translate(256 0)">
+     <title>Ender south contact phase 5</title>
+     <g id="legs4">
+      <path d="M21 66 L30 66 L35 71 L24 71Z" fill="#4c5749" stroke="#28372f" stroke-width="1.3"/>
+      <path d="M34 66 L44 66 L39 71 L28 71Z" fill="#5a6653" stroke="#28372f" stroke-width="1.3"/>
+      <path d="M24 68 L29 71" stroke="#9e956c" stroke-width="1.3"/>
+      <path d="M39 68 L34 71" stroke="#9e956c" stroke-width="1.3"/>
+      <g transform="translate(30 90)">
+      <path d="M-6 -23 L6 -23 L7 -4 L9 0 L9 4 L-9 4 L-9 0 L-7 -5Z" fill="#29313a" stroke="#182630" stroke-width="1.1"/>
+      <path d="M-6 -21 H5 L5 -16 L-5 -17Z" fill="#6b5540"/>
+      <path d="M-7 -7 L8 -6 L9 -3 L-8 -3Z" fill="#bc965f"/>
+      <path d="M-8 1 L9 1" stroke="#b0b9ac" stroke-width="1.2"/>
+      </g><g transform="translate(33 90)">
+      <path d="M-6 -23 L6 -23 L7 -4 L9 0 L9 4 L-9 4 L-9 0 L-7 -5Z" fill="#29313a" stroke="#182630" stroke-width="1.1"/>
+      <path d="M-6 -21 H5 L5 -16 L-5 -17Z" fill="#6b5540"/>
+      <path d="M-7 -7 L8 -6 L9 -3 L-8 -3Z" fill="#bc965f"/>
+      <path d="M-8 1 L9 1" stroke="#b0b9ac" stroke-width="1.2"/>
+      </g></g><g transform="translate(0 1)">
+     <path d="M18 43 L12 53 L16 68.5 L22 66 L22 47Z" fill="#586a50" stroke="#25352f" stroke-width="1.5"/>
+     <path d="M46 43 L52 58 L48 72.5 L43 66 L42 48Z" fill="#596a51" stroke="#25352f" stroke-width="1.5"/>
+     <path d="M14 64 L17 70 L20 69 L19 63Z M45 63 L45 70 L49 70 L50 64Z" fill="#c69577"/>
+     <path d="M13 58 L17 60 M47 61 L50 59" stroke="#c5af86" stroke-width="2"/></g><g id="south-staff-v2-4">
+ <!-- Full vertical shaft x53, y8..88. Center-grip occupies y45..57. -->
+ <path d="M53 8 L53 88" stroke="#382b21" stroke-width="5" stroke-linecap="round"/>
+ <path d="M53 8 L53 88" stroke="#a57443" stroke-width="3" stroke-linecap="round"/>
+ <path d="M52 20 L52 42 M54 20 L54 42 M52 59 L52 77" stroke="#ddb077" stroke-width=".7"/>
+ <path d="M50 8 H56 V18 H50Z" fill="#c99d58" stroke="#63482d" stroke-width="1"/>
+ <path d="M51 10 H55 M51 14 H55 M51 16 H55" stroke="#ffe2a6" stroke-width=".8"/>
+ <path d="M50 78 H56 V88 H50Z" fill="#c99d58" stroke="#63482d" stroke-width="1"/>
+ <path d="M51 80 H55 M51 84 H55" stroke="#ffe2a6" stroke-width=".8"/>
+ <path d="M51 45 H55 V57 H51Z" fill="#50382e" stroke="#281e1b" stroke-width=".8"/>
+ <path d="M51 47 L55 51 M51 51 L55 55 M55 47 L51 51 M55 51 L51 55" stroke="#d3a17a" stroke-width="1"/>
+ </g><g transform="translate(0 1)">
+       <path d="M19 40 Q17 43 16 53 L17 70 Q31 76 47 70 L47 53 Q45 43 43 40Z" fill="#344739" stroke="#1d3028" stroke-width="1.5"/>
+       <path d="M19 44 L23 42 L43 66 L41 71 L20 51Z" fill="#cbb789"/>
+       <path d="M43 44 L40 42 L21 65 L23 70 L45 50Z" fill="#766343"/>
+       <path d="M18 65 Q32 69 47 65 L48 72 Q33 77 17 71Z" fill="#66503c" stroke="#2d332e" stroke-width="1.2"/>
+       <rect x="29" y="66" width="7" height="6" rx="1" fill="#cfab5f" stroke="#5d4b35" stroke-width="1"/>
+       <path d="M22 55 H26 M38 55 H42" stroke="#dab874" stroke-width="1.5"/>
+       <path d="M22 51 L20 62 M42 51 L44 62" stroke="#9bac85" stroke-width="1.4"/><g id="south-v2-costume-4">
+  <!-- Cream front shirt in vest opening, gold seams and a visible side satchel -->
+  <path d="M29 42 L35 42 L37 57 L32 62 L27 57Z" fill="#e8dfc2" stroke="#9b967c" stroke-width=".6"/>
+  <path d="M30 45 L32 49 L34 45 M32 49 V59" fill="none" stroke="#6b473c" stroke-width="1"/>
+  <path d="M21 46 L26 48 L28 63 M43 46 L39 48 L37 63" fill="none" stroke="#8aa07d" stroke-width="1.5"/>
+  <path d="M21 51 L23 62 M42 51 L41 62" fill="none" stroke="#c1a574" stroke-width=".8"/>
+  <circle cx="31.5" cy="53" r=".8" fill="#e1bd77"/><circle cx="31.5" cy="58" r=".8" fill="#e1bd77"/>
+  <path d="M42 60 L50 61 L51 75 L42 73Z" fill="#7e5033" stroke="#352a27" stroke-width="1"/>
+  <path d="M43 62 L49 63 L49 67 L43 66Z" fill="#a17145"/>
+  <path d="M44 68 L48 68 M44 71 L48 71" stroke="#d0aa70" stroke-width=".8"/>
+  <path d="M22 44 L43 67" stroke="#80583d" stroke-width="2" fill="none"/>
+  <rect x="40" y="61" width="3" height="4" rx=".5" fill="#cca663"/>
+  <!-- Actual hand touches the leather center section around y51–57 -->
+  <path d="M45 55 L49 52 L51 51" fill="none" stroke="#586a50" stroke-width="4"/>
+  <path d="M49 49 L55 49 L56 53 L53 57 L49 55Z" fill="#d7a183" stroke="#7a5244" stroke-width=".8"/>
+  <path d="M51 51 L55 51" stroke="#f2c1a3" stroke-width=".8"/>
+ </g>
+     </g><g transform="translate(0 1)">
+     <path d="M21 19 Q23 11 33 10 Q43 12 44 20 L44 31 Q42 39 32 40 Q22 38 21 30Z" fill="#e6b491" stroke="#603d30" stroke-width="1.5"/>
+     <path d="M21 18 Q21 10 29 8 L38 9 L45 15 L45 25 L40 22 L39 16 L32 19 L24 21 L23 27Z" fill="#753d2e" stroke="#4c2f2b" stroke-width="1"/>
+     <path d="M24 14 L29 10 L37 11 L42 16" stroke="#b86c45" stroke-width="3" fill="none"/>
+     <path d="M24 27 L29 27 M35 27 L40 27" stroke="#4cb98a" stroke-width="2.7"/>
+         <path d="M24 31 Q32 34 40 31" stroke="#ad7564" stroke-width="1" fill="none"/>
+     <path d="M21 20 L43 20" stroke="#967145" stroke-width="2.5"/>
+     <rect x="21" y="18" width="10" height="6" rx="2" fill="#baa36b" stroke="#49382b" stroke-width="1.5"/>
+     <rect x="33" y="18" width="10" height="6" rx="2" fill="#baa36b" stroke="#49382b" stroke-width="1.5"/>
+     <path d="M23 20 H29 V22 H23Z M35 20 H41 V22 H35Z" fill="#4b986a"/><g id="south-v2-face-4">
+  <path d="M24 20 L25 20 M36 20 L37 20" stroke="#bfe0b1" stroke-width=".9"/>
+  <path d="M25 13 L28 17 L26 19 M37 12 L39 17 L36 18" stroke="#c27c4b" stroke-width="2" fill="none"/>
+  <path d="M28 29 L29 29 M35 29 L36 29" stroke="#417659" stroke-width="1.4"/>
+  <path d="M30 33 L33 34 L35 33" stroke="#a76955" stroke-width=".9" fill="none"/>
+  <path d="M27 40 L32 43 L37 40" stroke="#e3d9bb" stroke-width="2" fill="none"/>
+  <path d="M31 42 L32 45 L34 42" fill="#4a4642"/>
+ </g>
+     </g>
+     </g>
+<g transform="translate(320 0)">
+     <title>Ender south contact phase 6</title>
+     <g id="legs5">
+      <path d="M21 66 L30 66 L33 69 L22 69Z" fill="#4c5749" stroke="#28372f" stroke-width="1.3"/>
+      <path d="M34 66 L44 66 L41 69 L30 69Z" fill="#5a6653" stroke="#28372f" stroke-width="1.3"/>
+      <path d="M24 68 L27 69" stroke="#9e956c" stroke-width="1.3"/>
+      <path d="M39 68 L36 69" stroke="#9e956c" stroke-width="1.3"/>
+      <g transform="translate(28 88)">
+      <path d="M-6 -23 L6 -23 L7 -4 L9 0 L9 4 L-9 4 L-9 0 L-7 -5Z" fill="#29313a" stroke="#182630" stroke-width="1.1"/>
+      <path d="M-6 -21 H5 L5 -16 L-5 -17Z" fill="#6b5540"/>
+      <path d="M-7 -7 L8 -6 L9 -3 L-8 -3Z" fill="#bc965f"/>
+      <path d="M-8 1 L9 1" stroke="#b0b9ac" stroke-width="1.2"/>
+      </g><g transform="translate(35 88)">
+      <path d="M-6 -23 L6 -23 L7 -4 L9 0 L9 4 L-9 4 L-9 0 L-7 -5Z" fill="#29313a" stroke="#182630" stroke-width="1.1"/>
+      <path d="M-6 -21 H5 L5 -16 L-5 -17Z" fill="#6b5540"/>
+      <path d="M-7 -7 L8 -6 L9 -3 L-8 -3Z" fill="#bc965f"/>
+      <path d="M-8 1 L9 1" stroke="#b0b9ac" stroke-width="1.2"/>
+      </g></g><g transform="translate(0 0)">
+     <path d="M18 43 L12 53.8 L16 69.1 L22 66 L22 47Z" fill="#586a50" stroke="#25352f" stroke-width="1.5"/>
+     <path d="M46 43 L52 57.2 L48 71.9 L43 66 L42 48Z" fill="#596a51" stroke="#25352f" stroke-width="1.5"/>
+     <path d="M14 64 L17 70 L20 69 L19 63Z M45 63 L45 70 L49 70 L50 64Z" fill="#c69577"/>
+     <path d="M13 58 L17 60 M47 61 L50 59" stroke="#c5af86" stroke-width="2"/></g><g id="south-staff-v2-5">
+ <!-- Full vertical shaft x53, y8..88. Center-grip occupies y45..57. -->
+ <path d="M53 8 L53 88" stroke="#382b21" stroke-width="5" stroke-linecap="round"/>
+ <path d="M53 8 L53 88" stroke="#a57443" stroke-width="3" stroke-linecap="round"/>
+ <path d="M52 20 L52 42 M54 20 L54 42 M52 59 L52 77" stroke="#ddb077" stroke-width=".7"/>
+ <path d="M50 8 H56 V18 H50Z" fill="#c99d58" stroke="#63482d" stroke-width="1"/>
+ <path d="M51 10 H55 M51 14 H55 M51 16 H55" stroke="#ffe2a6" stroke-width=".8"/>
+ <path d="M50 78 H56 V88 H50Z" fill="#c99d58" stroke="#63482d" stroke-width="1"/>
+ <path d="M51 80 H55 M51 84 H55" stroke="#ffe2a6" stroke-width=".8"/>
+ <path d="M51 45 H55 V57 H51Z" fill="#50382e" stroke="#281e1b" stroke-width=".8"/>
+ <path d="M51 47 L55 51 M51 51 L55 55 M55 47 L51 51 M55 51 L51 55" stroke="#d3a17a" stroke-width="1"/>
+ </g><g transform="translate(0 0)">
+       <path d="M19 40 Q17 43 16 53 L17 70 Q31 76 47 70 L47 53 Q45 43 43 40Z" fill="#344739" stroke="#1d3028" stroke-width="1.5"/>
+       <path d="M19 44 L23 42 L43 66 L41 71 L20 51Z" fill="#cbb789"/>
+       <path d="M43 44 L40 42 L21 65 L23 70 L45 50Z" fill="#766343"/>
+       <path d="M18 65 Q32 69 47 65 L48 72 Q33 77 17 71Z" fill="#66503c" stroke="#2d332e" stroke-width="1.2"/>
+       <rect x="29" y="66" width="7" height="6" rx="1" fill="#cfab5f" stroke="#5d4b35" stroke-width="1"/>
+       <path d="M22 55 H26 M38 55 H42" stroke="#dab874" stroke-width="1.5"/>
+       <path d="M22 51 L20 62 M42 51 L44 62" stroke="#9bac85" stroke-width="1.4"/><g id="south-v2-costume-5">
+  <!-- Cream front shirt in vest opening, gold seams and a visible side satchel -->
+  <path d="M29 42 L35 42 L37 57 L32 62 L27 57Z" fill="#e8dfc2" stroke="#9b967c" stroke-width=".6"/>
+  <path d="M30 45 L32 49 L34 45 M32 49 V59" fill="none" stroke="#6b473c" stroke-width="1"/>
+  <path d="M21 46 L26 48 L28 63 M43 46 L39 48 L37 63" fill="none" stroke="#8aa07d" stroke-width="1.5"/>
+  <path d="M21 51 L23 62 M42 51 L41 62" fill="none" stroke="#c1a574" stroke-width=".8"/>
+  <circle cx="31.5" cy="53" r=".8" fill="#e1bd77"/><circle cx="31.5" cy="58" r=".8" fill="#e1bd77"/>
+  <path d="M42 60 L50 61 L51 75 L42 73Z" fill="#7e5033" stroke="#352a27" stroke-width="1"/>
+  <path d="M43 62 L49 63 L49 67 L43 66Z" fill="#a17145"/>
+  <path d="M44 68 L48 68 M44 71 L48 71" stroke="#d0aa70" stroke-width=".8"/>
+  <path d="M22 44 L43 67" stroke="#80583d" stroke-width="2" fill="none"/>
+  <rect x="40" y="61" width="3" height="4" rx=".5" fill="#cca663"/>
+  <!-- Actual hand touches the leather center section around y51–57 -->
+  <path d="M45 55 L49 52 L51 51" fill="none" stroke="#586a50" stroke-width="4"/>
+  <path d="M49 49 L55 49 L56 53 L53 57 L49 55Z" fill="#d7a183" stroke="#7a5244" stroke-width=".8"/>
+  <path d="M51 51 L55 51" stroke="#f2c1a3" stroke-width=".8"/>
+ </g>
+     </g><g transform="translate(0 0)">
+     <path d="M21 19 Q23 11 33 10 Q43 12 44 20 L44 31 Q42 39 32 40 Q22 38 21 30Z" fill="#e6b491" stroke="#603d30" stroke-width="1.5"/>
+     <path d="M21 18 Q21 10 29 8 L38 9 L45 15 L45 25 L40 22 L39 16 L32 19 L24 21 L23 27Z" fill="#753d2e" stroke="#4c2f2b" stroke-width="1"/>
+     <path d="M24 14 L29 10 L37 11 L42 16" stroke="#b86c45" stroke-width="3" fill="none"/>
+     <path d="M24 27 L29 27 M35 27 L40 27" stroke="#4cb98a" stroke-width="2.7"/>
+         <path d="M24 31 Q32 34 40 31" stroke="#ad7564" stroke-width="1" fill="none"/>
+     <path d="M21 20 L43 20" stroke="#967145" stroke-width="2.5"/>
+     <rect x="21" y="18" width="10" height="6" rx="2" fill="#baa36b" stroke="#49382b" stroke-width="1.5"/>
+     <rect x="33" y="18" width="10" height="6" rx="2" fill="#baa36b" stroke="#49382b" stroke-width="1.5"/>
+     <path d="M23 20 H29 V22 H23Z M35 20 H41 V22 H35Z" fill="#4b986a"/><g id="south-v2-face-5">
+  <path d="M24 20 L25 20 M36 20 L37 20" stroke="#bfe0b1" stroke-width=".9"/>
+  <path d="M25 13 L28 17 L26 19 M37 12 L39 17 L36 18" stroke="#c27c4b" stroke-width="2" fill="none"/>
+  <path d="M28 29 L29 29 M35 29 L36 29" stroke="#417659" stroke-width="1.4"/>
+  <path d="M30 33 L33 34 L35 33" stroke="#a76955" stroke-width=".9" fill="none"/>
+  <path d="M27 40 L32 43 L37 40" stroke="#e3d9bb" stroke-width="2" fill="none"/>
+  <path d="M31 42 L32 45 L34 42" fill="#4a4642"/>
+ </g>
+     </g>
+     </g></svg>
