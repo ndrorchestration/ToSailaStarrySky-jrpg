@@ -1,0 +1,56 @@
+name: Aetherwake Windows release hold behavioral QA (#293)
+
+on:
+  push:
+    branches:
+      - qa/293-security-hold-behavior-20261021
+    paths:
+      - tests/security-hold-behavior-293.test.js
+      - tests/security-hold-publisher-surface-293.test.js
+      - tests/test_release_hold_state_probe_293.py
+      - scripts/verify-windows-release-hold-293.py
+      - .github/workflows/qa-security-hold-behavior-293.yml
+
+permissions:
+  contents: read
+
+jobs:
+  extracted-preflight-only:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 8
+    steps:
+      - name: Checkout QA branch without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Verify signed parent guard source blobs unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object .github/workflows/desktop-package.yml)" = "25dbf4151b31a4112d738a386f395f9f77778e0a"
+          test "$(git hash-object scripts/build-windows-release.ps1)" = "878fc23ba012f27290f9fae4ac5b1424b1e89699"
+      - name: Set up Node 22
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: '22'
+      - name: Verify PowerShell is available
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v pwsh
+          pwsh -NoLogo -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion'
+      - name: Run ONLY isolated synthetic preflight denial tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/security-hold-behavior-293.test.js tests/security-hold-publisher-surface-293.test.js
+      - name: Verify read-only admin-state probe with synthetic responses only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python --version
+          python tests/test_release_hold_state_probe_293.py -v
