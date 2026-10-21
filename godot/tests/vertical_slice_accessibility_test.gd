@@ -64,8 +64,16 @@ func _verify() -> void:
     if world.stage != "approach" or not world.ender.player_controlled:
         _fail("challenge failure trapped movement or lacked retry")
         return
-    if not world.start_encounter() or world.encounter.player_hp != 24:
+    if not world.start_encounter() or world.encounter.player_hp != 18:
         _fail("challenge retry did not reset state")
+        return
+    var blind = load("res://scripts/vertical_slice_encounter.gd").new()
+    for i in range(4):
+        if blind.is_failed():
+            break
+        blind.take_turn("strike")
+    if not blind.is_failed() or blind.completed:
+        _fail("ignoring pulse warnings did not carry a real risk")
         return
     print("AETHERWAKE_ACCESSIBILITY_PASS: text, motion, trace opt-out, dialogue cancel, safe challenge retry")
     quit(0)
