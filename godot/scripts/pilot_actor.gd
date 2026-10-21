@@ -8,9 +8,10 @@ extends CharacterBody2D
 @export var review_source_texture: Texture2D
 
 var walking_bounds: Rect2 = Rect2(Vector2(145, 410), Vector2(670, 112))
-var near_leg_forward: bool = false
-var walk_clock: float = 0.0
 var review_sprite: Sprite2D
+var walk_review_sprite: Sprite2D
+var travel_distance: float = 0.0
+var gait_step: float = 0.0
 
 func _ready() -> void:
     var shape_node := CollisionShape2D.new()
@@ -30,7 +31,21 @@ func _ready() -> void:
         review_sprite.position = Vector2(0, -42)
         review_sprite.visible = false
         add_child(review_sprite)
+    if character_name == "Ender":
+        walk_review_sprite = Sprite2D.new()
+        walk_review_sprite.name = "EnderWalkReviewUnapproved"
+        walk_review_sprite.texture = preload("res://art-review/ender-walk-candidate.png")
+        walk_review_sprite.hframes = 6
+        walk_review_sprite.position = Vector2(0, -46)
+        walk_review_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+        walk_review_sprite.visible = false
+        add_child(walk_review_sprite)
     queue_redraw()
+
+func set_walk_review_enabled(enabled: bool) -> void:
+    if walk_review_sprite != null:
+        walk_review_sprite.visible = enabled
+        queue_redraw()
 
 func set_review_art_enabled(enabled: bool) -> void:
     if review_sprite != null:
@@ -40,16 +55,26 @@ func set_review_art_enabled(enabled: bool) -> void:
 func is_review_art_enabled() -> bool:
     return review_sprite != null and review_sprite.visible
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
     if not player_controlled:
         return
     var direction := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
     velocity = direction * walk_speed
+    var before := global_position
     move_and_slide()
     global_position = global_position.clamp(walking_bounds.position, walking_bounds.end)
-    if direction.length_squared() > 0.001:
-        walk_clock += delta
-        near_leg_forward = sin(walk_clock * 13.0) > 0.0
+    var traveled := global_position.distance_to(before)
+    if traveled > 0.001:
+        travel_distance += traveled
+        gait_step = sin(travel_distance * TAU / 88.8) * 3.0
+    else:
+        travel_distance = 0.0
+        gait_step = 0.0
+    if walk_review_sprite != null:
+        walk_review_sprite.frame = int(travel_distance / 14.8) % 6
+        # Original source is side-facing only. No invented front/back poses.
+        if abs(direction.x) > 0.01:
+            walk_review_sprite.flip_h = direction.x < 0.0
     queue_redraw()
 
 func _draw() -> void:
@@ -59,10 +84,10 @@ func _draw() -> void:
     var highlight := Color("#d7b56a") if is_ionia else Color("#dccbaa")
     var hair := Color("#e4b65f") if is_ionia else Color("#965936")
     draw_circle(Vector2(0, -3), 14.0, Color(0.05, 0.11, 0.19, 0.45))
-    if is_review_art_enabled():
+    if is_review_art_enabled() or (walk_review_sprite != null and walk_review_sprite.visible):
         # Suppress placeholder body only, retain shared foot-ground cue.
         return
-    var step := 3.0 if near_leg_forward and player_controlled else 0.0
+    var step := gait_step if player_controlled else 0.0
     draw_line(Vector2(-5, -19), Vector2(-7-step, -2), Color("#253344"), 6.0)
     draw_line(Vector2(5, -19), Vector2(6+step, -2), Color("#253344"), 6.0)
     draw_colored_polygon(PackedVector2Array([
@@ -81,3 +106,4 @@ func _draw() -> void:
         draw_line(Vector2(16, -83), Vector2(16, -66), Color("#cbb37b"), 4.0)
     draw_line(Vector2(-4, -55), Vector2(-2, -55), Color("#4d9f79"), 2.0)
     draw_line(Vector2(3, -55), Vector2(5, -55), Color("#4d9f79"), 2.0)
+

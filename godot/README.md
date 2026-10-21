@@ -34,3 +34,28 @@ Run the Godot pilot, then press **V** to toggle the unapproved single-frame Ioni
 ## Migration gate
 
 Compare this pilot against the existing `First Wake` contract. Establish: full play route and controls; matching authored map geometry/collision; Ender approved likeness; Ionia design/eye-color and original layered art; actual encounter mechanics in separate turn-based arenas; save/load parity and recovery; native-scale screenshots and tests; then a creator-approved engine-choice/production promotion. Keep the first Godot integration draft and the legacy production branch distinct until these gates pass.
+
+
+## Ender native movement review — 2026-10-21
+
+Press **R** to toggle the existing six-frame Ender side-view walk strip in the native pilot. This is an opt-in animation candidate, hidden by default. Original pixels are reused without regeneration from `art-staging/field/ender/candidate/field-walk.png` at PR #295 source `133bb175d95b8b28772f8c802ec68b5ee8836842`. Likeness approval is distinct from animation/field-pack approval.
+
+Animation advances per 14.8 pixels of actual travel (10 frames/second at the pilot's 148 pixels/second speed), resets to frame 0 when stopped and does not step against the boundary. Left movement mirrors the available side-view strip. Vertical motion retains that side view: front/back and diagonal authored poses remain missing. Mirroring is provisional and is not acceptance of staff-side continuity. The fallback silhouette uses a continuous distance-driven leg phase instead of the former binary leg jump. No staff pixels, pose anatomy, production asset manifest, or canon are changed.
+
+Verification commands after editor import:
+
+```sh
+godot --headless --path godot --script res://tests/smoke_test.gd
+godot --headless --path godot --script res://tests/ender_walk_test.gd
+godot --path godot --rendering-driver opengl3 --resolution 960x640 --script res://tests/capture_ender_walk_review.gd
+```
+
+The last command requires a real display (Xvfb is suitable) and writes two stills plus 24 input-driven movement frames to `godot/review-evidence/`. Those files are native captures, not generated illustrations. Private delivery must be verified separately from rendering; Actions artifact quota is not fixed by this change.
+
+### Authority and migration follow-up
+
+The pilot inherited old `docs/CHARACTER_ART_DIRECTION.md` wording that leaves likeness choices open. Do not use it to override the later [approved alignment](https://github.com/ndrorchestration/aetherwake-jrpg/blob/133bb175d95b8b28772f8c802ec68b5ee8836842/docs/PROTAGONIST_VISUAL_ALIGNMENT_V1.md) or approved Ender appearance PR #261. Ionia's navy-coat SVG remains unapproved and differs from the locked cream blouse/brown utility-layer direction.
+
+Next art work: recover and bind approved source art; author front/back/diagonal walk poses with stable staff carry and foot contact; evaluate Ender and Ionia together in the same native scene. The current dock and mock arena are feasibility fixtures.
+
+Production parity remains NOT RUN: First Wake interaction and join order; real combat statistics/abilities/turn outcomes; objective/event progression; save/load/backup/corruption recovery and version migration. Capture identical inputs and expected state changes from the JavaScript reference before porting each subsystem. Do not reuse mock arena values as production combat rules. Production migration, visual acceptance and release remain pending; Defender #293 hold is unchanged.
