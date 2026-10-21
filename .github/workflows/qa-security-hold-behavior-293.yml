@@ -13,8 +13,12 @@ permissions:
 
 jobs:
   extracted-preflight-only:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 8
     steps:
       - name: Checkout QA branch without persisted credentials
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
