@@ -7,6 +7,8 @@ on:
     paths:
       - tests/security-hold-behavior-293.test.js
       - tests/security-hold-publisher-surface-293.test.js
+      - tests/test_release_hold_state_probe_293.py
+      - scripts/verify-windows-release-hold-293.py
       - .github/workflows/qa-security-hold-behavior-293.yml
 
 permissions:
@@ -46,3 +48,9 @@ jobs:
         run: |
           set -euo pipefail
           node --test tests/security-hold-behavior-293.test.js tests/security-hold-publisher-surface-293.test.js
+      - name: Verify read-only admin-state probe with synthetic responses only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python --version
+          python tests/test_release_hold_state_probe_293.py -v
