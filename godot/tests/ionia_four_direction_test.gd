@@ -32,6 +32,24 @@ func _test() -> void:
             quit(3)
             return
         sprites[pair[0]] = sprite
+        if pair[0] != "south":
+            # Pixel-bake check: distinct frame indices alone are not evidence of
+            # six different drawn poses. Godot must import six differing images.
+            var atlas_pixels: Image = sprite.texture.get_image()
+            if atlas_pixels.is_empty():
+                push_error("IONIA_ROUTE_FAIL: SVG did not bake into pixels for " + pair[0])
+                quit(19)
+                return
+            var frame_pixels := []
+            for frame_idx in range(6):
+                var bounds := Rect2i(frame_idx * 512, 0, 512, 768)
+                frame_pixels.append(atlas_pixels.get_region(bounds).get_data())
+            for left_idx in range(6):
+                for right_idx in range(left_idx + 1, 6):
+                    if frame_pixels[left_idx] == frame_pixels[right_idx]:
+                        push_error("IONIA_ROUTE_FAIL: visually duplicate atlas frames in " + pair[0])
+                        quit(20)
+                        return
     var paths := {}
     for name in directions:
         var path: String = sprites[name].texture.resource_path
