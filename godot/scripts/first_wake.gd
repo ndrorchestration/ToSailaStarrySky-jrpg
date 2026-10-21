@@ -18,6 +18,7 @@ var ionia_art_review_enabled: bool = false
 var ionia_aligned_review_enabled: bool = false
 var ender_walk_review_enabled: bool = false
 var ionia_walk_review_enabled: bool = false
+var ionia_route_review_enabled: bool = false
 var dock_depth_review_enabled: bool = false
 var deck_backdrop: Node2D
 var deck_foreground: Node2D
@@ -63,7 +64,7 @@ func _ready() -> void:
     status = Label.new()
     status.position = Vector2(28, 28)
     status.add_theme_font_size_override("font_size", 15)
-    status.text = "AETHERWAKE / GODOT PILOT — REVIEW ONLY\nMove: arrows   E: talk   B: arena   R: Ender   V/C: Ionia   T: Ionia walk   G: dock depth"
+    status.text = "AETHERWAKE / GODOT PILOT — REVIEW ONLY\nArrows: move   E: talk   B: arena   R: Ender   G: dock depth\nV/C: original/aligned Ionia   T: front walk   Y: four-way Ionia (unapproved)"
     ui.add_child(status)
     dialogue = Label.new()
     dialogue.position = Vector2(100, 555)
@@ -110,17 +111,26 @@ func _unhandled_key_input(event: InputEvent) -> void:
         ionia_art_review_enabled = not ionia_art_review_enabled
         ionia_aligned_review_enabled = false
         ionia_walk_review_enabled = false
+        ionia_route_review_enabled = false
         ionia.set_review_art_enabled(ionia_art_review_enabled)
     elif event.keycode == KEY_C:
         ionia_aligned_review_enabled = not ionia_aligned_review_enabled
         ionia_art_review_enabled = false
         ionia_walk_review_enabled = false
+        ionia_route_review_enabled = false
         ionia.set_aligned_review_enabled(ionia_aligned_review_enabled)
     elif event.keycode == KEY_T:
         ionia_walk_review_enabled = not ionia_walk_review_enabled
         ionia_art_review_enabled = false
         ionia_aligned_review_enabled = false
+        ionia_route_review_enabled = false
         ionia.set_ionia_walk_review_enabled(ionia_walk_review_enabled)
+    elif event.keycode == KEY_Y:
+        ionia_route_review_enabled = not ionia_route_review_enabled
+        ionia_walk_review_enabled = false
+        ionia_art_review_enabled = false
+        ionia_aligned_review_enabled = false
+        ionia.set_ionia_route_review_enabled(ionia_route_review_enabled)
     elif event.keycode == KEY_G:
         set_dock_depth_review_enabled(not dock_depth_review_enabled)
     elif event.keycode == KEY_B:
