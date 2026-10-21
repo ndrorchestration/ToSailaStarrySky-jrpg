@@ -44,10 +44,12 @@ jobs:
           test -s godot/review-evidence/ionia-baseline-native-960x640.png
           test -s godot/review-evidence/ionia-svg-review-native-960x640.png
           sha256sum godot/review-evidence/*.png
-      - name: Retain private unapproved visual review images only
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: aetherwake-godot-ionia-native-visual-review
-          path: godot/review-evidence/*.png
-          if-no-files-found: error
-          retention-days: 7
+      - name: Mark capture as not externally retrievable (Actions artifact quota)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "GODOT_NATIVE_RENDER_CAPTURE=PASS_LOCAL_RUNNER"
+          echo "GODOT_NATIVE_CAPTURE_HASHES=LOGGED"
+          echo "GODOT_NATIVE_CAPTURE_DISTRIBUTION=BLOCKED_ACTIONS_ARTIFACT_STORAGE_QUOTA"
+          echo "GODOT_NATIVE_VISUAL_ACCEPTANCE=NOT_ESTABLISHED"
+          # No upload/publish action: keep private review work fail-closed.
