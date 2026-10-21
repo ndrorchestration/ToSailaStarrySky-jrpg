@@ -94,6 +94,8 @@ func _draw() -> void:
     draw_line(SIGNAL_POINT + Vector2(9, -48), SIGNAL_POINT + Vector2(-9, -28), Color("#17364d"), 3.0)
     draw_circle(CHALLENGE_POINT + Vector2(0, -44), 24, Color("#b8a3ce"))
     draw_circle(CHALLENGE_POINT + Vector2(0, -44), 13, Color("#403c65"))
+    if stage == "encounter" and encounter.echo_focus > 0:
+        draw_arc(CHALLENGE_POINT + Vector2(0, -44), 29.0, 0.0, TAU, 32, Color("#f1d88e"), 3.0)
     if stage == "complete":
         draw_circle(SIGNAL_POINT + Vector2(0, -38), 30, Color("#f1d88e") if choice_state.choice == ChoiceState.Choice.REPAIR_BEACON else Color("#8cdbc8"))
     draw_string(ThemeDB.fallback_font, SIGNAL_POINT + Vector2(-45, 15), "SIGNAL", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
@@ -139,7 +141,7 @@ func start_encounter() -> bool:
     encounter = Encounter.new()
     stage = "encounter"
     ender.player_controlled = false
-    _story_message = "A pulse gathers. Choose carefully: guard a strong pulse or strike when it quiets."
+    _story_message = "A pulse gathers. Guard the warning to build an echo; strike when it quiets."
     _record("encounter_started")
     _refresh_ui()
     return true
@@ -160,8 +162,9 @@ func encounter_action(action: String) -> bool:
         _story_message = "The pulse overwhelmed you. Try again with guard when it gathers."
         _record("encounter_retry")
     else:
-        _story_message = "Your action: " + action + ". " + encounter.telegraph_text()
+        _story_message = ("Your guard built an echo. " if action == "guard" and encounter.echo_focus > 0 else "Your action: " + action + ". ") + encounter.telegraph_text()
     _refresh_ui()
+    queue_redraw()
     return true
 
 func finish_at_dock() -> bool:
@@ -229,7 +232,7 @@ func _refresh_ui() -> void:
     if stage == "choose":
         hint.text = "1: Help the crew   |   2: Repair the beacon   |   Esc: later"
     elif stage == "encounter":
-        hint.text = "HP %d  Signal %d  |  %s  |  1: Strike  2: Guard  Esc: exit" % [encounter.player_hp, encounter.challenge_hp, encounter.telegraph_text()]
+        hint.text = "HP %d  |  Signal %d  |  Echo %d  |  1: Strike  2: Guard  Esc: exit" % [encounter.player_hp, encounter.challenge_hp, encounter.echo_focus]
     elif stage == "complete":
         hint.text = "Prototype complete. Choice and consequence shown; no save or story canon."
     else:
