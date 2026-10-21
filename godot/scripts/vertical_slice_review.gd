@@ -1,0 +1,244 @@
+extends Node2D
+## Opt-in, noncanonical, standalone First Wake playability experiment.
+## Original Godot pilot, approved Ender assets and Ionia art-review controls are untouched.
+
+const Actor = preload("res://scripts/pilot_actor.gd")
+const ChoiceState = preload("res://scripts/vertical_slice_choice_state.gd")
+const Encounter = preload("res://scripts/vertical_slice_encounter.gd")
+const DECK_BOUNDS = Rect2(Vector2(110, 404), Vector2(740, 118))
+const SIGNAL_POINT = Vector2(224, 465)
+const IONIA_POINT = Vector2(560, 465)
+const CHALLENGE_POINT = Vector2(756, 465)
+
+var choice_state = ChoiceState.new()
+var encounter = Encounter.new()
+var stage: String = "search"
+var ender: CharacterBody2D
+var ionia: CharacterBody2D
+var headline: Label
+var story: Label
+var hint: Label
+var stage_label: Label
+var elapsed_seconds: float = 0.0
+var reduced_motion: bool = true
+var text_size: int = 21
+var trace_opt_in: bool = false
+var trace_events: Array[Dictionary] = []
+var _story_message: String = "Something on the dock is sending a faint signal. Look for the small blue light."
+
+func _ready() -> void:
+    var actors := Node2D.new()
+    actors.name = "ReviewActors"
+    actors.y_sort_enabled = true
+    add_child(actors)
+
+    ender = Actor.new()
+    ender.name = "EnderReviewPlayer"
+    ender.character_name = "Ender"
+    ender.player_controlled = true
+    ender.walking_bounds = DECK_BOUNDS
+    ender.position = Vector2(360, 465)
+    actors.add_child(ender)
+
+    ionia = Actor.new()
+    ionia.name = "IoniaReviewPlaceholder"
+    ionia.character_name = "Ionia"
+    ionia.walking_bounds = DECK_BOUNDS
+    ionia.position = IONIA_POINT
+    actors.add_child(ionia)
+
+    var ui := CanvasLayer.new()
+    ui.name = "AccessibleReviewUI"
+    add_child(ui)
+    headline = _label(ui, Vector2(26, 18), 26)
+    stage_label = _label(ui, Vector2(26, 57), 18)
+    story = _label(ui, Vector2(30, 548), text_size)
+    hint = _label(ui, Vector2(30, 594), 18)
+    headline.text = "AETHERWAKE  /  FIRST WAKE — PLAYABILITY STUDY"
+    _refresh_ui()
+
+func _label(parent: Node, location: Vector2, size: int) -> Label:
+    var label := Label.new()
+    label.position = location
+    label.add_theme_font_size_override("font_size", size)
+    label.add_theme_color_override("font_color", Color("#fff7df"))
+    label.add_theme_color_override("font_shadow_color", Color("#111d2e"))
+    label.add_theme_constant_override("shadow_offset_x", 1)
+    label.add_theme_constant_override("shadow_offset_y", 2)
+    label.custom_minimum_size = Vector2(890, 0)
+    label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    parent.add_child(label)
+    return label
+
+func _process(delta: float) -> void:
+    elapsed_seconds += delta
+    _refresh_ui()
+    if not reduced_motion:
+        queue_redraw()
+
+func _draw() -> void:
+    draw_rect(Rect2(0, 0, 960, 640), Color("#152d49"))
+    draw_rect(Rect2(0, 180, 960, 230), Color("#315a77"))
+    draw_colored_polygon(PackedVector2Array([
+        Vector2(0, 335), Vector2(185, 250), Vector2(345, 332),
+        Vector2(615, 245), Vector2(960, 335), Vector2(960, 408), Vector2(0, 408)
+    ]), Color("#486b72"))
+    draw_rect(Rect2(0, 410, 960, 132), Color("#775942"))
+    for plank in range(9):
+        var y: float = 415.0 + float(plank) * 14.0
+        draw_line(Vector2(105, y), Vector2(857, y), Color("#b78c63"), 2.0)
+    for post in [128, 435, 824]:
+        draw_rect(Rect2(post, 386, 12, 73), Color("#342f34"))
+    draw_rect(Rect2(12, 9, 936, 86), Color(0.045, 0.085, 0.15, 0.92))
+    draw_rect(Rect2(12, 536, 936, 98), Color(0.045, 0.085, 0.15, 0.94))
+    # Readable symbols and labels accompany every colored object.
+    var light_radius: float = 16.0 if reduced_motion else 16.0 + 2.0 * sin(elapsed_seconds * 1.3)
+    draw_circle(SIGNAL_POINT + Vector2(0, -38), light_radius, Color("#a8e4ee"))
+    draw_line(SIGNAL_POINT + Vector2(-9, -48), SIGNAL_POINT + Vector2(9, -28), Color("#17364d"), 3.0)
+    draw_line(SIGNAL_POINT + Vector2(9, -48), SIGNAL_POINT + Vector2(-9, -28), Color("#17364d"), 3.0)
+    draw_circle(CHALLENGE_POINT + Vector2(0, -44), 24, Color("#b8a3ce"))
+    draw_circle(CHALLENGE_POINT + Vector2(0, -44), 13, Color("#403c65"))
+    if stage == "complete":
+        draw_circle(SIGNAL_POINT + Vector2(0, -38), 30, Color("#f1d88e") if choice_state.choice == ChoiceState.Choice.REPAIR_BEACON else Color("#8cdbc8"))
+    draw_string(ThemeDB.fallback_font, SIGNAL_POINT + Vector2(-45, 15), "SIGNAL", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
+    draw_string(ThemeDB.fallback_font, IONIA_POINT + Vector2(-23, 20), "IONIA", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
+    draw_string(ThemeDB.fallback_font, CHALLENGE_POINT + Vector2(-50, 18), "CHALLENGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
+
+func discover_signal() -> bool:
+    if stage != "search":
+        return false
+    choice_state.discover_signal()
+    stage = "meet"
+    _story_message = "A broken signal repeats two notes. Ionia might know who is waiting for an answer."
+    _record("clue_discovered")
+    _refresh_ui()
+    return true
+
+func open_choice() -> bool:
+    if stage != "meet" or not choice_state.discovered_signal:
+        return false
+    stage = "choose"
+    ender.player_controlled = false
+    _story_message = "Ionia: The crew needs a hand, but the beacon could guide others home."
+    _record("dialogue_open")
+    _refresh_ui()
+    return true
+
+func choose_path(help_crew: bool) -> bool:
+    if stage != "choose":
+        return false
+    var selection: int = ChoiceState.Choice.HELP_CREW if help_crew else ChoiceState.Choice.REPAIR_BEACON
+    if not choice_state.choose(selection):
+        return false
+    stage = "approach"
+    ender.player_controlled = true
+    _story_message = "Your promise is made. Try the signal challenge on the far side of the dock."
+    _record("choice_crew" if help_crew else "choice_beacon")
+    _refresh_ui()
+    return true
+
+func start_encounter() -> bool:
+    if stage != "approach" or choice_state.choice == ChoiceState.Choice.UNSET:
+        return false
+    encounter = Encounter.new()
+    stage = "encounter"
+    ender.player_controlled = false
+    _story_message = "A pulse gathers. Choose carefully: guard a strong pulse or strike when it quiets."
+    _record("encounter_started")
+    _refresh_ui()
+    return true
+
+func encounter_action(action: String) -> bool:
+    if stage != "encounter" or not encounter.take_turn(action):
+        return false
+    if encounter.completed:
+        if not choice_state.complete_challenge():
+            return false
+        stage = "return"
+        ender.player_controlled = true
+        _story_message = "The signal is calm. Return to the blue light to see what changed."
+        _record("encounter_completed")
+    elif encounter.is_failed():
+        stage = "approach"
+        ender.player_controlled = true
+        _story_message = "The pulse overwhelmed you. Try again with guard when it gathers."
+        _record("encounter_retry")
+    else:
+        _story_message = "Your action: " + action + ". " + encounter.telegraph_text()
+    _refresh_ui()
+    return true
+
+func finish_at_dock() -> bool:
+    if stage != "return" or choice_state.dock_payoff_key().is_empty():
+        return false
+    stage = "complete"
+    if choice_state.dock_payoff_key() == "crew_reconnected":
+        _story_message = "The crew lights a welcome lantern. Someone answers the signal at last."
+    else:
+        _story_message = "The beacon shines again. A distant vessel sends a grateful reply."
+    _record("payoff_reached")
+    _refresh_ui()
+    queue_redraw()
+    return true
+
+func _unhandled_key_input(event: InputEvent) -> void:
+    if not (event is InputEventKey) or not event.pressed or event.echo:
+        return
+    if event.keycode == KEY_M:
+        reduced_motion = not reduced_motion
+        queue_redraw()
+    elif event.keycode == KEY_P:
+        trace_opt_in = not trace_opt_in
+        if not trace_opt_in:
+            trace_events.clear()
+    elif event.keycode == KEY_EQUAL or event.keycode == KEY_KP_ADD:
+        text_size = mini(30, text_size + 2)
+        story.add_theme_font_size_override("font_size", text_size)
+    elif event.keycode == KEY_MINUS or event.keycode == KEY_KP_SUBTRACT:
+        text_size = maxi(18, text_size - 2)
+        story.add_theme_font_size_override("font_size", text_size)
+    elif stage == "choose" and event.keycode == KEY_1:
+        choose_path(true)
+    elif stage == "choose" and event.keycode == KEY_2:
+        choose_path(false)
+    elif stage == "encounter" and event.keycode == KEY_1:
+        encounter_action("strike")
+    elif stage == "encounter" and event.keycode == KEY_2:
+        encounter_action("guard")
+    elif event.keycode == KEY_ESCAPE and stage == "choose":
+        stage = "meet"
+        ender.player_controlled = true
+        _story_message = "You can talk to Ionia again whenever you're ready."
+        _refresh_ui()
+    elif event.keycode == KEY_ESCAPE and stage == "encounter":
+        stage = "approach"
+        ender.player_controlled = true
+        _story_message = "The challenge can be retried at any time."
+        _refresh_ui()
+    elif event.keycode == KEY_E and ender.player_controlled:
+        if stage == "search" and ender.global_position.distance_to(SIGNAL_POINT) <= 85.0:
+            discover_signal()
+        elif stage == "meet" and ender.global_position.distance_to(IONIA_POINT) <= 85.0:
+            open_choice()
+        elif stage == "approach" and ender.global_position.distance_to(CHALLENGE_POINT) <= 85.0:
+            start_encounter()
+        elif stage == "return" and ender.global_position.distance_to(SIGNAL_POINT) <= 85.0:
+            finish_at_dock()
+
+func _refresh_ui() -> void:
+    if stage_label == null:
+        return
+    stage_label.text = "STUDY: " + stage.to_upper() + "   |   Movement: arrows   |   M: reduced motion   |   +/-: text size"
+    story.text = _story_message
+    if stage == "choose":
+        hint.text = "1: Help the crew   |   2: Repair the beacon   |   Esc: later"
+    elif stage == "encounter":
+        hint.text = "HP %d  Signal %d  |  %s  |  1: Strike  2: Guard  Esc: exit" % [encounter.player_hp, encounter.challenge_hp, encounter.telegraph_text()]
+    elif stage == "complete":
+        hint.text = "Prototype complete. Choice and consequence shown; no save or story canon."
+    else:
+        hint.text = "E: interact near labeled marker  |  P: local review trace %s" % ("ON" if trace_opt_in else "OFF")
+
+func _record(event_name: String) -> void:
+    if trace_opt_in:
+        trace_events.append({"event": event_name, "seconds": snappedf(elapsed_seconds, 0.1)})
