@@ -3,6 +3,7 @@ extends Node2D
 ## and transition to a SEPARATE turn-based training arena. No canon promotion.
 
 const Actor = preload("res://scripts/pilot_actor.gd")
+const DockDepthReview = preload("res://scripts/dock_depth_review.gd")
 const TrainingArena = preload("res://scenes/training_arena.tscn")
 const IoniaUnapprovedArt = preload("res://art-review/ionia-original-v01-green-eyes.svg")
 const IoniaAlignmentReview = preload("res://art-review/ionia-cream-leather-review.svg")
@@ -17,8 +18,15 @@ var ionia_art_review_enabled: bool = false
 var ionia_aligned_review_enabled: bool = false
 var ender_walk_review_enabled: bool = false
 var ionia_walk_review_enabled: bool = false
+var dock_depth_review_enabled: bool = false
+var deck_backdrop: Node2D
+var deck_foreground: Node2D
 
 func _ready() -> void:
+    deck_backdrop = DockDepthReview.new()
+    deck_backdrop.name = "DockDepthBackgroundReviewOnly"
+    deck_backdrop.visible = false
+    add_child(deck_backdrop)
     var actors := Node2D.new()
     actors.name = "YSortedActors"
     actors.y_sort_enabled = true
@@ -43,12 +51,19 @@ func _ready() -> void:
     actors.add_child(captain)
     ionia = captain
 
+    deck_foreground = DockDepthReview.new()
+    deck_foreground.name = "DockDepthForegroundReviewOnly"
+    deck_foreground.set("foreground", true)
+    deck_foreground.z_index = 2
+    deck_foreground.visible = false
+    add_child(deck_foreground)
+
     var ui := CanvasLayer.new()
     add_child(ui)
     status = Label.new()
     status.position = Vector2(28, 28)
-    status.add_theme_font_size_override("font_size", 16)
-    status.text = "AETHERWAKE / NATIVE PILOT — REVIEW ONLY\nArrows: move  E: talk  B: arena  R: Ender direction  V/C: Ionia source  T: Ionia walk"
+    status.add_theme_font_size_override("font_size", 15)
+    status.text = "AETHERWAKE / GODOT PILOT — REVIEW ONLY\nMove: arrows   E: talk   B: arena   R: Ender   V/C: Ionia   T: Ionia walk   G: dock depth"
     ui.add_child(status)
     dialogue = Label.new()
     dialogue.position = Vector2(100, 555)
@@ -59,6 +74,8 @@ func _ready() -> void:
     queue_redraw()
 
 func _draw() -> void:
+    if dock_depth_review_enabled:
+        return  # Enhanced review is drawn by two separate, opt-in stage CanvasItems.
     # Pilot-only support geometry, NOT a representation of accepted world topology.
     draw_rect(Rect2(Vector2.ZERO, Vector2(960, 640)), Color("#78a8c6"))
     draw_colored_polygon(PackedVector2Array([
@@ -104,9 +121,21 @@ func _unhandled_key_input(event: InputEvent) -> void:
         ionia_art_review_enabled = false
         ionia_aligned_review_enabled = false
         ionia.set_ionia_walk_review_enabled(ionia_walk_review_enabled)
+    elif event.keycode == KEY_G:
+        set_dock_depth_review_enabled(not dock_depth_review_enabled)
     elif event.keycode == KEY_B:
         get_tree().change_scene_to_packed(TrainingArena)
     elif event.keycode == KEY_ESCAPE:
         dialogue_open = false
         dialogue.visible = false
 
+
+func set_dock_depth_review_enabled(enabled: bool) -> void:
+    # Presentation-only, independent of plot, walk bounds and actual collision.
+    dock_depth_review_enabled = enabled
+    deck_backdrop.visible = enabled
+    deck_foreground.visible = enabled
+    queue_redraw()
+
+func is_dock_depth_review_enabled() -> bool:
+    return dock_depth_review_enabled and deck_backdrop.visible and deck_foreground.visible
