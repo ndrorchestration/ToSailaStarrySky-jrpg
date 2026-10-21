@@ -1,0 +1,13 @@
+# Ionia east/west sole-mark landmark tracking — bounded diagnostic
+
+This draft adds a **real runtime marker-binding experiment**, stacked on PR #328 head `d203aadeee44b7e21ca505a1e0f7aeaeb010e448` after the native moving-route trace identified a maximum 13.6px root translation while a pose was held. No gameplay, canon, core renderer, source art or production admission is changed.
+
+In the current independently authored V4 east/west SVG atlases, each of six source pose groups has two separately authored boot polygons. The lowest **drawn rear-boot contour vertex** is always source-local y=731; the front contour vertex is y=727. The test finds each `<g id="east/west-v4-rear/front-leg-0..5">` and extracts the actual third vertex of the boot path from the asset source, asserts source-space bounds, and transforms the lower of the two vertices through the **actual Godot Sprite2D** global transform while `CharacterBody2D` follows the existing four-leg route. It does NOT assume arbitrary code constants are the observed toe positions. The native route stays unchanged.
+
+For each facing, the diagnostic logs the actual world-space displacement of the **lowest drawn boot vertex** across intervals where the atlas pose remains unchanged, samples throughout all six walk phases, and emits a positive sliding-risk signal if the marker moves more than 3 pixels while held. That is stronger than character-root-only movement because the point is directly bound to the source boot artwork, but *still* **does not establish a planted anatomical foot**. The lower sole vertex might be the swing foot, or a design contact point not meant to be planted; stance/strike/toe-off assignment has not been independently artist-annotated or calibrated. Full no-slip claims are prohibited.
+
+Review only: the next valid quality gate requires (a) explicit, separate left/right sole path IDs and documented stance intervals per facing, (b) pixel-level/native scene observations over time with camera/deck reference, and (c) creator acceptance. Do not automatically label all lower boot points as plantar contact. Since markers are read from SVG source, art changes that invalidate geometry should fail the test rather than silently rebind.
+
+**Required execution:** exact-head hosted Godot 4.7.2 import and real route test, plus smoke regression, before logging any measured counts or accepting the diagnostic. Remote host `neontic` unavailable at branch creation; Windows recheck remains pending.
+
+`SOLE_WORLD_MOTION_TRACE=PENDING_HOSTED_RUN`; `STANCE_INTERVAL_LABELS=NOT_AUTHORED`; `PHYSICAL_PLANTED_FOOT_SLIDE=NOT_ESTABLISHED`; `VISUAL_ACCEPTANCE=PENDING`; `FIELD_PACK_READINESS=NOT_READY`; `PRODUCTION_ENGINE_MIGRATION=NOT_ADMITTED`; `RELEASE=NOT_AUTHORIZED`.
