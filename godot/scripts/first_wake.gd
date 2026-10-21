@@ -68,6 +68,8 @@ func _ready() -> void:
     ui.add_child(status)
     dialogue = Label.new()
     dialogue.position = Vector2(100, 555)
+    dialogue.size = Vector2(750, 68)
+    dialogue.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     dialogue.add_theme_font_size_override("font_size", 23)
     dialogue.text = "Ionia: Candidate dock encounter. Visual and story acceptance pending."
     dialogue.visible = false
@@ -100,9 +102,8 @@ func _draw() -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
     if not (event is InputEventKey) or not event.pressed or event.echo:
         return
-    if event.keycode == KEY_E and ender.global_position.distance_to(ionia.global_position) <= 110.0:
-        dialogue_open = not dialogue_open
-        dialogue.visible = dialogue_open
+    if event.keycode == KEY_E and (dialogue_open or ender.global_position.distance_to(ionia.global_position) <= 110.0):
+        _set_dialogue_open(not dialogue_open)
     elif event.keycode == KEY_R:
         ender_walk_review_enabled = not ender_walk_review_enabled
         ender.set_walk_review_enabled(ender_walk_review_enabled)
@@ -119,13 +120,13 @@ func _unhandled_key_input(event: InputEvent) -> void:
         ionia_walk_review_enabled = false
         ionia_route_review_enabled = false
         ionia.set_aligned_review_enabled(ionia_aligned_review_enabled)
-    elif event.keycode == KEY_T:
+    elif event.keycode == KEY_T and not dialogue_open:
         ionia_walk_review_enabled = not ionia_walk_review_enabled
         ionia_art_review_enabled = false
         ionia_aligned_review_enabled = false
         ionia_route_review_enabled = false
         ionia.set_ionia_walk_review_enabled(ionia_walk_review_enabled)
-    elif event.keycode == KEY_Y:
+    elif event.keycode == KEY_Y and not dialogue_open:
         ionia_route_review_enabled = not ionia_route_review_enabled
         ionia_walk_review_enabled = false
         ionia_art_review_enabled = false
@@ -136,8 +137,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
     elif event.keycode == KEY_B:
         get_tree().change_scene_to_packed(TrainingArena)
     elif event.keycode == KEY_ESCAPE:
-        dialogue_open = false
-        dialogue.visible = false
+        _set_dialogue_open(false)
 
 
 func set_dock_depth_review_enabled(enabled: bool) -> void:
@@ -149,3 +149,9 @@ func set_dock_depth_review_enabled(enabled: bool) -> void:
 
 func is_dock_depth_review_enabled() -> bool:
     return dock_depth_review_enabled and deck_backdrop.visible and deck_foreground.visible
+
+func _set_dialogue_open(open: bool) -> void:
+    dialogue_open = open
+    dialogue.visible = open
+    ender.dialogue_paused = open
+    ionia.dialogue_paused = open
