@@ -11,7 +11,7 @@ const SAMPLES := [
     {"label": "ender-front", "source": "ender-south-actual-native-960x640.png", "roi": [285, 319, 225, 228]},
     {"label": "ender-back", "source": "ender-north-actual-native-960x640.png", "roi": [285, 319, 225, 228]},
     {"label": "ionia-front", "source": "ionia-south-route-native-960x640.png", "roi": [490, 310, 180, 235]},
-    {"label": "ionia-back", "source": "ionia-north-route-native-960x640.png", "roi": [490, 310, 180, 235]},
+    {"label": "ionia-back", "source": "ionia-north-route-native-960x640.png", "roi": [385, 310, 180, 235]},
 ]
 
 func _initialize() -> void:
@@ -46,6 +46,20 @@ func _emit_one(sample: Dictionary) -> bool:
         push_error("CROP_EMIT_FAIL: ROI is outside native frame: " + label)
         return false
     var crop: Image = original.get_region(region)
+    # An SHA-valid screenshot crop may still miss the moving subject.
+    # In this fixed pilot, Ionia walks north along x470, not her x570 start.
+    # The reference depth-mode baseline has no moving Ionia at x470.
+    if label == "ionia-back":
+        var baseline := Image.new()
+        if baseline.load(OUTPUT + "dock-depth-review-native-960x640.png") != OK:
+            push_error("CROP_EMIT_FAIL: no native background/control capture for rear-view presence")
+            return false
+        if baseline.get_width() != 960 or baseline.get_height() != 640:
+            push_error("CROP_EMIT_FAIL: invalid background/control capture dimensions")
+            return false
+        if crop.get_data() == baseline.get_region(region).get_data():
+            push_error("CROP_EMIT_FAIL: Ionia rear ROI is background only")
+            return false
     var png: PackedByteArray = crop.save_png_to_buffer()
     if png.is_empty() or png.size() > MAX_CROP_BYTES:
         push_error("CROP_EMIT_FAIL: crop missing/too large: " + label)
