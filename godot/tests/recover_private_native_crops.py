@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Recover lossless 1x native Godot character crops from private Actions job logs.
 
-Does not recover or attest the original whole-scene 960x640 PNG source.
+Also recovers original whole-scene 960x640 PNGs when the workflow emits -full labels.
+SHA-256 and PNG byte dimensions are verified independently on replay.
 Requires read access to private repo logs. No network transmission occurs here.
 """
 import argparse

@@ -1,7 +1,8 @@
 extends SceneTree
 ## Read authentic prior 960x640 Godot render PNGs from this runner, crop native pixels,
 ## and encode lossless PNG crops into private Actions logs with SHA-256 per crop.
-## Does NOT retain full-frame PNGs or imply creator acceptance or public publication.
+## Also logs exact original full-frame PNG bytes; commits to private Git objects are separate.
+## Does NOT imply creator acceptance or public publication.
 
 const OUTPUT := "res://review-evidence/"
 const MAX_CROP_BYTES := 95000
@@ -27,7 +28,7 @@ func _emit() -> void:
             quit(2)
             return
     print("AW_NATIVE_CROP_EMIT_PASS: six lossless 1x crops AND six original byte-identical 960x640 renderer PNGs")
-    print("AW_NATIVE_FULL_SCREEN_CUSTODY=NOT_ESTABLISHED")
+    print("AW_NATIVE_FULL_SCREEN_CUSTODY=LOG_TRANSPORT_ONLY_UNTIL_PRIVATE_GIT_RECEIPT")
     print("AW_NATIVE_VISUAL_ACCEPTANCE=PENDING")
     quit(0)
 
