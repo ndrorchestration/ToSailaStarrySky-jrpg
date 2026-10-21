@@ -27,6 +27,7 @@ var ionia_walk_review_enabled: bool = false
 var walk_facing: String = "east"
 var travel_distance: float = 0.0
 var gait_step: float = 0.0
+var dialogue_paused: bool = false
 const PIXELS_PER_STEP := 14.8
 const IONIA_REVIEW_WALK_SPEED := 55.0
 const IONIA_REVIEW_START := Vector2(570, 419)
@@ -223,6 +224,17 @@ func is_review_art_enabled() -> bool:
     return (review_sprite != null and review_sprite.visible) or (aligned_sprite != null and aligned_sprite.visible) or is_ionia_walk_review_enabled()
 
 func _physics_process(_delta: float) -> void:
+    if dialogue_paused:
+        # Isolate the PR #322 conversation pause from animation source selection.
+        velocity = Vector2.ZERO
+        travel_distance = 0.0
+        gait_step = 0.0
+        for sprite in [walk_review_sprite, walk_west_sprite, walk_front_sprite, walk_back_sprite,
+                ionia_front_walk_sprite, ionia_north_walk_sprite, ionia_east_walk_sprite, ionia_west_walk_sprite]:
+            if sprite != null:
+                sprite.frame = 0
+        queue_redraw()
+        return
     if not player_controlled and not (ionia_walk_review_enabled or ionia_route_review_enabled):
         return
     var direction := Vector2.ZERO
