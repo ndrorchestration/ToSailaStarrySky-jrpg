@@ -36,7 +36,7 @@ func _verify() -> void:
     if world.ender.player_controlled or not world.encounter.telegraph_winding_up:
         _fail("challenge input pause or telegraph missing")
         return
-    for action in ["guard", "strike", "guard", "strike", "strike"]:
+    for action in ["guard", "strike", "guard", "strike"]:
         if not world.encounter_action(action):
             _fail("valid challenge turn rejected")
             return
@@ -63,7 +63,7 @@ func _verify() -> void:
     if not other.start_encounter():
         _fail("beacon challenge blocked")
         return
-    for action in ["strike", "strike", "strike"]:
+    for action in ["guard", "strike", "guard", "strike"]:
         other.encounter_action(action)
     if not other.finish_at_dock() or other.choice_state.dock_payoff_key() != "beacon_restored":
         _fail("beacon payoff missing")
