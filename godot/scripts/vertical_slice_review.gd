@@ -3,6 +3,7 @@ extends Node2D
 ## Original Godot pilot, approved Ender assets and Ionia art-review controls are untouched.
 
 const Actor = preload("res://scripts/pilot_actor.gd")
+const DockDepthReview = preload("res://scripts/dock_depth_review.gd")
 const ChoiceState = preload("res://scripts/vertical_slice_choice_state.gd")
 const Encounter = preload("res://scripts/vertical_slice_encounter.gd")
 const DECK_BOUNDS = Rect2(Vector2(110, 404), Vector2(740, 118))
@@ -27,6 +28,12 @@ var trace_events: Array[Dictionary] = []
 var _story_message: String = "Something on the dock is sending a faint signal. Look for the small blue light."
 
 func _ready() -> void:
+    # Reuse existing reversible 2.5D dock stage, without changing its collision or canon.
+    var atmosphere := DockDepthReview.new()
+    atmosphere.name = "DockAtmosphereReviewOnly"
+    atmosphere.z_index = -2
+    add_child(atmosphere)
+
     var actors := Node2D.new()
     actors.name = "ReviewActors"
     actors.y_sort_enabled = true
@@ -77,18 +84,7 @@ func _process(delta: float) -> void:
         queue_redraw()
 
 func _draw() -> void:
-    draw_rect(Rect2(0, 0, 960, 640), Color("#152d49"))
-    draw_rect(Rect2(0, 180, 960, 230), Color("#315a77"))
-    draw_colored_polygon(PackedVector2Array([
-        Vector2(0, 335), Vector2(185, 250), Vector2(345, 332),
-        Vector2(615, 245), Vector2(960, 335), Vector2(960, 408), Vector2(0, 408)
-    ]), Color("#486b72"))
-    draw_rect(Rect2(0, 410, 960, 132), Color("#775942"))
-    for plank in range(9):
-        var y: float = 415.0 + float(plank) * 14.0
-        draw_line(Vector2(105, y), Vector2(857, y), Color("#b78c63"), 2.0)
-    for post in [128, 435, 824]:
-        draw_rect(Rect2(post, 386, 12, 73), Color("#342f34"))
+    # Native dock atmosphere is rendered by the existing isolated depth-review layer.
     draw_rect(Rect2(12, 9, 936, 86), Color(0.045, 0.085, 0.15, 0.92))
     draw_rect(Rect2(12, 536, 936, 98), Color(0.045, 0.085, 0.15, 0.94))
     # Readable symbols and labels accompany every colored object.
