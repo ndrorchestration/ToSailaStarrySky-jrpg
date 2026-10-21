@@ -1,0 +1,345 @@
+{
+  "evidence_type": "AETHERWAKE_PRIVATE_EXACT_WINDOWS_GPU_NATIVE_6PHASE_ART_AB",
+  "candidate_source_commit": "7ac77a4c71705f4da46e33b7095a2ca468d73e3b",
+  "baseline_source_commit": "3288cf1e501dc53a32c2b7b53c07519f694718b3",
+  "device": "neontic",
+  "windows_engine": "Godot 4.7.2.stable.official.ed1daf0bf",
+  "engine_archive_sha256": "731980f9608d61333e5baf54a2ef17210acc7a538446c0cb9969f002aca1e953",
+  "renderer": "Windows OpenGL 3.3 Intel Iris Xe",
+  "viewport": [
+    960,
+    640
+  ],
+  "fixed_actor_anchors": {
+    "Ender": [
+      350,
+      462
+    ],
+    "Ionia": [
+      570,
+      458
+    ]
+  },
+  "all_24_original_pngs_preserved_in": "native-windows-24-original-frames-v3-v4.zip",
+  "frames": [
+    {
+      "version": "v3",
+      "facing": "east",
+      "frame": 0,
+      "zip_member": "v3/east/frame-00-960x640.png",
+      "bytes": 48472,
+      "sha256": "d8c3843c3ae767f9f955fffff61784aedfb83a0b24c9b3af6c0aa283ef23d137",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v3",
+      "facing": "east",
+      "frame": 1,
+      "zip_member": "v3/east/frame-01-960x640.png",
+      "bytes": 48551,
+      "sha256": "767a11da8af37ec4ba08107ef19428ae0501bfffb00402d7a54f3f98b22c0c8a",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v3",
+      "facing": "east",
+      "frame": 2,
+      "zip_member": "v3/east/frame-02-960x640.png",
+      "bytes": 48739,
+      "sha256": "e52e9ea20d7716d45c1515534b7ff9f9ac4117ba9e1fbdafa6db82492e62d0b3",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v3",
+      "facing": "east",
+      "frame": 3,
+      "zip_member": "v3/east/frame-03-960x640.png",
+      "bytes": 48783,
+      "sha256": "a94e1344e3d60370fcee40bc9c9075bff2a5889014e7f7a8e84ad2714506acdf",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v3",
+      "facing": "east",
+      "frame": 4,
+      "zip_member": "v3/east/frame-04-960x640.png",
+      "bytes": 48735,
+      "sha256": "d7d50e6603e129ff8b35c68839817a2080b4904bcf70a02ab102921b77eec35b",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v3",
+      "facing": "east",
+      "frame": 5,
+      "zip_member": "v3/east/frame-05-960x640.png",
+      "bytes": 48689,
+      "sha256": "b9a1a6b81fcc034085a2b69ad2cc85c0b3e1935a98dfe758bde9371133091034",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v3",
+      "facing": "west",
+      "frame": 0,
+      "zip_member": "v3/west/frame-00-960x640.png",
+      "bytes": 48505,
+      "sha256": "cf40f6c71dff570cfaa9bd4cfd15dfdb039260accc70fddc8cc6e07cdc22d8e9",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v3",
+      "facing": "west",
+      "frame": 1,
+      "zip_member": "v3/west/frame-01-960x640.png",
+      "bytes": 48535,
+      "sha256": "0df51c3ca96d33e3ce095e4631d21c3cf5c4c26774e361bedffc023d84540895",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v3",
+      "facing": "west",
+      "frame": 2,
+      "zip_member": "v3/west/frame-02-960x640.png",
+      "bytes": 48701,
+      "sha256": "68ca95242c7f1a159348cd2a9cca180f78fcf5aeb515cb3e78c855409ee88e1d",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v3",
+      "facing": "west",
+      "frame": 3,
+      "zip_member": "v3/west/frame-03-960x640.png",
+      "bytes": 48800,
+      "sha256": "77a0891276659bef99d477c64914a4ae83effb192de354ea0b8e327f3694fcf0",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v3",
+      "facing": "west",
+      "frame": 4,
+      "zip_member": "v3/west/frame-04-960x640.png",
+      "bytes": 48690,
+      "sha256": "c9dcf084f8997fa3dc90d5d244a8117e4d9bbee6f4aa35280b6858736e0e1806",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v3",
+      "facing": "west",
+      "frame": 5,
+      "zip_member": "v3/west/frame-05-960x640.png",
+      "bytes": 48640,
+      "sha256": "8313d25a1d4709310fd5ae66e78b86938bcc0570c1d54c522dba70c6bb0ede2c",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v4",
+      "facing": "east",
+      "frame": 0,
+      "zip_member": "v4/east/frame-00-960x640.png",
+      "bytes": 48718,
+      "sha256": "9e198cea52c3e673475e1d97de077e93420904f39cd5589716168d1344a402c7",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v4",
+      "facing": "east",
+      "frame": 1,
+      "zip_member": "v4/east/frame-01-960x640.png",
+      "bytes": 48831,
+      "sha256": "939d3335f37d2c65f7bf7e9b211d56def22f1f578286a3e296dcefbff912b786",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v4",
+      "facing": "east",
+      "frame": 2,
+      "zip_member": "v4/east/frame-02-960x640.png",
+      "bytes": 48986,
+      "sha256": "8904fd9f533869d87b3e95be2c16d010352eb9d5d0c6e70711b83cade9ba05a8",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v4",
+      "facing": "east",
+      "frame": 3,
+      "zip_member": "v4/east/frame-03-960x640.png",
+      "bytes": 49039,
+      "sha256": "f2fd85c8b70e9fe5d5eecd1866574df42ff343df708b80cbf30536dd374520f4",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v4",
+      "facing": "east",
+      "frame": 4,
+      "zip_member": "v4/east/frame-04-960x640.png",
+      "bytes": 48986,
+      "sha256": "2567752d467a23959e088b399eeb8742d73fe781c8fd58b6e88e342f55b8b794",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v4",
+      "facing": "east",
+      "frame": 5,
+      "zip_member": "v4/east/frame-05-960x640.png",
+      "bytes": 48976,
+      "sha256": "7412580feb03be11ba9609731392884bcbbcbcd9034788fa19c9d61487c0eee6",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v4",
+      "facing": "west",
+      "frame": 0,
+      "zip_member": "v4/west/frame-00-960x640.png",
+      "bytes": 48750,
+      "sha256": "230bf320a616cb4e08fba86441e16002a279bf4b7a58f8bfe3da69ef00e7412f",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v4",
+      "facing": "west",
+      "frame": 1,
+      "zip_member": "v4/west/frame-01-960x640.png",
+      "bytes": 48794,
+      "sha256": "bf39b0de0be5df07ff4708e16c74fbbf40a2616c7443c42b46c9d9035e603fdb",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v4",
+      "facing": "west",
+      "frame": 2,
+      "zip_member": "v4/west/frame-02-960x640.png",
+      "bytes": 48942,
+      "sha256": "16289eabd782cefe077744742e16e5af51db95d438f229ebcfe5531ca08cf499",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v4",
+      "facing": "west",
+      "frame": 3,
+      "zip_member": "v4/west/frame-03-960x640.png",
+      "bytes": 49076,
+      "sha256": "f63ed1ab525da97deed09387c68e98394280a4ef356d272be5ee68dd38f13cfc",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v4",
+      "facing": "west",
+      "frame": 4,
+      "zip_member": "v4/west/frame-04-960x640.png",
+      "bytes": 48968,
+      "sha256": "f4f7941d37d79f496d6f70073c2ed3acfe17d1df5b8f7a102beb9c7755e50277",
+      "dimensions": [
+        960,
+        640
+      ]
+    },
+    {
+      "version": "v4",
+      "facing": "west",
+      "frame": 5,
+      "zip_member": "v4/west/frame-05-960x640.png",
+      "bytes": 48924,
+      "sha256": "8db4527bc1cd5faf5e6221e0fbef21ab59f0c86e60f414d24ed5fb8b8f71de05",
+      "dimensions": [
+        960,
+        640
+      ]
+    }
+  ],
+  "metric": {
+    "torso_row_range_y": [
+      413,
+      434
+    ],
+    "difference_threshold": 28,
+    "average_visible_torso_screen_px": {
+      "east_v3": 16.8,
+      "east_v4": 20.5,
+      "west_v3": 16.8,
+      "west_v4": 20.5
+    },
+    "source_waist_pixel_span": {
+      "east_v3": 110,
+      "east_v4": 138,
+      "west_v3": 110,
+      "west_v4": 138
+    },
+    "interpretation": "measured garment volume, NOT human art acceptance"
+  },
+  "human_visual_acceptance": "PENDING",
+  "release": "NOT_AUTHORIZED",
+  "zip_sha256": "d4b340e8ca318c5041bcf4c518928b2bc8edb7cb888b8617b1cc8c67381ecbd2",
+  "preview_sha256": {
+    "ionia-east-v3-v4-sixphase-windows-comparison.png": "bdc9d8e4b011e25a20188e36dc2c053ce17e22960d22f76a6b164bc34d5397f3",
+    "ionia-west-v3-v4-sixphase-windows-comparison.png": "a924cf379ca2be36a147b5116a42425bc855df6af3fbaf442be811ca95f819ef",
+    "v3-east-native-960x640.png": "d8c3843c3ae767f9f955fffff61784aedfb83a0b24c9b3af6c0aa283ef23d137",
+    "v3-west-native-960x640.png": "cf40f6c71dff570cfaa9bd4cfd15dfdb039260accc70fddc8cc6e07cdc22d8e9",
+    "v4-east-native-960x640.png": "9e198cea52c3e673475e1d97de077e93420904f39cd5589716168d1344a402c7",
+    "v4-west-native-960x640.png": "230bf320a616cb4e08fba86441e16002a279bf4b7a58f8bfe3da69ef00e7412f"
+  }
+}
