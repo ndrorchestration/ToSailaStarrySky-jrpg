@@ -1,0 +1,104 @@
+{
+  "kind": "AUTHENTIC_IONIA_MOVING_NATIVE_PNG_REVIEW_CUSTODY",
+  "source_commit": "6072c3c3865cc9994ca4a4d0b9bf8e2ca1e3a26c",
+  "source_run": 39677396431,
+  "source_job": 119490707082,
+  "renderer": "Godot 4.7.2 OpenGL3 Xvfb",
+  "scene_size": [
+    960,
+    640
+  ],
+  "measurements": {
+    "world_distance_px": 382,
+    "headless_active_ticks": 336,
+    "native_gpu_active_ticks": 335,
+    "max_world_translation_while_atlas_frame_unchanged_px": 13.6,
+    "six_phases_in_every_facing": true
+  },
+  "pngs": [
+    {
+      "label": "ionia-moving-south-phase-1-full",
+      "facing": "south",
+      "phase": 1,
+      "path": "docs/reviews/native-evidence/2026-10-21-pr328/ionia-moving-south-phase-1-full.png",
+      "bytes": 47820,
+      "sha256": "d843a853fb75ee6937a33fa947dd4e51528bef8a69ae7dbebbd6a5780cb2a314",
+      "source_sha256": "d843a853fb75ee6937a33fa947dd4e51528bef8a69ae7dbebbd6a5780cb2a314",
+      "git_blob_sha": "718e6bf3ac6cd7a0fb08d9962ec8e2a0a9b186de"
+    },
+    {
+      "label": "ionia-moving-south-phase-4-full",
+      "facing": "south",
+      "phase": 4,
+      "path": "docs/reviews/native-evidence/2026-10-21-pr328/ionia-moving-south-phase-4-full.png",
+      "bytes": 47758,
+      "sha256": "63243f0b55eef94c5eab3c433173f766cdbc971e34e474ef340d551e3ff8883f",
+      "source_sha256": "63243f0b55eef94c5eab3c433173f766cdbc971e34e474ef340d551e3ff8883f",
+      "git_blob_sha": "a6ea6798bb534e21327c0b1443696ce52fdf9cbd"
+    },
+    {
+      "label": "ionia-moving-west-phase-1-full",
+      "facing": "west",
+      "phase": 1,
+      "path": "docs/reviews/native-evidence/2026-10-21-pr328/ionia-moving-west-phase-1-full.png",
+      "bytes": 44927,
+      "sha256": "4c290843d45c2de00857c4e8414c9c0700d5e039523c4975dcd9837bbf236205",
+      "source_sha256": "4c290843d45c2de00857c4e8414c9c0700d5e039523c4975dcd9837bbf236205",
+      "git_blob_sha": "a7c38954cb4568ec205369183b26149d26635b9e"
+    },
+    {
+      "label": "ionia-moving-west-phase-4-full",
+      "facing": "west",
+      "phase": 4,
+      "path": "docs/reviews/native-evidence/2026-10-21-pr328/ionia-moving-west-phase-4-full.png",
+      "bytes": 45103,
+      "sha256": "e5b480586243e065bae5125a7f9233220d347d701e8abb506cbef86a6ad7c694",
+      "source_sha256": "e5b480586243e065bae5125a7f9233220d347d701e8abb506cbef86a6ad7c694",
+      "git_blob_sha": "78dc1c503f4773162a8bf7b210615bc7b3ef91bd"
+    },
+    {
+      "label": "ionia-moving-north-phase-1-full",
+      "facing": "north",
+      "phase": 1,
+      "path": "docs/reviews/native-evidence/2026-10-21-pr328/ionia-moving-north-phase-1-full.png",
+      "bytes": 47455,
+      "sha256": "c1fb4bac426e04bf1fa21fb92795723ea7c8e1f03b10f0895e8f38b52999054c",
+      "source_sha256": "c1fb4bac426e04bf1fa21fb92795723ea7c8e1f03b10f0895e8f38b52999054c",
+      "git_blob_sha": "768341d27587f504e2eb1540762a9188663d2bbc"
+    },
+    {
+      "label": "ionia-moving-north-phase-4-full",
+      "facing": "north",
+      "phase": 4,
+      "path": "docs/reviews/native-evidence/2026-10-21-pr328/ionia-moving-north-phase-4-full.png",
+      "bytes": 47402,
+      "sha256": "849f2292a54309e7dd19590dafffacd1fd4f5c8d74ec209b269d40d5ff218c70",
+      "source_sha256": "849f2292a54309e7dd19590dafffacd1fd4f5c8d74ec209b269d40d5ff218c70",
+      "git_blob_sha": "c526294cd0c2f8165911fe474fe63b30b3f36009"
+    },
+    {
+      "label": "ionia-moving-east-phase-1-full",
+      "facing": "east",
+      "phase": 1,
+      "path": "docs/reviews/native-evidence/2026-10-21-pr328/ionia-moving-east-phase-1-full.png",
+      "bytes": 44872,
+      "sha256": "a9b33856a73de0dd72a56f2e6d979d657d05a0055e47955384a01620237f7b11",
+      "source_sha256": "a9b33856a73de0dd72a56f2e6d979d657d05a0055e47955384a01620237f7b11",
+      "git_blob_sha": "5630e5b9700b0dbfd83d846a5f6ccf523baa4dc9"
+    },
+    {
+      "label": "ionia-moving-east-phase-4-full",
+      "facing": "east",
+      "phase": 4,
+      "path": "docs/reviews/native-evidence/2026-10-21-pr328/ionia-moving-east-phase-4-full.png",
+      "bytes": 45122,
+      "sha256": "b1c0a75fe2ec3a82e2d38ba144b44287a6bef54848a85468efa1b8d79f40b5ef",
+      "source_sha256": "b1c0a75fe2ec3a82e2d38ba144b44287a6bef54848a85468efa1b8d79f40b5ef",
+      "git_blob_sha": "8edca9b1c05d51ac1ecd4441d9c1a5b8a4fbe8e9"
+    }
+  ],
+  "foot_plant_verified": false,
+  "shadow_aesthetic_verified": false,
+  "visual_acceptance": "PENDING",
+  "release": "NOT_AUTHORIZED"
+}

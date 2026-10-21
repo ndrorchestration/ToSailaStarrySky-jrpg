@@ -66,4 +66,7 @@ jobs:
       - name: Verify all 24 imported Ionia foot-baseline envelope rows
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/ionia_contact_envelope_test.gd
+      - name: Measure actual walking route phase cadence and held-frame translation
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/ionia_moving_gait_trace.gd
 

@@ -39,6 +39,16 @@ func _emit() -> void:
         if not _emit_full_sample(sample):
             quit(3)
             return
+    # These eight files are genuine animated-route renders, not fixed-anchor poses.
+    # Transfer exact PNG bytes privately; source must be reviewed/archived separately.
+    for direction in ["south", "west", "north", "east"]:
+        for phase in [1, 4]:
+            var moving_sample := {"label": "ionia-moving-" + direction + "-phase-" + str(phase),
+                "source": "ionia-moving-" + direction + "-phase-" + str(phase) + "-native-960x640.png"}
+            if not _emit_full_sample(moving_sample):
+                quit(4)
+                return
+    print("MOVING_GAIT_NATIVE_BYTES_EMITTED=EIGHT_FULL_960x640_PENDING_PRIVATE_CUSTODY")
     print("JOINT_FOURWAY_NATIVE_BYTES_EMITTED=FIVE_FULL_960x640_PENDING_PRIVATE_CUSTODY")
     print("AW_NATIVE_CROP_EMIT_PASS: six lossless 1x crops AND six original byte-identical 960x640 renderer PNGs")
     print("AW_NATIVE_FULL_SCREEN_CUSTODY=LOG_TRANSPORT_ONLY_UNTIL_PRIVATE_GIT_RECEIPT")
