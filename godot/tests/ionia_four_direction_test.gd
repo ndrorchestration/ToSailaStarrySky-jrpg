@@ -95,6 +95,13 @@ func _test() -> void:
             if candidate_image.get_pixel(x, 460).a > 0.2:
                 new_left = mini(new_left, x)
                 new_right = maxi(new_right, x)
+        # Every sprite cell must be centered around its native local x=256.
+        # Guards against art authored at x≈25 spilling into adjacent frame cells.
+        if new_left < 170 or new_right > 355 or new_left > 280 or new_right < 235:
+            push_error("IONIA_ROUTE_FAIL: V3 side-body art is off center / frame-leaking")
+            quit(27)
+            return
+        print("IONIA_V3_WAIST_SPAN:%s:OLD=%d:NEW=%d:LEFT=%d:RIGHT=%d" % [facing, old_right-old_left, new_right-new_left, new_left, new_right])
         if old_right < old_left or new_right < new_left or (old_right - old_left) - (new_right - new_left) < 25:
             push_error("IONIA_ROUTE_FAIL: V3 body side silhouette insufficiently narrower than rear-derived V2")
             quit(24)
