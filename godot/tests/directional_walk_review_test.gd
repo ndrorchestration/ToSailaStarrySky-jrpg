@@ -45,7 +45,9 @@ func _test() -> void:
                 return
         rendered_frames.append(frame_pixels)
     var west_source := FileAccess.get_file_as_string("res://art-review/ender-west-ferruled-sixframe-candidate.svg")
-    if west_source.count("M31 8 L31 88") != 6:
+    # The original source paints an outline AND a shaft per pose on x31.
+    # Six unique staff groups and two identical anchored strokes per group.
+    if west_source.count("id=\"staff-source-") != 6 or west_source.count("M31 8 L31 88") != 12:
         push_error("DIRECTIONAL_FAIL: back-carry staff alignment source is inconsistent")
         quit(20)
         return
