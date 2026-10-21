@@ -5,6 +5,7 @@ extends Node2D
 const Actor = preload("res://scripts/pilot_actor.gd")
 const TrainingArena = preload("res://scenes/training_arena.tscn")
 const IoniaUnapprovedArt = preload("res://art-review/ionia-original-v01-green-eyes.svg")
+const IoniaAlignmentReview = preload("res://art-review/ionia-cream-leather-review.svg")
 const WALKABLE_DECK = Rect2(Vector2(145, 410), Vector2(670, 112))
 
 var ender: CharacterBody2D
@@ -13,6 +14,7 @@ var dialogue: Label
 var status: Label
 var dialogue_open: bool = false
 var ionia_art_review_enabled: bool = false
+var ionia_aligned_review_enabled: bool = false
 var ender_walk_review_enabled: bool = false
 
 func _ready() -> void:
@@ -34,6 +36,7 @@ func _ready() -> void:
     captain.name = "IoniaPilot"
     captain.character_name = "Ionia"
     captain.review_source_texture = IoniaUnapprovedArt
+    captain.review_aligned_texture = IoniaAlignmentReview
     captain.walking_bounds = WALKABLE_DECK
     captain.position = Vector2(570, 458)
     actors.add_child(captain)
@@ -44,7 +47,7 @@ func _ready() -> void:
     status = Label.new()
     status.position = Vector2(28, 28)
     status.add_theme_font_size_override("font_size", 19)
-    status.text = "AETHERWAKE / NATIVE PILOT\nArrows: move   E: speak   B: arena   R: Ender review   V: Ionia review"
+    status.text = "AETHERWAKE / NATIVE PILOT\nArrows: move   E: speak   B: training arena\nR: Ender walk   V: Ionia original   C: Ionia cream/leather (unapproved)"
     ui.add_child(status)
     dialogue = Label.new()
     dialogue.position = Vector2(100, 555)
@@ -85,9 +88,14 @@ func _unhandled_key_input(event: InputEvent) -> void:
         ender_walk_review_enabled = not ender_walk_review_enabled
         ender.set_walk_review_enabled(ender_walk_review_enabled)
     elif event.keycode == KEY_V:
-        # Preview only; does not admit the source as approved Ionia field art.
+        # Mutually exclusive opt-in comparisons; neither source is approved field art.
         ionia_art_review_enabled = not ionia_art_review_enabled
+        ionia_aligned_review_enabled = false
         ionia.set_review_art_enabled(ionia_art_review_enabled)
+    elif event.keycode == KEY_C:
+        ionia_aligned_review_enabled = not ionia_aligned_review_enabled
+        ionia_art_review_enabled = false
+        ionia.set_aligned_review_enabled(ionia_aligned_review_enabled)
     elif event.keycode == KEY_B:
         get_tree().change_scene_to_packed(TrainingArena)
     elif event.keycode == KEY_ESCAPE:
