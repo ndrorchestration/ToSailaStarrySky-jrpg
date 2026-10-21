@@ -110,8 +110,8 @@ func _ready() -> void:
         ionia_front_walk_sprite.visible = false
         add_child(ionia_front_walk_sprite)
         ionia_north_walk_sprite = _new_ionia_walk_view("IoniaRearWalkReviewUnapproved", preload("res://art-review/ionia-north-sixframe-candidate.svg"))
-        ionia_east_walk_sprite = _new_ionia_walk_view("IoniaEastWalkReviewUnapproved", preload("res://art-review/ionia-east-sixframe-candidate.svg"))
-        ionia_west_walk_sprite = _new_ionia_walk_view("IoniaWestWalkReviewUnapproved", preload("res://art-review/ionia-west-sixframe-candidate.svg"))
+        ionia_east_walk_sprite = _new_ionia_walk_view("IoniaEastWalkReviewUnapproved", preload("res://art-review/ionia-east-profile-v2-candidate.svg"))
+        ionia_west_walk_sprite = _new_ionia_walk_view("IoniaWestWalkReviewUnapproved", preload("res://art-review/ionia-west-profile-v2-candidate.svg"))
     queue_redraw()
 
 func _new_ionia_walk_view(view_name: String, atlas: Texture2D) -> Sprite2D:

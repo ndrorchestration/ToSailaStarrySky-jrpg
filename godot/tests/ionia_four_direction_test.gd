@@ -58,6 +58,18 @@ func _test() -> void:
             quit(4)
             return
         paths[path] = true
+    # Side-profile overlays are deliberately separate v2 SVG sources.
+    # Presence is a mechanical contract, not a visual acceptance decision.
+    for facing in ["east", "west"]:
+        var profile_source: String = FileAccess.get_file_as_string("res://art-review/ionia-%s-profile-v2-candidate.svg" % facing)
+        if profile_source.is_empty() or profile_source.count('id="ionia-profile-v2-' + facing + '-') != 6:
+            push_error("IONIA_ROUTE_FAIL: profile art missing or not six-phase in " + facing)
+            quit(21)
+            return
+        if profile_source.count("M339 230 L353 240 L339 246") != 6 or profile_source.count("M326 227 L337 228") != 6:
+            push_error("IONIA_ROUTE_FAIL: east/west nose/visible iris profile source absent")
+            quit(22)
+            return
     var start: Vector2 = ionia.global_position
     var old_bounds: Rect2 = ionia.walking_bounds
     ionia.set_ionia_route_review_enabled(true)
