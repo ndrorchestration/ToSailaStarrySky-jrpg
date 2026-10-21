@@ -136,7 +136,7 @@
      </g><g><path d="M198 350 Q258 320 321 351" fill="none" stroke="url(#gold)" stroke-width="12"/><path d="M198 365 L185 385 M322 365 L337 389" stroke="#e5c58b" stroke-width="7"/><circle cx="199" cy="360" r="12" fill="url(#gold)" stroke="#9b793d" stroke-width="4"/><circle cx="320" cy="360" r="12" fill="url(#gold)" stroke="#9b793d" stroke-width="4"/></g>
     </g>
 <g transform="translate(1536 0)" aria-label="Ionia east independently posed frame 4">
-    <g id="phase-legs-3" stroke-linejoin="round">
+    <g id="phase-legs-3" transform="translate(10 -4)" stroke-linejoin="round">
     <path d="M187 468 L246 473 Q220 532 216 632 L184 640 Q195 561 187 468Z" fill="#493d3b" stroke="#272a30" stroke-width="6"/>
     <path d="M266 473 L327 467 Q316 551 318 638 L283 643 Q266 548 266 473Z" fill="#554c43" stroke="#2f3035" stroke-width="6"/>
     <path d="M219 489 Q212 559 200 620" stroke="#a28b6f" stroke-width="6" fill="none"/>
