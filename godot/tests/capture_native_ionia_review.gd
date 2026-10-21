@@ -40,6 +40,28 @@ func _capture() -> void:
         push_error("GODOT_CAPTURE_FAIL: preview did not alter native actor pixels")
         quit(5)
         return
+    # Genuine same-scene image comparison: retain exactly the same Ender walk
+    # candidate while switching only Ionia's unapproved art source.
+    world.ender.set_walk_review_enabled(true)
+    ionia.call("set_review_art_enabled", true)
+    await process_frame
+    var original_with_ender: Image = await _snapshot()
+    ionia.call("set_aligned_review_enabled", true)
+    await process_frame
+    var aligned_with_ender: Image = await _snapshot()
+    if not _valid_screen(aligned_with_ender):
+        push_error("GODOT_CAPTURE_FAIL: aligned source not rendered")
+        quit(9)
+        return
+    if original_with_ender.get_region(roi).get_data() == aligned_with_ender.get_region(roi).get_data():
+        push_error("GODOT_CAPTURE_FAIL: Ionia aligned source is visually identical to original")
+        quit(10)
+        return
+    var ender_roi := Rect2i(290, 345, 120, 140)
+    if original_with_ender.get_region(ender_roi).get_data() != aligned_with_ender.get_region(ender_roi).get_data():
+        push_error("GODOT_CAPTURE_FAIL: Ender pixels shifted during Ionia-only comparison")
+        quit(11)
+        return
     var absolute_dir := ProjectSettings.globalize_path(OUTPUT)
     if DirAccess.make_dir_recursive_absolute(absolute_dir) != OK:
         push_error("GODOT_CAPTURE_FAIL: output directory not available")
@@ -53,7 +75,15 @@ func _capture() -> void:
         push_error("GODOT_CAPTURE_FAIL: failed to store candidate")
         quit(8)
         return
-    print("GODOT_CAPTURE_PASS: two 960x640 native rendered states differ at Ionia ROI")
+    if original_with_ender.save_png(OUTPUT + "ionia-original-with-ender-native-960x640.png") != OK:
+        push_error("GODOT_CAPTURE_FAIL: failed to store original two-character comparison")
+        quit(12)
+        return
+    if aligned_with_ender.save_png(OUTPUT + "ionia-alignment-with-ender-native-960x640.png") != OK:
+        push_error("GODOT_CAPTURE_FAIL: failed to store aligned two-character comparison")
+        quit(13)
+        return
+    print("GODOT_CAPTURE_PASS: baseline + original + paired Ender/Ionia 960x640 native renderer states")
     print("GODOT_CAPTURE_REVIEW_ONLY: art, map geometry and player acceptance not admitted")
     quit(0)
 
