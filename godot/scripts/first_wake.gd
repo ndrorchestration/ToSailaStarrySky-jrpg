@@ -16,6 +16,7 @@ var dialogue_open: bool = false
 var ionia_art_review_enabled: bool = false
 var ionia_aligned_review_enabled: bool = false
 var ender_walk_review_enabled: bool = false
+var ionia_walk_review_enabled: bool = false
 
 func _ready() -> void:
     var actors := Node2D.new()
@@ -46,8 +47,8 @@ func _ready() -> void:
     add_child(ui)
     status = Label.new()
     status.position = Vector2(28, 28)
-    status.add_theme_font_size_override("font_size", 19)
-    status.text = "AETHERWAKE / NATIVE PILOT\nArrows: move   E: speak   B: training arena\nR: Ender walk   V: Ionia original   C: Ionia cream/leather (unapproved)"
+    status.add_theme_font_size_override("font_size", 16)
+    status.text = "AETHERWAKE / NATIVE PILOT — REVIEW ONLY\nArrows: move  E: talk  B: arena  R: Ender direction  V/C: Ionia source  T: Ionia walk"
     ui.add_child(status)
     dialogue = Label.new()
     dialogue.position = Vector2(100, 555)
@@ -91,11 +92,18 @@ func _unhandled_key_input(event: InputEvent) -> void:
         # Mutually exclusive opt-in comparisons; neither source is approved field art.
         ionia_art_review_enabled = not ionia_art_review_enabled
         ionia_aligned_review_enabled = false
+        ionia_walk_review_enabled = false
         ionia.set_review_art_enabled(ionia_art_review_enabled)
     elif event.keycode == KEY_C:
         ionia_aligned_review_enabled = not ionia_aligned_review_enabled
         ionia_art_review_enabled = false
+        ionia_walk_review_enabled = false
         ionia.set_aligned_review_enabled(ionia_aligned_review_enabled)
+    elif event.keycode == KEY_T:
+        ionia_walk_review_enabled = not ionia_walk_review_enabled
+        ionia_art_review_enabled = false
+        ionia_aligned_review_enabled = false
+        ionia.set_ionia_walk_review_enabled(ionia_walk_review_enabled)
     elif event.keycode == KEY_B:
         get_tree().change_scene_to_packed(TrainingArena)
     elif event.keycode == KEY_ESCAPE:
