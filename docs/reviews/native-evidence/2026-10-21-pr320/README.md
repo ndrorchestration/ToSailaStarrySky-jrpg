@@ -1,0 +1,10 @@
+# Ionia side profile v2 — native evidence and failure classification
+
+**Status: CANDIDATE VISUAL IMPROVEMENT NOT ESTABLISHED.** The two newly authored east/west SVG profile overlays import and render in the actual Godot 4.7.2 First Wake scene, but the resulting 0.13× field sprite still resembles a rear-facing portrait at 1×. The position, limb/gait/garment silhouettes did not change and overwhelm the 1–3 pixel new facial cue. The exercise demonstrates that a face patch alone is insufficient; do not promote it as final side art.
+
+This review preserves exact native originals from [run #39660428096](https://github.com/ndrorchestration/aetherwake-jrpg/actions/runs/39660428096), source `6269a06dd489496095891a4f526c983fcfbc4b61`, and the earlier [PR #319 baseline](https://github.com/ndrorchestration/aetherwake-jrpg/tree/70d251c933857b259d6059a712bf7b4fa5ace494/docs/reviews/native-evidence/2026-10-21-pr319). Both new images are exact, lossless 960×640 bytes recovered from the authenticated private job log, independently SHA-256 checked, and committed in the private draft; `manifest.json` has individual digests/blob IDs. `side-profile-native-comparison-3x.svg` embeds the four full native image bytes and displays a crop at 3×, without inventing a new renderer result.
+
+**Next smallest reversible quality action:** re-author distinct east and west *body silhouette* studies at all six contact phases, adjusting shoulder angle, asymmetric coat/skirt flare, feet orientation, hair occlusion and visible side-face projection; retain the #312 originals and v2 face overlays as rejected/reference inputs. Test with PR #319 fixed anchors and require visible full-body profile difference and human 1× review before any production consideration.
+
+All workflow PASS values refer to technical import/movement/capture, not human visual acceptance. No release, engine migration, canonical Ionia art or main merge.
+`IONIA_SIDE_PROFILE_V2_ACCEPTANCE=NOT_ESTABLISHED`; `VISUAL_ACCEPTANCE=PENDING`; `FIELD_PACK_READINESS=NOT_READY`; `PRODUCTION_ENGINE_MIGRATION=NOT_ADMITTED`; `RELEASE=NOT_AUTHORIZED`.
