@@ -47,13 +47,18 @@ func _test() -> void:
     await physics_frame
     await physics_frame
     Input.action_release("ui_left")
-    if not sprite.flip_h:
-        push_error("ENDER_WALK_FAIL: left movement does not mirror side view")
+    var west = actor.get_node_or_null("EnderWestWalkReviewUnapproved") as Sprite2D
+    if west == null or not west.visible or sprite.visible or west.flip_h or sprite.flip_h:
+        push_error("ENDER_WALK_FAIL: west must use its own non-mirrored source")
         quit(7)
         return
+    if west.texture == null or west.texture.resource_path == sprite.texture.resource_path:
+        push_error("ENDER_WALK_FAIL: west art must be independent of east")
+        quit(8)
+        return
     actor.set_walk_review_enabled(false)
-    if sprite.visible:
+    if sprite.visible or west.visible:
         quit(6)
         return
-    print("ENDER_WALK_PASS: opt-in six frames, actual movement, idle, wall stop")
+    print("ENDER_WALK_PASS: opt-in six frames, actual movement, idle, wall stop, independent non-mirrored west source")
     quit(0)
