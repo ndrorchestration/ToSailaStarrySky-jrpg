@@ -102,14 +102,14 @@ func _ready() -> void:
     if character_name == "Ionia":
         ionia_front_walk_sprite = Sprite2D.new()
         ionia_front_walk_sprite.name = "IoniaFrontWalkReviewUnapproved"
-        ionia_front_walk_sprite.texture = preload("res://art-review/ionia-front-sixframe-candidate.svg")
+        ionia_front_walk_sprite.texture = preload("res://art-review/ionia-front-cohesion-v5-candidate.svg")
         ionia_front_walk_sprite.hframes = 6
         ionia_front_walk_sprite.scale = Vector2(0.13, 0.13)
         ionia_front_walk_sprite.position = Vector2(0, -46)
         ionia_front_walk_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
         ionia_front_walk_sprite.visible = false
         add_child(ionia_front_walk_sprite)
-        ionia_north_walk_sprite = _new_ionia_walk_view("IoniaRearWalkReviewUnapproved", preload("res://art-review/ionia-north-sixframe-candidate.svg"))
+        ionia_north_walk_sprite = _new_ionia_walk_view("IoniaRearWalkReviewUnapproved", preload("res://art-review/ionia-north-cohesion-v5-candidate.svg"))
         ionia_east_walk_sprite = _new_ionia_walk_view("IoniaEastWalkReviewUnapproved", preload("res://art-review/ionia-east-sidebody-v4-candidate.svg"))
         ionia_west_walk_sprite = _new_ionia_walk_view("IoniaWestWalkReviewUnapproved", preload("res://art-review/ionia-west-sidebody-v4-candidate.svg"))
     queue_redraw()
