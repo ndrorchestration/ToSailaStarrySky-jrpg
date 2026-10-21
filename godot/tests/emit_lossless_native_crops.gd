@@ -16,6 +16,14 @@ const SAMPLES := [
     {"label": "ionia-back", "source": "ionia-north-route-native-960x640.png", "roi": [385, 310, 180, 235]},
 ]
 
+const JOINT_SCENE_SAMPLES := [
+    {"label": "joint-fixed-baseline", "source": "joint-fixed-baseline-native-960x640.png"},
+    {"label": "joint-fixed-east", "source": "joint-fixed-east-native-960x640.png"},
+    {"label": "joint-fixed-west", "source": "joint-fixed-west-native-960x640.png"},
+    {"label": "joint-fixed-south", "source": "joint-fixed-south-native-960x640.png"},
+    {"label": "joint-fixed-north", "source": "joint-fixed-north-native-960x640.png"},
+]
+
 func _initialize() -> void:
     call_deferred("_emit")
 
@@ -27,6 +35,11 @@ func _emit() -> void:
         if not _emit_full_sample(sample):
             quit(2)
             return
+    for sample in JOINT_SCENE_SAMPLES:
+        if not _emit_full_sample(sample):
+            quit(3)
+            return
+    print("JOINT_FOURWAY_NATIVE_BYTES_EMITTED=FIVE_FULL_960x640_PENDING_PRIVATE_CUSTODY")
     print("AW_NATIVE_CROP_EMIT_PASS: six lossless 1x crops AND six original byte-identical 960x640 renderer PNGs")
     print("AW_NATIVE_FULL_SCREEN_CUSTODY=LOG_TRANSPORT_ONLY_UNTIL_PRIVATE_GIT_RECEIPT")
     print("AW_NATIVE_VISUAL_ACCEPTANCE=PENDING")
