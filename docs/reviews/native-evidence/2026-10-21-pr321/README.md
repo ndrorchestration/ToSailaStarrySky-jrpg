@@ -1,0 +1,13 @@
+# Ionia six-frame east/west true side-body — native A/B evidence
+
+**Private draft PR #321 only.** These four original PNGs are byte-for-byte authentic Godot 4.7.2 Xvfb/OpenGL3 screenshots from the actual First Wake pilot (960×640, Ender/Ionia anchors unchanged). All were independently reconstructed from retained private CI job log chunks, verified against renderer logged SHA-256 and checked for native 960×640 PNG geometry before committing Git blobs. They are not generated promotional mockups.
+
+**First-failure custody:** initial authoring commit `c1e89028659ca013aeec9af84247954fc8d8c8cf` was rejected by native exact-head test run #39662583326 and showed partial sprite images escaping frame-cell bounds. The authoring coordinate helper shifted all geometry 230.4 pixels left. Original failed-frame PNG bytes are deliberately retained as `*-broken-actual-native-960x640.png` in this private directory. The correction re-centered the existing separately authored side-body geometry, added cell-centering assertions, and re-ran native tests.
+
+**Corrected exact source:** `196954af10399672f84d9a7df3c8e9d1812f5f56` ([native renderer #39663046434](https://github.com/ndrorchestration/aetherwake-jrpg/actions/runs/39663046434); native movement [#39663046501](https://github.com/ndrorchestration/aetherwake-jrpg/actions/runs/39663046501)). Native pixel scan at source-local waist row y=460: old rear-oriented v2 = 210 px, corrected side-body v3 = 110 px in both east/west; new x bounds east 189–299, west 212–322. That proves source-local, independent side-body silhouette reduction, NOT final perceptual quality or ergonomics.
+
+Compare `ionia-east-corrected-actual-native-960x640.png` and `ionia-west-corrected-actual-native-960x640.png` to previous v2 source images recorded in `manifest.json`. `ionia-v2-v3-sidebody-native-contact-sheet.svg` embeds exact authentic original PNG bytes and displays side-by-side crops at enlarged scale without altering source evidence.
+
+**Visual review finding (provisional):** corrected v3 displays coherent body alignment and side-facing silhouette at original gameplay scale, unlike the v2 rear-facing body. Character is considerably narrower and less richly detailed than Ionia's approved-looking (but unapproved) forward view; matching front/back art, hair mass, boot/stride readability and Ender comparison remain human-review issues. Independent human/creator approval, canonical Ionia artwork, full production engine migration and release remain **not authorized**.
+
+`V3_SIDE_SILHOUETTE_TECHNICAL=PASS`; `HUMAN_VISUAL_ACCEPTANCE=PENDING`; `FIELD_PACK_READINESS=NOT_READY`; `PRODUCTION_ENGINE_MIGRATION=NOT_ADMITTED`; `RELEASE=NOT_AUTHORIZED`.

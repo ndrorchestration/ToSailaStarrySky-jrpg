@@ -58,17 +58,53 @@ func _test() -> void:
             quit(4)
             return
         paths[path] = true
-    # Side-profile overlays are deliberately separate v2 SVG sources.
-    # Presence is a mechanical contract, not a visual acceptance decision.
+    # This is a full side-body v3, not a cosmetic late-layer face patch.
+    # The six phases must be pixel-unique and visibly narrower through the waist
+    # than the prior opt-in V2's essentially rear-facing body silhouette.
     for facing in ["east", "west"]:
-        var profile_source: String = FileAccess.get_file_as_string("res://art-review/ionia-%s-profile-v2-candidate.svg" % facing)
-        if profile_source.is_empty() or profile_source.count('id="ionia-profile-v2-' + facing + '-') != 6:
-            push_error("IONIA_ROUTE_FAIL: profile art missing or not six-phase in " + facing)
+        var profile_source: String = FileAccess.get_file_as_string("res://art-review/ionia-%s-sidebody-v3-candidate.svg" % facing)
+        if profile_source.is_empty() or profile_source.count('id="' + facing + '-v3-pose-') != 6 or profile_source.count('id="' + facing + '-v3-profile-torso-') != 6 or profile_source.count('id="' + facing + '-v3-side-profile-nose-') != 6 or profile_source.count('id="' + facing + '-v3-front-leg-') != 6:
+            push_error("IONIA_ROUTE_FAIL: 6 independently built side-body phases absent: " + facing)
             quit(21)
             return
-        if profile_source.count("M339 230 L353 240 L339 246") != 6 or profile_source.count("M326 227 L337 228") != 6:
-            push_error("IONIA_ROUTE_FAIL: east/west nose/visible iris profile source absent")
+        var old_texture: Texture2D
+        if facing == "east":
+            old_texture = load("res://art-review/ionia-east-profile-v2-candidate.svg")
+        else:
+            old_texture = load("res://art-review/ionia-west-profile-v2-candidate.svg")
+        if old_texture == null:
+            push_error("IONIA_ROUTE_FAIL: original V2 reference missing")
             quit(22)
+            return
+        var old_image: Image = old_texture.get_image()
+        var candidate_image: Image = sprites[facing].texture.get_image()
+        if old_image.is_empty() or candidate_image.is_empty():
+            push_error("IONIA_ROUTE_FAIL: cannot rasterize side-body comparison")
+            quit(23)
+            return
+        var old_left := 512
+        var old_right := -1
+        var new_left := 512
+        var new_right := -1
+        # A controlled source-space waist span. Game-scale leg/coat variation
+        # still needs actual Godot fixed-anchor native human review.
+        for x in range(128, 392):
+            if old_image.get_pixel(x, 460).a > 0.2:
+                old_left = mini(old_left, x)
+                old_right = maxi(old_right, x)
+            if candidate_image.get_pixel(x, 460).a > 0.2:
+                new_left = mini(new_left, x)
+                new_right = maxi(new_right, x)
+        # Every sprite cell must be centered around its native local x=256.
+        # Guards against art authored at x≈25 spilling into adjacent frame cells.
+        if new_left < 170 or new_right > 355 or new_left > 280 or new_right < 235:
+            push_error("IONIA_ROUTE_FAIL: V3 side-body art is off center / frame-leaking")
+            quit(27)
+            return
+        print("IONIA_V3_WAIST_SPAN:%s:OLD=%d:NEW=%d:LEFT=%d:RIGHT=%d" % [facing, old_right-old_left, new_right-new_left, new_left, new_right])
+        if old_right < old_left or new_right < new_left or (old_right - old_left) - (new_right - new_left) < 25:
+            push_error("IONIA_ROUTE_FAIL: V3 body side silhouette insufficiently narrower than rear-derived V2")
+            quit(24)
             return
     var start: Vector2 = ionia.global_position
     var old_bounds: Rect2 = ionia.walking_bounds
