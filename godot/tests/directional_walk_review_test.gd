@@ -80,7 +80,7 @@ func _test() -> void:
         push_error("DIRECTIONAL_FAIL: animated source did not isolate originals")
         quit(11)
         return
-    var initial_y := ionia.global_position.y
+    var initial_y: float = ionia.global_position.y
     var ionia_seen := {}
     for i in range(135):
         await physics_frame
