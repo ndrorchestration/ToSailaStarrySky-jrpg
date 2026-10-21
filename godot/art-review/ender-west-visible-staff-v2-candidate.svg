@@ -1,0 +1,364 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="96" viewBox="0 0 384 96" shape-rendering="crispEdges" aria-label="Review-only west six-frame staff-visible v2 source, nonmirrored and unapproved">
+<title>Ender westward visible carried staff / centered wrap — V2 CANDIDATE, UNAPPROVED</title>
+<desc>Independent editable vector left profile at 64x96 pixels per frame. Copper auburn hair, green-lensed brass goggles, olive-tan scholar fieldwear, neutral hand, and 81-pixel vertically carried staff at local x53 with a centered leather-grip wrapping, brass ferrules, and hand-contact study in all six poses. The original right-facing raster source from PR #308 remains unmodified. This art is proposed, not the creator-accepted side-view master.</desc>
+<g transform="translate(0 0)" aria-label="west side source phase 1"><g><path d="M21 61 Q21 71 14 77 L21 77 L28 60Z" fill="#51664f" stroke="#273a37" stroke-width="1.5"/>
+ <path d="M13 76 L22 76 L23 88 L12 88Z" fill="#373b42" stroke="#202c34" stroke-width="1.3"/>
+ <path d="M14 83 L21 83" stroke="#c5aa79" stroke-width="2"/>
+ <path d="M12 88 L25 88 L26 90 L25 92 L12 92Z" fill="#252f39" stroke="#192831" stroke-width="1"/>
+ <path d="M12 92 L26 92" stroke="#a5a893" stroke-width="1"/></g><g><path d="M34 61 Q40 71 39 77 L46 77 L41 60Z" fill="#47594b" stroke="#273a37" stroke-width="1.5"/>
+ <path d="M38 76 L47 76 L48 88 L37 88Z" fill="#373b42" stroke="#202c34" stroke-width="1.3"/>
+ <path d="M39 83 L46 83" stroke="#c5aa79" stroke-width="2"/>
+ <path d="M37 88 L50 88 L51 90 L50 92 L37 92Z" fill="#252f39" stroke="#192831" stroke-width="1"/>
+ <path d="M37 92 L51 92" stroke="#a5a893" stroke-width="1"/></g><g id="staff-source-v2-0" transform="translate(0 0)">
+ <!-- proposed external x=53 staff silhouette; centered leather wrap y45..56 of shaft 8..88 -->
+ <path d="M53 8 L53 88" stroke="#33271f" stroke-width="5" stroke-linecap="round"/>
+ <path d="M53 8 L53 88" stroke="#9a6c3e" stroke-width="3" stroke-linecap="round"/>
+ <path d="M52 19 L52 42 M54 19 L54 42 M52 59 L52 77" stroke="#c58e51" stroke-width=".7" opacity=".65"/>
+ <path d="M50 8 H56 L56 18 H50Z" fill="#c99e58" stroke="#513b26" stroke-width="1"/>
+ <path d="M51 10 H54 M51 14 H54 M50 16 H56" stroke="#ffe0a0" stroke-width="1"/>
+ <path d="M50 78 H56 L56 88 H50Z" fill="#c99e58" stroke="#513b26" stroke-width="1"/>
+ <path d="M51 80 H54 M51 84 H54" stroke="#ffe0a0" stroke-width="1"/>
+ <path d="M51 45 H55 V57 H51Z" fill="#49352c" stroke="#261f1c" stroke-width=".7"/>
+ <path d="M51 47 L55 51 M51 51 L55 55 M55 47 L51 51 M55 51 L51 55" stroke="#c08b5e" stroke-width="1.2"/>
+ <path d="M50 46 H56 M50 56 H56" stroke="#8b5c3c" stroke-width="1"/>
+ </g><g transform="translate(0 0)">
+  <!-- angled back field coat, asymmetric pocket and leather cross-webbing -->
+  <path d="M21 43 Q27 39 43 43 L46 64 Q44 74 36 77 L16 72 L17 54Z" fill="#304d43" stroke="#21392e" stroke-width="1.5"/>
+  <path d="M18 51 L17 71 L25 75 L28 61Z" fill="#557258" stroke="#314638" stroke-width=".9"/>
+  <path d="M25 46 L40 65 M39 45 L21 64" stroke="#cfb58a" stroke-width="3"/>
+  <path d="M24 46 L39 64" stroke="#77583c" stroke-width="1.1" />
+  <path d="M40 61 L45 64 L43 73 L35 71Z" fill="#876345" stroke="#483930" stroke-width="1"/>
+  <circle cx="39.5" cy="66.5" r="1.7" fill="#e8c77f"/>
+  <path d="M19 68 Q31 72 43 67 L42 75 Q29 78 18 72Z" fill="#65543a" stroke="#342d28" stroke-width="1.2"/>
+  <rect x="28" y="69" width="6" height="5" rx="1" fill="#ddbe7e" stroke="#795d36" stroke-width="1"/>
+  <path d="M21 51 L24 53 L24 65 L21 66 M42 48 L45 51 L45 65" stroke="#8ea687" stroke-width="1.2"/>
+  <path d="M23 57 L39 58" stroke="#203830" stroke-width="1" opacity=".8"/>
+ </g><g transform="translate(0 0)">
+ <path d="M21 46 Q17 51 18 61 L17 71 Q21 76 26 72 L29 54Z" fill="#4a6855" stroke="#283f35" stroke-width="1.2"/>
+ <path d="M19 67 L21 69 L23 76 L21 79 L18 75Z" fill="#d3a583" stroke="#905f50" stroke-width="1"/>
+ <path d="M19 66 L24 65" stroke="#d4b786" stroke-width="2"/>
+ <path d="M43 46 L47 52 L48 66 L44 72 L41 66 L39 50Z" fill="#53715b" stroke="#2c4737" stroke-width="1"/>
+ <path d="M45 67 L49 69 L49 73 L45 76 L43 72Z" fill="#c6987d"/>
+ </g><g transform="translate(0 0)">
+  <!-- west-facing profile, not an x-flipped east texture -->
+  <path d="M40 14 Q32 11 25 17 Q18 23 20 32 L18 37 L22 42 Q32 46 38 39 L41 32Z" fill="#e4b28e" stroke="#845a4c" stroke-width="1.4"/>
+  <path d="M36 14 Q26 10 21 18 L16 26 Q16 34 21 34 L20 38 Q26 35 29 28 L37 24 L39 31 L43 29 L43 20Z" fill="#985436" stroke="#533b32" stroke-width="1.1"/>
+  <path d="M20 20 Q23 13 29 14 Q34 14 38 18" stroke="#c67a48" stroke-width="3" fill="none"/>
+  <path d="M18 25 L22 20 L24 28Z" fill="#b66a3c"/>
+  <path d="M20 31 L14 33 L20 35" fill="#e8b497" stroke="#956651" stroke-width="1"/>
+  <path d="M19 37 Q25 39 29 38" stroke="#a26559" stroke-width="1" fill="none"/>
+  <!-- warm brass goggles, bright green viewglass, headband -->
+  <path d="M21 24 L40 23" stroke="#85643e" stroke-width="3"/>
+  <rect x="17" y="21" width="11" height="8" rx="2" fill="#ba995f" stroke="#5a432f" stroke-width="1.4"/>
+  <rect x="19" y="23" width="7" height="4" rx="1" fill="#48aa85" stroke="#246c58" stroke-width=".6"/>
+  <path d="M19 23 L23 23" stroke="#a4ead3" stroke-width=".9"/>
+  <path d="M38 34 L37 42" stroke="#896c53" stroke-width="1.4"/>
+ </g>
+ <g id="staff-contact-hand-v2-1">
+  <!-- review-only hand-to-shaft contact, downstream of body paint order -->
+  <path d="M46 65 L51 65 L54 67 L53 71 L49 73 L46 70Z" fill="#cf9a79" stroke="#895c4a" stroke-width=".8"/>
+  <path d="M50 67 H54" stroke="#f0b894" stroke-width=".75"/>
+ </g>
+ <!-- pose-id 1; independently modeled left foot and arm swing -->
+ </g>
+<g transform="translate(64 0)" aria-label="west side source phase 2"><g><path d="M21 61 Q22.5 71 17 75 L24 75 L28 60Z" fill="#51664f" stroke="#273a37" stroke-width="1.5"/>
+ <path d="M16 74 L25 74 L26 86 L15 86Z" fill="#373b42" stroke="#202c34" stroke-width="1.3"/>
+ <path d="M17 81 L24 81" stroke="#c5aa79" stroke-width="2"/>
+ <path d="M15 86 L28 86 L29 88 L28 90 L15 90Z" fill="#252f39" stroke="#192831" stroke-width="1"/>
+ <path d="M15 90 L29 90" stroke="#a5a893" stroke-width="1"/></g><g><path d="M34 61 Q38.5 71 36 75 L43 75 L41 60Z" fill="#47594b" stroke="#273a37" stroke-width="1.5"/>
+ <path d="M35 74 L44 74 L45 86 L34 86Z" fill="#373b42" stroke="#202c34" stroke-width="1.3"/>
+ <path d="M36 81 L43 81" stroke="#c5aa79" stroke-width="2"/>
+ <path d="M34 86 L47 86 L48 88 L47 90 L34 90Z" fill="#252f39" stroke="#192831" stroke-width="1"/>
+ <path d="M34 90 L48 90" stroke="#a5a893" stroke-width="1"/></g><g id="staff-source-v2-1" transform="translate(0 1)">
+ <!-- proposed external x=53 staff silhouette; centered leather wrap y45..56 of shaft 8..88 -->
+ <path d="M53 8 L53 88" stroke="#33271f" stroke-width="5" stroke-linecap="round"/>
+ <path d="M53 8 L53 88" stroke="#9a6c3e" stroke-width="3" stroke-linecap="round"/>
+ <path d="M52 19 L52 42 M54 19 L54 42 M52 59 L52 77" stroke="#c58e51" stroke-width=".7" opacity=".65"/>
+ <path d="M50 8 H56 L56 18 H50Z" fill="#c99e58" stroke="#513b26" stroke-width="1"/>
+ <path d="M51 10 H54 M51 14 H54 M50 16 H56" stroke="#ffe0a0" stroke-width="1"/>
+ <path d="M50 78 H56 L56 88 H50Z" fill="#c99e58" stroke="#513b26" stroke-width="1"/>
+ <path d="M51 80 H54 M51 84 H54" stroke="#ffe0a0" stroke-width="1"/>
+ <path d="M51 45 H55 V57 H51Z" fill="#49352c" stroke="#261f1c" stroke-width=".7"/>
+ <path d="M51 47 L55 51 M51 51 L55 55 M55 47 L51 51 M55 51 L51 55" stroke="#c08b5e" stroke-width="1.2"/>
+ <path d="M50 46 H56 M50 56 H56" stroke="#8b5c3c" stroke-width="1"/>
+ </g><g transform="translate(0 1)">
+  <!-- angled back field coat, asymmetric pocket and leather cross-webbing -->
+  <path d="M21 43 Q27 39 43 43 L46 64 Q44 74 36 77 L16 72 L17 54Z" fill="#304d43" stroke="#21392e" stroke-width="1.5"/>
+  <path d="M18 51 L17 71 L25 75 L28 61Z" fill="#557258" stroke="#314638" stroke-width=".9"/>
+  <path d="M25 46 L40 65 M39 45 L21 64" stroke="#cfb58a" stroke-width="3"/>
+  <path d="M24 46 L39 64" stroke="#77583c" stroke-width="1.1" />
+  <path d="M40 61 L45 64 L43 73 L35 71Z" fill="#876345" stroke="#483930" stroke-width="1"/>
+  <circle cx="39.5" cy="66.5" r="1.7" fill="#e8c77f"/>
+  <path d="M19 68 Q31 72 43 67 L42 75 Q29 78 18 72Z" fill="#65543a" stroke="#342d28" stroke-width="1.2"/>
+  <rect x="28" y="69" width="6" height="5" rx="1" fill="#ddbe7e" stroke="#795d36" stroke-width="1"/>
+  <path d="M21 51 L24 53 L24 65 L21 66 M42 48 L45 51 L45 65" stroke="#8ea687" stroke-width="1.2"/>
+  <path d="M23 57 L39 58" stroke="#203830" stroke-width="1" opacity=".8"/>
+ </g><g transform="translate(0 1)">
+ <path d="M21 46 Q17 51 18 61 L18 71.5 Q22 76 26 72 L29 54Z" fill="#4a6855" stroke="#283f35" stroke-width="1.2"/>
+ <path d="M19 67 L22 69 L24 76 L21 79 L18 75Z" fill="#d3a583" stroke="#905f50" stroke-width="1"/>
+ <path d="M19 66 L24 65" stroke="#d4b786" stroke-width="2"/>
+ <path d="M43 46 L47 52 L48 66 L44 72 L41 66 L39 50Z" fill="#53715b" stroke="#2c4737" stroke-width="1"/>
+ <path d="M45 67 L49 69 L49 73 L45 76 L43 72Z" fill="#c6987d"/>
+ </g><g transform="translate(0 1)">
+  <!-- west-facing profile, not an x-flipped east texture -->
+  <path d="M40 14 Q32 11 25 17 Q18 23 20 32 L18 37 L22 42 Q32 46 38 39 L41 32Z" fill="#e4b28e" stroke="#845a4c" stroke-width="1.4"/>
+  <path d="M36 14 Q26 10 21 18 L16 26 Q16 34 21 34 L20 38 Q26 35 29 28 L37 24 L39 31 L43 29 L43 20Z" fill="#985436" stroke="#533b32" stroke-width="1.1"/>
+  <path d="M20 20 Q23 13 29 14 Q34 14 38 18" stroke="#c67a48" stroke-width="3" fill="none"/>
+  <path d="M18 25 L22 20 L24 28Z" fill="#b66a3c"/>
+  <path d="M20 31 L14 33 L20 35" fill="#e8b497" stroke="#956651" stroke-width="1"/>
+  <path d="M19 37 Q25 39 29 38" stroke="#a26559" stroke-width="1" fill="none"/>
+  <!-- warm brass goggles, bright green viewglass, headband -->
+  <path d="M21 24 L40 23" stroke="#85643e" stroke-width="3"/>
+  <rect x="17" y="21" width="11" height="8" rx="2" fill="#ba995f" stroke="#5a432f" stroke-width="1.4"/>
+  <rect x="19" y="23" width="7" height="4" rx="1" fill="#48aa85" stroke="#246c58" stroke-width=".6"/>
+  <path d="M19 23 L23 23" stroke="#a4ead3" stroke-width=".9"/>
+  <path d="M38 34 L37 42" stroke="#896c53" stroke-width="1.4"/>
+ </g>
+ <g id="staff-contact-hand-v2-2">
+  <!-- review-only hand-to-shaft contact, downstream of body paint order -->
+  <path d="M46 65 L51 65 L54 67 L53 71 L49 73 L46 70Z" fill="#cf9a79" stroke="#895c4a" stroke-width=".8"/>
+  <path d="M50 67 H54" stroke="#f0b894" stroke-width=".75"/>
+ </g>
+ <!-- pose-id 2; independently modeled left foot and arm swing -->
+ </g>
+<g transform="translate(128 0)" aria-label="west side source phase 3"><g><path d="M21 61 Q24.5 71 21 77 L28 77 L28 60Z" fill="#51664f" stroke="#273a37" stroke-width="1.5"/>
+ <path d="M20 76 L29 76 L30 88 L19 88Z" fill="#373b42" stroke="#202c34" stroke-width="1.3"/>
+ <path d="M21 83 L28 83" stroke="#c5aa79" stroke-width="2"/>
+ <path d="M19 88 L32 88 L33 90 L32 92 L19 92Z" fill="#252f39" stroke="#192831" stroke-width="1"/>
+ <path d="M19 92 L33 92" stroke="#a5a893" stroke-width="1"/></g><g><path d="M34 61 Q36.5 71 32 77 L39 77 L41 60Z" fill="#47594b" stroke="#273a37" stroke-width="1.5"/>
+ <path d="M31 76 L40 76 L41 88 L30 88Z" fill="#373b42" stroke="#202c34" stroke-width="1.3"/>
+ <path d="M32 83 L39 83" stroke="#c5aa79" stroke-width="2"/>
+ <path d="M30 88 L43 88 L44 90 L43 92 L30 92Z" fill="#252f39" stroke="#192831" stroke-width="1"/>
+ <path d="M30 92 L44 92" stroke="#a5a893" stroke-width="1"/></g><g id="staff-source-v2-2" transform="translate(0 0)">
+ <!-- proposed external x=53 staff silhouette; centered leather wrap y45..56 of shaft 8..88 -->
+ <path d="M53 8 L53 88" stroke="#33271f" stroke-width="5" stroke-linecap="round"/>
+ <path d="M53 8 L53 88" stroke="#9a6c3e" stroke-width="3" stroke-linecap="round"/>
+ <path d="M52 19 L52 42 M54 19 L54 42 M52 59 L52 77" stroke="#c58e51" stroke-width=".7" opacity=".65"/>
+ <path d="M50 8 H56 L56 18 H50Z" fill="#c99e58" stroke="#513b26" stroke-width="1"/>
+ <path d="M51 10 H54 M51 14 H54 M50 16 H56" stroke="#ffe0a0" stroke-width="1"/>
+ <path d="M50 78 H56 L56 88 H50Z" fill="#c99e58" stroke="#513b26" stroke-width="1"/>
+ <path d="M51 80 H54 M51 84 H54" stroke="#ffe0a0" stroke-width="1"/>
+ <path d="M51 45 H55 V57 H51Z" fill="#49352c" stroke="#261f1c" stroke-width=".7"/>
+ <path d="M51 47 L55 51 M51 51 L55 55 M55 47 L51 51 M55 51 L51 55" stroke="#c08b5e" stroke-width="1.2"/>
+ <path d="M50 46 H56 M50 56 H56" stroke="#8b5c3c" stroke-width="1"/>
+ </g><g transform="translate(0 0)">
+  <!-- angled back field coat, asymmetric pocket and leather cross-webbing -->
+  <path d="M21 43 Q27 39 43 43 L46 64 Q44 74 36 77 L16 72 L17 54Z" fill="#304d43" stroke="#21392e" stroke-width="1.5"/>
+  <path d="M18 51 L17 71 L25 75 L28 61Z" fill="#557258" stroke="#314638" stroke-width=".9"/>
+  <path d="M25 46 L40 65 M39 45 L21 64" stroke="#cfb58a" stroke-width="3"/>
+  <path d="M24 46 L39 64" stroke="#77583c" stroke-width="1.1" />
+  <path d="M40 61 L45 64 L43 73 L35 71Z" fill="#876345" stroke="#483930" stroke-width="1"/>
+  <circle cx="39.5" cy="66.5" r="1.7" fill="#e8c77f"/>
+  <path d="M19 68 Q31 72 43 67 L42 75 Q29 78 18 72Z" fill="#65543a" stroke="#342d28" stroke-width="1.2"/>
+  <rect x="28" y="69" width="6" height="5" rx="1" fill="#ddbe7e" stroke="#795d36" stroke-width="1"/>
+  <path d="M21 51 L24 53 L24 65 L21 66 M42 48 L45 51 L45 65" stroke="#8ea687" stroke-width="1.2"/>
+  <path d="M23 57 L39 58" stroke="#203830" stroke-width="1" opacity=".8"/>
+ </g><g transform="translate(0 0)">
+ <path d="M21 46 Q17 51 18 61 L19.333333333333332 72.16666666666667 Q23.333333333333332 76 26 72 L29 54Z" fill="#4a6855" stroke="#283f35" stroke-width="1.2"/>
+ <path d="M19 67 L23.333333333333332 69 L25.333333333333332 76 L21 79 L18 75Z" fill="#d3a583" stroke="#905f50" stroke-width="1"/>
+ <path d="M19 66 L24 65" stroke="#d4b786" stroke-width="2"/>
+ <path d="M43 46 L47 52 L48 66 L44 72 L41 66 L39 50Z" fill="#53715b" stroke="#2c4737" stroke-width="1"/>
+ <path d="M45 67 L49 69 L49 73 L45 76 L43 72Z" fill="#c6987d"/>
+ </g><g transform="translate(0 0)">
+  <!-- west-facing profile, not an x-flipped east texture -->
+  <path d="M40 14 Q32 11 25 17 Q18 23 20 32 L18 37 L22 42 Q32 46 38 39 L41 32Z" fill="#e4b28e" stroke="#845a4c" stroke-width="1.4"/>
+  <path d="M36 14 Q26 10 21 18 L16 26 Q16 34 21 34 L20 38 Q26 35 29 28 L37 24 L39 31 L43 29 L43 20Z" fill="#985436" stroke="#533b32" stroke-width="1.1"/>
+  <path d="M20 20 Q23 13 29 14 Q34 14 38 18" stroke="#c67a48" stroke-width="3" fill="none"/>
+  <path d="M18 25 L22 20 L24 28Z" fill="#b66a3c"/>
+  <path d="M20 31 L14 33 L20 35" fill="#e8b497" stroke="#956651" stroke-width="1"/>
+  <path d="M19 37 Q25 39 29 38" stroke="#a26559" stroke-width="1" fill="none"/>
+  <!-- warm brass goggles, bright green viewglass, headband -->
+  <path d="M21 24 L40 23" stroke="#85643e" stroke-width="3"/>
+  <rect x="17" y="21" width="11" height="8" rx="2" fill="#ba995f" stroke="#5a432f" stroke-width="1.4"/>
+  <rect x="19" y="23" width="7" height="4" rx="1" fill="#48aa85" stroke="#246c58" stroke-width=".6"/>
+  <path d="M19 23 L23 23" stroke="#a4ead3" stroke-width=".9"/>
+  <path d="M38 34 L37 42" stroke="#896c53" stroke-width="1.4"/>
+ </g>
+ <g id="staff-contact-hand-v2-3">
+  <!-- review-only hand-to-shaft contact, downstream of body paint order -->
+  <path d="M46 65 L51 65 L54 67 L53 71 L49 73 L46 70Z" fill="#cf9a79" stroke="#895c4a" stroke-width=".8"/>
+  <path d="M50 67 H54" stroke="#f0b894" stroke-width=".75"/>
+ </g>
+ <!-- pose-id 3; independently modeled left foot and arm swing -->
+ </g>
+<g transform="translate(192 0)" aria-label="west side source phase 4"><g><path d="M21 61 Q27 71 26 77 L33 77 L28 60Z" fill="#51664f" stroke="#273a37" stroke-width="1.5"/>
+ <path d="M25 76 L34 76 L35 88 L24 88Z" fill="#373b42" stroke="#202c34" stroke-width="1.3"/>
+ <path d="M26 83 L33 83" stroke="#c5aa79" stroke-width="2"/>
+ <path d="M24 88 L37 88 L38 90 L37 92 L24 92Z" fill="#252f39" stroke="#192831" stroke-width="1"/>
+ <path d="M24 92 L38 92" stroke="#a5a893" stroke-width="1"/></g><g><path d="M34 61 Q34 71 27 77 L34 77 L41 60Z" fill="#47594b" stroke="#273a37" stroke-width="1.5"/>
+ <path d="M26 76 L35 76 L36 88 L25 88Z" fill="#373b42" stroke="#202c34" stroke-width="1.3"/>
+ <path d="M27 83 L34 83" stroke="#c5aa79" stroke-width="2"/>
+ <path d="M25 88 L38 88 L39 90 L38 92 L25 92Z" fill="#252f39" stroke="#192831" stroke-width="1"/>
+ <path d="M25 92 L39 92" stroke="#a5a893" stroke-width="1"/></g><g id="staff-source-v2-3" transform="translate(0 0)">
+ <!-- proposed external x=53 staff silhouette; centered leather wrap y45..56 of shaft 8..88 -->
+ <path d="M53 8 L53 88" stroke="#33271f" stroke-width="5" stroke-linecap="round"/>
+ <path d="M53 8 L53 88" stroke="#9a6c3e" stroke-width="3" stroke-linecap="round"/>
+ <path d="M52 19 L52 42 M54 19 L54 42 M52 59 L52 77" stroke="#c58e51" stroke-width=".7" opacity=".65"/>
+ <path d="M50 8 H56 L56 18 H50Z" fill="#c99e58" stroke="#513b26" stroke-width="1"/>
+ <path d="M51 10 H54 M51 14 H54 M50 16 H56" stroke="#ffe0a0" stroke-width="1"/>
+ <path d="M50 78 H56 L56 88 H50Z" fill="#c99e58" stroke="#513b26" stroke-width="1"/>
+ <path d="M51 80 H54 M51 84 H54" stroke="#ffe0a0" stroke-width="1"/>
+ <path d="M51 45 H55 V57 H51Z" fill="#49352c" stroke="#261f1c" stroke-width=".7"/>
+ <path d="M51 47 L55 51 M51 51 L55 55 M55 47 L51 51 M55 51 L51 55" stroke="#c08b5e" stroke-width="1.2"/>
+ <path d="M50 46 H56 M50 56 H56" stroke="#8b5c3c" stroke-width="1"/>
+ </g><g transform="translate(0 0)">
+  <!-- angled back field coat, asymmetric pocket and leather cross-webbing -->
+  <path d="M21 43 Q27 39 43 43 L46 64 Q44 74 36 77 L16 72 L17 54Z" fill="#304d43" stroke="#21392e" stroke-width="1.5"/>
+  <path d="M18 51 L17 71 L25 75 L28 61Z" fill="#557258" stroke="#314638" stroke-width=".9"/>
+  <path d="M25 46 L40 65 M39 45 L21 64" stroke="#cfb58a" stroke-width="3"/>
+  <path d="M24 46 L39 64" stroke="#77583c" stroke-width="1.1" />
+  <path d="M40 61 L45 64 L43 73 L35 71Z" fill="#876345" stroke="#483930" stroke-width="1"/>
+  <circle cx="39.5" cy="66.5" r="1.7" fill="#e8c77f"/>
+  <path d="M19 68 Q31 72 43 67 L42 75 Q29 78 18 72Z" fill="#65543a" stroke="#342d28" stroke-width="1.2"/>
+  <rect x="28" y="69" width="6" height="5" rx="1" fill="#ddbe7e" stroke="#795d36" stroke-width="1"/>
+  <path d="M21 51 L24 53 L24 65 L21 66 M42 48 L45 51 L45 65" stroke="#8ea687" stroke-width="1.2"/>
+  <path d="M23 57 L39 58" stroke="#203830" stroke-width="1" opacity=".8"/>
+ </g><g transform="translate(0 0)">
+ <path d="M21 46 Q17 51 18 61 L21 73 Q25 76 26 72 L29 54Z" fill="#4a6855" stroke="#283f35" stroke-width="1.2"/>
+ <path d="M19 67 L25 69 L27 76 L21 79 L18 75Z" fill="#d3a583" stroke="#905f50" stroke-width="1"/>
+ <path d="M19 66 L24 65" stroke="#d4b786" stroke-width="2"/>
+ <path d="M43 46 L47 52 L48 66 L44 72 L41 66 L39 50Z" fill="#53715b" stroke="#2c4737" stroke-width="1"/>
+ <path d="M45 67 L49 69 L49 73 L45 76 L43 72Z" fill="#c6987d"/>
+ </g><g transform="translate(0 0)">
+  <!-- west-facing profile, not an x-flipped east texture -->
+  <path d="M40 14 Q32 11 25 17 Q18 23 20 32 L18 37 L22 42 Q32 46 38 39 L41 32Z" fill="#e4b28e" stroke="#845a4c" stroke-width="1.4"/>
+  <path d="M36 14 Q26 10 21 18 L16 26 Q16 34 21 34 L20 38 Q26 35 29 28 L37 24 L39 31 L43 29 L43 20Z" fill="#985436" stroke="#533b32" stroke-width="1.1"/>
+  <path d="M20 20 Q23 13 29 14 Q34 14 38 18" stroke="#c67a48" stroke-width="3" fill="none"/>
+  <path d="M18 25 L22 20 L24 28Z" fill="#b66a3c"/>
+  <path d="M20 31 L14 33 L20 35" fill="#e8b497" stroke="#956651" stroke-width="1"/>
+  <path d="M19 37 Q25 39 29 38" stroke="#a26559" stroke-width="1" fill="none"/>
+  <!-- warm brass goggles, bright green viewglass, headband -->
+  <path d="M21 24 L40 23" stroke="#85643e" stroke-width="3"/>
+  <rect x="17" y="21" width="11" height="8" rx="2" fill="#ba995f" stroke="#5a432f" stroke-width="1.4"/>
+  <rect x="19" y="23" width="7" height="4" rx="1" fill="#48aa85" stroke="#246c58" stroke-width=".6"/>
+  <path d="M19 23 L23 23" stroke="#a4ead3" stroke-width=".9"/>
+  <path d="M38 34 L37 42" stroke="#896c53" stroke-width="1.4"/>
+ </g>
+ <g id="staff-contact-hand-v2-4">
+  <!-- review-only hand-to-shaft contact, downstream of body paint order -->
+  <path d="M46 65 L51 65 L54 67 L53 71 L49 73 L46 70Z" fill="#cf9a79" stroke="#895c4a" stroke-width=".8"/>
+  <path d="M50 67 H54" stroke="#f0b894" stroke-width=".75"/>
+ </g>
+ <!-- pose-id 4; independently modeled left foot and arm swing -->
+ </g>
+<g transform="translate(256 0)" aria-label="west side source phase 5"><g><path d="M21 61 Q25.5 71 23 75 L30 75 L28 60Z" fill="#51664f" stroke="#273a37" stroke-width="1.5"/>
+ <path d="M22 74 L31 74 L32 86 L21 86Z" fill="#373b42" stroke="#202c34" stroke-width="1.3"/>
+ <path d="M23 81 L30 81" stroke="#c5aa79" stroke-width="2"/>
+ <path d="M21 86 L34 86 L35 88 L34 90 L21 90Z" fill="#252f39" stroke="#192831" stroke-width="1"/>
+ <path d="M21 90 L35 90" stroke="#a5a893" stroke-width="1"/></g><g><path d="M34 61 Q35.5 71 30 75 L37 75 L41 60Z" fill="#47594b" stroke="#273a37" stroke-width="1.5"/>
+ <path d="M29 74 L38 74 L39 86 L28 86Z" fill="#373b42" stroke="#202c34" stroke-width="1.3"/>
+ <path d="M30 81 L37 81" stroke="#c5aa79" stroke-width="2"/>
+ <path d="M28 86 L41 86 L42 88 L41 90 L28 90Z" fill="#252f39" stroke="#192831" stroke-width="1"/>
+ <path d="M28 90 L42 90" stroke="#a5a893" stroke-width="1"/></g><g id="staff-source-v2-4" transform="translate(0 2)">
+ <!-- proposed external x=53 staff silhouette; centered leather wrap y45..56 of shaft 8..88 -->
+ <path d="M53 8 L53 88" stroke="#33271f" stroke-width="5" stroke-linecap="round"/>
+ <path d="M53 8 L53 88" stroke="#9a6c3e" stroke-width="3" stroke-linecap="round"/>
+ <path d="M52 19 L52 42 M54 19 L54 42 M52 59 L52 77" stroke="#c58e51" stroke-width=".7" opacity=".65"/>
+ <path d="M50 8 H56 L56 18 H50Z" fill="#c99e58" stroke="#513b26" stroke-width="1"/>
+ <path d="M51 10 H54 M51 14 H54 M50 16 H56" stroke="#ffe0a0" stroke-width="1"/>
+ <path d="M50 78 H56 L56 88 H50Z" fill="#c99e58" stroke="#513b26" stroke-width="1"/>
+ <path d="M51 80 H54 M51 84 H54" stroke="#ffe0a0" stroke-width="1"/>
+ <path d="M51 45 H55 V57 H51Z" fill="#49352c" stroke="#261f1c" stroke-width=".7"/>
+ <path d="M51 47 L55 51 M51 51 L55 55 M55 47 L51 51 M55 51 L51 55" stroke="#c08b5e" stroke-width="1.2"/>
+ <path d="M50 46 H56 M50 56 H56" stroke="#8b5c3c" stroke-width="1"/>
+ </g><g transform="translate(0 2)">
+  <!-- angled back field coat, asymmetric pocket and leather cross-webbing -->
+  <path d="M21 43 Q27 39 43 43 L46 64 Q44 74 36 77 L16 72 L17 54Z" fill="#304d43" stroke="#21392e" stroke-width="1.5"/>
+  <path d="M18 51 L17 71 L25 75 L28 61Z" fill="#557258" stroke="#314638" stroke-width=".9"/>
+  <path d="M25 46 L40 65 M39 45 L21 64" stroke="#cfb58a" stroke-width="3"/>
+  <path d="M24 46 L39 64" stroke="#77583c" stroke-width="1.1" />
+  <path d="M40 61 L45 64 L43 73 L35 71Z" fill="#876345" stroke="#483930" stroke-width="1"/>
+  <circle cx="39.5" cy="66.5" r="1.7" fill="#e8c77f"/>
+  <path d="M19 68 Q31 72 43 67 L42 75 Q29 78 18 72Z" fill="#65543a" stroke="#342d28" stroke-width="1.2"/>
+  <rect x="28" y="69" width="6" height="5" rx="1" fill="#ddbe7e" stroke="#795d36" stroke-width="1"/>
+  <path d="M21 51 L24 53 L24 65 L21 66 M42 48 L45 51 L45 65" stroke="#8ea687" stroke-width="1.2"/>
+  <path d="M23 57 L39 58" stroke="#203830" stroke-width="1" opacity=".8"/>
+ </g><g transform="translate(0 2)">
+ <path d="M21 46 Q17 51 18 61 L20 72.5 Q24 76 26 72 L29 54Z" fill="#4a6855" stroke="#283f35" stroke-width="1.2"/>
+ <path d="M19 67 L24 69 L26 76 L21 79 L18 75Z" fill="#d3a583" stroke="#905f50" stroke-width="1"/>
+ <path d="M19 66 L24 65" stroke="#d4b786" stroke-width="2"/>
+ <path d="M43 46 L47 52 L48 66 L44 72 L41 66 L39 50Z" fill="#53715b" stroke="#2c4737" stroke-width="1"/>
+ <path d="M45 67 L49 69 L49 73 L45 76 L43 72Z" fill="#c6987d"/>
+ </g><g transform="translate(0 2)">
+  <!-- west-facing profile, not an x-flipped east texture -->
+  <path d="M40 14 Q32 11 25 17 Q18 23 20 32 L18 37 L22 42 Q32 46 38 39 L41 32Z" fill="#e4b28e" stroke="#845a4c" stroke-width="1.4"/>
+  <path d="M36 14 Q26 10 21 18 L16 26 Q16 34 21 34 L20 38 Q26 35 29 28 L37 24 L39 31 L43 29 L43 20Z" fill="#985436" stroke="#533b32" stroke-width="1.1"/>
+  <path d="M20 20 Q23 13 29 14 Q34 14 38 18" stroke="#c67a48" stroke-width="3" fill="none"/>
+  <path d="M18 25 L22 20 L24 28Z" fill="#b66a3c"/>
+  <path d="M20 31 L14 33 L20 35" fill="#e8b497" stroke="#956651" stroke-width="1"/>
+  <path d="M19 37 Q25 39 29 38" stroke="#a26559" stroke-width="1" fill="none"/>
+  <!-- warm brass goggles, bright green viewglass, headband -->
+  <path d="M21 24 L40 23" stroke="#85643e" stroke-width="3"/>
+  <rect x="17" y="21" width="11" height="8" rx="2" fill="#ba995f" stroke="#5a432f" stroke-width="1.4"/>
+  <rect x="19" y="23" width="7" height="4" rx="1" fill="#48aa85" stroke="#246c58" stroke-width=".6"/>
+  <path d="M19 23 L23 23" stroke="#a4ead3" stroke-width=".9"/>
+  <path d="M38 34 L37 42" stroke="#896c53" stroke-width="1.4"/>
+ </g>
+ <g id="staff-contact-hand-v2-5">
+  <!-- review-only hand-to-shaft contact, downstream of body paint order -->
+  <path d="M46 65 L51 65 L54 67 L53 71 L49 73 L46 70Z" fill="#cf9a79" stroke="#895c4a" stroke-width=".8"/>
+  <path d="M50 67 H54" stroke="#f0b894" stroke-width=".75"/>
+ </g>
+ <!-- pose-id 5; independently modeled left foot and arm swing -->
+ </g>
+<g transform="translate(320 0)" aria-label="west side source phase 6"><g><path d="M21 61 Q23.5 71 19 77 L26 77 L28 60Z" fill="#51664f" stroke="#273a37" stroke-width="1.5"/>
+ <path d="M18 76 L27 76 L28 88 L17 88Z" fill="#373b42" stroke="#202c34" stroke-width="1.3"/>
+ <path d="M19 83 L26 83" stroke="#c5aa79" stroke-width="2"/>
+ <path d="M17 88 L30 88 L31 90 L30 92 L17 92Z" fill="#252f39" stroke="#192831" stroke-width="1"/>
+ <path d="M17 92 L31 92" stroke="#a5a893" stroke-width="1"/></g><g><path d="M34 61 Q37.5 71 34 77 L41 77 L41 60Z" fill="#47594b" stroke="#273a37" stroke-width="1.5"/>
+ <path d="M33 76 L42 76 L43 88 L32 88Z" fill="#373b42" stroke="#202c34" stroke-width="1.3"/>
+ <path d="M34 83 L41 83" stroke="#c5aa79" stroke-width="2"/>
+ <path d="M32 88 L45 88 L46 90 L45 92 L32 92Z" fill="#252f39" stroke="#192831" stroke-width="1"/>
+ <path d="M32 92 L46 92" stroke="#a5a893" stroke-width="1"/></g><g id="staff-source-v2-5" transform="translate(0 1)">
+ <!-- proposed external x=53 staff silhouette; centered leather wrap y45..56 of shaft 8..88 -->
+ <path d="M53 8 L53 88" stroke="#33271f" stroke-width="5" stroke-linecap="round"/>
+ <path d="M53 8 L53 88" stroke="#9a6c3e" stroke-width="3" stroke-linecap="round"/>
+ <path d="M52 19 L52 42 M54 19 L54 42 M52 59 L52 77" stroke="#c58e51" stroke-width=".7" opacity=".65"/>
+ <path d="M50 8 H56 L56 18 H50Z" fill="#c99e58" stroke="#513b26" stroke-width="1"/>
+ <path d="M51 10 H54 M51 14 H54 M50 16 H56" stroke="#ffe0a0" stroke-width="1"/>
+ <path d="M50 78 H56 L56 88 H50Z" fill="#c99e58" stroke="#513b26" stroke-width="1"/>
+ <path d="M51 80 H54 M51 84 H54" stroke="#ffe0a0" stroke-width="1"/>
+ <path d="M51 45 H55 V57 H51Z" fill="#49352c" stroke="#261f1c" stroke-width=".7"/>
+ <path d="M51 47 L55 51 M51 51 L55 55 M55 47 L51 51 M55 51 L51 55" stroke="#c08b5e" stroke-width="1.2"/>
+ <path d="M50 46 H56 M50 56 H56" stroke="#8b5c3c" stroke-width="1"/>
+ </g><g transform="translate(0 1)">
+  <!-- angled back field coat, asymmetric pocket and leather cross-webbing -->
+  <path d="M21 43 Q27 39 43 43 L46 64 Q44 74 36 77 L16 72 L17 54Z" fill="#304d43" stroke="#21392e" stroke-width="1.5"/>
+  <path d="M18 51 L17 71 L25 75 L28 61Z" fill="#557258" stroke="#314638" stroke-width=".9"/>
+  <path d="M25 46 L40 65 M39 45 L21 64" stroke="#cfb58a" stroke-width="3"/>
+  <path d="M24 46 L39 64" stroke="#77583c" stroke-width="1.1" />
+  <path d="M40 61 L45 64 L43 73 L35 71Z" fill="#876345" stroke="#483930" stroke-width="1"/>
+  <circle cx="39.5" cy="66.5" r="1.7" fill="#e8c77f"/>
+  <path d="M19 68 Q31 72 43 67 L42 75 Q29 78 18 72Z" fill="#65543a" stroke="#342d28" stroke-width="1.2"/>
+  <rect x="28" y="69" width="6" height="5" rx="1" fill="#ddbe7e" stroke="#795d36" stroke-width="1"/>
+  <path d="M21 51 L24 53 L24 65 L21 66 M42 48 L45 51 L45 65" stroke="#8ea687" stroke-width="1.2"/>
+  <path d="M23 57 L39 58" stroke="#203830" stroke-width="1" opacity=".8"/>
+ </g><g transform="translate(0 1)">
+ <path d="M21 46 Q17 51 18 61 L18.666666666666668 71.83333333333333 Q22.666666666666668 76 26 72 L29 54Z" fill="#4a6855" stroke="#283f35" stroke-width="1.2"/>
+ <path d="M19 67 L22.666666666666668 69 L24.666666666666668 76 L21 79 L18 75Z" fill="#d3a583" stroke="#905f50" stroke-width="1"/>
+ <path d="M19 66 L24 65" stroke="#d4b786" stroke-width="2"/>
+ <path d="M43 46 L47 52 L48 66 L44 72 L41 66 L39 50Z" fill="#53715b" stroke="#2c4737" stroke-width="1"/>
+ <path d="M45 67 L49 69 L49 73 L45 76 L43 72Z" fill="#c6987d"/>
+ </g><g transform="translate(0 1)">
+  <!-- west-facing profile, not an x-flipped east texture -->
+  <path d="M40 14 Q32 11 25 17 Q18 23 20 32 L18 37 L22 42 Q32 46 38 39 L41 32Z" fill="#e4b28e" stroke="#845a4c" stroke-width="1.4"/>
+  <path d="M36 14 Q26 10 21 18 L16 26 Q16 34 21 34 L20 38 Q26 35 29 28 L37 24 L39 31 L43 29 L43 20Z" fill="#985436" stroke="#533b32" stroke-width="1.1"/>
+  <path d="M20 20 Q23 13 29 14 Q34 14 38 18" stroke="#c67a48" stroke-width="3" fill="none"/>
+  <path d="M18 25 L22 20 L24 28Z" fill="#b66a3c"/>
+  <path d="M20 31 L14 33 L20 35" fill="#e8b497" stroke="#956651" stroke-width="1"/>
+  <path d="M19 37 Q25 39 29 38" stroke="#a26559" stroke-width="1" fill="none"/>
+  <!-- warm brass goggles, bright green viewglass, headband -->
+  <path d="M21 24 L40 23" stroke="#85643e" stroke-width="3"/>
+  <rect x="17" y="21" width="11" height="8" rx="2" fill="#ba995f" stroke="#5a432f" stroke-width="1.4"/>
+  <rect x="19" y="23" width="7" height="4" rx="1" fill="#48aa85" stroke="#246c58" stroke-width=".6"/>
+  <path d="M19 23 L23 23" stroke="#a4ead3" stroke-width=".9"/>
+  <path d="M38 34 L37 42" stroke="#896c53" stroke-width="1.4"/>
+ </g>
+ <g id="staff-contact-hand-v2-6">
+  <!-- review-only hand-to-shaft contact, downstream of body paint order -->
+  <path d="M46 65 L51 65 L54 67 L53 71 L49 73 L46 70Z" fill="#cf9a79" stroke="#895c4a" stroke-width=".8"/>
+  <path d="M50 67 H54" stroke="#f0b894" stroke-width=".75"/>
+ </g>
+ <!-- pose-id 6; independently modeled left foot and arm swing -->
+ </g>
+</svg>
