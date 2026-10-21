@@ -341,5 +341,14 @@
     "v3-west-native-960x640.png": "cf40f6c71dff570cfaa9bd4cfd15dfdb039260accc70fddc8cc6e07cdc22d8e9",
     "v4-east-native-960x640.png": "9e198cea52c3e673475e1d97de077e93420904f39cd5589716168d1344a402c7",
     "v4-west-native-960x640.png": "230bf320a616cb4e08fba86441e16002a279bf4b7a58f8bfe3da69ef00e7412f"
+  },
+  "interactive_visual_review": {
+    "filename": "ionia-windows-animated-ab-review.html",
+    "sha256": "904d94f92a56bb55a986bcc3139f235abeca97fb1953c7c27ff44a220d99dfb8",
+    "bytes": 117618,
+    "embedded_crops": 24,
+    "original_source_pngs_preserved": true,
+    "test": "Chromium/Playwright PASS: initial rendering, facing toggle, stepping, scrub, zoom, FPS, play/pause, zero runtime JS errors",
+    "visual_acceptance": "PENDING"
   }
 }

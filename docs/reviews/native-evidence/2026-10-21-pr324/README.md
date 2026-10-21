@@ -11,3 +11,9 @@ Engine: official Godot 4.7.2 Windows binary; ZIP verified against the release SH
 **Limitations:** Geometry and native visual fidelity improve but do not establish authoritative creator approval, perfect ground-contact animation, parity with north/south shading or Ender costume detail, complete engine migration, or production readiness. The opt-in V4 remains unapproved. The repository is private; do not publish this visual packet externally or claim full-game release acceptance.
 
 `VISUAL_ACCEPTANCE=PENDING`; `IONIA_V4_ART=UNAPPROVED`; `FIELD_PACK_READINESS=NOT_READY`; `PRODUCTION_ENGINE_MIGRATION=NOT_ADMITTED`; `RELEASE=NOT_AUTHORIZED`.
+
+## Offline interactive review
+
+Download and open `ionia-windows-animated-ab-review.html` in a browser. It is a standalone, offline, dependency-free, JavaScript-controlled six-phase V3/V4 player. Both directions play at the same frame with adjustable FPS (2?12), playback/pause, per-frame stepping, scrubbing, 2??4? zoom, and keyboard shortcuts. The 24 embedded frames are cropped without resampling from the original 960?640 Windows PNGs; they are derivatives, not replacement originals. Use the ZIP and SHA-256 manifest for exact custody of original scene data.
+
+It was validated on the authorized Windows host using local Chrome rendering and isolated Playwright browser checks: source images load, east/west selection changes images, frame stepping and scrubbing work, zoom/FPS controls work, playback/pause advances, and no JavaScript runtime errors were observed. The page does not access a network, import third-party scripts, or upload data. Preview/download from the **private** repository only; the GitHub file viewer may show source rather than run scripts, so download the HTML to open locally. Artistic acceptance remains pending.
