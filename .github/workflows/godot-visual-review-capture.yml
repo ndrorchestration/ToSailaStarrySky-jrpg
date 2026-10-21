@@ -62,6 +62,9 @@ jobs:
           xvfb-run -a -s "-screen 0 960x640x24" editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_ender_staff_review.gd
           test -s godot/review-evidence/ender-east-original-source-native-960x640.png
           test -s godot/review-evidence/ender-west-centered-staff-native-960x640.png
+          # Quota-independent, private, size-capped 480x320 lossy inspection
+          # payloads are logged separately from the authoritative full-size PNGs.
+          xvfb-run -a -s "-screen 0 960x640x24" editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/emit_private_native_preview.gd
           sha256sum godot/review-evidence/*.png
       - name: Mark capture as not externally retrievable (Actions artifact quota)
         shell: bash
