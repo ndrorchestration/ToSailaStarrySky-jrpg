@@ -1,0 +1,87 @@
+{
+  "scope": "AETHERWAKE_PRIVATE_FOURWAY_NATIVE_SCENE_COMPARISON",
+  "source_render_commit": "eb183d02a92460f9518d66d11b0282b611695f7d",
+  "godot_version": "4.7.2",
+  "renderer": "OpenGL3/Xvfb",
+  "actor_anchors": {
+    "Ender": [
+      350,
+      462
+    ],
+    "Ionia": [
+      570,
+      458
+    ]
+  },
+  "phase": 0,
+  "source_byte_custody": "EXACT_ORIGINAL_960x640_PNGS_RETAINED_PRIVATE_GIT",
+  "human_approval": "PENDING",
+  "release": "NOT_AUTHORIZED",
+  "files": [
+    {
+      "label": "joint-fixed-baseline-full",
+      "source_render_commit": "eb183d02a92460f9518d66d11b0282b611695f7d",
+      "source_workflow_run": 39659157626,
+      "source_workflow_job": 119427308575,
+      "dimensions": [
+        960,
+        640
+      ],
+      "bytes": 42185,
+      "sha256": "4c78a373a9c4c7fd83efefb9f60c846437f90205f29b74bfb12393a0aa8815e9",
+      "git_blob_sha": "cc29a7ebba06947e58251776fbdf588272a87935"
+    },
+    {
+      "label": "joint-fixed-east-full",
+      "source_render_commit": "eb183d02a92460f9518d66d11b0282b611695f7d",
+      "source_workflow_run": 39659157626,
+      "source_workflow_job": 119427308575,
+      "dimensions": [
+        960,
+        640
+      ],
+      "bytes": 51334,
+      "sha256": "92a4610eef14a7ce85ba7ea90c2cf321cb0b82ccdeb3a86fd38739565d55d5e9",
+      "git_blob_sha": "f58583b678063e4fd69cc2b5be64c85a7f03e68d"
+    },
+    {
+      "label": "joint-fixed-west-full",
+      "source_render_commit": "eb183d02a92460f9518d66d11b0282b611695f7d",
+      "source_workflow_run": 39659157626,
+      "source_workflow_job": 119427308575,
+      "dimensions": [
+        960,
+        640
+      ],
+      "bytes": 50795,
+      "sha256": "5b664e440145a245932aeb58c1f6e383b26481ef3b6aeb3dafed61a66b0ad47f",
+      "git_blob_sha": "ab0614de125465797bc9884e4794eb151b2606e1"
+    },
+    {
+      "label": "joint-fixed-south-full",
+      "source_render_commit": "eb183d02a92460f9518d66d11b0282b611695f7d",
+      "source_workflow_run": 39659157626,
+      "source_workflow_job": 119427308575,
+      "dimensions": [
+        960,
+        640
+      ],
+      "bytes": 53307,
+      "sha256": "1fb16f8c02230ff46d21af56faac307db96e231c2f8efba27b43e56e92e4b911",
+      "git_blob_sha": "4a1700f407d58484f4ec7d1577e3d60b5de597d1"
+    },
+    {
+      "label": "joint-fixed-north-full",
+      "source_render_commit": "eb183d02a92460f9518d66d11b0282b611695f7d",
+      "source_workflow_run": 39659157626,
+      "source_workflow_job": 119427308575,
+      "dimensions": [
+        960,
+        640
+      ],
+      "bytes": 52596,
+      "sha256": "87026352f18ba3208dd87989619d7329c6bec67627375a715cd6c2d697d62bbf",
+      "git_blob_sha": "3dc9b52458004c6c0f7ee1ebc2e22c664196c0e5"
+    }
+  ]
+}
