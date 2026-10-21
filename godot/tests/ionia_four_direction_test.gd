@@ -5,6 +5,15 @@ extends SceneTree
 func _initialize() -> void:
     call_deferred("_test")
 
+func _alpha_row_span(img: Image, y: int) -> int:
+    var low := 512
+    var high := -1
+    for x in range(65, 445):
+        if img.get_pixel(x, y).a > 0.2:
+            low = mini(low, x)
+            high = maxi(high, x)
+    return maxi(0, high - low)
+
 func _test() -> void:
     var world = load("res://scenes/first_wake.tscn").instantiate()
     root.add_child(world)
@@ -62,10 +71,14 @@ func _test() -> void:
     # The six phases must be pixel-unique and visibly narrower through the waist
     # than the prior opt-in V2's essentially rear-facing body silhouette.
     for facing in ["east", "west"]:
-        var profile_source: String = FileAccess.get_file_as_string("res://art-review/ionia-%s-sidebody-v3-candidate.svg" % facing)
-        if profile_source.is_empty() or profile_source.count('id="' + facing + '-v3-pose-') != 6 or profile_source.count('id="' + facing + '-v3-profile-torso-') != 6 or profile_source.count('id="' + facing + '-v3-side-profile-nose-') != 6 or profile_source.count('id="' + facing + '-v3-front-leg-') != 6:
-            push_error("IONIA_ROUTE_FAIL: 6 independently built side-body phases absent: " + facing)
+        var profile_source: String = FileAccess.get_file_as_string("res://art-review/ionia-%s-sidebody-v4-candidate.svg" % facing)
+        if profile_source.is_empty() or profile_source.count('id="' + facing + '-v4-pose-') != 6 or profile_source.count('id="' + facing + '-v4-profile-torso-') != 6 or profile_source.count('id="' + facing + '-v4-side-profile-nose-') != 6 or profile_source.count('id="' + facing + '-v4-front-leg-') != 6:
+            push_error("IONIA_ROUTE_FAIL: 6 independently constructed V4 side-body phases absent: " + facing)
             quit(21)
+            return
+        if profile_source.count('id="' + facing + '-v4-back-silhouette-') != 6 or profile_source.count('id="' + facing + '-v4-hair-coat-detail-') != 6:
+            push_error("IONIA_ROUTE_FAIL: V4 secondary silhouette/motion layers missing: " + facing)
+            quit(28)
             return
         var old_texture: Texture2D
         if facing == "east":
@@ -78,6 +91,28 @@ func _test() -> void:
             return
         var old_image: Image = old_texture.get_image()
         var candidate_image: Image = sprites[facing].texture.get_image()
+        # Compare actual Godot-imported pixels to the UNMODIFIED v3 source.
+        # Broader curls/head and coat hems must change the character silhouette
+        # visibly at native field source scale, not just add hidden SVG layers.
+        var prior_source: Texture2D = load("res://art-review/ionia-%s-sidebody-v3-candidate.svg" % facing)
+        if prior_source == null:
+            push_error("IONIA_ROUTE_FAIL: V3 source rollback reference unavailable")
+            quit(29)
+            return
+        var previous_pixels: Image = prior_source.get_image()
+        if previous_pixels.is_empty():
+            push_error("IONIA_ROUTE_FAIL: V3 rollback source fails Godot import")
+            quit(30)
+            return
+        var curls_before := _alpha_row_span(previous_pixels, 250)
+        var curls_now := _alpha_row_span(candidate_image, 250)
+        var hem_before := _alpha_row_span(previous_pixels, 580)
+        var hem_now := _alpha_row_span(candidate_image, 580)
+        print("IONIA_V4_SILHOUETTE:" + facing + ":HEAD=" + str(curls_before) + ">" + str(curls_now) + ":HEM=" + str(hem_before) + ">" + str(hem_now))
+        if curls_now < curls_before + 20 or hem_now < hem_before + 20:
+            push_error("IONIA_ROUTE_FAIL: V4 must materially improve head AND coat silhouette from V3")
+            quit(31)
+            return
         if old_image.is_empty() or candidate_image.is_empty():
             push_error("IONIA_ROUTE_FAIL: cannot rasterize side-body comparison")
             quit(23)
