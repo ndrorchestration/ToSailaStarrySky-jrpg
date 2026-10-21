@@ -75,7 +75,11 @@ func _ready() -> void:
         walk_west_sprite.name = "EnderWestWalkReviewUnapproved"
         walk_west_sprite.texture = preload("res://art-review/ender-west-ferruled-sixframe-candidate.svg")
         walk_west_sprite.hframes = 6
-        walk_west_sprite.position = Vector2(0, -46)
+        # Independent full-size vector art reads wider/taller than the original
+        # 64x96 pixel-source silhouette. Scale the review candidate only.
+        # Source boots end near local +44: -37 + 44*0.82 ~= -1 ground anchor.
+        walk_west_sprite.scale = Vector2(0.83, 0.82)
+        walk_west_sprite.position = Vector2(0, -37)
         walk_west_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
         walk_west_sprite.visible = false
         add_child(walk_west_sprite)
