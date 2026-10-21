@@ -1,0 +1,139 @@
+{
+  "kind": "GODOT_NATIVE_PNG_BYTE_CUSTODY_IN_PRIVATE_REVIEW_BRANCH",
+  "review_only": true,
+  "source_commit": "a9c40c2ed5a076eaba04b38691bd188d4bd030bf",
+  "workflow_run": 39642661420,
+  "job_id": 119369943947,
+  "renderer": "Godot 4.7.2 OpenGL3/Xvfb native 960x640",
+  "provenance": "Original full native renderer PNGs were recovered byte-for-byte from private Actions log and separately SHA256 recomputed; 1x crops similarly checked",
+  "original_full_frames": [
+    {
+      "label": "ender-east-full",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr316/ender-east-full.png",
+      "bytes": 46375,
+      "width": 960,
+      "height": 640,
+      "sha256": "9ef8d9865e35d5d9f55a6b578c228edb25c0d423a2b50afdba4a0567dc94e5fa",
+      "source_sha256": "9ef8d9865e35d5d9f55a6b578c228edb25c0d423a2b50afdba4a0567dc94e5fa",
+      "git_blob_sha": "e87b5bb9b6499b82f2a372adf120466b449b7809"
+    },
+    {
+      "label": "ender-west-full",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr316/ender-west-full.png",
+      "bytes": 45573,
+      "width": 960,
+      "height": 640,
+      "sha256": "012bbc7fd3031b12390cd63c20bdaf92cbdc4240a28bcf21e44ddd8ed9be7949",
+      "source_sha256": "012bbc7fd3031b12390cd63c20bdaf92cbdc4240a28bcf21e44ddd8ed9be7949",
+      "git_blob_sha": "fc82fc5c1ea5cbc09a1b4f0f345c5d77828bc160"
+    },
+    {
+      "label": "ender-front-full",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr316/ender-front-full.png",
+      "bytes": 38594,
+      "width": 960,
+      "height": 640,
+      "sha256": "14d1339af8308284a080385423e26787c340358c8392c694b8b2c8ab35cb9c96",
+      "source_sha256": "14d1339af8308284a080385423e26787c340358c8392c694b8b2c8ab35cb9c96",
+      "git_blob_sha": "d869c621c6475e2fd091692f1f007b001853deea"
+    },
+    {
+      "label": "ender-back-full",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr316/ender-back-full.png",
+      "bytes": 38107,
+      "width": 960,
+      "height": 640,
+      "sha256": "61820b56fbcbdaaff3f060c1ecf4a472edc1b946f1ae877f07899001f97cfda6",
+      "source_sha256": "61820b56fbcbdaaff3f060c1ecf4a472edc1b946f1ae877f07899001f97cfda6",
+      "git_blob_sha": "1f1f6975994568fa6da58fd476f6a719d5088443"
+    },
+    {
+      "label": "ionia-front-full",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr316/ionia-front-full.png",
+      "bytes": 51570,
+      "width": 960,
+      "height": 640,
+      "sha256": "ca8cf177f95d77a581c36268cf6d1e05937d14cdb2cb12909bdf02d31a82f99a",
+      "source_sha256": "ca8cf177f95d77a581c36268cf6d1e05937d14cdb2cb12909bdf02d31a82f99a",
+      "git_blob_sha": "e8ff79f616f6afa1bcd5ffb5b7ac2ac5012c308f"
+    },
+    {
+      "label": "ionia-back-full",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr316/ionia-back-full.png",
+      "bytes": 51496,
+      "width": 960,
+      "height": 640,
+      "sha256": "fc0a52ecf5bdd1e43b99b5ab063796e65cda4d039ced9b3a702f924c41e8e1cc",
+      "source_sha256": "fc0a52ecf5bdd1e43b99b5ab063796e65cda4d039ced9b3a702f924c41e8e1cc",
+      "git_blob_sha": "a6d5a4ab03009465bb27f4b30481c58983ce23dc"
+    }
+  ],
+  "lossless_native_crops": [
+    {
+      "label": "ender-east",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr316/ender-east.png",
+      "bytes": 6321,
+      "width": 225,
+      "height": 228,
+      "sha256": "690ddc6d65197dd0327a1bd31f4fca5c4ca6b1985efdb24fcd440c68bd3ef2e6",
+      "source_sha256": "9ef8d9865e35d5d9f55a6b578c228edb25c0d423a2b50afdba4a0567dc94e5fa",
+      "git_blob_sha": "56fa8c28d23a9fb6fa24b69c6832beff2603d29a"
+    },
+    {
+      "label": "ender-west",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr316/ender-west.png",
+      "bytes": 5620,
+      "width": 225,
+      "height": 228,
+      "sha256": "366759ca567b040c879f4b6f59b6930cf5f283f7b2e5944f00f688bec13385aa",
+      "source_sha256": "012bbc7fd3031b12390cd63c20bdaf92cbdc4240a28bcf21e44ddd8ed9be7949",
+      "git_blob_sha": "1e7eb939383505f1e7e6264166244eac4748debb"
+    },
+    {
+      "label": "ender-front",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr316/ender-front.png",
+      "bytes": 5864,
+      "width": 225,
+      "height": 228,
+      "sha256": "d8cd49844de2bc87c5abd96bea0b714992bf285505288f0bb822a199775a1c87",
+      "source_sha256": "14d1339af8308284a080385423e26787c340358c8392c694b8b2c8ab35cb9c96",
+      "git_blob_sha": "52855b470015767640791fee8761a21555c24676"
+    },
+    {
+      "label": "ender-back",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr316/ender-back.png",
+      "bytes": 5609,
+      "width": 225,
+      "height": 228,
+      "sha256": "46b1945fc1a383d1901172031859c5f5faeec0dfb0c7c1d2481da3adf524c137",
+      "source_sha256": "61820b56fbcbdaaff3f060c1ecf4a472edc1b946f1ae877f07899001f97cfda6",
+      "git_blob_sha": "a5ce5de4f433086b197f289aca4b46b564176219"
+    },
+    {
+      "label": "ionia-front",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr316/ionia-front.png",
+      "bytes": 7359,
+      "width": 180,
+      "height": 235,
+      "sha256": "4fc790140ddce01de0fd2810e7e356a28cb0c755e3ac8f8d7456c75777c73bc5",
+      "source_sha256": "ca8cf177f95d77a581c36268cf6d1e05937d14cdb2cb12909bdf02d31a82f99a",
+      "git_blob_sha": "e70d7935e7a4a6714971918980b87efaa3608d6b"
+    },
+    {
+      "label": "ionia-back",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr316/ionia-back.png",
+      "bytes": 7045,
+      "width": 180,
+      "height": 235,
+      "sha256": "f2725ba4145d56dfea937b7bf1216c5ace141152013a11ba0c5409c94a00b8d6",
+      "source_sha256": "fc0a52ecf5bdd1e43b99b5ab063796e65cda4d039ced9b3a702f924c41e8e1cc",
+      "git_blob_sha": "44a370febf04614161407174293306f7070c1d67"
+    }
+  ],
+  "first_failure": "Initial ionia-back crop in commit 5107201 was background-only; changed to northbound x470 ROI before these accepted evidence bytes",
+  "visual_acceptance": "PENDING",
+  "field_pack_ready": false,
+  "production_engine_migration": "NOT_ADMITTED",
+  "release": "NOT_AUTHORIZED",
+  "human_download_verification": "NOT_ESTABLISHED"
+}
