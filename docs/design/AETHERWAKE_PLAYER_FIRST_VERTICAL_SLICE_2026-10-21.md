@@ -37,3 +37,13 @@ Deep Research was requested to review acclaimed JRPGs, Reddit player feedback, g
 
 ## Review boundaries
 This branch starts from the existing #326 visual review branch and must not be treated as a production merge base. #328 and #329 separately examine gait motion. Preserve creator-confirmed identities (Ionia, Ender, Aepex, Lyra, Reson), creator approvals, exact evidence provenance and malware hold. No auto-merge or release.
+
+## Implemented prototype (draft PR #330, unapproved)
+
+Standalone playable Godot scene: `godot/scenes/vertical_slice_review.tscn`, backed by `vertical_slice_review.gd`, `vertical_slice_choice_state.gd`, and `vertical_slice_encounter.gd`. The scene is intentionally **not** the default pilot scene and does not rewrite its input or character sprites. Launch via Godot 4.7.2 editor by opening this scene and selecting **Run Current Scene**, or run the project with the scene path explicitly. This is a mechanical review fixture, not final narrative, world map, audio, or art.
+
+**Controls:** arrow keys move; E interacts near the labeled SIGNAL / IONIA / CHALLENGE markers; 1/2 choose an exclusive path and then strike/guard during the tutorial challenge; Escape cancels conversation or exits challenge without permanent penalty. M toggles reduced motion (on by default), +/- changes story text size, and P opts into ephemeral local review events (off by default; turning off clears events). No network calls, persistent analytics, saves, or personal data. All critical cues are accompanied by text, not color alone.
+
+**Native tests:** `res://tests/vertical_slice_choice_state_test.gd` covers clue/choice/payoff gates; `res://tests/vertical_slice_review_test.gd` instantiates the real scene and checks dialogue movement pause/resume, challenge telegraph, recovery and both outcome branches. Both are invoked in the pinned native Godot pilot CI workflow. Their presence is not proof of a passing run; cite an exact successful workflow before claiming verification.
+
+**Not yet implemented:** full battle-system integration, remappable bindings/controller accessibility, text backlog, screen-reader support, commissioned/approved art, authored music, narrative canon, persistent quest saves, full external playtest study and production release. These remain tracked hypotheses, not achieved acceptance criteria. Research findings from the requested Deep Research study remain pending.
