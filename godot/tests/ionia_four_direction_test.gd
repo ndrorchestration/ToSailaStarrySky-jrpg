@@ -75,7 +75,7 @@ func _test() -> void:
             quit(32)
             return
         var v5_source: String = FileAccess.get_file_as_string(v5_asset)
-        if v5_source.count('id="ionia-v5-' + orientation + '-hair-') != 6 or v5_source.count('id="ionia-v5-' + orientation + '-coat-hem-') != 6 or v5_source.count('id="ionia-v5-' + orientation + '-' + ("front" if orientation == "south" else "rear") + '-utility-') != 6:
+        if v5_source.count('id="ionia-v5-' + orientation + '-hair-') != 6 or v5_source.count('id="ionia-v5-' + orientation + '-coat-hem-') != 6 or v5_source.count('id="ionia-v5-' + ("front" if orientation == "south" else "rear") + '-utility-') != 6:
             push_error("IONIA_ROUTE_FAIL: missing six original phase overlay groups for " + orientation)
             quit(33)
             return
