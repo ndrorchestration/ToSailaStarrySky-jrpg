@@ -119,6 +119,9 @@ func _draw_plant(pos: Vector2) -> void:
         draw_circle(pos + Vector2(x * 5, -23 - abs(x) * 3.3), 3.0, Color("#83b582"))
 
 func _draw_foreground() -> void:
+    # Preserve the pilot's dialogue readability above the decorative scene.
+    draw_rect(Rect2(95, 542, 780, 86), Color(0.04, 0.08, 0.18, 0.78))
+    draw_line(Vector2(98, 543), Vector2(871, 543), Color("#a88b64"), 2.0)
     # Narrow corner rails form an honest over/under depth cue without masking actors.
     for x in [78.0, 867.0]:
         draw_rect(Rect2(x - 7, 504, 14, 60), Color("#514035"))
