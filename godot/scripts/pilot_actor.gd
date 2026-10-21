@@ -23,7 +23,7 @@ var gait_step: float = 0.0
 const PIXELS_PER_STEP := 14.8
 const IONIA_REVIEW_WALK_SPEED := 55.0
 const IONIA_REVIEW_START := Vector2(570, 419)
-const IONIA_REVIEW_STOP_Y := 492.0
+const IONIA_REVIEW_STOP_Y := 510.0
 
 func _ready() -> void:
     var shape_node := CollisionShape2D.new()
