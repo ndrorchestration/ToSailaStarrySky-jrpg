@@ -5,6 +5,7 @@ extends SceneTree
 
 const OUTPUT := "res://review-evidence/"
 const MAX_CROP_BYTES := 95000
+const MAX_FULL_BYTES := 350000
 const SAMPLES := [
     {"label": "ender-east", "source": "ender-east-original-source-native-960x640.png", "roi": [285, 319, 225, 228]},
     {"label": "ender-west", "source": "ender-west-centered-staff-native-960x640.png", "roi": [285, 319, 225, 228]},
@@ -22,7 +23,10 @@ func _emit() -> void:
         if not _emit_one(sample):
             quit(1)
             return
-    print("AW_NATIVE_CROP_EMIT_PASS: six lossless 1x actor crops from original Godot renderer PNGs")
+        if not _emit_full_sample(sample):
+            quit(2)
+            return
+    print("AW_NATIVE_CROP_EMIT_PASS: six lossless 1x crops AND six original byte-identical 960x640 renderer PNGs")
     print("AW_NATIVE_FULL_SCREEN_CUSTODY=NOT_ESTABLISHED")
     print("AW_NATIVE_VISUAL_ACCEPTANCE=PENDING")
     quit(0)
@@ -76,6 +80,42 @@ func _emit_one(sample: Dictionary) -> bool:
         return false
     var encoded: String = Marshalls.raw_to_base64(png)
     print("AW_NATIVE_CROP_BEGIN:" + label + ":" + str(crop.get_width()) + "x" + str(crop.get_height()) + ":" + crop_sha + ":" + full_sha + ":" + str(png.size()))
+    var offset := 0
+    var ordinal := 0
+    while offset < encoded.length():
+        print("AW_NATIVE_CROP_DATA:" + label + ":" + str(ordinal) + ":" + encoded.substr(offset, 3000))
+        offset += 3000
+        ordinal += 1
+    print("AW_NATIVE_CROP_END:" + label)
+    return true
+
+func _emit_full_sample(sample: Dictionary) -> bool:
+    # Preserve exact original PNG BYTES, not a resized/re-encoded pixel copy.
+    var source: String = OUTPUT + sample["source"]
+    var label: String = str(sample["label"]) + "-full"
+    if not FileAccess.file_exists(source):
+        push_error("FULL_NATIVE_EMIT_FAIL: missing source " + label)
+        return false
+    var original := Image.new()
+    if original.load(source) != OK or original.get_width() != 960 or original.get_height() != 640:
+        push_error("FULL_NATIVE_EMIT_FAIL: not original native 960x640: " + label)
+        return false
+    var png: PackedByteArray = FileAccess.get_file_as_bytes(source)
+    if png.is_empty() or png.size() > MAX_FULL_BYTES:
+        push_error("FULL_NATIVE_EMIT_FAIL: source bytes missing or above bounded size: " + label)
+        return false
+    var ctx := HashingContext.new()
+    if ctx.start(HashingContext.HASH_SHA256) != OK:
+        push_error("FULL_NATIVE_EMIT_FAIL: SHA256 initialization")
+        return false
+    ctx.update(png)
+    var exact_sha: String = ctx.finish().hex_encode()
+    var source_sha: String = FileAccess.get_sha256(source)
+    if source_sha.length() != 64 or exact_sha != source_sha:
+        push_error("FULL_NATIVE_EMIT_FAIL: original source-byte hash mismatch: " + label)
+        return false
+    var encoded: String = Marshalls.raw_to_base64(png)
+    print("AW_NATIVE_CROP_BEGIN:" + label + ":960x640:" + exact_sha + ":" + source_sha + ":" + str(png.size()))
     var offset := 0
     var ordinal := 0
     while offset < encoded.length():
