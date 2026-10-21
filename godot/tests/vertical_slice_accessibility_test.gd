@@ -1,0 +1,75 @@
+extends SceneTree
+## Native review contract: accessibility toggles, privacy opt-in and safe retry.
+
+func _initialize() -> void:
+    call_deferred("_verify")
+
+func _key(code: Key) -> InputEventKey:
+    var event := InputEventKey.new()
+    event.keycode = code
+    event.pressed = true
+    return event
+
+func _verify() -> void:
+    var world = load("res://scenes/vertical_slice_review.tscn").instantiate()
+    root.add_child(world)
+    await process_frame
+    if not world.reduced_motion or world.trace_opt_in or world.text_size < 18:
+        _fail("inaccessible or telemetry-on defaults")
+        return
+    world._unhandled_key_input(_key(KEY_M))
+    if world.reduced_motion:
+        _fail("motion toggle cannot enable animation")
+        return
+    world._unhandled_key_input(_key(KEY_M))
+    if not world.reduced_motion:
+        _fail("motion toggle cannot restore reduction")
+        return
+    var initial_size: int = world.text_size
+    world._unhandled_key_input(_key(KEY_EQUAL))
+    if world.text_size <= initial_size:
+        _fail("text size increase unavailable")
+        return
+    world._unhandled_key_input(_key(KEY_MINUS))
+    if world.text_size != initial_size:
+        _fail("text size not reversible")
+        return
+    world._unhandled_key_input(_key(KEY_P))
+    if not world.trace_opt_in:
+        _fail("local trace opt-in unavailable")
+        return
+    world.discover_signal()
+    if world.trace_events.size() != 1 or world.trace_events[0]["event"] != "clue_discovered":
+        _fail("anonymous opt-in trace not recorded")
+        return
+    world._unhandled_key_input(_key(KEY_P))
+    if world.trace_opt_in or not world.trace_events.is_empty():
+        _fail("trace opt-out failed to clear local events")
+        return
+    world.open_choice()
+    if world.ender.player_controlled:
+        _fail("dialogue failed to pause actor")
+        return
+    world._unhandled_key_input(_key(KEY_ESCAPE))
+    if world.stage != "meet" or not world.ender.player_controlled:
+        _fail("dialogue cancel failed to resume actor")
+        return
+    world.open_choice()
+    world.choose_path(true)
+    world.start_encounter()
+    for i in range(32):
+        if world.stage != "encounter":
+            break
+        world.encounter_action("guard")
+    if world.stage != "approach" or not world.ender.player_controlled:
+        _fail("challenge failure trapped movement or lacked retry")
+        return
+    if not world.start_encounter() or world.encounter.player_hp != 24:
+        _fail("challenge retry did not reset state")
+        return
+    print("AETHERWAKE_ACCESSIBILITY_PASS: text, motion, trace opt-out, dialogue cancel, safe challenge retry")
+    quit(0)
+
+func _fail(reason: String) -> void:
+    push_error("AETHERWAKE_ACCESSIBILITY_FAIL: " + reason)
+    quit(1)
