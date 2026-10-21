@@ -64,3 +64,6 @@ jobs:
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/ionia_four_direction_test.gd
 
+      - name: Verify conversation pauses actors and preserves review routes
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/dialogue_pause_test.gd
