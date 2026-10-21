@@ -46,7 +46,7 @@ test('held publisher has no write token and its publish step is disabled',()=>{
   assert.doesNotMatch(desktop,/\bcontents:\s*write\b/);
   assert.match(desktop,/if:\s*\$\{\{\s*false\s*\}\}/);
   assert.equal((desktop.match(/softprops\/action-gh-release/g)||[]).length,1);
-  assert.match(desktop,/^- name: Publish verified Windows release$/m.test(desktop)?desktop:"- name: Publish verified Windows release",/Publish verified Windows release/);
+  assert.match(desktop,/^\s+- name: Publish verified Windows release\n\s+# [^\n]*\n\s+if: \$\{\{\s*false\s*\}\}/m);
 });
 
 test('negative controls: a duplicate production publisher or write scope would be rejected',()=>{
