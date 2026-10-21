@@ -15,6 +15,12 @@ var walk_review_sprite: Sprite2D
 var walk_front_sprite: Sprite2D
 var walk_back_sprite: Sprite2D
 var ionia_front_walk_sprite: Sprite2D
+var ionia_north_walk_sprite: Sprite2D
+var ionia_east_walk_sprite: Sprite2D
+var ionia_west_walk_sprite: Sprite2D
+var ionia_route_review_enabled: bool = false
+var ionia_route_segment: int = 0
+var ionia_facing: String = "south"
 var walk_review_enabled: bool = false
 var ionia_walk_review_enabled: bool = false
 var walk_facing: String = "east"
@@ -24,6 +30,8 @@ const PIXELS_PER_STEP := 14.8
 const IONIA_REVIEW_WALK_SPEED := 55.0
 const IONIA_REVIEW_START := Vector2(570, 419)
 const IONIA_REVIEW_STOP_Y := 510.0
+const IONIA_ROUTE_SPEED := 68.0
+const IONIA_ROUTE_POINTS := [Vector2(570, 510), Vector2(470, 510), Vector2(470, 419), Vector2(570, 419)]
 
 func _ready() -> void:
     var shape_node := CollisionShape2D.new()
@@ -88,7 +96,31 @@ func _ready() -> void:
         ionia_front_walk_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
         ionia_front_walk_sprite.visible = false
         add_child(ionia_front_walk_sprite)
+        ionia_north_walk_sprite = _new_ionia_walk_view("IoniaRearWalkReviewUnapproved", preload("res://art-review/ionia-north-sixframe-candidate.svg"))
+        ionia_east_walk_sprite = _new_ionia_walk_view("IoniaEastWalkReviewUnapproved", preload("res://art-review/ionia-east-sixframe-candidate.svg"))
+        ionia_west_walk_sprite = _new_ionia_walk_view("IoniaWestWalkReviewUnapproved", preload("res://art-review/ionia-west-sixframe-candidate.svg"))
     queue_redraw()
+
+func _new_ionia_walk_view(view_name: String, atlas: Texture2D) -> Sprite2D:
+    var sprite := Sprite2D.new()
+    sprite.name = view_name
+    sprite.texture = atlas
+    sprite.hframes = 6
+    sprite.scale = Vector2(0.13, 0.13)
+    sprite.position = Vector2(0, -46)
+    sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+    sprite.visible = false
+    add_child(sprite)
+    return sprite
+
+func _sync_ionia_direction() -> void:
+    if ionia_front_walk_sprite == null:
+        return
+    var visible: bool = ionia_walk_review_enabled or ionia_route_review_enabled
+    ionia_front_walk_sprite.visible = visible and ionia_facing == "south"
+    ionia_north_walk_sprite.visible = visible and ionia_facing == "north"
+    ionia_east_walk_sprite.visible = visible and ionia_facing == "east"
+    ionia_west_walk_sprite.visible = visible and ionia_facing == "west"
 
 func set_walk_review_enabled(enabled: bool) -> void:
     walk_review_enabled = enabled
@@ -106,10 +138,11 @@ func _sync_ender_direction() -> void:
 func set_ionia_walk_review_enabled(enabled: bool) -> void:
     if ionia_front_walk_sprite == null:
         return
+    ionia_route_review_enabled = false
     ionia_walk_review_enabled = enabled
-    ionia_front_walk_sprite.visible = enabled
+    ionia_facing = "south"
     if enabled:
-        # Reset only this opt-in diagnostic start; no story movement or map edits.
+        # Preserve the original PR #310 front-only diagnostic unchanged.
         global_position = IONIA_REVIEW_START
         travel_distance = 0.0
         ionia_front_walk_sprite.frame = 0
@@ -117,10 +150,32 @@ func set_ionia_walk_review_enabled(enabled: bool) -> void:
             review_sprite.visible = false
         if aligned_sprite != null:
             aligned_sprite.visible = false
+    _sync_ionia_direction()
     queue_redraw()
 
+func set_ionia_route_review_enabled(enabled: bool) -> void:
+    if ionia_north_walk_sprite == null:
+        return
+    ionia_walk_review_enabled = false
+    ionia_route_review_enabled = enabled
+    ionia_route_segment = 0
+    ionia_facing = "south"
+    travel_distance = 0.0
+    if enabled:
+        # Noncanonical four-leg route entirely within the existing pilot bounds.
+        global_position = IONIA_REVIEW_START
+        if review_sprite != null:
+            review_sprite.visible = false
+        if aligned_sprite != null:
+            aligned_sprite.visible = false
+    _sync_ionia_direction()
+    queue_redraw()
+
+func is_ionia_route_review_enabled() -> bool:
+    return ionia_route_review_enabled
+
 func is_ionia_walk_review_enabled() -> bool:
-    return ionia_front_walk_sprite != null and ionia_front_walk_sprite.visible
+    return ionia_front_walk_sprite != null and (ionia_walk_review_enabled or ionia_route_review_enabled)
 
 func set_review_art_enabled(enabled: bool) -> void:
     if review_sprite != null:
@@ -128,8 +183,9 @@ func set_review_art_enabled(enabled: bool) -> void:
     if aligned_sprite != null:
         aligned_sprite.visible = false
     if ionia_front_walk_sprite != null:
-        ionia_front_walk_sprite.visible = false
         ionia_walk_review_enabled = false
+        ionia_route_review_enabled = false
+        _sync_ionia_direction()
     queue_redraw()
 
 func set_aligned_review_enabled(enabled: bool) -> void:
@@ -138,8 +194,9 @@ func set_aligned_review_enabled(enabled: bool) -> void:
     if review_sprite != null:
         review_sprite.visible = false
     if ionia_front_walk_sprite != null:
-        ionia_front_walk_sprite.visible = false
         ionia_walk_review_enabled = false
+        ionia_route_review_enabled = false
+        _sync_ionia_direction()
     queue_redraw()
 
 func is_aligned_review_enabled() -> bool:
@@ -149,14 +206,25 @@ func is_review_art_enabled() -> bool:
     return (review_sprite != null and review_sprite.visible) or (aligned_sprite != null and aligned_sprite.visible) or is_ionia_walk_review_enabled()
 
 func _physics_process(_delta: float) -> void:
-    if not player_controlled and not ionia_walk_review_enabled:
+    if not player_controlled and not (ionia_walk_review_enabled or ionia_route_review_enabled):
         return
     var direction := Vector2.ZERO
     if player_controlled:
         direction = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
         velocity = direction * walk_speed
+    elif ionia_route_review_enabled:
+        if ionia_route_segment < IONIA_ROUTE_POINTS.size():
+            var target: Vector2 = IONIA_ROUTE_POINTS[ionia_route_segment]
+            var remaining := target - global_position
+            if remaining.length() > 0.001:
+                direction = remaining.normalized()
+                velocity = direction * minf(IONIA_ROUTE_SPEED, remaining.length() / maxf(_delta, 0.0001))
+            else:
+                velocity = Vector2.ZERO
+        else:
+            velocity = Vector2.ZERO
     elif global_position.y < IONIA_REVIEW_STOP_Y:
-        # A single genuine forward traversal, not a fabricated backwards view.
+        # Preserve the old T-only linear traversal.
         direction = Vector2.DOWN
         velocity = direction * IONIA_REVIEW_WALK_SPEED
     else:
@@ -164,14 +232,23 @@ func _physics_process(_delta: float) -> void:
     var before := global_position
     move_and_slide()
     global_position = global_position.clamp(walking_bounds.position, walking_bounds.end)
-    if not player_controlled and global_position.y >= IONIA_REVIEW_STOP_Y:
+    if not player_controlled and ionia_walk_review_enabled and global_position.y >= IONIA_REVIEW_STOP_Y:
         global_position.y = min(global_position.y, IONIA_REVIEW_STOP_Y)
+    if ionia_route_review_enabled and ionia_route_segment < IONIA_ROUTE_POINTS.size():
+        if global_position.distance_to(IONIA_ROUTE_POINTS[ionia_route_segment]) < 0.5:
+            global_position = IONIA_ROUTE_POINTS[ionia_route_segment]
+            ionia_route_segment += 1
     var traveled := global_position.distance_to(before)
     if player_controlled and direction.length_squared() > 0.001:
         if abs(direction.y) > abs(direction.x):
             walk_facing = "south" if direction.y > 0.0 else "north"
         else:
             walk_facing = "east" if direction.x > 0.0 else "west"
+    if ionia_route_review_enabled and traveled > 0.001:
+        if abs(direction.y) > abs(direction.x):
+            ionia_facing = "south" if direction.y > 0.0 else "north"
+        else:
+            ionia_facing = "east" if direction.x > 0.0 else "west"
     if traveled > 0.001:
         travel_distance += traveled
         gait_step = sin(travel_distance * TAU / 88.8) * 3.0
@@ -185,7 +262,9 @@ func _physics_process(_delta: float) -> void:
         walk_back_sprite.frame = current_frame
         _sync_ender_direction()
     if ionia_front_walk_sprite != null:
-        ionia_front_walk_sprite.frame = current_frame
+        for ionia_frame in [ionia_front_walk_sprite, ionia_north_walk_sprite, ionia_east_walk_sprite, ionia_west_walk_sprite]:
+            ionia_frame.frame = current_frame
+        _sync_ionia_direction()
     queue_redraw()
 
 func _draw() -> void:
