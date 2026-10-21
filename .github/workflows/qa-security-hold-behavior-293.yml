@@ -6,6 +6,7 @@ on:
       - qa/293-security-hold-behavior-20261021
     paths:
       - tests/security-hold-behavior-293.test.js
+      - tests/security-hold-publisher-surface-293.test.js
       - .github/workflows/qa-security-hold-behavior-293.yml
 
 permissions:
@@ -44,4 +45,4 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --test tests/security-hold-behavior-293.test.js
+          node --test tests/security-hold-behavior-293.test.js tests/security-hold-publisher-surface-293.test.js
