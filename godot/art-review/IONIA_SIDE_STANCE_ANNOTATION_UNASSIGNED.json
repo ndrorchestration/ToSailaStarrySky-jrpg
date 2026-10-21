@@ -1,0 +1,139 @@
+{
+  "schema": "AETHERWAKE_IONIA_SIDE_STANCE_REVIEW_V1",
+  "research_only": true,
+  "source_commit": "b02923dc3bd839b673e646fc3f260e55a6d27c2a",
+  "engine": "Godot 4.7.2",
+  "scope": "V4 east/west six phases each",
+  "stance_annotation_status": "UNASSIGNED",
+  "acceptance": "NOT_AUTHORIZED",
+  "caveat": "Lower drawn boot vertex does not establish physical stance or contact.",
+  "artwork_source_paths": [
+    "godot/art-review/ionia-east-sidebody-v4-candidate.svg",
+    "godot/art-review/ionia-west-sidebody-v4-candidate.svg"
+  ],
+  "annotation_author": null,
+  "reviewer_identity": null,
+  "independent_review_established": false,
+  "pose_annotations": [
+    {
+      "facing": "east",
+      "frame": 0,
+      "stance_foot": null,
+      "stance_interval_start": null,
+      "stance_interval_end": null,
+      "heel_or_toe_contact_point": null,
+      "contact_evidence_reference": null,
+      "reviewer_adjudication": "NOT_PERFORMED"
+    },
+    {
+      "facing": "east",
+      "frame": 1,
+      "stance_foot": null,
+      "stance_interval_start": null,
+      "stance_interval_end": null,
+      "heel_or_toe_contact_point": null,
+      "contact_evidence_reference": null,
+      "reviewer_adjudication": "NOT_PERFORMED"
+    },
+    {
+      "facing": "east",
+      "frame": 2,
+      "stance_foot": null,
+      "stance_interval_start": null,
+      "stance_interval_end": null,
+      "heel_or_toe_contact_point": null,
+      "contact_evidence_reference": null,
+      "reviewer_adjudication": "NOT_PERFORMED"
+    },
+    {
+      "facing": "east",
+      "frame": 3,
+      "stance_foot": null,
+      "stance_interval_start": null,
+      "stance_interval_end": null,
+      "heel_or_toe_contact_point": null,
+      "contact_evidence_reference": null,
+      "reviewer_adjudication": "NOT_PERFORMED"
+    },
+    {
+      "facing": "east",
+      "frame": 4,
+      "stance_foot": null,
+      "stance_interval_start": null,
+      "stance_interval_end": null,
+      "heel_or_toe_contact_point": null,
+      "contact_evidence_reference": null,
+      "reviewer_adjudication": "NOT_PERFORMED"
+    },
+    {
+      "facing": "east",
+      "frame": 5,
+      "stance_foot": null,
+      "stance_interval_start": null,
+      "stance_interval_end": null,
+      "heel_or_toe_contact_point": null,
+      "contact_evidence_reference": null,
+      "reviewer_adjudication": "NOT_PERFORMED"
+    },
+    {
+      "facing": "west",
+      "frame": 0,
+      "stance_foot": null,
+      "stance_interval_start": null,
+      "stance_interval_end": null,
+      "heel_or_toe_contact_point": null,
+      "contact_evidence_reference": null,
+      "reviewer_adjudication": "NOT_PERFORMED"
+    },
+    {
+      "facing": "west",
+      "frame": 1,
+      "stance_foot": null,
+      "stance_interval_start": null,
+      "stance_interval_end": null,
+      "heel_or_toe_contact_point": null,
+      "contact_evidence_reference": null,
+      "reviewer_adjudication": "NOT_PERFORMED"
+    },
+    {
+      "facing": "west",
+      "frame": 2,
+      "stance_foot": null,
+      "stance_interval_start": null,
+      "stance_interval_end": null,
+      "heel_or_toe_contact_point": null,
+      "contact_evidence_reference": null,
+      "reviewer_adjudication": "NOT_PERFORMED"
+    },
+    {
+      "facing": "west",
+      "frame": 3,
+      "stance_foot": null,
+      "stance_interval_start": null,
+      "stance_interval_end": null,
+      "heel_or_toe_contact_point": null,
+      "contact_evidence_reference": null,
+      "reviewer_adjudication": "NOT_PERFORMED"
+    },
+    {
+      "facing": "west",
+      "frame": 4,
+      "stance_foot": null,
+      "stance_interval_start": null,
+      "stance_interval_end": null,
+      "heel_or_toe_contact_point": null,
+      "contact_evidence_reference": null,
+      "reviewer_adjudication": "NOT_PERFORMED"
+    },
+    {
+      "facing": "west",
+      "frame": 5,
+      "stance_foot": null,
+      "stance_interval_start": null,
+      "stance_interval_end": null,
+      "heel_or_toe_contact_point": null,
+      "contact_evidence_reference": null,
+      "reviewer_adjudication": "NOT_PERFORMED"
+    }
+  ]
+}

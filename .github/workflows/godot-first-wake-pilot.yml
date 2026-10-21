@@ -69,4 +69,7 @@ jobs:
       - name: Measure actual walking route phase cadence and held-frame translation
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/ionia_moving_gait_trace.gd
+      - name: Quantify source-linked boot-sole motion while atlas phase is held
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/ionia_sole_marker_world_trace.gd
 
