@@ -59,6 +59,49 @@ func _test() -> void:
                         push_error("IONIA_ROUTE_FAIL: visually duplicate atlas frames in " + pair[0])
                         quit(20)
                         return
+    # Front/rear V5 motif continuity must be actually rasterized rather than
+    # a no-op late SVG layer. Original six-pose legs/boot pixels stay identical:
+    # this review must not silently rewrite validated contact-phase geometry.
+    for candidate in [
+        ["south", "front-sixframe-candidate.svg"],
+        ["north", "north-sixframe-candidate.svg"]
+    ]:
+        var orientation: String = candidate[0]
+        var original_asset: String = "res://art-review/ionia-" + candidate[1]
+        var v5_asset: String = "res://art-review/ionia-" + ("front-cohesion-v5-candidate.svg" if orientation == "south" else "north-cohesion-v5-candidate.svg")
+        var old_texture: Texture2D = load(original_asset)
+        if old_texture == null or sprites[orientation].texture.resource_path != v5_asset:
+            push_error("IONIA_ROUTE_FAIL: front/rear V5 source was not imported independently")
+            quit(32)
+            return
+        var v5_source: String = FileAccess.get_file_as_string(v5_asset)
+        if v5_source.count('id="ionia-v5-' + orientation + '-hair-') != 6 or v5_source.count('id="ionia-v5-' + orientation + '-coat-hem-') != 6 or v5_source.count('id="ionia-v5-' + orientation + '-' + ("front" if orientation == "south" else "rear") + '-utility-') != 6:
+            push_error("IONIA_ROUTE_FAIL: missing six original phase overlay groups for " + orientation)
+            quit(33)
+            return
+        var old_img: Image = old_texture.get_image()
+        var new_img: Image = sprites[orientation].texture.get_image()
+        if old_img.is_empty() or new_img.is_empty():
+            push_error("IONIA_ROUTE_FAIL: V5 source raster unavailable")
+            quit(34)
+            return
+        for phase in range(6):
+            var offset := phase * 512
+            var head := Rect2i(offset + 155, 95, 200, 260)
+            var fabric := Rect2i(offset + 160, 340, 210, 250)
+            var boots := Rect2i(offset + 172, 640, 190, 120)
+            if old_img.get_region(head).get_data() == new_img.get_region(head).get_data():
+                push_error("IONIA_ROUTE_FAIL: V5 hair change absent after native rasterization: " + orientation)
+                quit(35)
+                return
+            if old_img.get_region(fabric).get_data() == new_img.get_region(fabric).get_data():
+                push_error("IONIA_ROUTE_FAIL: V5 wardrobe change absent after native rasterization: " + orientation)
+                quit(36)
+                return
+            if old_img.get_region(boots).get_data() != new_img.get_region(boots).get_data():
+                push_error("IONIA_ROUTE_FAIL: V5 illegally rewrote established foot contact geometry: " + orientation)
+                quit(37)
+                return
     var paths := {}
     for name in directions:
         var path: String = sprites[name].texture.resource_path
