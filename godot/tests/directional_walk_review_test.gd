@@ -35,14 +35,15 @@ func _test() -> void:
         push_error("DIRECTIONAL_FAIL: west SVG did not rasterize in Godot")
         quit(18)
         return
-    var seen_pixels := {}
+    var rendered_frames := []
     for phase in range(6):
-        var frame_pixels := west_pixels.get_region(Rect2i(phase * 64, 0, 64, 96)).get_data()
-        if seen_pixels.has(frame_pixels):
-            push_error("DIRECTIONAL_FAIL: west atlas has duplicate imported artwork phases")
-            quit(19)
-            return
-        seen_pixels[frame_pixels] = true
+        var frame_pixels: PackedByteArray = west_pixels.get_region(Rect2i(phase * 64, 0, 64, 96)).get_data()
+        for previous in rendered_frames:
+            if previous == frame_pixels:
+                push_error("DIRECTIONAL_FAIL: west atlas has duplicate imported artwork phases")
+                quit(19)
+                return
+        rendered_frames.append(frame_pixels)
     var west_source := FileAccess.get_file_as_string("res://art-review/ender-west-ferruled-sixframe-candidate.svg")
     if west_source.count("M31 8 L31 88") != 6:
         push_error("DIRECTIONAL_FAIL: back-carry staff alignment source is inconsistent")
