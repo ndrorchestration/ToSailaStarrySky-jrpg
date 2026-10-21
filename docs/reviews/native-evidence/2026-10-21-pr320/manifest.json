@@ -1,0 +1,43 @@
+{
+  "scope": "PRIVATE_NATIVE_IONIA_PROFILE_V2_A_B",
+  "source_commit": "6269a06dd489496095891a4f526c983fcfbc4b61",
+  "base_commit": "70d251c933857b259d6059a712bf7b4fa5ace494",
+  "profile_acceptance": "NOT_ESTABLISHED",
+  "image_bytes_provenance": "ACTUAL_GODOT_960x640_NATIVE",
+  "files": [
+    {
+      "facing": "east",
+      "source_commit": "6269a06dd489496095891a4f526c983fcfbc4b61",
+      "source_workflow": 39660428096,
+      "source_job": 119431670162,
+      "dimensions": [
+        960,
+        640
+      ],
+      "bytes": 51339,
+      "sha256": "13e51e86f210cf3a7d6d034f8e0145fa29d1aa2f10c04ab11f8072b1b8e20457",
+      "private_git_blob_sha": "03f1ec9687e3e8812a8595a872a3059d9c653828",
+      "baseline_sha256": "92a4610eef14a7ce85ba7ea90c2cf321cb0b82ccdeb3a86fd38739565d55d5e9",
+      "baseline_path": "docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-east-full.png",
+      "review_verdict": "INSUFFICIENT_SIDE_DIRECTION_READABILITY"
+    },
+    {
+      "facing": "west",
+      "source_commit": "6269a06dd489496095891a4f526c983fcfbc4b61",
+      "source_workflow": 39660428096,
+      "source_job": 119431670162,
+      "dimensions": [
+        960,
+        640
+      ],
+      "bytes": 50838,
+      "sha256": "8f4222ad996d85da77aea6e5df1b4c35e4e0f6b3917a258150b9a6b0975bf1ff",
+      "private_git_blob_sha": "35dde13ab35199bf8d6a6fe296d37b4d87c85411",
+      "baseline_sha256": "5b664e440145a245932aeb58c1f6e383b26481ef3b6aeb3dafed61a66b0ad47f",
+      "baseline_path": "docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-west-full.png",
+      "review_verdict": "INSUFFICIENT_SIDE_DIRECTION_READABILITY"
+    }
+  ],
+  "original_source_untouched": true,
+  "production_release": "NOT_AUTHORIZED"
+}
