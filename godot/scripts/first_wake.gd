@@ -4,6 +4,7 @@ extends Node2D
 
 const Actor = preload("res://scripts/pilot_actor.gd")
 const TrainingArena = preload("res://scenes/training_arena.tscn")
+const IoniaUnapprovedArt = preload("res://art-review/ionia-original-v01-green-eyes.svg")
 const WALKABLE_DECK = Rect2(Vector2(145, 410), Vector2(670, 112))
 
 var ender: CharacterBody2D
@@ -11,6 +12,7 @@ var ionia: CharacterBody2D
 var dialogue: Label
 var status: Label
 var dialogue_open: bool = false
+var ionia_art_review_enabled: bool = false
 
 func _ready() -> void:
     var actors := Node2D.new()
@@ -30,6 +32,7 @@ func _ready() -> void:
     var captain = Actor.new()
     captain.name = "IoniaPilot"
     captain.character_name = "Ionia"
+    captain.review_source_texture = IoniaUnapprovedArt
     captain.walking_bounds = WALKABLE_DECK
     captain.position = Vector2(570, 458)
     actors.add_child(captain)
@@ -40,7 +43,7 @@ func _ready() -> void:
     status = Label.new()
     status.position = Vector2(28, 28)
     status.add_theme_font_size_override("font_size", 19)
-    status.text = "AETHERWAKE  /  GODOT PILOT   ·   Arrows: move   E: speak   B: arena"
+    status.text = "AETHERWAKE / GODOT PILOT   Move: arrows   E: speak   V: unapproved Ionia art   B: mock arena"
     ui.add_child(status)
     dialogue = Label.new()
     dialogue.position = Vector2(100, 555)
@@ -77,6 +80,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
     if event.keycode == KEY_E and ender.global_position.distance_to(ionia.global_position) <= 110.0:
         dialogue_open = not dialogue_open
         dialogue.visible = dialogue_open
+    elif event.keycode == KEY_V:
+        # Preview only; does not admit the source as approved Ionia field art.
+        ionia_art_review_enabled = not ionia_art_review_enabled
+        ionia.set_review_art_enabled(ionia_art_review_enabled)
     elif event.keycode == KEY_B:
         get_tree().change_scene_to_packed(TrainingArena)
     elif event.keycode == KEY_ESCAPE:
