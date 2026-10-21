@@ -1,0 +1,57 @@
+{
+  "kind": "GENUINE_GODOT_NATIVE_NORTH_SOUTH_DETAIL_V2_REVIEW",
+  "source_commit": "076478044a93f8a67ad50ce29c5dbac88e630d05",
+  "run": 39656533208,
+  "job": 119418188164,
+  "godot_version": "4.7.2",
+  "renderer": "OpenGL3 Xvfb",
+  "scope": "private draft 318 only",
+  "archive_status": "EXACT_IMAGE_BYTES_RETAINED_IN_PRIVATE_GIT",
+  "files": [
+    {
+      "label": "ender-front",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr318/ender-front.png",
+      "width": 225,
+      "height": 228,
+      "bytes": 7446,
+      "sha256": "f9975fbb5f151995df7314d1528bfafe8ebdf2244ed3762a04abad10e1b59a9b",
+      "original_source_sha256": "8dd777442bd9e31bfc19b1cb197dd69c1dd0b7ca00fbbd845e915f9d756b81d4",
+      "git_blob_sha": "3b64c687464d680dbc3a2de2e2eccb412fc74065"
+    },
+    {
+      "label": "ender-front-full",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr318/ender-front-full.png",
+      "width": 960,
+      "height": 640,
+      "bytes": 40246,
+      "sha256": "8dd777442bd9e31bfc19b1cb197dd69c1dd0b7ca00fbbd845e915f9d756b81d4",
+      "original_source_sha256": "8dd777442bd9e31bfc19b1cb197dd69c1dd0b7ca00fbbd845e915f9d756b81d4",
+      "git_blob_sha": "e7adc7b3f0b51ae75c60477e18f858622038d7e2"
+    },
+    {
+      "label": "ender-back",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr318/ender-back.png",
+      "width": 225,
+      "height": 228,
+      "bytes": 6884,
+      "sha256": "b8a83dc3c6b44c4a3e70bae95a782811989043dcbf5a508aab1d4d5724e8e4cb",
+      "original_source_sha256": "4d74ba0ffc417ffca9eb5ed1ef4622e3c6f764027b49989f03c1744b1c1463c7",
+      "git_blob_sha": "6b9cbb5382aef2cf73d1d0c142fd0757b5614374"
+    },
+    {
+      "label": "ender-back-full",
+      "path": "docs/reviews/native-evidence/2026-10-21-pr318/ender-back-full.png",
+      "width": 960,
+      "height": 640,
+      "bytes": 39583,
+      "sha256": "4d74ba0ffc417ffca9eb5ed1ef4622e3c6f764027b49989f03c1744b1c1463c7",
+      "original_source_sha256": "4d74ba0ffc417ffca9eb5ed1ef4622e3c6f764027b49989f03c1744b1c1463c7",
+      "git_blob_sha": "c4f572ce1448560aa9a53e1502a4ff141500cc38"
+    }
+  ],
+  "baseline_source_commit": "32056937997a1f9fac553976c4d61afe72f79f40",
+  "baseline_evidence_commit": "46b393d0157cbc3e5ba24fe5290b0fbb853dee77",
+  "visual_acceptance": "PENDING",
+  "staff_continuity": "NOT_ACCEPTED",
+  "production_release": "NOT_AUTHORIZED"
+}
