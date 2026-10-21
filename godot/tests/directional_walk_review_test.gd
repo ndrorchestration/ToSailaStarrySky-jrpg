@@ -10,9 +10,10 @@ func _test() -> void:
     await process_frame
     var ender = world.ender
     var side = ender.get_node_or_null("EnderWalkReviewUnapproved") as Sprite2D
+    var west = ender.get_node_or_null("EnderWestWalkReviewUnapproved") as Sprite2D
     var south = ender.get_node_or_null("EnderFrontWalkReviewUnapproved") as Sprite2D
     var north = ender.get_node_or_null("EnderBackWalkReviewUnapproved") as Sprite2D
-    if side == null or south == null or north == null:
+    if side == null or west == null or south == null or north == null:
         push_error("DIRECTIONAL_FAIL: missing independently authored Ender views")
         quit(1)
         return
@@ -20,11 +21,33 @@ func _test() -> void:
         push_error("DIRECTIONAL_FAIL: authored front/back source identity missing")
         quit(2)
         return
-    for sprite in [side, south, north]:
+    for sprite in [side, west, south, north]:
         if sprite.visible or sprite.hframes != 6 or sprite.texture.get_width() != 384 or sprite.texture.get_height() != 96:
             push_error("DIRECTIONAL_FAIL: direction atlas import or default visibility")
             quit(3)
             return
+    if west.texture.resource_path == side.texture.resource_path:
+        push_error("DIRECTIONAL_FAIL: west must have independent authored source")
+        quit(17)
+        return
+    var west_pixels: Image = west.texture.get_image()
+    if west_pixels.is_empty():
+        push_error("DIRECTIONAL_FAIL: west SVG did not rasterize in Godot")
+        quit(18)
+        return
+    var seen_pixels := {}
+    for phase in range(6):
+        var frame_pixels := west_pixels.get_region(Rect2i(phase * 64, 0, 64, 96)).get_data()
+        if seen_pixels.has(frame_pixels):
+            push_error("DIRECTIONAL_FAIL: west atlas has duplicate imported artwork phases")
+            quit(19)
+            return
+        seen_pixels[frame_pixels] = true
+    var west_source := FileAccess.get_file_as_string("res://art-review/ender-west-ferruled-sixframe-candidate.svg")
+    if west_source.count("M31 8 L31 88") != 6:
+        push_error("DIRECTIONAL_FAIL: back-carry staff alignment source is inconsistent")
+        quit(20)
+        return
     ender.set_walk_review_enabled(true)
     ender.position = Vector2(350, 518)
     Input.action_press("ui_up")
@@ -34,7 +57,7 @@ func _test() -> void:
     for i in range(52):
         await physics_frame
         north_seen[north.frame] = true
-        if not north.visible or south.visible or side.visible or ender.walk_facing != "north":
+        if not north.visible or south.visible or side.visible or west.visible or ender.walk_facing != "north":
             push_error("DIRECTIONAL_FAIL: facing north selection")
             Input.action_release("ui_up")
             quit(4)
@@ -56,7 +79,7 @@ func _test() -> void:
     for i in range(52):
         await physics_frame
         south_seen[south.frame] = true
-        if not south.visible or north.visible or side.visible or ender.walk_facing != "south":
+        if not south.visible or north.visible or side.visible or west.visible or ender.walk_facing != "south":
             push_error("DIRECTIONAL_FAIL: facing south selection")
             Input.action_release("ui_down")
             quit(7)
@@ -70,6 +93,31 @@ func _test() -> void:
     if south.frame != 0 or not south.visible:
         push_error("DIRECTIONAL_FAIL: south idle reset")
         quit(9)
+        return
+    # The left-facing source must animate independently, never flipping right art.
+    ender.position = Vector2(350, 462)
+    Input.action_press("ui_left")
+    await physics_frame
+    await physics_frame
+    var west_seen := {}
+    for i in range(52):
+        await physics_frame
+        west_seen[west.frame] = true
+        if not west.visible or side.visible or south.visible or north.visible or west.flip_h or side.flip_h or ender.walk_facing != "west":
+            push_error("DIRECTIONAL_FAIL: west independently authored sprite was not selected")
+            Input.action_release("ui_left")
+            quit(21)
+            return
+    Input.action_release("ui_left")
+    if west_seen.size() != 6:
+        push_error("DIRECTIONAL_FAIL: west six contact phases were not exercised")
+        quit(22)
+        return
+    await physics_frame
+    await physics_frame
+    if west.frame != 0:
+        push_error("DIRECTIONAL_FAIL: west feet animate when idle")
+        quit(23)
         return
     # Bounded NPC movement must be driven by real displacement, not a simulated clock.
     var ionia = world.ionia
@@ -109,9 +157,9 @@ func _test() -> void:
         quit(15)
         return
     ender.set_walk_review_enabled(false)
-    if side.visible or north.visible or south.visible:
+    if side.visible or west.visible or north.visible or south.visible:
         push_error("DIRECTIONAL_FAIL: Ender opt-out left an unapproved sprite visible")
         quit(16)
         return
-    print("DIRECTIONAL_PASS: Ender original side + distinct front/back, Ionia six contact phases; all distance-driven, opt-in, bounded")
+    print("DIRECTIONAL_PASS: Ender original east + unmirrored six-phase west + front/back, Ionia native movement; bounded")
     quit(0)
