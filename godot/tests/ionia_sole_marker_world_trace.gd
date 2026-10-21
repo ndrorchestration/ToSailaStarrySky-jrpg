@@ -45,7 +45,7 @@ func _boot_sole_vertex(source: String, facing: String, limb: String, phase: int)
 func _trace() -> void:
     var boots: Dictionary = {}
     for facing in TRACKED_FACINGS:
-        var path := "res://art-review/ionia-" + facing + "-sidebody-v4-candidate.svg"
+        var path: String = "res://art-review/ionia-" + facing + "-sidebody-v4-candidate.svg"
         var source: String = FileAccess.get_file_as_string(path)
         if source.is_empty() or source.count('id="' + facing + '-v4-pose-') != 6:
             push_error("SOLE_TRACE_FAIL: missing or altered six-frame V4 source: " + facing)
