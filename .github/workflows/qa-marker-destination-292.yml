@@ -1,0 +1,36 @@
+name: Aetherwake Marker Destination Policy Characterization
+
+on:
+  push:
+    branches: [qa/292-marker-path-policy-20261020]
+    paths:
+      - tests/desktop-marker-destination-policy-characterization.test.js
+      - .github/workflows/qa-marker-destination-292.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mock-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout isolated QA candidate without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Node.js 22
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: '22'
+      - name: Assert signed parent runtime source remained unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object aetherwake.js)" = "fc52c6e071f7d7d19d72d5c42195ed1beb42ffaf"
+      - name: Execute only synthetic marker-path test and existing marker mocks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/desktop-marker-destination-policy-characterization.test.js tests/desktop-smoke-marker-fallback.test.js
