@@ -20,6 +20,12 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
+      - name: Verify creator-approved Ender appearance bytes (source only, not art admission)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 godot/tests/verify_ender_provenance.py
+          sha256sum godot/art-review/ender-approved-reference.png
       - name: Fetch digest-verified official Godot 4.7.2 Standard binary
         shell: bash
         run: |
