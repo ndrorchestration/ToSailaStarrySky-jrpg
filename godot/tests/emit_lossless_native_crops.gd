@@ -1,0 +1,72 @@
+extends SceneTree
+## Read authentic prior 960x640 Godot render PNGs from this runner, crop native pixels,
+## and encode lossless PNG crops into private Actions logs with SHA-256 per crop.
+## Does NOT retain full-frame PNGs or imply creator acceptance or public publication.
+
+const OUTPUT := "res://review-evidence/"
+const MAX_CROP_BYTES := 95000
+const SAMPLES := [
+    {"label": "ender-east", "source": "ender-east-original-source-native-960x640.png", "roi": [285, 319, 225, 228]},
+    {"label": "ender-west", "source": "ender-west-centered-staff-native-960x640.png", "roi": [285, 319, 225, 228]},
+    {"label": "ender-front", "source": "ender-south-actual-native-960x640.png", "roi": [285, 319, 225, 228]},
+    {"label": "ender-back", "source": "ender-north-actual-native-960x640.png", "roi": [285, 319, 225, 228]},
+    {"label": "ionia-front", "source": "ionia-south-route-native-960x640.png", "roi": [490, 310, 180, 235]},
+    {"label": "ionia-back", "source": "ionia-north-route-native-960x640.png", "roi": [490, 310, 180, 235]},
+]
+
+func _initialize() -> void:
+    call_deferred("_emit")
+
+func _emit() -> void:
+    for sample in SAMPLES:
+        if not _emit_one(sample):
+            quit(1)
+            return
+    print("AW_NATIVE_CROP_EMIT_PASS: six lossless 1x actor crops from original Godot renderer PNGs")
+    print("AW_NATIVE_FULL_SCREEN_CUSTODY=NOT_ESTABLISHED")
+    print("AW_NATIVE_VISUAL_ACCEPTANCE=PENDING")
+    quit(0)
+
+func _emit_one(sample: Dictionary) -> bool:
+    var source: String = OUTPUT + sample["source"]
+    var label: String = sample["label"]
+    if not FileAccess.file_exists(source):
+        push_error("CROP_EMIT_FAIL: source native PNG missing: " + label)
+        return false
+    var original := Image.new()
+    if original.load(source) != OK:
+        push_error("CROP_EMIT_FAIL: cannot load authentic source: " + label)
+        return false
+    if original.get_width() != 960 or original.get_height() != 640:
+        push_error("CROP_EMIT_FAIL: source is not the expected native 960x640: " + label)
+        return false
+    var r: Array = sample["roi"]
+    var region := Rect2i(int(r[0]), int(r[1]), int(r[2]), int(r[3]))
+    if region.position.x < 0 or region.position.y < 0 or region.end.x > 960 or region.end.y > 640:
+        push_error("CROP_EMIT_FAIL: ROI is outside native frame: " + label)
+        return false
+    var crop: Image = original.get_region(region)
+    var png: PackedByteArray = crop.save_png_to_buffer()
+    if png.is_empty() or png.size() > MAX_CROP_BYTES:
+        push_error("CROP_EMIT_FAIL: crop missing/too large: " + label)
+        return false
+    var ctx := HashingContext.new()
+    if ctx.start(HashingContext.HASH_SHA256) != OK:
+        push_error("CROP_EMIT_FAIL: SHA256 initialization error")
+        return false
+    ctx.update(png)
+    var crop_sha: String = ctx.finish().hex_encode()
+    var full_sha: String = FileAccess.get_sha256(source)
+    if full_sha.length() != 64:
+        push_error("CROP_EMIT_FAIL: cannot hash source full native PNG: " + label)
+        return false
+    var encoded: String = Marshalls.raw_to_base64(png)
+    print("AW_NATIVE_CROP_BEGIN:" + label + ":" + str(crop.get_width()) + "x" + str(crop.get_height()) + ":" + crop_sha + ":" + full_sha + ":" + str(png.size()))
+    var offset := 0
+    var ordinal := 0
+    while offset < encoded.length():
+        print("AW_NATIVE_CROP_DATA:" + label + ":" + str(ordinal) + ":" + encoded.substr(offset, 3000))
+        offset += 3000
+        ordinal += 1
+    print("AW_NATIVE_CROP_END:" + label)
+    return true
