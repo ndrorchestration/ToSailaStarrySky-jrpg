@@ -58,54 +58,57 @@ func _test() -> void:
             quit(4)
             return
         paths[path] = true
-    # This is a full side-body v3, not a cosmetic late-layer face patch.
-    # The six phases must be pixel-unique and visibly narrower through the waist
-    # than the prior opt-in V2's essentially rear-facing body silhouette.
+    # V4 is a reversible upper-body/coat mass study; face and leg pixels must
+    # remain unchanged relative to independently authored V3. No sprite admission.
     for facing in ["east", "west"]:
-        var profile_source: String = FileAccess.get_file_as_string("res://art-review/ionia-%s-sidebody-v3-candidate.svg" % facing)
-        if profile_source.is_empty() or profile_source.count('id="' + facing + '-v3-pose-') != 6 or profile_source.count('id="' + facing + '-v3-profile-torso-') != 6 or profile_source.count('id="' + facing + '-v3-side-profile-nose-') != 6 or profile_source.count('id="' + facing + '-v3-front-leg-') != 6:
-            push_error("IONIA_ROUTE_FAIL: 6 independently built side-body phases absent: " + facing)
+        var source_text: String = FileAccess.get_file_as_string("res://art-review/ionia-%s-sidebody-v4-candidate.svg" % facing)
+        if source_text.is_empty() or source_text.count('id="' + facing + '-v4-pose-') != 6 or source_text.count('id="' + facing + '-v4-profile-torso-') != 6 or source_text.count('id="' + facing + '-v4-side-profile-nose-') != 6 or source_text.count('id="' + facing + '-v4-front-leg-') != 6:
+            push_error("IONIA_ROUTE_FAIL: V4 six-phase art identity missing")
             quit(21)
             return
-        var old_texture: Texture2D
-        if facing == "east":
-            old_texture = load("res://art-review/ionia-east-profile-v2-candidate.svg")
-        else:
-            old_texture = load("res://art-review/ionia-west-profile-v2-candidate.svg")
-        if old_texture == null:
-            push_error("IONIA_ROUTE_FAIL: original V2 reference missing")
+        var baseline_texture: Texture2D = load("res://art-review/ionia-%s-sidebody-v3-candidate.svg" % facing)
+        var current_texture: Texture2D = sprites[facing].texture
+        if baseline_texture == null or current_texture == null:
+            push_error("IONIA_ROUTE_FAIL: missing V3/V4 side view")
             quit(22)
             return
-        var old_image: Image = old_texture.get_image()
-        var candidate_image: Image = sprites[facing].texture.get_image()
-        if old_image.is_empty() or candidate_image.is_empty():
-            push_error("IONIA_ROUTE_FAIL: cannot rasterize side-body comparison")
+        var baseline_image: Image = baseline_texture.get_image()
+        var current_image: Image = current_texture.get_image()
+        if baseline_image.is_empty() or current_image.is_empty():
+            push_error("IONIA_ROUTE_FAIL: unreadable V3/V4 texture")
             quit(23)
             return
-        var old_left := 512
-        var old_right := -1
-        var new_left := 512
-        var new_right := -1
-        # A controlled source-space waist span. Game-scale leg/coat variation
-        # still needs actual Godot fixed-anchor native human review.
-        for x in range(128, 392):
-            if old_image.get_pixel(x, 460).a > 0.2:
-                old_left = mini(old_left, x)
-                old_right = maxi(old_right, x)
-            if candidate_image.get_pixel(x, 460).a > 0.2:
-                new_left = mini(new_left, x)
-                new_right = maxi(new_right, x)
-        # Every sprite cell must be centered around its native local x=256.
-        # Guards against art authored at x≈25 spilling into adjacent frame cells.
-        if new_left < 170 or new_right > 355 or new_left > 280 or new_right < 235:
-            push_error("IONIA_ROUTE_FAIL: V3 side-body art is off center / frame-leaking")
-            quit(27)
-            return
-        print("IONIA_V3_WAIST_SPAN:%s:OLD=%d:NEW=%d:LEFT=%d:RIGHT=%d" % [facing, old_right-old_left, new_right-new_left, new_left, new_right])
-        if old_right < old_left or new_right < new_left or (old_right - old_left) - (new_right - new_left) < 25:
-            push_error("IONIA_ROUTE_FAIL: V3 body side silhouette insufficiently narrower than rear-derived V2")
+        if baseline_image.get_width() != 3072 or current_image.get_width() != 3072 or baseline_image.get_height() != 768 or current_image.get_height() != 768:
+            push_error("IONIA_ROUTE_FAIL: V4 sheet geometry drift")
             quit(24)
             return
+        # All six phases retain identical facial anatomy/hair and leg/foot pixels.
+        if baseline_image.get_region(Rect2i(0, 110, 3072, 190)).get_data() != current_image.get_region(Rect2i(0, 110, 3072, 190)).get_data():
+            push_error("IONIA_ROUTE_FAIL: V4 changes head proportions")
+            quit(25)
+            return
+        if baseline_image.get_region(Rect2i(0, 618, 3072, 150)).get_data() != current_image.get_region(Rect2i(0, 618, 3072, 150)).get_data():
+            push_error("IONIA_ROUTE_FAIL: V4 changes leg/foot contact art")
+            quit(26)
+            return
+        var base_left := 512
+        var base_right := -1
+        var new_left := 512
+        var new_right := -1
+        for x in range(128, 392):
+            if baseline_image.get_pixel(x, 460).a > 0.2:
+                base_left = mini(base_left, x)
+                base_right = maxi(base_right, x)
+            if current_image.get_pixel(x, 460).a > 0.2:
+                new_left = mini(new_left, x)
+                new_right = maxi(new_right, x)
+        var base_span: int = base_right - base_left
+        var new_span: int = new_right - new_left
+        if base_span <= 0 or new_left < 155 or new_right > 370 or new_span < base_span + 15 or new_span > base_span + 48:
+            push_error("IONIA_ROUTE_FAIL: V4 side garment width is unchanged, off-cell, or excessive")
+            quit(27)
+            return
+        print("IONIA_V4_PROFILE_WAIST:%s:V3=%d:V4=%d" % [facing, base_span, new_span])
     var start: Vector2 = ionia.global_position
     var old_bounds: Rect2 = ionia.walking_bounds
     ionia.set_ionia_route_review_enabled(true)
