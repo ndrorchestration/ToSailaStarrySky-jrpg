@@ -85,7 +85,7 @@ func _ready() -> void:
         add_child(walk_west_sprite)
         walk_front_sprite = Sprite2D.new()
         walk_front_sprite.name = "EnderFrontWalkReviewUnapproved"
-        walk_front_sprite.texture = preload("res://art-review/ender-south-sixframe-candidate.svg")
+        walk_front_sprite.texture = preload("res://art-review/ender-south-detailed-staff-v2-candidate.svg")
         walk_front_sprite.hframes = 6
         walk_front_sprite.position = Vector2(0, -46)
         walk_front_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -93,7 +93,7 @@ func _ready() -> void:
         add_child(walk_front_sprite)
         walk_back_sprite = Sprite2D.new()
         walk_back_sprite.name = "EnderBackWalkReviewUnapproved"
-        walk_back_sprite.texture = preload("res://art-review/ender-north-sixframe-candidate.svg")
+        walk_back_sprite.texture = preload("res://art-review/ender-north-detailed-staff-v2-candidate.svg")
         walk_back_sprite.hframes = 6
         walk_back_sprite.position = Vector2(0, -46)
         walk_back_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST

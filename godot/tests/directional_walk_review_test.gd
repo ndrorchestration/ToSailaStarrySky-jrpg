@@ -44,6 +44,23 @@ func _test() -> void:
                 quit(19)
                 return
         rendered_frames.append(frame_pixels)
+    # Mechanically inspect separately authored north/south six-phase v2 references.
+    # These checks validate source geometry and grip placement, not artist acceptance.
+    for direction in ["south", "north"]:
+        var source_path := "res://art-review/ender-%s-detailed-staff-v2-candidate.svg" % direction
+        var source_text := FileAccess.get_file_as_string(source_path)
+        if source_text.is_empty() or source_text.count("id=\"%s-staff-v2-" % direction) != 6:
+            push_error("DIRECTIONAL_FAIL: missing six visible north/south staff shafts")
+            quit(24)
+            return
+        if source_text.count("M53 8 L53 88") != 12 or source_text.count("M51 45 H55 V57 H51Z") != 6:
+            push_error("DIRECTIONAL_FAIL: staff shaft/grip source continuity missing")
+            quit(25)
+            return
+        if source_text.count("id=\"%s-v2-costume-" % direction) != 6:
+            push_error("DIRECTIONAL_FAIL: authored fabric detail missing across gait frames")
+            quit(26)
+            return
     var west_source := FileAccess.get_file_as_string("res://art-review/ender-west-visible-staff-v2-candidate.svg")
     # Six authored full-height x53 shaft pairs, centered wrap and hand contact.
     # This is a SOURCE-PRESENCE assertion, not anatomical/visual acceptance.
