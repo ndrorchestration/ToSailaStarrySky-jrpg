@@ -45,4 +45,7 @@ jobs:
       - name: Verify two original Ionia source slots and reversible native comparison
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/ionia_alignment_test.gd
+      - name: Verify actual authored four-way Ender and Ionia contact-phase traversal
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/directional_walk_review_test.gd
 
