@@ -1,0 +1,61 @@
+name: Godot Approved Ender Provenance and Joint Review (draft only)
+on:
+  push:
+    branches: [review/godot-ender-provenance-20261021]
+    paths:
+      - 'godot/**'
+      - '.github/workflows/godot-ender-provenance-review.yml'
+  pull_request:
+    paths:
+      - 'godot/**'
+      - '.github/workflows/godot-ender-provenance-review.yml'
+permissions:
+  contents: read
+jobs:
+  verify-approved-binding:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout candidate without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Fail closed if source hashes or PNG geometry differ
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 godot/tests/verify_ender_provenance.py
+          sha256sum godot/art-review/ender-approved-reference.png
+      - name: Obtain pinned official Godot 4.7.2 Standard binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o godot-editor.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  godot-editor.zip" | sha256sum -c -
+          mkdir -p editor
+          unzip -q godot-editor.zip -d editor
+          chmod +x editor/Godot_v4.7.2-stable_linux.x86_64
+      - name: Import GDScript scene and approved reference bytes (unadmitted)
+        shell: bash
+        run: |
+          set -euo pipefail
+          editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
+      - name: Run original native movement and smoke checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/smoke_test.gd
+          editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/ender_walk_test.gd
+      - name: Render four combined review captures (runner only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v xvfb-run
+          xvfb-run -a -s "-screen 0 960x640x24" editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_ender_ionia_joint_review.gd
+          test "$(find godot/review-evidence/joint-ender-ionia -maxdepth 1 -name '*.png' -type f | wc -l)" -eq 4
+          sha256sum godot/review-evidence/joint-ender-ionia/*.png
+          echo "JOINT_NATIVE_RENDER=RUNNER_ONLY_NOT_CUSTODIED"
+          echo "FRONT_BACK_POSES=NOT_AUTHORED"
+          echo "EVIDENCE_CUSTODY=NOT_ESTABLISHED"
+          echo "VISUAL_ACCEPTANCE=PENDING"
+          # Quota-blocked artifact delivery is not silently bypassed.
