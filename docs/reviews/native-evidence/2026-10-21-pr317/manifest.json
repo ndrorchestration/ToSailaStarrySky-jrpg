@@ -1,0 +1,43 @@
+{
+  "type": "ACTUAL_GODOT_NATIVE_V2_STAFF_VISIBILITY_EVIDENCE",
+  "status": "PRIVATE_REVIEW_ONLY",
+  "rendered_source_commit": "afeda2a7c6e49739f5119d392f3ceeac350c8977",
+  "rendering_run": 39651476514,
+  "rendering_job": 119400627716,
+  "engine": "Godot 4.7.2 OpenGL3 software Xvfb",
+  "files": [
+    {
+      "label": "ender-west",
+      "file": "ender-west.png",
+      "width": 225,
+      "height": 228,
+      "bytes": 6047,
+      "sha256": "15fb69ac8e256af0b377c6c80badd5f5dc01ccfdd3aa9c99b3ad0db9e9c0ef99",
+      "source_full_sha256": "d82812d92241d69ae1ebde5619ca33c676d358321aa5a2b15c62d0dbbe57701c",
+      "git_blob_sha": "0b2c8148f6750ff0fa59275b44acbb0eddcd1236"
+    },
+    {
+      "label": "ender-west-full",
+      "file": "ender-west-full.png",
+      "width": 960,
+      "height": 640,
+      "bytes": 46049,
+      "sha256": "d82812d92241d69ae1ebde5619ca33c676d358321aa5a2b15c62d0dbbe57701c",
+      "source_full_sha256": "d82812d92241d69ae1ebde5619ca33c676d358321aa5a2b15c62d0dbbe57701c",
+      "git_blob_sha": "1a58e40a83691b2cb2fe679a5c89b2f6ca451711"
+    }
+  ],
+  "baseline_v1": {
+    "commit": "46b393d0157cbc3e5ba24fe5290b0fbb853dee77",
+    "path": "docs/reviews/native-evidence/2026-10-21-pr316/ender-west-full.png",
+    "sha256": "012bbc7fd3031b12390cd63c20bdaf92cbdc4240a28bcf21e44ddd8ed9be7949"
+  },
+  "approved_appearance": {
+    "pr": 261,
+    "sha256": "619517944ebe12b295bf5f780abb1a49bce2449230654fb8c49b11e8380546fd"
+  },
+  "technical_result": "VISIBILITY_CHANGED",
+  "visual_acceptance": "PENDING",
+  "staff_continuity": "NOT_ACCEPTED",
+  "engine_migration": "NOT_ADMITTED"
+}
