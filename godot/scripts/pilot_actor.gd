@@ -12,6 +12,7 @@ var walking_bounds: Rect2 = Rect2(Vector2(145, 410), Vector2(670, 112))
 var review_sprite: Sprite2D
 var aligned_sprite: Sprite2D
 var walk_review_sprite: Sprite2D
+var walk_west_sprite: Sprite2D
 var walk_front_sprite: Sprite2D
 var walk_back_sprite: Sprite2D
 var ionia_front_walk_sprite: Sprite2D
@@ -70,6 +71,14 @@ func _ready() -> void:
         walk_review_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
         walk_review_sprite.visible = false
         add_child(walk_review_sprite)
+        walk_west_sprite = Sprite2D.new()
+        walk_west_sprite.name = "EnderWestWalkReviewUnapproved"
+        walk_west_sprite.texture = preload("res://art-review/ender-west-ferruled-sixframe-candidate.svg")
+        walk_west_sprite.hframes = 6
+        walk_west_sprite.position = Vector2(0, -46)
+        walk_west_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+        walk_west_sprite.visible = false
+        add_child(walk_west_sprite)
         walk_front_sprite = Sprite2D.new()
         walk_front_sprite.name = "EnderFrontWalkReviewUnapproved"
         walk_front_sprite.texture = preload("res://art-review/ender-south-sixframe-candidate.svg")
@@ -130,10 +139,14 @@ func set_walk_review_enabled(enabled: bool) -> void:
 func _sync_ender_direction() -> void:
     if walk_review_sprite == null:
         return
-    walk_review_sprite.visible = walk_review_enabled and (walk_facing == "east" or walk_facing == "west")
+    # East preserves the unmodified original six-frame pixel source from #308.
+    # West has its OWN unmirrored source. No staff-side reversal of the east PNG.
+    walk_review_sprite.visible = walk_review_enabled and walk_facing == "east"
+    walk_west_sprite.visible = walk_review_enabled and walk_facing == "west"
     walk_front_sprite.visible = walk_review_enabled and walk_facing == "south"
     walk_back_sprite.visible = walk_review_enabled and walk_facing == "north"
-    walk_review_sprite.flip_h = walk_facing == "west"
+    walk_review_sprite.flip_h = false
+    walk_west_sprite.flip_h = false
 
 func set_ionia_walk_review_enabled(enabled: bool) -> void:
     if ionia_front_walk_sprite == null:
@@ -258,6 +271,7 @@ func _physics_process(_delta: float) -> void:
     var current_frame := int(travel_distance / PIXELS_PER_STEP) % 6
     if walk_review_sprite != null:
         walk_review_sprite.frame = current_frame
+        walk_west_sprite.frame = current_frame
         walk_front_sprite.frame = current_frame
         walk_back_sprite.frame = current_frame
         _sync_ender_direction()
