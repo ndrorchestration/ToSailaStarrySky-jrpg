@@ -38,9 +38,9 @@ func _ready() -> void:
         review_sprite.centered = true
         review_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
         # Review-only 512×768 source at approximately 67×100 on the 960×640 dock.
-        # Offset places the drawn boots near the existing actor ground anchor.
+        # SVG boot soles are near source y=738: -46px aligns them to ground.
         review_sprite.scale = Vector2(0.13, 0.13)
-        review_sprite.position = Vector2(0, -42)
+        review_sprite.position = Vector2(0, -46)
         review_sprite.visible = false
         add_child(review_sprite)
     if review_aligned_texture != null and character_name == "Ionia":
@@ -50,7 +50,7 @@ func _ready() -> void:
         aligned_sprite.centered = true
         aligned_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
         aligned_sprite.scale = Vector2(0.13, 0.13)
-        aligned_sprite.position = Vector2(0, -42)
+        aligned_sprite.position = Vector2(0, -46)
         aligned_sprite.visible = false
         add_child(aligned_sprite)
     if character_name == "Ender":
@@ -84,7 +84,7 @@ func _ready() -> void:
         ionia_front_walk_sprite.texture = preload("res://art-review/ionia-front-sixframe-candidate.svg")
         ionia_front_walk_sprite.hframes = 6
         ionia_front_walk_sprite.scale = Vector2(0.13, 0.13)
-        ionia_front_walk_sprite.position = Vector2(0, -42)
+        ionia_front_walk_sprite.position = Vector2(0, -46)
         ionia_front_walk_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
         ionia_front_walk_sprite.visible = false
         add_child(ionia_front_walk_sprite)
@@ -194,7 +194,15 @@ func _draw() -> void:
     var coat := Color("#203d68") if is_ionia else Color("#47634c")
     var highlight := Color("#d7b56a") if is_ionia else Color("#dccbaa")
     var hair := Color("#e4b65f") if is_ionia else Color("#965936")
-    draw_circle(Vector2(0, -3), 14.0, Color(0.05, 0.11, 0.19, 0.45))
+    # Flattened foot-contact ambient shadow, drawn behind the actual sprite.
+    var outer_contact := PackedVector2Array()
+    var inner_contact := PackedVector2Array()
+    for i in range(17):
+        var angle := float(i) * TAU / 16.0
+        outer_contact.append(Vector2(cos(angle) * 19.0, -2.0 + sin(angle) * 5.0))
+        inner_contact.append(Vector2(cos(angle) * 12.0, -1.0 + sin(angle) * 2.7))
+    draw_colored_polygon(outer_contact, Color(0.09, 0.13, 0.17, 0.19))
+    draw_colored_polygon(inner_contact, Color(0.05, 0.09, 0.13, 0.31))
     if is_review_art_enabled() or walk_review_enabled:
         # Suppress placeholder body only, retain shared foot-ground cue.
         return
