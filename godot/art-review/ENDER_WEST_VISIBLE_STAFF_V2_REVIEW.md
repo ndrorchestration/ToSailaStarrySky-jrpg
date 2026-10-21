@@ -1,0 +1,13 @@
+# Ender westward staff v2 — reversible asset study
+
+This draft adds **one** alternate Ender six-frame *west-facing* SVG. It deliberately does not overwrite `ender-west-ferruled-sixframe-candidate.svg` from draft #313. The changed pilot reference is opt-in under existing `R` review mode only; default fallback, existing east/front/back art, Ionia, dock, gameplay, combat, save rules and protected main remain byte-identical.
+
+**Design discrepancy:** The first native lossless 960×640 west capture stored in [draft #316 evidence](https://github.com/ndrorchestration/aetherwake-jrpg/tree/46b393d0157cbc3e5ba24fe5290b0fbb853dee77/docs/reviews/native-evidence/2026-10-21-pr316) shows the independent west SVG significantly less detailed than the approved Ender appearance and original raster east. In particular the staff at x31 was mostly occluded by the character body.
+
+**Single reversible correction:** Render a separate, non-mirrored full-length staff at x53 in each of the six source frames; put the shaft from y8 to y88, two brass ferrules at y8–18 and y78–88, and a centered wrapped leather grip at y45–57 with crosshatch. Add a small hand-contact patch near the shaft at y65–73, downstream of the body layer, so the new staff is visible and physically inspectable at game scale. No shift to the underlying gait geometry or player collision.
+
+The source is still explicitly **unapproved directional art**, not a literal extraction from the creator-approved 1024×1536 Ender appearance. The verified approved source in draft #315 remains authoritative. This v2 addresses visibility and grip position only; it **does not** prove canonical staff side, movement quality, style parity, grip ergonomics, anatomically coherent hand pose, diagonals or human visual acceptance.
+
+**Validation:** Existing Godot 4.7.2 native movement/rendering CI will exercise the newly referenced v2. The updated directional source contract requires six distinct staff-group IDs, two aligned shaft strokes per pose, centered grip path per pose, and six hand-contact overlays. The native renderer's lossless west 960×640 PNG is inspected against the previous unmodified capture, and only a positive visual review can authorize a later art promotion. Retain actual PNGs privately with hashes before claiming evidence delivery.
+
+**Hard holds:** `VISUAL_ACCEPTANCE=PENDING`, `STAFF_CONTINUITY=NOT_ACCEPTED`, `FIELD_PACK_READINESS=NOT_READY`, `PRODUCTION_ENGINE_MIGRATION=NOT_ADMITTED`, `RELEASE=NOT_AUTHORIZED`. No merge/asset admission is implied by green CI.

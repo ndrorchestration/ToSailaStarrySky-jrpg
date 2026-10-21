@@ -44,11 +44,11 @@ func _test() -> void:
                 quit(19)
                 return
         rendered_frames.append(frame_pixels)
-    var west_source := FileAccess.get_file_as_string("res://art-review/ender-west-ferruled-sixframe-candidate.svg")
-    # The original source paints an outline AND a shaft per pose on x31.
-    # Six unique staff groups and two identical anchored strokes per group.
-    if west_source.count("id=\"staff-source-") != 6 or west_source.count("M31 8 L31 88") != 12:
-        push_error("DIRECTIONAL_FAIL: back-carry staff alignment source is inconsistent")
+    var west_source := FileAccess.get_file_as_string("res://art-review/ender-west-visible-staff-v2-candidate.svg")
+    # Six authored full-height x53 shaft pairs, centered wrap and hand contact.
+    # This is a SOURCE-PRESENCE assertion, not anatomical/visual acceptance.
+    if west_source.count("id=\\\"staff-source-v2-") != 6 or west_source.count("M53 8 L53 88") != 12 or west_source.count("M51 45 H55 V57 H51Z") != 6 or west_source.count("id=\\\"staff-contact-hand-v2-") != 6:
+        push_error("DIRECTIONAL_FAIL: west v2 staff grip and contact source inconsistent")
         quit(20)
         return
     ender.set_walk_review_enabled(true)

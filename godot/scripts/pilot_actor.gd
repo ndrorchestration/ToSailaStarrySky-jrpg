@@ -73,7 +73,7 @@ func _ready() -> void:
         add_child(walk_review_sprite)
         walk_west_sprite = Sprite2D.new()
         walk_west_sprite.name = "EnderWestWalkReviewUnapproved"
-        walk_west_sprite.texture = preload("res://art-review/ender-west-ferruled-sixframe-candidate.svg")
+        walk_west_sprite.texture = preload("res://art-review/ender-west-visible-staff-v2-candidate.svg")
         walk_west_sprite.hframes = 6
         # Independent full-size vector art reads wider/taller than the original
         # 64x96 pixel-source silhouette. Scale the review candidate only.
