@@ -71,6 +71,13 @@ jobs:
             test -s "godot/review-evidence/joint-fixed-${direction}-native-960x640.png"
           done
           test -s godot/review-evidence/joint-fixed-baseline-native-960x640.png
+          # Actual moving Ionia four-direction route; selected real renderer frames.
+          AW_REAL_MOVING_CAPTURE=1 xvfb-run -a -s "-screen 0 960x640x24" editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/ionia_moving_gait_trace.gd
+          for direction in south west north east; do
+            for phase in 1 4; do
+              test -s "godot/review-evidence/ionia-moving-${direction}-phase-${phase}-native-960x640.png"
+            done
+          done
           sha256sum godot/review-evidence/*.png
           # Private, native-resolution lossless crops in job logs: not a public artifact.
           # Entire 960x640 PNGs remain runner-only; do not conflate crop custody with full frames.
