@@ -13,6 +13,7 @@ var dialogue: Label
 var status: Label
 var dialogue_open: bool = false
 var ionia_art_review_enabled: bool = false
+var ender_walk_review_enabled: bool = false
 
 func _ready() -> void:
     var actors := Node2D.new()
@@ -43,7 +44,7 @@ func _ready() -> void:
     status = Label.new()
     status.position = Vector2(28, 28)
     status.add_theme_font_size_override("font_size", 19)
-    status.text = "AETHERWAKE / GODOT PILOT   Move: arrows   E: speak   V: unapproved Ionia art   B: mock arena"
+    status.text = "AETHERWAKE / NATIVE PILOT\nArrows: move   E: speak   B: arena   R: Ender review   V: Ionia review"
     ui.add_child(status)
     dialogue = Label.new()
     dialogue.position = Vector2(100, 555)
@@ -72,7 +73,7 @@ func _draw() -> void:
         draw_line(Vector2(post + 6, 375), Vector2(post + 6, 424), Color("#e0b977"), 2.0)
     draw_line(Vector2(174, 375), Vector2(816, 375), Color("#cba776"), 6.0)
     draw_rect(Rect2(Vector2(95, 542), Vector2(780, 86)), Color(0.04, 0.08, 0.18, 0.72))
-    draw_string(ThemeDB.fallback_font, Vector2(26, 94), "Native Godot/GDScript technical slice — NOT an accepted gameplay capture", HORIZONTAL_ALIGNMENT_LEFT, -1, 19, Color("#172a45"))
+    draw_string(ThemeDB.fallback_font, Vector2(26, 118), "Native Godot/GDScript technical slice — NOT an accepted gameplay capture", HORIZONTAL_ALIGNMENT_LEFT, -1, 19, Color("#172a45"))
 
 func _unhandled_key_input(event: InputEvent) -> void:
     if not (event is InputEventKey) or not event.pressed or event.echo:
@@ -80,6 +81,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
     if event.keycode == KEY_E and ender.global_position.distance_to(ionia.global_position) <= 110.0:
         dialogue_open = not dialogue_open
         dialogue.visible = dialogue_open
+    elif event.keycode == KEY_R:
+        ender_walk_review_enabled = not ender_walk_review_enabled
+        ender.set_walk_review_enabled(ender_walk_review_enabled)
     elif event.keycode == KEY_V:
         # Preview only; does not admit the source as approved Ionia field art.
         ionia_art_review_enabled = not ionia_art_review_enabled
@@ -89,3 +93,4 @@ func _unhandled_key_input(event: InputEvent) -> void:
     elif event.keycode == KEY_ESCAPE:
         dialogue_open = false
         dialogue.visible = false
+
