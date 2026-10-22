@@ -49,26 +49,47 @@ func _capture() -> void:
         return
     world.choose_path(false)
     world.start_encounter()
-    for action in ["guard", "strike", "guard", "strike"]:
+    await process_frame
+    var warning: Image = await _snapshot("slice-encounter-warning-native-960x640.png")
+    if warning == null:
+        quit(5)
+        return
+    world.encounter_action("guard")
+    await process_frame
+    var echo_ready: Image = await _snapshot("slice-echo-ready-native-960x640.png")
+    if echo_ready == null:
+        quit(6)
+        return
+    for action in ["strike", "guard", "strike"]:
         world.encounter_action(action)
     if not world.finish_at_dock():
         push_error("SLICE_CAPTURE_FAIL: cannot reach real choice payoff")
-        quit(5)
+        quit(7)
         return
     await process_frame
     var payoff: Image = await _snapshot("slice-beacon-payoff-native-960x640.png")
     if payoff == null:
-        quit(6)
+        quit(8)
         return
     var text_region := Rect2i(15, 540, 930, 90)
     if first.get_region(text_region).get_data() == dialogue.get_region(text_region).get_data():
         push_error("SLICE_CAPTURE_FAIL: dialogue pixels unchanged from discovery")
-        quit(7)
+        quit(9)
         return
     if dialogue.get_region(text_region).get_data() == payoff.get_region(text_region).get_data():
         push_error("SLICE_CAPTURE_FAIL: payoff pixels unchanged from dialogue")
-        quit(8)
+        quit(10)
         return
-    print("AETHERWAKE_SLICE_NATIVE_RENDER_PASS: discovery, dialogue and payoff are visually distinct 960x640 frames")
+    var challenge_region := Rect2i(700, 345, 125, 125)
+    if warning.get_region(challenge_region).get_data() == echo_ready.get_region(challenge_region).get_data():
+        push_error("SLICE_CAPTURE_FAIL: warning and echo-ready challenge pixels are identical")
+        quit(11)
+        return
+    var payoff_region := Rect2i(155, 330, 790, 165)
+    if first.get_region(payoff_region).get_data() == payoff.get_region(payoff_region).get_data():
+        push_error("SLICE_CAPTURE_FAIL: world-space payoff did not alter signal/horizon region")
+        quit(12)
+        return
+    print("AETHERWAKE_SLICE_NATIVE_RENDER_PASS: discovery, dialogue, guard warning, echo-ready and payoff are visually distinct 960x640 frames")
     print("AETHERWAKE_SLICE_ARTISTIC_ACCEPTANCE=PENDING")
     quit(0)
