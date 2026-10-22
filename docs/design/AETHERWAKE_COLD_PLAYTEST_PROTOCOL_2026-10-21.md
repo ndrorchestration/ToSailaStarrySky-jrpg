@@ -1,6 +1,13 @@
 # Aetherwake — Five-Person Cold-Playtest Protocol (draft)
 
-**Status:** proposed research protocol; no participants recruited, sessions performed or outcomes claimed. Applies only to draft PR #330's standalone Godot scene, not to production art/canon or any release candidate.
+**Status:** proposed **Phase 0 formative** research protocol; no participants recruited, sessions performed or outcomes claimed. Applies only to draft PR #330's standalone Godot scene, not to production art/canon or any release candidate. The completed 69-source research recommends larger target-demographic rounds later; this five-person pass is intentionally for early usability/comprehension defect discovery, not statistical validation.
+
+## Staged sample plan after deep-research reconciliation
+- **Phase 0 — 5 participants:** cold, observed formative sessions. Stop and repair repeated comprehension, accessibility, soft-lock, or delight failures before expanding scope.
+- **Phase 1 — 20–30 participants:** target-demographic validation only after Phase 0 fixes and legitimate distribution/security readiness. Use consistent build SHA and measures.
+- **Phase 2 — larger/longitudinal rounds:** only if the slice earns further investment; do not schedule these merely because the research report lists them.
+
+The sample sizes are planning stages, not claims of statistical power. Preserve denominators and uncertainty.
 
 ## Purpose and consent
 Test whether an unfamiliar player can understand the first ten minutes without coaching, feel agency, and notice a consequence. Invite a small, diverse set of five consenting adults with varied JRPG familiarity and input/accessibility preferences. Tell participants that the game is unfinished, observations are about the prototype (not player skill), participation is voluntary, and they may stop or skip questions. Do not record personal identifiers, voice, screens, or raw input without separate explicit consent. Never upload local trace events automatically.
@@ -35,4 +42,4 @@ Test whether an unfamiliar player can understand the first ten minutes without c
 **P0 blocker:** any soft-lock, forced story branch, missing input recovery, unreadable essential cue, or trace enabled without consent. **P1 comprehension:** two or more participants miss the same affordance or misinterpret the telegraph; revise before adding content. **P1 delight:** fewer than three spontaneously report a memorable moment; test stronger feedback and character specificity. **P2 polish:** cosmetic requests not obstructing comprehension. The denominators and thresholds are hypotheses, not population estimates; include counterexamples and quote context.
 
 ## Evidence and documentation hygiene
-For each session, record an anonymous session number, build SHA, controls, accessibility options, observed milestone timestamps, interventions, and the participant's own paraphrase. Keep any locally exported notes private and minimize retention. Do not attach personal data to GitHub issues. Aggregate the five sessions only after all are complete; preserve negative feedback. Report **NOT TESTED** until real sessions occur. Reconcile priorities with the pending JRPG Deep Research report, creator art approval, and the separate #326/#328/#329 technical evidence.
+For each session, record an anonymous session number, build SHA, controls, accessibility options, observed milestone timestamps, interventions, and the participant's own paraphrase. Keep any locally exported notes private and minimize retention. Do not attach personal data to GitHub issues. Aggregate the five sessions only after all are complete; preserve negative feedback. Report **NOT TESTED** until real sessions occur. Reconcile priorities with the completed JRPG Deep Research decision reconciliation, creator art approval, and the separate #326/#328/#329 technical evidence. Do not promote Phase 0 qualitative findings into genre-wide or population claims.
