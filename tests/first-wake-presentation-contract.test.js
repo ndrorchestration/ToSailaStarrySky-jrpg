@@ -34,6 +34,10 @@ assert(toast.includes('gameState === STATE.DIALOGUE ? 92 : height - 104'),
   'toasts must avoid dialogue and chapter-banner collision zones');
 assert(toast.includes('Math.min(420, Math.max(250, textWidth(t.text) + 36))'),
   'toast background must size to readable content');
+assert(runtime.includes('window.toasts.length = 0;') &&
+       runtime.includes("showToast('CHAPTER I // FIRST WAKE'"),
+  'chapter handoff must replace stale opening notifications');
+
 
 const questStart = runtime.indexOf('function drawQuestOverlay()');
 const questEnd = runtime.indexOf('function drawEpilogueScreen()', questStart);
