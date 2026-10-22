@@ -170,11 +170,12 @@ func interact_nearest() -> bool:
 func complete_signal_contact(signal_id: String) -> bool:
     if signal_id not in ChapterState.SIGNAL_IDS:
         return false
-    var contact_id := {
+    var signal_to_contact: Dictionary = {
         "harmonic_buoy": "engine_spirit",
         "below_frequency": "child_prophet",
         "sky_lane_warning": "corporate_salvager",
-    }[signal_id]
+    }
+    var contact_id: String = str(signal_to_contact[signal_id])
     chapter.meet_contact(contact_id)
     if not chapter.complete_signal(signal_id):
         return false
