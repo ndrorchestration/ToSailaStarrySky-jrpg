@@ -6,12 +6,22 @@ const INTERACT := "aetherwake_ch1_interact"
 const CHOICE_A := "aetherwake_ch1_choice_a"
 const CHOICE_B := "aetherwake_ch1_choice_b"
 const CHOICE_C := "aetherwake_ch1_choice_c"
+const FORMULA_REVIEW := "aetherwake_ch1_formula_review"
+const COMBAT_STRIKE := "aetherwake_ch1_combat_strike"
+const COMBAT_ANALYZE := "aetherwake_ch1_combat_analyze"
+const COMBAT_HOLD := "aetherwake_ch1_combat_hold"
+const COMBAT_REST := "aetherwake_ch1_combat_rest"
 
 static func ensure_defaults() -> void:
     _ensure_key_and_pad(INTERACT, KEY_E, JOY_BUTTON_A)
     _ensure_key_and_pad(CHOICE_A, KEY_1, JOY_BUTTON_X)
     _ensure_key_and_pad(CHOICE_B, KEY_2, JOY_BUTTON_Y)
     _ensure_key_and_pad(CHOICE_C, KEY_3, JOY_BUTTON_B)
+    _ensure_key_and_pad(FORMULA_REVIEW, KEY_C, JOY_BUTTON_RIGHT_SHOULDER)
+    _ensure_key_and_pad(COMBAT_STRIKE, KEY_1, JOY_BUTTON_X)
+    _ensure_key_and_pad(COMBAT_ANALYZE, KEY_2, JOY_BUTTON_Y)
+    _ensure_key_and_pad(COMBAT_HOLD, KEY_3, JOY_BUTTON_B)
+    _ensure_key_and_pad(COMBAT_REST, KEY_4, JOY_BUTTON_A)
 
 static func primary_label(action: String) -> String:
     if not InputMap.has_action(action):
