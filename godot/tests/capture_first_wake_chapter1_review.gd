@@ -3,7 +3,23 @@ extends SceneTree
 ## Engineering/visual-review evidence only; no artistic or release acceptance.
 
 const REVIEW_SCENE = preload("res://scenes/first_wake_chapter1_review.tscn")
+const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd")
 const OUTPUT = "res://review-evidence/chapter1-migration/"
+
+class Sequence:
+    extends RefCounted
+    var values: Array
+    var index: int = 0
+
+    func _init(next_values: Array) -> void:
+        values = next_values.duplicate()
+
+    func next():
+        if index >= values.size():
+            return 0.5
+        var value = values[index]
+        index += 1
+        return value
 
 func _initialize() -> void:
     call_deferred("_capture")
@@ -43,6 +59,33 @@ func _capture() -> void:
     var signal_image: Image = await _snapshot("chapter1-signal-native-960x640.png")
     if signal_image == null:
         quit(3)
+        return
+
+    # Capture the production-formula controller as a transient, noncanonical
+    # review overlay. It must not alter Chapter I progression.
+    var chapter_before_formula: Dictionary = world.chapter.snapshot()
+    var review_rng = Sequence.new([0.5, 0.99, 0.5, 0.99])
+    world.formula_encounter = FormulaEncounter.new(review_rng.next)
+    if not world.start_formula_review():
+        push_error("CHAPTER1_CAPTURE_FAIL: formula review did not open")
+        quit(34)
+        return
+    if not world.take_formula_review_action("uncoverTruth"):
+        push_error("CHAPTER1_CAPTURE_FAIL: formula review analysis did not resolve")
+        quit(35)
+        return
+    await process_frame
+    var formula_image: Image = await _snapshot("chapter1-formula-review-native-960x640.png")
+    if formula_image == null:
+        quit(36)
+        return
+    if world.chapter.snapshot() != chapter_before_formula:
+        push_error("CHAPTER1_CAPTURE_FAIL: formula review mutated Chapter I progression")
+        quit(37)
+        return
+    if not world.close_formula_review():
+        push_error("CHAPTER1_CAPTURE_FAIL: formula review did not close")
+        quit(38)
         return
 
     # Capture a real authored dialogue state before crediting the signal.
@@ -101,7 +144,7 @@ func _capture() -> void:
         return
 
     var scene_region := Rect2i(80, 110, 800, 350)
-    var frames := [signal_image, dialogue_image, crossing, contact, choice, wake, done]
+    var frames := [signal_image, formula_image, dialogue_image, crossing, contact, choice, wake, done]
     for i in range(frames.size() - 1):
         if frames[i].get_region(scene_region).get_data() == frames[i + 1].get_region(scene_region).get_data():
             push_error("CHAPTER1_CAPTURE_FAIL: adjacent stage frames are not visibly distinct at index " + str(i))
@@ -110,6 +153,6 @@ func _capture() -> void:
 
     world.queue_free()
     await process_frame
-    print("AETHERWAKE_GODOT_CHAPTER1_NATIVE_RENDER_PASS: Signal, Dialogue, Crossing, Contact, Choice, Wake and Done are visibly distinct 960x640 native frames")
+    print("AETHERWAKE_GODOT_CHAPTER1_NATIVE_RENDER_PASS: Signal, Formula Review, Dialogue, Crossing, Contact, Choice, Wake and Done are visibly distinct 960x640 native frames")
     print("AETHERWAKE_GODOT_CHAPTER1_ARTISTIC_ACCEPTANCE=PENDING")
     quit(0)
