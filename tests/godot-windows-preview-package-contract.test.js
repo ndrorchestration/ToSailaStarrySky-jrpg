@@ -27,6 +27,10 @@ assert(script.includes('cd /d "%TEMP%"'),
 assert(script.includes('copy /Y "%~f0" "%CLEANUP%"') &&
        script.includes('"%CLEANUP%" --cleanup'),
   'uninstaller must hand cleanup to a temporary self-copy before deleting its install directory');
+assert(script.includes('for($i=0; $i -lt 12 -and (Test-Path -LiteralPath $dest); $i++)') &&
+       script.includes('Remove-Item -LiteralPath $dest -Recurse -Force') &&
+       script.includes('if(Test-Path -LiteralPath $dest){exit 2}'),
+  'temporary cleanup must retry install-directory removal and fail closed if it remains');
 assert(!/makensis|\.nsi(?:\s|["'])|NSIS\\|nsis\.exe/i.test(script),
   'native preview package must not invoke NSIS tooling');
 assert(!/runas|Start-Process[^\n]*-Verb\s+RunAs/i.test(script),
