@@ -332,7 +332,7 @@ func _refresh_ui() -> void:
     var primary := InputPolicy.primary_label(InputPolicy.CHOICE_PRIMARY)
     var secondary := InputPolicy.primary_label(InputPolicy.CHOICE_SECONDARY)
     var history_key := InputPolicy.primary_label(InputPolicy.HISTORY)
-    stage_label.text = "STUDY: " + stage.to_upper() + "   |   Movement: arrows   |   M: reduced motion   |   S: sound   |   " + history_key + ": history   |   +/-: text size"
+    stage_label.text = stage.to_upper() + "   |   " + history_key + ": history   M: motion   S: sound   +/-: text"
     story.text = _story_message
     if stage == "choose":
         hint.text = primary + ": Help the crew   |   " + secondary + ": Repair the beacon   |   Esc: later"
@@ -342,7 +342,7 @@ func _refresh_ui() -> void:
         var optional_prompt := context_prompt_text()
         hint.text = ("Prototype complete. " if optional_prompt.is_empty() else optional_prompt + "  |  ") + "No save or story canon."
     else:
-        hint.text = context_prompt_text() + "  |  P: local review trace %s" % ("ON" if trace_opt_in else "OFF")
+        hint.text = "Arrows: move  |  " + context_prompt_text() + "  |  P: review trace %s" % ("ON" if trace_opt_in else "OFF")
 
 func _set_story_message(message: String) -> void:
     _story_message = message
@@ -356,7 +356,7 @@ func _remember_story(message: String) -> void:
         if dialogue_history.size() > 8:
             dialogue_history.pop_front()
     if history_label != null:
-        history_label.text = "DIALOGUE HISTORY\n\n" + "\n\n".join(dialogue_history)
+        history_label.text = "DIALOGUE HISTORY — " + InputPolicy.primary_label(InputPolicy.HISTORY) + " TO CLOSE\n\n" + "\n\n".join(dialogue_history)
 
 func toggle_history() -> void:
     history_open = not history_open
