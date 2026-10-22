@@ -10,6 +10,7 @@ const Content = preload("res://scripts/first_wake_chapter1_content.gd")
 const DialogueState = preload("res://scripts/first_wake_chapter1_dialogue_state.gd")
 const SaveCodec = preload("res://scripts/first_wake_chapter1_save_codec.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
+const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd")
 
 const DECK_BOUNDS := Rect2(Vector2(110, 404), Vector2(740, 118))
 const INTERACT_DISTANCE := 74.0
@@ -51,6 +52,7 @@ var review_hull_integrity: int = 100
 var review_morale: int = 50
 var review_engine_integration: int = 0
 var resolved_epilogue: Dictionary = {}
+var formula_encounter = FormulaEncounter.new()
 
 func _ready() -> void:
     InputPolicy.ensure_defaults()
@@ -165,6 +167,112 @@ func _draw() -> void:
         draw_rect(Rect2(120, 350, 720, 190), Color(0.035, 0.07, 0.13, 0.97))
         draw_rect(Rect2(124, 354, 712, 182), Color("#8cdbc8"), false, 2.0)
 
+    if formula_encounter.active:
+        _draw_formula_review()
+
+func _draw_formula_review() -> void:
+    var panel := Rect2(145, 112, 670, 390)
+    draw_rect(panel, Color(0.025, 0.055, 0.10, 0.98))
+    draw_rect(Rect2(149, 116, 662, 382), Color("#355168"), false, 2.0)
+
+    var target_hp := int(formula_encounter.target.get("hp", 0))
+    var target_max := maxi(1, int(formula_encounter.target.get("maxHp", 1)))
+    var player_vit := int(formula_encounter.player.get("vit", 0))
+    var player_max_vit := maxi(1, int(formula_encounter.player.get("maxVit", 1)))
+    var staff_charges := int(formula_encounter.player.get("staffCharges", 0))
+    var max_staff_charges := int(formula_encounter.player.get("maxStaffCharges", 0))
+    var heat: Dictionary = formula_encounter.player.get("heat", {"current": 0, "max": 3})
+
+    draw_string(
+        ThemeDB.fallback_font,
+        Vector2(176, 154),
+        "FORMULA REVIEW ENCOUNTER",
+        HORIZONTAL_ALIGNMENT_LEFT,
+        -1,
+        24,
+        Color("#fff1ce")
+    )
+    draw_string(
+        ThemeDB.fallback_font,
+        Vector2(176, 184),
+        "Production JRPG math · noncanonical target · Chapter I progress unchanged",
+        HORIZONTAL_ALIGNMENT_LEFT,
+        610,
+        14,
+        Color("#9dd9ee")
+    )
+
+    draw_string(
+        ThemeDB.fallback_font,
+        Vector2(176, 232),
+        "ENDER  VIT %d/%d   STAFF %d/%d   HEAT %d/%d" % [
+            player_vit,
+            player_max_vit,
+            staff_charges,
+            max_staff_charges,
+            int(heat.get("current", 0)),
+            int(heat.get("max", 3)),
+        ],
+        HORIZONTAL_ALIGNMENT_LEFT,
+        610,
+        18,
+        Color("#d7eaf0")
+    )
+    draw_string(
+        ThemeDB.fallback_font,
+        Vector2(176, 270),
+        "%s  HP %d/%d" % [
+            str(formula_encounter.target.get("name", "Review target")),
+            target_hp,
+            target_max,
+        ],
+        HORIZONTAL_ALIGNMENT_LEFT,
+        610,
+        19,
+        Color("#f0a072")
+    )
+
+    var analysis_text := "Weakness hidden.  2: Uncover Truth"
+    if formula_encounter.weakness_revealed():
+        analysis_text = "ANALYZED: " + str(formula_encounter.target.get("weakness", ""))
+    draw_string(
+        ThemeDB.fallback_font,
+        Vector2(176, 306),
+        analysis_text,
+        HORIZONTAL_ALIGNMENT_LEFT,
+        610,
+        15,
+        Color("#8cdbc8")
+    )
+
+    draw_string(ThemeDB.fallback_font, Vector2(176, 356), "1  Staff Strike", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
+    draw_string(ThemeDB.fallback_font, Vector2(390, 356), "2  Uncover Truth", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
+    draw_string(ThemeDB.fallback_font, Vector2(176, 390), "3  Hold", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
+    draw_string(ThemeDB.fallback_font, Vector2(390, 390), "4  Rest", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
+
+    var status := formula_encounter.last_log()
+    if formula_encounter.completed:
+        status = "TARGET CLEARED. C closes review; Chapter I state remains unchanged."
+    draw_string(
+        ThemeDB.fallback_font,
+        Vector2(176, 438),
+        status,
+        HORIZONTAL_ALIGNMENT_LEFT,
+        610,
+        15,
+        Color("#d7eaf0")
+    )
+
+    draw_string(
+        ThemeDB.fallback_font,
+        Vector2(176, 474),
+        "C: close review",
+        HORIZONTAL_ALIGNMENT_LEFT,
+        -1,
+        13,
+        Color("#9dd9ee")
+    )
+
 func _draw_target(point: Vector2, label_text: String, target_color: Color, completed: bool) -> void:
     var color := Color(target_color, 0.20 if completed else 0.38)
     draw_circle(point + Vector2(0, -45), 24.0, color)
@@ -178,6 +286,40 @@ func _draw_target(point: Vector2, label_text: String, target_color: Color, compl
         15,
         Color("#e8f5f5")
     )
+
+func start_formula_review() -> bool:
+    if formula_encounter.active or dialogue.open or chapter.stage_key() in ["choice", "done"]:
+        return false
+    formula_encounter.reset()
+    if not formula_encounter.start():
+        return false
+    ender.player_controlled = false
+    last_message = formula_encounter.last_log()
+    _refresh_ui()
+    queue_redraw()
+    return true
+
+func close_formula_review() -> bool:
+    if not formula_encounter.close():
+        return false
+    ender.player_controlled = (not dialogue.open) and chapter.stage_key() not in ["choice", "done"]
+    last_message = "Formula review closed. Chapter I progression was not changed."
+    _refresh_ui()
+    queue_redraw()
+    return true
+
+func take_formula_review_action(action_id: String) -> bool:
+    if not formula_encounter.active:
+        return false
+    if not formula_encounter.take_action(action_id):
+        last_message = formula_encounter.last_log()
+        _refresh_ui()
+        queue_redraw()
+        return false
+    last_message = formula_encounter.last_log()
+    _refresh_ui()
+    queue_redraw()
+    return true
 
 func interact_nearest() -> bool:
     match chapter.stage_key():
@@ -348,7 +490,7 @@ func _advance_dialogue_review() -> bool:
     return true
 
 func _after_progress() -> void:
-    ender.player_controlled = (not dialogue.open) and chapter.stage_key() not in ["choice", "done"]
+    ender.player_controlled = (not dialogue.open) and (not formula_encounter.active) and chapter.stage_key() not in ["choice", "done"]
     _refresh_ui()
     queue_redraw()
 
@@ -357,9 +499,17 @@ func _refresh_ui() -> void:
         return
     objective.text = chapter.stage_key().to_upper() + "  /  " + _objective_text()
     party_label.text = "ACTIVE  " + " + ".join(chapter.desired_active_party_ids()).to_upper()
-    dialogue_speaker.visible = dialogue.open
-    dialogue_body.visible = dialogue.open
-    if dialogue.open:
+    dialogue_speaker.visible = dialogue.open and not formula_encounter.active
+    dialogue_body.visible = dialogue.open and not formula_encounter.active
+    if formula_encounter.active:
+        hint.text = "%s: Strike   %s: Analyze   %s: Hold   %s: Rest   %s: Close" % [
+            InputPolicy.primary_label(InputPolicy.COMBAT_STRIKE),
+            InputPolicy.primary_label(InputPolicy.COMBAT_ANALYZE),
+            InputPolicy.primary_label(InputPolicy.COMBAT_HOLD),
+            InputPolicy.primary_label(InputPolicy.COMBAT_REST),
+            InputPolicy.primary_label(InputPolicy.FORMULA_REVIEW),
+        ]
+    elif dialogue.open:
         dialogue_speaker.text = dialogue.speaker_name().to_upper()
         dialogue_body.text = dialogue.current_line()
         hint.text = "%s: continue   |   line %d / %d" % [
@@ -396,8 +546,10 @@ func restore_save_snapshot(snapshot: Dictionary) -> bool:
     review_morale = int(stats.get("morale", 50))
     review_engine_integration = int(stats.get("engine_integration", 0))
 
-    # Dialogue is transient UI state and intentionally not part of durable saves.
+    # Dialogue and formula-review combat are transient UI state and intentionally
+    # not part of durable Chapter I saves.
     dialogue.close()
+    formula_encounter.reset()
     pending_signal_id = ""
     pending_contact_id = ""
 
