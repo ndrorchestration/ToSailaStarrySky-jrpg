@@ -1,4 +1,6 @@
 extends SceneTree
+
+const Content = preload("res://scripts/first_wake_chapter1_content.gd")
 ## Real-scene contract for the native First Wake Chapter I migration review.
 
 func _initialize() -> void:
@@ -38,6 +40,9 @@ func _verify() -> void:
     if world.chapter.stage_key() != "crossing" or world.chapter.contacts_met.size() != 3:
         _fail("signal phase did not carry three contacts into crossing")
         return
+    if world.last_message != "Verrick: " + Content.contact_review_excerpt("corporate_salvager"):
+        _fail("scene did not bind packaged Verrick dialogue excerpt")
+        return
 
     for hazard_id in ["sky_predator", "wind_shear", "corporate_intercept"]:
         if not world.complete_hazard_review(hazard_id):
@@ -66,11 +71,20 @@ func _verify() -> void:
     if world.chapter.stage_key() != "wake" or not world.ender.player_controlled:
         _fail("choice did not enter playable Wake resolution")
         return
+    if world.last_message != Content.choice_outcome("path_c", "10+"):
+        _fail("Wake stage did not display packaged path_c 10+ outcome")
+        return
     if not world.resolve_wake_review():
         _fail("Wake review resolution rejected")
         return
     if world.chapter.stage_key() != "done" or not world.chapter.chapter_one_complete:
         _fail("real scene did not reach explicit Chapter I completion")
+        return
+    if world.chapter.epilogue_id != Content.review_epilogue_fixture("path_c"):
+        _fail("review scene did not inject the documented canonical epilogue fixture")
+        return
+    if world.last_message.find(Content.epilogue_name(world.chapter.epilogue_id)) < 0:
+        _fail("completion message did not display migrated epilogue identity")
         return
     if world.ender.player_controlled:
         _fail("player control remained active after migration-review completion")
