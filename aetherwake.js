@@ -74,6 +74,7 @@ const VIS = {
   vignette: true,
   particles: true,
   hudAnimations: true,
+  scanlines: false,
 };
 
 // ── Toast messages ──
@@ -1508,15 +1509,6 @@ function drawBackgroundGrid() {
   for (let y = 0; y < height; y += 32) line(0, y, width, y);
 }
 
-function drawScanlines() {
-  noFill();
-  for (let y = 0; y < height; y += 3) {
-    stroke(C.teal[0], C.teal[1], C.teal[2], 3);
-    strokeWeight(1);
-    line(0, y, width, y);
-  }
-}
-
 function drawTitleScreen() {
   noStroke();
   fill(C.navy[0], C.navy[1], C.navy[2]);
@@ -1827,6 +1819,10 @@ function drawQuestLogOverlay() {
     else if (qs.state === 'contact')  text('Contact — four souls await on the ship.', qx + 16, y);
     else if (qs.state === 'choice')   text('Choice — three paths open before you.', qx + 16, y);
     else if (qs.state === 'wake')     text('Wake — the ending unfolds.', qx + 16, y);
+    y += 22;
+    fill(C.scioto[0], C.scioto[1], C.scioto[2], 210);
+    textSize(13);
+    text('NEXT: ' + qs.objective, qx + 16, y, qw - 32, 54);
   }
 
   textFont('Press Start 2P');
@@ -2462,6 +2458,56 @@ function initQuest() {
 // Quest FSM API
 // ---------------------------------------------------------------------------
 
+function getQuestObjectiveText() {
+  if (!quest || !quest.state) return 'Find your footing aboard the Wake.';
+
+  if (quest.state === QUEST_STATES.SIGNAL) {
+    const contactByHook = {
+      harmonic_buoy: 'Wakeheart',
+      sky_lane_warning: 'Verrick',
+      below_frequency: 'Lyra'
+    };
+    const remaining = quest.signalHooks
+      .filter(hook => !hook.done)
+      .map(hook => contactByHook[hook.id] || hook.label);
+    return remaining.length
+      ? 'Talk to marked: ' + remaining.join(', ')
+      : 'Signal readings complete. Prepare for the storm crossing.';
+  }
+
+  if (quest.state === QUEST_STATES.CROSSING) {
+    const remaining = quest.crossingHazards.filter(hazard => !hazard.done).map(hazard => hazard.label);
+    return remaining.length
+      ? 'Resolve orange hazard zones (' + remaining.length + ' remaining).'
+      : 'Crossing clear. Find the four marked contacts.';
+  }
+
+  if (quest.state === QUEST_STATES.CONTACT) {
+    const remaining = quest.contactNPCs
+      .filter(contact => !quest.npcsMet.includes(contact.id))
+      .map(contact => contact.label);
+    return remaining.length
+      ? 'Talk to marked: ' + remaining.join(', ')
+      : 'All voices heard. Choose how the Wake answers the storm.';
+  }
+
+  if (quest.state === QUEST_STATES.CHOICE) {
+    return quest.choiceMade
+      ? 'Your choice is set. Watch how the Wake answers.'
+      : 'Choose: press 1, 2, or 3 (or click a path).';
+  }
+
+  if (quest.state === QUEST_STATES.WAKE) {
+    return 'Return your attention to the Wake as the consequence resolves.';
+  }
+
+  if (quest.state === QUEST_STATES.DONE) {
+    return 'Chapter I complete. Press R when you want to begin again.';
+  }
+
+  return 'Open the Quest Log with T for the current route.';
+}
+
 function getQuestState() {
   return {
     state: quest.state,
@@ -2472,6 +2518,7 @@ function getQuestState() {
     choiceMade: quest.choiceMade,
     choiceVariant: quest.choiceVariant,
     chapterOneComplete: quest.chapterOneComplete,
+    objective: getQuestObjectiveText(),
     hullIntegrity: quest.hullIntegrity,
     morale: quest.morale,
     heatLevel: quest.heatLevel,
@@ -4060,15 +4107,15 @@ function drawQuestOverlay() {
 
   noStroke();
   fill(color(26, 16, 46, 200));
-  rect(620, 8, 170, 22, 4);
+  rect(600, 8, 350, 62, 4);
   fill(col);
   noStroke();
-  rect(620, 8, 4, 22);
+  rect(600, 8, 4, 62);
   fill(col);
   textAlign(LEFT, TOP);
   textSize(11);
   textFont('Press Start 2P');
-  text(stateLabel, 630, 11);
+  text(stateLabel, 610, 11);
   textSize(10);
   textFont('VT323');
 
@@ -4097,7 +4144,10 @@ function drawQuestOverlay() {
   } else if (quest.state === 'done') {
     progressText = quest.wakeEpilogue ? quest.wakeEpilogue.name : '—';
   }
-  text(progressText, 630, 23);
+  text(progressText, 610, 23);
+  fill(color(124, 200, 232, 235));
+  textSize(10);
+  text('NEXT: ' + getQuestObjectiveText(), 610, 37, 330, 28);
   textSize(10);
   textFont('sans-serif');
 }
@@ -6336,15 +6386,13 @@ function drawBackground() {
  * Call AFTER all content, semi-transparent dark teal lines.
  */
 function drawScanlines() {
+  if (!VIS.scanlines) return;
   push();
   noStroke();
-  fill(color(PAL.SHADOW), 40); // subtle dark scanline tint
-  for (let y = 0; y < height; y += 3) {
-    rect(0, y, width, 1);
-  }
-  // Brighter scanline gaps
-  fill(color(PAL.TEAL), 6);
-  for (let y = 1; y < height; y += 3) {
+  const scanShadow = color(PAL.SHADOW);
+  scanShadow.setAlpha(24);
+  fill(scanShadow);
+  for (let y = 0; y < height; y += 4) {
     rect(0, y, width, 1);
   }
   pop();

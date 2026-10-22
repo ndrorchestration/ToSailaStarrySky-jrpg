@@ -1176,21 +1176,30 @@ function createServer() {
 
     const chapterOneIntegration = await page.evaluate(() => {
       initQuest();
+      const signalObjective = getQuestState().objective;
       completeSignalHook('harmonic_buoy');
       completeSignalHook('sky_lane_warning');
       completeSignalHook('below_frequency');
+      const crossingObjective = getQuestState().objective;
       completeHazard(0);
       completeHazard(1);
       completeHazard(2);
+      const contactObjective = getQuestState().objective;
       quest.npcsMet = ['elder_farmer', 'engine_spirit', 'child_prophet', 'corporate_salvager'];
       advanceQuest();
       const activeAtChoice = window.ACTIVE_PARTY.map(character => character.id);
       const ioniaPlayable = Boolean(window.ROSTER[2] && window.ROSTER[2].playable);
+      const choiceObjective = getQuestState().objective;
       selectChoicePath(2);
       const afterChoice = getQuestState();
       advanceQuest();
       const completed = getQuestState();
       return {
+        signalObjective,
+        crossingObjective,
+        contactObjective,
+        choiceObjective,
+        completedObjective: completed.objective,
         activeAtChoice,
         ioniaPlayable,
         choiceState: afterChoice.state,
@@ -1200,6 +1209,17 @@ function createServer() {
         epilogue: quest.wakeEpilogue && quest.wakeEpilogue.name,
       };
     });
+    assert(chapterOneIntegration.signalObjective.includes('Talk to marked:'),
+      'Signal objective did not tell the player how to make progress');
+    assert(chapterOneIntegration.crossingObjective.includes('Resolve orange hazard zones'),
+      'Crossing objective did not identify the visible hazard affordance');
+    assert(chapterOneIntegration.contactObjective.includes('Talk to marked:'),
+      'Contact objective did not identify the remaining social route');
+    assert(chapterOneIntegration.choiceObjective.includes('Choose: press 1, 2, or 3'),
+      'Choice objective did not teach the actual choice input');
+    assert(chapterOneIntegration.completedObjective.includes('Chapter I complete'),
+      'completed objective did not identify chapter completion');
+
     assert(chapterOneIntegration.activeAtChoice.join('|') === 'ender|lyra|ionia',
       'Ionia did not join the canonical active party at the storm/shield decision boundary');
     assert(chapterOneIntegration.ioniaPlayable === true,
