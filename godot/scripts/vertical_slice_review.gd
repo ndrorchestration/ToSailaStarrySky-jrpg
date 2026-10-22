@@ -30,6 +30,7 @@ var trace_opt_in: bool = false
 var audio_enabled: bool = true
 var signal_audio_player: AudioStreamPlayer
 var trace_events: Array[Dictionary] = []
+var post_payoff_reaction_seen: bool = false
 var _story_message: String = "Something on the dock is sending a faint signal. Look for the small blue light."
 
 func _ready() -> void:
@@ -193,6 +194,18 @@ func finish_at_dock() -> bool:
     queue_redraw()
     return true
 
+func hear_ionia_reaction() -> bool:
+    if stage != "complete" or post_payoff_reaction_seen:
+        return false
+    post_payoff_reaction_seen = true
+    if choice_state.choice == ChoiceState.Choice.HELP_CREW:
+        _story_message = "Ionia: You chose the people standing here. That kind of answer travels farther than you think."
+    else:
+        _story_message = "Ionia: One light cannot mend the whole sky. But someone out there can see a way home now."
+    _record("ionia_post_payoff_reaction")
+    _refresh_ui()
+    return true
+
 func _unhandled_input(event: InputEvent) -> void:
     if event.is_action_pressed(InputPolicy.CHOICE_PRIMARY):
         if stage == "choose":
@@ -217,6 +230,8 @@ func _unhandled_input(event: InputEvent) -> void:
             start_encounter()
         elif stage == "return" and ender.global_position.distance_to(SIGNAL_POINT) <= 85.0:
             finish_at_dock()
+        elif stage == "complete" and ender.global_position.distance_to(IONIA_POINT) <= 85.0:
+            hear_ionia_reaction()
         return
     if not (event is InputEventKey) or not event.pressed or event.echo:
         return
@@ -256,7 +271,8 @@ func context_prompt_text() -> String:
         ender.global_position.distance_to(SIGNAL_POINT),
         ender.global_position.distance_to(IONIA_POINT),
         ender.global_position.distance_to(CHALLENGE_POINT),
-        InputPolicy.primary_label(InputPolicy.INTERACT)
+        InputPolicy.primary_label(InputPolicy.INTERACT),
+        post_payoff_reaction_seen
     )
 
 func _refresh_ui() -> void:
@@ -269,7 +285,8 @@ func _refresh_ui() -> void:
     elif stage == "encounter":
         hint.text = "HP %d  |  Signal %d  |  Echo %d  |  1: Strike  2: Guard  Esc: exit" % [encounter.player_hp, encounter.challenge_hp, encounter.echo_focus]
     elif stage == "complete":
-        hint.text = "Prototype complete. Choice and consequence shown; no save or story canon."
+        var optional_prompt := context_prompt_text()
+        hint.text = ("Prototype complete. " if optional_prompt.is_empty() else optional_prompt + "  |  ") + "No save or story canon."
     else:
         hint.text = context_prompt_text() + "  |  P: local review trace %s" % ("ON" if trace_opt_in else "OFF")
 
