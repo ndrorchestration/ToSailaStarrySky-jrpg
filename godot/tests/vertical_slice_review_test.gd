@@ -71,6 +71,9 @@ func _verify() -> void:
     if not other.finish_at_dock() or other.choice_state.dock_payoff_key() != "beacon_restored":
         _fail("beacon payoff missing")
         return
+    other.signal_audio_player.stop()
+    other.signal_audio_player.stream = null
+    await process_frame
     other.queue_free()
     await process_frame
     print("AETHERWAKE_VERTICAL_SLICE_PASS: real scene, exclusive paths, readable challenge, pause/resume and two payoffs")
