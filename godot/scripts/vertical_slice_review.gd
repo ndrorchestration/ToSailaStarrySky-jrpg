@@ -8,6 +8,7 @@ const ChoiceState = preload("res://scripts/vertical_slice_choice_state.gd")
 const Encounter = preload("res://scripts/vertical_slice_encounter.gd")
 const PromptModel = preload("res://scripts/vertical_slice_prompt_model.gd")
 const InputPolicy = preload("res://scripts/vertical_slice_input_policy.gd")
+const SignalAudio = preload("res://scripts/vertical_slice_signal_audio.gd")
 const DECK_BOUNDS = Rect2(Vector2(110, 404), Vector2(740, 118))
 const SIGNAL_POINT = Vector2(224, 465)
 const IONIA_POINT = Vector2(560, 465)
@@ -26,6 +27,8 @@ var elapsed_seconds: float = 0.0
 var reduced_motion: bool = true
 var text_size: int = 21
 var trace_opt_in: bool = false
+var audio_enabled: bool = true
+var signal_audio_player: AudioStreamPlayer
 var trace_events: Array[Dictionary] = []
 var _story_message: String = "Something on the dock is sending a faint signal. Look for the small blue light."
 
@@ -56,6 +59,11 @@ func _ready() -> void:
     ionia.walking_bounds = DECK_BOUNDS
     ionia.position = IONIA_POINT
     actors.add_child(ionia)
+
+    signal_audio_player = AudioStreamPlayer.new()
+    signal_audio_player.name = "OriginalSignalAudioReviewOnly"
+    signal_audio_player.volume_db = -8.0
+    add_child(signal_audio_player)
 
     var ui := CanvasLayer.new()
     ui.name = "AccessibleReviewUI"
@@ -112,6 +120,7 @@ func discover_signal() -> bool:
     stage = "meet"
     _story_message = "A broken signal repeats two notes. Ionia might know who is waiting for an answer."
     _record("clue_discovered")
+    _play_signal_audio(SignalAudio.make_question())
     _refresh_ui()
     return true
 
@@ -179,6 +188,7 @@ func finish_at_dock() -> bool:
     else:
         _story_message = "The beacon shines again. A distant vessel sends a grateful reply."
     _record("payoff_reached")
+    _play_signal_audio(SignalAudio.make_answer())
     _refresh_ui()
     queue_redraw()
     return true
@@ -213,6 +223,10 @@ func _unhandled_input(event: InputEvent) -> void:
     if event.keycode == KEY_M:
         reduced_motion = not reduced_motion
         queue_redraw()
+    elif event.keycode == KEY_S:
+        audio_enabled = not audio_enabled
+        if not audio_enabled and signal_audio_player != null:
+            signal_audio_player.stop()
     elif event.keycode == KEY_P:
         trace_opt_in = not trace_opt_in
         if not trace_opt_in:
@@ -248,7 +262,7 @@ func context_prompt_text() -> String:
 func _refresh_ui() -> void:
     if stage_label == null:
         return
-    stage_label.text = "STUDY: " + stage.to_upper() + "   |   Movement: arrows   |   M: reduced motion   |   +/-: text size"
+    stage_label.text = "STUDY: " + stage.to_upper() + "   |   Movement: arrows   |   M: reduced motion   |   S: sound   |   +/-: text size"
     story.text = _story_message
     if stage == "choose":
         hint.text = "1: Help the crew   |   2: Repair the beacon   |   Esc: later"
@@ -258,6 +272,12 @@ func _refresh_ui() -> void:
         hint.text = "Prototype complete. Choice and consequence shown; no save or story canon."
     else:
         hint.text = context_prompt_text() + "  |  P: local review trace %s" % ("ON" if trace_opt_in else "OFF")
+
+func _play_signal_audio(stream: AudioStreamWAV) -> void:
+    if not audio_enabled or signal_audio_player == null:
+        return
+    signal_audio_player.stream = stream
+    signal_audio_player.play()
 
 func _record(event_name: String) -> void:
     if trace_opt_in:
