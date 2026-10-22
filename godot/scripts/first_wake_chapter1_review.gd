@@ -7,6 +7,7 @@ const Actor = preload("res://scripts/pilot_actor.gd")
 const DockDepthReview = preload("res://scripts/dock_depth_review.gd")
 const ChapterState = preload("res://scripts/first_wake_chapter1_state.gd")
 const Content = preload("res://scripts/first_wake_chapter1_content.gd")
+const DialogueState = preload("res://scripts/first_wake_chapter1_dialogue_state.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 
 const DECK_BOUNDS := Rect2(Vector2(110, 404), Vector2(740, 118))
@@ -38,6 +39,11 @@ var headline: Label
 var objective: Label
 var hint: Label
 var party_label: Label
+var dialogue_speaker: Label
+var dialogue_body: Label
+var dialogue = DialogueState.new()
+var pending_signal_id: String = ""
+var pending_contact_id: String = ""
 var last_message: String = "Read the three marked signals before the storm crossing."
 var deterministic_review_variant: String = "10+"
 var review_hull_integrity: int = 100
@@ -90,6 +96,14 @@ func _ready() -> void:
     objective = _label(ui, Vector2(24, 54), 16)
     party_label = _label(ui, Vector2(650, 18), 15)
     hint = _label(ui, Vector2(28, 568), 18)
+    dialogue_speaker = _label(ui, Vector2(142, 374), 18)
+    dialogue_body = _label(ui, Vector2(142, 408), 17)
+
+    dialogue_speaker.custom_minimum_size = Vector2(680, 28)
+    dialogue_body.custom_minimum_size = Vector2(680, 120)
+    dialogue_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    dialogue_speaker.visible = false
+    dialogue_body.visible = false
 
     headline.autowrap_mode = TextServer.AUTOWRAP_OFF
     headline.custom_minimum_size = Vector2(540, 32)
@@ -145,6 +159,10 @@ func _draw() -> void:
         draw_string(ThemeDB.fallback_font, Vector2(292, 222), "CHAPTER I COMPLETE", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color("#fff1ce"))
         var epilogue_name := str(resolved_epilogue.get("name", "Migration boundary"))
         draw_string(ThemeDB.fallback_font, Vector2(258, 278), epilogue_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("#d7eaf0"))
+
+    if dialogue.open:
+        draw_rect(Rect2(120, 350, 720, 190), Color(0.035, 0.07, 0.13, 0.97))
+        draw_rect(Rect2(124, 354, 712, 182), Color("#8cdbc8"), false, 2.0)
 
 func _draw_target(point: Vector2, label_text: String, target_color: Color, completed: bool) -> void:
     var color := Color(target_color, 0.20 if completed else 0.38)
@@ -239,7 +257,21 @@ func _interact_signal() -> bool:
         return false
     if ender.global_position.distance_to(SIGNAL_POINTS[nearest_id]) > INTERACT_DISTANCE:
         return false
-    return complete_signal_contact(nearest_id)
+    var signal_to_contact: Dictionary = {
+        "harmonic_buoy": "engine_spirit",
+        "below_frequency": "child_prophet",
+        "sky_lane_warning": "corporate_salvager",
+    }
+    pending_signal_id = nearest_id
+    pending_contact_id = str(signal_to_contact[nearest_id])
+    if not dialogue.begin_contact(pending_contact_id):
+        pending_signal_id = ""
+        pending_contact_id = ""
+        return false
+    ender.player_controlled = false
+    _refresh_ui()
+    queue_redraw()
+    return true
 
 func _interact_hazard() -> bool:
     var nearest_id := _nearest_pending(HAZARD_POINTS, chapter.completed_hazards)
@@ -252,7 +284,14 @@ func _interact_hazard() -> bool:
 func _interact_contact() -> bool:
     if ender.global_position.distance_to(CONTACT_POINTS["elder_farmer"]) > INTERACT_DISTANCE:
         return false
-    return meet_ionia_for_choice()
+    pending_contact_id = "elder_farmer"
+    if not dialogue.begin_contact(pending_contact_id):
+        pending_contact_id = ""
+        return false
+    ender.player_controlled = false
+    _refresh_ui()
+    queue_redraw()
+    return true
 
 func _nearest_pending(points: Dictionary, completed: Array[String]) -> String:
     var best_id := ""
@@ -267,6 +306,9 @@ func _nearest_pending(points: Dictionary, completed: Array[String]) -> String:
     return best_id
 
 func _unhandled_input(event: InputEvent) -> void:
+    if dialogue.open and event.is_action_pressed(InputPolicy.INTERACT):
+        _advance_dialogue_review()
+        return
     if event.is_action_pressed(InputPolicy.INTERACT) and ender.player_controlled:
         interact_nearest()
         return
@@ -279,8 +321,33 @@ func _unhandled_input(event: InputEvent) -> void:
     elif event.is_action_pressed(InputPolicy.CHOICE_C):
         choose_path_review("path_c")
 
+func _advance_dialogue_review() -> bool:
+    if not dialogue.open:
+        return false
+    var closing_contact := dialogue.contact_id
+    var was_last := dialogue.line_index == dialogue.lines.size() - 1
+    if not dialogue.advance_or_close():
+        return false
+    if was_last:
+        if not pending_signal_id.is_empty():
+            var signal_id := pending_signal_id
+            pending_signal_id = ""
+            pending_contact_id = ""
+            if not complete_signal_contact(signal_id):
+                return false
+        elif closing_contact == "elder_farmer" and chapter.stage_key() == "contact":
+            pending_contact_id = ""
+            if not meet_ionia_for_choice():
+                return false
+        else:
+            pending_contact_id = ""
+            ender.player_controlled = chapter.stage_key() not in ["choice", "done"]
+    _refresh_ui()
+    queue_redraw()
+    return true
+
 func _after_progress() -> void:
-    ender.player_controlled = chapter.stage_key() not in ["choice", "done"]
+    ender.player_controlled = (not dialogue.open) and chapter.stage_key() not in ["choice", "done"]
     _refresh_ui()
     queue_redraw()
 
@@ -289,7 +356,17 @@ func _refresh_ui() -> void:
         return
     objective.text = chapter.stage_key().to_upper() + "  /  " + _objective_text()
     party_label.text = "ACTIVE  " + " + ".join(chapter.desired_active_party_ids()).to_upper()
-    if chapter.stage_key() == "choice":
+    dialogue_speaker.visible = dialogue.open
+    dialogue_body.visible = dialogue.open
+    if dialogue.open:
+        dialogue_speaker.text = dialogue.speaker_name().to_upper()
+        dialogue_body.text = dialogue.current_line()
+        hint.text = "%s: continue   |   line %d / %d" % [
+            InputPolicy.primary_label(InputPolicy.INTERACT),
+            dialogue.line_index + 1,
+            dialogue.lines.size(),
+        ]
+    elif chapter.stage_key() == "choice":
         hint.text = "%s: Leave early   %s: Hold dock   %s: Project shield" % [
             InputPolicy.primary_label(InputPolicy.CHOICE_A),
             InputPolicy.primary_label(InputPolicy.CHOICE_B),
