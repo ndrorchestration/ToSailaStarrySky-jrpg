@@ -57,7 +57,7 @@ func _verify() -> void:
         _fail("Wake restore did not resume player movement")
         return
 
-    var before_invalid := world.chapter.snapshot()
+    var before_invalid: Dictionary = world.chapter.snapshot()
     var bad := wake_snapshot.duplicate(true)
     bad["stage"] = "done"
     bad["epilogue_id"] = ""
