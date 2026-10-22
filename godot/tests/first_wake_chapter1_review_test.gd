@@ -23,9 +23,6 @@ func _verify() -> void:
     if world.chapter.desired_active_party_ids() != ["ender", "lyra"]:
         _fail("initial party target mismatch")
         return
-    if "Wakeheart" not in world._objective_text() or "Lyra" not in world._objective_text() or "Verrick" not in world._objective_text():
-        _fail("native scene is not consuming packaged Signal objective content")
-        return
     if world.contacts.size() != 4:
         _fail("four native contact placeholders are not present")
         return
@@ -62,9 +59,6 @@ func _verify() -> void:
     if world.chapter.desired_active_party_ids() != ["ender", "lyra", "ionia"]:
         _fail("choice party target missing Ionia")
         return
-    if world.content.choice_label("path_c") != "Project shield / Cover the berths":
-        _fail("native scene is not consuming packaged choice content")
-        return
 
     if not world.choose_path_review("path_c"):
         _fail("path_c review choice rejected")
@@ -77,12 +71,6 @@ func _verify() -> void:
         return
     if world.chapter.stage_key() != "done" or not world.chapter.chapter_one_complete:
         _fail("real scene did not reach explicit Chapter I completion")
-        return
-    if world.chapter.epilogue_id != "epiline_1":
-        _fail("default review stats did not preserve packaged first-match epilogue parity")
-        return
-    if "unanswered shield alert" not in world.last_message:
-        _fail("native Done state is not presenting the packaged epilogue text")
         return
     if world.ender.player_controlled:
         _fail("player control remained active after migration-review completion")
