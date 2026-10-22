@@ -106,10 +106,36 @@ func _draw() -> void:
     draw_line(SIGNAL_POINT + Vector2(9, -48), SIGNAL_POINT + Vector2(-9, -28), Color("#17364d"), 3.0)
     draw_circle(CHALLENGE_POINT + Vector2(0, -44), 24, Color("#b8a3ce"))
     draw_circle(CHALLENGE_POINT + Vector2(0, -44), 13, Color("#403c65"))
-    if stage == "encounter" and encounter.echo_focus > 0:
-        draw_arc(CHALLENGE_POINT + Vector2(0, -44), 29.0, 0.0, TAU, 32, Color("#f1d88e"), 3.0)
+    if stage == "encounter":
+        if encounter.telegraph_winding_up:
+            draw_arc(CHALLENGE_POINT + Vector2(0, -44), 31.0, -PI * 0.90, PI * 0.90, 28, Color("#f0a072"), 4.0)
+            draw_arc(CHALLENGE_POINT + Vector2(0, -44), 36.0, -PI * 0.72, PI * 0.72, 28, Color(0.94, 0.55, 0.38, 0.42), 2.0)
+            draw_string(ThemeDB.fallback_font, CHALLENGE_POINT + Vector2(-31, -82), "GUARD", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#fff1ce"))
+        else:
+            draw_arc(CHALLENGE_POINT + Vector2(0, -44), 31.0, PI * 0.08, PI * 0.92, 20, Color("#8cdbc8"), 4.0)
+            draw_string(ThemeDB.fallback_font, CHALLENGE_POINT + Vector2(-31, -82), "STRIKE", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#d8fff0"))
+        if encounter.echo_focus > 0:
+            draw_arc(CHALLENGE_POINT + Vector2(0, -44), 41.0, 0.0, TAU, 32, Color("#f1d88e"), 3.0)
+            draw_string(ThemeDB.fallback_font, CHALLENGE_POINT + Vector2(-23, -102), "ECHO", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#f7dfa0"))
     if stage == "complete":
-        draw_circle(SIGNAL_POINT + Vector2(0, -38), 30, Color("#f1d88e") if choice_state.choice == ChoiceState.Choice.REPAIR_BEACON else Color("#8cdbc8"))
+        if choice_state.choice == ChoiceState.Choice.REPAIR_BEACON:
+            # Static layered glow remains readable with reduced motion enabled.
+            draw_circle(SIGNAL_POINT + Vector2(0, -38), 36, Color(0.95, 0.82, 0.48, 0.18))
+            draw_circle(SIGNAL_POINT + Vector2(0, -38), 28, Color("#f1d88e"))
+            draw_circle(SIGNAL_POINT + Vector2(0, -38), 12, Color("#fff4c8"))
+            draw_arc(SIGNAL_POINT + Vector2(0, -38), 43.0, -PI * 0.85, PI * 0.85, 32, Color(1.0, 0.91, 0.66, 0.48), 2.0)
+            # A tiny distant reply gives the choice a world-space consequence.
+            var vessel := Vector2(904, 369)
+            draw_line(vessel + Vector2(-22, 5), vessel + Vector2(18, 5), Color("#263d4c"), 4.0)
+            draw_line(vessel + Vector2(-13, 5), vessel + Vector2(-4, -4), Color("#263d4c"), 2.0)
+            draw_circle(vessel + Vector2(6, -7), 7.0, Color(1.0, 0.84, 0.46, 0.18))
+            draw_circle(vessel + Vector2(6, -7), 3.0, Color("#f8d978"))
+            draw_line(SIGNAL_POINT + Vector2(34, -54), vessel + Vector2(-4, -7), Color(1.0, 0.86, 0.52, 0.16), 1.0)
+        else:
+            # Crew-first path answers with several human-scale lights instead of one beacon.
+            for x in [315.0, 430.0, 648.0]:
+                draw_circle(Vector2(x, 382), 9.0, Color(0.55, 0.92, 0.82, 0.15))
+                draw_circle(Vector2(x, 382), 4.0, Color("#8cdbc8"))
     draw_string(ThemeDB.fallback_font, SIGNAL_POINT + Vector2(-45, 15), "SIGNAL", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
     draw_string(ThemeDB.fallback_font, IONIA_POINT + Vector2(-23, 20), "IONIA", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
     draw_string(ThemeDB.fallback_font, CHALLENGE_POINT + Vector2(-50, 18), "CHALLENGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
