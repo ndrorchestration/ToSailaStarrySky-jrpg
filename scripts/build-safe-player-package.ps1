@@ -69,6 +69,7 @@ $uninstall = @'
 setlocal
 set "DEST=%LOCALAPPDATA%\Programs\Aetherwake"
 powershell -NoProfile -Command "$dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake'; $exe=Join-Path $dest 'Aetherwake.exe'; Get-CimInstance Win32_Process | Where-Object {$_.ExecutablePath -eq $exe} | ForEach-Object {Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue}; $desktop=[Environment]::GetFolderPath('Desktop'); $menu=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Aetherwake'; Remove-Item -LiteralPath (Join-Path $desktop 'Aetherwake.lnk') -Force -ErrorAction SilentlyContinue; Remove-Item -LiteralPath $menu -Recurse -Force -ErrorAction SilentlyContinue"
+cd /d "%TEMP%"
 start "" /min cmd /c "timeout /t 2 /nobreak >nul & rmdir /s /q ""%DEST%"""
 echo Aetherwake uninstall scheduled.
 exit /b 0
