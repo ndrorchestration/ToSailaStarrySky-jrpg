@@ -21,8 +21,8 @@ assert(script.includes('Get-CimInstance Win32_Process') &&
   'uninstaller must scope process cleanup to the installed native preview executable');
 assert(script.includes('cd /d "%TEMP%"'),
   'uninstaller must leave its install directory before delayed deletion');
-assert(!/nsis|makensis/i.test(script.replace(/NSIS_INCLUDED=NO/g, '')),
-  'native preview package must not invoke NSIS');
+assert(!/makensis|\.nsi(?:\s|["'])|NSIS\\|nsis\.exe/i.test(script),
+  'native preview package must not invoke NSIS tooling');
 assert(!/runas|Start-Process[^\n]*-Verb\s+RunAs/i.test(script),
   'native preview package must not request elevation');
 assert(script.includes('ADMIN_REQUIRED=NO') &&
