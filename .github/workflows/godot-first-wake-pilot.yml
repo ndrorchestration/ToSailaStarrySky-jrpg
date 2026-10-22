@@ -78,6 +78,12 @@ jobs:
       - name: Verify authorized production JRPG formula subset
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_combat_formula_test.gd
+      - name: Verify playable production-formula review encounter controller
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_formula_encounter_test.gd
+      - name: Verify production-formula review inside native Chapter I scene
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_formula_encounter_scene_test.gd
       - name: Verify packaged First Wake Chapter I authored content and legacy epilogue semantics
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_content_test.gd
