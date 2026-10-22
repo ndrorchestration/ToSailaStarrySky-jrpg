@@ -12,6 +12,8 @@ func _verify() -> void:
     var world = scene.instantiate()
     root.add_child(world)
     await process_frame
+    # Audio generation has its own contract; scene logic does not require dummy-driver playback.
+    world.audio_enabled = false
     if world.ender == null or world.ionia == null or world.stage != "search":
         _fail("scene actors or initial state missing")
         return
