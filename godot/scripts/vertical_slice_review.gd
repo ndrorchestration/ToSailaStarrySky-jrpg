@@ -85,22 +85,82 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
     # Native dock atmosphere is rendered by the existing isolated depth-review layer.
-    draw_rect(Rect2(12, 9, 936, 86), Color(0.045, 0.085, 0.15, 0.92))
-    draw_rect(Rect2(12, 536, 936, 98), Color(0.045, 0.085, 0.15, 0.94))
-    # Readable symbols and labels accompany every colored object.
-    var light_radius: float = 16.0 if reduced_motion else 16.0 + 2.0 * sin(elapsed_seconds * 1.3)
-    draw_circle(SIGNAL_POINT + Vector2(0, -38), light_radius, Color("#a8e4ee"))
-    draw_line(SIGNAL_POINT + Vector2(-9, -48), SIGNAL_POINT + Vector2(9, -28), Color("#17364d"), 3.0)
-    draw_line(SIGNAL_POINT + Vector2(9, -48), SIGNAL_POINT + Vector2(-9, -28), Color("#17364d"), 3.0)
-    draw_circle(CHALLENGE_POINT + Vector2(0, -44), 24, Color("#b8a3ce"))
-    draw_circle(CHALLENGE_POINT + Vector2(0, -44), 13, Color("#403c65"))
-    if stage == "encounter" and encounter.echo_focus > 0:
-        draw_arc(CHALLENGE_POINT + Vector2(0, -44), 29.0, 0.0, TAU, 32, Color("#f1d88e"), 3.0)
+    # This child review branch only refines presentation chrome and diegetic markers.
+    _draw_review_chrome()
+    _draw_signal_device()
+    _draw_challenge_device()
     if stage == "complete":
-        draw_circle(SIGNAL_POINT + Vector2(0, -38), 30, Color("#f1d88e") if choice_state.choice == ChoiceState.Choice.REPAIR_BEACON else Color("#8cdbc8"))
-    draw_string(ThemeDB.fallback_font, SIGNAL_POINT + Vector2(-45, 15), "SIGNAL", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
-    draw_string(ThemeDB.fallback_font, IONIA_POINT + Vector2(-23, 20), "IONIA", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
-    draw_string(ThemeDB.fallback_font, CHALLENGE_POINT + Vector2(-50, 18), "CHALLENGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color.WHITE)
+        _draw_choice_payoff()
+    draw_string(ThemeDB.fallback_font, SIGNAL_POINT + Vector2(-39, 15), "SIGNAL", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#fff7df"))
+    draw_line(SIGNAL_POINT + Vector2(-40, 20), SIGNAL_POINT + Vector2(34, 20), Color(0.47, 0.88, 0.85, 0.62), 1.0)
+    draw_string(ThemeDB.fallback_font, IONIA_POINT + Vector2(-23, 20), "IONIA", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#fff7df"))
+    draw_string(ThemeDB.fallback_font, CHALLENGE_POINT + Vector2(-45, 18), "CHALLENGE", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#fff7df"))
+    draw_line(CHALLENGE_POINT + Vector2(-46, 23), CHALLENGE_POINT + Vector2(43, 23), Color(0.85, 0.70, 0.43, 0.62), 1.0)
+
+func _draw_review_chrome() -> void:
+    var deep := Color(0.035, 0.075, 0.13, 0.82)
+    var deep_soft := Color(0.035, 0.075, 0.13, 0.76)
+    var ivory := Color("#fff7df")
+    var brass := Color("#d8b475")
+    var aether := Color("#78d9d1")
+    # Two lighter instrument-like bands preserve more of the sky than the old monolithic HUD.
+    draw_rect(Rect2(12, 9, 936, 43), deep)
+    draw_rect(Rect2(12, 54, 936, 38), deep_soft)
+    draw_rect(Rect2(12, 540, 936, 94), Color(0.028, 0.067, 0.12, 0.88))
+    for rect in [Rect2(12, 9, 936, 43), Rect2(12, 54, 936, 38), Rect2(12, 540, 936, 94)]:
+        draw_rect(rect, Color(brass, 0.58), false, 1.0)
+    draw_line(Vector2(26, 52), Vector2(934, 52), Color(aether, 0.44), 1.0)
+    draw_line(Vector2(30, 540), Vector2(930, 540), Color(brass, 0.72), 2.0)
+    draw_line(Vector2(24, 548), Vector2(24, 625), Color(aether, 0.72), 3.0)
+    # Small crafted corner fasteners read as ship instrumentation rather than generic boxes.
+    for p in [Vector2(20, 17), Vector2(940, 17), Vector2(20, 626), Vector2(940, 626)]:
+        draw_circle(p, 3.0, Color(brass, 0.86))
+        draw_circle(p, 1.2, ivory)
+
+func _draw_signal_device() -> void:
+    var center := SIGNAL_POINT + Vector2(0, -38)
+    var brass := Color("#d8b475")
+    var aether := Color("#8be5df")
+    draw_line(center + Vector2(0, 11), SIGNAL_POINT + Vector2(0, -5), Color("#665446"), 4.0)
+    draw_line(center + Vector2(-11, 13), center + Vector2(11, 13), brass, 3.0)
+    draw_circle(center, 20.0, Color(0.25, 0.86, 0.84, 0.08))
+    draw_arc(center, 14.0, 0.0, TAU, 28, Color(brass, 0.88), 2.0)
+    draw_circle(center, 8.0, Color("#17364d"))
+    draw_circle(center, 4.5, aether)
+    if not reduced_motion:
+        var pulse: float = 2.0 + 2.0 * (0.5 + 0.5 * sin(elapsed_seconds * 1.25))
+        draw_arc(center, 20.0 + pulse, -2.55, -0.58, 18, Color(aether, 0.46), 2.0)
+        draw_arc(center, 20.0 + pulse, 0.58, 2.55, 18, Color(aether, 0.46), 2.0)
+
+func _draw_challenge_device() -> void:
+    var center := CHALLENGE_POINT + Vector2(0, -42)
+    var brass := Color("#d8b475")
+    var violet := Color("#8178a8")
+    var points := [
+        center + Vector2(0, -24),
+        center + Vector2(24, 0),
+        center + Vector2(0, 24),
+        center + Vector2(-24, 0)
+    ]
+    draw_colored_polygon(PackedVector2Array(points), Color(0.16, 0.17, 0.30, 0.94))
+    draw_polyline(PackedVector2Array(points + [points[0]]), Color(brass, 0.82), 2.0)
+    draw_circle(center, 15.0, violet)
+    draw_circle(center, 8.0, Color("#302c54"))
+    draw_line(center + Vector2(-6, 0), center + Vector2(6, 0), Color("#efe1ba"), 2.0)
+    if stage == "encounter":
+        var telegraph_color := Color("#f1d88e") if encounter.telegraph_winding_up else Color("#8be5df")
+        draw_arc(center, 30.0, -2.55, -0.58, 18, telegraph_color, 3.0)
+        draw_arc(center, 30.0, 0.58, 2.55, 18, telegraph_color, 3.0)
+        if encounter.echo_focus > 0:
+            draw_arc(center, 35.0, 0.0, TAU, 32, Color("#f1d88e"), 2.0)
+
+func _draw_choice_payoff() -> void:
+    var center := SIGNAL_POINT + Vector2(0, -38)
+    var payoff := Color("#f1d88e") if choice_state.choice == ChoiceState.Choice.REPAIR_BEACON else Color("#8cdbc8")
+    draw_circle(center, 32.0, Color(payoff, 0.10))
+    draw_arc(center, 25.0, 0.0, TAU, 32, Color(payoff, 0.82), 3.0)
+    draw_arc(center, 31.0, -2.75, -0.40, 22, Color(payoff, 0.48), 2.0)
+    draw_line(center + Vector2(0, -27), center + Vector2(0, -53), Color(payoff, 0.54), 3.0)
 
 func discover_signal() -> bool:
     if stage != "search":
