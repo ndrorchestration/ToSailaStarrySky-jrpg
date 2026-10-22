@@ -48,7 +48,13 @@ assert(capture.includes("window.gameState === 'menu'"),
   'player evidence must wait for the real title/menu state');
 assert(capture.includes("await page.waitForTimeout(180);"),
   'player evidence must allow a rendered frame to settle');
-assert(/await page\.keyboard\.press\('Enter'\);\r?\n\s+await page\.waitForTimeout\(180\);\r?\n\s+await capture\(page, outputRoot, captures, 'captain-ionia-dialogue'\)/.test(capture),
-  'dialogue evidence must complete type-in before capture');
+const ioniaCaptureAt = capture.indexOf("'captain-ionia-dialogue'");
+const enterBeforeIonia = capture.lastIndexOf("await page.keyboard.press('Enter');", ioniaCaptureAt);
+const settleBeforeIonia = capture.lastIndexOf('await page.waitForTimeout(180);', ioniaCaptureAt);
+assert(ioniaCaptureAt > 0 &&
+       enterBeforeIonia >= 0 &&
+       settleBeforeIonia > enterBeforeIonia &&
+       settleBeforeIonia < ioniaCaptureAt,
+  'dialogue evidence must complete type-in and settle before capture');
 
 console.log('Aetherwake Chapter I readability contract: PASS');
