@@ -72,6 +72,12 @@ jobs:
       - name: Verify packaged First Wake Chapter I migration state machine
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_state_test.gd
+      - name: Verify production JRPG stat model parity
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/jrpg_stat_model_test.gd
+      - name: Verify authorized production JRPG formula subset
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_combat_formula_test.gd
       - name: Verify packaged First Wake Chapter I authored content and legacy epilogue semantics
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_content_test.gd
