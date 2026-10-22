@@ -6,7 +6,7 @@ const PromptModel = preload("res://scripts/vertical_slice_prompt_model.gd")
 func _initialize() -> void:
     var valid: bool = true
     valid = valid and PromptModel.prompt("search", 200.0, 0.0, 0.0) == "Find the labeled SIGNAL"
-    valid = valid and PromptModel.prompt("search", 10.0, 0.0, 0.0) == "E: Inspect the signal"
+    valid = valid and PromptModel.prompt("search", 10.0, 0.0, 0.0, "Pad A") == "Pad A: Inspect the signal"
     valid = valid and PromptModel.prompt("meet", 0.0, 200.0, 0.0) == "Bring the clue to Ionia"
     valid = valid and PromptModel.prompt("meet", 0.0, 10.0, 0.0) == "E: Talk to Ionia"
     valid = valid and PromptModel.prompt("approach", 0.0, 0.0, 200.0) == "Cross the dock to CHALLENGE"
