@@ -38,9 +38,14 @@ assert(!/runas|Start-Process[^\n]*-Verb\s+RunAs/i.test(script),
 assert(script.includes('F5 - save durable Chapter I progress') &&
        script.includes('F9 - load the local Chapter I save'),
   'native package instructions must expose durable save/load controls');
+assert(script.includes('Crossing: interact with Wind Shear to open its current-story combat encounter') &&
+       script.includes('Clear Wind Shear, then C to confirm that Crossing hazard') &&
+       script.includes('Loose Cargo Sweep and Dock Authority Hold remain noncombat Chapter I hazards'),
+  'native package instructions must distinguish authored Wind Shear combat from noncombat hazards');
 assert(script.includes('previous valid generation is retained for backup recovery') &&
-       script.includes('Formula Review combat are transient and are not persisted'),
-  'native package instructions must explain backup recovery and transient-state boundary');
+       script.includes('Formula Review, and active Wind Shear combat are transient and are not persisted') &&
+       script.includes('without awarding hazard progress'),
+  'native package instructions must explain backup recovery and fail-closed transient combat saves');
 assert(script.includes('ADMIN_REQUIRED=NO') &&
        script.includes('PUBLIC_RELEASE_AUTHORIZED=NO'),
   'package manifest must preserve private/non-release boundaries');
