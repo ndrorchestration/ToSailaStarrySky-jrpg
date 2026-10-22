@@ -87,6 +87,9 @@ jobs:
       - name: Verify real First Wake Chapter I migration scene
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_review_test.gd
+      - name: Verify review-only Windows preview export surface
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_export_contract.gd
       - name: Verify real opt-in First Wake vertical-slice scene
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/vertical_slice_review_test.gd
