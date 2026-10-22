@@ -60,6 +60,7 @@ func _verify() -> void:
     var other = scene.instantiate()
     root.add_child(other)
     await process_frame
+    other.audio_enabled = false
     other.discover_signal()
     other.open_choice()
     if not other.choose_path(false) or other.choice_state.choice != 2:
