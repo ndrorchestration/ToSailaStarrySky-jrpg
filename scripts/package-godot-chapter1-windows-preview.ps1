@@ -65,10 +65,9 @@ start "" /min cmd /c ""%CLEANUP%" --cleanup"
 exit /b 0
 
 :cleanup
-powershell -NoProfile -Command "$dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake-Godot-Native-Preview'; $exe=Join-Path $dest 'Aetherwake-First-Wake-Godot-Preview.exe'; Get-CimInstance Win32_Process | Where-Object {$_.ExecutablePath -eq $exe} | ForEach-Object {Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue}; $desktop=[Environment]::GetFolderPath('Desktop'); $menu=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Aetherwake Native Preview'; Remove-Item -LiteralPath (Join-Path $desktop 'Aetherwake Native Preview.lnk') -Force -ErrorAction SilentlyContinue; Remove-Item -LiteralPath $menu -Recurse -Force -ErrorAction SilentlyContinue"
 cd /d "%TEMP%"
-timeout /t 2 /nobreak >nul
-rmdir /s /q "%DEST%"
+powershell -NoProfile -Command "$dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake-Godot-Native-Preview'; $exe=Join-Path $dest 'Aetherwake-First-Wake-Godot-Preview.exe'; Get-CimInstance Win32_Process | Where-Object {$_.ExecutablePath -eq $exe} | ForEach-Object {Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue}; $desktop=[Environment]::GetFolderPath('Desktop'); $menu=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Aetherwake Native Preview'; Remove-Item -LiteralPath (Join-Path $desktop 'Aetherwake Native Preview.lnk') -Force -ErrorAction SilentlyContinue; Remove-Item -LiteralPath $menu -Recurse -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500; for($i=0; $i -lt 12 -and (Test-Path -LiteralPath $dest); $i++){Remove-Item -LiteralPath $dest -Recurse -Force -ErrorAction SilentlyContinue; if(Test-Path -LiteralPath $dest){Start-Sleep -Milliseconds 500}}; if(Test-Path -LiteralPath $dest){exit 2}"
+if errorlevel 1 exit /b 2
 del /q "%~f0"
 exit /b 0
 '@
