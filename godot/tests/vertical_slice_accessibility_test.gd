@@ -14,6 +14,8 @@ func _verify() -> void:
     var world = load("res://scenes/vertical_slice_review.tscn").instantiate()
     root.add_child(world)
     await process_frame
+    # Audio generation has its own asset-independent contract; avoid dummy-driver playback leaks here.
+    world.audio_enabled = false
     if not world.reduced_motion or world.trace_opt_in or world.text_size < 18:
         _fail("inaccessible or telemetry-on defaults")
         return
