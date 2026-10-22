@@ -12,6 +12,7 @@ const SaveCodec = preload("res://scripts/first_wake_chapter1_save_codec.gd")
 const SaveStore = preload("res://scripts/first_wake_chapter1_save_store.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd")
+const CurrentEnemyAdapter = preload("res://scripts/first_wake_current_enemy_adapter.gd")
 
 const DECK_BOUNDS := Rect2(Vector2(110, 404), Vector2(740, 118))
 const INTERACT_DISTANCE := 74.0
@@ -54,6 +55,8 @@ var review_morale: int = 50
 var review_engine_integration: int = 0
 var resolved_epilogue: Dictionary = {}
 var formula_encounter = FormulaEncounter.new()
+var current_enemy_adapter = CurrentEnemyAdapter.new()
+var active_hazard_encounter_id: String = ""
 var save_store = SaveStore.new()
 
 func _ready() -> void:
@@ -185,10 +188,18 @@ func _draw_formula_review() -> void:
     var max_staff_charges := int(formula_encounter.player.get("maxStaffCharges", 0))
     var heat: Dictionary = formula_encounter.player.get("heat", {"current": 0, "max": 3})
 
+    var authored_hazard := not active_hazard_encounter_id.is_empty()
+    var encounter_title := "CROSSING ENCOUNTER" if authored_hazard else "FORMULA REVIEW ENCOUNTER"
+    var encounter_subtitle := (
+        "Current-story Wind Shear · production JRPG formulas · progress confirms on clear"
+        if authored_hazard
+        else "Production JRPG math · noncanonical target · Chapter I progress unchanged"
+    )
+
     draw_string(
         ThemeDB.fallback_font,
         Vector2(176, 154),
-        "FORMULA REVIEW ENCOUNTER",
+        encounter_title,
         HORIZONTAL_ALIGNMENT_LEFT,
         -1,
         24,
@@ -197,7 +208,7 @@ func _draw_formula_review() -> void:
     draw_string(
         ThemeDB.fallback_font,
         Vector2(176, 184),
-        "Production JRPG math · noncanonical target · Chapter I progress unchanged",
+        encounter_subtitle,
         HORIZONTAL_ALIGNMENT_LEFT,
         610,
         14,
@@ -254,7 +265,10 @@ func _draw_formula_review() -> void:
 
     var status := formula_encounter.last_log()
     if formula_encounter.completed:
-        status = "TARGET CLEARED. C closes review; Chapter I state remains unchanged."
+        if authored_hazard:
+            status = "WIND SHEAR CLEARED. C confirms this Crossing hazard."
+        else:
+            status = "TARGET CLEARED. C closes review; Chapter I state remains unchanged."
     draw_string(
         ThemeDB.fallback_font,
         Vector2(176, 438),
@@ -268,7 +282,7 @@ func _draw_formula_review() -> void:
     draw_string(
         ThemeDB.fallback_font,
         Vector2(176, 474),
-        "C: close review",
+        ("C: confirm / close encounter" if authored_hazard else "C: close review"),
         HORIZONTAL_ALIGNMENT_LEFT,
         -1,
         13,
@@ -292,6 +306,7 @@ func _draw_target(point: Vector2, label_text: String, target_color: Color, compl
 func start_formula_review() -> bool:
     if formula_encounter.active or dialogue.open or chapter.stage_key() in ["choice", "done"]:
         return false
+    active_hazard_encounter_id = ""
     formula_encounter.reset()
     if not formula_encounter.start():
         return false
@@ -301,9 +316,48 @@ func start_formula_review() -> bool:
     queue_redraw()
     return true
 
+func start_hazard_encounter(hazard_id: String) -> bool:
+    if formula_encounter.active or dialogue.open or chapter.stage_key() != "crossing":
+        return false
+    if hazard_id in chapter.completed_hazards:
+        return false
+
+    var target_profile := current_enemy_adapter.target_for_hazard(hazard_id)
+    if target_profile.is_empty() or not current_enemy_adapter.validate_target(target_profile):
+        return false
+    if not formula_encounter.start_with_target(target_profile):
+        return false
+
+    active_hazard_encounter_id = hazard_id
+    ender.player_controlled = false
+    last_message = formula_encounter.last_log()
+    _refresh_ui()
+    queue_redraw()
+    return true
+
 func close_formula_review() -> bool:
+    if not formula_encounter.active:
+        return false
+
+    var hazard_id: String = active_hazard_encounter_id
+    var hazard_cleared: bool = (not hazard_id.is_empty()) and bool(formula_encounter.completed)
+
+    # Chapter progression mutates only after the authored encounter is actually
+    # cleared and the player confirms closure. Canceling early is fail-closed.
+    if hazard_cleared and not chapter.complete_hazard(hazard_id):
+        return false
     if not formula_encounter.close():
         return false
+
+    active_hazard_encounter_id = ""
+    if not hazard_id.is_empty():
+        if hazard_cleared:
+            last_message = "Crossing cleared: " + Content.hazard_label(hazard_id) + "."
+        else:
+            last_message = Content.hazard_label(hazard_id) + " encounter canceled; Crossing progress unchanged."
+        _after_progress()
+        return true
+
     ender.player_controlled = (not dialogue.open) and chapter.stage_key() not in ["choice", "done"]
     last_message = "Formula review closed. Chapter I progression was not changed."
     _refresh_ui()
@@ -424,6 +478,8 @@ func _interact_hazard() -> bool:
         return false
     if ender.global_position.distance_to(HAZARD_POINTS[nearest_id]) > INTERACT_DISTANCE:
         return false
+    if current_enemy_adapter.supports_hazard(nearest_id):
+        return start_hazard_encounter(nearest_id)
     return complete_hazard_review(nearest_id)
 
 func _interact_contact() -> bool:
@@ -558,7 +614,7 @@ func save_progress_to_disk(path: String = SaveStore.DEFAULT_PATH) -> bool:
         _refresh_ui()
         queue_redraw()
         return false
-    last_message = "Chapter I progress saved. Dialogue and Formula Review remain transient."
+    last_message = "Chapter I progress saved. Dialogue and active encounters remain transient."
     _refresh_ui()
     queue_redraw()
     return true
@@ -603,6 +659,7 @@ func restore_save_snapshot(snapshot: Dictionary) -> bool:
     # not part of durable Chapter I saves.
     dialogue.close()
     formula_encounter.reset()
+    active_hazard_encounter_id = ""
     pending_signal_id = ""
     pending_contact_id = ""
 
