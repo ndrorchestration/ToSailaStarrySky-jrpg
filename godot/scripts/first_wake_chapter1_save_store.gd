@@ -110,9 +110,17 @@ func _read_valid(path: String) -> Dictionary:
     var text := FileAccess.get_file_as_string(path)
     if text.strip_edges().is_empty():
         return {"ok": false, "error": "empty", "snapshot": {}}
-    var parsed = JSON.parse_string(text)
+    var parser := JSON.new()
+    var parse_error := parser.parse(text)
+    if parse_error != OK:
+        return {
+            "ok": false,
+            "error": "invalid_json:" + parser.get_error_message(),
+            "snapshot": {},
+        }
+    var parsed = parser.data
     if not (parsed is Dictionary):
-        return {"ok": false, "error": "invalid_json_or_root", "snapshot": {}}
+        return {"ok": false, "error": "invalid_json_root", "snapshot": {}}
     var snapshot: Dictionary = parsed
     var semantic := SaveCodec.validate(snapshot)
     if not bool(semantic.get("ok", false)):
