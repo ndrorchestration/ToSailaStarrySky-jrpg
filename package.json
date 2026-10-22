@@ -70,6 +70,7 @@
     "test:air-navigation": "node tests/air-navigation.test.js",
     "test:open-sky-runtime": "node tests/open-sky-runtime-contract.test.js",
     "test:first-wake-opening": "node tests/first-wake-opening.test.js",
+    "test:first-wake-chapter1": "node tests/first-wake-chapter1-contract.test.js",
     "test:overlay-contract": "node tests/runtime-overlay-contract.test.js",
     "test:input-runtime": "node tests/input-runtime-contract.test.js",
     "test:combat-runtime": "node tests/combat-runtime-contract.test.js",
