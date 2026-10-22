@@ -339,8 +339,8 @@ func close_formula_review() -> bool:
     if not formula_encounter.active:
         return false
 
-    var hazard_id := active_hazard_encounter_id
-    var hazard_cleared := not hazard_id.is_empty() and formula_encounter.completed
+    var hazard_id: String = active_hazard_encounter_id
+    var hazard_cleared: bool = (not hazard_id.is_empty()) and bool(formula_encounter.completed)
 
     # Chapter progression mutates only after the authored encounter is actually
     # cleared and the player confirms closure. Canceling early is fail-closed.
