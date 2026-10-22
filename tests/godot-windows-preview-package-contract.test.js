@@ -1,0 +1,42 @@
+const fs = require('fs');
+const path = require('path');
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+const script = fs.readFileSync(
+  path.resolve(__dirname, '..', 'scripts', 'package-godot-chapter1-windows-preview.ps1'),
+  'utf8'
+);
+
+assert(script.includes('Aetherwake-First-Wake-Godot-Native-Preview-Windows.zip'),
+  'native preview ZIP name is missing');
+assert(script.includes('Programs\\Aetherwake-Godot-Native-Preview'),
+  'native preview must install into a separate per-user path');
+assert(script.includes('Aetherwake\\Uninstall-Aetherwake-Godot-Preview.cmd') &&
+       script.includes('%DEST%\\Uninstall-Aetherwake-Godot-Preview.cmd'),
+  'installer must copy the packaged uninstaller into the installed native preview');
+assert(script.includes("GetFolderPath('Desktop')"),
+  'installer/uninstaller must resolve the real Windows Desktop known folder');
+assert(script.includes('Get-CimInstance Win32_Process') &&
+       script.includes('ExecutablePath -eq $exe'),
+  'uninstaller must scope process cleanup to the installed native preview executable');
+assert(script.includes('cd /d "%TEMP%"'),
+  'uninstaller must leave its install directory before delayed deletion');
+assert(script.includes('copy /Y "%~f0" "%CLEANUP%"') &&
+       script.includes('"%CLEANUP%" --cleanup'),
+  'uninstaller must hand cleanup to a temporary self-copy before deleting its install directory');
+assert(script.includes('for($i=0; $i -lt 12 -and (Test-Path -LiteralPath $dest); $i++)') &&
+       script.includes('Remove-Item -LiteralPath $dest -Recurse -Force') &&
+       script.includes('if(Test-Path -LiteralPath $dest){exit 2}'),
+  'temporary cleanup must retry install-directory removal and fail closed if it remains');
+assert(!/makensis|\.nsi(?:\s|["'])|NSIS\\|nsis\.exe/i.test(script),
+  'native preview package must not invoke NSIS tooling');
+assert(!/runas|Start-Process[^\n]*-Verb\s+RunAs/i.test(script),
+  'native preview package must not request elevation');
+assert(script.includes('ADMIN_REQUIRED=NO') &&
+       script.includes('PUBLIC_RELEASE_AUTHORIZED=NO'),
+  'package manifest must preserve private/non-release boundaries');
+
+console.log('Aetherwake Godot Windows preview package contract: PASS');
