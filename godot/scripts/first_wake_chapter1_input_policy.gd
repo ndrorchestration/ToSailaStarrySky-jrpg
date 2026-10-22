@@ -11,6 +11,8 @@ const COMBAT_STRIKE := "aetherwake_ch1_combat_strike"
 const COMBAT_ANALYZE := "aetherwake_ch1_combat_analyze"
 const COMBAT_HOLD := "aetherwake_ch1_combat_hold"
 const COMBAT_REST := "aetherwake_ch1_combat_rest"
+const SAVE_PROGRESS := "aetherwake_ch1_save_progress"
+const LOAD_PROGRESS := "aetherwake_ch1_load_progress"
 
 static func ensure_defaults() -> void:
     _ensure_key_and_pad(INTERACT, KEY_E, JOY_BUTTON_A)
@@ -22,6 +24,8 @@ static func ensure_defaults() -> void:
     _ensure_key_and_pad(COMBAT_ANALYZE, KEY_2, JOY_BUTTON_Y)
     _ensure_key_and_pad(COMBAT_HOLD, KEY_3, JOY_BUTTON_B)
     _ensure_key_and_pad(COMBAT_REST, KEY_4, JOY_BUTTON_A)
+    _ensure_key(SAVE_PROGRESS, KEY_F5)
+    _ensure_key(LOAD_PROGRESS, KEY_F9)
 
 static func primary_label(action: String) -> String:
     if not InputMap.has_action(action):
@@ -44,3 +48,11 @@ static func _ensure_key_and_pad(action: String, keycode: Key, button: JoyButton)
     var pad := InputEventJoypadButton.new()
     pad.button_index = button
     InputMap.action_add_event(action, pad)
+
+static func _ensure_key(action: String, keycode: Key) -> void:
+    if InputMap.has_action(action):
+        return
+    InputMap.add_action(action)
+    var key := InputEventKey.new()
+    key.keycode = keycode
+    InputMap.action_add_event(action, key)
