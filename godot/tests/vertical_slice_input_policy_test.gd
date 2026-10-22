@@ -4,17 +4,21 @@ extends SceneTree
 const InputPolicy = preload("res://scripts/vertical_slice_input_policy.gd")
 
 func _initialize() -> void:
-    for action in [InputPolicy.INTERACT, InputPolicy.CHOICE_PRIMARY, InputPolicy.CHOICE_SECONDARY]:
+    for action in [InputPolicy.INTERACT, InputPolicy.CHOICE_PRIMARY, InputPolicy.CHOICE_SECONDARY, InputPolicy.HISTORY]:
         if InputMap.has_action(action):
             InputMap.erase_action(action)
     InputPolicy.ensure_defaults()
-    for action in [InputPolicy.INTERACT, InputPolicy.CHOICE_PRIMARY, InputPolicy.CHOICE_SECONDARY]:
+    for action in [InputPolicy.INTERACT, InputPolicy.CHOICE_PRIMARY, InputPolicy.CHOICE_SECONDARY, InputPolicy.HISTORY]:
         if not InputMap.has_action(action) or InputMap.action_get_events(action).size() < 2:
             push_error("AETHERWAKE_INPUT_POLICY_FAIL: missing keyboard/controller defaults for " + action)
             quit(1)
             return
     if InputPolicy.primary_label(InputPolicy.INTERACT) != "E":
         push_error("AETHERWAKE_INPUT_POLICY_FAIL: prompt label does not follow interact key")
+        quit(1)
+        return
+    if InputPolicy.primary_label(InputPolicy.HISTORY) != "H":
+        push_error("AETHERWAKE_INPUT_POLICY_FAIL: dialogue-history binding missing")
         quit(1)
         return
     # Existing remaps must be preserved rather than overwritten.
