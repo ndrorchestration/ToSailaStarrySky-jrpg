@@ -183,6 +183,7 @@ func start_encounter() -> bool:
     _story_message = "A pulse gathers. Guard the warning to build an echo; strike when it quiets."
     _record("encounter_started")
     _refresh_ui()
+    queue_redraw()
     return true
 
 func encounter_action(action: String) -> bool:
