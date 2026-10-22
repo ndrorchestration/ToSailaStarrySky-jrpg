@@ -47,6 +47,19 @@ func _capture() -> void:
     if dialogue == null:
         quit(4)
         return
+    world.toggle_history()
+    await process_frame
+    var history: Image = await _snapshot("slice-dialogue-history-native-960x640.png")
+    if history == null:
+        quit(13)
+        return
+    world.toggle_history()
+    await process_frame
+    var history_region := Rect2i(80, 125, 800, 350)
+    if dialogue.get_region(history_region).get_data() == history.get_region(history_region).get_data():
+        push_error("SLICE_CAPTURE_FAIL: dialogue history panel is not visibly distinct")
+        quit(14)
+        return
     world.choose_path(false)
     world.start_encounter()
     await process_frame
@@ -92,6 +105,6 @@ func _capture() -> void:
         return
     world.queue_free()
     await process_frame
-    print("AETHERWAKE_SLICE_NATIVE_RENDER_PASS: discovery, dialogue, guard warning, echo-ready and payoff are visually distinct 960x640 frames")
+    print("AETHERWAKE_SLICE_NATIVE_RENDER_PASS: discovery, dialogue, dialogue-history, guard warning, echo-ready and payoff are visually distinct 960x640 frames")
     print("AETHERWAKE_SLICE_ARTISTIC_ACCEPTANCE=PENDING")
     quit(0)
