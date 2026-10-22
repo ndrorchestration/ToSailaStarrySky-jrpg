@@ -22,6 +22,12 @@ const JOINT_SCENE_SAMPLES := [
     {"label": "joint-fixed-west", "source": "joint-fixed-west-native-960x640.png"},
     {"label": "joint-fixed-south", "source": "joint-fixed-south-native-960x640.png"},
     {"label": "joint-fixed-north", "source": "joint-fixed-north-native-960x640.png"},
+    {"label": "slice-discovery", "source": "slice-discovery-native-960x640.png"},
+    {"label": "slice-dialogue-choice", "source": "slice-dialogue-choice-native-960x640.png"},
+    {"label": "slice-dialogue-history", "source": "slice-dialogue-history-native-960x640.png"},
+    {"label": "slice-encounter-warning", "source": "slice-encounter-warning-native-960x640.png"},
+    {"label": "slice-echo-ready", "source": "slice-echo-ready-native-960x640.png"},
+    {"label": "slice-beacon-payoff", "source": "slice-beacon-payoff-native-960x640.png"},
 ]
 
 func _initialize() -> void:
@@ -40,6 +46,7 @@ func _emit() -> void:
             quit(3)
             return
     print("JOINT_FOURWAY_NATIVE_BYTES_EMITTED=FIVE_FULL_960x640_PENDING_PRIVATE_CUSTODY")
+    print("AETHERWAKE_SLICE_NATIVE_BYTES_EMITTED=SIX_FULL_960x640_PENDING_PRIVATE_CUSTODY")
     print("AW_NATIVE_CROP_EMIT_PASS: six lossless 1x crops AND six original byte-identical 960x640 renderer PNGs")
     print("AW_NATIVE_FULL_SCREEN_CUSTODY=LOG_TRANSPORT_ONLY_UNTIL_PRIVATE_GIT_RECEIPT")
     print("AW_NATIVE_VISUAL_ACCEPTANCE=PENDING")
