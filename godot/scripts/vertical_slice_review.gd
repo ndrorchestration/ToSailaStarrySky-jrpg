@@ -6,6 +6,7 @@ const Actor = preload("res://scripts/pilot_actor.gd")
 const DockDepthReview = preload("res://scripts/dock_depth_review.gd")
 const ChoiceState = preload("res://scripts/vertical_slice_choice_state.gd")
 const Encounter = preload("res://scripts/vertical_slice_encounter.gd")
+const PromptModel = preload("res://scripts/vertical_slice_prompt_model.gd")
 const DECK_BOUNDS = Rect2(Vector2(110, 404), Vector2(740, 118))
 const SIGNAL_POINT = Vector2(224, 465)
 const IONIA_POINT = Vector2(560, 465)
@@ -227,15 +228,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func context_prompt_text() -> String:
     if ender == null:
         return ""
-    if stage == "search":
-        return "E: Inspect the signal" if ender.global_position.distance_to(SIGNAL_POINT) <= 85.0 else "Find the labeled SIGNAL"
-    if stage == "meet":
-        return "E: Talk to Ionia" if ender.global_position.distance_to(IONIA_POINT) <= 85.0 else "Bring the clue to Ionia"
-    if stage == "approach":
-        return "E: Begin the signal challenge" if ender.global_position.distance_to(CHALLENGE_POINT) <= 85.0 else "Cross the dock to CHALLENGE"
-    if stage == "return":
-        return "E: See what changed" if ender.global_position.distance_to(SIGNAL_POINT) <= 85.0 else "Return to the SIGNAL"
-    return ""
+    return PromptModel.prompt(
+        stage,
+        ender.global_position.distance_to(SIGNAL_POINT),
+        ender.global_position.distance_to(IONIA_POINT),
+        ender.global_position.distance_to(CHALLENGE_POINT)
+    )
 
 func _refresh_ui() -> void:
     if stage_label == null:
