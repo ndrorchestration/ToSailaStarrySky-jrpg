@@ -74,6 +74,7 @@
     "test:first-wake-guidance": "node tests/first-wake-guidance-contract.test.js",
     "test:first-wake-readability": "node tests/first-wake-readability-contract.test.js",
     "test:first-wake-presentation": "node tests/first-wake-presentation-contract.test.js",
+    "test:first-wake-world-depth": "node tests/first-wake-world-depth-contract.test.js",
     "test:overlay-contract": "node tests/runtime-overlay-contract.test.js",
     "test:input-runtime": "node tests/input-runtime-contract.test.js",
     "test:combat-runtime": "node tests/combat-runtime-contract.test.js",
