@@ -7,7 +7,13 @@ function assert(condition, message) {
 
 const runtime = fs.readFileSync(path.resolve(__dirname, '..', 'aetherwake.js'), 'utf8');
 
-assert(runtime.includes('drawGroundLayer();\n    drawWakeDockComposition();'),
+const renderStart = runtime.indexOf('function render()');
+const renderEnd = runtime.indexOf('// --- Ship Interior', renderStart);
+const renderBlock = runtime.slice(renderStart, renderEnd);
+const groundAt = renderBlock.indexOf('drawGroundLayer();');
+const dockAt = renderBlock.indexOf('drawWakeDockComposition();');
+const playerAt = renderBlock.indexOf('drawPlayer();');
+assert(groundAt >= 0 && dockAt > groundAt && playerAt > dockAt,
   'Wake Dock composition must render above terrain and below actors');
 assert(runtime.includes('function drawWakeDockComposition()'),
   'Wake Dock composition renderer is missing');
