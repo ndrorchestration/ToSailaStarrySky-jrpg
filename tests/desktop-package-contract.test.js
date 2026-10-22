@@ -12,6 +12,8 @@ assert(packageJson.window && packageJson.window.width === 1440,
   'desktop package window width must default to 1440');
 assert(packageJson.window && packageJson.window.height === 960,
   'desktop package window height must default to 960');
+assert(packageJson.window && packageJson.window.title === 'AETHERWAKE',
+  'player-facing desktop title must use the canonical Aetherwake name without the retired subtitle');
 assert(packageJson.window && packageJson.window.resizable === true,
   'desktop package window must remain resizable');
 assert(packageJson.window.min_width === 960 && packageJson.window.min_height === 640,
@@ -122,6 +124,10 @@ assert(localReleaseScript.includes('DESKTOP_RENDER_READINESS=PASS'),
 console.log('Aetherwake desktop package contract: PASS');
 
 const runtimeSource = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8');
+assert(!runtimeSource.includes('THE LAST SOLARPUNK AIRSHIP'),
+  'runtime must not render the retired subtitle');
+assert(!stageScript.includes('THE LAST SOLARPUNK AIRSHIP'),
+  'staged desktop manifest must not restore the retired subtitle');
 assert(runtimeSource.includes('function writeDesktopSmokeMarkerOnce()'),
   'runtime must expose a guarded desktop readiness marker writer');
 assert(runtimeSource.includes('window.__awRuntimeReady') &&
@@ -144,3 +150,19 @@ assert(embeddedDesktopControls.includes("event.key === 'F11'"),
   'desktop entrypoint must support F11 fullscreen');
 assert(embeddedDesktopControls.includes('win.leaveFullscreen()'),
   'desktop entrypoint must support leaving fullscreen with Escape');
+
+
+const safePlayerScript = fs.readFileSync(
+  path.join(__dirname, '..', 'scripts', 'build-safe-player-package.ps1'),
+  'utf8'
+);
+assert(typeof packageJson.scripts['package:windows:safe-player'] === 'string',
+  'safe player package script is missing');
+assert(!safePlayerScript.includes('makensis') && !safePlayerScript.includes('WriteUninstaller'),
+  'safe player package must not invoke NSIS or generate its uninstaller');
+assert(!safePlayerScript.includes('ExecutionPolicy Bypass'),
+  'safe player package must not bypass PowerShell execution policy');
+assert(safePlayerScript.includes('Install-Aetherwake.cmd') && safePlayerScript.includes('Uninstall-Aetherwake.cmd'),
+  'safe player package must provide explicit install/uninstall wrappers');
+assert(safePlayerScript.includes("GetFolderPath('Desktop')"),
+  'uninstall wrapper must resolve the actual Windows Desktop known folder');
