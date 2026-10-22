@@ -44,6 +44,7 @@ const CONTACTS := {
     "elder_farmer": {
         "name": "Ionia",
         "title": "Captain of the Aureate Wake",
+        "representative_index": 3,
         "intro": [
             "The Aureate Wake can fly. That is not the mystery. The mystery is why some systems answer like a ship, and some answer like they are waiting for a crew I have not yet found.",
             "Captain Denith left me a vessel, a set of impossible notes, and the bad habit of telling the truth when a comforting lie would travel faster. So here it is: the dock shield is failing, the storm is early, and this ship may be our best shelter.",
@@ -55,6 +56,7 @@ const CONTACTS := {
     "engine_spirit": {
         "name": "Wakeheart",
         "title": "Harmonic Console of the Aureate Wake",
+        "representative_index": 4,
         "intro": [
             "Primary lift: nominal. Solar intake: nominal. Shield lattice: partial. Crew resonance: unstable, increasing.",
             "Captain authority recognized. Lyra-pattern recognized. New harmonic variable recognized. Cross-response exceeds prior thresholds.",
@@ -66,6 +68,7 @@ const CONTACTS := {
     "child_prophet": {
         "name": "Lyra",
         "title": "Frequency-Sensitive Dreamer of the Aureate Wake",
+        "representative_index": 4,
         "intro": [
             "The ship is not asleep. People keep saying that because it makes them feel better. It is awake in the way a hand is awake before it knows what it is reaching for.",
             "I can hear the shield lattice when it tries to open. It gets lonely halfway through.",
@@ -77,6 +80,7 @@ const CONTACTS := {
     "corporate_salvager": {
         "name": "Verrick",
         "title": "Harbor Shield Officer",
+        "representative_index": 4,
         "intro": [
             "Verrick, harbor shield office. If you are with the Wake, tell your captain the colony shield is cycling dirty and I am out of polite ways to describe bad math.",
             "Procedure says every vessel clears dock before stormfall unless its berth shield is certified. Your berth shield is not certified. Your ship, however, keeps returning numbers my board insists are impossible.",
@@ -162,7 +166,12 @@ static func contact_intro(contact_id: String) -> Array[String]:
 
 static func contact_line(contact_id: String) -> String:
     var lines := contact_intro(contact_id)
-    return lines[0] if not lines.is_empty() else ""
+    if lines.is_empty():
+        return ""
+    var index := int(CONTACTS.get(contact_id, {}).get("representative_index", 0))
+    if index < 0 or index >= lines.size():
+        index = 0
+    return lines[index]
 
 static func choice_label(path_id: String) -> String:
     return str(CHOICES.get(path_id, {}).get("label", path_id))
