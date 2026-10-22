@@ -32,6 +32,9 @@ var trace_opt_in: bool = false
 var audio_enabled: bool = true
 var signal_audio_player: AudioStreamPlayer
 var trace_events: Array[Dictionary] = []
+var trace_origin_seconds: float = 0.0
+var trace_initial_position: Vector2 = Vector2.ZERO
+var first_movement_recorded: bool = false
 var post_payoff_reaction_seen: bool = false
 var history_open: bool = false
 var dialogue_history: Array[String] = []
@@ -110,6 +113,10 @@ func _label(parent: Node, location: Vector2, size: int) -> Label:
 
 func _process(delta: float) -> void:
     elapsed_seconds += delta
+    if trace_opt_in and ender != null and not first_movement_recorded:
+        if ender.global_position.distance_to(trace_initial_position) > 1.0:
+            first_movement_recorded = true
+            _record("first_movement")
     _refresh_ui()
     if not reduced_motion:
         queue_redraw()
@@ -294,9 +301,7 @@ func _unhandled_input(event: InputEvent) -> void:
         if not audio_enabled and signal_audio_player != null:
             signal_audio_player.stop()
     elif event.keycode == KEY_P:
-        trace_opt_in = not trace_opt_in
-        if not trace_opt_in:
-            trace_events.clear()
+        set_trace_opt_in(not trace_opt_in)
     elif event.keycode == KEY_EQUAL or event.keycode == KEY_KP_ADD:
         text_size = mini(30, text_size + 2)
         story.add_theme_font_size_override("font_size", text_size)
@@ -373,6 +378,24 @@ func _play_signal_audio(stream: AudioStreamWAV) -> void:
     signal_audio_player.stream = stream
     signal_audio_player.play()
 
+func set_trace_opt_in(enabled: bool) -> void:
+    trace_opt_in = enabled
+    trace_events.clear()
+    first_movement_recorded = false
+    trace_origin_seconds = elapsed_seconds
+    trace_initial_position = ender.global_position if ender != null else Vector2.ZERO
+
+func trace_summary() -> Dictionary:
+    var summary := {}
+    for item in trace_events:
+        var event_name: String = item["event"]
+        if not summary.has(event_name):
+            summary[event_name] = item["seconds"]
+    return summary
+
 func _record(event_name: String) -> void:
     if trace_opt_in:
-        trace_events.append({"event": event_name, "seconds": snappedf(elapsed_seconds, 0.1)})
+        trace_events.append({
+            "event": event_name,
+            "seconds": snappedf(maxf(0.0, elapsed_seconds - trace_origin_seconds), 0.1)
+        })
