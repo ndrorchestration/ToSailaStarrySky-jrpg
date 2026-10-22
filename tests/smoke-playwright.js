@@ -258,6 +258,15 @@ function createServer() {
       'first NPC contact did not select Captain Ionia\'s authored intro dialogue');
     assert(firstDialogue.lineIndex === 0, 'dialogue did not start at line zero');
     await page.keyboard.press('e');
+    await page.waitForFunction(() => window.dialogueTypeIn ? !window.dialogueTypeIn.active : true).catch(() => {});
+    const completedTypeIn = await page.evaluate(() => ({
+      lineIndex: window.UI.dialogueLineIndex,
+      text: window.UI.dialogueText,
+      expected: window.UI.dialogueLines[0],
+    }));
+    assert(completedTypeIn.lineIndex === 0 && completedTypeIn.text === completedTypeIn.expected,
+      'first dialogue confirm must complete the current line without advancing');
+    await page.keyboard.press('e');
     await page.waitForFunction(() => window.UI.dialogueLineIndex === 1);
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => window.gameState === 'world');
