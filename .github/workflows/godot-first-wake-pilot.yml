@@ -72,6 +72,12 @@ jobs:
       - name: Verify packaged First Wake Chapter I authored content and legacy epilogue semantics
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_content_test.gd
+      - name: Verify packaged First Wake authored dialogue cursor
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_dialogue_test.gd
+      - name: Verify real First Wake authored dialogue gates scene progress
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_dialogue_scene_test.gd
       - name: Verify real First Wake Chapter I migration scene
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_review_test.gd
