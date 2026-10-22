@@ -58,12 +58,15 @@ func _verify() -> void:
     if not world.trace_opt_in:
         _fail("local trace opt-in unavailable")
         return
+    world.ender.global_position += Vector2(2, 0)
+    await process_frame
     world.discover_signal()
     if world.dialogue_history.size() < 2 or not world.dialogue_history[-1].contains("broken signal"):
         _fail("new story context was not retained in dialogue history")
         return
-    if world.trace_events.size() != 1 or world.trace_events[0]["event"] != "clue_discovered":
-        _fail("anonymous opt-in trace not recorded")
+    var timing: Dictionary = world.trace_summary()
+    if not timing.has("first_movement") or not timing.has("clue_discovered"):
+        _fail("consent-scoped milestone timing did not capture movement and clue")
         return
     world._unhandled_input(_key(KEY_P))
     if world.trace_opt_in or not world.trace_events.is_empty():
