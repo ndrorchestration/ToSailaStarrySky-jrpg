@@ -45,7 +45,25 @@ func _capture() -> void:
         quit(3)
         return
 
-    for signal_id in ["harmonic_buoy", "below_frequency", "sky_lane_warning"]:
+    # Capture a real authored dialogue state before crediting the signal.
+    world.ender.position = world.SIGNAL_POINTS["harmonic_buoy"]
+    if not world.interact_nearest():
+        push_error("CHAPTER1_CAPTURE_FAIL: Wakeheart dialogue did not open")
+        quit(31)
+        return
+    await process_frame
+    var dialogue_image: Image = await _snapshot("chapter1-dialogue-native-960x640.png")
+    if dialogue_image == null:
+        quit(32)
+        return
+    for _line in range(5):
+        world._advance_dialogue_review()
+    if world.dialogue.open or "harmonic_buoy" not in world.chapter.completed_signals:
+        push_error("CHAPTER1_CAPTURE_FAIL: dialogue did not close into signal progress")
+        quit(33)
+        return
+
+    for signal_id in ["below_frequency", "sky_lane_warning"]:
         world.complete_signal_contact(signal_id)
     await process_frame
     var crossing: Image = await _snapshot("chapter1-crossing-native-960x640.png")
@@ -83,7 +101,7 @@ func _capture() -> void:
         return
 
     var scene_region := Rect2i(80, 110, 800, 350)
-    var frames := [signal_image, crossing, contact, choice, wake, done]
+    var frames := [signal_image, dialogue_image, crossing, contact, choice, wake, done]
     for i in range(frames.size() - 1):
         if frames[i].get_region(scene_region).get_data() == frames[i + 1].get_region(scene_region).get_data():
             push_error("CHAPTER1_CAPTURE_FAIL: adjacent stage frames are not visibly distinct at index " + str(i))
@@ -92,6 +110,6 @@ func _capture() -> void:
 
     world.queue_free()
     await process_frame
-    print("AETHERWAKE_GODOT_CHAPTER1_NATIVE_RENDER_PASS: Signal, Crossing, Contact, Choice, Wake and Done are visibly distinct 960x640 native frames")
+    print("AETHERWAKE_GODOT_CHAPTER1_NATIVE_RENDER_PASS: Signal, Dialogue, Crossing, Contact, Choice, Wake and Done are visibly distinct 960x640 native frames")
     print("AETHERWAKE_GODOT_CHAPTER1_ARTISTIC_ACCEPTANCE=PENDING")
     quit(0)
