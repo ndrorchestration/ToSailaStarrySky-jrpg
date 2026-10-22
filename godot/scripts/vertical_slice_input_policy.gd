@@ -5,11 +5,13 @@ extends RefCounted
 const INTERACT := "aetherwake_interact"
 const CHOICE_PRIMARY := "aetherwake_choice_primary"
 const CHOICE_SECONDARY := "aetherwake_choice_secondary"
+const HISTORY := "aetherwake_history"
 
 static func ensure_defaults() -> void:
     _ensure_key_and_pad(INTERACT, KEY_E, JOY_BUTTON_A)
     _ensure_key_and_pad(CHOICE_PRIMARY, KEY_1, JOY_BUTTON_X)
     _ensure_key_and_pad(CHOICE_SECONDARY, KEY_2, JOY_BUTTON_Y)
+    _ensure_key_and_pad(HISTORY, KEY_H, JOY_BUTTON_BACK)
 
 static func primary_label(action: String) -> String:
     if not InputMap.has_action(action):
