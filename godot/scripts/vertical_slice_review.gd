@@ -7,6 +7,7 @@ const DockDepthReview = preload("res://scripts/dock_depth_review.gd")
 const ChoiceState = preload("res://scripts/vertical_slice_choice_state.gd")
 const Encounter = preload("res://scripts/vertical_slice_encounter.gd")
 const PromptModel = preload("res://scripts/vertical_slice_prompt_model.gd")
+const InputPolicy = preload("res://scripts/vertical_slice_input_policy.gd")
 const DECK_BOUNDS = Rect2(Vector2(110, 404), Vector2(740, 118))
 const SIGNAL_POINT = Vector2(224, 465)
 const IONIA_POINT = Vector2(560, 465)
@@ -29,6 +30,7 @@ var trace_events: Array[Dictionary] = []
 var _story_message: String = "Something on the dock is sending a faint signal. Look for the small blue light."
 
 func _ready() -> void:
+    InputPolicy.ensure_defaults()
     # Reuse existing reversible 2.5D dock stage, without changing its collision or canon.
     var atmosphere := DockDepthReview.new()
     atmosphere.name = "DockAtmosphereReviewOnly"
@@ -181,7 +183,31 @@ func finish_at_dock() -> bool:
     queue_redraw()
     return true
 
-func _unhandled_key_input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:
+    if event.is_action_pressed(InputPolicy.CHOICE_PRIMARY):
+        if stage == "choose":
+            choose_path(true)
+            return
+        if stage == "encounter":
+            encounter_action("strike")
+            return
+    if event.is_action_pressed(InputPolicy.CHOICE_SECONDARY):
+        if stage == "choose":
+            choose_path(false)
+            return
+        if stage == "encounter":
+            encounter_action("guard")
+            return
+    if event.is_action_pressed(InputPolicy.INTERACT) and ender.player_controlled:
+        if stage == "search" and ender.global_position.distance_to(SIGNAL_POINT) <= 85.0:
+            discover_signal()
+        elif stage == "meet" and ender.global_position.distance_to(IONIA_POINT) <= 85.0:
+            open_choice()
+        elif stage == "approach" and ender.global_position.distance_to(CHALLENGE_POINT) <= 85.0:
+            start_encounter()
+        elif stage == "return" and ender.global_position.distance_to(SIGNAL_POINT) <= 85.0:
+            finish_at_dock()
+        return
     if not (event is InputEventKey) or not event.pressed or event.echo:
         return
     if event.keycode == KEY_M:
@@ -197,14 +223,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
     elif event.keycode == KEY_MINUS or event.keycode == KEY_KP_SUBTRACT:
         text_size = maxi(18, text_size - 2)
         story.add_theme_font_size_override("font_size", text_size)
-    elif stage == "choose" and event.keycode == KEY_1:
-        choose_path(true)
-    elif stage == "choose" and event.keycode == KEY_2:
-        choose_path(false)
-    elif stage == "encounter" and event.keycode == KEY_1:
-        encounter_action("strike")
-    elif stage == "encounter" and event.keycode == KEY_2:
-        encounter_action("guard")
     elif event.keycode == KEY_ESCAPE and stage == "choose":
         stage = "meet"
         ender.player_controlled = true
@@ -215,15 +233,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
         ender.player_controlled = true
         _story_message = "The challenge can be retried at any time."
         _refresh_ui()
-    elif event.keycode == KEY_E and ender.player_controlled:
-        if stage == "search" and ender.global_position.distance_to(SIGNAL_POINT) <= 85.0:
-            discover_signal()
-        elif stage == "meet" and ender.global_position.distance_to(IONIA_POINT) <= 85.0:
-            open_choice()
-        elif stage == "approach" and ender.global_position.distance_to(CHALLENGE_POINT) <= 85.0:
-            start_encounter()
-        elif stage == "return" and ender.global_position.distance_to(SIGNAL_POINT) <= 85.0:
-            finish_at_dock()
 
 func context_prompt_text() -> String:
     if ender == null:
@@ -232,7 +241,8 @@ func context_prompt_text() -> String:
         stage,
         ender.global_position.distance_to(SIGNAL_POINT),
         ender.global_position.distance_to(IONIA_POINT),
-        ender.global_position.distance_to(CHALLENGE_POINT)
+        ender.global_position.distance_to(CHALLENGE_POINT),
+        InputPolicy.primary_label(InputPolicy.INTERACT)
     )
 
 func _refresh_ui() -> void:
