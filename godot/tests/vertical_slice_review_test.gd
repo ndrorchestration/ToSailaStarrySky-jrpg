@@ -49,6 +49,9 @@ func _verify() -> void:
     if world.trace_events.size() != 0:
         _fail("review trace unexpectedly enabled")
         return
+    world.signal_audio_player.stop()
+    world.signal_audio_player.stream = null
+    await process_frame
     world.queue_free()
     await process_frame
 
