@@ -40,8 +40,8 @@ func _capture() -> void:
         return
 
     await process_frame
-    var signal: Image = await _snapshot("chapter1-signal-native-960x640.png")
-    if signal == null:
+    var signal_image: Image = await _snapshot("chapter1-signal-native-960x640.png")
+    if signal_image == null:
         quit(3)
         return
 
@@ -83,7 +83,7 @@ func _capture() -> void:
         return
 
     var scene_region := Rect2i(80, 110, 800, 350)
-    var frames := [signal, crossing, contact, choice, wake, done]
+    var frames := [signal_image, crossing, contact, choice, wake, done]
     for i in range(frames.size() - 1):
         if frames[i].get_region(scene_region).get_data() == frames[i + 1].get_region(scene_region).get_data():
             push_error("CHAPTER1_CAPTURE_FAIL: adjacent stage frames are not visibly distinct at index " + str(i))
