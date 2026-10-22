@@ -1,4 +1,6 @@
 extends RefCounted
+
+const Content = preload("res://scripts/first_wake_chapter1_content.gd")
 ## Migration-only native state contract for the packaged First Wake Chapter I flow.
 ## Mirrors the verified player-facing progression without claiming canon admission,
 ## save compatibility, release readiness, or completed production migration.
@@ -100,7 +102,7 @@ func choose_path(path_id: String, outcome_variant: String) -> bool:
 func complete_wake(resolved_epilogue_id: String) -> bool:
     if stage != Stage.WAKE or choice_path.is_empty():
         return false
-    if resolved_epilogue_id.strip_edges().is_empty():
+    if not Content.has_epilogue(resolved_epilogue_id):
         return false
     epilogue_id = resolved_epilogue_id
     chapter_one_complete = true
