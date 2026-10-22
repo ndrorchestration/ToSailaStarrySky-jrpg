@@ -11,6 +11,7 @@ Write-Host "== Aetherwake safe player package (no NSIS) =="
 npm run test:first-wake-opening
 npm run test:first-wake-chapter1
 npm run test:first-wake-guidance
+npm run test:first-wake-readability
 npm run test:desktop-package
 npm run test:smoke
 npm run package:windows

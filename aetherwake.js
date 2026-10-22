@@ -647,7 +647,9 @@ function handleInput() {
     // Dialogue is a real overlay state, so its confirm key must be handled
     // here instead of falling through to the generic close-only overlay path.
     if (keysPressed[69] || keysPressed[13] || keysPressed[32]) {
-      if (world && typeof world.nextDialogueLine === 'function') {
+      if (dialogueTypeIn.active) {
+        completeDialogueTypeIn();
+      } else if (world && typeof world.nextDialogueLine === 'function') {
         world.nextDialogueLine();
       }
     }
@@ -1576,21 +1578,13 @@ function drawTitleScreen() {
 }
 
 function drawDialogueOverlay() {
-  noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2], 180);
-  rect(0, 0, width, height);
-
-  // ── Window tone (Memories §1.3): cool tint for dialogue ──
   const tone = window.UI.windowTone || null;
-
-  // ── Window openness (Memories §1.2): alpha multiplier ──
   const openness = window.UI.openness || 255;
-
-  // Backdrop dimmer tied to openness
-  fill(C.navy[0], C.navy[1], C.navy[2], 180 * (openness / 255));
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 78 * (openness / 255));
   rect(0, 0, width, height);
 
-  const bx = width/2 - 240, by = height - 100, bw = 480, bh = 80;
+  const bx = width/2 - 320, by = height - 142, bw = 640, bh = 112;
   fill(C.navy[0], C.navy[1], C.navy[2]);
   noStroke();
   rect(bx, by, bw, bh);
@@ -1602,17 +1596,18 @@ function drawDialogueOverlay() {
   }
   drawPixelBorder(bx, by, bw, bh, 3);
 
+  textAlign(LEFT, TOP);
   textFont('Press Start 2P');
-  textSize(9);
-  fill(C.teal[0], C.teal[1], C.teal[2], 180);
+  textSize(10);
+  fill(C.teal[0], C.teal[1], C.teal[2], 220);
   const npcName = window.UI.dialogueNPC ? window.UI.dialogueNPC.name : '???';
-  text(npcName, bx + 10, by + 10);
+  text(npcName, bx + 14, by + 12);
 
   textFont('VT323');
-  textSize(13);
-  textLeading(16);
+  textSize(14);
+  textLeading(18);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
-  wrapText(window.UI.dialogueText || '...', bx + 10, by + 28, bw - 20);
+  wrapText(window.UI.dialogueText || '...', bx + 14, by + 34, bw - 28);
 
   textFont('Press Start 2P');
   textSize(8);
@@ -1904,24 +1899,18 @@ function wrapText(content, x, y, maxWidth) {
 
 // ── Vignette effect ──────────────────────────────────────────────────────
 function drawVignette() {
-  noStroke();
-  const nightFactor = window._isNight ? 0.6 : 0.18;
-  const alpha = nightFactor * 180;
-  const gradSteps = 20;
-  for (let i = gradSteps; i >= 0; i--) {
-    const t = i / gradSteps;
-    const r = t * max(width, height) * 0.75;
-    const a = alpha * (1 - t * t);
-    fill(color(C.navy[0], C.navy[1], C.navy[2], a));
-    ellipse(width / 2, height / 2, r * 2, r * 2);
+  push();
+  noFill();
+  const maxAlpha = window._isNight ? 72 : 34;
+  const bands = 8;
+  for (let i = 0; i < bands; i++) {
+    const inset = i * 2;
+    const alpha = maxAlpha * (1 - i / bands);
+    stroke(C.navy[0], C.navy[1], C.navy[2], alpha);
+    strokeWeight(2);
+    rect(inset, inset, width - inset * 2, height - inset * 2);
   }
-  // Extra dark corners
-  noStroke();
-  fill(color(C.navy[0], C.navy[1], C.navy[2], 120));
-  rect(0, 0, width * 0.08, height);
-  rect(width * 0.92, 0, width * 0.08, height);
-  rect(0, 0, width, height * 0.06);
-  rect(0, height * 0.94, width, height * 0.06);
+  pop();
 }
 
 // ── Toast rendering ──────────────────────────────────────────────────────
@@ -1935,7 +1924,8 @@ function drawToasts() {
       continue;
     }
     const alpha = age < 200 ? (age / 200) * 255 : (age > t.duration - 400 ? (t.duration - age) / 400 * 255 : 255);
-    const y = height - 60 - (window.toasts.length - 1 - i) * 26;
+    const toastBaseY = gameState === STATE.DIALOGUE ? height - 174 : height - 60;
+    const y = toastBaseY - (window.toasts.length - 1 - i) * 26;
     noStroke();
     fill(t.color[0], t.color[1], t.color[2], alpha * 0.15);
     rect(width / 2 - 110, y - 8, 220, 22, 4);
@@ -1970,6 +1960,15 @@ function startDialogueTypeIn(fullText) {
   dialogueTypeIn.displayText = '';
   dialogueTypeIn.charIndex = 0;
   dialogueTypeIn.lastCharTime = millis();
+}
+
+function completeDialogueTypeIn() {
+  if (!dialogueTypeIn.active) return false;
+  dialogueTypeIn.charIndex = dialogueTypeIn.fullText.length;
+  dialogueTypeIn.displayText = dialogueTypeIn.fullText;
+  dialogueTypeIn.active = false;
+  if (window.UI) window.UI.dialogueText = dialogueTypeIn.fullText;
+  return true;
 }
 
 function updateDialogueTypeIn() {
@@ -7527,7 +7526,7 @@ function drawCombatPanel(combatState) {
   // Enemy section
   if (combatState.enemy) {
     const ey = py + 36;
-    drawPixelBorder(px + 8, ey, pw - 16, 48, 2, PAL.SHADOW, PAL.RUST);
+    drawPixelBorder(px + 8, ey, pw - 16, 66, 2, PAL.SHADOW, PAL.RUST);
     textFont(FONT_UI);
     textSize(8);
     drawGlowText(combatState.enemy.name.toUpperCase(), px + 14, ey + 4, PAL.RUST, 8);
@@ -7547,64 +7546,52 @@ function drawCombatPanel(combatState) {
     fill(hpCol);
     rect(px + 14, ey + 24, barW * hpRatio, 5);
     // Weakness hint
-    textFont(FONT_UI);
-    textSize(7);
+    textAlign(LEFT, TOP);
+    textFont(FONT_BODY);
+    textSize(9);
     fill(PAL.DIM);
-    text('WEAKNESS: ' + (combatState.enemy.weakness || 'unknown'), px + 14, ey + 32);
+    wrapText('Weakness: ' + (combatState.enemy.weakness || 'unknown'), px + 14, ey + 34, pw - 32);
   }
 
   // Player status section
-  const sY = py + 96;
-  drawPixelBorder(px + 8, sY, pw - 16, 88, 2, PAL.SHADOW, PAL.TEAL);
+  const sY = py + 114;
+  drawPixelBorder(px + 8, sY, pw - 16, 100, 2, PAL.SHADOW, PAL.TEAL);
   textFont(FONT_UI);
   textSize(8);
   drawGlowText('ENDER', px + 14, sY + 6, PAL.TEAL, 8);
 
-  // Player resources
+  // Player resources — two compact columns keep every value inside the panel.
   textFont(FONT_BODY);
-  textSize(12);
-  let rX = px + 14;
-  const rY = sY + 24;
-  // Vit
-  fill(PAL.RUST);
-  text('HP', rX, rY);
-  rX += 20;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.vit + '/' + combatState.player.maxVit, rX, rY);
-  // Echoes
-  rX += 48;
-  fill(PAL.BIO);
-  text('ECHO', rX, rY);
-  rX += 36;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.echoes.current + '/' + combatState.player.echoes.max, rX, rY);
-  // Aether
-  rX += 52;
-  fill(PAL.SCIOTO);
-  text('AETHER', rX, rY);
-  rX += 44;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.aether.current + '/' + combatState.player.aether.max, rX, rY);
-  // Staff charges
-  rX = px + 14;
-  const rY2 = sY + 48;
-  fill(PAL.TEAL);
-  text('STAFF', rX, rY2);
-  rX += 36;
-  fill(PAL.PARCHMENT);
-  text(combatState.player.staffCharges + '/' + combatState.player.maxStaffCharges, rX, rY2);
-  // Scrap
-  rX += 52;
-  fill(PAL.DUST);
-  text('SCRAP', rX, rY2);
-  rX += 36;
-  fill(PAL.PARCHMENT);
-  text(String(combatState.player.scrap), rX, rY2);
+  textSize(11);
+  const leftX = px + 14;
+  const rightX = px + 118;
+  const row1 = sY + 30;
+  const row2 = sY + 52;
+  const row3 = sY + 74;
+
+  function drawCombatResource(label, value, x, y, labelColor) {
+    fill(labelColor);
+    noStroke();
+    text(label, x, y);
+    fill(PAL.PARCHMENT);
+    text(value, x + 42, y);
+  }
+
+  drawCombatResource('HP', combatState.player.vit + '/' + combatState.player.maxVit,
+    leftX, row1, PAL.RUST);
+  drawCombatResource('ECHO', combatState.player.echoes.current + '/' + combatState.player.echoes.max,
+    rightX, row1, PAL.BIO);
+  drawCombatResource('AETHER', combatState.player.aether.current + '/' + combatState.player.aether.max,
+    leftX, row2, PAL.SCIOTO);
+  drawCombatResource('STAFF', combatState.player.staffCharges + '/' + combatState.player.maxStaffCharges,
+    rightX, row2, PAL.TEAL);
+  drawCombatResource('SCRAP', String(combatState.player.scrap),
+    leftX, row3, PAL.DUST);
 
   // Actions grid — eight stable number-key slots. Locked actions stay visible
   // so progression is legible without making key bindings move.
   const aX = px + 8;
-  const aY = sY + 100;
+  const aY = sY + 112;
   const aW = pw - 16;
   const aH = 154;
   drawPixelBorder(aX, aY, aW, aH, 2, PAL.SHADOW, PAL.TEAL);
@@ -7664,7 +7651,7 @@ function drawCombatPanel(combatState) {
   // Enemy special ability hint
   if (combatState.enemy && combatState.enemy.abilityDesc) {
     const abY = aY + aH + 10;
-    drawPixelBorder(px + 8, abY, pw - 16, 28, 1, PAL.SHADOW, PAL.RUST);
+    drawPixelBorder(px + 8, abY, pw - 16, 40, 1, PAL.SHADOW, PAL.RUST);
     textFont(FONT_UI);
     textSize(7);
     fill(PAL.RUST);

@@ -141,6 +141,8 @@ async function pressEnter(page, count = 1) {
     });
     assert(response && response.ok(), 'index-embedded.html did not load successfully');
     await waitForRuntime(page);
+    await page.waitForFunction(() => window.gameState === 'menu', undefined, { timeout: 15000 });
+    await page.waitForTimeout(180);
     await capture(page, outputRoot, captures, 'title-ready', 'boot/title/menu canvas before starting First Wake');
 
     await page.keyboard.press('Enter');
@@ -148,6 +150,7 @@ async function pressEnter(page, count = 1) {
       window.gameState === 'opening' &&
       window.AetherFirstWakeOpening.currentScene(window._firstWakeOpeningState).id === 'arrival_horizon'
     , undefined, { timeout: 5000 });
+    await page.waitForTimeout(180);
 
     await capture(page, outputRoot, captures, 'arrival-horizon', 'First Wake arrival_horizon opening beat');
 
@@ -182,6 +185,8 @@ async function pressEnter(page, count = 1) {
       firstLine: Array.isArray(window.UI.dialogueLines) ? window.UI.dialogueLines[0] : window.UI.dialogueText,
     }));
     assert(String(dialogueState.npc).includes('Captain Ionia'), 'Captain Ionia dialogue was not opened');
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(180);
     await capture(page, outputRoot, captures, 'captain-ionia-dialogue', 'Captain Ionia authored first-contact dialogue');
 
     await page.keyboard.press('Escape');
@@ -189,6 +194,7 @@ async function pressEnter(page, count = 1) {
     await page.keyboard.press('KeyC');
     await page.waitForFunction(() => window.gameState === 'combat' && window._combat && window._combat.getState().enemy,
       undefined, { timeout: 5000 });
+    await page.waitForTimeout(180);
     await capture(page, outputRoot, captures, 'combat-entry', 'representative combat entry frame for human review');
 
     verification.runtimeChecks = {
