@@ -72,6 +72,15 @@ func _verify() -> void:
     if world.chapter.stage_key() != "done" or not world.chapter.chapter_one_complete:
         _fail("real scene did not reach explicit Chapter I completion")
         return
+    if world.chapter.epilogue_id != "epiline_6" or world.resolved_epilogue_id != "epiline_6":
+        _fail("path_c deterministic review did not resolve The First Chord")
+        return
+    if "The First Chord" not in world.last_message:
+        _fail("authored epilogue name was not surfaced in native completion messaging")
+        return
+    if "The Wake turns her shield like a bright wing into the storm." not in world.resolved_outcome_text:
+        _fail("packaged path_c 10+ outcome was not bound into the native review scene")
+        return
     if world.ender.player_controlled:
         _fail("player control remained active after migration-review completion")
         return
