@@ -1,6 +1,6 @@
-# Aetherwake — The Last Solarpunk Airship
+# Aetherwake
 
-Aetherwake is a **pre-alpha turn-based JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a storm at Wake Dock reveals that the ship can exceed ordinary performance only when the right crew resonates with it.
+Aetherwake is a **pre-alpha turn-based JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the solarpunk airship *Aureate Wake*, as a storm at Wake Dock reveals that the ship can exceed ordinary performance only when the right crew resonates with it.
 
 The current repository contains a playable vertical-slice prototype plus an active architecture migration toward the full authored-party RPG.
 
