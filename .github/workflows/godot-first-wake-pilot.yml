@@ -78,3 +78,6 @@ jobs:
       - name: Verify asset-independent contextual prompts
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/vertical_slice_prompt_model_test.gd
+      - name: Verify named keyboard/controller defaults preserve remaps
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/vertical_slice_input_policy_test.gd
