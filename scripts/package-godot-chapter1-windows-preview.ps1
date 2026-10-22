@@ -5,6 +5,17 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+function Get-Sha256Hex([string]$Path) {
+    $stream = [System.IO.File]::OpenRead($Path)
+    try {
+        $sha = [System.Security.Cryptography.SHA256]::Create()
+        return (($sha.ComputeHash($stream) | ForEach-Object ToString x2) -join '')
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 if (-not $OutputDir) {
     $OutputDir = Join-Path $RepoRoot "build\godot-first-wake-package"
@@ -80,7 +91,7 @@ Set-Content -LiteralPath (Join-Path $Staging "Uninstall-Aetherwake-Godot-Preview
 Set-Content -LiteralPath (Join-Path $Payload "Uninstall-Aetherwake-Godot-Preview.cmd") -Value $Uninstall -Encoding ASCII
 Set-Content -LiteralPath (Join-Path $Staging "README-FIRST.txt") -Value $Readme -Encoding UTF8
 
-$ExeHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $PayloadExe).Hash.ToLowerInvariant()
+$ExeHash = Get-Sha256Hex $PayloadExe
 $Manifest = @"
 EXE_SHA256=$ExeHash
 NSIS_INCLUDED=NO
@@ -90,7 +101,7 @@ PUBLIC_RELEASE_AUTHORIZED=NO
 Set-Content -LiteralPath (Join-Path $Staging "SHA256SUMS.txt") -Value $Manifest -Encoding ASCII
 
 Compress-Archive -Path (Join-Path $Staging "*") -DestinationPath $Zip -CompressionLevel Optimal -Force
-$ZipHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $Zip).Hash.ToLowerInvariant()
+$ZipHash = Get-Sha256Hex $Zip
 $ZipBytes = (Get-Item -LiteralPath $Zip).Length
 
 Write-Output "AETHERWAKE_GODOT_NATIVE_PACKAGE_ZIP=$Zip"
