@@ -6,7 +6,6 @@ extends Node2D
 const Actor = preload("res://scripts/pilot_actor.gd")
 const DockDepthReview = preload("res://scripts/dock_depth_review.gd")
 const ChapterState = preload("res://scripts/first_wake_chapter1_state.gd")
-const ChapterContent = preload("res://scripts/first_wake_chapter1_content.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 
 const DECK_BOUNDS := Rect2(Vector2(110, 404), Vector2(740, 118))
@@ -31,8 +30,26 @@ const CONTACT_POINTS := {
     "corporate_salvager": Vector2(530, 465),
 }
 
+const CONTACT_NAMES := {
+    "elder_farmer": "Ionia",
+    "engine_spirit": "Wakeheart",
+    "child_prophet": "Lyra",
+    "corporate_salvager": "Verrick",
+}
+
+const SIGNAL_NAMES := {
+    "harmonic_buoy": "WAKEHEART",
+    "below_frequency": "LYRA",
+    "sky_lane_warning": "VERRICK",
+}
+
+const HAZARD_NAMES := {
+    "sky_predator": "CARGO SWEEP",
+    "wind_shear": "WIND SHEAR",
+    "corporate_intercept": "DOCK HOLD",
+}
+
 var chapter = ChapterState.new()
-var content = ChapterContent.new()
 var ender: CharacterBody2D
 var contacts: Dictionary = {}
 var headline: Label
@@ -41,12 +58,6 @@ var hint: Label
 var party_label: Label
 var last_message: String = "Read the three marked signals before the storm crossing."
 var deterministic_review_variant: String = "10+"
-
-# Exact packaged defaults used only to exercise migration parity. Production
-# stat mutation remains a separate migration step.
-var review_hull_integrity: int = 100
-var review_morale: int = 50
-var review_engine_integration: int = 0
 
 func _ready() -> void:
     InputPolicy.ensure_defaults()
@@ -71,9 +82,8 @@ func _ready() -> void:
 
     for contact_id in ChapterState.CONTACT_IDS:
         var actor := Actor.new()
-        var contact_name := content.contact_name(contact_id)
-        actor.name = contact_name.replace(" ", "") + "MigrationPlaceholder"
-        actor.character_name = contact_name
+        actor.name = CONTACT_NAMES[contact_id] + "MigrationPlaceholder"
+        actor.character_name = CONTACT_NAMES[contact_id]
         actor.player_controlled = false
         actor.walking_bounds = DECK_BOUNDS
         actor.position = CONTACT_POINTS[contact_id]
@@ -126,50 +136,28 @@ func _draw() -> void:
     var stage_key := chapter.stage_key()
     if stage_key == "signal":
         for signal_id in ChapterState.SIGNAL_IDS:
-            _draw_target(SIGNAL_POINTS[signal_id], content.signal_label(signal_id).to_upper(), Color("#9dd9ee"), signal_id in chapter.completed_signals)
+            _draw_target(SIGNAL_POINTS[signal_id], SIGNAL_NAMES[signal_id], Color("#9dd9ee"), signal_id in chapter.completed_signals)
     elif stage_key == "crossing":
         for hazard_id in ChapterState.HAZARD_IDS:
-            _draw_target(HAZARD_POINTS[hazard_id], content.hazard_label(hazard_id).to_upper(), Color("#f0a072"), hazard_id in chapter.completed_hazards)
+            _draw_target(HAZARD_POINTS[hazard_id], HAZARD_NAMES[hazard_id], Color("#f0a072"), hazard_id in chapter.completed_hazards)
     elif stage_key == "contact":
         _draw_target(CONTACT_POINTS["elder_farmer"], "IONIA", Color("#8cdbc8"), "elder_farmer" in chapter.contacts_met)
     elif stage_key == "choice":
-        draw_rect(Rect2(118, 108, 724, 270), Color(0.035, 0.07, 0.13, 0.94))
-        draw_rect(Rect2(122, 112, 716, 262), Color("#355168"), false, 2.0)
-        draw_string(ThemeDB.fallback_font, Vector2(146, 148), "THE STORM ASKS FOR A DECISION", HORIZONTAL_ALIGNMENT_LEFT, -1, 23, Color("#fff1ce"))
-        var choice_y := 190.0
-        for index in range(ChapterState.CHOICE_IDS.size()):
-            var path_id: String = ChapterState.CHOICE_IDS[index]
-            draw_string(
-                ThemeDB.fallback_font,
-                Vector2(146, choice_y),
-                "%d  %s" % [index + 1, content.choice_label(path_id)],
-                HORIZONTAL_ALIGNMENT_LEFT,
-                -1,
-                19,
-                Color("#d7eaf0")
-            )
-            draw_string(
-                ThemeDB.fallback_font,
-                Vector2(174, choice_y + 25),
-                content.choice_description(path_id),
-                HORIZONTAL_ALIGNMENT_LEFT,
-                620,
-                15,
-                Color("#9fc1cf")
-            )
-            choice_y += 62.0
+        draw_rect(Rect2(126, 120, 708, 226), Color(0.035, 0.07, 0.13, 0.94))
+        draw_rect(Rect2(130, 124, 700, 218), Color("#355168"), false, 2.0)
+        draw_string(ThemeDB.fallback_font, Vector2(154, 162), "THE STORM ASKS FOR A DECISION", HORIZONTAL_ALIGNMENT_LEFT, -1, 23, Color("#fff1ce"))
+        draw_string(ThemeDB.fallback_font, Vector2(154, 205), "1  Leave early / Beat the storm", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("#d7eaf0"))
+        draw_string(ThemeDB.fallback_font, Vector2(154, 245), "2  Hold dock / Stabilize the colony shield", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("#d7eaf0"))
+        draw_string(ThemeDB.fallback_font, Vector2(154, 285), "3  Project shield / Cover the berths", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("#d7eaf0"))
     elif stage_key == "wake":
         draw_circle(CONTACT_POINTS["elder_farmer"] + Vector2(0, -52), 34.0, Color(0.55, 0.92, 0.82, 0.13))
         draw_circle(CONTACT_POINTS["elder_farmer"] + Vector2(0, -52), 14.0, Color("#8cdbc8"))
         draw_string(ThemeDB.fallback_font, CONTACT_POINTS["elder_farmer"] + Vector2(-66, -88), "WAKE RESOLUTION", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
-        draw_string(ThemeDB.fallback_font, Vector2(150, 150), content.choice_label(chapter.choice_path), HORIZONTAL_ALIGNMENT_LEFT, 660, 20, Color("#fff1ce"))
     elif stage_key == "done":
-        var resolved := content.epilogue(chapter.epilogue_id)
-        var epilogue_name := str(resolved.get("name", chapter.epilogue_id))
-        draw_rect(Rect2(150, 136, 660, 250), Color(0.035, 0.07, 0.13, 0.95))
-        draw_rect(Rect2(154, 140, 652, 242), Color("#8cdbc8"), false, 2.0)
-        draw_string(ThemeDB.fallback_font, Vector2(270, 195), "CHAPTER I COMPLETE", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color("#fff1ce"))
-        draw_string(ThemeDB.fallback_font, Vector2(222, 250), epilogue_name.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, 520, 21, Color("#d7eaf0"))
+        draw_rect(Rect2(180, 160, 600, 210), Color(0.035, 0.07, 0.13, 0.95))
+        draw_rect(Rect2(184, 164, 592, 202), Color("#8cdbc8"), false, 2.0)
+        draw_string(ThemeDB.fallback_font, Vector2(292, 222), "CHAPTER I COMPLETE", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color("#fff1ce"))
+        draw_string(ThemeDB.fallback_font, Vector2(258, 278), "Native migration review boundary reached.", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("#d7eaf0"))
 
 func _draw_target(point: Vector2, label_text: String, target_color: Color, completed: bool) -> void:
     var color := Color(target_color, 0.20 if completed else 0.38)
@@ -201,21 +189,23 @@ func interact_nearest() -> bool:
 func complete_signal_contact(signal_id: String) -> bool:
     if signal_id not in ChapterState.SIGNAL_IDS:
         return false
-    var contact_id: String = content.signal_contact_id(signal_id)
-    if contact_id.is_empty():
-        return false
+    var signal_to_contact: Dictionary = {
+        "harmonic_buoy": "engine_spirit",
+        "below_frequency": "child_prophet",
+        "sky_lane_warning": "corporate_salvager",
+    }
+    var contact_id: String = str(signal_to_contact[signal_id])
     chapter.meet_contact(contact_id)
     if not chapter.complete_signal(signal_id):
         return false
-    var intro := content.contact_dialogue(contact_id, "intro")
-    last_message = str(intro[0]) if not intro.is_empty() else content.signal_label(signal_id)
+    last_message = "Signal read: " + signal_id.replace("_", " ") + "."
     _after_progress()
     return true
 
 func complete_hazard_review(hazard_id: String) -> bool:
     if not chapter.complete_hazard(hazard_id):
         return false
-    last_message = "Crossing cleared: " + content.hazard_label(hazard_id) + "."
+    last_message = "Crossing cleared: " + hazard_id.replace("_", " ") + "."
     _after_progress()
     return true
 
@@ -224,15 +214,14 @@ func meet_ionia_for_choice() -> bool:
         return false
     if not chapter.meet_contact("elder_farmer"):
         return false
-    var ionia_intro := content.contact_dialogue("elder_farmer", "intro")
-    last_message = str(ionia_intro[0]) if not ionia_intro.is_empty() else "All four voices are in. Decide how the Wake answers."
+    last_message = "Ionia: All four voices are in. Decide how the Wake answers."
     _after_progress()
     return true
 
 func choose_path_review(path_id: String) -> bool:
     if not chapter.choose_path(path_id, deterministic_review_variant):
         return false
-    last_message = content.choice_outcome(path_id, deterministic_review_variant)
+    last_message = "Choice recorded: " + path_id + ". Return to Ionia for the migration-review Wake resolution."
     ender.player_controlled = true
     _after_progress()
     return true
@@ -240,18 +229,9 @@ func choose_path_review(path_id: String) -> bool:
 func resolve_wake_review() -> bool:
     if chapter.stage_key() != "wake":
         return false
-    var resolved := content.resolve_epilogue(
-        chapter.choice_path,
-        review_hull_integrity,
-        review_morale,
-        review_engine_integration
-    )
-    if resolved.is_empty():
+    if not chapter.complete_wake("migration_review_" + chapter.choice_path):
         return false
-    var resolved_id := str(resolved["id"])
-    if not chapter.complete_wake(resolved_id):
-        return false
-    last_message = str(resolved["text"])
+    last_message = "Chapter I migration boundary complete. Canon epilogue resolution is intentionally not inferred here."
     ender.player_controlled = false
     _after_progress()
     return true
@@ -324,4 +304,17 @@ func _refresh_ui() -> void:
         hint.text = InputPolicy.primary_label(InputPolicy.INTERACT) + ": interact   |   " + last_message
 
 func _objective_text() -> String:
-    return content.objective_for(chapter)
+    match chapter.stage_key():
+        "signal":
+            return "Read all 3 marked signal sources."
+        "crossing":
+            return "Resolve all 3 marked crossing hazards."
+        "contact":
+            return "Talk to Ionia; the other three contacts already carry forward."
+        "choice":
+            return "Choose how the Wake answers the storm."
+        "wake":
+            return "Return to Ionia to resolve the native migration boundary."
+        "done":
+            return "Explicit Chapter I completion reached."
+    return ""
