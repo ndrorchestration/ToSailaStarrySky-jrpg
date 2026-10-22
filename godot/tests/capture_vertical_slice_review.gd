@@ -103,6 +103,11 @@ func _capture() -> void:
         push_error("SLICE_CAPTURE_FAIL: world-space payoff did not alter signal/horizon region")
         quit(12)
         return
+    # Let the short procedural answer motif finish on the real audio path, then release it cleanly.
+    await create_timer(0.7).timeout
+    world.signal_audio_player.stop()
+    world.signal_audio_player.stream = null
+    await process_frame
     world.queue_free()
     await process_frame
     print("AETHERWAKE_SLICE_NATIVE_RENDER_PASS: discovery, dialogue, dialogue-history, guard warning, echo-ready and payoff are visually distinct 960x640 frames")
