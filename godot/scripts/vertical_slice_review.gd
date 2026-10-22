@@ -23,6 +23,8 @@ var headline: Label
 var story: Label
 var hint: Label
 var stage_label: Label
+var history_panel: ColorRect
+var history_label: Label
 var elapsed_seconds: float = 0.0
 var reduced_motion: bool = true
 var text_size: int = 21
@@ -31,6 +33,8 @@ var audio_enabled: bool = true
 var signal_audio_player: AudioStreamPlayer
 var trace_events: Array[Dictionary] = []
 var post_payoff_reaction_seen: bool = false
+var history_open: bool = false
+var dialogue_history: Array[String] = []
 var _story_message: String = "Something on the dock is sending a faint signal. Look for the small blue light."
 
 func _ready() -> void:
@@ -74,6 +78,16 @@ func _ready() -> void:
     story = _label(ui, Vector2(30, 548), text_size)
     hint = _label(ui, Vector2(30, 594), 18)
     headline.text = "AETHERWAKE  /  FIRST WAKE — PLAYABILITY STUDY"
+    history_panel = ColorRect.new()
+    history_panel.name = "DialogueHistoryPanel"
+    history_panel.position = Vector2(80, 125)
+    history_panel.size = Vector2(800, 350)
+    history_panel.color = Color(0.035, 0.07, 0.13, 0.96)
+    history_panel.visible = false
+    ui.add_child(history_panel)
+    history_label = _label(history_panel, Vector2(22, 18), 18)
+    history_label.custom_minimum_size = Vector2(756, 310)
+    _remember_story(_story_message)
     _refresh_ui()
 
 func _exit_tree() -> void:
@@ -150,7 +164,7 @@ func discover_signal() -> bool:
         return false
     choice_state.discover_signal()
     stage = "meet"
-    _story_message = "A broken signal repeats two notes. Ionia might know who is waiting for an answer."
+    _set_story_message("A broken signal repeats two notes. Ionia might know who is waiting for an answer.")
     _record("clue_discovered")
     _play_signal_audio(SignalAudio.make_question())
     _refresh_ui()
@@ -161,7 +175,7 @@ func open_choice() -> bool:
         return false
     stage = "choose"
     ender.player_controlled = false
-    _story_message = "Ionia: The crew needs a hand, but the beacon could guide others home."
+    _set_story_message("Ionia: The crew needs a hand, but the beacon could guide others home.")
     _record("dialogue_open")
     _refresh_ui()
     return true
@@ -174,7 +188,7 @@ func choose_path(help_crew: bool) -> bool:
         return false
     stage = "approach"
     ender.player_controlled = true
-    _story_message = "Your promise is made. Try the signal challenge on the far side of the dock."
+    _set_story_message("Your promise is made. Try the signal challenge on the far side of the dock.")
     _record("choice_crew" if help_crew else "choice_beacon")
     _refresh_ui()
     return true
@@ -185,7 +199,7 @@ func start_encounter() -> bool:
     encounter = Encounter.new()
     stage = "encounter"
     ender.player_controlled = false
-    _story_message = "A pulse gathers. Guard the warning to build an echo; strike when it quiets."
+    _set_story_message("A pulse gathers. Guard the warning to build an echo; strike when it quiets.")
     _record("encounter_started")
     _refresh_ui()
     queue_redraw()
@@ -199,15 +213,15 @@ func encounter_action(action: String) -> bool:
             return false
         stage = "return"
         ender.player_controlled = true
-        _story_message = "The signal is calm. Return to the blue light to see what changed."
+        _set_story_message("The signal is calm. Return to the blue light to see what changed.")
         _record("encounter_completed")
     elif encounter.is_failed():
         stage = "approach"
         ender.player_controlled = true
-        _story_message = "The pulse overwhelmed you. Try again with guard when it gathers."
+        _set_story_message("The pulse overwhelmed you. Try again with guard when it gathers.")
         _record("encounter_retry")
     else:
-        _story_message = ("Your guard built an echo. " if action == "guard" and encounter.echo_focus > 0 else "Your action: " + action + ". ") + encounter.telegraph_text()
+        _set_story_message(("Your guard built an echo. " if action == "guard" and encounter.echo_focus > 0 else "Your action: " + action + ". ") + encounter.telegraph_text())
     _refresh_ui()
     queue_redraw()
     return true
@@ -217,9 +231,9 @@ func finish_at_dock() -> bool:
         return false
     stage = "complete"
     if choice_state.dock_payoff_key() == "crew_reconnected":
-        _story_message = "The crew lights a welcome lantern. Someone answers the signal at last."
+        _set_story_message("The crew lights a welcome lantern. Someone answers the signal at last.")
     else:
-        _story_message = "The beacon shines again. A distant vessel sends a grateful reply."
+        _set_story_message("The beacon shines again. A distant vessel sends a grateful reply.")
     _record("payoff_reached")
     _play_signal_audio(SignalAudio.make_answer())
     _refresh_ui()
@@ -231,14 +245,19 @@ func hear_ionia_reaction() -> bool:
         return false
     post_payoff_reaction_seen = true
     if choice_state.choice == ChoiceState.Choice.HELP_CREW:
-        _story_message = "Ionia: You chose the people standing here. That kind of answer travels farther than you think."
+        _set_story_message("Ionia: You chose the people standing here. That kind of answer travels farther than you think.")
     else:
-        _story_message = "Ionia: One light cannot mend the whole sky. But someone out there can see a way home now."
+        _set_story_message("Ionia: One light cannot mend the whole sky. But someone out there can see a way home now.")
     _record("ionia_post_payoff_reaction")
     _refresh_ui()
     return true
 
 func _unhandled_input(event: InputEvent) -> void:
+    if event.is_action_pressed(InputPolicy.HISTORY):
+        toggle_history()
+        return
+    if history_open:
+        return
     if event.is_action_pressed(InputPolicy.CHOICE_PRIMARY):
         if stage == "choose":
             choose_path(true)
@@ -287,12 +306,12 @@ func _unhandled_input(event: InputEvent) -> void:
     elif event.keycode == KEY_ESCAPE and stage == "choose":
         stage = "meet"
         ender.player_controlled = true
-        _story_message = "You can talk to Ionia again whenever you're ready."
+        _set_story_message("You can talk to Ionia again whenever you're ready.")
         _refresh_ui()
     elif event.keycode == KEY_ESCAPE and stage == "encounter":
         stage = "approach"
         ender.player_controlled = true
-        _story_message = "The challenge can be retried at any time."
+        _set_story_message("The challenge can be retried at any time.")
         _refresh_ui()
 
 func context_prompt_text() -> String:
@@ -310,17 +329,43 @@ func context_prompt_text() -> String:
 func _refresh_ui() -> void:
     if stage_label == null:
         return
-    stage_label.text = "STUDY: " + stage.to_upper() + "   |   Movement: arrows   |   M: reduced motion   |   S: sound   |   +/-: text size"
+    var primary := InputPolicy.primary_label(InputPolicy.CHOICE_PRIMARY)
+    var secondary := InputPolicy.primary_label(InputPolicy.CHOICE_SECONDARY)
+    var history_key := InputPolicy.primary_label(InputPolicy.HISTORY)
+    stage_label.text = "STUDY: " + stage.to_upper() + "   |   Movement: arrows   |   M: reduced motion   |   S: sound   |   " + history_key + ": history   |   +/-: text size"
     story.text = _story_message
     if stage == "choose":
-        hint.text = "1: Help the crew   |   2: Repair the beacon   |   Esc: later"
+        hint.text = primary + ": Help the crew   |   " + secondary + ": Repair the beacon   |   Esc: later"
     elif stage == "encounter":
-        hint.text = "HP %d  |  Signal %d  |  Echo %d  |  1: Strike  2: Guard  Esc: exit" % [encounter.player_hp, encounter.challenge_hp, encounter.echo_focus]
+        hint.text = "HP %d  |  Signal %d  |  Echo %d  |  %s: Strike  %s: Guard  Esc: exit" % [encounter.player_hp, encounter.challenge_hp, encounter.echo_focus, primary, secondary]
     elif stage == "complete":
         var optional_prompt := context_prompt_text()
         hint.text = ("Prototype complete. " if optional_prompt.is_empty() else optional_prompt + "  |  ") + "No save or story canon."
     else:
         hint.text = context_prompt_text() + "  |  P: local review trace %s" % ("ON" if trace_opt_in else "OFF")
+
+func _set_story_message(message: String) -> void:
+    _story_message = message
+    _remember_story(message)
+
+func _remember_story(message: String) -> void:
+    if message.is_empty():
+        return
+    if dialogue_history.is_empty() or dialogue_history[-1] != message:
+        dialogue_history.append(message)
+        if dialogue_history.size() > 8:
+            dialogue_history.pop_front()
+    if history_label != null:
+        history_label.text = "DIALOGUE HISTORY\n\n" + "\n\n".join(dialogue_history)
+
+func toggle_history() -> void:
+    history_open = not history_open
+    history_panel.visible = history_open
+    if history_open:
+        ender.player_controlled = false
+    else:
+        ender.player_controlled = stage != "choose" and stage != "encounter"
+    _record("history_open" if history_open else "history_close")
 
 func _play_signal_audio(stream: AudioStreamWAV) -> void:
     if not audio_enabled or signal_audio_player == null:
