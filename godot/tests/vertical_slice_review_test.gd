@@ -69,6 +69,7 @@ func _verify() -> void:
         _fail("beacon payoff missing")
         return
     other.queue_free()
+    await process_frame
     print("AETHERWAKE_VERTICAL_SLICE_PASS: real scene, exclusive paths, readable challenge, pause/resume and two payoffs")
     quit(0)
 
