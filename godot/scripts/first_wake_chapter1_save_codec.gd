@@ -56,9 +56,9 @@ static func validate(snapshot: Dictionary) -> Dictionary:
     if not choice_variant.is_empty() and choice_variant not in ChapterState.VALID_VARIANTS:
         return _invalid("invalid choice variant")
 
-    var signals_complete := signals.size() == ChapterState.SIGNAL_IDS.size()
-    var hazards_complete := hazards.size() == ChapterState.HAZARD_IDS.size()
-    var contacts_complete := contacts.size() == ChapterState.CONTACT_IDS.size()
+    var signals_complete: bool = signals.size() == ChapterState.SIGNAL_IDS.size()
+    var hazards_complete: bool = hazards.size() == ChapterState.HAZARD_IDS.size()
+    var contacts_complete: bool = contacts.size() == ChapterState.CONTACT_IDS.size()
 
     match stage_key:
         "signal":
@@ -86,12 +86,13 @@ static func validate(snapshot: Dictionary) -> Dictionary:
             if choice_path.is_empty() or choice_variant.is_empty() or epilogue_id.strip_edges().is_empty() or not chapter_complete:
                 return _invalid("done-stage completion contradiction")
 
-    var stats = snapshot.get("resolver_stats", {})
-    if not stats is Dictionary:
+    var stats_value: Variant = snapshot.get("resolver_stats", {})
+    if not (stats_value is Dictionary):
         return _invalid("resolver stats missing")
-    var hull := int(stats.get("hull_integrity", -1))
-    var morale := int(stats.get("morale", -1))
-    var engine := int(stats.get("engine_integration", -1))
+    var stats: Dictionary = stats_value
+    var hull: int = int(stats.get("hull_integrity", -1))
+    var morale: int = int(stats.get("morale", -1))
+    var engine: int = int(stats.get("engine_integration", -1))
     if hull < 0 or hull > 100:
         return _invalid("hull integrity out of range")
     if morale < 0 or morale > 100:
