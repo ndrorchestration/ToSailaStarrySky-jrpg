@@ -3445,6 +3445,7 @@ function render() {
     drawShipInterior();
   } else {
     drawGroundLayer();
+    drawWakeDockComposition();
     if (isSkyLayerVisible) {
       drawSkyLayer();
     }
@@ -3590,55 +3591,81 @@ function drawGroundLayer() {
 }
 
 function drawTileSolid(px, py, s) {
-  const rust = color(120, 60, 30);
-  const dark = color(60, 30, 15);
-  fill(rust);
+  const tileX = Math.floor(px / s);
+  const tileY = Math.floor(py / s);
+  const isOuterEdge = tileX === 0 || tileY === 0 || tileX === MAP_SIZE - 1 || tileY === MAP_SIZE - 1;
+
   noStroke();
+  fill(isOuterEdge ? color(28, 34, 48) : color(112, 68, 42));
   rect(px, py, s, s);
-  fill(dark);
-  rect(px + 3, py + 3, 2, 2);
-  rect(px + s - 5, py + 3, 2, 2);
-  rect(px + 3, py + s - 5, 2, 2);
-  rect(px + s - 5, py + s - 5, 2, 2);
+
+  // Wake Dock is a floating reach: outer collision tiles read as a cliff/rim,
+  // not a generic brown wall.
+  if (isOuterEdge) {
+    fill(color(13, 17, 30, 230));
+    rect(px, py + s * 0.58, s, s * 0.42);
+    fill(color(180, 90, 50, 145));
+    rect(px, py, s, 2);
+    fill(color(42, 255, 181, 50));
+    if ((tileX + tileY) % 3 === 0) rect(px + 3, py + 4, s - 6, 1);
+  } else {
+    fill(color(68, 42, 30));
+    rect(px + 3, py + 3, 2, 2);
+    rect(px + s - 5, py + 3, 2, 2);
+    rect(px + 3, py + s - 5, 2, 2);
+    rect(px + s - 5, py + s - 5, 2, 2);
+  }
 }
 
 function drawTileGrass(px, py, s) {
-  const tan = color(180, 160, 120);
-  fill(tan);
+  const tx = Math.floor(px / s);
+  const ty = Math.floor(py / s);
+  const hash = (tx * 17 + ty * 31 + tx * ty * 3) % 7;
+  const base = 164 + hash * 3;
+
   noStroke();
+  fill(color(base, 154 + hash * 2, 111 + hash));
   rect(px, py, s, s);
-  stroke(color(80, 120, 60));
+
+  // Warm worn center plus cooler vegetation edge gives the dock reach depth
+  // without changing collision or tile identity.
+  fill(color(232, 220, 198, 10 + hash * 2));
+  rect(px + 1, py + 1, s - 2, 4);
+  fill(color(72, 112 + hash * 3, 66, 38));
+  rect(px + 1, py + s - 3, s - 2, 2);
+
+  stroke(color(72, 120 + hash * 3, 68, 165));
   strokeWeight(1);
-  const seed = (px * 7 + py * 13) % 5;
-  if (seed === 0) {
-    line(px + 4, py + s, px + 4, py + s - 4);
-    line(px + 8, py + s, px + 8, py + s - 3);
-  } else if (seed === 1) {
-    line(px + 6, py + s, px + 6, py + s - 5);
-  } else if (seed === 2) {
-    line(px + 2, py + s, px + 2, py + s - 3);
-    line(px + 10, py + s, px + 10, py + s - 4);
+  const bladeA = 3 + (hash % 4);
+  const bladeB = 10 + (hash % 3);
+  line(px + bladeA, py + s - 2, px + bladeA, py + s - 5 - (hash % 2));
+  if (hash % 2 === 0) {
+    line(px + bladeB, py + s - 2, px + bladeB, py + s - 4);
   }
   noStroke();
 }
 
 function drawTileCrate(px, py, s) {
-  const wood = color(140, 100, 60);
-  const darkWood = color(90, 60, 30);
-  fill(wood);
   noStroke();
+  fill(color(48, 36, 28, 90));
+  rect(px + 2, py + 3, s, s);
+
+  fill(color(142, 101, 61));
   rect(px, py, s, s);
-  stroke(darkWood);
+  fill(color(174, 128, 76, 150));
+  rect(px + 1, py + 1, s - 2, 3);
+  fill(color(88, 58, 34));
+  rect(px + 2, py + 2, 2, s - 4);
+  rect(px + s - 4, py + 2, 2, s - 4);
+
+  stroke(color(92, 61, 35));
   strokeWeight(1);
-  line(px, py + s/2, px + s, py + s/2);
-  line(px + s/2, py, px + s/2, py + s);
+  line(px + 2, py + 2, px + s - 2, py + s - 2);
+  line(px + s - 2, py + 2, px + 2, py + s - 2);
   noStroke();
-  fill(darkWood);
-  rect(px + 2, py + 2, 2, 2);
-  rect(px + s - 4, py + 2, 2, 2);
-  rect(px + 2, py + s - 4, 2, 2);
-  rect(px + s - 4, py + s - 4, 2, 2);
-  noStroke();
+
+  fill(color(42, 255, 181, 42));
+  rect(px + s - 5, py + 3, 2, 2);
 }
 
 function drawTileFloat(px, py, s) {
@@ -3696,6 +3723,79 @@ function drawTileLore(px, py, s) {
     textFont('VT323');
     text('?', px + s/2, py + s/2);
   }
+}
+
+function drawWakeDockComposition() {
+  const mapPx = MAP_SIZE * 16;
+
+  push();
+  // Soft cloud-shadow bands keep the square map from reading as a flat field.
+  noStroke();
+  fill(color(34, 47, 68, 18));
+  ellipse(120, 120, 250, 84);
+  ellipse(380, 286, 300, 96);
+  fill(color(232, 220, 198, 12));
+  ellipse(276, 390, 360, 72);
+
+  // Worn traversal lanes connect the actual authored contact positions. These
+  // are presentation-only overlays; walkability and collision remain unchanged.
+  stroke(color(224, 204, 164, 48));
+  strokeWeight(10);
+  strokeCap(SQUARE);
+  line(16 * 16 + 8, 16 * 16 + 8, 7 * 16 + 8, 7 * 16 + 8);
+  line(16 * 16 + 8, 16 * 16 + 8, 22 * 16 + 8, 10 * 16 + 8);
+  line(16 * 16 + 8, 16 * 16 + 8, 8 * 16 + 8, 20 * 16 + 8);
+  line(16 * 16 + 8, 16 * 16 + 8, 26 * 16 + 8, 24 * 16 + 8);
+  stroke(color(76, 112, 78, 34));
+  strokeWeight(2);
+  line(16 * 16 + 8, 16 * 16 + 8, 7 * 16 + 8, 7 * 16 + 8);
+  line(16 * 16 + 8, 16 * 16 + 8, 22 * 16 + 8, 10 * 16 + 8);
+  line(16 * 16 + 8, 16 * 16 + 8, 8 * 16 + 8, 20 * 16 + 8);
+  line(16 * 16 + 8, 16 * 16 + 8, 26 * 16 + 8, 24 * 16 + 8);
+  noStroke();
+
+  // The Wake's berth around the Wakeheart: rails, mooring pads, and shield
+  // pylons add place identity without becoming collision geometry.
+  const berthX = 318, berthY = 116, berthW = 112, berthH = 92;
+  fill(color(27, 37, 49, 60));
+  rect(berthX, berthY, berthW, berthH, 4);
+  noFill();
+  stroke(color(124, 200, 232, 76));
+  strokeWeight(2);
+  rect(berthX + 4, berthY + 4, berthW - 8, berthH - 8, 3);
+  stroke(color(180, 90, 50, 110));
+  line(berthX + 16, berthY + 16, berthX + berthW - 16, berthY + 16);
+  line(berthX + 16, berthY + berthH - 16, berthX + berthW - 16, berthY + berthH - 16);
+  noStroke();
+  fill(color(42, 255, 181, 110));
+  for (const pylonX of [berthX + 12, berthX + berthW - 16]) {
+    rect(pylonX, berthY + 30, 4, 30);
+    fill(color(42, 255, 181, 35));
+    ellipse(pylonX + 2, berthY + 28, 14, 8);
+    fill(color(42, 255, 181, 110));
+  }
+
+  // Central plaza ring makes Ender's initial position spatially legible.
+  noFill();
+  stroke(color(42, 255, 181, 46));
+  strokeWeight(2);
+  ellipse(16 * 16 + 8, 16 * 16 + 8, 62, 34);
+  stroke(color(124, 200, 232, 34));
+  ellipse(16 * 16 + 8, 16 * 16 + 8, 86, 50);
+
+  // Floating-reach rim shadow sells the drop beyond the map boundary.
+  noStroke();
+  fill(color(13, 17, 30, 120));
+  rect(0, mapPx - 8, mapPx, 8);
+  rect(mapPx - 8, 0, 8, mapPx);
+
+  textFont('Press Start 2P');
+  textSize(6);
+  textAlign(LEFT, TOP);
+  fill(color(124, 200, 232, 120));
+  text('WAKE DOCK', 18, 18);
+  text('AUREATE WAKE // BERTH', berthX + 8, berthY - 12);
+  pop();
 }
 
 // --- Sky Layer --------------------------------------------------------------
@@ -3883,12 +3983,16 @@ function drawPlayer() {
   const px = player.px;
   const py = player.py;
 
+  push();
+  translate(px + 8, py + 8);
+  scale(1.18);
+  translate(-(px + 8), -(py + 8));
+
   noStroke();
-  fill(color(0, 0, 0, 80));
-  ellipse(px + 8, py + 14, 14, 5);
+  fill(color(0, 0, 0, 90));
+  ellipse(px + 8, py + 14, 16, 5);
 
   fill(color(40, 45, 60));
-  noStroke();
   rect(px + 5, py + 9, 4, 5);
   rect(px + 9, py + 9, 4, 5);
 
@@ -3897,7 +4001,6 @@ function drawPlayer() {
   fill(color(42, 255, 181, 120));
   rect(px + 2, py + 5, 3, 4);
   rect(px + 13, py + 5, 3, 4);
-  noStroke();
   fill(color(42, 255, 181, 60));
   ellipse(px + 3.5, py + 7, 3, 2);
   ellipse(px + 14.5, py + 7, 3, 2);
@@ -3907,16 +4010,13 @@ function drawPlayer() {
   fill(color(42, 255, 181, 180));
   rect(px + 5, py + 2, 3, 2);
   rect(px + 10, py + 2, 3, 2);
+
   noFill();
   stroke(color(60, 60, 60));
   strokeWeight(1);
   line(px + 5, py + 2, px + 5, py);
   line(px + 13, py + 2, px + 13, py);
-  noStroke();
-
-  noFill();
   stroke(color(42, 255, 181, 120));
-  strokeWeight(1);
   line(px + 13, py + 2, px + 15, py + 3);
   line(px + 15, py + 3, px + 16, py + 2);
   noStroke();
@@ -3924,24 +4024,26 @@ function drawPlayer() {
   const staffX = px + 14;
   const staffY = py + 1;
   fill(color(80, 80, 90));
-  noStroke();
   rect(staffX, staffY, 2, 12);
+  fill(color(184, 137, 72));
+  rect(staffX, staffY - 1, 2, 2);
+  rect(staffX, staffY + 11, 2, 2);
   fill(color(42, 255, 181, 200));
-  rect(staffX - 1, staffY - 1, 4, 3);
-  noStroke();
-  fill(color(42, 255, 181, 80));
-  ellipse(staffX + 1, staffY, 4, 3);
-  noStroke();
+  rect(staffX - 1, staffY - 2, 4, 3);
+  fill(color(42, 255, 181, 70));
+  ellipse(staffX + 1, staffY - 1, 6, 4);
+  pop();
 
   fill(color(232, 220, 198));
   noStroke();
   textAlign(CENTER, TOP);
   textSize(8);
   textFont('VT323');
-  text('Ender', px + 8, py - 6);
+  text('Ender', px + 8, py - 8);
   textSize(9);
   textFont('VT323');
 }
+
 
 // --- NPCs -------------------------------------------------------------------
 
@@ -3960,13 +4062,18 @@ function drawNPC(npc) {
     noFill();
     stroke(color(42, 255, 181, 80 * pulse));
     strokeWeight(1);
-    ellipse(px, py - 10, 8, 4);
+    ellipse(px, py - 12, 10, 5);
     noStroke();
   }
 
+  push();
+  translate(px + 4, py + 3);
+  scale(1.12);
+  translate(-(px + 4), -(py + 3));
+
   noStroke();
-  fill(color(0, 0, 0, 60));
-  ellipse(px + 4, py + 8, 10, 4);
+  fill(color(0, 0, 0, 72));
+  ellipse(px + 4, py + 8, 12, 4);
 
   switch (npc.id) {
     case 'elder_farmer':
@@ -3988,13 +4095,14 @@ function drawNPC(npc) {
     default:
       drawNPCDefault(px, py, npc.name);
   }
+  pop();
 
   noStroke();
-  fill(color(232, 220, 198, 200));
+  fill(color(232, 220, 198, 215));
   textAlign(CENTER, TOP);
   textSize(7);
   textFont('VT323');
-  text(npc.name, px, py - 12);
+  text(npc.name, px, py - 14);
   textSize(9);
   textFont('VT323');
 }
@@ -5956,24 +6064,57 @@ function AetherCombat(p, C) {
     const dodgeBob = state._dodgeTurn && state._dodgeTurn > now - 200
       ? Math.sin((now - state._dodgeTurn) * 0.02) * 4
       : 0;
-    
-    // ── Background ──
-    noStroke();
-    fill(C.navy[0], C.navy[1], C.navy[2]);
-    rect(0, 0, p.width, p.height);
 
-    // Ground
-    fill(C.soil[0], C.soil[1], C.soil[2]);
-    rect(0, p.height * 0.55, p.width, p.height * 0.45);
+    // Combat uses deliberate stage positions rather than inheriting tiny world-map
+    // coordinates. This is presentation-only and does not change combat rules.
+    playerX = p.width * 0.38;
+    playerY = p.height * 0.60;
 
-    // Sky gradient overlay
-    for (let i = 0; i < p.height * 0.55; i += 2) {
-      const t = i / (p.height * 0.55);
-      p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], Math.floor(15 * (1 - t)));
-      p.strokeWeight(2);
-      p.line(0, i, p.width, i);
+    // ── Sky-dock combat stage ──
+    p.noStroke();
+    p.fill(C.navy[0], C.navy[1], C.navy[2]);
+    p.rect(0, 0, p.width, p.height);
+
+    for (let band = 0; band < 9; band++) {
+      const bt = band / 8;
+      p.fill(22 + bt * 26, 20 + bt * 34, 52 + bt * 48);
+      p.rect(0, band * (p.height * 0.062), p.width, p.height * 0.066 + 1);
+    }
+
+    // Storm-lit horizon and cloud sea.
+    p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 20);
+    p.ellipse(p.width * 0.68, p.height * 0.27, 420, 54);
+    p.ellipse(p.width * 0.40, p.height * 0.34, 360, 46);
+    p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 38);
+    p.ellipse(p.width * 0.83, p.height * 0.19, 74, 74);
+
+    // Raised berth platform creates a readable JRPG battle plane.
+    p.fill(58, 55, 58);
+    p.quad(238, p.height * 0.53, 930, p.height * 0.53, 960, p.height, 210, p.height);
+    p.fill(91, 69, 52, 205);
+    p.quad(250, p.height * 0.57, 916, p.height * 0.57, 940, p.height, 226, p.height);
+
+    p.stroke(C.rust[0], C.rust[1], C.rust[2], 110);
+    p.strokeWeight(2);
+    p.line(260, p.height * 0.59, 910, p.height * 0.59);
+    p.stroke(C.scioto[0], C.scioto[1], C.scioto[2], 58);
+    for (let y = p.height * 0.66; y < p.height; y += 44) {
+      p.line(245, y, 930, y);
     }
     p.noStroke();
+
+    // Aether seam and combatant shadows anchor both actors to the platform.
+    p.fill(C.teal[0], C.teal[1], C.teal[2], 34);
+    p.rect(258, p.height * 0.615, 642, 2);
+    p.fill(8, 10, 18, 95);
+    p.ellipse(playerX, playerY + 28, 86, 18);
+    p.ellipse(p.width * 0.75, p.height * 0.52 + 34, 110, 22);
+
+    p.textFont('Press Start 2P');
+    p.textSize(7);
+    p.textAlign(p.RIGHT, p.TOP);
+    p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 105);
+    p.text('WAKE DOCK // STORMFRONT EDGE', p.width - 22, 20);
 
     // ── Stars ──
     for (let i = 0; i < 30; i++) {
@@ -6015,6 +6156,11 @@ function AetherCombat(p, C) {
     if (state.enemy) {
       const ex = p.width * 0.75;
       const ey = p.height * 0.52;
+      const enemyScale = 1.28;
+      p.push();
+      p.translate(ex, ey);
+      p.scale(enemyScale);
+      p.translate(-ex, -ey);
       const eType = state.enemy.type || 'generic';
       const eVisual = state.enemy.bodyShape || ({
         windShear: 'elemental',
@@ -6226,6 +6372,7 @@ function AetherCombat(p, C) {
           p.ellipse(ex + Math.cos(da) * dd, ey + Math.sin(da) * dd * 0.6, 4, 4);
         }
       }
+      p.pop();
     }
 
     // ── Player hit flash — red impact at player position ──
@@ -6271,7 +6418,7 @@ function AetherCombat(p, C) {
 
     // ── Fire package (staff) ──
     if (state.player.staffCharges > 0) {
-      const fx = 72, fy = p.height * 0.62;
+      const fx = playerX - 38, fy = playerY + 26;
 
       // Staff glow
       const chargeGlow = Math.sin(now * 0.004) * 0.3 + 0.7;
@@ -6306,7 +6453,7 @@ function AetherCombat(p, C) {
       p.text('\u26A1 ' + state.player.staffCharges + '/' + staffMax, fx, fy + 10);
     } else {
       // Empty staff
-      const fx = 72, fy = p.height * 0.62;
+      const fx = playerX - 38, fy = playerY + 26;
       p.stroke(C.soil[0], C.soil[1], C.soil[2], 110);
       p.strokeWeight(2);
       p.line(fx, fy - 16, fx, fy - 40);
@@ -6322,7 +6469,7 @@ function AetherCombat(p, C) {
     if (state.player.staffCharges > 0) {
       for (let i = 0; i < 5; i++) {
         const pi = (now * 0.02 + i * 7) % 5;
-        const fx = 72 + Math.sin(now * 0.015 + i * 2.1) * 8;
+        const fx = playerX - 38 + Math.sin(now * 0.015 + i * 2.1) * 8;
         const fy = p.height * 0.58 - pi * 7;
         const particleAlpha = Math.max(0, 60 - pi * 12 - Math.sin(now * 0.025 + i) * 15);
         if (particleAlpha > 0) {
@@ -6348,46 +6495,62 @@ function AetherCombat(p, C) {
 
     // ── Player character ──
     const px = playerX, py = playerY;
-    const pulse = Math.sin(now * 0.003) * 3 + 20;
+    const pulse = Math.sin(now * 0.003) * 2 + 22;
 
-    // Player glow
-    p.fill(C.teal[0], C.teal[1], C.teal[2], 50);
+    p.fill(C.teal[0], C.teal[1], C.teal[2], 34);
     p.noStroke();
-    p.ellipse(px, py + dodgeBob, pulse + 10, pulse + 10);
+    p.ellipse(px, py + dodgeBob, 64, 70);
 
-    // Player body
-    p.fill(C.teal[0], C.teal[1], C.teal[2], 190);
+    // Grounded Ender combat silhouette: coat, boots, face glow, and side staff.
+    p.fill(36, 43, 52, 235);
+    p.rect(px - 12, py - 12 + dodgeBob, 24, 34, 5);
+    p.fill(28, 35, 44, 245);
+    p.rect(px - 10, py + 18 + dodgeBob, 8, 14, 2);
+    p.rect(px + 2, py + 18 + dodgeBob, 8, 14, 2);
+
+    p.fill(218, 192, 162);
+    p.ellipse(px, py - 24 + dodgeBob, 20, 18);
+    p.fill(C.teal[0], C.teal[1], C.teal[2], 175);
+    p.rect(px - 7, py - 25 + dodgeBob, 5, 2);
+    p.rect(px + 2, py - 25 + dodgeBob, 5, 2);
+
+    // Staff with brass ferrules remains visually distinct from the body.
+    const combatStaffX = px + 22;
+    p.stroke(88, 88, 94);
+    p.strokeWeight(4);
+    p.line(combatStaffX, py - 34 + dodgeBob, combatStaffX, py + 28 + dodgeBob);
+    p.stroke(184, 137, 72);
+    p.strokeWeight(5);
+    p.point(combatStaffX, py - 34 + dodgeBob);
+    p.point(combatStaffX, py + 28 + dodgeBob);
     p.noStroke();
-    p.ellipse(px, py + dodgeBob, pulse, pulse);
+    p.fill(C.teal[0], C.teal[1], C.teal[2], 170);
+    p.ellipse(combatStaffX, py - 37 + dodgeBob, 10, 10);
+    p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 55);
+    p.ellipse(combatStaffX, py - 37 + dodgeBob, 20, 20);
 
-    // Player highlight
-    p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 160);
-    p.ellipse(px - 4, py - 4 + dodgeBob, pulse * 0.35, pulse * 0.35);
-
-    // Player outline
-    p.stroke(C.teal[0], C.teal[1], C.teal[2], 100);
-    p.strokeWeight(1.5);
     p.noFill();
-    p.ellipse(px, py + dodgeBob, pulse + 2, pulse + 2);
+    p.stroke(C.teal[0], C.teal[1], C.teal[2], 85);
+    p.strokeWeight(1.5);
+    p.ellipse(px, py + dodgeBob, pulse + 30, pulse + 38);
     p.noStroke();
 
-    // Player name
     p.textFont('Press Start 2P');
     p.textSize(8);
     p.textAlign(p.CENTER, p.TOP);
-    p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 170);
-    p.text('ENDER', px, py - 30 + dodgeBob);
+    p.fill(C.parchment[0], C.parchment[1], C.parchment[2], 190);
+    p.text('ENDER', px, py - 50 + dodgeBob);
 
-    // Player Vit bar
-    const vitRatio = (combat && combat.getState) ? 
-      (combat.getState().player.vit / combat.getState().player.maxVit) : 1;
-    p.stroke(C.navy[0], C.navy[1], C.navy[2], 150);
+    const vitRatio = (combat && combat.getState)
+      ? (combat.getState().player.vit / combat.getState().player.maxVit)
+      : 1;
+    p.stroke(C.navy[0], C.navy[1], C.navy[2], 180);
     p.strokeWeight(1);
     p.noFill();
-    p.rect(px - 16, py - 42 + dodgeBob, 32, 3);
+    p.rect(px - 24, py - 62 + dodgeBob, 48, 4);
     p.noStroke();
-    p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 180);
-    p.rect(px - 15, py - 41 + dodgeBob, 30 * Math.max(0, vitRatio), 1.5);
+    p.fill(C.scioto[0], C.scioto[1], C.scioto[2], 200);
+    p.rect(px - 23, py - 61 + dodgeBob, 46 * Math.max(0, vitRatio), 2);
   };
 };
 
