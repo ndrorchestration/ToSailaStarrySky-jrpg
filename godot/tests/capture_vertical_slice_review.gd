@@ -90,6 +90,8 @@ func _capture() -> void:
         push_error("SLICE_CAPTURE_FAIL: world-space payoff did not alter signal/horizon region")
         quit(12)
         return
+    world.queue_free()
+    await process_frame
     print("AETHERWAKE_SLICE_NATIVE_RENDER_PASS: discovery, dialogue, guard warning, echo-ready and payoff are visually distinct 960x640 frames")
     print("AETHERWAKE_SLICE_ARTISTIC_ACCEPTANCE=PENDING")
     quit(0)
