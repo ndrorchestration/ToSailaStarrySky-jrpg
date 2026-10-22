@@ -14,6 +14,9 @@ func _verify() -> void:
     root.add_child(world)
     await process_frame
 
+    if world.get_script() == null or not world.has_method("complete_signal_contact"):
+        _fail("scene script did not load or parse")
+        return
     if world.ender == null or world.chapter.stage_key() != "signal":
         _fail("initial player or signal stage missing")
         return
