@@ -45,6 +45,7 @@ function Invoke-GodotChecked {
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--editor", "--quit") "Godot import"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_chapter1_content_test.gd") "Chapter I content contract"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_chapter1_dialogue_test.gd") "Chapter I dialogue cursor"
+Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_chapter1_dialogue_scene_test.gd") "Chapter I real-scene dialogue gate"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_chapter1_state_test.gd") "Chapter I state contract"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_chapter1_save_codec_test.gd") "Chapter I save codec"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_chapter1_save_scene_test.gd") "Chapter I save scene"
