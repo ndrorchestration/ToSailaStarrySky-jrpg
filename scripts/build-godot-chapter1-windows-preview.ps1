@@ -5,6 +5,17 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+function Get-Sha256Hex([string]$Path) {
+    $stream = [System.IO.File]::OpenRead($Path)
+    try {
+        $sha = [System.Security.Cryptography.SHA256]::Create()
+        return (($sha.ComputeHash($stream) | ForEach-Object ToString x2) -join '')
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $GodotDir = Join-Path $RepoRoot "godot"
 if (-not $OutputDir) {
@@ -54,7 +65,7 @@ $Item = Get-Item -LiteralPath $Exe
 if ($Item.Length -lt 1000000) {
     throw "WINDOWS_EXPORT_TOO_SMALL: $($Item.Length)"
 }
-$Sha = (Get-FileHash -Algorithm SHA256 -LiteralPath $Exe).Hash.ToLowerInvariant()
+$Sha = Get-Sha256Hex $Exe
 
 Write-Output "AETHERWAKE_GODOT_WINDOWS_EXPORT_EXE=$Exe"
 Write-Output "AETHERWAKE_GODOT_WINDOWS_EXPORT_BYTES=$($Item.Length)"
