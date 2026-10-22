@@ -114,7 +114,54 @@ func _capture() -> void:
         quit(4)
         return
 
-    for hazard_id in ["sky_predator", "wind_shear", "corporate_intercept"]:
+    # Capture the one current-story hazard with an admitted combat adapter.
+    # Loose Cargo Sweep and Dock Authority Hold remain noncombat interactions.
+    var wind_rng = Sequence.new([
+        0.5, 0.99, 0.5, 0.99, 0.5, 0.99, 0.5, 0.99,
+        0.5, 0.99, 0.5, 0.99, 0.5, 0.99, 0.5, 0.99,
+    ])
+    world.formula_encounter = FormulaEncounter.new(wind_rng.next)
+    if not world.start_hazard_encounter("wind_shear"):
+        push_error("CHAPTER1_CAPTURE_FAIL: authored Wind Shear encounter did not open")
+        quit(39)
+        return
+    if not world.take_formula_review_action("uncoverTruth"):
+        push_error("CHAPTER1_CAPTURE_FAIL: Wind Shear analysis did not resolve")
+        quit(40)
+        return
+    await process_frame
+    var wind_shear_image: Image = await _snapshot("chapter1-wind-shear-combat-native-960x640.png")
+    if wind_shear_image == null:
+        quit(41)
+        return
+    if "wind_shear" in world.chapter.completed_hazards:
+        push_error("CHAPTER1_CAPTURE_FAIL: Wind Shear progress was credited before confirmed clear")
+        quit(42)
+        return
+
+    var wind_guard := 0
+    while not world.formula_encounter.completed and wind_guard < 24:
+        if int(world.formula_encounter.player["staffCharges"]) == 0:
+            if not world.take_formula_review_action("hold"):
+                push_error("CHAPTER1_CAPTURE_FAIL: Wind Shear Hold failed")
+                quit(43)
+                return
+        else:
+            if not world.take_formula_review_action("staffStrike"):
+                push_error("CHAPTER1_CAPTURE_FAIL: Wind Shear Staff Strike failed")
+                quit(44)
+                return
+        wind_guard += 1
+    if not world.formula_encounter.completed or not world.close_formula_review():
+        push_error("CHAPTER1_CAPTURE_FAIL: Wind Shear clear did not confirm")
+        quit(45)
+        return
+    if "wind_shear" not in world.chapter.completed_hazards:
+        push_error("CHAPTER1_CAPTURE_FAIL: confirmed Wind Shear clear did not advance Crossing")
+        quit(46)
+        return
+
+    for hazard_id in ["sky_predator", "corporate_intercept"]:
         world.complete_hazard_review(hazard_id)
     await process_frame
     var contact: Image = await _snapshot("chapter1-contact-native-960x640.png")
@@ -144,7 +191,7 @@ func _capture() -> void:
         return
 
     var scene_region := Rect2i(80, 110, 800, 350)
-    var frames := [signal_image, formula_image, dialogue_image, crossing, contact, choice, wake, done]
+    var frames := [signal_image, formula_image, dialogue_image, crossing, wind_shear_image, contact, choice, wake, done]
     for i in range(frames.size() - 1):
         if frames[i].get_region(scene_region).get_data() == frames[i + 1].get_region(scene_region).get_data():
             push_error("CHAPTER1_CAPTURE_FAIL: adjacent stage frames are not visibly distinct at index " + str(i))
@@ -153,6 +200,6 @@ func _capture() -> void:
 
     world.queue_free()
     await process_frame
-    print("AETHERWAKE_GODOT_CHAPTER1_NATIVE_RENDER_PASS: Signal, Formula Review, Dialogue, Crossing, Contact, Choice, Wake and Done are visibly distinct 960x640 native frames")
+    print("AETHERWAKE_GODOT_CHAPTER1_NATIVE_RENDER_PASS: Signal, Formula Review, Dialogue, Crossing, authored Wind Shear combat, Contact, Choice, Wake and Done are visibly distinct 960x640 native frames")
     print("AETHERWAKE_GODOT_CHAPTER1_ARTISTIC_ACCEPTANCE=PENDING")
     quit(0)
