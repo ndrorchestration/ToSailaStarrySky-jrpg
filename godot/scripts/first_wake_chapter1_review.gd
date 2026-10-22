@@ -449,6 +449,21 @@ func _nearest_pending(points: Dictionary, completed: Array[String]) -> String:
     return best_id
 
 func _unhandled_input(event: InputEvent) -> void:
+    if formula_encounter.active:
+        if event.is_action_pressed(InputPolicy.FORMULA_REVIEW):
+            close_formula_review()
+        elif event.is_action_pressed(InputPolicy.COMBAT_STRIKE):
+            take_formula_review_action("staffStrike")
+        elif event.is_action_pressed(InputPolicy.COMBAT_ANALYZE):
+            take_formula_review_action("uncoverTruth")
+        elif event.is_action_pressed(InputPolicy.COMBAT_HOLD):
+            take_formula_review_action("hold")
+        elif event.is_action_pressed(InputPolicy.COMBAT_REST):
+            take_formula_review_action("rest")
+        return
+    if event.is_action_pressed(InputPolicy.FORMULA_REVIEW):
+        start_formula_review()
+        return
     if dialogue.open and event.is_action_pressed(InputPolicy.INTERACT):
         _advance_dialogue_review()
         return
