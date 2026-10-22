@@ -2,6 +2,7 @@ extends SceneTree
 ## Deterministic migration contract for the packaged First Wake Chapter I FSM.
 
 const ChapterState = preload("res://scripts/first_wake_chapter1_state.gd")
+const Content = preload("res://scripts/first_wake_chapter1_content.gd")
 
 func _initialize() -> void:
     var chapter = ChapterState.new()
@@ -74,8 +75,11 @@ func _initialize() -> void:
         _fail("exclusive choice mutated")
         return
 
+    if chapter.complete_wake("migration_review_path_c"):
+        _fail("synthetic migration epilogue was accepted")
+        return
     if not chapter.complete_wake("epiline_6"):
-        _fail("valid epilogue did not complete Chapter I")
+        _fail("canonical epilogue did not complete Chapter I")
         return
     var snap := chapter.snapshot()
     if snap["stage"] != "done" or not snap["chapter_one_complete"]:
@@ -100,8 +104,12 @@ func _initialize() -> void:
         if not alt.choose_path(path_id, "7-9"):
             _fail("alternate path rejected: " + path_id)
             return
-        if not alt.complete_wake("migration_test_" + path_id):
-            _fail("alternate path did not complete: " + path_id)
+        var injected_epilogue_id := Content.review_epilogue_fixture(path_id)
+        if injected_epilogue_id.is_empty():
+            _fail("review epilogue fixture missing: " + path_id)
+            return
+        if not alt.complete_wake(injected_epilogue_id):
+            _fail("alternate path did not complete with canonical catalog id: " + path_id)
             return
 
     print("AETHERWAKE_GODOT_CHAPTER1_FSM_PASS: 3 signals, 3 hazards, 4 contacts, Ionia join, 3 paths, Wake and explicit completion")
