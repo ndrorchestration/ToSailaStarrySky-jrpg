@@ -12,6 +12,7 @@ const SaveCodec = preload("res://scripts/first_wake_chapter1_save_codec.gd")
 const SaveStore = preload("res://scripts/first_wake_chapter1_save_store.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd")
+const CurrentEnemyAdapter = preload("res://scripts/first_wake_current_enemy_adapter.gd")
 
 const DECK_BOUNDS := Rect2(Vector2(110, 404), Vector2(740, 118))
 const INTERACT_DISTANCE := 74.0
@@ -54,6 +55,8 @@ var review_morale: int = 50
 var review_engine_integration: int = 0
 var resolved_epilogue: Dictionary = {}
 var formula_encounter = FormulaEncounter.new()
+var current_enemy_adapter = CurrentEnemyAdapter.new()
+var active_hazard_encounter_id: String = ""
 var save_store = SaveStore.new()
 
 func _ready() -> void:
@@ -185,10 +188,18 @@ func _draw_formula_review() -> void:
     var max_staff_charges := int(formula_encounter.player.get("maxStaffCharges", 0))
     var heat: Dictionary = formula_encounter.player.get("heat", {"current": 0, "max": 3})
 
+    var authored_hazard := not active_hazard_encounter_id.is_empty()
+    var encounter_title := "CROSSING ENCOUNTER" if authored_hazard else "FORMULA REVIEW ENCOUNTER"
+    var encounter_subtitle := (
+        "Current-story Wind Shear · production JRPG formulas · progress confirms on clear"
+        if authored_hazard
+        else "Production JRPG math · noncanonical target · Chapter I progress unchanged"
+    )
+
     draw_string(
         ThemeDB.fallback_font,
         Vector2(176, 154),
-        "FORMULA REVIEW ENCOUNTER",
+        encounter_title,
         HORIZONTAL_ALIGNMENT_LEFT,
         -1,
         24,
@@ -197,7 +208,7 @@ func _draw_formula_review() -> void:
     draw_string(
         ThemeDB.fallback_font,
         Vector2(176, 184),
-        "Production JRPG math · noncanonical target · Chapter I progress unchanged",
+        encounter_subtitle,
         HORIZONTAL_ALIGNMENT_LEFT,
         610,
         14,
@@ -254,7 +265,10 @@ func _draw_formula_review() -> void:
 
     var status := formula_encounter.last_log()
     if formula_encounter.completed:
-        status = "TARGET CLEARED. C closes review; Chapter I state remains unchanged."
+        if authored_hazard:
+            status = "WIND SHEAR CLEARED. C confirms this Crossing hazard."
+        else:
+            status = "TARGET CLEARED. C closes review; Chapter I state remains unchanged."
     draw_string(
         ThemeDB.fallback_font,
         Vector2(176, 438),
@@ -268,7 +282,7 @@ func _draw_formula_review() -> void:
     draw_string(
         ThemeDB.fallback_font,
         Vector2(176, 474),
-        "C: close review",
+        ("C: confirm / close encounter" if authored_hazard else "C: close review"),
         HORIZONTAL_ALIGNMENT_LEFT,
         -1,
         13,

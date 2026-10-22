@@ -22,6 +22,7 @@ var local_rng := RandomNumberGenerator.new()
 
 var active: bool = false
 var completed: bool = false
+var encounter_kind: String = "formula_review"
 var turns: int = 0
 var player: Dictionary = {}
 var target: Dictionary = {}
@@ -66,6 +67,7 @@ func reset() -> void:
     }
     active = false
     completed = false
+    encounter_kind = "formula_review"
     turns = 0
     log = []
 
@@ -74,8 +76,51 @@ func start() -> bool:
         return false
     active = true
     completed = false
-    log.append("Formula review started. Production formulas; noncanonical target.")
+    if encounter_kind == "authored_hazard":
+        log.append("Crossing encounter started: " + str(target.get("name", "Hazard")) + ".")
+    else:
+        log.append("Formula review started. Production formulas; noncanonical target.")
     return true
+
+func start_with_target(profile: Dictionary) -> bool:
+    if active or not _valid_target_profile(profile):
+        return false
+    reset()
+    encounter_kind = str(profile.get("encounterKind", "configured"))
+    target = {
+        "id": str(profile.get("id", "")),
+        "name": str(profile.get("name", "")),
+        "hp": int(profile.get("hp", 0)),
+        "maxHp": int(profile.get("maxHp", profile.get("hp", 0))),
+        "weakness": str(profile.get("weakness", "")),
+        "productionDerivedStats": Dictionary(profile.get("productionDerivedStats", {})).duplicate(true),
+        "analysis": {},
+        "hazardId": str(profile.get("hazardId", "")),
+        "goal": str(profile.get("goal", "")),
+        "type": str(profile.get("type", "")),
+        "ability": str(profile.get("ability", "")),
+        "abilityDesc": str(profile.get("abilityDesc", "")),
+        "bodyShape": str(profile.get("bodyShape", "")),
+        "adapterVersion": str(profile.get("adapterVersion", "")),
+        "adapterSource": str(profile.get("adapterSource", "")),
+    }
+    return start()
+
+func _valid_target_profile(profile: Dictionary) -> bool:
+    if profile.is_empty():
+        return false
+    if str(profile.get("id", "")).strip_edges().is_empty():
+        return false
+    if str(profile.get("name", "")).strip_edges().is_empty():
+        return false
+    if int(profile.get("hp", 0)) <= 0 or int(profile.get("maxHp", 0)) <= 0:
+        return false
+    if str(profile.get("weakness", "")).strip_edges().is_empty():
+        return false
+    var derived = profile.get("productionDerivedStats", {})
+    if not (derived is Dictionary):
+        return false
+    return derived.has("aetherDefense") and derived.has("evasion")
 
 func close() -> bool:
     if not active:
@@ -132,7 +177,10 @@ func _staff_strike() -> bool:
 
     if int(target["hp"]) == 0:
         completed = true
-        log.append("Formula review target cleared.")
+        if encounter_kind == "authored_hazard":
+            log.append(str(target.get("name", "Hazard")) + " cleared.")
+        else:
+            log.append("Formula review target cleared.")
     return true
 
 func _uncover_truth() -> bool:
@@ -190,6 +238,7 @@ func snapshot() -> Dictionary:
         "version": VERSION,
         "active": active,
         "completed": completed,
+        "encounterKind": encounter_kind,
         "turns": turns,
         "player": player.duplicate(true),
         "target": target.duplicate(true),
