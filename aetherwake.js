@@ -816,6 +816,9 @@ function advanceFirstWakeOpening() {
     gameState = STATE.WORLD;
     window.gameState = gameState;
     prevState = null;
+    // A chapter handoff replaces transient opening notifications rather than
+    // stacking them into the first exploration/dialogue beats.
+    window.toasts.length = 0;
     showToast('CHAPTER I // FIRST WAKE', C.scioto, 1800);
   }
 }
