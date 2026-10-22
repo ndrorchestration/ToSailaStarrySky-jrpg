@@ -83,6 +83,22 @@ Install:
 3. The native Godot preview installs per-user and launches automatically.
 4. A Desktop shortcut and Start Menu shortcut are created.
 
+Play:
+- WASD / arrows - move
+- E - interact / continue dialogue
+- 1 / 2 / 3 - Chapter I choice when prompted
+- C - open/close the explicit noncanonical Formula Review
+- Formula Review: 1 Staff Strike, 2 Uncover Truth, 3 Hold, 4 Rest
+- F5 - save durable Chapter I progress
+- F9 - load the local Chapter I save
+
+Save behavior:
+- one local Chapter I slot is stored in Godot's per-user data directory;
+- saves are semantically validated before write;
+- the previous valid generation is retained for backup recovery;
+- dialogue cursor and Formula Review combat are transient and are not persisted;
+- loading closes transient dialogue/review state before resuming exploration.
+
 Uninstall:
 Run Uninstall-Aetherwake-Godot-Preview.cmd from the extracted ZIP or the installed copy.
 

@@ -9,6 +9,7 @@ const ChapterState = preload("res://scripts/first_wake_chapter1_state.gd")
 const Content = preload("res://scripts/first_wake_chapter1_content.gd")
 const DialogueState = preload("res://scripts/first_wake_chapter1_dialogue_state.gd")
 const SaveCodec = preload("res://scripts/first_wake_chapter1_save_codec.gd")
+const SaveStore = preload("res://scripts/first_wake_chapter1_save_store.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd")
 
@@ -53,6 +54,7 @@ var review_morale: int = 50
 var review_engine_integration: int = 0
 var resolved_epilogue: Dictionary = {}
 var formula_encounter = FormulaEncounter.new()
+var save_store = SaveStore.new()
 
 func _ready() -> void:
     InputPolicy.ensure_defaults()
@@ -449,6 +451,12 @@ func _nearest_pending(points: Dictionary, completed: Array[String]) -> String:
     return best_id
 
 func _unhandled_input(event: InputEvent) -> void:
+    if event.is_action_pressed(InputPolicy.SAVE_PROGRESS):
+        save_progress_to_disk()
+        return
+    if event.is_action_pressed(InputPolicy.LOAD_PROGRESS):
+        load_progress_from_disk()
+        return
     if formula_encounter.active:
         if event.is_action_pressed(InputPolicy.FORMULA_REVIEW):
             close_formula_review()
@@ -517,7 +525,7 @@ func _refresh_ui() -> void:
     dialogue_speaker.visible = dialogue.open and not formula_encounter.active
     dialogue_body.visible = dialogue.open and not formula_encounter.active
     if formula_encounter.active:
-        hint.text = "%s: Strike   %s: Analyze   %s: Hold   %s: Rest   %s: Close" % [
+        hint.text = "%s: Strike   %s: Analyze   %s: Hold   %s: Rest   %s: Close   F5: Save   F9: Load" % [
             InputPolicy.primary_label(InputPolicy.COMBAT_STRIKE),
             InputPolicy.primary_label(InputPolicy.COMBAT_ANALYZE),
             InputPolicy.primary_label(InputPolicy.COMBAT_HOLD),
@@ -541,7 +549,37 @@ func _refresh_ui() -> void:
     elif chapter.stage_key() == "done":
         hint.text = last_message
     else:
-        hint.text = InputPolicy.primary_label(InputPolicy.INTERACT) + ": interact   |   " + last_message
+        hint.text = InputPolicy.primary_label(InputPolicy.INTERACT) + ": interact   |   F5: save   F9: load   |   " + last_message
+
+func save_progress_to_disk(path: String = SaveStore.DEFAULT_PATH) -> bool:
+    var result := save_store.save_snapshot(export_save_snapshot(), path)
+    if not bool(result.get("ok", false)):
+        last_message = "Save failed: " + str(result.get("error", "unknown error"))
+        _refresh_ui()
+        queue_redraw()
+        return false
+    last_message = "Chapter I progress saved. Dialogue and Formula Review remain transient."
+    _refresh_ui()
+    queue_redraw()
+    return true
+
+func load_progress_from_disk(path: String = SaveStore.DEFAULT_PATH) -> bool:
+    var result := save_store.load_snapshot(path)
+    if not bool(result.get("ok", false)):
+        last_message = "Load failed: no valid Chapter I save found."
+        _refresh_ui()
+        queue_redraw()
+        return false
+    var snapshot: Dictionary = result.get("snapshot", {})
+    if not restore_save_snapshot(snapshot):
+        last_message = "Load failed: saved Chapter I state was rejected."
+        _refresh_ui()
+        queue_redraw()
+        return false
+    last_message = "Chapter I progress loaded" + (" from backup recovery." if bool(result.get("recovered", false)) else ".")
+    _refresh_ui()
+    queue_redraw()
+    return true
 
 func export_save_snapshot() -> Dictionary:
     return SaveCodec.encode(chapter, {
