@@ -82,6 +82,8 @@ func _verify() -> void:
     if not blind.is_failed() or blind.completed:
         _fail("ignoring pulse warnings did not carry a real risk")
         return
+    world.queue_free()
+    await process_frame
     print("AETHERWAKE_ACCESSIBILITY_PASS: text, motion, trace opt-out, dialogue cancel, safe challenge retry")
     quit(0)
 
