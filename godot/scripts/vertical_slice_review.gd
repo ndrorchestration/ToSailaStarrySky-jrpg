@@ -76,6 +76,11 @@ func _ready() -> void:
     headline.text = "AETHERWAKE  /  FIRST WAKE — PLAYABILITY STUDY"
     _refresh_ui()
 
+func _exit_tree() -> void:
+    if signal_audio_player != null:
+        signal_audio_player.stop()
+        signal_audio_player.stream = null
+
 func _label(parent: Node, location: Vector2, size: int) -> Label:
     var label := Label.new()
     label.position = location
