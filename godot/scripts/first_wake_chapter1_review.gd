@@ -37,6 +37,18 @@ const CONTACT_NAMES := {
     "corporate_salvager": "Verrick",
 }
 
+const SIGNAL_NAMES := {
+    "harmonic_buoy": "WAKEHEART",
+    "below_frequency": "LYRA",
+    "sky_lane_warning": "VERRICK",
+}
+
+const HAZARD_NAMES := {
+    "sky_predator": "CARGO SWEEP",
+    "wind_shear": "WIND SHEAR",
+    "corporate_intercept": "DOCK HOLD",
+}
+
 var chapter = ChapterState.new()
 var ender: CharacterBody2D
 var contacts: Dictionary = {}
@@ -88,12 +100,19 @@ func _ready() -> void:
     ui.name = "ChapterOneMigrationUI"
     add_child(ui)
 
-    headline = _label(ui, Vector2(24, 18), 24)
-    objective = _label(ui, Vector2(24, 54), 18)
-    party_label = _label(ui, Vector2(610, 18), 16)
-    hint = _label(ui, Vector2(28, 566), 18)
+    headline = _label(ui, Vector2(24, 16), 23)
+    objective = _label(ui, Vector2(24, 54), 16)
+    party_label = _label(ui, Vector2(650, 18), 15)
+    hint = _label(ui, Vector2(28, 568), 18)
 
-    headline.text = "AETHERWAKE  /  FIRST WAKE — GODOT CHAPTER I MIGRATION"
+    headline.autowrap_mode = TextServer.AUTOWRAP_OFF
+    headline.custom_minimum_size = Vector2(540, 32)
+    objective.custom_minimum_size = Vector2(570, 36)
+    party_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+    party_label.custom_minimum_size = Vector2(290, 30)
+    hint.custom_minimum_size = Vector2(900, 54)
+
+    headline.text = "AETHERWAKE  /  FIRST WAKE"
     _refresh_ui()
     queue_redraw()
 
@@ -117,10 +136,10 @@ func _draw() -> void:
     var stage_key := chapter.stage_key()
     if stage_key == "signal":
         for signal_id in ChapterState.SIGNAL_IDS:
-            _draw_target(SIGNAL_POINTS[signal_id], "SIGNAL", Color("#9dd9ee"), signal_id in chapter.completed_signals)
+            _draw_target(SIGNAL_POINTS[signal_id], SIGNAL_NAMES[signal_id], Color("#9dd9ee"), signal_id in chapter.completed_signals)
     elif stage_key == "crossing":
         for hazard_id in ChapterState.HAZARD_IDS:
-            _draw_target(HAZARD_POINTS[hazard_id], "HAZARD", Color("#f0a072"), hazard_id in chapter.completed_hazards)
+            _draw_target(HAZARD_POINTS[hazard_id], HAZARD_NAMES[hazard_id], Color("#f0a072"), hazard_id in chapter.completed_hazards)
     elif stage_key == "contact":
         _draw_target(CONTACT_POINTS["elder_farmer"], "IONIA", Color("#8cdbc8"), "elder_farmer" in chapter.contacts_met)
     elif stage_key == "choice":
