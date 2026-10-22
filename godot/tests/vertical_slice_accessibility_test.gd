@@ -17,6 +17,13 @@ func _verify() -> void:
     if not world.reduced_motion or world.trace_opt_in or world.text_size < 18:
         _fail("inaccessible or telemetry-on defaults")
         return
+    if world.context_prompt_text() != "Find the labeled SIGNAL":
+        _fail("context prompt does not name the current objective")
+        return
+    world.ender.global_position = world.SIGNAL_POINT
+    if world.context_prompt_text() != "E: Inspect the signal":
+        _fail("nearby context prompt does not name the interaction")
+        return
     world._unhandled_key_input(_key(KEY_M))
     if world.reduced_motion:
         _fail("motion toggle cannot enable animation")
