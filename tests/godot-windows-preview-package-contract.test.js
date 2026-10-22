@@ -14,8 +14,8 @@ assert(script.includes('Aetherwake-First-Wake-Godot-Native-Preview-Windows.zip')
   'native preview ZIP name is missing');
 assert(script.includes('Programs\\Aetherwake-Godot-Native-Preview'),
   'native preview must install into a separate per-user path');
-assert(script.includes('Aetherwake\\\\Uninstall-Aetherwake-Godot-Preview.cmd') &&
-       script.includes('%DEST%\\\\Uninstall-Aetherwake-Godot-Preview.cmd'),
+assert(script.includes('Aetherwake\\Uninstall-Aetherwake-Godot-Preview.cmd') &&
+       script.includes('%DEST%\\Uninstall-Aetherwake-Godot-Preview.cmd'),
   'installer must copy the packaged uninstaller into the installed native preview');
 assert(script.includes("GetFolderPath('Desktop')"),
   'installer/uninstaller must resolve the real Windows Desktop known folder');
