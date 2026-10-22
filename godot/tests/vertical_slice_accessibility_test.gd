@@ -22,6 +22,17 @@ func _verify() -> void:
     if world.context_prompt_text() != "Find the labeled SIGNAL":
         _fail("context prompt does not name the current objective")
         return
+    if world.dialogue_history.size() != 1 or world.history_panel.visible:
+        _fail("dialogue history did not initialize hidden with opening context")
+        return
+    world.toggle_history()
+    if not world.history_panel.visible or not world.history_open or world.ender.player_controlled:
+        _fail("dialogue history did not open as a movement-pausing review surface")
+        return
+    world.toggle_history()
+    if world.history_panel.visible or world.history_open or not world.ender.player_controlled:
+        _fail("dialogue history did not close and restore exploration")
+        return
     world.ender.global_position = world.SIGNAL_POINT
     if world.context_prompt_text() != "E: Inspect the signal":
         _fail("nearby context prompt does not name the interaction")
@@ -48,6 +59,9 @@ func _verify() -> void:
         _fail("local trace opt-in unavailable")
         return
     world.discover_signal()
+    if world.dialogue_history.size() < 2 or not world.dialogue_history[-1].contains("broken signal"):
+        _fail("new story context was not retained in dialogue history")
+        return
     if world.trace_events.size() != 1 or world.trace_events[0]["event"] != "clue_discovered":
         _fail("anonymous opt-in trace not recorded")
         return
