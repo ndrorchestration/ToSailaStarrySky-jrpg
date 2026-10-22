@@ -4,6 +4,31 @@ extends RefCounted
 ## deliberately keeping epilogue SELECTION outside this layer until hull,
 ## morale and engine-integration state are migrated.
 
+const SIGNAL_IDS: Array[String] = [
+    "harmonic_buoy",
+    "sky_lane_warning",
+    "below_frequency",
+]
+
+const HAZARD_IDS: Array[String] = [
+    "sky_predator",
+    "wind_shear",
+    "corporate_intercept",
+]
+
+const CONTACT_IDS: Array[String] = [
+    "elder_farmer",
+    "engine_spirit",
+    "child_prophet",
+    "corporate_salvager",
+]
+
+const CHOICE_IDS: Array[String] = [
+    "path_a",
+    "path_b",
+    "path_c",
+]
+
 const SIGNALS := {
     "harmonic_buoy": {
         "label": "Wakeheart Diagnostic",
@@ -234,20 +259,20 @@ static func objective_text(chapter: Variant) -> String:
     match str(chapter.stage_key()):
         "signal":
             var remaining: Array[String] = []
-            for signal_id in chapter.SIGNAL_IDS:
+            for signal_id in SIGNAL_IDS:
                 if signal_id not in chapter.completed_signals:
                     remaining.append(signal_contact_name(signal_id))
             if not remaining.is_empty():
                 return "Talk to marked: " + ", ".join(remaining)
             return "Signal readings complete. Prepare for the storm crossing."
         "crossing":
-            var hazards_left: int = chapter.HAZARD_IDS.size() - chapter.completed_hazards.size()
+            var hazards_left: int = HAZARD_IDS.size() - chapter.completed_hazards.size()
             if hazards_left > 0:
                 return "Resolve orange hazard zones (" + str(hazards_left) + " remaining)."
             return "Crossing clear. Find the four marked contacts."
         "contact":
             var contacts_left: Array[String] = []
-            for contact_id in chapter.CONTACT_IDS:
+            for contact_id in CONTACT_IDS:
                 if contact_id not in chapter.contacts_met:
                     contacts_left.append(contact_name(contact_id))
             if not contacts_left.is_empty():
