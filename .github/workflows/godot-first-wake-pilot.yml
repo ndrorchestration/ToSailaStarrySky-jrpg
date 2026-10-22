@@ -72,3 +72,9 @@ jobs:
       - name: Verify slice accessibility defaults, privacy and safe retry
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/vertical_slice_accessibility_test.gd
+      - name: Verify asset-independent echo counterplay
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/vertical_slice_echo_encounter_test.gd
+      - name: Verify asset-independent contextual prompts
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/vertical_slice_prompt_model_test.gd
