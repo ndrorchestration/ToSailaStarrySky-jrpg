@@ -35,6 +35,12 @@ assert(!/makensis|\.nsi(?:\s|["'])|NSIS\\|nsis\.exe/i.test(script),
   'native preview package must not invoke NSIS tooling');
 assert(!/runas|Start-Process[^\n]*-Verb\s+RunAs/i.test(script),
   'native preview package must not request elevation');
+assert(script.includes('F5 - save durable Chapter I progress') &&
+       script.includes('F9 - load the local Chapter I save'),
+  'native package instructions must expose durable save/load controls');
+assert(script.includes('previous valid generation is retained for backup recovery') &&
+       script.includes('Formula Review combat are transient and are not persisted'),
+  'native package instructions must explain backup recovery and transient-state boundary');
 assert(script.includes('ADMIN_REQUIRED=NO') &&
        script.includes('PUBLIC_RELEASE_AUTHORIZED=NO'),
   'package manifest must preserve private/non-release boundaries');
