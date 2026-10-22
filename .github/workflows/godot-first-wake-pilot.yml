@@ -99,6 +99,12 @@ jobs:
       - name: Verify real First Wake Chapter I save restore boundary
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_save_scene_test.gd
+      - name: Verify local First Wake Chapter I save store and recovery
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_save_store_test.gd
+      - name: Verify real-scene local save/load and backup recovery
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_save_store_scene_test.gd
       - name: Verify real First Wake Chapter I migration scene
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_review_test.gd
