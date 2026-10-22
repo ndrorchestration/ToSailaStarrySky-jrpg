@@ -13,7 +13,9 @@ func _initialize() -> void:
     valid = valid and PromptModel.prompt("approach", 0.0, 0.0, 10.0) == "E: Begin the signal challenge"
     valid = valid and PromptModel.prompt("return", 200.0, 0.0, 0.0) == "Return to the SIGNAL"
     valid = valid and PromptModel.prompt("return", 10.0, 0.0, 0.0) == "E: See what changed"
-    valid = valid and PromptModel.prompt("complete", 0.0, 0.0, 0.0) == ""
+    valid = valid and PromptModel.prompt("complete", 0.0, 200.0, 0.0) == "Optional: talk to Ionia"
+    valid = valid and PromptModel.prompt("complete", 0.0, 10.0, 0.0, "Pad A") == "Pad A: Hear Ionia's reaction"
+    valid = valid and PromptModel.prompt("complete", 0.0, 10.0, 0.0, "E", true) == ""
     if not valid:
         push_error("AETHERWAKE_PROMPT_MODEL_FAIL: stage/distance prompt mismatch")
         quit(1)
