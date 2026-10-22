@@ -3629,17 +3629,22 @@ function drawTileGrass(px, py, s) {
 
   // Warm worn center plus cooler vegetation edge gives the dock reach depth
   // without changing collision or tile identity.
-  fill(color(232, 220, 198, 10 + hash * 2));
-  rect(px + 1, py + 1, s - 2, 4);
-  fill(color(72, 112 + hash * 3, 66, 38));
-  rect(px + 1, py + s - 3, s - 2, 2);
+  // Sparse deterministic highlights avoid a visible per-tile stripe pattern.
+  if (hash === 1 || hash === 4) {
+    fill(color(232, 220, 198, 18));
+    rect(px + 2, py + 2, 6 + hash, 2);
+  }
+  if (hash === 2 || hash === 5) {
+    fill(color(72, 112 + hash * 3, 66, 28));
+    rect(px + 9, py + 10, 4, 2);
+  }
 
-  stroke(color(72, 120 + hash * 3, 68, 165));
+  stroke(color(72, 120 + hash * 3, 68, 150));
   strokeWeight(1);
   const bladeA = 3 + (hash % 4);
   const bladeB = 10 + (hash % 3);
   line(px + bladeA, py + s - 2, px + bladeA, py + s - 5 - (hash % 2));
-  if (hash % 2 === 0) {
+  if (hash % 3 === 0) {
     line(px + bladeB, py + s - 2, px + bladeB, py + s - 4);
   }
   noStroke();
@@ -3739,19 +3744,24 @@ function drawWakeDockComposition() {
 
   // Worn traversal lanes connect the actual authored contact positions. These
   // are presentation-only overlays; walkability and collision remain unchanged.
-  stroke(color(224, 204, 164, 48));
-  strokeWeight(10);
-  strokeCap(SQUARE);
-  line(16 * 16 + 8, 16 * 16 + 8, 7 * 16 + 8, 7 * 16 + 8);
-  line(16 * 16 + 8, 16 * 16 + 8, 22 * 16 + 8, 10 * 16 + 8);
-  line(16 * 16 + 8, 16 * 16 + 8, 8 * 16 + 8, 20 * 16 + 8);
-  line(16 * 16 + 8, 16 * 16 + 8, 26 * 16 + 8, 24 * 16 + 8);
-  stroke(color(76, 112, 78, 34));
-  strokeWeight(2);
-  line(16 * 16 + 8, 16 * 16 + 8, 7 * 16 + 8, 7 * 16 + 8);
-  line(16 * 16 + 8, 16 * 16 + 8, 22 * 16 + 8, 10 * 16 + 8);
-  line(16 * 16 + 8, 16 * 16 + 8, 8 * 16 + 8, 20 * 16 + 8);
-  line(16 * 16 + 8, 16 * 16 + 8, 26 * 16 + 8, 24 * 16 + 8);
+  const centerX = 16 * 16 + 8;
+  const centerY = 16 * 16 + 8;
+  const routes = [
+    [centerX, centerY, 214, 214, 168, 154, 7 * 16 + 8, 7 * 16 + 8],
+    [centerX, centerY, 292, 220, 328, 208, 22 * 16 + 8, 10 * 16 + 8],
+    [centerX, centerY, 226, 286, 184, 310, 8 * 16 + 8, 20 * 16 + 8],
+    [centerX, centerY, 302, 290, 352, 336, 26 * 16 + 8, 24 * 16 + 8],
+  ];
+  strokeCap(ROUND);
+  noFill();
+  for (const route of routes) {
+    stroke(color(224, 204, 164, 42));
+    strokeWeight(9);
+    bezier(...route);
+    stroke(color(76, 112, 78, 30));
+    strokeWeight(2);
+    bezier(...route);
+  }
   noStroke();
 
   // The Wake's berth around the Wakeheart: rails, mooring pads, and shield
