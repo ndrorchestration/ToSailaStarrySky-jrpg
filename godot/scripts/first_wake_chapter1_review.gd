@@ -324,8 +324,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func _advance_dialogue_review() -> bool:
     if not dialogue.open:
         return false
-    var closing_contact := dialogue.contact_id
-    var was_last := dialogue.line_index == dialogue.lines.size() - 1
+    var closing_contact: String = str(dialogue.contact_id)
+    var was_last: bool = dialogue.line_index == dialogue.lines.size() - 1
     if not dialogue.advance_or_close():
         return false
     if was_last:
