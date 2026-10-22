@@ -8,6 +8,7 @@ const DockDepthReview = preload("res://scripts/dock_depth_review.gd")
 const ChapterState = preload("res://scripts/first_wake_chapter1_state.gd")
 const Content = preload("res://scripts/first_wake_chapter1_content.gd")
 const DialogueState = preload("res://scripts/first_wake_chapter1_dialogue_state.gd")
+const SaveCodec = preload("res://scripts/first_wake_chapter1_save_codec.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 
 const DECK_BOUNDS := Rect2(Vector2(110, 404), Vector2(740, 118))
@@ -376,6 +377,39 @@ func _refresh_ui() -> void:
         hint.text = last_message
     else:
         hint.text = InputPolicy.primary_label(InputPolicy.INTERACT) + ": interact   |   " + last_message
+
+func export_save_snapshot() -> Dictionary:
+    return SaveCodec.encode(chapter, {
+        "hull_integrity": review_hull_integrity,
+        "morale": review_morale,
+        "engine_integration": review_engine_integration,
+    })
+
+func restore_save_snapshot(snapshot: Dictionary) -> bool:
+    var restored := SaveCodec.restore(snapshot)
+    if not bool(restored.get("ok", false)):
+        return false
+
+    chapter = restored["chapter"]
+    var stats: Dictionary = restored.get("resolver_stats", {})
+    review_hull_integrity = int(stats.get("hull_integrity", 100))
+    review_morale = int(stats.get("morale", 50))
+    review_engine_integration = int(stats.get("engine_integration", 0))
+
+    # Dialogue is transient UI state and intentionally not part of durable saves.
+    dialogue.close()
+    pending_signal_id = ""
+    pending_contact_id = ""
+
+    resolved_epilogue = {}
+    if chapter.stage_key() == "done" and not chapter.epilogue_id.is_empty():
+        resolved_epilogue = Content.epilogue(chapter.epilogue_id)
+
+    ender.player_controlled = chapter.stage_key() not in ["choice", "done"]
+    last_message = "Restored Chapter I save at " + chapter.stage_key().to_upper() + "."
+    _refresh_ui()
+    queue_redraw()
+    return true
 
 func _objective_text() -> String:
     return Content.objective_text(chapter.stage_key())
