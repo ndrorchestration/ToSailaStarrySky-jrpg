@@ -35,6 +35,9 @@ func _verify() -> void:
         if not world.complete_signal_contact(signal_id):
             _fail("signal interaction rejected: " + signal_id)
             return
+        if world.last_message.find(":") < 0:
+            _fail("signal interaction did not bind authored contact copy: " + signal_id)
+            return
     if world.chapter.stage_key() != "crossing" or world.chapter.contacts_met.size() != 3:
         _fail("signal phase did not carry three contacts into crossing")
         return
@@ -63,6 +66,9 @@ func _verify() -> void:
     if not world.choose_path_review("path_c"):
         _fail("path_c review choice rejected")
         return
+    if world.last_message.find("Project shield / Cover the berths") < 0 or world.last_message.find("bright wing") < 0:
+        _fail("path_c review choice did not bind packaged label/outcome")
+        return
     if world.chapter.stage_key() != "wake" or not world.ender.player_controlled:
         _fail("choice did not enter playable Wake resolution")
         return
@@ -71,6 +77,12 @@ func _verify() -> void:
         return
     if world.chapter.stage_key() != "done" or not world.chapter.chapter_one_complete:
         _fail("real scene did not reach explicit Chapter I completion")
+        return
+    if world.chapter.epilogue_id != "epiline_1":
+        _fail("default packaged legacy epilogue identity drifted")
+        return
+    if str(world.resolved_epilogue.get("name", "")) != "The Clear Departure":
+        _fail("resolved epilogue content was not bound into native scene")
         return
     if world.ender.player_controlled:
         _fail("player control remained active after migration-review completion")
