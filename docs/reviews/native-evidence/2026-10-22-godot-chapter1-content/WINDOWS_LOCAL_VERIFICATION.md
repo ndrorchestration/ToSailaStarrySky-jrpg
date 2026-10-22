@@ -1,6 +1,6 @@
 # Godot First Wake Chapter I authored-content binding — Windows local verification
 **Date:** 2026-10-22  
-**Exact exercised code/render head:** `07cbf07314be6c8dff797cefcbb63170480709b2`  
+**Exact exercised code/render head:** `d2dca4d74ea3c5cc4f908b02d3d1b8e396c02b67`  
 **Stack:** PR #337 native Chapter I FSM/scene migration  
 **Scope:** operator-local Godot 4.7.2 migration evidence only.
 
@@ -58,7 +58,34 @@ PASS tokens at exact exercised head:
 
 `AETHERWAKE_GODOT_CHAPTER1_SCENE_PASS: real dock scene traverses Signal, Crossing, Contact, 3-path Choice, Wake and Done`
 
-`AETHERWAKE_GODOT_CHAPTER1_NATIVE_RENDER_PASS: Signal, Crossing, Contact, Choice, Wake and Done are visibly distinct 960x640 native frames`
+`AETHERWAKE_GODOT_CHAPTER1_NATIVE_RENDER_PASS: Signal, Dialogue, Crossing, Contact, Choice, Wake and Done are visibly distinct 960x640 native frames`
+
+
+## Full native contact-dialogue sequencing
+The migration now includes the full packaged five-line intro sequences for:
+- Ionia;
+- Wakeheart;
+- Lyra;
+- Verrick.
+
+A dedicated deterministic dialogue cursor:
+`res://scripts/first_wake_chapter1_dialogue_state.gd`
+
+keeps dialogue sequencing separate from quest mutation. The real review scene now:
+- pauses Ender when a contact dialogue opens;
+- shows speaker identity, authored current line, and line index;
+- advances with the same named interaction action;
+- refuses to credit a Signal/contact before the fifth line closes;
+- resumes movement after Signal dialogue;
+- remains paused when Ionia's completed dialogue transitions directly into the three-path Choice.
+
+Exact-head PASS tokens:
+
+`AETHERWAKE_GODOT_CHAPTER1_DIALOGUE_PASS: four authored five-line contact intros advance and close deterministically`
+
+`AETHERWAKE_GODOT_CHAPTER1_DIALOGUE_SCENE_PASS: authored five-line Wakeheart/Ionia dialogue gates progress and movement`
+
+Direct inspection of the native dialogue frame confirmed Wakeheart's first packaged line is visible with a readable panel and `line 1 / 5` continuation state.
 
 ## Native renderer evidence
 Fresh OpenGL 3.3 Compatibility frames:
@@ -66,11 +93,12 @@ Fresh OpenGL 3.3 Compatibility frames:
 | Stage | SHA-256 |
 | --- | --- |
 | Signal | `325b02a4fe995be7d3ad9f46796aaf0a60a8c2cae9721a5f9323466dd7163b29` |
-| Crossing | `ae725acc8a1a0f461956494fce1b41f69087aba18b0b5b07bbcd729ef3c4390b` |
-| Contact | `3d338008b6e9b1b44a3452333573f5a3322395a6ec1cc5f8169103c14f25d197` |
-| Choice | `28770e2f7ade163912f208989a49df5e0e4e285384e268ba5e9485bdf5e1888e` |
-| Wake | `bd66483b8afc4cfbca95395d8f8ff4a2b254a2ea7e75d77a61cce4d0757d7dd2` |
-| Done | `eb4b3c6da518a1720b6a64fe8917d56192361f4a5e74331600c1946d583fc761` |
+| Dialogue | `11c0b8817f6cd2ef55acdd4cc573d010c100c2516049ebcefaee5512d2c2aec2` |
+| Crossing | `1ecfe8b90fc0917de1dff70c8700d6605b7bff034e0a272210024f3a2b25c780` |
+| Contact | `3f73517b856d80999872e7dc3473f9f6e7726ac0b6db30d51916b2c6003ab7e0` |
+| Choice | `bd5de195a4c0ddf5ff350b8b5cb4477f663e9c2866870db1786ea5f60a17b50f` |
+| Wake | `6aa4cba6b9151948d24b7e516d474d901501a12b5f19d8783e3c35b8ba0c41b8` |
+| Done | `a037b54ae583f7d3c4b009fcc6f82a5aba4816bf5f10291a38de288c63fcf638` |
 
 Direct inspection confirms:
 - Choice displays all three packaged storm-choice labels;
@@ -85,7 +113,6 @@ Hosted execution is not established until GitHub actually starts the jobs. Exist
 
 ## Remaining migration gaps
 Still not migrated/admitted:
-- full multi-line packaged dialogue corpus and dialogue UI progression;
 - production combat formulas/encounters;
 - save system;
 - production party system integration beyond migration target state;
