@@ -306,6 +306,7 @@ func _draw_target(point: Vector2, label_text: String, target_color: Color, compl
 func start_formula_review() -> bool:
     if formula_encounter.active or dialogue.open or chapter.stage_key() in ["choice", "done"]:
         return false
+    active_hazard_encounter_id = ""
     formula_encounter.reset()
     if not formula_encounter.start():
         return false
@@ -315,9 +316,48 @@ func start_formula_review() -> bool:
     queue_redraw()
     return true
 
+func start_hazard_encounter(hazard_id: String) -> bool:
+    if formula_encounter.active or dialogue.open or chapter.stage_key() != "crossing":
+        return false
+    if hazard_id in chapter.completed_hazards:
+        return false
+
+    var target_profile := current_enemy_adapter.target_for_hazard(hazard_id)
+    if target_profile.is_empty() or not current_enemy_adapter.validate_target(target_profile):
+        return false
+    if not formula_encounter.start_with_target(target_profile):
+        return false
+
+    active_hazard_encounter_id = hazard_id
+    ender.player_controlled = false
+    last_message = formula_encounter.last_log()
+    _refresh_ui()
+    queue_redraw()
+    return true
+
 func close_formula_review() -> bool:
+    if not formula_encounter.active:
+        return false
+
+    var hazard_id := active_hazard_encounter_id
+    var hazard_cleared := not hazard_id.is_empty() and formula_encounter.completed
+
+    # Chapter progression mutates only after the authored encounter is actually
+    # cleared and the player confirms closure. Canceling early is fail-closed.
+    if hazard_cleared and not chapter.complete_hazard(hazard_id):
+        return false
     if not formula_encounter.close():
         return false
+
+    active_hazard_encounter_id = ""
+    if not hazard_id.is_empty():
+        if hazard_cleared:
+            last_message = "Crossing cleared: " + Content.hazard_label(hazard_id) + "."
+        else:
+            last_message = Content.hazard_label(hazard_id) + " encounter canceled; Crossing progress unchanged."
+        _after_progress()
+        return true
+
     ender.player_controlled = (not dialogue.open) and chapter.stage_key() not in ["choice", "done"]
     last_message = "Formula review closed. Chapter I progression was not changed."
     _refresh_ui()
@@ -438,6 +478,8 @@ func _interact_hazard() -> bool:
         return false
     if ender.global_position.distance_to(HAZARD_POINTS[nearest_id]) > INTERACT_DISTANCE:
         return false
+    if current_enemy_adapter.supports_hazard(nearest_id):
+        return start_hazard_encounter(nearest_id)
     return complete_hazard_review(nearest_id)
 
 func _interact_contact() -> bool:
@@ -572,7 +614,7 @@ func save_progress_to_disk(path: String = SaveStore.DEFAULT_PATH) -> bool:
         _refresh_ui()
         queue_redraw()
         return false
-    last_message = "Chapter I progress saved. Dialogue and Formula Review remain transient."
+    last_message = "Chapter I progress saved. Dialogue and active encounters remain transient."
     _refresh_ui()
     queue_redraw()
     return true
@@ -617,6 +659,7 @@ func restore_save_snapshot(snapshot: Dictionary) -> bool:
     # not part of durable Chapter I saves.
     dialogue.close()
     formula_encounter.reset()
+    active_hazard_encounter_id = ""
     pending_signal_id = ""
     pending_contact_id = ""
 
