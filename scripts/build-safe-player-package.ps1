@@ -10,6 +10,7 @@ Write-Host "== Aetherwake safe player package (no NSIS) =="
 
 npm run test:first-wake-opening
 npm run test:first-wake-chapter1
+npm run test:first-wake-guidance
 npm run test:desktop-package
 npm run test:smoke
 npm run package:windows
@@ -65,7 +66,7 @@ $uninstall = @'
 @echo off
 setlocal
 set "DEST=%LOCALAPPDATA%\Programs\Aetherwake"
-powershell -NoProfile -Command "$desktop=[Environment]::GetFolderPath('Desktop'); $menu=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Aetherwake'; Remove-Item -LiteralPath (Join-Path $desktop 'Aetherwake.lnk') -Force -ErrorAction SilentlyContinue; Remove-Item -LiteralPath $menu -Recurse -Force -ErrorAction SilentlyContinue"
+powershell -NoProfile -Command "$dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake'; $exe=Join-Path $dest 'Aetherwake.exe'; Get-CimInstance Win32_Process | Where-Object {$_.ExecutablePath -eq $exe} | ForEach-Object {Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue}; $desktop=[Environment]::GetFolderPath('Desktop'); $menu=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Aetherwake'; Remove-Item -LiteralPath (Join-Path $desktop 'Aetherwake.lnk') -Force -ErrorAction SilentlyContinue; Remove-Item -LiteralPath $menu -Recurse -Force -ErrorAction SilentlyContinue"
 start "" /min cmd /c "timeout /t 2 /nobreak >nul & rmdir /s /q ""%DEST%"""
 echo Aetherwake uninstall scheduled.
 exit /b 0
