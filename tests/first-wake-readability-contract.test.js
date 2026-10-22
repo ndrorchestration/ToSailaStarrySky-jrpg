@@ -32,7 +32,7 @@ assert(dialogue.includes('textSize(14)') && dialogue.includes('textLeading(18)')
 
 assert(runtime.includes('function completeDialogueTypeIn()'),
   'dialogue type-in completion helper is missing');
-assert(runtime.includes('if (dialogueTypeIn.active) {\n        completeDialogueTypeIn();'),
+assert(/if \(dialogueTypeIn\.active\) \{\r?\n\s+completeDialogueTypeIn\(\);/.test(runtime),
   'confirm must complete current dialogue type-in before advancing');
 
 assert(runtime.includes('drawPixelBorder(px + 8, ey, pw - 16, 66'),
@@ -48,7 +48,13 @@ assert(capture.includes("window.gameState === 'menu'"),
   'player evidence must wait for the real title/menu state');
 assert(capture.includes("await page.waitForTimeout(180);"),
   'player evidence must allow a rendered frame to settle');
-assert(capture.includes("await page.keyboard.press('Enter');\n    await page.waitForTimeout(180);\n    await capture(page, outputRoot, captures, 'captain-ionia-dialogue'"),
-  'dialogue evidence must complete type-in before capture');
+const ioniaCaptureAt = capture.indexOf("'captain-ionia-dialogue'");
+const enterBeforeIonia = capture.lastIndexOf("await page.keyboard.press('Enter');", ioniaCaptureAt);
+const settleBeforeIonia = capture.lastIndexOf('await page.waitForTimeout(180);', ioniaCaptureAt);
+assert(ioniaCaptureAt > 0 &&
+       enterBeforeIonia >= 0 &&
+       settleBeforeIonia > enterBeforeIonia &&
+       settleBeforeIonia < ioniaCaptureAt,
+  'dialogue evidence must complete type-in and settle before capture');
 
 console.log('Aetherwake Chapter I readability contract: PASS');

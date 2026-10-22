@@ -166,3 +166,5 @@ assert(safePlayerScript.includes('Install-Aetherwake.cmd') && safePlayerScript.i
   'safe player package must provide explicit install/uninstall wrappers');
 assert(safePlayerScript.includes("GetFolderPath('Desktop')"),
   'uninstall wrapper must resolve the actual Windows Desktop known folder');
+assert(safePlayerScript.includes('cd /d "%TEMP%"'),
+  'uninstall wrapper must leave its own install directory before delayed deletion');

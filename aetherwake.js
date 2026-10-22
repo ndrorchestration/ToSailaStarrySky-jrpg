@@ -377,9 +377,13 @@ function draw() {
     if (typeof drawCombatPanel === 'function' && combat && typeof combat.getState === 'function') {
       drawCombatPanel(combat.getState());
     }
-    // Draw combat log on the right
-    if (typeof drawCombatLog === 'function') {
-      drawCombatLog(width - 240, 100, 224, 280);
+    // Keep the enemy presentation clear at encounter start; the log appears only
+    // after there is something meaningful to read and sits below the enemy stage.
+    if (typeof drawCombatLog === 'function' &&
+        window.UI &&
+        Array.isArray(window.UI.combatLog) &&
+        window.UI.combatLog.length > 0) {
+      drawCombatLog(width - 222, height - 206, 206, 190);
     }
   }
   else if (gameState === STATE.DIALOGUE) {
@@ -812,6 +816,9 @@ function advanceFirstWakeOpening() {
     gameState = STATE.WORLD;
     window.gameState = gameState;
     prevState = null;
+    // A chapter handoff replaces transient opening notifications rather than
+    // stacking them into the first exploration/dialogue beats.
+    window.toasts.length = 0;
     showToast('CHAPTER I // FIRST WAKE', C.scioto, 1800);
   }
 }
@@ -821,51 +828,113 @@ function drawFirstWakeOpening() {
   const state = window._firstWakeOpeningState;
   if (!opening || !state) return;
   const scene = opening.currentScene(state);
+  const seq = Math.max(0, Number(scene.sequence || 0));
 
   push();
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2], 245);
-  rect(0, 0, width, height);
 
-  fill(52, 67, 96);
-  rect(0, height * 0.62, width, height * 0.38);
+  // Layered dawn sky: readable, bright enough to establish place, and fully procedural.
+  for (let band = 0; band < 10; band++) {
+    const t = band / 9;
+    fill(22 + t * 30, 18 + t * 46, 52 + t * 68);
+    rect(0, band * (height * 0.052), width, height * 0.055 + 1);
+  }
+
+  // Pale sunrise and cloud shelves establish the "very large sky" before exposition.
+  for (let radius = 150; radius >= 34; radius -= 18) {
+    const glow = 8 + (150 - radius) * 0.08;
+    fill(232, 220, 198, glow);
+    ellipse(width * 0.78, 166, radius, radius);
+  }
+  fill(232, 220, 198, 165);
+  ellipse(width * 0.78, 166, 34, 34);
+
+  fill(124, 200, 232, 24);
+  ellipse(160, 150, 250, 34);
+  ellipse(298, 132, 190, 26);
+  ellipse(650, 224, 260, 30);
+  ellipse(840, 242, 200, 24);
+
+  // Distant floating reach silhouettes.
+  fill(38, 48, 70, 210);
+  ellipse(122, 306, 168, 32);
+  ellipse(842, 292, 132, 26);
+  fill(24, 31, 48, 235);
+  rect(68, 298, 108, 26, 3);
+  rect(806, 286, 72, 22, 3);
+
+  // Cloud-sea / lower reach.
+  fill(68, 88, 126);
+  rect(0, height * 0.61, width, height * 0.39);
+  fill(92, 116, 150, 90);
+  ellipse(160, height * 0.65, 360, 52);
+  ellipse(520, height * 0.68, 440, 62);
+  ellipse(870, height * 0.64, 300, 44);
   fill(124, 200, 232, 80);
   rect(0, height * 0.58, width, 3);
-  fill(16, 22, 38);
-  rect(width * 0.68, height * 0.51, 124, 34);
-  rect(width * 0.72, height * 0.47, 48, 12);
 
+  // Aureate Wake silhouette — compact, patched, readable against the dawn.
+  const shipX = width * 0.73;
+  const shipY = height * 0.49;
+  fill(18, 28, 44, 245);
+  rect(shipX - 82, shipY + 18, 164, 24, 4);
+  triangle(shipX - 96, shipY + 18, shipX - 70, shipY + 42, shipX - 70, shipY + 18);
+  triangle(shipX + 96, shipY + 18, shipX + 70, shipY + 42, shipX + 70, shipY + 18);
+  rect(shipX - 22, shipY - 12, 44, 30, 3);
+  rect(shipX - 5, shipY - 42, 10, 30);
+  fill(180, 90, 50, 205);
+  rect(shipX - 68, shipY + 25, 42, 5);
+  rect(shipX + 26, shipY + 25, 42, 5);
+  fill(42, 255, 181, 120);
+  rect(shipX - 4, shipY - 36, 8, 8);
+
+  // Scene identity and chapter pacing marker.
   textAlign(CENTER, TOP);
   textFont('Press Start 2P');
   textSize(scene.chapterCard ? 22 : 12);
   fill(C.teal[0], C.teal[1], C.teal[2]);
-  text(scene.title, width / 2, 82);
+  text(scene.title, width / 2, 66);
   if (scene.subtitle) {
     textSize(10);
     fill(C.scioto[0], C.scioto[1], C.scioto[2]);
-    text(scene.subtitle, width / 2, 120);
+    text(scene.subtitle, width / 2, 104);
   }
+  textSize(7);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 130);
+  text('FIRST WAKE  //  ' + String(seq + 1).padStart(2, '0') + ' / 10', width / 2, 134);
 
+  // Narrative text sits in a deliberate readable column above the horizon.
   textAlign(LEFT, TOP);
   textFont('VT323');
-  textSize(20);
+  textSize(19);
+  textLeading(23);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
-  let y = 210;
+  let y = 184;
   for (const line of scene.lines) {
-    text(line, 150, y, width - 300, 56);
-    y += 58;
+    text(line, 118, y, 660, 48);
+    y += 48;
   }
 
+  // Stable footer separates status/instruction from the scene art.
+  noStroke();
+  fill(C.navy[0], C.navy[1], C.navy[2], 218);
+  rect(0, height - 94, width, 94);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 80);
+  rect(0, height - 94, width, 2);
+
   textAlign(CENTER, BOTTOM);
+  textFont('VT323');
   textSize(16);
   fill(C.dusttan[0], C.dusttan[1], C.dusttan[2]);
   text(
-    'ACTIVE PARTY // ' + opening.expectedPartyIds(state).map(id => id.toUpperCase()).join(' + '),
+    'ACTIVE PARTY  //  ' + opening.expectedPartyIds(state).map(id => id.toUpperCase()).join(' + '),
     width / 2,
-    height - 58
+    height - 48
   );
+  textFont('Press Start 2P');
+  textSize(8);
   fill(C.teal[0], C.teal[1], C.teal[2]);
-  text('ENTER / SPACE — CONTINUE', width / 2, height - 26);
+  text('ENTER / SPACE  —  CONTINUE', width / 2, height - 20);
   pop();
 }
 
@@ -1513,68 +1582,103 @@ function drawBackgroundGrid() {
 
 function drawTitleScreen() {
   noStroke();
-  fill(C.navy[0], C.navy[1], C.navy[2]);
-  rect(0, 0, width, height);
 
-  // Floating islands parallax (title screen also gets islands)
+  // Dawn-to-deep-sky bands give the title a specific Aetherwake horizon.
+  for (let band = 0; band < 12; band++) {
+    const t = band / 11;
+    fill(20 + t * 18, 15 + t * 28, 48 + t * 42);
+    rect(0, band * (height / 12), width, height / 12 + 1);
+  }
+
+  for (let radius = 190; radius >= 40; radius -= 20) {
+    fill(232, 220, 198, 5 + (190 - radius) * 0.05);
+    ellipse(width * 0.72, 180, radius, radius);
+  }
+  fill(232, 220, 198, 145);
+  ellipse(width * 0.72, 180, 36, 36);
+
+  // Floating islands parallax.
   for (const island of titleIslands) {
     const px = ((island.x + millis() * 0.01 * island.drift) % 60 + 60) % 60 * 16;
     const py = island.y + Math.sin(millis() * 0.001 * island.speed + island.drift) * 6;
-
     noStroke();
-    fill(C.soil[0], C.soil[1], C.soil[2], 200);
+    fill(C.soil[0], C.soil[1], C.soil[2], 190);
     ellipse(px, py, island.size, island.size * 0.6);
-
     noFill();
-    stroke(C.teal[0], C.teal[1], C.teal[2], 100);
+    stroke(C.teal[0], C.teal[1], C.teal[2], 85);
     strokeWeight(1);
     ellipse(px, py, island.size, island.size * 0.6);
     noStroke();
-
     fill(C.teal[0], C.teal[1], C.teal[2], 70);
     ellipse(px - 3, py - 3, island.size * 0.3, island.size * 0.2);
   }
 
-  stroke(C.teal[0], C.teal[1], C.teal[2], 12);
+  // Compact Aureate Wake silhouette behind the wordmark.
+  const shipX = width / 2;
+  const shipY = 188;
+  fill(16, 26, 42, 225);
+  rect(shipX - 112, shipY, 224, 18, 4);
+  triangle(shipX - 132, shipY, shipX - 104, shipY + 18, shipX - 104, shipY);
+  triangle(shipX + 132, shipY, shipX + 104, shipY + 18, shipX + 104, shipY);
+  rect(shipX - 28, shipY - 28, 56, 28, 3);
+  rect(shipX - 5, shipY - 58, 10, 30);
+  fill(C.rust[0], C.rust[1], C.rust[2], 165);
+  rect(shipX - 88, shipY + 6, 48, 4);
+  rect(shipX + 40, shipY + 6, 48, 4);
+
+  stroke(C.teal[0], C.teal[1], C.teal[2], 9);
   strokeWeight(1);
   for (let x = 0; x < width; x += 32) line(x, 0, x, height);
   for (let y = 0; y < height; y += 32) line(0, y, width, y);
+  noStroke();
 
-  textFont('VT323');
-  textSize(36);
   textAlign(CENTER, CENTER);
-  textLeading(40);
-
-  const cx = width/2, cy = height/2 - 50;
-  fill(C.teal[0], C.teal[1], C.teal[2], 60);
+  textFont('VT323');
+  const cx = width / 2;
+  const titleY = 274;
+  textSize(52);
+  fill(C.teal[0], C.teal[1], C.teal[2], 45);
   for (let dx = -2; dx <= 2; dx++) {
     for (let dy = -2; dy <= 2; dy++) {
-      if (dx === 0 && dy === 0) continue;
-      text('AETHERWAKE', cx + dx, cy + dy);
+      if (dx || dy) text('AETHERWAKE', cx + dx, titleY + dy);
     }
   }
-  fill(C.teal[0], C.teal[1], C.teal[2], 100);
-  text('AETHERWAKE', cx, cy);
-
-  textSize(16);
-  fill(C.scioto[0], C.scioto[1], C.scioto[2], 200);
-
-  textSize(13);
-  fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
-
-  textSize(14);
-  fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
-  text('NEW GAME — N or ENTER', cx, cy + 78);
-
-  textSize(11);
-  fill(C.rust[0], C.rust[1], C.rust[2], 140);
-  text('WASD  move  |  E  talk  |  Q  covenant  |  F  ship  |  Tab  sky/ground', cx, cy + 100);
-  text('L  ledger  |  M  shop  |  R  char sheet  |  T  quest log', cx, cy + 118);
+  fill(C.teal[0], C.teal[1], C.teal[2], 235);
+  text('AETHERWAKE', cx, titleY);
 
   textFont('Press Start 2P');
-  textSize(8);
-  fill(C.teal[0], C.teal[1], C.teal[2], 100);
-  text('A SOLARPUNK SKYBOUND JRPG', cx, height - 20);
+  textSize(10);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 210);
+  text('FIRST WAKE', cx, titleY + 46);
+  fill(C.teal[0], C.teal[1], C.teal[2], 90);
+  rect(cx - 124, titleY + 62, 248, 2);
+
+  // Primary action reads like a JRPG title menu rather than debug instructions.
+  const startY = titleY + 102;
+  fill(C.navy[0], C.navy[1], C.navy[2], 205);
+  rect(cx - 150, startY - 18, 300, 42, 4);
+  stroke(C.teal[0], C.teal[1], C.teal[2], 140);
+  strokeWeight(1);
+  noFill();
+  rect(cx - 150, startY - 18, 300, 42, 4);
+  noStroke();
+  textSize(9);
+  fill(C.parchment[0], C.parchment[1], C.parchment[2], 235);
+  text('START FIRST WAKE', cx, startY);
+  textSize(7);
+  fill(C.scioto[0], C.scioto[1], C.scioto[2], 170);
+  text('N / ENTER / SPACE', cx, startY + 17);
+
+  textFont('VT323');
+  textSize(13);
+  fill(C.parchment[0], C.parchment[1], C.parchment[2], 155);
+  text('WASD / ARROWS move   •   E interact   •   F airship   •   T quest log', cx, startY + 66);
+  text('R party sheet   •   L ledger   •   M shop   •   Tab sky / ground', cx, startY + 86);
+
+  textFont('Press Start 2P');
+  textSize(7);
+  fill(C.teal[0], C.teal[1], C.teal[2], 115);
+  text('A SOLARPUNK SKYBOUND JRPG', cx, height - 22);
 }
 
 function drawDialogueOverlay() {
@@ -1923,15 +2027,23 @@ function drawToasts() {
       window.toasts.splice(i, 1);
       continue;
     }
-    const alpha = age < 200 ? (age / 200) * 255 : (age > t.duration - 400 ? (t.duration - age) / 400 * 255 : 255);
-    const toastBaseY = gameState === STATE.DIALOGUE ? height - 174 : height - 60;
-    const y = toastBaseY - (window.toasts.length - 1 - i) * 26;
-    noStroke();
-    fill(t.color[0], t.color[1], t.color[2], alpha * 0.15);
-    rect(width / 2 - 110, y - 8, 220, 22, 4);
-    fill(t.color[0], t.color[1], t.color[2], alpha);
+    const alpha = age < 200
+      ? (age / 200) * 255
+      : (age > t.duration - 400 ? (t.duration - age) / 400 * 255 : 255);
+
+    // Keep notifications out of dialogue text and the persistent chapter banner.
+    const toastBaseY = gameState === STATE.DIALOGUE ? 92 : height - 104;
+    const y = toastBaseY - (window.toasts.length - 1 - i) * 28;
+
     textFont('VT323');
     textSize(14);
+    const toastW = Math.min(420, Math.max(250, textWidth(t.text) + 36));
+    noStroke();
+    fill(C.navy[0], C.navy[1], C.navy[2], alpha * 0.78);
+    rect(width / 2 - toastW / 2, y - 11, toastW, 26, 4);
+    fill(t.color[0], t.color[1], t.color[2], alpha * 0.16);
+    rect(width / 2 - toastW / 2, y - 11, toastW, 26, 4);
+    fill(t.color[0], t.color[1], t.color[2], alpha);
     textAlign(CENTER, CENTER);
     text(t.text, width / 2, y + 2);
   }
@@ -4147,6 +4259,39 @@ function drawQuestOverlay() {
   fill(color(124, 200, 232, 235));
   textSize(10);
   text('NEXT: ' + getQuestObjectiveText(), 610, 37, 330, 28);
+
+  // The fixed 32×32 tile map intentionally occupies the left half of the
+  // logical canvas; use the remaining space as a purposeful JRPG context rail.
+  const sideX = 600, sideY = 82, sideW = 350, sideH = 150;
+  noStroke();
+  fill(color(26, 16, 46, 184));
+  rect(sideX, sideY, sideW, sideH, 4);
+  fill(color(124, 200, 232, 54));
+  rect(sideX, sideY, 4, sideH);
+
+  textAlign(LEFT, TOP);
+  textFont('Press Start 2P');
+  textSize(8);
+  fill(color(42, 255, 181, 205));
+  text('ACTIVE CREW', sideX + 12, sideY + 12);
+
+  const activeCrew = Array.isArray(window.ACTIVE_PARTY)
+    ? window.ACTIVE_PARTY.filter(Boolean).map(character => String(character.name || character.id).toUpperCase())
+    : [];
+  textFont('VT323');
+  textSize(16);
+  fill(color(232, 220, 198, 220));
+  text(activeCrew.length ? activeCrew.join('  •  ') : 'ENDER', sideX + 12, sideY + 32, sideW - 24, 26);
+
+  textFont('Press Start 2P');
+  textSize(8);
+  fill(color(124, 200, 232, 180));
+  text('FIRST WAKE // CHAPTER I', sideX + 12, sideY + 68);
+  fill(color(232, 220, 198, 145));
+  textSize(7);
+  text('E INTERACT   •   T QUEST LOG   •   F AIRSHIP', sideX + 12, sideY + 96);
+  text('R PARTY      •   L LEDGER      •   M SHOP', sideX + 12, sideY + 116);
+
   textSize(10);
   textFont('sans-serif');
 }
