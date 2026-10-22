@@ -58,6 +58,13 @@ New-Item -ItemType Directory -Path $OutputDir | Out-Null
 
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--export-release", "Windows Desktop Review", $Exe) "Windows release export"
 
+# Godot can return immediately before the exported file becomes observable on
+# Windows. Bound the handoff rather than treating a short filesystem delay as
+# an export failure.
+$ExportDeadline = (Get-Date).AddSeconds(10)
+while (-not (Test-Path -LiteralPath $Exe) -and (Get-Date) -lt $ExportDeadline) {
+    Start-Sleep -Milliseconds 200
+}
 if (-not (Test-Path -LiteralPath $Exe)) {
     throw "WINDOWS_EXPORT_MISSING: $Exe"
 }
