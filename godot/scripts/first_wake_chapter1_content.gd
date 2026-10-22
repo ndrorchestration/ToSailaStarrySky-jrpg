@@ -44,22 +44,46 @@ const CONTACTS := {
     "elder_farmer": {
         "name": "Ionia",
         "title": "Captain of the Aureate Wake",
-        "line": "I do not need a miracle from you, Ender. I need honest hands, a clear head, and someone willing to stand beside Lyra while we find out what the Wake is actually hearing.",
+        "intro": [
+            "The Aureate Wake can fly. That is not the mystery. The mystery is why some systems answer like a ship, and some answer like they are waiting for a crew I have not yet found.",
+            "Captain Denith left me a vessel, a set of impossible notes, and the bad habit of telling the truth when a comforting lie would travel faster. So here it is: the dock shield is failing, the storm is early, and this ship may be our best shelter.",
+            "Lyra has been able to coax responses from the Wake that my instruments only half-record. Useful responses. Incomplete ones. Then you came aboard, and the panels started disagreeing with their own limits.",
+            "I do not need a miracle from you, Ender. I need honest hands, a clear head, and someone willing to stand beside Lyra while we find out what the Wake is actually hearing.",
+            "If the storm reaches the berths before the colony shield steadies, the ships beside us take the shear first. We either leave early, hold dock, or ask the Wake to do something it has only hinted it can do.",
+        ],
     },
     "engine_spirit": {
         "name": "Wakeheart",
         "title": "Harmonic Console of the Aureate Wake",
-        "line": "Request: captain confirmation, reach stabilization, stranger-current consent.",
+        "intro": [
+            "Primary lift: nominal. Solar intake: nominal. Shield lattice: partial. Crew resonance: unstable, increasing.",
+            "Captain authority recognized. Lyra-pattern recognized. New harmonic variable recognized. Cross-response exceeds prior thresholds.",
+            "Storm vectors converging on Wake Dock. Colony shield cycling below reliable tolerance. Adjacent berth stress rising.",
+            "Directional projection routine available. Warning: lateral shield faces will weaken while forward umbrella is extended.",
+            "Request: captain confirmation, reach stabilization, stranger-current consent.",
+        ],
     },
     "child_prophet": {
         "name": "Lyra",
         "title": "Frequency-Sensitive Dreamer of the Aureate Wake",
-        "line": "If the Wake can make an umbrella, we should let it. I know that sounds impossible. It also sounds kind.",
+        "intro": [
+            "The ship is not asleep. People keep saying that because it makes them feel better. It is awake in the way a hand is awake before it knows what it is reaching for.",
+            "I can hear the shield lattice when it tries to open. It gets lonely halfway through.",
+            "When Ionia gives an order, the Wake stands up straighter. When you touch the console, Ender, it stops bracing for the wrong kind of answer.",
+            "The storm has teeth on the front edge. The little ships beside us are going to feel it first.",
+            "If the Wake can make an umbrella, we should let it. I know that sounds impossible. It also sounds kind.",
+        ],
     },
     "corporate_salvager": {
         "name": "Verrick",
         "title": "Harbor Shield Officer",
-        "line": "So make a choice: launch before the front arrives, stay and stabilize your own berth, or prove the Wake can throw a shield wide without tearing herself open.",
+        "intro": [
+            "Verrick, harbor shield office. If you are with the Wake, tell your captain the colony shield is cycling dirty and I am out of polite ways to describe bad math.",
+            "Procedure says every vessel clears dock before stormfall unless its berth shield is certified. Your berth shield is not certified. Your ship, however, keeps returning numbers my board insists are impossible.",
+            "The two craft beside you are lighter than they should be and crewed by people who waited too long to undock. If shear hits from the east, they peel before you do.",
+            "I do not care about legends. I care about vectors, hull stress, and whether somebody is about to turn a solvable weather event into paperwork with names on it.",
+            "So make a choice: launch before the front arrives, stay and stabilize your own berth, or prove the Wake can throw a shield wide without tearing herself open.",
+        ],
     },
 }
 
@@ -129,8 +153,16 @@ static func hazard_label(hazard_id: String) -> String:
 static func contact_name(contact_id: String) -> String:
     return str(CONTACTS.get(contact_id, {}).get("name", contact_id.replace("_", " ")))
 
+static func contact_intro(contact_id: String) -> Array[String]:
+    var raw: Array = CONTACTS.get(contact_id, {}).get("intro", [])
+    var lines: Array[String] = []
+    for line in raw:
+        lines.append(str(line))
+    return lines
+
 static func contact_line(contact_id: String) -> String:
-    return str(CONTACTS.get(contact_id, {}).get("line", ""))
+    var lines := contact_intro(contact_id)
+    return lines[0] if not lines.is_empty() else ""
 
 static func choice_label(path_id: String) -> String:
     return str(CHOICES.get(path_id, {}).get("label", path_id))
