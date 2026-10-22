@@ -224,6 +224,19 @@ func _unhandled_key_input(event: InputEvent) -> void:
         elif stage == "return" and ender.global_position.distance_to(SIGNAL_POINT) <= 85.0:
             finish_at_dock()
 
+func context_prompt_text() -> String:
+    if ender == null:
+        return ""
+    if stage == "search":
+        return "E: Inspect the signal" if ender.global_position.distance_to(SIGNAL_POINT) <= 85.0 else "Find the labeled SIGNAL"
+    if stage == "meet":
+        return "E: Talk to Ionia" if ender.global_position.distance_to(IONIA_POINT) <= 85.0 else "Bring the clue to Ionia"
+    if stage == "approach":
+        return "E: Begin the signal challenge" if ender.global_position.distance_to(CHALLENGE_POINT) <= 85.0 else "Cross the dock to CHALLENGE"
+    if stage == "return":
+        return "E: See what changed" if ender.global_position.distance_to(SIGNAL_POINT) <= 85.0 else "Return to the SIGNAL"
+    return ""
+
 func _refresh_ui() -> void:
     if stage_label == null:
         return
@@ -236,7 +249,7 @@ func _refresh_ui() -> void:
     elif stage == "complete":
         hint.text = "Prototype complete. Choice and consequence shown; no save or story canon."
     else:
-        hint.text = "E: interact near labeled marker  |  P: local review trace %s" % ("ON" if trace_opt_in else "OFF")
+        hint.text = context_prompt_text() + "  |  P: local review trace %s" % ("ON" if trace_opt_in else "OFF")
 
 func _record(event_name: String) -> void:
     if trace_opt_in:
