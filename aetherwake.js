@@ -1817,7 +1817,7 @@ function drawQuestLogOverlay() {
     text('State: ' + qs.state, qx + 16, y);
     y += 18;
     textSize(13);
-    text('Hooks: ' + qs.hooksCompleted + '/3  |  Hazards: ' + qs.hazardsCompleted + '/4', qx + 16, y);
+    text('Hooks: ' + qs.hooksCompleted + '/3  |  Hazards: ' + qs.hazardsCompleted + '/' + qs.crossingHazards.length, qx + 16, y);
     y += 18;
     text('NPCs: ' + (qs.npcsMet ? qs.npcsMet.length : 0) + '/4  |  Choice: ' + (qs.choiceMade || 'none'), qx + 16, y);
     y += 24;
@@ -2380,6 +2380,7 @@ function initQuest() {
     heatLevel: 1,
     engineIntegration: 0,
     wakeEpilogue: null,
+    chapterOneComplete: false,
     discoveries: [],      // lore tiles discovered so far
   journal: [
     { state: 'signal', text: 'Ender boards the Aureate Wake as Wake Dock prepares for stormfall. The ship flies, but its deeper shield responses need the right crew to become clear.' },
@@ -2470,6 +2471,7 @@ function getQuestState() {
     npcsMet: quest.npcsMet.slice(),
     choiceMade: quest.choiceMade,
     choiceVariant: quest.choiceVariant,
+    chapterOneComplete: quest.chapterOneComplete,
     hullIntegrity: quest.hullIntegrity,
     morale: quest.morale,
     heatLevel: quest.heatLevel,
@@ -2521,7 +2523,7 @@ function advanceSignal() {
 }
 
 function advanceCrossing() {
-  if (quest.hazardsCompleted >= 3) {
+  if (quest.hazardsCompleted >= quest.crossingHazards.length) {
     quest.state = QUEST_STATES.CONTACT;
     quest.act = 'contact';
     appendJournalEntry('contact', 'The dockside hazards are behind you. Four voices now frame the same question: leave, hold, or shelter wider.');
@@ -2531,8 +2533,27 @@ function advanceCrossing() {
   }
 }
 
+function ensureIoniaJoinedForStormChoice() {
+  if (typeof window === 'undefined' ||
+      !window.AetherPartyState ||
+      typeof window.AetherPartyState.recruitCharacter !== 'function' ||
+      !Array.isArray(window.ACTIVE_PARTY)) {
+    throw new Error('FIRST_WAKE_IONIA_RECRUITMENT_UNAVAILABLE');
+  }
+  const activeIds = window.ACTIVE_PARTY.map(character => character && character.id);
+  if (!activeIds.includes('ionia')) {
+    const ionia = window.AetherPartyState.recruitCharacter('ionia');
+    if (!ionia || !ionia.playable) {
+      throw new Error('FIRST_WAKE_IONIA_RECRUITMENT_FAILED');
+    }
+    addLedgerEntry('crew', 'Captain Ionia commits to the storm decision. The active party is now Ender, Lyra, and Ionia.');
+    appendJournalEntry('contact', 'Ionia leaves the command rail long enough to join Ender and Lyra at the shield decision. Helm, reach, and stranger-current finally stand in one active crew line.');
+  }
+}
+
 function advanceContact() {
   if (quest.npcsMet.length >= 4) {
+    ensureIoniaJoinedForStormChoice();
     quest.state = QUEST_STATES.CHOICE;
     quest.act = 'choice';
     appendJournalEntry('choice', 'All four voices heard. The ship holds steady while the storm asks for a decision.');
@@ -2692,8 +2713,9 @@ function advanceWake() {
   if (quest.wakeEpilogue) {
     quest.state = QUEST_STATES.DONE;
     quest.act = 'done';
+    quest.chapterOneComplete = true;
     gameOver = true;
-    appendJournalEntry('done', 'The ending found you. Epilogue: ' + quest.wakeEpilogue.name + '. The ledger closes on its own.');
+    appendJournalEntry('done', 'CHAPTER I — FIRST WAKE complete. Epilogue: ' + quest.wakeEpilogue.name + '. The auroral lanes remain closed while the Wake waits for the rest of its crew.');
   }
 }
 
@@ -2773,12 +2795,6 @@ function checkHazardProximity(tx, ty) {
       completeHazard(2);
     }
   }
-  if (tx >= 4 && tx <= 12 && ty >= 9 && ty <= 16 && !quest.crossingHazards[3].done) {
-    if (Math.random() < 0.12) {
-      completeHazard(3);
-    }
-  }
-  // 4th hazard zone marker drawn in drawQuestWorldReactions()
 }
 
 function completeHazard(index) {
@@ -4063,7 +4079,7 @@ function drawQuestOverlay() {
   if (quest.state === 'signal') {
     progressText = quest.hooksCompleted + '/3 hooks';
   } else if (quest.state === 'crossing') {
-    progressText = quest.hazardsCompleted + '/4 hazards';
+    progressText = quest.hazardsCompleted + '/' + quest.crossingHazards.length + ' hazards';
   } else if (quest.state === 'contact') {
     progressText = quest.npcsMet.length + '/4 NPCs';
   } else if (quest.state === 'choice') {
@@ -4097,16 +4113,22 @@ function drawEpilogueScreen() {
   textFont('Press Start 2P');
   const ep = quest.wakeEpilogue;
   if (ep) {
-    text(ep.name.toUpperCase(), width/2, height/2 - 40);
+    textSize(9);
+    text('CHAPTER I COMPLETE', width/2, height/2 - 82);
+    textSize(18);
+    text(ep.name.toUpperCase(), width/2, height/2 - 48);
     fill(color(232, 220, 198, 200));
     textSize(14);
     textFont('VT323');
     textAlign(CENTER, CENTER);
-    text(ep.text, width/2, height/2 + 20, width - 80, 100);
+    text(ep.text, width/2, height/2 + 8, width - 80, 92);
+    fill(color(124, 200, 232, 180));
+    textSize(12);
+    text('Auroral lanes remain closed. The Wake still needs the rest of its crew.', width/2, height/2 + 74, width - 100, 42);
     fill(color(42, 255, 181, 120));
     textSize(10);
     textFont('Press Start 2P');
-    text('[ R ] to begin again', width/2, height/2 + 80);
+    text('[ R ] to begin again', width/2, height/2 + 112);
   }
   textSize(10);
   textFont('sans-serif');

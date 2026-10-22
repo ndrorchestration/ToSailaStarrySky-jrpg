@@ -1174,6 +1174,44 @@ function createServer() {
     assert(flightAfterMove.x > flightBefore.x,
       'flight movement did not advance sky position');
 
+    const chapterOneIntegration = await page.evaluate(() => {
+      initQuest();
+      completeSignalHook('harmonic_buoy');
+      completeSignalHook('sky_lane_warning');
+      completeSignalHook('below_frequency');
+      completeHazard(0);
+      completeHazard(1);
+      completeHazard(2);
+      quest.npcsMet = ['elder_farmer', 'engine_spirit', 'child_prophet', 'corporate_salvager'];
+      advanceQuest();
+      const activeAtChoice = window.ACTIVE_PARTY.map(character => character.id);
+      const ioniaPlayable = Boolean(window.ROSTER[2] && window.ROSTER[2].playable);
+      selectChoicePath(2);
+      const afterChoice = getQuestState();
+      advanceQuest();
+      const completed = getQuestState();
+      return {
+        activeAtChoice,
+        ioniaPlayable,
+        choiceState: afterChoice.state,
+        choicePath: quest.choicePath,
+        completedState: completed.state,
+        chapterOneComplete: completed.chapterOneComplete,
+        epilogue: quest.wakeEpilogue && quest.wakeEpilogue.name,
+      };
+    });
+    assert(chapterOneIntegration.activeAtChoice.join('|') === 'ender|lyra|ionia',
+      'Ionia did not join the canonical active party at the storm/shield decision boundary');
+    assert(chapterOneIntegration.ioniaPlayable === true,
+      'Ionia roster record was not made playable at the storm/shield boundary');
+    assert(chapterOneIntegration.choiceState === 'wake' &&
+           chapterOneIntegration.choicePath === 'path_c',
+      'Chapter I choice did not advance into Wake with the selected path');
+    assert(chapterOneIntegration.completedState === 'done' &&
+           chapterOneIntegration.chapterOneComplete === true &&
+           Boolean(chapterOneIntegration.epilogue),
+      'Chapter I did not terminate in an explicit completed epilogue state');
+
     if (errors.length) {
       throw new Error('browser errors:\n' + errors.join('\n'));
     }
