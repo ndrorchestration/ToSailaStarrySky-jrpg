@@ -57,9 +57,19 @@ $Uninstall = @'
 @echo off
 setlocal
 set "DEST=%LOCALAPPDATA%\Programs\Aetherwake-Godot-Native-Preview"
+set "CLEANUP=%TEMP%\Aetherwake-Godot-Native-Preview-Uninstall.cmd"
+if /I "%~1"=="--cleanup" goto cleanup
+copy /Y "%~f0" "%CLEANUP%" >nul
+if errorlevel 1 exit /b 1
+start "" /min cmd /c ""%CLEANUP%" --cleanup"
+exit /b 0
+
+:cleanup
 powershell -NoProfile -Command "$dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake-Godot-Native-Preview'; $exe=Join-Path $dest 'Aetherwake-First-Wake-Godot-Preview.exe'; Get-CimInstance Win32_Process | Where-Object {$_.ExecutablePath -eq $exe} | ForEach-Object {Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue}; $desktop=[Environment]::GetFolderPath('Desktop'); $menu=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Aetherwake Native Preview'; Remove-Item -LiteralPath (Join-Path $desktop 'Aetherwake Native Preview.lnk') -Force -ErrorAction SilentlyContinue; Remove-Item -LiteralPath $menu -Recurse -Force -ErrorAction SilentlyContinue"
 cd /d "%TEMP%"
-start "" /min cmd /c "timeout /t 2 /nobreak >nul & rmdir /s /q ""%DEST%"""
+timeout /t 2 /nobreak >nul
+rmdir /s /q "%DEST%"
+del /q "%~f0"
 exit /b 0
 '@
 
