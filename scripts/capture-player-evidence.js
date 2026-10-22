@@ -172,6 +172,9 @@ async function pressEnter(page, count = 1) {
     await page.waitForFunction(() => window.gameState === 'world' && window._world && window._world.player,
       undefined, { timeout: 5000 });
     await capture(page, outputRoot, captures, 'world-handoff', 'world handoff after authored First Wake opening');
+    // Let the intentional chapter handoff banner clear so later frames review
+    // settled dialogue/combat presentation rather than transition residue.
+    await page.waitForTimeout(1900);
 
     await page.evaluate(() => {
       const p = window._world.player;
