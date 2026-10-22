@@ -81,3 +81,6 @@ jobs:
       - name: Verify named keyboard/controller defaults preserve remaps
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/vertical_slice_input_policy_test.gd
+      - name: Verify original procedural signal audio
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/vertical_slice_signal_audio_test.gd
