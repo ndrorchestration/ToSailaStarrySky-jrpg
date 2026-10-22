@@ -24,24 +24,24 @@ func _verify() -> void:
     if world.context_prompt_text() != "E: Inspect the signal":
         _fail("nearby context prompt does not name the interaction")
         return
-    world._unhandled_key_input(_key(KEY_M))
+    world._unhandled_input(_key(KEY_M))
     if world.reduced_motion:
         _fail("motion toggle cannot enable animation")
         return
-    world._unhandled_key_input(_key(KEY_M))
+    world._unhandled_input(_key(KEY_M))
     if not world.reduced_motion:
         _fail("motion toggle cannot restore reduction")
         return
     var initial_size: int = world.text_size
-    world._unhandled_key_input(_key(KEY_EQUAL))
+    world._unhandled_input(_key(KEY_EQUAL))
     if world.text_size <= initial_size:
         _fail("text size increase unavailable")
         return
-    world._unhandled_key_input(_key(KEY_MINUS))
+    world._unhandled_input(_key(KEY_MINUS))
     if world.text_size != initial_size:
         _fail("text size not reversible")
         return
-    world._unhandled_key_input(_key(KEY_P))
+    world._unhandled_input(_key(KEY_P))
     if not world.trace_opt_in:
         _fail("local trace opt-in unavailable")
         return
@@ -49,7 +49,7 @@ func _verify() -> void:
     if world.trace_events.size() != 1 or world.trace_events[0]["event"] != "clue_discovered":
         _fail("anonymous opt-in trace not recorded")
         return
-    world._unhandled_key_input(_key(KEY_P))
+    world._unhandled_input(_key(KEY_P))
     if world.trace_opt_in or not world.trace_events.is_empty():
         _fail("trace opt-out failed to clear local events")
         return
@@ -57,7 +57,7 @@ func _verify() -> void:
     if world.ender.player_controlled:
         _fail("dialogue failed to pause actor")
         return
-    world._unhandled_key_input(_key(KEY_ESCAPE))
+    world._unhandled_input(_key(KEY_ESCAPE))
     if world.stage != "meet" or not world.ender.player_controlled:
         _fail("dialogue cancel failed to resume actor")
         return
