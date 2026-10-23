@@ -56,6 +56,9 @@ func _initialize() -> void:
     if not FileAccess.file_exists(TEST_PATH + ".bak"):
         _fail("second save did not preserve previous valid primary")
         return
+    if FileAccess.file_exists(TEST_PATH + ".bak.next"):
+        _fail("verified backup candidate was not consumed after rotation")
+        return
     var backup_text := FileAccess.get_file_as_string(TEST_PATH + ".bak")
     var backup_parsed = JSON.parse_string(backup_text)
     if not (backup_parsed is Dictionary) or not SaveCodec.validate(backup_parsed).get("ok", false):
@@ -128,7 +131,12 @@ func _initialize() -> void:
         return
 
     store.delete_slot(TEST_PATH)
-    if FileAccess.file_exists(TEST_PATH) or FileAccess.file_exists(TEST_PATH + ".bak") or FileAccess.file_exists(TEST_PATH + ".tmp"):
+    if (
+        FileAccess.file_exists(TEST_PATH)
+        or FileAccess.file_exists(TEST_PATH + ".bak")
+        or FileAccess.file_exists(TEST_PATH + ".bak.next")
+        or FileAccess.file_exists(TEST_PATH + ".tmp")
+    ):
         _fail("test slot cleanup failed")
         return
 
