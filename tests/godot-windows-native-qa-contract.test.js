@@ -16,9 +16,11 @@ const script = fs.readFileSync(scriptPath, 'utf8');
 assert(script.includes('[string]$ExpectedSourceSha') &&
        script.includes('SOURCE_SHA_MISMATCH') &&
        script.includes('git rev-parse HEAD') &&
-       script.includes('git status --porcelain') &&
-       script.includes('WORKTREE_NOT_CLEAN'),
-  'exact Windows QA must bind a clean worktree to an expected source SHA');
+       script.includes('git status --porcelain --untracked-files=no') &&
+       script.includes('TRACKED_WORKTREE_NOT_CLEAN') &&
+       script.includes('git ls-files --others --exclude-standard -- godot') &&
+       script.includes('UNTRACKED_GODOT_AUTHORITY_FILES'),
+  'exact Windows QA must bind clean tracked source and an uncontaminated Godot project to an expected SHA');
 
 assert(script.includes('build-godot-chapter1-windows-preview.ps1') &&
        script.includes('package-godot-chapter1-windows-preview.ps1'),
