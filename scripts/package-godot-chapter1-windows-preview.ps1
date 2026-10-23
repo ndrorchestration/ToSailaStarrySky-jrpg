@@ -89,6 +89,8 @@ Play:
 - Crossing: interact with Wind Shear to open its current-story combat encounter
 - Wind Shear combat: 1 Staff Strike, 2 Uncover Truth, 3 Hold, 4 Rest
 - Wind Shear retaliates after successful turns with its current live Gale Force: 2 damage
+- Current Crossing party surface shows Ender + Lyra; only Ender's formula actions are authorized
+- Lyra's combat actions remain intentionally unavailable until explicit action authority exists
 - If Ender is downed, C closes the transient encounter and Crossing progress is unchanged
 - Clear Wind Shear, then C to confirm that Crossing hazard
 - Loose Cargo Sweep and Dock Authority Hold remain noncombat Chapter I hazards
