@@ -45,6 +45,8 @@ set "EXE=%DEST%\Aetherwake-First-Wake-Godot-Preview.exe"
 set "MARKER=%DEST%\Aetherwake-Native-Preview.install"
 powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake-Godot-Native-Preview'; if(Test-Path -LiteralPath $dest){$marker=Join-Path $dest 'Aetherwake-Native-Preview.install'; if(-not (Test-Path -LiteralPath $marker)){exit 3}; $owner=(Get-Content -LiteralPath $marker -Raw).Trim(); if($owner -ne 'AETHERWAKE_GODOT_NATIVE_PREVIEW_INSTALL_V1'){exit 3}}"
 if errorlevel 1 exit /b 3
+powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake-Godot-Native-Preview'; $exe=[IO.Path]::GetFullPath((Join-Path $dest 'Aetherwake-First-Wake-Godot-Preview.exe')); $shell=New-Object -ComObject WScript.Shell; $desktop=[Environment]::GetFolderPath('Desktop'); $menu=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Aetherwake Native Preview'; foreach($shortcutPath in @((Join-Path $desktop 'Aetherwake Native Preview.lnk'),(Join-Path $menu 'Aetherwake Native Preview.lnk'))){if(Test-Path -LiteralPath $shortcutPath){$existing=$shell.CreateShortcut($shortcutPath); $target=[IO.Path]::GetFullPath([string]$existing.TargetPath); $work=[IO.Path]::GetFullPath([string]$existing.WorkingDirectory); if(-not ($target.Equals($exe,[StringComparison]::OrdinalIgnoreCase) -and $work.Equals([IO.Path]::GetFullPath($dest),[StringComparison]::OrdinalIgnoreCase))){throw ('SHORTCUT_SLOT_OCCUPIED:'+ $shortcutPath)}}}"
+if errorlevel 1 exit /b 4
 if not exist "%DEST%" mkdir "%DEST%"
 copy /Y "%~dp0Aetherwake\Aetherwake-First-Wake-Godot-Preview.exe" "%EXE%" >nul
 if errorlevel 1 exit /b 1
@@ -85,8 +87,9 @@ Private pre-alpha migration preview.
 Install:
 1. Extract this ZIP completely.
 2. Double-click Install-Aetherwake-Godot-Preview.cmd.
-3. The native Godot preview installs per-user and launches automatically.
-4. A Desktop shortcut and Start Menu shortcut are created.
+3. Existing install-directory and shortcut ownership is checked before any payload files are copied.
+4. The native Godot preview installs per-user and launches automatically.
+5. A Desktop shortcut and Start Menu shortcut are created.
 
 Play:
 - WASD / arrows - move
