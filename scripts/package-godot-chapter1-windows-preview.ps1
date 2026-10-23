@@ -39,16 +39,12 @@ Copy-Item -LiteralPath $ExportedExe -Destination $PayloadExe -Force
 
 $Install = @'
 @echo off
-setlocal EnableExtensions EnableDelayedExpansion
+setlocal
 set "DEST=%LOCALAPPDATA%\Programs\Aetherwake-Godot-Native-Preview"
 set "EXE=%DEST%\Aetherwake-First-Wake-Godot-Preview.exe"
 set "MARKER=%DEST%\Aetherwake-Native-Preview.install"
-if exist "%DEST%" (
-  if not exist "%MARKER%" exit /b 3
-  set "OWNER="
-  set /p OWNER=<"%MARKER%"
-  if /I not "!OWNER!"=="AETHERWAKE_GODOT_NATIVE_PREVIEW_INSTALL_V1" exit /b 3
-)
+powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake-Godot-Native-Preview'; if(Test-Path -LiteralPath $dest){$marker=Join-Path $dest 'Aetherwake-Native-Preview.install'; if(-not (Test-Path -LiteralPath $marker)){exit 3}; $owner=(Get-Content -LiteralPath $marker -Raw).Trim(); if($owner -ne 'AETHERWAKE_GODOT_NATIVE_PREVIEW_INSTALL_V1'){exit 3}}"
+if errorlevel 1 exit /b 3
 if not exist "%DEST%" mkdir "%DEST%"
 copy /Y "%~dp0Aetherwake\Aetherwake-First-Wake-Godot-Preview.exe" "%EXE%" >nul
 if errorlevel 1 exit /b 1
