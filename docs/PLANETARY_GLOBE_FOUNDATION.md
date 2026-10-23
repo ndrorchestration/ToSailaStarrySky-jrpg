@@ -97,3 +97,20 @@ Then repeat separately with `--renderer forward_plus` on Vulkan-capable target h
 8. explicit separation between non-canon art-direction proxies and approved world/cartography data.
 
 Only after those gates should renderer code be considered for a dedicated repository branch. Even then, integration with Chapter I, save schema, canonical planet radius/geography, and protected main remains a separate reviewed decision. Issue #348 supplies world-scale requirements; issue #350 supplies cinematic fidelity gates; this document remains the geometry/streaming bridge between them.
+
+
+## 2026-10-23 — v0.3.1 streaming-bound correction
+
+A focused cubed-sphere audit found no sampled seam/pole holes in the cardinal-neighbor BFS, but did identify an avoidable LOD-quality loss: the prior tile-center padding used `atan(2*sqrt(2)/2^level)`, approximately twice the necessary linear margin at useful LODs.
+
+The planner now uses the tighter conservative bound `atan(sqrt(2)/2^level)`. For a gnomonic cubed-sphere tile, `1/2^level` is the half-width in face UV space, so `sqrt(2)/2^level` bounds center-to-corner displacement. This retains conservative horizon admission while reducing false-positive tile candidates.
+
+Regression coverage now:
+- samples all six cube faces at representative edge/center tile coordinates and levels 0, 1, 2, 4, 8 and 12;
+- verifies every sampled tile corner lies within `angularPadding(level)`;
+- proves the new padding is smaller than the legacy 2× bound;
+- locks the existing 200 km altitude / 25-tile-budget stress case to L3 rather than merely asserting some unspecified downgrade below requested L11.
+
+An independent exhaustive/property audit over tractable LODs found the neighbor graph connected and the BFS candidate set equal to brute-force center-distance selection for the sampled caps/positions. Additional randomized corner checks through L12 found no padding violation. These are same-session engineering checks, not hosted CI or native-renderer evidence.
+
+No world geometry, flight speed, save data, canon radius, cartography, Chapter I scene or renderer asset changed. Exact-head Node/hosted execution remains separately required.
