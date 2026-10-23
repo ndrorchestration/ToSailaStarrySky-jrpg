@@ -11,6 +11,7 @@ Set-StrictMode -Version Latest
 
 $ExpectedGodotVersion = "4.7.2.stable.official.ed1daf0bf"
 $ExpectedTemplateVersion = "4.7.2.stable"
+$ExpectedInstallMarker = "AETHERWAKE_GODOT_NATIVE_PREVIEW_INSTALL_V1"
 
 function Get-Sha256Hex([string]$Path) {
     $stream = [System.IO.File]::OpenRead($Path)
@@ -581,6 +582,7 @@ Assert-Exists $AuditedInstallCmd "audited extracted ZIP installer"
 $InstallDir = Join-Path $env:LOCALAPPDATA "Programs\Aetherwake-Godot-Native-Preview"
 $InstalledExe = Join-Path $InstallDir "Aetherwake-First-Wake-Godot-Preview.exe"
 $InstalledUninstall = Join-Path $InstallDir "Uninstall-Aetherwake-Godot-Preview.cmd"
+$InstalledMarker = Join-Path $InstallDir "Aetherwake-Native-Preview.install"
 $DesktopShortcut = Join-Path ([Environment]::GetFolderPath('Desktop')) "Aetherwake Native Preview.lnk"
 $StartMenuDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\Aetherwake Native Preview"
 $StartMenuShortcut = Join-Path $StartMenuDir "Aetherwake Native Preview.lnk"
@@ -615,8 +617,14 @@ if ($Running.Count -ne 1) {
 
 Assert-Exists $InstalledExe "installed executable"
 Assert-Exists $InstalledUninstall "installed uninstaller"
+Assert-Exists $InstalledMarker "installed ownership marker"
 Assert-Exists $DesktopShortcut "Desktop shortcut"
 Assert-Exists $StartMenuShortcut "Start Menu shortcut"
+
+$InstalledMarkerText = (Get-Content -LiteralPath $InstalledMarker -Raw).Trim()
+if ($InstalledMarkerText -ne $ExpectedInstallMarker) {
+    throw "INSTALLED_OWNERSHIP_MARKER_MISMATCH expected=$ExpectedInstallMarker actual=$InstalledMarkerText"
+}
 
 $DesktopShortcutCustody = Assert-ShortcutTarget $DesktopShortcut $InstalledExe $InstallDir "DESKTOP"
 $StartMenuShortcutCustody = Assert-ShortcutTarget $StartMenuShortcut $InstalledExe $InstallDir "START_MENU"
@@ -822,6 +830,11 @@ $Receipt = [ordered]@{
         perUser = "PASS"
         installedExeHashMatch = "PASS"
         installedUninstallerHashMatch = "PASS"
+        ownershipMarker = [ordered]@{
+            path = [System.IO.Path]::GetFullPath($InstalledMarker)
+            value = $InstalledMarkerText
+            verified = "PASS"
+        }
         liveLaunch = "PASS"
         windowTitle = $MainWindowTitle
         desktopShortcut = $DesktopShortcutCustody
@@ -892,6 +905,7 @@ $MarkdownReceipt = @(
     "- Per-user install: PASS",
     "- Installed EXE byte identity: PASS",
     "- Installed uninstaller byte identity: PASS",
+    "- Installed ownership marker: PASS - $InstalledMarkerText",
     "- Live native window: PASS - $MainWindowTitle",
     "- Desktop shortcut target/workdir: PASS",
     "- Start Menu shortcut target/workdir: PASS",
