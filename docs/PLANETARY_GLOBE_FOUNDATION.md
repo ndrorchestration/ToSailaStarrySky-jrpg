@@ -171,3 +171,33 @@ v0.7.3 repairs only those observed scene/runtime defects:
 Post-repair static/source validation remains PASS, declaration-boundary self-tests are 3/3 PASS, and synthetic native-runner receipt-gate cases are accounted for across bounded runs. A manifest-pinned negative runner check reaches the intended missing-Godot failure, proving the v0.7.3 handoff pin matches the repaired source.
 
 **v0.7.3 has not yet been rerun in native Godot.** Required next evidence is another real Compatibility run. It must pass the scene marker before graphical capture can establish authentic modes 1/4/5 frames; Forward+ and GPU/visual acceptance remain separate gates.
+
+
+## 2026-10-23 — v0.7.3 proof-kit rebase supersedes lightweight package
+
+A parallel v0.7.2 **Native Scene Proof Kit** was discovered in the project Library after the first v0.7.3 repair package was prepared. It contains the same authored Godot scene source defects exposed by the creator's Windows run, but has a stronger QA harness: Windows launchers are source-manifest-covered, screenshot center-region content is analyzed rather than relying only on file hashes, and dedicated PNG-decoder plus launcher-pin regression tests are included.
+
+The three real-native repairs were therefore rebased onto that stronger proof kit. This final v0.7.3 package supersedes the earlier lightweight `Aetherwake_Godot_Georeferenced_Flight_v0.7.3...` artifact, which is retained in the Library under an explicit `SUPERSEDED_BY_NATIVE_SCENE_PROOF_KIT` name for provenance.
+
+Current artifact:
+- `Aetherwake_Godot_Native_Scene_Proof_Kit_v0.7.3_2026-10-23.zip`
+- ZIP members: **55**
+- size: **1,777,376 bytes**
+- ZIP SHA-256: `b8153ce43f59c3efc10a38b882282f31970fdb30c8ecf927fa20cf6d0f0579bf`
+- source manifest: **39 files**
+- source-manifest SHA-256: `734969c447f0af38ccf36135430a2f56ef34634428cfdea39808f98f47d8b596`
+
+The final proof kit retains all three native fixes:
+1. removes the fragile percent formatter from the status line while preserving literal `30%`;
+2. replaces invalid `Node3D.rotation_y` with a valid explicit `rotation` Vector3 assignment;
+3. establishes an explicit `(19.0,-115.0)` baseline before the local georeference out-and-back assertion.
+
+Verification of the rebased package:
+- 10/10 standalone static/source/asset/launcher validators PASS;
+- declaration-boundary tests 3/3 PASS;
+- PNG decoder/filter tests 3/3 PASS;
+- Windows launcher-pin tests 3/3 PASS;
+- synthetic native receipt-gate tests 14/14 PASS across bounded grouped/individual execution;
+- manifest-pinned negative native runner correctly returns exit 2 / `NOT_VERIFIED` only because the local authoring environment lacks Godot.
+
+The final v0.7.3 proof kit still requires the creator's real Windows Godot 4.7.2 Compatibility rerun. No native v0.7.3 scene PASS, renderer frames, GPU timings, or creator visual acceptance is claimed yet.
