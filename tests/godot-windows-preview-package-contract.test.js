@@ -45,6 +45,9 @@ assert(script.includes('Crossing: interact with Wind Shear to open its current-s
 assert(script.includes('Wind Shear retaliates after successful turns with its current live Gale Force: 2 damage') &&
        script.includes('If Ender is downed, C closes the transient encounter and Crossing progress is unchanged'),
   'native package instructions must explain authored retaliation and fail-closed defeat');
+assert(script.includes("Current Crossing party surface shows Ender + Lyra; only Ender's formula actions are authorized") &&
+       script.includes("Lyra's combat actions remain intentionally unavailable until explicit action authority exists"),
+  'native package instructions must preserve fail-closed companion combat authority');
 assert(script.includes('previous valid generation is retained for backup recovery') &&
        script.includes('Formula Review, and active Wind Shear combat are transient and are not persisted') &&
        script.includes('without awarding hazard progress'),
