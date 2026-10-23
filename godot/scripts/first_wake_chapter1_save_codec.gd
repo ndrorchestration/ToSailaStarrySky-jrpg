@@ -166,7 +166,9 @@ static func _validate_player_position(raw: Variant) -> Dictionary:
     if not is_finite(x) or not is_finite(y):
         return _invalid("player position coordinates must be finite")
     var point := Vector2(x, y)
-    if not PLAYER_POSITION_BOUNDS.has_point(point):
+    var min_point := PLAYER_POSITION_BOUNDS.position
+    var max_point := PLAYER_POSITION_BOUNDS.end
+    if point.x < min_point.x or point.x > max_point.x or point.y < min_point.y or point.y > max_point.y:
         return _invalid("player position outside Chapter I deck bounds")
     return {"ok": true, "error": ""}
 
