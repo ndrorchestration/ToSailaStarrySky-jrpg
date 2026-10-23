@@ -136,3 +136,38 @@ A distinct repaired Library artifact was produced rather than silently replacing
 The repair changes only non-manifest handoff files: the Windows PowerShell launcher and two READMEs. Recomputed source-manifest identity remains exact. Running the Python native-review gate with the repaired expected manifest and a deliberately nonexistent Godot binary now reaches the intended `Godot executable missing; no native QA attempted` result rather than a manifest mismatch. Static/source validators remain PASS; declaration-boundary self-tests are 3/3 PASS; all 12 synthetic receipt-gate tests were observed passing across bounded grouped/individual executions. These are QA-harness checks only.
 
 Native Godot 4.7.2 import, GDScript/shader compilation, modes 1/4/5 renderer captures, GPU frame time/VRAM and creator visual acceptance remain **NOT VERIFIED**. Do not admit the cinematic source into runtime/main or claim renderer fidelity until those native gates execute.
+
+
+## 2026-10-23 — cinematic Godot v0.7.3 native scene/runtime repair
+
+A real creator-run Windows Godot 4.7.2 Compatibility gate was executed against v0.7.2 using official engine version `4.7.2.stable.official.ed1daf0bf` (engine SHA-256 `c8f0a6bc45a19b33541501e57f6f7cd972ab18453743266339d495cbbe846643`).
+
+Observed native evidence:
+- engine-version gate: PASS;
+- native project import: PASS, exit 0, no logged error marker;
+- native geodesic flight math: PASS with `AETHERWAKE_CINEMATIC_FLIGHT_MATH=PASS`;
+- native scene contract: FAIL, exit 1;
+- graphical capture did not run because the scene gate failed first.
+
+The scene failure exposed three concrete issues:
+1. `scripts/planetarium.gd` status text used a literal `30%` inside a `%` formatting expression, producing `String formatting error: unsupported format character`.
+2. `scripts/planetarium.gd` assigned nonexistent Godot 4 `Node3D.rotation_y`, producing an invalid property assignment.
+3. The georeferenced return-to-coordinate assertion captured its baseline after live mode-4 flight had already advanced slightly, then compared that moving baseline against an explicit `(19.0,-115.0)` reset.
+
+A distinct repaired Library artifact was produced:
+
+- artifact: `Aetherwake_Godot_Georeferenced_Flight_v0.7.3_2026-10-23.zip`
+- ZIP members: **51**
+- size: **1,769,797 bytes**
+- ZIP SHA-256: `91235a52e82c726a0471e2e178a77905c66f49c57d7c8413fa16d600b281b986`
+- scoped 33-file source-manifest SHA-256: `60a37861343dfec295b248f88b78c51ac7c9fec13a6fcce2179679df6ab8f6c9`
+
+v0.7.3 repairs only those observed scene/runtime defects:
+- status line now uses concatenation rather than the fragile percent formatter while retaining literal `30%`;
+- globe rotation reset assigns a valid `rotation` Vector3;
+- the scene test explicitly establishes `(19.0,-115.0)` before recording the out-and-back baseline;
+- static validator assertions lock all three repairs.
+
+Post-repair static/source validation remains PASS, declaration-boundary self-tests are 3/3 PASS, and synthetic native-runner receipt-gate cases are accounted for across bounded runs. A manifest-pinned negative runner check reaches the intended missing-Godot failure, proving the v0.7.3 handoff pin matches the repaired source.
+
+**v0.7.3 has not yet been rerun in native Godot.** Required next evidence is another real Compatibility run. It must pass the scene marker before graphical capture can establish authentic modes 1/4/5 frames; Forward+ and GPU/visual acceptance remain separate gates.
