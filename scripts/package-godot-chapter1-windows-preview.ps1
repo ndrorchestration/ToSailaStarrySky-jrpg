@@ -47,12 +47,15 @@ powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $dest=Join-Path $
 if errorlevel 1 exit /b 3
 powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake-Godot-Native-Preview'; $exe=[IO.Path]::GetFullPath((Join-Path $dest 'Aetherwake-First-Wake-Godot-Preview.exe')); $shell=New-Object -ComObject WScript.Shell; $desktop=[Environment]::GetFolderPath('Desktop'); $menu=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Aetherwake Native Preview'; foreach($shortcutPath in @((Join-Path $desktop 'Aetherwake Native Preview.lnk'),(Join-Path $menu 'Aetherwake Native Preview.lnk'))){if(Test-Path -LiteralPath $shortcutPath){$existing=$shell.CreateShortcut($shortcutPath); $target=[IO.Path]::GetFullPath([string]$existing.TargetPath); $work=[IO.Path]::GetFullPath([string]$existing.WorkingDirectory); if(-not ($target.Equals($exe,[StringComparison]::OrdinalIgnoreCase) -and $work.Equals([IO.Path]::GetFullPath($dest),[StringComparison]::OrdinalIgnoreCase))){throw ('SHORTCUT_SLOT_OCCUPIED:'+ $shortcutPath)}}}"
 if errorlevel 1 exit /b 4
+if not exist "%~dp0Aetherwake\Aetherwake-First-Wake-Godot-Preview.exe" exit /b 5
+if not exist "%~dp0Aetherwake\Uninstall-Aetherwake-Godot-Preview.cmd" exit /b 5
 if not exist "%DEST%" mkdir "%DEST%"
+if errorlevel 1 exit /b 1
+> "%MARKER%" echo AETHERWAKE_GODOT_NATIVE_PREVIEW_INSTALL_V1
+if errorlevel 1 exit /b 1
 copy /Y "%~dp0Aetherwake\Aetherwake-First-Wake-Godot-Preview.exe" "%EXE%" >nul
 if errorlevel 1 exit /b 1
 copy /Y "%~dp0Aetherwake\Uninstall-Aetherwake-Godot-Preview.cmd" "%DEST%\Uninstall-Aetherwake-Godot-Preview.cmd" >nul
-if errorlevel 1 exit /b 1
-> "%MARKER%" echo AETHERWAKE_GODOT_NATIVE_PREVIEW_INSTALL_V1
 if errorlevel 1 exit /b 1
 powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake-Godot-Native-Preview'; $exe=Join-Path $dest 'Aetherwake-First-Wake-Godot-Preview.exe'; $exeFull=[IO.Path]::GetFullPath($exe); $shell=New-Object -ComObject WScript.Shell; $desktop=[Environment]::GetFolderPath('Desktop'); $menu=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Aetherwake Native Preview'; New-Item -ItemType Directory -Path $menu -Force | Out-Null; foreach($shortcutPath in @((Join-Path $desktop 'Aetherwake Native Preview.lnk'),(Join-Path $menu 'Aetherwake Native Preview.lnk'))){if(Test-Path -LiteralPath $shortcutPath){$existing=$shell.CreateShortcut($shortcutPath); $existingTarget=[IO.Path]::GetFullPath([string]$existing.TargetPath); if(-not $existingTarget.Equals($exeFull,[StringComparison]::OrdinalIgnoreCase)){throw ('SHORTCUT_SLOT_OCCUPIED:'+ $shortcutPath)}}; $shortcut=$shell.CreateShortcut($shortcutPath); $shortcut.TargetPath=$exe; $shortcut.WorkingDirectory=$dest; $shortcut.Save()}"
 if errorlevel 1 exit /b 1
@@ -87,9 +90,10 @@ Private pre-alpha migration preview.
 Install:
 1. Extract this ZIP completely.
 2. Double-click Install-Aetherwake-Godot-Preview.cmd.
-3. Existing install-directory and shortcut ownership is checked before any payload files are copied.
-4. The native Godot preview installs per-user and launches automatically.
-5. A Desktop shortcut and Start Menu shortcut are created.
+3. Existing install-directory and shortcut ownership plus both packaged payload files are checked before any install mutation.
+4. A versioned ownership marker is written immediately after directory creation, so an interrupted/failed copy remains safely retryable as Aetherwake-owned state.
+5. The native Godot preview installs per-user and launches automatically.
+6. A Desktop shortcut and Start Menu shortcut are created.
 
 Play:
 - WASD / arrows - move
