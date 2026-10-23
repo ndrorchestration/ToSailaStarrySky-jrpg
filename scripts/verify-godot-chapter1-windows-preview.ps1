@@ -579,7 +579,10 @@ try {
             continue
         }
 
-        $SuffixLength = 7 if $IsImportMetadata else 4
+        $SuffixLength = 4
+        if ($IsImportMetadata) {
+            $SuffixLength = 7
+        }
         $SourceRelativePath = $RelativeMetadataPath.Substring(0, $RelativeMetadataPath.Length - $SuffixLength)
         $TrackedSourceMatch = @(& git ls-files -- $SourceRelativePath)
         if ($LASTEXITCODE -ne 0) {
