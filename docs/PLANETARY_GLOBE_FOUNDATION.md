@@ -36,3 +36,14 @@ Run `node --test tests/planetary-geometry.test.js`. Twelve focused Node tests pa
 Current `modules/world.js` uses a 32x32 local scene; `modules/air-navigation.js` uses bounded 48x32 air coordinates. The owner-private 2.5D Atlas prototype remains separate (#302). **None of these are replaced in this branch.** Chapter 1/Preview 0.1 packaging and exact-head verification have priority. Any conversion to live globe navigation requires independent visual review, physical travel-time tuning, explicit renderer performance measurements, and a separately approved versioned downgrade-safe save migration.
 
 Related Notion: [Planetary Macro-Map](https://app.notion.com/p/3ebf5bad238b8141a22ad84a67b45eed) and [World Geography](https://app.notion.com/p/3ebf5bad238b8154a273e3096e98ed44).
+
+
+## 2026-10-23 — Cubed-sphere address and visual validation checkpoint
+
+- `modules/planetary-tiles.js` adds six-face cubed-sphere indexing with prototype levels 0–12, stable tile keys, center lookup and local adjacency across face/polar/date-line seams. It is **metadata addressing only**; it does not create terrain assets, instantiate gameplay chunks, or stream geometry.
+- `tests/planetary-tiles.test.js` adds eight focused Node regressions: six faces, seams, poles, directional/UV round trips, neighbor keys, candidate neighborhoods and malformed input. Local geometry + tile suite is **20/20 passing**.
+- `docs/prototypes/planetary-globe.html` now draws a surface-horizon footprint on the chart and displays a sample L6 tile identifier and nearby candidate count. These are *illustrative diagnostics*, not a production biome or chunk layout.
+- Chromium headless browser QA executed in a sandbox by inlining the local prototype scripts (direct `file:` / localhost navigation blocked by host policy). Verified desktop and 390px mobile view, named polar/altitude preset responses, globe drag, no JavaScript page errors, and no horizontal mobile overflow. **This is not a claim of direct local-file navigation testing, GPU/Windows target performance, native player review, or exact-PR-head browser approval.**
+- The latest standalone ZIP includes a local functional candidate, test code and QA screenshots; repository files may differ in nonsemantic formatting. Keep draft status and explicit review gates.
+
+**Next real implementation:** conservative horizon-aware candidate selection, bounded quadtree/texture loading and an actual globe flight camera under native renderer profiling; route discovery and save migrations must be separately reviewed. Nothing in this prototype changes First Wake, installed game, release package, lore/canon or saves.
