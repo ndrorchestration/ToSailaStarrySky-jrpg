@@ -31,9 +31,18 @@ func _initialize() -> void:
         return
 
     var chapter_b = ChapterState.new()
+    var signal_contacts := {
+        "harmonic_buoy": "engine_spirit",
+        "sky_lane_warning": "corporate_salvager",
+        "below_frequency": "child_prophet",
+    }
     for signal_id in ChapterState.SIGNAL_IDS:
+        var contact_id: String = signal_contacts[signal_id]
+        if not chapter_b.meet_contact(contact_id):
+            _fail("could not construct crossing contact evidence: " + contact_id)
+            return
         if not chapter_b.complete_signal(signal_id):
-            _fail("could not construct crossing snapshot")
+            _fail("could not construct crossing snapshot: " + signal_id)
             return
     var snapshot_b := SaveCodec.encode(chapter_b, {
         "hull_integrity": 88,
