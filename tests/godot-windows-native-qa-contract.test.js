@@ -54,11 +54,15 @@ assert(script.includes('4.7.2.stable.official.ed1daf0bf') &&
        script.includes('AUTHENTICODE_INVALID_') &&
        script.includes('AUTHENTICODE_PUBLISHER_MISMATCH_') &&
        script.includes('godotAuthenticode') &&
-       script.includes('windowsReleaseTemplateAuthenticode') &&
-       script.includes('godotExeSha256') &&
+       script.includes('godotExeSha256'),
+  'exact Windows QA must authenticate and custody-bind the official Godot 4.7.2 Windows editor');
+
+assert(script.includes('$ExpectedTemplateVersion = "4.7.2.stable"') &&
+       script.includes('EXPORT_TEMPLATE_VERSION_MISMATCH') &&
        script.includes('windowsReleaseTemplateSha256') &&
-       script.includes('templateVersionText'),
-  'exact Windows QA must authenticate and custody-bind the official Godot 4.7.2 Windows toolchain');
+       script.includes('templateVersionText') &&
+       !script.includes('windowsReleaseTemplateAuthenticode'),
+  'export template custody must use exact-version identity plus SHA-256 without inventing an upstream Authenticode guarantee');
 
 assert(script.includes('--rendering-method') &&
        script.includes('gl_compatibility') &&
