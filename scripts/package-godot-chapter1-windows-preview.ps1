@@ -47,7 +47,7 @@ copy /Y "%~dp0Aetherwake\Aetherwake-First-Wake-Godot-Preview.exe" "%EXE%" >nul
 if errorlevel 1 exit /b 1
 copy /Y "%~dp0Aetherwake\Uninstall-Aetherwake-Godot-Preview.cmd" "%DEST%\Uninstall-Aetherwake-Godot-Preview.cmd" >nul
 if errorlevel 1 exit /b 1
-powershell -NoProfile -Command "$dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake-Godot-Native-Preview'; $exe=Join-Path $dest 'Aetherwake-First-Wake-Godot-Preview.exe'; $shell=New-Object -ComObject WScript.Shell; $desktop=[Environment]::GetFolderPath('Desktop'); $menu=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Aetherwake Native Preview'; New-Item -ItemType Directory -Path $menu -Force | Out-Null; foreach($shortcutPath in @((Join-Path $desktop 'Aetherwake Native Preview.lnk'),(Join-Path $menu 'Aetherwake Native Preview.lnk'))){$shortcut=$shell.CreateShortcut($shortcutPath); $shortcut.TargetPath=$exe; $shortcut.WorkingDirectory=$dest; $shortcut.Save()}"
+powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake-Godot-Native-Preview'; $exe=Join-Path $dest 'Aetherwake-First-Wake-Godot-Preview.exe'; $exeFull=[IO.Path]::GetFullPath($exe); $shell=New-Object -ComObject WScript.Shell; $desktop=[Environment]::GetFolderPath('Desktop'); $menu=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Aetherwake Native Preview'; New-Item -ItemType Directory -Path $menu -Force | Out-Null; foreach($shortcutPath in @((Join-Path $desktop 'Aetherwake Native Preview.lnk'),(Join-Path $menu 'Aetherwake Native Preview.lnk'))){if(Test-Path -LiteralPath $shortcutPath){$existing=$shell.CreateShortcut($shortcutPath); $existingTarget=[IO.Path]::GetFullPath([string]$existing.TargetPath); if(-not $existingTarget.Equals($exeFull,[StringComparison]::OrdinalIgnoreCase)){throw ('SHORTCUT_SLOT_OCCUPIED:'+ $shortcutPath)}}; $shortcut=$shell.CreateShortcut($shortcutPath); $shortcut.TargetPath=$exe; $shortcut.WorkingDirectory=$dest; $shortcut.Save()}"
 if errorlevel 1 exit /b 1
 start "" "%EXE%"
 exit /b 0
@@ -66,7 +66,7 @@ exit /b 0
 
 :cleanup
 cd /d "%TEMP%"
-powershell -NoProfile -Command "$dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake-Godot-Native-Preview'; $exe=Join-Path $dest 'Aetherwake-First-Wake-Godot-Preview.exe'; Get-CimInstance Win32_Process | Where-Object {$_.ExecutablePath -eq $exe} | ForEach-Object {Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue}; $desktop=[Environment]::GetFolderPath('Desktop'); $menu=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Aetherwake Native Preview'; Remove-Item -LiteralPath (Join-Path $desktop 'Aetherwake Native Preview.lnk') -Force -ErrorAction SilentlyContinue; Remove-Item -LiteralPath $menu -Recurse -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500; for($i=0; $i -lt 12 -and (Test-Path -LiteralPath $dest); $i++){Remove-Item -LiteralPath $dest -Recurse -Force -ErrorAction SilentlyContinue; if(Test-Path -LiteralPath $dest){Start-Sleep -Milliseconds 500}}; if(Test-Path -LiteralPath $dest){exit 2}"
+powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $dest=Join-Path $env:LOCALAPPDATA 'Programs\Aetherwake-Godot-Native-Preview'; $exe=Join-Path $dest 'Aetherwake-First-Wake-Godot-Preview.exe'; $exeFull=[IO.Path]::GetFullPath($exe); Get-CimInstance Win32_Process | Where-Object {$_.ExecutablePath -and [IO.Path]::GetFullPath([string]$_.ExecutablePath).Equals($exeFull,[StringComparison]::OrdinalIgnoreCase)} | ForEach-Object {Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue}; $shell=New-Object -ComObject WScript.Shell; $desktop=[Environment]::GetFolderPath('Desktop'); $menu=Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Aetherwake Native Preview'; function Remove-OwnedShortcut([string]$shortcutPath){if(-not (Test-Path -LiteralPath $shortcutPath)){return}; $shortcut=$shell.CreateShortcut($shortcutPath); $target=[IO.Path]::GetFullPath([string]$shortcut.TargetPath); $work=[IO.Path]::GetFullPath([string]$shortcut.WorkingDirectory); if($target.Equals($exeFull,[StringComparison]::OrdinalIgnoreCase) -and $work.Equals([IO.Path]::GetFullPath($dest),[StringComparison]::OrdinalIgnoreCase)){Remove-Item -LiteralPath $shortcutPath -Force}}; Remove-OwnedShortcut (Join-Path $desktop 'Aetherwake Native Preview.lnk'); Remove-OwnedShortcut (Join-Path $menu 'Aetherwake Native Preview.lnk'); if(Test-Path -LiteralPath $menu){$menuRemaining=@(Get-ChildItem -LiteralPath $menu -Force); if($menuRemaining.Count -eq 0){Remove-Item -LiteralPath $menu -Force}}; Start-Sleep -Milliseconds 500; for($i=0; $i -lt 12 -and (Test-Path -LiteralPath $dest); $i++){Remove-Item -LiteralPath $dest -Recurse -Force -ErrorAction SilentlyContinue; if(Test-Path -LiteralPath $dest){Start-Sleep -Milliseconds 500}}; if(Test-Path -LiteralPath $dest){exit 2}"
 if errorlevel 1 exit /b 2
 del /q "%~f0"
 exit /b 0
@@ -112,6 +112,8 @@ Save behavior:
 
 Uninstall:
 Run Uninstall-Aetherwake-Godot-Preview.cmd from the extracted ZIP or the installed copy.
+- uninstall removes only Aetherwake-owned shortcuts that still target this exact preview install;
+- user-modified or unrelated shortcut/menu content is preserved.
 
 Security:
 - no administrator elevation;
