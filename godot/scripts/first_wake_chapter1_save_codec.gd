@@ -6,6 +6,7 @@ extends RefCounted
 ## remain readable and restore to LEGACY_PLAYER_POSITION.
 
 const ChapterState = preload("res://scripts/first_wake_chapter1_state.gd")
+const Content = preload("res://scripts/first_wake_chapter1_content.gd")
 
 const SCHEMA_VERSION := "aetherwake.first-wake.chapter1.v1"
 const STAGE_KEYS: Array[String] = ["signal", "crossing", "contact", "choice", "wake", "done"]
@@ -152,6 +153,17 @@ static func validate(snapshot: Dictionary) -> Dictionary:
         return _invalid("morale out of range")
     if engine < 0 or engine > 100:
         return _invalid("engine integration out of range")
+
+    if stage_key == "done":
+        var expected_epilogue: Dictionary = Content.resolve_legacy_epilogue(
+            choice_path,
+            hull,
+            morale,
+            engine
+        )
+        var expected_epilogue_id := str(expected_epilogue.get("id", ""))
+        if expected_epilogue_id.is_empty() or epilogue_id != expected_epilogue_id:
+            return _invalid("done-stage epilogue identity contradiction")
 
     if snapshot.has("player_position"):
         var position_verdict := _validate_player_position(snapshot["player_position"])
