@@ -186,6 +186,33 @@ func _test() -> void:
             return
     var start: Vector2 = ionia.global_position
     var old_bounds: Rect2 = ionia.walking_bounds
+
+    # Stage presentation is distinct from the diagnostic traversal toggles: it
+    # must show one authored direction in place without moving Ionia.
+    ionia.set_ionia_stage_art_enabled(true, "west")
+    if not ionia.is_ionia_stage_art_enabled() or not sprites["west"].visible:
+        push_error("IONIA_ROUTE_FAIL: in-place stage art did not enable west presentation")
+        quit(38)
+        return
+    if ionia.global_position != start or ionia.walking_bounds != old_bounds:
+        push_error("IONIA_ROUTE_FAIL: in-place stage art mutated position or bounds")
+        quit(39)
+        return
+    for name in directions:
+        if sprites[name].visible != (name == "west"):
+            push_error("IONIA_ROUTE_FAIL: stage art exposed more than one authored direction")
+            quit(40)
+            return
+    ionia.set_ionia_stage_art_enabled(false)
+    if ionia.is_ionia_stage_art_enabled() or ionia.is_review_art_enabled():
+        push_error("IONIA_ROUTE_FAIL: stage art did not fail closed after disable")
+        quit(41)
+        return
+    if ionia.global_position != start:
+        push_error("IONIA_ROUTE_FAIL: stage art disable moved Ionia")
+        quit(42)
+        return
+
     ionia.set_ionia_route_review_enabled(true)
     if not ionia.is_ionia_route_review_enabled() or not ionia.is_review_art_enabled():
         push_error("IONIA_ROUTE_FAIL: opt-in route not enabled")
