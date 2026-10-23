@@ -15,7 +15,7 @@ const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd"
 const CurrentEnemyAdapter = preload("res://scripts/first_wake_current_enemy_adapter.gd")
 const PartyCombatAuthority = preload("res://scripts/first_wake_party_combat_authority.gd")
 
-const DECK_BOUNDS := Rect2(Vector2(110, 404), Vector2(740, 118))
+const DECK_BOUNDS := SaveCodec.PLAYER_POSITION_BOUNDS
 const INTERACT_DISTANCE := 74.0
 
 const SIGNAL_POINTS := {
@@ -55,6 +55,7 @@ var review_hull_integrity: int = 100
 var review_morale: int = 50
 var review_engine_integration: int = 0
 var resolved_epilogue: Dictionary = {}
+var last_restore_used_legacy_position: bool = false
 var formula_encounter = FormulaEncounter.new()
 var current_enemy_adapter = CurrentEnemyAdapter.new()
 var party_combat_authority = PartyCombatAuthority.new()
@@ -688,6 +689,8 @@ func load_progress_from_disk(path: String = SaveStore.DEFAULT_PATH) -> bool:
         queue_redraw()
         return false
     last_message = "Chapter I progress loaded" + (" from backup recovery." if bool(result.get("recovered", false)) else ".")
+    if last_restore_used_legacy_position:
+        last_message += " Legacy save used the safe deck spawn because it predates position persistence."
     _refresh_ui()
     queue_redraw()
     return true
@@ -697,7 +700,7 @@ func export_save_snapshot() -> Dictionary:
         "hull_integrity": review_hull_integrity,
         "morale": review_morale,
         "engine_integration": review_engine_integration,
-    })
+    }, ender.position)
 
 func restore_save_snapshot(snapshot: Dictionary) -> bool:
     var restored := SaveCodec.restore(snapshot)
@@ -709,6 +712,9 @@ func restore_save_snapshot(snapshot: Dictionary) -> bool:
     review_hull_integrity = int(stats.get("hull_integrity", 100))
     review_morale = int(stats.get("morale", 50))
     review_engine_integration = int(stats.get("engine_integration", 0))
+    last_restore_used_legacy_position = not bool(restored.get("player_position_present", false))
+    var restored_position: Vector2 = restored.get("player_position", SaveCodec.LEGACY_PLAYER_POSITION)
+    ender.position = restored_position
 
     # Dialogue and formula-review combat are transient UI state and intentionally
     # not part of durable Chapter I saves.
