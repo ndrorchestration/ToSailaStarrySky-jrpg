@@ -95,8 +95,11 @@ assert(script.includes('PREEXISTING_NATIVE_PREVIEW_INSTALL') &&
        script.includes('ExecutablePath') &&
        script.includes('INSTALLED_EXE_HASH_MISMATCH') &&
        script.includes('INSTALLED_UNINSTALLER_HASH_MISMATCH') &&
-       script.includes('INSTALLED_NATIVE_PREVIEW_WINDOW_NOT_READY'),
-  'install gate must start clean, preserve packaged bytes and verify the exact installed native process/window');
+       script.includes('INSTALLED_NATIVE_PREVIEW_WINDOW_NOT_READY') &&
+       script.includes('Assert-ShortcutTarget') &&
+       script.includes('SHORTCUT_TARGET_MISMATCH_') &&
+       script.includes('SHORTCUT_WORKDIR_MISMATCH_'),
+  'install gate must start clean, preserve packaged bytes and verify the exact installed process/window plus shortcut targets');
 
 assert(script.includes('Aetherwake Native Preview.lnk') &&
        script.includes('running-app native preview uninstaller') &&
@@ -113,6 +116,13 @@ assert(script.includes('WINDOWS_NATIVE_QA_RECEIPT.json') &&
        script.includes('uninstallWrapperSha256') &&
        script.includes('packageReadmeSha256') &&
        script.includes('packageManifestSha256') &&
+       script.includes('packageManifest = $ManifestValues') &&
+       script.includes('PACKAGE_MANIFEST_KEY_COUNT_MISMATCH') &&
+       script.includes('PACKAGE_MANIFEST_VALUE_MISMATCH') &&
+       script.includes('Expand-Archive') &&
+       script.includes('ZIP_CONTENT_SET_MISMATCH') &&
+       script.includes('ZIP_PAYLOAD_HASH_MISMATCH') &&
+       script.includes('zipContentAudit') &&
        script.includes('TRACKED_SOURCE_CHANGED_DURING_QA') &&
        script.includes('FINAL_GIT_UNTRACKED_GODOT_SCAN_FAILED') &&
        script.includes('UNTRACKED_GODOT_AUTHORITY_FILES_CREATED_DURING_QA') &&
@@ -120,7 +130,7 @@ assert(script.includes('WINDOWS_NATIVE_QA_RECEIPT.json') &&
        script.includes('publicReleaseAuthorized = $false') &&
        script.includes('Public release authorized: NO') &&
        script.includes('AETHERWAKE_GODOT_EXACT_WINDOWS_PACKAGE_QA=PASS'),
-  'exact Windows QA must emit machine and human-readable custody, preserve tracked and untracked Godot source integrity, and avoid authorizing public release');
+  'exact Windows QA must verify manifest/ZIP/install custody, preserve Godot source integrity, and avoid authorizing public release');
 
 assert(!/Start-Process[^\n]*-Verb\s+RunAs/i.test(script),
   'exact Windows QA must not request elevation');
