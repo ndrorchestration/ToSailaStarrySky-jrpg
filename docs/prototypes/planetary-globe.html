@@ -9,12 +9,13 @@
 <header><div><div class="eyebrow">Aetherwake · world systems · experimental study</div><h1>A WORLD BEYOND THE HORIZON</h1><p class="lead">A planet cannot fit inside a regional map. Rotate the illustrative world, choose an airship location, and change altitude to see how little terrain is actually visible from a real spherical horizon.</p></div><div class="tag">NON-CANON / NOT IN GAME</div></header>
 <div class="layout">
 <section class="panel"><div class="panel-head"><h2>01 / NAVIGATIONAL GLOBE</h2><span>Drag to rotate</span></div><div class="globe-wrap"><canvas id="globe" width="460" height="460" aria-label="Illustrative rotatable planetary globe"></canvas></div><div class="small-copy">A charting perspective, not what the crew sees through the Dragonfly's windows.</div><div class="controls"><div><label for="latitude">Latitude <output id="latitudeLabel">25° N</output></label><input id="latitude" type="range" min="-85" max="85" value="25" step="1"></div><div><label for="longitude">Longitude <output id="longitudeLabel">115° W</output></label><input id="longitude" type="range" min="-180" max="180" value="-115" step="1"></div><div class="presets"><button data-lat="25" data-lon="-115">Western coast</button><button data-lat="1" data-lon="43">Equatorial sea</button><button data-lat="54" data-lon="48">Eastern uplands</button><button data-lat="-79" data-lon="125">Southern ice</button></div></div></section>
-<section class="panel"><div class="panel-head"><h2>02 / AIRSHIP HORIZON</h2><span>Geometric line of sight</span></div><div class="horizon-wrap"><canvas id="horizon" width="350" height="350" aria-label="Local surface within the airship's physical horizon"></canvas></div><div class="small-copy">Everything beyond this circular boundary lies below the planetary horizon, even if the chart knows it exists.</div><div class="controls"><div><label for="altitude">Airship altitude <output id="altitudeLabel">2.0 km</output></label><input id="altitude" type="range" min="0" max="1000" value="2" step="1"></div><div class="presets"><button data-alt="1">Low sky</button><button data-alt="20">High sky</button><button data-alt="200">Upper sky</button><button data-alt="1000">Orbital scale</button></div><div class="numbers"><div class="metric"><span>Horizon arc distance</span><b id="horizonKm">—</b></div><div class="metric"><span>Visible angular radius</span><b id="horizonDeg">—</b></div></div></div></section>
+<section class="panel"><div class="panel-head"><h2>02 / AIRSHIP HORIZON</h2><span>Geometric line of sight</span></div><div class="horizon-wrap"><canvas id="horizon" width="350" height="350" aria-label="Local surface within the airship's physical horizon"></canvas></div><div class="small-copy">Everything beyond this circular boundary lies below the planetary horizon, even if the chart knows it exists.</div><div class="controls"><div><label for="altitude">Airship altitude <output id="altitudeLabel">2.0 km</output></label><input id="altitude" type="range" min="0" max="1000" value="2" step="1"></div><div class="presets"><button data-alt="1">Low sky</button><button data-alt="20">High sky</button><button data-alt="200">Upper sky</button><button data-alt="1000">Orbital scale</button></div><div class="numbers"><div class="metric"><span>Horizon arc distance</span><b id="horizonKm">—</b></div><div class="metric"><span>Visible angular radius</span><b id="horizonDeg">—</b></div><div class="metric"><span>Example terrain tile · level 6</span><b id="tileId">—</b></div><div class="metric"><span>Nearby tile candidates</span><b id="tileCount">—</b></div></div></div></section>
 </div><p class="foot">This is a visualization of the independent spherical-geometry module and a deliberately fictional, non-canon terrain function. It demonstrates coordinate handling, polar caps, biome belts, globe rotation and the expanding horizon. It does <strong>not</strong> define the final Aetherwake coastlines, world radius, topography, flight controls, story progression or exploration rights.</p><footer>REFERENCE RADIUS 6371 KM — TEST FIXTURE ONLY · NO SAVE DATA WRITTEN · NO NETWORK REQUIRED</footer>
 </main><script src="../../modules/planetary-geometry.js"></script>
+<script src="../../modules/planetary-tiles.js"></script>
 <script>
 (function(){'use strict';
-const geo=window.AetherPlanetaryGeometry;
+const geo=window.AetherPlanetaryGeometry, tiles=window.AetherPlanetaryTiles;
 const R=6371;
 const globe=document.querySelector('#globe'),horizon=document.querySelector('#horizon');
 const latInput=document.querySelector('#latitude'),lonInput=document.querySelector('#longitude'),altInput=document.querySelector('#altitude');
@@ -65,6 +66,15 @@ function globeRender(){
   }
   submit();const canvasCtx=globe.getContext('2d');canvasCtx.clearRect(0,0,460,460);canvasCtx.imageSmoothingEnabled=true;
   canvasCtx.drawImage(off,7,7,446,446);canvasCtx.lineWidth=1.5;canvasCtx.strokeStyle='#99d4c477';canvasCtx.beginPath();canvasCtx.arc(230,230,213,0,Math.PI*2);canvasCtx.stroke();
+  // The selected location is at the globe centre. Its horizon footprint
+  // grows with altitude, but is a tiny patch at ordinary flight levels.
+  const reach=213*Math.sin(geo.horizonAngleRad(altitude,R));
+  canvasCtx.beginPath();canvasCtx.arc(230,230,Math.max(3,reach),0,Math.PI*2);
+  canvasCtx.fillStyle='#f0cf7a1b';canvasCtx.fill();
+  canvasCtx.strokeStyle='#f3dc9c';canvasCtx.lineWidth=2;canvasCtx.stroke();
+  canvasCtx.beginPath();canvasCtx.moveTo(223,230);canvasCtx.lineTo(237,230);canvasCtx.moveTo(230,223);canvasCtx.lineTo(230,237);canvasCtx.stroke();
+  canvasCtx.font='11px system-ui';canvasCtx.fillStyle='#eddfb6';
+  canvasCtx.fillText('LOCAL HORIZON',235+reach,226);
 }
 function horizonRender(){
   const ctx=horizon.getContext('2d'),size=350;
@@ -84,6 +94,9 @@ function horizonRender(){
   ctx.strokeStyle='#ffffff66';ctx.beginPath();ctx.moveTo(167,175);ctx.lineTo(183,175);ctx.moveTo(175,167);ctx.lineTo(175,183);ctx.stroke();
   document.querySelector('#horizonKm').textContent=Math.round(geo.horizonSurfaceDistanceKm(altitude,R)).toLocaleString()+' km';
   document.querySelector('#horizonDeg').textContent=(limit*RAD).toFixed(2)+'°';
+  const centreTile=tiles.tileAt(lat,lon,6);
+  document.querySelector('#tileId').textContent=tiles.key(centreTile);
+  document.querySelector('#tileCount').textContent=tiles.neighborhood(centreTile,2).length;
 }
 function updateLabels(){document.querySelector('#latitudeLabel').textContent=Math.abs(lat)+'° '+(lat>=0?'N':'S');document.querySelector('#longitudeLabel').textContent=Math.abs(lon)+'° '+(lon>=0?'E':'W');document.querySelector('#altitudeLabel').textContent=altitude.toFixed(1)+' km';}
 function render(){queued=false;updateLabels();globeRender();horizonRender();}
