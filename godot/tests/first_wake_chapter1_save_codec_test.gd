@@ -11,11 +11,12 @@ func _verify() -> void:
     var initial = ChapterState.new()
     initial.meet_contact("engine_spirit")
     initial.complete_signal("harmonic_buoy")
+    var saved_position := Vector2(444, 476)
     var partial := SaveCodec.encode(initial, {
         "hull_integrity": 92,
         "morale": 54,
         "engine_integration": 12,
-    })
+    }, saved_position)
     if partial.get("schema", "") != SaveCodec.SCHEMA_VERSION:
         _fail("schema version missing")
         return
@@ -39,6 +40,34 @@ func _verify() -> void:
         return
     if int(partial_restore["resolver_stats"]["hull_integrity"]) != 92:
         _fail("resolver stats did not round-trip")
+        return
+    if not bool(partial_restore.get("player_position_present", false)):
+        _fail("new save did not mark player position present")
+        return
+    if partial_restore.get("player_position", Vector2.ZERO) != saved_position:
+        _fail("player position did not round-trip")
+        return
+
+    var legacy := partial.duplicate(true)
+    legacy.erase("player_position")
+    var legacy_restore := SaveCodec.restore(legacy)
+    if not legacy_restore.get("ok", false):
+        _fail("legacy v1 snapshot without position was rejected")
+        return
+    if bool(legacy_restore.get("player_position_present", true)):
+        _fail("legacy snapshot falsely claimed persisted position")
+        return
+    if legacy_restore.get("player_position", Vector2.ZERO) != SaveCodec.LEGACY_PLAYER_POSITION:
+        _fail("legacy snapshot did not resolve to deterministic safe spawn")
+        return
+
+    var edge_snapshot := SaveCodec.encode(initial, {
+        "hull_integrity": 92,
+        "morale": 54,
+        "engine_integration": 12,
+    }, SaveCodec.PLAYER_POSITION_BOUNDS.end)
+    if not SaveCodec.validate(edge_snapshot).get("ok", false):
+        _fail("inclusive deck edge was rejected")
         return
 
     var complete = _completed_path_c()
@@ -95,7 +124,19 @@ func _verify() -> void:
         _fail("out-of-range resolver stats admitted")
         return
 
-    print("AETHERWAKE_GODOT_CHAPTER1_SAVE_PASS: versioned partial/done round-trip and fail-closed tamper rejection")
+    var bad_position := partial.duplicate(true)
+    bad_position["player_position"] = {"x": 9999.0, "y": 476.0}
+    if SaveCodec.restore(bad_position).get("ok", true):
+        _fail("out-of-bounds player position admitted")
+        return
+
+    var malformed_position := partial.duplicate(true)
+    malformed_position["player_position"] = {"x": "444", "y": 476.0}
+    if SaveCodec.restore(malformed_position).get("ok", true):
+        _fail("nonnumeric player position admitted")
+        return
+
+    print("AETHERWAKE_GODOT_CHAPTER1_SAVE_PASS: versioned progression/position round-trip, legacy fallback and fail-closed tamper rejection")
     quit(0)
 
 func _completed_path_c():
