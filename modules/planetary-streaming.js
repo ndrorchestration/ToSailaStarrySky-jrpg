@@ -14,10 +14,11 @@
     if(!Number.isFinite(horizonAngle)||horizonAngle<0)throw new RangeError('GLOBE_STREAM_HORIZON_INVALID');
     return Math.max(0,Math.min(tiles.MAX_LEVEL,Math.floor(Math.log2(10/Math.max(horizonAngle,1e-8)))));
   }
-  // A direction within one face tile cannot differ from its tile-center
-  // direction by more than atan(2*sqrt(2)/2^level). This deliberately
-  // overestimates the bound for conservative candidate admission.
-  function angularPadding(level){return Math.atan(2*Math.SQRT2/tiles.levelSize(level));}
+  // Cubed-sphere face tiles are gnomonic squares with half-width 1/2^level.
+  // The maximum center-to-corner angular offset is bounded by
+  // atan(sqrt(2)/2^level). This remains conservative at face edges/corners
+  // without the prior 2x linear over-padding that caused avoidable LOD drops.
+  function angularPadding(level){return Math.atan(Math.SQRT2/tiles.levelSize(level));}
   function candidates(position,radiusKm,level,maxTiles){
     const cap=geo.horizonAngleRad(position.altitudeKm,radiusKm);
     const allowance=cap+angularPadding(level);
