@@ -42,10 +42,16 @@ assert(script.includes('build-godot-chapter1-windows-preview.ps1') &&
 
 assert(script.includes('4.7.2.stable.official.ed1daf0bf') &&
        script.includes('GODOT_VERSION_MISMATCH') &&
+       script.includes('Assert-AuthenticodePublisher') &&
+       script.includes('Prehensile Tales B.V.') &&
+       script.includes('AUTHENTICODE_INVALID_') &&
+       script.includes('AUTHENTICODE_PUBLISHER_MISMATCH_') &&
+       script.includes('godotAuthenticode') &&
+       script.includes('windowsReleaseTemplateAuthenticode') &&
        script.includes('godotExeSha256') &&
        script.includes('windowsReleaseTemplateSha256') &&
        script.includes('templateVersionText'),
-  'exact Windows QA must bind the official Godot 4.7.2 toolchain identity into custody');
+  'exact Windows QA must authenticate and custody-bind the official Godot 4.7.2 Windows toolchain');
 
 assert(script.includes('--rendering-method') &&
        script.includes('gl_compatibility') &&
