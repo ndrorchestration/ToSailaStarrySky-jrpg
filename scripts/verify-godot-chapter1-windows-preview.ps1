@@ -74,6 +74,40 @@ function Get-DefenderCustody() {
     }
 }
 
+function Get-DefenderEventData($EventRecord) {
+    try {
+        [xml]$EventXml = $EventRecord.ToXml()
+    }
+    catch {
+        throw "DEFENDER_EVENT_XML_PARSE_FAILED:$($EventRecord.Id)"
+    }
+
+    $Fields = [ordered]@{}
+    foreach ($Node in @($EventXml.Event.EventData.Data)) {
+        $Name = [string]$Node.GetAttribute("Name")
+        if ([string]::IsNullOrWhiteSpace($Name)) {
+            continue
+        }
+        $Fields[$Name] = [string]$Node.InnerText
+    }
+    return $Fields
+}
+
+function Get-DefenderScanEvents([datetime]$Since) {
+    try {
+        return @(
+            Get-WinEvent -FilterHashtable @{
+                LogName = "Microsoft-Windows-Windows Defender/Operational"
+                Id = @(1000, 1001, 1002)
+                StartTime = $Since
+            } -ErrorAction Stop
+        )
+    }
+    catch {
+        throw "DEFENDER_OPERATIONAL_LOG_UNAVAILABLE:$($_.Exception.Message)"
+    }
+}
+
 function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
     Assert-Exists $Path $Label
     if (-not (Get-Command Start-MpScan -ErrorAction SilentlyContinue)) {
@@ -82,31 +116,110 @@ function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
     if (-not (Get-Command Get-MpThreatDetection -ErrorAction SilentlyContinue)) {
         throw "DEFENDER_GET_THREAT_DETECTION_UNAVAILABLE"
     }
+    if (-not (Get-Command Get-WinEvent -ErrorAction SilentlyContinue)) {
+        throw "DEFENDER_GET_WINEVENT_UNAVAILABLE"
+    }
 
-    $scanStarted = Get-Date
-    Start-MpScan -ScanType CustomScan -ScanPath $Path -ErrorAction Stop
-    Start-Sleep -Milliseconds 750
+    $FullPath = [System.IO.Path]::GetFullPath($Path)
+    $ScanInvokedAt = Get-Date
+    $EventLookback = $ScanInvokedAt.AddSeconds(-5)
 
-    $fullPath = [System.IO.Path]::GetFullPath($Path)
-    $detections = @(
+    Start-MpScan -ScanType CustomScan -ScanPath $FullPath -ErrorAction Stop
+
+    $StartDeadline = (Get-Date).AddSeconds(30)
+    $StartEvent = $null
+    $StartData = $null
+    while ((Get-Date) -lt $StartDeadline -and $null -eq $StartEvent) {
+        foreach ($Candidate in @(Get-DefenderScanEvents $EventLookback)) {
+            if ([int]$Candidate.Id -ne 1000) {
+                continue
+            }
+            $CandidateData = Get-DefenderEventData $Candidate
+            $Resources = [string]$CandidateData["Scan Resources"]
+            if (
+                -not [string]::IsNullOrWhiteSpace($Resources) -and
+                $Resources.IndexOf($FullPath, [System.StringComparison]::OrdinalIgnoreCase) -ge 0
+            ) {
+                $StartEvent = $Candidate
+                $StartData = $CandidateData
+                break
+            }
+        }
+        if ($null -eq $StartEvent) {
+            Start-Sleep -Milliseconds 250
+        }
+    }
+    if ($null -eq $StartEvent) {
+        throw "DEFENDER_SCAN_START_EVENT_MISSING_$Label"
+    }
+
+    $ScanId = [string]$StartData["Scan ID"]
+    if ([string]::IsNullOrWhiteSpace($ScanId)) {
+        throw "DEFENDER_SCAN_ID_MISSING_$Label"
+    }
+
+    $CompletionDeadline = (Get-Date).AddSeconds(120)
+    $CompletionEvent = $null
+    $CompletionData = $null
+    while ((Get-Date) -lt $CompletionDeadline -and $null -eq $CompletionEvent) {
+        foreach ($Candidate in @(Get-DefenderScanEvents $EventLookback)) {
+            if ([int]$Candidate.Id -notin @(1001, 1002)) {
+                continue
+            }
+            $CandidateData = Get-DefenderEventData $Candidate
+            if ([string]$CandidateData["Scan ID"] -ne $ScanId) {
+                continue
+            }
+            if ([int]$Candidate.Id -eq 1002) {
+                throw "DEFENDER_SCAN_CANCELLED_$Label scanId=$ScanId"
+            }
+            $CompletionEvent = $Candidate
+            $CompletionData = $CandidateData
+            break
+        }
+        if ($null -eq $CompletionEvent) {
+            Start-Sleep -Milliseconds 250
+        }
+    }
+    if ($null -eq $CompletionEvent) {
+        throw "DEFENDER_SCAN_COMPLETION_EVENT_MISSING_$Label scanId=$ScanId"
+    }
+
+    # Give Defender's detection history a bounded moment to settle after the
+    # scan-completed event, then fail closed on any exact-path detection.
+    Start-Sleep -Milliseconds 500
+    $Detections = @(
         Get-MpThreatDetection -ErrorAction Stop |
             Where-Object {
-                $detectedAt = $_.InitialDetectionTime
-                if ($null -eq $detectedAt -or $detectedAt -lt $scanStarted.AddSeconds(-5)) {
+                $DetectedAt = $_.InitialDetectionTime
+                if ($null -eq $DetectedAt -or $DetectedAt -lt $EventLookback) {
                     return $false
                 }
-                $resourcesText = (@($_.Resources) -join [Environment]::NewLine)
-                return $resourcesText.IndexOf(
-                    $fullPath,
+                $ResourcesText = (@($_.Resources) -join [Environment]::NewLine)
+                return $ResourcesText.IndexOf(
+                    $FullPath,
                     [System.StringComparison]::OrdinalIgnoreCase
                 ) -ge 0
             }
     )
-    if ($detections.Count -gt 0) {
+    if ($Detections.Count -gt 0) {
         throw "DEFENDER_DETECTION_FOR_$Label"
     }
+
     Assert-Exists $Path "$Label after Defender scan"
-    Write-Output "DEFENDER_SCAN_$Label=PASS"
+    return [ordered]@{
+        result = "PASS"
+        path = $FullPath
+        scanId = $ScanId
+        scanResources = [string]$StartData["Scan Resources"]
+        scanParameters = [string]$StartData["Scan Parameters"]
+        startedUtc = $StartEvent.TimeCreated.ToUniversalTime().ToString("o")
+        startEventRecordId = [long]$StartEvent.RecordId
+        completedUtc = $CompletionEvent.TimeCreated.ToUniversalTime().ToString("o")
+        completionEventRecordId = [long]$CompletionEvent.RecordId
+        completionScanTime = [string]$CompletionData["Scan Time"]
+        threatDetectionCount = $Detections.Count
+    }
 }
 
 function Invoke-CmdChecked([string]$CmdPath, [string]$Label) {
@@ -344,10 +457,14 @@ $UninstallCmd = Join-Path $Staging "Uninstall-Aetherwake-Godot-Preview.cmd"
 $Zip = Join-Path $PackageDir "Aetherwake-First-Wake-Godot-Native-Preview-Windows.zip"
 
 $DefenderCustody = Get-DefenderCustody
-Assert-DefenderCustomScan $InstallCmd "INSTALL_WRAPPER"
-Assert-DefenderCustomScan $UninstallCmd "UNINSTALL_WRAPPER"
-Assert-DefenderCustomScan $PayloadExe "PACKAGED_EXE"
-Assert-DefenderCustomScan $Zip "ZIP"
+$InstallWrapperDefenderScan = Assert-DefenderCustomScan $InstallCmd "INSTALL_WRAPPER"
+Write-Output "DEFENDER_SCAN_INSTALL_WRAPPER=PASS"
+$UninstallWrapperDefenderScan = Assert-DefenderCustomScan $UninstallCmd "UNINSTALL_WRAPPER"
+Write-Output "DEFENDER_SCAN_UNINSTALL_WRAPPER=PASS"
+$PackagedExeDefenderScan = Assert-DefenderCustomScan $PayloadExe "PACKAGED_EXE"
+Write-Output "DEFENDER_SCAN_PACKAGED_EXE=PASS"
+$ZipDefenderScan = Assert-DefenderCustomScan $Zip "ZIP"
+Write-Output "DEFENDER_SCAN_ZIP=PASS"
 
 $Readme = Join-Path $Staging "README-FIRST.txt"
 $Manifest = Join-Path $Staging "SHA256SUMS.txt"
@@ -676,10 +793,10 @@ $Receipt = [ordered]@{
     }
     defender = [ordered]@{
         status = $DefenderCustody
-        installWrapper = "PASS"
-        uninstallWrapper = "PASS"
-        packagedExe = "PASS"
-        zip = "PASS"
+        installWrapper = $InstallWrapperDefenderScan
+        uninstallWrapper = $UninstallWrapperDefenderScan
+        packagedExe = $PackagedExeDefenderScan
+        zip = $ZipDefenderScan
     }
     install = [ordered]@{
         source = "audited-extracted-zip"
@@ -750,6 +867,8 @@ $MarkdownReceipt = @(
     "- Defender signature updated UTC: $($DefenderCustody.signatureLastUpdatedUtc)",
     "- Defender antivirus/realtime protection: PASS",
     "- Defender custom scans: PASS (installer / uninstaller / packaged EXE / ZIP)",
+    "- Defender scan completion: each artifact is bound to event 1000 path + Scan ID and same-ID event 1001; event 1002 fails closed",
+    "- Defender scan event/Scan-ID custody: recorded in JSON receipt",
     "- Install source: audited extracted ZIP",
     "- Per-user install: PASS",
     "- Installed EXE byte identity: PASS",
