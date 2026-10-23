@@ -127,9 +127,23 @@ Set-Content -LiteralPath (Join-Path $Staging "Uninstall-Aetherwake-Godot-Preview
 Set-Content -LiteralPath (Join-Path $Payload "Uninstall-Aetherwake-Godot-Preview.cmd") -Value $Uninstall -Encoding ASCII
 Set-Content -LiteralPath (Join-Path $Staging "README-FIRST.txt") -Value $Readme -Encoding UTF8
 
+$InstallPath = Join-Path $Staging "Install-Aetherwake-Godot-Preview.cmd"
+$UninstallPath = Join-Path $Staging "Uninstall-Aetherwake-Godot-Preview.cmd"
+$PayloadUninstallPath = Join-Path $Payload "Uninstall-Aetherwake-Godot-Preview.cmd"
+$ReadmePath = Join-Path $Staging "README-FIRST.txt"
+
 $ExeHash = Get-Sha256Hex $PayloadExe
+$InstallHash = Get-Sha256Hex $InstallPath
+$UninstallHash = Get-Sha256Hex $UninstallPath
+$PayloadUninstallHash = Get-Sha256Hex $PayloadUninstallPath
+$ReadmeHash = Get-Sha256Hex $ReadmePath
+
 $Manifest = @"
 EXE_SHA256=$ExeHash
+INSTALL_WRAPPER_SHA256=$InstallHash
+UNINSTALL_WRAPPER_SHA256=$UninstallHash
+PAYLOAD_UNINSTALLER_SHA256=$PayloadUninstallHash
+README_SHA256=$ReadmeHash
 NSIS_INCLUDED=NO
 ADMIN_REQUIRED=NO
 PUBLIC_RELEASE_AUTHORIZED=NO
