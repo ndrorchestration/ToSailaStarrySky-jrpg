@@ -56,6 +56,24 @@ func _capture() -> void:
         push_error("CHAPTER1_CAPTURE_FAIL: real migration scene did not load")
         quit(1)
         return
+    var ionia = world.contacts.get("elder_farmer", null)
+    var wakeheart = world.contacts.get("engine_spirit", null)
+    if ionia == null or wakeheart == null:
+        push_error("CHAPTER1_CAPTURE_FAIL: expected presentation contacts missing")
+        quit(20)
+        return
+    if not world.ender.walk_review_enabled:
+        push_error("CHAPTER1_CAPTURE_FAIL: Ender directional candidate not active")
+        quit(21)
+        return
+    if ionia.visible or ionia.is_ionia_stage_art_enabled():
+        push_error("CHAPTER1_CAPTURE_FAIL: Ionia visible before Contact")
+        quit(22)
+        return
+    if wakeheart.visible:
+        push_error("CHAPTER1_CAPTURE_FAIL: Wakeheart console rendered as humanoid")
+        quit(23)
+        return
     world.ender.set_physics_process(false)
     for actor in world.contacts.values():
         actor.set_physics_process(false)
@@ -118,6 +136,10 @@ func _capture() -> void:
 
     for signal_id in ["below_frequency", "sky_lane_warning"]:
         world.complete_signal_contact(signal_id)
+    if world.chapter.stage_key() != "crossing" or ionia.visible or ionia.is_ionia_stage_art_enabled():
+        push_error("CHAPTER1_CAPTURE_FAIL: Crossing presentation exposed Ionia early")
+        quit(24)
+        return
     await process_frame
     var crossing: Image = await _snapshot("chapter1-crossing-native-960x640.png")
     if crossing == null:
@@ -173,6 +195,14 @@ func _capture() -> void:
 
     for hazard_id in ["sky_predator", "corporate_intercept"]:
         world.complete_hazard_review(hazard_id)
+    if world.chapter.stage_key() != "contact" or not ionia.visible or not ionia.is_ionia_stage_art_enabled():
+        push_error("CHAPTER1_CAPTURE_FAIL: Contact presentation did not reveal Ionia")
+        quit(25)
+        return
+    if ionia.ionia_facing != "west":
+        push_error("CHAPTER1_CAPTURE_FAIL: Contact Ionia not facing approaching Ender")
+        quit(26)
+        return
     await process_frame
     var contact: Image = await _snapshot("chapter1-contact-native-960x640.png")
     if contact == null:
