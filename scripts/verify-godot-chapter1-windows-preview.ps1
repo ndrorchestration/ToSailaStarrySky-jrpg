@@ -94,18 +94,15 @@ function Get-DefenderEventData($EventRecord) {
 }
 
 function Get-DefenderScanEvents([datetime]$Since) {
-    try {
-        return @(
-            Get-WinEvent -FilterHashtable @{
-                LogName = "Microsoft-Windows-Windows Defender/Operational"
-                Id = @(1000, 1001, 1002)
-                StartTime = $Since
-            } -ErrorAction Stop
-        )
-    }
-    catch {
-        throw "DEFENDER_OPERATIONAL_LOG_UNAVAILABLE:$($_.Exception.Message)"
-    }
+    # Log accessibility is checked separately before the scan. A query with no
+    # matching events is normal while the provider is still publishing records.
+    return @(
+        Get-WinEvent -FilterHashtable @{
+            LogName = "Microsoft-Windows-Windows Defender/Operational"
+            Id = @(1000, 1001, 1002)
+            StartTime = $Since
+        } -ErrorAction SilentlyContinue
+    )
 }
 
 function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
@@ -118,6 +115,12 @@ function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
     }
     if (-not (Get-Command Get-WinEvent -ErrorAction SilentlyContinue)) {
         throw "DEFENDER_GET_WINEVENT_UNAVAILABLE"
+    }
+    try {
+        $null = Get-WinEvent -ListLog "Microsoft-Windows-Windows Defender/Operational" -ErrorAction Stop
+    }
+    catch {
+        throw "DEFENDER_OPERATIONAL_LOG_UNAVAILABLE:$($_.Exception.Message)"
     }
 
     $FullPath = [System.IO.Path]::GetFullPath($Path)
@@ -153,7 +156,7 @@ function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
         throw "DEFENDER_SCAN_START_EVENT_MISSING_$Label"
     }
 
-    $ScanId = [string]$StartData["Scan ID"]
+    $ScanId = [string]($StartData["Scan ID"])
     if ([string]::IsNullOrWhiteSpace($ScanId)) {
         throw "DEFENDER_SCAN_ID_MISSING_$Label"
     }
@@ -167,7 +170,7 @@ function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
                 continue
             }
             $CandidateData = Get-DefenderEventData $Candidate
-            if ([string]$CandidateData["Scan ID"] -ne $ScanId) {
+            if ([string]($CandidateData["Scan ID"]) -ne $ScanId) {
                 continue
             }
             if ([int]$Candidate.Id -eq 1002) {
@@ -211,13 +214,13 @@ function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
         result = "PASS"
         path = $FullPath
         scanId = $ScanId
-        scanResources = [string]$StartData["Scan Resources"]
-        scanParameters = [string]$StartData["Scan Parameters"]
+        scanResources = [string]($StartData["Scan Resources"])
+        scanParameters = [string]($StartData["Scan Parameters"])
         startedUtc = $StartEvent.TimeCreated.ToUniversalTime().ToString("o")
         startEventRecordId = [long]$StartEvent.RecordId
         completedUtc = $CompletionEvent.TimeCreated.ToUniversalTime().ToString("o")
         completionEventRecordId = [long]$CompletionEvent.RecordId
-        completionScanTime = [string]$CompletionData["Scan Time"]
+        completionScanTime = [string]($CompletionData["Scan Time"])
         threatDetectionCount = $Detections.Count
     }
 }
