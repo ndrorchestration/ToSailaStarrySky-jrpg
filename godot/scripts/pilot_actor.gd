@@ -349,7 +349,8 @@ func _draw() -> void:
         # Shoulder-length curls; reference identity only, not a finished sprite.
         for i in range(4):
             draw_circle(Vector2(-11 + i * 7, -47), 4.0, hair)
-    else:
+    elif character_name == "Ender":
+        # Ender's staff must never leak into generic contact placeholders.
         draw_line(Vector2(16, -87), Vector2(16, -2), Color("#806341"), 3.0)
         draw_line(Vector2(16, -83), Vector2(16, -66), Color("#cbb37b"), 4.0)
     draw_line(Vector2(-4, -55), Vector2(-2, -55), Color("#4d9f79"), 2.0)
