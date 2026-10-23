@@ -20,6 +20,10 @@ const captureScript = fs.readFileSync(
   path.resolve(__dirname, '..', 'godot', 'tests', 'capture_first_wake_chapter1_review.gd'),
   'utf8'
 );
+const gitignore = fs.readFileSync(
+  path.resolve(__dirname, '..', '.gitignore'),
+  'utf8'
+);
 
 assert(script.includes('[string]$ExpectedSourceSha') &&
        script.includes('EXPECTED_SOURCE_SHA_INVALID') &&
@@ -35,6 +39,9 @@ assert((script.match(/EXPECTED_SOURCE_SHA_INVALID/g) || []).length === 1 &&
        (script.match(/git rev-parse HEAD/g) || []).length === 1 &&
        (script.match(/AETHERWAKE_GODOT_EXACT_WINDOWS_PACKAGE_QA=PASS/g) || []).length === 1,
   'exact Windows QA control flow must contain one source validator, one HEAD binding and one terminal PASS marker');
+
+assert(/(^|\n)\.godot\/\s*(\n|$)/.test(gitignore),
+  'Godot generated .godot cache must stay ignored so exact QA remains rerunnable without weakening authority-file checks');
 
 assert(script.includes('build-godot-chapter1-windows-preview.ps1') &&
        script.includes('package-godot-chapter1-windows-preview.ps1'),
