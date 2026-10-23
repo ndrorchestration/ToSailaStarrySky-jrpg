@@ -56,6 +56,14 @@ func _initialize() -> void:
     if not FileAccess.file_exists(TEST_PATH + ".bak"):
         _fail("second save did not preserve previous valid primary")
         return
+    var backup_text := FileAccess.get_file_as_string(TEST_PATH + ".bak")
+    var backup_parsed = JSON.parse_string(backup_text)
+    if not (backup_parsed is Dictionary) or not SaveCodec.validate(backup_parsed).get("ok", false):
+        _fail("second save left a backup that was not semantically valid")
+        return
+    if str(backup_parsed["stage"]) != "signal":
+        _fail("backup did not preserve the exact previous generation")
+        return
 
     var load_b := store.load_snapshot(TEST_PATH)
     if not bool(load_b.get("ok", false)) or str(load_b["snapshot"]["stage"]) != "crossing":
@@ -101,6 +109,22 @@ func _initialize() -> void:
     var load_repaired := store.load_snapshot(TEST_PATH)
     if not bool(load_repaired.get("ok", false)) or str(load_repaired["snapshot"]["stage"]) != "crossing":
         _fail("repaired primary did not load")
+        return
+
+    # The repair path intentionally keeps the pre-existing known-good backup
+    # because the corrupt primary was not eligible to replace it.
+    var corrupt_again := FileAccess.open(TEST_PATH, FileAccess.WRITE)
+    if corrupt_again == null:
+        _fail("could not corrupt repaired primary for backup-retention check")
+        return
+    corrupt_again.store_string("{ corrupt-primary-again")
+    corrupt_again.close()
+    var recovered_again := store.load_snapshot(TEST_PATH)
+    if not bool(recovered_again.get("ok", false)) or not bool(recovered_again.get("recovered", false)):
+        _fail("known-good backup did not survive corrupt-primary repair")
+        return
+    if str(recovered_again["snapshot"]["stage"]) != "signal":
+        _fail("repair path replaced the known-good previous-generation backup")
         return
 
     store.delete_slot(TEST_PATH)
