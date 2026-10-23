@@ -105,6 +105,14 @@ function Get-DefenderScanEvents([datetime]$Since) {
     )
 }
 
+function Get-DefenderLatestRecordId() {
+    $Latest = Get-WinEvent -LogName "Microsoft-Windows-Windows Defender/Operational" -MaxEvents 1 -ErrorAction SilentlyContinue
+    if ($null -eq $Latest) {
+        return [long]0
+    }
+    return [long]$Latest.RecordId
+}
+
 function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
     Assert-Exists $Path $Label
     if (-not (Get-Command Start-MpScan -ErrorAction SilentlyContinue)) {
@@ -124,6 +132,7 @@ function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
     }
 
     $FullPath = [System.IO.Path]::GetFullPath($Path)
+    $PreScanRecordId = Get-DefenderLatestRecordId
     $ScanInvokedAt = Get-Date
     $EventLookback = $ScanInvokedAt.AddSeconds(-5)
 
@@ -134,6 +143,9 @@ function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
     $StartData = $null
     while ((Get-Date) -lt $StartDeadline -and $null -eq $StartEvent) {
         foreach ($Candidate in @(Get-DefenderScanEvents $EventLookback)) {
+            if ([long]$Candidate.RecordId -le $PreScanRecordId) {
+                continue
+            }
             if ([int]$Candidate.Id -ne 1000) {
                 continue
             }
@@ -166,6 +178,9 @@ function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
     $CompletionData = $null
     while ((Get-Date) -lt $CompletionDeadline -and $null -eq $CompletionEvent) {
         foreach ($Candidate in @(Get-DefenderScanEvents $EventLookback)) {
+            if ([long]$Candidate.RecordId -le $PreScanRecordId) {
+                continue
+            }
             if ([int]$Candidate.Id -notin @(1001, 1002)) {
                 continue
             }
@@ -213,6 +228,7 @@ function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
     return [ordered]@{
         result = "PASS"
         path = $FullPath
+        preScanRecordId = $PreScanRecordId
         scanId = $ScanId
         scanResources = [string]($StartData["Scan Resources"])
         scanParameters = [string]($StartData["Scan Parameters"])
