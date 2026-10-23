@@ -173,10 +173,41 @@ func _verify() -> void:
         _fail("Done admitted an epilogue that contradicts durable resolver inputs")
         return
 
+    var missing_required := partial.duplicate(true)
+    missing_required.erase("chapter_one_complete")
+    if SaveCodec.restore(missing_required).get("ok", true):
+        _fail("snapshot with missing mandatory v1 field was admitted")
+        return
+
+    var string_boolean := partial.duplicate(true)
+    string_boolean["ionia_joined_for_choice"] = "false"
+    if SaveCodec.restore(string_boolean).get("ok", true):
+        _fail("string boolean was coerced into durable state")
+        return
+
+    var string_stat := partial.duplicate(true)
+    string_stat["resolver_stats"]["morale"] = "54"
+    if SaveCodec.restore(string_stat).get("ok", true):
+        _fail("string resolver stat was coerced into numeric state")
+        return
+
+    var fractional_stat := partial.duplicate(true)
+    fractional_stat["resolver_stats"]["morale"] = 54.5
+    if SaveCodec.restore(fractional_stat).get("ok", true):
+        _fail("fractional resolver stat was truncated into integer state")
+        return
+
     var bad_stats := partial.duplicate(true)
     bad_stats["resolver_stats"]["morale"] = 101
     if SaveCodec.restore(bad_stats).get("ok", true):
         _fail("out-of-range resolver stats admitted")
+        return
+
+    var nonstring_signal := partial.duplicate(true)
+    nonstring_signal["signals_completed"] = [123]
+    nonstring_signal["contacts_met"] = []
+    if SaveCodec.restore(nonstring_signal).get("ok", true):
+        _fail("nonstring progression identifier was coerced into save state")
         return
 
     var bad_position := partial.duplicate(true)
