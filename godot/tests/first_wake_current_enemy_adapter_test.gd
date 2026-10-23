@@ -9,7 +9,7 @@ func _initialize() -> void:
     var adapter = Adapter.new()
     var stat_model = StatModel.new()
 
-    if Adapter.VERSION != "0.1.0":
+    if Adapter.VERSION != "0.2.0":
         _fail("adapter version drifted")
         return
     if Content.hazard_label("wind_shear") != "Wind Shear":
@@ -49,6 +49,15 @@ func _initialize() -> void:
         return
     if str(target.get("encounterKind", "")) != "authored_hazard":
         _fail("adapter did not mark authored hazard mode")
+        return
+    if str(target.get("ability", "")) != "galeForce":
+        _fail("live Gale Force ability id drifted")
+        return
+    if int(target.get("abilityDamage", 0)) != 2:
+        _fail("live Gale Force damage drifted")
+        return
+    if not bool(target.get("abilityKnockback", false)):
+        _fail("live Gale Force knockback metadata was lost")
         return
     if str(target.get("hazardId", "")) != "wind_shear":
         _fail("hazard identity was not retained")
