@@ -147,6 +147,20 @@ Assert-DefenderCustomScan $UninstallCmd "UNINSTALL_WRAPPER"
 Assert-DefenderCustomScan $PayloadExe "PACKAGED_EXE"
 Assert-DefenderCustomScan $Zip "ZIP"
 
+$Readme = Join-Path $Staging "README-FIRST.txt"
+$Manifest = Join-Path $Staging "SHA256SUMS.txt"
+Assert-Exists $Readme "package README"
+Assert-Exists $Manifest "package hash manifest"
+
+$PayloadExeItem = Get-Item -LiteralPath $PayloadExe
+$ZipItem = Get-Item -LiteralPath $Zip
+$ExeSha = Get-Sha256Hex $PayloadExe
+$ZipSha = Get-Sha256Hex $Zip
+$InstallCmdSha = Get-Sha256Hex $InstallCmd
+$UninstallCmdSha = Get-Sha256Hex $UninstallCmd
+$ReadmeSha = Get-Sha256Hex $Readme
+$ManifestSha = Get-Sha256Hex $Manifest
+
 $InstallDir = Join-Path $env:LOCALAPPDATA "Programs\Aetherwake-Godot-Native-Preview"
 $InstalledExe = Join-Path $InstallDir "Aetherwake-First-Wake-Godot-Preview.exe"
 $InstalledUninstall = Join-Path $InstallDir "Uninstall-Aetherwake-Godot-Preview.cmd"
@@ -181,6 +195,15 @@ Assert-Exists $InstalledExe "installed executable"
 Assert-Exists $InstalledUninstall "installed uninstaller"
 Assert-Exists $DesktopShortcut "Desktop shortcut"
 Assert-Exists $StartMenuShortcut "Start Menu shortcut"
+
+$InstalledExeSha = Get-Sha256Hex $InstalledExe
+if ($InstalledExeSha -ne $ExeSha) {
+    throw "INSTALLED_EXE_HASH_MISMATCH packaged=$ExeSha installed=$InstalledExeSha"
+}
+$InstalledUninstallSha = Get-Sha256Hex $InstalledUninstall
+if ($InstalledUninstallSha -ne $UninstallCmdSha) {
+    throw "INSTALLED_UNINSTALLER_HASH_MISMATCH packaged=$UninstallCmdSha installed=$InstalledUninstallSha"
+}
 
 $WindowDeadline = (Get-Date).AddSeconds(10)
 $MainWindowReady = $false
@@ -234,10 +257,20 @@ if (Test-Path -LiteralPath $TempCleanup) {
     throw "UNINSTALL_LEFT_TEMP_CLEANUP_COPY"
 }
 
-$ExeItem = Get-Item -LiteralPath $PayloadExe
-$ZipItem = Get-Item -LiteralPath $Zip
-$ExeSha = Get-Sha256Hex $PayloadExe
-$ZipSha = Get-Sha256Hex $Zip
+Push-Location $RepoRoot
+try {
+    $TrackedDirty = @(& git status --porcelain --untracked-files=no)
+    if ($LASTEXITCODE -ne 0) {
+        throw "FINAL_GIT_STATUS_FAILED"
+    }
+    if ($TrackedDirty.Count -gt 0) {
+        throw "TRACKED_SOURCE_CHANGED_DURING_QA"
+    }
+}
+finally {
+    Pop-Location
+}
+
 $ReceiptPath = Join-Path $OutputDir "WINDOWS_NATIVE_QA_RECEIPT.json"
 
 $Receipt = [ordered]@{
@@ -246,8 +279,12 @@ $Receipt = [ordered]@{
     godotExe = [System.IO.Path]::GetFullPath($GodotExe)
     exportedExe = [System.IO.Path]::GetFullPath($ExportedExe)
     packagedExe = [System.IO.Path]::GetFullPath($PayloadExe)
-    packagedExeBytes = [int64]$ExeItem.Length
+    packagedExeBytes = [int64]$PayloadExeItem.Length
     packagedExeSha256 = $ExeSha
+    installWrapperSha256 = $InstallCmdSha
+    uninstallWrapperSha256 = $UninstallCmdSha
+    packageReadmeSha256 = $ReadmeSha
+    packageManifestSha256 = $ManifestSha
     zip = [System.IO.Path]::GetFullPath($Zip)
     zipBytes = [int64]$ZipItem.Length
     zipSha256 = $ZipSha
@@ -259,6 +296,8 @@ $Receipt = [ordered]@{
     }
     install = [ordered]@{
         perUser = "PASS"
+        installedExeHashMatch = "PASS"
+        installedUninstallerHashMatch = "PASS"
         liveLaunch = "PASS"
         windowTitle = $MainWindowTitle
         desktopShortcut = "PASS"
@@ -272,7 +311,7 @@ $Receipt = [ordered]@{
 $Receipt | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $ReceiptPath -Encoding UTF8
 
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_SOURCE=$HeadSha"
-Write-Output "AETHERWAKE_GODOT_EXACT_QA_EXE_BYTES=$($ExeItem.Length)"
+Write-Output "AETHERWAKE_GODOT_EXACT_QA_EXE_BYTES=$($PayloadExeItem.Length)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_EXE_SHA256=$ExeSha"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_ZIP_BYTES=$($ZipItem.Length)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_ZIP_SHA256=$ZipSha"
