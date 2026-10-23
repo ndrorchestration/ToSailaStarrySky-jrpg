@@ -1,6 +1,8 @@
 extends SceneTree
 ## Real-scene contract for native Chapter I durable snapshot export/restore.
 
+const SaveCodec = preload("res://scripts/first_wake_chapter1_save_codec.gd")
+
 func _initialize() -> void:
     call_deferred("_verify")
 
@@ -72,7 +74,7 @@ func _verify() -> void:
     if not world.restore_save_snapshot(legacy_snapshot):
         _fail("legacy v1 scene save without position was rejected")
         return
-    if world.ender.position != world.SaveCodec.LEGACY_PLAYER_POSITION:
+    if world.ender.position != SaveCodec.LEGACY_PLAYER_POSITION:
         _fail("legacy v1 scene save did not use safe deck spawn")
         return
     if not world.last_restore_used_legacy_position:
