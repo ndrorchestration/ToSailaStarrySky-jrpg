@@ -10,6 +10,7 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $ExpectedGodotVersion = "4.7.2.stable.official.ed1daf0bf"
+$ExpectedTemplateVersion = "4.7.2.stable"
 
 function Get-Sha256Hex([string]$Path) {
     $stream = [System.IO.File]::OpenRead($Path)
@@ -188,8 +189,10 @@ $TemplateVersionFile = Join-Path $TemplateDir "version.txt"
 Assert-Exists $ReleaseTemplate "Godot 4.7.2 Windows release template"
 Assert-Exists $TemplateVersionFile "Godot 4.7.2 template version file"
 $ReleaseTemplateSha = Get-Sha256Hex $ReleaseTemplate
-$ReleaseTemplateSignature = Assert-AuthenticodePublisher $ReleaseTemplate "WINDOWS_RELEASE_TEMPLATE"
 $TemplateVersionText = (Get-Content -LiteralPath $TemplateVersionFile -Raw).Trim()
+if ($TemplateVersionText -ne $ExpectedTemplateVersion) {
+    throw "EXPORT_TEMPLATE_VERSION_MISMATCH expected=$ExpectedTemplateVersion actual=$TemplateVersionText"
+}
 
 if ($ExpectedSourceSha -notmatch '^[0-9a-f]{40}$') {
     throw "EXPECTED_SOURCE_SHA_INVALID:$ExpectedSourceSha"
@@ -539,7 +542,6 @@ $Receipt = [ordered]@{
     godotAuthenticode = $GodotSignature
     windowsReleaseTemplate = [System.IO.Path]::GetFullPath($ReleaseTemplate)
     windowsReleaseTemplateSha256 = $ReleaseTemplateSha
-    windowsReleaseTemplateAuthenticode = $ReleaseTemplateSignature
     templateVersionText = $TemplateVersionText
     render = [ordered]@{
         method = "gl_compatibility"
@@ -606,8 +608,8 @@ $MarkdownReceipt = @(
     "- Godot executable SHA-256: $GodotExeSha",
     "- Godot Authenticode: $($GodotSignature.status) / $($GodotSignature.subject) / $($GodotSignature.thumbprint)",
     "- Windows release template SHA-256: $ReleaseTemplateSha",
-    "- Windows release template Authenticode: $($ReleaseTemplateSignature.status) / $($ReleaseTemplateSignature.subject) / $($ReleaseTemplateSignature.thumbprint)",
     "- Template version text: $TemplateVersionText",
+    "- Template provenance boundary: exact version + local SHA-256 custody; no upstream publisher-signature claim",
     "",
     "## Native render gate",
     "- Rendering method: gl_compatibility",
@@ -650,7 +652,7 @@ Write-Output "AETHERWAKE_GODOT_EXACT_QA_VERSION=$GodotVersion"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_GODOT_SHA256=$GodotExeSha"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_GODOT_SIGNER=$($GodotSignature.subject)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_TEMPLATE_SHA256=$ReleaseTemplateSha"
-Write-Output "AETHERWAKE_GODOT_EXACT_QA_TEMPLATE_SIGNER=$($ReleaseTemplateSignature.subject)"
+Write-Output "AETHERWAKE_GODOT_EXACT_QA_TEMPLATE_VERSION=$TemplateVersionText"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_RENDER_FRAMES=$($ExpectedRenderFiles.Count)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_EXE_BYTES=$($PayloadExeItem.Length)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_EXE_SHA256=$ExeSha"
