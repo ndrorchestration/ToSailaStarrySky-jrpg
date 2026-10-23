@@ -146,13 +146,17 @@ assert(script.includes('PREEXISTING_NATIVE_PREVIEW_INSTALL') &&
        script.includes('AuditedInstallCmd') &&
        script.includes('audited extracted ZIP native preview installer') &&
        script.includes('source = "audited-extracted-zip"') &&
+       script.includes('$ExpectedInstallMarker = "AETHERWAKE_GODOT_NATIVE_PREVIEW_INSTALL_V1"') &&
+       script.includes('$InstalledMarker = Join-Path $InstallDir "Aetherwake-Native-Preview.install"') &&
+       script.includes('INSTALLED_OWNERSHIP_MARKER_MISMATCH') &&
+       script.includes('ownershipMarker = [ordered]@{') &&
        script.includes('INSTALLED_EXE_HASH_MISMATCH') &&
        script.includes('INSTALLED_UNINSTALLER_HASH_MISMATCH') &&
        script.includes('INSTALLED_NATIVE_PREVIEW_WINDOW_NOT_READY') &&
        script.includes('Assert-ShortcutTarget') &&
        script.includes('SHORTCUT_TARGET_MISMATCH_') &&
        script.includes('SHORTCUT_WORKDIR_MISMATCH_'),
-  'install gate must exercise the audited extracted ZIP, preserve packaged bytes and verify exact process/window plus shortcut targets');
+  'install gate must exercise the audited extracted ZIP, prove install ownership, preserve packaged bytes and verify exact process/window plus shortcut targets');
 
 assert(script.includes('Aetherwake Native Preview.lnk') &&
        script.includes('running-app native preview uninstaller') &&
