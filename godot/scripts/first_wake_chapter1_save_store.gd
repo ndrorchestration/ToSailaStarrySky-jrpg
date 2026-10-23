@@ -33,11 +33,20 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
     if not bool(temp_read.get("ok", false)):
         _remove_if_exists(temp_path)
         return _error("SAVE_TEMP_VERIFY_FAILED:" + str(temp_read.get("error", "unknown")))
+    var temp_sha := FileAccess.get_sha256(temp_path)
+    if temp_sha.is_empty():
+        _remove_if_exists(temp_path)
+        return _error("SAVE_TEMP_HASH_FAILED")
 
     # Preserve only a semantically valid previous primary. Stage and verify the
     # replacement backup before touching any already-known-good .bak generation.
     var previous := _read_valid(path)
+    var previous_sha := ""
     if bool(previous.get("ok", false)):
+        previous_sha = FileAccess.get_sha256(path)
+        if previous_sha.is_empty():
+            _remove_if_exists(temp_path)
+            return _error("SAVE_PREVIOUS_PRIMARY_HASH_FAILED")
         if not _copy(path, backup_candidate_path):
             _remove_if_exists(temp_path)
             return _error("SAVE_BACKUP_CANDIDATE_COPY_FAILED")
@@ -46,14 +55,24 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
             _remove_if_exists(temp_path)
             _remove_if_exists(backup_candidate_path)
             return _error("SAVE_BACKUP_CANDIDATE_VERIFY_FAILED:" + str(backup_candidate_read.get("error", "unknown")))
+        var backup_candidate_sha := FileAccess.get_sha256(backup_candidate_path)
+        if backup_candidate_sha.is_empty() or backup_candidate_sha != previous_sha:
+            _remove_if_exists(temp_path)
+            _remove_if_exists(backup_candidate_path)
+            return _error("SAVE_BACKUP_CANDIDATE_HASH_MISMATCH")
 
-        # Only after the candidate is proven valid may the old backup rotate.
+        # Only after the candidate is proven valid and byte-identical may the
+        # old backup rotate.
         _remove_if_exists(backup_path)
         if not _rename(backup_candidate_path, backup_path):
             # The current primary has not yet been touched, so fail closed
             # rather than continuing with an uncertain backup generation.
             _remove_if_exists(temp_path)
             return _error("SAVE_BACKUP_PROMOTE_FAILED")
+        var promoted_backup_sha := FileAccess.get_sha256(backup_path)
+        if promoted_backup_sha.is_empty() or promoted_backup_sha != previous_sha:
+            _remove_if_exists(temp_path)
+            return _error("SAVE_BACKUP_PROMOTED_HASH_MISMATCH")
 
     _remove_if_exists(path)
     if not _rename(temp_path, path):
@@ -69,12 +88,21 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
             _copy(backup_path, path)
         return _error("SAVE_PRIMARY_VERIFY_FAILED")
 
+    var final_sha := FileAccess.get_sha256(path)
+    if final_sha.is_empty() or final_sha != temp_sha:
+        _remove_if_exists(path)
+        if FileAccess.file_exists(backup_path):
+            _copy(backup_path, path)
+        return _error("SAVE_PRIMARY_HASH_MISMATCH")
+
     return {
         "ok": true,
         "error": "",
         "path": path,
         "backup_path": backup_path,
         "schema": str(snapshot.get("schema", "")),
+        "primary_sha256": final_sha,
+        "backup_sha256": FileAccess.get_sha256(backup_path) if FileAccess.file_exists(backup_path) else "",
     }
 
 func load_snapshot(path: String = DEFAULT_PATH) -> Dictionary:
