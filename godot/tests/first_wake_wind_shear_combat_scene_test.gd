@@ -65,6 +65,21 @@ func _verify() -> void:
     if str(world.formula_encounter.target.get("name", "")) != "Harmonic Shear Elemental":
         _fail("real scene target name drifted")
         return
+
+    # Party authority must gate the scene before formula dispatch. This protects
+    # the boundary even if additional formula actions are introduced later.
+    var turns_before_authority_block := world.formula_encounter.turns
+    var enemy_turns_before_authority_block := world.formula_encounter.enemy_turns
+    if world.take_formula_review_action("sharedDream"):
+        _fail("blocked Shared Dream bypassed scene combat authority")
+        return
+    if world.last_message != "ACTION_AUTHORITY_BLOCKED:ender:sharedDream":
+        _fail("scene combat authority rejection was not explicit")
+        return
+    if world.formula_encounter.turns != turns_before_authority_block or world.formula_encounter.enemy_turns != enemy_turns_before_authority_block:
+        _fail("blocked action mutated combat turn state")
+        return
+
     var vit_before_retaliation := int(world.formula_encounter.player["vit"])
     if not world.take_formula_review_action("uncoverTruth"):
         _fail("authored encounter rejected Uncover Truth")
