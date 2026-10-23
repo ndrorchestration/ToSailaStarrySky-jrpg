@@ -100,6 +100,31 @@ func _verify() -> void:
         _fail("Crossing admitted without all Signal hooks")
         return
 
+    var completed_signal_stage := partial.duplicate(true)
+    completed_signal_stage["signals_completed"] = ChapterState.SIGNAL_IDS.duplicate()
+    completed_signal_stage["contacts_met"] = ["engine_spirit", "child_prophet", "corporate_salvager"]
+    if SaveCodec.restore(completed_signal_stage).get("ok", true):
+        _fail("Signal stage admitted after all Signal hooks were already complete")
+        return
+
+    var completed_crossing_stage := _crossing_snapshot()
+    completed_crossing_stage["hazards_completed"] = ChapterState.HAZARD_IDS.duplicate()
+    if SaveCodec.restore(completed_crossing_stage).get("ok", true):
+        _fail("Crossing stage admitted after all hazards were already complete")
+        return
+
+    var premature_choice_variant := partial.duplicate(true)
+    premature_choice_variant["choice_variant"] = "10+"
+    if SaveCodec.restore(premature_choice_variant).get("ok", true):
+        _fail("choice outcome variant admitted before Choice")
+        return
+
+    var premature_epilogue := partial.duplicate(true)
+    premature_epilogue["epilogue_id"] = "epiline_1"
+    if SaveCodec.restore(premature_epilogue).get("ok", true):
+        _fail("epilogue identity admitted before Wake completion")
+        return
+
     var duplicate_signal := partial.duplicate(true)
     duplicate_signal["signals_completed"] = ["harmonic_buoy", "harmonic_buoy"]
     if SaveCodec.restore(duplicate_signal).get("ok", true):
@@ -156,6 +181,18 @@ func _verify() -> void:
 
     print("AETHERWAKE_GODOT_CHAPTER1_SAVE_PASS: versioned progression/position round-trip, legacy fallback and fail-closed tamper rejection")
     quit(0)
+
+func _crossing_snapshot() -> Dictionary:
+    var crossing = ChapterState.new()
+    for contact_id in ["engine_spirit", "child_prophet", "corporate_salvager"]:
+        crossing.meet_contact(contact_id)
+    for signal_id in ChapterState.SIGNAL_IDS:
+        crossing.complete_signal(signal_id)
+    return SaveCodec.encode(crossing, {
+        "hull_integrity": 88,
+        "morale": 52,
+        "engine_integration": 18,
+    }, Vector2(480, 470))
 
 func _completed_path_c():
     var chapter = ChapterState.new()
