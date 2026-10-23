@@ -70,15 +70,20 @@ assert(script.includes('SHORTCUT_SLOT_OCCUPIED:') &&
        script.includes("foreach($shortcutPath in @((Join-Path $desktop 'Aetherwake Native Preview.lnk'),(Join-Path $menu 'Aetherwake Native Preview.lnk')))") &&
        script.includes("if(-not ($target.Equals($exe,[StringComparison]::OrdinalIgnoreCase) -and $work.Equals([IO.Path]::GetFullPath($dest),[StringComparison]::OrdinalIgnoreCase))){throw ('SHORTCUT_SLOT_OCCUPIED:'+ $shortcutPath)}") &&
        script.indexOf('SHORTCUT_SLOT_OCCUPIED:') < script.indexOf('if not exist "%DEST%" mkdir "%DEST%"') &&
+       script.includes('if not exist "%~dp0Aetherwake\\Aetherwake-First-Wake-Godot-Preview.exe" exit /b 5') &&
+       script.includes('if not exist "%~dp0Aetherwake\\Uninstall-Aetherwake-Godot-Preview.cmd" exit /b 5') &&
+       script.indexOf('if not exist "%~dp0Aetherwake\\Aetherwake-First-Wake-Godot-Preview.exe" exit /b 5') < script.indexOf('if not exist "%DEST%" mkdir "%DEST%"') &&
+       script.indexOf('> "%MARKER%" echo AETHERWAKE_GODOT_NATIVE_PREVIEW_INSTALL_V1') < script.indexOf('copy /Y "%~dp0Aetherwake\\Aetherwake-First-Wake-Godot-Preview.exe"') &&
        !script.includes('EnableDelayedExpansion') &&
        script.includes('function Remove-OwnedShortcut') &&
        script.includes('$target.Equals($exeFull,[StringComparison]::OrdinalIgnoreCase)') &&
        script.includes('$work.Equals([IO.Path]::GetFullPath($dest),[StringComparison]::OrdinalIgnoreCase)') &&
        script.includes('$menuRemaining=@(Get-ChildItem -LiteralPath $menu -Force)') &&
-       script.includes('Existing install-directory and shortcut ownership is checked before any payload files are copied.') &&
+       script.includes('both packaged payload files are checked before any install mutation') &&
+       script.includes('interrupted/failed copy remains safely retryable as Aetherwake-owned state') &&
        script.includes('install directory carries a versioned Aetherwake ownership marker') &&
        script.includes('install directory is removed only when empty'),
-  'native package must preflight foreign install/shortcut ownership before payload mutation, avoid delayed-expansion path risk and remove only content still owned by this exact preview install');
+  'native package must preflight ownership and packaged payload presence before mutation, mark directory ownership before copy, avoid delayed-expansion path risk and remove only content still owned by this exact preview install');
 assert(script.includes('EXE_SHA256=$ExeHash') &&
        script.includes('INSTALL_WRAPPER_SHA256=$InstallHash') &&
        script.includes('UNINSTALL_WRAPPER_SHA256=$UninstallHash') &&
