@@ -16,10 +16,12 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
 
     var temp_path := path + ".tmp"
     var backup_path := path + ".bak"
+    var backup_candidate_path := backup_path + ".next"
     if not _ensure_parent(path):
         return _error("SAVE_PARENT_CREATE_FAILED")
 
     _remove_if_exists(temp_path)
+    _remove_if_exists(backup_candidate_path)
     var file := FileAccess.open(temp_path, FileAccess.WRITE)
     if file == null:
         return _error("SAVE_TEMP_OPEN_FAILED")
@@ -32,18 +34,26 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
         _remove_if_exists(temp_path)
         return _error("SAVE_TEMP_VERIFY_FAILED:" + str(temp_read.get("error", "unknown")))
 
-    # Preserve only a semantically valid previous primary. Never overwrite a
-    # known-good backup with a corrupt primary.
+    # Preserve only a semantically valid previous primary. Stage and verify the
+    # replacement backup before touching any already-known-good .bak generation.
     var previous := _read_valid(path)
     if bool(previous.get("ok", false)):
+        if not _copy(path, backup_candidate_path):
+            _remove_if_exists(temp_path)
+            return _error("SAVE_BACKUP_CANDIDATE_COPY_FAILED")
+        var backup_candidate_read := _read_valid(backup_candidate_path)
+        if not bool(backup_candidate_read.get("ok", false)):
+            _remove_if_exists(temp_path)
+            _remove_if_exists(backup_candidate_path)
+            return _error("SAVE_BACKUP_CANDIDATE_VERIFY_FAILED:" + str(backup_candidate_read.get("error", "unknown")))
+
+        # Only after the candidate is proven valid may the old backup rotate.
         _remove_if_exists(backup_path)
-        if not _copy(path, backup_path):
+        if not _rename(backup_candidate_path, backup_path):
+            # The current primary has not yet been touched, so fail closed
+            # rather than continuing with an uncertain backup generation.
             _remove_if_exists(temp_path)
-            return _error("SAVE_BACKUP_COPY_FAILED")
-        var backup_read := _read_valid(backup_path)
-        if not bool(backup_read.get("ok", false)):
-            _remove_if_exists(temp_path)
-            return _error("SAVE_BACKUP_VERIFY_FAILED:" + str(backup_read.get("error", "unknown")))
+            return _error("SAVE_BACKUP_PROMOTE_FAILED")
 
     _remove_if_exists(path)
     if not _rename(temp_path, path):
@@ -107,6 +117,7 @@ func delete_slot(path: String = DEFAULT_PATH) -> void:
     _remove_if_exists(path)
     _remove_if_exists(path + ".tmp")
     _remove_if_exists(path + ".bak")
+    _remove_if_exists(path + ".bak.next")
 
 func _read_valid(path: String) -> Dictionary:
     if not FileAccess.file_exists(path):
