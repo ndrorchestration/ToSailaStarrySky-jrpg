@@ -54,6 +54,14 @@ assert(script.includes("Ender's bounded dock exploration position is persisted w
        script.includes('Formula Review, and active Wind Shear combat are transient and are not persisted') &&
        script.includes('without awarding hazard progress'),
   'native package instructions must explain position persistence, legacy safe-spawn fallback, backup recovery and fail-closed transient combat saves');
+
+assert(script.includes('SHORTCUT_SLOT_OCCUPIED:') &&
+       script.includes('function Remove-OwnedShortcut') &&
+       script.includes('$target.Equals($exeFull,[StringComparison]::OrdinalIgnoreCase)') &&
+       script.includes('$work.Equals([IO.Path]::GetFullPath($dest),[StringComparison]::OrdinalIgnoreCase)') &&
+       script.includes('$menuRemaining=@(Get-ChildItem -LiteralPath $menu -Force)') &&
+       script.includes('user-modified or unrelated shortcut/menu content is preserved'),
+  'native package must fail closed on foreign shortcut collisions and remove only shortcuts/menu content still owned by this exact preview install');
 assert(script.includes('EXE_SHA256=$ExeHash') &&
        script.includes('INSTALL_WRAPPER_SHA256=$InstallHash') &&
        script.includes('UNINSTALL_WRAPPER_SHA256=$UninstallHash') &&
