@@ -183,6 +183,11 @@ if (Test-Path -LiteralPath $InstallDir) {
 if ((Find-ExactExecutableProcess $InstalledExe).Count -gt 0) {
     throw "PREEXISTING_NATIVE_PREVIEW_PROCESS"
 }
+foreach ($residuePath in @($DesktopShortcut, $StartMenuDir, $TempCleanup)) {
+    if (Test-Path -LiteralPath $residuePath) {
+        throw "PREEXISTING_NATIVE_PREVIEW_RESIDUE:$residuePath"
+    }
+}
 
 Invoke-CmdChecked $InstallCmd "native preview installer"
 
