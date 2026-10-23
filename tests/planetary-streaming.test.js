@@ -30,6 +30,25 @@ test('seam and polar neighborhoods contain observed points throughout visible ca
   }
  }
 });
+test('angular padding covers cubed-sphere tile corners without legacy 2x over-padding',()=>{
+ const angle=(a,b)=>Math.acos(Math.max(-1,Math.min(1,a.reduce((sum,x,i)=>sum+x*b[i],0))));
+ for(const level of [0,1,2,4,8,12]){
+  const size=tiles.levelSize(level);
+  const coords=[0,Math.floor((size-1)/2),size-1];
+  for(const face of tiles.FACES)for(const x of coords)for(const y of coords){
+   const tile={face,level,x,y};
+   const center=tiles.coordinatesToUnit(tiles.tileCenter(tile).latDeg,tiles.tileCenter(tile).lonDeg);
+   for(const cx of [x,x+1])for(const cy of [y,y+1]){
+    const u=-1+cx*2/size,v=-1+cy*2/size;
+    const corner=tiles.vectorFromFaceUV(face,u,v);
+    assert.ok(angle(center,corner)<=stream.angularPadding(level)+1e-12,
+      `padding missed ${face}/${level}/${x}/${y}`);
+   }
+  }
+ }
+ const level=6,size=tiles.levelSize(level);
+ assert.ok(stream.angularPadding(level)<Math.atan(2*Math.SQRT2/size));
+});
 test('small tile budget triggers safe coarser LOD without exceeding cap',()=>{
  const p={latDeg:42,lonDeg:-79,altitudeKm:200};
  const plan=stream.plan(p,R,{level:11,maxTiles:25});
