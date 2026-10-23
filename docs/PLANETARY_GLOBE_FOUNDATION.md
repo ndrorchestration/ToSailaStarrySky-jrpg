@@ -61,3 +61,39 @@ Desktop/320/390/768/1280px Chromium sandbox verification (inlined script harness
 - Headless Chromium local-candidate QA passed at desktop and viewport widths 320 / 390 / 768 / 1280 with no JavaScript errors or horizontal overflow. At the reference radius 6371 km the observed 2→20 km altitude horizon was 160→504 km; initial flight view populated 69 candidate tiles, no cached evictions. QA screenshots and JSON are in the downloadable prototype evidence folder. **These results are not exact GitHub PR head, Windows GPU, human visual acceptance, or packaged First Wake verification.**
 
 **Next gate:** Verify exact committed PR head, introduce an optimized GPU-backed spatial renderer (including terrain elevation and clouds in occlusion) and independent versioned conversion between local gameplay and planet coordinates only after creator review. Preserve all Preview 0.1 delivery gates.
+
+
+## Cinematic Godot renderer handoff — issue #350
+
+The spherical geometry/streaming prototype in this branch and the cinematic Godot art-direction prototype are deliberately separate layers. Geometry authority must not silently inherit presentation units, proxy asset scale, non-canon coastlines, or visual set dressing from the cinematic study.
+
+The latest isolated renderer handoff recorded in issue #350 is:
+
+- review kit: `Aetherwake_Godot_Native_Review_Kit_v0.6.1_2026-10-23.zip`
+- review-kit ZIP SHA-256: `bba6ee4f6b0271be3d3f73e187aaf1354937d8de6c3626f6198a777805c19c42`
+- underlying v0.6.1 cinematic archive SHA-256: `359817e3cf284825cd6aa64ab30d2f4ab805c9a2ae2c6b66264ad030c4f1c0d9`
+- scoped 29-file source/test/tool manifest SHA-256: `75742f2edff21a071acada35cc7f9b81d18b00d4d0bc084bf9de39f563979341`
+- current renderer source status: **conversation artifact only; not committed to this repository**
+- current engine status: **native Godot 4.7.2 execution not established**
+- current art status: **no real Godot renderer screenshots, GPU timings, or creator visual acceptance established**
+
+The exact source archive is not available on the current Project/Library file surfaces. Do **not** recreate Godot source from issue comments, screenshots, prose descriptions, or remembered snippets. Repository admission requires the exact artifact bytes or another source package whose identity can be independently checked against the recorded manifest.
+
+When those exact bytes are available on an authorized machine, the first native review command is:
+
+```powershell
+python tools/run_native_review.py --godot "<trusted Godot 4.7.2 editor/console executable>" --render --renderer gl_compatibility --expected-source-manifest-sha256 75742f2edff21a071acada35cc7f9b81d18b00d4d0bc084bf9de39f563979341
+```
+
+Then repeat separately with `--renderer forward_plus` on Vulkan-capable target hardware. Required evidence before any renderer-source import or gameplay bridge:
+
+1. exact source-manifest match;
+2. successful Godot 4.7.2 import;
+3. native flight-math and scene-contract tests;
+4. three distinct real Godot captures for orbital mode 1, globe-scale chase mode 4 and local sea-flight mode 5;
+5. no GDScript/shader compile errors;
+6. measured frame time/VRAM on representative Windows hardware;
+7. creator visual review of scale, atmosphere, ocean, coast, cloud and Dragonfly composition;
+8. explicit separation between non-canon art-direction proxies and approved world/cartography data.
+
+Only after those gates should renderer code be considered for a dedicated repository branch. Even then, integration with Chapter I, save schema, canonical planet radius/geography, and protected main remains a separate reviewed decision. Issue #348 supplies world-scale requirements; issue #350 supplies cinematic fidelity gates; this document remains the geometry/streaming bridge between them.
