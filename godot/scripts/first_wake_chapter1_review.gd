@@ -191,7 +191,7 @@ func _draw_formula_review() -> void:
     var authored_hazard := not active_hazard_encounter_id.is_empty()
     var encounter_title := "CROSSING ENCOUNTER" if authored_hazard else "FORMULA REVIEW ENCOUNTER"
     var encounter_subtitle := (
-        "Current-story Wind Shear · production JRPG formulas · progress confirms on clear"
+        "Current-story Wind Shear · Gale Force retaliates · progress confirms on clear"
         if authored_hazard
         else "Production JRPG math · noncanonical target · Chapter I progress unchanged"
     )
@@ -264,7 +264,9 @@ func _draw_formula_review() -> void:
     draw_string(ThemeDB.fallback_font, Vector2(390, 390), "4  Rest", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
 
     var status := formula_encounter.last_log()
-    if formula_encounter.completed:
+    if formula_encounter.player_defeated:
+        status = "ENDER DOWN. C closes encounter; Crossing progress remains unchanged."
+    elif formula_encounter.completed:
         if authored_hazard:
             status = "WIND SHEAR CLEARED. C confirms this Crossing hazard."
         else:
