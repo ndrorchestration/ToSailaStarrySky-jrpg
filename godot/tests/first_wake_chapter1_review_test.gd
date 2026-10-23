@@ -26,6 +26,10 @@ func _verify() -> void:
     if world.contacts.size() != 4:
         _fail("four native contact placeholders are not present")
         return
+    var wakeheart = world.contacts["engine_spirit"]
+    if wakeheart.visible:
+        _fail("Wakeheart harmonic console rendered as a humanoid placeholder")
+        return
     var ionia = world.contacts["elder_farmer"]
     if not world.ender.walk_review_enabled:
         _fail("native Chapter I scene did not enable Ender directional candidate art")
