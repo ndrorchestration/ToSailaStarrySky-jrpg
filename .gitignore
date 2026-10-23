@@ -72,6 +72,9 @@ fonts.css
 generate_npc_tts_v2.py
 nul
 
+# Godot generated project cache
+.godot/
+
 # Build artifacts and dependencies — do not commit
 node_modules/
 nw-package/
