@@ -9,6 +9,8 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
+$ExpectedGodotVersion = "4.7.2.stable.official.ed1daf0bf"
+
 function Get-Sha256Hex([string]$Path) {
     $stream = [System.IO.File]::OpenRead($Path)
     try {
@@ -70,6 +72,31 @@ function Invoke-CmdChecked([string]$CmdPath, [string]$Label) {
     }
 }
 
+function Invoke-GodotCaptureChecked([string[]]$Arguments, [string]$Label, [string]$LogPath) {
+    $PreviousErrorActionPreference = $ErrorActionPreference
+    $HadNativePreference = Test-Path Variable:PSNativeCommandUseErrorActionPreference
+    if ($HadNativePreference) {
+        $PreviousNativePreference = $PSNativeCommandUseErrorActionPreference
+        $PSNativeCommandUseErrorActionPreference = $false
+    }
+    $ErrorActionPreference = "Continue"
+    try {
+        $lines = @(& $GodotExe @Arguments 2>&1 | ForEach-Object { "$_" })
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $PreviousErrorActionPreference
+        if ($HadNativePreference) {
+            $PSNativeCommandUseErrorActionPreference = $PreviousNativePreference
+        }
+    }
+    $lines | Set-Content -LiteralPath $LogPath -Encoding UTF8
+    if ($exitCode -ne 0) {
+        throw "$Label failed with exit code $exitCode; log=$LogPath"
+    }
+    return $lines
+}
+
 function Find-ExactExecutableProcess([string]$ExecutablePath) {
     $exact = [System.IO.Path]::GetFullPath($ExecutablePath)
     return @(
@@ -86,6 +113,29 @@ function Find-ExactExecutableProcess([string]$ExecutablePath) {
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $RepoRoot = [System.IO.Path]::GetFullPath($RepoRoot)
+$GodotDir = Join-Path $RepoRoot "godot"
+
+Assert-Exists $GodotExe "Godot editor"
+$GodotVersionLog = Join-Path $env:TEMP "aetherwake-godot-version-$PID.txt"
+try {
+    $GodotVersionLines = @(Invoke-GodotCaptureChecked @("--version") "Godot version check" $GodotVersionLog)
+    $GodotVersion = (($GodotVersionLines -join [Environment]::NewLine).Trim())
+}
+finally {
+    Remove-Item -LiteralPath $GodotVersionLog -Force -ErrorAction SilentlyContinue
+}
+if ($GodotVersion -ne $ExpectedGodotVersion) {
+    throw "GODOT_VERSION_MISMATCH expected=$ExpectedGodotVersion actual=$GodotVersion"
+}
+$GodotExeSha = Get-Sha256Hex $GodotExe
+
+$TemplateDir = Join-Path $env:APPDATA "Godot\export_templates\4.7.2.stable"
+$ReleaseTemplate = Join-Path $TemplateDir "windows_release_x86_64.exe"
+$TemplateVersionFile = Join-Path $TemplateDir "version.txt"
+Assert-Exists $ReleaseTemplate "Godot 4.7.2 Windows release template"
+Assert-Exists $TemplateVersionFile "Godot 4.7.2 template version file"
+$ReleaseTemplateSha = Get-Sha256Hex $ReleaseTemplate
+$TemplateVersionText = (Get-Content -LiteralPath $TemplateVersionFile -Raw).Trim()
 
 Push-Location $RepoRoot
 try {
@@ -123,6 +173,8 @@ if (-not $OutputDir) {
 $OutputDir = [System.IO.Path]::GetFullPath($OutputDir)
 $ExportDir = Join-Path $OutputDir "export"
 $PackageDir = Join-Path $OutputDir "package"
+$RenderDir = Join-Path $OutputDir "render-evidence"
+$RenderLog = Join-Path $OutputDir "chapter1-native-render.log"
 $BuildScript = Join-Path $RepoRoot "scripts\build-godot-chapter1-windows-preview.ps1"
 $PackageScript = Join-Path $RepoRoot "scripts\package-godot-chapter1-windows-preview.ps1"
 
@@ -138,6 +190,50 @@ if ($LASTEXITCODE -ne 0) {
 
 $ExportedExe = Join-Path $ExportDir "Aetherwake-First-Wake-Godot-Preview.exe"
 Assert-Exists $ExportedExe "exported Godot preview"
+$ExportedExeSha = Get-Sha256Hex $ExportedExe
+
+$PreviousCaptureOutput = $env:AETHERWAKE_CAPTURE_OUTPUT_DIR
+$env:AETHERWAKE_CAPTURE_OUTPUT_DIR = $RenderDir
+try {
+    $RenderLines = @(Invoke-GodotCaptureChecked @(
+        "--path", $GodotDir,
+        "--rendering-method", "gl_compatibility",
+        "--script", "res://tests/capture_first_wake_chapter1_review.gd"
+    ) "native Chapter I renderer" $RenderLog)
+}
+finally {
+    if ($null -eq $PreviousCaptureOutput) {
+        Remove-Item Env:AETHERWAKE_CAPTURE_OUTPUT_DIR -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:AETHERWAKE_CAPTURE_OUTPUT_DIR = $PreviousCaptureOutput
+    }
+}
+$RenderText = $RenderLines -join [Environment]::NewLine
+if ($RenderText -notmatch "AETHERWAKE_GODOT_CHAPTER1_NATIVE_RENDER_PASS") {
+    throw "NATIVE_RENDER_PASS_MARKER_MISSING log=$RenderLog"
+}
+if ($RenderText -notmatch "AETHERWAKE_GODOT_CHAPTER1_ARTISTIC_ACCEPTANCE=PENDING") {
+    throw "NATIVE_RENDER_ACCEPTANCE_BOUNDARY_MISSING log=$RenderLog"
+}
+
+$ExpectedRenderFiles = @(
+    "chapter1-signal-native-960x640.png",
+    "chapter1-formula-review-native-960x640.png",
+    "chapter1-dialogue-native-960x640.png",
+    "chapter1-crossing-native-960x640.png",
+    "chapter1-wind-shear-combat-native-960x640.png",
+    "chapter1-contact-native-960x640.png",
+    "chapter1-choice-native-960x640.png",
+    "chapter1-wake-native-960x640.png",
+    "chapter1-done-native-960x640.png"
+)
+$RenderHashes = [ordered]@{}
+foreach ($RenderName in $ExpectedRenderFiles) {
+    $RenderPath = Join-Path $RenderDir $RenderName
+    Assert-Exists $RenderPath "native render frame $RenderName"
+    $RenderHashes[$RenderName] = Get-Sha256Hex $RenderPath
+}
 
 & $PackageScript -ExportedExe $ExportedExe -OutputDir $PackageDir
 if ($LASTEXITCODE -ne 0) {
@@ -164,6 +260,9 @@ $PayloadExeItem = Get-Item -LiteralPath $PayloadExe
 $ZipItem = Get-Item -LiteralPath $Zip
 $ExeSha = Get-Sha256Hex $PayloadExe
 $ZipSha = Get-Sha256Hex $Zip
+if ($ExportedExeSha -ne $ExeSha) {
+    throw "EXPORTED_TO_PACKAGED_EXE_HASH_MISMATCH exported=$ExportedExeSha packaged=$ExeSha"
+}
 $InstallCmdSha = Get-Sha256Hex $InstallCmd
 $UninstallCmdSha = Get-Sha256Hex $UninstallCmd
 $ReadmeSha = Get-Sha256Hex $Readme
@@ -290,7 +389,20 @@ $Receipt = [ordered]@{
     sourceSha = $HeadSha
     verifiedAtUtc = (Get-Date).ToUniversalTime().ToString("o")
     godotExe = [System.IO.Path]::GetFullPath($GodotExe)
+    godotVersion = $GodotVersion
+    godotExeSha256 = $GodotExeSha
+    windowsReleaseTemplate = [System.IO.Path]::GetFullPath($ReleaseTemplate)
+    windowsReleaseTemplateSha256 = $ReleaseTemplateSha
+    templateVersionText = $TemplateVersionText
+    render = [ordered]@{
+        method = "gl_compatibility"
+        log = [System.IO.Path]::GetFullPath($RenderLog)
+        pass = "PASS"
+        artisticAcceptance = "PENDING"
+        frameSha256 = $RenderHashes
+    }
     exportedExe = [System.IO.Path]::GetFullPath($ExportedExe)
+    exportedExeSha256 = $ExportedExeSha
     packagedExe = [System.IO.Path]::GetFullPath($PayloadExe)
     packagedExeBytes = [int64]$PayloadExeItem.Length
     packagedExeSha256 = $ExeSha
@@ -324,6 +436,10 @@ $Receipt = [ordered]@{
 $Receipt | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $ReceiptPath -Encoding UTF8
 
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_SOURCE=$HeadSha"
+Write-Output "AETHERWAKE_GODOT_EXACT_QA_VERSION=$GodotVersion"
+Write-Output "AETHERWAKE_GODOT_EXACT_QA_GODOT_SHA256=$GodotExeSha"
+Write-Output "AETHERWAKE_GODOT_EXACT_QA_TEMPLATE_SHA256=$ReleaseTemplateSha"
+Write-Output "AETHERWAKE_GODOT_EXACT_QA_RENDER_FRAMES=$($ExpectedRenderFiles.Count)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_EXE_BYTES=$($PayloadExeItem.Length)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_EXE_SHA256=$ExeSha"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_ZIP_BYTES=$($ZipItem.Length)"
