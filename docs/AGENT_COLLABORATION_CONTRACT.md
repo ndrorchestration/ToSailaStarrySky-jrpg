@@ -69,6 +69,14 @@ Avoid posting API tokens, SSH material, environment dumps, personal machine meta
 - First **read-only** assignment: [#351](https://github.com/ndrorchestration/aetherwake-jrpg/issues/351) — verify whether the real Hermes instance can read the issue, post a minimal capability receipt, state exact local and remote SHAs and distinguish historical from authoritative build/test lanes. No code edit, deploy, build or install is requested.
 - If handshake succeeds, use one small current-main **tests-only** issue as the first write exercise, with explicit non-release scope. Only then consider machine-side Godot native verification of the isolated cinematic prototype as a separately approved task; never treat it as First Wake release proof.
 
-## 7. Revocation and recovery
+## 7. Cross-repository coordination and future automation gate
+
+- **Aetherwake queue:** #351 is its read-only handshake, #353 the first tests-only task; use Aetherwake issues and **draft** PRs for Aetherwake implementation.
+- **AHG/Zeta-Pell research queue:** [AHG issue #6](https://github.com/ndrorchestration/AHG-Zeta-Pell-Autonomous-Lattice/issues/6) is the active Hermes ↔ ChatGPT coordination record for AHG research. [AHG issue #7](https://github.com/ndrorchestration/AHG-Zeta-Pell-Autonomous-Lattice/issues/7) is closed and reference-only. They are **not** alternate Aetherwake assignment channels. Shared process vocabulary does not transfer scientific evidence or execution authority across repositories.
+- **Recommended issue comment tokens:** `HANDOFF/ASSIGN`, `HANDOFF/CLAIM`, `HANDOFF/RESULT`, `HANDOFF/REVIEW`, `HANDOFF/BLOCKED`. A task comment cannot spawn Hermes unless an external, explicitly authorized agent actually reads it.
+- **No unattended bridge confirmed:** Before any automatic GitHub→Hermes→ChatGPT dispatch is advertised, verify authenticated least-privilege agent invocation, GitHub webhook-signature checking, idempotency/replay prevention, exact task/repository allowlisting, source-SHA checks, secrets isolation, event/receipt logging, user stop controls and a witnessed end-to-end dry run. Do not create a public unauthenticated agent endpoint.
+- **Platform policy:** [Aetherwake issue #303](https://github.com/ndrorchestration/aetherwake-jrpg/issues/303) already owns the private-repo `main` branch-protection governance gap. GitHub returned `protected=false`; `GET /rulesets` returned a plan-access 403, not proof of active protection. Do not create a duplicate control-policy issue; do not make the private repo public to access branch rules. Until enforcement is independently demonstrated, manual no-direct-main-write holds remain mandatory.
+
+## 8. Revocation and recovery
 
 Creator can revoke an agent's repository permissions or pause tasks at any time. On ambiguous commands, missing rights, unexpected dirty working tree, changed source SHA, conflicting claim, test failures or potentially sensitive data, agents **stop**, report an exact blocker and leave release/merge untouched. Work remains reviewable in draft PRs, not a hidden local edit.
