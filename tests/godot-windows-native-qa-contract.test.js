@@ -83,6 +83,10 @@ assert(buildScript.includes('PSNativeCommandUseErrorActionPreference') &&
        buildScript.includes('$ErrorActionPreference = "Continue"'),
   'Windows build wrapper must preserve Godot exit-code authority under PowerShell native stderr behavior');
 
+assert(buildScript.includes('res://tests/first_wake_chapter1_review_test.gd') &&
+       buildScript.includes('res://tests/ionia_four_direction_test.gd'),
+  'Windows package gate must exercise the Chapter I actor-presentation boundary and Ionia directional art contract');
+
 assert(script.includes('Get-DefenderCustody') &&
        script.includes('Get-MpComputerStatus') &&
        script.includes('DEFENDER_ANTIVIRUS_NOT_ENABLED') &&
