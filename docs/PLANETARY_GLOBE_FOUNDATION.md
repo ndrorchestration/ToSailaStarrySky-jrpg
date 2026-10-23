@@ -201,3 +201,33 @@ Verification of the rebased package:
 - manifest-pinned negative native runner correctly returns exit 2 / `NOT_VERIFIED` only because the local authoring environment lacks Godot.
 
 The final v0.7.3 proof kit still requires the creator's real Windows Godot 4.7.2 Compatibility rerun. No native v0.7.3 scene PASS, renderer frames, GPU timings, or creator visual acceptance is claimed yet.
+
+
+## 2026-10-23 — v0.7.4 native QA receipt custody hardening
+
+A focused audit of the final v0.7.3 proof-kit capture path found no additional authored Godot scene defect, but did identify one evidence-custody weakness: every native run wrote the receipt to the same `evidence/native/NATIVE_QA_RECEIPT.json` path. A later Forward+ run could therefore overwrite the earlier Compatibility receipt even though screenshots were already run-ID-scoped.
+
+The QA harness now writes both:
+- `NATIVE_QA_RECEIPT_<run_id>.json` — immutable run-specific receipt; and
+- `NATIVE_QA_RECEIPT.json` — compatibility/latest pointer with identical content.
+
+No authored scene, shader, texture, georeference, flight, Chapter I, save, canon or visual-content behavior changed from the final v0.7.3 proof kit.
+
+Current artifact:
+- `Aetherwake_Godot_Native_Scene_Proof_Kit_v0.7.4_2026-10-23.zip`
+- ZIP members: **66**
+- size: **1,781,779 bytes**
+- ZIP SHA-256: `816b188640ef7289088817c11ad26826c9a863a002b37a85b3521b9ecc71c086`
+- source manifest: **39 files**
+- source-manifest SHA-256: `e14659e4200b38a4b4f5923a5dda4c66fd80c43601363ec2a893ecaac026bf01`
+
+Verification after the custody change:
+- all 14 synthetic receipt-gate cases accounted for PASS across bounded runs, including the new assertion that run-specific and latest receipts are byte-equivalent JSON and both paths are emitted;
+- standalone static/source/asset/launcher validators PASS;
+- declaration-boundary tests 3/3 PASS;
+- PNG decoder/filter tests 3/3 PASS;
+- Windows launcher-pin tests 3/3 PASS;
+- exact source-manifest recomputation matches the packaged pin;
+- manifest-pinned negative runner reaches the expected missing-Godot `NOT_VERIFIED` state and creates both receipt paths.
+
+The v0.7.4 proof kit is the preferred next native-review package. It still requires a real Windows Godot 4.7.2 Compatibility rerun; no v0.7.4 native scene PASS, renderer frames, GPU timings or creator visual acceptance is claimed.
