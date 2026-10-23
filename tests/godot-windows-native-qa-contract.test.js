@@ -38,6 +38,7 @@ assert(script.includes('INSTALL_WRAPPER') &&
   'Defender gate must cover wrappers, packaged EXE and ZIP');
 
 assert(script.includes('PREEXISTING_NATIVE_PREVIEW_INSTALL') &&
+       script.includes('PREEXISTING_NATIVE_PREVIEW_RESIDUE') &&
        script.includes('Get-CimInstance Win32_Process') &&
        script.includes('ExecutablePath') &&
        script.includes('INSTALLED_EXE_HASH_MISMATCH') &&
