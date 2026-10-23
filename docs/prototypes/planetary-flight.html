@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aetherwake — Spherical Flight & Terrain Streaming Study</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#e9ede1;background:#07181e}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -10%,#21414b,#08171d 55%);min-height:100vh}main{max-width:1170px;margin:0 auto;padding:26px 17px 44px}.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#b1cdb6;font-weight:700}h1{font-size:clamp(31px,4.5vw,51px);font-weight:400;font-family:Georgia,serif;color:#f3e4c1;letter-spacing:.06em;margin:10px 0}.intro{color:#b5caca;line-height:1.6;max-width:840px;font-size:14px}.seal{border:1px solid #718d7c;padding:8px 12px;border-radius:50px;font-size:11px;color:#d8d1ac;white-space:nowrap}.top{display:flex;justify-content:space-between;align-items:center;gap:18px}.grid{display:grid;grid-template-columns:minmax(0,1.46fr) minmax(310px,.8fr);gap:18px;margin-top:23px}.panel{background:linear-gradient(145deg,#122d35,#0a1e25);border:1px solid #39565a;border-radius:16px;overflow:hidden;box-shadow:0 12px 44px #030b115a}.bar{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 0;gap:8px}.bar h2{font-size:13px;font-weight:650;letter-spacing:.08em;color:#e8dbb9;margin:0}.bar span,.muted{font-size:11px;color:#94b9b6}.plot{padding:9px 13px 0}.plot canvas{display:block;aspect-ratio:1/1;width:100%;max-width:570px;height:auto;margin:auto;touch-action:none}.note{font-size:12px;color:#95b4b2;text-align:center;padding:0 18px 14px;line-height:1.5}.side{padding:18px 18px 20px;display:grid;gap:17px}.statGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.stat{border:1px solid #2d4e51;background:#0b232b;padding:10px 12px;border-radius:9px;overflow:hidden}.stat span{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:#94b6b3}.stat b{display:block;font-size:17px;font-weight:570;color:#f1deb2;margin-top:4px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.section{border-top:1px solid #324f53;padding-top:14px}.label{font-size:11px;font-weight:700;color:#bbd5cc;letter-spacing:.1em;text-transform:uppercase;margin-bottom:9px}button{font:inherit;font-size:12px;color:#e2e9de;background:#1b3b41;border:1px solid #58736a;padding:9px 11px;border-radius:8px;cursor:pointer}button:hover,button:focus-visible{outline:1px solid #d6c490;background:#26545c}.preset{display:flex;flex-wrap:wrap;gap:7px}.dial{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;max-width:325px;margin:auto}.dial button{min-height:43px;touch-action:none;user-select:none}.dial button:active,.dial button.active{background:#5a5d46;border-color:#e9d49c}.minor{font-size:12px;color:#acc6bd;line-height:1.6}.chart{width:170px;height:170px;display:block;margin:auto}footer{margin-top:19px;border-top:1px solid #314f51;padding-top:15px;color:#83a7a6;font-size:11px;line-height:1.65}@media(max-width:790px){.grid{grid-template-columns:1fr}.side{grid-template-columns:1fr}.top{flex-wrap:wrap}.seal{white-space:normal}}@media(max-width:360px){.stat b{font-size:15px}.side{padding:14px}.dial button{font-size:11px}}
+</style></head><body><main>
+<header><div class="top"><div><div class="eyebrow">Aetherwake · isolated navigation experiment · v0.3</div><h1>THE HORIZON IS ONLY THE BEGINNING</h1></div><span class="seal">NON-CANON · NO GAME SAVES</span></div><p class="intro">Pilot an illustrative Dragonfly position over a spherical planet. Longitude wraps, polar crossings preserve momentum, and only horizon-adjacent terrain tile data enters the bounded cache. The planet is vastly larger than this local flight view.</p></header>
+<div class="grid"><section class="panel"><div class="bar"><h2>01 / LOCAL FLIGHT VIEW</h2><span>North-up · horizon-limited</span></div><div class="plot"><canvas id="pilot" width="500" height="500" aria-label="Circular local planetary view centered on moving airship"></canvas></div><div class="note">Top-down navigational camera demonstration, not final 3D cockpit graphics. The outer ring is the geometric horizon; no distant continent is visible through the planet.</div><div class="side"><div class="label">Pilot the Dragonfly</div><div class="dial"><div></div><button data-hold="forward" aria-label="Accelerate">▲ Accelerate</button><div></div><button data-hold="left" aria-label="Turn left">◀ Turn</button><button id="pause" aria-label="Pause simulation">⏸ Pause</button><button data-hold="right" aria-label="Turn right">Turn ▶</button><button data-hold="descend" aria-label="Descend">▼ Descend</button><button data-hold="brake" aria-label="Brake">■ Brake</button><button data-hold="climb" aria-label="Climb">▲ Climb</button></div><p class="minor">Keyboard: <strong>W</strong> accelerate, <strong>S</strong> brake, <strong>A / D</strong> turn, <strong>Q / E</strong> descend/climb, <strong>Space</strong> pause. Demo time is compressed 240× to show travel; speeds are experimental.</p></div></section>
+<aside class="panel"><div class="bar"><h2>02 / FLIGHT TELEMETRY</h2><span id="status">Streaming near horizon</span></div><div class="side"><canvas class="chart" id="overview" width="170" height="170" aria-label="Whole-world location chart"></canvas><div class="statGrid"><div class="stat"><span>Latitude</span><b id="latitude">—</b></div><div class="stat"><span>Longitude</span><b id="longitude">—</b></div><div class="stat"><span>Airship height</span><b id="height">—</b></div><div class="stat"><span>Geodesic heading</span><b id="heading">—</b></div><div class="stat"><span>Ground speed</span><b id="speed">—</b></div><div class="stat"><span>Distance flown</span><b id="distance">—</b></div><div class="stat"><span>Horizon arc</span><b id="horizon">—</b></div><div class="stat"><span>Terrain LOD</span><b id="lod">—</b></div><div class="stat"><span>Candidate tiles</span><b id="candidates">—</b></div><div class="stat"><span>Cache entries</span><b id="cache">—</b></div><div class="stat"><span>Terrain loads</span><b id="loads">—</b></div><div class="stat"><span>Cache evictions</span><b id="evictions">—</b></div></div><div class="section"><div class="label">Jump to a geographic test case</div><div class="preset"><button data-lat="25" data-lon="-82" data-alt="20" data-heading="90">Western coast</button><button data-lat="0" data-lon="179.5" data-alt="5" data-heading="90">Date line</button><button data-lat="89.7" data-lon="40" data-alt="15" data-heading="0">North pole</button><button data-lat="-75" data-lon="135" data-alt="20" data-heading="180">Southern ice</button><button data-lat="0" data-lon="43" data-alt="20" data-heading="60">Tropic islands</button></div></div><div class="section"><div class="label">Altitude presets</div><div class="preset"><button data-alt-only="2">Low 2 km</button><button data-alt-only="20">High 20 km</button><button data-alt-only="200">Upper 200 km</button></div></div></div></aside></div>
+<footer>The landforms, colors, 6371-km reference radius, high-altitude ceiling, simulation time compression, and speed controls are <strong>test fixtures only</strong>. Tile payloads are generated into a bounded in-memory cache, not fetched from disk/network. This is not a GPU terrain engine, actual 3D rendering, or an integrated game build. Prototype work remains separate from First Wake and the save system.</footer>
+</main><script src="../../modules/planetary-geometry.js"></script><script src="../../modules/planetary-tiles.js"></script><script src="../../modules/planetary-flight.js"></script><script src="../../modules/planetary-streaming.js"></script><script>
+(function(){'use strict';
+const geo=window.AetherPlanetaryGeometry,tile=window.AetherPlanetaryTiles,flight=window.AetherPlanetaryFlight,stream=window.AetherPlanetaryStreaming;
+const R=6371,DEG=Math.PI/180;const pilot=document.getElementById('pilot'),ctx=pilot.getContext('2d'),mini=document.getElementById('overview'),mctx=mini.getContext('2d');
+let state=flight.createState({latDeg:25,lonDeg:-82,altitudeKm:20,headingDeg:90}),paused=true,last=0,lastDraw=0,drawTime=0;
+const held=new Set(),cache=stream.createCache(256);let currentPlan=null;const S=164,TEX=12;
+const $=id=>document.getElementById(id),norm=(v,a,b)=>Math.max(a,Math.min(b,v));
+function seam(a,b){return Math.atan2(Math.sin(a-b),Math.cos(a-b));}
+function blob(lat,lon,a,b,ly,lx){return Math.hypot((lat-a)/ly,seam(lon,b)/lx);}
+function terrain(lat,lon){
+ let d=Math.min(blob(lat,lon,18*DEG,-117*DEG,65*DEG,39*DEG),blob(lat,lon,34*DEG,28*DEG,55*DEG,50*DEG),blob(lat,lon,-31*DEG,125*DEG,35*DEG,41*DEG),blob(lat,lon,69*DEG,143*DEG,24*DEG,55*DEG),blob(lat,lon,-12*DEG,-16*DEG,16*DEG,23*DEG));
+ const n=Math.sin(lon*3.4+Math.sin(lat*2.3))*.12+Math.sin(lat*7.3-lon*4.1)*.065+Math.sin(lat*13+lon*8)*.034;
+ const islands=Math.abs(lat)<19*DEG&&Math.abs(seam(lon,81*DEG))<47*DEG&&Math.sin(lon*13+Math.sin(lat*8))*Math.sin(lat*15-lon*5)>.57;
+ const land=d+n<1||islands,climate=Math.abs(lat/DEG),v=Math.sin(lon*7+Math.sin(lat*5))*.5+Math.cos(lat*6-lon*4)*.5;
+ if(!land)return climate>76?[199,221,225]:climate>66?[47,103,123]:[17,74+v*10,108+v*12];
+ if(climate>75)return[225,234,230];if(climate>65)return[122,151,145];if(climate>53)return[65,103,85];if(climate>38)return[60,128,98];
+ if(climate>27)return v>.3?[159,145,93]:[69,134,91];if(climate>16)return v>0?[159,133,84]:[75,126,81];return v>.45?[115,154,90]:[36,126,82];
+}
+function loadTile(t){
+ const n=tile.levelSize(t.level),pixels=new Uint8Array(TEX*TEX*3);
+ for(let y=0;y<TEX;y++)for(let x=0;x<TEX;x++){
+  const u=-1+(t.x+(x+.5)/TEX)*2/n,v=-1+(t.y+(y+.5)/TEX)*2/n;
+  const p=tile.unitToCoordinates(tile.vectorFromFaceUV(t.face,u,v));
+  const c=terrain(p.latDeg*DEG,p.lonDeg*DEG),i=(y*TEX+x)*3;
+  pixels[i]=c[0];pixels[i+1]=c[1];pixels[i+2]=c[2];
+ }
+ return {pixels,face:t.face,level:t.level,x:t.x,y:t.y};
+}
+function colorAt(lat,lon,allowed){
+ const dir=tile.coordinatesToUnit(lat,lon),fv=tile.faceUVFromVector(dir),t=tile.tileAt(lat,lon,currentPlan.level);
+ const key=tile.key(t);if(!allowed.has(key))return[8,21,30];
+ const data=cache.use(t,loadTile),scale=tile.levelSize(t.level);
+ const u=norm(Math.floor((((fv.u+1)*scale/2)-t.x)*TEX),0,TEX-1);
+ const v=norm(Math.floor((((fv.v+1)*scale/2)-t.y)*TEX),0,TEX-1);
+ const idx=(v*TEX+u)*3;
+ return[data.pixels[idx],data.pixels[idx+1],data.pixels[idx+2]];
+}
+function drawPilot(){
+ const then=performance.now();currentPlan=stream.plan(state,R,{maxTiles:192});
+ const allowed=new Set(currentPlan.keys);
+ for(const t of currentPlan.tiles)cache.use(t,loadTile);
+ const off=document.createElement('canvas');off.width=S;off.height=S;const ox=off.getContext('2d');const out=ox.createImageData(S,S),data=out.data;
+ for(let y=0;y<S;y++)for(let x=0;x<S;x++){
+  const ex=(x-(S-1)/2)/(S*.48),ny=((S-1)/2-y)/(S*.48),d=Math.hypot(ex,ny),idx=(y*S+x)*4;
+  if(d>1){data[idx+3]=0;continue;}
+  const p=geo.destinationPoint(state,Math.atan2(ex,ny)*180/Math.PI,currentPlan.horizonKm*d,R);
+  const col=colorAt(p.latDeg,p.lonDeg,allowed),light=.72+.17*ny;
+  data[idx]=col[0]*light;data[idx+1]=col[1]*light;data[idx+2]=col[2]*light;data[idx+3]=255;
+ }
+ ox.putImageData(out,0,0);ctx.clearRect(0,0,500,500);
+ const sky=ctx.createRadialGradient(250,210,25,250,250,250);sky.addColorStop(0,'#22444c');sky.addColorStop(1,'#06171e');ctx.fillStyle=sky;ctx.fillRect(0,0,500,500);
+ ctx.imageSmoothingEnabled=true;ctx.drawImage(off,10,10,480,480);
+ ctx.strokeStyle='#d6d4aa99';ctx.lineWidth=2;ctx.beginPath();ctx.arc(250,250,231,0,Math.PI*2);ctx.stroke();
+ ctx.strokeStyle='#f0e2a03c';ctx.lineWidth=1;for(const r of [58,116,174]){ctx.beginPath();ctx.arc(250,250,r,0,Math.PI*2);ctx.stroke();}
+ ctx.strokeStyle='#c1ddce88';ctx.beginPath();ctx.moveTo(250,9);ctx.lineTo(250,34);ctx.moveTo(250,466);ctx.lineTo(250,491);ctx.moveTo(9,250);ctx.lineTo(34,250);ctx.moveTo(466,250);ctx.lineTo(491,250);ctx.stroke();
+ ctx.fillStyle='#f7e3b7';ctx.font='600 13px system-ui';ctx.fillText('N',242,18);
+ ctx.save();ctx.translate(250,250);ctx.rotate(state.headingDeg*DEG);ctx.shadowBlur=16;ctx.shadowColor='#fce1a6';ctx.fillStyle='#fce1a6';ctx.beginPath();ctx.moveTo(0,-19);ctx.lineTo(9,12);ctx.lineTo(0,5);ctx.lineTo(-9,12);ctx.closePath();ctx.fill();ctx.restore();
+ drawTime=performance.now()-then;
+}
+function drawOverview(){
+ mctx.clearRect(0,0,170,170);mctx.fillStyle='#0c303f';mctx.beginPath();mctx.arc(85,85,76,0,2*Math.PI);mctx.fill();
+ for(let y=10;y<160;y+=3)for(let x=10;x<160;x+=3){
+  const a=(x-85)/76,b=(85-y)/76,rr=a*a+b*b;if(rr>=1)continue;
+  const lon=state.lonDeg*DEG,lat=state.latDeg*DEG,out=Math.sqrt(1-rr),cp=Math.cos(lat),sp=Math.sin(lat),cl=Math.cos(lon),sl=Math.sin(lon);
+  const vx=cp*cl*out-sl*a-sp*cl*b,vy=cp*sl*out+cl*a-sp*sl*b,vz=sp*out+cp*b;
+  const col=terrain(Math.atan2(vz,Math.hypot(vx,vy)),Math.atan2(vy,vx));
+  mctx.fillStyle='rgb('+col.map(v=>Math.round(v*.80)).join(',')+')';mctx.fillRect(x,y,3.2,3.2);
+ }
+ mctx.strokeStyle='#c1d4bd90';mctx.lineWidth=1.3;mctx.beginPath();mctx.arc(85,85,76,0,Math.PI*2);mctx.stroke();
+ const rr=76*Math.sin(geo.horizonAngleRad(state.altitudeKm,R));mctx.strokeStyle='#eed8a7';mctx.lineWidth=2;mctx.beginPath();mctx.arc(85,85,Math.max(rr,3),0,Math.PI*2);mctx.stroke();
+ mctx.fillStyle='#eedaaf';mctx.fillRect(83,83,4,4);
+}
+function fmt(v,dec=1){return v.toLocaleString('en-US',{maximumFractionDigits:dec,minimumFractionDigits:dec});}
+function updateStats(){
+ $('latitude').textContent=fmt(Math.abs(state.latDeg),2)+'° '+(state.latDeg>=0?'N':'S');$('longitude').textContent=fmt(Math.abs(state.lonDeg),2)+'° '+(state.lonDeg>=0?'E':'W');
+ $('height').textContent=fmt(state.altitudeKm,1)+' km';$('heading').textContent=fmt(state.headingDeg,1)+'°';$('speed').textContent=Math.round(state.speedKmh)+' km/h';$('distance').textContent=fmt(state.distanceKm,1)+' km';
+ $('horizon').textContent=Math.round(currentPlan.horizonKm)+' km';$('lod').textContent=currentPlan.level+(currentPlan.downgraded?' ↓':'');$('candidates').textContent=currentPlan.tiles.length;
+ const stats=cache.stats();$('cache').textContent=stats.size+' / '+stats.maxEntries;$('loads').textContent=stats.misses;$('evictions').textContent=stats.evictions;
+ $('status').textContent='Pilot redraw '+Math.round(drawTime)+' ms';
+}
+function redraw(){drawPilot();drawOverview();updateStats();}
+const keys={'KeyW':'forward','KeyS':'brake','KeyA':'left','KeyD':'right','KeyQ':'descend','KeyE':'climb'};
+document.addEventListener('keydown',e=>{if(e.code==='Space'){if(!e.repeat){paused=!paused;$('pause').textContent=paused?'▶ Resume':'⏸ Pause';}e.preventDefault();return;}if(keys[e.code]){held.add(keys[e.code]);paused=false;$('pause').textContent='⏸ Pause';e.preventDefault();}});
+document.addEventListener('keyup',e=>{if(keys[e.code])held.delete(keys[e.code]);});window.addEventListener('blur',()=>held.clear());
+for(const button of document.querySelectorAll('button[data-hold]')){
+ const control=button.dataset.hold;
+ button.addEventListener('pointerdown',e=>{held.add(control);button.classList.add('active');button.setPointerCapture(e.pointerId);paused=false;$('pause').textContent='⏸ Pause';});
+ for(const name of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(name,()=>{held.delete(control);button.classList.remove('active');});
+}
+$('pause').addEventListener('click',()=>{paused=!paused;$('pause').textContent=paused?'▶ Resume':'⏸ Pause';});
+for(const b of document.querySelectorAll('button[data-lat]'))b.addEventListener('click',()=>{held.clear();state=flight.createState({latDeg:+b.dataset.lat,lonDeg:+b.dataset.lon,altitudeKm:+b.dataset.alt,headingDeg:+b.dataset.heading,speedKmh:0});paused=true;$('pause').textContent='▶ Resume';redraw();});
+for(const b of document.querySelectorAll('button[data-alt-only]'))b.addEventListener('click',()=>{state=flight.createState({...state,altitudeKm:+b.dataset.altOnly});redraw();});
+function frame(now){const dt=Math.min(.06,Math.max(0,(now-last)/1000));last=now;
+ if(!paused){state=flight.advance(state,{turn:(held.has('right')?1:0)-(held.has('left')?1:0),throttle:(held.has('forward')?1:0)-(held.has('brake')?1:0),climb:(held.has('climb')?1:0)-(held.has('descend')?1:0),timeScale:240},dt,R);}
+ if(now-lastDraw>160){redraw();lastDraw=now;}
+ requestAnimationFrame(frame);
+}
+redraw();requestAnimationFrame(frame);
+}());
+</script></body></html>
