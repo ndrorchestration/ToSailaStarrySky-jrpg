@@ -70,8 +70,9 @@ assert(script.includes('--rendering-method') &&
        script.includes('AETHERWAKE_GODOT_CHAPTER1_NATIVE_RENDER_PASS') &&
        script.includes('AETHERWAKE_GODOT_CHAPTER1_ARTISTIC_ACCEPTANCE=PENDING') &&
        script.includes('chapter1-wind-shear-combat-native-960x640.png') &&
+       script.includes('logSha256 = $RenderLogSha') &&
        script.includes('frameSha256 = $RenderHashes'),
-  'exact Windows QA must execute and hash-bind the real native Chapter I render gate');
+  'exact Windows QA must execute and hash-bind the real native Chapter I render gate, including its log and frames');
 
 assert(captureScript.includes('AETHERWAKE_CAPTURE_OUTPUT_DIR') &&
        captureScript.includes('ProjectSettings.globalize_path(DEFAULT_OUTPUT)'),
@@ -82,10 +83,17 @@ assert(buildScript.includes('PSNativeCommandUseErrorActionPreference') &&
        buildScript.includes('$ErrorActionPreference = "Continue"'),
   'Windows build wrapper must preserve Godot exit-code authority under PowerShell native stderr behavior');
 
-assert(script.includes('Start-MpScan -ScanType CustomScan -ScanPath') &&
+assert(script.includes('Get-DefenderCustody') &&
+       script.includes('Get-MpComputerStatus') &&
+       script.includes('DEFENDER_ANTIVIRUS_NOT_ENABLED') &&
+       script.includes('DEFENDER_REALTIME_NOT_ENABLED') &&
+       script.includes('AMProductVersion') &&
+       script.includes('AMEngineVersion') &&
+       script.includes('AntivirusSignatureVersion') &&
+       script.includes('Start-MpScan -ScanType CustomScan -ScanPath') &&
        script.includes('Get-MpThreatDetection') &&
        script.includes('DEFENDER_DETECTION_FOR_'),
-  'exact Windows QA must run fail-closed Defender custom scans');
+  'exact Windows QA must verify active Defender state, custody-bind engine/signature metadata, and run fail-closed custom scans');
 
 assert(script.includes('INSTALL_WRAPPER') &&
        script.includes('UNINSTALL_WRAPPER') &&
