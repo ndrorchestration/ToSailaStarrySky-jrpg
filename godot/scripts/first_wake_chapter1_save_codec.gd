@@ -85,18 +85,48 @@ static func validate(snapshot: Dictionary) -> Dictionary:
 
     match stage_key:
         "signal":
-            if not hazards.is_empty() or not choice_path.is_empty() or ionia_joined or chapter_complete:
+            if signals_complete:
+                return _invalid("signal-stage completion contradiction")
+            if (
+                not hazards.is_empty()
+                or not choice_path.is_empty()
+                or not choice_variant.is_empty()
+                or not epilogue_id.is_empty()
+                or ionia_joined
+                or chapter_complete
+            ):
                 return _invalid("signal-stage progression contradiction")
         "crossing":
-            if not signals_complete or not choice_path.is_empty() or ionia_joined or chapter_complete:
+            if not signals_complete or hazards_complete:
+                return _invalid("crossing-stage completion contradiction")
+            if (
+                not choice_path.is_empty()
+                or not choice_variant.is_empty()
+                or not epilogue_id.is_empty()
+                or ionia_joined
+                or chapter_complete
+            ):
                 return _invalid("crossing-stage progression contradiction")
         "contact":
-            if not signals_complete or not hazards_complete or not choice_path.is_empty() or ionia_joined or chapter_complete:
+            if not signals_complete or not hazards_complete:
+                return _invalid("contact-stage prerequisite contradiction")
+            if (
+                not choice_path.is_empty()
+                or not choice_variant.is_empty()
+                or not epilogue_id.is_empty()
+                or ionia_joined
+                or chapter_complete
+            ):
                 return _invalid("contact-stage progression contradiction")
         "choice":
             if not signals_complete or not hazards_complete or not contacts_complete or not ionia_joined:
                 return _invalid("choice-stage prerequisite contradiction")
-            if not choice_path.is_empty() or not choice_variant.is_empty() or chapter_complete:
+            if (
+                not choice_path.is_empty()
+                or not choice_variant.is_empty()
+                or not epilogue_id.is_empty()
+                or chapter_complete
+            ):
                 return _invalid("choice-stage outcome contradiction")
         "wake":
             if not signals_complete or not hazards_complete or not contacts_complete or not ionia_joined:
