@@ -7,7 +7,7 @@ extends RefCounted
 const StatModel = preload("res://scripts/jrpg_stat_model.gd")
 const Formula = preload("res://scripts/first_wake_combat_formula.gd")
 
-const VERSION := "0.1.0"
+const VERSION := "0.2.0"
 const TARGET_ID := "formula_review_target"
 const TARGET_NAME := "Formula Review Target"
 const TARGET_MAX_HP := 26
@@ -22,8 +22,10 @@ var local_rng := RandomNumberGenerator.new()
 
 var active: bool = false
 var completed: bool = false
+var player_defeated: bool = false
 var encounter_kind: String = "formula_review"
 var turns: int = 0
+var enemy_turns: int = 0
 var player: Dictionary = {}
 var target: Dictionary = {}
 var log: Array[String] = []
@@ -67,8 +69,10 @@ func reset() -> void:
     }
     active = false
     completed = false
+    player_defeated = false
     encounter_kind = "formula_review"
     turns = 0
+    enemy_turns = 0
     log = []
 
 func start() -> bool:
@@ -100,6 +104,8 @@ func start_with_target(profile: Dictionary) -> bool:
         "type": str(profile.get("type", "")),
         "ability": str(profile.get("ability", "")),
         "abilityDesc": str(profile.get("abilityDesc", "")),
+        "abilityDamage": int(profile.get("abilityDamage", 0)),
+        "abilityKnockback": bool(profile.get("abilityKnockback", false)),
         "bodyShape": str(profile.get("bodyShape", "")),
         "adapterVersion": str(profile.get("adapterVersion", "")),
         "adapterSource": str(profile.get("adapterSource", "")),
@@ -117,6 +123,11 @@ func _valid_target_profile(profile: Dictionary) -> bool:
         return false
     if str(profile.get("weakness", "")).strip_edges().is_empty():
         return false
+    if str(profile.get("encounterKind", "")) == "authored_hazard":
+        if str(profile.get("ability", "")).strip_edges().is_empty():
+            return false
+        if int(profile.get("abilityDamage", 0)) <= 0:
+            return false
     var derived = profile.get("productionDerivedStats", {})
     if not (derived is Dictionary):
         return false
@@ -129,21 +140,25 @@ func close() -> bool:
     return true
 
 func take_action(action_id: String) -> bool:
-    if not active or completed:
+    if not active or completed or player_defeated:
         return false
     if action_id not in Formula.AUTHORIZED_FORMULA_ACTIONS:
         return false
 
+    var accepted := false
     match action_id:
         "staffStrike":
-            return _staff_strike()
+            accepted = _staff_strike()
         "uncoverTruth":
-            return _uncover_truth()
+            accepted = _uncover_truth()
         "hold":
-            return _hold()
+            accepted = _hold()
         "rest":
-            return _rest()
-    return false
+            accepted = _rest()
+
+    if accepted and encounter_kind == "authored_hazard" and not completed:
+        _resolve_enemy_retaliation()
+    return accepted
 
 func _staff_strike() -> bool:
     if int(player.get("staffCharges", 0)) <= 0:
@@ -224,6 +239,25 @@ func _rest() -> bool:
     ])
     return true
 
+func _resolve_enemy_retaliation() -> bool:
+    if encounter_kind != "authored_hazard" or completed or player_defeated:
+        return false
+    var damage := int(target.get("abilityDamage", 0))
+    var ability_id := str(target.get("ability", ""))
+    if damage <= 0 or ability_id.is_empty():
+        log.append("Enemy retaliation unavailable; authored metadata is incomplete.")
+        return false
+
+    player["vit"] = maxi(0, int(player.get("vit", 0)) - damage)
+    enemy_turns += 1
+    var ability_label := "Gale Force" if ability_id == "galeForce" else ability_id
+    log.append("%s: %d damage." % [ability_label, damage])
+
+    if int(player["vit"]) == 0:
+        player_defeated = true
+        log.append("Ender is down. Close the encounter; Crossing progress remains unchanged.")
+    return true
+
 func last_log() -> String:
     if log.is_empty():
         return ""
@@ -238,8 +272,10 @@ func snapshot() -> Dictionary:
         "version": VERSION,
         "active": active,
         "completed": completed,
+        "playerDefeated": player_defeated,
         "encounterKind": encounter_kind,
         "turns": turns,
+        "enemyTurns": enemy_turns,
         "player": player.duplicate(true),
         "target": target.duplicate(true),
         "log": log.duplicate(),

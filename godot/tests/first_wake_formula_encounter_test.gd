@@ -22,7 +22,7 @@ func _initialize() -> void:
     var sequence = Sequence.new([0.5, 0.99, 0.5, 0.99, 0.5, 0.99, 0.5, 0.99, 0.5, 0.99])
     var encounter = Encounter.new(sequence.next)
 
-    if Encounter.VERSION != "0.1.0":
+    if Encounter.VERSION != "0.2.0":
         _fail("encounter version drifted")
         return
     if not encounter.start() or not encounter.active:
@@ -93,6 +93,9 @@ func _initialize() -> void:
 
     if not encounter.completed or int(encounter.target["hp"]) != 0:
         _fail("review target did not complete")
+        return
+    if encounter.enemy_turns != 0 or encounter.player_defeated:
+        _fail("noncanonical Formula Review incorrectly gained enemy retaliation")
         return
     if encounter.take_action("hold"):
         _fail("completed encounter accepted another turn")

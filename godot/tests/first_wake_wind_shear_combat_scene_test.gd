@@ -65,11 +65,18 @@ func _verify() -> void:
     if str(world.formula_encounter.target.get("name", "")) != "Harmonic Shear Elemental":
         _fail("real scene target name drifted")
         return
+    var vit_before_retaliation := int(world.formula_encounter.player["vit"])
     if not world.take_formula_review_action("uncoverTruth"):
         _fail("authored encounter rejected Uncover Truth")
         return
     if not world.formula_encounter.weakness_revealed():
         _fail("authored encounter did not expose Wind Shear weakness")
+        return
+    if int(world.formula_encounter.player["vit"]) != vit_before_retaliation - 2:
+        _fail("real scene did not apply exact Gale Force retaliation")
+        return
+    if world.formula_encounter.enemy_turns != 1:
+        _fail("real scene enemy turn counter did not advance")
         return
     if "wind_shear" in world.chapter.completed_hazards:
         _fail("combat start/action prematurely completed the hazard")

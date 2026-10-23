@@ -42,6 +42,9 @@ assert(script.includes('Crossing: interact with Wind Shear to open its current-s
        script.includes('Clear Wind Shear, then C to confirm that Crossing hazard') &&
        script.includes('Loose Cargo Sweep and Dock Authority Hold remain noncombat Chapter I hazards'),
   'native package instructions must distinguish authored Wind Shear combat from noncombat hazards');
+assert(script.includes('Wind Shear retaliates after successful turns with its current live Gale Force: 2 damage') &&
+       script.includes('If Ender is downed, C closes the transient encounter and Crossing progress is unchanged'),
+  'native package instructions must explain authored retaliation and fail-closed defeat');
 assert(script.includes('previous valid generation is retained for backup recovery') &&
        script.includes('Formula Review, and active Wind Shear combat are transient and are not persisted') &&
        script.includes('without awarding hazard progress'),

@@ -13,7 +13,7 @@ extends RefCounted
 
 const StatModel = preload("res://scripts/jrpg_stat_model.gd")
 
-const VERSION := "0.1.0"
+const VERSION := "0.2.0"
 const ADAPTER_SOURCE := "aetherwake.js/current-live-enemy-metadata"
 
 const HAZARD_TO_ENEMY := {
@@ -35,6 +35,8 @@ const CURRENT_ENEMIES := {
         "type": "windShear",
         "ability": "galeForce",
         "abilityDesc": "Gale Force — 2 damage, knocks you back",
+        "abilityDamage": 2,
+        "abilityKnockback": true,
         "color": "scioto",
         "bodyShape": "elemental",
     },
@@ -90,6 +92,8 @@ func target_for_enemy(enemy_id: String, hazard_id: String = "") -> Dictionary:
         "type": str(source.get("type", enemy_id)),
         "ability": str(source.get("ability", "")),
         "abilityDesc": str(source.get("abilityDesc", "")),
+        "abilityDamage": int(source.get("abilityDamage", 0)),
+        "abilityKnockback": bool(source.get("abilityKnockback", false)),
         "bodyShape": str(source.get("bodyShape", "")),
         "legacyPrimaryStats": legacy_primary.duplicate(true),
         "productionPrimaryStats": production_primary.duplicate(true),
@@ -120,6 +124,12 @@ func validate_target(profile: Dictionary) -> bool:
     if str(profile.get("name", "")).strip_edges().is_empty():
         return false
     if str(profile.get("weakness", "")).strip_edges().is_empty():
+        return false
+    if str(profile.get("ability", "")).strip_edges().is_empty():
+        return false
+    if int(profile.get("abilityDamage", 0)) <= 0:
+        return false
+    if not bool(profile.get("abilityKnockback", false)):
         return false
     var derived = profile.get("productionDerivedStats", {})
     if not (derived is Dictionary):
