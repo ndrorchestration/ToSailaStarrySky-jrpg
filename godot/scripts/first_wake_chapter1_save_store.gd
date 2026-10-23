@@ -40,6 +40,10 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
         if not _copy(path, backup_path):
             _remove_if_exists(temp_path)
             return _error("SAVE_BACKUP_COPY_FAILED")
+        var backup_read := _read_valid(backup_path)
+        if not bool(backup_read.get("ok", false)):
+            _remove_if_exists(temp_path)
+            return _error("SAVE_BACKUP_VERIFY_FAILED:" + str(backup_read.get("error", "unknown")))
 
     _remove_if_exists(path)
     if not _rename(temp_path, path):
