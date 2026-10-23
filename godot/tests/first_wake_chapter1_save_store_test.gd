@@ -21,6 +21,13 @@ func _initialize() -> void:
     if not bool(first.get("ok", false)):
         _fail("first valid save failed: " + str(first.get("error", "")))
         return
+    var first_primary_sha := FileAccess.get_sha256(TEST_PATH)
+    if first_primary_sha.is_empty() or str(first.get("primary_sha256", "")) != first_primary_sha:
+        _fail("first save did not custody-bind exact primary bytes")
+        return
+    if not str(first.get("backup_sha256", "")).is_empty():
+        _fail("first save falsely reported a previous-generation backup")
+        return
 
     var load_a := store.load_snapshot(TEST_PATH)
     if not bool(load_a.get("ok", false)) or bool(load_a.get("recovered", true)):
@@ -66,6 +73,17 @@ func _initialize() -> void:
         return
     if str(backup_parsed["stage"]) != "signal":
         _fail("backup did not preserve the exact previous generation")
+        return
+    var backup_sha := FileAccess.get_sha256(TEST_PATH + ".bak")
+    if backup_sha.is_empty() or backup_sha != first_primary_sha:
+        _fail("backup bytes did not match the exact previous primary generation")
+        return
+    if str(second.get("backup_sha256", "")) != backup_sha:
+        _fail("second save did not receipt the exact backup generation hash")
+        return
+    var second_primary_sha := FileAccess.get_sha256(TEST_PATH)
+    if second_primary_sha.is_empty() or str(second.get("primary_sha256", "")) != second_primary_sha:
+        _fail("second save did not receipt the exact new primary hash")
         return
 
     var load_b := store.load_snapshot(TEST_PATH)
