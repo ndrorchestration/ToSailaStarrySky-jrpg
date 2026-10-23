@@ -112,6 +112,24 @@ func _verify() -> void:
         _fail("unknown contact admitted")
         return
 
+    var missing_signal_contact := partial.duplicate(true)
+    missing_signal_contact["contacts_met"] = []
+    if SaveCodec.restore(missing_signal_contact).get("ok", true):
+        _fail("completed signal admitted without corresponding contact evidence")
+        return
+
+    var orphan_signal_contact := partial.duplicate(true)
+    orphan_signal_contact["contacts_met"] = ["engine_spirit", "child_prophet"]
+    if SaveCodec.restore(orphan_signal_contact).get("ok", true):
+        _fail("contact evidence admitted without corresponding completed signal")
+        return
+
+    var early_ionia_contact := partial.duplicate(true)
+    early_ionia_contact["contacts_met"] = ["engine_spirit", "elder_farmer"]
+    if SaveCodec.restore(early_ionia_contact).get("ok", true):
+        _fail("Ionia contact evidence admitted before authored Contact boundary")
+        return
+
     var incomplete_done := done_snapshot.duplicate(true)
     incomplete_done["epilogue_id"] = ""
     if SaveCodec.restore(incomplete_done).get("ok", true):
