@@ -399,6 +399,8 @@ foreach ($RelativeZipPath in $ExpectedZipFiles) {
         throw "ZIP_PAYLOAD_HASH_MISMATCH:$RelativeZipPath"
     }
 }
+$AuditedInstallCmd = Join-Path $ZipAuditDir "Install-Aetherwake-Godot-Preview.cmd"
+Assert-Exists $AuditedInstallCmd "audited extracted ZIP installer"
 
 $InstallDir = Join-Path $env:LOCALAPPDATA "Programs\Aetherwake-Godot-Native-Preview"
 $InstalledExe = Join-Path $InstallDir "Aetherwake-First-Wake-Godot-Preview.exe"
@@ -420,7 +422,7 @@ foreach ($residuePath in @($DesktopShortcut, $StartMenuDir, $TempCleanup)) {
     }
 }
 
-Invoke-CmdChecked $InstallCmd "native preview installer"
+Invoke-CmdChecked $AuditedInstallCmd "audited extracted ZIP native preview installer"
 
 $LaunchDeadline = (Get-Date).AddSeconds(20)
 $Running = @()
@@ -571,6 +573,7 @@ $Receipt = [ordered]@{
         zip = "PASS"
     }
     install = [ordered]@{
+        source = "audited-extracted-zip"
         perUser = "PASS"
         installedExeHashMatch = "PASS"
         installedUninstallerHashMatch = "PASS"
@@ -626,6 +629,7 @@ $MarkdownReceipt = @(
     "",
     "## Windows verification",
     "- Defender custom scans: PASS (installer / uninstaller / packaged EXE / ZIP)",
+    "- Install source: audited extracted ZIP",
     "- Per-user install: PASS",
     "- Installed EXE byte identity: PASS",
     "- Installed uninstaller byte identity: PASS",
