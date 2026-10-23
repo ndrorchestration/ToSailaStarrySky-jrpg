@@ -192,6 +192,7 @@ function Find-ExactExecutableProcess([string]$ExecutablePath) {
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $RepoRoot = [System.IO.Path]::GetFullPath($RepoRoot)
 $GodotDir = Join-Path $RepoRoot "godot"
+$GodotCacheDir = Join-Path $GodotDir ".godot"
 
 Assert-Exists $GodotExe "Godot editor"
 $GodotVersionLog = Join-Path $env:TEMP "aetherwake-godot-version-$PID.txt"
@@ -223,6 +224,13 @@ if ($ExpectedSourceSha -notmatch '^[0-9a-f]{40}$') {
     throw "EXPECTED_SOURCE_SHA_INVALID:$ExpectedSourceSha"
 }
 
+# The .godot directory is generated cache and is deliberately not source
+# authority. Remove it before the exact-source precondition so stale imports
+# cannot influence this run.
+if (Test-Path -LiteralPath $GodotCacheDir) {
+    Remove-Item -LiteralPath $GodotCacheDir -Recurse -Force
+}
+
 Push-Location $RepoRoot
 try {
     $HeadSha = (& git rev-parse HEAD).Trim()
@@ -241,12 +249,14 @@ try {
         throw "TRACKED_WORKTREE_NOT_CLEAN"
     }
 
-    $UntrackedGodot = @(& git ls-files --others --exclude-standard -- godot)
+    # Do not use --exclude-standard here: ignored files under the Godot project
+    # can still affect import/export and therefore contaminate exact-source QA.
+    $UntrackedGodot = @(& git ls-files --others -- godot)
     if ($LASTEXITCODE -ne 0) {
         throw "GIT_UNTRACKED_GODOT_SCAN_FAILED"
     }
     if ($UntrackedGodot.Count -gt 0) {
-        throw "UNTRACKED_GODOT_AUTHORITY_FILES"
+        throw "UNTRACKED_GODOT_AUTHORITY_FILES:" + ($UntrackedGodot -join ",")
     }
 }
 finally {
@@ -536,6 +546,15 @@ if (Test-Path -LiteralPath $TempCleanup) {
     throw "UNINSTALL_LEFT_TEMP_CLEANUP_COPY"
 }
 
+# Godot 4.x legitimately creates project-local import metadata. The repo does
+# not currently track those generated sidecars, so custody-bind and clean only
+# metadata whose base source file is already tracked. Every other untracked file
+# remains a hard failure.
+$GeneratedGodotMetadataSha = [ordered]@{}
+if (Test-Path -LiteralPath $GodotCacheDir) {
+    Remove-Item -LiteralPath $GodotCacheDir -Recurse -Force
+}
+
 Push-Location $RepoRoot
 try {
     $TrackedDirty = @(& git status --porcelain --untracked-files=no)
@@ -546,12 +565,63 @@ try {
         throw "TRACKED_SOURCE_CHANGED_DURING_QA"
     }
 
-    $FinalUntrackedGodot = @(& git ls-files --others --exclude-standard -- godot)
+    $FinalUntrackedGodot = @(& git ls-files --others -- godot)
     if ($LASTEXITCODE -ne 0) {
         throw "FINAL_GIT_UNTRACKED_GODOT_SCAN_FAILED"
     }
-    if ($FinalUntrackedGodot.Count -gt 0) {
-        throw "UNTRACKED_GODOT_AUTHORITY_FILES_CREATED_DURING_QA"
+
+    $UnexpectedUntrackedGodot = @()
+    foreach ($RelativeMetadataPath in $FinalUntrackedGodot) {
+        $IsImportMetadata = $RelativeMetadataPath.EndsWith(".import", [System.StringComparison]::OrdinalIgnoreCase)
+        $IsUidMetadata = $RelativeMetadataPath.EndsWith(".uid", [System.StringComparison]::OrdinalIgnoreCase)
+        if (-not ($IsImportMetadata -or $IsUidMetadata)) {
+            $UnexpectedUntrackedGodot += $RelativeMetadataPath
+            continue
+        }
+
+        $SuffixLength = 7 if $IsImportMetadata else 4
+        $SourceRelativePath = $RelativeMetadataPath.Substring(0, $RelativeMetadataPath.Length - $SuffixLength)
+        $TrackedSourceMatch = @(& git ls-files -- $SourceRelativePath)
+        if ($LASTEXITCODE -ne 0) {
+            throw "FINAL_GIT_TRACKED_SOURCE_LOOKUP_FAILED:$SourceRelativePath"
+        }
+        if ($TrackedSourceMatch -notcontains $SourceRelativePath) {
+            $UnexpectedUntrackedGodot += $RelativeMetadataPath
+            continue
+        }
+
+        $MetadataPath = Join-Path $RepoRoot $RelativeMetadataPath
+        Assert-Exists $MetadataPath "generated Godot metadata $RelativeMetadataPath"
+        $MetadataText = (Get-Content -LiteralPath $MetadataPath -Raw).Trim()
+        if ($IsUidMetadata) {
+            if ($MetadataText -notmatch '^uid://[a-z0-9]+$') {
+                throw "GENERATED_GODOT_UID_METADATA_INVALID:$RelativeMetadataPath"
+            }
+        }
+        elseif (
+            [string]::IsNullOrWhiteSpace($MetadataText) -or
+            $MetadataText.IndexOf("[remap]", [System.StringComparison]::Ordinal) -lt 0 -or
+            $MetadataText.IndexOf("source_file=", [System.StringComparison]::Ordinal) -lt 0
+        ) {
+            throw "GENERATED_GODOT_IMPORT_METADATA_INVALID:$RelativeMetadataPath"
+        }
+        $GeneratedGodotMetadataSha[$RelativeMetadataPath] = Get-Sha256Hex $MetadataPath
+    }
+
+    if ($UnexpectedUntrackedGodot.Count -gt 0) {
+        throw "UNTRACKED_GODOT_AUTHORITY_FILES_CREATED_DURING_QA:" + ($UnexpectedUntrackedGodot -join ",")
+    }
+
+    foreach ($RelativeMetadataPath in $GeneratedGodotMetadataSha.Keys) {
+        Remove-Item -LiteralPath (Join-Path $RepoRoot $RelativeMetadataPath) -Force
+    }
+
+    $RemainingUntrackedGodot = @(& git ls-files --others -- godot)
+    if ($LASTEXITCODE -ne 0) {
+        throw "FINAL_GIT_METADATA_CLEANUP_SCAN_FAILED"
+    }
+    if ($RemainingUntrackedGodot.Count -gt 0) {
+        throw "GENERATED_GODOT_METADATA_CLEANUP_FAILED:" + ($RemainingUntrackedGodot -join ",")
     }
 }
 finally {
@@ -570,6 +640,11 @@ $Receipt = [ordered]@{
     windowsReleaseTemplate = [System.IO.Path]::GetFullPath($ReleaseTemplate)
     windowsReleaseTemplateSha256 = $ReleaseTemplateSha
     templateVersionText = $TemplateVersionText
+    generatedGodotMetadata = [ordered]@{
+        count = $GeneratedGodotMetadataSha.Count
+        sha256 = $GeneratedGodotMetadataSha
+        cleaned = "PASS"
+    }
     render = [ordered]@{
         method = "gl_compatibility"
         log = [System.IO.Path]::GetFullPath($RenderLog)
@@ -640,6 +715,12 @@ $MarkdownReceipt = @(
     "- Template version text: $TemplateVersionText",
     "- Template provenance boundary: exact version + local SHA-256 custody; no upstream publisher-signature claim",
     "",
+    "## Generated Godot metadata",
+    "- Generated .import/.uid sidecars for tracked sources: $($GeneratedGodotMetadataSha.Count)",
+    "- Sidecar SHA-256 custody: recorded in JSON receipt",
+    "- Generated sidecar cleanup: PASS",
+    "- .godot cache cleanup: PASS",
+    "",
     "## Native render gate",
     "- Rendering method: gl_compatibility",
     "- Render log SHA-256: $RenderLogSha",
@@ -688,6 +769,7 @@ Write-Output "AETHERWAKE_GODOT_EXACT_QA_GODOT_SHA256=$GodotExeSha"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_GODOT_SIGNER=$($GodotSignature.subject)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_TEMPLATE_SHA256=$ReleaseTemplateSha"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_TEMPLATE_VERSION=$TemplateVersionText"
+Write-Output "AETHERWAKE_GODOT_EXACT_QA_GENERATED_METADATA=$($GeneratedGodotMetadataSha.Count)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_RENDER_FRAMES=$($ExpectedRenderFiles.Count)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_EXE_BYTES=$($PayloadExeItem.Length)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_EXE_SHA256=$ExeSha"
