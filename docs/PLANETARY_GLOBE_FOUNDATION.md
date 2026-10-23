@@ -114,3 +114,25 @@ Regression coverage now:
 An independent exhaustive/property audit over tractable LODs found the neighbor graph connected and the BFS candidate set equal to brute-force center-distance selection for the sampled caps/positions. Additional randomized corner checks through L12 found no padding violation. These are same-session engineering checks, not hosted CI or native-renderer evidence.
 
 No world geometry, flight speed, save data, canon radius, cartography, Chapter I scene or renderer asset changed. Exact-head Node/hosted execution remains separately required.
+
+
+## 2026-10-23 — cinematic Godot v0.7.2 native-handoff pin repair
+
+Exact v0.7.1 bytes became available from the project Library and were independently materialized for audit. The archived Godot source itself matched the recorded v0.7.1 ZIP and 33-file source-manifest identities, but the Windows review handoff contained a concrete stale-pin defect:
+
+- `SOURCE_MANIFEST_SHA256.txt` correctly named v0.7.1 source manifest `65f5a3e8bb960ad5b2bdef6ff49bb44c27c4d349681bdbcbf59d44c1aa3d4c57`;
+- `tools/run_native_review_windows.ps1`, `README.md`, and `NATIVE_REVIEW_KIT_README.md` still pinned the older v0.7 source manifest `1071e1343d0c6a29328987f39fcdd55c979ff87b7a39df1513dc483a794a1536`;
+- therefore the v0.7.1 Windows launcher would fail closed on a source-manifest mismatch before Godot could execute, even when the v0.7.1 source was correct.
+
+A distinct repaired Library artifact was produced rather than silently replacing v0.7.1:
+
+- artifact: `Aetherwake_Godot_Georeferenced_Flight_v0.7.2_2026-10-23.zip`
+- size: **1,765,301 bytes**
+- ZIP SHA-256: `8550d57c7c8cc62cb17e6c426cde211998622c608f9c8c744845c81841298cd6`
+- ZIP members: **49**
+- underlying Godot source/test/tool manifest: unchanged **33 files**
+- source-manifest SHA-256: unchanged `65f5a3e8bb960ad5b2bdef6ff49bb44c27c4d349681bdbcbf59d44c1aa3d4c57`
+
+The repair changes only non-manifest handoff files: the Windows PowerShell launcher and two READMEs. Recomputed source-manifest identity remains exact. Running the Python native-review gate with the repaired expected manifest and a deliberately nonexistent Godot binary now reaches the intended `Godot executable missing; no native QA attempted` result rather than a manifest mismatch. Static/source validators remain PASS; declaration-boundary self-tests are 3/3 PASS; all 12 synthetic receipt-gate tests were observed passing across bounded grouped/individual executions. These are QA-harness checks only.
+
+Native Godot 4.7.2 import, GDScript/shader compilation, modes 1/4/5 renderer captures, GPU frame time/VRAM and creator visual acceptance remain **NOT VERIFIED**. Do not admit the cinematic source into runtime/main or claim renderer fidelity until those native gates execute.
