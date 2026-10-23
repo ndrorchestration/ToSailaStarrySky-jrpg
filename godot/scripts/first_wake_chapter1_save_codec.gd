@@ -18,6 +18,19 @@ const SIGNAL_CONTACT_BY_SIGNAL := {
     "below_frequency": "child_prophet",
     "sky_lane_warning": "corporate_salvager",
 }
+const REQUIRED_V1_FIELDS: Array[String] = [
+    "schema",
+    "stage",
+    "signals_completed",
+    "hazards_completed",
+    "contacts_met",
+    "ionia_joined_for_choice",
+    "choice_path",
+    "choice_variant",
+    "epilogue_id",
+    "chapter_one_complete",
+    "resolver_stats",
+]
 
 static func encode(chapter, stats: Dictionary = {}, player_position: Variant = null) -> Dictionary:
     var snapshot := {
@@ -45,16 +58,22 @@ static func encode(chapter, stats: Dictionary = {}, player_position: Variant = n
     return snapshot
 
 static func validate(snapshot: Dictionary) -> Dictionary:
-    if str(snapshot.get("schema", "")) != SCHEMA_VERSION:
-        return _invalid("unsupported schema")
+    for required_field in REQUIRED_V1_FIELDS:
+        if not snapshot.has(required_field):
+            return _invalid("missing required field: " + required_field)
 
-    var stage_key := str(snapshot.get("stage", ""))
+    if typeof(snapshot["schema"]) != TYPE_STRING or str(snapshot["schema"]) != SCHEMA_VERSION:
+        return _invalid("unsupported schema")
+    if typeof(snapshot["stage"]) != TYPE_STRING:
+        return _invalid("stage must be a string")
+
+    var stage_key := str(snapshot["stage"])
     if stage_key not in STAGE_KEYS:
         return _invalid("invalid stage")
 
-    var signals = snapshot.get("signals_completed", [])
-    var hazards = snapshot.get("hazards_completed", [])
-    var contacts = snapshot.get("contacts_met", [])
+    var signals = snapshot["signals_completed"]
+    var hazards = snapshot["hazards_completed"]
+    var contacts = snapshot["contacts_met"]
     if not _is_valid_unique_subset(signals, ChapterState.SIGNAL_IDS):
         return _invalid("invalid signal set")
     if not _is_valid_unique_subset(hazards, ChapterState.HAZARD_IDS):
@@ -69,11 +88,22 @@ static func validate(snapshot: Dictionary) -> Dictionary:
     if stage_key in ["signal", "crossing", "contact"] and ionia_contact_met:
         return _invalid("Ionia contact appears before authored Contact completion")
 
-    var ionia_joined := bool(snapshot.get("ionia_joined_for_choice", false))
-    var choice_path := str(snapshot.get("choice_path", ""))
-    var choice_variant := str(snapshot.get("choice_variant", ""))
-    var epilogue_id := str(snapshot.get("epilogue_id", ""))
-    var chapter_complete := bool(snapshot.get("chapter_one_complete", false))
+    if typeof(snapshot["ionia_joined_for_choice"]) != TYPE_BOOL:
+        return _invalid("Ionia join flag must be boolean")
+    if typeof(snapshot["choice_path"]) != TYPE_STRING:
+        return _invalid("choice path must be a string")
+    if typeof(snapshot["choice_variant"]) != TYPE_STRING:
+        return _invalid("choice variant must be a string")
+    if typeof(snapshot["epilogue_id"]) != TYPE_STRING:
+        return _invalid("epilogue id must be a string")
+    if typeof(snapshot["chapter_one_complete"]) != TYPE_BOOL:
+        return _invalid("chapter completion flag must be boolean")
+
+    var ionia_joined: bool = snapshot["ionia_joined_for_choice"]
+    var choice_path: String = snapshot["choice_path"]
+    var choice_variant: String = snapshot["choice_variant"]
+    var epilogue_id: String = snapshot["epilogue_id"]
+    var chapter_complete: bool = snapshot["chapter_one_complete"]
 
     if not choice_path.is_empty() and choice_path not in ChapterState.CHOICE_IDS:
         return _invalid("invalid choice path")
@@ -140,13 +170,23 @@ static func validate(snapshot: Dictionary) -> Dictionary:
             if choice_path.is_empty() or choice_variant.is_empty() or epilogue_id.strip_edges().is_empty() or not chapter_complete:
                 return _invalid("done-stage completion contradiction")
 
-    var stats_value: Variant = snapshot.get("resolver_stats", {})
+    var stats_value: Variant = snapshot["resolver_stats"]
     if not (stats_value is Dictionary):
         return _invalid("resolver stats missing")
     var stats: Dictionary = stats_value
-    var hull: int = int(stats.get("hull_integrity", -1))
-    var morale: int = int(stats.get("morale", -1))
-    var engine: int = int(stats.get("engine_integration", -1))
+    for stat_key in ["hull_integrity", "morale", "engine_integration"]:
+        if not stats.has(stat_key):
+            return _invalid("resolver stat missing: " + stat_key)
+        var raw_stat: Variant = stats[stat_key]
+        if typeof(raw_stat) not in [TYPE_INT, TYPE_FLOAT]:
+            return _invalid("resolver stat must be numeric: " + stat_key)
+        var numeric_stat := float(raw_stat)
+        if not is_finite(numeric_stat) or numeric_stat != floor(numeric_stat):
+            return _invalid("resolver stat must be a finite integer: " + stat_key)
+
+    var hull: int = int(stats["hull_integrity"])
+    var morale: int = int(stats["morale"])
+    var engine: int = int(stats["engine_integration"])
     if hull < 0 or hull > 100:
         return _invalid("hull integrity out of range")
     if morale < 0 or morale > 100:
@@ -268,7 +308,9 @@ static func _is_valid_unique_subset(values, allowed: Array[String]) -> bool:
         return false
     var seen: Dictionary = {}
     for raw in values:
-        var value := str(raw)
+        if typeof(raw) != TYPE_STRING:
+            return false
+        var value: String = raw
         if value not in allowed or seen.has(value):
             return false
         seen[value] = true
