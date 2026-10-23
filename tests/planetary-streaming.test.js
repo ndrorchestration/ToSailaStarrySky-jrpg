@@ -53,7 +53,7 @@ test('small tile budget triggers safe coarser LOD without exceeding cap',()=>{
  const p={latDeg:42,lonDeg:-79,altitudeKm:200};
  const plan=stream.plan(p,R,{level:11,maxTiles:25});
  assert.ok(plan.downgraded);
- assert.ok(plan.level<11);
+ assert.equal(plan.level,3);
  assert.ok(plan.tiles.length<=25);
 });
 test('cache is bounded LRU, loads once, and exposes eviction counters',()=>{
