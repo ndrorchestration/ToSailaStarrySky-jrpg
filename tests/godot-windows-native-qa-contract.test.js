@@ -22,13 +22,19 @@ const captureScript = fs.readFileSync(
 );
 
 assert(script.includes('[string]$ExpectedSourceSha') &&
+       script.includes('EXPECTED_SOURCE_SHA_INVALID') &&
        script.includes('SOURCE_SHA_MISMATCH') &&
        script.includes('git rev-parse HEAD') &&
        script.includes('git status --porcelain --untracked-files=no') &&
        script.includes('TRACKED_WORKTREE_NOT_CLEAN') &&
        script.includes('git ls-files --others --exclude-standard -- godot') &&
        script.includes('UNTRACKED_GODOT_AUTHORITY_FILES'),
-  'exact Windows QA must bind clean tracked source and an uncontaminated Godot project to an expected SHA');
+  'exact Windows QA must validate and bind clean tracked source plus an uncontaminated Godot project to an expected SHA');
+
+assert((script.match(/EXPECTED_SOURCE_SHA_INVALID/g) || []).length === 1 &&
+       (script.match(/git rev-parse HEAD/g) || []).length === 1 &&
+       (script.match(/AETHERWAKE_GODOT_EXACT_WINDOWS_PACKAGE_QA=PASS/g) || []).length === 1,
+  'exact Windows QA control flow must contain one source validator, one HEAD binding and one terminal PASS marker');
 
 assert(script.includes('build-godot-chapter1-windows-preview.ps1') &&
        script.includes('package-godot-chapter1-windows-preview.ps1'),
@@ -86,6 +92,8 @@ assert(script.includes('Aetherwake Native Preview.lnk') &&
   'exact Windows QA must verify shortcuts and running-app uninstall cleanup');
 
 assert(script.includes('WINDOWS_NATIVE_QA_RECEIPT.json') &&
+       script.includes('WINDOWS_NATIVE_QA_RECEIPT.md') &&
+       script.includes('AETHERWAKE_GODOT_EXACT_QA_RECEIPT_MD=') &&
        script.includes('EXPORTED_TO_PACKAGED_EXE_HASH_MISMATCH') &&
        script.includes('exportedExeSha256') &&
        script.includes('installWrapperSha256') &&
@@ -94,8 +102,9 @@ assert(script.includes('WINDOWS_NATIVE_QA_RECEIPT.json') &&
        script.includes('packageManifestSha256') &&
        script.includes('TRACKED_SOURCE_CHANGED_DURING_QA') &&
        script.includes('publicReleaseAuthorized = $false') &&
+       script.includes('Public release authorized: NO') &&
        script.includes('AETHERWAKE_GODOT_EXACT_WINDOWS_PACKAGE_QA=PASS'),
-  'exact Windows QA must emit complete artifact custody, preserve tracked source and avoid authorizing public release');
+  'exact Windows QA must emit machine and human-readable custody, preserve tracked source and avoid authorizing public release');
 
 assert(!/Start-Process[^\n]*-Verb\s+RunAs/i.test(script),
   'exact Windows QA must not request elevation');
