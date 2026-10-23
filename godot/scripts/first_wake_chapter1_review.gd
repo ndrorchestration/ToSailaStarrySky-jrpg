@@ -81,6 +81,9 @@ func _ready() -> void:
     ender.walking_bounds = DECK_BOUNDS
     ender.position = Vector2(360, 465)
     actors.add_child(ender)
+    # Private native-preview presentation: use the already-authored directional
+    # Ender candidate in-place. This does not admit it to a production field pack.
+    ender.set_walk_review_enabled(true)
 
     for contact_id in ChapterState.CONTACT_IDS:
         var actor := Actor.new()
@@ -91,6 +94,8 @@ func _ready() -> void:
         actor.position = CONTACT_POINTS[contact_id]
         actors.add_child(actor)
         contacts[contact_id] = actor
+
+    _sync_stage_actor_presentation()
 
     var foreground := DockDepthReview.new()
     foreground.name = "ChapterOneDockForegroundReviewOnly"
@@ -138,6 +143,20 @@ func _label(parent: Node, location: Vector2, size: int) -> Label:
     label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     parent.add_child(label)
     return label
+
+func _sync_stage_actor_presentation() -> void:
+    # Presentation follows authored story availability; it does not change party
+    # membership or progression. Ionia must not be physically present on the dock
+    # before the Contact boundary.
+    if ender != null:
+        ender.set_walk_review_enabled(true)
+
+    var ionia = contacts.get("elder_farmer", null)
+    if ionia == null:
+        return
+    var show_ionia := chapter.stage_key() in ["contact", "choice", "wake", "done"]
+    ionia.visible = show_ionia
+    ionia.set_ionia_stage_art_enabled(show_ionia, "west")
 
 func _draw() -> void:
     draw_rect(Rect2(10, 8, 940, 90), Color(0.035, 0.07, 0.13, 0.92))
@@ -601,6 +620,7 @@ func _advance_dialogue_review() -> bool:
 
 func _after_progress() -> void:
     ender.player_controlled = (not dialogue.open) and (not formula_encounter.active) and chapter.stage_key() not in ["choice", "done"]
+    _sync_stage_actor_presentation()
     _refresh_ui()
     queue_redraw()
 
@@ -699,6 +719,7 @@ func restore_save_snapshot(snapshot: Dictionary) -> bool:
         resolved_epilogue = Content.epilogue(chapter.epilogue_id)
 
     ender.player_controlled = chapter.stage_key() not in ["choice", "done"]
+    _sync_stage_actor_presentation()
     last_message = "Restored Chapter I save at " + chapter.stage_key().to_upper() + "."
     _refresh_ui()
     queue_redraw()
