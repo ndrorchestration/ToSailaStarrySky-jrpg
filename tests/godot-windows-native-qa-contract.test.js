@@ -12,6 +12,14 @@ const scriptPath = path.resolve(
   'verify-godot-chapter1-windows-preview.ps1'
 );
 const script = fs.readFileSync(scriptPath, 'utf8');
+const buildScript = fs.readFileSync(
+  path.resolve(__dirname, '..', 'scripts', 'build-godot-chapter1-windows-preview.ps1'),
+  'utf8'
+);
+const captureScript = fs.readFileSync(
+  path.resolve(__dirname, '..', 'godot', 'tests', 'capture_first_wake_chapter1_review.gd'),
+  'utf8'
+);
 
 assert(script.includes('[string]$ExpectedSourceSha') &&
        script.includes('SOURCE_SHA_MISMATCH') &&
@@ -25,6 +33,31 @@ assert(script.includes('[string]$ExpectedSourceSha') &&
 assert(script.includes('build-godot-chapter1-windows-preview.ps1') &&
        script.includes('package-godot-chapter1-windows-preview.ps1'),
   'exact Windows QA must run the existing build and package gates');
+
+assert(script.includes('4.7.2.stable.official.ed1daf0bf') &&
+       script.includes('GODOT_VERSION_MISMATCH') &&
+       script.includes('godotExeSha256') &&
+       script.includes('windowsReleaseTemplateSha256') &&
+       script.includes('templateVersionText'),
+  'exact Windows QA must bind the official Godot 4.7.2 toolchain identity into custody');
+
+assert(script.includes('--rendering-method') &&
+       script.includes('gl_compatibility') &&
+       script.includes('capture_first_wake_chapter1_review.gd') &&
+       script.includes('AETHERWAKE_GODOT_CHAPTER1_NATIVE_RENDER_PASS') &&
+       script.includes('AETHERWAKE_GODOT_CHAPTER1_ARTISTIC_ACCEPTANCE=PENDING') &&
+       script.includes('chapter1-wind-shear-combat-native-960x640.png') &&
+       script.includes('frameSha256 = $RenderHashes'),
+  'exact Windows QA must execute and hash-bind the real native Chapter I render gate');
+
+assert(captureScript.includes('AETHERWAKE_CAPTURE_OUTPUT_DIR') &&
+       captureScript.includes('ProjectSettings.globalize_path(DEFAULT_OUTPUT)'),
+  'native capture must support isolated verifier output without breaking default workflow output');
+
+assert(buildScript.includes('PSNativeCommandUseErrorActionPreference') &&
+       buildScript.includes('$GodotExitCode = $LASTEXITCODE') &&
+       buildScript.includes('$ErrorActionPreference = "Continue"'),
+  'Windows build wrapper must preserve Godot exit-code authority under PowerShell native stderr behavior');
 
 assert(script.includes('Start-MpScan -ScanType CustomScan -ScanPath') &&
        script.includes('Get-MpThreatDetection') &&
@@ -53,6 +86,8 @@ assert(script.includes('Aetherwake Native Preview.lnk') &&
   'exact Windows QA must verify shortcuts and running-app uninstall cleanup');
 
 assert(script.includes('WINDOWS_NATIVE_QA_RECEIPT.json') &&
+       script.includes('EXPORTED_TO_PACKAGED_EXE_HASH_MISMATCH') &&
+       script.includes('exportedExeSha256') &&
        script.includes('installWrapperSha256') &&
        script.includes('uninstallWrapperSha256') &&
        script.includes('packageReadmeSha256') &&
