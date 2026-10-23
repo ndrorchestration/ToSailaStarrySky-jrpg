@@ -23,6 +23,9 @@ jobs:
       - name: Verify native Windows preview package safety contract
         shell: bash
         run: node tests/godot-windows-preview-package-contract.test.js
+      - name: Verify exact Windows native QA safety contract
+        shell: bash
+        run: node tests/godot-windows-native-qa-contract.test.js
       - name: Verify lossless native-crop log decoder fails closed
         shell: bash
         run: python3 godot/tests/test_private_crop_decoder.py
