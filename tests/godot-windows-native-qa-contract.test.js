@@ -116,17 +116,22 @@ assert(script.includes('Get-DefenderCustody') &&
   'exact Windows QA must verify active Defender state, custody-bind engine/signature metadata, and run fail-closed custom scans');
 
 assert(script.includes('Get-WinEvent -ListLog "Microsoft-Windows-Windows Defender/Operational"') &&
+       script.includes('Get-DefenderLatestRecordId') &&
+       script.includes('-MaxEvents 1') &&
+       script.includes('$PreScanRecordId = Get-DefenderLatestRecordId') &&
+       script.includes('[long]$Candidate.RecordId -le $PreScanRecordId') &&
        script.includes('Id = @(1000, 1001, 1002)') &&
        script.includes('"Scan Resources"') &&
        script.includes('"Scan ID"') &&
        script.includes('DEFENDER_SCAN_START_EVENT_MISSING_') &&
        script.includes('DEFENDER_SCAN_COMPLETION_EVENT_MISSING_') &&
        script.includes('DEFENDER_SCAN_CANCELLED_') &&
+       script.includes('preScanRecordId = $PreScanRecordId') &&
        script.includes('startEventRecordId = [long]$StartEvent.RecordId') &&
        script.includes('completionEventRecordId = [long]$CompletionEvent.RecordId') &&
        script.includes('threatDetectionCount = $Detections.Count') &&
        !script.includes('Start-Sleep -Milliseconds 750'),
-  'each Defender artifact scan must be bound to exact-path event 1000, same-ID event 1001, fail on 1002, and custody-bind event records plus threat result');
+  'each Defender artifact scan must be record-watermarked, bound to exact-path event 1000, same-ID event 1001, fail on 1002, and custody-bind event records plus threat result');
 
 assert(script.includes('INSTALL_WRAPPER') &&
        script.includes('UNINSTALL_WRAPPER') &&
