@@ -55,6 +55,7 @@ Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://test
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_combat_formula_test.gd") "Production combat formula"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_formula_encounter_test.gd") "Formula review encounter controller"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_formula_encounter_scene_test.gd") "Formula review native scene"
+Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_party_combat_authority_test.gd") "First Wake party combat authority"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_current_enemy_adapter_test.gd") "Current-story enemy adapter"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_wind_shear_retaliation_test.gd") "Authored Wind Shear retaliation"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_wind_shear_combat_scene_test.gd") "Authored Wind Shear Crossing combat"
