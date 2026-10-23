@@ -38,8 +38,10 @@ assert(script.includes('INSTALL_WRAPPER') &&
 assert(script.includes('PREEXISTING_NATIVE_PREVIEW_INSTALL') &&
        script.includes('Get-CimInstance Win32_Process') &&
        script.includes('ExecutablePath') &&
+       script.includes('INSTALLED_EXE_HASH_MISMATCH') &&
+       script.includes('INSTALLED_UNINSTALLER_HASH_MISMATCH') &&
        script.includes('INSTALLED_NATIVE_PREVIEW_WINDOW_NOT_READY'),
-  'install gate must start clean and verify the exact installed native process/window');
+  'install gate must start clean, preserve packaged bytes and verify the exact installed native process/window');
 
 assert(script.includes('Aetherwake Native Preview.lnk') &&
        script.includes('running-app native preview uninstaller') &&
@@ -48,9 +50,14 @@ assert(script.includes('Aetherwake Native Preview.lnk') &&
   'exact Windows QA must verify shortcuts and running-app uninstall cleanup');
 
 assert(script.includes('WINDOWS_NATIVE_QA_RECEIPT.json') &&
+       script.includes('installWrapperSha256') &&
+       script.includes('uninstallWrapperSha256') &&
+       script.includes('packageReadmeSha256') &&
+       script.includes('packageManifestSha256') &&
+       script.includes('TRACKED_SOURCE_CHANGED_DURING_QA') &&
        script.includes('publicReleaseAuthorized = $false') &&
        script.includes('AETHERWAKE_GODOT_EXACT_WINDOWS_PACKAGE_QA=PASS'),
-  'exact Windows QA must emit a bound receipt without authorizing public release');
+  'exact Windows QA must emit complete artifact custody, preserve tracked source and avoid authorizing public release');
 
 assert(!/Start-Process[^\n]*-Verb\s+RunAs/i.test(script),
   'exact Windows QA must not request elevation');
