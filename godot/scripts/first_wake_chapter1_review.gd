@@ -93,6 +93,10 @@ func _ready() -> void:
         actor.walking_bounds = DECK_BOUNDS
         actor.position = CONTACT_POINTS[contact_id]
         actors.add_child(actor)
+        # Wakeheart is explicitly a harmonic console, not a humanoid NPC. Its
+        # authored signal marker/dialogue remains visible without a fake body.
+        if contact_id == "engine_spirit":
+            actor.visible = false
         contacts[contact_id] = actor
 
     _sync_stage_actor_presentation()
