@@ -20,17 +20,23 @@ assert(script.includes('Aetherwake\\Uninstall-Aetherwake-Godot-Preview.cmd') &&
 assert(script.includes("GetFolderPath('Desktop')"),
   'installer/uninstaller must resolve the real Windows Desktop known folder');
 assert(script.includes('Get-CimInstance Win32_Process') &&
-       script.includes('ExecutablePath -eq $exe'),
-  'uninstaller must scope process cleanup to the installed native preview executable');
+       script.includes('$_.ExecutablePath -and [IO.Path]::GetFullPath([string]$_.ExecutablePath).Equals($exeFull,[StringComparison]::OrdinalIgnoreCase)'),
+  'uninstaller must scope process cleanup to the exact normalized installed native preview executable');
 assert(script.includes('cd /d "%TEMP%"'),
   'uninstaller must leave its install directory before delayed deletion');
 assert(script.includes('copy /Y "%~f0" "%CLEANUP%"') &&
        script.includes('"%CLEANUP%" --cleanup'),
   'uninstaller must hand cleanup to a temporary self-copy before deleting its install directory');
-assert(script.includes('for($i=0; $i -lt 12 -and (Test-Path -LiteralPath $dest); $i++)') &&
-       script.includes('Remove-Item -LiteralPath $dest -Recurse -Force') &&
-       script.includes('if(Test-Path -LiteralPath $dest){exit 2}'),
-  'temporary cleanup must retry install-directory removal and fail closed if it remains');
+assert(script.includes("$marker=Join-Path $dest 'Aetherwake-Native-Preview.install'") &&
+       script.includes("AETHERWAKE_GODOT_NATIVE_PREVIEW_INSTALL_V1") &&
+       script.includes("if(-not (Test-Path -LiteralPath $marker)){exit 3}") &&
+       script.includes("$owned=@($exe,$uninstall,$marker)") &&
+       script.includes('for($i=0; $i -lt 12; $i++)') &&
+       script.includes('$remainingOwned=@($owned | Where-Object {Test-Path -LiteralPath $_})') &&
+       script.includes('$destRemaining=@(Get-ChildItem -LiteralPath $dest -Force)') &&
+       script.includes('if($destRemaining.Count -eq 0){Remove-Item -LiteralPath $dest -Force}') &&
+       !script.includes('Remove-Item -LiteralPath $dest -Recurse -Force'),
+  'temporary cleanup must prove install ownership, retry only owned-file removal, preserve foreign files and remove the install directory only when empty');
 assert(!/makensis|\.nsi(?:\s|["'])|NSIS\\|nsis\.exe/i.test(script),
   'native preview package must not invoke NSIS tooling');
 assert(!/runas|Start-Process[^\n]*-Verb\s+RunAs/i.test(script),
@@ -56,12 +62,16 @@ assert(script.includes("Ender's bounded dock exploration position is persisted w
   'native package instructions must explain position persistence, legacy safe-spawn fallback, backup recovery and fail-closed transient combat saves');
 
 assert(script.includes('SHORTCUT_SLOT_OCCUPIED:') &&
+       script.includes('set "MARKER=%DEST%\\Aetherwake-Native-Preview.install"') &&
+       script.includes('if not exist "%MARKER%" exit /b 3') &&
+       script.includes('if /I not "!OWNER!"=="AETHERWAKE_GODOT_NATIVE_PREVIEW_INSTALL_V1" exit /b 3') &&
        script.includes('function Remove-OwnedShortcut') &&
        script.includes('$target.Equals($exeFull,[StringComparison]::OrdinalIgnoreCase)') &&
        script.includes('$work.Equals([IO.Path]::GetFullPath($dest),[StringComparison]::OrdinalIgnoreCase)') &&
        script.includes('$menuRemaining=@(Get-ChildItem -LiteralPath $menu -Force)') &&
-       script.includes('user-modified or unrelated shortcut/menu content is preserved'),
-  'native package must fail closed on foreign shortcut collisions and remove only shortcuts/menu content still owned by this exact preview install');
+       script.includes('install directory carries a versioned Aetherwake ownership marker') &&
+       script.includes('install directory is removed only when empty'),
+  'native package must fail closed on foreign install/shortcut ownership and remove only content still owned by this exact preview install');
 assert(script.includes('EXE_SHA256=$ExeHash') &&
        script.includes('INSTALL_WRAPPER_SHA256=$InstallHash') &&
        script.includes('UNINSTALL_WRAPPER_SHA256=$UninstallHash') &&
