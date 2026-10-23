@@ -36,9 +36,29 @@ if (-not (Test-Path -LiteralPath $ReleaseTemplate)) {
 
 function Invoke-GodotChecked {
     param([string[]]$Arguments, [string]$Label)
-    & $GodotExe @Arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "$Label failed with exit code $LASTEXITCODE"
+
+    # Godot can write normal diagnostics to stderr. Do not let PowerShell 7's
+    # native-command error preference convert those diagnostics into a wrapper
+    # failure before we can inspect the real process exit code.
+    $PreviousErrorActionPreference = $ErrorActionPreference
+    $HadNativePreference = Test-Path Variable:PSNativeCommandUseErrorActionPreference
+    if ($HadNativePreference) {
+        $PreviousNativePreference = $PSNativeCommandUseErrorActionPreference
+        $PSNativeCommandUseErrorActionPreference = $false
+    }
+    $ErrorActionPreference = "Continue"
+    try {
+        & $GodotExe @Arguments
+        $GodotExitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $PreviousErrorActionPreference
+        if ($HadNativePreference) {
+            $PSNativeCommandUseErrorActionPreference = $PreviousNativePreference
+        }
+    }
+    if ($GodotExitCode -ne 0) {
+        throw "$Label failed with exit code $GodotExitCode"
     }
 }
 
