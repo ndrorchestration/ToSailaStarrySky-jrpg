@@ -114,10 +114,13 @@ assert(script.includes('WINDOWS_NATIVE_QA_RECEIPT.json') &&
        script.includes('packageReadmeSha256') &&
        script.includes('packageManifestSha256') &&
        script.includes('TRACKED_SOURCE_CHANGED_DURING_QA') &&
+       script.includes('FINAL_GIT_UNTRACKED_GODOT_SCAN_FAILED') &&
+       script.includes('UNTRACKED_GODOT_AUTHORITY_FILES_CREATED_DURING_QA') &&
+       script.includes('Final tracked/untracked Godot source integrity: PASS') &&
        script.includes('publicReleaseAuthorized = $false') &&
        script.includes('Public release authorized: NO') &&
        script.includes('AETHERWAKE_GODOT_EXACT_WINDOWS_PACKAGE_QA=PASS'),
-  'exact Windows QA must emit machine and human-readable custody, preserve tracked source and avoid authorizing public release');
+  'exact Windows QA must emit machine and human-readable custody, preserve tracked and untracked Godot source integrity, and avoid authorizing public release');
 
 assert(!/Start-Process[^\n]*-Verb\s+RunAs/i.test(script),
   'exact Windows QA must not request elevation');
