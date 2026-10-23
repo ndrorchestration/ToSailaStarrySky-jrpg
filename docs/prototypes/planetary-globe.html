@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aetherwake — Planetary Globe Study</title>
+<style>
+:root{font-family:system-ui,Segoe UI,sans-serif;color:#e8efe9;background:#08171f}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -20%,#183d44 0%,#08171f 56%)}main{max-width:1190px;padding:36px 20px 50px;margin:auto}header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;align-items:end;border-bottom:1px solid #38535a;padding-bottom:20px}small,.eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#93baad}h1{margin:6px 0;font-family:Georgia,serif;font-size:clamp(32px,4.2vw,56px);letter-spacing:.08em;font-weight:400;color:#f4e3b8}p{line-height:1.6;color:#bfd3d0}.lead{max-width:610px;font-size:14px}.tag{border:1px solid #52736e;padding:9px 12px;border-radius:99px;font-size:11px;color:#c6d9ce;letter-spacing:.07em}.layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:20px;margin-top:25px}.panel{background:linear-gradient(145deg,#102730,#0b1d24);border:1px solid #325056;border-radius:18px;overflow:hidden;box-shadow:0 16px 45px #040e1477}.panel-head{display:flex;justify-content:space-between;gap:12px;padding:16px 20px 0;align-items:center}.panel h2{font-size:15px;font-weight:600;letter-spacing:.06em;margin:0;color:#e6ddbf}.panel-head span{font-size:11px;color:#84b3b7}canvas{display:block;width:100%;height:auto;touch-action:none}.globe-wrap{position:relative;max-width:510px;margin:0 auto}.globe-wrap:after{content:"";pointer-events:none;position:absolute;left:9%;top:9%;width:82%;height:82%;border-radius:50%;box-shadow:0 0 54px #55d1d929,0 0 7px #9dd8d34d}.small-copy{padding:0 22px 18px;font-size:12px;text-align:center;color:#8ab0ae}.horizon-wrap{width:min(100%,355px);margin:0 auto}.controls{padding:12px 22px 23px;border-top:1px solid #274149;display:grid;gap:17px}label{font-size:12px;color:#bfddd2;display:flex;justify-content:space-between;gap:10px}output{font-variant-numeric:tabular-nums;font-weight:650;color:#eed7a1}input[type=range]{width:100%;accent-color:#d7b77a;cursor:pointer}.presets{display:flex;flex-wrap:wrap;gap:7px}button{font:inherit;font-size:11px;color:#d6e5dc;border:1px solid #4b6a68;border-radius:8px;padding:9px 11px;background:#19343b;cursor:pointer}button:hover,button:focus-visible{background:#285158;outline:1px solid #cdbb8e}.numbers{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.metric{background:#0a2028;border-radius:9px;padding:12px 14px;border:1px solid #315056}.metric b{font-size:18px;font-weight:550;display:block;margin-top:5px;color:#f0ddb4;font-variant-numeric:tabular-nums}.metric span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#88ada9}.foot{margin-top:20px;font-size:12px;color:#86aaa5;max-width:950px}footer{font-size:11px;color:#738f8f;margin-top:18px}@media(max-width:860px){.layout{grid-template-columns:1fr}.horizon-wrap{max-width:355px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style></head>
+<body><main>
+<header><div><div class="eyebrow">Aetherwake · world systems · experimental study</div><h1>A WORLD BEYOND THE HORIZON</h1><p class="lead">A planet cannot fit inside a regional map. Rotate the illustrative world, choose an airship location, and change altitude to see how little terrain is actually visible from a real spherical horizon.</p></div><div class="tag">NON-CANON / NOT IN GAME</div></header>
+<div class="layout">
+<section class="panel"><div class="panel-head"><h2>01 / NAVIGATIONAL GLOBE</h2><span>Drag to rotate</span></div><div class="globe-wrap"><canvas id="globe" width="460" height="460" aria-label="Illustrative rotatable planetary globe"></canvas></div><div class="small-copy">A charting perspective, not what the crew sees through the Dragonfly's windows.</div><div class="controls"><div><label for="latitude">Latitude <output id="latitudeLabel">25° N</output></label><input id="latitude" type="range" min="-85" max="85" value="25" step="1"></div><div><label for="longitude">Longitude <output id="longitudeLabel">115° W</output></label><input id="longitude" type="range" min="-180" max="180" value="-115" step="1"></div><div class="presets"><button data-lat="25" data-lon="-115">Western coast</button><button data-lat="1" data-lon="43">Equatorial sea</button><button data-lat="54" data-lon="48">Eastern uplands</button><button data-lat="-79" data-lon="125">Southern ice</button></div></div></section>
+<section class="panel"><div class="panel-head"><h2>02 / AIRSHIP HORIZON</h2><span>Geometric line of sight</span></div><div class="horizon-wrap"><canvas id="horizon" width="350" height="350" aria-label="Local surface within the airship's physical horizon"></canvas></div><div class="small-copy">Everything beyond this circular boundary lies below the planetary horizon, even if the chart knows it exists.</div><div class="controls"><div><label for="altitude">Airship altitude <output id="altitudeLabel">2.0 km</output></label><input id="altitude" type="range" min="0" max="1000" value="2" step="1"></div><div class="presets"><button data-alt="1">Low sky</button><button data-alt="20">High sky</button><button data-alt="200">Upper sky</button><button data-alt="1000">Orbital scale</button></div><div class="numbers"><div class="metric"><span>Horizon arc distance</span><b id="horizonKm">—</b></div><div class="metric"><span>Visible angular radius</span><b id="horizonDeg">—</b></div></div></div></section>
+</div><p class="foot">This is a visualization of the independent spherical-geometry module and a deliberately fictional, non-canon terrain function. It demonstrates coordinate handling, polar caps, biome belts, globe rotation and the expanding horizon. It does <strong>not</strong> define the final Aetherwake coastlines, world radius, topography, flight controls, story progression or exploration rights.</p><footer>REFERENCE RADIUS 6371 KM — TEST FIXTURE ONLY · NO SAVE DATA WRITTEN · NO NETWORK REQUIRED</footer>
+</main><script src="../../modules/planetary-geometry.js"></script>
+<script>
+(function(){'use strict';
+const geo=window.AetherPlanetaryGeometry;
+const R=6371;
+const globe=document.querySelector('#globe'),horizon=document.querySelector('#horizon');
+const latInput=document.querySelector('#latitude'),lonInput=document.querySelector('#longitude'),altInput=document.querySelector('#altitude');
+let lat=25,lon=-115,altitude=2,drag=null,queued=false;
+const DEG=Math.PI/180, RAD=180/Math.PI;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const noise=(lat,lon)=>Math.sin(lon*3.4+Math.sin(lat*2.3))*0.12+Math.sin(lat*7.3-lon*4.1)*0.065+Math.sin(lat*13+lon*8)*0.034;
+const seam=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
+function shape(lat,lon,cLat,cLon,latSpread,lonSpread){const dx=seam(lon,cLon)/lonSpread,dy=(lat-cLat)/latSpread;return Math.hypot(dx,dy);}
+function ground(lat,lon){
+  let d=10;
+  d=Math.min(d,shape(lat,lon,18*DEG,-117*DEG,65*DEG,39*DEG));
+  d=Math.min(d,shape(lat,lon,34*DEG,28*DEG,55*DEG,50*DEG));
+  d=Math.min(d,shape(lat,lon,-31*DEG,125*DEG,35*DEG,41*DEG));
+  d=Math.min(d,shape(lat,lon,69*DEG,143*DEG,24*DEG,55*DEG));
+  d=Math.min(d,shape(lat,lon,-12*DEG,-16*DEG,16*DEG,23*DEG));
+  const islands=Math.sin(lon*13+Math.sin(lat*8))*Math.sin(lat*15-lon*5);
+  const belt=(Math.abs(lat)<19*DEG&&Math.abs(seam(lon,81*DEG))<47*DEG&&islands>.57);
+  return d+noise(lat,lon)<1 || belt;
+}
+function climate(lat,lon){
+ const land=ground(lat,lon),a=Math.abs(lat)*RAD;
+ const variability=Math.sin(lon*7+Math.sin(lat*5))*0.5+Math.cos(lat*6-lon*4)*0.5;
+ if(!land){if(a>76)return[194,219,224];if(a>66)return[59,116,139];return[18+variability*4,76+variability*11,108+variability*10];}
+ if(a>75)return[224,234,226];
+ if(a>65)return[131,156,143];
+ if(a>53)return[58,109,90];
+ if(a>38)return[63,135,99];
+ if(a>27)return variability>.3?[151,143,93]:[75,139,93];
+ if(a>16)return variability>.0?[166,139,83]:[78,131,80];
+ return variability>.45?[113,151,91]:[38,126,87];
+}
+function frame(ctx,w,h){const data=ctx.createImageData(w,h);return{pixels:data.data,submit:()=>ctx.putImageData(data,0,0)};}
+function pixel(buf,index,c,light){buf[index]=Math.round(clamp(c[0]*light,0,255));buf[index+1]=Math.round(clamp(c[1]*light,0,255));buf[index+2]=Math.round(clamp(c[2]*light,0,255));buf[index+3]=255;}
+function globeRender(){
+  const off=document.createElement('canvas');off.width=300;off.height=300;const ctx=off.getContext('2d');const {pixels,submit}=frame(ctx,300,300);
+  const p=lat*DEG,l=lon*DEG,cp=Math.cos(p),sp=Math.sin(p),cl=Math.cos(l),sl=Math.sin(l);
+  for(let y=0;y<300;y++)for(let x=0;x<300;x++){
+    const east=(x-149.5)/143,up=(149.5-y)/143,d=east*east+up*up;
+    if(d>1)continue;
+    const outward=Math.sqrt(Math.max(0,1-d));
+    const vx=cp*cl*outward-sl*east-sp*cl*up;
+    const vy=cp*sl*outward+cl*east-sp*sl*up;
+    const vz=sp*outward+cp*up;
+    const vlat=Math.atan2(vz,Math.hypot(vx,vy));const vlon=Math.atan2(vy,vx);
+    const brightness=clamp(.38+.67*(outward*.85+up*.24-east*.28),.23,1.2);
+    pixel(pixels,(y*300+x)*4,climate(vlat,vlon),brightness);
+  }
+  submit();const canvasCtx=globe.getContext('2d');canvasCtx.clearRect(0,0,460,460);canvasCtx.imageSmoothingEnabled=true;
+  canvasCtx.drawImage(off,7,7,446,446);canvasCtx.lineWidth=1.5;canvasCtx.strokeStyle='#99d4c477';canvasCtx.beginPath();canvasCtx.arc(230,230,213,0,Math.PI*2);canvasCtx.stroke();
+}
+function horizonRender(){
+  const ctx=horizon.getContext('2d'),size=350;
+  const off=document.createElement('canvas');off.width=220;off.height=220;
+  const scratch=off.getContext('2d');const {pixels,submit}=frame(scratch,220,220);
+  const limit=geo.horizonAngleRad(altitude,R);const position={latDeg:lat,lonDeg:lon};
+  for(let y=0;y<220;y++)for(let x=0;x<220;x++){
+    const ex=(x-109.5)/101,ny=(109.5-y)/101,t=Math.hypot(ex,ny);
+    if(t>1)continue;
+    const bearing=Math.atan2(ex,ny)*RAD;
+    const candidate=geo.destinationPoint(position,bearing,Math.min(1,t)*limit*R,R);
+    const c=climate(candidate.latDeg*DEG,candidate.lonDeg*DEG);
+    const shading=.81+.17*ny;
+    pixel(pixels,(y*220+x)*4,c,shading);
+  }
+  submit();ctx.clearRect(0,0,size,size);ctx.drawImage(off,0,0,size,size);ctx.strokeStyle='#f5daab88';ctx.lineWidth=2;ctx.beginPath();ctx.arc(175,175,161,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='#ffffff66';ctx.beginPath();ctx.moveTo(167,175);ctx.lineTo(183,175);ctx.moveTo(175,167);ctx.lineTo(175,183);ctx.stroke();
+  document.querySelector('#horizonKm').textContent=Math.round(geo.horizonSurfaceDistanceKm(altitude,R)).toLocaleString()+' km';
+  document.querySelector('#horizonDeg').textContent=(limit*RAD).toFixed(2)+'°';
+}
+function updateLabels(){document.querySelector('#latitudeLabel').textContent=Math.abs(lat)+'° '+(lat>=0?'N':'S');document.querySelector('#longitudeLabel').textContent=Math.abs(lon)+'° '+(lon>=0?'E':'W');document.querySelector('#altitudeLabel').textContent=altitude.toFixed(1)+' km';}
+function render(){queued=false;updateLabels();globeRender();horizonRender();}
+function schedule(){if(!queued){queued=true;requestAnimationFrame(render);}}
+latInput.addEventListener('input',()=>{lat=+latInput.value;schedule()});lonInput.addEventListener('input',()=>{lon=+lonInput.value;schedule()});altInput.addEventListener('input',()=>{altitude=+altInput.value;schedule()});
+for(const b of document.querySelectorAll('button[data-lat]'))b.addEventListener('click',()=>{lat=+b.dataset.lat;lon=+b.dataset.lon;latInput.value=lat;lonInput.value=lon;schedule()});
+for(const b of document.querySelectorAll('button[data-alt]'))b.addEventListener('click',()=>{altitude=+b.dataset.alt;altInput.value=altitude;schedule()});
+globe.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY,lon,lat};globe.setPointerCapture(e.pointerId)});
+globe.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const n=geo.normalizeLatLon(clamp(drag.lat+(drag.y-e.clientY)*.3,-85,85),drag.lon+(drag.x-e.clientX)*.3);lat=Math.round(n.latDeg);lon=Math.round(n.lonDeg);latInput.value=lat;lonInput.value=lon;schedule()});
+globe.addEventListener('pointerup',()=>drag=null);globe.addEventListener('pointercancel',()=>drag=null);
+render();
+}());
+</script></body></html>
