@@ -52,6 +52,12 @@ assert(script.includes('previous valid generation is retained for backup recover
        script.includes('Formula Review, and active Wind Shear combat are transient and are not persisted') &&
        script.includes('without awarding hazard progress'),
   'native package instructions must explain backup recovery and fail-closed transient combat saves');
+assert(script.includes('EXE_SHA256=$ExeHash') &&
+       script.includes('INSTALL_WRAPPER_SHA256=$InstallHash') &&
+       script.includes('UNINSTALL_WRAPPER_SHA256=$UninstallHash') &&
+       script.includes('PAYLOAD_UNINSTALLER_SHA256=$PayloadUninstallHash') &&
+       script.includes('README_SHA256=$ReadmeHash'),
+  'package manifest must custody-bind every executable/wrapper/readme payload');
 assert(script.includes('ADMIN_REQUIRED=NO') &&
        script.includes('PUBLIC_RELEASE_AUTHORIZED=NO'),
   'package manifest must preserve private/non-release boundaries');
