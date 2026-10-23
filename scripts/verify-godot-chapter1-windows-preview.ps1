@@ -404,6 +404,14 @@ try {
     if ($TrackedDirty.Count -gt 0) {
         throw "TRACKED_SOURCE_CHANGED_DURING_QA"
     }
+
+    $FinalUntrackedGodot = @(& git ls-files --others --exclude-standard -- godot)
+    if ($LASTEXITCODE -ne 0) {
+        throw "FINAL_GIT_UNTRACKED_GODOT_SCAN_FAILED"
+    }
+    if ($FinalUntrackedGodot.Count -gt 0) {
+        throw "UNTRACKED_GODOT_AUTHORITY_FILES_CREATED_DURING_QA"
+    }
 }
 finally {
     Pop-Location
@@ -508,7 +516,7 @@ $MarkdownReceipt = @(
     "- Start Menu shortcut: PASS",
     "- Running-app uninstall: PASS",
     "- Cleanup: PASS",
-    "- Final tracked-source integrity: PASS",
+    "- Final tracked/untracked Godot source integrity: PASS",
     "",
     "## Boundary",
     "This receipt is private engineering evidence only. It does not establish creator visual acceptance, independent player acceptance, issue #293 disposition, merge authorization, or public release authorization."
