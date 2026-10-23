@@ -387,6 +387,17 @@ func close_formula_review() -> bool:
 func take_formula_review_action(action_id: String) -> bool:
     if not formula_encounter.active:
         return false
+
+    # The scene boundary must consult actor authority before the formula
+    # controller. This keeps party/turn authorization fail-closed even if the
+    # production formula catalog grows later.
+    var actor_id := str(formula_encounter.player.get("id", ""))
+    if not party_combat_authority.can_use_formula_action(actor_id, action_id):
+        last_message = "ACTION_AUTHORITY_BLOCKED:%s:%s" % [actor_id, action_id]
+        _refresh_ui()
+        queue_redraw()
+        return false
+
     if not formula_encounter.take_action(action_id):
         last_message = formula_encounter.last_log()
         _refresh_ui()
