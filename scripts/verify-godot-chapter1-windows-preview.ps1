@@ -49,6 +49,31 @@ function Assert-AuthenticodePublisher([string]$Path, [string]$Label) {
     }
 }
 
+function Get-DefenderCustody() {
+    if (-not (Get-Command Get-MpComputerStatus -ErrorAction SilentlyContinue)) {
+        throw "DEFENDER_STATUS_UNAVAILABLE"
+    }
+    $Status = Get-MpComputerStatus -ErrorAction Stop
+    if (-not [bool]$Status.AntivirusEnabled) {
+        throw "DEFENDER_ANTIVIRUS_NOT_ENABLED"
+    }
+    if (-not [bool]$Status.RealTimeProtectionEnabled) {
+        throw "DEFENDER_REALTIME_NOT_ENABLED"
+    }
+    $SignatureUpdatedUtc = $null
+    if ($null -ne $Status.AntivirusSignatureLastUpdated) {
+        $SignatureUpdatedUtc = ([datetime]$Status.AntivirusSignatureLastUpdated).ToUniversalTime().ToString("o")
+    }
+    return [ordered]@{
+        antivirusEnabled = [bool]$Status.AntivirusEnabled
+        realTimeProtectionEnabled = [bool]$Status.RealTimeProtectionEnabled
+        productVersion = [string]$Status.AMProductVersion
+        engineVersion = [string]$Status.AMEngineVersion
+        signatureVersion = [string]$Status.AntivirusSignatureVersion
+        signatureLastUpdatedUtc = $SignatureUpdatedUtc
+    }
+}
+
 function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
     Assert-Exists $Path $Label
     if (-not (Get-Command Start-MpScan -ErrorAction SilentlyContinue)) {
@@ -289,6 +314,7 @@ $ExpectedRenderFiles = @(
     "chapter1-wake-native-960x640.png",
     "chapter1-done-native-960x640.png"
 )
+$RenderLogSha = Get-Sha256Hex $RenderLog
 $RenderHashes = [ordered]@{}
 foreach ($RenderName in $ExpectedRenderFiles) {
     $RenderPath = Join-Path $RenderDir $RenderName
@@ -307,6 +333,7 @@ $InstallCmd = Join-Path $Staging "Install-Aetherwake-Godot-Preview.cmd"
 $UninstallCmd = Join-Path $Staging "Uninstall-Aetherwake-Godot-Preview.cmd"
 $Zip = Join-Path $PackageDir "Aetherwake-First-Wake-Godot-Native-Preview-Windows.zip"
 
+$DefenderCustody = Get-DefenderCustody
 Assert-DefenderCustomScan $InstallCmd "INSTALL_WRAPPER"
 Assert-DefenderCustomScan $UninstallCmd "UNINSTALL_WRAPPER"
 Assert-DefenderCustomScan $PayloadExe "PACKAGED_EXE"
@@ -546,6 +573,7 @@ $Receipt = [ordered]@{
     render = [ordered]@{
         method = "gl_compatibility"
         log = [System.IO.Path]::GetFullPath($RenderLog)
+        logSha256 = $RenderLogSha
         pass = "PASS"
         artisticAcceptance = "PENDING"
         frameSha256 = $RenderHashes
@@ -569,6 +597,7 @@ $Receipt = [ordered]@{
         files = $ExpectedZipFiles
     }
     defender = [ordered]@{
+        status = $DefenderCustody
         installWrapper = "PASS"
         uninstallWrapper = "PASS"
         packagedExe = "PASS"
@@ -613,6 +642,7 @@ $MarkdownReceipt = @(
     "",
     "## Native render gate",
     "- Rendering method: gl_compatibility",
+    "- Render log SHA-256: $RenderLogSha",
     "- Frame count: $($ExpectedRenderFiles.Count)",
     "- Artistic acceptance: PENDING",
     $RenderReceiptLines,
@@ -630,6 +660,11 @@ $MarkdownReceipt = @(
     "- ZIP staging byte parity: PASS",
     "",
     "## Windows verification",
+    "- Defender product version: $($DefenderCustody.productVersion)",
+    "- Defender engine version: $($DefenderCustody.engineVersion)",
+    "- Defender signature version: $($DefenderCustody.signatureVersion)",
+    "- Defender signature updated UTC: $($DefenderCustody.signatureLastUpdatedUtc)",
+    "- Defender antivirus/realtime protection: PASS",
     "- Defender custom scans: PASS (installer / uninstaller / packaged EXE / ZIP)",
     "- Install source: audited extracted ZIP",
     "- Per-user install: PASS",
