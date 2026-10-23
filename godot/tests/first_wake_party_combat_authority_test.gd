@@ -30,6 +30,16 @@ func _initialize() -> void:
     if authority.separate_contract_actions("ender") != ["mycelialLedger", "aetherSeal"]:
         _fail("Ender separate-contract actions drifted")
         return
+    for separate_action_id in authority.separate_contract_actions("ender"):
+        if authority.can_use_formula_action("ender", separate_action_id):
+            _fail("separate-contract Ender action entered formula-turn authority")
+            return
+    if authority.can_take_formula_turn("unknown") or authority.can_use_formula_action("unknown", "staffStrike"):
+        _fail("unknown actor received native formula authority")
+        return
+    if authority.status_for("unknown") != "unknown-actor":
+        _fail("unknown actor status failed closed incorrectly")
+        return
 
     var crossing_surface := authority.surface_for_party(["ender", "lyra"])
     if crossing_surface.size() != 2:
