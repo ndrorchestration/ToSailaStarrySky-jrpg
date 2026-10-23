@@ -11,6 +11,12 @@ const SCHEMA_VERSION := "aetherwake.first-wake.chapter1.v1"
 const STAGE_KEYS: Array[String] = ["signal", "crossing", "contact", "choice", "wake", "done"]
 const PLAYER_POSITION_BOUNDS := Rect2(Vector2(110, 404), Vector2(740, 118))
 const LEGACY_PLAYER_POSITION := Vector2(360, 465)
+const IONIA_CONTACT_ID := "elder_farmer"
+const SIGNAL_CONTACT_BY_SIGNAL := {
+    "harmonic_buoy": "engine_spirit",
+    "below_frequency": "child_prophet",
+    "sky_lane_warning": "corporate_salvager",
+}
 
 static func encode(chapter, stats: Dictionary = {}, player_position: Variant = null) -> Dictionary:
     var snapshot := {
@@ -54,6 +60,13 @@ static func validate(snapshot: Dictionary) -> Dictionary:
         return _invalid("invalid hazard set")
     if not _is_valid_unique_subset(contacts, ChapterState.CONTACT_IDS):
         return _invalid("invalid contact set")
+
+    if not _signal_contact_evidence_matches(signals, contacts):
+        return _invalid("signal/contact evidence contradiction")
+
+    var ionia_contact_met := IONIA_CONTACT_ID in contacts
+    if stage_key in ["signal", "crossing", "contact"] and ionia_contact_met:
+        return _invalid("Ionia contact appears before authored Contact completion")
 
     var ionia_joined := bool(snapshot.get("ionia_joined_for_choice", false))
     var choice_path := str(snapshot.get("choice_path", ""))
@@ -187,6 +200,26 @@ static func _stage_from_key(stage_key: String) -> int:
         "done":
             return ChapterState.Stage.DONE
     return ChapterState.Stage.SIGNAL
+
+static func _signal_contact_evidence_matches(signals: Array, contacts: Array) -> bool:
+    var expected_contacts: Dictionary = {}
+    for signal_id in signals:
+        var contact_id := str(SIGNAL_CONTACT_BY_SIGNAL.get(str(signal_id), ""))
+        if contact_id.is_empty():
+            return false
+        expected_contacts[contact_id] = true
+
+    for contact_id in contacts:
+        var normalized := str(contact_id)
+        if normalized == IONIA_CONTACT_ID:
+            continue
+        if not expected_contacts.has(normalized):
+            return false
+
+    for expected_contact in expected_contacts.keys():
+        if str(expected_contact) not in contacts:
+            return false
+    return true
 
 static func _is_valid_unique_subset(values, allowed: Array[String]) -> bool:
     if not values is Array:
