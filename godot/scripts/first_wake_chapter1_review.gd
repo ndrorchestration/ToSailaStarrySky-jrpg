@@ -97,7 +97,7 @@ func _ready() -> void:
         # Wakeheart is explicitly a harmonic console, not a humanoid NPC. Its
         # authored signal marker/dialogue remains visible without a fake body.
         if contact_id == "engine_spirit":
-            actor.visible = false
+            _set_actor_physical_presence(actor, false)
         contacts[contact_id] = actor
 
     _sync_stage_actor_presentation()
@@ -149,6 +149,14 @@ func _label(parent: Node, location: Vector2, size: int) -> Label:
     parent.add_child(label)
     return label
 
+func _set_actor_physical_presence(actor: CharacterBody2D, enabled: bool) -> void:
+    actor.visible = enabled
+    # A hidden CharacterBody2D still participates in collision unless its
+    # layers are disabled. Presentation-only absences must therefore be
+    # physically absent as well, or they become invisible navigation blockers.
+    actor.collision_layer = 1 if enabled else 0
+    actor.collision_mask = 1 if enabled else 0
+
 func _sync_stage_actor_presentation() -> void:
     # Presentation follows authored story availability; it does not change party
     # membership or progression. Ionia must not be physically present on the dock
@@ -156,11 +164,15 @@ func _sync_stage_actor_presentation() -> void:
     if ender != null:
         ender.set_walk_review_enabled(true)
 
+    var wakeheart = contacts.get("engine_spirit", null)
+    if wakeheart != null:
+        _set_actor_physical_presence(wakeheart, false)
+
     var ionia = contacts.get("elder_farmer", null)
     if ionia == null:
         return
     var show_ionia := chapter.stage_key() in ["contact", "choice", "wake", "done"]
-    ionia.visible = show_ionia
+    _set_actor_physical_presence(ionia, show_ionia)
     ionia.set_ionia_stage_art_enabled(show_ionia, "west")
 
 func _draw() -> void:
