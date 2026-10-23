@@ -130,6 +130,8 @@ assert(script.includes('Get-WinEvent -ListLog "Microsoft-Windows-Windows Defende
        script.includes('startEventRecordId = [long]$StartEvent.RecordId') &&
        script.includes('completionEventRecordId = [long]$CompletionEvent.RecordId') &&
        script.includes('threatDetectionCount = $Detections.Count') &&
+       script.includes('pre-scan RecordId watermark') &&
+       script.includes('Defender scan watermark/event/Scan-ID custody: recorded in JSON receipt') &&
        !script.includes('Start-Sleep -Milliseconds 750'),
   'each Defender artifact scan must be record-watermarked, bound to exact-path event 1000, same-ID event 1001, fail on 1002, and custody-bind event records plus threat result');
 
