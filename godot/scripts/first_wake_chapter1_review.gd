@@ -13,6 +13,7 @@ const SaveStore = preload("res://scripts/first_wake_chapter1_save_store.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd")
 const CurrentEnemyAdapter = preload("res://scripts/first_wake_current_enemy_adapter.gd")
+const PartyCombatAuthority = preload("res://scripts/first_wake_party_combat_authority.gd")
 
 const DECK_BOUNDS := Rect2(Vector2(110, 404), Vector2(740, 118))
 const INTERACT_DISTANCE := 74.0
@@ -56,6 +57,7 @@ var review_engine_integration: int = 0
 var resolved_epilogue: Dictionary = {}
 var formula_encounter = FormulaEncounter.new()
 var current_enemy_adapter = CurrentEnemyAdapter.new()
+var party_combat_authority = PartyCombatAuthority.new()
 var active_hazard_encounter_id: String = ""
 var save_store = SaveStore.new()
 
@@ -245,12 +247,28 @@ func _draw_formula_review() -> void:
         Color("#f0a072")
     )
 
+    var party_rows := party_combat_authority.surface_for_party(chapter.desired_active_party_ids())
+    var party_bits: Array[String] = []
+    for row in party_rows:
+        var actor_id := str(row.get("actorId", "")).to_upper()
+        var turn_status := "ACTIVE" if bool(row.get("canTakeFormulaTurn", false)) else "ACTIONS PENDING"
+        party_bits.append(actor_id + ": " + turn_status)
+    draw_string(
+        ThemeDB.fallback_font,
+        Vector2(176, 294),
+        "PARTY  " + "  |  ".join(party_bits),
+        HORIZONTAL_ALIGNMENT_LEFT,
+        610,
+        13,
+        Color("#9dd9ee")
+    )
+
     var analysis_text := "Weakness hidden.  2: Uncover Truth"
     if formula_encounter.weakness_revealed():
         analysis_text = "ANALYZED: " + str(formula_encounter.target.get("weakness", ""))
     draw_string(
         ThemeDB.fallback_font,
-        Vector2(176, 306),
+        Vector2(176, 322),
         analysis_text,
         HORIZONTAL_ALIGNMENT_LEFT,
         610,
@@ -258,10 +276,10 @@ func _draw_formula_review() -> void:
         Color("#8cdbc8")
     )
 
-    draw_string(ThemeDB.fallback_font, Vector2(176, 356), "1  Staff Strike", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
-    draw_string(ThemeDB.fallback_font, Vector2(390, 356), "2  Uncover Truth", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
-    draw_string(ThemeDB.fallback_font, Vector2(176, 390), "3  Hold", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
-    draw_string(ThemeDB.fallback_font, Vector2(390, 390), "4  Rest", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
+    draw_string(ThemeDB.fallback_font, Vector2(176, 370), "1  Staff Strike", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
+    draw_string(ThemeDB.fallback_font, Vector2(390, 370), "2  Uncover Truth", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
+    draw_string(ThemeDB.fallback_font, Vector2(176, 404), "3  Hold", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
+    draw_string(ThemeDB.fallback_font, Vector2(390, 404), "4  Rest", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
 
     var status := formula_encounter.last_log()
     if formula_encounter.player_defeated:
@@ -273,7 +291,7 @@ func _draw_formula_review() -> void:
             status = "TARGET CLEARED. C closes review; Chapter I state remains unchanged."
     draw_string(
         ThemeDB.fallback_font,
-        Vector2(176, 438),
+        Vector2(176, 448),
         status,
         HORIZONTAL_ALIGNMENT_LEFT,
         610,
@@ -283,7 +301,7 @@ func _draw_formula_review() -> void:
 
     draw_string(
         ThemeDB.fallback_font,
-        Vector2(176, 474),
+        Vector2(176, 482),
         ("C: confirm / close encounter" if authored_hazard else "C: close review"),
         HORIZONTAL_ALIGNMENT_LEFT,
         -1,
