@@ -28,6 +28,26 @@ function Assert-Exists([string]$Path, [string]$Label) {
     }
 }
 
+function Assert-AuthenticodePublisher([string]$Path, [string]$Label) {
+    Assert-Exists $Path $Label
+    $Signature = Get-AuthenticodeSignature -LiteralPath $Path
+    if ($Signature.Status -ne [System.Management.Automation.SignatureStatus]::Valid) {
+        throw "AUTHENTICODE_INVALID_$Label status=$($Signature.Status)"
+    }
+    if ($null -eq $Signature.SignerCertificate) {
+        throw "AUTHENTICODE_SIGNER_MISSING_$Label"
+    }
+    $Subject = [string]$Signature.SignerCertificate.Subject
+    if ($Subject.IndexOf("Prehensile Tales B.V.", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+        throw "AUTHENTICODE_PUBLISHER_MISMATCH_$Label subject=$Subject"
+    }
+    return [ordered]@{
+        status = [string]$Signature.Status
+        subject = $Subject
+        thumbprint = [string]$Signature.SignerCertificate.Thumbprint
+    }
+}
+
 function Assert-DefenderCustomScan([string]$Path, [string]$Label) {
     Assert-Exists $Path $Label
     if (-not (Get-Command Start-MpScan -ErrorAction SilentlyContinue)) {
@@ -128,6 +148,7 @@ if ($GodotVersion -ne $ExpectedGodotVersion) {
     throw "GODOT_VERSION_MISMATCH expected=$ExpectedGodotVersion actual=$GodotVersion"
 }
 $GodotExeSha = Get-Sha256Hex $GodotExe
+$GodotSignature = Assert-AuthenticodePublisher $GodotExe "GODOT_EDITOR"
 
 $TemplateDir = Join-Path $env:APPDATA "Godot\export_templates\4.7.2.stable"
 $ReleaseTemplate = Join-Path $TemplateDir "windows_release_x86_64.exe"
@@ -135,6 +156,7 @@ $TemplateVersionFile = Join-Path $TemplateDir "version.txt"
 Assert-Exists $ReleaseTemplate "Godot 4.7.2 Windows release template"
 Assert-Exists $TemplateVersionFile "Godot 4.7.2 template version file"
 $ReleaseTemplateSha = Get-Sha256Hex $ReleaseTemplate
+$ReleaseTemplateSignature = Assert-AuthenticodePublisher $ReleaseTemplate "WINDOWS_RELEASE_TEMPLATE"
 $TemplateVersionText = (Get-Content -LiteralPath $TemplateVersionFile -Raw).Trim()
 
 if ($ExpectedSourceSha -notmatch '^[0-9a-f]{40}$') {
@@ -395,8 +417,10 @@ $Receipt = [ordered]@{
     godotExe = [System.IO.Path]::GetFullPath($GodotExe)
     godotVersion = $GodotVersion
     godotExeSha256 = $GodotExeSha
+    godotAuthenticode = $GodotSignature
     windowsReleaseTemplate = [System.IO.Path]::GetFullPath($ReleaseTemplate)
     windowsReleaseTemplateSha256 = $ReleaseTemplateSha
+    windowsReleaseTemplateAuthenticode = $ReleaseTemplateSignature
     templateVersionText = $TemplateVersionText
     render = [ordered]@{
         method = "gl_compatibility"
@@ -454,7 +478,9 @@ $MarkdownReceipt = @(
     "## Toolchain",
     "- Godot: $GodotVersion",
     "- Godot executable SHA-256: $GodotExeSha",
+    "- Godot Authenticode: $($GodotSignature.status) / $($GodotSignature.subject) / $($GodotSignature.thumbprint)",
     "- Windows release template SHA-256: $ReleaseTemplateSha",
+    "- Windows release template Authenticode: $($ReleaseTemplateSignature.status) / $($ReleaseTemplateSignature.subject) / $($ReleaseTemplateSignature.thumbprint)",
     "- Template version text: $TemplateVersionText",
     "",
     "## Native render gate",
@@ -492,7 +518,9 @@ Set-Content -LiteralPath $MarkdownReceiptPath -Value $MarkdownReceipt -Encoding 
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_SOURCE=$HeadSha"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_VERSION=$GodotVersion"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_GODOT_SHA256=$GodotExeSha"
+Write-Output "AETHERWAKE_GODOT_EXACT_QA_GODOT_SIGNER=$($GodotSignature.subject)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_TEMPLATE_SHA256=$ReleaseTemplateSha"
+Write-Output "AETHERWAKE_GODOT_EXACT_QA_TEMPLATE_SIGNER=$($ReleaseTemplateSignature.subject)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_RENDER_FRAMES=$($ExpectedRenderFiles.Count)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_EXE_BYTES=$($PayloadExeItem.Length)"
 Write-Output "AETHERWAKE_GODOT_EXACT_QA_EXE_SHA256=$ExeSha"
