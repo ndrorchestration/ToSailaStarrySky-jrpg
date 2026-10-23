@@ -67,14 +67,18 @@ assert(script.includes('SHORTCUT_SLOT_OCCUPIED:') &&
        script.includes("if(-not (Test-Path -LiteralPath $marker)){exit 3}") &&
        script.includes("$owner=(Get-Content -LiteralPath $marker -Raw).Trim()") &&
        script.includes("if($owner -ne 'AETHERWAKE_GODOT_NATIVE_PREVIEW_INSTALL_V1'){exit 3}") &&
+       script.includes("foreach($shortcutPath in @((Join-Path $desktop 'Aetherwake Native Preview.lnk'),(Join-Path $menu 'Aetherwake Native Preview.lnk')))") &&
+       script.includes("if(-not ($target.Equals($exe,[StringComparison]::OrdinalIgnoreCase) -and $work.Equals([IO.Path]::GetFullPath($dest),[StringComparison]::OrdinalIgnoreCase))){throw ('SHORTCUT_SLOT_OCCUPIED:'+ $shortcutPath)}") &&
+       script.indexOf('SHORTCUT_SLOT_OCCUPIED:') < script.indexOf('if not exist "%DEST%" mkdir "%DEST%"') &&
        !script.includes('EnableDelayedExpansion') &&
        script.includes('function Remove-OwnedShortcut') &&
        script.includes('$target.Equals($exeFull,[StringComparison]::OrdinalIgnoreCase)') &&
        script.includes('$work.Equals([IO.Path]::GetFullPath($dest),[StringComparison]::OrdinalIgnoreCase)') &&
        script.includes('$menuRemaining=@(Get-ChildItem -LiteralPath $menu -Force)') &&
+       script.includes('Existing install-directory and shortcut ownership is checked before any payload files are copied.') &&
        script.includes('install directory carries a versioned Aetherwake ownership marker') &&
        script.includes('install directory is removed only when empty'),
-  'native package must fail closed on foreign install/shortcut ownership without delayed-expansion path risk and remove only content still owned by this exact preview install');
+  'native package must preflight foreign install/shortcut ownership before payload mutation, avoid delayed-expansion path risk and remove only content still owned by this exact preview install');
 assert(script.includes('EXE_SHA256=$ExeHash') &&
        script.includes('INSTALL_WRAPPER_SHA256=$InstallHash') &&
        script.includes('UNINSTALL_WRAPPER_SHA256=$UninstallHash') &&
