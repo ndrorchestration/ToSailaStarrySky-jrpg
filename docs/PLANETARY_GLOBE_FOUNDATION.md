@@ -231,3 +231,46 @@ Verification after the custody change:
 - manifest-pinned negative runner reaches the expected missing-Godot `NOT_VERIFIED` state and creates both receipt paths.
 
 The v0.7.4 proof kit is the preferred next native-review package. It still requires a real Windows Godot 4.7.2 Compatibility rerun; no v0.7.4 native scene PASS, renderer frames, GPU timings or creator visual acceptance is claimed.
+
+
+## 2026-10-23 — v0.7.5 consolidated native-proof + physical-horizon handoff
+
+A parallel Library artifact was reconciled after v0.7.4: `Aetherwake_Georeferenced_Flight_v0.7.3_with_Realism_Study_2026-10-23.zip` (ZIP SHA-256 `8abe740643b60423ff70a484053757d1edd7326d3d45cd0c1e64626d3ad70e0f`). That branch contained a substantive improvement—altitude-dependent spherical surface-horizon culling for local sky-garden proxies—but also reintroduced all three real-native defects already repaired after the creator's Windows v0.7.2 run:
+
+- invalid `Node3D.rotation_y`;
+- fragile percent-format status text containing literal `30%`;
+- moving georeference round-trip baseline captured after live flight had advanced.
+
+The parallel artifact also lacked v0.7.4's immutable per-run native receipt custody. It is therefore **not** the preferred handoff.
+
+v0.7.5 selectively consolidates the valid horizon feature into the stronger v0.7.4 Native Scene Proof Kit while preserving every established native repair and QA gate.
+
+Current preferred artifact:
+- `Aetherwake_Godot_Native_Scene_Proof_Kit_v0.7.5_2026-10-23.zip`
+- ZIP members: **62**
+- size: **1,790,699 bytes**
+- ZIP SHA-256: `854adb22a44292cfa6284d6f44a3d38ddec7859bdbcec02350e400185883af80`
+- source manifest: **41 files**
+- source-manifest SHA-256: `2dd4797c41a31bdaff0ae26fc9490c0758e7e6cb388003aebcaa6d6066579d80`
+
+Consolidated source behavior:
+- local sky-garden proxies are culled to `min(500 km, R*acos(R/(R+h)))`, using the explicitly non-canon 6371 km reference radius and current flight altitude;
+- Dragonfly local-presentation updates pass altitude on activation and every navigation tick;
+- invalid/non-finite or negative local altitude fails closed;
+- the model intentionally treats proxies as surface-arc anchors; elevated island-top line of sight, refraction, true streamed terrain and canonical planet radius remain outside scope;
+- v0.7.4's valid `rotation` Vector3 repair, safe status string, deterministic georeference baseline, center-scene screenshot proof, manifest-covered Windows launchers and immutable per-run receipts are all retained.
+
+Verification of the exact v0.7.5 source/archive:
+- 11 standalone static/source/asset/launcher validators PASS;
+- declaration-boundary self-tests **3/3 PASS**;
+- PNG decoder/filter tests **3/3 PASS**;
+- local-horizon self-tests **6/6 PASS** plus 6,000 randomized altitude/position monotonicity probes;
+- Windows launcher-pin self-tests **3/3 PASS**;
+- all **14/14** synthetic native receipt-gate tests accounted for PASS across bounded runs;
+- exact source-manifest recomputation after extraction PASS;
+- ZIP CRC and every member byte identity PASS;
+- manifest-pinned negative native runner accepts the exact source pin, writes both run-specific/latest receipts, then returns exit 2 / `NOT_VERIFIED` solely because this authoring environment lacks Godot.
+
+The first archive attempt was discarded because Python validation regenerated `__pycache__` files; the preferred ZIP above was rebuilt cleanly with bytecode disabled and independently verified to contain no cache artifacts.
+
+**Native status:** v0.7.5 has not yet run on real Godot. The authoritative next gate remains the creator's Windows Godot 4.7.2 Compatibility run, followed separately by Forward+ if Compatibility passes. No v0.7.5 native scene PASS, genuine modes 1/4/5 frames, GPU timings, or visual acceptance is claimed.
