@@ -103,6 +103,8 @@ Play:
 Save behavior:
 - one local Chapter I slot is stored in Godot's per-user data directory;
 - saves are semantically validated before write;
+- Ender's bounded dock exploration position is persisted with Chapter I progress;
+- older compatible v1 saves that predate position persistence resume at a deterministic safe deck spawn;
 - the previous valid generation is retained for backup recovery;
 - dialogue cursor, Formula Review, and active Wind Shear combat are transient and are not persisted;
 - loading during unresolved Wind Shear combat closes that transient encounter without awarding hazard progress;
