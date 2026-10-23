@@ -93,13 +93,16 @@ assert(script.includes('PREEXISTING_NATIVE_PREVIEW_INSTALL') &&
        script.includes('PREEXISTING_NATIVE_PREVIEW_RESIDUE') &&
        script.includes('Get-CimInstance Win32_Process') &&
        script.includes('ExecutablePath') &&
+       script.includes('AuditedInstallCmd') &&
+       script.includes('audited extracted ZIP native preview installer') &&
+       script.includes('source = "audited-extracted-zip"') &&
        script.includes('INSTALLED_EXE_HASH_MISMATCH') &&
        script.includes('INSTALLED_UNINSTALLER_HASH_MISMATCH') &&
        script.includes('INSTALLED_NATIVE_PREVIEW_WINDOW_NOT_READY') &&
        script.includes('Assert-ShortcutTarget') &&
        script.includes('SHORTCUT_TARGET_MISMATCH_') &&
        script.includes('SHORTCUT_WORKDIR_MISMATCH_'),
-  'install gate must start clean, preserve packaged bytes and verify the exact installed process/window plus shortcut targets');
+  'install gate must exercise the audited extracted ZIP, preserve packaged bytes and verify exact process/window plus shortcut targets');
 
 assert(script.includes('Aetherwake Native Preview.lnk') &&
        script.includes('running-app native preview uninstaller') &&
