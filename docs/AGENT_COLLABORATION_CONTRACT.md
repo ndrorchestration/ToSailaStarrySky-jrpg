@@ -10,7 +10,7 @@ The Zeta-Pell Autonomous Lattice ([separate research repository](https://github.
 
 ## 2. Hard boundaries
 
-- `main` is protected and authoritative. `dev/progression-build` is a historical branch, not automatically an up-to-date executable game. Reconcile any Hermes local checkout to the exact source SHA **before** making a patch.
+- `main` is the authoritative game source and **must be treated as protected by policy**. GitHub's branch metadata inspected 2026-10-23 reports `protected: false`; do **not** assume a server-side protection rule currently enforces reviews or blocks direct pushes. Until GitHub branch rules are independently confirmed/enabled, all agents must refrain from direct `main` writes or merges. `dev/progression-build` is historical, not automatically an up-to-date executable game. Reconcile Hermes' local checkout to the exact source SHA **before** making a patch.
 - **First priority** is playable First Wake / Chapter I Preview 0.1 and its honest Windows installation, save/close/relaunch/Continue, native scene evidence, first-frame readiness and uncoached human acceptance. Do not divert the release lane with new world/globe features.
 - The native Godot Chapter I track and the isolated cinematic/planetary globe experiment are different product/evidence scopes; scripts, manifests, source SHA and renderer tests do not cross-certify.
 - No agent may modify game saves, migration contracts, game canon, character art approvals, CI protection, desktop deploy copies, published installers, credentials, or production configuration without separate explicit creator approval and verified relevant tests.
