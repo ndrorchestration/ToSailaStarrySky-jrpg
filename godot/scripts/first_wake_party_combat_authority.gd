@@ -97,10 +97,17 @@ func validate() -> bool:
         return false
     if separate_contract_actions("ender") != ["mycelialLedger", "aetherSeal"]:
         return false
+    for separate_action_id in separate_contract_actions("ender"):
+        if can_use_formula_action("ender", separate_action_id):
+            return false
     if str(BLOCKED_OR_UNRESOLVED_ACTIONS.get("sharedDream", "")) != "blocked-by-current-ssot":
         return false
     if str(BLOCKED_OR_UNRESOLVED_ACTIONS.get("windWard", "")) != "blocked-pending-owner-and-domain":
         return false
     if can_take_formula_turn("lyra") or can_take_formula_turn("ionia"):
+        return false
+    if can_take_formula_turn("unknown") or can_use_formula_action("unknown", "staffStrike"):
+        return false
+    if status_for("unknown") != "unknown-actor":
         return false
     return true
