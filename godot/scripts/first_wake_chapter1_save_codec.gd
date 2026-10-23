@@ -1,15 +1,19 @@
 extends RefCounted
 ## Versioned fail-closed save codec for native First Wake Chapter I migration.
-## Persists durable progression and review resolver inputs only.
-## Transient UI/dialogue cursor state is intentionally not persisted.
+## Persists durable progression, bounded exploration position, and review resolver inputs.
+## Transient UI/dialogue/combat cursor state is intentionally not persisted.
+## player_position is a backward-compatible optional v1 field: older v1 saves
+## remain readable and restore to LEGACY_PLAYER_POSITION.
 
 const ChapterState = preload("res://scripts/first_wake_chapter1_state.gd")
 
 const SCHEMA_VERSION := "aetherwake.first-wake.chapter1.v1"
 const STAGE_KEYS: Array[String] = ["signal", "crossing", "contact", "choice", "wake", "done"]
+const PLAYER_POSITION_BOUNDS := Rect2(Vector2(110, 404), Vector2(740, 118))
+const LEGACY_PLAYER_POSITION := Vector2(360, 465)
 
-static func encode(chapter, stats: Dictionary = {}) -> Dictionary:
-    return {
+static func encode(chapter, stats: Dictionary = {}, player_position: Variant = null) -> Dictionary:
+    var snapshot := {
         "schema": SCHEMA_VERSION,
         "stage": chapter.stage_key(),
         "signals_completed": chapter.completed_signals.duplicate(),
@@ -26,6 +30,12 @@ static func encode(chapter, stats: Dictionary = {}) -> Dictionary:
             "engine_integration": int(stats.get("engine_integration", 0)),
         },
     }
+    if player_position is Vector2:
+        snapshot["player_position"] = {
+            "x": float(player_position.x),
+            "y": float(player_position.y),
+        }
+    return snapshot
 
 static func validate(snapshot: Dictionary) -> Dictionary:
     if str(snapshot.get("schema", "")) != SCHEMA_VERSION:
@@ -100,6 +110,11 @@ static func validate(snapshot: Dictionary) -> Dictionary:
     if engine < 0 or engine > 100:
         return _invalid("engine integration out of range")
 
+    if snapshot.has("player_position"):
+        var position_verdict := _validate_player_position(snapshot["player_position"])
+        if not bool(position_verdict.get("ok", false)):
+            return position_verdict
+
     return {"ok": true, "error": ""}
 
 static func restore(snapshot: Dictionary) -> Dictionary:
@@ -123,12 +138,37 @@ static func restore(snapshot: Dictionary) -> Dictionary:
     chapter.epilogue_id = str(snapshot["epilogue_id"])
     chapter.chapter_one_complete = bool(snapshot["chapter_one_complete"])
 
+    var has_player_position := snapshot.has("player_position")
+    var player_position := LEGACY_PLAYER_POSITION
+    if has_player_position:
+        var raw_position: Dictionary = snapshot["player_position"]
+        player_position = Vector2(float(raw_position["x"]), float(raw_position["y"]))
+
     return {
         "ok": true,
         "error": "",
         "chapter": chapter,
         "resolver_stats": snapshot["resolver_stats"].duplicate(true),
+        "player_position": player_position,
+        "player_position_present": has_player_position,
     }
+
+static func _validate_player_position(raw: Variant) -> Dictionary:
+    if not (raw is Dictionary):
+        return _invalid("player position must be an object")
+    var position: Dictionary = raw
+    if not position.has("x") or not position.has("y"):
+        return _invalid("player position coordinates missing")
+    if typeof(position["x"]) not in [TYPE_INT, TYPE_FLOAT] or typeof(position["y"]) not in [TYPE_INT, TYPE_FLOAT]:
+        return _invalid("player position coordinates must be numeric")
+    var x := float(position["x"])
+    var y := float(position["y"])
+    if not is_finite(x) or not is_finite(y):
+        return _invalid("player position coordinates must be finite")
+    var point := Vector2(x, y)
+    if not PLAYER_POSITION_BOUNDS.has_point(point):
+        return _invalid("player position outside Chapter I deck bounds")
+    return {"ok": true, "error": ""}
 
 static func _stage_from_key(stage_key: String) -> int:
     match stage_key:
