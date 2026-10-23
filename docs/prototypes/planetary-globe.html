@@ -51,10 +51,10 @@ function climate(lat,lon){
 function frame(ctx,w,h){const data=ctx.createImageData(w,h);return{pixels:data.data,submit:()=>ctx.putImageData(data,0,0)};}
 function pixel(buf,index,c,light){buf[index]=Math.round(clamp(c[0]*light,0,255));buf[index+1]=Math.round(clamp(c[1]*light,0,255));buf[index+2]=Math.round(clamp(c[2]*light,0,255));buf[index+3]=255;}
 function globeRender(){
-  const off=document.createElement('canvas');off.width=300;off.height=300;const ctx=off.getContext('2d');const {pixels,submit}=frame(ctx,300,300);
+  const off=document.createElement('canvas');off.width=240;off.height=240;const ctx=off.getContext('2d');const {pixels,submit}=frame(ctx,240,240);
   const p=lat*DEG,l=lon*DEG,cp=Math.cos(p),sp=Math.sin(p),cl=Math.cos(l),sl=Math.sin(l);
-  for(let y=0;y<300;y++)for(let x=0;x<300;x++){
-    const east=(x-149.5)/143,up=(149.5-y)/143,d=east*east+up*up;
+  for(let y=0;y<240;y++)for(let x=0;x<240;x++){
+    const east=(x-119.5)/114,up=(119.5-y)/114,d=east*east+up*up;
     if(d>1)continue;
     const outward=Math.sqrt(Math.max(0,1-d));
     const vx=cp*cl*outward-sl*east-sp*cl*up;
@@ -62,7 +62,7 @@ function globeRender(){
     const vz=sp*outward+cp*up;
     const vlat=Math.atan2(vz,Math.hypot(vx,vy));const vlon=Math.atan2(vy,vx);
     const brightness=clamp(.38+.67*(outward*.85+up*.24-east*.28),.23,1.2);
-    pixel(pixels,(y*300+x)*4,climate(vlat,vlon),brightness);
+    pixel(pixels,(y*240+x)*4,climate(vlat,vlon),brightness);
   }
   submit();const canvasCtx=globe.getContext('2d');canvasCtx.clearRect(0,0,460,460);canvasCtx.imageSmoothingEnabled=true;
   canvasCtx.drawImage(off,7,7,446,446);canvasCtx.lineWidth=1.5;canvasCtx.strokeStyle='#99d4c477';canvasCtx.beginPath();canvasCtx.arc(230,230,213,0,Math.PI*2);canvasCtx.stroke();
@@ -78,17 +78,17 @@ function globeRender(){
 }
 function horizonRender(){
   const ctx=horizon.getContext('2d'),size=350;
-  const off=document.createElement('canvas');off.width=220;off.height=220;
-  const scratch=off.getContext('2d');const {pixels,submit}=frame(scratch,220,220);
+  const off=document.createElement('canvas');off.width=165;off.height=165;
+  const scratch=off.getContext('2d');const {pixels,submit}=frame(scratch,165,165);
   const limit=geo.horizonAngleRad(altitude,R);const position={latDeg:lat,lonDeg:lon};
-  for(let y=0;y<220;y++)for(let x=0;x<220;x++){
-    const ex=(x-109.5)/101,ny=(109.5-y)/101,t=Math.hypot(ex,ny);
+  for(let y=0;y<165;y++)for(let x=0;x<165;x++){
+    const ex=(x-82)/76,ny=(82-y)/76,t=Math.hypot(ex,ny);
     if(t>1)continue;
     const bearing=Math.atan2(ex,ny)*RAD;
     const candidate=geo.destinationPoint(position,bearing,Math.min(1,t)*limit*R,R);
     const c=climate(candidate.latDeg*DEG,candidate.lonDeg*DEG);
     const shading=.81+.17*ny;
-    pixel(pixels,(y*220+x)*4,c,shading);
+    pixel(pixels,(y*165+x)*4,c,shading);
   }
   submit();ctx.clearRect(0,0,size,size);ctx.drawImage(off,0,0,size,size);ctx.strokeStyle='#f5daab88';ctx.lineWidth=2;ctx.beginPath();ctx.arc(175,175,161,0,Math.PI*2);ctx.stroke();
   ctx.strokeStyle='#ffffff66';ctx.beginPath();ctx.moveTo(167,175);ctx.lineTo(183,175);ctx.moveTo(175,167);ctx.lineTo(175,183);ctx.stroke();
