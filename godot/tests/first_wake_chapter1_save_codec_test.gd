@@ -161,6 +161,18 @@ func _verify() -> void:
         _fail("Done admitted without epilogue identity")
         return
 
+    var invented_epilogue := done_snapshot.duplicate(true)
+    invented_epilogue["epilogue_id"] = "invented_epilogue"
+    if SaveCodec.restore(invented_epilogue).get("ok", true):
+        _fail("Done admitted an invented epilogue identity")
+        return
+
+    var wrong_valid_epilogue := done_snapshot.duplicate(true)
+    wrong_valid_epilogue["epilogue_id"] = "epiline_1"
+    if SaveCodec.restore(wrong_valid_epilogue).get("ok", true):
+        _fail("Done admitted an epilogue that contradicts durable resolver inputs")
+        return
+
     var bad_stats := partial.duplicate(true)
     bad_stats["resolver_stats"]["morale"] = 101
     if SaveCodec.restore(bad_stats).get("ok", true):
