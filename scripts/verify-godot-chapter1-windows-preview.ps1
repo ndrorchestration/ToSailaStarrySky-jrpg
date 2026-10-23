@@ -97,12 +97,20 @@ try {
         throw "SOURCE_SHA_MISMATCH expected=$ExpectedSourceSha actual=$HeadSha"
     }
 
-    $Dirty = @(& git status --porcelain)
+    $TrackedDirty = @(& git status --porcelain --untracked-files=no)
     if ($LASTEXITCODE -ne 0) {
         throw "GIT_STATUS_FAILED"
     }
-    if ($Dirty.Count -gt 0) {
-        throw "WORKTREE_NOT_CLEAN"
+    if ($TrackedDirty.Count -gt 0) {
+        throw "TRACKED_WORKTREE_NOT_CLEAN"
+    }
+
+    $UntrackedGodot = @(& git ls-files --others --exclude-standard -- godot)
+    if ($LASTEXITCODE -ne 0) {
+        throw "GIT_UNTRACKED_GODOT_SCAN_FAILED"
+    }
+    if ($UntrackedGodot.Count -gt 0) {
+        throw "UNTRACKED_GODOT_AUTHORITY_FILES"
     }
 }
 finally {
