@@ -31,9 +31,10 @@ assert(script.includes('[string]$ExpectedSourceSha') &&
        script.includes('git rev-parse HEAD') &&
        script.includes('git status --porcelain --untracked-files=no') &&
        script.includes('TRACKED_WORKTREE_NOT_CLEAN') &&
-       script.includes('git ls-files --others --exclude-standard -- godot') &&
+       script.includes('git ls-files --others -- godot') &&
+       !script.includes('git ls-files --others --exclude-standard -- godot') &&
        script.includes('UNTRACKED_GODOT_AUTHORITY_FILES'),
-  'exact Windows QA must validate and bind clean tracked source plus an uncontaminated Godot project to an expected SHA');
+  'exact Windows QA must validate and bind clean tracked source plus all ignored/nonignored Godot project files to an expected SHA');
 
 assert((script.match(/EXPECTED_SOURCE_SHA_INVALID/g) || []).length === 1 &&
        (script.match(/git rev-parse HEAD/g) || []).length === 1 &&
@@ -41,7 +42,22 @@ assert((script.match(/EXPECTED_SOURCE_SHA_INVALID/g) || []).length === 1 &&
   'exact Windows QA control flow must contain one source validator, one HEAD binding and one terminal PASS marker');
 
 assert(/(^|\n)\.godot\/\s*(\n|$)/.test(gitignore),
-  'Godot generated .godot cache must stay ignored so exact QA remains rerunnable without weakening authority-file checks');
+  'Godot generated .godot cache must stay ignored in normal repository status');
+
+assert(script.includes('$GodotCacheDir = Join-Path $GodotDir ".godot"') &&
+       script.includes('Remove-Item -LiteralPath $GodotCacheDir -Recurse -Force'),
+  'exact Windows QA must delete stale .godot cache before source binding and clean generated cache before final integrity proof');
+
+assert(script.includes('$GeneratedGodotMetadataSha = [ordered]@{}') &&
+       script.includes('EndsWith(".import"') &&
+       script.includes('EndsWith(".uid"') &&
+       script.includes('git ls-files -- $SourceRelativePath') &&
+       script.includes('GENERATED_GODOT_UID_METADATA_INVALID') &&
+       script.includes('GENERATED_GODOT_IMPORT_METADATA_INVALID') &&
+       script.includes('$GeneratedGodotMetadataSha[$RelativeMetadataPath] = Get-Sha256Hex $MetadataPath') &&
+       script.includes('Remove-Item -LiteralPath (Join-Path $RepoRoot $RelativeMetadataPath) -Force') &&
+       script.includes('GENERATED_GODOT_METADATA_CLEANUP_FAILED'),
+  'Godot-generated sidecars must be limited to tracked sources, validated, hash-bound, cleaned and followed by a zero-untracked proof');
 
 assert(script.includes('build-godot-chapter1-windows-preview.ps1') &&
        script.includes('package-godot-chapter1-windows-preview.ps1'),
@@ -142,6 +158,8 @@ assert(script.includes('WINDOWS_NATIVE_QA_RECEIPT.json') &&
        script.includes('ZIP_CONTENT_SET_MISMATCH') &&
        script.includes('ZIP_PAYLOAD_HASH_MISMATCH') &&
        script.includes('zipContentAudit') &&
+       script.includes('generatedGodotMetadata') &&
+       script.includes('AETHERWAKE_GODOT_EXACT_QA_GENERATED_METADATA=') &&
        script.includes('TRACKED_SOURCE_CHANGED_DURING_QA') &&
        script.includes('FINAL_GIT_UNTRACKED_GODOT_SCAN_FAILED') &&
        script.includes('UNTRACKED_GODOT_AUTHORITY_FILES_CREATED_DURING_QA') &&
