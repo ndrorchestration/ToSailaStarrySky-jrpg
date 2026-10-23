@@ -92,6 +92,38 @@ function Invoke-CmdChecked([string]$CmdPath, [string]$Label) {
     }
 }
 
+function Assert-ShortcutTarget(
+    [string]$ShortcutPath,
+    [string]$ExpectedTarget,
+    [string]$ExpectedWorkingDirectory,
+    [string]$Label
+) {
+    Assert-Exists $ShortcutPath $Label
+    $Shell = New-Object -ComObject WScript.Shell
+    try {
+        $Shortcut = $Shell.CreateShortcut($ShortcutPath)
+        $ActualTarget = [System.IO.Path]::GetFullPath([string]$Shortcut.TargetPath)
+        $ActualWorkingDirectory = [System.IO.Path]::GetFullPath([string]$Shortcut.WorkingDirectory)
+        $ExpectedTargetFull = [System.IO.Path]::GetFullPath($ExpectedTarget)
+        $ExpectedWorkingDirectoryFull = [System.IO.Path]::GetFullPath($ExpectedWorkingDirectory)
+        if (-not $ActualTarget.Equals($ExpectedTargetFull, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "SHORTCUT_TARGET_MISMATCH_$Label expected=$ExpectedTargetFull actual=$ActualTarget"
+        }
+        if (-not $ActualWorkingDirectory.Equals($ExpectedWorkingDirectoryFull, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "SHORTCUT_WORKDIR_MISMATCH_$Label expected=$ExpectedWorkingDirectoryFull actual=$ActualWorkingDirectory"
+        }
+        return [ordered]@{
+            target = $ActualTarget
+            workingDirectory = $ActualWorkingDirectory
+        }
+    }
+    finally {
+        if ($null -ne $Shell) {
+            [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($Shell)
+        }
+    }
+}
+
 function Invoke-GodotCaptureChecked([string[]]$Arguments, [string]$Label, [string]$LogPath) {
     $PreviousErrorActionPreference = $ErrorActionPreference
     $HadNativePreference = Test-Path Variable:PSNativeCommandUseErrorActionPreference
@@ -291,8 +323,82 @@ if ($ExportedExeSha -ne $ExeSha) {
 }
 $InstallCmdSha = Get-Sha256Hex $InstallCmd
 $UninstallCmdSha = Get-Sha256Hex $UninstallCmd
+$PayloadUninstall = Join-Path $Staging "Aetherwake\Uninstall-Aetherwake-Godot-Preview.cmd"
+$PayloadUninstallSha = Get-Sha256Hex $PayloadUninstall
 $ReadmeSha = Get-Sha256Hex $Readme
 $ManifestSha = Get-Sha256Hex $Manifest
+
+$ManifestValues = [ordered]@{}
+foreach ($ManifestLine in @(Get-Content -LiteralPath $Manifest)) {
+    if ([string]::IsNullOrWhiteSpace($ManifestLine)) {
+        continue
+    }
+    $ManifestParts = $ManifestLine -split '=', 2
+    if ($ManifestParts.Count -ne 2 -or [string]::IsNullOrWhiteSpace($ManifestParts[0])) {
+        throw "PACKAGE_MANIFEST_INVALID_LINE:$ManifestLine"
+    }
+    $ManifestKey = $ManifestParts[0].Trim()
+    if ($ManifestValues.Contains($ManifestKey)) {
+        throw "PACKAGE_MANIFEST_DUPLICATE_KEY:$ManifestKey"
+    }
+    $ManifestValues[$ManifestKey] = $ManifestParts[1].Trim()
+}
+$ExpectedManifestValues = [ordered]@{
+    EXE_SHA256 = $ExeSha
+    INSTALL_WRAPPER_SHA256 = $InstallCmdSha
+    UNINSTALL_WRAPPER_SHA256 = $UninstallCmdSha
+    PAYLOAD_UNINSTALLER_SHA256 = $PayloadUninstallSha
+    README_SHA256 = $ReadmeSha
+    NSIS_INCLUDED = "NO"
+    ADMIN_REQUIRED = "NO"
+    PUBLIC_RELEASE_AUTHORIZED = "NO"
+}
+if ($ManifestValues.Count -ne $ExpectedManifestValues.Count) {
+    throw "PACKAGE_MANIFEST_KEY_COUNT_MISMATCH expected=$($ExpectedManifestValues.Count) actual=$($ManifestValues.Count)"
+}
+foreach ($ManifestKey in $ExpectedManifestValues.Keys) {
+    if (-not $ManifestValues.Contains($ManifestKey)) {
+        throw "PACKAGE_MANIFEST_MISSING_KEY:$ManifestKey"
+    }
+    if ([string]$ManifestValues[$ManifestKey] -ne [string]$ExpectedManifestValues[$ManifestKey]) {
+        throw "PACKAGE_MANIFEST_VALUE_MISMATCH:$ManifestKey"
+    }
+}
+
+$ZipAuditDir = Join-Path $OutputDir "zip-audit"
+if (Test-Path -LiteralPath $ZipAuditDir) {
+    Remove-Item -LiteralPath $ZipAuditDir -Recurse -Force
+}
+Expand-Archive -LiteralPath $Zip -DestinationPath $ZipAuditDir -Force
+$ExpectedZipFiles = @(
+    "Aetherwake\Aetherwake-First-Wake-Godot-Preview.exe",
+    "Aetherwake\Uninstall-Aetherwake-Godot-Preview.cmd",
+    "Install-Aetherwake-Godot-Preview.cmd",
+    "README-FIRST.txt",
+    "SHA256SUMS.txt",
+    "Uninstall-Aetherwake-Godot-Preview.cmd"
+) | Sort-Object
+$ActualZipFiles = @(
+    Get-ChildItem -LiteralPath $ZipAuditDir -Recurse -File |
+        ForEach-Object {
+            $_.FullName.Substring($ZipAuditDir.Length).TrimStart([char[]]@(92, 47))
+        } |
+        Sort-Object
+)
+if (($ExpectedZipFiles -join [Environment]::NewLine) -ne ($ActualZipFiles -join [Environment]::NewLine)) {
+    throw "ZIP_CONTENT_SET_MISMATCH expected=$($ExpectedZipFiles -join ',') actual=$($ActualZipFiles -join ',')"
+}
+foreach ($RelativeZipPath in $ExpectedZipFiles) {
+    $StagingPath = Join-Path $Staging $RelativeZipPath
+    $AuditedZipPath = Join-Path $ZipAuditDir $RelativeZipPath
+    Assert-Exists $StagingPath "staging ZIP source $RelativeZipPath"
+    Assert-Exists $AuditedZipPath "extracted ZIP payload $RelativeZipPath"
+    $StagingSha = Get-Sha256Hex $StagingPath
+    $AuditedZipSha = Get-Sha256Hex $AuditedZipPath
+    if ($StagingSha -ne $AuditedZipSha) {
+        throw "ZIP_PAYLOAD_HASH_MISMATCH:$RelativeZipPath"
+    }
+}
 
 $InstallDir = Join-Path $env:LOCALAPPDATA "Programs\Aetherwake-Godot-Native-Preview"
 $InstalledExe = Join-Path $InstallDir "Aetherwake-First-Wake-Godot-Preview.exe"
@@ -333,6 +439,9 @@ Assert-Exists $InstalledExe "installed executable"
 Assert-Exists $InstalledUninstall "installed uninstaller"
 Assert-Exists $DesktopShortcut "Desktop shortcut"
 Assert-Exists $StartMenuShortcut "Start Menu shortcut"
+
+$DesktopShortcutCustody = Assert-ShortcutTarget $DesktopShortcut $InstalledExe $InstallDir "DESKTOP"
+$StartMenuShortcutCustody = Assert-ShortcutTarget $StartMenuShortcut $InstalledExe $InstallDir "START_MENU"
 
 $InstalledExeSha = Get-Sha256Hex $InstalledExe
 if ($InstalledExeSha -ne $ExeSha) {
@@ -446,9 +555,15 @@ $Receipt = [ordered]@{
     uninstallWrapperSha256 = $UninstallCmdSha
     packageReadmeSha256 = $ReadmeSha
     packageManifestSha256 = $ManifestSha
+    packageManifest = $ManifestValues
     zip = [System.IO.Path]::GetFullPath($Zip)
     zipBytes = [int64]$ZipItem.Length
     zipSha256 = $ZipSha
+    zipContentAudit = [ordered]@{
+        exactFileSet = "PASS"
+        byteParityWithStaging = "PASS"
+        files = $ExpectedZipFiles
+    }
     defender = [ordered]@{
         installWrapper = "PASS"
         uninstallWrapper = "PASS"
@@ -461,8 +576,8 @@ $Receipt = [ordered]@{
         installedUninstallerHashMatch = "PASS"
         liveLaunch = "PASS"
         windowTitle = $MainWindowTitle
-        desktopShortcut = "PASS"
-        startMenuShortcut = "PASS"
+        desktopShortcut = $DesktopShortcutCustody
+        startMenuShortcut = $StartMenuShortcutCustody
         runningAppUninstall = "PASS"
         cleanup = "PASS"
     }
@@ -505,6 +620,9 @@ $MarkdownReceipt = @(
     "- Uninstall wrapper SHA-256: $UninstallCmdSha",
     "- README SHA-256: $ReadmeSha",
     "- Manifest SHA-256: $ManifestSha",
+    "- Manifest semantic/hash verification: PASS",
+    "- ZIP exact file set: PASS",
+    "- ZIP staging byte parity: PASS",
     "",
     "## Windows verification",
     "- Defender custom scans: PASS (installer / uninstaller / packaged EXE / ZIP)",
@@ -512,8 +630,8 @@ $MarkdownReceipt = @(
     "- Installed EXE byte identity: PASS",
     "- Installed uninstaller byte identity: PASS",
     "- Live native window: PASS - $MainWindowTitle",
-    "- Desktop shortcut: PASS",
-    "- Start Menu shortcut: PASS",
+    "- Desktop shortcut target/workdir: PASS",
+    "- Start Menu shortcut target/workdir: PASS",
     "- Running-app uninstall: PASS",
     "- Cleanup: PASS",
     "- Final tracked/untracked Godot source integrity: PASS",
