@@ -19,16 +19,18 @@ class Sequence:
         index += 1
         return value
 
+var _deterministic_sequence = null
+
 func _initialize() -> void:
     call_deferred("_verify")
 
 func _deterministic_encounter():
-    var sequence = Sequence.new([
+    _deterministic_sequence = Sequence.new([
         0.5, 0.99, 0.5, 0.99, 0.5, 0.99, 0.5, 0.99,
         0.5, 0.99, 0.5, 0.99, 0.5, 0.99, 0.5, 0.99,
         0.5, 0.99, 0.5, 0.99, 0.5, 0.99, 0.5, 0.99,
     ])
-    return Encounter.new(sequence.next)
+    return Encounter.new(_deterministic_sequence.next)
 
 func _verify() -> void:
     var world = REVIEW_SCENE.instantiate()
