@@ -121,7 +121,17 @@ func _verify() -> void:
                 return
         else:
             if not world.take_formula_review_action("staffStrike"):
-                _fail("Staff Strike failed during Wind Shear completion")
+                _fail("Staff Strike failed during Wind Shear completion: active=%s completed=%s defeated=%s charges=%d vit=%d target_hp=%d turns=%d enemy_turns=%d message=%s" % [
+                    str(world.formula_encounter.active),
+                    str(world.formula_encounter.completed),
+                    str(world.formula_encounter.player_defeated),
+                    int(world.formula_encounter.player.get("staffCharges", -1)),
+                    int(world.formula_encounter.player.get("vit", -1)),
+                    int(world.formula_encounter.target.get("hp", -1)),
+                    int(world.formula_encounter.turns),
+                    int(world.formula_encounter.enemy_turns),
+                    world.last_message,
+                ])
                 return
         guard += 1
     if not world.formula_encounter.completed:
