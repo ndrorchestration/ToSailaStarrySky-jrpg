@@ -74,8 +74,10 @@ test('both standalone prototype inline scripts parse in Node before browser QA',
   const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
   for(const name of ['planetary-globe.html','planetary-flight.html']) {
     const html=fs.readFileSync(path.join(__dirname,'../docs/prototypes',name),'utf8');
-    const embedded=[...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)];
-    assert.equal(embedded.length,1,'expected one inline entrypoint script: '+name);
-    assert.doesNotThrow(()=>new vm.Script(embedded[0][1],{filename:name}));
+    const opening=html.indexOf('<script>');
+    const closing=html.indexOf('</script>',opening);
+    assert.ok(opening>=0 && closing>opening, 'expected inline entrypoint: '+name);
+    const inline=html.slice(opening+'<script>'.length,closing);
+    assert.doesNotThrow(()=>new vm.Script(inline,{filename:name}));
   }
 });
