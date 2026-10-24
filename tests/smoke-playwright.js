@@ -58,6 +58,25 @@ function createServer() {
   const page = await browser.newPage({ viewport: { width: 960, height: 640 } });
   const errors = [];
 
+  // Observe the real Canvas2D title draw before gameplay advances. This is
+  // a render-time fit check, not image-based artistic approval.
+  await page.addInitScript(() => {
+    window.__awBrandTitlePaints = [];
+    const originalFillText = CanvasRenderingContext2D.prototype.fillText;
+    CanvasRenderingContext2D.prototype.fillText = function (value, x, y) {
+      if (value === 'TO SAIL THE STARRY SKY' &&
+          window.__awBrandTitlePaints.length < 32) {
+        window.__awBrandTitlePaints.push({
+          width: this.measureText(value).width,
+          canvasWidth: this.canvas.width,
+          x,
+          align: this.textAlign,
+        });
+      }
+      return originalFillText.apply(this, arguments);
+    };
+  });
+
   page.on('pageerror', err => errors.push(`PAGE: ${err.message}\n${err.stack || ''}`));
   page.on('requestfailed', request => {
     errors.push(`REQUEST: ${request.url()} — ${request.failure()?.errorText || 'failed'}`);
@@ -82,6 +101,22 @@ function createServer() {
       { waitUntil: 'domcontentloaded', timeout: 20000 }
     );
     assert(response && response.ok(), 'index-embedded.html did not load successfully');
+
+    assert(await page.title() === 'To Sail the Starry Sky',
+      'browser tab does not show the approved game title');
+    await page.waitForFunction(() =>
+      window.__awBrandTitlePaints && window.__awBrandTitlePaints.length > 0,
+      undefined, { timeout: 15000 }
+    );
+    const brandDraws = await page.evaluate(() => window.__awBrandTitlePaints);
+    assert(brandDraws.every(sample =>
+      Number.isFinite(sample.width) &&
+      sample.canvasWidth === 960 &&
+      sample.width < sample.canvasWidth - 64 &&
+      sample.align === 'center' &&
+      Math.abs(sample.x - sample.canvasWidth / 2) < 6
+    ), 'new game title must be centered and fit within the logical canvas');
+
 
     await page.waitForSelector('canvas', { timeout: 15000 });
     await page.waitForFunction(() =>
