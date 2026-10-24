@@ -1,0 +1,460 @@
+name: Godot Exact Windows QA (review only)
+
+on:
+  pull_request:
+    paths:
+      - 'godot/**'
+      - 'scripts/verify-godot-chapter1-windows-preview.ps1'
+      - 'scripts/build-godot-chapter1-windows-preview.ps1'
+      - 'scripts/package-godot-chapter1-windows-preview.ps1'
+      - 'tests/godot-windows-preview-package-contract.test.js'
+      - 'tests/godot-windows-native-qa-contract.test.js'
+      - '.github/workflows/godot-exact-windows-qa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-windows-qa:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact PR head without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Bind exact source SHA
+        shell: pwsh
+        env:
+          EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $actual = (& git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $actual -ne $env:EXPECTED_SOURCE_SHA) {
+            throw "EXACT_HEAD_MISMATCH expected=$($env:EXPECTED_SOURCE_SHA) actual=$actual"
+          }
+          Write-Host "EXACT_HEAD_BINDING=PASS:$actual"
+
+      - name: Preflight unchanged Defender custody requirements
+        shell: pwsh
+        run: |
+          $required = @("Get-MpComputerStatus", "Start-MpScan", "Get-MpThreatDetection", "Get-WinEvent")
+          foreach ($commandName in $required) {
+            if (-not (Get-Command $commandName -ErrorAction SilentlyContinue)) {
+              throw "WINDOWS_QA_HOST_MISSING_COMMAND:$commandName"
+            }
+          }
+          $status = Get-MpComputerStatus -ErrorAction Stop
+          Write-Host "DEFENDER_ANTIVIRUS_ENABLED=$([bool]$status.AntivirusEnabled)"
+          Write-Host "DEFENDER_REALTIME_ENABLED=$([bool]$status.RealTimeProtectionEnabled)"
+          Write-Host "DEFENDER_PRODUCT_VERSION=$($status.AMProductVersion)"
+          Write-Host "DEFENDER_ENGINE_VERSION=$($status.AMEngineVersion)"
+          Write-Host "DEFENDER_SIGNATURE_VERSION=$($status.AntivirusSignatureVersion)"
+          if (-not [bool]$status.AntivirusEnabled) {
+            throw "WINDOWS_QA_HOST_DEFENDER_ANTIVIRUS_DISABLED"
+          }
+          if (-not [bool]$status.RealTimeProtectionEnabled) {
+            throw "WINDOWS_QA_HOST_DEFENDER_REALTIME_DISABLED"
+          }
+          $null = Get-WinEvent -ListLog "Microsoft-Windows-Windows Defender/Operational" -ErrorAction Stop
+          Write-Host "DEFENDER_OPERATIONAL_LOG=AVAILABLE"
+
+      - name: Fetch digest-pinned official Godot 4.7.2 Windows editor
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP "godot-4.7.2-win64.zip"
+          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_win64.exe.zip" -OutFile $zip
+          $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash.ToLowerInvariant()
+          $expected = "731980f9608d61333e5baf54a2ef17210acc7a538446c0cb9969f002aca1e953"
+          if ($actual -ne $expected) {
+            throw "GODOT_WINDOWS_ARCHIVE_SHA256_MISMATCH expected=$expected actual=$actual"
+          }
+          $editorDir = Join-Path $env:RUNNER_TEMP "godot-4.7.2-win64"
+          Expand-Archive -LiteralPath $zip -DestinationPath $editorDir -Force
+          $consoleExe = Get-ChildItem -LiteralPath $editorDir -Recurse -File -Filter "Godot_v4.7.2-stable_win64_console.exe" | Select-Object -First 1
+          if (-not $consoleExe) {
+            throw "GODOT_WINDOWS_CONSOLE_EXE_MISSING"
+          }
+          "GODOT_EXE=$($consoleExe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "GODOT_WINDOWS_ARCHIVE_SHA256=PASS:$actual"
+
+      - name: Fetch digest-pinned official Godot 4.7.2 export templates
+        shell: pwsh
+        run: |
+          $tpz = Join-Path $env:RUNNER_TEMP "Godot_v4.7.2-stable_export_templates.tpz"
+          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz" -OutFile $tpz
+          $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $tpz).Hash.ToLowerInvariant()
+          $expected = "f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011"
+          if ($actual -ne $expected) {
+            throw "GODOT_EXPORT_TEMPLATES_SHA256_MISMATCH expected=$expected actual=$actual"
+          }
+
+          $zip = Join-Path $env:RUNNER_TEMP "Godot_v4.7.2-stable_export_templates.zip"
+          Copy-Item -LiteralPath $tpz -Destination $zip -Force
+          $unpack = Join-Path $env:RUNNER_TEMP "godot-4.7.2-export-templates"
+          Expand-Archive -LiteralPath $zip -DestinationPath $unpack -Force
+
+          $releaseTemplate = Get-ChildItem -LiteralPath $unpack -Recurse -File -Filter "windows_release_x86_64.exe" | Select-Object -First 1
+          if (-not $releaseTemplate) {
+            throw "GODOT_WINDOWS_RELEASE_TEMPLATE_MISSING"
+          }
+          $sourceDir = $releaseTemplate.Directory.FullName
+          $versionFile = Join-Path $sourceDir "version.txt"
+          if (-not (Test-Path -LiteralPath $versionFile)) {
+            throw "GODOT_TEMPLATE_VERSION_FILE_MISSING:$sourceDir"
+          }
+          $versionText = (Get-Content -LiteralPath $versionFile -Raw).Trim()
+          if ($versionText -ne "4.7.2.stable") {
+            throw "GODOT_TEMPLATE_VERSION_MISMATCH expected=4.7.2.stable actual=$versionText"
+          }
+
+          $targetDir = Join-Path $env:APPDATA "Godot\export_templates\4.7.2.stable"
+          if (Test-Path -LiteralPath $targetDir) {
+            Remove-Item -LiteralPath $targetDir -Recurse -Force
+          }
+          New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+          Copy-Item -Path (Join-Path $sourceDir "*") -Destination $targetDir -Recurse -Force
+          Write-Host "GODOT_EXPORT_TEMPLATES_SHA256=PASS:$actual"
+          Write-Host "GODOT_EXPORT_TEMPLATE_INSTALL=PASS:$targetDir"
+
+      - name: Execute unchanged exact Windows verifier
+        shell: pwsh
+        env:
+          EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $outputDir = Join-Path $env:RUNNER_TEMP "aetherwake-godot-exact-windows-qa"
+          & .\scripts\verify-godot-chapter1-windows-preview.ps1 `
+            -GodotExe $env:GODOT_EXE `
+            -ExpectedSourceSha $env:EXPECTED_SOURCE_SHA `
+            -OutputDir $outputDir
+
+          $jsonReceipt = Join-Path $outputDir "WINDOWS_NATIVE_QA_RECEIPT.json"
+          $markdownReceipt = Join-Path $outputDir "WINDOWS_NATIVE_QA_RECEIPT.md"
+          if (-not (Test-Path -LiteralPath $jsonReceipt)) {
+            throw "WINDOWS_NATIVE_QA_JSON_RECEIPT_MISSING"
+          }
+          if (-not (Test-Path -LiteralPath $markdownReceipt)) {
+            throw "WINDOWS_NATIVE_QA_MARKDOWN_RECEIPT_MISSING"
+          }
+          $jsonSha = (Get-FileHash -Algorithm SHA256 -LiteralPath $jsonReceipt).Hash.ToLowerInvariant()
+          $markdownSha = (Get-FileHash -Algorithm SHA256 -LiteralPath $markdownReceipt).Hash.ToLowerInvariant()
+          Write-Host "WINDOWS_NATIVE_QA_JSON_RECEIPT_SHA256=$jsonSha"
+          Write-Host "WINDOWS_NATIVE_QA_MARKDOWN_RECEIPT_SHA256=$markdownSha"
+          Write-Host "WINDOWS_NATIVE_QA_DISTRIBUTION=RUNNER_LOCAL_ONLY"
+          Write-Host "PUBLIC_RELEASE_AUTHORIZED=NO"
+
+
+  windows-functional-prerequisites:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact PR head without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Bind exact source SHA
+        shell: pwsh
+        env:
+          EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $actual = (& git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $actual -ne $env:EXPECTED_SOURCE_SHA) {
+            throw "EXACT_HEAD_MISMATCH expected=$($env:EXPECTED_SOURCE_SHA) actual=$actual"
+          }
+          Write-Host "WINDOWS_FUNCTIONAL_EXACT_HEAD=PASS:$actual"
+
+      - name: Fetch and verify signed official Godot 4.7.2 Windows editor
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP "godot-4.7.2-win64.zip"
+          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_win64.exe.zip" -OutFile $zip
+          $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash.ToLowerInvariant()
+          $expected = "731980f9608d61333e5baf54a2ef17210acc7a538446c0cb9969f002aca1e953"
+          if ($actual -ne $expected) {
+            throw "GODOT_WINDOWS_ARCHIVE_SHA256_MISMATCH expected=$expected actual=$actual"
+          }
+
+          $editorDir = Join-Path $env:RUNNER_TEMP "godot-4.7.2-win64"
+          Expand-Archive -LiteralPath $zip -DestinationPath $editorDir -Force
+          $consoleExe = Get-ChildItem -LiteralPath $editorDir -Recurse -File -Filter "Godot_v4.7.2-stable_win64_console.exe" | Select-Object -First 1
+          if (-not $consoleExe) {
+            throw "GODOT_WINDOWS_CONSOLE_EXE_MISSING"
+          }
+
+          $signature = Get-AuthenticodeSignature -LiteralPath $consoleExe.FullName
+          if ($signature.Status -ne [System.Management.Automation.SignatureStatus]::Valid) {
+            throw "GODOT_WINDOWS_AUTHENTICODE_INVALID:$($signature.Status)"
+          }
+          if ($null -eq $signature.SignerCertificate -or
+              [string]$signature.SignerCertificate.Subject -notmatch "Prehensile Tales B\.V\.") {
+            throw "GODOT_WINDOWS_AUTHENTICODE_PUBLISHER_MISMATCH"
+          }
+
+          $version = ((& $consoleExe.FullName --version) | Out-String).Trim()
+          if ($version -ne "4.7.2.stable.official.ed1daf0bf") {
+            throw "GODOT_WINDOWS_VERSION_MISMATCH:$version"
+          }
+
+          "GODOT_EXE=$($consoleExe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "GODOT_WINDOWS_ARCHIVE_SHA256=PASS:$actual"
+          Write-Host "GODOT_WINDOWS_AUTHENTICODE=PASS:$($signature.SignerCertificate.Subject)"
+          Write-Host "GODOT_WINDOWS_VERSION=PASS:$version"
+
+      - name: Fetch and verify official Godot 4.7.2 export templates
+        shell: pwsh
+        run: |
+          $tpz = Join-Path $env:RUNNER_TEMP "Godot_v4.7.2-stable_export_templates.tpz"
+          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz" -OutFile $tpz
+          $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $tpz).Hash.ToLowerInvariant()
+          $expected = "f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011"
+          if ($actual -ne $expected) {
+            throw "GODOT_EXPORT_TEMPLATES_SHA256_MISMATCH expected=$expected actual=$actual"
+          }
+
+          $zip = Join-Path $env:RUNNER_TEMP "Godot_v4.7.2-stable_export_templates.zip"
+          Copy-Item -LiteralPath $tpz -Destination $zip -Force
+          $unpack = Join-Path $env:RUNNER_TEMP "godot-4.7.2-export-templates"
+          Expand-Archive -LiteralPath $zip -DestinationPath $unpack -Force
+
+          $releaseTemplate = Get-ChildItem -LiteralPath $unpack -Recurse -File -Filter "windows_release_x86_64.exe" | Select-Object -First 1
+          if (-not $releaseTemplate) {
+            throw "GODOT_WINDOWS_RELEASE_TEMPLATE_MISSING"
+          }
+          $sourceDir = $releaseTemplate.Directory.FullName
+          $versionFile = Join-Path $sourceDir "version.txt"
+          if (-not (Test-Path -LiteralPath $versionFile)) {
+            throw "GODOT_TEMPLATE_VERSION_FILE_MISSING:$sourceDir"
+          }
+          $versionText = (Get-Content -LiteralPath $versionFile -Raw).Trim()
+          if ($versionText -ne "4.7.2.stable") {
+            throw "GODOT_TEMPLATE_VERSION_MISMATCH expected=4.7.2.stable actual=$versionText"
+          }
+
+          $targetDir = Join-Path $env:APPDATA "Godot\export_templates\4.7.2.stable"
+          New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+          Copy-Item -Path (Join-Path $sourceDir "*") -Destination $targetDir -Recurse -Force
+          $installedRelease = Join-Path $targetDir "windows_release_x86_64.exe"
+          $installedVersion = Join-Path $targetDir "version.txt"
+          if (-not (Test-Path -LiteralPath $installedRelease) -or -not (Test-Path -LiteralPath $installedVersion)) {
+            throw "GODOT_EXPORT_TEMPLATE_INSTALL_INCOMPLETE"
+          }
+          Write-Host "GODOT_EXPORT_TEMPLATES_SHA256=PASS:$actual"
+          Write-Host "GODOT_TEMPLATE_VERSION=PASS:$versionText"
+
+      - name: Verify Windows package safety contracts
+        shell: pwsh
+        run: |
+          node tests/godot-windows-preview-package-contract.test.js
+          if ($LASTEXITCODE -ne 0) { throw "WINDOWS_PACKAGE_CONTRACT_FAILED" }
+          node tests/godot-windows-native-qa-contract.test.js
+          if ($LASTEXITCODE -ne 0) { throw "WINDOWS_NATIVE_QA_CONTRACT_FAILED" }
+
+      - name: Build real Windows Godot export
+        shell: pwsh
+        run: |
+          $exportDir = Join-Path $env:RUNNER_TEMP "aetherwake-windows-functional-export"
+          & .\scripts\build-godot-chapter1-windows-preview.ps1 -GodotExe $env:GODOT_EXE -OutputDir $exportDir
+          $exe = Join-Path $exportDir "Aetherwake-First-Wake-Godot-Preview.exe"
+          if (-not (Test-Path -LiteralPath $exe)) {
+            throw "WINDOWS_FUNCTIONAL_EXPORT_MISSING"
+          }
+          $item = Get-Item -LiteralPath $exe
+          $sha = (Get-FileHash -Algorithm SHA256 -LiteralPath $exe).Hash.ToLowerInvariant()
+          "WINDOWS_FUNCTIONAL_EXE=$exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "WINDOWS_FUNCTIONAL_EXPORT_BYTES=$($item.Length)"
+          Write-Host "WINDOWS_FUNCTIONAL_EXPORT_SHA256=$sha"
+          Write-Host "WINDOWS_FUNCTIONAL_EXPORT=PASS"
+
+      - name: Build non-published Windows package
+        shell: pwsh
+        run: |
+          $packageDir = Join-Path $env:RUNNER_TEMP "aetherwake-windows-functional-package"
+          & .\scripts\package-godot-chapter1-windows-preview.ps1 -ExportedExe $env:WINDOWS_FUNCTIONAL_EXE -OutputDir $packageDir
+          $zip = Join-Path $packageDir "Aetherwake-First-Wake-Godot-Native-Preview-Windows.zip"
+          if (-not (Test-Path -LiteralPath $zip)) {
+            throw "WINDOWS_FUNCTIONAL_PACKAGE_MISSING"
+          }
+          $item = Get-Item -LiteralPath $zip
+          $sha = (Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash.ToLowerInvariant()
+          Write-Host "WINDOWS_FUNCTIONAL_PACKAGE_BYTES=$($item.Length)"
+          Write-Host "WINDOWS_FUNCTIONAL_PACKAGE_SHA256=$sha"
+          Write-Host "WINDOWS_FUNCTIONAL_PACKAGE=PASS"
+          "WINDOWS_FUNCTIONAL_PACKAGE_ZIP=$zip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "WINDOWS_EXACT_DEFENDER_INSTALL_QA=NOT_ESTABLISHED"
+          Write-Host "WINDOWS_FUNCTIONAL_DISTRIBUTION=RUNNER_LOCAL_ONLY"
+          Write-Host "PUBLIC_RELEASE_AUTHORIZED=NO"
+
+      - name: Exercise non-promotional install launch shortcuts and uninstall
+        timeout-minutes: 3
+        shell: pwsh
+        run: |
+          $auditDir = Join-Path $env:RUNNER_TEMP "aetherwake-windows-functional-zip-audit"
+          if (Test-Path -LiteralPath $auditDir) {
+            Remove-Item -LiteralPath $auditDir -Recurse -Force
+          }
+          Expand-Archive -LiteralPath $env:WINDOWS_FUNCTIONAL_PACKAGE_ZIP -DestinationPath $auditDir -Force
+
+          $installer = Join-Path $auditDir "Install-Aetherwake-Godot-Preview.cmd"
+          $installDir = Join-Path $env:LOCALAPPDATA "Programs\Aetherwake-Godot-Native-Preview"
+          $installedExe = Join-Path $installDir "Aetherwake-First-Wake-Godot-Preview.exe"
+          $installedUninstall = Join-Path $installDir "Uninstall-Aetherwake-Godot-Preview.cmd"
+          $marker = Join-Path $installDir "Aetherwake-Native-Preview.install"
+          $desktopShortcut = Join-Path ([Environment]::GetFolderPath("Desktop")) "Aetherwake Native Preview.lnk"
+          $startMenuDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\Aetherwake Native Preview"
+          $startMenuShortcut = Join-Path $startMenuDir "Aetherwake Native Preview.lnk"
+          $tempCleanup = Join-Path $env:TEMP "Aetherwake-Godot-Native-Preview-Uninstall.cmd"
+
+          foreach ($path in @($installDir, $desktopShortcut, $startMenuDir, $tempCleanup)) {
+            if (Test-Path -LiteralPath $path) {
+              throw "WINDOWS_FUNCTIONAL_PREEXISTING_STATE:$path"
+            }
+          }
+
+          & $env:ComSpec /d /c ('"' + $installer + '"')
+          $installExitCode = $LASTEXITCODE
+          if ($installExitCode -ne 0) {
+            throw "WINDOWS_FUNCTIONAL_INSTALL_FAILED:$installExitCode"
+          }
+
+          foreach ($path in @($installedExe, $installedUninstall, $marker, $desktopShortcut, $startMenuShortcut)) {
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "WINDOWS_FUNCTIONAL_INSTALLED_STATE_MISSING:$path"
+            }
+          }
+          if ((Get-Content -LiteralPath $marker -Raw).Trim() -ne "AETHERWAKE_GODOT_NATIVE_PREVIEW_INSTALL_V1") {
+            throw "WINDOWS_FUNCTIONAL_INSTALL_MARKER_MISMATCH"
+          }
+
+          $payloadExe = Join-Path $auditDir "Aetherwake\Aetherwake-First-Wake-Godot-Preview.exe"
+          $payloadUninstall = Join-Path $auditDir "Aetherwake\Uninstall-Aetherwake-Godot-Preview.cmd"
+          $payloadExeSha = (Get-FileHash -Algorithm SHA256 -LiteralPath $payloadExe).Hash.ToLowerInvariant()
+          $installedExeSha = (Get-FileHash -Algorithm SHA256 -LiteralPath $installedExe).Hash.ToLowerInvariant()
+          if ($payloadExeSha -ne $installedExeSha) {
+            throw "WINDOWS_FUNCTIONAL_INSTALLED_EXE_HASH_MISMATCH"
+          }
+          $payloadUninstallSha = (Get-FileHash -Algorithm SHA256 -LiteralPath $payloadUninstall).Hash.ToLowerInvariant()
+          $installedUninstallSha = (Get-FileHash -Algorithm SHA256 -LiteralPath $installedUninstall).Hash.ToLowerInvariant()
+          if ($payloadUninstallSha -ne $installedUninstallSha) {
+            throw "WINDOWS_FUNCTIONAL_INSTALLED_UNINSTALL_HASH_MISMATCH"
+          }
+
+          $shell = New-Object -ComObject WScript.Shell
+          foreach ($shortcutPath in @($desktopShortcut, $startMenuShortcut)) {
+            $shortcut = $shell.CreateShortcut($shortcutPath)
+            $target = [IO.Path]::GetFullPath([string]$shortcut.TargetPath)
+            $work = [IO.Path]::GetFullPath([string]$shortcut.WorkingDirectory)
+            if (-not $target.Equals([IO.Path]::GetFullPath($installedExe), [StringComparison]::OrdinalIgnoreCase)) {
+              throw "WINDOWS_FUNCTIONAL_SHORTCUT_TARGET_MISMATCH:$shortcutPath"
+            }
+            if (-not $work.Equals([IO.Path]::GetFullPath($installDir), [StringComparison]::OrdinalIgnoreCase)) {
+              throw "WINDOWS_FUNCTIONAL_SHORTCUT_WORKDIR_MISMATCH:$shortcutPath"
+            }
+          }
+
+          $deadline = (Get-Date).AddSeconds(25)
+          $running = $null
+          while ((Get-Date) -lt $deadline -and $null -eq $running) {
+            $running = Get-CimInstance Win32_Process |
+              Where-Object {
+                $_.ExecutablePath -and
+                [IO.Path]::GetFullPath([string]$_.ExecutablePath).Equals(
+                  [IO.Path]::GetFullPath($installedExe),
+                  [StringComparison]::OrdinalIgnoreCase
+                )
+              } |
+              Select-Object -First 1
+            if ($null -eq $running) {
+              Start-Sleep -Milliseconds 250
+            }
+          }
+          if ($null -eq $running) {
+            throw "WINDOWS_FUNCTIONAL_INSTALLED_PROCESS_NOT_READY"
+          }
+
+          $windowDeadline = (Get-Date).AddSeconds(15)
+          $windowReady = $false
+          while ((Get-Date) -lt $windowDeadline -and -not $windowReady) {
+            $process = Get-Process -Id ([int]$running.ProcessId) -ErrorAction SilentlyContinue
+            if ($process -and $process.MainWindowHandle -ne 0 -and -not [string]::IsNullOrWhiteSpace($process.MainWindowTitle)) {
+              $windowReady = $true
+              Write-Host "WINDOWS_FUNCTIONAL_NATIVE_WINDOW_TITLE=$($process.MainWindowTitle)"
+              break
+            }
+            Start-Sleep -Milliseconds 250
+          }
+          if (-not $windowReady) {
+            throw "WINDOWS_FUNCTIONAL_NATIVE_WINDOW_NOT_READY"
+          }
+
+          & $env:ComSpec /d /c ('"' + $installedUninstall + '"')
+          $uninstallExitCode = $LASTEXITCODE
+          if ($uninstallExitCode -ne 0) {
+            throw "WINDOWS_FUNCTIONAL_UNINSTALL_LAUNCH_FAILED:$uninstallExitCode"
+          }
+
+          $cleanupDeadline = (Get-Date).AddSeconds(30)
+          while ((Get-Date) -lt $cleanupDeadline) {
+            $stillRunning = Get-CimInstance Win32_Process |
+              Where-Object {
+                $_.ExecutablePath -and
+                [IO.Path]::GetFullPath([string]$_.ExecutablePath).Equals(
+                  [IO.Path]::GetFullPath($installedExe),
+                  [StringComparison]::OrdinalIgnoreCase
+                )
+              }
+            if (
+              @($stillRunning).Count -eq 0 -and
+              -not (Test-Path -LiteralPath $installDir) -and
+              -not (Test-Path -LiteralPath $desktopShortcut) -and
+              -not (Test-Path -LiteralPath $startMenuDir) -and
+              -not (Test-Path -LiteralPath $tempCleanup)
+            ) {
+              break
+            }
+            Start-Sleep -Milliseconds 250
+          }
+
+          if (Test-Path -LiteralPath $installDir) { throw "WINDOWS_FUNCTIONAL_UNINSTALL_LEFT_INSTALL_DIR" }
+          if (Test-Path -LiteralPath $desktopShortcut) { throw "WINDOWS_FUNCTIONAL_UNINSTALL_LEFT_DESKTOP_SHORTCUT" }
+          if (Test-Path -LiteralPath $startMenuDir) { throw "WINDOWS_FUNCTIONAL_UNINSTALL_LEFT_START_MENU" }
+          if (Test-Path -LiteralPath $tempCleanup) { throw "WINDOWS_FUNCTIONAL_UNINSTALL_LEFT_TEMP_COPY" }
+
+          $stillRunning = Get-CimInstance Win32_Process |
+            Where-Object {
+              $_.ExecutablePath -and
+              [IO.Path]::GetFullPath([string]$_.ExecutablePath).Equals(
+                [IO.Path]::GetFullPath($installedExe),
+                [StringComparison]::OrdinalIgnoreCase
+              )
+            }
+          if (@($stillRunning).Count -gt 0) {
+            throw "WINDOWS_FUNCTIONAL_UNINSTALL_LEFT_PROCESS"
+          }
+
+          Write-Host "WINDOWS_FUNCTIONAL_INSTALL=PASS"
+          Write-Host "WINDOWS_FUNCTIONAL_INSTALLED_BYTE_IDENTITY=PASS"
+          Write-Host "WINDOWS_FUNCTIONAL_SHORTCUT_OWNERSHIP=PASS"
+          Write-Host "WINDOWS_FUNCTIONAL_NATIVE_LAUNCH=PASS"
+          Write-Host "WINDOWS_FUNCTIONAL_RUNNING_APP_UNINSTALL=PASS"
+          Write-Host "WINDOWS_EXACT_DEFENDER_QA=NOT_ESTABLISHED"
+          Write-Host "PUBLIC_RELEASE_AUTHORIZED=NO"
+
+      - name: Confirm tracked source remained unchanged
+        shell: pwsh
+        run: |
+          if (Test-Path -LiteralPath ".\godot\.godot") {
+            Remove-Item -LiteralPath ".\godot\.godot" -Recurse -Force
+          }
+          $dirty = @(& git status --porcelain --untracked-files=no)
+          if ($LASTEXITCODE -ne 0) {
+            throw "WINDOWS_FUNCTIONAL_GIT_STATUS_FAILED"
+          }
+          if ($dirty.Count -gt 0) {
+            throw "WINDOWS_FUNCTIONAL_TRACKED_SOURCE_CHANGED:" + ($dirty -join ",")
+          }
+          Write-Host "WINDOWS_FUNCTIONAL_TRACKED_SOURCE_INTEGRITY=PASS"

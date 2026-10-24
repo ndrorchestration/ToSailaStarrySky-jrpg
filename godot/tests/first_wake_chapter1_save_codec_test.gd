@@ -11,11 +11,12 @@ func _verify() -> void:
     var initial = ChapterState.new()
     initial.meet_contact("engine_spirit")
     initial.complete_signal("harmonic_buoy")
+    var saved_position := Vector2(444, 476)
     var partial := SaveCodec.encode(initial, {
         "hull_integrity": 92,
         "morale": 54,
         "engine_integration": 12,
-    })
+    }, saved_position)
     if partial.get("schema", "") != SaveCodec.SCHEMA_VERSION:
         _fail("schema version missing")
         return
@@ -39,6 +40,34 @@ func _verify() -> void:
         return
     if int(partial_restore["resolver_stats"]["hull_integrity"]) != 92:
         _fail("resolver stats did not round-trip")
+        return
+    if not bool(partial_restore.get("player_position_present", false)):
+        _fail("new save did not mark player position present")
+        return
+    if partial_restore.get("player_position", Vector2.ZERO) != saved_position:
+        _fail("player position did not round-trip")
+        return
+
+    var legacy := partial.duplicate(true)
+    legacy.erase("player_position")
+    var legacy_restore := SaveCodec.restore(legacy)
+    if not legacy_restore.get("ok", false):
+        _fail("legacy v1 snapshot without position was rejected")
+        return
+    if bool(legacy_restore.get("player_position_present", true)):
+        _fail("legacy snapshot falsely claimed persisted position")
+        return
+    if legacy_restore.get("player_position", Vector2.ZERO) != SaveCodec.LEGACY_PLAYER_POSITION:
+        _fail("legacy snapshot did not resolve to deterministic safe spawn")
+        return
+
+    var edge_snapshot := SaveCodec.encode(initial, {
+        "hull_integrity": 92,
+        "morale": 54,
+        "engine_integration": 12,
+    }, SaveCodec.PLAYER_POSITION_BOUNDS.end)
+    if not SaveCodec.validate(edge_snapshot).get("ok", false):
+        _fail("inclusive deck edge was rejected")
         return
 
     var complete = _completed_path_c()
@@ -71,6 +100,31 @@ func _verify() -> void:
         _fail("Crossing admitted without all Signal hooks")
         return
 
+    var completed_signal_stage := partial.duplicate(true)
+    completed_signal_stage["signals_completed"] = ChapterState.SIGNAL_IDS.duplicate()
+    completed_signal_stage["contacts_met"] = ["engine_spirit", "child_prophet", "corporate_salvager"]
+    if SaveCodec.restore(completed_signal_stage).get("ok", true):
+        _fail("Signal stage admitted after all Signal hooks were already complete")
+        return
+
+    var completed_crossing_stage := _crossing_snapshot()
+    completed_crossing_stage["hazards_completed"] = ChapterState.HAZARD_IDS.duplicate()
+    if SaveCodec.restore(completed_crossing_stage).get("ok", true):
+        _fail("Crossing stage admitted after all hazards were already complete")
+        return
+
+    var premature_choice_variant := partial.duplicate(true)
+    premature_choice_variant["choice_variant"] = "10+"
+    if SaveCodec.restore(premature_choice_variant).get("ok", true):
+        _fail("choice outcome variant admitted before Choice")
+        return
+
+    var premature_epilogue := partial.duplicate(true)
+    premature_epilogue["epilogue_id"] = "epiline_1"
+    if SaveCodec.restore(premature_epilogue).get("ok", true):
+        _fail("epilogue identity admitted before Wake completion")
+        return
+
     var duplicate_signal := partial.duplicate(true)
     duplicate_signal["signals_completed"] = ["harmonic_buoy", "harmonic_buoy"]
     if SaveCodec.restore(duplicate_signal).get("ok", true):
@@ -83,10 +137,64 @@ func _verify() -> void:
         _fail("unknown contact admitted")
         return
 
+    var missing_signal_contact := partial.duplicate(true)
+    missing_signal_contact["contacts_met"] = []
+    if SaveCodec.restore(missing_signal_contact).get("ok", true):
+        _fail("completed signal admitted without corresponding contact evidence")
+        return
+
+    var orphan_signal_contact := partial.duplicate(true)
+    orphan_signal_contact["contacts_met"] = ["engine_spirit", "child_prophet"]
+    if SaveCodec.restore(orphan_signal_contact).get("ok", true):
+        _fail("contact evidence admitted without corresponding completed signal")
+        return
+
+    var early_ionia_contact := partial.duplicate(true)
+    early_ionia_contact["contacts_met"] = ["engine_spirit", "elder_farmer"]
+    if SaveCodec.restore(early_ionia_contact).get("ok", true):
+        _fail("Ionia contact evidence admitted before authored Contact boundary")
+        return
+
     var incomplete_done := done_snapshot.duplicate(true)
     incomplete_done["epilogue_id"] = ""
     if SaveCodec.restore(incomplete_done).get("ok", true):
         _fail("Done admitted without epilogue identity")
+        return
+
+    var invented_epilogue := done_snapshot.duplicate(true)
+    invented_epilogue["epilogue_id"] = "invented_epilogue"
+    if SaveCodec.restore(invented_epilogue).get("ok", true):
+        _fail("Done admitted an invented epilogue identity")
+        return
+
+    var wrong_valid_epilogue := done_snapshot.duplicate(true)
+    wrong_valid_epilogue["epilogue_id"] = "epiline_1"
+    if SaveCodec.restore(wrong_valid_epilogue).get("ok", true):
+        _fail("Done admitted an epilogue that contradicts durable resolver inputs")
+        return
+
+    var missing_required := partial.duplicate(true)
+    missing_required.erase("chapter_one_complete")
+    if SaveCodec.restore(missing_required).get("ok", true):
+        _fail("snapshot with missing mandatory v1 field was admitted")
+        return
+
+    var string_boolean := partial.duplicate(true)
+    string_boolean["ionia_joined_for_choice"] = "false"
+    if SaveCodec.restore(string_boolean).get("ok", true):
+        _fail("string boolean was coerced into durable state")
+        return
+
+    var string_stat := partial.duplicate(true)
+    string_stat["resolver_stats"]["morale"] = "54"
+    if SaveCodec.restore(string_stat).get("ok", true):
+        _fail("string resolver stat was coerced into numeric state")
+        return
+
+    var fractional_stat := partial.duplicate(true)
+    fractional_stat["resolver_stats"]["morale"] = 54.5
+    if SaveCodec.restore(fractional_stat).get("ok", true):
+        _fail("fractional resolver stat was truncated into integer state")
         return
 
     var bad_stats := partial.duplicate(true)
@@ -95,8 +203,39 @@ func _verify() -> void:
         _fail("out-of-range resolver stats admitted")
         return
 
-    print("AETHERWAKE_GODOT_CHAPTER1_SAVE_PASS: versioned partial/done round-trip and fail-closed tamper rejection")
+    var nonstring_signal := partial.duplicate(true)
+    nonstring_signal["signals_completed"] = [123]
+    nonstring_signal["contacts_met"] = []
+    if SaveCodec.restore(nonstring_signal).get("ok", true):
+        _fail("nonstring progression identifier was coerced into save state")
+        return
+
+    var bad_position := partial.duplicate(true)
+    bad_position["player_position"] = {"x": 9999.0, "y": 476.0}
+    if SaveCodec.restore(bad_position).get("ok", true):
+        _fail("out-of-bounds player position admitted")
+        return
+
+    var malformed_position := partial.duplicate(true)
+    malformed_position["player_position"] = {"x": "444", "y": 476.0}
+    if SaveCodec.restore(malformed_position).get("ok", true):
+        _fail("nonnumeric player position admitted")
+        return
+
+    print("AETHERWAKE_GODOT_CHAPTER1_SAVE_PASS: versioned progression/position round-trip, legacy fallback and fail-closed tamper rejection")
     quit(0)
+
+func _crossing_snapshot() -> Dictionary:
+    var crossing = ChapterState.new()
+    for contact_id in ["engine_spirit", "child_prophet", "corporate_salvager"]:
+        crossing.meet_contact(contact_id)
+    for signal_id in ChapterState.SIGNAL_IDS:
+        crossing.complete_signal(signal_id)
+    return SaveCodec.encode(crossing, {
+        "hull_integrity": 88,
+        "morale": 52,
+        "engine_integration": 18,
+    }, Vector2(480, 470))
 
 func _completed_path_c():
     var chapter = ChapterState.new()

@@ -19,16 +19,18 @@ class Sequence:
         index += 1
         return value
 
+var _deterministic_sequence = null
+
 func _initialize() -> void:
     call_deferred("_verify")
 
 func _deterministic_encounter():
-    var sequence = Sequence.new([
+    _deterministic_sequence = Sequence.new([
         0.5, 0.99, 0.5, 0.99, 0.5, 0.99, 0.5, 0.99,
         0.5, 0.99, 0.5, 0.99, 0.5, 0.99, 0.5, 0.99,
         0.5, 0.99, 0.5, 0.99, 0.5, 0.99, 0.5, 0.99,
     ])
-    return Encounter.new(sequence.next)
+    return Encounter.new(_deterministic_sequence.next)
 
 func _verify() -> void:
     var world = REVIEW_SCENE.instantiate()
@@ -65,6 +67,21 @@ func _verify() -> void:
     if str(world.formula_encounter.target.get("name", "")) != "Harmonic Shear Elemental":
         _fail("real scene target name drifted")
         return
+
+    # Party authority must gate the scene before formula dispatch. This protects
+    # the boundary even if additional formula actions are introduced later.
+    var turns_before_authority_block: int = int(world.formula_encounter.turns)
+    var enemy_turns_before_authority_block: int = int(world.formula_encounter.enemy_turns)
+    if world.take_formula_review_action("sharedDream"):
+        _fail("blocked Shared Dream bypassed scene combat authority")
+        return
+    if world.last_message != "ACTION_AUTHORITY_BLOCKED:ender:sharedDream":
+        _fail("scene combat authority rejection was not explicit")
+        return
+    if world.formula_encounter.turns != turns_before_authority_block or world.formula_encounter.enemy_turns != enemy_turns_before_authority_block:
+        _fail("blocked action mutated combat turn state")
+        return
+
     var vit_before_retaliation := int(world.formula_encounter.player["vit"])
     if not world.take_formula_review_action("uncoverTruth"):
         _fail("authored encounter rejected Uncover Truth")
@@ -106,7 +123,17 @@ func _verify() -> void:
                 return
         else:
             if not world.take_formula_review_action("staffStrike"):
-                _fail("Staff Strike failed during Wind Shear completion")
+                _fail("Staff Strike failed during Wind Shear completion: active=%s completed=%s defeated=%s charges=%d vit=%d target_hp=%d turns=%d enemy_turns=%d message=%s" % [
+                    str(world.formula_encounter.active),
+                    str(world.formula_encounter.completed),
+                    str(world.formula_encounter.player_defeated),
+                    int(world.formula_encounter.player.get("staffCharges", -1)),
+                    int(world.formula_encounter.player.get("vit", -1)),
+                    int(world.formula_encounter.target.get("hp", -1)),
+                    int(world.formula_encounter.turns),
+                    int(world.formula_encounter.enemy_turns),
+                    world.last_message,
+                ])
                 return
         guard += 1
     if not world.formula_encounter.completed:

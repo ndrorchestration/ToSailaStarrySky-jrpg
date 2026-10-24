@@ -22,6 +22,8 @@ func _verify() -> void:
         return
 
     var crossing_snapshot: Dictionary = world.chapter.snapshot()
+    var first_generation_position := Vector2(612, 487)
+    world.ender.position = first_generation_position
     if not world.save_progress_to_disk(TEST_PATH):
         _fail("scene F5-equivalent save failed")
         return
@@ -32,6 +34,8 @@ func _verify() -> void:
     if world.chapter.completed_hazards != ["sky_predator"]:
         _fail("second generation hazard state unexpected")
         return
+    var second_generation_position := Vector2(720, 500)
+    world.ender.position = second_generation_position
     if not world.save_progress_to_disk(TEST_PATH):
         _fail("second scene save failed")
         return
@@ -66,6 +70,12 @@ func _verify() -> void:
         return
     if world.chapter.snapshot() != crossing_snapshot:
         _fail("backup recovery did not restore previous durable generation")
+        return
+    if world.ender.position != first_generation_position:
+        _fail("backup recovery did not restore previous-generation exploration position")
+        return
+    if world.last_restore_used_legacy_position:
+        _fail("position-bearing backup was mislabeled as legacy during disk recovery")
         return
     if world.last_message.find("backup recovery") < 0:
         _fail("scene did not surface backup recovery")

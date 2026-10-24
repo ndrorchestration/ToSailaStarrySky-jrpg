@@ -20,6 +20,7 @@ var ionia_north_walk_sprite: Sprite2D
 var ionia_east_walk_sprite: Sprite2D
 var ionia_west_walk_sprite: Sprite2D
 var ionia_route_review_enabled: bool = false
+var ionia_stage_art_enabled: bool = false
 var ionia_route_segment: int = 0
 var ionia_facing: String = "south"
 var walk_review_enabled: bool = false
@@ -129,7 +130,7 @@ func _new_ionia_walk_view(view_name: String, atlas: Texture2D) -> Sprite2D:
 func _sync_ionia_direction() -> void:
     if ionia_front_walk_sprite == null:
         return
-    var visible: bool = ionia_walk_review_enabled or ionia_route_review_enabled
+    var visible: bool = ionia_stage_art_enabled or ionia_walk_review_enabled or ionia_route_review_enabled
     ionia_front_walk_sprite.visible = visible and ionia_facing == "south"
     ionia_north_walk_sprite.visible = visible and ionia_facing == "north"
     ionia_east_walk_sprite.visible = visible and ionia_facing == "east"
@@ -152,9 +153,32 @@ func _sync_ender_direction() -> void:
     walk_review_sprite.flip_h = false
     walk_west_sprite.flip_h = false
 
+func set_ionia_stage_art_enabled(enabled: bool, facing: String = "south") -> void:
+    if ionia_front_walk_sprite == null:
+        return
+    ionia_walk_review_enabled = false
+    ionia_route_review_enabled = false
+    ionia_stage_art_enabled = enabled
+    ionia_facing = facing if facing in ["south", "north", "east", "west"] else "south"
+    travel_distance = 0.0
+    gait_step = 0.0
+    if enabled:
+        for ionia_frame in [ionia_front_walk_sprite, ionia_north_walk_sprite, ionia_east_walk_sprite, ionia_west_walk_sprite]:
+            ionia_frame.frame = 0
+        if review_sprite != null:
+            review_sprite.visible = false
+        if aligned_sprite != null:
+            aligned_sprite.visible = false
+    _sync_ionia_direction()
+    queue_redraw()
+
+func is_ionia_stage_art_enabled() -> bool:
+    return ionia_stage_art_enabled and ionia_front_walk_sprite != null
+
 func set_ionia_walk_review_enabled(enabled: bool) -> void:
     if ionia_front_walk_sprite == null:
         return
+    ionia_stage_art_enabled = false
     ionia_route_review_enabled = false
     ionia_walk_review_enabled = enabled
     ionia_facing = "south"
@@ -173,6 +197,7 @@ func set_ionia_walk_review_enabled(enabled: bool) -> void:
 func set_ionia_route_review_enabled(enabled: bool) -> void:
     if ionia_north_walk_sprite == null:
         return
+    ionia_stage_art_enabled = false
     ionia_walk_review_enabled = false
     ionia_route_review_enabled = enabled
     ionia_route_segment = 0
@@ -200,6 +225,7 @@ func set_review_art_enabled(enabled: bool) -> void:
     if aligned_sprite != null:
         aligned_sprite.visible = false
     if ionia_front_walk_sprite != null:
+        ionia_stage_art_enabled = false
         ionia_walk_review_enabled = false
         ionia_route_review_enabled = false
         _sync_ionia_direction()
@@ -211,6 +237,7 @@ func set_aligned_review_enabled(enabled: bool) -> void:
     if review_sprite != null:
         review_sprite.visible = false
     if ionia_front_walk_sprite != null:
+        ionia_stage_art_enabled = false
         ionia_walk_review_enabled = false
         ionia_route_review_enabled = false
         _sync_ionia_direction()
@@ -220,7 +247,12 @@ func is_aligned_review_enabled() -> bool:
     return aligned_sprite != null and aligned_sprite.visible
 
 func is_review_art_enabled() -> bool:
-    return (review_sprite != null and review_sprite.visible) or (aligned_sprite != null and aligned_sprite.visible) or is_ionia_walk_review_enabled()
+    return (
+        (review_sprite != null and review_sprite.visible)
+        or (aligned_sprite != null and aligned_sprite.visible)
+        or is_ionia_stage_art_enabled()
+        or is_ionia_walk_review_enabled()
+    )
 
 func _physics_process(_delta: float) -> void:
     if not player_controlled and not (ionia_walk_review_enabled or ionia_route_review_enabled):
@@ -317,7 +349,8 @@ func _draw() -> void:
         # Shoulder-length curls; reference identity only, not a finished sprite.
         for i in range(4):
             draw_circle(Vector2(-11 + i * 7, -47), 4.0, hair)
-    else:
+    elif character_name == "Ender":
+        # Ender's staff must never leak into generic contact placeholders.
         draw_line(Vector2(16, -87), Vector2(16, -2), Color("#806341"), 3.0)
         draw_line(Vector2(16, -83), Vector2(16, -66), Color("#cbb37b"), 4.0)
     draw_line(Vector2(-4, -55), Vector2(-2, -55), Color("#4d9f79"), 2.0)

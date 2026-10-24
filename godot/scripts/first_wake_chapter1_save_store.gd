@@ -16,10 +16,12 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
 
     var temp_path := path + ".tmp"
     var backup_path := path + ".bak"
+    var backup_candidate_path := backup_path + ".next"
     if not _ensure_parent(path):
         return _error("SAVE_PARENT_CREATE_FAILED")
 
     _remove_if_exists(temp_path)
+    _remove_if_exists(backup_candidate_path)
     var file := FileAccess.open(temp_path, FileAccess.WRITE)
     if file == null:
         return _error("SAVE_TEMP_OPEN_FAILED")
@@ -31,15 +33,46 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
     if not bool(temp_read.get("ok", false)):
         _remove_if_exists(temp_path)
         return _error("SAVE_TEMP_VERIFY_FAILED:" + str(temp_read.get("error", "unknown")))
+    var temp_sha := FileAccess.get_sha256(temp_path)
+    if temp_sha.is_empty():
+        _remove_if_exists(temp_path)
+        return _error("SAVE_TEMP_HASH_FAILED")
 
-    # Preserve only a semantically valid previous primary. Never overwrite a
-    # known-good backup with a corrupt primary.
+    # Preserve only a semantically valid previous primary. Stage and verify the
+    # replacement backup before touching any already-known-good .bak generation.
     var previous := _read_valid(path)
+    var previous_sha := ""
     if bool(previous.get("ok", false)):
-        _remove_if_exists(backup_path)
-        if not _copy(path, backup_path):
+        previous_sha = FileAccess.get_sha256(path)
+        if previous_sha.is_empty():
             _remove_if_exists(temp_path)
-            return _error("SAVE_BACKUP_COPY_FAILED")
+            return _error("SAVE_PREVIOUS_PRIMARY_HASH_FAILED")
+        if not _copy(path, backup_candidate_path):
+            _remove_if_exists(temp_path)
+            return _error("SAVE_BACKUP_CANDIDATE_COPY_FAILED")
+        var backup_candidate_read := _read_valid(backup_candidate_path)
+        if not bool(backup_candidate_read.get("ok", false)):
+            _remove_if_exists(temp_path)
+            _remove_if_exists(backup_candidate_path)
+            return _error("SAVE_BACKUP_CANDIDATE_VERIFY_FAILED:" + str(backup_candidate_read.get("error", "unknown")))
+        var backup_candidate_sha := FileAccess.get_sha256(backup_candidate_path)
+        if backup_candidate_sha.is_empty() or backup_candidate_sha != previous_sha:
+            _remove_if_exists(temp_path)
+            _remove_if_exists(backup_candidate_path)
+            return _error("SAVE_BACKUP_CANDIDATE_HASH_MISMATCH")
+
+        # Only after the candidate is proven valid and byte-identical may the
+        # old backup rotate.
+        _remove_if_exists(backup_path)
+        if not _rename(backup_candidate_path, backup_path):
+            # The current primary has not yet been touched, so fail closed
+            # rather than continuing with an uncertain backup generation.
+            _remove_if_exists(temp_path)
+            return _error("SAVE_BACKUP_PROMOTE_FAILED")
+        var promoted_backup_sha := FileAccess.get_sha256(backup_path)
+        if promoted_backup_sha.is_empty() or promoted_backup_sha != previous_sha:
+            _remove_if_exists(temp_path)
+            return _error("SAVE_BACKUP_PROMOTED_HASH_MISMATCH")
 
     _remove_if_exists(path)
     if not _rename(temp_path, path):
@@ -55,12 +88,21 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
             _copy(backup_path, path)
         return _error("SAVE_PRIMARY_VERIFY_FAILED")
 
+    var final_sha := FileAccess.get_sha256(path)
+    if final_sha.is_empty() or final_sha != temp_sha:
+        _remove_if_exists(path)
+        if FileAccess.file_exists(backup_path):
+            _copy(backup_path, path)
+        return _error("SAVE_PRIMARY_HASH_MISMATCH")
+
     return {
         "ok": true,
         "error": "",
         "path": path,
         "backup_path": backup_path,
         "schema": str(snapshot.get("schema", "")),
+        "primary_sha256": final_sha,
+        "backup_sha256": FileAccess.get_sha256(backup_path) if FileAccess.file_exists(backup_path) else "",
     }
 
 func load_snapshot(path: String = DEFAULT_PATH) -> Dictionary:
@@ -103,6 +145,7 @@ func delete_slot(path: String = DEFAULT_PATH) -> void:
     _remove_if_exists(path)
     _remove_if_exists(path + ".tmp")
     _remove_if_exists(path + ".bak")
+    _remove_if_exists(path + ".bak.next")
 
 func _read_valid(path: String) -> Dictionary:
     if not FileAccess.file_exists(path):

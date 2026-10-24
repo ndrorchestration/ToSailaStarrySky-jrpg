@@ -26,9 +26,25 @@ func _verify() -> void:
     if world.contacts.size() != 4:
         _fail("four native contact placeholders are not present")
         return
+    var wakeheart = world.contacts["engine_spirit"]
+    if wakeheart.visible:
+        _fail("Wakeheart harmonic console rendered as a humanoid placeholder")
+        return
+    if wakeheart.collision_layer != 0 or wakeheart.collision_mask != 0:
+        _fail("hidden Wakeheart placeholder retained invisible collision")
+        return
     var ionia = world.contacts["elder_farmer"]
-    if ionia.is_review_art_enabled():
-        _fail("unapproved Ionia art enabled by default")
+    if not world.ender.walk_review_enabled:
+        _fail("native Chapter I scene did not enable Ender directional candidate art")
+        return
+    if ionia.visible:
+        _fail("Ionia appeared before the authored Contact boundary")
+        return
+    if ionia.collision_layer != 0 or ionia.collision_mask != 0:
+        _fail("pre-Contact Ionia retained invisible collision")
+        return
+    if ionia.is_review_art_enabled() or ionia.is_ionia_stage_art_enabled():
+        _fail("Ionia stage art enabled before the authored Contact boundary")
         return
 
     for signal_id in ["harmonic_buoy", "below_frequency", "sky_lane_warning"]:
@@ -41,6 +57,12 @@ func _verify() -> void:
     if world.chapter.stage_key() != "crossing" or world.chapter.contacts_met.size() != 3:
         _fail("signal phase did not carry three contacts into crossing")
         return
+    if ionia.visible or ionia.is_ionia_stage_art_enabled():
+        _fail("Ionia appeared during Crossing before her Contact entrance")
+        return
+    if ionia.collision_layer != 0 or ionia.collision_mask != 0:
+        _fail("Crossing Ionia retained invisible collision before Contact")
+        return
 
     for hazard_id in ["sky_predator", "wind_shear", "corporate_intercept"]:
         if not world.complete_hazard_review(hazard_id):
@@ -48,6 +70,18 @@ func _verify() -> void:
             return
     if world.chapter.stage_key() != "contact":
         _fail("crossing did not enter contact")
+        return
+    if not ionia.visible or not ionia.is_ionia_stage_art_enabled():
+        _fail("Ionia did not appear with in-place candidate art at Contact")
+        return
+    if ionia.collision_layer == 0 or ionia.collision_mask == 0:
+        _fail("Contact Ionia did not regain physical dock presence")
+        return
+    if wakeheart.collision_layer != 0 or wakeheart.collision_mask != 0:
+        _fail("Wakeheart gained physical humanoid collision during progression")
+        return
+    if ionia.ionia_facing != "west":
+        _fail("Ionia Contact presentation is not facing the approaching Ender")
         return
 
     if not world.meet_ionia_for_choice():
@@ -61,6 +95,9 @@ func _verify() -> void:
         return
     if world.chapter.desired_active_party_ids() != ["ender", "lyra", "ionia"]:
         _fail("choice party target missing Ionia")
+        return
+    if not ionia.visible or not ionia.is_ionia_stage_art_enabled():
+        _fail("Ionia presentation disappeared after the authored join boundary")
         return
 
     if not world.choose_path_review("path_c"):

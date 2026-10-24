@@ -36,9 +36,29 @@ if (-not (Test-Path -LiteralPath $ReleaseTemplate)) {
 
 function Invoke-GodotChecked {
     param([string[]]$Arguments, [string]$Label)
-    & $GodotExe @Arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "$Label failed with exit code $LASTEXITCODE"
+
+    # Godot can write normal diagnostics to stderr. Do not let PowerShell 7's
+    # native-command error preference convert those diagnostics into a wrapper
+    # failure before we can inspect the real process exit code.
+    $PreviousErrorActionPreference = $ErrorActionPreference
+    $HadNativePreference = Test-Path Variable:PSNativeCommandUseErrorActionPreference
+    if ($HadNativePreference) {
+        $PreviousNativePreference = $PSNativeCommandUseErrorActionPreference
+        $PSNativeCommandUseErrorActionPreference = $false
+    }
+    $ErrorActionPreference = "Continue"
+    try {
+        & $GodotExe @Arguments
+        $GodotExitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $PreviousErrorActionPreference
+        if ($HadNativePreference) {
+            $PSNativeCommandUseErrorActionPreference = $PreviousNativePreference
+        }
+    }
+    if ($GodotExitCode -ne 0) {
+        throw "$Label failed with exit code $GodotExitCode"
     }
 }
 
@@ -55,10 +75,12 @@ Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://test
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_combat_formula_test.gd") "Production combat formula"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_formula_encounter_test.gd") "Formula review encounter controller"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_formula_encounter_scene_test.gd") "Formula review native scene"
+Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_party_combat_authority_test.gd") "First Wake party combat authority"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_current_enemy_adapter_test.gd") "Current-story enemy adapter"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_wind_shear_retaliation_test.gd") "Authored Wind Shear retaliation"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_wind_shear_combat_scene_test.gd") "Authored Wind Shear Crossing combat"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_chapter1_review_test.gd") "Chapter I review scene"
+Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/ionia_four_direction_test.gd") "Ionia four-direction stage-art contract"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_chapter1_export_contract.gd") "Windows export contract"
 
 if (Test-Path -LiteralPath $OutputDir) {

@@ -1,6 +1,8 @@
 extends SceneTree
 ## Real-scene contract for native Chapter I durable snapshot export/restore.
 
+const SaveCodec = preload("res://scripts/first_wake_chapter1_save_codec.gd")
+
 func _initialize() -> void:
     call_deferred("_verify")
 
@@ -26,12 +28,15 @@ func _verify() -> void:
     world.review_hull_integrity = 73
     world.review_morale = 61
     world.review_engine_integration = 58
+    var saved_position := Vector2(612, 487)
+    world.ender.position = saved_position
     var wake_snapshot: Dictionary = world.export_save_snapshot()
     if wake_snapshot.has("dialogue") or wake_snapshot.has("pending_signal_id"):
         _fail("transient scene state leaked into save")
         return
 
     world.resolve_wake_review()
+    world.ender.position = Vector2(150, 410)
     if world.chapter.stage_key() != "done":
         _fail("mutation to Done failed")
         return
@@ -50,6 +55,12 @@ func _verify() -> void:
     if world.review_hull_integrity != 73 or world.review_morale != 61 or world.review_engine_integration != 58:
         _fail("resolver stats changed on scene restore")
         return
+    if world.ender.position != saved_position:
+        _fail("real scene did not restore saved exploration position")
+        return
+    if world.last_restore_used_legacy_position:
+        _fail("position-bearing save was mislabeled as legacy")
+        return
     if world.dialogue.open or not world.pending_signal_id.is_empty() or not world.pending_contact_id.is_empty():
         _fail("transient dialogue state survived restore")
         return
@@ -57,7 +68,21 @@ func _verify() -> void:
         _fail("Wake restore did not resume player movement")
         return
 
+    var legacy_snapshot := wake_snapshot.duplicate(true)
+    legacy_snapshot.erase("player_position")
+    world.ender.position = Vector2(800, 510)
+    if not world.restore_save_snapshot(legacy_snapshot):
+        _fail("legacy v1 scene save without position was rejected")
+        return
+    if world.ender.position != SaveCodec.LEGACY_PLAYER_POSITION:
+        _fail("legacy v1 scene save did not use safe deck spawn")
+        return
+    if not world.last_restore_used_legacy_position:
+        _fail("legacy v1 scene restore was not surfaced")
+        return
+
     var before_invalid: Dictionary = world.chapter.snapshot()
+    var before_invalid_position: Vector2 = world.ender.position
     var bad := wake_snapshot.duplicate(true)
     bad["stage"] = "done"
     bad["epilogue_id"] = ""
@@ -68,10 +93,13 @@ func _verify() -> void:
     if world.chapter.snapshot() != before_invalid:
         _fail("invalid restore mutated current scene state")
         return
+    if world.ender.position != before_invalid_position:
+        _fail("invalid restore mutated player position")
+        return
 
     world.queue_free()
     await process_frame
-    print("AETHERWAKE_GODOT_CHAPTER1_SAVE_SCENE_PASS: real scene restores Wake state/stats and rejects invalid snapshots without mutation")
+    print("AETHERWAKE_GODOT_CHAPTER1_SAVE_SCENE_PASS: real scene restores Wake state/stats/position, migrates legacy position safely and rejects invalid snapshots without mutation")
     quit(0)
 
 func _fail(reason: String) -> void:

@@ -4,7 +4,10 @@ extends SceneTree
 
 const REVIEW_SCENE = preload("res://scenes/first_wake_chapter1_review.tscn")
 const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd")
-const OUTPUT = "res://review-evidence/chapter1-migration/"
+const DEFAULT_OUTPUT = "res://review-evidence/chapter1-migration/"
+const OUTPUT_ENV = "AETHERWAKE_CAPTURE_OUTPUT_DIR"
+
+var output_dir: String = ""
 
 class Sequence:
     extends RefCounted
@@ -22,6 +25,12 @@ class Sequence:
         return value
 
 func _initialize() -> void:
+    var requested_output := OS.get_environment(OUTPUT_ENV).strip_edges()
+    if requested_output.is_empty():
+        output_dir = ProjectSettings.globalize_path(DEFAULT_OUTPUT)
+    else:
+        output_dir = requested_output
+    output_dir = output_dir.replace("\\", "/").trim_suffix("/")
     call_deferred("_capture")
 
 func _snapshot(name: String) -> Image:
@@ -30,10 +39,11 @@ func _snapshot(name: String) -> Image:
     if image.is_empty() or image.get_width() != 960 or image.get_height() != 640:
         push_error("CHAPTER1_CAPTURE_FAIL: invalid real native viewport")
         return null
-    if image.save_png(OUTPUT + name) != OK:
+    var output_path := output_dir.path_join(name)
+    if image.save_png(output_path) != OK:
         push_error("CHAPTER1_CAPTURE_FAIL: PNG write failed: " + name)
         return null
-    print("AETHERWAKE_CHAPTER1_PNG:" + name + ":960x640:" + FileAccess.get_sha256(OUTPUT + name))
+    print("AETHERWAKE_CHAPTER1_PNG:" + name + ":960x640:" + FileAccess.get_sha256(output_path))
     return image
 
 func _capture() -> void:
@@ -46,11 +56,29 @@ func _capture() -> void:
         push_error("CHAPTER1_CAPTURE_FAIL: real migration scene did not load")
         quit(1)
         return
+    var ionia = world.contacts.get("elder_farmer", null)
+    var wakeheart = world.contacts.get("engine_spirit", null)
+    if ionia == null or wakeheart == null:
+        push_error("CHAPTER1_CAPTURE_FAIL: expected presentation contacts missing")
+        quit(20)
+        return
+    if not world.ender.walk_review_enabled:
+        push_error("CHAPTER1_CAPTURE_FAIL: Ender directional candidate not active")
+        quit(21)
+        return
+    if ionia.visible or ionia.is_ionia_stage_art_enabled():
+        push_error("CHAPTER1_CAPTURE_FAIL: Ionia visible before Contact")
+        quit(22)
+        return
+    if wakeheart.visible:
+        push_error("CHAPTER1_CAPTURE_FAIL: Wakeheart console rendered as humanoid")
+        quit(23)
+        return
     world.ender.set_physics_process(false)
     for actor in world.contacts.values():
         actor.set_physics_process(false)
 
-    if DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT)) != OK:
+    if DirAccess.make_dir_recursive_absolute(output_dir) != OK:
         push_error("CHAPTER1_CAPTURE_FAIL: cannot create review directory")
         quit(2)
         return
@@ -108,6 +136,10 @@ func _capture() -> void:
 
     for signal_id in ["below_frequency", "sky_lane_warning"]:
         world.complete_signal_contact(signal_id)
+    if world.chapter.stage_key() != "crossing" or ionia.visible or ionia.is_ionia_stage_art_enabled():
+        push_error("CHAPTER1_CAPTURE_FAIL: Crossing presentation exposed Ionia early")
+        quit(24)
+        return
     await process_frame
     var crossing: Image = await _snapshot("chapter1-crossing-native-960x640.png")
     if crossing == null:
@@ -163,6 +195,14 @@ func _capture() -> void:
 
     for hazard_id in ["sky_predator", "corporate_intercept"]:
         world.complete_hazard_review(hazard_id)
+    if world.chapter.stage_key() != "contact" or not ionia.visible or not ionia.is_ionia_stage_art_enabled():
+        push_error("CHAPTER1_CAPTURE_FAIL: Contact presentation did not reveal Ionia")
+        quit(25)
+        return
+    if ionia.ionia_facing != "west":
+        push_error("CHAPTER1_CAPTURE_FAIL: Contact Ionia not facing approaching Ender")
+        quit(26)
+        return
     await process_frame
     var contact: Image = await _snapshot("chapter1-contact-native-960x640.png")
     if contact == null:
