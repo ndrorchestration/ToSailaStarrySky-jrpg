@@ -1,8 +1,14 @@
 # To Sail the Starry Sky
 
-**Formerly Aetherwake — The Last Solarpunk Airship.** The creator-approved title is now **To Sail the Starry Sky** (2026-10-23). The internal Aetherwake names in historical source, save/release identifiers and verification receipts remain unchanged until a backward-compatible migration is tested. See [title/repository migration contract](docs/BRAND_TITLE_MIGRATION.md).
+*Formerly developed as **Aetherwake — The Last Solarpunk Airship**.*
 
-**To Sail the Starry Sky** is a **pre-alpha turn-based solarpunk JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a storm at Wake Dock reveals that the ship can exceed ordinary performance only when the right crew resonates with it.
+**To Sail the Starry Sky** is a **pre-alpha solarpunk turn-based JRPG** about the crew of the *Aureate Wake*, a dragonfly-inspired airship navigating a world of sky routes, forgotten histories, and choices that shape the people aboard. The current playable prototype begins with Ender at Wake Dock, where an oncoming storm reveals that the ship's potential depends on the people who resonate with it.
+
+**Project status:** This is a publicly accessible **development repository**, not an approved finished game or a verified public Windows release. The browser prototype, character systems and Chapter I work remain under development; game builds and player acceptance have separate verification gates.
+
+The project retains legacy `Aetherwake` filenames, package identifiers, save/release references, and historical test receipts for compatibility and provenance. They are **not** instructions to rename working files or migrate saves without testing.
+
+Selected implementation patterns and reference material were studied from *Memories 0.7.4*; see [Provenance](#provenance) and `memories_adaptation_catalog.md` for the adaptation record.
 
 The current repository contains a playable vertical-slice prototype plus an active architecture migration toward the full authored-party RPG.
 
@@ -202,7 +208,7 @@ Each phase should preserve a working combat loop.
 
 ## Provenance
 
-Aetherwake adapts selected code structures, interaction patterns, and reference-game lessons from *Memories* while developing its own setting, characters, narrative, combat/progression model, and authored party structure.
+**To Sail the Starry Sky** (originally developed as *Aetherwake*) adapts selected code structures, interaction patterns, and reference-game lessons from *Memories* while developing its own setting, characters, narrative, combat/progression model, and authored party structure.
 
 See `memories_adaptation_catalog.md` for the working adaptation catalog.
 
@@ -217,11 +223,11 @@ Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts includ
 
 ## Windows desktop package
 
-The intended player experience is **download one Windows artifact, launch/install it, and run Aetherwake in its own large resizable/maximizable desktop window**. The desktop presentation defaults to **1440×960** and scales proportionally when maximized, while preserving the 960×640 logical game layout. **Alt+Enter** or **F11** toggles native fullscreen; **Escape** exits fullscreen. Browser/HTTP instructions above are development and diagnostic paths, not the desired end-user experience.
+The intended player experience is **download one verified Windows artifact, launch/install it, and run To Sail the Starry Sky in its own large resizable/maximizable desktop window**. Existing historical packages still use the `Aetherwake` executable identity; the rebrand has not yet migrated installed app names. The desktop presentation defaults to **1440×960** and scales proportionally when maximized, while preserving the 960×640 logical game layout. **Alt+Enter** or **F11** toggles native fullscreen; **Escape** exits fullscreen. Browser/HTTP instructions above are development and diagnostic paths, not the desired end-user experience.
 
 ### Current Preview 0.1 release authority — 2026-10-06
 
-The runtime baseline before the documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. Documentation merges may advance protected `main` without changing player-runtime bytes. The current bounded Preview 0.1 remediation/review candidate remains PR #250 at exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; candidate identity is bound to that exact SHA and artifact hashes, not to a moving `main` pointer.
+The runtime baseline before the documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. Documentation-only changes can advance `main` without changing player-runtime bytes. GitHub branch protection and release approval are separate controls; neither is established by a README update. The current bounded Preview 0.1 remediation/review candidate remains PR #250 at exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; candidate identity is bound to that exact SHA and artifact hashes, not to a moving `main` pointer.
 
 Technical candidate verification is complete for that exact head:
 
@@ -249,7 +255,7 @@ PR #250 is ready for human review but is not merged. The historical Google Drive
 
 For the exact uncoached human/player acceptance protocol, see `docs/PREVIEW_0_1_ACCEPTANCE.md`.
 
-When a fresh candidate passes the exact Windows install/launch gate, the primary player artifact will be:
+Historical **Aetherwake-branded** package filenames remain part of the current desktop-build contract until a compatibility-tested rename is approved:
 
 - **Aetherwake-Setup.exe** — conventional per-user installer; no administrator elevation; creates normal Start Menu and desktop shortcuts.
 - **Aetherwake-Windows.zip** — portable fallback. Extract completely, then run **Aetherwake.exe**.
