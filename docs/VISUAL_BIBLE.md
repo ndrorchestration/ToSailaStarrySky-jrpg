@@ -1,15 +1,17 @@
-# Aetherwake Visual Bible
+# To Sail the Starry Sky — Visual Bible
+
+**Project identity:** To Sail the Starry Sky (formerly Aetherwake). All visual concepts remain subject to independent acceptance; the new title does not authorize asset publication or change previously approved character identities.
 
 Status: **CANONICAL VISUAL DIRECTION**
 Scope: project-wide visual language for gameplay, UI, magic, cinematics, environments, characters, the Dragonfly, and authored video clips.
 
 ## 1. Visual thesis
 
-Aetherwake should look like the idealized memory of a late-16/32-bit JRPG reconstructed with modern lighting, atmospheric depth, cinematic composition, responsive animation, and a strong solarpunk sky-fantasy identity.
+To Sail the Starry Sky should look like the idealized memory of a late-16/32-bit JRPG reconstructed with modern lighting, atmospheric depth, cinematic composition, responsive animation, and a strong solarpunk sky-fantasy identity.
 
 The goal is not literal retro simulation and not generic HD-2D imitation. The game must remain recognizably pixel-authored while using modern presentation techniques where they materially improve depth, drama, legibility, or atmosphere.
 
-A screenshot with the logo removed should still be recognizable as Aetherwake.
+A screenshot with the logo removed should still be recognizable as To Sail the Starry Sky.
 
 ## 2. Core identity
 
@@ -209,7 +211,7 @@ Priority order:
 
 ## 14. Three presentation layers
 
-Aetherwake has three coordinated visual layers:
+To Sail the Starry Sky has three coordinated visual layers:
 
 ### Layer A — Gameplay pixel art
 Primary interactive presentation.
