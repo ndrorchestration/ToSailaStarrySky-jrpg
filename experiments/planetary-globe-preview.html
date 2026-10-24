@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>To Sail the Starry Sky — Planetary Globe Study</title>
+<style>
+:root{color-scheme:dark;font-family:Georgia,serif}*{box-sizing:border-box}body{margin:0;background:#050b1b;color:#e6f0ed;overflow:hidden}canvas{display:block;width:100vw;height:100vh;cursor:grab;touch-action:none}canvas:active{cursor:grabbing}
+.panel{position:absolute;left:clamp(18px,4vw,64px);top:clamp(20px,5vh,62px);max-width:330px;pointer-events:none;text-shadow:0 2px 12px #020617}
+.kicker{font:11px system-ui,sans-serif;letter-spacing:.38em;color:#96c9c4;text-transform:uppercase}h1{font-size:clamp(28px,3vw,44px);line-height:1.07;font-weight:400;letter-spacing:.035em;margin:14px 0 12px}p{font:13px/1.65 system-ui,sans-serif;color:#c3d1d5;margin:0}
+.controls{position:absolute;bottom:clamp(16px,4vh,45px);left:clamp(18px,4vw,64px);width:min(390px,calc(100vw - 36px));padding:18px 21px;background:linear-gradient(120deg,#09172bcf,#0b2134bc);border:1px solid #8dbac044;box-shadow:0 14px 60px #0006;backdrop-filter:blur(12px);border-radius:9px}
+.controls label{display:flex;align-items:center;justify-content:space-between;font:12px system-ui,sans-serif;color:#d7ebeb;gap:12px;margin-bottom:12px}.controls label:last-of-type{margin:0}
+input[type=range]{width:50%;accent-color:#8fe0cd}.legend{font:10px/1.6 system-ui,sans-serif;color:#9bafb6;letter-spacing:.055em;margin-top:13px}
+.badge{position:absolute;right:clamp(18px,4vw,64px);top:clamp(24px,5vh,60px);text-align:right;font:11px/1.7 system-ui,sans-serif;letter-spacing:.16em;color:#bed7d8;text-shadow:0 2px 8px #000}
+@media(max-width:630px){.panel{max-width:240px}.panel p{display:none}.badge{top:auto;bottom:200px}.controls{padding:13px 15px}h1{font-size:30px}}
+</style>
+</head>
+<body>
+<canvas id="scene" aria-label="Interactive artistic prototype of a spherical fantasy world with atmosphere, continents, biomes, and auroral routes"></canvas>
+<div class="panel"><div class="kicker">World atlas / rendering study</div><h1>To Sail<br>the Starry Sky</h1><p>A world beyond the horizon. Drift across oceans, follow the winds, and discover the sky's forgotten paths.</p></div>
+<div class="badge" id="coords">PLANETARY STUDY<br>UNAPPROVED GEOGRAPHY</div>
+<div class="controls">
+<label>Flight altitude <span id="altLabel">Cruising sky</span></label>
+<input aria-label="Flight altitude" id="alt" type="range" min="0" max="3" step="1" value="1" style="width:100%">
+<label>Atmospheric cloud cover <input aria-label="Cloud cover" id="clouds" type="range" min="0" max="100" step="5" value="65"></label>
+<label>Daylight direction <input aria-label="Daylight direction" id="sun" type="range" min="-180" max="180" step="1" value="-35"></label>
+<div class="legend">DRAG TO ROTATE · SCROLL TO ZOOM · AURORAL RIBBONS ARE VISUAL PLACEHOLDERS<br>Concept rendering only · No canonical locations or secrets disclosed</div>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d',{alpha:false});
+const altitude=document.getElementById('alt'),clouds=document.getElementById('clouds'),sun=document.getElementById('sun'),coords=document.getElementById('coords');
+const altNames=['Surface approach','Cruising sky','High atmosphere','Auroral altitude'];
+let W=0,H=0,dpr=1,lon=-0.9,lat=0.23,zoom=1,pointer=null,dirty=true,phase=0;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),lerp=(a,b,t)=>a+(b-a)*t,smooth=t=>t*t*(3-2*t),fract=x=>x-Math.floor(x);
+const hash=(x,y)=>fract(Math.sin(x*127.1+y*311.7)*43758.5453);
+function noise(x,y){const i=Math.floor(x),j=Math.floor(y),u=smooth(fract(x)),v=smooth(fract(y));return lerp(lerp(hash(i,j),hash(i+1,j),u),lerp(hash(i,j+1),hash(i+1,j+1),u),v)}
+function fbm(x,y){let n=0,a=.5;for(let k=0;k<5;k++){n+=noise(x,y)*a;x=x*2.03+12.71;y=y*2.03-4.1;a*=.5}return n}
+function field(lon,lat){const X=Math.cos(lat)*Math.cos(lon),Y=Math.sin(lat),Z=Math.cos(lat)*Math.sin(lon);
+const broad=fbm((X+2)*2.1,(Z+2)*2.1)+.27*fbm((Y+2)*3,(Z+2)*3),d=fbm((X+2)*7,(Y+2)*7);
+return broad-.60+.14*(d-.5)+.085*Math.sin(lon*3+Math.sin(lat*6))}
+function biome(lo,la){const f=field(lo,la),pole=Math.abs(la)/(Math.PI/2);if(f<-.04)return [6,38,68];if(f<0)return [15,79,111];if(f<.029)return [48,125,148];
+const detail=fbm((lo+5)*11,(la+4)*11),moist=fbm((lo+9)*2.7,(la+6)*3);
+if(pole>.86)return [213,232,230];if(f>.26)return pole>.45?[219,226,219]:[182,174,154];if(pole>.7)return [102,135,117];
+if(pole<.33&&moist<.43)return [193+detail*28,157+detail*15,96+detail*17];
+if(pole<.42&&moist>.60)return [27,110+detail*29,69+detail*16];
+if(moist<.48)return [97+detail*30,142+detail*20,78+detail*9];
+return [47+detail*18,123+detail*32,84+detail*13]}
+function resize(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);dirty=true}
+function spherePixel(nx,ny){const rr=nx*nx+ny*ny;if(rr>=1)return null;let z=Math.sqrt(1-rr),x=nx,y=-ny;
+let yl=y*Math.cos(lat)+z*Math.sin(lat),zl=z*Math.cos(lat)-y*Math.sin(lat);
+let xl=x*Math.cos(lon)+zl*Math.sin(lon),zz=zl*Math.cos(lon)-x*Math.sin(lon);
+return {x,y,z,lo:Math.atan2(zz,xl),la:Math.asin(clamp(yl,-1,1))}}
+function draw(){
+dirty=false;phase+=.012;const sx=W*.58+(W<650?25:0),sy=H*.51,r=Math.min(W*.36,H*.54)*zoom;
+const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#061a2a');bg.addColorStop(.55,'#0a142b');bg.addColorStop(1,'#040817');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+for(let i=0;i<200;i++){let x=hash(i,11)*W,y=hash(i,51)*H,a=.17+hash(i,72)*.5;ctx.fillStyle='rgba(190,225,231,'+a+')';ctx.fillRect(x,y,hash(i,9)>.97?2:1,hash(i,19)>.97?2:1)}
+let halo=ctx.createRadialGradient(sx,sy,r*.65,sx,sy,r*1.48);halo.addColorStop(0,'#8dd5cf00');halo.addColorStop(.66,'#74b7d400');halo.addColorStop(.78,'#5aafba2d');halo.addColorStop(1,'#2b708700');ctx.fillStyle=halo;ctx.fillRect(sx-r*1.55,sy-r*1.55,r*3.1,r*3.1);
+const n=Math.min(610,Math.max(240,Math.round(r*1.15))),step=r*2/n,off=document.createElement('canvas');off.width=n;off.height=n;const ox=off.getContext('2d'),im=ox.createImageData(n,n),data=im.data;
+const angle=Number(sun.value)*Math.PI/180,light=[Math.cos(angle)*.65,-.36,Math.sin(angle)*.65+.44],cloudDensity=Number(clouds.value)/100,alt=Number(altitude.value);
+for(let py=0;py<n;py++)for(let px=0;px<n;px++){let X=(px+.5-n/2)/(n/2),Y=(py+.5-n/2)/(n/2),p=spherePixel(X,Y);if(!p)continue;
+let c=biome(p.lo,p.la),dot=Math.max(-.6,p.x*light[0]+p.y*light[1]+p.z*light[2]),shade=.26+.83*Math.max(0,dot),o=(py*n+px)*4;
+if(c[2]>c[0]*1.18){let ripple=fbm((p.lo+5)*22,(p.la+5)*20);c=[c[0]+ripple*10,c[1]+ripple*13,c[2]+ripple*17]}
+let cover=fbm((p.lo+5)*11+phase*.03,(p.la+5)*10+phase*.015),whisp=clamp((cover-(.61-cloudDensity*.19))*6,0,1)*cloudDensity*.88;
+let rim=Math.pow(1-p.z,4)*.58;
+for(let k=0;k<3;k++)data[o+k]=clamp(c[k]*shade*(1-whisp)+lerp(206,235,k/3)*whisp*(.64+.35*Math.max(0,dot))+rim*[55,126,149][k],0,255);
+data[o+3]=255}
+ox.putImageData(im,0,0);ctx.drawImage(off,sx-r,sy-r,r*2,r*2);
+ctx.beginPath();ctx.arc(sx,sy,r+.5,0,Math.PI*2);ctx.strokeStyle='#9ad9e43c';ctx.lineWidth=2+alt*.8;ctx.stroke();
+const glow=ctx.createRadialGradient(sx-r*.27,sy-r*.3,r*.14,sx,sy,r*1.06);glow.addColorStop(0,'#e6efc400');glow.addColorStop(.86,'#79c3eb00');glow.addColorStop(1,'#69bce31b');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(sx,sy,r*1.08,0,7);ctx.fill();
+if(alt>=2)drawAurora(sx,sy,r,alt);
+coords.innerHTML='LAT '+Math.round(lat*180/Math.PI)+'° · LON '+Math.round(lon*180/Math.PI)+'°<br>'+altNames[alt].toUpperCase()+'<br>UNAPPROVED GEOGRAPHY';
+}
+function drawAurora(sx,sy,r,alt){ctx.save();ctx.globalCompositeOperation='screen';for(let j=0;j<3;j++){ctx.beginPath();let first=true;for(let i=0;i<=140;i++){let t=i/140*Math.PI*2,la=(j===0?1:-1)*(.98+.13*Math.sin(t*3+j)),lo=t-Math.PI,xyz=pointAt(lo,la);if(xyz.z<0){first=true;continue}let x=sx+xyz.x*r*1.035,y=sy-xyz.y*r*1.035;if(first){ctx.moveTo(x,y);first=false}else ctx.lineTo(x,y)}
+ctx.strokeStyle=['#80ffe290','#91b8ff73','#d5b6ff6b'][j];ctx.lineWidth=alt===3?3.5:2;ctx.shadowBlur=23;ctx.shadowColor='#73ffde';ctx.stroke()}ctx.restore()}
+function pointAt(lo,la){let x=Math.cos(la)*Math.cos(lo),y=Math.sin(la),z=Math.cos(la)*Math.sin(lo);let xx=x*Math.cos(lon)-z*Math.sin(lon),zz=x*Math.sin(lon)+z*Math.cos(lon);return {x:xx,y:y*Math.cos(lat)-zz*Math.sin(lat),z:y*Math.sin(lat)+zz*Math.cos(lat)}}
+function schedule(){if(!dirty){dirty=true;requestAnimationFrame(draw)}}
+canvas.addEventListener('pointerdown',e=>{pointer={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId)});
+canvas.addEventListener('pointermove',e=>{if(!pointer||e.pointerId!==pointer.id)return;lon+=(e.clientX-pointer.x)*.006;lat=clamp(lat+(e.clientY-pointer.y)*.005,-1.48,1.48);pointer.x=e.clientX;pointer.y=e.clientY;schedule()});
+canvas.addEventListener('pointerup',()=>pointer=null);canvas.addEventListener('pointercancel',()=>pointer=null);
+canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=clamp(zoom*(e.deltaY>0?.93:1.07),.65,1.5);schedule()},{passive:false});
+for(const el of [altitude,clouds,sun])el.addEventListener('input',schedule);
+addEventListener('resize',()=>{resize();schedule()});resize();requestAnimationFrame(draw);
+</script>
+</body></html>
