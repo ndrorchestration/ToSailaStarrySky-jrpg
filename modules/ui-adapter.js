@@ -49,11 +49,11 @@ window.AetherUI = function(p, C) {
     for (let dx = -2; dx <= 2; dx++) {
       for (let dy = -2; dy <= 2; dy++) {
         if (dx === 0 && dy === 0) continue;
-        text('AETHERWAKE', width/2 + dx, height/2 - 40 + dy);
+        text('TO SAIL THE STARRY SKY', width/2 + dx, height/2 - 40 + dy);
       }
     }
     fill(C.teal[0], C.teal[1], C.teal[2], 100);
-    text('AETHERWAKE', width/2, height/2 - 40);
+    text('TO SAIL THE STARRY SKY', width/2, height/2 - 40);
 
     textFont('VT323');
     textSize(16);
@@ -70,7 +70,7 @@ window.AetherUI = function(p, C) {
     textFont('Press Start 2P');
     textSize(8);
     fill(C.teal[0], C.teal[1], C.teal[2], 120);
-    text('AETHERWAKE // ENDER  //  TURN-BASED JRPG', width/2, height - 24);
+    text('TO SAIL THE STARRY SKY // ENDER // JRPG', width/2, height - 24);
   };
 
   this.drawHUD = function(p, C) {
