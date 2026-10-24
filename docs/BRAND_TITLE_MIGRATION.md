@@ -20,11 +20,11 @@
 ## Repo-rename checklist
 
 - [x] Owner renamed the repo; current canonical slug verified as `ToSailtheStarrySky-jrpg`. The change also made source visibility **PUBLIC**; this is NOT permission to publish an accepted game build.
-- [x] GitHub ID `1372641872` unchanged; `main` at `7364d43c202b2186e2d4eb3c752367afe61ee408`; draft PR #358 remains open/draft at current head `af7acefba3138f5beb8170dacd4a5076193cc13e`. No PR merge authorized.
+- [x] GitHub ID `1372641872` unchanged and base `main` recorded at `7364d43c202b2186e2d4eb3c752367afe61ee408`; draft PR #358 remains open/unmerged. Do not embed a moving PR head SHA as the supposed current identity in this checklist; verify head live for each review.
 - [x] Old `aetherwake-jrpg` GitHub metadata resolves to the same stable repository ID (redirect/alias). Do not recreate the old slug.
 - [ ] On **each existing clone**, run `git remote set-url origin https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg.git`, then `git remote -v`. Host access and local clone verification are still pending.
 - [ ] Audit Actions references, Pages/project-site URLs, app/webhook integrations, branch protections/rulesets, hardcoded repository paths, checkouts, README badges, CI logs and external distribution links.
-- [ ] Repair the hardcoded repository field in `scripts/capture-player-evidence.js` after ensuring capture-contract fixtures are updated/tested. Historical receipts are immutable.
+- [ ] Merge only after independent review/CI the isolated [draft PR #359](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/359) which corrects the hardcoded repository field in `scripts/capture-player-evidence.js` and adds a regression contract. Historical receipts are immutable.
 - [ ] Confirm the existing GitHub issue/PR redirect links and update active central documentation, leaving historical evidence links intact.
 
 ## Future source/packaging adoption — **not** an immediate bulk rename
