@@ -1,0 +1,146 @@
+name: Godot Exact Windows QA (review only)
+
+on:
+  pull_request:
+    paths:
+      - 'godot/**'
+      - 'scripts/verify-godot-chapter1-windows-preview.ps1'
+      - 'scripts/build-godot-chapter1-windows-preview.ps1'
+      - 'scripts/package-godot-chapter1-windows-preview.ps1'
+      - 'tests/godot-windows-preview-package-contract.test.js'
+      - 'tests/godot-windows-native-qa-contract.test.js'
+      - '.github/workflows/godot-exact-windows-qa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-windows-qa:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact PR head without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Bind exact source SHA
+        shell: pwsh
+        env:
+          EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $actual = (& git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $actual -ne $env:EXPECTED_SOURCE_SHA) {
+            throw "EXACT_HEAD_MISMATCH expected=$($env:EXPECTED_SOURCE_SHA) actual=$actual"
+          }
+          Write-Host "EXACT_HEAD_BINDING=PASS:$actual"
+
+      - name: Preflight unchanged Defender custody requirements
+        shell: pwsh
+        run: |
+          $required = @("Get-MpComputerStatus", "Start-MpScan", "Get-MpThreatDetection", "Get-WinEvent")
+          foreach ($commandName in $required) {
+            if (-not (Get-Command $commandName -ErrorAction SilentlyContinue)) {
+              throw "WINDOWS_QA_HOST_MISSING_COMMAND:$commandName"
+            }
+          }
+          $status = Get-MpComputerStatus -ErrorAction Stop
+          Write-Host "DEFENDER_ANTIVIRUS_ENABLED=$([bool]$status.AntivirusEnabled)"
+          Write-Host "DEFENDER_REALTIME_ENABLED=$([bool]$status.RealTimeProtectionEnabled)"
+          Write-Host "DEFENDER_PRODUCT_VERSION=$($status.AMProductVersion)"
+          Write-Host "DEFENDER_ENGINE_VERSION=$($status.AMEngineVersion)"
+          Write-Host "DEFENDER_SIGNATURE_VERSION=$($status.AntivirusSignatureVersion)"
+          if (-not [bool]$status.AntivirusEnabled) {
+            throw "WINDOWS_QA_HOST_DEFENDER_ANTIVIRUS_DISABLED"
+          }
+          if (-not [bool]$status.RealTimeProtectionEnabled) {
+            throw "WINDOWS_QA_HOST_DEFENDER_REALTIME_DISABLED"
+          }
+          $null = Get-WinEvent -ListLog "Microsoft-Windows-Windows Defender/Operational" -ErrorAction Stop
+          Write-Host "DEFENDER_OPERATIONAL_LOG=AVAILABLE"
+
+      - name: Fetch digest-pinned official Godot 4.7.2 Windows editor
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP "godot-4.7.2-win64.zip"
+          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_win64.exe.zip" -OutFile $zip
+          $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash.ToLowerInvariant()
+          $expected = "731980f9608d61333e5baf54a2ef17210acc7a538446c0cb9969f002aca1e953"
+          if ($actual -ne $expected) {
+            throw "GODOT_WINDOWS_ARCHIVE_SHA256_MISMATCH expected=$expected actual=$actual"
+          }
+          $editorDir = Join-Path $env:RUNNER_TEMP "godot-4.7.2-win64"
+          Expand-Archive -LiteralPath $zip -DestinationPath $editorDir -Force
+          $consoleExe = Get-ChildItem -LiteralPath $editorDir -Recurse -File -Filter "Godot_v4.7.2-stable_win64_console.exe" | Select-Object -First 1
+          if (-not $consoleExe) {
+            throw "GODOT_WINDOWS_CONSOLE_EXE_MISSING"
+          }
+          "GODOT_EXE=$($consoleExe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "GODOT_WINDOWS_ARCHIVE_SHA256=PASS:$actual"
+
+      - name: Fetch digest-pinned official Godot 4.7.2 export templates
+        shell: pwsh
+        run: |
+          $tpz = Join-Path $env:RUNNER_TEMP "Godot_v4.7.2-stable_export_templates.tpz"
+          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz" -OutFile $tpz
+          $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $tpz).Hash.ToLowerInvariant()
+          $expected = "f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011"
+          if ($actual -ne $expected) {
+            throw "GODOT_EXPORT_TEMPLATES_SHA256_MISMATCH expected=$expected actual=$actual"
+          }
+
+          $zip = Join-Path $env:RUNNER_TEMP "Godot_v4.7.2-stable_export_templates.zip"
+          Copy-Item -LiteralPath $tpz -Destination $zip -Force
+          $unpack = Join-Path $env:RUNNER_TEMP "godot-4.7.2-export-templates"
+          Expand-Archive -LiteralPath $zip -DestinationPath $unpack -Force
+
+          $releaseTemplate = Get-ChildItem -LiteralPath $unpack -Recurse -File -Filter "windows_release_x86_64.exe" | Select-Object -First 1
+          if (-not $releaseTemplate) {
+            throw "GODOT_WINDOWS_RELEASE_TEMPLATE_MISSING"
+          }
+          $sourceDir = $releaseTemplate.Directory.FullName
+          $versionFile = Join-Path $sourceDir "version.txt"
+          if (-not (Test-Path -LiteralPath $versionFile)) {
+            throw "GODOT_TEMPLATE_VERSION_FILE_MISSING:$sourceDir"
+          }
+          $versionText = (Get-Content -LiteralPath $versionFile -Raw).Trim()
+          if ($versionText -ne "4.7.2.stable") {
+            throw "GODOT_TEMPLATE_VERSION_MISMATCH expected=4.7.2.stable actual=$versionText"
+          }
+
+          $targetDir = Join-Path $env:APPDATA "Godot\export_templates\4.7.2.stable"
+          if (Test-Path -LiteralPath $targetDir) {
+            Remove-Item -LiteralPath $targetDir -Recurse -Force
+          }
+          New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+          Copy-Item -Path (Join-Path $sourceDir "*") -Destination $targetDir -Recurse -Force
+          Write-Host "GODOT_EXPORT_TEMPLATES_SHA256=PASS:$actual"
+          Write-Host "GODOT_EXPORT_TEMPLATE_INSTALL=PASS:$targetDir"
+
+      - name: Execute unchanged exact Windows verifier
+        shell: pwsh
+        env:
+          EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $outputDir = Join-Path $env:RUNNER_TEMP "aetherwake-godot-exact-windows-qa"
+          & .\scripts\verify-godot-chapter1-windows-preview.ps1 `
+            -GodotExe $env:GODOT_EXE `
+            -ExpectedSourceSha $env:EXPECTED_SOURCE_SHA `
+            -OutputDir $outputDir
+
+          $jsonReceipt = Join-Path $outputDir "WINDOWS_NATIVE_QA_RECEIPT.json"
+          $markdownReceipt = Join-Path $outputDir "WINDOWS_NATIVE_QA_RECEIPT.md"
+          if (-not (Test-Path -LiteralPath $jsonReceipt)) {
+            throw "WINDOWS_NATIVE_QA_JSON_RECEIPT_MISSING"
+          }
+          if (-not (Test-Path -LiteralPath $markdownReceipt)) {
+            throw "WINDOWS_NATIVE_QA_MARKDOWN_RECEIPT_MISSING"
+          }
+          $jsonSha = (Get-FileHash -Algorithm SHA256 -LiteralPath $jsonReceipt).Hash.ToLowerInvariant()
+          $markdownSha = (Get-FileHash -Algorithm SHA256 -LiteralPath $markdownReceipt).Hash.ToLowerInvariant()
+          Write-Host "WINDOWS_NATIVE_QA_JSON_RECEIPT_SHA256=$jsonSha"
+          Write-Host "WINDOWS_NATIVE_QA_MARKDOWN_RECEIPT_SHA256=$markdownSha"
+          Write-Host "WINDOWS_NATIVE_QA_DISTRIBUTION=RUNNER_LOCAL_ONLY"
+          Write-Host "PUBLIC_RELEASE_AUTHORIZED=NO"
