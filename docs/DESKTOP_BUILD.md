@@ -1,25 +1,27 @@
-# Aetherwake Windows desktop build
+# To Sail the Starry Sky — Windows Desktop Build Contract
 
-Aetherwake retains its HTTP-served browser path for development and automated smoke testing. The supported player-facing path is a packaged NW.js desktop build.
+**Historical installer identity:** Aetherwake. The project has been renamed, but executable/setup/installed-location names are intentionally unchanged pending backwards-compatibility verification. **This is a technical build contract, not a recommendation to download a current Windows package.** [Defender security issue #293](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/issues/293) remains unresolved: never restore, whitelist, execute or distribute the specifically detected QA uninstaller.
 
-## For players
+To Sail the Starry Sky retains its HTTP-served browser path for development and automated smoke testing. The intended player-facing design is a packaged NW.js desktop build, subject to exact-build security, QA and human approval.
+
+## Historical installation flow (NOT current release approval)
 
 The desktop window opens at **1440×960** by default. Maximizing the window enlarges the game further while preserving its 3:2 aspect ratio. **Alt+Enter** or **F11** toggles true NW.js fullscreen; **Escape** exits fullscreen. The internal 960×640 coordinate system stays unchanged so authored UI, combat positions, and input geometry remain stable.
 
 
-1. Download **Aetherwake-Setup.exe** from a Windows desktop release.
+1. For a separately approved, verified historical Windows package only, obtain **Aetherwake-Setup.exe** from the appropriate reviewed release source.
 2. Run the installer and choose the install location if needed.
-3. Launch Aetherwake from the created desktop or Start Menu shortcut.
+3. Launch the historically named Aetherwake application from the created desktop or Start Menu shortcut after independent security clearance.
 
 The standard installer installs the packaged runtime per-user under `%LOCALAPPDATA%\\Programs\\Aetherwake`, does not require administrator elevation, and does not require Python, PowerShell, a manually started HTTP server, or opening an HTML file.
 
-**Fallback:** **Aetherwake-Windows.zip** is also published for manual extraction. Extract the ZIP completely, then run **Aetherwake.exe** from the extracted folder. Keep the extracted files together.
+**Historical fallback:** **Aetherwake-Windows.zip** was published for manual extraction. Keep extracted files together. Do not execute it as an unreviewed substitute for a security-cleared installer.
 
 Do not use superseded self-extracting/SFX artifacts. If Windows Defender flags an artifact, do not whitelist or bypass it; preserve the exact detection name and SHA-256 for a false-positive report.
 
-## Current verification state — 2026-10-06
+## Historical technical checkpoint — 2026-10-06
 
-The exact current Preview 0.1 candidate is PR #250 head `46f50c581d992bf581bb6b6d7961a9421b8b779d`.
+The exact Preview 0.1 candidate identified at that historical checkpoint was PR #250 head `46f50c581d992bf581bb6b6d7961a9421b8b779d`.
 
 Technical evidence on that exact source is green:
 
@@ -43,9 +45,9 @@ Published candidate hashes:
 4c6efc6ea1cecf6468fb983fd8ff5fd5d0ce8645262779551841f663c5326173  Aetherwake-Windows.zip
 ```
 
-The remaining release gate is **human/player acceptance**, not Windows packaging. Technical PASS does not establish visual approval or player acceptance. The exact protocol and acceptance boundary are documented in `docs/PREVIEW_0_1_ACCEPTANCE.md`.
+At that checkpoint, human/player acceptance remained pending. **Current** release admission also requires review of later security findings, asset rights and any newer package candidate. Technical PASS for an older exact SHA does not establish present Windows package security, visual approval or player acceptance. The exact protocol and acceptance boundary are documented in `docs/PREVIEW_0_1_ACCEPTANCE.md`.
 
-The GitHub Actions artifact-quota issue remains open as infrastructure debt, but it is no longer blocking current Preview 0.1 human review because exact-head review evidence is available through the RDC/local handoff.
+The GitHub Actions artifact-quota issue remains open as infrastructure debt. Historical local/RDC evidence could support review of that specific candidate but cannot be transferred to newer builds or treated as current host availability.
 
 ## For maintainers
 
