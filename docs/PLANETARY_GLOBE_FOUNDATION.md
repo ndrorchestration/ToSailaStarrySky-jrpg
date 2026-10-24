@@ -1,10 +1,14 @@
 # Planetary globe foundation — isolated prototype (2026-10-23)
 
-**Status:** Prototype code / draft implementation. This is not integrated into a playable planetary map, not creator-approved world cartography, and not a migration of the existing save format. See issue [#348](https://github.com/ndrorchestration/aetherwake-jrpg/issues/348).
+## Current project identity — 2026-10-24
+
+This work belongs to **To Sail the Starry Sky** (formerly Aetherwake). Canonical repository: `ndrorchestration/ToSailtheStarrySky-jrpg`, stable repository ID `1372641872`, visibility **PUBLIC**. Historical prototype ZIP names, source filenames, hashes and receipts retain the Aetherwake name and must not be rewritten. Public repository visibility is not release, canon, renderer or integration approval.
+
+**Status:** Prototype code / draft implementation. This is not integrated into a playable planetary map, not creator-approved world cartography, and not a migration of the existing save format. See issue [#348](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/issues/348).
 
 ## Why this exists
 
-The creator requires an immense **spherical world**, not a small 2D/2.5D map with distant continents visible during low-altitude flight. Horizons must limit world view. Large ocean basins separate continents; high-latitude polar regions and diverse biomes exist on both hemispheres. A globe planning view may reveal a broader planet without disclosing undiscovered route details.
+The creator requires an immense **spherical world** for **To Sail the Starry Sky**, not a small 2D/2.5D map with distant continents visible during low-altitude flight. Horizons must limit world view. Large ocean basins separate continents; high-latitude polar regions and diverse biomes exist on both hemispheres. A globe planning view may reveal a broader planet without disclosing undiscovered route details.
 
 Existing `modules/world.js` (local 32×32) and `modules/air-navigation.js` (48×32 bounded air map) remain **unchanged**. So does the private, owner-only 2.5D atlas described in issue #302. No implicit assumption that the first-region map constitutes the whole planet.
 
