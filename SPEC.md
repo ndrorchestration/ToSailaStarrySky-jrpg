@@ -1,4 +1,6 @@
-# Aetherwake JRPG — Technical Specification
+# To Sail the Starry Sky — Technical Specification
+
+**Former development name:** Aetherwake. Internal filenames, historical proof artifacts and built-package names remain unchanged until compatibility migration is accepted. This document does not assert that a publicly visible repository or historical CI pass authorizes player release.
 
 **Development stage:** pre-alpha  
 **Current runtime:** p5.js global mode, 960×640  
@@ -42,7 +44,7 @@ The launcher manifest points to `www/index-embedded.html`. Windows packaging con
 
 A compiled installer is not sufficient evidence of a working release. A player-facing installer may be called verified only when the **exact generated candidate** has been installed on Windows and the installed `Aetherwake.exe` has successfully launched through the release smoke gate.
 
-Current status as of 2026-10-06: runtime baseline before documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. Documentation-only merges may advance protected `main` without changing runtime bytes. Preview 0.1 candidate PR #250 is bound independently to exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`. Hosted smoke run `37557721548` passed. Windows workflow-dispatch run `37559269564` passed package build, no-admin installer compilation, exact installed launch with `DESKTOP_RENDER_READINESS=PASS`, portable verification, SHA-256 generation, and prerelease publication. The published installer was independently re-downloaded, hash-verified, installed, and launched on NeonPC. Technical candidate verification is `PASS`; human review, visual acceptance, and human/player acceptance remain pending.
+Historical technical checkpoint as of 2026-10-06 (not a present distribution recommendation): runtime baseline before documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. Documentation-only merges may advance `main` without changing runtime bytes; GitHub `main` was verified **unprotected** on 2026-10-24 (see governance issue #303). Preview 0.1 candidate PR #250 is bound independently to exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`. Hosted smoke run `37557721548` passed. Windows workflow-dispatch run `37559269564` passed package build, no-admin installer compilation, exact installed launch with `DESKTOP_RENDER_READINESS=PASS`, portable verification, SHA-256 generation, and prerelease publication. The published installer was independently re-downloaded, hash-verified, installed, and launched on NeonPC. Technical candidate verification is `PASS`; human review, visual acceptance, and human/player acceptance remain pending.
 
 ---
 
@@ -50,7 +52,7 @@ Current status as of 2026-10-06: runtime baseline before documentation-only reco
 
 ### CURRENT DIRECTION
 
-Aetherwake uses a coordinated three-layer presentation model:
+To Sail the Starry Sky uses a coordinated three-layer presentation model:
 
 1. gameplay pixel art;
 2. in-engine cinematic presentation;
@@ -76,7 +78,7 @@ Existing art/migration PRs are implementation candidates and do not supersede th
 
 ### TARGET ARCHITECTURE
 
-Aetherwake has exactly five authored playable protagonists:
+To Sail the Starry Sky has exactly five authored playable protagonists:
 
 1. **Ender** — lead protagonist; native job **Rift Scholar**
 2. **Lyra**

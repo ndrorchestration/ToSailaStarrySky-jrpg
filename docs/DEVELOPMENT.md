@@ -1,10 +1,12 @@
-# Aetherwake Development Guide
+# To Sail the Starry Sky — Development Guide
+
+**Title:** To Sail the Starry Sky (formerly Aetherwake). Source/package/save identifiers remain under backwards-compatibility controls. Public source is not release authorization; review [public-source issue #360](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/issues/360) and [Defender hold #293](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/issues/293) before distributing builds.
 
 ## Current stage
 
-Aetherwake is a late-prototype / pre-alpha project.
+To Sail the Starry Sky is a late-prototype / pre-alpha project.
 
-The authoritative `main` line now contains the authored First Wake onboarding path, persistent `ROSTER[5]`, validated reference-based `ACTIVE_PARTY[1..5]`, the JRPG combat/formula and magic contract stack, open-sky navigation, live dialogue/shop/ledger paths, and fail-closed compatibility guards. The runtime baseline before the documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`; documentation-only merges may advance protected `main` without changing player-runtime bytes. Preview 0.1 remediation/review candidate PR #250 is separately bound to exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; do not project candidate-only changes onto `main` before merge.
+The authoritative `main` line now contains the authored First Wake onboarding path, persistent `ROSTER[5]`, validated reference-based `ACTIVE_PARTY[1..5]`, the JRPG combat/formula and magic contract stack, open-sky navigation, live dialogue/shop/ledger paths, and fail-closed compatibility guards. The runtime baseline before the documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`; documentation-only merges may advance `main` without changing player-runtime bytes; GitHub main branch protection was verified **disabled** on 2026-10-24 (governance issue #303). Preview 0.1 remediation/review candidate PR #250 is separately bound to exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; do not project candidate-only changes onto `main` before merge.
 
 ## Desktop / release authority
 
@@ -15,7 +17,7 @@ The current production desktop structure is intentionally separate from the deve
 - The game payload lives under `www/`; tests, docs, GitHub metadata, npm development files, and other repository-only material are not player-runtime authority.
 - `npm run package:windows` packages only that staged runtime.
 - `scripts/build-windows-release.ps1` is the maintainer-local Windows fallback and must reach `LOCAL_WINDOWS_RELEASE=PASS` only after build, installer compilation, clean installation, launch smoke, and hash generation.
-- Hosted CI is currently executing normally for the Preview 0.1 lane. Exact candidate `46f50c581d992bf581bb6b6d7961a9421b8b779d` passed smoke run `37557721548` and Windows workflow-dispatch run `37559269564`.
+- Historical Preview 0.1 CI evidence (2026-10-06): Exact candidate `46f50c581d992bf581bb6b6d7961a9421b8b779d` passed smoke run `37557721548` and Windows workflow-dispatch run `37559269564`.
 - The published installer from that exact run was independently downloaded, SHA-256 verified, installed, and launched on NeonPC. Technical candidate verification is therefore `PASS` for that exact source.
 - Human review, visual acceptance, and human/player acceptance remain separate gates and are still pending.
 

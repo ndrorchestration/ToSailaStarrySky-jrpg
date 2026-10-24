@@ -1,10 +1,12 @@
-# Aetherwake Preview 0.1 — Human Acceptance Protocol
+# To Sail the Starry Sky — Historical Preview 0.1 Human Acceptance Protocol
+
+**Original package label:** Aetherwake Preview 0.1. This exact-SHA protocol is preserved as dated evidence; **do not treat it as approval to run any unreviewed current executable**. The Windows Defender hold [#293](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/issues/293) must be resolved for affected artifacts; source identity, build hashes, asset rights and security gate are separately reviewed before a new human run.
 
 **Status:** exact technical candidate verified; human/player acceptance not yet run.
 
 ## Exact candidate binding
 
-Use only this candidate for the current Preview 0.1 acceptance run:
+The October 6, 2026 acceptance protocol was bound to this exact historical candidate; do not substitute any new artifact or imply it has passed current security review:
 
 ```text
 SOURCE_SHA=46f50c581d992bf581bb6b6d7961a9421b8b779d
