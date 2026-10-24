@@ -4,7 +4,7 @@
 **Decision authority:** creator's direct instruction  
 **Public-facing game title:** **To Sail the Starry Sky**  
 **Previous development title:** **Aetherwake**  
-**Scope:** branding/documentation and cautious repository-slug transition. This document does not authorize installer release or alter the known-gameplay/canon acceptance gates.
+**Scope:** verified source-repository rename, public-visibility dependency hygiene and staged branding/documentation. Public source visibility does **not** authorize installer release or alter the known-gameplay/canon acceptance gates.
 
 ## Naming boundaries
 
@@ -13,16 +13,16 @@
 | New game title, copy, brand pages, eventual title/menu art | **To Sail the Starry Sky** |
 | Internal history, SHA-bound proofs, old PRs/issues, source filenames, shipped preview artifacts | Keep historical **Aetherwake** references verbatim |
 | The in-world aetherwake phenomenon, First Wake, Five Lights, Auroral Ladder/Rings, existing ship and crew names | **Do not rename** as an automatic consequence of rebranding |
-| Repository slug | **ndrorchestration/to-sail-the-starry-sky** when verified by GitHub admin action |
-| Moon Bridge | Creator-favored **working name**, deep postgame mystery, not a main-campaign marketing spoiler |
+| Verified repository slug | **ndrorchestration/ToSailtheStarrySky-jrpg** — public source, stable GitHub repository ID `1372641872` (verified 2026-10-23) |
+| Long-term lore | Keep unreleased creator mysteries in access-controlled narrative records, not public branding or README |
 | Preview 0.1 / Windows package identity | Preserve until installer/update/uninstall/save backward compatibility and SHA-bound acceptance can be demonstrated |
 
 ## Repo-rename checklist
 
-- [ ] Use an authorized GitHub repo-admin surface to rename the private repo to `to-sail-the-starry-sky`.
-- [ ] Verify new `owner/name`, stable repository ID, `main` SHA, and draft PR numbers/heads before and after; do not merge those PRs as part of a branding change.
-- [ ] Check old URL redirect; do not recreate the old repository slug because that would invalidate redirects.
-- [ ] Update every local clone using `git remote set-url origin https://github.com/ndrorchestration/to-sail-the-starry-sky.git`; verify `git remote -v`.
+- [x] Owner renamed the repo; current canonical slug verified as `ToSailtheStarrySky-jrpg`. The change also made source visibility **PUBLIC**; this is NOT permission to publish an accepted game build.
+- [x] GitHub ID `1372641872` unchanged; `main` at `7364d43c202b2186e2d4eb3c752367afe61ee408`; draft PR #358 remains open/draft at `8430fa05241eb620fc923430681c833d21fbc1dd`. No PR merge authorized.
+- [x] Old `aetherwake-jrpg` GitHub metadata resolves to the same stable repository ID (redirect/alias). Do not recreate the old slug.
+- [ ] On **each existing clone**, run `git remote set-url origin https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg.git`, then `git remote -v`. Host access and local clone verification are still pending.
 - [ ] Audit Actions references, Pages/project-site URLs, app/webhook integrations, branch protections/rulesets, hardcoded repository paths, checkouts, README badges, CI logs and external distribution links.
 - [ ] Repair the hardcoded repository field in `scripts/capture-player-evidence.js` after ensuring capture-contract fixtures are updated/tested. Historical receipts are immutable.
 - [ ] Confirm the existing GitHub issue/PR redirect links and update active central documentation, leaving historical evidence links intact.
@@ -39,12 +39,14 @@
 
 ## Story and marketing discipline
 
-The new title is aspirational in Act I. Later celestial implications may be revealed through exploration, but public first-chapter materials should not spoil the ancient diagram's full-moon clue, the concealed lunar Auroral route, or the life-bearing moon's postgame mystery.
+The new title is aspirational in Act I. Keep unreleased late-campaign, postgame and astronomical mysteries out of public README, issue titles, PR bodies, metadata and promotional documents. Full creative canon details belong in the project's access-controlled narrative workspace.
 
-Full moon/auroral creator notes are maintained in Notion rather than reproduced in public-facing README:
-- [Title Canon and Lunar Clue](https://app.notion.com/p/403f5bad238b81428c5ec7dc1a8f54ee)
-- [Cosmology: Five Lights](https://app.notion.com/p/3ebf5bad238b81e5bb5bda1cc1867b5b)
-- [Auroral Rings](https://app.notion.com/p/3ebf5bad238b81f588e5fd008739662f)
+## Public source exposure review
+
+- [ ] Audit full commit history, issues, attachments, workflows and artifacts for leaked tokens, sensitive records, unpublished licensed assets and unintended story spoilers. A surface-only current-branch scan is insufficient.
+- [ ] Check GitHub security settings, secret scanning, dependency alerts, push protection, pages, releases, permissions and webhooks on the renamed repo through an authorized admin surface. Do not presume settings migrated unchanged.
+- [ ] Review and correct external metadata, badges and published URLs from the *verified* canonical slug; retain exact historical URLs as provenance where appropriate.
+- [ ] Do not add game spoilers or internal Notion canon links to public PR and README content.
 
 ## Existing holds
 
