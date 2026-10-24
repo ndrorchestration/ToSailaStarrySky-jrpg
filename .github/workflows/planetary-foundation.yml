@@ -31,3 +31,4 @@ jobs:
           tests/planetary-tiles.test.js
           tests/planetary-flight.test.js
           tests/planetary-streaming.test.js
+          tests/planetary-cartography.test.js
