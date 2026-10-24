@@ -23,8 +23,9 @@
     }
     const lat = latitudeRad, lon = longitudeRad;
     const absLat = Math.abs(lat) / DEG;
-    const n = Math.sin(lon * 3.4 + Math.sin(lat * 2.3)) * .12 +
-      Math.sin(lat * 7.3 - lon * 4.1) * .065 +
+    // Longitudinal harmonics use integer cycles to guarantee ±180° continuity.
+    const n = Math.sin(lon * 3 + Math.sin(lat * 2.3)) * .12 +
+      Math.sin(lat * 7.3 - lon * 4) * .065 +
       Math.sin(lat * 13 + lon * 8) * .034;
     const d = Math.min(
       elliptical(lat,lon,18*DEG,-117*DEG,65*DEG,39*DEG),
