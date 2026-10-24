@@ -29,3 +29,25 @@ Keep the existing `modules/world.js` 32×32 local map and `modules/air-navigatio
 Open the HTML file locally; drag to rotate, wheel to zoom, use sliders for altitude/cloud cover/sun direction. Capture images for human visual critique before integration. The study has no external dependencies, telemetry or network calls.
 
 **Status:** exploratory study; technical runtime verification and creator visual acceptance pending.
+
+## October 24 lore reconciliation: the Moon Bridge
+
+**Source authority:** creator's October 23–24 discussion. This subsection records requirements, not implementation or permission to reveal the secret in a public build.
+
+**Established direction**
+- The white circle clue represents the **full moon**, not merely decorative white light.
+- Approach the full moon along the *nearest suitable auroral pathway*; a rare conjunction of planetary/lunar gravity and magnetism enables an otherwise hidden **temporary** path.
+- The transition climbs beyond the planet's atmosphere and reaches the highest auroral pathway associated with the **planet's only moon**.
+- The moon has its own atmosphere and living ecology. What is actually discovered there remains post-endgame material, not Chapter 1 content.
+- The name **Moon Bridge** is a working title. No implication about the Five Lights' ultimate cosmology is approved.
+
+**Required world-system implications (design, not confirmed implementation)**
+1. Support a planet and **one moon** with consistent world-space/celestial transforms and astronomical state (moon phase, orientation, local horizon, magnetosphere windows).
+2. Separate *ordinary* sky lanes, high-altitude auroral routes, and the temporally revealed bridge. Route availability must be evaluated from alignment + player position/path + narrative/discovery prerequisites; exact numbers remain **proposals**.
+3. At the right conditions reveal the transition through layered environmental cues and coherent camera/flight behavior, not through a globally exposed fast-travel icon.
+4. Default cartography, undiscovered-route registries, saves, map labels, tooltips, preview images and debug overlays must **not disclose** the bridge or lunar destination before permitted discovery.
+5. Avoid inventing the moon's continents, civilization, secrets, ecological specifics, unlock chapter, travel fuel cost, exact astronomical periodicity, or outcomes. Keep the post-endgame destination as a **reserved extension point**.
+6. Add future tests for non-full phases, wrong flight bearing, wrong auroral route, wrong alignment, discovery lock, and exact successful conjunction; assert that hidden content is absent from ordinary public/UI outputs.
+
+**Dependency reconciliation:** [existing planetary foundation PR #349](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/349) already provides geometry, cartography, and native Godot-oriented experiments; this branch is only an independent visual sketch and must **not** replace or duplicate the maintained foundation. Reconcile/close this branch after any unique visual treatment or requirements are incorporated into #349, without changing canon or merging without approval.
+
