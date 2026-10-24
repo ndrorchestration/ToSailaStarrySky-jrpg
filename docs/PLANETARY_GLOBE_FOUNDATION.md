@@ -278,3 +278,23 @@ Verification of the exact v0.7.5 source/archive:
 The first archive attempt was discarded because Python validation regenerated `__pycache__` files; the preferred ZIP above was rebuilt cleanly with bytecode disabled and independently verified to contain no cache artifacts.
 
 **Native status:** v0.7.5 has not yet run on real Godot. The authoritative next gate remains the creator's Windows Godot 4.7.2 Compatibility run, followed separately by Forward+ if Compatibility passes. No v0.7.5 native scene PASS, genuine modes 1/4/5 frames, GPU timings, or visual acceptance is claimed.
+
+
+## 2026-10-24 — exact hosted planetary regression gate
+
+Current draft branch head before this documentation-only checkpoint: `aafcb84b939064cf6d96222c750ff02158fc9f94`.
+
+Hosted GitHub Actions now provides exact execution evidence for the engine-neutral planetary foundation:
+
+- dedicated workflow run `40064143275`, job `120783719360`;
+- Node `22.23.3`;
+- `tests/planetary-geometry.test.js`;
+- `tests/planetary-tiles.test.js`;
+- `tests/planetary-flight.test.js`;
+- `tests/planetary-streaming.test.js`;
+- result: **32 tests / 32 PASS / 0 FAIL / 0 SKIP**;
+- same-head generic Aetherwake smoke run `40064143257`: **SUCCESS** through the ordinary runtime contracts and browser smoke.
+
+The branch-local CI additions are verification-only: a read-only dedicated planetary workflow and an equivalent planetary Node step in the draft branch's smoke workflow. They do not grant package, release, deployment, save-migration, canon or runtime-integration authority.
+
+This closes the previous exact-head Node execution gap. It does **not** verify the separate v0.7.5 Godot proof-kit archive, native modes 1/4/5, GPU timing/VRAM, creator visual acceptance, canonical planet radius/geography, or Chapter I integration.
