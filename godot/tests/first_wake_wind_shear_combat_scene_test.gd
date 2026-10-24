@@ -68,8 +68,8 @@ func _verify() -> void:
 
     # Party authority must gate the scene before formula dispatch. This protects
     # the boundary even if additional formula actions are introduced later.
-    var turns_before_authority_block := world.formula_encounter.turns
-    var enemy_turns_before_authority_block := world.formula_encounter.enemy_turns
+    var turns_before_authority_block: int = int(world.formula_encounter.turns)
+    var enemy_turns_before_authority_block: int = int(world.formula_encounter.enemy_turns)
     if world.take_formula_review_action("sharedDream"):
         _fail("blocked Shared Dream bypassed scene combat authority")
         return
