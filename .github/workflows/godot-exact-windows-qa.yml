@@ -290,6 +290,7 @@ jobs:
           Write-Host "PUBLIC_RELEASE_AUTHORIZED=NO"
 
       - name: Exercise non-promotional install launch shortcuts and uninstall
+        timeout-minutes: 3
         shell: pwsh
         run: |
           $auditDir = Join-Path $env:RUNNER_TEMP "aetherwake-windows-functional-zip-audit"
@@ -314,9 +315,10 @@ jobs:
             }
           }
 
-          $installProcess = Start-Process -FilePath $env:ComSpec -ArgumentList @("/d", "/c", ('"' + $installer + '"')) -Wait -PassThru
-          if ($installProcess.ExitCode -ne 0) {
-            throw "WINDOWS_FUNCTIONAL_INSTALL_FAILED:$($installProcess.ExitCode)"
+          & $env:ComSpec /d /c ('"' + $installer + '"')
+          $installExitCode = $LASTEXITCODE
+          if ($installExitCode -ne 0) {
+            throw "WINDOWS_FUNCTIONAL_INSTALL_FAILED:$installExitCode"
           }
 
           foreach ($path in @($installedExe, $installedUninstall, $marker, $desktopShortcut, $startMenuShortcut)) {
@@ -389,9 +391,10 @@ jobs:
             throw "WINDOWS_FUNCTIONAL_NATIVE_WINDOW_NOT_READY"
           }
 
-          $uninstallProcess = Start-Process -FilePath $env:ComSpec -ArgumentList @("/d", "/c", ('"' + $installedUninstall + '"')) -Wait -PassThru
-          if ($uninstallProcess.ExitCode -ne 0) {
-            throw "WINDOWS_FUNCTIONAL_UNINSTALL_LAUNCH_FAILED:$($uninstallProcess.ExitCode)"
+          & $env:ComSpec /d /c ('"' + $installedUninstall + '"')
+          $uninstallExitCode = $LASTEXITCODE
+          if ($uninstallExitCode -ne 0) {
+            throw "WINDOWS_FUNCTIONAL_UNINSTALL_LAUNCH_FAILED:$uninstallExitCode"
           }
 
           $cleanupDeadline = (Get-Date).AddSeconds(30)
