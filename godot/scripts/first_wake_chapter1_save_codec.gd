@@ -84,7 +84,7 @@ static func validate(snapshot: Dictionary) -> Dictionary:
     if not _signal_contact_evidence_matches(signals, contacts):
         return _invalid("signal/contact evidence contradiction")
 
-    var ionia_contact_met := IONIA_CONTACT_ID in contacts
+    var ionia_contact_met: bool = IONIA_CONTACT_ID in contacts
     if stage_key in ["signal", "crossing", "contact"] and ionia_contact_met:
         return _invalid("Ionia contact appears before authored Contact completion")
 
