@@ -284,8 +284,161 @@ jobs:
           Write-Host "WINDOWS_FUNCTIONAL_PACKAGE_BYTES=$($item.Length)"
           Write-Host "WINDOWS_FUNCTIONAL_PACKAGE_SHA256=$sha"
           Write-Host "WINDOWS_FUNCTIONAL_PACKAGE=PASS"
+          "WINDOWS_FUNCTIONAL_PACKAGE_ZIP=$zip" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Host "WINDOWS_EXACT_DEFENDER_INSTALL_QA=NOT_ESTABLISHED"
           Write-Host "WINDOWS_FUNCTIONAL_DISTRIBUTION=RUNNER_LOCAL_ONLY"
+          Write-Host "PUBLIC_RELEASE_AUTHORIZED=NO"
+
+      - name: Exercise non-promotional install launch shortcuts and uninstall
+        shell: pwsh
+        run: |
+          $auditDir = Join-Path $env:RUNNER_TEMP "aetherwake-windows-functional-zip-audit"
+          if (Test-Path -LiteralPath $auditDir) {
+            Remove-Item -LiteralPath $auditDir -Recurse -Force
+          }
+          Expand-Archive -LiteralPath $env:WINDOWS_FUNCTIONAL_PACKAGE_ZIP -DestinationPath $auditDir -Force
+
+          $installer = Join-Path $auditDir "Install-Aetherwake-Godot-Preview.cmd"
+          $installDir = Join-Path $env:LOCALAPPDATA "Programs\Aetherwake-Godot-Native-Preview"
+          $installedExe = Join-Path $installDir "Aetherwake-First-Wake-Godot-Preview.exe"
+          $installedUninstall = Join-Path $installDir "Uninstall-Aetherwake-Godot-Preview.cmd"
+          $marker = Join-Path $installDir "Aetherwake-Native-Preview.install"
+          $desktopShortcut = Join-Path ([Environment]::GetFolderPath("Desktop")) "Aetherwake Native Preview.lnk"
+          $startMenuDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\Aetherwake Native Preview"
+          $startMenuShortcut = Join-Path $startMenuDir "Aetherwake Native Preview.lnk"
+          $tempCleanup = Join-Path $env:TEMP "Aetherwake-Godot-Native-Preview-Uninstall.cmd"
+
+          foreach ($path in @($installDir, $desktopShortcut, $startMenuDir, $tempCleanup)) {
+            if (Test-Path -LiteralPath $path) {
+              throw "WINDOWS_FUNCTIONAL_PREEXISTING_STATE:$path"
+            }
+          }
+
+          $installProcess = Start-Process -FilePath $env:ComSpec -ArgumentList @("/d", "/c", ('"' + $installer + '"')) -Wait -PassThru
+          if ($installProcess.ExitCode -ne 0) {
+            throw "WINDOWS_FUNCTIONAL_INSTALL_FAILED:$($installProcess.ExitCode)"
+          }
+
+          foreach ($path in @($installedExe, $installedUninstall, $marker, $desktopShortcut, $startMenuShortcut)) {
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "WINDOWS_FUNCTIONAL_INSTALLED_STATE_MISSING:$path"
+            }
+          }
+          if ((Get-Content -LiteralPath $marker -Raw).Trim() -ne "AETHERWAKE_GODOT_NATIVE_PREVIEW_INSTALL_V1") {
+            throw "WINDOWS_FUNCTIONAL_INSTALL_MARKER_MISMATCH"
+          }
+
+          $payloadExe = Join-Path $auditDir "Aetherwake\Aetherwake-First-Wake-Godot-Preview.exe"
+          $payloadUninstall = Join-Path $auditDir "Aetherwake\Uninstall-Aetherwake-Godot-Preview.cmd"
+          $payloadExeSha = (Get-FileHash -Algorithm SHA256 -LiteralPath $payloadExe).Hash.ToLowerInvariant()
+          $installedExeSha = (Get-FileHash -Algorithm SHA256 -LiteralPath $installedExe).Hash.ToLowerInvariant()
+          if ($payloadExeSha -ne $installedExeSha) {
+            throw "WINDOWS_FUNCTIONAL_INSTALLED_EXE_HASH_MISMATCH"
+          }
+          $payloadUninstallSha = (Get-FileHash -Algorithm SHA256 -LiteralPath $payloadUninstall).Hash.ToLowerInvariant()
+          $installedUninstallSha = (Get-FileHash -Algorithm SHA256 -LiteralPath $installedUninstall).Hash.ToLowerInvariant()
+          if ($payloadUninstallSha -ne $installedUninstallSha) {
+            throw "WINDOWS_FUNCTIONAL_INSTALLED_UNINSTALL_HASH_MISMATCH"
+          }
+
+          $shell = New-Object -ComObject WScript.Shell
+          foreach ($shortcutPath in @($desktopShortcut, $startMenuShortcut)) {
+            $shortcut = $shell.CreateShortcut($shortcutPath)
+            $target = [IO.Path]::GetFullPath([string]$shortcut.TargetPath)
+            $work = [IO.Path]::GetFullPath([string]$shortcut.WorkingDirectory)
+            if (-not $target.Equals([IO.Path]::GetFullPath($installedExe), [StringComparison]::OrdinalIgnoreCase)) {
+              throw "WINDOWS_FUNCTIONAL_SHORTCUT_TARGET_MISMATCH:$shortcutPath"
+            }
+            if (-not $work.Equals([IO.Path]::GetFullPath($installDir), [StringComparison]::OrdinalIgnoreCase)) {
+              throw "WINDOWS_FUNCTIONAL_SHORTCUT_WORKDIR_MISMATCH:$shortcutPath"
+            }
+          }
+
+          $deadline = (Get-Date).AddSeconds(25)
+          $running = $null
+          while ((Get-Date) -lt $deadline -and $null -eq $running) {
+            $running = Get-CimInstance Win32_Process |
+              Where-Object {
+                $_.ExecutablePath -and
+                [IO.Path]::GetFullPath([string]$_.ExecutablePath).Equals(
+                  [IO.Path]::GetFullPath($installedExe),
+                  [StringComparison]::OrdinalIgnoreCase
+                )
+              } |
+              Select-Object -First 1
+            if ($null -eq $running) {
+              Start-Sleep -Milliseconds 250
+            }
+          }
+          if ($null -eq $running) {
+            throw "WINDOWS_FUNCTIONAL_INSTALLED_PROCESS_NOT_READY"
+          }
+
+          $windowDeadline = (Get-Date).AddSeconds(15)
+          $windowReady = $false
+          while ((Get-Date) -lt $windowDeadline -and -not $windowReady) {
+            $process = Get-Process -Id ([int]$running.ProcessId) -ErrorAction SilentlyContinue
+            if ($process -and $process.MainWindowHandle -ne 0 -and -not [string]::IsNullOrWhiteSpace($process.MainWindowTitle)) {
+              $windowReady = $true
+              Write-Host "WINDOWS_FUNCTIONAL_NATIVE_WINDOW_TITLE=$($process.MainWindowTitle)"
+              break
+            }
+            Start-Sleep -Milliseconds 250
+          }
+          if (-not $windowReady) {
+            throw "WINDOWS_FUNCTIONAL_NATIVE_WINDOW_NOT_READY"
+          }
+
+          $uninstallProcess = Start-Process -FilePath $env:ComSpec -ArgumentList @("/d", "/c", ('"' + $installedUninstall + '"')) -Wait -PassThru
+          if ($uninstallProcess.ExitCode -ne 0) {
+            throw "WINDOWS_FUNCTIONAL_UNINSTALL_LAUNCH_FAILED:$($uninstallProcess.ExitCode)"
+          }
+
+          $cleanupDeadline = (Get-Date).AddSeconds(30)
+          while ((Get-Date) -lt $cleanupDeadline) {
+            $stillRunning = Get-CimInstance Win32_Process |
+              Where-Object {
+                $_.ExecutablePath -and
+                [IO.Path]::GetFullPath([string]$_.ExecutablePath).Equals(
+                  [IO.Path]::GetFullPath($installedExe),
+                  [StringComparison]::OrdinalIgnoreCase
+                )
+              }
+            if (
+              @($stillRunning).Count -eq 0 -and
+              -not (Test-Path -LiteralPath $installDir) -and
+              -not (Test-Path -LiteralPath $desktopShortcut) -and
+              -not (Test-Path -LiteralPath $startMenuDir) -and
+              -not (Test-Path -LiteralPath $tempCleanup)
+            ) {
+              break
+            }
+            Start-Sleep -Milliseconds 250
+          }
+
+          if (Test-Path -LiteralPath $installDir) { throw "WINDOWS_FUNCTIONAL_UNINSTALL_LEFT_INSTALL_DIR" }
+          if (Test-Path -LiteralPath $desktopShortcut) { throw "WINDOWS_FUNCTIONAL_UNINSTALL_LEFT_DESKTOP_SHORTCUT" }
+          if (Test-Path -LiteralPath $startMenuDir) { throw "WINDOWS_FUNCTIONAL_UNINSTALL_LEFT_START_MENU" }
+          if (Test-Path -LiteralPath $tempCleanup) { throw "WINDOWS_FUNCTIONAL_UNINSTALL_LEFT_TEMP_COPY" }
+
+          $stillRunning = Get-CimInstance Win32_Process |
+            Where-Object {
+              $_.ExecutablePath -and
+              [IO.Path]::GetFullPath([string]$_.ExecutablePath).Equals(
+                [IO.Path]::GetFullPath($installedExe),
+                [StringComparison]::OrdinalIgnoreCase
+              )
+            }
+          if (@($stillRunning).Count -gt 0) {
+            throw "WINDOWS_FUNCTIONAL_UNINSTALL_LEFT_PROCESS"
+          }
+
+          Write-Host "WINDOWS_FUNCTIONAL_INSTALL=PASS"
+          Write-Host "WINDOWS_FUNCTIONAL_INSTALLED_BYTE_IDENTITY=PASS"
+          Write-Host "WINDOWS_FUNCTIONAL_SHORTCUT_OWNERSHIP=PASS"
+          Write-Host "WINDOWS_FUNCTIONAL_NATIVE_LAUNCH=PASS"
+          Write-Host "WINDOWS_FUNCTIONAL_RUNNING_APP_UNINSTALL=PASS"
+          Write-Host "WINDOWS_EXACT_DEFENDER_QA=NOT_ESTABLISHED"
           Write-Host "PUBLIC_RELEASE_AUTHORIZED=NO"
 
       - name: Confirm tracked source remained unchanged
