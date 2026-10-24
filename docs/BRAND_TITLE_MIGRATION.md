@@ -43,6 +43,8 @@ The new title is aspirational in Act I. Keep unreleased late-campaign, postgame 
 
 ## Public source exposure review
 
+Tracking issue: [#360 — Public-source admission audit](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/issues/360). This is a governance/publication-readiness audit, not a game-release authorization.
+
 - [ ] Audit full commit history, issues, attachments, workflows and artifacts for leaked tokens, sensitive records, unpublished licensed assets and unintended story spoilers. A surface-only current-branch scan is insufficient.
 - [ ] Check GitHub security settings, secret scanning, dependency alerts, push protection, pages, releases, permissions and webhooks on the renamed repo through an authorized admin surface. Do not presume settings migrated unchanged.
 - [ ] Review and correct external metadata, badges and published URLs from the *verified* canonical slug; retain exact historical URLs as provenance where appropriate.
@@ -58,5 +60,5 @@ Respect the existing Preview 0.1 release controls, Chapter I/native and Defender
 - Active central documentation should use **To Sail the Starry Sky** and the canonical repository `ndrorchestration/ToSailtheStarrySky-jrpg`.
 - Historical package names, executable names, source filenames, hashes, receipts, issue/PR text and old repository URLs remain immutable evidence and may continue to say **Aetherwake**.
 - Repository visibility is **PUBLIC**, but game release status remains **NOT AUTHORIZED**.
-- Current release/native blockers remain separate: PR #347 exact Windows verification, issue #293 Defender disposition, issue #106 hosted runner allocation, creator visual review, and uncoached player acceptance.
+- Current release/native blockers remain separate: PR #347 exact Windows verification, issue #293 Defender disposition, creator visual review, and uncoached player acceptance. Hosted runner recurrence #106 is closed after exact-head PR #357 CI recovery.
 - Current collaboration drafts #354 and #357 are test/CI hardening only and do not supersede game or release authority.
