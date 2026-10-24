@@ -20,7 +20,7 @@
 ## Repo-rename checklist
 
 - [x] Owner renamed the repo; current canonical slug verified as `ToSailtheStarrySky-jrpg`. The change also made source visibility **PUBLIC**; this is NOT permission to publish an accepted game build.
-- [x] GitHub ID `1372641872` unchanged and base `main` recorded at `7364d43c202b2186e2d4eb3c752367afe61ee408`; draft PR #358 remains open/unmerged. Do not embed a moving PR head SHA as the supposed current identity in this checklist; verify head live for each review.
+- [x] GitHub ID `1372641872` unchanged. Historical migration base was `7364d43c202b2186e2d4eb3c752367afe61ee408`; live `main` is now documentation-only head `3f1315aedad2d4aa62bcdbc753f976969878df71`. Draft PR #358 remains open/unmerged. Verify live branch heads for each review.
 - [x] Old `aetherwake-jrpg` GitHub metadata resolves to the same stable repository ID (redirect/alias). Do not recreate the old slug.
 - [ ] On **each existing clone**, run `git remote set-url origin https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg.git`, then `git remote -v`. Host access and local clone verification are still pending.
 - [ ] Audit Actions references, Pages/project-site URLs, app/webhook integrations, branch protections/rulesets, hardcoded repository paths, checkouts, README badges, CI logs and external distribution links.
@@ -62,3 +62,14 @@ Respect the existing Preview 0.1 release controls, Chapter I/native and Defender
 - Repository visibility is **PUBLIC**, but game release status remains **NOT AUTHORIZED**.
 - Current release/native blockers remain separate: PR #347 exact Windows verification, issue #293 Defender disposition, creator visual review, and uncoached player acceptance. Hosted runner recurrence #106 is closed after exact-head PR #357 CI recovery.
 - Current collaboration drafts #354 and #357 are test/CI hardening only and do not supersede game or release authority.
+
+
+## Public repository audit findings — 2026-10-24
+
+- Live `main` advanced documentation-only to `3f1315aedad2d4aa62bcdbc753f976969878df71` via a README-only commit (+14/-6). This does not alter player runtime bytes, but it proves the unprotected-main governance gap is operational.
+- GitHub reports `main.protected=false`, required status-check enforcement off, and repository rulesets `[]`. Governance issue #303 remains open.
+- The first 100 branches returned by the public branches endpoint contain no protected branches. This is a first-page observation, not a complete branch inventory.
+- The public repository currently exposes **37 releases**: **26 published prereleases** and **11 drafts**. The 26 published prereleases contain **58 downloadable assets**. Historical Windows binaries are therefore publicly reachable even though current project authority does not authorize a new public game release.
+- The current repository root contains no `LICENSE`, `COPYING`, or `NOTICE`-like file. This is a publication/readability finding, not a legal conclusion about ownership. Rights and redistribution review remains tracked in issue #360.
+- The specific Defender #293 Bearfoos evidence concerns a QA-only generated NSIS uninstaller and is not proven to be one of the published historical release assets.
+- No release, asset, branch rule, repository visibility, or security setting was changed by this audit.
