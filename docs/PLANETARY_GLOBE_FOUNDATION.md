@@ -6,6 +6,36 @@ This work belongs to **To Sail the Starry Sky** (formerly Aetherwake). Canonical
 
 **Status:** Prototype code / draft implementation. This is not integrated into a playable planetary map, not creator-approved world cartography, and not a migration of the existing save format. See issue [#348](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/issues/348).
 
+## 2026-10-24 — visual cartography v0.4 (isolated, NON-CANON)
+
+**User direction:** the entire world map must keep improving visually, not merely satisfy coordinate formulas. This bounded implementation improves the *observable prototype*, not the current Chapter I gameplay or final spherical Godot renderer.
+
+### Implemented on the isolated PR #349 branch
+
+- `modules/planetary-cartography.js` is a shared deterministic biome/relief sampler used by **both** `docs/prototypes/planetary-globe.html` and `docs/prototypes/planetary-flight.html`. It provides deeper open-water blues, shallow coastal-shelf turquoise, grassland/desert/forest biomes, alpine relief, polar ice, and bounded high-frequency surface detail. **Illustrative geology only.** No real-world planetary radius, continent names or fixed coastlines are admitted as canon.
+- The chart globe adds a soft atmospheric rim, front-hemisphere graticule, a legible visual key and a clear distinction between world chart and local horizon. The local flight view adds compatible map relief, a compass/readability pass, biome telemetry and a graticule on the miniature globe. Prototype navigation cross-links now use the approved game title.
+- Cartographic longitudinal harmonics are integer-cycle and consistent on both sides of the antimeridian. A new regression catches seam discontinuities (the first candidate exposed a real deep-water classification jump at ±180°, which was fixed).
+- Explicit non-canon labels persist. The chart and local view have different purposes: full-world *illustration* does not imply early campaign discovery, physical vision through the sphere, unlocked routes, or in-game implementation.
+- [Planetary foundation CI](../.github/workflows/planetary-foundation.yml) runs new deterministic color, biome variety, seam, projection and inline-JS syntax assertions in addition to existing geometry/flight/streaming tests.
+- [Planetary visual browser workflow](../.github/workflows/planetary-visual.yml) exercises **actual Canvas2D rendering** at desktop and 320px mobile widths, image color variety, horizon growth, flight location/altitude presets, and viewport overflow. No GitHub artifact upload or permanent screenshot publication is required.
+
+### Full-world visual-production decomposition — still pending
+
+| System | Visual acceptance target | Boundary |
+|---|---|---|
+| **Planet / orbital globe** | Cohesive PBR oceans, cloud cover, illuminated atmosphere, readable polar/continental geography | Native Godot Forward+ proof under #350; chart does not license omniscient low-flight view |
+| **Continents / bathymetry** | Broad uninterrupted ocean basins, believable shore shelves, river mouths, archipelago and reef variety | Creator geography review; non-canon prototype coastlines may not be reused as final |
+| **Climates / elevations** | Latitude + winds + currents + rain shadow + altitude affecting forest, desert, ice, wetlands and mountains | Shared visual sampler here is a style sketch, **not** a climate simulation |
+| **Surface / low sky** | Local terrain relief and prop scale, connected ground and landable areas, sky/sea/parallax haze | First Wake 32×32 & private atlas #302 retain independent topological authority |
+| **High sky / floating islands** | Physically readable altitude and aerial silhouettes; luminous yet navigable clouds | Story, route and airship capability gates apply |
+| **Airship, settlements and routes** | Charted lanes, wind currents, air docks and identifiable landmarks that do not overwhelm natural geography | Avoid revealing undiscovered/locked routes; no teleportation semantics |
+| **Chart, mini-map and discovery** | Clear legend/scale, fog of knowledge distinct from physical horizon and ability to return to a useful local view | Discovery/save-schema and spoiler gates not implemented here |
+| **Performance and access** | Seamless antimeridian, polar readability, chunk LOD, responsive controls, frame-time and VRAM budget on actual target GPUs | Node/Chromium smoke is not native Godot/GPU acceptance |
+
+### Do not promote prematurely
+
+This v0.4 pass does **not** create a playable global world, georeferenced saves, Godot high-fidelity ocean shaders, a final globe texture, licensed art/asset inventory, live routes or Windows exports. It does not replace the owner-private navigable 2.5D atlas or introduce new story revelations. Exact flight rendering/visual and native performance acceptance remain open.
+
 ## Why this exists
 
 The creator requires an immense **spherical world** for **To Sail the Starry Sky**, not a small 2D/2.5D map with distant continents visible during low-altitude flight. Horizons must limit world view. Large ocean basins separate continents; high-latitude polar regions and diverse biomes exist on both hemispheres. A globe planning view may reveal a broader planet without disclosing undiscovered route details.
