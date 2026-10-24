@@ -832,15 +832,15 @@ function drawBootSequence() {
   for (let dx = -2; dx <= 2; dx++) {
     for (let dy = -2; dy <= 2; dy++) {
       if (dx === 0 && dy === 0) continue;
-      text('AETHERWAKE', cx + dx, cy + dy);
+      text('TO SAIL THE STARRY SKY', cx + dx, cy + dy);
     }
   }
   fill(C.teal[0], C.teal[1], C.teal[2], 100 * v);
-  text('AETHERWAKE', cx, cy);
+  text('TO SAIL THE STARRY SKY', cx, cy);
   
   textSize(16 * v);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 200 * v);
-  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
+  text('THE SKIES REMEMBER', cx, cy + 25);
   
   textSize(13 * v);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160 * v);
@@ -926,15 +926,15 @@ function drawTitleScreen() {
   for (let dx = -2; dx <= 2; dx++) {
     for (let dy = -2; dy <= 2; dy++) {
       if (dx === 0 && dy === 0) continue;
-      text('AETHERWAKE', cx + dx, cy + dy);
+      text('TO SAIL THE STARRY SKY', cx + dx, cy + dy);
     }
   }
   fill(C.teal[0], C.teal[1], C.teal[2], 100);
-  text('AETHERWAKE', cx, cy);
+  text('TO SAIL THE STARRY SKY', cx, cy);
 
   textSize(16);
   fill(C.scioto[0], C.scioto[1], C.scioto[2], 200);
-  text('THE LAST SOLARPUNK AIRSHIP', cx, cy + 25);
+  text('THE SKIES REMEMBER', cx, cy + 25);
 
   textSize(13);
   fill(C.parchment[0], C.parchment[1], C.parchment[2], 160);
