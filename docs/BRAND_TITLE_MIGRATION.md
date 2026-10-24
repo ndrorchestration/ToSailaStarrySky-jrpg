@@ -20,7 +20,7 @@
 ## Repo-rename checklist
 
 - [x] Owner renamed the repo; current canonical slug verified as `ToSailtheStarrySky-jrpg`. The change also made source visibility **PUBLIC**; this is NOT permission to publish an accepted game build.
-- [x] GitHub ID `1372641872` unchanged; `main` at `7364d43c202b2186e2d4eb3c752367afe61ee408`; draft PR #358 remains open/draft at `8430fa05241eb620fc923430681c833d21fbc1dd`. No PR merge authorized.
+- [x] GitHub ID `1372641872` unchanged; `main` at `7364d43c202b2186e2d4eb3c752367afe61ee408`; draft PR #358 remains open/draft at current head `af7acefba3138f5beb8170dacd4a5076193cc13e`. No PR merge authorized.
 - [x] Old `aetherwake-jrpg` GitHub metadata resolves to the same stable repository ID (redirect/alias). Do not recreate the old slug.
 - [ ] On **each existing clone**, run `git remote set-url origin https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg.git`, then `git remote -v`. Host access and local clone verification are still pending.
 - [ ] Audit Actions references, Pages/project-site URLs, app/webhook integrations, branch protections/rulesets, hardcoded repository paths, checkouts, README badges, CI logs and external distribution links.
@@ -33,7 +33,7 @@
 - [ ] Migrate browser HTML title, visible UI, NW.js window title, package metadata and the Godot native scene title in a dedicated source PR. Keep platform-specific branding coherent.
 - [ ] Inventory package scripts, source references, environment variables, stable JS exports, save identifiers, storage keys, installer filename, setup shortcuts, AppData directory and uninstall upgrade behavior *before* renaming.
 - [ ] Maintain save migration and old-preview discoverability; prove that previously shipped Preview 0.1 can save/load after update.
-- [ ] Run existing `npm run test:all`, browser/packaging/static contracts and exact-head Godot/Windows checks where required, with independently reviewed receipts.
+- [ ] Run the exact candidate's canonical current smoke/targeted contract commands (current `main` does **not** define `npm run test:all`), plus browser/packaging/static and exact-head Godot/Windows checks where required, with independently reviewed receipts.
 - [ ] Do **not** sync deployment copies or rebuild/publish an executable until independent inspection and explicit deployment authorization.
 - [ ] Perform comprehensive title/trademark/storefront clearance before public commercialization. Preliminary searches are not legal clearance.
 
@@ -51,3 +51,12 @@ The new title is aspirational in Act I. Keep unreleased late-campaign, postgame 
 ## Existing holds
 
 Respect the existing Preview 0.1 release controls, Chapter I/native and Defender QA requirements, independent code review, player visual acceptance and existing PR stack. A title change is **not** a green light for feature expansion, CI bypass, unverified binaries, or deployment.
+
+
+## Current documentation authority — 2026-10-24
+
+- Active central documentation should use **To Sail the Starry Sky** and the canonical repository `ndrorchestration/ToSailtheStarrySky-jrpg`.
+- Historical package names, executable names, source filenames, hashes, receipts, issue/PR text and old repository URLs remain immutable evidence and may continue to say **Aetherwake**.
+- Repository visibility is **PUBLIC**, but game release status remains **NOT AUTHORIZED**.
+- Current release/native blockers remain separate: PR #347 exact Windows verification, issue #293 Defender disposition, issue #106 hosted runner allocation, creator visual review, and uncoached player acceptance.
+- Current collaboration drafts #354 and #357 are test/CI hardening only and do not supersede game or release authority.
