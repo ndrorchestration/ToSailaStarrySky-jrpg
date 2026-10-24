@@ -1,6 +1,8 @@
-# Aetherwake — The Last Solarpunk Airship
+# To Sail the Starry Sky
 
-Aetherwake is a **pre-alpha turn-based JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a storm at Wake Dock reveals that the ship can exceed ordinary performance only when the right crew resonates with it.
+**Formerly Aetherwake — The Last Solarpunk Airship.** The creator-approved title is now **To Sail the Starry Sky** (2026-10-23). The internal Aetherwake names in historical source, save/release identifiers and verification receipts remain unchanged until a backward-compatible migration is tested. See [title/repository migration contract](docs/BRAND_TITLE_MIGRATION.md).
+
+**To Sail the Starry Sky** is a **pre-alpha turn-based solarpunk JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a storm at Wake Dock reveals that the ship can exceed ordinary performance only when the right crew resonates with it.
 
 The current repository contains a playable vertical-slice prototype plus an active architecture migration toward the full authored-party RPG.
 
