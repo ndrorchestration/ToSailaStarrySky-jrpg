@@ -38,13 +38,25 @@ function sortedEntries(directory) {
   return fs.readdirSync(directory).sort();
 }
 
+function assertRealDirectory(directory, label) {
+  check(fs.existsSync(directory), `${label}: directory is missing`);
+  const stat = fs.lstatSync(directory);
+  check(stat.isDirectory() && !stat.isSymbolicLink(), `${label}: expected a real directory`);
+}
+
+function assertRegularFile(filePath, label) {
+  check(fs.existsSync(filePath), `${label}: file is missing`);
+  const stat = fs.lstatSync(filePath);
+  check(stat.isFile() && !stat.isSymbolicLink(), `${label}: expected a regular non-symlink file`);
+}
+
 function hashFile(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
 
 function compareFile(sourcePath, stagedPath, label) {
-  check(fs.existsSync(sourcePath), `${label}: source file is missing`);
-  check(fs.existsSync(stagedPath), `${label}: staged file is missing`);
+  assertRegularFile(sourcePath, `${label}: source`);
+  assertRegularFile(stagedPath, `${label}: staged`);
   const source = fs.readFileSync(sourcePath);
   const staged = fs.readFileSync(stagedPath);
   check(source.equals(staged), `${label}: staged bytes differ from source`);
@@ -52,8 +64,8 @@ function compareFile(sourcePath, stagedPath, label) {
 }
 
 function compareTree(sourceRoot, stagedRoot, label) {
-  check(fs.existsSync(sourceRoot), `${label}: source directory is missing`);
-  check(fs.existsSync(stagedRoot), `${label}: staged directory is missing`);
+  assertRealDirectory(sourceRoot, `${label}: source`);
+  assertRealDirectory(stagedRoot, `${label}: staged`);
 
   const sourceEntries = sortedEntries(sourceRoot);
   const stagedEntries = sortedEntries(stagedRoot);
@@ -85,8 +97,8 @@ function assertNoForbiddenContent(root) {
 }
 
 function verifyStage() {
-  check(fs.existsSync(stage), 'desktop stage directory is missing');
-  check(fs.existsSync(www), 'desktop www directory is missing');
+  assertRealDirectory(stage, 'desktop stage');
+  assertRealDirectory(www, 'desktop www');
 
   const expectedRoot = ['package.json', 'www'];
   const actualRoot = sortedEntries(stage);
@@ -110,7 +122,9 @@ function verifyStage() {
   }
   compareTree(path.join(repo, 'modules'), path.join(www, 'modules'), 'www/modules');
 
-  const stagedPackage = JSON.parse(fs.readFileSync(path.join(stage, 'package.json'), 'utf8'));
+  const stagedPackagePath = path.join(stage, 'package.json');
+  assertRegularFile(stagedPackagePath, 'stage/package.json');
+  const stagedPackage = JSON.parse(fs.readFileSync(stagedPackagePath, 'utf8'));
   check(stagedPackage.main === 'www/index-embedded.html', 'staged package main must be www/index-embedded.html');
   check(stagedPackage.main !== sourcePackage.main, 'staged package must not use the development root entrypoint');
   check(stagedPackage.version === sourcePackage.version, 'staged package version must match source package version');
