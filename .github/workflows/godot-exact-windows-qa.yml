@@ -1,6 +1,17 @@
 name: Godot Exact Windows QA (review only)
 
 on:
+  push:
+    branches:
+      - feat/godot-first-wake-party-combat-authority-20261022
+    paths:
+      - 'godot/**'
+      - 'scripts/verify-godot-chapter1-windows-preview.ps1'
+      - 'scripts/build-godot-chapter1-windows-preview.ps1'
+      - 'scripts/package-godot-chapter1-windows-preview.ps1'
+      - 'tests/godot-windows-preview-package-contract.test.js'
+      - 'tests/godot-windows-native-qa-contract.test.js'
+      - '.github/workflows/godot-exact-windows-qa.yml'
   pull_request:
     paths:
       - 'godot/**'
