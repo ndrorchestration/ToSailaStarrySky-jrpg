@@ -11,7 +11,7 @@ const LocalTerrain = preload("res://scripts/planetary/worldmap_local_terrain.gd"
 const PLANET_KM := 6371.0 # Illustration, NOT canonical planet radius.
 const GLOBE_UNITS := 12.0
 const SURVEY_MARKERS := [
-    {"id":"survey_a","name":"Survey A","latDeg":25.0,"lonDeg":-115.0},
+    {"id":"survey_a","name":"Survey A","latDeg":30.0,"lonDeg":140.0},
     {"id":"survey_b","name":"Survey B","latDeg":-9.0,"lonDeg":-27.0},
     {"id":"survey_c","name":"Survey C","latDeg":55.0,"lonDeg":82.0},
     {"id":"survey_d","name":"Survey D","latDeg":-59.0,"lonDeg":164.0}
