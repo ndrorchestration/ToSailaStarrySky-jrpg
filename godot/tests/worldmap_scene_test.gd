@@ -60,6 +60,26 @@ func _run() -> void:
     check(atmosphere != null and atmosphere.environment.background_mode == Environment.BG_SKY,
             "low-sky view enables atmospheric sky")
     check(camera.position.x > 900.0,"camera moves to isolated local tangent terrain")
+    var before_camera := camera.position
+    var before_origin: Dictionary = patch.call("origin")
+    var moved: Dictionary = scene.call("snapshot")
+    moved["flight"]["lonDeg"] = float(moved["flight"]["lonDeg"]) + 0.1
+    scene.call("_apply_state",moved)
+    scene.call("_refresh_chart")
+    scene.call("_update_view")
+    check(camera.position.distance_to(before_camera) > 0.10,
+            "geodesic ship travel moves the actual local camera continuously")
+    check(patch.call("origin") == before_origin,
+            "small ship movement does not teleport or rebuild the patch")
+    var old_extent: float = patch.call("extent_km")
+    var climbed: Dictionary = scene.call("snapshot")
+    climbed["flight"]["altitudeKm"] = 200.0
+    scene.call("_apply_state",climbed)
+    scene.call("_refresh_chart")
+    scene.call("_update_view")
+    var new_extent: float = patch.call("extent_km")
+    check(new_extent > old_extent,
+            "large altitude change expands local patch to follow the horizon")
     check(not State.encode(scene.call("snapshot")).is_empty(),"all modes save-safe")
     scene.queue_free()
     await process_frame
