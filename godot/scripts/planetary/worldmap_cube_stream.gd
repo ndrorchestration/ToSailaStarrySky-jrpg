@@ -29,12 +29,21 @@ func _ready() -> void:
     visible = false
     _land_material = StandardMaterial3D.new()
     _land_material.vertex_color_use_as_albedo = true
+    # Cubed-sphere faces can change winding orientation in the screen-space
+    # path. The *review* material is double-sided to distinguish culling from
+    # missing mesh uploads; final tile winding/art acceptance remains open.
+    _land_material.cull_mode = BaseMaterial3D.CULL_DISABLED
     _land_material.roughness = 0.87
     _land_material.metallic = 0.02
     # Reuse the exact shader already tested on low-sky water, rather than
     # permitting the two modes to drift in material semantics.
     var source := LocalTerrain.new()
     _sea_material = source.call("_sea_material")
+    # This shader is private to the cubed-sphere preview. Keep the approved
+    # mode-4 sea shader unchanged while disabling face culling for diagnostics.
+    var ocean_shader := Shader.new()
+    ocean_shader.code = _sea_material.shader.code.replace("render_mode cull_back;","render_mode cull_disabled;")
+    _sea_material.shader = ocean_shader
     source.free()
 
 func _build_payload(tile: Dictionary) -> Dictionary:
