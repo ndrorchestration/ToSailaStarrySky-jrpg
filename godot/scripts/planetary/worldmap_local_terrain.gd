@@ -48,8 +48,8 @@ func rebuild(anchor: Dictionary, extent_km: float = 190.0, divisions: int = 64) 
             var b := a+1
             var c := a+divisions+1
             var d := c+1
-            # Local +Z is south; winding faces +Y from above.
-            for index in [a,b,c,b,d,c]:
+            # Local +Z is south; vertex order faces +Y from above.
+            for index in [a,c,b,b,c,d]:
                 tool.set_color(colors[index])
                 tool.add_vertex(vertices[index])
     tool.generate_normals()
