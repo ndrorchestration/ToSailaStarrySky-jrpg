@@ -1,0 +1,35 @@
+name: Godot Coast-to-Highland Slice (experimental)
+
+on:
+  pull_request:
+    paths:
+      - "godot/flight_slice/**"
+      - ".github/workflows/godot-flight-slice.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install exact Godot 4.7.2 editor
+        run: |
+          curl --fail --location --retry 3 --output /tmp/godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp
+          chmod +x /tmp/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Native script import and scene parse
+        run: |
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path godot/flight_slice --quit 2>&1 | tee /tmp/import.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|Failed loading' /tmp/import.log
+      - name: Native terrain, LOD and art study tests
+        run: |
+          set -o pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_slice.gd 2>&1 | tee /tmp/test.log
+          grep -q 'GODOT_FLIGHT_SLICE_NATIVE_PASS' /tmp/test.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|GODOT_FLIGHT_SLICE_FAIL' /tmp/test.log
