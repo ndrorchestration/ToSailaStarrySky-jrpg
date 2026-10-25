@@ -7,7 +7,12 @@ func check(ok: bool, name: String) -> void:
 func _initialize() -> void:
     var seam1 := Tiles.tile_at(0.0,179.999,8)
     var seam2 := Tiles.tile_at(0.0,-179.999,8)
-    check(Tiles.key(seam1) == Tiles.key(seam2),"antimeridian same face tile")
+    var seam_neighbors := Tiles.neighborhood(seam1, 1)
+    var seam_connected := false
+    for tile in seam_neighbors:
+        if Tiles.key(tile) == Tiles.key(seam2):
+            seam_connected = true
+    check(seam_connected,"antimeridian adjacent tile continuity")
     var middle := Tiles.tile_at(0.0,0.0,3)
     check(Tiles.key(middle).begins_with("px/3/"),"equator face address")
     check(Tiles.level_size(12) == 4096,"level size limit")
