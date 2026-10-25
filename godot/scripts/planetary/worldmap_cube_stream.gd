@@ -110,5 +110,9 @@ static func flight_camera(observer: Dictionary) -> Dictionary:
     var heading := deg_to_rad(float(observer["headingDeg"]))
     var forward := (north*cos(heading) + east*sin(heading)).normalized()
     var eye := world+up*0.0015-forward*0.014
-    var aim := world+forward*0.065+up*0.0001
+    # Aim modestly below the geometric tangent. A near-horizontal view
+    # showed only sky in intermittent actual GL captures, hiding terrain
+    # behind the lower HUD. The lowered sightline exposes a genuine near-
+    # field curved surface without changing the observer's geodesic state.
+    var aim := world+forward*0.045-up*0.006
     return {"eye":eye,"aim":aim,"up":up,"forward":forward}
