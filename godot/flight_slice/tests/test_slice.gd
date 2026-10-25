@@ -6,6 +6,10 @@ var failures: Array[String] = []
 var checks: int = 0
 
 func _initialize() -> void:
+    # SceneTree._initialize occurs before child ready callbacks; defer the test.
+    call_deferred("_run_tests")
+
+func _run_tests() -> void:
     _check(TerrainStudy.classify(-60.0, 0.0) == "submerged", "water classification")
     _check(TerrainStudy.classify(-2.0, 0.0) == "coast", "shore classification")
     _check(TerrainStudy.classify(30.0, 0.0) == "forest", "forest classification")
@@ -25,6 +29,7 @@ func _initialize() -> void:
     _check(terrain.detailed_tiles > 0, "high-detail promotion")
     var ship = ShipStudy.new()
     get_root().add_child(ship)
+    await process_frame
     _check(ship.get_child_count() >= 10, "ship silhouette has authored parts")
     ship.set_motion(5.0, true)
     _check(ship.rotation == Vector3.ZERO, "reduced-motion stillness")
