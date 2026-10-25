@@ -7,6 +7,7 @@ const Cart = preload("res://scripts/planetary/worldmap_cartography.gd")
 const State = preload("res://scripts/planetary/worldmap_state.gd")
 const Chart = preload("res://scripts/planetary/worldmap_chart.gd")
 const LocalTerrain = preload("res://scripts/planetary/worldmap_local_terrain.gd")
+const CubeStream = preload("res://scripts/planetary/worldmap_cube_stream.gd")
 
 const PLANET_KM := 6371.0 # Illustration, NOT canonical planet radius.
 const GLOBE_UNITS := 12.0
@@ -39,6 +40,7 @@ var _survey_altitude := -1.0
 var _panel_timer := 0.0
 var _map_environment: Environment
 var _low_sky: Node3D
+var _cube_stream: Node3D
 var _terrain_timer := 0.0
 
 func _ready() -> void:
@@ -50,6 +52,7 @@ func _ready() -> void:
     _build_ship_locator()
     _build_camera()
     _build_local_patch()
+    _build_cube_stream()
     _build_overlay()
     _refresh_chart()
     _update_view()
@@ -253,6 +256,10 @@ func _build_local_patch() -> void:
     _low_sky.call("rebuild",_flight,190.0,64)
     _low_sky.visible = false
 
+func _build_cube_stream() -> void:
+    _cube_stream = CubeStream.new()
+    add_child(_cube_stream)
+
 func _add_label(parent: Node, name: String, position: Vector2, font_size: int,
         color: Color) -> Label:
     var node := Label.new()
@@ -315,7 +322,16 @@ func _refresh_chart() -> void:
         return
     _chart.visible = _mode == "chart" or _mode == "local"
     if _map_environment != null:
-        _map_environment.background_mode = Environment.BG_SKY if _mode == "flight" else Environment.BG_COLOR
+        _map_environment.background_mode = Environment.BG_SKY if (_mode == "flight" or _mode == "tiles") else Environment.BG_COLOR
+    _marker.visible = _mode != "tiles"
+    _clouds.visible = _mode != "tiles"
+    var limb := get_node_or_null("AtmosphericLimb") as MeshInstance3D
+    if limb != null:
+        limb.visible = _mode != "tiles"
+    if _cube_stream != null:
+        _cube_stream.visible = _mode == "tiles"
+        if _mode == "tiles":
+            _cube_stream.call("refresh",_flight)
     if _low_sky != null:
         _low_sky.visible = _mode == "flight"
         if _mode == "flight":
@@ -344,7 +360,13 @@ func _update_view() -> void:
     if _camera == null:
         return
     
-    if _mode == "flight" and _low_sky != null:
+    if _mode == "tiles" and _cube_stream != null:
+        var pose: Dictionary = CubeStream.flight_camera(_flight)
+        _camera.position = pose["eye"]
+        _camera.look_at(pose["aim"],pose["up"])
+        _camera.near = 0.0002
+        _camera.far = 400.0
+    elif _mode == "flight" and _low_sky != null:
         var center: Vector3 = _low_sky.call("camera_position",_flight)
         var direction := deg_to_rad(float(_flight["headingDeg"]))
         var forward := Vector3(sin(direction),0.0,-cos(direction))
@@ -371,7 +393,7 @@ func _update_view() -> void:
     _headline.text += "%s   /   Survey markers discovered: %d / %d   /   Geometric horizon: %.1f km" % [
             bearing_text,_discovered.size(),SURVEY_MARKERS.size(),
             Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM)]
-    _footer.text = "1 GLOBE   2 GLOBAL CHART   3 HORIZON SURVEY   4 LOW-SKY 3D   W/S THROTTLE     Q/E TURN     R/F ALTITUDE\n"
+    _footer.text = "1 GLOBE   2 CHART   3 HORIZON   4 LOCAL 3D   5 CUBE TILES   W/S THROTTLE   Q/E TURN   R/F CLIMB\n"
     _footer.text += "A/D ORBIT   DRAG/WHEEL CAMERA   SHIFT FAST TRAVEL   P WAYPOINT PILOT   K SAVE   O LOAD"
     if _autopilot:
         _footer.text += "   /   WAYPOINT PILOT ACTIVE"
@@ -417,6 +439,7 @@ func _unhandled_input(event: InputEvent) -> void:
             KEY_2: _mode = "chart"
             KEY_3: _mode = "local"
             KEY_4: _mode = "flight"
+            KEY_5: _mode = "tiles"
             KEY_P:
                 _autopilot = not _autopilot if not _waypoint.is_empty() else false
             KEY_K:
