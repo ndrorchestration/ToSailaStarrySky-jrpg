@@ -159,4 +159,22 @@ func has_mesh() -> bool:
 
 func camera_position(anchor: Dictionary) -> Vector3:
     var altitude := maxf(0.0,float(anchor.get("altitudeKm",2.0)))
-    return position + Vector3(0.0,altitude*UNITS_PER_KM+0.018,0.0)
+    if _origin.is_empty():
+        return position + Vector3(0.0,altitude*UNITS_PER_KM+0.018,0.0)
+    # Translate real geodesic movement into local east/north offsets instead
+    # of pinning the camera to the patch center until the next rebuild.
+    var offsets := Geo.to_local_km(_origin,anchor,PLANET_KM)
+    var east_km := offsets.x
+    var north_km := offsets.y
+    var r2 := east_km*east_km + north_km*north_km
+    var sagitta := sqrt(maxf(0.0,PLANET_KM*PLANET_KM-r2)) - PLANET_KM
+    var sample := Cart.sample(float(anchor["latDeg"]),float(anchor["lonDeg"]))
+    var elevation := float(sample["elevation"])
+    var relief_km := maxf(elevation,0.0)*2.8
+    if elevation > 0.0:
+        var fine := sin(east_km*0.57+north_km*0.39)*cos(north_km*0.61)
+        relief_km += fine*0.11*clampf(elevation*4.0,0.0,1.0)
+    # Altitude in the development view is height above visual local ground;
+    # final ship altitude/landing semantics require gameplay integration.
+    return position + Vector3(east_km*UNITS_PER_KM,
+            (sagitta+relief_km+altitude)*UNITS_PER_KM+0.018,-north_km*UNITS_PER_KM)
