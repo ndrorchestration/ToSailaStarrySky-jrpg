@@ -1,0 +1,35 @@
+name: Planetary Map Visual Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'modules/planetary-*.js'
+      - 'docs/prototypes/planetary-*.html'
+      - 'tests/planetary-visual-smoke.test.js'
+      - '.github/workflows/planetary-visual.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  map-canvas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install development dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Check globe and flight canvas at desktop/mobile widths
+        run: node tests/planetary-visual-smoke.test.js

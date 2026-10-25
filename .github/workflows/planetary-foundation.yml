@@ -1,0 +1,34 @@
+name: Planetary Foundation Tests
+
+on:
+  pull_request:
+    paths:
+      - 'modules/planetary-*.js'
+      - 'tests/planetary-*.test.js'
+      - '.github/workflows/planetary-foundation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  planetary-node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run planetary foundation regression suite
+        run: >-
+          node --test
+          tests/planetary-geometry.test.js
+          tests/planetary-tiles.test.js
+          tests/planetary-flight.test.js
+          tests/planetary-streaming.test.js
+          tests/planetary-cartography.test.js

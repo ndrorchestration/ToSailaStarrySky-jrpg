@@ -24,6 +24,14 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
 
+      - name: Verify planetary foundation contracts
+        run: >-
+          node --test
+          tests/planetary-geometry.test.js
+          tests/planetary-tiles.test.js
+          tests/planetary-flight.test.js
+          tests/planetary-streaming.test.js
+
       - name: Verify effect vocabulary contract
         run: npm run test:effects
 
