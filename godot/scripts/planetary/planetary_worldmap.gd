@@ -37,6 +37,7 @@ var _survey: Texture2D
 var _survey_center: Dictionary = {}
 var _survey_altitude := -1.0
 var _panel_timer := 0.0
+var _map_environment: Environment
 var _low_sky: Node3D
 var _terrain_timer := 0.0
 
@@ -83,6 +84,17 @@ func _build_environment() -> void:
     var env := Environment.new()
     env.background_mode = Environment.BG_COLOR
     env.background_color = Color("#03101f")
+    # A separate low-sky sky gradient provides actual atmospheric horizon
+    # composition while the orbital globe keeps its dark-space background.
+    var sky := Sky.new()
+    var sky_mat := ProceduralSkyMaterial.new()
+    sky_mat.sky_top_color = Color("#184765")
+    sky_mat.sky_horizon_color = Color("#89b7b8")
+    sky_mat.ground_horizon_color = Color("#b8b2a4")
+    sky_mat.ground_bottom_color = Color("#244b62")
+    sky.sky_material = sky_mat
+    env.sky = sky
+    _map_environment = env
     env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
     env.ambient_light_color = Color("#80aec4")
     env.ambient_light_energy = 0.38
@@ -302,6 +314,8 @@ func _refresh_chart() -> void:
     if _chart == null:
         return
     _chart.visible = _mode == "chart" or _mode == "local"
+    if _map_environment != null:
+        _map_environment.background_mode = Environment.BG_SKY if _mode == "flight" else Environment.BG_COLOR
     if _low_sky != null:
         _low_sky.visible = _mode == "flight"
         if _mode == "flight":
