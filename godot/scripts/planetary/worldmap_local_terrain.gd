@@ -36,10 +36,17 @@ func rebuild(anchor: Dictionary, extent_km: float = 190.0, divisions: int = 64) 
             var horizontal_sq := east_km*east_km+north_km*north_km
             var sagitta := sqrt(maxf(0.0,PLANET_KM*PLANET_KM-horizontal_sq)) - PLANET_KM
             var relief_km := maxf(float(record["elevation"]),0.0)*2.0
+            var tone: Color = record["color"]
+            if not bool(record["land"]):
+                # Shallow ocean swells are render-only; not navigable collision.
+                var wave := 0.07*sin(east_km*0.24+north_km*0.19)
+                wave += 0.04*cos(north_km*0.43-east_km*0.16)
+                relief_km = wave
+                tone = tone.lerp(Color("#298e9a"),clampf(0.19+wave*1.6,0.0,0.37))
             var position3 := Vector3(east_km*UNITS_PER_KM,
                     (sagitta+relief_km)*UNITS_PER_KM,-north_km*UNITS_PER_KM)
             vertices.append(position3)
-            colors.append(record["color"])
+            colors.append(tone)
     var tool := SurfaceTool.new()
     tool.begin(Mesh.PRIMITIVE_TRIANGLES)
     for row in range(divisions):
