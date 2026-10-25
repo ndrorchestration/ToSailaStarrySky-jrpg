@@ -300,7 +300,7 @@ func _refresh_chart() -> void:
         if moved:
             var horizon := Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM)
             _survey = ImageTexture.create_from_image(Cart.render_local(_flight,
-                    clampf(horizon,25.0,2500.0),PLANET_KM,160))
+                    horizon,PLANET_KM,160))
             _survey_center = _flight.duplicate(true)
             _survey_altitude = float(_flight["altitudeKm"])
     _chart.call("configure",_mode,_atlas,_survey,_flight,_waypoint,
