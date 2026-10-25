@@ -116,6 +116,32 @@ func _run() -> void:
             tile_root.visible = true
             var tile_area := Rect2i(20,110,920,435)
             if image.get_region(tile_area).get_data() == without_tiles.get_region(tile_area).get_data():
+                # Renderer/debug evidence: determine whether actual pixels land
+                # below the capture ROI, fail culling, or miss the camera frame.
+                for band in range(6):
+                    var vertical := Rect2i(0,band*100,960,100)
+                    var changed := image.get_region(vertical).get_data() != without_tiles.get_region(vertical).get_data()
+                    print("CUBE_CAPTURE_DIAG_BAND_%d_DIFF=%s" % [band,str(changed)])
+                var inspect_camera := world.get_node_or_null("WorldMapOrbitCamera") as Camera3D
+                if inspect_camera != null:
+                    print("CUBE_CAPTURE_DIAG_CAMERA: "+str(inspect_camera.global_position))
+                    var in_front := 0
+                    var visible_sample := 0
+                    for tile_node in tile_root.get_children():
+                        var terrain_mesh := tile_node.get_node_or_null("SphericalLand") as MeshInstance3D
+                        if terrain_mesh == null or terrain_mesh.mesh == null:
+                            continue
+                        var arr: Array = terrain_mesh.mesh.surface_get_arrays(0)
+                        var vertices: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+                        if vertices.is_empty():
+                            continue
+                        var sample: Vector3 = vertices[int(vertices.size()/2)]
+                        if not inspect_camera.is_position_behind(sample):
+                            in_front += 1
+                            var projected := inspect_camera.unproject_position(sample)
+                            if projected.x >= 0.0 and projected.x <= 960.0 and projected.y >= 0.0 and projected.y <= 640.0:
+                                visible_sample += 1
+                    print("CUBE_CAPTURE_DIAG_MESH_IN_FRONT=%d_PROJECTED_ONSCREEN=%d" % [in_front,visible_sample])
                 push_error("GODOT_WORLDMAP_CAPTURE_FAIL: streamed spherical mesh has no visible pixels")
                 quit(18)
                 return
