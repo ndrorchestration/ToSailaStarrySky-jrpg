@@ -3,7 +3,7 @@ extends SceneTree
 ## headless illustration. Frames stay runner-local; checksums logged by CI.
 const Scene = preload("res://scenes/planetary_worldmap.tscn")
 const OUT := "res://review-evidence/"
-var _frame_names := ["globe","chart","local-survey","low-sky-3d","sea-facing"]
+var _frame_names := ["globe","chart","local-survey","low-sky-3d","sea-facing","cube-tiles"]
 
 func _initialize() -> void:
     call_deferred("_run")
@@ -32,7 +32,16 @@ func _run() -> void:
     await process_frame
     var base: Image
     for i in range(_frame_names.size()):
-        if i == 4:
+        if i == 5:
+            # Same actual ship position in an entirely global sphere frame,
+            # not a screenshot of the prior local tangent terrain.
+            var cubes: Dictionary = world.call("snapshot")
+            cubes["mode"] = "tiles"
+            cubes["flight"]["headingDeg"] = 90.0
+            world.call("_apply_state",cubes)
+            world.call("_refresh_chart")
+            world.call("_update_view")
+        elif i == 4:
             # Rotate toward the neighboring open-water side without changing
             # geography, so shader-water pixels have a dedicated review gate.
             var sea_state: Dictionary = world.call("snapshot")
@@ -89,6 +98,28 @@ func _run() -> void:
                 quit(15)
                 return
             print("GODOT_WORLDMAP_OCEAN_PIXEL_DELTA_PASS")
+        if i == 5:
+            var tile_root := world.get_node_or_null("NativeCubedSphereTerrain")
+            if tile_root == null or not tile_root.visible:
+                push_error("GODOT_WORLDMAP_CAPTURE_FAIL: native cube tile scene invisible")
+                quit(16)
+                return
+            var tile_stats: Dictionary = tile_root.call("stats")
+            if int(tile_stats["visible"]) == 0 or int(tile_stats["visible"]) > 32:
+                push_error("GODOT_WORLDMAP_CAPTURE_FAIL: cube stream outside mesh budget")
+                quit(17)
+                return
+            tile_root.visible = false
+            await process_frame
+            await process_frame
+            var without_tiles: Image = await _capture()
+            tile_root.visible = true
+            var tile_area := Rect2i(20,110,920,435)
+            if image.get_region(tile_area).get_data() == without_tiles.get_region(tile_area).get_data():
+                push_error("GODOT_WORLDMAP_CAPTURE_FAIL: streamed spherical mesh has no visible pixels")
+                quit(18)
+                return
+            print("GODOT_WORLDMAP_CUBE_TERRAIN_PIXEL_DELTA_PASS: visible=%d" % int(tile_stats["visible"]))
         if i == 0:
             base = image
         elif image.get_data() == base.get_data():
@@ -105,6 +136,6 @@ func _run() -> void:
             quit(11)
             return
         print("GODOT_WORLDMAP_NATIVE_FRAME_PASS: "+target)
-    print("GODOT_WORLDMAP_RENDER_CAPTURE_PASS: globe/chart/survey/low-sky/sea-facing actually rendered")
+    print("GODOT_WORLDMAP_RENDER_CAPTURE_PASS: globe/chart/survey/low-sky/sea-facing/true-cube-tiles actually rendered")
     print("GODOT_WORLDMAP_CREATOR_VISUAL_ACCEPTANCE=PENDING")
     quit(0)
