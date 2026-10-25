@@ -12,14 +12,15 @@ func _capture() -> Image:
     await RenderingServer.frame_post_draw
     return root.get_texture().get_image()
 
-func _valid(img: Image) -> bool:
+func _valid(img: Image, view_name: String) -> bool:
     if img.is_empty() or img.get_width() != 960 or img.get_height() != 640:
         return false
     var unique: Dictionary = {}
     for y in range(95,540,21):
         for x in range(30,930,27):
             unique[img.get_pixel(x,y).to_rgba32()] = true
-    return unique.size() >= 18
+    print("GODOT_WORLDMAP_FRAME_VARIATION: %s colors=%d" % [view_name,unique.size()])
+    return unique.size() >= (4 if view_name == "low-sky-3d" else 18)
 
 func _run() -> void:
     root.size = Vector2i(960,640)
@@ -37,10 +38,29 @@ func _run() -> void:
         await process_frame
         await process_frame
         var image: Image = await _capture()
-        if not _valid(image):
+        if not _valid(image,_frame_names[i]):
             push_error("GODOT_WORLDMAP_CAPTURE_FAIL: nonrendered or unvaried "+_frame_names[i])
             quit(i+2)
             return
+        if i == 3:
+            var ground := world.get_node_or_null("LowSkyTerrainDevelopmentPatch")
+            if ground == null or not ground.visible:
+                push_error("GODOT_WORLDMAP_CAPTURE_FAIL: 3D terrain node not visible")
+                quit(12)
+                return
+            ground.visible = false
+            await process_frame
+            await process_frame
+            var without_ground: Image = await _capture()
+            ground.visible = true
+            # Identical pixels would mean a camera pointed at blank sky, a
+            # culled mesh, a broken material or an otherwise invisible patch.
+            var area := Rect2i(15,120,930,415)
+            if image.get_region(area).get_data() == without_ground.get_region(area).get_data():
+                push_error("GODOT_WORLDMAP_CAPTURE_FAIL: 3D terrain has no visible rendered pixels")
+                quit(13)
+                return
+            print("GODOT_WORLDMAP_GROUND_PIXEL_DELTA_PASS")
         if i == 0:
             base = image
         elif image.get_data() == base.get_data():
