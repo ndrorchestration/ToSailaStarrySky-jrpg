@@ -9,6 +9,7 @@ This directory is an **original, engine-neutral C#/.NET architecture experiment*
 - `WorldMap.Contracts` — pure C# 12 / .NET 8 data-value contracts and conventional great-circle/spherical-horizon formulas; **radius is always an explicit caller parameter**, not a canonical in-game value.
 - `WorldMap.ContractChecks` — dependency-free deterministic console checks of antimeridian/polar navigation, ambiguous bearings, horizon bounds, invalid/nonfinite inputs, tile identity, deduplication and independent capacity limits.
 - `TileAdmission` is only a **bounded admission interface for an externally prioritized list**. It does NOT choose visible tiles, calculate chunk LOD, produce meshes, copy GDScript logic, stream data, or guarantee frame-time budgets.
+- `TileTransitionPlanner` is a **pure per-frame change planner**: given already-selected desired IDs, current IDs and explicit work-item quotas, it computes non-destructive retire/admit/retained sets. Quotas are **counts**, not measured CPU/GPU time, VRAM, FPS or safety of engine-side disposal. It builds no tiles and does not schedule Godot calls.
 - `.github/workflows/godot-csharp-worldmap-contract.yml` builds with .NET SDK on Linux; this establishes **C# compilation and pure-function contracts only**.
 
 ## Run isolated checks
