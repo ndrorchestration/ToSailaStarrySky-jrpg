@@ -324,14 +324,14 @@ func _refresh_chart() -> void:
     if _map_environment != null:
         _map_environment.background_mode = Environment.BG_SKY if (_mode == "flight" or _mode == "tiles") else Environment.BG_COLOR
     _marker.visible = _mode != "tiles"
-    # Underlay is an illustrative full-planet albedo fallback, not collision.
-    # Sink it a sub-kilometre beneath the explicit cubed-sphere tiles to avoid
-    # coplanar depth-buffer occlusion in the near-horizon renderer. The radius
-    # used by geodesic navigation and the horizon planner is unchanged.
+    # The legacy smooth sphere repeatedly depth-occluded the actual tiled
+    # surface under GL Compatibility. In this explicit *tile review* mode,
+    # show the selected spherical meshes by themselves. Unselected gaps are
+    # deliberately unrendered and are NOT a production horizon solution.
+    # The globe returns unchanged on modes 1–4.
     var smooth_globe := get_node_or_null("WorldTerrainAndSeas") as MeshInstance3D
     if smooth_globe != null:
-        var underlay_scale := 1.0-(0.80/PLANET_KM) if _mode == "tiles" else 1.0
-        smooth_globe.scale = Vector3.ONE*underlay_scale
+        smooth_globe.visible = _mode != "tiles"
     _clouds.visible = _mode != "tiles"
     var limb := get_node_or_null("AtmosphericLimb") as MeshInstance3D
     if limb != null:
