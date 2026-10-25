@@ -22,6 +22,25 @@ func _run() -> void:
         var seam1 := Meshes.sample_border(center_tile,12,i)
         var seam2 := Meshes.sample_border(right,0,i)
         check(seam1.distance_to(seam2) < 0.0000001,"no face-local cracks at shared edge")
+    # Cross-face boundary samples must be identical in 3D: no cracks where
+    # equatorial and polar cube faces meet, including reverse edge orientation.
+    for face in ["px","nx","py","ny","pz","nz"]:
+        var edge_tile := Tiles.address(face,0.98,0.0,5)
+        var adjacent := Tiles.neighbor(edge_tile,1,0)
+        check(str(edge_tile["face"]) != str(adjacent["face"]),
+                "edge steps onto a different cube face")
+        var edge_gap := 0.0
+        for row in [0,6,12]:
+            var edge_point := Meshes.sample_border(edge_tile,12,row)
+            var nearest := 9999.0
+            for q in range(13):
+                for p in [Meshes.sample_border(adjacent,0,q),
+                          Meshes.sample_border(adjacent,12,q),
+                          Meshes.sample_border(adjacent,q,0),
+                          Meshes.sample_border(adjacent,q,12)]:
+                    nearest = minf(nearest,edge_point.distance_to(p))
+            edge_gap = maxf(edge_gap,nearest)
+        check(edge_gap < 0.00001,"seam-free cube-face interface")
     for lat in [-89.8,5.0,70.0]:
         for lon in [-179.99,-45.0,130.0,179.99]:
             var tile := Tiles.tile_at(lat,lon,5)
