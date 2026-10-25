@@ -1,5 +1,7 @@
 # Planetary globe foundation — isolated prototype (2026-10-23)
 
+> **2026-10-25 native evidence checkpoint:** [Actual Godot Compatibility screenshots and measured limits](reviews/native-planetary-evidence-2026-10-25.md) now exist for an isolated extension of the recovered native baseline. This updates the historical “not yet executed” state below for Linux testing only. Windows/Forward+, production integration, final art and creator visual acceptance remain unverified. This draft admits evidence, not renderer source.
+
 ## Current project identity — 2026-10-24
 
 This work belongs to **To Sail the Starry Sky** (formerly Aetherwake). Canonical repository: `ndrorchestration/ToSailtheStarrySky-jrpg`, stable repository ID `1372641872`, visibility **PUBLIC**. Historical prototype ZIP names, source filenames, hashes and receipts retain the Aetherwake name and must not be rewritten. Public repository visibility is not release, canon, renderer or integration approval.
