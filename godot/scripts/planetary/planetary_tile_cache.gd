@@ -28,7 +28,7 @@ func use_tile(tile: Dictionary, factory: Callable) -> Variant:
     _order.append(id)
     _misses += 1
     if _order.size() > max_entries:
-        var oldest := _order.pop_front()
+        var oldest: String = str(_order.pop_front())
         _data.erase(oldest)
         _evictions += 1
     return value
