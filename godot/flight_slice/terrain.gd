@@ -132,8 +132,9 @@ func _tile_mesh(ix: int, iz: int, segments: int) -> ArrayMesh:
             var b: Vector3 = grid_point(ix, iz, segments, gx + 1, gz)
             var c: Vector3 = grid_point(ix, iz, segments, gx, gz + 1)
             var d: Vector3 = grid_point(ix, iz, segments, gx + 1, gz + 1)
-            _triangle(tool, a, c, b)
-            _triangle(tool, b, c, d)
+            # Godot's CW front-face winding: these triangles must face upward.
+            _triangle(tool, a, b, c)
+            _triangle(tool, b, d, c)
     # Border skirts obscure cracks where adjacent meshes use different detail.
     for edge in range(4):
         for i in range(segments):
@@ -152,7 +153,7 @@ func _tile_mesh(ix: int, iz: int, segments: int) -> ArrayMesh:
                 _:
                     a = grid_point(ix, iz, segments, 0, i + 1)
                     b = grid_point(ix, iz, segments, 0, i)
-            var lower_a: Vector3 = a - Vector3.UP * 3.8
+            var lower_a: Vector3 = a - Vector3.UP * 0.9
             var lower_b: Vector3 = b - Vector3.UP * 3.8
             _triangle(tool, a, b, lower_a)
             _triangle(tool, lower_a, b, lower_b)
