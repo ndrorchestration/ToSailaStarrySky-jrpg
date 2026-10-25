@@ -17,7 +17,7 @@
 
 - Do not conflate **Lumen** the established magic domain with **Lumen** a proposed cosmological Light. Nor turn proposed Lights into five ordinary spell schools, five moral alignments, or one culture per Light.
 - Preserve distinctions among **soul**, **memory**, **Echo**, **ghost**, **wake**, **dream**, and **reconstruction**. The ontology of consciousness after death is not solved by default.
-- **Talen's Dreaming** is a plot-bound exceptional proposal/direction, **not a routine purchasable spell school** or an automatic inherited magical power. Do not use him merely as a hostage, prophecy device or exposition vessel.
+- Do not invent, publicize or implement Talen's unreleased plot-specific phenomena or powers. He is not a routine playable combat mage, hostage, prophecy device or exposition vessel.
 - Research and navigation clues can build gradually through Ender's Rift Scholar methods. Early investigation is not permission to invent a portal network or unlock advanced routes.
 - Do not assign final kingdom, continent, ocean, culture, state, ship alias, or moon/postgame mystery details from attractive concept art.
 
