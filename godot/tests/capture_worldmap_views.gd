@@ -3,7 +3,7 @@ extends SceneTree
 ## headless illustration. Frames stay runner-local; checksums logged by CI.
 const Scene = preload("res://scenes/planetary_worldmap.tscn")
 const OUT := "res://review-evidence/"
-var _frame_names := ["globe","chart","local-survey","low-sky-3d"]
+var _frame_names := ["globe","chart","local-survey","low-sky-3d","sea-facing"]
 
 func _initialize() -> void:
     call_deferred("_run")
@@ -20,7 +20,9 @@ func _valid(img: Image, view_name: String) -> bool:
         for x in range(30,930,27):
             unique[img.get_pixel(x,y).to_rgba32()] = true
     print("GODOT_WORLDMAP_FRAME_VARIATION: %s colors=%d" % [view_name,unique.size()])
-    return unique.size() >= (4 if view_name == "low-sky-3d" else 18)
+    # Earlier low-sky view had only four sampled colors. Keep the test
+    # sensitive to accidental flat-sky/blank-material regressions.
+    return unique.size() >= (55 if view_name == "low-sky-3d" else 18)
 
 func _run() -> void:
     root.size = Vector2i(960,640)
@@ -30,7 +32,16 @@ func _run() -> void:
     await process_frame
     var base: Image
     for i in range(_frame_names.size()):
-        if i != 0:
+        if i == 4:
+            # Rotate toward the neighboring open-water side without changing
+            # geography, so shader-water pixels have a dedicated review gate.
+            var sea_state: Dictionary = world.call("snapshot")
+            sea_state["mode"] = "flight"
+            sea_state["flight"]["headingDeg"] = 270.0
+            world.call("_apply_state",sea_state)
+            world.call("_refresh_chart")
+            world.call("_update_view")
+        elif i != 0:
             var key := InputEventKey.new()
             key.pressed = true
             key.keycode = KEY_1+i
@@ -61,6 +72,23 @@ func _run() -> void:
                 quit(13)
                 return
             print("GODOT_WORLDMAP_GROUND_PIXEL_DELTA_PASS")
+        if i == 4:
+            var ocean := world.get_node_or_null("LowSkyTerrainDevelopmentPatch/OceanSurface") as MeshInstance3D
+            if ocean == null or ocean.mesh == null or not ocean.visible:
+                push_error("GODOT_WORLDMAP_CAPTURE_FAIL: sea mesh missing")
+                quit(14)
+                return
+            ocean.visible = false
+            await process_frame
+            await process_frame
+            var without_water: Image = await _capture()
+            ocean.visible = true
+            var sample_area := Rect2i(20,110,920,435)
+            if image.get_region(sample_area).get_data() == without_water.get_region(sample_area).get_data():
+                push_error("GODOT_WORLDMAP_CAPTURE_FAIL: ocean material does not contribute visible pixels")
+                quit(15)
+                return
+            print("GODOT_WORLDMAP_OCEAN_PIXEL_DELTA_PASS")
         if i == 0:
             base = image
         elif image.get_data() == base.get_data():
@@ -77,6 +105,6 @@ func _run() -> void:
             quit(11)
             return
         print("GODOT_WORLDMAP_NATIVE_FRAME_PASS: "+target)
-    print("GODOT_WORLDMAP_RENDER_CAPTURE_PASS: globe/chart/survey/low-sky actually rendered")
+    print("GODOT_WORLDMAP_RENDER_CAPTURE_PASS: globe/chart/survey/low-sky/sea-facing actually rendered")
     print("GODOT_WORLDMAP_CREATOR_VISUAL_ACCEPTANCE=PENDING")
     quit(0)
