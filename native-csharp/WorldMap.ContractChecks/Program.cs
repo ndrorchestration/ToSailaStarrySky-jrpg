@@ -119,6 +119,69 @@ internal static class Program
             "null tile set");
     }
 
+    private static void TransitionChecks()
+    {
+        var budget = new TileBudget(3, 5);
+        var a = new TileId(CubeFace.PositiveX, 2, 0, 0);
+        var b = new TileId(CubeFace.PositiveX, 2, 1, 0);
+        var c = new TileId(CubeFace.PositiveX, 2, 2, 0);
+        var d = new TileId(CubeFace.PositiveX, 2, 3, 0);
+        var e = new TileId(CubeFace.NegativeZ, 2, 0, 0);
+        var before = new List<TileId> { a, b, c };
+        var target = new[] { c, d, e };
+        var first = TileTransitionPlanner.Next(before, target, budget, 1, 1);
+        Check(first.Retire.Count == 1 && first.Admit.Count == 1,
+            "bounded first-frame add and retire");
+        Check(first.ActiveAfter.Count == 3 && first.DeferredTargetCount == 1,
+            "bounded in-flight active count/deferred tiles");
+        var second = TileTransitionPlanner.Next(first.ActiveAfter, target, budget, 1, 1);
+        Check(second.Retire.Count == 1 && second.Admit.Count == 1,
+            "bounded second-frame add and retire");
+        Check(second.ActiveAfter.Count == 3 && second.DeferredTargetCount == 0,
+            "target fully resident without over-allocation");
+        var settled = TileTransitionPlanner.Next(second.ActiveAfter, target, budget, 1, 1);
+        Check(settled.Admit.Count == 0 && settled.Retire.Count == 0,
+            "settled target has no spurious rebuild");
+        var blocked = TileTransitionPlanner.Next(before, target, budget, 0, 0);
+        Check(blocked.ActiveAfter.SequenceEqual(before)
+            && blocked.Retire.Count == 0 && blocked.Admit.Count == 0,
+            "zero work allowance leaves set unchanged");
+        Reject<ArgumentOutOfRangeException>(() =>
+            _ = TileTransitionPlanner.Next(before, target, budget, -1, 1),
+            "negative admission quota");
+        Reject<ArgumentException>(() =>
+            _ = TileTransitionPlanner.Next(new[] { a, a }, target, budget, 1, 1),
+            "duplicate input active set");
+        Reject<ArgumentException>(() =>
+            _ = TileTransitionPlanner.Next(new[] { a, b, c, d }, target, budget, 1, 1),
+            "oversubscribed active set");
+
+        // Sequences must converge without leaving active-capacity or per-frame
+        // bounds even with changing target sets and polar/cross-face IDs.
+        var pool = new List<TileId>();
+        foreach (CubeFace face in Enum.GetValues<CubeFace>())
+        {
+            for (int i = 0; i < 8; i++)
+                pool.Add(new TileId(face, 4, i, (i + (int)face) % 16));
+        }
+        var rng = new Random(87501);
+        var live = new List<TileId>();
+        var generous = new TileBudget(16, 32);
+        for (int frame = 0; frame < 256; frame++)
+        {
+            var priorities = pool.OrderBy(_ => rng.Next()).Take(16).ToList();
+            var next = TileTransitionPlanner.Next(live, priorities, generous, 3, 4);
+            Check(next.Admit.Count <= 3 && next.Retire.Count <= 4,
+                "frame work budgets " + frame);
+            Check(next.ActiveAfter.Count <= 16
+                && next.ActiveAfter.Distinct().Count() == next.ActiveAfter.Count,
+                "active residency bound " + frame);
+            Check(next.DeferredTargetCount >= 0 && next.DeferredTargetCount <= 16,
+                "deferred backlog bounded " + frame);
+            live = next.ActiveAfter.ToList();
+        }
+    }
+
     private static void RejectionChecks()
     {
         Reject<ArgumentOutOfRangeException>(() => _ = new PlanetPosition(91, 0),
@@ -149,6 +212,7 @@ internal static class Program
         {
             GeodesicChecks();
             TileChecks();
+            TransitionChecks();
             RejectionChecks();
             Console.WriteLine($"CS_WORLDMAP_CONTRACT_PASS: {_assertions} deterministic assertions; no Godot runtime or canon admitted");
             Console.WriteLine("CS_WORLDMAP_GODOT_MONO_NATIVE=NOT_ESTABLISHED");
