@@ -74,8 +74,8 @@ func _update_scene(delta: float) -> void:
     var focus: Vector3 = ship.position + Vector3(12.0, 0.7, -5.0)
     if _cinematic:
         var arc: float = 0.5 + 0.5 * sin(_clock * 0.17)
-        goal = ship.position + Vector3(-21.0 - arc * 7.0, 12.0 + arc * 7.0, 26.0 - arc * 4.0)
-        focus += Vector3(3.0, 1.0, 0.0)
+        goal = ship.position + Vector3(-15.5 - arc * 4.5, 10.0 + arc * 3.0, 20.0 - arc * 3.0)
+        focus = ship.position + Vector3(7.0, 0.8, -3.0)
     else:
         goal = ship.position + Vector3(-12.0, 7.4, 19.0)
         focus = ship.position + Vector3(12.0, 0.4, 0.0)
@@ -90,7 +90,7 @@ func _install_environment() -> void:
     daylight.name = "GoldenHourKey"
     daylight.rotation_degrees = Vector3(-48.0, -32.0, 0.0)
     daylight.light_color = Color(1.0, 0.85, 0.66)
-    daylight.light_energy = 1.35
+    daylight.light_energy = 1.07
     daylight.shadow_enabled = true
     add_child(daylight)
     var ambient := WorldEnvironment.new()
@@ -99,8 +99,8 @@ func _install_environment() -> void:
     environment.background_mode = Environment.BG_SKY
     var sky := Sky.new()
     var material := ProceduralSkyMaterial.new()
-    material.sky_top_color = Color(0.045, 0.17, 0.29)
-    material.sky_horizon_color = Color(0.59, 0.71, 0.72)
+    material.sky_top_color = Color(0.025, 0.105, 0.195)
+    material.sky_horizon_color = Color(0.42, 0.60, 0.65)
     material.ground_horizon_color = Color(0.37, 0.47, 0.45)
     material.ground_bottom_color = Color(0.06, 0.14, 0.17)
     material.use_debanding = true
