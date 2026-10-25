@@ -80,7 +80,20 @@ func _run() -> void:
     var new_extent: float = patch.call("extent_km")
     check(new_extent > old_extent,
             "large altitude change expands local patch to follow the horizon")
-    check(not State.encode(scene.call("snapshot")).is_empty(),"all modes save-safe")
+    switch.keycode = KEY_5
+    scene.call("_unhandled_input",switch)
+    var sphere_stream := scene.get_node_or_null("NativeCubedSphereTerrain")
+    check(scene.call("get_mode") == "tiles","fifth cube-sphere mode accepts input")
+    check(sphere_stream != null and sphere_stream.visible,"cube tile scene visible")
+    check(not chart.visible and not patch.visible,"tile view isolates other two display modes")
+    var tile_stats: Dictionary = sphere_stream.call("stats")
+    check(int(tile_stats["visible"]) > 0 and int(tile_stats["visible"]) <= 32,
+            "real cube-sphere tiles bounded by planner")
+    check(camera.position.length() < 40.0,
+            "fifth-mode camera uses actual globe positions, not fake local 1000-unit origin")
+    var check_state: Dictionary = scene.call("snapshot")
+    check(check_state["mode"] == "tiles","isolated save retains new cube-sphere mode")
+    check(not State.encode(check_state).is_empty(),"all modes save-safe")
     scene.queue_free()
     await process_frame
     if failed.is_empty():
