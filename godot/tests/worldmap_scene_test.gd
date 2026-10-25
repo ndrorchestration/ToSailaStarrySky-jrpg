@@ -40,6 +40,14 @@ func _run() -> void:
     scene.call("_unhandled_input",switch)
     check(scene.call("get_mode") == "local","local view switch")
     check(chart.visible,"local survey visible")
+    
+    var patch := scene.get_node_or_null("LowSkyTerrainDevelopmentPatch")
+    check(patch != null and patch.call("has_mesh"),"actual native local 3D terrain mesh")
+    switch.keycode = KEY_4
+    scene.call("_unhandled_input",switch)
+    check(scene.call("get_mode") == "flight","3D low-sky mode switch")
+    check(patch.visible and not chart.visible,"3D view replaces map overlay")
+    check(camera.position.x > 900.0,"camera moves to isolated local tangent terrain")
     check(not State.encode(scene.call("snapshot")).is_empty(),"all modes save-safe")
     scene.queue_free()
     await process_frame
