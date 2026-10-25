@@ -55,8 +55,12 @@ func _run() -> void:
             key.pressed = true
             key.keycode = KEY_1+i
             world.call("_unhandled_input",key)
-        await process_frame
-        await process_frame
+        # A fresh Godot GL process may upload 26 separate 3D meshes and
+        # compile sea/land variants asynchronously. Do not compare an
+        # unpopulated frame with a hidden renderer and infer invisible art.
+        var warmup_frames := 18 if i == 5 else 2
+        for warmup in range(warmup_frames):
+            await process_frame
         var image: Image = await _capture()
         if not _valid(image,_frame_names[i]):
             push_error("GODOT_WORLDMAP_CAPTURE_FAIL: nonrendered or unvaried "+_frame_names[i])
