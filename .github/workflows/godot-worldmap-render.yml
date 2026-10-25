@@ -1,0 +1,51 @@
+name: Godot-native planetary worldmap visual smoke
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/planetary/**'
+      - 'godot/scenes/planetary_worldmap.tscn'
+      - 'godot/tests/capture_worldmap_views.gd'
+      - '.github/workflows/godot-worldmap-render.yml'
+permissions:
+  contents: read
+jobs:
+  native-map-frames:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install checksum-pinned Godot 4.7.2 Standard
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o /tmp/worldmap-godot.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/worldmap-godot.zip" | sha256sum -c -
+          mkdir -p /tmp/worldmap-godot
+          unzip -q /tmp/worldmap-godot.zip -d /tmp/worldmap-godot
+          chmod +x /tmp/worldmap-godot/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/worldmap-godot/Godot_v4.7.2-stable_linux.x86_64 --headless --version
+      - name: Import native worldmap
+        shell: bash
+        run: /tmp/worldmap-godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
+      - name: Render four different 960x640 Godot frames with GL Compatibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v xvfb-run
+          mkdir -p godot/review-evidence
+          xvfb-run -a -s "-screen 0 960x640x24" /tmp/worldmap-godot/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_worldmap_views.gd
+          for name in globe chart local-survey low-sky-3d; do
+            test -s "godot/review-evidence/worldmap-${name}-native-960x640.png"
+          done
+          sha256sum godot/review-evidence/worldmap-*-native-960x640.png
+          echo "GODOT_WORLDMAP_GL_NATIVE_RENDER=PASS_RUNNER_LOCAL_ONLY"
+          echo "GODOT_WORLDMAP_VISUAL_ART_APPROVAL=NOT_ESTABLISHED"
+      - name: State evidence retention limits
+        shell: bash
+        run: |
+          echo "GODOT_WORLDMAP_CAPTURE_DISTRIBUTION=RUNNER_ONLY_NO_ARTIFACT_UPLOAD"
+          echo "GODOT_WORLDMAP_FORWARD_PLUS_GPU_QA=NOT_ESTABLISHED"
+          echo "GODOT_WORLDMAP_PRODUCTION_INTEGRATION=NOT_AUTHORIZED"
