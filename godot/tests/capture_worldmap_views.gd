@@ -1,0 +1,62 @@
+extends SceneTree
+## Actual OpenGL/GL Compatibility worldmap render gate, never synthetic or
+## headless illustration. Frames stay runner-local; checksums logged by CI.
+const Scene = preload("res://scenes/planetary_worldmap.tscn")
+const OUT := "res://review-evidence/"
+var _frame_names := ["globe","chart","local-survey","low-sky-3d"]
+
+func _initialize() -> void:
+    call_deferred("_run")
+
+func _capture() -> Image:
+    await RenderingServer.frame_post_draw
+    return root.get_texture().get_image()
+
+func _valid(img: Image) -> bool:
+    if img.is_empty() or img.get_width() != 960 or img.get_height() != 640:
+        return false
+    var unique: Dictionary = {}
+    for y in range(95,540,21):
+        for x in range(30,930,27):
+            unique[img.get_pixel(x,y).to_rgba32()] = true
+    return unique.size() >= 18
+
+func _run() -> void:
+    root.size = Vector2i(960,640)
+    var world := Scene.instantiate()
+    root.add_child(world)
+    await process_frame
+    await process_frame
+    var base: Image
+    for i in range(_frame_names.size()):
+        if i != 0:
+            var key := InputEventKey.new()
+            key.pressed = true
+            key.keycode = KEY_1+i
+            world.call("_unhandled_input",key)
+        await process_frame
+        await process_frame
+        var image: Image = await _capture()
+        if not _valid(image):
+            push_error("GODOT_WORLDMAP_CAPTURE_FAIL: nonrendered or unvaried "+_frame_names[i])
+            quit(i+2)
+            return
+        if i == 0:
+            base = image
+        elif image.get_data() == base.get_data():
+            push_error("GODOT_WORLDMAP_CAPTURE_FAIL: mode visually unchanged "+_frame_names[i])
+            quit(i+6)
+            return
+        if DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT)) != OK:
+            push_error("GODOT_WORLDMAP_CAPTURE_FAIL: cannot create destination")
+            quit(10)
+            return
+        var target := OUT+"worldmap-"+_frame_names[i]+"-native-960x640.png"
+        if image.save_png(target) != OK:
+            push_error("GODOT_WORLDMAP_CAPTURE_FAIL: PNG write")
+            quit(11)
+            return
+        print("GODOT_WORLDMAP_NATIVE_FRAME_PASS: "+target)
+    print("GODOT_WORLDMAP_RENDER_CAPTURE_PASS: globe/chart/survey/low-sky actually rendered")
+    print("GODOT_WORLDMAP_CREATOR_VISUAL_ACCEPTANCE=PENDING")
+    quit(0)
