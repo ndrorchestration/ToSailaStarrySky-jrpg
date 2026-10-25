@@ -1,4 +1,4 @@
-# To Sail the Starry Sky — Godot native world map, development slices 1–2
+# To Sail the Starry Sky — Godot native world map, development slices 1–3
 
 **Status:** Review-only playable foundation. The planetary map and seeded procedural geography are **not canonical world geography**; this is not final JRPG or chapter-one world integration. Native worldmap scene is intentionally isolated from Chapter I and any unreleased postgame navigation contracts.
 
@@ -12,7 +12,7 @@ Open `godot/project.godot` in Godot 4.7.2, then open `res://scenes/planetary_wor
 
 | Input | Action |
 |---|---|
-| 1 / 2 / 3 / 4 | Globe, global chart, local horizon survey, **native 3D low-sky terrain** |
+| 1 / 2 / 3 / 4 / 5 | Globe, global chart, local horizon survey, tangent 3D low-sky, **global cubed-sphere 3D tile flight** |
 | Mouse drag / wheel | Orbit 3D globe / zoom |
 | A / D | Rotate the globe view |
 | W / S | Throttle / brake |
@@ -34,17 +34,24 @@ Open `godot/project.godot` in Godot 4.7.2, then open `res://scenes/planetary_wor
 6. Explicit `starry_worldmap_preview_v1.json` under Godot's `user://` sandbox, separate from First Wake saves. Version, latitude/longitude, speed, altitude, heading, distance, view mode, waypoint and discovery IDs are validated; invalid/unrecognized data fails closed.
 7. **3D low-sky terrain and ocean** on separate real Godot `MeshInstance3D` surfaces: colored curvature-aware land/bathymetry, a water surface with deterministic animated waves, shallow/deep color shifts and shoreline foam, plus a dedicated procedural sky gradient. This is a visual prototype with no physical buoyancy, collision or final weather simulation.
 8. **Continuous local camera movement:** the ship-relative viewpoint now uses geodesic east/north offsets from the active patch anchor and terrain-relative height, rather than remaining fixed until the patch abruptly recenters. The patch rebuilds after bounded travel or a material horizon/altitude shift; this does not yet implement seamless streamed world chunks.
-9. Native Godot tests for seam, poles, biome variety, local mask, persistence roundtrip/tamper, camera continuity, adaptive patch extent, actual land/sea mesh/material contracts and **scene construction / UI mode toggles**.
+9. **Godot cubed-sphere tile preview (key 5):** genuine spherical tiles across six cube faces, sharing unit-sphere border positions, shaded procedural land and independent ocean surfaces. Tile selection reuses the existing physically computed horizon planner and global geodesic camera. At most **32 simultaneously visible meshes** (each tile can include land and water surfaces), **64 cached tile payloads**, **maximum requested level 7** with explicit automatic downgrade if the visibility budget is exceeded. Level is uniform within each plan, not a full continuous view-dependent LOD hierarchy.
+10. Native Godot tests for seam, poles, biome variety, local mask, persistence roundtrip/tamper, camera continuity, adaptive patch extent, actual land/sea mesh/material contracts, cube-face boundary samples, bounded cache, **scene construction and all UI view modes**.
 
 ## Known limitations / acceptance gates
 
 - **NOT the full finished world map**: no creator-approved coastline/continent/geopolitics/biome atlas; all new geographic names are generic **Survey A–D** test markers.
-- Globe geometry is a smooth sphere with a **terrain albedo atlas**, not displacement meshes, collision-bearing 3D coastlines, landings, floating structures or streamed near-field terrain. Existing cubed-sphere modules plan tile metadata only; they are not silently upgraded by this slice.
-- The local horizon survey remains physically bounded **2D**. Mode 4 adds **real curved 3D local terrain, shader water and an atmosphere gradient**, plus geodesic local camera movement. However its terrain still rebuilds at bounded intervals; there is **no continuous cubed-sphere chunk stream, seam-stitched LOD, accepted Dragonfly chase camera, physics/collision or landing gameplay**.
+- The orbital globe still uses a **smooth sphere with a terrain albedo atlas**. Mode 5 now actually constructs **spherical cubed-sphere tile meshes** from the pre-existing addressing/planner: it is an opt-in, synchronous bounded prototype, NOT a production continuous LOD terrain-streamer, authoritative coastline, collision-bearing landing surface, flora or ship route. The globe albedo remains an underlying review scaffold.
+- The local horizon survey remains physically bounded **2D**. Mode 4 adds **real curved 3D local terrain, shader water and atmosphere**, with geodesic local camera motion. Mode 5 adds spherical tiles on a shared global coordinate frame, but mode 4 and 5 still have **distinct cameras and geometry**. Missing: seamless cinematic interpolation between modes, asynchronous/background mesh generation, progressive tile morphing/skirt reconciliation between different LOD levels, collision and landing.
 - No creator-approved full-detail Dragonfly 3D model, wing animation, shipboard context, or collision physics. Gold point is a locator, not character/ship art.
 - No canon locations, authored trade routes, fog/persistence migration to chapter save, full-party auroral access, or concealed postgame route mechanics. **Do not put private mystery mechanics into this public repository.**
 - An authentic Godot **Compatibility/Mesa** workflow checks five distinct runner-local 960×640 rendered frames (including a sea-facing ocean-shader test) and scene-pixel contributions. Low-sky color-sampling variation increased from **4 to 238** and sea-facing measured **242** in one controlled Linux runner. **These are palette-diversity checks, not cinematic fidelity, perceptual scoring or creator visual acceptance.** Screenshots are not distributable artifacts in this workflow. Forward+ render, Windows GPU quality, performance/FPS/VRAM, field-of-view art and creator acceptance remain open.
 - A separate native scene does not confer permission to merge a stacked Godot PR, alter production main, release installers or change Defender security holds.
+
+## Spherical tile implementation checkpoint
+
+At development scale only, the preview constructs actual tile geometry in the **same global sphere coordinate frame as the orbital globe**, rather than instantiating a flat map. Tile face UVs are converted through the existing six-face basis and the world-wide biome sampler, and each triangle is oriented outwards regardless of face. 32-tile active render budget / 64-tile bounded LRU are checked in native tests. The level can be downgraded by the horizon planner for budget reasons. Current tiles all share one level per visibility plan and change synchronously; **there is no promised no-pop cross-LOD transition or sustained 60 FPS**. Shorelines, radius and all city marker coordinates remain illustrative. The 0.18 km terrain/0.28 km water visual offsets are deliberate depth separation from the underlying full-globe preview mesh and **are not geographical elevations**.
+
+[Native sphere mesh regression](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40166430092) verified the cube-face/real-mesh scene after adding boundary checks. [Real GL screenshot verification](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40166331754) verified the first six-view surface fix, including a positive streamed-mesh pixel-delta at **26 visible tiles**. These are engine checks, **not accessible art frames or creator visual approval**.
 
 ## Evidence — native verified review snapshots
 
@@ -61,6 +68,9 @@ godot/scenes/planetary_worldmap.tscn
   scripts/planetary/worldmap_cartography.gd   Deterministic globe and local sampling
   scripts/planetary/worldmap_chart.gd         Native CanvasItem chart / horizon panel
   scripts/planetary/worldmap_local_terrain.gd Curved tangent-sphere local 3D patch
+  scripts/planetary/worldmap_cube_tile_mesh.gd Native cube-face real mesh payload builder
+  scripts/planetary/worldmap_cube_stream.gd    Horizon-limited live tile renderer with 64-entry LRU
+  tests/worldmap_cube_stream_test.gd           Cross-face seams, poles, live tile budget, camera
   scripts/planetary/worldmap_state.gd         Versioned and bounded standalone persistence
   scripts/planetary/planetary_geometry.gd     Existing spherical coordinates and horizon
   scripts/planetary/planetary_flight.gd       Existing geodesic motion
@@ -72,7 +82,7 @@ godot/scenes/planetary_worldmap.tscn
 
 1. **Completed for the current branch code:** native Godot 4.7.2 import, geodesic/canon-constrained worldmap scene contract checks, and real Linux GL Compatibility/Mesa five-view capture. Recheck exact HEAD after every code change; this does **not** cover visual acceptance.
 2. **Next acceptance:** Forward+ and native Windows GPU captures, image-based atlas orientation/UV and material review, representative frame-time/VRAM/performance profile, creator art critique.
-3. Production **cubed-sphere** multi-resolution streamed patch meshes, continuous planet→low-sky↔landing transitions, chunk seams/collision and correct full 3D horizon occlusion. Current local camera movement is continuous only **inside one nonstreamed tangent patch**.
+3. Production **cubed-sphere** multi-resolution streamed patch hierarchy, incremental frame-time-budgeted mesh construction, asynchronous workers where appropriate, graceful LOD transitions, true ground collider/landing and camera blending between orbit, near-ground and ship. A bounded native cube tile proof is now present; it is not a completed streaming engine.
 4. Authored biome masks/coastal geometry, rivers/reefs/wetlands, weather and ground-collision/landing physics.
 5. Creator-reviewed Dragonfly mesh, navigation cockpit/flight camera, trade-lane visuals, route-aware movement and ground-to-ship scene switching.
 6. Discovery/save compatibility and authored map data, settlements, quest access and art acceptance, respecting creator-controlled spoiler boundary.
