@@ -91,8 +91,7 @@ func _run() -> void:
             "real cube-sphere tiles bounded by planner")
     check(camera.position.length() < 40.0,
             "fifth-mode camera uses actual globe positions, not fake local 1000-unit origin")
-    check(terrain.scale.x < 1.0 and terrain.scale.x > 0.999,
-            "globe underlay lowered for non-coplanar tile depth without changing geodesic radius")
+    check(not terrain.visible,"tile-only review does not mask spherical surface behind whole-globe preview")
     var check_state: Dictionary = scene.call("snapshot")
     check(check_state["mode"] == "tiles","isolated save retains new cube-sphere mode")
     check(not State.encode(check_state).is_empty(),"all modes save-safe")
