@@ -16,7 +16,8 @@ func _initialize() -> void:
             var b := Cart.sample(lat,float(lon))
             check(a["biome"] == b["biome"],"deterministic cell")
             check(a["color"] == b["color"],"deterministic color")
-            check((a["color"] as Color).is_finite(),"finite RGBA")
+            var tone: Color = a["color"]
+            check(is_finite(tone.r) and is_finite(tone.g) and is_finite(tone.b) and is_finite(tone.a),"finite RGBA")
             biomes[str(a["biome"])] = true
             if a["land"]:
                 land += 1
