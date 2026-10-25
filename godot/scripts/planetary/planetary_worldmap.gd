@@ -390,9 +390,16 @@ func _update_view() -> void:
     _headline.text += "LAT %.2f   LON %.2f   ALT %.2f km   HDG %.0f°   SPEED %.0f km/h   BIOME %s\n" % [
             float(_flight["latDeg"]),float(_flight["lonDeg"]),float(_flight["altitudeKm"]),
             float(_flight["headingDeg"]),float(_flight["speedKmh"]),str(nearby["biome"])]
-    _headline.text += "%s   /   Survey markers discovered: %d / %d   /   Geometric horizon: %.1f km" % [
-            bearing_text,_discovered.size(),SURVEY_MARKERS.size(),
-            Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM)]
+    if _mode == "tiles" and _cube_stream != null:
+        var tiles: Dictionary = _cube_stream.call("stats")
+        _headline.text += "%s  /  CUBE L%d  %d/%d TILES  CACHE %d/%d  HORIZON %.0f km" % [
+                bearing_text,int(tiles["level"]),int(tiles["visible"]),int(tiles["max_visible"]),
+                int(tiles["cache_size"]),int(tiles["cache_size"]) + maxf(0.0,64.0-float(tiles["cache_size"])),
+                Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM)]
+    else:
+        _headline.text += "%s   /   Survey markers discovered: %d / %d   /   Geometric horizon: %.1f km" % [
+                bearing_text,_discovered.size(),SURVEY_MARKERS.size(),
+                Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM)]
     _footer.text = "1 GLOBE   2 CHART   3 HORIZON   4 LOCAL 3D   5 CUBE TILES   W/S THROTTLE   Q/E TURN   R/F CLIMB\n"
     _footer.text += "A/D ORBIT   DRAG/WHEEL CAMERA   SHIFT FAST TRAVEL   P WAYPOINT PILOT   K SAVE   O LOAD"
     if _autopilot:
