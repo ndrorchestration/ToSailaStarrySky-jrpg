@@ -24,7 +24,7 @@ For the creator-supplied five-person group references (nighttime airship and day
 
 **Ionia native art:** original source in stacked native review [PR #307](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/307) is a **single-frame candidate**, not final multi-direction sprite/animation. Verify green-eye rendering, source provenance and 64×96-ish intended logical gameplay readability before upgrading. Existing pixel/vector placeholders should not be described as accepted high-fidelity art.
 
-**Talen (5):** precocious, enjoys how the ship works, blocks, drawing and painting. Preserve personhood, curiosity and routine. Dreaming remains exceptional/plot-bound; do not turn him into a normal playable battle mage.
+**Talen (5):** precocious, enjoys how the ship works, blocks, drawing and painting. Preserve personhood, curiosity and routine. Do not invent powers or portray him as a normal playable battle mage.
 
 ## Approval and visual test
 
