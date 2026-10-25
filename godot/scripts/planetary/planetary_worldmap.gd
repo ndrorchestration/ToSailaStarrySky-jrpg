@@ -320,9 +320,12 @@ func _refresh_chart() -> void:
         _low_sky.visible = _mode == "flight"
         if _mode == "flight":
             var origin: Dictionary = _low_sky.call("origin")
-            if origin.is_empty() or Geo.great_circle_distance_km(origin,_flight,PLANET_KM) > 55.0:
-                var horizon := Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM)
-                _low_sky.call("rebuild",_flight,clampf(horizon*1.18,90.0,800.0),64)
+            var horizon := Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM)
+            var target_extent := clampf(horizon*1.18,90.0,800.0)
+            var current_extent: float = _low_sky.call("extent_km")
+            var traveled := 0.0 if origin.is_empty() else Geo.great_circle_distance_km(origin,_flight,PLANET_KM)
+            if origin.is_empty() or traveled > 55.0 or absf(target_extent-current_extent) > maxf(40.0,current_extent*0.35):
+                _low_sky.call("rebuild",_flight,target_extent,64)
     if _mode == "local":
         var moved := _survey_center.is_empty()
         if not moved:
