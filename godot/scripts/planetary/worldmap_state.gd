@@ -6,7 +6,7 @@ const Geometry = preload("res://scripts/planetary/planetary_geometry.gd")
 const Flight = preload("res://scripts/planetary/planetary_flight.gd")
 const VERSION := 1
 const PATH := "user://starry_worldmap_preview_v1.json"
-const MODES := ["globe","chart","local","flight"]
+const MODES := ["globe","chart","local","flight","tiles"]
 const MARKERS := ["survey_a","survey_b","survey_c","survey_d"]
 const LIMIT_BYTES := 8192
 
