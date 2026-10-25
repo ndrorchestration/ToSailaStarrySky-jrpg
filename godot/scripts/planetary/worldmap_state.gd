@@ -11,7 +11,7 @@ const MARKERS := ["survey_a","survey_b","survey_c","survey_d"]
 const LIMIT_BYTES := 8192
 
 static func defaults() -> Dictionary:
-    return {"flight": Flight.create_state(), "mode": "globe",
+    return {"flight": Flight.create_state(30.0,140.0,2.0,90.0), "mode": "globe",
             "discovered": [], "waypoint": {}}
 
 static func _finite_number(v: Variant) -> bool:
