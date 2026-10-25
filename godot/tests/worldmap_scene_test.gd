@@ -89,6 +89,14 @@ func _run() -> void:
     var tile_stats: Dictionary = sphere_stream.call("stats")
     check(int(tile_stats["visible"]) > 0 and int(tile_stats["visible"]) <= 32,
             "real cube-sphere tiles bounded by planner")
+    var cube_nodes := sphere_stream.get_children()
+    check(not cube_nodes.is_empty(),"generated cube tile child instances exist")
+    var tile_sample := cube_nodes[0] as Node3D
+    var tile_land := tile_sample.get_node_or_null("SphericalLand") as MeshInstance3D
+    check(tile_land != null and tile_land.mesh != null,"cube tile carries real surface mesh")
+    check(tile_land.material_override is StandardMaterial3D and
+            (tile_land.material_override as StandardMaterial3D).cull_mode == BaseMaterial3D.CULL_DISABLED,
+            "double-sided review terrain material prevents intermittent cube-face backface masking")
     check(camera.position.length() < 40.0,
             "fifth-mode camera uses actual globe positions, not fake local 1000-unit origin")
     check(not terrain.visible,"tile-only review does not mask spherical surface behind whole-globe preview")
