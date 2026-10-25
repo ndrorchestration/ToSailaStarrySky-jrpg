@@ -264,7 +264,7 @@ func _build_overlay() -> void:
     _chart.position = Vector2(65,136)
     _chart.size = Vector2(830,402)
     _chart.mouse_filter = Control.MOUSE_FILTER_STOP
-    _chart.waypoint_requested.connect(_set_waypoint)
+    _chart.connect("waypoint_requested",Callable(self,"_set_waypoint"))
     canvas.add_child(_chart)
 
 func _set_waypoint(lat: float,lon: float) -> void:
@@ -303,7 +303,7 @@ func _refresh_chart() -> void:
                     clampf(horizon,25.0,2500.0),PLANET_KM,160))
             _survey_center = _flight.duplicate(true)
             _survey_altitude = float(_flight["altitudeKm"])
-    _chart.configure(_mode,_atlas,_survey,_flight,_waypoint,
+    _chart.call("configure",_mode,_atlas,_survey,_flight,_waypoint,
             _known_markers(),Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM))
 
 func _update_view() -> void:
