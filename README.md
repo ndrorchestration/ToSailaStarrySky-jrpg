@@ -1,6 +1,11 @@
-# Aetherwake — The Last Solarpunk Airship
+# To Sail the Starry Sky
 
-Aetherwake is a **pre-alpha turn-based JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a storm at Wake Dock reveals that the ship can exceed ordinary performance only when the right crew resonates with it.
+**Development direction — 2026-10-24: Godot 4.7.2 + GDScript only for new game functionality.**
+The older p5.js/NW.js project below is preserved as a reference until its content, combat, saves and art are verified in native Godot; it is NOT the future game engine. [Godot migration plan](docs/GODOT_MIGRATION.md) · [Native Chapter I project](godot/project.godot) · [Standalone globe study](godot/scenes/planetary_globe_study.tscn).
+
+---
+
+The legacy Aetherwake browser prototype is a **pre-alpha turn-based JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a storm at Wake Dock reveals that the ship can exceed ordinary performance only when the right crew resonates with it.
 
 The current repository contains a playable vertical-slice prototype plus an active architecture migration toward the full authored-party RPG.
 
