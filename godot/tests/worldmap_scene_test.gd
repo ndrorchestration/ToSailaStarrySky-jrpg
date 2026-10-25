@@ -43,10 +43,22 @@ func _run() -> void:
     
     var patch := scene.get_node_or_null("LowSkyTerrainDevelopmentPatch")
     check(patch != null and patch.call("has_mesh"),"actual native local 3D terrain mesh")
+    var ocean := patch.get_node_or_null("OceanSurface") as MeshInstance3D
+    check(ocean != null,"separate ocean mesh node")
+    check(ocean != null and ocean.mesh != null,"native water surface generated")
+    var stats: Dictionary = patch.call("surface_stats")
+    check(int(stats["land_cells"]) > 0 and int(stats["water_cells"]) > 0,
+            "starting fixture spans both land and ocean")
+    check(bool(stats["has_water"]),"water material is active")
+    check(ocean != null and ocean.mesh.surface_get_material(0) is ShaderMaterial,
+            "native wave and shoreline shader assigned")
     switch.keycode = KEY_4
     scene.call("_unhandled_input",switch)
     check(scene.call("get_mode") == "flight","3D low-sky mode switch")
     check(patch.visible and not chart.visible,"3D view replaces map overlay")
+    var atmosphere := scene.get_node_or_null("WorldMapEnvironment") as WorldEnvironment
+    check(atmosphere != null and atmosphere.environment.background_mode == Environment.BG_SKY,
+            "low-sky view enables atmospheric sky")
     check(camera.position.x > 900.0,"camera moves to isolated local tangent terrain")
     check(not State.encode(scene.call("snapshot")).is_empty(),"all modes save-safe")
     scene.queue_free()
