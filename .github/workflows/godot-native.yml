@@ -41,3 +41,10 @@ jobs:
         run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/planetary_tile_test.gd
       - name: Native bounded tile planner and LRU tests
         run: timeout --signal=TERM 45s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/planetary_stream_test.gd
+
+      - name: Native worldmap biome and cartography regressions
+        run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/worldmap_cartography_test.gd
+      - name: Native worldmap save and discovery contract
+        run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/worldmap_state_test.gd
+      - name: Native 3D worldmap and chart scene smoke
+        run: timeout --signal=TERM 90s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/worldmap_scene_test.gd
