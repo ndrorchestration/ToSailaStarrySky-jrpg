@@ -16,6 +16,7 @@ func _capture() -> void:
         scene._clock = float(cut[1])
         scene.camera.position = scene.ship.position + Vector3(-25, 18, 25)
         scene._update_scene(10.0)
+        scene.overlay.text = "TO SAIL THE STARRY SKY  /  VISUAL LAB\n" + str(cut[0]).to_upper() + "  •  NATIVE GODOT 4.7.2\nCOAST-TO-HIGHLAND ART STUDY  •  NON-CANON"
         await RenderingServer.frame_post_draw
         var screenshot: Image = get_root().get_texture().get_image()
         if screenshot == null or screenshot.get_width() != 960 or screenshot.get_height() != 640:
