@@ -51,7 +51,7 @@ func _run() -> void:
             push_error("GODOT_WORLDMAP_CAPTURE_FAIL: cannot create destination")
             quit(10)
             return
-        var target := OUT+"worldmap-"+_frame_names[i]+"-native-960x640.png"
+        var target: String = OUT+"worldmap-"+str(_frame_names[i])+"-native-960x640.png"
         if image.save_png(target) != OK:
             push_error("GODOT_WORLDMAP_CAPTURE_FAIL: PNG write")
             quit(11)
