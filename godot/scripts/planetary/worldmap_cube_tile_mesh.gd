@@ -57,9 +57,12 @@ static func build(tile: Dictionary, divisions: int = SEGMENTS) -> Dictionary:
             var sample := Cart.sample(lat,lon)
             var elev := float(sample["elevation"])
             heights.append(elev)
-            var relief := maxf(elev,0.0)*2.8 if elev >= 0.0 else maxf(elev*2.6,-2.6)
+            var relief := (maxf(elev,0.0)*2.8+0.18) if elev >= 0.0 else maxf(elev*2.6,-2.6)
             land_points.append(direction*(GLOBE_UNITS+relief*KM_TO_UNITS))
-            water_points.append(direction*(GLOBE_UNITS+0.018*KM_TO_UNITS))
+            # The smooth globe is an underlying preview scaffold. Raise the
+            # separate water skin 0.28 km above its surface to prevent
+            # depth-buffer coincidence in near-horizon GL Compatibility.
+            water_points.append(direction*(GLOBE_UNITS+0.28*KM_TO_UNITS))
             var ground_color: Color = sample["color"]
             if elev < 0.0:
                 ground_color = ground_color.darkened(0.13)
