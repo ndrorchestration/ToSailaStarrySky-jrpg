@@ -6,6 +6,7 @@ const Flight = preload("res://scripts/planetary/planetary_flight.gd")
 const Cart = preload("res://scripts/planetary/worldmap_cartography.gd")
 const State = preload("res://scripts/planetary/worldmap_state.gd")
 const Chart = preload("res://scripts/planetary/worldmap_chart.gd")
+const LocalTerrain = preload("res://scripts/planetary/worldmap_local_terrain.gd")
 
 const PLANET_KM := 6371.0 # Illustration, NOT canonical planet radius.
 const GLOBE_UNITS := 12.0
@@ -36,6 +37,8 @@ var _survey: Texture2D
 var _survey_center: Dictionary = {}
 var _survey_altitude := -1.0
 var _panel_timer := 0.0
+var _low_sky: Node3D
+var _terrain_timer := 0.0
 
 func _ready() -> void:
     _apply_state(State.defaults())
@@ -45,6 +48,7 @@ func _ready() -> void:
     _build_stars()
     _build_ship_locator()
     _build_camera()
+    _build_local_patch()
     _build_overlay()
     _refresh_chart()
     _update_view()
@@ -231,6 +235,12 @@ func _build_camera() -> void:
     _camera.far = 350.0
     add_child(_camera)
 
+func _build_local_patch() -> void:
+    _low_sky = LocalTerrain.new()
+    add_child(_low_sky)
+    _low_sky.call("rebuild",_flight,190.0,64)
+    _low_sky.visible = false
+
 func _add_label(parent: Node, name: String, position: Vector2, font_size: int,
         color: Color) -> Label:
     var node := Label.new()
@@ -291,7 +301,14 @@ func _discover_nearby() -> void:
 func _refresh_chart() -> void:
     if _chart == null:
         return
-    _chart.visible = _mode != "globe"
+    _chart.visible = _mode == "chart" or _mode == "local"
+    if _low_sky != null:
+        _low_sky.visible = _mode == "flight"
+        if _mode == "flight":
+            var origin: Dictionary = _low_sky.call("origin")
+            if origin.is_empty() or Geo.great_circle_distance_km(origin,_flight,PLANET_KM) > 55.0:
+                var horizon := Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM)
+                _low_sky.call("rebuild",_flight,clampf(horizon*1.18,90.0,800.0),64)
     if _mode == "local":
         var moved := _survey_center.is_empty()
         if not moved:
@@ -309,9 +326,21 @@ func _refresh_chart() -> void:
 func _update_view() -> void:
     if _camera == null:
         return
-    _camera.position = Vector3(sin(_yaw)*cos(_pitch),sin(_pitch),
-            cos(_yaw)*cos(_pitch))*_distance
-    _camera.look_at(Vector3.ZERO,Vector3.UP)
+    
+    if _mode == "flight" and _low_sky != null:
+        var center: Vector3 = _low_sky.call("camera_position",_flight)
+        var direction := deg_to_rad(float(_flight["headingDeg"]))
+        var forward := Vector3(sin(direction),0.0,-cos(direction))
+        _camera.position = center-forward*0.14+Vector3(0.0,0.018,0.0)
+        _camera.look_at(center+forward*0.5-Vector3(0.0,0.024,0.0),Vector3.UP)
+        _camera.near = 0.002
+        _camera.far = 400.0
+    else:
+        _camera.position = Vector3(sin(_yaw)*cos(_pitch),sin(_pitch),
+                cos(_yaw)*cos(_pitch))*_distance
+        _camera.look_at(Vector3.ZERO,Vector3.UP)
+        _camera.near = 0.03
+        _camera.far = 350.0
     _marker.position = Geo.to_cartesian(_flight,PLANET_KM).normalized()*(GLOBE_UNITS+0.25)
     var nearby := Cart.sample(float(_flight["latDeg"]),float(_flight["lonDeg"]))
     var bearing_text := "No waypoint"
@@ -325,7 +354,7 @@ func _update_view() -> void:
     _headline.text += "%s   /   Survey markers discovered: %d / %d   /   Geometric horizon: %.1f km" % [
             bearing_text,_discovered.size(),SURVEY_MARKERS.size(),
             Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM)]
-    _footer.text = "1 GLOBE     2 GLOBAL CHART     3 LOCAL SURVEY     W/S THROTTLE     Q/E TURN     R/F ALTITUDE\n"
+    _footer.text = "1 GLOBE   2 GLOBAL CHART   3 HORIZON SURVEY   4 LOW-SKY 3D   W/S THROTTLE     Q/E TURN     R/F ALTITUDE\n"
     _footer.text += "A/D ORBIT   DRAG/WHEEL CAMERA   SHIFT FAST TRAVEL   P WAYPOINT PILOT   K SAVE   O LOAD"
     if _autopilot:
         _footer.text += "   /   WAYPOINT PILOT ACTIVE"
@@ -370,6 +399,7 @@ func _unhandled_input(event: InputEvent) -> void:
             KEY_1: _mode = "globe"
             KEY_2: _mode = "chart"
             KEY_3: _mode = "local"
+            KEY_4: _mode = "flight"
             KEY_P:
                 _autopilot = not _autopilot if not _waypoint.is_empty() else false
             KEY_K:
