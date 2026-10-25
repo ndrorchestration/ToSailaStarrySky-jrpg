@@ -1,34 +1,77 @@
 extends SceneTree
-## Engine-native SOFTWARE snapshot harness; not representative GPU performance.
+## Actual native framebuffer evidence; frozen matched poses, no visual acceptance claim.
 const StudyScene = preload("res://main.tscn")
 const CUTS: Array = [["coast", 9.0], ["forest", 23.0], ["highland", 34.0]]
-
+var failed: bool = false
 func _initialize() -> void:
     call_deferred("_capture")
-
+func _frame() -> Image:
+    for warmup in range(8):
+        await process_frame
+        await RenderingServer.frame_post_draw
+    return root.get_texture().get_image()
+func _save(frame: Image, path: String) -> void:
+    if frame == null or frame.get_size() != Vector2i(960,640) or frame.save_png(path) != OK:
+        push_error("CAPTURE_FAILED: " + path)
+        failed = true
+    else:
+        print("NATIVE_ART_CAPTURE:", path, " 960x640")
+func _different(a: Image, b: Image) -> int:
+    var count: int = 0
+    for y in range(110,640,2):
+        for x in range(0,960,2):
+            if a.get_pixel(x,y) != b.get_pixel(x,y): count += 1
+    return count
 func _capture() -> void:
     var scene = StudyScene.instantiate()
-    get_root().add_child(scene)
+    root.add_child(scene)
     await process_frame
-    var folder: String = ProjectSettings.globalize_path("res://evidence")
-    DirAccess.make_dir_recursive_absolute(folder)
+    scene.set_process(false)
+    var baseline: bool = OS.get_cmdline_user_args().has("--baseline")
+    var folder: String = ProjectSettings.globalize_path("res://evidence/" + ("baseline" if baseline else "materials"))
+    if DirAccess.make_dir_recursive_absolute(folder) != OK:
+        push_error("CAPTURE_FOLDER_FAILED")
+        quit(1)
+        return
     for cut in CUTS:
         scene._clock = float(cut[1])
-        scene.camera.position = scene.ship.position + Vector3(-25, 18, 25)
         scene._update_scene(10.0)
         scene.overlay.text = "TO SAIL THE STARRY SKY  /  VISUAL LAB\n" + str(cut[0]).to_upper() + "  •  NATIVE GODOT 4.7.2\nCOAST-TO-HIGHLAND ART STUDY  •  NON-CANON"
-        await RenderingServer.frame_post_draw
-        var screenshot: Image = get_root().get_texture().get_image()
-        if screenshot == null or screenshot.get_width() != 960 or screenshot.get_height() != 640:
-            push_error("CAPTURE_FAILED: invalid framebuffer for " + str(cut[0]))
-            quit(1)
-            return
-        var output: String = folder.path_join(str(cut[0]) + ".png")
-        var result: Error = screenshot.save_png(output)
-        if result != OK:
-            push_error("CAPTURE_FAILED: save PNG for " + str(cut[0]))
-            quit(1)
-            return
-        print("NATIVE_ART_CAPTURE:", output, " ", screenshot.get_width(), "x", screenshot.get_height())
+        var screenshot: Image = await _frame()
+        _save(screenshot,folder.path_join(str(cut[0])+".png"))
+    if not baseline:
+        scene._clock = 9.0
+        scene._update_scene(10.0)
+        scene.overlay.text = "TO SAIL THE STARRY SKY  /  VISUAL LAB\nCOAST  •  NATIVE GODOT 4.7.2\nCOAST-TO-HIGHLAND ART STUDY  •  NON-CANON"
+        var first: Image = await _frame()
+        var still: Image = await _frame()
+        scene.visuals.set_clock(10.0,false)
+        var moving: Image = await _frame()
+        var motion_pixels: int = _different(first,moving)
+        var paused_pixels: int = _different(first,still)
+        scene.visuals.set_clock(9.0,false)
+        scene.visuals.set_low_quality(true)
+        var low: Image = await _frame()
+        _save(low,folder.path_join("coast-low.png"))
+        var quality_pixels: int = _different(first,low)
+        scene.visuals.set_clock(18.0,true)
+        var reduced_a: Image = await _frame()
+        scene.visuals.set_clock(23.0,true)
+        var reduced_b: Image = await _frame()
+        var reduced_pixels: int = _different(reduced_a,reduced_b)
+        scene.terrain.update_detail(Vector3(500,10,500),0.5)
+        scene.visuals.refresh_coverage()
+        await _frame()
+        var mask_readback: PackedByteArray = scene.visuals.coverage.get_image().get_data()
+        if mask_readback != scene.visuals._coverage_bytes:
+            push_error("NATIVE_COVERAGE_READBACK_FAILED")
+            failed = true
+        else:
+            print("NATIVE_COVERAGE_READBACK_PASS hidden tiles have zero coverage")
+        print("NATIVE_EFFECT_PIXEL_CHECK motion=",motion_pixels," paused=",paused_pixels," low_quality=",quality_pixels," reduced_motion=",reduced_pixels)
+        if motion_pixels < 100 or quality_pixels < 100 or paused_pixels != 0 or reduced_pixels != 0:
+            push_error("NATIVE_EFFECT_PIXEL_CHECK_FAILED")
+            failed = true
     scene.queue_free()
-    quit(0)
+    await process_frame
+    quit(1 if failed else 0)

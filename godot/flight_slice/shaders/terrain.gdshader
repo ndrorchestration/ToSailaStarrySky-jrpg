@@ -1,0 +1,30 @@
+shader_type spatial;
+render_mode diffuse_burley;
+uniform float study_time = 0.0;
+varying vec3 world_pos;
+varying vec3 world_normal;
+float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+float noise(vec2 p) {
+    vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+    return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1)),f.x),f.y);
+}
+void vertex() { world_pos=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz; world_normal=normalize(mat3(MODEL_MATRIX)*NORMAL); }
+void fragment() {
+    vec3 p=floor(world_pos*8.0)/8.0;
+    float mottling=noise(p.xz*0.40)*0.65+noise(p.xz*1.8)*0.35;
+    float slope=1.0-clamp(world_normal.y,0.0,1.0);
+    vec3 grass=mix(vec3(0.10,0.20,0.13),vec3(0.31,0.37,0.17),mottling);
+    grass=mix(grass,vec3(0.08,0.17,0.13),smoothstep(16.0,30.0,p.x)*0.35);
+    float strata=sin(p.y*4.0+noise(p.xz*0.3)*3.0)*0.5+0.5;
+    vec3 rock=mix(vec3(0.17,0.20,0.24),vec3(0.42,0.40,0.36),mottling*0.7+strata*0.3);
+    float rocky=max(smoothstep(0.07,0.32,slope),smoothstep(10.0,17.0,p.y)*0.6);
+    vec3 color=mix(grass,rock,rocky);
+    float sand=1.0-smoothstep(0.6,2.7,p.y+noise(p.xz*0.5)*0.5);
+    color=mix(color,mix(vec3(0.36,0.31,0.22),vec3(0.70,0.59,0.40),mottling),sand);
+    float snow=smoothstep(16.3,19.0,p.y+noise(p.xz*0.42)*2.0)*(1.0-smoothstep(0.12,0.42,slope));
+    color=mix(color,mix(vec3(0.56,0.65,0.70),vec3(0.87,0.88,0.80),mottling),snow);
+    // Broad, restrained cloud shadows preserve direct-light readability.
+    float cloud=noise(p.xz*0.025+vec2(study_time*0.004,0.0));
+    ALBEDO=color*mix(0.82,1.0,smoothstep(0.3,0.65,cloud));
+    ROUGHNESS=0.92; SPECULAR=0.12;
+}

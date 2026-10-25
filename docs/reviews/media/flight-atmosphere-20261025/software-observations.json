@@ -1,0 +1,90 @@
+{
+  "method": "wall intervals between frame_post_draw callbacks; not GPU timestamps or target FPS",
+  "engine": "4.7.2-stable (official)",
+  "adapter": "llvmpipe (LLVM 20.1.2, 256 bits)",
+  "resolution": [
+    960,
+    640
+  ],
+  "notes": "single sequential software-host run per setting; VSync unsupported; no GPU FPS/VRAM claim or reliable low-mode advantage",
+  "modes": {
+    "baseline": [
+      {
+        "draw_calls": 159.0,
+        "median_ms": 42.054,
+        "p95_ms": 54.564,
+        "primitives": 146038.0,
+        "view": "coast",
+        "worst_ms": 85.838
+      },
+      {
+        "draw_calls": 152.0,
+        "median_ms": 43.938,
+        "p95_ms": 53.001,
+        "primitives": 144586.0,
+        "view": "forest",
+        "worst_ms": 61.198
+      },
+      {
+        "draw_calls": 93.0,
+        "median_ms": 34.285,
+        "p95_ms": 41.021,
+        "primitives": 144154.0,
+        "view": "highland",
+        "worst_ms": 43.361
+      }
+    ],
+    "high": [
+      {
+        "draw_calls": 146.0,
+        "median_ms": 41.345,
+        "p95_ms": 47.57,
+        "primitives": 101371.0,
+        "view": "coast",
+        "worst_ms": 84.624
+      },
+      {
+        "draw_calls": 132.0,
+        "median_ms": 42.562,
+        "p95_ms": 47.62,
+        "primitives": 101368.0,
+        "view": "forest",
+        "worst_ms": 56.058
+      },
+      {
+        "draw_calls": 75.0,
+        "median_ms": 34.946,
+        "p95_ms": 41.608,
+        "primitives": 84388.0,
+        "view": "highland",
+        "worst_ms": 50.593
+      }
+    ],
+    "low": [
+      {
+        "draw_calls": 146.0,
+        "median_ms": 42.819,
+        "p95_ms": 50.899,
+        "primitives": 101371.0,
+        "view": "coast",
+        "worst_ms": 57.695
+      },
+      {
+        "draw_calls": 132.0,
+        "median_ms": 44.329,
+        "p95_ms": 53.473,
+        "primitives": 101368.0,
+        "view": "forest",
+        "worst_ms": 81.658
+      },
+      {
+        "draw_calls": 75.0,
+        "median_ms": 35.603,
+        "p95_ms": 43.152,
+        "primitives": 84388.0,
+        "view": "highland",
+        "worst_ms": 75.432
+      }
+    ]
+  }
+}

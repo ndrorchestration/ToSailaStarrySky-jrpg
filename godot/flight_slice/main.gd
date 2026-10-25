@@ -3,6 +3,9 @@ extends Node3D
 const TerrainStudy = preload("res://terrain.gd")
 const ShipStudy = preload("res://ship.gd")
 const FrameProbe = preload("res://frame_probe.gd")
+const VisualStudy = preload("res://visuals.gd")
+var visuals: Node3D
+var _low_quality: bool = false
 
 var terrain
 var ship
@@ -15,10 +18,17 @@ var _reduced_motion: bool = false
 var _cinematic: bool = true
 
 func _ready() -> void:
-    _install_environment()
+    if OS.get_cmdline_user_args().has("--baseline"):
+        _install_environment()
+    else:
+        visuals = VisualStudy.new()
+        visuals.name = "FlightPresentation"
+        add_child(visuals)
     terrain = TerrainStudy.new()
     terrain.name = "ArtSliceTerrain"
     add_child(terrain)
+    if visuals != null:
+        visuals.bind_terrain(terrain)
     ship = ShipStudy.new()
     ship.name = "DragonflySilhouetteStudy"
     add_child(ship)
@@ -45,7 +55,7 @@ func _process(delta: float) -> void:
     _status_timer += step
     if _status_timer > 0.35:
         _status_timer = 0.0
-        overlay.text = "TO SAIL THE STARRY SKY  /  VISUAL LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + ("CINEMATIC" if _cinematic else "FLIGHT CHASE") + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + "C camera · P pause · M reduce motion · R restart\nNON-CANON ART STUDY  •  NOT A GAMEPLAY / FPS CLAIM"
+        overlay.text = "TO SAIL THE STARRY SKY  /  VISUAL LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + ("CINEMATIC" if _cinematic else "FLIGHT CHASE") + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + "C camera · P pause · M still effects · R restart · V detail · H HUD\nNON-CANON ART STUDY  •  NOT A GAMEPLAY / FPS CLAIM"
 
 func _unhandled_key_input(event: InputEvent) -> void:
     if not (event is InputEventKey):
@@ -62,6 +72,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
             _reduced_motion = not _reduced_motion
         KEY_R:
             _clock = 0.0
+        KEY_V:
+            _low_quality = not _low_quality
+            if visuals != null:
+                visuals.set_low_quality(_low_quality)
+        KEY_H:
+            overlay.visible = not overlay.visible
 
 func _update_scene(delta: float) -> void:
     var phase: float = fmod(_clock, 37.0) / 37.0
@@ -84,6 +100,8 @@ func _update_scene(delta: float) -> void:
     camera.position = camera.position.lerp(goal, weight)
     camera.look_at(focus, Vector3.UP)
     terrain.update_detail(camera.position, delta)
+    if visuals != null:
+        visuals.set_clock(_clock, _reduced_motion)
 
 func _install_environment() -> void:
     var daylight := DirectionalLight3D.new()
