@@ -12,7 +12,7 @@ Open `godot/project.godot` in Godot 4.7.2, then open `res://scenes/planetary_wor
 
 | Input | Action |
 |---|---|
-| 1 / 2 / 3 | Globe, global chart, local horizon survey |
+| 1 / 2 / 3 / 4 | Globe, global chart, local horizon survey, **native 3D low-sky terrain** |
 | Mouse drag / wheel | Orbit 3D globe / zoom |
 | A / D | Rotate the globe view |
 | W / S | Throttle / brake |
@@ -32,13 +32,14 @@ Open `godot/project.godot` in Godot 4.7.2, then open `res://scenes/planetary_wor
 4. Local north-up survey generated from great-circle offsets. The disk is bounded by the observer's **physical geometric horizon**; the texture beyond that disk is masked. The globe overview, chart, and local survey are separate viewpoints.
 5. Geodesic flight based on existing `planetary_flight.gd`, actual speed and altitude updates, marker attached to the spherical surface, optional chart-selected waypoint assistance; there is no instant teleport.
 6. Explicit `starry_worldmap_preview_v1.json` under Godot's `user://` sandbox, separate from First Wake saves. Version, latitude/longitude, speed, altitude, heading, distance, view mode, waypoint and discovery IDs are validated; invalid/unrecognized data fails closed.
-7. Native Godot tests for seam, poles, biome variety, local mask, persistence roundtrip/tamper, and **scene construction / UI mode toggles**.
+7. A separate **3D low-sky development terrain** built from actual curved tangent-sphere mesh vertices and per-vertex biome colors; ship-relative camera follows heading and current altitude. The mesh updates around the flight position with a bounded sampling grid and does not replace the physically bounded 2D horizon survey.
+8. Native Godot tests for seam, poles, biome variety, local mask, persistence roundtrip/tamper, and **scene construction / UI mode toggles**.
 
 ## Known limitations / acceptance gates
 
 - **NOT the full finished world map**: no creator-approved coastline/continent/geopolitics/biome atlas; all new geographic names are generic **Survey A–D** test markers.
 - Globe geometry is a smooth sphere with a **terrain albedo atlas**, not displacement meshes, collision-bearing 3D coastlines, landings, floating structures or streamed near-field terrain. Existing cubed-sphere modules plan tile metadata only; they are not silently upgraded by this slice.
-- Local survey is a physically bounded **2D projection** rather than a 3D Dragonfly chase camera and real low-sky land/landing scene; the world 3D camera remains orbital.
+- The local horizon survey remains physically bounded **2D**. New mode 4 adds a **real Godot 3D curved terrain mesh and ship-relative viewpoint**, but its terrain is a limited visual patch, **not** continuous streamed planet mesh, an approved Dragonfly chase camera, physics/collision, landings or production terrain LOD.
 - No creator-approved full-detail Dragonfly 3D model, wing animation, shipboard context, or collision physics. Gold point is a locator, not character/ship art.
 - No canon locations, authored trade routes, fog/persistence migration to chapter save, full-party auroral access, or concealed postgame route mechanics. **Do not put private mystery mechanics into this public repository.**
 - Actual visual quality / atmospheric shaders / gameplay/target hardware 60FPS are **not established by headless tests**. Require genuine renderer captures with checked version, Forward+ and Compatibility profile, frame-time/VRAM, and creator acceptance.
@@ -51,6 +52,7 @@ godot/scenes/planetary_worldmap.tscn
   scripts/planetary/planetary_worldmap.gd      Godot scene, controls, 3D mesh, UI, flight
   scripts/planetary/worldmap_cartography.gd   Deterministic globe and local sampling
   scripts/planetary/worldmap_chart.gd         Native CanvasItem chart / horizon panel
+  scripts/planetary/worldmap_local_terrain.gd Curved tangent-sphere local 3D patch
   scripts/planetary/worldmap_state.gd         Versioned and bounded standalone persistence
   scripts/planetary/planetary_geometry.gd     Existing spherical coordinates and horizon
   scripts/planetary/planetary_flight.gd       Existing geodesic motion
@@ -62,7 +64,7 @@ godot/scenes/planetary_worldmap.tscn
 
 1. Native engine CI import and headless tests; fix any compiler/scene failures.
 2. Genuine Windows/Linux renderer capture, atlas orientation, coast/cloud/material visual inspection and performance comparison, including GL Compatibility.
-3. View-dependent **real** cubed-sphere patch meshes at local scale, adaptive LOD and continuous global-to-local camera with genuine horizon occlusion.
+3. Production **cubed-sphere** multi-resolution streamed patch meshes, actual camera continuity between globe/3D low sky, seamless chunk boundaries and full 3D horizon/occlusion. The present near-field patch is only a nonstreamed prototype.
 4. Authored biome masks/coastal geometry, rivers/reefs/wetlands, weather and ground-collision/landing physics.
 5. Creator-reviewed Dragonfly mesh, navigation cockpit/flight camera, trade-lane visuals, route-aware movement and ground-to-ship scene switching.
 6. Discovery/save compatibility and authored map data, settlements, quest access and art acceptance, respecting creator-controlled spoiler boundary.
