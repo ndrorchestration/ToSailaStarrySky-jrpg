@@ -1,5 +1,7 @@
 # To Sail the Starry Sky
 
+> **2026-10-25 cross-agent handoff:** New development targets **Godot 4.7.2 / GDScript**, not additional p5.js/JavaScript gameplay. Agents (Hermes, Spellcraft/Hyperagent, Muse/Herald) start with [AGENTS.md](AGENTS.md) and the [agent handoff index](docs/AGENT_HANDOFF_INDEX.md). New [canon/reveal safeguards](docs/CANON_AND_REVEAL_POLICY.md), [character/art locks](docs/CHARACTER_AND_ART_AUTHORITY.md), [world/ship direction](docs/WORLD_SHIP_VISUAL_DIRECTION.md), [Godot coordination](docs/GODOT_MIGRATION_COORDINATION.md) and [Notion source index](docs/NOTION_SOURCE_INDEX.md) reconcile creator-approved decisions without rewriting historical JS runtime evidence. The legacy instructions below document the preserved reference build, not the forward feature-development engine.
+
 *Formerly developed as **Aetherwake — The Last Solarpunk Airship**.*
 
 **To Sail the Starry Sky** is a **pre-alpha solarpunk turn-based JRPG** about the crew of the *Aureate Wake*, a dragonfly-inspired airship navigating a world of sky routes, forgotten histories, and choices that shape the people aboard. The current playable prototype begins with Ender at Wake Dock, where an oncoming storm reveals that the ship's potential depends on the people who resonate with it.
