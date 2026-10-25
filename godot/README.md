@@ -1,3 +1,11 @@
+# To Sail the Starry Sky — Godot-native development
+
+**Engine decision (2026-10-24):** Godot 4.7.2 / GDScript is the target for new development. The rest of this document records the earlier Aetherwake native pilot and must not be read as a new requirement to return to JavaScript. This branch builds on the existing native Chapter I/party/combat work; it is not yet a production-approved migration.
+
+Open `res://scenes/planetary_globe_study.tscn` with F6 for a separately launchable **native 3D** experimental globe, mouse orbit, zoom, geodesic flight marker, rotating clouds, starfield, atmosphere and horizon telemetry. It does not replace First Wake, import the private atlas, canonize geography or complete the Moon Bridge mechanics. Native tests: `res://tests/planetary_geometry_test.gd`, `res://tests/planetary_flight_test.gd`, `res://tests/planetary_scene_smoke.gd`. See [migration plan](../docs/GODOT_MIGRATION.md).
+
+---
+
 # Aetherwake — Godot 4.7.2 / GDScript migration feasibility pilot
 
 **Status:** Isolated native-engine proof, **not** a complete migration, creator-accepted art, scene/canon rewrite, approved release, or evidence that production is now Godot.

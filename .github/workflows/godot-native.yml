@@ -35,3 +35,5 @@ jobs:
         run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/planetary_flight_test.gd
       - name: First Wake party authority (native)
         run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_party_combat_authority_test.gd
+      - name: Native planet scene construction smoke
+        run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/planetary_scene_smoke.gd
