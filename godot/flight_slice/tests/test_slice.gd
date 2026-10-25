@@ -24,6 +24,13 @@ func _run_tests() -> void:
     var terrain = TerrainStudy.new()
     get_root().add_child(terrain)
     _check(terrain.chunk_count() == 64, "bounded 64-chunk scene")
+    # Engine is clockwise-front: a top-facing triangle has negative winding
+    # cross.y here. This regression catches missing terrain seen in real frames.
+    var probe_mesh: ArrayMesh = terrain._tile_mesh(0, 0, 6)
+    var geometry: Array = probe_mesh.surface_get_arrays(0)
+    var vertices: PackedVector3Array = geometry[Mesh.ARRAY_VERTEX]
+    var oriented: Vector3 = (vertices[1] - vertices[0]).cross(vertices[2] - vertices[0])
+    _check(oriented.y < 0.0, "terrain CW front-face is visible from above")
     terrain.update_detail(Vector3(0.0, 13.0, 0.0), 0.5)
     _check(terrain.visible_tiles > 0 and terrain.visible_tiles <= 64, "bounded visibility")
     _check(terrain.detailed_tiles > 0, "high-detail promotion")
