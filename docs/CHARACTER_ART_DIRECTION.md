@@ -1,5 +1,7 @@
 # Aetherwake Character Art Direction Contract
 
+> **2026-10-25 creator-lock override:** Read [CHARACTER_AND_ART_AUTHORITY.md](CHARACTER_AND_ART_AUTHORITY.md) before using this older general art contract. Ender, Lyra, Ionia, Reson and Aepex now have specific creator-approved appearance/identity details. The statement below that *all* hair/eyes/costumes remain open is historically superseded wherever the newer lock specifies them. Art-source, sprite-animation and full visual acceptance still require review.
+
 This document mirrors the canonical Notion character dossiers for implementation and art production. It intentionally separates **creator canon** from **visual interpretation** and **open visual decisions**.
 
 ## Shared art direction

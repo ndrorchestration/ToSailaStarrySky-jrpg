@@ -1,5 +1,7 @@
 # Aetherwake Visual Bible
 
+> **2026-10-25 authority update:** The player-facing title is **To Sail the Starry Sky** (Aetherwake is the historical/in-world identifier). Forward implementation uses **Godot 4.7.2 / GDScript**. Preserve the established visual thesis below. For newer creator-specific character locks, planetary fidelity, Dragonfly scale, and physical world grounding read [CHARACTER_AND_ART_AUTHORITY.md](CHARACTER_AND_ART_AUTHORITY.md), [WORLD_SHIP_VISUAL_DIRECTION.md](WORLD_SHIP_VISUAL_DIRECTION.md) and [AGENT_HANDOFF_INDEX.md](AGENT_HANDOFF_INDEX.md); historical statements about open eye/hair/outfit traits or engine strategy may be superseded.
+
 Status: **CANONICAL VISUAL DIRECTION**
 Scope: project-wide visual language for gameplay, UI, magic, cinematics, environments, characters, the Dragonfly, and authored video clips.
 

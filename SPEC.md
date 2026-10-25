@@ -1,5 +1,7 @@
 # Aetherwake JRPG — Technical Specification
 
+> **2026-10-25 migration note:** This specification describes the preserved **legacy p5.js executable/reference behavior** and long-term content contracts. The creator has selected **Godot 4.7.2 + GDScript** for all forward gameplay development. Read [../AGENTS.md](AGENTS.md) and [docs/GODOT_MIGRATION_COORDINATION.md](docs/GODOT_MIGRATION_COORDINATION.md). Do not mistake this file's "current runtime" for permission to add JavaScript features; migrate with parity tests and preserve compatibility/historical receipts.
+
 **Development stage:** pre-alpha  
 **Current runtime:** p5.js global mode, 960×640  
 **Current entry point:** `index-embedded.html`  
