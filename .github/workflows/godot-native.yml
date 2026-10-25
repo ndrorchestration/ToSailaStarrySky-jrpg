@@ -37,3 +37,7 @@ jobs:
         run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_party_combat_authority_test.gd
       - name: Native planet scene construction smoke
         run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/planetary_scene_smoke.gd
+      - name: Native cubed-sphere tile-address regressions
+        run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/planetary_tile_test.gd
+      - name: Native bounded tile planner and LRU tests
+        run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/planetary_stream_test.gd

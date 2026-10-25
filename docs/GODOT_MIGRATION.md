@@ -41,3 +41,9 @@
 - Native CI is required but not equivalent to human creator approval. Distinguish `STATIC`, `NATIVE TEST PASS`, `RENDER REVIEW PASS`, and `RELEASE`.
 
 **Known non-deliveries:** fully migrated playable campaign, approved final globe art, owner-private atlas content import, native Moon Bridge reveal, published/installed release, safe save transfer and current exact-head native test result.
+
+## 2026-10-24 native tile/streaming metadata handoff
+
+Native `planetary_tiles.gd` and `planetary_streaming.gd` translate PR #349's cubed-sphere tile indexing, polar/dateline face-neighbor sampling, bounded visible-tile address planner and automatic LOD downgrade. `planetary_tile_cache.gd` is a capped memory-only LRU. All run without JavaScript, Node or browser renderer. Coordinates continue to use a deliberately unapproved test radius; this is **not** actual terrain mesh LOD, network/disk streaming, visibility authorization, geographic canon, save migration, or Moon Bridge reveal. Native tests run as their own Godot CI steps; isolated study only.
+
+**Parallel work notice (user-provided external agent notes):** Hyperagent reports a separate **local-only**, unpushed `work/godot-native-ui-validation-20261024` branch based on native Chapter I at `74fe1bce7a8a02eb3cbf30f725fa2af0925ba670`. Its reported native title/UI wrap/modal fixes, test runner, 34 successful checks and nine Mesa/Xvfb frames are **not independently verified in this PR** and the branch is not accessible via GitHub until pushed. Compare and integrate through isolated PR/patch review, not by resetting this branch or assuming the evidence is admitted. Do not replace the legacy save IDs merely for game-title cosmetics.
