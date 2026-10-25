@@ -394,7 +394,7 @@ func _update_view() -> void:
         var tiles: Dictionary = _cube_stream.call("stats")
         _headline.text += "%s  /  CUBE L%d  %d/%d TILES  CACHE %d/%d  HORIZON %.0f km" % [
                 bearing_text,int(tiles["level"]),int(tiles["visible"]),int(tiles["max_visible"]),
-                int(tiles["cache_size"]),int(tiles["cache_size"]) + maxf(0.0,64.0-float(tiles["cache_size"])),
+                int(tiles["cache_size"]),64,
                 Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM)]
     else:
         _headline.text += "%s   /   Survey markers discovered: %d / %d   /   Geometric horizon: %.1f km" % [
