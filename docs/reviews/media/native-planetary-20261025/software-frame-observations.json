@@ -1,0 +1,72 @@
+{
+  "view_1": {
+    "adapter": "llvmpipe (LLVM 20.1.2, 256 bits)",
+    "draw_calls": 24.0,
+    "frames": 32,
+    "median_ms": 378.058,
+    "note": "Software-host frame intervals, not target GPU benchmark; memory is renderer-reported, not dedicated VRAM.",
+    "p95_ms": 772.944,
+    "renderer": "gl_compatibility",
+    "size": [
+      960,
+      640
+    ],
+    "video_memory_bytes": 66443523.0
+  },
+  "low_quality": {
+    "adapter": "llvmpipe (LLVM 20.1.2, 256 bits)",
+    "draw_calls": 20.0,
+    "frames": 32,
+    "median_ms": 360.602,
+    "note": "Software-host frame intervals, not target GPU benchmark; memory is renderer-reported, not dedicated VRAM.",
+    "p95_ms": 644.552,
+    "renderer": "gl_compatibility",
+    "size": [
+      960,
+      640
+    ],
+    "video_memory_bytes": 66443523.0
+  },
+  "view_2": {
+    "adapter": "llvmpipe (LLVM 20.1.2, 256 bits)",
+    "draw_calls": 17.0,
+    "frames": 32,
+    "median_ms": 176.992,
+    "note": "Software-host frame intervals, not target GPU benchmark; memory is renderer-reported, not dedicated VRAM.",
+    "p95_ms": 376.74,
+    "renderer": "gl_compatibility",
+    "size": [
+      960,
+      640
+    ],
+    "video_memory_bytes": 66443523.0
+  },
+  "view_3": {
+    "adapter": "llvmpipe (LLVM 20.1.2, 256 bits)",
+    "draw_calls": 22.0,
+    "frames": 32,
+    "median_ms": 340.493,
+    "note": "Software-host frame intervals, not target GPU benchmark; memory is renderer-reported, not dedicated VRAM.",
+    "p95_ms": 694.334,
+    "renderer": "gl_compatibility",
+    "size": [
+      960,
+      640
+    ],
+    "video_memory_bytes": 66443523.0
+  },
+  "view_4": {
+    "adapter": "llvmpipe (LLVM 20.1.2, 256 bits)",
+    "draw_calls": 78.0,
+    "frames": 32,
+    "median_ms": 220.278,
+    "note": "Software-host frame intervals, not target GPU benchmark; memory is renderer-reported, not dedicated VRAM.",
+    "p95_ms": 4087.076,
+    "renderer": "gl_compatibility",
+    "size": [
+      960,
+      640
+    ],
+    "video_memory_bytes": 66443523.0
+  }
+}
