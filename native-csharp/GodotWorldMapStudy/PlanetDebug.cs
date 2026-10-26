@@ -27,6 +27,10 @@ public partial class PlanetDebug : Node3D
     private float _latitudeDegrees = 17f;
     private float _cameraDistance = 22f;
     private bool _expanded;
+    private VersionedTerrainStream _stream = new();
+    private int _committedTransitions;
+    private bool _coarsenRequested;
+    private bool _queuedExpansion;
     private TileId? _lastSelected;
     private int _frames;
     private int _assertions;
@@ -58,6 +62,14 @@ public partial class PlanetDebug : Node3D
             InstallWorld();
             RenderCover(_cover);
             Check(RejectInvalidCoverWithoutMutation(), "invalid cover rejected atomically");
+            int stale = _stream.Request(_cover, DebugRadiusUnits);
+            int superseding = _stream.Request(_cover, DebugRadiusUnits);
+            Check(!_stream.WouldAdmit(stale) && _stream.WouldAdmit(superseding),
+                "stale generation must be denied");
+            GD.Print($"GODOT_CSHARP_STALE_REJECT_PASS stale={stale} current={superseding}");
+            // The controlled test requests are never admitted into the live scene.
+            _stream.Dispose();
+            _stream = new VersionedTerrainStream();
             Check(_rendered.Count == 9, "9 native tile meshes");
             Check(_rendered.All(m => m.Mesh != null), "all native ArrayMeshes nonnull");
             Check(_rendered.All(m => m.GetChildCount() == 1 && m.GetChild(0) is StaticBody3D), "native collision bodies");
@@ -101,8 +113,32 @@ public partial class PlanetDebug : Node3D
         // Deterministic native LOD lifecycle smoke. Both steps complete before capture:
         // first a 1->4 refinement, then the matching 4->1 coarsening.
         if (_frames == 12) ChangeLod(expand: true);
-        if (_frames == 24) ChangeLod(expand: false);
-        if (_captureRequested && !_captureSaved && _frames >= 35)
+        if (_frames >= 24 && _committedTransitions == 1 && !_coarsenRequested)
+        {
+            _coarsenRequested = true;
+            ChangeLod(expand: false);
+        }
+        try
+        {
+            if (_stream.Pump(out var prepared) && prepared is not null)
+            {
+                ApplyCover(_stream.RequestedCover, prepared);
+                _committedTransitions++;
+                bool wasExpansion = _queuedExpansion;
+                int expected = wasExpansion ? 12 : 9;
+                Check(_rendered.Count == expected, "bounded stream mesh count");
+                Check(_stream.MaximumObservedFrameAdmissions <= VersionedTerrainStream.MaxTilesPerFrame,
+                    "per-frame native mesh budget");
+                GD.Print($"GODOT_CSHARP_LOD_SWAP_PASS expanded={wasExpansion} tiles={expected} collisionBodies={_rendered.Count}");
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PushError($"GODOT_CSHARP_STREAM_FAIL: {ex}");
+            GetTree().Quit(1);
+            return;
+        }
+        if (_captureRequested && !_captureSaved && _frames >= 35 && _committedTransitions == 2)
         {
             _captureSaved = true;
             string target = ProjectSettings.GlobalizePath("res://evidence/planet-debug.png");
@@ -204,8 +240,14 @@ public partial class PlanetDebug : Node3D
 
     private void RenderCover(IReadOnlyList<TileId> proposedCover)
     {
-        // Validate the complete mesh set before touching the active scene.
+        // Boot-time compatibility; all later transitions use the worker and staged meshes.
         WatertightTiles.CheckedMeshSet checkedSet = AdaptiveBoundaryTiles.Build(proposedCover, DebugRadiusUnits);
+        ApplyCover(proposedCover, checkedSet);
+    }
+
+    private void ApplyCover(IReadOnlyList<TileId> proposedCover,
+        WatertightTiles.CheckedMeshSet checkedSet)
+    {
         int maxLevel = checkedSet.GlobalLevel;
         int uniformTriangles = proposedCover.Sum(t =>
         {
@@ -312,17 +354,20 @@ public partial class PlanetDebug : Node3D
                 throw new InvalidOperationException("Required native LOD swap was denied.");
             if (!QuadtreeCoverage.IsCompleteSixFaceCover(proposed))
                 throw new InvalidOperationException("Invalid proposed native cover.");
-            RenderCover(proposed);
-            _expanded = expand;
-            int expected = expand ? 12 : 9;
-            Check(_rendered.Count == expected, "reversible native LOD mesh count");
-            GD.Print($"GODOT_CSHARP_LOD_SWAP_PASS expanded={expand} tiles={expected} collisionBodies={_rendered.Count}");
+            int revision = _stream.Request(proposed, DebugRadiusUnits);
+            _queuedExpansion = expand;
+            GD.Print($"GODOT_CSHARP_STREAM_QUEUED revision={revision} tiles={proposed.Count}");
         }
         catch (Exception ex)
         {
             GD.PushError($"GODOT_CSHARP_LOD_FAIL: {ex}");
             GetTree().Quit(1);
         }
+    }
+
+    public override void _ExitTree()
+    {
+        _stream.Dispose();
     }
 
     public override void _PhysicsProcess(double delta)
