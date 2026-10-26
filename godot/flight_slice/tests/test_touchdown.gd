@@ -20,6 +20,10 @@ func _run() -> void:
     check(chosen["slope"] <= Study.MAX_SLOPE, "sampled landing slope threshold")
     check(not Study.assess(Vector3(-55.0, 8.0, 0.0))["ok"], "ocean is not a landing zone")
     check(not Study.assess(Vector3(34.0, 12.0, -12.0))["ok"], "forest or settlement unreviewed site is blocked")
+    var steep_test: Dictionary = Study.assess(Vector3(15.0, 9.0, -7.0))
+    check(steep_test["field"] and steep_test["land"], "steep test point lies on dry field")
+    check(steep_test["slope"] > Study.MAX_SLOPE and not steep_test["ok"],
+        "local steep ground is blocked even inside reviewed field")
     var landing = Study.new()
     check(landing.state == "FLYING", "initial state airborne")
     check(landing.toggle(safe_pos), "first touchdown request accepted")
