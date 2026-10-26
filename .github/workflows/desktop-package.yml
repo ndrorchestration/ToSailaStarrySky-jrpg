@@ -1,188 +1,39 @@
-name: Windows desktop package
+# SECURITY HOLD — 2026-10-26
+# The original NW.js + NSIS Aetherwake desktop release workflow is RETIRED.
+# It is preserved in immutable Git history at blob
+# 0a5479ff5ed551d205444e4b90fc1cc754f8c032.
+# Do not execute, distribute, whitelist or restore the historical flagged
+# installer/uninstaller. See issue #293. The current development target is
+# Godot 4.7.2 + GDScript per AGENTS.md; Chapter I has a separate Windows QA
+# gate whose Defender-real-time preflight must remain fail-closed.
+#
+# This workflow can be manually invoked ONLY to get an explicit blocking error.
+# No push/tag trigger, no installer/package build and no release write permission.
+name: Legacy NW.js Windows release — BLOCKED
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    tags:
-      - "v*"
+  pull_request:
+    paths:
+      - '.github/workflows/desktop-package.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  verify-windows:
-    runs-on: windows-2022
-    timeout-minutes: 25
+  retired-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run desktop packaging contract
-        run: npm run test:desktop-package
-
-      - name: Build Windows NW.js package
-        run: npm run package:windows
-
-      - name: Locate package directory
-        id: package
-        shell: pwsh
+      - name: Verify security hold when reviewing this file
+        if: github.event_name == 'pull_request'
+        shell: bash
         run: |
-          $dist = Join-Path $PWD "..\aetherwake-dist"
-          $exe = Get-ChildItem -LiteralPath $dist -Filter "Aetherwake.exe" -File -Recurse | Select-Object -First 1
-          if (-not $exe) { throw "NW.js package is missing Aetherwake.exe" }
-          $package = $exe.Directory
-          "dir=$($package.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
-      - name: Build portable ZIP
-        shell: pwsh
+          echo "::notice title=Legacy desktop release blocked::NW.js/NSIS publication remains disabled pending explicit source, Defender, rights and creator review."
+          echo "LEGACY_NWJS_RELEASE_STATUS=DISABLED"
+      - name: Refuse manual execution
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
         run: |
-          $package = "${{ steps.package.outputs.dir }}"
-          Compress-Archive -Path (Join-Path $package "*") -DestinationPath (Join-Path $PWD "Aetherwake-Windows.zip") -Force
-
-      - name: Install NSIS
-        shell: pwsh
-        run: |
-          choco install nsis -y --no-progress
-          $makensis = @(
-            "C:\Program Files (x86)\NSIS\makensis.exe",
-            "C:\Program Files\NSIS\makensis.exe"
-          ) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-          if (-not $makensis) { throw "NSIS makensis.exe not found after installation" }
-          "MAKENSIS=$makensis" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Build no-admin Windows installer
-        shell: pwsh
-        run: |
-          $source = "${{ steps.package.outputs.dir }}"
-          $outFile = Join-Path $PWD "Aetherwake-Setup.exe"
-          $scriptPath = Join-Path $PWD "Aetherwake-Setup.nsi"
-          $template = @'
-          Unicode true
-          Name "Aetherwake"
-          OutFile "__OUTPUT__"
-          InstallDir "$LOCALAPPDATA\Programs\Aetherwake"
-          RequestExecutionLevel user
-          SetCompressor /SOLID lzma
-
-          Page directory
-          Page instfiles
-
-          Section "Aetherwake" SEC_MAIN
-            SetOutPath "$INSTDIR"
-            File /r "__SOURCE__\*"
-            CreateShortCut "$DESKTOP\Aetherwake.lnk" "$INSTDIR\Aetherwake.exe"
-            CreateDirectory "$SMPROGRAMS\Aetherwake"
-            CreateShortCut "$SMPROGRAMS\Aetherwake\Aetherwake.lnk" "$INSTDIR\Aetherwake.exe"
-            WriteUninstaller "$INSTDIR\Uninstall.exe"
-          SectionEnd
-
-          Section "Uninstall"
-            Delete "$DESKTOP\Aetherwake.lnk"
-            Delete "$SMPROGRAMS\Aetherwake\Aetherwake.lnk"
-            RMDir "$SMPROGRAMS\Aetherwake"
-            RMDir /r "$INSTDIR"
-          SectionEnd
-          '@
-          $template.Replace('__OUTPUT__', $outFile).Replace('__SOURCE__', $source) |
-            Set-Content -LiteralPath $scriptPath -Encoding UTF8
-          & $env:MAKENSIS $scriptPath
-          if ($LASTEXITCODE -ne 0) { throw "NSIS compilation failed with code $LASTEXITCODE" }
-          if (-not (Test-Path -LiteralPath $outFile)) { throw "Aetherwake-Setup.exe was not created" }
-
-      - name: Install and launch exact candidate
-        shell: pwsh
-        run: |
-          $installDir = Join-Path $env:RUNNER_TEMP "AetherwakeInstall"
-          $marker = Join-Path $env:RUNNER_TEMP "aetherwake-desktop-ready.json"
-          if (Test-Path -LiteralPath $marker) {
-            Remove-Item -LiteralPath $marker -Force
-          }
-          if (Test-Path -LiteralPath $installDir) {
-            Remove-Item -LiteralPath $installDir -Recurse -Force
-          }
-          $installer = Join-Path $PWD "Aetherwake-Setup.exe"
-          $installProcess = Start-Process -FilePath $installer -ArgumentList @(
-            "/S",
-            "/D=$installDir"
-          ) -Wait -PassThru
-          if ($installProcess.ExitCode -ne 0) { throw "Installer exited with code $($installProcess.ExitCode)" }
-
-          $exe = Join-Path $installDir "Aetherwake.exe"
-          if (-not (Test-Path -LiteralPath $exe)) { throw "Installed Aetherwake.exe was not found" }
-
-          $env:AETHERWAKE_DESKTOP_SMOKE_MARKER = $marker
-          $game = Start-Process -FilePath $exe -PassThru
-
-          $deadline = (Get-Date).AddSeconds(20)
-          while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $marker)) {
-            if ($game.HasExited) {
-              throw "Installed Aetherwake.exe exited before rendering a verified first frame with code $($game.ExitCode)"
-            }
-            Start-Sleep -Milliseconds 250
-          }
-          if (-not (Test-Path -LiteralPath $marker)) {
-            throw "Installed Aetherwake.exe did not report runtime-ready + first-frame within 20 seconds"
-          }
-
-          $ready = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
-          if (-not $ready.runtimeReady -or -not $ready.firstFrame) {
-            throw "Desktop readiness marker did not confirm runtimeReady and firstFrame"
-          }
-          if ($ready.width -ne 960 -or $ready.height -ne 640) {
-            throw "Desktop readiness marker reported unexpected canvas $($ready.width)x$($ready.height)"
-          }
-          if ($ready.setupOrder -notlike "*setup-done*") {
-            throw "Desktop readiness marker did not include setup-done"
-          }
-          if ($game.HasExited) {
-            throw "Installed Aetherwake.exe exited immediately after first-frame readiness with code $($game.ExitCode)"
-          }
-          Write-Host "DESKTOP_RENDER_READINESS=PASS"
-          Write-Host ($ready | ConvertTo-Json -Compress)
-          Stop-Process -Id $game.Id -Force
-          Remove-Item Env:AETHERWAKE_DESKTOP_SMOKE_MARKER -ErrorAction SilentlyContinue
-
-      - name: Verify portable package layout
-        shell: pwsh
-        run: |
-          $portable = Join-Path $env:RUNNER_TEMP "AetherwakePortable"
-          if (Test-Path -LiteralPath $portable) {
-            Remove-Item -LiteralPath $portable -Recurse -Force
-          }
-          Expand-Archive -LiteralPath Aetherwake-Windows.zip -DestinationPath $portable
-          if (-not (Test-Path -LiteralPath (Join-Path $portable "Aetherwake.exe"))) {
-            throw "Portable Aetherwake.exe was not found"
-          }
-
-      - name: Write SHA-256 manifest
-        shell: pwsh
-        run: |
-          $lines = foreach ($name in @("Aetherwake-Setup.exe", "Aetherwake-Windows.zip")) {
-            $hash = Get-FileHash -Algorithm SHA256 -LiteralPath $name
-            "$($hash.Hash.ToLower())  $name"
-          }
-          $lines | Set-Content -LiteralPath SHA256SUMS.txt -Encoding ASCII
-          Get-Content SHA256SUMS.txt
-
-      - name: Publish verified Windows release
-        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: aetherwake-desktop-${{ github.sha }}
-          name: Aetherwake Windows Desktop ${{ github.sha }}
-          prerelease: true
-          generate_release_notes: false
-          files: |
-            Aetherwake-Setup.exe
-            Aetherwake-Windows.zip
-            SHA256SUMS.txt
+          echo "::error title=Legacy release security hold::This historical NW.js/NSIS workflow is disabled. Do not attempt to execute its old installer or publish a release. See security issue #293 and the native Godot Chapter I Windows QA gate."
+          exit 1
