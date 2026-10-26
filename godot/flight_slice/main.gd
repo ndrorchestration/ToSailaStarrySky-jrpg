@@ -4,6 +4,7 @@ const TerrainStudy = preload("res://terrain.gd")
 const ShipStudy = preload("res://ship.gd")
 const FrameProbe = preload("res://frame_probe.gd")
 const VisualStudy = preload("res://visuals.gd")
+const FlightStudy = preload("res://flight_controller.gd")
 var visuals: Node3D
 var _low_quality: bool = false
 
@@ -16,6 +17,9 @@ var _status_timer: float = 0.0
 var _paused: bool = false
 var _reduced_motion: bool = false
 var _cinematic: bool = true
+var _manual_active: bool = false
+var _manual_position: Vector3 = Vector3.ZERO
+var _manual_heading: float = 0.0
 
 func _ready() -> void:
     if OS.get_cmdline_user_args().has("--baseline"):
@@ -51,11 +55,18 @@ func _process(delta: float) -> void:
     var step: float = minf(delta, 0.10)
     if not _paused:
         _clock += step
+        if _manual_active:
+            advance_manual(Vector3(
+                float(Input.is_key_pressed(KEY_D)) - float(Input.is_key_pressed(KEY_A)),
+                float(Input.is_key_pressed(KEY_W)) - float(Input.is_key_pressed(KEY_S)),
+                float(Input.is_key_pressed(KEY_E)) - float(Input.is_key_pressed(KEY_Q))
+            ), step)
     _update_scene(step)
     _status_timer += step
     if _status_timer > 0.35:
         _status_timer = 0.0
-        overlay.text = "TO SAIL THE STARRY SKY  /  VISUAL LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + ("CINEMATIC" if _cinematic else "FLIGHT CHASE") + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + "C camera · P pause · M still effects · R restart · V detail · H HUD\nNON-CANON ART STUDY  •  NOT A GAMEPLAY / FPS CLAIM"
+        var flight_info: String = "FLIGHT MODE  |  clearance %.1f m  |  heading %.0f°" % [FlightStudy.clearance(ship.position), rad_to_deg(_manual_heading)] if _manual_active else "AUTOMATIC FLYOVER  |  C camera framing"
+        overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + "F pilot/flyover · W/S move · A/D steer · E/Q ascend/descend\nP pause · M still effects · R reset · V detail · H HUD\nNON-CANON STUDY  •  NOT SHIP PHYSICS / PRODUCT FLIGHT"
 
 func _unhandled_key_input(event: InputEvent) -> void:
     if not (event is InputEventKey):
@@ -64,6 +75,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
     if not key_event.pressed or key_event.echo:
         return
     match key_event.keycode:
+        KEY_F:
+            set_manual_mode(not _manual_active)
         KEY_C:
             _cinematic = not _cinematic
         KEY_P:
@@ -71,6 +84,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
         KEY_M:
             _reduced_motion = not _reduced_motion
         KEY_R:
+            set_manual_mode(false)
             _clock = 0.0
         KEY_V:
             _low_quality = not _low_quality
@@ -79,16 +93,44 @@ func _unhandled_key_input(event: InputEvent) -> void:
         KEY_H:
             overlay.visible = not overlay.visible
 
+func set_manual_mode(enabled: bool) -> void:
+    if enabled == _manual_active:
+        return
+    _manual_active = enabled
+    if enabled:
+        _manual_position = ship.position
+        _manual_heading = 0.0
+    else:
+        ship.set_course(0.0)
+
+func advance_manual(controls: Vector3, delta: float) -> void:
+    if not _manual_active or _paused:
+        return
+    var next: Dictionary = FlightStudy.advance(_manual_position, _manual_heading,
+        controls, delta)
+    _manual_position = next["position"]
+    _manual_heading = next["heading"]
+
 func _update_scene(delta: float) -> void:
-    var phase: float = fmod(_clock, 37.0) / 37.0
-    var x: float = lerpf(-52.0, 77.0, phase)
-    var z: float = -12.0 + sin(_clock * 0.15) * 4.0
-    var clearance: float = 6.7
-    ship.position = Vector3(x, maxf(TerrainStudy.SEA_LEVEL, TerrainStudy.sample_height(x, z)) + clearance, z)
+    if _manual_active:
+        ship.position = _manual_position
+        ship.set_course(-PI / 2.0 - _manual_heading)
+    else:
+        var phase: float = fmod(_clock, 37.0) / 37.0
+        var x: float = lerpf(-52.0, 77.0, phase)
+        var z: float = -12.0 + sin(_clock * 0.15) * 4.0
+        var clearance: float = 6.7
+        ship.position = Vector3(x, maxf(TerrainStudy.SEA_LEVEL,
+            TerrainStudy.sample_height(x, z)) + clearance, z)
     ship.set_motion(_clock, _reduced_motion)
     var goal: Vector3
-    var focus: Vector3 = ship.position + Vector3(12.0, 0.7, -5.0)
-    if _cinematic:
+    var focus: Vector3
+    if _manual_active:
+        var forward := Vector3(cos(_manual_heading), 0.0, sin(_manual_heading))
+        var lateral := Vector3(-forward.z, 0.0, forward.x)
+        goal = ship.position - forward * 16.0 + lateral * 5.0 + Vector3.UP * 8.0
+        focus = ship.position + forward * 9.0 + Vector3.UP * 0.7
+    elif _cinematic:
         var arc: float = 0.5 + 0.5 * sin(_clock * 0.17)
         goal = ship.position + Vector3(-15.5 - arc * 4.5, 10.0 + arc * 3.0, 20.0 - arc * 3.0)
         focus = ship.position + Vector3(7.0, 0.8, -3.0)
