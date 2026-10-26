@@ -81,17 +81,25 @@ func _capture() -> void:
         _save(manual_frame,folder.path_join("manual-pilot.png"))
         print("NATIVE_PILOT_FRAME_PASS clearance=", scene.ship.position.y -
             maxf(scene.terrain.SEA_LEVEL,scene.terrain.sample_height(scene.ship.position.x, scene.ship.position.z)))
-        # Authored demo field: a sampled-contact review, not a physics-body landing.
+        # Authored demo field: actual PhysicsServer contact, not rigidbody flight.
         scene._manual_position = Vector3(8.0, scene.terrain.sample_height(8.0, -12.0) + 7.0, -12.0)
         scene._update_scene(8.0)
         if not scene.request_touchdown():
             push_error("NATIVE_TOUCHDOWN_QUEUE_DENIED")
             failed = true
-        # SceneTree.physics_frame fires before node _physics_process callbacks.
-        # Wait for a rendered/process tick as well before checking the receipt.
-        await physics_frame
-        await process_frame
-        if scene.landing.state != "DESCENDING" or not scene.last_touchdown_contact.get("valid", false):
+        # physics_frame is emitted BEFORE _physics_process; a process_frame
+        # can also arrive before the next fixed physics tick. Wait for actual
+        # physics admission, never merely for one frame signal. Fail closed if
+        # native terrain contact is denied or no callback completes on time.
+        var physics_admitted: bool = false
+        for admission_tick in range(12):
+            await physics_frame
+            if scene.landing.state == "DESCENDING" and scene.last_touchdown_contact.get("valid", false):
+                physics_admitted = true
+                break
+            if not scene._touchdown_requested:
+                break # The native callback ran and rejected this request.
+        if not physics_admitted:
             push_error("NATIVE_TOUCHDOWN_PHYSICS_ADMISSION_FAILED")
             failed = true
         else:
