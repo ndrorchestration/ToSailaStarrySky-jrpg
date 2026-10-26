@@ -1011,11 +1011,11 @@ function drawShopOverlay() {
   fill(C.teal[0], C.teal[1], C.teal[2], 200);
   text('REPAIR CAFE \u2014 SHOP', sx + 16, sy + 12);
 
-  const scrap = combat ? combat.getScrap ? combat.getScrap() : 7 : 7;
+  const gold = world && world.player ? world.player.gold : 0;
   textFont('VT323');
   textSize(12);
   fill(C.parchment[0], C.parchment[1], C.parchment[2]);
-  text('Scrap: ' + scrap, sx + sw - 110, sy + 12);
+  text('Gold: ' + gold, sx + sw - 110, sy + 12);
 
   // Tabs: Items | Aether | Charges
   textFont('Press Start 2P');
@@ -1038,7 +1038,7 @@ function drawShopOverlay() {
     strokeWeight(1);
     rect(sx + 12, iy, sw - 24, 26);
 
-    const buyable = scrap >= item.cost;
+    const buyable = gold >= item.cost;
     fill(buyable ? C.parchment[0] : C.rust[0], buyable ? C.parchment[1] : C.rust[1], buyable ? C.parchment[2] : C.rust[2]);
     text(item.name, sx + 20, iy + 5);
     fill(C.rust[0], C.rust[1], C.rust[2], 100);
@@ -1047,7 +1047,7 @@ function drawShopOverlay() {
     textSize(12);
 
     fill(buyable ? C.teal[0] : C.rust[0], buyable ? C.teal[1] : C.rust[1], buyable ? C.teal[2] : C.rust[2], buyable ? 180 : 60);
-    text('[' + (i+1) + '] ' + item.cost + ' scrap', sx + sw - 80, iy + 5);
+    text('[' + (i+1) + '] ' + item.cost + ' gold', sx + sw - 80, iy + 5);
   }
 
   // Shop footer

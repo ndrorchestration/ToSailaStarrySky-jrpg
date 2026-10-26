@@ -49,12 +49,13 @@ assert(!source.includes('player.aether.current ='),
 const sandbox = {
   shop: {
     items: [
-      { kind: 'scrap', effect: 'aether', cost: 3, name: 'Aether' },
-      { kind: 'scrap', effect: 'staffCharges', cost: 2, name: 'Staff' },
+      { kind: 'gold', effect: 'aether', cost: 3, name: 'Aether' },
+      { kind: 'gold', effect: 'staffCharges', cost: 2, name: 'Staff' },
     ],
   },
   player: {
     scrap: 7,
+    gold: 7,
     aether: 4,
     aetherMax: 6,
     staffCharges: 1,
@@ -67,16 +68,20 @@ sandbox.globalThis = sandbox;
 vm.runInNewContext(extractFunction('purchaseItem'), sandbox);
 
 assert.strictEqual(sandbox.purchaseItem(0), true,
-  'aether recharge should be purchasable with scrap');
-assert.strictEqual(sandbox.player.scrap, 4,
-  'aether recharge should spend scrap');
+  'aether recharge should be purchasable with gold');
+assert.strictEqual(sandbox.player.gold, 4,
+  'aether recharge should spend gold');
+assert.strictEqual(sandbox.player.scrap, 7,
+  'ordinary shop purchases must not spend scrap');
 assert.strictEqual(sandbox.player.aether, 5,
   'aether recharge should increase numeric world aether');
 
 assert.strictEqual(sandbox.purchaseItem(1), true,
-  'staff polish should be purchasable with scrap');
-assert.strictEqual(sandbox.player.scrap, 2,
-  'staff polish should spend scrap');
+  'staff polish should be purchasable with gold');
+assert.strictEqual(sandbox.player.gold, 2,
+  'staff polish should spend gold');
+assert.strictEqual(sandbox.player.scrap, 7,
+  'scrap remains a separate material resource');
 assert.strictEqual(sandbox.player.staffCharges, 2,
   'staff polish should restore a staff charge');
 

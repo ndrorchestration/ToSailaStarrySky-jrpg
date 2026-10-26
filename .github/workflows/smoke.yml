@@ -117,6 +117,9 @@ jobs:
       - name: Verify input runtime contracts
         run: npm run test:input-runtime
 
+      - name: Verify economy and regular loot contract
+        run: npm run test:economy
+
       - name: Verify overlay and economy contracts
         run: npm run test:overlay-contract
 
