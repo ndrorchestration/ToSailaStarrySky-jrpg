@@ -1,6 +1,6 @@
 extends RefCounted
 ## NONCANON local-world touchdown review: deterministic sampled terrain and
-## controlled visual hover-contact only. No physics engine contact shapes,
+## controlled hover-contact. Physics admission now requires an independent\n## native StaticBody3D trimesh raycast in the real scene; no rigidbody dynamics,
 ## rigidbody dynamics, collision avoidance, landing authorization or saved state.
 const TerrainStudy = preload("res://terrain.gd")
 const FlightStudy = preload("res://flight_controller.gd")
@@ -27,6 +27,28 @@ static func assess(at: Vector3) -> Dictionary:
     var ground_only: bool = h > TerrainStudy.SEA_LEVEL + 0.8
     return {"ok": valid_field and ground_only and slope <= MAX_SLOPE,
         "height": h, "slope": slope, "field": valid_field, "land": ground_only}
+
+func toggle_with_physics(at: Vector3, contact: Dictionary) -> bool:
+    # Real game-scene touchdown never relies solely on the height sampler.
+    # A correctly scoped PhysicsServer trimesh must be present and agree with
+    # the authored sampling height; an absent/mismatched collider FAILS CLOSED.
+    if state == "FLYING":
+        if not contact.get("valid", false):
+            return false
+        var site: Dictionary = assess(at)
+        if not site["ok"] or FlightStudy.clearance(at) < HOVER_CONTACT_HEIGHT:
+            return false
+        var normal: Vector3 = contact["normal"]
+        if normal.y < 0.985:
+            return false
+        _ground = contact["position"].y
+        _target = Vector3(at.x, _ground + HOVER_CONTACT_HEIGHT, at.z)
+        state = "DESCENDING"
+        return true
+    # Takeoff is permitted only after a complete supported landing.
+    if state == "LANDED":
+        return toggle(at)
+    return false
 
 func toggle(at: Vector3) -> bool:
     if state == "FLYING":
