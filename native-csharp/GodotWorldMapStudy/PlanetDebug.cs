@@ -86,9 +86,37 @@ public partial class PlanetDebug : Node3D
                 return;
             }
             Image? frame = GetViewport().GetTexture().GetImage();
-            if (frame == null || frame.GetWidth() != 960 || frame.GetHeight() != 640 || frame.SavePng(target) != Error.Ok)
+            if (frame == null || frame.GetWidth() != 960 || frame.GetHeight() != 640)
             {
-                GD.PushError("GODOT_CSHARP_CAPTURE_FAIL: viewport image");
+                GD.PushError("GODOT_CSHARP_CAPTURE_FAIL: viewport dimensions");
+                GetTree().Quit(1);
+                return;
+            }
+            // Reject a blank/clear-only screenshot even if the PNG header is valid.
+            Color background = frame.GetPixel(950, 620);
+            int foregroundSamples = 0;
+            for (int y = 128; y < 544; y += 24)
+            {
+                for (int x = 160; x < 800; x += 24)
+                {
+                    Color pixel = frame.GetPixel(x, y);
+                    float delta = Mathf.Abs(pixel.R - background.R)
+                        + Mathf.Abs(pixel.G - background.G)
+                        + Mathf.Abs(pixel.B - background.B);
+                    if (delta > 0.20f)
+                        foregroundSamples++;
+                }
+            }
+            if (foregroundSamples < 50)
+            {
+                GD.PushError($"GODOT_CSHARP_CAPTURE_FAIL: blank frame ({foregroundSamples} foreground samples)");
+                GetTree().Quit(1);
+                return;
+            }
+            GD.Print($"GODOT_CSHARP_FRAME_PIXELS_PASS foreground_samples={foregroundSamples}");
+            if (frame.SavePng(target) != Error.Ok)
+            {
+                GD.PushError("GODOT_CSHARP_CAPTURE_FAIL: PNG save");
                 GetTree().Quit(1);
                 return;
             }
