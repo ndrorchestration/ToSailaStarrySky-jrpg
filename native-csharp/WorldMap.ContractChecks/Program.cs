@@ -377,6 +377,41 @@ internal static class Program
         }
     }
 
+    private static void MeshFixtureChecks()
+    {
+        var root = new TileId(CubeFace.PositiveX, 0, 0, 0);
+        var baseMesh = CubeSphereMeshFixture.Generate(root, R, 8);
+        Check(baseMesh.Vertices.Count == 81 && baseMesh.Indices.Count == 384,
+            "8 subdivision root mesh vertex/index bounds");
+        Check(baseMesh.Indices.All(i => i >= 0 && i < baseMesh.Vertices.Count),
+            "root mesh indices in bounds");
+        foreach (var vertex in baseMesh.Vertices)
+            Near(Math.Sqrt(vertex.X * vertex.X + vertex.Y * vertex.Y + vertex.Z * vertex.Z),
+                R, 1e-8, "root mesh points on radius");
+        var left = CubeSphereMeshFixture.Generate(new TileId(CubeFace.PositiveX, 1, 0, 0), R, 8);
+        var right = CubeSphereMeshFixture.Generate(new TileId(CubeFace.PositiveX, 1, 1, 0), R, 8);
+        for (int row = 0; row <= 8; row++)
+        {
+            var a = left.Vertices[row * 9 + 8];
+            var b = right.Vertices[row * 9];
+            Near(Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2) +
+                Math.Pow(a.Z - b.Z, 2)), 0, 1e-8,
+                "same-LOD shared edge positions coincide " + row);
+        }
+        foreach (CubeFace face in Enum.GetValues<CubeFace>())
+        {
+            var mesh = CubeSphereMeshFixture.Generate(new TileId(face, 0, 0, 0), 3.5, 2);
+            Check(mesh.Vertices.Count == 9 && mesh.Indices.Count == 24,
+                "each face has bounded mesh " + face);
+        }
+        Reject<ArgumentOutOfRangeException>(() => CubeSphereMeshFixture.Generate(root, 0, 8),
+            "invalid mesh radius refused");
+        Reject<ArgumentOutOfRangeException>(() => CubeSphereMeshFixture.Generate(root, R, 0),
+            "zero subdivision refused");
+        Reject<ArgumentOutOfRangeException>(() => CubeSphereMeshFixture.Generate(root, R, 129),
+            "oversized subdivision refused");
+    }
+
     private static void RejectionChecks()
     {
         Reject<ArgumentOutOfRangeException>(() => _ = new PlanetPosition(91, 0),
@@ -411,6 +446,7 @@ internal static class Program
             CoverageChecks();
             ChartProjectionChecks();
             CubeSphereAddressingChecks();
+            MeshFixtureChecks();
             RejectionChecks();
             Console.WriteLine($"CS_WORLDMAP_CONTRACT_PASS: {_assertions} deterministic assertions; no Godot runtime or canon admitted");
             Console.WriteLine("CS_WORLDMAP_GODOT_MONO_NATIVE=NOT_ESTABLISHED");
