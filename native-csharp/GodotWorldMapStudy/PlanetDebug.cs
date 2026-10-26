@@ -100,10 +100,10 @@ public partial class PlanetDebug : Node3D
                 for (int x = 160; x < 800; x += 24)
                 {
                     Color pixel = frame.GetPixel(x, y);
-                    float delta = Mathf.Abs(pixel.R - background.R)
+                    float rgbDelta = Mathf.Abs(pixel.R - background.R)
                         + Mathf.Abs(pixel.G - background.G)
                         + Mathf.Abs(pixel.B - background.B);
-                    if (delta > 0.20f)
+                    if (rgbDelta > 0.20f)
                         foregroundSamples++;
                 }
             }
