@@ -49,13 +49,30 @@ public static class CubeSphereMeshFixture
             int b = a + 1;
             int c = a + segments + 1;
             int d = c + 1;
-            indices[offset++] = a;
-            indices[offset++] = c;
-            indices[offset++] = b;
-            indices[offset++] = b;
-            indices[offset++] = c;
-            indices[offset++] = d;
+            AddOutwardTriangle(vertices, indices, ref offset, a, c, b);
+            AddOutwardTriangle(vertices, indices, ref offset, b, c, d);
         }
         return new TileMesh(Array.AsReadOnly(vertices), Array.AsReadOnly(indices));
+    }
+
+    // Correct each face's handedness rather than assuming a shared cube UV winding.
+    private static void AddOutwardTriangle(Point3[] vertices, int[] indices,
+        ref int offset, int a, int b, int c)
+    {
+        var p = vertices[a];
+        var q = vertices[b];
+        var r = vertices[c];
+        double ux = q.X - p.X, uy = q.Y - p.Y, uz = q.Z - p.Z;
+        double vx = r.X - p.X, vy = r.Y - p.Y, vz = r.Z - p.Z;
+        double nx = uy * vz - uz * vy;
+        double ny = uz * vx - ux * vz;
+        double nz = ux * vy - uy * vx;
+        double outward = nx * (p.X + q.X + r.X)
+            + ny * (p.Y + q.Y + r.Y) + nz * (p.Z + q.Z + r.Z);
+        if (!double.IsFinite(outward) || outward == 0)
+            throw new InvalidOperationException("Degenerate spherical tile triangle.");
+        indices[offset++] = a;
+        indices[offset++] = outward > 0 ? b : c;
+        indices[offset++] = outward > 0 ? c : b;
     }
 }
