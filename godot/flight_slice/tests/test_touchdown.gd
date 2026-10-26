@@ -54,18 +54,42 @@ func _run() -> void:
     var scene = load("res://main.tscn").instantiate()
     root.add_child(scene)
     await process_frame
+    await physics_frame
     scene.set_process(false)
+    check(scene.landing_ground is StaticBody3D, "scene actually constructs static physics body")
+    check(scene.landing_ground.collision_layer == 2, "physics queries restricted to test-field layer")
+    check(scene.landing_ground.triangle_count == 792, "native collider has 792 terrain triangles")
+    check(scene.landing_ground.get_node("VerifiedTerrainTrimesh").shape is ConcavePolygonShape3D,
+        "real Godot concave terrain collision shape exists")
     var t_event := InputEventKey.new()
     t_event.keycode = KEY_T
     t_event.pressed = true
     scene._unhandled_key_input(t_event)
     check(scene.landing.state == "FLYING", "T cannot change cinematic mode")
     scene.set_manual_mode(true)
-    check(not scene.request_touchdown(), "unsafe current route is denied")
+    check(scene.request_touchdown(), "unsafe request may only queue for physics validation")
+    await physics_frame
+    check(scene.landing.state == "FLYING", "unsafe location rejected by physics")
+    check(not scene.last_touchdown_contact.get("valid", false),
+        "missing native collision hit correctly fails closed")
     scene._manual_position = safe_pos
     scene._update_scene(0.05)
+    # With the shape collision layer disabled even a valid surface must fail.
+    scene.landing_ground.collision_layer = 0
+    await physics_frame
     scene._unhandled_key_input(t_event)
-    check(scene.landing.state == "DESCENDING", "T engages approach at actual safe field")
+    await physics_frame
+    check(scene.landing.state == "FLYING", "disabled terrain physics layer rejects landing")
+    check(not scene.last_touchdown_contact.get("valid", false),
+        "ray must not silently fall back to sampler with collider disabled")
+    scene.landing_ground.collision_layer = 2
+    await physics_frame
+    scene._unhandled_key_input(t_event)
+    await physics_frame
+    check(scene.last_touchdown_contact.get("valid", false), "real PhysicsServer ray hit required")
+    check(scene.last_touchdown_contact.get("height_error", 99.0) < 0.12,
+        "raycast ground height matches render terrain sampler")
+    check(scene.landing.state == "DESCENDING", "T engages approach only after native physics hit")
     scene._update_scene(0.05)
     check(scene.ship.get_node("TouchdownFoot_Port").visible and
         scene.ship.get_node("TouchdownFoot_Starboard").visible,
@@ -83,6 +107,7 @@ func _run() -> void:
     check(scene.landing.state == "LANDED", "paused toggle cannot start takeoff")
     scene._paused = false
     scene._unhandled_key_input(t_event)
+    await physics_frame
     check(scene.landing.state == "TAKING_OFF", "T begins takeoff from landed")
     for step in range(80):
         scene.advance_manual(Vector3.ZERO, 0.05)
@@ -93,6 +118,8 @@ func _run() -> void:
     scene.set_manual_mode(false)
     check(scene.landing.state == "FLYING", "leaving pilot mode clears ground state")
     check(scene.terrain.chunk_count() == 64, "existing 64-tile art scene preserved")
+    check(scene.landing_ground.triangle_count == 792,
+        "no native physics triangle mutation across landing lifecycle")
     scene.queue_free()
     await process_frame
     if failures.is_empty():
