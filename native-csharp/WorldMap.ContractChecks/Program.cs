@@ -327,6 +327,56 @@ internal static class Program
         }
     }
 
+    private static void CubeSphereAddressingChecks()
+    {
+        Check(CubeSphereAddressing.FromPosition(new PlanetPosition(0, 0)).Face == CubeFace.PositiveX,
+            "prime meridian targets positive X");
+        Check(CubeSphereAddressing.FromPosition(new PlanetPosition(0, 90)).Face == CubeFace.PositiveZ,
+            "east quarter targets positive Z");
+        Check(CubeSphereAddressing.FromPosition(new PlanetPosition(0, -90)).Face == CubeFace.NegativeZ,
+            "west quarter targets negative Z");
+        Check(CubeSphereAddressing.FromPosition(new PlanetPosition(0, 180)).Face == CubeFace.NegativeX,
+            "antimeridian targets negative X");
+        Check(CubeSphereAddressing.FromPosition(new PlanetPosition(90, 45)).Face == CubeFace.PositiveY,
+            "north pole targets positive Y");
+        Check(CubeSphereAddressing.FromPosition(new PlanetPosition(-90, 45)).Face == CubeFace.NegativeY,
+            "south pole targets negative Y");
+        foreach (CubeFace face in Enum.GetValues<CubeFace>())
+        {
+            var mid = CubeSphereAddressing.ToPosition(face, 0.5, 0.5);
+            Check(CubeSphereAddressing.FromPosition(mid).Face == face,
+                "cube face center invertibility " + face);
+        }
+        var seamA = CubeSphereAddressing.LocateTile(new PlanetPosition(0, 180), 5);
+        var seamB = CubeSphereAddressing.LocateTile(new PlanetPosition(0, -180), 5);
+        Check(seamA == seamB, "antimeridian maps to one resident tile");
+        Reject<ArgumentOutOfRangeException>(() =>
+            CubeSphereAddressing.ToPosition((CubeFace)99, 0.5, 0.5),
+            "unknown face refused");
+        Reject<ArgumentOutOfRangeException>(() =>
+            CubeSphereAddressing.ToPosition(CubeFace.PositiveX, double.NaN, 0.5),
+            "nonfinite face coordinate refused");
+        Reject<ArgumentOutOfRangeException>(() =>
+            CubeSphereAddressing.LocateTile(new PlanetPosition(0, 0), 13),
+            "unsupported quadtree LOD refused");
+
+        var rng = new Random(82177);
+        for (int i = 0; i < 256; i++)
+        {
+            var point = new PlanetPosition(rng.NextDouble() * 178 - 89,
+                rng.NextDouble() * 360 - 180);
+            var address = CubeSphereAddressing.FromPosition(point);
+            Check(address.U >= 0 && address.U <= 1 && address.V >= 0 && address.V <= 1,
+                "cube UV range " + i);
+            var reconstructed = CubeSphereAddressing.ToPosition(address.Face, address.U, address.V);
+            Near(PlanetGeometry.AngularSeparationRadians(point, reconstructed), 0, 1e-7,
+                "cube sphere geodesic roundtrip " + i);
+            var tile = CubeSphereAddressing.LocateTile(point, 6);
+            Check(tile.Face == address.Face && tile.Level == 6,
+                "tile address face consistent " + i);
+        }
+    }
+
     private static void RejectionChecks()
     {
         Reject<ArgumentOutOfRangeException>(() => _ = new PlanetPosition(91, 0),
@@ -360,6 +410,7 @@ internal static class Program
             TransitionChecks();
             CoverageChecks();
             ChartProjectionChecks();
+            CubeSphereAddressingChecks();
             RejectionChecks();
             Console.WriteLine($"CS_WORLDMAP_CONTRACT_PASS: {_assertions} deterministic assertions; no Godot runtime or canon admitted");
             Console.WriteLine("CS_WORLDMAP_GODOT_MONO_NATIVE=NOT_ESTABLISHED");
