@@ -28,6 +28,10 @@ public partial class PlanetDebug : Node3D
     private float _cameraDistance = 22f;
     private bool _expanded;
     private VersionedTerrainStream _stream = new();
+    private SceneAdmissionBudget? _sceneAdmission;
+    private IReadOnlyList<TileId>? _stagedCover;
+    private bool _stagedExpansion;
+    private bool _stageObservedActive;
     private int _committedTransitions;
     private bool _coarsenRequested;
     private bool _queuedExpansion;
@@ -122,14 +126,47 @@ public partial class PlanetDebug : Node3D
         {
             if (_stream.Pump(out var prepared) && prepared is not null)
             {
-                ApplyCover(_stream.RequestedCover, prepared);
-                _committedTransitions++;
-                bool wasExpansion = _queuedExpansion;
-                int expected = wasExpansion ? 12 : 9;
-                Check(_rendered.Count == expected, "bounded stream mesh count");
-                Check(_stream.MaximumObservedFrameAdmissions <= VersionedTerrainStream.MaxTilesPerFrame,
-                    "per-frame native mesh budget");
-                GD.Print($"GODOT_CSHARP_LOD_SWAP_PASS expanded={wasExpansion} tiles={expected} collisionBodies={_rendered.Count}");
+                _sceneAdmission?.Dispose();
+                _sceneAdmission = new SceneAdmissionBudget(
+                    _stream.Revision, prepared, _stream.RequestedCover);
+                _stagedCover = _stream.RequestedCover.ToArray();
+                _stagedExpansion = _queuedExpansion;
+                _stageObservedActive = false;
+            }
+            if (_sceneAdmission != null)
+            {
+                if (_sceneAdmission.Revision != _stream.Revision)
+                {
+                    GD.Print($"GODOT_CSHARP_NODE_STALE_DROP revision={_sceneAdmission.Revision}");
+                    _sceneAdmission.Dispose();
+                    _sceneAdmission = null;
+                }
+                else
+                {
+                    bool complete = _sceneAdmission.Pump(CreateTileNode);
+                    if (!complete && !_stageObservedActive)
+                    {
+                        // The old live cover must remain present while replacement
+                        // body/collider nodes are allocated outside the SceneTree.
+                        Check(_rendered.Count == (_stagedExpansion ? 9 : 12),
+                            "live tile cover preserved during collider staging");
+                        _stageObservedActive = true;
+                        GD.Print($"GODOT_CSHARP_NODE_ACTIVE_PASS tiles={_rendered.Count} whileStaging=True");
+                    }
+                    if (complete)
+                    {
+                        var ready = _sceneAdmission.TakeComplete();
+                        ApplyCover(_stagedCover!, _sceneAdmission.CheckedSet, ready);
+                        _sceneAdmission.Dispose();
+                        _sceneAdmission = null;
+                        _committedTransitions++;
+                        int expected = _stagedExpansion ? 12 : 9;
+                        Check(_rendered.Count == expected, "bounded node/physics admission count");
+                        Check(_stream.MaximumObservedFrameAdmissions <= VersionedTerrainStream.MaxTilesPerFrame,
+                            "mesh resources frame-budget");
+                        GD.Print($"GODOT_CSHARP_LOD_SWAP_PASS expanded={_stagedExpansion} tiles={expected} collisionBodies={_rendered.Count}");
+                    }
+                }
             }
         }
         catch (Exception ex)
@@ -246,7 +283,8 @@ public partial class PlanetDebug : Node3D
     }
 
     private void ApplyCover(IReadOnlyList<TileId> proposedCover,
-        WatertightTiles.CheckedMeshSet checkedSet)
+        WatertightTiles.CheckedMeshSet checkedSet,
+        IReadOnlyList<MeshInstance3D>? stagedNodes = null)
     {
         int maxLevel = checkedSet.GlobalLevel;
         int uniformTriangles = proposedCover.Sum(t =>
@@ -259,35 +297,12 @@ public partial class PlanetDebug : Node3D
         GD.Print($"GODOT_CSHARP_ADAPTIVE_PASS level={maxLevel} tiles={proposedCover.Count} triangles={checkedSet.Triangles} uniformTriangles={uniformTriangles} saved={uniformTriangles-checkedSet.Triangles}");
         if (checkedSet.NonmanifoldEdges != 0)
             throw new InvalidOperationException("Watertightness gate unexpectedly failed.");
-        var incoming = new List<MeshInstance3D>();
-        foreach (var item in checkedSet.Meshes)
-        {
-            var instance = new MeshInstance3D
-            {
-                Name = $"NativeTile_{item.Key.Face}_{item.Key.Level}_{item.Key.Column}_{item.Key.Row}",
-                Mesh = item.Value,
-                MaterialOverride = new StandardMaterial3D
-                {
-                    AlbedoColor = Palette(item.Key),
-                    Roughness = 0.88f,
-                    Metallic = 0.04f,
-                    CullMode = BaseMaterial3D.CullModeEnum.Disabled,
-                },
-            };
-            var body = new StaticBody3D { Name = "SurfaceCollider" };
-            var shape = item.Value.CreateTrimeshShape();
-            // A debug closed sphere must support hits from both ray directions.
-            // Godot concave triangle winding must not silently invalidate QA.
-            shape.BackfaceCollision = true;
-            var collision = new CollisionShape3D
-            {
-                Name = "NativeTrimesh",
-                Shape = shape,
-            };
-            body.AddChild(collision);
-            instance.AddChild(body);
-            incoming.Add(instance);
-        }
+        var incoming = stagedNodes != null
+            ? new List<MeshInstance3D>(stagedNodes)
+            : checkedSet.Meshes.Select(item => CreateTileNode(item.Key, item.Value)).ToList();
+        if (incoming.Count != proposedCover.Count ||
+            incoming.Any(n => n.GetChildCount() != 1 || n.GetChild(0) is not StaticBody3D))
+            throw new InvalidOperationException("Unstaged terrain collision cover rejected.");
 
         // Swap in one synchronous main-thread pass; no partial tiles admitted.
         foreach (MeshInstance3D old in _rendered)
@@ -304,6 +319,33 @@ public partial class PlanetDebug : Node3D
         _cover = proposedCover;
         _triangles = checkedSet.Triangles;
         GD.Print($"GODOT_CSHARP_SEAM_PASS level={checkedSet.GlobalLevel} tiles={proposedCover.Count} edges={checkedSet.DistinctEdges} nonmanifold={checkedSet.NonmanifoldEdges} triangles={_triangles}");
+    }
+
+    private MeshInstance3D CreateTileNode(TileId tile, ArrayMesh mesh)
+    {
+        var instance = new MeshInstance3D
+        {
+            Name = $"NativeTile_{tile.Face}_{tile.Level}_{tile.Column}_{tile.Row}",
+            Mesh = mesh,
+            MaterialOverride = new StandardMaterial3D
+            {
+                AlbedoColor = Palette(tile),
+                Roughness = 0.88f,
+                Metallic = 0.04f,
+                CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+            },
+        };
+        var body = new StaticBody3D { Name = "SurfaceCollider" };
+        var shape = mesh.CreateTrimeshShape();
+        shape.BackfaceCollision = true;
+        var collision = new CollisionShape3D
+        {
+            Name = "NativeTrimesh",
+            Shape = shape,
+        };
+        body.AddChild(collision);
+        instance.AddChild(body);
+        return instance;
     }
 
     private bool RejectInvalidCoverWithoutMutation()
@@ -354,6 +396,8 @@ public partial class PlanetDebug : Node3D
                 throw new InvalidOperationException("Required native LOD swap was denied.");
             if (!QuadtreeCoverage.IsCompleteSixFaceCover(proposed))
                 throw new InvalidOperationException("Invalid proposed native cover.");
+            _sceneAdmission?.Dispose();
+            _sceneAdmission = null;
             int revision = _stream.Request(proposed, DebugRadiusUnits);
             _queuedExpansion = expand;
             GD.Print($"GODOT_CSHARP_STREAM_QUEUED revision={revision} tiles={proposed.Count}");
@@ -367,6 +411,7 @@ public partial class PlanetDebug : Node3D
 
     public override void _ExitTree()
     {
+        _sceneAdmission?.Dispose();
         _stream.Dispose();
     }
 
