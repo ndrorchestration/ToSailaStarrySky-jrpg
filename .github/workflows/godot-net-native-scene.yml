@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           dotnet restore StarrySkyWorldMapStudy.csproj
-          dotnet build StarrySkyWorldMapStudy.csproj -c Release --no-restore -warnaserror
+          dotnet build StarrySkyWorldMapStudy.csproj -c Debug --no-restore -warnaserror
       - name: Godot Mono import and native scene smoke
         shell: bash
         run: |
