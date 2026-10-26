@@ -183,8 +183,10 @@ public partial class PlanetDebug : Node3D
             Fov = 49f,
             Near = 0.1f,
             Far = 200f,
+            Position = new Vector3(8f, 6f, 20f),
         };
         AddChild(_camera);
+        _camera.LookAt(Vector3.Zero);
 
         var overlay = new CanvasLayer { Name = "EngineeringScopeLabel" };
         AddChild(overlay);
