@@ -46,12 +46,12 @@ public static class CubeSphereAddressing
         double a = 2 * u - 1, b = 2 * v - 1;
         (double x, double y, double z) = face switch
         {
-            CubeFace.PositiveX => (1, b, -a),
-            CubeFace.NegativeX => (-1, b, a),
-            CubeFace.PositiveY => (a, 1, -b),
-            CubeFace.NegativeY => (a, -1, b),
-            CubeFace.PositiveZ => (a, b, 1),
-            CubeFace.NegativeZ => (-a, b, -1),
+            CubeFace.PositiveX => (1.0, b, -a),
+            CubeFace.NegativeX => (-1.0, b, a),
+            CubeFace.PositiveY => (a, 1.0, -b),
+            CubeFace.NegativeY => (a, -1.0, b),
+            CubeFace.PositiveZ => (a, b, 1.0),
+            CubeFace.NegativeZ => (-a, b, -1.0),
             _ => throw new ArgumentOutOfRangeException(nameof(face))
         };
         double magnitude = Math.Sqrt(x * x + y * y + z * z);
