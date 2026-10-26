@@ -48,7 +48,12 @@ jobs:
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/dotnet-import.log
           "$GODOT_BIN" --headless --audio-driver Dummy --path native-csharp/GodotWorldMapStudy --quit-after 45 2>&1 | tee /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_WORLD_PASS' /tmp/dotnet-world.log
-          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|GODOT_CSHARP_WORLD_FAIL' /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_SEAM_PASS level=1 tiles=9 edges=4608 nonmanifold=0' /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_SEAM_PASS level=2 tiles=12 edges=18432 nonmanifold=0' /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_LOD_SWAP_PASS expanded=True tiles=12 collisionBodies=12' /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_LOD_SWAP_PASS expanded=False tiles=9 collisionBodies=9' /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_COLLISION_PASS' /tmp/dotnet-world.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|GODOT_CSHARP_.*FAIL' /tmp/dotnet-world.log
       - name: Real 960x640 framebuffer capture (software GL; not GPU FPS)
         shell: bash
         run: |
