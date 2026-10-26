@@ -72,19 +72,19 @@ func _run() -> void:
         var pane_material: StandardMaterial3D = pane.material_override
         check(pane_material.emission_enabled, "window has warm emission without point lights")
     var branches: MultiMeshInstance3D = scene.terrain.get_node("ForestCrowns")
-    check(branches.multimesh.instance_count > 5, "forest instances retained")
-    var first_tree: Transform3D = branches.multimesh.get_instance_transform(0)
+    var cpu_poses: Array[Transform3D] = scene.terrain.tree_poses
+    check(cpu_poses.size() > 5, "forest authored CPU transforms retained")
+    check(branches.multimesh.instance_count == cpu_poses.size(), "GPU instance budget mirrors authored forest")
+    # RenderingServer Dummy readback can report identity for every MultiMesh
+    # transform in --headless; validate the actual CPU inputs, not fake GPU data.
+    var first_tree: Transform3D = cpu_poses[0]
     var varied: bool = false
-    for tree in range(1, mini(16, branches.multimesh.instance_count)):
-        var other_tree: Transform3D = branches.multimesh.get_instance_transform(tree)
+    for tree in range(1, mini(16, cpu_poses.size())):
+        var other_tree: Transform3D = cpu_poses[tree]
         if first_tree.basis.x.normalized().distance_to(other_tree.basis.x.normalized()) > 0.12:
             varied = true
             break
-    if not varied:
-        for k in range(mini(6, branches.multimesh.instance_count)):
-            var sample: Transform3D = branches.multimesh.get_instance_transform(k)
-            print("FOREST_AXIS_DIAGNOSTIC index=", k, " x=", sample.basis.x, " pos=", sample.origin)
-    check(varied, "forest crowns have deterministic varied orientation")
+    check(varied, "forest crowns have deterministic varied CPU orientations")
     scene._clock = 9.0
     scene._paused = true
     scene._process(0.2)
