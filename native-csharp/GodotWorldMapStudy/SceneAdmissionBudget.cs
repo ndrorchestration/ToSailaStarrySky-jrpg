@@ -22,6 +22,7 @@ public sealed class SceneAdmissionBudget : IDisposable
     public int MaximumObservedNodeAdmissions { get; private set; }
     public double MaximumObservedStageMilliseconds { get; private set; }
     public int Revision { get; }
+    public WatertightTiles.CheckedMeshSet CheckedSet => _checked;
 
     public SceneAdmissionBudget(int revision,
         WatertightTiles.CheckedMeshSet checkedSet, IReadOnlyList<TileId> cover)
