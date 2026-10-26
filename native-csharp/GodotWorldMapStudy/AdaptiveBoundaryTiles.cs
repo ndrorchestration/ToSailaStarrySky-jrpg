@@ -5,7 +5,7 @@ using Godot;
 using StarrySky.WorldMap.Contracts;
 
 /// <summary>
-/// Small, NONCANON adaptive cube-sphere mesh laboratory.
+/// Small, NONCANON displaced adaptive cube-sphere mesh laboratory.
 /// Each tile has only 8x8 interior cells; on its perimeter, cells split only where actual neighboring active
 /// tile edge vertices require it (including across cube faces). Boundary
 /// cell triangle fans eliminate T-junctions; complete global edge-incidence
@@ -95,6 +95,12 @@ public static class AdaptiveBoundaryTiles
             int bad=edges.Values.Count(x=>x!=2);
             if (bad!=0 || edges.Count*2!=triangles*3)
                 throw new InvalidOperationException($"Adaptive edge validation failed: edges={edges.Count} bad={bad} triangles={triangles}");
+            var points = edges.Keys.SelectMany(e => new[] { e.A, e.B }).Distinct().ToArray();
+            float minHeight = points.Min(TerrainDisplacementFixture.Offset);
+            float maxHeight = points.Max(TerrainDisplacementFixture.Offset);
+            if (minHeight >= -0.01f || maxHeight <= 0.01f)
+                throw new InvalidOperationException("Radial terrain fixture did not displace both directions.");
+            GD.Print($"GODOT_CSHARP_DISPLACEMENT_PASS level={level} vertices={points.Length} minHeight={minHeight:F6} maxHeight={maxHeight:F6}");
             GD.Print($"GODOT_CSHARP_NEIGHBOR_PASS level={level} tiles={cover.Count} inserted={insertedBoundaryVertices} stitchedCells={stitchedCells} triangles={triangles} nonmanifold={bad}");
             return new WatertightTiles.CheckedMeshSet(meshes,triangles,edges.Count,bad,level);
         }
@@ -109,7 +115,9 @@ public static class AdaptiveBoundaryTiles
         WatertightTiles.GridPoint b, WatertightTiles.GridPoint c,float radius,
         Dictionary<Edge,int> edges)
     {
-        var av=a.Sphere(radius); var bv=b.Sphere(radius); var cv=c.Sphere(radius);
+        var av=TerrainDisplacementFixture.Position(a,radius);
+        var bv=TerrainDisplacementFixture.Position(b,radius);
+        var cv=TerrainDisplacementFixture.Position(c,radius);
         if((bv-av).Cross(cv-av).Dot((av+bv+cv).Normalized())<0)
             (b,c)=(c,b);
         Vertex(tool,a,radius);Vertex(tool,b,radius);Vertex(tool,c,radius);
@@ -117,7 +125,8 @@ public static class AdaptiveBoundaryTiles
     }
     private static void Vertex(SurfaceTool tool,WatertightTiles.GridPoint p,float r)
     {
-        var v=p.Sphere(r);
+        var v=TerrainDisplacementFixture.Position(p,r);
+        // Smooth shading uses an approximate radial normal in this study.
         tool.SetNormal(v.Normalized());tool.AddVertex(v);
     }
     private static void Count(Dictionary<Edge,int> edges,
