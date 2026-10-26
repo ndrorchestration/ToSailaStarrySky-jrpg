@@ -1,0 +1,6 @@
+.godot/
+bin/
+obj/
+.mono/
+evidence/
+*.tmp
