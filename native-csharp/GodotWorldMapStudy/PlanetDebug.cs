@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Godot;
 using StarrySky.WorldMap.Contracts;
@@ -71,6 +72,15 @@ public partial class PlanetDebug : Node3D
             Check(!_stream.WouldAdmit(stale) && _stream.WouldAdmit(superseding),
                 "stale generation must be denied");
             GD.Print($"GODOT_CSHARP_STALE_REJECT_PASS stale={stale} current={superseding}");
+            for (int iteration = 0; iteration < 8; iteration++)
+            {
+                int previous = superseding;
+                superseding = _stream.Request(_cover, DebugRadiusUnits);
+                Check(!_stream.WouldAdmit(previous) && _stream.WouldAdmit(superseding),
+                    "rapid supersession revision isolation");
+            }
+            GD.Print($"GODOT_CSHARP_SUPERSESSION_PASS requests=10 staleRejected=9 current={superseding}");
+            // This only tests rapid revision supersession, not all worker interleavings.
             // The controlled test requests are never admitted into the live scene.
             _stream.Dispose();
             _stream = new VersionedTerrainStream();
@@ -304,7 +314,9 @@ public partial class PlanetDebug : Node3D
             incoming.Any(n => n.GetChildCount() != 1 || n.GetChild(0) is not StaticBody3D))
             throw new InvalidOperationException("Unstaged terrain collision cover rejected.");
 
-        // Swap in one synchronous main-thread pass; no partial tiles admitted.
+        // Final scene-tree/physics attachment still occurs together; instrument,
+        // but do NOT confuse this sample with full frame-time or GPU performance.
+        var commitWatch = Stopwatch.StartNew();
         foreach (MeshInstance3D old in _rendered)
         {
             RemoveChild(old);
@@ -316,6 +328,8 @@ public partial class PlanetDebug : Node3D
             AddChild(current);
             _rendered.Add(current);
         }
+        commitWatch.Stop();
+        GD.Print($"GODOT_CSHARP_SWAP_METRIC nodes={incoming.Count} commitMs={commitWatch.Elapsed.TotalMilliseconds:F3}");
         _cover = proposedCover;
         _triangles = checkedSet.Triangles;
         GD.Print($"GODOT_CSHARP_SEAM_PASS level={checkedSet.GlobalLevel} tiles={proposedCover.Count} edges={checkedSet.DistinctEdges} nonmanifold={checkedSet.NonmanifoldEdges} triangles={_triangles}");
