@@ -31,6 +31,9 @@ func _ready() -> void:
     triangle_count = faces.size() / 3
     var shape := ConcavePolygonShape3D.new()
     shape.set_faces(faces)
+    # A concave mesh has orientation-sensitive ray contact; the temporary
+    # physics pad is deliberately double-sided for diagnostic safety.
+    shape.backface_collision = true
     var collider := CollisionShape3D.new()
     collider.name = "VerifiedTerrainTrimesh"
     collider.shape = shape
@@ -44,6 +47,9 @@ func probe(at: Vector3, space: PhysicsDirectSpaceState3D) -> Dictionary:
     query.collide_with_areas = false
     var result: Dictionary = space.intersect_ray(query)
     if result.is_empty() or result.get("collider") != self:
+        print("GODOT_CONTACT_RAY_MISS origin=", query.from, " to=", query.to,
+            " hit=", result, " layer=", collision_layer,
+            " faces=", triangle_count)
         return {"valid": false, "reason": "NO_NATIVE_TERRAIN_CONTACT"}
     var point: Vector3 = result["position"]
     var normal: Vector3 = result["normal"]
