@@ -8,6 +8,8 @@
 
 **Project status:** This is a publicly accessible **development repository**, not an approved finished game or a verified public Windows release. The browser prototype, character systems and Chapter I work remain under development; game builds and player acceptance have separate verification gates.
 
+**Publication and security notice (reviewed 2026-10-24):** Public source availability is **not** an open-source license or clearance to redistribute code, music, fonts, artwork, or binaries; third-party provenance and permissions still require review. A QA-generated NSIS uninstaller triggered a [Windows Defender detection (issue #293)](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/issues/293), whose origin and disposition are unresolved. **Do not restore, whitelist, execute, or distribute the specifically detected artifact.** The broader [public-source audit (issue #360)](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/issues/360) and [unprotected-main review gate (issue #303)](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/issues/303) remain open. For sensitive security concerns, follow [SECURITY.md](SECURITY.md), not public issue comments.
+
 The project retains legacy `Aetherwake` filenames, package identifiers, save/release references, and historical test receipts for compatibility and provenance. They are **not** instructions to rename working files or migrate saves without testing.
 
 Selected implementation patterns and reference material were studied from *Memories 0.7.4*; see [Provenance](#provenance) and `memories_adaptation_catalog.md` for the adaptation record.
@@ -227,11 +229,11 @@ Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts includ
 
 The intended player experience is **download one verified Windows artifact, launch/install it, and run To Sail the Starry Sky in its own large resizable/maximizable desktop window**. Existing historical packages still use the `Aetherwake` executable identity; the rebrand has not yet migrated installed app names. The desktop presentation defaults to **1440×960** and scales proportionally when maximized, while preserving the 960×640 logical game layout. **Alt+Enter** or **F11** toggles native fullscreen; **Escape** exits fullscreen. Browser/HTTP instructions above are development and diagnostic paths, not the desired end-user experience.
 
-### Current Preview 0.1 release authority — 2026-10-06
+### Preview 0.1 technical checkpoint — 2026-10-06 (historical)
 
-The runtime baseline before the documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. Documentation-only changes can advance `main` without changing player-runtime bytes. GitHub branch protection and release approval are separate controls; neither is established by a README update. The current bounded Preview 0.1 remediation/review candidate remains PR #250 at exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; candidate identity is bound to that exact SHA and artifact hashes, not to a moving `main` pointer.
+The runtime baseline before that documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. Documentation-only changes can advance `main` without changing player-runtime bytes. The October 6 checkpoint referred to Preview 0.1 remediation/review candidate PR #250 at exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; its evidence binds to that SHA and its artifact hashes, not to today's moving `main` or to subsequent builds. Release status must be rechecked against current holds.
 
-Technical candidate verification is complete for that exact head:
+The dated evidence record reported bounded technical verification for that exact head:
 
 - hosted smoke run `37557721548`: **PASS**;
 - fresh seven-frame player-evidence capture on NeonPC: **CAPTURED** from exact head `46f50c...`;
@@ -241,7 +243,7 @@ Technical candidate verification is complete for that exact head:
 - workflow-dispatch Windows run `37559269564`: **SUCCESS** through package build, no-admin installer, exact installed launch, portable verification, SHA-256 manifest, and prerelease publication;
 - the published installer was independently downloaded, SHA-256 checked, installed, and launched on NeonPC: **PASS**.
 
-Current published Preview 0.1 candidate:
+Recorded Preview 0.1 prerelease candidate from that checkpoint (historical evidence; **not** a present approval to download or run):
 
 ```text
 SOURCE_SHA=46f50c581d992bf581bb6b6d7961a9421b8b779d
@@ -253,11 +255,11 @@ VISUAL_ACCEPTANCE=PENDING
 HUMAN_PLAYER_ACCEPTANCE=PENDING
 ```
 
-PR #250 is ready for human review but is not merged. The historical Google Drive one-click launchers still point to older candidates and must not be treated as the current acceptance target.
+At the time of that checkpoint, PR #250 awaited human review and was unmerged; its current state must be checked independently. Historical Google Drive one-click launchers pointed to older candidates and must not be treated as a current acceptance target.
 
 For the exact uncoached human/player acceptance protocol, see `docs/PREVIEW_0_1_ACCEPTANCE.md`.
 
-Historical **Aetherwake-branded** package filenames remain part of the current desktop-build contract until a compatibility-tested rename is approved:
+Historical **Aetherwake-branded** package filenames remain part of the desktop-build contract until a compatibility-tested rename is approved. The names below identify artifact classes, **not** a current recommendation to obtain or execute a specific download:
 
 - **Aetherwake-Setup.exe** — conventional per-user installer; no administrator elevation; creates normal Start Menu and desktop shortcuts.
 - **Aetherwake-Windows.zip** — portable fallback. Extract completely, then run **Aetherwake.exe**.

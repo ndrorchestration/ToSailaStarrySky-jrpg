@@ -82,3 +82,16 @@ nwjs-win64.zip
 # Staged player runtime
 .desktop-runtime/
 local-release/
+
+# Untracked local credentials and signing material (does not remove tracked/history secrets)
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.p12
+*.pfx
+*.key
+*.kdbx
+*.secrets.json
+*.credentials.json
