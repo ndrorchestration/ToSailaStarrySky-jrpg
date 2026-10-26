@@ -403,6 +403,20 @@ internal static class Program
             var mesh = CubeSphereMeshFixture.Generate(new TileId(face, 0, 0, 0), 3.5, 2);
             Check(mesh.Vertices.Count == 9 && mesh.Indices.Count == 24,
                 "each face has bounded mesh " + face);
+            for (int triangle = 0; triangle < mesh.Indices.Count; triangle += 3)
+            {
+                var p = mesh.Vertices[mesh.Indices[triangle]];
+                var q = mesh.Vertices[mesh.Indices[triangle + 1]];
+                var r = mesh.Vertices[mesh.Indices[triangle + 2]];
+                double ux = q.X - p.X, uy = q.Y - p.Y, uz = q.Z - p.Z;
+                double vx = r.X - p.X, vy = r.Y - p.Y, vz = r.Z - p.Z;
+                double nx = uy * vz - uz * vy;
+                double ny = uz * vx - ux * vz;
+                double nz = ux * vy - uy * vx;
+                double outward = nx * (p.X + q.X + r.X)
+                    + ny * (p.Y + q.Y + r.Y) + nz * (p.Z + q.Z + r.Z);
+                Check(outward > 1e-10, "triangle outward and nondegenerate " + face);
+            }
         }
         Reject<ArgumentOutOfRangeException>(() => CubeSphereMeshFixture.Generate(root, 0, 8),
             "invalid mesh radius refused");
