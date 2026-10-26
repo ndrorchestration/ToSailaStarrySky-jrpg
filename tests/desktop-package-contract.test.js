@@ -6,6 +6,30 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+const EXPECTED_BRAND_TITLE = 'TO SAIL THE STARRY SKY';
+assert(packageJson.name === 'Aetherwake',
+  'do not migrate the executable/package identity before save and installer compatibility review');
+assert(packageJson.window && packageJson.window.title === EXPECTED_BRAND_TITLE,
+  'NW.js development window must advertise the approved title');
+const entryHtml = fs.readFileSync(path.join(__dirname, '..', 'index-embedded.html'), 'utf8');
+const legacyHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const displayedTitleSources = [
+  ['aetherwake.js', fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8')],
+  ['modules/core.js', fs.readFileSync(path.join(__dirname, '..', 'modules', 'core.js'), 'utf8')],
+  ['modules/ui-adapter.js', fs.readFileSync(path.join(__dirname, '..', 'modules', 'ui-adapter.js'), 'utf8')],
+];
+for (const [file, source] of displayedTitleSources) {
+  assert(source.includes("text('TO SAIL THE STARRY SKY'"),
+    file + ' must render the approved title on the playable canvas');
+  assert(!source.includes("text('AETHERWAKE'"),
+    file + ' must not render the former title on the playable canvas');
+}
+
+assert(entryHtml.includes('<title>To Sail the Starry Sky</title>'),
+  'canonical browser tab must show the approved game title');
+assert(legacyHtml.includes('<title>To Sail the Starry Sky</title>'),
+  'legacy browser redirect page must show the approved title');
+
 assert(packageJson.main === 'index-embedded.html',
   'development manifest must retain the embedded HTML entry point');
 assert(packageJson.window && packageJson.window.width === 1440,
@@ -25,6 +49,8 @@ const stageScript = fs.readFileSync(
   path.join(__dirname, '..', 'scripts', 'stage-memories-desktop.js'),
   'utf8'
 );
+assert(stageScript.includes('title: rootPackage.window.title'),
+  'staged NW.js runtime window title must derive from the approved manifest title');
 assert(stageScript.includes("main: 'www/index-embedded.html'"),
   'production desktop manifest must use the RPG Maker MV-style www entrypoint');
 assert(stageScript.includes("'icon.ico'"),

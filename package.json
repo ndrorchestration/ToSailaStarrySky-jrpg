@@ -1,10 +1,10 @@
 {
   "name": "Aetherwake",
   "version": "0.2.0",
-  "description": "Aetherwake pre-alpha — a solarpunk turn-based JRPG built with p5.js",
+  "description": "To Sail the Starry Sky — pre-alpha solarpunk turn-based JRPG built with p5.js",
   "main": "index-embedded.html",
   "window": {
-    "title": "AETHERWAKE — THE LAST SOLARPUNK AIRSHIP",
+    "title": "TO SAIL THE STARRY SKY",
     "width": 1440,
     "height": 960,
     "min_width": 960,
