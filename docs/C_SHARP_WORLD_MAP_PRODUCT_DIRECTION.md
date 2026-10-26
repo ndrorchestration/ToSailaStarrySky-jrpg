@@ -17,7 +17,7 @@
 
 ## Actual independent C# deliverable
 
-A separate pure-C# `native-csharp` contract/check project, initially **based on main**, without invoking or copying the GDScript renderer code. It offers physically interpretable spherical coordinate and geometric-horizon value contracts, optional undefined-bearing handling, and conservative tile identity/capacity gates. Every planet radius is caller-supplied. A simple build and deterministic checks test math. This is **not yet a Godot game scene** and not a claim of production readiness.
+A separate pure-C# `native-csharp` contract/check project, initially **based on main**, without invoking or copying the GDScript renderer code. It offers physically interpretable spherical coordinate and geometric-horizon value contracts, optional undefined-bearing handling, conservative tile identity/capacity gates, per-frame work-count transition proposals and a **six-face hole-free quadtree cover invariant** (atomic 1↔4 refinement/coarsening proposals). Every planet radius is caller-supplied. Hosted compiler and seeded deterministic checks test contracts only. This is **not yet a Godot game scene** and not a claim of production readiness.
 
 The **proposed** .NET 8 contract target is chosen only to make independent tests executable on hosted CI; it does not decide the engine's full native C# toolchain or target version.
 
