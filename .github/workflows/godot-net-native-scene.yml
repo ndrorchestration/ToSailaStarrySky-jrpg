@@ -1,0 +1,79 @@
+name: Godot 4.7.2 .NET native C# globe scene (noncanon)
+on:
+  pull_request:
+    paths:
+      - 'native-csharp/GodotWorldMapStudy/**'
+      - '.github/workflows/godot-net-native-scene.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-godot-csharp-study:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install official .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Install official Godot 4.7.2 Mono editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --output /tmp/godot_mono.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_mono_linux_x86_64.zip
+          mkdir -p /tmp/godot_mono
+          unzip -q /tmp/godot_mono.zip -d /tmp/godot_mono
+          GODOT="$(find /tmp/godot_mono -type f -name 'Godot_v4.7.2-stable_mono_linux.x86_64' -print -quit)"
+          test -n "$GODOT"
+          chmod +x "$GODOT"
+          echo "GODOT_BIN=$GODOT" >> "$GITHUB_ENV"
+          "$GODOT" --version
+          dotnet --version
+      - name: Compile real Godot C# scene with warnings as errors
+        working-directory: native-csharp/GodotWorldMapStudy
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet restore StarrySkyWorldMapStudy.csproj
+          dotnet build StarrySkyWorldMapStudy.csproj -c Release --no-restore -warnaserror
+      - name: Godot Mono import and native scene smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --audio-driver Dummy --editor --path native-csharp/GodotWorldMapStudy --quit 2>&1 | tee /tmp/dotnet-import.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/dotnet-import.log
+          "$GODOT_BIN" --headless --audio-driver Dummy --path native-csharp/GodotWorldMapStudy --quit-after 45 2>&1 | tee /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_WORLD_PASS' /tmp/dotnet-world.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|GODOT_CSHARP_WORLD_FAIL' /tmp/dotnet-world.log
+      - name: Real 960x640 framebuffer capture (software GL; not GPU FPS)
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 120s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            "$GODOT_BIN" --path native-csharp/GodotWorldMapStudy \
+            --rendering-driver opengl3 --audio-driver Dummy \
+            --quit-after 120 -- --capture 2>&1 | tee /tmp/dotnet-capture.log
+          grep -q 'GODOT_CSHARP_FRAME_CAPTURE:' /tmp/dotnet-capture.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|GODOT_CSHARP_CAPTURE_FAIL' /tmp/dotnet-capture.log
+          python3 - <<'PY'
+          from pathlib import Path
+          import struct
+          p = Path('native-csharp/GodotWorldMapStudy/evidence/planet-debug.png')
+          data = p.read_bytes()
+          assert data[:8] == b'\x89PNG\r\n\x1a\n'
+          assert struct.unpack('>II', data[16:24]) == (960, 640)
+          assert len(data) > 10000, len(data)
+          print('GODOT_CSHARP_CAPTURE_PNG_PASS 960x640',len(data),'bytes')
+          PY
+      - name: Preserve native graphical artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-godot-net-worldmap-frame
+          path: native-csharp/GodotWorldMapStudy/evidence/planet-debug.png
+          if-no-files-found: warn
+          retention-days: 7
