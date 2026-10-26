@@ -50,6 +50,17 @@ jobs:
           grep -q 'GODOT_CSHARP_WORLD_PASS' /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_ATOMIC_REJECT_PASS intactTiles=9' /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_STALE_REJECT_PASS stale=1 current=2' /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_SUPERSESSION_PASS requests=10 staleRejected=9 current=10' /tmp/dotnet-world.log
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          log=Path('/tmp/dotnet-world.log').read_text()
+          rows=re.findall(r'GODOT_CSHARP_SWAP_METRIC nodes=(\d+) commitMs=([0-9.]+)', log)
+          assert len(rows)==3, rows
+          assert [int(row[0]) for row in rows] == [9,12,9], rows
+          assert all(float(row[1])>=0 for row in rows), rows
+          print('GODOT_CSHARP_SWAP_TELEMETRY_PASS',rows)
+          PY
           grep -q 'GODOT_CSHARP_STREAM_ADMIT_PASS revision=1 tiles=12 maxPerFrame=2 observed=2' /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_STREAM_ADMIT_PASS revision=2 tiles=9 maxPerFrame=2 observed=2' /tmp/dotnet-world.log
           grep -Eq 'GODOT_CSHARP_NODE_STAGE_PASS revision=1 nodes=12 maxPerFrame=2 observed=2 maxStageMs=[0-9.]+' /tmp/dotnet-world.log
