@@ -27,6 +27,7 @@ public partial class PlanetDebug : Node3D
     private float _latitudeDegrees = 17f;
     private float _cameraDistance = 22f;
     private bool _expanded;
+    private TileId? _lastSelected;
     private int _frames;
     private int _assertions;
     private bool _captureRequested;
@@ -192,7 +193,7 @@ public partial class PlanetDebug : Node3D
         AddChild(overlay);
         var label = new Label
         {
-            Text = "TO SAIL THE STARRY SKY   /   GODOT .NET C# GEOMETRY LAB\nINTEGER-GRID CONTINUOUS SPHERE   •   NON-CANON DEBUG\nWASD ORBIT  |  Q/E ALTITUDE  |  TILES / COLLISIONS TESTED\nNOT ART / DRAGONFLY / BIOMES / MOON ROUTE",
+            Text = "TO SAIL THE STARRY SKY   /   GODOT .NET C# GEOMETRY LAB\nADAPTIVE TILE INTERIORS + SEALED EDGES   •   NON-CANON\nWASD ORBIT  |  Q/E ALTITUDE  |  TILES / COLLISIONS TESTED\nNOT ART / DRAGONFLY / BIOMES / MOON ROUTE",
             Position = new Vector2(24, 22),
         };
         label.AddThemeFontSizeOverride("font_size", 14);
@@ -203,7 +204,16 @@ public partial class PlanetDebug : Node3D
     private void RenderCover()
     {
         // Validate the complete mesh set before touching the active scene.
-        WatertightTiles.CheckedMeshSet checkedSet = WatertightTiles.Build(_cover, DebugRadiusUnits);
+        WatertightTiles.CheckedMeshSet checkedSet = AdaptiveBoundaryTiles.Build(_cover, DebugRadiusUnits);
+        int maxLevel = checkedSet.GlobalLevel;
+        int uniformTriangles = _cover.Sum(t =>
+        {
+            int n = WatertightTiles.SegmentsPerLeaf << (maxLevel - t.Level);
+            return 2 * n * n;
+        });
+        if (checkedSet.Triangles >= uniformTriangles)
+            throw new InvalidOperationException("Adaptive mesh did not save triangles over uniform tessellation.");
+        GD.Print($"GODOT_CSHARP_ADAPTIVE_PASS level={maxLevel} tiles={_cover.Count} triangles={checkedSet.Triangles} uniformTriangles={uniformTriangles} saved={uniformTriangles-checkedSet.Triangles}");
         if (checkedSet.NonmanifoldEdges != 0)
             throw new InvalidOperationException("Watertightness gate unexpectedly failed.");
         var incoming = new List<MeshInstance3D>();
@@ -256,7 +266,22 @@ public partial class PlanetDebug : Node3D
     {
         try
         {
-            var parent = new TileId(CubeFace.PositiveZ, 1, 0, 0);
+            TileId parent;
+            if (expand)
+            {
+                var chosen = CameraTilePriority.NearestRefinable(_cover, _camera!.Position, 1);
+                if (!chosen.HasValue)
+                    throw new InvalidOperationException("Camera-facing refinement target missing.");
+                parent = chosen.Value;
+                _lastSelected = parent;
+                GD.Print($"GODOT_CSHARP_CAMERA_PRIORITY_PASS selected={parent} azimuth={_azimuthDegrees:F2}");
+            }
+            else
+            {
+                if (!_lastSelected.HasValue)
+                    throw new InvalidOperationException("Refinement must precede coarsening.");
+                parent = _lastSelected.Value;
+            }
             bool changed = expand
                 ? QuadtreeCoverage.TryRefine(_cover, parent, _budget, 4, 1, out var proposed)
                 : QuadtreeCoverage.TryCoarsen(_cover, parent, _budget, 1, 4, out proposed);
