@@ -80,6 +80,10 @@ func _run() -> void:
         if first_tree.basis.x.normalized().distance_to(other_tree.basis.x.normalized()) > 0.12:
             varied = true
             break
+    if not varied:
+        for k in range(mini(6, branches.multimesh.instance_count)):
+            var sample: Transform3D = branches.multimesh.get_instance_transform(k)
+            print("FOREST_AXIS_DIAGNOSTIC index=", k, " x=", sample.basis.x, " pos=", sample.origin)
     check(varied, "forest crowns have deterministic varied orientation")
     scene._clock = 9.0
     scene._paused = true
