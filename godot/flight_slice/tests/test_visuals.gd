@@ -73,10 +73,14 @@ func _run() -> void:
         check(pane_material.emission_enabled, "window has warm emission without point lights")
     var branches: MultiMeshInstance3D = scene.terrain.get_node("ForestCrowns")
     check(branches.multimesh.instance_count > 5, "forest instances retained")
-    var trunk0: Transform3D = branches.multimesh.get_instance_transform(0)
-    var trunk1: Transform3D = branches.multimesh.get_instance_transform(1)
-    check(absf(trunk0.basis.x.x - trunk1.basis.x.x) > 0.01,
-        "forest crowns have deterministic varied orientation")
+    var first_tree: Transform3D = branches.multimesh.get_instance_transform(0)
+    var varied: bool = false
+    for tree in range(1, mini(16, branches.multimesh.instance_count)):
+        var other_tree: Transform3D = branches.multimesh.get_instance_transform(tree)
+        if first_tree.basis.x.normalized().distance_to(other_tree.basis.x.normalized()) > 0.12:
+            varied = true
+            break
+    check(varied, "forest crowns have deterministic varied orientation")
     scene._clock = 9.0
     scene._paused = true
     scene._process(0.2)
