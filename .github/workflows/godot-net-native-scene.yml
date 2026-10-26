@@ -46,9 +46,13 @@ jobs:
           set -euo pipefail
           "$GODOT_BIN" --headless --audio-driver Dummy --editor --path native-csharp/GodotWorldMapStudy --quit 2>&1 | tee /tmp/dotnet-import.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/dotnet-import.log
-          "$GODOT_BIN" --headless --audio-driver Dummy --path native-csharp/GodotWorldMapStudy --quit-after 45 2>&1 | tee /tmp/dotnet-world.log
+          "$GODOT_BIN" --headless --audio-driver Dummy --path native-csharp/GodotWorldMapStudy --quit-after 150 2>&1 | tee /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_WORLD_PASS' /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_ATOMIC_REJECT_PASS intactTiles=9' /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_STALE_REJECT_PASS stale=1 current=2' /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_STREAM_ADMIT_PASS revision=1 tiles=12 maxPerFrame=2 observed=2' /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_STREAM_ADMIT_PASS revision=2 tiles=9 maxPerFrame=2 observed=2' /tmp/dotnet-world.log
+          ! grep -Eq 'GODOT_CSHARP_(STREAM|STALE)_FAIL' /tmp/dotnet-world.log
           grep -Eq 'GODOT_CSHARP_SEAM_PASS level=1 tiles=9 edges=[0-9]+ nonmanifold=0' /tmp/dotnet-world.log
           grep -Eq 'GODOT_CSHARP_SEAM_PASS level=2 tiles=12 edges=[0-9]+ nonmanifold=0' /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_CAMERA_PRIORITY_PASS selected=' /tmp/dotnet-world.log
@@ -90,7 +94,7 @@ jobs:
           timeout 120s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
             "$GODOT_BIN" --path native-csharp/GodotWorldMapStudy \
             --rendering-driver opengl3 --audio-driver Dummy \
-            --quit-after 120 -- --capture 2>&1 | tee /tmp/dotnet-capture.log
+            --quit-after 220 -- --capture 2>&1 | tee /tmp/dotnet-capture.log
           grep -q 'GODOT_CSHARP_FRAME_CAPTURE:' /tmp/dotnet-capture.log
           grep -q 'GODOT_CSHARP_FRAME_PIXELS_PASS foreground_samples=' /tmp/dotnet-capture.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|GODOT_CSHARP_CAPTURE_FAIL' /tmp/dotnet-capture.log
