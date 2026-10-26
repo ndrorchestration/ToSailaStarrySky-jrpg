@@ -182,6 +182,107 @@ internal static class Program
         }
     }
 
+    private static void CoverageChecks()
+    {
+        var original = QuadtreeCoverage.SixFaceRoots();
+        var budget = new TileBudget(64, 128);
+        Check(original.Count == 6
+            && QuadtreeCoverage.IsCompleteSixFaceCover(original),
+            "all six roots cover a complete world with no seams or omissions");
+        foreach (var face in Enum.GetValues<CubeFace>())
+        {
+            Check(original.Any(x => x.Face == face && x.Level == 0),
+                "six independently represented faces " + face);
+        }
+
+        var first = original[0];
+        Check(!QuadtreeCoverage.TryRefine(original, first, budget, 3, 1, out var rejected)
+            && rejected.SequenceEqual(original),
+            "cannot partially admit four children when only three permits exist");
+        Check(!QuadtreeCoverage.TryRefine(original, first, budget, 4, 0, out rejected)
+            && rejected.SequenceEqual(original),
+            "cannot split without retirement quota");
+        Check(QuadtreeCoverage.TryRefine(original, first, budget, 4, 1, out var split),
+            "complete atomic four-child refinement");
+        Check(split.Count == 9 && QuadtreeCoverage.IsCompleteSixFaceCover(split),
+            "refine has no missing ground tiles or overlapping parent surface");
+        Check(!split.Contains(first)
+            && split.Count(x => x.Face == first.Face && x.Level == 1) == 4,
+            "retired root replaced by exactly four children");
+        Check(!QuadtreeCoverage.TryRefine(split, first, budget, 4, 1, out rejected)
+            && rejected.SequenceEqual(split),
+            "cannot re-refine nonresident parent");
+        Check(!QuadtreeCoverage.TryCoarsen(split, first, budget, 1, 3, out rejected)
+            && rejected.SequenceEqual(split),
+            "cannot partially retire a four-sibling cover");
+        Check(QuadtreeCoverage.TryCoarsen(split, first, budget, 1, 4, out var restored)
+            && QuadtreeCoverage.IsCompleteSixFaceCover(restored),
+            "atomic sibling collapse returns complete coverage");
+        Check(restored.ToHashSet().SetEquals(original),
+            "full six-face coverage restored without inventing new tiles");
+
+        Check(!QuadtreeCoverage.IsCompleteSixFaceCover(original.Skip(1)),
+            "missing entire planet face not incorrectly accepted");
+        Check(!QuadtreeCoverage.IsCompleteSixFaceCover(original.Concat(new[] { first })),
+            "duplicate overdraw rejected");
+        Check(!QuadtreeCoverage.IsCompleteSixFaceCover(
+            original.Concat(new[] { new TileId(first.Face, 1, 0, 0) })),
+            "ancestor plus descendent overlap rejected");
+        Check(!QuadtreeCoverage.IsCompleteSixFaceCover(split.Where(x =>
+            x != new TileId(first.Face, 1, 0, 0))),
+            "missing geographic quadrant rejected");
+        Check(QuadtreeCoverage.IsAncestorOrSelf(first, new TileId(first.Face, 10, 831, 301)),
+            "ancestor containment across many LOD levels");
+        Check(!QuadtreeCoverage.IsAncestorOrSelf(first,
+            new TileId(CubeFace.NegativeX, 10, 831, 301)),
+            "different cube faces never imply containment");
+        Check(!QuadtreeCoverage.TryRefine(original, first,
+                new TileBudget(8, 16), 4, 1, out rejected)
+            && QuadtreeCoverage.IsCompleteSixFaceCover(rejected),
+            "full residency budget denies splitting instead of making holes");
+
+        Reject<ArgumentException>(() => QuadtreeCoverage.TryRefine(
+            new[] { original[0], original[1] },
+            first, budget, 4, 1, out _), "noncomplete source refused");
+        Reject<ArgumentOutOfRangeException>(() => QuadtreeCoverage.TryRefine(
+            original, first, budget, -1, 1, out _), "negative admission quota refused");
+
+        // Seeded splits and reversible sibling collapses: every snapshot must
+        // retain a complete six-face surface, even when tile budgets deny work.
+        var random = new Random(44111);
+        var current = original.ToList();
+        for (int iteration = 0; iteration < 320; iteration++)
+        {
+            if (current.Count > 45 && random.Next(2) == 0)
+            {
+                var parentCandidates = current.Where(x => x.Level > 0)
+                    .Select(x => new TileId(x.Face, x.Level - 1, x.Column >> 1, x.Row >> 1))
+                    .Distinct().OrderBy(x => x.ToString(), StringComparer.Ordinal).ToList();
+                if (parentCandidates.Count > 0)
+                {
+                    var candidate = parentCandidates[random.Next(parentCandidates.Count)];
+                    if (QuadtreeCoverage.TryCoarsen(current, candidate,
+                            budget, 1, 4, out var collapsed))
+                        current = collapsed.ToList();
+                }
+            }
+            else
+            {
+                var possible = current.Where(x => x.Level < 6).ToList();
+                if (possible.Count > 0)
+                {
+                    var candidate = possible[random.Next(possible.Count)];
+                    if (QuadtreeCoverage.TryRefine(current, candidate,
+                            budget, 4, 1, out var refined))
+                        current = refined.ToList();
+                }
+            }
+            Check(current.Count is >= 6 and <= 64
+                && QuadtreeCoverage.IsCompleteSixFaceCover(current),
+                "seeded split/collapse keeps every face covered " + iteration);
+        }
+    }
+
     private static void RejectionChecks()
     {
         Reject<ArgumentOutOfRangeException>(() => _ = new PlanetPosition(91, 0),
@@ -213,6 +314,7 @@ internal static class Program
             GeodesicChecks();
             TileChecks();
             TransitionChecks();
+            CoverageChecks();
             RejectionChecks();
             Console.WriteLine($"CS_WORLDMAP_CONTRACT_PASS: {_assertions} deterministic assertions; no Godot runtime or canon admitted");
             Console.WriteLine("CS_WORLDMAP_GODOT_MONO_NATIVE=NOT_ESTABLISHED");
