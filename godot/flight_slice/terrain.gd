@@ -195,7 +195,10 @@ func _place_tree_instances() -> void:
             if classify(x, z) != "forest" or _hash01(x, z) < 0.23:
                 continue
             var size: float = 0.8 + _hash01(z, x) * 1.1
-            poses.append(Transform3D(Basis.IDENTITY.scaled(Vector3(size, size, size)), Vector3(x, sample_height(x, z), z)))
+            # Noncanonical per-instance azimuth removes conspicuous repeated silhouettes.
+            var yaw: float = _hash01(x * 0.73, z * 0.41) * TAU
+            var basis := Basis(Vector3.UP, yaw).scaled(Vector3(size, size, size))
+            poses.append(Transform3D(basis, Vector3(x, sample_height(x, z), z)))
     var crowns := MultiMesh.new()
     crowns.transform_format = MultiMesh.TRANSFORM_3D
     var cone := CylinderMesh.new()
@@ -240,7 +243,70 @@ func _place_landmarks() -> void:
         var x: float = 27.0 + float(i % 3) * 6.5
         var z: float = -19.0 + float(i / 3) * 9.0
         _box("HighlandHamlet_%s" % i, Vector3(x, sample_height(x, z) + 1.7, z), Vector3(3.6, 3.4, 4.2), Color(0.70, 0.59, 0.43))
-        _box("Roof_%s" % i, Vector3(x, sample_height(x, z) + 3.9, z), Vector3(4.3, 1.0, 4.9), Color(0.25, 0.36, 0.39))
+        var surface_y: float = sample_height(x, z)
+        var slate := Color(0.22, 0.31, 0.35).lerp(Color(0.36, 0.27, 0.25), float(i % 3) / 3.0)
+        _gable_roof("GableRoof_%s" % i,
+            Vector3(x, surface_y + 3.41, z),
+            Vector2(4.7, 5.35), 1.25 + float(i % 3) * 0.20, slate)
+        _lit_window("WindowGlow_%s" % i,
+            Vector3(x - 0.85, surface_y + 2.15, z + 2.13))
+        _box("Door_%s" % i, Vector3(x + 0.75, surface_y + 1.08, z + 2.13),
+            Vector3(0.85, 2.12, 0.12), Color(0.21, 0.27, 0.26))
+
+func _gable_roof(label_name: String, center: Vector3, span: Vector2,
+        ridge_rise: float, tint: Color) -> void:
+    # Bounded, hand-readable timber roof silhouette; no fictional architecture canon.
+    # Local origin is the wall's upper edge. Open eaves and ridge overhang the wall.
+    var hx: float = span.x * 0.5
+    var hz: float = span.y * 0.5
+    var a := Vector3(-hx, 0.0, -hz)
+    var b := Vector3(0.0, ridge_rise, -hz)
+    var c := Vector3(hx, 0.0, -hz)
+    var d := Vector3(-hx, 0.0, hz)
+    var e := Vector3(0.0, ridge_rise, hz)
+    var f := Vector3(hx, 0.0, hz)
+    var tool := SurfaceTool.new()
+    tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+    # Both sloped planes and triangular gable caps, all with explicit flat normals.
+    for face in [[a, b, e], [a, e, d], [b, c, f], [b, f, e],
+            [a, c, b], [d, e, f]]:
+        _roof_triangle(tool, face[0], face[1], face[2])
+    var instance := MeshInstance3D.new()
+    instance.name = label_name
+    instance.mesh = tool.commit()
+    instance.position = center
+    var material := _material(tint, 0.84)
+    material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    material.metallic = 0.05
+    instance.material_override = material
+    instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+    add_child(instance)
+
+func _roof_triangle(tool: SurfaceTool, a: Vector3, b: Vector3, c: Vector3) -> void:
+    var normal: Vector3 = (b - a).cross(c - a).normalized()
+    if absf(normal.y) > 0.1 and normal.y < 0.0:
+        var swap: Vector3 = b
+        b = c
+        c = swap
+        normal = -normal
+    for vertex in [a, b, c]:
+        tool.set_normal(normal)
+        tool.add_vertex(vertex)
+
+func _lit_window(label_name: String, pos: Vector3) -> void:
+    # Emissive art accent, intentionally NO point lights or gameplay triggers.
+    var window := MeshInstance3D.new()
+    window.name = label_name
+    var pane := BoxMesh.new()
+    pane.size = Vector3(0.73, 0.64, 0.11)
+    window.mesh = pane
+    window.position = pos
+    var glass := _material(Color(0.76, 0.63, 0.36), 0.38)
+    glass.emission_enabled = true
+    glass.emission = Color(0.95, 0.62, 0.27)
+    glass.emission_energy_multiplier = 0.48
+    window.material_override = glass
+    add_child(window)
 
 func _tower(label_name: String, place: Vector2, height: float, tint: Color) -> void:
     var node := MeshInstance3D.new()
