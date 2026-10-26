@@ -2,6 +2,10 @@
 
 **Status:** Public-safe cross-agent reference; created 2026-10-25 from current creator direction, GitHub contracts, and selected Notion records. This is a **navigation and reconciliation layer**, not an approval to integrate, publish or expose restricted story material.
 
+## Current status check (proposed routing — 2026-10-26)
+
+Before relying on a historical PR number, main SHA, engine language, packaging verdict or visual acceptance, read the [dated cross-workstream freshness register](status/PROGRAM_FRESHNESS_2026-10-26.md) and [evidence freshness protocol](status/FRESHNESS_PROTOCOL.md), **then independently re-fetch live refs**. That register explicitly notes the current PR #347 source-pointer mismatch in older Notion Chapter I records, the GDScript gameplay mandate versus isolated C# globe research, and current security/Windows blockers. The register does **not** supersede creator canon or authorize a merge.
+
 ## Required reading by task
 
 | Agent work | Read before implementation |
