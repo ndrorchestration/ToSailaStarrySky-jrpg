@@ -283,6 +283,50 @@ internal static class Program
         }
     }
 
+    private static void ChartProjectionChecks()
+    {
+        var center = WorldMapChartProjection.Project(new PlanetPosition(0, 0));
+        Near(center.X, 0.5, 1e-12, "prime meridian chart X");
+        Near(center.Y, 0.5, 1e-12, "equator chart Y");
+        Near(WorldMapChartProjection.Project(new PlanetPosition(90, 22)).Y, 0, 1e-12,
+            "north pole chart edge");
+        Near(WorldMapChartProjection.Project(new PlanetPosition(-90, -130)).Y, 1, 1e-12,
+            "south pole chart edge");
+        Near(WorldMapChartProjection.Unproject(0, 0.5).LongitudeDegrees, -180, 1e-12,
+            "west antimeridian");
+        Near(WorldMapChartProjection.Unproject(1, 0.5).LongitudeDegrees, -180, 1e-12,
+            "east chart seam canonicalized");
+        Check(WorldMapChartProjection.TryShortestWrappedDeltaX(0.99, 0.01, out var dx),
+            "wrapped eastward delta exists");
+        Near(dx, 0.02, 1e-12, "eastward seam shortest delta");
+        Check(WorldMapChartProjection.TryShortestWrappedDeltaX(0.01, 0.99, out dx),
+            "wrapped westward delta exists");
+        Near(dx, -0.02, 1e-12, "westward seam shortest delta");
+        Check(!WorldMapChartProjection.TryShortestWrappedDeltaX(0, 0.5, out _),
+            "ambiguous antimeridian chart direction rejected");
+        Reject<ArgumentOutOfRangeException>(() => WorldMapChartProjection.Unproject(-0.1, 0.5),
+            "negative chart X refused");
+        Reject<ArgumentOutOfRangeException>(() => WorldMapChartProjection.Unproject(0.2, double.NaN),
+            "nonfinite chart Y refused");
+        Reject<ArgumentOutOfRangeException>(() =>
+            WorldMapChartProjection.TryShortestWrappedDeltaX(double.PositiveInfinity, 0.2, out _),
+            "infinite chart delta refused");
+
+        var random = new Random(9017);
+        for (int i = 0; i < 128; i++)
+        {
+            var position = new PlanetPosition(
+                random.NextDouble() * 178 - 89,
+                random.NextDouble() * 360 - 180);
+            var uv = WorldMapChartProjection.Project(position);
+            var restored = WorldMapChartProjection.Unproject(uv.X, uv.Y);
+            Near(restored.LatitudeDegrees, position.LatitudeDegrees, 1e-10,
+                "chart latitude roundtrip " + i);
+            Near(restored.LongitudeDegrees, position.LongitudeDegrees, 1e-10,
+                "chart longitude roundtrip " + i);
+        }
+    }
+
     private static void RejectionChecks()
     {
         Reject<ArgumentOutOfRangeException>(() => _ = new PlanetPosition(91, 0),
@@ -315,6 +359,7 @@ internal static class Program
             TileChecks();
             TransitionChecks();
             CoverageChecks();
+            ChartProjectionChecks();
             RejectionChecks();
             Console.WriteLine($"CS_WORLDMAP_CONTRACT_PASS: {_assertions} deterministic assertions; no Godot runtime or canon admitted");
             Console.WriteLine("CS_WORLDMAP_GODOT_MONO_NATIVE=NOT_ESTABLISHED");
