@@ -1,0 +1,87 @@
+{
+  "source_commit": "3557d3d76d49b06f83fe443512d8ecf1343a8cf2",
+  "algorithm": "sha256 of JSON sorted keys/separators comma/colon over files array",
+  "manifest_sha256": "e96a3f064b9ffc9b83d00c056bf25f18f534c77d1a73ac358407cf5710388c21",
+  "files": [
+    {
+      "path": "godot/flight_slice/frame_probe.gd",
+      "sha256": "21c7f8e2e855ce03861dae2518f5f6a1afa3f65cc9f042d540fe90423de265c9",
+      "bytes": 1834
+    },
+    {
+      "path": "godot/flight_slice/main.gd",
+      "sha256": "11c822f3b27ef33db4630821140228b770dbecfd94c21b981cee4dbea139f7b5",
+      "bytes": 5798
+    },
+    {
+      "path": "godot/flight_slice/main.tscn",
+      "sha256": "75e24d2af6978459d659dbdb91e04b811e25a535a2b63f1a98f33f434904b1ab",
+      "bytes": 180
+    },
+    {
+      "path": "godot/flight_slice/project.godot",
+      "sha256": "f96845efd77b73ff4c348f79fbddfb28dedd69a84f63ce49f914606144631e80",
+      "bytes": 440
+    },
+    {
+      "path": "godot/flight_slice/shaders/foliage.gdshader",
+      "sha256": "be0db9e104f347f059612fb5fd28b73cebdb5f0ba98078061f3cf4e2c980fbeb",
+      "bytes": 492
+    },
+    {
+      "path": "godot/flight_slice/shaders/sky.gdshader",
+      "sha256": "23b7b104093cd653fb14082269af80c3fed66da00b8aacb96a51c8ce35972a46",
+      "bytes": 1588
+    },
+    {
+      "path": "godot/flight_slice/shaders/terrain.gdshader",
+      "sha256": "56693f95856befa0e052aa8034e86d6244ee803bd4e747aee8cc44cd93e32712",
+      "bytes": 1639
+    },
+    {
+      "path": "godot/flight_slice/shaders/water.gdshader",
+      "sha256": "5695d1c694cc240ab9fcd2a55e20670d4b21a7874130d49a7a8cb73636878cff",
+      "bytes": 2617
+    },
+    {
+      "path": "godot/flight_slice/ship.gd",
+      "sha256": "4228c8819d757ff0b37e42434eb0d56c47e17d5772a606ef1e636497479a9ec8",
+      "bytes": 3684
+    },
+    {
+      "path": "godot/flight_slice/terrain.gd",
+      "sha256": "c1c2bffa528ceeb9c0b84865de080733c2ad0b9aa77bce9676fe5c10fb05c590",
+      "bytes": 11163
+    },
+    {
+      "path": "godot/flight_slice/tests/capture_movie.gd",
+      "sha256": "436ad821eea652b2481ddf4f33960b0062b82363f70e94ed8859cd7e722394db",
+      "bytes": 884
+    },
+    {
+      "path": "godot/flight_slice/tests/capture_study.gd",
+      "sha256": "844071508ab55a6c08a9414c08722caf8c204f93464b8946330537a55de13ccd",
+      "bytes": 3674
+    },
+    {
+      "path": "godot/flight_slice/tests/profile_visuals.gd",
+      "sha256": "3522e79f3e4df5092331d7d5b685c234187c4db8250870bcfa7e9a3bdb5c2fa6",
+      "bytes": 2619
+    },
+    {
+      "path": "godot/flight_slice/tests/test_slice.gd",
+      "sha256": "877f40c34d4592c95340e433cd071e33cfa5c41009781bf030e0338d81d3b7ef",
+      "bytes": 2746
+    },
+    {
+      "path": "godot/flight_slice/tests/test_visuals.gd",
+      "sha256": "ecb6ac24e765c18f7a8a7fd4e9f5d8d9d50c1376b7b0ef9e022003fbbbe167f5",
+      "bytes": 3626
+    },
+    {
+      "path": "godot/flight_slice/visuals.gd",
+      "sha256": "4702f36d214f3eab3f4f4fcc4c783fbf5d18988540522d4c69aae79ffca05c27",
+      "bytes": 5308
+    }
+  ]
+}
