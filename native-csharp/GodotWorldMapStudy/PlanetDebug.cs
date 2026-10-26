@@ -56,7 +56,8 @@ public partial class PlanetDebug : Node3D
             Check(Math.Abs(arcKm - Math.PI * 3.0) < 1e-9, "great-circle sanity");
 
             InstallWorld();
-            RenderCover();
+            RenderCover(_cover);
+            Check(RejectInvalidCoverWithoutMutation(), "invalid cover rejected atomically");
             Check(_rendered.Count == 9, "9 native tile meshes");
             Check(_rendered.All(m => m.Mesh != null), "all native ArrayMeshes nonnull");
             Check(_rendered.All(m => m.GetChildCount() == 1 && m.GetChild(0) is StaticBody3D), "native collision bodies");
@@ -201,19 +202,19 @@ public partial class PlanetDebug : Node3D
         _label = label;
     }
 
-    private void RenderCover()
+    private void RenderCover(IReadOnlyList<TileId> proposedCover)
     {
         // Validate the complete mesh set before touching the active scene.
-        WatertightTiles.CheckedMeshSet checkedSet = AdaptiveBoundaryTiles.Build(_cover, DebugRadiusUnits);
+        WatertightTiles.CheckedMeshSet checkedSet = AdaptiveBoundaryTiles.Build(proposedCover, DebugRadiusUnits);
         int maxLevel = checkedSet.GlobalLevel;
-        int uniformTriangles = _cover.Sum(t =>
+        int uniformTriangles = proposedCover.Sum(t =>
         {
             int n = WatertightTiles.SegmentsPerLeaf << (maxLevel - t.Level);
             return 2 * n * n;
         });
         if (checkedSet.Triangles >= uniformTriangles)
             throw new InvalidOperationException("Adaptive mesh did not save triangles over uniform tessellation.");
-        GD.Print($"GODOT_CSHARP_ADAPTIVE_PASS level={maxLevel} tiles={_cover.Count} triangles={checkedSet.Triangles} uniformTriangles={uniformTriangles} saved={uniformTriangles-checkedSet.Triangles}");
+        GD.Print($"GODOT_CSHARP_ADAPTIVE_PASS level={maxLevel} tiles={proposedCover.Count} triangles={checkedSet.Triangles} uniformTriangles={uniformTriangles} saved={uniformTriangles-checkedSet.Triangles}");
         if (checkedSet.NonmanifoldEdges != 0)
             throw new InvalidOperationException("Watertightness gate unexpectedly failed.");
         var incoming = new List<MeshInstance3D>();
@@ -258,8 +259,30 @@ public partial class PlanetDebug : Node3D
             AddChild(current);
             _rendered.Add(current);
         }
+        _cover = proposedCover;
         _triangles = checkedSet.Triangles;
-        GD.Print($"GODOT_CSHARP_SEAM_PASS level={checkedSet.GlobalLevel} tiles={_cover.Count} edges={checkedSet.DistinctEdges} nonmanifold={checkedSet.NonmanifoldEdges} triangles={_triangles}");
+        GD.Print($"GODOT_CSHARP_SEAM_PASS level={checkedSet.GlobalLevel} tiles={proposedCover.Count} edges={checkedSet.DistinctEdges} nonmanifold={checkedSet.NonmanifoldEdges} triangles={_triangles}");
+    }
+
+    private bool RejectInvalidCoverWithoutMutation()
+    {
+        IReadOnlyList<TileId> original = _cover;
+        var nodes = _rendered.ToArray();
+        var invalidCover = _cover.Skip(1).ToArray();
+        try
+        {
+            RenderCover(invalidCover);
+        }
+        catch (InvalidOperationException)
+        {
+            bool unchanged = ReferenceEquals(original,_cover)
+                && nodes.SequenceEqual(_rendered)
+                && QuadtreeCoverage.IsCompleteSixFaceCover(_cover);
+            if (unchanged)
+                GD.Print($"GODOT_CSHARP_ATOMIC_REJECT_PASS intactTiles={_rendered.Count}");
+            return unchanged;
+        }
+        return false;
     }
 
     private void ChangeLod(bool expand)
@@ -289,8 +312,7 @@ public partial class PlanetDebug : Node3D
                 throw new InvalidOperationException("Required native LOD swap was denied.");
             if (!QuadtreeCoverage.IsCompleteSixFaceCover(proposed))
                 throw new InvalidOperationException("Invalid proposed native cover.");
-            _cover = proposed;
-            RenderCover();
+            RenderCover(proposed);
             _expanded = expand;
             int expected = expand ? 12 : 9;
             Check(_rendered.Count == expected, "reversible native LOD mesh count");
