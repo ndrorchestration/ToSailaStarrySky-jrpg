@@ -23,6 +23,13 @@ jobs:
           unzip -q /tmp/godot.zip -d /tmp
           chmod +x /tmp/Godot_v4.7.2-stable_linux.x86_64
           /tmp/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Temporary native editor handoff for private offline regression
+        uses: actions/upload-artifact@v4
+        with:
+          name: temporary-godot-4-7-2-native-linux-editor
+          path: /tmp/Godot_v4.7.2-stable_linux.x86_64
+          retention-days: 1
+          compression-level: 0
       - name: Native script import and scene parse
         run: |
           /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path godot/flight_slice --quit 2>&1 | tee /tmp/import.log
