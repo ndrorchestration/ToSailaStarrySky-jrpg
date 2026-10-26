@@ -25,6 +25,7 @@ var _manual_heading: float = 0.0
 var landing = LandingStudy.new()
 var landing_ground: StaticBody3D
 var _touchdown_requested: bool = false
+var last_touchdown_contact: Dictionary = {"valid": false}
 var _landing_message: String = ""
 
 func _ready() -> void:
@@ -110,6 +111,7 @@ func set_manual_mode(enabled: bool) -> void:
     _manual_active = enabled
     landing.reset()
     _touchdown_requested = false
+    last_touchdown_contact = {"valid": false}
     _landing_message = ""
     if enabled:
         _manual_position = ship.position
@@ -138,6 +140,7 @@ func _physics_process(_delta: float) -> void:
     var contact: Dictionary = {"valid": false}
     if landing.state == "FLYING":
         contact = landing_ground.probe(_manual_position, get_world_3d().direct_space_state)
+    last_touchdown_contact = contact
     var accepted: bool = landing.toggle_with_physics(_manual_position, contact)
     _landing_message = "" if accepted else "NATIVE COLLIDER / SAFE FIELD REQUIRED"
     if accepted:
