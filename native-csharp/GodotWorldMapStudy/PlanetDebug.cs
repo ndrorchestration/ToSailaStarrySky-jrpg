@@ -13,8 +13,8 @@ using StarrySky.WorldMap.Contracts;
 /// </summary>
 public partial class PlanetDebug : Node3D
 {
-    private const float DebugRadiusUnits = 6f;
-    private const int SegmentsPerTile = 16;
+    // Geometry spacing lives in CubeSphereLattice so sibling/root borders
+    // share exact node positions; no independent per-tile step calculation.
     private readonly TileBudget _budget = new(64, 128);
     private IReadOnlyList<TileId> _cover = QuadtreeCoverage.SixFaceRoots();
     private readonly List<MeshInstance3D> _rendered = new();
@@ -46,12 +46,15 @@ public partial class PlanetDebug : Node3D
             double arcKm = PlanetGeometry.SurfaceDistanceKm(pos0, pos90, 6.0);
             Check(Math.Abs(arcKm - Math.PI * 3.0) < 1e-9, "great-circle sanity");
 
+            VerifyCubeFaceSeams();
             InstallWorld();
             foreach (TileId tile in _cover)
                 AddTile(tile);
             Check(_rendered.Count == 9, "9 native tile meshes");
             Check(_rendered.All(m => m.Mesh != null), "all native ArrayMeshes nonnull");
-            GD.Print($"GODOT_CSHARP_WORLD_PASS assertions={_assertions} faces=6 tiles={_cover.Count} nativeMeshes={_rendered.Count} triangles={_cover.Count * SegmentsPerTile * SegmentsPerTile * 2}");
+            int triangles = _cover.Sum(t =>
+                2 * CubeSphereLattice.SegmentsFor(t) * CubeSphereLattice.SegmentsFor(t));
+            GD.Print($"GODOT_CSHARP_WORLD_PASS assertions={_assertions} faces=6 tiles={_cover.Count} nativeMeshes={_rendered.Count} triangles={triangles}");
             GD.Print("GODOT_CSHARP_SCENE_SCOPE=NONCANON_GEOMETRY_ONLY_NO_COLLISION_NO_SAVE");
         }
         catch (Exception ex)
@@ -171,23 +174,80 @@ public partial class PlanetDebug : Node3D
         overlay.AddChild(label);
     }
 
+    private void VerifyCubeFaceSeams()
+    {
+        const float epsilon = 0.00001f;
+        var faces = Enum.GetValues<CubeFace>();
+        int checkedEdges = 0;
+        int checkedPositions = 0;
+        foreach (CubeFace face in faces)
+        {
+            for (int edge = 0; edge < 4; edge++)
+            {
+                int matchingOtherEdges = 0;
+                foreach (CubeFace neighbor in faces)
+                {
+                    if (face == neighbor)
+                        continue;
+                    for (int neighborEdge = 0; neighborEdge < 4; neighborEdge++)
+                    {
+                        bool aligned = true;
+                        bool reversed = true;
+                        for (int i = 0; i <= CubeSphereLattice.BaseFaceSegments; i++)
+                        {
+                            Vector3 pos = CubeSphereLattice.FaceBorder(face, edge, i);
+                            if (pos.DistanceTo(CubeSphereLattice.FaceBorder(
+                                neighbor, neighborEdge, i)) > epsilon)
+                                aligned = false;
+                            if (pos.DistanceTo(CubeSphereLattice.FaceBorder(
+                                neighbor, neighborEdge,
+                                CubeSphereLattice.BaseFaceSegments - i)) > epsilon)
+                                reversed = false;
+                            if (!aligned && !reversed)
+                                break;
+                        }
+                        if (aligned || reversed)
+                            matchingOtherEdges++;
+                    }
+                }
+                Check(matchingOtherEdges == 1,
+                    $"each cube-face edge has exactly one identical adjacent edge: {face}/{edge}");
+                checkedEdges++;
+            }
+        }
+        // Refined +Z face and all neighboring root faces use exactly the same
+        // 32-step border positions, rather than 16-vs-32 incompatible chords.
+        for (int edge = 0; edge < 4; edge++)
+        {
+            for (int i = 0; i <= CubeSphereLattice.BaseFaceSegments; i++)
+            {
+                Vector3 root = CubeSphereLattice.FaceBorder(CubeFace.PositiveZ, edge, i);
+                Vector3 child = CubeSphereLattice.RefinedBorderPoint(
+                    CubeFace.PositiveZ, edge, i);
+                Check(root.DistanceTo(child) < epsilon,
+                    $"refined child shares exact root edge vertex: {edge}/{i}");
+                checkedPositions++;
+            }
+        }
+        Check(checkedEdges == 24, "all twelve undirected cube seams covered from both sides");
+        Check(checkedPositions == 4 * (CubeSphereLattice.BaseFaceSegments + 1),
+            "all child-to-root surface edge coordinates tested");
+        GD.Print($"GODOT_CSHARP_MESH_SEAMS_PASS faceEdges={checkedEdges} refinedEdgeVertices={checkedPositions} grid={CubeSphereLattice.BaseFaceSegments}");
+    }
+
     private void AddTile(TileId tile)
     {
         var builder = new SurfaceTool();
         builder.Begin(Mesh.PrimitiveType.Triangles);
-        int resolution = SegmentsPerTile;
+        int resolution = CubeSphereLattice.SegmentsFor(tile);
         for (int row = 0; row < resolution; ++row)
         {
             for (int col = 0; col < resolution; ++col)
             {
-                float u0 = (tile.Column + col / (float)resolution) / (1 << tile.Level);
-                float u1 = (tile.Column + (col + 1f) / resolution) / (1 << tile.Level);
-                float v0 = (tile.Row + row / (float)resolution) / (1 << tile.Level);
-                float v1 = (tile.Row + (row + 1f) / resolution) / (1 << tile.Level);
-                Vector3 a = OnSphere(tile.Face, u0, v0);
-                Vector3 b = OnSphere(tile.Face, u1, v0);
-                Vector3 c = OnSphere(tile.Face, u1, v1);
-                Vector3 d = OnSphere(tile.Face, u0, v1);
+                Vector3 a = CubeSphereLattice.TilePoint(tile, col, row);
+                Vector3 b = CubeSphereLattice.TilePoint(tile, col + 1, row);
+                Vector3 c = CubeSphereLattice.TilePoint(tile, col + 1, row + 1);
+                Vector3 d = CubeSphereLattice.TilePoint(tile, col, row + 1);
                 AddTriangle(builder, a, b, c);
                 AddTriangle(builder, a, c, d);
             }
@@ -221,22 +281,6 @@ public partial class PlanetDebug : Node3D
             _ => new Color(0.32f, 0.37f, 0.59f),
         };
         return new Color(c.R * shade, c.G * shade, c.B * shade);
-    }
-
-    private static Vector3 OnSphere(CubeFace face, float tileU, float tileV)
-    {
-        float u = tileU * 2f - 1f;
-        float v = tileV * 2f - 1f;
-        Vector3 cube = face switch
-        {
-            CubeFace.PositiveX => new Vector3(1, v, -u),
-            CubeFace.NegativeX => new Vector3(-1, v, u),
-            CubeFace.PositiveY => new Vector3(u, 1, -v),
-            CubeFace.NegativeY => new Vector3(u, -1, v),
-            CubeFace.PositiveZ => new Vector3(u, v, 1),
-            _ => new Vector3(-u, v, -1),
-        };
-        return cube.Normalized() * DebugRadiusUnits;
     }
 
     private static void AddTriangle(SurfaceTool builder, Vector3 a, Vector3 b, Vector3 c)
