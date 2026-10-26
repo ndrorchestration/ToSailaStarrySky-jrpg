@@ -133,12 +133,18 @@ function drawBackground() {
 function drawScanlines() {
   push();
   noStroke();
-  fill(color(PAL.SHADOW), 40); // subtle dark scanline tint
+
+  const shadowScanline = color(PAL.SHADOW);
+  shadowScanline.setAlpha(40);
+  fill(shadowScanline);
   for (let y = 0; y < height; y += 3) {
     rect(0, y, width, 1);
   }
-  // Brighter scanline gaps
-  fill(color(PAL.TEAL), 6);
+
+  // Brighter scanline gaps remain intentionally subtle.
+  const tealScanline = color(PAL.TEAL);
+  tealScanline.setAlpha(6);
+  fill(tealScanline);
   for (let y = 1; y < height; y += 3) {
     rect(0, y, width, 1);
   }
