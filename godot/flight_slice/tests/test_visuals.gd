@@ -51,6 +51,40 @@ func _run() -> void:
     var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
     for i in range(0,vertices.size(),3):
         check((vertices[i+1]-vertices[i]).cross(vertices[i+2]-vertices[i]).dot(normals[i]) < 0, "crown outward CW winding")
+    # Real native geometry: roofs must be pitched triangles, not BoxMesh slabs.
+    for house in range(5):
+        var roof: MeshInstance3D = scene.terrain.get_node("GableRoof_%s" % house)
+        check(roof.mesh is ArrayMesh, "gable house roof is generated mesh")
+        var roof_arrays: Array = roof.mesh.surface_get_arrays(0)
+        var roof_vertices: PackedVector3Array = roof_arrays[Mesh.ARRAY_VERTEX]
+        var roof_normals: PackedVector3Array = roof_arrays[Mesh.ARRAY_NORMAL]
+        check(roof_vertices.size() == 18, "gable roof has two slopes and two end caps")
+        var min_y: float = 1000.0
+        var max_y: float = -1000.0
+        for p in roof_vertices:
+            min_y = minf(min_y, p.y)
+            max_y = maxf(max_y, p.y)
+        check(max_y - min_y > 1.2, "pitched roof silhouette has real height")
+        for k in range(12):
+            check(roof_normals[k].y > 0.0, "roof slopes point upward")
+        check(scene.terrain.has_node("Door_%s" % house), "house door grounded")
+        var pane: MeshInstance3D = scene.terrain.get_node("WindowGlow_%s" % house)
+        var pane_material: StandardMaterial3D = pane.material_override
+        check(pane_material.emission_enabled, "window has warm emission without point lights")
+    var branches: MultiMeshInstance3D = scene.terrain.get_node("ForestCrowns")
+    var cpu_poses: Array[Transform3D] = scene.terrain.tree_poses
+    check(cpu_poses.size() > 5, "forest authored CPU transforms retained")
+    check(branches.multimesh.instance_count == cpu_poses.size(), "GPU instance budget mirrors authored forest")
+    # RenderingServer Dummy readback can report identity for every MultiMesh
+    # transform in --headless; validate the actual CPU inputs, not fake GPU data.
+    var first_tree: Transform3D = cpu_poses[0]
+    var varied: bool = false
+    for tree in range(1, mini(16, cpu_poses.size())):
+        var other_tree: Transform3D = cpu_poses[tree]
+        if first_tree.basis.x.normalized().distance_to(other_tree.basis.x.normalized()) > 0.12:
+            varied = true
+            break
+    check(varied, "forest crowns have deterministic varied CPU orientations")
     scene._clock = 9.0
     scene._paused = true
     scene._process(0.2)
