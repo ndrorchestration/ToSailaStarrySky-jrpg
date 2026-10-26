@@ -196,7 +196,7 @@ func _place_tree_instances() -> void:
                 continue
             var size: float = 0.8 + _hash01(z, x) * 1.1
             # Noncanonical per-instance azimuth removes conspicuous repeated silhouettes.
-            var yaw: float = _hash01(x * 0.73, z * 0.41) * TAU
+            var yaw: float = float(posmod(ix * 3 + iz * 7, 29)) * (TAU / 29.0)
             var basis := Basis(Vector3.UP, yaw).scaled(Vector3(size, size, size))
             poses.append(Transform3D(basis, Vector3(x, sample_height(x, z), z)))
     var crowns := MultiMesh.new()
