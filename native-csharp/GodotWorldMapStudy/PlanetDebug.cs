@@ -222,10 +222,14 @@ public partial class PlanetDebug : Node3D
                 },
             };
             var body = new StaticBody3D { Name = "SurfaceCollider" };
+            var shape = item.Value.CreateTrimeshShape();
+            // A debug closed sphere must support hits from both ray directions.
+            // Godot concave triangle winding must not silently invalidate QA.
+            shape.BackfaceCollision = true;
             var collision = new CollisionShape3D
             {
                 Name = "NativeTrimesh",
-                Shape = item.Value.CreateTrimeshShape(),
+                Shape = shape,
             };
             body.AddChild(collision);
             instance.AddChild(body);
@@ -277,13 +281,13 @@ public partial class PlanetDebug : Node3D
     public override void _PhysicsProcess(double delta)
     {
         _physicsTicks++;
-        if (_rayValidated || _physicsTicks < 6 || _camera == null)
+        if (_rayValidated || _physicsTicks < 15 || _camera == null)
             return;
         var query = PhysicsRayQueryParameters3D.Create(_camera.Position, Vector3.Zero);
         var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
         if (hit.Count == 0 || !hit.ContainsKey("collider"))
         {
-            GD.PushError("GODOT_CSHARP_COLLISION_FAIL: center ray missed sphere collider.");
+            GD.PushError($"GODOT_CSHARP_COLLISION_FAIL: ray missed trimesh from {_camera.Position}, physicsTicks={_physicsTicks}, bodies={_rendered.Count}");
             GetTree().Quit(1);
             return;
         }
