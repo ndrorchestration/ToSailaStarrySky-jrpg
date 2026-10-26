@@ -133,6 +133,11 @@ function createServer() {
     assert(openingBootstrap.charCreatePhase !== 'name',
       'normal New Game incorrectly entered custom companion creation');
 
+    await page.waitForFunction(() =>
+      window.AetherFirstWakeOpening &&
+      typeof window.AetherFirstWakeOpening.canAdvancePresentation === 'function' &&
+      window.AetherFirstWakeOpening.canAdvancePresentation(window._firstWakeOpeningState)
+    , undefined, { timeout: 5000 });
     for (let i = 0; i < 6; i++) await page.keyboard.press('Enter');
     await page.waitForFunction(() =>
       window.gameState === 'opening' &&

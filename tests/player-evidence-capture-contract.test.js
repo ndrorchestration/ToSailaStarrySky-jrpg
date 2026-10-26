@@ -48,6 +48,12 @@ for (const required of [
   'arrival_horizon',
   'lyra_join',
   'Captain Ionia',
+  'dragonfly-interior',
+  'flight-wake-dock',
+  'flight-open-sky',
+  "fieldArtReviewMode: 'CANDIDATE_REVIEW_NOT_ADMITTED'",
+  'interiorStagedViaWorldBoardShip',
+  'flightStagedViaEnterAirNavigation',
   'Aetherwake.exe',
 ]) {
   assert(source.includes(required), `capture script must include required authority marker: ${required}`);

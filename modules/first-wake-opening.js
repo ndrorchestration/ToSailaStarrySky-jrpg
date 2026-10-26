@@ -22,6 +22,7 @@
     Object.freeze({
       id: 'arrival_horizon',
       sequence: 0,
+      minimumTicks: 240,
       title: 'WAKE DOCK — LOWER VERDANT REACH',
       speaker: null,
       lines: Object.freeze([
@@ -165,6 +166,7 @@
     validate();
     return {
       sceneIndex: 0,
+      presentationTicks: 0,
       complete: false,
       appliedJoinIds: [],
     };
@@ -175,6 +177,20 @@
       throw new Error('FIRST_WAKE_OPENING_STATE_REQUIRED');
     }
     return SCENES[Math.min(state.sceneIndex, SCENES.length - 1)];
+  }
+
+  function tickPresentation(state, ticks) {
+    if (!state || state.complete) return 0;
+    const delta = Number.isFinite(ticks) ? Math.max(0, ticks) : 1;
+    state.presentationTicks = (state.presentationTicks || 0) + delta;
+    return state.presentationTicks;
+  }
+
+  function canAdvancePresentation(state) {
+    if (!state || state.complete) return false;
+    const scene = currentScene(state);
+    const minimumTicks = Number.isFinite(scene.minimumTicks) ? scene.minimumTicks : 0;
+    return (state.presentationTicks || 0) >= minimumTicks;
   }
 
   function advance(state) {
@@ -192,6 +208,7 @@
     }
 
     state.sceneIndex += 1;
+    state.presentationTicks = 0;
     return { state, event };
   }
 
@@ -207,6 +224,8 @@
     validate,
     createState,
     currentScene,
+    tickPresentation,
+    canAdvancePresentation,
     advance,
     expectedPartyIds,
   });

@@ -33,8 +33,10 @@ assert(!combatSource.includes("if (text) log('[Turn ' + state.turn + '] ' + text
 
 assert(source.includes("drawGlowText('ACTIONS [1-8]'"),
   'combat action panel still advertises the wrong key range');
-assert(source.includes('const aH = 154;'),
-  'combat action panel is not sized for eight stable slots');
+assert(source.includes('const aH = 76;'),
+  'compact combat action region must preserve all eight stable two-column slots');
+assert(source.includes('// Two-column 4-row command grid keeps all eight actions visible'),
+  'compact combat action panel must retain the explicit eight-slot grid contract');
 assert(!combatSource.includes("const resourceCost = (action.tier || 0) + action.cost;"),
   'resolveTurn still duplicates the action resource-cost formula');
 assert(source.includes('window.AetherAbilityDefs.getActionResourceCost(action)'),
