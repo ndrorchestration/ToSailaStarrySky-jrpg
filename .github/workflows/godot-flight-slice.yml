@@ -51,6 +51,12 @@ jobs:
           /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_manual_flight.gd 2>&1 | tee /tmp/pilot.log
           grep -Eq 'GODOT_MANUAL_FLIGHT_PASS checks=[0-9]+' /tmp/pilot.log
           ! grep -Eq 'GODOT_MANUAL_FLIGHT_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/pilot.log
+      - name: Bounded sampled-terrain touchdown and takeoff native contracts
+        run: |
+          set -o pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_touchdown.gd 2>&1 | tee /tmp/touchdown.log
+          grep -Eq 'GODOT_TOUCHDOWN_STUDY_PASS checks=[0-9]+' /tmp/touchdown.log
+          ! grep -Eq 'GODOT_TOUCHDOWN_STUDY_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/touchdown.log
       - name: Actual Godot Compatibility software-rendered frame captures
         run: |
           set -o pipefail
@@ -60,8 +66,9 @@ jobs:
             --rendering-driver opengl3 \
             --audio-driver Dummy \
             --script res://tests/capture_study.gd 2>&1 | tee /tmp/capture.log
-          test "$(grep -c 'NATIVE_ART_CAPTURE:' /tmp/capture.log)" -eq 5
+          test "$(grep -c 'NATIVE_ART_CAPTURE:' /tmp/capture.log)" -eq 6
           grep -q 'NATIVE_PILOT_FRAME_PASS clearance=' /tmp/capture.log
+          grep -q 'NATIVE_TOUCHDOWN_FRAME_PASS state=LANDED' /tmp/capture.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/capture.log
       - name: Upload noncanonical native reference frames
         if: always()
