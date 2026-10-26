@@ -7,6 +7,10 @@ var _course_yaw: float = 0.0
 func set_course(yaw: float) -> void:
     _course_yaw = yaw
 
+func set_landing_gear(deployed: bool) -> void:
+    for foot_name in ["TouchdownFoot_Port", "TouchdownFoot_Starboard"]:
+        get_node(foot_name).visible = deployed
+
 func _ready() -> void:
     var hull_material := _material(Color(0.09, 0.21, 0.26), 0.38, 0.18)
     var hull_trim := _material(Color(0.81, 0.66, 0.39), 0.46, 0.65)
@@ -19,6 +23,10 @@ func _ready() -> void:
     for side in [-1.0, 1.0]:
         _wing(side)
         _part("SidePylon", Vector3(side * 1.08, 0.0, 0.28), Vector3(0.9, 0.12, 0.13), hull_trim)
+        var foot_name: String = "TouchdownFoot_Port" if side < 0.0 else "TouchdownFoot_Starboard"
+        _part(foot_name, Vector3(side * 0.50, -0.78, 0.50),
+            Vector3(0.18, 0.17, 0.55), hull_trim)
+        get_node(foot_name).visible = false
     var lamp := OmniLight3D.new()
     lamp.name = "SmallDeckGlow"
     lamp.position = Vector3(0.0, 0.6, -0.75)
