@@ -418,6 +418,29 @@ internal static class Program
                 Check(outward > 1e-10, "triangle outward and nondegenerate " + face);
             }
         }
+        // All 12 edges of the cube must have identical vertex coordinates from
+        // both adjacent face meshes at matching subdivision (not mixed LOD).
+        var roots = Enum.GetValues<CubeFace>()
+            .Select(face => CubeSphereMeshFixture.Generate(new TileId(face, 0, 0, 0), R, 8))
+            .ToArray();
+        int matchingEdges = 0;
+        for (int first = 0; first < roots.Length; first++)
+        for (int second = first + 1; second < roots.Length; second++)
+        {
+            var a = roots[first].Vertices;
+            var b = roots[second].Vertices;
+            int coincident = 0;
+            foreach (var p in a)
+            {
+                if (b.Any(q => Math.Pow(p.X - q.X, 2)
+                    + Math.Pow(p.Y - q.Y, 2) + Math.Pow(p.Z - q.Z, 2) < 1e-14))
+                    coincident++;
+            }
+            Check(coincident == 0 || coincident == 9,
+                "cross-face boundary shares zero or nine vertices " + first + "/" + second);
+            if (coincident == 9) matchingEdges++;
+        }
+        Check(matchingEdges == 12, "all twelve cubed-sphere root edges share vertices");
         Reject<ArgumentOutOfRangeException>(() => CubeSphereMeshFixture.Generate(root, 0, 8),
             "invalid mesh radius refused");
         Reject<ArgumentOutOfRangeException>(() => CubeSphereMeshFixture.Generate(root, R, 0),
