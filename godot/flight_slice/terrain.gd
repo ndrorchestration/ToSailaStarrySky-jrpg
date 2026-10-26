@@ -10,6 +10,9 @@ const NEAR_LOD: float = 43.0
 const FAR_LOD: float = 55.0
 
 var _tiles: Array = []
+# CPU-side transform authority: headless Dummy Renderer MultiMesh readback
+# can return identity even when real OpenGL instance transforms are populated.
+var tree_poses: Array[Transform3D] = []
 var _terrain_material: StandardMaterial3D
 var _lod_clock: float = 0.0
 var visible_tiles: int = 0
@@ -199,6 +202,7 @@ func _place_tree_instances() -> void:
             var yaw: float = float(posmod(ix * 3 + iz * 7, 29)) * (TAU / 29.0)
             var basis := Basis(Vector3.UP, yaw).scaled(Vector3(size, size, size))
             poses.append(Transform3D(basis, Vector3(x, sample_height(x, z), z)))
+    tree_poses = poses.duplicate()
     var crowns := MultiMesh.new()
     crowns.transform_format = MultiMesh.TRANSFORM_3D
     var cone := CylinderMesh.new()
