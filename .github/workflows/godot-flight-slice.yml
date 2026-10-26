@@ -69,6 +69,7 @@ jobs:
           test "$(grep -c 'NATIVE_ART_CAPTURE:' /tmp/capture.log)" -eq 6
           grep -q 'NATIVE_PILOT_FRAME_PASS clearance=' /tmp/capture.log
           grep -q 'NATIVE_TOUCHDOWN_FRAME_PASS state=LANDED' /tmp/capture.log
+          grep -Eq 'NATIVE_TOUCHDOWN_PHYSICS_FRAME_PASS triangles=792 rayHeightError=[0-9.]+' /tmp/capture.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/capture.log
       - name: Upload noncanonical native reference frames
         if: always()
