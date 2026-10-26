@@ -55,6 +55,17 @@ jobs:
           import re
           from pathlib import Path
           log=Path('/tmp/dotnet-world.log').read_text()
+          rows=re.findall(r'GODOT_CSHARP_NEIGHBOR_PASS level=(\d+) tiles=(\d+) inserted=(\d+) stitchedCells=(\d+) triangles=(\d+) nonmanifold=(\d+)',log)
+          assert len(rows)==3,rows
+          assert [(int(r[0]),int(r[1])) for r in rows]==[(1,9),(2,12),(1,9)],rows
+          assert all(int(r[2])>0 and int(r[3])>0 and int(r[5])==0 for r in rows),rows
+          assert all(int(r[4])<=2560 for r in rows),rows
+          print('GODOT_CSHARP_NEIGHBOR_CI_PASS',rows)
+          PY
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          log=Path('/tmp/dotnet-world.log').read_text()
           rows=re.findall(r'GODOT_CSHARP_ADAPTIVE_PASS level=(\d+) tiles=(\d+) triangles=(\d+) uniformTriangles=(\d+) saved=(\d+)',log)
           assert len(rows)==3,rows
           assert [(int(r[0]),int(r[1])) for r in rows] == [(1,9),(2,12),(1,9)],rows
