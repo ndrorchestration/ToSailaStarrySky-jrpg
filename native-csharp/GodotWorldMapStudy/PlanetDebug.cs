@@ -6,19 +6,27 @@ using StarrySky.WorldMap.Contracts;
 
 /// <summary>
 /// ACTUAL Godot .NET scene exercising the independently verified C# logical quadtree.
-/// Creates native ArrayMesh sphere-face tiles, meshes a bounded atomic refinement,
-/// moves a real Camera3D, and captures an actual viewport image on demand.
-/// Deliberately NON-CANON: sphere radius/colors and "biomes" are debug fixtures.
-/// No collision, save persistence, world authority or gameplay route is established.
+/// Renders integer-grid watertight debug tiles with a bounded, reversible LOD swap,
+/// per-tile static triangle collision and a human-navigable camera. Deliberately
+/// NON-CANON: sphere dimensions, colors and elevation are test fixtures.
+/// No authored geography, save, world authority or gameplay route is established.
 /// </summary>
 public partial class PlanetDebug : Node3D
 {
     private const float DebugRadiusUnits = 6f;
-    private const int SegmentsPerTile = 16;
+    private const int SegmentsPerTile = WatertightTiles.SegmentsPerLeaf;
     private readonly TileBudget _budget = new(64, 128);
     private IReadOnlyList<TileId> _cover = QuadtreeCoverage.SixFaceRoots();
     private readonly List<MeshInstance3D> _rendered = new();
     private Camera3D? _camera;
+    private Label? _label;
+    private int _triangles;
+    private int _physicsTicks;
+    private bool _rayValidated;
+    private float _azimuthDegrees = 20f;
+    private float _latitudeDegrees = 17f;
+    private float _cameraDistance = 22f;
+    private bool _expanded;
     private int _frames;
     private int _assertions;
     private bool _captureRequested;
@@ -47,12 +55,12 @@ public partial class PlanetDebug : Node3D
             Check(Math.Abs(arcKm - Math.PI * 3.0) < 1e-9, "great-circle sanity");
 
             InstallWorld();
-            foreach (TileId tile in _cover)
-                AddTile(tile);
+            RenderCover();
             Check(_rendered.Count == 9, "9 native tile meshes");
             Check(_rendered.All(m => m.Mesh != null), "all native ArrayMeshes nonnull");
-            GD.Print($"GODOT_CSHARP_WORLD_PASS assertions={_assertions} faces=6 tiles={_cover.Count} nativeMeshes={_rendered.Count} triangles={_cover.Count * SegmentsPerTile * SegmentsPerTile * 2}");
-            GD.Print("GODOT_CSHARP_SCENE_SCOPE=NONCANON_GEOMETRY_ONLY_NO_COLLISION_NO_SAVE");
+            Check(_rendered.All(m => m.GetChildCount() == 1 && m.GetChild(0) is StaticBody3D), "native collision bodies");
+            GD.Print($"GODOT_CSHARP_WORLD_PASS assertions={_assertions} faces=6 tiles={_cover.Count} nativeMeshes={_rendered.Count} triangles={_triangles}");
+            GD.Print("GODOT_CSHARP_SCENE_SCOPE=NONCANON_SPHERE_MESH_PHYSICS_NO_GAMEPLAY_OR_SAVE");
         }
         catch (Exception ex)
         {
@@ -64,16 +72,34 @@ public partial class PlanetDebug : Node3D
     public override void _Process(double delta)
     {
         _frames++;
+        // Real input-controlled camera orbit; automatic slow orbit only with no user keys.
+        bool input = Input.IsKeyPressed(Key.A) || Input.IsKeyPressed(Key.D)
+            || Input.IsKeyPressed(Key.W) || Input.IsKeyPressed(Key.S)
+            || Input.IsKeyPressed(Key.Q) || Input.IsKeyPressed(Key.E);
+        float seconds = (float)Math.Clamp(delta, 0, 0.10);
+        float yaw = (Input.IsKeyPressed(Key.D) ? 1f : 0f)
+            - (Input.IsKeyPressed(Key.A) ? 1f : 0f);
+        float pitch = (Input.IsKeyPressed(Key.W) ? 1f : 0f)
+            - (Input.IsKeyPressed(Key.S) ? 1f : 0f);
+        float zoom = (Input.IsKeyPressed(Key.E) ? 1f : 0f)
+            - (Input.IsKeyPressed(Key.Q) ? 1f : 0f);
+        _azimuthDegrees += (input ? yaw * 48f : 8f) * seconds;
+        _latitudeDegrees = Mathf.Clamp(_latitudeDegrees + pitch * 40f * seconds, -73f, 73f);
+        _cameraDistance = Mathf.Clamp(_cameraDistance + zoom * 12f * seconds, 8f, 48f);
         if (_camera != null)
         {
-            // The orbit continuously reorients the camera, but does not imply
-            // playable ship navigation or a performance guarantee.
-            float angle = Mathf.DegToRad(20f + _frames * 0.15f);
-            _camera.Position = new Vector3(19.5f * Mathf.Sin(angle),
-                6.5f + 1.5f * Mathf.Sin(angle * 0.5f),
-                19.5f * Mathf.Cos(angle));
+            float az = Mathf.DegToRad(_azimuthDegrees);
+            float elevation = Mathf.DegToRad(_latitudeDegrees);
+            _camera.Position = new Vector3(
+                _cameraDistance * Mathf.Cos(elevation) * Mathf.Sin(az),
+                _cameraDistance * Mathf.Sin(elevation),
+                _cameraDistance * Mathf.Cos(elevation) * Mathf.Cos(az));
             _camera.LookAt(Vector3.Zero);
         }
+        // Deterministic native LOD lifecycle smoke. Both steps complete before capture:
+        // first a 1->4 refinement, then the matching 4->1 coarsening.
+        if (_frames == 12) ChangeLod(expand: true);
+        if (_frames == 24) ChangeLod(expand: false);
         if (_captureRequested && !_captureSaved && _frames >= 35)
         {
             _captureSaved = true;
@@ -164,48 +190,103 @@ public partial class PlanetDebug : Node3D
         AddChild(overlay);
         var label = new Label
         {
-            Text = "TO SAIL THE STARRY SKY   /   GODOT .NET C# WORLD-MAP LAB\nSIX-FACE SPHERICAL TILE COVER   •   NON-CANON TEST GEOMETRY\nNO TERRAIN COLLISION / BIOMES / SHIP / MOON BRIDGE",
+            Text = "TO SAIL THE STARRY SKY   /   GODOT .NET C# GEOMETRY LAB\nINTEGER-GRID CONTINUOUS SPHERE   •   NON-CANON DEBUG\nWASD ORBIT  |  Q/E ALTITUDE  |  TILES / COLLISIONS TESTED\nNOT ART / DRAGONFLY / BIOMES / MOON ROUTE",
             Position = new Vector2(24, 22),
         };
         label.AddThemeFontSizeOverride("font_size", 14);
         overlay.AddChild(label);
+        _label = label;
     }
 
-    private void AddTile(TileId tile)
+    private void RenderCover()
     {
-        var builder = new SurfaceTool();
-        builder.Begin(Mesh.PrimitiveType.Triangles);
-        int resolution = SegmentsPerTile;
-        for (int row = 0; row < resolution; ++row)
+        // Validate the complete mesh set before touching the active scene.
+        WatertightTiles.CheckedMeshSet checkedSet = WatertightTiles.Build(_cover, DebugRadiusUnits);
+        if (checkedSet.NonmanifoldEdges != 0)
+            throw new InvalidOperationException("Watertightness gate unexpectedly failed.");
+        var incoming = new List<MeshInstance3D>();
+        foreach (var item in checkedSet.Meshes)
         {
-            for (int col = 0; col < resolution; ++col)
+            var instance = new MeshInstance3D
             {
-                float u0 = (tile.Column + col / (float)resolution) / (1 << tile.Level);
-                float u1 = (tile.Column + (col + 1f) / resolution) / (1 << tile.Level);
-                float v0 = (tile.Row + row / (float)resolution) / (1 << tile.Level);
-                float v1 = (tile.Row + (row + 1f) / resolution) / (1 << tile.Level);
-                Vector3 a = OnSphere(tile.Face, u0, v0);
-                Vector3 b = OnSphere(tile.Face, u1, v0);
-                Vector3 c = OnSphere(tile.Face, u1, v1);
-                Vector3 d = OnSphere(tile.Face, u0, v1);
-                AddTriangle(builder, a, b, c);
-                AddTriangle(builder, a, c, d);
-            }
+                Name = $"NativeTile_{item.Key.Face}_{item.Key.Level}_{item.Key.Column}_{item.Key.Row}",
+                Mesh = item.Value,
+                MaterialOverride = new StandardMaterial3D
+                {
+                    AlbedoColor = Palette(item.Key),
+                    Roughness = 0.88f,
+                    Metallic = 0.04f,
+                    CullMode = BaseMaterial3D.CullModeEnum.Disabled,
+                },
+            };
+            var body = new StaticBody3D { Name = "SurfaceCollider" };
+            var collision = new CollisionShape3D
+            {
+                Name = "NativeTrimesh",
+                Shape = item.Value.CreateTrimeshShape(),
+            };
+            body.AddChild(collision);
+            instance.AddChild(body);
+            incoming.Add(instance);
         }
-        var instance = new MeshInstance3D
+
+        // Swap in one synchronous main-thread pass; no partial tiles admitted.
+        foreach (MeshInstance3D old in _rendered)
         {
-            Name = $"NativeTile_{tile.Face}_{tile.Level}_{tile.Column}_{tile.Row}",
-            Mesh = builder.Commit(),
-            MaterialOverride = new StandardMaterial3D
-            {
-                AlbedoColor = Palette(tile),
-                Roughness = 0.88f,
-                Metallic = 0.04f,
-                CullMode = BaseMaterial3D.CullModeEnum.Disabled,
-            },
-        };
-        AddChild(instance);
-        _rendered.Add(instance);
+            RemoveChild(old);
+            old.QueueFree();
+        }
+        _rendered.Clear();
+        foreach (MeshInstance3D current in incoming)
+        {
+            AddChild(current);
+            _rendered.Add(current);
+        }
+        _triangles = checkedSet.Triangles;
+        GD.Print($"GODOT_CSHARP_SEAM_PASS level={checkedSet.GlobalLevel} tiles={_cover.Count} edges={checkedSet.DistinctEdges} nonmanifold={checkedSet.NonmanifoldEdges} triangles={_triangles}");
+    }
+
+    private void ChangeLod(bool expand)
+    {
+        try
+        {
+            var parent = new TileId(CubeFace.PositiveZ, 1, 0, 0);
+            bool changed = expand
+                ? QuadtreeCoverage.TryRefine(_cover, parent, _budget, 4, 1, out var proposed)
+                : QuadtreeCoverage.TryCoarsen(_cover, parent, _budget, 1, 4, out proposed);
+            if (!changed)
+                throw new InvalidOperationException("Required native LOD swap was denied.");
+            if (!QuadtreeCoverage.IsCompleteSixFaceCover(proposed))
+                throw new InvalidOperationException("Invalid proposed native cover.");
+            _cover = proposed;
+            RenderCover();
+            _expanded = expand;
+            int expected = expand ? 12 : 9;
+            Check(_rendered.Count == expected, "reversible native LOD mesh count");
+            GD.Print($"GODOT_CSHARP_LOD_SWAP_PASS expanded={expand} tiles={expected} collisionBodies={_rendered.Count}");
+        }
+        catch (Exception ex)
+        {
+            GD.PushError($"GODOT_CSHARP_LOD_FAIL: {ex}");
+            GetTree().Quit(1);
+        }
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        _physicsTicks++;
+        if (_rayValidated || _physicsTicks < 6 || _camera == null)
+            return;
+        var query = PhysicsRayQueryParameters3D.Create(_camera.Position, Vector3.Zero);
+        var hit = GetWorld3D().DirectSpaceState.IntersectRay(query);
+        if (hit.Count == 0 || !hit.ContainsKey("collider"))
+        {
+            GD.PushError("GODOT_CSHARP_COLLISION_FAIL: center ray missed sphere collider.");
+            GetTree().Quit(1);
+            return;
+        }
+        _rayValidated = true;
+        GD.Print("GODOT_CSHARP_COLLISION_PASS camera-to-center ray hit native trimesh");
     }
 
     private static Color Palette(TileId tile)
@@ -221,35 +302,6 @@ public partial class PlanetDebug : Node3D
             _ => new Color(0.32f, 0.37f, 0.59f),
         };
         return new Color(c.R * shade, c.G * shade, c.B * shade);
-    }
-
-    private static Vector3 OnSphere(CubeFace face, float tileU, float tileV)
-    {
-        float u = tileU * 2f - 1f;
-        float v = tileV * 2f - 1f;
-        Vector3 cube = face switch
-        {
-            CubeFace.PositiveX => new Vector3(1, v, -u),
-            CubeFace.NegativeX => new Vector3(-1, v, u),
-            CubeFace.PositiveY => new Vector3(u, 1, -v),
-            CubeFace.NegativeY => new Vector3(u, -1, v),
-            CubeFace.PositiveZ => new Vector3(u, v, 1),
-            _ => new Vector3(-u, v, -1),
-        };
-        return cube.Normalized() * DebugRadiusUnits;
-    }
-
-    private static void AddTriangle(SurfaceTool builder, Vector3 a, Vector3 b, Vector3 c)
-    {
-        Vector3 outside = (a + b + c).Normalized();
-        if ((b - a).Cross(c - a).Dot(outside) < 0f)
-            (b, c) = (c, b);
-        builder.SetNormal(a.Normalized());
-        builder.AddVertex(a);
-        builder.SetNormal(b.Normalized());
-        builder.AddVertex(b);
-        builder.SetNormal(c.Normalized());
-        builder.AddVertex(c);
     }
 
     private void Check(bool valid, string label)
