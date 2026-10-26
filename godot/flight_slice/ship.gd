@@ -2,6 +2,10 @@ extends Node3D
 ## Independently authored placeholder silhouette for review, not approved Dragonfly art.
 ## No game-specific abilities, access rights, routes or save data.
 var _idle_clock: float = 0.0
+var _course_yaw: float = 0.0
+
+func set_course(yaw: float) -> void:
+    _course_yaw = yaw
 
 func _ready() -> void:
     var hull_material := _material(Color(0.09, 0.21, 0.26), 0.38, 0.18)
@@ -27,9 +31,10 @@ func _ready() -> void:
 func set_motion(clock: float, reduced: bool) -> void:
     _idle_clock = clock
     if reduced:
-        rotation = Vector3.ZERO
+        rotation = Vector3(0.0, _course_yaw, 0.0)
     else:
-        rotation = Vector3(0.0, sin(clock * 0.15) * 0.018, sin(clock * 0.95) * 0.035)
+        rotation = Vector3(0.0, _course_yaw + sin(clock * 0.15) * 0.018,
+            sin(clock * 0.95) * 0.035)
 
 func _wing(side: float) -> void:
     var tool := SurfaceTool.new()

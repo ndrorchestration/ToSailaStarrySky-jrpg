@@ -68,6 +68,19 @@ func _capture() -> void:
             failed = true
         else:
             print("NATIVE_COVERAGE_READBACK_PASS hidden tiles have zero coverage")
+        # One real native manual-pilot frame; no implied controller hardware FPS.
+        scene.visuals.set_low_quality(false)
+        scene._clock = 23.0
+        scene._update_scene(10.0)
+        scene.set_manual_mode(true)
+        for pilot_frame in range(25):
+            scene.advance_manual(Vector3(0.24, 1.0, 0.0), 0.05)
+        scene._update_scene(6.0) # position cinematic camera at the resulting ship course
+        scene.overlay.text = "TO SAIL THE STARRY SKY  /  PILOT STUDY\nMANUAL DRAGONFLY TEST  •  NATIVE GODOT 4.7.2\nLOCAL TERRAIN CLEARANCE  •  NON-CANON"
+        var manual_frame: Image = await _frame()
+        _save(manual_frame,folder.path_join("manual-pilot.png"))
+        print("NATIVE_PILOT_FRAME_PASS clearance=", scene.ship.position.y -
+            maxf(scene.terrain.SEA_LEVEL,scene.terrain.sample_height(scene.ship.position.x, scene.ship.position.z)))
         print("NATIVE_EFFECT_PIXEL_CHECK motion=",motion_pixels," paused=",paused_pixels," low_quality=",quality_pixels," reduced_motion=",reduced_pixels)
         if motion_pixels < 100 or quality_pixels < 100 or paused_pixels != 0 or reduced_pixels != 0:
             push_error("NATIVE_EFFECT_PIXEL_CHECK_FAILED")
