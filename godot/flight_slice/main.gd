@@ -5,6 +5,7 @@ const ShipStudy = preload("res://ship.gd")
 const FrameProbe = preload("res://frame_probe.gd")
 const VisualStudy = preload("res://visuals.gd")
 const FlightStudy = preload("res://flight_controller.gd")
+const LandingStudy = preload("res://landing_study.gd")
 var visuals: Node3D
 var _low_quality: bool = false
 
@@ -20,6 +21,8 @@ var _cinematic: bool = true
 var _manual_active: bool = false
 var _manual_position: Vector3 = Vector3.ZERO
 var _manual_heading: float = 0.0
+var landing = LandingStudy.new()
+var _landing_message: String = ""
 
 func _ready() -> void:
     if OS.get_cmdline_user_args().has("--baseline"):
@@ -65,8 +68,8 @@ func _process(delta: float) -> void:
     _status_timer += step
     if _status_timer > 0.35:
         _status_timer = 0.0
-        var flight_info: String = "FLIGHT MODE  |  clearance %.1f m  |  heading %.0f°" % [FlightStudy.clearance(ship.position), rad_to_deg(_manual_heading)] if _manual_active else "AUTOMATIC FLYOVER  |  C camera framing"
-        overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + "F pilot/flyover · W/S move · A/D steer · E/Q ascend/descend\nP pause · M still effects · R reset · V detail · H HUD\nNON-CANON STUDY  •  NOT SHIP PHYSICS / PRODUCT FLIGHT"
+        var flight_info: String = "PILOT %s  |  clearance %.1f m  |  heading %.0f°  |  %s" % [landing.state, FlightStudy.clearance(ship.position), rad_to_deg(_manual_heading), _landing_message] if _manual_active else "AUTOMATIC FLYOVER  |  C camera framing"
+        overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + "F pilot/flyover · W/S move · A/D steer · E/Q ascend/descend\nT ground approach/takeoff (test field) · P pause · M still effects\nR reset · V detail · H HUD\nNON-CANON STUDY  •  NOT PHYSICS CONTACT / PRODUCT FLIGHT"
 
 func _unhandled_key_input(event: InputEvent) -> void:
     if not (event is InputEventKey):
@@ -77,6 +80,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
     match key_event.keycode:
         KEY_F:
             set_manual_mode(not _manual_active)
+        KEY_T:
+            request_touchdown()
         KEY_C:
             _cinematic = not _cinematic
         KEY_P:
@@ -97,14 +102,26 @@ func set_manual_mode(enabled: bool) -> void:
     if enabled == _manual_active:
         return
     _manual_active = enabled
+    landing.reset()
+    _landing_message = ""
     if enabled:
         _manual_position = ship.position
         _manual_heading = 0.0
     else:
         ship.set_course(0.0)
 
+func request_touchdown() -> bool:
+    if not _manual_active or _paused:
+        return false
+    var accepted: bool = landing.toggle(_manual_position)
+    _landing_message = "" if accepted else "NO SAFE TEST FIELD / WAIT FOR TRANSITION"
+    return accepted
+
 func advance_manual(controls: Vector3, delta: float) -> void:
     if not _manual_active or _paused:
+        return
+    if landing.state != "FLYING":
+        _manual_position = landing.tick(_manual_position, delta)
         return
     var next: Dictionary = FlightStudy.advance(_manual_position, _manual_heading,
         controls, delta)
@@ -123,6 +140,7 @@ func _update_scene(delta: float) -> void:
         ship.position = Vector3(x, maxf(TerrainStudy.SEA_LEVEL,
             TerrainStudy.sample_height(x, z)) + clearance, z)
     ship.set_motion(_clock, _reduced_motion)
+    ship.set_landing_gear(_manual_active and landing.state != "FLYING")
     var goal: Vector3
     var focus: Vector3
     if _manual_active:
