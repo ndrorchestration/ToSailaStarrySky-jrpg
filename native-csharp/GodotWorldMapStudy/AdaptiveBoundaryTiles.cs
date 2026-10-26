@@ -6,8 +6,8 @@ using StarrySky.WorldMap.Contracts;
 
 /// <summary>
 /// Small, NONCANON adaptive cube-sphere mesh laboratory.
-/// Each tile has only 8x8 interior cells; on its perimeter, cells split at
-/// integer cube-grid points matching any finer neighboring tile. Boundary
+/// Each tile has only 8x8 interior cells; on its perimeter, cells split only where actual neighboring active
+/// tile edge vertices require it (including across cube faces). Boundary
 /// cell triangle fans eliminate T-junctions; complete global edge-incidence
 /// verification detects holes and duplicate faces before scene admission.
 /// Bounded at LOD 2 and <=50k triangles; NOT a terrain streamer or a
@@ -35,6 +35,9 @@ public static class AdaptiveBoundaryTiles
         if (level > MaxLevel)
             throw new InvalidOperationException("Adaptive study supports at most two refinements.");
         int globalSteps = N << level;
+        var neighbors = new NeighborBoundaryIndex(cover,level);
+        int insertedBoundaryVertices=0;
+        int stitchedCells=0;
         var meshes = new Dictionary<TileId, ArrayMesh>();
         var edges = new Dictionary<Edge, int>();
         int triangles = 0;
@@ -55,7 +58,11 @@ public static class AdaptiveBoundaryTiles
                     var b = WatertightTiles.Cube(tile.Face, x+step, y, globalSteps);
                     var c = WatertightTiles.Cube(tile.Face, x+step, y+step, globalSteps);
                     var d = WatertightTiles.Cube(tile.Face, x, y+step, globalSteps);
-                    if (step == 1 || (row != 0 && col != 0 && row != N-1 && col != N-1))
+                    bool bottom = row==0 && neighbors.HasIntermediate(tile.Face,x,y,x+step,y);
+                    bool right = col==N-1 && neighbors.HasIntermediate(tile.Face,x+step,y,x+step,y+step);
+                    bool top = row==N-1 && neighbors.HasIntermediate(tile.Face,x+step,y+step,x,y+step);
+                    bool left = col==0 && neighbors.HasIntermediate(tile.Face,x,y+step,x,y);
+                    if (!(bottom||right||top||left))
                     {
                         Triangle(builder,a,b,c,radius,edges);
                         Triangle(builder,a,c,d,radius,edges);
@@ -64,18 +71,18 @@ public static class AdaptiveBoundaryTiles
                     else
                     {
                         var ring = new List<WatertightTiles.GridPoint> { a };
-                        AddEdge(ring,tile.Face,x,y,x+step,y,row==0,globalSteps);
-                        AddEdge(ring,tile.Face,x+step,y,x+step,y+step,col==N-1,globalSteps);
-                        AddEdge(ring,tile.Face,x+step,y+step,x,y+step,row==N-1,globalSteps);
-                        AddEdge(ring,tile.Face,x,y+step,x,y,col==0,globalSteps);
-                        // Last ring point equals a; do not create zero-length edge.
+                        insertedBoundaryVertices += neighbors.Append(ring,tile.Face,x,y,x+step,y,row==0);
+                        insertedBoundaryVertices += neighbors.Append(ring,tile.Face,x+step,y,x+step,y+step,col==N-1);
+                        insertedBoundaryVertices += neighbors.Append(ring,tile.Face,x+step,y+step,x,y+step,row==N-1);
+                        insertedBoundaryVertices += neighbors.Append(ring,tile.Face,x,y+step,x,y,col==0);
                         ring.RemoveAt(ring.Count-1);
-                        var center = WatertightTiles.Cube(tile.Face,x+step/2,y+step/2,globalSteps);
+                        var center=WatertightTiles.Cube(tile.Face,x+step/2,y+step/2,globalSteps);
                         for (int i=0;i<ring.Count;i++)
                         {
                             Triangle(builder,center,ring[i],ring[(i+1)%ring.Count],radius,edges);
                             triangles++;
                         }
+                        stitchedCells++;
                     }
                     if (triangles > MaxTriangles)
                         throw new InvalidOperationException("Adaptive mesh exceeded global safety quota.");
@@ -88,23 +95,13 @@ public static class AdaptiveBoundaryTiles
             int bad=edges.Values.Count(x=>x!=2);
             if (bad!=0 || edges.Count*2!=triangles*3)
                 throw new InvalidOperationException($"Adaptive edge validation failed: edges={edges.Count} bad={bad} triangles={triangles}");
+            GD.Print($"GODOT_CSHARP_NEIGHBOR_PASS level={level} tiles={cover.Count} inserted={insertedBoundaryVertices} stitchedCells={stitchedCells} triangles={triangles} nonmanifold={bad}");
             return new WatertightTiles.CheckedMeshSet(meshes,triangles,edges.Count,bad,level);
         }
         catch
         {
             foreach(var mesh in meshes.Values) mesh.Dispose();
             throw;
-        }
-    }
-
-    private static void AddEdge(List<WatertightTiles.GridPoint> ring,CubeFace face,
-        int ax,int ay,int bx,int by,bool split,int side)
-    {
-        int count=split?Math.Max(Math.Abs(bx-ax),Math.Abs(by-ay)):1;
-        for(int i=1;i<=count;i++)
-        {
-            int x=ax+(bx-ax)*i/count, y=ay+(by-ay)*i/count;
-            ring.Add(WatertightTiles.Cube(face,x,y,side));
         }
     }
 
