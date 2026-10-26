@@ -52,6 +52,21 @@ jobs:
           grep -q 'GODOT_CSHARP_STALE_REJECT_PASS stale=1 current=2' /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_STREAM_ADMIT_PASS revision=1 tiles=12 maxPerFrame=2 observed=2' /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_STREAM_ADMIT_PASS revision=2 tiles=9 maxPerFrame=2 observed=2' /tmp/dotnet-world.log
+          grep -Eq 'GODOT_CSHARP_NODE_STAGE_PASS revision=1 nodes=12 maxPerFrame=2 observed=2 maxStageMs=[0-9.]+' /tmp/dotnet-world.log
+          grep -Eq 'GODOT_CSHARP_NODE_STAGE_PASS revision=2 nodes=9 maxPerFrame=2 observed=2 maxStageMs=[0-9.]+' /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_NODE_ACTIVE_PASS tiles=9 whileStaging=True' /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_NODE_ACTIVE_PASS tiles=12 whileStaging=True' /tmp/dotnet-world.log
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          log = Path('/tmp/dotnet-world.log').read_text()
+          rows = re.findall(r'GODOT_CSHARP_NODE_STAGE_PROGRESS revision=(\d+) added=(\d+) staged=(\d+) total=(\d+) ms=([0-9.]+)', log)
+          assert len(rows)>=11, rows
+          assert all(int(row[1])<=2 for row in rows), rows
+          assert [int(r[0]) for r in rows].count(1)>=6 and [int(r[0]) for r in rows].count(2)>=5, rows
+          assert all(float(r[4])>=0 for r in rows)
+          print('GODOT_CSHARP_NODE_BUDGET_CI_PASS',len(rows),'frames')
+          PY
           ! grep -Eq 'GODOT_CSHARP_(STREAM|STALE)_FAIL' /tmp/dotnet-world.log
           grep -Eq 'GODOT_CSHARP_SEAM_PASS level=1 tiles=9 edges=[0-9]+ nonmanifold=0' /tmp/dotnet-world.log
           grep -Eq 'GODOT_CSHARP_SEAM_PASS level=2 tiles=12 edges=[0-9]+ nonmanifold=0' /tmp/dotnet-world.log
