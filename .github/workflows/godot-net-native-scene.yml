@@ -48,6 +48,7 @@ jobs:
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/dotnet-import.log
           "$GODOT_BIN" --headless --audio-driver Dummy --path native-csharp/GodotWorldMapStudy --quit-after 45 2>&1 | tee /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_WORLD_PASS' /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_ATOMIC_REJECT_PASS intactTiles=9' /tmp/dotnet-world.log
           grep -Eq 'GODOT_CSHARP_SEAM_PASS level=1 tiles=9 edges=[0-9]+ nonmanifold=0' /tmp/dotnet-world.log
           grep -Eq 'GODOT_CSHARP_SEAM_PASS level=2 tiles=12 edges=[0-9]+ nonmanifold=0' /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_CAMERA_PRIORITY_PASS selected=' /tmp/dotnet-world.log
