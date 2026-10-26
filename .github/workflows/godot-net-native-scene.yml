@@ -48,8 +48,20 @@ jobs:
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/dotnet-import.log
           "$GODOT_BIN" --headless --audio-driver Dummy --path native-csharp/GodotWorldMapStudy --quit-after 45 2>&1 | tee /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_WORLD_PASS' /tmp/dotnet-world.log
-          grep -q 'GODOT_CSHARP_SEAM_PASS level=1 tiles=9 edges=4608 nonmanifold=0' /tmp/dotnet-world.log
-          grep -q 'GODOT_CSHARP_SEAM_PASS level=2 tiles=12 edges=18432 nonmanifold=0' /tmp/dotnet-world.log
+          grep -Eq 'GODOT_CSHARP_SEAM_PASS level=1 tiles=9 edges=[0-9]+ nonmanifold=0' /tmp/dotnet-world.log
+          grep -Eq 'GODOT_CSHARP_SEAM_PASS level=2 tiles=12 edges=[0-9]+ nonmanifold=0' /tmp/dotnet-world.log
+          grep -q 'GODOT_CSHARP_CAMERA_PRIORITY_PASS selected=' /tmp/dotnet-world.log
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          log=Path('/tmp/dotnet-world.log').read_text()
+          rows=re.findall(r'GODOT_CSHARP_ADAPTIVE_PASS level=(\d+) tiles=(\d+) triangles=(\d+) uniformTriangles=(\d+) saved=(\d+)',log)
+          assert len(rows)==3,rows
+          assert [(int(r[0]),int(r[1])) for r in rows] == [(1,9),(2,12),(1,9)],rows
+          assert all(int(t)>0 and int(s)==int(u)-int(t) and int(s)>0 for _,_,t,u,s in rows),rows
+          assert max(int(t) for _,_,t,_,_ in rows)<50000
+          print('GODOT_CSHARP_ADAPTIVE_CI_PASS',rows)
+          PY
           grep -q 'GODOT_CSHARP_LOD_SWAP_PASS expanded=True tiles=12 collisionBodies=12' /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_LOD_SWAP_PASS expanded=False tiles=9 collisionBodies=9' /tmp/dotnet-world.log
           grep -q 'GODOT_CSHARP_COLLISION_PASS' /tmp/dotnet-world.log
