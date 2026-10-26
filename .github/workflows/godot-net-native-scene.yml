@@ -58,6 +58,7 @@ jobs:
             --rendering-driver opengl3 --audio-driver Dummy \
             --quit-after 120 -- --capture 2>&1 | tee /tmp/dotnet-capture.log
           grep -q 'GODOT_CSHARP_FRAME_CAPTURE:' /tmp/dotnet-capture.log
+          grep -q 'GODOT_CSHARP_FRAME_PIXELS_PASS foreground_samples=' /tmp/dotnet-capture.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|GODOT_CSHARP_CAPTURE_FAIL' /tmp/dotnet-capture.log
           python3 - <<'PY'
           from pathlib import Path
