@@ -87,7 +87,10 @@ func _capture() -> void:
         if not scene.request_touchdown():
             push_error("NATIVE_TOUCHDOWN_QUEUE_DENIED")
             failed = true
+        # SceneTree.physics_frame fires before node _physics_process callbacks.
+        # Wait for a rendered/process tick as well before checking the receipt.
         await physics_frame
+        await process_frame
         if scene.landing.state != "DESCENDING" or not scene.last_touchdown_contact.get("valid", false):
             push_error("NATIVE_TOUCHDOWN_PHYSICS_ADMISSION_FAILED")
             failed = true
