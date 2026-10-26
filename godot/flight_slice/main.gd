@@ -6,6 +6,7 @@ const FrameProbe = preload("res://frame_probe.gd")
 const VisualStudy = preload("res://visuals.gd")
 const FlightStudy = preload("res://flight_controller.gd")
 const LandingStudy = preload("res://landing_study.gd")
+const LandingCollision = preload("res://landing_collision.gd")
 var visuals: Node3D
 var _low_quality: bool = false
 
@@ -22,6 +23,8 @@ var _manual_active: bool = false
 var _manual_position: Vector3 = Vector3.ZERO
 var _manual_heading: float = 0.0
 var landing = LandingStudy.new()
+var landing_ground: StaticBody3D
+var _touchdown_requested: bool = false
 var _landing_message: String = ""
 
 func _ready() -> void:
@@ -34,6 +37,9 @@ func _ready() -> void:
     terrain = TerrainStudy.new()
     terrain.name = "ArtSliceTerrain"
     add_child(terrain)
+    landing_ground = LandingCollision.new()
+    landing_ground.name = "TemporaryPhysicsGround"
+    add_child(landing_ground)
     if visuals != null:
         visuals.bind_terrain(terrain)
     ship = ShipStudy.new()
@@ -103,6 +109,7 @@ func set_manual_mode(enabled: bool) -> void:
         return
     _manual_active = enabled
     landing.reset()
+    _touchdown_requested = false
     _landing_message = ""
     if enabled:
         _manual_position = ship.position
@@ -111,11 +118,32 @@ func set_manual_mode(enabled: bool) -> void:
         ship.set_course(0.0)
 
 func request_touchdown() -> bool:
-    if not _manual_active or _paused:
+    if not _manual_active or _paused or _touchdown_requested:
         return false
-    var accepted: bool = landing.toggle(_manual_position)
-    _landing_message = "" if accepted else "NO SAFE TEST FIELD / WAIT FOR TRANSITION"
-    return accepted
+    if landing.state != "FLYING" and landing.state != "LANDED":
+        return false
+    # PhysicsDirectSpaceState3D is queried in _physics_process, never in input
+    # callbacks, to avoid a locked physics space on threaded configurations.
+    _touchdown_requested = true
+    _landing_message = "CHECKING NATIVE TERRAIN COLLISION"
+    return true
+
+func _physics_process(_delta: float) -> void:
+    if not _touchdown_requested:
+        return
+    _touchdown_requested = false
+    if not _manual_active or _paused:
+        _landing_message = "CANCELLED"
+        return
+    var contact: Dictionary = {"valid": false}
+    if landing.state == "FLYING":
+        contact = landing_ground.probe(_manual_position, get_world_3d().direct_space_state)
+    var accepted: bool = landing.toggle_with_physics(_manual_position, contact)
+    _landing_message = "" if accepted else "NATIVE COLLIDER / SAFE FIELD REQUIRED"
+    if accepted:
+        print("GODOT_TOUCHDOWN_PHYSICS_ADMISSION_PASS state=", landing.state)
+    else:
+        print("GODOT_TOUCHDOWN_PHYSICS_REJECT reason=", contact.get("reason", "FIELD_OR_SLOPE"))
 
 func advance_manual(controls: Vector3, delta: float) -> void:
     if not _manual_active or _paused:
