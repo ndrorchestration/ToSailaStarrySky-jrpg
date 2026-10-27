@@ -81,6 +81,47 @@ func _capture() -> void:
             else:
                 print("NATIVE_FOREST_FLOOR_PAIR_PASS delta=", changed_pixels)
             scene.overlay.visible = true
+    # Coarse/detailed canopy comparison at one immutable real GL viewpoint.
+    # Never count these as the six regression NATIVE_ART_CAPTURE receipts.
+    if not baseline and scene.visuals != null:
+        scene.overlay.visible = false
+        scene._clock = 23.0
+        scene._update_scene(10.0)
+        scene.visuals.set_low_quality(false)
+        var lod_folder: String = ProjectSettings.globalize_path(
+            "res://evidence/forest-canopy-review")
+        if DirAccess.make_dir_recursive_absolute(lod_folder) != OK:
+            push_error("NATIVE_CANOPY_LOD_DIRECTORY_FAILED")
+            failed = true
+        else:
+            scene.visuals.set_canopy_review_override(2)
+            var coarse: Image = await _frame()
+            if coarse == null or coarse.get_size() != Vector2i(960,640) or (
+                    coarse.save_png(lod_folder.path_join("coarse.png")) != OK):
+                push_error("NATIVE_CANOPY_LOD_COARSE_CAPTURE_FAILED")
+                failed = true
+            scene.visuals.set_canopy_review_override(1)
+            var detailed: Image = await _frame()
+            if detailed == null or detailed.get_size() != Vector2i(960,640) or (
+                    detailed.save_png(lod_folder.path_join("detailed.png")) != OK):
+                push_error("NATIVE_CANOPY_LOD_DETAIL_CAPTURE_FAILED")
+                failed = true
+            var delta_pixels: int = 0
+            if coarse != null and detailed != null:
+                for y in range(0,640,3):
+                    for x in range(0,960,3):
+                        var a: Color = coarse.get_pixel(x,y)
+                        var b: Color = detailed.get_pixel(x,y)
+                        if absf(a.r-b.r)+absf(a.g-b.g)+absf(a.b-b.b) > 0.035:
+                            delta_pixels += 1
+            if delta_pixels < 60:
+                push_error("NATIVE_CANOPY_LOD_PAIR_NO_VISIBLE_DIFFERENCE pixels=" +
+                    str(delta_pixels))
+                failed = true
+            else:
+                print("NATIVE_CANOPY_LOD_PAIR_PASS delta=", delta_pixels)
+        scene.visuals.set_canopy_review_override(0)
+        scene.overlay.visible = true
     if not baseline:
         scene._clock = 9.0
         scene._update_scene(10.0)

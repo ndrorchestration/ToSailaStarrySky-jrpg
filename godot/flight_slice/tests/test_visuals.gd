@@ -190,6 +190,51 @@ func _run() -> void:
         check(floor.fern_poses.size() == old_count,
             "ground cover setup is idempotent")
 
+    # Grove-wide study LOD keeps all original instance placements and forest bounds.
+    var evergreen: MultiMeshInstance3D = scene.terrain.get_node("ForestCrowns")
+    var broadwood: MultiMeshInstance3D = scene.terrain.get_node("BroadleafCrowns")
+    check(visuals._evergreen_near.get_faces().size() >
+        visuals._evergreen_far.get_faces().size(),
+        "near evergreen mesh has extra deterministic bough silhouette")
+    check(visuals._broadleaf_near.get_faces().size() >
+        visuals._broadleaf_far.get_faces().size(),
+        "near broadleaf mesh has additional asymmetric lobes")
+    var prior_tree_count: int = evergreen.multimesh.instance_count
+    var prior_broad_count: int = broadwood.multimesh.instance_count
+    visuals.update_forest_detail(Vector3(-68.0, 30.0, 0.0))
+    check(not visuals._near_forest_detail, "distant forest chooses coarse geometry")
+    check(evergreen.multimesh.mesh == visuals._evergreen_far,
+        "distant forest uses coarse evergreen mesh")
+    check(not scene.terrain.get_node("ForestGroundCover/FernClumps").visible,
+        "distant forest hides tiny ground cover")
+    visuals.update_forest_detail(Vector3(34.0, 17.0, 0.0))
+    check(visuals._near_forest_detail, "approaching grove chooses detailed geometry")
+    check(evergreen.multimesh.mesh == visuals._evergreen_near,
+        "approaching grove swaps to detailed evergreen")
+    check(broadwood.multimesh.mesh == visuals._broadleaf_near,
+        "approaching grove swaps to detailed broadleaf")
+    check(scene.terrain.get_node("ForestGroundCover/FernClumps").visible,
+        "close forest reveals static understory")
+    visuals.update_forest_detail(Vector3(34.0, 37.0, 0.0))
+    check(visuals._near_forest_detail, "LOD hysteresis holds its state inside band")
+    visuals.set_low_quality(true)
+    check(not visuals._near_forest_detail, "low-quality forces coarse canopy")
+    check(not scene.terrain.get_node("ForestGroundCover/UnderstoryShrubs").visible,
+        "low-quality omits small shrub layer")
+    visuals.set_low_quality(false)
+    visuals.update_forest_detail(Vector3(34.0, 15.0, 0.0))
+    check(visuals._near_forest_detail, "high quality restores detailed grove")
+    visuals.set_canopy_review_override(2)
+    check(not visuals._near_forest_detail, "reference mode forces coarse mesh")
+    visuals.set_canopy_review_override(1)
+    check(visuals._near_forest_detail, "detail review mode forces near mesh")
+    visuals.set_canopy_review_override(0)
+    check(evergreen.multimesh.instance_count == prior_tree_count and
+        broadwood.multimesh.instance_count == prior_broad_count,
+        "LOD mode never changes source tree instance populations")
+    # Restore natural scene camera prior to the pause regression.
+    visuals.update_forest_detail(scene.camera.position)
+
     scene._clock = 9.0
     scene._paused = true
     scene._process(0.2)

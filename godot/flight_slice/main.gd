@@ -218,6 +218,7 @@ func _update_scene(delta: float) -> void:
     camera.look_at(focus, Vector3.UP)
     terrain.update_detail(camera.position, delta)
     if visuals != null:
+        visuals.update_forest_detail(camera.position)
         visuals.set_clock(_clock, _reduced_motion)
 
 func _install_environment() -> void:
