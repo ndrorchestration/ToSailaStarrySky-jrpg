@@ -78,6 +78,9 @@ jobs:
       - name: Verify proposed First Wake opening chronological gates (review only)
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_revised_opening_contract_test.gd
+      - name: Verify interactive First Wake flyer interview and engineering route (review only)
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_job_preview_test.gd
       - name: Verify production JRPG stat model parity
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/jrpg_stat_model_test.gd
