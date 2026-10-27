@@ -91,6 +91,15 @@ jobs:
           test -s godot/review-evidence/magic-env-ender-unlit-native-960x640.png
           test -s godot/review-evidence/magic-env-ender-open-native-960x640.png
           test -s godot/review-evidence/magic-env-ender-impact-native-960x640.png
+          # Native Chapter I dock/Ender compositing: review-only source and unchanged game state.
+          xvfb-run -a -s "-screen 0 960x640x24" editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_magic_vfx_chapter1_camera.gd
+          for identity in ender lyra ionia reson aepex; do
+            test -s "godot/review-evidence/chapter1-magic-${identity}-dock-native-960x640.png"
+          done
+          test -s godot/review-evidence/chapter1-magic-ender-camera-close-native-960x640.png
+          test -s godot/review-evidence/chapter1-magic-ender-behind-native-960x640.png
+          test -s godot/review-evidence/chapter1-magic-ender-front-native-960x640.png
+          test -s godot/review-evidence/chapter1-magic-ender-unlit-native-960x640.png
           sha256sum godot/review-evidence/*.png
           # Private, native-resolution lossless crops in job logs: not a public artifact.
           # Entire 960x640 PNGs remain runner-only; do not conflate crop custody with full frames.
