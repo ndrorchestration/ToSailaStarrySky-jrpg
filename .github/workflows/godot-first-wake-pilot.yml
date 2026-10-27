@@ -60,6 +60,9 @@ jobs:
       - name: Verify Reson independent four-way six-phase native art
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/reson_fourway_review_test.gd
+      - name: Verify real physics-driven Lyra Aepex Reson walking and obstacle blocking
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/three_character_physics_walk_test.gd
       - name: Verify opt-in Ender movement animation
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/ender_walk_test.gd
