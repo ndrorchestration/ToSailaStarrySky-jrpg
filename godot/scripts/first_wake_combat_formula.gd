@@ -94,8 +94,15 @@ func _resolve_damage(action_id: String, actor: Dictionary, target: Dictionary, r
     if int(analysis.get("charges", 0)) > 0:
         analysis_multiplier = float(analysis.get("nextDamageMultiplier", 1.0))
 
+    # Strictly opt-in practice power: the authored hazard encounter never
+    # sets this flag. The default production formula still has numeric parity.
+    var training_power := 0.0
+    if bool(actor.get("isNoncanonicalEquipmentReview", false)):
+        training_power = clampf(float(actor.get("reviewEquipmentPower", 0.0)), 0.0, 20.0)
+
     var result := stat_model.resolve_damage({
         "attacker": primary,
+        "equipmentPower": training_power,
         "scalingStat": str(formula["scalingStat"]),
         "power": float(formula["power"]),
         "scaling": float(formula["scaling"]),
