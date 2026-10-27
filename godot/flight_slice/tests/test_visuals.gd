@@ -234,11 +234,11 @@ func _run() -> void:
     for ridge in [ridge_far, ridge_near]:
         var ridge_mesh: ArrayMesh = ridge.mesh
         var ridge_arrays: Array = ridge_mesh.surface_get_arrays(0)
-        var points: PackedVector3Array = ridge_arrays[Mesh.ARRAY_VERTEX]
-        var normals: PackedVector3Array = ridge_arrays[Mesh.ARRAY_NORMAL]
-        var tints: PackedColorArray = ridge_arrays[Mesh.ARRAY_COLOR]
-        check(points.size() == 720 and normals.size() == points.size()
-            and tints.size() == points.size(),
+        var ridge_points: PackedVector3Array = ridge_arrays[Mesh.ARRAY_VERTEX]
+        var ridge_normals: PackedVector3Array = ridge_arrays[Mesh.ARRAY_NORMAL]
+        var ridge_tints: PackedColorArray = ridge_arrays[Mesh.ARRAY_COLOR]
+        check(ridge_points.size() == 720 and ridge_normals.size() == ridge_points.size()
+            and ridge_tints.size() == ridge_points.size(),
             "distance ridge geometry and shaded vertices remain under 800")
         check(ridge_mesh.get_aabb().position.x > 100.0,
             "ridge background starts outside navigable/visible 96m grid")
