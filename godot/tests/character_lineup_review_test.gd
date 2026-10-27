@@ -31,6 +31,16 @@ func _verify() -> void:
         push_error("CHARACTER_LINEUP_FAIL: atlas source path altered")
         quit(5)
         return
+    if not preview.magnified or ender.scale.x <= 1.0 or ionia.scale.x <= 0.13:
+        push_error("CHARACTER_LINEUP_FAIL: enlarged inspection mode missing")
+        quit(11)
+        return
+    preview.set_magnified(false)
+    if preview.magnified or not is_equal_approx(ender.scale.x, 1.0) or not is_equal_approx(ionia.scale.x, 0.13):
+        push_error("CHARACTER_LINEUP_FAIL: cannot restore original gameplay sprite scale")
+        quit(12)
+        return
+    preview.set_magnified(true)
     var original_ender: Vector2 = world.ender.global_position
     var original_ionia: Vector2 = world.ionia.global_position
     world.set_character_lineup_review_enabled(true)
