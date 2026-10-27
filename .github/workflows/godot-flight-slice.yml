@@ -23,6 +23,9 @@ jobs:
           unzip -q /tmp/godot.zip -d /tmp
           chmod +x /tmp/Godot_v4.7.2-stable_linux.x86_64
           /tmp/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Verify the exact bytes of all three original PNG texture assets
+        run: |
+          node godot/flight_slice/tools/generate_surface_textures.mjs --check
       - name: Native script import and scene parse
         run: |
           /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path godot/flight_slice --quit 2>&1 | tee /tmp/import.log
@@ -76,6 +79,12 @@ jobs:
           timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_environment_blends.gd 2>&1 | tee /tmp/environment-blends.log
           grep -Eq 'GODOT_ENVIRONMENT_BLEND_PASS checks=[0-9]+' /tmp/environment-blends.log
           ! grep -Eq 'GODOT_ENVIRONMENT_BLEND_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/environment-blends.log
+      - name: Native original PNG surface textures and dark-scene readability
+        run: |
+          set -o pipefail
+          timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_surface_textures.gd 2>&1 | tee /tmp/surface-texture-test.log
+          grep -Eq 'GODOT_SURFACE_TEXTURE_PASS checks=[0-9]+' /tmp/surface-texture-test.log
+          ! grep -Eq 'GODOT_SURFACE_TEXTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|Failed loading' /tmp/surface-texture-test.log
       - name: Deterministic native manual Dragonfly pilot mode contracts
         run: |
           set -o pipefail
@@ -138,6 +147,16 @@ jobs:
             --script res://tests/capture_environment_transition.gd 2>&1 | tee /tmp/environment-blend-capture.log
           grep -q 'NATIVE_ENVIRONMENT_BLEND_CAPTURE_PASS frames=3' /tmp/environment-blend-capture.log
           ! grep -Eq 'GODOT_ENVIRONMENT_BLEND_CAPTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/environment-blend-capture.log
+      - name: Matched native GL night/golden texture A/B captures
+        run: |
+          set -o pipefail
+          timeout 105s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_surface_textures.gd 2>&1 | tee /tmp/surface-texture-capture.log
+          grep -q 'NATIVE_SURFACE_TEXTURE_CAPTURE_PASS frames=6' /tmp/surface-texture-capture.log
+          grep -Eq 'NATIVE_SURFACE_TEXTURE_DELTAS golden=[0-9.]+' /tmp/surface-texture-capture.log
+          ! grep -Eq 'NATIVE_SURFACE_TEXTURE_CAPTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/surface-texture-capture.log
       - name: Profile actual rendered scripted flight sweep
         run: |
           set -o pipefail
@@ -175,6 +194,8 @@ jobs:
             /tmp/environment-mood-test.log
             /tmp/environment-blends.log
             /tmp/environment-blend-capture.log
+            /tmp/surface-texture-test.log
+            /tmp/surface-texture-capture.log
             /tmp/environment-mood-capture.log
             /tmp/atmosphere-capture.log
             /tmp/cinematic-camera.log
