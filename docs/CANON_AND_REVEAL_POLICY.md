@@ -27,11 +27,17 @@ Notion contains creator-specified late/postgame celestial-navigation answers. **
 
 The private author-controlled Notion record for the title and restricted narrative contract should be consulted only through approved access; do not copy it into a public location merely to make automated agents more convenient.
 
+## Airship canon update — 2026-10-27
+
+- **Aureate Wake**: Ionia's dragonfly-inspired airship and the protagonists' home.
+- **The Dragonfly**: a distinct, significantly larger **Frigate-class** airship. Its crew, faction, technical specifications, visual appearance, and narrative role are still open.
+- Historic prototype usage of “Dragonfly” is not a canon asset identity mapping; see [airship identity contract](AIRSHIP_IDENTITY_CONTRACT.md).
+
 ## Open decision examples
 
 - Planet name, continent count and coastlines, governments and borders.
 - Local Chapter I dock-vs-islands topology (**AW-WORLD-SURFACE-01**); no A/B/C option has been authorized.
-- Dragonfly/Aureate Wake/*The Unfinished Song* naming relationship; exact final interior and wing deployment.
+- Final interior and wing deployment, and any relationship to *The Unfinished Song*, remain open. **The Dragonfly / Aureate Wake identity distinction is no longer open**: see [airship identity contract](AIRSHIP_IDENTITY_CONTRACT.md).
 - Auroral network ontology, history, absolute speeds and interregional chronology.
 - Cosmological Five Lights names/nature; proposed predecessor cultures.
 - Unresolved character classes, magical affinities, final art acceptance and later recruitment timing details.
