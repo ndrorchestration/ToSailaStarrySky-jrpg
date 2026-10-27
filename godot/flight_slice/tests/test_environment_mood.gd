@@ -128,6 +128,11 @@ func _run() -> void:
             visuals.set_clock(23.0, true)
             check(layer.visible and not visuals.rain.instances.visible,
                 layer_name + " remains visible with reduced motion")
+    var crowns: MultiMeshInstance3D = scene.terrain.get_node("BroadleafCrowns")
+    check(crowns.multimesh.mesh is ArrayMesh and crowns.multimesh.instance_count > 0,
+        "refined broadleaf canopy coexists with weather and ship")
+    check(is_zero_approx(float(visuals.broadleaf.get_shader_parameter("study_time"))),
+        "combined canopy respects reduced motion during storm")
     check(scene.ship.position == before_ship,
         "geology and weather settings preserve flight position")
     scene.queue_free()
