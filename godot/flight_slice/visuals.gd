@@ -2,6 +2,7 @@ extends Node3D
 ## Reusable materials for a NON-CANON GDScript art study; not product architecture.
 const TerrainStudy = preload("res://terrain.gd")
 const EnvironmentMood = preload("res://environment_mood.gd")
+const EnvironmentBlend = preload("res://environment_blend.gd")
 const WeatherStreaks = preload("res://weather_streaks.gd")
 const SUN_DIRECTION = Vector3(0.65, 0.43, -0.70)
 var water: ShaderMaterial
@@ -18,6 +19,11 @@ var _weather_index: int = 0
 var _magic_enabled: bool = false
 var _last_clock: float = 0.0
 var _reduced_motion: bool = false
+var transition_active: bool = false
+var _transition_start: Dictionary = {}
+var _transition_target: Dictionary = {}
+var _transition_elapsed: float = 0.0
+var _transition_seconds: float = 1.8
 var coverage: ImageTexture
 var _terrain: Node3D
 var _coverage_bytes := PackedByteArray()
@@ -113,7 +119,8 @@ func set_clock(seconds: float, reduced: bool) -> void:
     for material in [water, land, foliage, broadleaf, understory, sky_material]:
         material.set_shader_parameter("study_time", clock)
     understory.set_shader_parameter("motion_scale", 0.0 if reduced else 1.0)
-    rain.set_conditions(_weather_index, clock, reduced, low_quality)
+    rain.set_conditions(_weather_index, clock, reduced, low_quality,
+        float(current_mood["rain_strength"]))
 
 func refresh_coverage() -> void:
     if _terrain == null: return
@@ -137,17 +144,55 @@ func set_low_quality(enabled: bool) -> void:
     water.set_shader_parameter("low_quality", enabled)
     sky_material.set_shader_parameter("low_quality", enabled)
     rain.set_conditions(_weather_index, 0.0 if _reduced_motion else _last_clock,
-        _reduced_motion, low_quality)
+        _reduced_motion, low_quality, float(current_mood["rain_strength"]))
     if _terrain != null:
         _terrain.get_node("GroundUnderstory").visible = not enabled
 
-## These modes grade the local art study, never the actual game clock.
+## Instant selection remains available to deterministic captures and API clients.
+## Neither selection path changes actual world time, physics or saved state.
 func set_environment_look(time_index: int, weather_index: int,
         magic_enabled: bool) -> void:
     _time_index = posmod(time_index, EnvironmentMood.TIMES.size())
     _weather_index = posmod(weather_index, EnvironmentMood.WEATHER.size())
     _magic_enabled = magic_enabled
+    transition_active = false
     current_mood = EnvironmentMood.sample(_time_index, _weather_index, magic_enabled)
+    _apply_environment_palette()
+
+## User-facing B/N/G controls use a smooth, interruptible transition.
+func queue_environment_look(time_index: int, weather_index: int,
+        magic_enabled: bool, duration: float = 1.8) -> void:
+    if not is_finite(duration) or duration <= 0.0:
+        set_environment_look(time_index, weather_index, magic_enabled)
+        return
+    _time_index = posmod(time_index, EnvironmentMood.TIMES.size())
+    _weather_index = posmod(weather_index, EnvironmentMood.WEATHER.size())
+    _magic_enabled = magic_enabled
+    _transition_start = current_mood.duplicate(true)
+    _transition_target = EnvironmentMood.sample(
+        _time_index, _weather_index, magic_enabled)
+    _transition_elapsed = 0.0
+    _transition_seconds = clampf(duration, 0.1, 8.0)
+    transition_active = _transition_start != _transition_target
+
+func advance_environment_transition(delta: float,
+        reduced_motion: bool) -> void:
+    if not transition_active:
+        return
+    if reduced_motion:
+        _transition_elapsed = _transition_seconds
+    elif is_finite(delta) and delta > 0.0:
+        _transition_elapsed = minf(_transition_elapsed + delta, _transition_seconds)
+    else:
+        return
+    var fraction: float = _transition_elapsed / _transition_seconds
+    current_mood = EnvironmentBlend.sample(
+        _transition_start, _transition_target, fraction)
+    _apply_environment_palette()
+    if fraction >= 1.0:
+        transition_active = false
+
+func _apply_environment_palette() -> void:
     var key: DirectionalLight3D = get_node("GoldenHourKey")
     var fill: DirectionalLight3D = get_node("SkyBounce")
     var environment: Environment = (get_node("Atmosphere") as WorldEnvironment).environment
@@ -164,7 +209,7 @@ func set_environment_look(time_index: int, weather_index: int,
             "magic_veil_strength", "sun_visibility"]:
         sky_material.set_shader_parameter(uniform_name, current_mood[uniform_name])
     rain.set_conditions(_weather_index, 0.0 if _reduced_motion else _last_clock,
-        _reduced_motion, low_quality)
+        _reduced_motion, low_quality, float(current_mood["rain_strength"]))
 
 func set_camera_frame(view: Camera3D) -> void:
     rain.follow_camera(view)
