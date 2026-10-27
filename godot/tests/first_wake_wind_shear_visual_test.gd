@@ -45,7 +45,8 @@ func _verify() -> void:
 
     # The synthetic, explicitly noncanonical formula target has no authority to
     # display this character's art even if the formula controller is active.
-    world.formula_encounter = Encounter.new(Sequence.new([0.5, 0.99]).next)
+    var synthetic_rng := Sequence.new([0.5, 0.99])
+    world.formula_encounter = Encounter.new(synthetic_rng.next)
     if not world.start_formula_review() or art.visible:
         _fail("formula review incorrectly displayed the current-story enemy")
         return
