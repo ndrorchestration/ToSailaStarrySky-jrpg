@@ -22,6 +22,12 @@
 
 **Critically, passing the post-reunion roster gate does not decide Tidebound Promise's actual story unlock.** That would require creator-approved timing and art, an authorized progression source, combat-turn scheduling and the separate #443 admission/turn contract. It does not imply the group learns a combo as soon as Lyra joins.
 
+## Player-visible Chapter I review proof
+
+The existing **playable flyer/interview/engineering preview** from PR #430 now calls this new read-only gate when refreshing the party HUD. The on-screen accessibility text states **RESONANCE: LOCKED — Lyra has not joined; no combined abilities available.** It remains present after Ionia accepts Ender for the job and at the preflight handoff. This is informational only; no Resonance menu, combat command, synchronized ability or Lyra actor is instantiated. The revised-opening preview stops before flight, so it cannot demonstrate a post-splashdown live player action.
+
+The pre-existing `first_wake_job_preview_test.gd` is extended to check the actual Godot scene label and unchanged refusal state at job search, after Ionia recruitment, and at preflight. This is actual scene-level UI evidence after Godot CI passes—not evidence that mainline Chapter I now follows the new order.
+
 ## Tests and evidence requirements
 
 - `godot/tests/first_wake_resonance_roster_gate_test.gd`: walk the actual revised opening model through Ionia hiring → checked flight → observed failure → recorded splashdown → reserve inspection → safe Lyra/Talen reunion → 2-of-3 working fuel theory; assert no Ender+Lyra roster before reunion, full denial/side-effect-free validation before every stage and nonauthorizing eligibility after.
