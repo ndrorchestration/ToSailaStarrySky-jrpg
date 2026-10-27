@@ -9,6 +9,7 @@ const WARD_CENTER := Vector2(481.0, 305.0)
 var battle = Battle.new()
 var reduced_motion: bool = true
 var elapsed: float = 0.0
+var visual_step: int = 3  # 0 Spirit, 1 Water, 2 confluence, 3 stable ward
 var last_action_result: Dictionary = {}
 var heading: Label
 var battle_status: Label
@@ -75,18 +76,21 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _cast() -> void:
     last_action_result = battle.activate()
+    visual_step = 0 if bool(last_action_result.get("ok", false)) and not reduced_motion else 3
     elapsed = 0.0
     _refresh_hud()
     queue_redraw()
 
 func _strike() -> void:
     last_action_result = battle.resolve_enemy_strike("ender", Battle.DEFAULT_STRIKE)
+    visual_step = 3
     elapsed = 0.0
     _refresh_hud()
     queue_redraw()
 
 func _baseline() -> void:
     last_action_result = battle.pass_without_art()
+    visual_step = 3
     elapsed = 0.0
     _refresh_hud()
     queue_redraw()
@@ -94,20 +98,32 @@ func _baseline() -> void:
 func _restart() -> void:
     battle.reset()
     last_action_result = {}
+    visual_step = 3
     elapsed = 0.0
     _refresh_hud()
     queue_redraw()
 
 func _toggle_motion() -> void:
     reduced_motion = not reduced_motion
+    visual_step = 3 if reduced_motion else visual_step
     elapsed = 0.0
     _refresh_hud()
     queue_redraw()
 
 func _process(delta: float) -> void:
-    if reduced_motion or elapsed > 1.8:
+    if reduced_motion or battle.phase != "enemy" or visual_step >= 3:
         return
     elapsed += minf(delta, 0.06)
+    var next_step: int = 0
+    if elapsed >= 0.9:
+        next_step = 3
+    elif elapsed >= 0.6:
+        next_step = 2
+    elif elapsed >= 0.3:
+        next_step = 1
+    if next_step != visual_step:
+        visual_step = next_step
+        _refresh_hud()
     queue_redraw()
 
 func _refresh_hud() -> void:
@@ -123,6 +139,8 @@ func _refresh_hud() -> void:
         detail.text = "READY: Spirit steadies Water. One Art consumes both actions and 1 review Focus each."
     elif str(snap["phase"]) == "enemy":
         detail.text = "WARD ACTIVE (%d capacity). Press 2 for an eight-point incoming strike." % int(snap["wardCapacity"]) if int(snap["wardCapacity"]) > 0 else "NO WARD. Press 2 to compare the incoming strike."
+        if int(snap["wardCapacity"]) > 0 and not reduced_motion and visual_step < 3:
+            detail.text += "   |   " + ["SPIRIT: anchor", "WATER: shape", "CONFLUENCE: stabilize"][mini(visual_step, 2)]
     else:
         var result: Dictionary = snap["lastOutcome"]
         detail.text = "RESULT: %d absorbed  |  Ender took %d  |  Lyra took %d" % [
@@ -159,13 +177,16 @@ func _draw() -> void:
         var glow: float = 1.0
         if not reduced_motion and elapsed < 1.8:
             glow = 0.88 + 0.12 * sin(elapsed * 3.1)
-        draw_line(ENDER_POS + Vector2(38, -32), WARD_CENTER, Color(0.82, 0.70, 1.0, 0.78 * glow), 4.0)
-        draw_line(LYRA_POS + Vector2(-38, -32), WARD_CENTER, Color(0.48, 0.88, 0.95, 0.84 * glow), 4.0)
-        draw_arc(WARD_CENTER, 86.0, -PI * 0.85, PI * 0.85, 52, Color("#a7e6ef"), 6.0)
-        draw_arc(WARD_CENTER, 72.0, PI * 0.15, PI * 1.85, 52, Color("#e5aed7"), 5.0)
-        draw_circle(WARD_CENTER, 20.0, Color("#b0dfdc"))
-        draw_circle(WARD_CENTER, 9.0, Color("#faf1fe"))
-        draw_string(ThemeDB.fallback_font, WARD_CENTER + Vector2(-73, 118), "SHARED WARD", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#f5f1d6"))
+        if visual_step >= 0:
+            draw_line(ENDER_POS + Vector2(38, -32), WARD_CENTER, Color(0.82, 0.70, 1.0, 0.78 * glow), 4.0)
+        if visual_step >= 1:
+            draw_line(LYRA_POS + Vector2(-38, -32), WARD_CENTER, Color(0.48, 0.88, 0.95, 0.84 * glow), 4.0)
+        if visual_step >= 2:
+            draw_arc(WARD_CENTER, 86.0, -PI * 0.85, PI * 0.85, 52, Color("#a7e6ef"), 6.0)
+            draw_arc(WARD_CENTER, 72.0, PI * 0.15, PI * 1.85, 52, Color("#e5aed7"), 5.0)
+            draw_circle(WARD_CENTER, 20.0, Color("#b0dfdc"))
+            draw_circle(WARD_CENTER, 9.0, Color("#faf1fe"))
+            draw_string(ThemeDB.fallback_font, WARD_CENTER + Vector2(-73, 118), "SHARED WARD", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#f5f1d6"))
     else:
         draw_arc(WARD_CENTER, 60, PI * 0.1, PI * 0.90, 30, Color("#667c9d"), 2)
         draw_string(ThemeDB.fallback_font, WARD_CENTER + Vector2(-63, 98), "WARD INACTIVE", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#bfd0e1"))
