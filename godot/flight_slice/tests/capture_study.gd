@@ -145,6 +145,42 @@ func _capture() -> void:
                 else:
                     print("NATIVE_CINEMATIC_CAPTURE: ", cinematic_path,
                         " 960x640 HUD-free NONCANON")
+    # Matched real GL frames isolate the shoreline material from flight, HUD,
+    # or cinematic-camera movement. Dry/normal compare at the exact same pose.
+    # Wetness changes only the land shader; no terrain/collision changes.
+    if not baseline and scene.visuals != null:
+        scene.set_manual_mode(false)
+        scene._clock = 9.0
+        scene._update_scene(10.0)
+        scene.overlay.visible = false
+        scene.ship.visible = false
+        scene.camera.position = Vector3(-26.0, 15.0, 23.0)
+        scene.camera.look_at(Vector3(-3.0, 0.0, 0.0), Vector3.UP)
+        scene.terrain.update_detail(scene.camera.position, 1.0)
+        scene.visuals.refresh_coverage()
+        scene.visuals.land.set_shader_parameter("shoreline_wetness", 0.0)
+        var dry_shore: Image = await _frame()
+        scene.visuals.land.set_shader_parameter("shoreline_wetness", 1.0)
+        var wet_shore: Image = await _frame()
+        var shore_pixels: int = _different(dry_shore, wet_shore)
+        var shore_folder: String = ProjectSettings.globalize_path(
+            "res://evidence/cinematic-review")
+        _save(dry_shore, shore_folder.path_join("coast-shore-dry.png"))
+        _save(wet_shore, shore_folder.path_join("coast-shore-wet.png"))
+        print("NATIVE_SHORELINE_PAIR_DELTA pixels=", shore_pixels)
+        if shore_pixels < 30:
+            push_error("NATIVE_SHORELINE_PAIR_NO_VISIBLE_CHANGE")
+            failed = true
+        scene.visuals.set_low_quality(true)
+        var low_shore: Image = await _frame()
+        scene.visuals.set_low_quality(false)
+        _save(low_shore, shore_folder.path_join("coast-shore-low.png"))
+        var quality_delta: int = _different(wet_shore, low_shore)
+        print("NATIVE_SHORELINE_QUALITY_DELTA pixels=", quality_delta)
+        if quality_delta < 30:
+            push_error("NATIVE_SHORELINE_QUALITY_UNCHANGED")
+            failed = true
+        scene.ship.visible = true
     # Fixed world camera makes terrain comparisons independent of ship height.
     # Keep this separate from the six existing gameplay-frame markers.
     if not baseline and scene.visuals != null:
