@@ -7,6 +7,10 @@ extends Control
 const ENDER_ATLAS: Texture2D = preload("res://art-review/ender-south-detailed-staff-v2-candidate.svg")
 const IONIA_ATLAS: Texture2D = preload("res://art-review/ionia-front-sixframe-candidate.svg")
 const AEPEX_ATLAS: Texture2D = preload("res://art-review/aepex-south-sixphase-v1-unapproved.svg")
+const AEPEX_NORTH_ATLAS: Texture2D = preload("res://art-review/aepex-north-sixphase-v1-unapproved.svg")
+const AEPEX_WEST_ATLAS: Texture2D = preload("res://art-review/aepex-west-sixphase-v1-unapproved.svg")
+const AEPEX_EAST_ATLAS: Texture2D = preload("res://art-review/aepex-east-sixphase-v1-unapproved.svg")
+const AEPEX_DIRECTIONS = ["south", "west", "north", "east"]
 const LYRA_ATLAS: Texture2D = preload("res://art-review/lyra-south-sixphase-v1-unapproved.svg")
 const LYRA_NORTH_ATLAS: Texture2D = preload("res://art-review/lyra-north-sixphase-v1-unapproved.svg")
 const LYRA_EAST_ATLAS: Texture2D = preload("res://art-review/lyra-east-sixphase-v1-unapproved.svg")
@@ -27,6 +31,8 @@ var magnified: bool = true
 var _ender_sprite: Sprite2D
 var _ionia_sprite: Sprite2D
 var _aepex_sprite: Sprite2D
+var _aepex_variants: Dictionary = {}
+var aepex_direction: String = "south"
 var _lyra_sprite: Sprite2D
 var _lyra_variants: Dictionary = {}
 var lyra_direction: String = "south"
@@ -39,6 +45,11 @@ func _ready() -> void:
     _ionia_sprite = _candidate("IoniaCandidateFront", IONIA_ATLAS, CARD_X[0], Vector2(0.13, 0.13))
     _ender_sprite = _candidate("EnderCandidateFront", ENDER_ATLAS, CARD_X[1], Vector2.ONE)
     _aepex_sprite = _candidate("AepexSouthV1Unapproved", AEPEX_ATLAS, CARD_X[2], Vector2.ONE)
+    _aepex_variants["south"] = _aepex_sprite
+    _aepex_variants["west"] = _candidate("AepexWestV1Unapproved", AEPEX_WEST_ATLAS, CARD_X[2], Vector2.ONE)
+    _aepex_variants["north"] = _candidate("AepexNorthV1Unapproved", AEPEX_NORTH_ATLAS, CARD_X[2], Vector2.ONE)
+    _aepex_variants["east"] = _candidate("AepexEastV1Unapproved", AEPEX_EAST_ATLAS, CARD_X[2], Vector2.ONE)
+    set_aepex_direction("south")
     _lyra_sprite = _candidate("LyraSouthV1Unapproved", LYRA_ATLAS, CARD_X[3], Vector2.ONE)
     _lyra_variants["south"] = _lyra_sprite
     _lyra_variants["west"] = _candidate("LyraWestV1Unapproved", LYRA_WEST_ATLAS, CARD_X[3], Vector2.ONE)
@@ -67,6 +78,24 @@ func get_character_id_order() -> Array:
 
 func get_innate_energy_names() -> Array:
     return INNATE_ENERGIES.duplicate()
+
+func get_aepex_direction() -> String:
+    return aepex_direction
+
+func set_aepex_direction(direction: String) -> void:
+    if not AEPEX_DIRECTIONS.has(direction):
+        return
+    aepex_direction = direction
+    for key in AEPEX_DIRECTIONS:
+        var sprite: Sprite2D = _aepex_variants.get(key)
+        if sprite != null:
+            sprite.visible = key == direction
+            sprite.flip_h = false # Keep directional tattoos/interface side-specific.
+    queue_redraw()
+
+func cycle_aepex_direction() -> void:
+    var next_idx := (AEPEX_DIRECTIONS.find(aepex_direction) + 1) % AEPEX_DIRECTIONS.size()
+    set_aepex_direction(AEPEX_DIRECTIONS[next_idx])
 
 func get_lyra_direction() -> String:
     return lyra_direction
@@ -97,7 +126,7 @@ func set_magnified(enabled: bool) -> void:
         var scale_value := 1.65 if enabled else 1.0
         _ender_sprite.scale = Vector2(scale_value, scale_value)
         _ender_sprite.position.y = GROUND_Y - 46.0 * scale_value
-    for study in [_aepex_sprite, _lyra_sprite, _reson_sprite, _lyra_variants.get("west"), _lyra_variants.get("north"), _lyra_variants.get("east")]:
+    for study in [_aepex_sprite, _lyra_sprite, _reson_sprite, _lyra_variants.get("west"), _lyra_variants.get("north"), _lyra_variants.get("east"), _aepex_variants.get("west"), _aepex_variants.get("north"), _aepex_variants.get("east")]:
         if study != null:
             var size := 1.55 if enabled else 1.0
             study.scale = Vector2(size, size)
@@ -111,7 +140,7 @@ func set_walk_phase(phase: int) -> void:
         _ionia_sprite.frame = walk_phase
     if _ender_sprite != null:
         _ender_sprite.frame = walk_phase
-    for study in [_aepex_sprite, _lyra_sprite, _reson_sprite, _lyra_variants.get("west"), _lyra_variants.get("north"), _lyra_variants.get("east")]:
+    for study in [_aepex_sprite, _lyra_sprite, _reson_sprite, _lyra_variants.get("west"), _lyra_variants.get("north"), _lyra_variants.get("east"), _aepex_variants.get("west"), _aepex_variants.get("north"), _aepex_variants.get("east")]:
         if study != null:
             study.frame = walk_phase
     queue_redraw()
@@ -120,7 +149,7 @@ func _draw() -> void:
     draw_rect(Rect2(0, 0, 960, 640), Color("#091829"))
     draw_rect(Rect2(0, 0, 960, 132), Color("#11293c"))
     draw_string(ThemeDB.fallback_font, Vector2(34, 50), "FIVE LIGHTS / PROTAGONIST ART REVIEW", HORIZONTAL_ALIGNMENT_LEFT, -1, 29, Color("#f4e9d5"))
-    draw_string(ThemeDB.fallback_font, Vector2(35, 82), "Five source-bound studies. Lyra now has original four-way drafts. F cycles her facing.", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#c1d0d6"))
+    draw_string(ThemeDB.fallback_font, Vector2(35, 82), "Five source-bound studies; Lyra and Aepex have original four-way drafts. F / H cycle facing.", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#c1d0d6"))
     for i in range(DISPLAY_ORDER.size()):
         var x: float = CARD_X[i]
         var color: Color = COLORS[i]
@@ -129,11 +158,11 @@ func _draw() -> void:
         draw_line(Vector2(x - 68.0, GROUND_Y), Vector2(x + 68.0, GROUND_Y), Color("#81928c"), 2.0)
         draw_string(ThemeDB.fallback_font, Vector2(x - 80.0, 183.0), DISPLAY_ORDER[i].to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 160, 20, Color("#ffefda"))
         draw_string(ThemeDB.fallback_font, Vector2(x - 80.0, 212.0), INNATE_ENERGIES[i].to_upper() + " / INNATE", HORIZONTAL_ALIGNMENT_CENTER, 160, 13, color)
-        var art_state := "EARLIER CANDIDATE" if i < 2 else ("4-WAY LYRA STUDY" if i == 3 else "NEW FRONT STUDY")
+        var art_state := "EARLIER CANDIDATE" if i < 2 else ("4-WAY STUDY" if i == 2 or i == 3 else "NEW FRONT STUDY")
         draw_string(ThemeDB.fallback_font, Vector2(x - 80.0, 449.0), art_state, HORIZONTAL_ALIGNMENT_CENTER, 160, 12, Color("#c4ced0"))
     draw_rect(Rect2(0, 484, 960, 156), Color("#102333"))
-    draw_string(ThemeDB.fallback_font, Vector2(35, 518), "[ / ]  PHASE    F  LYRA FACING    M  SCALE    L/ESC  CLOSE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#f1dec0"))
-    draw_string(ThemeDB.fallback_font, Vector2(35, 547), "PHASE %d / 5  |  LYRA %s  |  %s" % [walk_phase, lyra_direction.to_upper(), "REVIEW ZOOM" if magnified else "NATIVE SIZE"], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#c6d7d9"))
-    draw_string(ThemeDB.fallback_font, Vector2(35, 576), "Lyra has 4 review-only directions; Aepex and Reson remain south-only. Art not approved.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#c6d7d9"))
+    draw_string(ThemeDB.fallback_font, Vector2(35, 518), "[ / ]  PHASE   F  LYRA   H  AEPEX   M  SCALE   L/ESC  CLOSE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#f1dec0"))
+    draw_string(ThemeDB.fallback_font, Vector2(35, 547), "PHASE %d/5  |  LYRA %s  |  AEPEX %s  |  %s" % [walk_phase, lyra_direction.to_upper(), aepex_direction.to_upper(), "ZOOM" if magnified else "NATIVE"], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#c6d7d9"))
+    draw_string(ThemeDB.fallback_font, Vector2(35, 576), "Lyra/Aepex: 4 draft directions. Reson: south-only. Art and gait remain unapproved.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#c6d7d9"))
     draw_string(ThemeDB.fallback_font, Vector2(35, 604), "Innate plot resonance exists independently of learned magic or selected jobs.", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("#94aeb7"))
 
