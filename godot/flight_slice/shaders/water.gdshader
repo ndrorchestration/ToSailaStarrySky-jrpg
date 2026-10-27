@@ -1,6 +1,8 @@
 shader_type spatial;
 render_mode diffuse_burley;
 uniform sampler2D height_field : filter_linear, repeat_disable;
+uniform sampler2D water_ripple_detail : filter_linear_mipmap, repeat_enable;
+uniform float texture_detail_strength : hint_range(0.0, 1.0) = 0.65;
 uniform sampler2D terrain_coverage : filter_nearest, repeat_disable;
 uniform float study_time = 0.0;
 uniform bool low_quality = false;
@@ -37,7 +39,13 @@ void fragment() {
     float wave1=noise(p*vec2(0.7,2.3)+vec2(study_time*0.25,warp*0.2))*2.0-1.0;
     float wave2=noise(p*vec2(1.4,0.7)+vec2(warp*0.2,-study_time*0.17))*2.0-1.0;
     float detail=low_quality ? 0.0 : sin(p.x*5.8+p.y*3.2-study_time*2.2)*0.2;
-    vec3 n=normalize(vec3((wave1+detail)*0.065,1.0,(wave2+detail)*0.055));
+    // Slow, restrained authored surface microtexture, no independent coast.
+    vec3 ripple=texture(water_ripple_detail,
+        p*0.21+vec2(study_time*0.013,-study_time*0.008)).rgb;
+    float micro=low_quality ? 0.0 : texture_detail_strength;
+    detail+=(ripple.r-0.5)*micro*0.24;
+    vec3 n=normalize(vec3((wave1+detail)*0.065,1.0,
+        (wave2+detail+(ripple.g-0.5)*micro*0.19)*0.055));
     NORMAL=normalize(mat3(VIEW_MATRIX)*n);
     // Schlick-like grazing reflectance, not a physically simulated ocean.
     float ndv=clamp(dot(NORMAL,normalize(VIEW)),0.0,1.0);
@@ -60,6 +68,7 @@ void fragment() {
         low_quality ? 88.0 : 128.0);
     float fine_sparkle=low_quality ? 0.0 :
         pow(max(0.0,noise(p*4.5+vec2(study_time*0.16,0.0))),9.0)*0.08;
+    fine_sparkle*=mix(1.0,0.58+ripple.b*0.85,micro);
     ALBEDO=mix(water,vec3(0.73,0.81,0.72),foam*0.65)
         +vec3(0.22,0.24,0.19)*glints;
     EMISSION=vec3(1.0,0.77,0.48)*sun_flash*0.16*(1.0-foam)*sun_visibility
