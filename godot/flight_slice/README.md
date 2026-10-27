@@ -2,6 +2,14 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Original surface textures and moonlit scene readability — 2026-10-27
+
+This opt-in follow-on uses three **real committed 128×128 PNG microtexture resources** for terrain grass/rock/sand, woodland canopy/understory and ocean ripples. Godot shaders sample tiled world-anchored textures; binary pixel provenance is reproducible using `node godot/flight_slice/tools/generate_surface_textures.mjs --check` at repository root or `node tools/generate_surface_textures.mjs --check` from this folder. No downloaded asset packs, copyrighted game textures, additional terrain geometry, or changed collision heights.
+
+**K** switches fine surface texture detail on/off for matched A/B screenshots; **V** overrides this with zero texture influence for lower-detail presentation. Night has a slightly stronger cool key/fill grade and atmospheric fog balance to protect ship/terrain silhouette readability without introducing true astronomical moon phases or Moon Bridge lore. Native tests `tests/test_surface_textures.gd` and `tests/capture_surface_textures.gd` verify material asset loading, texture strength, original weather/landing contracts and four genuinely rendered day/night comparisons.
+
+See [surface texture and night-readability review](../../docs/reviews/SURFACE_TEXTURE_NIGHT_READABILITY_STUDY_2026-10-27.md). **Candidate visual study: not finished artist-approved world textures.**
+
 ## Blended environmental looks — 2026-10-27
 
 **Candidate visual continuity pass:** B/N/G now use a bounded 1.8-second eased crossfade instead of abrupt light, weather and magic jumps. Mid-transition input redirects from the actual current appearance. The camera, actual in-game clock, airship, terrain, flight and native touchdown remain unchanged. **P** holds blend time, **M** finishes the fade immediately and hides moving rainfall, **V** omits precipitation and optional sky ribbons. Direct `set_environment_look()` remains an instant choice for exact screenshot A/B comparison.
