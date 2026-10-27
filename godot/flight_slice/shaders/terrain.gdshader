@@ -83,8 +83,9 @@ void fragment() {
         vec2 xz=world_pos.xz;
         // The undulation is perpendicular to the prevailing wind, bent by
         // broad static terrain-coherent noise; not moving sand geometry.
-        float phase=dot(xz,across)*10.5+
-            (noise(xz*0.31)-0.5)*2.7;
+        float phase=dot(xz,across)*13.1+
+            (noise(xz*0.31)-0.5)*3.3+
+            (noise(xz*0.97)-0.5)*0.8;
         float ripple_lod=1.0-smoothstep(1.0,2.8,fwidth(phase));
         float ripple=sin(phase)*ripple_lod;
         float ripple_bump=cos(phase)*ripple_lod;
@@ -98,9 +99,9 @@ void fragment() {
         float g2=hash(grain_cell+vec2(3.0,17.0));
         vec3 base_n=normalize(world_normal);
         vec3 ripple_grad=vec3(across.x,0.0,across.y)*
-            (ripple_bump*0.12);
+            (ripple_bump*0.037);
         vec3 grain_grad=vec3(g1-0.5,0.0,g2-0.5)*
-            (grain_lod*0.090);
+            (grain_lod*0.047);
         vec3 micro_grad=ripple_grad+grain_grad;
         micro_grad-=base_n*dot(base_n,micro_grad);
         vec3 adjusted_n=normalize(base_n-micro_grad*optics);
@@ -111,11 +112,11 @@ void fragment() {
         // the authority rather than a duplicate handmade light() pass.
         float key=clamp(dot(adjusted_n,normalize(sun_direction)),0.0,1.0);
         float diffuse=0.965+0.065*smoothstep(0.12,0.89,key);
-        ALBEDO*=mix(1.0,diffuse+0.065*ripple,0.65*optics);
+        ALBEDO*=mix(1.0,diffuse+0.022*ripple,0.50*optics);
         // Broad liquid-silk highlight and a low-energy glancing rim.
-        ROUGHNESS=mix(ROUGHNESS,0.67,optics*(1.0-damp*0.4));
-        SPECULAR=mix(SPECULAR,0.24,optics);
-        RIM=0.10*optics;
+        ROUGHNESS=mix(ROUGHNESS,0.73,optics*(1.0-damp*0.4));
+        SPECULAR=mix(SPECULAR,0.20,optics);
+        RIM=0.065*optics;
         RIM_TINT=0.80;
         // Rare orientation-sensitive grain flashes, not time-random stars.
         // A sparkle changes when the view/light moves, not each scene tick.
