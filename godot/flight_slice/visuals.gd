@@ -108,6 +108,7 @@ func bind_terrain(terrain: Node3D) -> void:
     highland_stones.multimesh.mesh = stone_mesh
     highland_stones.material_override = alpine_minerals
     highland_stones.visible = not low_quality
+    _bind_distant_ridges(terrain)
 
 func set_clock(seconds: float, reduced: bool) -> void:
     refresh_coverage()
@@ -141,6 +142,29 @@ func set_low_quality(enabled: bool) -> void:
         _terrain.get_node("GroundUnderstory").visible = not enabled
         _terrain.get_node("ShorelineStones").visible = not enabled
         _terrain.get_node("AlpineTalus").visible = not enabled
+        _terrain.get_node("FarRidgeSilhouette").visible = not enabled
+        _terrain.get_node("NearRidgeSilhouette").visible = not enabled
+
+# Atmospheric scenic layers have no physics surface or gameplay meaning.
+# Use stable opaque vertex-color gradients, native world fog, and no
+# unbounded shader/particle work. Farther ridges are paler by design.
+func _bind_distant_ridges(terrain: Node3D) -> void:
+    var far: MeshInstance3D = terrain.get_node("FarRidgeSilhouette")
+    var near: MeshInstance3D = terrain.get_node("NearRidgeSilhouette")
+    far.material_override = _ridge_material(Color(0.43, 0.56, 0.65))
+    near.material_override = _ridge_material(Color(0.32, 0.43, 0.51))
+    far.visible = not low_quality
+    near.visible = not low_quality
+
+func _ridge_material(tint: Color) -> StandardMaterial3D:
+    var material := StandardMaterial3D.new()
+    material.albedo_color = tint
+    material.vertex_color_use_as_albedo = true
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    material.roughness = 1.0
+    material.metallic = 0.0
+    return material
 
 func _shader(path: String) -> ShaderMaterial:
     var material := ShaderMaterial.new()
