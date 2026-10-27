@@ -37,6 +37,15 @@ jobs:
           chmod +x Godot_v4.7.2-stable_linux.x86_64
       - name: Import exact-head project
         run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
+      - name: Direct-load Godot combat-pose parser diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://scripts/ender_staff_combat_keyframe_review.gd > direct-load.log 2>&1 || true
+          tail -100 direct-load.log
+          if grep -Eiq '(SCRIPT ERROR|Parse Error|Failed to load script)' direct-load.log; then
+            exit 1
+          fi
       - name: Protect old review regressions
         shell: bash
         run: |
