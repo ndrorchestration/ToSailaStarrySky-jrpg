@@ -14,6 +14,7 @@ const COMBAT_REST := "aetherwake_ch1_combat_rest"
 const EQUIP_WEAPON_PREVIEW := "aetherwake_ch1_equip_weapon_preview"
 const EQUIP_ARMOR_PREVIEW := "aetherwake_ch1_equip_armor_preview"
 const EQUIP_ACCESSORY_PREVIEW := "aetherwake_ch1_equip_accessory_preview"
+const EQUIP_TRAINING_PRESSURE := "aetherwake_ch1_equip_training_pressure"
 const SAVE_PROGRESS := "aetherwake_ch1_save_progress"
 const LOAD_PROGRESS := "aetherwake_ch1_load_progress"
 
@@ -30,6 +31,7 @@ static func ensure_defaults() -> void:
     _ensure_key(EQUIP_WEAPON_PREVIEW, KEY_5)
     _ensure_key(EQUIP_ARMOR_PREVIEW, KEY_6)
     _ensure_key(EQUIP_ACCESSORY_PREVIEW, KEY_7)
+    _ensure_key(EQUIP_TRAINING_PRESSURE, KEY_8)
     _ensure_key(SAVE_PROGRESS, KEY_F5)
     _ensure_key(LOAD_PROGRESS, KEY_F9)
 

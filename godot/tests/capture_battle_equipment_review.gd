@@ -67,7 +67,22 @@ func _capture() -> void:
     if strike == null or strike.get_region(REGION).get_data() == complete.get_region(REGION).get_data():
         _fail("real framebuffer did not move the wielded weapon with the attack pose")
         return
-    print("AETHERWAKE_BATTLE_EQUIPMENT_NATIVE_RENDER_PASS: distinct native equipped weapon, outfit and attack-socket pixels; player/art acceptance pending")
+    if not world.toggle_training_pressure_review():
+        _fail("opt-in practice armor pressure did not enable")
+        return
+    var hp_before_pressure: int = int(world.formula_encounter.player["vit"])
+    if not world.take_formula_review_action("hold"):
+        _fail("accepted Hold could not trigger optional practice pressure")
+        return
+    if int(world.formula_encounter.player["vit"]) != hp_before_pressure - 10:
+        _fail("provisional chest armor did not mitigate real native scene VIT by 1")
+        return
+    await process_frame
+    var pressure: Image = await _snapshot("armor-pressure-native-960x640")
+    if pressure == null or pressure.get_region(Rect2i(160, 413, 490, 58)).get_data() == strike.get_region(Rect2i(160, 413, 490, 58)).get_data():
+        _fail("native practice-pressure status did not change rendered UI")
+        return
+    print("AETHERWAKE_BATTLE_EQUIPMENT_NATIVE_RENDER_PASS: distinct weapon, outfit, pose and actual practice pressure HUD pixels; player/art acceptance pending")
     world.queue_free()
     quit(0)
 

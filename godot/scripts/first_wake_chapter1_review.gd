@@ -341,6 +341,21 @@ func _draw_formula_review() -> void:
     draw_string(ThemeDB.fallback_font, Vector2(176, 348), gear_line, HORIZONTAL_ALIGNMENT_LEFT, 480, 11, Color("#8cdbc8"))
     draw_string(ThemeDB.fallback_font, Vector2(679, 348), "5 Staff  6 Armor  7 Charm", HORIZONTAL_ALIGNMENT_LEFT, 137, 10, Color("#add5dc"))
 
+    var pressure_text := "8  Practice pressure OFF (physical/aether turns)"
+    if authored_hazard:
+        pressure_text = "Practice pressure unavailable in story combat"
+    elif formula_encounter.training_pressure_enabled:
+        pressure_text = "8  Practice pressure ON"
+        if not formula_encounter.last_training_hit.is_empty():
+            var hit: Dictionary = formula_encounter.last_training_hit
+            pressure_text += "  %s %d/%d, gear prevented %d" % [
+                str(hit.get("kind", "")).to_upper(),
+                int(hit.get("damage", 0)),
+                int(hit.get("rawDamage", 0)),
+                int(hit.get("mitigatedByGear", 0)),
+            ]
+    draw_string(ThemeDB.fallback_font, Vector2(176, 428), pressure_text, HORIZONTAL_ALIGNMENT_LEFT, 500, 11, Color("#b5d8c5"))
+
     draw_string(ThemeDB.fallback_font, Vector2(176, 370), "1  Staff Strike", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
     draw_string(ThemeDB.fallback_font, Vector2(390, 370), "2  Uncover Truth", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
     draw_string(ThemeDB.fallback_font, Vector2(176, 404), "3  Hold", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
@@ -515,6 +530,17 @@ func cycle_equipment_review(slot_id: String) -> bool:
     queue_redraw()
     return true
 
+## Training-only, opt-in counterpressure; never modifies authored combat.
+func toggle_training_pressure_review() -> bool:
+    if not formula_encounter.active or not active_hazard_encounter_id.is_empty():
+        return false
+    if not formula_encounter.set_training_pressure(not formula_encounter.training_pressure_enabled):
+        return false
+    last_message = formula_encounter.last_log()
+    _refresh_ui()
+    queue_redraw()
+    return true
+
 func interact_nearest() -> bool:
     match chapter.stage_key():
         "signal":
@@ -660,6 +686,8 @@ func _unhandled_input(event: InputEvent) -> void:
             cycle_equipment_review("bodyArmor")
         elif event.is_action_pressed(InputPolicy.EQUIP_ACCESSORY_PREVIEW):
             cycle_equipment_review("accessory")
+        elif event.is_action_pressed(InputPolicy.EQUIP_TRAINING_PRESSURE):
+            toggle_training_pressure_review()
         elif event.is_action_pressed(InputPolicy.COMBAT_STRIKE):
             take_formula_review_action("staffStrike")
         elif event.is_action_pressed(InputPolicy.COMBAT_ANALYZE):
