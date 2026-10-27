@@ -385,6 +385,21 @@ internal static class Program
             "8 subdivision root mesh vertex/index bounds");
         Check(baseMesh.Indices.All(i => i >= 0 && i < baseMesh.Vertices.Count),
             "root mesh indices in bounds");
+        Check(baseMesh.Normals.Count == baseMesh.Vertices.Count,
+            "one analytic normal per vertex");
+        foreach (var face in Enum.GetValues<CubeFace>())
+        {
+            var surface = CubeSphereMeshFixture.Generate(new TileId(face, 0, 0, 0), R, 8);
+            for (int i = 0; i < surface.Vertices.Count; i++)
+            {
+                var v = surface.Vertices[i];
+                var n = surface.Normals[i];
+                Near(n.X * n.X + n.Y * n.Y + n.Z * n.Z, 1, 1e-12,
+                    "unit outward radial normal " + face);
+                Near(n.X * v.X + n.Y * v.Y + n.Z * v.Z, R, 1e-9,
+                    "normal points radially outward " + face);
+            }
+        }
         foreach (var vertex in baseMesh.Vertices)
             Near(Math.Sqrt(vertex.X * vertex.X + vertex.Y * vertex.Y + vertex.Z * vertex.Z),
                 R, 1e-8, "root mesh points on radius");
