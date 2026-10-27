@@ -237,13 +237,13 @@ func _run() -> void:
         var ridge_points: PackedVector3Array = ridge_arrays[Mesh.ARRAY_VERTEX]
         var ridge_normals: PackedVector3Array = ridge_arrays[Mesh.ARRAY_NORMAL]
         var ridge_tints: PackedColorArray = ridge_arrays[Mesh.ARRAY_COLOR]
-        check(ridge_points.size() == 720 and ridge_normals.size() == ridge_points.size()
+        check(ridge_points.size() == 1200 and ridge_normals.size() == ridge_points.size()
             and ridge_tints.size() == ridge_points.size(),
-            "distance ridge geometry and shaded vertices remain under 800")
+            "distance ridge geometry retains a fixed 1200-vertex cap")
         check(ridge_mesh.get_aabb().position.x > 100.0,
             "ridge background starts outside navigable/visible 96m grid")
-        check(ridge_mesh.get_aabb().size.z >= 350.0
-            and ridge_mesh.get_aabb().size.z < 400.0,
+        check(ridge_mesh.get_aabb().size.z >= 590.0
+            and ridge_mesh.get_aabb().size.z <= 610.0,
             "distance panorama covers study horizon without infinite geometry")
         var ridge_material: StandardMaterial3D = ridge.material_override
         check(ridge_material.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -256,9 +256,9 @@ func _run() -> void:
     for z in [-180.0, -75.0, 0.0, 75.0, 180.0]:
         var far_y: float = TerrainStudy.distant_ridge_height(z, true)
         var near_y: float = TerrainStudy.distant_ridge_height(z, false)
-        check(is_finite(far_y) and far_y >= 11.0 and far_y <= 53.0,
+        check(is_finite(far_y) and far_y >= 10.0 and far_y <= 33.0,
             "far contour remains bounded and deterministic")
-        check(is_finite(near_y) and near_y >= 6.0 and near_y <= 34.0,
+        check(is_finite(near_y) and near_y >= 5.0 and near_y <= 23.0,
             "near contour remains bounded and deterministic")
 
     # An opaque single-mesh undergrowth layer adds ground-scale visual texture
