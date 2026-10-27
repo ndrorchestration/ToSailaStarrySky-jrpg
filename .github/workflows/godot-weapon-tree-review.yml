@@ -1,17 +1,23 @@
 name: Godot native weapon mastery review
 on:
   push:
-    branches: [feat/godot-weapon-trees-visual-preview-20261027]
+    branches: [feat/godot-weapon-trees-visual-preview-20261027, feat/godot-weapon-choreography-study-20261027]
     paths:
       - 'godot/scripts/weapon_*.gd'
       - 'godot/tests/weapon_skill_tree_review_test.gd'
+      - 'godot/tests/weapon_choreography_review_test.gd'
+      - 'godot/tests/capture_weapon_choreography_review.gd'
       - 'godot/scenes/weapon_tree_review.tscn'
+      - 'godot/scenes/weapon_choreography_review.tscn'
       - '.github/workflows/godot-weapon-tree-review.yml'
   pull_request:
     paths:
       - 'godot/scripts/weapon_*.gd'
       - 'godot/tests/weapon_skill_tree_review_test.gd'
+      - 'godot/tests/weapon_choreography_review_test.gd'
+      - 'godot/tests/capture_weapon_choreography_review.gd'
       - 'godot/scenes/weapon_tree_review.tscn'
+      - 'godot/scenes/weapon_choreography_review.tscn'
       - '.github/workflows/godot-weapon-tree-review.yml'
 permissions:
   contents: read
@@ -35,3 +41,20 @@ jobs:
         run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
       - name: Exercise weapon skill trees and silhouette selection
         run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/weapon_skill_tree_review_test.gd
+
+      - name: Verify deterministic weapon choreography and native 2D rig
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/weapon_choreography_review_test.gd
+      - name: Capture real rendered 960x640 comparison frames on virtual display
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v xvfb-run
+          mkdir -p godot/review-evidence
+          xvfb-run -a -s "-screen 0 960x640x24" ./Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_weapon_choreography_review.gd
+          for frame in staff-idle staff-impact sword-impact sword-reduced; do
+            test -s "godot/review-evidence/${frame}-native-960x640.png"
+          done
+          sha256sum godot/review-evidence/*-native-960x640.png
+          echo "WEAPON_RENDER_PRODUCED_ON_RUNNER=TRUE"
+          echo "VISUAL_ACCEPTANCE=NOT_ESTABLISHED"
+          echo "RENDERED_FRAME_DELIVERY=NOT_ESTABLISHED"
