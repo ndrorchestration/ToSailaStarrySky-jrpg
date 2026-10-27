@@ -6,6 +6,7 @@ uniform float study_time = 0.0;
 uniform bool low_quality = false;
 uniform vec3 sun_direction = vec3(0.65, 0.43, -0.70);
 uniform float sea_surface_elevation = -0.15; // bound from TerrainStudy.SEA_LEVEL
+uniform float foam_breakup_strength = 1.0; // visual A/B 0 = prior deterministic foam
 varying vec3 world_pos;
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
 float noise(vec2 p) {
@@ -49,7 +50,30 @@ void fragment() {
     vec3 reflected_sky=mix(vec3(0.19,0.37,0.49),vec3(0.39,0.48,0.53),smoothstep(0.3,0.95,fresnel));
     water=mix(water,reflected_sky,fresnel*0.79);
     float shore=(1.0-smoothstep(0.10,0.65,depth))*smoothstep(0.01,0.09,depth);
-    float foam=cover*smoothstep(0.15,0.65,sin(depth*24.0-study_time*1.4+wave1*0.4))*shore;
+    // Reference mode retains the prior fixed, contour-parallel strip exactly.
+    float old_foam=cover*smoothstep(0.15,0.65,
+        sin(depth*24.0-study_time*1.4+wave1*0.4))*shore;
+    float foam=old_foam;
+    // Break up the surf only within the signed-depth coastal shallows. The
+    // geometry, coastline mask and shared terrain-derived water depth stay
+    // authoritative; modulation never creates an offshore foam coastline.
+    // The cheap old branch remains available for V low-quality rendering.
+    if (!low_quality && foam_breakup_strength > 0.001 && shore > 0.001) {
+        float long_noise=noise(p*vec2(0.31,0.43)
+            +vec2(study_time*0.013,-study_time*0.009));
+        float shifted_depth=depth+(long_noise-0.5)*0.19;
+        float crest=sin(shifted_depth*21.0-study_time*1.13
+            +wave1*0.57);
+        float gaps=noise(p*vec2(1.35,1.05)
+            +vec2(0.0,study_time*0.028));
+        float flecks=noise(p*vec2(3.20,2.90)
+            +vec2(study_time*0.045,0.0));
+        float patch=smoothstep(0.20,0.75,gaps*0.78+flecks*0.22);
+        float broken_foam=cover*shore*smoothstep(0.14,0.67,crest)
+            *mix(0.18,1.0,patch);
+        foam=mix(old_foam,broken_foam,
+            clamp(foam_breakup_strength,0.0,1.0));
+    }
     float glints=pow(max(0.0,wave1*wave2),18.0)*(1.0-fresnel)*0.14;
     // Align the golden specular path with sky.gdshader and the scene key light.
     // Fine sparkle is optional; foaming shallows stay rougher than deep water.
@@ -58,7 +82,10 @@ void fragment() {
         low_quality ? 88.0 : 128.0);
     float fine_sparkle=low_quality ? 0.0 :
         pow(max(0.0,noise(p*4.5+vec2(study_time*0.16,0.0))),9.0)*0.08;
-    ALBEDO=mix(water,vec3(0.73,0.81,0.72),foam*0.65)
+    vec3 foam_tint=mix(vec3(0.73,0.81,0.72),
+        vec3(0.61,0.70,0.65),
+        low_quality ? 0.0 : clamp(foam_breakup_strength,0.0,1.0));
+    ALBEDO=mix(water,foam_tint,foam*0.65)
         +vec3(0.22,0.24,0.19)*glints;
     EMISSION=vec3(1.0,0.77,0.48)*sun_flash*0.16*(1.0-foam)
         +vec3(0.07,0.10,0.12)*fine_sparkle;
