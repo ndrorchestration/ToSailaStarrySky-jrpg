@@ -1,5 +1,5 @@
 extends Node3D
-## Noncanonical Aureate Wake / Dragonfly hero-asset study.
+## Noncanonical Aureate Wake HOME SHIP silhouette study; the separate Dragonfly is a larger Frigate.
 ## Original procedural geometry, not approved art or physical ship collision.
 ## Does not implement gameplay powers, celestial access, routes or save state.
 
