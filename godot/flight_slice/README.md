@@ -2,6 +2,12 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Blended environmental looks — 2026-10-27
+
+**Candidate visual continuity pass:** B/N/G now use a bounded 1.8-second eased crossfade instead of abrupt light, weather and magic jumps. Mid-transition input redirects from the actual current appearance. The camera, actual in-game clock, airship, terrain, flight and native touchdown remain unchanged. **P** holds blend time, **M** finishes the fade immediately and hides moving rainfall, **V** omits precipitation and optional sky ribbons. Direct `set_environment_look()` remains an instant choice for exact screenshot A/B comparison.
+
+New independent contracts: `tests/test_environment_blends.gd` and `tests/capture_environment_transition.gd` (three matched 960x640 real Godot GL frames, including an intermediate lighting look). See [transition QA review](../../docs/reviews/ENVIRONMENT_TRANSITION_MOTION_STUDY_2026-10-27.md). This remains a local atmospheric study, not a gameplay weather system or final art.
+
 ## Environmental cinematography and weather review — 2026-10-27
 
 **Optional, NON-CANON visual study.** The default retains the existing golden-hour clear sky and forest flight. **B** cycles golden/midday/blue-hour/night lighting grades; **N** cycles clear/mist/rain/storm; **G** opts into subdued decorative magical sky ribbons (never an auroral navigation lane). These are artistic presets only: no world clock, climate simulation, celestial plot behavior, spell permission, navigation or save data. The existing **C** camera shot rig is unchanged.
