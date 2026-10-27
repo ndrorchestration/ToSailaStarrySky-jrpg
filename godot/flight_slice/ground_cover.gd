@@ -98,7 +98,9 @@ func populate(terrain: Node3D) -> void:
                 # Embed the stone below the lower of the two actual LOD
                 # surfaces and slope-align the flat cobble silhouette.
                 var tilt := Basis(Quaternion(Vector3.UP, normal))
-                var basis: Basis = (tilt * Basis(Vector3.UP, yaw)).scaled(
+                # Scale in tangent-local axes BEFORE tilt. Scaling world rows
+                # after tilt would shear the normal of a flattened pebble.
+                var basis: Basis = tilt * Basis(Vector3.UP, yaw).scaled(
                     Vector3(size * aspect, size * 0.48, size / aspect))
                 var ground_y: float = minf(low_y, high_y)
                 stone_poses.append(Transform3D(basis,
