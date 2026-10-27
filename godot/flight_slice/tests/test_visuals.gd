@@ -48,6 +48,18 @@ func _run() -> void:
         "wetness study defaults enabled in cinematic material")
     check(visuals.land.get_shader_parameter("low_quality") == false,
         "land fine-grain defaults to high-quality mode")
+    check(is_equal_approx(float(
+        visuals.land.get_shader_parameter("sand_optics_strength")),1.0),
+        "sand optics study defaults to high detail")
+    check(visuals.land.get_shader_parameter("sun_direction") == visuals.SUN_DIRECTION,
+        "sand sheen shares authored celestial key light")
+    check((visuals.land.get_shader_parameter("sand_wind_axis") as Vector2).length() > 0.9,
+        "sand ripples have deterministic nonzero prevailing wind direction")
+    visuals.land.set_shader_parameter("sand_optics_strength",0.0)
+    check(is_equal_approx(float(
+        visuals.land.get_shader_parameter("sand_optics_strength")),0.0),
+        "sand effects have exact baseline/rollback uniform")
+    visuals.land.set_shader_parameter("sand_optics_strength",1.0)
     for station in [Vector2(-60.0, 0.0), Vector2(-2.0, 0.0), Vector2(30.0, 0.0)]:
         var bed: Dictionary = BathymetryStudy.sample(station.x, station.y)
         check(is_equal_approx(
