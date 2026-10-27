@@ -144,3 +144,11 @@ jobs:
       - name: Verify original procedural signal audio
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/vertical_slice_signal_audio_test.gd
+
+      - name: Verify five-affinity cinematic spell visuals remain isolated and motion-safe
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/magic_vfx_contract_test.gd 2>&1 | tee /tmp/magic-vfx-contract.log
+          grep -q 'STARRY_SKY_MAGIC_VFX_PASS' /tmp/magic-vfx-contract.log
+          ! grep -Eq 'STARRY_SKY_MAGIC_VFX_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/magic-vfx-contract.log
