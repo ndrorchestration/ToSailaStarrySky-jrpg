@@ -54,10 +54,18 @@ func _capture() -> void:
             scene.visuals.set_low_quality(false)
             scene.visuals.land.set_shader_parameter("forest_floor_detail_strength", 0.0)
             var without_soil: Image = await _frame()
-            _save(without_soil, floor_folder.path_join("forest-soil-off.png"))
+            # Separate receipt label: preserve precisely six historical
+            # NATIVE_ART_CAPTURE markers for landing/pilot regressions.
+            if without_soil == null or without_soil.get_size() != Vector2i(960,640) or (
+                    without_soil.save_png(floor_folder.path_join("forest-soil-off.png")) != OK):
+                push_error("NATIVE_FOREST_FLOOR_REFERENCE_CAPTURE_FAILED")
+                failed = true
             scene.visuals.land.set_shader_parameter("forest_floor_detail_strength", 1.0)
             var with_soil: Image = await _frame()
-            _save(with_soil, floor_folder.path_join("forest-soil-on.png"))
+            if with_soil == null or with_soil.get_size() != Vector2i(960,640) or (
+                    with_soil.save_png(floor_folder.path_join("forest-soil-on.png")) != OK):
+                push_error("NATIVE_FOREST_FLOOR_DETAIL_CAPTURE_FAILED")
+                failed = true
             var changed_pixels: int = 0
             if without_soil != null and with_soil != null:
                 for y in range(0, 640, 3):
