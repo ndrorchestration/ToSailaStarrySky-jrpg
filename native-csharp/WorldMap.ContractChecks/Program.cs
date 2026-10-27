@@ -521,6 +521,33 @@ internal static class Program
             "oversized subdivision refused");
     }
 
+    private static void ChartSeamChecks()
+    {
+        var mesh = CubeSphereMeshFixture.Generate(
+            new TileId(CubeFace.NegativeX, 0, 0, 0), R, 8);
+        var expanded = ChartSeamUnwrap.TriangleUvs(mesh);
+        Check(expanded.Count == mesh.Indices.Count, "unwrapped UV count is triangle-corner count");
+        for (int i = 0; i < expanded.Count; i += 3)
+        {
+            double a = expanded[i].U;
+            double b = expanded[i + 1].U;
+            double c = expanded[i + 2].U;
+            Check(Math.Abs(a - b) <= 0.5 + 1e-12 &&
+                Math.Abs(b - c) <= 0.5 + 1e-12 &&
+                Math.Abs(c - a) <= 0.5 + 1e-12,
+                "no more than half chart width across seam triangle " + i);
+            for (int j = 0; j < 3; j++)
+            {
+                var original = mesh.ChartUvs[mesh.Indices[i + j]];
+                Near(Math.Abs(expanded[i + j].U - original.U -
+                    Math.Round(expanded[i + j].U - original.U)), 0, 1e-12,
+                    "unwrapped longitude remains equivalent");
+                Near(expanded[i + j].V, original.V, 1e-12,
+                    "chart latitude unaffected");
+            }
+        }
+    }
+
     private static void RejectionChecks()
     {
         Reject<ArgumentOutOfRangeException>(() => _ = new PlanetPosition(91, 0),
@@ -556,6 +583,7 @@ internal static class Program
             ChartProjectionChecks();
             CubeSphereAddressingChecks();
             MeshFixtureChecks();
+            ChartSeamChecks();
             RejectionChecks();
             Console.WriteLine($"CS_WORLDMAP_CONTRACT_PASS: {_assertions} deterministic assertions; no Godot runtime or canon admitted");
             Console.WriteLine("CS_WORLDMAP_GODOT_MONO_NATIVE=NOT_ESTABLISHED");
