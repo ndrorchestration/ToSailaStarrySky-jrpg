@@ -33,3 +33,14 @@ Windows exact-platform release/Defender security gate remains independent. A CI 
 The standalone Chapter I VFX wrapper now exposes three **cosmetic lighting QA presets** (`daylight`, `dusk`, `night`) through a Godot `CanvasModulate`, plus deterministic `clear`, `mist`, and `rain` overlays. They are **not** game weather or story canon. `T` cycles lighting contrast; `W` cycles overlay; `M` keeps reduced motion. Default is daylight/clear, with motion reduction ON. Mist/rain remain still strokes without strobing or sound. The original Chapter I scripts are not edited.
 
 Capture test extends the real 960×640 dock evidence with daylight, dusk, night, night-mist, and night-rain images, proving distinct renderer pixels in a fixed region while the scene's actual actor position, chapter snapshot and exported save stay unchanged. It does **not** certify WCAG contrast, visual approval, day/night progression, or FPS. Every new capture remains under the same private runner evidence limit.
+
+## v0.5 exact-source verification receipts (2026-10-27)
+
+- **Verified executable source:** `aff5713096b542b2dd3e495ef61bef554a1e740b`, stacked on draft PR #411. No Chapter I gameplay script edits or granted spells.
+- [Native Godot 4.7.2 scene/regression workflow](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40599651428): **PASS**. The five affinity overlays, noncanonical light/weather presets and unchanged Chapter I save/progression gates passed.
+- [Native GL Compatibility framebuffer capture](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40599651312): **PASS**. 15 genuine 960×640 PNGs total (prior ten dock VFX frames plus five new lighting/weather frames). SHA-256 receipts in CI logs; full PNGs remain runner-local under existing artifact-custody limitations.
+- Fixed native dock witness sample mean luminance: daylight **0.46007941663265**, dusk **0.34463138133287**, night **0.24313823878765**. The native regression demands strict downward ordering with a 0.015 minimum gap each. The samples are uncalibrated framebuffer brightness, not display luminance, WCAG text contrast or a claim that the art is professionally graded.
+- Mist and rain both differ visibly from clear night, and from one another, in controlled native image regions. All overlays remain static deterministic review strokes. Weather/time changes are **proposals for visual stress testing**, not approved world/simulation mechanics.
+- Separate Windows exact QA security status and any Defender preflight hold are not certified by these Linux visual results. No merging, release, or approved spell mechanic.
+
+**Next QA gate:** independent full-frame artistic inspection, actor readability against the actual Chapter I dialogue/UI surfaces, representative Windows GPU timings and environmental-material integration without bypassing battle/story authorization.

@@ -49,3 +49,7 @@ See [environmental VFX verification](MAGIC_VFX_ENVIRONMENT_REVIEW.md). An isolat
 ## Native Chapter I camera/character composite v0.4
 
 See [Chapter I VFX and camera review](MAGIC_VFX_CHAPTER1_CAMERA_REVIEW.md). A real **Godot 4.7.2** instance of the existing Chapter I dock and Ender candidate sprite passed five-affinity rendering, actor front/behind pixels, local light A/B and Camera2D closeup comparisons at executable source `a42fa46c57613191ce200a1f1d0e1993109575ad`. **No combat magic was activated and no Chapter I state was modified.** Real captured frames are runner-local with SHA-256 in the Actions logs; artistic/physical 3D acceptance remain pending.
+
+## v0.5 native environmental stress check
+
+The Chapter I read-only camera study has [exact-source verified](MAGIC_VFX_CHAPTER1_CAMERA_REVIEW.md) daylight/dusk/night `CanvasModulate` contrast and fixed mist/rain overlays. [Godot native test](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40599651428) and [15-frame native capture](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40599651312) **passed** at `aff5713096b542b2dd3e495ef61bef554a1e740b`; the observed relative dock brightness is daylight 0.46008, dusk 0.34463, night 0.24314. This is a renderer stress test, not approved world weather or master magic authority. Final visual, performance and gameplay acceptance remain open.
