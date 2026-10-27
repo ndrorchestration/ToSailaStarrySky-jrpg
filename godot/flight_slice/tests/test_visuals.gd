@@ -146,6 +146,57 @@ func _run() -> void:
             check(absf(pose.origin.y - scene.terrain.sample_height(pose.origin.x, pose.origin.z)) < 0.0001,
                 "second canopy placement is grounded")
 
+    # Biome dressing is rendered geometry, never collision or terrain authority.
+    var has_cover: bool = scene.terrain.has_node("BiomeGroundCover")
+    check(has_cover, "terrain includes instanced biome ground dressing")
+    if has_cover:
+        var cover = scene.terrain.get_node("BiomeGroundCover")
+        var tufts: MultiMeshInstance3D = cover.get_node("MeadowTufts")
+        var stones: MultiMeshInstance3D = cover.get_node("SlopeStones")
+        check(cover.tuft_poses.size() > 80 and cover.tuft_poses.size() <= cover.MAX_TUFTS,
+            "meadow tufts are nonempty and capped")
+        check(cover.stone_poses.size() > 20 and cover.stone_poses.size() <= cover.MAX_STONES,
+            "coastal and alpine stones are nonempty and capped")
+        check(tufts.multimesh.instance_count == cover.tuft_poses.size(),
+            "tuft GPU and CPU instance budgets agree")
+        check(stones.multimesh.instance_count == cover.stone_poses.size(),
+            "stone GPU and CPU instance budgets agree")
+        check(tufts.multimesh.mesh is ArrayMesh and
+            tufts.multimesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size() == 15,
+            "tuft silhouette has five opaque crossed blades")
+        for pose in cover.tuft_poses:
+            var x: float = pose.origin.x
+            var z: float = pose.origin.z
+            check(scene.terrain.classify(x, z) in ["forest", "grassland"],
+                "tufts only appear in vegetated biomes")
+            check(absf(pose.origin.y - scene.terrain.sample_height(x, z) - 0.02) < 0.0001,
+                "tufts use existing terrain elevation")
+            check(cover._fixture_clear(x, z), "tufts avoid the touchdown and hamlet footprints")
+        for pose in cover.stone_poses:
+            var x: float = pose.origin.x
+            var z: float = pose.origin.z
+            check(scene.terrain.classify(x, z) in ["alpine", "summit", "coast"],
+                "stones stay in coastal and exposed highland biomes")
+            check(absf(pose.origin.y - scene.terrain.sample_height(x, z) + 0.055) < 0.0001,
+                "stones share terrain height and remain partly embedded")
+            check(cover._fixture_clear(x, z), "stones avoid authored fixtures")
+        var first_tuft: Transform3D = cover.tuft_poses[0]
+        var repeated_cover = load("res://ground_cover.gd").new()
+        scene.terrain.add_child(repeated_cover)
+        repeated_cover.populate(scene.terrain)
+        check(repeated_cover.tuft_poses.size() == cover.tuft_poses.size() and
+            repeated_cover.stone_poses.size() == cover.stone_poses.size(),
+            "fixed seed and sampler give repeatable instance counts")
+        check(repeated_cover.tuft_poses[0].origin.distance_to(first_tuft.origin) < 0.00001,
+            "fixed seed and sampler give repeatable placement")
+        repeated_cover.queue_free()
+        visuals.set_low_quality(true)
+        check(not tufts.visible and stones.visible,
+            "low-quality mode removes small blades but retains rock landmarks")
+        visuals.set_low_quality(false)
+        check(tufts.visible and stones.visible,
+            "restoring visual quality restores full biome dressing")
+
     scene._clock = 9.0
     scene._paused = true
     scene._process(0.2)
