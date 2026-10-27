@@ -60,12 +60,12 @@ func _run() -> void:
         return
     review._cycle_action()
     review._scrub(70.0)
-    var hit := review.get_node("BattlePose").pose
+    var hit: Dictionary = review.get_node("BattlePose").pose
     if str(hit["phase"]) != "impact" or float(hit["effect"]) <= 0.0:
         _fail("attack animation scrub missed contact cue")
         return
     review._set_motion(true)
-    var muted := review.get_node("BattlePose").pose
+    var muted: Dictionary = review.get_node("BattlePose").pose
     if not bool(review.current_contract()["motionReduced"]) \
         or float(muted["effect"]) != 0.0 or float(muted["weaponAngle"]) != 0.0:
         _fail("UI motion setting did not suppress visual effects")
