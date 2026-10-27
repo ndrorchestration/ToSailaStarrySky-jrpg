@@ -3,11 +3,11 @@ extends SceneTree
 ## This noncanonical Aureate Wake study is NOT the separate Dragonfly Frigate.
 const StudyScene = preload("res://main.tscn")
 const SHOTS = [
-    ["bow-quarter", Vector3(8.0, 3.5, -9.0), 49.0, 0, 0, false],
-    ["stern-quarter", Vector3(-8.0, 3.2, 9.0), 51.0, 0, 0, false],
-    ["wing-planform", Vector3(4.0, 12.0, 3.0), 55.0, 0, 0, false],
-    ["bow-bluehour-rain", Vector3(8.0, 3.5, -9.0), 49.0, 2, 2, false],
-    ["bow-storm-magic", Vector3(8.0, 3.5, -9.0), 49.0, 3, 3, true]
+    ["bow-quarter", Vector3(6.5, 3.0, -7.0), 43.0, 0, 0, false],
+    ["stern-quarter", Vector3(-7.0, 2.8, 7.0), 45.0, 0, 0, false],
+    ["wing-planform", Vector3(2.5, 10.5, 2.0), 50.0, 0, 0, false],
+    ["bow-bluehour-rain", Vector3(6.5, 3.0, -7.0), 43.0, 2, 2, false],
+    ["bow-storm-magic", Vector3(6.5, 3.0, -7.0), 43.0, 3, 3, true]
 ]
 
 func _initialize() -> void:
