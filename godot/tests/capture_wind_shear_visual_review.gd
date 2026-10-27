@@ -61,7 +61,7 @@ func _capture() -> void:
         return
     art.set_reduced_motion(true)
     await process_frame
-    if not await _snapshot("wind-shear-idle-native-960x640"):
+    if not (await _snapshot("wind-shear-idle-native-960x640")):
         _fail("idle capture")
         return
 
@@ -72,7 +72,10 @@ func _capture() -> void:
     # Freeze the short post-action accent for a distinct analyzed core pose.
     art.set_reduced_motion(true)
     await process_frame
-    if not art.analyzed or not await _snapshot("wind-shear-analyzed-native-960x640"):
+    if not art.analyzed:
+        _fail("visual analyzed state not updated")
+        return
+    if not (await _snapshot("wind-shear-analyzed-native-960x640")):
         _fail("analyzed capture")
         return
 
@@ -80,14 +83,14 @@ func _capture() -> void:
     art.set_reduced_motion(false)
     art.set_encounter_state(true, false, art.last_enemy_turn + 1)
     await process_frame
-    if not await _snapshot("wind-shear-gale-native-960x640"):
+    if not (await _snapshot("wind-shear-gale-native-960x640")):
         _fail("Gale Force art capture")
         return
 
     # Review-only dissipated pose, NOT a credited victory.
     art.set_encounter_state(true, true, art.last_enemy_turn)
     await process_frame
-    if not await _snapshot("wind-shear-dispersed-native-960x640"):
+    if not (await _snapshot("wind-shear-dispersed-native-960x640")):
         _fail("dissipated art capture")
         return
 
