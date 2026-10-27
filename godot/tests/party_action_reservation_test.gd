@@ -85,7 +85,43 @@ func _initialize() -> void:
     if planner.plan("no state", d, "focus", 1).get("reason", "") != "invalid_state":
         _fail("non-dictionary state accepted")
         return
-    print("GODOT_PARTY_RESERVATION_PASS: two actors atomic, typed costs, no aliasing or partial deductions")
+    # The same planner handles three-party Arts with no special-case resolver.
+    var triple: Dictionary = adapter.for_resonance("horizon_relay")
+    var party3: Dictionary = {
+        "reviewOnly": true, "phase": "player",
+        "party": {
+            "ender": {"hp": 12, "maxHp": 12, "focus": 2, "alive": true, "canAct": true},
+            "ionia": {"hp": 12, "maxHp": 12, "focus": 2, "alive": true, "canAct": true},
+            "aepex": {"hp": 12, "maxHp": 12, "focus": 2, "alive": true, "canAct": true},
+        },
+    }
+    var triple_before: Dictionary = party3.duplicate(true)
+    var triple_plan: Dictionary = planner.plan(party3, triple, "focus", 1)
+    if not bool(triple_plan.get("ok", false)) or triple_plan["reservations"].size() != 3:
+        _fail("shared planner failed to stage triple art")
+        return
+    for actor_id in ["ender", "ionia", "aepex"]:
+        if int(triple_plan["party"][actor_id]["focus"]) != 1 or bool(triple_plan["party"][actor_id]["canAct"]):
+            _fail("triple reservation left actor uncommitted: " + actor_id)
+            return
+    if party3 != triple_before:
+        _fail("triple reservation mutated input")
+        return
+    var triple_low: Dictionary = party3.duplicate(true)
+    triple_low["party"]["aepex"]["focus"] = 0
+    var triple_low_before: Dictionary = triple_low.duplicate(true)
+    if planner.plan(triple_low, triple, "focus", 1).get("reason", "") != "insufficient_review_focus:aepex":
+        _fail("third participant resource check missed")
+        return
+    if triple_low != triple_low_before:
+        _fail("late third-person failure partially committed earlier costs")
+        return
+    var triple_missing: Dictionary = party3.duplicate(true)
+    triple_missing["party"].erase("ionia")
+    if planner.plan(triple_missing, triple, "focus", 1).get("reason", "") != "participant_missing:ionia":
+        _fail("triple membership gate missed")
+        return
+    print("GODOT_PARTY_RESERVATION_PASS: two/three actors atomic, typed costs, no aliasing or partial deductions")
     quit(0)
 
 func _fail(reason: String) -> void:
