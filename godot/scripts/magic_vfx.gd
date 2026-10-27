@@ -5,6 +5,11 @@ signal phase_changed(next_phase: String)
 
 const Catalog = preload("res://scripts/magic_vfx_catalog.gd")
 const SIGIL_DIR = "res://art-review/magic_vfx/"
+const AURA_SHADER = preload("res://shaders/magic_vfx_aura.gdshader")
+const Particles = preload("res://scripts/magic_vfx_particles.gd")
+const Ground = preload("res://scripts/magic_vfx_ground.gd")
+const DEFAULT_STILL_PROGRESS = 0.29
+const SHADER_RESOLUTION = Vector2(380.0, 380.0)
 
 var character_id: String = "ender"
 var reduced_motion: bool = true
@@ -12,12 +17,36 @@ var elapsed: float = 0.0
 var phase: String = "formation"
 var finished: bool = false
 var _sigil: Sprite2D
+var _aura: ColorRect
+var _aura_material: ShaderMaterial
+var _particles: Node2D
+var _ground: Node2D
+var quality_level: int = 1
 
 func _ready() -> void:
+    _aura = ColorRect.new()
+    _aura.name = "AtmosphericLens"
+    _aura.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _aura.position = -SHADER_RESOLUTION * 0.5
+    _aura.size = SHADER_RESOLUTION
+    _aura.color = Color.WHITE
+    _aura.show_behind_parent = true
+    _aura_material = ShaderMaterial.new()
+    _aura_material.shader = AURA_SHADER
+    _aura.material = _aura_material
+    add_child(_aura)
+    _ground = Ground.new()
+    _ground.name = "GroundContact"
+    _ground.position = Vector2(0.0, 138.0)
+    _ground.show_behind_parent = true
+    add_child(_ground)
     _sigil = Sprite2D.new()
     _sigil.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
     _sigil.show_behind_parent = true
     add_child(_sigil)
+    _particles = Particles.new()
+    _particles.name = "CinematicMicroParticles"
+    add_child(_particles)
     play_affinity(character_id, reduced_motion)
 
 func play_affinity(next_id: String, use_reduced_motion: bool = true) -> bool:
@@ -25,7 +54,7 @@ func play_affinity(next_id: String, use_reduced_motion: bool = true) -> bool:
         return false
     character_id = next_id
     reduced_motion = use_reduced_motion
-    elapsed = 0.0
+    elapsed = Catalog.DURATION_SECONDS * DEFAULT_STILL_PROGRESS if reduced_motion else 0.0
     finished = reduced_motion
     phase = "formation" if reduced_motion else "anticipation"
     if _sigil != null:
@@ -35,12 +64,47 @@ func play_affinity(next_id: String, use_reduced_motion: bool = true) -> bool:
         _sigil.rotation = 0.0
         _sigil.modulate = Color(1.0, 1.0, 1.0, 0.57)
     set_process(not reduced_motion)
-    queue_redraw()
+    _sync_layers()
     phase_changed.emit(phase)
     return true
 
 func set_reduced_motion(enabled: bool) -> void:
     play_affinity(character_id, enabled)
+
+func set_quality(level: int) -> void:
+    quality_level = clampi(level, 0, 2)
+    _sync_layers()
+
+func seek_visual_phase(progress: float) -> bool:
+    # Manual phase stepping is possible even in reduced-motion mode: no autoplay.
+    if is_nan(progress) or is_inf(progress):
+        return false
+    elapsed = clampf(progress, 0.0, 1.0) * Catalog.DURATION_SECONDS
+    var next_phase: String = Catalog.phase_at(elapsed / Catalog.DURATION_SECONDS)
+    if next_phase != phase:
+        phase = next_phase
+        phase_changed.emit(phase)
+    finished = true
+    set_process(false)
+    _sync_layers()
+    return true
+
+func _sync_layers() -> void:
+    var profile: Dictionary = Catalog.profile(character_id)
+    if profile.is_empty():
+        return
+    var p := clampf(elapsed / Catalog.DURATION_SECONDS, 0.0, 1.0)
+    if _aura_material != null:
+        _aura_material.set_shader_parameter("core_tint", Color(str(profile["color"])))
+        _aura_material.set_shader_parameter("accent_tint", Color(str(profile["accent"])))
+        _aura_material.set_shader_parameter("motif", Catalog.CHARACTER_ORDER.find(character_id))
+        _aura_material.set_shader_parameter("phase_progress", p)
+        _aura_material.set_shader_parameter("energy", 0.82 if reduced_motion else clampf(sin(p * PI), 0.0, 1.0))
+    if _particles != null:
+        _particles.set_visual(character_id, p, reduced_motion, quality_level)
+    if _ground != null:
+        _ground.set_visual(character_id, p, reduced_motion)
+    queue_redraw()
 
 func _process(delta: float) -> void:
     if finished or reduced_motion:
@@ -56,7 +120,7 @@ func _process(delta: float) -> void:
     if elapsed >= Catalog.DURATION_SECONDS:
         finished = true
         set_process(false)
-    queue_redraw()
+    _sync_layers()
 
 func _rgba(source: Color, alpha: float) -> Color:
     return Color(source.r, source.g, source.b, clampf(alpha, 0.0, 1.0))
@@ -68,7 +132,7 @@ func _draw() -> void:
     var core := Color(str(profile["color"]))
     var accent := Color(str(profile["accent"]))
     # Static representative composition for motion-sensitive players.
-    var p := 0.48 if reduced_motion else elapsed / Catalog.DURATION_SECONDS
+    var p := clampf(elapsed / Catalog.DURATION_SECONDS, 0.0, 1.0)
     var envelope := 0.86 if reduced_motion else clampf(sin(PI * p), 0.0, 1.0)
     var breadth := 12.0 if reduced_motion else p * 32.0
     for i in range(5, 0, -1):
