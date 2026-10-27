@@ -20,6 +20,9 @@ var _status_timer: float = 0.0
 var _paused: bool = false
 var _reduced_motion: bool = false
 var _cinematic: bool = true
+var _time_look: int = 0
+var _weather_look: int = 0
+var _magical_sky: bool = false
 var _manual_active: bool = false
 var _manual_position: Vector3 = Vector3.ZERO
 var _manual_heading: float = 0.0
@@ -77,7 +80,13 @@ func _process(delta: float) -> void:
     if _status_timer > 0.35:
         _status_timer = 0.0
         var flight_info: String = "PILOT %s  |  clearance %.1f m  |  heading %.0f°  |  %s" % [landing.state, FlightStudy.clearance(ship.position), rad_to_deg(_manual_heading), _landing_message] if _manual_active else "AUTOMATIC FLYOVER  |  C camera framing"
-        overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + "F pilot/flyover · W/S move · A/D steer · E/Q ascend/descend\nT ground approach/takeoff (test field) · P pause · M still effects\nR reset · V detail · H HUD\nNON-CANON STUDY  •  TERRAIN RAYCAST / NO RIGIDBODY FLIGHT"
+        var atmospheric_note: String = ""
+        if visuals != null:
+            atmospheric_note = "%s / %s / MAGIC %s" % [
+                visuals.current_mood["time_name"],
+                visuals.current_mood["weather_name"],
+                "ON" if _magical_sky else "OFF"]
+        overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + atmospheric_note + "  |  B light / N weather / G magic sky\n" + "F pilot · W/S move · A/D steer · E/Q ascend/descend\nT test-field landing · P pause · M still effects · C camera\nR reset · V detail · H HUD\nNON-CANON STUDY  •  NO GAMEPLAY CLIMATE"
 
 func _unhandled_key_input(event: InputEvent) -> void:
     if not (event is InputEventKey):
@@ -105,6 +114,19 @@ func _unhandled_key_input(event: InputEvent) -> void:
                 visuals.set_low_quality(_low_quality)
         KEY_H:
             overlay.visible = not overlay.visible
+        KEY_B:
+            _time_look = (_time_look + 1) % 4
+            _apply_environment_preview()
+        KEY_N:
+            _weather_look = (_weather_look + 1) % 4
+            _apply_environment_preview()
+        KEY_G:
+            _magical_sky = not _magical_sky
+            _apply_environment_preview()
+
+func _apply_environment_preview() -> void:
+    if visuals != null:
+        visuals.set_environment_look(_time_look, _weather_look, _magical_sky)
 
 func set_manual_mode(enabled: bool) -> void:
     if enabled == _manual_active:
@@ -219,6 +241,7 @@ func _update_scene(delta: float) -> void:
     terrain.update_detail(camera.position, delta)
     if visuals != null:
         visuals.set_clock(_clock, _reduced_motion)
+        visuals.set_camera_frame(camera)
 
 func _install_environment() -> void:
     var daylight := DirectionalLight3D.new()
