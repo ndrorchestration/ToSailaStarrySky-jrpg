@@ -529,20 +529,26 @@ func _add_geology_instances(node_name: String, poses: Array[Transform3D]) -> voi
 # Cinematic background only, beyond the outer local 8x8 terrain footprint.
 # The curtains never replace the authoritative ground sampler: they are
 # noncolliding, deterministic silhouettes for the NON-CANON flight study.
+# Separate scenic mountain islands avoid wallpaper-like continuous curtains.
+# The height function is an art-only peak envelope and never influences
+# physics, flight altitude, classification, water or terrain LOD.
 static func distant_ridge_height(z: float, is_far: bool) -> float:
-    # Restrained contour targets; scenic only, not a new elevation authority.
-    # Atmospheric perspective comes primarily from world fog and separation.
-    if is_far:
-        return clampf(22.0 + 6.4 * sin(z * 0.032 + 1.4)
-            + 3.0 * cos(z * 0.075 - 0.8) + 1.6 * sin(z * 0.127),
-            10.0, 33.0)
-    return clampf(13.0 + 4.5 * sin(z * 0.046 - 0.4)
-        + 2.3 * cos(z * 0.093 + 0.7) + 1.3 * sin(z * 0.17),
-        5.0, 23.0)
+    var centers: Array[float] = [-240.0, -120.0, 0.0, 125.0, 245.0]
+    var radii: Array[float] = [48.0, 43.0, 52.0, 47.0, 49.0]
+    var altitude: float = -8.0
+    for mountain in range(centers.size()):
+        var delta: float = absf(z - centers[mountain]) / radii[mountain]
+        if delta >= 1.0:
+            continue
+        var shoulder: float = pow(maxf(0.0, 1.0 - pow(delta, 1.6)), 1.65)
+        var summit: float = (34.0 if is_far else 26.0)
+        summit += 3.5 * sin(float(mountain) * 2.4 + (0.5 if is_far else 0.0))
+        altitude = maxf(altitude, -8.0 + shoulder * summit)
+    return altitude
 
 static func distant_ridge_x(z: float, is_far: bool) -> float:
     var distance: float = 230.0 if is_far else 148.0
-    return distance + 4.0 * sin(z * 0.041 + (1.2 if is_far else 0.2))
+    return distance + 3.0 * sin(z * 0.028 + (0.9 if is_far else 0.1))
 
 func _place_distant_ridges() -> void:
     for is_far in [true, false]:
@@ -556,34 +562,37 @@ func _place_distant_ridges() -> void:
 func _distant_ridge_mesh(is_far: bool) -> ArrayMesh:
     var tool := SurfaceTool.new()
     tool.begin(Mesh.PRIMITIVE_TRIANGLES)
-    # Extend beyond either camera edge to prevent abrupt screen-cut seams.
-    # One hundred 6-unit intervals. Vertex tints interpolate continuously
-    # across the faces; no bright regular wedges or painted-on striping.
-    var segments: int = 100
-    for segment in range(segments):
-        var az: float = -300.0 + float(segment) * 6.0
-        var bz: float = az + 6.0
-        var ax: float = distant_ridge_x(az, is_far)
-        var bx: float = distant_ridge_x(bz, is_far)
-        var ay: float = distant_ridge_height(az, is_far)
-        var by: float = distant_ridge_height(bz, is_far)
-        var base_a := Vector3(ax, -14.0, az)
-        var base_b := Vector3(bx, -14.0, bz)
-        var shoulder_a := Vector3(ax - 0.5, lerpf(-14.0, ay, 0.57), az)
-        var shoulder_b := Vector3(bx - 0.5, lerpf(-14.0, by, 0.57), bz)
-        var crest_a := Vector3(ax + 0.4, ay, az)
-        var crest_b := Vector3(bx + 0.4, by, bz)
-        var shadow := Color(0.80, 0.87, 0.92)
-        var midtone := Color(0.94, 0.97, 0.99)
-        var highlight := Color(1.0, 1.0, 1.0)
-        _distant_ridge_triangle(tool, base_a, base_b, shoulder_a,
-            shadow, shadow, midtone)
-        _distant_ridge_triangle(tool, shoulder_a, base_b, shoulder_b,
-            midtone, shadow, midtone)
-        _distant_ridge_triangle(tool, shoulder_a, shoulder_b, crest_a,
-            midtone, midtone, highlight)
-        _distant_ridge_triangle(tool, crest_a, shoulder_b, crest_b,
-            highlight, midtone, highlight)
+    var centers: Array[float] = [-240.0, -120.0, 0.0, 125.0, 245.0]
+    var radii: Array[float] = [48.0, 43.0, 52.0, 47.0, 49.0]
+    # Each distinct ridgeline gets a sloping forward and rear surface,
+    # not a vertical wall. Four triangles per segment, 720 total vertices.
+    for mountain in range(centers.size()):
+        for segment in range(12):
+            var az: float = centers[mountain] + radii[mountain] * (
+                float(segment) / 6.0 - 1.0)
+            var bz: float = centers[mountain] + radii[mountain] * (
+                float(segment + 1) / 6.0 - 1.0)
+            var ax: float = distant_ridge_x(az, is_far)
+            var bx: float = distant_ridge_x(bz, is_far)
+            var ay: float = distant_ridge_height(az, is_far)
+            var by: float = distant_ridge_height(bz, is_far)
+            var front_a := Vector3(ax - 21.0, -8.0, az)
+            var front_b := Vector3(bx - 21.0, -8.0, bz)
+            var crest_a := Vector3(ax, ay, az)
+            var crest_b := Vector3(bx, by, bz)
+            var back_a := Vector3(ax + 18.0, -8.0, az)
+            var back_b := Vector3(bx + 18.0, -8.0, bz)
+            var dark := Color(0.68, 0.77, 0.83)
+            var bright := Color(0.93, 0.96, 0.99)
+            var cool := Color(0.76, 0.86, 0.92)
+            _distant_ridge_triangle(tool, front_a, front_b, crest_a,
+                dark, dark, bright)
+            _distant_ridge_triangle(tool, crest_a, front_b, crest_b,
+                bright, dark, bright)
+            _distant_ridge_triangle(tool, crest_a, crest_b, back_a,
+                cool, cool, dark)
+            _distant_ridge_triangle(tool, back_a, crest_b, back_b,
+                dark, cool, dark)
     return tool.commit()
 
 func _distant_ridge_triangle(tool: SurfaceTool, a: Vector3,
