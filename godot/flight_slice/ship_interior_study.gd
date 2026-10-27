@@ -56,9 +56,11 @@ func _build_deck() -> void:
                 Vector3(side * 1.72, 1.20, z), 0.055, _bronze)
     # Exposed tapering overhead frames establish habitable height while the
     # roof stays removed for the cutaway camera. No wall/collision claim.
-    for station in [-4.22, -1.78, 1.78, 4.15]:
+    var arch_positions: Array[float] = [-4.22, -1.78, 1.78, 4.15]
+    for index in range(arch_positions.size()):
+        var station: float = arch_positions[index]
         for side in [-1.0, 1.0]:
-            var tag: String = str(station) + ("Port" if side < 0.0 else "Starboard")
+            var tag: String = str(index) + ("Port" if side < 0.0 else "Starboard")
             _beam("HullArchLower_" + tag,
                 Vector3(side * 1.73, 0.33, station),
                 Vector3(side * 1.59, 1.35, station), 0.055, _bronze)
