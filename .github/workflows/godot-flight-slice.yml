@@ -98,6 +98,10 @@ jobs:
           grep -Eq 'NATIVE_SHORELINE_QUALITY_DELTA pixels=[0-9]+' /tmp/capture.log
           grep -Eq 'NATIVE_SHORE_FOAM_PAIR_DELTA pixels=[0-9]+' /tmp/capture.log
           grep -q 'NATIVE_SHORE_FOAM_LOW_DELTA pixels=0' /tmp/capture.log
+          grep -Eq 'NATIVE_SHELF_COLOR_PAIR_DELTA pixels=[0-9]+' /tmp/capture.log
+          grep -q 'NATIVE_SHELF_COLOR_LOW_DELTA pixels=0' /tmp/capture.log
+          test -f godot/flight_slice/evidence/cinematic-review/coast-shelf-old.png
+          test -f godot/flight_slice/evidence/cinematic-review/coast-shelf-toned.png
           test -f godot/flight_slice/evidence/cinematic-review/coast-foam-contour.png
           test -f godot/flight_slice/evidence/cinematic-review/coast-foam-broken.png
           test -f godot/flight_slice/evidence/cinematic-review/coast-shore-wet.png
