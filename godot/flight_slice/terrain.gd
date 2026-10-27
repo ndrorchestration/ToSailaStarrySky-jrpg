@@ -590,10 +590,12 @@ func _distant_ridge_triangle(tool: SurfaceTool, a: Vector3,
         b: Vector3, c: Vector3, tint_a: Color, tint_b: Color,
         tint_c: Color) -> void:
     var normal: Vector3 = (b - a).cross(c - a).normalized()
+    var positions: Array[Vector3] = [a, b, c]
+    var colors: Array[Color] = [tint_a, tint_b, tint_c]
     for index in range(3):
         tool.set_normal(normal)
-        tool.set_color([tint_a, tint_b, tint_c][index])
-        tool.add_vertex([a, b, c][index])
+        tool.set_color(colors[index])
+        tool.add_vertex(positions[index])
 
 func _place_landmarks() -> void:
     # Scale references and inhabited silhouettes; temporary, not canon locations.
