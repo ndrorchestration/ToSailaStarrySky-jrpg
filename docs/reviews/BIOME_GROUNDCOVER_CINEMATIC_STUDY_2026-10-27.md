@@ -38,3 +38,9 @@ Upstream drafts: #402 combined camera/cloud/terrain, #403 snow headroom, #404 mi
 ### Branch overlap and consolidation
 
 [Draft #407](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/407) was opened concurrently from #404 and also adds forest-floor foliage. Its seven-frond understory and this branch's five-blade grass are **alternative visual studies**, not two layers to install blindly. Compare per-frame silhouette, vegetation density, draw cost and accessibility before selecting or reconciling one. This branch's shoreline material work is logically separable and may be cherry-picked to the chosen visual branch with exact-head retesting. Do **not** silently combine duplicated ground-cover nodes, assume either draft is approved, or merge the PR chain.
+
+### Native screenshot defect and correction
+
+The previous exact-head PR #406 software-GL artifact `12764866721` was opened and visually inspected. Its coast and fixed-highland frames show multiple detached-looking rock silhouettes against distant mountain slopes; this is a **real visible defect**, not inferred from source alone. Native LOD vertices approximate the analytic height at different resolutions, so an exact-height decorative stone can float above the rendered low-resolution triangle.
+
+The candidate now interpolates the actual high/low sampler triangles for stone placement, rejects positions where their elevations diverge substantially, aligns rocks toward the local slope normal and embeds them below the lower of the two render surfaces. Native material/placement contracts are updated. This is an **art-only** correction and does not mutate authoritative terrain elevations, LOD meshes or touchdown physics. Reinspect new fixed-highland screenshots and record remaining floating stones before visual acceptance.
