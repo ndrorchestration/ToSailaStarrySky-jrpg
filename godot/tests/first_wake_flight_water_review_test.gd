@@ -21,7 +21,8 @@ func _verify() -> void:
         _fail("Ionia-first baseline missing")
         return
     world._enter_engineering_room()
-    world.inspected_items = ["reference", "containment", "fuel"]
+    for item in ["reference", "containment", "fuel"]:
+        world.inspected_items.append(item)
     if world.launch_flight_review():
         _fail("test flight entered before state contract accepted preflight")
         return
