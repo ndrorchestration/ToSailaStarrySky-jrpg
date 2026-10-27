@@ -16,6 +16,8 @@ var _tiles: Array = []
 # can return identity even when real OpenGL instance transforms are populated.
 var tree_poses: Array[Transform3D] = []
 var broadleaf_poses: Array[Transform3D] = []
+# Fixed-budget art placements; no collisions, navigation, or biome-authority changes.
+var ground_cover_poses: Array[Transform3D] = []
 var _terrain_material: StandardMaterial3D
 var _lod_clock: float = 0.0
 var visible_tiles: int = 0
@@ -110,6 +112,7 @@ func _ready() -> void:
     _terrain_material.roughness = 0.96
     _build_tiles()
     _place_tree_instances()
+    _place_ground_cover()
     _place_landmarks()
     _place_water()
 
@@ -390,6 +393,51 @@ func _place_tree_instances() -> void:
     trunk_instance.multimesh = trunks
     trunk_instance.material_override = _material(Color(0.25, 0.23, 0.20), 1.0)
     add_child(trunk_instance)
+
+
+# Sparse, deterministic forest-floor and meadow foliage. Neither GPU transform
+# readback nor global RNG is used; all height/biome authority remains in this
+# existing sampler. Skip the hamlet, safe landing field, and steep slopes.
+func _place_ground_cover() -> void:
+    var poses: Array[Transform3D] = []
+    for ix in range(5, 76, 3):
+        for iz in range(-78, 83, 4):
+            var x: float = float(ix) + (_hash01(float(ix), float(iz)) - 0.5) * 1.6
+            var z: float = float(iz) + (_hash01(float(iz), float(ix)) - 0.5) * 1.6
+            var biome: String = classify(x, z)
+            if biome != "forest" and biome != "grassland":
+                continue
+            if x > 22.0 and x < 45.0 and z > -27.0 and z < 3.0:
+                continue
+            if x > 5.5 and x < 16.0 and z > -19.0 and z < -6.0:
+                continue
+            var density_cut: float = 0.32 if biome == "forest" else 0.73
+            if _hash01(x + 12.0, z - 9.0) < density_cut:
+                continue
+            var dx: float = (sample_height(x + 0.65, z) - sample_height(x - 0.65, z)) / 1.30
+            var dz: float = (sample_height(x, z + 0.65) - sample_height(x, z - 0.65)) / 1.30
+            if Vector2(dx, dz).length() > 0.55:
+                continue
+            var size: float = 0.68 + 0.48 * _hash01(z + 5.0, x - 3.0)
+            var height_scale: float = 0.82 + 0.46 * _hash01(x - 4.0, z + 7.0)
+            var yaw: float = TAU * _hash01(x + 33.0, z - 17.0)
+            var basis := Basis(Vector3.UP, yaw).scaled(Vector3(size, size * height_scale, size))
+            poses.append(Transform3D(basis, Vector3(x, sample_height(x, z) + 0.05, z)))
+    ground_cover_poses = poses.duplicate()
+    # Presentation opts in to the rendered mesh and shader; the bare baseline
+    # and all gameplay systems remain unchanged.
+    var foliage_mesh := MultiMesh.new()
+    foliage_mesh.transform_format = MultiMesh.TRANSFORM_3D
+    foliage_mesh.mesh = QuadMesh.new()
+    foliage_mesh.instance_count = poses.size()
+    for i in range(poses.size()):
+        foliage_mesh.set_instance_transform(i, poses[i])
+    var foliage_instance := MultiMeshInstance3D.new()
+    foliage_instance.name = "GroundUnderstory"
+    foliage_instance.multimesh = foliage_mesh
+    foliage_instance.visible = false
+    foliage_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    add_child(foliage_instance)
 
 func _place_landmarks() -> void:
     # Scale references and inhabited silhouettes; temporary, not canon locations.

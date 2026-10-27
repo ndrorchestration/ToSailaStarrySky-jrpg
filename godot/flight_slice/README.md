@@ -2,6 +2,14 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Deterministic forest-floor detail study — 2026-10-27
+
+**Proposed visual iteration, not accepted final art.** The optional `GroundUnderstory` layer adds terrain-grounded, small fern/grass silhouettes in the forest and limited grassland. Positions are reproducible from the same static scene sampler, biome predicate, and local steep-slope limit; the temporary hamlet and native touchdown field are excluded. Seven two-triangle fronds form one *opaque*, double-sided mesh instanced through a single `MultiMeshInstance3D`. The effect uses no external textures, noise downloads, particles, transparent overdraw, per-clump nodes, new point lights, or gameplay collision.
+
+The material uses the existing scene clock. **M** suppresses wind displacement, and **V** toggles lower presentation detail by hiding this decorative layer entirely. The unchanged baseline path keeps it hidden. This is bounded local decoration only: no new planet-wide species distribution, canonical vegetation, exploration gate, global terrain, occlusion policy, or saved state. Visual density, color and readability need exact-head native captures and creator review. Performance on the target GPU is not yet measured; instancing does not prove a frame-time win.
+
+Regression coverage in `tests/test_visuals.gd` checks CPU placement authority, vertex attributes, budget, biome and height grounding, landing-field exclusion, wind control, and the detail fallback. It does **not** by itself verify native frame pixels, lighting quality, or target-hardware performance.
+
 ## Godot physics-confirmed test-field touchdown (experimental) — 2026-10-26
 
 **Scope:** This isolated, noncanonical GDScript flight study now uses an actual `StaticBody3D` with a `ConcavePolygonShape3D` triangle shape over the same small provisional landing rectangle, constructed from the scene's authoritative `TerrainStudy.sample_height`. The collider has **792 triangles** on collision layer 2 and is queried through `PhysicsDirectSpaceState3D.intersect_ray` from `_physics_process`; pressing **T** only queues a request. The first descent cannot start until a real native collider hit, correct collider identity, upward normal, low slope, allowed dry field, and a sufficiently close collider/sampler height **all agree**. An absent or disabled collider fails closed rather than falling back to an analytic height guess.

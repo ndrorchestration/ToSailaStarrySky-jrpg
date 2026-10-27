@@ -47,10 +47,14 @@ func _run() -> void:
     check(is_equal_approx(visuals.water.get_shader_parameter("study_time"), 0.0), "reduced motion freezes water")
     check(is_equal_approx(visuals.foliage.get_shader_parameter("study_time"), 0.0), "reduced motion freezes foliage")
     check(is_equal_approx(visuals.broadleaf.get_shader_parameter("study_time"), 0.0), "reduced motion freezes broadleaf foliage")
+    check(is_equal_approx(visuals.understory.get_shader_parameter("study_time"), 0.0), "reduced motion freezes understory clock")
+    check(is_equal_approx(visuals.understory.get_shader_parameter("motion_scale"), 0.0), "reduced motion suppresses understory sway")
     visuals.set_low_quality(true)
     check(visuals.water.get_shader_parameter("low_quality") == true, "low quality applied")
+    check(not scene.terrain.get_node("GroundUnderstory").visible, "low quality omits undergrowth")
     visuals.set_low_quality(false)
     check(visuals.water.get_shader_parameter("low_quality") == false, "high quality restored")
+    check(scene.terrain.get_node("GroundUnderstory").visible, "high quality restores undergrowth")
     check(is_equal_approx(height, scene.terrain.sample_height(30.0, -12.0)), "quality preserves heights")
     check(visuals.has_method("refresh_coverage"), "shore effects require rendered terrain coverage")
     if not visuals.has_method("refresh_coverage"):
@@ -145,6 +149,43 @@ func _run() -> void:
                 "second canopy belongs to forest biome")
             check(absf(pose.origin.y - scene.terrain.sample_height(pose.origin.x, pose.origin.z)) < 0.0001,
                 "second canopy placement is grounded")
+
+    # An opaque single-mesh undergrowth layer adds ground-scale visual texture
+    # without changing biome, terrain height, safe landing, or tree placements.
+    var plants: MultiMeshInstance3D = scene.terrain.get_node("GroundUnderstory")
+    var plant_poses: Array[Transform3D] = scene.terrain.ground_cover_poses
+    check(plant_poses.size() > 50 and plant_poses.size() < 700,
+        "terrain-grounded understory has a bounded deterministic instance budget")
+    check(plants.multimesh.instance_count == plant_poses.size(),
+        "understory GPU instance count matches CPU pose authority")
+    check(plants.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,
+        "understory does not add shadow draw work")
+    var clump_mesh: ArrayMesh = plants.multimesh.mesh
+    check(clump_mesh is ArrayMesh, "understory uses a compact custom leaf mesh")
+    var clump_arrays: Array = clump_mesh.surface_get_arrays(0)
+    var clump_vertices: PackedVector3Array = clump_arrays[Mesh.ARRAY_VERTEX]
+    var clump_normals: PackedVector3Array = clump_arrays[Mesh.ARRAY_NORMAL]
+    var clump_colors: PackedColorArray = clump_arrays[Mesh.ARRAY_COLOR]
+    check(clump_vertices.size() == 42, "seven two-triangle fronds bound leaf geometry")
+    check(clump_vertices.size() == clump_normals.size()
+        and clump_vertices.size() == clump_colors.size(),
+        "undergrowth has vertex normal and color data")
+    for pose in plant_poses:
+        var position: Vector3 = pose.origin
+        check(TerrainStudy.classify(position.x, position.z) in ["forest", "grassland"],
+            "undergrowth is restricted to dry forest/meadow biomes")
+        check(absf(position.y - TerrainStudy.sample_height(position.x, position.z) - 0.05) < 0.0001,
+            "undergrowth follows terrain height, with fixed soil offset")
+        check(not (position.x > 5.5 and position.x < 16.0
+            and position.z > -19.0 and position.z < -6.0),
+            "ground cover leaves safe landing fixture clear")
+    visuals.set_clock(3.0, false)
+    check(is_equal_approx(visuals.understory.get_shader_parameter("study_time"), 3.0)
+        and is_equal_approx(visuals.understory.get_shader_parameter("motion_scale"), 1.0),
+        "understory wind is controlled by the shared scene clock")
+    visuals.set_clock(24.0, true)
+    check(is_zero_approx(visuals.understory.get_shader_parameter("motion_scale")),
+        "reduced motion restores stationary foliage")
 
     scene._clock = 9.0
     scene._paused = true
