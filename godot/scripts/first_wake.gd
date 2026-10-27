@@ -5,6 +5,7 @@ extends Node2D
 const Actor = preload("res://scripts/pilot_actor.gd")
 const DockDepthReview = preload("res://scripts/dock_depth_review.gd")
 const TrainingArena = preload("res://scenes/training_arena.tscn")
+const CharacterLineupReview = preload("res://scripts/character_lineup_review.gd")
 const IoniaUnapprovedArt = preload("res://art-review/ionia-original-v01-green-eyes.svg")
 const IoniaAlignmentReview = preload("res://art-review/ionia-cream-leather-review.svg")
 const WALKABLE_DECK = Rect2(Vector2(145, 410), Vector2(670, 112))
@@ -22,6 +23,8 @@ var ionia_route_review_enabled: bool = false
 var dock_depth_review_enabled: bool = false
 var deck_backdrop: Node2D
 var deck_foreground: Node2D
+var character_lineup_review_enabled: bool = false
+var character_lineup_review: Control
 
 func _ready() -> void:
     deck_backdrop = DockDepthReview.new()
@@ -60,11 +63,12 @@ func _ready() -> void:
     add_child(deck_foreground)
 
     var ui := CanvasLayer.new()
+    ui.name = "CanvasLayer"
     add_child(ui)
     status = Label.new()
     status.position = Vector2(28, 28)
     status.add_theme_font_size_override("font_size", 15)
-    status.text = "AETHERWAKE / GODOT PILOT — REVIEW ONLY\nArrows: move   E: talk   B: arena   R: Ender   G: dock depth\nV/C: original/aligned Ionia   T: front walk   Y: four-way Ionia (unapproved)"
+    status.text = "AETHERWAKE / GODOT PILOT — REVIEW ONLY\nArrows: move   E: talk   B: arena   R: Ender   G: dock depth   L: lineup\nV/C: original/aligned Ionia   T: front walk   Y: four-way Ionia (unapproved)"
     ui.add_child(status)
     dialogue = Label.new()
     dialogue.position = Vector2(100, 555)
@@ -72,6 +76,9 @@ func _ready() -> void:
     dialogue.text = "Ionia: Candidate dock encounter. Visual and story acceptance pending."
     dialogue.visible = false
     ui.add_child(dialogue)
+    character_lineup_review = CharacterLineupReview.new()
+    character_lineup_review.visible = false
+    ui.add_child(character_lineup_review)
     queue_redraw()
 
 func _draw() -> void:
@@ -99,6 +106,17 @@ func _draw() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
     if not (event is InputEventKey) or not event.pressed or event.echo:
+        return
+    if event.keycode == KEY_L:
+        set_character_lineup_review_enabled(not character_lineup_review_enabled)
+        return
+    if character_lineup_review_enabled:
+        if event.keycode == KEY_ESCAPE:
+            set_character_lineup_review_enabled(false)
+        elif event.keycode == KEY_BRACKETLEFT:
+            character_lineup_review.set_walk_phase(character_lineup_review.walk_phase - 1)
+        elif event.keycode == KEY_BRACKETRIGHT:
+            character_lineup_review.set_walk_phase(character_lineup_review.walk_phase + 1)
         return
     if event.keycode == KEY_E and ender.global_position.distance_to(ionia.global_position) <= 110.0:
         dialogue_open = not dialogue_open
@@ -138,6 +156,18 @@ func _unhandled_key_input(event: InputEvent) -> void:
     elif event.keycode == KEY_ESCAPE:
         dialogue_open = false
         dialogue.visible = false
+
+
+func set_character_lineup_review_enabled(enabled: bool) -> void:
+    # Review-only overlay: no movement, dialogues or gameplay state changes.
+    character_lineup_review_enabled = enabled
+    character_lineup_review.visible = enabled
+    ender.set_physics_process(not enabled)
+    ionia.set_physics_process(not enabled)
+    status.visible = not enabled
+    if enabled:
+        dialogue.visible = false
+        dialogue_open = false
 
 
 func set_dock_depth_review_enabled(enabled: bool) -> void:
