@@ -2,7 +2,7 @@ extends SceneTree
 ## Full real-scene check of read-only equipment drawing in Chapter I battle.
 const Scene = preload("res://scenes/first_wake_chapter1_review.tscn")
 const Encounter = preload("res://scripts/first_wake_formula_encounter.gd")
-const Projection = preload("res://scripts/weapon_battle_visual_projection.gd")
+const VisualBridge = preload("res://scripts/weapon_battle_visual_projection.gd")
 
 class FixedRng:
     extends RefCounted
@@ -13,18 +13,18 @@ func _initialize() -> void:
     call_deferred("_verify")
 
 func _verify() -> void:
-    var bridge = Projection.new()
+    var bridge = VisualBridge.new()
     if not bridge.validate():
         _fail("staff visual bridge did not validate")
         return
     for actor in ["lyra", "ionia", "reson", "aepex", "unknown"]:
-        if not bridge.initial(actor,Projection.ENDER_STAFF_ID).is_empty():
+        if not bridge.initial(actor,VisualBridge.ENDER_STAFF_ID).is_empty():
             _fail("non-authorized actor acquired staff art: "+actor)
             return
     if not bridge.initial("ender","practice_sword").is_empty():
         _fail("proposed sword incorrectly equipped in current Crossing battle")
         return
-    if not bridge.accepted_action("ender",Projection.ENDER_STAFF_ID,
+    if not bridge.accepted_action("ender",VisualBridge.ENDER_STAFF_ID,
         "staff.centerline_drive",0.3).is_empty():
         _fail("proposed skill gained formula visual authorization")
         return
@@ -47,7 +47,7 @@ func _verify() -> void:
         _fail("formula review could not start")
         return
     var initial: Dictionary = visual.visual_contract()
-    if not visual.visible or str(initial.get("weaponId","")) != Projection.ENDER_STAFF_ID \
+    if not visual.visible or str(initial.get("weaponId","")) != VisualBridge.ENDER_STAFF_ID \
         or str(initial.get("action","")) != "idle":
         _fail("initial battle slot was not Ender's staff")
         return
