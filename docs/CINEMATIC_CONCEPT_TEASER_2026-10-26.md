@@ -6,7 +6,7 @@ A narrated, image-based visual teaser developed on October 26, 2026, to explore 
 
 > **Concept media only.** Generated illustrations and narration; **not recorded Godot gameplay**, a live-engine cinematic, or verified footage of implemented features. Designs shown for characters, the airship and geography are exploratory rather than approved production assets or new canon. The Moon Bridge's hidden activation requirements are intentionally not disclosed.
 
-**Ship canon clarification:** The **Aureate Wake** is the established dragonfly-like airship and home of the five protagonists. A distinct ship called **the Dragonfly** is **not currently canon**; it may be considered for future plot purposes, but no such narrative decision has been made. The teaser's ship imagery or narration must not be used to promote the Dragonfly into canon or to rename the Aureate Wake.
+**Ship canon clarification:** The **Aureate Wake** is the established dragonfly-like airship and home of the five protagonists. **The Dragonfly** is now established as a **Frigate-class airship**, significantly larger than the Aureate Wake. It is a distinct vessel, not a rename or alternate identity for the protagonists' home. Its owners, crew, affiliation, exact dimensions, appearance, capabilities, and eventual plot function remain undecided. The teaser's ship imagery or narration must not be used to invent frigate specifications or to rename the Aureate Wake.
 
 **Status:** Finished external narrated video; creator artistic approval and public marketing/release review remain pending. This link does not change the playable-build status, development roadmap or quality gates.
 
