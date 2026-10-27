@@ -82,7 +82,9 @@ func bind_terrain(terrain: Node3D) -> void:
     var crowns: MultiMeshInstance3D = terrain.get_node("ForestCrowns")
     crowns.multimesh.mesh = _layered_crown()
     crowns.material_override = foliage
-    terrain.get_node("BroadleafCrowns").material_override = broadleaf
+    var broad_crowns: MultiMeshInstance3D = terrain.get_node("BroadleafCrowns")
+    broad_crowns.multimesh.mesh = _broadleaf_crown()
+    broad_crowns.material_override = broadleaf
 
 func set_clock(seconds: float, reduced: bool) -> void:
     refresh_coverage()
@@ -147,6 +149,38 @@ func _layered_crown() -> ArrayMesh:
             _crown_triangle(surface, lower_a, lower_b, shoulder_a, underside)
             _crown_triangle(surface, shoulder_a, lower_b, shoulder_b, underside)
             _crown_triangle(surface, shoulder_a, shoulder_b, crown_top, sunward)
+    return surface.commit()
+
+# Three overlapping, compressed leaf masses make a less spherical silhouette.
+# They are one instanced mesh, not individual meshes per tree or final foliage.
+func _broadleaf_crown() -> ArrayMesh:
+    var primitive := SphereMesh.new()
+    primitive.radius = 0.90
+    primitive.height = 1.80
+    primitive.radial_segments = 7
+    primitive.rings = 3
+    var source: Array = primitive.surface_get_arrays(0)
+    var points: PackedVector3Array = source[Mesh.ARRAY_VERTEX]
+    var normals: PackedVector3Array = source[Mesh.ARRAY_NORMAL]
+    var indices: PackedInt32Array = source[Mesh.ARRAY_INDEX]
+    var surface := SurfaceTool.new()
+    surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var centers: Array[Vector3] = [
+        Vector3(-0.43, -0.15, -0.12), Vector3(0.43, -0.02, 0.13),
+        Vector3(0.04, 0.36, -0.18)]
+    var scales: Array[Vector3] = [
+        Vector3(1.0, 0.77, 0.94), Vector3(0.91, 0.80, 1.0),
+        Vector3(0.84, 0.78, 0.86)]
+    var colors: Array[Color] = [
+        Color(0.91, 0.96, 0.81), Color(1.0, 1.0, 0.86), Color(1.04, 1.02, 0.90)]
+    for lobe in range(centers.size()):
+        var scale: Vector3 = scales[lobe]
+        for index in indices:
+            var n: Vector3 = normals[index]
+            var transformed_normal := Vector3(n.x / scale.x, n.y / scale.y, n.z / scale.z).normalized()
+            surface.set_normal(transformed_normal)
+            surface.set_color(colors[lobe])
+            surface.add_vertex(points[index] * scale + centers[lobe])
     return surface.commit()
 
 func _crown_triangle(surface: SurfaceTool, a: Vector3, b: Vector3,
