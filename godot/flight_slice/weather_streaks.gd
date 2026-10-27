@@ -33,12 +33,18 @@ func _ready() -> void:
     add_child(instances)
 
 func set_conditions(weather_index: int, scene_clock: float,
-        reduced_motion: bool, low_quality: bool) -> void:
-    # Hide moving streaks entirely for low-detail and reduced-motion modes.
-    # Clouds and fog still convey conditions without moving foreground particles.
-    instances.visible = weather_index >= 2 and not reduced_motion and not low_quality
+        reduced_motion: bool, low_quality: bool,
+        intensity: float = -1.0) -> void:
+    # Default retains the discrete legacy contract for independent call sites.
+    # The optional continuous value fades weather without spawning instances.
+    var effective: float = intensity
+    if not is_finite(effective) or effective < 0.0:
+        effective = 0.0 if weather_index < 2 else (0.60 if weather_index == 2 else 1.0)
+    effective = clampf(effective, 0.0, 1.0)
+    # No moving rain in reduced-motion or low-quality presentation modes.
+    instances.visible = effective > 0.035 and not reduced_motion and not low_quality
     material.set_shader_parameter("study_time", scene_clock)
-    material.set_shader_parameter("opacity", 0.70 if weather_index == 2 else 1.0)
+    material.set_shader_parameter("opacity", effective)
 
 func follow_camera(view: Camera3D) -> void:
     global_transform = view.global_transform
