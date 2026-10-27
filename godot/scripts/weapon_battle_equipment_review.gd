@@ -85,6 +85,18 @@ func _button(value: String, at: Vector2, dimensions: Vector2) -> Button:
     entry.position = at
     entry.size = dimensions
     entry.add_theme_font_size_override("font_size",15)
+    entry.add_theme_color_override("font_color",PAPER)
+    entry.add_theme_color_override("font_hover_color",Color("#ffffff"))
+    entry.add_theme_color_override("font_disabled_color",Color("#d0d6cb"))
+    var surface := StyleBoxFlat.new()
+    surface.bg_color = Color("#254358")
+    surface.border_color = Color("#6e9998")
+    surface.set_border_width_all(1)
+    surface.set_corner_radius_all(5)
+    entry.add_theme_stylebox_override("normal",surface)
+    var inactive := surface.duplicate()
+    inactive.bg_color = Color("#263743")
+    entry.add_theme_stylebox_override("disabled",inactive)
     add_child(entry)
     return entry
 
@@ -128,15 +140,16 @@ func _build() -> void:
     add_child(timeline_slider)
 
     phase_label = _label("",Vector2(30,472),Vector2(449,30),16)
-    authority_label = _label("",Vector2(30,505),Vector2(913,27),14)
-    cue_label = _label("",Vector2(30,541),Vector2(913,27),14)
+    authority_label = _label("",Vector2(30,505),Vector2(439,55),14)
+    authority_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    cue_label = _label("",Vector2(30,574),Vector2(910,27),14)
 
     pose_node = Pose.new()
     pose_node.name = "ReadOnlyEquippedBattleRig"
     pose_node.position = Vector2(708,331)
     add_child(pose_node)
     _label("GEOMETRIC TRAINING PROXY — NOT ENDER ART",Vector2(489,105),Vector2(460,26),14)
-    target_label = _label("",Vector2(494,542),Vector2(450,26),13)
+    target_label = _label("",Vector2(494,545),Vector2(450,26),13)
     var footer := _label(
         "NO DAMAGE OR TURN DISPATCH • NO CANON EQUIP ASSIGNMENT • NO SAVE WRITES",
         Vector2(31,608),Vector2(899,28),14)
@@ -214,9 +227,9 @@ func _refresh() -> void:
         str(entry["phase"]).capitalize(),float(entry["elapsed"]),float(entry["duration"])
     ]
     authority_label.text = (
-        "Ender staffStrike: ALLOWED IN FORMULA CONTRACT, ANIMATION ONLY — NOT EXECUTED"
+        "Ender staffStrike: contract-authorized. Animation preview only; no combat turn issued."
         if authorized_intent_mode else
-        "ANONYMOUS SANDBOX: NEVER AN ACTOR LOADOUT OR COMBAT PERMISSION"
+        "Anonymous training loadout. No actor equipment assignment or combat authority."
     )
     cue_label.text = "Physical direction: "+str(entry["cue"])
     target_label.text = "Read-only fixture target: %d / %d HP" % [
