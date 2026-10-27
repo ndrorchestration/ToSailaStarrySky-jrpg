@@ -26,3 +26,9 @@ The isolated `character_field_walk_review_actor.gd` can opt into `baseline_corre
 2. Quantify **foot world-slip during stance**, including phase transitions: world position + art-foot pixel in each consecutive rendered frame; compare with animation beat and actual gait velocity. Held-frame displacement alone is a diagnostic upper bound, not a stance test.
 3. Review true-scale material/lighting, proportions, hair and tattoo continuity, idle and stop transitions, collision/terrain grounding, reduced-motion alternative, creator approval.
 4. Do NOT move these actors into Ionia-first Chapter One gameplay or infer combat magic from innate Water, Air and Fire resonance; keep all draft PRs unmerged until explicit authorization.
+
+## First native measurement / limits
+
+At initial head `19619318`, Godot 4.7.2 reported consistent lower boot-alpha rows for **all 24 frames of each character**: Lyra y122, Aepex y122, Reson y123. This means the existing study atlases do **not** show detectable vertical *bottom-alpha-row jitter*. The reversible review-only correction is a constant **+2 px, +2 px, +1 px** respectively, not a claim that source poses have dynamic vertical drift. Native screenshot comparison with guides off/on passed on that head.
+
+The next more relevant problem is **world-space displacement of the same candidate boot-alpha pixel while its frame is held**. The supplemental held-frame marker metric samples actual `CharacterBody2D` positions across the closed four-way route and reports maximum world displacement per facing. This **still does not mark true stance phases**; it specifically makes uncorrected sliding opportunity visible for future contact authoring. Avoid treating a green pixel-baseline test as a passing planted-foot test.
