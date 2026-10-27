@@ -2,6 +2,14 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Ordinary bow lookout visual study — 2026-10-27
+
+Creator direction establishes an **ordinarily accessible forward open-air deck** on the compact Aureate Wake and authentic surface seaworthiness. This public-safe Godot geometry study adds `ship_foredeck.gd` as a standalone scene child mounted on the flight ship. It has a native upper-facing tapered platform, guardrails, bow crossrail, open rear crew threshold, and a review-only weather cover. Default is **open**. A translucent hood can be toggled visually but is **not** a watertight or pressure-rated enclosure.
+
+`tests/test_slice.gd` asserts Godot winding, deck meshes and guardrails, normal-open state, and reversible coverage. `tests/capture_ship_hero.gd` adds two actual native 960×640 angles for ordinary-open and ordinary-weather-cover rendering. The existing native hull mesh remains unscaled study geometry; there is no actual walkable access hatch, pressure hull, buoyancy physics, environmental protective system, human-scale clearance or new gameplay mode. Undisclosed vessel capabilities and their plot reveals are reserved for private author-controlled lore; do not expose them through public repo documentation, tests, identifiers or screenshots.
+
+**Future engineering gate:** reconcile the external ship's scaled envelope to the independently modeled crew interior; validate surface stability, hatch/rail headroom, egress, wave impact, hull sealing, pressure/thermal safety and target hardware performance. The foredeck is not safe under all external conditions simply because it appears accessible visually.
+
 ## Aureate Wake ship-as-home cutaway: isolated layout proposal — 2026-10-27
 
 **Status: PROPOSAL / executable visualization, not Chapter I or canon floorplan.** This vertical slice includes an optional, *standalone* `res://ship_interior_study.tscn` Godot 4.7.2 scene. It is not installed into `main.tscn`; current exterior dimensions, six-strut docking clearance, gameplay navigation, saves, party joins and story remain untouched.
