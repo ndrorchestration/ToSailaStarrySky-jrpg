@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="128" viewBox="0 0 480 128" shape-rendering="crispEdges">
+ <title>Lyra — front walk, six-phase draft art study</title>
+ <desc>Original editable path-based front-facing sprite candidate; not creator-approved, not combat kit.</desc>
+ <g transform="translate(0,0)"><g id="lyra-pose-0" data-review="unapproved-front-only">
+ <!-- Long red hair, practical clothes, and a restrained pink spirit-energy accent are visual studies. -->
+ <path d="M23 39 Q20 21 38 22 Q61 19 59 43 L62 83 Q55 91 47 83 L49 58 L31 59 L30 85 Q20 89 17 80 Z" fill="#7c2c2c" />
+ <path d="M24 41 Q24 27 39 27 Q54 25 56 42 L55 73 L50 74 L48 52 L32 55 L30 74 L25 75 Z" fill="#ac4535" />
+ <path d="M35 92 L45 92 L50 116 L49 123 L43 123 L39 108 L36 122 L30 122 L29 115 Z" fill="#344458" />
+ <path d="M27 113 L33 110 L32 123 L23 123 L22 120 Z" fill="#493f3d" />
+ <path d="M49 107 L55 110 L59 121 L59 123 L47 123 Z" fill="#493f3d" />
+ <rect x="32" y="117" width="5" height="2" fill="#a08d76" /><rect x="47" y="114" width="5" height="2" fill="#a08d76" />
+ <path d="M29 61 L51 61 L58 92 L51 100 L26 99 L22 89 Z" fill="#27566d" />
+ <path d="M33 62 L45 62 L49 94 L33 95 L31 84 Z" fill="#efe4cf" />
+ <path d="M25 64 L32 65 L29 92 L24 95 L20 89 L21 72 Z" fill="#426f83" />
+ <path d="M50 65 L56 66 L62 88 L56 94 L52 91 Z" fill="#426f83" />
+ <path d="M21 83 L26 85 L30 91 L25 94 L20 90 Z" fill="#edb38f" />
+ <path d="M57 83 L61 84 L64 91 L59 94 L55 90 Z" fill="#edb38f" />
+ <path d="M30 96 L51 96 L52 100 L28 100 Z" fill="#ad8064" />
+ <rect x="36" y="96" width="8" height="3" fill="#dab27a" /><rect x="39" y="97" width="3" height="2" fill="#355565" />
+ <path d="M32 40 L49 39 L54 50 L49 62 L32 61 L27 51 Z" fill="#efbf9a" />
+ <rect x="30" y="49" width="2" height="2" fill="#603c38" /><rect x="48" y="49" width="2" height="2" fill="#603c38" />
+ <path d="M35 54 L39 55 L43 54" fill="none" stroke="#b77c6d" stroke-width="1" stroke-linecap="square"/>
+ <path d="M24 42 Q21 22 40 23 Q60 22 57 41 L49 37 L44 32 Q36 45 28 41 Z" fill="#b24c36" />
+ <path d="M26 42 Q23 31 34 27 M43 29 Q53 31 55 40 L57 75 L52 79 L50 49 Z" fill="#d7794d" />
+ <path d="M27 67 Q23 78 25 86" fill="none" stroke="#e18c5a" stroke-width="2" stroke-linecap="square"/>
+ <circle cx="60" cy="77" r="3" fill="#dc99c4"/><circle cx="64" cy="73" r="1.5" fill="#f8d5e7"/>
+ <path d="M59 78 Q67 81 65 70" fill="none" stroke="#bc78ac" stroke-width="1" stroke-linecap="square"/>
+ </g></g>
+<g transform="translate(80,0)"><g id="lyra-pose-1" data-review="unapproved-front-only">
+ <!-- Long red hair, practical clothes, and a restrained pink spirit-energy accent are visual studies. -->
+ <path d="M23 40 Q20 22 38 23 Q61 20 59 44 L62 83 Q55 91 47 83 L49 58 L31 59 L30 85 Q20 89 17 80 Z" fill="#7c2c2c" />
+ <path d="M24 42 Q24 28 39 28 Q54 26 56 43 L55 73 L50 74 L48 52 L32 55 L30 74 L25 75 Z" fill="#ac4535" />
+ <path d="M35 92 L45 92 L50 116 L49 123 L43 123 L39 108 L36 122 L30 122 L29 115 Z" fill="#344458" />
+ <path d="M31 113 L37 110 L36 123 L27 123 L26 120 Z" fill="#493f3d" />
+ <path d="M46 109 L52 112 L56 121 L56 123 L44 123 Z" fill="#493f3d" />
+ <rect x="32" y="117" width="5" height="2" fill="#a08d76" /><rect x="47" y="116" width="5" height="2" fill="#a08d76" />
+ <path d="M29 62 L51 62 L58 93 L51 100 L26 99 L22 89 Z" fill="#27566d" />
+ <path d="M33 63 L45 63 L49 94 L33 95 L31 84 Z" fill="#efe4cf" />
+ <path d="M25 65 L32 66 L29 92 L24 95 L20 89 L21 72 Z" fill="#426f83" />
+ <path d="M50 66 L56 67 L62 88 L56 94 L52 91 Z" fill="#426f83" />
+ <path d="M21 84 L26 86 L30 92 L25 94 L20 90 Z" fill="#edb38f" />
+ <path d="M57 84 L61 85 L64 92 L59 94 L55 90 Z" fill="#edb38f" />
+ <path d="M30 97 L51 97 L52 100 L28 100 Z" fill="#ad8064" />
+ <rect x="36" y="97" width="8" height="3" fill="#dab27a" /><rect x="39" y="98" width="3" height="2" fill="#355565" />
+ <path d="M32 41 L49 40 L54 51 L49 63 L32 62 L27 52 Z" fill="#efbf9a" />
+ <rect x="30" y="50" width="2" height="2" fill="#603c38" /><rect x="48" y="50" width="2" height="2" fill="#603c38" />
+ <path d="M35 55 L39 56 L43 55" fill="none" stroke="#b77c6d" stroke-width="1" stroke-linecap="square"/>
+ <path d="M24 43 Q21 23 40 24 Q60 23 57 42 L49 38 L44 33 Q36 46 28 42 Z" fill="#b24c36" />
+ <path d="M26 43 Q23 32 34 28 M43 30 Q53 32 55 41 L57 75 L52 79 L50 49 Z" fill="#d7794d" />
+ <path d="M27 68 Q23 79 25 87" fill="none" stroke="#e18c5a" stroke-width="2" stroke-linecap="square"/>
+ <circle cx="60" cy="78" r="3" fill="#dc99c4"/><circle cx="64" cy="74" r="1.5" fill="#f8d5e7"/>
+ <path d="M59 79 Q67 82 65 71" fill="none" stroke="#bc78ac" stroke-width="1" stroke-linecap="square"/>
+ </g></g>
+<g transform="translate(160,0)"><g id="lyra-pose-2" data-review="unapproved-front-only">
+ <!-- Long red hair, practical clothes, and a restrained pink spirit-energy accent are visual studies. -->
+ <path d="M23 39 Q20 21 38 22 Q61 19 59 43 L62 83 Q55 91 47 83 L49 58 L31 59 L30 85 Q20 89 17 80 Z" fill="#7c2c2c" />
+ <path d="M24 41 Q24 27 39 27 Q54 25 56 42 L55 73 L50 74 L48 52 L32 55 L30 74 L25 75 Z" fill="#ac4535" />
+ <path d="M35 92 L45 92 L50 116 L49 123 L43 123 L39 108 L36 122 L30 122 L29 115 Z" fill="#344458" />
+ <path d="M36 109 L42 106 L41 123 L32 123 L31 120 Z" fill="#493f3d" />
+ <path d="M40 111 L46 114 L50 121 L50 123 L38 123 Z" fill="#493f3d" />
+ <rect x="32" y="113" width="5" height="2" fill="#a08d76" /><rect x="47" y="118" width="5" height="2" fill="#a08d76" />
+ <path d="M29 61 L51 61 L58 92 L51 100 L26 99 L22 89 Z" fill="#27566d" />
+ <path d="M33 62 L45 62 L49 94 L33 95 L31 84 Z" fill="#efe4cf" />
+ <path d="M25 64 L32 65 L29 92 L24 95 L20 89 L21 72 Z" fill="#426f83" />
+ <path d="M50 65 L56 66 L62 88 L56 94 L52 91 Z" fill="#426f83" />
+ <path d="M21 83 L26 85 L30 91 L25 94 L20 90 Z" fill="#edb38f" />
+ <path d="M57 83 L61 84 L64 91 L59 94 L55 90 Z" fill="#edb38f" />
+ <path d="M30 96 L51 96 L52 100 L28 100 Z" fill="#ad8064" />
+ <rect x="36" y="96" width="8" height="3" fill="#dab27a" /><rect x="39" y="97" width="3" height="2" fill="#355565" />
+ <path d="M32 40 L49 39 L54 50 L49 62 L32 61 L27 51 Z" fill="#efbf9a" />
+ <rect x="30" y="49" width="2" height="2" fill="#603c38" /><rect x="48" y="49" width="2" height="2" fill="#603c38" />
+ <path d="M35 54 L39 55 L43 54" fill="none" stroke="#b77c6d" stroke-width="1" stroke-linecap="square"/>
+ <path d="M24 42 Q21 22 40 23 Q60 22 57 41 L49 37 L44 32 Q36 45 28 41 Z" fill="#b24c36" />
+ <path d="M26 42 Q23 31 34 27 M43 29 Q53 31 55 40 L57 75 L52 79 L50 49 Z" fill="#d7794d" />
+ <path d="M27 67 Q23 78 25 86" fill="none" stroke="#e18c5a" stroke-width="2" stroke-linecap="square"/>
+ <circle cx="60" cy="77" r="3" fill="#dc99c4"/><circle cx="64" cy="73" r="1.5" fill="#f8d5e7"/>
+ <path d="M59 78 Q67 81 65 70" fill="none" stroke="#bc78ac" stroke-width="1" stroke-linecap="square"/>
+ </g></g>
+<g transform="translate(240,0)"><g id="lyra-pose-3" data-review="unapproved-front-only">
+ <!-- Long red hair, practical clothes, and a restrained pink spirit-energy accent are visual studies. -->
+ <path d="M23 40 Q20 22 38 23 Q61 20 59 44 L62 83 Q55 91 47 83 L49 58 L31 59 L30 85 Q20 89 17 80 Z" fill="#7c2c2c" />
+ <path d="M24 42 Q24 28 39 28 Q54 26 56 43 L55 73 L50 74 L48 52 L32 55 L30 74 L25 75 Z" fill="#ac4535" />
+ <path d="M35 92 L45 92 L50 116 L49 123 L43 123 L39 108 L36 122 L30 122 L29 115 Z" fill="#344458" />
+ <path d="M34 111 L40 108 L39 123 L30 123 L29 120 Z" fill="#493f3d" />
+ <path d="M41 111 L47 114 L51 121 L51 123 L39 123 Z" fill="#493f3d" />
+ <rect x="32" y="115" width="5" height="2" fill="#a08d76" /><rect x="47" y="118" width="5" height="2" fill="#a08d76" />
+ <path d="M29 62 L51 62 L58 93 L51 100 L26 99 L22 89 Z" fill="#27566d" />
+ <path d="M33 63 L45 63 L49 94 L33 95 L31 84 Z" fill="#efe4cf" />
+ <path d="M25 65 L32 66 L29 92 L24 95 L20 89 L21 72 Z" fill="#426f83" />
+ <path d="M50 66 L56 67 L62 88 L56 94 L52 91 Z" fill="#426f83" />
+ <path d="M21 84 L26 86 L30 92 L25 94 L20 90 Z" fill="#edb38f" />
+ <path d="M57 84 L61 85 L64 92 L59 94 L55 90 Z" fill="#edb38f" />
+ <path d="M30 97 L51 97 L52 100 L28 100 Z" fill="#ad8064" />
+ <rect x="36" y="97" width="8" height="3" fill="#dab27a" /><rect x="39" y="98" width="3" height="2" fill="#355565" />
+ <path d="M32 41 L49 40 L54 51 L49 63 L32 62 L27 52 Z" fill="#efbf9a" />
+ <rect x="30" y="50" width="2" height="2" fill="#603c38" /><rect x="48" y="50" width="2" height="2" fill="#603c38" />
+ <path d="M35 55 L39 56 L43 55" fill="none" stroke="#b77c6d" stroke-width="1" stroke-linecap="square"/>
+ <path d="M24 43 Q21 23 40 24 Q60 23 57 42 L49 38 L44 33 Q36 46 28 42 Z" fill="#b24c36" />
+ <path d="M26 43 Q23 32 34 28 M43 30 Q53 32 55 41 L57 75 L52 79 L50 49 Z" fill="#d7794d" />
+ <path d="M27 68 Q23 79 25 87" fill="none" stroke="#e18c5a" stroke-width="2" stroke-linecap="square"/>
+ <circle cx="60" cy="78" r="3" fill="#dc99c4"/><circle cx="64" cy="74" r="1.5" fill="#f8d5e7"/>
+ <path d="M59 79 Q67 82 65 71" fill="none" stroke="#bc78ac" stroke-width="1" stroke-linecap="square"/>
+ </g></g>
+<g transform="translate(320,0)"><g id="lyra-pose-4" data-review="unapproved-front-only">
+ <!-- Long red hair, practical clothes, and a restrained pink spirit-energy accent are visual studies. -->
+ <path d="M23 39 Q20 21 38 22 Q61 19 59 43 L62 83 Q55 91 47 83 L49 58 L31 59 L30 85 Q20 89 17 80 Z" fill="#7c2c2c" />
+ <path d="M24 41 Q24 27 39 27 Q54 25 56 42 L55 73 L50 74 L48 52 L32 55 L30 74 L25 75 Z" fill="#ac4535" />
+ <path d="M35 92 L45 92 L50 116 L49 123 L43 123 L39 108 L36 122 L30 122 L29 115 Z" fill="#344458" />
+ <path d="M26 113 L32 110 L31 123 L22 123 L21 120 Z" fill="#493f3d" />
+ <path d="M48 107 L54 110 L58 121 L58 123 L46 123 Z" fill="#493f3d" />
+ <rect x="32" y="117" width="5" height="2" fill="#a08d76" /><rect x="47" y="114" width="5" height="2" fill="#a08d76" />
+ <path d="M29 61 L51 61 L58 92 L51 100 L26 99 L22 89 Z" fill="#27566d" />
+ <path d="M33 62 L45 62 L49 94 L33 95 L31 84 Z" fill="#efe4cf" />
+ <path d="M25 64 L32 65 L29 92 L24 95 L20 89 L21 72 Z" fill="#426f83" />
+ <path d="M50 65 L56 66 L62 88 L56 94 L52 91 Z" fill="#426f83" />
+ <path d="M21 83 L26 85 L30 91 L25 94 L20 90 Z" fill="#edb38f" />
+ <path d="M57 83 L61 84 L64 91 L59 94 L55 90 Z" fill="#edb38f" />
+ <path d="M30 96 L51 96 L52 100 L28 100 Z" fill="#ad8064" />
+ <rect x="36" y="96" width="8" height="3" fill="#dab27a" /><rect x="39" y="97" width="3" height="2" fill="#355565" />
+ <path d="M32 40 L49 39 L54 50 L49 62 L32 61 L27 51 Z" fill="#efbf9a" />
+ <rect x="30" y="49" width="2" height="2" fill="#603c38" /><rect x="48" y="49" width="2" height="2" fill="#603c38" />
+ <path d="M35 54 L39 55 L43 54" fill="none" stroke="#b77c6d" stroke-width="1" stroke-linecap="square"/>
+ <path d="M24 42 Q21 22 40 23 Q60 22 57 41 L49 37 L44 32 Q36 45 28 41 Z" fill="#b24c36" />
+ <path d="M26 42 Q23 31 34 27 M43 29 Q53 31 55 40 L57 75 L52 79 L50 49 Z" fill="#d7794d" />
+ <path d="M27 67 Q23 78 25 86" fill="none" stroke="#e18c5a" stroke-width="2" stroke-linecap="square"/>
+ <circle cx="60" cy="77" r="3" fill="#dc99c4"/><circle cx="64" cy="73" r="1.5" fill="#f8d5e7"/>
+ <path d="M59 78 Q67 81 65 70" fill="none" stroke="#bc78ac" stroke-width="1" stroke-linecap="square"/>
+ </g></g>
+<g transform="translate(400,0)"><g id="lyra-pose-5" data-review="unapproved-front-only">
+ <!-- Long red hair, practical clothes, and a restrained pink spirit-energy accent are visual studies. -->
+ <path d="M23 40 Q20 22 38 23 Q61 20 59 44 L62 83 Q55 91 47 83 L49 58 L31 59 L30 85 Q20 89 17 80 Z" fill="#7c2c2c" />
+ <path d="M24 42 Q24 28 39 28 Q54 26 56 43 L55 73 L50 74 L48 52 L32 55 L30 74 L25 75 Z" fill="#ac4535" />
+ <path d="M35 92 L45 92 L50 116 L49 123 L43 123 L39 108 L36 122 L30 122 L29 115 Z" fill="#344458" />
+ <path d="M30 111 L36 108 L35 123 L26 123 L25 120 Z" fill="#493f3d" />
+ <path d="M45 111 L51 114 L55 121 L55 123 L43 123 Z" fill="#493f3d" />
+ <rect x="32" y="115" width="5" height="2" fill="#a08d76" /><rect x="47" y="118" width="5" height="2" fill="#a08d76" />
+ <path d="M29 62 L51 62 L58 93 L51 100 L26 99 L22 89 Z" fill="#27566d" />
+ <path d="M33 63 L45 63 L49 94 L33 95 L31 84 Z" fill="#efe4cf" />
+ <path d="M25 65 L32 66 L29 92 L24 95 L20 89 L21 72 Z" fill="#426f83" />
+ <path d="M50 66 L56 67 L62 88 L56 94 L52 91 Z" fill="#426f83" />
+ <path d="M21 84 L26 86 L30 92 L25 94 L20 90 Z" fill="#edb38f" />
+ <path d="M57 84 L61 85 L64 92 L59 94 L55 90 Z" fill="#edb38f" />
+ <path d="M30 97 L51 97 L52 100 L28 100 Z" fill="#ad8064" />
+ <rect x="36" y="97" width="8" height="3" fill="#dab27a" /><rect x="39" y="98" width="3" height="2" fill="#355565" />
+ <path d="M32 41 L49 40 L54 51 L49 63 L32 62 L27 52 Z" fill="#efbf9a" />
+ <rect x="30" y="50" width="2" height="2" fill="#603c38" /><rect x="48" y="50" width="2" height="2" fill="#603c38" />
+ <path d="M35 55 L39 56 L43 55" fill="none" stroke="#b77c6d" stroke-width="1" stroke-linecap="square"/>
+ <path d="M24 43 Q21 23 40 24 Q60 23 57 42 L49 38 L44 33 Q36 46 28 42 Z" fill="#b24c36" />
+ <path d="M26 43 Q23 32 34 28 M43 30 Q53 32 55 41 L57 75 L52 79 L50 49 Z" fill="#d7794d" />
+ <path d="M27 68 Q23 79 25 87" fill="none" stroke="#e18c5a" stroke-width="2" stroke-linecap="square"/>
+ <circle cx="60" cy="78" r="3" fill="#dc99c4"/><circle cx="64" cy="74" r="1.5" fill="#f8d5e7"/>
+ <path d="M59 79 Q67 82 65 71" fill="none" stroke="#bc78ac" stroke-width="1" stroke-linecap="square"/>
+ </g></g>
+</svg>
