@@ -41,7 +41,8 @@ void fragment() {
     float sand=1.0-smoothstep(0.6,2.7,p.y+noise(p.xz*0.5)*0.5);
     color=mix(color,mix(vec3(0.36,0.31,0.22),vec3(0.70,0.59,0.40),mottling),sand);
     float snow=smoothstep(16.3,19.0,p.y+noise(p.xz*0.42)*2.0)*(1.0-smoothstep(0.12,0.42,slope));
-    color=mix(color,mix(vec3(0.56,0.65,0.70),vec3(0.87,0.88,0.80),mottling),snow);
+    // Maintain cool snow highlights while leaving headroom for direct light.
+    color=mix(color,mix(vec3(0.40,0.49,0.55),vec3(0.65,0.71,0.69),mottling),snow);
     // Broad, restrained cloud shadows preserve direct-light readability.
     float cloud=noise(p.xz*0.025+vec2(study_time*0.004,0.0));
     ALBEDO=color*mix(0.82,1.0,smoothstep(0.3,0.65,cloud));
