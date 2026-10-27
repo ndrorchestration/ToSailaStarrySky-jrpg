@@ -19,7 +19,7 @@ void fragment() {
     // World-anchored grain prevents all repeated crowns from sharing a stamp.
     vec2 uv=world_pos.xz*0.53+vec2(world_pos.y*0.12,world_pos.y*0.19);
     vec3 texel=texture(foliage_microdetail,uv).rgb;
-    float detail=mix(1.0,0.74+texel.r*0.51,texture_detail_strength);
+    float detail=mix(1.0,0.63+texel.r*0.76,texture_detail_strength);
     ALBEDO=COLOR.rgb*shade*leaf_tint*mix(0.86,1.10,leaf_grain)*detail;
     ROUGHNESS=0.94; SPECULAR=0.12;
 }
