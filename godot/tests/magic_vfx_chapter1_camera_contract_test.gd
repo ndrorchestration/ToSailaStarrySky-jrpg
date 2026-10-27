@@ -46,6 +46,35 @@ func _verify() -> void:
     if not scene.light_rig.has_node("PhysicalCanvasLight"):
         _fail("native 2D light not connected to actual dock scene")
         return
+    if scene.lighting_preset != "daylight" or scene.weather_preset != "clear":
+        _fail("unapproved lighting/weather preset enabled by default")
+        return
+    var ambient = world.get_node_or_null("VisualQAOnlyAmbient")
+    var atmosphere = scene.get_node_or_null("VisualQAOnlyWeather")
+    if ambient == null or not (ambient is CanvasModulate) or atmosphere == null:
+        _fail("native atmosphere and CanvasModulate unavailable")
+        return
+    if not scene.set_lighting_preset("dusk") or ambient.color != scene.LIGHT_PROFILES["dusk"]:
+        _fail("dusk contrast review not configured")
+        return
+    if not scene.set_lighting_preset("night") or ambient.color != scene.LIGHT_PROFILES["night"]:
+        _fail("night contrast review not configured")
+        return
+    if scene.set_lighting_preset("hidden_bridge") or scene.lighting_preset != "night":
+        _fail("unknown lighting preset did not fail closed")
+        return
+    if not scene.set_weather_preset("mist") or not scene.set_weather_preset("rain"):
+        _fail("fixed mist/rain previews not available")
+        return
+    if scene.set_weather_preset("storm_story") or scene.weather_preset != "rain":
+        _fail("unknown weather preview did not fail closed")
+        return
+    scene.set_reduced_motion(true)
+    if not atmosphere.reduced_motion or atmosphere.is_processing():
+        _fail("cosmetic weather effects auto-run under reduced motion")
+        return
+    scene.set_weather_preset("clear")
+    scene.set_lighting_preset("daylight")
     var state_before: Dictionary = world.chapter.snapshot()
     var save_before: Dictionary = world.export_save_snapshot()
     var player_start: Vector2 = world.ender.global_position
@@ -98,7 +127,7 @@ func _verify() -> void:
         return
     scene.queue_free()
     await process_frame
-    print("STARRY_SKY_CHAPTER1_MAGIC_COMPOSITE_PASS: native dock+Ender, reversible camera/light/occlusion, five affinities, unchanged chapter/save")
+    print("STARRY_SKY_CHAPTER1_MAGIC_COMPOSITE_PASS: native dock+Ender, reversible camera/light/occlusion and daylight/dusk/night + mist/rain presets, five affinities, unchanged chapter/save")
     quit(0)
 
 func _fail(reason: String) -> void:

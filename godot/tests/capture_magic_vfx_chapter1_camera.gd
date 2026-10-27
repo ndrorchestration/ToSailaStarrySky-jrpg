@@ -102,6 +102,60 @@ func _capture() -> void:
         push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: Camera2D closeup did not affect rendered pixels")
         quit(13)
         return
+    # Same world/camera/actor coordinates across all isolated contrast measurements.
+    review.set_camera_closeup(false)
+    review.choose_affinity(0)
+    review.set_lighting_enabled(true)
+    review.set_lighting_preset("daylight")
+    review.set_weather_preset("clear")
+    await process_frame
+    var bright: Image = await _snapshot("chapter1-magic-daylight-clear-native-960x640.png")
+    if bright == null:
+        quit(16)
+        return
+    if not review.set_lighting_preset("dusk"):
+        push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: dusk was refused")
+        quit(17)
+        return
+    await process_frame
+    var dusk: Image = await _snapshot("chapter1-magic-dusk-clear-native-960x640.png")
+    if dusk == null:
+        quit(18)
+        return
+    if not _different(bright, dusk, Rect2i(280, 410, 270, 100)):
+        push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: dusk did not affect native dock lighting")
+        quit(19)
+        return
+    review.set_lighting_preset("night")
+    await process_frame
+    var night: Image = await _snapshot("chapter1-magic-night-clear-native-960x640.png")
+    if night == null:
+        quit(20)
+        return
+    if not _different(dusk, night, Rect2i(280, 410, 270, 100)):
+        push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: night did not affect native dock lighting")
+        quit(21)
+        return
+    review.set_weather_preset("mist")
+    await process_frame
+    var mist: Image = await _snapshot("chapter1-magic-night-mist-native-960x640.png")
+    if mist == null:
+        quit(22)
+        return
+    if not _different(night, mist, Rect2i(300, 232, 340, 180)):
+        push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: mist not visibly distinguishable")
+        quit(23)
+        return
+    review.set_weather_preset("rain")
+    await process_frame
+    var rain: Image = await _snapshot("chapter1-magic-night-rain-native-960x640.png")
+    if rain == null:
+        quit(24)
+        return
+    if not _different(night, rain, Rect2i(300, 232, 340, 180)):
+        push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: rain not visibly distinguishable")
+        quit(25)
+        return
     if review.world.chapter.snapshot() != before or review.world.export_save_snapshot() != save_before:
         push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: visual captures changed Chapter I durable state")
         quit(14)
@@ -112,6 +166,6 @@ func _capture() -> void:
         return
     review.queue_free()
     await process_frame
-    print("STARRY_SKY_CHAPTER1_MAGIC_NATIVE_CAPTURE_PASS: real dock+Ender, five affinities, layering, lighting and camera read-only A/B")
+    print("STARRY_SKY_CHAPTER1_MAGIC_NATIVE_CAPTURE_PASS: real dock+Ender, five affinities, layering and camera, daylight/dusk/night + mist/rain A/B")
     print("STARRY_SKY_CHAPTER1_MAGIC_ART_ACCEPTANCE=PENDING")
     quit(0)

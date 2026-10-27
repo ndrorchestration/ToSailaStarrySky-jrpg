@@ -1,4 +1,4 @@
-# Chapter I magic VFX + camera integration study v0.4
+# Chapter I magic VFX + camera integration study v0.5
 
 **Authority:** IMPLEMENTED REVERSIBLE REVIEW CANDIDATE; source-tested in native Godot **4.7.2** at `a42fa46c57613191ce200a1f1d0e1993109575ad`. **NOT** playable spell execution, gameplay canon, approved character art, chapter-story change, or release authorization.
 
@@ -27,3 +27,9 @@ The wrapper turns off Chapter I's unhandled gameplay input, Ender's player-contr
 This is **native 2D/2.5D layered-sprite composition**, *not* physical 3D occlusion, material-normal lighting, GPU volumetrics, actual terrain collider reactions, global navigation, battle activation, or a completed playable vertical slice. Further require real-scene captures for all phases, time-of-day contrast, camera-safe sprite legibility, at least one representative Windows GPU frame-time test, independent screenshot-based visual QA, and creator sign-off.
 
 Windows exact-platform release/Defender security gate remains independent. A CI pass on native Linux does not release or merge the game.
+
+## v0.5 environmental contrast and accessibility review candidate
+
+The standalone Chapter I VFX wrapper now exposes three **cosmetic lighting QA presets** (`daylight`, `dusk`, `night`) through a Godot `CanvasModulate`, plus deterministic `clear`, `mist`, and `rain` overlays. They are **not** game weather or story canon. `T` cycles lighting contrast; `W` cycles overlay; `M` keeps reduced motion. Default is daylight/clear, with motion reduction ON. Mist/rain remain still strokes without strobing or sound. The original Chapter I scripts are not edited.
+
+Capture test extends the real 960×640 dock evidence with daylight, dusk, night, night-mist, and night-rain images, proving distinct renderer pixels in a fixed region while the scene's actual actor position, chapter snapshot and exported save stay unchanged. It does **not** certify WCAG contrast, visual approval, day/night progression, or FPS. Every new capture remains under the same private runner evidence limit.

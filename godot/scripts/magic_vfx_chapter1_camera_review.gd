@@ -6,6 +6,13 @@ const Chapter = preload("res://scenes/first_wake_chapter1_player_preview.tscn")
 const Catalog = preload("res://scripts/magic_vfx_catalog.gd")
 const MagicVFX = preload("res://scripts/magic_vfx.gd")
 const LightRig = preload("res://scripts/magic_vfx_environment_light.gd")
+const Atmosphere = preload("res://scripts/magic_vfx_chapter1_atmosphere.gd")
+# Lighting and atmosphere conditions are experimental contrast presets, NOT canon time/weather.
+const LIGHT_PROFILES = {
+    "daylight": Color(1.0, 1.0, 1.0),
+    "dusk": Color(0.78, 0.73, 0.66),
+    "night": Color(0.44, 0.53, 0.69)
+}
 const KEYFRAMES = [0.08, 0.29, 0.49, 0.67, 0.89]
 const EFFECT_OFFSET = Vector2(0.0, -57.0)
 const EFFECT_SCALE = Vector2(0.58, 0.58)
@@ -24,6 +31,10 @@ var magic_visible: bool = true
 var lighting_enabled: bool = true
 var front_composite: bool = false
 var closeup_enabled: bool = false
+var lighting_preset: String = "daylight"
+var weather_preset: String = "clear"
+var ambient: CanvasModulate
+var atmosphere: Node2D
 
 func _ready() -> void:
     world = Chapter.instantiate()
@@ -38,6 +49,10 @@ func _ready() -> void:
     for actor in world.contacts.values():
         actor.set_physics_process(false)
     actor_layer = world.get_node("ChapterOneMigrationActors")
+    ambient = CanvasModulate.new()
+    ambient.name = "VisualQAOnlyAmbient"
+    world.add_child(ambient)
+    ambient.color = LIGHT_PROFILES["daylight"]
     camera = Camera2D.new()
     camera.name = "ReviewCamera"
     camera.position = DEFAULT_CAMERA
@@ -59,6 +74,10 @@ func _ready() -> void:
     light_rig.position = effect.position
     world.add_child(light_rig)
     light_rig.set_shadow_enabled(false) # Existing dock has no authorized 2D occluder geometry.
+    atmosphere = Atmosphere.new()
+    atmosphere.name = "VisualQAOnlyWeather"
+    atmosphere.z_index = 6
+    add_child(atmosphere)
     choose_affinity(0)
 
     var canvas_ui := CanvasLayer.new()
@@ -110,6 +129,19 @@ func set_front_composite(enabled: bool) -> void:
     # Deliberate A/B z-index test. Actor and effect world positions remain fixed.
     effect.z_index = 1 if enabled else -1
 
+func set_lighting_preset(next_preset: String) -> bool:
+    if not LIGHT_PROFILES.has(next_preset):
+        return false
+    lighting_preset = next_preset
+    ambient.color = LIGHT_PROFILES[next_preset]
+    return true
+
+func set_weather_preset(next_preset: String) -> bool:
+    if not atmosphere.set_weather(next_preset):
+        return false
+    weather_preset = next_preset
+    return true
+
 func set_camera_closeup(enabled: bool) -> void:
     closeup_enabled = enabled
     camera.position = world.ender.global_position + CLOSEUP_OFFSET if enabled else DEFAULT_CAMERA
@@ -117,6 +149,7 @@ func set_camera_closeup(enabled: bool) -> void:
 
 func set_reduced_motion(enabled: bool) -> void:
     reduced_motion = enabled
+    atmosphere.set_reduced_motion(enabled)
     choose_affinity(active_index)
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -138,5 +171,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
         set_reduced_motion(not reduced_motion)
     elif event.keycode == KEY_V:
         set_magic_visible(not magic_visible)
+    elif event.keycode == KEY_T:
+        var profiles := ["daylight", "dusk", "night"]
+        set_lighting_preset(profiles[(profiles.find(lighting_preset) + 1) % profiles.size()])
+    elif event.keycode == KEY_W:
+        var weather_modes := ["clear", "mist", "rain"]
+        set_weather_preset(weather_modes[(weather_modes.find(weather_preset) + 1) % weather_modes.size()])
     elif event.keycode == KEY_ESCAPE:
         get_tree().quit()
