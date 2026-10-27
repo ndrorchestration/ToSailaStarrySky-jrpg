@@ -37,6 +37,12 @@ func _capture() -> void:
     if opening == null:
         quit(4)
         return
+    # The operator-facing training grant is explicit, never inferred.
+    world._grant()
+    if world.battle.snapshot()["trainingGrants"].size() != 1:
+        push_error("RESONANCE_NATIVE_CAPTURE_FAIL: explicit training grant not issued")
+        quit(10)
+        return
     world._cast()
     await process_frame
     var armed: Image = await _snapshot("resonance-ward-native-960x640.png")
