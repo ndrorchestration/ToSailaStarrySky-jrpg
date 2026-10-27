@@ -11,13 +11,14 @@ extends Node2D
 const ART_ID := "windShear"
 const ART_BOUNDS := Rect2(-91.0, -92.0, 182.0, 184.0)
 const ATLAS_PATH := "res://art-review/wind_shear_elemental_v1_atlas.png"
+const IDLE_ATLAS_PATH := "res://art-review/wind_shear_elemental_idle_v2_atlas.png"
 const FRAME_SIZE := Vector2i(80, 92)
 const FRAME_COUNT := 4
+const IDLE_FRAME_COUNT := 4
 const DISPLAY_SCALE := 2.0
 const IDLE_POSE_STEP_SECONDS := 0.24
-# Exact atlas pixels. Three bands slightly shift against each other at four
-# authored phases, suggesting an unstable pressure fracture without new lore.
-const IDLE_BAND_EDGES := [0, 30, 61, 92]
+# The v2 still frame must be byte-identical in pixel content to v1 idle.
+# Frames 1-3 have individually authored facets rather than split-image shifts.
 const MAX_EFFECT_SECONDS := 0.34
 const HIT_FEEDBACK_SECONDS := 0.24
 
@@ -32,6 +33,7 @@ var hit_feedback_seconds: float = 0.0
 var visual_clock: float = 0.0
 var _frame_accumulator: float = 0.0
 var atlas_texture: Texture2D = null
+var idle_atlas_texture: Texture2D = null
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -43,6 +45,14 @@ func _ready() -> void:
             var imported: Texture2D = candidate as Texture2D
             if imported.get_size() == Vector2(FRAME_SIZE.x * FRAME_COUNT, FRAME_SIZE.y):
                 atlas_texture = imported
+    # This is an optional visual refinement, not new encounter authority.
+    # Missing or invalid art leaves the existing original static atlas intact.
+    if ResourceLoader.exists(IDLE_ATLAS_PATH, "Texture2D"):
+        var idle_candidate: Resource = load(IDLE_ATLAS_PATH)
+        if idle_candidate is Texture2D:
+            var idle_import: Texture2D = idle_candidate as Texture2D
+            if idle_import.get_size() == Vector2(FRAME_SIZE.x * IDLE_FRAME_COUNT, FRAME_SIZE.y):
+                idle_atlas_texture = idle_import
     visible = false
 
 func begin_encounter() -> void:
@@ -195,22 +205,14 @@ func _draw() -> void:
     if hit_feedback_seconds > 0.0 and not reduced_motion:
         _draw_hit_confirmation()
 
-func idle_band_offsets() -> PackedInt32Array:
-    # Whole display pixels only. No independent timer, RNG or state writes.
-    # With reduced motion, retaliation, damage feedback or dispersal, the
-    # figure stays a single unsplit authoring pose.
-    if reduced_motion or dissipated or gale_accent_seconds > 0.0 or hit_feedback_seconds > 0.0:
-        return PackedInt32Array([0, 0, 0])
-    var phase: int = int(floor(visual_clock / IDLE_POSE_STEP_SECONDS)) % 4
-    match phase:
-        1:
-            return PackedInt32Array([0, 2, -2])
-        2:
-            return PackedInt32Array([-2, 0, 2])
-        3:
-            return PackedInt32Array([2, -2, 0])
-        _:
-            return PackedInt32Array([0, 0, 0])
+func authored_idle_frame() -> int:
+    # The combat controller already owns turns and outcomes. This function
+    # only selects one of four drawn idle animation images.
+    if idle_atlas_texture == null or reduced_motion or analyzed or dissipated:
+        return 0
+    if gale_accent_seconds > 0.0 or hit_feedback_seconds > 0.0:
+        return 0
+    return int(floor(visual_clock / IDLE_POSE_STEP_SECONDS)) % IDLE_FRAME_COUNT
 
 func _draw_pixel_atlas(sway: float) -> void:
     if atlas_texture == null:
@@ -222,26 +224,29 @@ func _draw_pixel_atlas(sway: float) -> void:
         frame_index = 2
     elif analyzed:
         frame_index = 1
-    # Integer 2x source pixels and snapped positions make the authored atlas
-    # crisp. Three horizontal strips subtly shear at 4.17 fps while idle.
-    # These are procedural in-between offsets, NOT hand-authored new frames.
+
+    # Idle sprites are hand-pixel-authored whole frames, not procedural
+    # horizontal raster strips. In reduced motion or any action reaction,
+    # render the original authoritative static/gale/analyzed atlas instead.
+    var selected_atlas: Texture2D = atlas_texture
+    if idle_atlas_texture != null and not analyzed and not dissipated and not reduced_motion:
+        if gale_accent_seconds <= 0.0 and hit_feedback_seconds <= 0.0:
+            selected_atlas = idle_atlas_texture
+            frame_index = authored_idle_frame()
+
     var recoil: int = 0
     if hit_feedback_seconds > 0.0 and not reduced_motion:
         recoil = roundi(4.0 * clampf(hit_feedback_seconds / HIT_FEEDBACK_SECONDS, 0.0, 1.0))
-    var top_y: int = -92 + roundi(sway)
-    var offsets := idle_band_offsets()
-    for band in range(3):
-        var source_y: int = int(IDLE_BAND_EDGES[band])
-        var band_height: int = int(IDLE_BAND_EDGES[band + 1]) - source_y
-        var source := Rect2(
-            Vector2(FRAME_SIZE.x * frame_index, source_y),
-            Vector2(FRAME_SIZE.x, band_height)
-        )
-        var target := Rect2(
-            Vector2(-80 + recoil + offsets[band], top_y + source_y * 2),
-            Vector2(FRAME_SIZE.x * 2, band_height * 2)
-        )
-        draw_texture_rect_region(atlas_texture, target, source)
+    var image_size := Vector2(FRAME_SIZE) * DISPLAY_SCALE
+    var source := Rect2(
+        Vector2(FRAME_SIZE.x * frame_index, 0),
+        Vector2(FRAME_SIZE)
+    )
+    var destination := Rect2(
+        Vector2(-image_size.x * 0.5 + recoil, -92.0 + float(roundi(sway))),
+        image_size
+    )
+    draw_texture_rect_region(selected_atlas, destination, source)
     if gale_accent_seconds > 0.0 and not reduced_motion and not dissipated:
         _draw_gale_accent()
     if hit_feedback_seconds > 0.0 and not reduced_motion and not dissipated:
