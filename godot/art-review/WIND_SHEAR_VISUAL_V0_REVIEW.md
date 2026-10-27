@@ -55,6 +55,14 @@ The original pixel atlas and fallback geometry remain bounded to a 182×184 logi
 - **Future image gate:** preserve `chapter1-wind-shear-combat-native-960x640.png` as a comparison, inspect all five new native frames and actual animation on target displays. A passing pixel hash is not a human aesthetic review.
 - Creator/player review must check silhouette readability at native scale, legible enemy HP/status/commands, no aliasing or clipping, perceived elemental identity, analyzed/retaliation clarity, idle visual noise, reduced-motion behavior, and frame pacing on target hardware.
 
+## Native pixel-shear QA receipt — code SHA e7a18c54
+
+- [Godot native 960×640 capture run 40596874750](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40596874750): **PASS** with eight individually hashed framebuffer captures. Unlike a source-only review, the measured idle-phase hashes actually differ.
+- Baseline static idle **and** sampled reduced-motion full-frame captures produce identical SHA-256 `d92ba082c083b26b2a406eaedbd17cd403bf62d8579d0a07807797e86577f1cb`. This is a native runtime screenshot equality result, not merely a claim about the `reduced_motion` boolean.
+- Pressure phase 1 SHA-256 `ded50185fc9aaa2b4efc4b83df2462e653f1b36037f6b1768975badfaa6c3d09`; phase 2 `7e9c97252ccd00faf4f21670b838bbc885b19c29c442c4d545a127b78bf47d4f`.
+- The archived contact-sheet/animated-GIF study is not equivalent to an engine screenshot. Native screenshots remain runner-only owing to the existing artifact-storage restriction; no target-display aesthetic acceptance or GPU profiling has been claimed.
+- Legacy Crossing placement remains **on hold** under the Ionia-first opening authority in #425/#430. Rendering verification must not move that encounter into the approved story by implication.
+
 ## Next art iteration (not implemented)
 
 Artist-review the eight native captures at exact-head resolution; real sprite-sheet in-between artwork, more consistent faceted lighting and target hardware animation profiling remain future tasks. A truthful **pre-attack telegraph** must wait for a separate, authorized pre-resolution combat-state contract; do not mislabel immediate post-resolution pulses as player counterplay. Avoid assuming speculative enemy species or bosses are canon. Keep this review asset reversible until an authentic creator-approved sprite supersedes it.
