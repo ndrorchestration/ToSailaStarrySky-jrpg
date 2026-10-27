@@ -14,6 +14,8 @@ const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd")
 const CurrentEnemyAdapter = preload("res://scripts/first_wake_current_enemy_adapter.gd")
 const PartyCombatAuthority = preload("res://scripts/first_wake_party_combat_authority.gd")
+const BattleLoadout = preload("res://scripts/battle_equipment_loadout.gd")
+const BattleEquipmentVisual = preload("res://scripts/battle_equipment_visual.gd")
 
 const DECK_BOUNDS := SaveCodec.PLAYER_POSITION_BOUNDS
 const INTERACT_DISTANCE := 74.0
@@ -61,6 +63,8 @@ var current_enemy_adapter = CurrentEnemyAdapter.new()
 var party_combat_authority = PartyCombatAuthority.new()
 var active_hazard_encounter_id: String = ""
 var save_store = SaveStore.new()
+var battle_loadout = BattleLoadout.new("ender")
+var battle_equipment_view: Node2D
 
 func _ready() -> void:
     InputPolicy.ensure_defaults()
@@ -122,6 +126,12 @@ func _ready() -> void:
     dialogue_speaker.custom_minimum_size = Vector2(680, 28)
     dialogue_body.custom_minimum_size = Vector2(680, 120)
     dialogue_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    battle_equipment_view = BattleEquipmentVisual.new()
+    battle_equipment_view.name = "ChapterOneBattleEquipmentReviewOnly"
+    battle_equipment_view.position = Vector2(738, 248)
+    battle_equipment_view.set_appearance(battle_loadout.appearance())
+    battle_equipment_view.visible = false
+    add_child(battle_equipment_view)
     dialogue_speaker.visible = false
     dialogue_body.visible = false
 
@@ -312,6 +322,8 @@ func _draw_formula_review() -> void:
         Color("#8cdbc8")
     )
 
+    draw_string(ThemeDB.fallback_font, Vector2(679, 348), "5 Staff  6 Armor  7 Charm", HORIZONTAL_ALIGNMENT_LEFT, 137, 10, Color("#add5dc"))
+
     draw_string(ThemeDB.fallback_font, Vector2(176, 370), "1  Staff Strike", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
     draw_string(ThemeDB.fallback_font, Vector2(390, 370), "2  Uncover Truth", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
     draw_string(ThemeDB.fallback_font, Vector2(176, 404), "3  Hold", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
@@ -366,6 +378,7 @@ func start_formula_review() -> bool:
     formula_encounter.reset()
     if not formula_encounter.start():
         return false
+    battle_equipment_view.visible = true
     ender.player_controlled = false
     last_message = formula_encounter.last_log()
     _refresh_ui()
@@ -385,6 +398,7 @@ func start_hazard_encounter(hazard_id: String) -> bool:
         return false
 
     active_hazard_encounter_id = hazard_id
+    battle_equipment_view.visible = true
     ender.player_controlled = false
     last_message = formula_encounter.last_log()
     _refresh_ui()
@@ -406,6 +420,7 @@ func close_formula_review() -> bool:
         return false
 
     active_hazard_encounter_id = ""
+    battle_equipment_view.visible = false
     if not hazard_id.is_empty():
         if hazard_cleared:
             last_message = "Crossing cleared: " + Content.hazard_label(hazard_id) + "."
@@ -440,6 +455,25 @@ func take_formula_review_action(action_id: String) -> bool:
         queue_redraw()
         return false
     last_message = formula_encounter.last_log()
+    _refresh_ui()
+    queue_redraw()
+    return true
+
+## This is a cosmetic review transaction, not an inventory transfer.
+## It consumes no turn and cannot replace the approved formula/action authority.
+func equip_review_item(slot_id: String, item_id: String) -> bool:
+    if not formula_encounter.active or not battle_loadout.equip(slot_id, item_id):
+        return false
+    battle_equipment_view.set_appearance(battle_loadout.appearance())
+    last_message = "Equipment study: " + str(battle_loadout.appearance().get("weaponName", ""))
+    _refresh_ui()
+    queue_redraw()
+    return true
+
+func cycle_equipment_review(slot_id: String) -> bool:
+    if not formula_encounter.active or not battle_loadout.cycle_ender_review(slot_id):
+        return false
+    battle_equipment_view.set_appearance(battle_loadout.appearance())
     _refresh_ui()
     queue_redraw()
     return true
@@ -583,6 +617,12 @@ func _unhandled_input(event: InputEvent) -> void:
     if formula_encounter.active:
         if event.is_action_pressed(InputPolicy.FORMULA_REVIEW):
             close_formula_review()
+        elif event.is_action_pressed(InputPolicy.EQUIP_WEAPON_PREVIEW):
+            cycle_equipment_review("mainWeapon")
+        elif event.is_action_pressed(InputPolicy.EQUIP_ARMOR_PREVIEW):
+            cycle_equipment_review("bodyArmor")
+        elif event.is_action_pressed(InputPolicy.EQUIP_ACCESSORY_PREVIEW):
+            cycle_equipment_review("accessory")
         elif event.is_action_pressed(InputPolicy.COMBAT_STRIKE):
             take_formula_review_action("staffStrike")
         elif event.is_action_pressed(InputPolicy.COMBAT_ANALYZE):
@@ -732,6 +772,9 @@ func restore_save_snapshot(snapshot: Dictionary) -> bool:
     # not part of durable Chapter I saves.
     dialogue.close()
     formula_encounter.reset()
+    battle_loadout.reset_to_starter()
+    battle_equipment_view.set_appearance(battle_loadout.appearance())
+    battle_equipment_view.visible = false
     active_hazard_encounter_id = ""
     pending_signal_id = ""
     pending_contact_id = ""
