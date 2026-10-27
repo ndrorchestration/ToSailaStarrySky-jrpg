@@ -158,7 +158,7 @@ func _run() -> void:
         "terrain-grounded understory has a bounded deterministic instance budget")
     check(plants.multimesh.instance_count == plant_poses.size(),
         "understory GPU instance count matches CPU pose authority")
-    check(not plants.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_ON,
+    check(plants.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,
         "understory does not add shadow draw work")
     var clump_mesh: ArrayMesh = plants.multimesh.mesh
     check(clump_mesh is ArrayMesh, "understory uses a compact custom leaf mesh")
