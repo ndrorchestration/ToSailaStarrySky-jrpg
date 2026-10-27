@@ -6,6 +6,7 @@ extends SceneTree
 const REVIEW_SCENE = preload("res://scenes/first_wake_chapter1_player_preview.tscn")
 const OUTPUT := "res://review-evidence/battle-equipment/"
 const REGION := Rect2i(677, 170, 130, 160)
+const TRIAL_BAG_REGION := Rect2i(405, 465, 398, 28)
 
 func _initialize() -> void:
     call_deferred("_capture")
@@ -45,6 +46,9 @@ func _capture() -> void:
     if weapon_swap == null or original.get_region(REGION).get_data() == weapon_swap.get_region(REGION).get_data():
         _fail("real rendered weapon region did not change")
         return
+    if original.get_region(TRIAL_BAG_REGION).get_data() == weapon_swap.get_region(TRIAL_BAG_REGION).get_data():
+        _fail("owned weapon swap did not update the real inventory HUD pixels")
+        return
     if not world.equip_review_item("bodyArmor", "ender-armor-overlay-review"):
         _fail("armor study equip rejected")
         return
@@ -55,6 +59,9 @@ func _capture() -> void:
     var complete: Image = await _snapshot("armor-accessory-native-960x640")
     if complete == null or complete.get_region(REGION).get_data() == weapon_swap.get_region(REGION).get_data():
         _fail("real rendered armor/charm region did not change")
+        return
+    if complete.get_region(TRIAL_BAG_REGION).get_data() == weapon_swap.get_region(TRIAL_BAG_REGION).get_data():
+        _fail("equipping owned armor/charm did not debit visible trial bag")
         return
     if not world.take_formula_review_action("staffStrike"):
         _fail("authorized strike not playable with changed gear")
