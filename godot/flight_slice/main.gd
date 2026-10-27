@@ -86,6 +86,8 @@ func _process(delta: float) -> void:
                 visuals.current_mood["time_name"],
                 visuals.current_mood["weather_name"],
                 "ON" if _magical_sky else "OFF"]
+            if visuals.transition_active:
+                atmospheric_note += " / TRANSITION"
         overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + atmospheric_note + "  |  B light / N weather / G magic sky\n" + "F pilot · W/S move · A/D steer · E/Q ascend/descend\nT test-field landing · P pause · M still effects · C camera\nR reset · V detail · H HUD\nNON-CANON STUDY  •  NO GAMEPLAY CLIMATE"
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -126,7 +128,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _apply_environment_preview() -> void:
     if visuals != null:
-        visuals.set_environment_look(_time_look, _weather_look, _magical_sky)
+        visuals.queue_environment_look(_time_look, _weather_look, _magical_sky)
 
 func set_manual_mode(enabled: bool) -> void:
     if enabled == _manual_active:
@@ -240,6 +242,8 @@ func _update_scene(delta: float) -> void:
     camera.look_at(focus, Vector3.UP)
     terrain.update_detail(camera.position, delta)
     if visuals != null:
+        visuals.advance_environment_transition(0.0 if _paused else delta,
+            _reduced_motion)
         visuals.set_clock(_clock, _reduced_motion)
         visuals.set_camera_frame(camera)
 
