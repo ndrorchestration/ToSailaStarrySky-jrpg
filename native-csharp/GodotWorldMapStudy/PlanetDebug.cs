@@ -64,6 +64,19 @@ public partial class PlanetDebug : Node3D
             double arcKm = PlanetGeometry.SurfaceDistanceKm(pos0, pos90, 6.0);
             Check(Math.Abs(arcKm - Math.PI * 3.0) < 1e-9, "great-circle sanity");
 
+            // Native runtime UV seam regression: distinct directions straddle
+            // the antimeridian without interpolating across the whole atlas.
+            Vector2[] seamUv = TerrainChartUv.FromTriangle(
+                new Vector3(-1f, 0f, -0.01f),
+                new Vector3(-1f, 0f, 0.01f),
+                new Vector3(-1f, 0.01f, 0f));
+            float minU = seamUv.Min(uv => uv.X);
+            float maxU = seamUv.Max(uv => uv.X);
+            Check(maxU - minU < 0.05f, "chart seam triangle longitude interpolation");
+            Check(seamUv.All(uv => float.IsFinite(uv.X) && float.IsFinite(uv.Y)
+                && uv.Y >= 0f && uv.Y <= 1f), "finite bounded chart latitude");
+            GD.Print("GODOT_CSHARP_CHART_UV_SEAM_PASS corners=3");
+
             InstallWorld();
             RenderCover(_cover);
             Check(RejectInvalidCoverWithoutMutation(), "invalid cover rejected atomically");
