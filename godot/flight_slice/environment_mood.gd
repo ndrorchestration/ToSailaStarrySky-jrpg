@@ -46,6 +46,7 @@ static func sample(time_index: int, weather_index: int, magic_enabled: bool) -> 
             fog_density = 0.0048
             sun_visibility = 0.0
     var weather_strength: float = [0.0, 0.22, 0.65, 1.0][w]
+    var rain_strength: float = [0.0, 0.0, 0.60, 1.0][w]
     var dim: float = [1.0, 0.87, 0.75, 0.57][w]
     key_energy *= dim
     fill_energy *= lerpf(1.0, 0.81, weather_strength)
@@ -55,6 +56,7 @@ static func sample(time_index: int, weather_index: int, magic_enabled: bool) -> 
     return {
         "time_name": TIMES[t], "weather_name": WEATHER[w],
         "time_palette": float(t), "weather_strength": weather_strength,
+        "rain_strength": rain_strength,
         "magic_veil_strength": 0.70 if magic_enabled else 0.0,
         "sun_visibility": sun_visibility, "key_color": key_color,
         "key_energy": key_energy, "fill_color": fill_color,
