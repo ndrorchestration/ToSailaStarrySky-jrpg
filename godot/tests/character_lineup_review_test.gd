@@ -43,6 +43,7 @@ func _verify() -> void:
     preview.set_magnified(true)
     # Front-facing atlases must be separate original source files with actual
     # baked per-phase visual differences, not repeated labels or mirrored placeholders.
+    var authored_heights: Dictionary = {}
     for item in [
         ["Aepex", "aepex", "AepexSouthV1Unapproved"],
         ["Lyra", "lyra", "LyraSouthV1Unapproved"],
@@ -66,6 +67,12 @@ func _verify() -> void:
             push_error("CHARACTER_LINEUP_FAIL: Godot did not import 480x128 atlas: " + actor_name)
             quit(15)
             return
+        var alpha_bounds: Rect2i = raster.get_region(Rect2i(0, 0, 80, 128)).get_used_rect()
+        if alpha_bounds.size.y < 50 or alpha_bounds.size.y > 128:
+            push_error("CHARACTER_LINEUP_FAIL: source frame has implausible visible anatomy")
+            quit(21)
+            return
+        authored_heights[source_id] = alpha_bounds.size.y
         var prior_frames: Array = []
         for phase in range(6):
             var source_pixels: Image = raster.get_region(Rect2i(80 * phase, 0, 80, 128))
@@ -90,6 +97,11 @@ func _verify() -> void:
             quit(19)
             return
         preview.set_magnified(true)
+    if not (authored_heights["reson"] > authored_heights["aepex"] and authored_heights["aepex"] > authored_heights["lyra"]):
+        push_error("CHARACTER_LINEUP_FAIL: authored tall/broad protagonist visual hierarchy regressed")
+        quit(22)
+        return
+    print("CHARACTER_LINEUP_AUTHORED_HEIGHTS:" + str(authored_heights))
     var original_ender: Vector2 = world.ender.global_position
     var original_ionia: Vector2 = world.ionia.global_position
     world.set_character_lineup_review_enabled(true)
