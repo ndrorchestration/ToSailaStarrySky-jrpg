@@ -70,6 +70,9 @@ func _run() -> void:
             or layer.display_sprite.frame != 0:
             _fail("candidate mirrored, sliced or misrepresented: "+face)
             return
+        if float(entry["presentationScale"]) < 1.5             or float(entry["presentationScale"]) > 1.9             or absf(float(entry["groundedReviewSoleY"]) - 112.0) > 0.5:
+            _fail("candidate combat-stage scale or grounded boot drift: "+face)
+            return
         var path: String = str(entry["texturePath"])
         if path.is_empty() or textures.has(path):
             _fail("directional sprite reused texture or lost provenance: "+face)
