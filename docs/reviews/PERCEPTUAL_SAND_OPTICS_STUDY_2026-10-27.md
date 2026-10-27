@@ -33,3 +33,11 @@ Built on [draft PR #456](https://github.com/ndrorchestration/ToSailtheStarrySky-
 5. The target cinematic feel must be distinct from other games and match the luminous solarpunk sky-fantasy art bible, rather than copying another game's palette or assets.
 
 **No main merge, public deployment, canon approval or release.** Remaining planetary material portability and production asset decisions require independent review.
+
+## First exact-head Godot receipt and image-informed revision
+
+Initial version `9d08e3da8f61380d66bc6ba2540be4dd099ff990` was exercised by [Godot 4.7.2 run 40598923942](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40598923942) **PASS** and [repo smoke run 40598923959](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40598923959) **PASS**. Native source/scene import, all 618 terrain checks, presentation, 59 camera, 9 atmosphere, 21 manual flight, 45 native physics-touchdown, 30 contact lifecycle and GL capture/96-frame sweep checks passed. The real 960×640 [artifact 12776789781](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40598923942/artifacts/12776789781) was downloaded and visually inspected. Scripted native result: `NATIVE_SAND_OPTICS_PAIR_DELTA pixels=35162`; `NATIVE_SAND_OPTICS_LOW_DELTA pixels=0`.
+
+**Image QA FOUND A FAILURE despite successful tests:** medium foreground sand displayed dark, relatively evenly spaced cross-shore stripe bands; the first version looks too much like an artificial washboard rather than luminous wind-textured ground. The added shading-normal gradient and ripple albedo multiplier were overpowered at the existing cinematic camera; no artist acceptance.
+
+The corrective candidate at commit `502fd5b4` shortens / slightly warps ripple wavelength, reduces normal displacement to about a third, lowers albedo banding to a third, halves micrograin normal amplitude and restrains rim/specular. The original strength-0 and V-low quality code branches are unchanged. **Do not transfer initial exact-head native verification to this new revision.** Only the revised 960×640 native A/B and grazing screenshots can establish whether the artifact is improved. Final planet-wide portability, actual sparkles moving with camera, and real GPU cost remain separate unsolved gates.
