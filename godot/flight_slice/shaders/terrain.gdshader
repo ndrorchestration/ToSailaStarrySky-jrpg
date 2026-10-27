@@ -5,6 +5,8 @@ uniform float study_time = 0.0;
 uniform sampler2D terrain_microdetail : filter_linear_mipmap, repeat_enable;
 uniform float texture_detail_strength : hint_range(0.0, 1.0) = 0.65;
 uniform sampler2D biome_macrodetail : filter_linear_mipmap, repeat_enable;
+// Signed distance from the same RF height field as the ocean bathymetry.
+uniform sampler2D coast_distance_field : filter_linear, repeat_disable;
 uniform float biome_layer_strength : hint_range(0.0, 1.0) = 0.0;
 uniform float shoreline_wet_strength : hint_range(0.0, 1.0) = 0.0;
 uniform float sea_surface_elevation = -0.15;
@@ -69,12 +71,23 @@ void fragment() {
     sand_color=mix(sand_color,sand_color*(0.66+regional.b*0.80),
         biome_layer_strength);
     color=mix(color,sand_color,sand);
-    // Narrow wet-sand band: height follows the SAME sea level as the ocean.
-    // Sand mask limits this visual approximation; no invisible collision area
-    // or second shoreline curve is introduced.
-    float wet_band=sand*(1.0-smoothstep(0.15,1.12,
-        world_pos.y-sea_surface_elevation))
-        *(1.0-smoothstep(0.14,0.66,slope));
+    // Soil/leaf-litter/moss band is purely visual and follows the established
+    // forest belt of the original terrain class, not a new gameplay biome.
+    float forest_band=smoothstep(16.0,21.0,p.x)
+        *(1.0-smoothstep(52.0,58.0,p.x))
+        *smoothstep(1.9,3.5,p.y)*(1.0-smoothstep(10.0,12.5,p.y))
+        *(1.0-rocky)*(1.0-sand);
+    vec3 litter=mix(vec3(0.13,0.19,0.12),vec3(0.26,0.21,0.14),
+        regional.b*0.62+texel.g*0.38);
+    color=mix(color,mix(color,litter,0.57),
+        forest_band*biome_layer_strength);
+    // Signed distance was derived from actual shoreline height crossings.
+    // Negative samples belong to the sea; do not damp unrelated inland lowlands.
+    vec2 shore_uv=(world_pos.xz+vec2(130.0))/260.0;
+    float inland_meters=texture(coast_distance_field,shore_uv).r;
+    float dry_side=smoothstep(-0.04,0.22,inland_meters);
+    float wet_band=sand*dry_side*(1.0-smoothstep(0.45,3.0,
+        max(inland_meters,0.0)))*(1.0-smoothstep(0.14,0.66,slope));
     color=mix(color,color*vec3(0.66,0.76,0.79),
         wet_band*shoreline_wet_strength*0.76);
     float snow=smoothstep(16.3,19.0,p.y+noise(p.xz*0.42)*2.0)*(1.0-smoothstep(0.12,0.42,slope));

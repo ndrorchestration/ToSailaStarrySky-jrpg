@@ -4,6 +4,7 @@ uniform sampler2D height_field : filter_linear, repeat_disable;
 uniform sampler2D water_ripple_detail : filter_linear_mipmap, repeat_enable;
 uniform float texture_detail_strength : hint_range(0.0, 1.0) = 0.65;
 uniform sampler2D biome_macrodetail : filter_linear_mipmap, repeat_enable;
+uniform sampler2D coast_distance_field : filter_linear, repeat_disable;
 uniform float biome_layer_strength : hint_range(0.0, 1.0) = 0.0;
 uniform sampler2D terrain_coverage : filter_nearest, repeat_disable;
 uniform float study_time = 0.0;
@@ -69,8 +70,12 @@ void fragment() {
     reflected_sky*=mix(0.43,1.0,sun_visibility);
     water=mix(water,reflected_sky,fresnel*0.79);
     float shore=(1.0-smoothstep(0.10,0.65,depth))*smoothstep(0.01,0.09,depth);
+    float sea_distance=texture(coast_distance_field,
+        (p+vec2(130.0))/260.0).r;
+    float coast_proximity=1.0-smoothstep(0.0,4.0,abs(sea_distance));
     float foam=cover*smoothstep(0.15,0.65,
         sin(depth*24.0-study_time*1.4+wave1*0.4))*shore;
+    foam*=mix(1.0,0.63+0.37*coast_proximity,biome_layer_strength);
     // Broad shoreline patchiness; bounded by depth and current visible
     // terrain coverage, never an independently invented coast mask.
     foam*=mix(1.0,0.75+coast_region.r*0.53,biome_layer_strength);

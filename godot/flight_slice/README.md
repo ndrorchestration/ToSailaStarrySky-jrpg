@@ -2,6 +2,12 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Source-derived coast distance, forest floor and faceted highland art — 2026-10-27
+
+The current visual pass removes the earlier height-only wet-sand approximation. A bounded signed distance field is baked **from the exact RF terrain height field already driving the ocean** and shared by land and water shaders. There is no second coastline, changed physical terrain or hidden route. Existing terrain/biome PNG channels now tint forest leaf litter, while at most 88 deterministic **noncolliding** instanced rocky outcrops add highland silhouettes with the real existing stone textures. **V** hides rock geometry; **K** disables rock microtexture; **J** controls region color, shoreline wetness and rock palette. All remain preview-only.
+
+New native evidence: `tests/test_coast_distance.gd`, `tests/test_rock_dressing.gd`, `tests/capture_coast_rocks.gd`. See [coastal and rocky visual review](../../docs/reviews/COAST_DISTANCE_CLIFF_DRESSING_2026-10-27.md). This is not spherical coastline modeling, final cliff art or production environmental assets.
+
 ## Regional biome textures and wet shoreline — 2026-10-27
 
 The fourth original, byte-reproducible `textures/biome_macrodetail.png` provides a **broad world-space** color mask on top of the earlier genuine grass/rock/sand, foliage and ocean microtextures. Existing terrain slope and altitude retain full biome/physics authority. Sand near the shared sea height receives restrained wet darkening, while water foam varies regionally without generating another coastline. **J** toggles the new regional mask/wet shore, **K** toggles the earlier fine grain, and **V** suppresses both for lower quality. All are reversible A/B preview controls, not gameplay commands.
