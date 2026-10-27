@@ -462,6 +462,10 @@ func _place_geology_scatter() -> void:
                 continue
             if absf(z + 23.0) < 11.0 and x < 11.0:
                 continue
+            # A slow coastal envelope prevents evenly spaced rock confetti.
+            var drift_band: float = sin(z * 0.08 + 1.2 * sin(z * 0.037))
+            if drift_band < -0.48:
+                continue
             if _hash01(x + 8.0, z + 12.0) < 0.36:
                 continue
             var width: float = 0.68 + 0.62 * _hash01(z - 11.0, x + 4.0)
@@ -479,14 +483,17 @@ func _place_geology_scatter() -> void:
             var biome: String = classify(x, z)
             if biome != "alpine" and biome != "summit":
                 continue
-            if _hash01(x - 2.0, z + 15.0) < 0.46:
+            # Scree collects in patchy exposures rather than dotting snowfields.
+            var scree_band: float = sin(x * 0.12 + z * 0.09) * 0.55
+            scree_band += cos(x * 0.17 - z * 0.08) * 0.45
+            if scree_band < 0.10 or _hash01(x - 2.0, z + 15.0) < 0.46:
                 continue
             var gradient_x: float = (sample_height(x + 0.7, z) - sample_height(x - 0.7, z)) / 1.4
             var gradient_z: float = (sample_height(x, z + 0.7) - sample_height(x, z - 0.7)) / 1.4
             if Vector2(gradient_x, gradient_z).length() > 1.15:
                 continue
-            var scale: float = 0.55 + 0.78 * _hash01(z + 6.0, x - 21.0)
-            var rise: float = 0.49 + 0.33 * _hash01(x + 8.0, z - 13.0)
+            var scale: float = 0.43 + 0.57 * _hash01(z + 6.0, x - 21.0)
+            var rise: float = 0.39 + 0.21 * _hash01(x + 8.0, z - 13.0)
             var yaw: float = TAU * _hash01(x - 24.0, z + 4.0)
             talus.append(Transform3D(
                 Basis(Vector3.UP, yaw).scaled(Vector3(scale, scale * rise, scale * 0.82)),
