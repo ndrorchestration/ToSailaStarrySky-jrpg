@@ -4,6 +4,7 @@ extends Node3D
 const Layout = preload("res://ship_interior_layout.gd")
 
 var _oak: StandardMaterial3D
+var _plank: StandardMaterial3D
 var _bronze: StandardMaterial3D
 var _cream: StandardMaterial3D
 var _teal: StandardMaterial3D
@@ -12,6 +13,7 @@ var _night: StandardMaterial3D
 
 func _ready() -> void:
     _oak = _material(Color(0.20, 0.28, 0.28), 0.64, 0.03)
+    _plank = _material(Color(0.28, 0.34, 0.30), 0.71, 0.02)
     _bronze = _material(Color(0.68, 0.49, 0.29), 0.38, 0.55)
     _cream = _material(Color(0.80, 0.75, 0.59), 0.75, 0.04)
     _teal = _material(Color(0.20, 0.60, 0.65), 0.38, 0.09)
@@ -37,7 +39,7 @@ func _build_deck() -> void:
         _box(self, "DeckBoard_%02d" % index,
             Vector3(x, 0.022, 0.0),
             Vector3(0.289, 0.043, Layout.LENGTH_M - 0.17),
-            _cream if index % 3 == 0 else _oak)
+            _plank if index % 3 == 0 else _oak)
     # Continuous central accessibility lane, no decorative obstruction.
     for side in [-1.0, 1.0]:
         _box(self, "AisleInlay_%s" % ("Port" if side < 0.0 else "Starboard"),
@@ -52,6 +54,17 @@ func _build_deck() -> void:
             _beam("HullRib_%s_%s" % [side, station],
                 Vector3(side * 1.84, 0.20, z),
                 Vector3(side * 1.72, 1.20, z), 0.055, _bronze)
+    # Exposed tapering overhead frames establish habitable height while the
+    # roof stays removed for the cutaway camera. No wall/collision claim.
+    for station in [-4.22, -1.78, 1.78, 4.15]:
+        for side in [-1.0, 1.0]:
+            var tag: String = str(station) + ("Port" if side < 0.0 else "Starboard")
+            _beam("HullArchLower_" + tag,
+                Vector3(side * 1.73, 0.33, station),
+                Vector3(side * 1.59, 1.35, station), 0.055, _bronze)
+            _beam("HullArchShoulder_" + tag,
+                Vector3(side * 1.59, 1.35, station),
+                Vector3(side * 1.05, 2.23, station), 0.048, _bronze)
     for zone in Layout.zones():
         var boundary: float = float(zone["to_z"])
         if boundary < Layout.LENGTH_M * 0.5 - 0.3:
@@ -143,8 +156,8 @@ func _install_environment() -> void:
 func _install_camera() -> void:
     var camera := Camera3D.new()
     camera.name = "InteriorReviewCamera"
-    camera.position = Vector3(9.0, 13.0, 10.0)
-    camera.fov = 54.0
+    camera.position = Vector3(6.7, 9.8, 7.0)
+    camera.fov = 48.0
     camera.near = 0.15
     camera.far = 80.0
     camera.current = true
