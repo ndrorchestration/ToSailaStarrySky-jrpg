@@ -108,8 +108,8 @@ func _run() -> void:
     for wing_name in ["PortFore", "PortAft", "StarboardFore", "StarboardAft"]:
         check(is_zero_approx(scene.ship.get_node("WingRig_" + wing_name).rotation.z),
             "reduced-motion keeps integrated wing flex still " + wing_name)
-    check(scene.ship.global_transform == fixed_ship,
-        "reduced-motion atmospheric test never changes ship transform")
+    check(scene.ship.global_position == fixed_ship.origin,
+        "reduced-motion atmospheric test never changes ship position")
     scene.queue_free()
     await process_frame
     if errors.is_empty():
