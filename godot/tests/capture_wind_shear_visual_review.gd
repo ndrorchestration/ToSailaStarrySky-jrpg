@@ -6,11 +6,27 @@ extends SceneTree
 ## Noncanonical art study / no screenshot equals creator acceptance.
 
 const REVIEW_SCENE = preload("res://scenes/first_wake_chapter1_player_preview.tscn")
+const Encounter = preload("res://scripts/first_wake_formula_encounter.gd")
 const OUTPUT_ENV := "STARRY_SKY_ENEMY_CAPTURE_DIR"
 const DEFAULT_OUTPUT := "res://review-evidence/wind-shear/"
 
 var _output_dir: String = ""
 var _frames: Array[Image] = []
+
+class Sequence:
+    extends RefCounted
+    var values: Array
+    var index: int = 0
+
+    func _init(next_values: Array) -> void:
+        values = next_values.duplicate()
+
+    func next():
+        if index >= values.size():
+            return 0.5
+        var value = values[index]
+        index += 1
+        return value
 
 func _initialize() -> void:
     var requested := OS.get_environment(OUTPUT_ENV).strip_edges()
@@ -52,6 +68,10 @@ func _capture() -> void:
         if not world.complete_signal_contact(signal_id):
             _fail("could not enter current Crossing")
             return
+    # Deterministic review-input only; formula authority and damage math remain
+    # unchanged. It avoids a random critical result obscuring the hit pose.
+    var strike_rng := Sequence.new([0.5, 0.99, 0.5, 0.99])
+    world.formula_encounter = Encounter.new(strike_rng.next)
     if not world.start_hazard_encounter("wind_shear"):
         _fail("the current-story Wind Shear encounter did not open")
         return
@@ -79,8 +99,29 @@ func _capture() -> void:
         _fail("analyzed capture")
         return
 
+    # A real, authorized Staff Strike provides the *post-resolution* hit frame.
+    var hp_before_strike: int = int(world.formula_encounter.target.get("hp", 0))
+    if not world.take_formula_review_action("staffStrike"):
+        _fail("authorized Staff Strike could not resolve")
+        return
+    if world.formula_encounter.completed or int(world.formula_encounter.target.get("hp", 0)) >= hp_before_strike:
+        _fail("review strike was expected to be a nonlethal confirmed hit")
+        return
+    if art.hit_feedback_seconds <= 0.0:
+        _fail("actual HP loss was not reflected in pixel hit state")
+        return
+    # The same real action also caused Gale Force. Isolate the new hit accent
+    # in this screenshot; this direct art-state edit changes NO combat fields.
+    art.gale_accent_seconds = 0.0
+    art.queue_redraw()
+    await process_frame
+    if not (await _snapshot("wind-shear-hit-native-960x640")):
+        _fail("post-resolution hit capture")
+        return
+
     # Review-only visual state, NOT an extra enemy turn or gameplay mutation.
     art.set_reduced_motion(false)
+    art.hit_feedback_seconds = 0.0
     art.set_encounter_state(true, false, art.last_enemy_turn + 1)
     await process_frame
     if not (await _snapshot("wind-shear-gale-native-960x640")):
@@ -94,11 +135,11 @@ func _capture() -> void:
         _fail("dissipated art capture")
         return
 
-    if _frames.size() != 4:
-        _fail("four native captures missing")
+    if _frames.size() != 5:
+        _fail("five native captures missing")
         return
     var target := Rect2i(588, 185, 196, 192)
-    for i in range(3):
+    for i in range(4):
         if _frames[i].get_region(target).get_data() == _frames[i + 1].get_region(target).get_data():
             _fail("adjacent combat-art states visually identical: " + str(i))
             return
@@ -107,7 +148,7 @@ func _capture() -> void:
         return
     world.queue_free()
     await process_frame
-    print("WIND_SHEAR_NATIVE_RENDER_PASS: four distinct 960x640 state captures; creator acceptance pending")
+    print("WIND_SHEAR_NATIVE_RENDER_PASS: five distinct 960x640 state captures, including observed hit; creator acceptance pending")
     quit(0)
 
 func _fail(reason: String) -> void:
