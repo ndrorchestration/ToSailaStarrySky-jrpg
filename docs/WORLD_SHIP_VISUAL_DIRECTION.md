@@ -1,3 +1,7 @@
+> **SHIP IDENTITY CORRECTION — CREATOR CANON, 2026-10-27.** **Aureate Wake** is the protagonists' dragonfly-derived compact **home ship**; **the Dragonfly** is a **different**, larger **Frigate-class** airship. The combined “Dragonfly / Aureate Wake” section further below is a **superseded historical working concept**, not authority to collapse both vehicles. Body volume, exact strut/mast counts, Wakeheart helm, interiors, lighting/rig design, roles and plot involvement remain **open unless separately creator-approved**. [Draft #408](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/408) is original, unapproved Aureate Wake silhouette work only; do not treat it as final art or as the Frigate. See [dated audit](2026-10-27_CINEMATIC_PRODUCTION_ORPHAN_AUDIT.md).
+
+---
+
 # World, Dragonfly and presentation — creator-aligned handoff
 
 **Scope:** public-safe art/space goals from creator and Notion worldbuilding. Existing [VISUAL_BIBLE.md](VISUAL_BIBLE.md), [VISUAL_BENCHMARK_SCENE.md](VISUAL_BENCHMARK_SCENE.md), and [CINEMATIC_CLIP_CONTRACT.md](CINEMATIC_CLIP_CONTRACT.md) remain the detailed acceptance contracts.
