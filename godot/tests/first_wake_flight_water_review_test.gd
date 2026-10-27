@@ -57,9 +57,11 @@ func _verify() -> void:
         _fail("duplicate launch accepted")
         return
 
+    # Native script SceneTree reliably emits process_frame in headless CI;
+    # the dynamic RigidBody2D must still be advanced by the physics server.
     var became_warning := false
     for i in range(180):
-        await physics_frame
+        await process_frame
         if flight.phase == "warning":
             became_warning = true
             break
@@ -75,7 +77,7 @@ func _verify() -> void:
 
     var waterborne := false
     for i in range(540):
-        await physics_frame
+        await process_frame
         if flight.phase == "waterborne":
             waterborne = true
             break
