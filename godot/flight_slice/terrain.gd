@@ -6,6 +6,7 @@ const GRID_RADIUS: int = 4
 const HIGH_SEGMENTS: int = 18
 const LOW_SEGMENTS: int = 6
 const SEA_LEVEL: float = -0.15
+const GroundCoverStudy = preload("res://ground_cover.gd")
 const NEAR_LOD: float = 43.0
 const FAR_LOD: float = 55.0
 
@@ -110,6 +111,10 @@ func _ready() -> void:
     _terrain_material.roughness = 0.96
     _build_tiles()
     _place_tree_instances()
+    var ground_cover := GroundCoverStudy.new()
+    ground_cover.name = "BiomeGroundCover"
+    add_child(ground_cover)
+    ground_cover.populate(self)
     _place_landmarks()
     _place_water()
 

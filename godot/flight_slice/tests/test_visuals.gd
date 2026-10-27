@@ -26,6 +26,14 @@ func _run() -> void:
     check(is_equal_approx(
         float(visuals.water.get_shader_parameter("sea_surface_elevation")),
         TerrainStudy.SEA_LEVEL), "ocean and rendered seabed use one datum")
+    check(is_equal_approx(
+        float(visuals.land.get_shader_parameter("sea_surface_elevation")),
+        TerrainStudy.SEA_LEVEL), "wet shoreline uses same sea datum as terrain and ocean")
+    check(is_equal_approx(
+        float(visuals.land.get_shader_parameter("shoreline_wetness")), 1.0),
+        "coastline damp sand visual study defaults on")
+    check(visuals.land.get_shader_parameter("low_quality") == false,
+        "coastal material defaults to full detail")
     for station in [Vector2(-60.0, 0.0), Vector2(-2.0, 0.0), Vector2(30.0, 0.0)]:
         var bed: Dictionary = BathymetryStudy.sample(station.x, station.y)
         check(is_equal_approx(
@@ -49,8 +57,12 @@ func _run() -> void:
     check(is_equal_approx(visuals.broadleaf.get_shader_parameter("study_time"), 0.0), "reduced motion freezes broadleaf foliage")
     visuals.set_low_quality(true)
     check(visuals.water.get_shader_parameter("low_quality") == true, "low quality applied")
+    check(visuals.land.get_shader_parameter("low_quality") == true,
+        "land fine-grain is disabled on low visual quality")
     visuals.set_low_quality(false)
     check(visuals.water.get_shader_parameter("low_quality") == false, "high quality restored")
+    check(visuals.land.get_shader_parameter("low_quality") == false,
+        "land fine-grain is restored with high quality")
     check(is_equal_approx(height, scene.terrain.sample_height(30.0, -12.0)), "quality preserves heights")
     check(visuals.has_method("refresh_coverage"), "shore effects require rendered terrain coverage")
     if not visuals.has_method("refresh_coverage"):
@@ -145,6 +157,66 @@ func _run() -> void:
                 "second canopy belongs to forest biome")
             check(absf(pose.origin.y - scene.terrain.sample_height(pose.origin.x, pose.origin.z)) < 0.0001,
                 "second canopy placement is grounded")
+
+    # Biome dressing is rendered geometry, never collision or terrain authority.
+    var has_cover: bool = scene.terrain.has_node("BiomeGroundCover")
+    check(has_cover, "terrain includes instanced biome ground dressing")
+    if has_cover:
+        var cover = scene.terrain.get_node("BiomeGroundCover")
+        var tufts: MultiMeshInstance3D = cover.get_node("MeadowTufts")
+        var stones: MultiMeshInstance3D = cover.get_node("SlopeStones")
+        check(cover.tuft_poses.size() > 80 and cover.tuft_poses.size() <= cover.MAX_TUFTS,
+            "meadow tufts are nonempty and capped")
+        check(cover.stone_poses.size() > 20 and cover.stone_poses.size() <= cover.MAX_STONES,
+            "coastal and alpine stones are nonempty and capped")
+        check(tufts.multimesh.instance_count == cover.tuft_poses.size(),
+            "tuft GPU and CPU instance budgets agree")
+        check(stones.multimesh.instance_count == cover.stone_poses.size(),
+            "stone GPU and CPU instance budgets agree")
+        check(tufts.multimesh.mesh is ArrayMesh and
+            tufts.multimesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size() == 15,
+            "tuft silhouette has five opaque crossed blades")
+        for pose in cover.tuft_poses:
+            var x: float = pose.origin.x
+            var z: float = pose.origin.z
+            check(scene.terrain.classify(x, z) in ["forest", "grassland"],
+                "tufts only appear in vegetated biomes")
+            check(absf(pose.origin.y - scene.terrain.sample_height(x, z) - 0.02) < 0.0001,
+                "tufts use existing terrain elevation")
+            check(cover._fixture_clear(x, z), "tufts avoid the touchdown and hamlet footprints")
+        for pose in cover.stone_poses:
+            var x: float = pose.origin.x
+            var z: float = pose.origin.z
+            check(scene.terrain.classify(x, z) in ["alpine", "summit", "coast"],
+                "stones stay in coastal and exposed highland biomes")
+            var low_y: float = cover._render_height(
+                scene.terrain, x, z, scene.terrain.LOW_SEGMENTS)
+            var high_y: float = cover._render_height(
+                scene.terrain, x, z, scene.terrain.HIGH_SEGMENTS)
+            var embedding: float = minf(low_y, high_y) - pose.origin.y
+            check(embedding >= 0.08 and embedding <= 0.24,
+                "stones are embedded below both visible terrain LOD surfaces")
+            check(absf(low_y - high_y) <= 0.85,
+                "stones avoid large mesh-resolution elevation disagreements")
+            check(pose.basis.y.normalized().y >= 0.77,
+                "stones follow reasonably gentle native ground slopes")
+            check(cover._fixture_clear(x, z), "stones avoid authored fixtures")
+        var first_tuft: Transform3D = cover.tuft_poses[0]
+        var repeated_cover = load("res://ground_cover.gd").new()
+        scene.terrain.add_child(repeated_cover)
+        repeated_cover.populate(scene.terrain)
+        check(repeated_cover.tuft_poses.size() == cover.tuft_poses.size() and
+            repeated_cover.stone_poses.size() == cover.stone_poses.size(),
+            "fixed seed and sampler give repeatable instance counts")
+        check(repeated_cover.tuft_poses[0].origin.distance_to(first_tuft.origin) < 0.00001,
+            "fixed seed and sampler give repeatable placement")
+        repeated_cover.queue_free()
+        visuals.set_low_quality(true)
+        check(not tufts.visible and stones.visible,
+            "low-quality mode removes small blades but retains rock landmarks")
+        visuals.set_low_quality(false)
+        check(tufts.visible and stones.visible,
+            "restoring visual quality restores full biome dressing")
 
     scene._clock = 9.0
     scene._paused = true

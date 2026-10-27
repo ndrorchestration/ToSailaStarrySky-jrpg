@@ -1,0 +1,46 @@
+# Biome ground-cover cinematic study — 2026-10-27
+
+Status: **IMPLEMENTED CANDIDATE / NON-CANON / DRAFT REVIEW**. The scene is a bounded Godot 4.7.2 Compatibility-mode planar art study, not the full planet or a Chapter I release.
+
+## Purpose
+
+The existing sky, water, mixed forest and exposed alpine slope reads as wide biome-colored terrain from near the flight camera. This pass gives **middle/foreground parallax and scale** through opaque, low-complexity geometry:
+
+- Five-blade crossed meadow and forest-understory tussocks. Color varies deterministically by grassland versus forest and by local instance.
+- Small, low-poly, variably oriented stones along exposed coastal and alpine terrain.
+- Two instanced MultiMesh draw groups; no per-tuft nodes or texture dependencies, up to 950 tufts and 420 stones on a deterministic bounded lattice.
+- Placements sample the **existing** `terrain.gd` height and biome classifier. The registered physics landing field and the five provisional hamlet footprints are deliberately clear.
+- The existing **V** low-quality toggle hides fine grass while leaving larger stone silhouettes visible. The cover is static; it introduces no new movement, shader clock, collision, route, save, canon, or gameplay state.
+
+## Visual gate
+
+Compare exact-matched 960×640 native screenshots of coast, forest and highland against the #404 head, with the same camera and clock. Assess whether foreground vegetation adds depth without looking like repetitive spikes, whether stones read as scale cues rather than geometric noise, and whether the landing approach remains clear. Review the low-quality capture separately.
+
+Reject or revise if placement appears as a regular grid, tufts protrude through buildings or the ship, coastal stones float, distant aggregate looks noisy, or rendered flight performance regresses unacceptably on representative hardware. Prefer hand-authored focal points and authored foliage materials for the final world.
+
+## Verification
+
+`res://tests/test_visuals.gd` adds checks for bounded nonempty MultiMesh instance counts, repeatable CPU placement, sampled-ground elevation, biome filtering, fixture clearance, 15-vertex/5-blade meshes and quality-mode fallback. Existing tests must continue to prove 64 terrain tiles, stitched LOD continuity, native touchdown, effect accessibility and cinematic capture.
+
+**Evidence boundary:** Source code and tests were prepared on the above review branch. Until its exact-head Godot 4.7.2 CI and real GL captures complete, runtime correctness and visual improvement are **unverified**. Even passing CI cannot establish final artist acceptance, full-globe integration, GPU frame-time or memory budgets. No merge, release or canon approval is implied.
+
+Upstream drafts: #402 combined camera/cloud/terrain, #403 snow headroom, #404 mixed forest canopy. This candidate stacks on #404 and must not be silently merged or rebased into a different authority chain.
+
+## Second pass: shared-datum shoreline shading
+
+**IMPLEMENTED CANDIDATE / NON-CANON:** In the same branch, the flight slice's terrain material now paints a restrained, irregular, damp-sand band above the same `TerrainStudy.SEA_LEVEL` used by the water and seabed. Dampness fades with altitude and steepness, reducing the risk of a horizontal wet stripe across cliffs. Dry sand gets sparse, static granule variation; low-quality mode omits it. This is a material treatment, **not** tides, waves changing the land, a second coast model, or terrain/collision authoring.
+
+- `visuals.gd` binds the shared sea datum into `land` and `water`, with independent `shoreline_wetness` A/B control for evidence only.
+- The existing native visual tests assert both material sea levels and low-detail round trips.
+- `tests/capture_study.gd` produces matched HUD- and ship-free 960×640 **real GL** shoreline frames (`coast-shore-dry.png`, `coast-shore-wet.png`, `coast-shore-low.png`) at one fixed camera and world clock. The runner enforces a nontrivial wet/dry pixel change and low-quality change. A nonzero pixel delta does **not** prove higher aesthetic quality.
+- The existing six gameplay captures and cinematic coast/forest/highland frames remain unchanged; the new A/B captures are additional diagnostic files.
+
+### Branch overlap and consolidation
+
+[Draft #407](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/407) was opened concurrently from #404 and also adds forest-floor foliage. Its seven-frond understory and this branch's five-blade grass are **alternative visual studies**, not two layers to install blindly. Compare per-frame silhouette, vegetation density, draw cost and accessibility before selecting or reconciling one. This branch's shoreline material work is logically separable and may be cherry-picked to the chosen visual branch with exact-head retesting. Do **not** silently combine duplicated ground-cover nodes, assume either draft is approved, or merge the PR chain.
+
+### Native screenshot defect and correction
+
+The previous exact-head PR #406 software-GL artifact `12764866721` was opened and visually inspected. Its coast and fixed-highland frames show multiple detached-looking rock silhouettes against distant mountain slopes; this is a **real visible defect**, not inferred from source alone. Native LOD vertices approximate the analytic height at different resolutions, so an exact-height decorative stone can float above the rendered low-resolution triangle.
+
+The candidate now interpolates the actual high/low sampler triangles for stone placement, rejects positions where their elevations diverge substantially, aligns rocks toward the local slope normal and embeds them below the lower of the two render surfaces. Native material/placement contracts are updated. This is an **art-only** correction and does not mutate authoritative terrain elevations, LOD meshes or touchdown physics. Reinspect new fixed-highland screenshots and record remaining floating stones before visual acceptance.

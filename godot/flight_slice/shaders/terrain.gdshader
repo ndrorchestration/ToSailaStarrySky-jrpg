@@ -1,6 +1,9 @@
 shader_type spatial;
 render_mode diffuse_burley;
 uniform float study_time = 0.0;
+uniform float sea_surface_elevation = -0.15; // bound to TerrainStudy.SEA_LEVEL
+uniform float shoreline_wetness = 1.0; // review A/B switch, not a tide simulation
+uniform bool low_quality = false;
 varying vec3 world_pos;
 varying vec3 world_normal;
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
@@ -40,11 +43,26 @@ void fragment() {
     vec3 color=mix(grass,rock,rocky);
     float sand=1.0-smoothstep(0.6,2.7,p.y+noise(p.xz*0.5)*0.5);
     color=mix(color,mix(vec3(0.36,0.31,0.22),vec3(0.70,0.59,0.40),mottling),sand);
+    // Tide-darkened damp sand follows this SAME physical terrain elevation and
+    // shared sea datum, not a second procedural coastline. Limit to gentle
+    // beach surfaces so vertical cliffs never acquire horizontal wet stripes.
+    float sea_clearance=max(p.y-sea_surface_elevation,0.0);
+    float waterline_warp=(noise(p.xz*0.86)-0.5)*0.16;
+    float flat_shore=1.0-smoothstep(0.12,0.34,slope);
+    float damp=shoreline_wetness*flat_shore*sand*
+        (1.0-smoothstep(0.16,1.15,sea_clearance+waterline_warp));
+    vec3 damp_sand=mix(vec3(0.30,0.30,0.27),vec3(0.40,0.36,0.29),mottling);
+    color=mix(color,damp_sand,damp*0.72);
+    // Dry pebbly granulation is static, capped and optional on slower devices.
+    // At 960x640 it should read as a material, not animated sparkle.
+    float fine_grain=low_quality ? 0.0 :
+        smoothstep(0.79,0.95,hash(floor(p.xz*5.4)));
+    color=mix(color,vec3(0.36,0.33,0.27),fine_grain*sand*(1.0-damp)*0.15);
     float snow=smoothstep(16.3,19.0,p.y+noise(p.xz*0.42)*2.0)*(1.0-smoothstep(0.12,0.42,slope));
     // Maintain cool snow highlights while leaving headroom for direct light.
     color=mix(color,mix(vec3(0.40,0.49,0.55),vec3(0.65,0.71,0.69),mottling),snow);
     // Broad, restrained cloud shadows preserve direct-light readability.
     float cloud=noise(p.xz*0.025+vec2(study_time*0.004,0.0));
     ALBEDO=color*mix(0.82,1.0,smoothstep(0.3,0.65,cloud));
-    ROUGHNESS=0.92; SPECULAR=0.12;
+    ROUGHNESS=mix(0.92,0.78,damp); SPECULAR=mix(0.12,0.18,damp);
 }
