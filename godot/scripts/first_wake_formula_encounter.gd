@@ -6,6 +6,7 @@ extends RefCounted
 
 const StatModel = preload("res://scripts/jrpg_stat_model.gd")
 const Formula = preload("res://scripts/first_wake_combat_formula.gd")
+const EquipmentTraining = preload("res://scripts/battle_equipment_training_profile.gd")
 
 const VERSION := "0.2.0"
 const TARGET_ID := "formula_review_target"
@@ -17,6 +18,7 @@ const TARGET_WEAKNESS := "EMP fractures the exposed harmonic seam."
 
 var stat_model = StatModel.new()
 var formula = Formula.new()
+var equipment_training = EquipmentTraining.new()
 var rng_source: Callable
 var local_rng := RandomNumberGenerator.new()
 
@@ -111,6 +113,21 @@ func start_with_target(profile: Dictionary) -> bool:
         "adapterSource": str(profile.get("adapterSource", "")),
     }
     return start()
+
+## Only the optional noncanonical target may receive provisional gear math.
+## All authored hazards and non-Ender actors reject this side channel.
+func set_training_loadout(loadout) -> bool:
+    if not active or completed or player_defeated or encounter_kind != "formula_review":
+        return false
+    if loadout == null or loadout.actor_id != str(player.get("id", "")):
+        return false
+    var bonuses := equipment_training.bonuses_for(loadout)
+    if bonuses.is_empty():
+        return false
+    player["isNoncanonicalEquipmentReview"] = true
+    player["reviewEquipmentPower"] = float(bonuses["equipmentPower"])
+    player["reviewEquipmentBonuses"] = bonuses.duplicate(true)
+    return true
 
 func _valid_target_profile(profile: Dictionary) -> bool:
     if profile.is_empty():
