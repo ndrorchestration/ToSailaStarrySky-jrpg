@@ -39,6 +39,40 @@ func _capture() -> void:
         scene.overlay.text = "TO SAIL THE STARRY SKY  /  VISUAL LAB\n" + str(cut[0]).to_upper() + "  •  NATIVE GODOT 4.7.2\nCOAST-TO-HIGHLAND ART STUDY  •  NON-CANON"
         var screenshot: Image = await _frame()
         _save(screenshot,folder.path_join(str(cut[0])+".png"))
+    # Native GL evidence: exact same forest camera, clock, visibility and assets.
+    # Only the terrain shader detail strength changes. Neither frame is art approval.
+    if not baseline and scene.visuals != null:
+        var floor_folder: String = ProjectSettings.globalize_path(
+            "res://evidence/forest-floor-review")
+        if DirAccess.make_dir_recursive_absolute(floor_folder) != OK:
+            push_error("NATIVE_FOREST_FLOOR_DIRECTORY_FAILED")
+            failed = true
+        else:
+            scene.overlay.visible = false
+            scene._clock = 23.0
+            scene._update_scene(10.0)
+            scene.visuals.set_low_quality(false)
+            scene.visuals.land.set_shader_parameter("forest_floor_detail_strength", 0.0)
+            var without_soil: Image = await _frame()
+            _save(without_soil, floor_folder.path_join("forest-soil-off.png"))
+            scene.visuals.land.set_shader_parameter("forest_floor_detail_strength", 1.0)
+            var with_soil: Image = await _frame()
+            _save(with_soil, floor_folder.path_join("forest-soil-on.png"))
+            var changed_pixels: int = 0
+            if without_soil != null and with_soil != null:
+                for y in range(0, 640, 3):
+                    for x in range(0, 960, 3):
+                        var a: Color = without_soil.get_pixel(x, y)
+                        var b: Color = with_soil.get_pixel(x, y)
+                        if absf(a.r-b.r)+absf(a.g-b.g)+absf(a.b-b.b) > 0.018:
+                            changed_pixels += 1
+            if changed_pixels < 45:
+                push_error("NATIVE_FOREST_FLOOR_PAIR_NO_OBSERVABLE_CHANGE pixels=" +
+                    str(changed_pixels))
+                failed = true
+            else:
+                print("NATIVE_FOREST_FLOOR_PAIR_PASS delta=", changed_pixels)
+            scene.overlay.visible = true
     if not baseline:
         scene._clock = 9.0
         scene._update_scene(10.0)

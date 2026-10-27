@@ -1,6 +1,9 @@
 shader_type spatial;
 render_mode diffuse_burley;
 uniform float study_time = 0.0;
+// Local noncanonical material experiment: 0 disables the forest-floor tint.
+uniform float forest_floor_detail_strength = 1.0;
+uniform bool low_quality = false;
 varying vec3 world_pos;
 varying vec3 world_normal;
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
@@ -43,6 +46,30 @@ void fragment() {
     float snow=smoothstep(16.3,19.0,p.y+noise(p.xz*0.42)*2.0)*(1.0-smoothstep(0.12,0.42,slope));
     // Maintain cool snow highlights while leaving headroom for direct light.
     color=mix(color,mix(vec3(0.40,0.49,0.55),vec3(0.65,0.71,0.69),mottling),snow);
+    // Grounded forest-floor color variation without added geometry or alpha cards.
+    // Only the EXISTING planar study forest band receives this treatment.
+    // High/low material detail is explicitly reversible in the visual adapter.
+    if (!low_quality && forest_floor_detail_strength > 0.001) {
+        float forest_band = smoothstep(17.0,20.0,p.x)
+            * (1.0-smoothstep(53.0,56.0,p.x))
+            * smoothstep(1.4,2.2,p.y)
+            * (1.0-smoothstep(10.0,11.0,p.y))
+            * (1.0-smoothstep(0.16,0.31,slope));
+        // Drop microdetail at altitude rather than drawing subpixel leaf dots.
+        float near_detail = 1.0-smoothstep(22.0,70.0,
+            distance(world_pos,CAMERA_POSITION_WORLD));
+        float cover = forest_band * near_detail * forest_floor_detail_strength;
+        if (cover > 0.001) {
+            float moss = smoothstep(0.42,0.70,
+                noise(world_pos.xz*0.46+vec2(5.2,-2.7)));
+            float litter = smoothstep(0.57,0.79,
+                noise(world_pos.xz*1.23+vec2(-4.6,9.8)));
+            // Dark moss and subdued copper-brown leaf fall, not emissive specks.
+            vec3 moss_base = mix(color,vec3(0.08,0.20,0.13),moss*0.38);
+            vec3 woodland = mix(moss_base,vec3(0.28,0.22,0.14),litter*0.38);
+            color = mix(color,woodland,cover);
+        }
+    }
     // Broad, restrained cloud shadows preserve direct-light readability.
     float cloud=noise(p.xz*0.025+vec2(study_time*0.004,0.0));
     ALBEDO=color*mix(0.82,1.0,smoothstep(0.3,0.65,cloud));
