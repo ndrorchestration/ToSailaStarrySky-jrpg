@@ -36,6 +36,19 @@ func _verify() -> void:
     if node.play_affinity("unsupported", false) or node.character_id != "ender":
         _fail("unknown character changed active visual")
         return
+    var atmospheric_lens = node.get_node_or_null("AtmosphericLens")
+    var effect_particles = node.get_node_or_null("CinematicMicroParticles")
+    var ground_contact = node.get_node_or_null("GroundContact")
+    if atmospheric_lens == null or effect_particles == null or ground_contact == null:
+        _fail("layered shader/particle/ground nodes unavailable")
+        return
+    var aura_shader: ShaderMaterial = atmospheric_lens.material as ShaderMaterial
+    if aura_shader == null or aura_shader.shader == null:
+        _fail("shader lens failed actual resource import")
+        return
+    if int(effect_particles.call("particle_budget")) != 14:
+        _fail("default reduced-motion particle cap drift")
+        return
     for identity in Catalog.CHARACTER_ORDER:
         if not node.play_affinity(identity, false) or node.reduced_motion or node.finished:
             _fail("active review effect missing " + identity)
@@ -43,6 +56,27 @@ func _verify() -> void:
         node._process(0.55)
         if node.elapsed <= 0.0:
             _fail("timeline did not advance " + identity)
+            return
+        if str(effect_particles.get("character_id")) != identity or str(ground_contact.get("character_id")) != identity:
+            _fail("affinity layer dispatch drift " + identity)
+            return
+        if int(aura_shader.get_shader_parameter("motif")) != Catalog.CHARACTER_ORDER.find(identity):
+            _fail("shader motif routing drift " + identity)
+            return
+        node.set_quality(2)
+        if int(effect_particles.call("particle_budget")) != 48:
+            _fail("high particle budget drift " + identity)
+            return
+        node.set_quality(0)
+        if int(effect_particles.call("particle_budget")) != 12:
+            _fail("low particle budget drift " + identity)
+            return
+        if not node.seek_visual_phase(0.68) or node.phase != "impact" or node.is_processing():
+            _fail("static phase stepping must stop animation " + identity)
+            return
+        var fixed_time: float = node.elapsed
+        if node.seek_visual_phase(INF) or node.elapsed != fixed_time:
+            _fail("nonfinite phase preview mutated state " + identity)
             return
         node.set_reduced_motion(true)
         if not node.reduced_motion or not node.finished or node.phase != "formation":
@@ -61,13 +95,23 @@ func _verify() -> void:
     if review.choose(-1) or review.choose(5):
         _fail("out-of-range gallery selection accepted")
         return
+    if not review.step_phase(1) or review.effect.phase != "release":
+        _fail("keyboard phase still-frame selection unavailable")
+        return
+    if not review.step_phase(1) or review.effect.phase != "impact":
+        _fail("impact preview frame missing")
+        return
+    review.cycle_quality()
+    if review.quality_level != 2:
+        _fail("particle quality selector drift")
+        return
     review.toggle_reduced_motion()
     if review.reduced_motion or review.effect.reduced_motion:
         _fail("animation opt-in toggle failed")
         return
     review.queue_free()
     await process_frame
-    print("STARRY_SKY_MAGIC_VFX_PASS: five creator affinities, five cinematic phases, imported sigils, visual-only controls, motion-safe default")
+    print("STARRY_SKY_MAGIC_VFX_PASS: five creator affinities, five cinematic phases, shader plus bounded procedural particles, environmental floor effects, motion-safe default")
     quit(0)
 
 func _fail(reason: String) -> void:
