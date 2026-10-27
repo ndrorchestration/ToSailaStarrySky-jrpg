@@ -162,7 +162,7 @@ func update_detail(observer: Vector3, delta: float) -> void:
             node.mesh = record["high"]
         else:
             if record["stitched_mesh"] == null or record["stitched_mask"] != mask:
-                record["stitched_mesh"] = _tile_mesh(record["ix"], record["iz"], HIGH_SEGMENTS, mask)
+                record["stitched_mesh"] = _stitch_existing_mesh(record["ix"], record["iz"], record["high"], mask)
                 record["stitched_mask"] = mask
             node.mesh = record["stitched_mesh"]
     visible_tiles = count
@@ -213,6 +213,34 @@ func _stitched_grid_point(ix: int, iz: int, segments: int, gx: int, gz: int, mas
         b = grid_point(ix, iz, LOW_SEGMENTS, index + 1, edge_z)
     point.y = lerpf(a.y, b.y, fraction)
     return point
+
+# Reuse the existing fine mesh's normals, colors, and interior vertices.
+# Only edge vertices (including skirt vertices) need height adjustments.
+# Preserve each skirt's original vertical offset from its source surface.
+func _stitch_existing_mesh(ix: int, iz: int, source: ArrayMesh, mask: int) -> ArrayMesh:
+    var arrays: Array = source.surface_get_arrays(0)
+    var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX].duplicate()
+    var origin_x: float = float(ix) * TILE_EDGE
+    var origin_z: float = float(iz) * TILE_EDGE
+    for i in range(vertices.size()):
+        var p: Vector3 = vertices[i]
+        var gx: int = roundi((p.x - origin_x) * float(HIGH_SEGMENTS) / TILE_EDGE)
+        var gz: int = roundi((p.z - origin_z) * float(HIGH_SEGMENTS) / TILE_EDGE)
+        var boundary: bool = (gx == 0 and (mask & 1) != 0) or \
+            (gx == HIGH_SEGMENTS and (mask & 2) != 0) or \
+            (gz == 0 and (mask & 4) != 0) or \
+            (gz == HIGH_SEGMENTS and (mask & 8) != 0)
+        if not boundary:
+            continue
+        var original: Vector3 = grid_point(ix, iz, HIGH_SEGMENTS, gx, gz)
+        var adjusted: Vector3 = _stitched_grid_point(ix, iz, HIGH_SEGMENTS, gx, gz, mask)
+        p.y += adjusted.y - original.y
+        vertices[i] = p
+    arrays[Mesh.ARRAY_VERTEX] = vertices
+    var result := ArrayMesh.new()
+    result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+    result.surface_set_material(0, source.surface_get_material(0))
+    return result
 
 func _tile_mesh(ix: int, iz: int, segments: int, stitch_mask: int = 0) -> ArrayMesh:
     var tool := SurfaceTool.new()
