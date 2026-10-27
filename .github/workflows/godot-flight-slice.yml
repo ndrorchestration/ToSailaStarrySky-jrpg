@@ -51,6 +51,12 @@ jobs:
           /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_cinematic_camera.gd 2>&1 | tee /tmp/cinematic-camera.log
           grep -Eq 'GODOT_CINEMATIC_CAMERA_PASS checks=[0-9]+' /tmp/cinematic-camera.log
           ! grep -Eq 'GODOT_CINEMATIC_CAMERA_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/cinematic-camera.log
+      - name: Native atmospheric material and accessibility controls
+        run: |
+          set -o pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_atmosphere_contract.gd 2>&1 | tee /tmp/atmosphere-test.log
+          grep -Eq 'GODOT_ATMOSPHERE_CONTRACT_PASS checks=[0-9]+' /tmp/atmosphere-test.log
+          ! grep -Eq 'GODOT_ATMOSPHERE_CONTRACT_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/atmosphere-test.log
       - name: Deterministic native manual Dragonfly pilot mode contracts
         run: |
           set -o pipefail
@@ -83,6 +89,17 @@ jobs:
           grep -q 'NATIVE_TOUCHDOWN_FRAME_PASS state=LANDED' /tmp/capture.log
           grep -Eq 'NATIVE_TOUCHDOWN_PHYSICS_FRAME_PASS triangles=792 rayHeightError=[0-9.]+' /tmp/capture.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/capture.log
+      - name: Matched native GL A/B atmospheric depth captures
+        run: |
+          set -o pipefail
+          timeout 75s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot/flight_slice \
+            --rendering-driver opengl3 \
+            --audio-driver Dummy \
+            --script res://tests/capture_atmosphere_pair.gd 2>&1 | tee /tmp/atmosphere-capture.log
+          grep -Eq 'NATIVE_ATMOSPHERE_PAIR_PASS delta=[0-9]+' /tmp/atmosphere-capture.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/atmosphere-capture.log
       - name: Upload noncanonical native reference frames
         if: always()
         uses: actions/upload-artifact@v4
@@ -94,6 +111,8 @@ jobs:
             /tmp/scene.log
             /tmp/test.log
             /tmp/visuals.log
+            /tmp/atmosphere-test.log
+            /tmp/atmosphere-capture.log
             /tmp/cinematic-camera.log
             /tmp/pilot.log
             /tmp/touchdown.log
