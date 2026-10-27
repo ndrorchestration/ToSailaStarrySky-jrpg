@@ -118,6 +118,7 @@ func _run() -> void:
             var layer: MultiMeshInstance3D = scene.terrain.get_node(layer_name)
             check(layer.multimesh.instance_count > 0, layer_name + " has placements")
             visuals.set_environment_look(2, 3, true)
+            visuals.set_clock(23.0, false)
             visuals.set_low_quality(false)
             check(layer.visible and visuals.rain.instances.visible,
                 layer_name + " coexists with storm rain at high quality")
