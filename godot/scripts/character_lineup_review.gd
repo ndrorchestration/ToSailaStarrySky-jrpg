@@ -16,6 +16,7 @@ const CARD_X = [107.0, 293.0, 479.0, 665.0, 851.0]
 const GROUND_Y := 422.0
 
 var walk_phase: int = 0
+var magnified: bool = true
 var _ender_sprite: Sprite2D
 var _ionia_sprite: Sprite2D
 
@@ -26,6 +27,7 @@ func _ready() -> void:
     _ionia_sprite = _candidate("IoniaCandidateFront", IONIA_ATLAS, CARD_X[0], Vector2(0.13, 0.13))
     _ender_sprite = _candidate("EnderCandidateFront", ENDER_ATLAS, CARD_X[1], Vector2.ONE)
     set_walk_phase(0)
+    set_magnified(true)
 
 func _candidate(source_name: String, source: Texture2D, x: float, size: Vector2) -> Sprite2D:
     var sprite := Sprite2D.new()
@@ -46,6 +48,19 @@ func get_character_id_order() -> Array:
 func get_innate_energy_names() -> Array:
     return INNATE_ENERGIES.duplicate()
 
+func set_magnified(enabled: bool) -> void:
+    # Default: comparable review zoom. Toggle down to exact dock-preview sizes.
+    magnified = enabled
+    if _ionia_sprite != null:
+        var scale_value := 0.192 if enabled else 0.13
+        _ionia_sprite.scale = Vector2(scale_value, scale_value)
+        _ionia_sprite.position.y = GROUND_Y - 46.0 * scale_value / 0.13
+    if _ender_sprite != null:
+        var scale_value := 1.65 if enabled else 1.0
+        _ender_sprite.scale = Vector2(scale_value, scale_value)
+        _ender_sprite.position.y = GROUND_Y - 46.0 * scale_value
+    queue_redraw()
+
 func set_walk_phase(phase: int) -> void:
     walk_phase = posmod(phase, 6)
     if _ionia_sprite != null:
@@ -58,7 +73,7 @@ func _draw() -> void:
     draw_rect(Rect2(0, 0, 960, 640), Color("#091829"))
     draw_rect(Rect2(0, 0, 960, 132), Color("#11293c"))
     draw_string(ThemeDB.fallback_font, Vector2(34, 50), "FIVE LIGHTS / PROTAGONIST ART REVIEW", HORIZONTAL_ALIGNMENT_LEFT, -1, 29, Color("#f4e9d5"))
-    draw_string(ThemeDB.fallback_font, Vector2(35, 82), "Two existing Godot sprite candidates + three silhouette blockouts. No art acceptance.", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#c1d0d6"))
+    draw_string(ThemeDB.fallback_font, Vector2(35, 82), "Two existing candidate sprites + three faceless blockouts. Review zoom; M toggles native size.", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#c1d0d6"))
     for i in range(DISPLAY_ORDER.size()):
         var x: float = CARD_X[i]
         var color: Color = COLORS[i]
@@ -72,23 +87,23 @@ func _draw() -> void:
         if i >= 2:
             _draw_noncanon_blockout(i, x, color)
     draw_rect(Rect2(0, 484, 960, 156), Color("#102333"))
-    draw_string(ThemeDB.fallback_font, Vector2(35, 518), "[ / ]  SCRUB CONTACT PHASE    L or ESC  CLOSE REVIEW", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#f1dec0"))
-    draw_string(ThemeDB.fallback_font, Vector2(35, 547), "PHASE %d / 5     Existing sprite studies are not accepted production atlases." % walk_phase, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#c6d7d9"))
+    draw_string(ThemeDB.fallback_font, Vector2(35, 518), "[ / ]  SCRUB PHASE    M  SCALE    L / ESC  CLOSE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#f1dec0"))
+    draw_string(ThemeDB.fallback_font, Vector2(35, 547), "PHASE %d / 5  •  %s     Unapproved source atlases." % [walk_phase, "REVIEW ZOOM" if magnified else "NATIVE SIZE"], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#c6d7d9"))
     draw_string(ThemeDB.fallback_font, Vector2(35, 576), "Relative silhouettes are illustrative, not a centimeter height chart. Magic use remains job-optional.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#c6d7d9"))
     draw_string(ThemeDB.fallback_font, Vector2(35, 604), "Source: creator character/art authority; visual design and animation remain review-gated.", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("#94aeb7"))
 
 func _draw_noncanon_blockout(index: int, x: float, tint: Color) -> void:
     # No invented uniform, insignia, weapons, powers or default jobs.
-    var height := 111.0
+    var height := 148.0
     var shoulder := 22.0
     if index == 2: # Aepex: second-tallest and lean.
-        height = 122.0
+        height = 174.0
         shoulder = 18.0
     elif index == 3: # Lyra: adult; unapproved final costume.
-        height = 100.0
+        height = 138.0
         shoulder = 19.0
     elif index == 4: # Reson: tallest and broadest.
-        height = 137.0
+        height = 189.0
         shoulder = 30.0
     var head_y := GROUND_Y - height + 12.0
     draw_circle(Vector2(x, head_y), 10.0, Color("#425463"))
