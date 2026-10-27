@@ -16,6 +16,13 @@ func _save(frame: Image, path: String) -> void:
         failed = true
     else:
         print("NATIVE_ART_CAPTURE:", path, " 960x640")
+func _save_shore(frame: Image, path: String) -> void:
+    # Keep the established six NATIVE_ART_CAPTURE receipts stable.
+    if frame == null or frame.get_size() != Vector2i(960, 640) or frame.save_png(path) != OK:
+        push_error("SHORELINE_CAPTURE_FAILED: " + path)
+        failed = true
+    else:
+        print("NATIVE_SHORELINE_CAPTURE: ", path, " 960x640")
 func _different(a: Image, b: Image) -> int:
     var count: int = 0
     for y in range(110,640,2):
@@ -165,8 +172,8 @@ func _capture() -> void:
         var shore_pixels: int = _different(dry_shore, wet_shore)
         var shore_folder: String = ProjectSettings.globalize_path(
             "res://evidence/cinematic-review")
-        _save(dry_shore, shore_folder.path_join("coast-shore-dry.png"))
-        _save(wet_shore, shore_folder.path_join("coast-shore-wet.png"))
+        _save_shore(dry_shore, shore_folder.path_join("coast-shore-dry.png"))
+        _save_shore(wet_shore, shore_folder.path_join("coast-shore-wet.png"))
         print("NATIVE_SHORELINE_PAIR_DELTA pixels=", shore_pixels)
         if shore_pixels < 30:
             push_error("NATIVE_SHORELINE_PAIR_NO_VISIBLE_CHANGE")
@@ -174,7 +181,7 @@ func _capture() -> void:
         scene.visuals.set_low_quality(true)
         var low_shore: Image = await _frame()
         scene.visuals.set_low_quality(false)
-        _save(low_shore, shore_folder.path_join("coast-shore-low.png"))
+        _save_shore(low_shore, shore_folder.path_join("coast-shore-low.png"))
         var quality_delta: int = _different(wet_shore, low_shore)
         print("NATIVE_SHORELINE_QUALITY_DELTA pixels=", quality_delta)
         if quality_delta < 30:
