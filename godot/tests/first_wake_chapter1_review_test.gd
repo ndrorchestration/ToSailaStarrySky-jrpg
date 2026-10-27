@@ -124,6 +124,23 @@ func _verify() -> void:
     if world.ender.player_controlled:
         _fail("player control remained active after migration-review completion")
         return
+    if not world.choice_receipt_label.visible:
+        _fail("Chapter I completion does not present the selected storm outcome")
+        return
+    if world.choice_receipt_label.text.find("Project shield / Cover the berths") < 0:
+        _fail("selected choice identity missing from completion receipt")
+        return
+    if world.choice_receipt_label.text.find("bright wing") < 0:
+        _fail("authored path-C storm consequence not present at completion")
+        return
+    var done_snapshot: Dictionary = world.export_save_snapshot()
+    world.choice_receipt_label.text = ""
+    if not world.restore_save_snapshot(done_snapshot):
+        _fail("valid completed-chapter save failed to restore")
+        return
+    if not world.choice_receipt_label.visible or world.choice_receipt_label.text.find("bright wing") < 0:
+        _fail("completed chapter did not reconstruct the authored outcome after save restore")
+        return
 
     world.queue_free()
     await process_frame
