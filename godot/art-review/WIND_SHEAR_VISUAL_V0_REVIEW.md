@@ -9,6 +9,12 @@
 - Other Crossing hazards (Loose Cargo Sweep and Dock Authority Hold) remain noncombat and are **not** newly rendered as enemies.
 - Implementation base: native Chapter I draft PR #347, exact code-source head `74fe1bce7a8a02eb3cbf30f725fa2af0925ba670`. New work lives on a separate draft branch.
 
+## Revised Chapter I chronology — integration hold (2026-10-27)
+
+**Creator-approved story direction:** [#425](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/425) and the native hiring slice [#430](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/430) place Ionia as Ender's **first** companion, with Lyra joining later after splashdown. This is later than the older native Crossing/party assumptions in base [#347](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/347).
+
+**IMPLEMENTED:** the Wind Shear *visual component* remains reusable and presentation-only. **OPEN:** whether this legacy Crossing encounter and its placement belong in the revised Chapter I sequence. Do **not** interpret the passing PR #410 combat smoke as approval of the older Ender+Lyra-first story order. Do not merge old chapter sequencing to make this art appear. Integrate through the revised narrative line only after an explicit encounter-placement and party-authority reconciliation.
+
 ## Visual thesis — PROPOSAL, not an art lock
 
 A recognizable **broken harmonic pressure form**, not a generic elemental ball:
@@ -44,7 +50,9 @@ The original pixel atlas and fallback geometry remain bounded to a 182×184 logi
 
 - Contract to execute: `godot --headless --path godot --script res://tests/first_wake_wind_shear_visual_test.gd`.
 - Required regressions: existing Wind Shear adapter, retaliation, crossing-scene, save/restore, formula review and Chapter I state tests.
-- Real image gate: execute `godot/tests/capture_wind_shear_visual_review.gd` with Godot 4.7.2 and OpenGL Compatibility, then compare all four 960×640 output frames against exact-head sprites and battle UI. Preserve the preexisting `chapter1-wind-shear-combat-native-960x640.png` capture too. This document **does not** claim creator visual acceptance or target-hardware frame pacing.
+- **Verified native render gate:** at code head `e1f6fd083b2d68e42943b23e4060999d3be72df7`, [Godot capture run 40593688979](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40593688979) passed. Five real 960×640 renderer frames were hashed and distinguished, including an observed hit. The bar-region test confirms analysis does not lower HP but the actual strike does. The frames remain runner-only and **were not externally viewed**, so no creator visual acceptance or frame-pacing result is claimed.
+- **Verified regression boundary:** same code head [native run 40593688590](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40593688590) PASS and [smoke run 40593688544](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40593688544) PASS. Exact Windows security custody remains an independent hold.
+- **Future image gate:** preserve `chapter1-wind-shear-combat-native-960x640.png` as a comparison, inspect all five new native frames and actual animation on target displays. A passing pixel hash is not a human aesthetic review.
 - Creator/player review must check silhouette readability at native scale, legible enemy HP/status/commands, no aliasing or clipping, perceived elemental identity, analyzed/retaliation clarity, idle visual noise, reduced-motion behavior, and frame pacing on target hardware.
 
 ## Next art iteration (not implemented)
