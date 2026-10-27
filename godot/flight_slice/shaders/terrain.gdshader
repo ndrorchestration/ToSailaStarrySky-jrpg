@@ -1,6 +1,8 @@
 shader_type spatial;
 render_mode diffuse_burley;
 uniform float study_time = 0.0;
+// Material contrast only: all world heights/biomes and physics stay authoritative.
+uniform float surface_detail_strength = 1.0;
 varying vec3 world_pos;
 varying vec3 world_normal;
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
@@ -43,6 +45,41 @@ void fragment() {
     float snow=smoothstep(16.3,19.0,p.y+noise(p.xz*0.42)*2.0)*(1.0-smoothstep(0.12,0.42,slope));
     // Maintain cool snow highlights while leaving headroom for direct light.
     color=mix(color,mix(vec3(0.40,0.49,0.55),vec3(0.65,0.71,0.69),mottling),snow);
+    // Geographic surface transition study. Keep this downstream of the
+    // original sand/rock/snow masks so no existing coastline datum moves.
+    vec3 original_color=color;
+    float forest_zone=smoothstep(16.0,23.0,p.x)
+        *(1.0-smoothstep(51.0,58.0,p.x));
+    float woodland_height=smoothstep(1.4,3.4,p.y)
+        *(1.0-smoothstep(9.0,13.0,p.y));
+    float woodland=forest_zone*woodland_height*(1.0-rocky)*(1.0-sand);
+    // A patchy leaf-litter mineral floor reads beneath canopy, without
+    // bright grass dots or a texture that could break chunk boundaries.
+    float leaf_litter=noise(p.xz*0.52)*0.62+noise(p.xz*1.19)*0.38;
+    vec3 humus=mix(vec3(0.12,0.20,0.13),vec3(0.28,0.28,0.16),
+        smoothstep(0.30,0.75,leaf_litter));
+    color=mix(color,humus,woodland*0.54);
+
+    // Shore moisture fades smoothly above sea level, with wavy bands
+    // driven by the same local coordinates as the ocean and beach.
+    float damp_edge=p.y+0.12*sin(p.x*0.75+p.z*0.23);
+    float wet_sand=(1.0-smoothstep(0.15,1.55,damp_edge))*sand;
+    color=mix(color,color*vec3(0.83,0.88,0.91),wet_sand*0.38);
+
+    // Discontinuous, low-contrast stone bedding only where exposed.
+    // This uses terrain height and slope, not a second geometry model.
+    float exposed=rocky*(1.0-snow)*(1.0-sand)
+        *smoothstep(4.0,12.0,p.y);
+    float drift=noise(p.xz*0.18);
+    float bands=0.5+0.5*sin(p.y*2.45+p.x*0.20
+        -p.z*0.13+drift*2.1);
+    float seam=smoothstep(0.68,0.89,bands);
+    vec3 mineral_veil=mix(vec3(0.88,0.92,0.97),
+        vec3(1.10,1.04,0.95),seam);
+    color=mix(color,color*mineral_veil,exposed*0.32);
+    // Quality mode controls added detail amplitude without changing the
+    // previously validated base material or material shader signature.
+    color=mix(original_color,color,clamp(surface_detail_strength,0.0,1.0));
     // Broad, restrained cloud shadows preserve direct-light readability.
     float cloud=noise(p.xz*0.025+vec2(study_time*0.004,0.0));
     ALBEDO=color*mix(0.82,1.0,smoothstep(0.3,0.65,cloud));
