@@ -64,6 +64,12 @@ jobs:
           timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_atmosphere_contract.gd 2>&1 | tee /tmp/atmosphere-test.log
           grep -Eq 'GODOT_ATMOSPHERE_CONTRACT_PASS checks=[0-9]+' /tmp/atmosphere-test.log
           ! grep -Eq 'GODOT_ATMOSPHERE_CONTRACT_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/atmosphere-test.log
+      - name: Deterministic environmental grading and motion-safe weather
+        run: |
+          set -o pipefail
+          timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_environment_mood.gd 2>&1 | tee /tmp/environment-mood-test.log
+          grep -Eq 'GODOT_ENVIRONMENT_MOOD_PASS checks=[0-9]+' /tmp/environment-mood-test.log
+          ! grep -Eq 'GODOT_ENVIRONMENT_MOOD_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/environment-mood-test.log
       - name: Deterministic native manual Dragonfly pilot mode contracts
         run: |
           set -o pipefail
@@ -107,6 +113,16 @@ jobs:
             --script res://tests/capture_atmosphere_pair.gd 2>&1 | tee /tmp/atmosphere-capture.log
           grep -Eq 'NATIVE_ATMOSPHERE_PAIR_PASS delta=[0-9]+' /tmp/atmosphere-capture.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/atmosphere-capture.log
+      - name: Matched native GL day/weather/magical-atmosphere captures
+        run: |
+          set -o pipefail
+          timeout 90s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_environment_mood.gd 2>&1 | tee /tmp/environment-mood-capture.log
+          grep -q 'NATIVE_ENVIRONMENT_CAPTURE_PASS comparisons=4' /tmp/environment-mood-capture.log
+          grep -Eq 'NATIVE_MAGIC_VEIL_DELTA: [0-9.]+' /tmp/environment-mood-capture.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/environment-mood-capture.log
       - name: Profile actual rendered scripted flight sweep
         run: |
           set -o pipefail
@@ -141,6 +157,8 @@ jobs:
             /tmp/test.log
             /tmp/visuals.log
             /tmp/atmosphere-test.log
+            /tmp/environment-mood-test.log
+            /tmp/environment-mood-capture.log
             /tmp/atmosphere-capture.log
             /tmp/cinematic-camera.log
             /tmp/pilot.log

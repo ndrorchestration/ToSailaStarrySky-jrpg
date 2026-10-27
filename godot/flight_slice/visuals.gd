@@ -1,6 +1,8 @@
 extends Node3D
 ## Reusable materials for a NON-CANON GDScript art study; not product architecture.
 const TerrainStudy = preload("res://terrain.gd")
+const EnvironmentMood = preload("res://environment_mood.gd")
+const WeatherStreaks = preload("res://weather_streaks.gd")
 const SUN_DIRECTION = Vector3(0.65, 0.43, -0.70)
 var water: ShaderMaterial
 var land: ShaderMaterial
@@ -9,6 +11,13 @@ var broadleaf: ShaderMaterial
 var understory: ShaderMaterial
 var sky_material: ShaderMaterial
 var low_quality: bool = false
+var rain: Node3D
+var current_mood: Dictionary = {}
+var _time_index: int = 0
+var _weather_index: int = 0
+var _magic_enabled: bool = false
+var _last_clock: float = 0.0
+var _reduced_motion: bool = false
 var coverage: ImageTexture
 var _terrain: Node3D
 var _coverage_bytes := PackedByteArray()
@@ -65,6 +74,10 @@ func _ready() -> void:
     world.name = "Atmosphere"
     world.environment = environment
     add_child(world)
+    rain = WeatherStreaks.new()
+    rain.name = "WeatherVeil"
+    add_child(rain)
+    set_environment_look(0, 0, false)
 
 func bind_terrain(terrain: Node3D) -> void:
     _terrain = terrain
@@ -94,10 +107,13 @@ func bind_terrain(terrain: Node3D) -> void:
 
 func set_clock(seconds: float, reduced: bool) -> void:
     refresh_coverage()
+    _last_clock = seconds
+    _reduced_motion = reduced
     var clock: float = 0.0 if reduced else seconds
     for material in [water, land, foliage, broadleaf, understory, sky_material]:
         material.set_shader_parameter("study_time", clock)
     understory.set_shader_parameter("motion_scale", 0.0 if reduced else 1.0)
+    rain.set_conditions(_weather_index, clock, reduced, low_quality)
 
 func refresh_coverage() -> void:
     if _terrain == null: return
@@ -120,8 +136,38 @@ func set_low_quality(enabled: bool) -> void:
     low_quality = enabled
     water.set_shader_parameter("low_quality", enabled)
     sky_material.set_shader_parameter("low_quality", enabled)
+    rain.set_conditions(_weather_index, 0.0 if _reduced_motion else _last_clock,
+        _reduced_motion, low_quality)
     if _terrain != null:
         _terrain.get_node("GroundUnderstory").visible = not enabled
+
+## These modes grade the local art study, never the actual game clock.
+func set_environment_look(time_index: int, weather_index: int,
+        magic_enabled: bool) -> void:
+    _time_index = posmod(time_index, EnvironmentMood.TIMES.size())
+    _weather_index = posmod(weather_index, EnvironmentMood.WEATHER.size())
+    _magic_enabled = magic_enabled
+    current_mood = EnvironmentMood.sample(_time_index, _weather_index, magic_enabled)
+    var key: DirectionalLight3D = get_node("GoldenHourKey")
+    var fill: DirectionalLight3D = get_node("SkyBounce")
+    var environment: Environment = (get_node("Atmosphere") as WorldEnvironment).environment
+    key.light_color = current_mood["key_color"]
+    key.light_energy = current_mood["key_energy"]
+    fill.light_color = current_mood["fill_color"]
+    fill.light_energy = current_mood["fill_energy"]
+    environment.ambient_light_color = current_mood["ambient_color"]
+    environment.ambient_light_energy = current_mood["ambient_energy"]
+    environment.fog_light_color = current_mood["fog_color"]
+    environment.fog_density = current_mood["fog_density"]
+    water.set_shader_parameter("sun_visibility", current_mood["sun_visibility"])
+    for uniform_name in ["time_palette", "weather_strength",
+            "magic_veil_strength", "sun_visibility"]:
+        sky_material.set_shader_parameter(uniform_name, current_mood[uniform_name])
+    rain.set_conditions(_weather_index, 0.0 if _reduced_motion else _last_clock,
+        _reduced_motion, low_quality)
+
+func set_camera_frame(view: Camera3D) -> void:
+    rain.follow_camera(view)
 
 func _shader(path: String) -> ShaderMaterial:
     var material := ShaderMaterial.new()

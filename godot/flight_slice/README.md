@@ -2,6 +2,12 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Environmental cinematography and weather review — 2026-10-27
+
+**Optional, NON-CANON visual study.** The default retains the existing golden-hour clear sky and forest flight. **B** cycles golden/midday/blue-hour/night lighting grades; **N** cycles clear/mist/rain/storm; **G** opts into subdued decorative magical sky ribbons (never an auroral navigation lane). These are artistic presets only: no world clock, climate simulation, celestial plot behavior, spell permission, navigation or save data. The existing **C** camera shot rig is unchanged.
+
+The local rain veil uses one deterministic, non-shadow-casting 112-instance quad batch and is hidden by **M** reduced motion or **V** low detail. The ocean suppresses solar glint at night. The native visual review captures five fixed-camera lighting/weather looks, including a direct magical-sky on/off pair. M continues freezing existing procedural motion, while B/N/G remain color/atmosphere-only. Additional shader work in the sky is skipped in low detail. See [environmental review and verification gates](../../docs/reviews/ENVIRONMENTAL_CINEMATOGRAPHY_STUDY_2026-10-27.md). Native renderer, screenshot and hardware suitability are pending until exact-head evidence; source code is not final artwork.
+
 ## Deterministic forest-floor detail study — 2026-10-27
 
 **Proposed visual iteration, not accepted final art.** The optional `GroundUnderstory` layer adds terrain-grounded, small fern/grass silhouettes in the forest and limited grassland. Positions are reproducible from the same static scene sampler, biome predicate, and local steep-slope limit; the temporary hamlet and native touchdown field are excluded. Seven two-triangle fronds form one *opaque*, double-sided mesh instanced through a single `MultiMeshInstance3D`. The effect uses no external textures, noise downloads, particles, transparent overdraw, per-clump nodes, new point lights, or gameplay collision.
