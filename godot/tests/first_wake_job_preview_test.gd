@@ -26,6 +26,12 @@ func _verify() -> void:
     if world.opening.step_key() != "job_search":
         _fail("initial story stage drifted")
         return
+    if world.resonance_status_label == null or not world.resonance_status_label.text.contains("LOCKED"):
+        _fail("missing readable pre-Lyra Resonance lock in actual dock scene")
+        return
+    if world.resonance_roster_gate.evaluate(world.opening, ["ender", "lyra"]).get("canUnlockArt", true):
+        _fail("revised-opening preview automatically granted a Resonance Art")
+        return
 
     # Captain cannot hire Ender until he discovers the actual notice.
     world.ender.position = world.IONIA_DOCK_POSITION + Vector2(-25, 0)
@@ -66,6 +72,9 @@ func _verify() -> void:
         return
     if world.opening.step_key() != "engineering":
         _fail("provisional employment did not enter engineering stage")
+        return
+    if not world.resonance_status_label.text.contains("LOCKED"):
+        _fail("Ionia recruitment prematurely cleared Lyra's Resonance lock")
         return
 
     # Enter engineering through physical gangway interaction, not a story card.
@@ -124,6 +133,9 @@ func _verify() -> void:
         return
     if world.opening.active_party_ids != ["ender", "ionia"]:
         _fail("Lyra was recruited too early")
+        return
+    if not world.resonance_status_label.text.contains("LOCKED") or world.resonance_roster_gate.evaluate(world.opening, ["ender", "lyra"]).get("rosterEligible", true):
+        _fail("preflight incorrectly exposed an Ender-Lyra Resonance opportunity")
         return
     var snap: Dictionary = world.opening.snapshot()
     if snap["implemented_in_live_chapter_one"] or snap["actual_water_physics_verified"]:
