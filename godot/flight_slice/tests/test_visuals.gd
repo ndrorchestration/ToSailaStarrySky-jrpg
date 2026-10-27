@@ -51,15 +51,24 @@ func _run() -> void:
     check(is_equal_approx(visuals.understory.get_shader_parameter("motion_scale"), 0.0), "reduced motion suppresses understory sway")
     visuals.set_low_quality(true)
     check(visuals.water.get_shader_parameter("low_quality") == true, "low quality applied")
+    check(visuals.land.get_shader_parameter("low_quality") == true,
+        "low quality disables extra alpine wind-scour shader detail")
     check(not scene.terrain.get_node("GroundUnderstory").visible, "low quality omits undergrowth")
     check(not scene.terrain.get_node("ShorelineStones").visible, "low quality omits coast stones")
     check(not scene.terrain.get_node("AlpineTalus").visible, "low quality omits decorative talus")
     visuals.set_low_quality(false)
     check(visuals.water.get_shader_parameter("low_quality") == false, "high quality restored")
+    check(visuals.land.get_shader_parameter("low_quality") == false,
+        "high quality restores material-only snow detail")
     check(scene.terrain.get_node("GroundUnderstory").visible, "high quality restores undergrowth")
     check(scene.terrain.get_node("ShorelineStones").visible, "high quality restores coastline accents")
     check(scene.terrain.get_node("AlpineTalus").visible, "high quality restores talus accents")
     check(is_equal_approx(height, scene.terrain.sample_height(30.0, -12.0)), "quality preserves heights")
+    for sample in [Vector2(30.0, -12.0), Vector2(72.0, -11.0),
+            Vector2(75.0, 17.0), Vector2(70.0, -35.0)]:
+        check(is_equal_approx(TerrainStudy.sample_height(sample.x, sample.y),
+            scene.terrain.sample_height(sample.x, sample.y)),
+            "snow visual material does not introduce an alternative terrain sampler")
     check(visuals.has_method("refresh_coverage"), "shore effects require rendered terrain coverage")
     if not visuals.has_method("refresh_coverage"):
         push_error("VISUALS_FAIL: shore effects require rendered terrain coverage")
