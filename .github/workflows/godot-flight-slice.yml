@@ -157,6 +157,17 @@ jobs:
           grep -q 'NATIVE_SURFACE_TEXTURE_CAPTURE_PASS frames=6' /tmp/surface-texture-capture.log
           grep -Eq 'NATIVE_SURFACE_TEXTURE_DELTAS golden=[0-9.]+' /tmp/surface-texture-capture.log
           ! grep -Eq 'NATIVE_SURFACE_TEXTURE_CAPTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/surface-texture-capture.log
+      - name: Verify shared-depth surf breakup with four genuine Godot GL frames
+        run: |
+          set -o pipefail
+          timeout 105s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_shore_foam_integrated.gd 2>&1 | tee /tmp/integrated-coast-foam.log
+          grep -q 'NATIVE_INTEGRATED_COAST_FOAM_PASS frames=4' /tmp/integrated-coast-foam.log
+          grep -Eq 'NATIVE_INTEGRATED_COAST_FOAM_DELTA pixels=[0-9]+' /tmp/integrated-coast-foam.log
+          grep -q 'NATIVE_INTEGRATED_COAST_FOAM_LOW_DELTA pixels=0' /tmp/integrated-coast-foam.log
+          ! grep -Eq 'NATIVE_INTEGRATED_COAST_FOAM_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/integrated-coast-foam.log
       - name: Profile actual rendered scripted flight sweep
         run: |
           set -o pipefail
@@ -206,6 +217,7 @@ jobs:
             /tmp/environment-blends.log
             /tmp/surface-texture-test.log
             /tmp/surface-texture-capture.log
+            /tmp/integrated-coast-foam.log
             /tmp/environment-mood-capture.log
             /tmp/atmosphere-capture.log
             /tmp/cinematic-camera.log
