@@ -1,0 +1,34 @@
+name: Planetary route contract (noncanon Godot study)
+on:
+  pull_request:
+    paths:
+      - 'godot/flight_slice/**'
+      - '.github/workflows/godot-planetary-route-contract.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  route-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact Godot 4.7.2 editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 'https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' -o /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.7.2-stable_linux.x86_64
+      - name: Execute bounded planetary route progression contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_planetary_route_progress.gd 2>&1 | tee /tmp/route.log
+          grep -q 'GODOT_PLANETARY_ROUTE_CONTRACT_PASS' /tmp/route.log
+      - name: Exercise route touchdown using real Godot physics collider
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_planetary_route_physics_bridge.gd 2>&1 | tee /tmp/route-physics.log
+          grep -q 'GODOT_PLANETARY_ROUTE_PHYSICS_BRIDGE_PASS' /tmp/route-physics.log

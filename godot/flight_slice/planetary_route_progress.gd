@@ -35,7 +35,15 @@ func mark_touchdown(native_contact: Dictionary, native_landing_state: String) ->
         return false
     if not (native_contact["position"] is Vector3 and native_contact["normal"] is Vector3):
         return false
-    if native_contact["normal"].y < 0.985:
+    var contact_position: Vector3 = native_contact["position"]
+    var contact_normal: Vector3 = native_contact["normal"]
+    if not contact_position.is_finite() or not contact_normal.is_finite():
+        return false
+    # The native raycast supplies a unit-length support normal. Reject
+    # fabricated, zero-length or unnormalized data at the contract boundary.
+    if absf(contact_normal.length_squared() - 1.0) > 0.01:
+        return false
+    if contact_normal.y < 0.985:
         return false
     phase = Phase.TOUCHDOWN
     return true
