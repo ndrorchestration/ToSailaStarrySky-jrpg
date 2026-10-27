@@ -152,3 +152,11 @@ jobs:
           godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/magic_vfx_contract_test.gd 2>&1 | tee /tmp/magic-vfx-contract.log
           grep -q 'STARRY_SKY_MAGIC_VFX_PASS' /tmp/magic-vfx-contract.log
           ! grep -Eq 'STARRY_SKY_MAGIC_VFX_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/magic-vfx-contract.log
+
+      - name: Verify physical 2D light and occlusion pilot remains non-executable
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/magic_vfx_environment_contract_test.gd 2>&1 | tee /tmp/magic-environment-contract.log
+          grep -q 'STARRY_SKY_MAGIC_ENVIRONMENT_PASS' /tmp/magic-environment-contract.log
+          ! grep -Eq 'STARRY_SKY_MAGIC_ENVIRONMENT_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/magic-environment-contract.log
