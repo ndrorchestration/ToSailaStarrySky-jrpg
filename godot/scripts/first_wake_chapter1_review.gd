@@ -370,7 +370,7 @@ func _sync_wind_shear_visual() -> void:
         return
     # Presentation identity must match BOTH the current-story hazard and the
     # adapter's live enemy id. The synthetic formula target receives no art.
-    var authorized := (
+    var authorized: bool = (
         formula_encounter.active
         and active_hazard_encounter_id == "wind_shear"
         and str(formula_encounter.target.get("id", "")) == "windShear"
