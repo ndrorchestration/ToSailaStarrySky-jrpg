@@ -208,8 +208,8 @@ func _understory_mesh() -> ArrayMesh:
         var shoulder := direction * (reach * 0.53) + Vector3.UP * (rise * 0.81)
         var blade_width: float = 0.115 + 0.03 * sin(float(frond) * 1.2)
         var tip := direction * reach + Vector3.UP * rise
-        var moss := Color(0.48, 0.62, 0.39)
-        var blade := Color(0.86, 1.0, 0.67)
+        var moss := Color(0.41, 0.54, 0.34)
+        var blade := Color(0.69, 0.83, 0.53)
         _plant_triangle(surface, stem, shoulder - across * blade_width, tip, moss, blade)
         _plant_triangle(surface, stem, tip, shoulder + across * blade_width, moss, blade)
     return surface.commit()
