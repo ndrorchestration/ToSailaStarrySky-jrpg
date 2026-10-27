@@ -1,0 +1,37 @@
+name: Godot native weapon mastery review
+on:
+  push:
+    branches: [feat/godot-weapon-trees-visual-preview-20261027]
+    paths:
+      - 'godot/scripts/weapon_*.gd'
+      - 'godot/tests/weapon_skill_tree_review_test.gd'
+      - 'godot/scenes/weapon_tree_review.tscn'
+      - '.github/workflows/godot-weapon-tree-review.yml'
+  pull_request:
+    paths:
+      - 'godot/scripts/weapon_*.gd'
+      - 'godot/tests/weapon_skill_tree_review_test.gd'
+      - 'godot/scenes/weapon_tree_review.tscn'
+      - '.github/workflows/godot-weapon-tree-review.yml'
+permissions:
+  contents: read
+jobs:
+  native-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Fetch digest-verified official Godot 4.7.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' -o godot-editor.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  godot-editor.zip' | sha256sum -c -
+          unzip -q godot-editor.zip
+          chmod +x Godot_v4.7.2-stable_linux.x86_64
+      - name: Import and parse native Godot scenes
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
+      - name: Exercise weapon skill trees and silhouette selection
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/weapon_skill_tree_review_test.gd
