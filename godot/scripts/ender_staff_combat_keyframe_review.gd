@@ -138,6 +138,13 @@ func sample_frame(next_facing: String, pose: Dictionary) -> Dictionary:
     var shaft_axis: Vector2 = Vector2(0.0,-1.0).rotated(deg_to_rad(angle))
     var hand_a: Vector2 = shaft_mid+shaft_axis*11.0
     var hand_b: Vector2 = shaft_mid-shaft_axis*11.0
+    # Optical study only: the motion contour follows the actual ferrule tip,
+    # not a claimed collision or magic projectile. Reduced motion removes it.
+    var trail_strength: float = 0.0
+    if not reduced and progress >= 0.40 and progress < 0.77:
+        var rising: float = clampf((progress-0.40)/0.22,0.0,1.0)
+        var fading: float = clampf((0.77-progress)/0.15,0.0,1.0)
+        trail_strength = rising*fading
     var left_contact: Vector2 = hand_a
     var right_contact: Vector2 = hand_b
     # Distinct depth/arm ordering is authored for each facing, not texture flips.
@@ -159,6 +166,8 @@ func sample_frame(next_facing: String, pose: Dictionary) -> Dictionary:
         "leftGripPoint":left_contact,"rightGripPoint":right_contact,
         "weaponLength":STAFF_HALF*2.0,
         "gripError":0.0,"floorY":FLOOR_Y,
+        "trailStrength":trail_strength,"dustStrength":trail_strength*0.40,
+        "trailFollowsFerrule":true,"visualContactOnly":true,
         "staffEmbeddedInCandidate":false,"oneStaffOnly":true,
         "handContact":true,"footGrounding":true,
         "animationAuthoredForCombatReview":true,
@@ -245,6 +254,26 @@ func _draw() -> void:
         # North: reddish back of head and goggle strap. No rear eye lenses.
         draw_arc(head,16.0,PI*0.04,PI*1.96,25,HAIR,10.0)
         draw_line(head+Vector2(-14.0,-4.0),head+Vector2(14.0,-4.0),LEATHER,4.0)
+    # A small physical swipe ribbon around the ferrule's actual path. Never
+    # reference a target hitbox, HP, combat formula, or magical affinity.
+    var trail: float = clampf(float(d.get("trailStrength",0.0)),0.0,1.0)
+    if trail > 0.01:
+        var axis: Vector2 = d["shaftAxis"]
+        var motion_angle: float = axis.angle()
+        var start_angle: float = motion_angle - 0.38
+        var end_angle: float = motion_angle + 0.10
+        draw_arc(mid,STAFF_HALF+6.0,start_angle,end_angle,22,
+            Color("#d7d5c5",trail*0.38),3.4)
+        draw_arc(mid,STAFF_HALF-2.0,start_angle,end_angle,22,
+            Color("#f1cb8d",trail*0.33),1.8)
+        var tip: Vector2 = d["shaftTipA"]
+        draw_circle(tip,2.4+trail*2.1,Color("#f1d9aa",trail*0.48))
+        var near_boot: Vector2 = d["footB"]
+        for i in range(3):
+            var dust_x: float = float(i*11-12)
+            draw_line(near_boot+Vector2(dust_x,-2.0),
+                near_boot+Vector2(dust_x+5.0,-4.0-float(i)*1.6),
+                Color("#b7b1a0",trail*0.24),1.6)
     # Both arm segments are generated from the SAME grip anchors as the staff.
     _stroke(d["leftShoulder"],d["leftHand"],COAT_SHADOW,9.0)
     _stroke(d["rightShoulder"],d["rightHand"],COAT,9.0)
