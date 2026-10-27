@@ -178,10 +178,19 @@ public static class AdaptiveBoundaryTiles
             throw new InvalidOperationException("Prepared terrain does not include tile.");
         var tool = new SurfaceTool();
         tool.Begin(Mesh.PrimitiveType.Triangles);
-        foreach (Vector3 v in positions)
+        if (positions.Length % 3 != 0)
+            throw new InvalidOperationException("Terrain triangle buffer is incomplete.");
+        for (int i = 0; i < positions.Length; i += 3)
         {
-            tool.SetNormal(v.Normalized()); // noncanon radial approximation
-            tool.AddVertex(v);
+            Vector2[] chartUv = TerrainChartUv.FromTriangle(
+                positions[i], positions[i + 1], positions[i + 2]);
+            for (int corner = 0; corner < 3; corner++)
+            {
+                Vector3 v = positions[i + corner];
+                tool.SetNormal(v.Normalized()); // noncanon radial approximation
+                tool.SetUV(chartUv[corner]);
+                tool.AddVertex(v);
+            }
         }
         var mesh = tool.Commit();
         if (mesh.GetSurfaceCount() != 1)
