@@ -16,6 +16,10 @@ func _initialize() -> void:
     check(not route.mark_touchdown({}, "LANDED"), "no physics receipt")
     check(not route.mark_touchdown({"valid": true}, "LANDED"), "missing native receipt fields")
     var receipt := {"valid": true, "position": Vector3.ZERO, "normal": Vector3.UP}
+    check(not route.mark_touchdown({"valid": true, "position": Vector3(INF, 0, 0), "normal": Vector3.UP}, "LANDED"), "nonfinite contact position denied")
+    check(not route.mark_touchdown({"valid": true, "position": Vector3.ZERO, "normal": Vector3(NAN, 0, 0)}, "LANDED"), "nonfinite contact normal denied")
+    check(not route.mark_touchdown({"valid": true, "position": Vector3.ZERO, "normal": Vector3.ZERO}, "LANDED"), "zero normal denied")
+    check(not route.mark_touchdown({"valid": true, "position": Vector3.ZERO, "normal": Vector3(0, 2, 0)}, "LANDED"), "unnormalized normal denied")
     check(not route.mark_touchdown(receipt, "DESCENDING"), "descent is not landing")
     check(route.mark_touchdown(receipt, "LANDED"), "supported landing")
     check(not route.disembark(false), "requires real ground scene")
