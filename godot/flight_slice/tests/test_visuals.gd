@@ -134,8 +134,13 @@ func _run() -> void:
         var leaf_arrays: Array = broadleaf.multimesh.mesh.surface_get_arrays(0)
         var leaf_vertices: PackedVector3Array = leaf_arrays[Mesh.ARRAY_VERTEX]
         var leaf_normals: PackedVector3Array = leaf_arrays[Mesh.ARRAY_NORMAL]
-        check(leaf_vertices.size() >= 100 and leaf_vertices.size() <= 1200,
-            "clustered crown geometry remains nonempty and bounded")
+        check(leaf_vertices.size() >= 500 and leaf_vertices.size() <= 1200,
+            "multi-lobe crown geometry improves silhouette inside the vertex budget")
+        var leaf_bounds: AABB = broadleaf.multimesh.mesh.get_aabb()
+        check(leaf_bounds.size.x > 2.0 and leaf_bounds.size.x < 3.5,
+            "asymmetric canopy stays within an appropriate tree width")
+        check(leaf_bounds.size.y > 1.75 and leaf_bounds.size.y < 3.1,
+            "asymmetric canopy stays within the authored trunk-height scale")
         check(leaf_vertices.size() == leaf_normals.size(), "clustered crown normals are complete")
         var broad_poses: Array[Transform3D] = scene.terrain.broadleaf_poses
         check(broad_poses.size() > 5, "second canopy has multiple placements")
