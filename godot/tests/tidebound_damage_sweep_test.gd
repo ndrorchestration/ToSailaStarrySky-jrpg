@@ -9,6 +9,9 @@ func _initialize() -> void:
         var partner_id: String = "lyra" if target_id == "ender" else "ender"
         for incoming in range(1, Battle.MAX_FIXTURE_STRIKE + 1):
             var protected = Battle.new()
+            if not bool(protected.grant_training_access(Battle.ART_ID).get("ok", false)):
+                _fail("explicit test grant missing")
+                return
             if not bool(protected.activate().get("ok", false)):
                 _fail("ward setup failed")
                 return
