@@ -1,6 +1,7 @@
 extends Node3D
 ## Reusable materials for a NON-CANON GDScript art study; not product architecture.
 const TerrainStudy = preload("res://terrain.gd")
+const ForestFloorStudy = preload("res://forest_floor.gd")
 const SUN_DIRECTION = Vector3(0.65, 0.43, -0.70)
 var water: ShaderMaterial
 var land: ShaderMaterial
@@ -85,6 +86,12 @@ func bind_terrain(terrain: Node3D) -> void:
     var broad_crowns: MultiMeshInstance3D = terrain.get_node("BroadleafCrowns")
     broad_crowns.multimesh.mesh = _broadleaf_crown()
     broad_crowns.material_override = broadleaf
+    # Independent presentation-only ground cover; no route or collision changes.
+    if not terrain.has_node("ForestGroundCover"):
+        var floor = ForestFloorStudy.new()
+        floor.name = "ForestGroundCover"
+        terrain.add_child(floor)
+        floor.populate()
 
 func set_clock(seconds: float, reduced: bool) -> void:
     refresh_coverage()

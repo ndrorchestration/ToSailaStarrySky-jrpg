@@ -146,6 +146,40 @@ func _run() -> void:
             check(absf(pose.origin.y - scene.terrain.sample_height(pose.origin.x, pose.origin.z)) < 0.0001,
                 "second canopy placement is grounded")
 
+    # Test CPU placement, not unreliable headless MultiMesh transform readback.
+    check(scene.terrain.has_node("ForestGroundCover"), "woodland ground cover exists")
+    if scene.terrain.has_node("ForestGroundCover"):
+        var floor = scene.terrain.get_node("ForestGroundCover")
+        check(floor.fern_poses.size() > 30 and floor.fern_poses.size() <= floor.MAX_FERNS,
+            "fern instancing is nonempty and bounded")
+        check(floor.shrub_poses.size() > 10 and floor.shrub_poses.size() <= floor.MAX_SHRUBS,
+            "shrub instancing is nonempty and bounded")
+        for layer in [["FernClumps", floor.fern_poses], ["UnderstoryShrubs", floor.shrub_poses]]:
+            var node: MultiMeshInstance3D = floor.get_node(layer[0])
+            var poses: Array = layer[1]
+            check(node.multimesh.instance_count == poses.size(),
+                "forest floor GPU instance budget matches CPU positions")
+            check(node.multimesh.mesh is ArrayMesh, "forest floor uses original solid geometry")
+            var vertices3: PackedVector3Array = node.multimesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+            check(vertices3.size() > 30 and vertices3.size() < 700,
+                "forest floor mesh budget is bounded")
+            check(node.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,
+                "tiny understory avoids new dynamic shadow casters")
+            for pose in poses:
+                var p: Vector3 = pose.origin
+                check(TerrainStudy.classify(p.x, p.z) == "forest",
+                    "ground cover uses established forest classification")
+                check(absf(p.y - TerrainStudy.sample_height(p.x, p.z) - 0.025) < 0.0001,
+                    "ground cover follows actual height sampler")
+                check(floor.sampled_slope(p.x, p.z) <= 0.90001,
+                    "ground cover avoids excessive sampled slope")
+                check(floor._clear_of_hamlet(p.x, p.z),
+                    "ground cover retains hamlet clearings")
+        var old_count: int = floor.fern_poses.size()
+        floor.populate()
+        check(floor.fern_poses.size() == old_count,
+            "ground cover setup is idempotent")
+
     scene._clock = 9.0
     scene._paused = true
     scene._process(0.2)

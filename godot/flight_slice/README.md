@@ -117,3 +117,10 @@ Native contract test: `godot --headless --path godot/flight_slice --script res:/
 - Existing nine native frame captures and six-image regression markers remain unchanged; all are still noncanonical test assets.
 
 **Unresolved:** creator visual acceptance, atmospheric plausibility, temporal stability across a full-flight video, clouds obscuring focal objects, real GPU timing and VRAM. Later integration with terrain revisions #393–#399 requires deliberate ancestry reconciliation; none are silently cherry-picked into this camera/sky track. No Moon Bridge, celestial alignment or restricted lore is published.
+
+
+## Mixed forest floor continuation (draft stacked on #404) — 2026-10-27
+
+The experimental forest_floor.gd adapter adds deterministic, terrain-grounded opaque fern fronds and offset shrub clumps as two instanced visual layers beneath the original forest. Scatter samples the existing local height and forest classification, rejects steep sites and preserves clearings at the five provisional houses. It does not change terrain tiles, landing colliders, gameplay, navigation, biome canon or save data. Vegetation is static, including under reduced-motion settings. No external art was copied.
+
+New presentation checks cover instance budgets, source geometry, grounding, slope/hamlet exclusions and repeated setup. Real Godot framebuffer comparison, visual acceptance and target-GPU frame time/VRAM remain separate gates. This is still faceted placeholder geometry, not photorealism or globe integration.
