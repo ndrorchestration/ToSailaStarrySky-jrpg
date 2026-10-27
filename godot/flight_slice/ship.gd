@@ -33,7 +33,11 @@ func _ready() -> void:
     _part("Keel", Vector3(0.0, -0.34, 0.15), Vector3(0.18, 0.20, 1.82), dark_bronze)
     _part("UpperCabin", Vector3(0.0, 0.42, 0.05), Vector3(0.38, 0.22, 0.98), ivory)
     _part("ForwardNose", Vector3(0.0, 0.04, -2.13), Vector3(0.36, 0.19, 0.44), brass)
-    _part("AftTurbine", Vector3(0.0, 0.0, 2.13), Vector3(0.32, 0.31, 0.40), dark_bronze)
+    # Smaller concentric stern drive: practical machinery rather than a ball.
+    _nozzle_piece("AftTurbine", 2.07, 0.21, 0.31, 0.46, dark_bronze)
+    _nozzle_piece("ExhaustCollar", 2.34, 0.29, 0.29, 0.075, brass)
+    _nozzle_piece("ExhaustThroat", 2.393, 0.20, 0.20, 0.048, dark_bronze)
+    _nozzle_piece("ExhaustGlow", 2.423, 0.105, 0.105, 0.045, glass)
 
     # Long brass rails make the ship legible in flight-scale side and rear shots.
     for side in [-1.0, 1.0]:
@@ -62,6 +66,16 @@ func _ready() -> void:
         _part(foot_name, Vector3(side * 0.50, -0.78, 0.50),
             Vector3(0.18, 0.17, 0.55), brass)
         get_node(foot_name).visible = false
+
+    # Segmented roof ribs break the undifferentiated white-capsule cabin.
+    for index in range(4):
+        var z: float = -0.75 + float(index) * 0.51
+        _rod(self, "CabinRoofBow_Port_%s" % index,
+            Vector3(-0.38, 0.46, z),
+            Vector3(0.0, 0.69, z), 0.021, brass)
+        _rod(self, "CabinRoofBow_Starboard_%s" % index,
+            Vector3(0.0, 0.69, z),
+            Vector3(0.38, 0.46, z), 0.021, brass)
 
     # Three modest navigational vanes, not full-size galleon masts.
     for index in range(3):
@@ -131,33 +145,45 @@ func _wing(side: float, fore: bool, brass: Material, glazing: Material) -> void:
     var rig := Node3D.new()
     rig.name = "WingRig_" + wing_name
     add_child(rig)
-    # Four distinct tapered planforms replace the old two oversized flat sheets.
-    # The two pairs overlap near the shoulders but retain separate outlines.
+    # Scalloped tips and separate fore/aft outlines distinguish these membranes
+    # from rigid aircraft panels. Coordinates are local study proportions.
     var outline: Array[Vector3]
     if fore:
         outline = [
             Vector3(side * 0.38, 0.18, -1.18),
-            Vector3(side * 2.16, 0.28, -2.30),
-            Vector3(side * 4.12, 0.32, -2.08),
-            Vector3(side * 4.60, 0.27, -1.18),
-            Vector3(side * 1.46, 0.15, -0.30)
+            Vector3(side * 1.58, 0.24, -1.86),
+            Vector3(side * 3.48, 0.33, -2.29),
+            Vector3(side * 4.46, 0.38, -2.00),
+            Vector3(side * 4.84, 0.32, -1.40),
+            Vector3(side * 4.40, 0.26, -0.92),
+            Vector3(side * 2.48, 0.20, -0.60),
+            Vector3(side * 1.17, 0.15, -0.28)
         ]
     else:
         outline = [
-            Vector3(side * 0.40, 0.16, 0.08),
-            Vector3(side * 1.98, 0.24, -0.09),
-            Vector3(side * 4.09, 0.33, 0.70),
-            Vector3(side * 3.46, 0.31, 2.03),
-            Vector3(side * 1.30, 0.14, 1.45)
+            Vector3(side * 0.40, 0.17, 0.08),
+            Vector3(side * 1.61, 0.23, -0.22),
+            Vector3(side * 3.23, 0.34, 0.17),
+            Vector3(side * 4.34, 0.42, 0.82),
+            Vector3(side * 4.35, 0.35, 1.33),
+            Vector3(side * 3.58, 0.30, 2.02),
+            Vector3(side * 2.08, 0.21, 1.70),
+            Vector3(side * 0.95, 0.16, 1.10)
         ]
     var surface := SurfaceTool.new()
     surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+    # Camber is an actual raised ridge, not a screen-space painted highlight.
     for i in range(1, outline.size() - 1):
-        for vertex in [outline[0], outline[i], outline[i + 1]]:
-            surface.set_normal(Vector3.UP)
-            surface.set_color(Color(0.57, 0.82, 0.79, 0.84) if i % 2 == 0
-                else Color(0.30, 0.63, 0.67, 0.84))
-            surface.add_vertex(vertex)
+        var root: Vector3 = outline[0]
+        var ridge: Vector3 = root.lerp((outline[i] + outline[i + 1]) * 0.5, 0.58)
+        ridge.y += 0.13
+        _membrane_triangle(surface, root, outline[i], ridge,
+            Color(0.18, 0.45, 0.49, 0.77))
+        _membrane_triangle(surface, ridge, outline[i], outline[i + 1],
+            Color(0.37, 0.66, 0.69, 0.73))
+        _membrane_triangle(surface, root, ridge, outline[i + 1],
+            Color(0.23, 0.51, 0.58, 0.80))
+    surface.generate_normals()
     var membrane := MeshInstance3D.new()
     membrane.name = "Membrane_" + wing_name
     membrane.mesh = surface.commit()
@@ -165,17 +191,48 @@ func _wing(side: float, fore: bool, brass: Material, glazing: Material) -> void:
     membrane_material.vertex_color_use_as_albedo = true
     membrane_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
     membrane_material.cull_mode = BaseMaterial3D.CULL_DISABLED
-    membrane_material.metallic = 0.09
-    membrane_material.roughness = 0.38
+    membrane_material.metallic = 0.07
+    membrane_material.roughness = 0.42
     membrane.material_override = membrane_material
     rig.add_child(membrane)
-    # Slim structural leading edges and radial veins read in three-quarter view.
-    _rod(rig, "LeadingEdge_" + wing_name, outline[0], outline[1], 0.040, brass)
-    _rod(rig, "OuterEdge_" + wing_name, outline[1], outline[2], 0.026, brass)
-    _rod(rig, "TipEdge_" + wing_name, outline[2], outline[3], 0.021, brass)
-    for i in range(2, outline.size()):
-        _rod(rig, "Vein_%s_%s" % [wing_name, i],
-            outline[0], outline[i], 0.014, glazing)
+
+    # Narrow perimeter, two-section fine ribbing and less gold at the tips.
+    var dark_edge := _material(Color(0.34, 0.36, 0.32), 0.48, 0.30)
+    _rod(rig, "LeadingEdge_" + wing_name, outline[0], outline[1], 0.035, brass)
+    for i in range(1, outline.size() - 1):
+        _rod(rig, "Edge_%s_%s" % [wing_name, i],
+            outline[i], outline[i + 1], 0.013, dark_edge)
+    _rod(rig, "ReturnEdge_" + wing_name,
+        outline[outline.size() - 1], outline[0], 0.027, brass)
+    for i in range(2, outline.size() - 1):
+        var center: Vector3 = outline[0].lerp(outline[i], 0.56)
+        center.y += 0.12
+        _rod(rig, "VeinInner_%s_%s" % [wing_name, i],
+            outline[0], center, 0.013, glazing)
+        _rod(rig, "VeinOuter_%s_%s" % [wing_name, i],
+            center, outline[i], 0.009, glazing)
+
+func _membrane_triangle(surface: SurfaceTool, a: Vector3,
+        b: Vector3, c: Vector3, color: Color) -> void:
+    surface.set_color(color)
+    surface.add_vertex(a)
+    surface.add_vertex(b)
+    surface.add_vertex(c)
+
+func _nozzle_piece(label_name: String, z: float, fore_radius: float,
+        aft_radius: float, depth: float, surface: Material) -> void:
+    var model := MeshInstance3D.new()
+    model.name = label_name
+    var barrel := CylinderMesh.new()
+    barrel.top_radius = aft_radius
+    barrel.bottom_radius = fore_radius
+    barrel.height = depth
+    barrel.radial_segments = 16
+    model.mesh = barrel
+    model.rotation.x = PI * 0.5
+    model.position = Vector3(0.0, 0.0, z)
+    model.material_override = surface
+    add_child(model)
 
 func _vane(index: int, z: float, height: float, cloth: Material) -> void:
     var sail := MeshInstance3D.new()
