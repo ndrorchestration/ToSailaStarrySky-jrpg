@@ -1,11 +1,14 @@
 extends Control
 ## REVIEW ONLY: no final field sprites/portraits or newly approved costume designs.
 ## The first two textures are existing UNAPPROVED Godot candidate atlases.
-## The other three figures are deliberately faceless proportion blockouts.
+## Three original front-facing six-phase SVG art STUDIES now replace anonymous blockouts.
 ## Innate resonance is plot identity, independent of job and learned magic.
 
 const ENDER_ATLAS: Texture2D = preload("res://art-review/ender-south-detailed-staff-v2-candidate.svg")
 const IONIA_ATLAS: Texture2D = preload("res://art-review/ionia-front-sixframe-candidate.svg")
+const AEPEX_ATLAS: Texture2D = preload("res://art-review/aepex-south-sixphase-v1-unapproved.svg")
+const LYRA_ATLAS: Texture2D = preload("res://art-review/lyra-south-sixphase-v1-unapproved.svg")
+const RESON_ATLAS: Texture2D = preload("res://art-review/reson-south-sixphase-v1-unapproved.svg")
 const DISPLAY_ORDER = ["Ionia", "Ender", "Aepex", "Lyra", "Reson"]
 const INNATE_ENERGIES = ["Earth", "Spirit", "Air", "Water", "Fire"]
 const COLORS = [
@@ -19,6 +22,9 @@ var walk_phase: int = 0
 var magnified: bool = true
 var _ender_sprite: Sprite2D
 var _ionia_sprite: Sprite2D
+var _aepex_sprite: Sprite2D
+var _lyra_sprite: Sprite2D
+var _reson_sprite: Sprite2D
 
 func _ready() -> void:
     name = "FiveProtagonistVisualReviewUnapproved"
@@ -26,6 +32,9 @@ func _ready() -> void:
     set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     _ionia_sprite = _candidate("IoniaCandidateFront", IONIA_ATLAS, CARD_X[0], Vector2(0.13, 0.13))
     _ender_sprite = _candidate("EnderCandidateFront", ENDER_ATLAS, CARD_X[1], Vector2.ONE)
+    _aepex_sprite = _candidate("AepexSouthV1Unapproved", AEPEX_ATLAS, CARD_X[2], Vector2.ONE)
+    _lyra_sprite = _candidate("LyraSouthV1Unapproved", LYRA_ATLAS, CARD_X[3], Vector2.ONE)
+    _reson_sprite = _candidate("ResonSouthV1Unapproved", RESON_ATLAS, CARD_X[4], Vector2.ONE)
     set_walk_phase(0)
     set_magnified(true)
 
@@ -59,6 +68,12 @@ func set_magnified(enabled: bool) -> void:
         var scale_value := 1.65 if enabled else 1.0
         _ender_sprite.scale = Vector2(scale_value, scale_value)
         _ender_sprite.position.y = GROUND_Y - 46.0 * scale_value
+    for study in [_aepex_sprite, _lyra_sprite, _reson_sprite]:
+        if study != null:
+            var size := 1.55 if enabled else 1.0
+            study.scale = Vector2(size, size)
+            # New SVGs are authored with boots near local source y=124 in 128px cells.
+            study.position.y = GROUND_Y - 60.0 * size
     queue_redraw()
 
 func set_walk_phase(phase: int) -> void:
@@ -67,13 +82,16 @@ func set_walk_phase(phase: int) -> void:
         _ionia_sprite.frame = walk_phase
     if _ender_sprite != null:
         _ender_sprite.frame = walk_phase
+    for study in [_aepex_sprite, _lyra_sprite, _reson_sprite]:
+        if study != null:
+            study.frame = walk_phase
     queue_redraw()
 
 func _draw() -> void:
     draw_rect(Rect2(0, 0, 960, 640), Color("#091829"))
     draw_rect(Rect2(0, 0, 960, 132), Color("#11293c"))
     draw_string(ThemeDB.fallback_font, Vector2(34, 50), "FIVE LIGHTS / PROTAGONIST ART REVIEW", HORIZONTAL_ALIGNMENT_LEFT, -1, 29, Color("#f4e9d5"))
-    draw_string(ThemeDB.fallback_font, Vector2(35, 82), "Two existing candidate sprites + three faceless blockouts. Review zoom; M toggles native size.", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#c1d0d6"))
+    draw_string(ThemeDB.fallback_font, Vector2(35, 82), "Five original-source studies; three new front-only art candidates. M toggles native size.", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#c1d0d6"))
     for i in range(DISPLAY_ORDER.size()):
         var x: float = CARD_X[i]
         var color: Color = COLORS[i]
@@ -82,35 +100,11 @@ func _draw() -> void:
         draw_line(Vector2(x - 68.0, GROUND_Y), Vector2(x + 68.0, GROUND_Y), Color("#81928c"), 2.0)
         draw_string(ThemeDB.fallback_font, Vector2(x - 80.0, 183.0), DISPLAY_ORDER[i].to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 160, 20, Color("#ffefda"))
         draw_string(ThemeDB.fallback_font, Vector2(x - 80.0, 212.0), INNATE_ENERGIES[i].to_upper() + " / INNATE", HORIZONTAL_ALIGNMENT_CENTER, 160, 13, color)
-        var art_state := "CANDIDATE SPRITE" if i < 2 else "BLOCKOUT ONLY"
+        var art_state := "EARLIER CANDIDATE" if i < 2 else "NEW FRONT STUDY"
         draw_string(ThemeDB.fallback_font, Vector2(x - 80.0, 449.0), art_state, HORIZONTAL_ALIGNMENT_CENTER, 160, 12, Color("#c4ced0"))
-        if i >= 2:
-            _draw_noncanon_blockout(i, x, color)
     draw_rect(Rect2(0, 484, 960, 156), Color("#102333"))
     draw_string(ThemeDB.fallback_font, Vector2(35, 518), "[ / ]  SCRUB PHASE    M  SCALE    L / ESC  CLOSE", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#f1dec0"))
     draw_string(ThemeDB.fallback_font, Vector2(35, 547), "PHASE %d / 5  •  %s     Unapproved source atlases." % [walk_phase, "REVIEW ZOOM" if magnified else "NATIVE SIZE"], HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#c6d7d9"))
-    draw_string(ThemeDB.fallback_font, Vector2(35, 576), "Relative silhouettes are illustrative, not a centimeter height chart. Magic use remains job-optional.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#c6d7d9"))
-    draw_string(ThemeDB.fallback_font, Vector2(35, 604), "Source: creator character/art authority; visual design and animation remain review-gated.", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("#94aeb7"))
+    draw_string(ThemeDB.fallback_font, Vector2(35, 576), "New art is south-facing only; silhouettes and costumes remain creator-review candidates.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#c6d7d9"))
+    draw_string(ThemeDB.fallback_font, Vector2(35, 604), "Innate plot resonance exists independently of learned magic or selected jobs.", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color("#94aeb7"))
 
-func _draw_noncanon_blockout(index: int, x: float, tint: Color) -> void:
-    # No invented uniform, insignia, weapons, powers or default jobs.
-    var height := 148.0
-    var shoulder := 22.0
-    if index == 2: # Aepex: second-tallest and lean.
-        height = 174.0
-        shoulder = 18.0
-    elif index == 3: # Lyra: adult; unapproved final costume.
-        height = 138.0
-        shoulder = 19.0
-    elif index == 4: # Reson: tallest and broadest.
-        height = 189.0
-        shoulder = 30.0
-    var head_y := GROUND_Y - height + 12.0
-    draw_circle(Vector2(x, head_y), 10.0, Color("#425463"))
-    draw_colored_polygon(PackedVector2Array([
-        Vector2(x - shoulder, head_y + 13.0), Vector2(x + shoulder, head_y + 13.0),
-        Vector2(x + shoulder * 0.72, GROUND_Y - 44.0), Vector2(x - shoulder * 0.72, GROUND_Y - 44.0)
-    ]), Color("#425463"))
-    draw_line(Vector2(x - 9.0, GROUND_Y - 44.0), Vector2(x - 13.0, GROUND_Y - 2.0), Color("#425463"), 8.0)
-    draw_line(Vector2(x + 9.0, GROUND_Y - 44.0), Vector2(x + 13.0, GROUND_Y - 2.0), Color("#425463"), 8.0)
-    draw_arc(Vector2(x, GROUND_Y - 72.0), 43.0, -PI * 0.81, -PI * 0.19, 20, Color(tint.r, tint.g, tint.b, 0.48), 2.0)
