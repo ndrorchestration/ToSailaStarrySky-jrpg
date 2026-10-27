@@ -15,3 +15,5 @@ A narrated, image-based visual teaser developed on October 26, 2026, to explore 
 **Format:** 16:9, narrated slideshow-style video created with Explain Video Generator. No original licensed soundtrack or native gameplay capture is claimed.
 
 **Next review:** Compare illustrations against the Visual Bible and established protagonist references; review branding and rights before promoting the teaser as a game trailer. Keep current Godot proof separate from concept imagery.
+
+**Supporting references:** [Airship identity contract](AIRSHIP_IDENTITY_CONTRACT.md) · [Screenshot gallery manifest](TEASER_SCREENSHOT_GALLERY_MANIFEST.md). The owner-supplied 70-second MP4 is distinct from the linked Explain video. Screenshot binaries have not been uploaded to GitHub.
