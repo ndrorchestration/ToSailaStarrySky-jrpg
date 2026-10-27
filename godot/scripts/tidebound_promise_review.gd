@@ -3,6 +3,8 @@ extends RefCounted
 ## combat resolver, action permission map, save codec, or Chapter I progression.
 ## Focus points and damage coefficients below are local fixtures, NOT Arete/Echo canon.
 const Catalog = preload("res://scripts/party_resonance_catalog.gd")
+const AbilityContract = preload("res://scripts/combat_ability_contract.gd")
+const Reservation = preload("res://scripts/party_action_reservation.gd")
 const ART_ID := "tidebound_promise"
 const REVIEW_ONLY := true
 const FOCUS_COST := 1
@@ -19,6 +21,8 @@ var enemy_turns: int = 0
 var last_outcome: Dictionary = {}
 var log: Array[String] = []
 var catalog = Catalog.new()
+var abilities = AbilityContract.new()
+var reservations = Reservation.new()
 
 func _init() -> void:
     reset()
@@ -91,10 +95,12 @@ func admission() -> Dictionary:
     var design: Dictionary = catalog.inspect_candidate(ART_ID, PARTICIPANTS, states, [ART_ID])
     if not bool(design.get("canPreview", false)):
         return _reject(str(design.get("reason", "catalog_denied")))
-    for actor_id in PARTICIPANTS:
-        var actor: Dictionary = party[actor_id]
-        if int(actor["focus"]) < FOCUS_COST:
-            return _reject("insufficient_review_focus:" + actor_id)
+    var definition: Dictionary = abilities.for_resonance(ART_ID)
+    if definition.is_empty() or definition.get("participants", []) != PARTICIPANTS:
+        return _reject("invalid_shared_ability_definition")
+    var staged: Dictionary = reservations.plan(snapshot(), definition, "focus", FOCUS_COST)
+    if not bool(staged.get("ok", false)):
+        return _reject(str(staged.get("reason", "reservation_denied")))
     # The DESIGN_ONLY catalog is deliberately never authorized for production.
     # This opt-in review controller has its own local fixture permission only.
     return {"ok": true, "reason": "isolated_fixture_admitted", "reviewOnly": true}
@@ -103,13 +109,13 @@ func activate() -> Dictionary:
     var gate: Dictionary = admission()
     if not bool(gate.get("ok", false)):
         return gate
-    # Stage all actor costs/turn reservations before mutating the live fixture.
-    var next: Dictionary = party.duplicate(true)
-    for actor_id in PARTICIPANTS:
-        var actor: Dictionary = next[actor_id]
-        actor["focus"] = int(actor["focus"]) - FOCUS_COST
-        actor["canAct"] = false
-    party = next
+    # Recalculate the same pure plan immediately before commit: no stale preview
+    # may spend one actor's cost without reserving the other participant.
+    var definition: Dictionary = abilities.for_resonance(ART_ID)
+    var staged: Dictionary = reservations.plan(snapshot(), definition, "focus", FOCUS_COST)
+    if not bool(staged.get("ok", false)):
+        return _reject(str(staged.get("reason", "reservation_denied")))
+    party = Dictionary(staged["party"]).duplicate(true)
     ward_capacity = WARD_CAPACITY
     phase = "enemy"
     turns += 1
