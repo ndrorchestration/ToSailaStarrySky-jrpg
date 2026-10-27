@@ -27,8 +27,13 @@ static func _ridge_lobe(x: float, z: float, cx: float, cz: float,
         width_x: float, width_z: float, tilt: float) -> float:
     var dx: float = x - cx
     var dz: float = z - cz + dx * tilt
-    var radial: float = Vector2(dx / width_x, dz / width_z).length()
-    return pow(maxf(1.0 - radial, 0.0), 1.35)
+    # The smooth envelope avoids a mathematical cone; modest cross-cutting
+    # undulations make ridgelines less symmetrical without changing the pad.
+    var shifted_z: float = dz + 1.9 * sin(dx * 0.15)
+    var radial_sq: float = pow(dx / width_x, 2.0) + pow(shifted_z / width_z, 2.0)
+    var detail: float = 0.84 + 0.11 * cos(dx * 0.36 + dz * 0.22) \
+        + 0.05 * cos(dx * 0.18 - dz * 0.41)
+    return exp(-2.0 * radial_sq) * detail
 
 static func sample_height(x: float, z: float) -> float:
     var coast: float = coastline_at(z)
