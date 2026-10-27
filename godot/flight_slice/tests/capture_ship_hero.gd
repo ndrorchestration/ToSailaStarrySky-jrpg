@@ -1,11 +1,13 @@
 extends SceneTree
-## Three genuine Godot software-rendered ship close-ups for visual review.
-## Scene assets remain a provisional planar flight-scale study, not creator art.
+## Real native Godot ship close-ups at fixed camera for environmental comparison.
+## This noncanonical Aureate Wake study is NOT the separate Dragonfly Frigate.
 const StudyScene = preload("res://main.tscn")
 const SHOTS = [
-    ["bow-quarter", Vector3(8.0, 3.5, -9.0), 49.0],
-    ["stern-quarter", Vector3(-8.0, 3.2, 9.0), 51.0],
-    ["wing-planform", Vector3(4.0, 12.0, 3.0), 55.0]
+    ["bow-quarter", Vector3(8.0, 3.5, -9.0), 49.0, 0, 0, false],
+    ["stern-quarter", Vector3(-8.0, 3.2, 9.0), 51.0, 0, 0, false],
+    ["wing-planform", Vector3(4.0, 12.0, 3.0), 55.0, 0, 0, false],
+    ["bow-bluehour-rain", Vector3(8.0, 3.5, -9.0), 49.0, 2, 2, false],
+    ["bow-storm-magic", Vector3(8.0, 3.5, -9.0), 49.0, 3, 3, true]
 ]
 
 func _initialize() -> void:
@@ -27,12 +29,20 @@ func _capture() -> void:
         quit(1)
         return
     var failures: int = 0
+    var golden_bow: Image
+    var compared: int = 0
     for shot in SHOTS:
+        if scene.visuals == null:
+            push_error("SHIP_HERO_WEATHER_VISUALS_MISSING")
+            failures += 1
+            break
+        scene.visuals.set_environment_look(int(shot[3]), int(shot[4]), bool(shot[5]))
+        scene.visuals.set_clock(9.0, false)
         scene.camera.position = scene.ship.position + shot[1]
         scene.camera.fov = float(shot[2])
         scene.camera.look_at(scene.ship.position + Vector3(0.0, 0.2, 0.0), Vector3.UP)
         scene.terrain.update_detail(scene.camera.position, 0.5)
-        for warmup in range(6):
+        for warmup in range(8):
             await process_frame
             await RenderingServer.frame_post_draw
         var frame: Image = root.get_texture().get_image()
@@ -45,6 +55,29 @@ func _capture() -> void:
             failures += 1
         else:
             print("NATIVE_SHIP_HERO_CAPTURE: ", path, " 960x640 NONCANON")
+            if str(shot[0]) == "bow-quarter":
+                golden_bow = frame.duplicate()
+            elif str(shot[0]) in ["bow-bluehour-rain", "bow-storm-magic"] and golden_bow != null:
+                # Fixed camera/clock/object transform. A visible difference only
+                # proves that the environmental grade reached native pixels.
+                var delta: float = 0.0
+                for y in range(60, 600, 16):
+                    for x in range(60, 900, 16):
+                        var before: Color = golden_bow.get_pixel(x, y)
+                        var after: Color = frame.get_pixel(x, y)
+                        delta += absf(before.r - after.r)
+                        delta += absf(before.g - after.g)
+                        delta += absf(before.b - after.b)
+                if delta < 2.0:
+                    push_error("SHIP_HERO_WEATHER_VISUAL_DELTA_MISSING: " + str(shot[0]))
+                    failures += 1
+                else:
+                    compared += 1
+                print("NATIVE_SHIP_HERO_MOOD_DELTA: ", shot[0], " sum=", delta)
     scene.queue_free()
     await process_frame
-    quit(1 if failures > 0 else 0)
+    if failures == 0 and compared == 2:
+        print("NATIVE_SHIP_WEATHER_INTEGRATION_PASS views=5 matched_mood_comparisons=", compared)
+        quit(0)
+    else:
+        quit(1)
