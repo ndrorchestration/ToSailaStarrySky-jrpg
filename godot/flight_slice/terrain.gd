@@ -493,7 +493,7 @@ func _place_geology_scatter() -> void:
             if Vector2(gradient_x, gradient_z).length() > 1.15:
                 continue
             var scale: float = 0.43 + 0.57 * _hash01(z + 6.0, x - 21.0)
-            var rise: float = 0.39 + 0.21 * _hash01(x + 8.0, z - 13.0)
+            var rise: float = 0.33 + 0.16 * _hash01(x + 8.0, z - 13.0)
             var yaw: float = TAU * _hash01(x - 24.0, z + 4.0)
             talus.append(Transform3D(
                 Basis(Vector3.UP, yaw).scaled(Vector3(scale, scale * rise, scale * 0.82)),
