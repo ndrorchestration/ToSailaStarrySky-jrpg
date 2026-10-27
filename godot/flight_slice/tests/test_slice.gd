@@ -76,6 +76,9 @@ func _run_tests() -> void:
     terrain.update_detail(Vector3(0.0, 13.0, 0.0), 0.5)
     _check(terrain.visible_tiles > 0 and terrain.visible_tiles <= 64, "bounded visibility")
     _check(terrain.detailed_tiles > 0, "high-detail promotion")
+    terrain.update_detail(Vector3(38.0, 32.0, 28.0), 1.0)
+    _check_mixed_edges(terrain)
+
     var ship = ShipStudy.new()
     get_root().add_child(ship)
     await process_frame
@@ -90,6 +93,69 @@ func _check(ok: bool, label_name: String) -> void:
     checks += 1
     if not ok:
         failures.append(label_name)
+
+
+# Inspect actual top-surface mesh vertices, not the sampler at matching inputs.
+# Skirts follow the top triangles in the vertex buffer and are intentionally
+# excluded: they can obscure a gap without making the two surfaces meet.
+func _edge_profile(record: Dictionary, vertical: bool, boundary: float) -> Array[Vector2]:
+    var mesh_node: MeshInstance3D = record["node"]
+    var arrays: Array = mesh_node.mesh.surface_get_arrays(0)
+    var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+    var segments: int = TerrainStudy.HIGH_SEGMENTS if record["high_selected"] else TerrainStudy.LOW_SEGMENTS
+    var positions := {}
+    for i in range(6 * segments * segments):
+        var v: Vector3 = vertices[i]
+        var along: float = v.z if vertical else v.x
+        var across: float = v.x if vertical else v.z
+        if absf(across - boundary) < 0.0001:
+            positions[roundi(along * 100000.0)] = v.y
+    var keys: Array = positions.keys()
+    keys.sort()
+    var profile: Array[Vector2] = []
+    for k in keys:
+        profile.append(Vector2(float(k) / 100000.0, float(positions[k])))
+    return profile
+
+func _profile_height(profile: Array[Vector2], at: float) -> float:
+    for i in range(profile.size() - 1):
+        var a: Vector2 = profile[i]
+        var b: Vector2 = profile[i + 1]
+        if at >= a.x - 0.0001 and at <= b.x + 0.0001:
+            return lerpf(a.y, b.y, clampf((at - a.x) / (b.x - a.x), 0.0, 1.0))
+    return NAN
+
+func _check_mixed_edges(terrain: Node3D) -> void:
+    var by_coordinate := {}
+    for tile in terrain._tiles:
+        by_coordinate[Vector2i(tile["ix"], tile["iz"])] = tile
+    var pair_count: int = 0
+    var max_gap: float = 0.0
+    for tile in terrain._tiles:
+        if not tile["node"].visible:
+            continue
+        for direction in [Vector2i(1, 0), Vector2i(0, 1)]:
+            var coord := Vector2i(tile["ix"], tile["iz"])
+            var neighbor: Dictionary = by_coordinate.get(coord + direction, {})
+            if neighbor.is_empty() or not neighbor["node"].visible:
+                continue
+            if bool(tile["high_selected"]) == bool(neighbor["high_selected"]):
+                continue
+            var vertical: bool = direction.x == 1
+            var boundary: float = float(coord.x + 1 if vertical else coord.y + 1) * TerrainStudy.TILE_EDGE
+            var left: Array[Vector2] = _edge_profile(tile, vertical, boundary)
+            var right: Array[Vector2] = _edge_profile(neighbor, vertical, boundary)
+            if left.size() < 2 or right.size() < 2:
+                _check(false, "mixed-resolution edge has complete profiles")
+                continue
+            pair_count += 1
+            for sample in left:
+                max_gap = maxf(max_gap, absf(sample.y - _profile_height(right, sample.x)))
+            for sample in right:
+                max_gap = maxf(max_gap, absf(sample.y - _profile_height(left, sample.x)))
+    print("MIXED_LOD_EDGE_GAP pairs=", pair_count, " max=", max_gap)
+    _check(pair_count > 0, "test exercises visible mixed-resolution neighbors")
+    _check(max_gap < 0.0001, "mixed-resolution top surfaces meet")
 
 func _finish() -> void:
     if failures.is_empty():
