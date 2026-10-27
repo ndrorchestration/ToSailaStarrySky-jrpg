@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="480" height="128" viewBox="0 0 480 128" shape-rendering="crispEdges">
  <title>Lyra — front walk, six-phase draft art study</title>
  <desc>Original editable path-based front-facing sprite candidate; not creator-approved, not combat kit.</desc>
- <g transform="translate(0,0)"><g id="lyra-pose-0" data-review="unapproved-front-only">
+ <g transform="translate(0,0)"><g id="lyra-pose-0" data-review="unapproved-front-only" transform="translate(8,24.6) scale(0.8)">
  <!-- Long red hair, practical clothes, and a restrained pink spirit-energy accent are visual studies. -->
  <path d="M23 39 Q20 21 38 22 Q61 19 59 43 L62 83 Q55 91 47 83 L49 58 L31 59 L30 85 Q20 89 17 80 Z" fill="#7c2c2c" />
  <path d="M24 41 Q24 27 39 27 Q54 25 56 42 L55 73 L50 74 L48 52 L32 55 L30 74 L25 75 Z" fill="#ac4535" />
@@ -26,7 +26,7 @@
  <circle cx="60" cy="77" r="3" fill="#dc99c4"/><circle cx="64" cy="73" r="1.5" fill="#f8d5e7"/>
  <path d="M59 78 Q67 81 65 70" fill="none" stroke="#bc78ac" stroke-width="1" stroke-linecap="square"/>
  </g></g>
-<g transform="translate(80,0)"><g id="lyra-pose-1" data-review="unapproved-front-only">
+<g transform="translate(80,0)"><g id="lyra-pose-1" data-review="unapproved-front-only" transform="translate(8,24.6) scale(0.8)">
  <!-- Long red hair, practical clothes, and a restrained pink spirit-energy accent are visual studies. -->
  <path d="M23 40 Q20 22 38 23 Q61 20 59 44 L62 83 Q55 91 47 83 L49 58 L31 59 L30 85 Q20 89 17 80 Z" fill="#7c2c2c" />
  <path d="M24 42 Q24 28 39 28 Q54 26 56 43 L55 73 L50 74 L48 52 L32 55 L30 74 L25 75 Z" fill="#ac4535" />
@@ -51,7 +51,7 @@
  <circle cx="60" cy="78" r="3" fill="#dc99c4"/><circle cx="64" cy="74" r="1.5" fill="#f8d5e7"/>
  <path d="M59 79 Q67 82 65 71" fill="none" stroke="#bc78ac" stroke-width="1" stroke-linecap="square"/>
  </g></g>
-<g transform="translate(160,0)"><g id="lyra-pose-2" data-review="unapproved-front-only">
+<g transform="translate(160,0)"><g id="lyra-pose-2" data-review="unapproved-front-only" transform="translate(8,24.6) scale(0.8)">
  <!-- Long red hair, practical clothes, and a restrained pink spirit-energy accent are visual studies. -->
  <path d="M23 39 Q20 21 38 22 Q61 19 59 43 L62 83 Q55 91 47 83 L49 58 L31 59 L30 85 Q20 89 17 80 Z" fill="#7c2c2c" />
  <path d="M24 41 Q24 27 39 27 Q54 25 56 42 L55 73 L50 74 L48 52 L32 55 L30 74 L25 75 Z" fill="#ac4535" />
@@ -76,7 +76,7 @@
  <circle cx="60" cy="77" r="3" fill="#dc99c4"/><circle cx="64" cy="73" r="1.5" fill="#f8d5e7"/>
  <path d="M59 78 Q67 81 65 70" fill="none" stroke="#bc78ac" stroke-width="1" stroke-linecap="square"/>
  </g></g>
-<g transform="translate(240,0)"><g id="lyra-pose-3" data-review="unapproved-front-only">
+<g transform="translate(240,0)"><g id="lyra-pose-3" data-review="unapproved-front-only" transform="translate(8,24.6) scale(0.8)">
  <!-- Long red hair, practical clothes, and a restrained pink spirit-energy accent are visual studies. -->
  <path d="M23 40 Q20 22 38 23 Q61 20 59 44 L62 83 Q55 91 47 83 L49 58 L31 59 L30 85 Q20 89 17 80 Z" fill="#7c2c2c" />
  <path d="M24 42 Q24 28 39 28 Q54 26 56 43 L55 73 L50 74 L48 52 L32 55 L30 74 L25 75 Z" fill="#ac4535" />
@@ -101,7 +101,7 @@
  <circle cx="60" cy="78" r="3" fill="#dc99c4"/><circle cx="64" cy="74" r="1.5" fill="#f8d5e7"/>
  <path d="M59 79 Q67 82 65 71" fill="none" stroke="#bc78ac" stroke-width="1" stroke-linecap="square"/>
  </g></g>
-<g transform="translate(320,0)"><g id="lyra-pose-4" data-review="unapproved-front-only">
+<g transform="translate(320,0)"><g id="lyra-pose-4" data-review="unapproved-front-only" transform="translate(8,24.6) scale(0.8)">
  <!-- Long red hair, practical clothes, and a restrained pink spirit-energy accent are visual studies. -->
  <path d="M23 39 Q20 21 38 22 Q61 19 59 43 L62 83 Q55 91 47 83 L49 58 L31 59 L30 85 Q20 89 17 80 Z" fill="#7c2c2c" />
  <path d="M24 41 Q24 27 39 27 Q54 25 56 42 L55 73 L50 74 L48 52 L32 55 L30 74 L25 75 Z" fill="#ac4535" />
@@ -126,7 +126,7 @@
  <circle cx="60" cy="77" r="3" fill="#dc99c4"/><circle cx="64" cy="73" r="1.5" fill="#f8d5e7"/>
  <path d="M59 78 Q67 81 65 70" fill="none" stroke="#bc78ac" stroke-width="1" stroke-linecap="square"/>
  </g></g>
-<g transform="translate(400,0)"><g id="lyra-pose-5" data-review="unapproved-front-only">
+<g transform="translate(400,0)"><g id="lyra-pose-5" data-review="unapproved-front-only" transform="translate(8,24.6) scale(0.8)">
  <!-- Long red hair, practical clothes, and a restrained pink spirit-energy accent are visual studies. -->
  <path d="M23 40 Q20 22 38 23 Q61 20 59 44 L62 83 Q55 91 47 83 L49 58 L31 59 L30 85 Q20 89 17 80 Z" fill="#7c2c2c" />
  <path d="M24 42 Q24 28 39 28 Q54 26 56 43 L55 73 L50 74 L48 52 L32 55 L30 74 L25 75 Z" fill="#ac4535" />
