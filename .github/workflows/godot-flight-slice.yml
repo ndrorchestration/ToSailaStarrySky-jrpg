@@ -138,6 +138,10 @@ jobs:
         run: |
           set -euo pipefail
           cp godot/flight_slice/ship.gd /tmp/ship-candidate.gd
+          # Stacked draft PR merge refs can be shallower than the pinned #408
+          # baseline even when the SHA itself resolves. Fetch that tree explicitly.
+          git fetch --no-tags --depth=1 origin f047569a20a9c73192803a62d7cdc5df93f12d9f
+          git cat-file -e f047569a20a9c73192803a62d7cdc5df93f12d9f:godot/flight_slice/ship.gd
           git show f047569a20a9c73192803a62d7cdc5df93f12d9f:godot/flight_slice/ship.gd > /tmp/ship-parent.gd
           trap 'cp /tmp/ship-candidate.gd godot/flight_slice/ship.gd' EXIT
           for label in baseline-a candidate baseline-b; do
@@ -173,7 +177,7 @@ jobs:
             /tmp/Godot_v4.7.2-stable_linux.x86_64 \
             --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
             --script res://tests/capture_ship_hero.gd 2>&1 | tee /tmp/ship-hero.log
-          test "$(grep -c 'NATIVE_SHIP_HERO_CAPTURE:' /tmp/ship-hero.log)" -eq 3
+          test "$(grep -c 'NATIVE_SHIP_HERO_CAPTURE:' /tmp/ship-hero.log)" -eq 5
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/ship-hero.log
       - name: Capture two actual Godot interior cutaway frames
         run: |
