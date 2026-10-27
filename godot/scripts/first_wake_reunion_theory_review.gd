@@ -121,7 +121,7 @@ func _draw() -> void:
     for index in range(3):
         var x := 202.0 + float(index) * 280.0
         var active := phase in ["investigation", "clue_dialogue", "theory_ready", "theory_dialogue", "working_theory"]
-        var completed := opening != null and CLUE_KEYS[index] in opening.clues
+        var completed: bool = opening != null and (CLUE_KEYS[index] in opening.clues)
         draw_circle(Vector2(x, 236), 28, Color("#7ad7bd") if completed else Color("#c3a978") if active else Color("#596b70"))
         draw_string(ThemeDB.fallback_font, Vector2(x - 65, 285), "%d  %s" % [index + 1, ["PHASE", "RESERVE", "LISTEN"][index]], HORIZONTAL_ALIGNMENT_LEFT, 155, 15, Color("#f3e6c6"))
     draw_rect(Rect2(30, 348, 902, 193), Color(0.03, 0.07, 0.13, 0.94))
