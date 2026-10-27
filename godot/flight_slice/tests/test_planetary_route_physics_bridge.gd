@@ -61,6 +61,21 @@ func _run() -> void:
         "real native ground scene readiness advances ON_FOOT")
     check(not scene.route_progress.return_to_ship(Route.HOME_SHIP_ID, false),
         "return cannot be inferred from ground scene load")
+    check(not ground_scene.can_board(), "boarding not admitted without a walk")
+    check(not ground_scene.walk(Vector3(INF, 0, 0), 0.05), "invalid movement denied")
+    check(not ground_scene.walk(Vector3(1, 1, 0), 0.05), "vertical movement denied")
+    for step in range(20):
+        check(ground_scene.walk(Vector3(1, 0, 0), 0.1), "bounded walk outward")
+    check(not ground_scene.can_board(), "boarding denied outside ship radius")
+    check(not scene.route_progress.return_to_ship(Route.HOME_SHIP_ID, ground_scene.can_board()),
+        "route does not return when far from ship")
+    for step in range(20):
+        check(ground_scene.walk(Vector3(-1, 0, 0), 0.1), "bounded walk home")
+    check(ground_scene.can_board(), "boarding admitted after returning to ship radius")
+    check(scene.route_progress.return_to_ship(Route.HOME_SHIP_ID, ground_scene.can_board()),
+        "return requires actual ground fixture boarding readiness")
+    check(scene.route_progress.phase == Route.Phase.RETURNED, "journey returns to home ship")
+
 
     scene.queue_free()
     await process_frame
