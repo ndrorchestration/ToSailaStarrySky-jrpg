@@ -17,9 +17,17 @@ func _verify() -> void:
         _fail("opt-in scene defaults or review authority invalid")
         return
     var opening: Dictionary = world.battle.snapshot()
+    world._cast()
+    if world.battle.snapshot() != opening or not world.detail.text.contains("LOCKED"):
+        _fail("review Art executable before operator's training grant")
+        return
     world._strike()
     if world.battle.snapshot() != opening:
         _fail("illegal player input changed battle")
+        return
+    world._grant()
+    if world.battle.snapshot()["trainingGrants"].size() != 1:
+        _fail("training grant button not connected")
         return
     # Explicitly inspect the optional three-beat cut-in, without a timed input gate.
     world._toggle_motion()
