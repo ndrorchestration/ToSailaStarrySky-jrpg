@@ -46,8 +46,14 @@ function makeTexture(kind) {
         a=0.31+0.65*m; b=0.16+0.72*(1-Math.abs(2*f-1)); c=0.27+0.60*g;
       } else if (kind===1) {
         a=0.28+0.66*m; b=0.22+0.69*f; c=0.18+0.65*g;
-      } else {
+      } else if (kind===2) {
         a=0.15+0.73*m; b=0.17+0.70*f; c=0.12+0.78*g;
+      } else {
+        // Wide, independently seeded regional biome swaths; no terrain heights
+        // or route/physics data are encoded in these macro-art channels.
+        a=0.13+0.79*noise(u,v,4,327);
+        b=0.17+0.73*noise(u,v,8,521);
+        c=0.19+0.69*noise(u,v,8,733);
       }
       const k=row+1+x*4;
       raw[k]=byte(a);raw[k+1]=byte(b);raw[k+2]=byte(c);raw[k+3]=255;
@@ -85,7 +91,8 @@ function makeTexture(kind) {
 const names=[
   "terrain_microdetail.png",
   "foliage_microdetail.png",
-  "water_ripple_detail.png"
+  "water_ripple_detail.png",
+  "biome_macrodetail.png"
 ];
 const mode=process.argv[2]??"--check";
 if (!["--check","--write"].includes(mode)) {
