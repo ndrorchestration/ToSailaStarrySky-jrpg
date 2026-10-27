@@ -1,0 +1,134 @@
+{
+  "capture_source": "ndrorchestration/ToSailtheStarrySky-jrpg",
+  "character_job_log": 122447121463,
+  "character_source_commit": "3ddd36b2c3b46ae7546da60e732905e665773fd9",
+  "character_source_pr": 421,
+  "character_workflow_run": 40577322365,
+  "cross_branch_montage": true,
+  "engine": "Godot 4.7.2",
+  "files": {
+    "aureate-wake-bow": {
+      "dimensions": [
+        960,
+        640
+      ],
+      "optimized_jpg": "aureate-wake-bow.jpg",
+      "optimized_sha256": "045618e779618d328efbe9b460a393aa963e94b60397115d1bb53c591cf4d496",
+      "origin": "evidence/ship-hero/bow-quarter.png",
+      "original_png": "original/aureate-wake-bow.png",
+      "original_sha256": "d39d5ef8ef4fa00298b0c0446034a8d0bfcf78574ae15e3b3b8467e529a07609",
+      "source_type": "native frame; optimization changes encoding only"
+    },
+    "aureate-wake-rain": {
+      "dimensions": [
+        960,
+        640
+      ],
+      "optimized_jpg": "aureate-wake-rain.jpg",
+      "optimized_sha256": "c4c16fd9027b8caea67470782f228248fd99a12d8bc5ff99780917e75d993728",
+      "origin": "evidence/ship-hero/bow-bluehour-rain.png",
+      "original_png": "original/aureate-wake-rain.png",
+      "original_sha256": "438e1934af2ae70d58541cd44e3a8805bf27bbb4b8beecfa766cd618552d1d7d",
+      "source_type": "native frame; optimization changes encoding only"
+    },
+    "aureate-wake-stern": {
+      "dimensions": [
+        960,
+        640
+      ],
+      "optimized_jpg": "aureate-wake-stern.jpg",
+      "optimized_sha256": "8305d8630de72209e557cbf44c20abd249f01e8abbe46cfa1fa9ea0dd3d2810f",
+      "origin": "evidence/ship-hero/stern-quarter.png",
+      "original_png": "original/aureate-wake-stern.png",
+      "original_sha256": "c3046581fea4b101e821da5f3564dbbcebb87ad9fef56fef55a10b9fd7eb417c",
+      "source_type": "native frame; optimization changes encoding only"
+    },
+    "aureate-wake-storm": {
+      "dimensions": [
+        960,
+        640
+      ],
+      "optimized_jpg": "aureate-wake-storm.jpg",
+      "optimized_sha256": "e7adce7bb19df2f554523cf5418209c390589fb180673093149a3dc6d5228d1e",
+      "origin": "evidence/ship-hero/bow-storm-magic.png",
+      "original_png": "original/aureate-wake-storm.png",
+      "original_sha256": "689bd61b47ba77f7b25a0bcd478df7c881a87fa297340a7d007bacb6fc38a5dc",
+      "source_type": "native frame; optimization changes encoding only"
+    },
+    "aureate-wake-wings": {
+      "dimensions": [
+        960,
+        640
+      ],
+      "optimized_jpg": "aureate-wake-wings.jpg",
+      "optimized_sha256": "fcff5db1fe212977e31c90cf3c7553cbbea5d698396338c042f795173ff3c10f",
+      "origin": "evidence/ship-hero/wing-planform.png",
+      "original_png": "original/aureate-wake-wings.png",
+      "original_sha256": "6eea296b9ddced6bd12a15062d2758d9a8a963e98f0716af07cc02b16cb3f835",
+      "source_type": "native frame; optimization changes encoding only"
+    },
+    "coast-dusk": {
+      "dimensions": [
+        960,
+        640
+      ],
+      "optimized_jpg": "coast-dusk.jpg",
+      "optimized_sha256": "49e6b77b849911e1c220327666b3b50bc37cae769aa7b9850eacf00ba8d35788",
+      "origin": "evidence/cinematic-review/coast-dusk.png",
+      "original_png": "original/coast-dusk.png",
+      "original_sha256": "7c74f19d30d53382a6565ef9d0a30f3f4ae311916e8523ff87649c7bf90d670b",
+      "source_type": "native frame; optimization changes encoding only"
+    },
+    "five-lights-lineup": {
+      "dimensions": [
+        480,
+        320
+      ],
+      "optimized_jpg": "five-lights-lineup.jpg",
+      "optimized_sha256": "554833f08ec8e991aa71816f5375919bd39aaa1e64a3487d8d8a562bbbf586e6",
+      "origin": "job 122447121463: CHARACTER_LINEUP_PREVIEW_480x320_JPEG_BASE64",
+      "source_type": "native frame derived review thumbnail; 960x640 source not published here"
+    },
+    "forest-golden": {
+      "dimensions": [
+        960,
+        640
+      ],
+      "optimized_jpg": "forest-golden.jpg",
+      "optimized_sha256": "40e59e40fcbb57b757cec1f94ed62d1f53122f5e53c1b5132af3918a32fb18ad",
+      "origin": "evidence/cinematic-review/forest-gold.png",
+      "original_png": "original/forest-golden.png",
+      "original_sha256": "1fff87c38aba3a64f9af9155fe8a5e412c7cae7ba81a7297be4c251c31a05b79",
+      "source_type": "native frame; optimization changes encoding only"
+    },
+    "highland-horizon": {
+      "dimensions": [
+        960,
+        640
+      ],
+      "optimized_jpg": "highland-horizon.jpg",
+      "optimized_sha256": "83616770e7601f464e6a6dd4314f1a62ff27353a7725a7b0d2b62e73db8944f6",
+      "origin": "evidence/cinematic-review/highland-horizon.png",
+      "original_png": "original/highland-horizon.png",
+      "original_sha256": "00e4f780cb64586794a6968a9128e8318d5fd6096a571796dc71b4eb8499493b",
+      "source_type": "native frame; optimization changes encoding only"
+    },
+    "storm-sky": {
+      "dimensions": [
+        960,
+        640
+      ],
+      "optimized_jpg": "storm-sky.jpg",
+      "optimized_sha256": "d32a94353d3b49236178540087aaae9ae837c97809572802a503a57a5f94d8f0",
+      "origin": "evidence/environment-mood/storm-night-magic.png",
+      "original_png": "original/storm-sky.png",
+      "original_sha256": "8990b1618dea2ecc37d9e8bb9833e9943f218c0cec3049ab421a67aa6e5173d4",
+      "source_type": "native frame; optimization changes encoding only"
+    }
+  },
+  "ship_terrain_artifact_id": 12768611791,
+  "ship_terrain_source_commit": "0ba35e6bd4e6acd4c5b7e880be1758d17feebab6",
+  "ship_terrain_source_pr": 422,
+  "ship_terrain_workflow_run": 40578319950,
+  "status": "native Godot rendered captures; experimental, not artist-approved"
+}
