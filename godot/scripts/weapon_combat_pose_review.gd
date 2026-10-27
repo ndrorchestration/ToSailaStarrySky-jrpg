@@ -12,6 +12,7 @@ const AETHER := Color("#70b8b3")
 var catalog = Catalog.new()
 var weapon: Node2D
 var pose: Dictionary = {}
+var show_mannequin: bool = true
 
 func _ready() -> void:
     weapon = Silhouette.new()
@@ -100,27 +101,28 @@ func _draw() -> void:
     var bob := float(pose.get("bob",0.0))
     var lean := float(pose.get("lean",0.0))
     var origin := Vector2(-45+advance,bob)
-    draw_colored_polygon(PackedVector2Array([
-        origin+Vector2(-51,112),origin+Vector2(13,112),
-        origin+Vector2(33,117),origin+Vector2(-62,118)
-    ]),Color("#101d22",0.45))
-    # Anonymous rehearsal dummy: no borrowed facial design, hair or insignia.
-    _line(origin+Vector2(-17,10),origin+Vector2(-31,98),SLATE,15.0)
-    _line(origin+Vector2(8,10),origin+Vector2(12,100),SLATE,15.0)
-    _line(origin+Vector2(-32,102),origin+Vector2(-7,103),DEEP,13.0)
-    _line(origin+Vector2(10,103),origin+Vector2(36,102),DEEP,13.0)
-    draw_colored_polygon(PackedVector2Array([
-        origin+Vector2(-36,-56),origin+Vector2(19+lean*0.22,-53),
-        origin+Vector2(26+lean*0.35,22),origin+Vector2(-30,22)
-    ]),Color("#476877"))
-    draw_line(origin+Vector2(-30,-51),origin+Vector2(22+lean*0.2,-51),
-        Color("#9ac5bf"),3.0)
-    draw_circle(origin+Vector2(-5+lean*0.18,-80),19.0,PAPER.darkened(0.18))
-    draw_rect(Rect2(origin+Vector2(-22,-91),Vector2(35,8)),Color("#283c4b"))
-    _line(origin+Vector2(15,-44),origin+Vector2(39,-19),Color("#718f94"),11.0)
-    _line(origin+Vector2(-30,-42),origin+Vector2(-7,-15),Color("#718f94"),11.0)
-    draw_circle(origin+Vector2(39,-19),6.0,PAPER.darkened(0.2))
-
+    if show_mannequin:
+        draw_colored_polygon(PackedVector2Array([
+            origin+Vector2(-51,112),origin+Vector2(13,112),
+            origin+Vector2(33,117),origin+Vector2(-62,118)
+        ]),Color("#101d22",0.45))
+        # Anonymous rehearsal dummy: no borrowed facial design, hair or insignia.
+        _line(origin+Vector2(-17,10),origin+Vector2(-31,98),SLATE,15.0)
+        _line(origin+Vector2(8,10),origin+Vector2(12,100),SLATE,15.0)
+        _line(origin+Vector2(-32,102),origin+Vector2(-7,103),DEEP,13.0)
+        _line(origin+Vector2(10,103),origin+Vector2(36,102),DEEP,13.0)
+        draw_colored_polygon(PackedVector2Array([
+            origin+Vector2(-36,-56),origin+Vector2(19+lean*0.22,-53),
+            origin+Vector2(26+lean*0.35,22),origin+Vector2(-30,22)
+        ]),Color("#476877"))
+        draw_line(origin+Vector2(-30,-51),origin+Vector2(22+lean*0.2,-51),
+            Color("#9ac5bf"),3.0)
+        draw_circle(origin+Vector2(-5+lean*0.18,-80),19.0,PAPER.darkened(0.18))
+        draw_rect(Rect2(origin+Vector2(-22,-91),Vector2(35,8)),Color("#283c4b"))
+        _line(origin+Vector2(15,-44),origin+Vector2(39,-19),Color("#718f94"),11.0)
+        _line(origin+Vector2(-30,-42),origin+Vector2(-7,-15),Color("#718f94"),11.0)
+        draw_circle(origin+Vector2(39,-19),6.0,PAPER.darkened(0.2))
+    
     if not bool(pose.get("motionReduced",false)):
         var energy := clampf(float(pose.get("effect",0.0)),0.0,1.0)
         if energy > 0.0:
