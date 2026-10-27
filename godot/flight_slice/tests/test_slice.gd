@@ -14,6 +14,28 @@ func _run_tests() -> void:
     _check(TerrainStudy.classify(-2.0, 0.0) == "coast", "shore classification")
     _check(TerrainStudy.classify(30.0, 0.0) == "forest", "forest classification")
     _check(TerrainStudy.sample_height(76.0, 0.0) > TerrainStudy.sample_height(20.0, 0.0), "highland elevation")
+    # The mountain study must add actual relief while retaining the original
+    # coastal and landing-field samples. Reference values are from parent
+    # 7502ab5 before the candidate landform change.
+    _check(TerrainStudy.sample_height(72.0, -12.0) > 18.5, "central summit gains visible relief")
+    _check(TerrainStudy.sample_height(70.0, 18.0) > 15.0, "second summit gains visible relief")
+    for reference in [
+        Vector3(-2.0, -0.0931680654853998, 0.0),
+        Vector3(6.0, 2.0010412668318267, -18.0),
+        Vector3(15.0, 2.8800466896456447, -7.0),
+        Vector3(30.0, 4.299302457100411, 0.0),
+        Vector3(50.0, 7.276565629040649, 0.0)
+    ]:
+        _check(absf(TerrainStudy.sample_height(reference.x, reference.z) - reference.y) < 0.0001,
+            "coast and landing-region elevation preserved")
+    for x in range(50, 88, 2):
+        for z in range(-44, 34, 3):
+            var h: float = TerrainStudy.sample_height(float(x), float(z))
+            var next_x: float = TerrainStudy.sample_height(float(x) + 0.5, float(z))
+            var next_z: float = TerrainStudy.sample_height(float(x), float(z) + 0.5)
+            _check(is_finite(h) and absf(next_x - h) < 1.5 and absf(next_z - h) < 1.5,
+                "bounded, continuous sampled highland relief")
+
     for ix in [-4, -1, 0, 2]:
         for iz in [-3, 0, 2]:
             for i in range(7):
