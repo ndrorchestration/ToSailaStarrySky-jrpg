@@ -46,7 +46,12 @@ void fragment() {
     // shared terrain sample; it does not add a second decorative bathymetry map.
     float shallow=1.0-smoothstep(0.22,1.8,depth);
     vec3 water=mix(vec3(0.065,0.29,0.27),vec3(0.013,0.072,0.14),smoothstep(0.2,2.4,depth));
-    water+=vec3(0.020,0.055,0.044)*shallow*(1.0-0.28*max(wave1,0.0));
+    // Slightly quiet the unbroken cyan shelf in the higher-quality surf study;
+    // exact 0.0 reference and the low-detail path retain prior shelf light.
+    float shelf_factor=low_quality ? 1.0 :
+        mix(1.0,0.79,clamp(foam_breakup_strength,0.0,1.0));
+    water+=vec3(0.020,0.055,0.044)*shallow
+        *(1.0-0.28*max(wave1,0.0))*shelf_factor;
     vec3 reflected_sky=mix(vec3(0.19,0.37,0.49),vec3(0.39,0.48,0.53),smoothstep(0.3,0.95,fresnel));
     water=mix(water,reflected_sky,fresnel*0.79);
     float shore=(1.0-smoothstep(0.10,0.65,depth))*smoothstep(0.01,0.09,depth);
@@ -68,9 +73,9 @@ void fragment() {
             +vec2(0.0,study_time*0.028));
         float flecks=noise(p*vec2(3.20,2.90)
             +vec2(study_time*0.045,0.0));
-        float patch=smoothstep(0.20,0.75,gaps*0.78+flecks*0.22);
-        float broken_foam=cover*shore*smoothstep(0.14,0.67,crest)
-            *mix(0.18,1.0,patch);
+        float patch=smoothstep(0.35,0.78,gaps*0.78+flecks*0.22);
+        float broken_foam=cover*shore*smoothstep(0.30,0.78,crest)
+            *patch;
         foam=mix(old_foam,broken_foam,
             clamp(foam_breakup_strength,0.0,1.0));
     }
@@ -82,10 +87,11 @@ void fragment() {
         low_quality ? 88.0 : 128.0);
     float fine_sparkle=low_quality ? 0.0 :
         pow(max(0.0,noise(p*4.5+vec2(study_time*0.16,0.0))),9.0)*0.08;
+    float foam_style=low_quality ? 0.0 :
+        clamp(foam_breakup_strength,0.0,1.0);
     vec3 foam_tint=mix(vec3(0.73,0.81,0.72),
-        vec3(0.61,0.70,0.65),
-        low_quality ? 0.0 : clamp(foam_breakup_strength,0.0,1.0));
-    ALBEDO=mix(water,foam_tint,foam*0.65)
+        vec3(0.69,0.75,0.72),foam_style);
+    ALBEDO=mix(water,foam_tint,foam*mix(0.65,0.52,foam_style))
         +vec3(0.22,0.24,0.19)*glints;
     EMISSION=vec3(1.0,0.77,0.48)*sun_flash*0.16*(1.0-foam)
         +vec3(0.07,0.10,0.12)*fine_sparkle;
