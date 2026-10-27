@@ -39,6 +39,18 @@ func _verify() -> void:
     if WindShearVisual.ART_ID != "windShear":
         _fail("art identity no longer matches admitted current enemy")
         return
+    if WindShearVisual.FRAME_SIZE != Vector2i(80, 92) or WindShearVisual.FRAME_COUNT != 4:
+        _fail("pixel atlas grid contract drifted")
+        return
+    if art.atlas_texture == null:
+        _fail("authored provisional enemy pixel atlas missing or not importable")
+        return
+    if art.atlas_texture.get_size() != Vector2(320, 92):
+        _fail("native imported atlas has incorrect frame dimensions")
+        return
+    if art.texture_filter != CanvasItem.TEXTURE_FILTER_NEAREST:
+        _fail("enemy sprite atlas is not rendered with nearest pixel filtering")
+        return
     if WindShearVisual.ART_BOUNDS != Rect2(-91.0, -92.0, 182.0, 184.0):
         _fail("review-stage bounds drifted without layout review")
         return
