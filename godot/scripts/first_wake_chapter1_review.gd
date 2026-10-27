@@ -14,6 +14,8 @@ const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd")
 const CurrentEnemyAdapter = preload("res://scripts/first_wake_current_enemy_adapter.gd")
 const PartyCombatAuthority = preload("res://scripts/first_wake_party_combat_authority.gd")
+const WeaponBattleVisualProjection = preload("res://scripts/weapon_battle_visual_projection.gd")
+const WeaponBattleVisualChip = preload("res://scripts/weapon_battle_visual_chip.gd")
 
 const DECK_BOUNDS := SaveCodec.PLAYER_POSITION_BOUNDS
 const INTERACT_DISTANCE := 74.0
@@ -59,6 +61,11 @@ var last_restore_used_legacy_position: bool = false
 var formula_encounter = FormulaEncounter.new()
 var current_enemy_adapter = CurrentEnemyAdapter.new()
 var party_combat_authority = PartyCombatAuthority.new()
+var weapon_visual_projection = WeaponBattleVisualProjection.new()
+var weapon_visual: Node2D
+var weapon_visual_action: String = ""
+var weapon_visual_elapsed: float = 0.0
+var weapon_visual_reduced_motion: bool = false
 var active_hazard_encounter_id: String = ""
 var save_store = SaveStore.new()
 
@@ -111,6 +118,12 @@ func _ready() -> void:
     var ui := CanvasLayer.new()
     ui.name = "ChapterOneMigrationUI"
     add_child(ui)
+
+    # Read-only stage projection. Does not mutate equipment or combat permissions.
+    weapon_visual = WeaponBattleVisualChip.new()
+    weapon_visual.name = "EnderBattleEquippedStaffReview"
+    weapon_visual.position = Vector2(732,374)
+    ui.add_child(weapon_visual)
 
     headline = _label(ui, Vector2(24, 16), 23)
     objective = _label(ui, Vector2(24, 54), 16)
@@ -174,6 +187,50 @@ func _sync_stage_actor_presentation() -> void:
     var show_ionia := chapter.stage_key() in ["contact", "choice", "wake", "done"]
     _set_actor_physical_presence(ionia, show_ionia)
     ionia.set_ionia_stage_art_enabled(show_ionia, "west")
+
+func _process(delta: float) -> void:
+    if weapon_visual_action.is_empty() or not formula_encounter.active:
+        return
+    weapon_visual_elapsed += maxf(0.0,delta)
+    var duration: float = weapon_visual_projection.timeline.duration(
+        WeaponBattleVisualProjection.ENDER_STAFF_ID,"attack"
+    )
+    if weapon_visual_elapsed >= duration:
+        weapon_visual_action = ""
+        _reset_weapon_visual()
+        return
+    var frame: Dictionary = weapon_visual_projection.accepted_action(
+        "ender",WeaponBattleVisualProjection.ENDER_STAFF_ID,
+        weapon_visual_action,weapon_visual_elapsed,weapon_visual_reduced_motion
+    )
+    if not frame.is_empty():
+        weapon_visual.show_frame(frame)
+
+func _reset_weapon_visual() -> void:
+    weapon_visual_action = ""
+    weapon_visual_elapsed = 0.0
+    if weapon_visual == null:
+        return
+    if not formula_encounter.active:
+        weapon_visual.clear_frame()
+        return
+    var frame: Dictionary = weapon_visual_projection.initial(
+        "ender",WeaponBattleVisualProjection.ENDER_STAFF_ID,weapon_visual_reduced_motion
+    )
+    if not frame.is_empty():
+        weapon_visual.show_frame(frame)
+
+func set_weapon_visual_reduced_motion(enabled: bool) -> void:
+    weapon_visual_reduced_motion = enabled
+    if weapon_visual_action.is_empty():
+        _reset_weapon_visual()
+        return
+    var frame: Dictionary = weapon_visual_projection.accepted_action(
+        "ender",WeaponBattleVisualProjection.ENDER_STAFF_ID,
+        weapon_visual_action,weapon_visual_elapsed,weapon_visual_reduced_motion
+    )
+    if not frame.is_empty() and weapon_visual != null:
+        weapon_visual.show_frame(frame)
 
 func _draw() -> void:
     draw_rect(Rect2(10, 8, 940, 90), Color(0.035, 0.07, 0.13, 0.92))
@@ -368,6 +425,7 @@ func start_formula_review() -> bool:
         return false
     ender.player_controlled = false
     last_message = formula_encounter.last_log()
+    _reset_weapon_visual()
     _refresh_ui()
     queue_redraw()
     return true
@@ -387,6 +445,7 @@ func start_hazard_encounter(hazard_id: String) -> bool:
     active_hazard_encounter_id = hazard_id
     ender.player_controlled = false
     last_message = formula_encounter.last_log()
+    _reset_weapon_visual()
     _refresh_ui()
     queue_redraw()
     return true
@@ -405,6 +464,7 @@ func close_formula_review() -> bool:
     if not formula_encounter.close():
         return false
 
+    _reset_weapon_visual()
     active_hazard_encounter_id = ""
     if not hazard_id.is_empty():
         if hazard_cleared:
@@ -440,6 +500,15 @@ func take_formula_review_action(action_id: String) -> bool:
         queue_redraw()
         return false
     last_message = formula_encounter.last_log()
+    if action_id == WeaponBattleVisualProjection.STRIKE_ACTION_ID:
+        weapon_visual_action = action_id
+        weapon_visual_elapsed = 0.0
+        var frame: Dictionary = weapon_visual_projection.accepted_action(
+            actor_id,WeaponBattleVisualProjection.ENDER_STAFF_ID,
+            action_id,weapon_visual_elapsed,weapon_visual_reduced_motion
+        )
+        if not frame.is_empty() and weapon_visual != null:
+            weapon_visual.show_frame(frame)
     _refresh_ui()
     queue_redraw()
     return true
@@ -732,6 +801,7 @@ func restore_save_snapshot(snapshot: Dictionary) -> bool:
     # not part of durable Chapter I saves.
     dialogue.close()
     formula_encounter.reset()
+    _reset_weapon_visual()
     active_hazard_encounter_id = ""
     pending_signal_id = ""
     pending_contact_id = ""
