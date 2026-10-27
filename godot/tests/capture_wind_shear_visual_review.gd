@@ -147,6 +147,20 @@ func _capture() -> void:
         if _frames[i].get_region(target).get_data() == _frames[i + 1].get_region(target).get_data():
             _fail("adjacent combat-art states visually identical: " + str(i))
             return
+
+    # A real strike changes the HP meter; analysis alone must not. These are
+    # actual framebuffer pixels, not assertions against an invented mock bar.
+    var hp_meter_region := Rect2i(624, 388, 122, 8)
+    var unchanged_hp_before: PackedByteArray = _frames[0].get_region(hp_meter_region).get_data()
+    var unchanged_hp_after_analysis: PackedByteArray = _frames[1].get_region(hp_meter_region).get_data()
+    var damaged_hp: PackedByteArray = _frames[2].get_region(hp_meter_region).get_data()
+    if unchanged_hp_before != unchanged_hp_after_analysis:
+        _fail("enemy HP meter changed after non-damaging Uncover Truth")
+        return
+    if unchanged_hp_after_analysis == damaged_hp:
+        _fail("enemy HP meter did not reflect observed Staff Strike damage")
+        return
+
     if "wind_shear" in world.chapter.completed_hazards:
         _fail("visual-only pose review mutated story progression")
         return
