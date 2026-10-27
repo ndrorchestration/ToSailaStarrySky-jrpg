@@ -6,6 +6,7 @@ const FrameProbe = preload("res://frame_probe.gd")
 const VisualStudy = preload("res://visuals.gd")
 const FlightStudy = preload("res://flight_controller.gd")
 const LandingStudy = preload("res://landing_study.gd")
+const LandingCollision = preload("res://landing_collision.gd")
 var visuals: Node3D
 var _low_quality: bool = false
 
@@ -22,6 +23,9 @@ var _manual_active: bool = false
 var _manual_position: Vector3 = Vector3.ZERO
 var _manual_heading: float = 0.0
 var landing = LandingStudy.new()
+var landing_ground: StaticBody3D
+var _touchdown_requested: bool = false
+var last_touchdown_contact: Dictionary = {"valid": false}
 var _landing_message: String = ""
 
 func _ready() -> void:
@@ -34,6 +38,9 @@ func _ready() -> void:
     terrain = TerrainStudy.new()
     terrain.name = "ArtSliceTerrain"
     add_child(terrain)
+    landing_ground = LandingCollision.new()
+    landing_ground.name = "TemporaryPhysicsGround"
+    add_child(landing_ground)
     if visuals != null:
         visuals.bind_terrain(terrain)
     ship = ShipStudy.new()
@@ -69,7 +76,7 @@ func _process(delta: float) -> void:
     if _status_timer > 0.35:
         _status_timer = 0.0
         var flight_info: String = "PILOT %s  |  clearance %.1f m  |  heading %.0f°  |  %s" % [landing.state, FlightStudy.clearance(ship.position), rad_to_deg(_manual_heading), _landing_message] if _manual_active else "AUTOMATIC FLYOVER  |  C camera framing"
-        overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + "F pilot/flyover · W/S move · A/D steer · E/Q ascend/descend\nT ground approach/takeoff (test field) · P pause · M still effects\nR reset · V detail · H HUD\nNON-CANON STUDY  •  NOT PHYSICS CONTACT / PRODUCT FLIGHT"
+        overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + "F pilot/flyover · W/S move · A/D steer · E/Q ascend/descend\nT ground approach/takeoff (test field) · P pause · M still effects\nR reset · V detail · H HUD\nNON-CANON STUDY  •  TERRAIN RAYCAST / NO RIGIDBODY FLIGHT"
 
 func _unhandled_key_input(event: InputEvent) -> void:
     if not (event is InputEventKey):
@@ -103,6 +110,8 @@ func set_manual_mode(enabled: bool) -> void:
         return
     _manual_active = enabled
     landing.reset()
+    _touchdown_requested = false
+    last_touchdown_contact = {"valid": false}
     _landing_message = ""
     if enabled:
         _manual_position = ship.position
@@ -111,17 +120,59 @@ func set_manual_mode(enabled: bool) -> void:
         ship.set_course(0.0)
 
 func request_touchdown() -> bool:
-    if not _manual_active or _paused:
+    if not _manual_active or _paused or _touchdown_requested:
         return false
-    var accepted: bool = landing.toggle(_manual_position)
-    _landing_message = "" if accepted else "NO SAFE TEST FIELD / WAIT FOR TRANSITION"
-    return accepted
+    if landing.state != "FLYING" and landing.state != "LANDED":
+        return false
+    # PhysicsDirectSpaceState3D is queried in _physics_process, never in input
+    # callbacks, to avoid a locked physics space on threaded configurations.
+    _touchdown_requested = true
+    _landing_message = "CHECKING NATIVE TERRAIN COLLISION"
+    return true
+
+func _physics_process(delta: float) -> void:
+    if not _manual_active or _paused:
+        if _touchdown_requested:
+            _landing_message = "CANCELLED"
+        _touchdown_requested = false
+        return
+    var contact: Dictionary = {"valid": false}
+    if landing.state == "DESCENDING" or landing.state == "LANDED" or _touchdown_requested:
+        contact = _probe_landing_contact()
+    # Validate existing support before a queued takeoff can change the state.
+    # Losing the ground and pressing T on the same tick still requires recovery.
+    if landing.state == "DESCENDING" or landing.state == "LANDED":
+        last_touchdown_contact = contact
+        if not landing.has_support(contact):
+            last_touchdown_contact = {"valid": false,
+                "reason": contact.get("reason", "SUPPORT_MOVED_OR_UNSAFE")}
+            _touchdown_requested = false
+            landing.recover(_manual_position)
+            _landing_message = "CONTACT LOST / RETURNING TO HOVER"
+            print("GODOT_TOUCHDOWN_RECOVERY reason=", last_touchdown_contact["reason"])
+    if _touchdown_requested:
+        _touchdown_requested = false
+        last_touchdown_contact = contact
+        var accepted: bool = landing.toggle_with_physics(_manual_position, contact)
+        _landing_message = "" if accepted else "NATIVE COLLIDER / SAFE FIELD REQUIRED"
+        if accepted:
+            print("GODOT_TOUCHDOWN_PHYSICS_ADMISSION_PASS state=", landing.state)
+        else:
+            print("GODOT_TOUCHDOWN_PHYSICS_REJECT reason=", contact.get("reason", "FIELD_OR_SLOPE"))
+    # A fresh query and the corresponding landing motion share the physics tick.
+    # Rendering/input ticks cannot advance a cached touchdown between queries.
+    if landing.state != "FLYING":
+        _manual_position = landing.tick(_manual_position, delta)
+
+func _probe_landing_contact() -> Dictionary:
+    if not is_instance_valid(landing_ground) or not landing_ground.is_inside_tree():
+        return {"valid": false, "reason": "NO_NATIVE_TERRAIN_BODY"}
+    return landing_ground.probe(_manual_position, get_world_3d().direct_space_state)
 
 func advance_manual(controls: Vector3, delta: float) -> void:
     if not _manual_active or _paused:
         return
     if landing.state != "FLYING":
-        _manual_position = landing.tick(_manual_position, delta)
         return
     var next: Dictionary = FlightStudy.advance(_manual_position, _manual_heading,
         controls, delta)

@@ -81,19 +81,30 @@ func _capture() -> void:
         _save(manual_frame,folder.path_join("manual-pilot.png"))
         print("NATIVE_PILOT_FRAME_PASS clearance=", scene.ship.position.y -
             maxf(scene.terrain.SEA_LEVEL,scene.terrain.sample_height(scene.ship.position.x, scene.ship.position.z)))
-        # Authored demo field: a sampled-contact review, not a physics-body landing.
+        # Authored demo field: continuously ray-validated, not rigidbody dynamics.
         scene._manual_position = Vector3(8.0, scene.terrain.sample_height(8.0, -12.0) + 7.0, -12.0)
         scene._update_scene(8.0)
         if not scene.request_touchdown():
-            push_error("NATIVE_TOUCHDOWN_REQUEST_DENIED")
+            push_error("NATIVE_TOUCHDOWN_QUEUE_DENIED")
             failed = true
-        for settle_step in range(85):
-            scene.advance_manual(Vector3.ZERO, 0.05)
+        # SceneTree.physics_frame fires before node _physics_process callbacks.
+        # Wait for a rendered/process tick as well before checking the receipt.
+        await physics_frame
+        await process_frame
+        if scene.landing.state != "DESCENDING" or not scene.last_touchdown_contact.get("valid", false):
+            push_error("NATIVE_TOUCHDOWN_PHYSICS_ADMISSION_FAILED")
+            failed = true
+        else:
+            print("NATIVE_TOUCHDOWN_PHYSICS_FRAME_PASS triangles=", scene.landing_ground.triangle_count,
+                " rayHeightError=", scene.last_touchdown_contact.get("height_error", 99.0))
+        for settle_step in range(120):
+            await physics_frame
+            await process_frame
         scene._update_scene(8.0)
         if scene.landing.state != "LANDED":
             push_error("NATIVE_TOUCHDOWN_NOT_LANDED")
             failed = true
-        scene.overlay.text = "TO SAIL THE STARRY SKY  /  TOUCHDOWN STUDY\nSAMPLED GROUND CONTACT  •  NATIVE GODOT 4.7.2\nPROVISIONAL FIELD  •  NOT PHYSICS COLLISION"
+        scene.overlay.text = "TO SAIL THE STARRY SKY  /  TOUCHDOWN STUDY\nNATIVE RAYCAST-CONFIRMED TEST FIELD  •  GODOT 4.7.2\nSTATIC TERRAIN SHAPE  •  NOT RIGIDBODY FLIGHT"
         var touchdown_frame: Image = await _frame()
         _save(touchdown_frame, folder.path_join("touchdown.png"))
         print("NATIVE_TOUCHDOWN_FRAME_PASS state=", scene.landing.state,
