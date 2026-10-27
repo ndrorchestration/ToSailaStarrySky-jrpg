@@ -18,6 +18,11 @@ func _ready() -> void:
     foliage = _shader("res://shaders/foliage.gdshader")
     # Share one light direction across dome and ocean; avoids split sun glints.
     sky_material.set_shader_parameter("sun_direction", SUN_DIRECTION)
+    # Explicit runtime defaults: an unbound sky shader uniform may return Nil
+    # in the native headless renderer even when the shader declares a default.
+    sky_material.set_shader_parameter("cloud_depth_strength", 1.0)
+    sky_material.set_shader_parameter("low_quality", false)
+    sky_material.set_shader_parameter("study_time", 0.0)
     water.set_shader_parameter("sun_direction", SUN_DIRECTION)
     water.set_shader_parameter("sea_surface_elevation", TerrainStudy.SEA_LEVEL)
     var daylight := DirectionalLight3D.new()
