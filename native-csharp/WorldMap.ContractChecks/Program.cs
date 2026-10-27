@@ -283,6 +283,313 @@ internal static class Program
         }
     }
 
+    private static void ChartProjectionChecks()
+    {
+        var center = WorldMapChartProjection.Project(new PlanetPosition(0, 0));
+        Near(center.X, 0.5, 1e-12, "prime meridian chart X");
+        Near(center.Y, 0.5, 1e-12, "equator chart Y");
+        Near(WorldMapChartProjection.Project(new PlanetPosition(90, 22)).Y, 0, 1e-12,
+            "north pole chart edge");
+        Near(WorldMapChartProjection.Project(new PlanetPosition(-90, -130)).Y, 1, 1e-12,
+            "south pole chart edge");
+        Near(WorldMapChartProjection.Unproject(0, 0.5).LongitudeDegrees, -180, 1e-12,
+            "west antimeridian");
+        Near(WorldMapChartProjection.Unproject(1, 0.5).LongitudeDegrees, -180, 1e-12,
+            "east chart seam canonicalized");
+        Check(WorldMapChartProjection.TryShortestWrappedDeltaX(0.99, 0.01, out var dx),
+            "wrapped eastward delta exists");
+        Near(dx, 0.02, 1e-12, "eastward seam shortest delta");
+        Check(WorldMapChartProjection.TryShortestWrappedDeltaX(0.01, 0.99, out dx),
+            "wrapped westward delta exists");
+        Near(dx, -0.02, 1e-12, "westward seam shortest delta");
+        Check(!WorldMapChartProjection.TryShortestWrappedDeltaX(0, 0.5, out _),
+            "ambiguous antimeridian chart direction rejected");
+        Reject<ArgumentOutOfRangeException>(() => WorldMapChartProjection.Unproject(-0.1, 0.5),
+            "negative chart X refused");
+        Reject<ArgumentOutOfRangeException>(() => WorldMapChartProjection.Unproject(0.2, double.NaN),
+            "nonfinite chart Y refused");
+        Reject<ArgumentOutOfRangeException>(() =>
+            WorldMapChartProjection.TryShortestWrappedDeltaX(double.PositiveInfinity, 0.2, out _),
+            "infinite chart delta refused");
+
+        var random = new Random(9017);
+        for (int i = 0; i < 128; i++)
+        {
+            var position = new PlanetPosition(
+                random.NextDouble() * 178 - 89,
+                random.NextDouble() * 360 - 180);
+            var uv = WorldMapChartProjection.Project(position);
+            var restored = WorldMapChartProjection.Unproject(uv.X, uv.Y);
+            Near(restored.LatitudeDegrees, position.LatitudeDegrees, 1e-10,
+                "chart latitude roundtrip " + i);
+            Near(restored.LongitudeDegrees, position.LongitudeDegrees, 1e-10,
+                "chart longitude roundtrip " + i);
+        }
+    }
+
+    private static void CubeSphereAddressingChecks()
+    {
+        Check(CubeSphereAddressing.FromPosition(new PlanetPosition(0, 0)).Face == CubeFace.PositiveX,
+            "prime meridian targets positive X");
+        Check(CubeSphereAddressing.FromPosition(new PlanetPosition(0, 90)).Face == CubeFace.PositiveZ,
+            "east quarter targets positive Z");
+        Check(CubeSphereAddressing.FromPosition(new PlanetPosition(0, -90)).Face == CubeFace.NegativeZ,
+            "west quarter targets negative Z");
+        Check(CubeSphereAddressing.FromPosition(new PlanetPosition(0, 180)).Face == CubeFace.NegativeX,
+            "antimeridian targets negative X");
+        Check(CubeSphereAddressing.FromPosition(new PlanetPosition(90, 45)).Face == CubeFace.PositiveY,
+            "north pole targets positive Y");
+        Check(CubeSphereAddressing.FromPosition(new PlanetPosition(-90, 45)).Face == CubeFace.NegativeY,
+            "south pole targets negative Y");
+        foreach (CubeFace face in Enum.GetValues<CubeFace>())
+        {
+            var mid = CubeSphereAddressing.ToPosition(face, 0.5, 0.5);
+            Check(CubeSphereAddressing.FromPosition(mid).Face == face,
+                "cube face center invertibility " + face);
+        }
+        var seamA = CubeSphereAddressing.LocateTile(new PlanetPosition(0, 180), 5);
+        var seamB = CubeSphereAddressing.LocateTile(new PlanetPosition(0, -180), 5);
+        Check(seamA == seamB, "antimeridian maps to one resident tile");
+        Reject<ArgumentOutOfRangeException>(() =>
+            CubeSphereAddressing.ToPosition((CubeFace)99, 0.5, 0.5),
+            "unknown face refused");
+        Reject<ArgumentOutOfRangeException>(() =>
+            CubeSphereAddressing.ToPosition(CubeFace.PositiveX, double.NaN, 0.5),
+            "nonfinite face coordinate refused");
+        Reject<ArgumentOutOfRangeException>(() =>
+            CubeSphereAddressing.LocateTile(new PlanetPosition(0, 0), 13),
+            "unsupported quadtree LOD refused");
+
+        var rng = new Random(82177);
+        for (int i = 0; i < 256; i++)
+        {
+            var point = new PlanetPosition(rng.NextDouble() * 178 - 89,
+                rng.NextDouble() * 360 - 180);
+            var address = CubeSphereAddressing.FromPosition(point);
+            Check(address.U >= 0 && address.U <= 1 && address.V >= 0 && address.V <= 1,
+                "cube UV range " + i);
+            var reconstructed = CubeSphereAddressing.ToPosition(address.Face, address.U, address.V);
+            Near(PlanetGeometry.AngularSeparationRadians(point, reconstructed), 0, 1e-7,
+                "cube sphere geodesic roundtrip " + i);
+            var tile = CubeSphereAddressing.LocateTile(point, 6);
+            Check(tile.Face == address.Face && tile.Level == 6,
+                "tile address face consistent " + i);
+        }
+    }
+
+    private static void MeshFixtureChecks()
+    {
+        var root = new TileId(CubeFace.PositiveX, 0, 0, 0);
+        var baseMesh = CubeSphereMeshFixture.Generate(root, R, 8);
+        Check(baseMesh.Vertices.Count == 81 && baseMesh.Indices.Count == 384,
+            "8 subdivision root mesh vertex/index bounds");
+        Check(baseMesh.Indices.All(i => i >= 0 && i < baseMesh.Vertices.Count),
+            "root mesh indices in bounds");
+        Check(baseMesh.Normals.Count == baseMesh.Vertices.Count,
+            "one analytic normal per vertex");
+        Check(baseMesh.Uvs.Count == baseMesh.Vertices.Count,
+            "one cube-face UV per vertex");
+        Check(baseMesh.ChartUvs.Count == baseMesh.Vertices.Count,
+            "one chart-space UV per vertex");
+        foreach (CubeFace face in Enum.GetValues<CubeFace>())
+        {
+            var mesh = CubeSphereMeshFixture.Generate(new TileId(face, 0, 0, 0), R, 8);
+            for (int i = 0; i < mesh.Vertices.Count; i++)
+            {
+                var chart = mesh.ChartUvs[i];
+                Check(chart.U >= 0 && chart.U <= 1 && chart.V >= 0 && chart.V <= 1,
+                    "chart UV bounded " + face);
+                var vertex = mesh.Vertices[i];
+                var restored = WorldMapChartProjection.Unproject(chart.U, chart.V);
+                var geo = new PlanetPosition(
+                    Math.Asin(Math.Clamp(vertex.Y / R, -1, 1)) * 180 / Math.PI,
+                    Math.Atan2(vertex.Z, vertex.X) * 180 / Math.PI);
+                Near(PlanetGeometry.AngularSeparationRadians(restored, geo), 0, 1e-7,
+                    "chart UV reconstructs mesh position " + face);
+            }
+        }
+        foreach (var face in Enum.GetValues<CubeFace>())
+        {
+            var surface = CubeSphereMeshFixture.Generate(new TileId(face, 0, 0, 0), R, 8);
+            for (int i = 0; i < surface.Uvs.Count; i++)
+            {
+                var uv = surface.Uvs[i];
+                Check(uv.U >= 0 && uv.U <= 1 && uv.V >= 0 && uv.V <= 1,
+                    "normalized cube-face UV " + face);
+                var expected = CubeSphereAddressing.ToPosition(face, uv.U, uv.V);
+                var vertex = surface.Vertices[i];
+                var geographic = new PlanetPosition(
+                    Math.Asin(Math.Clamp(vertex.Y / R, -1, 1)) * 180 / Math.PI,
+                    Math.Atan2(vertex.Z, vertex.X) * 180 / Math.PI);
+                Near(PlanetGeometry.AngularSeparationRadians(expected, geographic), 0, 1e-7,
+                    "UV reconstructs surface vertex " + face);
+            }
+        }
+
+        foreach (var face in Enum.GetValues<CubeFace>())
+        {
+            var surface = CubeSphereMeshFixture.Generate(new TileId(face, 0, 0, 0), R, 8);
+            for (int i = 0; i < surface.Vertices.Count; i++)
+            {
+                var v = surface.Vertices[i];
+                var n = surface.Normals[i];
+                Near(n.X * n.X + n.Y * n.Y + n.Z * n.Z, 1, 1e-12,
+                    "unit outward radial normal " + face);
+                Near(n.X * v.X + n.Y * v.Y + n.Z * v.Z, R, 1e-9,
+                    "normal points radially outward " + face);
+            }
+        }
+        foreach (var vertex in baseMesh.Vertices)
+            Near(Math.Sqrt(vertex.X * vertex.X + vertex.Y * vertex.Y + vertex.Z * vertex.Z),
+                R, 1e-8, "root mesh points on radius");
+        var left = CubeSphereMeshFixture.Generate(new TileId(CubeFace.PositiveX, 1, 0, 0), R, 8);
+        var right = CubeSphereMeshFixture.Generate(new TileId(CubeFace.PositiveX, 1, 1, 0), R, 8);
+        for (int row = 0; row <= 8; row++)
+        {
+            var a = left.Vertices[row * 9 + 8];
+            var b = right.Vertices[row * 9];
+            Near(Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2) +
+                Math.Pow(a.Z - b.Z, 2)), 0, 1e-8,
+                "same-LOD shared edge positions coincide " + row);
+        }
+        foreach (CubeFace face in Enum.GetValues<CubeFace>())
+        {
+            var mesh = CubeSphereMeshFixture.Generate(new TileId(face, 0, 0, 0), 3.5, 2);
+            Check(mesh.Vertices.Count == 9 && mesh.Indices.Count == 24,
+                "each face has bounded mesh " + face);
+            for (int triangle = 0; triangle < mesh.Indices.Count; triangle += 3)
+            {
+                var p = mesh.Vertices[mesh.Indices[triangle]];
+                var q = mesh.Vertices[mesh.Indices[triangle + 1]];
+                var r = mesh.Vertices[mesh.Indices[triangle + 2]];
+                double ux = q.X - p.X, uy = q.Y - p.Y, uz = q.Z - p.Z;
+                double vx = r.X - p.X, vy = r.Y - p.Y, vz = r.Z - p.Z;
+                double nx = uy * vz - uz * vy;
+                double ny = uz * vx - ux * vz;
+                double nz = ux * vy - uy * vx;
+                double outward = nx * (p.X + q.X + r.X)
+                    + ny * (p.Y + q.Y + r.Y) + nz * (p.Z + q.Z + r.Z);
+                Check(outward > 1e-10, "triangle outward and nondegenerate " + face);
+            }
+        }
+        // All 12 edges of the cube must have identical vertex coordinates from
+        // both adjacent face meshes at matching subdivision (not mixed LOD).
+        var roots = Enum.GetValues<CubeFace>()
+            .Select(face => CubeSphereMeshFixture.Generate(new TileId(face, 0, 0, 0), R, 8))
+            .ToArray();
+        int matchingEdges = 0;
+        for (int first = 0; first < roots.Length; first++)
+        for (int second = first + 1; second < roots.Length; second++)
+        {
+            var a = roots[first].Vertices;
+            var b = roots[second].Vertices;
+            int coincident = 0;
+            foreach (var p in a)
+            {
+                if (b.Any(q => Math.Pow(p.X - q.X, 2)
+                    + Math.Pow(p.Y - q.Y, 2) + Math.Pow(p.Z - q.Z, 2) < 1e-14))
+                    coincident++;
+            }
+            Check(coincident == 0 || coincident == 9,
+                "cross-face boundary shares zero or nine vertices " + first + "/" + second);
+            if (coincident == 9) matchingEdges++;
+        }
+        Check(matchingEdges == 12, "all twelve cubed-sphere root edges share vertices");
+        // Coarse/fine edge vertices must coincide at shared sample positions.
+        // This does NOT verify T-junction elimination between unmatched samples.
+        var coarse = CubeSphereMeshFixture.Generate(
+            new TileId(CubeFace.PositiveX, 1, 0, 0), R, 8);
+        var fineLower = CubeSphereMeshFixture.Generate(
+            new TileId(CubeFace.PositiveX, 2, 2, 0), R, 8);
+        var fineUpper = CubeSphereMeshFixture.Generate(
+            new TileId(CubeFace.PositiveX, 2, 2, 1), R, 8);
+        for (int row = 0; row <= 8; row++)
+        {
+            var p = coarse.Vertices[row * 9 + 8];
+            var fine = row <= 4
+                ? fineLower.Vertices[row * 2 * 9]
+                : fineUpper.Vertices[(row - 4) * 2 * 9];
+            Near(Math.Sqrt(Math.Pow(p.X - fine.X, 2) +
+                Math.Pow(p.Y - fine.Y, 2) + Math.Pow(p.Z - fine.Z, 2)),
+                0, 1e-8, "mixed-LOD coincident edge control point " + row);
+        }
+        Reject<ArgumentOutOfRangeException>(() => CubeSphereMeshFixture.Generate(root, 0, 8),
+            "invalid mesh radius refused");
+        Reject<ArgumentOutOfRangeException>(() => CubeSphereMeshFixture.Generate(root, R, 0),
+            "zero subdivision refused");
+        Reject<ArgumentOutOfRangeException>(() => CubeSphereMeshFixture.Generate(root, R, 129),
+            "oversized subdivision refused");
+    }
+
+    private static void ChartSeamChecks()
+    {
+        var mesh = CubeSphereMeshFixture.Generate(
+            new TileId(CubeFace.NegativeX, 0, 0, 0), R, 8);
+        var expanded = ChartSeamUnwrap.TriangleUvs(mesh);
+        Check(expanded.Count == mesh.Indices.Count, "unwrapped UV count is triangle-corner count");
+        for (int i = 0; i < expanded.Count; i += 3)
+        {
+            double a = expanded[i].U;
+            double b = expanded[i + 1].U;
+            double c = expanded[i + 2].U;
+            Check(Math.Abs(a - b) <= 0.5 + 1e-12 &&
+                Math.Abs(b - c) <= 0.5 + 1e-12 &&
+                Math.Abs(c - a) <= 0.5 + 1e-12,
+                "no more than half chart width across seam triangle " + i);
+            for (int j = 0; j < 3; j++)
+            {
+                var original = mesh.ChartUvs[mesh.Indices[i + j]];
+                Near(Math.Abs(expanded[i + j].U - original.U -
+                    Math.Round(expanded[i + j].U - original.U)), 0, 1e-12,
+                    "unwrapped longitude remains equivalent");
+                Near(expanded[i + j].V, original.V, 1e-12,
+                    "chart latitude unaffected");
+            }
+        }
+    }
+
+    private static void TriangleSoupChecks()
+    {
+        var tile = CubeSphereMeshFixture.Generate(
+            new TileId(CubeFace.NegativeX, 0, 0, 0), R, 8);
+        var expanded = ChartTriangleSoup.Expand(tile);
+        Check(expanded.Vertices.Count == tile.Indices.Count &&
+            expanded.Normals.Count == tile.Indices.Count &&
+            expanded.ChartUvs.Count == tile.Indices.Count,
+            "expanded arrays align on every triangle corner");
+        var referenceUvs = ChartSeamUnwrap.TriangleUvs(tile);
+        for (int i = 0; i < expanded.Vertices.Count; i++)
+        {
+            var original = tile.Vertices[tile.Indices[i]];
+            Check(expanded.Vertices[i] == original &&
+                expanded.Normals[i] == tile.Normals[tile.Indices[i]] &&
+                expanded.ChartUvs[i] == referenceUvs[i],
+                "expanded triangle preserves geometry normal and unwrapped UV " + i);
+        }
+    }
+
+    private static void TriangleSoupInvalidAttributeChecks()
+    {
+        var source = CubeSphereMeshFixture.Generate(
+            new TileId(CubeFace.PositiveX, 0, 0, 0), R, 2);
+        var positions = source.Vertices.ToArray();
+        positions[0] = new CubeSphereMeshFixture.Point3(double.NaN, 0, 0);
+        var invalidPosition = source with { Vertices = positions };
+        Reject<ArgumentException>(() => ChartTriangleSoup.Expand(invalidPosition),
+            "triangle expansion refuses nonfinite position");
+
+        var normals = source.Normals.ToArray();
+        normals[0] = new CubeSphereMeshFixture.Point3(0, 0, 0);
+        var invalidNormal = source with { Normals = normals };
+        Reject<ArgumentException>(() => ChartTriangleSoup.Expand(invalidNormal),
+            "triangle expansion refuses zero-length normal");
+
+        normals[0] = new CubeSphereMeshFixture.Point3(double.PositiveInfinity, 0, 0);
+        invalidNormal = source with { Normals = normals };
+        Reject<ArgumentException>(() => ChartTriangleSoup.Expand(invalidNormal),
+            "triangle expansion refuses infinite normal");
+    }
+
     private static void RejectionChecks()
     {
         Reject<ArgumentOutOfRangeException>(() => _ = new PlanetPosition(91, 0),
@@ -315,6 +622,12 @@ internal static class Program
             TileChecks();
             TransitionChecks();
             CoverageChecks();
+            ChartProjectionChecks();
+            CubeSphereAddressingChecks();
+            MeshFixtureChecks();
+            ChartSeamChecks();
+            TriangleSoupChecks();
+            TriangleSoupInvalidAttributeChecks();
             RejectionChecks();
             Console.WriteLine($"CS_WORLDMAP_CONTRACT_PASS: {_assertions} deterministic assertions; no Godot runtime or canon admitted");
             Console.WriteLine("CS_WORLDMAP_GODOT_MONO_NATIVE=NOT_ESTABLISHED");
