@@ -8,6 +8,9 @@ const ENDER_IONIA := ["ender", "ionia"]
 const THREE := ["ender", "ionia", "lyra"]
 
 func _initialize() -> void:
+    call_deferred("_verify")
+
+func _verify() -> void:
     var gate = Gate.new()
     var opening = Opening.new()
     if not _expect_denial(gate, opening, ENDER_LYRA, "lyra_not_joined"):
