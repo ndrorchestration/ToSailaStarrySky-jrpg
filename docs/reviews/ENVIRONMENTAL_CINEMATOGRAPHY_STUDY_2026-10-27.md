@@ -17,7 +17,8 @@ runtime or the creator's private full-world build.
   the original fixed sun vector: these are ***art-directed color/light grades***,
   not timekeeping, rotating suns, physically accurate astronomy or a moon-phase
   system. The night look suppresses the drawn solar disk; no celestial plot
-  clues are introduced.
+  clues are introduced. The ocean shader also attenuates the golden solar
+  reflection at night, using the same explicit sun visibility parameter.
 - **N — weather study:** clear (original default), mist, rain and storm fronts.
   The shared sky shader deepens cloud cover, desaturates storm light, and
   uses bounded, distinct fog densities. Rain and storm optionally add 112
@@ -59,9 +60,11 @@ light/fog/sky materials. The sky retains the existing shared solar direction.
    low-detail assertions, and restoration of default values.
 3. Existing native terrain, landing physics, camera, atmospheric and performance
    smoke checks must remain green at this exact commit.
-4. `capture_environment_mood.gd` uses software GL to capture four *matched*
+4. `capture_environment_mood.gd` uses software GL to capture five *matched*
    HUD-free 960×640 frames at the **same** timestamp and camera pose:
-   `golden-clear`, `midday-mist`, `blue-hour-rain`, `storm-night-magic`.
+   `golden-clear`, `midday-mist`, `blue-hour-rain`, `storm-night`,
+   and `storm-night-magic`. A separate night magic-on/off pixel comparison
+   verifies the decorative effect is genuinely visible in native rendering.
    A coarse pixel delta only establishes rendered differences, **not**
    improved visual quality. Native captures require CI verification.
 
