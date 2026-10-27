@@ -25,3 +25,16 @@ Reject or revise if placement appears as a regular grid, tufts protrude through 
 **Evidence boundary:** Source code and tests were prepared on the above review branch. Until its exact-head Godot 4.7.2 CI and real GL captures complete, runtime correctness and visual improvement are **unverified**. Even passing CI cannot establish final artist acceptance, full-globe integration, GPU frame-time or memory budgets. No merge, release or canon approval is implied.
 
 Upstream drafts: #402 combined camera/cloud/terrain, #403 snow headroom, #404 mixed forest canopy. This candidate stacks on #404 and must not be silently merged or rebased into a different authority chain.
+
+## Second pass: shared-datum shoreline shading
+
+**IMPLEMENTED CANDIDATE / NON-CANON:** In the same branch, the flight slice's terrain material now paints a restrained, irregular, damp-sand band above the same `TerrainStudy.SEA_LEVEL` used by the water and seabed. Dampness fades with altitude and steepness, reducing the risk of a horizontal wet stripe across cliffs. Dry sand gets sparse, static granule variation; low-quality mode omits it. This is a material treatment, **not** tides, waves changing the land, a second coast model, or terrain/collision authoring.
+
+- `visuals.gd` binds the shared sea datum into `land` and `water`, with independent `shoreline_wetness` A/B control for evidence only.
+- The existing native visual tests assert both material sea levels and low-detail round trips.
+- `tests/capture_study.gd` produces matched HUD- and ship-free 960×640 **real GL** shoreline frames (`coast-shore-dry.png`, `coast-shore-wet.png`, `coast-shore-low.png`) at one fixed camera and world clock. The runner enforces a nontrivial wet/dry pixel change and low-quality change. A nonzero pixel delta does **not** prove higher aesthetic quality.
+- The existing six gameplay captures and cinematic coast/forest/highland frames remain unchanged; the new A/B captures are additional diagnostic files.
+
+### Branch overlap and consolidation
+
+[Draft #407](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/407) was opened concurrently from #404 and also adds forest-floor foliage. Its seven-frond understory and this branch's five-blade grass are **alternative visual studies**, not two layers to install blindly. Compare per-frame silhouette, vegetation density, draw cost and accessibility before selecting or reconciling one. This branch's shoreline material work is logically separable and may be cherry-picked to the chosen visual branch with exact-head retesting. Do **not** silently combine duplicated ground-cover nodes, assume either draft is approved, or merge the PR chain.
