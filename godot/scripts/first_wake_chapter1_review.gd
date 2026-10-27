@@ -7,6 +7,7 @@ const Actor = preload("res://scripts/pilot_actor.gd")
 const DockDepthReview = preload("res://scripts/dock_depth_review.gd")
 const ChapterState = preload("res://scripts/first_wake_chapter1_state.gd")
 const Content = preload("res://scripts/first_wake_chapter1_content.gd")
+const ChoiceReceipt = preload("res://scripts/first_wake_choice_receipt.gd")
 const DialogueState = preload("res://scripts/first_wake_chapter1_dialogue_state.gd")
 const SaveCodec = preload("res://scripts/first_wake_chapter1_save_codec.gd")
 const SaveStore = preload("res://scripts/first_wake_chapter1_save_store.gd")
@@ -46,6 +47,7 @@ var hint: Label
 var party_label: Label
 var dialogue_speaker: Label
 var dialogue_body: Label
+var choice_receipt_label: Label
 var dialogue = DialogueState.new()
 var pending_signal_id: String = ""
 var pending_contact_id: String = ""
@@ -118,6 +120,10 @@ func _ready() -> void:
     hint = _label(ui, Vector2(28, 568), 18)
     dialogue_speaker = _label(ui, Vector2(142, 374), 18)
     dialogue_body = _label(ui, Vector2(142, 408), 17)
+    choice_receipt_label = _label(ui, Vector2(205, 225), 16)
+    choice_receipt_label.custom_minimum_size = Vector2(550, 190)
+    choice_receipt_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    choice_receipt_label.visible = false
 
     dialogue_speaker.custom_minimum_size = Vector2(680, 28)
     dialogue_body.custom_minimum_size = Vector2(680, 120)
@@ -200,11 +206,14 @@ func _draw() -> void:
         draw_circle(CONTACT_POINTS["elder_farmer"] + Vector2(0, -52), 14.0, Color("#8cdbc8"))
         draw_string(ThemeDB.fallback_font, CONTACT_POINTS["elder_farmer"] + Vector2(-66, -88), "WAKE RESOLUTION", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
     elif stage_key == "done":
-        draw_rect(Rect2(180, 160, 600, 210), Color(0.035, 0.07, 0.13, 0.95))
-        draw_rect(Rect2(184, 164, 592, 202), Color("#8cdbc8"), false, 2.0)
-        draw_string(ThemeDB.fallback_font, Vector2(292, 222), "CHAPTER I COMPLETE", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color("#fff1ce"))
+        draw_rect(Rect2(180, 135, 600, 360), Color(0.035, 0.07, 0.13, 0.95))
+        draw_rect(Rect2(184, 139, 592, 352), Color("#8cdbc8"), false, 2.0)
+        draw_string(ThemeDB.fallback_font, Vector2(292, 191), "CHAPTER I COMPLETE", HORIZONTAL_ALIGNMENT_LEFT, -1, 28, Color("#fff1ce"))
         var epilogue_name := str(resolved_epilogue.get("name", "Migration boundary"))
-        draw_string(ThemeDB.fallback_font, Vector2(258, 278), epilogue_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color("#d7eaf0"))
+        draw_string(ThemeDB.fallback_font, Vector2(205, 436), "LEGACY ENDING: " + epilogue_name, HORIZONTAL_ALIGNMENT_LEFT, 550, 17, Color("#d7eaf0"))
+        var receipt := ChoiceReceipt.build(chapter.choice_path, chapter.choice_variant, chapter.epilogue_id)
+        if bool(receipt.get("legacy_departure_conflict", false)):
+            draw_string(ThemeDB.fallback_font, Vector2(205, 465), "LEGACY ENDING CONFLICT — REVIEW ONLY", HORIZONTAL_ALIGNMENT_LEFT, 550, 15, Color("#f0a072"))
 
     if dialogue.open:
         draw_rect(Rect2(120, 350, 720, 190), Color(0.035, 0.07, 0.13, 0.97))
@@ -646,6 +655,15 @@ func _refresh_ui() -> void:
         return
     objective.text = chapter.stage_key().to_upper() + "  /  " + _objective_text()
     party_label.text = "ACTIVE  " + " + ".join(chapter.desired_active_party_ids()).to_upper()
+    choice_receipt_label.visible = chapter.stage_key() == "done"
+    if choice_receipt_label.visible:
+        var receipt := ChoiceReceipt.build(chapter.choice_path, chapter.choice_variant, chapter.epilogue_id)
+        if bool(receipt.get("ok", false)):
+            choice_receipt_label.text = "YOUR STORM CHOICE: " + str(receipt["choice_label"]) + "\n\n" + str(receipt["authored_outcome"])
+        else:
+            choice_receipt_label.text = "Choice receipt unavailable: " + str(receipt.get("error", "unknown"))
+    else:
+        choice_receipt_label.text = ""
     dialogue_speaker.visible = dialogue.open and not formula_encounter.active
     dialogue_body.visible = dialogue.open and not formula_encounter.active
     if formula_encounter.active:
