@@ -189,8 +189,17 @@ func _run() -> void:
             var z: float = pose.origin.z
             check(scene.terrain.classify(x, z) in ["alpine", "summit", "coast"],
                 "stones stay in coastal and exposed highland biomes")
-            check(absf(pose.origin.y - scene.terrain.sample_height(x, z) + 0.055) < 0.0001,
-                "stones share terrain height and remain partly embedded")
+            var low_y: float = cover._render_height(
+                scene.terrain, x, z, scene.terrain.LOW_SEGMENTS)
+            var high_y: float = cover._render_height(
+                scene.terrain, x, z, scene.terrain.HIGH_SEGMENTS)
+            var embedding: float = minf(low_y, high_y) - pose.origin.y
+            check(embedding >= 0.08 and embedding <= 0.24,
+                "stones are embedded below both visible terrain LOD surfaces")
+            check(absf(low_y - high_y) <= 0.85,
+                "stones avoid large mesh-resolution elevation disagreements")
+            check(pose.basis.y.normalized().y >= 0.77,
+                "stones follow reasonably gentle native ground slopes")
             check(cover._fixture_clear(x, z), "stones avoid authored fixtures")
         var first_tuft: Transform3D = cover.tuft_poses[0]
         var repeated_cover = load("res://ground_cover.gd").new()
