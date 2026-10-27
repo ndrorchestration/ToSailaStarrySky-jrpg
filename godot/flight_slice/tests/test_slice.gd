@@ -99,8 +99,40 @@ func _run_tests() -> void:
         var wing_rig: Node3D = ship.get_node("WingRig_" + wing_name)
         _check(wing_rig.get_node("Membrane_" + wing_name) is MeshInstance3D,
             "independently articulated wing membrane " + wing_name)
-        _check(wing_rig.get_child_count() >= 7,
-            "wing has visible edges and radial veins " + wing_name)
+        _check(wing_rig.get_child_count() == 4,
+            "wing structure batches into one membrane and three rib meshes " + wing_name)
+        for material_group in ["Brass", "Dark", "Glass"]:
+            var rib_batch: MeshInstance3D = wing_rig.get_node(
+                material_group + "RibBundle_" + wing_name)
+            _check(rib_batch.mesh is ArrayMesh and
+                rib_batch.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size() >= 72,
+                "wing preserves nonempty batched tube geometry " + material_group)
+        var membrane: MeshInstance3D = wing_rig.get_node("Membrane_" + wing_name)
+        var arrays: Array = membrane.mesh.surface_get_arrays(0)
+        var membrane_vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+        _check(membrane_vertices.size() == 54,
+            "cambered membrane has six three-panel subdivisions " + wing_name)
+        var peak: float = -INF
+        var all_faces_valid: bool = true
+        for point in membrane_vertices:
+            peak = maxf(peak, point.y)
+        for i in range(0, membrane_vertices.size(), 3):
+            var area: float = (membrane_vertices[i + 1] - membrane_vertices[i]).cross(
+                membrane_vertices[i + 2] - membrane_vertices[i]).length()
+            if area < 0.00001 or not is_finite(area):
+                all_faces_valid = false
+        _check(peak > 0.40 and all_faces_valid,
+            "wing camber is genuine nondegenerate 3D mesh " + wing_name)
+    _check(ship.get_node("AftTurbine").mesh is CylinderMesh,
+        "aft drive is no longer a round primitive sphere")
+    _check(ship.get_node("ExhaustCollar").mesh is CylinderMesh and
+        ship.get_node("ExhaustThroat").mesh is CylinderMesh and
+        ship.get_node("ExhaustGlow").mesh is CylinderMesh,
+        "aft drive consists of concentric machined barrel details")
+    for index in range(4):
+        _check(ship.get_node("CabinRoofBow_Port_%s" % index) is MeshInstance3D and
+            ship.get_node("CabinRoofBow_Starboard_%s" % index) is MeshInstance3D,
+            "cabin roof has readable repeated panel supports")
     for index in range(3):
         _check(ship.get_node("VaneMast_%s" % index) is MeshInstance3D,
             "three navigation vanes have their own supports")

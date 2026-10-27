@@ -16,6 +16,8 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 12 # keep pinned #408 parent available for paired art-study comparison
       - name: Install exact Godot 4.7.2 editor
         run: |
           curl --fail --location --retry 3 --output /tmp/godot.zip \
@@ -125,6 +127,38 @@ jobs:
             --script res://tests/profile_rendered_flight.gd -- --low 2>&1 | tee /tmp/rendered-flight-low.log
           grep -q 'RENDERED_SWEEP_PASS samples=96 mode=low' /tmp/rendered-flight-low.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/rendered-flight-low.log
+      - name: Paired parent/candidate software-render cost diagnostic (no pass threshold)
+        run: |
+          set -euo pipefail
+          cp godot/flight_slice/ship.gd /tmp/ship-candidate.gd
+          git show f047569a20a9c73192803a62d7cdc5df93f12d9f:godot/flight_slice/ship.gd > /tmp/ship-parent.gd
+          trap 'cp /tmp/ship-candidate.gd godot/flight_slice/ship.gd' EXIT
+          for label in baseline-a candidate baseline-b; do
+            if [[ "$label" == candidate ]]; then
+              cp /tmp/ship-candidate.gd godot/flight_slice/ship.gd
+            else
+              cp /tmp/ship-parent.gd godot/flight_slice/ship.gd
+            fi
+            timeout 180s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+              /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+              --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
+              --script res://tests/profile_rendered_flight.gd 2>&1 | tee "/tmp/ship-ab-$label.log"
+            grep -q 'RENDERED_SWEEP_PASS samples=96 mode=high' "/tmp/ship-ab-$label.log"
+            ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' "/tmp/ship-ab-$label.log"
+            cp godot/flight_slice/evidence/rendered-flight-sweep-high.json "/tmp/ship-ab-$label.json"
+          done
+          python - <<'PY'
+          import json
+          cases = {}
+          for label in ('baseline-a','candidate','baseline-b'):
+              with open('/tmp/ship-ab-' + label + '.json', encoding='utf-8') as f:
+                  cases[label] = json.load(f)
+          reference = [o['ship_position'] for o in cases['baseline-a']['observations']]
+          for label, data in cases.items():
+              assert data['samples'] == 96 and data['mode'] == 'high', label
+              assert [o['ship_position'] for o in data['observations']] == reference, label
+              print('SHIP_RENDER_PAIRED_RECEIPT', label, data['median_ms'], data['p95_ms'], data['adapter'])
+          PY
       - name: Capture native Aureate Wake ship silhouette close-ups
         run: |
           set -o pipefail
@@ -157,5 +191,7 @@ jobs:
             /tmp/contact-lifecycle.log
             /tmp/capture.log
             /tmp/ship-hero.log
+            /tmp/ship-ab-*.json
+            /tmp/ship-ab-*.log
           if-no-files-found: warn
           retention-days: 7
