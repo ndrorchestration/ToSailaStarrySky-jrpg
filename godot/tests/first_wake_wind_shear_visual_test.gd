@@ -57,28 +57,38 @@ func _verify() -> void:
     if WindShearVisual.DISPLAY_SCALE != 2.0:
         _fail("enemy atlas must use exact integer-pixel 2x sampling")
         return
-    # Test all authored idle fracture phases without advancing encounter time.
-    var expected_offsets := [
-        PackedInt32Array([0, 0, 0]),
-        PackedInt32Array([0, 2, -2]),
-        PackedInt32Array([-2, 0, 2]),
-        PackedInt32Array([2, -2, 0]),
-        PackedInt32Array([0, 0, 0]),
-    ]
-    for i in range(expected_offsets.size()):
-        art.visual_clock = float(i) * WindShearVisual.IDLE_POSE_STEP_SECONDS + 0.01
-        if art.idle_band_offsets() != expected_offsets[i]:
-            _fail("authored idle-shear pose %d drifted" % i)
+    if art.idle_atlas_texture == null or art.idle_atlas_texture.get_size() != Vector2(320, 92):
+        _fail("native Godot import of v2 hand-authored idle atlas is missing")
+        return
+    # A genuine exact static hold: the v2 first frame must reproduce original
+    # v1 pixels, while frames 1/2/3 contain individually drawn facet changes.
+    var old_image: Image = art.atlas_texture.get_image()
+    var idle_image: Image = art.idle_atlas_texture.get_image()
+    var old_hold: PackedByteArray = old_image.get_region(Rect2i(0, 0, 80, 92)).get_data()
+    if idle_image.get_region(Rect2i(0, 0, 80, 92)).get_data() != old_hold:
+        _fail("new idle still is not byte-identical in pixels to original")
+        return
+    for pose in range(1, 4):
+        if idle_image.get_region(Rect2i(pose * 80, 0, 80, 92)).get_data() == old_hold:
+            _fail("hand-authored pose %d duplicates base sprite" % pose)
+            return
+
+    # Verify exact authored animation frame selection with controlled sampled
+    # presentation time; no battle turns or random values are involved.
+    for phase in range(5):
+        art.visual_clock = float(phase) * WindShearVisual.IDLE_POSE_STEP_SECONDS + 0.01
+        if art.authored_idle_frame() != phase % 4:
+            _fail("authored idle frame %d drifted" % phase)
             return
     art.set_reduced_motion(true)
     art.visual_clock = 0.73
-    if art.idle_band_offsets() != PackedInt32Array([0, 0, 0]):
-        _fail("reduced motion did not freeze procedural in-between offsets")
+    if art.authored_idle_frame() != 0:
+        _fail("reduced motion did not hold exact original pose")
         return
     art.set_reduced_motion(false)
     art.begin_encounter()
-    if art.idle_band_offsets() != PackedInt32Array([0, 0, 0]):
-        _fail("fresh encounters retained idle fracture state")
+    if art.authored_idle_frame() != 0:
+        _fail("new encounters retained old idle animation phase")
         return
 
     # The synthetic, explicitly noncanonical formula target has no authority to
@@ -140,8 +150,8 @@ func _verify() -> void:
     if art.hit_feedback_seconds <= 0.0:
         _fail("confirmed enemy HP loss did not trigger brief hit feedback")
         return
-    if art.idle_band_offsets() != PackedInt32Array([0, 0, 0]):
-        _fail("impact feedback must suppress idle pose shearing")
+    if art.authored_idle_frame() != 0:
+        _fail("impact feedback must suppress authored idle animation")
         return
 
     var reaction_duration: float = art.hit_feedback_seconds
@@ -161,8 +171,8 @@ func _verify() -> void:
         _fail("reduced-motion mode did not remove ambient/retaliation motion")
         return
     art.visual_clock = 0.5
-    if art.idle_band_offsets() != PackedInt32Array([0, 0, 0]):
-        _fail("reduced motion allowed shear offsets at nonzero sampled clock")
+    if art.authored_idle_frame() != 0:
+        _fail("reduced motion selected an animation pose at nonzero sampled clock")
         return
     art.visual_clock = 0.0
     art._process(0.4)
