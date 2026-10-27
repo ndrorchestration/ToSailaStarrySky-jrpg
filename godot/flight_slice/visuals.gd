@@ -18,6 +18,7 @@ var _coverage_bytes := PackedByteArray()
 func _ready() -> void:
     sky_material = _shader("res://shaders/sky.gdshader")
     land = _shader("res://shaders/terrain.gdshader")
+    land.set_shader_parameter("surface_detail_strength", 1.0)
     water = _shader("res://shaders/water.gdshader")
     foliage = _shader("res://shaders/foliage.gdshader")
     broadleaf = _shader("res://shaders/foliage.gdshader")
@@ -135,6 +136,7 @@ func refresh_coverage() -> void:
 
 func set_low_quality(enabled: bool) -> void:
     low_quality = enabled
+    land.set_shader_parameter("surface_detail_strength", 0.0 if enabled else 1.0)
     water.set_shader_parameter("low_quality", enabled)
     sky_material.set_shader_parameter("low_quality", enabled)
     if _terrain != null:
