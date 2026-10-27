@@ -196,21 +196,66 @@ func _wing(side: float, fore: bool, brass: Material, glazing: Material) -> void:
     membrane.material_override = membrane_material
     rig.add_child(membrane)
 
-    # Narrow perimeter, two-section fine ribbing and less gold at the tips.
-    var dark_edge := _material(Color(0.34, 0.36, 0.32), 0.48, 0.30)
-    _rod(rig, "LeadingEdge_" + wing_name, outline[0], outline[1], 0.035, brass)
+    # Collect structure by material, not one MeshInstance3D per thin vein.
+    # This retains the geometry while reducing per-wing draw submissions.
+    var brass_rods: Array[Dictionary] = [
+        {"start": outline[0], "end": outline[1], "radius": 0.035},
+        {"start": outline[outline.size() - 1], "end": outline[0],
+            "radius": 0.027}
+    ]
+    var dark_rods: Array[Dictionary] = []
     for i in range(1, outline.size() - 1):
-        _rod(rig, "Edge_%s_%s" % [wing_name, i],
-            outline[i], outline[i + 1], 0.013, dark_edge)
-    _rod(rig, "ReturnEdge_" + wing_name,
-        outline[outline.size() - 1], outline[0], 0.027, brass)
+        dark_rods.append({"start": outline[i], "end": outline[i + 1],
+            "radius": 0.013})
+    var glass_rods: Array[Dictionary] = []
     for i in range(2, outline.size() - 1):
         var center: Vector3 = outline[0].lerp(outline[i], 0.56)
         center.y += 0.12
-        _rod(rig, "VeinInner_%s_%s" % [wing_name, i],
-            outline[0], center, 0.013, glazing)
-        _rod(rig, "VeinOuter_%s_%s" % [wing_name, i],
-            center, outline[i], 0.009, glazing)
+        glass_rods.append({"start": outline[0], "end": center, "radius": 0.013})
+        glass_rods.append({"start": center, "end": outline[i], "radius": 0.009})
+    var dark_edge := _material(Color(0.34, 0.36, 0.32), 0.48, 0.30)
+    _rod_batch(rig, "BrassRibBundle_" + wing_name, brass_rods, brass)
+    _rod_batch(rig, "DarkRibBundle_" + wing_name, dark_rods, dark_edge)
+    _rod_batch(rig, "GlassRibBundle_" + wing_name, glass_rods, glazing)
+
+func _rod_batch(parent: Node3D, label_name: String,
+        segments: Array[Dictionary], surface: Material) -> void:
+    var tool := SurfaceTool.new()
+    tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+    for part in segments:
+        _append_tube(tool, part["start"], part["end"], float(part["radius"]))
+    tool.generate_normals()
+    var model := MeshInstance3D.new()
+    model.name = label_name
+    model.mesh = tool.commit()
+    # Tubes are thin in far views; double-sided for consistent visibility.
+    var batch_material := surface.duplicate() as StandardMaterial3D
+    batch_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    model.material_override = batch_material
+    parent.add_child(model)
+
+func _append_tube(tool: SurfaceTool, start: Vector3,
+        finish: Vector3, radius: float) -> void:
+    var axis: Vector3 = finish - start
+    if axis.length_squared() <= 0.000001:
+        return
+    var direction: Vector3 = axis.normalized()
+    var radial_x: Vector3 = direction.cross(Vector3.UP)
+    if radial_x.length_squared() < 0.01:
+        radial_x = direction.cross(Vector3.RIGHT)
+    radial_x = radial_x.normalized()
+    var radial_y: Vector3 = direction.cross(radial_x).normalized()
+    for index in range(6):
+        var a: float = TAU * float(index) / 6.0
+        var b: float = TAU * float(index + 1) / 6.0
+        var offset_a: Vector3 = (radial_x * cos(a) + radial_y * sin(a)) * radius
+        var offset_b: Vector3 = (radial_x * cos(b) + radial_y * sin(b)) * radius
+        var p0: Vector3 = start + offset_a
+        var p1: Vector3 = finish + offset_a
+        var p2: Vector3 = finish + offset_b
+        var p3: Vector3 = start + offset_b
+        for vertex in [p0, p1, p2, p0, p2, p3]:
+            tool.add_vertex(vertex)
 
 func _membrane_triangle(surface: SurfaceTool, a: Vector3,
         b: Vector3, c: Vector3, color: Color) -> void:
