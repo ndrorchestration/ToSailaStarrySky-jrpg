@@ -6,6 +6,7 @@ const CUTS = [
     ["golden-clear", 0, 0, false],
     ["midday-mist", 1, 1, false],
     ["blue-hour-rain", 2, 2, false],
+    ["storm-night", 3, 3, false],
     ["storm-night-magic", 3, 3, true]
 ]
 var _failed: bool = false
@@ -28,6 +29,7 @@ func _capture() -> void:
         quit(1)
         return
     var reference: Image
+    var night_without_magic: Image
     var compared: int = 0
     for cut in CUTS:
         scene.visuals.set_environment_look(int(cut[1]), int(cut[2]), bool(cut[3]))
@@ -47,6 +49,21 @@ func _capture() -> void:
             _failed = true
             continue
         print("NATIVE_ENVIRONMENT_CAPTURE: ", file_path)
+        if str(cut[0]) == "storm-night":
+            night_without_magic = frame.duplicate()
+        if str(cut[0]) == "storm-night-magic" and night_without_magic != null:
+            var magic_delta: float = 0.0
+            for my in range(40, 600, 16):
+                for mx in range(40, 920, 16):
+                    var off: Color = night_without_magic.get_pixel(mx, my)
+                    var on: Color = frame.get_pixel(mx, my)
+                    magic_delta += absf(off.r - on.r)
+                    magic_delta += absf(off.g - on.g)
+                    magic_delta += absf(off.b - on.b)
+            if magic_delta < 0.8:
+                push_error("ENVIRONMENT_MOOD_MAGIC_NOT_VISIBLE")
+                _failed = true
+            print("NATIVE_MAGIC_VEIL_DELTA: ", magic_delta)
         if reference == null:
             reference = frame.duplicate()
         else:
@@ -66,7 +83,7 @@ func _capture() -> void:
             compared += 1
     scene.queue_free()
     await process_frame
-    if not _failed and compared == 3:
+    if not _failed and compared == 4:
         print("NATIVE_ENVIRONMENT_CAPTURE_PASS comparisons=", compared)
         quit(0)
     else:
