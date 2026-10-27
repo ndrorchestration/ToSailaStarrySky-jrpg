@@ -29,7 +29,13 @@ func mark_touchdown(native_contact: Dictionary, native_landing_state: String) ->
         return false
     if native_landing_state != "LANDED" or not native_contact.get("valid", false):
         return false
-    if not native_contact.has("collider") or native_contact["collider"] == null:
+    # landing_collision.gd returns position and normal only after a genuine
+    # collider-scoped physics raycast; never require a nonexistent collider key.
+    if not native_contact.has("position") or not native_contact.has("normal"):
+        return false
+    if not (native_contact["position"] is Vector3 and native_contact["normal"] is Vector3):
+        return false
+    if native_contact["normal"].y < 0.985:
         return false
     phase = Phase.TOUCHDOWN
     return true
