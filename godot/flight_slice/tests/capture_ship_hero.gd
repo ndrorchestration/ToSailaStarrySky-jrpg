@@ -5,7 +5,9 @@ const StudyScene = preload("res://main.tscn")
 const SHOTS = [
     ["bow-quarter", Vector3(6.5, 3.0, -7.0), 43.0],
     ["stern-quarter", Vector3(-7.0, 2.8, 7.0), 45.0],
-    ["wing-planform", Vector3(2.5, 10.5, 2.0), 50.0]
+    ["wing-planform", Vector3(2.5, 10.5, 2.0), 50.0],
+    ["foredeck-open", Vector3(2.2, 1.8, -4.2), 37.0],
+    ["foredeck-weather-cover", Vector3(2.2, 1.8, -4.2), 37.0]
 ]
 
 func _initialize() -> void:
@@ -28,6 +30,7 @@ func _capture() -> void:
         return
     var failures: int = 0
     for shot in SHOTS:
+        scene.ship.set_foredeck_weather_shelter(str(shot[0]) == "foredeck-weather-cover")
         scene.camera.position = scene.ship.position + shot[1]
         scene.camera.fov = float(shot[2])
         scene.camera.look_at(scene.ship.position + Vector3(0.0, 0.2, 0.0), Vector3.UP)
