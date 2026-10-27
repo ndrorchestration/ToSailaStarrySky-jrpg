@@ -242,6 +242,7 @@ func _start_dialogue(speaker: String, lines: Array, event_id: String) -> void:
     if dialogue_open or lines.is_empty():
         return
     dialogue_open = true
+    dialogue_character = speaker
     dialogue_speaker.text = speaker
     dialogue_lines = lines.duplicate()
     dialogue_cursor = 0
@@ -299,6 +300,7 @@ func _sync_presentation() -> void:
     party_label.text = "Story party: " + " + ".join(opening.active_party_ids) + "  |  Review-only art / no live game integration"
     if dialogue_open:
         dialogue_speaker.visible = true
+        dialogue_speaker.text = "%s  |  Interact / E: next (%d / %d)" % [dialogue_character, dialogue_cursor + 1, dialogue_lines.size()]
         dialogue_text.visible = true
         dialogue_text.text = str(dialogue_lines[dialogue_cursor])
         hint.text = "Interact / E: next line   |   " + str(dialogue_cursor + 1) + " / " + str(dialogue_lines.size())

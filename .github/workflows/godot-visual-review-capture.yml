@@ -76,6 +76,12 @@ jobs:
           for phase in discovery dialogue-choice dialogue-history encounter-warning echo-ready beacon-payoff; do
             test -s "godot/review-evidence/slice-${phase}-native-960x640.png"
           done
+          # Isolated Ionia-first Chapter One visual proof, no production promotion.
+          xvfb-run -a -s "-screen 0 960x640x24" editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_first_wake_job_preview.gd
+          for stage in 01-unemployed-dock 02-flyer-dialogue 03-ionia-hired 04-engineering-room 05-fuel-inspection 06-preflight-handoff; do
+            test -s "godot/review-evidence/first-wake-hiring/${stage}-native-960x640.png"
+          done
+          sha256sum godot/review-evidence/first-wake-hiring/*.png
           sha256sum godot/review-evidence/*.png
           # Private, native-resolution lossless crops in job logs: not a public artifact.
           # Entire 960x640 PNGs remain runner-only; do not conflate crop custody with full frames.
