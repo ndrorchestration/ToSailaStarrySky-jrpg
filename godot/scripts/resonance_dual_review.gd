@@ -26,6 +26,7 @@ func _ready() -> void:
     battle_status = _label(ui, Vector2(38, 72), Vector2(882, 55), 20)
     detail = _label(ui, Vector2(50, 452), Vector2(862, 58), 19)
     notice = _label(ui, Vector2(50, 562), Vector2(860, 66), 17)
+    _button(ui, Vector2(738, 153), Vector2(190, 38), "G  Grant training Art", _grant)
     _button(ui, Vector2(48, 516), Vector2(226, 38), "1  Raise shared ward", _cast)
     _button(ui, Vector2(286, 516), Vector2(196, 38), "2  Enemy strike", _strike)
     _button(ui, Vector2(494, 516), Vector2(184, 38), "B  No-ward test", _baseline)
@@ -62,6 +63,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
     match event.keycode:
         KEY_1:
             _cast()
+        KEY_G:
+            _grant()
         KEY_2:
             _strike()
         KEY_B:
@@ -73,6 +76,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
         _:
             return
     get_viewport().set_input_as_handled()
+
+func _grant() -> void:
+    last_action_result = battle.grant_training_access(Battle.ART_ID)
+    _refresh_hud()
+    queue_redraw()
 
 func _cast() -> void:
     last_action_result = battle.activate()
@@ -136,7 +144,10 @@ func _refresh_hud() -> void:
     ]
     var phase_name := str(snap["phase"]).to_upper()
     if str(snap["phase"]) == "player":
-        detail.text = "READY: Spirit steadies Water. One Art consumes both actions and 1 review Focus each."
+        if Array(snap.get("trainingGrants", [])).is_empty():
+            detail.text = "LOCKED: press G or select Grant training Art before using the review ability."
+        else:
+            detail.text = "READY: Spirit steadies Water. One Art consumes both actions and 1 review Focus each."
     elif str(snap["phase"]) == "enemy":
         detail.text = "WARD ACTIVE (%d capacity). Press 2 for an eight-point incoming strike." % int(snap["wardCapacity"]) if int(snap["wardCapacity"]) > 0 else "NO WARD. Press 2 to compare the incoming strike."
         if int(snap["wardCapacity"]) > 0 and not reduced_motion and visual_step < 3:
@@ -149,7 +160,7 @@ func _refresh_hud() -> void:
     var last_line := str(snap["log"].back())
     if not last_action_result.is_empty() and not bool(last_action_result.get("ok", false)):
         last_line = "Not available: " + str(last_action_result.get("reason", "unknown"))
-    notice.text = phase_name + "  /  " + last_line + "\nStandalone mechanics review. Keys 1, 2, B, R, M; no story progress, saves or spell unlocks."
+    notice.text = phase_name + "  /  " + last_line + "\nStandalone mechanics review. Keys G, 1, 2, B, R, M; no story progress, saves or spell unlocks."
     if motion_button != null:
         motion_button.text = "M Motion: " + ("OFF" if reduced_motion else "ON")
 
