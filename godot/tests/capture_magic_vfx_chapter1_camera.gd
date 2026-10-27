@@ -22,6 +22,14 @@ func _snapshot(name: String) -> Image:
 func _different(a: Image, b: Image, roi: Rect2i) -> bool:
     return a.get_region(roi).get_data() != b.get_region(roi).get_data()
 
+func _deck_brightness(frame: Image) -> float:
+    # Neutral dock witnesses outside the spell core, camera/control fixed.
+    # Proves expected relative tone ordering, not perceptual contrast compliance.
+    var sum: float = 0.0
+    for point in [Vector2i(185, 476), Vector2i(215, 495), Vector2i(755, 474), Vector2i(810, 495)]:
+        sum += frame.get_pixelv(point).get_luminance()
+    return sum / 4.0
+
 func _capture() -> void:
     root.size = Vector2i(960, 640)
     if DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT)) != OK:
@@ -136,6 +144,14 @@ func _capture() -> void:
         push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: night did not affect native dock lighting")
         quit(21)
         return
+    var day_luma: float = _deck_brightness(bright)
+    var dusk_luma: float = _deck_brightness(dusk)
+    var night_luma: float = _deck_brightness(night)
+    print("STARRY_SKY_CHAPTER1_MAGIC_TONE_LUMINANCE: daylight=" + str(day_luma) + ":dusk=" + str(dusk_luma) + ":night=" + str(night_luma))
+    if not (day_luma > dusk_luma + 0.015 and dusk_luma > night_luma + 0.015):
+        push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: brightness not monotonically ordered day > dusk > night")
+        quit(26)
+        return
     review.set_weather_preset("mist")
     await process_frame
     var mist: Image = await _snapshot("chapter1-magic-night-mist-native-960x640.png")
@@ -155,6 +171,10 @@ func _capture() -> void:
     if not _different(night, rain, Rect2i(300, 232, 340, 180)):
         push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: rain not visibly distinguishable")
         quit(25)
+        return
+    if not _different(mist, rain, Rect2i(300, 232, 340, 180)):
+        push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: mist and rain paint identical pixels")
+        quit(27)
         return
     if review.world.chapter.snapshot() != before or review.world.export_save_snapshot() != save_before:
         push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: visual captures changed Chapter I durable state")
