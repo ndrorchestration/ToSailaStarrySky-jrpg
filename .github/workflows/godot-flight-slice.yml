@@ -91,6 +91,18 @@ jobs:
           timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_biome_layers.gd 2>&1 | tee /tmp/biome-macro-test.log
           grep -Eq 'GODOT_BIOME_MACRO_PASS checks=[0-9]+' /tmp/biome-macro-test.log
           ! grep -Eq 'GODOT_BIOME_MACRO_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/biome-macro-test.log
+      - name: Verify height-derived signed shoreline and shared water field
+        run: |
+          set -o pipefail
+          timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_coast_distance.gd 2>&1 | tee /tmp/coast-distance-test.log
+          grep -Eq 'GODOT_COAST_DISTANCE_PASS checks=[0-9]+' /tmp/coast-distance-test.log
+          ! grep -Eq 'GODOT_COAST_DISTANCE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/coast-distance-test.log
+      - name: Verify fixed-budget noncolliding highland outcrop material
+        run: |
+          set -o pipefail
+          timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_rock_dressing.gd 2>&1 | tee /tmp/rock-dressing-test.log
+          grep -Eq 'GODOT_ROCK_DRESSING_PASS checks=[0-9]+' /tmp/rock-dressing-test.log
+          ! grep -Eq 'GODOT_ROCK_DRESSING_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/rock-dressing-test.log
       - name: Deterministic native manual Dragonfly pilot mode contracts
         run: |
           set -o pipefail
@@ -173,6 +185,16 @@ jobs:
           grep -q 'NATIVE_BIOME_MACRO_CAPTURE_PASS frames=6' /tmp/biome-macro-capture.log
           grep -Eq 'NATIVE_BIOME_MACRO_DELTAS coast=[0-9.]+' /tmp/biome-macro-capture.log
           ! grep -Eq 'NATIVE_BIOME_MACRO_CAPTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/biome-macro-capture.log
+      - name: Matched native GL coastal distance forest-floor and highland outcrop captures
+        run: |
+          set -o pipefail
+          timeout 125s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_coast_rocks.gd 2>&1 | tee /tmp/coast-rock-capture.log
+          grep -q 'NATIVE_COAST_ROCK_CAPTURE_PASS frames=6' /tmp/coast-rock-capture.log
+          grep -Eq 'NATIVE_COAST_ROCK_DELTAS coast=[0-9.]+' /tmp/coast-rock-capture.log
+          ! grep -Eq 'NATIVE_COAST_ROCK_CAPTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/coast-rock-capture.log
       - name: Profile actual rendered scripted flight sweep
         run: |
           set -o pipefail
@@ -214,6 +236,9 @@ jobs:
             /tmp/surface-texture-capture.log
             /tmp/biome-macro-test.log
             /tmp/biome-macro-capture.log
+            /tmp/coast-distance-test.log
+            /tmp/rock-dressing-test.log
+            /tmp/coast-rock-capture.log
             /tmp/environment-mood-capture.log
             /tmp/atmosphere-capture.log
             /tmp/cinematic-camera.log
