@@ -10,6 +10,10 @@ extends Node2D
 
 const ART_ID := "windShear"
 const ART_BOUNDS := Rect2(-91.0, -92.0, 182.0, 184.0)
+const ATLAS_PATH := "res://art-review/wind_shear_elemental_v1_atlas.png"
+const FRAME_SIZE := Vector2i(80, 92)
+const FRAME_COUNT := 4
+const DISPLAY_SCALE := 1.8
 const MAX_EFFECT_SECONDS := 0.34
 
 var analyzed: bool = false
@@ -19,8 +23,18 @@ var last_enemy_turn: int = 0
 var gale_accent_seconds: float = 0.0
 var visual_clock: float = 0.0
 var _frame_accumulator: float = 0.0
+var atlas_texture: Texture2D = null
 
 func _ready() -> void:
+    texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+    # A deliberate provisional pixel-art import, not final sprite admission.
+    # The procedural silhouette remains a fallback if import is unavailable.
+    if ResourceLoader.exists(ATLAS_PATH, "Texture2D"):
+        var candidate: Resource = load(ATLAS_PATH)
+        if candidate is Texture2D:
+            var imported: Texture2D = candidate as Texture2D
+            if imported.get_size() == Vector2(FRAME_SIZE.x * FRAME_COUNT, FRAME_SIZE.y):
+                atlas_texture = imported
     visible = false
 
 func begin_encounter() -> void:
@@ -64,7 +78,10 @@ func _draw() -> void:
     var breath := 0.0 if reduced_motion else sin(visual_clock * 2.2) * 0.09
     var aura_alpha := 0.23 + breath
     if dissipated:
-        _draw_disperse()
+        if atlas_texture != null:
+            _draw_pixel_atlas(0.0)
+        else:
+            _draw_disperse()
         return
 
     # Narrow elliptical ground-shadow line anchors the air creature in the
@@ -94,6 +111,12 @@ func _draw() -> void:
     draw_arc(Vector2(1.0, -6.0), 69.0, -2.4 + orbit, -0.35 + orbit, 28, Color(0.50, 0.82, 0.91, 0.50), 2.0)
     draw_arc(Vector2(1.0, -6.0), 69.0, 0.30 + orbit, 2.28 + orbit, 28, Color(0.30, 0.69, 0.83, 0.40), 2.0)
     draw_arc(Vector2(2.0, -6.0), 56.0, -0.86 - orbit, 0.68 - orbit, 24, Color(0.86, 0.92, 0.83, 0.28), 2.0)
+
+    # The authored 80x92 pixel atlas is the default provisional silhouette
+    # in this draft. Nearest-neighbor source rectangles cannot bleed frames.
+    if atlas_texture != null:
+        _draw_pixel_atlas(sway)
+        return
 
     # Silhouette: broad rear wind-fin + rising fractured fin + spined nose.
     draw_colored_polygon(PackedVector2Array([
@@ -143,6 +166,29 @@ func _draw() -> void:
     if analyzed:
         _draw_exposed_core()
     if gale_accent_seconds > 0.0 and not reduced_motion:
+        _draw_gale_accent()
+
+func _draw_pixel_atlas(sway: float) -> void:
+    if atlas_texture == null:
+        return
+    var frame_index: int = 0
+    if dissipated:
+        frame_index = 3
+    elif gale_accent_seconds > 0.0 and not reduced_motion:
+        frame_index = 2
+    elif analyzed:
+        frame_index = 1
+    var source := Rect2(
+        Vector2(FRAME_SIZE.x * frame_index, 0),
+        Vector2(FRAME_SIZE)
+    )
+    var target_size := Vector2(FRAME_SIZE) * DISPLAY_SCALE
+    var target := Rect2(
+        Vector2(-target_size.x * 0.5, -82.0 + sway * 0.5),
+        target_size
+    )
+    draw_texture_rect_region(atlas_texture, target, source)
+    if gale_accent_seconds > 0.0 and not reduced_motion and not dissipated:
         _draw_gale_accent()
 
 func _draw_exposed_core() -> void:
