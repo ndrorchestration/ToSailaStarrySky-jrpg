@@ -25,6 +25,27 @@ static func _fixture_clear(x: float, z: float) -> bool:
             return false
     return true
 
+# CPU interpolation of the exact mesh-triangle sampler at either visible LOD.
+# The original height field can rise above a coarse triangle between vertices:
+# placing a boulder at that exact height makes it appear to float in the sky.
+static func _render_height(terrain: Node3D, x: float, z: float, segments: int) -> float:
+    var edge: float = terrain.TILE_EDGE
+    var tile_x: int = floori(x / edge)
+    var tile_z: int = floori(z / edge)
+    var gx_float: float = (x - float(tile_x) * edge) * float(segments) / edge
+    var gz_float: float = (z - float(tile_z) * edge) * float(segments) / edge
+    var gx: int = clampi(floori(gx_float), 0, segments - 1)
+    var gz: int = clampi(floori(gz_float), 0, segments - 1)
+    var fx: float = clampf(gx_float - float(gx), 0.0, 1.0)
+    var fz: float = clampf(gz_float - float(gz), 0.0, 1.0)
+    var a: float = terrain.grid_point(tile_x, tile_z, segments, gx, gz).y
+    var b: float = terrain.grid_point(tile_x, tile_z, segments, gx + 1, gz).y
+    var d: float = terrain.grid_point(tile_x, tile_z, segments, gx + 1, gz + 1).y
+    var cc: float = terrain.grid_point(tile_x, tile_z, segments, gx, gz + 1).y
+    if fx + fz <= 1.0:
+        return a * (1.0 - fx - fz) + b * fx + cc * fz
+    return d * (fx + fz - 1.0) + b * (1.0 - fz) + cc * (1.0 - fx)
+
 func populate(terrain: Node3D) -> void:
     var tuft_colors: Array[Color] = []
     var stone_colors: Array[Color] = []
@@ -62,13 +83,26 @@ func populate(terrain: Node3D) -> void:
                     Color(0.14, 0.28, 0.16).lerp(
                         Color(0.33, 0.40, 0.19), variation * 0.68))
             elif (biome == "alpine" or biome == "summit" or biome == "coast") \
-                    and roll > 0.52 and stone_poses.size() < MAX_STONES:
+                    and roll > 0.52 and normal.y >= 0.78 \
+                    and stone_poses.size() < MAX_STONES:
+                # Check both rendered LOD triangle elevations. The higher
+                # analytic height alone is insufficient on coarser ridgelines.
+                var low_y: float = _render_height(
+                    terrain, x, z, terrain.LOW_SEGMENTS)
+                var high_y: float = _render_height(
+                    terrain, x, z, terrain.HIGH_SEGMENTS)
+                if absf(low_y - high_y) > 0.85:
+                    continue
                 var size: float = 0.36 + _hash01(fx - 4.0, fz * 0.7) * 0.54
                 var aspect: float = 0.72 + _hash01(fx + 9.0, fz + 19.0) * 0.56
-                stone_poses.append(Transform3D(
-                    Basis(Vector3.UP, yaw).scaled(Vector3(size * aspect,
-                        size * 0.48, size / aspect)),
-                    Vector3(x, y - 0.055, z)))
+                # Embed the stone below the lower of the two actual LOD
+                # surfaces and slope-align the flat cobble silhouette.
+                var tilt := Basis(Quaternion(Vector3.UP, normal))
+                var basis: Basis = (tilt * Basis(Vector3.UP, yaw)).scaled(
+                    Vector3(size * aspect, size * 0.48, size / aspect))
+                var ground_y: float = minf(low_y, high_y)
+                stone_poses.append(Transform3D(basis,
+                    Vector3(x, ground_y - size * 0.24, z)))
                 stone_colors.append(Color(0.28, 0.30, 0.31).lerp(
                     Color(0.47, 0.43, 0.37), _hash01(fx + 5.1, fz - 3.2)))
     _tufts = _instance_group("MeadowTufts", _tuft_mesh(), tuft_poses, tuft_colors)
