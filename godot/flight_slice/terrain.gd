@@ -3,7 +3,7 @@ extends Node3D
 ## Coordinates here are meters in a standalone study; no world/save/route adapter.
 const TILE_EDGE: float = 24.0
 const GRID_RADIUS: int = 4
-const HIGH_SEGMENTS: int = 16
+const HIGH_SEGMENTS: int = 18
 const LOW_SEGMENTS: int = 6
 const SEA_LEVEL: float = -0.15
 const NEAR_LOD: float = 43.0
@@ -122,10 +122,14 @@ func update_detail(observer: Vector3, delta: float) -> void:
     _lod_clock = 0.0
     var count: int = 0
     var detail_count: int = 0
+    var neighbors := {}
+    # Decide every tile's LOD before stitching any neighbor edge. This avoids
+    # depending on iteration order or a neighbor's stale previous selection.
     for record in _tiles:
         var node: MeshInstance3D = record["node"]
         var distance: float = Vector2(observer.x - record["center"].x, observer.z - record["center"].z).length()
         node.visible = distance < 126.0
+        neighbors[Vector2i(record["ix"], record["iz"])] = record
         if not node.visible:
             continue
         count += 1
@@ -134,11 +138,33 @@ func update_detail(observer: Vector3, delta: float) -> void:
             is_high = false
         elif not is_high and distance < NEAR_LOD:
             is_high = true
-        if record["high_selected"] != is_high:
-            node.mesh = record["high"] if is_high else record["low"]
-            record["high_selected"] = is_high
+        record["high_selected"] = is_high
         if is_high:
             detail_count += 1
+    # High-resolution edge vertices lie on the piecewise-linear coarse edge.
+    # Eighteen segments is divisible by six, so every coarse corner is also
+    # a fine vertex. Keep only one extra stitched mesh per tile.
+    for record in _tiles:
+        var node: MeshInstance3D = record["node"]
+        if not node.visible:
+            continue
+        if not record["high_selected"]:
+            node.mesh = record["low"]
+            continue
+        var coord := Vector2i(record["ix"], record["iz"])
+        var mask: int = 0
+        var directions := [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]
+        for side in range(4):
+            var neighbor: Dictionary = neighbors.get(coord + directions[side], {})
+            if not neighbor.is_empty() and neighbor["node"].visible and not neighbor["high_selected"]:
+                mask |= 1 << side
+        if mask == 0:
+            node.mesh = record["high"]
+        else:
+            if record["stitched_mesh"] == null or record["stitched_mask"] != mask:
+                record["stitched_mesh"] = _tile_mesh(record["ix"], record["iz"], HIGH_SEGMENTS, mask)
+                record["stitched_mask"] = mask
+            node.mesh = record["stitched_mesh"]
     visible_tiles = count
     detailed_tiles = detail_count
 
@@ -159,19 +185,45 @@ func _build_tiles() -> void:
                 "ix": ix,
                 "iz": iz,
                 "center": Vector3((float(ix) + 0.5) * TILE_EDGE, 0.0, (float(iz) + 0.5) * TILE_EDGE),
-                "high": high, "low": low, "high_selected": false
+                "high": high, "low": low, "high_selected": false,
+                "stitched_mask": -1, "stitched_mesh": null
             })
 
-func _tile_mesh(ix: int, iz: int, segments: int) -> ArrayMesh:
+# The fine mesh matches the coarse neighbor's linear boundary, including
+# every coarse breakpoint. Interior vertices continue to use the sampler.
+func _stitched_grid_point(ix: int, iz: int, segments: int, gx: int, gz: int, mask: int) -> Vector3:
+    var point: Vector3 = grid_point(ix, iz, segments, gx, gz)
+    var vertical: bool = (gx == 0 and (mask & 1) != 0) or (gx == segments and (mask & 2) != 0)
+    var horizontal: bool = (gz == 0 and (mask & 4) != 0) or (gz == segments and (mask & 8) != 0)
+    if not vertical and not horizontal:
+        return point
+    var along: int = gz if vertical else gx
+    var low_coordinate: float = float(along) * float(LOW_SEGMENTS) / float(segments)
+    var index: int = mini(floori(low_coordinate), LOW_SEGMENTS - 1)
+    var fraction: float = low_coordinate - float(index)
+    var a: Vector3
+    var b: Vector3
+    if vertical:
+        var edge_x: int = 0 if gx == 0 else LOW_SEGMENTS
+        a = grid_point(ix, iz, LOW_SEGMENTS, edge_x, index)
+        b = grid_point(ix, iz, LOW_SEGMENTS, edge_x, index + 1)
+    else:
+        var edge_z: int = 0 if gz == 0 else LOW_SEGMENTS
+        a = grid_point(ix, iz, LOW_SEGMENTS, index, edge_z)
+        b = grid_point(ix, iz, LOW_SEGMENTS, index + 1, edge_z)
+    point.y = lerpf(a.y, b.y, fraction)
+    return point
+
+func _tile_mesh(ix: int, iz: int, segments: int, stitch_mask: int = 0) -> ArrayMesh:
     var tool := SurfaceTool.new()
     tool.begin(Mesh.PRIMITIVE_TRIANGLES)
     tool.set_material(_terrain_material)
     for gx in range(segments):
         for gz in range(segments):
-            var a: Vector3 = grid_point(ix, iz, segments, gx, gz)
-            var b: Vector3 = grid_point(ix, iz, segments, gx + 1, gz)
-            var c: Vector3 = grid_point(ix, iz, segments, gx, gz + 1)
-            var d: Vector3 = grid_point(ix, iz, segments, gx + 1, gz + 1)
+            var a: Vector3 = _stitched_grid_point(ix, iz, segments, gx, gz, stitch_mask)
+            var b: Vector3 = _stitched_grid_point(ix, iz, segments, gx + 1, gz, stitch_mask)
+            var c: Vector3 = _stitched_grid_point(ix, iz, segments, gx, gz + 1, stitch_mask)
+            var d: Vector3 = _stitched_grid_point(ix, iz, segments, gx + 1, gz + 1, stitch_mask)
             # Godot's CW front-face winding: these triangles must face upward.
             _triangle(tool, a, b, c)
             _triangle(tool, b, d, c)
@@ -182,17 +234,17 @@ func _tile_mesh(ix: int, iz: int, segments: int) -> ArrayMesh:
             var b: Vector3
             match edge:
                 0:
-                    a = grid_point(ix, iz, segments, i, 0)
-                    b = grid_point(ix, iz, segments, i + 1, 0)
+                    a = _stitched_grid_point(ix, iz, segments, i, 0, stitch_mask)
+                    b = _stitched_grid_point(ix, iz, segments, i + 1, 0, stitch_mask)
                 1:
-                    a = grid_point(ix, iz, segments, segments, i)
-                    b = grid_point(ix, iz, segments, segments, i + 1)
+                    a = _stitched_grid_point(ix, iz, segments, segments, i, stitch_mask)
+                    b = _stitched_grid_point(ix, iz, segments, segments, i + 1, stitch_mask)
                 2:
-                    a = grid_point(ix, iz, segments, i + 1, segments)
-                    b = grid_point(ix, iz, segments, i, segments)
+                    a = _stitched_grid_point(ix, iz, segments, i + 1, segments, stitch_mask)
+                    b = _stitched_grid_point(ix, iz, segments, i, segments, stitch_mask)
                 _:
-                    a = grid_point(ix, iz, segments, 0, i + 1)
-                    b = grid_point(ix, iz, segments, 0, i)
+                    a = _stitched_grid_point(ix, iz, segments, 0, i + 1, stitch_mask)
+                    b = _stitched_grid_point(ix, iz, segments, 0, i, stitch_mask)
             var lower_a: Vector3 = a - Vector3.UP * 0.9
             var lower_b: Vector3 = b - Vector3.UP * 3.8
             _triangle(tool, a, b, lower_a)
