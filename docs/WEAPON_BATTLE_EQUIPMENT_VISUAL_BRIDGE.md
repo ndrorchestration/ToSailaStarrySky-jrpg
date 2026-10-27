@@ -25,3 +25,14 @@ A local `FirstWakeFormulaEncounter` is constructed solely for *read-only* demons
 3. Produce provenance-checked directional character and weapon layers; check hand-to-weapon attachment pivot, stance, foot-contact, depth sorting and motion accessibility in genuine rendered frames.
 4. Provide separate authorized dispatch and hit-event adapter, formula conservation/resource tests and Windows QA evidence before playing this animation as an actual `staffStrike` in combat.
 5. Obtain creator visual approval, gameplay gate approval, merge and release decisions separately. **Nothing in this review licenses these actions.**
+
+## October 27 rendered visual QA — observed, not accepted
+
+The first actual 2×2 native contact sheet surfaced **HUD collisions and drifting hand-to-weapon placement** which unit contracts and PNG hash checks did not detect. These were repaired in-place with:
+- Restricted authority/status copy to the left column; target HP on a separate right status rail; physical cue and non-execution disclaimer on distinct lower rows.
+- Higher-contrast theme styleboxes for native selection buttons, including the locked current actor equipment field.
+- Family-specific physical grip anchors (staff midpoint, sword lower hilt, pike shaft, rifle trigger grip) transformed with equipment rotation around the actual mannequin hand. A GDScript regression checks sword-hilt attachment at a rotated impact pose.
+
+A **second real Godot CI contact sheet** verifies improved layout separation and visual equip distinction. Remaining independent aesthetic limitations: noncanonical low-detail geometric mannequin, static torso and legs for most action phases, simplified weapon silhouettes, simplistic contact trails, uncertain directional/protagonist pivot requirements, and no animation polish/audio/hit reactions. These require authored character rigs and independent creator acceptance, not test-name promotion.
+
+The 2×2 lossy montage is emitted into CI logs only as clearly labeled original geometry at half-size per frame; full-resolution frame hashes remain runner-only and are **not substitute proof of final sprite detail**. No proprietary/unaccepted character likeness is introduced.
