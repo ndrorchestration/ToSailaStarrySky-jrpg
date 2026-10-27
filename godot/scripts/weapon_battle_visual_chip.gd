@@ -2,13 +2,13 @@ extends Node2D
 ## Small overlay placed inside the EXISTING Chapter I battle UI.
 ## Visual-only: no collision, hitbox, stat, target or turn API.
 const Silhouette = preload("res://scripts/weapon_silhouette_review.gd")
-const Projection = preload("res://scripts/weapon_battle_visual_projection.gd")
+const VisualBridge = preload("res://scripts/weapon_battle_visual_projection.gd")
 
 const PANEL := Color("#152e3e")
 const BORDER := Color("#7eada9")
 const PAPER := Color("#e8dfc5")
 
-var model = Projection.new()
+var model = VisualBridge.new()
 var equipment: Node2D
 var current: Dictionary = {}
 
@@ -25,14 +25,14 @@ func _ready() -> void:
 func show_frame(frame: Dictionary) -> bool:
     # Never render arbitrary ability/weapon data as trusted combat animation.
     if str(frame.get("actorId","")) != "ender" \
-        or str(frame.get("weaponId","")) != Projection.ENDER_STAFF_ID \
-        or str(frame.get("renderAuthority","")) != Projection.RENDER_AUTHORITY \
+        or str(frame.get("weaponId","")) != VisualBridge.ENDER_STAFF_ID \
+        or str(frame.get("renderAuthority","")) != VisualBridge.RENDER_AUTHORITY \
         or bool(frame.get("canAuthorizeActions",true)):
         return false
     var action := str(frame.get("action",""))
     if action != "idle" and action != "attack":
         return false
-    if action == "attack" and str(frame.get("formulaActionId","")) != Projection.STRIKE_ACTION_ID:
+    if action == "attack" and str(frame.get("formulaActionId","")) != VisualBridge.STRIKE_ACTION_ID:
         return false
     if action == "idle" and str(frame.get("formulaActionId","")) not in ["","uncoverTruth","hold","rest"]:
         return false
