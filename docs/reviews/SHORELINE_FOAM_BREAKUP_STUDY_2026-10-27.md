@@ -23,3 +23,9 @@ Source parent [#429](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg
 ## Visual review / open risks
 
 Compare genuine exact-head screenshots at the same pose for (1) broken up turquoise band, (2) foam fragments remaining near real shore only, (3) no checkerboard repetition or excessive glitter, (4) accessible still frame and low-quality parity. Two noisy material layers can interfere visually, so failure or ambiguous improvement should reject this candidate and preserve #429. The second noise branch adds fragment work; hosted llvmpipe times cannot prove target Windows GPU cost. No creator acceptance, merge, release or full-planet rendering claim.
+
+## Native first-pass result and corrective iteration
+
+Exact first head `4889e4294377909db5b4557c032dae221771281b` **PASSED** [Godot native run 40592922943](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40592922943) and [smoke 40592923110](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40592923110). [GL screenshots/artifact 12775491157](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40592922943/artifacts/12775491157) were downloaded and **visually inspected**, not just checked for pixel differences. Foam A/B changed 2,634 sampled positions and preserved pixel-identical low-quality A/B (`0` changed).
+
+That first artistic candidate reduced the thin, double white surf line but left a **broad, saturated cyan band** along the coast. This is a legitimate QA defect relative to the restrained visual goal, despite all code/GL gates passing. Second shader iteration `e414e708` reduces shallow-shelf blue-green light, tightens the broken crest and patch thresholds and moves foam color toward softer neutral sea glass. Exact 0.0 and low-quality appearance remain the prior reference. **Do not transfer first-head native certification or visual judgment to second head; rerun and inspect its screenshots.**
