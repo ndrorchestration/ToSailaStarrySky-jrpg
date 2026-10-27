@@ -126,7 +126,7 @@ func set_magnified(enabled: bool) -> void:
         var scale_value := 1.65 if enabled else 1.0
         _ender_sprite.scale = Vector2(scale_value, scale_value)
         _ender_sprite.position.y = GROUND_Y - 46.0 * scale_value
-    for study in [_aepex_sprite, _lyra_sprite, _reson_sprite, _lyra_variants.get("west"), _lyra_variants.get("north"), _lyra_variants.get("east"), _aepex_variants.get("west"), _aepex_variants.get("north"), _aepex_variants.get("east"), _aepex_variants.get("west"), _aepex_variants.get("north"), _aepex_variants.get("east")]:
+    for study in [_aepex_sprite, _lyra_sprite, _reson_sprite, _lyra_variants.get("west"), _lyra_variants.get("north"), _lyra_variants.get("east"), _aepex_variants.get("west"), _aepex_variants.get("north"), _aepex_variants.get("east")]:
         if study != null:
             var size := 1.55 if enabled else 1.0
             study.scale = Vector2(size, size)
@@ -140,7 +140,7 @@ func set_walk_phase(phase: int) -> void:
         _ionia_sprite.frame = walk_phase
     if _ender_sprite != null:
         _ender_sprite.frame = walk_phase
-    for study in [_aepex_sprite, _lyra_sprite, _reson_sprite, _lyra_variants.get("west"), _lyra_variants.get("north"), _lyra_variants.get("east")]:
+    for study in [_aepex_sprite, _lyra_sprite, _reson_sprite, _lyra_variants.get("west"), _lyra_variants.get("north"), _lyra_variants.get("east"), _aepex_variants.get("west"), _aepex_variants.get("north"), _aepex_variants.get("east")]:
         if study != null:
             study.frame = walk_phase
     queue_redraw()
