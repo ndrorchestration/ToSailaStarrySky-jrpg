@@ -1,6 +1,7 @@
 shader_type spatial;
 render_mode diffuse_burley;
 uniform float study_time = 0.0;
+uniform bool low_quality = false;
 varying vec3 world_pos;
 varying vec3 world_normal;
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
@@ -41,8 +42,21 @@ void fragment() {
     float sand=1.0-smoothstep(0.6,2.7,p.y+noise(p.xz*0.5)*0.5);
     color=mix(color,mix(vec3(0.36,0.31,0.22),vec3(0.70,0.59,0.40),mottling),sand);
     float snow=smoothstep(16.3,19.0,p.y+noise(p.xz*0.42)*2.0)*(1.0-smoothstep(0.12,0.42,slope));
-    // Maintain cool snow highlights while leaving headroom for direct light.
-    color=mix(color,mix(vec3(0.40,0.49,0.55),vec3(0.65,0.71,0.69),mottling),snow);
+    // Wind-combed highland snow is neither uniformly white nor a separate
+    // terrain-height model. Keep the established snowline and shaded rock.
+    vec3 snow_tint=mix(vec3(0.40,0.49,0.55),vec3(0.65,0.71,0.69),mottling);
+    if (!low_quality && snow>0.001) {
+        // One additional anisotropic, static noise lookup for material only.
+        // Lateral windward striations softly uncover the existing stone shade
+        // on exposed slopes, without changing triangles, heights or physics.
+        float sweep=noise(vec2(p.x*0.36+p.z*0.71, p.y*0.21+p.z*0.12));
+        float windward=smoothstep(0.08,0.34,slope);
+        float exposure=smoothstep(0.45,0.76,sweep)*windward;
+        snow*=1.0-0.35*exposure;
+        float frost_grain=mix(0.89,1.02,smoothstep(0.20,0.86,sweep));
+        snow_tint*=frost_grain;
+    }
+    color=mix(color,snow_tint,snow);
     // Broad, restrained cloud shadows preserve direct-light readability.
     float cloud=noise(p.xz*0.025+vec2(study_time*0.004,0.0));
     ALBEDO=color*mix(0.82,1.0,smoothstep(0.3,0.65,cloud));
