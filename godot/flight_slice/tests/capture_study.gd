@@ -245,6 +245,54 @@ func _capture() -> void:
             failed = true
         scene.visuals.set_low_quality(false)
         scene.ship.visible = true
+    # Actual sand optics GL A/B at fixed coast position and second near-ground
+    # authored review composition. The same material/rendered terrain receives
+    # both views: view-dependent sheen, no terrain vertex modification.
+    if not baseline and scene.visuals != null:
+        scene.set_manual_mode(false)
+        scene._clock=9.0
+        scene._update_scene(10.0)
+        scene.overlay.visible=false
+        scene.ship.visible=false
+        scene.camera.position=Vector3(6.0,7.0,15.0)
+        scene.camera.look_at(Vector3(1.0,0.8,0.0),Vector3.UP)
+        scene.terrain.update_detail(scene.camera.position,1.0)
+        scene.visuals.refresh_coverage()
+        scene.visuals.land.set_shader_parameter("sand_optics_strength",0.0)
+        var sand_old: Image = await _frame()
+        scene.visuals.land.set_shader_parameter("sand_optics_strength",1.0)
+        var sand_new: Image = await _frame()
+        var sand_delta: int = _different(sand_old,sand_new)
+        var sand_folder: String = ProjectSettings.globalize_path(
+            "res://evidence/cinematic-review")
+        _save_shore(sand_old,sand_folder.path_join("coast-sand-plain.png"))
+        _save_shore(sand_new,sand_folder.path_join("coast-sand-optics.png"))
+        print("NATIVE_SAND_OPTICS_PAIR_DELTA pixels=",sand_delta)
+        if sand_delta < 80 or sand_delta > 85000:
+            push_error("NATIVE_SAND_OPTICS_PAIR_UNBOUNDED_CHANGE")
+            failed=true
+        # The quality fallback deliberately has zero dependence on the A/B.
+        scene.visuals.set_low_quality(true)
+        scene.visuals.land.set_shader_parameter("sand_optics_strength",0.0)
+        var sand_low_a: Image = await _frame()
+        scene.visuals.land.set_shader_parameter("sand_optics_strength",1.0)
+        var sand_low_b: Image = await _frame()
+        var sand_low_delta: int = _different(sand_low_a,sand_low_b)
+        print("NATIVE_SAND_OPTICS_LOW_DELTA pixels=",sand_low_delta)
+        if sand_low_delta != 0:
+            push_error("NATIVE_SAND_OPTICS_LOW_QUALITY_DRIFT")
+            failed=true
+        scene.visuals.set_low_quality(false)
+        # Separate grazing angle, all world values frozen. A/B read remains
+        # reversible in the same exact shader for visual evaluation.
+        scene.camera.position=Vector3(11.0,3.7,15.0)
+        scene.camera.look_at(Vector3(1.0,0.9,0.0),Vector3.UP)
+        scene.terrain.update_detail(scene.camera.position,1.0)
+        scene.visuals.refresh_coverage()
+        var sand_grazing: Image = await _frame()
+        _save_shore(sand_grazing,
+            sand_folder.path_join("coast-sand-grazing.png"))
+        scene.ship.visible=true
     # Fixed world camera makes terrain comparisons independent of ship height.
     # Keep this separate from the six existing gameplay-frame markers.
     if not baseline and scene.visuals != null:
