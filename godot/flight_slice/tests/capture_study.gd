@@ -145,6 +145,24 @@ func _capture() -> void:
                 else:
                     print("NATIVE_CINEMATIC_CAPTURE: ", cinematic_path,
                         " 960x640 HUD-free NONCANON")
+    # Fixed world camera makes terrain comparisons independent of ship height.
+    # Keep this separate from the six existing gameplay-frame markers.
+    if not baseline and scene.visuals != null:
+        scene._clock = 34.0
+        scene._update_scene(10.0)
+        scene.overlay.visible = false
+        scene.ship.visible = false
+        scene.camera.position = Vector3(38.0, 32.0, 28.0)
+        scene.camera.look_at(Vector3(72.0, 17.0, -12.0), Vector3.UP)
+        scene.terrain.update_detail(scene.camera.position, 1.0)
+        scene.visuals.refresh_coverage()
+        var fixed: Image = await _frame()
+        var fixed_path: String = ProjectSettings.globalize_path("res://evidence/cinematic-review/highland-fixed.png")
+        if fixed == null or fixed.get_size() != Vector2i(960,640) or fixed.save_png(fixed_path) != OK:
+            push_error("FIXED_TERRAIN_CAPTURE_FAILED")
+            failed = true
+        else:
+            print("NATIVE_FIXED_TERRAIN_CAPTURE: ", fixed_path, " 960x640")
     scene.queue_free()
     await process_frame
     quit(1 if failed else 0)

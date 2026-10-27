@@ -36,6 +36,26 @@ func _run_tests() -> void:
             _check(is_finite(h) and absf(next_x - h) < 1.5 and absf(next_z - h) < 1.5,
                 "bounded, continuous sampled highland relief")
 
+    # Fractal study is compared with fixed parent heights, not an invented
+    # second terrain sampler. Variation must remain bounded and repeatable.
+    var parent_heights := [
+        Vector3(64.0, 16.727040717244066, -10.0),
+        Vector3(68.0, 15.346824621341234, -18.0),
+        Vector3(76.0, 13.669936163110084, 5.0),
+        Vector3(78.0, 17.759769892416806, -30.0),
+        Vector3(70.0, 18.471818713437827, 18.0)
+    ]
+    var strongest_change: float = 0.0
+    for reference in parent_heights:
+        var value: float = TerrainStudy.sample_height(reference.x, reference.z)
+        var delta_from_parent: float = absf(value - reference.y)
+        strongest_change = maxf(strongest_change, delta_from_parent)
+        _check(is_finite(value) and delta_from_parent <= 1.81,
+            "fractal elevation remains bounded against parent")
+        _check(is_equal_approx(value, TerrainStudy.sample_height(reference.x, reference.z)),
+            "fractal elevation repeats at identical coordinates")
+    _check(strongest_change > 0.12, "fractal detail changes highland elevations")
+
     for ix in [-4, -1, 0, 2]:
         for iz in [-3, 0, 2]:
             for i in range(7):
