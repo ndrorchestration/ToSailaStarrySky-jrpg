@@ -77,7 +77,10 @@ jobs:
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_state_test.gd
       - name: Verify Resonance remains story-roster blocked until Lyra joins after splashdown
         shell: bash
-        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_resonance_roster_gate_test.gd
+        run: |
+          set -euo pipefail
+          # Fail closed on a script hang; never accept a timeout as QA PASS.
+          timeout --preserve-status 35s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_resonance_roster_gate_test.gd
       - name: Verify proposed First Wake opening chronological gates (review only)
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_revised_opening_contract_test.gd
