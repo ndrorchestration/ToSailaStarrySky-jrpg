@@ -11,6 +11,13 @@ const SURFACE_Y := 410.0
 const FLOAT_BUOYANCY := 120.0
 const SETTLE_SECONDS := 0.45
 const ASCENT_SECONDS := 1.25
+## Development dialogue candidate paraphrasing the FW-07 story document;
+## observation only, not approved final VO or a unique-fuel formula.
+const POSTFLIGHT_INSPECTION_LINES := [
+    "ENDER: The usable reserve is gone. The phase drift and containment strain appeared under load.",
+    "IONIA: Denith required a particular supply. I know how it was handled, not what it contained.",
+    "ENDER: Then we have observations, not a recipe. We cannot substitute ordinary fuel on a guess.",
+]
 
 var opening
 var phase: String = "not_configured"
@@ -23,6 +30,10 @@ var sea_area: Area2D
 var status_label: Label
 var hint_label: Label
 var telemetry_label: Label
+var inspection_label: Label
+var postflight_dialogue_open: bool = false
+var postflight_dialogue_cursor: int = 0
+var postflight_reserve_observed: bool = false
 
 func configure_preflight(preflight) -> bool:
     if is_inside_tree() or preflight == null:
@@ -88,6 +99,9 @@ func _ready() -> void:
     status_label = _make_label(ui, Vector2(24, 20), 19)
     telemetry_label = _make_label(ui, Vector2(24, 59), 15)
     hint_label = _make_label(ui, Vector2(26, 563), 17)
+    inspection_label = _make_label(ui, Vector2(35, 474), 16)
+    inspection_label.custom_minimum_size = Vector2(875, 82)
+    inspection_label.visible = false
     _refresh_presentation()
 
 func _make_label(parent: Node, at: Vector2, size: int) -> Label:
@@ -128,7 +142,40 @@ func interact() -> bool:
         return begin_short_test_flight()
     if phase == "warning":
         return stabilize_for_water_descent()
+    if postflight_dialogue_open:
+        return advance_postflight_inspection()
+    if phase == "waterborne":
+        return start_postflight_inspection()
     return false
+
+func start_postflight_inspection() -> bool:
+    if phase != "waterborne" or opening == null or postflight_dialogue_open or postflight_reserve_observed:
+        return false
+    if not contact_observed or not stable_float_verified or opening.step_key() != "waterborne":
+        return false
+    if opening.active_party_ids != ["ender", "ionia"]:
+        return false
+    postflight_dialogue_open = true
+    postflight_dialogue_cursor = 0
+    _refresh_presentation()
+    return true
+
+func advance_postflight_inspection() -> bool:
+    if not postflight_dialogue_open:
+        return false
+    if postflight_dialogue_cursor + 1 < POSTFLIGHT_INSPECTION_LINES.size():
+        postflight_dialogue_cursor += 1
+        _refresh_presentation()
+        return true
+    # Confirmation only AFTER every diagnostic line has been observed;
+    # this is still an authored measurement, not a fuel chemistry proof.
+    if not opening.inspect_postflight_reserve(true):
+        return false
+    postflight_dialogue_open = false
+    postflight_reserve_observed = true
+    phase = "postflight_diagnosis"
+    _refresh_presentation()
+    return true
 
 func begin_short_test_flight() -> bool:
     if phase != "awaiting_launch" or opening == null:
@@ -192,6 +239,8 @@ func review_snapshot() -> Dictionary:
         "phase": phase,
         "party": opening.active_party_ids.duplicate() if opening != null else [],
         "story_step": opening.step_key() if opening != null else "unconfigured",
+        "inspection_dialogue_open": postflight_dialogue_open,
+        "postflight_reserve_observed": postflight_reserve_observed,
         "actual_2d_area_contact_observed": contact_observed,
         "stable_buoyant_hull_observed": stable_float_verified,
         "settle_seconds": settled_seconds,
@@ -208,6 +257,11 @@ func _refresh_presentation() -> void:
     if opening != null:
         line += "  |  STORY PARTY: " + " + ".join(opening.active_party_ids).to_upper()
     telemetry_label.text = line
+    inspection_label.visible = postflight_dialogue_open
+    if postflight_dialogue_open:
+        inspection_label.text = str(POSTFLIGHT_INSPECTION_LINES[postflight_dialogue_cursor])
+    else:
+        inspection_label.text = ""
     match phase:
         "awaiting_launch":
             hint_label.text = "E: launch one short test flight. Ionia at helm; Ender at engineering."
@@ -218,7 +272,12 @@ func _refresh_presentation() -> void:
         "descent":
             hint_label.text = "Ionia selects open water. Physics water contact and flotation are being measured."
         "waterborne":
-            hint_label.text = "WATERBORNE: 2D physics contact + stable afloat confirmed. Engines offline. No Lyra join."
+            if postflight_dialogue_open:
+                hint_label.text = "E: examine the next diagnosis note (%d / %d). Hypothesis not yet established." % [postflight_dialogue_cursor + 1, POSTFLIGHT_INSPECTION_LINES.size()]
+            else:
+                hint_label.text = "WATERBORNE: crew safe afloat. E: inspect depleted fuel reserve and compare readings."
+        "postflight_diagnosis":
+            hint_label.text = "POSTFLIGHT: empty reserve observed. Fuel composition/source UNKNOWN. Safe reunion route OPEN."
         _:
             hint_label.text = "Preflight scene required."
     queue_redraw()
