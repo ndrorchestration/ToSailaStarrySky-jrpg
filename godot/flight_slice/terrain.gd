@@ -198,9 +198,14 @@ func _place_tree_instances() -> void:
             if classify(x, z) != "forest" or _hash01(x, z) < 0.23:
                 continue
             var size: float = 0.8 + _hash01(z, x) * 1.1
-            # Noncanonical per-instance azimuth removes conspicuous repeated silhouettes.
+            # Stable shape diversity: varying crowns, width and trunk height
+            # without adding procedural randomness or extra tree draw calls.
+            var width_scale: float = 0.84 + _hash01(float(ix + 9), float(iz - 7)) * 0.39
+            var height_scale: float = 0.86 + _hash01(float(ix - 3), float(iz + 11)) * 0.42
+            var depth_scale: float = 0.84 + _hash01(float(ix + 4), float(iz + 8)) * 0.36
             var yaw: float = float(posmod(ix * 3 + iz * 7, 29)) * (TAU / 29.0)
-            var basis := Basis(Vector3.UP, yaw).scaled(Vector3(size, size, size))
+            var basis := Basis(Vector3.UP, yaw).scaled(Vector3(
+                size * width_scale, size * height_scale, size * depth_scale))
             poses.append(Transform3D(basis, Vector3(x, sample_height(x, z), z)))
     tree_poses = poses.duplicate()
     var crowns := MultiMesh.new()
