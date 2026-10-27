@@ -68,8 +68,8 @@ func _capture() -> void:
     if unlit == null:
         quit(8)
         return
-    if base.get_region(Rect2i(670, 278, 98, 105)).get_data() == unlit.get_region(Rect2i(670, 278, 98, 105)).get_data():
-        push_error("MAGIC_ENV_CAPTURE_FAIL: toggling PointLight2D did not change lit wall")
+    if base.get_region(Rect2i(461, 404, 62, 27)).get_data() == unlit.get_region(Rect2i(461, 404, 62, 27)).get_data():
+        push_error("MAGIC_ENV_CAPTURE_FAIL: toggling PointLight2D did not change direct-lit stone witness")
         quit(9)
         return
     if not scene.seek_phase(3):

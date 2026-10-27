@@ -27,3 +27,5 @@ func _draw() -> void:
     draw_rect(Rect2(661.0, 256.0, 109.0, 121.0), Color("#b2aa90"))
     draw_rect(Rect2(687.0, 287.0, 60.0, 56.0), Color("#d3c8a7"))
     draw_rect(Rect2(681.0, 405.0, 92.0, 37.0), Color("#a4ad9b"))
+    # Dedicated unoccluded surface for a genuine light on/off framebuffer A/B.
+    draw_rect(Rect2(454.0, 400.0, 73.0, 34.0), Color("#b2c0b1"))

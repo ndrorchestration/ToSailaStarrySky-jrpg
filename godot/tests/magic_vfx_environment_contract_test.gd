@@ -23,7 +23,7 @@ func _check() -> void:
     if light == null or not (light is PointLight2D) or light.texture == null:
         _fail("real PointLight2D radial texture unavailable")
         return
-    if not light.shadow_enabled or not occluder is LightOccluder2D or occluder.occluder == null:
+    if not light.shadow_enabled or not (occluder is LightOccluder2D) or occluder.occluder == null:
         _fail("real 2D occlusion/shadow resource unavailable")
         return
     if not front.visible or front.z_index <= scene.effect.z_index:
@@ -48,7 +48,7 @@ func _check() -> void:
         _fail("lighting opt-out affected foreground or left light enabled")
         return
     scene.set_foreground_enabled(false)
-    if occluder.visible or front.visible:
+    if occluder.is_visible_in_tree() or front.visible:
         _fail("occlusion toggle failed to hide geometry and occluder together")
         return
     scene.set_foreground_enabled(true)

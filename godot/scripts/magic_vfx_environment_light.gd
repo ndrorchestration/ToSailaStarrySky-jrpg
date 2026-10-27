@@ -24,7 +24,7 @@ func _ready() -> void:
     light = PointLight2D.new()
     light.name = "PhysicalCanvasLight"
     light.texture = radial
-    light.texture_scale = 1.96
+    light.texture_scale = 2.4
     light.shadow_enabled = true
     light.shadow_filter = Light2D.SHADOW_FILTER_PCF5
     light.shadow_filter_smooth = 2.0
