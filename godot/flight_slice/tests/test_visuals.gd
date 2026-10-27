@@ -54,11 +54,15 @@ func _run() -> void:
     check(not scene.terrain.get_node("GroundUnderstory").visible, "low quality omits undergrowth")
     check(not scene.terrain.get_node("ShorelineStones").visible, "low quality omits coast stones")
     check(not scene.terrain.get_node("AlpineTalus").visible, "low quality omits decorative talus")
+    check(not scene.terrain.get_node("FarRidgeSilhouette").visible, "low quality omits far ridge")
+    check(not scene.terrain.get_node("NearRidgeSilhouette").visible, "low quality omits near ridge")
     visuals.set_low_quality(false)
     check(visuals.water.get_shader_parameter("low_quality") == false, "high quality restored")
     check(scene.terrain.get_node("GroundUnderstory").visible, "high quality restores undergrowth")
     check(scene.terrain.get_node("ShorelineStones").visible, "high quality restores coastline accents")
     check(scene.terrain.get_node("AlpineTalus").visible, "high quality restores talus accents")
+    check(scene.terrain.get_node("FarRidgeSilhouette").visible, "high quality restores far ridge")
+    check(scene.terrain.get_node("NearRidgeSilhouette").visible, "high quality restores near ridge")
     check(is_equal_approx(height, scene.terrain.sample_height(30.0, -12.0)), "quality preserves heights")
     check(visuals.has_method("refresh_coverage"), "shore effects require rendered terrain coverage")
     if not visuals.has_method("refresh_coverage"):
@@ -216,6 +220,47 @@ func _run() -> void:
     check(is_zero_approx(float(visuals.alpine_minerals.get_shader_parameter("wetness"))),
         "alpine rock has no ocean-wet material")
     
+    # Scenic-only ridge contours lie beyond the local tile grid and never
+    # alter height, coastal datum, collider triangles or landing decisions.
+    var ridge_far: MeshInstance3D = scene.terrain.get_node("FarRidgeSilhouette")
+    var ridge_near: MeshInstance3D = scene.terrain.get_node("NearRidgeSilhouette")
+    check(ridge_far.mesh is ArrayMesh and ridge_near.mesh is ArrayMesh,
+        "distant scenery uses deterministic authored mesh surfaces")
+    check(ridge_far.get_child_count() == 0 and ridge_near.get_child_count() == 0,
+        "distant scenery has no collision or per-vertex scene nodes")
+    check(ridge_far.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        and ridge_near.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,
+        "noncolliding distant silhouettes create no shadow draw workload")
+    for ridge in [ridge_far, ridge_near]:
+        var ridge_mesh: ArrayMesh = ridge.mesh
+        var ridge_arrays: Array = ridge_mesh.surface_get_arrays(0)
+        var points: PackedVector3Array = ridge_arrays[Mesh.ARRAY_VERTEX]
+        var normals: PackedVector3Array = ridge_arrays[Mesh.ARRAY_NORMAL]
+        var tints: PackedColorArray = ridge_arrays[Mesh.ARRAY_COLOR]
+        check(points.size() == 720 and normals.size() == points.size()
+            and tints.size() == points.size(),
+            "distance ridge geometry and shaded vertices remain under 800")
+        check(ridge_mesh.get_aabb().position.x > 100.0,
+            "ridge background starts outside navigable/visible 96m grid")
+        check(ridge_mesh.get_aabb().size.z >= 350.0
+            and ridge_mesh.get_aabb().size.z < 400.0,
+            "distance panorama covers study horizon without infinite geometry")
+        var ridge_material: StandardMaterial3D = ridge.material_override
+        check(ridge_material.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED
+            and ridge_material.vertex_color_use_as_albedo,
+            "distant material uses static color and no per-fragment shadow lighting")
+    check(ridge_far.mesh.get_aabb().position.x > ridge_near.mesh.get_aabb().end.x + 25.0,
+        "two ridge layers retain ordered distance and atmospheric parallax")
+    check(scene.terrain.chunk_count() == 64,
+        "background scenery never expands the existing flight terrain grid")
+    for z in [-180.0, -75.0, 0.0, 75.0, 180.0]:
+        var far_y: float = TerrainStudy.distant_ridge_height(z, true)
+        var near_y: float = TerrainStudy.distant_ridge_height(z, false)
+        check(is_finite(far_y) and far_y >= 11.0 and far_y <= 53.0,
+            "far contour remains bounded and deterministic")
+        check(is_finite(near_y) and near_y >= 6.0 and near_y <= 34.0,
+            "near contour remains bounded and deterministic")
+
     # An opaque single-mesh undergrowth layer adds ground-scale visual texture
     # without changing biome, terrain height, safe landing, or tree placements.
     var plants: MultiMeshInstance3D = scene.terrain.get_node("GroundUnderstory")
