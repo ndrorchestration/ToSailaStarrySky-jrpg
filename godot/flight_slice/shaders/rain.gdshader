@@ -13,5 +13,5 @@ void fragment() {
     float taper = smoothstep(0.0, 0.24, UV.y)
         * (1.0 - smoothstep(0.76, 1.0, UV.y));
     ALBEDO = vec3(0.67, 0.79, 0.87);
-    ALPHA = 0.24 * opacity * taper;
+    ALPHA = 0.12 * opacity * taper;
 }
