@@ -9,6 +9,8 @@ var land: ShaderMaterial
 var foliage: ShaderMaterial
 var broadleaf: ShaderMaterial
 var understory: ShaderMaterial
+var shore_minerals: ShaderMaterial
+var alpine_minerals: ShaderMaterial
 var sky_material: ShaderMaterial
 var low_quality: bool = false
 var rain: Node3D
@@ -29,6 +31,12 @@ func _ready() -> void:
     foliage = _shader("res://shaders/foliage.gdshader")
     broadleaf = _shader("res://shaders/foliage.gdshader")
     understory = _shader("res://shaders/understory.gdshader")
+    shore_minerals = _shader("res://shaders/geology.gdshader")
+    alpine_minerals = _shader("res://shaders/geology.gdshader")
+    shore_minerals.set_shader_parameter("mineral_tint", Vector3(0.51, 0.55, 0.55))
+    shore_minerals.set_shader_parameter("wetness", 0.32)
+    alpine_minerals.set_shader_parameter("mineral_tint", Vector3(0.54, 0.55, 0.52))
+    alpine_minerals.set_shader_parameter("wetness", 0.0)
     broadleaf.set_shader_parameter("leaf_tint", Vector3(1.16, 1.12, 0.84))
     # Share one light direction across dome and ocean; avoids split sun glints.
     sky_material.set_shader_parameter("sun_direction", SUN_DIRECTION)
@@ -104,6 +112,15 @@ func bind_terrain(terrain: Node3D) -> void:
     floor_plants.multimesh.mesh = _understory_mesh()
     floor_plants.material_override = understory
     floor_plants.visible = not low_quality
+    var stone_mesh: ArrayMesh = _weathered_stone()
+    var coast_stones: MultiMeshInstance3D = terrain.get_node("ShorelineStones")
+    coast_stones.multimesh.mesh = stone_mesh
+    coast_stones.material_override = shore_minerals
+    coast_stones.visible = not low_quality
+    var highland_stones: MultiMeshInstance3D = terrain.get_node("AlpineTalus")
+    highland_stones.multimesh.mesh = stone_mesh
+    highland_stones.material_override = alpine_minerals
+    highland_stones.visible = not low_quality
 
 func set_clock(seconds: float, reduced: bool) -> void:
     refresh_coverage()
@@ -140,6 +157,8 @@ func set_low_quality(enabled: bool) -> void:
         _reduced_motion, low_quality)
     if _terrain != null:
         _terrain.get_node("GroundUnderstory").visible = not enabled
+        _terrain.get_node("ShorelineStones").visible = not enabled
+        _terrain.get_node("AlpineTalus").visible = not enabled
 
 ## These modes grade the local art study, never the actual game clock.
 func set_environment_look(time_index: int, weather_index: int,
@@ -220,14 +239,24 @@ func _broadleaf_crown() -> ArrayMesh:
     var indices: PackedInt32Array = source[Mesh.ARRAY_INDEX]
     var surface := SurfaceTool.new()
     surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+    # Seven smaller, asymmetrically grouped foliar masses break up the
+    # repeated three-ball silhouette while preserving crown footprint.
+    # Single combined mesh for every broadleaf instance; not a leaf asset.
     var centers: Array[Vector3] = [
-        Vector3(-0.43, -0.15, -0.12), Vector3(0.43, -0.02, 0.13),
-        Vector3(0.04, 0.36, -0.18)]
+        Vector3(-0.61, -0.19, -0.28), Vector3(0.62, -0.16, -0.19),
+        Vector3(-0.31, -0.14, 0.47), Vector3(0.34, -0.01, 0.48),
+        Vector3(-0.40, 0.31, -0.16), Vector3(0.39, 0.35, -0.21),
+        Vector3(0.02, 0.59, 0.08)]
     var scales: Array[Vector3] = [
-        Vector3(1.0, 0.77, 0.94), Vector3(0.91, 0.80, 1.0),
-        Vector3(0.84, 0.78, 0.86)]
+        Vector3(0.77, 0.70, 0.74), Vector3(0.73, 0.65, 0.72),
+        Vector3(0.74, 0.61, 0.71), Vector3(0.72, 0.67, 0.68),
+        Vector3(0.75, 0.72, 0.74), Vector3(0.75, 0.69, 0.72),
+        Vector3(0.68, 0.64, 0.69)]
     var colors: Array[Color] = [
-        Color(0.91, 0.96, 0.81), Color(1.0, 1.0, 0.86), Color(1.04, 1.02, 0.90)]
+        Color(0.85, 0.91, 0.83), Color(0.91, 0.94, 0.82),
+        Color(0.87, 0.97, 0.80), Color(0.97, 0.97, 0.88),
+        Color(0.89, 0.95, 0.86), Color(0.95, 0.99, 0.86),
+        Color(1.0, 0.99, 0.91)]
     for lobe in range(centers.size()):
         var scale: Vector3 = scales[lobe]
         for index in indices:
@@ -235,12 +264,54 @@ func _broadleaf_crown() -> ArrayMesh:
             var transformed_normal := Vector3(n.x / scale.x, n.y / scale.y, n.z / scale.z).normalized()
             surface.set_normal(transformed_normal)
             surface.set_color(colors[lobe])
-            surface.add_vertex(points[index] * scale + centers[lobe])
+            # Slight asymmetric edge breakup gives each mass distinct shoulders
+            # without adding materials or randomized runtime geometry.
+            var point: Vector3 = points[index]
+            var azimuth: float = atan2(point.z, point.x)
+            var irregularity: float = 1.0 + 0.075 * sin(azimuth * 3.0 + float(lobe) * 1.7)
+            irregularity += 0.035 * cos(point.y * 4.0 - float(lobe) * 2.2)
+            surface.add_vertex(Vector3(point.x * irregularity, point.y,
+                point.z * irregularity) * scale + centers[lobe])
     return surface.commit()
 
 
-# One double-sided, opaque, instanced clump; no alpha transparency or textures.
-# Fronds change direction and height inside the shared mesh to avoid rigid Xs.
+# One low-vertex faceted weathered stone shared across two biome-specific
+# MultiMesh nodes. Larger geology is still part of the terrain mesh, not this
+# decorative layer; no collider, navigation mesh or physics affordance is added.
+func _weathered_stone() -> ArrayMesh:
+    var surface := SurfaceTool.new()
+    surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var sides: int = 9
+    var peak := Vector3(-0.12, 0.72, 0.08)
+    for side in range(sides):
+        var a: float = TAU * float(side) / float(sides)
+        var b: float = TAU * float(side + 1) / float(sides)
+        var radius_a: float = 0.82 + 0.11 * sin(float(side) * 2.17)
+        var radius_b: float = 0.82 + 0.11 * sin(float(side + 1) * 2.17)
+        var base_a := Vector3(cos(a) * radius_a, -0.16, sin(a) * radius_a)
+        var base_b := Vector3(cos(b) * radius_b, -0.16, sin(b) * radius_b)
+        var shoulder_a := Vector3(
+            base_a.x * 0.79, 0.27 + 0.07 * sin(float(side) * 2.44),
+            base_a.z * 0.79)
+        var shoulder_b := Vector3(
+            base_b.x * 0.79, 0.27 + 0.07 * sin(float(side + 1) * 2.44),
+            base_b.z * 0.79)
+        var bedrock := Color(0.80, 0.85, 0.86)
+        var exposed := Color(0.97, 0.96, 0.89)
+        _stone_triangle(surface, base_a, base_b, shoulder_a, bedrock)
+        _stone_triangle(surface, shoulder_a, base_b, shoulder_b, bedrock)
+        _stone_triangle(surface, shoulder_a, shoulder_b, peak, exposed)
+    return surface.commit()
+
+func _stone_triangle(surface: SurfaceTool, a: Vector3, b: Vector3,
+        c: Vector3, tint: Color) -> void:
+    var normal: Vector3 = (b - a).cross(c - a).normalized()
+    for p in [a, b, c]:
+        surface.set_normal(normal)
+        surface.set_color(tint)
+        surface.add_vertex(p)
+
+# One opaque instanced clump; fronds vary direction and height.
 func _understory_mesh() -> ArrayMesh:
     var surface := SurfaceTool.new()
     surface.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -276,3 +347,4 @@ func _crown_triangle(surface: SurfaceTool, a: Vector3, b: Vector3,
         surface.set_normal(outward)
         surface.set_color(tint)
         surface.add_vertex(point)
+
