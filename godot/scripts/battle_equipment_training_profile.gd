@@ -31,7 +31,7 @@ func bonuses_for(loadout) -> Dictionary:
     }
     # Count the currently wielded weapon, not a stowed secondary slot.
     for slot_id in ["mainWeapon", "bodyArmor", "accessory"]:
-        var item_id := loadout.item_id_for(slot_id)
+        var item_id: String = str(loadout.item_id_for(slot_id))
         if item_id.is_empty():
             continue
         if slot_id == "mainWeapon" and loadout.held_slot != "mainWeapon":
