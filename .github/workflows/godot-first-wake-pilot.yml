@@ -93,6 +93,12 @@ jobs:
       - name: Verify design-only party Resonance catalog fails closed
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/party_resonance_catalog_test.gd
+      - name: Verify shared formula and Resonance ability-definition normalization
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/combat_ability_contract_test.gd
+      - name: Verify atomic typed-cost party action reservations
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/party_action_reservation_test.gd
       - name: Verify isolated Tidebound Promise ward transaction and rollback
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/tidebound_promise_review_test.gd
