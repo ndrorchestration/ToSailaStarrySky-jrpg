@@ -13,6 +13,7 @@ var catalog = Catalog.new()
 var weapon: Node2D
 var pose: Dictionary = {}
 var show_mannequin: bool = true
+var show_review_effects: bool = true
 
 func _ready() -> void:
     weapon = Silhouette.new()
@@ -123,7 +124,7 @@ func _draw() -> void:
         _line(origin+Vector2(-30,-42),origin+Vector2(-7,-15),Color("#718f94"),11.0)
         draw_circle(origin+Vector2(39,-19),6.0,PAPER.darkened(0.2))
     
-    if not bool(pose.get("motionReduced",false)):
+    if show_review_effects and not bool(pose.get("motionReduced",false)):
         var energy := clampf(float(pose.get("effect",0.0)),0.0,1.0)
         if energy > 0.0:
             var action := str(pose.get("action",""))
