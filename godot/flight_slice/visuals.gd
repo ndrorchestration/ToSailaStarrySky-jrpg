@@ -160,7 +160,7 @@ func _ridge_material(tint: Color) -> StandardMaterial3D:
     var material := StandardMaterial3D.new()
     material.albedo_color = tint
     material.vertex_color_use_as_albedo = true
-    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
     material.cull_mode = BaseMaterial3D.CULL_DISABLED
     material.roughness = 1.0
     material.metallic = 0.0
