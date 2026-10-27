@@ -11,6 +11,7 @@ func _initialize() -> void:
     call_deferred("_verify")
 
 func _verify() -> void:
+    print("TSTSS_RESONANCE_CHRONOLOGY_GATE_BEGIN")
     var gate = Gate.new()
     var opening = Opening.new()
     if not _expect_denial(gate, opening, ENDER_LYRA, "lyra_not_joined"):
@@ -39,6 +40,7 @@ func _verify() -> void:
         return
 
     # Ionia is the first recruit; this does NOT establish a playable combo.
+    print("TSTSS_RESONANCE_CHRONOLOGY_GATE_STAGE:IONIA")
     if not opening.accept_ionia_job():
         _fail("Ionia-first recruitment failed")
         return
@@ -78,6 +80,7 @@ func _verify() -> void:
         return
     if not _expect_denial(gate, opening, ENDER_LYRA, "lyra_not_joined"):
         return
+    print("TSTSS_RESONANCE_CHRONOLOGY_GATE_STAGE:LYRA")
     if not opening.introduce_lyra_and_talen(true):
         _fail("safe reunion was rejected")
         return
@@ -101,7 +104,8 @@ func _verify() -> void:
     opening.active_party_ids.append("ionia")
     if not _expect_denial(gate, opening, ENDER_LYRA, "story_roster_mismatch"):
         return
-    opening.active_party_ids = ["ender", "ionia", "lyra"]
+    opening.active_party_ids.erase("ionia")
+    opening.active_party_ids.insert(1, "ionia")
     opening.safe_reunion_confirmed = false
     if not _expect_denial(gate, opening, ENDER_LYRA, "reunion_evidence_mismatch"):
         return
