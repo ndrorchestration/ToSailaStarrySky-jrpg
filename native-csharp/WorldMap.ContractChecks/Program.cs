@@ -389,6 +389,25 @@ internal static class Program
             "one analytic normal per vertex");
         Check(baseMesh.Uvs.Count == baseMesh.Vertices.Count,
             "one cube-face UV per vertex");
+        Check(baseMesh.ChartUvs.Count == baseMesh.Vertices.Count,
+            "one chart-space UV per vertex");
+        foreach (CubeFace face in Enum.GetValues<CubeFace>())
+        {
+            var mesh = CubeSphereMeshFixture.Generate(new TileId(face, 0, 0, 0), R, 8);
+            for (int i = 0; i < mesh.Vertices.Count; i++)
+            {
+                var chart = mesh.ChartUvs[i];
+                Check(chart.U >= 0 && chart.U <= 1 && chart.V >= 0 && chart.V <= 1,
+                    "chart UV bounded " + face);
+                var vertex = mesh.Vertices[i];
+                var restored = WorldMapChartProjection.Unproject(chart.U, chart.V);
+                var geo = new PlanetPosition(
+                    Math.Asin(Math.Clamp(vertex.Y / R, -1, 1)) * 180 / Math.PI,
+                    Math.Atan2(vertex.Z, vertex.X) * 180 / Math.PI);
+                Near(PlanetGeometry.AngularSeparationRadians(restored, geo), 0, 1e-7,
+                    "chart UV reconstructs mesh position " + face);
+            }
+        }
         foreach (var face in Enum.GetValues<CubeFace>())
         {
             var surface = CubeSphereMeshFixture.Generate(new TileId(face, 0, 0, 0), R, 8);
