@@ -163,6 +163,21 @@ func _capture() -> void:
             failed = true
         else:
             print("NATIVE_FIXED_TERRAIN_CAPTURE: ", fixed_path, " 960x640")
+    # Diagnostic only: preserve the exact fixed camera and compare uniform LOD
+    # images against the preceding normal, distance-selected capture.
+    if not baseline and scene.visuals != null:
+        for mode in ["all-high", "all-low"]:
+            for tile in scene.terrain._tiles:
+                var tile_node: MeshInstance3D = tile["node"]
+                tile_node.mesh = tile["high"] if mode == "all-high" else tile["low"]
+            var lod_frame: Image = await _frame()
+            var lod_path: String = ProjectSettings.globalize_path(
+                "res://evidence/cinematic-review/highland-fixed-" + mode + ".png")
+            if lod_frame == null or lod_frame.get_size() != Vector2i(960,640) or lod_frame.save_png(lod_path) != OK:
+                push_error("UNIFORM_LOD_CAPTURE_FAILED: " + mode)
+                failed = true
+            else:
+                print("NATIVE_UNIFORM_LOD_CAPTURE: ", mode, " ", lod_path)
     scene.queue_free()
     await process_frame
     quit(1 if failed else 0)
