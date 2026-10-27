@@ -2,6 +2,18 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Integrated Aureate Wake / cinematic environment native review — 2026-10-27
+
+**Status: stacked experimental implementation, not approved production art.** This review branch combines the independently validated **Aureate Wake** hull/wing/window silhouette from draft [#408](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/408) with the Godot **weather, day-grade, rain and optional sky-ribbon** study from draft [#417](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/417). It is intentionally stacked on #417, **not main**. The four-wing compact protagonists' home ship must not be confused with the separate larger Frigate-class **Dragonfly**. The provisional geometry has no final creator approval.
+
+**Second geometry pass:** after the first combined Godot run [40576780091](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40576780091) passed at `f7bbed156e3826f4ddc5ee9bf6675924278a810b`, the ship source was advanced to the **native-tested cambered wing / batched rib / stern and cabin** study from [#419](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/419) (parent exact `5e51458d64e72ed01e939dc62578db6fd2c784e6`). This looks materially stronger in actual images, but the updated *combined* exact head must still be tested separately. Strong software GL CPU/frame intervals in the first integrated run also warrant controlled Windows GPU profiling; no FPS/art acceptance is inferred from the successful CI.
+
+**Native visual proof procedure:** the existing native test checks the ship's original lofted hull, four wing membranes/veins, domestic window elements, touchdown visual feet, wing stillness under M reduced-motion, and preserved flight position while storm/night/sky-ribbon visuals change. `tests/capture_ship_hero.gd` now requests **five real Godot 960×640 software-GL HUD-free frames**: three hero geometry viewpoints, plus a fixed-camera bow-quarter at blue-hour rain and storm/night/magic. It compares both variants against the unchanged golden-bow camera/time pixels and fails if their visible grade is absent. The CI workflow retains all of #417's weather tests/captures and #408's ship closeups.
+
+**No acceptance shortcuts:** screenshots/GL pixel deltas only prove rendering and an observable environment difference. They are **not** authored art evaluation, accurate planetary weather/astronomy, auroral travel mechanics, creative canon, actual Windows GPU performance, full-hull collision, finished Chapter I/planetary integration, or release evidence. Source/CI status must be checked at this new branch head; prior successful runs on #408 and #417 alone cannot verify the combined source.
+
+See [integrated review contract](../../docs/reviews/AUREATE_WAKE_ENVIRONMENT_INTEGRATION_2026-10-27.md).
+
 ## Environmental cinematography and weather review — 2026-10-27
 
 **Optional, NON-CANON visual study.** The default retains the existing golden-hour clear sky and forest flight. **B** cycles golden/midday/blue-hour/night lighting grades; **N** cycles clear/mist/rain/storm; **G** opts into subdued decorative magical sky ribbons (never an auroral navigation lane). These are artistic presets only: no world clock, climate simulation, celestial plot behavior, spell permission, navigation or save data. The existing **C** camera shot rig is unchanged.

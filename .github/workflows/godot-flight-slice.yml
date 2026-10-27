@@ -141,6 +141,16 @@ jobs:
             --script res://tests/profile_rendered_flight.gd -- --low 2>&1 | tee /tmp/rendered-flight-low.log
           grep -q 'RENDERED_SWEEP_PASS samples=96 mode=low' /tmp/rendered-flight-low.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/rendered-flight-low.log
+      - name: Capture native Aureate Wake ship silhouette close-ups
+        run: |
+          set -o pipefail
+          timeout 90s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_ship_hero.gd 2>&1 | tee /tmp/ship-hero.log
+          test "$(grep -c 'NATIVE_SHIP_HERO_CAPTURE:' /tmp/ship-hero.log)" -eq 5
+          grep -q 'NATIVE_SHIP_WEATHER_INTEGRATION_PASS views=5 matched_mood_comparisons=2' /tmp/ship-hero.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/ship-hero.log
       - name: Upload noncanonical native reference frames
         if: always()
         uses: actions/upload-artifact@v4
@@ -165,5 +175,6 @@ jobs:
             /tmp/touchdown.log
             /tmp/contact-lifecycle.log
             /tmp/capture.log
+            /tmp/ship-hero.log
           if-no-files-found: warn
           retention-days: 7

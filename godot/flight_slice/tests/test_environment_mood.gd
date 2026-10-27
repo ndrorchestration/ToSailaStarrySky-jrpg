@@ -90,6 +90,26 @@ func _run() -> void:
         "looks never alter terrain height")
     check(scene._clock == 23.0 and scene.ship.position == position,
         "look toggles do not control time, flight or actor position")
+    # Integrated scene contract: the home ship and environmental presentation
+    # coexist without identifying the larger Dragonfly frigate as this craft.
+    check(scene.ship.name == "AureateWakeSilhouetteStudy",
+        "weather scene instantiates the correctly identified home ship")
+    var hull: MeshInstance3D = scene.ship.get_node("LongHull")
+    check(hull.mesh is ArrayMesh, "environment draws original lofted ship hull")
+    for wing_name in ["PortFore", "PortAft", "StarboardFore", "StarboardAft"]:
+        var rig: Node3D = scene.ship.get_node("WingRig_" + wing_name)
+        check(rig.get_node("Membrane_" + wing_name) is MeshInstance3D,
+            "weather scene retains " + wing_name + " wing geometry")
+    var before_ship: Vector3 = scene.ship.position
+    scene.ship.set_motion(23.0, false)
+    check(absf(scene.ship.get_node("WingRig_PortFore").rotation.z) > 0.0001,
+        "environmental grading does not suppress permitted wing flex")
+    scene.ship.set_motion(23.0, true)
+    for wing_name in ["PortFore", "PortAft", "StarboardFore", "StarboardAft"]:
+        check(is_zero_approx(scene.ship.get_node("WingRig_" + wing_name).rotation.z),
+            "reduced motion retains four still wings " + wing_name)
+    check(scene.ship.position == before_ship,
+        "visual weather and wing motion cannot alter flight position")
     scene.queue_free()
     await process_frame
     if failures.is_empty():
