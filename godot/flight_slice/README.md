@@ -94,3 +94,26 @@ godot --path godot/flight_slice --script res://tests/profile_visuals.gd
 Capture checks compile the actual shaders, save matched coast/forest/highland frames and a low-detail coast frame, then compare shader motion, frozen state and reduced motion. Profiling accepts `-- --baseline` or `-- --low`; its 120 samples per view measure wall intervals between frame callbacks, **not GPU timestamps or accepted target FPS**. The 24-second movie uses fixed-step capture; smooth encoded playback is not real-time performance proof.
 
 C# remains the recorded product language in issue #366. This branch extends the isolated GDScript **art study only**. Neither the original studies nor this material adapter are silently promoted into the product. Creator visual approval, C# integration, authored assets, planetary continuity, target-hardware profiling and gameplay remain open.
+
+
+## Authored in-engine cinematic shot director — 2026-10-27
+
+**IMPLEMENTED CANDIDATE / noncanonical camera-only art pass.** In automatic cinematic framing (default, toggled with **C**), the 37-second local flyover now follows `cinematic_shot_rig.gd`: wide coastal departure (0–10.5 s), eased forest approach (10.5–13.5 s), intimate forest passage (13.5–24.5 s), eased transition to a broad highland reveal (24.5–27.5 s), then highland vista (27.5–37 s). Deliberate composition and 50–57-degree lenses are intended to reveal horizon, craft and vertical scale without frantic pans, zoom pulses or camera shake. The existing global 37 s loop discontinuity still exists and is **not** a seamless authored film edit.
+
+This is not new geometry or footage: it reuses the real scene, existing materials, temporary noncanonical craft and existing terrain. A pure deterministic camera pose is derived from the current ship position and the established clock; no new movement authority, physics, save, quest or secret-world routes. **M** removes optional gentle camera drift alongside the established reduced-effect behavior; **C** restores the earlier stable 62-degree follow camera, and manual piloting retains its 62-degree navigation-first lens.
+
+Native contract test: `godot --headless --path godot/flight_slice --script res://tests/test_cinematic_camera.gd`. Existing graphical CI captures three HUD-free real Godot frames at 9/23/34 seconds and preserves the six regression captures. Source correctness, actual screen composition, renderer performance, color grading and creator art approval are **separate gates**. Do not mislabel the native test field as a true globe, production Aureate Wake ship or complete story cinematic.
+
+
+## Layered atmospheric depth — native cinematic study (2026-10-27)
+
+**IMPLEMENTED CANDIDATE / NOT ART ACCEPTED.** In the existing `sky.gdshader` golden-hour render, high-quality mode now adds a second, broader low-horizon cloud bank with slow opposing drift, sun-facing edge tint and a thin, noise-broken cool haze layer. It remains an **angular sky impostor**, not true volumetric clouds, planetary curvature, orbital atmosphere or physically simulated weather. It uses the same shared `sun_direction` and externally provided `study_time` as the existing sky and ocean; no new time-of-day or world mechanics.
+
+- Normal mode: `cloud_depth_strength = 1.0`, exposed as an art-review shader uniform. Existing upper cloud masses and wisps remain.
+- Matched reference mode: shader uniform `cloud_depth_strength = 0.0` disables only the added distant bank/haze; all scene geometry, timestamps and camera poses remain identical.
+- Low-quality mode: the additional bank/haze branch is skipped entirely to bound noise sampling. **M** still freezes the effect clock as before.
+- Added native contract: `godot --headless --path godot/flight_slice --script res://tests/test_atmosphere_contract.gd`.
+- Added actual OpenGL matched A/B reference: `godot --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy --script res://tests/capture_atmosphere_pair.gd` (requires display or Xvfb). It captures `coast-dusk` and `highland-horizon`, each with reference/layered variants at exactly the same pose and clock. Subsampled pixel difference must exceed a bounded minimum in at least one composition. This verifies an **observable material delta only**, not aesthetic superiority.
+- Existing nine native frame captures and six-image regression markers remain unchanged; all are still noncanonical test assets.
+
+**Unresolved:** creator visual acceptance, atmospheric plausibility, temporal stability across a full-flight video, clouds obscuring focal objects, real GPU timing and VRAM. Later integration with terrain revisions #393–#399 requires deliberate ancestry reconciliation; none are silently cherry-picked into this camera/sky track. No Moon Bridge, celestial alignment or restricted lore is published.
