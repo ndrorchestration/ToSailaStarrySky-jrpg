@@ -1,11 +1,14 @@
 name: Godot native weapon mastery review
 on:
   push:
-    branches: [feat/godot-weapon-trees-visual-preview-20261027, feat/godot-weapon-choreography-study-20261027]
+    branches: [feat/godot-weapon-trees-visual-preview-20261027, feat/godot-weapon-choreography-study-20261027, feat/godot-first-wake-weapon-visual-projection-20261027]
     paths:
       - 'godot/scripts/weapon_*.gd'
       - 'godot/tests/weapon_skill_tree_review_test.gd'
       - 'godot/tests/weapon_choreography_review_test.gd'
+      - 'godot/tests/weapon_first_wake_visual_integration_test.gd'
+      - 'godot/tests/capture_first_wake_staff_battle_review.gd'
+      - 'godot/scripts/first_wake_chapter1_review.gd'
       - 'godot/tests/capture_weapon_choreography_review.gd'
       - 'godot/scenes/weapon_tree_review.tscn'
       - 'godot/scenes/weapon_choreography_review.tscn'
@@ -15,6 +18,9 @@ on:
       - 'godot/scripts/weapon_*.gd'
       - 'godot/tests/weapon_skill_tree_review_test.gd'
       - 'godot/tests/weapon_choreography_review_test.gd'
+      - 'godot/tests/weapon_first_wake_visual_integration_test.gd'
+      - 'godot/tests/capture_first_wake_staff_battle_review.gd'
+      - 'godot/scripts/first_wake_chapter1_review.gd'
       - 'godot/tests/capture_weapon_choreography_review.gd'
       - 'godot/scenes/weapon_tree_review.tscn'
       - 'godot/scenes/weapon_choreography_review.tscn'
@@ -58,3 +64,18 @@ jobs:
           echo "WEAPON_RENDER_PRODUCED_ON_RUNNER=TRUE"
           echo "VISUAL_ACCEPTANCE=NOT_ESTABLISHED"
           echo "RENDERED_FRAME_DELIVERY=NOT_ESTABLISHED"
+
+      - name: Verify real Chapter I equipped staff visual against native battle authority
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/weapon_first_wake_visual_integration_test.gd
+      - name: Render actual Chapter I and Wind Shear equipped staff pose comparisons
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p godot/review-evidence
+          xvfb-run -a -s "-screen 0 960x640x24" ./Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_first_wake_staff_battle_review.gd
+          for frame in staff-battle-idle staff-battle-impact staff-battle-reduced staff-battle-closed staff-wind-shear-idle staff-wind-shear-impact; do
+            test -s "godot/review-evidence/${frame}-native-960x640.png"
+          done
+          sha256sum godot/review-evidence/staff-battle-*.png godot/review-evidence/staff-wind-shear-*.png
+          echo "CHAPTER1_EQUIPPED_STAFF_FRAMES=RUNNER_ONLY"
+          echo "CHAPTER1_EQUIPPED_STAFF_ART_APPROVAL=NOT_ESTABLISHED"
