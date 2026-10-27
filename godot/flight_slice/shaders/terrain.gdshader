@@ -71,6 +71,16 @@ void fragment() {
     sand_color=mix(sand_color,sand_color*(0.66+regional.b*0.80),
         biome_layer_strength);
     color=mix(color,sand_color,sand);
+    // Soil/leaf-litter/moss band is purely visual and follows the established
+    // forest belt of the original terrain class, not a new gameplay biome.
+    float forest_band=smoothstep(16.0,21.0,p.x)
+        *(1.0-smoothstep(52.0,58.0,p.x))
+        *smoothstep(1.9,3.5,p.y)*(1.0-smoothstep(10.0,12.5,p.y))
+        *(1.0-rocky)*(1.0-sand);
+    vec3 litter=mix(vec3(0.13,0.19,0.12),vec3(0.26,0.21,0.14),
+        regional.b*0.62+texel.g*0.38);
+    color=mix(color,mix(color,litter,0.57),
+        forest_band*biome_layer_strength);
     // Signed distance was derived from actual shoreline height crossings.
     // Negative samples belong to the sea; do not damp unrelated inland lowlands.
     vec2 shore_uv=(world_pos.xz+vec2(130.0))/260.0;
