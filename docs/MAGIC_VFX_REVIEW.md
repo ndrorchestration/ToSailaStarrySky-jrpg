@@ -45,3 +45,7 @@ All authored effects follow **anticipation → formation → release → impact 
 ## Native environmental light and occlusion study v0.3
 
 See [environmental VFX verification](MAGIC_VFX_ENVIRONMENT_REVIEW.md). An isolated native 2D PointLight2D + LightOccluder2D / CanvasItem depth-order study passed actual Godot 4.7.2 source-specific frame comparisons at `9b1f43291060f589b3d8c9fd6618496a36500d75`: five original affinity light colors, direct-light A/B, occluder shadow A/B, foreground blocked/open A/B and impact keyframe. **These are native 2D compositions, not accepted 2.5D runtime gameplay, 3D volumetrics or creator-approved art.**
+
+## Native Chapter I camera/character composite v0.4
+
+See [Chapter I VFX and camera review](MAGIC_VFX_CHAPTER1_CAMERA_REVIEW.md). A real **Godot 4.7.2** instance of the existing Chapter I dock and Ender candidate sprite passed five-affinity rendering, actor front/behind pixels, local light A/B and Camera2D closeup comparisons at executable source `a42fa46c57613191ce200a1f1d0e1993109575ad`. **No combat magic was activated and no Chapter I state was modified.** Real captured frames are runner-local with SHA-256 in the Actions logs; artistic/physical 3D acceptance remain pending.
