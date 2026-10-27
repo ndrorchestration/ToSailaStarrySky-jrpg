@@ -90,6 +90,9 @@ jobs:
       - name: Verify First Wake party combat authority remains fail closed
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_party_combat_authority_test.gd
+      - name: Verify design-only party Resonance catalog fails closed
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/party_resonance_catalog_test.gd
       - name: Verify current-story Wind Shear enemy adapter
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_current_enemy_adapter_test.gd
