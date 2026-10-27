@@ -123,6 +123,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
             character_lineup_review.cycle_lyra_direction()
         elif event.keycode == KEY_H:
             character_lineup_review.cycle_aepex_direction()
+        elif event.keycode == KEY_J:
+            character_lineup_review.cycle_reson_direction()
         return
     if event.keycode == KEY_E and ender.global_position.distance_to(ionia.global_position) <= 110.0:
         dialogue_open = not dialogue_open
