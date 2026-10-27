@@ -151,8 +151,8 @@ func set_low_quality(enabled: bool) -> void:
 func _bind_distant_ridges(terrain: Node3D) -> void:
     var far: MeshInstance3D = terrain.get_node("FarRidgeSilhouette")
     var near: MeshInstance3D = terrain.get_node("NearRidgeSilhouette")
-    far.material_override = _ridge_material(Color(0.43, 0.56, 0.65))
-    near.material_override = _ridge_material(Color(0.32, 0.43, 0.51))
+    far.material_override = _ridge_material(Color(0.53, 0.68, 0.76))
+    near.material_override = _ridge_material(Color(0.44, 0.58, 0.68))
     far.visible = not low_quality
     near.visible = not low_quality
 
