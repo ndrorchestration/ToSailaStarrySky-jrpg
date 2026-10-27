@@ -8,6 +8,7 @@ const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const Actor = preload("res://scripts/pilot_actor.gd")
 const Dock = preload("res://scripts/dock_depth_review.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
+const FlightScene = preload("res://scenes/first_wake_flight_water_review.tscn")
 
 const FLYER_POSITION := Vector2(442, 463)
 const IONIA_DOCK_POSITION := Vector2(677, 467)
@@ -35,6 +36,8 @@ var headline: Label
 var objective: Label
 var hint: Label
 var party_label: Label
+var ui_layer: CanvasLayer
+var flight_review: Node2D
 var dialogue_speaker: Label
 var dialogue_text: Label
 var dialogue_open: bool = false
@@ -81,7 +84,8 @@ func _ready() -> void:
     dock_foreground.z_index = 3
     add_child(dock_foreground)
 
-    var ui := CanvasLayer.new()
+    ui_layer = CanvasLayer.new()
+    var ui := ui_layer
     ui.name = "ReadableGameplayOverlay"
     add_child(ui)
     headline = _label(ui, Vector2(22, 17), 24, 900)
@@ -151,11 +155,44 @@ func _draw_engineering_room() -> void:
     draw_line(Vector2(96, 535), Vector2(872, 535), Color("#bfa075"), 2.0)
 
 func _unhandled_input(event: InputEvent) -> void:
+    if room == "flight_review":
+        return
+    if event.is_action_pressed(InputPolicy.FLIGHT_REVIEW_LAUNCH) and not event.is_echo():
+        if launch_flight_review():
+            get_viewport().set_input_as_handled()
+        return
     if event.is_action_pressed(InputPolicy.INTERACT) and not event.is_echo():
         interact()
         get_viewport().set_input_as_handled()
 
+func launch_flight_review() -> bool:
+    # Isolated review handoff only: preserves real preflight gate and Ionia-first
+    # story identity without modifying live Chapter I, saves or combat authority.
+    if room != "engineering" or dialogue_open or flight_review != null:
+        return false
+    if opening.step_key() != "preflight" or opening.active_party_ids != ["ender", "ionia"]:
+        return false
+    if inspected_items.size() != ENGINEERING_ITEMS.size():
+        return false
+    var next_scene := FlightScene.instantiate()
+    if not next_scene.configure_preflight(opening):
+        next_scene.free()
+        return false
+    flight_review = next_scene
+    room = "flight_review"
+    dock_background.visible = false
+    dock_foreground.visible = false
+    ender.player_controlled = false
+    ender.visible = false
+    ionia.visible = false
+    ui_layer.visible = false
+    add_child(flight_review)
+    queue_redraw()
+    return true
+
 func interact() -> bool:
+    if room == "flight_review":
+        return false
     if dialogue_open:
         return _advance_dialogue()
     if room == "dock":
@@ -184,7 +221,7 @@ func interact() -> bool:
         _sync_presentation()
         return false
     if opening.step_key() == "preflight":
-        last_message = "Engineering checklist complete. Flight scene not connected in this preview."
+        last_message = "Engineering checklist complete. Press F to enter the first-flight physics review."
         _sync_presentation()
         return false
     for item in ENGINEERING_ITEMS:
@@ -276,7 +313,7 @@ func _advance_dialogue() -> bool:
             last_message = "Engineering inspection %d / 3 recorded." % inspected_items.size()
         "preflight":
             if opening.complete_engineering_checks():
-                last_message = "Preflight complete: chapter opening handoff is now ready for review."
+                last_message = "Preflight complete. Press F to enter the bounded first-flight review."
                 ender.player_controlled = false
     _sync_presentation()
     return true
@@ -293,7 +330,7 @@ func _sync_presentation() -> void:
         else:
             objective.text = "Take the gangway aboard the Aureate Wake."
     elif opening.step_key() == "preflight":
-        objective.text = "PRE-FLIGHT READY — This preview ends before the test flight."
+        objective.text = "PRE-FLIGHT READY — Press F for local physics flight/splashdown review."
     else:
         objective.text = "Engineering: inspect reference, containment and fuel (%d / 3)." % inspected_items.size()
     party_label.text = "Story party: " + " + ".join(opening.active_party_ids) + "  |  Review-only art / no live game integration"
