@@ -94,6 +94,11 @@ jobs:
           test "$(grep -c 'NATIVE_ART_CAPTURE:' /tmp/capture.log)" -eq 6
           grep -q 'NATIVE_PILOT_FRAME_PASS clearance=' /tmp/capture.log
           grep -q 'NATIVE_TOUCHDOWN_FRAME_PASS state=LANDED' /tmp/capture.log
+          grep -Eq 'NATIVE_SHORELINE_PAIR_DELTA pixels=[0-9]+' /tmp/capture.log
+          grep -Eq 'NATIVE_SHORELINE_QUALITY_DELTA pixels=[0-9]+' /tmp/capture.log
+          test -f godot/flight_slice/evidence/cinematic-review/coast-shore-wet.png
+          test -f godot/flight_slice/evidence/cinematic-review/coast-shore-dry.png
+          test -f godot/flight_slice/evidence/cinematic-review/coast-shore-low.png
           grep -Eq 'NATIVE_TOUCHDOWN_PHYSICS_FRAME_PASS triangles=792 rayHeightError=[0-9.]+' /tmp/capture.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/capture.log
       - name: Matched native GL A/B atmospheric depth captures
