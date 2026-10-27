@@ -26,3 +26,9 @@ jobs:
           set -euo pipefail
           /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_planetary_route_progress.gd 2>&1 | tee /tmp/route.log
           grep -q 'GODOT_PLANETARY_ROUTE_CONTRACT_PASS' /tmp/route.log
+      - name: Exercise route touchdown using real Godot physics collider
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_planetary_route_physics_bridge.gd 2>&1 | tee /tmp/route-physics.log
+          grep -q 'GODOT_PLANETARY_ROUTE_PHYSICS_BRIDGE_PASS' /tmp/route-physics.log
