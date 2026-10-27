@@ -2,6 +2,7 @@ extends SceneTree
 ## Native engine regression for standalone art-only biome slice.
 const TerrainStudy = preload("res://terrain.gd")
 const ShipStudy = preload("res://ship.gd")
+const ForedeckStudy = preload("res://ship_foredeck.gd")
 var failures: Array[String] = []
 var checks: int = 0
 
@@ -95,7 +96,7 @@ func _run_tests() -> void:
     _check(hull.mesh is ArrayMesh, "ship has a shaped original loft hull rather than an elongated primitive")
     var hull_points: PackedVector3Array = hull.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
     _check(hull_points.size() >= 500, "ship hull has distinct longitudinal stations")
-    var deck: Node3D = ship.get_node("Foredeck")
+    var deck = ship.get_node("Foredeck") as ForedeckStudy
     _check(deck.get_node("OpenPlatform") is MeshInstance3D,
         "forward open-air observation platform is real native geometry")
     var deck_mesh: ArrayMesh = deck.get_node("OpenPlatform").mesh
