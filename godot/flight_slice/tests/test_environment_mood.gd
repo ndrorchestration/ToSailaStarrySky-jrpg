@@ -110,6 +110,26 @@ func _run() -> void:
             "reduced motion retains four still wings " + wing_name)
     check(scene.ship.position == before_ship,
         "visual weather and wing motion cannot alter flight position")
+    # Integration contract: decorative geology coexists with ship and weather.
+    for layer_name in ["ShorelineStones", "AlpineTalus"]:
+        var exists: bool = scene.terrain.has_node(layer_name)
+        check(exists, "combined weather scene includes " + layer_name)
+        if exists:
+            var layer: MultiMeshInstance3D = scene.terrain.get_node(layer_name)
+            check(layer.multimesh.instance_count > 0, layer_name + " has placements")
+            visuals.set_environment_look(2, 3, true)
+            visuals.set_low_quality(false)
+            check(layer.visible and visuals.rain.instances.visible,
+                layer_name + " coexists with storm rain at high quality")
+            visuals.set_low_quality(true)
+            check(not layer.visible and not visuals.rain.instances.visible,
+                layer_name + " and rain honor low quality")
+            visuals.set_low_quality(false)
+            visuals.set_clock(23.0, true)
+            check(layer.visible and not visuals.rain.instances.visible,
+                layer_name + " remains visible with reduced motion")
+    check(scene.ship.position == before_ship,
+        "geology and weather settings preserve flight position")
     scene.queue_free()
     await process_frame
     if failures.is_empty():
