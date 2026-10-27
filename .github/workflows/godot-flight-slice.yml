@@ -138,6 +138,10 @@ jobs:
         run: |
           set -euo pipefail
           cp godot/flight_slice/ship.gd /tmp/ship-candidate.gd
+          # Stacked draft PR merge refs can be shallower than the pinned #408
+          # baseline even when the SHA itself resolves. Fetch that tree explicitly.
+          git fetch --no-tags --depth=1 origin f047569a20a9c73192803a62d7cdc5df93f12d9f
+          git cat-file -e f047569a20a9c73192803a62d7cdc5df93f12d9f:godot/flight_slice/ship.gd
           git show f047569a20a9c73192803a62d7cdc5df93f12d9f:godot/flight_slice/ship.gd > /tmp/ship-parent.gd
           trap 'cp /tmp/ship-candidate.gd godot/flight_slice/ship.gd' EXIT
           for label in baseline-a candidate baseline-b; do
