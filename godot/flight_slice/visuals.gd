@@ -174,14 +174,24 @@ func _broadleaf_crown() -> ArrayMesh:
     var indices: PackedInt32Array = source[Mesh.ARRAY_INDEX]
     var surface := SurfaceTool.new()
     surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+    # Seven smaller, asymmetrically grouped foliar masses break up the
+    # repeated three-ball silhouette while preserving crown footprint.
+    # Single combined mesh for every broadleaf instance; not a leaf asset.
     var centers: Array[Vector3] = [
-        Vector3(-0.43, -0.15, -0.12), Vector3(0.43, -0.02, 0.13),
-        Vector3(0.04, 0.36, -0.18)]
+        Vector3(-0.61, -0.19, -0.28), Vector3(0.62, -0.16, -0.19),
+        Vector3(-0.31, -0.14, 0.47), Vector3(0.34, -0.01, 0.48),
+        Vector3(-0.40, 0.31, -0.16), Vector3(0.39, 0.35, -0.21),
+        Vector3(0.02, 0.59, 0.08)]
     var scales: Array[Vector3] = [
-        Vector3(1.0, 0.77, 0.94), Vector3(0.91, 0.80, 1.0),
-        Vector3(0.84, 0.78, 0.86)]
+        Vector3(0.77, 0.70, 0.74), Vector3(0.73, 0.65, 0.72),
+        Vector3(0.74, 0.61, 0.71), Vector3(0.72, 0.67, 0.68),
+        Vector3(0.75, 0.72, 0.74), Vector3(0.75, 0.69, 0.72),
+        Vector3(0.68, 0.64, 0.69)]
     var colors: Array[Color] = [
-        Color(0.91, 0.96, 0.81), Color(1.0, 1.0, 0.86), Color(1.04, 1.02, 0.90)]
+        Color(0.85, 0.91, 0.83), Color(0.91, 0.94, 0.82),
+        Color(0.87, 0.97, 0.80), Color(0.97, 0.97, 0.88),
+        Color(0.89, 0.95, 0.86), Color(0.95, 0.99, 0.86),
+        Color(1.0, 0.99, 0.91)]
     for lobe in range(centers.size()):
         var scale: Vector3 = scales[lobe]
         for index in indices:
@@ -189,7 +199,14 @@ func _broadleaf_crown() -> ArrayMesh:
             var transformed_normal := Vector3(n.x / scale.x, n.y / scale.y, n.z / scale.z).normalized()
             surface.set_normal(transformed_normal)
             surface.set_color(colors[lobe])
-            surface.add_vertex(points[index] * scale + centers[lobe])
+            # Slight asymmetric edge breakup gives each mass distinct shoulders
+            # without adding materials or randomized runtime geometry.
+            var point: Vector3 = points[index]
+            var azimuth: float = atan2(point.z, point.x)
+            var irregularity: float = 1.0 + 0.075 * sin(azimuth * 3.0 + float(lobe) * 1.7)
+            irregularity += 0.035 * cos(point.y * 4.0 - float(lobe) * 2.2)
+            surface.add_vertex(Vector3(point.x * irregularity, point.y,
+                point.z * irregularity) * scale + centers[lobe])
     return surface.commit()
 
 
