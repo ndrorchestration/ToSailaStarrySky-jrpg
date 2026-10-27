@@ -54,6 +54,8 @@ func _run() -> void:
         "magic_veil_strength")), 0.70), "magical veil opt-in reached shader")
     check(is_equal_approx(float(visuals.sky_material.get_shader_parameter(
         "time_palette")), 3.0), "night sky reached shader")
+    check(is_zero_approx(float(visuals.water.get_shader_parameter(
+        "sun_visibility"))), "night ocean disables golden solar emission")
     check(is_equal_approx(float(visuals.sky_material.get_shader_parameter(
         "weather_strength")), 1.0), "storm sky reached shader")
     var env: Environment = (visuals.get_node("Atmosphere") as WorldEnvironment).environment
@@ -80,6 +82,8 @@ func _run() -> void:
         "magic_veil_strength"))), "clear preview removes magical veil")
     check(is_equal_approx(visuals.get_node("GoldenHourKey").light_energy, 1.15),
         "default key energy remains established value")
+    check(is_equal_approx(float(visuals.water.get_shader_parameter(
+        "sun_visibility")), 1.0), "daylight ocean restores authored sun glints")
     check(is_equal_approx(env.fog_density, 0.0035),
         "default fog matches established presentation")
     check(is_equal_approx(height, scene.terrain.sample_height(12.0, -9.0)),
