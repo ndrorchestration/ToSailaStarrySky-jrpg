@@ -5,9 +5,14 @@ extends Node3D
 
 var _course_yaw: float = 0.0
 const WING_NAMES = ["PortFore", "PortAft", "StarboardFore", "StarboardAft"]
+const ForedeckStudy = preload("res://ship_foredeck.gd")
 
 func set_course(yaw: float) -> void:
     _course_yaw = yaw
+
+func set_foredeck_weather_shelter(active: bool) -> void:
+    if has_node("Foredeck"):
+        get_node("Foredeck").set_weather_sheltered(active)
 
 func set_landing_gear(deployed: bool) -> void:
     # Two old visual feet are retained verbatim for the physics study contract.
@@ -33,6 +38,11 @@ func _ready() -> void:
     _part("Keel", Vector3(0.0, -0.34, 0.15), Vector3(0.18, 0.20, 1.82), dark_bronze)
     _part("UpperCabin", Vector3(0.0, 0.42, 0.05), Vector3(0.38, 0.22, 0.98), ivory)
     _part("ForwardNose", Vector3(0.0, 0.04, -2.13), Vector3(0.36, 0.19, 0.44), brass)
+    # Creator-directed ordinarily open bow overlook. Visual-only local-scale
+    # surface; no physical walkable deck, ship sealing or progression controls.
+    var foredeck := ForedeckStudy.new()
+    foredeck.name = "Foredeck"
+    add_child(foredeck)
     # Smaller concentric stern drive: practical machinery rather than a ball.
     _nozzle_piece("AftTurbine", 2.07, 0.21, 0.31, 0.46, dark_bronze)
     _nozzle_piece("ExhaustCollar", 2.34, 0.29, 0.29, 0.075, brass)
