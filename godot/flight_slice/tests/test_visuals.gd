@@ -26,6 +26,14 @@ func _run() -> void:
     check(is_equal_approx(
         float(visuals.water.get_shader_parameter("sea_surface_elevation")),
         TerrainStudy.SEA_LEVEL), "ocean and rendered seabed use one datum")
+    check(is_equal_approx(
+        float(visuals.water.get_shader_parameter("foam_breakup_strength")), 1.0),
+        "coastal foam breakup is reversible and enabled by default")
+    visuals.water.set_shader_parameter("foam_breakup_strength", 0.0)
+    check(is_equal_approx(
+        float(visuals.water.get_shader_parameter("foam_breakup_strength")), 0.0),
+        "visual A/B can restore the exact previous foam composition")
+    visuals.water.set_shader_parameter("foam_breakup_strength", 1.0)
     check(is_equal_approx(float(visuals.land.get_shader_parameter("sea_surface_elevation")),
         TerrainStudy.SEA_LEVEL), "land wetness shares the sea-level datum")
     check(is_equal_approx(float(visuals.land.get_shader_parameter("shoreline_wetness")), 1.0),

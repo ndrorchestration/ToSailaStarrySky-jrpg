@@ -188,6 +188,37 @@ func _capture() -> void:
             push_error("NATIVE_SHORELINE_QUALITY_UNCHANGED")
             failed = true
         scene.ship.visible = true
+    # Supplemental controlled foam A/B: same 960x640 fixed camera, clock,
+    # land wetness and coverage. No ship/HUD/terrain or global quality change.
+    # The 0.0 reference must exactly retain the prior shoreline composition.
+    if not baseline and scene.visuals != null:
+        scene.ship.visible = false
+        scene.visuals.water.set_shader_parameter("foam_breakup_strength", 0.0)
+        var contour_foam: Image = await _frame()
+        scene.visuals.water.set_shader_parameter("foam_breakup_strength", 1.0)
+        var broken_foam: Image = await _frame()
+        var foam_delta: int = _different(contour_foam, broken_foam)
+        var foam_folder: String = ProjectSettings.globalize_path(
+            "res://evidence/cinematic-review")
+        _save_shore(contour_foam, foam_folder.path_join("coast-foam-contour.png"))
+        _save_shore(broken_foam, foam_folder.path_join("coast-foam-broken.png"))
+        print("NATIVE_SHORE_FOAM_PAIR_DELTA pixels=", foam_delta)
+        if foam_delta < 100 or foam_delta > 65000:
+            push_error("NATIVE_SHORE_FOAM_PAIR_UNBOUNDED_CHANGE")
+            failed = true
+        # Cheap low-quality reference must be identical at both A/B settings.
+        scene.visuals.set_low_quality(true)
+        scene.visuals.water.set_shader_parameter("foam_breakup_strength", 0.0)
+        var low_foam_contour: Image = await _frame()
+        scene.visuals.water.set_shader_parameter("foam_breakup_strength", 1.0)
+        var low_foam_broken: Image = await _frame()
+        var low_foam_delta: int = _different(low_foam_contour, low_foam_broken)
+        print("NATIVE_SHORE_FOAM_LOW_DELTA pixels=", low_foam_delta)
+        if low_foam_delta != 0:
+            push_error("NATIVE_SHORE_FOAM_LOW_QUALITY_NOT_REFERENCE")
+            failed = true
+        scene.visuals.set_low_quality(false)
+        scene.ship.visible = true
     # Fixed world camera makes terrain comparisons independent of ship height.
     # Keep this separate from the six existing gameplay-frame markers.
     if not baseline and scene.visuals != null:
