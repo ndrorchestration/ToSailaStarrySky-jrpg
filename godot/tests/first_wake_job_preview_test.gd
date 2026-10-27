@@ -44,6 +44,15 @@ func _verify() -> void:
     if world.ender.player_controlled or world.flyer_read:
         _fail("dialogue allowed movement or awarded flyer before completion")
         return
+    if not world.dialogue_speaker.visible or "Interact / E: next (1 / 3)" not in world.dialogue_speaker.text:
+        _fail("advance control or page count was invisible during flyer dialogue")
+        return
+    if world.hint.visible:
+        _fail("normal movement hint overlaps live dialogue")
+        return
+    if not world.interact() or "Interact / E: next (2 / 3)" not in world.dialogue_speaker.text:
+        _fail("dialogue page count failed to update on advance")
+        return
     if not _finish_dialogue(world):
         _fail("flyer dialogue did not advance")
         return
