@@ -22,7 +22,18 @@ void fragment() {
         p.x*0.085+p.z*0.12));
     vec3 rock=mix(vec3(0.17,0.20,0.24),vec3(0.42,0.40,0.36),
         mottling*0.48+strata*0.25+bedding*0.27);
+    // Broken alpine outcrops follow the same terrain coordinates as grass,
+    // snow and collision; they are material detail, not new terrain geometry.
+    float alpine=smoothstep(8.5,15.0,p.y);
+    float rock_field=noise(p.xz*0.19)*0.65+noise(p.xz*0.47)*0.35;
+    float outcrop=alpine*smoothstep(0.42,0.68,rock_field);
     float rocky=max(smoothstep(0.07,0.32,slope),smoothstep(10.0,17.0,p.y)*0.6);
+    rocky=max(rocky,outcrop*0.88);
+    // Fine, discontinuous seams sit within the stone rather than painting
+    // continuous stripes across snow or the lower grassland.
+    float cracks=1.0-smoothstep(0.035,0.11,abs(sin(p.y*2.1
+        +noise(p.xz*0.31)*3.2+p.x*0.14+p.z*0.08)));
+    rock*=1.0-0.16*cracks*outcrop;
     float scree=smoothstep(7.0,18.0,p.y)*smoothstep(0.18,0.52,slope)
         *smoothstep(0.43,0.80,noise(p.xz*0.94));
     rock=mix(rock,vec3(0.32,0.32,0.31),scree*0.24);
