@@ -113,7 +113,10 @@ jobs:
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_dialogue_test.gd
       - name: Verify revised First Wake isolated RigidBody2D splashdown physics and Ionia-first party
         shell: bash
-        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_flight_water_review_test.gd
+        run: |
+          set -euo pipefail
+          timeout 90s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_flight_water_review_test.gd | tee /tmp/first-wake-water-proof.log
+          grep -Fq 'TSTSS_FIRST_WAKE_PHYSICS_SPLASHDOWN_PASS:' /tmp/first-wake-water-proof.log
       - name: Verify real First Wake authored dialogue gates scene progress
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_dialogue_scene_test.gd
