@@ -202,6 +202,8 @@ func _run() -> void:
             "shore stone scatter clears the cliffside dock")
     for pose in talus_poses:
         var location: Vector3 = pose.origin
+        check(pose.basis.get_scale().y < pose.basis.get_scale().x * 0.65,
+            "alpine scree keeps a shallow debris silhouette")
         check(TerrainStudy.classify(location.x, location.z) in ["alpine", "summit"],
             "talus remains restricted to rocky upper elevations")
         check(absf(location.y - TerrainStudy.sample_height(location.x, location.z) - 0.04) < 0.0001,
