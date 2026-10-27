@@ -29,14 +29,14 @@ The original pixel atlas and fallback geometry remain bounded to a 182×184 logi
 - **PNG provenance (authoring output):** 320×92 RGBA, four 80×92 adjacent frames, SHA-256 `54f1181e0d9d294c964fc34d5edc3a36ea96d422d6b3770f4cfca200558ba4bf`; asset generated as original art for this study, not sourced from another game's art.
 - **Frame order:** idle; analyzed; Gale Force; dispersed. Texture is displayed with nearest-neighbor scaling at 1.8× (144×165.6 logical pixels), preserving authored pixel blocks.
 - The scene first checks native `Texture2D` import, frame dimensions and pixel sampling; if import is not available it returns to existing code-drawn wind geometry. This is still a **review candidate**, not a signed-off production sprite.
-- The four native capture states are implemented in `godot/tests/capture_wind_shear_visual_review.gd` and gated by the existing Godot visual review workflow. Those frames are *Godot runtime output*, distinct from the artist-local PNG contact sheet.
+- The five native capture states (idle, analyzed, **observed-hit**, Gale Force, dispersed) are implemented in `godot/tests/capture_wind_shear_visual_review.gd` and gated by the existing Godot visual review workflow. The observed-hit screenshot comes from a real authorized Staff Strike; the stand-alone Gale/dispersed art-state captures remain presentation-only and do not grant extra combat turns or progression. Those frames are *Godot runtime output*, distinct from the artist-local PNG contact sheet.
 
 ## Rendering and interaction boundary
 
 `godot/scripts/first_wake_wind_shear_visual.gd` is **visual only**. The scene mounts it at (684, 281), but exposes it exclusively for an active `wind_shear` fight whose formula target ID exactly equals `windShear`. It never appears in the noncanonical Formula Review encounter.
 
 - No new random rolls, health changes, hitboxes, node-body collisions, chapter/save fields or combat action authority.
-- The scene controls analyzed, cleared and enemy-turn count readouts. A new encounter resets art state; cancel/confirm and restore hide the visual.
+- The scene controls analyzed, cleared and enemy-turn count readouts. After a successful *real* Staff Strike decreases the current enemy HP, a bounded 0.24-second pixel-scale impact accent confirms the result; merely selecting an action, analyzing a weakness or triggering retaliation does **not** fabricate a hit. This is post-resolution feedback, **not** an advance attack telegraph or new combat animation authority. A new encounter resets art state; cancel/confirm and restore hide the visual.
 - Ambient redraw is capped at approximately 20 Hz while displayed. Its idle motion is small and may be frozen using `ProjectSettings.set_setting("accessibility/reduced_motion", true)` (prior to preview scene creation), or by calling `set_reduced_motion(true)` on the visual directly.
 - Chapter I capture pipeline already includes the authored Wind Shear fight. The capture script now also fails if the after-analysis visual identity is absent.
 
@@ -49,4 +49,4 @@ The original pixel atlas and fallback geometry remain bounded to a 182×184 logi
 
 ## Next art iteration (not implemented)
 
-Produce a source-controlled, pixel-authored animation atlas with explicit provenance and directional light consistency; add anticipation and impact stages to the existing damage-state interface; avoid assuming that speculative new creatures or bosses are now canon. Keep this art study as a reversible fallback until an authentic reviewed asset supersedes it.
+Artist-review five captured states at native resolution, then extend the current four-pose raster to actual authored in-between timing and better material/light consistency. A truthful **pre-attack telegraph** must wait for a separate, authorized pre-resolution combat-state contract; do not mislabel immediate post-resolution pulses as player counterplay. Avoid assuming speculative enemy species or bosses are canon. Keep this review asset reversible until an authentic creator-approved sprite supersedes it.
