@@ -1,6 +1,6 @@
 # Harmonic Shear Elemental — native enemy visual study v0
 
-**Status:** IMPLEMENTED as a provisional visual renderer; **not creator-approved enemy art**. Public-safe Chapter I combat, no new story canon or hidden content.
+**Status:** IMPLEMENTED as a provisional original pixel atlas with fallback visual renderer; **not creator-approved enemy art**. Public-safe Chapter I combat, no new story canon or hidden content.
 
 ## Authority and source
 
@@ -20,7 +20,16 @@ A recognizable **broken harmonic pressure form**, not a generic elemental ball:
 - **Gale Force:** a brief warm pressure edge, never a whole-screen strobe.
 - **Victory before confirmation:** solid core dissolves into dim separated fragments; gameplay still requires the existing confirmation action.
 
-All geometry is original, code-authored `CanvasItem` content bounded to 182×184 logical pixels on the right side of a 960×640 battle review panel. The creature is deliberately *not* a humanoid, a canonical new species, or a final hand-authored pixel sprite.
+The original pixel atlas and fallback geometry remain bounded to a 182×184 logical-pixel review stage on the right of the 960×640 combat panel. The creature is deliberately *not* a humanoid, a canonical new species, or a final hand-authored pixel sprite.
+
+## Original pixel atlas — candidate art v1
+
+- **Committed source:** `godot/art-review/wind_shear_elemental_v1_atlas.png`
+- **Editable generation source:** `godot/art-review/generate_wind_shear_atlas.py` (development-only Pillow dependency, not loaded by game).
+- **PNG provenance (authoring output):** 320×92 RGBA, four 80×92 adjacent frames, SHA-256 `54f1181e0d9d294c964fc34d5edc3a36ea96d422d6b3770f4cfca200558ba4bf`; asset generated as original art for this study, not sourced from another game's art.
+- **Frame order:** idle; analyzed; Gale Force; dispersed. Texture is displayed with nearest-neighbor scaling at 1.8× (144×165.6 logical pixels), preserving authored pixel blocks.
+- The scene first checks native `Texture2D` import, frame dimensions and pixel sampling; if import is not available it returns to existing code-drawn wind geometry. This is still a **review candidate**, not a signed-off production sprite.
+- The four native capture states are implemented in `godot/tests/capture_wind_shear_visual_review.gd` and gated by the existing Godot visual review workflow. Those frames are *Godot runtime output*, distinct from the artist-local PNG contact sheet.
 
 ## Rendering and interaction boundary
 
@@ -35,7 +44,7 @@ All geometry is original, code-authored `CanvasItem` content bounded to 182×184
 
 - Contract to execute: `godot --headless --path godot --script res://tests/first_wake_wind_shear_visual_test.gd`.
 - Required regressions: existing Wind Shear adapter, retaliation, crossing-scene, save/restore, formula review and Chapter I state tests.
-- Real image gate: execute `godot/tests/capture_first_wake_chapter1_review.gd` with Godot 4.7.2 and OpenGL Compatibility, then inspect `chapter1-wind-shear-combat-native-960x640.png` against the prior source at the *same battle state*. This document **does not** claim such rendering was done.
+- Real image gate: execute `godot/tests/capture_wind_shear_visual_review.gd` with Godot 4.7.2 and OpenGL Compatibility, then compare all four 960×640 output frames against exact-head sprites and battle UI. Preserve the preexisting `chapter1-wind-shear-combat-native-960x640.png` capture too. This document **does not** claim creator visual acceptance or target-hardware frame pacing.
 - Creator/player review must check silhouette readability at native scale, legible enemy HP/status/commands, no aliasing or clipping, perceived elemental identity, analyzed/retaliation clarity, idle visual noise, reduced-motion behavior, and frame pacing on target hardware.
 
 ## Next art iteration (not implemented)
