@@ -2,6 +2,7 @@ extends Node3D
 ## Reusable materials for a NON-CANON GDScript art study; not product architecture.
 const TerrainStudy = preload("res://terrain.gd")
 const CoastDistance = preload("res://coast_distance.gd")
+const RockDressing = preload("res://rock_dressing.gd")
 const EnvironmentMood = preload("res://environment_mood.gd")
 const EnvironmentBlend = preload("res://environment_blend.gd")
 const WeatherStreaks = preload("res://weather_streaks.gd")
@@ -11,6 +12,8 @@ var land: ShaderMaterial
 var foliage: ShaderMaterial
 var broadleaf: ShaderMaterial
 var understory: ShaderMaterial
+var rocky_material: ShaderMaterial
+var rocks: MultiMeshInstance3D
 var sky_material: ShaderMaterial
 var low_quality: bool = false
 var texture_detail_enabled: bool = true
@@ -41,6 +44,7 @@ func _ready() -> void:
     foliage = _shader("res://shaders/foliage.gdshader")
     broadleaf = _shader("res://shaders/foliage.gdshader")
     understory = _shader("res://shaders/understory.gdshader")
+    rocky_material = _shader("res://shaders/rock_outcrop.gdshader")
     # Three original PNG assets with periodic sampling. Single texture per
     # surface family, shared between every relevant instanced material.
     texture_resources = {
@@ -54,6 +58,8 @@ func _ready() -> void:
     broadleaf.set_shader_parameter("foliage_microdetail", texture_resources["foliage"])
     understory.set_shader_parameter("foliage_microdetail", texture_resources["foliage"])
     water.set_shader_parameter("water_ripple_detail", texture_resources["water"])
+    rocky_material.set_shader_parameter("terrain_microdetail", texture_resources["terrain"])
+    rocky_material.set_shader_parameter("biome_macrodetail", texture_resources["biome"])
     land.set_shader_parameter("biome_macrodetail", texture_resources["biome"])
     water.set_shader_parameter("biome_macrodetail", texture_resources["biome"])
     land.set_shader_parameter("sea_surface_elevation", TerrainStudy.SEA_LEVEL)
@@ -138,6 +144,12 @@ func bind_terrain(terrain: Node3D) -> void:
     floor_plants.multimesh.mesh = _understory_mesh()
     floor_plants.material_override = understory
     floor_plants.visible = not low_quality
+    rocks = RockDressing.new()
+    rocks.name = "VisualRockOutcrops"
+    add_child(rocks)
+    rocks.material_override = rocky_material
+    rocks.visible = not low_quality
+    _apply_texture_quality()
 
 func set_clock(seconds: float, reduced: bool) -> void:
     refresh_coverage()
@@ -176,6 +188,8 @@ func set_low_quality(enabled: bool) -> void:
     _apply_texture_quality()
     if _terrain != null:
         _terrain.get_node("GroundUnderstory").visible = not enabled
+    if rocks != null:
+        rocks.visible = not enabled
 
 ## All texture sampling may be disabled for fair before/after art review.
 ## V keeps its low-detail guarantee regardless of the K comparison toggle.
@@ -190,12 +204,13 @@ func set_biome_layer_enabled(enabled: bool) -> void:
 func _apply_texture_quality() -> void:
     var strength: float = TEXTURE_DETAIL_STRENGTH if (
         texture_detail_enabled and not low_quality) else 0.0
-    for material in [land, water, foliage, broadleaf, understory]:
+    for material in [land, water, foliage, broadleaf, understory, rocky_material]:
         material.set_shader_parameter("texture_detail_strength", strength)
     var macro_strength: float = 0.78 if (
         biome_layer_enabled and not low_quality) else 0.0
     land.set_shader_parameter("biome_layer_strength", macro_strength)
     water.set_shader_parameter("biome_layer_strength", macro_strength)
+    rocky_material.set_shader_parameter("biome_layer_strength", macro_strength)
     land.set_shader_parameter("shoreline_wet_strength", macro_strength)
 
 ## Instant selection remains available to deterministic captures and API clients.
