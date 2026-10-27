@@ -15,7 +15,7 @@ func _ready() -> void:
     for index in range(NAMES.size()):
         var actor: CharacterBody2D = ReviewActor.new()
         actor.name = NAMES[index] + "WalkReviewUnapproved"
-        actor.character_id = NAMES[index]
+        actor.set("character_id", NAMES[index])
         actor.position = Vector2(X_ANCHORS[index], 300.0)
         group.add_child(actor)
         actors[NAMES[index]] = actor
@@ -23,11 +23,11 @@ func _ready() -> void:
 
 func start_all() -> void:
     for character_id in NAMES:
-        (actors[character_id] as CharacterBody2D).start_route_review()
+        (actors[character_id] as Node).call("start_route_review")
 
 func stop_all() -> void:
     for character_id in NAMES:
-        (actors[character_id] as CharacterBody2D).stop_route_review()
+        (actors[character_id] as Node).call("stop_route_review")
 
 func get_actor(character_id: String) -> CharacterBody2D:
     return actors.get(character_id) as CharacterBody2D
