@@ -8,12 +8,14 @@ namespace StarrySky.WorldMap.Contracts;
 /// Mesh units are caller-defined; positions are NOT planetary geography.
 /// Adjacent same-LOD tiles share mathematical edge positions, but GPU stitching,
 /// mixed-LOD seams, collisions and Godot mesh import are not established.
+/// ChartUvs use a wrapped equirectangular atlas and need seam-aware sampling;
+/// face Uvs are cube-face-local addresses, not a unified artistic texture atlas.
 /// </summary>
 public static class CubeSphereMeshFixture
 {
     public readonly record struct Point3(double X, double Y, double Z);
     public readonly record struct TexCoord(double U, double V);
-    public sealed record TileMesh(IReadOnlyList<Point3> Vertices, IReadOnlyList<Point3> Normals, IReadOnlyList<TexCoord> Uvs, IReadOnlyList<int> Indices);
+    public sealed record TileMesh(IReadOnlyList<Point3> Vertices, IReadOnlyList<Point3> Normals, IReadOnlyList<TexCoord> Uvs, IReadOnlyList<TexCoord> ChartUvs, IReadOnlyList<int> Indices);
 
     public static TileMesh Generate(TileId tile, double radius, int segments)
     {
@@ -30,6 +32,7 @@ public static class CubeSphereMeshFixture
         var vertices = new Point3[(segments + 1) * (segments + 1)];
         var normals = new Point3[vertices.Length];
         var uvs = new TexCoord[vertices.Length];
+        var chartUvs = new TexCoord[vertices.Length];
         var indices = new int[segments * segments * 6];
         for (int row = 0; row <= segments; row++)
         for (int col = 0; col <= segments; col++)
@@ -46,6 +49,8 @@ public static class CubeSphereMeshFixture
             int index = row * (segments + 1) + col;
             normals[index] = unit;
             uvs[index] = new TexCoord(u, v);
+            var chart = WorldMapChartProjection.Project(position);
+            chartUvs[index] = new TexCoord(chart.X, chart.Y);
             vertices[index] = new Point3(radius * unit.X, radius * unit.Y, radius * unit.Z);
         }
         int offset = 0;
@@ -59,7 +64,7 @@ public static class CubeSphereMeshFixture
             AddOutwardTriangle(vertices, indices, ref offset, a, c, b);
             AddOutwardTriangle(vertices, indices, ref offset, b, c, d);
         }
-        return new TileMesh(Array.AsReadOnly(vertices), Array.AsReadOnly(normals), Array.AsReadOnly(uvs), Array.AsReadOnly(indices));
+        return new TileMesh(Array.AsReadOnly(vertices), Array.AsReadOnly(normals), Array.AsReadOnly(uvs), Array.AsReadOnly(chartUvs), Array.AsReadOnly(indices));
     }
 
     // Correct each face's handedness rather than assuming a shared cube UV winding.
