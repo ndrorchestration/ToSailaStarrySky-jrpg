@@ -51,12 +51,18 @@ jobs:
           /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_manual_flight.gd 2>&1 | tee /tmp/pilot.log
           grep -Eq 'GODOT_MANUAL_FLIGHT_PASS checks=[0-9]+' /tmp/pilot.log
           ! grep -Eq 'GODOT_MANUAL_FLIGHT_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/pilot.log
-      - name: Bounded sampled-terrain touchdown and takeoff native contracts
+      - name: Bounded physics-confirmed touchdown and takeoff native contracts
         run: |
           set -o pipefail
           /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_touchdown.gd 2>&1 | tee /tmp/touchdown.log
           grep -Eq 'GODOT_TOUCHDOWN_STUDY_PASS checks=[0-9]+' /tmp/touchdown.log
           ! grep -Eq 'GODOT_TOUCHDOWN_STUDY_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/touchdown.log
+      - name: Continuous native contact loss and recovery contracts
+        run: |
+          set -o pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_contact_lifecycle.gd 2>&1 | tee /tmp/contact-lifecycle.log
+          grep -Eq 'GODOT_CONTACT_LIFECYCLE_PASS checks=[0-9]+' /tmp/contact-lifecycle.log
+          ! grep -Eq 'GODOT_CONTACT_LIFECYCLE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/contact-lifecycle.log
       - name: Actual Godot Compatibility software-rendered frame captures
         run: |
           set -o pipefail
@@ -76,6 +82,15 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: godot-flight-slice-software-captures
-          path: godot/flight_slice/evidence/**/*.png
+          path: |
+            godot/flight_slice/evidence/**/*.png
+            /tmp/import.log
+            /tmp/scene.log
+            /tmp/test.log
+            /tmp/visuals.log
+            /tmp/pilot.log
+            /tmp/touchdown.log
+            /tmp/contact-lifecycle.log
+            /tmp/capture.log
           if-no-files-found: warn
           retention-days: 7

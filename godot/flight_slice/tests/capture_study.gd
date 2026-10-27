@@ -81,7 +81,7 @@ func _capture() -> void:
         _save(manual_frame,folder.path_join("manual-pilot.png"))
         print("NATIVE_PILOT_FRAME_PASS clearance=", scene.ship.position.y -
             maxf(scene.terrain.SEA_LEVEL,scene.terrain.sample_height(scene.ship.position.x, scene.ship.position.z)))
-        # Authored demo field: a sampled-contact review, not a physics-body landing.
+        # Authored demo field: continuously ray-validated, not rigidbody dynamics.
         scene._manual_position = Vector3(8.0, scene.terrain.sample_height(8.0, -12.0) + 7.0, -12.0)
         scene._update_scene(8.0)
         if not scene.request_touchdown():
@@ -97,8 +97,9 @@ func _capture() -> void:
         else:
             print("NATIVE_TOUCHDOWN_PHYSICS_FRAME_PASS triangles=", scene.landing_ground.triangle_count,
                 " rayHeightError=", scene.last_touchdown_contact.get("height_error", 99.0))
-        for settle_step in range(85):
-            scene.advance_manual(Vector3.ZERO, 0.05)
+        for settle_step in range(120):
+            await physics_frame
+            await process_frame
         scene._update_scene(8.0)
         if scene.landing.state != "LANDED":
             push_error("NATIVE_TOUCHDOWN_NOT_LANDED")
