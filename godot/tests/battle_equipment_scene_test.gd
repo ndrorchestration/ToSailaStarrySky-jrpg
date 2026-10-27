@@ -11,11 +11,14 @@ func _verify() -> void:
     var world = REVIEW_SCENE.instantiate()
     root.add_child(world)
     await process_frame
-    if world.battle_equipment_view == null or not world.battle_equipment_view.visible:
-        _fail("battle equipment view not constructed")
+    if world.battle_equipment_view == null or world.battle_equipment_view.visible:
+        _fail("battle equipment view missing or leaking outside battle")
         return
     if not world.start_formula_review():
         _fail("formula battle did not start")
+        return
+    if not world.battle_equipment_view.visible:
+        _fail("equipped model not shown during combat")
         return
     var key_before: String = world.battle_equipment_view.visual_key()
     var turns_before: int = int(world.formula_encounter.turns)
