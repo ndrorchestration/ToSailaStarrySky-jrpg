@@ -17,3 +17,9 @@
 **Provenance and truth in marketing:** Every still comes from generated concept footage, not Godot rendering. These images do not establish canonical ship appearance or geography, nor production visuals. The **Aureate Wake** is the protagonists' smaller, dragonfly-inspired home; **the Dragonfly** is a distinct, much larger Frigate-class ship. Do not assign an unlabeled concept vessel to either without creator review.
 
 **Pending upload:** Attach approved, rights-cleared stills through a GitHub interface that accepts binary assets, then update the page with verified repository-relative or hosted image URLs. The current connected GitHub contents tool supports UTF-8 text; binary still upload has not been verified. Review visual fidelity, AI-output labels, character identities, accessibility captions, and hidden-story clues first.
+
+## Screenshot package integrity — 2026-10-27
+
+The owner-side `starry_sky_github_teaser_gallery.zip` was inspected locally: ZIP CRC/readability PASS, 9 JPEG stills plus `manifest.json` present, each image decodes at **1280 × 720 (16:9)**, and all nine JPEG SHA-256 hashes match the manifest. These checks validate file integrity and dimensions, **not** artistic approval, likeness continuity, copyright clearance, or on-engine rendering. Exact evidence is maintained with the owner-side ZIP; the GitHub repository does not currently host the binaries.
+
+**Promotion gate:** Publish actual binary media only after verifying the final stills against approved art/ship names. Once uploaded, replace this pending state with actual verified repository links and accessible alt text. Do not point Markdown image tags at absent paths.
