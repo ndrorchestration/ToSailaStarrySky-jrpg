@@ -76,6 +76,11 @@ jobs:
           for facing in south west north east; do
             test -s "godot/review-evidence/aepex-${facing}-native-960x640.png"
           done
+          # Capture actual Reson six-phase directional-source previews in Godot OpenGL.
+          xvfb-run -a -s "-screen 0 960x640x24" editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_reson_fourway_review.gd
+          for facing in south west north east; do
+            test -s "godot/review-evidence/reson-${facing}-native-960x640.png"
+          done
           # Quota-independent, private, size-capped 480x320 lossy inspection
           # payloads are logged separately from the authoritative full-size PNGs.
           xvfb-run -a -s "-screen 0 960x640x24" editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/emit_private_native_preview.gd
