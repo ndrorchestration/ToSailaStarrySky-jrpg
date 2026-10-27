@@ -15,12 +15,16 @@ const FRAME_SIZE := Vector2i(80, 92)
 const FRAME_COUNT := 4
 const DISPLAY_SCALE := 1.8
 const MAX_EFFECT_SECONDS := 0.34
+const HIT_FEEDBACK_SECONDS := 0.24
 
 var analyzed: bool = false
 var dissipated: bool = false
 var reduced_motion: bool = false
 var last_enemy_turn: int = 0
 var gale_accent_seconds: float = 0.0
+# Brief *post-resolution* confirmation that the existing formula caused damage.
+# Does not delay the turn or invent anticipation/counterplay.
+var hit_feedback_seconds: float = 0.0
 var visual_clock: float = 0.0
 var _frame_accumulator: float = 0.0
 var atlas_texture: Texture2D = null
@@ -42,6 +46,7 @@ func begin_encounter() -> void:
     dissipated = false
     last_enemy_turn = 0
     gale_accent_seconds = 0.0
+    hit_feedback_seconds = 0.0
     visual_clock = 0.0
     _frame_accumulator = 0.0
     queue_redraw()
@@ -51,6 +56,7 @@ func set_reduced_motion(enabled: bool) -> void:
     if enabled:
         visual_clock = 0.0
         gale_accent_seconds = 0.0
+        hit_feedback_seconds = 0.0
     queue_redraw()
 
 func set_encounter_state(is_analyzed: bool, is_dissipated: bool, enemy_turn: int) -> void:
@@ -59,7 +65,21 @@ func set_encounter_state(is_analyzed: bool, is_dissipated: bool, enemy_turn: int
     if enemy_turn > last_enemy_turn and not reduced_motion and not dissipated:
         gale_accent_seconds = MAX_EFFECT_SECONDS
     last_enemy_turn = maxi(0, enemy_turn)
+    if dissipated:
+        gale_accent_seconds = 0.0
+        hit_feedback_seconds = 0.0
     queue_redraw()
+
+func register_resolved_damage(before_hp: int, after_hp: int) -> bool:
+    # Only the live Chapter I scene calls this after a *successful* action.
+    # Require an actual fall in current enemy HP, never a projected hit.
+    if not visible or dissipated or reduced_motion:
+        return false
+    if before_hp <= 0 or after_hp < 0 or after_hp >= before_hp:
+        return false
+    hit_feedback_seconds = HIT_FEEDBACK_SECONDS
+    queue_redraw()
+    return true
 
 func _process(delta: float) -> void:
     if not visible or reduced_motion or dissipated:
@@ -67,6 +87,7 @@ func _process(delta: float) -> void:
     var dt := clampf(delta, 0.0, 0.05)
     visual_clock += dt
     gale_accent_seconds = maxf(0.0, gale_accent_seconds - dt)
+    hit_feedback_seconds = maxf(0.0, hit_feedback_seconds - dt)
     _frame_accumulator += dt
     # The limited redraw cadence keeps the ambient pulse quieter than actions.
     if _frame_accumulator >= 1.0 / 20.0:
@@ -167,6 +188,8 @@ func _draw() -> void:
         _draw_exposed_core()
     if gale_accent_seconds > 0.0 and not reduced_motion:
         _draw_gale_accent()
+    if hit_feedback_seconds > 0.0 and not reduced_motion:
+        _draw_hit_confirmation()
 
 func _draw_pixel_atlas(sway: float) -> void:
     if atlas_texture == null:
@@ -183,13 +206,30 @@ func _draw_pixel_atlas(sway: float) -> void:
         Vector2(FRAME_SIZE)
     )
     var target_size := Vector2(FRAME_SIZE) * DISPLAY_SCALE
+    var recoil := 0.0
+    if hit_feedback_seconds > 0.0 and not reduced_motion:
+        recoil = 3.0 * clampf(hit_feedback_seconds / HIT_FEEDBACK_SECONDS, 0.0, 1.0)
     var target := Rect2(
-        Vector2(-target_size.x * 0.5, -82.0 + sway * 0.5),
+        Vector2(-target_size.x * 0.5 + recoil, -82.0 + sway * 0.5),
         target_size
     )
     draw_texture_rect_region(atlas_texture, target, source)
     if gale_accent_seconds > 0.0 and not reduced_motion and not dissipated:
         _draw_gale_accent()
+    if hit_feedback_seconds > 0.0 and not reduced_motion and not dissipated:
+        _draw_hit_confirmation()
+
+func _draw_hit_confirmation() -> void:
+    # Pixel-scale spark fragments only; no screen flash, camera motion or
+    # speculative damage amount. Kept inside the 182x184 local bounds.
+    var remaining := clampf(hit_feedback_seconds / HIT_FEEDBACK_SECONDS, 0.0, 1.0)
+    var tint := Color(0.99, 0.80, 0.51, remaining * 0.76)
+    draw_rect(Rect2(-44.0, -29.0, 11.0, 3.0), tint)
+    draw_rect(Rect2(35.0, -17.0, 12.0, 3.0), tint)
+    draw_rect(Rect2(-27.0, 34.0, 3.0, 10.0), tint)
+    draw_rect(Rect2(29.0, 33.0, 3.0, 10.0), tint)
+    draw_arc(Vector2(1.0, -8.0), 37.0 + (1.0 - remaining) * 11.0,
+        -0.92, 0.73, 16, Color(0.97, 0.73, 0.41, remaining * 0.32), 2.0)
 
 func _draw_exposed_core() -> void:
     # Thin angular brackets read as analyzed weak-point UI, not a spell cast.
