@@ -95,6 +95,36 @@ func _run_tests() -> void:
     _check(hull.mesh is ArrayMesh, "ship has a shaped original loft hull rather than an elongated primitive")
     var hull_points: PackedVector3Array = hull.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
     _check(hull_points.size() >= 500, "ship hull has distinct longitudinal stations")
+    var deck: Node3D = ship.get_node("Foredeck")
+    _check(deck.get_node("OpenPlatform") is MeshInstance3D,
+        "forward open-air observation platform is real native geometry")
+    var deck_mesh: ArrayMesh = deck.get_node("OpenPlatform").mesh
+    var deck_points: PackedVector3Array = deck_mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+    _check(deck_points.size() == 6, "bow deck is a tapered two-face quad, not floating label")
+    _check((deck_points[1] - deck_points[0]).cross(
+        deck_points[2] - deck_points[0]).y < 0.0,
+        "deck has visible native Godot upper-facing winding")
+    for side in ["Port", "Starboard"]:
+        for index in range(3):
+            _check(deck.get_node("GuardPost_%s_%s" % [side, index]) is MeshInstance3D,
+                "three rail posts visually protect each side of the open bow")
+        for index in range(2):
+            _check(deck.get_node("Handrail_%s_%s" % [side, index]) is MeshInstance3D,
+                "continuous side handrail segment")
+    _check(deck.get_node("ProwHandrail") is MeshInstance3D and
+        deck.get_node("BoardingLip") is MeshInstance3D,
+        "bow safety edge and crew-boarding sill are distinct")
+    _check(deck.get_node("WeatherHood").visible == false and
+        not deck.is_weather_sheltered(),
+        "forward observation deck is ordinarily open")
+    ship.set_foredeck_weather_shelter(true)
+    _check(deck.is_weather_sheltered() and deck.get_node("WeatherHood").visible,
+        "optional normal-weather visual cover can be enabled")
+    ship.set_foredeck_weather_shelter(false)
+    _check(not deck.is_weather_sheltered() and
+        not deck.get_node("WeatherHood").visible,
+        "ordinary open-air state restores deterministically")
+
     for wing_name in ["PortFore", "PortAft", "StarboardFore", "StarboardAft"]:
         var wing_rig: Node3D = ship.get_node("WingRig_" + wing_name)
         _check(wing_rig.get_node("Membrane_" + wing_name) is MeshInstance3D,
