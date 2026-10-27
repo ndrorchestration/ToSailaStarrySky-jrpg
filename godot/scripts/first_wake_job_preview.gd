@@ -5,6 +5,7 @@ extends Node2D
 ## No flight, water physics, save migration, release or new combat permissions.
 
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
+const ResonanceRoster = preload("res://scripts/first_wake_resonance_roster_gate.gd")
 const Actor = preload("res://scripts/pilot_actor.gd")
 const Dock = preload("res://scripts/dock_depth_review.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
@@ -24,6 +25,7 @@ const DOCK_BOUNDS := Rect2(Vector2(145, 410), Vector2(670, 112))
 const ENGINEERING_ITEMS := ["reference", "containment", "fuel"]
 
 var opening = Opening.new()
+var resonance_roster_gate = ResonanceRoster.new()
 var room: String = "dock"
 var flyer_read: bool = false
 var inspected_items: Array[String] = []
@@ -35,6 +37,7 @@ var headline: Label
 var objective: Label
 var hint: Label
 var party_label: Label
+var resonance_status_label: Label
 var dialogue_speaker: Label
 var dialogue_text: Label
 var dialogue_open: bool = false
@@ -87,6 +90,7 @@ func _ready() -> void:
     headline = _label(ui, Vector2(22, 17), 24, 900)
     objective = _label(ui, Vector2(24, 57), 17, 910)
     party_label = _label(ui, Vector2(24, 91), 15, 910)
+    resonance_status_label = _label(ui, Vector2(24, 121), 14, 910)
     hint = _label(ui, Vector2(26, 569), 16, 908)
     dialogue_speaker = _label(ui, Vector2(120, 539), 16, 730)
     dialogue_text = _label(ui, Vector2(120, 566), 18, 730)
@@ -297,6 +301,11 @@ func _sync_presentation() -> void:
     else:
         objective.text = "Engineering: inspect reference, containment and fuel (%d / 3)." % inspected_items.size()
     party_label.text = "Story party: " + " + ".join(opening.active_party_ids) + "  |  Review-only art / no live game integration"
+    var resonance_gate: Dictionary = resonance_roster_gate.evaluate(opening, ["ender", "lyra"])
+    if not bool(resonance_gate.get("rosterEligible", false)):
+        resonance_status_label.text = "RESONANCE: LOCKED — Lyra has not joined; no combined abilities available."
+    else:
+        resonance_status_label.text = "RESONANCE: party present only — ability unlock remains unapproved."
     if dialogue_open:
         dialogue_speaker.visible = true
         dialogue_text.visible = true
