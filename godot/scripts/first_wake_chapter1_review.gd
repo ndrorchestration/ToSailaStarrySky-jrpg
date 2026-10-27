@@ -192,14 +192,14 @@ func _process(delta: float) -> void:
     if weapon_visual_action.is_empty() or not formula_encounter.active:
         return
     weapon_visual_elapsed += maxf(0.0,delta)
-    var duration := weapon_visual_projection.timeline.duration(
+    var duration: float = weapon_visual_projection.timeline.duration(
         WeaponBattleVisualProjection.ENDER_STAFF_ID,"attack"
     )
     if weapon_visual_elapsed >= duration:
         weapon_visual_action = ""
         _reset_weapon_visual()
         return
-    var frame := weapon_visual_projection.accepted_action(
+    var frame: Dictionary = weapon_visual_projection.accepted_action(
         "ender",WeaponBattleVisualProjection.ENDER_STAFF_ID,
         weapon_visual_action,weapon_visual_elapsed,weapon_visual_reduced_motion
     )
@@ -214,7 +214,7 @@ func _reset_weapon_visual() -> void:
     if not formula_encounter.active:
         weapon_visual.clear_frame()
         return
-    var frame := weapon_visual_projection.initial(
+    var frame: Dictionary = weapon_visual_projection.initial(
         "ender",WeaponBattleVisualProjection.ENDER_STAFF_ID,weapon_visual_reduced_motion
     )
     if not frame.is_empty():
@@ -225,7 +225,7 @@ func set_weapon_visual_reduced_motion(enabled: bool) -> void:
     if weapon_visual_action.is_empty():
         _reset_weapon_visual()
         return
-    var frame := weapon_visual_projection.accepted_action(
+    var frame: Dictionary = weapon_visual_projection.accepted_action(
         "ender",WeaponBattleVisualProjection.ENDER_STAFF_ID,
         weapon_visual_action,weapon_visual_elapsed,weapon_visual_reduced_motion
     )
@@ -503,7 +503,7 @@ func take_formula_review_action(action_id: String) -> bool:
     if action_id == WeaponBattleVisualProjection.STRIKE_ACTION_ID:
         weapon_visual_action = action_id
         weapon_visual_elapsed = 0.0
-        var frame := weapon_visual_projection.accepted_action(
+        var frame: Dictionary = weapon_visual_projection.accepted_action(
             actor_id,WeaponBattleVisualProjection.ENDER_STAFF_ID,
             action_id,weapon_visual_elapsed,weapon_visual_reduced_motion
         )
