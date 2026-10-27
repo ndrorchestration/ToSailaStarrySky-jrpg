@@ -10,12 +10,16 @@ const NORTH = preload("res://art-review/ender-north-detailed-staff-v2-candidate.
 
 const FACINGS: Array[String] = ["east","west","south","north"]
 const ART_STATUS := "EXISTING_DIRECTIONAL_CANDIDATE_UNAPPROVED"
-const BASE_POSITIONS := {
-    "east": Vector2(-45.0,64.0),
-    "west": Vector2(-45.0,80.0),
-    "south": Vector2(-45.0,64.0),
-    "north": Vector2(-45.0,64.0)
+## Battle-stage readability normalization, NOT a change to source artwork.
+## Local bottom pixels vary a little between independently made candidates.
+const PRESENTATION_SCALE := {
+    "east":1.70, "west":1.70, "south":1.70, "north":1.70
 }
+const FOOT_LOCAL_Y := {
+    "east":44.0, "west":40.0, "south":44.0, "north":44.0
+}
+const REVIEW_SOLE_Y := 112.0
+const REVIEW_ACTOR_X := -45.0
 var facing: String = "east"
 var current_pose: Dictionary = {}
 var display_sprite: Sprite2D
@@ -62,13 +66,15 @@ func _apply() -> void:
     # Walking candidate frame 0 is not misrepresented as an attack animation.
     display_sprite.frame = 0
     display_sprite.flip_h = false
-    display_sprite.scale = Vector2(0.83,0.82) if facing == "west" else Vector2.ONE
+    var scale_factor := float(PRESENTATION_SCALE[facing])
+    display_sprite.scale = Vector2.ONE * scale_factor
     var x_offset := 0.0
     var y_offset := 0.0
     if not bool(current_pose.get("motionReduced",false)):
         x_offset = float(current_pose.get("advance",0.0))*0.32
         y_offset = float(current_pose.get("bob",0.0))*0.20
-    display_sprite.position = Vector2(BASE_POSITIONS[facing]) + Vector2(x_offset,y_offset)
+    var center_y := REVIEW_SOLE_Y - float(FOOT_LOCAL_Y[facing])*scale_factor
+    display_sprite.position = Vector2(REVIEW_ACTOR_X,center_y) + Vector2(x_offset,y_offset)
     display_sprite.rotation_degrees = 0.0
     queue_redraw()
 
@@ -81,6 +87,9 @@ func visual_contract() -> Dictionary:
         "texturePath":display_sprite.texture.resource_path,
         "staffAlreadyInSprite":true,"geometricWeaponOverlayAuthorized":false,
         "combatActionExecuted":false,
+        "groundedReviewSoleY":display_sprite.position.y
+            + float(FOOT_LOCAL_Y[facing])*display_sprite.scale.y,
+        "presentationScale":display_sprite.scale.y,
         "motionReduced":bool(current_pose.get("motionReduced",false))
     }
 
