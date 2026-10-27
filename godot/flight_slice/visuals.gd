@@ -12,6 +12,9 @@ var broadleaf: ShaderMaterial
 var understory: ShaderMaterial
 var sky_material: ShaderMaterial
 var low_quality: bool = false
+var texture_detail_enabled: bool = true
+const TEXTURE_DETAIL_STRENGTH: float = 0.68
+var texture_resources: Dictionary = {}
 var rain: Node3D
 var current_mood: Dictionary = {}
 var _time_index: int = 0
@@ -35,6 +38,19 @@ func _ready() -> void:
     foliage = _shader("res://shaders/foliage.gdshader")
     broadleaf = _shader("res://shaders/foliage.gdshader")
     understory = _shader("res://shaders/understory.gdshader")
+    # Three original PNG assets with periodic sampling. Single texture per
+    # surface family, shared between every relevant instanced material.
+    texture_resources = {
+        "terrain": load("res://textures/terrain_microdetail.png"),
+        "foliage": load("res://textures/foliage_microdetail.png"),
+        "water": load("res://textures/water_ripple_detail.png")
+    }
+    land.set_shader_parameter("terrain_microdetail", texture_resources["terrain"])
+    foliage.set_shader_parameter("foliage_microdetail", texture_resources["foliage"])
+    broadleaf.set_shader_parameter("foliage_microdetail", texture_resources["foliage"])
+    understory.set_shader_parameter("foliage_microdetail", texture_resources["foliage"])
+    water.set_shader_parameter("water_ripple_detail", texture_resources["water"])
+    _apply_texture_quality()
     broadleaf.set_shader_parameter("leaf_tint", Vector3(1.16, 1.12, 0.84))
     # Share one light direction across dome and ocean; avoids split sun glints.
     sky_material.set_shader_parameter("sun_direction", SUN_DIRECTION)
@@ -145,8 +161,21 @@ func set_low_quality(enabled: bool) -> void:
     sky_material.set_shader_parameter("low_quality", enabled)
     rain.set_conditions(_weather_index, 0.0 if _reduced_motion else _last_clock,
         _reduced_motion, low_quality, float(current_mood["rain_strength"]))
+    _apply_texture_quality()
     if _terrain != null:
         _terrain.get_node("GroundUnderstory").visible = not enabled
+
+## All texture sampling may be disabled for fair before/after art review.
+## V keeps its low-detail guarantee regardless of the K comparison toggle.
+func set_texture_detail_enabled(enabled: bool) -> void:
+    texture_detail_enabled = enabled
+    _apply_texture_quality()
+
+func _apply_texture_quality() -> void:
+    var strength: float = TEXTURE_DETAIL_STRENGTH if (
+        texture_detail_enabled and not low_quality) else 0.0
+    for material in [land, water, foliage, broadleaf, understory]:
+        material.set_shader_parameter("texture_detail_strength", strength)
 
 ## Instant selection remains available to deterministic captures and API clients.
 ## Neither selection path changes actual world time, physics or saved state.
