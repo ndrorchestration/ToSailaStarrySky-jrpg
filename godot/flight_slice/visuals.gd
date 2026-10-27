@@ -35,6 +35,9 @@ func _ready() -> void:
     land.set_shader_parameter("sea_surface_elevation", TerrainStudy.SEA_LEVEL)
     land.set_shader_parameter("shoreline_wetness", 1.0)
     land.set_shader_parameter("low_quality", false)
+    land.set_shader_parameter("sand_optics_strength", 1.0)
+    land.set_shader_parameter("sand_wind_axis", Vector2(0.93, 0.37))
+    land.set_shader_parameter("sun_direction", SUN_DIRECTION)
     var daylight := DirectionalLight3D.new()
     daylight.name = "GoldenHourKey"
     add_child(daylight)
