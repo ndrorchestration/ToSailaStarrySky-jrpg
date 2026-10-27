@@ -91,6 +91,15 @@ func _run() -> void:
         or str(sandbox["actorId"]) != "" or bool(sandbox["canExecute"]):
         _fail("sandbox weapon selection leaked or failed visual swap")
         return
+    # Sword hilt must touch the physical hand after a rotated attack pose.
+    var rig: Node2D = screen.get_node("ReadOnlyEquippedBattleRig")
+    var actual_weapon: Node2D = rig.get_node("EquippedWeapon")
+    var hand_position := Vector2(-6.0 + float(rig.pose.get("advance",0.0)),
+        -19.0 + float(rig.pose.get("bob",0.0)))
+    var hilt_position := actual_weapon.position         + Vector2(0.0,75.0)*0.52             .rotated(actual_weapon.rotation)
+    if hand_position.distance_to(hilt_position) > 0.6:
+        _fail("sword hilt disconnected from mannequin hand")
+        return
     screen._set_reduced_motion(true)
     if not bool(screen.review_contract()["motionReduced"]):
         _fail("battle review failed reduced-motion switch")
