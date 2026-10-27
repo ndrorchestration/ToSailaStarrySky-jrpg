@@ -2,6 +2,10 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Asymmetric broadleaf silhouette experiment — 2026-10-27
+
+**Draft visual option, not final species or canon:** The three large, rounded, repeating leaf masses introduced in #404 are replaced in this stacked study by seven smaller, overlapping irregular masses. They remain **one indexed source mesh copied into one shared combined crown mesh**, instanced at the same broadleaf positions and tree heights. The study tests crown vertex and shape budget and preserves the existing shared shader/reduced-motion animation. Native image inspection is required to determine whether the additional detail actually makes trees read as more organic rather than as a cluster of small spheres. No physics, asset imports, gameplay or authoritative world biome logic changes.
+
 ## Deterministic forest-floor detail study — 2026-10-27
 
 **Proposed visual iteration, not accepted final art.** The optional `GroundUnderstory` layer adds terrain-grounded, small fern/grass silhouettes in the forest and limited grassland. Positions are reproducible from the same static scene sampler, biome predicate, and local steep-slope limit; the temporary hamlet and native touchdown field are excluded. Seven two-triangle fronds form one *opaque*, double-sided mesh instanced through a single `MultiMeshInstance3D`. The effect uses no external textures, noise downloads, particles, transparent overdraw, per-clump nodes, new point lights, or gameplay collision.
