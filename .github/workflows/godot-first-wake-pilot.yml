@@ -99,6 +99,9 @@ jobs:
       - name: Verify authored Wind Shear combat advances Crossing only after confirmed clear
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_wind_shear_combat_scene_test.gd
+      - name: Verify current-story Wind Shear visual identity and reduced-motion state
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_wind_shear_visual_test.gd
       - name: Verify packaged First Wake Chapter I authored content and legacy epilogue semantics
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_content_test.gd
