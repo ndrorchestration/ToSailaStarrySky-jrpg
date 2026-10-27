@@ -2,8 +2,8 @@ extends SceneTree
 ## Native Godot Compatibility captures; not a gameplay screenshot or final plan.
 const StudyScene = preload("res://ship_interior_study.tscn")
 const SHOTS = [
-    ["deck-overview", Vector3(9.0, 13.0, 10.0), 54.0],
-    ["living-and-engineering", Vector3(-8.0, 9.0, 6.0), 50.0]
+    ["deck-overview", Vector3(6.7, 9.8, 7.0), 48.0],
+    ["living-and-engineering", Vector3(-6.3, 8.8, 5.5), 48.0]
 ]
 var failures: int = 0
 
