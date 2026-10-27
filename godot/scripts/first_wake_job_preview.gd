@@ -175,7 +175,7 @@ func launch_flight_review() -> bool:
     if inspected_items.size() != ENGINEERING_ITEMS.size():
         return false
     var next_scene := FlightScene.instantiate()
-    if not next_scene.configure_preflight(opening):
+    if not bool(next_scene.call("configure_preflight", opening)):
         next_scene.free()
         return false
     flight_review = next_scene
