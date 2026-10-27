@@ -39,3 +39,11 @@
 In the noncanonical local Godot flight slice, `terrain.gd` already produces a signed `sample_height(x,z)` beneath `SEA_LEVEL`. The water shader samples a texture baked from that same function. This gives a **local prototype starting point** for coastal depth coloring. It is **not** an authored planetary bathymetry atlas, realistically varied deep-ocean topography, underwater collision surface, or swimmable world. The local sample currently has modest shallow relief and cannot be projected onto the whole globe without a separate geographic data and LOD architecture.
 
 **Priority:** This is foundational design work underneath the highest-priority cinematic surface world, not permission to divert current effort to speculative underwater gameplay before the hero route is visually accepted. Track [P0 planetary world map #387](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/issues/387).
+
+## 2026-10-27 — Implemented first local depth contract (PR #390 only)
+
+- `godot/flight_slice/bathymetry.gd` now exposes local bed elevation, water depth and submerged classification using **the existing TerrainStudy height sampler and SEA_LEVEL**, without new geographical noise or a second ocean floor.
+- `water.gdshader` accepts the sea-level datum as a shader uniform, derives shelf depth from the pre-existing signed RF height texture, and adds restrained shallow-water color response. It does **not** create playable underwater space.
+- `tests/test_visuals.gd` checks sampled offshore/shore/forest heights and datum consistency. The pre-existing native GL capture script now additionally attempts three HUD-free screenshots without changing the existing six standard-capture markers.
+- **Verification gate:** This is a code candidate until exact-head native Godot CI and capture artifacts finish successfully. Native outputs must still be visually inspected and approved by the creator. Global bathymetry and open-ocean depth contours remain unimplemented.
+
