@@ -65,6 +65,17 @@ The original pixel atlases and fallback geometry remain bounded to a 182×184 lo
 - The archived contact-sheet/animated-GIF study is not equivalent to an engine screenshot. Native screenshots remain runner-only owing to the existing artifact-storage restriction; no target-display aesthetic acceptance or GPU profiling has been claimed.
 - Legacy Crossing placement remains **on hold** under the Ionia-first opening authority in #425/#430. Rendering verification must not move that encounter into the approved story by implication.
 
+## Authored v2 exact-head QA receipt — 2026-10-27
+
+- **Exact code head:** `68cfd5242d569b656ff71244ac17e7b4024a1b67`.
+- [Native Godot regression run 40600720720](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40600720720): **PASS**, including v2 imported 320×92 atlas geometry, four timed frame choices, visible-pixel static-pose equivalence, fight-only art visibility, reaction priority, gameplay isolation and reduced-motion state.
+- [Real native framebuffer run 40600720670](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40600720670): **PASS**, nine distinct named 960×640 capture receipts. Idle phase 1/2/3 SHA-256: `1603f8ac49ffebf1dbff92e8d1c43c94dabf89876037d0270d7cb0ff39f7a71e`, `e5433654ca52dac4c9e341d260389eb7b62bbc4e52125b6e733d76be8e6f1b54`, `30aab2c9a74b31f95b698c8bc4d6771ee41b8976bbd5d5b95eaa53eaceec442f`.
+- Static first pose and reduced-motion native full-frame screenshot SHA-256 both equal `d92ba082c083b26b2a406eaedbd17cd403bf62d8579d0a07807797e86577f1cb`. Real hit, Gale Force and dispersal captures also verified.
+- [Repository smoke run 40600720776](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40600720776): **PASS**.
+- During regression development, raw Godot imported RGBA buffers differed only in invisible RGB where **alpha was zero**, despite source PNG first-pose RGBA equality. The test normalizes only those fully transparent RGB channels and retains exact comparisons of visible color and alpha; the independent full-frame render SHA check remains strict.
+- Strict Windows verification remains bound to the unchanged Defender real-time-protection custody gate. Successful rendering and functional prerequisites do not waive that gate.
+- **Review limitation:** Screenshots remain runner-only under existing Actions artifact quota. Their hashes prove real engine frames and timing-state differences, but not creator acceptance, target hardware FPS, in-game aesthetic quality, or revised Chapter I encounter placement.
+
 ## Next art iteration (not implemented)
 
 Artist-review the native nine-frame sequence at exact-head resolution, then improve real sprite-sheet choreography, faceted lighting consistency and target hardware animation profiling. The first original hand-authored v2 idle frames are implemented, but are **not** creator-approved final art. A truthful **pre-attack telegraph** must wait for a separate, authorized pre-resolution combat-state contract; do not mislabel immediate post-resolution pulses as player counterplay. Avoid assuming speculative enemy species or bosses are canon. Keep this review asset reversible until an authentic creator-approved sprite supersedes it.
