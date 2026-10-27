@@ -40,6 +40,10 @@ func _run() -> void:
             if not bool(output["oneStaffOnly"]) or not bool(output["animationAuthoredForCombatReview"]):
                 _fail("staff asset count or combat pose source invalid")
                 return
+            var trail_active: bool = float(output["trailStrength"]) > 0.001
+            if trail_active != (beat in [2,3])                 or not bool(output["trailFollowsFerrule"])                 or not bool(output["visualContactOnly"]):
+                _fail("physical ribbon not scoped to strike/release")
+                return
             if absf(float(output["weaponLength"])-168.0) > 0.01:
                 _fail("staff full-length visual invariant changed")
                 return
@@ -78,6 +82,9 @@ func _run() -> void:
             or Vector2(quiet["shaftMidpoint"]) != Vector2(base_frame["shaftMidpoint"]) \
             or Vector2(quiet["hip"]) != Vector2(base_frame["hip"]):
             _fail("reduced motion failed to freeze combat pose")
+            return
+        if float(quiet["trailStrength"]) != 0.0             or float(quiet["dustStrength"]) != 0.0:
+            _fail("reduced motion failed to suppress physical motion trail")
             return
     if rig.set_facing("invalid"):
         _fail("unknown view accepted")
