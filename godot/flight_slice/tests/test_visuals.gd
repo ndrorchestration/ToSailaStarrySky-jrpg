@@ -46,6 +46,7 @@ func _run() -> void:
     visuals.set_clock(22.0, true)
     check(is_equal_approx(visuals.water.get_shader_parameter("study_time"), 0.0), "reduced motion freezes water")
     check(is_equal_approx(visuals.foliage.get_shader_parameter("study_time"), 0.0), "reduced motion freezes foliage")
+    check(is_equal_approx(visuals.broadleaf.get_shader_parameter("study_time"), 0.0), "reduced motion freezes broadleaf foliage")
     visuals.set_low_quality(true)
     check(visuals.water.get_shader_parameter("low_quality") == true, "low quality applied")
     visuals.set_low_quality(false)
