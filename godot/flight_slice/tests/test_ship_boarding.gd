@@ -49,7 +49,7 @@ func _run() -> void:
         "standalone conversion is pinned and not the full cabin dimension")
     check(Study.DOORWAY_WIDTH_M >= 1.2 and Study.DOORWAY_HEIGHT_M >= 1.85,
         "modelled crew opening has bounded adult-scale nominal dimensions")
-    check(world.get_node("BowFloorPhysics") is StaticBody3D,
+    check(world.get_node("MappedForedeck/BowFloorPhysics") is StaticBody3D,
         "physics body attached to exact native tapered deck mesh")
     var collision: CollisionShape3D = world.get_node(
         "MappedForedeck/BowFloorPhysics/ExactForedeckTriangleCollision")
