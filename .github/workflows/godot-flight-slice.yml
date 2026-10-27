@@ -54,7 +54,7 @@ jobs:
       - name: Native atmospheric material and accessibility controls
         run: |
           set -o pipefail
-          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_atmosphere_contract.gd 2>&1 | tee /tmp/atmosphere-test.log
+          timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_atmosphere_contract.gd 2>&1 | tee /tmp/atmosphere-test.log
           grep -Eq 'GODOT_ATMOSPHERE_CONTRACT_PASS checks=[0-9]+' /tmp/atmosphere-test.log
           ! grep -Eq 'GODOT_ATMOSPHERE_CONTRACT_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/atmosphere-test.log
       - name: Deterministic native manual Dragonfly pilot mode contracts
