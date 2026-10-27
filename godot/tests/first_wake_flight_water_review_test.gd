@@ -45,6 +45,9 @@ func _verify() -> void:
     if flight.stabilize_for_water_descent():
         _fail("predeparture stabilization wrongly accepted")
         return
+    if flight.start_postflight_inspection():
+        _fail("postflight fuel inspection allowed before actual sea landing")
+        return
     if world.interact():
         _fail("underlying employment scene consumed flight controls")
         return
@@ -104,10 +107,45 @@ func _verify() -> void:
     if flight.opening.inspect_postflight_reserve(false):
         _fail("postflight diagnosis accepted without reserve evidence")
         return
+    if not flight.interact() or not flight.postflight_dialogue_open:
+        _fail("waterborne scene did not offer Ender/Ionia reserve diagnosis")
+        return
+    if flight.opening.step_key() != "waterborne" or flight.postflight_reserve_observed:
+        _fail("inspection evidence was awarded before the dialogue finished")
+        return
+    if not flight.inspection_label.visible or flight.inspection_label.text.find("usable reserve is gone") < 0:
+        _fail("observational dialogue did not appear in native UI")
+        return
+    for i in range(flight.POSTFLIGHT_INSPECTION_LINES.size() - 1):
+        if not flight.interact():
+            _fail("diagnostic lines failed to advance")
+            return
+        if flight.opening.step_key() != "waterborne":
+            _fail("postflight state advanced before all evidence lines were read")
+            return
+    if not flight.interact():
+        _fail("last diagnostic interaction failed")
+        return
+    if flight.phase != "postflight_diagnosis" or flight.opening.step_key() != "postflight_diagnosis":
+        _fail("complete diagnosis did not reach postflight stage")
+        return
+    if not flight.postflight_reserve_observed or flight.postflight_dialogue_open:
+        _fail("postflight reserve evidence state inconsistent after completion")
+        return
+    if flight.interact() or flight.start_postflight_inspection():
+        _fail("completed reserve dialogue was allowed to replay or duplicate")
+        return
+    var reviewed: Dictionary = flight.review_snapshot()
+    if reviewed["fuel_formula"] != "unknown" or reviewed["production_ocean_verified"]:
+        _fail("postflight inspection falsely promoted fuel formula or production ocean")
+        return
+    if reviewed["party"] != ["ender", "ionia"] or "lyra" in flight.opening.active_party_ids:
+        _fail("Lyra was recruited during postflight inspection before safe reunion")
+        return
 
     world.queue_free()
     await process_frame
-    print("TSTSS_FIRST_WAKE_PHYSICS_SPLASHDOWN_PASS: Ionia-first preflight, actual RigidBody2D/Area2D water contact, settled flotation, safe story gate, no premature Lyra or fuel revelation")
+    print("TSTSS_FIRST_WAKE_PHYSICS_SPLASHDOWN_PASS: Ionia-first preflight, actual RigidBody2D/Area2D water contact, settled flotation, gated postflight reserve diagnosis, no premature Lyra or fuel revelation")
     quit(0)
 
 func _fail(reason: String) -> void:
