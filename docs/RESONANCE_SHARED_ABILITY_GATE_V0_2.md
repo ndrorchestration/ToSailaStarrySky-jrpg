@@ -36,11 +36,12 @@ godot --headless --path godot --editor --quit
 godot --headless --path godot --script res://tests/combat_ability_contract_test.gd
 godot --headless --path godot --script res://tests/party_action_reservation_test.gd
 godot --headless --path godot --script res://tests/tidebound_promise_review_test.gd
+godot --headless --path godot --script res://tests/tidebound_damage_sweep_test.gd
 godot --headless --path godot --script res://tests/resonance_dual_review_scene_test.gd
 godot --headless --path godot --script res://tests/first_wake_party_combat_authority_test.gd
 ```
 
-The existing pinned CI workflow invokes all five tests. New tests cover formula metadata identity, unknown/blocked abilities, spoofed status and resolution, duplicate/swapped actors or mismatched Sigils, exact two-person action/focus receipts, no-alias plan results, invalid state/types, partner incapacity/insufficient Focus, and unchanged state on all denials. **Do not claim PASS until the new exact SHA's hosted steps actually finish.**
+The existing pinned CI workflow invokes all six tests. New tests cover formula metadata identity, unknown/blocked abilities, spoofed status and resolution, duplicate/swapped actors or mismatched Sigils, exact two-person action/focus receipts, no-alias plan results, invalid state/types, partner incapacity/insufficient Focus, and unchanged state on all denials. The same planner is exercised with both a two-participant Tidebound Art and a three-participant Horizon Relay proposal; the latter's third-member failure must leave the earlier participants' Focus untouched. A separate 24-case damage sweep checks both possible incoming strike targets for each supported damage value, including one-hit capacity, conservation, and no-ward parity. **Do not claim PASS until the new exact SHA's hosted steps actually finish.**
 
 ## Narrative integration checkpoint — open reconciliation
 
