@@ -2,6 +2,12 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Real surface microtextures integrated with the Aureate Wake — 2026-10-27
+
+**Native review only; art unapproved.** Stacks the original, independently verified 128×128 PNG terrain/foliage/ocean microtextures, repeatable source generator and six-frame A/B screenshots from [#445](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/445) on the exact in-flight ship/weather-transition [#432](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/432) scene. Maintains the noncanonical compact Aureate Wake model and all ship, flight, physics-touchdown, environmental transition and reduced-motion review gates. The external source revision and this combined revision require **independent exact-head CI**; parent green runs alone do not verify the integration.
+
+Press **K** to compare original/default versus textured terrain, foliage and water in the review lab; **V** low detail hides added microdetail. Three checked-in **original binary PNGs** must exactly match their committed zero-dependency generator's bytes. New native 47+ texture contracts and six real-GL forest, night and coast ON/OFF frame captures run alongside the existing six ship, three transition and five environmental mood captures. Textures are controlled shader source, **not** creator-approved world surface art. The night readability variation is a cinematic lighting grade, not physical moon phases or navigation lore. Target GPU timing, high-resolution surface-scale art and continuous-flight visual reviews remain open.
+
 ## In-flight Aureate Wake + weather transition integration — 2026-10-27
 
 **Unapproved native art integration.** This stacked review branch adds the independently tested [#420](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/420) deterministic, interruptible **1.8-second** weather/light/magical-atmosphere transitions to the already combined Aureate Wake + environmental scene [#422](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/422). It is based on a fixed snapshot of #422, rather than silently merging parallel PRs. The home vessel is **Aureate Wake**, not the different larger Dragonfly frigate.
