@@ -2,6 +2,12 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Highland snow wind-scour material study — 2026-10-27
+
+**Noncanonical shader-only candidate.** The existing terrain shader retains exactly the same sampled height, cliff slope, biome thresholds, shoreline, snowline and global clock. In high detail, a single additional anisotropic noise lookup subtly exposes existing rock tint through snow on windward slopes, with restrained frost color variation. This is surface coloration, **not** real erosion, volumetric weather, new collision or a new terrain generator. The **V** low-detail switch removes this additional shader branch while preserving all geometry and flight behavior. The baseline path still uses its separate existing material for controlled comparison.
+
+Validation requires exact-head Godot 4.7.2 shader import, native presentation tests and matched highland native rendered screenshots. Quality claims must be based on visual inspection: reject dirty-looking snow, muddy patches or obvious tiled noise. Frame-time/perceptual results on target hardware are not established by software GL rendering.
+
 ## Coastal stones and alpine talus geometry study — 2026-10-27
 
 **Isolated draft visual layer, not canonical geology.** Two low-detail, instanced geology groups (`ShorelineStones` and `AlpineTalus`) use a **single shared custom nine-sided faceted mesh** and separate subdued non-emissive minerals. Coastal stones are confined to exposed sand/grass close to the existing procedural shoreline and avoid the dock; talus is confined to existing alpine/summit biomes and avoids steep sampling gradients. Small deterministic low-frequency placement envelopes leave natural gaps in the shoreline and group flatter, less conspicuous talus along upper slopes, as revised after native capture review. Placement uses existing deterministic hash/height/biome functions with no physics bodies, level gates, save state, navigation or elevation edits. No third-party textures/assets, transparent materials, particles or additional lights.
