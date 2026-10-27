@@ -1,0 +1,18 @@
+# Aureate Wake coastline surf integration — art QA and exact-head gate
+
+**Status:** native review candidate, noncanonical / draft / unmerged. Date: 2026-10-27.
+
+## Evidence leading to intervention
+- Frozen exact source: [PR #451](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/451) commit `a5a8a1daecc7deccdb525fa5a6344365613f50e4`, full original 128px terrain, forest and water textures, Aureate Wake hull, four membrane wings, 1.8-second interruptible environment fades, physics-ground touchdown and compatibility 960×640 GL captures. [Native Godot run 40596088923](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40596088923) and [smoke 40596088876](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40596088876) both SUCCESS at that head. Exact source native logs: terrain/flight 670, mood 89, fade 60, surface texture 47, physics touchdown 45, contact 30 checks, six GL texture views.
+- The actual [PR #451 native screenshots](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40596088923/artifacts/12776436346) were visually inspected. The new textures are barely perceptible at high-flight framing, storm highlands are low-contrast and the shoreline remains a nearly uninterrupted turquoise contour. The three problems are **art QA observations, not automated CI failures**.
+- Independently tested surf study: [PR #437](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/437) exact `864597868d2eb8e4c1e9147e53d27ba0646a8272`, native and smoke both green; observed 11,493 changed coastline pixels, exact zero difference low-quality reference. That study notes an unresolved broad turquoise shallow shelf, so no assertion of final fix.
+
+## Integration contract
+- Layer **only** the signed-depth shore breakup code from #437 into #451's latest textured `shaders/water.gdshader`; preserve original `water_ripple_detail`, weather `sun_visibility`, tide/wave clock, sea-level binding and existing authored `terrain_coverage`/height-field masking. Never replace the existing ship, light, weather, terrain geometry, collider or story.
+- Explicit default `foam_breakup_strength=1.0` plus reversible reference `0.0`, preserving the original appearance at zero strength. Low-quality `V` bypasses the new modulation entirely, including shelf tint adjustment.
+- A new native 960×640 Godot `capture_shore_foam_integrated.gd` records fixed-camera/clock, no-HUD, no-ship original coast / fragmented coast and both low-quality reference states; difference threshold `100 ≤ changed_pixels ≤ 65000`, low-quality delta must be zero, no airship/camera movement, no accidental fade.
+- Preserve complete prior native regression suite, source texture regeneration verification, six real texture ON/OFF, six ship storm/fade shots, three atmosphere fade frames, five environment look frames, physics touchdown, 96-frame render sweeps.
+- **Exact combined-head CI must pass before any verification claim;** independent #437 and #451 successes do not establish this integration. Actual rendered screenshots must be reviewed, and whether cyan nearshore shelf is materially improved is a separate artistic judgment.
+
+## Open gates
+The planet-scale map, ship-as-home interiors, Chapter I water landing (distinct from proven ground physics touchdown), transparent membrane sorting in target GPU, terrain contrast in blue-hour/storm, authored cliff textures, approved launch performance, creator art signoff, moon route privacy and installer remain unsatisfied. Nothing is merged or released. This is a procedural/material *review candidate*, not canonical environment art.

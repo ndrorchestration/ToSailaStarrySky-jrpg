@@ -2,6 +2,10 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Broken-but-terrain-anchored coastline foam — 2026-10-27
+
+**Unapproved cinematic material experiment**, stacked on [#451](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/451). Reuses the separately validated [#437](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/437) signed-depth foam-breakup algorithm without replacing the three original PNG microtextures, water reflection, atmosphere fade, ship, collision or touchdown. The old continuous shore-strip look can be restored via the `foam_breakup_strength=0.0` shader uniform; **V** low-quality bypasses all new surf breakup. Four additional native Godot GL frames compare default and broken foam from a fixed camera/clock in both high/low modes. Native `test_visuals.gd` also checks foam control and the original water ripple texture. These checks establish **rendered variation**, not final coastline quality or GPU efficiency. [Art review and gates](../../docs/reviews/AUREATE_WAKE_TEXTURING_SHORE_FOAM_QA_2026-10-27.md).
+
 ## Real surface microtextures integrated with the Aureate Wake — 2026-10-27
 
 **Native review only; art unapproved.** Stacks the original, independently verified 128×128 PNG terrain/foliage/ocean microtextures, repeatable source generator and six-frame A/B screenshots from [#445](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/445) on the exact in-flight ship/weather-transition [#432](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/432) scene. Maintains the noncanonical compact Aureate Wake model and all ship, flight, physics-touchdown, environmental transition and reduced-motion review gates. The external source revision and this combined revision require **independent exact-head CI**; parent green runs alone do not verify the integration.

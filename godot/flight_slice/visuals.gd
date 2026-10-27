@@ -61,6 +61,7 @@ func _ready() -> void:
     sky_material.set_shader_parameter("study_time", 0.0)
     water.set_shader_parameter("sun_direction", SUN_DIRECTION)
     water.set_shader_parameter("sea_surface_elevation", TerrainStudy.SEA_LEVEL)
+    water.set_shader_parameter("foam_breakup_strength", 1.0)
     var daylight := DirectionalLight3D.new()
     daylight.name = "GoldenHourKey"
     add_child(daylight)
