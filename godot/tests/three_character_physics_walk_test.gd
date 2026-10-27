@@ -65,7 +65,13 @@ func _verify() -> void:
             positions[character_id] = position
             if not actor.get("completed"):
                 any_active = true
-            if moved > 0.0001:
+            if moved > 0.0001 and actor.get("completed"):
+                # At final physical arrival, actor stops and deliberately resets to
+                # idle atlas frame zero. This is not a walking-frame mismatch.
+                if actor.get("current_phase") != 0 or actor.get("review_enabled"):
+                    _fail("completed route did not return to idle source", 18)
+                    return
+            elif moved > 0.0001:
                 moving_world_ticks += 1
                 var facing: String = actor.get("facing")
                 var phase: int = actor.get("current_phase")
