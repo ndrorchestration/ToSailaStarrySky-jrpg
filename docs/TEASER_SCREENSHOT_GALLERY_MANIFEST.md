@@ -23,3 +23,14 @@
 The owner-side `starry_sky_github_teaser_gallery.zip` was inspected locally: ZIP CRC/readability PASS, 9 JPEG stills plus `manifest.json` present, each image decodes at **1280 × 720 (16:9)**, and all nine JPEG SHA-256 hashes match the manifest. These checks validate file integrity and dimensions, **not** artistic approval, likeness continuity, copyright clearance, or on-engine rendering. Exact evidence is maintained with the owner-side ZIP; the GitHub repository does not currently host the binaries.
 
 **Promotion gate:** Publish actual binary media only after verifying the final stills against approved art/ship names. Once uploaded, replace this pending state with actual verified repository links and accessible alt text. Do not point Markdown image tags at absent paths.
+
+## Reproducible binary import (not yet executed on GitHub)
+
+Download the creator-review gallery ZIP, place it in a trusted local checkout of this draft branch, and run the following **after art/rights approval**:
+
+```bash
+python tools/import_concept_teaser_stills.py starry_sky_github_teaser_gallery.zip
+python tools/import_concept_teaser_stills.py starry_sky_github_teaser_gallery.zip --write
+```
+
+The first command is a read-only verification; the second copies nine JPEG files and their manifest into `docs/media/concept-teaser-2026-10-27/`. The tool checks ZIP integrity, filenames and exact SHA-256 digests, refuses to overwrite conflicting images, and **never commits/pushes**. Review stills before staging and linking. No image-hosting claim is made until the committed files are independently visible through GitHub.
