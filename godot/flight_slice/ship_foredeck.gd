@@ -64,21 +64,37 @@ func _ready() -> void:
     _bar("ShelterArch_Crown", Vector3(-0.40, PLATFORM_Y + 0.62, PLATFORM_BACK_Z),
         Vector3(0.40, PLATFORM_Y + 0.62, PLATFORM_BACK_Z), 0.029, bronze)
 
-    # Stowed translucent weather hood: review-only, no pressure seal implied.
-    var hood := MeshInstance3D.new()
+    # Weather-only lightweight folding canopy, not a sealed glass pressure pod.
+    # It follows the tapered bow and leaves the railings visible from outside.
+    var hood := Node3D.new()
     hood.name = "WeatherHood"
-    var hood_mesh := CylinderMesh.new()
-    hood_mesh.top_radius = 0.46
-    hood_mesh.bottom_radius = 0.46
-    hood_mesh.height = 1.03
-    hood_mesh.radial_segments = 12
-    hood.mesh = hood_mesh
-    hood.position = Vector3(0.0, PLATFORM_Y + 0.35, -1.71)
-    hood.rotation.x = PI * 0.5
-    hood.scale = Vector3(1.0, 0.99, 0.76)
-    hood.material_override = shelter
-    hood.visible = false
     add_child(hood)
+    var canopy_surface := SurfaceTool.new()
+    canopy_surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var front_port := Vector3(-0.18, PLATFORM_Y + 0.38, -2.10)
+    var front_center := Vector3(0.0, PLATFORM_Y + 0.58, -2.10)
+    var front_starboard := Vector3(0.18, PLATFORM_Y + 0.38, -2.10)
+    var rear_port := Vector3(-0.44, PLATFORM_Y + 0.57, -1.26)
+    var rear_center := Vector3(0.0, PLATFORM_Y + 0.79, -1.26)
+    var rear_starboard := Vector3(0.44, PLATFORM_Y + 0.57, -1.26)
+    for point in [
+        front_port, rear_port, rear_center,
+        front_port, rear_center, front_center,
+        front_center, rear_center, rear_starboard,
+        front_center, rear_starboard, front_starboard
+    ]:
+        canopy_surface.add_vertex(point)
+    canopy_surface.generate_normals()
+    var roof := MeshInstance3D.new()
+    roof.name = "RainCanopyPanels"
+    roof.mesh = canopy_surface.commit()
+    shelter.albedo_color = Color(0.33, 0.59, 0.63, 0.24)
+    roof.material_override = shelter
+    hood.add_child(roof)
+    _bar_in(hood, "RidgeBeam", front_center, rear_center, 0.015, bronze)
+    _bar_in(hood, "PortCanopyRim", front_port, rear_port, 0.017, bronze)
+    _bar_in(hood, "StarboardCanopyRim", front_starboard, rear_starboard, 0.017, bronze)
+    hood.visible = false
 
 func set_weather_sheltered(value: bool) -> void:
     _weather_sheltered = value
@@ -89,6 +105,10 @@ func is_weather_sheltered() -> bool:
     return _weather_sheltered
 
 func _bar(name_part: String, start: Vector3, finish: Vector3,
+        radius: float, material: Material) -> void:
+    _bar_in(self, name_part, start, finish, radius, material)
+
+func _bar_in(parent: Node3D, name_part: String, start: Vector3, finish: Vector3,
         radius: float, material: Material) -> void:
     var axis: Vector3 = finish - start
     var item := MeshInstance3D.new()
@@ -102,7 +122,7 @@ func _bar(name_part: String, start: Vector3, finish: Vector3,
     item.position = (start + finish) * 0.5
     item.quaternion = Quaternion(Vector3.UP, axis.normalized())
     item.material_override = material
-    add_child(item)
+    parent.add_child(item)
 
 func _material(color: Color, roughness: float, metalness: float) -> StandardMaterial3D:
     var surface := StandardMaterial3D.new()
