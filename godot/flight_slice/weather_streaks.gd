@@ -12,7 +12,7 @@ static func _hash01(index: int, salt: float) -> float:
 
 func _ready() -> void:
     var quad := QuadMesh.new()
-    quad.size = Vector2(0.022, 0.72)
+    quad.size = Vector2(0.012, 0.42)
     material = ShaderMaterial.new()
     material.shader = WeatherShader
     var batch := MultiMesh.new()
@@ -21,7 +21,7 @@ func _ready() -> void:
     batch.instance_count = STREAK_COUNT
     for i in range(STREAK_COUNT):
         var x: float = (_hash01(i, 1.0) - 0.5) * 30.0
-        var z: float = (_hash01(i, 2.0) - 0.5) * 30.0
+        var z: float = -6.0 - _hash01(i, 2.0) * 15.0
         var y: float = 4.0 + _hash01(i, 3.0) * 9.0
         batch.set_instance_transform(i, Transform3D(Basis.IDENTITY, Vector3(x, y, z)))
     instances = MultiMeshInstance3D.new()
