@@ -31,9 +31,9 @@ void fragment() {
     vec3 grass=mix(vec3(0.10,0.20,0.13),vec3(0.31,0.37,0.17),mottling);
     grass=mix(grass,vec3(0.08,0.17,0.13),smoothstep(16.0,30.0,p.x)*0.35);
     grass*=mix(1.0,0.63+texel.r*0.77,textile);
-    vec3 meadow_green=mix(vec3(0.11,0.19,0.13),
-        vec3(0.32,0.34,0.16),regional.g);
-    grass=mix(grass,mix(grass,meadow_green,0.45),biome_layer_strength);
+    vec3 meadow_green=mix(vec3(0.075,0.16,0.13),
+        vec3(0.38,0.39,0.17),smoothstep(0.22,0.80,regional.g));
+    grass=mix(grass,meadow_green,biome_layer_strength*0.72);
     float strata=sin(p.y*4.0+noise(p.xz*0.3)*3.0)*0.5+0.5;
     // Weathered strata and sparse talus give exposed slopes geographic form
     // without inventing a second elevation model or touching collision heights.
@@ -59,24 +59,24 @@ void fragment() {
     rock*=mix(1.0,0.61+texel.g*0.85,textile);
     // Mountain escarpment channels tint stone at 50m-ish spans, with
     // planar axis contributions reducing the appearance of stretched faces.
-    vec3 stone_tint=mix(vec3(0.18,0.22,0.26),
-        vec3(0.46,0.42,0.32),regional.r);
-    rock=mix(rock,mix(rock,stone_tint,0.48),biome_layer_strength);
+    vec3 stone_tint=mix(vec3(0.16,0.21,0.30),
+        vec3(0.49,0.42,0.29),smoothstep(0.24,0.76,regional.r));
+    rock=mix(rock,stone_tint,biome_layer_strength*0.65);
     vec3 color=mix(grass,rock,rocky);
     float sand=1.0-smoothstep(0.6,2.7,p.y+noise(p.xz*0.5)*0.5);
     vec3 sand_color=mix(vec3(0.36,0.31,0.22),vec3(0.70,0.59,0.40),mottling);
     sand_color*=mix(1.0,0.69+texel.b*0.66,textile);
-    sand_color=mix(sand_color,sand_color*(0.81+regional.b*0.42),
+    sand_color=mix(sand_color,sand_color*(0.66+regional.b*0.80),
         biome_layer_strength);
     color=mix(color,sand_color,sand);
     // Narrow wet-sand band: height follows the SAME sea level as the ocean.
     // Sand mask limits this visual approximation; no invisible collision area
     // or second shoreline curve is introduced.
-    float wet_band=sand*(1.0-smoothstep(0.15,0.92,
+    float wet_band=sand*(1.0-smoothstep(0.15,1.12,
         world_pos.y-sea_surface_elevation))
         *(1.0-smoothstep(0.14,0.66,slope));
     color=mix(color,color*vec3(0.66,0.76,0.79),
-        wet_band*shoreline_wet_strength*0.66);
+        wet_band*shoreline_wet_strength*0.76);
     float snow=smoothstep(16.3,19.0,p.y+noise(p.xz*0.42)*2.0)*(1.0-smoothstep(0.12,0.42,slope));
     // Maintain cool snow highlights while leaving headroom for direct light.
     color=mix(color,mix(vec3(0.40,0.49,0.55),vec3(0.65,0.71,0.69),mottling),snow);
