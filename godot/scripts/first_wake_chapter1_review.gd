@@ -16,6 +16,7 @@ const CurrentEnemyAdapter = preload("res://scripts/first_wake_current_enemy_adap
 const PartyCombatAuthority = preload("res://scripts/first_wake_party_combat_authority.gd")
 const BattleLoadout = preload("res://scripts/battle_equipment_loadout.gd")
 const BattleEquipmentVisual = preload("res://scripts/battle_equipment_visual.gd")
+const EquipmentTraining = preload("res://scripts/battle_equipment_training_profile.gd")
 
 const DECK_BOUNDS := SaveCodec.PLAYER_POSITION_BOUNDS
 const INTERACT_DISTANCE := 74.0
@@ -64,6 +65,7 @@ var party_combat_authority = PartyCombatAuthority.new()
 var active_hazard_encounter_id: String = ""
 var save_store = SaveStore.new()
 var battle_loadout = BattleLoadout.new("ender")
+var equipment_training = EquipmentTraining.new()
 var battle_equipment_view
 
 func _ready() -> void:
@@ -322,6 +324,21 @@ func _draw_formula_review() -> void:
         Color("#8cdbc8")
     )
 
+    var gear_line := "GEAR: LOOK ONLY (story combat unchanged)"
+    if not authored_hazard:
+        var profile: Dictionary = equipment_training.project(
+            battle_loadout,
+            Dictionary(formula_encounter.player.get("productionStats", {})),
+            int(formula_encounter.player.get("level", 1))
+        )
+        if not profile.is_empty():
+            gear_line = "PRACTICE STRIKE %d > %d  ARMOR +%d  WARD +%d" % [
+                int(profile["baselineDamage"]),
+                int(profile["equippedDamage"]),
+                int(profile["physicalDefenseDelta"]),
+                int(profile["aetherDefenseDelta"]),
+            ]
+    draw_string(ThemeDB.fallback_font, Vector2(176, 348), gear_line, HORIZONTAL_ALIGNMENT_LEFT, 480, 11, Color("#8cdbc8"))
     draw_string(ThemeDB.fallback_font, Vector2(679, 348), "5 Staff  6 Armor  7 Charm", HORIZONTAL_ALIGNMENT_LEFT, 137, 10, Color("#add5dc"))
 
     draw_string(ThemeDB.fallback_font, Vector2(176, 370), "1  Staff Strike", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#fff1ce"))
@@ -377,6 +394,9 @@ func start_formula_review() -> bool:
     active_hazard_encounter_id = ""
     formula_encounter.reset()
     if not formula_encounter.start():
+        return false
+    if not formula_encounter.set_training_loadout(battle_loadout):
+        formula_encounter.close()
         return false
     battle_equipment_view.set_pose("idle")
     battle_equipment_view.visible = true
@@ -479,6 +499,8 @@ func equip_review_item(slot_id: String, item_id: String) -> bool:
     if not formula_encounter.active or not battle_loadout.equip(slot_id, item_id):
         return false
     battle_equipment_view.set_appearance(battle_loadout.appearance())
+    # Training-only: intentional no-op in authored Wind Shear encounters.
+    formula_encounter.set_training_loadout(battle_loadout)
     last_message = "Equipment study: " + str(battle_loadout.appearance().get("weaponName", ""))
     _refresh_ui()
     queue_redraw()
@@ -488,6 +510,7 @@ func cycle_equipment_review(slot_id: String) -> bool:
     if not formula_encounter.active or not battle_loadout.cycle_ender_review(slot_id):
         return false
     battle_equipment_view.set_appearance(battle_loadout.appearance())
+    formula_encounter.set_training_loadout(battle_loadout)
     _refresh_ui()
     queue_redraw()
     return true
