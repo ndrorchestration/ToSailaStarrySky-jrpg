@@ -119,6 +119,25 @@ func _run() -> void:
             nonuniform = true
             break
     check(nonuniform, "deterministic forest contains varied height-width profiles")
+    # A mixed forest must contain a separate, visible canopy type, with its
+    # transforms grounded in the same sampled forest as the existing trees.
+    var has_broadleaf: bool = scene.terrain.has_node("BroadleafCrowns")
+    check(has_broadleaf, "forest includes a second canopy type")
+    if has_broadleaf:
+        var broadleaf: MultiMeshInstance3D = scene.terrain.get_node("BroadleafCrowns")
+        var broad_poses: Array[Transform3D] = scene.terrain.broadleaf_poses
+        check(broad_poses.size() > 5, "second canopy has multiple placements")
+        check(broadleaf.multimesh.instance_count == broad_poses.size(),
+            "second canopy instance count mirrors authored placements")
+        var trunk_nodes: MultiMeshInstance3D = scene.terrain.get_node("ForestTrunks")
+        check(trunk_nodes.multimesh.instance_count == cpu_poses.size() + broad_poses.size(),
+            "each mixed-forest crown retains a trunk")
+        for pose in broad_poses:
+            check(scene.terrain.classify(pose.origin.x, pose.origin.z) == "forest",
+                "second canopy belongs to forest biome")
+            check(absf(pose.origin.y - scene.terrain.sample_height(pose.origin.x, pose.origin.z)) < 0.0001,
+                "second canopy placement is grounded")
+
     scene._clock = 9.0
     scene._paused = true
     scene._process(0.2)
