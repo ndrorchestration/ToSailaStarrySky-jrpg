@@ -99,8 +99,14 @@ func _run_tests() -> void:
         var wing_rig: Node3D = ship.get_node("WingRig_" + wing_name)
         _check(wing_rig.get_node("Membrane_" + wing_name) is MeshInstance3D,
             "independently articulated wing membrane " + wing_name)
-        _check(wing_rig.get_child_count() >= 16,
-            "wing has fine structural ribs and scalloped perimeter " + wing_name)
+        _check(wing_rig.get_child_count() == 4,
+            "wing structure batches into one membrane and three rib meshes " + wing_name)
+        for material_group in ["Brass", "Dark", "Glass"]:
+            var rib_batch: MeshInstance3D = wing_rig.get_node(
+                material_group + "RibBundle_" + wing_name)
+            _check(rib_batch.mesh is ArrayMesh and
+                rib_batch.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size() >= 72,
+                "wing preserves nonempty batched tube geometry " + material_group)
         var membrane: MeshInstance3D = wing_rig.get_node("Membrane_" + wing_name)
         var arrays: Array = membrane.mesh.surface_get_arrays(0)
         var membrane_vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
