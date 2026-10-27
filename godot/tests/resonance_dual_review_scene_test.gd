@@ -21,7 +21,24 @@ func _verify() -> void:
     if world.battle.snapshot() != opening:
         _fail("illegal player input changed battle")
         return
+    # Explicitly inspect the optional three-beat cut-in, without a timed input gate.
+    world._toggle_motion()
+    if world.reduced_motion:
+        _fail("motion toggle could not enable optional three-beat cut-in")
+        return
     world._cast()
+    if world.visual_step != 0:
+        _fail("Spirit beat not entered on successful art")
+        return
+    for _frame in range(19):
+        world._process(0.06)
+    if world.visual_step != 3:
+        _fail("Spirit/Water/Confluence cut-in did not settle")
+        return
+    world._toggle_motion()
+    if not world.reduced_motion or world.visual_step != 3:
+        _fail("reduced-motion bypass did not restore static ward")
+        return
     var after_cast: Dictionary = world.battle.snapshot()
     if after_cast["phase"] != "enemy" or int(after_cast["wardCapacity"]) != 4:
         _fail("cast button not connected to ward controller")
