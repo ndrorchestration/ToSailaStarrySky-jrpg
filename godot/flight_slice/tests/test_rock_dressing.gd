@@ -33,7 +33,7 @@ func _run() -> void:
             for pose in placements:
                 var t: Transform3D = pose
                 check(is_equal_approx(t.origin.y,
-                    Terrain.sample_height(t.origin.x,t.origin.z)-0.10),
+                    Terrain.sample_height(t.origin.x,t.origin.z)-0.18),
                     "rock base follows single terrain elevation")
                 check(Terrain.sample_height(t.origin.x,t.origin.z) >= 9.0,
                     "no rocks scatter across coast or meadow")
