@@ -52,9 +52,13 @@ func _run() -> void:
     visuals.set_low_quality(true)
     check(visuals.water.get_shader_parameter("low_quality") == true, "low quality applied")
     check(not scene.terrain.get_node("GroundUnderstory").visible, "low quality omits undergrowth")
+    check(not scene.terrain.get_node("ShorelineStones").visible, "low quality omits coast stones")
+    check(not scene.terrain.get_node("AlpineTalus").visible, "low quality omits decorative talus")
     visuals.set_low_quality(false)
     check(visuals.water.get_shader_parameter("low_quality") == false, "high quality restored")
     check(scene.terrain.get_node("GroundUnderstory").visible, "high quality restores undergrowth")
+    check(scene.terrain.get_node("ShorelineStones").visible, "high quality restores coastline accents")
+    check(scene.terrain.get_node("AlpineTalus").visible, "high quality restores talus accents")
     check(is_equal_approx(height, scene.terrain.sample_height(30.0, -12.0)), "quality preserves heights")
     check(visuals.has_method("refresh_coverage"), "shore effects require rendered terrain coverage")
     if not visuals.has_method("refresh_coverage"):
@@ -134,8 +138,13 @@ func _run() -> void:
         var leaf_arrays: Array = broadleaf.multimesh.mesh.surface_get_arrays(0)
         var leaf_vertices: PackedVector3Array = leaf_arrays[Mesh.ARRAY_VERTEX]
         var leaf_normals: PackedVector3Array = leaf_arrays[Mesh.ARRAY_NORMAL]
-        check(leaf_vertices.size() >= 100 and leaf_vertices.size() <= 1200,
-            "clustered crown geometry remains nonempty and bounded")
+        check(leaf_vertices.size() >= 500 and leaf_vertices.size() <= 1200,
+            "multi-lobe crown geometry improves silhouette inside the vertex budget")
+        var leaf_bounds: AABB = broadleaf.multimesh.mesh.get_aabb()
+        check(leaf_bounds.size.x > 2.0 and leaf_bounds.size.x < 3.5,
+            "asymmetric canopy stays within an appropriate tree width")
+        check(leaf_bounds.size.y > 1.75 and leaf_bounds.size.y < 3.1,
+            "asymmetric canopy stays within the authored trunk-height scale")
         check(leaf_vertices.size() == leaf_normals.size(), "clustered crown normals are complete")
         var broad_poses: Array[Transform3D] = scene.terrain.broadleaf_poses
         check(broad_poses.size() > 5, "second canopy has multiple placements")
@@ -150,6 +159,63 @@ func _run() -> void:
             check(absf(pose.origin.y - scene.terrain.sample_height(pose.origin.x, pose.origin.z)) < 0.0001,
                 "second canopy placement is grounded")
 
+    # Exact terrain sampler authorizes every fixed art placement. Decorative
+    # geology must never become a hidden physics collider or landing obstacle.
+    var shore: MultiMeshInstance3D = scene.terrain.get_node("ShorelineStones")
+    var talus: MultiMeshInstance3D = scene.terrain.get_node("AlpineTalus")
+    var shore_poses: Array[Transform3D] = scene.terrain.shoreline_stone_poses
+    var talus_poses: Array[Transform3D] = scene.terrain.alpine_talus_poses
+    check(shore_poses.size() > 8 and shore_poses.size() <= 120,
+        "shoreline accent scatter count remains nonempty and bounded")
+    check(talus_poses.size() > 8 and talus_poses.size() <= 250,
+        "highland accent scatter count remains nonempty and bounded")
+    check(shore.multimesh.instance_count == shore_poses.size(),
+        "coastal scatter matches CPU placement authority")
+    check(talus.multimesh.instance_count == talus_poses.size(),
+        "talus scatter matches CPU placement authority")
+    check(shore.multimesh.mesh == talus.multimesh.mesh,
+        "shore and alpine instances share one generated stone mesh")
+    check(shore.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+        and talus.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,
+        "small rock accents do not add shadow draw work")
+    check(shore.get_child_count() == 0 and talus.get_child_count() == 0,
+        "rock accents add no collision bodies or per-instance scene nodes")
+    var geology_mesh: ArrayMesh = shore.multimesh.mesh
+    var geology: Array = geology_mesh.surface_get_arrays(0)
+    var geology_vertices: PackedVector3Array = geology[Mesh.ARRAY_VERTEX]
+    var geology_normals: PackedVector3Array = geology[Mesh.ARRAY_NORMAL]
+    var geology_colors: PackedColorArray = geology[Mesh.ARRAY_COLOR]
+    check(geology_vertices.size() == 81,
+        "nine-sided faceted stone stays inside tiny mesh budget")
+    check(geology_vertices.size() == geology_normals.size()
+        and geology_vertices.size() == geology_colors.size(),
+        "stone mesh has complete face normals and colors")
+    for pose in shore_poses:
+        var location: Vector3 = pose.origin
+        check(location.y > TerrainStudy.SEA_LEVEL,
+            "shore stones cannot be placed under the water datum")
+        check(TerrainStudy.classify(location.x, location.z) in ["coast", "grassland"],
+            "shore rock location has a dry near-coast biome")
+        check(absf(location.y - TerrainStudy.sample_height(location.x, location.z) - 0.05) < 0.0001,
+            "shore stone placement is sample-height grounded")
+        check(not (absf(location.z + 23.0) < 11.0 and location.x < 11.0),
+            "shore stone scatter clears the cliffside dock")
+    for pose in talus_poses:
+        var location: Vector3 = pose.origin
+        check(pose.basis.get_scale().y < pose.basis.get_scale().x * 0.65,
+            "alpine scree keeps a shallow debris silhouette")
+        check(TerrainStudy.classify(location.x, location.z) in ["alpine", "summit"],
+            "talus remains restricted to rocky upper elevations")
+        check(absf(location.y - TerrainStudy.sample_height(location.x, location.z) - 0.04) < 0.0001,
+            "talus placement is sample-height grounded")
+        check(not (location.x > 5.5 and location.x < 16.0
+            and location.z > -19.0 and location.z < -6.0),
+            "geology does not obstruct the touchdown field")
+    check(is_equal_approx(float(visuals.shore_minerals.get_shader_parameter("wetness")), 0.32),
+        "coastal rock material is restrained and weathered")
+    check(is_zero_approx(float(visuals.alpine_minerals.get_shader_parameter("wetness"))),
+        "alpine rock has no ocean-wet material")
+    
     # An opaque single-mesh undergrowth layer adds ground-scale visual texture
     # without changing biome, terrain height, safe landing, or tree placements.
     var plants: MultiMeshInstance3D = scene.terrain.get_node("GroundUnderstory")
