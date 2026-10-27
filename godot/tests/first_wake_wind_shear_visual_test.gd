@@ -64,6 +64,14 @@ func _verify() -> void:
     # v1 pixels, while frames 1/2/3 contain individually drawn facet changes.
     var old_image: Image = art.atlas_texture.get_image()
     var idle_image: Image = art.idle_atlas_texture.get_image()
+    # Godot may import two PNG textures using different internal image formats
+    # even though they draw identical pixels. Compare normalized RGBA8 pixels.
+    if old_image.is_compressed():
+        old_image.decompress()
+    if idle_image.is_compressed():
+        idle_image.decompress()
+    old_image.convert(Image.FORMAT_RGBA8)
+    idle_image.convert(Image.FORMAT_RGBA8)
     var old_hold: PackedByteArray = old_image.get_region(Rect2i(0, 0, 80, 92)).get_data()
     if idle_image.get_region(Rect2i(0, 0, 80, 92)).get_data() != old_hold:
         _fail("new idle still is not byte-identical in pixels to original")
