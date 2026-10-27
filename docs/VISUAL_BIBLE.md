@@ -1,3 +1,7 @@
+> **2026-10-27 current production/ship notice:** Read the [cinematic production and orphan-work audit](2026-10-27_CINEMATIC_PRODUCTION_ORPHAN_AUDIT.md) before implementing this historically authored visual grammar. **Aureate Wake** is the protagonists' dragonfly-derived home and current flight hero-asset target. **The Dragonfly** is a different larger Frigate, so historical “Dragonfly as the visual hero object” language below does not authorize their substitution. The five character *story energies* are Ender Spirit, Lyra Water (plus pink Spirit motif), Ionia Earth, Reson Fire and Aepex Air, distinct from learned schools/VFX palettes. Old screenshots/asset drafts and technical capture PASS are not creator art acceptance. Preserve the luminous pixel-authoring thesis while using forward Godot 4.7.2/GDScript.
+
+---
+
 # Aetherwake Visual Bible
 
 > **2026-10-25 authority update:** The player-facing title is **To Sail the Starry Sky** (Aetherwake is the historical/in-world identifier). Forward implementation uses **Godot 4.7.2 / GDScript**. Preserve the established visual thesis below. For newer creator-specific character locks, planetary fidelity, Dragonfly scale, and physical world grounding read [CHARACTER_AND_ART_AUTHORITY.md](CHARACTER_AND_ART_AUTHORITY.md), [WORLD_SHIP_VISUAL_DIRECTION.md](WORLD_SHIP_VISUAL_DIRECTION.md) and [AGENT_HANDOFF_INDEX.md](AGENT_HANDOFF_INDEX.md); historical statements about open eye/hair/outfit traits or engine strategy may be superseded.
