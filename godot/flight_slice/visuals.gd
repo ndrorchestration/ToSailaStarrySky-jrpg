@@ -19,6 +19,7 @@ func _ready() -> void:
     # Share one light direction across dome and ocean; avoids split sun glints.
     sky_material.set_shader_parameter("sun_direction", SUN_DIRECTION)
     water.set_shader_parameter("sun_direction", SUN_DIRECTION)
+    water.set_shader_parameter("sea_surface_elevation", TerrainStudy.SEA_LEVEL)
     var daylight := DirectionalLight3D.new()
     daylight.name = "GoldenHourKey"
     add_child(daylight)
