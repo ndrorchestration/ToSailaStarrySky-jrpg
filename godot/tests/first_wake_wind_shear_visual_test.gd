@@ -54,6 +54,32 @@ func _verify() -> void:
     if WindShearVisual.ART_BOUNDS != Rect2(-91.0, -92.0, 182.0, 184.0):
         _fail("review-stage bounds drifted without layout review")
         return
+    if WindShearVisual.DISPLAY_SCALE != 2.0:
+        _fail("enemy atlas must use exact integer-pixel 2x sampling")
+        return
+    # Test all authored idle fracture phases without advancing encounter time.
+    var expected_offsets := [
+        PackedInt32Array([0, 0, 0]),
+        PackedInt32Array([0, 2, -2]),
+        PackedInt32Array([-2, 0, 2]),
+        PackedInt32Array([2, -2, 0]),
+        PackedInt32Array([0, 0, 0]),
+    ]
+    for i in range(expected_offsets.size()):
+        art.visual_clock = float(i) * WindShearVisual.IDLE_POSE_STEP_SECONDS + 0.01
+        if art.idle_band_offsets() != expected_offsets[i]:
+            _fail("authored idle-shear pose %d drifted" % i)
+            return
+    art.set_reduced_motion(true)
+    art.visual_clock = 0.73
+    if art.idle_band_offsets() != PackedInt32Array([0, 0, 0]):
+        _fail("reduced motion did not freeze procedural in-between offsets")
+        return
+    art.set_reduced_motion(false)
+    art.begin_encounter()
+    if art.idle_band_offsets() != PackedInt32Array([0, 0, 0]):
+        _fail("fresh encounters retained idle fracture state")
+        return
 
     # The synthetic, explicitly noncanonical formula target has no authority to
     # display this character's art even if the formula controller is active.
@@ -114,6 +140,9 @@ func _verify() -> void:
     if art.hit_feedback_seconds <= 0.0:
         _fail("confirmed enemy HP loss did not trigger brief hit feedback")
         return
+    if art.idle_band_offsets() != PackedInt32Array([0, 0, 0]):
+        _fail("impact feedback must suppress idle pose shearing")
+        return
 
     var reaction_duration: float = art.hit_feedback_seconds
     for _frame in range(6):
@@ -131,6 +160,11 @@ func _verify() -> void:
     if art.gale_accent_seconds != 0.0 or art.visual_clock != 0.0 or art.hit_feedback_seconds != 0.0:
         _fail("reduced-motion mode did not remove ambient/retaliation motion")
         return
+    art.visual_clock = 0.5
+    if art.idle_band_offsets() != PackedInt32Array([0, 0, 0]):
+        _fail("reduced motion allowed shear offsets at nonzero sampled clock")
+        return
+    art.visual_clock = 0.0
     art._process(0.4)
     if art.visual_clock != 0.0:
         _fail("ambient motion advanced despite reduced-motion mode")
