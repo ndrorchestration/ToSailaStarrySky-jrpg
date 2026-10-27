@@ -28,6 +28,8 @@ var player_defeated: bool = false
 var encounter_kind: String = "formula_review"
 var turns: int = 0
 var enemy_turns: int = 0
+var training_pressure_enabled: bool = false
+var last_training_hit: Dictionary = {}
 var player: Dictionary = {}
 var target: Dictionary = {}
 var log: Array[String] = []
@@ -75,6 +77,8 @@ func reset() -> void:
     encounter_kind = "formula_review"
     turns = 0
     enemy_turns = 0
+    training_pressure_enabled = false
+    last_training_hit = {}
     log = []
 
 func start() -> bool:
@@ -129,6 +133,43 @@ func set_training_loadout(loadout) -> bool:
     player["reviewEquipmentBonuses"] = bonuses.duplicate(true)
     return true
 
+## Deliberate opt-in. Default noncanonical practice remains nonretaliating
+## to preserve the existing learning encounter and save/fixture contracts.
+func set_training_pressure(enabled: bool) -> bool:
+    if not active or completed or player_defeated or encounter_kind != "formula_review":
+        return false
+    if not bool(player.get("isNoncanonicalEquipmentReview", false)):
+        return false
+    training_pressure_enabled = enabled
+    last_training_hit = {}
+    log.append("Training pressure %s (fixture only)." % ("enabled" if enabled else "disabled"))
+    return true
+
+func _resolve_training_pressure() -> bool:
+    if not training_pressure_enabled or not active or encounter_kind != "formula_review":
+        return false
+    if completed or player_defeated or not bool(player.get("isNoncanonicalEquipmentReview", false)):
+        return false
+    var damage_kind := "physical" if enemy_turns % 2 == 0 else "aether"
+    var bonuses: Dictionary = player.get("reviewEquipmentBonuses", {})
+    var primary: Dictionary = player.get("productionStats", {})
+    var result: Dictionary = equipment_training.resolve_practice_hit(
+        primary, int(player.get("level", 1)), bonuses, damage_kind
+    )
+    if result.is_empty():
+        log.append("Training pressure unavailable: invalid fixture stats.")
+        return false
+    last_training_hit = result.duplicate(true)
+    player["vit"] = maxi(0, int(player.get("vit", 0)) - int(result["damage"]))
+    enemy_turns += 1
+    log.append("Practice %s: %d damage (%d prevented by gear)." % [
+        damage_kind, int(result["damage"]), int(result["mitigatedByGear"])
+    ])
+    if int(player["vit"]) == 0:
+        player_defeated = true
+        log.append("Practice exhausted. Close the review; story progression unchanged.")
+    return true
+
 func _valid_target_profile(profile: Dictionary) -> bool:
     if profile.is_empty():
         return false
@@ -175,6 +216,8 @@ func take_action(action_id: String) -> bool:
 
     if accepted and encounter_kind == "authored_hazard" and not completed:
         _resolve_enemy_retaliation()
+    elif accepted and encounter_kind == "formula_review" and training_pressure_enabled and not completed:
+        _resolve_training_pressure()
     return accepted
 
 func _staff_strike() -> bool:
