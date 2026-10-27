@@ -21,6 +21,20 @@ var detailed_tiles: int = 0
 static func coastline_at(z: float) -> float:
     return -6.0 + 4.8 * sin(z * 0.049) + 1.8 * sin(z * 0.137)
 
+# Compact, tilted alpine lobes produce a more varied silhouette while
+# keeping the existing coastal and landing-field heights unchanged.
+static func _ridge_lobe(x: float, z: float, cx: float, cz: float,
+        width_x: float, width_z: float, tilt: float) -> float:
+    var dx: float = x - cx
+    var dz: float = z - cz + dx * tilt
+    # The smooth envelope avoids a mathematical cone; modest cross-cutting
+    # undulations make ridgelines less symmetrical without changing the pad.
+    var shifted_z: float = dz + 1.9 * sin(dx * 0.15)
+    var radial_sq: float = pow(dx / width_x, 2.0) + pow(shifted_z / width_z, 2.0)
+    var detail: float = 0.84 + 0.11 * cos(dx * 0.36 + dz * 0.22) \
+        + 0.05 * cos(dx * 0.18 - dz * 0.41)
+    return exp(-2.0 * radial_sq) * detail
+
 static func sample_height(x: float, z: float) -> float:
     var coast: float = coastline_at(z)
     var rise: float = smoothstep(coast - 8.0, coast + 19.0, x)
@@ -28,7 +42,11 @@ static func sample_height(x: float, z: float) -> float:
     var broad: float = sin(z * 0.089 + x * 0.031) * 1.1
     var ridges: float = sin(x * 0.22 + z * 0.12) * cos(z * 0.13) * 2.2
     var detail: float = sin(x * 0.71) * sin(z * 0.53) * 0.29
-    return -2.4 + 5.6 * rise + highland * (14.5 + broad * 1.8 + ridges) + rise * (broad + detail)
+    var summit: float = 11.0 * _ridge_lobe(x, z, 72.0, -12.0, 18.0, 15.0, 0.28)
+    summit += 8.0 * _ridge_lobe(x, z, 70.0, 18.0, 17.0, 14.0, -0.22)
+    summit += 9.0 * _ridge_lobe(x, z, 75.0, -35.0, 16.0, 14.0, -0.18)
+    summit *= smoothstep(50.0, 58.0, x)
+    return -2.4 + 5.6 * rise + highland * (14.5 + broad * 1.8 + ridges) + rise * (broad + detail) + summit
 
 static func classify(x: float, z: float) -> String:
     var y: float = sample_height(x, z)
