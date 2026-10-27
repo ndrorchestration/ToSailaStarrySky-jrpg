@@ -91,8 +91,39 @@ func _run_tests() -> void:
     get_root().add_child(ship)
     await process_frame
     _check(ship.get_child_count() >= 10, "ship silhouette has authored parts")
+    var hull: MeshInstance3D = ship.get_node("LongHull")
+    _check(hull.mesh is ArrayMesh, "ship has a shaped original loft hull rather than an elongated primitive")
+    var hull_points: PackedVector3Array = hull.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+    _check(hull_points.size() >= 500, "ship hull has distinct longitudinal stations")
+    for wing_name in ["PortFore", "PortAft", "StarboardFore", "StarboardAft"]:
+        var wing_rig: Node3D = ship.get_node("WingRig_" + wing_name)
+        _check(wing_rig.get_node("Membrane_" + wing_name) is MeshInstance3D,
+            "independently articulated wing membrane " + wing_name)
+        _check(wing_rig.get_child_count() >= 7,
+            "wing has visible edges and radial veins " + wing_name)
+    for index in range(3):
+        _check(ship.get_node("VaneMast_%s" % index) is MeshInstance3D,
+            "three navigation vanes have their own supports")
+    for side_name in ["Port", "Starboard"]:
+        for index in range(3):
+            _check(ship.get_node("HearthWindow_%s_%s" % [side_name, index]) is MeshInstance3D,
+                "warm lived-in cabin glazing is present")
+    ship.set_motion(5.0, false)
+    _check(absf(ship.get_node("WingRig_PortFore").rotation.z) > 0.0001,
+        "idle wing flex is visible without reduced motion")
     ship.set_motion(5.0, true)
     _check(ship.rotation == Vector3.ZERO, "reduced-motion stillness")
+    for wing_name in ["PortFore", "PortAft", "StarboardFore", "StarboardAft"]:
+        _check(is_zero_approx(ship.get_node("WingRig_" + wing_name).rotation.z),
+            "reduced motion stops visual wing flex " + wing_name)
+    ship.set_landing_gear(true)
+    _check(ship.get_node("TouchdownFoot_Port").visible and
+        ship.get_node("TouchdownFoot_Starboard").visible,
+        "native touchdown study keeps its visual feet")
+    ship.set_landing_gear(false)
+    _check(not ship.get_node("TouchdownFoot_Port").visible and
+        not ship.get_node("TouchdownFoot_Starboard").visible,
+        "touchdown feet retract as before")
     terrain.queue_free()
     ship.queue_free()
     call_deferred("_finish")
