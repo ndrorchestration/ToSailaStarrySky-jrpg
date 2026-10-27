@@ -7,6 +7,7 @@ const VisualStudy = preload("res://visuals.gd")
 const FlightStudy = preload("res://flight_controller.gd")
 const LandingStudy = preload("res://landing_study.gd")
 const LandingCollision = preload("res://landing_collision.gd")
+const RouteProgress = preload("res://planetary_route_progress.gd")
 var visuals: Node3D
 var _low_quality: bool = false
 
@@ -27,8 +28,12 @@ var landing_ground: StaticBody3D
 var _touchdown_requested: bool = false
 var last_touchdown_contact: Dictionary = {"valid": false}
 var _landing_message: String = ""
+## Opt-in instrumentation. Not a globe or Chapter I scene transition.
+var route_progress = RouteProgress.new()
+var _route_study_enabled: bool = false
 
 func _ready() -> void:
+    _route_study_enabled = OS.get_cmdline_user_args().has("--route-study")
     if OS.get_cmdline_user_args().has("--baseline"):
         _install_environment()
     else:
@@ -72,11 +77,14 @@ func _process(delta: float) -> void:
                 float(Input.is_key_pressed(KEY_E)) - float(Input.is_key_pressed(KEY_Q))
             ), step)
     _update_scene(step)
+    if _route_study_enabled and _manual_active and not _paused:
+        _advance_route_coast_if_confirmed()
     _status_timer += step
     if _status_timer > 0.35:
         _status_timer = 0.0
         var flight_info: String = "PILOT %s  |  clearance %.1f m  |  heading %.0f°  |  %s" % [landing.state, FlightStudy.clearance(ship.position), rad_to_deg(_manual_heading), _landing_message] if _manual_active else "AUTOMATIC FLYOVER  |  C camera framing"
-        overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + "F pilot/flyover · W/S move · A/D steer · E/Q ascend/descend\nT ground approach/takeoff (test field) · P pause · M still effects\nR reset · V detail · H HUD\nNON-CANON STUDY  •  TERRAIN RAYCAST / NO RIGIDBODY FLIGHT"
+        var route_label: String = "  |  ROUTE %s" % RouteProgress.Phase.keys()[route_progress.phase] if _route_study_enabled else ""
+        overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + route_label + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + "F pilot/flyover · W/S move · A/D steer · E/Q ascend/descend\nT ground approach/takeoff (test field) · P pause · M still effects\nR reset · V detail · H HUD\nNON-CANON STUDY  •  TERRAIN RAYCAST / NO RIGIDBODY FLIGHT"
 
 func _unhandled_key_input(event: InputEvent) -> void:
     if not (event is InputEventKey):
@@ -114,6 +122,8 @@ func set_manual_mode(enabled: bool) -> void:
     last_touchdown_contact = {"valid": false}
     _landing_message = ""
     if enabled:
+        if _route_study_enabled and route_progress.phase == RouteProgress.Phase.DOCKED:
+            route_progress.start_departure(RouteProgress.HOME_SHIP_ID)
         _manual_position = ship.position
         _manual_heading = 0.0
     else:
@@ -163,6 +173,25 @@ func _physics_process(delta: float) -> void:
     # Rendering/input ticks cannot advance a cached touchdown between queries.
     if landing.state != "FLYING":
         _manual_position = landing.tick(_manual_position, delta)
+    if _route_study_enabled and landing.state == "LANDED":
+        # Re-probe on a physics tick; stale contact cannot progress the route.
+        var confirmed_contact: Dictionary = _probe_landing_contact()
+        if landing.has_support(confirmed_contact):
+            route_progress.mark_touchdown(confirmed_contact, landing.state)
+
+func _advance_route_coast_if_confirmed() -> void:
+    if route_progress.phase != RouteProgress.Phase.DEPARTED:
+        return
+    # Local coastal sample only; never implies spherical navigation.
+    var at: Vector3 = _manual_position
+    var in_bounds: bool = at.x >= FlightStudy.X_BOUND.x and at.x <= FlightStudy.X_BOUND.y and at.z >= FlightStudy.Z_BOUND.x and at.z <= FlightStudy.Z_BOUND.y
+    var local_land: bool = TerrainStudy.sample_height(at.x, at.z) > TerrainStudy.SEA_LEVEL + 0.8
+    var water_nearby: bool = false
+    for offset in [Vector2(-5, 0), Vector2(5, 0), Vector2(0, -5), Vector2(0, 5)]:
+        if TerrainStudy.sample_height(at.x + offset.x, at.z + offset.y) <= TerrainStudy.SEA_LEVEL:
+            water_nearby = true
+            break
+    route_progress.mark_coast(in_bounds, local_land and water_nearby)
 
 func _probe_landing_contact() -> Dictionary:
     if not is_instance_valid(landing_ground) or not landing_ground.is_inside_tree():
