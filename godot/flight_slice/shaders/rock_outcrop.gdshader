@@ -24,10 +24,10 @@ void fragment() {
     if (biome_layer_strength>0.001) {
         regional=texture(biome_macrodetail,world_pos.xz*0.018).r;
     }
-    vec3 slate=mix(vec3(0.19,0.23,0.28),
-        vec3(0.41,0.40,0.34),regional);
+    vec3 slate=mix(vec3(0.29,0.32,0.34),
+        vec3(0.49,0.46,0.39),regional);
     float bedding=0.5+0.5*sin(world_pos.y*6.5+world_pos.x*0.65);
-    vec3 c=slate*(0.89+0.16*bedding)
+    vec3 c=slate*(0.95+0.14*bedding)
         *mix(1.0,0.72+fine*0.58,texture_detail_strength);
     ALBEDO=c*COLOR.rgb;
     ROUGHNESS=0.92;
