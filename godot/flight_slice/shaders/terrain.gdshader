@@ -4,6 +4,10 @@ uniform float study_time = 0.0;
 // Original 128x128 tileable authored PNG: micro-grain, fractured stone, grit.
 uniform sampler2D terrain_microdetail : filter_linear_mipmap, repeat_enable;
 uniform float texture_detail_strength : hint_range(0.0, 1.0) = 0.65;
+uniform sampler2D biome_macrodetail : filter_linear_mipmap, repeat_enable;
+uniform float biome_layer_strength : hint_range(0.0, 1.0) = 0.0;
+uniform float shoreline_wet_strength : hint_range(0.0, 1.0) = 0.0;
+uniform float sea_surface_elevation = -0.15;
 varying vec3 world_pos;
 varying vec3 world_normal;
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
@@ -18,9 +22,18 @@ void fragment() {
     float slope=1.0-clamp(world_normal.y,0.0,1.0);
     vec3 texel=texture(terrain_microdetail,world_pos.xz*0.24).rgb;
     float textile=texture_detail_strength;
+    // Coarse world-space macro swaths stabilize color at flight altitude.
+    // Spatial values never affect height/collision or the underlying biome ID.
+    vec3 regional=vec3(0.5);
+    if (biome_layer_strength>0.001) {
+        regional=texture(biome_macrodetail,world_pos.xz*0.018).rgb;
+    }
     vec3 grass=mix(vec3(0.10,0.20,0.13),vec3(0.31,0.37,0.17),mottling);
     grass=mix(grass,vec3(0.08,0.17,0.13),smoothstep(16.0,30.0,p.x)*0.35);
     grass*=mix(1.0,0.63+texel.r*0.77,textile);
+    vec3 meadow_green=mix(vec3(0.075,0.16,0.13),
+        vec3(0.38,0.39,0.17),smoothstep(0.22,0.80,regional.g));
+    grass=mix(grass,meadow_green,biome_layer_strength*0.72);
     float strata=sin(p.y*4.0+noise(p.xz*0.3)*3.0)*0.5+0.5;
     // Weathered strata and sparse talus give exposed slopes geographic form
     // without inventing a second elevation model or touching collision heights.
@@ -44,16 +57,33 @@ void fragment() {
         *smoothstep(0.43,0.80,noise(p.xz*0.94));
     rock=mix(rock,vec3(0.32,0.32,0.31),scree*0.24);
     rock*=mix(1.0,0.61+texel.g*0.85,textile);
+    // Mountain escarpment channels tint stone at 50m-ish spans, with
+    // planar axis contributions reducing the appearance of stretched faces.
+    vec3 stone_tint=mix(vec3(0.16,0.21,0.30),
+        vec3(0.49,0.42,0.29),smoothstep(0.24,0.76,regional.r));
+    rock=mix(rock,stone_tint,biome_layer_strength*0.65);
     vec3 color=mix(grass,rock,rocky);
     float sand=1.0-smoothstep(0.6,2.7,p.y+noise(p.xz*0.5)*0.5);
     vec3 sand_color=mix(vec3(0.36,0.31,0.22),vec3(0.70,0.59,0.40),mottling);
     sand_color*=mix(1.0,0.69+texel.b*0.66,textile);
+    sand_color=mix(sand_color,sand_color*(0.66+regional.b*0.80),
+        biome_layer_strength);
     color=mix(color,sand_color,sand);
+    // Narrow wet-sand band: height follows the SAME sea level as the ocean.
+    // Sand mask limits this visual approximation; no invisible collision area
+    // or second shoreline curve is introduced.
+    float wet_band=sand*(1.0-smoothstep(0.15,1.12,
+        world_pos.y-sea_surface_elevation))
+        *(1.0-smoothstep(0.14,0.66,slope));
+    color=mix(color,color*vec3(0.66,0.76,0.79),
+        wet_band*shoreline_wet_strength*0.76);
     float snow=smoothstep(16.3,19.0,p.y+noise(p.xz*0.42)*2.0)*(1.0-smoothstep(0.12,0.42,slope));
     // Maintain cool snow highlights while leaving headroom for direct light.
     color=mix(color,mix(vec3(0.40,0.49,0.55),vec3(0.65,0.71,0.69),mottling),snow);
     // Broad, restrained cloud shadows preserve direct-light readability.
     float cloud=noise(p.xz*0.025+vec2(study_time*0.004,0.0));
     ALBEDO=color*mix(0.82,1.0,smoothstep(0.3,0.65,cloud));
-    ROUGHNESS=clamp(0.89+texel.b*0.08*textile,0.0,1.0); SPECULAR=0.12;
+    ROUGHNESS=clamp(0.89+texel.b*0.08*textile
+        -wet_band*shoreline_wet_strength*0.18,0.59,1.0);
+    SPECULAR=mix(0.12,0.24,wet_band*shoreline_wet_strength);
 }

@@ -2,6 +2,12 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Regional biome textures and wet shoreline — 2026-10-27
+
+The fourth original, byte-reproducible `textures/biome_macrodetail.png` provides a **broad world-space** color mask on top of the earlier genuine grass/rock/sand, foliage and ocean microtextures. Existing terrain slope and altitude retain full biome/physics authority. Sand near the shared sea height receives restrained wet darkening, while water foam varies regionally without generating another coastline. **J** toggles the new regional mask/wet shore, **K** toggles the earlier fine grain, and **V** suppresses both for lower quality. All are reversible A/B preview controls, not gameplay commands.
+
+Native QA: `tests/test_biome_layers.gd` plus `tests/capture_biome_macro.gd` (coast, forest and storm-night real GL comparison pairs). See [regional material study](../../docs/reviews/BIOME_MACRO_SHORELINE_STUDY_2026-10-27.md). Not final production biome textures, world map material authority, or complete shoreline distance modeling.
+
 ## Original surface textures and moonlit scene readability — 2026-10-27
 
 This opt-in follow-on uses three **real committed 128×128 PNG microtexture resources** for terrain grass/rock/sand, woodland canopy/understory and ocean ripples. Godot shaders sample tiled world-anchored textures; binary pixel provenance is reproducible using `node godot/flight_slice/tools/generate_surface_textures.mjs --check` at repository root or `node tools/generate_surface_textures.mjs --check` from this folder. No downloaded asset packs, copyrighted game textures, additional terrain geometry, or changed collision heights.

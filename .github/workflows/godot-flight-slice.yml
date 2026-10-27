@@ -85,6 +85,12 @@ jobs:
           timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_surface_textures.gd 2>&1 | tee /tmp/surface-texture-test.log
           grep -Eq 'GODOT_SURFACE_TEXTURE_PASS checks=[0-9]+' /tmp/surface-texture-test.log
           ! grep -Eq 'GODOT_SURFACE_TEXTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|Failed loading' /tmp/surface-texture-test.log
+      - name: Verify native regional biome material and coastal wetness controls
+        run: |
+          set -o pipefail
+          timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_biome_layers.gd 2>&1 | tee /tmp/biome-macro-test.log
+          grep -Eq 'GODOT_BIOME_MACRO_PASS checks=[0-9]+' /tmp/biome-macro-test.log
+          ! grep -Eq 'GODOT_BIOME_MACRO_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/biome-macro-test.log
       - name: Deterministic native manual Dragonfly pilot mode contracts
         run: |
           set -o pipefail
@@ -157,6 +163,16 @@ jobs:
           grep -q 'NATIVE_SURFACE_TEXTURE_CAPTURE_PASS frames=6' /tmp/surface-texture-capture.log
           grep -Eq 'NATIVE_SURFACE_TEXTURE_DELTAS golden=[0-9.]+' /tmp/surface-texture-capture.log
           ! grep -Eq 'NATIVE_SURFACE_TEXTURE_CAPTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/surface-texture-capture.log
+      - name: Matched native GL six-frame coast/forest/night macro-biome material capture
+        run: |
+          set -o pipefail
+          timeout 125s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_biome_macro.gd 2>&1 | tee /tmp/biome-macro-capture.log
+          grep -q 'NATIVE_BIOME_MACRO_CAPTURE_PASS frames=6' /tmp/biome-macro-capture.log
+          grep -Eq 'NATIVE_BIOME_MACRO_DELTAS coast=[0-9.]+' /tmp/biome-macro-capture.log
+          ! grep -Eq 'NATIVE_BIOME_MACRO_CAPTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/biome-macro-capture.log
       - name: Profile actual rendered scripted flight sweep
         run: |
           set -o pipefail
@@ -196,6 +212,8 @@ jobs:
             /tmp/environment-blend-capture.log
             /tmp/surface-texture-test.log
             /tmp/surface-texture-capture.log
+            /tmp/biome-macro-test.log
+            /tmp/biome-macro-capture.log
             /tmp/environment-mood-capture.log
             /tmp/atmosphere-capture.log
             /tmp/cinematic-camera.log

@@ -3,6 +3,8 @@ render_mode diffuse_burley;
 uniform sampler2D height_field : filter_linear, repeat_disable;
 uniform sampler2D water_ripple_detail : filter_linear_mipmap, repeat_enable;
 uniform float texture_detail_strength : hint_range(0.0, 1.0) = 0.65;
+uniform sampler2D biome_macrodetail : filter_linear_mipmap, repeat_enable;
+uniform float biome_layer_strength : hint_range(0.0, 1.0) = 0.0;
 uniform sampler2D terrain_coverage : filter_nearest, repeat_disable;
 uniform float study_time = 0.0;
 uniform bool low_quality = false;
@@ -33,6 +35,10 @@ void fragment() {
     // RF texture is sampled from TerrainStudy.sample_height; no second coastline.
     float ground=texture(height_field,(p+vec2(130.0))/260.0).r;
     float cover=rendered_coverage(p);
+    vec3 coast_region=vec3(0.5);
+    if (biome_layer_strength>0.001) {
+        coast_region=texture(biome_macrodetail,p*0.018).rgb;
+    }
     // No second coastline: the signed bed height drives both land and depth.
     float depth=mix(2.5,max(sea_surface_elevation-ground,0.0),cover);
     float warp=noise(p*0.33+vec2(study_time*0.07,0.0))*4.0;
@@ -55,11 +61,19 @@ void fragment() {
     float shallow=1.0-smoothstep(0.22,1.8,depth);
     vec3 water=mix(vec3(0.065,0.29,0.27),vec3(0.013,0.072,0.14),smoothstep(0.2,2.4,depth));
     water+=vec3(0.020,0.055,0.044)*shallow*(1.0-0.28*max(wave1,0.0));
+    // Regional underwater tint is visual shelf detail, depth still sampled
+    // exclusively from the real terrain height texture.
+    water+=vec3(0.018,0.033,0.022)*shallow
+        *(coast_region.b-0.5)*biome_layer_strength;
     vec3 reflected_sky=mix(vec3(0.19,0.37,0.49),vec3(0.39,0.48,0.53),smoothstep(0.3,0.95,fresnel));
     reflected_sky*=mix(0.43,1.0,sun_visibility);
     water=mix(water,reflected_sky,fresnel*0.79);
     float shore=(1.0-smoothstep(0.10,0.65,depth))*smoothstep(0.01,0.09,depth);
-    float foam=cover*smoothstep(0.15,0.65,sin(depth*24.0-study_time*1.4+wave1*0.4))*shore;
+    float foam=cover*smoothstep(0.15,0.65,
+        sin(depth*24.0-study_time*1.4+wave1*0.4))*shore;
+    // Broad shoreline patchiness; bounded by depth and current visible
+    // terrain coverage, never an independently invented coast mask.
+    foam*=mix(1.0,0.75+coast_region.r*0.53,biome_layer_strength);
     float glints=pow(max(0.0,wave1*wave2),18.0)*(1.0-fresnel)*0.14;
     // Align the golden specular path with sky.gdshader and the scene key light.
     // Fine sparkle is optional; foaming shallows stay rougher than deep water.

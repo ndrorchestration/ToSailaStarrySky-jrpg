@@ -21,18 +21,20 @@ func _run() -> void:
     scene.set_process(false)
     var visuals = scene.visuals
     var textures: Dictionary = visuals.texture_resources
-    check(textures.size() == 3, "exactly three independent PNG microtextures")
+    check(textures.size() == 4, "three microtextures and one biome macro PNG")
     var sampler_bindings: Array = [
         ["terrain", visuals.land, "terrain_microdetail"],
         ["foliage", visuals.foliage, "foliage_microdetail"],
         ["foliage", visuals.broadleaf, "foliage_microdetail"],
         ["foliage", visuals.understory, "foliage_microdetail"],
-        ["water", visuals.water, "water_ripple_detail"]
+        ["water", visuals.water, "water_ripple_detail"],
+        ["biome", visuals.land, "biome_macrodetail"],
+        ["biome", visuals.water, "biome_macrodetail"]
     ]
     for record in sampler_bindings:
         check(record[1].get_shader_parameter(record[2]) == textures[record[0]],
             "material sampler correctly bound: " + record[2])
-    for key in ["terrain", "foliage", "water"]:
+    for key in ["terrain", "foliage", "water", "biome"]:
         var tex: Texture2D = textures[key]
         check(tex != null, "native imported PNG exists: " + key)
         if tex == null:
