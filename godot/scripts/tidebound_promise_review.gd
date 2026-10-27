@@ -5,6 +5,7 @@ extends RefCounted
 const Catalog = preload("res://scripts/party_resonance_catalog.gd")
 const AbilityContract = preload("res://scripts/combat_ability_contract.gd")
 const Reservation = preload("res://scripts/party_action_reservation.gd")
+const GrantPolicy = preload("res://scripts/resonance_review_grant_policy.gd")
 const ART_ID := "tidebound_promise"
 const REVIEW_ONLY := true
 const FOCUS_COST := 1
@@ -23,6 +24,8 @@ var log: Array[String] = []
 var catalog = Catalog.new()
 var abilities = AbilityContract.new()
 var reservations = Reservation.new()
+var grant_policy = GrantPolicy.new()
+var training_grants: Array[Dictionary] = []
 
 func _init() -> void:
     reset()
@@ -32,6 +35,8 @@ func reset() -> void:
         "ender": {"hp": 12, "maxHp": 12, "focus": 2, "alive": true, "canAct": true},
         "lyra": {"hp": 12, "maxHp": 12, "focus": 2, "alive": true, "canAct": true},
     }
+    # A reset invalidates the operator's previous review-only grant.
+    training_grants.clear()
     phase = "player"
     ward_capacity = 0
     turns = 0
@@ -44,6 +49,7 @@ func snapshot() -> Dictionary:
         "reviewOnly": true, "phase": phase, "party": party.duplicate(true),
         "wardCapacity": ward_capacity, "turns": turns, "enemyTurns": enemy_turns,
         "lastOutcome": last_outcome.duplicate(true), "log": log.duplicate(),
+        "trainingGrants": training_grants.duplicate(true),
     }
 
 func configure_fixture(actor_id: String, values: Dictionary) -> bool:
@@ -73,11 +79,29 @@ func configure_fixture(actor_id: String, values: Dictionary) -> bool:
     party = next
     return true
 
+func grant_training_access(art_id: String) -> Dictionary:
+    # Explicitly invoked by the standalone lab UI, never by plot events or
+    # inferred from Spirit/Water, current jobs, or party membership.
+    if phase != "player" or turns != 0:
+        return _reject("grant_outside_setup")
+    if art_id != ART_ID:
+        return _reject("unsupported_fixture_art")
+    if not training_grants.is_empty():
+        return _reject("grant_already_issued")
+    var grant: Dictionary = grant_policy.create_training_grant(art_id)
+    if grant.is_empty():
+        return _reject("grant_definition_invalid")
+    training_grants.append(grant.duplicate(true))
+    return {"ok": true, "reason": "training_grant_issued", "reviewOnly": true}
+
 func admission() -> Dictionary:
     if not catalog.validate_catalog():
         return _reject("invalid_catalog")
     if phase != "player":
         return _reject("wrong_phase")
+    var permission: Dictionary = grant_policy.check(ART_ID, snapshot(), training_grants)
+    if not bool(permission.get("ok", false)):
+        return _reject(str(permission.get("reason", "review_grant_denied")))
     var art: Dictionary = catalog.definition_for(ART_ID)
     if art.is_empty() or art.get("sourceKind", "") != "dual" or art.get("participants", []) != PARTICIPANTS:
         return _reject("invalid_art")
