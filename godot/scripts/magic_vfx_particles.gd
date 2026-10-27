@@ -38,12 +38,12 @@ func _draw() -> void:
     var count := particle_budget()
     for i in range(count):
         var index := float(i)
-        var random_a := sin(index * 127.1 + 8.27) * 43758.5453
-        var random_b := sin(index * 58.9 + 2.65) * 22578.1459
-        var a := TAU * (random_a - floor(random_a))
-        var f := random_b - floor(random_b)
+        var random_a: float = sin(index * 127.1 + 8.27) * 43758.5453
+        var random_b: float = sin(index * 58.9 + 2.65) * 22578.1459
+        var a: float = TAU * (random_a - floor(random_a))
+        var f: float = random_b - floor(random_b)
         var center := Vector2.ZERO
-        var radius := 58.0 + f * 100.0
+        var radius: float = 58.0 + f * 100.0
         var mot := progress if not reduced_motion else 0.29
         var light := accent if i % 5 == 0 else main_color
         var color := _tint(light, weight * (0.45 + f * 0.50))
