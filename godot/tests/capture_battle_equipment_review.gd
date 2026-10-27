@@ -56,7 +56,18 @@ func _capture() -> void:
     if complete == null or complete.get_region(REGION).get_data() == weapon_swap.get_region(REGION).get_data():
         _fail("real rendered armor/charm region did not change")
         return
-    print("AETHERWAKE_BATTLE_EQUIPMENT_NATIVE_RENDER_PASS: equipment layer has distinct native pixels; player/art acceptance pending")
+    if not world.take_formula_review_action("staffStrike"):
+        _fail("authorized strike not playable with changed gear")
+        return
+    if world.battle_equipment_view.pose_id != "strike":
+        _fail("strike did not update visual pose")
+        return
+    await process_frame
+    var strike: Image = await _snapshot("staff-strike-pose-native-960x640")
+    if strike == null or strike.get_region(REGION).get_data() == complete.get_region(REGION).get_data():
+        _fail("real framebuffer did not move the wielded weapon with the attack pose")
+        return
+    print("AETHERWAKE_BATTLE_EQUIPMENT_NATIVE_RENDER_PASS: distinct native equipped weapon, outfit and attack-socket pixels; player/art acceptance pending")
     world.queue_free()
     quit(0)
 
