@@ -2,6 +2,17 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Experimental crew boarding threshold — October 27, 2026
+
+**PROPOSAL / standalone physics study**, built on top of the public-safe deck in PR #452. Open `res://ship_boarding_interface.tscn` separately for the bow-to-cabin threshold proof; the main flight scene, landed-state logic, save files, and chapter story are unchanged.
+
+- `ship_boarding_interface.gd` scales the existing foredeck art geometry by an explicit **2.5 study-metres per art-unit**, with its deck raised/lowered to a proposed `y=0` walk surface. This is **not a proven overall ship scale**; the separately authored 10.4 × 3.8 × 2.6 m interior envelope is intentionally NOT attached.
+- Constructs a **short isolated forward cabin entry** with a physical `StaticBody3D` floor, side bulkhead pieces, visible lintel and a hinged physical door. The actual bow deck gets a collidable `ConcavePolygonShape3D` built from the *same* mesh triangle faces as the rendered platform; the cabin floor uses a measured `BoxShape3D`. Physics collision mask/layer 8 keeps the prototype separate from the 792-triangle landing test-field contract.
+- A nominal **1.36 m × 1.96 m** crew doorway is proposed. Opening the hinged door clears the test passage; closing it should block a **1.74 m-high, 0.26 m-radius** actor capsule. `tests/test_ship_boarding.gd` verifies `PhysicsDirectSpaceState3D` down-rays across each side of the walking-floor join and shape-casts through the door in closed/open conditions. Passing tests demonstrate only **that isolated physical segment**, not whole-ship traversability or seal strength.
+- Two actual **960×640 native Godot** images capture the open and closed panel under `evidence/ship-boarding/`. `tests/capture_ship_boarding.gd` is an offline review fixture with no HUD and no associated gameplay controls.
+
+**Blocking quality findings:** Existing bow rails scale to **0.725 m** height in this explicit mapping, short of a 0.9 m design review target; they are still purely decorative, not collidable. The actual oval `UpperCabin` exterior is **solid and has no hatch cut-out**. The larger prior interior study has different proportions and cannot be assumed to fit the exterior. There is no cabin shell/collision/navmesh, watertight door rating, modeled egress, water handling, emergency overrides, or environment safety implementation. These remain explicit future integration gates. Keep unrevealed ship/plot capabilities in creator-controlled private lore, not in public source.
+
 ## Ordinary bow lookout visual study — 2026-10-27
 
 Creator direction establishes an **ordinarily accessible forward open-air deck** on the compact Aureate Wake and authentic surface seaworthiness. This public-safe Godot geometry study adds `ship_foredeck.gd` as a standalone scene child mounted on the flight ship. It has a native upper-facing tapered platform, guardrails, bow crossrail, open rear crew threshold, and a review-only weather cover. Default is **open**. A translucent hood can be toggled visually but is **not** a watertight or pressure-rated enclosure.
