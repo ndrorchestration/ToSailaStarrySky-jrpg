@@ -4,6 +4,7 @@ uniform sampler2D height_field : filter_linear, repeat_disable;
 uniform sampler2D terrain_coverage : filter_nearest, repeat_disable;
 uniform float study_time = 0.0;
 uniform bool low_quality = false;
+uniform vec3 sun_direction = vec3(0.65, 0.43, -0.70);
 varying vec3 world_pos;
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
 float noise(vec2 p) {
@@ -46,7 +47,7 @@ void fragment() {
     float glints=pow(max(0.0,wave1*wave2),18.0)*(1.0-fresnel)*0.14;
     // Align the golden specular path with sky.gdshader and the scene key light.
     // Fine sparkle is optional; foaming shallows stay rougher than deep water.
-    vec3 solar_view=normalize(mat3(VIEW_MATRIX)*normalize(vec3(0.65,0.43,-0.70)));
+    vec3 solar_view=normalize(mat3(VIEW_MATRIX)*normalize(sun_direction));
     float sun_flash=pow(max(dot(reflect(-solar_view,NORMAL),normalize(VIEW)),0.0),
         low_quality ? 88.0 : 128.0);
     float fine_sparkle=low_quality ? 0.0 :
