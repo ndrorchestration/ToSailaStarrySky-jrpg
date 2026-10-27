@@ -20,7 +20,7 @@ The existing biome height/slope classifications, shared shoreline heights, singl
 - Preset night key, cool fill, ambient lighting and fog values have been balanced upward slightly for ship/terrain silhouettes in weather. **No simulated moon, changed lunar phase, celestial lane or story trigger.**
 - **K** toggles texture microdetail for exact same-frame visual A/B; default is ON. **V** low-detail overrides K and sends strength 0 for all surface families. Texture maps are still present on disk and in memory; *lower quality does not promise zero sampler cost* until GPU profiling.
 - Weather, lighting, magical sky fades from #420 remain uninterrupted. **M** reduced-motion controls vegetation sway and weather particles, not texture appearance; no new blinking/emissive assets.
-- Capture test `tests/capture_surface_textures.gd` images golden with texture off/on and storm night with texture off/on, with matched viewport, scene clock, camera and route. Native probe ensures rendered pixel differences in terrain/water/foliage screen region. Pixel deltas show integration, **not** artistic superiority.
+- Capture test `tests/capture_surface_textures.gd` images golden with texture off/on, storm night with texture off/on, and a dedicated coastal ocean/shoreline off/on pair, with matched viewport, scene clock, camera and route. Native probe ensures rendered pixel differences in terrain/water/foliage screen region. Pixel deltas show integration, **not** artistic superiority.
 
 ## Gates and limitations
 
