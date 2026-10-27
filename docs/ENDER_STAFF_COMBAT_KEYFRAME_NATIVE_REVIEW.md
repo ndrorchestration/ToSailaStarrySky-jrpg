@@ -29,3 +29,13 @@ The reduced-motion setting retains accessible textual phases but freezes drawn p
 3. Add keyframe export with layer provenance, timing events, animation atlas/texture import and performance QA only after candidate review. Captured PNGs in CI are not shipped sprite sheets.
 4. Integrate a strictly authorized visual playback event after a separate formula/turn/weapon/equipment permission review and backward-compatible save contract.
 5. Resolve Chapter I storyboarding conflicts, Windows Defender security custody, controller/reduced-motion accessibility and creator approval independently. No draft PR may silently promote this candidate to canon or production.
+
+## Actual native storyboard QA — October 27
+
+The 21-frame rendered Godot contact sheet was inspected. It shows four independently authored direction tracks, staff angles changing across anticipation through recovery, a full-length wrapped and double-ferruled staff, and planted boots. These visual studies are schematic and require much more detailed character and weapon art.
+
+A neutral ferrule-tip-following motion arc and small boot dust cue were added only during release/contact. They are optical, nonmagical, and are disabled by reduced-motion mode. Native tests enforce their timing and nonexecution.
+
+The optical addition initially introduced a duplicate-local-variable Godot parse error. Direct source diagnostics located the second `axis` declaration, which was renamed. The corrected native Godot 4.7.2 run passed its full choreography, native-scene, old regression, and 21-frame capture gates. Keep the direct parser guard in the workflow.
+
+Remaining visual gaps: torso profile is still stiff at several keyed beats; boots are grounded but simplistic; hands and staff materials require author-quality textures; the practice target does **not** receive a physical staff hit; new pose studies do not match the production fidelity of the creator-approved Ender portrait. No sprite atlas, combat hitbox/reaction, audio, user-facing integration, full PNG delivery, or artistic acceptance has been established.
