@@ -1,6 +1,6 @@
 # Magic cinematic VFX — native look-development study v0.2
 
-**Status:** IMPLEMENTED CANDIDATE / ART NOT APPROVED. v0.1 source, native tests and six frames were verified at commit `4a2e737bd9573ad80b365fb416828a214e118e77`. v0.2 shader/particles/environment changes require their own verification.
+**Status:** IMPLEMENTED CANDIDATE / ART NOT APPROVED. v0.1 source, native tests and six frames were verified at `4a2e737bd9`. The expanded v0.2 shader, particles, ground contact and visual control contracts passed actual Godot 4.7.2 CI at source commit `31598ee1c4885e14179ce158a95f4fbf7f09ca64`.
 **Source:** isolated Godot 4.7.2 + GDScript branch based on `feat/godot-first-wake-party-combat-authority-20261022` at `74fe1bce7a8a02eb3cbf30f725fa2af0925ba670`.
 **Scope:** five original SVG sigils, five distinct motif branches in an original CanvasItem shader, deterministic bounded micro-particles, decorative contact-ground drawings, review scene and scene-level tests. No active encounter uses this.
 
@@ -31,6 +31,13 @@ All authored effects follow **anticipation → formation → release → impact 
 3. Visual review: capture real 960×640 Godot frames in five static poses, five impact keyframes and one Ender motion frame. Inspect art/color/readability, GL Compatibility shader output, ground-contact differences and accessibility. Frame byte hashes prove capture identity, **not** artist acceptance or framerate. Benchmark separately on representative hardware.
 4. Only after native captures + creator sign-off, consider integrating into battle, upgrading to particles/3D volumes, or admitting spell-specific effects.
 
-**Outstanding for v0.2:** native CI import and framebuffer checks must pass for its precise final SHA. No manual screenshot review, 2.5D camera occlusion test, battle transition test or hardware FPS proof has yet been accepted. Shader-based glow is a CanvasItem atmospheric lens, **not** true volumetric scattering, terrain lighting or HDR postprocess bloom. Art direction is a candidate, not canon.
+**Outstanding for v0.2:** code/native rendering passed on tested source commit `31598ee1`. No manual screenshot review, 2.5D camera occlusion test, battle transition test or hardware FPS proof has yet been accepted. Shader-based glow is a CanvasItem atmospheric lens, **not** true volumetric scattering, terrain lighting or HDR postprocess bloom. Art direction is a candidate, not canon.
 
 **Provenance:** SVG glyphs and procedural drawing authored for this project as original placeholders; not derived from third-party/copyrighted effect packs. They remain editable vector sources, without dependencies or runtime downloads.
+
+## Verified source-level receipts — 2026-10-27
+
+- [Pinned Godot 4.7.2 import + native contracts](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40576804805): **PASS** for v0.2 source `31598ee1`. Explicit `STARRY_SKY_MAGIC_VFX_PASS` and existing Chapter I tests.
+- [Native GL framebuffer capture](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40576804824): **PASS** for the same source; ten five-affinity static/impact frames and one moving Ender frame at **960×640** with distinct ground-contact regions. Frames carry SHA-256 receipts in job logs, and remain runner-side due existing artifact-custody limits. **Visual art acceptance is still PENDING**.
+- [Exact Windows security preflight](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40576804811): **BLOCKED / FAIL** on unchanged Defender real-time protection requirement (`WINDOWS_QA_HOST_DEFENDER_REALTIME_DISABLED`). Its functional prerequisites passed. Do not weaken this release/security boundary.
+- A prior native `98fdc439`/ `0dc0083c` version failed because untyped intermediate variables in `magic_vfx_particles.gd` could not be inferred by GDScript. Corrected with explicitly typed scalar locals in tested source `31598ee1`; do not silently reinterpret old failed runs as passes.
