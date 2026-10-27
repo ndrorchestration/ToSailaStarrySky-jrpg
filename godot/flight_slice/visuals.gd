@@ -7,6 +7,8 @@ var land: ShaderMaterial
 var foliage: ShaderMaterial
 var broadleaf: ShaderMaterial
 var understory: ShaderMaterial
+var shore_minerals: ShaderMaterial
+var alpine_minerals: ShaderMaterial
 var sky_material: ShaderMaterial
 var low_quality: bool = false
 var coverage: ImageTexture
@@ -20,6 +22,12 @@ func _ready() -> void:
     foliage = _shader("res://shaders/foliage.gdshader")
     broadleaf = _shader("res://shaders/foliage.gdshader")
     understory = _shader("res://shaders/understory.gdshader")
+    shore_minerals = _shader("res://shaders/geology.gdshader")
+    alpine_minerals = _shader("res://shaders/geology.gdshader")
+    shore_minerals.set_shader_parameter("mineral_tint", Vector3(0.51, 0.55, 0.55))
+    shore_minerals.set_shader_parameter("wetness", 0.32)
+    alpine_minerals.set_shader_parameter("mineral_tint", Vector3(0.54, 0.55, 0.52))
+    alpine_minerals.set_shader_parameter("wetness", 0.0)
     broadleaf.set_shader_parameter("leaf_tint", Vector3(1.16, 1.12, 0.84))
     # Share one light direction across dome and ocean; avoids split sun glints.
     sky_material.set_shader_parameter("sun_direction", SUN_DIRECTION)
@@ -91,6 +99,15 @@ func bind_terrain(terrain: Node3D) -> void:
     floor_plants.multimesh.mesh = _understory_mesh()
     floor_plants.material_override = understory
     floor_plants.visible = not low_quality
+    var stone_mesh: ArrayMesh = _weathered_stone()
+    var coast_stones: MultiMeshInstance3D = terrain.get_node("ShorelineStones")
+    coast_stones.multimesh.mesh = stone_mesh
+    coast_stones.material_override = shore_minerals
+    coast_stones.visible = not low_quality
+    var highland_stones: MultiMeshInstance3D = terrain.get_node("AlpineTalus")
+    highland_stones.multimesh.mesh = stone_mesh
+    highland_stones.material_override = alpine_minerals
+    highland_stones.visible = not low_quality
 
 func set_clock(seconds: float, reduced: bool) -> void:
     refresh_coverage()
@@ -122,6 +139,8 @@ func set_low_quality(enabled: bool) -> void:
     sky_material.set_shader_parameter("low_quality", enabled)
     if _terrain != null:
         _terrain.get_node("GroundUnderstory").visible = not enabled
+        _terrain.get_node("ShorelineStones").visible = not enabled
+        _terrain.get_node("AlpineTalus").visible = not enabled
 
 func _shader(path: String) -> ShaderMaterial:
     var material := ShaderMaterial.new()
@@ -212,6 +231,42 @@ func _broadleaf_crown() -> ArrayMesh:
 
 # One double-sided, opaque, instanced clump; no alpha transparency or textures.
 # Fronds change direction and height inside the shared mesh to avoid rigid Xs.
+# One low-vertex faceted weathered stone shared across two biome-specific
+# MultiMesh nodes. Larger geology is still part of the terrain mesh, not this
+# decorative layer; no collider, navigation mesh or physics affordance is added.
+func _weathered_stone() -> ArrayMesh:
+    var surface := SurfaceTool.new()
+    surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var sides: int = 9
+    var peak := Vector3(-0.12, 0.72, 0.08)
+    for side in range(sides):
+        var a: float = TAU * float(side) / float(sides)
+        var b: float = TAU * float(side + 1) / float(sides)
+        var radius_a: float = 0.82 + 0.11 * sin(float(side) * 2.17)
+        var radius_b: float = 0.82 + 0.11 * sin(float(side + 1) * 2.17)
+        var base_a := Vector3(cos(a) * radius_a, -0.16, sin(a) * radius_a)
+        var base_b := Vector3(cos(b) * radius_b, -0.16, sin(b) * radius_b)
+        var shoulder_a := Vector3(
+            base_a.x * 0.79, 0.27 + 0.07 * sin(float(side) * 2.44),
+            base_a.z * 0.79)
+        var shoulder_b := Vector3(
+            base_b.x * 0.79, 0.27 + 0.07 * sin(float(side + 1) * 2.44),
+            base_b.z * 0.79)
+        var bedrock := Color(0.80, 0.85, 0.86)
+        var exposed := Color(0.97, 0.96, 0.89)
+        _stone_triangle(surface, base_a, base_b, shoulder_a, bedrock)
+        _stone_triangle(surface, shoulder_a, base_b, shoulder_b, bedrock)
+        _stone_triangle(surface, shoulder_a, shoulder_b, peak, exposed)
+    return surface.commit()
+
+func _stone_triangle(surface: SurfaceTool, a: Vector3, b: Vector3,
+        c: Vector3, tint: Color) -> void:
+    var normal: Vector3 = (b - a).cross(c - a).normalized()
+    for p in [a, b, c]:
+        surface.set_normal(normal)
+        surface.set_color(tint)
+        surface.add_vertex(p)
+
 func _understory_mesh() -> ArrayMesh:
     var surface := SurfaceTool.new()
     surface.begin(Mesh.PRIMITIVE_TRIANGLES)
