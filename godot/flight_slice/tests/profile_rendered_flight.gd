@@ -16,6 +16,9 @@ func _run() -> void:
     await process_frame
     scene.set_process(false)
     scene.overlay.visible = false
+    var low_quality: bool = OS.get_cmdline_user_args().has("--low")
+    scene.visuals.set_low_quality(low_quality)
+    var mode: String = "low" if low_quality else "high"
     scene._clock = 0.0
     scene._update_scene(SIMULATION_STEP)
     for warmup in range(10):
@@ -58,7 +61,7 @@ func _run() -> void:
         push_error("RENDERED_SWEEP_DIRECTORY_FAILED")
         quit(1)
         return
-    var file := FileAccess.open(folder.path_join("rendered-flight-sweep.json"), FileAccess.WRITE)
+    var file := FileAccess.open(folder.path_join("rendered-flight-sweep-" + mode + ".json"), FileAccess.WRITE)
     if file == null:
         push_error("RENDERED_SWEEP_WRITE_FAILED")
         quit(1)
@@ -66,13 +69,13 @@ func _run() -> void:
     file.store_string(JSON.stringify({"engine":Engine.get_version_info().string,
         "adapter":RenderingServer.get_video_adapter_name(),
         "renderer":RenderingServer.get_current_rendering_method(),
-        "resolution":[960,640],"samples":STEP_COUNT,"simulated_step_s":SIMULATION_STEP,
+        "resolution":[960,640],"mode":mode,"samples":STEP_COUNT,"simulated_step_s":SIMULATION_STEP,
         "method":"wall interval from manual scene update through frame_post_draw; compressed-time scripted path, software renderer; not GPU timestamps or target FPS",
         "median_ms":ordered[48],"p95_ms":ordered[91],"max_ms":ordered[95],
         "update_median_ms":update_sorted[48],"update_p95_ms":update_sorted[91],
         "update_max_ms":update_sorted[95],"observations":observations}, "  "))
     file.close()
-    print("RENDERED_SWEEP_PASS samples=", STEP_COUNT,
+    print("RENDERED_SWEEP_PASS samples=", STEP_COUNT, " mode=", mode,
         " median_ms=", ordered[48], " p95_ms=", ordered[91], " max_ms=", ordered[95],
         " update_median_ms=", update_sorted[48], " update_p95_ms=", update_sorted[91],
         " update_max_ms=", update_sorted[95])
