@@ -1,6 +1,7 @@
 extends CharacterBody2D
 ## REVIEW ONLY: real Godot 2D physics translation through source-bound character atlases.
 ## This does not establish pixel-foot planting, job, recruitment, final animation or gameplay.
+const FootPixelProbe = preload("res://scripts/character_foot_pixel_probe.gd")
 const FACINGS: Array[String] = ["south", "west", "north", "east"]
 const ROUTE_OFFSETS: Array[Vector2] = [
     Vector2(0.0, 100.0), Vector2(-100.0, 100.0),
@@ -15,6 +16,8 @@ const ALLOWED: Array[String] = ["Lyra", "Aepex", "Reson"]
 @export var review_speed: float = 90.0
 
 var source_sprites: Dictionary = {}
+var source_foot_samples: Dictionary = {}
+var foot_pixel_align_enabled: bool = true
 var origin: Vector2
 var review_enabled: bool = false
 var completed: bool = false
@@ -56,6 +59,8 @@ func _ready() -> void:
         sprite.visible = direction == "south"
         add_child(sprite)
         source_sprites[direction] = sprite
+        source_foot_samples[direction] = FootPixelProbe.inspect_atlas(atlas)
+    _apply_pixel_baselines()
     set_physics_process(true)
     queue_redraw()
 
@@ -71,6 +76,7 @@ func start_route_review() -> void:
     current_phase = 0
     completed = false
     review_enabled = true
+    _apply_pixel_baselines()
     _sync_direction()
 
 func stop_route_review() -> void:
@@ -79,7 +85,30 @@ func stop_route_review() -> void:
     current_phase = 0
     for direction in FACINGS:
         (source_sprites[direction] as Sprite2D).frame = 0
+    _apply_pixel_baselines()
     _sync_direction()
+
+func set_pixel_baseline_enabled(enabled: bool) -> void:
+    foot_pixel_align_enabled = enabled
+    _apply_pixel_baselines()
+
+func get_source_boot_sample(direction: String, phase: int) -> Dictionary:
+    if not source_foot_samples.has(direction) or phase < 0 or phase >= 6:
+        return {"valid": false, "reason": "unknown_direction_or_phase"}
+    var entries: Array = source_foot_samples[direction]
+    return entries[phase]
+
+func _apply_pixel_baselines() -> void:
+    for direction in FACINGS:
+        var sprite: Sprite2D = source_sprites.get(direction) as Sprite2D
+        if sprite == null:
+            continue
+        var position_y := -LOGICAL_BOOT_OFFSET
+        if foot_pixel_align_enabled:
+            var measured: Dictionary = get_source_boot_sample(direction, current_phase)
+            if measured.get("valid", false):
+                position_y = float(measured["baseline_correction_y"])
+        sprite.position = Vector2(0.0, position_y)
 
 func _sync_direction() -> void:
     for direction in FACINGS:
@@ -114,6 +143,7 @@ func _physics_process(delta: float) -> void:
         current_phase = int(travel_distance / PIXELS_PER_PHASE) % 6
     for source in source_sprites.values():
         (source as Sprite2D).frame = current_phase
+    _apply_pixel_baselines()
     _sync_direction()
     if global_position.distance_to(target) < 0.5:
         _arrive_at_target(target)
