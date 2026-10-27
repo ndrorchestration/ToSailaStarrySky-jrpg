@@ -1,3 +1,7 @@
+> **FIVE STORY ENERGIES — CREATOR CANON, 2026-10-27.** **Ender = Spirit; Lyra = Water (retains a distinct pink spirit-energy motif); Ionia = Earth; Reson = Fire; Aepex = Air.** These innate, plot-significant energies exist in **every** job, level and equipment build, even when no class has magic. They **do not** grant spells, mastery, passive stats, or combat access by themselves. The traditional Five Lights and the *learned domain-affinity / mastery* taxonomy (including Ender's older Aether, Resonance/Harmonic, Correspondence and Lumen interests) are **different conceptual layers** and are not silently overwritten. Aepex's lantern is equipment, not the source of Air energy; retain creator-established Resonance Staff provenance. Any combined party resonance skills require an explicit new authority/eligibility/test contract. Older title/status claims below are historical; current title is *To Sail the Starry Sky*. See [dated implementation/orphan audit](2026-10-27_CINEMATIC_PRODUCTION_ORPHAN_AUDIT.md).
+
+---
+
 # Aetherwake Magic System — Domain Map v0.1
 
 **Status:** target design contract; not yet an executable spell catalog.  
