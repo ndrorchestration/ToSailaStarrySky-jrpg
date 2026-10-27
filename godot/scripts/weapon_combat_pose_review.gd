@@ -97,11 +97,11 @@ func _draw() -> void:
     draw_line(Vector2(170,-92),Vector2(170,-54),PAPER.darkened(0.35),2.0)
     draw_line(Vector2(146,111),Vector2(196,111),Color("#7e8e8e"),3.0)
 
+    var advance := float(pose.get("advance",0.0))
+    var bob := float(pose.get("bob",0.0))
+    var lean := float(pose.get("lean",0.0))
+    var origin := Vector2(-45+advance,bob)
     if show_mannequin:
-        var advance := float(pose.get("advance",0.0))
-        var bob := float(pose.get("bob",0.0))
-        var lean := float(pose.get("lean",0.0))
-        var origin := Vector2(-45+advance,bob)
         draw_colored_polygon(PackedVector2Array([
             origin+Vector2(-51,112),origin+Vector2(13,112),
             origin+Vector2(33,117),origin+Vector2(-62,118)
