@@ -159,6 +159,7 @@ func set_environment_look(time_index: int, weather_index: int,
     environment.ambient_light_energy = current_mood["ambient_energy"]
     environment.fog_light_color = current_mood["fog_color"]
     environment.fog_density = current_mood["fog_density"]
+    water.set_shader_parameter("sun_visibility", current_mood["sun_visibility"])
     for uniform_name in ["time_palette", "weather_strength",
             "magic_veil_strength", "sun_visibility"]:
         sky_material.set_shader_parameter(uniform_name, current_mood[uniform_name])
