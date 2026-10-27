@@ -48,6 +48,9 @@ jobs:
         run: |
           set -euo pipefail
           godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/smoke_test.gd
+      - name: Verify opt-in five-protagonist lineup and candidate art custody
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/character_lineup_review_test.gd
       - name: Verify opt-in Ender movement animation
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/ender_walk_test.gd
