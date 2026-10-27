@@ -117,6 +117,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
             character_lineup_review.set_walk_phase(character_lineup_review.walk_phase - 1)
         elif event.keycode == KEY_BRACKETRIGHT:
             character_lineup_review.set_walk_phase(character_lineup_review.walk_phase + 1)
+        elif event.keycode == KEY_M:
+            character_lineup_review.set_magnified(not character_lineup_review.magnified)
         return
     if event.keycode == KEY_E and ender.global_position.distance_to(ionia.global_position) <= 110.0:
         dialogue_open = not dialogue_open
