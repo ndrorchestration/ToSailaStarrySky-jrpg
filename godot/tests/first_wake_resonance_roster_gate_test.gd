@@ -106,7 +106,7 @@ func _initialize() -> void:
     print("TSTSS_RESONANCE_CHRONOLOGY_GATE_PASS: Ionia first, Lyra post-splashdown only, no automatic Art or turn authority")
     quit(0)
 
-func _expect_denial(gate: RefCounted, opening: Variant, participants: Variant, reason: String) -> bool:
+func _expect_denial(gate: Variant, opening: Variant, participants: Variant, reason: String) -> bool:
     var before: Dictionary = {}
     if opening is RefCounted and opening.get_script() == Opening:
         before = opening.snapshot()
@@ -119,7 +119,7 @@ func _expect_denial(gate: RefCounted, opening: Variant, participants: Variant, r
         return false
     return true
 
-func _expect_presence(gate: RefCounted, opening: RefCounted, participants: Array, phase: String) -> bool:
+func _expect_presence(gate: Variant, opening: Variant, participants: Array, phase: String) -> bool:
     var before: Dictionary = opening.snapshot()
     var result: Dictionary = gate.evaluate(opening, participants)
     if not result.get("rosterEligible", false) or result.get("canExecute", true) or result.get("canUnlockArt", true):
