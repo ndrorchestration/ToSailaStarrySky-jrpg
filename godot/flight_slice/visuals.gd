@@ -6,6 +6,7 @@ var water: ShaderMaterial
 var land: ShaderMaterial
 var foliage: ShaderMaterial
 var broadleaf: ShaderMaterial
+var understory: ShaderMaterial
 var sky_material: ShaderMaterial
 var low_quality: bool = false
 var coverage: ImageTexture
@@ -18,6 +19,7 @@ func _ready() -> void:
     water = _shader("res://shaders/water.gdshader")
     foliage = _shader("res://shaders/foliage.gdshader")
     broadleaf = _shader("res://shaders/foliage.gdshader")
+    understory = _shader("res://shaders/understory.gdshader")
     broadleaf.set_shader_parameter("leaf_tint", Vector3(1.16, 1.12, 0.84))
     # Share one light direction across dome and ocean; avoids split sun glints.
     sky_material.set_shader_parameter("sun_direction", SUN_DIRECTION)
@@ -85,12 +87,17 @@ func bind_terrain(terrain: Node3D) -> void:
     var broad_crowns: MultiMeshInstance3D = terrain.get_node("BroadleafCrowns")
     broad_crowns.multimesh.mesh = _broadleaf_crown()
     broad_crowns.material_override = broadleaf
+    var floor_plants: MultiMeshInstance3D = terrain.get_node("GroundUnderstory")
+    floor_plants.multimesh.mesh = _understory_mesh()
+    floor_plants.material_override = understory
+    floor_plants.visible = not low_quality
 
 func set_clock(seconds: float, reduced: bool) -> void:
     refresh_coverage()
     var clock: float = 0.0 if reduced else seconds
-    for material in [water, land, foliage, broadleaf, sky_material]:
+    for material in [water, land, foliage, broadleaf, understory, sky_material]:
         material.set_shader_parameter("study_time", clock)
+    understory.set_shader_parameter("motion_scale", 0.0 if reduced else 1.0)
 
 func refresh_coverage() -> void:
     if _terrain == null: return
@@ -113,6 +120,8 @@ func set_low_quality(enabled: bool) -> void:
     low_quality = enabled
     water.set_shader_parameter("low_quality", enabled)
     sky_material.set_shader_parameter("low_quality", enabled)
+    if _terrain != null:
+        _terrain.get_node("GroundUnderstory").visible = not enabled
 
 func _shader(path: String) -> ShaderMaterial:
     var material := ShaderMaterial.new()
@@ -182,6 +191,36 @@ func _broadleaf_crown() -> ArrayMesh:
             surface.set_color(colors[lobe])
             surface.add_vertex(points[index] * scale + centers[lobe])
     return surface.commit()
+
+
+# One double-sided, opaque, instanced clump; no alpha transparency or textures.
+# Fronds change direction and height inside the shared mesh to avoid rigid Xs.
+func _understory_mesh() -> ArrayMesh:
+    var surface := SurfaceTool.new()
+    surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+    for frond in range(7):
+        var angle: float = TAU * float(frond) / 7.0 + 0.13 * sin(float(frond) * 2.1)
+        var direction := Vector3(cos(angle), 0.0, sin(angle))
+        var across := Vector3(-direction.z, 0.0, direction.x)
+        var rise: float = 0.41 + 0.18 * sin(float(frond) * 2.3 + 0.5)
+        var reach: float = 0.48 + 0.12 * cos(float(frond) * 1.9)
+        var stem := Vector3(0.0, 0.025, 0.0)
+        var shoulder := direction * (reach * 0.53) + Vector3.UP * (rise * 0.81)
+        var blade_width: float = 0.115 + 0.03 * sin(float(frond) * 1.2)
+        var tip := direction * reach + Vector3.UP * rise
+        var moss := Color(0.48, 0.62, 0.39)
+        var blade := Color(0.86, 1.0, 0.67)
+        _plant_triangle(surface, stem, shoulder - across * blade_width, tip, moss, blade)
+        _plant_triangle(surface, stem, tip, shoulder + across * blade_width, moss, blade)
+    return surface.commit()
+
+func _plant_triangle(surface: SurfaceTool, a: Vector3, b: Vector3,
+        c: Vector3, base: Color, tip_tint: Color) -> void:
+    var normal: Vector3 = (b - a).cross(c - a).normalized()
+    for point in [a, b, c]:
+        surface.set_normal(normal)
+        surface.set_color(base if point == a else tip_tint)
+        surface.add_vertex(point)
 
 func _crown_triangle(surface: SurfaceTool, a: Vector3, b: Vector3,
         c: Vector3, tint: Color) -> void:
