@@ -9,6 +9,8 @@ const SEA_LEVEL: float = -0.15
 const NEAR_LOD: float = 43.0
 const FAR_LOD: float = 55.0
 
+static var _terrain_noise: FastNoiseLite
+
 var _tiles: Array = []
 # CPU-side transform authority: headless Dummy Renderer MultiMesh readback
 # can return identity even when real OpenGL instance transforms are populated.
@@ -35,6 +37,23 @@ static func _ridge_lobe(x: float, z: float, cx: float, cz: float,
         + 0.05 * cos(dx * 0.18 - dz * 0.41)
     return exp(-2.0 * radial_sq) * detail
 
+# Reuse a single seeded noise resource. The exact seed is a study fixture,
+# not a production-world seed or authored geography.
+static func _highland_fractal(x: float, z: float) -> float:
+    if x <= 50.0:
+        return 0.0
+    if _terrain_noise == null:
+        _terrain_noise = FastNoiseLite.new()
+        _terrain_noise.seed = 23017
+        _terrain_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+        _terrain_noise.frequency = 0.12
+        _terrain_noise.fractal_type = FastNoiseLite.FRACTAL_FBM
+        _terrain_noise.fractal_octaves = 3
+        _terrain_noise.fractal_gain = 0.5
+        _terrain_noise.fractal_lacunarity = 2.0
+    var envelope: float = smoothstep(50.0, 62.0, x)
+    return 1.8 * envelope * clampf(_terrain_noise.get_noise_2d(x, z), -1.0, 1.0)
+
 static func sample_height(x: float, z: float) -> float:
     var coast: float = coastline_at(z)
     var rise: float = smoothstep(coast - 8.0, coast + 19.0, x)
@@ -46,7 +65,7 @@ static func sample_height(x: float, z: float) -> float:
     summit += 8.0 * _ridge_lobe(x, z, 70.0, 18.0, 17.0, 14.0, -0.22)
     summit += 9.0 * _ridge_lobe(x, z, 75.0, -35.0, 16.0, 14.0, -0.18)
     summit *= smoothstep(50.0, 58.0, x)
-    return -2.4 + 5.6 * rise + highland * (14.5 + broad * 1.8 + ridges) + rise * (broad + detail) + summit
+    return -2.4 + 5.6 * rise + highland * (14.5 + broad * 1.8 + ridges) + rise * (broad + detail) + summit + _highland_fractal(x, z)
 
 static func classify(x: float, z: float) -> String:
     var y: float = sample_height(x, z)
