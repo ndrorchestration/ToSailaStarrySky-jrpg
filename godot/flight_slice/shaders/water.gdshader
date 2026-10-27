@@ -7,6 +7,7 @@ uniform bool low_quality = false;
 uniform vec3 sun_direction = vec3(0.65, 0.43, -0.70);
 uniform float sea_surface_elevation = -0.15; // bound from TerrainStudy.SEA_LEVEL
 uniform float foam_breakup_strength = 1.0; // visual A/B 0 = prior deterministic foam
+uniform float shelf_transition_strength = 1.0; // visual A/B 0 = exact #437 shelf color
 varying vec3 world_pos;
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
 float noise(vec2 p) {
@@ -46,10 +47,32 @@ void fragment() {
     // shared terrain sample; it does not add a second decorative bathymetry map.
     float shallow=1.0-smoothstep(0.22,1.8,depth);
     vec3 water=mix(vec3(0.065,0.29,0.27),vec3(0.013,0.072,0.14),smoothstep(0.2,2.4,depth));
+    // Reference 0.0 retains the full previous color path without altered
+    // foam, sea datum or depth sampling. Soft depth jitter narrows the
+    // uninterrupted turquoise band without inventing a second coastline.
+    // Suppress color changes beyond the same shallow shelf that motivated
+    // this study; the offshore view must retain #437's deeper-water palette.
+    float shelf_zone=1.0-smoothstep(1.52,2.20,depth);
+    if (!low_quality && shelf_transition_strength > 0.001
+            && cover > 0.001 && shelf_zone > 0.001) {
+        float color_noise=noise(p*vec2(0.19,0.23)
+            +vec2(study_time*0.009,-study_time*0.006));
+        float jitter_depth=depth+(color_noise-0.5)*0.24;
+        float ribbon=1.0-smoothstep(0.07,1.32,jitter_depth);
+        vec3 muted_shallow=vec3(0.044,0.204,0.204);
+        vec3 deep_tone=vec3(0.013,0.072,0.14);
+        vec3 shaded_shelf=mix(deep_tone,muted_shallow,ribbon);
+        water=mix(water,shaded_shelf,
+            clamp(shelf_transition_strength,0.0,1.0)*cover*shelf_zone);
+    }
     // Slightly quiet the unbroken cyan shelf in the higher-quality surf study;
     // exact 0.0 reference and the low-detail path retain prior shelf light.
     float shelf_factor=low_quality ? 1.0 :
         mix(1.0,0.79,clamp(foam_breakup_strength,0.0,1.0));
+    if (!low_quality) {
+        shelf_factor*=mix(1.0,0.59,
+            clamp(shelf_transition_strength,0.0,1.0)*shelf_zone);
+    }
     water+=vec3(0.020,0.055,0.044)*shallow
         *(1.0-0.28*max(wave1,0.0))*shelf_factor;
     vec3 reflected_sky=mix(vec3(0.19,0.37,0.49),vec3(0.39,0.48,0.53),smoothstep(0.3,0.95,fresnel));

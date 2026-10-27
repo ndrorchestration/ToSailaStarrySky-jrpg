@@ -218,6 +218,32 @@ func _capture() -> void:
             push_error("NATIVE_SHORE_FOAM_LOW_QUALITY_NOT_REFERENCE")
             failed = true
         scene.visuals.set_low_quality(false)
+        # With the foam mode fixed at 1.0, isolate only shelf color.
+        # Reuse this identical camera, clock, terrain coverage and land wetness.
+        scene.visuals.water.set_shader_parameter("shelf_transition_strength", 0.0)
+        var old_shelf: Image = await _frame()
+        scene.visuals.water.set_shader_parameter("shelf_transition_strength", 1.0)
+        var new_shelf: Image = await _frame()
+        var shelf_pixels: int = _different(old_shelf, new_shelf)
+        _save_shore(old_shelf, foam_folder.path_join("coast-shelf-old.png"))
+        _save_shore(new_shelf, foam_folder.path_join("coast-shelf-toned.png"))
+        print("NATIVE_SHELF_COLOR_PAIR_DELTA pixels=", shelf_pixels)
+        if shelf_pixels < 100 or shelf_pixels > 65000:
+            push_error("NATIVE_SHELF_COLOR_PAIR_UNBOUNDED_CHANGE")
+            failed = true
+        # V low quality must be EXACTLY identical with either shelf uniform:
+        # no hidden extra fragment work or surprise color drift.
+        scene.visuals.set_low_quality(true)
+        scene.visuals.water.set_shader_parameter("shelf_transition_strength", 0.0)
+        var low_old_shelf: Image = await _frame()
+        scene.visuals.water.set_shader_parameter("shelf_transition_strength", 1.0)
+        var low_new_shelf: Image = await _frame()
+        var shelf_low_delta: int = _different(low_old_shelf, low_new_shelf)
+        print("NATIVE_SHELF_COLOR_LOW_DELTA pixels=", shelf_low_delta)
+        if shelf_low_delta != 0:
+            push_error("NATIVE_SHELF_COLOR_LOW_QUALITY_DRIFT")
+            failed = true
+        scene.visuals.set_low_quality(false)
         scene.ship.visible = true
     # Fixed world camera makes terrain comparisons independent of ship height.
     # Keep this separate from the six existing gameplay-frame markers.
