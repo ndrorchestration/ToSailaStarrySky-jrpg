@@ -4,6 +4,7 @@ render_mode disable_fog;
 // Preserve the same sun direction, scene clock and reduced-quality controls.
 uniform float study_time = 0.0;
 uniform bool low_quality = false;
+uniform float cloud_depth_strength : hint_range(0.0, 1.0) = 1.0; // 0 = reference sky, 1 = layered distant banks
 uniform vec3 sun_direction = vec3(0.65, 0.43, -0.70);
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
@@ -44,6 +45,36 @@ void sky() {
         vec3 cloud_color=mix(underside,lit,smoothstep(0.35,0.69,edge));
         cloud_color=mix(cloud_color,warm,solar_rim*0.33);
         c=mix(c,cloud_color,body*0.89);
+        // Atmospheric perspective: a separate lower, broader cloud deck.
+        // This is a 2D directional impostor, NOT real volumetric cloud geometry.
+        // It is disabled in low-quality mode to bound shader evaluations.
+        if (!low_quality && cloud_depth_strength>0.001) {
+            vec2 distant_p=p*0.47+vec2(8.7,-4.9)
+                +vec2(-study_time*0.0025,study_time*0.0011);
+            float bank_noise=clouds(distant_p);
+            float horizon_band=smoothstep(0.018,0.085,d.y)
+                *(1.0-smoothstep(0.17,0.34,d.y));
+            float bank_shape=smoothstep(0.43,0.68,bank_noise)*horizon_band;
+            // Edge tint catches the same authored sun direction as the ocean.
+            float rim_noise=clouds(distant_p+vec2(0.08,-0.06));
+            float rim=max(rim_noise-bank_noise,0.0);
+            float backlight=pow(solar,4.0)
+                *smoothstep(0.01,0.09,rim);
+            vec3 bank_shadow=vec3(0.29,0.39,0.51);
+            vec3 bank_highlight=vec3(0.77,0.76,0.71);
+            vec3 bank_tone=mix(bank_shadow,bank_highlight,
+                smoothstep(0.43,0.72,rim_noise));
+            bank_tone=mix(bank_tone,vec3(0.96,0.73,0.49),backlight*0.48);
+            c=mix(c,bank_tone,bank_shape*0.76*cloud_depth_strength);
+            // Thin haze along the lower cloud edge, not a flat fog-colored
+            // horizontal stripe or a fake planet curvature outline.
+            float mist=noise(p*0.35+vec2(4.0,-3.0));
+            float distant_mist=(1.0-smoothstep(0.065,0.17,d.y))
+                *smoothstep(0.025,0.09,d.y)
+                *smoothstep(0.32,0.69,mist);
+            c=mix(c,vec3(0.49,0.60,0.66),
+                distant_mist*0.19*cloud_depth_strength);
+        }
         if (!low_quality) {
             // High thin cloud filaments are subordinate to the larger masses.
             float stratus=noise(p*vec2(0.6,5.0)+vec2(12.0,study_time*0.003));
