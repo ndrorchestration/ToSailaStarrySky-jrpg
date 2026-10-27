@@ -47,10 +47,20 @@ func _run() -> void:
     check(is_equal_approx(visuals.water.get_shader_parameter("study_time"), 0.0), "reduced motion freezes water")
     check(is_equal_approx(visuals.foliage.get_shader_parameter("study_time"), 0.0), "reduced motion freezes foliage")
     check(is_equal_approx(visuals.broadleaf.get_shader_parameter("study_time"), 0.0), "reduced motion freezes broadleaf foliage")
+    check(is_equal_approx(float(visuals.land.get_shader_parameter("forest_floor_detail_strength")), 1.0),
+        "forest material detail enabled by explicit default")
+    visuals.land.set_shader_parameter("forest_floor_detail_strength", 0.0)
+    check(is_zero_approx(float(visuals.land.get_shader_parameter("forest_floor_detail_strength"))),
+        "forest floor material supports zero-strength reference")
+    visuals.land.set_shader_parameter("forest_floor_detail_strength", 1.0)
     visuals.set_low_quality(true)
     check(visuals.water.get_shader_parameter("low_quality") == true, "low quality applied")
+    check(visuals.land.get_shader_parameter("low_quality") == true,
+        "low quality also disables costly forest soil shader branch")
     visuals.set_low_quality(false)
     check(visuals.water.get_shader_parameter("low_quality") == false, "high quality restored")
+    check(visuals.land.get_shader_parameter("low_quality") == false,
+        "high quality restores forest soil detail")
     check(is_equal_approx(height, scene.terrain.sample_height(30.0, -12.0)), "quality preserves heights")
     check(visuals.has_method("refresh_coverage"), "shore effects require rendered terrain coverage")
     if not visuals.has_method("refresh_coverage"):
