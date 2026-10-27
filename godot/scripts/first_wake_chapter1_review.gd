@@ -64,7 +64,7 @@ var party_combat_authority = PartyCombatAuthority.new()
 var active_hazard_encounter_id: String = ""
 var save_store = SaveStore.new()
 var battle_loadout = BattleLoadout.new("ender")
-var battle_equipment_view: Node2D
+var battle_equipment_view
 
 func _ready() -> void:
     InputPolicy.ensure_defaults()
