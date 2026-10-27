@@ -2,6 +2,12 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Distant highland ridge and saddle silhouette study — 2026-10-27
+
+**Provisional noncanonical landform option.** A small, explicitly bounded ridge-crest/saddle delta now contributes to `TerrainStudy.sample_height` solely beyond the highland x=50 transition. Unlike the shader-only pass below, this **does** change highland elevation and therefore sampled visual mesh shape, water height bake, vegetation grounding, and LOD stitching there. It does **not** change the known coast/forest/landing-field reference samples or the separate 792-triangle static touchdown collider, which occupies the local x=6…15 test field.
+
+The extra crest near local (79, -10) and recessed saddle near (76, -19) are art-study coordinates, **not world-canon place names, final mountain geography or production planetary meshes**. The same function is invoked by all terrain chunks, so no second geometry authority or special shader-only height is introduced. Native terrain regression now checks the sculpt field is zero in the coastal/landing region, adds positive and negative topographic relief only in highlands, and retains the existing continuous-relief and high/low stitched-edge requirements. Exact-head CI and matched native highland captures must pass before assessing whether this is aesthetically better than the parent. Hardware performance, final collision coverage and creator acceptance remain open.
+
 ## Forest soil, beach moisture and exposed-cliff material transitions — 2026-10-27
 
 **Noncanonical shader-only visual trial.** The existing terrain shader now optionally applies subtle forest-floor humus/leaf-litter color where the existing forest zone and lowland heights overlap, a smooth dry-to-damp beach band above the existing sea-level datum, and irregular mineral bedding on exposed upland rock, with subtle altitude-weighted distant terrain tint to reinforce atmospheric depth. These are color/roughness-presentation cues only. They **do not** displace vertices, change any sampled height, alter the 64 visual tiles or the 792-triangle temporary landing collider, determine canonical biome geography, or create new traversable sites.
