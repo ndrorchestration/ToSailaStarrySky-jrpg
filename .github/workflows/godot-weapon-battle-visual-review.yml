@@ -1,0 +1,63 @@
+name: Godot weapon battle equipment visual adapter
+on:
+  push:
+    branches: [feat/godot-weapon-battle-visual-adapter-20261027]
+    paths:
+      - 'godot/scripts/weapon_*.gd'
+      - 'godot/scripts/first_wake_party_combat_authority.gd'
+      - 'godot/scripts/first_wake_combat_formula.gd'
+      - 'godot/scripts/first_wake_formula_encounter.gd'
+      - 'godot/scenes/weapon_battle_equipment_review.tscn'
+      - 'godot/tests/weapon_battle_visual_adapter_test.gd'
+      - 'godot/tests/capture_weapon_battle_equipment_review.gd'
+      - '.github/workflows/godot-weapon-battle-visual-review.yml'
+  pull_request:
+    paths:
+      - 'godot/scripts/weapon_*.gd'
+      - 'godot/scripts/first_wake_party_combat_authority.gd'
+      - 'godot/scripts/first_wake_combat_formula.gd'
+      - 'godot/scripts/first_wake_formula_encounter.gd'
+      - 'godot/scenes/weapon_battle_equipment_review.tscn'
+      - 'godot/tests/weapon_battle_visual_adapter_test.gd'
+      - 'godot/tests/capture_weapon_battle_equipment_review.gd'
+      - '.github/workflows/godot-weapon-battle-visual-review.yml'
+permissions:
+  contents: read
+jobs:
+  native-adapter:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Download verified official Godot 4.7.2 standard editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' -o editor.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  editor.zip' | sha256sum -c -
+          unzip -q editor.zip
+          chmod +x Godot_v4.7.2-stable_linux.x86_64
+      - name: Import native project at exact head
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
+      - name: Run previous weapon trees contract regression
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/weapon_skill_tree_review_test.gd
+      - name: Run weapon choreography contract regression
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/weapon_choreography_review_test.gd
+      - name: Run fail-closed battle-visual equipment adapter contract
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/weapon_battle_visual_adapter_test.gd
+      - name: Render four actual 960x640 loadout comparison frames
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v xvfb-run
+          mkdir -p godot/review-evidence
+          xvfb-run -a -s "-screen 0 960x640x24" ./Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_weapon_battle_equipment_review.gd
+          for frame in ender-staff-authorized-intent sandbox-sword-equipment sandbox-pike-equipment sandbox-pike-reduced; do
+            test -s "godot/review-evidence/${frame}-native-960x640.png"
+          done
+          sha256sum godot/review-evidence/*-native-960x640.png
+          echo "WEAPON_EQUIPMENT_NATIVE_CAPTURE=RUNNER_ONLY"
+          echo "ARTISTIC_ACCEPTANCE=NOT_ESTABLISHED"
+          echo "COMBAT_INTEGRATION=NOT_ESTABLISHED"

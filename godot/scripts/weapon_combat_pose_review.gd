@@ -35,10 +35,20 @@ func apply_pose(next_pose: Dictionary) -> bool:
     pose = next_pose.duplicate(true)
     if weapon != null:
         weapon.select_weapon(str(pose["weaponId"]))
-        weapon.rotation_degrees = float(pose.get("weaponAngle",0.0))
-        var x := 34.0 + float(pose.get("advance",0.0)) - float(pose.get("recoil",0.0))
-        weapon.position = Vector2(x,-19 + float(pose.get("bob",0.0)))
+        var angle := float(pose.get("weaponAngle",0.0))
+        weapon.rotation_degrees = angle
         weapon.scale = Vector2(0.52,0.52)
+        # Pivot by physical family: the grip remains at the drawn hand when
+        # the equipment changes and rotates, rather than hovering beside it.
+        var hand := Vector2(-6.0 + float(pose.get("advance",0.0)),
+            -19.0 + float(pose.get("bob",0.0)))
+        var anchor := Vector2.ZERO
+        match str(item["family"]):
+            "sword": anchor = Vector2(0.0,75.0)
+            "pike": anchor = Vector2(0.0,38.0)
+            "rifle": anchor = Vector2(-10.0,30.0)
+        var rotated_grip := (anchor * 0.52).rotated(deg_to_rad(angle))
+        weapon.position = hand - rotated_grip - Vector2(float(pose.get("recoil",0.0)),0.0)
         weapon.queue_redraw()
     queue_redraw()
     return true
