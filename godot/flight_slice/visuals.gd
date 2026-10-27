@@ -5,6 +5,7 @@ const SUN_DIRECTION = Vector3(0.65, 0.43, -0.70)
 var water: ShaderMaterial
 var land: ShaderMaterial
 var foliage: ShaderMaterial
+var broadleaf: ShaderMaterial
 var sky_material: ShaderMaterial
 var low_quality: bool = false
 var coverage: ImageTexture
@@ -16,6 +17,8 @@ func _ready() -> void:
     land = _shader("res://shaders/terrain.gdshader")
     water = _shader("res://shaders/water.gdshader")
     foliage = _shader("res://shaders/foliage.gdshader")
+    broadleaf = _shader("res://shaders/foliage.gdshader")
+    broadleaf.set_shader_parameter("leaf_tint", Vector3(1.16, 1.12, 0.84))
     # Share one light direction across dome and ocean; avoids split sun glints.
     sky_material.set_shader_parameter("sun_direction", SUN_DIRECTION)
     # Explicit runtime defaults: an unbound sky shader uniform may return Nil
@@ -79,11 +82,12 @@ func bind_terrain(terrain: Node3D) -> void:
     var crowns: MultiMeshInstance3D = terrain.get_node("ForestCrowns")
     crowns.multimesh.mesh = _layered_crown()
     crowns.material_override = foliage
+    terrain.get_node("BroadleafCrowns").material_override = broadleaf
 
 func set_clock(seconds: float, reduced: bool) -> void:
     refresh_coverage()
     var clock: float = 0.0 if reduced else seconds
-    for material in [water, land, foliage, sky_material]:
+    for material in [water, land, foliage, broadleaf, sky_material]:
         material.set_shader_parameter("study_time", clock)
 
 func refresh_coverage() -> void:
