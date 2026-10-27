@@ -48,7 +48,7 @@ func _ready() -> void:
     if visuals != null:
         visuals.bind_terrain(terrain)
     ship = ShipStudy.new()
-    ship.name = "DragonflySilhouetteStudy"
+    ship.name = "AureateWakeSilhouetteStudy"
     add_child(ship)
     camera = Camera3D.new()
     camera.name = "FlightCamera"
