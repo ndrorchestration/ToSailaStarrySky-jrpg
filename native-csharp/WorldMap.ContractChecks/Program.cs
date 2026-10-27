@@ -387,6 +387,26 @@ internal static class Program
             "root mesh indices in bounds");
         Check(baseMesh.Normals.Count == baseMesh.Vertices.Count,
             "one analytic normal per vertex");
+        Check(baseMesh.Uvs.Count == baseMesh.Vertices.Count,
+            "one cube-face UV per vertex");
+        foreach (var face in Enum.GetValues<CubeFace>())
+        {
+            var surface = CubeSphereMeshFixture.Generate(new TileId(face, 0, 0, 0), R, 8);
+            for (int i = 0; i < surface.Uvs.Count; i++)
+            {
+                var uv = surface.Uvs[i];
+                Check(uv.U >= 0 && uv.U <= 1 && uv.V >= 0 && uv.V <= 1,
+                    "normalized cube-face UV " + face);
+                var expected = CubeSphereAddressing.ToPosition(face, uv.U, uv.V);
+                var vertex = surface.Vertices[i];
+                var geographic = new PlanetPosition(
+                    Math.Asin(Math.Clamp(vertex.Y / R, -1, 1)) * 180 / Math.PI,
+                    Math.Atan2(vertex.Z, vertex.X) * 180 / Math.PI);
+                Near(PlanetGeometry.AngularSeparationRadians(expected, geographic), 0, 1e-7,
+                    "UV reconstructs surface vertex " + face);
+            }
+        }
+
         foreach (var face in Enum.GetValues<CubeFace>())
         {
             var surface = CubeSphereMeshFixture.Generate(new TileId(face, 0, 0, 0), R, 8);
