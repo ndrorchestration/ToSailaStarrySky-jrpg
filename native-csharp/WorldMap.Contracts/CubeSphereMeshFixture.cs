@@ -12,7 +12,7 @@ namespace StarrySky.WorldMap.Contracts;
 public static class CubeSphereMeshFixture
 {
     public readonly record struct Point3(double X, double Y, double Z);
-    public sealed record TileMesh(IReadOnlyList<Point3> Vertices, IReadOnlyList<int> Indices);
+    public sealed record TileMesh(IReadOnlyList<Point3> Vertices, IReadOnlyList<Point3> Normals, IReadOnlyList<int> Indices);
 
     public static TileMesh Generate(TileId tile, double radius, int segments)
     {
@@ -27,6 +27,7 @@ public static class CubeSphereMeshFixture
 
         int count = 1 << tile.Level;
         var vertices = new Point3[(segments + 1) * (segments + 1)];
+        var normals = new Point3[vertices.Length];
         var indices = new int[segments * segments * 6];
         for (int row = 0; row <= segments; row++)
         for (int col = 0; col <= segments; col++)
@@ -36,10 +37,13 @@ public static class CubeSphereMeshFixture
             var position = CubeSphereAddressing.ToPosition(tile.Face, u, v);
             double lat = position.LatitudeDegrees * Math.PI / 180.0;
             double lon = position.LongitudeDegrees * Math.PI / 180.0;
-            vertices[row * (segments + 1) + col] = new Point3(
-                radius * Math.Cos(lat) * Math.Cos(lon),
-                radius * Math.Sin(lat),
-                radius * Math.Cos(lat) * Math.Sin(lon));
+            var unit = new Point3(
+                Math.Cos(lat) * Math.Cos(lon),
+                Math.Sin(lat),
+                Math.Cos(lat) * Math.Sin(lon));
+            int index = row * (segments + 1) + col;
+            normals[index] = unit;
+            vertices[index] = new Point3(radius * unit.X, radius * unit.Y, radius * unit.Z);
         }
         int offset = 0;
         for (int row = 0; row < segments; row++)
@@ -52,7 +56,7 @@ public static class CubeSphereMeshFixture
             AddOutwardTriangle(vertices, indices, ref offset, a, c, b);
             AddOutwardTriangle(vertices, indices, ref offset, b, c, d);
         }
-        return new TileMesh(Array.AsReadOnly(vertices), Array.AsReadOnly(indices));
+        return new TileMesh(Array.AsReadOnly(vertices), Array.AsReadOnly(normals), Array.AsReadOnly(indices));
     }
 
     // Correct each face's handedness rather than assuming a shared cube UV winding.
