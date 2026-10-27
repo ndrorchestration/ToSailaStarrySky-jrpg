@@ -1,3 +1,7 @@
+> **CURRENT ROUTING ADDENDUM — 2026-10-27.** Read [consolidated cinematic development ledger](https://app.notion.com/p/406f5bad238b81649ecaea05f451c2d6), [orphan/stale-work audit](https://app.notion.com/p/406f5bad238b81f4b4b2caa1b7416a82), and [public-safe GitHub reconciliation](2026-10-27_CINEMATIC_PRODUCTION_ORPHAN_AUDIT.md) for current status. Older “Dragonfly ship and home” index entries conflate **two distinct vehicles**: Aureate Wake (protagonists' home) vs Dragonfly (larger Frigate). Preserve historical Notion pages as dated evidence, but apply the latest creator-approved title, five fundamental story energies and ship split. Notion links may require separate permission.
+
+---
+
 # Notion → GitHub evidence map (public-safe)
 
 **Why:** Hermes, Hyperagent/Spellcraft and Muse/Herald may not share Notion access. This index contains **public-safe pointers and locally synthesized constraints**. It does not export private images, restricted postgame solutions, or all Notion content. Links require applicable Notion permissions.
