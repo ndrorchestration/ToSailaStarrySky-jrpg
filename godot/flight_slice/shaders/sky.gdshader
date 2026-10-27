@@ -4,7 +4,11 @@ render_mode disable_fog;
 // Preserve the same sun direction, scene clock and reduced-quality controls.
 uniform float study_time = 0.0;
 uniform bool low_quality = false;
-uniform float cloud_depth_strength : hint_range(0.0, 1.0) = 1.0; // 0 = reference sky, 1 = layered distant banks
+uniform float cloud_depth_strength : hint_range(0.0, 1.0) = 1.0;
+uniform float time_palette : hint_range(0.0, 3.0) = 0.0;
+uniform float weather_strength : hint_range(0.0, 1.0) = 0.0;
+uniform float magic_veil_strength : hint_range(0.0, 1.0) = 0.0;
+uniform float sun_visibility : hint_range(0.0, 1.0) = 1.0; // 0 = reference sky, 1 = layered distant banks
 uniform vec3 sun_direction = vec3(0.65, 0.43, -0.70);
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
@@ -27,16 +31,30 @@ void sky() {
     vec3 upper=vec3(0.035,0.105,0.225);
     vec3 middle=vec3(0.115,0.255,0.365);
     vec3 distant=vec3(0.52,0.65,0.67);
+    // Four hand-authored lighting grades; no computed orbit, lunar phase or clock.
+    float noon=1.0-clamp(abs(time_palette-1.0),0.0,1.0);
+    float blue=1.0-clamp(abs(time_palette-2.0),0.0,1.0);
+    float night=1.0-clamp(abs(time_palette-3.0),0.0,1.0);
+    upper=mix(upper,vec3(0.085,0.23,0.44),noon);
+    middle=mix(middle,vec3(0.26,0.46,0.68),noon);
+    distant=mix(distant,vec3(0.72,0.79,0.83),noon);
+    upper=mix(upper,vec3(0.027,0.062,0.19),blue);
+    middle=mix(middle,vec3(0.085,0.16,0.34),blue);
+    distant=mix(distant,vec3(0.33,0.41,0.58),blue);
+    upper=mix(upper,vec3(0.008,0.014,0.070),night);
+    middle=mix(middle,vec3(0.019,0.043,0.14),night);
+    distant=mix(distant,vec3(0.065,0.11,0.22),night);
     vec3 c=mix(middle,upper,smoothstep(0.04,0.78,altitude));
     c=mix(c,distant,horizon*0.89);
     float aureole=pow(solar,7.0)*exp(-abs(d.y-sun.y)*2.7);
-    c+=vec3(0.31,0.145,0.045)*aureole;
-    c+=vec3(0.22,0.135,0.075)*horizon*pow(solar,2.0);
+    c+=vec3(0.31,0.145,0.045)*aureole*sun_visibility;
+    c+=vec3(0.22,0.135,0.075)*horizon*pow(solar,2.0)*sun_visibility;
 
     if (d.y>0.025 && !AT_CUBEMAP_PASS) {
         vec2 p=d.xz/(d.y+0.22)*2.2+vec2(study_time*0.008,0.0);
         float n=clouds(p);
-        float body=smoothstep(0.47,0.72,n)*smoothstep(0.03,0.17,d.y);
+        float body=smoothstep(0.47-weather_strength*0.13,
+            0.72-weather_strength*0.08,n)*smoothstep(0.03,0.17,d.y);
         float edge=clouds(p+vec2(0.12,-0.08));
         float solar_rim=smoothstep(0.18,0.86,solar);
         vec3 underside=vec3(0.31,0.40,0.52);
@@ -44,6 +62,7 @@ void sky() {
         vec3 warm=vec3(1.0,0.77,0.52);
         vec3 cloud_color=mix(underside,lit,smoothstep(0.35,0.69,edge));
         cloud_color=mix(cloud_color,warm,solar_rim*0.33);
+        cloud_color=mix(cloud_color,vec3(0.20,0.29,0.43),weather_strength*0.63);
         c=mix(c,cloud_color,body*0.89);
         // Atmospheric perspective: a separate lower, broader cloud deck.
         // This is a 2D directional impostor, NOT real volumetric cloud geometry.
@@ -83,8 +102,22 @@ void sky() {
             c=mix(c,vec3(0.73,0.78,0.82),wisps*0.075);
         }
     }
+    // Weather controls cloud, haze and muted light; no gameplay visibility change.
+    c=mix(c,c*vec3(0.65,0.73,0.86),weather_strength*0.39);
+    if (!low_quality && magic_veil_strength>0.001) {
+        // Decorative magical haze: deliberately NOT a navigable auroral lane.
+        // Slow, nonflashing ribbons are absent in quality fallback.
+        float azimuth=atan(d.z,d.x);
+        float veil_center=0.31+0.060*sin(azimuth*3.1+study_time*0.009);
+        float ribbon=exp(-pow((d.y-veil_center)*18.0,2.0));
+        float wisp=0.68+0.32*sin(azimuth*9.0+study_time*0.012);
+        float altitude_mask=smoothstep(0.10,0.23,d.y)
+            *(1.0-smoothstep(0.70,0.90,d.y));
+        vec3 veil=mix(vec3(0.28,0.71,0.76),vec3(0.58,0.40,0.83),wisp);
+        c+=veil*ribbon*altitude_mask*magic_veil_strength*0.24;
+    }
     float disk=smoothstep(0.9991,0.9997,dot(d,sun));
-    c+=vec3(1.0,0.75,0.40)*disk*1.5;
-    c+=vec3(0.13,0.075,0.035)*pow(solar,140.0);
+    c+=vec3(1.0,0.75,0.40)*disk*1.5*sun_visibility;
+    c+=vec3(0.13,0.075,0.035)*pow(solar,140.0)*sun_visibility;
     COLOR=max(c,vec3(0.0));
 }
