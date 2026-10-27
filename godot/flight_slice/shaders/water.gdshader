@@ -5,6 +5,7 @@ uniform sampler2D terrain_coverage : filter_nearest, repeat_disable;
 uniform float study_time = 0.0;
 uniform bool low_quality = false;
 uniform vec3 sun_direction = vec3(0.65, 0.43, -0.70);
+uniform float sun_visibility : hint_range(0.0, 1.0) = 1.0;
 uniform float sea_surface_elevation = -0.15; // bound from TerrainStudy.SEA_LEVEL
 varying vec3 world_pos;
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
@@ -47,6 +48,7 @@ void fragment() {
     vec3 water=mix(vec3(0.065,0.29,0.27),vec3(0.013,0.072,0.14),smoothstep(0.2,2.4,depth));
     water+=vec3(0.020,0.055,0.044)*shallow*(1.0-0.28*max(wave1,0.0));
     vec3 reflected_sky=mix(vec3(0.19,0.37,0.49),vec3(0.39,0.48,0.53),smoothstep(0.3,0.95,fresnel));
+    reflected_sky*=mix(0.43,1.0,sun_visibility);
     water=mix(water,reflected_sky,fresnel*0.79);
     float shore=(1.0-smoothstep(0.10,0.65,depth))*smoothstep(0.01,0.09,depth);
     float foam=cover*smoothstep(0.15,0.65,sin(depth*24.0-study_time*1.4+wave1*0.4))*shore;
@@ -60,7 +62,7 @@ void fragment() {
         pow(max(0.0,noise(p*4.5+vec2(study_time*0.16,0.0))),9.0)*0.08;
     ALBEDO=mix(water,vec3(0.73,0.81,0.72),foam*0.65)
         +vec3(0.22,0.24,0.19)*glints;
-    EMISSION=vec3(1.0,0.77,0.48)*sun_flash*0.16*(1.0-foam)
+    EMISSION=vec3(1.0,0.77,0.48)*sun_flash*0.16*(1.0-foam)*sun_visibility
         +vec3(0.07,0.10,0.12)*fine_sparkle;
     // Softer broad reflections retain wave detail at the bright coast viewpoint.
     ROUGHNESS=mix(0.43,0.76,foam); METALLIC=0.0; SPECULAR=0.16;
