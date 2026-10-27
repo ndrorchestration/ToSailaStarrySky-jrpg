@@ -1,3 +1,7 @@
+> **CURRENT ENGINE/CANON NOTE — 2026-10-27:** This is the preserved, established **legacy runtime cinematic-clip contract**, not proof that H.264 clips, captures or a reusable Godot 4.7.2 playback pipeline are implemented. Future authored Godot cinematics should reuse appropriate manifest/fallback/provenance/accessibility principles after native integration and verification. *To Sail the Starry Sky* is the current project title. “Dragonfly” historical examples below must not silently represent the protagonists' smaller **Aureate Wake**; the separate **Dragonfly** is a larger Frigate. Keep existing `cinematic-manifest.schema.json` and real manifests intact. [Audit and current visual QA](../../docs/2026-10-27_CINEMATIC_PRODUCTION_ORPHAN_AUDIT.md).
+
+---
+
 # Aetherwake Cinematic Assets
 
 This directory is the canonical runtime landing zone for short authored video clips.

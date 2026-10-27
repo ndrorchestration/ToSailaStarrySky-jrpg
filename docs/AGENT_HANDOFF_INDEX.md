@@ -1,3 +1,7 @@
+> **OCTOBER 27 ENGINE/ART HANDOFF:** Read the [cinematic production + orphan/stale audit](2026-10-27_CINEMATIC_PRODUCTION_ORPHAN_AUDIT.md) for current drafts #402–#411, the independent equipment/weapon-tree branches, still-empty resonance branch, current ship distinction, and reviewer gates. Existing older links below are provenance rather than permission to merge code or overwrite canon.
+
+---
+
 # Agent handoff — documentation routing
 
 **Status:** Public-safe cross-agent reference; created 2026-10-25 from current creator direction, GitHub contracts, and selected Notion records. This is a **navigation and reconciliation layer**, not an approval to integrate, publish or expose restricted story material.

@@ -1,3 +1,7 @@
+> **CURRENT ENGINE/STATUS OVERRIDE — 2026-10-27.** *To Sail the Starry Sky* is developed forward in **Godot 4.7.2 / GDScript**. The Aetherwake/JS/p5/NW.js browser build and historical Preview 0.1 receipts below are preserved for migration, archival audit and installer regression; they are **not** the present target for new gameplay. The current priority is [P0 playable cinematic planetary route #387](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/issues/387). See [2026-10-27 audit and production plan](2026-10-27_CINEMATIC_PRODUCTION_ORPHAN_AUDIT.md) before beginning new visual or Chapter I work. No draft PR is merged simply because technical CI passed.
+
+---
+
 # Aetherwake Development Guide
 
 ## Current stage
