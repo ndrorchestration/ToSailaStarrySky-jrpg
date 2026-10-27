@@ -2,6 +2,12 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Aureate Wake second-pass geometry study — 2026-10-27
+
+**SOURCE IMPLEMENTED / VERIFY AGAINST NEW NATIVE CAPTURES:** The previous real Godot bow, stern and overhead captures exposed overly flat bright trapezoidal wing membranes, an over-large spherical stern and a very smooth white cabin. This follow-up on top of the first ship art study makes each wing a six-panel fan of genuine three-dimensional cambered triangles with an asymmetrical scalloped outline, lower-intensity teal-silver vertex colors, narrower perimeter trim and fine two-segment radial veins. The stern turbine placeholder is a smaller layered cylindrical nozzle with an inner luminous throat. Four shallow roof ribs per side give the cabin visual segmentation without specifying a final interior. The review camera moves closer to make art-level features testable in 960×640 native screenshots.
+
+No collision, physics sampler, touchdown admission, ship dimensions as canon, wing deployment rules or save/state change. **Caution:** many separate mesh nodes and alpha-blended panels remain expensive relative to a production joined/instanced asset; visual acceptance, transparency sorting, pixel readability and target GPU timings stay OPEN. Shape is wholly original provisional art; hand-built/Blender-ready source asset, interior architecture and final author approval remain future gates.
+
 ## Aureate Wake close-range ship art study — 2026-10-27
 
 **IMPLEMENTED SOURCE / NATIVE VISUAL PENDING:** The local planar flight-scene proxy now uses an original ring-lofted tapered compact body instead of a sphere-only hull, four separately modeled translucent dragonfly-derived membrane wings, slim structural edge spars and radial vein geometry, warm amber cabin windows against cool teal instrument glass, brass rootwood detailing, and three modest navigational vanes. Animation includes a subtle wing flex and suppresses it exactly under reduced-motion mode. A separate test checks silhouette objects, repeated lived-in details, animation reset and the original two visual touchdown feet; the physical landing state machine, single-ray ground contact, and terrain are not changed.
