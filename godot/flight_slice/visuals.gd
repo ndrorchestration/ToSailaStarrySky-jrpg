@@ -12,6 +12,18 @@ var low_quality: bool = false
 var coverage: ImageTexture
 var _terrain: Node3D
 var _coverage_bytes := PackedByteArray()
+# One near/far mesh per existing species, keeping the exact CPU instance poses.
+# These are GROVE-WIDE art LODs, not per-tree clusters / production globe LOD.
+const CANOPY_NEAR: float = 29.0
+const CANOPY_FAR: float = 39.0
+var _evergreen_near: ArrayMesh
+var _evergreen_far: ArrayMesh
+var _broadleaf_near: ArrayMesh
+var _broadleaf_far: ArrayMesh
+var _near_forest_detail: bool = false
+var _last_forest_observer: Vector3 = Vector3(-56.0, 20.0, 52.0)
+# 0=automatic; 1=force detailed; 2=force coarse for matched framebuffer QA.
+var canopy_review_override: int = 0
 
 func _ready() -> void:
     sky_material = _shader("res://shaders/sky.gdshader")
@@ -83,10 +95,14 @@ func bind_terrain(terrain: Node3D) -> void:
     terrain.get_node("OceanSurface").material_override = water
     refresh_coverage()
     var crowns: MultiMeshInstance3D = terrain.get_node("ForestCrowns")
-    crowns.multimesh.mesh = _layered_crown()
+    _evergreen_near = _layered_crown(true)
+    _evergreen_far = _layered_crown(false)
+    _broadleaf_near = _broadleaf_crown(true)
+    _broadleaf_far = _broadleaf_crown(false)
+    crowns.multimesh.mesh = _evergreen_far
     crowns.material_override = foliage
     var broad_crowns: MultiMeshInstance3D = terrain.get_node("BroadleafCrowns")
-    broad_crowns.multimesh.mesh = _broadleaf_crown()
+    broad_crowns.multimesh.mesh = _broadleaf_far
     broad_crowns.material_override = broadleaf
     # Independent presentation-only ground cover; no route or collision changes.
     if not terrain.has_node("ForestGroundCover"):
@@ -94,6 +110,55 @@ func bind_terrain(terrain: Node3D) -> void:
         floor.name = "ForestGroundCover"
         terrain.add_child(floor)
         floor.populate()
+    update_forest_detail(_last_forest_observer)
+
+# Existing spatial footprint is x≈18..56, z≈-80..82. Use a minimum
+# 3D distance to the forest band, not distance to its very long centroid.
+func _forest_distance(observer: Vector3) -> float:
+    var closest := Vector3(clampf(observer.x, 18.0, 56.0),
+        5.0, clampf(observer.z, -80.0, 82.0))
+    return observer.distance_to(closest)
+
+func update_forest_detail(observer: Vector3) -> void:
+    _last_forest_observer = observer
+    if _terrain == null or _evergreen_near == null:
+        return
+    var distance: float = _forest_distance(observer)
+    var detailed: bool = _near_forest_detail
+    if distance > CANOPY_FAR:
+        detailed = false
+    elif distance < CANOPY_NEAR:
+        detailed = true
+    if low_quality or canopy_review_override == 2:
+        detailed = false
+    elif canopy_review_override == 1:
+        detailed = true
+    if detailed != _near_forest_detail:
+        _near_forest_detail = detailed
+        var evergreen: MultiMeshInstance3D = _terrain.get_node("ForestCrowns")
+        var broad: MultiMeshInstance3D = _terrain.get_node("BroadleafCrowns")
+        evergreen.multimesh.mesh = _evergreen_near if detailed else _evergreen_far
+        broad.multimesh.mesh = _broadleaf_near if detailed else _broadleaf_far
+    # Small noncollision fronds are unnecessary in wide/distant views.
+    # Grove-wide culling is deliberately coarse; no distance-dither/alpha pop claim.
+    var show_floor: bool = (distance < CANOPY_NEAR)
+    if distance > CANOPY_FAR:
+        show_floor = false
+    elif distance >= CANOPY_NEAR:
+        show_floor = _terrain.get_node("ForestGroundCover/FernClumps").visible
+    if canopy_review_override == 1:
+        show_floor = true
+    elif canopy_review_override == 2:
+        show_floor = false
+    if low_quality:
+        show_floor = false
+    for layer_name in ["FernClumps", "UnderstoryShrubs"]:
+        _terrain.get_node("ForestGroundCover/" + layer_name).visible = show_floor
+
+func set_canopy_review_override(mode: int) -> void:
+    # Native paired captures only; normal gameplay always uses 0.
+    canopy_review_override = clampi(mode, 0, 2)
+    update_forest_detail(_last_forest_observer)
 
 func set_clock(seconds: float, reduced: bool) -> void:
     refresh_coverage()
@@ -123,13 +188,14 @@ func set_low_quality(enabled: bool) -> void:
     water.set_shader_parameter("low_quality", enabled)
     sky_material.set_shader_parameter("low_quality", enabled)
     land.set_shader_parameter("low_quality", enabled)
+    update_forest_detail(_last_forest_observer)
 
 func _shader(path: String) -> ShaderMaterial:
     var material := ShaderMaterial.new()
     material.shader = load(path)
     return material
 
-func _layered_crown() -> ArrayMesh:
+func _layered_crown(detailed: bool = true) -> ArrayMesh:
     # Irregular overlapping leaf masses replace the uniform triangular cones.
     # All positions remain local to one instanced tree: no new draw calls.
     var surface := SurfaceTool.new()
@@ -159,11 +225,20 @@ func _layered_crown() -> ArrayMesh:
             _crown_triangle(surface, lower_a, lower_b, shoulder_a, underside)
             _crown_triangle(surface, shoulder_a, lower_b, shoulder_b, underside)
             _crown_triangle(surface, shoulder_a, shoulder_b, crown_top, sunward)
+            if detailed and side % 2 == 0:
+                # A restrained asymmetric bough reaches beyond the original
+                # lower ring; deterministic silhouette breakup without new nodes.
+                var direction: float = a + 0.15
+                var tip := Vector3(cos(direction) * radius * 1.24,
+                    base + 0.20 + 0.11 * sin(a * 3.1),
+                    sin(direction) * radius * 1.24)
+                _crown_triangle(surface, lower_a, tip, shoulder_a,
+                    underside.lerp(sunward, 0.22))
     return surface.commit()
 
 # Three overlapping, compressed leaf masses make a less spherical silhouette.
 # They are one instanced mesh, not individual meshes per tree or final foliage.
-func _broadleaf_crown() -> ArrayMesh:
+func _broadleaf_crown(detailed: bool = true) -> ArrayMesh:
     var primitive := SphereMesh.new()
     primitive.radius = 0.90
     primitive.height = 1.80
@@ -183,6 +258,21 @@ func _broadleaf_crown() -> ArrayMesh:
         Vector3(0.84, 0.78, 0.86)]
     var colors: Array[Color] = [
         Color(0.91, 0.96, 0.81), Color(1.0, 1.0, 0.86), Color(1.04, 1.02, 0.90)]
+    if detailed:
+        # Smaller nested lobes create flatter, asymmetric woodland edges
+        # instead of a uniform silhouette of three visibly spherical balls.
+        centers.append_array([
+            Vector3(-0.87, -0.12, 0.15),
+            Vector3(0.82, -0.22, -0.29),
+            Vector3(-0.07, 0.58, 0.26)])
+        scales.append_array([
+            Vector3(0.56, 0.45, 0.59),
+            Vector3(0.62, 0.42, 0.51),
+            Vector3(0.64, 0.48, 0.58)])
+        colors.append_array([
+            Color(0.83, 0.93, 0.78),
+            Color(0.93, 0.97, 0.82),
+            Color(0.97, 1.01, 0.87)])
     for lobe in range(centers.size()):
         var scale: Vector3 = scales[lobe]
         for index in indices:
