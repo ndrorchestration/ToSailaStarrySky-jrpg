@@ -78,6 +78,15 @@ func _run_tests() -> void:
     _check(terrain.detailed_tiles > 0, "high-detail promotion")
     terrain.update_detail(Vector3(38.0, 32.0, 28.0), 1.0)
     _check_mixed_edges(terrain)
+    # Move across detail bands and return, exercising promotion, demotion,
+    # neighbor-mask changes, and bounded one-variant-per-tile reuse.
+    for observer in [Vector3(0.0, 20.0, 0.0), Vector3(70.0, 30.0, -20.0),
+            Vector3(-25.0, 15.0, 12.0), Vector3(38.0, 32.0, 28.0)]:
+        terrain.update_detail(observer, 1.0)
+        _check_mixed_edges(terrain)
+    for tile in terrain._tiles:
+        _check(tile.has("stitched_mesh") and tile.has("stitched_mask"),
+            "terrain tile retains at most one current stitched mesh slot")
 
     var ship = ShipStudy.new()
     get_root().add_child(ship)
