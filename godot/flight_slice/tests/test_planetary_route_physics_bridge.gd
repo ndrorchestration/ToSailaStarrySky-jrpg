@@ -50,6 +50,18 @@ func _run() -> void:
         "route progresses only on re-probed live physics support")
     check(scene.route_progress.phase != Route.Phase.ON_FOOT,
         "no fake ground scene admission")
+    check(not scene.route_progress.disembark(false), "scene must be ready before disembark")
+    var ground_scene = load("res://route_ground_stage.tscn").instantiate()
+    check(not ground_scene.ready_for_disembark, "ground fixture not ready before tree admission")
+    scene.add_child(ground_scene)
+    await process_frame
+    check(ground_scene.is_inside_tree() and ground_scene.ready_for_disembark,
+        "native ground stage entered tree")
+    check(scene.route_progress.disembark(ground_scene.is_inside_tree() and ground_scene.ready_for_disembark),
+        "real native ground scene readiness advances ON_FOOT")
+    check(not scene.route_progress.return_to_ship(Route.HOME_SHIP_ID, false),
+        "return cannot be inferred from ground scene load")
+
     scene.queue_free()
     await process_frame
     if failures.is_empty():
