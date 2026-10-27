@@ -4,6 +4,11 @@ const Catalog = preload("res://scripts/weapon_skill_catalog.gd")
 const Silhouette = preload("res://scripts/weapon_silhouette_review.gd")
 
 func _initialize() -> void:
+    # SceneTree._initialize precedes the first root-ready pass in Godot.
+    # Exercise instantiated nodes only after entering the idle loop.
+    call_deferred("_run_tests")
+
+func _run_tests() -> void:
     var model = Catalog.new()
     if not model.validate():
         _fail("catalog did not validate")
