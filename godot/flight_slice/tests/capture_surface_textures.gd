@@ -9,7 +9,7 @@ func _initialize() -> void:
     call_deferred("_run")
 
 func _shot(scene: Node3D, path: String) -> void:
-    scene.visuals.set_clock(23.0, false)
+    scene.visuals.set_clock(scene._clock, false)
     scene.visuals.set_camera_frame(scene.camera)
     for k in range(8):
         await process_frame
@@ -58,23 +58,38 @@ func _run() -> void:
     await _shot(scene, dir.path_join("03-night-untextured.png"))
     scene.visuals.set_texture_detail_enabled(true)
     await _shot(scene, dir.path_join("04-night-textured.png"))
-    if images.size() == 4:
+    # A second fixed camera phase specifically evaluates surfacing/shoreline
+    # rather than inferring ocean texture evidence from a forest screenshot.
+    scene._clock = 5.5
+    scene._update_scene(10.0)
+    var coastal_pose: Transform3D = scene.camera.global_transform
+    scene.visuals.set_environment_look(0, 0, false)
+    scene.visuals.set_texture_detail_enabled(false)
+    await _shot(scene, dir.path_join("05-coast-untextured.png"))
+    scene.visuals.set_texture_detail_enabled(true)
+    await _shot(scene, dir.path_join("06-coast-textured.png"))
+    if images.size() == 6:
+        var delta_coast: float = _land_pixel_delta(images[4],images[5])
         var delta_golden: float = _land_pixel_delta(images[0],images[1])
         var delta_night: float = _land_pixel_delta(images[2],images[3])
         print("NATIVE_SURFACE_TEXTURE_DELTAS golden=",delta_golden,
-            " night=",delta_night)
+            " night=",delta_night," coast=",delta_coast)
         if delta_golden < 1.0:
             problems.append("committed microtextures did not affect golden render")
         if delta_night < 0.30:
             problems.append("committed microtextures did not affect night render")
-        if scene.camera.global_transform != camera_pose:
-            problems.append("texture comparison moved camera")
+        if delta_coast < 1.0:
+            problems.append("committed ocean/shoreline texture did not affect coast render")
+        if coastal_pose != scene.camera.global_transform:
+            problems.append("texture comparison moved coastal camera")
+        if images[0] == images[1] or images[4] == images[5]:
+            problems.append("identical texture-on and texture-off bitmaps")
     else:
-        problems.append("incomplete 4-pair source capture")
+        problems.append("incomplete 6-frame source capture")
     scene.queue_free()
     await process_frame
     if problems.is_empty():
-        print("NATIVE_SURFACE_TEXTURE_CAPTURE_PASS frames=4")
+        print("NATIVE_SURFACE_TEXTURE_CAPTURE_PASS frames=6")
         quit(0)
     else:
         for problem in problems:
