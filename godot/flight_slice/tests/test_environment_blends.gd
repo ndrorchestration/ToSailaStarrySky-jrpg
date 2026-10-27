@@ -88,6 +88,28 @@ func _run() -> void:
     check(is_equal_approx(visuals.get_node("GoldenHourKey").light_energy, 1.15),
         "original daytime light energy survives round trip")
     check(scene.terrain.chunk_count() == 64, "transition keeps native terrain tiles")
+    # Integrated review: visual transitions do not replace the lived-in
+    # Aureate Wake with the separate Dragonfly frigate or touch its physics.
+    check(scene.ship.name == "AureateWakeSilhouetteStudy",
+        "ship identity stays the creator-established home vessel")
+    var hull: MeshInstance3D = scene.ship.get_node("LongHull")
+    check(hull.mesh is ArrayMesh, "blended environment retains shaped hull")
+    var fixed_ship: Transform3D = scene.ship.global_transform
+    for wing_name in ["PortFore", "PortAft", "StarboardFore", "StarboardAft"]:
+        var rig: Node3D = scene.ship.get_node("WingRig_" + wing_name)
+        check(rig.get_node("Membrane_" + wing_name) is MeshInstance3D,
+            "weather transition keeps four separate wing membranes " + wing_name)
+    visuals.queue_environment_look(3, 3, true, 2.0)
+    visuals.advance_environment_transition(1.0, false)
+    check(visuals.transition_active, "halfway storm can coexist with intact ship")
+    check(scene.ship.global_transform == fixed_ship,
+        "halfway blended weather does not alter ship transform")
+    scene.ship.set_motion(23.0, true)
+    for wing_name in ["PortFore", "PortAft", "StarboardFore", "StarboardAft"]:
+        check(is_zero_approx(scene.ship.get_node("WingRig_" + wing_name).rotation.z),
+            "reduced-motion keeps integrated wing flex still " + wing_name)
+    check(scene.ship.global_transform == fixed_ship,
+        "reduced-motion atmospheric test never changes ship transform")
     scene.queue_free()
     await process_frame
     if errors.is_empty():
