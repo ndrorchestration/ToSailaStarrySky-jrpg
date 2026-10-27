@@ -2,7 +2,7 @@ extends MultiMeshInstance3D
 ## Original fixed-budget noncollision rocky outcrops, presentation-only.
 ## The geometry does not replace or modify the authoritative land mesh.
 const TerrainStudy = preload("res://terrain.gd")
-const MAX_OUTCROPS: int = 88
+const MAX_OUTCROPS: int = 64
 var poses: Array[Transform3D] = []
 
 func _ready() -> void:
@@ -24,14 +24,14 @@ func _ready() -> void:
             var gradient: float = Vector2(dx,dz).length()
             if gradient < 0.42 and height < 17.0:
                 continue
-            if sin(x*2.7+z*3.1) < -0.12:
+            if sin(x*2.7+z*3.1) < 0.18:
                 continue
             var variation: float = 0.73+0.42*absf(sin(x*0.73+z*0.21))
-            var size: Vector3 = Vector3(variation,
-                0.58+0.68*absf(cos(x*0.41-z*0.28)),variation*0.83)
+            var size: Vector3 = Vector3(variation*1.09,
+                0.38+0.42*absf(cos(x*0.41-z*0.28)),variation*0.96)
             var yaw: float = fposmod(x*0.35+z*0.16,TAU)
             var basis := Basis(Vector3.UP,yaw).scaled(size)
-            poses.append(Transform3D(basis,Vector3(x,height-0.10,z)))
+            poses.append(Transform3D(basis,Vector3(x,height-0.18,z)))
             if poses.size() >= MAX_OUTCROPS:
                 break
         if poses.size() >= MAX_OUTCROPS:
@@ -50,8 +50,8 @@ func _make_rock() -> ArrayMesh:
         Vector3(0.76,-0.02,-0.57),
         Vector3(0.87,0.0,0.71),
         Vector3(-0.65,0.03,0.87),
-        Vector3(0.02,1.13,-0.16),
-        Vector3(0.13,0.79,0.49)]
+        Vector3(0.02,0.83,-0.16),
+        Vector3(0.13,0.58,0.49)]
     var surface := SurfaceTool.new()
     surface.begin(Mesh.PRIMITIVE_TRIANGLES)
     for face in [[0,1,4],[1,2,4],[2,5,4],[2,3,5],
