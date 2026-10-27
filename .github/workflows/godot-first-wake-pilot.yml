@@ -54,6 +54,9 @@ jobs:
       - name: Verify Lyra authored four-direction SVGs in native Godot
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/lyra_fourway_review_test.gd
+      - name: Verify Aepex independently authored four-direction SVGs in native Godot
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/aepex_fourway_review_test.gd
       - name: Verify opt-in Ender movement animation
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/ender_walk_test.gd
