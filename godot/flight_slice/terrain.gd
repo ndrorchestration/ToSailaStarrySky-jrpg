@@ -59,7 +59,31 @@ static func _highland_fractal(x: float, z: float) -> float:
     var envelope: float = smoothstep(50.0, 62.0, x)
     return 1.8 * envelope * clampf(_terrain_noise.get_noise_2d(x, z), -1.0, 1.0)
 
+# Bounded upper-mountain erosion: actual heightfield relief (not a sky
+# backdrop, overlay or fictitious geometry). It fades in above the forest and
+# fades out at the study's eastern edge. Thus the historic shoreline, village,
+# test field and forest reference heights remain bit-for-bit unchanged.
+static func alpine_arrete_relief(x: float, z: float) -> float:
+    if x <= 57.0 or x >= 100.0:
+        return 0.0
+    var fade: float = smoothstep(57.0, 70.0, x)
+    fade *= 1.0 - smoothstep(90.0, 100.0, x)
+    # Folded sub-ridges and narrow gullies follow a stable oblique drainage
+    # direction. Neither component introduces a discontinuity or another seed.
+    var folded: float = z * 0.23 + x * 0.093
+    folded += 0.32 * sin(x * 0.145 + z * 0.072)
+    var spine: float = pow(absf(sin(folded)), 3.1)
+    var valleys: float = (spine * 2.0 - 1.0) * 1.42
+    var sidewall: float = 0.43 * cos(z * 0.091 - x * 0.145)
+    return fade * (valleys + sidewall)
+
 static func sample_height(x: float, z: float) -> float:
+    return _sample_height_before_arretes(x, z) + alpine_arrete_relief(x, z)
+
+# Snapshot of the original, already-tested sampler. This named component is
+# independently checked against the previous parent fixtures, so a new
+# geology study cannot quietly redefine the shoreline/landing authority.
+static func _sample_height_before_arretes(x: float, z: float) -> float:
     var coast: float = coastline_at(z)
     var rise: float = smoothstep(coast - 8.0, coast + 19.0, x)
     var highland: float = pow(clampf((x - 26.0) / 66.0, 0.0, 1.0), 1.55)
