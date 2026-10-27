@@ -73,6 +73,9 @@ func _run() -> void:
     var arrays: Array = visuals._layered_crown().surface_get_arrays(0)
     var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
     var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+    check(vertices.size() >= 300, "layered irregular crowns provide shaped silhouette")
+    check(vertices.size() == normals.size() and vertices.size() % 3 == 0,
+        "crown triangles retain complete normal data")
     for i in range(0,vertices.size(),3):
         check((vertices[i+1]-vertices[i]).cross(vertices[i+2]-vertices[i]).dot(normals[i]) < 0, "crown outward CW winding")
     # Real native geometry: roofs must be pitched triangles, not BoxMesh slabs.
@@ -109,6 +112,13 @@ func _run() -> void:
             varied = true
             break
     check(varied, "forest crowns have deterministic varied CPU orientations")
+    var nonuniform: bool = false
+    for tree in cpu_poses:
+        var axes: Vector3 = tree.basis.get_scale()
+        if absf(axes.y - axes.x) > 0.10 or absf(axes.y - axes.z) > 0.10:
+            nonuniform = true
+            break
+    check(nonuniform, "deterministic forest contains varied height-width profiles")
     scene._clock = 9.0
     scene._paused = true
     scene._process(0.2)
