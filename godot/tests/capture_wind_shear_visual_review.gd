@@ -1,7 +1,8 @@
 extends SceneTree
-## Original Wind Shear pixel-art presentation review: eight true Godot 960x640
-## framebuffer captures: four idle comparisons + real analysis/strike +
-## two review-only states. No extra gameplay action or progression is faked.
+## Original Wind Shear pixel-art presentation review: nine true Godot 960x640
+## framebuffer captures: all four authored idle poses, the reduced-motion
+## still, real analysis/strike, plus two art-only states. No extra gameplay
+## action or progression is faked.
 ##
 ## Noncanonical art study / no screenshot equals creator acceptance.
 
@@ -101,6 +102,12 @@ func _capture() -> void:
     if not (await _snapshot("wind-shear-idle-phase2-native-960x640")):
         _fail("idle pressure phase 2")
         return
+    art.visual_clock = 0.78
+    art.queue_redraw()
+    await process_frame
+    if not (await _snapshot("wind-shear-idle-phase3-native-960x640")):
+        _fail("authored idle art phase 3")
+        return
     art.set_reduced_motion(true)
     art.visual_clock = 0.54
     art.queue_redraw()
@@ -163,22 +170,21 @@ func _capture() -> void:
         _fail("dissipated art capture")
         return
 
-    if _frames.size() != 8:
-        _fail("eight native captures missing")
+    if _frames.size() != 9:
+        _fail("nine native captures missing")
         return
     var target := Rect2i(588, 185, 196, 192)
-    # Native pixel-art changes are grounded in actual captured framebuffer
-    # bytes. Idle phase 1/2 must differ from the frozen pose; reduced motion
-    # must exactly restore that unchanged baseline within the enemy stage.
+    # Native captures prove all hand-authored idle poses are visually
+    # distinct. Accessibility restores the original exact frozen still.
     var idle_baseline: PackedByteArray = _frames[0].get_region(target).get_data()
-    for i in [1, 2]:
+    for i in [1, 2, 3]:
         if _frames[i].get_region(target).get_data() == idle_baseline:
-            _fail("pixel-art idle phase %d failed to animate" % i)
+            _fail("new authored pixel idle phase %d failed to render" % i)
             return
-    if _frames[3].get_region(target).get_data() != idle_baseline:
-        _fail("reduced-motion sprite did not exactly match its frozen baseline")
+    if _frames[4].get_region(target).get_data() != idle_baseline:
+        _fail("reduced-motion sprite did not match original static baseline")
         return
-    for i in range(3, 7):
+    for i in range(4, 8):
         if _frames[i].get_region(target).get_data() == _frames[i + 1].get_region(target).get_data():
             _fail("adjacent combat-art states visually identical: " + str(i))
             return
@@ -187,8 +193,8 @@ func _capture() -> void:
     # actual framebuffer pixels, not assertions against an invented mock bar.
     var hp_meter_region := Rect2i(624, 388, 122, 8)
     var unchanged_hp_before: PackedByteArray = _frames[0].get_region(hp_meter_region).get_data()
-    var unchanged_hp_after_analysis: PackedByteArray = _frames[4].get_region(hp_meter_region).get_data()
-    var damaged_hp: PackedByteArray = _frames[5].get_region(hp_meter_region).get_data()
+    var unchanged_hp_after_analysis: PackedByteArray = _frames[5].get_region(hp_meter_region).get_data()
+    var damaged_hp: PackedByteArray = _frames[6].get_region(hp_meter_region).get_data()
     if unchanged_hp_before != unchanged_hp_after_analysis:
         _fail("enemy HP meter changed after non-damaging Uncover Truth")
         return
@@ -201,7 +207,7 @@ func _capture() -> void:
         return
     world.queue_free()
     await process_frame
-    print("WIND_SHEAR_NATIVE_RENDER_PASS: eight 960x640 captures, 2 idle in-betweens, frozen reduced motion, observed hit; creator acceptance pending")
+    print("WIND_SHEAR_NATIVE_RENDER_PASS: nine 960x640 captures, 4 authored idle poses, original static reduced motion, observed hit; creator acceptance pending")
     quit(0)
 
 func _fail(reason: String) -> void:
