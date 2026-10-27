@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="128" viewBox="0 0 480 128" shape-rendering="crispEdges">
+ <title>Reson — front walk, six-phase draft art study</title>
+ <desc>Original editable path-based front-facing sprite candidate; not creator-approved, not combat kit.</desc>
+ <g transform="translate(0,0)"><g id="reson-pose-0" data-review="unapproved-front-only">
+ <!-- Tall broad fighter silhouette, layered field armor with NO rank/faction insignia and NO invented signature weapon. -->
+ <path d="M21 54 L58 54 L63 90 L56 97 L22 97 L16 89 Z" fill="#564b45" />
+ <path d="M25 93 L41 94 L39 116 L36 123 L22 123 L24 115 Z" fill="#36404a" />
+ <path d="M42 94 L57 93 L60 116 L60 123 L45 123 L42 116 Z" fill="#36404a" />
+ <path d="M19 112 L32 112 L33 120 L33 124 L15 124 L16 118 Z" fill="#252c36" />
+ <path d="M51 108 L64 108 L69 119 L69 124 L50 124 Z" fill="#252c36" />
+ <rect x="24" y="114" width="12" height="3" fill="#66717b" /><rect x="47" y="110" width="12" height="3" fill="#66717b" />
+ <path d="M22 43 L59 43 L68 61 L60 91 L20 91 L12 61 Z" fill="#554a45" />
+ <path d="M30 44 L50 44 L53 86 L25 86 Z" fill="#9b6b4e" />
+ <path d="M35 45 L47 45 L49 79 L33 79 Z" fill="#3f4449" />
+ <path d="M19 45 L27 48 L20 69 L14 64 L11 53 Z" fill="#887060" />
+ <path d="M55 46 L62 45 L68 53 L65 66 L58 69 Z" fill="#887060" />
+ <path d="M15 66 L22 66 L20 90 L15 94 L8 90 L9 74 Z" fill="#ba896e" />
+ <path d="M62 66 L68 66 L72 87 L69 95 L61 92 L59 74 Z" fill="#ba896e" />
+ <rect x="9" y="89" width="12" height="8" fill="#413d3f" /><rect x="61" y="89" width="10" height="8" fill="#413d3f" />
+ <path d="M28 57 L31 79 M52 57 L51 78" fill="none" stroke="#c28d5b" stroke-width="3" stroke-linecap="square"/>
+ <path d="M20 87 L60 87 L59 98 L22 98 Z" fill="#392f31" />
+ <rect x="36" y="90" width="11" height="5" fill="#ba8b55" /><rect x="39" y="91" width="5" height="3" fill="#42494b" />
+ <rect x="24" y="99" width="7" height="4" fill="#8b6250" /><rect x="51" y="99" width="6" height="4" fill="#8b6250" />
+ <path d="M31 18 Q42 13 53 22 L52 36 L48 43 L34 43 L27 35 Z" fill="#cc9779" />
+ <rect x="31" y="30" width="5" height="2" fill="#473838" /><rect x="47" y="30" width="5" height="2" fill="#473838" />
+ <path d="M36 37 Q41 39 46 36" fill="none" stroke="#985f55" stroke-width="2" stroke-linecap="square"/>
+ <path d="M28 22 L28 15 L38 11 L49 12 L55 18 L52 23 L45 19 L34 23 Z" fill="#382e30" />
+ <path d="M31 16 L39 14 M46 14 L51 17" fill="none" stroke="#62504a" stroke-width="2" stroke-linecap="square"/>
+ </g></g>
+<g transform="translate(80,0)"><g id="reson-pose-1" data-review="unapproved-front-only">
+ <!-- Tall broad fighter silhouette, layered field armor with NO rank/faction insignia and NO invented signature weapon. -->
+ <path d="M21 55 L58 55 L63 90 L56 97 L22 97 L16 89 Z" fill="#564b45" />
+ <path d="M25 93 L41 94 L39 116 L36 123 L22 123 L24 115 Z" fill="#36404a" />
+ <path d="M42 94 L57 93 L60 116 L60 123 L45 123 L42 116 Z" fill="#36404a" />
+ <path d="M23 112 L36 112 L37 120 L37 124 L19 124 L20 118 Z" fill="#252c36" />
+ <path d="M48 110 L61 110 L66 119 L66 124 L47 124 Z" fill="#252c36" />
+ <rect x="24" y="114" width="12" height="3" fill="#66717b" /><rect x="47" y="112" width="12" height="3" fill="#66717b" />
+ <path d="M22 44 L59 44 L68 62 L60 92 L20 92 L12 62 Z" fill="#554a45" />
+ <path d="M30 45 L50 45 L53 87 L25 87 Z" fill="#9b6b4e" />
+ <path d="M35 46 L47 46 L49 79 L33 79 Z" fill="#3f4449" />
+ <path d="M19 46 L27 49 L20 69 L14 64 L11 53 Z" fill="#887060" />
+ <path d="M55 47 L62 46 L68 53 L65 66 L58 69 Z" fill="#887060" />
+ <path d="M15 67 L22 67 L20 91 L15 94 L8 90 L9 74 Z" fill="#ba896e" />
+ <path d="M62 67 L68 67 L72 87 L69 95 L61 92 L59 74 Z" fill="#ba896e" />
+ <rect x="9" y="90" width="12" height="8" fill="#413d3f" /><rect x="61" y="90" width="10" height="8" fill="#413d3f" />
+ <path d="M28 58 L31 80 M52 58 L51 79" fill="none" stroke="#c28d5b" stroke-width="3" stroke-linecap="square"/>
+ <path d="M20 88 L60 88 L59 99 L22 99 Z" fill="#392f31" />
+ <rect x="36" y="91" width="11" height="5" fill="#ba8b55" /><rect x="39" y="92" width="5" height="3" fill="#42494b" />
+ <rect x="24" y="100" width="7" height="4" fill="#8b6250" /><rect x="51" y="100" width="6" height="4" fill="#8b6250" />
+ <path d="M31 19 Q42 14 53 23 L52 37 L48 44 L34 44 L27 36 Z" fill="#cc9779" />
+ <rect x="31" y="31" width="5" height="2" fill="#473838" /><rect x="47" y="31" width="5" height="2" fill="#473838" />
+ <path d="M36 38 Q41 40 46 37" fill="none" stroke="#985f55" stroke-width="2" stroke-linecap="square"/>
+ <path d="M28 23 L28 16 L38 12 L49 13 L55 19 L52 24 L45 20 L34 24 Z" fill="#382e30" />
+ <path d="M31 17 L39 15 M46 15 L51 18" fill="none" stroke="#62504a" stroke-width="2" stroke-linecap="square"/>
+ </g></g>
+<g transform="translate(160,0)"><g id="reson-pose-2" data-review="unapproved-front-only">
+ <!-- Tall broad fighter silhouette, layered field armor with NO rank/faction insignia and NO invented signature weapon. -->
+ <path d="M21 54 L58 54 L63 90 L56 97 L22 97 L16 89 Z" fill="#564b45" />
+ <path d="M25 93 L41 94 L39 116 L36 123 L22 123 L24 115 Z" fill="#36404a" />
+ <path d="M42 94 L57 93 L60 116 L60 123 L45 123 L42 116 Z" fill="#36404a" />
+ <path d="M28 108 L41 108 L42 120 L42 124 L24 124 L25 118 Z" fill="#252c36" />
+ <path d="M42 112 L55 112 L60 119 L60 124 L41 124 Z" fill="#252c36" />
+ <rect x="24" y="110" width="12" height="3" fill="#66717b" /><rect x="47" y="114" width="12" height="3" fill="#66717b" />
+ <path d="M22 43 L59 43 L68 61 L60 91 L20 91 L12 61 Z" fill="#554a45" />
+ <path d="M30 44 L50 44 L53 86 L25 86 Z" fill="#9b6b4e" />
+ <path d="M35 45 L47 45 L49 79 L33 79 Z" fill="#3f4449" />
+ <path d="M19 45 L27 48 L20 69 L14 64 L11 53 Z" fill="#887060" />
+ <path d="M55 46 L62 45 L68 53 L65 66 L58 69 Z" fill="#887060" />
+ <path d="M15 66 L22 66 L20 90 L15 94 L8 90 L9 74 Z" fill="#ba896e" />
+ <path d="M62 66 L68 66 L72 87 L69 95 L61 92 L59 74 Z" fill="#ba896e" />
+ <rect x="9" y="89" width="12" height="8" fill="#413d3f" /><rect x="61" y="89" width="10" height="8" fill="#413d3f" />
+ <path d="M28 57 L31 79 M52 57 L51 78" fill="none" stroke="#c28d5b" stroke-width="3" stroke-linecap="square"/>
+ <path d="M20 87 L60 87 L59 98 L22 98 Z" fill="#392f31" />
+ <rect x="36" y="90" width="11" height="5" fill="#ba8b55" /><rect x="39" y="91" width="5" height="3" fill="#42494b" />
+ <rect x="24" y="99" width="7" height="4" fill="#8b6250" /><rect x="51" y="99" width="6" height="4" fill="#8b6250" />
+ <path d="M31 18 Q42 13 53 22 L52 36 L48 43 L34 43 L27 35 Z" fill="#cc9779" />
+ <rect x="31" y="30" width="5" height="2" fill="#473838" /><rect x="47" y="30" width="5" height="2" fill="#473838" />
+ <path d="M36 37 Q41 39 46 36" fill="none" stroke="#985f55" stroke-width="2" stroke-linecap="square"/>
+ <path d="M28 22 L28 15 L38 11 L49 12 L55 18 L52 23 L45 19 L34 23 Z" fill="#382e30" />
+ <path d="M31 16 L39 14 M46 14 L51 17" fill="none" stroke="#62504a" stroke-width="2" stroke-linecap="square"/>
+ </g></g>
+<g transform="translate(240,0)"><g id="reson-pose-3" data-review="unapproved-front-only">
+ <!-- Tall broad fighter silhouette, layered field armor with NO rank/faction insignia and NO invented signature weapon. -->
+ <path d="M21 55 L58 55 L63 90 L56 97 L22 97 L16 89 Z" fill="#564b45" />
+ <path d="M25 93 L41 94 L39 116 L36 123 L22 123 L24 115 Z" fill="#36404a" />
+ <path d="M42 94 L57 93 L60 116 L60 123 L45 123 L42 116 Z" fill="#36404a" />
+ <path d="M26 110 L39 110 L40 120 L40 124 L22 124 L23 118 Z" fill="#252c36" />
+ <path d="M43 112 L56 112 L61 119 L61 124 L42 124 Z" fill="#252c36" />
+ <rect x="24" y="112" width="12" height="3" fill="#66717b" /><rect x="47" y="114" width="12" height="3" fill="#66717b" />
+ <path d="M22 44 L59 44 L68 62 L60 92 L20 92 L12 62 Z" fill="#554a45" />
+ <path d="M30 45 L50 45 L53 87 L25 87 Z" fill="#9b6b4e" />
+ <path d="M35 46 L47 46 L49 79 L33 79 Z" fill="#3f4449" />
+ <path d="M19 46 L27 49 L20 69 L14 64 L11 53 Z" fill="#887060" />
+ <path d="M55 47 L62 46 L68 53 L65 66 L58 69 Z" fill="#887060" />
+ <path d="M15 67 L22 67 L20 91 L15 94 L8 90 L9 74 Z" fill="#ba896e" />
+ <path d="M62 67 L68 67 L72 87 L69 95 L61 92 L59 74 Z" fill="#ba896e" />
+ <rect x="9" y="90" width="12" height="8" fill="#413d3f" /><rect x="61" y="90" width="10" height="8" fill="#413d3f" />
+ <path d="M28 58 L31 80 M52 58 L51 79" fill="none" stroke="#c28d5b" stroke-width="3" stroke-linecap="square"/>
+ <path d="M20 88 L60 88 L59 99 L22 99 Z" fill="#392f31" />
+ <rect x="36" y="91" width="11" height="5" fill="#ba8b55" /><rect x="39" y="92" width="5" height="3" fill="#42494b" />
+ <rect x="24" y="100" width="7" height="4" fill="#8b6250" /><rect x="51" y="100" width="6" height="4" fill="#8b6250" />
+ <path d="M31 19 Q42 14 53 23 L52 37 L48 44 L34 44 L27 36 Z" fill="#cc9779" />
+ <rect x="31" y="31" width="5" height="2" fill="#473838" /><rect x="47" y="31" width="5" height="2" fill="#473838" />
+ <path d="M36 38 Q41 40 46 37" fill="none" stroke="#985f55" stroke-width="2" stroke-linecap="square"/>
+ <path d="M28 23 L28 16 L38 12 L49 13 L55 19 L52 24 L45 20 L34 24 Z" fill="#382e30" />
+ <path d="M31 17 L39 15 M46 15 L51 18" fill="none" stroke="#62504a" stroke-width="2" stroke-linecap="square"/>
+ </g></g>
+<g transform="translate(320,0)"><g id="reson-pose-4" data-review="unapproved-front-only">
+ <!-- Tall broad fighter silhouette, layered field armor with NO rank/faction insignia and NO invented signature weapon. -->
+ <path d="M21 54 L58 54 L63 90 L56 97 L22 97 L16 89 Z" fill="#564b45" />
+ <path d="M25 93 L41 94 L39 116 L36 123 L22 123 L24 115 Z" fill="#36404a" />
+ <path d="M42 94 L57 93 L60 116 L60 123 L45 123 L42 116 Z" fill="#36404a" />
+ <path d="M18 112 L31 112 L32 120 L32 124 L14 124 L15 118 Z" fill="#252c36" />
+ <path d="M50 108 L63 108 L68 119 L68 124 L49 124 Z" fill="#252c36" />
+ <rect x="24" y="114" width="12" height="3" fill="#66717b" /><rect x="47" y="110" width="12" height="3" fill="#66717b" />
+ <path d="M22 43 L59 43 L68 61 L60 91 L20 91 L12 61 Z" fill="#554a45" />
+ <path d="M30 44 L50 44 L53 86 L25 86 Z" fill="#9b6b4e" />
+ <path d="M35 45 L47 45 L49 79 L33 79 Z" fill="#3f4449" />
+ <path d="M19 45 L27 48 L20 69 L14 64 L11 53 Z" fill="#887060" />
+ <path d="M55 46 L62 45 L68 53 L65 66 L58 69 Z" fill="#887060" />
+ <path d="M15 66 L22 66 L20 90 L15 94 L8 90 L9 74 Z" fill="#ba896e" />
+ <path d="M62 66 L68 66 L72 87 L69 95 L61 92 L59 74 Z" fill="#ba896e" />
+ <rect x="9" y="89" width="12" height="8" fill="#413d3f" /><rect x="61" y="89" width="10" height="8" fill="#413d3f" />
+ <path d="M28 57 L31 79 M52 57 L51 78" fill="none" stroke="#c28d5b" stroke-width="3" stroke-linecap="square"/>
+ <path d="M20 87 L60 87 L59 98 L22 98 Z" fill="#392f31" />
+ <rect x="36" y="90" width="11" height="5" fill="#ba8b55" /><rect x="39" y="91" width="5" height="3" fill="#42494b" />
+ <rect x="24" y="99" width="7" height="4" fill="#8b6250" /><rect x="51" y="99" width="6" height="4" fill="#8b6250" />
+ <path d="M31 18 Q42 13 53 22 L52 36 L48 43 L34 43 L27 35 Z" fill="#cc9779" />
+ <rect x="31" y="30" width="5" height="2" fill="#473838" /><rect x="47" y="30" width="5" height="2" fill="#473838" />
+ <path d="M36 37 Q41 39 46 36" fill="none" stroke="#985f55" stroke-width="2" stroke-linecap="square"/>
+ <path d="M28 22 L28 15 L38 11 L49 12 L55 18 L52 23 L45 19 L34 23 Z" fill="#382e30" />
+ <path d="M31 16 L39 14 M46 14 L51 17" fill="none" stroke="#62504a" stroke-width="2" stroke-linecap="square"/>
+ </g></g>
+<g transform="translate(400,0)"><g id="reson-pose-5" data-review="unapproved-front-only">
+ <!-- Tall broad fighter silhouette, layered field armor with NO rank/faction insignia and NO invented signature weapon. -->
+ <path d="M21 55 L58 55 L63 90 L56 97 L22 97 L16 89 Z" fill="#564b45" />
+ <path d="M25 93 L41 94 L39 116 L36 123 L22 123 L24 115 Z" fill="#36404a" />
+ <path d="M42 94 L57 93 L60 116 L60 123 L45 123 L42 116 Z" fill="#36404a" />
+ <path d="M22 110 L35 110 L36 120 L36 124 L18 124 L19 118 Z" fill="#252c36" />
+ <path d="M47 112 L60 112 L65 119 L65 124 L46 124 Z" fill="#252c36" />
+ <rect x="24" y="112" width="12" height="3" fill="#66717b" /><rect x="47" y="114" width="12" height="3" fill="#66717b" />
+ <path d="M22 44 L59 44 L68 62 L60 92 L20 92 L12 62 Z" fill="#554a45" />
+ <path d="M30 45 L50 45 L53 87 L25 87 Z" fill="#9b6b4e" />
+ <path d="M35 46 L47 46 L49 79 L33 79 Z" fill="#3f4449" />
+ <path d="M19 46 L27 49 L20 69 L14 64 L11 53 Z" fill="#887060" />
+ <path d="M55 47 L62 46 L68 53 L65 66 L58 69 Z" fill="#887060" />
+ <path d="M15 67 L22 67 L20 91 L15 94 L8 90 L9 74 Z" fill="#ba896e" />
+ <path d="M62 67 L68 67 L72 87 L69 95 L61 92 L59 74 Z" fill="#ba896e" />
+ <rect x="9" y="90" width="12" height="8" fill="#413d3f" /><rect x="61" y="90" width="10" height="8" fill="#413d3f" />
+ <path d="M28 58 L31 80 M52 58 L51 79" fill="none" stroke="#c28d5b" stroke-width="3" stroke-linecap="square"/>
+ <path d="M20 88 L60 88 L59 99 L22 99 Z" fill="#392f31" />
+ <rect x="36" y="91" width="11" height="5" fill="#ba8b55" /><rect x="39" y="92" width="5" height="3" fill="#42494b" />
+ <rect x="24" y="100" width="7" height="4" fill="#8b6250" /><rect x="51" y="100" width="6" height="4" fill="#8b6250" />
+ <path d="M31 19 Q42 14 53 23 L52 37 L48 44 L34 44 L27 36 Z" fill="#cc9779" />
+ <rect x="31" y="31" width="5" height="2" fill="#473838" /><rect x="47" y="31" width="5" height="2" fill="#473838" />
+ <path d="M36 38 Q41 40 46 37" fill="none" stroke="#985f55" stroke-width="2" stroke-linecap="square"/>
+ <path d="M28 23 L28 16 L38 12 L49 13 L55 19 L52 24 L45 20 L34 24 Z" fill="#382e30" />
+ <path d="M31 17 L39 15 M46 15 L51 18" fill="none" stroke="#62504a" stroke-width="2" stroke-linecap="square"/>
+ </g></g>
+</svg>
