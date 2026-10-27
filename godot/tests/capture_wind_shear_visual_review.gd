@@ -100,6 +100,10 @@ func _capture() -> void:
         return
 
     # A real, authorized Staff Strike provides the *post-resolution* hit frame.
+    # Earlier still screenshots deliberately froze ambient motion. Re-enable
+    # the reaction state before the live action; otherwise the accessibility
+    # gate correctly suppresses all hit animation and this capture is invalid.
+    art.set_reduced_motion(false)
     var hp_before_strike: int = int(world.formula_encounter.target.get("hp", 0))
     if not world.take_formula_review_action("staffStrike"):
         _fail("authorized Staff Strike could not resolve")
