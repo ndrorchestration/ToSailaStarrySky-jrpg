@@ -11,11 +11,11 @@ In the native Chapter I scene, enter the formula review with **C** or reach the 
 - **7** adds/removes a provisional **charm overlay**.
 - **8** toggles *optional practice pressure* against the noncanonical formula target. It is disabled by default, never available in story combat, and makes the dummy respond after accepted turns using alternating physical/aether hits.
 
-All changes update a **socketed** battle-actor review rig immediately, without closing combat or consuming a turn. The arm and hand socket follow the current combat pose. This remains a neutral stand-in silhouette, not approved character art. The staff always remains a full-length, physical fighting staff. No magic casting prerequisite is imposed.
+All equipment changes pass through a **conserved, temporary trial inventory** and update a **socketed** battle-actor review rig immediately, without closing combat or consuming a turn. The lower-right inventory readout shows the number of unused trial staff, guard and charm studies. The arm and hand socket follow the current combat pose. This remains a neutral stand-in silhouette, not approved character art. The staff always remains a full-length, physical fighting staff. No magic casting prerequisite is imposed.
 
 `battle_equipment_loadout.gd` keeps stable item IDs and actor/slot restrictions; `battle_equipment_visual.gd` now assembles separate `battle_equipment_attachment.gd` CanvasItem children for armor, accessory, currently held weapon and overlaid grip hand. The weapon and hand share a moving combat-pose socket; the body is a removable placeholder, and equip transactions leave attack/guard/analyze/rest poses intact. Starter families are Ender/staff, Lyra/chakram, Ionia/mace, Reson/sword + secondary rifle, Aepex/martial arts, taken from the earlier equipment-system working-authority draft (#227), not inferred from elemental affinities. A `hold_weapon_slot("secondaryWeapon")` call changes Reson's representation from sword to rifle, but Reson **does not acquire a combat turn** in the existing Ender-only Chapter I encounter.
 
-This is a **review prototype**, not approved party combat artwork, loot acquisition, canonical named items, class equip permissions, durable inventory, or an equipped-gear save schema. The separate equipment-training fixture below is an isolated numerical experiment, not final upgraded weapon balance. Only the basic weapon families are an established design lock. Alternate cosmetics and all armor/charm items are provisional. The chapter restore intentionally resets these nonpersistent preview choices rather than silently changing the save codec.
+This is a **review prototype**, not approved party combat artwork, loot acquisition, canonical named items, class equip permissions, **durable player inventory**, or an equipped-gear save schema. The temporary seeded trial ledger below is a test boundary only. The separate equipment-training fixture below is an isolated numerical experiment, not final upgraded weapon balance. Only the basic weapon families are an established design lock. Alternate cosmetics and all armor/charm items are provisional. The chapter restore intentionally resets these nonpersistent preview choices rather than silently changing the save codec.
 
 ## Native QA
 
@@ -25,6 +25,7 @@ After Godot editor import:
 godot --headless --path godot --script res://tests/battle_equipment_loadout_test.gd
 godot --headless --path godot --script res://tests/battle_equipment_training_test.gd
 godot --headless --path godot --script res://tests/battle_equipment_pressure_test.gd
+godot --headless --path godot --script res://tests/battle_equipment_trial_inventory_test.gd
 godot --headless --path godot --script res://tests/battle_equipment_socket_test.gd
 godot --headless --path godot --script res://tests/battle_equipment_scene_test.gd
 xvfb-run -a -s "-screen 0 960x640x24" godot --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_battle_equipment_review.gd
@@ -35,8 +36,8 @@ The renderer records matched baseline, changed staff, changed armor/accessory, a
 
 ## Next implementation gates
 
-1. Establish creator-approved inventory acquisition and equipment modification flow, with transaction validation and selected job permissions.
-2. Expand the isolated equipment-training and opt-in pressure fixtures into creator-reviewed item/stat balance, production-ready damage-type mitigation, legitimate owned inventory, and authorized jobs before integrating any effects into authored story encounters. The optional training fixture now proves bounded damage mitigation **in real practice VIT loss**, but story combat still treats review equipment as appearance-only. The current optional training fixture proves an equipment bonus through the existing damage model; **story combat still treats review equipment as appearance-only**.
+1. Author creator-approved **real** inventory acquisition and job permissions. A temporary test-bag ownership and atomic-equip prototype now exists, but there are no loot drops, earned items, crafting, prices, or persistent player inventory.
+2. Expand the isolated equipment-training and opt-in pressure fixtures into creator-reviewed item/stat balance, production-ready damage-type mitigation, legitimate owned inventory, and authorized jobs before integrating any effects into authored story encounters. The optional training fixture now proves bounded damage mitigation **in real practice VIT loss**, but story combat still treats review equipment as appearance-only. 
 3. Bind these now-independent equipment nodes to creator-approved animated character models and authored per-direction hand-bone/socket metadata, across idle, attack, dodge, magic, sheathe and cutscene animation. The neutral mannequin is temporary. Avoid baking weapons into the character sprite, including Ender's already-painted directional staff art; author removable composite parts under art review.
 4. Add legitimate per-character loadouts to a versioned durable save migration, then test corruption/rollback and parity.
 5. Prove actual native animation/camera screenshots, accessibility, small-screen layout, frame timings, and creator approval separately.
@@ -82,3 +83,22 @@ The earlier armor/charm projection alone could not demonstrate whether protectiv
 - **Not production:** these 12-point pressure hits, armor coefficients and alternating pattern are deliberate reproducible study fixtures. They do not define a canonical enemy attack, damage affinity, armor item rarity, job/class restriction, or final defensive balance. Release and art acceptance remain held.
 
 **Next:** design and approve a physical/aether typed attack-resistance contract for authored enemies, then bind properly acquired gear to production encounters and durable saves in separate independently reviewed steps. Do not silently reclassify the story's existing elemental or Spirit energies as automatically learned magic.
+
+## 2026-10-27 bounded trial-inventory ownership study (further stacked draft)
+
+The prior practice equipment system checked **actor and slot**, but any known Ender item could be equipped without evidence that the party held it. `battle_equipment_trial_inventory.gd` closes that specific review gap with an **ephemeral, noncanonical** one-of-each ownership model:
+
+| Review item | Worn at initial review state | Quantity in trial bag |
+|---|---|---:|
+| Ender's full-length fighting staff | Main hand | 0 |
+| Silver-inlay fighting staff (study) | No | 1 |
+| Brass Guard chest study | No | 1 |
+| Travel Charm study | No | 1 |
+
+The exact four-item budget never changes: equipping a trial item debits the bag, returning a currently worn item credits the bag, and rejected transactions mutate **neither** equipment, bag, held-weapon state nor visual revision. The demo input controls remain **5/6/7** (weapon/armor/charm), with **8** toggling opt-in counterpressure. The lower-right HUD shows `TRIAL BAG STAFF x ARMOR y CHARM z` to give the player immediate feedback that an actual item has moved. The real native screenshot harness checks the bounded bag region's pixels before and after ownership-checked swaps.
+
+Ownership checks reject unknown items, cross-character weapons, wrong slots, attempted removal of Ender's basic fighting identity, spending a zero-count item, duplication, tampered bag totals and tampered equipped actors. The trial inventory uses copies for inspection. The existing visual, stat-training and armor-pressure fixtures remain independent: after a legal equip, practice staff power and physical/aether mitigation update on the next appropriate action; inventory transactions do not consume a turn, trigger pressure, create Reson party turns, or unlock plot magic. Story Wind Shear still treats these items as cosmetic previews.
+
+**Not production:** The trial bag is pre-seeded for **QA only** and must never be represented as a canon discovery, treasure drop, owned story item, monetizable economy or approved equipment rarity. Chapter I's existing save format does not contain this ledger; successful restore returns the main staff and all three trial studies to the initial state. The suite `battle_equipment_trial_inventory_test.gd` exercises conservation, atomic rejection, wrong-actor denial, forged state, actual scene gear/mitigation, and reset/save isolation.
+
+**Next separate authorization gates:** native player-facing acquisition and item inspection UX, balanced armor types, per-character and job permissions, five-cast animations using approved artwork, durable inventory save migration, then explicit creator review of any canon item names or equipment progression. No draft is merged by this work.
