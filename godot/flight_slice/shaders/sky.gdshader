@@ -63,6 +63,8 @@ void sky() {
         vec3 cloud_color=mix(underside,lit,smoothstep(0.35,0.69,edge));
         cloud_color=mix(cloud_color,warm,solar_rim*0.33);
         cloud_color=mix(cloud_color,vec3(0.20,0.29,0.43),weather_strength*0.63);
+        // Suppress sunlit white cloud banks after dark; preserve their form.
+        cloud_color=mix(cloud_color,cloud_color*vec3(0.15,0.24,0.40),night*0.92);
         c=mix(c,cloud_color,body*0.89);
         // Atmospheric perspective: a separate lower, broader cloud deck.
         // This is a 2D directional impostor, NOT real volumetric cloud geometry.
@@ -83,7 +85,8 @@ void sky() {
             vec3 bank_highlight=vec3(0.77,0.76,0.71);
             vec3 bank_tone=mix(bank_shadow,bank_highlight,
                 smoothstep(0.43,0.72,rim_noise));
-            bank_tone=mix(bank_tone,vec3(0.96,0.73,0.49),backlight*0.48);
+            bank_tone=mix(bank_tone,vec3(0.96,0.73,0.49),backlight*0.48*sun_visibility);
+            bank_tone=mix(bank_tone,vec3(0.10,0.15,0.29),night*0.85);
             c=mix(c,bank_tone,bank_shape*0.76*cloud_depth_strength);
             // Thin haze along the lower cloud edge, not a flat fog-colored
             // horizontal stripe or a fake planet curvature outline.
@@ -99,7 +102,7 @@ void sky() {
             float stratus=noise(p*vec2(0.6,5.0)+vec2(12.0,study_time*0.003));
             float wisps=smoothstep(0.66,0.85,stratus)
                 *smoothstep(0.04,0.22,d.y)*(1.0-body);
-            c=mix(c,vec3(0.73,0.78,0.82),wisps*0.075);
+            c=mix(c,mix(vec3(0.73,0.78,0.82),vec3(0.13,0.20,0.32),night),wisps*0.075);
         }
     }
     // Weather controls cloud, haze and muted light; no gameplay visibility change.
@@ -108,13 +111,13 @@ void sky() {
         // Decorative magical haze: deliberately NOT a navigable auroral lane.
         // Slow, nonflashing ribbons are absent in quality fallback.
         float azimuth=atan(d.z,d.x);
-        float veil_center=0.31+0.060*sin(azimuth*3.1+study_time*0.009);
-        float ribbon=exp(-pow((d.y-veil_center)*18.0,2.0));
+        float veil_center=0.38+0.070*sin(azimuth*3.1+study_time*0.009);
+        float ribbon=exp(-pow((d.y-veil_center)*8.5,2.0));
         float wisp=0.68+0.32*sin(azimuth*9.0+study_time*0.012);
         float altitude_mask=smoothstep(0.10,0.23,d.y)
             *(1.0-smoothstep(0.70,0.90,d.y));
         vec3 veil=mix(vec3(0.28,0.71,0.76),vec3(0.58,0.40,0.83),wisp);
-        c+=veil*ribbon*altitude_mask*magic_veil_strength*0.24;
+        c+=veil*ribbon*altitude_mask*magic_veil_strength*(0.17+0.48*night);
     }
     float disk=smoothstep(0.9991,0.9997,dot(d,sun));
     c+=vec3(1.0,0.75,0.40)*disk*1.5*sun_visibility;
