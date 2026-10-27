@@ -359,7 +359,7 @@ func _place_tree_instances() -> void:
     broad_crowns.transform_format = MultiMesh.TRANSFORM_3D
     var broad_mesh := SphereMesh.new()
     broad_mesh.radius = 1.5
-    broad_mesh.height = 2.6
+    broad_mesh.height = 3.0
     broad_mesh.radial_segments = 10
     broad_mesh.rings = 6
     broad_crowns.mesh = broad_mesh
