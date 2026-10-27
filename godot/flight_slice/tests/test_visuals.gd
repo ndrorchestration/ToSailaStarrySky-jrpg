@@ -126,6 +126,13 @@ func _run() -> void:
     check(has_broadleaf, "forest includes a second canopy type")
     if has_broadleaf:
         var broadleaf: MultiMeshInstance3D = scene.terrain.get_node("BroadleafCrowns")
+        check(broadleaf.multimesh.mesh is ArrayMesh, "broadleaf has clustered mesh")
+        var leaf_arrays: Array = broadleaf.multimesh.mesh.surface_get_arrays(0)
+        var leaf_vertices: PackedVector3Array = leaf_arrays[Mesh.ARRAY_VERTEX]
+        var leaf_normals: PackedVector3Array = leaf_arrays[Mesh.ARRAY_NORMAL]
+        check(leaf_vertices.size() >= 100 and leaf_vertices.size() <= 1200,
+            "clustered crown geometry remains nonempty and bounded")
+        check(leaf_vertices.size() == leaf_normals.size(), "clustered crown normals are complete")
         var broad_poses: Array[Transform3D] = scene.terrain.broadleaf_poses
         check(broad_poses.size() > 5, "second canopy has multiple placements")
         check(broadleaf.multimesh.instance_count == broad_poses.size(),
