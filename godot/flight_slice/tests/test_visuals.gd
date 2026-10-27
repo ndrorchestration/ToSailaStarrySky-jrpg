@@ -26,6 +26,16 @@ func _run() -> void:
     check(is_equal_approx(
         float(visuals.water.get_shader_parameter("sea_surface_elevation")),
         TerrainStudy.SEA_LEVEL), "ocean and rendered seabed use one datum")
+    check(is_equal_approx(float(visuals.water.get_shader_parameter(
+        "foam_breakup_strength")), 1.0),
+        "integrated coast surf breakup starts active in full quality")
+    visuals.water.set_shader_parameter("foam_breakup_strength", 0.0)
+    check(is_zero_approx(float(visuals.water.get_shader_parameter(
+        "foam_breakup_strength"))),
+        "original contour can be restored exactly for review")
+    visuals.water.set_shader_parameter("foam_breakup_strength", 1.0)
+    check(visuals.water.get_shader_parameter("water_ripple_detail") is Texture2D,
+        "surf review preserves original PNG ripple texture binding")
     for station in [Vector2(-60.0, 0.0), Vector2(-2.0, 0.0), Vector2(30.0, 0.0)]:
         var bed: Dictionary = BathymetryStudy.sample(station.x, station.y)
         check(is_equal_approx(
