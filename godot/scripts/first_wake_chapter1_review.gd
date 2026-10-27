@@ -295,6 +295,17 @@ func _draw_formula_review() -> void:
         Color("#f0a072")
     )
 
+    # Authoritative HP reflected as a restrained bar directly beneath the
+    # existing Wind Shear stage. Text above remains the non-color readout.
+    # This is *not* a second hit box, cast bar or predictive damage indicator.
+    if authored_hazard and str(formula_encounter.target.get("id", "")) == "windShear":
+        var enemy_hp_fraction: float = clampf(float(target_hp) / float(target_max), 0.0, 1.0)
+        var enemy_meter := Rect2(624.0, 388.0, 122.0, 8.0)
+        draw_rect(enemy_meter, Color(0.055, 0.11, 0.17, 0.94))
+        if enemy_hp_fraction > 0.0:
+            draw_rect(Rect2(626.0, 390.0, 118.0 * enemy_hp_fraction, 4.0), Color("#eab87b"))
+        draw_rect(enemy_meter, Color("#5d8791"), false, 1.0)
+
     var party_rows := party_combat_authority.surface_for_party(chapter.desired_active_party_ids())
     var party_bits: Array[String] = []
     for row in party_rows:
