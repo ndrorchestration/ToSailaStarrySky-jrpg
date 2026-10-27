@@ -51,9 +51,9 @@ void fragment() {
         // on exposed slopes, without changing triangles, heights or physics.
         float sweep=noise(vec2(p.x*0.36+p.z*0.71, p.y*0.21+p.z*0.12));
         float windward=smoothstep(0.08,0.34,slope);
-        float exposure=smoothstep(0.48,0.79,sweep)*windward;
-        snow*=1.0-0.23*exposure;
-        float frost_grain=mix(0.93,1.02,smoothstep(0.20,0.86,sweep));
+        float exposure=smoothstep(0.45,0.76,sweep)*windward;
+        snow*=1.0-0.35*exposure;
+        float frost_grain=mix(0.89,1.02,smoothstep(0.20,0.86,sweep));
         snow_tint*=frost_grain;
     }
     color=mix(color,snow_tint,snow);
