@@ -108,11 +108,24 @@ func _verify() -> void:
             _fail("pixel guide opt-out changes world or keeps guide active", 17)
             return
 
+    # Measure real support-marker world displacement while an *unchanged atlas
+    # frame* is visible. These are lower boot-alpha markers, not certified stance
+    # toes; this trace quantifies the unresolved sliding risk rather than
+    # attempting to counterfeit contact animation approval.
+    var prior_key := {}
+    var held_start := {}
+    var peak_held := {}
+    for character_id in CHARACTERS:
+        prior_key[character_id] = ""
+        held_start[character_id] = Vector2.ZERO
+        peak_held[character_id] = {"south": 0.0, "west": 0.0, "north": 0.0, "east": 0.0}
     stage.start_all()
-    for tick in range(55):
+    for tick in range(295):
         await physics_frame
         for character_id in CHARACTERS:
             var actor = stage.get_actor(character_id)
+            if actor.completed:
+                continue
             var facing: String = actor.facing
             var source: Sprite2D = actor.source_sprites[facing]
             var sample: Dictionary = actor.get_source_boot_sample(facing, actor.current_phase)
@@ -123,7 +136,28 @@ func _verify() -> void:
             if absf(baseline_world - actor.global_position.y) > 0.001:
                 _fail("active phase boot alpha baseline jumped away from actor ground", 19)
                 return
+            var support: Dictionary = sample["left"] if sample["left"].get("present", false) else sample["right"]
+            if not support.get("present", false):
+                _fail("support pixel not measurable while moving", 20)
+                return
+            var source_key: String = facing + ":" + str(actor.current_phase)
+            var pixel_world := actor.global_position + Vector2(
+                float(support["x"]) - 40.0,
+                float(support["y"]) - 64.0 + source.position.y)
+            if prior_key[character_id] != source_key:
+                prior_key[character_id] = source_key
+                held_start[character_id] = pixel_world
+            else:
+                var held: float = (pixel_world - held_start[character_id]).length()
+                peak_held[character_id][facing] = maxf(float(peak_held[character_id][facing]), held)
     stage.stop_all()
-    print("SOURCE_FOOT_PIXEL_PASS: 72 native phase baselines, 3 real moving actors, reversible debug overlay and source-only vertical correction")
+    for character_id in CHARACTERS:
+        for facing in FACINGS:
+            var measured: float = peak_held[character_id][facing]
+            if measured < 6.0 or measured > 17.0:
+                _fail("unrealistic or missing held-pixel slide trace %s/%s %.2f" % [character_id, facing, measured], 21)
+                return
+            print("SOURCE_FOOT_PIXEL_HELD_WORLD_SLIP:%s:%s:max_displacement=%.2f:STANCE_NOT_IDENTIFIED" % [character_id, facing, measured])
+    print("SOURCE_FOOT_PIXEL_PASS: 72 native phase baselines, 3 four-direction physical routes, held-pixel displacement trace and reversible visual correction")
     print("SOURCE_FOOT_PIXEL_TRUE_PLANTED_FEET=NOT_CERTIFIED")
     quit(0)
