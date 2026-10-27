@@ -5,6 +5,7 @@ const ShipStudy = preload("res://ship.gd")
 const FrameProbe = preload("res://frame_probe.gd")
 const VisualStudy = preload("res://visuals.gd")
 const FlightStudy = preload("res://flight_controller.gd")
+const CinematicShots = preload("res://cinematic_shot_rig.gd")
 const LandingStudy = preload("res://landing_study.gd")
 const LandingCollision = preload("res://landing_collision.gd")
 var visuals: Node3D
@@ -194,21 +195,26 @@ func _update_scene(delta: float) -> void:
     ship.set_landing_gear(_manual_active and landing.state != "FLYING")
     var goal: Vector3
     var focus: Vector3
+    var target_fov: float = 62.0
     if _manual_active:
         var forward := Vector3(cos(_manual_heading), 0.0, sin(_manual_heading))
         var lateral := Vector3(-forward.z, 0.0, forward.x)
         goal = ship.position - forward * 16.0 + lateral * 5.0 + Vector3.UP * 8.0
         focus = ship.position + forward * 9.0 + Vector3.UP * 0.7
     elif _cinematic:
-        var arc: float = 0.5 + 0.5 * sin(_clock * 0.17)
-        goal = ship.position + Vector3(-15.5 - arc * 4.5, 10.0 + arc * 3.0, 20.0 - arc * 3.0)
-        focus = ship.position + Vector3(7.0, 0.8, -3.0)
+        # Camera-only staging; gameplay/flight and terrain remain unchanged.
+        var shot: Dictionary = CinematicShots.sample(
+            _clock, ship.position, _reduced_motion)
+        goal = shot["position"]
+        focus = shot["focus"]
+        target_fov = float(shot["fov"])
     else:
         goal = ship.position + Vector3(-12.0, 7.4, 19.0)
         focus = ship.position + Vector3(12.0, 0.4, 0.0)
     # One-time snap prevents an initial camera whip.
     var weight: float = 1.0 if _clock < 0.11 else 1.0 - exp(-maxf(delta, 0.0) * 2.5)
     camera.position = camera.position.lerp(goal, weight)
+    camera.fov = lerpf(camera.fov, target_fov, weight)
     camera.look_at(focus, Vector3.UP)
     terrain.update_detail(camera.position, delta)
     if visuals != null:
