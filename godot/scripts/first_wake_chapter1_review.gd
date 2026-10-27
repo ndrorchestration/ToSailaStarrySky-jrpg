@@ -476,6 +476,8 @@ func take_formula_review_action(action_id: String) -> bool:
         queue_redraw()
         return false
 
+    # Read pre-resolution HP, never forecast a hit from the selected action.
+    var enemy_hp_before: int = int(formula_encounter.target.get("hp", 0))
     if not formula_encounter.take_action(action_id):
         last_message = formula_encounter.last_log()
         _refresh_ui()
@@ -483,6 +485,11 @@ func take_formula_review_action(action_id: String) -> bool:
         return false
     last_message = formula_encounter.last_log()
     _sync_wind_shear_visual()
+    if wind_shear_visual != null and wind_shear_visual.visible:
+        wind_shear_visual.register_resolved_damage(
+            enemy_hp_before,
+            int(formula_encounter.target.get("hp", 0))
+        )
     _refresh_ui()
     queue_redraw()
     return true
