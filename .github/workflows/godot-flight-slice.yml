@@ -39,6 +39,13 @@ jobs:
           grep -q 'GODOT_FLIGHT_SLICE_NATIVE_PASS' /tmp/test.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|GODOT_FLIGHT_SLICE_FAIL' /tmp/test.log
 
+      - name: Measure moving terrain LOD CPU updates
+        run: |
+          set -o pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/profile_moving_lod.gd 2>&1 | tee /tmp/moving-lod.log
+          grep -q 'MOVING_LOD_PROFILE_PASS' /tmp/moving-lod.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|ERROR:' /tmp/moving-lod.log
+
       - name: Native presentation, motion and quality contracts
         run: |
           set -o pipefail
@@ -84,6 +91,8 @@ jobs:
           name: godot-flight-slice-software-captures
           path: |
             godot/flight_slice/evidence/**/*.png
+            godot/flight_slice/evidence/*.json
+            /tmp/moving-lod.log
             /tmp/import.log
             /tmp/scene.log
             /tmp/test.log
