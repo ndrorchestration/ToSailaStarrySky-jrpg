@@ -16,7 +16,7 @@ var _sigil: Sprite2D
 func _ready() -> void:
     _sigil = Sprite2D.new()
     _sigil.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-    _sigil.z_index = -1
+    _sigil.show_behind_parent = true
     add_child(_sigil)
     play_affinity(character_id, reduced_motion)
 
