@@ -36,14 +36,14 @@ static func sample(time_index: int, weather_index: int, magic_enabled: bool) -> 
             fog_density = 0.0045
             sun_visibility = 0.35
         3: # moonlit color study; no astronomical or route authority
-            key_color = Color(0.55, 0.69, 0.98)
-            key_energy = 0.24
-            fill_color = Color(0.39, 0.52, 0.77)
-            fill_energy = 0.28
-            ambient_color = Color(0.11, 0.18, 0.36)
-            ambient_energy = 0.64
-            fog_color = Color(0.14, 0.23, 0.40)
-            fog_density = 0.0048
+            key_color = Color(0.57, 0.74, 0.99)
+            key_energy = 0.35
+            fill_color = Color(0.44, 0.59, 0.84)
+            fill_energy = 0.42
+            ambient_color = Color(0.16, 0.23, 0.42)
+            ambient_energy = 0.75
+            fog_color = Color(0.19, 0.28, 0.45)
+            fog_density = 0.0042
             sun_visibility = 0.0
     var weather_strength: float = [0.0, 0.22, 0.65, 1.0][w]
     var rain_strength: float = [0.0, 0.0, 0.60, 1.0][w]

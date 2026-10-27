@@ -10,6 +10,7 @@ const LandingStudy = preload("res://landing_study.gd")
 const LandingCollision = preload("res://landing_collision.gd")
 var visuals: Node3D
 var _low_quality: bool = false
+var _surface_textures: bool = true
 
 var terrain
 var ship
@@ -88,7 +89,7 @@ func _process(delta: float) -> void:
                 "ON" if _magical_sky else "OFF"]
             if visuals.transition_active:
                 atmospheric_note += " / TRANSITION"
-        overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + atmospheric_note + "  |  B light / N weather / G magic sky\n" + "F pilot · W/S move · A/D steer · E/Q ascend/descend\nT test-field landing · P pause · M still effects · C camera\nR reset · V detail · H HUD\nNON-CANON STUDY  •  NO GAMEPLAY CLIMATE"
+        overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + atmospheric_note + "  |  B light / N weather / G magic sky\n" + "F pilot · W/S move · A/D steer · E/Q ascend/descend\nT test-field landing · P pause · M still effects · C camera\nR reset · V detail · K textures · H HUD\nNON-CANON STUDY  •  NO GAMEPLAY CLIMATE"
 
 func _unhandled_key_input(event: InputEvent) -> void:
     if not (event is InputEventKey):
@@ -114,6 +115,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
             _low_quality = not _low_quality
             if visuals != null:
                 visuals.set_low_quality(_low_quality)
+        KEY_K:
+            _surface_textures = not _surface_textures
+            if visuals != null:
+                visuals.set_texture_detail_enabled(_surface_textures)
         KEY_H:
             overlay.visible = not overlay.visible
         KEY_B:
