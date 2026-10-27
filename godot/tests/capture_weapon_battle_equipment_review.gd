@@ -34,6 +34,8 @@ func _capture() -> void:
         or fingerprints[1] == fingerprints[2] or fingerprints[2] == fingerprints[3]:
         _fail("weapon state frames were not distinct")
         return
+    if not _emit_preview_contact_sheet():
+        return
     print("WEAPON_BATTLE_NATIVE_FRAMES_PASS: four rendered 960x640 variations, no battle commands")
     screen.queue_free()
     quit(0)
@@ -60,3 +62,33 @@ func _save(label: String) -> bool:
 func _fail(reason: String) -> void:
     push_error("WEAPON_BATTLE_NATIVE_FRAMES_FAIL: "+reason)
     quit(1)
+
+## Compact private-ish CI-log review of original geometric placeholders only.
+## Full-size PNG authority stays runner-local. This contact sheet is NOT canon art.
+func _emit_preview_contact_sheet() -> bool:
+    var montage: Image = Image.create_empty(960,640,false,Image.FORMAT_RGB8)
+    var labels: Array[String] = [
+        "ender-staff-authorized-intent", "sandbox-sword-equipment",
+        "sandbox-pike-equipment", "sandbox-pike-reduced"
+    ]
+    for i in range(labels.size()):
+        var path := ProjectSettings.globalize_path(
+            DIR+"/"+labels[i]+"-native-960x640.png")
+        var snapshot: Image = Image.load_from_file(path)
+        if snapshot == null or snapshot.is_empty():
+            _fail("could not reopen native capture for visual review")
+            return false
+        snapshot.convert(Image.FORMAT_RGB8)
+        snapshot.resize(480,320,Image.INTERPOLATE_BILINEAR)
+        montage.blit_rect(snapshot,Rect2i(0,0,480,320),
+            Vector2i((i % 2)*480,(i / 2)*320))
+    var jpeg: PackedByteArray = montage.save_jpg_to_buffer(0.72)
+    if jpeg.is_empty():
+        _fail("native montage JPG encoding failed")
+        return false
+    var encoded: String = Marshalls.raw_to_base64(jpeg)
+    print("WEAPON_BATTLE_CONTACT_BEGIN "+str(encoded.length()))
+    for offset in range(0,encoded.length(),760):
+        print("WEAPON_BATTLE_CONTACT_CHUNK "+encoded.substr(offset,760))
+    print("WEAPON_BATTLE_CONTACT_END")
+    return true
