@@ -2,6 +2,10 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Unified terrain, ship and weather review — 2026-10-27
+
+This draft brings the seven-lobe broadleaf study from #414 and the grounded shoreline/alpine stones from #418 into the ship-and-weather study #422. The stones and understory remain decorative, terrain-sampled instances with no collision; low-detail mode hides them. Weather, reduced motion and flight remain controlled by their existing systems. Source lineage is experimental and the candidate must pass its own native regression and visual capture before being described as verified. This local planar scene is not the complete planetary map or final approved art.
+
 ## Integrated Aureate Wake / cinematic environment native review — 2026-10-27
 
 **Status: stacked experimental implementation, not approved production art.** This review branch combines the independently validated **Aureate Wake** hull/wing/window silhouette from draft [#408](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/408) with the Godot **weather, day-grade, rain and optional sky-ribbon** study from draft [#417](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/417). It is intentionally stacked on #417, **not main**. The four-wing compact protagonists' home ship must not be confused with the separate larger Frigate-class **Dragonfly**. The provisional geometry has no final creator approval.
