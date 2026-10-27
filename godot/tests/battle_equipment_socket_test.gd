@@ -115,7 +115,6 @@ func _verify() -> void:
         actor_rig.queue_free()
 
     print("AETHERWAKE_BATTLE_EQUIPMENT_SOCKET_PASS: detachable nodes, five actor IDs, hand grip poses, foreign-equip blocking and Reson rifle switch")
-    root.queue_free()
     quit(0)
 
 func _fail(reason: String) -> void:
