@@ -141,7 +141,7 @@ func _verify() -> void:
                 _fail("support pixel not measurable while moving", 20)
                 return
             var source_key: String = facing + ":" + str(actor.current_phase)
-            var pixel_world := actor.global_position + Vector2(
+            var pixel_world: Vector2 = actor.global_position + Vector2(
                 float(support["x"]) - 40.0,
                 float(support["y"]) - 64.0 + source.position.y)
             if prior_key[character_id] != source_key:
