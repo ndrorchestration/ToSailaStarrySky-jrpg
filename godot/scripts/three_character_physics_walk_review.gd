@@ -1,10 +1,13 @@
 extends Node2D
 ## Isolated native physics walk laboratory. Never loaded by the First Wake main scene.
 const ReviewActor = preload("res://scripts/character_field_walk_review_actor.gd")
+const FootPixelOverlay = preload("res://scripts/character_foot_pixel_overlay.gd")
 const NAMES: Array[String] = ["Lyra", "Aepex", "Reson"]
 const X_ANCHORS: Array[float] = [285.0, 505.0, 725.0]
 const LABELS := ["WATER / PINK SPIRIT ACCENT", "AIR / DIAGNOSTICS", "FIRE / WEAPON MASTER"]
 var actors: Dictionary = {}
+var guides: Dictionary = {}
+var source_guides_enabled := false
 
 func _ready() -> void:
     name = "ThreeProtagonistPhysicsWalkReviewOnly"
@@ -19,6 +22,12 @@ func _ready() -> void:
         actor.position = Vector2(X_ANCHORS[index] + 35.0, 340.0)
         group.add_child(actor)
         actors[NAMES[index]] = actor
+        var guide: Node2D = FootPixelOverlay.new()
+        guide.name = NAMES[index] + "SourcePixelGuideOnly"
+        guide.set("target", actor)
+        actor.add_child(guide)
+        guide.call("set_guides_enabled", false)
+        guides[NAMES[index]] = guide
     queue_redraw()
 
 func start_all() -> void:
@@ -29,6 +38,12 @@ func stop_all() -> void:
     for character_id in NAMES:
         (actors[character_id] as Node).call("stop_route_review")
 
+func set_source_guides_enabled(enabled: bool) -> void:
+    source_guides_enabled = enabled
+    for character_id in NAMES:
+        (guides[character_id] as Node).call("set_guides_enabled", enabled)
+    queue_redraw()
+
 func get_actor(character_id: String) -> CharacterBody2D:
     return actors.get(character_id) as CharacterBody2D
 
@@ -37,6 +52,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
         return
     if event.keycode == KEY_SPACE:
         start_all()
+    elif event.keycode == KEY_P:
+        set_source_guides_enabled(not source_guides_enabled)
     elif event.keycode == KEY_ESCAPE:
         stop_all()
 
@@ -44,7 +61,7 @@ func _draw() -> void:
     draw_rect(Rect2(Vector2.ZERO, Vector2(960, 640)), Color("#0c1e2b"))
     draw_rect(Rect2(0.0, 0.0, 960.0, 125.0), Color("#13384a"))
     draw_string(ThemeDB.fallback_font, Vector2(30.0, 45.0), "NATIVE PHYSICS CHARACTER WALK / REVIEW ONLY", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color("#f3e4cb"))
-    draw_string(ThemeDB.fallback_font, Vector2(32.0, 79.0), "Original four-facing candidate atlases. Space: closed path. Esc: stop.", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#c8dad8"))
+    draw_string(ThemeDB.fallback_font, Vector2(32.0, 79.0), "Original four-facing candidate atlases. Space: route. P: boot-pixel guides. Esc: stop.", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#c8dad8"))
     for i in range(NAMES.size()):
         var x: float = X_ANCHORS[i]
         draw_rect(Rect2(x - 123.0, 146.0, 210.0, 344.0), Color("#183342"))
@@ -56,5 +73,5 @@ func _draw() -> void:
         draw_line(Vector2(x - 110.0, 466.0), Vector2(x + 55.0, 466.0), Color("#a8b8ac"), 2.0)
     draw_rect(Rect2(0.0, 513.0, 960.0, 127.0), Color("#122e3b"))
     draw_string(ThemeDB.fallback_font, Vector2(32.0, 546.0), "Every actor moves using CharacterBody2D.move_and_slide() and actual displacement.", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#e8ddce"))
-    draw_string(ThemeDB.fallback_font, Vector2(32.0, 575.0), "Six-phase source frame advances by distance, not by a simulated time-only sequence.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#b8ced1"))
-    draw_string(ThemeDB.fallback_font, Vector2(32.0, 604.0), "Not proof of planted feet, approved likeness, playable party recruitment or combat magic.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#b8ced1"))
+    draw_string(ThemeDB.fallback_font, Vector2(32.0, 575.0), "Boot baseline normalized to imported alpha footprint; phase advances by distance.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#b8ced1"))
+    draw_string(ThemeDB.fallback_font, Vector2(32.0, 604.0), "Alpha-boot contact is not anatomical foot planting, artistic approval or combat magic.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#b8ced1"))
