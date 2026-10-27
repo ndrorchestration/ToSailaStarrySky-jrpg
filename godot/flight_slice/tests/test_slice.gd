@@ -78,6 +78,7 @@ func _run_tests() -> void:
     _check(terrain.detailed_tiles > 0, "high-detail promotion")
     terrain.update_detail(Vector3(38.0, 32.0, 28.0), 1.0)
     _check_mixed_edges(terrain)
+    _check_stitched_reference(terrain)
     # Move across detail bands and return, exercising promotion, demotion,
     # neighbor-mask changes and the return to earlier views.
     for observer in [Vector3(0.0, 20.0, 0.0), Vector3(70.0, 30.0, -20.0),
@@ -163,6 +164,43 @@ func _check_mixed_edges(terrain: Node3D) -> void:
     print("MIXED_LOD_EDGE_GAP pairs=", pair_count, " max=", max_gap)
     _check(pair_count > 0, "test exercises visible mixed-resolution neighbors")
     _check(max_gap < 0.0001, "mixed-resolution top surfaces meet")
+
+
+# Compare stitched meshes with the original full-rebuild path. This exercises
+# geometry and normals, including skirts, not just the seam edge endpoints.
+func _check_stitched_reference(terrain: Node3D) -> void:
+    var examined: int = 0
+    var largest_vertex_error: float = 0.0
+    var largest_normal_error: float = 0.0
+    var complete: bool = true
+    for tile in terrain._tiles:
+        if not tile["node"].visible or not tile["high_selected"]:
+            continue
+        var stitched: ArrayMesh = tile["stitched_mesh"]
+        if stitched == null or tile["node"].mesh != stitched:
+            continue
+        var reference: ArrayMesh = terrain._tile_mesh(tile["ix"], tile["iz"],
+            TerrainStudy.HIGH_SEGMENTS, tile["stitched_mask"])
+        var actual_arrays: Array = stitched.surface_get_arrays(0)
+        var reference_arrays: Array = reference.surface_get_arrays(0)
+        var vertices: PackedVector3Array = actual_arrays[Mesh.ARRAY_VERTEX]
+        var expected: PackedVector3Array = reference_arrays[Mesh.ARRAY_VERTEX]
+        var normals: PackedVector3Array = actual_arrays[Mesh.ARRAY_NORMAL]
+        var expected_normals: PackedVector3Array = reference_arrays[Mesh.ARRAY_NORMAL]
+        if vertices.size() != expected.size() or normals.size() != expected_normals.size():
+            complete = false
+            continue
+        for i in range(vertices.size()):
+            largest_vertex_error = maxf(largest_vertex_error, vertices[i].distance_to(expected[i]))
+            largest_normal_error = maxf(largest_normal_error, normals[i].distance_to(expected_normals[i]))
+        examined += 1
+        if examined >= 3:
+            break
+    print("STITCH_REFERENCE meshes=", examined, " vertex_error=", largest_vertex_error,
+        " normal_error=", largest_normal_error)
+    _check(examined >= 3 and complete, "reference compares three complete stitched meshes")
+    _check(largest_vertex_error < 0.0001 and largest_normal_error < 0.0001,
+        "stitched meshes preserve full rebuild geometry and normals")
 
 func _finish() -> void:
     if failures.is_empty():
