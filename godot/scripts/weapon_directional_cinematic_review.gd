@@ -5,6 +5,7 @@ extends Control
 const Adapter = preload("res://scripts/weapon_battle_visual_adapter.gd")
 const Pose = preload("res://scripts/weapon_combat_pose_review.gd")
 const Layer = preload("res://scripts/weapon_directional_character_review.gd")
+const CombatLayer = preload("res://scripts/ender_staff_combat_keyframe_review.gd")
 const CameraStudy = preload("res://scripts/weapon_cinematic_contact_review.gd")
 const Marker = preload("res://scripts/weapon_training_contact_marker.gd")
 const FACINGS: Array[String] = ["east","west","south","north"]
@@ -15,14 +16,17 @@ var adapter = Adapter.new()
 var framing = CameraStudy.new()
 var facing_index: int = 0
 var show_candidate: bool = true
+var show_combat_pose: bool = false
 var reduced_motion: bool = false
 var elapsed: float = 0.0
 var playing: bool = false
 var stage: Node2D
 var directional: Node2D
+var combat_layer: Node2D
 var marker: Node2D
 var facing_button: Button
 var candidate_button: Button
+var combat_button: Button
 var play_button: Button
 var motion_button: CheckButton
 var scrubber: HSlider
@@ -50,7 +54,11 @@ func active_contract() -> Dictionary:
         "actorId":str(pose.get("actorId","")),
         "weaponId":str(pose.get("weaponId","")),
         "formulaActionId":str(pose.get("formulaActionId","")),
-        "candidateShown":show_candidate,
+        "candidateShown":show_candidate and not show_combat_pose,
+        "authoredCombatPoseShown":show_combat_pose,
+        "combatArtAuthority":str(combat_layer.visual_contract().get("source","")) if combat_layer != null else "",
+        "combatGripError":float(combat_layer.visual_contract().get("gripError",-1.0)) if combat_layer != null else -1.0,
+        "combatBootsGrounded":bool(combat_layer.visual_contract().get("footGrounding",false)) if combat_layer != null else false,
         "face":current_facing(),
         "texturePath":str(visual.get("texturePath","")),
         "spriteFrame":int(visual.get("spriteFrame",-1)),
@@ -106,21 +114,23 @@ func _build() -> void:
     facing_button.pressed.connect(_cycle_facing)
     candidate_button = _button("",Vector2(31,208),Vector2(438,45))
     candidate_button.pressed.connect(_toggle_candidate)
-    play_button = _button("Play / Replay",Vector2(31,275),Vector2(211,44))
+    combat_button = _button("",Vector2(31,265),Vector2(438,38))
+    combat_button.pressed.connect(_toggle_combat_pose)
+    play_button = _button("Play / Replay",Vector2(31,316),Vector2(211,44))
     play_button.pressed.connect(_play)
-    var step := _button("Step +0.1s",Vector2(254,275),Vector2(215,44))
+    var step := _button("Step +0.1s",Vector2(254,316),Vector2(215,44))
     step.pressed.connect(_step)
 
     motion_button = CheckButton.new()
     motion_button.text = "Reduced motion / no contact flash"
-    motion_button.position = Vector2(30,337)
+    motion_button.position = Vector2(30,369)
     motion_button.size = Vector2(440,40)
     motion_button.add_theme_font_size_override("font_size",16)
     motion_button.toggled.connect(_set_motion)
     add_child(motion_button)
 
     scrubber = HSlider.new()
-    scrubber.position = Vector2(34,407)
+    scrubber.position = Vector2(34,428)
     scrubber.size = Vector2(435,31)
     scrubber.min_value = 0.0
     scrubber.max_value = 100.0
@@ -128,7 +138,7 @@ func _build() -> void:
     scrubber.value_changed.connect(_scrub)
     add_child(scrubber)
 
-    phase_label = _label("",Vector2(31,463),Vector2(437,35),16)
+    phase_label = _label("",Vector2(31,477),Vector2(437,35),16)
     status_label = _label("",Vector2(31,509),Vector2(438,66),14)
     evidence_label = _label("",Vector2(488,528),Vector2(456,60),14)
 
@@ -142,6 +152,10 @@ func _build() -> void:
     directional = Layer.new()
     directional.name = "DirectionalCandidateLayer"
     stage.add_child(directional)
+    combat_layer = CombatLayer.new()
+    combat_layer.name = "AuthoredStaffCombatPoseLayer"
+    combat_layer.visible = false
+    stage.add_child(combat_layer)
     marker = Marker.new()
     marker.name = "VisualOnlyContactMarker"
     stage.add_child(marker)
@@ -155,7 +169,12 @@ func _cycle_facing() -> void:
     _refresh()
 
 func _toggle_candidate() -> void:
+    show_combat_pose = false
     show_candidate = not show_candidate
+    _refresh()
+
+func _toggle_combat_pose() -> void:
+    show_combat_pose = not show_combat_pose
     _refresh()
 
 func _set_motion(active: bool) -> void:
@@ -201,27 +220,35 @@ func _refresh() -> void:
     stage.apply_pose(pose)
     directional.set_facing(current_facing())
     directional.apply_battle_pose(pose)
-    stage.show_mannequin = not show_candidate
-    stage.weapon.visible = not show_candidate
-    directional.visible = show_candidate
+    combat_layer.set_facing(current_facing())
+    combat_layer.apply_battle_pose(pose)
+    stage.show_mannequin = not show_candidate and not show_combat_pose
+    stage.weapon.visible = not show_candidate and not show_combat_pose
+    stage.show_review_effects = not show_combat_pose
+    combat_layer.visible = show_combat_pose
+    directional.visible = show_candidate and not show_combat_pose
     stage.queue_redraw()
     marker.apply_cue(camera)
     stage.position = Vector2(718,324) + Vector2(camera["stageShift"])
     stage.scale = Vector2.ONE*float(camera["zoom"])
     facing_button.text = "Facing: "+current_facing().capitalize()+"  [Change]"
-    candidate_button.text = "Actor layer: "+(
-        "UNAPPROVED DIRECTIONAL ART" if show_candidate else "NEUTRAL TRAINING FIGURE")
+    candidate_button.text = "Reference: "+(
+        "DIRECTIONAL WALK CANDIDATES" if show_candidate else "GEOMETRIC MANNEQUIN")
+    combat_button.text = "Combat keyframes: "+("ON / ORIGINAL REVIEW" if show_combat_pose else "OFF / COMPARE")
     play_button.text = "Playing…" if playing else "Play / Replay"
     phase_label.text = "%s   %0.2f / %0.2fs" % [
         str(pose["phase"]).capitalize(),float(pose["elapsed"]),float(pose["duration"])
     ]
-    status_label.text = (
-        "Existing Ender candidate sheet, frame 0 only. Staff already drawn "
-        + "in sprite; no second weapon layer." if show_candidate else
-        "Abstract mannequin comparison; no accepted character art."
-    )
+    if show_combat_pose:
+        status_label.text = ("Original layered staff combat poses, four facings; "
+            + "feet planted and both hands on the wrapped grip. Not accepted art.")
+    elif show_candidate:
+        status_label.text = ("Existing Ender walking sprite, frame 0 only. "
+            + "Staff embedded in source. Not combat artwork.")
+    else:
+        status_label.text = "Neutral mannequin comparison; no approved sprite assets."
     evidence_label.text = (
         "Ender staffStrike: authorized formula intent, visual ONLY.\n"
-        + "Framing <=2.2% zoom; practice target only; zero damage."
+        + "Framing ≤2.2%; visual-only target; no damage."
     )
     scrubber.set_value_no_signal(float(pose["progress"])*100.0)
