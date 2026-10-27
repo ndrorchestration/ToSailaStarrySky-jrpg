@@ -28,6 +28,19 @@ func _run_tests() -> void:
     ]:
         _check(absf(TerrainStudy.sample_height(reference.x, reference.z) - reference.y) < 0.0001,
             "coast and landing-region elevation preserved")
+    # Ridge sculpture is intentionally noncanonical and strictly highland:
+    # make crest and saddle testable without weakening legacy height fixtures.
+    _check(is_zero_approx(TerrainStudy.ridge_sculpt_delta(15.0, -12.0)),
+        "summit sculpture cannot alter the native landing-field sampler")
+    _check(is_zero_approx(TerrainStudy.ridge_sculpt_delta(50.0, 0.0)),
+        "summit sculpture cannot modify the coastal/forest boundary sample")
+    _check(TerrainStudy.ridge_sculpt_delta(79.0, -10.0) > 1.0,
+        "highland ridge crest adds a distinct second skyline")
+    _check(TerrainStudy.ridge_sculpt_delta(76.0, -19.0) < -1.0,
+        "highland saddle is recessed rather than another cone peak")
+    _check(absf(TerrainStudy.ridge_sculpt_delta(40.0, -20.0)) < 0.00001,
+        "lowland deterministic terrain is untouched")
+
     for x in range(50, 88, 2):
         for z in range(-44, 34, 3):
             var h: float = TerrainStudy.sample_height(float(x), float(z))
