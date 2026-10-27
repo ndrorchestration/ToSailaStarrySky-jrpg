@@ -56,7 +56,7 @@ func _run() -> void:
 
     var textures := {}
     for face in Layer.FACINGS:
-        var accepted := layer.set_facing(face)
+        var accepted: bool = layer.set_facing(face)
         if not accepted:
             _fail("facing rejected: "+face)
             return
