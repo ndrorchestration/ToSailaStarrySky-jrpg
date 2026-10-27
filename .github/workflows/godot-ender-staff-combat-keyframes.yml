@@ -1,0 +1,61 @@
+name: Godot Ender staff combat keyframes native review
+on:
+  push:
+    branches: [feat/godot-ender-directional-staff-strike-keyframes-20261027]
+    paths:
+      - 'godot/scripts/ender_staff_combat_keyframe_review.gd'
+      - 'godot/scripts/weapon_directional_cinematic_review.gd'
+      - 'godot/scripts/weapon_combat_pose_review.gd'
+      - 'godot/tests/ender_staff_combat_keyframe_review_test.gd'
+      - 'godot/tests/capture_ender_staff_combat_keyframes.gd'
+      - '.github/workflows/godot-ender-staff-combat-keyframes.yml'
+  pull_request:
+    paths:
+      - 'godot/scripts/ender_staff_combat_keyframe_review.gd'
+      - 'godot/scripts/weapon_directional_cinematic_review.gd'
+      - 'godot/scripts/weapon_combat_pose_review.gd'
+      - 'godot/tests/ender_staff_combat_keyframe_review_test.gd'
+      - 'godot/tests/capture_ender_staff_combat_keyframes.gd'
+      - '.github/workflows/godot-ender-staff-combat-keyframes.yml'
+permissions:
+  contents: read
+jobs:
+  native-staff-combat-study:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Verify official Godot 4.7.2 binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' -o editor.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  editor.zip' | sha256sum -c -
+          unzip -q editor.zip
+          chmod +x Godot_v4.7.2-stable_linux.x86_64
+      - name: Import exact-head project
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
+      - name: Protect old review regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          for test in weapon_skill_tree_review_test weapon_choreography_review_test weapon_battle_visual_adapter_test weapon_directional_cinematic_review_test; do
+            ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script "res://tests/${test}.gd"
+          done
+      - name: Verify actual authored 20-beat combat motion, grips, ground and authority
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/ender_staff_combat_keyframe_review_test.gd
+      - name: Render 21 actual 960x640 native combat pose frames and inspection montage
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v xvfb-run
+          mkdir -p godot/review-evidence
+          xvfb-run -a -s "-screen 0 960x640x24" ./Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_ender_staff_combat_keyframes.gd
+          test "$(find godot/review-evidence -name 'staff-combat-*-960x640.png' | wc -l)" -eq 21
+          sha256sum godot/review-evidence/staff-combat-*-960x640.png
+          echo "COMBAT_ANIMATION_ART_AUTHORITY=ORIGINAL_REVIEW_CANDIDATE"
+          echo "ACTUAL_COMBAT_DAMAGE_OR_TURN_DISPATCH=FALSE"
+          echo "NATIVE_RENDER_CAPTURE=RUNNER_ONLY"
+          echo "VISUAL_ART_ACCEPTANCE=NOT_ESTABLISHED"
