@@ -11,7 +11,7 @@ The terrain shader now darkens sand within a coastal proximity window instead of
 ## Forest floor and rock detail
 
 - A muted moss/leaf-litter ground-color band uses existing authored forest region boundaries and previously committed original terrain and biome PNG texture channels. No new assets are licensed or imported.
-- `rock_dressing.gd` builds an **at most 88-instance** deterministic highland MultiMesh of faceted rock forms. The art shader reuses the **same original terrain_microdetail.png and biome_macrodetail.png** resources. Placements sample actual ground elevation. Rock instances have **no static/rigid/collision bodies**, do not replace actual ground, and cast no shadows.
+- `rock_dressing.gd` builds an **at most 64-instance** deterministic highland MultiMesh of faceted rock forms. The art shader reuses the **same original terrain_microdetail.png and biome_macrodetail.png** resources. Placements sample actual ground elevation. Rock instances have **no static/rigid/collision bodies**, do not replace actual ground, and cast no shadows.
 - Presentation-only `V` disables the rock batch; `K` controls rock fine grain, `J` controls regional rock colors, retaining earlier controls.
 - These are small low-poly shapes, not final high-fidelity cliff meshes or PBR atlases. Rock instancing is constrained to suitable highland height/slope and skips beaches.
 
