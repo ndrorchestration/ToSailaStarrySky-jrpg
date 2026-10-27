@@ -60,6 +60,13 @@ func _run() -> void:
     for side in ["Port", "Starboard"]:
         check(study.get_node_or_null("AisleInlay_" + side) is MeshInstance3D,
             "aisle guide remains readable")
+    for station in [-4.22, -1.78, 1.78, 4.15]:
+        for side in ["Port", "Starboard"]:
+            var tag: String = str(station) + side
+            check(study.get_node_or_null("HullArchLower_" + tag) is MeshInstance3D,
+                "exposed lower hull arch is modeled")
+            check(study.get_node_or_null("HullArchShoulder_" + tag) is MeshInstance3D,
+                "tapered upper hull arch is modeled")
     study.queue_free()
     await process_frame
     if failures.is_empty():
