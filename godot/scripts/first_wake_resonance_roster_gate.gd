@@ -18,7 +18,7 @@ func evaluate(opening: Variant, participants: Variant) -> Dictionary:
         return _deny("unrecognized_story_contract")
     if not (participants is Array):
         return _deny("invalid_participants")
-    if participants.size() not in [2, 3]:
+    if not (participants.size() in [2, 3]):
         return _deny("invalid_participant_count")
     var seen: Dictionary = {}
     for actor_id in participants:
