@@ -17,6 +17,7 @@ const PartyCombatAuthority = preload("res://scripts/first_wake_party_combat_auth
 const BattleLoadout = preload("res://scripts/battle_equipment_loadout.gd")
 const BattleEquipmentVisual = preload("res://scripts/battle_equipment_visual.gd")
 const EquipmentTraining = preload("res://scripts/battle_equipment_training_profile.gd")
+const TrialInventory = preload("res://scripts/battle_equipment_trial_inventory.gd")
 
 const DECK_BOUNDS := SaveCodec.PLAYER_POSITION_BOUNDS
 const INTERACT_DISTANCE := 74.0
@@ -65,6 +66,7 @@ var party_combat_authority = PartyCombatAuthority.new()
 var active_hazard_encounter_id: String = ""
 var save_store = SaveStore.new()
 var battle_loadout = BattleLoadout.new("ender")
+var trial_inventory = TrialInventory.new()
 var equipment_training = EquipmentTraining.new()
 var battle_equipment_view
 
@@ -379,6 +381,13 @@ func _draw_formula_review() -> void:
         Color("#d7eaf0")
     )
 
+    var inventory_line := "TRIAL BAG  STAFF %d  ARMOR %d  CHARM %d" % [
+        trial_inventory.count_in_bag("ender-staff-inlay-review"),
+        trial_inventory.count_in_bag("ender-armor-overlay-review"),
+        trial_inventory.count_in_bag("ender-charm-review"),
+    ]
+    draw_string(ThemeDB.fallback_font, Vector2(411, 482), inventory_line, HORIZONTAL_ALIGNMENT_LEFT, 385, 11, Color("#c2dbc8"))
+
     draw_string(
         ThemeDB.fallback_font,
         Vector2(176, 482),
@@ -407,6 +416,8 @@ func start_formula_review() -> bool:
     if formula_encounter.active or dialogue.open or chapter.stage_key() in ["choice", "done"]:
         return false
     active_hazard_encounter_id = ""
+    if not trial_inventory.validate(battle_loadout):
+        return false
     formula_encounter.reset()
     if not formula_encounter.start():
         return false
@@ -508,10 +519,10 @@ func take_formula_review_action(action_id: String) -> bool:
     queue_redraw()
     return true
 
-## This is a cosmetic review transaction, not an inventory transfer.
+## This is an ownership-conserving practice transaction, not story loot.
 ## It consumes no turn and cannot replace the approved formula/action authority.
 func equip_review_item(slot_id: String, item_id: String) -> bool:
-    if not formula_encounter.active or not battle_loadout.equip(slot_id, item_id):
+    if not formula_encounter.active or not trial_inventory.transfer(battle_loadout, slot_id, item_id):
         return false
     battle_equipment_view.set_appearance(battle_loadout.appearance())
     # Training-only: intentional no-op in authored Wind Shear encounters.
@@ -522,7 +533,7 @@ func equip_review_item(slot_id: String, item_id: String) -> bool:
     return true
 
 func cycle_equipment_review(slot_id: String) -> bool:
-    if not formula_encounter.active or not battle_loadout.cycle_ender_review(slot_id):
+    if not formula_encounter.active or not trial_inventory.cycle_ender_review(battle_loadout, slot_id):
         return false
     battle_equipment_view.set_appearance(battle_loadout.appearance())
     formula_encounter.set_training_loadout(battle_loadout)
@@ -838,6 +849,7 @@ func restore_save_snapshot(snapshot: Dictionary) -> bool:
     dialogue.close()
     formula_encounter.reset()
     battle_loadout.reset_to_starter()
+    trial_inventory.reset()
     battle_equipment_view.set_pose("idle")
     battle_equipment_view.set_appearance(battle_loadout.appearance())
     battle_equipment_view.visible = false
