@@ -548,6 +548,26 @@ internal static class Program
         }
     }
 
+    private static void TriangleSoupChecks()
+    {
+        var tile = CubeSphereMeshFixture.Generate(
+            new TileId(CubeFace.NegativeX, 0, 0, 0), R, 8);
+        var expanded = ChartTriangleSoup.Expand(tile);
+        Check(expanded.Vertices.Count == tile.Indices.Count &&
+            expanded.Normals.Count == tile.Indices.Count &&
+            expanded.ChartUvs.Count == tile.Indices.Count,
+            "expanded arrays align on every triangle corner");
+        var referenceUvs = ChartSeamUnwrap.TriangleUvs(tile);
+        for (int i = 0; i < expanded.Vertices.Count; i++)
+        {
+            var original = tile.Vertices[tile.Indices[i]];
+            Check(expanded.Vertices[i] == original &&
+                expanded.Normals[i] == tile.Normals[tile.Indices[i]] &&
+                expanded.ChartUvs[i] == referenceUvs[i],
+                "expanded triangle preserves geometry normal and unwrapped UV " + i);
+        }
+    }
+
     private static void RejectionChecks()
     {
         Reject<ArgumentOutOfRangeException>(() => _ = new PlanetPosition(91, 0),
@@ -584,6 +604,7 @@ internal static class Program
             CubeSphereAddressingChecks();
             MeshFixtureChecks();
             ChartSeamChecks();
+            TriangleSoupChecks();
             RejectionChecks();
             Console.WriteLine($"CS_WORLDMAP_CONTRACT_PASS: {_assertions} deterministic assertions; no Godot runtime or canon admitted");
             Console.WriteLine("CS_WORLDMAP_GODOT_MONO_NATIVE=NOT_ESTABLISHED");
