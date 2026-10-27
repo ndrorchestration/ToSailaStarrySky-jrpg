@@ -21,7 +21,7 @@ void fragment() {
     vec3 fiber=texture(foliage_microdetail,
         world_position.xz*0.62+world_position.y*0.17).rgb;
     ALBEDO = COLOR.rgb * forest_floor * mix(1.0,
-        0.79+fiber.g*0.45,texture_detail_strength);
+        0.68+fiber.g*0.68,texture_detail_strength);
     ROUGHNESS = 0.96;
     SPECULAR = 0.08;
 }
