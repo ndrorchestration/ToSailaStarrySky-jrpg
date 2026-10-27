@@ -530,17 +530,19 @@ func _add_geology_instances(node_name: String, poses: Array[Transform3D]) -> voi
 # The curtains never replace the authoritative ground sampler: they are
 # noncolliding, deterministic silhouettes for the NON-CANON flight study.
 static func distant_ridge_height(z: float, is_far: bool) -> float:
+    # Restrained contour targets; scenic only, not a new elevation authority.
+    # Atmospheric perspective comes primarily from world fog and separation.
     if is_far:
-        return clampf(31.0 + 13.0 * sin(z * 0.032 + 1.4)
-            + 7.0 * cos(z * 0.075 - 0.8) + 4.0 * sin(z * 0.127),
-            11.0, 53.0)
-    return clampf(18.0 + 8.0 * sin(z * 0.046 - 0.4)
-        + 4.8 * cos(z * 0.093 + 0.7) + 2.0 * sin(z * 0.17),
-        6.0, 34.0)
+        return clampf(22.0 + 6.4 * sin(z * 0.032 + 1.4)
+            + 3.0 * cos(z * 0.075 - 0.8) + 1.6 * sin(z * 0.127),
+            10.0, 33.0)
+    return clampf(13.0 + 4.5 * sin(z * 0.046 - 0.4)
+        + 2.3 * cos(z * 0.093 + 0.7) + 1.3 * sin(z * 0.17),
+        5.0, 23.0)
 
 static func distant_ridge_x(z: float, is_far: bool) -> float:
-    var distance: float = 192.0 if is_far else 130.0
-    return distance + 5.0 * sin(z * 0.041 + (1.2 if is_far else 0.2))
+    var distance: float = 230.0 if is_far else 148.0
+    return distance + 4.0 * sin(z * 0.041 + (1.2 if is_far else 0.2))
 
 func _place_distant_ridges() -> void:
     for is_far in [true, false]:
@@ -554,12 +556,12 @@ func _place_distant_ridges() -> void:
 func _distant_ridge_mesh(is_far: bool) -> ArrayMesh:
     var tool := SurfaceTool.new()
     tool.begin(Mesh.PRIMITIVE_TRIANGLES)
-    # Two contours with a differently colored middle shelf add faceted depth,
-    # rather than a flat untextured giant rectangular background polygon.
-    # Sixty 6-unit segments, 4 triangles each, fixed under 800 vertices/ridge.
-    var segments: int = 60
+    # Extend beyond either camera edge to prevent abrupt screen-cut seams.
+    # One hundred 6-unit intervals. Vertex tints interpolate continuously
+    # across the faces; no bright regular wedges or painted-on striping.
+    var segments: int = 100
     for segment in range(segments):
-        var az: float = -180.0 + float(segment) * 6.0
+        var az: float = -300.0 + float(segment) * 6.0
         var bz: float = az + 6.0
         var ax: float = distant_ridge_x(az, is_far)
         var bx: float = distant_ridge_x(bz, is_far)
@@ -567,26 +569,31 @@ func _distant_ridge_mesh(is_far: bool) -> ArrayMesh:
         var by: float = distant_ridge_height(bz, is_far)
         var base_a := Vector3(ax, -14.0, az)
         var base_b := Vector3(bx, -14.0, bz)
-        var shoulder_a := Vector3(ax - 0.85, lerpf(-14.0, ay, 0.57), az)
-        var shoulder_b := Vector3(bx - 0.85, lerpf(-14.0, by, 0.57), bz)
-        var crest_a := Vector3(ax + 0.8, ay, az)
-        var crest_b := Vector3(bx + 0.8, by, bz)
-        var shadow := Color(0.74, 0.79, 0.85)
-        var midtone := Color(0.91, 0.93, 0.96)
+        var shoulder_a := Vector3(ax - 0.5, lerpf(-14.0, ay, 0.57), az)
+        var shoulder_b := Vector3(bx - 0.5, lerpf(-14.0, by, 0.57), bz)
+        var crest_a := Vector3(ax + 0.4, ay, az)
+        var crest_b := Vector3(bx + 0.4, by, bz)
+        var shadow := Color(0.80, 0.87, 0.92)
+        var midtone := Color(0.94, 0.97, 0.99)
         var highlight := Color(1.0, 1.0, 1.0)
-        _distant_ridge_triangle(tool, base_a, base_b, shoulder_a, shadow)
-        _distant_ridge_triangle(tool, shoulder_a, base_b, shoulder_b, shadow)
-        _distant_ridge_triangle(tool, shoulder_a, shoulder_b, crest_a, midtone)
-        _distant_ridge_triangle(tool, crest_a, shoulder_b, crest_b, highlight)
+        _distant_ridge_triangle(tool, base_a, base_b, shoulder_a,
+            shadow, shadow, midtone)
+        _distant_ridge_triangle(tool, shoulder_a, base_b, shoulder_b,
+            midtone, shadow, midtone)
+        _distant_ridge_triangle(tool, shoulder_a, shoulder_b, crest_a,
+            midtone, midtone, highlight)
+        _distant_ridge_triangle(tool, crest_a, shoulder_b, crest_b,
+            highlight, midtone, highlight)
     return tool.commit()
 
 func _distant_ridge_triangle(tool: SurfaceTool, a: Vector3,
-        b: Vector3, c: Vector3, tint: Color) -> void:
+        b: Vector3, c: Vector3, tint_a: Color, tint_b: Color,
+        tint_c: Color) -> void:
     var normal: Vector3 = (b - a).cross(c - a).normalized()
-    for p in [a, b, c]:
+    for index in range(3):
         tool.set_normal(normal)
-        tool.set_color(tint)
-        tool.add_vertex(p)
+        tool.set_color([tint_a, tint_b, tint_c][index])
+        tool.add_vertex([a, b, c][index])
 
 func _place_landmarks() -> void:
     # Scale references and inhabited silhouettes; temporary, not canon locations.
