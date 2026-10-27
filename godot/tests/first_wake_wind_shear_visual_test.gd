@@ -74,6 +74,15 @@ func _verify() -> void:
     idle_image.convert(Image.FORMAT_RGBA8)
     var old_hold: PackedByteArray = old_image.get_region(Rect2i(0, 0, 80, 92)).get_data()
     var idle_hold: PackedByteArray = idle_image.get_region(Rect2i(0, 0, 80, 92)).get_data()
+    # Godot's 2D PNG import normalizes fully transparent RGB differently for
+    # adjacent frames: RGB=(0,0,0) and RGB=(57,116,138) both yield alpha 0.
+    # Clear invisible RGB in *both* arrays; retain exact alpha and visible RGB.
+    # Full framebuffer-hash equality is checked separately by render CI.
+    for alpha_byte in range(3, old_hold.size(), 4):
+        if old_hold[alpha_byte] == 0 and idle_hold[alpha_byte] == 0:
+            for channel in range(1, 4):
+                old_hold[alpha_byte - channel] = 0
+                idle_hold[alpha_byte - channel] = 0
     if idle_hold != old_hold:
         var first_difference: int = -1
         for byte_id in range(mini(old_hold.size(), idle_hold.size())):
@@ -87,7 +96,7 @@ func _verify() -> void:
             first_difference, str(old_image.get_pixel(pixel_location.x, pixel_location.y)),
             str(idle_image.get_pixel(pixel_location.x, pixel_location.y))
         ])
-        _fail("new idle still differs after RGBA8 normalization: inspect import diagnostic")
+        _fail("new idle still differs in visible pixel or alpha data after normalization")
         return
     for pose in range(1, 4):
         if idle_image.get_region(Rect2i(pose * 80, 0, 80, 92)).get_data() == old_hold:
