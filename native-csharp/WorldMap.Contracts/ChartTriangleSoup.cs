@@ -22,6 +22,15 @@ public static class ChartTriangleSoup
             mesh.Vertices.Count != mesh.ChartUvs.Count ||
             mesh.Indices.Count % 3 != 0)
             throw new ArgumentException("Inconsistent mesh attributes.", nameof(mesh));
+        for (int i = 0; i < mesh.Vertices.Count; i++)
+        {
+            var p = mesh.Vertices[i];
+            var n = mesh.Normals[i];
+            if (!double.IsFinite(p.X) || !double.IsFinite(p.Y) || !double.IsFinite(p.Z)
+                || !double.IsFinite(n.X) || !double.IsFinite(n.Y) || !double.IsFinite(n.Z)
+                || n.X * n.X + n.Y * n.Y + n.Z * n.Z < 1e-20)
+                throw new ArgumentException("Nonfinite vertex or invalid normal.", nameof(mesh));
+        }
         var uv = ChartSeamUnwrap.TriangleUvs(mesh);
         var vertices = new CubeSphereMeshFixture.Point3[mesh.Indices.Count];
         var normals = new CubeSphereMeshFixture.Point3[mesh.Indices.Count];
