@@ -80,7 +80,7 @@ jobs:
         run: |
           set -euo pipefail
           # Fail closed on a script hang; never accept a timeout as QA PASS.
-          timeout --preserve-status 35s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_resonance_roster_gate_test.gd
+          timeout --kill-after=3s 25s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_resonance_roster_gate_test.gd
       - name: Verify proposed First Wake opening chronological gates (review only)
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_revised_opening_contract_test.gd
