@@ -37,11 +37,11 @@ static func sample(time_index: int, weather_index: int, magic_enabled: bool) -> 
             sun_visibility = 0.35
         3: # moonlit color study; no astronomical or route authority
             key_color = Color(0.55, 0.69, 0.98)
-            key_energy = 0.12
+            key_energy = 0.24
             fill_color = Color(0.39, 0.52, 0.77)
             fill_energy = 0.28
             ambient_color = Color(0.11, 0.18, 0.36)
-            ambient_energy = 0.53
+            ambient_energy = 0.64
             fog_color = Color(0.14, 0.23, 0.40)
             fog_density = 0.0048
             sun_visibility = 0.0
@@ -50,7 +50,7 @@ static func sample(time_index: int, weather_index: int, magic_enabled: bool) -> 
     key_energy *= dim
     fill_energy *= lerpf(1.0, 0.81, weather_strength)
     ambient_energy *= lerpf(1.0, 0.89, weather_strength)
-    fog_density += [0.0, 0.0060, 0.0025, 0.0070][w]
+    fog_density += [0.0, 0.0035, 0.0025, 0.0070][w]
     fog_color = fog_color.lerp(Color(0.29, 0.36, 0.46), weather_strength * 0.36)
     return {
         "time_name": TIMES[t], "weather_name": WEATHER[w],
