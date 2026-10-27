@@ -13,6 +13,7 @@ var understory: ShaderMaterial
 var sky_material: ShaderMaterial
 var low_quality: bool = false
 var texture_detail_enabled: bool = true
+var biome_layer_enabled: bool = true
 const TEXTURE_DETAIL_STRENGTH: float = 0.68
 var texture_resources: Dictionary = {}
 var rain: Node3D
@@ -43,13 +44,17 @@ func _ready() -> void:
     texture_resources = {
         "terrain": load("res://textures/terrain_microdetail.png"),
         "foliage": load("res://textures/foliage_microdetail.png"),
-        "water": load("res://textures/water_ripple_detail.png")
+        "water": load("res://textures/water_ripple_detail.png"),
+        "biome": load("res://textures/biome_macrodetail.png")
     }
     land.set_shader_parameter("terrain_microdetail", texture_resources["terrain"])
     foliage.set_shader_parameter("foliage_microdetail", texture_resources["foliage"])
     broadleaf.set_shader_parameter("foliage_microdetail", texture_resources["foliage"])
     understory.set_shader_parameter("foliage_microdetail", texture_resources["foliage"])
     water.set_shader_parameter("water_ripple_detail", texture_resources["water"])
+    land.set_shader_parameter("biome_macrodetail", texture_resources["biome"])
+    water.set_shader_parameter("biome_macrodetail", texture_resources["biome"])
+    land.set_shader_parameter("sea_surface_elevation", TerrainStudy.SEA_LEVEL)
     _apply_texture_quality()
     broadleaf.set_shader_parameter("leaf_tint", Vector3(1.16, 1.12, 0.84))
     # Share one light direction across dome and ocean; avoids split sun glints.
@@ -171,11 +176,20 @@ func set_texture_detail_enabled(enabled: bool) -> void:
     texture_detail_enabled = enabled
     _apply_texture_quality()
 
+func set_biome_layer_enabled(enabled: bool) -> void:
+    biome_layer_enabled = enabled
+    _apply_texture_quality()
+
 func _apply_texture_quality() -> void:
     var strength: float = TEXTURE_DETAIL_STRENGTH if (
         texture_detail_enabled and not low_quality) else 0.0
     for material in [land, water, foliage, broadleaf, understory]:
         material.set_shader_parameter("texture_detail_strength", strength)
+    var macro_strength: float = 0.78 if (
+        biome_layer_enabled and not low_quality) else 0.0
+    land.set_shader_parameter("biome_layer_strength", macro_strength)
+    water.set_shader_parameter("biome_layer_strength", macro_strength)
+    land.set_shader_parameter("shoreline_wet_strength", macro_strength)
 
 ## Instant selection remains available to deterministic captures and API clients.
 ## Neither selection path changes actual world time, physics or saved state.
