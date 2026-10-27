@@ -8,6 +8,25 @@
 
 **Project status:** This is a publicly accessible **development repository**, not an approved finished game or a verified public Windows release. The browser prototype, character systems and Chapter I work remain under development; game builds and player acceptance have separate verification gates.
 
+## Native Godot screenshot gallery (October 27, 2026)
+
+These images are **real Godot 4.7.2 framebuffer captures**, not AI-generated mockups. They document experimental **unmerged** visual-study branches; the images do **not** depict one integrated, public playable build, creator-approved final art, or a certified Windows release.
+
+**The Aureate Wake — bow view (integrated ship-and-weather experiment, [draft #422](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/422))**
+
+![Actual native Godot capture: Aureate Wake four-wing bow study](docs/screenshots/native-2026-10-27/aureate-wake-bow.jpg)
+
+| Atmospheric ship study | Coastal and landscape development |
+| --- | --- |
+| ![Actual native Godot capture: Aureate Wake in rain](docs/screenshots/native-2026-10-27/aureate-wake-rain.jpg) | ![Actual native Godot capture: coast at dusk](docs/screenshots/native-2026-10-27/coast-dusk.jpg) |
+| ![Actual native Godot capture: storm and magic](docs/screenshots/native-2026-10-27/aureate-wake-storm.jpg) | ![Actual native Godot capture: golden-hour forest](docs/screenshots/native-2026-10-27/forest-golden.jpg) |
+
+**Five Lights character lineup — independent candidate review, [draft #421](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/421)**
+
+![Actual native Godot candidate character lineup: Ionia, Ender, Aepex, Lyra and Reson](docs/screenshots/native-2026-10-27/five-lights-lineup.jpg)
+
+For full native-resolution captures, source commit IDs, CI artifact provenance, remaining art gates and additional angles, see the [**Godot visual development gallery**](docs/VISUAL_DEVELOPMENT_GALLERY.md). **Passing renderer checks is not artistic acceptance.**
+
 The project retains legacy `Aetherwake` filenames, package identifiers, save/release references, and historical test receipts for compatibility and provenance. They are **not** instructions to rename working files or migrate saves without testing.
 
 Selected implementation patterns and reference material were studied from *Memories 0.7.4*; see [Provenance](#provenance) and `memories_adaptation_catalog.md` for the adaptation record.
