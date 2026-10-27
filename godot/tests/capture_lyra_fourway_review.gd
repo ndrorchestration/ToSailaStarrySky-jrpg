@@ -28,7 +28,7 @@ func _capture() -> void:
             push_error("LYRA_FOURWAY_CAPTURE_FAIL: non-native framebuffer " + facing)
             quit(2)
             return
-        var filename := OUTPUT + "lyra-" + facing + "-native-960x640.png"
+        var filename: String = OUTPUT + "lyra-" + String(facing) + "-native-960x640.png"
         if frame.save_png(filename) != OK:
             push_error("LYRA_FOURWAY_CAPTURE_FAIL: screenshot could not be saved " + facing)
             quit(3)
