@@ -4,7 +4,7 @@ Status: **IMPLEMENTED AS REVIEW TOOL / NOT APPROVED ART**. Built on the existing
 
 ## How to review
 
-Open `godot/project.godot` in Godot 4.7.2, launch the First Wake pilot and press **L**. Press **[** or **]** to scrub six imported contact frames of Ender and Ionia. Press **L** or **Esc** to close; the live actors' physics are suspended while the board is open, and resumed afterwards. The test `godot/tests/character_lineup_review_test.gd` checks stage isolation, provenance, phase wrapping, and consistent return to the original actor coordinates.
+Open `godot/project.godot` in Godot 4.7.2, launch the First Wake pilot and press **L**. Press **[** or **]** to scrub six imported contact frames of Ender and Ionia. Press **M** to toggle between magnified comparison and exact native-size atlas presentation. Press **L** or **Esc** to close; the live actors' physics are suspended while the board is open, and resumed afterwards. The test `godot/tests/character_lineup_review_test.gd` checks stage isolation, provenance, review zoom versus native-size toggle, phase wrapping, and consistent return to the original actor coordinates.
 
 The left-to-right order **Ionia · Ender · Aepex · Lyra · Reson** matches the creator's five-person reference identification; **this does not state party-recruitment order**. Existing review textures are sourced unchanged from `ender-south-detailed-staff-v2-candidate.svg` and `ionia-front-sixframe-candidate.svg`. They are **not** final art. Aepex, Lyra, and Reson are **gray faceless shape blocking**, not designed sprite frames; their shapes are illustrative hints at relative stature only, **not a locked height chart**.
 
