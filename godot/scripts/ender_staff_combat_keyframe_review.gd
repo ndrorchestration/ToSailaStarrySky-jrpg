@@ -258,8 +258,8 @@ func _draw() -> void:
     # reference a target hitbox, HP, combat formula, or magical affinity.
     var trail: float = clampf(float(d.get("trailStrength",0.0)),0.0,1.0)
     if trail > 0.01:
-        var axis: Vector2 = d["shaftAxis"]
-        var motion_angle: float = axis.angle()
+        var trail_axis: Vector2 = d["shaftAxis"]
+        var motion_angle: float = trail_axis.angle()
         var start_angle: float = motion_angle - 0.38
         var end_angle: float = motion_angle + 0.10
         draw_arc(mid,STAFF_HALF+6.0,start_angle,end_angle,22,
