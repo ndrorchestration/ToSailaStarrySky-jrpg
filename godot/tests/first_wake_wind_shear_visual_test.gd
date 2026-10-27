@@ -91,6 +91,36 @@ func _verify() -> void:
     if not art.analyzed or art.last_enemy_turn != 1:
         _fail("analyzed/retaliation appearance not bound to real combat state")
         return
+    if art.hit_feedback_seconds != 0.0:
+        _fail("analysis or enemy retaliation fabricated a player hit")
+        return
+    if art.register_resolved_damage(14, 14):
+        _fail("unchanged enemy HP must not trigger hit confirmation")
+        return
+    if art.register_resolved_damage(-1, 0):
+        _fail("invalid enemy HP must not trigger hit confirmation")
+        return
+
+    # Authorized player attack: the scene observes actual damage *after*
+    # the combat controller resolves it, not from the command selection.
+    var enemy_before_strike: int = int(world.formula_encounter.target.get("hp", 0))
+    if not world.take_formula_review_action("staffStrike"):
+        _fail("authorized Staff Strike rejected")
+        return
+    var enemy_after_strike: int = int(world.formula_encounter.target.get("hp", 0))
+    if enemy_after_strike >= enemy_before_strike or world.formula_encounter.completed:
+        _fail("deterministic review strike was expected to deal nonlethal damage")
+        return
+    if art.hit_feedback_seconds <= 0.0:
+        _fail("confirmed enemy HP loss did not trigger brief hit feedback")
+        return
+
+    var reaction_duration: float = art.hit_feedback_seconds
+    for _frame in range(6):
+        art._process(0.05)
+    if art.hit_feedback_seconds != 0.0 or reaction_duration <= 0.0:
+        _fail("post-hit accent did not decay to zero")
+        return
     if world.chapter.snapshot() != before:
         _fail("enemy art/combat animation mutated Chapter I progression")
         return
@@ -98,7 +128,7 @@ func _verify() -> void:
     # Scene-wide settings can hold a completely stable silhouette in
     # reduced-motion mode; no amber Gale Force flash survives the toggle.
     art.set_reduced_motion(true)
-    if art.gale_accent_seconds != 0.0 or art.visual_clock != 0.0:
+    if art.gale_accent_seconds != 0.0 or art.visual_clock != 0.0 or art.hit_feedback_seconds != 0.0:
         _fail("reduced-motion mode did not remove ambient/retaliation motion")
         return
     art._process(0.4)
