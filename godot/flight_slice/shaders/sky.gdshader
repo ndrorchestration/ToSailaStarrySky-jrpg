@@ -111,13 +111,13 @@ void sky() {
         // Decorative magical haze: deliberately NOT a navigable auroral lane.
         // Slow, nonflashing ribbons are absent in quality fallback.
         float azimuth=atan(d.z,d.x);
-        float veil_center=0.38+0.070*sin(azimuth*3.1+study_time*0.009);
-        float ribbon=exp(-pow((d.y-veil_center)*8.5,2.0));
+        float veil_center=0.21+0.075*sin(azimuth*3.1+study_time*0.009);
+        float ribbon=exp(-pow((d.y-veil_center)*7.0,2.0));
         float wisp=0.68+0.32*sin(azimuth*9.0+study_time*0.012);
         float altitude_mask=smoothstep(0.10,0.23,d.y)
             *(1.0-smoothstep(0.70,0.90,d.y));
         vec3 veil=mix(vec3(0.28,0.71,0.76),vec3(0.58,0.40,0.83),wisp);
-        c+=veil*ribbon*altitude_mask*magic_veil_strength*(0.17+0.48*night);
+        c+=veil*ribbon*altitude_mask*magic_veil_strength*(0.18+0.62*night);
     }
     float disk=smoothstep(0.9991,0.9997,dot(d,sun));
     c+=vec3(1.0,0.75,0.40)*disk*1.5*sun_visibility;
