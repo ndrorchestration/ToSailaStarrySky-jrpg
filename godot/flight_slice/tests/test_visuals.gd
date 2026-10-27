@@ -46,6 +46,7 @@ func _run() -> void:
     visuals.set_clock(22.0, true)
     check(is_equal_approx(visuals.water.get_shader_parameter("study_time"), 0.0), "reduced motion freezes water")
     check(is_equal_approx(visuals.foliage.get_shader_parameter("study_time"), 0.0), "reduced motion freezes foliage")
+    check(is_equal_approx(visuals.broadleaf.get_shader_parameter("study_time"), 0.0), "reduced motion freezes broadleaf foliage")
     visuals.set_low_quality(true)
     check(visuals.water.get_shader_parameter("low_quality") == true, "low quality applied")
     visuals.set_low_quality(false)
@@ -119,6 +120,32 @@ func _run() -> void:
             nonuniform = true
             break
     check(nonuniform, "deterministic forest contains varied height-width profiles")
+    # A mixed forest must contain a separate, visible canopy type, with its
+    # transforms grounded in the same sampled forest as the existing trees.
+    var has_broadleaf: bool = scene.terrain.has_node("BroadleafCrowns")
+    check(has_broadleaf, "forest includes a second canopy type")
+    if has_broadleaf:
+        var broadleaf: MultiMeshInstance3D = scene.terrain.get_node("BroadleafCrowns")
+        check(broadleaf.multimesh.mesh is ArrayMesh, "broadleaf has clustered mesh")
+        var leaf_arrays: Array = broadleaf.multimesh.mesh.surface_get_arrays(0)
+        var leaf_vertices: PackedVector3Array = leaf_arrays[Mesh.ARRAY_VERTEX]
+        var leaf_normals: PackedVector3Array = leaf_arrays[Mesh.ARRAY_NORMAL]
+        check(leaf_vertices.size() >= 100 and leaf_vertices.size() <= 1200,
+            "clustered crown geometry remains nonempty and bounded")
+        check(leaf_vertices.size() == leaf_normals.size(), "clustered crown normals are complete")
+        var broad_poses: Array[Transform3D] = scene.terrain.broadleaf_poses
+        check(broad_poses.size() > 5, "second canopy has multiple placements")
+        check(broadleaf.multimesh.instance_count == broad_poses.size(),
+            "second canopy instance count mirrors authored placements")
+        var trunk_nodes: MultiMeshInstance3D = scene.terrain.get_node("ForestTrunks")
+        check(trunk_nodes.multimesh.instance_count == cpu_poses.size() + broad_poses.size(),
+            "each mixed-forest crown retains a trunk")
+        for pose in broad_poses:
+            check(scene.terrain.classify(pose.origin.x, pose.origin.z) == "forest",
+                "second canopy belongs to forest biome")
+            check(absf(pose.origin.y - scene.terrain.sample_height(pose.origin.x, pose.origin.z)) < 0.0001,
+                "second canopy placement is grounded")
+
     scene._clock = 9.0
     scene._paused = true
     scene._process(0.2)

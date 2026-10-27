@@ -15,6 +15,7 @@ var _tiles: Array = []
 # CPU-side transform authority: headless Dummy Renderer MultiMesh readback
 # can return identity even when real OpenGL instance transforms are populated.
 var tree_poses: Array[Transform3D] = []
+var broadleaf_poses: Array[Transform3D] = []
 var _terrain_material: StandardMaterial3D
 var _lod_clock: float = 0.0
 var visible_tiles: int = 0
@@ -308,6 +309,8 @@ static func _hash01(x: float, z: float) -> float:
 
 func _place_tree_instances() -> void:
     var poses: Array[Transform3D] = []
+    var broad_poses: Array[Transform3D] = []
+    var all_poses: Array[Transform3D] = []
     for ix in range(8, 72, 5):
         for iz in range(-78, 83, 5):
             var x: float = float(ix) + (_hash01(ix, iz) - 0.5) * 3.1
@@ -323,8 +326,15 @@ func _place_tree_instances() -> void:
             var yaw: float = float(posmod(ix * 3 + iz * 7, 29)) * (TAU / 29.0)
             var basis := Basis(Vector3.UP, yaw).scaled(Vector3(
                 size * width_scale, size * height_scale, size * depth_scale))
-            poses.append(Transform3D(basis, Vector3(x, sample_height(x, z), z)))
+            var pose := Transform3D(basis, Vector3(x, sample_height(x, z), z))
+            all_poses.append(pose)
+            # Stable species assignment keeps the original placement footprint.
+            if _hash01(float(ix) + 31.0, float(iz) - 17.0) < 0.32:
+                broad_poses.append(pose)
+            else:
+                poses.append(pose)
     tree_poses = poses.duplicate()
+    broadleaf_poses = broad_poses.duplicate()
     var crowns := MultiMesh.new()
     crowns.transform_format = MultiMesh.TRANSFORM_3D
     var cone := CylinderMesh.new()
@@ -343,6 +353,26 @@ func _place_tree_instances() -> void:
     forest.multimesh = crowns
     forest.material_override = _material(Color(0.11, 0.28, 0.24), 0.95)
     add_child(forest)
+    # A single instanced smooth crown replaces a subset of the conical trees.
+    # Geometry and placement are a noncanonical, lightweight art study.
+    var broad_crowns := MultiMesh.new()
+    broad_crowns.transform_format = MultiMesh.TRANSFORM_3D
+    var broad_mesh := SphereMesh.new()
+    broad_mesh.radius = 1.5
+    broad_mesh.height = 3.0
+    broad_mesh.radial_segments = 10
+    broad_mesh.rings = 6
+    broad_crowns.mesh = broad_mesh
+    broad_crowns.instance_count = broad_poses.size()
+    for i in range(broad_poses.size()):
+        var t: Transform3D = broad_poses[i]
+        broad_crowns.set_instance_transform(i,
+            Transform3D(t.basis, t.origin + Vector3.UP * 2.50 * t.basis.get_scale().y))
+    var broad_instance := MultiMeshInstance3D.new()
+    broad_instance.name = "BroadleafCrowns"
+    broad_instance.multimesh = broad_crowns
+    broad_instance.material_override = _material(Color(0.26, 0.38, 0.18), 0.95)
+    add_child(broad_instance)
     var trunks := MultiMesh.new()
     trunks.transform_format = MultiMesh.TRANSFORM_3D
     var trunk_mesh := CylinderMesh.new()
@@ -351,9 +381,9 @@ func _place_tree_instances() -> void:
     trunk_mesh.height = 2.3
     trunk_mesh.radial_segments = 5
     trunks.mesh = trunk_mesh
-    trunks.instance_count = poses.size()
-    for i in range(poses.size()):
-        var t: Transform3D = poses[i]
+    trunks.instance_count = all_poses.size()
+    for i in range(all_poses.size()):
+        var t: Transform3D = all_poses[i]
         trunks.set_instance_transform(i, Transform3D(t.basis, t.origin + Vector3.UP * 1.17 * t.basis.get_scale().y))
     var trunk_instance := MultiMeshInstance3D.new()
     trunk_instance.name = "ForestTrunks"
