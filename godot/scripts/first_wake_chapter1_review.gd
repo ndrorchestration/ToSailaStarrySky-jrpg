@@ -378,6 +378,7 @@ func start_formula_review() -> bool:
     formula_encounter.reset()
     if not formula_encounter.start():
         return false
+    battle_equipment_view.set_pose("idle")
     battle_equipment_view.visible = true
     ender.player_controlled = false
     last_message = formula_encounter.last_log()
@@ -398,6 +399,7 @@ func start_hazard_encounter(hazard_id: String) -> bool:
         return false
 
     active_hazard_encounter_id = hazard_id
+    battle_equipment_view.set_pose("idle")
     battle_equipment_view.visible = true
     ender.player_controlled = false
     last_message = formula_encounter.last_log()
@@ -420,6 +422,7 @@ func close_formula_review() -> bool:
         return false
 
     active_hazard_encounter_id = ""
+    battle_equipment_view.set_pose("idle")
     battle_equipment_view.visible = false
     if not hazard_id.is_empty():
         if hazard_cleared:
@@ -454,6 +457,17 @@ func take_formula_review_action(action_id: String) -> bool:
         _refresh_ui()
         queue_redraw()
         return false
+    var pose := "idle"
+    match action_id:
+        "staffStrike":
+            pose = "strike"
+        "uncoverTruth":
+            pose = "analyze"
+        "hold":
+            pose = "guard"
+        "rest":
+            pose = "rest"
+    battle_equipment_view.set_pose(pose)
     last_message = formula_encounter.last_log()
     _refresh_ui()
     queue_redraw()
@@ -773,6 +787,7 @@ func restore_save_snapshot(snapshot: Dictionary) -> bool:
     dialogue.close()
     formula_encounter.reset()
     battle_loadout.reset_to_starter()
+    battle_equipment_view.set_pose("idle")
     battle_equipment_view.set_appearance(battle_loadout.appearance())
     battle_equipment_view.visible = false
     active_hazard_encounter_id = ""

@@ -20,6 +20,9 @@ func _verify() -> void:
     if not world.battle_equipment_view.visible:
         _fail("equipped model not shown during combat")
         return
+    if world.battle_equipment_view.get_node_or_null("WeaponAttachment") == null:
+        _fail("battle did not mount independent weapon node")
+        return
     var key_before: String = world.battle_equipment_view.visual_key()
     var turns_before: int = int(world.formula_encounter.turns)
     if not world.equip_review_item("mainWeapon", "ender-staff-inlay-review"):
@@ -46,9 +49,24 @@ func _verify() -> void:
     if world.take_formula_review_action("sharedDream"):
         _fail("cosmetic equipment bypassed blocked action")
         return
+    if world.battle_equipment_view.pose_id != "idle":
+        _fail("rejected action mutated actor pose")
+        return
+    if not world.take_formula_review_action("staffStrike"):
+        _fail("authorized staff strike did not resolve")
+        return
+    if world.battle_equipment_view.pose_id != "strike":
+        _fail("accepted attack did not move attached weapon pose")
+        return
+    if world.battle_equipment_view.weapon_attachment.position != world.battle_equipment_view.hand_attachment.position:
+        _fail("strike detached the weapon from hand")
+        return
     var restored: Dictionary = world.export_save_snapshot()
     if not world.restore_save_snapshot(restored):
         _fail("original save codec no longer restores")
+        return
+    if world.battle_equipment_view.pose_id != "idle" or world.battle_equipment_view.visible:
+        _fail("restore did not reset transient pose and hide battle rig")
         return
     if str(world.battle_loadout.appearance()["weaponVisual"]) != "staff-brass":
         _fail("transient sample look persisted outside save ownership")

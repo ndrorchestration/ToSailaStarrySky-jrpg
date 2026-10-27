@@ -1,83 +1,103 @@
 extends Node2D
-## Original procedural 2D battle EQUIPMENT preview, not accepted portrait art.
-## The hand anchor and held equipment are drawn together on every loadout
-## change. No shader/magic, attack formula or approved sprite is replaced.
+## Socket-based character/equipment review rig for native Chapter I battles.
+## Draws a deliberately neutral actor mannequin with real, independent
+## weapon, armor, accessory and hand CanvasItem children. No accepted sprites
+## are repainted, and the model grants no skills, turns, stats or save data.
+
+const Attachment = preload("res://scripts/battle_equipment_attachment.gd")
+const VALID_POSES := ["idle", "strike", "guard", "analyze", "rest"]
+const HAND_SOCKETS := {
+    "idle": Vector2(16, 14),
+    "strike": Vector2(20, -4),
+    "guard": Vector2(9, 10),
+    "analyze": Vector2(23, 1),
+    "rest": Vector2(12, 19),
+}
+const WEAPON_ROTATIONS := {
+    "idle": 0.0,
+    "strike": -0.83,
+    "guard": 0.46,
+    "analyze": -0.30,
+    "rest": 0.10,
+}
 
 var appearance: Dictionary = {}
+var pose_id: String = "idle"
+var armor_attachment: Node2D
+var accessory_attachment: Node2D
+var weapon_attachment: Node2D
+var hand_attachment: Node2D
+
+func _ready() -> void:
+    armor_attachment = _make_attachment("ArmorAttachment", "armor")
+    accessory_attachment = _make_attachment("AccessoryAttachment", "accessory")
+    weapon_attachment = _make_attachment("WeaponAttachment", "weapon")
+    hand_attachment = _make_attachment("GripHandAttachment", "hand")
+    _sync_attachments()
+
+func _make_attachment(node_name: String, layer: String) -> Node2D:
+    var part = Attachment.new()
+    part.name = node_name
+    part.layer_key = layer
+    add_child(part)
+    return part
 
 func set_appearance(next_appearance: Dictionary) -> void:
     appearance = next_appearance.duplicate(true)
     visible = not appearance.is_empty()
+    _sync_attachments()
     queue_redraw()
+
+func set_pose(next_pose: String) -> bool:
+    if next_pose not in VALID_POSES:
+        return false
+    pose_id = next_pose
+    _sync_attachments()
+    queue_redraw()
+    return true
+
+func socket_position() -> Vector2:
+    return HAND_SOCKETS[pose_id]
 
 func visual_key() -> String:
     return str(appearance.get("weaponVisual", "")) + "|" + str(appearance.get("armorVisual", "")) + "|" + str(appearance.get("accessoryVisual", ""))
 
+func _sync_attachments() -> void:
+    if not is_instance_valid(weapon_attachment):
+        return
+    armor_attachment.configure("armor", appearance)
+    accessory_attachment.configure("accessory", appearance)
+    weapon_attachment.configure("weapon", appearance)
+    hand_attachment.configure("hand", appearance)
+    weapon_attachment.position = socket_position()
+    hand_attachment.position = socket_position()
+    weapon_attachment.rotation = float(WEAPON_ROTATIONS[pose_id])
+    hand_attachment.rotation = 0.0
+
 func _draw() -> void:
     if appearance.is_empty():
         return
-    var edge := Color("#47657a")
-    var brass := Color("#d6ac6a")
     var pale := Color("#eff0da")
     var coat := Color("#687c63")
+    var skin := Color("#d0ba9e")
+    var actor_id := str(appearance.get("actorId", ""))
+    var half_width := 18.0 if actor_id == "reson" else (12.0 if actor_id == "aepex" else 15.0)
     draw_rect(Rect2(-56, -68, 112, 141), Color("#132536"))
-    draw_rect(Rect2(-56, -68, 112, 141), edge, false, 1.0)
-    draw_string(ThemeDB.fallback_font, Vector2(-46, -51), "EQUIPPED", HORIZONTAL_ALIGNMENT_LEFT, 98, 11, Color("#add5dc"))
+    draw_rect(Rect2(-56, -68, 112, 141), Color("#47657a"), false, 1.0)
+    draw_string(ThemeDB.fallback_font, Vector2(-46, -51), "GEAR RIG / REVIEW", HORIZONTAL_ALIGNMENT_LEFT, 99, 10, Color("#add5dc"))
 
-    # Neutral pose dummy: a silhouette for equipment alignment, never a
-    # replacement for Ender's locked likeness or final cast sprite sheets.
-    draw_circle(Vector2(-21, -19), 11, Color("#d0ba9e"))
+    # Provisional neutral body under the attached gear. Never substitute this
+    # for Ender's locked source likeness or assert final cast portrait quality.
+    draw_circle(Vector2(-23, -19), 11, skin)
     draw_colored_polygon(PackedVector2Array([
-        Vector2(-39, -6), Vector2(-8, -6), Vector2(-9, 38), Vector2(-39, 38)
+        Vector2(-23 - half_width, -7), Vector2(-23 + half_width, -7),
+        Vector2(-23 + half_width - 1, 37), Vector2(-23 - half_width, 37)
     ]), coat)
-    draw_line(Vector2(-12, 0), Vector2(13, 14), Color("#d0ba9e"), 7.0)
-    draw_circle(Vector2(13, 14), 4.5, Color("#d0ba9e"))
-
-    if str(appearance.get("armorVisual", "")) == "brass-plate":
-        draw_colored_polygon(PackedVector2Array([
-            Vector2(-35, -3), Vector2(-13, -3), Vector2(-12, 23),
-            Vector2(-24, 30), Vector2(-37, 20)
-        ]), Color("#b6a17c"))
-        draw_line(Vector2(-34, 5), Vector2(-13, 5), brass, 2.0)
-
-    var family := str(appearance.get("weaponFamily", ""))
-    var variant := str(appearance.get("weaponVisual", ""))
-    match family:
-        "staff":
-            # Full shaft with brass ferrules and centered longitudinal grip.
-            var shaft_color := Color("#b0bdc9") if variant == "staff-silver-inlay" else Color("#916745")
-            draw_line(Vector2(19, -45), Vector2(19, 49), shaft_color, 5.0)
-            draw_line(Vector2(19, -45), Vector2(19, -36), brass, 6.0)
-            draw_line(Vector2(19, 40), Vector2(19, 49), brass, 6.0)
-            draw_line(Vector2(19, 6), Vector2(19, 21), Color("#44332f"), 7.0)
-            if variant == "staff-silver-inlay":
-                draw_line(Vector2(19, -33), Vector2(19, 3), pale, 2.0)
-                draw_circle(Vector2(19, -43), 3.5, pale)
-        "sword":
-            draw_line(Vector2(19, 14), Vector2(19, -44), Color("#e1e7e8"), 7.0)
-            draw_line(Vector2(5, 7), Vector2(33, 7), brass, 4.0)
-            draw_line(Vector2(19, 8), Vector2(19, 23), Color("#795746"), 5.0)
-            draw_colored_polygon(PackedVector2Array([Vector2(16, -44), Vector2(22, -44), Vector2(19, -57)]), pale)
-        "mace":
-            draw_line(Vector2(19, 20), Vector2(19, -31), Color("#95724b"), 6.0)
-            draw_circle(Vector2(19, -40), 14.0, Color("#abb9b8"))
-            for offset in [-10.0, 0.0, 10.0]:
-                draw_line(Vector2(6, -40 + offset), Vector2(32, -40 + offset), brass, 2.0)
-        "rifle":
-            draw_line(Vector2(12, 6), Vector2(46, -12), Color("#aabac1"), 8.0)
-            draw_line(Vector2(24, 0), Vector2(51, 0), Color("#3a494e"), 5.0)
-            draw_line(Vector2(27, 0), Vector2(31, 17), brass, 5.0)
-            draw_line(Vector2(7, 7), Vector2(18, 15), Color("#8d644a"), 6.0)
-        "chakram":
-            draw_arc(Vector2(31, -1), 20.0, 0.0, TAU, 44, Color("#d1c8dc"), 7.0)
-            draw_arc(Vector2(31, -1), 15.0, 0.0, TAU, 44, brass, 2.0)
-        "unarmed":
-            draw_circle(Vector2(13, 14), 7.5, Color("#7a674e"))
-            draw_line(Vector2(10, 11), Vector2(17, 18), pale, 2.0)
-
-    if str(appearance.get("accessoryVisual", "")) == "small-charm":
-        draw_line(Vector2(-24, -4), Vector2(-24, 10), brass, 1.5)
-        draw_circle(Vector2(-24, 12), 3.5, Color("#91d0ce"))
+    draw_line(Vector2(-22, 37), Vector2(-30, 47), Color("#303b3a"), 5.0)
+    draw_line(Vector2(-18, 37), Vector2(-8, 47), Color("#303b3a"), 5.0)
+    draw_line(Vector2(-11, 0), socket_position(), skin, 7.0)
+    draw_line(Vector2(-36, -1), Vector2(-40, 18), skin, 6.0)
 
     var label := str(appearance.get("weaponName", "NO EQUIPMENT")).to_upper()
-    draw_string(ThemeDB.fallback_font, Vector2(-51, 62), label, HORIZONTAL_ALIGNMENT_LEFT, 101, 10, pale)
+    draw_string(ThemeDB.fallback_font, Vector2(-51, 62), label, HORIZONTAL_ALIGNMENT_LEFT, 102, 10, pale)
+    draw_string(ThemeDB.fallback_font, Vector2(-49, -34), pose_id.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, 90, 9, Color("#a9ccd0"))
