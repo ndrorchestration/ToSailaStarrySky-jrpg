@@ -1,6 +1,7 @@
 extends Node3D
 ## Reusable materials for a NON-CANON GDScript art study; not product architecture.
 const TerrainStudy = preload("res://terrain.gd")
+const CoastDistance = preload("res://coast_distance.gd")
 const EnvironmentMood = preload("res://environment_mood.gd")
 const EnvironmentBlend = preload("res://environment_blend.gd")
 const WeatherStreaks = preload("res://weather_streaks.gd")
@@ -28,6 +29,7 @@ var _transition_start: Dictionary = {}
 var _transition_target: Dictionary = {}
 var _transition_elapsed: float = 0.0
 var _transition_seconds: float = 1.8
+var coastal_distance: ImageTexture
 var coverage: ImageTexture
 var _terrain: Node3D
 var _coverage_bytes := PackedByteArray()
@@ -119,6 +121,11 @@ func bind_terrain(terrain: Node3D) -> void:
             var pz: float = (float(y) + 0.5) / 256.0 * 260.0 - 130.0
             field.set_pixel(x, y, Color(TerrainStudy.sample_height(px, pz), 0, 0))
     water.set_shader_parameter("height_field", ImageTexture.create_from_image(field))
+    var signed_shore: Image = CoastDistance.bake(field, TerrainStudy.SEA_LEVEL, 260.0)
+    if signed_shore != null:
+        coastal_distance = ImageTexture.create_from_image(signed_shore)
+        land.set_shader_parameter("coast_distance_field", coastal_distance)
+        water.set_shader_parameter("coast_distance_field", coastal_distance)
     terrain.get_node("OceanSurface").material_override = water
     refresh_coverage()
     var crowns: MultiMeshInstance3D = terrain.get_node("ForestCrowns")
