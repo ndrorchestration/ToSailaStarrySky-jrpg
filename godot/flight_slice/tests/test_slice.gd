@@ -48,13 +48,42 @@ func _run_tests() -> void:
     var strongest_change: float = 0.0
     for reference in parent_heights:
         var value: float = TerrainStudy.sample_height(reference.x, reference.z)
-        var delta_from_parent: float = absf(value - reference.y)
+        var before_arretes: float = TerrainStudy._sample_height_before_arretes(reference.x, reference.z)
+        var delta_from_parent: float = absf(before_arretes - reference.y)
         strongest_change = maxf(strongest_change, delta_from_parent)
         _check(is_finite(value) and delta_from_parent <= 1.81,
             "fractal elevation remains bounded against parent")
         _check(is_equal_approx(value, TerrainStudy.sample_height(reference.x, reference.z)),
-            "fractal elevation repeats at identical coordinates")
+            "fractal and alpine geology repeat at identical coordinates")
+        _check(absf(value - before_arretes) <= 1.86,
+            "alpine erosion remains bounded against verified parent sampler")
     _check(strongest_change > 0.12, "fractal detail changes highland elevations")
+    # All lowland, forest, port, and known touchdown contact heights retain
+    # their exact former authority; highland sculpting is the sole delta.
+    for x in [-60.0, -2.0, 8.0, 15.0, 30.0, 50.0, 56.0, 57.0]:
+        for z in [-28.0, -12.0, 0.0, 24.0]:
+            _check(TerrainStudy.alpine_arrete_relief(x, z) == 0.0,
+                "alpine sculpting never changes the safe lower world")
+            _check(is_equal_approx(TerrainStudy.sample_height(x, z),
+                TerrainStudy._sample_height_before_arretes(x, z)),
+                "legacy sampler remains authoritative outside the highlands")
+    var highest_cut: float = 0.0
+    var lowest_cut: float = 0.0
+    for x in range(60, 94, 2):
+        for z in range(-48, 48, 3):
+            var relief: float = TerrainStudy.alpine_arrete_relief(float(x), float(z))
+            var actual: float = TerrainStudy.sample_height(float(x), float(z))
+            var parent: float = TerrainStudy._sample_height_before_arretes(float(x), float(z))
+            highest_cut = maxf(highest_cut, relief)
+            lowest_cut = minf(lowest_cut, relief)
+            _check(is_finite(relief) and absf(relief) <= 1.86,
+                "upper-mountain ridges and gullies stay within local vertical budget")
+            _check(absf((actual - parent) - relief) < 0.00002,
+                "ridge geometry, classification and flight read the same height authority")
+    _check(highest_cut >= 0.6 and lowest_cut <= -0.6,
+        "alpine landform study produces both crest and drainage relief")
+    _check(TerrainStudy.alpine_arrete_relief(100.0, 12.0) == 0.0,
+        "mountain study transitions out without a new outer-boundary wall")
 
     for ix in [-4, -1, 0, 2]:
         for iz in [-3, 0, 2]:
