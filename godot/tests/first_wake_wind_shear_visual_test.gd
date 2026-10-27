@@ -73,8 +73,21 @@ func _verify() -> void:
     old_image.convert(Image.FORMAT_RGBA8)
     idle_image.convert(Image.FORMAT_RGBA8)
     var old_hold: PackedByteArray = old_image.get_region(Rect2i(0, 0, 80, 92)).get_data()
-    if idle_image.get_region(Rect2i(0, 0, 80, 92)).get_data() != old_hold:
-        _fail("new idle still is not byte-identical in pixels to original")
+    var idle_hold: PackedByteArray = idle_image.get_region(Rect2i(0, 0, 80, 92)).get_data()
+    if idle_hold != old_hold:
+        var first_difference: int = -1
+        for byte_id in range(mini(old_hold.size(), idle_hold.size())):
+            if old_hold[byte_id] != idle_hold[byte_id]:
+                first_difference = byte_id
+                break
+        var at_pixel: int = first_difference / 4 if first_difference >= 0 else -1
+        var pixel_location := Vector2i(at_pixel % 80, at_pixel / 80) if at_pixel >= 0 else Vector2i(-1, -1)
+        push_warning("WIND_SHEAR_IMAGE_IMPORT_DEBUG old_format=%d v2_format=%d old_bytes=%d v2_bytes=%d first_byte=%d old_pixel=%s v2_pixel=%s" % [
+            old_image.get_format(), idle_image.get_format(), old_hold.size(), idle_hold.size(),
+            first_difference, str(old_image.get_pixel(pixel_location.x, pixel_location.y)),
+            str(idle_image.get_pixel(pixel_location.x, pixel_location.y))
+        ])
+        _fail("new idle still differs after RGBA8 normalization: inspect import diagnostic")
         return
     for pose in range(1, 4):
         if idle_image.get_region(Rect2i(pose * 80, 0, 80, 92)).get_data() == old_hold:
