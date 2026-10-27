@@ -59,6 +59,17 @@ static func _highland_fractal(x: float, z: float) -> float:
     var envelope: float = smoothstep(50.0, 62.0, x)
     return 1.8 * envelope * clampf(_terrain_noise.get_noise_2d(x, z), -1.0, 1.0)
 
+# Two offset highland forms introduce a narrow ridge spur and a shallow
+# intervening saddle, rather than repeating another isolated cone. These
+# sample the same CPU terrain authority used by all LODs and visual water bake.
+# Both are confined to distant highland coordinates; no landing-field edit.
+static func ridge_sculpt_delta(x: float, z: float) -> float:
+    if x <= 50.0:
+        return 0.0
+    var crest: float = 3.15 * _ridge_lobe(x, z, 79.0, -10.0, 6.3, 9.6, -0.17)
+    var saddle: float = 2.55 * _ridge_lobe(x, z, 76.0, -19.0, 7.1, 6.0, 0.13)
+    return (crest - saddle) * smoothstep(50.0, 58.0, x)
+
 static func sample_height(x: float, z: float) -> float:
     var coast: float = coastline_at(z)
     var rise: float = smoothstep(coast - 8.0, coast + 19.0, x)
@@ -70,6 +81,7 @@ static func sample_height(x: float, z: float) -> float:
     summit += 8.0 * _ridge_lobe(x, z, 70.0, 18.0, 17.0, 14.0, -0.22)
     summit += 9.0 * _ridge_lobe(x, z, 75.0, -35.0, 16.0, 14.0, -0.18)
     summit *= smoothstep(50.0, 58.0, x)
+    summit += ridge_sculpt_delta(x, z)
     return -2.4 + 5.6 * rise + highland * (14.5 + broad * 1.8 + ridges) + rise * (broad + detail) + summit + _highland_fractal(x, z)
 
 static func classify(x: float, z: float) -> String:
