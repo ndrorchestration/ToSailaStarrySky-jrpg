@@ -568,6 +568,28 @@ internal static class Program
         }
     }
 
+    private static void TriangleSoupInvalidAttributeChecks()
+    {
+        var source = CubeSphereMeshFixture.Generate(
+            new TileId(CubeFace.PositiveX, 0, 0, 0), R, 2);
+        var positions = source.Vertices.ToArray();
+        positions[0] = new CubeSphereMeshFixture.Point3(double.NaN, 0, 0);
+        var invalidPosition = source with { Vertices = positions };
+        Reject<ArgumentException>(() => ChartTriangleSoup.Expand(invalidPosition),
+            "triangle expansion refuses nonfinite position");
+
+        var normals = source.Normals.ToArray();
+        normals[0] = new CubeSphereMeshFixture.Point3(0, 0, 0);
+        var invalidNormal = source with { Normals = normals };
+        Reject<ArgumentException>(() => ChartTriangleSoup.Expand(invalidNormal),
+            "triangle expansion refuses zero-length normal");
+
+        normals[0] = new CubeSphereMeshFixture.Point3(double.PositiveInfinity, 0, 0);
+        invalidNormal = source with { Normals = normals };
+        Reject<ArgumentException>(() => ChartTriangleSoup.Expand(invalidNormal),
+            "triangle expansion refuses infinite normal");
+    }
+
     private static void RejectionChecks()
     {
         Reject<ArgumentOutOfRangeException>(() => _ = new PlanetPosition(91, 0),
@@ -605,6 +627,7 @@ internal static class Program
             MeshFixtureChecks();
             ChartSeamChecks();
             TriangleSoupChecks();
+            TriangleSoupInvalidAttributeChecks();
             RejectionChecks();
             Console.WriteLine($"CS_WORLDMAP_CONTRACT_PASS: {_assertions} deterministic assertions; no Godot runtime or canon admitted");
             Console.WriteLine("CS_WORLDMAP_GODOT_MONO_NATIVE=NOT_ESTABLISHED");
