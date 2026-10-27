@@ -109,21 +109,42 @@ func _shader(path: String) -> ShaderMaterial:
     return material
 
 func _layered_crown() -> ArrayMesh:
+    # Irregular overlapping leaf masses replace the uniform triangular cones.
+    # All positions remain local to one instanced tree: no new draw calls.
     var surface := SurfaceTool.new()
     surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-    # Same crown height and instance transforms; layered branches break cone repetition.
-    for tier in range(3):
-        var base: float = -1.8 + tier * 1.05
-        var radius: float = 1.3 - tier * 0.30
-        for side in range(7):
-            var a: float = float(side) / 7.0 * TAU + tier * 0.27
-            var b: float = float(side + 1) / 7.0 * TAU + tier * 0.27
-            var p := Vector3(cos(a)*radius, base, sin(a)*radius)
-            var q := Vector3(cos(b)*radius, base, sin(b)*radius)
-            var top := Vector3(0, base + 1.6, 0)
-            var normal: Vector3 = (top-p).cross(q-p).normalized()
-            for vertex in [p, q, top]:
-                surface.set_normal(normal)
-                surface.set_color(Color(0.78,0.83,0.78) if vertex == p or vertex == q else Color(1.15,1.11,0.95))
-                surface.add_vertex(vertex)
+    var sides: int = 11
+    for tier in range(4):
+        var base: float = -1.75 + float(tier) * 0.77
+        var radius: float = 1.42 - float(tier) * 0.26
+        var crown_top := Vector3(0.07 * sin(float(tier) * 2.1),
+            base + 1.19, 0.06 * cos(float(tier) * 2.3))
+        var depth_shade: float = 0.79 + float(tier) * 0.075
+        var underside := Color(0.68, 0.77, 0.71) * depth_shade
+        var sunward := Color(0.97, 1.04, 0.86) * depth_shade
+        for side in range(sides):
+            var a: float = float(side) / float(sides) * TAU + float(tier) * 0.17
+            var b: float = float(side + 1) / float(sides) * TAU + float(tier) * 0.17
+            var edge_a: float = 0.91 + 0.12 * sin(float(side) * 2.53 + float(tier) * 1.37)
+            var edge_b: float = 0.91 + 0.12 * sin(float(side + 1) * 2.53 + float(tier) * 1.37)
+            var lower_a := Vector3(cos(a) * radius * edge_a,
+                base + 0.08 * sin(a * 3.0), sin(a) * radius * edge_a)
+            var lower_b := Vector3(cos(b) * radius * edge_b,
+                base + 0.08 * sin(b * 3.0), sin(b) * radius * edge_b)
+            var shoulder_a := Vector3(lower_a.x * 0.67,
+                base + 0.61, lower_a.z * 0.67)
+            var shoulder_b := Vector3(lower_b.x * 0.67,
+                base + 0.61, lower_b.z * 0.67)
+            _crown_triangle(surface, lower_a, lower_b, shoulder_a, underside)
+            _crown_triangle(surface, shoulder_a, lower_b, shoulder_b, underside)
+            _crown_triangle(surface, shoulder_a, shoulder_b, crown_top, sunward)
     return surface.commit()
+
+func _crown_triangle(surface: SurfaceTool, a: Vector3, b: Vector3,
+        c: Vector3, tint: Color) -> void:
+    # Godot renders the CW-facing side; match the existing winding and test.
+    var outward: Vector3 = (c - a).cross(b - a).normalized()
+    for point in [a, b, c]:
+        surface.set_normal(outward)
+        surface.set_color(tint)
+        surface.add_vertex(point)

@@ -16,8 +16,16 @@ void fragment() {
     vec3 grass=mix(vec3(0.10,0.20,0.13),vec3(0.31,0.37,0.17),mottling);
     grass=mix(grass,vec3(0.08,0.17,0.13),smoothstep(16.0,30.0,p.x)*0.35);
     float strata=sin(p.y*4.0+noise(p.xz*0.3)*3.0)*0.5+0.5;
-    vec3 rock=mix(vec3(0.17,0.20,0.24),vec3(0.42,0.40,0.36),mottling*0.7+strata*0.3);
+    // Weathered strata and sparse talus give exposed slopes geographic form
+    // without inventing a second elevation model or touching collision heights.
+    float bedding=noise(vec2(p.y*0.70+noise(p.xz*0.14)*1.4,
+        p.x*0.085+p.z*0.12));
+    vec3 rock=mix(vec3(0.17,0.20,0.24),vec3(0.42,0.40,0.36),
+        mottling*0.48+strata*0.25+bedding*0.27);
     float rocky=max(smoothstep(0.07,0.32,slope),smoothstep(10.0,17.0,p.y)*0.6);
+    float scree=smoothstep(7.0,18.0,p.y)*smoothstep(0.18,0.52,slope)
+        *smoothstep(0.43,0.80,noise(p.xz*0.94));
+    rock=mix(rock,vec3(0.32,0.32,0.31),scree*0.24);
     vec3 color=mix(grass,rock,rocky);
     float sand=1.0-smoothstep(0.6,2.7,p.y+noise(p.xz*0.5)*0.5);
     color=mix(color,mix(vec3(0.36,0.31,0.22),vec3(0.70,0.59,0.40),mottling),sand);

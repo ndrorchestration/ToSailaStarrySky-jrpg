@@ -8,7 +8,11 @@ void vertex() {
     VERTEX.x+=sway*max(VERTEX.y+1.8,0.0)*0.018;
 }
 void fragment() {
-    float variation=sin(world_pos.x*0.8+world_pos.z*0.4)*0.5+0.5;
-    ALBEDO=COLOR.rgb*mix(vec3(0.12,0.24,0.19),vec3(0.23,0.31,0.18),variation);
+    // Stable large- and small-scale coloration breaks up repeated instances.
+    // Light remains restrained; no blanket emissive fantasy-neon foliage.
+    float variation=sin(world_pos.x*0.37+world_pos.z*0.52)*0.5+0.5;
+    float leaf_grain=sin(world_pos.x*2.73+world_pos.y*0.74+world_pos.z*1.81)*0.5+0.5;
+    vec3 shade=mix(vec3(0.14,0.25,0.18),vec3(0.28,0.36,0.20),variation);
+    ALBEDO=COLOR.rgb*shade*mix(0.86,1.10,leaf_grain);
     ROUGHNESS=0.94; SPECULAR=0.12;
 }
