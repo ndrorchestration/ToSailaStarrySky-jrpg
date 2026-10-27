@@ -16,6 +16,11 @@ func _run() -> void:
         return
     var visuals = scene.get_node("FlightPresentation")
     check(scene.terrain.chunk_count() == 64, "geometry budget preserved")
+    # Cinematic light synchronization is explicit, independent of screen captures.
+    check(visuals.sky_material.get_shader_parameter("sun_direction") == visuals.SUN_DIRECTION,
+        "sky uses authored key-light vector")
+    check(visuals.water.get_shader_parameter("sun_direction") == visuals.SUN_DIRECTION,
+        "ocean sun glint follows the same key light")
     var height: float = scene.terrain.sample_height(30.0, -12.0)
     visuals.set_clock(12.0, false)
     check(is_equal_approx(visuals.water.get_shader_parameter("study_time"), 12.0), "explicit water clock")
