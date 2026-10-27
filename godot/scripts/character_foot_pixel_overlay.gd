@@ -33,6 +33,6 @@ func _draw() -> void:
         var tint := Color("#f7d17c") if side == "left" else Color("#9be4ef")
         draw_circle(marker, 2.5, tint)
         draw_arc(marker, 5.0, 0.0, TAU, 12, Color(0.02, 0.1, 0.14, 0.7), 1.0)
-    draw_string(ThemeDB.fallback_font, Vector2(-28.0, -83.0),
+    draw_string(ThemeDB.fallback_font, Vector2(-28.0, 22.0),
         "PIXEL y=%d" % int(sample["bottom_y"]), HORIZONTAL_ALIGNMENT_LEFT,
         -1, 11, Color("#e8d6b0"))
