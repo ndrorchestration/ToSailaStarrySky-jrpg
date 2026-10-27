@@ -43,9 +43,9 @@ void fragment() {
     vec3 ripple=texture(water_ripple_detail,
         p*0.21+vec2(study_time*0.013,-study_time*0.008)).rgb;
     float micro=low_quality ? 0.0 : texture_detail_strength;
-    detail+=(ripple.r-0.5)*micro*0.24;
+    detail+=(ripple.r-0.5)*micro*0.39;
     vec3 n=normalize(vec3((wave1+detail)*0.065,1.0,
-        (wave2+detail+(ripple.g-0.5)*micro*0.19)*0.055));
+        (wave2+detail+(ripple.g-0.5)*micro*0.29)*0.055));
     NORMAL=normalize(mat3(VIEW_MATRIX)*n);
     // Schlick-like grazing reflectance, not a physically simulated ocean.
     float ndv=clamp(dot(NORMAL,normalize(VIEW)),0.0,1.0);
