@@ -58,13 +58,13 @@ void fragment() {
     float leaf_litter=noise(p.xz*0.52)*0.62+noise(p.xz*1.19)*0.38;
     vec3 humus=mix(vec3(0.12,0.20,0.13),vec3(0.28,0.28,0.16),
         smoothstep(0.30,0.75,leaf_litter));
-    color=mix(color,humus,woodland*0.54);
+    color=mix(color,humus,woodland*0.82);
 
     // Shore moisture fades smoothly above sea level, with wavy bands
     // driven by the same local coordinates as the ocean and beach.
     float damp_edge=p.y+0.12*sin(p.x*0.75+p.z*0.23);
-    float wet_sand=(1.0-smoothstep(0.15,1.55,damp_edge))*sand;
-    color=mix(color,color*vec3(0.83,0.88,0.91),wet_sand*0.38);
+    float wet_sand=(1.0-smoothstep(0.15,2.20,damp_edge))*sand;
+    color=mix(color,color*vec3(0.77,0.83,0.88),wet_sand*0.66);
 
     // Discontinuous, low-contrast stone bedding only where exposed.
     // This uses terrain height and slope, not a second geometry model.
@@ -74,9 +74,17 @@ void fragment() {
     float bands=0.5+0.5*sin(p.y*2.45+p.x*0.20
         -p.z*0.13+drift*2.1);
     float seam=smoothstep(0.68,0.89,bands);
-    vec3 mineral_veil=mix(vec3(0.88,0.92,0.97),
-        vec3(1.10,1.04,0.95),seam);
-    color=mix(color,color*mineral_veil,exposed*0.32);
+    vec3 mineral_veil=mix(vec3(0.82,0.88,0.94),
+        vec3(1.16,1.09,0.98),seam);
+    color=mix(color,color*mineral_veil,exposed*0.57);
+    // Very restrained altitude-dependent aerial perspective, complementing
+    // (not replacing) Godot's WorldEnvironment fog. This only affects terrain,
+    // not gameplay height, camera behavior, water or sky material.
+    float view_range=distance(CAMERA_POSITION_WORLD,world_pos);
+    float distant=smoothstep(65.0,172.0,view_range);
+    float upper_land=smoothstep(6.0,19.0,p.y);
+    color=mix(color,vec3(0.37,0.46,0.53),
+        distant*upper_land*0.14);
     // Quality mode controls added detail amplitude without changing the
     // previously validated base material or material shader signature.
     color=mix(original_color,color,clamp(surface_detail_strength,0.0,1.0));
