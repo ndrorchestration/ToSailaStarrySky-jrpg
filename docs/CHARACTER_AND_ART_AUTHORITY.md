@@ -1,3 +1,7 @@
+> **2026-10-27 asset recovery note:** [Draft character-lineup PR #409](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/409) shows Ender/Ionia candidate frame review; Lyra/Aepex/Reson remain proportional placeholders in that **Godot review scene**. However the older branch `visual/part-one-first-wake-20261009` contains candidate field-sprite and portrait images for **all five protagonists**, plus Ender animation/frame sources. These are **not automatically missing or approved**: inventory, hash/provenance, compare against current creator locks and native playable-scale rendering before deciding whether to adapt them. Preserve Ender's full-length staff and approved appearance. Story energy mapping: Ender Spirit, Lyra Water + pink Spirit motif, Ionia Earth, Reson Fire, Aepex Air; plot energy is independent of battle job/magic. See [recovery audit](2026-10-27_CINEMATIC_PRODUCTION_ORPHAN_AUDIT.md).
+
+---
+
 # Protagonists — creator character and visual authority
 
 **Purpose:** make creator-locked identity/art details available to agents working without Notion. This **supersedes the blanket "hair/eye/costume open" text** in [CHARACTER_ART_DIRECTION.md](CHARACTER_ART_DIRECTION.md) where explicit creator locks below exist. It does *not* imply that all in-game art has passed review.
