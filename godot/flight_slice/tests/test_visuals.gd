@@ -237,28 +237,31 @@ func _run() -> void:
         var ridge_points: PackedVector3Array = ridge_arrays[Mesh.ARRAY_VERTEX]
         var ridge_normals: PackedVector3Array = ridge_arrays[Mesh.ARRAY_NORMAL]
         var ridge_tints: PackedColorArray = ridge_arrays[Mesh.ARRAY_COLOR]
-        check(ridge_points.size() == 1200 and ridge_normals.size() == ridge_points.size()
+        check(ridge_points.size() == 720 and ridge_normals.size() == ridge_points.size()
             and ridge_tints.size() == ridge_points.size(),
-            "distance ridge geometry retains a fixed 1200-vertex cap")
+            "distant ridge islands remain within fixed 720-vertex budget")
         check(ridge_mesh.get_aabb().position.x > 100.0,
             "ridge background starts outside navigable/visible 96m grid")
-        check(ridge_mesh.get_aabb().size.z >= 590.0
-            and ridge_mesh.get_aabb().size.z <= 610.0,
+        check(ridge_mesh.get_aabb().size.z >= 575.0
+            and ridge_mesh.get_aabb().size.z < 600.0,
             "distance panorama covers study horizon without infinite geometry")
         var ridge_material: StandardMaterial3D = ridge.material_override
-        check(ridge_material.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED
+        check(ridge_material.shading_mode == BaseMaterial3D.SHADING_MODE_PER_PIXEL
             and ridge_material.vertex_color_use_as_albedo,
-            "distant material uses static color and no per-fragment shadow lighting")
+            "distant ridge responds to existing lighting without casting shadows")
     check(ridge_far.mesh.get_aabb().position.x > ridge_near.mesh.get_aabb().end.x + 25.0,
         "two ridge layers retain ordered distance and atmospheric parallax")
     check(scene.terrain.chunk_count() == 64,
         "background scenery never expands the existing flight terrain grid")
+    check(is_equal_approx(TerrainStudy.distant_ridge_height(-180.0, false), -8.0)
+        and is_equal_approx(TerrainStudy.distant_ridge_height(-180.0, true), -8.0),
+        "gaps between distant mountain islands preserve an open skyline")
     for z in [-180.0, -75.0, 0.0, 75.0, 180.0]:
         var far_y: float = TerrainStudy.distant_ridge_height(z, true)
         var near_y: float = TerrainStudy.distant_ridge_height(z, false)
-        check(is_finite(far_y) and far_y >= 10.0 and far_y <= 33.0,
+        check(is_finite(far_y) and far_y >= -8.0 and far_y <= 36.0,
             "far contour remains bounded and deterministic")
-        check(is_finite(near_y) and near_y >= 5.0 and near_y <= 23.0,
+        check(is_finite(near_y) and near_y >= -8.0 and near_y <= 29.5,
             "near contour remains bounded and deterministic")
 
     # An opaque single-mesh undergrowth layer adds ground-scale visual texture
