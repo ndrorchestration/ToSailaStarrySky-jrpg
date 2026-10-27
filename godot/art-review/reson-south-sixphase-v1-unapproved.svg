@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="480" height="128" viewBox="0 0 480 128" shape-rendering="crispEdges">
  <title>Reson — front walk, six-phase draft art study</title>
  <desc>Original editable path-based front-facing sprite candidate; not creator-approved, not combat kit.</desc>
- <g transform="translate(0,0)"><g id="reson-pose-0" data-review="unapproved-front-only">
+ <g transform="translate(0,0)"><g id="reson-pose-0" data-review="unapproved-front-only" transform="translate(0,-9) scale(1,1.07)">
  <!-- Tall broad fighter silhouette, layered field armor with NO rank/faction insignia and NO invented signature weapon. -->
  <path d="M21 54 L58 54 L63 90 L56 97 L22 97 L16 89 Z" fill="#564b45" />
  <path d="M25 93 L41 94 L39 116 L36 123 L22 123 L24 115 Z" fill="#36404a" />
@@ -27,7 +27,7 @@
  <path d="M28 22 L28 15 L38 11 L49 12 L55 18 L52 23 L45 19 L34 23 Z" fill="#382e30" />
  <path d="M31 16 L39 14 M46 14 L51 17" fill="none" stroke="#62504a" stroke-width="2" stroke-linecap="square"/>
  </g></g>
-<g transform="translate(80,0)"><g id="reson-pose-1" data-review="unapproved-front-only">
+<g transform="translate(80,0)"><g id="reson-pose-1" data-review="unapproved-front-only" transform="translate(0,-9) scale(1,1.07)">
  <!-- Tall broad fighter silhouette, layered field armor with NO rank/faction insignia and NO invented signature weapon. -->
  <path d="M21 55 L58 55 L63 90 L56 97 L22 97 L16 89 Z" fill="#564b45" />
  <path d="M25 93 L41 94 L39 116 L36 123 L22 123 L24 115 Z" fill="#36404a" />
@@ -53,7 +53,7 @@
  <path d="M28 23 L28 16 L38 12 L49 13 L55 19 L52 24 L45 20 L34 24 Z" fill="#382e30" />
  <path d="M31 17 L39 15 M46 15 L51 18" fill="none" stroke="#62504a" stroke-width="2" stroke-linecap="square"/>
  </g></g>
-<g transform="translate(160,0)"><g id="reson-pose-2" data-review="unapproved-front-only">
+<g transform="translate(160,0)"><g id="reson-pose-2" data-review="unapproved-front-only" transform="translate(0,-9) scale(1,1.07)">
  <!-- Tall broad fighter silhouette, layered field armor with NO rank/faction insignia and NO invented signature weapon. -->
  <path d="M21 54 L58 54 L63 90 L56 97 L22 97 L16 89 Z" fill="#564b45" />
  <path d="M25 93 L41 94 L39 116 L36 123 L22 123 L24 115 Z" fill="#36404a" />
@@ -79,7 +79,7 @@
  <path d="M28 22 L28 15 L38 11 L49 12 L55 18 L52 23 L45 19 L34 23 Z" fill="#382e30" />
  <path d="M31 16 L39 14 M46 14 L51 17" fill="none" stroke="#62504a" stroke-width="2" stroke-linecap="square"/>
  </g></g>
-<g transform="translate(240,0)"><g id="reson-pose-3" data-review="unapproved-front-only">
+<g transform="translate(240,0)"><g id="reson-pose-3" data-review="unapproved-front-only" transform="translate(0,-9) scale(1,1.07)">
  <!-- Tall broad fighter silhouette, layered field armor with NO rank/faction insignia and NO invented signature weapon. -->
  <path d="M21 55 L58 55 L63 90 L56 97 L22 97 L16 89 Z" fill="#564b45" />
  <path d="M25 93 L41 94 L39 116 L36 123 L22 123 L24 115 Z" fill="#36404a" />
@@ -105,7 +105,7 @@
  <path d="M28 23 L28 16 L38 12 L49 13 L55 19 L52 24 L45 20 L34 24 Z" fill="#382e30" />
  <path d="M31 17 L39 15 M46 15 L51 18" fill="none" stroke="#62504a" stroke-width="2" stroke-linecap="square"/>
  </g></g>
-<g transform="translate(320,0)"><g id="reson-pose-4" data-review="unapproved-front-only">
+<g transform="translate(320,0)"><g id="reson-pose-4" data-review="unapproved-front-only" transform="translate(0,-9) scale(1,1.07)">
  <!-- Tall broad fighter silhouette, layered field armor with NO rank/faction insignia and NO invented signature weapon. -->
  <path d="M21 54 L58 54 L63 90 L56 97 L22 97 L16 89 Z" fill="#564b45" />
  <path d="M25 93 L41 94 L39 116 L36 123 L22 123 L24 115 Z" fill="#36404a" />
@@ -131,7 +131,7 @@
  <path d="M28 22 L28 15 L38 11 L49 12 L55 18 L52 23 L45 19 L34 23 Z" fill="#382e30" />
  <path d="M31 16 L39 14 M46 14 L51 17" fill="none" stroke="#62504a" stroke-width="2" stroke-linecap="square"/>
  </g></g>
-<g transform="translate(400,0)"><g id="reson-pose-5" data-review="unapproved-front-only">
+<g transform="translate(400,0)"><g id="reson-pose-5" data-review="unapproved-front-only" transform="translate(0,-9) scale(1,1.07)">
  <!-- Tall broad fighter silhouette, layered field armor with NO rank/faction insignia and NO invented signature weapon. -->
  <path d="M21 55 L58 55 L63 90 L56 97 L22 97 L16 89 Z" fill="#564b45" />
  <path d="M25 93 L41 94 L39 116 L36 123 L22 123 L24 115 Z" fill="#36404a" />
