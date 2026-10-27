@@ -102,6 +102,9 @@ jobs:
       - name: Verify isolated Tidebound Promise ward transaction and rollback
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/tidebound_promise_review_test.gd
+      - name: Sweep both Tidebound targets against all bounded strike strengths
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/tidebound_damage_sweep_test.gd
       - name: Verify real opt-in Resonance encounter scene and accessibility controls
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/resonance_dual_review_scene_test.gd
