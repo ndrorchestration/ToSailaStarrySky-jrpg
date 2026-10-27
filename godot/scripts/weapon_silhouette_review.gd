@@ -10,6 +10,7 @@ const GRIP := Color("#403634")
 
 var catalog = Catalog.new()
 var weapon_id: String = "full_length_staff"
+var show_backplate: bool = true
 
 func select_weapon(next_id: String) -> bool:
     if catalog.weapon(next_id).is_empty():
@@ -29,8 +30,9 @@ func _draw() -> void:
     var item := catalog.weapon(weapon_id)
     if item.is_empty():
         return
-    draw_circle(Vector2.ZERO,106.0,Color("#1c3743"))
-    draw_arc(Vector2.ZERO,104.0,0.25,6.0,40,Color("#587c81"),1.0)
+    if show_backplate:
+        draw_circle(Vector2.ZERO,106.0,Color("#1c3743"))
+        draw_arc(Vector2.ZERO,104.0,0.25,6.0,40,Color("#587c81"),1.0)
     match str(item["family"]):
         "staff": _draw_staff()
         "sword": _draw_sword()
