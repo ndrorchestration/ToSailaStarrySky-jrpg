@@ -12,7 +12,7 @@ const FLOAT_BUOYANCY := 120.0
 const SETTLE_SECONDS := 0.45
 const ASCENT_SECONDS := 1.25
 
-var opening: RefCounted
+var opening
 var phase: String = "not_configured"
 var elapsed: float = 0.0
 var settled_seconds: float = 0.0
@@ -24,7 +24,7 @@ var status_label: Label
 var hint_label: Label
 var telemetry_label: Label
 
-func configure_preflight(preflight: RefCounted) -> bool:
+func configure_preflight(preflight) -> bool:
     if is_inside_tree() or preflight == null:
         return false
     if not preflight.has_method("step_key") or preflight.step_key() != "preflight":
