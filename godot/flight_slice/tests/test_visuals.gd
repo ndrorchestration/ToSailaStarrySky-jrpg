@@ -26,6 +26,14 @@ func _run() -> void:
     check(is_equal_approx(
         float(visuals.water.get_shader_parameter("sea_surface_elevation")),
         TerrainStudy.SEA_LEVEL), "ocean and rendered seabed use one datum")
+    check(is_equal_approx(
+        float(visuals.land.get_shader_parameter("sea_surface_elevation")),
+        TerrainStudy.SEA_LEVEL), "wet shoreline uses same sea datum as terrain and ocean")
+    check(is_equal_approx(
+        float(visuals.land.get_shader_parameter("shoreline_wetness")), 1.0),
+        "coastline damp sand visual study defaults on")
+    check(visuals.land.get_shader_parameter("low_quality") == false,
+        "coastal material defaults to full detail")
     for station in [Vector2(-60.0, 0.0), Vector2(-2.0, 0.0), Vector2(30.0, 0.0)]:
         var bed: Dictionary = BathymetryStudy.sample(station.x, station.y)
         check(is_equal_approx(
@@ -49,8 +57,12 @@ func _run() -> void:
     check(is_equal_approx(visuals.broadleaf.get_shader_parameter("study_time"), 0.0), "reduced motion freezes broadleaf foliage")
     visuals.set_low_quality(true)
     check(visuals.water.get_shader_parameter("low_quality") == true, "low quality applied")
+    check(visuals.land.get_shader_parameter("low_quality") == true,
+        "land fine-grain is disabled on low visual quality")
     visuals.set_low_quality(false)
     check(visuals.water.get_shader_parameter("low_quality") == false, "high quality restored")
+    check(visuals.land.get_shader_parameter("low_quality") == false,
+        "land fine-grain is restored with high quality")
     check(is_equal_approx(height, scene.terrain.sample_height(30.0, -12.0)), "quality preserves heights")
     check(visuals.has_method("refresh_coverage"), "shore effects require rendered terrain coverage")
     if not visuals.has_method("refresh_coverage"):
