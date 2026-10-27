@@ -86,4 +86,4 @@ func validate() -> bool:
                 return false
             if timeline.duration(str(cue["weaponId"]),str(cue["animation"])) <= 0.0:
                 return false
-    return not actor_action_pose("ender","practice_sword","staffStrike",0.2).size() > 0
+    return actor_action_pose("ender","practice_sword","staffStrike",0.2).is_empty()
