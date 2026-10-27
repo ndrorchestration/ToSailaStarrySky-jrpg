@@ -441,6 +441,24 @@ internal static class Program
             if (coincident == 9) matchingEdges++;
         }
         Check(matchingEdges == 12, "all twelve cubed-sphere root edges share vertices");
+        // Coarse/fine edge vertices must coincide at shared sample positions.
+        // This does NOT verify T-junction elimination between unmatched samples.
+        var coarse = CubeSphereMeshFixture.Generate(
+            new TileId(CubeFace.PositiveX, 1, 0, 0), R, 8);
+        var fineLower = CubeSphereMeshFixture.Generate(
+            new TileId(CubeFace.PositiveX, 2, 2, 0), R, 8);
+        var fineUpper = CubeSphereMeshFixture.Generate(
+            new TileId(CubeFace.PositiveX, 2, 2, 1), R, 8);
+        for (int row = 0; row <= 8; row++)
+        {
+            var p = coarse.Vertices[row * 9 + 8];
+            var fine = row <= 4
+                ? fineLower.Vertices[row * 2 * 9]
+                : fineUpper.Vertices[(row - 4) * 2 * 9];
+            Near(Math.Sqrt(Math.Pow(p.X - fine.X, 2) +
+                Math.Pow(p.Y - fine.Y, 2) + Math.Pow(p.Z - fine.Z, 2)),
+                0, 1e-8, "mixed-LOD coincident edge control point " + row);
+        }
         Reject<ArgumentOutOfRangeException>(() => CubeSphereMeshFixture.Generate(root, 0, 8),
             "invalid mesh radius refused");
         Reject<ArgumentOutOfRangeException>(() => CubeSphereMeshFixture.Generate(root, R, 0),
