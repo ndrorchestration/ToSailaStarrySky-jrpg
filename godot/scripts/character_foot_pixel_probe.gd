@@ -2,6 +2,7 @@ extends RefCounted
 ## Source-pixel boot-band measurements for UNAPPROVED six-cell SVG sprite atlases.
 ## This detects alpha occupancy, NOT anatomically validated toes or stance phases.
 const FRAME_WIDTH := 80
+const HALF_WIDTH := 40
 const FRAME_HEIGHT := 128
 const FRAMES := 6
 const BOOT_MIN_Y := 104
@@ -30,7 +31,7 @@ static func inspect_image(image: Image, phase: int) -> Dictionary:
             if image.get_pixel(cell_x + x, y).a < ALPHA_THRESHOLD:
                 continue
             bottom_y = maxi(bottom_y, y)
-            if x < FRAME_WIDTH / 2:
+            if x < HALF_WIDTH:
                 left_bottom = maxi(left_bottom, y)
             else:
                 right_bottom = maxi(right_bottom, y)
@@ -41,8 +42,8 @@ static func inspect_image(image: Image, phase: int) -> Dictionary:
     var support := {}
     for name in ["left", "right"]:
         var selected_y: int = left_bottom if name == "left" else right_bottom
-        var x_min: int = 0 if name == "left" else FRAME_WIDTH / 2
-        var x_max: int = FRAME_WIDTH / 2 if name == "left" else FRAME_WIDTH
+        var x_min: int = 0 if name == "left" else HALF_WIDTH
+        var x_max: int = HALF_WIDTH if name == "left" else FRAME_WIDTH
         if selected_y < BOOT_MIN_Y:
             support[name] = {"present": false}
             continue
