@@ -12,7 +12,8 @@ func set_course(yaw: float) -> void:
 
 func set_foredeck_weather_shelter(active: bool) -> void:
     if has_node("Foredeck"):
-        get_node("Foredeck").set_weather_sheltered(active)
+        var deck = get_node("Foredeck") as ForedeckStudy
+        deck.set_weather_sheltered(active)
 
 func set_landing_gear(deployed: bool) -> void:
     # Two old visual feet are retained verbatim for the physics study contract.
