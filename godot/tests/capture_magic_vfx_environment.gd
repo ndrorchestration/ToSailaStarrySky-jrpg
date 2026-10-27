@@ -62,6 +62,17 @@ func _capture() -> void:
         quit(7)
         return
     scene.set_foreground_enabled(true)
+    scene.light_rig.set_shadow_enabled(false)
+    await process_frame
+    var no_shadow: Image = await _snapshot("magic-env-ender-shadow-disabled-native-960x640.png")
+    if no_shadow == null:
+        quit(13)
+        return
+    if base.get_region(Rect2i(671, 285, 58, 92)).get_data() == no_shadow.get_region(Rect2i(671, 285, 58, 92)).get_data():
+        push_error("MAGIC_ENV_CAPTURE_FAIL: shadow occluder created no native cast-shadow difference")
+        quit(14)
+        return
+    scene.light_rig.set_shadow_enabled(true)
     scene.set_light_enabled(false)
     await process_frame
     var unlit: Image = await _snapshot("magic-env-ender-unlit-native-960x640.png")
@@ -87,6 +98,6 @@ func _capture() -> void:
         return
     scene.queue_free()
     await process_frame
-    print("STARRY_SKY_MAGIC_ENV_CAPTURE_PASS: five native affinity-lit scenes plus foreground, unlit and impact A/B at 960x640")
+    print("STARRY_SKY_MAGIC_ENV_CAPTURE_PASS: five native affinity-lit scenes plus shadow, foreground, unlit and impact A/B at 960x640")
     print("STARRY_SKY_MAGIC_ENV_ART_ACCEPTANCE=PENDING; this is 2D compositing, NOT depth-tested 3D integration")
     quit(0)

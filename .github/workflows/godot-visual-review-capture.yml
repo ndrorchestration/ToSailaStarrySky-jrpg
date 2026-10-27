@@ -87,6 +87,7 @@ jobs:
           for identity in ender lyra ionia reson aepex; do
             test -s "godot/review-evidence/magic-env-${identity}-lit-native-960x640.png"
           done
+          test -s godot/review-evidence/magic-env-ender-shadow-disabled-native-960x640.png
           test -s godot/review-evidence/magic-env-ender-unlit-native-960x640.png
           test -s godot/review-evidence/magic-env-ender-open-native-960x640.png
           test -s godot/review-evidence/magic-env-ender-impact-native-960x640.png
