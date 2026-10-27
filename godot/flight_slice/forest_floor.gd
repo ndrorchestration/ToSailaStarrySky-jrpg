@@ -22,12 +22,15 @@ func populate() -> void:
             var selector: float = TerrainStudy._hash01(float(ix) + 17.0, float(iz) - 23.0)
             var rotation: float = TAU * TerrainStudy._hash01(float(ix) - 11.0, float(iz) + 7.0)
             var spread: float = 0.78 + TerrainStudy._hash01(float(iz) - 5.0, float(ix) + 3.0) * 0.53
+            # Keep individual fronds understated at flight scale; shrubs form
+            # a slightly taller, less frequent middle layer.
+            var plant_scale: float = spread * (1.12 if selector >= 0.34 else 0.90)
             var pose := Transform3D(Basis(Vector3.UP, rotation).scaled(
-                Vector3(spread, spread, spread)),
+                Vector3(plant_scale, plant_scale, plant_scale)),
                 Vector3(x, TerrainStudy.sample_height(x, z) + 0.025, z))
-            if selector < 0.49 and fern_poses.size() < MAX_FERNS:
+            if selector < 0.34 and fern_poses.size() < MAX_FERNS:
                 fern_poses.append(pose)
-            elif selector >= 0.49 and selector < 0.76 and shrub_poses.size() < MAX_SHRUBS:
+            elif selector >= 0.34 and selector < 0.55 and shrub_poses.size() < MAX_SHRUBS:
                 shrub_poses.append(pose)
     _add_layer("FernClumps", _fern_mesh(), fern_poses)
     _add_layer("UnderstoryShrubs", _shrub_mesh(), shrub_poses)
@@ -65,7 +68,11 @@ func _add_layer(label_name: String, mesh: ArrayMesh,
 func _leaf_material() -> StandardMaterial3D:
     var material := StandardMaterial3D.new()
     material.vertex_color_use_as_albedo = true
-    material.roughness = 0.97
+    # Parent screenshot QA: direct sunlight exposed distracting pale flecks.
+    # Multiply the authored leaf colors by a shadowed woodland tint.
+    material.albedo_color = Color(0.43, 0.51, 0.38)
+    material.roughness = 1.0
+    material.specular = 0.06
     material.metallic = 0.0
     # Original opaque ribbons rather than alpha-overdraw billboard cards.
     material.cull_mode = BaseMaterial3D.CULL_DISABLED
@@ -108,9 +115,9 @@ func _shrub_mesh() -> ArrayMesh:
         var bottom := center - Vector3.UP * radius.y * 0.85
         var tone := Color(0.26, 0.39, 0.23).lerp(
             Color(0.40, 0.48, 0.28), float(lobe) / 3.0)
-        for side in range(8):
-            var a: float = TAU * float(side) / 8.0 + float(lobe) * 0.23
-            var b: float = TAU * float(side + 1) / 8.0 + float(lobe) * 0.23
+        for side in range(10):
+            var a: float = TAU * float(side) / 10.0 + float(lobe) * 0.23
+            var b: float = TAU * float(side + 1) / 10.0 + float(lobe) * 0.23
             var pa := center + Vector3(cos(a) * radius.x, 0.0, sin(a) * radius.z)
             var pb := center + Vector3(cos(b) * radius.x, 0.0, sin(b) * radius.z)
             _plant_triangle(tool, top, pa, pb, tone.lightened(0.07))
