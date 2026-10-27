@@ -107,7 +107,9 @@ func _initialize() -> void:
     quit(0)
 
 func _expect_denial(gate: RefCounted, opening: Variant, participants: Variant, reason: String) -> bool:
-    var before: Dictionary = opening.snapshot() if opening.get_script() == Opening else {}
+    var before: Dictionary = {}
+    if opening is RefCounted and opening.get_script() == Opening:
+        before = opening.snapshot()
     var result: Dictionary = gate.evaluate(opening, participants)
     if result.get("reason", "") != reason or result.get("rosterEligible", true) or result.get("canExecute", true) or result.get("canUnlockArt", true):
         _fail("unexpected admission: expected " + reason + ", got " + str(result))
