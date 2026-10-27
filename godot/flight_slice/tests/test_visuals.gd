@@ -49,13 +49,19 @@ func _run() -> void:
     check(is_equal_approx(visuals.broadleaf.get_shader_parameter("study_time"), 0.0), "reduced motion freezes broadleaf foliage")
     check(is_equal_approx(visuals.understory.get_shader_parameter("study_time"), 0.0), "reduced motion freezes understory clock")
     check(is_equal_approx(visuals.understory.get_shader_parameter("motion_scale"), 0.0), "reduced motion suppresses understory sway")
+    check(is_equal_approx(float(visuals.land.get_shader_parameter("surface_detail_strength")), 1.0),
+        "high-detail terrain surfaces are active by default")
     visuals.set_low_quality(true)
     check(visuals.water.get_shader_parameter("low_quality") == true, "low quality applied")
+    check(is_zero_approx(float(visuals.land.get_shader_parameter("surface_detail_strength"))),
+        "low-detail mode reverts terrain to original material color")
     check(not scene.terrain.get_node("GroundUnderstory").visible, "low quality omits undergrowth")
     check(not scene.terrain.get_node("ShorelineStones").visible, "low quality omits coast stones")
     check(not scene.terrain.get_node("AlpineTalus").visible, "low quality omits decorative talus")
     visuals.set_low_quality(false)
     check(visuals.water.get_shader_parameter("low_quality") == false, "high quality restored")
+    check(is_equal_approx(float(visuals.land.get_shader_parameter("surface_detail_strength")), 1.0),
+        "full terrain surface blending is restored")
     check(scene.terrain.get_node("GroundUnderstory").visible, "high quality restores undergrowth")
     check(scene.terrain.get_node("ShorelineStones").visible, "high quality restores coastline accents")
     check(scene.terrain.get_node("AlpineTalus").visible, "high quality restores talus accents")
