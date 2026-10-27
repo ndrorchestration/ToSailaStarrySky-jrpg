@@ -173,7 +173,7 @@ jobs:
             /tmp/Godot_v4.7.2-stable_linux.x86_64 \
             --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
             --script res://tests/capture_ship_hero.gd 2>&1 | tee /tmp/ship-hero.log
-          test "$(grep -c 'NATIVE_SHIP_HERO_CAPTURE:' /tmp/ship-hero.log)" -eq 3
+          test "$(grep -c 'NATIVE_SHIP_HERO_CAPTURE:' /tmp/ship-hero.log)" -eq 5
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/ship-hero.log
       - name: Capture two actual Godot interior cutaway frames
         run: |
