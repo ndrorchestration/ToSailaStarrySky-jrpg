@@ -120,7 +120,8 @@ jobs:
             /tmp/Godot_v4.7.2-stable_linux.x86_64 \
             --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
             --script res://tests/capture_environment_mood.gd 2>&1 | tee /tmp/environment-mood-capture.log
-          grep -q 'NATIVE_ENVIRONMENT_CAPTURE_PASS comparisons=3' /tmp/environment-mood-capture.log
+          grep -q 'NATIVE_ENVIRONMENT_CAPTURE_PASS comparisons=4' /tmp/environment-mood-capture.log
+          grep -Eq 'NATIVE_MAGIC_VEIL_DELTA: [0-9.]+' /tmp/environment-mood-capture.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/environment-mood-capture.log
       - name: Profile actual rendered scripted flight sweep
         run: |
