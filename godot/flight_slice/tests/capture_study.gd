@@ -115,6 +115,36 @@ func _capture() -> void:
         if motion_pixels < 100 or quality_pixels < 100 or paused_pixels != 0 or reduced_pixels != 0:
             push_error("NATIVE_EFFECT_PIXEL_CHECK_FAILED")
             failed = true
+    # Supplemental HUD-free art-review frames on the same real GL capture run.
+    # Distinct marker preserves the existing six-frame regression count.
+    if not baseline and scene.visuals != null:
+        var hero_folder: String = ProjectSettings.globalize_path(
+            "res://evidence/cinematic-review")
+        if DirAccess.make_dir_recursive_absolute(hero_folder) != OK:
+            push_error("CINEMATIC_CAPTURE_DIR_FAILED")
+            failed = true
+        else:
+            scene.set_manual_mode(false)
+            scene.overlay.visible = false
+            for cut in [["coast-dusk", 9.0], ["forest-gold", 23.0],
+                    ["highland-horizon", 34.0]]:
+                scene._clock = float(cut[1])
+                scene._update_scene(10.0)
+                for warmup in range(8):
+                    await process_frame
+                    await RenderingServer.frame_post_draw
+                var cinematic_frame: Image = root.get_texture().get_image()
+                var cinematic_path: String = hero_folder.path_join(
+                    str(cut[0]) + ".png")
+                if cinematic_frame == null or cinematic_frame.get_size() != Vector2i(960,640):
+                    push_error("CINEMATIC_CAPTURE_BAD_DIMENSIONS: " + str(cut[0]))
+                    failed = true
+                elif cinematic_frame.save_png(cinematic_path) != OK:
+                    push_error("CINEMATIC_CAPTURE_SAVE_FAILED: " + cinematic_path)
+                    failed = true
+                else:
+                    print("NATIVE_CINEMATIC_CAPTURE: ", cinematic_path,
+                        " 960x640 HUD-free NONCANON")
     scene.queue_free()
     await process_frame
     quit(1 if failed else 0)

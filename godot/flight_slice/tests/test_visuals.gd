@@ -1,4 +1,6 @@
 extends SceneTree
+const BathymetryStudy = preload("res://bathymetry.gd")
+const TerrainStudy = preload("res://terrain.gd")
 var failures: Array[String] = []
 func _initialize() -> void:
     call_deferred("_run")
@@ -16,6 +18,28 @@ func _run() -> void:
         return
     var visuals = scene.get_node("FlightPresentation")
     check(scene.terrain.chunk_count() == 64, "geometry budget preserved")
+    # Cinematic light synchronization is explicit, independent of screen captures.
+    check(visuals.sky_material.get_shader_parameter("sun_direction") == visuals.SUN_DIRECTION,
+        "sky uses authored key-light vector")
+    check(visuals.water.get_shader_parameter("sun_direction") == visuals.SUN_DIRECTION,
+        "ocean sun glint follows the same key light")
+    check(is_equal_approx(
+        float(visuals.water.get_shader_parameter("sea_surface_elevation")),
+        TerrainStudy.SEA_LEVEL), "ocean and rendered seabed use one datum")
+    for station in [Vector2(-60.0, 0.0), Vector2(-2.0, 0.0), Vector2(30.0, 0.0)]:
+        var bed: Dictionary = BathymetryStudy.sample(station.x, station.y)
+        check(is_equal_approx(
+            float(bed["bed_elevation"]), TerrainStudy.sample_height(station.x, station.y)),
+            "seabed elevation shares terrain sampler")
+        check(is_equal_approx(float(bed["water_depth"]),
+            maxf(TerrainStudy.SEA_LEVEL - float(bed["bed_elevation"]), 0.0)),
+            "water depth is nonnegative and datum-consistent")
+        check(bool(bed["submerged"]) == (float(bed["bed_elevation"]) < TerrainStudy.SEA_LEVEL),
+            "submerged classification comes from same datum")
+    check(BathymetryStudy.water_depth(-60.0, 0.0) > 0.0,
+        "offshore terrain has sampled positive depth")
+    check(not BathymetryStudy.is_submerged(30.0, 0.0),
+        "exposed forest terrain is not underwater")
     var height: float = scene.terrain.sample_height(30.0, -12.0)
     visuals.set_clock(12.0, false)
     check(is_equal_approx(visuals.water.get_shader_parameter("study_time"), 12.0), "explicit water clock")
