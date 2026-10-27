@@ -113,6 +113,9 @@ func set_low_quality(enabled: bool) -> void:
     low_quality = enabled
     water.set_shader_parameter("low_quality", enabled)
     sky_material.set_shader_parameter("low_quality", enabled)
+    # One reversible quality switch for visual-only ground-cover draw work.
+    if _terrain != null and _terrain.has_node("BiomeGroundCover"):
+        _terrain.get_node("BiomeGroundCover").set_low_quality(enabled)
 
 func _shader(path: String) -> ShaderMaterial:
     var material := ShaderMaterial.new()
