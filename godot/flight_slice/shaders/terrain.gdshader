@@ -20,7 +20,7 @@ void fragment() {
     float textile=texture_detail_strength;
     vec3 grass=mix(vec3(0.10,0.20,0.13),vec3(0.31,0.37,0.17),mottling);
     grass=mix(grass,vec3(0.08,0.17,0.13),smoothstep(16.0,30.0,p.x)*0.35);
-    grass*=mix(1.0,0.77+texel.r*0.47,textile);
+    grass*=mix(1.0,0.63+texel.r*0.77,textile);
     float strata=sin(p.y*4.0+noise(p.xz*0.3)*3.0)*0.5+0.5;
     // Weathered strata and sparse talus give exposed slopes geographic form
     // without inventing a second elevation model or touching collision heights.
@@ -43,11 +43,11 @@ void fragment() {
     float scree=smoothstep(7.0,18.0,p.y)*smoothstep(0.18,0.52,slope)
         *smoothstep(0.43,0.80,noise(p.xz*0.94));
     rock=mix(rock,vec3(0.32,0.32,0.31),scree*0.24);
-    rock*=mix(1.0,0.76+texel.g*0.55,textile);
+    rock*=mix(1.0,0.61+texel.g*0.85,textile);
     vec3 color=mix(grass,rock,rocky);
     float sand=1.0-smoothstep(0.6,2.7,p.y+noise(p.xz*0.5)*0.5);
     vec3 sand_color=mix(vec3(0.36,0.31,0.22),vec3(0.70,0.59,0.40),mottling);
-    sand_color*=mix(1.0,0.82+texel.b*0.36,textile);
+    sand_color*=mix(1.0,0.69+texel.b*0.66,textile);
     color=mix(color,sand_color,sand);
     float snow=smoothstep(16.3,19.0,p.y+noise(p.xz*0.42)*2.0)*(1.0-smoothstep(0.12,0.42,slope));
     // Maintain cool snow highlights while leaving headroom for direct light.
