@@ -96,7 +96,8 @@ func _run() -> void:
     var actual_weapon: Node2D = rig.get_node("EquippedWeapon")
     var hand_position := Vector2(-6.0 + float(rig.pose.get("advance",0.0)),
         -19.0 + float(rig.pose.get("bob",0.0)))
-    var hilt_position := actual_weapon.position         + Vector2(0.0,75.0)*0.52             .rotated(actual_weapon.rotation)
+    var hilt_offset := (Vector2(0.0,75.0)*0.52).rotated(actual_weapon.rotation)
+    var hilt_position := actual_weapon.position + hilt_offset
     if hand_position.distance_to(hilt_position) > 0.6:
         _fail("sword hilt disconnected from mannequin hand")
         return
