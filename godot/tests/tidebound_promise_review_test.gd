@@ -5,6 +5,13 @@ const Battle = preload("res://scripts/tidebound_promise_review.gd")
 
 func _initialize() -> void:
     var b = Battle.new()
+    var locked: Dictionary = b.snapshot()
+    if b.admission().get("reason", "") != "art_not_granted_for_review" or b.activate().get("reason", "") != "art_not_granted_for_review" or b.snapshot() != locked:
+        _fail("plot energy automatically unlocked a combo or denial mutated state")
+        return
+    if not bool(b.grant_training_access(Battle.ART_ID).get("ok", false)):
+        _fail("training grant setup failed")
+        return
     var before: Dictionary = b.snapshot()
     if not bool(b.admission().get("ok", false)):
         _fail("initial sandbox fixture did not admit")
@@ -72,6 +79,9 @@ func _initialize() -> void:
         _fail("baseline incorrectly consumed resource")
         return
     b.reset()
+    if not bool(b.grant_training_access(Battle.ART_ID).get("ok", false)):
+        _fail("low-focus fixture grant failed")
+        return
     if not b.configure_fixture("lyra", {"focus": 0}):
         _fail("could not create low-focus fixture")
         return
@@ -80,6 +90,9 @@ func _initialize() -> void:
         _fail("insufficient focus failed to rollback")
         return
     b.reset()
+    if not bool(b.grant_training_access(Battle.ART_ID).get("ok", false)):
+        _fail("unavailable fixture grant failed")
+        return
     if not b.configure_fixture("lyra", {"canAct": false}):
         _fail("could not create unavailable fixture")
         return
@@ -88,6 +101,9 @@ func _initialize() -> void:
         _fail("unavailable actor failed to rollback")
         return
     b.reset()
+    if not bool(b.grant_training_access(Battle.ART_ID).get("ok", false)):
+        _fail("incapacitated fixture grant failed")
+        return
     if not b.configure_fixture("lyra", {"hp": 0}):
         _fail("could not create incapacitated fixture")
         return
@@ -95,6 +111,9 @@ func _initialize() -> void:
         _fail("incapacitated actor became eligible")
         return
     b.reset()
+    if not b.snapshot()["trainingGrants"].is_empty():
+        _fail("reset retained an old review grant")
+        return
     var clean: Dictionary = b.snapshot()
     if b.configure_fixture("lyra", {"focus": -1}) or b.configure_fixture("lyra", {"hp": 15}) or b.configure_fixture("x", {"focus": 1}):
         _fail("malformed fixture update accepted")
