@@ -18,6 +18,8 @@ var tree_poses: Array[Transform3D] = []
 var broadleaf_poses: Array[Transform3D] = []
 # Fixed-budget art placements; no collisions, navigation, or biome-authority changes.
 var ground_cover_poses: Array[Transform3D] = []
+var shoreline_stone_poses: Array[Transform3D] = []
+var alpine_talus_poses: Array[Transform3D] = []
 var _terrain_material: StandardMaterial3D
 var _lod_clock: float = 0.0
 var visible_tiles: int = 0
@@ -113,6 +115,7 @@ func _ready() -> void:
     _build_tiles()
     _place_tree_instances()
     _place_ground_cover()
+    _place_geology_scatter()
     _place_landmarks()
     _place_water()
 
@@ -438,6 +441,88 @@ func _place_ground_cover() -> void:
     foliage_instance.visible = false
     foliage_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     add_child(foliage_instance)
+
+
+# Landscape-specific rock accents for the separate cinematic art lab only.
+# The flight, tile meshes, height sampler, and safe touchdown collider are
+# unchanged. Ground cover and rock transforms are CPU-authoritative fixtures.
+func _place_geology_scatter() -> void:
+    var shore: Array[Transform3D] = []
+    var talus: Array[Transform3D] = []
+    # Coastal stones occupy the narrow DRY surf margin and avoid the pier.
+    for iz in range(-72, 73, 5):
+        for band in range(4):
+            var z: float = float(iz) + (_hash01(float(iz), float(band + 17)) - 0.5) * 2.4
+            var x: float = coastline_at(z) + 2.8 + float(band) * 2.4
+            x += (_hash01(float(band + 11), float(iz - 9)) - 0.5) * 1.8
+            var surface_height: float = sample_height(x, z)
+            if surface_height <= SEA_LEVEL + 0.18 or surface_height >= 2.7:
+                continue
+            if classify(x, z) != "coast" and classify(x, z) != "grassland":
+                continue
+            if absf(z + 23.0) < 11.0 and x < 11.0:
+                continue
+            # A slow coastal envelope prevents evenly spaced rock confetti.
+            var drift_band: float = sin(z * 0.08 + 1.2 * sin(z * 0.037))
+            if drift_band < -0.48:
+                continue
+            if _hash01(x + 8.0, z + 12.0) < 0.36:
+                continue
+            var width: float = 0.68 + 0.62 * _hash01(z - 11.0, x + 4.0)
+            var depth: float = 0.75 + 0.36 * _hash01(x - 13.0, z + 16.0)
+            var height: float = 0.42 + 0.48 * _hash01(z + 19.0, x - 2.0)
+            var heading: float = TAU * _hash01(x + 31.0, z - 42.0)
+            shore.append(Transform3D(
+                Basis(Vector3.UP, heading).scaled(Vector3(width, height, depth)),
+                Vector3(x, surface_height + 0.05, z)))
+    # Sparse exposed rock in the alpine/summit slope, not the village.
+    for ix in range(53, 92, 4):
+        for iz in range(-70, 77, 7):
+            var x: float = float(ix) + (_hash01(float(ix), float(iz)) - 0.5) * 2.6
+            var z: float = float(iz) + (_hash01(float(iz + 5), float(ix - 3)) - 0.5) * 3.0
+            var biome: String = classify(x, z)
+            if biome != "alpine" and biome != "summit":
+                continue
+            # Scree collects in patchy exposures rather than dotting snowfields.
+            var scree_band: float = sin(x * 0.12 + z * 0.09) * 0.55
+            scree_band += cos(x * 0.17 - z * 0.08) * 0.45
+            if scree_band < 0.10 or _hash01(x - 2.0, z + 15.0) < 0.46:
+                continue
+            var gradient_x: float = (sample_height(x + 0.7, z) - sample_height(x - 0.7, z)) / 1.4
+            var gradient_z: float = (sample_height(x, z + 0.7) - sample_height(x, z - 0.7)) / 1.4
+            if Vector2(gradient_x, gradient_z).length() > 1.15:
+                continue
+            var scale: float = 0.43 + 0.57 * _hash01(z + 6.0, x - 21.0)
+            var rise: float = 0.33 + 0.16 * _hash01(x + 8.0, z - 13.0)
+            var yaw: float = TAU * _hash01(x - 24.0, z + 4.0)
+            talus.append(Transform3D(
+                Basis(Vector3.UP, yaw).scaled(Vector3(scale, scale * rise, scale * 0.82)),
+                Vector3(x, sample_height(x, z) + 0.04, z)))
+    shoreline_stone_poses = shore.duplicate()
+    alpine_talus_poses = talus.duplicate()
+    _add_geology_instances("ShorelineStones", shore)
+    _add_geology_instances("AlpineTalus", talus)
+
+func _add_geology_instances(node_name: String, poses: Array[Transform3D]) -> void:
+    var scatter := MultiMesh.new()
+    scatter.transform_format = MultiMesh.TRANSFORM_3D
+    # Replaced by one shared custom mesh in the presentation; baseline hides
+    # these nodes and retains the original standalone scene comparison.
+    var placeholder := SphereMesh.new()
+    placeholder.radius = 0.75
+    placeholder.height = 1.15
+    placeholder.radial_segments = 6
+    placeholder.rings = 3
+    scatter.mesh = placeholder
+    scatter.instance_count = poses.size()
+    for index in range(poses.size()):
+        scatter.set_instance_transform(index, poses[index])
+    var instance := MultiMeshInstance3D.new()
+    instance.name = node_name
+    instance.multimesh = scatter
+    instance.visible = false
+    instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    add_child(instance)
 
 func _place_landmarks() -> void:
     # Scale references and inhabited silhouettes; temporary, not canon locations.
