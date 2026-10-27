@@ -52,7 +52,7 @@ func _process(delta: float) -> void:
         phase_changed.emit(phase)
     if _sigil != null:
         _sigil.rotation = elapsed * 0.23
-        _sigil.modulate.a = 0.34 + 0.24 * sin(elapsed * 3.5) * sin(elapsed * 3.5)
+        _sigil.modulate = Color(1.0, 1.0, 1.0, 0.34 + 0.24 * sin(elapsed * 3.5) * sin(elapsed * 3.5))
     if elapsed >= Catalog.DURATION_SECONDS:
         finished = true
         set_process(false)
