@@ -115,6 +115,14 @@ func _run_tests() -> void:
     _check(deck.get_node("ProwHandrail") is MeshInstance3D and
         deck.get_node("BoardingLip") is MeshInstance3D,
         "bow safety edge and crew-boarding sill are distinct")
+    var hood: Node3D = deck.get_node("WeatherHood")
+    var roof: MeshInstance3D = hood.get_node("RainCanopyPanels")
+    _check(roof.mesh is ArrayMesh and
+        roof.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size() == 12,
+        "small four-face weather-only canopy uses tapered geometry")
+    for strut in ["RidgeBeam", "PortCanopyRim", "StarboardCanopyRim"]:
+        _check(hood.get_node(strut) is MeshInstance3D,
+            "weather canopy is visibly framed rather than a solid bubble")
     _check(deck.get_node("WeatherHood").visible == false and
         not deck.is_weather_sheltered(),
         "forward observation deck is ordinarily open")
