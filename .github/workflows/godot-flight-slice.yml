@@ -93,6 +93,15 @@ jobs:
             --script res://tests/profile_rendered_flight.gd 2>&1 | tee /tmp/rendered-flight.log
           grep -q 'RENDERED_SWEEP_PASS samples=96' /tmp/rendered-flight.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/rendered-flight.log
+      - name: Profile rendered flight with low-quality effects
+        run: |
+          set -o pipefail
+          timeout 180s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/profile_rendered_flight.gd -- --low 2>&1 | tee /tmp/rendered-flight-low.log
+          grep -q 'RENDERED_SWEEP_PASS samples=96 mode=low' /tmp/rendered-flight-low.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/rendered-flight-low.log
       - name: Upload noncanonical native reference frames
         if: always()
         uses: actions/upload-artifact@v4
@@ -103,6 +112,7 @@ jobs:
             godot/flight_slice/evidence/*.json
             /tmp/moving-lod.log
             /tmp/rendered-flight.log
+            /tmp/rendered-flight-low.log
             /tmp/import.log
             /tmp/scene.log
             /tmp/test.log
