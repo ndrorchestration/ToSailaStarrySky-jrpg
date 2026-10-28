@@ -75,3 +75,11 @@ The acceptance template `docs/desktop/FIRST_WAKE_WINDOWS_PLAYER_ACCEPTANCE.templ
 Publication is intentionally two-phase: (1) create a **draft GitHub prerelease**, attach the exact setup and hash manifest, download the draft asset from GitHub and verify its SHA256 and published asset metadata; (2) only after these proofs and explicit creator approval, convert to an accessible prerelease and emit `DIRECT_WINDOWS_INSTALLER_URL.txt`. The URL is the **actual, immutable, SHA-scoped asset** URL, not an imagined URL or an old Aetherwake setup. README will be updated to use that exact link only after an actual accessible release asset exists.
 
 The final publish script has native Windows PowerShell parser/contract QA in the existing functional Windows job, but is **not end-to-end tested against a live draft release**. It performs no automatic actions unless manually invoked with approval on a trusted prepared machine. No setup.exe is published by this PR.
+
+## Creator Windows host discovery — 2026-10-28 (read-only)
+
+Remote Desktop Commander confirmed an authorized Windows host connected. Read-only filesystem checks found **official Godot 4.7.2 portable editor files** and the corresponding **Windows x86-64 export templates**. The usual `Program Files (x86)\NSIS` location is absent, and availability of an alternate NSIS compiler remains **unverified**. Microsoft Defender processes are present, but the required **real-time protection state has not been verified**.
+
+Remote terminal process invocation was rejected by the tool safety boundary. **No game build, PowerShell command, Defender scan, or publisher action was executed on that PC**. These observations are host-readiness context only, not release evidence. The one-command preparation script was updated to discover the official versioned portable Godot installation in standard user folders without changing Defender settings.
+
+Next real execution remains a security-eligible trusted Windows build and actual Setup.exe scan, followed by independent install/playtest acceptance and explicit publication authorization.
