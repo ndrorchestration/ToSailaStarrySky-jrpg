@@ -1,5 +1,7 @@
 # To Sail the Starry Sky — agent entrypoint
 
+> **Planning authority, 2026-10-28:** Before new Chapter 1 feature work, read [the solo beta roadmap](docs/CHAPTER_1_BETA_ROADMAP.md) (November integration gate, March 2027 alpha, May 2027 beta planning target). Keep monthly evidence gates and exact branch state visible. Do not turn schedule estimates into ship promises; treat unmerged drafts separately from the browser reference on `main`.
+
 **For Hermes, Hyperagent / Spellcraft, Muse / Herald, and other collaborators.** Read this document before altering game, story, visuals, assets, menus, maps, tests, or project instructions.
 
 1. **Current creator decision (2026-10-24): Godot 4.7.2 + GDScript is the active development target. No new p5.js / JavaScript gameplay features.** The main-branch JS/p5/NW.js game is a historical gameplay/content reference until migrated and verified, not the target engine. Do not delete it or alter legacy saves without parity/recovery proof. See [Godot coordination](docs/GODOT_MIGRATION_COORDINATION.md).
