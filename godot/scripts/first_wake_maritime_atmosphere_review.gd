@@ -73,6 +73,9 @@ uniform vec4 horizon_mist : source_color = vec4(0.38, 0.61, 0.64, 1.0);
 uniform float wave_height = 0.105;
 uniform float wave_speed = 0.37;
 uniform float visual_motion_scale = 1.0;
+uniform float twilight_blend = 0.0;
+uniform vec3 twilight_water_deep : source_color = vec3(0.035, 0.075, 0.145);
+uniform vec3 twilight_water_ridge : source_color = vec3(0.21, 0.19, 0.27);
 varying vec2 sea_position;
 varying float wave_crest;
 void vertex() {
@@ -108,11 +111,14 @@ void fragment() {
     float sea_distance = distance(sea_position, CAMERA_POSITION_WORLD.xz);
     float atmospheric_fade = smoothstep(55.0, 215.0, sea_distance);
     vec3 near_water = mix(ocean_deep.rgb, ocean_ridge.rgb, ripples);
-    ALBEDO = mix(near_water, horizon_mist.rgb, atmospheric_fade * 0.61);
+    vec3 sunset_water = mix(twilight_water_deep, twilight_water_ridge, ripples);
+    vec3 graded_water = mix(near_water, sunset_water, twilight_blend);
+    ALBEDO = mix(graded_water, horizon_mist.rgb, atmospheric_fade * (0.61 - 0.18 * twilight_blend));
     METALLIC = 0.085;
     ROUGHNESS = mix(0.29, 0.45, atmospheric_fade);
     SPECULAR = 0.85;
-    EMISSION = ocean_ridge.rgb * (glints + wave_crest * 0.011) * (1.0 - atmospheric_fade * 0.78);
+    vec3 light_tint = mix(ocean_ridge.rgb, vec3(0.94, 0.44, 0.24), twilight_blend);
+    EMISSION = light_tint * (glints + wave_crest * 0.011) * (1.0 - atmospheric_fade * 0.78);
 }
 """
     material.shader = shader
@@ -135,6 +141,7 @@ func visual_review_snapshot() -> Dictionary:
         "source_sea_level": SEA_LEVEL_M,
         "reduced_motion": reduced_motion,
         "twilight_review": twilight_review,
+        "water_twilight_blend": sea_material.get_shader_parameter("twilight_blend") if sea_material != null else -1.0,
         "motion_scale": sea_material.get_shader_parameter("visual_motion_scale") if sea_material != null else -1.0,
         "has_buoyancy_authority": false,
         "canonical_geography": false,
@@ -150,6 +157,8 @@ func set_twilight_review(enabled: bool) -> void:
     sky_material.ground_bottom_color = Color("#17263a") if enabled else Color(0.09, 0.24, 0.32)
     sky_material.ground_horizon_color = Color("#b17c72") if enabled else Color(0.42, 0.64, 0.65)
     atmosphere.environment.ambient_light_energy = 0.65 if enabled else 1.0
+    if sea_material != null:
+        sea_material.set_shader_parameter("twilight_blend", 1.0 if enabled else 0.0)
     if sunlight != null:
         sunlight.light_color = Color("#ffc29a") if enabled else Color("#ffe5bf")
         sunlight.light_energy = 0.47 if enabled else 0.78
