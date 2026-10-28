@@ -1,5 +1,7 @@
 # Aetherwake Development Guide
 
+> **Forward-development authority (2026-10-27):** This document preserves historical JavaScript/p5/NW.js build and runtime evidence, **not** the target for new gameplay. Current development targets **Godot 4.7.2/GDScript** per [migration coordination](GODOT_MIGRATION_COORDINATION.md). The new [Aureate Wake ship-pose production admission plan](SHIP_POSE_PROTOTYPE_TO_PRODUCTION_ADMISSION.md) separates native-reviewed prototype components, the actual Chapter I test-only pose port, Windows security/graphics, creator art, and release. Do not infer that unmerged Godot drafts have replaced the current JS main runtime.
+
 ## Current stage
 
 Aetherwake is a late-prototype / pre-alpha project.
