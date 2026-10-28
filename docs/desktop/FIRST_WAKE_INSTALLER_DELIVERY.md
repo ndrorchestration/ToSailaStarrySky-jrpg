@@ -65,3 +65,13 @@ Publish the exact verified `ToSailTheStarrySky-Setup.exe` to an approved GitHub 
 Example for an authorized Windows development machine with tools installed and a checked-out source: `pwsh -File scripts/prepare-first-wake-windows-installer.ps1 -ExpectedSourceSha <exact-commit-sha>`. This is an operator action, **not a step expected of players**. The connected creator PC is currently offline and this script has **not been run natively there**. Neither static contract CI nor the hosted functional installer job verifies the new local script end-to-end.
 
 A future public link will be created only from the exact security-verified binary after player acceptance and explicit creator release approval. The current game remains playable through Godot F5.
+
+## Final direct-download publication handoff (draft, not executed)
+
+The final file, `scripts/publish-first-wake-approved-windows-installer.ps1`, now exists but **has not run**. It requires the exact checked-out source, a trusted Defender-on scan receipt for the **specific** `ToSailTheStarrySky-Setup.exe`, matching local SHA256SUMS, an independent completed Windows install/game/playtest acceptance receipt, creator release approval, and explicit unsigned-preview acceptance if the setup is not Authenticode signed.
+
+The acceptance template `docs/desktop/FIRST_WAKE_WINDOWS_PLAYER_ACCEPTANCE.template.json` defaults all fields to **PENDING/false**. A human must confirm the installed game opens, completes the first flight and splashdown, inspects the reserve, saves/loads, and passes native window, installer/uninstall, input/accessibility, visuals and audio checks. Godot F5 alone does not satisfy installed-game acceptance.
+
+Publication is intentionally two-phase: (1) create a **draft GitHub prerelease**, attach the exact setup and hash manifest, download the draft asset from GitHub and verify its SHA256 and published asset metadata; (2) only after these proofs and explicit creator approval, convert to an accessible prerelease and emit `DIRECT_WINDOWS_INSTALLER_URL.txt`. The URL is the **actual, immutable, SHA-scoped asset** URL, not an imagined URL or an old Aetherwake setup. README will be updated to use that exact link only after an actual accessible release asset exists.
+
+The final publish script has native Windows PowerShell parser/contract QA in the existing functional Windows job, but is **not end-to-end tested against a live draft release**. It performs no automatic actions unless manually invoked with approval on a trusted prepared machine. No setup.exe is published by this PR.
