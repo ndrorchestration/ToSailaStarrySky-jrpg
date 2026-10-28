@@ -44,6 +44,14 @@ jobs:
 
       - name: Native worldmap biome and cartography regressions
         run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/worldmap_cartography_test.gd
+      - name: Read-only planetary biome/weather material-context contract
+        run: |
+          set -o pipefail
+          timeout 65s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot \
+            --script res://tests/worldmap_material_context_test.gd 2>&1 | tee /tmp/material-context.log
+          grep -Eq 'GODOT_WORLDMAP_MATERIAL_CONTEXT_PASS checks=[0-9]+' /tmp/material-context.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|MATERIAL_CONTEXT_FAIL' /tmp/material-context.log
       - name: Native worldmap save and discovery contract
         run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/worldmap_state_test.gd
       - name: Native 3D worldmap and chart scene smoke
