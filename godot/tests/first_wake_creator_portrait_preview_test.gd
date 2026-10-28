@@ -33,11 +33,15 @@ func _run() -> void:
     verify(a.snapshot().get("save_mutation") == false, "portrait has no save authority")
     verify(a.snapshot().get("party_mutation") == false, "portrait has no party authority")
     verify(a.mouse_filter == Control.MOUSE_FILTER_IGNORE, "cannot intercept input")
-    verify(a.position == Vector2(704, 269) and a.size == Vector2(236, 258),
+    verify(a.position == Vector2(704, 122) and a.size == Vector2(236, 258),
         "portrait card does not intrude on dialogue footer")
     verify(a.visual.size == Vector2(216, 216) and
         a.visual.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED,
         "source portrait must remain square and uncropped")
+    verify(a.position.y + a.size.y < job.DOCK_BOUNDS.position.y,
+        "portrait must sit completely above the physical dock actor path")
+    verify(a.snapshot().get("world_actor_occlusion") == false,
+        "portrait should never be presented as an actor occluder")
     verify(a.snapshot().get("source_aspect_preserved") == true,
         "source aspect provenance contract not set")
     verify(not a.display_dialogue_line("LYRA: testing") and not a.visible,
@@ -55,8 +59,12 @@ func _run() -> void:
     job.ender.position = job.IONIA_DOCK_POSITION
     verify(job.interact(), "actual Ionia job interview should open")
     verify(a.visible and a.current_speaker == "IONIA", "Ionia face follows first actual interview line")
+    verify(a.speaker_label.text == "IONIA  /  CAPTAIN" and a.frame_border.color == a.IONIA_ACCENT,
+        "correct Ionia role and warm palette")
     verify(job.interact(), "actual interview advances to Ender")
     verify(a.visible and a.current_speaker == "ENDER", "portrait switches by dialogue speaker")
+    verify(a.speaker_label.text == "ENDER  /  RIFT SCHOLAR" and a.frame_border.color == a.ENDER_ACCENT,
+        "correct Ender role and cool palette")
     a.set_portraits_enabled(false)
     job._sync_presentation()
     verify(not a.visible, "V toggle can disable portrait independent of story")
