@@ -190,6 +190,10 @@ Visual requirements:
 - restrained screen shake proportional to force;
 - persistent aftermath where narratively meaningful.
 
+### Enemy-visual candidate admission (2026-10-27)
+
+A **candidate**, not a new canonical species or accepted sprite: the original Wind Shear study in [draft #410](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/410) explores hand-pixel-authored idle frames, texture provenance, correct HP truth, read-only status cues, subtle layered encounter depth, genuine hit→already-resolved retaliation timing, and reduced-motion still parity. Its authored atlas and visual presentation tests are suitable for a **neutral combat benchmark**, not automatic chapter or creature-art approval. Major ability **anticipation** may only appear when an actual pre-resolution telegraph/counterplay contract exists; do not label a resolved-attack aftermath as anticipation. Visual style acceptance requires unedited Godot-scale screenshots and creator review. [Production gate details](reviews/ENEMY_VISUAL_PROTOTYPE_TO_PRODUCTION_2026-10-27.md).
+
 ## 13. UI visual language
 
 UI should derive from:
