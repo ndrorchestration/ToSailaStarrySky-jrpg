@@ -79,18 +79,23 @@ func _capture() -> void:
     var neutral: Image = await capture("original-wings-neutral")
     if not world.request_ship_pose_3d_review(Port.CUE_GENTLE_SWEEP):
         failures.append("real wing rig refused ordinary pose")
-    if not world.advance_ship_pose_3d_review(1.8, false):
-        failures.append("wing rig did not advance")
+    if not world.advance_ship_pose_3d_review(0.9, false):
+        failures.append("wing rig failed midpoint")
+    var halfway: Image = await capture("original-wings-midpoint")
+    if not world.advance_ship_pose_3d_review(0.9, false):
+        failures.append("wing rig did not finish visual motion")
     var sweep: Image = await capture("original-wings-swept")
     var onset_pixels: int = 0
     var moving_pixels: int = 0
-    if original != null and neutral != null and sweep != null:
+    var continuation_pixels: int = 0
+    if original != null and neutral != null and halfway != null and sweep != null:
         onset_pixels = sample_difference(original, neutral)
-        moving_pixels = sample_difference(neutral, sweep)
+        moving_pixels = sample_difference(neutral, halfway)
+        continuation_pixels = sample_difference(halfway, sweep)
         if onset_pixels < 400:
             failures.append("real 3D renderer not visibly present in chapter")
-        if moving_pixels < 30:
-            failures.append("actual 3D wing change not visibly captured")
+        if moving_pixels < 30 or continuation_pixels < 30:
+            failures.append("both real 3D wing motion stages must be visible")
     if (before != world.opening.snapshot()
             or checkpoint != world.export_revised_checkpoint()):
         failures.append("rendering changed real Chapter I/save state")
@@ -100,8 +105,9 @@ func _capture() -> void:
     world.queue_free()
     await process_frame
     if failures.is_empty():
-        print("FIRST_WAKE_NATIVE_WING_AB_PASS frames=3 inset_on_grid=",
-            onset_pixels, " wing_movement_grid=", moving_pixels,
+        print("FIRST_WAKE_NATIVE_WING_AB_PASS frames=4 inset_on_grid=",
+            onset_pixels, " wing_mid_grid=", moving_pixels,
+            " wing_end_grid=", continuation_pixels,
             " story=UNCHANGED renderer=REAL_3D scale=BLOCKED")
         quit(0)
     else:
