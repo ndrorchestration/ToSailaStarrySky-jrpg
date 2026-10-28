@@ -119,6 +119,8 @@ func interact_reserve() -> bool:
                 _sync_ui()
                 return false
             inspected_station = true
+            # Clear any earlier refused-save notice once the player earns the checkpoint.
+            checkpoint_message = ""
         _sync_ui()
         return true
     if ender.position.distance_to(RESERVE_STATION) > INTERACT_DISTANCE:
