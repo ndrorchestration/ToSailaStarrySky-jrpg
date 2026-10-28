@@ -85,6 +85,12 @@ jobs:
           timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_surface_textures.gd 2>&1 | tee /tmp/surface-texture-test.log
           grep -Eq 'GODOT_SURFACE_TEXTURE_PASS checks=[0-9]+' /tmp/surface-texture-test.log
           ! grep -Eq 'GODOT_SURFACE_TEXTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|Failed loading' /tmp/surface-texture-test.log
+      - name: Opt-in storm silhouette and atmospheric-depth boundary contracts
+        run: |
+          set -o pipefail
+          timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_storm_depth_review.gd 2>&1 | tee /tmp/storm-depth-test.log
+          grep -Eq 'GODOT_STORM_DEPTH_REVIEW_PASS checks=[0-9]+' /tmp/storm-depth-test.log
+          ! grep -Eq 'GODOT_STORM_DEPTH_REVIEW_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/storm-depth-test.log
       - name: Deterministic native manual Dragonfly pilot mode contracts
         run: |
           set -o pipefail
@@ -180,6 +186,18 @@ jobs:
           grep -Eq 'NATIVE_SHELF_LIGHTING_NIGHT_DELTA pixels=[0-9]+' /tmp/shelf-lighting-capture.log
           grep -q 'NATIVE_SHELF_LIGHTING_LOW_DELTA pixels=0' /tmp/shelf-lighting-capture.log
           ! grep -Eq 'NATIVE_SHELF_LIGHTING_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/shelf-lighting-capture.log
+      - name: Same-view golden unchanged and storm-night relief actual GL review
+        run: |
+          set -o pipefail
+          timeout 120s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_storm_depth_review.gd 2>&1 | tee /tmp/storm-depth-capture.log
+          grep -q 'NATIVE_STORM_DEPTH_CAPTURE_PASS frames=6' /tmp/storm-depth-capture.log
+          grep -Eq 'NATIVE_STORM_DEPTH_DAY_DELTA sum=[0-9.]+' /tmp/storm-depth-capture.log
+          grep -Eq 'NATIVE_STORM_DEPTH_FIRST_HALF sum=[0-9.]+' /tmp/storm-depth-capture.log
+          grep -Eq 'NATIVE_STORM_DEPTH_HALF_FULL sum=[0-9.]+' /tmp/storm-depth-capture.log
+          ! grep -Eq 'NATIVE_STORM_DEPTH_CAPTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/storm-depth-capture.log
       - name: Profile actual rendered scripted flight sweep
         run: |
           set -o pipefail
@@ -231,6 +249,8 @@ jobs:
             /tmp/surface-texture-capture.log
             /tmp/integrated-coast-foam.log
             /tmp/shelf-lighting-capture.log
+            /tmp/storm-depth-test.log
+            /tmp/storm-depth-capture.log
             /tmp/environment-mood-capture.log
             /tmp/atmosphere-capture.log
             /tmp/cinematic-camera.log
