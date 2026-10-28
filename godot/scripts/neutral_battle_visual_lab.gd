@@ -118,7 +118,7 @@ func start_lab(enable_reduced_motion: bool = false) -> bool:
     var future_art_only: Dictionary = visual_gate.weapon.actor_action_pose(
         "ender", "full_length_staff", "staffStrike",
         visual_gate.weapon.timeline.duration("full_length_staff", "attack") * 0.695,
-        reduced_motion
+        false  # Same grounded stage location for standard and reduced motion.
     )
     var idle_art_only: Dictionary = visual_gate.weapon.actor_action_pose(
         "ender", "full_length_staff", "staffStrike", 0.0, reduced_motion
@@ -166,13 +166,15 @@ func resolve_one_staff_strike() -> bool:
     var tip_local: Vector2 = Vector2(frame["shaftTipA"])
     var root_before_reaction: Vector2 = staff_view.position
     var expected_root: Vector2 = optical_contact_world - tip_local
-    if root_before_reaction.distance_to(expected_root) > MAX_OPTICAL_SEPARATION:
+    # Reduced motion retains the *same* world-space feet as the standard
+    # mode. Its frozen (resting) ferrule is not an optical impact pose and
+    # must never be forcibly snapped to the enemy or flash on contact.
+    if not reduced_motion and root_before_reaction.distance_to(expected_root) > MAX_OPTICAL_SEPARATION:
         push_error("NEUTRAL_BATTLE_STAFF_ROOT_TELEPORTED")
         return false
-    # The resting and impact frames share a stable world root/foot plane.
     optical_contact_distance = (staff_view.position + tip_local).distance_to(optical_contact_world)
-    optical_contact_verified = optical_contact_distance <= MAX_OPTICAL_SEPARATION
-    if not optical_contact_verified:
+    optical_contact_verified = not reduced_motion         and optical_contact_distance <= MAX_OPTICAL_SEPARATION
+    if not reduced_motion and not optical_contact_verified:
         push_error("NEUTRAL_BATTLE_OPTICAL_STAGING_MISMATCH")
         return false
     staff_view.visible = true
