@@ -82,6 +82,12 @@ jobs:
           timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_wing_hinge_review.gd 2>&1 | tee /tmp/wing-hinge-test.log
           grep -Eq 'GODOT_NEUTRAL_WING_HINGE_PASS checks=[0-9]+' /tmp/wing-hinge-test.log
           ! grep -Eq 'GODOT_NEUTRAL_WING_HINGE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/wing-hinge-test.log
+      - name: Native wing pose pipeline integration with weather, flight and motion-safe controls
+        run: |
+          set -o pipefail
+          timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_wing_pose_pipeline.gd 2>&1 | tee /tmp/wing-pose-pipeline.log
+          grep -Eq 'GODOT_WING_POSE_PIPELINE_PASS checks=[0-9]+' /tmp/wing-pose-pipeline.log
+          ! grep -Eq 'GODOT_WING_POSE_PIPELINE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/wing-pose-pipeline.log
       - name: Deterministic native manual Dragonfly pilot mode contracts
         run: |
           set -o pipefail
@@ -210,6 +216,7 @@ jobs:
             /tmp/capture.log
             /tmp/ship-hero.log
             /tmp/wing-hinge-test.log
+            /tmp/wing-pose-pipeline.log
             /tmp/wing-hinge-capture.log
           if-no-files-found: warn
           retention-days: 7
