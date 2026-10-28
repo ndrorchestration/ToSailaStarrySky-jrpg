@@ -171,6 +171,81 @@ func _verify() -> void:
     if flight.opening.active_party_ids != ["ender", "ionia"] or flight.family_review.scene_phase != "family_arrival":
         _fail("Lyra joined without her family dialogue")
         return
+
+    # Continue along the same actual story object, not the independent
+    # workshop's original authoring fixture.
+    var family = flight.family_review
+    family.ender.position = family.LYRA_POSITION
+    if not family.interact() or not _finish_dialogue(family):
+        _fail("safe Lyra and Talen reunion was not playable")
+        return
+    if preview.opening.active_party_ids != ["ender", "ionia", "lyra"]:
+        _fail("Lyra did not become the second companion after family dialogue")
+        return
+    if preview.opening.active_party_ids.has("talen"):
+        _fail("Talen was added to combat/story party")
+        return
+    family.ender.position = family.PHASE_CHART
+    if not family.interact() or not _finish_dialogue(family):
+        _fail("postflight phase chart clue was inaccessible")
+        return
+    family.ender.position = family.IONIA_LOG
+    if not family.interact() or not _finish_dialogue(family):
+        _fail("Denith's incomplete transfer log clue was inaccessible")
+        return
+    family.ender.position = family.THEORY_TABLE
+    if not family.interact() or not _finish_dialogue(family):
+        _fail("three adult shared fuel theory was not playable")
+        return
+    if preview.opening.step_key() != "working_theory":
+        _fail("actual joined crew did not establish two-clue theory")
+        return
+    if not family.interact() or family.repair_review == null:
+        _fail("valid shared theory did not hand off into materials quest")
+        return
+    var workshop = family.repair_review
+    if not workshop.has_external_story_handoff or workshop.story != preview.opening:
+        _fail("workshop used scripted fake story instead of live postflight state")
+        return
+    for point in [workshop.PICKUP_A, workshop.PICKUP_B]:
+        workshop.ender.position = point
+        if not workshop.interact():
+            _fail("physical salvage pickup not walkable after reunion")
+            return
+    workshop.ender.position = workshop.INSTALL
+    if not workshop.interact() or not workshop.interact():
+        _fail("physical repair installation steps not playable")
+        return
+    workshop.ender.position = workshop.ENGINE
+    if not workshop.interact() or workshop.core.snapshot()["phase"] != "listen":
+        _fail("mandatory post-material failed restart missing")
+        return
+    workshop.ender.position = workshop.IONIA
+    if not workshop.interact() or not workshop.interact():
+        _fail("Ionia's unprompted Denith melody and repeat missing")
+        return
+    workshop.ender.position = workshop.CHART
+    if not workshop.interact() or not workshop.analysis.open:
+        _fail("Ender's actual music-theory investigation missing")
+        return
+    if not workshop.choose_analysis(1) or not workshop.submit_analysis():
+        _fail("explicit correct relative interval/hold interpretation not accepted")
+        return
+    workshop.ender.position = workshop.LYRA
+    if not workshop.interact():
+        _fail("Lyra's independent phase corroboration missing")
+        return
+    workshop.ender.position = workshop.IONIA
+    if not workshop.interact():
+        _fail("Ionia did not approve the safety-bounded calibration")
+        return
+    workshop.ender.position = workshop.ENGINE
+    if not workshop.interact() or not workshop.core.snapshot()["alignment_candidate"]:
+        _fail("bench alignment candidate not reached by player")
+        return
+    if workshop.core.snapshot()["can_launch"] or workshop.core.snapshot()["can_execute_art"]:
+        _fail("review-only experiment authorized ship or combat ability")
+        return
     if _file_hash(SaveStore.DEFAULT_PATH) != v1_hash or _file_hash(RevisedCodec.SLOT_PATH) != v2_hash:
         _fail("transient flight rewrote either save slot")
         return
@@ -188,7 +263,7 @@ func _verify() -> void:
     if _file_hash(SaveStore.DEFAULT_PATH) != v1_hash or _file_hash(RevisedCodec.SLOT_PATH) != v2_hash:
         _fail("F8 exit from splashdown rewrote v1/v2 checkpoint data")
         return
-    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: configured startup F8, flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, explicit empty-reserve postflight inspection, F8 exact v1 return; no save or Art migration")
+    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: configured startup F8, flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, reserve inspection, safe Lyra/Talen dialogue, two real crew clues, recovered items, failed restart and chosen Denith melody, F8 v1 return; no ship/Art rights")
     quit(0)
 
 func _finish_dialogue(world: Node) -> bool:
