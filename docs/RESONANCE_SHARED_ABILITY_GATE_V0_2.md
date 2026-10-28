@@ -57,3 +57,16 @@ A newer creator-directed Chapter I opening has **Ionia aboard first** and **Lyra
 - Independent review of unmerged PR lineage and Windows Defender/release boundary.
 
 Authoritative architecture remains **native Godot forward development**; no new JavaScript gameplay. This document is public-safe and entirely proposal/implementation-boundary material.
+
+## Playable enemy-intent telegraph — v0.3 review layer
+
+The standalone Godot scene now exposes the enemy's **declared incoming target and strength before the player's ward/pass decision**. Keys **3** and **4**, and corresponding onscreen buttons, switch the preview between Ender and Lyra. A high-contrast static incoming marker appears at the currently threatened actor and stays legible with reduced motion enabled. The intended target/strike appears in text; after the choice the text announces **LOCKED**. Key **2** resolves only the committed strike. Existing controls **1** (ward), **B** (baseline), **R** (reset), **M** (motion toggle) remain in the standalone scene.
+
+`tidebound_promise_review.gd` stores `declared_target` and `declared_damage` (default Ender/8); `configure_threat` accepts only bounded, living targets before the turn advances. The real controller refuses any target or strength substitution after the player commits to ward or pass. The scene uses the controller's declared intent rather than a hardcoded Ender target. Result HUD damage is mapped correctly when **Lyra** is targeted. All controls and deltas remain *review-only* and are never serialized into Chapter I saves, granted to the production party or promoted into combat formula authority.
+
+Native regression coverage:
+- `resonance_intent_lock_test.gd`: default, valid retarget, invalid/out-of-range attempts, no side effects, immutable post-action intent, correct Lyra-targeted split, reset, no-ward baseline and invalid downed target.
+- `resonance_dual_review_scene_test.gd`: actual scene controls, accessible intent text, reversible pre-action target selection, denial after commitment, correct Lyra/Ender HUD presentation and reduced-motion test preservation.
+- `tidebound_damage_sweep_test.gd`: all 24 strike cases now predeclare their exact intended target/strength before casting or passing. No late changes to attacker behavior are permitted.
+
+These checks are not a claim about final enemy AI, authored enemy telegraphs, global combat scheduler or player-tested visual quality. **Production AI and unlock rules remain separate.** Verify native Godot exact-head CI and rendered output before any status promotion.
