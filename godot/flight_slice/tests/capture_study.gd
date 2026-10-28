@@ -138,11 +138,18 @@ func _capture() -> void:
             scene.overlay.visible = false
             scene.ship.visible = false
             var observations: Array[int] = []
-            for shot in [["far", Vector3(-42.0, 23.0, 0.0)],
-                    ["approach", Vector3(6.0, 17.0, 0.0)],
-                    ["near", Vector3(30.0, 12.0, 0.0)]]:
+            # The initial near eye (30,12,0) rendered inside a crown.
+            # Stage a playable aerial line with a clear camera above canopy tops.
+            for shot in [["far", Vector3(-42.0, 23.0, 0.0), Vector3(37.0, 6.0, 0.0)],
+                    ["approach", Vector3(6.0, 18.0, 0.0), Vector3(42.0, 8.0, 0.0)],
+                    ["near", Vector3(30.0, 22.0, -8.0), Vector3(58.0, 9.0, -10.0)]]:
                 scene.camera.position = shot[1]
-                scene.camera.look_at(Vector3(37.0, 6.0, 0.0), Vector3.UP)
+                var eye_height: float = scene.camera.position.y - scene.terrain.sample_height(
+                    scene.camera.position.x, scene.camera.position.z)
+                if eye_height < 8.0:
+                    push_error("NATIVE_CANOPY_MOTION_CAMERA_CLEARANCE: " + str(shot[0]))
+                    failed = true
+                scene.camera.look_at(shot[2], Vector3.UP)
                 scene.terrain.update_detail(scene.camera.position, 1.0)
                 scene.visuals.update_forest_detail(scene.camera.position)
                 scene.visuals.refresh_coverage()
