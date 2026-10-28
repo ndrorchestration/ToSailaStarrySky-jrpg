@@ -125,6 +125,7 @@ jobs:
 
       - name: Verify First Wake opening runtime
         run: npm run test:first-wake-opening
+          npm run test:quest-state
 
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
