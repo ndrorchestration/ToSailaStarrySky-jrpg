@@ -10,6 +10,10 @@ var distance_travelled: float = 0.0
 var motion: Vector2 = Vector2.ZERO
 var ready_to_review: bool = false
 var selected: bool = false
+var contact_visual_offset: float = 0.0
+
+## Scene-only inspection scale, not a resampling or approved source-art rewrite.
+const REVIEW_SCALE: Dictionary = {"Ender": 1.62, "Ionia": 0.22, "Lyra": 1.54, "Aepex": 1.54, "Reson": 1.54}
 
 func atlas_paths() -> Dictionary:
     match character_id:
@@ -55,15 +59,18 @@ func _ready() -> void:
         sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
         sprite.flip_h = false
         sprite.visible = d == facing
-        sprite.position = Vector2(0.0, -48.0)
-        if character_id == "Ionia":
-            sprite.scale = Vector2(0.13, 0.13)
-            sprite.position = Vector2(0.0, -46.0)
-        elif character_id == "Ender" and d == "west":
-            sprite.scale = Vector2(0.83, 0.82)
-            sprite.position = Vector2(0.0, -37.0)
-        elif character_id in ["Lyra", "Aepex", "Reson"]:
-            sprite.scale = Vector2(0.8, 0.8)
+        var scale_value: float = float(REVIEW_SCALE.get(character_id, 1.0))
+        if character_id == "Ender" and d == "west":
+            # Retain the distinct source's proven silhouette-size ratio.
+            sprite.scale = Vector2(scale_value * 0.83, scale_value * 0.82)
+        else:
+            sprite.scale = Vector2(scale_value, scale_value)
+        # Foot-anchor from native atlas frame height. This is a visual baseline
+        # hypothesis, NOT artist-marked toe/heel planting or physics grounding.
+        var frame_height: float = float(tex.get_height())
+        var nominal_sole_y: float = frame_height * 0.47
+        sprite.position = Vector2(0.0, -roundf(nominal_sole_y * sprite.scale.y))
+        contact_visual_offset = maxf(contact_visual_offset, sprite.position.y)
         add_child(sprite)
         sprites[d] = sprite
     ready_to_review = true
@@ -118,5 +125,13 @@ func mark_selected(value: bool) -> void:
     queue_redraw()
 
 func _draw() -> void:
+    # Fixed world-root review cue: selection is not a hitbox or gameplay buff.
+    draw_ellipse_shadow()
     if selected:
-        draw_arc(Vector2(0, -3), 18.0, 0.0, TAU, 36, Color(0.95, 0.75, 0.37), 2.0, true)
+        draw_arc(Vector2(0, -2), 29.0, 0.0, TAU, 48, Color(0.94, 0.70, 0.37, 0.94), 1.6, true)
+
+func draw_ellipse_shadow() -> void:
+    for i in range(3):
+        draw_arc(Vector2(0.0, 1.5), 19.0 + float(i) * 6.0, 0.0, TAU, 36,
+            Color(0.02, 0.03, 0.06, 0.25 - float(i) * 0.06), 2.0, true)
+
