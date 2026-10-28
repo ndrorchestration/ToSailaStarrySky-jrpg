@@ -166,6 +166,73 @@ func _run() -> void:
     broken.close()
     verify(Checkpoint.load(PATH).get("schema", "") == Checkpoint.SCHEMA,
         "corrupt/legacy primary falls back to valid prior save without migration")
+    # New normal-F5 in-memory continuation: never forge an ocean-to-harbor
+    # route. A player must explicitly acknowledge provisional safe staging.
+    verify(not resumed._enter_family_review(),
+        "family screen cannot be entered without player staging")
+    var same_story = resumed.session.opening
+    var checkpoint_before_family: String = FileAccess.get_file_as_string(PATH)
+    verify(resumed.request_safe_berth_review()
+        and resumed.safe_berth_review_confirmations == 1,
+        "first R only requests explicitly nongeographic safe recovery")
+    verify(resumed.family_review == null
+        and resumed.session.opening.active_party_ids == ["ender", "ionia"],
+        "one safe recovery acknowledgment cannot teleport or recruit Lyra")
+    verify(resumed.request_safe_berth_review()
+        and resumed.game_stage == "family_review",
+        "second R starts clearly staged safe berth family scene")
+    await process_frame
+    var family = resumed.family_review
+    verify(family != null and family.opening == same_story
+        and family.review_snapshot()["real_return_route_verified"] == false,
+        "F5 continuation preserves identical first-flight story without inventing route")
+    verify(family.scene_phase == "family_arrival"
+        and family.ender.player_controlled,
+        "the actual postflight family scene is walkable and initially Lyra-free")
+    verify(not resumed.save_game()
+        and FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
+        "unfinished extended save schema cannot overwrite postflight checkpoint")
+    family.ender.position = family.TALEN_POSITION
+    verify(family.interact() and _finish_dialogue(family)
+        and family.child_block_ship_viewed,
+        "optional Talen block ship stays an everyday noncombat scene")
+    verify(not family.opening.active_party_ids.has("talen")
+        and not family.opening.active_party_ids.has("lyra"),
+        "child dialogue does not recruit child or Lyra")
+    family.ender.position = family.LYRA_POSITION
+    verify(family.interact()
+        and not family.opening.active_party_ids.has("lyra"),
+        "Lyra joins only after full family conversation")
+    verify(_finish_dialogue(family)
+        and family.opening.active_party_ids == ["ender", "ionia", "lyra"],
+        "first-flight session identity admits Lyra SECOND after mandatory reunion")
+    verify(family.interact() and _finish_dialogue(family)
+        and "lyra_observation" in family.opening.clues,
+        "Lyra's physical listening clue is genuinely interacted with")
+    family.ender.position = family.THEORY_TABLE
+    verify(not family.interact(),
+        "a single clue cannot invent a fuel theory")
+    family.ender.position = family.PHASE_CHART
+    verify(family.interact() and _finish_dialogue(family),
+        "Ender independently inspects the loaded phase readings")
+    family.ender.position = family.THEORY_TABLE
+    verify(family.interact() and _finish_dialogue(family)
+        and same_story.step_key() == "working_theory",
+        "same F5 story admits working theory only after dialogue and two clues")
+    verify(family.interact() and family.repair_review != null
+        and family.repair_review.story == same_story,
+        "in-game family leads to real physical pickup/melody scene with same story")
+    verify(not family.repair_review.core.snapshot()["can_launch"]
+        and not resumed.save_game(),
+        "core-alignment bench cannot grant relaunch or write unsupported save state")
+    verify(resumed.load_game()
+        and resumed.game_stage == "postflight"
+        and resumed.family_review == null
+        and resumed.session.opening.active_party_ids == ["ender", "ionia"],
+        "F9 reload returns to honest persisted postflight checkpoint, not false family save")
+    verify(FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
+        "F9 and family review never rewrite signed checkpoint data")
+
     resumed.queue_free()
     await process_frame
     for path in [PATH, PATH + ".tmp", PATH + ".bak"]:
@@ -174,7 +241,8 @@ func _run() -> void:
     if errors.is_empty():
         print("TSTSS_FIRST_WAKE_GAME_ENTRY_PASS checks=", checks,
             " real_water_contact=true postflight_player=true",
-            " save_resume=true legacy_schema_isolated=true")
+            " save_resume=true legacy_schema_isolated=true family_to_repair=true\n",
+            " staged_geography=false extended_save=false")
         quit(0)
     else:
         for error in errors:
