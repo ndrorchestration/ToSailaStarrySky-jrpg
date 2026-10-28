@@ -91,8 +91,8 @@ func _capture() -> void:
             failures.append("real 3D renderer not visibly present in chapter")
         if moving_pixels < 30:
             failures.append("actual 3D wing change not visibly captured")
-    if before != world.opening.snapshot() or
-            checkpoint != world.export_revised_checkpoint():
+    if (before != world.opening.snapshot()
+            or checkpoint != world.export_revised_checkpoint()):
         failures.append("rendering changed real Chapter I/save state")
     world.set_ship_spaces_review_enabled(false)
     if world.ship_pose_3d_review != null:
