@@ -6,6 +6,7 @@ extends Node2D
 
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
+const AfloatScene = preload("res://scenes/first_wake_afloat_reserve_review.tscn")
 
 const SURFACE_Y := 410.0
 const FLOAT_BUOYANCY := 120.0
@@ -19,6 +20,8 @@ var settled_seconds: float = 0.0
 var contact_observed: bool = false
 var stable_float_verified: bool = false
 var reserve_inspection_observed: bool = false
+var afloat_review: Node2D
+var flight_ui: CanvasLayer
 var ship_body: RigidBody2D
 var sea_area: Area2D
 var status_label: Label
@@ -86,6 +89,7 @@ func _ready() -> void:
     var ui := CanvasLayer.new()
     ui.name = "FlightReviewOverlay"
     add_child(ui)
+    flight_ui = ui
     status_label = _make_label(ui, Vector2(24, 20), 19)
     telemetry_label = _make_label(ui, Vector2(24, 59), 15)
     hint_label = _make_label(ui, Vector2(26, 563), 17)
@@ -130,6 +134,8 @@ func interact() -> bool:
     if phase == "warning":
         return stabilize_for_water_descent()
     if phase == "waterborne":
+        return open_afloat_reserve_review()
+    if phase == "afloat_inspection":
         return inspect_empty_reserve_after_splashdown()
     return false
 
@@ -159,17 +165,40 @@ func stabilize_for_water_descent() -> bool:
     _refresh_presentation()
     return true
 
-func inspect_empty_reserve_after_splashdown() -> bool:
-    # Only after measured local water contact and a sustained stable float.
-    # The depleted reserve is an authored *inspection* for this review, not a
-    # simulated fuel fluid or approved inventory system.
-    if phase != "waterborne" or not contact_observed or not stable_float_verified:
+func open_afloat_reserve_review() -> bool:
+    # The player must first have made genuine Area2D contact and sustained
+    # flotation. Entering this room does not itself inspect the reserve.
+    if phase != "waterborne" or afloat_review != null:
+        return false
+    if not contact_observed or not stable_float_verified:
         return false
     if opening == null or opening.step_key() != "waterborne":
         return false
     if opening.active_party_ids != ["ender", "ionia"]:
         return false
-    if not opening.inspect_postflight_reserve(true):
+    var station: Node2D = AfloatScene.instantiate()
+    if not bool(station.call("configure_afloat", opening)):
+        station.free()
+        return false
+    afloat_review = station
+    phase = "afloat_inspection"
+    flight_ui.visible = false
+    add_child(afloat_review)
+    _refresh_presentation()
+    return true
+
+func inspect_empty_reserve_after_splashdown() -> bool:
+    # The original contract is now reached through actual onboard proximity.
+    # This only validates a player-triggered observation, not inventory or fuel.
+    if phase != "afloat_inspection" or afloat_review == null:
+        return false
+    if not contact_observed or not stable_float_verified:
+        return false
+    if opening == null or opening.step_key() != "waterborne":
+        return false
+    if opening.active_party_ids != ["ender", "ionia"]:
+        return false
+    if not bool(afloat_review.call("interact")):
         return false
     reserve_inspection_observed = true
     phase = "postflight_diagnosis"
@@ -215,6 +244,9 @@ func review_snapshot() -> Dictionary:
         "actual_2d_area_contact_observed": contact_observed,
         "stable_buoyant_hull_observed": stable_float_verified,
         "reserve_inspection_observed": reserve_inspection_observed,
+        "afloat_station_entered": afloat_review != null,
+        "physical_reserve_interaction_verified": reserve_inspection_observed and afloat_review != null,
+        "salvage_verified": false,
         "real_inventory_scan_verified": false,
         "settle_seconds": settled_seconds,
         "hull_y": ship_body.position.y if ship_body != null else -1.0,
@@ -240,7 +272,9 @@ func _refresh_presentation() -> void:
         "descent":
             hint_label.text = "Ionia selects open water. Physics water contact and flotation are being measured."
         "waterborne":
-            hint_label.text = "WATERBORNE: hull safely afloat, engines offline. E: inspect the depleted fuel reserve."
+            hint_label.text = "WATERBORNE: hull safely afloat. E: board reserve-inspection station."
+        "afloat_inspection":
+            hint_label.text = "Aboard the Wake: walk Ender to the reserve station, then E to inspect."
         "postflight_diagnosis":
             hint_label.text = "RESERVE EMPTY: real postflight inspection step recorded in review. Secure recovery before Lyra/Talen reunion."
         _:
