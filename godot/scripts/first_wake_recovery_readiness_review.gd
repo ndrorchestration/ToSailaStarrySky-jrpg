@@ -4,6 +4,7 @@ extends Node2D
 ## sailing route, confirmed signal delivery or permission to meet the family.
 
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
+const ContactScene = preload("res://scenes/first_wake_contact_decision_review.tscn")
 
 const STATION_IDS: Array[String] = ["crew_accounting", "systems_isolation", "contact_plan"]
 const CREW_LINES: Array[String] = [
@@ -30,6 +31,8 @@ var state_label: Label
 var instruction: Label
 var dialogue: Label
 var footer: Label
+var overlay: CanvasLayer
+var contact_decision: Node2D
 
 func configure_from_postflight(flight: Node) -> bool:
     if is_inside_tree() or source_flight != null or flight == null:
@@ -58,7 +61,7 @@ func configure_from_postflight(flight: Node) -> bool:
 
 func _ready() -> void:
     InputPolicy.ensure_defaults()
-    var overlay := CanvasLayer.new()
+    overlay = CanvasLayer.new()
     overlay.name = "RecoveryReadinessReviewUI"
     add_child(overlay)
     headline = _make_label(overlay, Vector2(24, 18), 22, 900)
@@ -98,9 +101,14 @@ func _draw() -> void:
     draw_rect(Rect2(0, 560, 960, 80), Color(0.04, 0.07, 0.12, 0.95))
 
 func _unhandled_input(event: InputEvent) -> void:
-    if event.is_echo():
+    if event.is_echo() or contact_decision != null:
         return
     var used := false
+    if event.is_action_pressed(InputPolicy.FLIGHT_REVIEW_LAUNCH):
+        used = begin_contact_decision()
+        if used:
+            get_viewport().set_input_as_handled()
+        return
     if event.is_action_pressed(InputPolicy.INTERACT):
         used = interact()
     elif event.is_action_pressed(InputPolicy.CHOICE_A):
@@ -111,6 +119,22 @@ func _unhandled_input(event: InputEvent) -> void:
         used = inspect_station("contact_plan")
     if used:
         get_viewport().set_input_as_handled()
+
+func begin_contact_decision() -> bool:
+    if contact_decision != null or phase != "ready_for_route_review":
+        return false
+    if opening == null or opening.step_key() != "postflight_diagnosis":
+        return false
+    if completed_stations.size() != STATION_IDS.size():
+        return false
+    var next := ContactScene.instantiate()
+    if not bool(next.call("configure_from_readiness", self)):
+        next.free()
+        return false
+    contact_decision = next
+    overlay.visible = false
+    add_child(contact_decision)
+    return true
 
 func inspect_station(station_id: String) -> bool:
     if phase != "inspect" or opening == null:
@@ -186,7 +210,7 @@ func _refresh() -> void:
         "ready_for_route_review":
             instruction.text = "THREE CHECKS RECORDED. SAFE TRAVEL PLAN NOT YET APPROVED."
             dialogue.text = "Crew accounted for; engine isolated; contact message drafted. No transmission, destination or safe meeting has been established."
-            footer.text = "ROUTE HOLD: creator geography, communications and family contact are open."
+            footer.text = "ROUTE HOLD: F to review sea / signal / tow; no rescue route approved."
         _:
             instruction.text = "Needs prior native splashdown and postflight diagnosis."
             footer.text = "No safe recovery claim without validated story and navigation."
