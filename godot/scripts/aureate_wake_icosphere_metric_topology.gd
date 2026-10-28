@@ -73,7 +73,11 @@ static func _clip(polygon: Array[Vector3], axis: Vector3,
         if inside_a != inside_b:
             var t: float = da / (da - db)
             output.append(a.lerp(b, t))
-    return output if output.size() >= 3 else []
+    # Preserve Array[Vector3] even for a fully clipped face. The untyped
+    # [] literal caused a native GDScript runtime assignment error.
+    if output.size() < 3:
+        output.clear()
+    return output
 
 static func _partition_aperture(polygon: Array[Vector3],
         front_limit_z: float, half_width: float,
