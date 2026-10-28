@@ -59,7 +59,7 @@ func _run() -> void:
                 return
             if not _check(review.warning_visual.reduced_motion and not review.warning_visual.is_processing(), "reduced motion not static"):
                 return
-            if not _check(not review.warning_visual.seek(float("nan")), "NaN phase accepted"):
+            if not _check(not review.warning_visual.seek(NAN), "NaN phase accepted"):
                 return
             if not _check(review.warning_visual.seek(Envelope.REVIEW_POSITIONS[3]) and review.warning_visual.phase == "impact", "deterministic phase preview"):
                 return
