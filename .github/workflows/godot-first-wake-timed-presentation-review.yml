@@ -1,0 +1,66 @@
+name: Godot First Wake contact-timed presentation HUD review
+on:
+  push:
+    branches: [feat/godot-first-wake-presentation-timing-review-20261028]
+    paths:
+      - 'godot/scripts/first_wake_staff_presentation_queue.gd'
+      - 'godot/scripts/first_wake_staff_presentation_hud.gd'
+      - 'godot/scripts/first_wake_staff_signal_visual_presenter.gd'
+      - 'godot/scripts/first_wake_staff_signal_pilot_review.gd'
+      - 'godot/tests/first_wake_staff_presentation_timing_test.gd'
+      - 'godot/tests/capture_first_wake_staff_presentation_timing.gd'
+      - '.github/workflows/godot-first-wake-timed-presentation-review.yml'
+  pull_request:
+    paths:
+      - 'godot/scripts/first_wake_staff_presentation_queue.gd'
+      - 'godot/scripts/first_wake_staff_presentation_hud.gd'
+      - 'godot/scripts/first_wake_staff_signal_visual_presenter.gd'
+      - 'godot/scripts/first_wake_staff_signal_pilot_review.gd'
+      - 'godot/tests/first_wake_staff_presentation_timing_test.gd'
+      - 'godot/tests/capture_first_wake_staff_presentation_timing.gd'
+      - '.github/workflows/godot-first-wake-timed-presentation-review.yml'
+permissions:
+  contents: read
+jobs:
+  native-presentation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Download verified Godot 4.7.2 standard editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' -o editor.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  editor.zip' | sha256sum -c -
+          unzip -q editor.zip
+          chmod +x Godot_v4.7.2-stable_linux.x86_64
+      - name: Import exact-head Godot project
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
+      - name: Run prior Chapter I and weapon pipeline regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          for test in first_wake_chapter1_review_test first_wake_party_combat_authority_test first_wake_formula_encounter_test first_wake_staff_visual_pipeline_test first_wake_staff_signal_pilot_test weapon_skill_tree_review_test ender_staff_combat_keyframe_review_test ender_staff_target_alignment_review_test; do
+            ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script "res://tests/${test}.gd"
+          done
+      - name: Prove queued display is not authoritative and never replays combat
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_staff_presentation_timing_test.gd
+      - name: Capture four native Chapter I before/contact/reduced-motion frames
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v xvfb-run
+          mkdir -p godot/review-evidence
+          xvfb-run -a -s "-screen 0 960x640x24" ./Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_first_wake_staff_presentation_timing.gd
+          for shot in pre-action anticipation-displayed-pre-result contact-displayed-committed-result reduced-motion-reveal; do
+            test -s "godot/review-evidence/first-wake-timed-${shot}-960x640.png"
+          done
+          sha256sum godot/review-evidence/first-wake-timed-*-960x640.png
+          echo "FORMULA_RESOLUTION=IMMEDIATE_AND_AUTHORITATIVE"
+          echo "VISIBLE_DAMAGE_REVEAL=NONAUTHORITATIVE"
+          echo "HUD_OVERLAY=OPT_IN_ONLY"
+          echo "SAVE_CODEC_AND_CANON=UNCHANGED"
+          echo "ARTISTIC_ACCEPTANCE=NOT_ESTABLISHED"
