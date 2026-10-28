@@ -21,17 +21,36 @@ func _press(scene: Variant, code: Key) -> void:
     k.keycode=code
     scene._unhandled_input(k)
 
-func _select(kind: String) -> Dictionary:
+func _find_interior(kind: String) -> Dictionary:
+    # A tile selected from coarser L5 cartography can change class at L7.
+    # Use the actual max-level active renderer sampling frame, preferring
+    # contiguous same-biome neighbors instead of misleading coastline strips.
     var weather: String="rain" if kind=="wet_ground" else "clear"
+    var best: Dictionary={}
+    var best_score: int=-1
     for lat in range(-75,76,5):
         for lon in range(-170,171,10):
-            var tile: Dictionary=Tiles.tile_at(float(lat),float(lon),5)
+            var tile: Dictionary=Tiles.tile_at(float(lat),float(lon),7)
             var center: Vector2=Tiles.tile_center(tile)
-            var context: Dictionary=Context.resolve(center.x,center.y,
+            var value: Dictionary=Context.resolve(center.x,center.y,
                 weather,0.8 if weather=="rain" else 0.0,WIND,SUN)
-            if str(context.get("material",""))==kind:
-                return {"lat":center.x,"lon":center.y}
-    return {}
+            if str(value.get("material",""))!=kind:
+                continue
+            var score: int=0
+            for offset in [Vector2i.RIGHT,Vector2i.LEFT,
+                    Vector2i.UP,Vector2i.DOWN]:
+                var neighbor: Dictionary=Tiles.neighbor(tile,offset.x,offset.y)
+                var near: Vector2=Tiles.tile_center(neighbor)
+                var next:Dictionary=Context.resolve(near.x,near.y,
+                    weather,0.8 if weather=="rain" else 0.0,WIND,SUN)
+                if str(next.get("material",""))==kind:
+                    score+=1
+            if score>best_score:
+                best_score=score
+                best={"lat":center.x,"lon":center.y}
+            if score==4:
+                return best
+    return best
 
 func _run() -> void:
     var scene: Variant=WorldScene.instantiate()
@@ -42,7 +61,7 @@ func _run() -> void:
         "visual study always disabled on scene startup")
     check(not scene.snapshot().has("material_review"),
         "preview save schema excludes ephemeral surface toggle")
-    var where: Dictionary=_select("snow")
+    var where: Dictionary=_find_interior("snow")
     check(not where.is_empty(),"native cartography yields a snow tile")
     if where.is_empty():
         scene.queue_free()
@@ -123,7 +142,7 @@ func _run() -> void:
     stream.refresh(scene.get_flight_state())
     check(str(stream.review_stats()["selected_key"])=="",
         "V low-quality bypass makes material opt-in entirely invisible")
-    var wet: Dictionary=_select("wet_ground")
+    var wet: Dictionary=_find_interior("wet_ground")
     check(not wet.is_empty(),"worldmap contains valid explicitly rain-wet land tile")
     if not wet.is_empty():
         var s: Dictionary=scene.snapshot()
