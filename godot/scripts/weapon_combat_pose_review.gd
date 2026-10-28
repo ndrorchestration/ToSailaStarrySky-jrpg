@@ -14,6 +14,7 @@ var weapon: Node2D
 var pose: Dictionary = {}
 var show_mannequin: bool = true
 var show_review_effects: bool = true
+var show_static_target: bool = true
 
 func _ready() -> void:
     weapon = Silhouette.new()
@@ -90,13 +91,15 @@ func _draw() -> void:
         var yy := 121.0 + float(i*10)
         draw_line(Vector2(-215,yy),Vector2(215,yy),Color("#698084",0.37),1.0)
     draw_line(Vector2(-216,113),Vector2(216,113),BRASS.darkened(0.52),3.0)
-    # A neutral physical target is not an authorized opponent.
-    draw_rect(Rect2(166,-66,9,182),Color("#716653"))
-    draw_circle(Vector2(170,-73),25.0,Color("#765944"))
-    draw_arc(Vector2(170,-73),18.0,0.0,TAU,32,BRASS,2.0)
-    draw_line(Vector2(151,-73),Vector2(189,-73),PAPER.darkened(0.35),2.0)
-    draw_line(Vector2(170,-92),Vector2(170,-54),PAPER.darkened(0.35),2.0)
-    draw_line(Vector2(146,111),Vector2(196,111),Color("#7e8e8e"),3.0)
+    # Legacy, physically distant target stays for previous review modes.
+    # Combat-pose alignment uses its own reachable training prop instead.
+    if show_static_target:
+        draw_rect(Rect2(166,-66,9,182),Color("#716653"))
+        draw_circle(Vector2(170,-73),25.0,Color("#765944"))
+        draw_arc(Vector2(170,-73),18.0,0.0,TAU,32,BRASS,2.0)
+        draw_line(Vector2(151,-73),Vector2(189,-73),PAPER.darkened(0.35),2.0)
+        draw_line(Vector2(170,-92),Vector2(170,-54),PAPER.darkened(0.35),2.0)
+        draw_line(Vector2(146,111),Vector2(196,111),Color("#7e8e8e"),3.0)
 
     var advance := float(pose.get("advance",0.0))
     var bob := float(pose.get("bob",0.0))
