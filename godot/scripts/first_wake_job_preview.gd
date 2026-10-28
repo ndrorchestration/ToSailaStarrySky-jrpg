@@ -40,7 +40,7 @@ var dock_background: Node2D
 var dock_foreground: Node2D
 var ship_spaces_handoff: Node2D
 var _ship_spaces_requested: bool = false
-var evidence_panel: Control
+var evidence_panel
 var headline: Label
 var objective: Label
 var hint: Label
