@@ -6,6 +6,7 @@ extends Node2D
 
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
+const RecoveryReviewScene = preload("res://scenes/first_wake_recovery_readiness_review.tscn")
 
 const SURFACE_Y := 410.0
 const FLOAT_BUOYANCY := 120.0
@@ -30,6 +31,8 @@ var sea_area: Area2D
 var status_label: Label
 var hint_label: Label
 var telemetry_label: Label
+var flight_overlay: CanvasLayer
+var recovery_review: Node2D
 var inspection_label: Label
 var postflight_dialogue_open: bool = false
 var postflight_dialogue_cursor: int = 0
@@ -93,7 +96,8 @@ func _ready() -> void:
     ship_body.add_child(wings)
     add_child(ship_body)
 
-    var ui := CanvasLayer.new()
+    flight_overlay = CanvasLayer.new()
+    var ui := flight_overlay
     ui.name = "FlightReviewOverlay"
     add_child(ui)
     status_label = _make_label(ui, Vector2(24, 20), 19)
@@ -133,9 +137,31 @@ func _draw() -> void:
     draw_rect(Rect2(0, 545, 960, 95), Color(0.04, 0.08, 0.16, 0.94))
 
 func _unhandled_input(event: InputEvent) -> void:
-    if event.is_action_pressed(InputPolicy.INTERACT) and not event.is_echo():
-        interact()
-        get_viewport().set_input_as_handled()
+    if event.is_echo() or recovery_review != null:
+        return
+    if event.is_action_pressed(InputPolicy.FLIGHT_REVIEW_LAUNCH):
+        if begin_recovery_readiness():
+            get_viewport().set_input_as_handled()
+        return
+    if event.is_action_pressed(InputPolicy.INTERACT):
+        if interact():
+            get_viewport().set_input_as_handled()
+
+func begin_recovery_readiness() -> bool:
+    if recovery_review != null or phase != "postflight_diagnosis" or opening == null:
+        return false
+    if not contact_observed or not stable_float_verified or not postflight_reserve_observed:
+        return false
+    if opening.step_key() != "postflight_diagnosis" or opening.active_party_ids != ["ender", "ionia"]:
+        return false
+    var candidate := RecoveryReviewScene.instantiate()
+    if not bool(candidate.call("configure_from_postflight", self)):
+        candidate.free()
+        return false
+    recovery_review = candidate
+    flight_overlay.visible = false
+    add_child(recovery_review)
+    return true
 
 func interact() -> bool:
     if phase == "awaiting_launch":
@@ -277,7 +303,7 @@ func _refresh_presentation() -> void:
             else:
                 hint_label.text = "WATERBORNE: crew safe afloat. E: inspect depleted fuel reserve and compare readings."
         "postflight_diagnosis":
-            hint_label.text = "POSTFLIGHT: empty reserve observed. Fuel composition/source UNKNOWN. Safe reunion route OPEN."
+            hint_label.text = "POSTFLIGHT: reserve observed empty; F: inspect shipboard recovery readiness (route remains OPEN)."
         _:
             hint_label.text = "Preflight scene required."
     queue_redraw()
