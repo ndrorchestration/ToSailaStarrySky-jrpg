@@ -321,6 +321,7 @@ func _run() -> void:
         "completed bench candidate persists only in separately versioned v2")
     verify(FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
         "even full bench stage never silently edits v1 physical evidence")
+    var candidate_for_cold_process: Dictionary = Extended.load(PATH,PATH_V2)
     # Separate scene-instance cold-start proxy: no in-memory Session, Actor,
     # party or Core object is reused from the previous live scene.
     var cold = Game.instantiate()
@@ -395,9 +396,17 @@ func _run() -> void:
 
     resumed.queue_free()
     await process_frame
-    for path in [PATH, PATH + ".tmp", PATH + ".bak", PATH_V2, PATH_V2 + ".tmp", PATH_V2 + ".bak"]:
-        if FileAccess.file_exists(path):
-            DirAccess.remove_absolute(path)
+    var keep_for_cold_process: bool = OS.get_cmdline_user_args().has("--retain-stage-save")
+    if keep_for_cold_process:
+        verify(Extended.save(candidate_for_cold_process,PATH,PATH_V2)
+            and Extended.load(PATH,PATH_V2).get("core",{}).get("phase") == "candidate",
+            "restore actual authored candidate for separate Godot OS-process replay")
+        print("TSTSS_CH1_COLD_PROCESS_FIXTURE_READY: v1_verified=true v2_candidate=true")
+    else:
+        for path in [PATH, PATH + ".tmp", PATH + ".bak",
+            PATH_V2, PATH_V2 + ".tmp", PATH_V2 + ".bak"]:
+            if FileAccess.file_exists(path):
+                DirAccess.remove_absolute(path)
     if errors.is_empty():
         print("TSTSS_FIRST_WAKE_GAME_ENTRY_PASS checks=", checks,
             " real_water_contact=true postflight_player=true",
