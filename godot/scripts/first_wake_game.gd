@@ -16,6 +16,7 @@ var game_stage: String = "uninitialized"
 var landing_hold: float = 0.0
 var checkpoint_path: String = Checkpoint.DEFAULT_PATH
 var transition_count: int = 0
+var pre_fullscreen_mode: Window.Mode = Window.MODE_WINDOWED
 
 func _ready() -> void:
     InputPolicy.ensure_defaults()
@@ -77,8 +78,11 @@ func _input(event: InputEvent) -> void:
         if event.keycode == KEY_F11 or (event.keycode == KEY_ENTER and event.alt_pressed):
             var window: Window = get_window()
             if window.mode == Window.MODE_FULLSCREEN or window.mode == Window.MODE_EXCLUSIVE_FULLSCREEN:
-                window.mode = Window.MODE_WINDOWED
+                # Returning from fullscreen must restore the user's prior
+                # maximized or windowed state, not force a small window.
+                window.mode = pre_fullscreen_mode
             else:
+                pre_fullscreen_mode = window.mode
                 window.mode = Window.MODE_FULLSCREEN
             get_viewport().set_input_as_handled()
             return

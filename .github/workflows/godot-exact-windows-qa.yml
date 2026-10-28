@@ -492,6 +492,34 @@ jobs:
           $before = (Get-FileHash -LiteralPath $payload -Algorithm SHA256).Hash
           $after = (Get-FileHash -LiteralPath $installed -Algorithm SHA256).Hash
           if ($before -ne $after) { throw "TSTSS_INSTALLER_INSTALLED_EXE_HASH_MISMATCH" }
+          $startMenuLink = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\To Sail the Starry Sky\First Wake Preview.lnk"
+          $desktopLink = Join-Path ([Environment]::GetFolderPath("Desktop")) "To Sail the Starry Sky (First Wake).lnk"
+          $shellLink = New-Object -ComObject WScript.Shell
+          foreach ($shortcutPath in @($startMenuLink, $desktopLink)) {
+            if (-not (Test-Path -LiteralPath $shortcutPath)) { throw "TSTSS_INSTALLER_SHORTCUT_MISSING:$shortcutPath" }
+            $shortcut = $shellLink.CreateShortcut($shortcutPath)
+            if (-not ([IO.Path]::GetFullPath([string]$shortcut.TargetPath)).Equals(
+              [IO.Path]::GetFullPath($installed), [StringComparison]::OrdinalIgnoreCase)) {
+              throw "TSTSS_INSTALLER_SHORTCUT_TARGET_WRONG:$shortcutPath"
+            }
+          }
+          $uninstallKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\ToSailTheStarrySky-FirstWake"
+          if (-not (Test-Path -LiteralPath $uninstallKey)) { throw "TSTSS_INSTALLER_ADD_REMOVE_PROGRAMS_REGISTRY_MISSING" }
+          $entry = Get-ItemProperty -LiteralPath $uninstallKey
+          if ($entry.DisplayName -notlike "To Sail the Starry Sky*" -or
+              $entry.UninstallString -notlike "*Uninstall-ToSailTheStarrySky.exe*") {
+            throw "TSTSS_INSTALLER_UNINSTALL_METADATA_WRONG"
+          }
+          Write-Host "TSTSS_INSTALLER_SHORTCUT_TARGETS=PASS"
+          Write-Host "TSTSS_INSTALLER_APPS_AND_FEATURES_REGISTRY=PASS"
+          # Re-running the setup may not replace the running app's files
+          # or user shortcuts without an explicit uninstall.
+          $reinstall = Start-Process -FilePath $setup -ArgumentList "/S" -Wait -PassThru
+          if ($reinstall.ExitCode -eq 0) { throw "TSTSS_INSTALLER_REFUSED_OVERWRITE_NOT_ENFORCED" }
+          if ((Get-FileHash -LiteralPath $installed -Algorithm SHA256).Hash -ne $after) {
+            throw "TSTSS_INSTALLER_REFUSED_OVERWRITE_MUTATED_INSTALLED_GAME"
+          }
+          Write-Host "TSTSS_INSTALLER_EXISTING_INSTALL_PROTECTED=PASS"
           $game = Start-Process -FilePath $installed -PassThru
           try {
             $deadline = (Get-Date).AddSeconds(30)
@@ -507,6 +535,35 @@ jobs:
               Start-Sleep -Milliseconds 300
             }
             if (-not $visible) { throw "TSTSS_INSTALLER_NATIVE_WINDOW_NOT_OBSERVED" }
+            # Test the *installed* executable as an actual Windows window,
+            # not a screenshot or Godot editor widget.
+            $nativeWindowSource = @'
+          using System;
+          using System.Runtime.InteropServices;
+          public static class FirstWakeWindowCheck {
+              [DllImport("user32.dll", SetLastError=true)]
+              public static extern int GetWindowLong(IntPtr hwnd, int index);
+              [DllImport("user32.dll", SetLastError=true)]
+              public static extern bool ShowWindow(IntPtr hwnd, int command);
+              [DllImport("user32.dll", SetLastError=true)]
+              public static extern bool IsZoomed(IntPtr hwnd);
+          }
+          '@
+            Add-Type -TypeDefinition $nativeWindowSource -ErrorAction Stop
+            $hwnd = [IntPtr]$proc.MainWindowHandle
+            $style = [FirstWakeWindowCheck]::GetWindowLong($hwnd, -16)
+            if (($style -band 0x00040000) -eq 0 -or ($style -band 0x00010000) -eq 0) {
+              throw "TSTSS_INSTALLER_NATIVE_WINDOW_NOT_RESIZABLE_MAXIMIZABLE"
+            }
+            [void][FirstWakeWindowCheck]::ShowWindow($hwnd, 3)
+            $maximized = $false
+            for ($i = 0; $i -lt 30; $i++) {
+              if ([FirstWakeWindowCheck]::IsZoomed($hwnd)) { $maximized = $true; break }
+              Start-Sleep -Milliseconds 200
+            }
+            if (-not $maximized) { throw "TSTSS_INSTALLER_NATIVE_WINDOW_MAXIMIZE_FAILED" }
+            [void][FirstWakeWindowCheck]::ShowWindow($hwnd, 9)
+            Write-Host "TSTSS_INSTALLER_NATIVE_WINDOW_MAXIMIZE_RESTORE=PASS"
             Write-Host "TSTSS_INSTALLER_FUNCTIONAL_INSTALL_AND_WINDOW=PASS"
           }
           finally {
@@ -517,6 +574,11 @@ jobs:
           if ((Test-Path -LiteralPath $installed) -or (Test-Path -LiteralPath $marker)) {
             throw "TSTSS_INSTALLER_UNINSTALL_LEFT_OWNED_FILES"
           }
+          foreach ($shortcutPath in @($startMenuLink, $desktopLink)) {
+            if (Test-Path -LiteralPath $shortcutPath) { throw "TSTSS_INSTALLER_UNINSTALL_LEFT_SHORTCUT:$shortcutPath" }
+          }
+          if (Test-Path -LiteralPath $uninstallKey) { throw "TSTSS_INSTALLER_UNINSTALL_LEFT_REGISTRY_ENTRY" }
+          Write-Host "TSTSS_INSTALLER_UNINSTALL_SHORTCUTS_AND_REGISTRY=PASS"
           Write-Host "TSTSS_INSTALLER_LOCAL_FUNCTIONAL_PROOF=PASS"
           Write-Host "TSTSS_INSTALLER_DEFENDER_QA=NOT_ESTABLISHED"
           Write-Host "PUBLIC_RELEASE_AUTHORIZED=NO"
