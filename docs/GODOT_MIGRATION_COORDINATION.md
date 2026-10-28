@@ -11,6 +11,12 @@
 - **Earlier JS planetary studies:** draft [#349](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/349), [#363](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/363). Preserve as evidence/visual reference; **no additional JS gameplay development**.
 - **Standalone higher-fidelity Godot artifact line:** tracked separately in Notion and #350. Do not reconstruct from textual hashes or assume the exact renderer ZIP is already in this GitHub repository.
 
+## Ship visuals → playable Godot: 2026-10-27 evidence boundary
+
+Public-safe draft [#478](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/478) verifies four membrane hinge roots; follow-up [#490](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/490) validates an opt-in wing pose timeline alongside weather and native landing boundaries. Both were exact-head Godot 4.7.2/CI-green in their own flight-lab stack, **not merged into Chapter I**. Separate native Chapter I [#497](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/497) admits a hidden, read-only ship-space preview into the actual Ionia-first job/engineering scene; it does not import the 3D wings.
+
+The [ship-pose production admission contract](SHIP_POSE_PROTOTYPE_TO_PRODUCTION_ADMISSION.md) is the next common review seam: first test a test-only renderer-independent pose cue in the real native Chapter I scene, proving unchanged storyline, saves, combat eligibility, boarding and input. Later accept a 3D rig only after hull/foredeck/bridge scale and collision reconciliation. Ship-space and flight-lab branches have distinct ancestry; never merge their scenes by copying whole project directories. No code or artifact from these drafts is current `main` gameplay authority.
+
 ## Safe integration sequence
 
 1. Fetch branch/PR states and the *exact* sources (not just agent summaries); choose a common ancestry, avoid overwriting other agents' changes.
