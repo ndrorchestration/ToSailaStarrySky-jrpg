@@ -39,3 +39,15 @@ The previous 183×290 crop/cover rectangle cut off useful source framing. P2 pre
 - Inherited official First Wake gameplay and Ionia native visual tests also passed at P2 exact code head; independent Windows Defender custody remains a separate release gate.
 - A local user-delivered **Visual P2** ZIP includes both unchanged verified JPEGs, a fresh-install PowerShell script for the exact older Godot First Wake source, an exact-hash safe upgrade script for prior patch users, and separately labeled image compositing mockups. The ZIP is **not** a Windows game installer and is **not** in public GitHub.
 - Still missing: actual native GL capture **with the creator JPG files installed**; explicit creator aesthetic approval; independent transparent 4-direction motion atlases; public-media-release permission and Windows installer security approval.
+
+## P3 — Above-dock cinematic portrait framing and local real-source capture
+
+The P2 screenshot revealed a portrait card overlapping the actual dock walking area. P3 fixes the placement: card `Rect2(704,122,236,258)`, **bottom y380**, fully above the dock physics area (begins near y405), while keeping the full **216×216 uncropped JPG**. Added modest speaker-specific frame accents, accurate `IONIA / CAPTAIN` and `ENDER / RIFT SCHOLAR` role captions, and input-transparent shadow. None of this edits original image bytes or field actors.
+
+**Native proof:** [official Godot 4.7.2 P3 source/collision/speaker+GL workflow](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40665118792), **PASS** at `f9ab9e8ee071071df21fa7bb78c98755b38f4bee`. Real 960×640 OpenGL frame hashes with **test-only synthetic colors**, from actual First Wake dock:
+- Ender: `5b7f6d2ffea214b6dd991e917e061b6cadeeb3f6910865cb054bdb65a028a5ea`
+- Ionia: `7b4772551c055d3f00eadae495856bd865626c0a27302759793bed1a4fae386d`
+
+**Real artwork validation:** `res://tests/capture_first_wake_creator_portrait_real_art.gd` is an **opt-in local-only capture script** (not run in public CI) that refuses absent or SHA-mismatched source portrait JPGs, runs the *real Ender flyer → Ionia interview* event path, captures two native 960×640 framebuffers to local `user://first_wake_native_portrait_evidence`, and checks rendered portrait changes and unchanged story party. A user-delivered Visual P3 ZIP contains two unchanged source-custody JPEGs, safe fresh/update scripts and a Windows PowerShell wrapper to run the native capture with a user-selected Godot 4.7.2 executable. No actual-source engine screenshot has yet been observed in this tool session; **native test-color PASS is not artist approval**.
+
+**Safety:** public PR remains source-code only, unmerged, no new party members, combat/magic/canon/landing/checkpoints, and no Windows release/Defender gate changes.
