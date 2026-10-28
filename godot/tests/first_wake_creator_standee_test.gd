@@ -40,6 +40,22 @@ func _run() -> void:
                 "must not pretend static art is six-frame animation")
             check(not e.walk_review_sprite.visible and not i.ionia_front_walk_sprite.visible,
                 "rejected provisional sprites must be hidden during source view")
+        # Exercise the actual player's P-key hook, not only low-level actor API.
+        e.enable_creator_standee(false)
+        i.enable_creator_standee(false)
+        var p_key := InputEventKey.new()
+        p_key.keycode = KEY_P
+        p_key.pressed = true
+        dock._unhandled_input(p_key)
+        if e.has_creator_standee() and i.has_creator_standee():
+            check(e.creator_standee_enabled and i.creator_standee_enabled,
+                "real input P did not turn on both source art candidates")
+            check("STATIC" in dock.party_label.text,
+                "HUD misrepresented source as completed walk animation")
+        else:
+            check(not e.creator_standee_enabled and not i.creator_standee_enabled,
+                "missing private art caused partial swap")
+        dock._unhandled_input(p_key)
         check(e.enable_creator_standee(false) and i.enable_creator_standee(false),
             "P must always restore previous art")
         check(not e.creator_standee_enabled and not i.creator_standee_enabled,
