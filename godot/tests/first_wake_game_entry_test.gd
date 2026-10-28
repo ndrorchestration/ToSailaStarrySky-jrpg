@@ -243,6 +243,8 @@ func _run() -> void:
     verify(family.interact()
         and not family.opening.active_party_ids.has("lyra"),
         "Lyra joins only after full family conversation")
+    verify(not resumed.save_game(),
+        "cannot save an interrupted conversation or skip Lyra's full introduction")
     verify(_finish_dialogue(family)
         and family.opening.active_party_ids == ["ender", "ionia", "lyra"],
         "first-flight session identity admits Lyra SECOND after mandatory reunion")
@@ -298,6 +300,8 @@ func _run() -> void:
     workshop.ender.position = workshop.CHART
     verify(workshop.interact() and workshop.analysis.open,
         "actual full F5 route opens accessible harmonic choice panel")
+    verify(not resumed.save_game(),
+        "modal harmonic analysis cannot be saved before a resolved choice")
     await capture_native_frame("08-interactive-harmonic-chart")
     verify(not workshop.submit_analysis(),"no automatic correct harmonic answer")
     verify(workshop.choose_analysis(1) and workshop.submit_analysis(),
@@ -317,6 +321,33 @@ func _run() -> void:
         "completed bench candidate persists only in separately versioned v2")
     verify(FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
         "even full bench stage never silently edits v1 physical evidence")
+    # Separate scene-instance cold-start proxy: no in-memory Session, Actor,
+    # party or Core object is reused from the previous live scene.
+    var cold = Game.instantiate()
+    root.add_child(cold)
+    await process_frame
+    cold.checkpoint_path = PATH
+    cold.chapter_progress_path = PATH_V2
+    verify(cold.load_game()
+        and cold.game_stage == "family_review"
+        and cold.family_review.repair_review != null
+        and cold.family_review.repair_review.core.snapshot()["phase"] == "candidate"
+        and cold.family_review.opening == cold.session.opening,
+        "new native Godot scene instance replays completed chapter from verified disk files")
+    verify(not cold.family_review.repair_review.core.snapshot()["can_launch"],
+        "fresh game instance restores no physical launch permission")
+    cold.queue_free()
+    await process_frame
+    # Same semantic v1 JSON with even one additional whitespace byte cannot
+    # certify a different v2-generation parent digest.
+    var different_parent := PATH + ".different-generation"
+    var different_file := FileAccess.open(different_parent,FileAccess.WRITE)
+    different_file.store_string(checkpoint_before_family + "\n")
+    different_file.close()
+    verify(Checkpoint.validate(Checkpoint.load(different_parent))
+        and Extended.load(different_parent,PATH_V2).is_empty(),
+        "valid-but-different v1 file bytes cannot silently inherit another v2 generation")
+    DirAccess.remove_absolute(different_parent)
     if capture_enabled:
         verify(captured.size() == 9, "all nine native chapter frames captured")
     verify(resumed.load_game()
@@ -334,6 +365,10 @@ func _run() -> void:
     tampered["party"] = ["ender","ionia","lyra","talen"]
     verify(not Extended.validate(tampered),
         "malicious child party grant rejected")
+    tampered = Extended.load(PATH,PATH_V2)
+    tampered["unapproved_discovery"] = "moon_bridge"
+    verify(not Extended.validate(tampered),
+        "unrecognized save keys cannot smuggle early geographic or story unlocks")
     tampered = Extended.load(PATH,PATH_V2)
     tampered["core"]["phase"] = "candidate"
     tampered["core"]["failed_retest"] = false
