@@ -207,6 +207,19 @@ func cycle_atmosphere_review() -> bool:
     _refresh_ui()
     return true
 
+func toggle_scenic_horizon_review() -> bool:
+    if not three_d_review_active:
+        return false
+    # Real player camera only. Nothing alters navigation/ship physics.
+    var scenic: bool = zone_camera.shot != 2
+    if not zone_camera.set_shot(2 if scenic else 0):
+        return false
+    last_review_message = (
+        "LOOKOUT CAMERA: Visual horizon study; not a navigation instrument."
+        if scenic else "Returned to normal crew follow camera.")
+    _refresh_ui()
+    return true
+
 func transient_review_contract() -> Dictionary:
     return {
         "schema": REVIEW_ID,
@@ -240,7 +253,7 @@ func _refresh_ui() -> void:
         review_label.position = Vector2(24, 24)
         review_label.text = "AUREATE WAKE / ORDINARY SHIP WALKTHROUGH — STUDY ONLY"
         instruction_label.text = (
-            "WASD / ARROWS walk   E hatch   F helm   G glass   C camera   V light   B return")
+            "WASD walk  E hatch  F helm  G glass  C camera  H horizon  V light  B return")
         instruction_label.visible = true
     else:
         review_label.position = Vector2(24, 148)
@@ -266,4 +279,7 @@ func _unhandled_input(event: InputEvent) -> void:
             get_viewport().set_input_as_handled()
     elif three_d_review_active and event.keycode == KEY_V:
         if cycle_atmosphere_review():
+            get_viewport().set_input_as_handled()
+    elif three_d_review_active and event.keycode == KEY_H:
+        if toggle_scenic_horizon_review():
             get_viewport().set_input_as_handled()
