@@ -2,6 +2,14 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Aureate Wake faceted-glass geodesic bridge — 2026-10-27
+
+**Creator-proposed visual direction, not yet approved exact geometry or final canon:** Place the **navigation/helm bridge inside a panoramic geodesic glass dome**—a compact crystal observatory integrated with the dragonfly-inspired hull, *not* an oversized flying greenhouse. Preserve the separately exposed forward observation deck outside the dome.
+
+Native image QA at the first successful head showed excessive lattice density and a visually oversized dome. A follow-up reduces the subdivision count, darkens/slims the frame and scales down the dome while keeping a genuine clipped icosphere, original glass panes, and the same story/collision boundaries.\n\nThe reversible `ship_geodesic_bridge.gd` study creates an actual **icosahedron subdivided once, clipped to an upper spherical cap**, with triangle-pane buffers, unique brass support edges batched into one native mesh, a brass base ring, and minimal warm/teal navigation instruments beneath the dome. The local shell is about 1.52 art-units wide and **does not establish metres**. The previous solid ivory cabin roof has been moved into a reduced aft fairing and three navigation vanes/repeating aft roof ribs are repositioned outside the main transparent viewpoint. New close-up captures are `evidence/ship-hero/geodesic-bridge-bow.png` and `geodesic-bridge-side.png`.
+
+**Critical engineering boundaries:** The glazing is a **visual shading mesh only**, not glass with measured strength, structural safety, impact tolerance or a physical pressure envelope. All triangle edges, base anchoring, frame stress, open-deck boarding, windshield glare/night readability, interior seated eye lines and compatibility with the independently meter-mapped boarding study require creator review and later physical validation. In particular the dome's brass ring is a decorative complete band; the existing exterior hull and geodesic glass **do not yet have a walkable/closable hatch opening**. Do not use this visual study to imply early discovery of restricted ship functions or approve dangerous weather exposure.
+
 ## Experimental crew boarding threshold — October 27, 2026
 
 **PROPOSAL / standalone physics study**, built on top of the public-safe deck in PR #452. Open `res://ship_boarding_interface.tscn` separately for the bow-to-cabin threshold proof; the main flight scene, landed-state logic, save files, and chapter story are unchanged.

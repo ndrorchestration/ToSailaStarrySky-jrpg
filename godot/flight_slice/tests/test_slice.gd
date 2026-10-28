@@ -3,6 +3,7 @@ extends SceneTree
 const TerrainStudy = preload("res://terrain.gd")
 const ShipStudy = preload("res://ship.gd")
 const ForedeckStudy = preload("res://ship_foredeck.gd")
+const GeodesicBridge = preload("res://ship_geodesic_bridge.gd")
 var failures: Array[String] = []
 var checks: int = 0
 
@@ -96,6 +97,52 @@ func _run_tests() -> void:
     _check(hull.mesh is ArrayMesh, "ship has a shaped original loft hull rather than an elongated primitive")
     var hull_points: PackedVector3Array = hull.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
     _check(hull_points.size() >= 500, "ship hull has distinct longitudinal stations")
+    var bridge = ship.get_node("GeodesicBridge") as GeodesicBridge
+    _check(bridge != null, "real geodesic glass bridge is mounted on the bow cabin")
+    var panes: MeshInstance3D = bridge.get_node("GeodesicGlass")
+    var framelines: MeshInstance3D = bridge.get_node("GeodesicFrame")
+    var collar: MeshInstance3D = bridge.get_node("BridgeBaseCollar")
+    _check(panes.mesh is ArrayMesh and framelines.mesh is ArrayMesh,
+        "glazing and structural struts are real authored native mesh buffers")
+    var pane_vertices: PackedVector3Array = panes.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+    var frame_vertices: PackedVector3Array = framelines.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+    _check(bridge.panel_count >= 35 and pane_vertices.size() == 3 * bridge.panel_count,
+        "clipped subdivided icosphere generates at least thirty-five large glass triangles")
+    _check(bridge.unique_frame_edges > 65 and
+        frame_vertices.size() >= bridge.unique_frame_edges * 15,
+        "deduplicated geodesic tessellation frames are real batched struts")
+    _check(collar.mesh is ArrayMesh and
+        collar.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size() >= 200,
+        "glass dome has its own continuous brass foot ring")
+    _check(panes.material_override is StandardMaterial3D and
+        panes.material_override.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA,
+        "faceted cabin glazing is genuinely translucent")
+    var min_height: float = INF
+    var max_height: float = -INF
+    var outward: bool = true
+    for index in range(0, pane_vertices.size(), 3):
+        var p0: Vector3 = pane_vertices[index]
+        var p1: Vector3 = pane_vertices[index + 1]
+        var p2: Vector3 = pane_vertices[index + 2]
+        min_height = minf(min_height, minf(p0.y, minf(p1.y, p2.y)))
+        max_height = maxf(max_height, maxf(p0.y, maxf(p1.y, p2.y)))
+        var normal: Vector3 = (p1 - p0).cross(p2 - p0)
+        if (normal.length_squared() <= 0.000000001
+                or normal.dot((p0 + p1 + p2) / 3.0
+                    - Vector3.UP * GeodesicBridge.CENTER_Y) <= 0.0):
+            outward = false
+    _check(min_height >= GeodesicBridge.BASE_Y - 0.0001 and
+        max_height > 1.08 and outward,
+        "glazing forms an outward-facing clipped upper dome, not a sphere primitive")
+    _check(bridge.get_node("BridgeNavigationConsole") is MeshInstance3D and
+        bridge.get_node("BridgeHarmonicCompass") is MeshInstance3D,
+        "helm instruments exist inside the faceted glass canopy")
+    _check(ship.get_node("UpperCabin").position.z > 0.75,
+        "solid ivory cabin fairing now sits aft of the glass helm")
+    for vane in range(3):
+        _check(ship.get_node("VaneMast_%s" % vane).position.z > 0.35,
+            "navigation vane stays aft of the clear bow-dome view")
+
     var deck = ship.get_node("Foredeck") as ForedeckStudy
     _check(deck.get_node("OpenPlatform") is MeshInstance3D,
         "forward open-air observation platform is real native geometry")

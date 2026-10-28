@@ -7,7 +7,9 @@ const SHOTS = [
     ["stern-quarter", Vector3(-7.0, 2.8, 7.0), 45.0],
     ["wing-planform", Vector3(2.5, 10.5, 2.0), 50.0],
     ["foredeck-open", Vector3(2.2, 1.8, -4.2), 37.0],
-    ["foredeck-weather-cover", Vector3(2.2, 1.8, -4.2), 37.0]
+    ["foredeck-weather-cover", Vector3(2.2, 1.8, -4.2), 37.0],
+    ["geodesic-bridge-bow", Vector3(3.0, 2.0, -4.2), 34.0],
+    ["geodesic-bridge-side", Vector3(4.8, 2.1, -1.2), 39.0]
 ]
 
 func _initialize() -> void:

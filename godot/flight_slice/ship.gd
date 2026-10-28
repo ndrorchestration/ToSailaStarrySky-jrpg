@@ -6,6 +6,7 @@ extends Node3D
 var _course_yaw: float = 0.0
 const WING_NAMES = ["PortFore", "PortAft", "StarboardFore", "StarboardAft"]
 const ForedeckStudy = preload("res://ship_foredeck.gd")
+const GeodesicBridge = preload("res://ship_geodesic_bridge.gd")
 
 func set_course(yaw: float) -> void:
     _course_yaw = yaw
@@ -37,7 +38,14 @@ func _ready() -> void:
     hull.material_override = rootwood
     add_child(hull)
     _part("Keel", Vector3(0.0, -0.34, 0.15), Vector3(0.18, 0.20, 1.82), dark_bronze)
-    _part("UpperCabin", Vector3(0.0, 0.42, 0.05), Vector3(0.38, 0.22, 0.98), ivory)
+    # The old one-piece ivory roof is shortened into an AFT cabin fairing,
+    # giving the helm a genuine faceted glass silhouette without erasing its hull.
+    _part("UpperCabin", Vector3(0.0, 0.42, 1.08),
+        Vector3(0.38, 0.22, 0.46), ivory)
+    var bridge := GeodesicBridge.new()
+    bridge.name = "GeodesicBridge"
+    bridge.position = Vector3(0.0, 0.0, -0.50)
+    add_child(bridge)
     _part("ForwardNose", Vector3(0.0, 0.04, -2.13), Vector3(0.36, 0.19, 0.44), brass)
     # Creator-directed ordinarily open bow overlook. Visual-only local-scale
     # surface; no physical walkable deck, ship sealing or progression controls.
@@ -80,7 +88,7 @@ func _ready() -> void:
 
     # Segmented roof ribs break the undifferentiated white-capsule cabin.
     for index in range(4):
-        var z: float = -0.75 + float(index) * 0.51
+        var z: float = 0.66 + float(index) * 0.30
         _rod(self, "CabinRoofBow_Port_%s" % index,
             Vector3(-0.38, 0.46, z),
             Vector3(0.0, 0.69, z), 0.021, brass)
@@ -90,7 +98,7 @@ func _ready() -> void:
 
     # Three modest navigational vanes, not full-size galleon masts.
     for index in range(3):
-        var z: float = -1.08 + float(index) * 1.09
+        var z: float = 0.86 + float(index) * 0.51
         var height: float = 0.91 if index != 1 else 1.21
         _rod(self, "VaneMast_%s" % index,
             Vector3(0.0, 0.53, z), Vector3(0.0, height, z), 0.035, brass)
