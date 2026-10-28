@@ -156,8 +156,8 @@ func _run() -> void:
         dock._unhandled_input(o_key)
         check(not ender.creator_motion_enabled and not ionia.creator_motion_enabled,
             "O cannot revert motion preview")
-        check(ender.walk_review_sprite.visible and ionia.ionia_west_walk_sprite.visible,
-            "O did not restore exact preexisting facing sprite fallback")
+        check(ender.walk_west_sprite.visible and ionia.ionia_north_walk_sprite.visible,
+            "O did not restore correct *current* facing sprite fallback")
 
     # Tamper checks are performed AFTER the live test so fixture changes cannot
     # give false success to the actual actor integration.
