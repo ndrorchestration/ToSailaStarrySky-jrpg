@@ -167,6 +167,10 @@ func _run() -> void:
         and game.postflight.ender.player_controlled, "playable Ender regains shipboard control")
     check(game.session.safe_local_berth_recorded,
         "live session retains genuine local berth receipt during this game")
+    # Save only the valid v1 postflight snapshot BEFORE the session-only
+    # family scene. F9 must discard berth/reunion, never fabricate custody.
+    check(game.save_game() and Checkpoint.validate(Checkpoint.load(TEST_PATH)),
+        "legitimate postflight v1 saved before optional family review")
     var deck_again = game.postflight
     check(not game._enter_family_review(),
         "game cannot advance family stage without a real player request")
