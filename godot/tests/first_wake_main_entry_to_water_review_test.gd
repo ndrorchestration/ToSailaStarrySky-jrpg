@@ -164,7 +164,7 @@ func _verify() -> void:
         return
     var arrived := false
     for i in range(420):
-        await process_frame
+        await physics_frame
         if flight.phase == "berth_contact":
             arrived = true
             break
@@ -176,7 +176,7 @@ func _verify() -> void:
         return
     var moored := false
     for i in range(240):
-        await process_frame
+        await physics_frame
         if flight.phase == "berth_ready":
             moored = true
             break

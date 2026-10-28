@@ -70,7 +70,7 @@ func _capture() -> void:
         return
     var contact := false
     for i in range(420):
-        await process_frame
+        await physics_frame
         if flight.phase == "berth_contact":
             contact = true
             break
@@ -86,7 +86,7 @@ func _capture() -> void:
         return
     var secured := false
     for i in range(230):
-        await process_frame
+        await physics_frame
         if flight.phase == "berth_ready":
             secured = true
             break

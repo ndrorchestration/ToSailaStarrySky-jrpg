@@ -119,17 +119,60 @@ func _draw() -> void:
     draw_rect(Rect2(0, 0, 960, 640), Color("#173649") if water_side else Color("#293e45"))
     if water_side:
         draw_rect(Rect2(0, 270, 960, 125), Color("#326979"))
+        # Matched distant shore haze with the flight and family compositions.
+        for mist in range(10):
+            var mist_y := 287.0 + float(mist) * 9.0
+            draw_line(Vector2(0, mist_y), Vector2(960, mist_y - 3.0), Color(0.90, 0.84, 0.71, 0.015 + float(mist) * 0.004), 2.0)
         for x in [45.0, 205.0, 365.0, 525.0, 685.0, 845.0]:
             draw_arc(Vector2(x, 368), 54, 0, PI, 20, Color("#92c9ca"), 2.0)
         draw_line(Vector2(0, 396), Vector2(960, 396), Color("#b8dad2"), 3.0)
     else:
-        draw_rect(Rect2(78, 235, 804, 160), Color("#445761"))
+        # Deep warehouse perspective: structural bays, overhead girders,
+        # lit narrow windows and recessed loading doors. Scenic only.
+        draw_rect(Rect2(78, 235, 804, 160), Color("#304854"))
+        draw_rect(Rect2(92, 249, 778, 12), Color("#746c5a"))
         for x in [135.0, 320.0, 505.0, 690.0]:
-            draw_rect(Rect2(x, 268, 140, 113), Color("#5a6663"))
+            draw_rect(Rect2(x - 10, 262, 160, 120), Color("#273d48"))
+            draw_rect(Rect2(x, 268, 140, 113), Color("#56636a"))
+            draw_rect(Rect2(x + 11, 278, 118, 92), Color("#34434b"))
             draw_line(Vector2(x + 9, 318), Vector2(x + 131, 318), Color("#c1a47c"), 2.0)
-    draw_rect(Rect2(0, 396, 960, 147), Color("#6e5b4a") if water_side else Color("#635749"))
+            for slat in range(4):
+                var slat_y := 329.0 + float(slat) * 11.0
+                draw_line(Vector2(x + 16, slat_y), Vector2(x + 124, slat_y), Color("#697477"), 1.0)
+            draw_rect(Rect2(x + 50, 279, 40, 13), Color("#b5aa83"))
+            draw_rect(Rect2(x + 53, 282, 34, 7), Color("#d9c18b", 0.34))
+        draw_line(Vector2(92, 249), Vector2(870, 249), Color("#b89e79"), 2.0)
+        for beam in range(8):
+            var bx := 106.0 + float(beam) * 106.0
+            draw_line(Vector2(bx, 256), Vector2(bx + 52, 236), Color("#71858a"), 2.0)
+    # Shared authored surface kit across the quay and stores annex;
+    # strictly below the navigable actor and existing custody stations.
+    draw_rect(Rect2(0, 396, 960, 147), Color("#665443") if water_side else Color("#514e46"))
     for y in [417.0, 443.0, 469.0, 495.0, 521.0]:
-        draw_line(Vector2(63, y), Vector2(900, y), Color("#907d68"), 1.0)
+        draw_line(Vector2(0, y), Vector2(960, y - 4), Color("#a58b69") if water_side else Color("#89908b"), 1.5)
+        draw_line(Vector2(0, y + 4), Vector2(960, y), Color("#312e2c", 0.65), 1.0)
+    for row_idx in range(5):
+        for section in range(9):
+            var px := 31.0 + float(section) * 118.0 + float(row_idx % 2) * 50.0
+            var py := 415.0 + float(row_idx) * 26.0
+            draw_line(Vector2(px, py), Vector2(px - 5.0, py + 21.0), Color("#282e30", 0.46), 1.0)
+    if water_side:
+        for post in range(7):
+            var hx := 58.0 + float(post) * 146.0
+            draw_line(Vector2(hx, 376), Vector2(hx, 406), Color("#263f48"), 4.0)
+            draw_line(Vector2(hx - 19, 379), Vector2(hx + 19, 379), Color("#ba9c73"), 2.0)
+        for spark in range(22):
+            var sx := float(spark) * 45.0
+            var sy := 302.0 + float(spark % 4) * 19.0
+            draw_line(Vector2(sx, sy), Vector2(sx + 14, sy), Color(0.77, 0.92, 0.89, 0.22), 1.0)
+    else:
+        for truss in range(7):
+            var tx := 93.0 + float(truss) * 128.0
+            draw_line(Vector2(tx, 246), Vector2(tx + 34, 380), Color("#293e47"), 3.0)
+            draw_line(Vector2(tx + 34, 380), Vector2(tx + 75, 251), Color("#77817c", 0.65), 1.5)
+        for glow_x in [178.0, 462.0, 752.0]:
+            draw_circle(Vector2(glow_x, 285), 19, Color(1.0, 0.76, 0.48, 0.055))
+            draw_circle(Vector2(glow_x, 285), 4, Color("#eec18c"))
     draw_rect(Rect2(0, 0, 960, 159), Color("#0c1b2c"))
     draw_rect(Rect2(0, 547, 960, 93), Color("#0c1b2c"))
     if water_side:
@@ -145,7 +188,35 @@ func _draw() -> void:
 
 func _station(pos: Vector2, label: String, item_id: String, color: Color) -> void:
     var already_taken: bool = item_id != "" and item_id in core.recovered
-    draw_rect(Rect2(pos + Vector2(-35, -90), Vector2(70, 58)), Color("#3b675f") if already_taken else color)
+    # Recognizable silhouettes replace the earlier single flat placeholder
+    # rectangles; positions and physical pickup permissions are unchanged.
+    var left := pos.x - 35.0
+    var top := pos.y - 90.0
+    draw_rect(Rect2(left - 3, top + 54, 76, 5), Color("#27383e", 0.65))
+    if item_id == "recovered_supply":
+        draw_rect(Rect2(left, top + 9, 70, 46), Color("#614c3a") if not already_taken else Color("#355a55"))
+        draw_colored_polygon(PackedVector2Array([
+            Vector2(left - 3, top + 10), Vector2(left + 14, top),
+            Vector2(left + 60, top), Vector2(left + 73, top + 10)
+        ]), Color("#c8a171"))
+        for strap in [12.0, 53.0]:
+            draw_line(Vector2(left + strap, top + 9), Vector2(left + strap, top + 51), Color("#c3a66a"), 3.0)
+        draw_rect(Rect2(left + 28, top + 24, 15, 11), Color("#d1bc8a"))
+    elif item_id == "recovered_part":
+        draw_circle(pos + Vector2(0, -63), 26, Color("#334953"))
+        draw_arc(pos + Vector2(0, -63), 24, 0, TAU, 24, Color("#c6b899"), 5.0)
+        draw_circle(pos + Vector2(0, -63), 12, Color("#8ac4c7"))
+        for tooth in range(8):
+            var angle := TAU * float(tooth) / 8.0
+            draw_line(pos + Vector2(cos(angle), sin(angle)) * 22 + Vector2(0, -63), pos + Vector2(cos(angle), sin(angle)) * 33 + Vector2(0, -63), Color("#d7c099"), 5.0)
+    else:
+        draw_colored_polygon(PackedVector2Array([
+            Vector2(left, top + 54), Vector2(left, top + 19),
+            Vector2(left + 35, top), Vector2(left + 70, top + 19),
+            Vector2(left + 70, top + 54)
+        ]), Color("#446773") if not already_taken else Color("#3b675f"))
+        draw_line(Vector2(left + 12, top + 27), Vector2(left + 58, top + 27), Color("#d6bd8c"), 3.0)
+        draw_circle(Vector2(left + 35, top + 39), 7, Color("#aad4cf"))
     draw_string(ThemeDB.fallback_font, pos + Vector2(-80, -99), label, HORIZONTAL_ALIGNMENT_LEFT, 162, 14, Color("#f9e8c8"))
     if already_taken:
         draw_line(pos + Vector2(-20, -63), pos + Vector2(20, -39), Color("#e7f0d7"), 3.0)

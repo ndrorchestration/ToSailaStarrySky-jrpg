@@ -170,6 +170,13 @@ func _draw() -> void:
         draw_circle(Vector2(754, 184), radius, Color(0.98, 0.84, 0.66, alpha))
     draw_circle(Vector2(754, 184), 30.0, Color("#ffe3b1"))
     draw_circle(Vector2(754, 184), 24.0, Color("#fff0c9"))
+    # Subtle optical streaks and distant haze are deliberately fixed to
+    # this review composition, not simulated sun position or world time.
+    draw_line(Vector2(690, 184), Vector2(819, 184), Color(1.0, 0.86, 0.65, 0.055), 1.0)
+    draw_line(Vector2(754, 122), Vector2(754, 246), Color(1.0, 0.91, 0.71, 0.047), 1.0)
+    for haze_band in range(8):
+        var haze_y := 321.0 + float(haze_band) * 5.2
+        draw_line(Vector2(0, haze_y), Vector2(960, haze_y - 2.0), Color(0.91, 0.81, 0.68, 0.012 + float(haze_band) * 0.004), 2.0)
     # Broken wisps and thin, depth-ordered strata instead of rounded circles.
     # This is artwork-layer fog, not a simulated weather or cloud system.
     for index in range(7):
@@ -186,12 +193,46 @@ func _draw() -> void:
     for index in range(4):
         var y := 285.0 + float(index) * 12.0
         draw_line(Vector2(0, y), Vector2(960, y - 5), Color(0.94, 0.85, 0.70, 0.035), 2.0)
+    # Three depth-separated coastal silhouettes are authored screen-space art.
+    # They never affect the water sensor, berth region or collision geometry.
     draw_colored_polygon(PackedVector2Array([
-        Vector2(0, 366), Vector2(94, 358), Vector2(201, 370),
-        Vector2(338, 359), Vector2(472, 371), Vector2(632, 354),
-        Vector2(748, 360), Vector2(865, 349), Vector2(960, 357),
+        Vector2(0, 372), Vector2(75, 363), Vector2(140, 368),
+        Vector2(223, 355), Vector2(307, 367), Vector2(388, 357),
+        Vector2(492, 365), Vector2(581, 352), Vector2(680, 361),
+        Vector2(755, 349), Vector2(857, 357), Vector2(960, 344),
         Vector2(960, SURFACE_Y), Vector2(0, SURFACE_Y),
-    ]), Color("#627a7a"))
+    ]), Color("#82928c"))
+    draw_colored_polygon(PackedVector2Array([
+        Vector2(0, 391), Vector2(61, 376), Vector2(119, 383),
+        Vector2(195, 369), Vector2(280, 382), Vector2(350, 371),
+        Vector2(445, 386), Vector2(536, 369), Vector2(620, 382),
+        Vector2(714, 368), Vector2(801, 377), Vector2(895, 362),
+        Vector2(960, 370), Vector2(960, SURFACE_Y), Vector2(0, SURFACE_Y),
+    ]), Color("#526f72"))
+    # Distant quay roofs and intermittent headland lanterns remain silhouettes:
+    # scenic architecture only; there are no enterable buildings here.
+    for index in range(9):
+        var cx := 37.0 + float(index) * 118.0
+        var roof_y := 379.0 - float(index % 3) * 5.0
+        draw_colored_polygon(PackedVector2Array([
+            Vector2(cx - 23, roof_y + 11), Vector2(cx - 19, roof_y),
+            Vector2(cx, roof_y - 8), Vector2(cx + 20, roof_y),
+            Vector2(cx + 24, roof_y + 11),
+        ]), Color("#304d58"))
+        draw_rect(Rect2(cx - 17, roof_y + 10, 34, 16), Color("#35535a"))
+        draw_line(Vector2(cx - 20, roof_y + 1), Vector2(cx, roof_y - 8), Color("#a28f78", 0.6), 1.0)
+        draw_rect(Rect2(cx + 7, roof_y + 13, 3, 4), Color("#e7c68e", 0.6))
+    draw_colored_polygon(PackedVector2Array([
+        Vector2(0, 403), Vector2(83, 394), Vector2(156, 400),
+        Vector2(237, 391), Vector2(335, 402), Vector2(432, 390),
+        Vector2(533, 402), Vector2(623, 389), Vector2(733, 399),
+        Vector2(832, 390), Vector2(960, 397),
+        Vector2(960, SURFACE_Y), Vector2(0, SURFACE_Y),
+    ]), Color("#304f60"))
+    for index in range(24):
+        var glint_x := float(index) * 43.0 + 8.0
+        var glint_y := 400.0 + float(index % 4) * 2.0
+        draw_line(Vector2(glint_x, glint_y), Vector2(glint_x + 12.0, glint_y), Color(0.83, 0.84, 0.70, 0.12), 1.0)
     draw_line(Vector2(0, SURFACE_Y), Vector2(960, SURFACE_Y), Color("#b9d4c5"), 2.0)
     if phase in ["recovery_approach", "berth_contact", "berth_securing", "berth_ready"]:
         draw_rect(Rect2(864, SURFACE_Y - 4, 96, 134), Color("#806d57"))
