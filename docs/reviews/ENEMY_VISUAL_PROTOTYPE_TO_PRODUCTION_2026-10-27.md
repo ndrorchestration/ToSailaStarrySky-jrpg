@@ -40,6 +40,12 @@ Guards: exact version and IDs, monotonically unique `resolution_id`, numeric HP 
 
 **P3: Production candidate.** Port the reviewed scene+assets into the selected Godot main integration branch with an asset manifest, deterministic replay tests, controller/keyboard/text accessibility, target-hardware performance and creator signoff. Merge/release are separate human authorization gates.
 
+### P1.1 follow-on: visible full-staff contact geometry (draft #516)
+
+**Actual verified first pass:** [native Godot run 40630269682](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630269682) at source SHA `986c5abf4a2c9c0ec306aa3080f982eedabff8ff` proves the same existing 168-unit staff ferrule can meet a *review-only optical* Wind Shear surface with ≤2 display-pixel separation; the standing actor is visible before the action, its world root stays planted, and the single real battle resolution remains unchanged. All four authentic 960×640 captures and the no-teleport test passed. The shaft is not shortened; this is not collision, a combat hitbox or an approved enemy contact frame.
+
+**Accessibility refinement submitted separately:** source SHA `9def9d5f4a1a03249ed4329de5dc42bc60565b0a` keeps Ender's planted position fixed in **reduced-motion** mode, avoiding the previously visible jump and suppressing the optical contact mark. Its own CI must finish before applying PASS to that latest source head. Full authored approach, recovery and camera choreography remain **OPEN**. The neutral lab continues to use only reviewed art and a noncanonical existing enemy fixture.
+
 ## 3. CI and evidence gates (do not collapse categories)
 
 | Gate | Pass evidence | Present result |
