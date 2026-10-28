@@ -24,14 +24,14 @@ func _finish_dialogue(world: Node) -> bool:
     return not world.dialogue_open
 
 func _verify() -> void:
-    var packed: PackedScene = load("res://scenes/first_wake_job_preview.tscn")
+    var packed: PackedScene = load("res://scenes/first_wake_integrated_p01.tscn")
     if not require(packed != null, "actual job preview scene available"):
         _finish()
         return
     var scene = packed.instantiate()
     root.add_child(scene)
     await process_frame
-    var before_party: Array[String] = scene.opening.active_party_ids.duplicate()
+    var before_party: Array = scene.opening.active_party_ids.duplicate()
     require(before_party == ["ender"], "starts with Ender alone")
     require(not scene.launch_flight_review(), "no premature flight or free party")
     scene.ender.position = scene.IONIA_DOCK_POSITION
