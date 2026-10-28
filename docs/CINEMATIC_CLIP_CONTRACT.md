@@ -204,3 +204,11 @@ A clip is runtime-ready only when:
 - failure path works;
 - transition back to gameplay works;
 - visual continuity review passes.
+
+## Aureate Wake motion: in-engine first, cinematic overlay second (2026-10-27 addendum)
+
+Routine wing movement, small mechanical reactions, wing reefing for ordinary weather, and the ship's gentle personality cues should be **runtime Godot visual states**, not mandatory pre-rendered videos. Reuse the source-reviewed neutral wing pose and timeline API ([#478](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/478), [#490](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/490)) after actual ship-scene admission. The present [#507](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/507) native Chapter I adapter is a **test-only renderer handshake**, not a video or 3D player cutscene.
+
+For a production-approved ordinary ship-response cinematic, require a shot list and native time-synchronized camera, environment-grade, pose, ship motion, audio and interruption states. Verify a still/reduced-motion alternative, return to controls, focus/character readability, and visual consistency across gameplay/cutscene boundaries. Video clips may enhance authored key moments only when they do not replace physical flight, boarding or progression authority.
+
+No late-game revelation, concealed ship mode or protected route information belongs in this public file or its screenshots. Maintain separate creator review and media-provenance gates.
