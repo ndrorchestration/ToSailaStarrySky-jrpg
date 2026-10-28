@@ -6,6 +6,7 @@ const Actor = preload("res://scripts/pilot_actor.gd")
 const DockDepthReview = preload("res://scripts/dock_depth_review.gd")
 const TrainingArena = preload("res://scenes/training_arena.tscn")
 const CharacterLineupReview = preload("res://scripts/character_lineup_review.gd")
+const CharacterVisualP01 = preload("res://scripts/first_wake_character_visual_p01.gd")
 const IoniaUnapprovedArt = preload("res://art-review/ionia-original-v01-green-eyes.svg")
 const IoniaAlignmentReview = preload("res://art-review/ionia-cream-leather-review.svg")
 const WALKABLE_DECK = Rect2(Vector2(145, 410), Vector2(670, 112))
@@ -25,6 +26,8 @@ var deck_backdrop: Node2D
 var deck_foreground: Node2D
 var character_lineup_review_enabled: bool = false
 var character_lineup_review: Control
+var p01_character_visual: Node
+var p01_visual_parent: Node2D
 
 func _ready() -> void:
     deck_backdrop = DockDepthReview.new()
@@ -35,6 +38,10 @@ func _ready() -> void:
     actors.name = "YSortedActors"
     actors.y_sort_enabled = true
     add_child(actors)
+    p01_visual_parent = actors
+    p01_character_visual = CharacterVisualP01.new()
+    p01_character_visual.name = "P01OptInCharacterVisualAdapter"
+    add_child(p01_character_visual)
 
     var player = Actor.new()
     player.name = "EnderPilot"
@@ -68,7 +75,7 @@ func _ready() -> void:
     status = Label.new()
     status.position = Vector2(28, 28)
     status.add_theme_font_size_override("font_size", 15)
-    status.text = "AETHERWAKE / GODOT PILOT — REVIEW ONLY\nArrows: move   E: talk   B: arena   R: Ender   G: dock depth   L: lineup\nV/C: original/aligned Ionia   T: front walk   Y: four-way Ionia (unapproved)"
+    status.text = "AETHERWAKE / GODOT PILOT — REVIEW ONLY\nArrows: move   E: talk   B: arena   R: Ender   G: dock depth   L: lineup\nV/C: Ionia candidate   T/Y: Ionia walk   F6: isolated Lyra visual test"
     ui.add_child(status)
     dialogue = Label.new()
     dialogue.position = Vector2(100, 555)
@@ -106,6 +113,9 @@ func _draw() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
     if not (event is InputEventKey) or not event.pressed or event.echo:
+        return
+    if event.keycode == KEY_F6 and not character_lineup_review_enabled:
+        set_character_visual_p01_enabled(not is_character_visual_p01_enabled())
         return
     if event.keycode == KEY_L:
         set_character_lineup_review_enabled(not character_lineup_review_enabled)
@@ -165,6 +175,19 @@ func _unhandled_key_input(event: InputEvent) -> void:
         dialogue_open = false
         dialogue.visible = false
 
+
+func set_character_visual_p01_enabled(enabled: bool) -> void:
+    if p01_character_visual == null:
+        return
+    p01_character_visual.call("set_review_enabled", enabled, p01_visual_parent)
+
+func is_character_visual_p01_enabled() -> bool:
+    return p01_character_visual != null and bool(p01_character_visual.call("is_review_enabled"))
+
+func get_character_visual_p01_actor() -> CharacterBody2D:
+    if p01_character_visual == null:
+        return null
+    return p01_character_visual.call("get_review_actor") as CharacterBody2D
 
 func set_character_lineup_review_enabled(enabled: bool) -> void:
     # Review-only overlay: no movement, dialogues or gameplay state changes.
