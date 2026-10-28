@@ -3,8 +3,8 @@ extends Node3D
 ## No buoyancy, ocean traversal, weather forecast or secret vessel controls.
 const VISUAL_STATUS := "REVIEW_ONLY_NOT_SEAWORTHINESS"
 const SEA_LEVEL_M: float = -0.95
-const SEA_RADIUS_M: float = 150.0
-const HORIZON_RADIUS_M: float = 165.0
+const SEA_RADIUS_M: float = 240.0
+const HORIZON_RADIUS_M: float = 240.0
 var ocean: MeshInstance3D
 var atmosphere: WorldEnvironment
 var sky_energy: float = 0.0
@@ -21,10 +21,10 @@ func _make_sky() -> void:
     env.background_mode = Environment.BG_SKY
     var sky := Sky.new()
     var shader := ProceduralSkyMaterial.new()
-    shader.sky_top_color = Color(0.08, 0.23, 0.38)
-    shader.sky_horizon_color = Color(0.64, 0.71, 0.69)
+    shader.sky_top_color = Color(0.07, 0.19, 0.32)
+    shader.sky_horizon_color = Color(0.70, 0.74, 0.69)
     shader.ground_bottom_color = Color(0.09, 0.24, 0.32)
-    shader.ground_horizon_color = Color(0.46, 0.65, 0.67)
+    shader.ground_horizon_color = Color(0.42, 0.64, 0.65)
     shader.sun_angle_max = 26.0
     sky.sky_material = shader
     env.sky = sky
@@ -41,32 +41,51 @@ func _make_sea() -> void:
     ocean.position = Vector3(0, SEA_LEVEL_M, 0)
     var plane := PlaneMesh.new()
     plane.size = Vector2(SEA_RADIUS_M * 2.0, SEA_RADIUS_M * 2.0)
-    plane.subdivide_width = 4
-    plane.subdivide_depth = 4
+    plane.subdivide_width = 112
+    plane.subdivide_depth = 112
     ocean.mesh = plane
     var material := ShaderMaterial.new()
     var shader := Shader.new()
     shader.code = """
 shader_type spatial;
 render_mode cull_disabled, diffuse_burley, specular_schlick_ggx;
-uniform vec4 shallow_color : source_color = vec4(0.12, 0.38, 0.45, 1.0);
-uniform vec4 deep_color : source_color = vec4(0.025, 0.15, 0.24, 1.0);
-uniform float wave_height = 0.075;
-uniform float wave_speed = 0.28;
-varying float foam_mask;
+uniform vec4 ocean_deep : source_color = vec4(0.025, 0.15, 0.22, 1.0);
+uniform vec4 ocean_ridge : source_color = vec4(0.11, 0.40, 0.47, 1.0);
+uniform vec4 horizon_mist : source_color = vec4(0.38, 0.61, 0.64, 1.0);
+uniform float wave_height = 0.105;
+uniform float wave_speed = 0.37;
+varying vec2 sea_position;
+varying float wave_crest;
 void vertex() {
-    float long_wave = sin(VERTEX.x * 0.095 + TIME * wave_speed) * cos(VERTEX.z * 0.07 - TIME * wave_speed * 0.73);
-    float short_wave = sin(VERTEX.x * 0.64 - TIME * 0.51) * sin(VERTEX.z * 0.43 + TIME * 0.37);
-    VERTEX.y += wave_height * (long_wave + 0.18 * short_wave);
-    foam_mask = abs(short_wave) * 0.15;
+    vec3 world_vertex = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+    sea_position = world_vertex.xz;
+    float broad = sin(world_vertex.x * 0.15 + world_vertex.z * 0.105 + TIME * wave_speed);
+    float cross_wave = sin(world_vertex.x * 0.21 - world_vertex.z * 0.17 - TIME * wave_speed * 0.62);
+    VERTEX.y += wave_height * (broad * 0.66 + cross_wave * 0.34);
+    wave_crest = broad * 0.5 + 0.5;
 }
 void fragment() {
-    float sparkle = pow(max(dot(NORMAL, normalize(vec3(0.22, 0.92, 0.28))), 0.0), 28.0);
-    ALBEDO = mix(deep_color.rgb, shallow_color.rgb, 0.42 + foam_mask);
-    METALLIC = 0.18;
-    ROUGHNESS = 0.27;
-    SPECULAR = 0.85;
-    EMISSION = shallow_color.rgb * (0.05 + 0.15 * sparkle);
+    float t = TIME;
+    float a = sea_position.x * 0.64 + sea_position.y * 0.36 + t * 0.55;
+    float b = sea_position.x * -0.24 + sea_position.y * 1.03 - t * 0.43;
+    float c = sea_position.x * 2.1 + sea_position.y * -1.42 + t * 0.95;
+    float wa = sin(a);
+    float wb = sin(b);
+    float wc = sin(c);
+    float dx = 0.64 * cos(a) * 0.20 - 0.24 * cos(b) * 0.14 + 2.1 * cos(c) * 0.019;
+    float dz = 0.36 * cos(a) * 0.20 + 1.03 * cos(b) * 0.14 - 1.42 * cos(c) * 0.019;
+    vec3 local_wave_normal = normalize(vec3(-dx, 1.0, -dz));
+    NORMAL = normalize((VIEW_MATRIX * vec4(local_wave_normal, 0.0)).xyz);
+    float ripples = clamp(0.48 + 0.27 * wa + 0.17 * wb + 0.08 * wc, 0.0, 1.0);
+    float glints = pow(max(wa * 0.63 + wb * 0.37, 0.0), 16.0) * 0.15;
+    float sea_distance = distance(sea_position, CAMERA_POSITION_WORLD.xz);
+    float atmospheric_fade = smoothstep(55.0, 215.0, sea_distance);
+    vec3 near_water = mix(ocean_deep.rgb, ocean_ridge.rgb, ripples);
+    ALBEDO = mix(near_water, horizon_mist.rgb, atmospheric_fade * 0.68);
+    METALLIC = 0.10;
+    ROUGHNESS = mix(0.24, 0.40, atmospheric_fade);
+    SPECULAR = 0.91;
+    EMISSION = (ocean_ridge.rgb * (glints + wave_crest * 0.022)) * (1.0 - 0.7 * atmospheric_fade);
 }
 """
     material.shader = shader
