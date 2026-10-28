@@ -1,0 +1,76 @@
+name: Godot Chapter I Environment Art Intake (draft-only)
+
+on:
+  pull_request:
+    paths:
+      - 'godot/art-staging/environment-study/**'
+      - 'godot/scripts/ch1_environment_art_intake.gd'
+      - 'godot/scripts/first_wake_chapter1_review.gd'
+      - 'godot/tests/environment_art_intake_test.gd'
+      - 'godot/tests/capture_environment_art_intake.gd'
+      - 'tests/godot-environment-art-intake-contract.test.js'
+      - '.github/workflows/godot-environment-intake.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  material-bridge:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact review head without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Verify exact four source Git blob identities and scope boundaries
+        run: node tests/godot-environment-art-intake-contract.test.js
+      - name: Download digest-pinned Godot 4.7.2 Standard
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' -o /tmp/godot-intake.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot-intake.zip' | sha256sum -c -
+          unzip -q /tmp/godot-intake.zip -d /tmp
+          chmod +x /tmp/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Import actual Godot native Chapter I project
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/ch1-environment-import.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|Failed loading' /tmp/ch1-environment-import.log
+      - name: Verify imported PNGs in actual Chapter I scene without gameplay changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/environment_art_intake_test.gd 2>&1 | tee /tmp/ch1-environment-test.log
+          grep -Eq 'GODOT_CH1_ENVIRONMENT_INTAKE_PASS checks=[0-9]+' /tmp/ch1-environment-test.log
+          ! grep -Eq 'GODOT_CH1_ENVIRONMENT_INTAKE_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/ch1-environment-test.log
+      - name: Compare genuine native 960x640 Chapter I dock frames
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 110s xvfb-run -a -s '-screen 0 960x640x24' \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot --rendering-driver opengl3 --resolution 960x640 \
+            --audio-driver Dummy \
+            --script res://tests/capture_environment_art_intake.gd 2>&1 | tee /tmp/ch1-environment-capture.log
+          grep -q 'GODOT_CH1_ENVIRONMENT_CAPTURE_PASS frames=2' /tmp/ch1-environment-capture.log
+          grep -Eq 'GODOT_CH1_ENVIRONMENT_INTAKE_DELTAS water_left=[0-9.]+' /tmp/ch1-environment-capture.log
+          ! grep -Eq 'GODOT_CH1_ENVIRONMENT_CAPTURE_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/ch1-environment-capture.log
+          sha256sum godot/review-evidence/environment-intake/*.png
+      - name: Upload noncanonical native review images (best effort)
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ch1-environment-intake-native
+          path: |
+            godot/review-evidence/environment-intake/*.png
+            /tmp/ch1-environment-import.log
+            /tmp/ch1-environment-test.log
+            /tmp/ch1-environment-capture.log
+          if-no-files-found: warn
+          retention-days: 7
