@@ -1,0 +1,73 @@
+name: Godot planetary surface material P2 (noncanon)
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/planetary/worldmap_surface_*.gd'
+      - 'godot/shaders/planetary_surface_study.gdshader'
+      - 'godot/tests/worldmap_surface_pair_test.gd'
+      - 'godot/tests/capture_worldmap_surface_pair.gd'
+      - '.github/workflows/godot-worldmap-material-p2.yml'
+permissions:
+  contents: read
+jobs:
+  spherical-material:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install pinned official Godot 4.7.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL \
+            'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' \
+            -o /tmp/godot-surface.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot-surface.zip' | sha256sum -c -
+          unzip -q /tmp/godot-surface.zip -d /tmp
+          chmod +x /tmp/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Import native review project and compile shader
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/surface-import.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|Failed loading' /tmp/surface-import.log
+      - name: Validate real spherical neighbor meshes, material A/B and physical authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot \
+            --script res://tests/worldmap_surface_pair_test.gd 2>&1 | tee /tmp/surface-test.log
+          grep -q 'GODOT_PLANETARY_SURFACE_PAIR_PASS checks=' /tmp/surface-test.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|SURFACE_PAIR_FAIL' /tmp/surface-test.log
+      - name: Capture identical-camera original and material-enhanced real spherical tiles
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p godot/review-evidence
+          timeout 170s xvfb-run -a -s '-screen 0 960x640x24' env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 --path godot --rendering-driver opengl3 \
+            --resolution 960x640 --audio-driver Dummy \
+            --script res://tests/capture_worldmap_surface_pair.gd 2>&1 | tee /tmp/surface-capture.log
+          grep -q 'GODOT_PLANETARY_MATERIAL_AB_PASS actual_Godot_GL=true cases=2 frames=4 NO_CANON' /tmp/surface-capture.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|MATERIAL_CAPTURE_FAIL' /tmp/surface-capture.log
+          for kind in snow wet_ground; do
+            for state in off on; do
+              test -s "godot/review-evidence/planetary-surface-${kind}-${state}-native-960x640.png"
+            done
+          done
+          sha256sum godot/review-evidence/planetary-surface-*-native-960x640.png
+      - name: Archive real rendering and regression receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-planetary-surface-p2
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            godot/review-evidence/planetary-surface-*-native-960x640.png
+            /tmp/surface-test.log
+            /tmp/surface-capture.log
+            /tmp/surface-import.log
