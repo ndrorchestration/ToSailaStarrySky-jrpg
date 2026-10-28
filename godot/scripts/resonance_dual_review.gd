@@ -13,6 +13,7 @@ var visual_step: int = 3  # 0 Spirit, 1 Water, 2 confluence, 3 stable ward
 var last_action_result: Dictionary = {}
 var heading: Label
 var battle_status: Label
+var threat_status: Label
 var detail: Label
 var notice: Label
 var motion_button: Button
@@ -24,6 +25,9 @@ func _ready() -> void:
     heading = _label(ui, Vector2(28, 20), Vector2(900, 34), 27)
     heading.text = "TO SAIL THE STARRY SKY  /  RESONANCE LAB"
     battle_status = _label(ui, Vector2(38, 72), Vector2(882, 55), 20)
+    threat_status = _label(ui, Vector2(38, 107), Vector2(540, 29), 17)
+    _button(ui, Vector2(612, 107), Vector2(148, 34), "3  Aim: Ender", _set_threat.bind("ender"))
+    _button(ui, Vector2(768, 107), Vector2(154, 34), "4  Aim: Lyra", _set_threat.bind("lyra"))
     detail = _label(ui, Vector2(50, 452), Vector2(862, 58), 19)
     notice = _label(ui, Vector2(50, 562), Vector2(860, 66), 17)
     _button(ui, Vector2(48, 516), Vector2(226, 38), "1  Raise shared ward", _cast)
@@ -64,6 +68,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
             _cast()
         KEY_2:
             _strike()
+        KEY_3:
+            _set_threat("ender")
+        KEY_4:
+            _set_threat("lyra")
         KEY_B:
             _baseline()
         KEY_R:
@@ -74,6 +82,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
             return
     get_viewport().set_input_as_handled()
 
+func _set_threat(actor_id: String) -> void:
+    last_action_result = battle.configure_threat(actor_id, Battle.DEFAULT_STRIKE)
+    _refresh_hud()
+    queue_redraw()
+
 func _cast() -> void:
     last_action_result = battle.activate()
     visual_step = 0 if bool(last_action_result.get("ok", false)) and not reduced_motion else 3
@@ -82,7 +95,8 @@ func _cast() -> void:
     queue_redraw()
 
 func _strike() -> void:
-    last_action_result = battle.resolve_enemy_strike("ender", Battle.DEFAULT_STRIKE)
+    var threat: Dictionary = battle.snapshot()["threat"]
+    last_action_result = battle.resolve_enemy_strike(str(threat["target"]), int(threat["damage"]))
     visual_step = 3
     elapsed = 0.0
     _refresh_hud()
@@ -135,6 +149,11 @@ func _refresh_hud() -> void:
         lyra["hp"], lyra["maxHp"], lyra["focus"],
     ]
     var phase_name := str(snap["phase"]).to_upper()
+    var intent: Dictionary = snap["threat"]
+    threat_status.text = "ENEMY INTENT  /  %d impact to %s%s" % [
+        int(intent["damage"]), str(intent["target"]).capitalize(),
+        "  [LOCKED]" if bool(intent["locked"]) else "  [CHOOSE TARGET]",
+    ]
     if str(snap["phase"]) == "player":
         detail.text = "READY: Spirit steadies Water. One Art consumes both actions and 1 review Focus each."
     elif str(snap["phase"]) == "enemy":
@@ -143,13 +162,16 @@ func _refresh_hud() -> void:
             detail.text += "   |   " + ["SPIRIT: anchor", "WATER: shape", "CONFLUENCE: stabilize"][mini(visual_step, 2)]
     else:
         var result: Dictionary = snap["lastOutcome"]
+        var struck_ender: bool = str(result.get("target", "ender")) == "ender"
+        var ender_damage: int = int(result.get("targetDamage", 0)) if struck_ender else int(result.get("partnerDamage", 0))
+        var lyra_damage: int = int(result.get("partnerDamage", 0)) if struck_ender else int(result.get("targetDamage", 0))
         detail.text = "RESULT: %d absorbed  |  Ender took %d  |  Lyra took %d" % [
-            int(result.get("absorbed", 0)), int(result.get("targetDamage", 0)), int(result.get("partnerDamage", 0))
+            int(result.get("absorbed", 0)), ender_damage, lyra_damage,
         ]
     var last_line := str(snap["log"].back())
     if not last_action_result.is_empty() and not bool(last_action_result.get("ok", false)):
         last_line = "Not available: " + str(last_action_result.get("reason", "unknown"))
-    notice.text = phase_name + "  /  " + last_line + "\nStandalone mechanics review. Keys 1, 2, B, R, M; no story progress, saves or spell unlocks."
+    notice.text = phase_name + "  /  " + last_line + "\nStandalone mechanics review. Keys 1, 2, 3, 4, B, R, M; no story progress, saves or spell unlocks."
     if motion_button != null:
         motion_button.text = "M Motion: " + ("OFF" if reduced_motion else "ON")
 
@@ -167,6 +189,13 @@ func _draw() -> void:
     # Abstract review sigils, not approved likenesses or character sprites.
     _draw_actor(ENDER_POS, Color("#ead9ff"), false)
     _draw_actor(LYRA_POS, Color("#8ad7ed"), true)
+    # Static high-contrast attack marker persists even with reduced motion.
+    var intention: Dictionary = battle.snapshot()["threat"]
+    var strike_origin: Vector2 = ENDER_POS if str(intention["target"]) == "ender" else LYRA_POS
+    draw_arc(strike_origin + Vector2(0, -16), 68.0, 0, TAU, 48, Color("#f5c096"), 3.0)
+    draw_line(strike_origin + Vector2(-20, -91), strike_origin + Vector2(0, -75), Color("#f5c096"), 3.0)
+    draw_line(strike_origin + Vector2(20, -91), strike_origin + Vector2(0, -75), Color("#f5c096"), 3.0)
+    draw_string(ThemeDB.fallback_font, strike_origin + Vector2(-52, -104), "INCOMING: %d" % int(intention["damage"]), HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#ffe4c2"))
     draw_string(ThemeDB.fallback_font, ENDER_POS + Vector2(-42, 128), "ENDER / SPIRIT", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#eee0ff"))
     draw_string(ThemeDB.fallback_font, LYRA_POS + Vector2(-40, 128), "LYRA / WATER", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("#acf0f2"))
     var snap: Dictionary = battle.snapshot()
