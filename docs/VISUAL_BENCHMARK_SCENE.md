@@ -126,3 +126,11 @@ Do not scale this visual treatment across the whole game until:
 - one Dragonfly flight scene passes.
 
 Those four scenes form the reusable visual foundation.
+
+## Ordinary ship-motion gate — 2026-10-27 addendum
+
+The Dragonfly/Aureate Wake must remain an inhabited small vessel, not a static object. The first production-facing wing-motion acceptance sequence should use a **modest, ordinary weather-response or preflight adjustment**, developed from the isolated Godot hinge and pose studies ([#478](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/478), [#490](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/490)). The true native Chapter I event-to-renderer interface has a [test-only handoff #507](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/507) with a mock sink, **not an admitted 3D ship asset or final scene**.
+
+Acceptance after real asset integration must show neutral → small sweep → neutral under changing weather with an **actual moving camera**, correct four-wing silhouette and material sorting, repeatable 1.8-second timing, pause/interrupt/reduced-motion alternatives, no geometry penetration, no ship/actor/landing mutation, and authentic native frames/video. Foredeck boarding, occupied swept volumes and human-scale dome/entry geometry require separate physics clearance before scenes place characters nearby. Production Windows Forward+/Compatibility capture and creator aesthetic signoff remain distinct. See [prototype-to-production admission](SHIP_POSE_PROTOTYPE_TO_PRODUCTION_ADMISSION.md).
+
+Passing a low-resolution software-renderer test or drawing a 2D ship-space overlay is **not** a premium final-visual benchmark pass. Do not attach any unreleased story-route or hidden ship configuration to this public reference sequence.
