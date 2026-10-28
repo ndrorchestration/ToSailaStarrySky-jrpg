@@ -80,8 +80,8 @@ func _run() -> void:
     if not review.set_geometry_cross_study_enabled(true):
         failures.append("source deck/dome intake blocked")
     var report: Dictionary = review.assess_geometry_cross_study()
-    if bool(report["physical_integration_ready"]) or
-            str(report["admission"]) != "BLOCKED_ON_HULL_SCALE_EGRESS_AND_SWEPT_VOLUME":
+    if (bool(report["physical_integration_ready"])
+            or str(report["admission"]) != "BLOCKED_ON_HULL_SCALE_EGRESS_AND_SWEPT_VOLUME"):
         failures.append("cross-study wrongly certified")
     var assembled: Image = await _image("02-foredeck-dome-original-wings")
     if not world.request_ship_pose_3d_review(Port.CUE_GENTLE_SWEEP):
@@ -102,7 +102,8 @@ func _run() -> void:
             failures.append("source foredeck and dome changes not visible")
         if wing_motion < 30:
             failures.append("actual 3D wing sweep not visible after assembly")
-    if story != world.opening.snapshot() or save != world.export_revised_checkpoint():
+    if (story != world.opening.snapshot()
+            or save != world.export_revised_checkpoint()):
         failures.append("source mesh review changed story or v2 save")
     world.set_ship_spaces_review_enabled(false)
     if world.ship_pose_3d_review != null:
