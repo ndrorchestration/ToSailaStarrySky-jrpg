@@ -2,11 +2,11 @@ extends Node3D
 ## Original, tessellated geodesic bridge DOME: visual study only.
 ## The hull below it is NOT a physical glass pressure boundary.
 ## All dimensions are local hero-art units, not certified interior metres.
-const RADIUS: float = 0.81
+const RADIUS: float = 0.76
 const CENTER_Y: float = 0.40
 const BASE_Y: float = 0.26
 const CLIP_LOCAL_Y: float = BASE_Y - CENTER_Y
-const SUBDIVISIONS: int = 2
+const SUBDIVISIONS: int = 1
 
 var panel_count: int = 0
 var unique_frame_edges: int = 0
@@ -102,11 +102,11 @@ func _build_geodesic_shell() -> void:
         if polygon.size() < 3:
             continue
         # Every piece is clipped to the same root sphere, including perimeter.
-        var tone: Color = Color(0.40, 0.68, 0.74, 0.28)
+        var tone: Color = Color(0.40, 0.68, 0.74, 0.22)
         if panel_count % 5 == 0:
-            tone = Color(0.28, 0.57, 0.65, 0.29)
+            tone = Color(0.28, 0.57, 0.65, 0.23)
         elif panel_count % 7 == 0:
-            tone = Color(0.65, 0.77, 0.77, 0.23)
+            tone = Color(0.65, 0.77, 0.77, 0.19)
         for k in range(1, polygon.size() - 1):
             var a: Vector3 = polygon[0] * RADIUS + Vector3.UP * CENTER_Y
             var b: Vector3 = polygon[k] * RADIUS + Vector3.UP * CENTER_Y
@@ -128,7 +128,7 @@ func _build_geodesic_shell() -> void:
             var key: String = _edge_key(start, finish)
             if not unique.has(key):
                 unique[key] = true
-                _append_tube(structure, start, finish, 0.009)
+                _append_tube(structure, start, finish, 0.007)
     unique_frame_edges = unique.size()
     panes.generate_normals()
     structure.generate_normals()
@@ -151,9 +151,9 @@ func _build_geodesic_shell() -> void:
     edges.name = "GeodesicFrame"
     edges.mesh = structure.commit()
     var bronze := StandardMaterial3D.new()
-    bronze.albedo_color = Color(0.64, 0.49, 0.33)
-    bronze.roughness = 0.36
-    bronze.metallic = 0.54
+    bronze.albedo_color = Color(0.50, 0.45, 0.36)
+    bronze.roughness = 0.53
+    bronze.metallic = 0.38
     bronze.cull_mode = BaseMaterial3D.CULL_DISABLED
     edges.material_override = bronze
     add_child(edges)
