@@ -11,6 +11,8 @@ func _run() -> void:
     root.add_child(scene)
     await process_frame
     var before: Dictionary = scene.visual_review_snapshot()
+    if not before.get("directional_sun_active", false):
+        problems.append("3D maritime sun with deck shadows missing")
     if not before.get("ocean_mesh_present", false):
         problems.append("native 3D water mesh missing")
     if before.get("motion_scale", -1.0) != 1.0:
