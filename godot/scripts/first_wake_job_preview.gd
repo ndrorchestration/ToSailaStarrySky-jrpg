@@ -393,8 +393,10 @@ func save_revised_checkpoint() -> Dictionary:
     return revised_save_store.save_snapshot(snapshot, RevisedCodec.SLOT_PATH, RevisedCodec)
 
 func load_revised_checkpoint() -> Dictionary:
-    if room in ["flight_review", "salvage_review"] or flight_review != null or salvage_review != null:
-        return {"ok": false, "reason": "subscene_uses_dedicated_checkpoint_or_is_transient"}
+    if room == "flight_review" or flight_review != null:
+        return {"ok": false, "reason": "flight_review_is_transient_and_unpersisted"}
+    if room == "salvage_review" or salvage_review != null:
+        return {"ok": false, "reason": "salvage_uses_dedicated_v3_checkpoint"}
     if dialogue_open:
         return {"ok": false, "reason": "dialogue_in_progress"}
     var read: Dictionary = revised_save_store.load_snapshot(RevisedCodec.SLOT_PATH, RevisedCodec)
