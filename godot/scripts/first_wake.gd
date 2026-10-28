@@ -4,6 +4,7 @@ extends Node2D
 
 const Actor = preload("res://scripts/pilot_actor.gd")
 const DockDepthReview = preload("res://scripts/dock_depth_review.gd")
+const RidgeVegetationReview = preload("res://scripts/ridge_vegetation_review.gd")
 const TrainingArena = preload("res://scenes/training_arena.tscn")
 const IoniaUnapprovedArt = preload("res://art-review/ionia-original-v01-green-eyes.svg")
 const IoniaAlignmentReview = preload("res://art-review/ionia-cream-leather-review.svg")
@@ -20,6 +21,9 @@ var ender_walk_review_enabled: bool = false
 var ionia_walk_review_enabled: bool = false
 var ionia_route_review_enabled: bool = false
 var dock_depth_review_enabled: bool = false
+var ridge_vegetation_review_enabled: bool = false
+var ridge_vegetation_low_quality: bool = false
+var ridge_vegetation: Node2D
 var deck_backdrop: Node2D
 var deck_foreground: Node2D
 
@@ -28,6 +32,11 @@ func _ready() -> void:
     deck_backdrop.name = "DockDepthBackgroundReviewOnly"
     deck_backdrop.visible = false
     add_child(deck_backdrop)
+    # Isolated under actors/rail foreground; always hidden until explicit review.
+    ridge_vegetation = RidgeVegetationReview.new()
+    ridge_vegetation.name = "RidgeVegetationReviewOnly"
+    ridge_vegetation.visible = false
+    add_child(ridge_vegetation)
     var actors := Node2D.new()
     actors.name = "YSortedActors"
     actors.y_sort_enabled = true
@@ -64,7 +73,7 @@ func _ready() -> void:
     status = Label.new()
     status.position = Vector2(28, 28)
     status.add_theme_font_size_override("font_size", 15)
-    status.text = "AETHERWAKE / GODOT PILOT — REVIEW ONLY\nArrows: move   E: talk   B: arena   R: Ender   G: dock depth\nV/C: original/aligned Ionia   T: front walk   Y: four-way Ionia (unapproved)"
+    status.text = "AETHERWAKE / GODOT PILOT — REVIEW ONLY\nArrows: move   E: talk   B: arena   R: Ender   G: dock depth   H: ridge review\nV/C: original/aligned Ionia   T: front walk   Y: four-way Ionia (unapproved)"
     ui.add_child(status)
     dialogue = Label.new()
     dialogue.position = Vector2(100, 555)
@@ -133,6 +142,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
         ionia.set_ionia_route_review_enabled(ionia_route_review_enabled)
     elif event.keycode == KEY_G:
         set_dock_depth_review_enabled(not dock_depth_review_enabled)
+    elif event.keycode == KEY_H:
+        set_ridge_vegetation_review_enabled(not ridge_vegetation_review_enabled)
     elif event.keycode == KEY_B:
         get_tree().change_scene_to_packed(TrainingArena)
     elif event.keycode == KEY_ESCAPE:
@@ -145,7 +156,25 @@ func set_dock_depth_review_enabled(enabled: bool) -> void:
     dock_depth_review_enabled = enabled
     deck_backdrop.visible = enabled
     deck_foreground.visible = enabled
+    if not enabled:
+        ridge_vegetation_review_enabled = false
+        ridge_vegetation.visible = false
     queue_redraw()
 
 func is_dock_depth_review_enabled() -> bool:
     return dock_depth_review_enabled and deck_backdrop.visible and deck_foreground.visible
+ 
+# The paired study remains a purely visual child of the opt-in background.
+# Never persist, collider-bind, or reinterpret it as Chapter I world geography.
+func set_ridge_vegetation_review_enabled(enabled: bool) -> void:
+    if enabled and not dock_depth_review_enabled:
+        set_dock_depth_review_enabled(true)
+    ridge_vegetation_review_enabled = enabled
+    ridge_vegetation.visible = enabled and dock_depth_review_enabled
+
+func set_ridge_vegetation_low_quality(enabled: bool) -> void:
+    ridge_vegetation_low_quality = enabled
+    ridge_vegetation.set_low_quality(enabled)
+
+func is_ridge_vegetation_review_enabled() -> bool:
+    return ridge_vegetation_review_enabled and ridge_vegetation.visible
