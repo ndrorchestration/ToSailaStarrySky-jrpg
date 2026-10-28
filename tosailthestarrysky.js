@@ -1,6 +1,6 @@
 // === modules/core.js ===
 // ============================================================
-// Aetherwake JRPG — Main p5.js Sketch (GLOBAL MODE)
+// To sail the starry sky JRPG — No longer Main p5.js Sketch (GLOBAL MODE)
 // ============================================================
 // Single-file HTML: index.html loads p5.js CDN then this script.
 // All modules use bare p5 globals — this sketch does too.
