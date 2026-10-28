@@ -156,14 +156,38 @@ func _verify() -> void:
     if flight.review_snapshot().get("real_inventory_scan_verified", true):
         _fail("authored fuel review claimed genuine fuel inventory implementation")
         return
-    if not flight.interact() or flight.phase != "recovery_review":
-        _fail("recovery request was not a separate postflight decision")
+    if not flight.interact() or flight.phase != "recovery_approach":
+        _fail("postflight recovery request did not begin observable 2D hull travel")
         return
-    if flight.opening.active_party_ids != ["ender", "ionia"]:
-        _fail("recovery request prematurely recruited Lyra")
+    if flight.opening.active_party_ids != ["ender", "ionia"] or flight.interact():
+        _fail("recovery request prematurely recruited Lyra or bypassed berth contact")
+        return
+    var arrived := false
+    for i in range(420):
+        await process_frame
+        if flight.phase == "berth_contact":
+            arrived = true
+            break
+    if not arrived or not flight.berth_area.overlaps_body(flight.ship_body):
+        _fail("real ship did not contact physical local berth sensor")
+        return
+    if flight.acknowledge_safe_berth_and_open_family_review() or not flight.interact():
+        _fail("first berth contact skipped safe lines/settling stage")
+        return
+    var moored := false
+    for i in range(240):
+        await process_frame
+        if flight.phase == "berth_ready":
+            moored = true
+            break
+    if not moored or not flight.review_snapshot().get("local_2d_berth_approach_verified", false):
+        _fail("measured local berth did not sustain physically stable speed/position")
         return
     if not flight.interact() or flight.family_review == null:
-        _fail("safe-berth review did not expose physical family meeting scene")
+        _fail("real local berth contact and safe stable speed did not open family scene")
+        return
+    if flight.review_snapshot().get("approved_shoreline_or_tow_method", true):
+        _fail("2D bench rehearsal approved an unchosen geographic rescue route")
         return
     if flight.review_snapshot().get("real_recovery_route_verified", true):
         _fail("the staged safety handoff falsely proved global geographic recovery")
@@ -263,7 +287,7 @@ func _verify() -> void:
     if _file_hash(SaveStore.DEFAULT_PATH) != v1_hash or _file_hash(RevisedCodec.SLOT_PATH) != v2_hash:
         _fail("F8 exit from splashdown rewrote v1/v2 checkpoint data")
         return
-    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: configured startup F8, flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, reserve inspection, safe Lyra/Talen dialogue, two real crew clues, recovered items, failed restart and chosen Denith melody, F8 v1 return; no ship/Art rights")
+    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: configured startup F8, flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, reserve inspection, local berth sensor and safe Lyra/Talen dialogue, two real crew clues, recovered items, failed restart and chosen Denith melody, F8 v1 return; no ship/Art rights")
     quit(0)
 
 func _finish_dialogue(world: Node) -> bool:

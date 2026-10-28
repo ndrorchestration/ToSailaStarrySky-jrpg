@@ -12,6 +12,13 @@ const SURFACE_Y := 410.0
 const FLOAT_BUOYANCY := 120.0
 const SETTLE_SECONDS := 0.45
 const ASCENT_SECONDS := 1.25
+# Local towing/berthing prototype geometry, NOT established geography,
+# rescue method, shipping lanes or powered levitation propulsion.
+const BERTH_CENTER := Vector2(891.0, SURFACE_Y - 14.0)
+const BERTH_SENSOR_SIZE := Vector2(42.0, 78.0)
+const RECOVERY_PULL_SPEED := 58.0
+const BERTH_STABLE_SPEED := 6.0
+const BERTH_STABLE_SECONDS := 0.35
 
 var opening
 var phase: String = "not_configured"
@@ -21,6 +28,10 @@ var contact_observed: bool = false
 var stable_float_verified: bool = false
 var reserve_inspection_observed: bool = false
 var recovery_request_recorded: bool = false
+var berth_contact_observed: bool = false
+var berth_stable_verified: bool = false
+var berth_stable_seconds: float = 0.0
+var berth_area: Area2D
 var safe_berth_confirmed_review: bool = false
 var family_review: Node2D
 var flight_overlay: CanvasLayer
@@ -56,6 +67,20 @@ func _ready() -> void:
     sea_area.add_child(sea_shape)
     add_child(sea_area)
     sea_area.body_entered.connect(_on_water_body_entered)
+
+    berth_area = Area2D.new()
+    berth_area.name = "LocalReviewBerthContactSensor"
+    berth_area.monitoring = true
+    berth_area.collision_layer = 0
+    berth_area.collision_mask = 1
+    berth_area.position = BERTH_CENTER
+    var berth_shape := CollisionShape2D.new()
+    var berth_rectangle := RectangleShape2D.new()
+    berth_rectangle.size = BERTH_SENSOR_SIZE
+    berth_shape.shape = berth_rectangle
+    berth_area.add_child(berth_shape)
+    add_child(berth_area)
+    berth_area.body_entered.connect(_on_berth_body_entered)
 
     ship_body = RigidBody2D.new()
     ship_body.name = "AureateWakeLocalBuoyancyProof"
@@ -124,6 +149,17 @@ func _draw() -> void:
         draw_line(Vector2(x, 452), Vector2(x + 71, 452), Color(0.74, 0.88, 0.87, 0.35), 2.0)
     draw_rect(Rect2(0, 0, 960, 103), Color(0.04, 0.08, 0.16, 0.91))
     draw_rect(Rect2(0, 545, 960, 95), Color(0.04, 0.08, 0.16, 0.94))
+    if phase in ["recovery_approach", "berth_contact", "berth_securing", "berth_ready"]:
+        draw_rect(Rect2(864, SURFACE_Y - 4, 96, 134), Color("#806d57"))
+        for y in [423.0, 452.0, 481.0, 510.0]:
+            draw_line(Vector2(866, y), Vector2(960, y), Color("#bea281"), 2.0)
+        draw_line(Vector2(854, SURFACE_Y - 57), Vector2(854, SURFACE_Y + 15), Color("#e0c58c"), 3.0)
+        draw_circle(Vector2(854, SURFACE_Y - 58), 8, Color("#b5e6d2") if berth_contact_observed else Color("#e8bc7f"))
+        if phase in ["berth_securing", "berth_ready"]:
+            # The line is visible only after the player explicitly secures it.
+            var bow := ship_body.position + Vector2(70.0, -6.0)
+            draw_line(bow, Vector2(864.0, SURFACE_Y - 28.0), Color("#dfd0a8"), 2.5)
+        draw_string(ThemeDB.fallback_font, Vector2(656, 319), "PROVISIONAL BERTH / 2D REVIEW", HORIZONTAL_ALIGNMENT_LEFT, 296, 14, Color("#f4e4c4"))
 
 func _unhandled_input(event: InputEvent) -> void:
     if family_review != null:
@@ -141,7 +177,9 @@ func interact() -> bool:
         return inspect_empty_reserve_after_splashdown()
     if phase == "postflight_diagnosis":
         return request_safe_recovery_review()
-    if phase == "recovery_review":
+    if phase == "berth_contact":
+        return secure_berth_lines_review()
+    if phase == "berth_ready":
         return acknowledge_safe_berth_and_open_family_review()
     return false
 
@@ -198,14 +236,45 @@ func request_safe_recovery_review() -> bool:
     if opening.step_key() != "postflight_diagnosis" or opening.active_party_ids != ["ender", "ionia"]:
         return false
     recovery_request_recorded = true
-    phase = "recovery_review"
+    # The ship has already been physically proven to float. This toy force
+    # models external recovery assistance only; engines remain offline.
+    ship_body.freeze = false
+    ship_body.gravity_scale = 0.0
+    ship_body.linear_damp = 0.0
+    ship_body.linear_velocity = Vector2(RECOVERY_PULL_SPEED, 0.0)
+    phase = "recovery_approach"
+    _refresh_presentation()
+    return true
+
+func secure_berth_lines_review() -> bool:
+    # No silent staging: E is accepted only after a real physics overlap
+    # with the independent berth sensor. Safe mooring takes several frames.
+    if phase != "berth_contact" or not berth_contact_observed:
+        return false
+    if berth_area == null or ship_body == null or not berth_area.overlaps_body(ship_body):
+        return false
+    if opening.step_key() != "postflight_diagnosis":
+        return false
+    if opening.active_party_ids != ["ender", "ionia"]:
+        return false
+    berth_stable_seconds = 0.0
+    ship_body.linear_damp = 12.0
+    phase = "berth_securing"
     _refresh_presentation()
     return true
 
 func acknowledge_safe_berth_and_open_family_review() -> bool:
-    # An explicit opt-in TEST STAGING BOUNDARY; not proof of physical
-    # sailing/towing or approval of where this family is geographically.
-    if phase != "recovery_review" or not recovery_request_recorded:
+    # A real LOCAL spatial arrival and stable speed must precede family
+    # staging; still not proof of a world-scale voyage or approved harbor.
+    if phase != "berth_ready" or not recovery_request_recorded:
+        return false
+    if not berth_contact_observed or not berth_stable_verified:
+        return false
+    if berth_area == null or ship_body == null or not berth_area.overlaps_body(ship_body):
+        return false
+    if ship_body.linear_velocity.length() > BERTH_STABLE_SPEED:
+        return false
+    if berth_stable_seconds < BERTH_STABLE_SECONDS:
         return false
     if not contact_observed or not stable_float_verified or not reserve_inspection_observed:
         return false
@@ -231,7 +300,27 @@ func acknowledge_safe_berth_and_open_family_review() -> bool:
 func _physics_process(delta: float) -> void:
     if ship_body == null:
         return
-    if phase == "ascent":
+    if phase == "recovery_approach":
+        # A bounded *review* pull along the waterline; do not revive the
+        # failed levitation engine or grant the ship new propulsion.
+        ship_body.linear_velocity = Vector2(RECOVERY_PULL_SPEED, 0.0)
+        if ship_body.position.x > 950.0:
+            ship_body.linear_velocity = Vector2.ZERO
+            ship_body.freeze = true
+            phase = "recovery_out_of_bounds"
+            _refresh_presentation()
+    elif phase == "berth_securing":
+        if berth_area.overlaps_body(ship_body) and ship_body.linear_velocity.length() <= BERTH_STABLE_SPEED:
+            berth_stable_seconds += delta
+        else:
+            berth_stable_seconds = 0.0
+        if berth_stable_seconds >= BERTH_STABLE_SECONDS:
+            berth_stable_verified = true
+            ship_body.linear_velocity = Vector2.ZERO
+            ship_body.freeze = true
+            phase = "berth_ready"
+            _refresh_presentation()
+    elif phase == "ascent":
         elapsed += delta
         if elapsed >= ASCENT_SECONDS:
             ship_body.linear_velocity = Vector2.ZERO
@@ -259,6 +348,15 @@ func _on_water_body_entered(body: Node2D) -> void:
     contact_observed = true
     _refresh_presentation()
 
+func _on_berth_body_entered(body: Node2D) -> void:
+    if body != ship_body or phase != "recovery_approach":
+        return
+    berth_contact_observed = true
+    # Assist speed tapers near the berth, independent of player reaction time.
+    ship_body.linear_damp = 12.0
+    phase = "berth_contact"
+    _refresh_presentation()
+
 func review_snapshot() -> Dictionary:
     return {
         "phase": phase,
@@ -268,6 +366,11 @@ func review_snapshot() -> Dictionary:
         "stable_buoyant_hull_observed": stable_float_verified,
         "reserve_inspection_observed": reserve_inspection_observed,
         "recovery_request_recorded": recovery_request_recorded,
+        "berth_sensor_contact_observed": berth_contact_observed,
+        "berth_stable_verified": berth_stable_verified,
+        "berth_stable_seconds": berth_stable_seconds,
+        "local_2d_berth_approach_verified": berth_contact_observed and berth_stable_verified,
+        "approved_shoreline_or_tow_method": false,
         "safe_berth_confirmed_review": safe_berth_confirmed_review,
         "family_review_active": family_review != null,
         "real_recovery_route_verified": false,
@@ -299,8 +402,16 @@ func _refresh_presentation() -> void:
             hint_label.text = "WATERBORNE: hull safely afloat, engines offline. E: inspect the depleted fuel reserve."
         "postflight_diagnosis":
             hint_label.text = "RESERVE EMPTY: E to request safe recovery. Actual route and location still unassigned."
-        "recovery_review":
-            hint_label.text = "RECOVERY REQUESTED (REVIEW): E to stage a confirmed safe berth; no tow/sailing route simulated."
+        "recovery_approach":
+            hint_label.text = "ASSISTED SURFACE RECOVERY REVIEW: hull moves through local 2D water. Engines stay offline."
+        "berth_contact":
+            hint_label.text = "LOCAL BERTH SENSOR CONTACT: E to secure lines; do not rush family boarding."
+        "berth_securing":
+            hint_label.text = "Securing berth: hold the hull stable until the speed/overlap test passes."
+        "berth_ready":
+            hint_label.text = "LOCAL BERTH STABLE (NOT WORLD GEOGRAPHY): E to open safe family meeting."
+        "recovery_out_of_bounds":
+            hint_label.text = "Recovery overshot this 2D review corridor. No family access. Restart the review."
         "family_review":
             hint_label.text = "Safe-berth family review opened. Arrival location remains unassigned."
         _:
