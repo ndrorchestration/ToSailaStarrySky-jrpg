@@ -7,6 +7,7 @@ const Core = preload("res://scripts/first_wake_core_alignment_review.gd")
 const MelodyAnalysis = preload("res://scripts/first_wake_melody_analysis_review.gd")
 const Actor = preload("res://scripts/pilot_actor.gd")
 const Inputs = preload("res://scripts/first_wake_chapter1_input_policy.gd")
+const Environment = preload("res://scripts/first_wake_cinematic_environment.gd")
 
 const PICKUP_A := Vector2(260, 470)
 const PICKUP_B := Vector2(410, 470)
@@ -51,6 +52,7 @@ var hint: Label
 var analysis_backdrop: ColorRect
 var analysis_lines: Label
 var analysis_feedback: Label
+var cinematic_environment_enabled: bool = true
 var last_message: String = "Review fixture: the splashdown and family reunion are not playable here."
 
 func _ready() -> void:
@@ -113,12 +115,19 @@ func _label(parent: Node, location: Vector2, font_size: int) -> Label:
     parent.add_child(node)
     return node
 
+func set_cinematic_environment_enabled(enabled: bool) -> void:
+    cinematic_environment_enabled = enabled
+    queue_redraw()
+
 func _draw() -> void:
-    draw_rect(Rect2(0, 0, 960, 640), Color("#142d3e"))
-    draw_rect(Rect2(12, 8, 936, 157), Color("#0b1726"))
-    draw_rect(Rect2(0, 385, 960, 159), Color("#5e5045"))
-    for y in [403.0, 429.0, 455.0, 481.0, 507.0, 533.0]:
-        draw_line(Vector2(70, y), Vector2(890, y), Color("#85705c"), 1.0)
+    if cinematic_environment_enabled:
+        Environment.draw_workshop(self,str(core.snapshot()["phase"]))
+    else:
+        draw_rect(Rect2(0, 0, 960, 640), Color("#142d3e"))
+        draw_rect(Rect2(12, 8, 936, 157), Color("#0b1726"))
+        draw_rect(Rect2(0, 385, 960, 159), Color("#5e5045"))
+        for y in [403.0, 429.0, 455.0, 481.0, 507.0, 533.0]:
+            draw_line(Vector2(70, y), Vector2(890, y), Color("#85705c"), 1.0)
     for item in [
         {"id": "recovered_supply", "pos": PICKUP_A, "label": "STOCK"},
         {"id": "recovered_part", "pos": PICKUP_B, "label": "PART"},
