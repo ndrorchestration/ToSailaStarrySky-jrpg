@@ -15,6 +15,13 @@ const EQUIP_WEAPON_PREVIEW := "aetherwake_ch1_equip_weapon_preview"
 const EQUIP_ARMOR_PREVIEW := "aetherwake_ch1_equip_armor_preview"
 const EQUIP_ACCESSORY_PREVIEW := "aetherwake_ch1_equip_accessory_preview"
 const EQUIP_TRAINING_PRESSURE := "aetherwake_ch1_equip_training_pressure"
+const EQUIP_INSPECT := "aetherwake_ch1_equip_inspect"
+const INSPECT_UP := "aetherwake_ch1_inspect_up"
+const INSPECT_DOWN := "aetherwake_ch1_inspect_down"
+const INSPECT_PREVIOUS := "aetherwake_ch1_inspect_previous"
+const INSPECT_NEXT := "aetherwake_ch1_inspect_next"
+const INSPECT_CONFIRM := "aetherwake_ch1_inspect_confirm"
+const INSPECT_CLOSE := "aetherwake_ch1_inspect_close"
 const SAVE_PROGRESS := "aetherwake_ch1_save_progress"
 const LOAD_PROGRESS := "aetherwake_ch1_load_progress"
 
@@ -32,6 +39,13 @@ static func ensure_defaults() -> void:
     _ensure_key(EQUIP_ARMOR_PREVIEW, KEY_6)
     _ensure_key(EQUIP_ACCESSORY_PREVIEW, KEY_7)
     _ensure_key(EQUIP_TRAINING_PRESSURE, KEY_8)
+    _ensure_key_and_pad(EQUIP_INSPECT, KEY_9, JOY_BUTTON_LEFT_SHOULDER)
+    _ensure_key_and_pad(INSPECT_UP, KEY_UP, JOY_BUTTON_DPAD_UP)
+    _ensure_key_and_pad(INSPECT_DOWN, KEY_DOWN, JOY_BUTTON_DPAD_DOWN)
+    _ensure_key_and_pad(INSPECT_PREVIOUS, KEY_LEFT, JOY_BUTTON_DPAD_LEFT)
+    _ensure_key_and_pad(INSPECT_NEXT, KEY_RIGHT, JOY_BUTTON_DPAD_RIGHT)
+    _ensure_key_and_pad(INSPECT_CONFIRM, KEY_ENTER, JOY_BUTTON_A)
+    _ensure_key_and_pad(INSPECT_CLOSE, KEY_ESCAPE, JOY_BUTTON_B)
     _ensure_key(SAVE_PROGRESS, KEY_F5)
     _ensure_key(LOAD_PROGRESS, KEY_F9)
 
