@@ -1,0 +1,95 @@
+name: Godot First Wake Ship Space Handoff (prototype only)
+
+on:
+  pull_request:
+    paths:
+      - "godot/scripts/first_wake_ship_spaces_handoff.gd"
+      - "godot/scripts/first_wake_job_preview.gd"
+      - "godot/tests/first_wake_ship_space_handoff_test.gd"
+      - "godot/tests/capture_first_wake_ship_space_handoff.gd"
+      - ".github/workflows/godot-first-wake-ship-space-handoff.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-chapter1-ship-space:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Check out source without stored credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Fetch official verified Godot 4.7.2 editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL \
+            "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" \
+            -o /tmp/godot.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          mkdir -p /tmp/godot-editor
+          unzip -q /tmp/godot.zip -d /tmp/godot-editor
+          chmod +x /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Parse and import native First Wake scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot --editor --quit 2>&1 | tee /tmp/import.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|Failed loading' /tmp/import.log
+      - name: Actual Ionia-first ship-space scene and safety contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 60s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot \
+            --script res://tests/first_wake_ship_space_handoff_test.gd 2>&1 | tee /tmp/ship-space-native-test.log
+          grep -q 'FIRST_WAKE_SHIP_SPACE_HANDOFF_PASS' /tmp/ship-space-native-test.log
+          ! grep -Eq 'FIRST_WAKE_SHIP_SPACE_HANDOFF_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/ship-space-native-test.log
+      - name: Regression playable Ionia first flyer and engineering
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 65s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot \
+            --script res://tests/first_wake_job_preview_test.gd 2>&1 | tee /tmp/job-regression.log
+          grep -q 'TSTSS_FIRST_WAKE_JOB_SCENE_PASS' /tmp/job-regression.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|ERROR:' /tmp/job-regression.log
+      - name: Regression independent v2 save-recovery scene
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 65s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot \
+            --script res://tests/first_wake_revised_checkpoint_scene_test.gd 2>&1 | tee /tmp/save-regression.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|ERROR:' /tmp/save-regression.log
+      - name: Actual Godot Compatibility 960x640 scene A/B
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 110s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_first_wake_ship_space_handoff.gd \
+            2>&1 | tee /tmp/ship-space-gl.log
+          test "$(grep -c 'NATIVE_SHIP_SPACE_HANDOFF_CAPTURE:' /tmp/ship-space-gl.log)" -eq 2
+          grep -q 'FIRST_WAKE_SHIP_SPACE_AB_PASS' /tmp/ship-space-gl.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|ERROR:' /tmp/ship-space-gl.log
+      - name: Save public-safe QA artifact (not shipping media)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: first-wake-ship-space-prototype-qa
+          path: |
+            godot/review-evidence/ship-space-handoff/*.png
+            /tmp/import.log
+            /tmp/ship-space-native-test.log
+            /tmp/job-regression.log
+            /tmp/save-regression.log
+            /tmp/ship-space-gl.log
+          if-no-files-found: warn
+          retention-days: 7
