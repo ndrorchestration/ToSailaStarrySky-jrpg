@@ -131,6 +131,8 @@ jobs:
             --audio-driver Dummy \
             --script res://tests/capture_dune_study.gd 2>&1 | tee /tmp/dune-capture.log
           grep -Eq 'NATIVE_DUNE_OPTICS_PAIR_DELTA pixels=[0-9]+' /tmp/dune-capture.log
+          grep -Eq 'NATIVE_DUNE_SAND_COVERAGE pixels=[0-9]+ changed_fraction=' /tmp/dune-capture.log
+          grep -q 'sky_drift=0' /tmp/dune-capture.log
           grep -q 'NATIVE_DUNE_OPTICS_LOW_DELTA pixels=0' /tmp/dune-capture.log
           grep -q 'NATIVE_DUNE_REVIEW_PASS' /tmp/dune-capture.log
           test -f godot/flight_slice/evidence/dune-review/dune-plain.png
