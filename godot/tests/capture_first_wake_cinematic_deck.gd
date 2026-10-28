@@ -135,14 +135,14 @@ func _capture() -> void:
     if not deck.inspected_station or not game.session.can_checkpoint():
         failures.append("postflight reserve not actually inspected")
     var after: Image = await _photo(folder, "02-interactive-reserve-inspected")
-    var signal: float = _region_delta(before, after)
-    if signal < 6.0:
+    var pixel_delta: float = _region_delta(before, after)
+    if pixel_delta < 6.0:
         failures.append("the rendered console did not visibly change after inspection")
     deck.set_reduced_motion(true)
     var still: Image = await _photo(folder, "03-reduced-motion-still-sea")
     if still == null or not deck.cinematic_seascape.reduced_motion:
         failures.append("reduced-motion scene was not captured")
-    print("TSTSS_CINEMATIC_DECK_CONSOLE_DELTA: ", signal)
+    print("TSTSS_CINEMATIC_DECK_CONSOLE_DELTA: ", pixel_delta)
     game.queue_free()
     await process_frame
     if failures.is_empty():
