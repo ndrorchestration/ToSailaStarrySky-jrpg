@@ -6,6 +6,16 @@ The repository currently contains **two distinct playable development paths**: a
 
 ## In-engine visual gallery
 
+### Chapter I: First Wake, salvage and the Aureate Wake
+
+<a href="docs/reviews/native-evidence/2026-10-28-first-wake/chapter1-six-native-stage-frames.svg">
+  <img src="docs/reviews/native-evidence/2026-10-28-first-wake/chapter1-six-native-stage-frames.svg" width="100%" alt="Six actual native Godot Chapter I 960×640 render frames showing the waterborne Aureate Wake, a secured provisional berth, the family meeting, the quay cache, the stores annex and the engine workshop">
+</a>
+
+*Six **genuine lossless 960×640 native Godot 4.7.2 frames**, verified against original PNG SHA-256 receipts and assembled without altering the screenshots. They represent **deterministic development review scenes**, not a finished visual production pass: provisional ship, shore and salvage geometry, dialogue/UI staging and unapproved material identities. [Source capture run](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40648637058) · [Individual frame SHA-256 records](docs/reviews/native-evidence/2026-10-28-first-wake/README.md). This review graphic is staged on a draft branch, not yet part of the default README.*
+
+### Earlier Ender and Ionia directional studies
+
 <table>
   <tr>
     <td width="50%" align="center">
@@ -56,7 +66,7 @@ The repository currently contains **two distinct playable development paths**: a
 
 </details>
 
-**Visual evidence boundary:** The newer Chapter I runs for local water physics, safely moored family introduction, two-area salvage, and v3 checkpointing have passed native workflow checks in [draft PR #561](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/561), but their latest screenshot PNGs remain **runner-local**, not published in this README. Do not mistake these archived screenshots for new gameplay frames. [First Wake native workflow evidence](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40646186594) · [visual review workflow](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40646186513).
+**Visual evidence boundary:** The featured Chapter I sheet above now embeds six exact native review frames and includes their verified hashes. Independent full-resolution PNG downloads for those six frames are **not** published as separate files; their lossless pixels are embedded in the SVG review graphic. The v3 saving interface is **not pictured**, and no artistic acceptance or playable release is implied. The earlier directional studies below are from October 21. [Chapter I native gameplay evidence](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40646186594) · [new frame capture evidence](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40648637058).
 
 ## Play the native Godot Chapter I review
 
