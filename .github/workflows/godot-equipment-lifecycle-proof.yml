@@ -32,7 +32,7 @@ jobs:
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
       - name: Prove field to gear station to native battle to field and restored save
         shell: bash
-        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/equipment_lifecycle_study_test.gd
+        run: timeout --signal=TERM --kill-after=5s 75s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/equipment_lifecycle_study_test.gd
       - name: Render six real field-inspector-battle-return receipts
         shell: bash
         run: |
