@@ -9,6 +9,8 @@ on:
       - "godot/scripts/first_wake_melody_*.gd"
       - "godot/scenes/first_wake_*.tscn"
       - "godot/tests/first_wake_game_entry_test.gd"
+      - "godot/tests/first_wake_v2_cold_process_test.gd"
+      - "godot/scripts/first_wake_chapter1_progress_v2.gd"
       - ".github/workflows/chapter-one-f5-cinematic-proof.yml"
 permissions:
   contents: read
@@ -52,12 +54,21 @@ jobs:
           timeout 170s xvfb-run -a -s '-screen 0 960x640x24' env LIBGL_ALWAYS_SOFTWARE=1 \
             /tmp/Godot_v4.7.2-stable_linux.x86_64 --path godot --rendering-driver opengl3 \
             --resolution 960x640 --audio-driver Dummy --fixed-fps 60 \
-            --script res://tests/first_wake_game_entry_test.gd -- --capture 2>&1 | tee /tmp/ch1-capture.log
+            --script res://tests/first_wake_game_entry_test.gd -- --capture --retain-stage-save 2>&1 | tee /tmp/ch1-capture.log
           ! grep -Eq 'SCRIPT ERROR:|SHADER ERROR|Parse Error|TSTSS_FIRST_WAKE_GAME_ENTRY_FAIL:' /tmp/ch1-capture.log
           grep -Eq 'TSTSS_FIRST_WAKE_GAME_ENTRY_PASS checks=[0-9]+ real_water_contact=true' /tmp/ch1-capture.log
           grep -Fq 'harmonic_bench_candidate=true captures=9' /tmp/ch1-capture.log
           test "$(find godot/review-evidence -maxdepth 1 -name 'ch1-f5-*-native-960x640.png' -type f -size +0c | wc -l)" -eq 9
           sha256sum godot/review-evidence/ch1-f5-*-native-960x640.png | tee /tmp/ch1-sha256.txt
+          grep -Fq 'TSTSS_CH1_COLD_PROCESS_FIXTURE_READY: v1_verified=true v2_candidate=true' /tmp/ch1-capture.log
+      - name: Prove actual NEW Godot OS-process cold save restore
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 75s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot \
+            --script res://tests/first_wake_v2_cold_process_test.gd 2>&1 | tee /tmp/ch1-cold-restore.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_CH1_COLD_PROCESS_RESTORE_FAIL:' /tmp/ch1-cold-restore.log
+          grep -Eq 'TSTSS_CH1_COLD_PROCESS_RESTORE_PASS checks=[0-9]+ independent_godot_invocation=true' /tmp/ch1-cold-restore.log
       - name: Archive exact native frames and proof receipts
         if: always()
         uses: actions/upload-artifact@v4
@@ -71,3 +82,4 @@ jobs:
             /tmp/ch1-native.log
             /tmp/ch1-capture.log
             /tmp/ch1-sha256.txt
+            /tmp/ch1-cold-restore.log
