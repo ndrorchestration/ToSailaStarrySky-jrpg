@@ -11,7 +11,7 @@ fs.mkdirSync(www, { recursive: true });
 
 const runtimeFiles = [
   'index-embedded.html',
-  'aetherwake.js',
+  'tosailthestarrysky.js',
   'p5.min.js',
   'embedded-fonts.css',
   'icon.svg',
