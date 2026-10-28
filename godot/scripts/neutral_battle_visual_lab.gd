@@ -47,7 +47,26 @@ func _ready() -> void:
     staff_view.visible = false
     add_child(staff_view)
     enemy_view.visible = false
-    set_process_unhandled_key_input(false)
+    set_process_unhandled_key_input(true)
+
+func _unhandled_key_input(event: InputEvent) -> void:
+    # Human reviewer controls exist ONLY in this isolated lab scene.
+    # Key input never routes to Chapter I or grants an external battle turn.
+    if not (event is InputEventKey) or not event.pressed or event.echo:
+        return
+    if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
+        if encounter == null or not encounter.active:
+            start_lab(reduced_motion)
+            get_viewport().set_input_as_handled()
+    elif event.keycode == KEY_1:
+        if encounter != null and encounter.active:
+            resolve_one_staff_strike()
+            get_viewport().set_input_as_handled()
+    elif event.keycode == KEY_R:
+        if encounter != null and encounter.active:
+            close_lab()
+        start_lab(reduced_motion)
+        get_viewport().set_input_as_handled()
 
 func start_lab(enable_reduced_motion: bool = false) -> bool:
     if encounter != null and encounter.active:
@@ -147,5 +166,7 @@ func _draw() -> void:
         HORIZONTAL_ALIGNMENT_LEFT, 750, 16, Color("#cad8db"))
     draw_string(font, Vector2(80, 530), hp,
         HORIZONTAL_ALIGNMENT_LEFT, 750, 16, Color("#e6b77b"))
+    draw_string(font, Vector2(80, 570), "ENTER — LOAD   |   1 — ONE STAFF STRIKE   |   R — RESET LAB",
+        HORIZONTAL_ALIGNMENT_LEFT, 810, 15, Color("#d6c59d"))
     draw_string(font, Vector2(80, 592), "No quest, save, hitbox, new enemy or story placement.",
         HORIZONTAL_ALIGNMENT_LEFT, 810, 15, Color("#a5afac"))
