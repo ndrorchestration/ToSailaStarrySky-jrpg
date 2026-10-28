@@ -46,11 +46,12 @@ void fragment() {
         if (snow) {
             // A snowfield and a sand dune share scale cues, not optical color.
             // Soft, warped sastrugi change the normal response to glancing sun.
-            float phase=dot(p,across)*4.3+
-                (weather_noise(p*0.28)-0.5)*2.9+
-                (weather_noise(p*0.81)-0.5)*0.8;
+            float phase=dot(p,across)*3.25+
+                (weather_noise(p*0.28)-0.5)*4.1+
+                (weather_noise(p*0.81)-0.5)*1.3;
             float stripe_lod=1.0-smoothstep(0.9,2.1,fwidth(phase));
-            float crest=sin(phase)*stripe_lod;
+            float streak_mask=smoothstep(0.23,0.72,weather_noise(p*vec2(0.38,0.29)));
+            float crest=sin(phase)*stripe_lod*mix(0.16,1.0,streak_mask);
             vec2 frost_grid=floor(p*10.0);
             float frost_lod=1.0-smoothstep(0.38,1.55,
                 max(fwidth(p.x*10.0),fwidth(p.y*10.0)));
@@ -59,7 +60,7 @@ void fragment() {
                 weather_hash(frost_grid+vec2(4.0,11.0))-0.5,0.0,
                 weather_hash(frost_grid+vec2(8.0,3.0))-0.5);
             vec3 bump=vec3(across.x,0.0,across.y)*
-                (cos(phase)*stripe_lod*0.042)+
+                (cos(phase)*stripe_lod*0.025*mix(0.16,1.0,streak_mask))+
                 grain_tilt*frost_lod*0.031;
             bump-=normal_world*dot(normal_world,bump);
             vec3 adjusted=normalize(normal_world-bump*optical);
@@ -90,19 +91,19 @@ void fragment() {
                 pores*0.42+streak*0.58);
             float thin_rivulets=smoothstep(0.76,0.94,
                 weather_noise(p*vec2(1.1,3.8)))*0.34;
-            float wet=clamp((0.38+0.55*soaked+thin_rivulets)*
+            float wet=clamp((0.18+0.55*soaked+thin_rivulets)*
                 optical,0.0,1.0);
             vec3 damp_tone=mix(vec3(0.15,0.19,0.20),
                 vec3(0.23,0.25,0.24),macro);
-            ALBEDO=mix(ALBEDO,damp_tone,wet*0.72);
-            ROUGHNESS=mix(ROUGHNESS,0.31,wet*0.82);
-            SPECULAR=mix(SPECULAR,0.33,wet);
+            ALBEDO=mix(ALBEDO,damp_tone,wet*0.62);
+            ROUGHNESS=mix(ROUGHNESS,0.59,wet*0.71);
+            SPECULAR=mix(SPECULAR,0.22,wet*0.83);
             float fine_lod=1.0-smoothstep(0.7,2.2,
                 max(fwidth(p.x*3.1),fwidth(p.y*3.1)));
             vec3 rivulet_tilt=vec3(
-                (weather_noise(p*vec2(2.4,0.8))-0.5)*0.07,
+                (weather_noise(p*vec2(2.4,0.8))-0.5)*0.033,
                 0.0,
-                (streak-0.5)*0.085);
+                (streak-0.5)*0.041);
             rivulet_tilt*=fine_lod*wet;
             rivulet_tilt-=normal_world*dot(normal_world,rivulet_tilt);
             NORMAL=normalize(mat3(VIEW_MATRIX)*
