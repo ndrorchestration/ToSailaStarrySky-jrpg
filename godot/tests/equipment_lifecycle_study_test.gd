@@ -51,6 +51,9 @@ func _verify() -> void:
     if original_stage != "signal":
         _fail("starting stage changed from existing Chapter I review")
         return
+    # Spawn at a location outside BOTH the test bench radius and existing
+    # canonical signal interaction radii, avoiding a legitimate story cue.
+    world.ender.position = Vector2(710, 465)
     if world.interact_nearest() or world.gear_inspector_open:
         _fail("station opened without an interaction-distance check")
         return
