@@ -377,8 +377,9 @@ func _broadleaf_crown(naturalistic: bool = true) -> ArrayMesh:
                 # perimeter breaks away from the repeated spherical silhouette.
                 # Deterministic per-lobe angular shaping, not runtime RNG.
                 var azimuth: float = atan2(vertex.z, vertex.x)
-                var edge: float = 1.0 + 0.13 * sin(azimuth * 5.0 + float(lobe) * 1.7)
-                    + 0.06 * cos(azimuth * 9.0 - float(lobe) * 0.43)
+                var edge: float = (1.0
+                    + 0.13 * sin(azimuth * 5.0 + float(lobe) * 1.7)
+                    + 0.06 * cos(azimuth * 9.0 - float(lobe) * 0.43))
                 vertex.x *= edge
                 vertex.z *= edge
                 vertex.y += 0.09 * sin(azimuth * 3.0 + float(lobe) * 2.3)
