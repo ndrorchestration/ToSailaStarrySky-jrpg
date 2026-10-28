@@ -15,7 +15,13 @@ The `SURFACE_Y`, 144×34 ship collider, `Area2D` water and berth sensors, buoyan
 
 ## QA boundary
 - Git `diff --check`: clean.
-- Godot runtime render and gameplay regression: **not run on this local desktop**; executable not located in checked standard paths.
+- Godot 4.7.2 native import: **PASS**.
+- Native visual rig test: **PASS**.
+- Native splashdown/berth/family contract: **PASS** with test-only physics-frame waits.
+- Native main entry to Chapter I water/reunion/story test: **PASS** with same test-only physics-frame waits.
+- Native dialogue scene test: **PASS**.
+- Authentic native image capture of this new coastline: **not yet performed**.
+- Runtime gameplay mechanics were not changed by timing corrections.
 - Cinematic/art sign-off: **pending authentic Godot screenshot comparison**.
 - Windows installer/Defender custody: **blocked independently**.
 - No GitHub branch push or PR merge performed.
