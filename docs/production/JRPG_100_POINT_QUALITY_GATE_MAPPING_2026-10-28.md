@@ -1,0 +1,34 @@
+# TSTSS production quality gates — mapping of the creator's 100-point JRPG checklist
+**2026-10-28 · Draft implementation policy / evidence ledger.**
+The creator's source is a prioritized **synthesis**, not a proven top-100 ranking. The ten sections are preserved. This table defines admission tests, not claims that the work is complete.
+
+| Source items | Domain lead / gate | Required TSTSS artifact and proof | Present decision |
+|---|---|---|---|
+| **1–10** Scope | Production/director: three pillars, distinctive hook, audience, content budget, feature cut list | Chapter I slice contract with explicit ceiling and feature deferrals | **P0 adopt**; full five-character/world scope is *not* Chapter I slice minimum |
+| **11–20** Slice | Game director/design: representative complete loop and risk test | One uncut fresh-launch playable route, feedback from players unfamiliar with game, measured finished-content cost | **P0 incomplete**; 3D and story branches separately tested |
+| **21–30** Combat | Battle designer/economy: decision-rich basic encounter, role diversity, guard/status/accuracy, no dominant move | Approved encounter contract with deterministic seed sweep, damage/turn economy, status/crit/accuracy edge cases, replay | **P0 blocked** until gameplay turn authority and old combat chronology reconciled; current four actions not a full battle |
+| **31–40** Progression | System/balance: mechanically meaningful growth, XP, skills, party synergy, economy | 1/10/50/175 stat fixture reports, action-cost/upgrade tables, respec/bench/economy tests | **P1 unresolved**; inspect level-one budget 25 against Ender 31 and Ionia 26 before adjustments |
+| **41–50** Narrative | Story: desire, relationships, explicit flags and consequence | Flyer→Ionia→engine→splashdown→postflight native playthrough and authorized Lyra/Talen family gate, dialogue-in-context | **P0 partially implemented**; Ionia-first chronology is binding for current First Wake, legacy Crossing contract quarantined |
+| **51–60** Exploration | World/level/encounter: identity, readable routes, encounter rhythm, reusable environment families | 3D cabin→helm→foredeck discoverability, meaningful return, asset/scene inventory with provenance | **P1 prototype**; real metric ship walk exists, global globe/auroral route remain out of scope |
+| **61–70** Engineering | Godot/tools/save: data IDs, rule-presentation isolation, effect order, deterministic tests, save restoration | Stable identifiers, no VFX authority, seed+action replay, versioned save/cold reload, content validator, backup restore drill | **P0 partial**; save and physics tests exist, complete combat resolution/replay contract missing |
+| **71–80** UX/media | UI/accessibility/audio: readability, controller/remap, dialogue pacing, low motion, sensory cues | Real viewport-scale captures, caption/error cues beyond color, M motion tests for 3D ocean, input/menu audits, audio-mix QA | **P0 partial**; M motion implemented/tested, complete menus, character UI and low-vision tests not accepted |
+| **81–90** QA | QA: blind players, boundaries, failures, severity, evidence, regressions | 3–5 unfamiliar first sessions, stage permutation and softlock matrix, real cold save, test case for every serious defect | **P0 incomplete**; scripted CI is not blind human playtest |
+| **91–100** Release | Production/security: license custody, platform claims, demo scope, support, retrospective | Approved art/rights and build provenance, reproducible packaging, Defender-on Windows install/launch/uninstall QA, no stale README claims | **P0 blocked**; no installer release without trusted security proof |
+
+## Cross-domain contracts (required to claim cohesion)
+
+1. **Authoritative gameplay emits events; visuals consume.** Animation, camera movement, particles, hit flashes, audio and numbers are listeners. No shader, SubViewport, clip, or VFX may spend resources, authorize a skill, change HP, award XP, grant story energy or mutate saves.
+2. **Numerical policy is explicit.** One versioned registry for stat curves, levels, derived stats, equip/skill costs, damage order and status transitions. Guard/analysis/resource recovery must have distinct strategic uses. Every combat balance statement needs measured encounter outcomes; metadata equivalence is insufficient.
+3. **Magic is not inferred from character theme.** Harmonic airship engine analysis and Five Lights mythology cannot automatically confer combat magic. Lyra and other protagonists may join narrative party only at authorized stages; roster presence never equals action unlock.
+4. **VFX taxonomy follows actual mechanics.** Differentiate *EMP / technical*, *physical*, *aether*, *support*, *analysis*, *status*, and *Resonance proposal*. The renderer must not present unimplemented effects as unlocked abilities. Damage labels and impact timing reflect resolved action payloads.
+5. **Performance and sensory budgets belong to gameplay.** Test frame-time, camera comfort, text/contrast, motion reduction and menu response at the same visual presets used in promotion screenshots. Record hardware and frame source.
+6. **Art identity and provenance are acceptance gates.** Use creator-approved Five Lights reference identities; portraits are not a substitute for genuine directional field sprites or rigged 3D models. Old/stale art remains archived, not quietly re-promoted.
+7. **Progression consistency beats spectacle.** Chapter I physical splashdown and secured berth cannot be replaced by cinematic cuts which fabricate contact; ship's hidden sea/submersion/exosphere capabilities stay concealed until canon reveals.
+
+## Immediate priorities in dependency order
+**P0A** Keep Ionia-first chronology and legacy Crossing combat surfaces separate. **P0B** Finish one unified normal-launch native 3D Chapter I route with saving and accessible navigation. **P0C** Build an authorized small enemy/turn prototype with numeric sweep and actual FX-bound event tests. **P0D** Verify source-correct character appearance in real rendering. **P0E** Run unfamiliar-player first sessions. **P1** Scale levels, world geography, special ship modes, wider skills and party content only after evidence.
+
+## Evidence ledger conventions
+Each task must record: immutable commit/branch, changed files, actual Godot executable/version, tests and run links, screenshot or gameplay recording custody, observed result, deficiencies, owner acceptance and next reversible action. Use **implemented**, **native-tested**, **playtested**, **art-approved**, **balance-approved**, **merge-approved**, **release-approved** as separate states. Do not collapse them into one green check.
+
+**Related:** `docs/production/CHAPTER1_VERTICAL_SLICE_ACCEPTANCE_CONTRACT_2026-10-28.md`; `docs/reviews/CH1_3D_RPG_SYSTEM_COHESION_2026-10-28.md`.
