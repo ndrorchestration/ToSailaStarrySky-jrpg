@@ -1,5 +1,7 @@
 # Aetherwake Visual Bible
 
+> **Observed native review gap (2026-10-28):** Three of nine genuine Godot 4.7.2 Windows 960×640 Chapter 1 frames at pinned SHA `4d2ec5fb` were visually inspected. HUD/overlay labels occlude artwork/text, sprites remain uneven in quality, and historical `AETHERWAKE / FIRST WAKE` branding appears. These are **unapproved prototype frames**, not benchmarks for final cinematic fidelity. The creator-approved Five Lights references remain the art authority. [QA detail](CHAPTER_1_NATIVE_INTEGRATION_AUDIT_2026-10-28.md).
+
 > **2026-10-25 authority update:** The player-facing title is **To Sail the Starry Sky** (Aetherwake is the historical/in-world identifier). Forward implementation uses **Godot 4.7.2 / GDScript**. Preserve the established visual thesis below. For newer creator-specific character locks, planetary fidelity, Dragonfly scale, and physical world grounding read [CHARACTER_AND_ART_AUTHORITY.md](CHARACTER_AND_ART_AUTHORITY.md), [WORLD_SHIP_VISUAL_DIRECTION.md](WORLD_SHIP_VISUAL_DIRECTION.md) and [AGENT_HANDOFF_INDEX.md](AGENT_HANDOFF_INDEX.md); historical statements about open eye/hair/outfit traits or engine strategy may be superseded.
 
 Status: **CANONICAL VISUAL DIRECTION**
