@@ -1,0 +1,100 @@
+name: First Wake Original 3D Wing Review (prototype only)
+
+on:
+  pull_request:
+    paths:
+      - "godot/scripts/ship_visual_3d_rig_study.gd"
+      - "godot/scripts/first_wake_ship_pose_3d_review.gd"
+      - "godot/scripts/first_wake_job_preview.gd"
+      - "godot/tests/first_wake_native_wing_render_test.gd"
+      - "godot/tests/capture_first_wake_native_wing_render.gd"
+      - ".github/workflows/godot-first-wake-native-wing-review.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-chapter1-real-3d:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - name: Check out exact commit without stored credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Fetch and verify exact official Godot 4.7.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL \
+            "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" \
+            -o /tmp/godot.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          mkdir -p /tmp/godot-editor
+          unzip -q /tmp/godot.zip -d /tmp/godot-editor
+          chmod +x /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Real native Chapter I parse and script import
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot --editor --quit 2>&1 | tee /tmp/wing-render-import.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|Failed loading' /tmp/wing-render-import.log
+      - name: Real Ionia-first scene with original four wing 3D renderer
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot \
+            --script res://tests/first_wake_native_wing_render_test.gd \
+            2>&1 | tee /tmp/wing-render-native.log
+          grep -Eq 'FIRST_WAKE_NATIVE_WING_RENDER_PASS checks=[0-9]+' /tmp/wing-render-native.log
+          ! grep -Eq 'FIRST_WAKE_NATIVE_WING_RENDER_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/wing-render-native.log
+      - name: Preserve Chapter I pose-port, ship-space and save-state admission
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot \
+            --script res://tests/first_wake_ship_pose_port_test.gd \
+            2>&1 | tee /tmp/wing-render-pose-regression.log
+          grep -q 'FIRST_WAKE_SHIP_POSE_PORT_PASS checks=38' /tmp/wing-render-pose-regression.log
+          timeout 90s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot \
+            --script res://tests/first_wake_ship_space_handoff_test.gd \
+            2>&1 | tee /tmp/wing-render-space-regression.log
+          grep -q 'FIRST_WAKE_SHIP_SPACE_HANDOFF_PASS checks=32' /tmp/wing-render-space-regression.log
+          timeout 90s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot \
+            --script res://tests/first_wake_revised_checkpoint_scene_test.gd \
+            2>&1 | tee /tmp/wing-render-save-regression.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|ERROR:' /tmp/wing-render-pose-regression.log /tmp/wing-render-space-regression.log /tmp/wing-render-save-regression.log
+      - name: Genuine Godot GL capture, 3 matched 960x640 Chapter I images
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 150s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_first_wake_native_wing_render.gd \
+            2>&1 | tee /tmp/wing-render-gl.log
+          test "$(grep -c 'FIRST_WAKE_NATIVE_WING_CAPTURE:' /tmp/wing-render-gl.log)" -eq 3
+          grep -q 'FIRST_WAKE_NATIVE_WING_AB_PASS frames=3' /tmp/wing-render-gl.log
+          ! grep -Eq 'FIRST_WAKE_NATIVE_WING_CAPTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/wing-render-gl.log
+      - name: Upload original native 3D A/B evidence and regressions
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: first-wake-3d-wing-source-preview
+          path: |
+            godot/review-evidence/ship-wing-3d/*.png
+            /tmp/wing-render-import.log
+            /tmp/wing-render-native.log
+            /tmp/wing-render-pose-regression.log
+            /tmp/wing-render-space-regression.log
+            /tmp/wing-render-save-regression.log
+            /tmp/wing-render-gl.log
+          if-no-files-found: warn
+          retention-days: 7
