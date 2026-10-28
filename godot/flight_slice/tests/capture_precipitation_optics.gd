@@ -58,7 +58,7 @@ func _capture() -> void:
     environment.tonemap_mode=Environment.TONE_MAPPER_FILMIC
     environment.fog_enabled=false
     environment.fog_light_color=Color(0.43,0.54,0.62)
-    environment.fog_density=0.028
+    environment.fog_density=0.019
     environment.fog_sky_affect=0.0
     var world_environment:=WorldEnvironment.new()
     world_environment.environment=environment
