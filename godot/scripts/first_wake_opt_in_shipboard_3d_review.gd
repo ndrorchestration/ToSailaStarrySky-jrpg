@@ -3,6 +3,8 @@ extends Node
 ## NOT used by project.godot main_scene, production save or canonical chapter.
 const FirstWakeScene = preload("res://scenes/first_wake_job_preview.tscn")
 const ShipScene = preload("res://scenes/aureate_wake_metric_bridge_study.tscn")
+const ZoneCamera = preload("res://scripts/first_wake_3d_zone_camera_review.gd")
+const CrewMotion = preload("res://scripts/first_wake_3d_crew_motion_proxy.gd")
 const REVIEW_ID := "tstss.first-wake.3d-ship-walk.review.v1"
 const REVIEW_PRODUCTION_READY: bool = false
 const HELM_CONSOLE_INTERACT_RANGE_M: float = 1.55
@@ -10,6 +12,8 @@ const RECOGNIZED_STEPS := ["engineering", "preflight"]
 var chapter: Node2D
 var ship: Node3D
 var three_d_review_active: bool = false
+var zone_camera: Node3D
+var motion_visual: Node3D
 var review_observations: int = 0
 var review_label: Label
 var instruction_label: Label
@@ -30,6 +34,15 @@ func _ready() -> void:
     ship.process_mode = Node.PROCESS_MODE_DISABLED
     ship.crew_walker.manual_controls_enabled = false
     ship.get_node("MetricShipStudyCamera").current = false
+    zone_camera = ZoneCamera.new()
+    zone_camera.actor = ship.crew_walker
+    ship.add_child(zone_camera)
+    motion_visual = CrewMotion.new()
+    ship.crew_walker.add_child(motion_visual)
+    # The original anonymous whole-body capsule remains the physical collider.
+    # Only its old mesh is visually replaced in this optional review scene.
+    ship.crew_walker.get_node("AnonymousCrewBodyVisual").visible = false
+    ship.crew_walker.get_node("FacingMarker").visible = false
     _set_chapter_present(true)
 
     var overlay := CanvasLayer.new()
@@ -82,7 +95,8 @@ func request_3d_ship_review(enabled: bool) -> bool:
         ship.visible = true
         ship.process_mode = Node.PROCESS_MODE_INHERIT
         ship.crew_walker.manual_controls_enabled = true
-        ship.set_crew_follow_camera(true)
+        ship.set_crew_follow_camera(false)
+        zone_camera.set_active(true)
         last_review_message = "Ordinary bridge walkthrough only. No flight controls."
         _refresh_ui()
         return true
@@ -90,6 +104,7 @@ func request_3d_ship_review(enabled: bool) -> bool:
         return false
     three_d_review_active = false
     ship.crew_walker.manual_controls_enabled = false
+    zone_camera.set_active(false)
     ship.set_crew_follow_camera(false)
     ship.visible = false
     ship.process_mode = Node.PROCESS_MODE_DISABLED
@@ -128,6 +143,15 @@ func cycle_glass_review() -> bool:
     _refresh_ui()
     return true
 
+func cycle_camera_review() -> bool:
+    if not three_d_review_active:
+        return false
+    zone_camera.cycle_shot()
+    last_review_message = "Camera framing: " + (
+        "elevated" if zone_camera.shot == 1 else "follow")
+    _refresh_ui()
+    return true
+
 func transient_review_contract() -> Dictionary:
     return {
         "schema": REVIEW_ID,
@@ -141,8 +165,10 @@ func transient_review_contract() -> Dictionary:
         "ship_space_production_ready": REVIEW_PRODUCTION_READY
     }
 
-func _process(_delta: float) -> void:
-    if not three_d_review_active:
+func _process(delta: float) -> void:
+    if three_d_review_active:
+        zone_camera.update_view(delta)
+    else:
         var eligible: bool = review_eligible()
         if eligible != _eligibility_last:
             _eligibility_last = eligible
@@ -155,7 +181,7 @@ func _refresh_ui() -> void:
         review_label.position = Vector2(24, 24)
         review_label.text = "AUREATE WAKE / ORDINARY SHIP WALKTHROUGH — STUDY ONLY"
         instruction_label.text = (
-            "WASD / ARROWS: walk    E: hatch (nearby)    F: look at helm    G: glass art    B: return")
+            "WASD / ARROWS: walk    E: hatch    F: helm    G: glass    C: camera    B: return")
         instruction_label.visible = true
     else:
         review_label.position = Vector2(24, 148)
@@ -175,4 +201,7 @@ func _unhandled_input(event: InputEvent) -> void:
             get_viewport().set_input_as_handled()
     elif three_d_review_active and event.keycode == KEY_G:
         if cycle_glass_review():
+            get_viewport().set_input_as_handled()
+    elif three_d_review_active and event.keycode == KEY_C:
+        if cycle_camera_review():
             get_viewport().set_input_as_handled()
