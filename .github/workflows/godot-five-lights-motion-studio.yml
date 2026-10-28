@@ -40,3 +40,14 @@ jobs:
           timeout 60s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/five_lights_motion_studio_test.gd 2>&1 | tee /tmp/motion-test.log
           ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_FIVE_LIGHTS_STUDIO_FAIL:' /tmp/motion-test.log
           grep -Fq 'TSTSS_FIVE_LIGHTS_STUDIO_PASS:' /tmp/motion-test.log
+
+      - name: Capture genuine five-character 960x640 GL framebuffer
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v xvfb-run
+          timeout 75s xvfb-run -a -s "-screen 0 960x640x24" godot-editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_five_lights_motion_studio.gd 2>&1 | tee /tmp/five-lights-native-render.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_FAIL:' /tmp/five-lights-native-render.log
+          grep -Fq 'TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_PASS:960x640' /tmp/five-lights-native-render.log
+          test -s /tmp/tstss_five_lights_native_960x640.png
+          sha256sum /tmp/tstss_five_lights_native_960x640.png
