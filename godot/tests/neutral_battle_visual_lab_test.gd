@@ -19,6 +19,14 @@ func _run() -> void:
         _fail("authorized existing Wind Shear data was not admitted into isolated lab")
         return
     lab.enemy_view.set_process(false)
+    if not lab.staff_view.visible:
+        _fail("neutral fixture failed to display the resting staff before action")
+        return
+    var quiet_frame: Dictionary = lab.staff_view.visual_contract()
+    if quiet_frame.is_empty() or absf(float(quiet_frame.get("progress", -1.0))) > 0.0001         or float(quiet_frame.get("trailStrength", -1.0)) != 0.0         or bool(quiet_frame.get("combatCommandIssued", true)):
+        _fail("pre-action pose is not a nonexecuting static idle")
+        return
+    var grounded_root_before: Vector2 = lab.staff_view.position
     var before: Dictionary = lab.encounter.snapshot()
     if str(before.get("encounterKind", "")) != "authored_hazard"         or str(before["target"]["id"]) != "windShear"         or int(before["target"]["hp"]) != 14 or int(before.get("turns",-1)) != 0:
         _fail("battle lab did not load the existing enemy contract")
@@ -64,6 +72,9 @@ func _run() -> void:
     # Optical contact uses the real 168-unit staff shaft and its ferrule.
     # These are measurable stage-space positions, NOT a physics hitbox.
     var contact_frame: Dictionary = lab.staff_view.visual_contract()
+    if grounded_root_before.distance_to(lab.staff_view.position) > 2.0:
+        _fail("character teleported during read-only pose transition")
+        return
     var staff_tip: Vector2 = lab.staff_view.position + Vector2(contact_frame["shaftTipA"])
     var expected_surface: Vector2 = lab.enemy_view.position + lab.OPTICAL_CONTACT_LOCAL
     if not lab.optical_contact_verified or lab.optical_contact_distance > 2.0         or staff_tip.distance_to(expected_surface) > 2.0:
