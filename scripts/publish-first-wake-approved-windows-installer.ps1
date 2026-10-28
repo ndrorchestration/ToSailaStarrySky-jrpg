@@ -164,6 +164,13 @@ if (-not [bool]$draft.isDraft -or
     [long]$draftAsset[0].size -ne (Get-Item -LiteralPath $setup).Length) {
     throw "TSTSS_RELEASE_DRAFT_ASSET_METADATA_MISMATCH"
 }
+# GitHub release asset digest provides a second independent stored checksum.
+# Older GitHub instances may omit digest; remote byte-download verification above
+# is mandatory regardless of this optional server-provided value.
+$digest = [string]$draftAsset[0].digest
+if ($digest -and $digest -cne "sha256:$installerHash") {
+    throw "TSTSS_RELEASE_DRAFT_GITHUB_ASSET_DIGEST_MISMATCH"
+}
 Write-Host "TSTSS_RELEASE_DRAFT_METADATA=PASS"
 & gh release edit $tag --repo $repo --draft=false --prerelease
 if ($LASTEXITCODE -ne 0) { throw "TSTSS_RELEASE_PROMOTION_FAILED_DRAFT_ONLY" }
