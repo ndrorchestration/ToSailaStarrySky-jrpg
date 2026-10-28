@@ -170,6 +170,13 @@ func _draw() -> void:
         draw_circle(Vector2(754, 184), radius, Color(0.98, 0.84, 0.66, alpha))
     draw_circle(Vector2(754, 184), 30.0, Color("#ffe3b1"))
     draw_circle(Vector2(754, 184), 24.0, Color("#fff0c9"))
+    # Subtle optical streaks and distant haze are deliberately fixed to
+    # this review composition, not simulated sun position or world time.
+    draw_line(Vector2(690, 184), Vector2(819, 184), Color(1.0, 0.86, 0.65, 0.055), 1.0)
+    draw_line(Vector2(754, 122), Vector2(754, 246), Color(1.0, 0.91, 0.71, 0.047), 1.0)
+    for haze_band in range(8):
+        var haze_y := 321.0 + float(haze_band) * 5.2
+        draw_line(Vector2(0, haze_y), Vector2(960, haze_y - 2.0), Color(0.91, 0.81, 0.68, 0.012 + float(haze_band) * 0.004), 2.0)
     # Broken wisps and thin, depth-ordered strata instead of rounded circles.
     # This is artwork-layer fog, not a simulated weather or cloud system.
     for index in range(7):
