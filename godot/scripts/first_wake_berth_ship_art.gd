@@ -64,13 +64,13 @@ func _draw() -> void:
     var glass_edge := Color(0.81, 0.96, 0.91, 0.47)
     var glass_glint := Color(0.89, 1.0, 0.96, 0.24)
     for band in [-0.62, 0.0, 0.62]:
-        var rise := band * rim
-        var half_span := sqrt(maxf(rim * rim - rise * rise, 0.0))
+        var rise: float = float(band) * rim
+        var half_span: float = sqrt(maxf(rim * rim - rise * rise, 0.0))
         draw_line(crown + Vector2(-half_span, rise),
             crown + Vector2(half_span, rise), glass_edge, 0.9)
     for angle_index in range(6):
-        var theta := TAU * float(angle_index) / 6.0
-        var rim_point := crown + Vector2(cos(theta), sin(theta)) * rim
+        var theta: float = TAU * float(angle_index) / 6.0
+        var rim_point: Vector2 = crown + Vector2(cos(theta), sin(theta)) * rim
         draw_line(crown, rim_point, glass_glint, 0.8)
     draw_arc(crown, rim, 0.0, TAU, 32, BRASS.lightened(0.17), 1.25, true)
     # Open bow deck remains visible in top-down silhouette; rails are
