@@ -38,6 +38,7 @@ var hint: Label
 var party_label: Label
 var ui_layer: CanvasLayer
 var flight_review: Node2D
+var use_wide_cinematic_review: bool = true # review-only; false restores tested 355x200 3D inset
 var dialogue_speaker: Label
 var dialogue_text: Label
 var dialogue_open: bool = false
@@ -181,6 +182,7 @@ func launch_flight_review() -> bool:
     # Opt in only from the isolated First Wake employment/flight preview.
     # 3D is an original-source, visual-only inset; 2D RigidBody remains authority.
     next_scene.enable_3d_cinematic_inset = true
+    next_scene.enable_wide_cinematic_composition = use_wide_cinematic_review
     flight_review = next_scene
     room = "flight_review"
     dock_background.visible = false
