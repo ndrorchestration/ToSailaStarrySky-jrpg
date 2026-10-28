@@ -1,0 +1,63 @@
+name: Godot Neutral Battle Visual Lab (review only)
+on:
+  push:
+    branches: [test/godot-neutral-battle-visual-lab-20261027]
+    paths:
+      - 'godot/scripts/neutral_*.gd'
+      - 'godot/scenes/neutral_battle_visual_lab.tscn'
+      - 'godot/tests/*neutral_battle_visual_lab*.gd'
+      - 'godot/scripts/first_wake_wind_shear_visual.gd'
+      - 'godot/art-review/wind_shear_elemental*.png'
+      - '.github/workflows/godot-neutral-battle-visual-lab.yml'
+  pull_request:
+    paths:
+      - 'godot/scripts/neutral_*.gd'
+      - 'godot/scenes/neutral_battle_visual_lab.tscn'
+      - 'godot/tests/*neutral_battle_visual_lab*.gd'
+      - 'godot/scripts/first_wake_wind_shear_visual.gd'
+      - 'godot/art-review/wind_shear_elemental*.png'
+      - '.github/workflows/godot-neutral-battle-visual-lab.yml'
+permissions:
+  contents: read
+jobs:
+  neutral-battle-lab:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 17
+    steps:
+      - name: Checkout exact branch without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Download SHA-256 pinned official Godot 4.7.2 Standard editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' -o editor.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  editor.zip' | sha256sum -c -
+          unzip -q editor.zip
+          chmod +x Godot_v4.7.2-stable_linux.x86_64
+      - name: Native Godot editor import and syntax test
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
+      - name: Verify inherited formula, staff authority, current enemy and visual gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          for test in first_wake_combat_formula_test first_wake_formula_encounter_test first_wake_party_combat_authority_test first_wake_current_enemy_adapter_test weapon_battle_visual_adapter_test ender_staff_combat_keyframe_review_test ender_staff_target_alignment_review_test first_wake_staff_visual_pipeline_test; do
+            ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script "res://tests/${test}.gd"
+          done
+      - name: Execute story-independent real-turn staff plus enemy visual lab
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/neutral_battle_visual_lab_test.gd
+      - name: Capture four true 960x640 neutral Godot framebuffer states
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v xvfb-run
+          xvfb-run -a -s "-screen 0 960x640x24" ./Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_neutral_battle_visual_lab.gd
+          for phase in idle hit gale reduced; do
+            test -s "godot/review-evidence/neutral-battle-lab/${phase}-native-960x640.png"
+          done
+          sha256sum godot/review-evidence/neutral-battle-lab/*-native-960x640.png
+          echo "NEUTRAL_LAB_STORY_PROGRESS=NOT_LOADED"
+          echo "NEUTRAL_LAB_VISUALS_HAVE_COMBAT_AUTHORITY=FALSE"
+          echo "NEUTRAL_LAB_ART_APPROVAL=NOT_GRANTED"
+          echo "WINDOWS_RELEASE_CUSTODY=UNCHANGED"
