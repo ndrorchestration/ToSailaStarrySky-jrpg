@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "id": "noncanon-ch1-environment-material-intake-01",
+  "classification": "PROTOTYPE_REVIEW_ONLY",
+  "source": {
+    "repository": "ndrorchestration/ToSailtheStarrySky-jrpg",
+    "gitCommit": "02fad39dbc1238ddb146ae5b8ae7d67cf7b03f52",
+    "draftPR": 476,
+    "generator": "godot/flight_slice/tools/generate_surface_textures.mjs",
+    "sourceGodotProject": "godot/flight_slice",
+    "sourceEvidenceWorkflow": "https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40608488921"
+  },
+  "target": {
+    "basePR": 480,
+    "baseCommit": "46e15dbd94cedf964fdc008dad8528d8140dcbb6",
+    "godotProject": "godot",
+    "reviewScene": "res://scenes/first_wake_chapter1_review.tscn",
+    "adapter": "res://scripts/ch1_environment_art_intake.gd",
+    "defaultEnabled": false,
+    "runtimeProgression": false,
+    "saveState": false,
+    "collision": false
+  },
+  "assets": [
+    {
+      "key": "biome",
+      "name": "biome_macrodetail.png",
+      "gitBlob": "6160f9ce4a29daf76cdc87a2a0546dd8a58aacf3",
+      "visualUse": "import-only",
+      "sourcePath": "godot/flight_slice/textures/biome_macrodetail.png",
+      "destinationPath": "godot/art-staging/environment-study/biome_macrodetail.png",
+      "format": "PNG",
+      "width": 128,
+      "height": 128,
+      "rgba": true
+    },
+    {
+      "key": "foliage",
+      "name": "foliage_microdetail.png",
+      "gitBlob": "89ba5fc8acd3b996b489aabb81645ff35f5d6931",
+      "visualUse": "existing-dock-planter-patch",
+      "sourcePath": "godot/flight_slice/textures/foliage_microdetail.png",
+      "destinationPath": "godot/art-staging/environment-study/foliage_microdetail.png",
+      "format": "PNG",
+      "width": 128,
+      "height": 128,
+      "rgba": true
+    },
+    {
+      "key": "terrain",
+      "name": "terrain_microdetail.png",
+      "gitBlob": "191e44fa737e3669a3758f69394ce9ecb768f557",
+      "visualUse": "import-only",
+      "sourcePath": "godot/flight_slice/textures/terrain_microdetail.png",
+      "destinationPath": "godot/art-staging/environment-study/terrain_microdetail.png",
+      "format": "PNG",
+      "width": 128,
+      "height": 128,
+      "rgba": true
+    },
+    {
+      "key": "water",
+      "name": "water_ripple_detail.png",
+      "gitBlob": "b92fc645a777ee2a5abe549cf96aa19bba109926",
+      "visualUse": "existing-dock-side-water",
+      "sourcePath": "godot/flight_slice/textures/water_ripple_detail.png",
+      "destinationPath": "godot/art-staging/environment-study/water_ripple_detail.png",
+      "format": "PNG",
+      "width": 128,
+      "height": 128,
+      "rgba": true
+    }
+  ],
+  "gates": {
+    "provenance": "NODE_GIT_BLOB_VERIFIED",
+    "nativeImport": "PENDING",
+    "nativeChapterScene": "PENDING",
+    "nativeRenderAB": "PENDING",
+    "visualAcceptance": "PENDING",
+    "targetGPU": "NOT_RUN",
+    "productionAssetAdmission": "HOLD",
+    "merge": "HOLD"
+  }
+}
