@@ -6,6 +6,7 @@ on:
       - 'godot/scripts/first_wake_job_preview.gd'
       - 'godot/scripts/first_wake_postflight_game.gd'
       - 'godot/tests/first_wake_creator_portrait_preview_test.gd'
+      - 'godot/tests/capture_first_wake_creator_portrait_layout.gd'
       - '.github/workflows/godot-first-wake-creator-portraits.yml'
 permissions:
   contents: read
@@ -47,3 +48,16 @@ jobs:
           timeout 105s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_game_entry_test.gd 2>&1 | tee /tmp/creator-portrait-game-entry.log
           ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_FIRST_WAKE_GAME_ENTRY_FAIL:' /tmp/creator-portrait-game-entry.log
           grep -Fq 'TSTSS_FIRST_WAKE_GAME_ENTRY_PASS' /tmp/creator-portrait-game-entry.log
+
+      - name: Capture true 960x640 First Wake GL layout with synthetic only textures
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v xvfb-run
+          timeout 85s xvfb-run -a -s "-screen 0 960x640x24" godot-editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_first_wake_creator_portrait_layout.gd 2>&1 | tee /tmp/creator-portrait-native-render.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_PORTRAIT_NATIVE_RENDER_FAIL:' /tmp/creator-portrait-native-render.log
+          grep -Fq 'TSTSS_PORTRAIT_NATIVE_RENDER_PASS:' /tmp/creator-portrait-native-render.log
+          for speaker in ender ionia; do
+            test -s "/tmp/tstss_portrait_${speaker}_native_960x640.png"
+          done
+          sha256sum /tmp/tstss_portrait_*_native_960x640.png
