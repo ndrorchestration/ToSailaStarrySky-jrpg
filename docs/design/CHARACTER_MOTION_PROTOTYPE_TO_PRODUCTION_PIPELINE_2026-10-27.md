@@ -42,6 +42,12 @@ Fixture steps and expected observable outcomes:
 
 **P-01 PASS requires a genuinely executed opt-in integrated scene** on one exact Godot commit with source hashes, scene/physics checks, screenshots and a human-readable comparison. A PR description, mock manifest, unit test, or isolated sprite viewer is insufficient. P-01 does *not* constitute release/admission.
 
+### Executed first in-scene subgate — P-01A (narrow proof, 2026-10-27)
+
+[Draft PR #515](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/515), stacked on #487, **actually runs a source-bound Lyra visual fixture in the existing Godot First Wake dock scene**, default OFF, opt-in via F6, no recruitment. The implementation head `b6abd3768a940a24fd07ca0cf8ea71b5ad8fef3b` passed [native Godot tests 40623886417](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40623886417), [native OpenGL render 40623886478](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40623886478) and [smoke 40623886520](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40623886520). It traveled a 400px physical 4-direction route in the actual pilot scene, exercised six imported source frames per direction, and stopped at a temporary real StaticBody2D test blocker at Y=449.00. Native off → south-moving → west-moving → restored frames were captured at 960×640 and **off/restored PNGs match pixel-for-pixel** at SHA-256 `45b133d1131ec275466795158099f8a3b722f0cb6f710b001a167a65f30ef566`. Review crops inspected; original files runner-local.
+
+**P-01A is an executed component test**, not the full P-01 acceptance: the branch is an early two-character dock technical pilot, not the latest complete Ionia-first revised narrative Chapter I. The regular dock floor is painted scene geometry (the physically blocking test wall is temporary); no proven persistent deck collider, environment depth, terrain projection, controller/accessibility, durable saves/party authority, real equipment or cinematic adapter, 1440×960 capture, target GPU, Windows security or creator acceptance. Broader P-01 remains **INCOMPLETE / NOT_RUN on current playable Chapter I**. This readback does not change any character-source acceptance.
+
 ## 4. Quality gates and release discipline
 
 | Gate | Required evidence | Current status |
