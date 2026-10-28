@@ -66,6 +66,9 @@ jobs:
       - name: Verify imported pixel boot anchors and reversible baseline alignment
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/character_source_foot_pixel_test.gd
+      - name: Measure explicitly provisional stance candidate world drift
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/character_stance_candidate_audit_test.gd
       - name: Verify opt-in Ender movement animation
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/ender_walk_test.gd
