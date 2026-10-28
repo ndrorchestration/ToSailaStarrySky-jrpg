@@ -1,11 +1,11 @@
-; Aetherwake native-engine pilot. Review-only Godot project.
-; Do not promote it as the production Aetherwake runtime.
+; To Sail the Starry Sky: revised First Wake integrated game entry (draft).
+; Still a native gameplay candidate, NOT an authorized release or production merge.
 config_version=5
 
 [application]
 
-config/name="Aetherwake — First Wake Chapter I Native Preview"
-run/main_scene="res://scenes/first_wake_chapter1_player_preview.tscn"
+config/name="To Sail the Starry Sky — First Wake Playable Candidate"
+run/main_scene="res://scenes/first_wake_game.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [display]
