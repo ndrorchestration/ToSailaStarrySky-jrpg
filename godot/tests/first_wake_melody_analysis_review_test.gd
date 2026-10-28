@@ -2,7 +2,7 @@ extends SceneTree
 ## Original symbolic music puzzle, not a song composition or DSP measurement.
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const Core = preload("res://scripts/first_wake_core_alignment_review.gd")
-const Panel = preload("res://scripts/first_wake_melody_analysis_review.gd")
+const AnalysisReview = preload("res://scripts/first_wake_melody_analysis_review.gd")
 const Melody = preload("res://scripts/first_wake_melody_math_fixture.gd")
 
 func _initialize() -> void:
@@ -33,7 +33,7 @@ func _make_ready_core():
     return core
 
 func _verify() -> void:
-    var panel = Panel.new()
+    var panel = AnalysisReview.new()
     var core = Core.new()
     if panel.show_for(core) or panel.show_for({}):
         _fail("chart opened without valid post-repair story stage")
