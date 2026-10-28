@@ -32,3 +32,7 @@ At `42e8022cbfe46c0fb1b4a3d05f4e18aedc0f2a42`:
 - New source head `d41c41c07227b119b9923b51c1c683e00e9fb73b` prevents `E` world interactions and `K`/`L` save/load hotkeys from acting behind the open **J** Evidence Notebook; **J** continues to close it. These are input-consistency guards, not new combat or save authority.
 - `godot/tests/first_wake_job_preview_notebook_test.gd` additionally asserts no story advancement from an attempted interact key while the notebook is open. Note: full physical movement/input capture and visual readability remain separate unsatisfied UI acceptance gates.
 - This follow-up had **not** yet received an exact-head completed native CI result at documentation time. Preserve previous exact-head success claims only for `79a5317879f8c213744981d3882cc096a82cc60d`; Windows Defender-on acceptance remains blocked.
+
+## 2026-10-28 modal movement follow-up
+
+At code head `258f26ef210912d7c801d1b05d086f3a899efeb4`, opening the J Evidence Notebook in the native F6 preview now disables Ender's player movement; closing it restores movement only when no dialogue is active and preflight does not prohibit control. Added assertions to `first_wake_job_preview_notebook_test.gd` for suspension and restoration. Previous `0376bc1c` Linux native cohesion/First Wake/Ionia/ship-handoff/smoke workflows passed; strict Windows QA failed. New exact-head test results pending. This is local input isolation, not postflight F5 or 3D acceptance.
