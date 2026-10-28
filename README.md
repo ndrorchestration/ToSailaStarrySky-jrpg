@@ -8,7 +8,15 @@
 
 ## Actual in-engine graphics — development evidence
 
-### Chapter I: First Wake, salvage and the Aureate Wake
+### Latest playable Aureate Wake and sea material review
+
+<a href="docs/reviews/native-evidence/2026-10-28-first-wake/aureate-wake-tidal-atmosphere-native-review.svg">
+  <img src="docs/reviews/native-evidence/2026-10-28-first-wake/aureate-wake-tidal-atmosphere-native-review.svg" width="100%" alt="Two unmodified actual native Godot 960x640 frames: the layered wood and copper Aureate Wake with provisional geodesic glass bridge floats in a rippled sunset ocean, then reaches a secured local 2D berth">
+</a>
+
+**New actual Godot visual upgrade:** hand-layered wood, copper, deck railings and segmented bridge glass on the Aureate Wake; original animated tidal shader, warm horizon glints, depth bands and atmospheric wisps. These are **two genuine native 960×640 game-render screenshots**, from [native capture run #40662836358](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40662836358) on exact visual source `73e5fdcf`. Original source PNGs remain embedded **losslessly** in this SVG. [Implementation, verification and artistic limitations](docs/FIRST_WAKE_TIDAL_AUREATE_VISUAL_PILOT_2026-10-28.md). **Review-only, not final cinematic art or an approved release.**
+
+### Earlier six-frame Chapter I implementation gallery
 
 <a href="docs/reviews/native-evidence/2026-10-28-first-wake/chapter1-six-native-stage-frames.svg">
   <img src="docs/reviews/native-evidence/2026-10-28-first-wake/chapter1-six-native-stage-frames.svg" width="100%" alt="Six actual native Godot Chapter I 960×640 render frames showing the waterborne Aureate Wake, a secured provisional berth, the family meeting, the quay cache, the stores annex and the engine workshop">
@@ -68,7 +76,7 @@
 
 </details>
 
-**Visual evidence boundary:** The featured Chapter I sheet above now embeds six exact native review frames and includes their verified hashes. Independent full-resolution PNG downloads for those six frames are **not** published as separate files; their lossless pixels are embedded in the SVG review graphic. The v3 saving interface is **not pictured**, and no artistic acceptance or playable release is implied. The earlier directional studies below are from October 21. [Chapter I native gameplay evidence](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40646186594) · [new frame capture evidence](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40648637058).
+**Visual evidence boundary:** The newest two-frame ship/ocean sheet is from the later October 28 visual upgrade; the earlier six-frame Chapter I sheet preserves older pre-upgrade render evidence (including family, quay, depot and workshop) and its own recorded hashes. Independent full-resolution PNG downloads for those six frames are **not** published as separate files; their lossless pixels are embedded in the SVG review graphic. The v3 saving interface is **not pictured**, and no artistic acceptance or playable release is implied. The earlier directional studies below are from October 21. [New ship-and-water native render](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40662836358) · [Chapter I native gameplay regression](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40662836420) · [older six-scene source evidence](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40648637058).
 
 
 
@@ -117,7 +125,7 @@ Nothing in this table defines an approved ability tree, a mandatory character cl
 ## Source, evidence and next quality gates
 
 - **Current implementation/evidence register:** [Godot development status and blockers](docs/CURRENT_GODOT_STATUS_2026-10-28.md).
-- **Actual in-engine images:** [Six native Chapter I frames with recorded hashes](docs/reviews/native-evidence/2026-10-28-first-wake/README.md). Frames are authentic **960×640 Godot renderer outputs** but contain visible provisional geometry and character staging; native correctness **does not constitute cinematic art acceptance**.
+- **Actual in-engine images:** [new two-frame Aureate Wake / tidal shader render](docs/reviews/native-evidence/2026-10-28-first-wake/aureate-wake-tidal-atmosphere-native-review.svg) plus [earlier six-frame Chapter I gallery with hash receipts](docs/reviews/native-evidence/2026-10-28-first-wake/README.md). Both contain genuine **960×640 Godot renderer outputs**; native correctness and improved silhouettes **do not constitute cinematic art acceptance**.
 - **Story/checkpoint:** [v3 separate salvage review contract](docs/FIRST_WAKE_SALVAGE_V3_CHECKPOINT_PILOT.md) · [current vs historical combat/party audit](docs/README_COMBAT_PARTY_STATUS_RECONCILIATION_2026-10-28.md).
 - **Visual target:** [Visual Bible](docs/VISUAL_BIBLE.md) · [benchmark scene](docs/VISUAL_BENCHMARK_SCENE.md) · [cinematic integration](docs/CINEMATIC_CLIP_CONTRACT.md). New playable artwork needs source alignment, native render inspection and creator sign-off.
 - **Native verification:** [Godot gameplay CI](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40649372371) and [native renderer CI](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40649372369) passed on the prior reviewed exact source. [Browser smoke/docs check](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40652983096) also passed. These runs establish **their own exact heads**, not universal acceptance of future commits.
