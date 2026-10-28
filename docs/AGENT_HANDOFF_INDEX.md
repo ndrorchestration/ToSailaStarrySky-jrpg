@@ -34,3 +34,7 @@
 5. Creator visual/player review, representative performance and Windows export/installed-launch verification.
 
 The existing canonical repository is public: https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg. Review actual branch states before making status claims.
+
+## Perceptual biome materials — review-only admission link (2026-10-27)
+
+For sand/dunes [#459/#472](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/472), snow/rain/mist [#483](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/483), and the independent actual highland snow [#448](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/448) / weather look [#420](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/420), consult [perceptual materials prototype-to-production admission](design/PERCEPTUAL_BIOME_MATERIAL_PROMOTION_2026-10-27.md) before copying shaders or claiming planetary biome visuals. Existing tests verify only detached noncanonical Godot Compatibility material fixtures; the required MATERIAL-P0 spherical local terrain render and worldmap integration have **not** been executed. Creator art and release approvals remain open.
