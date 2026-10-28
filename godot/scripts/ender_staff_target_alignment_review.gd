@@ -18,8 +18,10 @@ var active_tip: String = ""
 var aligned: bool = false
 var visual_state: Dictionary = {}
 
-func _tip_name(next_facing: String) -> String:
-    return "shaftTipA" if next_facing in ["east","south"] else "shaftTipB"
+func _tip_name(_next_facing: String) -> String:
+    # Positive (upper) ferrule points outward at contact in each of the
+    # independently-authored east/west/south/north strike tracks.
+    return "shaftTipA"
 
 func bind_contact_anchor(next_facing: String, contact_frame: Dictionary) -> bool:
     if next_facing not in STAFF.FACINGS \
