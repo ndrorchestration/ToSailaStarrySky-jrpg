@@ -26,13 +26,13 @@ func _run() -> void:
             if not kinds.has(biome):
                 kinds[biome]=Vector2(lat,float(lon))
     var chosen: Array[Dictionary]=[]
-    for kind in ["snow","arid","shore","woodland","grassland","rainforest"]:
-        if kinds.has(kind):
-            var coord: Vector2=kinds[kind]
-            var weather: String="rain" if (kind=="woodland" or
-                kind=="grassland" or kind=="rainforest") else "clear"
-            chosen.append({"pos":coord,"weather":weather})
-            if chosen.size()>=3:
+    for candidates in [["snow"],["arid","shore"],
+            ["woodland","grassland","rainforest"]]:
+        for kind in candidates:
+            if kinds.has(kind):
+                var coord: Vector2=kinds[kind]
+                var weather: String="rain" if candidates.size()==3 else "clear"
+                chosen.append({"pos":coord,"weather":weather})
                 break
     check(chosen.size()>=3,"actual native Cart contains three test biomes")
     for entry in chosen:
@@ -54,7 +54,7 @@ func _run() -> void:
             check(mat.shader.resource_path=="res://shaders/worldmap_material_optics.gdshader",
                 "shader resource is original limited native material adapter")
             var mode: int=int(mat.get_shader_parameter("surface_mode"))
-            var expected_mode: int=Adapter.MODES.get(str(state["material"]),0)
+            var expected_mode: int=int(Adapter.MODES.get(str(state["material"]),0))
             check(mode==expected_mode,"native Cart S1 is the authoritative material selector")
             var view_sun: Vector3=mat.get_shader_parameter("sun_direction")
             check(view_sun.is_finite() and absf(view_sun.length()-1.0)<0.00001,
