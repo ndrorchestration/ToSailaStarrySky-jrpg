@@ -8,6 +8,49 @@ extends CharacterBody2D
 @export var review_source_texture: Texture2D
 @export var review_aligned_texture: Texture2D
 
+## Opt-in real-source, single-pose comparison, NEVER a directional sprite-pack.
+## Respects existing CharacterBody2D movement/physics and source custody.
+const CREATOR_STANDEE_PATHS := {
+    "Ionia": "res://art-review/creator-field-review/ionia_field_static_review.png",
+    "Ender": "res://art-review/creator-field-review/ender_field_static_review.png",
+}
+var creator_standee: Sprite2D
+var creator_standee_enabled: bool = false
+
+func has_creator_standee() -> bool:
+    var source_path: String = String(CREATOR_STANDEE_PATHS.get(character_name, ""))
+    return not source_path.is_empty() and ResourceLoader.exists(source_path)
+
+func enable_creator_standee(enabled: bool) -> bool:
+    if not enabled:
+        creator_standee_enabled = false
+        if creator_standee != null:
+            creator_standee.visible = false
+        _sync_ender_direction()
+        _sync_ionia_direction()
+        queue_redraw()
+        return true
+    if not has_creator_standee():
+        enable_creator_standee(false)
+        return false
+    if creator_standee == null:
+        var texture: Texture2D = load(String(CREATOR_STANDEE_PATHS[character_name])) as Texture2D
+        if texture == null or texture.get_size().y < 300:
+            return false
+        creator_standee = Sprite2D.new()
+        creator_standee.name = "CreatorFullBodyStaticReferenceOnly"
+        creator_standee.texture = texture
+        creator_standee.scale = Vector2(0.18, 0.18)
+        creator_standee.position = Vector2(0.0, -48.0)
+        creator_standee.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+        add_child(creator_standee)
+    creator_standee_enabled = true
+    creator_standee.visible = true
+    _sync_ender_direction()
+    _sync_ionia_direction()
+    queue_redraw()
+    return true
+
 var walking_bounds: Rect2 = Rect2(Vector2(145, 410), Vector2(670, 112))
 var review_sprite: Sprite2D
 var aligned_sprite: Sprite2D
@@ -130,7 +173,7 @@ func _new_ionia_walk_view(view_name: String, atlas: Texture2D) -> Sprite2D:
 func _sync_ionia_direction() -> void:
     if ionia_front_walk_sprite == null:
         return
-    var visible: bool = ionia_stage_art_enabled or ionia_walk_review_enabled or ionia_route_review_enabled
+    var visible: bool = (ionia_stage_art_enabled or ionia_walk_review_enabled or ionia_route_review_enabled) and not creator_standee_enabled
     ionia_front_walk_sprite.visible = visible and ionia_facing == "south"
     ionia_north_walk_sprite.visible = visible and ionia_facing == "north"
     ionia_east_walk_sprite.visible = visible and ionia_facing == "east"
@@ -146,10 +189,10 @@ func _sync_ender_direction() -> void:
         return
     # East preserves the unmodified original six-frame pixel source from #308.
     # West has its OWN unmirrored source. No staff-side reversal of the east PNG.
-    walk_review_sprite.visible = walk_review_enabled and walk_facing == "east"
-    walk_west_sprite.visible = walk_review_enabled and walk_facing == "west"
-    walk_front_sprite.visible = walk_review_enabled and walk_facing == "south"
-    walk_back_sprite.visible = walk_review_enabled and walk_facing == "north"
+    walk_review_sprite.visible = walk_review_enabled and walk_facing == "east" and not creator_standee_enabled
+    walk_west_sprite.visible = walk_review_enabled and walk_facing == "west" and not creator_standee_enabled
+    walk_front_sprite.visible = walk_review_enabled and walk_facing == "south" and not creator_standee_enabled
+    walk_back_sprite.visible = walk_review_enabled and walk_facing == "north" and not creator_standee_enabled
     walk_review_sprite.flip_h = false
     walk_west_sprite.flip_h = false
 
@@ -332,7 +375,7 @@ func _draw() -> void:
         inner_contact.append(Vector2(cos(angle) * 12.0, -1.0 + sin(angle) * 2.7))
     draw_colored_polygon(outer_contact, Color(0.09, 0.13, 0.17, 0.19))
     draw_colored_polygon(inner_contact, Color(0.05, 0.09, 0.13, 0.31))
-    if is_review_art_enabled() or walk_review_enabled:
+    if is_review_art_enabled() or walk_review_enabled or creator_standee_enabled:
         # Suppress placeholder body only, retain shared foot-ground cue.
         return
     var step := gait_step if player_controlled else 0.0
