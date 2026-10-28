@@ -19,6 +19,7 @@ func _ready() -> void:
     sky_material = _shader("res://shaders/sky.gdshader")
     land = _shader("res://shaders/terrain.gdshader")
     land.set_shader_parameter("low_quality", false)
+    land.set_shader_parameter("alpine_blend_strength", 1.0)
     water = _shader("res://shaders/water.gdshader")
     foliage = _shader("res://shaders/foliage.gdshader")
     broadleaf = _shader("res://shaders/foliage.gdshader")

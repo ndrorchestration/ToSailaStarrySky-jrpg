@@ -163,6 +163,24 @@ func _capture() -> void:
             failed = true
         else:
             print("NATIVE_FIXED_TERRAIN_CAPTURE: ", fixed_path, " 960x640")
+        # True shader-only A/B at identical pose, sun, scene time, LOD state
+        # and camera; 0.0 restores the inherited cliff/snowline material.
+        scene.visuals.land.set_shader_parameter("alpine_blend_strength",0.0)
+        var no_blend: Image = await _frame()
+        var no_blend_path: String = ProjectSettings.globalize_path(
+            "res://evidence/cinematic-review/highland-fixed-no-blend.png")
+        if no_blend == null or no_blend.get_size() != Vector2i(960,640) or (
+                no_blend.save_png(no_blend_path) != OK):
+            push_error("NATIVE_MATERIAL_AB_CAPTURE_FAILED")
+            failed = true
+        else:
+            var blend_delta: int = _different(fixed,no_blend)
+            print("NATIVE_MATERIAL_AB_CAPTURE: ", no_blend_path,
+                " 960x640 changed_sample_pixels=", blend_delta)
+            if blend_delta < 100:
+                push_error("NATIVE_MATERIAL_AB_DIFFERENCE_TOO_SMALL")
+                failed = true
+        scene.visuals.land.set_shader_parameter("alpine_blend_strength",1.0)
     # Diagnostic only: preserve the exact fixed camera and compare uniform LOD
     # images against the preceding normal, distance-selected capture.
     if not baseline and scene.visuals != null:
