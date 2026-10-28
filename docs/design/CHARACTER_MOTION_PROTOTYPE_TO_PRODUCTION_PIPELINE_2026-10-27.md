@@ -40,7 +40,7 @@ Fixture steps and expected observable outcomes:
 5. Capture **real native Godot frames** at logical 960×640 and presentation 1440×960, daytime/nighttime, clear/rain, normal/reduced motion and high/low graphics settings where the respective environment adapters exist. Record unavailable combinations as **NOT_RUN**. Add honest camera/occlusion, layering and palette readability review.
 6. Enter/exit the prototype twice; assert no save diff, no party composition change, no story gate change, no leak of debug hotkeys into player input, reversible fallback to existing candidate sprites, and no invalid scenario carried into the game.
 
-**P-01 PASS requires a genuinely executed opt-in **integrated scene** on one exact Godot commit with source hashes, scene/physics checks, screenshots and a human-readable comparison.** A PR description, mock manifest, unit test, or isolated sprite viewer is insufficient. P-01 does *not* constitute release/admission.
+**P-01 PASS requires a genuinely executed opt-in integrated scene** on one exact Godot commit with source hashes, scene/physics checks, screenshots and a human-readable comparison. A PR description, mock manifest, unit test, or isolated sprite viewer is insufficient. P-01 does *not* constitute release/admission.
 
 ## 4. Quality gates and release discipline
 
