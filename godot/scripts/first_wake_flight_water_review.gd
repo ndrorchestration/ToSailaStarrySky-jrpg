@@ -8,6 +8,14 @@ const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const CinematicHandoff = preload("res://scripts/first_wake_cinematic_handoff.gd")
 const CinematicInset = preload("res://scripts/prototypes/first_wake_3d_inset.gd")
+const RecoveryReviewScene = preload("res://scenes/first_wake_recovery_readiness_review.tscn")
+
+# Observable fuel depletion, not a validated specialized-fuel recipe.
+const POSTFLIGHT_INSPECTION_LINES: Array[String] = [
+    "ENDER: The usable reserve is gone. The phase drift and containment strain appeared under load.",
+    "IONIA: Denith required a particular supply. I know how it was handled, not what it contained.",
+    "ENDER: Then we have observations, not a recipe. We cannot substitute ordinary fuel on a guess.",
+]
 
 const SURFACE_Y := 410.0
 const FLOAT_BUOYANCY := 120.0
@@ -25,6 +33,12 @@ var sea_area: Area2D
 var status_label: Label
 var hint_label: Label
 var telemetry_label: Label
+var flight_overlay: CanvasLayer
+var recovery_review: Node2D
+var inspection_label: Label
+var postflight_dialogue_open: bool = false
+var postflight_dialogue_cursor: int = 0
+var postflight_reserve_observed: bool = false
 var enable_3d_cinematic_inset: bool = false
 var cinematic_inset
 var visual_reduced_motion: bool = false
@@ -89,11 +103,15 @@ func _ready() -> void:
     add_child(ship_body)
 
     var ui := CanvasLayer.new()
+    flight_overlay = ui
     ui.name = "FlightReviewOverlay"
     add_child(ui)
     status_label = _make_label(ui, Vector2(24, 20), 19)
     telemetry_label = _make_label(ui, Vector2(24, 59), 15)
     hint_label = _make_label(ui, Vector2(26, 563), 17)
+    inspection_label = _make_label(ui, Vector2(35, 474), 16)
+    inspection_label.custom_minimum_size = Vector2(875, 82)
+    inspection_label.visible = false
     if enable_3d_cinematic_inset:
         cinematic_inset = CinematicInset.new()
         cinematic_inset.name = "NoncanonicalInScene3DFlightStudy"
@@ -130,15 +148,70 @@ func _draw() -> void:
     draw_rect(Rect2(0, 545, 960, 95), Color(0.04, 0.08, 0.16, 0.94))
 
 func _unhandled_input(event: InputEvent) -> void:
-    if event.is_action_pressed(InputPolicy.INTERACT) and not event.is_echo():
-        interact()
-        get_viewport().set_input_as_handled()
+    if event.is_echo() or recovery_review != null:
+        return
+    if event.is_action_pressed(InputPolicy.FLIGHT_REVIEW_LAUNCH):
+        if begin_recovery_readiness():
+            get_viewport().set_input_as_handled()
+        return
+    if event.is_action_pressed(InputPolicy.INTERACT):
+        if interact():
+            get_viewport().set_input_as_handled()
+
+func begin_recovery_readiness() -> bool:
+    # No shortcut: three actual story stages and native contact/stability must
+    # have occurred, then the player must read the reserve observations.
+    if recovery_review != null or phase != "postflight_diagnosis" or opening == null:
+        return false
+    if not contact_observed or not stable_float_verified or not postflight_reserve_observed:
+        return false
+    if opening.step_key() != "postflight_diagnosis" or opening.active_party_ids != ["ender", "ionia"]:
+        return false
+    var candidate := RecoveryReviewScene.instantiate()
+    if not bool(candidate.call("configure_from_postflight", self)):
+        candidate.free()
+        return false
+    recovery_review = candidate
+    flight_overlay.visible = false
+    add_child(recovery_review)
+    return true
+
+func start_postflight_inspection() -> bool:
+    if phase != "waterborne" or opening == null or postflight_dialogue_open or postflight_reserve_observed:
+        return false
+    if not contact_observed or not stable_float_verified or opening.step_key() != "waterborne":
+        return false
+    if opening.active_party_ids != ["ender", "ionia"]:
+        return false
+    postflight_dialogue_open = true
+    postflight_dialogue_cursor = 0
+    _refresh_presentation()
+    return true
+
+func advance_postflight_inspection() -> bool:
+    if not postflight_dialogue_open:
+        return false
+    if postflight_dialogue_cursor + 1 < POSTFLIGHT_INSPECTION_LINES.size():
+        postflight_dialogue_cursor += 1
+        _refresh_presentation()
+        return true
+    if not opening.inspect_postflight_reserve(true):
+        return false
+    postflight_dialogue_open = false
+    postflight_reserve_observed = true
+    phase = "postflight_diagnosis"
+    _refresh_presentation()
+    return true
 
 func interact() -> bool:
     if phase == "awaiting_launch":
         return begin_short_test_flight()
     if phase == "warning":
         return stabilize_for_water_descent()
+    if postflight_dialogue_open:
+        return advance_postflight_inspection()
+    if phase == "waterborne":
+        return start_postflight_inspection()
     return false
 
 func begin_short_test_flight() -> bool:
@@ -213,6 +286,8 @@ func review_snapshot() -> Dictionary:
         "phase": phase,
         "party": opening.active_party_ids.duplicate() if opening != null else [],
         "story_step": opening.step_key() if opening != null else "unconfigured",
+        "inspection_dialogue_open": postflight_dialogue_open,
+        "postflight_reserve_observed": postflight_reserve_observed,
         "actual_2d_area_contact_observed": contact_observed,
         "stable_buoyant_hull_observed": stable_float_verified,
         "settle_seconds": settled_seconds,
@@ -229,6 +304,8 @@ func _refresh_presentation() -> void:
     if opening != null:
         line += "  |  STORY PARTY: " + " + ".join(opening.active_party_ids).to_upper()
     telemetry_label.text = line
+    inspection_label.visible = postflight_dialogue_open
+    inspection_label.text = str(POSTFLIGHT_INSPECTION_LINES[postflight_dialogue_cursor]) if postflight_dialogue_open else ""
     match phase:
         "awaiting_launch":
             hint_label.text = "E: launch one short test flight. Ionia at helm; Ender at engineering."
@@ -239,7 +316,12 @@ func _refresh_presentation() -> void:
         "descent":
             hint_label.text = "Ionia selects open water. Physics water contact and flotation are being measured."
         "waterborne":
-            hint_label.text = "WATERBORNE: 2D physics contact + stable afloat confirmed. Engines offline. No Lyra join."
+            if postflight_dialogue_open:
+                hint_label.text = "E: inspect next note (%d / %d). No fuel formula established." % [postflight_dialogue_cursor + 1, POSTFLIGHT_INSPECTION_LINES.size()]
+            else:
+                hint_label.text = "WATERBORNE: contact + flotation stable. E: inspect reserve and chart readings."
+        "postflight_diagnosis":
+            hint_label.text = "DIAGNOSIS: reserve exhausted. F: three shipboard recovery-readiness checks; route still unknown."
         _:
             hint_label.text = "Preflight scene required."
     if cinematic_inset != null and cinematic_inset.is_node_ready():
