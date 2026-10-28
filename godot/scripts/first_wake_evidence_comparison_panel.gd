@@ -21,6 +21,7 @@ func configure_story(source: RefCounted) -> bool:
 
 func _ready() -> void:
     custom_minimum_size = Vector2(520, 310)
+    mouse_filter = Control.MOUSE_FILTER_STOP
     var panel := PanelContainer.new()
     panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     add_child(panel)
@@ -37,11 +38,13 @@ func _ready() -> void:
     for clue_id in Opening.CLUE_IDS:
         var button := CheckButton.new()
         button.text = str(Comparison.CLUE_LABELS[clue_id])
+        button.focus_mode = Control.FOCUS_ALL
         button.toggled.connect(_on_clue_toggled.bind(clue_id))
         stack.add_child(button)
         buttons[clue_id] = button
     compare_button = Button.new()
     compare_button.text = "Compare observations"
+    compare_button.focus_mode = Control.FOCUS_ALL
     compare_button.pressed.connect(compare_selected)
     stack.add_child(compare_button)
     status = Label.new()
@@ -82,6 +85,8 @@ func _on_clue_toggled(pressed: bool, clue_id: String) -> void:
     status.text = "Select two recorded clues."
 
 func compare_selected() -> Dictionary:
+    # Re-check actual current story state on every activation, not only when
+    # opening a panel: stale buttons must never authorize unobserved evidence.
     if opening == null:
         last_result = {"validComparison": false, "reason": "invalid_story_authority"}
     else:
