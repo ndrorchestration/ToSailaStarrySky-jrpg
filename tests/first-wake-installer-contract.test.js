@@ -10,6 +10,7 @@ const project = read('godot/project.godot');
 const entry = read('godot/scripts/first_wake_game.gd');
 const docs = read('docs/desktop/FIRST_WAKE_INSTALLER_DELIVERY.md');
 const custody = read('scripts/verify-first-wake-installer-defender.ps1');
+const prepare = read('scripts/prepare-first-wake-windows-installer.ps1');
 
 for (const x of [
   'RequestExecutionLevel user',
@@ -88,4 +89,18 @@ for (const marker of [
 ]) {
   assert(custody.includes(marker), 'trusted scan fail-closed/security marker missing: ' + marker);
 }
+for (const marker of [
+  "ExpectedSourceSha",
+  "TSTSS_INSTALLER_SOURCE_SHA_MISMATCH",
+  "TSTSS_INSTALLER_DEFENDER_REALTIME_REQUIRED",
+  "build-first-wake-godot-installer.ps1",
+  "verify-first-wake-installer-defender.ps1",
+  "TSTSS_INSTALLER_PREP_INVALID_RECEIPT",
+  "TSTSS_INSTALLER_LOCAL_PREP=PASS",
+  "PUBLIC_RELEASE_AUTHORIZED=NO",
+]) {
+  assert(prepare.includes(marker), 'single-command trusted Windows preparation cannot skip provenance, binary scan, or nonpublication: ' + marker);
+}
+assert(!/Set-MpPreference|Remove-MpPreference|gh release create|upload-artifact/.test(prepare),
+  'trusted Windows prep must not weaken Defender or publish');
 console.log('TSTSS_FIRST_WAKE_INSTALLER_CONTRACT_PASS release_authorized=false installer_link_published=false');
