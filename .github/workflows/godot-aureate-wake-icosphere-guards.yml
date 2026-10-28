@@ -1,0 +1,74 @@
+name: Godot Aureate Wake Original Icosphere and Foredeck Infill (study)
+
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/aureate_wake_icosphere_metric_topology.gd'
+      - 'godot/scripts/aureate_wake_metric_bridge_study.gd'
+      - 'godot/tests/aureate_wake_icosphere_guard_test.gd'
+      - 'godot/tests/capture_aureate_wake_icosphere_guards.gd'
+      - 'docs/AUREATE_WAKE_ICOSPHERE_GUARD_HANDOFF_2026-10-28.md'
+      - '.github/workflows/godot-aureate-wake-icosphere-guards.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  godot-icosphere-railing:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 13
+    steps:
+      - name: Check out current exact PR source without credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Verify exact native Godot 4.7.2 editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o /tmp/editor.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/editor.zip" | sha256sum -c -
+          mkdir -p /tmp/editor-bin
+          unzip -q /tmp/editor.zip -d /tmp/editor-bin
+          chmod +x /tmp/editor-bin/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/editor-bin/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Import actual Godot scene and scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/editor-bin/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/icosphere-import.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|SHADER ERROR|Failed loading' /tmp/icosphere-import.log
+      - name: Native geodesic face, physical rail and walking QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 130s /tmp/editor-bin/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot \
+            --script res://tests/aureate_wake_icosphere_guard_test.gd 2>&1 | tee /tmp/icosphere-guard-test.log
+          grep -q 'AUREATE_WAKE_ICOSPHERE_GUARD_PASS' /tmp/icosphere-guard-test.log
+          grep -q 'production=BLOCKED' /tmp/icosphere-guard-test.log
+          ! grep -Eq 'AUREATE_WAKE_ICOSPHERE_GUARD_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/icosphere-guard-test.log
+      - name: Actual three-image Godot shell and guard render
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 120s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/editor-bin/Godot_v4.7.2-stable_linux.x86_64 --path godot \
+            --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_aureate_wake_icosphere_guards.gd \
+            2>&1 | tee /tmp/icosphere-render.log
+          test "$(grep -c 'AUREATE_WAKE_ICOSPHERE_NATIVE_FRAME:' /tmp/icosphere-render.log)" -eq 3
+          grep -q 'AUREATE_WAKE_ICOSPHERE_RENDER_PASS' /tmp/icosphere-render.log
+          ! grep -Eq 'AUREATE_WAKE_ICOSPHERE_CAPTURE_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/icosphere-render.log
+      - name: Save real native visual and physics evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aureate-wake-original-icosphere-rail-infill-native
+          path: |
+            godot/review-evidence/aureate-wake-icosphere-guards/*.png
+            /tmp/icosphere-import.log
+            /tmp/icosphere-guard-test.log
+            /tmp/icosphere-render.log
+          if-no-files-found: warn
+          retention-days: 7
