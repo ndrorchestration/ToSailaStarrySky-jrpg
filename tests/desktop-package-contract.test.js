@@ -123,7 +123,7 @@ assert(localReleaseScript.includes('DESKTOP_RENDER_READINESS=PASS'),
 
 console.log('Aetherwake desktop package contract: PASS');
 
-const runtimeSource = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8');
+const runtimeSource = fs.readFileSync(path.join(__dirname, '..', 'tosailthestarrysky.js'), 'utf8');
 assert(runtimeSource.includes('function writeDesktopSmokeMarkerOnce()'),
   'runtime must expose a guarded desktop readiness marker writer');
 assert(runtimeSource.includes('window.__awRuntimeReady') &&
@@ -131,7 +131,7 @@ assert(runtimeSource.includes('window.__awRuntimeReady') &&
   'desktop readiness marker must be bound to runtime-ready and completed-first-frame signals');
 
 const embeddedHtmlForCanvas = fs.readFileSync(path.join(__dirname, '..', 'index-embedded.html'), 'utf8');
-const runtimeSourceForCanvas = fs.readFileSync(path.join(__dirname, '..', 'aetherwake.js'), 'utf8');
+const runtimeSourceForCanvas = fs.readFileSync(path.join(__dirname, '..', 'tosailthestarrysky.js'), 'utf8');
 assert(runtimeSourceForCanvas.includes('createCanvas(960, 640)'),
   'logical game canvas must remain 960x640 to preserve authored layout coordinates');
 assert(embeddedHtmlForCanvas.includes('width: min(100vw, calc(100vh * 1.5))'),
