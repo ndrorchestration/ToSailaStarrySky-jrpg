@@ -109,6 +109,18 @@ func _run() -> void:
     pilot.set_reduced_motion(false)
     check(not pilot.native_3d_review.use_reduced_motion,
         "3D view motion setting is reversible")
+    # Keyboard parity: M must reduce both animated visual systems together.
+    var motion_key := InputEventKey.new()
+    motion_key.keycode = KEY_M
+    motion_key.pressed = true
+    pilot._unhandled_input(motion_key)
+    check(pilot.cinematic_stage.reduced_motion
+        and pilot.native_3d_review.use_reduced_motion,
+        "M key stops 2D sea and source 3D ship motion together")
+    pilot._unhandled_input(motion_key)
+    check(not pilot.cinematic_stage.reduced_motion
+        and not pilot.native_3d_review.use_reduced_motion,
+        "M key reversibly restores both visual motions")
     check(pilot.set_native_3d_review_enabled(false)
         and not pilot.native_3d_review.visible,
         "V hides source 3D review without destroying local physical pilot")
