@@ -173,7 +173,7 @@ func _unhandled_input(event: InputEvent) -> void:
             ionia.enable_creator_standee(false)
             last_message = "Static field art not installed; original walking sprites retained."
         else:
-            last_message = "Creator full-body STATIC reference ON — no authored gait yet." if next_enabled else "Original walking art restored."
+            last_message = ("Cleaned full-body reference ON (STATIC; gait not authored)." if ender.creator_standee_variant == "matte_v3" and ionia.creator_standee_variant == "matte_v3" else "Creator full-body STATIC reference ON — no authored gait yet.") if next_enabled else "Original walking art restored."
         _sync_presentation()
         get_viewport().set_input_as_handled()
         return
@@ -364,6 +364,7 @@ func _sync_presentation() -> void:
     else:
         objective.text = "Engineering: inspect reference, containment and fuel (%d / 3)." % inspected_items.size()
     party_label.text = "Story party: " + " + ".join(opening.active_party_ids) + (
+        "  |  P: creator matte study (STATIC; walk animation pending)" if ender.creator_standee_enabled and ender.creator_standee_variant == "matte_v3" else
         "  |  P: original-source STATIC standee (walk animation pending)" if ender.creator_standee_enabled else
         "  |  P: compare source-art proportions  |  field sprites provisional")
     if dialogue_open:

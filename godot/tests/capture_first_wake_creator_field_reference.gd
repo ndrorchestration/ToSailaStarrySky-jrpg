@@ -10,6 +10,16 @@ const LOCAL_DIGESTS := {
     "Ionia": "a37f1cde79fbee7b70d2f25ad9b1625fac1c8340f9c162b54f9333491d203f84",
     "Ender": "7d95d72e6d8953b0db594511cb2705947925363025e737d2710bc247ee43ec4b"
 }
+## The improved alpha source remains private. This renderer check refuses
+## substituted mattes or a misleading v1-only visual evidence claim.
+const REFINED_SOURCES := {
+    "Ionia": "res://art-review/creator-field-review/ionia_field_matte_v3.png",
+    "Ender": "res://art-review/creator-field-review/ender_field_matte_v3.png"
+}
+const REFINED_SHA256 := {
+    "Ionia": "37d7cc3c852bbf5497e94e38502fb8aa35512f5492cf9a12abdf0eff49b11c49",
+    "Ender": "8127ec4b87086027887c145fbde72704c61ad1d20d44395b111b3145d98660ca"
+}
 var faults: Array[String] = []
 
 func _initialize() -> void:
@@ -41,6 +51,10 @@ func _capture() -> void:
     for name in SOURCES:
         if not FileAccess.file_exists(SOURCES[name]) or FileAccess.get_sha256(SOURCES[name]) != LOCAL_DIGESTS[name]:
             _fail("creator-supplied local processed artwork missing or wrong SHA: " + name)
+    for id in REFINED_SOURCES:
+        var path: String = String(REFINED_SOURCES[id])
+        if not FileAccess.file_exists(path) or FileAccess.get_sha256(path) != REFINED_SHA256[id]:
+            _fail("refined creator PNG absent or nonmatching SHA: " + id)
     if not faults.is_empty():
         quit(1)
         return
@@ -63,11 +77,15 @@ func _capture() -> void:
         if not dock.ender.enable_creator_standee(true) or not dock.ionia.enable_creator_standee(true):
             _fail("both independently sourced full-body static references not visible")
         else:
-            await _photo("static_source")
+            if dock.ender.creator_standee_variant != "matte_v3" or dock.ionia.creator_standee_variant != "matte_v3":
+                _fail("static source renderer did not prefer refined original mattes")
+            dock._sync_presentation()
+            await _photo("matte_v3")
         if not dock.ender.creator_standee_enabled or not dock.ionia.creator_standee_enabled:
             _fail("full-body static source not enabled")
         dock.ender.enable_creator_standee(false)
         dock.ionia.enable_creator_standee(false)
+        dock._sync_presentation()
         await _photo("existing_walkers")
         if dock.ender.creator_standee_enabled or dock.ionia.creator_standee_enabled:
             _fail("reversible originals not restored")
@@ -76,5 +94,5 @@ func _capture() -> void:
     game.queue_free()
     await process_frame
     if faults.is_empty():
-        print("TSTSS_CREATOR_FIELD_NATIVE_PASS:source=actual_creator_sheet static_only=true art_swap=true 960x640=true story_unchanged=true")
+        print("TSTSS_CREATOR_FIELD_NATIVE_PASS:source=actual_creator_sheet matte=v3 static_only=true art_swap=true 960x640=true story_unchanged=true")
     quit(0 if faults.is_empty() else 1)

@@ -33,6 +33,11 @@ func _run() -> void:
         if e.has_creator_standee() and i.has_creator_standee():
             check(e.creator_standee_enabled and i.creator_standee_enabled,
                 "actual source previews enabled")
+            check(e.creator_standee_variant in ["matte_v3", "source_v1"] and
+                i.creator_standee_variant in ["matte_v3", "source_v1"],
+                "source-custody revision must be named")
+            check(e.creator_standee_source_path() != "" and i.creator_standee_source_path() != "",
+                "source revision path must exist")
             check(e.creator_standee.texture.get_size().y == 535 and
                 i.creator_standee.texture.get_size().y == 535,
                 "correct full-body source proportions")

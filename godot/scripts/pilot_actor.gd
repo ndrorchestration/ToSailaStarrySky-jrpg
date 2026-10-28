@@ -14,12 +14,27 @@ const CREATOR_STANDEE_PATHS := {
     "Ionia": "res://art-review/creator-field-review/ionia_field_static_review.png",
     "Ender": "res://art-review/creator-field-review/ender_field_static_review.png",
 }
+## Optional improved private source mattes; v1 is retained as a safe fallback.
+## Neither one supplies independently authored directional animation frames.
+const CREATOR_REFINED_MATTE_PATHS := {
+    "Ionia": "res://art-review/creator-field-review/ionia_field_matte_v3.png",
+    "Ender": "res://art-review/creator-field-review/ender_field_matte_v3.png",
+}
 var creator_standee: Sprite2D
 var creator_standee_enabled: bool = false
+var creator_standee_variant: String = "none"
+
+func creator_standee_source_path() -> String:
+    var cleaned_path: String = String(CREATOR_REFINED_MATTE_PATHS.get(character_name, ""))
+    if not cleaned_path.is_empty() and ResourceLoader.exists(cleaned_path):
+        return cleaned_path
+    var initial_path: String = String(CREATOR_STANDEE_PATHS.get(character_name, ""))
+    if not initial_path.is_empty() and ResourceLoader.exists(initial_path):
+        return initial_path
+    return ""
 
 func has_creator_standee() -> bool:
-    var source_path: String = String(CREATOR_STANDEE_PATHS.get(character_name, ""))
-    return not source_path.is_empty() and ResourceLoader.exists(source_path)
+    return not creator_standee_source_path().is_empty()
 
 func enable_creator_standee(enabled: bool) -> bool:
     if not enabled:
@@ -34,12 +49,14 @@ func enable_creator_standee(enabled: bool) -> bool:
         enable_creator_standee(false)
         return false
     if creator_standee == null:
-        var texture: Texture2D = load(String(CREATOR_STANDEE_PATHS[character_name])) as Texture2D
+        var selected_path: String = creator_standee_source_path()
+        var texture: Texture2D = load(selected_path) as Texture2D
         if texture == null or texture.get_size().y < 300:
             return false
         creator_standee = Sprite2D.new()
         creator_standee.name = "CreatorFullBodyStaticReferenceOnly"
         creator_standee.texture = texture
+        creator_standee_variant = "matte_v3" if selected_path == String(CREATOR_REFINED_MATTE_PATHS[character_name]) else "source_v1"
         creator_standee.scale = Vector2(0.18, 0.18)
         creator_standee.position = Vector2(0.0, -48.0)
         creator_standee.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
