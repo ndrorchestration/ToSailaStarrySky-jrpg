@@ -43,6 +43,19 @@ func _run() -> void:
                 "correct full-body source proportions")
             check(e.creator_standee.hframes == 1 and i.creator_standee.hframes == 1,
                 "must not pretend static art is six-frame animation")
+            for actor in [e, i]:
+                check(actor.creator_standee.scale.is_equal_approx(Vector2.ONE * 0.21),
+                    "source-actor silhouette must render at intended scale")
+                check(absf(actor.creator_standee.position.y +
+                    actor.creator_standee.texture.get_height() * actor.creator_standee.scale.y * 0.5) < 0.01,
+                    "boots must remain grounded at actor foot origin")
+                check(actor.creator_standee.material is ShaderMaterial and
+                    actor.creator_standee.material.shader != null,
+                    "source figure must use bounded cinematic-coastal lighting")
+                var collider: CollisionShape2D = actor.get_node("CollisionShape2D") as CollisionShape2D
+                check(collider != null and collider.shape is CircleShape2D and
+                    absf(collider.shape.radius - 10.0) < 0.01,
+                    "source visuals must not change existing physics footprint")
             check(not e.walk_review_sprite.visible and not i.ionia_front_walk_sprite.visible,
                 "rejected provisional sprites must be hidden during source view")
         # Exercise the actual player's P-key hook, not only low-level actor API.
