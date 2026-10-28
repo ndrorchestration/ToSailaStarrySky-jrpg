@@ -5,6 +5,7 @@ const Observer = preload("res://scripts/first_wake_staff_visual_pipeline_observe
 const Staff = preload("res://scripts/ender_staff_combat_keyframe_review.gd")
 const Target = preload("res://scripts/ender_staff_target_alignment_review.gd")
 const Camera = preload("res://scripts/weapon_cinematic_contact_review.gd")
+const PresentationQueue = preload("res://scripts/first_wake_staff_presentation_queue.gd")
 
 const SOURCE := "FIRST_WAKE_EVENT_DRIVEN_STAFF_VISUAL_PILOT"
 const EQUIPPED_STAFF := "full_length_staff"
@@ -15,6 +16,7 @@ const STAGE_SCALE := 0.64
 var world: Node2D
 var observer = Observer.new()
 var camera = Camera.new()
+var presentation_queue = PresentationQueue.new()
 var staff: Node2D
 var practice: Node2D
 var enabled: bool = true
@@ -63,6 +65,7 @@ func detach() -> void:
     last_receipt = {}
     latest_frame = {}
     latest_contact = {}
+    presentation_queue.clear()
 
 func _exit_tree() -> void:
     detach()
@@ -72,9 +75,11 @@ func set_pilot_enabled(value: bool) -> void:
     if not enabled:
         playing = false
         visible = false
+        presentation_queue.clear()
 
 func set_reduced_motion(value: bool) -> void:
     reduced_motion = value
+    presentation_queue.set_reduced_motion(value)
     if not last_receipt.is_empty() and visible:
         _render_elapsed()
 
@@ -108,6 +113,7 @@ func _on_action_resolved(event: Dictionary) -> void:
     last_sequence = serial
     playing = false
     visible = false
+    presentation_queue.clear()
     if str(event.get("actionId","")) != "staffStrike":
         ignored_nonstaff_count += 1
         return
@@ -126,6 +132,15 @@ func _on_action_resolved(event: Dictionary) -> void:
     elapsed = 0.0
     hold_elapsed = 0.0
     if not _align_fixture():
+        rejected_event_count += 1
+        last_receipt = {}
+        return
+    var duration: float = observer.bridge.timeline.duration(EQUIPPED_STAFF,"attack")
+    if not presentation_queue.accept_result(
+        serial,observed,
+        Dictionary(event.get("combatBefore",{})),
+        Dictionary(event.get("combatAfter",{})),
+        duration,reduced_motion):
         rejected_event_count += 1
         last_receipt = {}
         return
@@ -150,6 +165,7 @@ func seek_review_seconds(seconds: float) -> bool:
         return false
     var duration: float = observer.bridge.timeline.duration(EQUIPPED_STAFF,"attack")
     elapsed = clampf(seconds,0.0,duration)
+    presentation_queue.seek(elapsed)
     hold_elapsed = 0.0
     _render_elapsed()
     return true
@@ -160,16 +176,19 @@ func _process(delta: float) -> void:
     if not is_instance_valid(world) or not world.formula_encounter.active:
         playing = false
         visible = false
+        presentation_queue.clear()
         return
     var duration: float = observer.bridge.timeline.duration(EQUIPPED_STAFF,"attack")
     if elapsed < duration:
         elapsed = minf(duration,elapsed+delta)
+        presentation_queue.seek(elapsed)
         _render_elapsed()
     else:
         hold_elapsed += delta
         if hold_elapsed >= MAX_HOLD_SECONDS:
             playing = false
             visible = false
+            presentation_queue.clear()
 
 func _render_elapsed() -> void:
     var pose: Dictionary = observer.bridge.actor_action_pose(
@@ -189,6 +208,11 @@ func _render_elapsed() -> void:
     latest_contact = practice.visual_contract()
     queue_redraw()
 
+func presentation_projection() -> Dictionary:
+    if not enabled or not is_instance_valid(world)         or not world.formula_encounter.active or not visible:
+        return {}
+    return presentation_queue.projection()
+
 func visual_contract() -> Dictionary:
     return {
         "source":SOURCE,"attached":is_instance_valid(world),
@@ -204,11 +228,7 @@ func visual_contract() -> Dictionary:
         "cameraOnly":true,"realHitVerified":false,
         "combatCommandIssued":false,"saveWritten":false,
         "artApproved":false,
+        "presentationPhase":str(presentation_projection().get("phase","inactive")),
+        "presentationSequence":presentation_queue.sequence,
     }
 
-func _draw() -> void:
-    if not visible:
-        return
-    draw_string(ThemeDB.fallback_font,Vector2(-160,-154),
-        "STAFF VISUAL STUDY / NONEXECUTING",
-        HORIZONTAL_ALIGNMENT_LEFT,-1,15,Color("#d9cba9"))
