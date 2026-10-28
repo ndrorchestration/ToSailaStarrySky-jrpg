@@ -18,6 +18,12 @@ const RAIL_HEIGHT_M: float = 1.05
 const REVIEW_HEADROOM_M: float = 2.05
 const COLLISION_LAYER: int = 8
 const REVIEW_STATUS := "SINGLE_SCENE_PHYSICS_PROTOTYPE_NOT_PRODUCTION"
+const CrewWalker = preload("res://scripts/aureate_wake_crew_walk_review.gd")
+const HATCH_INTERACT_RADIUS_M: float = 1.28
+var crew_walker: CharacterBody3D
+var crew_camera: Camera3D
+var crew_camera_enabled: bool = false
+var crew_camera_occluded: bool = false
 
 var dome_panels: int = 0
 var dome_frame_edges: int = 0
@@ -41,6 +47,7 @@ func _ready() -> void:
     _build_foredeck_rails()
     _build_hatch()
     _camera()
+    _create_crew_controller()
 
 func _material(tint: Color, roughness: float, metal: float) -> StandardMaterial3D:
     var result := StandardMaterial3D.new()
@@ -259,6 +266,71 @@ func _build_hatch() -> void:
     shape.position = panel.position
     body.add_child(shape)
     set_hatch_open(true)
+
+func _create_crew_controller() -> void:
+    crew_walker = CrewWalker.new()
+    crew_walker.position = Vector3(0, 1.03, 3.85)
+    add_child(crew_walker)
+    crew_camera = Camera3D.new()
+    crew_camera.name = "CrewFollowCameraReviewOnly"
+    crew_camera.fov = 66
+    crew_camera.near = 0.11
+    crew_camera.far = 80.0
+    add_child(crew_camera)
+    crew_camera.current = false
+
+func set_crew_follow_camera(enabled: bool) -> void:
+    crew_camera_enabled = enabled
+    if crew_camera != null:
+        crew_camera.current = enabled
+
+func request_crew_hatch_interaction() -> bool:
+    if crew_walker == null or not crew_walker.is_on_floor():
+        return false
+    var distance: float = Vector2(
+        crew_walker.position.x,
+        crew_walker.position.z - HATCH_Z).length()
+    if distance > HATCH_INTERACT_RADIUS_M:
+        return false
+    set_hatch_open(not _hatch_open)
+    return true
+
+func get_forward_helm_sightline() -> Dictionary:
+    # Actual obstruction test, through the near-door helm area only.
+    # Not an assertion about structural glass or weather protection.
+    var eye := Vector3(0.0, 1.56, -1.50)
+    var deck := Vector3(0.0, 1.56, -4.70)
+    var params := PhysicsRayQueryParameters3D.create(
+        eye, deck, COLLISION_LAYER)
+    var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(params)
+    return {
+        "clear": hit.is_empty(),
+        "collider_name": str(hit["collider"].name) if not hit.is_empty() else ""
+    }
+
+func _unhandled_input(event: InputEvent) -> void:
+    if event is InputEventKey and event.pressed and not event.echo:
+        if event.keycode == KEY_E and crew_walker != null and (
+                crew_walker.manual_controls_enabled):
+            if request_crew_hatch_interaction():
+                get_viewport().set_input_as_handled()
+
+func _process(_delta: float) -> void:
+    if not crew_camera_enabled or crew_walker == null or crew_camera == null:
+        return
+    # Follow the actual walking body and shorten the camera arm if intervening
+    # static collision would hide the actor; never pierce an opaque cabin wall.
+    var eye: Vector3 = crew_walker.global_position + Vector3.UP * 0.55
+    var target: Vector3 = eye + Vector3(1.80, 1.50, 3.05)
+    var query := PhysicsRayQueryParameters3D.create(
+        eye, target, COLLISION_LAYER)
+    var result: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
+    crew_camera_occluded = not result.is_empty()
+    if crew_camera_occluded:
+        var distance: float = maxf(eye.distance_to(result["position"]) - 0.15, 0.40)
+        target = eye + (target - eye).normalized() * distance
+    crew_camera.global_position = target
+    crew_camera.look_at(eye + Vector3(0, 0, -0.70), Vector3.UP)
 
 func set_hatch_open(value: bool) -> void:
     _hatch_open = value
