@@ -202,12 +202,40 @@ func set_native_3d_review_enabled(enabled: bool) -> bool:
     _update_hud()
     return true
 
+func cycle_native_3d_camera() -> bool:
+    # Camera-only composition review, independent of hull motion and story.
+    if not three_d_review_enabled or native_3d_review == null:
+        return false
+    var shots := ["bow-quarter", "stern-quarter", "wing-planform"]
+    var current: String = native_3d_review.last_camera_shot
+    var next_index: int = (shots.find(current) + 1) % shots.size()
+    var plan := {
+        "admitted_for_review": true,
+        "executes_visuals": false,
+        "blocks_progression": false,
+        "visual_source_pr": 486,
+        "camera_shot_id": shots[next_index],
+        "visual_grade_id": "golden-clear",
+        "scene_phase": "local-berth-study",
+        "reduced_motion": cinematic_stage.reduced_motion,
+        "low_detail": false,
+        "grants_combat_magic": false,
+        "modifies_story_state": false,
+        "changes_saves": false,
+        "production_ocean_verified": false,
+    }
+    return native_3d_review.set_visual_intent(plan)
+
 func _process(delta: float) -> void:
     if three_d_review_enabled and native_3d_review != null:
         native_3d_review.advance_visual_clock(delta)
 
 func _unhandled_input(event: InputEvent) -> void:
     if event.is_echo():
+        return
+    if event is InputEventKey and event.pressed and event.keycode == KEY_C:
+        if cycle_native_3d_camera():
+            get_viewport().set_input_as_handled()
         return
     if event is InputEventKey and event.pressed and event.keycode == KEY_V:
         if set_native_3d_review_enabled(not three_d_review_enabled):
@@ -272,7 +300,7 @@ func _update_hud() -> void:
     var view := "3D ON" if three_d_review_enabled else "3D OFF"
     match phase:
         "awaiting_approach":
-            hint.text = "E: approach berth  |  V: " + view + "  |  M: " + motion + "  |  R: shipboard"
+            hint.text = "E: approach berth  |  V: " + view + "  |  C: camera  |  M: " + motion + "  |  R: shipboard"
         "approaching":
             hint.text = "Local hull is moving; await actual sensor overlap  |  M: " + motion
         "settling":
