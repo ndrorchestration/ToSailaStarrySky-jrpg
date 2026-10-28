@@ -6,6 +6,8 @@ extends Node2D
 
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
+const CinematicHandoff = preload("res://scripts/first_wake_cinematic_handoff.gd")
+const CinematicInset = preload("res://scripts/prototypes/first_wake_3d_inset.gd")
 
 const SURFACE_Y := 410.0
 const FLOAT_BUOYANCY := 120.0
@@ -23,6 +25,10 @@ var sea_area: Area2D
 var status_label: Label
 var hint_label: Label
 var telemetry_label: Label
+var enable_3d_cinematic_inset: bool = false
+var cinematic_inset
+var visual_reduced_motion: bool = false
+var visual_low_detail: bool = false
 
 func configure_preflight(preflight) -> bool:
     if is_inside_tree() or preflight == null:
@@ -88,6 +94,11 @@ func _ready() -> void:
     status_label = _make_label(ui, Vector2(24, 20), 19)
     telemetry_label = _make_label(ui, Vector2(24, 59), 15)
     hint_label = _make_label(ui, Vector2(26, 563), 17)
+    if enable_3d_cinematic_inset:
+        cinematic_inset = CinematicInset.new()
+        cinematic_inset.name = "NoncanonicalInScene3DFlightStudy"
+        cinematic_inset.position = Vector2(578, 144)
+        ui.add_child(cinematic_inset)
     _refresh_presentation()
 
 func _make_label(parent: Node, at: Vector2, size: int) -> Label:
@@ -156,6 +167,11 @@ func stabilize_for_water_descent() -> bool:
     _refresh_presentation()
     return true
 
+func _process(delta: float) -> void:
+    # Visual clock only: no steering, physics authority or story progression.
+    if cinematic_inset != null:
+        cinematic_inset.advance_visual_clock(delta)
+
 func _physics_process(delta: float) -> void:
     if ship_body == null:
         return
@@ -186,6 +202,11 @@ func _on_water_body_entered(body: Node2D) -> void:
         return
     contact_observed = true
     _refresh_presentation()
+
+func visual_review_snapshot() -> Dictionary:
+    if cinematic_inset == null:
+        return {"is_actual_native_3d_subviewport": false, "review_only": true}
+    return cinematic_inset.review_snapshot()
 
 func review_snapshot() -> Dictionary:
     return {
@@ -221,4 +242,8 @@ func _refresh_presentation() -> void:
             hint_label.text = "WATERBORNE: 2D physics contact + stable afloat confirmed. Engines offline. No Lyra join."
         _:
             hint_label.text = "Preflight scene required."
+    if cinematic_inset != null and cinematic_inset.is_node_ready():
+        var visual_plan: Dictionary = CinematicHandoff.build(
+            review_snapshot(), visual_reduced_motion, visual_low_detail, false)
+        cinematic_inset.set_visual_intent(visual_plan)
     queue_redraw()
