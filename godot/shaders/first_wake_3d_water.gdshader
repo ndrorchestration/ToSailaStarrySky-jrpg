@@ -3,10 +3,10 @@ render_mode cull_disabled, depth_draw_opaque, diffuse_burley, specular_schlick_g
 
 // First Wake experimental real 3D water: low-poly displaced wave surface.
 // Standalone 3D visual study; never affects original 2D water-contact physics.
-uniform vec4 deep_water : source_color = vec4(0.022, 0.132, 0.218, 1.0);
-uniform vec4 shallow_water : source_color = vec4(0.115, 0.325, 0.378, 1.0);
+uniform vec4 deep_water : source_color = vec4(0.018, 0.077, 0.139, 1.0);
+uniform vec4 shallow_water : source_color = vec4(0.045, 0.221, 0.275, 1.0);
 uniform vec4 sun_reflection : source_color = vec4(0.92, 0.68, 0.40, 1.0);
-uniform float amplitude : hint_range(0.0, 0.3) = 0.085;
+uniform float amplitude : hint_range(0.0, 0.3) = 0.072;
 uniform float wave_scale : hint_range(0.2, 4.0) = 1.45;
 uniform float wave_speed : hint_range(0.0, 3.0) = 0.65;
 
@@ -29,9 +29,9 @@ void fragment() {
     vec3 water = mix(deep_water.rgb, shallow_water.rgb, depth_mix);
     float sparkle = pow(max(sin(world_space.x * 2.2 + TIME * 0.55) *
                             cos(world_space.z * 1.7 + TIME * 0.40), 0.0), 15.0);
-    water += sun_reflection.rgb * sparkle * 0.09;
+    water += sun_reflection.rgb * sparkle * 0.035;
     ALBEDO = water;
-    ROUGHNESS = 0.22;
+    ROUGHNESS = 0.31;
     METALLIC = 0.06;
     SPECULAR = 0.66;
 }
