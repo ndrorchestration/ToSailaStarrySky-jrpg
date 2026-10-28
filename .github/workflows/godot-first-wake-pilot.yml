@@ -90,6 +90,9 @@ jobs:
       - name: Verify battle loadouts and denied equipment remain fail closed
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/battle_equipment_loadout_test.gd
+      - name: Verify native gear inspection and before/after training comparisons
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/battle_equipment_inspector_test.gd
       - name: Verify ownership-conserving practice inventory and real battle swaps
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/battle_equipment_trial_inventory_test.gd
