@@ -27,4 +27,13 @@ Tests must reject early job-search, pre-boarding, non-opt-in, absent-sink and un
 - No rendered wing animation is claimed by this test because the real chapter project does not have an admitted 3D ship mesh. Existing [#490](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/490) supplies isolated 3D visual evidence only, not scene-integrated evidence.
 - [Public production admission requirements](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/blob/docs/ship-pose-production-handoff-20261027/docs/SHIP_POSE_PROTOTYPE_TO_PRODUCTION_ADMISSION.md) track later physical 3D rig/occupied deck/door/bridge-scale compatibility and hardware + creator review.
 
+## Exact-head verified source and CI receipt
+
+- Review head: `98bf760685b880b5bfef94ce66915636e7231592` of [draft PR #507](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/507), based exactly on #497 head `d341d367c005b3c00d758336982d0e34d5e95839`.
+- Verified direct GitHub source readback: source timeline from #490 and this Chapter I copy have **identical blob SHA** `6b8f1ebf735f4630ab4248598bdef8269c6c9fd0`.
+- [Native Godot 4.7.2 contract run #40615917375](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615917375) **SUCCESS**: 38 dedicated real-scene ship-pose-port checks, 32 inherited ship-space checks, real Ionia-first job and v2 checkpoint regressions PASS.
+- Separate inherited [Chapter I pilot #40615917165](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615917165), [ship-space #40615917258](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615917258), [Ionia native render #40615917170](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615917170), and [smoke #40615917424](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615917424) all **SUCCESS** on exact head.
+- [Windows security workflow #40615917385](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615917385) **FAILED AT HOST PRECONDITION**: `DEFENDER_ANTIVIRUS_ENABLED=False`, `DEFENDER_REALTIME_ENABLED=False`; `WINDOWS_QA_HOST_DEFENDER_ANTIVIRUS_DISABLED`. Windows functional-prerequisites job PASS does not supersede that fail-closed check. No Windows product/performance approval.
+- **Proven scope:** scene-to-stub interface, not a real wing rig/3D movie/physical foredeck/boarding clearance. Keep cross-scale integration and Windows target/creator gates open.
+
 **NO AUTOMATIC MERGE / NO RELEASE.** If the exact-head CI run is not successful, status is implementation candidate with failed native admission.
