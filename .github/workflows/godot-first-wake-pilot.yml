@@ -156,6 +156,34 @@ jobs:
           timeout 105s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_game_entry_test.gd 2>&1 | tee /tmp/first-wake-game-entry.log
           ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_FIRST_WAKE_GAME_ENTRY_FAIL:' /tmp/first-wake-game-entry.log
           grep -Eq 'TSTSS_FIRST_WAKE_GAME_ENTRY_PASS checks=[0-9]+ real_water_contact=true' /tmp/first-wake-game-entry.log
+      - name: Verify retained Lyra Talen family chronology and explicit safe mooring
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 50s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_postflight_family_review_test.gd 2>&1 | tee /tmp/f5-family.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_FIRST_WAKE_POSTFLIGHT_FAMILY_FAIL:' /tmp/f5-family.log
+          grep -Fq 'TSTSS_FIRST_WAKE_POSTFLIGHT_FAMILY_PASS:' /tmp/f5-family.log
+      - name: Verify post-material failure and Denith remembered-song order
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 45s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_core_alignment_review_test.gd 2>&1 | tee /tmp/f5-core-contract.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_FIRST_WAKE_CORE_ALIGNMENT_FAIL:' /tmp/f5-core-contract.log
+          grep -Fq 'TSTSS_FIRST_WAKE_CORE_ALIGNMENT_PASS:' /tmp/f5-core-contract.log
+      - name: Verify original interactive harmonic options and accessibility retries
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 45s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_melody_analysis_review_test.gd 2>&1 | tee /tmp/f5-melody-options.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_FIRST_WAKE_MELODY_CHOICES_FAIL:' /tmp/f5-melody-options.log
+          grep -Fq 'TSTSS_FIRST_WAKE_MELODY_CHOICES_PASS:' /tmp/f5-melody-options.log
+      - name: Verify walkable physical pickup and melody workshop scene
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 55s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_core_alignment_scene_test.gd 2>&1 | tee /tmp/f5-workshop.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_FIRST_WAKE_CORE_SCENE_FAIL:' /tmp/f5-workshop.log
+          grep -Fq 'TSTSS_FIRST_WAKE_CORE_SCENE_PASS:' /tmp/f5-workshop.log
       - name: Verify real First Wake authored dialogue gates scene progress
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_dialogue_scene_test.gd
