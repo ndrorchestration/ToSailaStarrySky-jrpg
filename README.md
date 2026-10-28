@@ -49,7 +49,7 @@ This is a **developer preview**, not an uncoached player-accepted finished chapt
 
 - **World:** globe-scale oceans, continents, polar regions and distinct biomes, with local horizon-aware exploration and layered travel. Geography and final art remain subject to creator review.
 - **Ship:** a compact Aureate Wake with legible dragonfly silhouette, articulated wings, practical crew living spaces, and deeper capabilities introduced at the appropriate narrative moments.
-- **Gameplay:** exploration, character relationships, equipment and magic, conventional JRPG combat, party resonance and deliberate progression gates, developed as modular native Godot systems.
+- **Gameplay:** exploration, character relationships, equipment and magic, a **conventional JRPG formula model**, party resonance and deliberate progression gates, developed as modular native Godot systems. The long-term roster contract remains `ROSTER[5] → ACTIVE_PARTY[1..5]`; individual draft gameplay systems are not yet a merged five-character production combat loop.
 - **Visual quality:** authored pixel-art characters in a cohesive cinematic 2.5D world; production materials, weather, music and cinematography must be judged in actual gameplay, not only reference renders.
 
 New content must preserve the character and reveal boundaries in [AGENTS.md](AGENTS.md) and [Canon and reveal policy](docs/CANON_AND_REVEAL_POLICY.md). No prototype or automated test alone grants canon, final art, or release approval.
@@ -63,7 +63,7 @@ New content must preserve the character and reveal boundaries in [AGENTS.md](AGE
 
 ### Legacy reference build
 
-The preserved JavaScript/p5.js prototype still lives on `main` in `index-embedded.html`, `aetherwake.js` and `modules/`. For **legacy-only development diagnostics**, run a local web server from the repository directory:
+The preserved JavaScript/p5.js prototype still lives on `main` in `index-embedded.html`, `aetherwake.js` and `modules/`. Its `modules/char-create.js` is a **Historical compatibility adapter; not the normal New Game path**. This history belongs to the older runtime, not the revised Godot story. For **legacy-only development diagnostics**, run a local web server from the repository directory:
 
 ```bash
 python -m http.server 8080
