@@ -177,6 +177,15 @@ func _unhandled_input(event: InputEvent) -> void:
         _sync_presentation()
         get_viewport().set_input_as_handled()
         return
+    if room == "dock" and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_L:
+        if ender.creator_standee_enabled and ionia.creator_standee_enabled:
+            var next_lighting: bool = not ender.creator_field_lighting_enabled
+            ender.set_creator_field_lighting_enabled(next_lighting)
+            ionia.set_creator_field_lighting_enabled(next_lighting)
+            last_message = "Creator field light ON — warm coastal integration." if next_lighting else "Creator field light OFF — original source colors."
+            _sync_presentation()
+            get_viewport().set_input_as_handled()
+        return
     if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_V:
         if portrait_preview != null:
             portrait_preview.set_portraits_enabled(not portrait_preview.portraits_enabled)

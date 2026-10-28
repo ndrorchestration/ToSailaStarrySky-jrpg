@@ -20,9 +20,24 @@ const CREATOR_REFINED_MATTE_PATHS := {
     "Ionia": "res://art-review/creator-field-review/ionia_field_matte_v3.png",
     "Ender": "res://art-review/creator-field-review/ender_field_matte_v3.png",
 }
+const CreatorFieldLight = preload("res://shaders/creator_field_contact_lighting.gdshader")
+const SOURCE_FIELD_SCALE := 0.21
+@export var creator_field_lighting_enabled: bool = true
 var creator_standee: Sprite2D
 var creator_standee_enabled: bool = false
 var creator_standee_variant: String = "none"
+
+func set_creator_field_lighting_enabled(enabled: bool) -> void:
+    # Visual-only A/B review; no character, story or motion authority.
+    creator_field_lighting_enabled = enabled
+    if creator_standee == null:
+        return
+    if not enabled:
+        creator_standee.material = null
+    else:
+        var lighting := ShaderMaterial.new()
+        lighting.shader = CreatorFieldLight
+        creator_standee.material = lighting
 
 func creator_standee_source_path() -> String:
     var cleaned_path: String = String(CREATOR_REFINED_MATTE_PATHS.get(character_name, ""))
@@ -57,8 +72,11 @@ func enable_creator_standee(enabled: bool) -> bool:
         creator_standee.name = "CreatorFullBodyStaticReferenceOnly"
         creator_standee.texture = texture
         creator_standee_variant = "matte_v3" if selected_path == String(CREATOR_REFINED_MATTE_PATHS[character_name]) else "source_v1"
-        creator_standee.scale = Vector2(0.18, 0.18)
-        creator_standee.position = Vector2(0.0, -48.0)
+        # A contact-anchored 112px silhouette; sole stays at native actor origin.
+        # Independently review proportions, without scaling collision shapes.
+        creator_standee.scale = Vector2.ONE * SOURCE_FIELD_SCALE
+        creator_standee.position = Vector2(0.0, -float(texture.get_height()) * SOURCE_FIELD_SCALE * 0.5)
+        set_creator_field_lighting_enabled(creator_field_lighting_enabled)
         creator_standee.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
         add_child(creator_standee)
     creator_standee_enabled = true
@@ -383,15 +401,27 @@ func _draw() -> void:
     var coat := Color("#203d68") if is_ionia else Color("#47634c")
     var highlight := Color("#d7b56a") if is_ionia else Color("#dccbaa")
     var hair := Color("#e4b65f") if is_ionia else Color("#965936")
-    # Flattened foot-contact ambient shadow, drawn behind the actual sprite.
-    var outer_contact := PackedVector2Array()
-    var inner_contact := PackedVector2Array()
-    for i in range(17):
-        var angle := float(i) * TAU / 16.0
-        outer_contact.append(Vector2(cos(angle) * 19.0, -2.0 + sin(angle) * 5.0))
-        inner_contact.append(Vector2(cos(angle) * 12.0, -1.0 + sin(angle) * 2.7))
-    draw_colored_polygon(outer_contact, Color(0.09, 0.13, 0.17, 0.19))
-    draw_colored_polygon(inner_contact, Color(0.05, 0.09, 0.13, 0.31))
+    # Source artwork uses a softer layered grounding cue at the real foot origin.
+    # The fallback walks keep their exact previous foot-shadow contract.
+    if creator_standee_enabled:
+        for layer in range(5):
+            var contour := PackedVector2Array()
+            var factor := float(layer) / 4.0
+            for point in range(25):
+                var angle := float(point) * TAU / 24.0
+                contour.append(Vector2(
+                    cos(angle) * lerpf(26.0, 10.0, factor),
+                    -1.1 + sin(angle) * lerpf(7.5, 2.0, factor)))
+            draw_colored_polygon(contour, Color(0.04, 0.065, 0.08, lerpf(0.075, 0.19, factor)))
+    else:
+        var outer_contact := PackedVector2Array()
+        var inner_contact := PackedVector2Array()
+        for i in range(17):
+            var angle := float(i) * TAU / 16.0
+            outer_contact.append(Vector2(cos(angle) * 19.0, -2.0 + sin(angle) * 5.0))
+            inner_contact.append(Vector2(cos(angle) * 12.0, -1.0 + sin(angle) * 2.7))
+        draw_colored_polygon(outer_contact, Color(0.09, 0.13, 0.17, 0.19))
+        draw_colored_polygon(inner_contact, Color(0.05, 0.09, 0.13, 0.31))
     if is_review_art_enabled() or walk_review_enabled or creator_standee_enabled:
         # Suppress placeholder body only, retain shared foot-ground cue.
         return

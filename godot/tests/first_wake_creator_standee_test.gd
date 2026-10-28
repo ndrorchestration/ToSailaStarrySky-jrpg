@@ -43,8 +43,42 @@ func _run() -> void:
                 "correct full-body source proportions")
             check(e.creator_standee.hframes == 1 and i.creator_standee.hframes == 1,
                 "must not pretend static art is six-frame animation")
+            for actor in [e, i]:
+                check(actor.creator_standee.scale.is_equal_approx(Vector2.ONE * 0.21),
+                    "source-actor silhouette must render at intended scale")
+                check(absf(actor.creator_standee.position.y +
+                    actor.creator_standee.texture.get_height() * actor.creator_standee.scale.y * 0.5) < 0.01,
+                    "boots must remain grounded at actor foot origin")
+                check(actor.creator_standee.material is ShaderMaterial and
+                    actor.creator_standee.material.shader != null,
+                    "source figure must use bounded cinematic-coastal lighting")
+                # The existing actor creates an unnamed CollisionShape2D at runtime.
+                # Check its TYPE, rather than inventing a new canonical node name.
+                var original_collider: CollisionShape2D = null
+                for child in actor.get_children():
+                    if child is CollisionShape2D:
+                        original_collider = child
+                        break
+                check(original_collider != null and original_collider.shape is CircleShape2D and
+                    absf(original_collider.shape.radius - 10.0) < 0.01,
+                    "source visuals must not change existing physics footprint")
             check(not e.walk_review_sprite.visible and not i.ionia_front_walk_sprite.visible,
                 "rejected provisional sprites must be hidden during source view")
+        if e.has_creator_standee() and i.has_creator_standee():
+            var light_key := InputEventKey.new()
+            light_key.keycode = KEY_L
+            light_key.pressed = true
+            dock._unhandled_input(light_key)
+            check(not e.creator_field_lighting_enabled and not i.creator_field_lighting_enabled,
+                "actual L-key must disable both visual-only lighting materials")
+            check(e.creator_standee.material == null and i.creator_standee.material == null,
+                "lighting A/B OFF must preserve unmodified original texture")
+            dock._unhandled_input(light_key)
+            check(e.creator_field_lighting_enabled and i.creator_field_lighting_enabled,
+                "actual L-key must restore both cinematic light previews")
+            check(e.creator_standee.material is ShaderMaterial and
+                i.creator_standee.material is ShaderMaterial,
+                "lighting A/B ON must rebind cinematic source material")
         # Exercise the actual player's P-key hook, not only low-level actor API.
         e.enable_creator_standee(false)
         i.enable_creator_standee(false)
