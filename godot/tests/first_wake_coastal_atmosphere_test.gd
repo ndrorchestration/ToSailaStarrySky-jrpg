@@ -127,7 +127,8 @@ func _run() -> void:
     var actor: CharacterBody3D = ship.crew_walker
     for i in range(27):
         await physics_frame
-    verify(actor.is_on_floor() and await _step(actor, -4.25),
+    var reached_deck: bool = await _step(actor, -4.25)
+    verify(actor.is_on_floor() and reached_deck,
         "genuine CharacterBody3D remains walkable onto guarded 3D foredeck")
     verify(actor.is_on_floor() and actor.position.z < -4.1,
         "water mesh never replaces physical deck footing/collision")
