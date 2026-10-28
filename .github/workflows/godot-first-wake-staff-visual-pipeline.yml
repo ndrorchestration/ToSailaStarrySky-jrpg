@@ -1,0 +1,60 @@
+name: Native First Wake staff-to-visual pipeline proof
+on:
+  push:
+    branches: [test/godot-first-wake-staff-visual-pipeline-20261027]
+    paths:
+      - 'godot/scripts/first_wake_staff_visual_pipeline_observer.gd'
+      - 'godot/tests/first_wake_staff_visual_pipeline_test.gd'
+      - 'godot/tests/capture_first_wake_staff_visual_pipeline.gd'
+      - '.github/workflows/godot-first-wake-staff-visual-pipeline.yml'
+  pull_request:
+    paths:
+      - 'godot/scripts/first_wake_staff_visual_pipeline_observer.gd'
+      - 'godot/tests/first_wake_staff_visual_pipeline_test.gd'
+      - 'godot/tests/capture_first_wake_staff_visual_pipeline.gd'
+      - '.github/workflows/godot-first-wake-staff-visual-pipeline.yml'
+permissions:
+  contents: read
+jobs:
+  first-wake-pipeline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Download digest-pinned official Godot 4.7.2 editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' -o editor.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  editor.zip' | sha256sum -c -
+          unzip -q editor.zip
+          chmod +x Godot_v4.7.2-stable_linux.x86_64
+      - name: Native project import and script analysis
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
+      - name: Run inherited Chapter I and visual contract regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          for test in first_wake_chapter1_review_test first_wake_party_combat_authority_test first_wake_formula_encounter_test weapon_skill_tree_review_test weapon_battle_visual_adapter_test ender_staff_combat_keyframe_review_test ender_staff_target_alignment_review_test; do
+            ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script "res://tests/${test}.gd"
+          done
+      - name: End-to-end scene action to visual receipt without replay or save
+        run: ./Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_staff_visual_pipeline_test.gd
+      - name: Render real Chapter I scene plus visual-only combat inset
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v xvfb-run
+          mkdir -p godot/review-evidence
+          xvfb-run -a -s "-screen 0 1600x640x24" ./Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 1600x640 --path godot --script res://tests/capture_first_wake_staff_visual_pipeline.gd
+          for frame in chapter1-visual-receipt chapter1-reduced-motion; do
+            test -s "godot/review-evidence/${frame}-native-1600x640.png"
+          done
+          sha256sum godot/review-evidence/chapter1-*-native-1600x640.png
+          echo "MAIN_BRANCH_MUTATED=FALSE"
+          echo "FIRST_WAKE_FORMULA_EXECUTION=CALLED_ONCE_BY_TEST_SCENE"
+          echo "VISUAL_OBSERVER_ACTION_EXECUTION=FALSE"
+          echo "VIEW_ONLY_ART_ACCEPTANCE=NOT_ESTABLISHED"
+          echo "NATIVE_FRAMES=CI_RUNNER_ONLY"
