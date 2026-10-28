@@ -40,6 +40,16 @@ func _test() -> void:
     if Codec.preview_legacy_migration(legacy_mutation) == migration:
         _fail("old v1 snapshot did not retain its own independent resolver state")
         return
+    var unauthorized_legacy: Dictionary = original_v1.duplicate(true)
+    unauthorized_legacy["trialBag"] = {"ender-starter-staff": 1}
+    if not Codec.preview_legacy_migration(unauthorized_legacy).is_empty():
+        _fail("legacy migration accepted unauthorized trial bag shadow field")
+        return
+    unauthorized_legacy = original_v1.duplicate(true)
+    unauthorized_legacy["playerOwnedItems"] = ["fictional-item"]
+    if not Codec.preview_legacy_migration(unauthorized_legacy).is_empty():
+        _fail("legacy migration accepted unknown inventory shadow field")
+        return
     var pending_tamper: Dictionary = migration.duplicate(true)
     pending_tamper["instances"] = [{"instanceId": "unexpected"}]
     if not _reject(pending_tamper, "unauthorized bootstrap during legacy migration"):
