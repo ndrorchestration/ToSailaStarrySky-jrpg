@@ -4,6 +4,7 @@ extends Node2D
 const Actor = preload("res://scripts/pilot_actor.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const Seascape = preload("res://scripts/first_wake_cinematic_seascape.gd")
+const PortraitPreview = preload("res://scripts/first_wake_creator_portrait_preview.gd")
 const BOUNDS := Rect2(Vector2(112, 404), Vector2(736, 122))
 const RESERVE_STATION := Vector2(420, 467)
 const INTERACT_DISTANCE := 82.0
@@ -16,6 +17,7 @@ var objective: Label
 var hint: Label
 var text_label: Label
 var reserve_dialogue_open: bool = false
+var portrait_preview: Control
 var messages: Array[String] = [
     "ENDER: The engine reserve reads empty. Whatever powered the first lift is gone.",
     "IONIA: Denith knew more about this vessel than he could teach me. We need evidence, not guesses.",
@@ -74,6 +76,8 @@ func _ready() -> void:
     hint = _label(layer, Vector2(27, 556), 17)
     text_label = _label(layer, Vector2(92, 572), 17)
     text_label.custom_minimum_size = Vector2(786, 58)
+    portrait_preview = PortraitPreview.new()
+    layer.add_child(portrait_preview)
     _sync_ui()
     queue_redraw()
 
@@ -89,6 +93,12 @@ func _label(parent: Node, at: Vector2, font_size: int) -> Label:
     return out
 
 func _unhandled_input(event: InputEvent) -> void:
+    if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_V:
+        if portrait_preview != null:
+            portrait_preview.set_portraits_enabled(not portrait_preview.portraits_enabled)
+            _sync_ui()
+        get_viewport().set_input_as_handled()
+        return
     if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
         # Accessible player toggle: visual water motion is never a quest clock.
         set_reduced_motion(not cinematic_seascape.reduced_motion)
@@ -148,10 +158,14 @@ func _sync_ui() -> void:
         "Ship stable. Examine the depleted engine reserve (E).")
     if reserve_dialogue_open:
         text_label.text = messages[dialogue_index]
+        if portrait_preview != null:
+            portrait_preview.display_dialogue_line(text_label.text)
         hint.text = "E: continue  |  " + str(dialogue_index + 1) + "/" + str(messages.size())
         text_label.visible = true
     else:
         hint.text = checkpoint_message if not checkpoint_message.is_empty() else (
             "Arrows: move  |  E: inspect  |  M: still sea  |  F5: save  |  F9: load")
         text_label.visible = false
+        if portrait_preview != null:
+            portrait_preview.hide_portrait()
     queue_redraw()
