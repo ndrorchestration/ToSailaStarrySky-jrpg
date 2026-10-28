@@ -82,9 +82,10 @@ func _verify() -> void:
     check(chapter.process_mode == Node.PROCESS_MODE_DISABLED
         and ship.process_mode == Node.PROCESS_MODE_INHERIT,
         "only actual 3D walk can process input during bridge review")
-    check(ship.crew_camera.current
-        and ship.crew_walker.manual_controls_enabled,
-        "active real Camera3D and CharacterBody3D control inside root viewport")
+    check(scene.zone_camera.camera.current and
+        not ship.crew_camera.current and
+        ship.crew_walker.manual_controls_enabled,
+        "new zone-aware real Camera3D and physics walker active without legacy camera conflict")
     check(scene.transient_review_contract()["story_progression_enabled"] == false
         and scene.transient_review_contract()["ship_space_production_ready"] == false
         and scene.transient_review_contract()["saved_in_chapter1"] == false,
@@ -100,6 +101,11 @@ func _verify() -> void:
         and scene.review_observations == 1
         and scene.last_review_message.contains("unverified"),
         "F helmet station is proximity-restricted and entirely observational")
+    check(scene.cycle_camera_review() and scene.zone_camera.shot == 1
+        and scene.zone_camera.camera.current,
+        "C cycles between true zone camera presets, not a fake screenshot")
+    check(scene.cycle_camera_review() and scene.zone_camera.shot == 0,
+        "C returns to normal follow camera without input/save migration")
     check(scene.cycle_glass_review() and ship.glass_review_profile == "source_clear",
         "G toggles only original source glass art review")
     check(scene.cycle_glass_review() and ship.glass_review_profile == "source_low_glare",
@@ -138,6 +144,7 @@ func _verify() -> void:
         and chapter.resonance_status_label.text.contains("LOCKED"),
         "round trip preserves checkpoint, Ionia-first story and Resonance lock")
     check(not scene.inspect_review_helm() and not scene.cycle_glass_review()
+        and not scene.cycle_camera_review()
         and not ship.crew_walker.manual_controls_enabled,
         "review-only interaction cannot leak into 2D gameplay")
     check(scene.request_3d_ship_review(true) and ship.visible,
