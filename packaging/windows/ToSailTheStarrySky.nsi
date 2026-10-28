@@ -23,10 +23,12 @@ UninstPage instfiles
 
 Function .onInit
   ; An existing unrelated program must not be overwritten.
-  IfFileExists "$INSTDIR\*" 0 +4
-    IfFileExists "$INSTDIR\TSTSS-FirstWake.install" +2 0
-      MessageBox MB_ICONSTOP "Install path has unrecognized files. Choose a different directory." /SD IDOK
-      Abort
+  IfFileExists "$INSTDIR\*" check_owned init_safe
+  check_owned:
+    IfFileExists "$INSTDIR\TSTSS-FirstWake.install" init_safe
+    MessageBox MB_ICONSTOP "Install path has unrecognized files. Choose a different directory." /SD IDOK
+    Abort
+  init_safe:
 FunctionEnd
 
 Section "First Wake (Playtest)" SEC_MAIN
