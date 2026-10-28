@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/first_wake_opt_in_shipboard_3d_review.gd" id="1"]
+
+[node name="FirstWakeOptionalShipboard3DReview" type="Node"]
+script = ExtResource("1")
