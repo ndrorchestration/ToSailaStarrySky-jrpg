@@ -4,7 +4,7 @@ extends Node2D
 ## ship flight, DSP verification, or an approved mainline story destination.
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const Core = preload("res://scripts/first_wake_core_alignment_review.gd")
-const Melody = preload("res://scripts/first_wake_melody_math_fixture.gd")
+const MelodyAnalysis = preload("res://scripts/first_wake_melody_analysis_review.gd")
 const Actor = preload("res://scripts/pilot_actor.gd")
 const Inputs = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 
@@ -20,11 +20,15 @@ const BOUNDS := Rect2(Vector2(130, 404), Vector2(680, 116))
 
 var story = Opening.new()
 var core = Core.new()
+var analysis = MelodyAnalysis.new()
 var ender: CharacterBody2D
 var headline: Label
 var objective: Label
 var status_label: Label
 var hint: Label
+var analysis_backdrop: ColorRect
+var analysis_lines: Label
+var analysis_feedback: Label
 var last_message: String = "Review fixture: the splashdown and family reunion are not playable here."
 
 func _ready() -> void:
@@ -61,6 +65,18 @@ func _ready() -> void:
     objective = _label(ui, Vector2(27, 68), 18)
     status_label = _label(ui, Vector2(27, 111), 16)
     hint = _label(ui, Vector2(27, 559), 16)
+
+    analysis_backdrop = ColorRect.new()
+    analysis_backdrop.name = "HarmonicAnalysisReadablePanel"
+    analysis_backdrop.position = Vector2(82, 167)
+    analysis_backdrop.size = Vector2(796, 366)
+    analysis_backdrop.color = Color("#101d30")
+    analysis_backdrop.visible = false
+    ui.add_child(analysis_backdrop)
+    analysis_lines = _label(analysis_backdrop, Vector2(23, 22), 17)
+    analysis_lines.custom_minimum_size = Vector2(745, 244)
+    analysis_feedback = _label(analysis_backdrop, Vector2(23, 271), 16)
+    analysis_feedback.custom_minimum_size = Vector2(745, 84)
     _refresh()
 
 func _label(parent: Node, location: Vector2, font_size: int) -> Label:
@@ -98,11 +114,32 @@ func _draw() -> void:
     draw_string(ThemeDB.fallback_font, Vector2(23, 362), "Crew present after safe reunion: ENDER / IONIA / LYRA  |  Talen: noncombat", HORIZONTAL_ALIGNMENT_LEFT, 900, 17, Color("#d9e6e2"))
 
 func _unhandled_input(event: InputEvent) -> void:
-    if event.is_action_pressed(Inputs.INTERACT) and not event.is_echo():
+    if event.is_echo():
+        return
+    if analysis.open:
+        var handled: bool = true
+        if event.is_action_pressed(Inputs.CHOICE_A):
+            choose_analysis(0)
+        elif event.is_action_pressed(Inputs.CHOICE_B):
+            choose_analysis(1)
+        elif event.is_action_pressed(Inputs.CHOICE_C):
+            choose_analysis(2)
+        elif event.is_action_pressed(Inputs.INTERACT):
+            submit_analysis()
+        elif event.is_action_pressed(Inputs.FORMULA_REVIEW) or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
+            close_analysis()
+        else:
+            handled = false
+        if handled:
+            get_viewport().set_input_as_handled()
+        return
+    if event.is_action_pressed(Inputs.INTERACT):
         interact()
         get_viewport().set_input_as_handled()
 
 func interact() -> bool:
+    if analysis.open:
+        return false
     if ender == null:
         return false
     var before: Dictionary = core.snapshot()
@@ -132,9 +169,10 @@ func interact() -> bool:
             success = core.ionia_repeats_denith_song(true, true)
             last_message = "Ender asks her to come closer. Ionia sings Denith's old shanty again."
         "analyze":
-            # This is a deterministic abstract QA motif, not live sung audio.
-            success = core.ender_matches_review_phrase(Melody.sample_phrase(), Melody.sample_sensor_vector())
-            last_message = "Ender matches intervals and held-note timing to the shifting core readings."
+            success = analysis.show_for(core)
+            if success:
+                ender.player_controlled = false
+            last_message = "Compare Ionia's four-note memory against the measured phase changes."
         "observe":
             success = core.lyra_confirms_response(true)
             last_message = "Lyra: The vibration stopped wandering when Ionia held that note."
@@ -150,6 +188,27 @@ func interact() -> bool:
         last_message = "Evidence rejected; no progression granted."
     _refresh()
     return success
+
+func choose_analysis(index: int) -> bool:
+    var ok: bool = analysis.choose(index)
+    _refresh()
+    return ok
+
+func submit_analysis() -> bool:
+    var result: Dictionary = analysis.submit(core)
+    if bool(result.get("ok", false)):
+        last_message = "Ender resolves the rhythmic alignment hypothesis. Ask Lyra to confirm."
+        ender.player_controlled = true
+    _refresh()
+    return bool(result.get("ok", false))
+
+func close_analysis() -> bool:
+    if not analysis.dismiss():
+        return false
+    ender.player_controlled = true
+    last_message = "Chart review closed. Revisit the chart to reconsider the melody."
+    _refresh()
+    return true
 
 func target_for_phase() -> Vector2:
     match str(core.snapshot()["phase"]):
@@ -177,5 +236,17 @@ func _refresh() -> void:
         "COMPLETE" if bool(s["materialReady"]) else "INCOMPLETE",
         "BENCH CANDIDATE" if bool(s["alignment_candidate"]) else "UNRESOLVED",
     ]
-    hint.text = last_message + "  [Arrows: move; E: interact; no voice input required]"
+    analysis_backdrop.visible = analysis.open
+    if analysis.open:
+        analysis_lines.text = (
+            "ENDER / HARMONIC CHART — ORIGINAL REVIEW NUMBERS (NOT CANON)\n"
+            + "Ionia's remembered contour: 0, +2, +5, +3\n"
+            + "Measured phase changes: 0, +2, +6, -2\n"
+            + "Which relative phrase and held-note duration fits?\n\n"
+            + analysis.option_lines()
+        )
+        analysis_feedback.text = analysis.feedback
+        hint.text = "1/2/3 or pad X/Y/B: choose  |  E/pad A: test  |  C/pad RB or Esc: close"
+    else:
+        hint.text = last_message + "  [Arrows: move; E: interact; no voice input required]"
     queue_redraw()

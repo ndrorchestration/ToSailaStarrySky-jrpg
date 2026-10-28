@@ -57,8 +57,53 @@ func _verify() -> void:
         _fail("Denith melody context missing from repeat")
         return
     world.ender.position = world.CHART
-    if not world.interact():
-        _fail("Ender's musical pattern insight not playable")
+    if not world.interact() or not world.analysis.open:
+        _fail("Ender's chart investigation did not open a readable choice panel")
+        return
+    if world.ender.player_controlled or not world.analysis_backdrop.visible:
+        _fail("chart modal did not focus player control and display visible choices")
+        return
+    if world.interact() or world.submit_analysis():
+        _fail("interact alone auto-solved the song without a chosen hypothesis")
+        return
+    if not world.choose_analysis(0) or world.submit_analysis():
+        _fail("incorrect short-held phrase improperly advanced core")
+        return
+    if not world.choose_analysis(2) or world.submit_analysis():
+        _fail("incorrect interval improperly advanced core")
+        return
+    if world.core.snapshot()["phase"] != "analyze" or world.analysis.attempts != 2:
+        _fail("rejected guesses mutated story stage or did not record failed attempts")
+        return
+    if not world.close_analysis() or world.core.snapshot()["phase"] != "analyze" or not world.ender.player_controlled:
+        _fail("closing chart failed to preserve unresolved state and free exploration")
+        return
+    if not world.interact() or not world.analysis.open:
+        _fail("revisiting chart was not possible")
+        return
+    if not world.analysis_lines.text.contains("Measured phase changes"):
+        _fail("accessible visual comparison data missing")
+        return
+    var bad_pad_input := InputEventJoypadButton.new()
+    bad_pad_input.button_index = JOY_BUTTON_X
+    bad_pad_input.pressed = true
+    world._unhandled_input(bad_pad_input)
+    if world.analysis.selected != 0:
+        _fail("real gamepad X did not select the first candidate")
+        return
+    var option_input := InputEventKey.new()
+    option_input.keycode = KEY_2
+    option_input.pressed = true
+    world._unhandled_input(option_input)
+    if world.analysis.selected != 1:
+        _fail("real keyboard choice 2 did not replace gamepad hypothesis")
+        return
+    var confirm_input := InputEventKey.new()
+    confirm_input.keycode = KEY_E
+    confirm_input.pressed = true
+    world._unhandled_input(confirm_input)
+    if world.analysis.open or world.core.snapshot()["phase"] != "observe" or not world.ender.player_controlled:
+        _fail("explicit choice and confirm did not advance Ender interpretation correctly")
         return
     world.ender.position = world.LYRA
     if not world.interact():
