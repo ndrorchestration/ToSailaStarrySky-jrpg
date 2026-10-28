@@ -122,6 +122,51 @@ func _capture() -> void:
                 print("NATIVE_CANOPY_LOD_PAIR_PASS delta=", delta_pixels)
         scene.visuals.set_canopy_review_override(0)
         scene.overlay.visible = true
+    # Three true camera poses across the forest approach; the canopy selector
+    # must use the corresponding observer pose for each native framebuffer.
+    if not baseline and scene.visuals != null:
+        var approach_folder: String = ProjectSettings.globalize_path(
+            "res://evidence/forest-canopy-motion")
+        if DirAccess.make_dir_recursive_absolute(approach_folder) != OK:
+            push_error("NATIVE_CANOPY_MOTION_DIRECTORY_FAILED")
+            failed = true
+        else:
+            scene.visuals.set_canopy_review_override(0)
+            scene.visuals.set_low_quality(false)
+            scene._clock = 23.0
+            scene._update_scene(10.0)
+            scene.overlay.visible = false
+            scene.ship.visible = false
+            var observations: Array[int] = []
+            # The initial near eye (30,12,0) rendered inside a crown.
+            # Stage a playable aerial line with a clear camera above canopy tops.
+            for shot in [["far", Vector3(-42.0, 23.0, 0.0), Vector3(37.0, 6.0, 0.0)],
+                    ["approach", Vector3(6.0, 18.0, 0.0), Vector3(42.0, 8.0, 0.0)],
+                    ["near", Vector3(30.0, 22.0, -8.0), Vector3(58.0, 9.0, -10.0)]]:
+                scene.camera.position = shot[1]
+                var eye_height: float = scene.camera.position.y - scene.terrain.sample_height(
+                    scene.camera.position.x, scene.camera.position.z)
+                if eye_height < 8.0:
+                    push_error("NATIVE_CANOPY_MOTION_CAMERA_CLEARANCE: " + str(shot[0]))
+                    failed = true
+                scene.camera.look_at(shot[2], Vector3.UP)
+                scene.terrain.update_detail(scene.camera.position, 1.0)
+                scene.visuals.update_forest_detail(scene.camera.position)
+                scene.visuals.refresh_coverage()
+                var frame: Image = await _frame()
+                if frame == null or frame.get_size() != Vector2i(960,640) or (
+                        frame.save_png(approach_folder.path_join(str(shot[0])+".png")) != OK):
+                    push_error("NATIVE_CANOPY_MOTION_FRAME_FAILED: " + str(shot[0]))
+                    failed = true
+                observations.append(scene.visuals._near_patch_count)
+            if observations.size() != 3 or observations[0] != 0 or (
+                    observations[1] < 1) or (observations[2] < 1):
+                push_error("NATIVE_CANOPY_MOTION_TRANSITION_INVALID " + str(observations))
+                failed = true
+            else:
+                print("NATIVE_CANOPY_MOTION_PASS patches=", observations)
+            scene.ship.visible = true
+            scene.overlay.visible = true
     if not baseline:
         scene._clock = 9.0
         scene._update_scene(10.0)
