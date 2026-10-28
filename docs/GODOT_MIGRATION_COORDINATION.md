@@ -30,3 +30,7 @@
 - **RELEASE:** separately authorized action; default HOLD.
 
 Documentation and canon descriptions do not upgrade any of these evidence categories. Notion/Drive may hold detailed receipts, but the GitHub branch/PR must link them explicitly when required. Verify the head again: these SHAs are dated pointers, not immutable branch locks.
+
+## 2026-10-27 ship-space native admission addendum
+
+The separate [Aureate Wake prototype-to-production ledger](AUREATE_WAKE_PROTOTYPE_TO_PRODUCTION_2026-10-27.md) supersedes this page's older ship-status pointers **for the specific Aureate Wake foredeck, geodesic bridge and First Wake handoff**; it does **not** globally replace the Chapter I and globe branch plan. Pinned source ship study [#482](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/482) is independently native-rendered, and [#497](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/497) has a verified *default-hidden read-only* handoff in the active native Ionia-first engineering scene. [#503](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/503) proposes a machine-readable next-prototype admission gate. All remain unmerged. The measured **cross-study** cabin width and dome/headroom mismatch blocks any claim of real same-scene bridge traversal. Do not confuse a metadata/pipeline gate PASS with a production scene, Windows safety clearance, canon approval or release permission.
