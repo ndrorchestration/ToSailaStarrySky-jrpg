@@ -9,7 +9,7 @@ const SHOTS = {
     "stern-quarter": Vector3(-7.0, 2.8, 7.0),
     "wing-planform": Vector3(2.5, 10.5, 2.0),
 }
-const SIZE := Vector2i(400, 225)
+const SIZE := Vector2i(355, 200)
 
 var viewport: SubViewport
 var viewport_container: SubViewportContainer
@@ -28,7 +28,7 @@ var label: Label
 
 func _ready() -> void:
     mouse_filter = Control.MOUSE_FILTER_IGNORE
-    size = Vector2(400, 252)
+    size = Vector2(355, 227)
     var border := ColorRect.new()
     border.color = Color("#152c3b")
     border.size = size
@@ -100,7 +100,7 @@ func _ready() -> void:
 
     label = Label.new()
     label.name = "VisualStudyCaption"
-    label.position = Vector2(7, 226)
+    label.position = Vector2(7, 202)
     label.add_theme_font_size_override("font_size", 12)
     label.add_theme_color_override("font_color", Color("#fff0cd"))
     label.text = "3D SHIP STUDY  /  PHYSICS REMAINS 2D"
