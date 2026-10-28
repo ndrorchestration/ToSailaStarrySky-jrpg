@@ -24,6 +24,7 @@ func _run() -> void:
     key.pressed = true
     scene._unhandled_input(key)
     check(notebook.visible, "J opens notebook")
+    check(not scene.ender.player_controlled, "notebook suspends player movement")
     check(notebook.compare_button.disabled, "comparison locked before reunion")
     var interact_key = InputEventKey.new()
     interact_key.keycode = KEY_E
@@ -38,6 +39,7 @@ func _run() -> void:
     var saved: Dictionary = scene.opening.snapshot()
     scene._unhandled_input(key)
     check(not notebook.visible, "J closes notebook")
+    check(scene.ender.player_controlled, "closing notebook restores valid world control")
     check(scene.opening.snapshot() == saved, "notebook never advances story")
     scene.queue_free()
     await process_frame
