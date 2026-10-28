@@ -42,7 +42,7 @@ func _verify() -> void:
     if actors.get_node_or_null("P01UnrecruitedLyraVisualFixture") != null:
         _fail("unrecruited prototype actor exists without opt-in", 4)
         return
-    if not stage.get("p01_character_visual").route_is_inside_deck():
+    if not (stage.get("p01_character_visual") as Node).call("route_is_inside_deck"):
         _fail("review path exceeds existing dock visual bounds", 5)
         return
     # Exercise the real user-accessible F6 path.
@@ -138,7 +138,7 @@ func _verify() -> void:
     if stage.call("is_character_visual_p01_enabled") or ender.global_position != ender_start or ionia.global_position != ionia_start:
         _fail("blocked probe did not return First Wake to original actors", 21)
         return
-    if stage.get("p01_character_visual").get_child_count() != 0:
+    if (stage.get("p01_character_visual") as Node).get_child_count() != 0:
         _fail("visual bridge leaked a gameplay node", 22)
         return
     print("FIRST_WAKE_CHARACTER_P01_OBSTACLE: contact_ticks>0 stopped_y=%.2f" % blocked_y)
