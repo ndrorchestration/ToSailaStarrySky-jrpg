@@ -33,9 +33,15 @@ These images are **real Godot 4.7.2 framebuffer captures**, not AI-generated moc
 
 For full native-resolution captures, source commit IDs, CI artifact provenance, remaining art gates and additional angles, see the [**Godot visual development gallery**](docs/VISUAL_DEVELOPMENT_GALLERY.md). **Passing renderer checks is not artistic acceptance.**
 
-### Latest cinematic integration evidence
+### Latest real Godot cinematic development — durable First Wake media
 
-[Draft #524](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/524) successfully tested **actual 3D Aureate Wake** framing plus four First Wake story-graded **960×640 OpenGL screenshots** (first lift, controlled descent, afloat and recovery). [View the completed test](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625082846) or the [temporary four-frame capture artifact](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625082846/artifacts/12788812796) (expires November 4, 2026). These newer shots have **not yet been committed as durable README media**; the image gallery above shows older, committed and provenance-verified native studies from #422/#421.
+The newer [draft 3D visual bridge #524](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/524) passed its [Godot 4.7.2 GL cue and capture workflow](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625082846) at exact commit `d6afcf7a`. The four original 960×640 PNG frames are now **preserved as committed review evidence** alongside optimized JPEGs and their [SHA-256 provenance manifest](docs/screenshots/native-2026-10-27/first-wake-cues/provenance.json), rather than depending on an expiring CI archive.
+
+| First lift — real Godot scene | Controlled descent — real Godot scene |
+| --- | --- |
+| ![Actual native Godot Aureate Wake First Wake first lift experimental shot](docs/screenshots/native-2026-10-27/first-wake-cues/first-lift.jpg) | ![Actual native Godot Aureate Wake First Wake controlled descent experimental shot](docs/screenshots/native-2026-10-27/first-wake-cues/controlled-descent.jpg) |
+
+[View all four First Wake frames, full original PNGs, and visual QA findings](docs/VISUAL_DEVELOPMENT_GALLERY.md#latest-native-first-wake--3d-aureate-wake-presentation-study). The remaining **afloat** and **shipboard recovery** frames are deliberately not advertised as a completed ocean-touchdown or deck sequence: both are atmospheric look studies using the same ship. Weather and light are noncanonical cinematography options. The image evidence is from the **separate 3D consumer**, not a unified runtime with the 2D Chapter I producer.
 
 ## Existing game music — recovered source inventory
 
