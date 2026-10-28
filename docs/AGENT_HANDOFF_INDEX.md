@@ -25,6 +25,10 @@
 - Provide proof as **observed facts**, never substitute source static checks for rendered graphics or native Windows acceptance.
 - Do not merge drafts or publish binaries based solely on this document.
 
+## VFX/first-flight integration pilot (2026-10-27)
+
+Use [VFX prototype-to-production gates](VFX_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md) before combining branches. VFX [draft #411](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/411) and [manual preview contract #496](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/496) are **not** a production spell/battle adapter. Ionia-first [physics #447](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/447) and [camera handoff #492](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/492) independently establish authoritative first-flight states, not the combined rendered VFX scene. PW-01 is the *proposed* next combined native test; do not claim it executed.
+
 ## Highest-value shared gaps (not accomplishments)
 
 1. Ender and Ionia creator-quality source art / directional animation and grounded First Wake scene, including actual settled native visual evidence.

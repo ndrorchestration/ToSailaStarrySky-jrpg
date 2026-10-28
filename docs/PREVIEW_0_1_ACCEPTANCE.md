@@ -1,5 +1,9 @@
 # Aetherwake Preview 0.1 — Human Acceptance Protocol
 
+> **Historical exact JS/NW.js artifact acceptance, NOT current Godot 4.7.2 production proof.** Retain this binding for archival integrity; do not reuse its PR #250 source/installer hashes as evidence of Chapter I Godot, VFX or future Windows acceptance. Godot admission and first-flight visual production gates are separately tracked in [PW-01 pipeline plan](VFX_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md). The creator-approved forward opening introduces Ionia before Lyra, whereas old preview progression names may differ. Native QA, target-platform installed launch, independent player/art review, and current Windows Defender preflight remain OPEN.
+
+
+
 **Status:** exact technical candidate verified; human/player acceptance not yet run.
 
 ## Exact candidate binding

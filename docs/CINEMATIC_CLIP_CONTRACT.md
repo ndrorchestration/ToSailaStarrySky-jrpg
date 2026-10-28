@@ -3,6 +3,14 @@
 Status: **CANONICAL MEDIA INTEGRATION CONTRACT**
 Scope: short authored video clips used at specific plot points.
 
+## 2026 Godot distinction: in-engine VFX versus pre-rendered clips
+
+This legacy contract governs **pre-rendered media** and its historical JSON schema, not every Godot 4.7.2 effect. Native character/engine/ship shader cues should remain in-engine when deterministic timing, player camera visibility, fail-safe fallback, reduced motion or real-time light/weather response matters. A media clip may cover an extraordinary shot only after its source/story authority and fallback are approved.
+
+For the proposed Chapter I first-flight engine warning, start with a **neutral, visual-only in-engine cue**, driven by [native Ionia-first first-flight handoff #492](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/492) and tested against [VFX preview contract #496](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/496) on **a new reconciled Godot branch**. The current #496 contract is **manual-only**: it must not be widened to accept story or combat action as if those were authorizations. A separate authorized presentation adapter is required. No visual/media failure may cause a story step, physics water contact, crew join, fuel reveal or save mutation. See [PW-01 gate](VFX_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md).
+
+The MP4, directory and manifest guidance below is **historical source/media reference**, not proof of Godot VideoStream implementation or exact Windows playback.
+
 ## 1. Purpose
 
 Pre-rendered clips exist to show moments that would be disproportionately expensive or visually constrained in the normal runtime.

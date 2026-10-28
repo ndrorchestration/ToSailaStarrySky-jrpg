@@ -6,12 +6,18 @@
 
 - Official game title: **To Sail the Starry Sky** (creator decision 2026-10-23). *Aetherwake* may still describe historical work and in-world aether phenomena. **First Wake** is Chapter I.
 - An aspirational, emotionally grounded JRPG about finding belonging through travel, repair, curiosity and collaboration; no shallow good-versus-evil cosmology or exposition-only companions.
-- Authored playable roster: **Ender, Lyra, Ionia, Reson, Aepex**, joined through the story in that order. The combat/menu target expands from 1 to all 5; never reduce the final architecture to a permanent three-character maximum.
+- Authored playable roster: **Ender, Ionia, Lyra, Reson, Aepex**. **Current creator-directed Chapter I joins are Ionia before Lyra:** Ender meets and works with Capt. Ionia for the Aureate Wake's first-flight test; Lyra joins only **after ocean splashdown**. Reson and Aepex join later at story-gated points not fixed here. The previous Lyra-before-Ionia join sentence is superseded, not retroactive proof that old game builds have changed. The combat/menu target expands from 1 to all 5; never impose a permanent three-character maximum.
 - **Lyra is Talen's mother**; **Talen is 5** and is a non-playable child unless a later creator decision changes this. **Ionia is Lyra's cousin** and a caretaker figure; she is not an elderly farmer.
 - **Ionia owns/captains the Aureate Wake** after serving Captain Denith for ten years; Denith died of old age and entrusted the ship to her. Ionia wants it to become a **permanent mobile home**, and Ender's early work helps make that possible.
 - Ships, homes, crew bonds, maintenance, meals, individual ambitions, and choices about what a better world looks like should matter mechanically and narratively, not just as fantasy set dressing.
 - **The Five Lights** is an important in-world symbol/cosmological research direction; ultimate metaphysics, proposed names, and literal causal ontology are *not frozen canon*. Keep observational phenomena, characters' beliefs, and private authorial truth separate.
 - Travel discovery unfolds through ground travel, ordinary flight, reliable sky lanes and later extraordinary navigation. An advanced auroral traversal capability has a **five-protagonist/full-ship-equilibrium access gate**; foreshadowing is not traversal permission.
+
+## Creator-approved plot energy versus optional combat magic — 2026-10-27
+
+The five characters' **fundamental plot resonances** are **Ender Spirit; Ionia Earth; Lyra Water (retaining independent pink spirit energy/light); Reson Fire; Aepex Air**. These exist regardless of a character's selected job, learned magical domain, equipped skills, or spell access. Neither a story energy nor its cinematic VFX **automatically enables a spell, action, level, ability tree or combo**. Older Ender Aether/Harmonic/Correspondence/Lumen domain notes describe a distinct *formal learned/familiarity research layer*, not a replacement for his fundamental Spirit story energy. Preserve the Five Lights separately from this five-character table.
+
+**Forward narrative has draft Godot implementations, not merged gameplay:** [#425](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/425), [#430](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/430), [#447](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/447), [#492](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/492). See [VFX production gate](VFX_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md) for the explicit presentation/runtime distinction.
 
 ## Storytelling safeguards
 

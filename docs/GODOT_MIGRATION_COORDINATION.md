@@ -11,6 +11,12 @@
 - **Earlier JS planetary studies:** draft [#349](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/349), [#363](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/363). Preserve as evidence/visual reference; **no additional JS gameplay development**.
 - **Standalone higher-fidelity Godot artifact line:** tracked separately in Notion and #350. Do not reconstruct from textual hashes or assume the exact renderer ZIP is already in this GitHub repository.
 
+## Cross-branch cinematic VFX admission status (2026-10-27; draft, no code merge)
+
+[Production-gate plan](VFX_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md) links native VFX [#411](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/411), visual-only request admission [#496](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/496), physical preflight/water landing [#447](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/447) and camera/physics visual handoff [#492](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/492). Each has **independent source lineage and evidence**. They have **not** been compiled/rendered as one scene. PW-01 proposes a neutral, noncombat engine phase-drift visual attached to a legitimately observed flight warning, not a player spell or unlocked ship secret.
+
+Creator-directed forward First Wake is **Ender hired by Ionia → Ionia first → short flight/engine warning → ocean splashdown → Lyra afterward**. Existing native Crossing with Lyra already present remains **legacy migration test-only**, not canonical forward progression. Exact root `main` currently has no `godot/` directory; production porting and merging remain separate decisions. The Windows Defender custody gate remains unchanged.
+
 ## Safe integration sequence
 
 1. Fetch branch/PR states and the *exact* sources (not just agent summaries); choose a common ancestry, avoid overwriting other agents' changes.

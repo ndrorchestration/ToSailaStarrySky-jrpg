@@ -19,6 +19,12 @@
 | Unresolved cases | [Open decisions & conflicts](https://app.notion.com/p/3ecf5bad238b8174bdb2c9e0be2f4da3) | [Canon policy](CANON_AND_REVEAL_POLICY.md) |
 | First Wake art-blocker migration | [Anime character recovery](https://app.notion.com/p/3fef5bad238b81358ee3e85a1fc27467) | [Character/art authority](CHARACTER_AND_ART_AUTHORITY.md), [Godot coordination](GODOT_MIGRATION_COORDINATION.md) |
 
+## Native VFX → First Wake production-gate provenance (public-safe)
+
+- [GitHub production gate / documentation-only candidate](VFX_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md): native VFX [#411](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/411), explicit preview [#496](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/496), local physical splashdown [#447](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/447), First Wake cinematic intent [#492](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/492). **Separate draft lines; no actual combined production render.**
+- Private source/working ledgers: [Consolidated Development & Cinematic Visuals Ledger](https://app.notion.com/p/406f5bad238b81649ecaea05f451c2d6), [Chapter I Narrative Integration QA](https://app.notion.com/p/406f5bad238b81ba94ffea454603b72e), [Magic System & Character Integration](https://app.notion.com/p/3e0f5bad238b817c8285edc9b15e8cd7).
+- Public-safe fundamental energies: Ender Spirit; Ionia Earth; Lyra Water + pink spirit-light; Reson Fire; Aepex Air. No implied class or combat spell. Current Ionia-first opening replaces legacy Lyra-first test order for **future canon**, not existing runtime.
+
 ## Authority and privacy discipline
 
 1. Pages contain historical entries; **do not treat all statements on a page as currently simultaneously true**. Most recent *explicit creator decision* supersedes older conflicting art/title instructions, but newer timestamps alone do not settle canon.

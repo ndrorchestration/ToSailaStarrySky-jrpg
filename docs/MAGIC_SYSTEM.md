@@ -15,6 +15,12 @@ Aetherwake magic is built for a multi-job JRPG rather than a flat elemental weak
 6. **Dreaming is exceptional.** It is plot-bound and outside the ordinary learnable-school catalog.
 7. **Holy/Unholy are not elements.** Sacred/corrupted metaphysics are modifiers layered onto compatible magic.
 
+## Creator-approved plot-resonance identity (2026-10-27; different layer from domain mastery)
+
+**CREATOR CANON:** Ender = **Spirit**, Ionia = **Earth**, Lyra = **Water** with her distinct **pink spirit-light** motif, Reson = **Fire**, Aepex = **Air**. A character retains this fundamental plot energy even if their job/class/skill plan includes **no magic**. Such energy can support authored story resonance later, but **never directly grants combat permissions, free spells, mastery ranks, equipment access or active resonance abilities**. Five Lights mythology and learnable magical-domain families are separate concepts.
+
+The older affinities below describe **formal magical-domain familiarity and research**, not the five basic plot energies. Ender's Aether/Harmonic/Correspondence/Lumen notes should be preserved for review rather than overwritten by Spirit; formal domain access for Lyra/Ionia/Reson/Aepex remains an independent open design question. `godot/scripts/magic_vfx_catalog.gd` on draft [#411](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/411) visualizes the approved story identity, and [preview adapter #496](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/496) rejects automatic combat/story requests. Neither file is on `main` or constitutes a castable spell. See [prototype-to-production gates](VFX_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md).
+
 ## 2. Character affinity vs mastery
 
 Innate affinity and learned mastery are separate state.
