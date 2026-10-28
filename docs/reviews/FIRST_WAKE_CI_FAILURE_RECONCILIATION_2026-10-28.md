@@ -21,3 +21,12 @@
 - Inbox maintenance: 560 matching GitHub failure messages were archived (not deleted) in Gmail. This is not a GitHub run-state change.
 
 **Disposition:** Historical native signatures individually corrected and exact-head tested; combined integration **NOT VERIFIED**; Windows security **BLOCKED**; production release **NOT AUTHORIZED**.
+
+## Follow-up: candidate source coexistence inspection (2026-10-28)
+
+Read-only direct GitHub file retrieval at exact PR heads:
+- [PR #579](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/579), `f47ec6312ad8fa889b17650d9e7ba304f16496e4`: `godot/project.godot` uses `res://scenes/first_wake_game.tscn`; `.github/workflows/godot-visual-review-capture.yml` expects `TSTSS_BERTH_GL_CAPTURE_PASS frames=5`. Prior native/render/smoke checks succeeded. The specific `godot/tests/first_wake_tidal_ship_visual_rig_test.gd` could not be retrieved at this ref (GitHub 404), so this ref does **not** provide evidence of the corrected collider contract.
+- [PR #584](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/584), `79a5317879f8c213744981d3882cc096a82cc60d`: native/render/smoke and 3D RPG cohesion checks **SUCCESS** ([cohesion run 40701585477](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40701585477)). Source still selects legacy `res://scenes/first_wake_chapter1_player_preview.tscn`; no literal five-frame capture contract observed; tidal-rig test path not retrievable.
+- [PR #586](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/586), `bfd7c0e60e3051c6e643321508c0a062f6ee2d38`: native/render/smoke and creator-art study checks **SUCCESS** ([native run 40685147414](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40685147414)). New `first_wake_game.tscn` startup present; no literal five-frame capture contract observed; tidal-rig test path not retrievable.
+
+**Decision:** #579 is a reasonable **limited candidate** for startup + capture coexistence, not a complete Chapter 1 convergence. None of these inspected heads establishes the triplet of corrected startup, five-frame render and collider test. File 404 is an absence of retrievable evidence at that path, **not** proof of a broken physical collider. The next safe integration step is a dependency-aware cross-head source comparison in an isolated candidate (without direct-to-main merges), then one exact-SHA native test suite. Windows security remains fail-closed and release blocked.
