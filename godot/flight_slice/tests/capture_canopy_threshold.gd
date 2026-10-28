@@ -3,7 +3,8 @@ extends SceneTree
 ## Separates mesh-switch pixel discontinuity from camera-motion differences.
 const StudyScene = preload("res://main.tscn")
 const CAMERA_X: Array[float] = [-30.0, -26.0, -22.0, -18.0, -14.0,
-    -10.0, -6.0, -2.0, 2.0, 6.0, 10.0]
+    -10.0, -6.0, -2.0, 2.0, 6.0, 10.0, 6.0, 2.0, -2.0, -6.0,
+    -10.0, -14.0, -18.0, -22.0, -26.0, -30.0]
 const EYE_Y: float = 18.0
 const EYE_Z: float = 0.0
 const PIXEL_THRESHOLD: float = 0.045
@@ -46,11 +47,20 @@ func _run() -> void:
         push_error("FOREST_THRESHOLD_DIR_FAILED")
         quit(1)
         return
-    # Clear all earlier forced-coarse receipts before the automatic approach.
+    # Explicitly settle at the distant first waypoint BEFORE the measured run.
+    # Otherwise the initial return to the far view counts as real travel LOD
+    # switches, contaminating approach/retreat transition measurements.
+    scene.visuals.update_forest_detail(Vector3(CAMERA_X[0],EYE_Y,EYE_Z))
     scene.visuals.set_canopy_review_override(0)
+    if scene.visuals._near_patch_count != 0:
+        push_error("FOREST_THRESHOLD_UNSETTLED_START")
+        quit(1)
+        return
     scene.overlay.visible = false
     scene.ship.visible = false
     var total_switches: int = 0
+    var enter_switches: int = 0
+    var exit_switches: int = 0
     var max_pixels: int = 0
     var saved_pairs: int = 0
     var samples: Array[Dictionary] = []
@@ -73,6 +83,11 @@ func _run() -> void:
             quit(1)
             return
         total_switches += transitions.size()
+        for transition in transitions:
+            if transition["now_near"]:
+                enter_switches += 1
+            else:
+                exit_switches += 1
         max_pixels = maxi(max_pixels,pixels)
         if transitions.size() > 0 and saved_pairs < 3:
             var label_text: String = "switch-%02d" % saved_pairs
@@ -107,15 +122,19 @@ func _run() -> void:
         "pixel_rgb_abs_sum_threshold":PIXEL_THRESHOLD,
         "interpretation":"Fixed-pose before/after mesh-switch pixel differences; not moving-camera stability, GPU timings or proof of visual acceptance",
         "switches_total":total_switches,
+        "enter_switches":enter_switches,
+        "exit_switches":exit_switches,
         "peak_changed_subsampled_pixels":max_pixels,
         "samples":samples
     },"  "))
     file.close()
-    if total_switches == 0 or saved_pairs == 0 or samples.size() != CAMERA_X.size():
-        push_error("FOREST_THRESHOLD_NO_SWITCHES")
+    if total_switches == 0 or enter_switches == 0 or exit_switches == 0 or (
+            saved_pairs < 2) or samples.size() != CAMERA_X.size():
+        push_error("FOREST_THRESHOLD_INCOMPLETE_APPROACH_RETREAT")
         quit(1)
         return
     print("NATIVE_FOREST_THRESHOLD_PASS switches=",total_switches,
+        " enters=",enter_switches," exits=",exit_switches,
         " frames=",samples.size()," pairs=",saved_pairs,
         " peak_pixels=",max_pixels)
     scene.queue_free()
