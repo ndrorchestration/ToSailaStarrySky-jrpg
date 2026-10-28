@@ -13,7 +13,7 @@ static func _bounds(a: Vector3, b: Vector3, c: Vector3) -> AABB:
     var high: Vector3 = a.max(b).max(c)
     return AABB(low, high - low)
 
-static func _separated(a: Array[Vector3], b: Array[Vector3], axis: Vector3) -> bool:
+static func _separated(a: Array, b: Array, axis: Vector3) -> bool:
     if axis.length_squared() < AXIS_MIN_LENGTH2:
         return false
     var unit: Vector3 = axis.normalized()
@@ -31,7 +31,7 @@ static func _separated(a: Array[Vector3], b: Array[Vector3], axis: Vector3) -> b
         bmax = maxf(bmax, p)
     return amax + AXIS_TOLERANCE < bmin or bmax + AXIS_TOLERANCE < amin
 
-static func triangle_contact(a: Array[Vector3], b: Array[Vector3]) -> bool:
+static func triangle_contact(a: Array, b: Array) -> bool:
     # Surface triangle SAT, including coplanar in-plane separating edge axes.
     # Degenerate faces are not trusted: caller counts them separately.
     if a.size() != 3 or b.size() != 3:
@@ -42,7 +42,7 @@ static func triangle_contact(a: Array[Vector3], b: Array[Vector3]) -> bool:
     var eb: Array[Vector3] = [
         b[1] - b[0], b[2] - b[1], b[0] - b[2]
     ]
-    var na: Vector3 = ea[0].cross(-ea[2])
+    var na: Vector3 = ea[0].cross(a[2] - a[0])
     var nb: Vector3 = eb[0].cross(-eb[2])
     if na.length_squared() < AXIS_MIN_LENGTH2:
         return false
@@ -144,7 +144,7 @@ static func assess(ship: Node3D, bridge: Node3D) -> Dictionary:
             var contacts: int = 0
             for tri in wing:
                 for pane in panes:
-                    if not (tri["box"] as AABB).intersects(pane["box"] as AABB):
+                    if not (tri["box"] as AABB).grow(AXIS_TOLERANCE).intersects(pane["box"] as AABB):
                         continue
                     report["triangle_box_candidates"] = int(report["triangle_box_candidates"]) + 1
                     report["triangle_tests"] = int(report["triangle_tests"]) + 1
