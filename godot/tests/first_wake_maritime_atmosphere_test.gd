@@ -54,7 +54,7 @@ func _run() -> void:
         "actual actor collision survives atmospheric art change")
     check(wrapper.ship.get_node("ForedeckNoseInfill0Body") is StaticBody3D,
         "physical bow safety infill preserved independently of ocean plane")
-    check(wrapper.ship.get_node("HatchCollisionBody") is StaticBody3D,
+    check(wrapper.ship.get_node("ForedeckHatchHinge/HatchCollisionBody") is StaticBody3D,
         "the physical hatch remains intact over visual-only sea")
     check(wrapper.request_3d_ship_review(false)
         and wrapper.chapter.export_revised_checkpoint() == fixture,
