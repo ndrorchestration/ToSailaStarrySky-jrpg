@@ -11,6 +11,7 @@ const ResonanceRoster = preload("res://scripts/first_wake_resonance_roster_gate.
 const Actor = preload("res://scripts/pilot_actor.gd")
 const Dock = preload("res://scripts/dock_depth_review.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
+const ShipSpacesHandoff = preload("res://scripts/first_wake_ship_spaces_handoff.gd")
 
 const FLYER_POSITION := Vector2(442, 463)
 const IONIA_DOCK_POSITION := Vector2(677, 467)
@@ -36,6 +37,8 @@ var ender: CharacterBody2D
 var ionia: CharacterBody2D
 var dock_background: Node2D
 var dock_foreground: Node2D
+var ship_spaces_handoff: Node2D
+var _ship_spaces_requested: bool = false
 var headline: Label
 var objective: Label
 var hint: Label
@@ -87,6 +90,10 @@ func _ready() -> void:
     dock_foreground.z_index = 3
     add_child(dock_foreground)
 
+    # Read-only, hidden by default; never adds an E interaction or save key.
+    ship_spaces_handoff = ShipSpacesHandoff.new()
+    add_child(ship_spaces_handoff)
+
     var ui := CanvasLayer.new()
     ui.name = "ReadableGameplayOverlay"
     add_child(ui)
@@ -99,6 +106,20 @@ func _ready() -> void:
     dialogue_text = _label(ui, Vector2(120, 566), 18, 730)
     dialogue_text.custom_minimum_size.y = 58.0
     _sync_presentation()
+
+func set_ship_spaces_review_enabled(enabled: bool) -> bool:
+    # A failed premature request must not arm the overlay for future boarding.
+    if ship_spaces_handoff == null:
+        return false
+    var approved: bool = ship_spaces_handoff.request_review(
+        enabled, room, opening.step_key(), opening.active_party_ids)
+    _ship_spaces_requested = approved
+    return approved
+
+func _sync_ship_space_review() -> void:
+    if ship_spaces_handoff != null:
+        _ship_spaces_requested = ship_spaces_handoff.request_review(
+            _ship_spaces_requested, room, opening.step_key(), opening.active_party_ids)
 
 func _label(parent: Node, pos: Vector2, font_size: int, width: float) -> Label:
     var node := Label.new()
@@ -271,6 +292,8 @@ func restore_revised_checkpoint(snapshot: Variant) -> bool:
     ionia.walking_bounds = DOCK_BOUNDS if room == "dock" else ROOM_BOUNDS
     ionia.position = IONIA_DOCK_POSITION if room == "dock" else Vector2(149, 470)
     ionia.set_ionia_stage_art_enabled(true, "west" if room == "dock" else "east")
+    # Review overlays are transient and cannot be silently persisted/restored.
+    _ship_spaces_requested = false
     last_message = "Revised opening review checkpoint restored; no new combat authorization."
     _sync_presentation()
     return true
@@ -382,4 +405,5 @@ func _sync_presentation() -> void:
         dialogue_text.visible = false
         hint.text = last_message + "    [Arrows: move  |  E: interact  |  K: save  |  L: load]"
     hint.visible = not dialogue_open
+    _sync_ship_space_review()
     queue_redraw()
