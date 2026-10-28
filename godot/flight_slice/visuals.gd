@@ -26,6 +26,11 @@ var _forest_batches: Array[Dictionary] = []
 var _last_forest_observer: Vector3 = Vector3(-56.0, 20.0, 52.0)
 # 0=automatic; 1=force detailed; 2=force coarse for matched framebuffer QA.
 var canopy_review_override: int = 0
+# Measured CPU-side switch receipts, overwritten each update; no event queue
+# or continuous expensive logging on production flight frames.
+var lod_last_switches: Array[Dictionary] = []
+var lod_switches_total: int = 0
+var lod_last_update_us: int = 0
 
 func _ready() -> void:
     sky_material = _shader("res://shaders/sky.gdshader")
@@ -172,8 +177,11 @@ func _batch_distance(observer: Vector3, batch: Dictionary) -> float:
 
 func update_forest_detail(observer: Vector3) -> void:
     _last_forest_observer = observer
+    lod_last_switches.clear()
     if _terrain == null or _forest_batches.is_empty():
+        lod_last_update_us = 0
         return
+    var started_us: int = Time.get_ticks_usec()
     _near_patch_count = 0
     for batch in _forest_batches:
         var distance: float = _batch_distance(observer, batch)
@@ -187,7 +195,13 @@ func update_forest_detail(observer: Vector3) -> void:
         elif canopy_review_override == 1:
             detailed = true
         if detailed != bool(batch["detailed"]):
+            var previous: bool = bool(batch["detailed"])
             batch["detailed"] = detailed
+            lod_last_switches.append({
+                "species": batch["species"], "cell": [batch["ix"], batch["iz"]],
+                "previous_near": previous, "now_near": detailed,
+                "camera_distance": distance
+            })
             var node: MultiMeshInstance3D = batch["node"]
             if batch["species"] == "evergreen":
                 node.multimesh.mesh = _evergreen_near if detailed else _evergreen_far
@@ -212,6 +226,25 @@ func update_forest_detail(observer: Vector3) -> void:
         show_floor = false
     for layer_name in ["FernClumps", "UnderstoryShrubs"]:
         _terrain.get_node("ForestGroundCover/" + layer_name).visible = show_floor
+    lod_switches_total += lod_last_switches.size()
+    lod_last_update_us = Time.get_ticks_usec() - started_us
+
+func forest_lod_receipt() -> Dictionary:
+    # Node/instance counts are CPU scene data, not actual GPU draw calls.
+    var instances: int = 0
+    for batch in _forest_batches:
+        instances += batch["node"].multimesh.instance_count
+    return {
+        "species_cell_nodes": _forest_batches.size(),
+        "near_species_cells": _near_patch_count,
+        "coarse_species_cells": _forest_batches.size() - _near_patch_count,
+        "preserved_crown_instances": instances,
+        "switches_last_update": lod_last_switches.size(),
+        "switches_cumulative": lod_switches_total,
+        "lod_update_cpu_us": lod_last_update_us,
+        "understory_visible": _terrain != null and
+            _terrain.get_node("ForestGroundCover/FernClumps").visible
+    }
 
 func set_canopy_review_override(mode: int) -> void:
     # Native paired captures only; normal gameplay always uses 0.

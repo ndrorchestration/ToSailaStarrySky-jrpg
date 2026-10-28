@@ -241,6 +241,13 @@ func _run() -> void:
             "all spatial batch meshes match forced detailed reference")
     visuals.set_canopy_review_override(0)
     visuals.update_forest_detail(Vector3(-60.0, 23.0, 0.0))
+    var far_receipt: Dictionary = visuals.forest_lod_receipt()
+    check(far_receipt["near_species_cells"] == 0 and
+        far_receipt["coarse_species_cells"] == visuals._forest_batches.size(),
+        "distant LOD receipt counts all coarse patches")
+    check(far_receipt["preserved_crown_instances"] ==
+        cpu_poses.size() + scene.terrain.broadleaf_poses.size(),
+        "LOD receipt exposes all authored canopy instances")
     check(visuals._near_patch_count == 0,
         "distant camera selects coarse meshes for every patch")
     check(not scene.terrain.get_node("ForestGroundCover/FernClumps").visible,
@@ -250,6 +257,18 @@ func _run() -> void:
         visuals._near_patch_count < visuals._forest_batches.size(),
         "near camera mixes detailed local and coarse distant patches")
     var near_count: int = visuals._near_patch_count
+    var near_switches: int = visuals.lod_last_switches.size()
+    check(near_switches > 0, "approach generates explicit canopy switch receipts")
+    for transition in visuals.lod_last_switches:
+        check(transition["now_near"] and not transition["previous_near"],
+            "approach switch receipt identifies coarse-to-detailed state")
+        check(transition["camera_distance"] < visuals.CANOPY_NEAR,
+            "approach switch receipt records distance inside near threshold")
+    visuals.update_forest_detail(Vector3(26.0, 13.0, 0.0))
+    check(visuals.lod_last_switches.is_empty(),
+        "repeated fixed camera produces no redundant LOD switches")
+    check(visuals.forest_lod_receipt()["switches_last_update"] == 0,
+        "repeat frame receipt reports zero switches")
     visuals.update_forest_detail(Vector3(26.0, 32.0, 0.0))
     check(visuals._near_patch_count >= 1 and
         visuals._near_patch_count <= near_count,

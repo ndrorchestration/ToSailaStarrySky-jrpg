@@ -99,6 +99,17 @@ jobs:
           grep -q 'NATIVE_TOUCHDOWN_FRAME_PASS state=LANDED' /tmp/capture.log
           grep -Eq 'NATIVE_TOUCHDOWN_PHYSICS_FRAME_PASS triangles=792 rayHeightError=[0-9.]+' /tmp/capture.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/capture.log
+      - name: Real GL fixed-pose canopy transition receipt and pixel captures
+        run: |
+          set -o pipefail
+          timeout 120s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_canopy_threshold.gd 2>&1 | tee /tmp/lod-transition.log
+          grep -Eq 'NATIVE_FOREST_THRESHOLD_PASS switches=[1-9][0-9]* enters=[1-9][0-9]* exits=[1-9][0-9]*' /tmp/lod-transition.log
+          test -s godot/flight_slice/evidence/forest-lod-threshold/transition-receipt.json
+          grep -q '"samples"' godot/flight_slice/evidence/forest-lod-threshold/transition-receipt.json
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/lod-transition.log
       - name: Matched native GL A/B atmospheric depth captures
         run: |
           set -o pipefail
@@ -135,6 +146,7 @@ jobs:
           name: godot-flight-slice-software-captures
           path: |
             godot/flight_slice/evidence/**/*.png
+            godot/flight_slice/evidence/**/*.json
             godot/flight_slice/evidence/*.json
             /tmp/moving-lod.log
             /tmp/rendered-flight.log
@@ -150,5 +162,6 @@ jobs:
             /tmp/touchdown.log
             /tmp/contact-lifecycle.log
             /tmp/capture.log
+            /tmp/lod-transition.log
           if-no-files-found: warn
           retention-days: 7
