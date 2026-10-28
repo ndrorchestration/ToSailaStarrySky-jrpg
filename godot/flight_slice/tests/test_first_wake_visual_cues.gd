@@ -108,9 +108,12 @@ func _verify() -> void:
     var descent_shot: Dictionary = stage.first_wake_visual_snapshot()
     check(descent_shot["visual_cue"] == "first_lift" and
         descent_shot["story_phase"] == "test_flight", "visual provenance retained")
-    stage._update_scene(0.0)
+    # The existing cinematic camera eases toward its goal. A zero-delta call
+    # cannot move it; advance several fixed presentation ticks instead.
+    for i in range(5):
+        stage._update_scene(0.5)
     check(stage.camera.global_position.distance_to(stage.ship.global_position) < 40.0,
-        "actual 3D camera uses scene-relative cue framing")
+        "actual 3D camera eases toward scene-relative cue framing")
     check(stage.ship.global_transform == original_transform,
         "3D camera/environment changes do not modify ship transform or physics")
     check(stage.preview_first_wake_visual_cue(afloat, 0.0), "waterborne visual cue accepted")
