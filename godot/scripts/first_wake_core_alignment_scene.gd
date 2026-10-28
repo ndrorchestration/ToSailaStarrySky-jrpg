@@ -146,7 +146,15 @@ func _draw() -> void:
     draw_arc(ENGINE + Vector2(0, -61), 19, 0, TAU, 32, glow, 3.0)
     draw_string(ThemeDB.fallback_font, ENGINE + Vector2(-29, -100), "CORE", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#f4dfbd"))
     draw_rect(Rect2(16, 548, 928, 84), Color("#0b1726"))
-    draw_string(ThemeDB.fallback_font, Vector2(23, 362), "Crew present after safe reunion: ENDER / IONIA / LYRA  |  Talen: noncombat", HORIZONTAL_ALIGNMENT_LEFT, 900, 17, Color("#d9e6e2"))
+    # Keep crew context separated from the workbench labels and core gizmo.
+    if cinematic_environment_enabled:
+        draw_rect(Rect2(18,168,627,30),Color("#0b1928",0.90))
+        draw_line(Vector2(19,198),Vector2(644,198),Color("#c5a37a"),1)
+        draw_string(ThemeDB.fallback_font,Vector2(27,188),
+            "CREW: ENDER / IONIA / LYRA  |  TALEN SAFE, NONCOMBAT",
+            HORIZONTAL_ALIGNMENT_LEFT,603,15,Color("#d9e6e2"))
+    else:
+        draw_string(ThemeDB.fallback_font, Vector2(23, 362), "Crew present after safe reunion: ENDER / IONIA / LYRA  |  Talen: noncombat", HORIZONTAL_ALIGNMENT_LEFT, 900, 17, Color("#d9e6e2"))
 
 func _unhandled_input(event: InputEvent) -> void:
     if event.is_echo():
