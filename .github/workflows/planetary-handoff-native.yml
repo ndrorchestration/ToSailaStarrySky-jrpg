@@ -1,0 +1,65 @@
+name: Planetary Surface Native Admission (noncanon)
+
+on:
+  pull_request:
+    paths:
+      - "godot/planetary_handoff/**"
+      - "scripts/build-planetary-surface-fixture.js"
+      - "modules/planetary-*.js"
+      - ".github/workflows/planetary-handoff-native.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-manifest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+      - name: Configure Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate bounded fixture from real planetary modules
+        run: |
+          set -euo pipefail
+          node scripts/build-planetary-surface-fixture.js --out /tmp/planetary-surface-manifest.json | tee /tmp/manifest-generator.log
+          grep -q 'PLANETARY_SURFACE_MANIFEST_WRITTEN cases=4' /tmp/manifest-generator.log
+          node -e "const f=require('/tmp/planetary-surface-manifest.json');if(f.cases.length!==4||f.cases.some(c=>c.plan.tileCount<1||c.plan.tileCount>64))process.exit(1)"
+      - name: Install exact Godot 4.7.2 native editor
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --output /tmp/godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp
+          chmod +x /tmp/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Import isolated native contract project
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path godot/planetary_handoff --quit 2>&1 | tee /tmp/native-import.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|Failed loading' /tmp/native-import.log
+      - name: Admit actual Node manifest in native Godot, test hostile mutations
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/planetary_handoff \
+            --script res://tests/test_manifest.gd -- /tmp/planetary-surface-manifest.json 2>&1 | tee /tmp/native-admission.log
+          grep -q 'PLANETARY_SURFACE_GODOT_ADMISSION_PASS checks=6 cases=4 NONCANON' /tmp/native-admission.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|PLANETARY_SURFACE_ADMISSION_FAIL|ERROR:' /tmp/native-admission.log
+      - name: Preserve machine-readable fixture and native evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: planetary-surface-native-admission
+          path: |
+            /tmp/planetary-surface-manifest.json
+            /tmp/manifest-generator.log
+            /tmp/native-import.log
+            /tmp/native-admission.log
+          if-no-files-found: warn
+          retention-days: 7
