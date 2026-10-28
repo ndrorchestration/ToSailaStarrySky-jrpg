@@ -1,6 +1,6 @@
 extends SceneTree
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
-const Panel = preload("res://scripts/first_wake_evidence_comparison_panel.gd")
+const EvidencePanel = preload("res://scripts/first_wake_evidence_comparison_panel.gd")
 var errors: Array[String] = []
 
 func _initialize() -> void:
@@ -12,7 +12,7 @@ func check(ok: bool, message: String) -> void:
 
 func _run() -> void:
     var story = Opening.new()
-    var ui = Panel.new()
+    var ui = EvidencePanel.new()
     check(ui.configure_story(story), "panel accepts authentic story")
     root.add_child(ui)
     await process_frame
