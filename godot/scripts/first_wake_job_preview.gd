@@ -192,6 +192,10 @@ func _unhandled_input(event: InputEvent) -> void:
             evidence_panel.visible = not evidence_panel.visible
             if evidence_panel.visible:
                 evidence_panel.refresh()
+                # A journal is modal: prevent player movement behind the overlay.
+                ender.player_controlled = false
+            else:
+                ender.player_controlled = not dialogue_open and opening.step_key() != "preflight"
             get_viewport().set_input_as_handled()
             return
         if evidence_panel.visible:
