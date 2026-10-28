@@ -1,0 +1,32 @@
+# First Wake — Cinematic Environment Code Pass 01 (native scenes)
+
+**2026-10-28 · Visual study on [draft PR #576](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/576), stacked on v2 playable-and-save proof #571.** No merge/release, no visual-bible or geographic canon rewrite.
+
+## Actual gameplay code added
+
+New `godot/scripts/first_wake_cinematic_environment.gd` is a **single original authored deterministic CanvasItem environment drawing module** shared by three active F5 Chapter One game scenes. It is loaded by real `first_wake_postflight_game.gd`, `first_wake_postflight_family_review.gd`, and `first_wake_core_alignment_scene.gd`; not a detached presentation mockup or concept image. Reusable primitives include multi-stop gradient atmosphere, restrained layered radial lantern light, warm/cool structural edge contrast, riveted metalwork, plank perspective, and scene-space environmental depth.
+
+1. **Ship reserve, after actual contact:** warm engine inspection beacon, gauge, metal bays/ribs, layered shipboard flooring and structural illumination; indicator reflects existing `inspected_station` only.
+2. **Family meeting at acknowledged, location-unassigned safe berth:** twilight sky, atmospheric layers, abstract background ridgelines, water highlights, the distant Aureate Wake silhouette, a proposed geodesic bridge form, railing and lantern pools. This does **not** define harbor geography, rescue/travel physics, secret configurations, or a weather simulation. Investigation stations (Denith's log, phase chart, theory table) gain authored detailed visual props at the **unchanged original player interaction coordinates**.
+3. **Repair workshop, after full crew theory:** recessed structural bays, shipboard conduits, warm/cool workshop lighting, large multiring harmonic engine and state-linked purely optical amber/cyan response, authored stock/part/assembly props at original interaction positions, and a separate labeled crew information strip, avoiding interference with stage machinery. Flight locked remains native Core authority.
+
+All scenes retain `cinematic_environment_enabled` default true and `set_cinematic_environment_enabled(false)` to restore their **exact original source geometry/color blocking**, with no new state saved and no script-linked interactions. This is original code-generated 2D art, not a final texture atlas or substituted character sprite; original five-protagonist visual identity has **not been revised**. Lyra and Talen currently remain explicitly temporary role markers pending the creator-approved actual Visual Bible sprites.
+
+## Proven visual evidence (first native capture)
+
+At implementation source `21cc39acfc4ed93b2baaaa07d9ec974fd286ce89`, [Godot 4.7.2 GL run #40659224305](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40659224305) **PASS** following a corrected built-in `Environment` alias collision. Original/cinematic **real F5 game** screenshot pairs (same camera/game state, no studio fixture) were archived in [artifact #12803432905](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40659224305/artifacts/12803432905) for reserve, family and workshop, plus nine whole-route frames and logs. Pixel comparisons >3/255 in fixed lower-frame ROI: reserve **34,699**, family **33,370**, workshop **33,507** changed sampled pixels; `state_unchanged=true`. Headless F5 native progression and independent Godot OS-process v2 save restore preserved in same workflow. **Render binding PASS does not constitute artistic acceptance.**
+
+A second revision adds physical visual prop drawings for the source authored interaction points and fixes workshop HUD spatial interference. **Do not claim the revised head passed, or quote revised screenshot pixels, until that exact branch CI is verified.**
+
+## Visual QA disposition and candidate next production steps
+
+**ENGINEERING PASS for first native environmental rendering; ART ACCEPTANCE HOLD.** Actual screenshots show greater silhouette depth, environmental structure and authored lighting, but the simplified scene geometry, low-detail/tiled floors, provisional background Wake shape and Lyra/Talen color role blocks remain far below the intended cinematic character/landscape fidelity. The new location-neutral berth is a **review setting**, not an accepted actual Chapter One coast. The geodesic bridge is a visual proposal, not mechanically or narratively authorized secret ship configuration.
+
+1. **Art source and rights:** verify exact up-to-date five character visual-bible sprites and original asset provenance; build camera-scale directional animation atlases, not generically invented replacement characters. Require creator screenshot acceptance and both keyboard/gamepad readable contact shadows.
+2. **Real environmental assets:** replace current vector study shapes with accepted source geometry, properly lit tiles/textures, ship model and physically grounded waterline; unify palette with approved high-quality images, normal/material/roughness layers. Seamless animation and predictable multi-quality fallbacks.
+3. **Directed story camera:** transitions for physical warning → actual contact → rescue/staged safe location → Lyra/Talen reunion → failed test → Denith memory → contained bench. All camera events read state and must never generate it.
+4. **Audio:** compose/license an original shanty with silence/text-equivalent player choices and independent audio mix/latency; no borrowed composition or implied actual audio proof from a visual-only build.
+5. **Playability and release:** no geometry/interaction move, no old save corruption, nine-shot screenshots at 960x640 and 1280x720 plus moving sequences; frame-time and cold-shader measurements on Windows GPUs; strict Defender-on custody and an actual installer/shortcut resave cycle.
+6. **Evidence and promotion:** review the native source SHA, before/after and gameplay movement frames, accessibility and creator approval independently. Keep study draft until it has genuine quality improvement over the unapproved base; reject noisy shader changes or decorative VFX that obscure characters.
+
+See [32-gate Chapter One polish checklist](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/554), [F5 gameplay bridge #568](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/568) and [versioned v2 stage save #571](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/571). **No canon, distribution or creator art acceptance granted.**
