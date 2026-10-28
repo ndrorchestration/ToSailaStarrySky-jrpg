@@ -80,8 +80,10 @@ func _build_mesh() -> ArrayMesh:
             var b: int = a + 1
             var c: int = a + SEGMENTS + 1
             var d: int = c + 1
-            # XZ-space triangles must face upward for the Godot 3D convention.
-            indices.append_array(PackedInt32Array([a,c,b,b,c,d]))
+            # Godot renders the clockwise XZ winding from above in this
+            # coordinate frame. The opposite order culls the whole surface
+            # except a hairline edge in native GL; capture QA detected it.
+            indices.append_array(PackedInt32Array([a,b,c,b,d,c]))
     var arrays: Array = []
     arrays.resize(Mesh.ARRAY_MAX)
     arrays[Mesh.ARRAY_VERTEX] = vertices
