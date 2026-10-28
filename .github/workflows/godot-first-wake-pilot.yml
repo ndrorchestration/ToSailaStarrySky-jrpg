@@ -145,6 +145,30 @@ jobs:
           set -euo pipefail
           # Fail closed on a script hang; never accept a timeout as QA PASS.
           timeout --kill-after=3s 25s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_resonance_roster_gate_test.gd
+      - name: Verify post-splashdown material recovery and Captain's melodic core alignment review contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          trap 'rm -f "$log_file"' EXIT
+          timeout --kill-after=3s 35s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_core_alignment_review_test.gd 2>&1 | tee "$log_file"
+          if grep -Eq 'SCRIPT ERROR|TSTSS_FIRST_WAKE_CORE_ALIGNMENT_FAIL' "$log_file"; then
+            echo "Core-alignment prototype contract emitted a Godot error" >&2
+            exit 1
+          fi
+          grep -Fq 'TSTSS_FIRST_WAKE_CORE_ALIGNMENT_PASS:' "$log_file"
+      - name: Verify playable post-splashdown material and harmonic discovery workshop scene
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          trap 'rm -f "$log_file"' EXIT
+          timeout --kill-after=3s 45s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_core_alignment_scene_test.gd 2>&1 | tee "$log_file"
+          if grep -Eq 'SCRIPT ERROR|TSTSS_FIRST_WAKE_CORE_SCENE_FAIL' "$log_file"; then
+            echo "Core bench scene emitted a Godot runtime error" >&2
+            exit 1
+          fi
+          grep -Fq 'TSTSS_FIRST_WAKE_CORE_SCENE_PASS:' "$log_file"
       - name: Verify proposed First Wake opening chronological gates (review only)
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_revised_opening_contract_test.gd
