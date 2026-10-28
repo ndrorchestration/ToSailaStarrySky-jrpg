@@ -167,10 +167,14 @@ func _verify() -> void:
         _fail("afloat station incorrectly claimed inventory verification")
         return
     var before_walk: float = deck.ender.position.x
+    if not deck.ender.player_controlled or not deck.ender.is_physics_processing():
+        _fail("afloat Ender actor was not configured for live movement")
+        return
     Input.action_press("ui_right")
-    for i in range(12):
+    for i in range(50):
         await physics_frame
     Input.action_release("ui_right")
+    print("TSTSS_AFLOAT_MOVE_DIAGNOSTIC: start=", before_walk, " end=", deck.ender.position.x, " global=", deck.ender.global_position.x, " velocity=", deck.ender.velocity, " active=", deck.ender.player_controlled)
     if deck.ender.position.x <= before_walk:
         _fail("Ender could not physically move in the reserve station scene")
         return
