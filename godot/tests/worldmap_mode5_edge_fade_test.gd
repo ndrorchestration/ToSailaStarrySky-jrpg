@@ -101,6 +101,28 @@ func _run()->void:
             all_restored=all_restored and land.material_override is StandardMaterial3D
     check(all_restored,"all original tile material instances restored")
     check(world.call("snapshot")==original,"restoring material does not mutate save")
+    # Explicit regression: previous P2 snow rendering remains unfeathered.
+    var snow_pairs:Array[Dictionary]=Study.find_pair("snow")
+    check(snow_pairs.size()==2,"original P2 snow tile test remains available")
+    if snow_pairs.size()==2:
+        var snow:Vector2=Tiles.tile_center(snow_pairs[0])
+        var snow_state:Dictionary=world.call("snapshot")
+        snow_state["flight"]["latDeg"]=snow.x
+        snow_state["flight"]["lonDeg"]=snow.y
+        world.call("_apply_state",snow_state)
+        world.call("_refresh_chart")
+        check(world.call("set_surface_review","snow"),
+            "original P2 snow look can still be selected")
+        var snow_count:=0
+        for node in stream.get_children():
+            var land_snow:=node.get_node_or_null("SphericalLand") as MeshInstance3D
+            if land_snow!=null and land_snow.material_override is ShaderMaterial:
+                snow_count+=1
+                var snow_mat:ShaderMaterial=land_snow.material_override
+                check(is_zero_approx(float(snow_mat.get_shader_parameter(
+                    "tile_edge_blend_width"))),
+                    "snow keeps original fully visible P2 shader")
+        check(snow_count==1,"one original snow tile remains available")
     world.queue_free()
     await process_frame
     if failed.is_empty():
