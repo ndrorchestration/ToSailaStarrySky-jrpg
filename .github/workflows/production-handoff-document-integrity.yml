@@ -1,0 +1,34 @@
+name: Godot prototype production handoff source integrity (documentation only)
+
+on:
+  pull_request:
+    paths:
+      - 'docs/AGENT_HANDOFF_INDEX.md'
+      - 'docs/GODOT_MIGRATION_COORDINATION.md'
+      - 'docs/design/EQUIPMENT_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md'
+      - 'docs/SHIP_POSE_PROTOTYPE_TO_PRODUCTION_ADMISSION.md'
+      - 'docs/VFX_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md'
+      - 'docs/design/PERCEPTUAL_BIOME_MATERIAL_PROMOTION_2026-10-27.md'
+      - 'docs/design/CHARACTER_MOTION_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md'
+      - 'docs/reviews/ENEMY_VISUAL_PROTOTYPE_TO_PRODUCTION_2026-10-27.md'
+      - 'tests/production-handoff-integrity.test.js'
+      - '.github/workflows/production-handoff-document-integrity.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  docs-source-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: '22'
+      - name: Verify original Git blob identities and document routing
+        run: node --test tests/production-handoff-integrity.test.js
