@@ -6,7 +6,7 @@
 
 - Official game title: **To Sail the Starry Sky** (creator decision 2026-10-23). *Aetherwake* may still describe historical work and in-world aether phenomena. **First Wake** is Chapter I.
 - An aspirational, emotionally grounded JRPG about finding belonging through travel, repair, curiosity and collaboration; no shallow good-versus-evil cosmology or exposition-only companions.
-- Authored playable roster: **Ender, Lyra, Ionia, Reson, Aepex**, joined through the story in that order. The combat/menu target expands from 1 to all 5; never reduce the final architecture to a permanent three-character maximum.
+- Authored playable roster: **Ender, Lyra, Ionia, Reson, Aepex**; combat/menu capacity expands from 1 to all 5. **Forward Chapter I creator revision (2026-10-27):** Ender meets and joins Captain Ionia to repair/test the ship, and Lyra joins after the initial ocean splashdown. The prior 'Lyra before Ionia' sequence describes historical prototype work, not current forward-story chronology. Keep earlier runtime evidence verbatim, and do not infer the later companions' exact joining scenes from this statement.
 - **Lyra is Talen's mother**; **Talen is 5** and is a non-playable child unless a later creator decision changes this. **Ionia is Lyra's cousin** and a caretaker figure; she is not an elderly farmer.
 - **Ionia owns/captains the Aureate Wake** after serving Captain Denith for ten years; Denith died of old age and entrusted the ship to her. Ionia wants it to become a **permanent mobile home**, and Ender's early work helps make that possible.
 - Ships, homes, crew bonds, maintenance, meals, individual ambitions, and choices about what a better world looks like should matter mechanically and narratively, not just as fantasy set dressing.
