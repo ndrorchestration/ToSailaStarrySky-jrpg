@@ -62,7 +62,7 @@ func _install_review_input() -> void:
     for action in ACTIONS:
         if not InputMap.has_action(action):
             InputMap.add_action(action)
-        var expected := ACTIONS[action] as Key
+        var expected: int = int(ACTIONS[action])
         var found := false
         for existing in InputMap.action_get_events(action):
             if existing is InputEventKey and (existing as InputEventKey).physical_keycode == expected:
