@@ -127,8 +127,9 @@ func _run_tests() -> void:
         min_height = minf(min_height, minf(p0.y, minf(p1.y, p2.y)))
         max_height = maxf(max_height, maxf(p0.y, maxf(p1.y, p2.y)))
         var normal: Vector3 = (p1 - p0).cross(p2 - p0)
-        if normal.length_squared() <= 0.000000001 or
-            normal.dot((p0 + p1 + p2) / 3.0 - Vector3.UP * GeodesicBridge.CENTER_Y) <= 0.0:
+        if (normal.length_squared() <= 0.000000001
+                or normal.dot((p0 + p1 + p2) / 3.0
+                    - Vector3.UP * GeodesicBridge.CENTER_Y) <= 0.0):
             outward = false
     _check(min_height >= GeodesicBridge.BASE_Y - 0.0001 and
         max_height > 1.17 and outward,
