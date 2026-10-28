@@ -30,6 +30,7 @@ func _ready() -> void:
     ship.process_mode = Node.PROCESS_MODE_DISABLED
     ship.crew_walker.manual_controls_enabled = false
     ship.get_node("MetricShipStudyCamera").current = false
+    _set_chapter_present(true)
 
     var overlay := CanvasLayer.new()
     overlay.name = "BridgeReviewHelpOverlay"
@@ -61,6 +62,14 @@ func review_eligible() -> bool:
         chapter.opening.step_key() in RECOGNIZED_STEPS) and (
         chapter.opening.active_party_ids == ["ender", "ionia"])
 
+func _set_chapter_present(enabled: bool) -> void:
+    chapter.visible = enabled
+    # CanvasLayer visibility is independent of its Node2D parent's visible.
+    # Without this, 2D First Wake dialogue/objective would cover the 3D view.
+    chapter.get_node("ReadableGameplayOverlay").visible = enabled
+    chapter.process_mode = (
+        Node.PROCESS_MODE_INHERIT if enabled else Node.PROCESS_MODE_DISABLED)
+
 func request_3d_ship_review(enabled: bool) -> bool:
     if enabled:
         # No 'armed' state: a premature B cannot auto-open once hired later.
@@ -69,8 +78,7 @@ func request_3d_ship_review(enabled: bool) -> bool:
         if not review_eligible():
             return false
         three_d_review_active = true
-        chapter.visible = false
-        chapter.process_mode = Node.PROCESS_MODE_DISABLED
+        _set_chapter_present(false)
         ship.visible = true
         ship.process_mode = Node.PROCESS_MODE_INHERIT
         ship.crew_walker.manual_controls_enabled = true
@@ -85,8 +93,7 @@ func request_3d_ship_review(enabled: bool) -> bool:
     ship.set_crew_follow_camera(false)
     ship.visible = false
     ship.process_mode = Node.PROCESS_MODE_DISABLED
-    chapter.visible = true
-    chapter.process_mode = Node.PROCESS_MODE_INHERIT
+    _set_chapter_present(true)
     last_review_message = "Returned to the existing Chapter I engineering preview."
     _refresh_ui()
     return true
