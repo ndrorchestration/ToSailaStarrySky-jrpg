@@ -9,15 +9,15 @@ const RESERVE_POSITION := Vector2(729, 456)
 const INTERACT_RADIUS := 68.0
 const DECK_BOUNDS := Rect2(Vector2(154, 402), Vector2(680, 113))
 
-var opening: RefCounted
+var opening
 var ender: CharacterBody2D
 var ionia: CharacterBody2D
 var inspection_observed: bool = false
 var hint_label: Label
 
-func configure_afloat(contract: RefCounted) -> bool:
+func configure_afloat(contract) -> bool:
     # Only the physical flight controller may admit this scene after contact.
-    if is_inside_tree() or contract == null or opening != null:
+    if is_inside_tree() or not (contract is RefCounted) or opening != null:
         return false
     if not contract.has_method("step_key") or contract.step_key() != "waterborne":
         return false
