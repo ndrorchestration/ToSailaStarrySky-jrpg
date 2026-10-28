@@ -162,11 +162,13 @@ func _unhandled_input(event: InputEvent) -> void:
     if event.is_action_pressed(InputPolicy.PROTOTYPE_ROUTE):
         if event is InputEventKey and event.echo:
             return
+        # Consume the input while the current viewport still belongs to this
+        # scene. change_scene_to_file() detaches us synchronously.
+        get_viewport().set_input_as_handled()
         var returned: Dictionary = PrototypeRoute.leave(self)
         if not bool(returned.get("ok", false)):
             last_message = "Return unavailable: " + str(returned.get("reason", "unknown"))
             _sync_presentation()
-        get_viewport().set_input_as_handled()
         return
     if event is InputEventKey and event.pressed and not event.echo:
         if event.keycode == KEY_K:
