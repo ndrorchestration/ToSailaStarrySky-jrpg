@@ -3,11 +3,24 @@ extends Node2D
 ## No terrain authoring, collisions, tree gameplay, or planetary data.
 ## Fixed pixel-scale illustration; does NOT instantiate flight_slice meshes.
 @export var low_quality: bool = false
+const RidgeSurface = preload("res://scripts/dock_ridge_surface.gd")
+const ANCHOR_X := [276.0, 316.0, 352.0, 384.0, 416.0, 448.0]
+var surface_anchors: Array[Vector2] = []
+var source_surface_id: String = ""
 
-const ANCHORS := [
-    Vector2(276, 290), Vector2(316, 274), Vector2(352, 284),
-    Vector2(384, 304), Vector2(416, 302), Vector2(448, 296)
-]
+func _ready() -> void:
+    # Derive feet from the exact polygon drawn behind the pilot actors.
+    # Any missing or wrong surface refuses to render the visual patch.
+    source_surface_id = RidgeSurface.SURFACE_ID
+    surface_anchors.clear()
+    for screen_x in ANCHOR_X:
+        var result: Dictionary = RidgeSurface.sample_root(screen_x, source_surface_id)
+        if not result["ok"]:
+            surface_anchors.clear()
+            push_warning("Ridge vegetation surface probe rejected: " + str(screen_x))
+            return
+        surface_anchors.append(result["point"])
+    queue_redraw()
 const NEEDLE := Color("#476d70")
 const NEEDLE_LIGHT := Color("#71918a")
 const CANOPY := Color("#648480")
@@ -21,10 +34,12 @@ func set_low_quality(enabled: bool) -> void:
 func _draw() -> void:
     # All anchors sit on the pre-existing atmospheric ridge silhouette.
     # Bounded geometry: 6 crowns high quality / 3 simplified low quality.
-    for i in range(ANCHORS.size()):
+    if surface_anchors.size() != ANCHOR_X.size():
+        return # Fail closed: never guess terrain/footprint coordinates.
+    for i in range(surface_anchors.size()):
         if low_quality and (i % 2) != 0:
             continue
-        var root: Vector2 = ANCHORS[i]
+        var root: Vector2 = surface_anchors[i]
         var tall: float = 19.0 + float((i * 7) % 13)
         if i % 2 == 0:
             _needle_tree(root, tall)
