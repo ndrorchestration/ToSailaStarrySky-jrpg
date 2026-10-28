@@ -24,7 +24,7 @@ assert(readme.includes('ACTIVE_PARTY[1..5]'),
   'README does not state 1–5 active-party architecture');
 // The README now describes the forward Godot candidate. The Lyra-first
 // bootstrap belongs ONLY to the immutable historical JS specification.
-assert(readme.includes('Ionia joins **before**') &&
+assert(readme.includes('Captain Ionia, who joins **before**') &&
   readme.includes('Older **Lyra-first** onboarding') &&
   readme.includes('## Legacy reference build'),
   'README must distinguish revised Ionia-first Godot story from legacy Lyra-first runtime');
