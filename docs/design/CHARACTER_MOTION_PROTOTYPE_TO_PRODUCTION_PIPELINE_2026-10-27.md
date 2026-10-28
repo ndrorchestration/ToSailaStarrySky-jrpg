@@ -48,6 +48,16 @@ Fixture steps and expected observable outcomes:
 
 **P-01A is an executed component test**, not the full P-01 acceptance: the branch is an early two-character dock technical pilot, not the latest complete Ionia-first revised narrative Chapter I. The regular dock floor is painted scene geometry (the physically blocking test wall is temporary); no proven persistent deck collider, environment depth, terrain projection, controller/accessibility, durable saves/party authority, real equipment or cinematic adapter, 1440×960 capture, target GPU, Windows security or creator acceptance. Broader P-01 remains **INCOMPLETE / NOT_RUN on current playable Chapter I**. This readback does not change any character-source acceptance.
 
+### Executed P-01B — configured Chapter I native scene with real save and party invariants (2026-10-28)
+
+[Draft PR #534](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/534) implements the next **bounded subgate** on the newer native Chapter I branch `feat/godot-first-wake-revised-checkpoint-v2-20261027`. This branch's actual configured `first_wake_chapter1_player_preview.tscn` now supports a default-OFF, F6-only, unrecruited Lyra candidate visual actor with four original independent directional six-phase SVGs, copied with identical GitHub blob hashes from #487. No existing character sprites or canon were edited.
+
+**On exact implementation commit `cdf0b9304706ee645ed6540a04d13c929f8b1593`:** [native Godot full suite #40630324231](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630324231) **PASS**, including physical 400px 4-facing/6-phase walk, actual versioned Chapter I disk save/load during the visual opt-in, unchanged serialized snapshot, original party membership/Ender world state, no Lyra bytes written, and complete removal. [Real OpenGL capture #40630324183](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630324183) **PASS** with four actual 960×640 images; original and restored frame SHA-256 both `6dfd37c331b072fea013e2ca7771d4ed52dab70227604507a0f7f69bcc5ac571`, proving pixel-identical restoration. [Repository smoke #40630324148](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630324148) **PASS**.
+
+**Security gate is not green:** [Windows QA #40630324145](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630324145) **FAIL/HOLD** at `WINDOWS_QA_HOST_DEFENDER_REALTIME_DISABLED`; hosted Windows antivirus was on but real-time protection disabled. Do not bypass the security/Defender requirement.
+
+**Admission:** P-01A (old dock scene) and P-01B (configured Chapter I migration scene plus real save) are two executed engineering subgates; **full P-01 remains incomplete**. The configured Chapter I migration preview does *not* prove the separately revised playable Ionia-first opening v2 and splashdown, persistent dock/planet physics colliders, anatomical stance (original Lyra shoe candidate movement still ~24px), equipment/portrait transitions, target Windows export, environmental day/night/weather or accessible motion. Keep all art unapproved, integration draft-only and releases held.
+
 ## 4. Quality gates and release discipline
 
 | Gate | Required evidence | Current status |
