@@ -117,6 +117,10 @@ The previous Chapter I battle HUD displayed current trial-bag quantities but did
 
 **Scope limits:** Descriptions are editorially neutral temporary study copy, **not** item lore approval; the panel is not the production equipment menu, has no acquisition pathway, audio narration, screen-reader semantics, character-artist accepted sprites, permanent saves, rarity balancing or class-based permission editor. Those are separate design and engineering gates. Story plot energies remain independent of magic job selection. No merges or releases.
 
+## P-02 test: equipment session survives a real scene replacement (further draft)
+
+The [five-cast temporary session authority](EQUIPMENT_SESSION_AUTHORITY_REVIEW.md) explicitly addresses a P-01 limitation: the old practice gear was conserved only within one mounted scene. The P-02 coordinator retains the same owned Ender gear and trial bag **by object identity** after the first study scene is freed and a new Godot study scene is instantiated. Lyra, Ionia, Reson and Aepex have fixed starter-family loadout records only, without new loot, magic or battle turns. Target scene and all actor/ownership validation happen before any rebind. Chapter I save schema remains unchanged and intentionally resets transient gear. This is an in-memory P-02 test, not permanent production inventory or a canonical equipment station; check exact new CI before asserting PASS.
+
 ## 2026-10-27 P-01 end-to-end noncanonical field-to-battle equipment lifecycle
 
 **Draft implementation only; no production promotion.** The new isolated `res://scenes/equipment_lifecycle_study.tscn` sets `equipment_station_review_enabled=true` on the existing Chapter I review engine. That flag defaults **false** in both existing Chapter I scenes and is **not a canonical ship room, field location, item find, quest step or party join**. It draws a source-safe `GEAR STUDY` marker at a temporary test coordinate near Ender and a **detachable equipment review mannequin**; this is not a replacement for the approved field sprite or its painted staff.
