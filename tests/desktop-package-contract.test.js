@@ -84,6 +84,8 @@ assert(workflow.includes('Verify portable package layout'),
 
 assert(workflow.includes('Publish verified Windows release'),
   'desktop workflow must publish only after build and Windows verification in the same job');
+assert(workflow.includes('target_commitish: ${{ github.sha }}'),
+  'desktop publication must bind the release tag/target to the exact workflow source SHA');
 assert(workflow.indexOf('Install and launch exact candidate') < workflow.indexOf('Publish verified Windows release'),
   'publication must occur after exact-candidate install/launch verification');
 

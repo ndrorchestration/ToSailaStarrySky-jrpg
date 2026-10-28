@@ -179,6 +179,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: aetherwake-desktop-${{ github.sha }}
+          target_commitish: ${{ github.sha }}
           name: Aetherwake Windows Desktop ${{ github.sha }}
           prerelease: true
           generate_release_notes: false
