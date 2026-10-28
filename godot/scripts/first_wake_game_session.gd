@@ -52,7 +52,9 @@ func inspect_depleted_reserve() -> bool:
     return true
 
 func can_checkpoint() -> bool:
-    return physical_landing_observed and reserve_inspected         and opening.step_key() == "postflight_diagnosis"         and opening.active_party_ids == ["ender", "ionia"]
+    return (physical_landing_observed and reserve_inspected
+        and opening.step_key() == "postflight_diagnosis"
+        and opening.active_party_ids == ["ender", "ionia"])
 
 func save_checkpoint(path: String = Checkpoint.DEFAULT_PATH) -> bool:
     if not can_checkpoint():
@@ -66,7 +68,12 @@ func load_checkpoint(path: String = Checkpoint.DEFAULT_PATH) -> bool:
     # Never reinterpret the old save contract or rewrite arbitrary stage keys.
     # Rebuild only the exact supported safe postflight entry checkpoint.
     var recovered = Opening.new()
-    if not recovered.accept_ionia_job()         or not recovered.complete_engineering_checks()         or not recovered.begin_test_flight()         or not recovered.record_engine_failure(true, true, true)         or not recovered.complete_ocean_splashdown(true, true)         or not recovered.inspect_postflight_reserve(true):
+    if not (recovered.accept_ionia_job()
+        and recovered.complete_engineering_checks()
+        and recovered.begin_test_flight()
+        and recovered.record_engine_failure(true, true, true)
+        and recovered.complete_ocean_splashdown(true, true)
+        and recovered.inspect_postflight_reserve(true)):
         return false
     if recovered.step_key() != "postflight_diagnosis":
         return false
