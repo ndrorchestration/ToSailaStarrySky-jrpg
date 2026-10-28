@@ -1,8 +1,8 @@
 extends Node2D
 ## Shader-backed source-native atmosphere behind the real postflight gameplay.
 ## Art may animate; it has no contact, collision, stage, save or story authority.
-const Sky = preload("res://shaders/first_wake_cinematic_sky.gdshader")
-const Sea = preload("res://shaders/first_wake_cinematic_sea.gdshader")
+const SkyShader = preload("res://shaders/first_wake_cinematic_sky.gdshader")
+const SeaShader = preload("res://shaders/first_wake_cinematic_sea.gdshader")
 const Architecture = preload("res://scripts/first_wake_cinematic_deck_architecture.gd")
 const SIZE := Vector2(960, 640)
 
@@ -12,8 +12,8 @@ var architecture
 var reduced_motion: bool = false
 
 func _ready() -> void:
-    sky = _layer("StormbreakSky", Vector2.ZERO, Vector2(960, 401), Sky)
-    sea = _layer("OceanSurface", Vector2(0, 286), Vector2(960, 115), Sea)
+    sky = _layer("StormbreakSky", Vector2.ZERO, Vector2(960, 401), SkyShader)
+    sea = _layer("OceanSurface", Vector2(0, 286), Vector2(960, 115), SeaShader)
     architecture = Architecture.new()
     architecture.name = "ShipboardMaritimeArchitecture"
     add_child(architecture)
