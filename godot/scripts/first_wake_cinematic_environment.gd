@@ -230,3 +230,72 @@ static func draw_reserve(c: CanvasItem, inspected: bool) -> void:
     for x in [83.0,689.0,866.0]:
         _glow(c,Vector2(x,265),74,LAMP,0.42)
         _line(c,Vector2(x,263),Vector2(x,391),Color("#233b43"),6)
+
+## Authored scene props occupy the SAME authored interaction coordinates.
+## These draw-only details are replaceable when art-approved assets exist.
+static func draw_family_station(c: CanvasItem, p: Vector2, kind: String) -> void:
+    var left := p+Vector2(-38,-78)
+    _rect(c,Rect2(left+Vector2(-3,34),Vector2(83,8)),Color("#0a1d2c"))
+    _poly(c,[left+Vector2(0,6),left+Vector2(73,6),
+        left+Vector2(80,36),left+Vector2(-6,36)],Color("#344b52"))
+    _line(c,left+Vector2(3,7),left+Vector2(71,7),BRASS,2.0)
+    for i in range(4):
+        _line(c,left+Vector2(7,13+i*5),left+Vector2(65,13+i*5),
+            Color("#66818b",0.34),1.0)
+    if kind == "DENITH'S LOG":
+        _poly(c,[left+Vector2(19,1),left+Vector2(46,-1),
+            left+Vector2(57,27),left+Vector2(23,28)],Color("#b9a180"))
+        _line(c,left+Vector2(27,8),left+Vector2(49,7),Color("#4f5b59"),1.3)
+        _line(c,left+Vector2(29,14),left+Vector2(50,13),Color("#4f5b59"),1.1)
+        _poly(c,[left+Vector2(11,15),left+Vector2(23,9),
+            left+Vector2(24,28),left+Vector2(13,28)],Color("#5a342e"))
+        c.draw_circle(left+Vector2(36,22),3.0,Color("#c79566"))
+    elif kind == "PHASE CHART":
+        _rect(c,Rect2(left+Vector2(14,-16),Vector2(49,48)),Color("#132c3b"))
+        _rect(c,Rect2(left+Vector2(18,-12),Vector2(41,38)),Color("#315f6c"))
+        var pts := PackedVector2Array([
+            left+Vector2(21,12),left+Vector2(29,7),left+Vector2(36,14),
+            left+Vector2(44,3),left+Vector2(54,10)])
+        c.draw_polyline(pts,Color("#c6eedc"),2,true)
+        _line(c,left+Vector2(20,18),left+Vector2(55,18),Color("#a9c1ba",0.6),1)
+        _rivets(c,left+Vector2(21,30),4,10.0,BRASS)
+    else:
+        # Shared theory table: notes, folded diagram and warm instrument glass.
+        _poly(c,[left+Vector2(19,5),left+Vector2(51,3),
+            left+Vector2(59,21),left+Vector2(26,25)],Color("#d5bc94"))
+        _line(c,left+Vector2(28,12),left+Vector2(45,10),Color("#586d73"),1)
+        _line(c,left+Vector2(28,17),left+Vector2(51,16),Color("#586d73"),1)
+        c.draw_circle(left+Vector2(11,20),7,Color("#0c2331"))
+        c.draw_arc(left+Vector2(11,20),5,0,TAU,22,Color("#8fd2d4"),2,true)
+        _rect(c,Rect2(left+Vector2(53,13),Vector2(9,12)),BRASS)
+
+static func draw_workshop_station(c: CanvasItem, p: Vector2, kind: String, done: bool) -> void:
+    var x: float = p.x
+    var y: float = p.y-75.0
+    var base: Color = Color("#234654") if done else Color("#815f4d")
+    _poly(c,[Vector2(x-33,y+8),Vector2(x+30,y+8),
+        Vector2(x+37,y+43),Vector2(x-40,y+43)],base)
+    _line(c,Vector2(x-32,y+8),Vector2(x+30,y+8),BRASS,2.1)
+    _line(c,Vector2(x-38,y+44),Vector2(x+38,y+44),Color("#142f3c"),4)
+    _rivets(c,Vector2(x-25,y+36),5,12.0,Color("#cbaa7b"))
+    if kind == "recovered_supply":
+        for i in range(5):
+            var cx: float = x-18.0+float(i)*9.0
+            _line(c,Vector2(cx,y+11),Vector2(cx,y-5.0+float(i%2)*3.0),
+                Color("#89b7bb" if done else "#c8ab83"),2.0)
+        _line(c,Vector2(x-22,y+13),Vector2(x+23,y+13),Color("#142d3b"),3)
+    elif kind == "recovered_part":
+        c.draw_arc(Vector2(x,y+10),16,0,TAU,36,BRASS,4,true)
+        c.draw_arc(Vector2(x,y+10),8,0,TAU,30,ICE,2,true)
+        for i in range(6):
+            var a: float = float(i)*TAU/6.0
+            c.draw_circle(Vector2(x,y+10)+Vector2(cos(a),sin(a))*16.0,2.0,Color("#d7bd92"))
+    elif kind == "assembly":
+        _rect(c,Rect2(x-22,y-3,44,26),Color("#193b49"))
+        for xx in [-15.0,0.0,15.0]:
+            _line(c,Vector2(x+xx,y+3),Vector2(x+xx,y+18),Color("#90adb4"),2)
+        _line(c,Vector2(x-24,y+24),Vector2(x+26,y+24),Color("#d4b58a"),2)
+    else:
+        c.draw_arc(Vector2(x,y+12),22,0,TAU,48,BRASS,3,true)
+        _glow(c,Vector2(x,y+12),26,ICE,0.34)
+        c.draw_circle(Vector2(x,y+12),7,ICE)
