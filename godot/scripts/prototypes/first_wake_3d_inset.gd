@@ -13,7 +13,7 @@ const SIZE := Vector2i(400, 225)
 
 var viewport: SubViewport
 var viewport_container: SubViewportContainer
-var ship_model: Node3D
+var ship_model
 var shot_camera: Camera3D
 var key_light: DirectionalLight3D
 var environment_node: WorldEnvironment
