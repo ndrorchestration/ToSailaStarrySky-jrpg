@@ -40,6 +40,16 @@ These figures expose a mismatch **in the provisional mapping**, not a definitive
 - All four visual hinge yaw states are restored after the diagnostic, even when inspected during a half-completed pose transition. No rendering cue can mutate ship position, Chapter I actor, story order, save data or Resonance.
 - A real Chapter I native test checks those invariants and the original numeric mismatch; true fixed-camera 960×640 Godot images show no-preview, plain wing rig, assembled **provisional** deck/dome, and gentle swept-wing composite. These do not establish walkable interiors.
 
+## Native execution receipt and interpretation
+
+The initial exact-head [Godot 4.7.2 geometry CI #40630932827](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630932827) at source `ad4ba98ba03bbef90797501baa55b31ca953906b` completed **SUCCESS**. Job logs establish `FIRST_WAKE_CROSS_STUDY_PASS checks=33`, inherited original 3D rig `checks=43`, scene pose-port `checks=38`, ship-space `checks=32`, and `FIRST_WAKE_CROSS_STUDY_AB_PASS frames=4`. Four true 960×640 Chapter I Godot captures were emitted. Sampled visual changes were 9,487 pixels to introduce the model, 134 additional pixels for source deck+dome overlay, and 1,244 for gentle 3D wing motion on the composite. The small overlay difference is a **legibility limitation**, not art approval. [Raw native artifact #12791587630](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630932827/artifacts/12791587630).
+
+Native broad-phase AABB test reported **190 overlapping bounding-box pairs** over five poses: `28, 36, 42, 42, 42` at 0, 25, 50, 75, 100% sweep. This is **not a count of real collisions**: expanded axis-aligned box intersections can overestimate contacts, while discrete samples miss intermediate motion and actor occupancy. The correct outcome remains `physical_integration_ready=false`, `actors_collidable=false`.
+
+A **follow-up contract refinement** adds breakdowns of these conservative pairs by `foredeck` vs `geodesic_helm`, by original wing and by pose to identify art hotspots without performing a physics certification. **The updated source head needs a separate new exact-head native CI receipt** before its classification numbers are trusted. Never inherit the preceding PASS across source edits.
+
+[Windows QA #40630932666](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630932666) failed the hosted Defender-custody prerequisite while the separate Windows-functional-prerequisites job passed. Do not bypass or weaken security to call Windows ready.
+
 ## Production authority and next decisions
 
 1. Agree a single creator-approved outer ship hull frame **in metres** with documented external max beam/length/height and usable deck height. Treat original local proportions as editable *art*, not binding hull dimensions.
