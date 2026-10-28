@@ -71,6 +71,10 @@ func _run() -> void:
         and wrapper.request_3d_ship_review(true),
         "real Ionia-first save validator grants controlled opt-in 3D scene only")
     await process_frame
+    check(wrapper.helm_feedback.visible
+        and wrapper.helm_feedback_heading.text.contains("READ-ONLY")
+        and wrapper.helm_feedback_body.text.contains("No flight controls"),
+        "on-screen review panel communicates explicitly non-functional helm status")
     check(rig.active and rig.camera.current
         and not wrapper.ship.crew_camera.current and rig.zone == "cabin",
         "new camera is active at cabin while legacy distant lens remains inactive")
@@ -85,6 +89,10 @@ func _run() -> void:
     check(await _approach(actor, -1.40), "move physical walker from cabin into helm")
     check(rig.zone == "helm" and rig.camera.current,
         "camera automatically changes to the enclosed geodesic helm shot")
+    check(wrapper.inspect_review_helm()
+        and wrapper.helm_feedback_body.text.contains("unverified")
+        and wrapper.helm_feedback_body.visible,
+        "F at real nearby helm updates the actual screen panel without granting flight")
     for settle_tick in range(5):
         await physics_frame
         await process_frame
@@ -142,9 +150,13 @@ func _run() -> void:
         "actual static collider interrupts the lens arm and prevents wall clipping")
     body.queue_free()
     await physics_frame
+    check(wrapper.helm_feedback.visible,
+        "read-only report remains visible until the player exits the review")
     check(wrapper.request_3d_ship_review(false)
         and not rig.camera.current and not rig.active,
         "return disables separate Camera3D and restores original active 2D scene")
+    check(not wrapper.helm_feedback.visible,
+        "review-only HUD cannot leak over returned original 2D Chapter I")
     check(wrapper.chapter.export_revised_checkpoint() == fixture
         and wrapper.chapter.resonance_status_label.text.contains("LOCKED"),
         "animation/camera review cannot mutate 2D checkpoint or Resonance permissions")
