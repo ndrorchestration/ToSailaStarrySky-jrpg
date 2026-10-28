@@ -32,6 +32,12 @@ A **Dragonfly dusk dock** view should clearly show Ender and his real grounded f
 
 Ship may travel by free flight, normal regional lanes and eventually more advanced methods. Higher-speed/late-game traversal must preserve narrative recruitment gates; no new hidden routes or advanced world reveals may be fabricated here.
 
+## Reusable ship motion and presentation (public-safe pipeline)
+
+The Aureate Wake's four-wing identity now has a real **neutral hinge prototype** ([draft #478](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/478)) and a separate **opt-in wing pose / weather timeline** ([draft #490](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/490)). Their passing native tests demonstrate an isolated Godot 4.7.2 art-control seam, not wing clearance, dynamic flight behavior, accepted final geometry or player gameplay. The [Chapter I ship-space prototype](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/497) is a different scene and a read-only visual projection.
+
+Reuse this seam for modest, safe ship personality cues (settling or responding to weather) rather than treating each new wing animation as a disconnected asset. Required staging: explicit visual-only event → bounded reversible pose → moving ship/weather/camera evidence → human-scale swept-volume tests → accepted Chapter I scene → Windows Forward+ and creator art review. Four wings remain visible and recognizable, the ordinary foredeck stays occupied only when safe, and physical landing/boarding controllers retain authority. See [ship-pose prototype-to-production gate](SHIP_POSE_PROTOTYPE_TO_PRODUCTION_ADMISSION.md).
+
 ## Native acceptance
 
 Use **Godot 4.7.2 GDScript**, Forward+ for high-fidelity desktop testing and separately verified Compatibility fallback where required; Blender-authored geometry/materials preferred over permanent primitive proxies. Real screenshots must come from actual native Godot, not an offline CPU illustration. Test orbital/local/ground/ship views; lighting, shader compilation, controls, target FPS/VRAM, chart-to-world state, actor scale/landings/collision, and creator review independently.
