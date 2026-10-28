@@ -1,5 +1,7 @@
 # Agent handoff — documentation routing
 
+> **Current P0 schedule:** [Chapter 1 beta roadmap](CHAPTER_1_BETA_ROADMAP.md) — prioritize consolidation of native First Wake, berth, narrative, save and Windows packaging before broader visual or planetary expansion. Dates are targets, not admission evidence.
+
 **Status:** Public-safe cross-agent reference; created 2026-10-25 from current creator direction, GitHub contracts, and selected Notion records. This is a **navigation and reconciliation layer**, not an approval to integrate, publish or expose restricted story material.
 
 ## Required reading by task
