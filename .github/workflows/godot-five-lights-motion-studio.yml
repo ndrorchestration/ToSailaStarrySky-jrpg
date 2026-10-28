@@ -1,0 +1,57 @@
+name: Godot Five Lights Source Motion Studio
+on:
+  pull_request:
+    paths:
+      - 'godot/art-review/*-sixphase-v1-unapproved.svg'
+      - 'godot/scripts/five_lights_motion_*.gd'
+      - 'godot/scripts/five_lights_stage_scenography.gd'
+      - 'godot/shaders/five_lights_motion_studio.gdshader'
+      - 'godot/scenes/five_lights_motion_studio.tscn'
+      - 'godot/tests/five_lights_motion_studio_test.gd'
+      - 'godot/tests/capture_five_lights_motion_studio.gd'
+      - '.github/workflows/godot-five-lights-motion-studio.yml'
+permissions:
+  contents: read
+jobs:
+  source-bound-motion:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Get checksum-verified official Godot 4.7.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o godot-editor.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  godot-editor.zip" | sha256sum -c -
+          mkdir -p godot-editor
+          unzip -q godot-editor.zip -d godot-editor
+          chmod +x godot-editor/Godot_v4.7.2-stable_linux.x86_64
+      - name: Import source atlases and compile scene
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/source-import.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|Shader compilation failed' /tmp/source-import.log
+      - name: Validate five cast members, native walking, source paths, main entry
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 60s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/five_lights_motion_studio_test.gd 2>&1 | tee /tmp/motion-test.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_FIVE_LIGHTS_STUDIO_FAIL:' /tmp/motion-test.log
+          grep -Fq 'TSTSS_FIVE_LIGHTS_STUDIO_PASS:' /tmp/motion-test.log
+
+      - name: Capture genuine five-character 960x640 GL framebuffer
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v xvfb-run
+          timeout 75s xvfb-run -a -s "-screen 0 960x640x24" godot-editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_five_lights_motion_studio.gd 2>&1 | tee /tmp/five-lights-native-render.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_FAIL:' /tmp/five-lights-native-render.log
+          grep -Fq 'TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_PASS:frames=3 native_960x640=true' /tmp/five-lights-native-render.log
+          for mode in idle moving reduced_motion; do
+            test -s "/tmp/tstss_five_lights_${mode}_native_960x640.png"
+          done
+          sha256sum /tmp/tstss_five_lights_*_native_960x640.png
