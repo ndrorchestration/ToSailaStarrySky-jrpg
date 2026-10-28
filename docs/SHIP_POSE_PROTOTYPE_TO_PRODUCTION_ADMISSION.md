@@ -99,6 +99,16 @@ First exact-head [Godot CI #40624681728](https://github.com/ndrorchestration/ToS
 
 The separate [Windows QA #40625101984](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625101984) **FAILED host Defender custody preflight**; independent Windows functional-prerequisites job SUCCESS cannot override this boundary. Keep Windows security and GPU acceptance blocked without weakening preflight. Native visual + story contract success does **not** authorize merge or production use.
 
+## 4.3. Stage B1 actual original ship-space source reconciliation (2026-10-28 candidate)
+
+The next [draft #541](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/541) stacks on the exact previous native 3D wing review #523 head and brings the **original, byte-identical** geodesic bridge, open foredeck, glazing shader and 10.4×3.8×2.6m independent interior layout into the real Chapter I `SubViewport` *only under test opt-in*. It does not move the model into the physical Chapter I game world. [Scope, source fingerprints and test protocol](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/blob/prototype/ch1-ship-geometry-cross-study-20261028/docs/AUREATE_WAKE_SHARED_HULL_GEOMETRY_GATE_2026-10-28.md).
+
+Under the explicitly **unapproved** 2.5 metres/art-unit onboarding hypothesis, original hull skin loft maximum exterior beam = **3.40 m**, yet separately authored cutaway has **3.80 m** interior beam (0.40m contradiction). Separately, 3.80m geodesic dome vs 2.35m crew threshold (1.45m overhang) and 1.825m dome summit height above the open deck vs 2.05m review minimum (0.225m shortfall) remain **physically incompatible**. Their plan projection near-connects by 0.075m but has no real contiguous door aperture. These are source-reconciliation findings, not settled story canon, an approved new scale or a certified human-safe vessel.
+
+A new fail-closed contract samples actual 0/25/50/75/100% wing meshes against transformed deck/rail/dome mesh **AABB** volumes. Even zero reported AABB overlap cannot certify continuous triangle sweep or passenger clearance. The correct technical verdict is `BLOCKED_ON_HULL_SCALE_EGRESS_AND_SWEPT_VOLUME` until metre-normalized geometry, a truly shared collision scene, physical door and occupied crew capsules exist. Source-blobs were read back and match originals. **Native CI and four-composite screenshots were pending when this addendum was authored; no PASS implied.**
+
+No one may solve this by simply shrinking the crew cabin, rescaling whole sources without a signed-off consistent coordinate transform, relaxing minimum egress, or converting the opt-in overlay into a player control. Retain all Windows/security, creator signoff and merge/release holds.
+
 ## 5. Release and decision register
 
 | Gate | Current status |
