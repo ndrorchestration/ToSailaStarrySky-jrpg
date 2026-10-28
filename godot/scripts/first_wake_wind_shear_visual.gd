@@ -27,6 +27,9 @@ var dissipated: bool = false
 var reduced_motion: bool = false
 var last_enemy_turn: int = 0
 var gale_accent_seconds: float = 0.0
+# A retaliatory Gale Force *already resolved* in combat may be shown after
+# the true post-hit visual accent, not at the same instant.
+var queued_gale_seconds: float = 0.0
 # Brief *post-resolution* confirmation that the existing formula caused damage.
 # Does not delay the turn or invent anticipation/counterplay.
 var hit_feedback_seconds: float = 0.0
@@ -60,6 +63,7 @@ func begin_encounter() -> void:
     dissipated = false
     last_enemy_turn = 0
     gale_accent_seconds = 0.0
+    queued_gale_seconds = 0.0
     hit_feedback_seconds = 0.0
     visual_clock = 0.0
     _frame_accumulator = 0.0
@@ -70,6 +74,7 @@ func set_reduced_motion(enabled: bool) -> void:
     if enabled:
         visual_clock = 0.0
         gale_accent_seconds = 0.0
+        queued_gale_seconds = 0.0
         hit_feedback_seconds = 0.0
     queue_redraw()
 
@@ -77,10 +82,14 @@ func set_encounter_state(is_analyzed: bool, is_dissipated: bool, enemy_turn: int
     analyzed = is_analyzed
     dissipated = is_dissipated
     if enemy_turn > last_enemy_turn and not reduced_motion and not dissipated:
-        gale_accent_seconds = MAX_EFFECT_SECONDS
+        if hit_feedback_seconds > 0.0:
+            queued_gale_seconds = MAX_EFFECT_SECONDS
+        else:
+            gale_accent_seconds = MAX_EFFECT_SECONDS
     last_enemy_turn = maxi(0, enemy_turn)
     if dissipated:
         gale_accent_seconds = 0.0
+        queued_gale_seconds = 0.0
         hit_feedback_seconds = 0.0
     queue_redraw()
 
@@ -91,17 +100,39 @@ func register_resolved_damage(before_hp: int, after_hp: int) -> bool:
         return false
     if before_hp <= 0 or after_hp < 0 or after_hp >= before_hp:
         return false
+    # The synchronous combat controller has already applied both the player
+    # strike and any Gale Force retaliation. Only their presentation is
+    # serialized. Never create a future attack/counterplay window here.
+    if gale_accent_seconds > 0.0:
+        queued_gale_seconds = MAX_EFFECT_SECONDS
+        gale_accent_seconds = 0.0
     hit_feedback_seconds = HIT_FEEDBACK_SECONDS
     queue_redraw()
     return true
+
+func reaction_phase() -> String:
+    if reduced_motion or dissipated:
+        return "still"
+    if hit_feedback_seconds > 0.0:
+        return "hit"
+    if gale_accent_seconds > 0.0:
+        return "gale"
+    return "idle"
 
 func _process(delta: float) -> void:
     if not visible or reduced_motion or dissipated:
         return
     var dt := clampf(delta, 0.0, 0.05)
     visual_clock += dt
-    gale_accent_seconds = maxf(0.0, gale_accent_seconds - dt)
+    var was_showing_hit := hit_feedback_seconds > 0.0
     hit_feedback_seconds = maxf(0.0, hit_feedback_seconds - dt)
+    if was_showing_hit and hit_feedback_seconds <= 0.0 and queued_gale_seconds > 0.0:
+        # True post-resolution choreography: observe the impact first, then
+        # show the retaliation that has already occurred mechanically.
+        gale_accent_seconds = queued_gale_seconds
+        queued_gale_seconds = 0.0
+    else:
+        gale_accent_seconds = maxf(0.0, gale_accent_seconds - dt)
     _frame_accumulator += dt
     # The limited redraw cadence keeps the ambient pulse quieter than actions.
     if _frame_accumulator >= 1.0 / 20.0:
