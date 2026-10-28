@@ -27,6 +27,18 @@ var creator_standee: Sprite2D
 var creator_standee_enabled: bool = false
 var creator_standee_variant: String = "none"
 
+func set_creator_field_lighting_enabled(enabled: bool) -> void:
+    # Visual-only A/B review; no character, story or motion authority.
+    creator_field_lighting_enabled = enabled
+    if creator_standee == null:
+        return
+    if not enabled:
+        creator_standee.material = null
+    else:
+        var lighting := ShaderMaterial.new()
+        lighting.shader = CreatorFieldLight
+        creator_standee.material = lighting
+
 func creator_standee_source_path() -> String:
     var cleaned_path: String = String(CREATOR_REFINED_MATTE_PATHS.get(character_name, ""))
     if not cleaned_path.is_empty() and ResourceLoader.exists(cleaned_path):
@@ -64,10 +76,7 @@ func enable_creator_standee(enabled: bool) -> bool:
         # Independently review proportions, without scaling collision shapes.
         creator_standee.scale = Vector2.ONE * SOURCE_FIELD_SCALE
         creator_standee.position = Vector2(0.0, -float(texture.get_height()) * SOURCE_FIELD_SCALE * 0.5)
-        if creator_field_lighting_enabled:
-            var material := ShaderMaterial.new()
-            material.shader = CreatorFieldLight
-            creator_standee.material = material
+        set_creator_field_lighting_enabled(creator_field_lighting_enabled)
         creator_standee.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
         add_child(creator_standee)
     creator_standee_enabled = true
