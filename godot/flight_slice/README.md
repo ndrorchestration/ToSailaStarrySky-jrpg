@@ -2,6 +2,18 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Panoramic glass and bridge-access fit gate — 2026-10-27
+
+**PROPOSAL / authored shader plus measured incompatibility (not a gameplay unlock).** `shaders/bridge_panorama_glass.gdshader` replaces the prior flat alpha material with a bounded artistic Fresnel edge, restrained specular response, and clear/low-glare review parameters. This is screen-lighting approximation, **not actual raytraced reflection, refraction, pressure integrity, collision glass or weather shielding**. The native Godot screenshot harness records matched `bridge-glass-clear.png` and `bridge-glass-low-glare.png` images with otherwise identical scene/framing; normal accessibility and reduced-motion contracts remain unchanged.
+
+`ship_bridge_access_contract.gd` compares the **current** hero dome and foredeck at the **explicit provisional 2.5 m per art unit** used in the separate boarding study. It does not extrapolate a production-scale ship. It calculates:
+
+- Geodesic top diameter **3.80 m**, versus the existing short threshold-study cabin width of **2.35 m** (**1.45 m overall width overhang**).
+- Highest dome vertex only **1.825 m above that mapped foredeck**, below the **2.05 m design review standing target by 0.225 m**. This is the *best point* in the dome, not its average headroom.
+- Foredeck aft edge versus dome forward projection in plan is only **0.075 m** apart: good alignment potential, **not proof of a walkable doorway**.
+
+The contract result is unconditionally **PROPOSAL_BLOCKED_ON_HULL_SCALE_AND_EGRESS** at these dimensions. `tests/test_ship_bridge_glass.gd` tests both actual shader configurations and the fail-closed reconciliation result. The physics-verified separate cabin hatch from PR #461 is **not** yet an actual aperture in the faceted hero dome or its solid hull, and the dome is deliberately not installed over the smaller isolated corridor scene. Do not claim a playable connection until a common metre-based shell, walkable roof clearance, usable aperture cutout, proper weather-resistant access hardware and native actor walkthrough/egress tests all pass.
+
 ## Aureate Wake faceted-glass geodesic bridge — 2026-10-27
 
 **Creator-proposed visual direction, not yet approved exact geometry or final canon:** Place the **navigation/helm bridge inside a panoramic geodesic glass dome**—a compact crystal observatory integrated with the dragonfly-inspired hull, *not* an oversized flying greenhouse. Preserve the separately exposed forward observation deck outside the dome.

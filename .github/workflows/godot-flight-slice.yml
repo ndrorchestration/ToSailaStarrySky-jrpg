@@ -63,6 +63,14 @@ jobs:
             --script res://tests/test_ship_boarding.gd 2>&1 | tee /tmp/ship-boarding-test.log
           grep -Eq 'GODOT_SHIP_BOARDING_PASS checks=[0-9]+' /tmp/ship-boarding-test.log
           ! grep -Eq 'GODOT_SHIP_BOARDING_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/ship-boarding-test.log
+      - name: Godot geodesic glass and bridge access feasibility gate
+        run: |
+          set -o pipefail
+          timeout 60s /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot/flight_slice \
+            --script res://tests/test_ship_bridge_glass.gd 2>&1 | tee /tmp/ship-bridge-glass.log
+          grep -Eq 'GODOT_BRIDGE_GLASS_ACCESS_PASS checks=[0-9]+' /tmp/ship-bridge-glass.log
+          ! grep -Eq 'GODOT_BRIDGE_GLASS_ACCESS_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/ship-bridge-glass.log
       - name: Native presentation, motion and quality contracts
         run: |
           set -o pipefail
@@ -185,7 +193,7 @@ jobs:
             /tmp/Godot_v4.7.2-stable_linux.x86_64 \
             --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
             --script res://tests/capture_ship_hero.gd 2>&1 | tee /tmp/ship-hero.log
-          test "$(grep -c 'NATIVE_SHIP_HERO_CAPTURE:' /tmp/ship-hero.log)" -eq 7
+          test "$(grep -c 'NATIVE_SHIP_HERO_CAPTURE:' /tmp/ship-hero.log)" -eq 9
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/ship-hero.log
       - name: Capture two actual Godot interior cutaway frames
         run: |
@@ -229,6 +237,7 @@ jobs:
             /tmp/capture.log
             /tmp/ship-hero.log
             /tmp/ship-interior-test.log
+            /tmp/ship-bridge-glass.log
             /tmp/ship-interior-capture.log
             /tmp/ship-boarding-test.log
             /tmp/ship-boarding-capture.log

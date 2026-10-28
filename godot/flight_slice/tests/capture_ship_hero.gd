@@ -9,7 +9,9 @@ const SHOTS = [
     ["foredeck-open", Vector3(2.2, 1.8, -4.2), 37.0],
     ["foredeck-weather-cover", Vector3(2.2, 1.8, -4.2), 37.0],
     ["geodesic-bridge-bow", Vector3(3.0, 2.0, -4.2), 34.0],
-    ["geodesic-bridge-side", Vector3(4.8, 2.1, -1.2), 39.0]
+    ["geodesic-bridge-side", Vector3(4.8, 2.1, -1.2), 39.0],
+    ["bridge-glass-clear", Vector3(2.8, 1.8, -3.4), 33.0],
+    ["bridge-glass-low-glare", Vector3(2.8, 1.8, -3.4), 33.0]
 ]
 
 func _initialize() -> void:
@@ -32,6 +34,9 @@ func _capture() -> void:
         return
     var failures: int = 0
     for shot in SHOTS:
+        var bridge = scene.ship.get_node("GeodesicBridge")
+        bridge.set_glass_review_profile(
+            "low_glare" if str(shot[0]) == "bridge-glass-low-glare" else "clear")
         scene.ship.set_foredeck_weather_shelter(str(shot[0]) == "foredeck-weather-cover")
         scene.camera.position = scene.ship.position + shot[1]
         scene.camera.fov = float(shot[2])

@@ -114,9 +114,13 @@ func _run_tests() -> void:
     _check(collar.mesh is ArrayMesh and
         collar.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size() >= 200,
         "glass dome has its own continuous brass foot ring")
-    _check(panes.material_override is StandardMaterial3D and
-        panes.material_override.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA,
-        "faceted cabin glazing is genuinely translucent")
+    var bridge_shader := panes.material_override as ShaderMaterial
+    _check(bridge_shader != null and bridge_shader.shader == GeodesicBridge.PANORAMA_GLASS,
+        "faceted cabin glazing uses authored bounded low-glare shader")
+    if bridge_shader != null:
+        _check(float(bridge_shader.get_shader_parameter("face_alpha")) < 0.22,
+            "panoramic glass face alpha is constrained for interior sightlines")
+
     var min_height: float = INF
     var max_height: float = -INF
     var outward: bool = true
