@@ -9,6 +9,10 @@ const qa = read('.github/workflows/godot-exact-windows-qa.yml');
 const project = read('godot/project.godot');
 const entry = read('godot/scripts/first_wake_game.gd');
 const docs = read('docs/desktop/FIRST_WAKE_INSTALLER_DELIVERY.md');
+const custody = read('scripts/verify-first-wake-installer-defender.ps1');
+const prepare = read('scripts/prepare-first-wake-windows-installer.ps1');
+const publish = read('scripts/publish-first-wake-approved-windows-installer.ps1');
+const playerAcceptanceTemplate = JSON.parse(read('docs/desktop/FIRST_WAKE_WINDOWS_PLAYER_ACCEPTANCE.template.json'));
 
 for (const x of [
   'RequestExecutionLevel user',
@@ -55,6 +59,7 @@ assert(qa.includes('Compile and exercise actual First Wake Windows Setup.exe') &
 assert(qa.includes('Preflight unchanged Defender custody requirements') &&
   qa.includes('WINDOWS_QA_HOST_DEFENDER_REALTIME_DISABLED'),
   'existing Defender custody preflight may not be removed or bypassed');
+
 assert(project.includes('run/main_scene="res://scenes/first_wake_game.tscn"') &&
   project.includes('window/size/resizable=true') &&
   project.includes('window/size/borderless=false'),
@@ -64,4 +69,75 @@ assert(entry.includes('KEY_F11') && entry.includes('event.alt_pressed') &&
   'normal game window must offer an accessible fullscreen toggle');
 assert(docs.includes('NOT YET PUBLISHED') && docs.includes('README'),
   'delivery docs must distinguish build proof from an actual download');
+assert(qa.includes('trusted-installer-defender-qa:') &&
+  qa.includes('runs-on: [self-hosted, Windows, X64, defender-on]') &&
+  qa.includes("contains(github.event.pull_request.labels.*.name, 'trusted-defender-on')") &&
+  qa.includes('github.event.pull_request.user.login') &&
+  qa.includes('verify-first-wake-installer-defender.ps1'),
+  'trusted scan must require deliberate maintainer opt-in, private runner, exact installer scan');
+for (const marker of [
+  'TSTSS_DEFENDER_REALTIME_NOT_ENABLED',
+  'TSTSS_DEFENDER_WHOLE_DRIVE_EXCLUDED',
+  'Start-MpScan -ScanType CustomScan',
+  'TSTSS_DEFENDER_SCAN_COMPLETION_NOT_ATTESTED',
+  'TSTSS_DEFENDER_DETECTION',
+  'TSTSS_DEFENDER_CUSTODY=PASS',
+  'TSTSS_DEFENDER_EXE_EXTENSION_EXCLUDED',
+  'TSTSS_DEFENDER_TARGET_PROCESS_EXCLUDED',
+  'TSTSS_DEFENDER_TARGET_PATH_EXCLUDED',
+  'TSTSS_DEFENDER_AMBIGUOUS_PATH_EXCLUSION',
+  'Assert-NoTargetExclusions @($GameExe, $SetupExe)',
+  'publicReleaseAuthorized = $false',
+]) {
+  assert(custody.includes(marker), 'trusted scan fail-closed/security marker missing: ' + marker);
+}
+for (const marker of [
+  "ExpectedSourceSha",
+  "TSTSS_INSTALLER_SOURCE_SHA_MISMATCH",
+  "TSTSS_INSTALLER_DEFENDER_REALTIME_REQUIRED",
+  "build-first-wake-godot-installer.ps1",
+  "verify-first-wake-installer-defender.ps1",
+  "TSTSS_INSTALLER_PREP_INVALID_RECEIPT",
+  "TSTSS_INSTALLER_LOCAL_PREP=PASS",
+  "TSTSS_INSTALLER_VERIFIED_PORTABLE_GODOT=FOUND",
+  "Godot_v4.7.2-stable_win64_console.exe",
+  "godot-4.7.2*",
+
+  "PUBLIC_RELEASE_AUTHORIZED=NO",
+]) {
+  assert(prepare.includes(marker), 'single-command trusted Windows preparation cannot skip provenance, binary scan, or nonpublication: ' + marker);
+}
+assert(!/Set-MpPreference|Remove-MpPreference|gh release create|upload-artifact/.test(prepare),
+  'trusted Windows prep must not weaken Defender or publish');
+for (const marker of [
+  "TSTSS_RELEASE_CREATOR_EXPLICIT_APPROVAL_REQUIRED",
+  "TSTSS_RELEASE_SOURCE_SHA_MISMATCH",
+  "TSTSS_RELEASE_EXACT_BINARY_DEFENDER_CUSTODY_NOT_VERIFIED",
+  "TSTSS_RELEASE_PLAYER_ACCEPTANCE_INCOMPLETE",
+  "TSTSS_RELEASE_UNSIGNED_PREVIEW_NEEDS_EXPLICIT_APPROVAL",
+  "TSTSS_RELEASE_MANIFEST_DIGEST_MISMATCH",
+  "TSTSS_RELEASE_DRAFT_ASSET_SHA256_MISMATCH",
+  "TSTSS_FIRST_WAKE_DIRECT_DOWNLOAD_READY=PASS",
+  "gh release create",
+  "--draft --prerelease",
+  "gh release download",
+  "gh release edit",
+  "DIRECT_WINDOWS_INSTALLER_URL.txt",
+]) {
+  assert(publish.includes(marker), 'publishing must be explicitly approved, binary-bound, scan-verified and remotely hash-matched: ' + marker);
+}
+assert(publish.indexOf('gh release create') < publish.indexOf('gh release download') &&
+  publish.indexOf('gh release download') < publish.indexOf('gh release edit'),
+  'draft upload and verified remote download must precede public promotion');
+assert(!/Set-MpPreference|Remove-MpPreference|continue-on-error/.test(publish),
+  'release path may not weaken host Defender or hide release failures');
+assert(playerAcceptanceTemplate.schema === "TSTSS_FIRST_WAKE_WINDOWS_PLAYER_ACCEPTANCE_V1" &&
+  playerAcceptanceTemplate.result === "PENDING" &&
+  playerAcceptanceTemplate.creatorReviewedAndApproved === false &&
+  playerAcceptanceTemplate.installedGameLaunched === false,
+  'acceptance template must start explicitly unapproved');
+assert(publish.includes("TSTSS_RELEASE_PLAYER_ACCEPTANCE_TIMESTAMP_INVALID") &&
+  publish.includes("TSTSS_RELEASE_DRAFT_ASSET_METADATA_MISMATCH") &&
+  publish.includes("TSTSS_RELEASE_DRAFT_METADATA=PASS"),
+  'release requires recent player receipt and remote asset metadata before approval');
 console.log('TSTSS_FIRST_WAKE_INSTALLER_CONTRACT_PASS release_authorized=false installer_link_published=false');

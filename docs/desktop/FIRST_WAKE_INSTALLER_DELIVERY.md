@@ -36,3 +36,50 @@ The current GitHub-hosted `windows-2022` exact custody job has reported `DEFENDE
 5. **User explicitly approves a tagged prerelease/release/public deployment.** Only then attach the verified installer with `SHA256SUMS.txt` to a real GitHub Release and add the exact **existing** asset URL under **Download for Windows** in the repository README. Never link a fabricated, older Aetherwake, draft/unpublished or unverified installer.
 
 **This branch and all installer output are development-only.** The Windows packaging CI currently retains output runner-locally; it is not an installer download destination. No release, latest-asset alias or public README button has been published at this stage.
+
+## Windows installer security evidence — 2026-10-28
+
+The **real NSIS Windows installer** is compiled from the native Godot First Wake branch and undergoes install, launch, real Win32 window maximize/restore, shortcuts, Installed Apps registry, repeat-install refusal and uninstall QA. [Exact-head Windows run #40648288232](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40648288232) confirms Windows functional job **SUCCESS** at SHA `3821a624be769e56eefdd505893be4187c8d2d6e`; installer runner-local SHA-256 `e50e0a6927b45ad476927266598946701bfd5a77cc456329f394effe52b8da5d`. This is not a security-release approval or downloadable asset.
+
+Two GitHub Windows images were tested for Defender-on security custody:
+
+- [Windows 2022 restoration probe #40647882552](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40647882552): antivirus ON, realtime OFF; attempted restoration removed whole-drive exclusions but realtime stayed **OFF**. Fail-closed rejection.
+- [Windows 2025 read-only probe #40651271403](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40651271403): antivirus ON, realtime **OFF**, two whole-drive exclusions. Fail-closed rejection.
+
+Both hosted environments fail the current required Defender-on custody prerequisite. These temporary probes were removed from the proposed installer branch after their evidence was recorded. The **original exact Windows Defender custody preflight remains unchanged**, so security failure still blocks release.
+
+### Trusted Defender-on Windows alternative (staged, unverified)
+
+The new `scripts/verify-first-wake-installer-defender.ps1` checks the source SHA, active Defender realtime protection, whole-drive and exact-target process/extension/path exclusions, scan-ID and exact-file-matched start/completion Defender events, detections and SHA-256 of **both** the Godot game executable and the actual NSIS `ToSailTheStarrySky-Setup.exe`. It records Authenticode status and emits a local JSON receipt with `publicReleaseAuthorized=false`. It does not sign, upload, promote or publish.
+
+The optional `trusted-installer-defender-qa` job is gated to the repository owner's own PR plus explicit `trusted-defender-on` label, and needs an online reviewed self-hosted Windows X64 runner labeled `defender-on` with configured `TSTSS_GODOT_EXE` and `TSTSS_NSIS_EXE`. The runner independently checks Defender status; its label is not proof. **No suitable trusted runner has been verified.** Running the same build/scan locally on an authorized, protected Windows computer is a possible alternative.
+
+### After security verification and creator approval
+
+Publish the exact verified `ToSailTheStarrySky-Setup.exe` to an approved GitHub Release, check its asset SHA-256, and add a **single direct Windows installer download** link to README. The player then double-clicks the setup and launches the native Godot game without Godot, ZIP extraction, a browser, or command-line tooling. No link should be published before that specific binary and release asset actually exist.
+
+### One-command creator-PC preparation (staged, not yet exercised)
+
+`scripts/prepare-first-wake-windows-installer.ps1` now orchestrates the existing export/NSIS compile and new exact-binary Defender security scan **in one trusted local PowerShell invocation**. It requires a specific expected 40-character source SHA, clean tracked source, already-enabled Defender real-time protection, official Godot 4.7.2 Windows export templates and an NSIS compiler. It can find an already-running Godot 4.7.2 editor and a standard NSIS installation; it does not download or silently install tools. The script creates `ToSailTheStarrySky-Setup.exe`, then requires an actual Defender scan receipt whose source/hash/status match the generated setup. It cannot make an installer publicly available.
+
+Example for an authorized Windows development machine with tools installed and a checked-out source: `pwsh -File scripts/prepare-first-wake-windows-installer.ps1 -ExpectedSourceSha <exact-commit-sha>`. This is an operator action, **not a step expected of players**. The connected creator PC is currently offline and this script has **not been run natively there**. Neither static contract CI nor the hosted functional installer job verifies the new local script end-to-end.
+
+A future public link will be created only from the exact security-verified binary after player acceptance and explicit creator release approval. The current game remains playable through Godot F5.
+
+## Final direct-download publication handoff (draft, not executed)
+
+The final file, `scripts/publish-first-wake-approved-windows-installer.ps1`, now exists but **has not run**. It requires the exact checked-out source, a trusted Defender-on scan receipt for the **specific** `ToSailTheStarrySky-Setup.exe`, matching local SHA256SUMS, an independent completed Windows install/game/playtest acceptance receipt, creator release approval, and explicit unsigned-preview acceptance if the setup is not Authenticode signed.
+
+The acceptance template `docs/desktop/FIRST_WAKE_WINDOWS_PLAYER_ACCEPTANCE.template.json` defaults all fields to **PENDING/false**. A human must confirm the installed game opens, completes the first flight and splashdown, inspects the reserve, saves/loads, and passes native window, installer/uninstall, input/accessibility, visuals and audio checks. Godot F5 alone does not satisfy installed-game acceptance.
+
+Publication is intentionally two-phase: (1) create a **draft GitHub prerelease**, attach the exact setup and hash manifest, download the draft asset from GitHub and verify its SHA256 and published asset metadata; (2) only after these proofs and explicit creator approval, convert to an accessible prerelease and emit `DIRECT_WINDOWS_INSTALLER_URL.txt`. The URL is the **actual, immutable, SHA-scoped asset** URL, not an imagined URL or an old Aetherwake setup. README will be updated to use that exact link only after an actual accessible release asset exists.
+
+The final publish script has native Windows PowerShell parser/contract QA in the existing functional Windows job, but is **not end-to-end tested against a live draft release**. It performs no automatic actions unless manually invoked with approval on a trusted prepared machine. No setup.exe is published by this PR.
+
+## Creator Windows host discovery — 2026-10-28 (read-only)
+
+Remote Desktop Commander confirmed an authorized Windows host connected. Read-only filesystem checks found **official Godot 4.7.2 portable editor files** and the corresponding **Windows x86-64 export templates**. The usual `Program Files (x86)\NSIS` location is absent, and availability of an alternate NSIS compiler remains **unverified**. Microsoft Defender processes are present, but the required **real-time protection state has not been verified**.
+
+Remote terminal process invocation was rejected by the tool safety boundary. **No game build, PowerShell command, Defender scan, or publisher action was executed on that PC**. These observations are host-readiness context only, not release evidence. The one-command preparation script was updated to discover the official versioned portable Godot installation in standard user folders without changing Defender settings.
+
+Next real execution remains a security-eligible trusted Windows build and actual Setup.exe scan, followed by independent install/playtest acceptance and explicit publication authorization.
