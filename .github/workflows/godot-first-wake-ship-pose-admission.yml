@@ -1,0 +1,80 @@
+name: First Wake Neutral Ship Pose Port (prototype only)
+
+on:
+  pull_request:
+    paths:
+      - "godot/scripts/first_wake_job_preview.gd"
+      - "godot/scripts/first_wake_ship_visual_pose_port.gd"
+      - "godot/scripts/ship_visual_pose_timeline.gd"
+      - "godot/tests/first_wake_ship_pose_port_test.gd"
+      - "godot/tests/first_wake_ship_pose_test_sink.gd"
+      - ".github/workflows/godot-first-wake-ship-pose-admission.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ch1-pose-port:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Check out pinned candidate (no persisted GitHub credentials)
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Verify official Godot 4.7.2 archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL \
+            "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" \
+            -o /tmp/godot.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip" | sha256sum -c -
+          mkdir -p /tmp/godot-editor
+          unzip -q /tmp/godot.zip -d /tmp/godot-editor
+          chmod +x /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Parse real native Chapter I project
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot --editor --quit 2>&1 | tee /tmp/port-import.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|Failed loading' /tmp/port-import.log
+      - name: Validate actual Ionia-first ship-pose admission and v2 save invariants
+        run: |
+          set -euo pipefail
+          timeout 80s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot --script res://tests/first_wake_ship_pose_port_test.gd 2>&1 | tee /tmp/ship-pose-port.log
+          grep -q 'FIRST_WAKE_SHIP_POSE_PORT_PASS' /tmp/ship-pose-port.log
+          ! grep -Eq 'FIRST_WAKE_SHIP_POSE_PORT_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/ship-pose-port.log
+      - name: Preserve inherited Ionia-first ship-space handoff contract
+        run: |
+          set -euo pipefail
+          timeout 80s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot --script res://tests/first_wake_ship_space_handoff_test.gd 2>&1 | tee /tmp/ship-spaces.log
+          grep -q 'FIRST_WAKE_SHIP_SPACE_HANDOFF_PASS' /tmp/ship-spaces.log
+          ! grep -Eq 'FIRST_WAKE_SHIP_SPACE_HANDOFF_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/ship-spaces.log
+      - name: Preserve inherited Chapter I job and checkpoint tests
+        run: |
+          set -euo pipefail
+          timeout 80s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot --script res://tests/first_wake_job_preview_test.gd 2>&1 | tee /tmp/job-native.log
+          grep -q 'TSTSS_FIRST_WAKE_JOB_SCENE_PASS' /tmp/job-native.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|ERROR:' /tmp/job-native.log
+          timeout 80s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot --script res://tests/first_wake_revised_checkpoint_scene_test.gd 2>&1 | tee /tmp/save-native.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|ERROR:' /tmp/save-native.log
+      - name: Save bounded noncanonical pipeline logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: first-wake-wing-pose-port-prototype
+          path: |
+            /tmp/port-import.log
+            /tmp/ship-pose-port.log
+            /tmp/ship-spaces.log
+            /tmp/job-native.log
+            /tmp/save-native.log
+          if-no-files-found: warn
+          retention-days: 7

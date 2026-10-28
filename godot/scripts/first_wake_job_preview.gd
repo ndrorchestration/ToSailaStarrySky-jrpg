@@ -12,6 +12,7 @@ const Actor = preload("res://scripts/pilot_actor.gd")
 const Dock = preload("res://scripts/dock_depth_review.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const ShipSpacesHandoff = preload("res://scripts/first_wake_ship_spaces_handoff.gd")
+const ShipPosePort = preload("res://scripts/first_wake_ship_visual_pose_port.gd")
 
 const FLYER_POSITION := Vector2(442, 463)
 const IONIA_DOCK_POSITION := Vector2(677, 467)
@@ -39,6 +40,7 @@ var dock_background: Node2D
 var dock_foreground: Node2D
 var ship_spaces_handoff: Node2D
 var _ship_spaces_requested: bool = false
+var ship_pose_port = ShipPosePort.new()
 var headline: Label
 var objective: Label
 var hint: Label
@@ -120,6 +122,17 @@ func _sync_ship_space_review() -> void:
     if ship_spaces_handoff != null:
         _ship_spaces_requested = ship_spaces_handoff.request_review(
             _ship_spaces_requested, room, opening.step_key(), opening.active_party_ids)
+
+## Explicit QA-only adapter; not mapped to any player input or gameplay event.
+func request_ship_pose_review(sink: Node3D, cue: String) -> bool:
+    return ship_pose_port.request_preview(self, sink, cue)
+
+func advance_ship_pose_review(sink: Node3D, delta: float,
+        reduced_motion: bool) -> bool:
+    return ship_pose_port.advance_preview(self, sink, delta, reduced_motion)
+
+func clear_ship_pose_review(sink: Node3D) -> bool:
+    return ship_pose_port.clear_preview(sink)
 
 func _label(parent: Node, pos: Vector2, font_size: int, width: float) -> Label:
     var node := Label.new()
