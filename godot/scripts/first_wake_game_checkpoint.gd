@@ -36,7 +36,7 @@ static func validate(data: Dictionary) -> bool:
     for flag in ["lyra_joined", "production_ocean_verified"]:
         if typeof(data.get(flag)) != TYPE_BOOL or data[flag]:
             return false
-    if not data.get("evidence") is Dictionary:
+    if not (data.get("evidence") is Dictionary):
         return false
     var facts: Dictionary = data["evidence"]
     if facts.size() != 3:
