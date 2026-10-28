@@ -19,11 +19,11 @@ Run only in an editor or QA harness: `res://scenes/aureate_wake_metric_bridge_st
 
 `godot/tests/aureate_wake_metric_bridge_physics_test.gd` loads the actual Godot 3D scene and uses:
 1. Real `PhysicsDirectSpaceState3D.intersect_ray` on all three floors and both seams to show native colliders, rather than solely checking source meshes.
-2. Real `PhysicsDirectSpaceState3D.cast_motion` of a **1.74 m tall / 0.26 m radius** capsule down a **7.60 m** physically continuous centerline route; checks full passage while hatch open, blocking with the door closed, and renewed passage upon reopening.
+2. Real `PhysicsDirectSpaceState3D.cast_motion` of a **1.74 m tall / 0.26 m radius** capsule along a **7.60 m** physically continuous centerline route **in both directions**; checks full two-way passage while hatch open, blocking from either direction when closed, and renewed two-way passage upon reopening.
 3. Render mesh, doorway, 1.05 m rails, dome/beam and 2.05 m minimum review headroom checks.
 4. Existing native Chapter I **source-locked PR #503 production admission gate** stays `production_ready=false`, actual Ionia-first story/party/save stays unchanged and Resonance stays locked.
 
-`godot/tests/capture_aureate_wake_metric_bridge.gd` records **three authentic 960×640 Godot Compatibility frames**: same-pose open and closed hatch, plus elevated view revealing cabin-to-deck continuity. A positive pixel difference is required. CI uses the digest-verified official Godot 4.7.2 Linux editor, software GL and uploads raw receipts. Linux software-render QA is NOT target Windows device/performance acceptance.
+`godot/tests/capture_aureate_wake_metric_bridge.gd` records **three authentic 960×640 Godot Compatibility frames**: closely framed same-pose open and closed hatch, plus elevated full-hull view revealing cabin-to-deck continuity. A positive pixel difference is required. CI uses the digest-verified official Godot 4.7.2 Linux editor, software GL and uploads raw receipts. Linux software-render QA is NOT target Windows device/performance acceptance.
 
 ## Next production gates still blocked
 
