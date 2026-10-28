@@ -7,6 +7,7 @@ const Catalog = preload("res://scripts/magic_vfx_catalog.gd")
 const MagicVFX = preload("res://scripts/magic_vfx.gd")
 const LightRig = preload("res://scripts/magic_vfx_environment_light.gd")
 const Atmosphere = preload("res://scripts/magic_vfx_chapter1_atmosphere.gd")
+const PreviewContract = preload("res://scripts/magic_vfx_preview_contract.gd")
 # Lighting and atmosphere conditions are experimental contrast presets, NOT canon time/weather.
 const LIGHT_PROFILES = {
     "daylight": Color(1.0, 1.0, 1.0),
@@ -37,6 +38,8 @@ var weather_preset: String = "clear"
 var ambient: CanvasModulate
 var atmosphere: Node2D
 var _camera_ui_scrims: Array[ColorRect] = []
+var visual_request_contract = PreviewContract.new()
+var last_visual_plan: Dictionary = {}
 
 func _ready() -> void:
     world = Chapter.instantiate()
@@ -115,16 +118,23 @@ func _install_camera_ui_scrims() -> void:
         chapter_ui.move_child(scrim, 0)
         _camera_ui_scrims.append(scrim)
 
+func _manual_request(identity: String, phase: int) -> Dictionary:
+    return {"channel":PreviewContract.CHANNEL, "identity":identity, "phaseIndex":phase, "quality":0, "reducedMotion":reduced_motion}
+
 func choose_affinity(index: int) -> bool:
     if index < 0 or index >= Catalog.CHARACTER_ORDER.size():
         return false
+    var identity: String = Catalog.CHARACTER_ORDER[index]
+    var plan: Dictionary = visual_request_contract.render_plan(_manual_request(identity, 1))
+    if plan.is_empty() or not effect.play_affinity(identity, bool(plan["reducedMotion"])):
+        return false
+    if not effect.seek_visual_phase(float(plan["phaseProgress"])):
+        return false
+    effect.set_quality(int(plan["quality"]))
+    light_rig.configure(identity, float(plan["phaseProgress"]), reduced_motion)
     active_index = index
     phase_index = 1
-    var identity: String = Catalog.CHARACTER_ORDER[active_index]
-    if not effect.play_affinity(identity, reduced_motion):
-        return false
-    effect.seek_visual_phase(KEYFRAMES[phase_index])
-    light_rig.configure(identity, KEYFRAMES[phase_index], reduced_motion)
+    last_visual_plan = plan.duplicate(true)
     light_rig.set_light_enabled(lighting_enabled and magic_visible)
     effect.visible = magic_visible
     return true
@@ -132,10 +142,13 @@ func choose_affinity(index: int) -> bool:
 func seek_phase(index: int) -> bool:
     if index < 0 or index >= KEYFRAMES.size():
         return false
-    phase_index = index
-    if not effect.seek_visual_phase(KEYFRAMES[index]):
+    var identity: String = Catalog.CHARACTER_ORDER[active_index]
+    var plan: Dictionary = visual_request_contract.render_plan(_manual_request(identity, index))
+    if plan.is_empty() or not effect.seek_visual_phase(float(plan["phaseProgress"])):
         return false
-    light_rig.configure(Catalog.CHARACTER_ORDER[active_index], KEYFRAMES[index], reduced_motion)
+    light_rig.configure(identity, float(plan["phaseProgress"]), reduced_motion)
+    phase_index = index
+    last_visual_plan = plan.duplicate(true)
     return true
 
 func set_magic_visible(enabled: bool) -> void:
