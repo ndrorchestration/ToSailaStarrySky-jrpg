@@ -56,7 +56,7 @@ func _run() -> void:
     for name in ["PortFore", "PortAft", "StarboardFore", "StarboardAft"]:
         check(inset.ship_model.has_node("WingRig_" + name), "actual original wing " + name)
     check(inset.ship_model.has_node("LongHull"), "actual original rootwood hull")
-    var origin: Transform3D = flight.ship_body.transform
+    var origin: Transform2D = flight.ship_body.transform
     var fsm: Dictionary = world.opening.snapshot().duplicate(true)
     var shader_preview: Dictionary = Handoff.build(flight.review_snapshot(), true, true, true)
     check(inset.set_visual_intent(shader_preview), "opt-in review lighting and accessibility applied")
