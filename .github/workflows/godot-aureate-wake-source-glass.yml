@@ -1,0 +1,80 @@
+name: Godot Aureate Wake Source Glass Intake (prototype only)
+
+on:
+  pull_request:
+    paths:
+      - 'godot/art-staging/ship-glass-study/**'
+      - 'godot/scripts/aureate_wake_metric_bridge_study.gd'
+      - 'godot/tests/aureate_wake_source_glass_intake_test.gd'
+      - 'godot/tests/capture_aureate_wake_source_glass.gd'
+      - '.github/workflows/godot-aureate-wake-source-glass.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-source-native-glass:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout source without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Verify official Godot 4.7.2 Standard editor binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' -o /tmp/godot.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip' | sha256sum -c -
+          mkdir -p /tmp/editor
+          unzip -q /tmp/godot.zip -d /tmp/editor
+          chmod +x /tmp/editor/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Prove staged source bytes and SHA256 before importing
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd godot
+          echo 'fa5a1d235d28c51aa93640e30ef25ddffecce16ab7d1083330da122a2480b7be  art-staging/ship-glass-study/bridge_panorama_glass.gdshader' | sha256sum -c -
+          test "$(git hash-object art-staging/ship-glass-study/bridge_panorama_glass.gdshader)" = 'b6c7e8d4144acc14074581b08b61c61b7f5a047a'
+      - name: Native Godot import of source-locked spatial shader
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/ship-glass-import.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|SHADER ERROR|Failed loading' /tmp/ship-glass-import.log
+      - name: Real native source shader materials, physics and Chapter I refusal
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot \
+            --script res://tests/aureate_wake_source_glass_intake_test.gd 2>&1 | tee /tmp/ship-glass-source-test.log
+          grep -q 'AUREATE_WAKE_SOURCE_GLASS_PASS' /tmp/ship-glass-source-test.log
+          grep -q 'source_blob=EXACT native_shader=REVIEW_ONLY production=BLOCKED' /tmp/ship-glass-source-test.log
+          ! grep -Eq 'AUREATE_WAKE_SOURCE_GLASS_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/ship-glass-source-test.log
+      - name: Render 2 real 960x640 Godot glass source profile images
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 120s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --path godot \
+            --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_aureate_wake_source_glass.gd \
+            2>&1 | tee /tmp/ship-glass-gl.log
+          test "$(grep -c 'AUREATE_WAKE_GLASS_NATIVE_FRAME:' /tmp/ship-glass-gl.log)" -eq 2
+          grep -q 'AUREATE_WAKE_SOURCE_GLASS_RENDER_PASS' /tmp/ship-glass-gl.log
+          ! grep -Eq 'AUREATE_WAKE_SOURCE_GLASS_CAPTURE_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/ship-glass-gl.log
+      - name: Preserve source-locked software-render receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aureate-wake-source-glass-review-evidence
+          path: |
+            godot/review-evidence/aureate-wake-source-glass/*.png
+            /tmp/ship-glass-import.log
+            /tmp/ship-glass-source-test.log
+            /tmp/ship-glass-gl.log
+          retention-days: 7
+          if-no-files-found: warn

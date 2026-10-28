@@ -1,0 +1,28 @@
+{
+  "schema": "tstss.aureate-wake-glass-source.v1",
+  "source": {
+    "pr": 482,
+    "commit": "8f7112d0f8ed3afcad8faa76b5d0b224d25cdce9",
+    "path": "godot/flight_slice/shaders/bridge_panorama_glass.gdshader",
+    "git_blob_sha1": "b6c7e8d4144acc14074581b08b61c61b7f5a047a",
+    "content_sha256": "fa5a1d235d28c51aa93640e30ef25ddffecce16ab7d1083330da122a2480b7be",
+    "verified_native_run": 40608998147
+  },
+  "staging": {
+    "path": "res://art-staging/ship-glass-study/bridge_panorama_glass.gdshader",
+    "target_project": "godot/project.godot",
+    "mode": "review_only",
+    "visible_by_default": false,
+    "full_mesh_import": false,
+    "collision_glazing": false,
+    "physical_glass_approved": false,
+    "story_or_ship_mode_change": false,
+    "production_ready": false
+  },
+  "allowable_presets": [
+    "metric_proxy",
+    "source_clear",
+    "source_low_glare"
+  ],
+  "acceptance": "SOURCE_IDENTICAL_NATIVE_IMPORT_ONLY"
+}
