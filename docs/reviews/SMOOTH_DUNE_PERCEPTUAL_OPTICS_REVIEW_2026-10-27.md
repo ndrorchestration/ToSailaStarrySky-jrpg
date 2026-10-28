@@ -1,0 +1,40 @@
+# Smooth dune optical-material review — 2026-10-27
+
+**Authority:** NONCANON / EXPERIMENTAL / DRAFT / ART UNAPPROVED.
+
+## Exact source and design goal
+
+- Base [#459](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/459), fixed reviewed head `819d004af54fe31bb89d7c4407f348fb74a39cf9`. It implemented an original perceptual sand shader with wind ripples, grain normals, subtle rim/sheen and rare directional glitter; native-screenshot review still found repeated bands and limited ability to evaluate dunes from coastal geometry alone.
+- This study adds a separate, true three-dimensional smooth dune test surface to assess the existing optical material at multiple view angles. It does **not** turn the coastal world into a desert, change production geographies, ocean boundaries, scene cameras, existing terrain/collision, spherical planet or Chapter I.
+
+## Architecture
+
+- `dune_study.gd`: deterministic analytic gently asymmetric dune-height sampler, terrain normals computed by finite differences, 97 × 97 vertex mesh (96 × 96 quads / 18,432 triangles) in one `ArrayMesh`/one `MeshInstance3D`. No collision body, runtime per-grain meshes, navigation, physics or game save.
+- The existing `res://shaders/terrain.gdshader` is reused **as the same shader resource** with explicit opt-in `dune_study_override=true` for dry sand. Default `false` preserves the established live terrain material. Dune override enables the sand surface at dune elevations and suppresses wet shoreline tint only for the separate material instance. Wind axis/light direction are explicitly shared.
+- Original optical uniforms `sand_optics_strength=0/1` and `low_quality` remain intact; all micro-grain/ripple/rim/sheens are shader only, never geometry deformation.
+- No authored proprietary shader, textures, or assets from another game copied. This is an original science-fantasy rendering technique informed by publicly discussed optical principles and made for *To Sail the Starry Sky*.
+
+## Native evidence contract
+
+- `tests/test_dune_study.gd` asserts bounded vertex/index budget, same source shader, disabled wetness, opt-in override, correct analytic vertex height and normals, non-flat ridgeline, exact mesh preservation across optical/quality toggles, and no collider.
+- `tests/capture_dune_study.gd` uses a detached actual Godot 4.7.2 OpenGL camera, authored golden-hour key/fill lighting and fixed geometry. It creates `evidence/dune-review/dune-plain.png`, `dune-optics.png` and a separate `dune-grazing.png`, each real 960 × 640 frames. A/B shader modes are compared from exactly the same camera/clock; low quality must produce pixel-identical before/after images.
+- The independent review runs **in addition** to existing full terrain 618 tests, native cinematic, flight, touchdown/physics, contact, coast-sand, shoreline/water/gl A/B, fixed highland/LOD, and 96-sample rendered-flight sweeps. Existing `NATIVE_ART_CAPTURE` markers/count stay unchanged.
+- Hosted software GPU is for source/render-correctness diagnostics, not target Windows frame-time or gameplay performance acceptance.
+
+## Acceptance and open risks
+
+Evaluate actual dune images for smooth traversable silhouettes and lighting response, ripple density at camera distance, subtlety of grain glitter, plausible wind orientation, absence of striped checkerboard aliasing, sky/foreground readability and comparison with the original coastal shader. Even with all assertions green, creator art approval and representative native GPU motion-performance remain open.
+
+**No merge, release, public plot reveal, physical sand simulation, dune-surfer gameplay or canonical desert authoring.**
+
+## First native failure and repair
+
+First head `d274a83c11aef5369115f26a369870f9129de098` [run 40606851840](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40606851840) **FAILED** the native dune capture admission (`NATIVE_DUNE_OPTICS_PAIR_DELTA pixels=67`, below required 80). The standalone source/mesh contract passed, as did earlier existing terrain/physics stages and the repository smoke [40606851842](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40606851842).
+
+[Actual failed native screenshots, artifact 12781271028](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40606851840/artifacts/12781271028), were downloaded and visually inspected. They showed **only a hairline edge of orange terrain in an otherwise blue background**, not a subtle shader difference. Root cause: dune mesh triangle winding was backfacing in Godot Compatibility GL. This is a geometry visibility failure the prior height/normal test did not catch. Corrective source `7f89d651` flips both index triangles; the new regression test checks the exact first-cell face orientation rather than weakening the optical pixel gate. Source is now subject to fresh native replay. This failure remains part of the honest evidence record; no success claim for the revised head until its real 960×640 images and tests pass.
+
+## Second native run — geometry fixed, area-cap test corrected
+
+Exact head `27cfa59c6f4a3f5c7ab2df1ba55096c3948591c8` [native run 40607309614](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40607309614): previously invisible dune geometry now renders as a full, softly contoured desert foreground. The geometric contract with new face-winding assertion **PASSED** and low-quality A/B remained pixel-identical (`NATIVE_DUNE_OPTICS_LOW_DELTA pixels=0`), but GL screenshot gate **FAILED** because its old absolute 90,000-pixel upper cap was too low for a landscape covering most of the frame: `NATIVE_DUNE_OPTICS_PAIR_DELTA pixels=94783`. [Actual native artifact 12782260336](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40607309614/artifacts/12782260336) was inspected. Of 127,200 sampled frame positions, 97,354 were actual visible warm sand, and **94,783 sand pixels changed; no background-sky pixels changed**. Mean absolute RGB channel change over sand was ~7.51/255. Optics are evident as orientation-dependent ripple shading; the original mesh material is clearly visible, albeit still provisional and repeating.
+
+The first guessed absolute upper bound tested the camera coverage ratio, not a correctness invariant. Corrected GL QA now measures the count of foreground dune pixels and requires >=10% material delta, <=100% material delta, **0 changed sky pixels**, and a bounded mean per-channel RGB deviation <=0.12 in 0–1 float color units. It retains pixel-identical V fallback and screenshot requirements. This is not an art acceptance claim and does not change the shader or mesh to satisfy an arbitrary absolute count. A fresh exact-head native run is required.

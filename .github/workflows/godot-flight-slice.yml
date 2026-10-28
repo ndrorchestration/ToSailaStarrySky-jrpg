@@ -114,6 +114,31 @@ jobs:
           test -f godot/flight_slice/evidence/cinematic-review/coast-shore-low.png
           grep -Eq 'NATIVE_TOUCHDOWN_PHYSICS_FRAME_PASS triangles=792 rayHeightError=[0-9.]+' /tmp/capture.log
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/capture.log
+      - name: Standalone smooth dune geometry and native optics contract
+        run: |
+          set -o pipefail
+          timeout 65s /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot/flight_slice \
+            --script res://tests/test_dune_study.gd 2>&1 | tee /tmp/dune-test.log
+          grep -q 'DUNE_STUDY_CONTRACT_PASS' /tmp/dune-test.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|DUNE_STUDY_FAIL' /tmp/dune-test.log
+      - name: Actual Godot GL smooth-dune sand optics review
+        run: |
+          set -o pipefail
+          timeout 95s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot/flight_slice --rendering-driver opengl3 \
+            --audio-driver Dummy \
+            --script res://tests/capture_dune_study.gd 2>&1 | tee /tmp/dune-capture.log
+          grep -Eq 'NATIVE_DUNE_OPTICS_PAIR_DELTA pixels=[0-9]+' /tmp/dune-capture.log
+          grep -Eq 'NATIVE_DUNE_SAND_COVERAGE pixels=[0-9]+ changed_fraction=' /tmp/dune-capture.log
+          grep -q 'sky_drift=0' /tmp/dune-capture.log
+          grep -q 'NATIVE_DUNE_OPTICS_LOW_DELTA pixels=0' /tmp/dune-capture.log
+          grep -q 'NATIVE_DUNE_REVIEW_PASS' /tmp/dune-capture.log
+          test -f godot/flight_slice/evidence/dune-review/dune-plain.png
+          test -f godot/flight_slice/evidence/dune-review/dune-optics.png
+          test -f godot/flight_slice/evidence/dune-review/dune-grazing.png
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|NATIVE_DUNE_CAPTURE_FAIL' /tmp/dune-capture.log
       - name: Matched native GL A/B atmospheric depth captures
         run: |
           set -o pipefail
@@ -156,6 +181,8 @@ jobs:
             /tmp/rendered-flight-low.log
             /tmp/import.log
             /tmp/scene.log
+            /tmp/dune-test.log
+            /tmp/dune-capture.log
             /tmp/test.log
             /tmp/visuals.log
             /tmp/atmosphere-test.log
