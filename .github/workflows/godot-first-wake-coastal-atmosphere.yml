@@ -34,6 +34,14 @@ jobs:
           unzip -q /tmp/godot.zip -d /tmp/editor
           chmod +x /tmp/editor/Godot_v4.7.2-stable_linux.x86_64
           /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Verify exact source PNG Git blob, not only its manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          original='b92fc645a777ee2a5abe549cf96aa19bba109926'
+          actual="$(git hash-object godot/art-staging/environment-study/water_ripple_detail.png)"
+          test "$actual" = "$original"
+          printf 'FIRST_WAKE_COASTAL_SOURCE_BLOB_PASS=%s\\n' "$actual"
       - name: Import real 3D coastal shader, world environment and scene
         shell: bash
         run: |
