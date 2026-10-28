@@ -21,12 +21,23 @@ Tests:
 2. `godot/tests/capture_worldmap_surface_pair.gd`: actual GL Compatibility/Mesa **960×640** equal-camera paired frames for clear-snow off/on and explicit rain-wet terrain off/on. Same geometry, camera, light and environment frame; require changed material pixels while background stays identical; all four PNGs retained as short-lived CI artifacts.
 3. `.github/workflows/godot-worldmap-material-p2.yml`: checksum-pinned Godot 4.7.2, native import, headless contract and real GL rendering. The existing Godot-native migration/worldmap/First Wake suites remain in CI.
 
+## 2026-10-27 — Native execution and image QA receipts
+
+At exact implementation commit `8a4341d2d62040314db6542d39a008dcb8d90ba8`:
+- [Native P2 shader/mesh workflow #40624369306](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40624369306) **SUCCESS**. Godot 4.7.2 headless `GODOT_PLANETARY_SURFACE_PAIR_PASS checks=44 actual_meshes=4 physics=UNAUTHORIZED` and Compatibility software GL `GODOT_PLANETARY_MATERIAL_AB_PASS cases=2 frames=4`.
+- [Real four-frame screenshot artifact #12788941267](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40624369306/artifacts/12788941267): snow control vs enhanced and explicit rain-wet ground control vs enhanced; 960×640 each, same real planet mesh, camera, light, world-space coordinates and LOD.
+- Native screenshot sampled changed pixels (>2/255, 2 px stride within the test window): **16,470 snow** and **48,015 wet ground**. Independent whole-screen image analysis: snow **66,443 / 614,400 pixels (10.81%)** and wet **233,304 (37.97%)** differ by more than 2/255 in at least one RGB component. The upper-left background pixel is unchanged in both pairs. Delta confirms rendering, **not** visual quality.
+- Original first native pass [#40624137832](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40624137832) was technically green but rendered excessive diagonal wave striping. This was visually rejected as a look-direction candidate; the shader was revised to irregular 3D value noise and recaptured on a fresh exact head. Do not erase this review history.
+- [Native migration regression #40624369312](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40624369312), [native worldmap view #40624369319](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40624369319), [First Wake pilot #40624369283](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40624369283), and [repository smoke #40624369285](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40624369285) completed **SUCCESS** on the same shader head.
+
+**Art assessment:** Improved/no longer visibly striped, but extremely simple rectangular test tiles, source-cartography block boundaries, snowy-to-green transitions and plain ground materials remain very far from cinematic art acceptance. This is a *geometry/material binding proof*. It does not demonstrate final biomes, mixed-LOD normal seams, full globe weather/lighting, or an integrated playable camera view. Baseline and enhanced frames are a shader-strength A/B, **not** a comparison with the production globe's original StandardMaterial3D. Target Windows GPU/Forward+ profiling and real scene acceptance are open.
+
 ## Explicit admission gates
 
 | Gate | Required evidence | Status |
 | --- | --- | --- |
 | P1 — JSON cross-engine admission | #489 immutable receipt, 7 native checks/190 fixture tiles | **Previously verified** on independent draft #489; not imported into this native scene |
-| P2a — true native material consumer | Resolve a native `Cart.sample` biome and weather → attach material to at least two adjacent spherical meshes; no collision/save/surface displacement | **Submitted; exact-head native CI and captures are required** |
+| P2a — true native material consumer | Resolve a native `Cart.sample` biome and weather → attach material to at least two adjacent spherical meshes; no collision/save/surface displacement | **EXECUTED / ENGINEERING PASS** at shader-correction commit `8a4341d2d62040314db6542d39a008dcb8d90ba8`; art acceptance remains provisional and final branch head must be rebound after doc edits |
 | P2b — visual isolation | Real same-camera off/on native PNG pair for clear-snow and rain-wet, background unchanged, pixel delta > threshold | **Submitted; inspect frame artifacts, not merely a pixel delta** |
 | P3 — gameplay geography/physics | Planet-local authoritative height + collider contact + ship clearance/landing, seam and mixed-LOD continuity | **OPEN** |
 | P4 — route/save/world authority | Exact single-cartography authority, canonical latitude/longitude/radius, discovery and story gate placement | **OPEN, creator-owned** |
