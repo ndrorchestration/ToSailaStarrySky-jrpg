@@ -90,6 +90,9 @@ jobs:
       - name: Verify battle loadouts and denied equipment remain fail closed
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/battle_equipment_loadout_test.gd
+      - name: Verify five-cast volatile session authority across actual scene unload/reload
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/battle_equipment_session_review_test.gd
       - name: Verify actual field-station to battle to field owned gear lifecycle
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/equipment_lifecycle_study_test.gd
