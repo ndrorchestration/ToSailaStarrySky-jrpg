@@ -142,7 +142,7 @@ func _sync_ui() -> void:
         return
     var done: bool = session != null and session.can_checkpoint()
     objective.text = "FIRST WAKE / POST-SPLASHDOWN — ENDER + IONIA\n" + (
-        "Reserve inspected. F5: save  |  F9: resume checkpoint" if done else
+        "Reserve inspected. F5: save  |  R: request staged safe berth (two confirmations)" if done else
         "Ship stable. Examine the depleted engine reserve (E).")
     if reserve_dialogue_open:
         text_label.text = messages[dialogue_index]
@@ -150,6 +150,6 @@ func _sync_ui() -> void:
         text_label.visible = true
     else:
         hint.text = checkpoint_message if not checkpoint_message.is_empty() else (
-            "Arrows: move  |  E: inspect  |  F5: save after inspection  |  F9: load")
+            "Arrows: move  |  E: inspect  |  F5: checkpoint  |  F9: reload")
         text_label.visible = false
     queue_redraw()
