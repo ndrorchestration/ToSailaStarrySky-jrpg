@@ -51,3 +51,18 @@ The P2 screenshot revealed a portrait card overlapping the actual dock walking a
 **Real artwork validation:** `res://tests/capture_first_wake_creator_portrait_real_art.gd` is an **opt-in local-only capture script** (not run in public CI) that refuses absent or SHA-mismatched source portrait JPGs, runs the *real Ender flyer → Ionia interview* event path, captures two native 960×640 framebuffers to local `user://first_wake_native_portrait_evidence`, and checks rendered portrait changes and unchanged story party. A user-delivered Visual P3 ZIP contains two unchanged source-custody JPEGs, safe fresh/update scripts and a Windows PowerShell wrapper to run the native capture with a user-selected Godot 4.7.2 executable. No actual-source engine screenshot has yet been observed in this tool session; **native test-color PASS is not artist approval**.
 
 **Safety:** public PR remains source-code only, unmerged, no new party members, combat/magic/canon/landing/checkpoints, and no Windows release/Defender gate changes.
+
+
+## Local Visual P4 — single-launch First Wake + genuine-art screenshot evidence
+
+The previously delivered P3 screenshot wrapper had a local integration mismatch: it searched for a `TSTSS_CREATOR_REAL_ART_CAPTURE_FOLDER` marker and `first_wake_*_creator_native_960x640.png` files; the actual previously bundled Godot SceneTree script emits `REAL_CREATOR_PORTRAIT_CAPTURE_FOLDER:` and writes `first_wake_ender_native_960x640.png` / `first_wake_ionia_native_960x640.png`. This mismatch prevents the wrapper from safely locating the actual engine files. **The standalone source script and its provenance checks remain intact.**
+
+The locally packaged **One-Click Portrait P4** fixes that wrapper agreement and adds:
+- `PLAY-FIRST-WAKE.cmd`: a first-run project/Godot file selector and later double-click launcher using the existing native F5 scene. Checks the matching known First Wake main entry, JPG SHA-256 and existing portrait adapter hash; attempts only known safe new installation or older-P2 upgrade, and backs up any patched code.
+- `CAPTURE-REAL-ART.cmd`: launches the existing local actual-JPG native Godot script (not synthetic test colors), parses its real stdout completion marker, insists on both original 960×640 PNG files, then copies the PNGs plus an SHA-256 `EVIDENCE.json` to `Pictures/ToSailtheStarrySky/FirstWake-VisualQA/<timestamp>/` for easy retrieval and review.
+- `PACKAGE_MANIFEST.json`: offline SHA-256 checks for both user source images and all packaged scripts; screenshot/art acceptance remains false.
+- The ZIP is a chat-delivered private local patch; it is **not checked into this public GitHub PR**, is **not a Windows native game installer**, and uses an already-installed Godot 4.7.2 editor and First Wake source project.
+
+**Verified in this tool session:** file/ZIP CRC integrity, original Ionia and Ender source-byte digests, GDScript stdout filename/marker contract and wrapper parsing string agreement. **Not verified:** executing Windows PowerShell, actual local P4 native Godot/JPG capture, artistic fit of genuine framebuffer, full PC installer, Windows Defender release security. The linked [previous exact-head CI](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40665479977) passes synthetic native portrait layout/real First Wake physics; [Windows exact QA](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40665479975) remains blocked by the unchanged Defender custody requirement.
+
+This convenience step has **no changes** to story canon, party recruitment, animations, actor sources, gameplay path, saves, official release claims or the original user-supplied images.
