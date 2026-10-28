@@ -3,6 +3,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+# SECURITY HOLD #293: no legacy NW.js/NSIS installer may be built or executed.
+# This guard is deliberately before repository resolution, npm, packaging, NSIS,
+# installation or executable launch. Historical procedure remains for audit only.
+throw "SECURITY_HOLD_293: legacy NW.js/NSIS local release build and install prohibited; independent security adjudication and creator approval required."
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $repo
 
