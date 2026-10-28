@@ -71,7 +71,7 @@ jobs:
             --script res://tests/first_wake_revised_checkpoint_scene_test.gd \
             2>&1 | tee /tmp/wing-render-save-regression.log
           ! grep -Eq 'SCRIPT ERROR|Parse Error|ERROR:' /tmp/wing-render-pose-regression.log /tmp/wing-render-space-regression.log /tmp/wing-render-save-regression.log
-      - name: Genuine Godot GL capture, 3 matched 960x640 Chapter I images
+      - name: Genuine Godot GL capture, 4 matched 960x640 Chapter I pose frames
         shell: bash
         run: |
           set -euo pipefail
@@ -80,8 +80,8 @@ jobs:
             --path godot --rendering-driver opengl3 --audio-driver Dummy \
             --script res://tests/capture_first_wake_native_wing_render.gd \
             2>&1 | tee /tmp/wing-render-gl.log
-          test "$(grep -c 'FIRST_WAKE_NATIVE_WING_CAPTURE:' /tmp/wing-render-gl.log)" -eq 3
-          grep -q 'FIRST_WAKE_NATIVE_WING_AB_PASS frames=3' /tmp/wing-render-gl.log
+          test "$(grep -c 'FIRST_WAKE_NATIVE_WING_CAPTURE:' /tmp/wing-render-gl.log)" -eq 4
+          grep -q 'FIRST_WAKE_NATIVE_WING_AB_PASS frames=4' /tmp/wing-render-gl.log
           ! grep -Eq 'FIRST_WAKE_NATIVE_WING_CAPTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/wing-render-gl.log
       - name: Upload original native 3D A/B evidence and regressions
         if: always()
