@@ -1,0 +1,70 @@
+name: Godot First Wake Ocean and Sky Art (study)
+
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/first_wake_maritime_atmosphere_review.gd'
+      - 'godot/tests/first_wake_maritime_atmosphere_test.gd'
+      - 'godot/scripts/first_wake_opt_in_shipboard_3d_review.gd'
+      - 'godot/tests/capture_first_wake_maritime_atmosphere.gd'
+      - 'godot/scripts/first_wake_opt_in_shipboard_3d_review.gd'
+      - 'docs/FIRST_WAKE_MARITIME_ATMOSPHERE_2026-10-28.md'
+      - '.github/workflows/godot-first-wake-maritime-atmosphere.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  first-wake-maritime-atmosphere:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Download SHA-pinned official Godot 4.7.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' -o /tmp/editor.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/editor.zip' | sha256sum -c -
+          mkdir -p /tmp/editor
+          unzip -q /tmp/editor.zip -d /tmp/editor
+          chmod +x /tmp/editor/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Native Godot project import of actual visual/camera scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/maritime-atmosphere-import.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|SHADER ERROR|Failed loading' /tmp/maritime-atmosphere-import.log
+      - name: Verify zone follow real walking animation, collision camera and save
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 125s /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_maritime_atmosphere_test.gd 2>&1 | tee /tmp/maritime-atmosphere-test.log
+          grep -q 'FIRST_WAKE_MARITIME_ATMOSPHERE_PASS' /tmp/maritime-atmosphere-test.log
+          grep -q 'sea=SHADER_ONLY sky=PROCEDURAL story=UNCHANGED production=BLOCKED' /tmp/maritime-atmosphere-test.log
+          ! grep -Eq 'FIRST_WAKE_MARITIME_ATMOSPHERE_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/maritime-atmosphere-test.log
+      - name: Render four actual native Godot camera / actor frames
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 145s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --path godot --rendering-driver opengl3 --audio-driver Dummy --script res://tests/capture_first_wake_maritime_atmosphere.gd 2>&1 | tee /tmp/maritime-atmosphere-render.log
+          test "$(grep -c 'FIRST_WAKE_MARITIME_ATMOSPHERE_FRAME:' /tmp/maritime-atmosphere-render.log)" -eq 4
+          grep -q 'FIRST_WAKE_MARITIME_ATMOSPHERE_RENDER_PASS' /tmp/maritime-atmosphere-render.log
+          ! grep -Eq 'FIRST_WAKE_MARITIME_ATMOSPHERE_CAPTURE_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/maritime-atmosphere-render.log
+      - name: Preserve raw screenshots, import and physics receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: first-wake-maritime-atmosphere-real-crew-proof
+          path: |
+            godot/review-evidence/first-wake-maritime-atmosphere/*.png
+            /tmp/maritime-atmosphere-import.log
+            /tmp/maritime-atmosphere-test.log
+            /tmp/maritime-atmosphere-render.log
+          retention-days: 7
+          if-no-files-found: warn
