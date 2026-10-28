@@ -62,6 +62,11 @@ func _ready() -> void:
     viewport.own_world_3d = true
     viewport.transparent_bg = false
     viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+    # Rendering-only quality, used by both First Wake flight and local berth.
+    # Four-sample MSAA is supported by the Godot Compatibility renderer;
+    # it never modifies the visual ship's physical authority.
+    viewport.msaa_3d = Viewport.MSAA_4X
+    viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
     viewport_container.add_child(viewport)
 
     var stage := Node3D.new()
