@@ -101,6 +101,18 @@ func _verify() -> void:
     check(not scene.maritime_atmosphere.reduced_motion
         and scene.maritime_atmosphere.sea_material.get_shader_parameter("visual_motion_scale") == 1.0,
         "M restores native 3D ocean animation without changing physics")
+    var n_key := InputEventKey.new()
+    n_key.keycode = KEY_N
+    n_key.pressed = true
+    var baseline_sky: Color = scene.maritime_atmosphere.sky_material.sky_horizon_color
+    scene._unhandled_input(n_key)
+    check(scene.maritime_atmosphere.twilight_review
+        and scene.maritime_atmosphere.sky_material.sky_horizon_color != baseline_sky,
+        "N applies alternate cinematic sky palette in live 3D scene")
+    scene._unhandled_input(n_key)
+    check(not scene.maritime_atmosphere.twilight_review
+        and scene.maritime_atmosphere.sky_material.sky_horizon_color == baseline_sky,
+        "N restores original daylight without changing chapter state")
     check(not scene.inspect_review_helm(), "far crew cannot activate helm remotely")
     var actor: CharacterBody3D = ship.crew_walker
     for i in range(30):
