@@ -67,10 +67,10 @@ func _draw_stage() -> void:
             draw_circle(Vector2(x, y), 30.0, Color(0.93, 0.96, 0.94, 0.23))
             draw_circle(Vector2(x + 28, y - 11), 37.0, Color(0.96, 0.96, 0.94, 0.16))
             draw_circle(Vector2(x + 58, y + 4), 28.0, Color(0.97, 0.94, 0.88, 0.17))
-    if refined_materials_enabled:
-        _draw_coastal_atmosphere()
     _poly([Vector2(0, 319), Vector2(92, 277), Vector2(143, 293), Vector2(196, 254), Vector2(240, 304), Vector2(330, 268), Vector2(392, 310), Vector2(460, 293), Vector2(535, 322), Vector2(620, 273), Vector2(697, 306), Vector2(790, 269), Vector2(850, 296), Vector2(960, 263), Vector2(960, 408), Vector2(0, 408)], Color("#719598"))
     _poly([Vector2(0, 366), Vector2(85, 341), Vector2(158, 354), Vector2(222, 333), Vector2(294, 358), Vector2(379, 331), Vector2(449, 361), Vector2(536, 344), Vector2(650, 369), Vector2(769, 342), Vector2(842, 363), Vector2(960, 340), Vector2(960, 400), Vector2(0, 400)], Color("#527e88"))
+    if refined_materials_enabled:
+        _draw_coastal_atmosphere()
     for i in range(22):
         var yy := 387.0 + i * 12.0
         var t: float = float(i) / 21.0
