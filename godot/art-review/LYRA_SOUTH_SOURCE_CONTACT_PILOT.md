@@ -22,3 +22,13 @@ This mapping is **not creator-approved anatomical stance**, particularly under r
 2. Align source pose contact-motion with physics stride and reauthor legs/boots if stance-window displacement is excessive. Re-run exact-head physical world-slip and native screenshots; a visual-only source anchor test does not certify gait.
 3. Add lead-in/out motion, four-view continuity, proper sound/contact effects, accessibility motion settings, and player-scale visual QA before gameplay admission.
 4. Preserve Lyra's Chapter One recruitment order, innate Water plot energy and optional learned magic. No merges, releases or final art approval.
+
+## Executed native results (review candidate only)
+
+At source commit `090e73ca`, Godot 4.7.2 CI passed the direct Lyra source-shoe test. **All 12 hand-picked points** were verified as actual native-imported, nontransparent boot-colored pixels, within **at most 2.69 pixels** of the older half-frame alpha candidate. Importantly, that geometrical closeness does not grant anatomical approval.
+
+Real `CharacterBody2D` south-facing movement produced a **24.33 px peak displacement** for the provisionally named right shoe over two observed contact windows and **24.74 px peak displacement** for the provisionally named left shoe over one observed window. The earlier half-image alpha candidate gave approximately 24.09/24.25 px in this orientation. The difference is a measurement refinement, **not a demonstrated decrease in foot sliding**.
+
+Real native Godot 960×640 A/B render inspection showed the source-shoe tether aligned to Lyra's visible boot and the diagnostic line readable without covering her face. Unannotated scene geometry, physics and the original SVG remained identical ON/OFF. Full native source SHA-256: marker ON `e893b3a0e289e8ed516775a7c165d04b3fa1c2734f5a8daf719c96ed72d7a23a`; marker OFF `05f8ad159b60d9d6303f35620831e9675a648d87a3390fb9a4538b5dcade1211`.
+
+This is an **observed ~24 px world displacement while a proposed source shoe should be planted**. It remains conditional on the contact-window hypothesis, not a validated stance-foot slide metric. Next fix should **reauthor art poses / stride timing from approved anatomical anchors**; changing actor speed or forcing cosmetic X/Y compensation purely to zero out this metric would conceal rather than solve the artistic defect.
