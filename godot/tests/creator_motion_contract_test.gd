@@ -150,6 +150,34 @@ func _run() -> void:
         check(ionia.creator_motion_sprite.texture ==
             ionia.creator_motion_pack.get_frame("north", 5),
             "Ionia actor cannot independently resolve authored north frame")
+        # Observe actual CharacterBody2D displacement and frame selection under
+        # Godot's physics loop; don't infer movement from a timer or UI animation.
+        var start_x: float = ender.position.x
+        Input.action_press("ui_right")
+        for tick in range(24):
+            await physics_frame
+        Input.action_release("ui_right")
+        await physics_frame
+        check(ender.position.x > start_x + 10.0, "player actor did not physically move")
+        check(ender.walk_facing == "east", "real movement did not update facing")
+        var physical_frame: int = int(ender.travel_distance / ender.PIXELS_PER_STEP) % 6
+        check(ender.creator_motion_sprite.texture ==
+            ender.creator_motion_pack.get_frame("east", physical_frame),
+            "actual distance-driven movement did not select the matching authored frame")
+        check(ender.creator_motion_sprite.position.y == -72.0 * 0.78,
+            "render-only motion sprite drifted away from ground origin")
+        # Ionia's existing scripted walk route remains a real physics trajectory.
+        ionia.set_ionia_route_review_enabled(true)
+        var start_ionia: Vector2 = ionia.position
+        for tick in range(18):
+            await physics_frame
+        check(ionia.position.distance_to(start_ionia) > 5.0,
+            "Ionia route must physically move, not advance a fake animation timer")
+        check(ionia.creator_motion_sprite.texture ==
+            ionia.creator_motion_pack.get_frame(ionia.ionia_facing,
+                int(ionia.travel_distance / ionia.PIXELS_PER_STEP) % 6),
+            "Ionia active route did not synchronize with source-authored frame atlas")
+        ionia.set_ionia_route_review_enabled(false)
         check(scene.session.opening.active_party_ids == ["ender"],
             "source art preview recruited a party member")
         check(not scene.session.can_checkpoint(), "motion preview granted save checkpoint")
