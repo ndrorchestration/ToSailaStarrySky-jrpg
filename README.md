@@ -1,3 +1,13 @@
+## To Sail the Starry Sky — native Windows game installer (in development)
+
+**The revised Ionia-first Godot game installer is not available for download yet.** The connected native game candidate is under [draft PR #547](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/547). A standalone `ToSailTheStarrySky-Setup.exe` packaging/test pipeline is being developed. **There is no verified installer asset to link here until Windows setup, native first-frame, security and creator release gates pass.**
+
+When approved and published, a clearly labeled **Download for Windows** link will point directly to the actual GitHub Release asset, not to source code or a Godot project. Players will double-click to install, then open the game from their desktop/Start menu in a maximizable native game window with F11 / Alt+Enter fullscreen. The previous Aetherwake/NW.js desktop installer described below is a separate **legacy** game build; it is not the revised Godot First Wake game.
+
+[Installer preparation and acceptance criteria](docs/desktop/FIRST_WAKE_INSTALLER_DELIVERY.md)
+
+---
+
 # Aetherwake — The Last Solarpunk Airship
 
 Aetherwake is a **pre-alpha turn-based JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a storm at Wake Dock reveals that the ship can exceed ordinary performance only when the right crew resonates with it.
