@@ -189,6 +189,8 @@ The preservation build contains a separate **Signal → Crossing → Contact →
 
 ## Verification
 
+### Legacy browser regression tests
+
 Install dependencies and Chromium once:
 
 ```bash
@@ -196,7 +198,7 @@ npm install
 npm run playwright:install
 ```
 
-Run the architecture contracts and canonical smoke test:
+Run historical browser architecture contracts and the browser smoke test:
 
 ```bash
 npm run test:effects
@@ -211,15 +213,29 @@ npm run test:secondary-action
 npm run test:smoke
 ```
 
-The verification suite covers the playable path from startup through the authored First Wake opening, world/overlay interactions, combat, flight-return seams, and return to the correct originating state. It also verifies roster/reference invariants, effect-vocabulary coverage, registry/runtime equivalence, transactional action affordability, progression reachability, party capacity, magic contracts, air-navigation behavior, live resolver routing, and post-combat write-back into the canonical lead record.
+These npm checks verify the **legacy JavaScript runtime**, its historical combat/roster/progression compatibility contracts and its browser flow. They do **not** verify the newer Godot Chapter I combat implementation, current revised recruitment, or any production-ready skill progression.
 
-To produce local review material without converting it into acceptance, run:
+To produce **legacy browser** local review material without converting it into acceptance, run:
 
 ```bash
 npm run capture:player-evidence
 ```
 
 This creates `evidence/player-acceptance/<source-sha>-<timestamp>/` with screenshots and a manifest whose human/player and visual acceptance fields remain explicitly pending.
+
+### Native Godot review checks
+
+The Godot work uses a **separate pinned Godot 4.7.2 pipeline**, including editor import, native story/gameplay and save regression tests, and actual render capture. For example, from the repository root with Godot installed:
+
+```bash
+godot --headless --path godot --editor --quit
+godot --headless --path godot --script res://tests/first_wake_combat_formula_test.gd
+godot --headless --path godot --script res://tests/first_wake_party_combat_authority_test.gd
+godot --headless --path godot --script res://tests/vertical_slice_echo_encounter_test.gd
+godot --headless --path godot --script res://tests/first_wake_salvage_v3_main_resume_test.gd
+```
+
+[Example exact-head native CI — October 28](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40649372371) passed for the related review stack. Passing technical checks is **not** creator approval of combat design, five-character playability or art, nor authorization to merge or release.
 
 ## Visual authority
 
@@ -231,21 +247,17 @@ The canonical project-wide visual direction is defined in:
 
 These documents sit above individual art branches. Existing pixel-art recovery work is implementation material and must be reconciled against the visual bible before broad promotion.
 
-## Architecture direction
+## Development direction and acceptance boundaries
 
-The production migration is incremental:
+The active work is a **Godot-first playable Chapter I vertical slice**, developed in reversible, reviewable drafts alongside the preserved browser build. Its priorities are:
 
-1. establish one verified playable baseline,
-2. introduce persistent five-character roster state,
-3. formalize effect vocabulary and extract the current ability/progression registries — **integrated on `main`**,
-4. migrate production combat away from legacy 2D6 branches into explicit JRPG formula/contract resolution while preserving only quarantined compatibility behavior,
-5. enforce current learned/unlocked action eligibility before broader mastery-tree work — **integrated on `main`**,
-6. replace prototype companion creation with authored roster onboarding,
-7. implement school/job/mastery progression,
-8. add formation, Dual Arts, and Triple Arts,
-9. expand campaign content after the architecture is stable.
+1. Preserve the revised Ender → Ionia → safe splashdown → Lyra/Talen reunion narrative and the existing Five Lights canon without automatically deriving combat powers.
+2. Advance actual native scene presentation: original character sprites, the Aureate Wake, ocean and weather materials, environmental depth, lighting, combat VFX, camera composition, dialogue and music.
+3. Integrate an authorized, testable multi-character turn-based encounter only after ability definitions, participant action rights, equipment visuals and effects are reconciled; keep the independent Guard/Strike/Echo lab and Resonance planner isolated until then.
+4. Extend reliable inventory/save continuity beyond the current salvage-only v3 checkpoint into material installation, bench calibration and later chapters, without rewriting legacy save files.
+5. Publish a user-facing Windows installer **only after** independent security custody, native gameplay and artistic acceptance gates pass. Draft PRs and simulated screenshots are not released builds.
 
-Each phase should preserve a working combat loop.
+Historical JavaScript migration phase lists and level tables survive in older design/reference files; they are **not** a current native production schedule or creator-approved unlock structure.
 
 ## Provenance
 
@@ -264,11 +276,11 @@ Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts includ
 
 ## Windows desktop package
 
-The intended player experience is **download one Windows artifact, launch/install it, and run Aetherwake in its own large resizable/maximizable desktop window**. The desktop presentation defaults to **1440×960** and scales proportionally when maximized, while preserving the 960×640 logical game layout. **Alt+Enter** or **F11** toggles native fullscreen; **Escape** exits fullscreen. Browser/HTTP instructions above are development and diagnostic paths, not the desired end-user experience.
+The player-facing goal remains **one safe Windows installer/download that launches To Sail the Starry Sky in its own maximizable desktop window**. **No current Godot Chapter I installer is cleared or linked from this README**: the independent Windows Defender custody/security preflight still blocks a new candidate. The details below document the **historical Aetherwake browser-wrapper packaging**, not an installable version of the revised Godot story. Historically, the intended player experience was **download one Windows artifact, launch/install it, and run Aetherwake in its own large resizable/maximizable desktop window**. The desktop presentation defaults to **1440×960** and scales proportionally when maximized, while preserving the 960×640 logical game layout. **Alt+Enter** or **F11** toggles native fullscreen; **Escape** exits fullscreen. Browser/HTTP instructions above are development and diagnostic paths, not the desired end-user experience.
 
-### Current Preview 0.1 release authority — 2026-10-06
+### Archived browser Preview 0.1 verification — October 6, 2026 (not the latest Godot build)
 
-The runtime baseline before the documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. Documentation merges may advance protected `main` without changing player-runtime bytes. The current bounded Preview 0.1 remediation/review candidate remains PR #250 at exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; candidate identity is bound to that exact SHA and artifact hashes, not to a moving `main` pointer.
+The runtime baseline before the documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. Documentation merges may advance protected `main` without changing player-runtime bytes. The **then-current, October 6** bounded Preview 0.1 remediation/review candidate was PR #250 at exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; candidate identity is bound to that exact SHA and artifact hashes, not to a moving `main` pointer.
 
 Technical candidate verification is complete for that exact head:
 
@@ -280,7 +292,7 @@ Technical candidate verification is complete for that exact head:
 - workflow-dispatch Windows run `37559269564`: **SUCCESS** through package build, no-admin installer, exact installed launch, portable verification, SHA-256 manifest, and prerelease publication;
 - the published installer was independently downloaded, SHA-256 checked, installed, and launched on NeonPC: **PASS**.
 
-Current published Preview 0.1 candidate:
+Archived October 6 browser Preview 0.1 candidate (not the current Godot game):
 
 ```text
 SOURCE_SHA=46f50c581d992bf581bb6b6d7961a9421b8b779d
@@ -292,11 +304,11 @@ VISUAL_ACCEPTANCE=PENDING
 HUMAN_PLAYER_ACCEPTANCE=PENDING
 ```
 
-PR #250 is ready for human review but is not merged. The historical Google Drive one-click launchers still point to older candidates and must not be treated as the current acceptance target.
+At the time of this archived evidence, PR #250 awaited human review and had not been merged. **Do not infer its present PR status or availability from this historical record.** The historical Google Drive one-click launchers still point to older candidates and must not be treated as the current acceptance target.
 
 For the exact uncoached human/player acceptance protocol, see `docs/PREVIEW_0_1_ACCEPTANCE.md`.
 
-When a fresh candidate passes the exact Windows install/launch gate, the primary player artifact will be:
+The earlier browser packaging contract named these intended outputs; they are **not links to an authorized current Godot release**:
 
 - **Aetherwake-Setup.exe** — conventional per-user installer; no administrator elevation; creates normal Start Menu and desktop shortcuts.
 - **Aetherwake-Windows.zip** — portable fallback. Extract completely, then run **Aetherwake.exe**.
