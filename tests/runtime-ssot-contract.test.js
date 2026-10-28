@@ -53,8 +53,10 @@ assert(currentStatus.includes('Godot 4.7.2') &&
   'current native implementation register is missing required security/authority boundaries');
 assert(godotReadme.startsWith('# To Sail the Starry Sky — native Godot') &&
        godotReadme.includes('**Ionia-first**') &&
-       godotReadme.includes('## Archived Godot feasibility'),
-  'nested Godot README still starts with an obsolete feasibility-only run route');
+       godotReadme.includes('GODOT_FEASIBILITY_VISUAL_LOG_2026-10-28.md') &&
+       read('docs/archive/GODOT_FEASIBILITY_VISUAL_LOG_2026-10-28.md')
+          .includes('Godot 4.7.2 / GDScript migration feasibility pilot'),
+  'nested Godot README still competes with the current launch or lost historical notes');
 
 // Check local README/asset links against the checked-out source tree.
 const sourceRoot = path.resolve(__dirname, '..');
