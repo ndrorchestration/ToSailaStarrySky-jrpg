@@ -4,6 +4,14 @@
 
 [Back to main README](../README.md) · [Visual bible](VISUAL_BIBLE.md) · [World/ship direction](WORLD_SHIP_VISUAL_DIRECTION.md) · [Character art authority](CHARACTER_AND_ART_AUTHORITY.md)
 
+## Latest separately verified First Wake / 3D cinematic cue study
+
+The separate [3D story-cue review #524](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/524), exact corrected commit `d6afcf7a3c94c841e6fd305f8aad5f5fbe603c75`, now has [a completed native Godot 4.7.2 GL run #40625082846](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625082846), including a real four-shot capture step and scene-pixel RGB comparison. The tested noncanonical looks are **first lift, controlled descent, afloat, and shipboard recovery**. These capture names label *presentation cues* rather than certified ship navigation or final story weather.
+
+The [original four-frame workflow artifact](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625082846/artifacts/12788812796) is **temporary and scheduled to expire November 4, 2026**. These *newer* frames are **not** among the stable embedded images below; they need an independently verified bytes/hashes-to-committed-image promotion step before appearing as permanent README media. The older pictures below remain authentic native images from different branches and render generations, not an implicit match to #524.
+
+The separately tested story/party/quest source [#491](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/491) produces the exact versioned cue envelope, but has **not yet executed in the same Godot project instance** as #524's 3D consumer.
+
 ## Aureate Wake — hero silhouette and weather
 
 The ship below is the **compact Aureate Wake**, not the larger, separate Dragonfly Frigate. Original procedural/native GDScript proposal in the experimental **combined ship + weather** branch, [draft PR #422](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/422) at `0ba35e6bd4e6acd4c5b7e880be1758d17feebab6`. This particular combined branch **does not automatically include later, independently stacked #419 geometry refinements**.
@@ -61,3 +69,7 @@ The accompanying [image provenance manifest](screenshots/native-2026-10-27/prove
 - Cross-branch integration, Godot gameplay/save/quest parity, player acceptance and any merge/release decision.
 
 **Not a claim of completed cinematic visuals.** To update this gallery, use **new native Godot frames**, preserve exact run and source SHA, and separately record creator aesthetic approval.
+
+## Music is already in the development ecosystem
+
+Five original supplied Chapter One recordings are present as exact governed binary blobs in the historical, closed/unmerged [Chapter One convergence commit `1b1f5180`](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/tree/1b1f51806ea9d013433cb98add260bd9c5be79c0), including *Skyward Arpeggio*, *Amonigio Umulula*, *Nocturnal Resolve*, *Solar Punk Airship*, and *Open Sky Signal*. They are **not** present in the current `main` or yet integrated into the forward Godot music bus. [Read the verified music asset register](AUDIO_ASSET_REGISTER.md) for hashes, source roles and safe migration boundaries. No unlicensed audio player or streamed MP3 is embedded in this visual gallery.
