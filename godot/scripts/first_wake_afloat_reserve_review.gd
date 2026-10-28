@@ -6,6 +6,7 @@ extends Node2D
 const Actor = preload("res://scripts/pilot_actor.gd")
 
 const RESERVE_POSITION := Vector2(729, 456)
+const BRIEF_POSITION := Vector2(502, 455)
 const INTERACT_RADIUS := 68.0
 const DECK_BOUNDS := Rect2(Vector2(154, 402), Vector2(680, 113))
 # Keep the deck's actor collisions local: nested dock/flight review bodies
@@ -16,6 +17,7 @@ var opening
 var ender: CharacterBody2D
 var ionia: CharacterBody2D
 var inspection_observed: bool = false
+var recovery_brief_recorded: bool = false
 var hint_label: Label
 
 func configure_afloat(contract) -> bool:
@@ -96,6 +98,14 @@ func _draw() -> void:
     draw_circle(RESERVE_POSITION + Vector2(0, -45), 14.0, Color("#d4aa73"))
     draw_arc(RESERVE_POSITION + Vector2(0, -45), 22, 0.0, TAU, 32, Color("#d9d2b1"), 3.0)
     draw_string(ThemeDB.fallback_font, Vector2(657, 350), "RESERVE STATION", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#f5e1b9"))
+    # Recovery board is an onboard observations log, not a rescue console.
+    # Its indicators represent already-measured facts, never a route or item.
+    draw_rect(Rect2(448, 369, 108, 99), Color("#163442"))
+    draw_rect(Rect2(456, 379, 92, 74), Color("#355466"))
+    draw_line(Vector2(465, 390), Vector2(536, 390), Color("#a6c0c1"), 2.0)
+    for idx in range(3):
+        draw_circle(Vector2(470 + idx * 25, 421), 6.0, Color("#8fbbaa") if inspection_observed else Color("#9a8d74"))
+    draw_string(ThemeDB.fallback_font, Vector2(427, 350), "RECOVERY LOG", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#f5e1b9"))
     draw_rect(Rect2(0, 0, 960, 101), Color(0.04, 0.08, 0.16, 0.94))
     draw_rect(Rect2(0, 549, 960, 91), Color(0.04, 0.08, 0.16, 0.94))
     draw_string(ThemeDB.fallback_font, Vector2(28, 95), "Crew: Ender + Ionia / no shore contact / no salvage granted", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#b9d5d9"))
@@ -117,11 +127,30 @@ func interact() -> bool:
     queue_redraw()
     return true
 
+func record_recovery_brief() -> bool:
+    # This is an observational checklist AFTER reserve diagnosis; it neither
+    # repairs the ship nor grants a route, material, crew member or story step.
+    if opening == null or ender == null or recovery_brief_recorded:
+        return false
+    if not inspection_observed or opening.step_key() != "postflight_diagnosis":
+        return false
+    if opening.active_party_ids != ["ender", "ionia"]:
+        return false
+    if ender.position.distance_to(BRIEF_POSITION) > INTERACT_RADIUS:
+        _refresh_hint()
+        return false
+    recovery_brief_recorded = true
+    _refresh_hint()
+    queue_redraw()
+    return true
+
 func _refresh_hint() -> void:
     if hint_label == null:
         return
-    if inspection_observed:
-        hint_label.text = "Reserve inspected: empty. No fuel formula, salvage items or shoreline encounter verified. F8: return to original v1."
+    if recovery_brief_recorded:
+        hint_label.text = "RECOVERY LOGGED: water contact, float stability, empty reserve. Shore route, fuel and salvage UNKNOWN. F8: return."
+    elif inspection_observed:
+        hint_label.text = "Reserve empty. Move Ender to RECOVERY LOG and press E to record verified observations; no travel unlocked."
     else:
         hint_label.text = "Move Ender with movement controls to RESERVE STATION; E: inspect only when nearby."
 
@@ -129,6 +158,13 @@ func review_snapshot() -> Dictionary:
     return {
         "station_entered": opening != null,
         "inspection_observed": inspection_observed,
+        "recovery_brief_recorded": recovery_brief_recorded,
+        "known_observation_ids": ["local_contact", "local_float", "empty_reserve"] if recovery_brief_recorded else [],
+        "unknown_recovery_route": true,
+        "fuel_formula_known": false,
+        "recovery_deployment_authorized": false,
+        "family_reunion_authorized": false,
+        "distance_to_brief": ender.position.distance_to(BRIEF_POSITION) if ender != null else -1.0,
         "distance_to_station": ender.position.distance_to(RESERVE_POSITION) if ender != null else -1.0,
         "physical_station_in_scene": ender != null,
         "real_inventory_scan_verified": false,

@@ -105,6 +105,9 @@ func _verify() -> void:
     if flight.opening != preview.opening or flight.phase != "awaiting_launch":
         _fail("Ionia-first story contract identity lost during handoff")
         return
+    if flight.record_afloat_recovery_brief():
+        _fail("recovery brief accessible before water contact")
+        return
     if flight.stabilize_for_water_descent() or flight.contact_observed:
         _fail("water contact/stabilization claimed before takeoff")
         return
@@ -200,6 +203,44 @@ func _verify() -> void:
     if flight.opening.active_party_ids != ["ender", "ionia"]:
         _fail("postflight diagnosis recruited Lyra before safe family meeting")
         return
+    if flight.record_afloat_recovery_brief() or deck.record_recovery_brief():
+        _fail("distant recovery log was recorded without actual approach")
+        return
+    if deck.review_snapshot().get("recovery_brief_recorded", true):
+        _fail("recovery log began already completed")
+        return
+    var before_log_walk: float = deck.ender.position.x
+    Input.action_press("ui_left")
+    for i in range(90):
+        await physics_frame
+    Input.action_release("ui_left")
+    if deck.ender.position.x >= before_log_walk - 60.0:
+        _fail("Ender could not walk across the afloat deck toward recovery log")
+        return
+    if deck.ender.position.distance_to(deck.BRIEF_POSITION) > deck.INTERACT_RADIUS:
+        _fail("physical walking could not reach the recovery board")
+        return
+    if not flight.interact() or flight.phase != "recovery_brief_recorded":
+        _fail("physical recovery observation log did not complete")
+        return
+    var brief: Dictionary = deck.review_snapshot()
+    if not brief.get("recovery_brief_recorded", false) or brief.get("known_observation_ids", []) != ["local_contact", "local_float", "empty_reserve"]:
+        _fail("recovery log failed to record exactly the known observations")
+        return
+    if brief.get("fuel_formula_known", true) or brief.get("recovery_deployment_authorized", true) or brief.get("family_reunion_authorized", true):
+        _fail("recovery board granted unverified knowledge, deployment or reunion")
+        return
+    var flight_report: Dictionary = flight.review_snapshot()
+    if not flight_report.get("recovery_brief_recorded", false) or flight_report.get("recovery_route_verified", true) or flight_report.get("rescue_or_salvage_authorized", true):
+        _fail("flight report elevated staged recovery log to approved recovery")
+        return
+    if flight.opening.step_key() != "postflight_diagnosis" or flight.opening.active_party_ids != ["ender", "ionia"]:
+        _fail("staged observation log advanced restricted story or crew state")
+        return
+    if flight.interact() or deck.record_recovery_brief():
+        _fail("duplicate recovery brief recording was admitted")
+        return
+
     if _file_hash(SaveStore.DEFAULT_PATH) != v1_hash or _file_hash(RevisedCodec.SLOT_PATH) != v2_hash:
         _fail("transient flight rewrote either save slot")
         return
@@ -217,7 +258,7 @@ func _verify() -> void:
     if _file_hash(SaveStore.DEFAULT_PATH) != v1_hash or _file_hash(RevisedCodec.SLOT_PATH) != v2_hash:
         _fail("F8 exit from splashdown rewrote v1/v2 checkpoint data")
         return
-    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: configured startup F8, flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, physical onboard reserve-station proximity inspection, F8 exact v1 return; no save or Art migration")
+    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: configured startup F8, flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, physical onboard reserve-station proximity inspection and post-diagnosis recovery log, F8 exact v1 return; no save or Art migration")
     quit(0)
 
 func _finish_dialogue(world: Node) -> bool:

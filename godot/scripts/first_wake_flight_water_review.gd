@@ -20,6 +20,7 @@ var settled_seconds: float = 0.0
 var contact_observed: bool = false
 var stable_float_verified: bool = false
 var reserve_inspection_observed: bool = false
+var recovery_brief_recorded: bool = false
 var afloat_review: Node2D
 var flight_ui: CanvasLayer
 var ship_body: RigidBody2D
@@ -137,6 +138,8 @@ func interact() -> bool:
         return open_afloat_reserve_review()
     if phase == "afloat_inspection":
         return inspect_empty_reserve_after_splashdown()
+    if phase == "postflight_diagnosis":
+        return record_afloat_recovery_brief()
     return false
 
 func begin_short_test_flight() -> bool:
@@ -205,6 +208,24 @@ func inspect_empty_reserve_after_splashdown() -> bool:
     _refresh_presentation()
     return true
 
+func record_afloat_recovery_brief() -> bool:
+    # Preserve the established chronology: this is a review-only, transient
+    # fact log inside postflight_diagnosis, NOT a new family or salvage state.
+    if phase != "postflight_diagnosis" or afloat_review == null:
+        return false
+    if not contact_observed or not stable_float_verified or not reserve_inspection_observed:
+        return false
+    if opening == null or opening.step_key() != "postflight_diagnosis":
+        return false
+    if opening.active_party_ids != ["ender", "ionia"]:
+        return false
+    if not bool(afloat_review.call("record_recovery_brief")):
+        return false
+    recovery_brief_recorded = true
+    phase = "recovery_brief_recorded"
+    _refresh_presentation()
+    return true
+
 func _physics_process(delta: float) -> void:
     if ship_body == null:
         return
@@ -244,6 +265,9 @@ func review_snapshot() -> Dictionary:
         "actual_2d_area_contact_observed": contact_observed,
         "stable_buoyant_hull_observed": stable_float_verified,
         "reserve_inspection_observed": reserve_inspection_observed,
+        "recovery_brief_recorded": recovery_brief_recorded,
+        "recovery_route_verified": false,
+        "rescue_or_salvage_authorized": false,
         "afloat_station_entered": afloat_review != null,
         "physical_reserve_interaction_verified": reserve_inspection_observed and afloat_review != null,
         "salvage_verified": false,
@@ -276,7 +300,9 @@ func _refresh_presentation() -> void:
         "afloat_inspection":
             hint_label.text = "Aboard the Wake: walk Ender to the reserve station, then E to inspect."
         "postflight_diagnosis":
-            hint_label.text = "RESERVE EMPTY: real postflight inspection step recorded in review. Secure recovery before Lyra/Talen reunion."
+            hint_label.text = "RESERVE EMPTY: approach recovery log aboard the Wake; no salvage or reunion authorized."
+        "recovery_brief_recorded":
+            hint_label.text = "Recovery observations recorded. Route, shore and physical salvage unresolved."
         _:
             hint_label.text = "Preflight scene required."
     queue_redraw()

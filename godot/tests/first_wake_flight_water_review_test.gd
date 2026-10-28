@@ -48,6 +48,9 @@ func _verify() -> void:
     if world.interact():
         _fail("underlying employment scene consumed flight controls")
         return
+    if flight.record_afloat_recovery_brief():
+        _fail("recovery brief accessible before water contact")
+        return
     if not flight.interact() or flight.opening.step_key() != "test_flight":
         _fail("first-flight launch rejected")
         return
@@ -164,9 +167,47 @@ func _verify() -> void:
         _fail("duplicate inspection or premature Lyra reunion admitted")
         return
 
+    if flight.record_afloat_recovery_brief() or deck.record_recovery_brief():
+        _fail("distant recovery log was recorded without actual approach")
+        return
+    if deck.review_snapshot().get("recovery_brief_recorded", true):
+        _fail("recovery log began already completed")
+        return
+    var before_log_walk: float = deck.ender.position.x
+    Input.action_press("ui_left")
+    for i in range(90):
+        await physics_frame
+    Input.action_release("ui_left")
+    if deck.ender.position.x >= before_log_walk - 60.0:
+        _fail("Ender could not walk across the afloat deck toward recovery log")
+        return
+    if deck.ender.position.distance_to(deck.BRIEF_POSITION) > deck.INTERACT_RADIUS:
+        _fail("physical walking could not reach the recovery board")
+        return
+    if not flight.interact() or flight.phase != "recovery_brief_recorded":
+        _fail("physical recovery observation log did not complete")
+        return
+    var brief: Dictionary = deck.review_snapshot()
+    if not brief.get("recovery_brief_recorded", false) or brief.get("known_observation_ids", []) != ["local_contact", "local_float", "empty_reserve"]:
+        _fail("recovery log failed to record exactly the known observations")
+        return
+    if brief.get("fuel_formula_known", true) or brief.get("recovery_deployment_authorized", true) or brief.get("family_reunion_authorized", true):
+        _fail("recovery board granted unverified knowledge, deployment or reunion")
+        return
+    var flight_report: Dictionary = flight.review_snapshot()
+    if not flight_report.get("recovery_brief_recorded", false) or flight_report.get("recovery_route_verified", true) or flight_report.get("rescue_or_salvage_authorized", true):
+        _fail("flight report elevated staged recovery log to approved recovery")
+        return
+    if flight.opening.step_key() != "postflight_diagnosis" or flight.opening.active_party_ids != ["ender", "ionia"]:
+        _fail("staged observation log advanced restricted story or crew state")
+        return
+    if flight.interact() or deck.record_recovery_brief():
+        _fail("duplicate recovery brief recording was admitted")
+        return
+
     world.queue_free()
     await process_frame
-    print("TSTSS_FIRST_WAKE_PHYSICS_SPLASHDOWN_PASS: Ionia-first preflight, actual RigidBody2D/Area2D water contact, settled flotation, navigable afloat reserve-station proximity gate, no Lyra or fuel revelation")
+    print("TSTSS_FIRST_WAKE_PHYSICS_SPLASHDOWN_PASS: Ionia-first preflight, actual RigidBody2D/Area2D water contact, settled flotation, navigable afloat reserve-station proximity gate and post-diagnosis recovery log, no Lyra or fuel revelation")
     quit(0)
 
 func _fail(reason: String) -> void:
