@@ -12,6 +12,7 @@ const docs = read('docs/desktop/FIRST_WAKE_INSTALLER_DELIVERY.md');
 const custody = read('scripts/verify-first-wake-installer-defender.ps1');
 const prepare = read('scripts/prepare-first-wake-windows-installer.ps1');
 const publish = read('scripts/publish-first-wake-approved-windows-installer.ps1');
+const playerAcceptanceTemplate = JSON.parse(read('docs/desktop/FIRST_WAKE_WINDOWS_PLAYER_ACCEPTANCE.template.json'));
 
 for (const x of [
   'RequestExecutionLevel user',
@@ -126,4 +127,13 @@ assert(publish.indexOf('gh release create') < publish.indexOf('gh release downlo
   'draft upload and verified remote download must precede public promotion');
 assert(!/Set-MpPreference|Remove-MpPreference|continue-on-error/.test(publish),
   'release path may not weaken host Defender or hide release failures');
+assert(playerAcceptanceTemplate.schema === "TSTSS_FIRST_WAKE_WINDOWS_PLAYER_ACCEPTANCE_V1" &&
+  playerAcceptanceTemplate.result === "PENDING" &&
+  playerAcceptanceTemplate.creatorReviewedAndApproved === false &&
+  playerAcceptanceTemplate.installedGameLaunched === false,
+  'acceptance template must start explicitly unapproved');
+assert(publish.includes("TSTSS_RELEASE_PLAYER_ACCEPTANCE_TIMESTAMP_INVALID") &&
+  publish.includes("TSTSS_RELEASE_DRAFT_ASSET_METADATA_MISMATCH") &&
+  publish.includes("TSTSS_RELEASE_DRAFT_METADATA=PASS"),
+  'release requires recent player receipt and remote asset metadata before approval');
 console.log('TSTSS_FIRST_WAKE_INSTALLER_CONTRACT_PASS release_authorized=false installer_link_published=false');
