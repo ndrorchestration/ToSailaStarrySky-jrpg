@@ -36,6 +36,7 @@ var lighting_preset: String = "daylight"
 var weather_preset: String = "clear"
 var ambient: CanvasModulate
 var atmosphere: Node2D
+var _camera_ui_scrims: Array[ColorRect] = []
 
 func _ready() -> void:
     world = Chapter.instantiate()
@@ -92,6 +93,25 @@ func _ready() -> void:
     notice.add_theme_color_override("font_color", Color("#f5eacf"))
     notice.text = "MAGIC LOOK DEV ONLY - NO SPELL CAST"
     canvas_ui.add_child(notice)
+    _install_camera_ui_scrims()
+
+func _install_camera_ui_scrims() -> void:
+    # Only a reversible close-up review fixture. The production Chapter I HUD
+    # currently draws dark panels in world space; Camera2D zoom can displace them
+    # behind fixed CanvasLayer labels. Attach duplicate dark panels *within* the
+    # actual Chapter I UI CanvasLayer, below all text, ONLY while close-up is on.
+    var chapter_ui: CanvasLayer = world.get_node("ChapterOneMigrationUI") as CanvasLayer
+    for region in [Rect2(10.0, 8.0, 940.0, 90.0), Rect2(10.0, 550.0, 940.0, 82.0)]:
+        var scrim := ColorRect.new()
+        scrim.name = "VisualQACameraSafeHudPanel"
+        scrim.position = region.position
+        scrim.size = region.size
+        scrim.color = Color(0.035, 0.07, 0.13, 0.96)
+        scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        scrim.visible = false
+        chapter_ui.add_child(scrim)
+        chapter_ui.move_child(scrim, 0)
+        _camera_ui_scrims.append(scrim)
 
 func choose_affinity(index: int) -> bool:
     if index < 0 or index >= Catalog.CHARACTER_ORDER.size():
@@ -145,6 +165,8 @@ func set_weather_preset(next_preset: String) -> bool:
 
 func set_camera_closeup(enabled: bool) -> void:
     closeup_enabled = enabled
+    for scrim in _camera_ui_scrims:
+        scrim.visible = enabled
     camera.position = world.ender.global_position + CLOSEUP_OFFSET if enabled else DEFAULT_CAMERA
     camera.zoom = Vector2(1.16, 1.16) if enabled else Vector2.ONE
 

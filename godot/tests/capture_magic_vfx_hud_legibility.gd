@@ -74,6 +74,15 @@ func _run() -> void:
         push_error("MAGIC_HUD_QA_FAIL: did not find actual Chapter I UI CanvasLayer")
         quit(3)
         return
+    if review._camera_ui_scrims.size() != 2:
+        push_error("MAGIC_HUD_QA_FAIL: closeup contrast panels missing")
+        quit(9)
+        return
+    for scrim in review._camera_ui_scrims:
+        if scrim.visible or scrim.get_parent() != ui:
+            push_error("MAGIC_HUD_QA_FAIL: closeup UI correction leaked into normal camera")
+            quit(10)
+            return
     review.choose_affinity(1) # Lyra's pink/light stress case, visual-only.
     review.seek_phase(3) # pause at cinematic impact.
     for condition in CONDITIONS:
@@ -83,6 +92,11 @@ func _run() -> void:
             quit(4)
             return
         review.set_camera_closeup(condition["closeup"])
+        for scrim in review._camera_ui_scrims:
+            if scrim.visible != bool(condition["closeup"]):
+                push_error("MAGIC_HUD_QA_FAIL: screen-space scrim not synchronized to camera")
+                quit(11)
+                return
         review.set_magic_visible(true)
         ui.visible = true
         await process_frame
@@ -104,8 +118,8 @@ func _run() -> void:
                 ":median=" + str(result["median_ratio"]) +
                 ":p10=" + str(result["p10_ratio"]))
             # Engineering witness floor. This does not certify all accessibility text.
-            if int(result["glyph_pixels"]) < 70 or float(result["median_ratio"]) < 4.5:
-                push_error("MAGIC_HUD_QA_FAIL: native UI glyph contrast witness below candidate gate " + id + "/" + key)
+            if int(result["glyph_pixels"]) < 70 or float(result["median_ratio"]) < 4.5 or float(result["p10_ratio"]) < 3.5:
+                push_error("MAGIC_HUD_QA_FAIL: native UI median/p10 glyph contrast witness below candidate gate " + id + "/" + key)
                 quit(7)
                 return
     if review.world.chapter.snapshot() != before_state or review.world.export_save_snapshot() != before_save or review.world.ender.global_position != before_position:
