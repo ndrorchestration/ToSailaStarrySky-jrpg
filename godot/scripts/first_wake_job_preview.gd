@@ -12,6 +12,7 @@ const Actor = preload("res://scripts/pilot_actor.gd")
 const Dock = preload("res://scripts/dock_depth_review.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const ShipSpacesHandoff = preload("res://scripts/first_wake_ship_spaces_handoff.gd")
+const EvidencePanel = preload("res://scripts/first_wake_evidence_comparison_panel.gd")
 
 const FLYER_POSITION := Vector2(442, 463)
 const IONIA_DOCK_POSITION := Vector2(677, 467)
@@ -39,6 +40,7 @@ var dock_background: Node2D
 var dock_foreground: Node2D
 var ship_spaces_handoff: Node2D
 var _ship_spaces_requested: bool = false
+var evidence_panel
 var headline: Label
 var objective: Label
 var hint: Label
@@ -97,6 +99,12 @@ func _ready() -> void:
     var ui := CanvasLayer.new()
     ui.name = "ReadableGameplayOverlay"
     add_child(ui)
+    evidence_panel = EvidencePanel.new()
+    evidence_panel.name = "PostflightEvidenceNotebook"
+    evidence_panel.position = Vector2(205, 174)
+    evidence_panel.visible = false
+    ui.add_child(evidence_panel)
+    evidence_panel.configure_story(opening)
     headline = _label(ui, Vector2(22, 17), 24, 900)
     objective = _label(ui, Vector2(24, 57), 17, 910)
     party_label = _label(ui, Vector2(24, 91), 15, 910)
@@ -180,6 +188,19 @@ func _draw_engineering_room() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventKey and event.pressed and not event.echo:
+        if event.keycode == KEY_J:
+            evidence_panel.visible = not evidence_panel.visible
+            if evidence_panel.visible:
+                evidence_panel.refresh()
+                # A journal is modal: prevent player movement behind the overlay.
+                ender.player_controlled = false
+            else:
+                ender.player_controlled = not dialogue_open and opening.step_key() != "preflight"
+            get_viewport().set_input_as_handled()
+            return
+        if evidence_panel.visible:
+            # Do not save/load or interact with the world behind the notebook.
+            return
         if event.keycode == KEY_K:
             var saved: Dictionary = save_revised_checkpoint()
             last_message = "Revised opening checkpoint saved." if bool(saved.get("ok", false)) else "Save unavailable: " + str(saved.get("error", saved.get("reason", "unknown")))
@@ -192,6 +213,10 @@ func _unhandled_input(event: InputEvent) -> void:
             _sync_presentation()
             get_viewport().set_input_as_handled()
             return
+    if evidence_panel.visible:
+        # Modal notebook must not forward E/Interact to dock, dialogue or
+        # engineering while players are choosing evidence.
+        return
     if event.is_action_pressed(InputPolicy.INTERACT) and not event.is_echo():
         interact()
         get_viewport().set_input_as_handled()
@@ -274,6 +299,9 @@ func restore_revised_checkpoint(snapshot: Variant) -> bool:
     if not bool(staged.get("ok", false)):
         return false
     opening = staged["opening"]
+    # Never retain a UI binding to the pre-restore story object.
+    evidence_panel.configure_story(opening)
+    evidence_panel.visible = false
     flyer_read = bool(staged["flyer_read"])
     room = str(staged["room"])
     inspected_items.clear()
@@ -403,7 +431,7 @@ func _sync_presentation() -> void:
     else:
         dialogue_speaker.visible = false
         dialogue_text.visible = false
-        hint.text = last_message + "    [Arrows: move  |  E: interact  |  K: save  |  L: load]"
+        hint.text = last_message + "    [Arrows: move  |  E: interact  |  J: evidence  |  K: save  |  L: load]"
     hint.visible = not dialogue_open
     _sync_ship_space_review()
     queue_redraw()
