@@ -161,6 +161,10 @@ func _capture() -> void:
         push_error("CHAPTER1_CAPTURE_FAIL: Wind Shear analysis did not resolve")
         quit(40)
         return
+    if not world.wind_shear_visual.visible or not world.wind_shear_visual.analyzed:
+        push_error("CHAPTER1_CAPTURE_FAIL: authored Wind Shear visual did not reveal its analyzed core")
+        quit(48)
+        return
     await process_frame
     var wind_shear_image: Image = await _snapshot("chapter1-wind-shear-combat-native-960x640.png")
     if wind_shear_image == null:

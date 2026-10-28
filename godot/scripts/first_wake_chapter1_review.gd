@@ -14,6 +14,7 @@ const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd")
 const CurrentEnemyAdapter = preload("res://scripts/first_wake_current_enemy_adapter.gd")
 const PartyCombatAuthority = preload("res://scripts/first_wake_party_combat_authority.gd")
+const WindShearVisual = preload("res://scripts/first_wake_wind_shear_visual.gd")
 
 const DECK_BOUNDS := SaveCodec.PLAYER_POSITION_BOUNDS
 const INTERACT_DISTANCE := 74.0
@@ -60,6 +61,9 @@ var formula_encounter = FormulaEncounter.new()
 var current_enemy_adapter = CurrentEnemyAdapter.new()
 var party_combat_authority = PartyCombatAuthority.new()
 var active_hazard_encounter_id: String = ""
+var wind_shear_visual: Node2D
+# Presentation-only A/B review switch. Not serialized, a combat flag or lore.
+var wind_shear_stage_depth_enabled: bool = true
 var save_store = SaveStore.new()
 
 func _ready() -> void:
@@ -108,6 +112,15 @@ func _ready() -> void:
     foreground.z_index = 8
     add_child(foreground)
 
+    # Current-story enemy art is isolated from the encounter controller, actor
+    # collisions and save state. Hidden outside the authorized Wind Shear fight.
+    wind_shear_visual = WindShearVisual.new()
+    wind_shear_visual.name = "HarmonicShearElementalVisualStudy"
+    wind_shear_visual.position = Vector2(684, 281)
+    wind_shear_visual.z_index = 9
+    wind_shear_visual.set_reduced_motion(bool(ProjectSettings.get_setting("accessibility/reduced_motion", false)))
+    add_child(wind_shear_visual)
+
     var ui := CanvasLayer.new()
     ui.name = "ChapterOneMigrationUI"
     add_child(ui)
@@ -133,6 +146,7 @@ func _ready() -> void:
     hint.custom_minimum_size = Vector2(900, 54)
 
     headline.text = "AETHERWAKE  /  FIRST WAKE"
+    _sync_wind_shear_visual()
     _refresh_ui()
     queue_redraw()
 
@@ -227,6 +241,10 @@ func _draw_formula_review() -> void:
     var heat: Dictionary = formula_encounter.player.get("heat", {"current": 0, "max": 3})
 
     var authored_hazard := not active_hazard_encounter_id.is_empty()
+    # Light and distant depth accents sit behind the CanvasItem enemy stage.
+    # Never render them for synthetic formula targets or noncombat hazards.
+    if wind_shear_stage_depth_enabled and authored_hazard and str(formula_encounter.target.get("id", "")) == "windShear":
+        _draw_wind_shear_stage_depth()
     var encounter_title := "CROSSING ENCOUNTER" if authored_hazard else "FORMULA REVIEW ENCOUNTER"
     var encounter_subtitle := (
         "Current-story Wind Shear · Gale Force retaliates · progress confirms on clear"
@@ -283,6 +301,17 @@ func _draw_formula_review() -> void:
         Color("#f0a072")
     )
 
+    # Authoritative HP reflected as a restrained bar directly beneath the
+    # existing Wind Shear stage. Text above remains the non-color readout.
+    # This is *not* a second hit box, cast bar or predictive damage indicator.
+    if authored_hazard and str(formula_encounter.target.get("id", "")) == "windShear":
+        var enemy_hp_fraction: float = clampf(float(target_hp) / float(target_max), 0.0, 1.0)
+        var enemy_meter := Rect2(624.0, 388.0, 122.0, 8.0)
+        draw_rect(enemy_meter, Color(0.055, 0.11, 0.17, 0.94))
+        if enemy_hp_fraction > 0.0:
+            draw_rect(Rect2(626.0, 390.0, 118.0 * enemy_hp_fraction, 4.0), Color("#eab87b"))
+        draw_rect(enemy_meter, Color("#5d8791"), false, 1.0)
+
     var party_rows := party_combat_authority.surface_for_party(chapter.desired_active_party_ids())
     var party_bits: Array[String] = []
     for row in party_rows:
@@ -302,12 +331,20 @@ func _draw_formula_review() -> void:
     var analysis_text := "Weakness hidden.  2: Uncover Truth"
     if formula_encounter.weakness_revealed():
         analysis_text = "ANALYZED: " + str(formula_encounter.target.get("weakness", ""))
+    if authored_hazard:
+        # Keep the full authored weakness in the target metadata; the abbreviated
+        # HUD reading prevents overlap with the enemy stage at native 960x640.
+        analysis_text = (
+            "ANALYZED: WIND PATTERN EXPOSED  /  EMP"
+            if formula_encounter.weakness_revealed()
+            else "PATTERN UNKNOWN  /  2: UNCOVER TRUTH"
+        )
     draw_string(
         ThemeDB.fallback_font,
         Vector2(176, 322),
         analysis_text,
         HORIZONTAL_ALIGNMENT_LEFT,
-        610,
+        415 if authored_hazard else 610,
         15,
         Color("#8cdbc8")
     )
@@ -345,6 +382,54 @@ func _draw_formula_review() -> void:
         Color("#9dd9ee")
     )
 
+func _draw_wind_shear_stage_depth() -> void:
+    # Original, conservative combat-stage study: layered blue-green haze,
+    # a distant pressure-field boundary, and a low plane of reflected light.
+    # All geometry is static, behind art; no gameplay bodies or shadow casters.
+    var stage := Rect2(597.0, 197.0, 185.0, 182.0)
+    draw_rect(stage, Color(0.055, 0.15, 0.20, 0.35))
+    draw_rect(Rect2(604.0, 204.0, 171.0, 146.0), Color(0.04, 0.09, 0.13, 0.16))
+
+    # Soft nested pressure-light falloff, not a flash. At 960x640 these
+    # subtle halos visually separate the aquamarine fins from the dark panel.
+    var center := Vector2(687.0, 277.0)
+    for i in range(6):
+        var radius := 79.0 - float(i) * 10.0
+        var alpha := 0.013 + float(i) * 0.004
+        draw_circle(center, radius, Color(0.43, 0.79, 0.80, alpha))
+
+    # Thin far-plane edge rails keep the action area distinct from commands
+    # without putting a card, text, or line over the sprite's silhouette.
+    var far_rail := Color(0.31, 0.63, 0.72, 0.24)
+    draw_line(Vector2(603.0, 210.0), Vector2(603.0, 346.0), far_rail, 1.0)
+    draw_line(Vector2(779.0, 215.0), Vector2(779.0, 346.0), far_rail.darkened(0.12), 1.0)
+    draw_line(Vector2(603.0, 208.0), Vector2(621.0, 208.0), far_rail, 1.0)
+    draw_line(Vector2(761.0, 208.0), Vector2(779.0, 208.0), far_rail, 1.0)
+
+    # The hover shadow belongs to the sprite layer; this luminous horizon
+    # anchors its scale to the encounter stage without implying solid ground.
+    draw_line(Vector2(620.0, 376.0), Vector2(755.0, 376.0), Color(0.50, 0.77, 0.74, 0.24), 1.0)
+    draw_arc(Vector2(687.0, 373.0), 70.0, 0.10, PI - 0.10, 24,
+        Color(0.35, 0.67, 0.70, 0.24), 1.0)
+
+func _sync_wind_shear_visual() -> void:
+    if wind_shear_visual == null:
+        return
+    # Presentation identity must match BOTH the current-story hazard and the
+    # adapter's live enemy id. The synthetic formula target receives no art.
+    var authorized: bool = (
+        formula_encounter.active
+        and active_hazard_encounter_id == "wind_shear"
+        and str(formula_encounter.target.get("id", "")) == "windShear"
+    )
+    wind_shear_visual.visible = authorized
+    if authorized:
+        wind_shear_visual.set_encounter_state(
+            formula_encounter.weakness_revealed(),
+            formula_encounter.completed,
+            int(formula_encounter.enemy_turns)
+        )
+
 func _draw_target(point: Vector2, label_text: String, target_color: Color, completed: bool) -> void:
     var color := Color(target_color, 0.20 if completed else 0.38)
     draw_circle(point + Vector2(0, -45), 24.0, color)
@@ -366,6 +451,7 @@ func start_formula_review() -> bool:
     formula_encounter.reset()
     if not formula_encounter.start():
         return false
+    _sync_wind_shear_visual()
     ender.player_controlled = false
     last_message = formula_encounter.last_log()
     _refresh_ui()
@@ -385,6 +471,8 @@ func start_hazard_encounter(hazard_id: String) -> bool:
         return false
 
     active_hazard_encounter_id = hazard_id
+    wind_shear_visual.begin_encounter()
+    _sync_wind_shear_visual()
     ender.player_controlled = false
     last_message = formula_encounter.last_log()
     _refresh_ui()
@@ -406,6 +494,7 @@ func close_formula_review() -> bool:
         return false
 
     active_hazard_encounter_id = ""
+    _sync_wind_shear_visual()
     if not hazard_id.is_empty():
         if hazard_cleared:
             last_message = "Crossing cleared: " + Content.hazard_label(hazard_id) + "."
@@ -434,12 +523,20 @@ func take_formula_review_action(action_id: String) -> bool:
         queue_redraw()
         return false
 
+    # Read pre-resolution HP, never forecast a hit from the selected action.
+    var enemy_hp_before: int = int(formula_encounter.target.get("hp", 0))
     if not formula_encounter.take_action(action_id):
         last_message = formula_encounter.last_log()
         _refresh_ui()
         queue_redraw()
         return false
     last_message = formula_encounter.last_log()
+    _sync_wind_shear_visual()
+    if wind_shear_visual != null and wind_shear_visual.visible:
+        wind_shear_visual.register_resolved_damage(
+            enemy_hp_before,
+            int(formula_encounter.target.get("hp", 0))
+        )
     _refresh_ui()
     queue_redraw()
     return true
@@ -733,6 +830,7 @@ func restore_save_snapshot(snapshot: Dictionary) -> bool:
     dialogue.close()
     formula_encounter.reset()
     active_hazard_encounter_id = ""
+    _sync_wind_shear_visual()
     pending_signal_id = ""
     pending_contact_id = ""
 

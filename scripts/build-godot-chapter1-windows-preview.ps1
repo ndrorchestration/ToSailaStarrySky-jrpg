@@ -79,6 +79,7 @@ Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://test
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_current_enemy_adapter_test.gd") "Current-story enemy adapter"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_wind_shear_retaliation_test.gd") "Authored Wind Shear retaliation"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_wind_shear_combat_scene_test.gd") "Authored Wind Shear Crossing combat"
+Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_wind_shear_visual_test.gd") "Authored Wind Shear visual state"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_chapter1_review_test.gd") "Chapter I review scene"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/ionia_four_direction_test.gd") "Ionia four-direction stage-art contract"
 Invoke-GodotChecked @("--headless", "--path", $GodotDir, "--script", "res://tests/first_wake_chapter1_export_contract.gd") "Windows export contract"
