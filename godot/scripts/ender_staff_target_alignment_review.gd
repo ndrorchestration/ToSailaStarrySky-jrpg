@@ -23,7 +23,13 @@ func _tip_name(_next_facing: String) -> String:
     # independently-authored east/west/south/north strike tracks.
     return "shaftTipA"
 
+func _reject() -> bool:
+    visual_state = {}
+    queue_redraw()
+    return false
+
 func bind_contact_anchor(next_facing: String, contact_frame: Dictionary) -> bool:
+    aligned = false
     if next_facing not in STAFF.FACINGS \
         or str(contact_frame.get("source","")) != STAFF.ART_AUTHORITY \
         or str(contact_frame.get("actorId","")) != "ender" \
@@ -31,7 +37,7 @@ func bind_contact_anchor(next_facing: String, contact_frame: Dictionary) -> bool
         or bool(contact_frame.get("combatCommandIssued",true)) \
         or bool(contact_frame.get("canExecute",true)) \
         or absf(float(contact_frame.get("progress",-1.0))-CONTACT_KEY) > 0.0001:
-        return false
+        return _reject()
     var tip_id: String = _tip_name(next_facing)
     center = Vector2(contact_frame[tip_id])
     facing = next_facing
@@ -51,14 +57,14 @@ func apply_visual_contact(frame: Dictionary, cue: Dictionary) -> bool:
         or bool(cue.get("hitAuthorized",true)) \
         or bool(cue.get("combatCommandIssued",true)) \
         or int(cue.get("damage",-1)) != 0:
-        return false
+        return _reject()
     var progress: float = float(frame.get("progress",-1.0))
     if is_nan(progress) or is_inf(progress) or progress < 0.0 or progress > 1.0:
-        return false
+        return _reject()
     var tip: Vector2 = Vector2(frame[active_tip])
     var distance: float = tip.distance_to(center)
     if is_nan(distance) or is_inf(distance):
-        return false
+        return _reject()
     var reduced: bool = bool(frame.get("motionReduced",false)) or bool(cue.get("motionReduced",false))
     var in_interval: bool = progress >= 0.62 and progress < 0.77
     var intensity: float = 0.0
