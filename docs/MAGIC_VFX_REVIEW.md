@@ -1,0 +1,63 @@
+# Magic cinematic VFX — native look-development study v0.2
+
+**Status:** IMPLEMENTED CANDIDATE / ART NOT APPROVED. v0.1 source, native tests and six frames were verified at `4a2e737bd9`. The expanded v0.2 shader, particles, ground contact and visual control contracts passed actual Godot 4.7.2 CI at source commit `31598ee1c4885e14179ce158a95f4fbf7f09ca64`.
+**Source:** isolated Godot 4.7.2 + GDScript branch based on `feat/godot-first-wake-party-combat-authority-20261022` at `74fe1bce7a8a02eb3cbf30f725fa2af0925ba670`.
+**Scope:** five original SVG sigils, five distinct motif branches in an original CanvasItem shader, deterministic bounded micro-particles, decorative contact-ground drawings, review scene and scene-level tests. No active encounter uses this.
+
+## Creator-approved foundational identity (newer authority)
+
+| Protagonist | Fundamental energy | Effect motif |
+| --- | --- | --- |
+| Ender | Spirit | Ivory/violet constellation alignment; soul-bound light, not automatic Holy |
+| Lyra | Water | Flowing tidal ribbon; the creator's pink spirit-light remains visibly present |
+| Ionia | Earth | Grounded faceted minerals, shards and settling dust |
+| Reson | Fire | Rising thermal tongues, cinders and warm impact |
+| Aepex | Air | Flowing pressure wakes and displaced aerodynamic bands |
+
+These energies are **narrative/plot resonance regardless of job selection or whether a character ever learns magic**. Do not award any spell, mastery, equipment or combat permission by displaying a visual. The earlier `docs/MAGIC_SYSTEM.md` affinity list is stale relative to the newer creator decision; leave its runtime registry untouched until an authorized reconciliation.
+
+## Use
+
+Open `res://scenes/magic_vfx_showcase.tscn` in `godot/project.godot` using Godot **4.7.2** and run the current scene (F6). Keys **1–5** select protagonist, **LEFT/RIGHT** manually inspect paused cinematic keyframes, **Q** cycles low/medium/high particle budgets, **M** opts into/out of animation, **SPACE** restarts the selected vignette; **ESC** exits. Reduced motion defaults ON, showing a stable full composition. Effects deliberately omit screen flashes/camera shake; colors aren't the only identifying cue.
+
+A standalone consumer can instantiate `res://scripts/magic_vfx.gd`, add it to the scene tree and call `play_affinity(character_id, reduced_motion)` using an allowed character id. Invalid IDs fail closed without changing the currently selected visual. The node has no gameplay side effects.
+
+All authored effects follow **anticipation → formation → release → impact → aftermath** on a 2.4-second non-gameplay timeline. Visual-only `seek_visual_phase(progress)` pauses any autoplay and shows a deterministic keyframe, including with reduced motion enabled. The original glyph is composited with a low-cost shader aura; particles are seeded from stable arithmetic, never global RNG. Max procedural particle counts are 12 (low), 30 (medium) and 48 (high) in animated mode, capped at 14 in reduced-motion mode. The footprint drawing only suggests wetness, cracking, heat or pressure: it does **not** write encounter channels or mutate physical terrain. Motion-sensitive mode is a stable illustrated frame instead of flashing/rotating particles. This is a visual vocabulary, not a master spell atlas.
+
+## Art and validation gates
+
+1. Native import: `godot --headless --path godot --editor --quit`.
+2. Native contract: `godot --headless --path godot --script res://tests/magic_vfx_contract_test.gd`.
+3. Visual review: capture real 960×640 Godot frames in five static poses, five impact keyframes and one Ender motion frame. Inspect art/color/readability, GL Compatibility shader output, ground-contact differences and accessibility. Frame byte hashes prove capture identity, **not** artist acceptance or framerate. Benchmark separately on representative hardware.
+4. Only after native captures + creator sign-off, consider integrating into battle, upgrading to particles/3D volumes, or admitting spell-specific effects.
+
+**Outstanding for v0.2:** code/native rendering passed on tested source commit `31598ee1`. No manual screenshot review, 2.5D camera occlusion test, battle transition test or hardware FPS proof has yet been accepted. Shader-based glow is a CanvasItem atmospheric lens, **not** true volumetric scattering, terrain lighting or HDR postprocess bloom. Art direction is a candidate, not canon.
+
+**Provenance:** SVG glyphs and procedural drawing authored for this project as original placeholders; not derived from third-party/copyrighted effect packs. They remain editable vector sources, without dependencies or runtime downloads.
+
+## Verified source-level receipts — 2026-10-27
+
+- [Pinned Godot 4.7.2 import + native contracts](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40576804805): **PASS** for v0.2 source `31598ee1`. Explicit `STARRY_SKY_MAGIC_VFX_PASS` and existing Chapter I tests.
+- [Native GL framebuffer capture](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40576804824): **PASS** for the same source; ten five-affinity static/impact frames and one moving Ender frame at **960×640** with distinct ground-contact regions. Frames carry SHA-256 receipts in job logs, and remain runner-side due existing artifact-custody limits. **Visual art acceptance is still PENDING**.
+- [Exact Windows security preflight](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40576804811): **BLOCKED / FAIL** on unchanged Defender real-time protection requirement (`WINDOWS_QA_HOST_DEFENDER_REALTIME_DISABLED`). Its functional prerequisites passed. Do not weaken this release/security boundary.
+- A prior native `98fdc439`/ `0dc0083c` version failed because untyped intermediate variables in `magic_vfx_particles.gd` could not be inferred by GDScript. Corrected with explicitly typed scalar locals in tested source `31598ee1`; do not silently reinterpret old failed runs as passes.
+
+## Native environmental light and occlusion study v0.3
+
+See [environmental VFX verification](MAGIC_VFX_ENVIRONMENT_REVIEW.md). An isolated native 2D PointLight2D + LightOccluder2D / CanvasItem depth-order study passed actual Godot 4.7.2 source-specific frame comparisons at `9b1f43291060f589b3d8c9fd6618496a36500d75`: five original affinity light colors, direct-light A/B, occluder shadow A/B, foreground blocked/open A/B and impact keyframe. **These are native 2D compositions, not accepted 2.5D runtime gameplay, 3D volumetrics or creator-approved art.**
+
+## Native Chapter I camera/character composite v0.4
+
+See [Chapter I VFX and camera review](MAGIC_VFX_CHAPTER1_CAMERA_REVIEW.md). A real **Godot 4.7.2** instance of the existing Chapter I dock and Ender candidate sprite passed five-affinity rendering, actor front/behind pixels, local light A/B and Camera2D closeup comparisons at executable source `a42fa46c57613191ce200a1f1d0e1993109575ad`. **No combat magic was activated and no Chapter I state was modified.** Real captured frames are runner-local with SHA-256 in the Actions logs; artistic/physical 3D acceptance remain pending.
+
+## v0.5 native environmental stress check
+
+The Chapter I read-only camera study has [exact-source verified](MAGIC_VFX_CHAPTER1_CAMERA_REVIEW.md) daylight/dusk/night `CanvasModulate` contrast and fixed mist/rain overlays. [Godot native test](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40599651428) and [15-frame native capture](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40599651312) **passed** at `aff5713096b542b2dd3e495ef61bef554a1e740b`; the observed relative dock brightness is daylight 0.46008, dusk 0.34463, night 0.24314. This is a renderer stress test, not approved world weather or master magic authority. Final visual, performance and gameplay acceptance remain open.
+
+## Native character silhouette and pink spirit-light QA v0.6
+
+The [Chapter I scene review](MAGIC_VFX_CHAPTER1_CAMERA_REVIEW.md) has actual Godot renderer evidence for Ender sprite preservation (**1166/1169 = 99.74%** original silhouette pixels retained, at least 94% required), unchanged HUD regions, and Lyra's independent pink spirit-light under both daylight (**100 pink witness pixels**) and night mist (**66 witness pixels**). Exact-source runs: [Godot native PASS](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40607204414) and [real framebuffer PASS](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40607204395) at `266d65880da2ece7ff83a5d7935ac1f627bd1156`. Earlier composition/pink regressions are documented explicitly. No story/skill/combat runtime changes, production art approval or release claim.
+
+## v0.7 native HUD contrast and camera-safe scrim
+
+Actual Chapter I scene render tests at `5d2fd636ff7cbfddef3402fcd2c063d5aee20800` now guard median **≥4.5:1** and 10th-percentile **≥3.5:1** image-space glyph contrasts under four opt-in conditions (day, dusk/mist, night/rain, and night/rain close-up). [Godot native tests](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40609024240) and [real 960×640 frame comparisons](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40609024498) passed. The final night-rain close-up objective witnessed **14.75 median, 4.44 p10**. See [the test methodology and failed control history](MAGIC_VFX_CHAPTER1_CAMERA_REVIEW.md). No formal WCAG, artistic, FPS or production magic authority approval implied.
