@@ -120,7 +120,11 @@ func _draw() -> void:
         {"at": TALEN_POSITION, "label": "TALEN (SAFE)", "color": Color("#e6bd83")},
     ]:
         var p: Vector2 = item["at"]
-        draw_rect(Rect2(p + Vector2(-37, -92), Vector2(74, 55)), item["color"])
+        if cinematic_environment_enabled and str(item["label"]) in [
+                "DENITH'S LOG","PHASE CHART","THEORY TABLE"]:
+            CinematicStageArt.draw_family_station(self,p,str(item["label"]))
+        else:
+            draw_rect(Rect2(p + Vector2(-37, -92), Vector2(74, 55)), item["color"])
         draw_string(ThemeDB.fallback_font, p + Vector2(-62, -101), str(item["label"]), HORIZONTAL_ALIGNMENT_LEFT, 160, 14, Color("#fff1d3"))
     if child_block_ship_viewed:
         draw_rect(Rect2(TALEN_POSITION + Vector2(-25, -69), Vector2(50, 13)), Color("#77a8c6"))
