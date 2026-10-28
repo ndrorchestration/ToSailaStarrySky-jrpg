@@ -232,7 +232,7 @@ func _refresh_ui() -> void:
         review_label.position = Vector2(24, 24)
         review_label.text = "AUREATE WAKE / ORDINARY SHIP WALKTHROUGH — STUDY ONLY"
         instruction_label.text = (
-            "WASD / ARROWS: walk    E: hatch    F: helm    G: glass    C: camera    M: still sea    B: return")
+            "WASD / ARROWS: walk    E: hatch    F: helm    G: glass    C: camera    M: still sea    N: sky    B: return")
         instruction_label.visible = true
     else:
         review_label.position = Vector2(24, 148)
@@ -253,6 +253,11 @@ func _unhandled_input(event: InputEvent) -> void:
     elif three_d_review_active and event.keycode == KEY_G:
         if cycle_glass_review():
             get_viewport().set_input_as_handled()
+    elif three_d_review_active and event.keycode == KEY_N:
+        maritime_atmosphere.set_twilight_review(not maritime_atmosphere.twilight_review)
+        last_review_message = "Sky study: " + ("twilight" if maritime_atmosphere.twilight_review else "daylight")
+        _refresh_ui()
+        get_viewport().set_input_as_handled()
     elif three_d_review_active and event.keycode == KEY_M:
         maritime_atmosphere.set_reduced_motion(not maritime_atmosphere.reduced_motion)
         last_review_message = "Ocean animation: " + ("reduced" if maritime_atmosphere.reduced_motion else "normal")
