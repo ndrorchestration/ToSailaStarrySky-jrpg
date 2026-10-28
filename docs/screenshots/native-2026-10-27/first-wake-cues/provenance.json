@@ -1,0 +1,56 @@
+{
+  "files": {
+    "controlled-descent": {
+      "dimensions": [
+        960,
+        640
+      ],
+      "optimized_jpg": "controlled-descent.jpg",
+      "optimized_sha256": "6bfef658b0c094e866365ba671ab4752979fdbb502a35ee84f65c34a8f04879f",
+      "original_png": "original/controlled-descent.png",
+      "original_sha256": "be5bcc9a37123505066ddafc94220e96b4f03945146cf92ef6c9c2b9c200dc06",
+      "source_path": "home/runner/work/ToSailtheStarrySky-jrpg/ToSailtheStarrySky-jrpg/godot/flight_slice/evidence/first-wake-cues/controlled-descent.png"
+    },
+    "first-lift": {
+      "dimensions": [
+        960,
+        640
+      ],
+      "optimized_jpg": "first-lift.jpg",
+      "optimized_sha256": "d8d0a96bdbc569eb26f0fb5d6340cbba5a65342d01e1c28c4fb082d0d73aef03",
+      "original_png": "original/first-lift.png",
+      "original_sha256": "3fe31045abacb77176aeea7dc949bed85cb51ca857023ba382ed4ae529e3ca81",
+      "source_path": "home/runner/work/ToSailtheStarrySky-jrpg/ToSailtheStarrySky-jrpg/godot/flight_slice/evidence/first-wake-cues/first-lift.png"
+    },
+    "ocean-afloat-study": {
+      "dimensions": [
+        960,
+        640
+      ],
+      "optimized_jpg": "ocean-afloat-study.jpg",
+      "optimized_sha256": "5d36713764d6432ddc7e490a20cd205d8f0e9506f3da6fa9c7bb6afe0f7c7924",
+      "original_png": "original/ocean-afloat-study.png",
+      "original_sha256": "80e26677e56c71e89df68d76ec10116d1d00a27908ba1b10702419476e03e340",
+      "source_path": "home/runner/work/ToSailtheStarrySky-jrpg/ToSailtheStarrySky-jrpg/godot/flight_slice/evidence/first-wake-cues/ocean-afloat-study.png"
+    },
+    "recovery-checks": {
+      "dimensions": [
+        960,
+        640
+      ],
+      "optimized_jpg": "recovery-checks.jpg",
+      "optimized_sha256": "5a6d428db0874f5e8871e22383fb75efc39f7f3469a69130dcef55eb2ec93444",
+      "original_png": "original/recovery-checks.png",
+      "original_sha256": "192049e8845f5300e98c62234d10e129254472ef8d267d2182399b9d32f2643d",
+      "source_path": "home/runner/work/ToSailtheStarrySky-jrpg/ToSailtheStarrySky-jrpg/godot/flight_slice/evidence/first-wake-cues/recovery-checks.png"
+    }
+  },
+  "fixture": "separate 3D cue consumer, not the forward 2D story producer in the same runtime",
+  "renderer": "Godot 4.7.2 native software OpenGL 960x640",
+  "source_artifact_id": 12788812796,
+  "source_artifact_sha256": "3a29b0a5aa087ed2b48e293298edf1e638ddd74cde35a418f335fd1121a00a53",
+  "source_commit": "d6afcf7a3c94c841e6fd305f8aad5f5fbe603c75",
+  "source_pr": 524,
+  "source_workflow_run": 40625082846,
+  "status": "real prototype frames; not approved production art, ocean physics, or rescue geography"
+}
