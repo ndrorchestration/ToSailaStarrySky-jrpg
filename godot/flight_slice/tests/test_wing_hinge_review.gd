@@ -42,7 +42,7 @@ func _run() -> void:
         for child in rig.get_children():
             var part: Node3D = child as Node3D
             check(part.global_transform.is_equal_approx(original_ship),
-                "neutral original ship-local geometry preserved " + name + "/" + child.name)
+                "neutral original ship-local geometry preserved " + name + "/" + str(child.name))
         baseline[name] = (rig.get_node("Membrane_" + name) as MeshInstance3D).global_transform
     check(ship.set_wing_review_sweep(0.5), "half sweep accepted")
     for name in WINGS:
