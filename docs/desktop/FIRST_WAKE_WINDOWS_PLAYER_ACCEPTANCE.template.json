@@ -1,0 +1,20 @@
+{
+  "schema": "TSTSS_FIRST_WAKE_WINDOWS_PLAYER_ACCEPTANCE_V1",
+  "sourceSha": "REPLACE_WITH_EXACT_40_CHARACTER_COMMIT",
+  "installerSha256": "REPLACE_WITH_ACTUAL_INSTALLER_SHA256",
+  "testedAtUtc": null,
+  "tester": "",
+  "result": "PENDING",
+  "installedGameLaunched": false,
+  "firstFlightCompleted": false,
+  "splashdownCompleted": false,
+  "postflightReserveInspected": false,
+  "saveAndLoadVerified": false,
+  "windowMaximizeRestoreVerified": false,
+  "installerUninstallVerified": false,
+  "inputAndAccessibilityReviewed": false,
+  "visualAndAudioReviewed": false,
+  "creatorReviewedAndApproved": false,
+  "issues": "",
+  "evidenceNotes": "Fill only after real Windows installer playthrough; do not mark PASS from CI or Godot editor F5."
+}
