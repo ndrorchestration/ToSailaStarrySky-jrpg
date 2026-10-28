@@ -110,8 +110,20 @@ func _verify() -> void:
     if story.snapshot()["fuel_explanation_status"] != "hypothesis_only" or scene.review_snapshot()["real_return_route_verified"]:
         _fail("theory incorrectly claimed fuel formula or physical recovery route")
         return
-    if scene.interact() or scene.review_snapshot()["combat_art_granted"] or scene.review_snapshot()["canonical_geography_assigned"]:
-        _fail("working theory repeated or fabricated combat/geography authority")
+    if scene.review_snapshot()["combat_art_granted"] or scene.review_snapshot()["canonical_geography_assigned"]:
+        _fail("theory fabricated combat or geography authority")
+        return
+    if not scene.interact() or scene.repair_review == null:
+        _fail("theory table did not open connected repair workshop")
+        return
+    if not scene.repair_review.has_external_story_handoff or scene.repair_review.story != story:
+        _fail("repair workshop used a forged/fixture story instead of actual postflight evidence")
+        return
+    if scene.repair_review.core.snapshot()["phase"] != "recover" or scene.repair_review.core.snapshot()["can_launch"]:
+        _fail("physical quest bypassed or flight permitted at workshop entry")
+        return
+    if scene.interact() or not scene.review_snapshot()["connected_repair_review"]:
+        _fail("duplicate repair handoff admitted")
         return
     scene.queue_free()
     await process_frame
