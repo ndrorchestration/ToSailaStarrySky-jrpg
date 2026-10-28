@@ -6,6 +6,10 @@ Aetherwake is a late-prototype / pre-alpha project.
 
 The authoritative `main` line now contains the authored First Wake onboarding path, persistent `ROSTER[5]`, validated reference-based `ACTIVE_PARTY[1..5]`, the JRPG combat/formula and magic contract stack, open-sky navigation, live dialogue/shop/ledger paths, and fail-closed compatibility guards. The runtime baseline before the documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`; documentation-only merges may advance protected `main` without changing player-runtime bytes. Preview 0.1 remediation/review candidate PR #250 is separately bound to exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; do not project candidate-only changes onto `main` before merge.
 
+## New Godot character-visual production-path test (planned, not admitted)
+
+The 2026-10-27 [Character motion P0–P6 production-admission pipeline](design/CHARACTER_MOTION_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md) connects already executed **isolated native character-art and walking diagnostics** to a bounded P-01 integration fixture, separate from the historical JS runtime and exact Preview 0.1 installer binding. No merged character sprite pack, verified planted-foot animation, active Chapter I recruitment, equipment/cinematic bridge, or Windows release is implied. Check the current native Chapter I/visual branches and test evidence before implementing the next P-01 scene.
+
 ## Desktop / release authority
 
 The current production desktop structure is intentionally separate from the development repository root.
