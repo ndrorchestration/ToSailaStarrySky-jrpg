@@ -110,6 +110,16 @@ jobs:
         run: |
           set -euo pipefail
           timeout --kill-after=3s 35s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/resonance_dual_review_scene_test.gd
+      - name: Verify v2 revised opening checkpoint codec cannot read or mutate legacy Chapter I saves
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout --kill-after=3s 35s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_revised_checkpoint_codec_test.gd
+      - name: Verify real Ionia-first scene v2 checkpoint save, backup recovery and no Art grants
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout --kill-after=3s 45s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_revised_checkpoint_scene_test.gd
       - name: Verify composed Chapter I chronology plus Resonance review preflight
         shell: bash
         run: |
