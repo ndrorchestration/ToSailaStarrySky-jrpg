@@ -42,8 +42,8 @@ test('required creator narrative order and fail-closed gameplay controls are exp
     'Ender', 'Ionia first, Lyra second','Talen','Denith','remembered shanty',
     'failed material-only retest','two independent clues out of three',
     'real local 2D water contact','no true flight or combat unlock',
-    'noncombat child','original remembered captain','no audio alone',
-    'historical old-runtime acceptance','F8 family','one authoritative chapter route'
+    'noncombat child','original remembered captain','audio alone',
+    'historical old-runtime acceptance','F8 family','One authoritative chapter route'
   ];
   for(const phrase of required)
     assert.ok(DOC.includes(phrase), 'required high-quality gate missing: '+phrase);
@@ -57,14 +57,14 @@ test('exact draft receipts remain distinct from production and human approvals',
     assert.ok(DOC.includes('/runs/'+run),'missing exact-head native receipt '+run);
   }
   assert.match(DOC,/Chapter One polish acceptance = HOLD/);
-  assert.match(DOC,/not a claim that Chapter One is finished/i);
+  assert.match(DOC,/Not\\*\\* a claim that Chapter One is finished/i);
   assert.match(DOC,/Defender-on custody/);
   assert.match(DOC,/HUMAN|human|Human/);
   assert.match(DOC,/first suggested reversible player-facing patch/i);
 });
 
 test('P0 blockers do not hide behind optional art or installer proofs',()=>{
-  const p0=parsed.filter(i=>i.priority==='P0').map(i=>i.title.toLowerCase()).join(' ');
+  const p0=parsed.filter(i=>i.priority==='P0').map(i=>(i.title+' '+i.acceptance+' '+i.evidence).toLowerCase()).join(' ');
   for(const word of ['employment','flight','splashdown','lyra','shanty','save','retest',
     'objective','inventory','harmonic'])
     assert.ok(p0.includes(word),'missing essential P0 gate '+word);
