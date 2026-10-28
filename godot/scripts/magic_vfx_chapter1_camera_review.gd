@@ -14,7 +14,8 @@ const LIGHT_PROFILES = {
     "night": Color(0.44, 0.53, 0.69)
 }
 const KEYFRAMES = [0.08, 0.29, 0.49, 0.67, 0.89]
-const EFFECT_OFFSET = Vector2(0.0, -57.0)
+# The review VFX center sits to Ender's right: readable silhouette, still a local casting composition.
+const EFFECT_OFFSET = Vector2(64.0, -57.0)
 const EFFECT_SCALE = Vector2(0.58, 0.58)
 const DEFAULT_CAMERA = Vector2(480.0, 320.0)
 const CLOSEUP_OFFSET = Vector2(0.0, -70.0)
