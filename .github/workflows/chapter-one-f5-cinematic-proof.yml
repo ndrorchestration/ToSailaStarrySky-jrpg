@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - "godot/scripts/first_wake_game.gd"
+      - "godot/scripts/first_wake_cinematic_environment.gd"
       - "godot/scripts/first_wake_postflight_game.gd"
       - "godot/scripts/first_wake_postflight_family_review.gd"
       - "godot/scripts/first_wake_core_alignment_*.gd"
@@ -54,12 +55,16 @@ jobs:
           timeout 170s xvfb-run -a -s '-screen 0 960x640x24' env LIBGL_ALWAYS_SOFTWARE=1 \
             /tmp/Godot_v4.7.2-stable_linux.x86_64 --path godot --rendering-driver opengl3 \
             --resolution 960x640 --audio-driver Dummy --fixed-fps 60 \
-            --script res://tests/first_wake_game_entry_test.gd -- --capture --retain-stage-save 2>&1 | tee /tmp/ch1-capture.log
+            --script res://tests/first_wake_game_entry_test.gd -- --capture --cinematic-pairs --retain-stage-save 2>&1 | tee /tmp/ch1-capture.log
           ! grep -Eq 'SCRIPT ERROR:|SHADER ERROR|Parse Error|TSTSS_FIRST_WAKE_GAME_ENTRY_FAIL:' /tmp/ch1-capture.log
           grep -Eq 'TSTSS_FIRST_WAKE_GAME_ENTRY_PASS checks=[0-9]+ real_water_contact=true' /tmp/ch1-capture.log
           grep -Fq 'harmonic_bench_candidate=true captures=9' /tmp/ch1-capture.log
+          test "$(find godot/review-evidence -maxdepth 1 -name 'ch1-visual-*-960x640.png' -type f -size +0c | wc -l)" -eq 6
+          for shot in reserve family workshop; do
+            grep -q "TSTSS_CH1_CINEMATIC_AB label=${shot} changed_sample_pixels=" /tmp/ch1-capture.log
+          done
           test "$(find godot/review-evidence -maxdepth 1 -name 'ch1-f5-*-native-960x640.png' -type f -size +0c | wc -l)" -eq 9
-          sha256sum godot/review-evidence/ch1-f5-*-native-960x640.png | tee /tmp/ch1-sha256.txt
+          sha256sum godot/review-evidence/ch1-f5-*-native-960x640.png godot/review-evidence/ch1-visual-*-960x640.png | tee /tmp/ch1-sha256.txt
           grep -Fq 'TSTSS_CH1_COLD_PROCESS_FIXTURE_READY: v1_verified=true v2_candidate=true' /tmp/ch1-capture.log
       - name: Prove actual NEW Godot OS-process cold save restore
         shell: bash
@@ -78,6 +83,7 @@ jobs:
           if-no-files-found: warn
           path: |
             godot/review-evidence/ch1-f5-*-native-960x640.png
+            godot/review-evidence/ch1-visual-*-960x640.png
             /tmp/ch1-import.log
             /tmp/ch1-native.log
             /tmp/ch1-capture.log

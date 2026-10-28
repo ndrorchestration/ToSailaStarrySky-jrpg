@@ -7,6 +7,7 @@ const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const Actor = preload("res://scripts/pilot_actor.gd")
 const Inputs = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const WorkshopScene = preload("res://scenes/first_wake_core_alignment_review.tscn")
+const CinematicStageArt = preload("res://scripts/first_wake_cinematic_environment.gd")
 
 const LYRA_POSITION := Vector2(690, 470)
 const TALEN_POSITION := Vector2(812, 470)
@@ -33,6 +34,7 @@ var party_label: Label
 var hint_label: Label
 var ui_layer: CanvasLayer
 var repair_review: Node2D
+var cinematic_environment_enabled: bool = true
 var last_message: String = "A temporary safe mooring review; exact shoreline geography is not established."
 
 func configure_after_safe_review(story: Variant, physical_water_verified: bool, stable_float_verified: bool, reserve_inspected: bool, mooring_confirmed: bool) -> bool:
@@ -94,15 +96,22 @@ func _label(parent: Node, pos: Vector2, font_size: int, width: float) -> Label:
     parent.add_child(node)
     return node
 
+func set_cinematic_environment_enabled(enabled: bool) -> void:
+    cinematic_environment_enabled = enabled
+    queue_redraw()
+
 func _draw() -> void:
-    # Original draft blocking, not approved character portraits or geography.
-    draw_rect(Rect2(0, 0, 960, 640), Color("#183347"))
-    draw_rect(Rect2(0, 328, 960, 220), Color("#42616a"))
-    draw_rect(Rect2(0, 395, 960, 148), Color("#735d47"))
-    for y in [413.0, 439.0, 465.0, 491.0, 517.0]:
-        draw_line(Vector2(65, y), Vector2(904, y), Color("#9f8060"), 2.0)
-    draw_rect(Rect2(0, 0, 960, 116), Color("#0c1d2e"))
-    draw_string(ThemeDB.fallback_font, Vector2(28, 191), "TEMPORARY SAFE BERTH — REVIEW SPACE / SITE UNASSIGNED", HORIZONTAL_ALIGNMENT_LEFT, 900, 17, Color("#f1d9ad"))
+    if cinematic_environment_enabled:
+        CinematicStageArt.draw_family(self)
+    else:
+        # Original draft blocking, not approved character portraits or geography.
+        draw_rect(Rect2(0, 0, 960, 640), Color("#183347"))
+        draw_rect(Rect2(0, 328, 960, 220), Color("#42616a"))
+        draw_rect(Rect2(0, 395, 960, 148), Color("#735d47"))
+        for y in [413.0, 439.0, 465.0, 491.0, 517.0]:
+            draw_line(Vector2(65, y), Vector2(904, y), Color("#9f8060"), 2.0)
+        draw_rect(Rect2(0, 0, 960, 116), Color("#0c1d2e"))
+        draw_string(ThemeDB.fallback_font, Vector2(28, 191), "TEMPORARY SAFE BERTH — REVIEW SPACE / SITE UNASSIGNED", HORIZONTAL_ALIGNMENT_LEFT, 900, 17, Color("#f1d9ad"))
     for item in [
         {"at": IONIA_LOG, "label": "DENITH'S LOG", "color": Color("#c59b6e")},
         {"at": PHASE_CHART, "label": "PHASE CHART", "color": Color("#87b6bd")},
@@ -111,7 +120,11 @@ func _draw() -> void:
         {"at": TALEN_POSITION, "label": "TALEN (SAFE)", "color": Color("#e6bd83")},
     ]:
         var p: Vector2 = item["at"]
-        draw_rect(Rect2(p + Vector2(-37, -92), Vector2(74, 55)), item["color"])
+        if cinematic_environment_enabled and str(item["label"]) in [
+                "DENITH'S LOG","PHASE CHART","THEORY TABLE"]:
+            CinematicStageArt.draw_family_station(self,p,str(item["label"]))
+        else:
+            draw_rect(Rect2(p + Vector2(-37, -92), Vector2(74, 55)), item["color"])
         draw_string(ThemeDB.fallback_font, p + Vector2(-62, -101), str(item["label"]), HORIZONTAL_ALIGNMENT_LEFT, 160, 14, Color("#fff1d3"))
     if child_block_ship_viewed:
         draw_rect(Rect2(TALEN_POSITION + Vector2(-25, -69), Vector2(50, 13)), Color("#77a8c6"))
