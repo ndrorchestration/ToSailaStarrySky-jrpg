@@ -10,6 +10,12 @@ const EnemyView = preload("res://scripts/first_wake_wind_shear_visual.gd")
 
 const LOGICAL_SIZE := Vector2i(960, 640)
 const DEMO_ONLY := "NONCANON BATTLE LAB — PREVIEW ONLY"
+# A *visual* pressure-surface point in the provisional sprite, not physics.
+# Rig distance is measured from the real staff keyframe ferrule, never a
+# fabricated/shortened weapon or a melee collision.
+const ENEMY_STAGE_POSITION := Vector2(598.0, 323.0)
+const OPTICAL_CONTACT_LOCAL := Vector2(-49.0, -58.0)
+const MAX_OPTICAL_SEPARATION := 2.0
 
 class Sequence:
     extends RefCounted
@@ -33,16 +39,21 @@ var reduced_motion: bool = false
 var last_visual_receipt: Dictionary = {}
 var accepted_actions: int = 0
 var finished_visual_receipts: int = 0
+var optical_contact_distance: float = -1.0
+var optical_contact_world: Vector2 = Vector2.ZERO
+var optical_contact_verified: bool = false
 
 func _ready() -> void:
     enemy_view = EnemyView.new()
     enemy_view.name = "NeutralLabEnemyView"
-    enemy_view.position = Vector2(692.0, 323.0)
+    enemy_view.position = ENEMY_STAGE_POSITION
     enemy_view.z_index = 2
     add_child(enemy_view)
     staff_view = Staff.new()
     staff_view.name = "ReadOnlyStaffPose"
-    staff_view.position = Vector2(294.0, 332.0)
+    # Resting staff position is a display placeholder. A resolved strike
+    # derives its staging position from the actual authored ferrule point.
+    staff_view.position = Vector2(424.0, 339.0)
     staff_view.z_index = 2
     staff_view.visible = false
     add_child(staff_view)
@@ -83,6 +94,9 @@ func start_lab(enable_reduced_motion: bool = false) -> bool:
     accepted_actions = 0
     finished_visual_receipts = 0
     last_visual_receipt = {}
+    optical_contact_distance = -1.0
+    optical_contact_verified = false
+    optical_contact_world = Vector2.ZERO
     reduced_motion = enable_reduced_motion
     enemy_view.begin_encounter()
     enemy_view.set_reduced_motion(reduced_motion)
@@ -112,6 +126,20 @@ func resolve_one_staff_strike() -> bool:
     if not staff_view.set_facing("east") or not staff_view.apply_battle_pose(pose):
         push_error("NEUTRAL_BATTLE_WEAPON_VIEW_REJECTED")
         return false
+    # Contact staging is computed from a genuine authored frame. No moving
+    # hitbox, artificial projectile, staff-length editing, or combat reroll.
+    var frame: Dictionary = staff_view.visual_contract()
+    if not frame.has("shaftTipA") or not frame.has("weaponLength")         or absf(float(frame["weaponLength"]) - Staff.STAFF_HALF * 2.0) > 0.001:
+        push_error("NEUTRAL_BATTLE_OPTICAL_FERRULE_MISSING")
+        return false
+    optical_contact_world = enemy_view.position + OPTICAL_CONTACT_LOCAL
+    var tip_local: Vector2 = Vector2(frame["shaftTipA"])
+    staff_view.position = optical_contact_world - tip_local
+    optical_contact_distance = (staff_view.position + tip_local).distance_to(optical_contact_world)
+    optical_contact_verified = optical_contact_distance <= MAX_OPTICAL_SEPARATION
+    if not optical_contact_verified:
+        push_error("NEUTRAL_BATTLE_OPTICAL_STAGING_MISMATCH")
+        return false
     staff_view.visible = true
     # Enemy state observes *actual* resolved retaliation and HP change, even
     # though this visual playback may show them in chronological phases.
@@ -136,6 +164,8 @@ func close_lab() -> bool:
     if closed:
         enemy_view.visible = false
         staff_view.visible = false
+        optical_contact_verified = false
+        optical_contact_distance = -1.0
         queue_redraw()
     return closed
 
@@ -143,15 +173,23 @@ func _draw() -> void:
     draw_rect(Rect2(0, 0, 960, 640), Color("#071421"))
     draw_rect(Rect2(42, 89, 876, 469), Color("#122839"))
     draw_rect(Rect2(58, 106, 844, 430), Color("#162e3d"), false, 2.0)
-    draw_rect(Rect2(558, 149, 307, 327), Color("#0f2836"))
-    draw_circle(Vector2(692, 309), 104, Color(0.22, 0.57, 0.66, 0.08))
-    draw_line(Vector2(605, 449), Vector2(783, 449), Color(0.44, 0.72, 0.67, 0.45), 1.0)
+    draw_rect(Rect2(465, 149, 355, 327), Color("#0f2836"))
+    draw_circle(ENEMY_STAGE_POSITION + Vector2(0, -13), 104, Color(0.22, 0.57, 0.66, 0.08))
+    draw_line(Vector2(515, 449), Vector2(710, 449), Color(0.44, 0.72, 0.67, 0.45), 1.0)
+    # The only optical impact accent is a nonflashing, motion-accessible
+    # still marker exactly at the real staff ferrule and provisional surface.
+    # It cannot authorize or detect a hit. The controller already resolved it.
+    if optical_contact_verified and not reduced_motion         and enemy_view != null and enemy_view.reaction_phase() == "hit":
+        draw_arc(optical_contact_world, 12.0, -0.9, 1.0, 16,
+            Color(0.98, 0.81, 0.50, 0.72), 2.0)
+        draw_arc(optical_contact_world, 6.0, 2.0, 4.1, 14,
+            Color(0.55, 0.86, 0.83, 0.74), 2.0)
     var font := ThemeDB.fallback_font
     draw_string(font, Vector2(76, 67), DEMO_ONLY,
         HORIZONTAL_ALIGNMENT_LEFT, 770, 20, Color("#f0d8a7"))
     draw_string(font, Vector2(78, 155), "ENDER  /  FULL-LENGTH STAFF",
         HORIZONTAL_ALIGNMENT_LEFT, 460, 18, Color("#eadabf"))
-    draw_string(font, Vector2(572, 165), "WIND SHEAR  /  ART STUDY",
+    draw_string(font, Vector2(520, 165), "WIND SHEAR  /  ART STUDY",
         HORIZONTAL_ALIGNMENT_LEFT, 300, 17, Color("#9dcdd1"))
     var status: String = "NOT STARTED"
     var hp: String = "—"
