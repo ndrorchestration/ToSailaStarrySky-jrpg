@@ -12,7 +12,7 @@ const DOC = fs.readFileSync(path.join(__dirname,
 const lines = DOC.split(/\r?\n/);
 const items = lines.filter(line => /^- \[[ xX]\] \*\*CH1-\d{2}\*\*/.test(line));
 const parsed = items.map(line => {
-  const match = line.match(/^- \[([ xX])\] \*\*CH1-(\d{2})\*\* \[(P[012]) \| ([^\]]+)\] \*\*([^*]+)\*\*\. Acceptance: (.+) Evidence required: (.+)$/);
+  const match = line.match(/^- \[([ xX])\] \*\*CH1-(\d{2})\*\* \[(P[012]) \| ([^\]]+)\] \*\*([^*]+)\*\* Acceptance: (.+) Evidence required: (.+)$/);
   assert.ok(match, 'checklist row must include stable ID, P priority, discipline, title, acceptance, and evidence');
   return {checked: match[1] !== ' ', number: Number(match[2]), priority:match[3],
     discipline:match[4], title:match[5], acceptance:match[6], evidence:match[7]};
