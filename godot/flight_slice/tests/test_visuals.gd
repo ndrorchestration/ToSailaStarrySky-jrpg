@@ -252,34 +252,65 @@ func _run() -> void:
         "distant camera selects coarse meshes for every patch")
     check(not scene.terrain.get_node("ForestGroundCover/FernClumps").visible,
         "distant camera culls small forest floor geometry")
-    visuals.update_forest_detail(Vector3(26.0, 13.0, 0.0))
-    check(visuals._near_patch_count > 0 and
-        visuals._near_patch_count < visuals._forest_batches.size(),
-        "near camera mixes detailed local and coarse distant patches")
-    var near_count: int = visuals._near_patch_count
-    var near_switches: int = visuals.lod_last_switches.size()
-    check(near_switches > 0, "approach generates explicit canopy switch receipts")
-    for transition in visuals.lod_last_switches:
-        check(transition["now_near"] and not transition["previous_near"],
-            "approach switch receipt identifies coarse-to-detailed state")
-        check(transition["camera_distance"] < visuals.CANOPY_NEAR,
-            "approach switch receipt records distance inside near threshold")
-    visuals.update_forest_detail(Vector3(26.0, 13.0, 0.0))
+    # The new budget prevents simultaneous mesh swaps at normal quality.
+    var near_eye := Vector3(26.0, 13.0, 0.0)
+    visuals.update_forest_detail(near_eye)
+    check(visuals.lod_last_switches.size() == visuals.CANOPY_SWAPS_PER_UPDATE,
+        "approach replaces only one spatial canopy mesh per normal update")
+    check(visuals.forest_lod_receipt()["pending_species_cell_swaps"] > 0,
+        "remaining nearby canopy swaps are pending after first update")
+    var near_total_switches: int = 0
+    var near_count: int = 0
+    for tick in range(visuals._forest_batches.size() + 2):
+        if tick > 0:
+            visuals.update_forest_detail(near_eye)
+        check(visuals.lod_last_switches.size() <= visuals.CANOPY_SWAPS_PER_UPDATE,
+            "mesh swap count respects per-update budget")
+        for transition in visuals.lod_last_switches:
+            check(transition["now_near"] and not transition["previous_near"],
+                "approach receipts identify coarse-to-detailed state")
+            check(transition["camera_distance"] < visuals.CANOPY_NEAR,
+                "approach receipts retain the authored near threshold")
+        near_total_switches += visuals.lod_last_switches.size()
+        near_count = visuals._near_patch_count
+        if visuals.lod_last_switches.is_empty():
+            break
+    check(near_total_switches > 1 and near_count > 1 and
+        near_count < visuals._forest_batches.size(),
+        "bounded updates eventually converge to mixed near/far state")
+    check(visuals.forest_lod_receipt()["pending_species_cell_swaps"] == 0,
+        "fixed position reaches a completely settled spatial LOD state")
+    visuals.update_forest_detail(near_eye)
     check(visuals.lod_last_switches.is_empty(),
-        "repeated fixed camera produces no redundant LOD switches")
-    check(visuals.forest_lod_receipt()["switches_last_update"] == 0,
-        "repeat frame receipt reports zero switches")
-    visuals.update_forest_detail(Vector3(26.0, 32.0, 0.0))
-    check(visuals._near_patch_count >= 1 and
-        visuals._near_patch_count <= near_count,
-        "camera elevation changes LOD locally without global forced detail")
+        "settled fixed camera produces no redundant LOD switches")
+    # Rapid reversal cannot replay a stale candidate from the old observer.
+    visuals.update_forest_detail(Vector3(-60.0, 23.0, 0.0))
+    check(visuals.lod_last_switches.size() <= 1,
+        "moving away also respects one-change per-frame budget")
+    visuals.update_forest_detail(near_eye)
+    for transition in visuals.lod_last_switches:
+        check(transition["now_near"],
+            "approach after reversal does not replay stale retreat decisions")
+    # User-facing low-quality and review modes bypass the schedule immediately.
     visuals.set_low_quality(true)
-    check(visuals._near_patch_count == 0, "low quality forces all patches coarse")
+    check(visuals._near_patch_count == 0,
+        "low-quality selection immediately forces all patches coarse")
+    check(visuals.forest_lod_receipt()["pending_species_cell_swaps"] == 0,
+        "low-quality override cannot leave deferred expensive geometry")
     check(not scene.terrain.get_node("ForestGroundCover/UnderstoryShrubs").visible,
         "low quality culls the small shrub layer")
     visuals.set_low_quality(false)
-    visuals.update_forest_detail(Vector3(26.0, 13.0, 0.0))
-    check(visuals._near_patch_count > 0, "high quality restores nearby patches")
+    for tick in range(visuals._forest_batches.size() + 1):
+        visuals.update_forest_detail(near_eye)
+    check(visuals._near_patch_count == near_count,
+        "high-quality returns to the same spatial LOD after bounded convergence")
+    visuals.set_canopy_review_override(2)
+    check(visuals._near_patch_count == 0,
+        "all-coarse reference mode bypasses swap budget immediately")
+    visuals.set_canopy_review_override(1)
+    check(visuals._near_patch_count == visuals._forest_batches.size(),
+        "all-detailed reference mode bypasses swap budget immediately")
+    visuals.set_canopy_review_override(0)
     visuals.update_forest_detail(scene.camera.position)
 
     scene._clock = 9.0
