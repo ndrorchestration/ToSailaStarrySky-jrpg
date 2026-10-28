@@ -18,6 +18,8 @@ const BattleLoadout = preload("res://scripts/battle_equipment_loadout.gd")
 const BattleEquipmentVisual = preload("res://scripts/battle_equipment_visual.gd")
 const EquipmentTraining = preload("res://scripts/battle_equipment_training_profile.gd")
 const TrialInventory = preload("res://scripts/battle_equipment_trial_inventory.gd")
+const GearInspector = preload("res://scripts/battle_equipment_inspector.gd")
+const GearInspectorPanel = preload("res://scripts/battle_equipment_inspector_panel.gd")
 
 const DECK_BOUNDS := SaveCodec.PLAYER_POSITION_BOUNDS
 const INTERACT_DISTANCE := 74.0
@@ -67,6 +69,9 @@ var active_hazard_encounter_id: String = ""
 var save_store = SaveStore.new()
 var battle_loadout = BattleLoadout.new("ender")
 var trial_inventory = TrialInventory.new()
+var gear_inspector = GearInspector.new()
+var gear_inspector_panel
+var gear_inspector_open: bool = false
 var equipment_training = EquipmentTraining.new()
 var battle_equipment_view
 
@@ -136,6 +141,11 @@ func _ready() -> void:
     battle_equipment_view.set_appearance(battle_loadout.appearance())
     battle_equipment_view.visible = false
     add_child(battle_equipment_view)
+    gear_inspector_panel = GearInspectorPanel.new()
+    gear_inspector_panel.name = "TrialGearInspectionPanelReviewOnly"
+    gear_inspector_panel.z_index = 40
+    gear_inspector_panel.visible = false
+    add_child(gear_inspector_panel)
     dialogue_speaker.visible = false
     dialogue_body.visible = false
 
@@ -412,10 +422,75 @@ func _draw_target(point: Vector2, label_text: String, target_color: Color, compl
         Color("#e8f5f5")
     )
 
+## The modal never authorizes a new action or enters the story inventory.
+func open_gear_inspector() -> bool:
+    if not formula_encounter.active or not active_hazard_encounter_id.is_empty():
+        return false
+    if formula_encounter.completed or formula_encounter.player_defeated:
+        return false
+    if not trial_inventory.validate(battle_loadout) or not gear_inspector.reset(battle_loadout, trial_inventory):
+        return false
+    gear_inspector_open = true
+    gear_inspector_panel.visible = true
+    return refresh_gear_inspector()
+
+func refresh_gear_inspector() -> bool:
+    if not gear_inspector_open:
+        return false
+    var data: Dictionary = gear_inspector.describe(
+        battle_loadout,
+        trial_inventory,
+        Dictionary(formula_encounter.player.get("productionStats", {})),
+        int(formula_encounter.player.get("level", 1))
+    )
+    if data.is_empty():
+        close_gear_inspector()
+        return false
+    gear_inspector_panel.set_inspection(data)
+    return true
+
+func close_gear_inspector() -> void:
+    gear_inspector_open = false
+    if gear_inspector_panel != null:
+        gear_inspector_panel.visible = false
+        gear_inspector_panel.set_inspection({})
+    queue_redraw()
+
+func move_gear_inspector_slot(delta: int) -> bool:
+    if not gear_inspector_open or not gear_inspector.move_slot(delta, battle_loadout, trial_inventory):
+        return false
+    return refresh_gear_inspector()
+
+func move_gear_inspector_item(delta: int) -> bool:
+    if not gear_inspector_open or not gear_inspector.move_choice(delta, battle_loadout, trial_inventory):
+        return false
+    return refresh_gear_inspector()
+
+func confirm_gear_inspector_item() -> bool:
+    if not gear_inspector_open or not gear_inspector.selection_is_valid(battle_loadout, trial_inventory):
+        return false
+    var selected_slot: String = gear_inspector.current_slot()
+    var item_id: String = gear_inspector.selected_item(battle_loadout, trial_inventory)
+    if not equip_review_item(selected_slot, item_id):
+        return false
+    if not gear_inspector.reset(battle_loadout, trial_inventory):
+        close_gear_inspector()
+        return false
+    # Keep the player's selected equipment category after a real transaction.
+    for idx in GearInspector.SLOTS.size():
+        if str(GearInspector.SLOTS[idx]) == selected_slot:
+            gear_inspector.slot_index = idx
+            break
+    if not gear_inspector.move_slot(0, battle_loadout, trial_inventory):
+        close_gear_inspector()
+        return false
+    return refresh_gear_inspector()
+
 func start_formula_review() -> bool:
     if formula_encounter.active or dialogue.open or chapter.stage_key() in ["choice", "done"]:
         return false
     active_hazard_encounter_id = ""
+    close_gear_inspector()
     if not trial_inventory.validate(battle_loadout):
         return false
     formula_encounter.reset()
@@ -445,6 +520,7 @@ func start_hazard_encounter(hazard_id: String) -> bool:
         return false
 
     active_hazard_encounter_id = hazard_id
+    close_gear_inspector()
     battle_equipment_view.set_pose("idle")
     battle_equipment_view.visible = true
     ender.player_controlled = false
@@ -468,6 +544,7 @@ func close_formula_review() -> bool:
         return false
 
     active_hazard_encounter_id = ""
+    close_gear_inspector()
     battle_equipment_view.set_pose("idle")
     battle_equipment_view.visible = false
     if not hazard_id.is_empty():
@@ -485,7 +562,7 @@ func close_formula_review() -> bool:
     return true
 
 func take_formula_review_action(action_id: String) -> bool:
-    if not formula_encounter.active:
+    if not formula_encounter.active or gear_inspector_open:
         return false
 
     # The scene boundary must consult actor authority before the formula
@@ -682,6 +759,23 @@ func _nearest_pending(points: Dictionary, completed: Array[String]) -> String:
     return best_id
 
 func _unhandled_input(event: InputEvent) -> void:
+    # Modal inputs preempt combat, story, save and movement actions. They do
+    # not enqueue a formula turn or mutate the Chapter I save codec.
+    if gear_inspector_open:
+        if event.is_action_pressed(InputPolicy.EQUIP_INSPECT) or event.is_action_pressed(InputPolicy.INSPECT_CLOSE):
+            close_gear_inspector()
+        elif event.is_action_pressed(InputPolicy.INSPECT_UP):
+            move_gear_inspector_slot(-1)
+        elif event.is_action_pressed(InputPolicy.INSPECT_DOWN):
+            move_gear_inspector_slot(1)
+        elif event.is_action_pressed(InputPolicy.INSPECT_PREVIOUS):
+            move_gear_inspector_item(-1)
+        elif event.is_action_pressed(InputPolicy.INSPECT_NEXT):
+            move_gear_inspector_item(1)
+        elif event.is_action_pressed(InputPolicy.INSPECT_CONFIRM):
+            confirm_gear_inspector_item()
+        return
+
     if event.is_action_pressed(InputPolicy.SAVE_PROGRESS):
         save_progress_to_disk()
         return
@@ -691,6 +785,8 @@ func _unhandled_input(event: InputEvent) -> void:
     if formula_encounter.active:
         if event.is_action_pressed(InputPolicy.FORMULA_REVIEW):
             close_formula_review()
+        elif event.is_action_pressed(InputPolicy.EQUIP_INSPECT):
+            open_gear_inspector()
         elif event.is_action_pressed(InputPolicy.EQUIP_WEAPON_PREVIEW):
             cycle_equipment_review("mainWeapon")
         elif event.is_action_pressed(InputPolicy.EQUIP_ARMOR_PREVIEW):
@@ -850,6 +946,7 @@ func restore_save_snapshot(snapshot: Dictionary) -> bool:
     formula_encounter.reset()
     battle_loadout.reset_to_starter()
     trial_inventory.reset()
+    close_gear_inspector()
     battle_equipment_view.set_pose("idle")
     battle_equipment_view.set_appearance(battle_loadout.appearance())
     battle_equipment_view.visible = false

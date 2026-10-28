@@ -9,6 +9,7 @@ In the native Chapter I scene, enter the formula review with **C** or reach the 
 - **5** cycles the equipped Ender fighting-staff **appearance** (default brass-ferruled staff versus a silver-inlay style study).
 - **6** adds/removes a provisional chest-guard **armor overlay**.
 - **7** adds/removes a provisional **charm overlay**.
+- **9** opens a dedicated item inspector during **noncanonical Formula Review only**. Use arrow keys or controller D-pad to select slot/item, **Enter / controller A** to equip confirmed owned gear, and **Escape / controller B** to close. Nothing equips while merely browsing. The inspector also blocks combat inputs while open.
 - **8** toggles *optional practice pressure* against the noncanonical formula target. It is disabled by default, never available in story combat, and makes the dummy respond after accepted turns using alternating physical/aether hits.
 
 All equipment changes pass through a **conserved, temporary trial inventory** and update a **socketed** battle-actor review rig immediately, without closing combat or consuming a turn. The lower-right inventory readout shows the number of unused trial staff, guard and charm studies. The arm and hand socket follow the current combat pose. This remains a neutral stand-in silhouette, not approved character art. The staff always remains a full-length, physical fighting staff. No magic casting prerequisite is imposed.
@@ -26,6 +27,7 @@ godot --headless --path godot --script res://tests/battle_equipment_loadout_test
 godot --headless --path godot --script res://tests/battle_equipment_training_test.gd
 godot --headless --path godot --script res://tests/battle_equipment_pressure_test.gd
 godot --headless --path godot --script res://tests/battle_equipment_trial_inventory_test.gd
+godot --headless --path godot --script res://tests/battle_equipment_inspector_test.gd
 godot --headless --path godot --script res://tests/battle_equipment_socket_test.gd
 godot --headless --path godot --script res://tests/battle_equipment_scene_test.gd
 xvfb-run -a -s "-screen 0 960x640x24" godot --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_battle_equipment_review.gd
@@ -102,3 +104,15 @@ Ownership checks reject unknown items, cross-character weapons, wrong slots, att
 **Not production:** The trial bag is pre-seeded for **QA only** and must never be represented as a canon discovery, treasure drop, owned story item, monetizable economy or approved equipment rarity. Chapter I's existing save format does not contain this ledger; successful restore returns the main staff and all three trial studies to the initial state. The suite `battle_equipment_trial_inventory_test.gd` exercises conservation, atomic rejection, wrong-actor denial, forged state, actual scene gear/mitigation, and reset/save isolation.
 
 **Next separate authorization gates:** native player-facing acquisition and item inspection UX, balanced armor types, per-character and job permissions, five-cast animations using approved artwork, durable inventory save migration, then explicit creator review of any canon item names or equipment progression. No draft is merged by this work.
+
+## 2026-10-27 inspect-before-equip UI (further stacked draft)
+
+The previous Chapter I battle HUD displayed current trial-bag quantities but did not let a player **read an item's description or compare its effects before equipping**. This new native, reversible inspection layer addresses that limited UX gap.
+
+- **9** (controller left shoulder) opens the inspector during the optional noncanonical Formula Review. **Up/Down** (D-pad) selects weapon/armor/accessory; **Left/Right** previews only currently equipped or actually owned items; **Enter** (controller A) confirms a valid ownership-conserving transaction; **Escape** (controller B) or **9** closes it. Existing **5/6/7** quick swaps and **8** opt-in pressure remain usable after closing.
+- The inspector presents **current versus selected** ordinary Staff Strike damage, physical/aether defense, and sample incoming damage. Example comparisons under fixed noncritical practice inputs: silver-inlay staff **6 → 9** outbound damage; brass guard physical defense **5 → 13** and practice physical hit **11 → 10**; trial charm aether defense **16 → 22** and practice aether hit **10 → 9**. Prose makes clear these are *practice* stats, not canonical item balancing or story energies.
+- `battle_equipment_inspector.gd` generates an independent simulated loadout and bag to calculate comparisons via the already-tested training profile. **Preview does not modify** real inventory counts, visual revision, combat target HP, turns, current VIT, or equipment. The live scene commits via `trial_inventory.transfer` only on explicit confirmation.
+- `battle_equipment_inspector_panel.gd` is a real Godot-rendered high-contrast overlay above the battle rig. A modal focus gate consumes all battle/movement/save input events while it is open. No formula turn or enemy retaliation can execute through the scene action boundary until the overlay closes. Story Wind Shear disallows opening the inspector, leaving unchanged cosmetic options and original Gale Force.
+- Existing input-map entries/remaps are preserved. Native tests cover wrong-actor/forged inventory, owned-only choices, nonmutating forward/reverse comparisons, real equipment confirmation, modal turn denial, return to pressure mitigation, and save-restore closure. Screenshot CI captures **three additional actual 960×640 Godot framebuffers**: current item → uncommitted candidate → confirmed ownership swap, with pixel assertions and hashes.
+
+**Scope limits:** Descriptions are editorially neutral temporary study copy, **not** item lore approval; the panel is not the production equipment menu, has no acquisition pathway, audio narration, screen-reader semantics, character-artist accepted sprites, permanent saves, rarity balancing or class-based permission editor. Those are separate design and engineering gates. Story plot energies remain independent of magic job selection. No merges or releases.
