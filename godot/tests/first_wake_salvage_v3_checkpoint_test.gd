@@ -141,6 +141,12 @@ func _verify() -> void:
     if not resumed.configure_from_restored_checkpoint(rebuilt):
         _fail("fresh scene could not accept validated save from disk")
         return
+    # A real resume REPLACES the earlier scene. Keeping both CharacterBody2D
+    # actors active at the same saved position lets move_and_slide separate
+    # them nondeterministically during the first physics frame, incorrectly
+    # reporting a valid position as a broken checkpoint.
+    world.queue_free()
+    await process_frame
     root.add_child(resumed)
     await process_frame
     if resumed.region != resumed.QUAY or resumed.ender.position != resumed.QUAY_SUPPLY:
@@ -166,7 +172,6 @@ func _verify() -> void:
         _fail("salvage v3 persistence modified legacy v1 or revised v2 bytes")
         return
 
-    world.queue_free()
     resumed.queue_free()
     await process_frame
     store.delete_slot(TEST_PATH)

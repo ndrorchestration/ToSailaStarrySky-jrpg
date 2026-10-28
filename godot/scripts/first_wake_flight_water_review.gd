@@ -7,6 +7,8 @@ extends Node2D
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const FamilyScene = preload("res://scenes/first_wake_postflight_family_review.tscn")
+const AureateWakeVisual = preload("res://scripts/first_wake_aureate_wake_visual_review.gd")
+const TidalSurfaceShader = preload("res://shaders/first_wake_tidal_surface_review.gdshader")
 
 const SURFACE_Y := 410.0
 const FLOAT_BUOYANCY := 120.0
@@ -36,6 +38,8 @@ var safe_berth_confirmed_review: bool = false
 var family_review: Node2D
 var flight_overlay: CanvasLayer
 var ship_body: RigidBody2D
+var ship_visual_rig: Node2D
+var tidal_surface_visual: ColorRect
 var sea_area: Area2D
 var status_label: Label
 var hint_label: Label
@@ -82,6 +86,19 @@ func _ready() -> void:
     add_child(berth_area)
     berth_area.body_entered.connect(_on_berth_body_entered)
 
+    # Screen-space animated water material behind the physical vessel.
+    # The actual water-contact sensor and buoyancy math above remain separate.
+    tidal_surface_visual = ColorRect.new()
+    tidal_surface_visual.name = "LayeredTidalSurfaceVisualReview"
+    tidal_surface_visual.position = Vector2(0, SURFACE_Y)
+    tidal_surface_visual.size = Vector2(960, 640.0 - SURFACE_Y)
+    tidal_surface_visual.color = Color.WHITE
+    tidal_surface_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    var water_material := ShaderMaterial.new()
+    water_material.shader = TidalSurfaceShader
+    tidal_surface_visual.material = water_material
+    add_child(tidal_surface_visual)
+
     ship_body = RigidBody2D.new()
     ship_body.name = "AureateWakeLocalBuoyancyProof"
     ship_body.position = Vector2(480, 255)
@@ -95,28 +112,31 @@ func _ready() -> void:
     hull_rectangle.size = Vector2(144, 34)
     hull_shape.shape = hull_rectangle
     ship_body.add_child(hull_shape)
-    var hull_visual := Polygon2D.new()
-    hull_visual.color = Color("#e0b875")
-    hull_visual.polygon = PackedVector2Array([
-        Vector2(-72, -8), Vector2(57, -8), Vector2(75, 0),
-        Vector2(52, 16), Vector2(-54, 16), Vector2(-75, 0),
-    ])
-    ship_body.add_child(hull_visual)
-    var wings := Polygon2D.new()
-    wings.color = Color(0.56, 0.84, 0.88, 0.64)
-    wings.polygon = PackedVector2Array([
-        Vector2(-18, -6), Vector2(-92, -38), Vector2(-102, -18),
-        Vector2(-24, 5), Vector2(-70, 25), Vector2(-57, 31),
-        Vector2(8, 12), Vector2(84, -22), Vector2(102, -15),
-        Vector2(30, 12),
-    ])
-    ship_body.add_child(wings)
+    # A hand-layered, purely decorative Aureate Wake profile is attached
+    # to the *same* original RigidBody2D and its unmodified 144x34 collider.
+    # No scene logic or flight/water authority is moved into the art node.
+    ship_visual_rig = AureateWakeVisual.new()
+    ship_visual_rig.name = "AureateWakeGeodesicBridgeVisualReview"
+    ship_body.add_child(ship_visual_rig)
     add_child(ship_body)
 
     flight_overlay = CanvasLayer.new()
     var ui := flight_overlay
     ui.name = "FlightReviewOverlay"
     add_child(ui)
+    # UI panels must render over the dedicated sea CanvasItem, including
+    # at the bottom of the 960x640 viewport. These are readability surfaces.
+    for panel_rect in [
+        Rect2(0, 0, 960, 103),
+        Rect2(0, 545, 960, 95),
+    ]:
+        var panel := ColorRect.new()
+        panel.name = "TelemetryContrastPanel"
+        panel.position = panel_rect.position
+        panel.size = panel_rect.size
+        panel.color = Color(0.035, 0.065, 0.13, 0.92)
+        panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        ui.add_child(panel)
     status_label = _make_label(ui, Vector2(24, 20), 19)
     telemetry_label = _make_label(ui, Vector2(24, 59), 15)
     hint_label = _make_label(ui, Vector2(26, 563), 17)
@@ -136,19 +156,43 @@ func _make_label(parent: Node, at: Vector2, size: int) -> Label:
     return node
 
 func _draw() -> void:
-    draw_rect(Rect2(0, 0, 960, 640), Color("#17364e"))
-    draw_rect(Rect2(0, 124, 960, 286), Color("#366579"))
-    draw_circle(Vector2(752, 174), 44.0, Color(0.99, 0.84, 0.54, 0.74))
-    for index in range(8):
-        var x := float(index * 142 - 40)
-        draw_arc(Vector2(x, 308), 82.0, PI, TAU, 18, Color(0.66, 0.85, 0.84, 0.15), 2.0)
-    draw_rect(Rect2(0, SURFACE_Y, 960, 230), Color("#20596a"))
-    draw_line(Vector2(0, SURFACE_Y), Vector2(960, SURFACE_Y), Color("#aadad2"), 4.0)
-    for index in range(8):
-        var x := float(index * 143)
-        draw_line(Vector2(x, 452), Vector2(x + 71, 452), Color(0.74, 0.88, 0.87, 0.35), 2.0)
-    draw_rect(Rect2(0, 0, 960, 103), Color(0.04, 0.08, 0.16, 0.91))
-    draw_rect(Rect2(0, 545, 960, 95), Color(0.04, 0.08, 0.16, 0.94))
+    # One compositional sky plane, long-distance cloud bands and low sun.
+    # Review-layer artistry only: no clock/weather/save/celestial authority.
+    for index in range(61):
+        var t := float(index) / 60.0
+        var tone := Color("#142d46").lerp(Color("#d2a778"), t * t)
+        draw_rect(Rect2(0, float(index) * 7.0, 960, 8), tone)
+    # Broad, low-contrast overlapping halo layers avoid conspicuous
+    # concentric disks while preserving a warm celestial focal point.
+    for halo in range(20, 0, -1):
+        var radius := 35.0 + float(halo) * 5.0
+        var alpha := 0.003 + float(20 - halo) * 0.0007
+        draw_circle(Vector2(754, 184), radius, Color(0.98, 0.84, 0.66, alpha))
+    draw_circle(Vector2(754, 184), 30.0, Color("#ffe3b1"))
+    draw_circle(Vector2(754, 184), 24.0, Color("#fff0c9"))
+    # Broken wisps and thin, depth-ordered strata instead of rounded circles.
+    # This is artwork-layer fog, not a simulated weather or cloud system.
+    for index in range(7):
+        var x := float(index) * 171.0 - 130.0
+        var y := 206.0 + float(index % 3) * 21.0
+        draw_colored_polygon(PackedVector2Array([
+            Vector2(x - 34, y + 11), Vector2(x - 8, y + 2),
+            Vector2(x + 11, y - 5), Vector2(x + 32, y + 3),
+            Vector2(x + 59, y + 6), Vector2(x + 86, y + 13),
+            Vector2(x + 112, y + 18), Vector2(x + 83, y + 22),
+            Vector2(x + 22, y + 20), Vector2(x - 31, y + 16),
+        ]), Color(0.77, 0.85, 0.83, 0.055))
+        draw_line(Vector2(x - 3, y + 7), Vector2(x + 74, y + 11), Color(0.91, 0.89, 0.80, 0.075), 1.3)
+    for index in range(4):
+        var y := 285.0 + float(index) * 12.0
+        draw_line(Vector2(0, y), Vector2(960, y - 5), Color(0.94, 0.85, 0.70, 0.035), 2.0)
+    draw_colored_polygon(PackedVector2Array([
+        Vector2(0, 366), Vector2(94, 358), Vector2(201, 370),
+        Vector2(338, 359), Vector2(472, 371), Vector2(632, 354),
+        Vector2(748, 360), Vector2(865, 349), Vector2(960, 357),
+        Vector2(960, SURFACE_Y), Vector2(0, SURFACE_Y),
+    ]), Color("#627a7a"))
+    draw_line(Vector2(0, SURFACE_Y), Vector2(960, SURFACE_Y), Color("#b9d4c5"), 2.0)
     if phase in ["recovery_approach", "berth_contact", "berth_securing", "berth_ready"]:
         draw_rect(Rect2(864, SURFACE_Y - 4, 96, 134), Color("#806d57"))
         for y in [423.0, 452.0, 481.0, 510.0]:
@@ -382,6 +426,8 @@ func review_snapshot() -> Dictionary:
     }
 
 func _refresh_presentation() -> void:
+    if ship_visual_rig != null:
+        ship_visual_rig.set_visual_phase(phase)
     if status_label == null:
         return
     status_label.text = "FIRST WAKE / AUREATE WAKE — LOCAL 2D FLIGHT & WATER REVIEW"

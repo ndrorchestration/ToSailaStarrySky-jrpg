@@ -1,6 +1,12 @@
-# Aetherwake Development Guide
+# Aetherwake browser preservation development guide — historical baseline
 
-## Current stage
+> **October 28, 2026 source-of-truth boundary:** This document's long-form `main`, browser runtime, Preview 0.1 installer, action/party progression, and acceptance-target claims describe the **historical JavaScript preservation line** (principally the October 6 build), **not the current reviewed Godot Chapter I implementation**. New native development is documented in [the current Godot status register](CURRENT_GODOT_STATUS_2026-10-28.md) and [the repository README](../README.md).
+>
+> The **revised draft** recruits **Ionia before flight** and **Lyra only after the safely recovered family reunion**. Old Crossing/battle snapshots must not override this. The independent Windows Defender custody gate remains blocked for a new Godot installer. None of this archive's prior Windows success receipts clear a new release.
+>
+> Keep browser historical verification, proposed future architecture, staged native Godot source, artist acceptance and installer authorization separate.
+
+## Historical browser stage (October 6 preservation snapshot)
 
 Aetherwake is a late-prototype / pre-alpha project.
 
@@ -87,7 +93,7 @@ npm run test:player-evidence-capture
 
 ### Preview 0.1 human acceptance boundary
 
-The exact current acceptance target is documented in `docs/PREVIEW_0_1_ACCEPTANCE.md`.
+The historical October 6 browser Preview 0.1 acceptance target was documented in `docs/PREVIEW_0_1_ACCEPTANCE.md`; **it is not the current Godot build or player installer gate**.
 
 Current boundary:
 

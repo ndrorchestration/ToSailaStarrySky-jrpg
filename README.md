@@ -1,257 +1,143 @@
-# Aetherwake — The Last Solarpunk Airship
+# To Sail the Starry Sky
 
-Aetherwake is a **pre-alpha turn-based JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a storm at Wake Dock reveals that the ship can exceed ordinary performance only when the right crew resonates with it.
+**An original, character-driven 2.5D science-fantasy JRPG — in active development.** Explore a world of celestial mysteries with five protagonists and the **Aureate Wake**, a ship whose remarkable abilities are discovered gradually through the story. *Aetherwake* is the historical project and prototype name.
 
-The current repository contains a playable vertical-slice prototype plus an active architecture migration toward the full authored-party RPG.
+**Current playable development target:** the **native Godot 4.7.2 First Wake / Chapter I review** at [`godot/project.godot`](godot/project.godot). The older JavaScript/browser game is maintained as preservation material, **not** the current Godot gameplay, combat or narrative specification.
 
-## Development status
+> **Development review, not a public release.** This README is on the [unmerged visual-gallery draft PR #564](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/564). The latest native game is not yet a cleared one-click Windows installer; independent Windows Defender custody/security preflight remains blocked. No game installer is linked or implied to be safe.
 
-- **Stage:** late prototype / pre-alpha
-- **Playable baseline:** boot → First Wake opening → world exploration → dialogue/quest systems → combat
-- **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
-- **Combat party target:** supports 1–5 active authored protagonists, growing through recruitment; First Wake now begins with Ender alone, adds Lyra first, and brings Ionia officially into the early storm/shield sequence
-- **Current migration:** smoke-green persistent roster, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; higher-order effect semantics remain separate gates
+## Actual in-engine graphics — development evidence
 
-See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
+### Latest playable Aureate Wake and sea material review
 
-## Run the game
+<a href="docs/reviews/native-evidence/2026-10-28-first-wake/aureate-wake-tidal-atmosphere-native-review.svg">
+  <img src="docs/reviews/native-evidence/2026-10-28-first-wake/aureate-wake-tidal-atmosphere-native-review.svg" width="100%" alt="Two unmodified actual native Godot 960x640 frames: the layered wood and copper Aureate Wake with provisional geodesic glass bridge floats in a rippled sunset ocean, then reaches a secured local 2D berth">
+</a>
 
-Use a local HTTP server for the reliable launch path. The canonical smoke test uses this same model.
+**New actual Godot visual upgrade:** hand-layered wood, copper, deck railings and segmented bridge glass on the Aureate Wake; original animated tidal shader, warm horizon glints, depth bands and atmospheric wisps. These are **two genuine native 960×640 game-render screenshots**, from [native capture run #40662836358](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40662836358) on exact visual source `73e5fdcf`. Original source PNGs remain embedded **losslessly** in this SVG. [Implementation, verification and artistic limitations](docs/FIRST_WAKE_TIDAL_AUREATE_VISUAL_PILOT_2026-10-28.md). **Review-only, not final cinematic art or an approved release.**
 
-From the repository folder:
+### Earlier six-frame Chapter I implementation gallery
 
-```bash
-python -m http.server 8080
-```
+<a href="docs/reviews/native-evidence/2026-10-28-first-wake/chapter1-six-native-stage-frames.svg">
+  <img src="docs/reviews/native-evidence/2026-10-28-first-wake/chapter1-six-native-stage-frames.svg" width="100%" alt="Six actual native Godot Chapter I 960×640 render frames showing the waterborne Aureate Wake, a secured provisional berth, the family meeting, the quay cache, the stores annex and the engine workshop">
+</a>
 
-Then open:
+*Six **genuine lossless 960×640 native Godot 4.7.2 frames**, verified against original PNG SHA-256 receipts and assembled without altering the screenshots. They represent **deterministic development review scenes**, not a finished visual production pass: provisional ship, shore and salvage geometry, dialogue/UI staging and unapproved material identities. [Source capture run](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40648637058) · [Individual frame SHA-256 records](docs/reviews/native-evidence/2026-10-28-first-wake/README.md). These reviewed development frames are published in this draft branch, not in an accepted release.*
 
-```text
-http://127.0.0.1:8080/index-embedded.html
-```
+### Archived Ender and Ionia directional studies
 
-On Windows, you can also use:
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <a href="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-south-full.png">
+        <img src="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-south-full.png" width="460" alt="Actual 960×640 Godot review rendering: Ender and Ionia facing south at fixed positions in the dock scene">
+      </a>
+      <br><sub><strong>Ender and Ionia — south-facing native frame</strong></sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-east-full.png">
+        <img src="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-east-full.png" width="460" alt="Actual 960×640 Godot review rendering: Ender and Ionia facing east at the same scene anchors">
+      </a>
+      <br><sub><strong>Ender and Ionia — east-facing native frame</strong></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-north-full.png">
+        <img src="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-north-full.png" width="460" alt="Actual 960×640 Godot review rendering: Ender and Ionia facing north">
+      </a>
+      <br><sub><strong>Ender and Ionia — north-facing native frame</strong></sub>
+    </td>
+    <td align="center">
+      <a href="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-west-full.png">
+        <img src="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-west-full.png" width="460" alt="Actual 960×640 Godot review rendering: Ender and Ionia facing west">
+      </a>
+      <br><sub><strong>Ender and Ionia — west-facing native frame</strong></sub>
+    </td>
+  </tr>
+</table>
 
-```powershell
-py -m http.server 8080
-```
+*These are **real, previously committed Godot 960×640 native renderer captures** from the October 21 character-direction review (PR #319), **not** screenshots of the latest Chapter I salvage or save system. They document earlier visual implementation, not approved final character art, a cinematic-quality sign-off, or a released build.*
 
-Opening the file directly may leave the loading screen or produce a blank canvas in some browser configurations because the verified runtime path is served over HTTP.
+<details>
+<summary><strong>More artwork and native character comparisons</strong></summary>
 
-The development runtime is designed to work offline and uses:
+**Four-way character contact sheet — authentic in-engine render study**
 
-- embedded fonts,
-- bundled p5.js,
-- embedded/reference loading assets,
-- local JavaScript modules,
-- optional generated TTS assets when present.
+![Four native Godot character views, captured at fixed dock positions](docs/reviews/native-evidence/2026-10-21-pr319/fourway-contact-sheet.svg)
 
-Current canvas: **960×640**.
+**Ionia front/rear cohesion comparison — archived native render study**
 
-## Controls
+![Ionia V4/V5 front and rear actual native visual comparison, art review only](docs/reviews/native-evidence/2026-10-21-pr325/ionia-front-rear-v4-v5-actual-native-comparison.svg)
 
-| Key | Action |
-|---|---|
-| **WASD / arrows** | Move |
-| **E** | Talk / interact / advance dialogue |
-| **Q** | Plant Covenant Field |
-| **F** | Board / interact with ship |
-| **Tab** | Toggle sky / ground layer |
-| **L** | Mycelial ledger |
-| **M** | Repair Cafe / shop |
-| **R** | Character sheet |
-| **T** | Quest log |
-| **N / Enter / Space** | Start / confirm |
-| **C** | Trigger Sky-Predator encounter (development/testing) |
-| **1–8** | Combat actions |
-| **S** | Secondary combat action when available |
+**Ender high-resolution art reference — separate from native screenshots; character-art alignment requires review**
 
-## Combat prototype
+<img src="godot/art-review/ender-approved-reference.png" width="400" alt="Ender high-resolution character art reference, separate from in-engine review renders">
 
-Combat is migrating to a **conventional JRPG formula model**. Production-native actions use explicit power/scaling, defenses, bounded accuracy/critical variance, costs, statuses, and deterministic analysis where appropriate. Legacy 2D6 behavior remains only in explicitly quarantined compatibility actions and historical mirrors.
+</details>
 
-The current action surface contains eight slots:
+**Visual evidence boundary:** The newest two-frame ship/ocean sheet is from the later October 28 visual upgrade; the earlier six-frame Chapter I sheet preserves older pre-upgrade render evidence (including family, quay, depot and workshop) and its own recorded hashes. Independent full-resolution PNG downloads for those six frames are **not** published as separate files; their lossless pixels are embedded in the SVG review graphic. The v3 saving interface is **not pictured**, and no artistic acceptance or playable release is implied. The earlier directional studies below are from October 21. [New ship-and-water native render](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40662836358) · [Chapter I native gameplay regression](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40662836420) · [older six-scene source evidence](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40648637058).
 
-| # | Action | Role |
-|---:|---|---|
-| 1 | Resonator Staff | EMP attack |
-| 2 | Uncover Truth | deterministic analysis / weakness reveal |
-| 3 | Shared Dream | legacy compatibility residue; blocked by current Dreaming/Talen SSOT |
-| 4 | Mycelial Ledger | Ender Commons read-only relationship analysis |
-| 5 | Hold | deterministic staff recharge |
-| 6 | Wind Ward | legacy compatibility residue; owner/domain unresolved |
-| 7 | Aether Seal | Ender Aether/Ward suppression on explicit Aether-dependent targets |
-| 8 | Rest | deterministic heat/vitality recovery |
 
-Current prototype progression unlocks **Wind Ward at level 3, Aether Seal at level 4, and Rest at level 5**.
 
-These flat combat definitions are an implementation baseline, not the final architecture. The target system uses data-driven ability definitions, explicit prerequisites, a generic effect resolver, school mastery, jobs, and party-combination arts.
+## Open and play the native Chapter I preview
 
-## Party architecture
+**No installer is required to review the current source in Godot.** Download or clone **this same development branch** and import the project that lives one folder below repository root:
 
-### Target
+1. [Download the current Godot review branch as ZIP](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/archive/refs/heads/docs/readme-native-godot-visual-gallery-20261028.zip), extract it, then install **Godot 4.7.2 Standard (GDScript)**.
+2. In **Godot Project Manager**, select **Import** and browse to **`godot/project.godot`** inside the extracted repository folder (not `README.md` or the repository root).
+3. In the Godot editor press **F5** to run the configured original Chapter I. **Inside the running game**, press **F8** to open the opt-in revised **Ionia-first** Chapter I route.
 
-```text
-ROSTER[5] → ACTIVE_PARTY[1..5] → combat
-```
+| Where | Keyboard control | Behavior |
+|---|---|---|
+| Original configured Chapter I | **Arrows**, **E** | Move / interact or advance dialogue |
+| Original Chapter I | **F5**, **F9** | Original v1 **save** / **load** while the game is running (distinct from Godot editor F5 Run Project) |
+| Original or revised story | **F8** | Enter revised review / restore original saved-in-memory scene when returning |
+| Revised dock/engineering | **E**, then **F** when preflight is complete | Find Ionia, inspect engineering stations, then enter the bounded 2D flight/water review |
+| Revised dock **before** flyer interaction | **J** | Optional resume of a previously saved v3 salvage review; refuses an invalid/missing slot |
+| Revised salvage review only | **E**, **K**, **L** | Interact / write separate v3 salvage checkpoint / restore its checkpoint |
 
-Persistent progression belongs to the five-character roster. The target combat/menu architecture supports all five simultaneously once recruited; the active party grows from 1 → 2 → 3 → 4 → 5 through the story.
+The v3 salvage save **does not cover** the workshop, failed engine restart, Denith melody, flight scene or planet-scale ship travel. It does not migrate v1/v2 saves. See the [verified checkpoint scope](docs/FIRST_WAKE_SALVAGE_V3_CHECKPOINT_PILOT.md).
 
-### Current migration state
+## Chapter I — revised playable story progression
 
-The development runtime now has the first persistent party-state layer:
+**This is the creator-directed Godot *draft* sequence; the older browser Crossing plot is not the current ordering.**
 
-- `modules/party-state.js` owns exactly five stable roster identities: `ender`, `lyra`, `ionia`, `reson`, and `aepex`;
-- `ACTIVE_PARTY` is validated for 1–5 direct references into `ROSTER`; First Wake now begins with Ender alone, recruits Lyra at Sequence 06, and brings Ionia officially into the early storm/shield sequence;
-- `world.player`, `ROSTER[0]`, and `ACTIVE_PARTY[0]` are the same object, so combat write-back updates the canonical lead record;
-- the preserved character-creation flow still creates two player-named prototype companions and prototype jobs, then adapts them into the Lyra/Ionia roster slots;
-- Reson and Aepex are identity-only runtime shells until authored onboarding/mechanics are migrated;
-- full authored five-character simultaneous combat is **not** enabled yet; the architecture now permits 1–5 active members while authored recruitment/onboarding is migrated.
+1. **Ender** is looking for work, finds Captain **Ionia's** flyer and joins her to help repair the Aureate Wake's harmonic-levitation engine.
+2. **Ionia joins first**. The crew completes checks and attempts a short flight, but engine phase drift forces a bounded local-physics ocean splashdown and safe berth recovery.
+3. **Lyra joins second** after the safe family reunion; her son **Talen remains a noncombat child**. Ender, Ionia and Lyra compare independent clues toward a provisional fuel theory.
+4. The player physically retrieves two provisional materials from separate, walkable review areas and returns them to the ship. Manual installation cannot restore the engine: the **restart fails**.
+5. Ionia recalls a shanty Denith taught her; Ender and Lyra independently assess a bounded harmonic-alignment idea. This is **bench investigation, not permission to fly**.
 
-The prototype names/jobs remain implementation provenance rather than final character canon.
+The Five Lights and five-protagonist mythology are preserved. **Story Light identities are not automatic combat spells or shared Art unlocks.** Future globe travel, auroral pathways, full sea/submersible/space transformation capabilities and lunar traversal are **narrative/design intentions**, not features demonstrated by these local review scenes.
 
-## Current quest vertical slice
+## Combat, party and Resonance — what is actually implemented
 
-The existing prototype quest follows:
+| Layer | Current scope | Not yet authorized or complete |
+|---|---|---|
+| **Native combat formula contracts** | Ender-oriented **four-action formula subset** ([source](godot/scripts/first_wake_combat_formula.gd)), plus [fail-closed actor/turn authority](godot/scripts/first_wake_party_combat_authority.gd). | The previous browser's **eight-slot action list**, its level unlocks and complete five-character native combat. |
+| **Playable encounter study** | Isolated turn-based **Guard → Echo → Strike** telegraph/prediction experiment ([scene model](godot/scripts/vertical_slice_encounter.gd)). | Production encounter roster, universal ability rules or approved combat balance. |
+| **Five protagonists / party** | Ender, Ionia, Lyra, Reson and Aepex are the established authored protagonists; the revised Chapter I review recruits Ionia then Lyra. The target is **up to five active protagonists**. | Verified final recruitment and executable combat turns for all five in the Godot game. |
+| **Party Resonance** | Proposed Dual/Triple Art definitions, a separate training scene and a composite review preflight ([implementation](godot/scripts/first_wake_resonance_composite_preflight.gd)). | Real story battle execution: the composite returns **`canExecute=false`** and **`canUnlockArt=false`**. |
 
-**Signal → Crossing → Contact → Choice → Wake**
+Nothing in this table defines an approved ability tree, a mandatory character class or final magic economy. Implementation status and design proposals must remain distinct.
 
-It includes signal hooks, traversal hazards, NPC encounters, three major choice paths, and multiple epilogue outcomes. In the current Act I slice, those paths are leave early, hold dock, or project the Wake's shield across neighboring berths. This is a vertical-slice narrative structure, not the complete campaign.
+## Source, evidence and next quality gates
 
-## Repository layout
+- **Current implementation/evidence register:** [Godot development status and blockers](docs/CURRENT_GODOT_STATUS_2026-10-28.md).
+- **Actual in-engine images:** [new two-frame Aureate Wake / tidal shader render](docs/reviews/native-evidence/2026-10-28-first-wake/aureate-wake-tidal-atmosphere-native-review.svg) plus [earlier six-frame Chapter I gallery with hash receipts](docs/reviews/native-evidence/2026-10-28-first-wake/README.md). Both contain genuine **960×640 Godot renderer outputs**; native correctness and improved silhouettes **do not constitute cinematic art acceptance**.
+- **Story/checkpoint:** [v3 separate salvage review contract](docs/FIRST_WAKE_SALVAGE_V3_CHECKPOINT_PILOT.md) · [current vs historical combat/party audit](docs/README_COMBAT_PARTY_STATUS_RECONCILIATION_2026-10-28.md).
+- **Visual target:** [Visual Bible](docs/VISUAL_BIBLE.md) · [benchmark scene](docs/VISUAL_BENCHMARK_SCENE.md) · [cinematic integration](docs/CINEMATIC_CLIP_CONTRACT.md). New playable artwork needs source alignment, native render inspection and creator sign-off.
+- **Native verification:** [Godot gameplay CI](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40649372371) and [native renderer CI](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40649372369) passed on the prior reviewed exact source. [Browser smoke/docs check](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40652983096) also passed. These runs establish **their own exact heads**, not universal acceptance of future commits.
 
-| Path | Purpose |
-|---|---|
-| `aetherwake.js` | Current integrated runtime / preservation build |
-| `index-embedded.html` | Current browser entry point |
-| `modules/effect-vocabulary.js` | Frozen effect vocabulary v0.1 + current action effect profiles |
-| `modules/effect-resolver.js` | Fail-closed ordinary mutation resolver for damage/restoration/resources |
-| `modules/ability-defs.js` | Canonical metadata for the eight current combat actions |
-| `modules/progression-defs.js` | Canonical current level-unlock table |
-| `modules/party-state.js` | Authoritative persistent roster / active-party reference layer |
-| `modules/first-wake-opening.js` | Active authored New Game → First Wake opening controller |
-| `modules/char-create.js` | Historical compatibility adapter; not the normal New Game path |
-| other `modules/*.js` | Older modular mirrors/reference source; not authoritative runtime for all systems |
-| `SPEC.md` | Current technical target + implementation notes |
-| `docs/DEVELOPMENT.md` | Development authority, migration rules, smoke gate |
-| `gap_analysis.md` | Snapshot audit of prototype conformance |
-| `memories_adaptation_catalog.md` | Adaptation/provenance reference |
-| `tests/` | Canonical automated smoke/regression tests |
+**Priorities:** make the Aureate Wake, water, weather, dock, Lyra/Talen and environment scenes visually production-worthy **in native Godot**; connect a coherent battle/party vertical slice without fabricating permissions; extend durable progress after salvage; finish independently tested and security-cleared Windows installation.
 
-## Verification
+## Historical browser build — separate archive
 
-Install dependencies and Chromium once:
+The earlier **p5.js / NW.js Aetherwake prototype** still contains its own quests, eight-action combat metadata, level unlock rules, controls, testing commands, and an **October 6, 2026 browser Preview 0.1 Windows artifact**. Those details are deliberately moved out of the current-game README to the [historical browser run/controls and Windows packaging archive](docs/archive/AETHERWAKE_BROWSER_PRESERVATION_README_2026-10-28.md).
 
-```bash
-npm install
-npm run playwright:install
-```
+The [historical technical specification](SPEC.md) and [early Godot development log](godot/README.md) are not replacements for this current-status summary. Do not present old preview installer artifacts as the current Godot Chapter I download or bypass any Defender warning.
 
-Run the architecture contracts and canonical smoke test:
+## Credits and provenance
 
-```bash
-npm run test:effects
-npm run test:registries
-npm run test:resolver
-npm run test:resolver-integration
-npm run test:enemy-metadata
-npm run test:combat-input
-npm run test:resource-eligibility
-npm run test:progression-reachability
-npm run test:secondary-action
-npm run test:smoke
-```
-
-The verification suite covers the playable path from startup through the authored First Wake opening, world/overlay interactions, combat, flight-return seams, and return to the correct originating state. It also verifies roster/reference invariants, effect-vocabulary coverage, registry/runtime equivalence, transactional action affordability, progression reachability, party capacity, magic contracts, air-navigation behavior, live resolver routing, and post-combat write-back into the canonical lead record.
-
-To produce local review material without converting it into acceptance, run:
-
-```bash
-npm run capture:player-evidence
-```
-
-This creates `evidence/player-acceptance/<source-sha>-<timestamp>/` with screenshots and a manifest whose human/player and visual acceptance fields remain explicitly pending.
-
-## Visual authority
-
-The canonical project-wide visual direction is defined in:
-
-- `docs/VISUAL_BIBLE.md` — project-wide visual language;
-- `docs/VISUAL_BENCHMARK_SCENE.md` — first final-quality acceptance scene;
-- `docs/CINEMATIC_CLIP_CONTRACT.md` — authored short-video integration rules.
-
-These documents sit above individual art branches. Existing pixel-art recovery work is implementation material and must be reconciled against the visual bible before broad promotion.
-
-## Architecture direction
-
-The production migration is incremental:
-
-1. establish one verified playable baseline,
-2. introduce persistent five-character roster state,
-3. formalize effect vocabulary and extract the current ability/progression registries — **integrated on `main`**,
-4. migrate production combat away from legacy 2D6 branches into explicit JRPG formula/contract resolution while preserving only quarantined compatibility behavior,
-5. enforce current learned/unlocked action eligibility before broader mastery-tree work — **integrated on `main`**,
-6. replace prototype companion creation with authored roster onboarding,
-7. implement school/job/mastery progression,
-8. add formation, Dual Arts, and Triple Arts,
-9. expand campaign content after the architecture is stable.
-
-Each phase should preserve a working combat loop.
-
-## Provenance
-
-Aetherwake adapts selected code structures, interaction patterns, and reference-game lessons from *Memories* while developing its own setting, characters, narrative, combat/progression model, and authored party structure.
-
-See `memories_adaptation_catalog.md` for the working adaptation catalog.
-
-## Author
-
-Andrew Hensel (ndrorchestration)
-
-## Credits
-
-Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts include VT323 and Press Start 2P. TTS tooling uses Microsoft Edge TTS where generated voice assets are available.
-
-
-## Windows desktop package
-
-The intended player experience is **download one Windows artifact, launch/install it, and run Aetherwake in its own large resizable/maximizable desktop window**. The desktop presentation defaults to **1440×960** and scales proportionally when maximized, while preserving the 960×640 logical game layout. **Alt+Enter** or **F11** toggles native fullscreen; **Escape** exits fullscreen. Browser/HTTP instructions above are development and diagnostic paths, not the desired end-user experience.
-
-### Current Preview 0.1 release authority — 2026-10-06
-
-The runtime baseline before the documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. Documentation merges may advance protected `main` without changing player-runtime bytes. The current bounded Preview 0.1 remediation/review candidate remains PR #250 at exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; candidate identity is bound to that exact SHA and artifact hashes, not to a moving `main` pointer.
-
-Technical candidate verification is complete for that exact head:
-
-- hosted smoke run `37557721548`: **PASS**;
-- fresh seven-frame player-evidence capture on NeonPC: **CAPTURED** from exact head `46f50c...`;
-- title/menu evidence timing: **corrected and observed**;
-- prior opaque cyan/teal scanline defect: **not reproduced**;
-- local packaged `Aetherwake.exe` first-frame readiness on NeonPC: **PASS**;
-- workflow-dispatch Windows run `37559269564`: **SUCCESS** through package build, no-admin installer, exact installed launch, portable verification, SHA-256 manifest, and prerelease publication;
-- the published installer was independently downloaded, SHA-256 checked, installed, and launched on NeonPC: **PASS**.
-
-Current published Preview 0.1 candidate:
-
-```text
-SOURCE_SHA=46f50c581d992bf581bb6b6d7961a9421b8b779d
-INSTALLER_SHA256=7feb6de364264617095a59dd9329a99ebfa77a144b0f5887a7ae7ff064f6221d
-PORTABLE_ZIP_SHA256=4c6efc6ea1cecf6468fb983fd8ff5fd5d0ce8645262779551841f663c5326173
-TECHNICAL_CANDIDATE_VERIFICATION=PASS
-HUMAN_REVIEW=NOT_RUN
-VISUAL_ACCEPTANCE=PENDING
-HUMAN_PLAYER_ACCEPTANCE=PENDING
-```
-
-PR #250 is ready for human review but is not merged. The historical Google Drive one-click launchers still point to older candidates and must not be treated as the current acceptance target.
-
-For the exact uncoached human/player acceptance protocol, see `docs/PREVIEW_0_1_ACCEPTANCE.md`.
-
-When a fresh candidate passes the exact Windows install/launch gate, the primary player artifact will be:
-
-- **Aetherwake-Setup.exe** — conventional per-user installer; no administrator elevation; creates normal Start Menu and desktop shortcuts.
-- **Aetherwake-Windows.zip** — portable fallback. Extract completely, then run **Aetherwake.exe**.
-
-If Windows Defender flags an executable, do not whitelist or bypass it. Record the exact detection name and SHA-256 so the artifact can be audited.
-
-See `docs/DESKTOP_BUILD.md` for the canonical packaging and verification contract.
+Created by **Andrew Hensel** ([ndrorchestration](https://github.com/ndrorchestration)). The game is developing its own characters, world, gameplay, original art and narrative; historical technical adaptation and references are documented in [the provenance catalog](memories_adaptation_catalog.md).
