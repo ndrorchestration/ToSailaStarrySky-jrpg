@@ -12,10 +12,12 @@ var reduced_motion: bool = false
 var twilight_review: bool = false
 var sky_material: ProceduralSkyMaterial
 var sea_material: ShaderMaterial
+var sunlight: DirectionalLight3D
 
 func _ready() -> void:
     name = "OptionalMaritimeAtmosphere"
     _make_sky()
+    _make_sunlight()
     _make_sea()
 
 func _make_sky() -> void:
@@ -39,6 +41,17 @@ func _make_sky() -> void:
     atmosphere.environment = env
     add_child(atmosphere)
     sky_energy = 1.0
+
+func _make_sunlight() -> void:
+    # One original directional key for authored deck surfaces and geodesic
+    # bridge glass. Entirely visual; no collider, time, or story authority.
+    sunlight = DirectionalLight3D.new()
+    sunlight.name = "CinematicMaritimeSun"
+    sunlight.rotation_degrees = Vector3(-34.0, -28.0, 0.0)
+    sunlight.light_color = Color("#ffe5bf")
+    sunlight.light_energy = 0.78
+    sunlight.shadow_enabled = true
+    add_child(sunlight)
 
 func _make_sea() -> void:
     ocean = MeshInstance3D.new()
@@ -66,7 +79,7 @@ void vertex() {
     vec3 world_vertex = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
     sea_position = world_vertex.xz;
     float broad = sin(world_vertex.x * 0.15 + world_vertex.z * 0.105 + TIME * wave_speed * visual_motion_scale);
-    float cross_wave = sin(world_vertex.x * 0.21 - world_vertex.z * 0.17 - TIME * wave_speed * 0.62);
+    float cross_wave = sin(world_vertex.x * 0.21 - world_vertex.z * 0.17 - TIME * wave_speed * visual_motion_scale * 0.62);
     VERTEX.y += wave_height * (broad * 0.66 + cross_wave * 0.34);
     wave_crest = broad * 0.5 + 0.5;
 }
@@ -118,6 +131,7 @@ func set_reduced_motion(enabled: bool) -> void:
 func visual_review_snapshot() -> Dictionary:
     return {
         "ocean_mesh_present": ocean != null and ocean.mesh is PlaneMesh,
+        "directional_sun_active": sunlight != null and sunlight.shadow_enabled,
         "source_sea_level": SEA_LEVEL_M,
         "reduced_motion": reduced_motion,
         "twilight_review": twilight_review,
@@ -136,3 +150,6 @@ func set_twilight_review(enabled: bool) -> void:
     sky_material.ground_bottom_color = Color("#17263a") if enabled else Color(0.09, 0.24, 0.32)
     sky_material.ground_horizon_color = Color("#b17c72") if enabled else Color(0.42, 0.64, 0.65)
     atmosphere.environment.ambient_light_energy = 0.65 if enabled else 1.0
+    if sunlight != null:
+        sunlight.light_color = Color("#ffc29a") if enabled else Color("#ffe5bf")
+        sunlight.light_energy = 0.47 if enabled else 0.78
