@@ -3,6 +3,7 @@ extends Node2D
 const ReviewActor = preload("res://scripts/character_field_walk_review_actor.gd")
 const FootPixelOverlay = preload("res://scripts/character_foot_pixel_overlay.gd")
 const StanceCandidateOverlay = preload("res://scripts/character_stance_candidate_overlay.gd")
+const LyraSourceContactOverlay = preload("res://scripts/lyra_south_source_contact_overlay.gd")
 const NAMES: Array[String] = ["Lyra", "Aepex", "Reson"]
 const X_ANCHORS: Array[float] = [285.0, 505.0, 725.0]
 const LABELS := ["WATER / PINK SPIRIT ACCENT", "AIR / DIAGNOSTICS", "FIRE / WEAPON MASTER"]
@@ -11,6 +12,8 @@ var guides: Dictionary = {}
 var source_guides_enabled := false
 var stance_guides: Dictionary = {}
 var stance_guides_enabled := false
+var lyra_source_contact_guide: Node2D
+var lyra_source_contact_enabled := false
 
 func _ready() -> void:
     name = "ThreeProtagonistPhysicsWalkReviewOnly"
@@ -37,6 +40,12 @@ func _ready() -> void:
         actor.add_child(stance_guide)
         stance_guide.call("set_guides_enabled", false)
         stance_guides[NAMES[index]] = stance_guide
+        if NAMES[index] == "Lyra":
+            lyra_source_contact_guide = LyraSourceContactOverlay.new()
+            lyra_source_contact_guide.name = "LyraSouthSourceContactProposalOnly"
+            lyra_source_contact_guide.set("target", actor)
+            actor.add_child(lyra_source_contact_guide)
+            lyra_source_contact_guide.call("set_guides_enabled", false)
     queue_redraw()
 
 func start_all() -> void:
@@ -59,6 +68,12 @@ func set_stance_guides_enabled(enabled: bool) -> void:
         (stance_guides[character_id] as Node).call("set_guides_enabled", enabled)
     queue_redraw()
 
+func set_lyra_source_contact_enabled(enabled: bool) -> void:
+    lyra_source_contact_enabled = enabled
+    if lyra_source_contact_guide != null:
+        lyra_source_contact_guide.call("set_guides_enabled", enabled)
+    queue_redraw()
+
 func get_actor(character_id: String) -> CharacterBody2D:
     return actors.get(character_id) as CharacterBody2D
 
@@ -71,6 +86,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
         set_source_guides_enabled(not source_guides_enabled)
     elif event.keycode == KEY_K:
         set_stance_guides_enabled(not stance_guides_enabled)
+    elif event.keycode == KEY_T:
+        set_lyra_source_contact_enabled(not lyra_source_contact_enabled)
     elif event.keycode == KEY_ESCAPE:
         stop_all()
 
@@ -78,7 +95,7 @@ func _draw() -> void:
     draw_rect(Rect2(Vector2.ZERO, Vector2(960, 640)), Color("#0c1e2b"))
     draw_rect(Rect2(0.0, 0.0, 960.0, 125.0), Color("#13384a"))
     draw_string(ThemeDB.fallback_font, Vector2(30.0, 45.0), "NATIVE PHYSICS CHARACTER WALK / REVIEW ONLY", HORIZONTAL_ALIGNMENT_LEFT, -1, 26, Color("#f3e4cb"))
-    draw_string(ThemeDB.fallback_font, Vector2(32.0, 79.0), "Original four-facing candidate atlases. Space: route. P: alpha guides. K: stance hypotheses. Esc: stop.", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#c8dad8"))
+    draw_string(ThemeDB.fallback_font, Vector2(32.0, 79.0), "Original four-facing candidate atlases. Space: route. P: alpha. K: proposals. T: Lyra sole. Esc: stop.", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#c8dad8"))
     for i in range(NAMES.size()):
         var x: float = X_ANCHORS[i]
         draw_rect(Rect2(x - 123.0, 146.0, 210.0, 344.0), Color("#183342"))
@@ -91,4 +108,4 @@ func _draw() -> void:
     draw_rect(Rect2(0.0, 513.0, 960.0, 127.0), Color("#122e3b"))
     draw_string(ThemeDB.fallback_font, Vector2(32.0, 546.0), "Every actor moves using CharacterBody2D.move_and_slide() and actual displacement.", HORIZONTAL_ALIGNMENT_LEFT, -1, 17, Color("#e8ddce"))
     draw_string(ThemeDB.fallback_font, Vector2(32.0, 575.0), "Boot baseline normalized to imported alpha footprint; phase advances by distance.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#b8ced1"))
-    draw_string(ThemeDB.fallback_font, Vector2(32.0, 604.0), "Orange stance markers are screen-half guesses, NOT certified planted-foot mechanics.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#b8ced1"))
+    draw_string(ThemeDB.fallback_font, Vector2(32.0, 604.0), "Pink Lyra south boot polygon marker is a source-geometry candidate, NOT approved stance.", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("#b8ced1"))
