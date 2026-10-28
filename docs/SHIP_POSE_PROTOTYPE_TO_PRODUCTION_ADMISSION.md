@@ -117,6 +117,14 @@ The collision **broad-phase** classification now pinpoints the bottleneck: **190
 
 The documentation action is to prioritize **dome/wing attachment spatial reconciliation** after creator-approved metre-based hull and crew circulation requirements, without rescaling the ship to hide the 3.40m exterior vs 3.80m separate interior conflict. The exposed deck must remain accessible under ordinary safe conditions. Do not move this staged 3D viewport into a production player scene or infer any hidden ship configuration from the ordinary rig.
 
+## 4.4. Stage B1.1 discrete wing-membrane / glass-pane narrow phase
+
+[Draft #543](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/543) is a reversible follow-up on the verified #541 geometry cross-study. Its Godot 4.7.2 native probe uses the **unmodified** membrane meshes from all four wing roots and the original geodesic glass pane mesh, both transformed to the same noncanonical ship-local art-unit coordinate frame. After a per-triangle bounding-box filter, it uses 3D triangle SAT with coplanar separating axes at five sampled 0–15° poses. Known positive and negative triangle examples and the real Chapter I story/save/preview-cleanup contract guard the result.
+
+**Critical scope:** it examines *only membrane triangles against glass pane triangles*, not structural wing ribs, dome framework, cabin/rail collisions, actor capsules or continuous swept motion. Positive sampled triangle contacts are meaningful design flags, but no negative scan certifies general safe passenger clearance. The code caps work at four million triangle checks and restores the original wing poses. The core physical gate remains `BLOCKED_ON_HULL_SCALE_EGRESS_AND_SWEPT_VOLUME`, regardless of measured contact count.
+
+[Detailed diagnostic contract](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/blob/study/ch1-wing-dome-triangle-probe-20261028/docs/AUREATE_WAKE_WING_DOME_TRIANGLE_DIAGNOSTIC_2026-10-28.md). New exact-head native CI was **in progress** when this entry was written. Treat its specific numeric output as pending until completed job logs are inspected.
+
 ## 5. Release and decision register
 
 | Gate | Current status |
