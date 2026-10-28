@@ -8,6 +8,7 @@ const Layer = preload("res://scripts/weapon_directional_character_review.gd")
 const CombatLayer = preload("res://scripts/ender_staff_combat_keyframe_review.gd")
 const CameraStudy = preload("res://scripts/weapon_cinematic_contact_review.gd")
 const Marker = preload("res://scripts/weapon_training_contact_marker.gd")
+const Alignment = preload("res://scripts/ender_staff_target_alignment_review.gd")
 const FACINGS: Array[String] = ["east","west","south","north"]
 const PAPER := Color("#eadfc6")
 const GOLD := Color("#d5b780")
@@ -24,6 +25,7 @@ var stage: Node2D
 var directional: Node2D
 var combat_layer: Node2D
 var marker: Node2D
+var alignment_target: Node2D
 var facing_button: Button
 var candidate_button: Button
 var combat_button: Button
@@ -59,6 +61,11 @@ func active_contract() -> Dictionary:
         "combatArtAuthority":str(combat_layer.visual_contract().get("source","")) if combat_layer != null else "",
         "combatGripError":float(combat_layer.visual_contract().get("gripError",-1.0)) if combat_layer != null else -1.0,
         "combatBootsGrounded":bool(combat_layer.visual_contract().get("footGrounding",false)) if combat_layer != null else false,
+        "targetVisible":alignment_target.visible if alignment_target != null else false,
+        "targetReaction":float(alignment_target.visual_contract().get("reaction",0.0)) if alignment_target != null else 0.0,
+        "targetProximity":float(alignment_target.visual_contract().get("proximity",-1.0)) if alignment_target != null else -1.0,
+        "targetAnchor":Vector2(alignment_target.visual_contract().get("targetAnchor",Vector2.ZERO)) if alignment_target != null else Vector2.ZERO,
+        "targetHitAuthorized":bool(alignment_target.visual_contract().get("hitAuthorized",true)) if alignment_target != null else true,
         "face":current_facing(),
         "texturePath":str(visual.get("texturePath","")),
         "spriteFrame":int(visual.get("spriteFrame",-1)),
@@ -159,6 +166,10 @@ func _build() -> void:
     marker = Marker.new()
     marker.name = "VisualOnlyContactMarker"
     stage.add_child(marker)
+    alignment_target = Alignment.new()
+    alignment_target.name = "ContactAlignedTrainingTarget"
+    alignment_target.visible = false
+    stage.add_child(alignment_target)
     var bottom := _label(
         "VISUAL REVIEW / NO EXECUTION • NO STORY OR EQUIPMENT STATE WRITES",
         Vector2(30,604),Vector2(900,27),14)
@@ -225,6 +236,21 @@ func _refresh() -> void:
     stage.show_mannequin = not show_candidate and not show_combat_pose
     stage.weapon.visible = not show_candidate and not show_combat_pose
     stage.show_review_effects = not show_combat_pose
+    stage.show_static_target = not show_combat_pose
+    alignment_target.visible = show_combat_pose
+    marker.visible = not show_combat_pose
+    if show_combat_pose:
+        # Contact point is a visual authoring fixture derived from the
+        # authorized midpoint of the same deterministic motion curve.
+        var key_pose: Dictionary = adapter.actor_action_pose(
+            "ender","full_length_staff","staffStrike",0.695*_duration(),false)
+        var key_frame: Dictionary = combat_layer.sample_frame(current_facing(),key_pose)
+        var bound: bool = alignment_target.bind_contact_anchor(current_facing(),key_frame)
+        var contact_ok: bool = bound and alignment_target.apply_visual_contact(
+            combat_layer.visual_contract(),camera)
+        if not contact_ok:
+            status_label.text = "CONTACT STUDY FAIL-CLOSED: geometry or permission mismatch"
+            alignment_target.visible = false
     combat_layer.visible = show_combat_pose
     directional.visible = show_candidate and not show_combat_pose
     stage.queue_redraw()
@@ -241,7 +267,7 @@ func _refresh() -> void:
     ]
     if show_combat_pose:
         status_label.text = ("Original layered staff combat poses, four facings; "
-            + "feet planted and both hands on the wrapped grip. Not accepted art.")
+            + "two grip anchors and an aligned visual-only training disk.")
     elif show_candidate:
         status_label.text = ("Existing Ender walking sprite, frame 0 only. "
             + "Staff embedded in source. Not combat artwork.")
