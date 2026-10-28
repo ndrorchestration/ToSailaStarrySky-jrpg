@@ -30,3 +30,19 @@
 - **RELEASE:** separately authorized action; default HOLD.
 
 Documentation and canon descriptions do not upgrade any of these evidence categories. Notion/Drive may hold detailed receipts, but the GitHub branch/PR must link them explicitly when required. Verify the head again: these SHAs are dated pointers, not immutable branch locks.
+
+
+## 2026-10-27 — Forest visual study → Chapter I GDScript policy bridge (REVIEW ONLY)
+
+This append-only reconciliation supersedes the assumption that the separate forest prototype must be merged wholesale to test any production portability. Native Chapter I and the 3D flight study have **divergent Godot scene roots**.
+
+- **Forest study source:** [draft #488](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/488), exact head `5fac28c5dd5159d742ffb102db71f70a8224cb34`. Native 4.7.2 [run 40611335217](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40611335217) PASS, noncanonical standalone `godot/flight_slice/`. Source assets, local terrain shader, placement, LOD capture receipts and 960×640 screenshots remain draft and **visually unapproved**.
+- **Separate native Chapter I candidate:** [draft #480](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/480), exact parent `46e15dbd94cedf964fdc008dad8528d8140dcbb6`. Contains the `godot/` Chapter I GDScript project, its own actors, 2D staging, gameplay and save contracts; it does **not** consume the forest source.
+- **First actual portability proof:** [draft #504](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/504), first code head `54122a4e9f44ba8fc880c1cb65e4a55c8c6c5fde`; pure noncanonical `godot/scripts/forest_visual_bridge.gd` + new native SceneTree test and CI step. It tests 29/39 local-unit near/far hysteresis, one normal mesh change per update, instantaneous low-quality fallback, and fail-closed canon/collision/navigation/save/planetary-space admission. **No forest mesh or shader is imported; no gameplay scene is wired.**
+- **Actual bridge execution:** Godot 4.7.2 native [run 40615514993](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615514993) PASS with `FOREST_CH1_BRIDGE_PASS`; [smoke 40615514956](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615514956) PASS at first code head. A later documentation-only head on #504 requires its own CI verification; never transfer checks between commits.
+- **Separate Windows gate:** [run 40615514378](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615514378) was **NOT a Windows QA PASS**. The exact Windows preflight failed `WINDOWS_QA_HOST_DEFENDER_REALTIME_DISABLED`. A sibling job passing cannot override the custody/security failure. Do not disable or weaken this gate.
+- **Full handoff procedure:** `docs/FOREST_VISUAL_PROTOTYPE_TO_PRODUCTION_GATE.md` on #504 and [Notion Forest Vegetation LOD integration gate](https://app.notion.com/p/407f5bad238b813eb8a7dabeddf5926b). Reusable is the **algorithm/evidence interface**, not the low-poly art or planar coordinate model.
+
+**Next native game gate:** choose only an existing traversable environment, define world-surface and local-tangent-to-global-frame ownership, then add one isolated opt-in terrain-bound vegetation patch with identical collision/quest/save and actor foot anchors OFF/ON. Test native rendered 960×640 scenes, movement/occlusion, reduced motion, low quality, LOD transitions, and target Windows GPU/VRAM **before** creator art and player acceptance. No spherical biomes, Moon Bridge route, new settlement, ship mode, Chapter I canon, merge or release is admitted by this portable-contract test.
+
+**Authority status:** `PORTABLE_POLICY=GODOT_NATIVE_EXECUTED_ON_EXACT_SOURCE`; `PLAYABLE_FOREST=NOT_INTEGRATED`; `PLANETARY_RUNTIME=NOT_INTEGRATED`; `VISUAL_ACCEPTANCE=PENDING`; `WINDOWS_SECURITY=BLOCKED`; `PRODUCTION_PROMOTION=HOLD`.
