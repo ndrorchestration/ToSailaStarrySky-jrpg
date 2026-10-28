@@ -9,6 +9,7 @@ extends SceneTree
 
 const SOURCE_DIR := "res://review-evidence/wind-shear/"
 const SCENES := [
+    {"name": "flat", "file": "wind-shear-flat-native-960x640.png"},
     {"name": "idle", "file": "wind-shear-idle-native-960x640.png"},
     {"name": "analyzed", "file": "wind-shear-analyzed-native-960x640.png"},
     {"name": "hit", "file": "wind-shear-hit-native-960x640.png"},
@@ -78,6 +79,6 @@ func _emit() -> void:
                 crop.save_png_to_buffer(), MAX_STAGE_PNG_BYTES):
             quit(5)
             return
-    print("WIND_SHEAR_REVIEW_EMIT_PASS: four authentic scene JPEGs and four native-pixel stage PNGs; creator art acceptance pending")
+    print("WIND_SHEAR_REVIEW_EMIT_PASS: five authentic scene JPEGs and five native-pixel stage PNGs; creator art acceptance pending")
     print("WIND_SHEAR_REVIEW_PUBLIC_SAFE_ONLY=true")
     quit(0)
