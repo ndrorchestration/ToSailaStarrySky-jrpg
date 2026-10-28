@@ -22,7 +22,6 @@ func _ready() -> void:
     # Explicitly noninteractive, hidden even if instantiated from code.
     visible = false
     z_index = -1
-    mouse_filter = Control.MOUSE_FILTER_IGNORE if self is Control else 0
 
 func source_resources() -> Dictionary:
     return {
