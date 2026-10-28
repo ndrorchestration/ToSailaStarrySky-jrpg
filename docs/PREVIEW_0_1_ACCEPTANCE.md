@@ -1,5 +1,7 @@
 # Aetherwake Preview 0.1 — Human Acceptance Protocol
 
+> **Historical scope marker (2026-10-28):** This acceptance protocol concerns the prior Aetherwake-branded preview candidate. It is **not** acceptance of the native Godot Chapter 1 beta, Ionia-first default story, current character art, or Windows Defender-on security. Native Godot review at `4d2ec5fb` has separate tests and visible blockers documented in [Chapter 1 native audit](CHAPTER_1_NATIVE_INTEGRATION_AUDIT_2026-10-28.md).
+
 **Status:** exact technical candidate verified; human/player acceptance not yet run.
 
 ## Exact candidate binding
