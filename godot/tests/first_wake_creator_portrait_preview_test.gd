@@ -33,6 +33,13 @@ func _run() -> void:
     verify(a.snapshot().get("save_mutation") == false, "portrait has no save authority")
     verify(a.snapshot().get("party_mutation") == false, "portrait has no party authority")
     verify(a.mouse_filter == Control.MOUSE_FILTER_IGNORE, "cannot intercept input")
+    verify(a.position == Vector2(704, 269) and a.size == Vector2(236, 258),
+        "portrait card does not intrude on dialogue footer")
+    verify(a.visual.size == Vector2(216, 216) and
+        a.visual.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED,
+        "source portrait must remain square and uncropped")
+    verify(a.snapshot().get("source_aspect_preserved") == true,
+        "source aspect provenance contract not set")
     verify(not a.display_dialogue_line("LYRA: testing") and not a.visible,
         "later protagonist reveal must fail closed")
     verify(not a.display_dialogue_line("IONIA / ENDER: mixed"),
