@@ -137,8 +137,47 @@ func _draw() -> void:
         {"at": TALEN_POSITION, "label": "TALEN (SAFE)", "color": Color("#e6bd83")},
     ]:
         var p: Vector2 = item["at"]
-        draw_rect(Rect2(p + Vector2(-37, -92), Vector2(74, 55)), item["color"])
-        draw_string(ThemeDB.fallback_font, p + Vector2(-62, -101), str(item["label"]), HORIZONTAL_ALIGNMENT_LEFT, 160, 14, Color("#fff1d3"))
+        # Prop shapes now communicate their function rather than using
+        # identical colored squares. Character portraits remain unapproved.
+        var label_text: String = str(item["label"])
+        if label_text == "DENITH'S LOG":
+            draw_rect(Rect2(p + Vector2(-36, -57), Vector2(72, 22)), Color("#65503d"))
+            draw_colored_polygon(PackedVector2Array([
+                p + Vector2(-26, -59), p + Vector2(-24, -90),
+                p + Vector2(6, -85), p + Vector2(17, -55)
+            ]), Color("#d9c59a"))
+            for text_row in range(4):
+                draw_line(p + Vector2(-18, -79 + text_row * 6), p + Vector2(4, -77 + text_row * 6), Color("#85745d"), 1.0)
+        elif label_text == "PHASE CHART":
+            draw_rect(Rect2(p + Vector2(-35, -93), Vector2(70, 58)), Color("#243d4b"))
+            draw_rect(Rect2(p + Vector2(-30, -88), Vector2(60, 47)), Color("#91b8b4"))
+            for tick in range(5):
+                draw_line(p + Vector2(-28, -51 - tick * 8), p + Vector2(28, -51 - tick * 8), Color("#54797e", 0.38), 1.0)
+            var curve := PackedVector2Array([
+                p + Vector2(-28, -53), p + Vector2(-17, -61),
+                p + Vector2(-9, -57), p + Vector2(2, -77),
+                p + Vector2(13, -66), p + Vector2(28, -85)
+            ])
+            draw_polyline(curve, Color("#e9d29b"), 2.0)
+        elif label_text == "THEORY TABLE":
+            draw_colored_polygon(PackedVector2Array([
+                p + Vector2(-45, -70), p + Vector2(38, -70),
+                p + Vector2(47, -53), p + Vector2(-37, -53)
+            ]), Color("#b18b66"))
+            draw_line(p + Vector2(-33, -53), p + Vector2(-33, -35), Color("#463d3c"), 5.0)
+            draw_line(p + Vector2(31, -53), p + Vector2(31, -35), Color("#463d3c"), 5.0)
+            draw_circle(p + Vector2(0, -75), 9, Color("#79b4b9"))
+        else:
+            # Human figures are still placeholders; distinct head/body
+            # silhouettes avoid suggesting approved character sprite work.
+            draw_circle(p + Vector2(0, -79), 11 if label_text == "LYRA" else 9, item["color"])
+            draw_colored_polygon(PackedVector2Array([
+                p + Vector2(-19, -64), p + Vector2(19, -64),
+                p + Vector2(24, -40), p + Vector2(-24, -40)
+            ]), item["color"].darkened(0.28))
+            draw_line(p + Vector2(-13, -40), p + Vector2(-13, -32), Color("#324f59"), 3.0)
+            draw_line(p + Vector2(13, -40), p + Vector2(13, -32), Color("#324f59"), 3.0)
+        draw_string(ThemeDB.fallback_font, p + Vector2(-62, -101), label_text, HORIZONTAL_ALIGNMENT_LEFT, 160, 14, Color("#fff1d3"))
     if child_block_ship_viewed:
         draw_rect(Rect2(TALEN_POSITION + Vector2(-25, -69), Vector2(50, 13)), Color("#77a8c6"))
         draw_rect(Rect2(TALEN_POSITION + Vector2(-9, -80), Vector2(17, 12)), Color("#f1c376"))

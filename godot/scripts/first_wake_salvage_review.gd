@@ -170,7 +170,35 @@ func _draw() -> void:
 
 func _station(pos: Vector2, label: String, item_id: String, color: Color) -> void:
     var already_taken: bool = item_id != "" and item_id in core.recovered
-    draw_rect(Rect2(pos + Vector2(-35, -90), Vector2(70, 58)), Color("#3b675f") if already_taken else color)
+    # Recognizable silhouettes replace the earlier single flat placeholder
+    # rectangles; positions and physical pickup permissions are unchanged.
+    var left := pos.x - 35.0
+    var top := pos.y - 90.0
+    draw_rect(Rect2(left - 3, top + 54, 76, 5), Color("#27383e", 0.65))
+    if item_id == "recovered_supply":
+        draw_rect(Rect2(left, top + 9, 70, 46), Color("#614c3a") if not already_taken else Color("#355a55"))
+        draw_colored_polygon(PackedVector2Array([
+            Vector2(left - 3, top + 10), Vector2(left + 14, top),
+            Vector2(left + 60, top), Vector2(left + 73, top + 10)
+        ]), Color("#c8a171"))
+        for strap in [12.0, 53.0]:
+            draw_line(Vector2(left + strap, top + 9), Vector2(left + strap, top + 51), Color("#c3a66a"), 3.0)
+        draw_rect(Rect2(left + 28, top + 24, 15, 11), Color("#d1bc8a"))
+    elif item_id == "recovered_part":
+        draw_circle(pos + Vector2(0, -63), 26, Color("#334953"))
+        draw_arc(pos + Vector2(0, -63), 24, 0, TAU, 24, Color("#c6b899"), 5.0)
+        draw_circle(pos + Vector2(0, -63), 12, Color("#8ac4c7"))
+        for tooth in range(8):
+            var angle := TAU * float(tooth) / 8.0
+            draw_line(pos + Vector2(cos(angle), sin(angle)) * 22 + Vector2(0, -63), pos + Vector2(cos(angle), sin(angle)) * 33 + Vector2(0, -63), Color("#d7c099"), 5.0)
+    else:
+        draw_colored_polygon(PackedVector2Array([
+            Vector2(left, top + 54), Vector2(left, top + 19),
+            Vector2(left + 35, top), Vector2(left + 70, top + 19),
+            Vector2(left + 70, top + 54)
+        ]), Color("#446773") if not already_taken else Color("#3b675f"))
+        draw_line(Vector2(left + 12, top + 27), Vector2(left + 58, top + 27), Color("#d6bd8c"), 3.0)
+        draw_circle(Vector2(left + 35, top + 39), 7, Color("#aad4cf"))
     draw_string(ThemeDB.fallback_font, pos + Vector2(-80, -99), label, HORIZONTAL_ALIGNMENT_LEFT, 162, 14, Color("#f9e8c8"))
     if already_taken:
         draw_line(pos + Vector2(-20, -63), pos + Vector2(20, -39), Color("#e7f0d7"), 3.0)
