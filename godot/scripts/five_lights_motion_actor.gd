@@ -10,7 +10,7 @@ var distance_travelled: float = 0.0
 var motion: Vector2 = Vector2.ZERO
 var ready_to_review: bool = false
 var selected: bool = false
-var contact_visual_offset: float = 0.0
+var pose_preview_enabled: bool = false
 
 ## Scene-only inspection scale, not a resampling or approved source-art rewrite.
 const REVIEW_SCALE: Dictionary = {"Ender": 1.62, "Ionia": 0.22, "Lyra": 1.54, "Aepex": 1.54, "Reson": 1.54}
@@ -70,7 +70,6 @@ func _ready() -> void:
         var frame_height: float = float(tex.get_height())
         var nominal_sole_y: float = frame_height * 0.47
         sprite.position = Vector2(0.0, -roundf(nominal_sole_y * sprite.scale.y))
-        contact_visual_offset = maxf(contact_visual_offset, sprite.position.y)
         add_child(sprite)
         sprites[d] = sprite
     ready_to_review = true
@@ -86,16 +85,30 @@ func set_facing(direction: String) -> bool:
     _sync()
     return true
 
+func set_pose_preview(enabled: bool, requested_phase: int = 0) -> bool:
+    if not ready_to_review or requested_phase < 0 or requested_phase >= PHASE_COUNT:
+        return false
+    pose_preview_enabled = enabled
+    motion = Vector2.ZERO
+    velocity = Vector2.ZERO
+    phase = requested_phase if enabled else 0
+    _sync()
+    return true
+
 func reset_at(point: Vector2) -> void:
     position = point
     motion = Vector2.ZERO
     velocity = Vector2.ZERO
     phase = 0
     distance_travelled = 0.0
+    pose_preview_enabled = false
     set_facing("south")
 
 func _physics_process(_delta: float) -> void:
     if not ready_to_review:
+        return
+    if pose_preview_enabled:
+        velocity = Vector2.ZERO
         return
     velocity = motion * 105.0
     var previous: Vector2 = global_position
