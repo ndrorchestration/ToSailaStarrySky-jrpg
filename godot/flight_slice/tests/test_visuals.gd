@@ -18,6 +18,14 @@ func _run() -> void:
         return
     var visuals = scene.get_node("FlightPresentation")
     check(scene.terrain.chunk_count() == 64, "geometry budget preserved")
+    check(is_equal_approx(float(visuals.land.get_shader_parameter(
+        "alpine_blend_strength")),1.0),
+        "alpine projection material starts at the audited full-strength setting")
+    visuals.land.set_shader_parameter("alpine_blend_strength", 0.0)
+    check(is_equal_approx(float(visuals.land.get_shader_parameter(
+        "alpine_blend_strength")),0.0),
+        "native material can reproduce the original zero-strength reference")
+    visuals.land.set_shader_parameter("alpine_blend_strength", 1.0)
     # Cinematic light synchronization is explicit, independent of screen captures.
     check(visuals.sky_material.get_shader_parameter("sun_direction") == visuals.SUN_DIRECTION,
         "sky uses authored key-light vector")
