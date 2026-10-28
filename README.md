@@ -78,15 +78,14 @@ The v3 checkpoint and recent in-game visuals are **draft branch features**, not 
 
 ## Legacy browser development status
 
-The following technical/runtime notes describe the **older p5.js browser baseline**, not the full revised native Godot Chapter I or final campaign.
+The root **p5.js/NW.js preservation build** remains runnable for historical comparison and regression coverage. It is **not** the source of authority for the revised native Godot story, present combat commands, job/school progression or release status.
 
-- **Stage:** late prototype / pre-alpha
-- **Playable baseline:** boot → First Wake opening → world exploration → dialogue/quest systems → combat
-- **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
-- **Combat party target:** supports 1–5 active authored protagonists, growing through recruitment; First Wake now begins with Ender alone, adds Lyra first, and brings Ionia officially into the early storm/shield sequence
-- **Current migration:** smoke-green persistent roster, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; higher-order effect semantics remain separate gates
+- **Historic playable scope:** browser startup, exploration, dialogue/quests, a combat loop and legacy choice outcomes.
+- **Historic systems:** browser party state, eight-slot action metadata, formula adapters and progression registries remain in `modules/` and `tests/` as compatibility evidence.
+- **Current development focus:** the separate, opt-in native Godot Chapter I review; its original configured scene is preserved while the Ionia-first route and postflight recovery remain draft/unmerged.
+- **Five authored protagonists:** a story and roster design commitment, not proof that each currently has finished recruitment, native combat actions, equipment visuals or approved spell schools.
 
-See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
+The older [technical specification](SPEC.md) and [development notes](docs/DEVELOPMENT.md) include migration history. Check the exact file and branch before treating their legacy implementation claims as current gameplay.
 
 ## Run the legacy browser prototype
 
@@ -120,9 +119,9 @@ The development runtime is designed to work offline and uses:
 - local JavaScript modules,
 - optional generated TTS assets when present.
 
-Current canvas: **960×640**.
+Legacy browser logical canvas: **960×640**.
 
-## Controls
+## Legacy browser controls (not the Godot combat menu)
 
 | Key | Action |
 |---|---|
@@ -140,77 +139,53 @@ Current canvas: **960×640**.
 | **1–8** | Combat actions |
 | **S** | Secondary combat action when available |
 
-## Combat prototype
+## Combat and Resonance — implementation status
 
-Combat is migrating to a **conventional JRPG formula model**. Production-native actions use explicit power/scaling, defenses, bounded accuracy/critical variance, costs, statuses, and deterministic analysis where appropriate. Legacy 2D6 behavior remains only in explicitly quarantined compatibility actions and historical mirrors.
+**There is no single approved eight-action combat menu for the current Godot game.** The earlier numbered ability list and level-based unlock claims describe the *legacy JavaScript preservation build*, not a current Chapter I skill tree, combat command layout, or creator-approved progression.
 
-The current action surface contains eight slots:
+| Source | Verified or implemented scope | What it does **not** establish |
+|---|---|---|
+| **Native combat formula contracts** | [Godot formula resolver](godot/scripts/first_wake_combat_formula.gd) handles a bounded Ender-oriented subset for damage, analysis, resource handling and recovery; [party combat authority](godot/scripts/first_wake_party_combat_authority.gd) constrains who may use that subset. | A complete five-protagonist battle system, new character abilities, an eight-slot Godot command menu, or production integration into the revised opening. |
+| **Playable encounter experiments** | The separate [telegraph encounter](godot/scripts/vertical_slice_encounter.gd) tests turn-based **Guard / Strike** prediction and an **Echo** payoff, as documented in the [combat-direction decision](docs/design/AETHERWAKE_COMBAT_DIRECTION_DECISION_2026-10-21.md). | Final encounter pacing, a timing/reflex system, universal action rules, or production combat balance. |
+| **Combined-party Resonance research** | [Proposed Arts metadata](godot/scripts/party_resonance_catalog.gd), [read-only eligibility preflight](godot/scripts/first_wake_resonance_composite_preflight.gd) and a separate [visual/interaction lab](godot/scripts/resonance_dual_review.gd) allow controlled review of candidate combinations. | An unlocked ability in the Chapter I battle menu: composite admission explicitly remains **`canExecute=false`**, with no automatic grant from narrative Lights or story-party membership. |
+| **Older browser combat** | The historical eight-slot metadata and level-progression rules remain in [`modules/ability-defs.js`](modules/ability-defs.js) and [`modules/progression-defs.js`](modules/progression-defs.js) for preservation/regression. | The current Godot combat authority, an approved list of spells, or the final skill/unlock economy. |
 
-| # | Action | Role |
-|---:|---|---|
-| 1 | Resonator Staff | EMP attack |
-| 2 | Uncover Truth | deterministic analysis / weakness reveal |
-| 3 | Shared Dream | legacy compatibility residue; blocked by current Dreaming/Talen SSOT |
-| 4 | Mycelial Ledger | Ender Commons read-only relationship analysis |
-| 5 | Hold | deterministic staff recharge |
-| 6 | Wind Ward | legacy compatibility residue; owner/domain unresolved |
-| 7 | Aether Seal | Ender Aether/Ward suppression on explicit Aether-dependent targets |
-| 8 | Rest | deterministic heat/vitality recovery |
+Combat direction is **strategic, legible turn-based decision-making** with clear telegraphs and meaningful consequences; the eventual full battle UX, equipment integration, party turn economy, magic schools, job progression, Dual/Triple Arts and their original visuals require their own tested production admission. Keep implementation, experiment and canon status separate.
 
-Current prototype progression unlocks **Wind Ward at level 3, Aether Seal at level 4, and Rest at level 5**.
+## Party and Chapter I chronology
 
-These flat combat definitions are an implementation baseline, not the final architecture. The target system uses data-driven ability definitions, explicit prerequisites, a generic effect resolver, school mastery, jobs, and party-combination arts.
+**Established protagonists:** Ender, Ionia, Lyra, Reson and Aepex. Their respective Five Lights identities are narrative foundations, **not** automatic magic-school abilities, combat actions or Resonance permissions. The production aspiration is a persistent five-character roster with **up to five active protagonists**, but that is an architectural target rather than proof of fully implemented five-character native combat.
 
-## Party architecture
+**Revised Godot Chapter I review (draft, not merged):**
 
-### Target
+1. **Ender** starts alone, finds Captain Ionia's employment notice and joins her as a harmonic-levitation engine specialist.
+2. **Ionia joins first**, before engineering preparation and the short first test flight of the Aureate Wake.
+3. After the engine falls out of phase, the ship makes a physically tested *local 2D* splashdown and a provisional safe berth is reached.
+4. **Lyra joins second**, only after Ender and Ionia return safely and the Lyra/Talen family reunion dialogue completes. Talen remains **noncombat**.
+5. The adults gather independent clues, form a **working** fuel theory, find two provisional materials in separate review areas, and attempt a physical repair. That restart fails; Ionia's remembered Denith shanty becomes the basis of a **bounded bench alignment hypothesis**, not authorization to relaunch or cast a combination Art.
 
-```text
-ROSTER[5] → ACTIVE_PARTY[1..5] → combat
-```
+These events are connected in the revised [opening contract](godot/scripts/first_wake_revised_opening_contract.gd) and reviewed in the [Godot chapter implementation](docs/FIRST_WAKE_SALVAGE_V3_CHECKPOINT_PILOT.md). The original configured Godot Chapter I and the older browser Crossing/party order remain **historical or preserved parallel implementations** until an explicitly reviewed migration; do not describe their Lyra-first order as the revised story canon.
 
-Persistent progression belongs to the five-character roster. The target combat/menu architecture supports all five simultaneously once recruited; the active party grows from 1 → 2 → 3 → 4 → 5 through the story.
+**Save boundary:** The revised opening's preflight-only v2 checkpoint and the opt-in two-area salvage v3 checkpoint are independent of the older Chapter I v1 save. Neither v3 restoration nor story-roster eligibility proves the prior ocean physics again or grants battle rights. [Story-roster / Resonance boundary](docs/RESONANCE_CH1_STORY_ROSTER_BOUNDARY_V0_1.md).
 
-### Current migration state
+## Legacy browser quest slice (historical)
 
-The development runtime now has the first persistent party-state layer:
+The preservation build contains a separate **Signal → Crossing → Contact → Choice → Wake** loop with signal hooks, navigation hazards, encounter and choice consequences. This is retained as earlier browser implementation provenance; it is **not** the revised Godot employment → flight → splashdown → reunion → repair chronology or the complete authored campaign.
 
-- `modules/party-state.js` owns exactly five stable roster identities: `ender`, `lyra`, `ionia`, `reson`, and `aepex`;
-- `ACTIVE_PARTY` is validated for 1–5 direct references into `ROSTER`; First Wake now begins with Ender alone, recruits Lyra at Sequence 06, and brings Ionia officially into the early storm/shield sequence;
-- `world.player`, `ROSTER[0]`, and `ACTIVE_PARTY[0]` are the same object, so combat write-back updates the canonical lead record;
-- the preserved character-creation flow still creates two player-named prototype companions and prototype jobs, then adapts them into the Lyra/Ionia roster slots;
-- Reson and Aepex are identity-only runtime shells until authored onboarding/mechanics are migrated;
-- full authored five-character simultaneous combat is **not** enabled yet; the architecture now permits 1–5 active members while authored recruitment/onboarding is migrated.
+## Repository layout — current vs historical
 
-The prototype names/jobs remain implementation provenance rather than final character canon.
-
-## Current quest vertical slice
-
-The existing prototype quest follows:
-
-**Signal → Crossing → Contact → Choice → Wake**
-
-It includes signal hooks, traversal hazards, NPC encounters, three major choice paths, and multiple epilogue outcomes. In the current Act I slice, those paths are leave early, hold dock, or project the Wake's shield across neighboring berths. This is a vertical-slice narrative structure, not the complete campaign.
-
-## Repository layout
-
-| Path | Purpose |
+| Path | Role |
 |---|---|
-| `aetherwake.js` | Current integrated runtime / preservation build |
-| `index-embedded.html` | Current browser entry point |
-| `modules/effect-vocabulary.js` | Frozen effect vocabulary v0.1 + current action effect profiles |
-| `modules/effect-resolver.js` | Fail-closed ordinary mutation resolver for damage/restoration/resources |
-| `modules/ability-defs.js` | Canonical metadata for the eight current combat actions |
-| `modules/progression-defs.js` | Canonical current level-unlock table |
-| `modules/party-state.js` | Authoritative persistent roster / active-party reference layer |
-| `modules/first-wake-opening.js` | Active authored New Game → First Wake opening controller |
-| `modules/char-create.js` | Historical compatibility adapter; not the normal New Game path |
-| other `modules/*.js` | Older modular mirrors/reference source; not authoritative runtime for all systems |
-| `SPEC.md` | Current technical target + implementation notes |
-| `docs/DEVELOPMENT.md` | Development authority, migration rules, smoke gate |
-| `gap_analysis.md` | Snapshot audit of prototype conformance |
-| `memories_adaptation_catalog.md` | Adaptation/provenance reference |
-| `tests/` | Canonical automated smoke/regression tests |
+| [`godot/project.godot`](godot/project.godot) | Nested Godot 4.7.2 project; preserved original Chapter I startup with F8 opt-in revised route in the reviewed draft stack. |
+| [`godot/scripts/first_wake_revised_opening_contract.gd`](godot/scripts/first_wake_revised_opening_contract.gd) | Revised **Ionia-first**, Lyra-after-reunion story/evidence gate. |
+| [`godot/scripts/first_wake_combat_formula.gd`](godot/scripts/first_wake_combat_formula.gd) | Bounded native JRPG formula contract; not a complete live multi-character combat menu. |
+| [`godot/scripts/first_wake_party_combat_authority.gd`](godot/scripts/first_wake_party_combat_authority.gd) | Separate, fail-closed native formula-turn authority; older Crossing roster reflected here must not override revised chronology. |
+| [`godot/scripts/vertical_slice_encounter.gd`](godot/scripts/vertical_slice_encounter.gd) | Isolated strategic Guard / Strike / Echo trial. |
+| [`godot/scripts/first_wake_resonance_composite_preflight.gd`](godot/scripts/first_wake_resonance_composite_preflight.gd) | Non-executing, read-only combination-Art preflight. |
+| [`docs/FIRST_WAKE_SALVAGE_V3_CHECKPOINT_PILOT.md`](docs/FIRST_WAKE_SALVAGE_V3_CHECKPOINT_PILOT.md) | Scoped two-area salvage resume, save limits and verified review flow. |
+| [`index-embedded.html`](index-embedded.html), [`aetherwake.js`](aetherwake.js) | Legacy browser entry and preserved integrated JavaScript runtime. |
+| [`modules/`](modules/), [`tests/`](tests/) | Historical browser combat/progression implementation and regression checks; **not** a current native ability list. |
+| [`SPEC.md`](SPEC.md), [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | Cross-generational design and development reference material; distinguish older implementation statements from new review branches. |
 
 ## Verification
 
