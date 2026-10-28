@@ -52,4 +52,10 @@ Expected exact receipt: `FOREST_CH1_BRIDGE_PASS`. The test exercises the portabl
 - Notion **Documentation Authority & Reconciliation** / **Worldbuilding Productionization Readiness Matrix**: add a cross-track authority note and mark `SOURCE-CONTRACT-PROTOTYPE`, not `INTEGRATED`.
 - Chapter I acceptance documents: only update if opt-in vegetation actually touches a playable scene; no Chapter I or save acceptance is inherited from this proof.
 
-**Current gate decisions**: `SOURCE_BRIDGE=DRAFT`; `PORTABLE_POLICY_TEST=TO_BE_RUN`; `SCENE_WIRING=NONE`; `PLANET_INTEGRATION=NONE`; `ART_ACCEPTANCE=PENDING`; `GPU_PERFORMANCE=UNVERIFIED`; `CREATOR_ACCEPTANCE=PENDING`; `RELEASE=HOLD`.
+## 2026-10-27 source-specific native admission receipt
+
+Initial implementation commit `54122a4e9f44ba8fc880c1cb65e4a55c8c6c5fde` has **executed** in the Chapter I Godot 4.7.2 native pilot: [workflow 40615514993](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615514993) **SUCCESS**, with explicit `FOREST_CH1_BRIDGE_PASS`. [Repository smoke 40615514956](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615514956) **SUCCESS**, and [native Ionia render review 40615514619](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615514619) **SUCCESS** at that same code commit. This proves **portability of a pure GDScript policy contract only**, not scene integration or visual acceptance.
+
+Separate [Godot Exact Windows QA 40615514378](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615514378) is **NOT PASSED**: Windows preflight refused `WINDOWS_QA_HOST_DEFENDER_REALTIME_DISABLED` (antivirus service enabled, real-time protection not enabled). A sibling Windows job succeeded, but does not supersede this fail-closed custody blocker. **Do not bypass, weaken or describe Windows release authorization as cleared.** A new documentation commit requires its own exact-head verification.
+
+**Current gate decisions**: `SOURCE_BRIDGE=DRAFT`; `PORTABLE_POLICY_TEST=PASS_AT_54122a4e`; `SCENE_WIRING=NONE`; `PLANET_INTEGRATION=NONE`; `ART_ACCEPTANCE=PENDING`; `GPU_PERFORMANCE=UNVERIFIED`; `WINDOWS_SECURITY_PREFLIGHT=BLOCKED`; `CREATOR_ACCEPTANCE=PENDING`; `RELEASE=HOLD`.
