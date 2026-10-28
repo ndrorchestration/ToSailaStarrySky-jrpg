@@ -162,15 +162,30 @@ func _draw() -> void:
         var t := float(index) / 60.0
         var tone := Color("#142d46").lerp(Color("#d2a778"), t * t)
         draw_rect(Rect2(0, float(index) * 7.0, 960, 8), tone)
-    draw_circle(Vector2(754, 184), 93.0, Color(0.98, 0.77, 0.51, 0.06))
-    draw_circle(Vector2(754, 184), 67.0, Color(0.98, 0.84, 0.58, 0.13))
-    draw_circle(Vector2(754, 184), 39.0, Color("#ffdeac"))
-    draw_circle(Vector2(754, 184), 30.0, Color("#fff1c6"))
-    for index in range(9):
-        var x := float(index) * 126.0 - 65.0
-        var y := 222.0 + float(index % 3) * 17.0
-        draw_circle(Vector2(x, y), 27.0, Color(0.78, 0.84, 0.83, 0.11))
-        draw_circle(Vector2(x + 22.0, y + 8.0), 42.0, Color(0.76, 0.83, 0.85, 0.09))
+    # Broad, low-contrast overlapping halo layers avoid conspicuous
+    # concentric disks while preserving a warm celestial focal point.
+    for halo in range(20, 0, -1):
+        var radius := 35.0 + float(halo) * 5.0
+        var alpha := 0.003 + float(20 - halo) * 0.0007
+        draw_circle(Vector2(754, 184), radius, Color(0.98, 0.84, 0.66, alpha))
+    draw_circle(Vector2(754, 184), 30.0, Color("#ffe3b1"))
+    draw_circle(Vector2(754, 184), 24.0, Color("#fff0c9"))
+    # Broken wisps and thin, depth-ordered strata instead of rounded circles.
+    # This is artwork-layer fog, not a simulated weather or cloud system.
+    for index in range(7):
+        var x := float(index) * 171.0 - 130.0
+        var y := 206.0 + float(index % 3) * 21.0
+        draw_colored_polygon(PackedVector2Array([
+            Vector2(x - 34, y + 11), Vector2(x - 8, y + 2),
+            Vector2(x + 11, y - 5), Vector2(x + 32, y + 3),
+            Vector2(x + 59, y + 6), Vector2(x + 86, y + 13),
+            Vector2(x + 112, y + 18), Vector2(x + 83, y + 22),
+            Vector2(x + 22, y + 20), Vector2(x - 31, y + 16),
+        ]), Color(0.77, 0.85, 0.83, 0.055))
+        draw_line(Vector2(x - 3, y + 7), Vector2(x + 74, y + 11), Color(0.91, 0.89, 0.80, 0.075), 1.3)
+    for index in range(4):
+        var y := 285.0 + float(index) * 12.0
+        draw_line(Vector2(0, y), Vector2(960, y - 5), Color(0.94, 0.85, 0.70, 0.035), 2.0)
     draw_colored_polygon(PackedVector2Array([
         Vector2(0, 366), Vector2(94, 358), Vector2(201, 370),
         Vector2(338, 359), Vector2(472, 371), Vector2(632, 354),
