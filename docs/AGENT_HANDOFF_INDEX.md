@@ -14,6 +14,12 @@
 | Cinematics | [CINEMATIC_CLIP_CONTRACT.md](CINEMATIC_CLIP_CONTRACT.md) and benchmark scene |
 | Builds / validation / release | [DEVELOPMENT.md](DEVELOPMENT.md), [PREVIEW_0_1_ACCEPTANCE.md](PREVIEW_0_1_ACCEPTANCE.md), [Godot coordination](GODOT_MIGRATION_COORDINATION.md) |
 
+## Shared hull and crew-space reconciliation (2026-10-28)
+
+Before reusing the procedural Aureate Wake hull in character-scale 3D, consult [shared hull geometry gate #541](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/541), its [source matrix](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/blob/prototype/ch1-ship-geometry-cross-study-20261028/docs/AUREATE_WAKE_SHARED_HULL_GEOMETRY_GATE_2026-10-28.md), and [production admission contract](SHIP_POSE_PROTOTYPE_TO_PRODUCTION_ADMISSION.md). The open foredeck (#452), boarding threshold (#461), glass dome (#482), original four-wing rig (#490), and 10.4m cutaway (#431) are **not** metrically reconciled. In the unapproved 2.5m/art-unit hypothesis, the cabin interior width exceeds the source hull width. No passing shader or cinematic screenshot can certify crew clearance.
+
+Keep these as draft source proposals; accept physical changes only on a single author-reviewed world-to-metre transform, actor/collision geometry and Chapter I native gameplay tests. No private capability or story unlock is part of the public hull-scale audit.
+
 ## Current ship integration review path
 
 For Aureate Wake wing animation, chapter-scene bridging and visual-event plumbing, review [ship-pose prototype → production admission](SHIP_POSE_PROTOTYPE_TO_PRODUCTION_ADMISSION.md) before modifying Godot scene hierarchies. Source proofs: [#478 hinge](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/478), [#490 pose+weather](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/490), [#497 native Chapter I ship-space handoff](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/497). These are **drafts on different lineages**, not one merged runtime or a final ship model. The smallest next candidate is a test-only, renderer-independent pose request in the true native Ionia-first Chapter I engineering scene. No public late-game clues or mode identifiers.
