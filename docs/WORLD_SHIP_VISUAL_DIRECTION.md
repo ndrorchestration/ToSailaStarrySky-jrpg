@@ -32,6 +32,14 @@ A **Dragonfly dusk dock** view should clearly show Ender and his real grounded f
 
 Ship may travel by free flight, normal regional lanes and eventually more advanced methods. Higher-speed/late-game traversal must preserve narrative recruitment gates; no new hidden routes or advanced world reveals may be fabricated here.
 
+## Geometry reconciliation is a prerequisite to character-scale ship art
+
+The current [cross-study draft #541](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/541) compares the **original** four-wing hull, open foredeck, geodesic bridge, glass material and lived-in interior cutaway in one opt-in native Chapter I render study. These are separate **source-identical** art proposals, not a unified metrically approved vessel.
+
+The historical boarding study's **provisional** conversion of 2.5 metres/art unit exposes an important new incompatibility: original hull skin's maximum loft beam is about 3.40 m while the separate interior cutaway is 3.80 m wide. This is alongside the previously unresolved dome/entry/headroom conflicts (3.80 m dome, 2.35 m entrance, 1.825 m summit vs 2.05 m review standing target). The camera can look convincing while the physical layout is impossible. Do not promote a 2D/3D visual overlay into walkable hull authority without one creator-approved metre frame.
+
+The cross-study gate measures five wing poses against deck/railing/bridge bounding boxes but must refuse safe passage and collision certification. All physical design updates require actual actor collision, safe open-deck conditions, railings/hatches, normal wing operation, inaccessible swept zones, and independently verified maritime/altitude environmental ratings before gameplay integration. This is a **production-design QA requirement**, not a story reveal.
+
 ## Reusable ship motion and presentation (public-safe pipeline)
 
 The Aureate Wake's four-wing identity now has a real **neutral hinge prototype** ([draft #478](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/478)) and a separate **opt-in wing pose / weather timeline** ([draft #490](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/490)). Their passing native tests demonstrate an isolated Godot 4.7.2 art-control seam, not wing clearance, dynamic flight behavior, accepted final geometry or player gameplay. The [Chapter I ship-space prototype](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/497) is a different scene and a read-only visual projection.
