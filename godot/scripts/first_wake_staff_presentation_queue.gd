@@ -66,6 +66,9 @@ func seek(seconds: float) -> bool:
     elapsed=clampf(seconds,0.0,duration)
     var next_phase: String = "revealed" if reduced_motion \
         or elapsed >= duration*CONTACT_PROGRESS else "pending"
+    # A committed result is never visually rolled back within one event.
+    if phase == "revealed":
+        next_phase = "revealed"
     if phase != "revealed" and next_phase == "revealed":
         revealed_count+=1
     phase=next_phase
