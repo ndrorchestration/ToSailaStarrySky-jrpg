@@ -224,18 +224,49 @@ func _verify() -> void:
     if preview.opening.step_key() != "working_theory":
         _fail("actual joined crew did not establish two-clue theory")
         return
-    if not family.interact() or family.repair_review == null:
-        _fail("valid shared theory did not hand off into materials quest")
+    if not family.interact() or family.salvage_review == null:
+        _fail("valid shared theory did not lead to explorable world salvage")
         return
-    var workshop = family.repair_review
-    if not workshop.has_external_story_handoff or workshop.story != preview.opening:
-        _fail("workshop used scripted fake story instead of live postflight state")
+    var salvage = family.salvage_review
+    if salvage.story != preview.opening or salvage.core.authorized_story != preview.opening:
+        _fail("salvage broke the exact real postflight story identity")
         return
-    for point in [workshop.PICKUP_A, workshop.PICKUP_B]:
-        workshop.ender.position = point
-        if not workshop.interact():
-            _fail("physical salvage pickup not walkable after reunion")
-            return
+    if salvage.handoff_to_workshop() or salvage.core.snapshot()["phase"] != "recover":
+        _fail("missing physical items did not block workshop")
+        return
+    salvage.ender.position = salvage.QUAY_SUPPLY
+    if not salvage.interact():
+        _fail("first physically observed source object was unavailable")
+        return
+    if salvage.snapshot()["material_installation_ready"]:
+        _fail("first object alone unlocked repair installation")
+        return
+    salvage.ender.position = salvage.QUAY_TO_DEPOT
+    if not salvage.interact() or salvage.region != salvage.DEPOT:
+        _fail("world area traversal was not playable")
+        return
+    salvage.ender.position = salvage.DEPOT_PART
+    if not salvage.interact():
+        _fail("replacement part could not be physically recovered")
+        return
+    if not salvage.snapshot()["required_regions_visited"] or salvage.snapshot()["custody"].size() != 2:
+        _fail("salvage has no two distinct-source custody evidence")
+        return
+    salvage.ender.position = salvage.DEPOT_TO_QUAY
+    if not salvage.interact() or salvage.region != salvage.QUAY:
+        _fail("return from annex to quay missing")
+        return
+    salvage.ender.position = salvage.RETURN_TO_WAKE
+    if not salvage.interact() or salvage.workshop == null:
+        _fail("crew did not physically return items to the Wake workshop")
+        return
+    var workshop = salvage.workshop
+    if not workshop.has_external_salvage_custody or workshop.story != preview.opening or workshop.core != salvage.core:
+        _fail("workshop used scripted fixture or new core instead of recovered two-region custody")
+        return
+    if workshop.core.snapshot()["phase"] != "install":
+        _fail("salvage wrongfully installed items before workshop interactions")
+        return
     workshop.ender.position = workshop.INSTALL
     if not workshop.interact() or not workshop.interact():
         _fail("physical repair installation steps not playable")
@@ -287,7 +318,7 @@ func _verify() -> void:
     if _file_hash(SaveStore.DEFAULT_PATH) != v1_hash or _file_hash(RevisedCodec.SLOT_PATH) != v2_hash:
         _fail("F8 exit from splashdown rewrote v1/v2 checkpoint data")
         return
-    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: configured startup F8, flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, reserve inspection, local berth sensor and safe Lyra/Talen dialogue, two real crew clues, recovered items, failed restart and chosen Denith melody, F8 v1 return; no ship/Art rights")
+    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: configured startup F8, flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, reserve inspection, local berth sensor and safe Lyra/Talen dialogue, two real crew clues, two distinct salvage areas and custody receipts, failed restart and chosen Denith melody, F8 v1 return; no ship/Art rights")
     quit(0)
 
 func _finish_dialogue(world: Node) -> bool:
