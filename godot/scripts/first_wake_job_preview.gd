@@ -9,6 +9,7 @@ const Actor = preload("res://scripts/pilot_actor.gd")
 const Dock = preload("res://scripts/dock_depth_review.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const FlightScene = preload("res://scenes/first_wake_flight_water_review.tscn")
+const PortraitPreview = preload("res://scripts/first_wake_creator_portrait_preview.gd")
 
 const FLYER_POSITION := Vector2(442, 463)
 const IONIA_DOCK_POSITION := Vector2(677, 467)
@@ -46,6 +47,7 @@ var dialogue_lines: Array = []
 var dialogue_cursor: int = 0
 var dialogue_event: String = ""
 var dialogue_character: String = ""
+var portrait_preview: Control
 var last_message: String = "Read the job notice, then speak to the captain."
 
 func _ready() -> void:
@@ -96,6 +98,8 @@ func _ready() -> void:
     dialogue_speaker = _label(ui, Vector2(120, 539), 16, 730)
     dialogue_text = _label(ui, Vector2(120, 566), 18, 730)
     dialogue_text.custom_minimum_size.y = 58.0
+    portrait_preview = PortraitPreview.new()
+    ui.add_child(portrait_preview)
     _sync_presentation()
 
 func _label(parent: Node, pos: Vector2, font_size: int, width: float) -> Label:
@@ -157,6 +161,12 @@ func _draw_engineering_room() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
     if room == "flight_review":
+        return
+    if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_V:
+        if portrait_preview != null:
+            portrait_preview.set_portraits_enabled(not portrait_preview.portraits_enabled)
+            _sync_presentation()
+        get_viewport().set_input_as_handled()
         return
     if event.is_action_pressed(InputPolicy.FLIGHT_REVIEW_LAUNCH) and not event.is_echo():
         if launch_flight_review():
@@ -343,10 +353,14 @@ func _sync_presentation() -> void:
         dialogue_speaker.visible = true
         dialogue_text.visible = true
         dialogue_text.text = str(dialogue_lines[dialogue_cursor])
+        if portrait_preview != null:
+            portrait_preview.display_dialogue_line(dialogue_text.text, dialogue_speaker.text)
         hint.text = "Interact / E: next line   |   " + str(dialogue_cursor + 1) + " / " + str(dialogue_lines.size())
     else:
         dialogue_speaker.visible = false
         dialogue_text.visible = false
+        if portrait_preview != null:
+            portrait_preview.hide_portrait()
         hint.text = last_message + "    [Arrows: move  |  E: interact]"
     hint.visible = not dialogue_open
     queue_redraw()
