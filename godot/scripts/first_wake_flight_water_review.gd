@@ -6,6 +6,7 @@ extends Node2D
 
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
+const FamilyScene = preload("res://scenes/first_wake_postflight_family_review.tscn")
 
 const SURFACE_Y := 410.0
 const FLOAT_BUOYANCY := 120.0
@@ -19,6 +20,10 @@ var settled_seconds: float = 0.0
 var contact_observed: bool = false
 var stable_float_verified: bool = false
 var reserve_inspection_observed: bool = false
+var recovery_request_recorded: bool = false
+var safe_berth_confirmed_review: bool = false
+var family_review: Node2D
+var flight_overlay: CanvasLayer
 var ship_body: RigidBody2D
 var sea_area: Area2D
 var status_label: Label
@@ -83,7 +88,8 @@ func _ready() -> void:
     ship_body.add_child(wings)
     add_child(ship_body)
 
-    var ui := CanvasLayer.new()
+    flight_overlay = CanvasLayer.new()
+    var ui := flight_overlay
     ui.name = "FlightReviewOverlay"
     add_child(ui)
     status_label = _make_label(ui, Vector2(24, 20), 19)
@@ -120,6 +126,8 @@ func _draw() -> void:
     draw_rect(Rect2(0, 545, 960, 95), Color(0.04, 0.08, 0.16, 0.94))
 
 func _unhandled_input(event: InputEvent) -> void:
+    if family_review != null:
+        return
     if event.is_action_pressed(InputPolicy.INTERACT) and not event.is_echo():
         interact()
         get_viewport().set_input_as_handled()
@@ -131,6 +139,10 @@ func interact() -> bool:
         return stabilize_for_water_descent()
     if phase == "waterborne":
         return inspect_empty_reserve_after_splashdown()
+    if phase == "postflight_diagnosis":
+        return request_safe_recovery_review()
+    if phase == "recovery_review":
+        return acknowledge_safe_berth_and_open_family_review()
     return false
 
 func begin_short_test_flight() -> bool:
@@ -176,6 +188,46 @@ func inspect_empty_reserve_after_splashdown() -> bool:
     _refresh_presentation()
     return true
 
+func request_safe_recovery_review() -> bool:
+    # Stage the crew's practical decision first. No ferry, tow distance,
+    # geography, rescue craft or time-of-travel has been simulated here.
+    if phase != "postflight_diagnosis" or not reserve_inspection_observed:
+        return false
+    if not contact_observed or not stable_float_verified:
+        return false
+    if opening.step_key() != "postflight_diagnosis" or opening.active_party_ids != ["ender", "ionia"]:
+        return false
+    recovery_request_recorded = true
+    phase = "recovery_review"
+    _refresh_presentation()
+    return true
+
+func acknowledge_safe_berth_and_open_family_review() -> bool:
+    # An explicit opt-in TEST STAGING BOUNDARY; not proof of physical
+    # sailing/towing or approval of where this family is geographically.
+    if phase != "recovery_review" or not recovery_request_recorded:
+        return false
+    if not contact_observed or not stable_float_verified or not reserve_inspection_observed:
+        return false
+    if family_review != null:
+        return false
+    if opening.step_key() != "postflight_diagnosis" or opening.active_party_ids != ["ender", "ionia"]:
+        return false
+    var preview := FamilyScene.instantiate()
+    if not bool(preview.call("configure_after_safe_review", opening, contact_observed, stable_float_verified, reserve_inspection_observed, true)):
+        preview.free()
+        return false
+    safe_berth_confirmed_review = true
+    family_review = preview
+    phase = "family_review"
+    ship_body.freeze = true
+    ship_body.visible = false
+    sea_area.monitoring = false
+    flight_overlay.visible = false
+    add_child(family_review)
+    queue_redraw()
+    return true
+
 func _physics_process(delta: float) -> void:
     if ship_body == null:
         return
@@ -215,6 +267,10 @@ func review_snapshot() -> Dictionary:
         "actual_2d_area_contact_observed": contact_observed,
         "stable_buoyant_hull_observed": stable_float_verified,
         "reserve_inspection_observed": reserve_inspection_observed,
+        "recovery_request_recorded": recovery_request_recorded,
+        "safe_berth_confirmed_review": safe_berth_confirmed_review,
+        "family_review_active": family_review != null,
+        "real_recovery_route_verified": false,
         "real_inventory_scan_verified": false,
         "settle_seconds": settled_seconds,
         "hull_y": ship_body.position.y if ship_body != null else -1.0,
@@ -242,7 +298,11 @@ func _refresh_presentation() -> void:
         "waterborne":
             hint_label.text = "WATERBORNE: hull safely afloat, engines offline. E: inspect the depleted fuel reserve."
         "postflight_diagnosis":
-            hint_label.text = "RESERVE EMPTY: real postflight inspection step recorded in review. Secure recovery before Lyra/Talen reunion."
+            hint_label.text = "RESERVE EMPTY: E to request safe recovery. Actual route and location still unassigned."
+        "recovery_review":
+            hint_label.text = "RECOVERY REQUESTED (REVIEW): E to stage a confirmed safe berth; no tow/sailing route simulated."
+        "family_review":
+            hint_label.text = "Safe-berth family review opened. Arrival location remains unassigned."
         _:
             hint_label.text = "Preflight scene required."
     queue_redraw()
