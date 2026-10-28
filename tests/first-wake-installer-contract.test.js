@@ -55,6 +55,12 @@ assert(qa.includes('Compile and exercise actual First Wake Windows Setup.exe') &
 assert(qa.includes('Preflight unchanged Defender custody requirements') &&
   qa.includes('WINDOWS_QA_HOST_DEFENDER_REALTIME_DISABLED'),
   'existing Defender custody preflight may not be removed or bypassed');
+assert(qa.includes('Restore Defender realtime protection and remove drive-wide exclusions') &&
+  qa.includes('Set-MpPreference -DisableRealtimeMonitoring $false -DisableBehaviorMonitoring $false') &&
+  qa.includes('Remove-MpPreference -ExclusionPath') &&
+  qa.includes('TSTSS_DEFENDER_RESTORE_FAILED_CUSTODY_BLOCKED'),
+  'Defender restoration must enable realtime protection, remove drive-root exclusions and fail closed');
+
 assert(project.includes('run/main_scene="res://scenes/first_wake_game.tscn"') &&
   project.includes('window/size/resizable=true') &&
   project.includes('window/size/borderless=false'),
