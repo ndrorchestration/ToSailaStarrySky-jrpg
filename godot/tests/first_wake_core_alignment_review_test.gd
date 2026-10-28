@@ -2,6 +2,7 @@ extends SceneTree
 ## Real Godot 4.7.2 test of ordering; not a real-world physics or music proof.
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const Core = preload("res://scripts/first_wake_core_alignment_review.gd")
+const Melody = preload("res://scripts/first_wake_melody_math_fixture.gd")
 
 func _initialize() -> void:
     call_deferred("_verify")
@@ -33,7 +34,7 @@ func _verify() -> void:
         _fail("real theory start rejected or repeat start allowed")
         return
     var unchanged: Dictionary = pilot.snapshot()
-    if pilot.ionia_hums_unprompted(true) or pilot.ender_matches_sequence(true, true, true):
+    if pilot.ionia_hums_unprompted(true) or pilot.ender_matches_review_phrase(Melody.sample_phrase(), Melody.sample_sensor_vector()):
         _fail("song-only shortcut bypassed material recovery")
         return
     if pilot.take_world_item("invented_fuel", "world_pickup") or pilot.take_world_item("recovered_supply", "scripted_gift"):
@@ -82,10 +83,22 @@ func _verify() -> void:
     if not pilot.ionia_repeats_denith_song(true, true):
         _fail("Ionia repeating Denith's melody rejected")
         return
-    if pilot.ender_matches_sequence(true, false, true) or pilot.ender_matches_sequence(false, true, true):
-        _fail("incomplete musical-theory evidence accepted")
+    var pitch: Array = Melody.sample_phrase()
+    pitch[2]["tone_step"] = 8
+    var timing: Array = Melody.sample_phrase()
+    timing[2]["hold_ticks"] = 1
+    var chart: Array = Melody.sample_sensor_vector()
+    chart[2] = 99
+    if pilot.ender_matches_review_phrase(pitch, Melody.sample_sensor_vector()):
+        _fail("false interval pattern accepted")
         return
-    if not pilot.ender_matches_sequence(true, true, true):
+    if pilot.ender_matches_review_phrase(timing, Melody.sample_sensor_vector()):
+        _fail("false held-note duration accepted")
+        return
+    if pilot.ender_matches_review_phrase(Melody.sample_phrase(), chart):
+        _fail("false measured phase chart accepted")
+        return
+    if not pilot.ender_matches_review_phrase(Melody.sample_phrase(), Melody.sample_sensor_vector()):
         _fail("Ender's interval, timing and sensor insight rejected")
         return
     if pilot.lyra_confirms_response(false) or not pilot.lyra_confirms_response(true):
