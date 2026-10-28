@@ -30,3 +30,7 @@
 - **RELEASE:** separately authorized action; default HOLD.
 
 Documentation and canon descriptions do not upgrade any of these evidence categories. Notion/Drive may hold detailed receipts, but the GitHub branch/PR must link them explicitly when required. Verify the head again: these SHAs are dated pointers, not immutable branch locks.
+
+## Sand/snow/rain/mist native material branch reconciliation (2026-10-27)
+
+The visual evidence chain [#459](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/459) → [#472](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/472) → [#483](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/483) consists of **draft, unmerged Godot 4.7.2 noncanonical art studies**. #483 exact head `5c818efe4a12c6a16e5e54cfecf6282e45dcd68a` passed native material/geometry/scene tests and real GL screenshot QA, but did not modify the global worldmap or weather controller. Keep #448's alternative alpine snow, #420's environmental crossfades and #454's biome atlas on their own ancestries. [MATERIAL-P0 admission plan](design/PERCEPTUAL_BIOME_MATERIAL_PROMOTION_2026-10-27.md) defines the first **read-only biome/weather context → one real native spherical terrain patch → matched GL A/B**. It is a proposal, not a runtime migration, physical weather system, accepted art asset or an approval to merge. Main remains the legacy baseline.
