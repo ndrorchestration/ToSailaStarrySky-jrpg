@@ -126,6 +126,9 @@ jobs:
       - name: Verify First Wake opening runtime
         run: npm run test:first-wake-opening
 
+      - name: Validate Chapter One high-quality polish acceptance inventory (documentation only)
+        run: node --test tests/chapter-one-polish-checklist.test.js
+
       - name: Verify cinematic manifest contract
         run: npm run test:cinematics
 
