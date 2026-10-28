@@ -348,7 +348,7 @@ func _sync_presentation() -> void:
         objective.text = "PRE-FLIGHT READY — Press F for local physics flight/splashdown review."
     else:
         objective.text = "Engineering: inspect reference, containment and fuel (%d / 3)." % inspected_items.size()
-    party_label.text = "Story party: " + " + ".join(opening.active_party_ids) + "  |  Review-only art / no live game integration"
+    party_label.text = "Story party: " + " + ".join(opening.active_party_ids) + "  |  Character art preview — field sprites provisional"
     if dialogue_open:
         dialogue_speaker.visible = true
         dialogue_text.visible = true
