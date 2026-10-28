@@ -34,3 +34,7 @@
 5. Creator visual/player review, representative performance and Windows export/installed-launch verification.
 
 The existing canonical repository is public: https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg. Review actual branch states before making status claims.
+
+## Aureate Wake native ship-space production-admission checkpoint — 2026-10-27
+
+The [source-pinned ship-space gate ledger](AUREATE_WAKE_PROTOTYPE_TO_PRODUCTION_2026-10-27.md) now routes the verified independent Aureate Wake studies (#452/#461/#471/#482) through the playable native First Wake handoff (#497) and the separate prototype-to-production admission draft (#503). **G0** real Godot scene handoff is verified; **G1** asset-intake and **G2–G5** physical gameplay, platform, art and release acceptance remain open or blocked. No actual 3D bridge/hatch was merged into main. Treat all branches as drafts and do not misread the semantic 2D diagram as a playable ship or plot authorization.
