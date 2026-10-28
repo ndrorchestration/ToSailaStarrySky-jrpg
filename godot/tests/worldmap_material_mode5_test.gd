@@ -15,7 +15,7 @@ func check(ok: bool,msg: String) -> void:
     if not ok:
         failures.append(msg)
 
-func _press(scene: Node3D, code: Key) -> void:
+func _press(scene: Variant, code: Key) -> void:
     var k:=InputEventKey.new()
     k.pressed=true
     k.keycode=code
@@ -34,7 +34,7 @@ func _select(kind: String) -> Dictionary:
     return {}
 
 func _run() -> void:
-    var scene: Node3D=WorldScene.instantiate()
+    var scene: Variant=WorldScene.instantiate()
     root.add_child(scene)
     await process_frame
     check(scene.get_mode()=="globe","initial scene stays original globe")
@@ -56,7 +56,7 @@ func _run() -> void:
     scene._refresh_chart()
     scene._update_view()
     _press(scene,KEY_5)
-    var stream:=scene.get_node("NativeCubedSphereTerrain") as Node3D
+    var stream: Variant=scene.get_node("NativeCubedSphereTerrain") as Node3D
     check(scene.get_mode()=="tiles" and stream.visible,
         "actual 5-key opens native cubed-sphere flight view")
     var original_save: String=State.encode(scene.snapshot())
