@@ -7,6 +7,8 @@ on:
       - 'scripts/verify-godot-chapter1-windows-preview.ps1'
       - 'scripts/build-godot-chapter1-windows-preview.ps1'
       - 'scripts/package-godot-chapter1-windows-preview.ps1'
+      - 'scripts/build-first-wake-godot-installer.ps1'
+      - 'packaging/windows/ToSailTheStarrySky.nsi'
       - 'tests/godot-windows-preview-package-contract.test.js'
       - 'tests/godot-windows-native-qa-contract.test.js'
       - '.github/workflows/godot-exact-windows-qa.yml'
@@ -442,6 +444,78 @@ jobs:
           Write-Host "WINDOWS_FUNCTIONAL_NATIVE_LAUNCH=PASS"
           Write-Host "WINDOWS_FUNCTIONAL_RUNNING_APP_UNINSTALL=PASS"
           Write-Host "WINDOWS_EXACT_DEFENDER_QA=NOT_ESTABLISHED"
+          Write-Host "PUBLIC_RELEASE_AUTHORIZED=NO"
+
+      - name: Compile and exercise actual First Wake Windows Setup.exe (functional proof, no publication)
+        shell: pwsh
+        run: |
+          $nsis = Get-Command makensis.exe -ErrorAction SilentlyContinue
+          if (-not $nsis) {
+            foreach ($candidate in @(
+              "C:\Program Files (x86)\NSIS\makensis.exe",
+              "C:\Program Files\NSIS\makensis.exe"
+            )) {
+              if (Test-Path -LiteralPath $candidate) {
+                $nsis = Get-Item -LiteralPath $candidate
+                break
+              }
+            }
+          }
+          if (-not $nsis) {
+            choco install nsis -y --no-progress
+            if ($LASTEXITCODE -ne 0) { throw "TSTSS_INSTALLER_NSIS_INSTALL_FAILED" }
+            $nsis = Get-Item "C:\Program Files (x86)\NSIS\makensis.exe" -ErrorAction Stop
+          }
+          $output = Join-Path $env:RUNNER_TEMP "tstss-first-wake-installer-proof"
+          & .\scripts\build-first-wake-godot-installer.ps1 -GodotExe $env:GODOT_EXE -NsisExe $nsis.FullName -OutputDir $output
+          if ($LASTEXITCODE -ne 0) { throw "TSTSS_INSTALLER_BUILD_SCRIPT_FAILED:$LASTEXITCODE" }
+          $setup = Join-Path $output "ToSailTheStarrySky-Setup.exe"
+          $payload = Join-Path $output "ToSailTheStarrySky.exe"
+          if (-not (Test-Path -LiteralPath $setup) -or -not (Test-Path -LiteralPath $payload)) {
+            throw "TSTSS_INSTALLER_PROOF_FILES_MISSING"
+          }
+          $target = Join-Path $env:LOCALAPPDATA "Programs\ToSailTheStarrySky-FirstWake"
+          if (Test-Path -LiteralPath $target) {
+            throw "TSTSS_INSTALLER_TEST_DESTINATION_ALREADY_EXISTS"
+          }
+          $p = Start-Process -FilePath $setup -ArgumentList "/S" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "TSTSS_INSTALLER_INSTALL_FAILED:$($p.ExitCode)" }
+          $installed = Join-Path $target "ToSailTheStarrySky.exe"
+          $uninstall = Join-Path $target "Uninstall-ToSailTheStarrySky.exe"
+          $marker = Join-Path $target "TSTSS-FirstWake.install"
+          foreach ($owned in @($installed, $uninstall, $marker)) {
+            if (-not (Test-Path -LiteralPath $owned)) { throw "TSTSS_INSTALLER_INSTALLED_FILE_MISSING:$owned" }
+          }
+          $before = (Get-FileHash -LiteralPath $payload -Algorithm SHA256).Hash
+          $after = (Get-FileHash -LiteralPath $installed -Algorithm SHA256).Hash
+          if ($before -ne $after) { throw "TSTSS_INSTALLER_INSTALLED_EXE_HASH_MISMATCH" }
+          $game = Start-Process -FilePath $installed -PassThru
+          try {
+            $deadline = (Get-Date).AddSeconds(30)
+            $visible = $false
+            while ((Get-Date) -lt $deadline) {
+              $proc = Get-Process -Id $game.Id -ErrorAction SilentlyContinue
+              if (-not $proc) { break }
+              if ($proc.MainWindowHandle -ne 0) {
+                $visible = $true
+                Write-Host "TSTSS_INSTALLED_NATIVE_WINDOW_TITLE=$($proc.MainWindowTitle)"
+                break
+              }
+              Start-Sleep -Milliseconds 300
+            }
+            if (-not $visible) { throw "TSTSS_INSTALLER_NATIVE_WINDOW_NOT_OBSERVED" }
+            Write-Host "TSTSS_INSTALLER_FUNCTIONAL_INSTALL_AND_WINDOW=PASS"
+          }
+          finally {
+            Stop-Process -Id $game.Id -Force -ErrorAction SilentlyContinue
+          }
+          $u = Start-Process -FilePath $uninstall -ArgumentList "/S" -Wait -PassThru
+          if ($u.ExitCode -ne 0) { throw "TSTSS_INSTALLER_UNINSTALL_FAILED:$($u.ExitCode)" }
+          if (Test-Path -LiteralPath $installed -or Test-Path -LiteralPath $marker) {
+            throw "TSTSS_INSTALLER_UNINSTALL_LEFT_OWNED_FILES"
+          }
+          Write-Host "TSTSS_INSTALLER_LOCAL_FUNCTIONAL_PROOF=PASS"
+          Write-Host "TSTSS_INSTALLER_DEFENDER_QA=NOT_ESTABLISHED"
           Write-Host "PUBLIC_RELEASE_AUTHORIZED=NO"
 
       - name: Confirm tracked source remained unchanged
