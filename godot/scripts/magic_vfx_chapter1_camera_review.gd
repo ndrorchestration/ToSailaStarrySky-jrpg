@@ -106,7 +106,9 @@ func _install_camera_ui_scrims() -> void:
         scrim.name = "VisualQACameraSafeHudPanel"
         scrim.position = region.position
         scrim.size = region.size
-        scrim.color = Color(0.035, 0.07, 0.13, 0.96)
+        # Opaque charcoal-navy is screen-fixed: protects real text against
+        # changing/zoomed scenery instead of relying on world-space backing.
+        scrim.color = Color(0.012, 0.022, 0.039, 1.0)
         scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
         scrim.visible = false
         chapter_ui.add_child(scrim)
