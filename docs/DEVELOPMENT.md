@@ -21,6 +21,12 @@ The current production desktop structure is intentionally separate from the deve
 
 Launcher-layout correction lineage: `304835c12555e35061870a54d61f7c95996d0bdd`.
 
+## Revised First Wake/visual admission checkpoint (2026-10-27)
+
+The creator-directed forward Chapter I story recruits **Ionia before Lyra**, with Lyra joining only after the Aureate Wake's splashdown ([draft reboard #425](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/425)). Older Lyra-first sequences and their native combat migration review are retained as **historical tests**, not the current recruit-order mandate. Godot 4.7.2 remains the selected forward-development engine, while protected `main` still contains the historical JS runtime. Do not treat parallel Godot draft CI receipts as a combined, merged playable build.
+
+The reusable enemy-art extraction and the separate neutral combat-lab gate are specified in [Enemy Visual Prototype → Production](reviews/ENEMY_VISUAL_PROTOTYPE_TO_PRODUCTION_2026-10-27.md). Godot standalone Wind Shear presentation test **PASS** is limited to existing art metadata and VFX, not approved story placement, final enemy art, full native migration, GPU or Windows release certification.
+
 ## Visual / cinematic authority
 
 Visual work is governed by three current-main documents:
