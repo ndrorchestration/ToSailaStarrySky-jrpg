@@ -30,6 +30,18 @@ const JOINT_SCENE_SAMPLES := [
     {"label": "slice-beacon-payoff", "source": "slice-beacon-payoff-native-960x640.png"},
 ]
 
+# Additional Chapter I screenshots, freshly native-rendered on the same
+# runner. Lossless full-frame bytes remain evidence until separately
+# reviewed and added to a draft-only README contact sheet.
+const CHAPTER_ONE_REVIEW_SAMPLES := [
+    {"label": "chapter1-waterborne", "source": "first-wake-waterborne-review-native-960x640.png"},
+    {"label": "chapter1-berth-secured", "source": "first-wake-berth-secured-native-960x640.png"},
+    {"label": "chapter1-family-arrival", "source": "first-wake-family-meeting-native-960x640.png"},
+    {"label": "chapter1-salvage-quay", "source": "first-wake-salvage-quay-before-native-960x640.png"},
+    {"label": "chapter1-salvage-depot", "source": "first-wake-salvage-depot-native-960x640.png"},
+    {"label": "chapter1-workshop-return", "source": "first-wake-salvage-installed-pending-native-960x640.png"},
+]
+
 func _initialize() -> void:
     call_deferred("_emit")
 
@@ -45,6 +57,11 @@ func _emit() -> void:
         if not _emit_full_sample(sample):
             quit(3)
             return
+    for sample in CHAPTER_ONE_REVIEW_SAMPLES:
+        if not _emit_full_sample(sample):
+            quit(4)
+            return
+    print("TSTSS_CHAPTER1_NATIVE_SHOWCASE_BYTES_EMITTED=SIX_960x640_REVIEW_ONLY")
     print("JOINT_FOURWAY_NATIVE_BYTES_EMITTED=FIVE_FULL_960x640_PENDING_PRIVATE_CUSTODY")
     print("AETHERWAKE_SLICE_NATIVE_BYTES_EMITTED=SIX_FULL_960x640_PENDING_PRIVATE_CUSTODY")
     print("AW_NATIVE_CROP_EMIT_PASS: six lossless 1x crops AND six original byte-identical 960x640 renderer PNGs")
