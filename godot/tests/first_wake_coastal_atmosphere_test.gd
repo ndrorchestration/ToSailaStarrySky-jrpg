@@ -124,6 +124,15 @@ func _run() -> void:
     verify(scene.helm_feedback.visible
         and scene.helm_feedback_body.text.contains("visual only"),
         "the actual Godot game HUD identifies atmosphere switch as nonphysical")
+    verify(scene.toggle_scenic_horizon_review()
+        and scene.zone_camera.shot == 2
+        and scene.zone_camera.camera.fov > 65.0,
+        "H activates actual forward scenic horizon Camera3D, not a prerender")
+    verify(scene.zone_camera.camera.global_transform.basis.z.z > 0.7,
+        "lookout lens genuinely faces ship's forward ocean/sky horizon")
+    verify(scene.toggle_scenic_horizon_review()
+        and scene.zone_camera.shot == 0,
+        "H restores conventional over-shoulder follow without moving actor")
     var actor: CharacterBody3D = ship.crew_walker
     for i in range(27):
         await physics_frame
@@ -137,6 +146,7 @@ func _run() -> void:
         "animated weather/sky art does not alter the original story/save")
     verify(scene.request_3d_ship_review(false)
         and not scene.cycle_atmosphere_review()
+        and not scene.toggle_scenic_horizon_review()
         and scene.chapter.visible,
         "return to real 2D engineering disables all review atmosphere controls")
     verify(scene.chapter.export_revised_checkpoint() == saved
