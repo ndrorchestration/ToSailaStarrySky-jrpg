@@ -107,6 +107,8 @@ jobs:
             --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
             --script res://tests/capture_canopy_threshold.gd 2>&1 | tee /tmp/lod-transition.log
           grep -Eq 'NATIVE_FOREST_THRESHOLD_PASS switches=[1-9][0-9]*' /tmp/lod-transition.log
+          test -s godot/flight_slice/evidence/forest-lod-threshold/transition-receipt.json
+          grep -q '"samples"' godot/flight_slice/evidence/forest-lod-threshold/transition-receipt.json
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/lod-transition.log
       - name: Matched native GL A/B atmospheric depth captures
         run: |
@@ -144,6 +146,7 @@ jobs:
           name: godot-flight-slice-software-captures
           path: |
             godot/flight_slice/evidence/**/*.png
+            godot/flight_slice/evidence/**/*.json
             godot/flight_slice/evidence/*.json
             /tmp/moving-lod.log
             /tmp/rendered-flight.log
