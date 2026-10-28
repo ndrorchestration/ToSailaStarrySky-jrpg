@@ -15,6 +15,9 @@ const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd"
 const CurrentEnemyAdapter = preload("res://scripts/first_wake_current_enemy_adapter.gd")
 const PartyCombatAuthority = preload("res://scripts/first_wake_party_combat_authority.gd")
 
+## Passive action-result notification. No default gameplay listener; no save field.
+signal formula_action_resolved(event: Dictionary)
+const VISUAL_EVENT_SOURCE := "FIRST_WAKE_FORMULA_ACTION_RESOLVED_REVIEW"
 const DECK_BOUNDS := SaveCodec.PLAYER_POSITION_BOUNDS
 const INTERACT_DISTANCE := 74.0
 
@@ -61,6 +64,7 @@ var current_enemy_adapter = CurrentEnemyAdapter.new()
 var party_combat_authority = PartyCombatAuthority.new()
 var active_hazard_encounter_id: String = ""
 var save_store = SaveStore.new()
+var formula_visual_event_serial: int = 0 # runtime only
 
 func _ready() -> void:
     InputPolicy.ensure_defaults()
@@ -434,14 +438,34 @@ func take_formula_review_action(action_id: String) -> bool:
         queue_redraw()
         return false
 
+    # Snapshot actual accepted action only; this signal cannot grant a turn.
+    var combat_before: Dictionary = formula_encounter.snapshot()
+    var chapter_before: Dictionary = chapter.snapshot()
     if not formula_encounter.take_action(action_id):
         last_message = formula_encounter.last_log()
         _refresh_ui()
         queue_redraw()
         return false
+    var combat_after: Dictionary = formula_encounter.snapshot()
+    var chapter_after: Dictionary = chapter.snapshot()
     last_message = formula_encounter.last_log()
     _refresh_ui()
     queue_redraw()
+    formula_visual_event_serial += 1
+    formula_action_resolved.emit({
+        "source": VISUAL_EVENT_SOURCE,
+        "sequence": formula_visual_event_serial,
+        "actorId": actor_id,
+        "actionId": action_id,
+        "accepted": true,
+        "combatBefore": combat_before.duplicate(true),
+        "combatAfter": combat_after.duplicate(true),
+        "chapterBefore": chapter_before.duplicate(true),
+        "chapterAfter": chapter_after.duplicate(true),
+        "visualOnly": true,
+        "combatCommandIssuedByEvent": false,
+        "saveWrittenByEvent": false,
+    })
     return true
 
 func interact_nearest() -> bool:
