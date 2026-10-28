@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const source = fs.readFileSync(
-  path.resolve(__dirname, '..', 'aetherwake.js'),
+  path.resolve(__dirname, '..', 'tosailthestarrysky.js'),
   'utf8'
 );
 
