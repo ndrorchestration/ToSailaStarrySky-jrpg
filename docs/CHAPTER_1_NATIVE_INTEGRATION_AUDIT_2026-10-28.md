@@ -69,3 +69,6 @@ Manual visual inspection of **Signal**, **Formula Review** and **Done** frames (
 - The completion frame does visibly show `CHAPTER I COMPLETE`, but this capture is scripted progression, **not an unassisted human completion**.
 
 **Recommended smallest reversible repair:** keep legacy scene and test as a distinct compatibility fixture; establish a separate `Ionia-first canonical entry` acceptance test and graphical capture using normal F5 game startup, with assertive party-order/canonical narrative checks and HUD-overlap review. Do not overwrite/relabel historical test receipts, weaken the current visual bar or infer a merge/release.
+
+## Default-entry trace — 2026-10-28
+Pinned source `4d2ec5fb`: `godot/project.godot` launches `first_wake_chapter1_player_preview.tscn`, which references `first_wake_chapter1_review.gd`. The main-entry regression intentionally tests legacy startup and uses F8 to reach the Ionia-first preview. A passing F8-based regression does not verify the intended default Ionia-first route. Promotion requires a separate normal-launch test with no F8 and preservation of the historical route.
