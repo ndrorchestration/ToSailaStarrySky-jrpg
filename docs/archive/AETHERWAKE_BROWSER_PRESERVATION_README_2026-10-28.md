@@ -13,7 +13,7 @@ The root **p5.js/NW.js preservation build** remains runnable for historical comp
 - **Current development focus:** the separate, opt-in native Godot Chapter I review; its original configured scene is preserved while the Ionia-first route and postflight recovery remain draft/unmerged.
 - **Five authored protagonists:** a story and roster design commitment, not proof that each currently has finished recruitment, native combat actions, equipment visuals or approved spell schools.
 
-The older [technical specification](SPEC.md) and [development notes](docs/DEVELOPMENT.md) include migration history. Check the exact file and branch before treating their legacy implementation claims as current gameplay.
+The older [technical specification](../../SPEC.md) and [development notes](../DEVELOPMENT.md) include migration history. Check the exact file and branch before treating their legacy implementation claims as current gameplay.
 
 ## Run the legacy browser prototype
 
