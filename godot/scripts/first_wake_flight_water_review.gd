@@ -97,7 +97,7 @@ func _ready() -> void:
     if enable_3d_cinematic_inset:
         cinematic_inset = CinematicInset.new()
         cinematic_inset.name = "NoncanonicalInScene3DFlightStudy"
-        cinematic_inset.position = Vector2(530, 144)
+        cinematic_inset.position = Vector2(578, 144)
         ui.add_child(cinematic_inset)
     _refresh_presentation()
 
