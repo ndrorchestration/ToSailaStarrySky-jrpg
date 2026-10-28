@@ -1,6 +1,6 @@
 extends SceneTree
 const Music = preload("res://scripts/first_wake_existing_music_cue_contract.gd")
-const Projection = preload("res://scripts/first_wake_pipeline_projection.gd")
+const StoryProjection = preload("res://scripts/first_wake_pipeline_projection.gd")
 const JobScene = preload("res://scenes/first_wake_job_preview.tscn")
 
 func _initialize() -> void:
@@ -25,7 +25,7 @@ func _verify() -> void:
     var job = JobScene.instantiate()
     root.add_child(job)
     await process_frame
-    var cue: Dictionary = Projection.project(job.opening)
+    var cue: Dictionary = StoryProjection.project(job.opening)
     if not cue.get("ok", false):
         _fail("native story producer not available")
         return
@@ -52,7 +52,7 @@ func _verify() -> void:
     if not job.opening.accept_ionia_job():
         _fail("native recruitment source failed")
         return
-    var engineering: Dictionary = Projection.project(job.opening)
+    var engineering: Dictionary = StoryProjection.project(job.opening)
     if not engineering.get("ok", false):
         _fail("Ionia-first story producer failed to yield engineering stage")
         return
