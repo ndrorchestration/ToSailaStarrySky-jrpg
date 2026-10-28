@@ -109,6 +109,14 @@ A new fail-closed contract samples actual 0/25/50/75/100% wing meshes against tr
 
 No one may solve this by simply shrinking the crew cabin, rescaling whole sources without a signed-off consistent coordinate transform, relaxing minimum egress, or converting the opt-in overlay into a player control. Retain all Windows/security, creator signoff and merge/release holds.
 
+### Stage B1 source-specific native clearance triage — exact-head closeout
+
+The refined [draft #541](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/541) code head `df8d4ab69f800f71d8462741a2d3c84adb11683b` passed [Godot 4.7.2 native #40631427844](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40631427844): **40 purpose-built clearance checks**, inherited 43 actual-3D, 38 pose-port, 32 ship-space, and four authentic composited Chapter I GL frames, with preserved story/save state. Same-head native First Wake pilot, Ionia render, original-wing capture and smoke also completed SUCCESS.
+
+The collision **broad-phase** classification now pinpoints the bottleneck: **190 AABB-overlap pairs were all with the geodesic helm study**, zero with the foredeck under these exact original source placements. The original four wing groups accounted for 47 port-fore, 48 port-aft, 47 starboard-fore and 48 starboard-aft pairs, across five poses (28, 36, 42, 42, 42). The even distribution implicates shared dome/wing root layout rather than a one-sided mesh oversight. **This does not establish 190 true triangle penetrations**. AABBs are broad-phase conservatism; a narrow-phase or actual actor/door physics test and signed-off coordinate frame remain necessary before any safety claim.
+
+The documentation action is to prioritize **dome/wing attachment spatial reconciliation** after creator-approved metre-based hull and crew circulation requirements, without rescaling the ship to hide the 3.40m exterior vs 3.80m separate interior conflict. The exposed deck must remain accessible under ordinary safe conditions. Do not move this staged 3D viewport into a production player scene or infer any hidden ship configuration from the ordinary rig.
+
 ## 5. Release and decision register
 
 | Gate | Current status |
