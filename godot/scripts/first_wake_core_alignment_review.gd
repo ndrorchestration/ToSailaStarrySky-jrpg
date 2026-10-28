@@ -2,6 +2,7 @@ extends RefCounted
 ## Review-only story mechanics: physical recovery AND tested harmonic alignment.
 ## No actual inventory assets, audio DSP, engine physics or flight authorization.
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
+const Melody = preload("res://scripts/first_wake_melody_math_fixture.gd")
 const ITEM_IDS: Array[String] = ["recovered_supply", "recovered_part"]
 const PHASES: Array[String] = ["closed", "recover", "install", "retest", "listen", "repeat", "analyze", "observe", "authorize", "verify", "candidate"]
 var phase: int = 0
@@ -54,9 +55,10 @@ func ionia_hums_unprompted(unprompted: bool) -> bool:
 func ionia_repeats_denith_song(ionia_agrees: bool, former_captain_memory: bool) -> bool:
     return _advance(5, ionia_agrees and former_captain_memory)
 
-func ender_matches_sequence(intervals: bool, timing: bool, sensor_response: bool) -> bool:
-    if not _advance(6, intervals and timing and sensor_response):
+func ender_matches_review_phrase(heard: Variant, instrument: Variant) -> bool:
+    if phase != 6 or not bool(Melody.verify(heard, instrument).get("ok", false)):
         return false
+    phase = 7
     melody_recognized = true
     return true
 
