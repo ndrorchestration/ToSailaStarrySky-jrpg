@@ -29,7 +29,11 @@ The 3.40 m outside vs 3.80 m interior beam, 3.80 m dome vs 2.35 m proposed thres
 
 The test is `godot/tests/first_wake_wing_dome_triangle_probe_test.gd`, backed by `godot/scripts/ship_wing_dome_triangle_probe.gd`; its exact-head native Godot 4.7.2 workflow is `.github/workflows/godot-first-wake-cross-study.yml`. All inherited original Chapter I story/ship geometry contracts and four real screenshots must continue passing.
 
-**Status at branch submission: NOT YET CI VERIFIED.** Consult exact workflow logs before claiming a triangle contact number; no generated screenshot is evidence of a confirmed physical collision without the numeric test. Do not promote this conditional result into production geometry, canon, merges or releases.
+**Native execution receipt (exact code head `74f35eb29b2f596289137d40ea13ede9ed65f4a2`):** [Godot 4.7.2 run #40632616570](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40632616570) **SUCCESS**. The actual original geodesic glass supplied **70 triangles**; the four original wing membranes supplied **360 triangle observations across five poses**. The scan compared **1,094 triangle-AABB candidates** with the exact reported `DISCRETE_TRIANGLE_SAT_WITH_COPLANAR_AXES` method and returned **0 membrane/glass SAT contacts** across all five poses and all four wings, budget not exhausted. `FIRST_WAKE_TRIANGLE_PROBE_PASS checks=25`; inherited geometry 40, original 3D 43, pose port 38 and ship space 32 all PASS, as did the four original scene screenshot contract.
+
+**Interpretation:** The previous 190 **mesh-bounding-box** overlap pairs cannot be attributed to a detected collision *between wing membranes and glass pane triangles* at these five discrete frames. It is **not** proof that geodesic frame/collar, wing ribs or physical wing roots clear, and not a continuous motion, actor or egress certificate. This distinction is central: do not convert a limited negative into a broader safety PASS. The first attempt [#40632532878](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40632532878) failed on a reserved-name test-harness parse error, corrected before the successful run.
+
+**Current physical verdict: BLOCKED.** The source geometry and provisional metre contradictions are unchanged. A later documentation-only commit does not add new source-code validation.
 
 ### Next production tests
 
