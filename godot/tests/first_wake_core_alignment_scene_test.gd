@@ -84,12 +84,19 @@ func _verify() -> void:
     if not world.analysis_lines.text.contains("Measured phase changes"):
         _fail("accessible visual comparison data missing")
         return
+    var bad_pad_input := InputEventJoypadButton.new()
+    bad_pad_input.button_index = JOY_BUTTON_X
+    bad_pad_input.pressed = true
+    world._unhandled_input(bad_pad_input)
+    if world.analysis.selected != 0:
+        _fail("real gamepad X did not select the first candidate")
+        return
     var option_input := InputEventKey.new()
     option_input.keycode = KEY_2
     option_input.pressed = true
     world._unhandled_input(option_input)
     if world.analysis.selected != 1:
-        _fail("real keyboard choice 2 did not select correct rhythmic proposal")
+        _fail("real keyboard choice 2 did not replace gamepad hypothesis")
         return
     var confirm_input := InputEventKey.new()
     confirm_input.keycode = KEY_E
