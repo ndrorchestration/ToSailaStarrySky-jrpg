@@ -127,10 +127,24 @@ func _draw() -> void:
             draw_arc(Vector2(x, 368), 54, 0, PI, 20, Color("#92c9ca"), 2.0)
         draw_line(Vector2(0, 396), Vector2(960, 396), Color("#b8dad2"), 3.0)
     else:
-        draw_rect(Rect2(78, 235, 804, 160), Color("#445761"))
+        # Deep warehouse perspective: structural bays, overhead girders,
+        # lit narrow windows and recessed loading doors. Scenic only.
+        draw_rect(Rect2(78, 235, 804, 160), Color("#304854"))
+        draw_rect(Rect2(92, 249, 778, 12), Color("#746c5a"))
         for x in [135.0, 320.0, 505.0, 690.0]:
-            draw_rect(Rect2(x, 268, 140, 113), Color("#5a6663"))
+            draw_rect(Rect2(x - 10, 262, 160, 120), Color("#273d48"))
+            draw_rect(Rect2(x, 268, 140, 113), Color("#56636a"))
+            draw_rect(Rect2(x + 11, 278, 118, 92), Color("#34434b"))
             draw_line(Vector2(x + 9, 318), Vector2(x + 131, 318), Color("#c1a47c"), 2.0)
+            for slat in range(4):
+                var slat_y := 329.0 + float(slat) * 11.0
+                draw_line(Vector2(x + 16, slat_y), Vector2(x + 124, slat_y), Color("#697477"), 1.0)
+            draw_rect(Rect2(x + 50, 279, 40, 13), Color("#b5aa83"))
+            draw_rect(Rect2(x + 53, 282, 34, 7), Color("#d9c18b", 0.34))
+        draw_line(Vector2(92, 249), Vector2(870, 249), Color("#b89e79"), 2.0)
+        for beam in range(8):
+            var bx := 106.0 + float(beam) * 106.0
+            draw_line(Vector2(bx, 256), Vector2(bx + 52, 236), Color("#71858a"), 2.0)
     # Shared authored surface kit across the quay and stores annex;
     # strictly below the navigable actor and existing custody stations.
     draw_rect(Rect2(0, 396, 960, 147), Color("#665443") if water_side else Color("#514e46"))
