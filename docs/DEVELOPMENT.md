@@ -4,6 +4,12 @@
 
 > **2026-10-28 authority notice:** This guide retains historical **Aetherwake browser/desktop-preview evidence**; it must not be interpreted as native Godot Chapter 1 completion. The forward engine is Godot 4.7.2 / GDScript. See [Chapter 1 beta roadmap](CHAPTER_1_BETA_ROADMAP.md) for 2026-11 through 2027-05 integration/alpha/beta milestones and quality gates. Native Ionia-first First Wake story authority supersedes older Lyra-first browser onboarding for new production work. Distinguish merged main, exact-head draft PRs, released historical artifacts and creator artistic acceptance.
 
+## Chapter One — high-quality polish acceptance gate (October 28, 2026)
+
+The [Chapter One high-quality polish checklist](CHAPTER_ONE_HIGH_QUALITY_POLISH_CHECKLIST_2026-10-28.md), sourced from [original draft PR #554](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/554), has **32 open, individually measurable acceptance items**: 15 P0, 11 P1 and 6 P2. The document records authorial Ionia-first story order, physical flight and recovery continuity, crew/dialogue, save, combat, magic, cinematic art, accessibility, and Windows distribution gates. **All acceptance boxes remain OPEN** pending exact-source native, creator, player and security evidence.
+
+The dedicated smoke test validates the **checklist schema, priority count and evidence wording only**. Passing does **not** establish actual completed Chapter I, visual approval, production 3D flight, authorized combat/magic grants, Defender-on custody, signed installer, or published Windows build. Distinct historical and draft lines must not be flattened into a canonical first-play experience. Maintain the existing beta roadmap and native integration audit as independently scoped authority.
+
 ## Current stage
 
 Aetherwake is a late-prototype / pre-alpha project.
