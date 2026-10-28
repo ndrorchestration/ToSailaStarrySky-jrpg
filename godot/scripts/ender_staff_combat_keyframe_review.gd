@@ -153,10 +153,19 @@ func sample_frame(next_facing: String, pose: Dictionary) -> Dictionary:
         right_contact = hand_a
     # Separate forearm articulation and delayed cloth/satchel movement:
     # deliberately bounded; zero pose delta when reduced motion is selected.
-    var facing_sign: float = -1.0 if next_facing in ["west","north"] else 1.0
-    var joint_turn: float = 0.0 if reduced else sin(progress*PI)*3.4
-    var left_elbow: Vector2 = (left_shoulder+left_contact)*0.5         + Vector2(-7.0-facing_sign*joint_turn,6.0+crouch*0.18)
-    var right_elbow: Vector2 = (right_shoulder+right_contact)*0.5         + Vector2(7.0-facing_sign*joint_turn,5.0+crouch*0.16)
+    var left_arm: Vector2 = left_contact-left_shoulder
+    var right_arm: Vector2 = right_contact-right_shoulder
+    var left_normal: Vector2 = Vector2(-left_arm.y,left_arm.x).normalized()
+    var right_normal: Vector2 = Vector2(-right_arm.y,right_arm.x).normalized()
+    if left_normal.length_squared() < 0.5:
+        left_normal = Vector2(-1.0,0.0)
+    if right_normal.length_squared() < 0.5:
+        right_normal = Vector2(1.0,0.0)
+    # A perpendicular, bounded bend avoids the near-zero elbow/shoulder
+    # segment seen in the east contact sheet when a hand crosses the torso.
+    var bend: float = 12.0+minf(crouch*0.18,3.0)
+    var left_elbow: Vector2 = (left_shoulder+left_contact)*0.5         + left_normal*bend
+    var right_elbow: Vector2 = (right_shoulder+right_contact)*0.5         - right_normal*bend
     var cloth_flare: float = 0.0 if reduced else clampf(
         absf(lean)*0.42+trail_strength*6.5,0.0,15.0)
     var satchel_swing: float = 0.0 if reduced else clampf(
