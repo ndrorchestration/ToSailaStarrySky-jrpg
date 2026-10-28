@@ -1,0 +1,87 @@
+name: Godot planetary perceptual-material admission
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/planetary/worldmap_material_*.gd'
+      - 'godot/shaders/worldmap_material_optics.gdshader'
+      - 'godot/tests/worldmap_material_*.gd'
+      - '.github/workflows/godot-planetary-material-admission.yml'
+      - 'docs/prototypes/PLANETARY_MATERIAL_NATIVE_RENDER_2026-10-27.md'
+  push:
+    branches:
+      - study/planetary-material-native-render-20261027
+
+permissions:
+  contents: read
+
+jobs:
+  material-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot 4.7.2 Standard and software GL test support
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1 libgl1-mesa-dri
+          curl --fail --location --retry 3 --silent --show-error \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip \
+            -o /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --version
+      - name: Official native project import
+        run: |
+          timeout 75s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot --editor --quit
+      - name: Real Cart sampling and read-only material context regression S1
+        run: |
+          set -o pipefail
+          timeout 70s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot --script res://tests/worldmap_material_context_test.gd \
+            2>&1 | tee /tmp/material-s1.log
+          grep -q 'GODOT_WORLDMAP_MATERIAL_CONTEXT_PASS checks=44' /tmp/material-s1.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|ERROR:' /tmp/material-s1.log
+      - name: Real curved 3D terrain optical material and geometry invariance S2
+        run: |
+          set -o pipefail
+          timeout 75s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot --script res://tests/worldmap_material_render_contract_test.gd \
+            2>&1 | tee /tmp/material-s2.log
+          grep -Eq 'GODOT_WORLDMAP_MATERIAL_RENDER_CONTRACT_PASS checks=[0-9]+' /tmp/material-s2.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|ERROR:|MATERIAL_RENDER_CONTRACT_FAIL' /tmp/material-s2.log
+      - name: Native Godot 960x640 snow sand rain mist A/B on curved mode-4 worldmap S3
+        run: |
+          set -o pipefail
+          timeout 175s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/worldmap_material_visual_capture.gd \
+            2>&1 | tee /tmp/material-s3.log
+          for k in snow sand rain; do
+            grep -Eq "WORLDMAP_MATERIAL_PAIR name=${k} pixels=[0-9]+ sky_drift=0" /tmp/material-s3.log
+            grep -q "WORLDMAP_MATERIAL_LOW name=${k} pixels=0" /tmp/material-s3.log
+            test -s "godot/evidence/material-review/worldmap-${k}-plain.png"
+            test -s "godot/evidence/material-review/worldmap-${k}-optics.png"
+          done
+          test -s godot/evidence/material-review/worldmap-rain-mist.png
+          grep -Eq 'WORLDMAP_MATERIAL_FOG pixels=[0-9]+' /tmp/material-s3.log
+          grep -q 'GODOT_WORLDMAP_MATERIAL_VISUAL_PASS cases=3 actual_curved_mode4=true game_scene_modified=false' /tmp/material-s3.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|VISUAL_SAVE_FAIL' /tmp/material-s3.log
+          sha256sum godot/evidence/material-review/*.png | tee /tmp/material-frames-sha256.txt
+      - name: Preserve exact-head GL receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: planetary-material-native-review-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            godot/evidence/material-review/*.png
+            /tmp/material-s1.log
+            /tmp/material-s2.log
+            /tmp/material-s3.log
+            /tmp/material-frames-sha256.txt
