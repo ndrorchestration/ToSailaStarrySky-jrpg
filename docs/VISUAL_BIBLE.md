@@ -121,6 +121,8 @@ Project-wide requirements:
 - party members should never become visually interchangeable because of shared animation timing;
 - portraits, field sprites, combat poses, and cinematic depictions must describe the same person.
 
+**Character motion admission (not a change to visual canon):** see [Character motion P0–P6 production-admission pipeline](design/CHARACTER_MOTION_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md). The real 960×640 Godot candidate screenshots, physics travel, boot-pixel tests and proposed contact windows currently establish diagnostic coverage but **not planted-foot quality, cross-scene equipment/cinematic parity, approved costumes, or production sprite status**. Continue to review native 1× identity across field, portrait and battle before promotion.
+
 ## 9. Dragonfly hero-asset standard
 
 The Dragonfly is not ordinary scenery.
