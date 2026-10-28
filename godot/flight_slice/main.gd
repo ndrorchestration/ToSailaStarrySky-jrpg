@@ -8,6 +8,7 @@ const FlightStudy = preload("res://flight_controller.gd")
 const CinematicShots = preload("res://cinematic_shot_rig.gd")
 const LandingStudy = preload("res://landing_study.gd")
 const LandingCollision = preload("res://landing_collision.gd")
+const FirstWakeVisualCue = preload("res://first_wake_visual_cue_consumer.gd")
 var visuals: Node3D
 var _low_quality: bool = false
 
@@ -31,6 +32,8 @@ var landing_ground: StaticBody3D
 var _touchdown_requested: bool = false
 var last_touchdown_contact: Dictionary = {"valid": false}
 var _landing_message: String = ""
+var _story_visual_plan: Dictionary = {}
+var story_cue_label: Label
 
 func _ready() -> void:
     if OS.get_cmdline_user_args().has("--baseline"):
@@ -125,6 +128,50 @@ func _unhandled_key_input(event: InputEvent) -> void:
         KEY_G:
             _magical_sky = not _magical_sky
             _apply_environment_preview()
+
+## Camera and environment study are driven by the forward First Wake cue schema
+## only on explicit calls. Legacy manual controls, physics and planet remain
+## entirely independent. Invalid packets have no observable side effects.
+func preview_first_wake_visual_cue(packet: Dictionary, duration: float = 1.8) -> bool:
+    if visuals == null or ship == null or camera == null:
+        return false
+    if _manual_active or _paused or _touchdown_requested or landing.state != "FLYING":
+        return false
+    var candidate: Dictionary = FirstWakeVisualCue.plan(packet)
+    if not bool(candidate.get("ok", false)):
+        return false
+    _story_visual_plan = candidate.duplicate(true)
+    story_cue_label.visible = true
+    story_cue_label.text = str(candidate["display_label"]) + "\nCONCEPT-ONLY  •  NOT OCEAN / GEOGRAPHY / STORY RELEASE"
+    visuals.queue_environment_look(
+        int(candidate["time_index"]), int(candidate["weather_index"]),
+        bool(candidate["magic_enabled"]), duration)
+    return true
+
+func clear_first_wake_visual_cue() -> void:
+    if _story_visual_plan.is_empty():
+        return
+    _story_visual_plan.clear()
+    story_cue_label.visible = false
+    if visuals != null:
+        visuals.set_environment_look(_time_look, _weather_look, _magical_sky)
+
+func first_wake_visual_snapshot() -> Dictionary:
+    return {
+        "story_preview_active": not _story_visual_plan.is_empty(),
+        "visual_cue": str(_story_visual_plan.get("source_visual_cue", "")),
+        "story_phase": str(_story_visual_plan.get("source_story_phase", "")),
+        "palette": {
+            "time": int(_story_visual_plan.get("time_index", -1)),
+            "weather": int(_story_visual_plan.get("weather_index", -1)),
+            "magic": bool(_story_visual_plan.get("magic_enabled", false)),
+        },
+        "ship_world_transform": ship.global_transform if ship != null else Transform3D.IDENTITY,
+        "noncanonical_cinematography": true,
+        "physics_authorized": false,
+        "production_ocean_verified": false,
+        "real_reunion_verified": false,
+    }
 
 func _apply_environment_preview() -> void:
     if visuals != null:
@@ -225,6 +272,12 @@ func _update_scene(delta: float) -> void:
         var lateral := Vector3(-forward.z, 0.0, forward.x)
         goal = ship.position - forward * 16.0 + lateral * 5.0 + Vector3.UP * 8.0
         focus = ship.position + forward * 9.0 + Vector3.UP * 0.7
+    elif not _story_visual_plan.is_empty():
+        # Optional story-lab framing. Actual ship position, flight simulation,
+        # weather/climate state, landing physics and navigation are unmodified.
+        goal = ship.position + _story_visual_plan["camera_offset"]
+        focus = ship.position + Vector3(0.0, 0.25, 0.0)
+        target_fov = float(_story_visual_plan["camera_fov"])
     elif _cinematic:
         # Camera-only staging; gameplay/flight and terrain remain unchanged.
         var shot: Dictionary = CinematicShots.sample(
@@ -291,3 +344,15 @@ func _make_overlay() -> void:
     overlay.add_theme_constant_override("shadow_offset_y", 2)
     overlay.text = "COAST-TO-HIGHLAND ART STUDY / LOADING"
     canvas.add_child(overlay)
+    story_cue_label = Label.new()
+    story_cue_label.name = "FirstWakeStoryCueReadOnly"
+    story_cue_label.position = Vector2(25, 551)
+    story_cue_label.custom_minimum_size = Vector2(900, 82)
+    story_cue_label.add_theme_font_size_override("font_size", 17)
+    story_cue_label.add_theme_color_override("font_color", Color("#fff2d3"))
+    story_cue_label.add_theme_color_override("font_shadow_color", Color("#152334"))
+    story_cue_label.add_theme_constant_override("shadow_offset_x", 1)
+    story_cue_label.add_theme_constant_override("shadow_offset_y", 2)
+    story_cue_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    story_cue_label.visible = false
+    canvas.add_child(story_cue_label)
