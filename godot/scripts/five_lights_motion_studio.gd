@@ -10,6 +10,7 @@ var cast_actors: Dictionary = {}
 var selected_index: int = 1
 var keyboard_enabled: bool = true
 var reduced_motion: bool = false
+var pose_inspector_enabled: bool = false
 var ambience: ShaderMaterial
 var status: Label
 var controls: Label
@@ -52,7 +53,7 @@ func _ready() -> void:
         tag.custom_minimum_size = Vector2(120, 26)
         tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     status = _label(ui, Vector2(40, 541), "", 19)
-    controls = _label(ui, Vector2(40, 578), "WASD / arrows: move     TAB: select     F: facing     R: reset     M: reduced motion", 15)
+    controls = _label(ui, Vector2(40, 578), "WASD/arrows: move   TAB: actor   F: face   P: pose mode   Q/E: frame   M: still sea", 15)
     note = _label(ui, Vector2(40, 603), "ART & STANCE UNAPPROVED  /  Gameplay, canon and saves unchanged", 13)
     _choose(1)
 
@@ -82,18 +83,35 @@ func _choose(index: int) -> void:
     selected_index = posmod(index, CAST.size())
     for i in range(CAST.size()):
         cast_actors[CAST[i]].mark_selected(i == selected_index)
+        if pose_inspector_enabled:
+            cast_actors[CAST[i]].set_pose_preview(i == selected_index)
     _update_hud()
+
+func toggle_pose_inspector() -> void:
+    pose_inspector_enabled = not pose_inspector_enabled
+    for i in range(CAST.size()):
+        cast_actors[CAST[i]].set_pose_preview(pose_inspector_enabled and i == selected_index)
+    _update_hud()
+
+func scrub_pose(step: int) -> bool:
+    if not pose_inspector_enabled:
+        return false
+    var actor = cast_actors[CAST[selected_index]]
+    var ok: bool = actor.set_pose_preview(true, posmod(actor.phase + step, 6))
+    _update_hud()
+    return ok
 
 func _update_hud() -> void:
     if status == null:
         return
     var actor = cast_actors[CAST[selected_index]]
-    status.text = "SELECTED %s  /  %s  /  frame %d of 6" % [
-        CAST[selected_index].to_upper(), actor.facing.to_upper(), actor.phase + 1]
+    status.text = "SELECTED %s  /  %s  /  frame %d of 6  /  %s" % [
+        CAST[selected_index].to_upper(), actor.facing.to_upper(), actor.phase + 1,
+        "POSE MODE" if pose_inspector_enabled else "WALK MODE"]
     # A clean status row keeps source truth visible without covering actors.
 
 func _physics_process(_delta: float) -> void:
-    if not keyboard_enabled or cast_actors.size() != CAST.size():
+    if not keyboard_enabled or cast_actors.size() != CAST.size() or pose_inspector_enabled:
         return
     var vector := Vector2.ZERO
     if Input.is_key_pressed(KEY_LEFT) or Input.is_key_pressed(KEY_A):
@@ -118,10 +136,17 @@ func _unhandled_input(event: InputEvent) -> void:
             var actor = cast_actors[CAST[selected_index]]
             var facings: Array[String] = ["south", "west", "north", "east"]
             actor.set_facing(facings[(facings.find(actor.facing) + 1) % 4])
+        KEY_P:
+            toggle_pose_inspector()
+        KEY_Q:
+            scrub_pose(-1)
+        KEY_E:
+            scrub_pose(1)
         KEY_M:
             reduced_motion = not reduced_motion
             ambience.set_shader_parameter("reduced_motion", reduced_motion)
         KEY_R:
+            pose_inspector_enabled = false
             for i in range(CAST.size()):
                 cast_actors[CAST[i]].reset_at(Vector2(START_X[i], START_Y))
     _update_hud()
