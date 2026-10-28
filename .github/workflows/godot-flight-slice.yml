@@ -139,6 +139,35 @@ jobs:
           test -f godot/flight_slice/evidence/dune-review/dune-optics.png
           test -f godot/flight_slice/evidence/dune-review/dune-grazing.png
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|NATIVE_DUNE_CAPTURE_FAIL' /tmp/dune-capture.log
+      - name: Native snow and rain optics parameter and geometry contracts
+        run: |
+          set -o pipefail
+          timeout 65s /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot/flight_slice \
+            --script res://tests/test_precipitation_optics.gd 2>&1 | tee /tmp/precipitation-test.log
+          grep -q 'PRECIPITATION_OPTICS_CONTRACT_PASS' /tmp/precipitation-test.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|PRECIPITATION_OPTICS_FAIL' /tmp/precipitation-test.log
+      - name: Actual Godot snow crust and rain mist native GL captures
+        run: |
+          set -o pipefail
+          timeout 145s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot/flight_slice --rendering-driver opengl3 \
+            --audio-driver Dummy \
+            --script res://tests/capture_precipitation_optics.gd 2>&1 | tee /tmp/precipitation-capture.log
+          grep -Eq 'NATIVE_SNOW_OPTICS_PAIR_DELTA pixels=[0-9]+ sky_drift=0' /tmp/precipitation-capture.log
+          grep -q 'NATIVE_SNOW_LOW_DELTA pixels=0' /tmp/precipitation-capture.log
+          grep -Eq 'NATIVE_RAIN_GROUND_PAIR_DELTA pixels=[0-9]+ sky_drift=0' /tmp/precipitation-capture.log
+          grep -q 'NATIVE_RAIN_LOW_DELTA pixels=0' /tmp/precipitation-capture.log
+          grep -Eq 'NATIVE_RAIN_MIST_PAIR_DELTA pixels=[0-9]+' /tmp/precipitation-capture.log
+          grep -q 'NATIVE_PRECIPITATION_REVIEW_PASS' /tmp/precipitation-capture.log
+          test -f godot/flight_slice/evidence/precipitation-review/snow-plain.png
+          test -f godot/flight_slice/evidence/precipitation-review/snow-crust.png
+          test -f godot/flight_slice/evidence/precipitation-review/rain-dry-ground.png
+          test -f godot/flight_slice/evidence/precipitation-review/rain-soaked-ground.png
+          test -f godot/flight_slice/evidence/precipitation-review/rain-mist-ground.png
+          test -f godot/flight_slice/evidence/precipitation-review/rain-mist-grazing.png
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|PRECIPITATION_CAPTURE_FAIL' /tmp/precipitation-capture.log
       - name: Matched native GL A/B atmospheric depth captures
         run: |
           set -o pipefail
@@ -183,6 +212,8 @@ jobs:
             /tmp/scene.log
             /tmp/dune-test.log
             /tmp/dune-capture.log
+            /tmp/precipitation-test.log
+            /tmp/precipitation-capture.log
             /tmp/test.log
             /tmp/visuals.log
             /tmp/atmosphere-test.log
