@@ -71,8 +71,31 @@ func _capture() -> void:
     _save(plain, "dune-plain.png")
     _save(optical, "dune-optics.png")
     var difference: int = _difference(plain,optical)
+    # A full-screen dune can occupy far more area than the coastal-sand A/B.
+    # Measure *visible sand coverage* rather than guessing an upper pixel
+    # bound. Original dunescape is warm R>B; clear-sky pixels have B>R.
+    var sand_pixels: int = 0
+    var sky_drift: int = 0
+    var total_sand_abs: float = 0.0
+    for y in range(110, 640, 2):
+        for x in range(0, 960, 2):
+            var a: Color = plain.get_pixel(x,y)
+            var sample_b: Color = optical.get_pixel(x,y)
+            if a.r > a.b:
+                sand_pixels += 1
+                total_sand_abs += absf(a.r-sample_b.r)+absf(a.g-sample_b.g)+absf(a.b-sample_b.b)
+            elif a != sample_b:
+                sky_drift += 1
+    var changed_fraction: float = float(difference) / float(maxi(sand_pixels, 1))
+    var mean_sand_delta: float = total_sand_abs / float(maxi(sand_pixels * 3, 1))
     print("NATIVE_DUNE_OPTICS_PAIR_DELTA pixels=", difference)
-    if difference < 80 or difference > 90000:
+    print("NATIVE_DUNE_SAND_COVERAGE pixels=", sand_pixels,
+        " changed_fraction=", changed_fraction,
+        " mean_abs_channel=", mean_sand_delta,
+        " sky_drift=", sky_drift)
+    if sand_pixels < 1500 or changed_fraction < 0.10 \
+            or changed_fraction > 1.0 or sky_drift != 0 \
+            or mean_sand_delta > 0.12:
         failed = true
         push_error("NATIVE_DUNE_OPTICS_PAIR_UNBOUNDED")
     dune.set_low_quality(true)
