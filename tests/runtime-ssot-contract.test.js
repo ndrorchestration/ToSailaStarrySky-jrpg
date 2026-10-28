@@ -47,7 +47,7 @@ assert(readme.includes('chapter1-six-native-stage-frames.svg') &&
        readme.includes('960×640') &&
        readme.includes('not a public release'),
   'README gallery provenance or release boundary is absent');
-assert(currentStatus.includes('Godot 4.7.2') &&
+assert(/Godot\s+(?:\*\*)?4\.7\.2(?:\*\*)?/.test(currentStatus) &&
        currentStatus.includes('Defender custody') &&
        currentStatus.includes('canExecute=false'),
   'current native implementation register is missing required security/authority boundaries');
