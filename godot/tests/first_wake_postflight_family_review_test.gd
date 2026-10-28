@@ -45,6 +45,20 @@ func _verify() -> void:
     if scene.ender == null or not scene.ender.walk_review_enabled:
         _fail("postflight Ender is not walkable")
         return
+    # Real in-scene character art must render without admitting an additional
+    # physical actor, moving party state, or silently approving a candidate.
+    if scene.ionia_visual == null or scene.ionia_visual.character_name != "Ionia":
+        _fail("Ionia visual actor missing from playable family scene")
+        return
+    if not scene.ionia_visual.is_ionia_stage_art_enabled() or not scene.ionia_visual.ionia_front_walk_sprite.visible:
+        _fail("Ionia front-facing authored candidate is not active")
+        return
+    if scene.ionia_visual.player_controlled or scene.ionia_visual.collision_layer != 0 or scene.ionia_visual.collision_mask != 0:
+        _fail("Ionia decoration acquired movement or physics authority")
+        return
+    if scene.ionia_visual.position != Vector2(350, 475):
+        _fail("Ionia art was displaced from the family stage")
+        return
     if scene.review_snapshot()["lyra_joined"] or story.active_party_ids != ["ender", "ionia"]:
         _fail("Lyra prematurely recruited when scene was opened")
         return
