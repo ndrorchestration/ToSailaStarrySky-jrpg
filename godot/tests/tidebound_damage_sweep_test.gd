@@ -9,6 +9,9 @@ func _initialize() -> void:
         var partner_id: String = "lyra" if target_id == "ender" else "ender"
         for incoming in range(1, Battle.MAX_FIXTURE_STRIKE + 1):
             var protected = Battle.new()
+            if not bool(protected.configure_threat(target_id, incoming).get("ok", false)):
+                _fail("warded threat could not be declared")
+                return
             if not bool(protected.activate().get("ok", false)):
                 _fail("ward setup failed")
                 return
@@ -39,6 +42,9 @@ func _initialize() -> void:
                 _fail("completed round accepted another strike")
                 return
             var baseline = Battle.new()
+            if not bool(baseline.configure_threat(target_id, incoming).get("ok", false)):
+                _fail("baseline threat could not be declared")
+                return
             if not bool(baseline.pass_without_art().get("ok", false)):
                 _fail("baseline failed to advance")
                 return
