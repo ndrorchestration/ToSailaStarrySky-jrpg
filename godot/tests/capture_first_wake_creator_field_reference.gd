@@ -57,6 +57,9 @@ func _capture() -> void:
             dock.interact()
         dock.ender.position = dock.IONIA_DOCK_POSITION
         dock.interact()
+        # After authentic Ionia dialogue starts, separate the actor standees visually;
+        # this is camera-only positioning for capture, not a story event.
+        dock.ender.position = dock.FLYER_POSITION
         if not dock.ender.enable_creator_standee(true) or not dock.ionia.enable_creator_standee(true):
             _fail("both independently sourced full-body static references not visible")
         else:
