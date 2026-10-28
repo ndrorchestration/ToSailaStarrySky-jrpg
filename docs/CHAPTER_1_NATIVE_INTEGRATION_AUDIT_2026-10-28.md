@@ -46,3 +46,16 @@ Selected native PRs are **draft and unmerged**, and compare to current `main` as
 - Local uncommitted change: `godot/scripts/first_wake_flight_water_review.gd` (+7 lines; no deletions). **Preserve** until owner/agent determines intent; no reset/rebase/merge performed.
 - Godot native project file `godot/project.godot` exists locally. Another Git worktree at `Desktop/Aetherwake/Verification Sandbox/FirstWake-CreatorPortrait-QA-20261028` is detached at `849ea9c`.
 - This is **source/worktree observation only**, not native playtest, scene rendering, CI confirmation, or integration acceptance. Current worktree is dirty: require a clean separate integration worktree, anchored to a verified exact source SHA, before conflict checks or promotion.
+
+## 2026-10-28 isolated native Windows gate — observed PASS (bounded)
+A **separate detached clean worktree** was created at `C:\Users\Admin\Desktop\TSTSS-Ch1-Integration-QA-20261028` from pinned SHA `4d2ec5fb343a2bd9df40b26d6de75bc7654d0e81`. The active visual worktree was not reset or modified. It advanced independently to `6a788b2` during verification; tests below **do not** cover that newer head.
+
+Using genuine `C:\Temp\godot472\Godot_v4.7.2-stable_win64_console.exe`:
+- Native headless editor import: **PASS, exit 0**.
+- `res://tests/first_wake_main_entry_to_water_review_test.gd`: **PASS, exit 0**. Reported configured startup, Ionia job, actual water contact, reserve, berth sensor, family dialogue, crew clues, two salvage areas/custody and chosen melody with checkpoint return.
+- `res://tests/first_wake_chapter1_state_test.gd`: **PASS**; finite-state Chapter 1 sequence and explicit completion.
+- `res://tests/first_wake_chapter1_save_codec_test.gd`: **PASS**; versioned progression/position round-trip, legacy fallback and tamper rejection.
+- `res://tests/first_wake_combat_formula_test.gd`: **PASS**; representative staff, analysis, hold, rest and RNG/SSOT guards.
+- `res://tests/first_wake_chapter1_review_test.gd`: **PASS**; scene-based Signal–Crossing–Contact–Choice–Wake–Done route.
+
+**Interpretation:** Pinned native source supports an unusually promising *bounded automated Chapter 1 regression baseline*. These are headless script checks and import, **not** actual human start-to-end playtesting, final cinematic art acceptance, installed Windows release or a mergeable PR against current `main`. Do not use this receipt to claim all Chapter 1 production mechanics are final or that #586's later art work was tested. Next gates: full dependency diff/conflict analysis against main, actual graphical Windows F5 capture/playtest at this exact SHA, save-format integration review, and security-gated installer acceptance.
