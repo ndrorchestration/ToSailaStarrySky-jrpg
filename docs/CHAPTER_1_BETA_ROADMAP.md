@@ -37,6 +37,9 @@ Baseline 15–25 focused solo hours weekly, with a 20-hour planning scenario, ap
 ## Governance
 Every Friday review: exact commit + PR state, playable path, latest native screenshots, passing/failed tests, defects, scope, owner visual approval and date forecast. Keep **verified merged behavior**, **draft candidates**, **historical compatibility runtime**, **planned work**, and **human artistic acceptance** separate. If integration slips, move dependent milestones instead of declaring incomplete work complete. No automatic merge, canon change or public release is authorized by this plan.
 
+## October 28 native PR integration evidence
+See [exact-head Chapter 1 integration audit](CHAPTER_1_NATIVE_INTEGRATION_AUDIT_2026-10-28.md) for observed stacked PR relationships, divergence against `main`, integration sequence and unresolved gates. It is an audit snapshot, not permission to merge.
+
 ## Immediate work (November P0)
 1. Audit and deduplicate recent Chapter 1 draft PR stacks; identify exact-head dependencies, conflicts and actual main state.
 2. Reconcile Ionia-first Godot opening against legacy Lyra-first README/JS narrative.
