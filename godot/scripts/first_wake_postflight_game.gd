@@ -9,7 +9,7 @@ const RESERVE_STATION := Vector2(420, 467)
 const INTERACT_DISTANCE := 82.0
 
 var session
-var cinematic_seascape: Node2D
+var cinematic_seascape
 var ender: CharacterBody2D
 var ionia: CharacterBody2D
 var objective: Label
