@@ -538,17 +538,17 @@ jobs:
             # Test the *installed* executable as an actual Windows window,
             # not a screenshot or Godot editor widget.
             $nativeWindowSource = @'
-using System;
-using System.Runtime.InteropServices;
-public static class FirstWakeWindowCheck {
-    [DllImport("user32.dll", SetLastError=true)]
-    public static extern int GetWindowLong(IntPtr hwnd, int index);
-    [DllImport("user32.dll", SetLastError=true)]
-    public static extern bool ShowWindow(IntPtr hwnd, int command);
-    [DllImport("user32.dll", SetLastError=true)]
-    public static extern bool IsZoomed(IntPtr hwnd);
-}
-'@
+          using System;
+          using System.Runtime.InteropServices;
+          public static class FirstWakeWindowCheck {
+              [DllImport("user32.dll", SetLastError=true)]
+              public static extern int GetWindowLong(IntPtr hwnd, int index);
+              [DllImport("user32.dll", SetLastError=true)]
+              public static extern bool ShowWindow(IntPtr hwnd, int command);
+              [DllImport("user32.dll", SetLastError=true)]
+              public static extern bool IsZoomed(IntPtr hwnd);
+          }
+          '@
             Add-Type -TypeDefinition $nativeWindowSource -ErrorAction Stop
             $hwnd = [IntPtr]$proc.MainWindowHandle
             $style = [FirstWakeWindowCheck]::GetWindowLong($hwnd, -16)
