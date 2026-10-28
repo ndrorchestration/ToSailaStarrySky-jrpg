@@ -9,6 +9,14 @@ import { fileURLToPath } from 'node:url';
 const file = fileURLToPath(new URL('../.github/workflows/desktop-package.yml', import.meta.url));
 const source = readFileSync(file, 'utf8');
 const text = source.split('\n').filter(line => !/^\s*#/.test(line)).join('\n');
+const localScript = readFileSync(
+  fileURLToPath(new URL('../scripts/build-windows-release.ps1', import.meta.url)), 'utf8'
+);
+const localExecutable = localScript.split(/\r?\n/)
+  .filter(line => !/^\s*#/.test(line)).join('\n');
+const guardIndex = localExecutable.indexOf('throw "SECURITY_HOLD_293:');
+const firstLegacyAction = localExecutable.search(/\b(?:npm ci|npm run package:windows|makensis|Start-Process)\b/i);
+
 const rules = [
   ['explicit historic hold', source.includes('# SECURITY HOLD')],
   ['no push/tag event', !/^\s*(?:push|tags):/m.test(text)],
@@ -20,6 +28,10 @@ const rules = [
   ['no release publishing action', !/softprops\/action-gh-release|gh\s+release\s+create|publish\s+verified\s+windows\s+release/i.test(text)],
   ['no legacy Windows build invocation', !/makensis|npm\s+run\s+package:windows|Start-Process|choco\s+install\s+nsis/i.test(text)],
   ['manual flow is inert except refusal', !/uses:\s*(?:actions\/checkout|actions\/setup-node)/i.test(text)],
+  ['local NSIS script refuses before any build or execution',
+    /^\s*\$ErrorActionPreference\s*=\s*"Stop"\s*\nthrow "SECURITY_HOLD_293:/m.test(localExecutable) &&
+    guardIndex >= 0 && firstLegacyAction > guardIndex],
+
 ];
 let failed = false;
 for (const [label, ok] of rules) {
