@@ -119,8 +119,23 @@ func _verify() -> void:
     if flight.review_snapshot().get("real_inventory_scan_verified", true):
         _fail("authored review incorrectly claimed actual inventory implementation")
         return
-    if flight.interact() or "lyra" in flight.opening.active_party_ids:
-        _fail("duplicate inspection or premature Lyra reunion admitted")
+    if not flight.interact() or flight.phase != "recovery_review":
+        _fail("explicit safe-recovery request after postflight diagnosis rejected")
+        return
+    if "lyra" in flight.opening.active_party_ids or not flight.review_snapshot().get("recovery_request_recorded", false):
+        _fail("request skipped crew decision or recruited Lyra")
+        return
+    if not flight.interact() or flight.family_review == null:
+        _fail("deliberate safe berth staging did not open playable family review")
+        return
+    if flight.opening.active_party_ids != ["ender", "ionia"] or flight.family_review.opening != flight.opening:
+        _fail("family scene changed party before introduction or lost shared story")
+        return
+    if flight.review_snapshot().get("real_recovery_route_verified", true):
+        _fail("staged berth falsely claimed real navigational recovery")
+        return
+    if flight.interact() or flight.family_review.scene_phase != "family_arrival":
+        _fail("duplicate recovery progression or premature family dialogue")
         return
 
     world.queue_free()
