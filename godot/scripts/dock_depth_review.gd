@@ -106,7 +106,20 @@ func _draw_stage() -> void:
         var right0 := lerpf(830.0, 878.0, t0)
         var right1 := lerpf(830.0, 878.0, t1)
         var wood := Color("#9c7451") if j % 2 == 0 else Color("#876448")
-        _poly([Vector2(left0 + 2, y0 + 1), Vector2(right0 - 2, y0 + 1), Vector2(right1 - 2, y1), Vector2(left1 + 2, y1)], wood)
+        var plank_vertices := PackedVector2Array([
+            Vector2(left0 + 2, y0 + 1), Vector2(right0 - 2, y0 + 1),
+            Vector2(right1 - 2, y1), Vector2(left1 + 2, y1)
+        ])
+        if refined_materials_enabled:
+            # Native vertex tint interpolates real light across each perspective
+            # plank, retaining the exact same authored walkable footprint.
+            var highlight_tone: Color = wood.lightened(0.11)
+            var lower_tone: Color = wood.darkened(0.12)
+            draw_polygon(plank_vertices, PackedColorArray([
+                highlight_tone, highlight_tone, lower_tone, lower_tone
+            ]))
+        else:
+            draw_colored_polygon(plank_vertices, wood)
         draw_line(Vector2(left1 + 2, y1), Vector2(right1 - 2, y1), Color("#44382f"), 2.0)
         draw_line(Vector2(left0 + 11, y0 + 2), Vector2(right0 - 15, y0 + 2), Color(1, 0.83, 0.60, 0.13), 1.0)
         if refined_materials_enabled:
@@ -194,6 +207,27 @@ func _draw_plank_grain(row: int, y0: float, y1: float,
         var tint := Color(0.92, 0.75, 0.55, 0.12) if warm else Color(0.18, 0.12, 0.085, 0.075)
         draw_line(Vector2(x, y), Vector2(endpoint, y + float(strand % 3 - 1) * 0.6),
             tint, 0.72, true)
+    # Long intermittent grain bands provide legible roughness at 960x640.
+    # The bands stay inside the authored trapezoids and are deterministic.
+    for ribbon in range(5):
+        var t := (float(ribbon) + 0.65) / 6.0
+        var y := lerpf(y0 + 2.0, y1 - 2.0, t)
+        var left := lerpf(left0, left1, t) + 10.0
+        var right := lerpf(right0, right1, t) - 10.0
+        var shade := Color(0.13, 0.088, 0.06, 0.065 + float(ribbon % 3) * 0.014)
+        if ribbon % 2 == 0:
+            shade = Color(0.99, 0.80, 0.60, 0.055)
+        for segment in range(3):
+            var start_x := left + float(segment) * (right - left) / 3.0 + float((row * 19 + segment * 23) % 17)
+            var reach := float(82 + (row * 37 + ribbon * 53 + segment * 19) % 119)
+            var end_x := minf(start_x + reach, right)
+            if end_x > start_x + 6.0:
+                var mid := (start_x + end_x) * 0.5
+                draw_polyline(PackedVector2Array([
+                    Vector2(start_x, y),
+                    Vector2(mid, y + float((row + ribbon) % 3 - 1) * 0.9),
+                    Vector2(end_x, y + float((row + segment) % 3 - 1) * 0.45)
+                ]), shade, 1.05, true)
     # Individual small ring-scar knots, not a repeated visible stencil.
     if row in [2, 5, 7]:
         var fx := 0.24 + float(row % 3) * 0.21
