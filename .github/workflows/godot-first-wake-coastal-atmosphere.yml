@@ -1,0 +1,78 @@
+name: Godot First Wake Coastal Water and Sky (opt-in study)
+
+on:
+  pull_request:
+    paths:
+      - 'godot/shaders/first_wake_coastal_ocean_review.gdshader'
+      - 'godot/scripts/first_wake_coastal_atmosphere_review.gd'
+      - 'godot/scripts/first_wake_opt_in_shipboard_3d_review.gd'
+      - 'godot/tests/first_wake_coastal_atmosphere_test.gd'
+      - 'godot/tests/capture_first_wake_coastal_atmosphere.gd'
+      - 'docs/FIRST_WAKE_COASTAL_ATMOSPHERE_2026-10-28.md'
+      - '.github/workflows/godot-first-wake-coastal-atmosphere.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-godot-coastal-water:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - name: Exact PR source without credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Install digest-pinned Godot 4.7.2 editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' -o /tmp/godot.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip' | sha256sum -c -
+          mkdir -p /tmp/editor
+          unzip -q /tmp/godot.zip -d /tmp/editor
+          chmod +x /tmp/editor/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Verify exact source PNG Git blob, not only its manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          original='b92fc645a777ee2a5abe549cf96aa19bba109926'
+          actual="$(git hash-object godot/art-staging/environment-study/water_ripple_detail.png)"
+          test "$actual" = "$original"
+          printf 'FIRST_WAKE_COASTAL_SOURCE_BLOB_PASS=%s\\n' "$actual"
+      - name: Import real 3D coastal shader, world environment and scene
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/coastal-import.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|SHADER ERROR|Failed loading' /tmp/coastal-import.log
+      - name: Native original-ripple provenance, ocean material, 3D walk and unchanged story
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 145s /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_coastal_atmosphere_test.gd 2>&1 | tee /tmp/coastal-physics.log
+          grep -q 'FIRST_WAKE_COASTAL_ATMOSPHERE_PASS' /tmp/coastal-physics.log
+          grep -q 'sky=REAL_GODOT collision=UNCHANGED story=UNCHANGED production=BLOCKED' /tmp/coastal-physics.log
+          ! grep -Eq 'FIRST_WAKE_COASTAL_ATMOSPHERE_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/coastal-physics.log
+      - name: Four true 960x640 native Godot ocean and sky lighting captures
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 150s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --path godot --rendering-driver opengl3 --audio-driver Dummy --script res://tests/capture_first_wake_coastal_atmosphere.gd 2>&1 | tee /tmp/coastal-render.log
+          test "$(grep -c 'FIRST_WAKE_COASTAL_NATIVE_FRAME:' /tmp/coastal-render.log)" -eq 4
+          grep -q 'FIRST_WAKE_COASTAL_RENDER_PASS' /tmp/coastal-render.log
+          ! grep -Eq 'FIRST_WAKE_COASTAL_CAPTURE_FAIL|SCRIPT ERROR|Parse Error|SHADER ERROR|ERROR:' /tmp/coastal-render.log
+      - name: Preserve exact-head native screenshots and assertions
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: first-wake-source-ripple-coastal-atmosphere-native
+          path: |
+            godot/review-evidence/first-wake-3d-coastal-atmosphere/*.png
+            /tmp/coastal-import.log
+            /tmp/coastal-physics.log
+            /tmp/coastal-render.log
+          retention-days: 7
+          if-no-files-found: warn
