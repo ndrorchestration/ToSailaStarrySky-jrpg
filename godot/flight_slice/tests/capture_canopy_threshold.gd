@@ -64,48 +64,67 @@ func _run() -> void:
     var max_pixels: int = 0
     var saved_pairs: int = 0
     var samples: Array[Dictionary] = []
+    var max_switches_per_frame: int = 0
+    var max_settle_frames: int = 0
     for x in CAMERA_X:
         var eye := Vector3(x,EYE_Y,EYE_Z)
         scene.camera.position = eye
         scene.camera.look_at(Vector3(40.0,8.0,0.0),Vector3.UP)
         scene.terrain.update_detail(eye,0.0)
         scene.visuals.refresh_coverage()
-        # Before image intentionally retains last pose's canopy LOD but is
-        # rendered at this NEW and now FIXED camera pose.
-        var before: Image = await _frame()
-        scene.visuals.update_forest_detail(eye)
-        var receipt: Dictionary = scene.visuals.forest_lod_receipt()
-        var transitions: Array = scene.visuals.lod_last_switches.duplicate(true)
-        var after: Image = await _frame()
-        var pixels: int = _changed_pixels(before,after)
-        if pixels < 0:
-            push_error("FOREST_THRESHOLD_BAD_CAPTURE_SIZE")
-            quit(1)
-            return
-        total_switches += transitions.size()
-        for transition in transitions:
-            if transition["now_near"]:
-                enter_switches += 1
-            else:
-                exit_switches += 1
-        max_pixels = maxi(max_pixels,pixels)
-        if transitions.size() > 0 and saved_pairs < 3:
-            var label_text: String = "switch-%02d" % saved_pairs
-            if before.save_png(folder.path_join(label_text+"-before.png")) != OK or (
-                    after.save_png(folder.path_join(label_text+"-after.png")) != OK):
-                push_error("FOREST_THRESHOLD_IMAGE_WRITE_FAILED")
+        # Stage each waypoint at a fixed eye. Each native before/after image
+        # pair contains exactly ONE simulated rendering-update mesh decision.
+        # Reevaluate until no pending switches remain; this is a scripted
+        # path, not a claim of real 60FPS camera playback.
+        var settled: bool = false
+        for settle_tick in range(scene.visuals._forest_batches.size() + 2):
+            var before: Image = await _frame()
+            scene.visuals.update_forest_detail(eye)
+            var receipt: Dictionary = scene.visuals.forest_lod_receipt()
+            var transitions: Array = scene.visuals.lod_last_switches.duplicate(true)
+            var after: Image = await _frame()
+            var pixels: int = _changed_pixels(before,after)
+            if pixels < 0:
+                push_error("FOREST_THRESHOLD_BAD_CAPTURE_SIZE")
                 quit(1)
                 return
-            saved_pairs += 1
-        samples.append({
-            "camera":[eye.x,eye.y,eye.z],
-            "changed_subsampled_pixels":pixels,
-            "switches":transitions,
-            "receipt":receipt
-        })
-        scene.visuals.update_forest_detail(eye)
-        if not scene.visuals.lod_last_switches.is_empty():
-            push_error("FOREST_THRESHOLD_FIXED_POSE_NOT_IDEMPOTENT")
+            if transitions.size() > scene.visuals.CANOPY_SWAPS_PER_UPDATE:
+                push_error("FOREST_THRESHOLD_EXCEEDED_ONE_SWAP_BUDGET")
+                quit(1)
+                return
+            max_switches_per_frame = maxi(max_switches_per_frame, transitions.size())
+            total_switches += transitions.size()
+            for transition in transitions:
+                if transition["now_near"]:
+                    enter_switches += 1
+                else:
+                    exit_switches += 1
+            max_pixels = maxi(max_pixels,pixels)
+            # Preserve one actual same-eye image pair from each direction.
+            var store_pair: bool = transitions.size() > 0 and (
+                (saved_pairs == 0 and transitions[0]["now_near"]) or
+                (saved_pairs == 1 and not transitions[0]["now_near"]))
+            if store_pair:
+                var label_text: String = "approach" if saved_pairs == 0 else "retreat"
+                if before.save_png(folder.path_join(label_text+"-before.png")) != OK or (
+                        after.save_png(folder.path_join(label_text+"-after.png")) != OK):
+                    push_error("FOREST_THRESHOLD_IMAGE_WRITE_FAILED")
+                    quit(1)
+                    return
+                saved_pairs += 1
+            samples.append({
+                "camera":[eye.x,eye.y,eye.z],
+                "settle_tick":settle_tick,
+                "changed_subsampled_pixels":pixels,
+                "switches":transitions,
+                "receipt":receipt
+            })
+            if receipt["pending_species_cell_swaps"] == 0:
+                settled = true
+                max_settle_frames = maxi(max_settle_frames, settle_tick+1)
+                break
+        if not settled:
+            push_error("FOREST_THRESHOLD_DID_NOT_CONVERGE_AT_WAYPOINT")
             quit(1)
             return
     var file := FileAccess.open(folder.path_join("transition-receipt.json"),FileAccess.WRITE)
@@ -125,17 +144,24 @@ func _run() -> void:
         "enter_switches":enter_switches,
         "exit_switches":exit_switches,
         "peak_changed_subsampled_pixels":max_pixels,
-        "samples":samples
+        "samples":samples,
+        "camera_waypoints":CAMERA_X.size(),
+        "max_changes_per_frame":max_switches_per_frame,
+        "max_settle_frames_at_waypoint":max_settle_frames,
+        "budget":scene.visuals.CANOPY_SWAPS_PER_UPDATE
     },"  "))
     file.close()
     if total_switches == 0 or enter_switches == 0 or exit_switches == 0 or (
-            saved_pairs < 2) or samples.size() != CAMERA_X.size():
+            saved_pairs < 2) or max_switches_per_frame > scene.visuals.CANOPY_SWAPS_PER_UPDATE or (
+            max_settle_frames < 2) or samples.size() < CAMERA_X.size():
         push_error("FOREST_THRESHOLD_INCOMPLETE_APPROACH_RETREAT")
         quit(1)
         return
     print("NATIVE_FOREST_THRESHOLD_PASS switches=",total_switches,
         " enters=",enter_switches," exits=",exit_switches,
         " frames=",samples.size()," pairs=",saved_pairs,
+        " max_per_frame=",max_switches_per_frame,
+        " max_settle_frames=",max_settle_frames,
         " peak_pixels=",max_pixels)
     scene.queue_free()
     await process_frame

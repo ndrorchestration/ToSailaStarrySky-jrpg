@@ -16,6 +16,9 @@ var _coverage_bytes := PackedByteArray()
 # Spatial batches in the bounded visual adapter; not production globe streaming.
 const CANOPY_NEAR: float = 29.0
 const CANOPY_FAR: float = 39.0
+# Preserve draw count: at most ONE near/far spatial canopy mesh swap per
+# normal update. Low-quality and authored QA overrides bypass the budget.
+const CANOPY_SWAPS_PER_UPDATE: int = 1
 var _evergreen_near: ArrayMesh
 var _evergreen_far: ArrayMesh
 var _broadleaf_near: ArrayMesh
@@ -31,6 +34,7 @@ var canopy_review_override: int = 0
 var lod_last_switches: Array[Dictionary] = []
 var lod_switches_total: int = 0
 var lod_last_update_us: int = 0
+var lod_last_pending: int = 0
 
 func _ready() -> void:
     sky_material = _shader("res://shaders/sky.gdshader")
@@ -182,32 +186,58 @@ func update_forest_detail(observer: Vector3) -> void:
         lod_last_update_us = 0
         return
     var started_us: int = Time.get_ticks_usec()
-    _near_patch_count = 0
+    # First compute ALL desired states without mutating meshes. A moving
+    # observer reevaluates candidates every update: stale queue entries cannot
+    # survive a rapid approach/retreat reversal.
+    var candidates: Array[Dictionary] = []
     for batch in _forest_batches:
         var distance: float = _batch_distance(observer, batch)
-        var detailed: bool = bool(batch["detailed"])
+        var desired: bool = bool(batch["detailed"])
         if distance > CANOPY_FAR:
-            detailed = false
+            desired = false
         elif distance < CANOPY_NEAR:
-            detailed = true
+            desired = true
         if low_quality or canopy_review_override == 2:
-            detailed = false
+            desired = false
         elif canopy_review_override == 1:
-            detailed = true
-        if detailed != bool(batch["detailed"]):
-            var previous: bool = bool(batch["detailed"])
-            batch["detailed"] = detailed
-            lod_last_switches.append({
-                "species": batch["species"], "cell": [batch["ix"], batch["iz"]],
-                "previous_near": previous, "now_near": detailed,
-                "camera_distance": distance
-            })
-            var node: MultiMeshInstance3D = batch["node"]
-            if batch["species"] == "evergreen":
-                node.multimesh.mesh = _evergreen_near if detailed else _evergreen_far
-            else:
-                node.multimesh.mesh = _broadleaf_near if detailed else _broadleaf_far
-        if detailed:
+            desired = true
+        if desired != bool(batch["detailed"]):
+            candidates.append({"batch": batch, "detailed": desired,
+                "distance": distance})
+    var immediate: bool = low_quality or canopy_review_override != 0
+    # At normal quality and no review override, switch only the closest cell.
+    # Ties preserve authored species/grid iteration order.
+    var closest_idx: int = -1
+    var closest_distance: float = INF
+    if not immediate:
+        for i in range(candidates.size()):
+            var d: float = float(candidates[i]["distance"])
+            if d < closest_distance:
+                closest_idx = i
+                closest_distance = d
+    lod_last_pending = 0
+    for i in range(candidates.size()):
+        if not immediate and i != closest_idx:
+            lod_last_pending += 1
+            continue
+        var candidate: Dictionary = candidates[i]
+        var batch: Dictionary = candidate["batch"]
+        var detailed: bool = candidate["detailed"]
+        var previous: bool = bool(batch["detailed"])
+        batch["detailed"] = detailed
+        lod_last_switches.append({
+            "species": batch["species"], "cell": [batch["ix"], batch["iz"]],
+            "previous_near": previous, "now_near": detailed,
+            "camera_distance": candidate["distance"]
+        })
+        var node: MultiMeshInstance3D = batch["node"]
+        if batch["species"] == "evergreen":
+            node.multimesh.mesh = _evergreen_near if detailed else _evergreen_far
+        else:
+            node.multimesh.mesh = _broadleaf_near if detailed else _broadleaf_far
+    _near_patch_count = 0
+    for batch in _forest_batches:
+        if batch["detailed"]:
             _near_patch_count += 1
     _near_forest_detail = _near_patch_count > 0
     # Ground-cover remains one independent noncollision MultiMesh per type.
@@ -240,6 +270,8 @@ func forest_lod_receipt() -> Dictionary:
         "coarse_species_cells": _forest_batches.size() - _near_patch_count,
         "preserved_crown_instances": instances,
         "switches_last_update": lod_last_switches.size(),
+        "pending_species_cell_swaps": lod_last_pending,
+        "normal_swap_budget": CANOPY_SWAPS_PER_UPDATE,
         "switches_cumulative": lod_switches_total,
         "lod_update_cpu_us": lod_last_update_us,
         "understory_visible": _terrain != null and
