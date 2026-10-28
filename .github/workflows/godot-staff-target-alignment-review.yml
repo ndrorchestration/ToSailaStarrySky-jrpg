@@ -4,6 +4,8 @@ on:
     branches: [feat/godot-staff-target-alignment-visual-20261027]
     paths:
       - 'godot/scripts/ender_staff_target_alignment_review.gd'
+      - 'godot/scripts/ender_staff_combat_keyframe_review.gd'
+      - 'godot/tests/ender_staff_combat_keyframe_review_test.gd'
       - 'godot/scripts/weapon_directional_cinematic_review.gd'
       - 'godot/scripts/weapon_combat_pose_review.gd'
       - 'godot/tests/ender_staff_target_alignment_review_test.gd'
@@ -12,6 +14,8 @@ on:
   pull_request:
     paths:
       - 'godot/scripts/ender_staff_target_alignment_review.gd'
+      - 'godot/scripts/ender_staff_combat_keyframe_review.gd'
+      - 'godot/tests/ender_staff_combat_keyframe_review_test.gd'
       - 'godot/scripts/weapon_directional_cinematic_review.gd'
       - 'godot/scripts/weapon_combat_pose_review.gd'
       - 'godot/tests/ender_staff_target_alignment_review_test.gd'
