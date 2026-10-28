@@ -187,6 +187,22 @@ func _run() -> void:
             "O cannot revert motion preview")
         check(ender.walk_review_sprite.visible and ionia.ionia_front_walk_sprite.visible,
             "O did not restore current legacy field actors after actual physical movement")
+        # Optional genuine creator still source check on the artist's private
+        # Windows worktree. Public CI has no private JPEGs/PNGs and skips only
+        # this *source-dependent* restore assertion, not the motion contract.
+        if ender.has_creator_standee() and ionia.has_creator_standee():
+            check(ender.enable_creator_standee(true) and
+                ionia.enable_creator_standee(true), "private static source did not load")
+            dock._unhandled_input(o_key)
+            check(ender.creator_motion_enabled and ionia.creator_motion_enabled and
+                not ender.creator_standee_enabled and not ionia.creator_standee_enabled,
+                "O should temporarily replace static preview with verified authored frames")
+            dock._unhandled_input(o_key)
+            check(not ender.creator_motion_enabled and not ionia.creator_motion_enabled and
+                ender.creator_standee_enabled and ionia.creator_standee_enabled,
+                "O did not restore the exact creator static preview state")
+            ender.enable_creator_standee(false)
+            ionia.enable_creator_standee(false)
 
     # Tamper checks are performed AFTER the live test so fixture changes cannot
     # give false success to the actual actor integration.
