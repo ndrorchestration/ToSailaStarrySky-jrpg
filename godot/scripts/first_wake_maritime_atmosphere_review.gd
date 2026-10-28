@@ -49,8 +49,8 @@ func _make_sea() -> void:
     shader.code = """
 shader_type spatial;
 render_mode cull_disabled, diffuse_burley, specular_schlick_ggx;
-uniform vec4 ocean_deep : source_color = vec4(0.025, 0.15, 0.22, 1.0);
-uniform vec4 ocean_ridge : source_color = vec4(0.11, 0.40, 0.47, 1.0);
+uniform vec4 ocean_deep : source_color = vec4(0.032, 0.16, 0.22, 1.0);
+uniform vec4 ocean_ridge : source_color = vec4(0.092, 0.305, 0.36, 1.0);
 uniform vec4 horizon_mist : source_color = vec4(0.38, 0.61, 0.64, 1.0);
 uniform float wave_height = 0.105;
 uniform float wave_speed = 0.37;
@@ -66,26 +66,34 @@ void vertex() {
 }
 void fragment() {
     float t = TIME;
-    float a = sea_position.x * 0.64 + sea_position.y * 0.36 + t * 0.55;
-    float b = sea_position.x * -0.24 + sea_position.y * 1.03 - t * 0.43;
-    float c = sea_position.x * 2.1 + sea_position.y * -1.42 + t * 0.95;
+    // Low-frequency domain warping breaks the rectangular repeated lines
+    // that appeared in the first native ocean-horizon render.
+    vec2 domain_warp = 2.75 * vec2(
+        sin(sea_position.y * 0.105 + sin(sea_position.x * 0.049) * 0.58 + t * 0.13),
+        cos(sea_position.x * 0.082 + sin(sea_position.y * 0.043) * 0.44 - t * 0.11)
+    );
+    vec2 p = sea_position + domain_warp;
+    float a = p.x * 0.34 + p.y * 0.18 + t * 0.38;
+    float b = -p.x * 0.18 + p.y * 0.39 - t * 0.29;
+    float c = p.x * 1.43 - p.y * 1.12 + t * 0.82;
     float wa = sin(a);
-    float wb = sin(b);
-    float wc = sin(c);
-    float dx = 0.64 * cos(a) * 0.20 - 0.24 * cos(b) * 0.14 + 2.1 * cos(c) * 0.019;
-    float dz = 0.36 * cos(a) * 0.20 + 1.03 * cos(b) * 0.14 - 1.42 * cos(c) * 0.019;
+    float wb = sin(b + 0.30 * wa);
+    float wc = sin(c + 0.28 * wb);
+    float dx = 0.34 * cos(a) * 0.16 - 0.18 * cos(b) * 0.11 + 1.43 * cos(c) * 0.014;
+    float dz = 0.18 * cos(a) * 0.16 + 0.39 * cos(b) * 0.11 - 1.12 * cos(c) * 0.014;
     vec3 local_wave_normal = normalize(vec3(-dx, 1.0, -dz));
     NORMAL = normalize((VIEW_MATRIX * vec4(local_wave_normal, 0.0)).xyz);
-    float ripples = clamp(0.48 + 0.27 * wa + 0.17 * wb + 0.08 * wc, 0.0, 1.0);
-    float glints = pow(max(wa * 0.63 + wb * 0.37, 0.0), 16.0) * 0.15;
+    float ripples = clamp(0.51 + 0.125 * wa + 0.112 * wb + 0.035 * wc, 0.0, 1.0);
+    float spark_seed = max(0.0, 0.5 * wa + 0.5 * wb);
+    float glints = pow(spark_seed, 20.0) * 0.085;
     float sea_distance = distance(sea_position, CAMERA_POSITION_WORLD.xz);
     float atmospheric_fade = smoothstep(55.0, 215.0, sea_distance);
     vec3 near_water = mix(ocean_deep.rgb, ocean_ridge.rgb, ripples);
-    ALBEDO = mix(near_water, horizon_mist.rgb, atmospheric_fade * 0.68);
-    METALLIC = 0.10;
-    ROUGHNESS = mix(0.24, 0.40, atmospheric_fade);
-    SPECULAR = 0.91;
-    EMISSION = (ocean_ridge.rgb * (glints + wave_crest * 0.022)) * (1.0 - 0.7 * atmospheric_fade);
+    ALBEDO = mix(near_water, horizon_mist.rgb, atmospheric_fade * 0.61);
+    METALLIC = 0.085;
+    ROUGHNESS = mix(0.29, 0.45, atmospheric_fade);
+    SPECULAR = 0.85;
+    EMISSION = ocean_ridge.rgb * (glints + wave_crest * 0.011) * (1.0 - atmospheric_fade * 0.78);
 }
 """
     material.shader = shader
