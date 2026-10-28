@@ -1,0 +1,72 @@
+name: Godot mode-5 tile-edge material continuity
+on:
+  pull_request:
+    paths:
+      - 'godot/shaders/planetary_surface_study.gdshader'
+      - 'godot/scripts/planetary/worldmap_surface_material_preview.gd'
+      - 'godot/scripts/planetary/worldmap_cube_stream.gd'
+      - 'godot/tests/worldmap_mode5_edge_*.gd'
+      - '.github/workflows/godot-mode5-edge.yml'
+  push:
+    branches:
+      - study/mode5-surface-edge-feather-20261028
+
+permissions:
+  contents: read
+
+jobs:
+  edge-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Godot 4.7.2 Standard and native software GL support
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1 libgl1-mesa-dri
+          curl --fail --location --retry 3 --silent --show-error \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip -o /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.7.2-stable_linux.x86_64
+      - name: Import complete native project
+        run: |
+          timeout 90s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot --editor --quit
+      - name: Six-face boundary math and real mode-5 mesh/save contract
+        run: |
+          set -o pipefail
+          timeout 75s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 \
+            --headless --path godot --script res://tests/worldmap_mode5_edge_fade_test.gd \
+            2>&1 | tee /tmp/edge-contract.log
+          grep -Eq 'GODOT_MODE5_EDGE_FADE_CONTRACT_PASS checks=[0-9]+' /tmp/edge-contract.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|ERROR:|MODE5_EDGE_FADE_FAIL' /tmp/edge-contract.log
+      - name: Native live flight camera wet tile hard seam versus soft border A/B
+        run: |
+          set -o pipefail
+          timeout 175s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/worldmap_mode5_edge_capture.gd \
+            2>&1 | tee /tmp/edge-capture.log
+          grep -Eq 'MODE5_EDGE_A_B_CHANGED pixels=[0-9]+ source_to_feather=[0-9]+ sky_drift=0 selected_key=' /tmp/edge-capture.log
+          grep -q 'GODOT_MODE5_EDGE_NATIVE_REVIEW_PASS frames=6 real_scene=true actual_cube_tile=true' /tmp/edge-capture.log
+          grep -Eq 'MODE5_EDGE_WIDTH_SWEEP width08_from_original=[0-9]+ width14_from_original=[0-9]+ width22_from_original=[0-9]+' /tmp/edge-capture.log
+          for n in wet-original wet-hard-tile wet-feather-08 wet-feather-14 wet-feather-22 wet-feathered-tile; do
+            test -s "godot/evidence/mode5-edge-review/${n}.png"
+          done
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|MODE5_EDGE_A_B_UNREADABLE' /tmp/edge-capture.log
+          sha256sum godot/evidence/mode5-edge-review/*.png | tee /tmp/edge-frames-sha256.txt
+      - name: Preserve native screenshots and failure logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: mode5-edge-material-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            godot/evidence/mode5-edge-review/*.png
+            /tmp/edge-contract.log
+            /tmp/edge-capture.log
+            /tmp/edge-frames-sha256.txt
