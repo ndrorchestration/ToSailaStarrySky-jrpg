@@ -47,6 +47,40 @@ if (-not $GodotExe) {
         }
     }
 }
+
+# Windows players/developers often use Godot's official portable ZIP rather
+# than an MSI install or PATH entry. Search only conventional, bounded local
+# locations, then verify the EXACT official version before selecting it.
+if (-not $GodotExe) {
+    $portableLocations = @(
+        (Join-Path $env:USERPROFILE "Downloads\Godot_v4.7.2-stable_win64.exe"),
+        (Join-Path $env:USERPROFILE "Downloads"),
+        (Join-Path $env:USERPROFILE "Documents")
+    )
+    foreach ($folder in @(Get-ChildItem -LiteralPath $env:USERPROFILE -Directory -Filter "godot-4.7.2*" -ErrorAction SilentlyContinue)) {
+        $portableLocations += $folder.FullName
+    }
+    foreach ($folder in $portableLocations) {
+        if (-not (Test-Path -LiteralPath $folder -PathType Container)) { continue }
+        foreach ($filename in @(
+            "Godot_v4.7.2-stable_win64_console.exe",
+            "Godot_v4.7.2-stable_win64.exe"
+        )) {
+            $candidate = Join-Path $folder $filename
+            if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { continue }
+            try {
+                $version = ((& $candidate --version 2>$null) | Out-String).Trim()
+                if ($LASTEXITCODE -eq 0 -and $version -eq "4.7.2.stable.official.ed1daf0bf") {
+                    $GodotExe = $candidate
+                    Write-Host "TSTSS_INSTALLER_VERIFIED_PORTABLE_GODOT=FOUND"
+                    break
+                }
+            } catch { continue }
+        }
+        if ($GodotExe) { break }
+    }
+}
+
 if (-not $GodotExe -or -not (Test-Path -LiteralPath $GodotExe -PathType Leaf)) {
     throw "TSTSS_INSTALLER_GODOT_4_7_2_NOT_FOUND"
 }
