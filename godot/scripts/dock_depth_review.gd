@@ -5,6 +5,9 @@ extends Node2D
 
 @export var foreground: bool = false
 @export var painted_sky_enabled: bool = true
+## Painterly dock material pass. Visual-only and directly reversible with M on the dock.
+@export var refined_materials_enabled: bool = true
+const MATERIAL_REVISION := "dock-grain-v1"
 ## Visual only. Reuses the existing project-approved-for-testing cinematic shader.
 const PaintedSkyShader = preload("res://shaders/first_wake_cinematic_sky.gdshader")
 var painted_sky: ColorRect
@@ -64,12 +67,16 @@ func _draw_stage() -> void:
             draw_circle(Vector2(x, y), 30.0, Color(0.93, 0.96, 0.94, 0.23))
             draw_circle(Vector2(x + 28, y - 11), 37.0, Color(0.96, 0.96, 0.94, 0.16))
             draw_circle(Vector2(x + 58, y + 4), 28.0, Color(0.97, 0.94, 0.88, 0.17))
+    if refined_materials_enabled:
+        _draw_coastal_atmosphere()
     _poly([Vector2(0, 319), Vector2(92, 277), Vector2(143, 293), Vector2(196, 254), Vector2(240, 304), Vector2(330, 268), Vector2(392, 310), Vector2(460, 293), Vector2(535, 322), Vector2(620, 273), Vector2(697, 306), Vector2(790, 269), Vector2(850, 296), Vector2(960, 263), Vector2(960, 408), Vector2(0, 408)], Color("#719598"))
     _poly([Vector2(0, 366), Vector2(85, 341), Vector2(158, 354), Vector2(222, 333), Vector2(294, 358), Vector2(379, 331), Vector2(449, 361), Vector2(536, 344), Vector2(650, 369), Vector2(769, 342), Vector2(842, 363), Vector2(960, 340), Vector2(960, 400), Vector2(0, 400)], Color("#527e88"))
     for i in range(22):
         var yy := 387.0 + i * 12.0
         var t: float = float(i) / 21.0
         draw_rect(Rect2(0, yy, 960, 13), SEA_TOP.lerp(SEA_LOW, t))
+    if refined_materials_enabled:
+        _draw_sea_microdetail()
     # Water glints stay in open side channels beside the supported pier.
     for i in range(25):
         var x := float((i * 97 + 19) % 955)
@@ -102,10 +109,14 @@ func _draw_stage() -> void:
         _poly([Vector2(left0 + 2, y0 + 1), Vector2(right0 - 2, y0 + 1), Vector2(right1 - 2, y1), Vector2(left1 + 2, y1)], wood)
         draw_line(Vector2(left1 + 2, y1), Vector2(right1 - 2, y1), Color("#44382f"), 2.0)
         draw_line(Vector2(left0 + 11, y0 + 2), Vector2(right0 - 15, y0 + 2), Color(1, 0.83, 0.60, 0.13), 1.0)
+        if refined_materials_enabled:
+            _draw_plank_grain(j, y0, y1, left0, left1, right0, right1)
         for k in range(1, 6):
             var seam := lerpf(left0 + 7, right0 - 7, float(k) / 6.0) + (j % 2) * 23.0
             if seam < right0 - 10:
                 draw_line(Vector2(seam, y0 + 2), Vector2(seam + (left1 - left0) * 0.15, y1 - 2), Color(0.21, 0.17, 0.15, 0.30), 1.0)
+    if refined_materials_enabled:
+        _draw_deck_hardware_and_wear()
     draw_line(Vector2(128, 399), Vector2(78, 525), WOOD_HIGHLIGHT, 4.0)
     draw_line(Vector2(830, 399), Vector2(878, 525), WOOD_HIGHLIGHT, 4.0)
     draw_line(Vector2(82, 528), Vector2(874, 528), Color("#dec093"), 4.0)
@@ -125,6 +136,93 @@ func _draw_stage() -> void:
     _draw_crate(Vector2(825, 445), 0.72)
     _draw_plant(Vector2(116, 423))
     _draw_plant(Vector2(833, 416))
+
+func set_refined_materials_enabled(enabled: bool) -> void:
+    refined_materials_enabled = enabled
+    queue_redraw()
+
+func _draw_coastal_atmosphere() -> void:
+    # Distant ridges and quiet suspended haze — no new traversable geography.
+    for i in range(34):
+        var x := float((i * 79 + 11) % 970)
+        var y := 305.0 + float((i * 23) % 40)
+        var length := float(23 + (i * 19) % 57)
+        draw_line(Vector2(x, y), Vector2(minf(x + length, 957.0), y - 2.0),
+            Color(0.93, 0.81, 0.68, 0.042 + float(i % 4) * 0.012), 1.0)
+    for strip in range(5):
+        var yy := 338.0 + float(strip) * 10.0
+        draw_line(Vector2(0.0, yy), Vector2(960.0, yy + 3.0),
+            Color(0.83, 0.88, 0.82, 0.032 - float(strip) * 0.004), 4.0)
+
+func _draw_sea_microdetail() -> void:
+    # Directional, deterministic ripples: sparse reflective paths either side
+    # of the existing supported pier, not animation or a new water collision.
+    for i in range(80):
+        var x := float((i * 113 + 29) % 950)
+        var y := 404.0 + float((i * 41 + 7) % 204)
+        if (x > 88.0 and x < 890.0 and y > 440.0 and y < 535.0):
+            continue
+        var length := float(7 + (i * 11) % 29)
+        var amber := Color(0.98, 0.78, 0.51, 0.047 + float(i % 5) * 0.012)
+        draw_line(Vector2(x, y), Vector2(minf(x + length, 955.0), y), amber, 0.85)
+    for band in range(7):
+        var t := float(band) / 6.0
+        var y := 398.0 + t * 187.0
+        draw_line(Vector2(0, y), Vector2(90, y + t * 2.0),
+            Color(0.06, 0.24, 0.32, 0.048), 1.0)
+        draw_line(Vector2(885, y + t * 2.0), Vector2(960, y),
+            Color(0.06, 0.24, 0.32, 0.048), 1.0)
+
+func _draw_plank_grain(row: int, y0: float, y1: float,
+        left0: float, left1: float, right0: float, right1: float) -> void:
+    # Geometry is bounded within each authored perspective plank. No random
+    # state, external files, tile seams or physics/actor dependence.
+    for strand in range(29):
+        var sample := float((strand * 31 + row * 17) % 101) / 101.0
+        var depth := 0.16 + float((strand * 13 + row * 7) % 65) / 100.0
+        var y := lerpf(y0 + 2.0, y1 - 2.0, depth)
+        var side := (y - y0) / maxf(y1 - y0, 1.0)
+        var left := lerpf(left0, left1, side) + 5.0
+        var right := lerpf(right0, right1, side) - 5.0
+        var width := maxf(right - left, 1.0)
+        var x := left + width * sample
+        var grain_length := float(14 + (strand * 29 + row * 17) % 65)
+        var endpoint := minf(x + grain_length, right)
+        if endpoint <= x + 3.0:
+            continue
+        var warm := strand % 4 == 0
+        var tint := Color(0.92, 0.75, 0.55, 0.12) if warm else Color(0.18, 0.12, 0.085, 0.075)
+        draw_line(Vector2(x, y), Vector2(endpoint, y + float(strand % 3 - 1) * 0.6),
+            tint, 0.72, true)
+    # Individual small ring-scar knots, not a repeated visible stencil.
+    if row in [2, 5, 7]:
+        var fx := 0.24 + float(row % 3) * 0.21
+        var middle_y := (y0 + y1) * 0.5
+        var center_x := lerpf(lerpf(left0, left1, 0.5), lerpf(right0, right1, 0.5), fx)
+        draw_arc(Vector2(center_x, middle_y), 3.2, -1.5, 1.5,
+            9, Color(0.18, 0.11, 0.08, 0.22), 0.7, true)
+        draw_line(Vector2(center_x - 8.0, middle_y),
+            Vector2(center_x - 3.2, middle_y), Color(0.24, 0.16, 0.10, 0.14), 0.6)
+
+func _draw_deck_hardware_and_wear() -> void:
+    # Brass nail heads and slightly uneven pitch: non-interactive material detail.
+    for row in range(8):
+        var t := (float(row) + 0.5) / 9.0
+        var yy := lerpf(399.0, 525.0, t)
+        var left := lerpf(128.0, 78.0, t)
+        var right := lerpf(830.0, 878.0, t)
+        for column in range(7):
+            var fraction := (float(column) + 0.38) / 7.0
+            var xx := lerpf(left + 10.0, right - 10.0, fraction)
+            draw_circle(Vector2(xx + 0.7, yy + 0.7), 1.5,
+                Color(0.15, 0.11, 0.09, 0.38))
+            draw_circle(Vector2(xx, yy), 0.85,
+                Color(0.91, 0.72, 0.43, 0.47))
+    for i in range(17):
+        var xx := 103.0 + float((i * 43 + 17) % 740)
+        var yy := 409.0 + float((i * 19) % 108)
+        draw_line(Vector2(xx, yy), Vector2(xx + 11.0, yy),
+            Color(0.11, 0.08, 0.07, 0.095), 0.9)
 
 func _draw_crate(pos: Vector2, scale_amount: float) -> void:
     var w := 43.0 * scale_amount
