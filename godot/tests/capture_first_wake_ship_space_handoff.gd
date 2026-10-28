@@ -87,8 +87,8 @@ func _run() -> void:
     if changed < 1000:
         push_error("SHIP_SPACES_CAPTURE_FAIL: actual on-screen review image barely changed")
         failures += 1
-    if story_before != world.opening.snapshot() or
-            checkpoint_before != world.export_revised_checkpoint():
+    if (story_before != world.opening.snapshot()
+            or checkpoint_before != world.export_revised_checkpoint()):
         push_error("SHIP_SPACES_CAPTURE_FAIL: screenshot toggle mutated real story/save")
         failures += 1
     world.set_ship_spaces_review_enabled(false)
