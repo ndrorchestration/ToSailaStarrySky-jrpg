@@ -5,6 +5,7 @@ const FirstWakeScene = preload("res://scenes/first_wake_job_preview.tscn")
 const ShipScene = preload("res://scenes/aureate_wake_metric_bridge_study.tscn")
 const ZoneCamera = preload("res://scripts/first_wake_3d_zone_camera_review.gd")
 const CrewMotion = preload("res://scripts/first_wake_3d_crew_motion_proxy.gd")
+const MaritimeAtmosphere = preload("res://scripts/first_wake_maritime_atmosphere_review.gd")
 const REVIEW_ID := "tstss.first-wake.3d-ship-walk.review.v1"
 const REVIEW_PRODUCTION_READY: bool = false
 const HELM_CONSOLE_INTERACT_RANGE_M: float = 1.55
@@ -14,6 +15,7 @@ var ship: Node3D
 var three_d_review_active: bool = false
 var zone_camera: Node3D
 var motion_visual: Node3D
+var maritime_atmosphere: Node3D
 var review_observations: int = 0
 var review_label: Label
 var instruction_label: Label
@@ -40,6 +42,11 @@ func _ready() -> void:
     zone_camera = ZoneCamera.new()
     zone_camera.actor = ship.crew_walker
     ship.add_child(zone_camera)
+    maritime_atmosphere = MaritimeAtmosphere.new()
+    ship.add_child(maritime_atmosphere)
+    # The original inherited BG_COLOR WorldEnvironment stays as a nonactive
+    # asset reference; a single sky environment is enabled in this wrapper.
+    ship.get_node("MetricShipEnvironment").environment = null
     motion_visual = CrewMotion.new()
     ship.crew_walker.add_child(motion_visual)
     # The original anonymous whole-body capsule remains the physical collider.
