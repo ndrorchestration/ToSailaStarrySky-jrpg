@@ -1,4 +1,6 @@
-# Aetherwake JRPG — Technical Specification
+# To Sail the Starry Sky — Legacy Runtime Technical Specification
+
+> **2026-10-28 scope notice:** This file describes the preserved p5.js reference implementation and historical Aetherwake desktop packaging, not a current Godot Chapter 1 production feature inventory. For native development milestones, scope controls and acceptance gates see [Chapter 1 Beta Roadmap](docs/CHAPTER_1_BETA_ROADMAP.md). Alpha March 31, 2027 and beta May 31, 2027 are planning targets only. Draft Godot PRs and native screenshots are not integrated `main` claims.
 
 > **2026-10-25 migration note:** This specification describes the preserved **legacy p5.js executable/reference behavior** and long-term content contracts. The creator has selected **Godot 4.7.2 + GDScript** for all forward gameplay development. Read [../AGENTS.md](AGENTS.md) and [docs/GODOT_MIGRATION_COORDINATION.md](docs/GODOT_MIGRATION_COORDINATION.md). Do not mistake this file's "current runtime" for permission to add JavaScript features; migrate with parity tests and preserve compatibility/historical receipts.
 
