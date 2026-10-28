@@ -142,6 +142,13 @@ jobs:
           timeout 75s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_wide_composition_test.gd 2>&1 | tee /tmp/first-wake-wide-composition.log
           ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_FIRST_WAKE_WIDE_3D_FAIL:' /tmp/first-wake-wide-composition.log
           grep -Eq 'TSTSS_FIRST_WAKE_WIDE_3D_PASS checks=[0-9]+' /tmp/first-wake-wide-composition.log
+      - name: Verify neutral PW01 lens on actual wide Aureate Wake with three physics landings
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 105s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_wide_engine_warning_test.gd 2>&1 | tee /tmp/wide-pw01-integration.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_FIRST_WAKE_WIDE_PW01_FAIL:' /tmp/wide-pw01-integration.log
+          grep -Eq 'TSTSS_FIRST_WAKE_WIDE_PW01_PASS checks=[0-9]+ real_physics_trials=3' /tmp/wide-pw01-integration.log
       - name: Verify real First Wake authored dialogue gates scene progress
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_dialogue_scene_test.gd
