@@ -1,0 +1,60 @@
+name: Godot First Wake Dock Material Depth (review)
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/dock_depth_review.gd'
+      - 'godot/scripts/first_wake_job_preview.gd'
+      - 'godot/tests/first_wake_dock_material_review_test.gd'
+      - 'godot/tests/capture_first_wake_dock_material_real_art.gd'
+      - '.github/workflows/godot-first-wake-dock-material-depth.yml'
+permissions:
+  contents: read
+jobs:
+  dock-material-native-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Refuse creator-art publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git ls-files 'godot/art-review/creator-field-review/*.png' 'godot/art-review/creator-portrait-preview/*.jpg')"
+      - name: Install verified official Godot 4.7.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o godot-editor.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  godot-editor.zip" | sha256sum -c -
+          mkdir -p godot-editor
+          unzip -q godot-editor.zip -d godot-editor
+          chmod +x godot-editor/Godot_v4.7.2-stable_linux.x86_64
+      - name: Native project import and script validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/dock-material-import.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|Shader compilation failed' /tmp/dock-material-import.log
+      - name: Validate actual dock material toggle, old fallback and no gameplay changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 80s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_dock_material_review_test.gd 2>&1 | tee /tmp/dock-material-review-test.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_DOCK_MATERIAL_FAIL:' /tmp/dock-material-review-test.log
+          grep -Fq 'TSTSS_DOCK_MATERIAL_PASS' /tmp/dock-material-review-test.log
+      - name: Regress portrait and existing actor source features
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 80s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_creator_standee_test.gd 2>&1 | tee /tmp/dock-material-cast-test.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_CREATOR_STANDEE_FAIL:' /tmp/dock-material-cast-test.log
+          grep -Fq 'TSTSS_CREATOR_STANDEE_PASS' /tmp/dock-material-cast-test.log
+      - name: Preserve actual First Wake splashdown, save and party
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 110s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_game_entry_test.gd 2>&1 | tee /tmp/dock-material-game-test.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_FIRST_WAKE_GAME_ENTRY_FAIL:' /tmp/dock-material-game-test.log
+          grep -Fq 'TSTSS_FIRST_WAKE_GAME_ENTRY_PASS' /tmp/dock-material-game-test.log
