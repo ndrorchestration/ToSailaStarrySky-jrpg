@@ -3,7 +3,7 @@ extends Node2D
 ## Reuses native Ender movement and Chapter I input. Art remains provisional.
 const Actor = preload("res://scripts/pilot_actor.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
-const Environment = preload("res://scripts/first_wake_cinematic_environment.gd")
+const CinematicStageArt = preload("res://scripts/first_wake_cinematic_environment.gd")
 const BOUNDS := Rect2(Vector2(112, 404), Vector2(736, 122))
 const RESERVE_STATION := Vector2(420, 467)
 const INTERACT_DISTANCE := 82.0
@@ -89,7 +89,7 @@ func set_cinematic_environment_enabled(enabled: bool) -> void:
 
 func _draw() -> void:
     if cinematic_environment_enabled:
-        Environment.draw_reserve(self,inspected_station)
+        CinematicStageArt.draw_reserve(self,inspected_station)
     else:
         draw_rect(Rect2(0, 0, 960, 640), Color("#1a3446"))
         draw_rect(Rect2(0, 178, 960, 222), Color("#2e4855"))
