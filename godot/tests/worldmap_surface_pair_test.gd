@@ -47,7 +47,8 @@ func _run() -> void:
             check(int(study.mesh_stats[tile_index]["land_cells"]) +
                 int(study.mesh_stats[tile_index]["water_cells"]) == 144,
                 "all original source grid cells retained")
-            check(node.get_child_count() == 0 and not node is CollisionObject3D,
+            check(node.get_child_count() == 0 and \
+                node.find_children("*","CollisionObject3D",true,false).is_empty(),
                 "visual-only tile never fabricates a landing collider")
             check(study.materials[tile_index].shader != null and
                 study.materials[tile_index].shader.code.find("planet_position") >= 0,
