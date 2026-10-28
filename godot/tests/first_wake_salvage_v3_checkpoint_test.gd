@@ -44,7 +44,7 @@ func _verify() -> void:
     if not Codec.validate(empty).get("ok", false) or empty["custody"].size() != 0:
         _fail("empty but valid salvage progress not checkpointable")
         return
-    if Codec.validate(V1.encode(preload("res://scripts/first_wake_chapter1_state.gd").new())).get("ok", false):
+    if Codec.validate(V1.encode(preload("res://scripts/first_wake_chapter1_state.gd").new(), {"hull_integrity": 100, "morale": 50, "engine_integration": 0})).get("ok", false):
         _fail("v1 chapter save misread as salvage v3")
         return
     if V1.validate(empty).get("ok", false) or V2.validate(empty).get("ok", false):
