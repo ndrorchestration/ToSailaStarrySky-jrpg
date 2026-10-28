@@ -17,6 +17,7 @@ const TEXTURE_DETAIL_STRENGTH: float = 0.68
 var texture_resources: Dictionary = {}
 var rain: Node3D
 var current_mood: Dictionary = {}
+var storm_depth_study_strength: float = 0.0 # Opt-in visual QA, not gameplay or moonlight physics
 var _time_index: int = 0
 var _weather_index: int = 0
 var _magic_enabled: bool = false
@@ -223,18 +224,32 @@ func advance_environment_transition(delta: float,
     if fraction >= 1.0:
         transition_active = false
 
+## Explicit opt-in review knob: 0 restores the current production *candidate*
+## exactly. The time and weather grade tables remain authoritative and unedited.
+func set_storm_depth_study_strength(strength: float) -> void:
+    storm_depth_study_strength = clampf(strength, 0.0, 1.0) if is_finite(strength) else 0.0
+    if not current_mood.is_empty():
+        _apply_environment_palette()
+
 func _apply_environment_palette() -> void:
     var key: DirectionalLight3D = get_node("GoldenHourKey")
     var fill: DirectionalLight3D = get_node("SkyBounce")
     var environment: Environment = (get_node("Atmosphere") as WorldEnvironment).environment
+    # Smooth weight prevents a full-moon-style state or discrete scene trigger.
+    # It only applies to the authored NIGHT+STORM grade in this noncanonical lab.
+    var darkness: float = smoothstep(2.15, 3.0,
+        float(current_mood["time_palette"]))
+    var storminess: float = smoothstep(0.65, 1.0,
+        float(current_mood["weather_strength"]))
+    var relief: float = darkness * storminess * storm_depth_study_strength
     key.light_color = current_mood["key_color"]
-    key.light_energy = current_mood["key_energy"]
+    key.light_energy = float(current_mood["key_energy"]) * lerpf(1.0, 1.32, relief)
     fill.light_color = current_mood["fill_color"]
     fill.light_energy = current_mood["fill_energy"]
     environment.ambient_light_color = current_mood["ambient_color"]
-    environment.ambient_light_energy = current_mood["ambient_energy"]
+    environment.ambient_light_energy = float(current_mood["ambient_energy"]) * lerpf(1.0, 0.86, relief)
     environment.fog_light_color = current_mood["fog_color"]
-    environment.fog_density = current_mood["fog_density"]
+    environment.fog_density = float(current_mood["fog_density"]) * lerpf(1.0, 0.74, relief)
     water.set_shader_parameter("sun_visibility", current_mood["sun_visibility"])
     for uniform_name in ["time_palette", "weather_strength",
             "magic_veil_strength", "sun_visibility"]:
