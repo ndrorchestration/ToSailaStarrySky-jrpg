@@ -83,7 +83,7 @@ jobs:
           done
           # PW-02 real copied 3D ship candidate rendered in original 2D flight scene.
           xvfb-run -a -s "-screen 0 960x640x24" editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --fixed-fps 60 --resolution 960x640 --path godot --script res://tests/capture_first_wake_engine_warning_3d.gd
-          for suffix in before-launch warning-on warning-off interrupted physical-waterborne; do
+          for suffix in before-launch ascent-planform warning-on physical-light-only warning-off interrupted physical-waterborne; do
             test -s "godot/review-evidence/pw02-real3d-engine-${suffix}-native-960x640.png"
           done
           sha256sum godot/review-evidence/*.png

@@ -33,6 +33,13 @@ func _capture() -> void:
         push_error("TSTSS_PW02_3D_CAPTURE_FAIL: preflight")
         quit(2)
         return
+    await process_frame
+    s.synchronize_3d_alarm()
+    var ascent: Image = await _shot("pw02-real3d-engine-ascent-planform-native-960x640.png")
+    if ascent == null or s.active_camera_shot != "wing-planform":
+        push_error("TSTSS_PW02_3D_CAPTURE_FAIL: real ascent camera not recorded")
+        quit(12)
+        return
     var warning := false
     for i in range(180):
         await process_frame
@@ -46,16 +53,31 @@ func _capture() -> void:
     s.synchronize_visual()
     s.synchronize_3d_alarm()
     var lit: Image = await _shot("pw02-real3d-engine-warning-on-native-960x640.png")
+    if s.active_camera_shot != "stern-quarter":
+        push_error("TSTSS_PW02_3D_CAPTURE_FAIL: no authentic stern warning camera")
+        quit(13)
+        return
+    s.set_light_only_review(true)
+    var lamp_only: Image = await _shot("pw02-real3d-engine-physical-light-only-native-960x640.png")
+    s.set_light_only_review(false)
     s.set_visual_enabled(false)
     s.synchronize_3d_alarm()
     var unlit: Image = await _shot("pw02-real3d-engine-warning-off-native-960x640.png")
-    if lit == null or unlit == null:
+    if lit == null or unlit == null or lamp_only == null:
         quit(4)
         return
     var roi := Rect2i(int(s.INSET_POSITION.x), int(s.INSET_POSITION.y), s.INSET_SIZE.x, s.INSET_SIZE.y)
     if lit.get_region(roi).get_data() == unlit.get_region(roi).get_data():
         push_error("TSTSS_PW02_3D_CAPTURE_FAIL: actual 3D inset has no native lighting/emissive pixel delta")
         quit(5)
+        return
+    if lamp_only.get_region(roi).get_data() == unlit.get_region(roi).get_data():
+        push_error("TSTSS_PW02_3D_CAPTURE_FAIL: physical OmniLight3D alone changed no 3D hull/engine pixels")
+        quit(14)
+        return
+    if idle.get_region(roi).get_data() == ascent.get_region(roi).get_data():
+        push_error("TSTSS_PW02_3D_CAPTURE_FAIL: physically sourced 3D bow and planform views are identical")
+        quit(15)
         return
     for hud in [Rect2i(0, 0, 960, 95), Rect2i(0, 550, 960, 90)]:
         if lit.get_region(hud).get_data() != unlit.get_region(hud).get_data():
@@ -94,7 +116,7 @@ func _capture() -> void:
         return
     s.queue_free()
     await process_frame
-    print("TSTSS_PW02_3D_CAPTURE_PASS: real candidate hull/wing Camera3D SubViewport GL, on/off/interrupt pixels, live original 2D splashdown")
+    print("TSTSS_PW02_3D_CAPTURE_PASS: real 3D hull+3 phase camera shots, independent OmniLight3D pixel witness, on/off/interrupt HUD and 2D splashdown")
     print("TSTSS_PW02_3D_GPU_FRAME_TIME=NOT_PROFILED")
     print("TSTSS_PW02_3D_ART_APPROVAL=PENDING")
     quit(0)

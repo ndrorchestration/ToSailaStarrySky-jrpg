@@ -26,6 +26,9 @@ func _verify() -> void:
         if s.ship3d.get_node_or_null(component) == null:
             _fail("missing original 3D ship geometry: " + component)
             return
+    if s.active_camera_shot != "bow-quarter" or s.camera3d.position != s.SHOT_CAMERAS["bow-quarter"]:
+        _fail("real preflight phase not mapped to bow-quarter 3D camera")
+        return
     if s.halo3d.visible or s.light3d.visible or s.applied_visual_state or s.flight.phase != "awaiting_launch":
         _fail("3D energy activated without the original flight warning")
         return
@@ -35,6 +38,11 @@ func _verify() -> void:
         return
     if not s.flight.begin_short_test_flight():
         _fail("actual Ionia-first flight refused")
+        return
+    await process_frame
+    s.synchronize_3d_alarm()
+    if s.active_camera_shot != "wing-planform" or s.camera3d.position != s.SHOT_CAMERAS["wing-planform"]:
+        _fail("real ascent did not select 3D wing-planform shot")
         return
     var warning := false
     for i in range(180):
@@ -46,6 +54,17 @@ func _verify() -> void:
     s.synchronize_3d_alarm()
     if not warning or not s.halo3d.visible or not s.light3d.visible or not s.applied_visual_state:
         _fail("3D engine did not follow real warning-only admission")
+        return
+    if s.active_camera_shot != "stern-quarter" or s.camera3d.position != s.SHOT_CAMERAS["stern-quarter"]:
+        _fail("real phase warning not mapped to 3D stern-quarter shot")
+        return
+    s.set_light_only_review(true)
+    if s.halo3d.visible or not s.light3d.visible:
+        _fail("light-only native material witness unavailable")
+        return
+    s.set_light_only_review(false)
+    if not s.halo3d.visible or not s.light3d.visible:
+        _fail("3D alarm could not restore complete rendering")
         return
     var snapshot: Dictionary = s.opening.snapshot()
     var position2d: Vector2 = s.flight.ship_body.position
@@ -70,6 +89,11 @@ func _verify() -> void:
     if not s.flight.stabilize_for_water_descent():
         _fail("real 2D controlled descent refused")
         return
+    await process_frame
+    s.synchronize_3d_alarm()
+    if s.active_camera_shot != "bow-quarter" or s.camera3d.position != s.SHOT_CAMERAS["bow-quarter"]:
+        _fail("legitimate controlled descent did not restore 3D bow-quarter shot")
+        return
     var waterborne := false
     for i in range(540):
         await process_frame
@@ -80,6 +104,9 @@ func _verify() -> void:
         _fail("actual physics splashdown blocked by independent 3D inset")
         return
     s.synchronize_3d_alarm()
+    if s.active_camera_shot != "stern-quarter":
+        _fail("real waterborne physical phase did not select stern-quarter")
+        return
     if s.applied_visual_state or s.halo3d.visible or s.light3d.visible:
         _fail("3D warning persisted after real 2D splashdown")
         return
@@ -88,6 +115,6 @@ func _verify() -> void:
         return
     s.queue_free()
     await process_frame
-    print("TSTSS_PW02_3D_PASS: actual hull+four wings in Camera3D/SubViewport, real warning 3D cue disabled/interrupt, original 2D Area2D splashdown unchanged")
+    print("TSTSS_PW02_3D_PASS: authentic hull+four wings Camera3D/SubViewport, 3 phase-derived 3D camera shots, 3D light-only witness, warning disabled/interrupt, 2D splashdown unchanged")
     print("TSTSS_PW02_3D_ART_ACCEPTANCE=PENDING")
     quit(0)

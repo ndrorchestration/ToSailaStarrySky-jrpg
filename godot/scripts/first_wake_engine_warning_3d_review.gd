@@ -4,7 +4,11 @@ extends "res://scripts/first_wake_engine_warning_review.gd"
 const ShipCandidate = preload("res://scripts/aureate_wake_ship_3d_candidate.gd")
 const INSET_SIZE := Vector2i(428, 240)
 const INSET_POSITION := Vector2(516, 188)
-const BRIDGE_CAMERA := Vector3(6.8, 3.7, 8.9)
+const SHOT_CAMERAS = {
+    "bow-quarter": Vector3(-7.7, 3.8, -8.0),
+    "wing-planform": Vector3(-0.4, 7.9, 9.7),
+    "stern-quarter": Vector3(6.8, 3.7, 8.9),
+}
 const ENGINE_MARKER := Vector3(0.0, 0.0, 2.61)
 
 var ship3d: Node3D
@@ -15,6 +19,8 @@ var light3d: OmniLight3D
 var inset_rect: TextureRect
 var world3d: Node3D
 var applied_visual_state: bool = false
+var active_camera_shot: String = ""
+var light_only_review: bool = false
 
 func _ready() -> void:
     super._ready()
@@ -59,7 +65,7 @@ func _setup_real_3d_view() -> void:
 
     camera3d = Camera3D.new()
     camera3d.name = "Real3DSternQuarterCamera"
-    camera3d.position = BRIDGE_CAMERA
+    camera3d.position = SHOT_CAMERAS["bow-quarter"]
     camera3d.fov = 54.0
     camera3d.near = 0.12
     camera3d.far = 64.0
@@ -122,11 +128,25 @@ func _process(delta: float) -> void:
     super._process(delta)
     synchronize_3d_alarm()
 
+func set_light_only_review(enabled: bool) -> void:
+    # Single-factor GPU test only. Does not enable any dormant warning by itself.
+    light_only_review = enabled
+    synchronize_3d_alarm()
+
 func synchronize_3d_alarm() -> void:
     if not is_instance_valid(halo3d) or not is_instance_valid(light3d):
         return
+    # Camera intent is from #492's genuine Ionia-first scene/physics snapshot,
+    # never from the candidate geometry or an arbitrary artist-authored timeline.
+    var intent: Dictionary = Handoff.build(flight.review_snapshot(), reduced_motion, detail_level == 0, false)
+    var camera_intent: String = str(intent.get("camera_shot_id", ""))
+    if bool(intent.get("admitted_for_review", false)) and SHOT_CAMERAS.has(camera_intent):
+        if active_camera_shot != camera_intent:
+            active_camera_shot = camera_intent
+            camera3d.position = SHOT_CAMERAS[camera_intent]
+            camera3d.look_at(Vector3(0.0, 0.16, 0.14), Vector3.UP)
     # The original 2D visual is the single authority for whether a 3D
     # presentation is shown; the 3D scene never initiates warning or descent.
     applied_visual_state = bool(warning_visual.active) and bool(warning_visual.visible)
-    halo3d.visible = applied_visual_state
+    halo3d.visible = applied_visual_state and not light_only_review
     light3d.visible = applied_visual_state
