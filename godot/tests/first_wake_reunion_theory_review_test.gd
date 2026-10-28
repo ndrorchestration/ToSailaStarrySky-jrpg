@@ -56,6 +56,9 @@ func _verify() -> void:
     if reunion.configure_from_postflight(flight):
         _fail("postflight proof admitted before reserve diagnosis")
         return
+    if flight.begin_recovery_readiness():
+        _fail("recovery readiness entered before postflight diagnosis")
+        return
     if not flight.start_postflight_inspection():
         _fail("native postflight diagnosis cannot start")
         return
@@ -75,6 +78,71 @@ func _verify() -> void:
     if reunion.interact() or reunion.inspect_clue("phase_readings"):
         _fail("reunion progressed before recovery receipt")
         return
+    if reunion.attach_recovery_readiness(world):
+        _fail("unrelated scene accepted as recovery receipt")
+        return
+    var fixture: Dictionary = {
+        "source": "isolated_qa_fixture",
+        "fixture_only": true,
+        "crew_safe": true,
+        "family_contact_safe": true,
+    }
+    if reunion.authorize_qa_reunion_fixture(fixture):
+        _fail("meeting fixture bypassed shipboard readiness checks")
+        return
+    if not flight.begin_recovery_readiness() or flight.recovery_review == null:
+        _fail("postflight readiness did not open a native shipboard review")
+        return
+    if flight.flight_overlay.visible:
+        _fail("original flight UI overlapped the recovery review")
+        return
+    if flight.begin_recovery_readiness():
+        _fail("duplicate recovery review scene admitted")
+        return
+    var plan = flight.recovery_review
+    if plan.phase != "inspect" or plan.opening != flight.opening:
+        _fail("recovery scene not bound to original Ender-Ionia story state")
+        return
+    if reunion.attach_recovery_readiness(plan):
+        _fail("unfinished recovery checklist attached to family fixture")
+        return
+    for station_id in ["contact_plan", "crew_accounting", "systems_isolation"]:
+        if not plan.inspect_station(station_id):
+            _fail("shipboard station was unavailable: " + station_id)
+            return
+        if station_id in plan.completed_stations:
+            _fail("shipboard observation awarded before dialogue: " + station_id)
+            return
+        var lines: Array[String] = plan._station_lines(station_id)
+        for i in range(lines.size() - 1):
+            if not plan.interact() or station_id in plan.completed_stations:
+                _fail("station evidence awarded without complete observation: " + station_id)
+                return
+        if not plan.interact() or station_id not in plan.completed_stations:
+            _fail("station dialogue did not finish: " + station_id)
+            return
+        if plan.inspect_station(station_id):
+            _fail("repeated station inspection admitted")
+            return
+    var readiness: Dictionary = plan.review_snapshot()
+    if not readiness["readiness_review_complete"] or plan.phase != "ready_for_route_review":
+        _fail("three shipboard observations did not finish the checklist")
+        return
+    if readiness["actual_sailing_route_verified"] or readiness["message_delivered"] or readiness["safe_family_meeting_verified"] or readiness["recovery_success_certified"]:
+        _fail("shipboard readiness was mislabeled as successful travel, contact or recovery")
+        return
+    if readiness["route_status"] != "awaiting_creator_geography":
+        _fail("safe travel destination improperly assigned")
+        return
+    if plan.interact() or plan.inspect_station("crew_accounting"):
+        _fail("finished readiness checklist mutated after completion")
+        return
+    if not reunion.attach_recovery_readiness(plan):
+        _fail("valid shipboard readiness not admitted for later QA-only rehearsal")
+        return
+    if reunion.attach_recovery_readiness(plan):
+        _fail("duplicate shipboard readiness admission accepted")
+        return
     for bad in [
         {},
         {"source": "production", "fixture_only": true, "crew_safe": true, "family_contact_safe": true},
@@ -84,12 +152,6 @@ func _verify() -> void:
         if reunion.authorize_qa_reunion_fixture(bad):
             _fail("invalid or fake production recovery proof admitted")
             return
-    var fixture: Dictionary = {
-        "source": "isolated_qa_fixture",
-        "fixture_only": true,
-        "crew_safe": true,
-        "family_contact_safe": true,
-    }
     if not reunion.authorize_qa_reunion_fixture(fixture):
         _fail("isolated QA rehearsal fixture was rejected")
         return
@@ -166,8 +228,8 @@ func _verify() -> void:
     if final["fuel_explanation"] != "working_hypothesis" or final["fuel_formula_verified"]:
         _fail("fuel was misrepresented as a verified formula")
         return
-    if final["geography_authorized"] or final["real_recovery_route_verified"]:
-        _fail("QA fixture was promoted to real-world rescue authorization")
+    if final["geography_authorized"] or final["real_recovery_route_verified"] or not final["readiness_review_complete"]:
+        _fail("readiness was lost or QA fixture promoted to real-world rescue authorization")
         return
     if final["talen_combat_authorized"] or "talen" in final["party"]:
         _fail("Talen gained battle-party access")
@@ -178,7 +240,7 @@ func _verify() -> void:
     reunion.queue_free()
     world.queue_free()
     await process_frame
-    print("TSTSS_FIRST_WAKE_REUNION_THEORY_PASS: actual local postflight proof, explicit QA-only safe meeting fixture, Lyra-second dialogue gate, noncombat Talen, two independent clues, hypothesis not formula")
+    print("TSTSS_FIRST_WAKE_REUNION_THEORY_PASS: local postflight, 3/3 crew/engine/contact readiness, no invented rescue route, QA-only meeting, Lyra-second, Talen nonparty, two-clue hypothesis")
     quit(0)
 
 func _fail(reason: String) -> void:
