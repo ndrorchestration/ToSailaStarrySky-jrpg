@@ -28,3 +28,14 @@ Both are 432×432 **lossy JPEG portrait crops** from the user's supplied latest 
 **Visual source versus story role:** blonde Ionia is still captain/navigator; teal-haired Ender remains Rift Scholar; Aepex inventor, Lyra dream-sensitive mother of Talen, Reson weapon master. Costume and previous approved source conflicts remain under creator review per [visual reference handoff](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/577).
 
 Do not merge without both creator acceptance and actual graphics-available renderer QA.
+
+
+## P2 — Cinematic framing and actual Godot render evidence (October 28)
+
+The previous 183×290 crop/cover rectangle cut off useful source framing. P2 presents the **same unmodified 432×432 creator portrait** in a 216×216 square, `STRETCH_KEEP_ASPECT_CENTERED`, inside a 236×258 deep-blue/brass dialogue frame at origin (704,269). Bottom edge is **y=527**; the authored First Wake dialogue footer starts at **y=535**. V still toggles visibility; absent creator files still hide the portrait. No dialogue, progression, save or physics changes.
+
+- New official [native Godot 4.7.2 P2 scene/GL workflow](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40663324708) **PASS**: exact original main F5 entry; flyer + Ionia speaker transitions; aspect/card geometry; genuine 960×640 OpenGL framebuffers. The layout render uses two **synthetic 432×432 solid-color test textures** injected in memory, **not** the private creator JPGs. This proves placement, visibility and speaker switching, **not correct visual fidelity**.
+- Native frame hashes (runner-local PNGs): Ender `ee7bb88b3566847564746313c5cf4aca51ec0afd50af9b2d7a54868334469807`; Ionia `732f9bff2083f92d158af5f20b1a4d802e6b7c08098e52674a19260ae7632756`.
+- Inherited official First Wake gameplay and Ionia native visual tests also passed at P2 exact code head; independent Windows Defender custody remains a separate release gate.
+- A local user-delivered **Visual P2** ZIP includes both unchanged verified JPEGs, a fresh-install PowerShell script for the exact older Godot First Wake source, an exact-hash safe upgrade script for prior patch users, and separately labeled image compositing mockups. The ZIP is **not** a Windows game installer and is **not** in public GitHub.
+- Still missing: actual native GL capture **with the creator JPG files installed**; explicit creator aesthetic approval; independent transparent 4-direction motion atlases; public-media-release permission and Windows installer security approval.
