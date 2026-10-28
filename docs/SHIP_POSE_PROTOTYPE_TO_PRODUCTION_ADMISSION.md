@@ -75,6 +75,14 @@ Test the negative cases: missing sink; invalid/NaN values; premature request; fa
 - **Chapter I chronology:** later creator direction and the Ionia-first native job preview supersede *forward-story assumptions* from older runtime documentation. Do not rewrite history: older JS baseline behavior must be labeled historical if it differs.
 - **Operational logs:** public PR/CI links for engineering proofs and scoped private Notion development ledger for design rationale. Avoid blindly copying full private pages to GitHub.
 
+## 4.1. Stage A implementation candidate and verification receipt (2026-10-27)
+
+[Draft #507](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/507) is a **separate** native Chapter I stack on #497 at `d341d367c005b3c00d758336982d0e34d5e95839`, candidate head `98bf760685b880b5bfef94ce66915636e7231592`. It ports the source-identical neutral pose timeline from #490 into `godot/scripts`, adds a stage-gated `first_wake_ship_visual_pose_port.gd` and strictly test-only methods in the existing Ionia-first scene. A native test follows the real flyer/hiring/gangway progression and drives a **mock Node3D presentation sink**, not a physical 3D airship.
+
+[Exact-head native workflow #40615917375](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615917375) **SUCCESS**: `FIRST_WAKE_SHIP_POSE_PORT_PASS checks=38 scene=REAL_NATIVE render=TEST_SINK_ONLY production=HOLD`; inherited `FIRST_WAKE_SHIP_SPACE_HANDOFF_PASS checks=32`; real job preview and v2 checkpoint regressions passed. [Repository smoke #40615917424](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615917424) **SUCCESS**. No player input, save key, progression override, 3D art admission, flight control or hidden mechanic is added.
+
+**Interpretation:** Stage A contract is native-tested in a draft; **production Chapter I moving-wing visuals, boarded-safety, accepted scale, target GPU, creator acceptance and merge remain open.** Recheck PR heads / additional workflows before promotion.
+
 ## 5. Release and decision register
 
 | Gate | Current status |
@@ -82,7 +90,7 @@ Test the negative cases: missing sink; invalid/NaN values; premature request; fa
 | Neutral hinge prototype | NATIVE TESTED — draft/unmerged |
 | Pure Godot visual pose controller | NATIVE TESTED — draft/unmerged |
 | Real Chapter I ship-space schematic | NATIVE TESTED — draft/unmerged |
-| Chapter I → pose-adapter handshake | **NOT IMPLEMENTED at this documentation checkpoint** |
+| Chapter I → pose-adapter handshake | **DRAFT-IMPLEMENTED / NATIVE TESTED in PR #507; unmerged, renderer is a test double** |
 | 3D ship / foredeck / dome / hatch integrated scene | **BLOCKED ON SCALE & COLLISION RECONCILIATION** |
 | Full moving-camera art acceptance | OPEN |
 | Target Windows GPU | OPEN |
@@ -90,4 +98,4 @@ Test the negative cases: missing sink; invalid/NaN values; premature request; fa
 | Creator visual/canon review | OPEN |
 | Merge / public release | HOLD |
 
-**Next action:** implement only Stage A on the exact active native Chapter I stack, with reversible source and test-only opt-in, then independently validate; do not make this documentation itself into an admission claim.
+**Next action:** inspect the native test-only Stage A candidate in PR #507 and its separate inherited CI; then proceed to physical scene, camera/boarding and GPU verification only after unified metre-scale hull acceptance. No documentation or test-only stub is production admission.
