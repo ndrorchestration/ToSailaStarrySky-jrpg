@@ -4,13 +4,19 @@
 
 [Back to main README](../README.md) · [Visual bible](VISUAL_BIBLE.md) · [World/ship direction](WORLD_SHIP_VISUAL_DIRECTION.md) · [Character art authority](CHARACTER_AND_ART_AUTHORITY.md)
 
-## Latest separately verified First Wake / 3D cinematic cue study
+## Latest native First Wake → 3D Aureate Wake presentation study
 
-The separate [3D story-cue review #524](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/524), exact corrected commit `d6afcf7a3c94c841e6fd305f8aad5f5fbe603c75`, now has [a completed native Godot 4.7.2 GL run #40625082846](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625082846), including a real four-shot capture step and scene-pixel RGB comparison. The tested noncanonical looks are **first lift, controlled descent, afloat, and shipboard recovery**. These capture names label *presentation cues* rather than certified ship navigation or final story weather.
+These **four actual Godot 4.7.2 framebuffers**, captured at **960×640** in the separately verified 3D flight study, are now committed for durable review. They come from [draft PR #524](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/524), exact head `d6afcf7a3c94c841e6fd305f8aad5f5fbe603c75`; [Godot native GL workflow #40625082846](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625082846) **PASS**. The raw screenshot file identities were separately checked against exact SHA-256 values before importing original PNGs and review JPEGs. See the [new provenance manifest](screenshots/native-2026-10-27/first-wake-cues/provenance.json) and [original full-resolution PNGs](screenshots/native-2026-10-27/first-wake-cues/original/).
 
-The [original four-frame workflow artifact](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625082846/artifacts/12788812796) is **temporary and scheduled to expire November 4, 2026**. These *newer* frames are **not** among the stable embedded images below; they need an independently verified bytes/hashes-to-committed-image promotion step before appearing as permanent README media. The older pictures below remain authentic native images from different branches and render generations, not an implicit match to #524.
+| First lift | Controlled descent |
+| --- | --- |
+| ![Actual native Godot 960×640 3D Aureate Wake first-lift cinematic preview; experimental ship over a synthetic ocean](screenshots/native-2026-10-27/first-wake-cues/first-lift.jpg) | ![Actual native Godot 960×640 3D Aureate Wake controlled-descent lighting preview; not water-physics proof](screenshots/native-2026-10-27/first-wake-cues/controlled-descent.jpg) |
+| **Afloat presentation look** | **Shipboard recovery presentation look** |
+| ![Actual native Godot 3D ship in provisional ocean-afloat environmental lighting; no production water collision certified](screenshots/native-2026-10-27/first-wake-cues/ocean-afloat-study.jpg) | ![Actual native Godot 3D ship under provisional recovery scene lighting; actual family reunion geography not shown](screenshots/native-2026-10-27/first-wake-cues/recovery-checks.jpg) |
 
-The separately tested story/party/quest source [#491](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/491) produces the exact versioned cue envelope, but has **not yet executed in the same Godot project instance** as #524's 3D consumer.
+**Visual QA:** The ship's four-wing silhouette and light/grade differences are readable, but it is relatively small in hero framing and the afloat/recovery stages remain visually too similar. No genuine 3D physics-confirmed splashdown, voyage, deck walk, or meeting with Lyra/Talen is visible. The overlay itself identifies this as **CONCEPT-ONLY**. Distinct RGB pixel samples and a passing renderer test are not artistic acceptance.
+
+The 3D scene is an **independent Godot project root** from the forward chapter's tested [story/party/quest cue producer #491](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/491). The two have not yet executed in one production runtime. Weather/time choices are optional look studies, **not established plot weather**. The four newly committed images are from this 2026-10-27 CI run; the historical native screenshots below are from separate **older** drafts and should not be presented as one integrated build.
 
 ## Aureate Wake — hero silhouette and weather
 
