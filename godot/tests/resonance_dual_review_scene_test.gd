@@ -17,6 +17,17 @@ func _verify() -> void:
         _fail("opt-in scene defaults or review authority invalid")
         return
     var opening: Dictionary = world.battle.snapshot()
+    if world.threat_status == null or not world.threat_status.text.contains("ENDER"):
+        _fail("announced strike target missing from accessible HUD")
+        return
+    world._set_threat("lyra")
+    if world.battle.snapshot()["threat"]["target"] != "lyra" or not world.threat_status.text.contains("Lyra"):
+        _fail("new interactive target was not announced")
+        return
+    world._set_threat("ender")
+    if world.battle.snapshot() != opening:
+        _fail("retargeting to original state was not reversible")
+        return
     world._strike()
     if world.battle.snapshot() != opening:
         _fail("illegal player input changed battle")
@@ -64,9 +75,34 @@ func _verify() -> void:
         _fail("reduced-motion restoration missing")
         return
     world._baseline()
+    var locked_baseline: Dictionary = world.battle.snapshot()
+    world._set_threat("lyra")
+    if world.battle.snapshot() != locked_baseline:
+        _fail("UI accepted changing announced enemy target after baseline choice")
+        return
     world._strike()
     if int(world.battle.snapshot()["party"]["ender"]["hp"]) != 4:
         _fail("baseline branch inaccessible via buttons")
+        return
+    world._restart()
+    world._set_threat("lyra")
+    if not world.battle.configure_threat("lyra", 7).get("ok", false):
+        _fail("review strike strength could not be configured")
+        return
+    world._refresh_hud()
+    world._cast()
+    var locked: Dictionary = world.battle.snapshot()
+    world._set_threat("ender")
+    if world.battle.snapshot() != locked or not world.threat_status.text.contains("LOCKED"):
+        _fail("UI retargeted after shared Art action commitment")
+        return
+    world._strike()
+    var lyra_hit: Dictionary = world.battle.snapshot()
+    if int(lyra_hit["party"]["lyra"]["hp"]) != 10 or int(lyra_hit["party"]["ender"]["hp"]) != 11:
+        _fail("Lyra-targeted enemy intent resolved incorrectly")
+        return
+    if not world.detail.text.contains("Ender took 1") or not world.detail.text.contains("Lyra took 2"):
+        _fail("result HUD swapped target and partner damage")
         return
     var auth = Authority.new()
     if not auth.validate() or auth.can_take_formula_turn("lyra") or auth.can_use_formula_action("ender", "tidebound_promise"):
@@ -74,7 +110,7 @@ func _verify() -> void:
         return
     world.queue_free()
     await process_frame
-    print("GODOT_TIDEBOUND_PROMISE_SCENE_PASS: loaded scene, controls, result HUD, reduced-motion default and no native combat promotion")
+    print("GODOT_TIDEBOUND_PROMISE_SCENE_PASS: scene controls, declared target locking, dual-target results, reduced-motion and no native combat promotion")
     quit(0)
 
 func _fail(reason: String) -> void:
