@@ -64,6 +64,21 @@ func _run() -> void:
                     "source visuals must not change existing physics footprint")
             check(not e.walk_review_sprite.visible and not i.ionia_front_walk_sprite.visible,
                 "rejected provisional sprites must be hidden during source view")
+        if e.has_creator_standee() and i.has_creator_standee():
+            var light_key := InputEventKey.new()
+            light_key.keycode = KEY_L
+            light_key.pressed = true
+            dock._unhandled_input(light_key)
+            check(not e.creator_field_lighting_enabled and not i.creator_field_lighting_enabled,
+                "actual L-key must disable both visual-only lighting materials")
+            check(e.creator_standee.material == null and i.creator_standee.material == null,
+                "lighting A/B OFF must preserve unmodified original texture")
+            dock._unhandled_input(light_key)
+            check(e.creator_field_lighting_enabled and i.creator_field_lighting_enabled,
+                "actual L-key must restore both cinematic light previews")
+            check(e.creator_standee.material is ShaderMaterial and
+                i.creator_standee.material is ShaderMaterial,
+                "lighting A/B ON must rebind cinematic source material")
         # Exercise the actual player's P-key hook, not only low-level actor API.
         e.enable_creator_standee(false)
         i.enable_creator_standee(false)
