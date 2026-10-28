@@ -37,6 +37,10 @@ func configure_from_readiness(readiness: Node) -> bool:
         return false
     if not readiness.has_method("review_snapshot"):
         return false
+    if not readiness.is_inside_tree():
+        return false
+    if readiness.get_script() == null or readiness.get_script().resource_path != "res://scripts/first_wake_recovery_readiness_review.gd":
+        return false
     var receipt: Dictionary = readiness.review_snapshot()
     if receipt.get("review_source") != "isolated_first_wake_recovery_checklist":
         return false
@@ -62,6 +66,13 @@ func configure_from_readiness(readiness: Node) -> bool:
             return false
     var flight: Node = readiness.get("source_flight")
     if flight == null or not flight.has_method("review_snapshot"):
+        return false
+    if not flight.is_inside_tree():
+        return false
+    if flight.get_script() == null or flight.get_script().resource_path != "res://scripts/first_wake_flight_water_review.gd":
+        return false
+    var ship: RigidBody2D = flight.get("ship_body")
+    if ship == null or not ship.freeze:
         return false
     var water: Dictionary = flight.review_snapshot()
     if not bool(water.get("actual_2d_area_contact_observed", false)):
