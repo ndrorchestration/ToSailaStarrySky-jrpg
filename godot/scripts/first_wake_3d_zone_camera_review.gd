@@ -5,7 +5,7 @@ const VIEW_STATUS := "REVIEW_ONLY_NOT_PRODUCTION"
 const COLLISION_MASK: int = 8
 const FOLLOW_SMOOTH: float = 13.0
 const MIN_CAMERA_DISTANCE_M: float = 0.38
-enum Shot { FOLLOW, ELEVATED }
+enum Shot { FOLLOW, ELEVATED, HORIZON }
 var shot: Shot = Shot.FOLLOW
 var zone: String = "cabin"
 var occluded: bool = false
@@ -33,7 +33,7 @@ func set_active(enabled: bool) -> void:
         snap_to_actor()
 
 func set_shot(next_shot: int) -> bool:
-    if next_shot not in [Shot.FOLLOW, Shot.ELEVATED]:
+    if next_shot not in [Shot.FOLLOW, Shot.ELEVATED, Shot.HORIZON]:
         return false
     shot = next_shot as Shot
     if active:
@@ -51,6 +51,8 @@ func _zone_for(z: float) -> String:
     return "foredeck"
 
 func _camera_offset() -> Vector3:
+    if shot == Shot.HORIZON:
+        return Vector3(0.43, 1.13, 1.72)
     match zone:
         "cabin":
             return Vector3(0.36, 0.87, 1.43) if shot == Shot.FOLLOW else Vector3(0.10, 1.72, 1.56)
@@ -85,11 +87,17 @@ func update_view(delta: float, snap: bool = false) -> void:
     zone = _zone_for(actor.global_position.z)
     # Aim at visible torso/head instead of sky. The avatar can be seen ahead
     # of the lens, even on the open deck near the geodesic door.
-    var target: Vector3 = actor.global_position + Vector3(0.0, 0.20, -0.42)
+    # Scenic framing is a deliberate LOOKOUT shot: keep the visible prow in
+    # the lower frame while looking toward a real sky-water horizon.
+    var target: Vector3 = (
+        actor.global_position + Vector3(0.0, 1.05, -9.25)
+        if shot == Shot.HORIZON
+        else actor.global_position + Vector3(0.0, 0.20, -0.42))
     var eye: Vector3 = actor.global_position + Vector3(0, 0.39, 0)
     var desired: Vector3 = eye + _camera_offset()
     var safe: Vector3 = _find_safe_position(eye, desired)
     var factor: float = 1.0 if snap else 1.0 - exp(-FOLLOW_SMOOTH * maxf(delta, 0.0))
     camera.global_position = camera.global_position.lerp(safe, factor)
+    camera.fov = 67.0 if shot == Shot.HORIZON else 60.0
     camera.look_at(target, Vector3.UP)
     frame_updates += 1
