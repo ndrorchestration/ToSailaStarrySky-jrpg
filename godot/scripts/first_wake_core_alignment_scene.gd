@@ -134,7 +134,10 @@ func _draw() -> void:
     ]:
         var done: bool = item["id"] in core.recovered
         var pos: Vector2 = item["pos"]
-        draw_rect(Rect2(pos + Vector2(-34, -77), Vector2(68, 46)), Color("#4e7c75") if done else Color("#c3965f"))
+        if cinematic_environment_enabled:
+            CinematicStageArt.draw_workshop_station(self,pos,str(item["id"]),done)
+        else:
+            draw_rect(Rect2(pos + Vector2(-34, -77), Vector2(68, 46)), Color("#4e7c75") if done else Color("#c3965f"))
         draw_string(ThemeDB.fallback_font, pos + Vector2(-34, -86), item["label"], HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("#f8e8ce"))
     draw_rect(Rect2(INSTALL + Vector2(-46, -79), Vector2(92, 48)), Color("#496776"))
     draw_string(ThemeDB.fallback_font, INSTALL + Vector2(-39, -88), "ASSEMBLY", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("#f4dfbd"))
