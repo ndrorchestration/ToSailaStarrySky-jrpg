@@ -2,12 +2,16 @@
 
 **Status:** Public-safe cross-agent reference; created 2026-10-25 from current creator direction, GitHub contracts, and selected Notion records. This is a **navigation and reconciliation layer**, not an approval to integrate, publish or expose restricted story material.
 
+## Live authority check (2026-10-28)
+
+Before reusing a dated branch pointer or an old JavaScript gameplay explanation, consult the [Godot Chapter I native authority/evidence register](CHAPTER_I_NATIVE_AUTHORITY_STATUS_2026-10-28.md) and fetch the actual PR head. New playable Godot and installer work are **draft/unmerged**, whereas `main` is a preserved older JavaScript executable. The **creator-directed revised sequence** is Ender recruited by Captain Ionia before their first flight; Lyra joins only after splashdown. Historical Lyra-first build data is **legacy implementation**, not current forward story authority. No test run grants art, canon, release or private reveal permission.
+
 ## Required reading by task
 
 | Agent work | Read before implementation |
 |---|---|
-| Any game change | [../AGENTS.md](../AGENTS.md), [Godot coordination](GODOT_MIGRATION_COORDINATION.md), [../SPEC.md](../SPEC.md) (legacy baseline) |
-| Story, character dialog, reveals | [Canon and reveal](CANON_AND_REVEAL_POLICY.md), [Notion source index](NOTION_SOURCE_INDEX.md), [../SPEC.md](../SPEC.md) |
+| Any game change | [../AGENTS.md](../AGENTS.md), [Native Chapter I status](CHAPTER_I_NATIVE_AUTHORITY_STATUS_2026-10-28.md), [Godot coordination](GODOT_MIGRATION_COORDINATION.md), [../SPEC.md](../SPEC.md) (**legacy baseline only**) |
+| Story, character dialog, reveals | [Canon and reveal](CANON_AND_REVEAL_POLICY.md) (**Ionia-first revised opening**), [Notion source index](NOTION_SOURCE_INDEX.md), [../SPEC.md](../SPEC.md) (historical JS behavior only) |
 | Character models, sprites, portraits, animations | [Character and art authority](CHARACTER_AND_ART_AUTHORITY.md), [CHARACTER_ART_DIRECTION.md](CHARACTER_ART_DIRECTION.md), [VISUAL_BIBLE.md](VISUAL_BIBLE.md) |
 | Ships, world map, terrain, sky, aurora, flight | [World / ship](WORLD_SHIP_VISUAL_DIRECTION.md), [VISUAL_BENCHMARK_SCENE.md](VISUAL_BENCHMARK_SCENE.md), [VISUAL_BIBLE.md](VISUAL_BIBLE.md) |
 | Magic, battle, skills, class progression | [MAGIC_SYSTEM.md](MAGIC_SYSTEM.md), [../SPEC.md](../SPEC.md); port semantics before rewriting balance |

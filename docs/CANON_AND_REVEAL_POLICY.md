@@ -1,17 +1,26 @@
 # Canon, narrative authority and reveal policy
 
-**Status:** Public-safe digest; **not** a replacement for full creator-controlled narrative records. Effective title and engine overrides below supersede older statements retained in the historical records.
+**Status: creator-directed, public-safe canon digest (reconciled 2026-10-28).** This is **not** a replacement for full creator-controlled narrative records. The revised First Wake opening below supersedes older Lyra-first playable *prototype sequencing*, without rewriting preserved legacy builds or revealing restricted plot resolutions.
 
 ## Creator-established foundations
 
 - Official game title: **To Sail the Starry Sky** (creator decision 2026-10-23). *Aetherwake* may still describe historical work and in-world aether phenomena. **First Wake** is Chapter I.
 - An aspirational, emotionally grounded JRPG about finding belonging through travel, repair, curiosity and collaboration; no shallow good-versus-evil cosmology or exposition-only companions.
-- Authored playable roster: **Ender, Lyra, Ionia, Reson, Aepex**, joined through the story in that order. The combat/menu target expands from 1 to all 5; never reduce the final architecture to a permanent three-character maximum.
+- Authored playable roster **identity set**: **Ender, Lyra, Ionia, Reson, Aepex** (this enumeration is **not** the recruitment order). In the revised Chapter I opening, **Ender starts alone; Ionia joins before the Aureate Wake's first flight; Lyra joins later, after splashdown**. Reson and Aepex remain authored protagonists, with later exact recruitment beats still governed by creator review. The combat/menu architecture ultimately supports 1–5 active protagonists; never lock it to a permanent three-person party.
 - **Lyra is Talen's mother**; **Talen is 5** and is a non-playable child unless a later creator decision changes this. **Ionia is Lyra's cousin** and a caretaker figure; she is not an elderly farmer.
 - **Ionia owns/captains the Aureate Wake** after serving Captain Denith for ten years; Denith died of old age and entrusted the ship to her. Ionia wants it to become a **permanent mobile home**, and Ender's early work helps make that possible.
 - Ships, homes, crew bonds, maintenance, meals, individual ambitions, and choices about what a better world looks like should matter mechanically and narratively, not just as fantasy set dressing.
 - **The Five Lights** is an important in-world symbol/cosmological research direction; ultimate metaphysics, proposed names, and literal causal ontology are *not frozen canon*. Keep observational phenomena, characters' beliefs, and private authorial truth separate.
 - Travel discovery unfolds through ground travel, ordinary flight, reliable sky lanes and later extraordinary navigation. An advanced auroral traversal capability has a **five-protagonist/full-ship-equilibrium access gate**; foreshadowing is not traversal permission.
+
+## Revised Chapter I chronology — current creator decision, public-safe
+
+1. Ender is seeking employment and discovers Captain Ionia's notice for someone who understands harmonic levitation-engine repairs. The offer leads to an **Ionia-first** shipboard engineering and preflight sequence.
+2. A brief, genuine flight attempt exposes the engine's unresolved phase problem and ends in a **controlled emergency ocean landing**. Real local collision/contact and stable flotation must be established by gameplay simulation before the scene is called waterborne; visual-only effects cannot authorize landing or story progression.
+3. Lyra and her son Talen enter the story **after** splashdown; Talen remains a non-playable child. The crew investigates a physical reserve/material problem without prematurely resolving the specialized fuel's explanation.
+4. Later insight into harmonic alignment is a **story revelation**, not proof that combat combination abilities automatically power the ship. Keep narrative energy, physical evidence, party combat and reveal authorization distinct.
+
+**Legacy distinction:** The historical JS/NW.js prototype and its older native Godot signal/crossing mirror have Ender → Lyra → Ionia ordering. Preserve their exact source and save/CI receipts as **LEGACY IMPLEMENTATION**, not canon instructions for the revised forward Godot game. See [current native branch/evidence register](CHAPTER_I_NATIVE_AUTHORITY_STATUS_2026-10-28.md). Neither successful native CI nor art studies grant final authorial acceptance.
 
 ## Storytelling safeguards
 
@@ -34,7 +43,7 @@ The private author-controlled Notion record for the title and restricted narrati
 - Dragonfly/Aureate Wake/*The Unfinished Song* naming relationship; exact final interior and wing deployment.
 - Auroral network ontology, history, absolute speeds and interregional chronology.
 - Cosmological Five Lights names/nature; proposed predecessor cultures.
-- Unresolved character classes, magical affinities, final art acceptance and later recruitment timing details.
+- Unresolved character classes, magical affinities, final art acceptance and recruitment details **beyond the explicitly creator-directed revised Ender → Ionia → post-splashdown Lyra opening**.
 
 ## Source precedence and status vocabulary
 

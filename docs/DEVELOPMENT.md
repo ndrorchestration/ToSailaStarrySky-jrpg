@@ -1,12 +1,22 @@
-# Aetherwake Development Guide
+# To Sail the Starry Sky — development, verification and preservation guide
 
-## Current stage
+## Forward-development authority (2026-10-28)
+
+**Production direction: Godot 4.7.2 / GDScript.** `main` still hosts the preserved **JavaScript/p5/NW.js** runtime, so **the presence of older browser tests and packaging files does not make JavaScript the forward engine**. Native First Wake work is currently in **draft, unmerged PRs**. The current public-safe branch/evidence snapshot and cross-branch sequencing are recorded in [Chapter I native authority and acceptance status](CHAPTER_I_NATIVE_AUTHORITY_STATUS_2026-10-28.md); verify each moving head before claiming readiness.
+
+The creator-directed Chapter I opening is **Ender alone → Ionia recruited before the test flight → physical ocean splashdown → Lyra and Talen introduced later**. Historical Lyra-first and Signal/Crossing scenes **remain intentional preservation fixtures** and must **not** be silently merged into this story or its save format. See [reconciled public canon policy](CANON_AND_REVEAL_POLICY.md).
+
+**Native implementation evidence (not release authorization):** [#547](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/547) adds a playable new Godot main scene and postflight v1 checkpoint; [#551](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/551) verifies a new Windows NSIS setup **functionally** on an isolated runner. Neither is merged. **Defender-on custody, signing, target-player acceptance and explicit release permission remain open; no public new-Godot installer asset exists.** Preserve the exact historical October 6 Aetherwake release receipts below without projecting them onto the newer Godot line.
+
+**Required verification split:** (a) native Godot editor/physics/scene/quest/save CI, (b) real rendered Godot frames and visual review, (c) Windows compile → install → real native window → uninstall, (d) independent Windows security + provenance, (e) human gameplay/art acceptance, and (f) explicit creator merge/release approval. A green browser smoke workflow alone is not native gameplay verification.
+
+## Historical JS preservation stage (retained provenance)
 
 Aetherwake is a late-prototype / pre-alpha project.
 
 The authoritative `main` line now contains the authored First Wake onboarding path, persistent `ROSTER[5]`, validated reference-based `ACTIVE_PARTY[1..5]`, the JRPG combat/formula and magic contract stack, open-sky navigation, live dialogue/shop/ledger paths, and fail-closed compatibility guards. The runtime baseline before the documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`; documentation-only merges may advance protected `main` without changing player-runtime bytes. Preview 0.1 remediation/review candidate PR #250 is separately bound to exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; do not project candidate-only changes onto `main` before merge.
 
-## Desktop / release authority
+## Historical JS desktop / release authority
 
 The current production desktop structure is intentionally separate from the development repository root.
 
@@ -42,7 +52,7 @@ The first propagation gate is four near-final scenes:
 
 Do not scale expensive effects project-wide until those four establish reusable rules.
 
-## Source-of-truth rules
+## Historical JavaScript source-of-truth rules
 
 ### Runtime
 
@@ -61,7 +71,7 @@ Do not assume a change to `modules/core.js` or `modules/combat.js` changes the p
 
 Stale feature PRs based on `dev/progression-build` must be rebuilt or cleanly extracted onto current `main` in dependency order.
 
-## Smoke gate
+## Historical JavaScript smoke gate
 
 Canonical command:
 
@@ -69,7 +79,7 @@ Canonical command:
 npm run test:smoke
 ```
 
-## Player evidence capture
+## Historical JavaScript player evidence capture
 
 When technical gates are green but human/player acceptance remains pending, generate a local evidence bundle instead of treating CI artifact availability as visual approval:
 
@@ -85,7 +95,7 @@ The smoke workflow guards the capture lane with:
 npm run test:player-evidence-capture
 ```
 
-### Preview 0.1 human acceptance boundary
+### Historical Aetherwake Preview 0.1 human acceptance boundary
 
 The exact current acceptance target is documented in `docs/PREVIEW_0_1_ACCEPTANCE.md`.
 

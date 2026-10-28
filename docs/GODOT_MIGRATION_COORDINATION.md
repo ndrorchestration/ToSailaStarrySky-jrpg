@@ -2,7 +2,19 @@
 
 **Creator-selected 2026-10-24:** Stop expanding p5.js/JavaScript gameplay; continue development in **Godot 4.7.2 + GDScript**. This is the authoritative **forward development decision**, not retroactive proof that the full JRPG, save data, world, art or Windows release has already migrated.
 
-## Branch/track separation (as last inspected)
+## Native First Wake development state — 2026-10-28
+
+**Current coordination register:** [Chapter I native source/evidence/authority](CHAPTER_I_NATIVE_AUTHORITY_STATUS_2026-10-28.md). Every branch reference is a dated snapshot, not a moving proof. Creator-directed opening: **Ender seeks work → Captain Ionia joins before flight → physically confirmed controlled ocean landing → Lyra and Talen introduced later**. The older Lyra-first `Signal → Crossing` build remains preserved on `main`, not as a template for the forward native Chapter I party or saves.
+
+- **Native connected game:** [draft #547](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/547) `eae84a63d370d64bc5a11b049df4abb958301394`, [native Godot first-flight/physical splashdown/checkpoint CI PASS](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40636277938); not in `main`.
+- **Native original ship/warning:** [draft #546](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/546) `35603fd1eadfda5585db0a4ba570e63469caca14`, separate image/physics authority.
+- **Windows installable proof:** [draft #551](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/551) `4da9e450e91adbdc9216f650e3fda2c1acf3c0f2`, functional Windows Setup.exe/launch/maximize/uninstall **passed**, but **independent Defender-on security custody failed**, signing/player acceptance absent and no installer publicly downloadable.
+- **Different story/visual stacks:** [draft #548](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/548), [#552](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/552), [#553](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/553) and [#555](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/555) address subsequent beats and ship/coastal art; none automatically merges into #547 or confers release readiness.
+- **Public status correction:** [draft #556](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/556) fixes the stale legacy-first README, with [smoke PASS](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40641134838), but `main` still shows the old README until approved merge.
+
+**Do not blindly merge native stacks**: inspect ancestry, reconcile legacy/new story state, human-verified art, installable output and distinct source test receipts first. Main's branch protection was observed **off** on 2026-10-28; review branch-protection policy independently with the repository owner; do not silently modify it here.
+
+## Historical 2026-10-24 branch/track snapshot (not live authority)
 
 - **`main`:** historical functioning JS/p5/NW.js game and documentation baseline. Do not destroy; use its content, equations and tests as migration reference.
 - **Native Chapter I stacked line:** e.g. `feat/godot-first-wake-party-combat-authority-20261022`, reported head `74fe1bce7a8a02eb3cbf30f725fa2af0925ba670` by Hyperagent's local inspection. Verify remote head before each change. Stacked native work PRs #306–347 not assumed merged.
