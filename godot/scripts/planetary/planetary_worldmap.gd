@@ -70,6 +70,8 @@ func _apply_state(next: Dictionary) -> void:
     _autopilot = false
     _survey_center = {}
     _survey_altitude = -1.0
+    if _cube_stream != null:
+        _cube_stream.call("set_surface_review","")
 
 func snapshot() -> Dictionary:
     return {"flight": _flight.duplicate(true), "mode": _mode,
@@ -260,6 +262,15 @@ func _build_cube_stream() -> void:
     _cube_stream = CubeStream.new()
     add_child(_cube_stream)
 
+## Mode-5-only visual switch, deliberately excluded from the save schema.
+func set_surface_review(kind: String, low_quality: bool = false) -> bool:
+    if _mode != "tiles" or _cube_stream == null:
+        return false
+    var accepted: bool = _cube_stream.call("set_surface_review",kind,low_quality)
+    if accepted:
+        _update_view()
+    return accepted
+
 func _add_label(parent: Node, name: String, position: Vector2, font_size: int,
         color: Color) -> Label:
     var node := Label.new()
@@ -404,12 +415,16 @@ func _update_view() -> void:
                 bearing_text,int(tiles["level"]),int(tiles["visible"]),int(tiles["max_visible"]),
                 int(tiles["cache_size"]),64,
                 Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM)]
+        var label_kind: String = str(tiles["review_kind"])
+        if label_kind != "":
+            _headline.text += "\nP2 VISUAL LOOK %s / %s / NONCANON, NOT WEATHER OR LANDING" % [
+                    label_kind.to_upper(), "ONE TILE" if str(tiles["review_key"]) != "" else "NO ELIGIBLE TILE"]
     else:
         _headline.text += "%s   /   Survey markers discovered: %d / %d   /   Geometric horizon: %.1f km" % [
                 bearing_text,_discovered.size(),SURVEY_MARKERS.size(),
                 Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM)]
     _footer.text = "1 GLOBE   2 CHART   3 HORIZON   4 LOCAL 3D   5 CUBE TILES   W/S THROTTLE   Q/E TURN   R/F CLIMB\n"
-    _footer.text += "A/D ORBIT   DRAG/WHEEL CAMERA   SHIFT FAST TRAVEL   P WAYPOINT PILOT   K SAVE   O LOAD"
+    _footer.text += "A/D ORBIT   SHIFT FAST   P PILOT   J P2 MATERIAL STUDY (MODE 5)   K SAVE   O LOAD"
     if _autopilot:
         _footer.text += "   /   WAYPOINT PILOT ACTIVE"
 
@@ -457,6 +472,12 @@ func _unhandled_input(event: InputEvent) -> void:
             KEY_5: _mode = "tiles"
             KEY_P:
                 _autopilot = not _autopilot if not _waypoint.is_empty() else false
+            KEY_J:
+                if _mode == "tiles" and _cube_stream != null:
+                    var now: String = str(_cube_stream.call("stats").get("review_kind",""))
+                    var next := "snow" if now == "" else (
+                            "wet_ground" if now == "snow" else "")
+                    _cube_stream.call("set_surface_review",next)
             KEY_K:
                 if not State.save_preview(snapshot()):
                     push_warning("WORLD_MAP_SAVE_REJECTED")
