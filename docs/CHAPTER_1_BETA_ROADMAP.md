@@ -1,5 +1,7 @@
 # Chapter 1 Beta Roadmap — solo development planning baseline
 
+> **2026-10-28 evidence update:** Pinned Windows Godot 4.7.2 import, five headless tests and nine native render frames passed at `4d2ec5fb`. **New P0 acceptance blocker:** the captured Chapter 1 review scene uses legacy Lyra-first startup and labels Ionia-first opt-in, while the desired production startup is Ionia-first. P1: text occlusion, mixed character presentation and historical branding. These are distinct from the separate main-entry-to-water regression PASS. Do not advance the November integration milestone until normal F5 default-route gameplay and visuals are independently verified. [Native audit](CHAPTER_1_NATIVE_INTEGRATION_AUDIT_2026-10-28.md).
+
 **Planning date:** 2026-10-28  
 **Alpha target:** 2027-03-31  
 **Beta target:** 2027-05-31  
