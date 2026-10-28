@@ -33,6 +33,42 @@ func _capture() -> void:
     if not world.start_formula_review():
         _fail("battle scene not opened")
         return
+    if not world.open_gear_inspector():
+        _fail("equipment inspector modal did not open")
+        return
+    await process_frame
+    var gear_current: Image = await _snapshot("gear-inspector-current-native-960x640")
+    if gear_current == null:
+        _fail("current gear modal frame missing")
+        return
+    var initial_visual: String = world.battle_equipment_view.visual_key()
+    var initial_bag: Dictionary = world.trial_inventory.snapshot()
+    if not world.move_gear_inspector_item(1):
+        _fail("alternative gear could not be previewed")
+        return
+    await process_frame
+    var gear_preview: Image = await _snapshot("gear-inspector-preview-native-960x640")
+    var modal_region := Rect2i(436, 207, 350, 250)
+    if gear_preview == null or gear_preview.get_region(modal_region).get_data() == gear_current.get_region(modal_region).get_data():
+        _fail("read-only stat comparison did not update modal framebuffer pixels")
+        return
+    if world.battle_equipment_view.visual_key() != initial_visual or world.trial_inventory.snapshot() != initial_bag:
+        _fail("visual preview mutated equipped weapon or owned stock")
+        return
+    if not world.confirm_gear_inspector_item():
+        _fail("confirmed owned equipment swap failed")
+        return
+    await process_frame
+    var gear_confirmed: Image = await _snapshot("gear-inspector-confirmed-native-960x640")
+    if gear_confirmed == null or gear_confirmed.get_region(modal_region).get_data() == gear_preview.get_region(modal_region).get_data():
+        _fail("confirmed ownership transaction was not reflected in modal pixels")
+        return
+    world.close_gear_inspector()
+    # Restore original staff so the following legacy A/B receipts retain
+    # their exact baseline and can detect the original inlay swap.
+    if not world.equip_review_item("mainWeapon", "ender-starter-staff"):
+        _fail("owned starter staff could not be restored after modal test")
+        return
     await process_frame
     var original: Image = await _snapshot("staff-baseline-native-960x640")
     if original == null:
