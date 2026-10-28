@@ -22,6 +22,7 @@ Open `godot/project.godot` in Godot 4.7.2, then open `res://scenes/planetary_wor
 | Click the global chart | Choose geodesic waypoint (no teleport or direct progression unlock) |
 | P | Enable / disable waypoint flight assistance |
 | K / O | Save / load **worldmap preview only**, rejecting corrupted data |
+| J (mode 5 only) | Cycle **OFF / snow review / synthetic-rain wet-ground review / OFF**; visual-only, one eligible streamed tile, not persisted |
 | Esc | Stop waypoint assistance |
 
 ## Implemented
@@ -44,6 +45,16 @@ The [two-tile material study #514](https://github.com/ndrorchestration/ToSailthe
 **Native ENGINEERING PASS** for implementation exact head `8a4341d2d62040314db6542d39a008dcb8d90ba8`: [dedicated native P2 run #40624369306](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40624369306) passed 44 checks, 4 real tile meshes, 4 actual GL frames; [native image artifact](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40624369306/artifacts/12788941267). The prior technically green first shader produced unacceptable regular diagonal stripes; the current revision uses irregular 3D noise. **Art acceptance and target-GPU profiling remain OPEN**. [Full review and prototype-production gates](reviews/PLANETARY_NATIVE_SURFACE_P2_2026-10-27.md).
 
 **Distinct prototype line:** [#489](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/489) has a separate engine-neutral JavaScript planner and a Godot JSON-admission proof. That independently authored fictional biome sampler is **not identical** to `worldmap_cartography.gd`. No cross-branch merge, runtime handoff adapter, save-schema change, creator geography approval or production shader integration is asserted here. The next review step is applying the candidate to a *single opt-in in-world tile* and checking native flight-camera interaction, mixed LOD, weather ownership and real collision authority.
+
+## 2026-10-27/28 — True mode-5 in-scene material admission (review-only)
+
+[Draft PR #530](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/530), stacked on detached [native P2 material #514](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/514) and S1 material context #511, adds **one optional material to an actual tile in this scene's mode-5 streamer**. The base `StandardMaterial3D`, native cubed-sphere geometry, geodesic flight camera, 32 visible / 64 cached tile limits, sea shader, mode-4 local patch, state validation and saves remain unchanged by default.
+
+Press `J` in mode 5 to cycle **OFF → SNOW LOOK → SYNTHETIC RAIN-WET LOOK → OFF**. Only one visible currently active compatible tile may use the optional world-space shader, with the HUD identifying **NO ELIGIBLE TILE** when none qualifies. This is **not** a weather mechanic or evidence of rain. Opt-out and low-quality mode restore the original materials. The setting is ephemeral and excluded from saves; loading validated state resets it. No colliders, physical landing, discovery or progression are derived from art materials.
+
+**Verified at implementation head `ab828011e4258664a15c0ea362c946e918069ecb`:** [native mode-5 admission #40630204943](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630204943) **PASS**, including **41 in-scene assertions** and four real **960×640** same-camera original/review snow and wet-ground images, [artifact #12790619615](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630204943/artifacts/12790619615). Snow changed **11,403 sampled** pixels; wet changed **16,388 sampled** pixels, reversible with unchanged sky. Native migration, existing native six-view globe GL, First Wake/Ionia pilot and repository smoke also PASS. The Windows exact-custody workflow **fails before package authorization** because the hosted runner reports Microsoft Defender real-time protection disabled; Windows functional prereqs independently pass. No security boundary was weakened.
+
+**Visual QA HOLD:** actual screenshots show crude broad color fields and material discontinuities at a tile border. In-scene integration is a **technical proof, not cinematic art**, creator acceptance or target-GPU budget. [Detailed in-scene admission ledger](reviews/WORLDMAP_MODE5_MATERIAL_PRODUCTION_GATE_2026-10-28.md) records source tests, visuals, known debt and next criteria.
 
 ## Known limitations / acceptance gates
 

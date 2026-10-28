@@ -1,5 +1,15 @@
 # Aetherwake Development Guide
 
+## 2026-10-27/28 — Mode-5 native spherical material handoff (DRAFT, NOT main authority)
+
+New [draft PR #530](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/530) is stacked on #514 → #511 → #367 and is a **real mode-5 runtime-opt-in material test** rather than a standalone detached sphere. The native globe's actual flight camera/horizon-selected active tiles remain in control, with original standard land material retained by default. Temporary **J** cycles snow or synthetic rain-wet look on at most one eligible active tile; no persistence, scene route/landability, physical collision or actual weather change.
+
+**Exact implementation SHA `ab828011e4258664a15c0ea362c946e918069ecb`:** [Godot 4.7.2 mode-5 native CI #40630204943](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630204943) **PASS** (41 in-scene contract assertions, two actual worldmap flight-camera material off/on pairs at 960×640, 4 GL frames). [Real screenshot artifact #12790619615](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630204943/artifacts/12790619615). Native migration, worldmap GL, First Wake and repository smoke also passed. However, [Windows strict QA #40630204873](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630204873) remains **FAIL / security custody HOLD**, because hosted Microsoft Defender real-time protection was disabled; functional Windows export/package checks passed separately and security was NOT bypassed.
+
+Independent screenshot review: native textured terrain is still broad flat polygons, visible sharp single-tile color discontinuities and limited physical landscape relief. Material pixel changes prove render binding, **not** acceptable fidelity. Further seamless source sampling, horizon coverage, texture normal/material transitions and target Windows GPU tests are required before an asset or producer calls it production art. Canon, secret routes, Aureate Wake and Chapter I are unchanged.
+
+Source of truth: [mode-5 material admission review](reviews/WORLDMAP_MODE5_MATERIAL_PRODUCTION_GATE_2026-10-28.md) and [native Godot worldmap](GODOT_NATIVE_WORLDMAP.md). JS [#489](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/489) uses a separate hypothetical cartography; it is not the same native game's material supplier. The project root `README`, release notes, Visual Bible and production saves remain unchanged until merge/creator approval.
+
 ## Current stage
 
 Aetherwake is a late-prototype / pre-alpha project.

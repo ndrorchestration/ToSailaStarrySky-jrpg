@@ -1,0 +1,75 @@
+name: Godot worldmap mode-5 optical material admission (noncanon)
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/planetary/worldmap_cube_stream.gd'
+      - 'godot/scripts/planetary/planetary_worldmap.gd'
+      - 'godot/scripts/planetary/worldmap_surface_*.gd'
+      - 'godot/shaders/planetary_surface_study.gdshader'
+      - 'godot/tests/worldmap_mode5_material_test.gd'
+      - 'godot/tests/capture_worldmap_mode5_material.gd'
+      - '.github/workflows/godot-worldmap-material-mode5.yml'
+permissions:
+  contents: read
+jobs:
+  in-scene-native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install checksum-pinned official Godot 4.7.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL \
+            'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' \
+            -o /tmp/godot-mode5.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot-mode5.zip' | sha256sum -c -
+          unzip -q /tmp/godot-mode5.zip -d /tmp
+          chmod +x /tmp/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Import all native project scripts and shader
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 150s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --editor --path godot --quit 2>&1 | tee /tmp/mode5-import.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|Failed loading' /tmp/mode5-import.log
+      - name: Test native live worldmap flight stream, one-tile fallback, save isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 135s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot \
+            --script res://tests/worldmap_mode5_material_test.gd 2>&1 | tee /tmp/mode5-contract.log
+          grep -q 'GODOT_WORLDMAP_MODE5_MATERIAL_PASS checks=' /tmp/mode5-contract.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|MODE5_MATERIAL_FAIL' /tmp/mode5-contract.log
+      - name: Render actual mode-5 flight camera baseline and enhanced images
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p godot/review-evidence
+          timeout 190s xvfb-run -a -s '-screen 0 960x640x24' env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 --path godot \
+            --rendering-driver opengl3 --resolution 960x640 --audio-driver Dummy \
+            --script res://tests/capture_worldmap_mode5_material.gd 2>&1 | tee /tmp/mode5-capture.log
+          grep -q 'GODOT_MODE5_MATERIAL_NATIVE_PASS cases=2 frames=4 original_fallback=true NONCANON' /tmp/mode5-capture.log
+          ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|MODE5_MATERIAL_CAPTURE_FAIL' /tmp/mode5-capture.log
+          for kind in snow wet_ground; do
+            for variant in default review; do
+              test -s "godot/review-evidence/worldmap-mode5-${kind}-${variant}-960x640.png"
+            done
+          done
+          sha256sum godot/review-evidence/worldmap-mode5-*-960x640.png
+      - name: Preserve exact run native screen and contract evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-worldmap-mode5-material-review
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            godot/review-evidence/worldmap-mode5-*-960x640.png
+            /tmp/mode5-import.log
+            /tmp/mode5-contract.log
+            /tmp/mode5-capture.log
