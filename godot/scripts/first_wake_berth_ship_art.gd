@@ -26,7 +26,7 @@ func _draw() -> void:
         for k in range(2):
             var anchor_x := -25.0 + float(k) * 51.0
             var tip_x := anchor_x + (-12.0 if k == 0 else 10.0)
-            var wing_height := (53.0 if k == 0 else 48.0) * side
+            var wing_height: float = (53.0 if k == 0 else 48.0) * float(side)
             _poly([
                 Vector2(anchor_x - 16, -7),
                 Vector2(tip_x - 22, wing_height * 0.82),
