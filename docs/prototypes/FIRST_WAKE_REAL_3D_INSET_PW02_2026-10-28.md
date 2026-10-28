@@ -18,3 +18,13 @@
 **Must not claim before exact-head CI:** successful 3D GPU rendering, authored camera art quality, target FPS, verified full-resolution screenshots by human review, underwater abilities, full 3D ocean physics, production cinematic asset promotion or Windows QA/security signoff.
 
 **After this gate:** profile frame times on representative Windows devices, test 3D cockpit/bridge occlusion and ship lighting at large and small zoom, author reviewed geodesic bridge/dome and ship-interior camera path; preserve the authority boundaries and opt-in reduced motion. Keep PR draft and main unmerged.
+
+## Exact-source native 3D evidence — 2026-10-28
+
+**Executable source** `14139d1d0e149be0e9cd04746f9506b32d71941b`. [Godot native integration run #40630176921](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630176921) **SUCCESS**; marker `TSTSS_PW02_3D_PASS` explicitly confirms actual procedural hull and four wing assemblies in separate 3D camera/viewport, warning-only 3D light, reversible disable/interrupt, unchanged original Ionia-first 2D RigidBody2D/Area2D descent and waterborne. It does **not** establish ship-system canonical specifications or physical 3D water contact.
+
+[Real native GL Compatibility framebuffer run #40630176985](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630176985) **SUCCESS**, five original **960×640** PNG frames, SHA-256 receipts in logs: preflight, warning-ON, warning-OFF, warning-INTERRUPTED and real physical 2D waterborne. The fixed 3D camera inset shows a measurable real pixel difference ON vs OFF; OFF and INTERRUPTED have byte-identical frames in this deterministic test, and the fixed top/bottom story UI regions remain unchanged. Human full-frame artistic inspection is **not** established by numeric pixels or hashes.
+
+[Repository smoke #40630176942](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630176942) **SUCCESS**. [Windows host QA #40630176919](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630176919) has **FAILED** on unchanged Defender real-time-protection preflight; separate functional prerequisites are not a substitute for the security gate. No runtime protection was weakened.
+
+**Production gating:** Exact source proves a *working procedural 3D ship rendering inset* and engine-warning light attached to the authentic local 2D story/physics timeline. It does not prove authored geodesic helm interior, original ship-approved dimensions, target GPU performance, 3D ocean buoyancy, ship mode transformations, narrative/lighting art approval, user-validated UI, full Chapter I playability, Windows installed launch signoff, or release. The branch remains stacked/draft/unmerged.
