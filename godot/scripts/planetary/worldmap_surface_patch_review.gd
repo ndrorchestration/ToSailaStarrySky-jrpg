@@ -17,8 +17,8 @@ var mesh_stats: Array[Dictionary] = []
 var planet_focus := Vector3.UP
 
 static func _context(tile: Dictionary, weather: String) -> Dictionary:
-    var center: Dictionary = Tiles.tile_center(tile)
-    return Context.resolve(float(center["latDeg"]),float(center["lonDeg"]),
+    var center: Vector2 = Tiles.tile_center(tile)
+    return Context.resolve(center.x,center.y,
         weather,0.8 if weather == "rain" else 0.0,WIND,SUN)
 
 static func find_pair(kind: String) -> Array[Dictionary]:
