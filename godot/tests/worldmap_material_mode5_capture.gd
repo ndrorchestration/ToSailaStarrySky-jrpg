@@ -38,17 +38,36 @@ func _save(img: Image,kind: String) -> void:
         failed=true
         push_error("MODE5_MATERIAL_CAPTURE_FAIL "+kind)
 
-func _find(kind: String) -> Dictionary:
-    var look: String="rain" if kind=="wet_ground" else "clear"
+func _find_interior(kind: String) -> Dictionary:
+    # A tile selected from coarser L5 cartography can change class at L7.
+    # Use the actual max-level active renderer sampling frame, preferring
+    # contiguous same-biome neighbors instead of misleading coastline strips.
+    var weather: String="rain" if kind=="wet_ground" else "clear"
+    var best: Dictionary={}
+    var best_score: int=-1
     for lat in range(-75,76,5):
         for lon in range(-170,171,10):
-            var tile:=Tiles.tile_at(float(lat),float(lon),5)
-            var center:=Tiles.tile_center(tile)
-            var material:Dictionary=Context.resolve(center.x,center.y,
-                look,0.8 if look=="rain" else 0.0,WIND,SUN)
-            if str(material.get("material",""))==kind:
-                return {"lat":center.x,"lon":center.y}
-    return {}
+            var tile: Dictionary=Tiles.tile_at(float(lat),float(lon),7)
+            var center: Vector2=Tiles.tile_center(tile)
+            var value: Dictionary=Context.resolve(center.x,center.y,
+                weather,0.8 if weather=="rain" else 0.0,WIND,SUN)
+            if str(value.get("material",""))!=kind:
+                continue
+            var score: int=0
+            for offset in [Vector2i.RIGHT,Vector2i.LEFT,
+                    Vector2i.UP,Vector2i.DOWN]:
+                var neighbor: Dictionary=Tiles.neighbor(tile,offset.x,offset.y)
+                var near: Vector2=Tiles.tile_center(neighbor)
+                var next:Dictionary=Context.resolve(near.x,near.y,
+                    weather,0.8 if weather=="rain" else 0.0,WIND,SUN)
+                if str(next.get("material",""))==kind:
+                    score+=1
+            if score>best_score:
+                best_score=score
+                best={"lat":center.x,"lon":center.y}
+            if score==4:
+                return best
+    return best
 
 func _run() -> void:
     var folder:=ProjectSettings.globalize_path("res://evidence/mode5-material-review")
@@ -62,7 +81,7 @@ func _run() -> void:
     scene.set_process(false)
     var total:=0
     for family in ["snow","wet_ground"]:
-        var at: Dictionary=_find(family)
+        var at: Dictionary=_find_interior(family)
         if at.is_empty():
             failed=true
             push_error("MODE5_MATERIAL_NO_BIOME "+family)
