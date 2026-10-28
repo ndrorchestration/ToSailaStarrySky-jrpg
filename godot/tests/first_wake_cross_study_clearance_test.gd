@@ -117,8 +117,8 @@ func _run() -> void:
     var all_yaws_same: bool = true
     for name in Rig.WING_NAMES:
         var current: Node3D = rig.get_node("WingRig_" + name)
-        all_yaws_same = all_yaws_same and
-            is_equal_approx(current.rotation.y, float(original_yaw[name]))
+        all_yaws_same = (all_yaws_same
+            and is_equal_approx(current.rotation.y, float(original_yaw[name])))
     verify(all_yaws_same and rig.global_transform == base_ship,
         "swept review samples restore original in-progress presentation")
     verify(world.opening.snapshot() == before and
