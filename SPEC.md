@@ -1,9 +1,13 @@
-# Aetherwake JRPG — Technical Specification
+# Aetherwake browser preservation — historical technical specification
 
-**Development stage:** pre-alpha  
-**Current runtime:** p5.js global mode, 960×640  
-**Current entry point:** `index-embedded.html`  
-**Architecture rule:** preserve a working playable loop during every migration phase.
+**Scope:** historical p5.js/NW.js prototype baseline and its intended architecture; **not** the current approved Godot gameplay, combat actions, canonical Chapter I sequence, or a new Windows release.  
+**Browser baseline runtime:** p5.js global mode, 960×640  
+**Browser baseline entry:** `index-embedded.html`  
+**Architecture rule:** preserve an existing playable loop during any reviewed migration.
+
+The active **To Sail the Starry Sky** [README](README.md) distinguishes legacy browser mechanics from the nested Godot 4.7.2 review. The revised Chapter I story is **Ender alone → Ionia joins first → initial flight/splashdown/safe recovery → Lyra joins second after reunion with Talen → multi-person fuel theory, salvage and Denith shanty bench investigation**. The old Lyra-first Crossing branch is preserved as a parallel historical implementation, **not** this revised ordering. Current Godot combat studies are a bounded formula contract, a standalone Guard/Strike/Echo encounter and non-executing Resonance preflight; there is no approved single eight-slot native battle menu or final skill-level unlock table. The previous Windows Preview 0.1 packaging evidence below is archival; Defender custody blocks a newly distributed native build.
+
+**Status-language convention for the remainder of this document:** `CURRENT IMPLEMENTATION`, `current`, `production formula`, `combat party` and `level unlock` refer **only to the dated browser preservation build**, unless a section explicitly names and verifies a Godot scene. Never reinterpret historical action slots, levels, Lyra-first recruitment or browser packaging as production authority for the revised Godot game.
 
 ---
 
@@ -103,7 +107,7 @@ Rules:
 The development branch now contains a persistent party-state bridge:
 
 - `ROSTER` has exactly five stable identities in canonical order: Ender, Lyra, Ionia, Reson, Aepex;
-- `ACTIVE_PARTY` supports 1–5 direct references into `ROSTER`; First Wake starts with Ender alone and adds Lyra at Sequence 06, then times Ionia's official party role to the early storm/shield sequence;
+- In the **historical browser** `ACTIVE_PARTY` supports 1–5 direct references into `ROSTER`; the old First Wake starts with Ender alone, recruits Lyra at Sequence 06 and times Ionia's earlier implementation to the storm/shield choice. **This order is superseded for the revised Godot Chapter I** by Ionia first, Lyra second after a safe reunion;
 - `world.player === ROSTER[0] === ACTIVE_PARTY[0]`, so the lead character is no longer duplicated across WORLD and persistent party state;
 - the normal New Game path no longer uses custom companion creation;
 - `modules/char-create.js` remains compatibility provenance only, and its custom companion/job assumptions are not authored canon;
@@ -183,7 +187,7 @@ Resources currently include:
 - Scrap,
 - Resonator Staff charges.
 
-Current action slots:
+Historical browser action slots (not the current Godot menu):
 
 1. Resonator Staff — production JRPG formula
 2. Uncover Truth — deterministic analysis / weakness reveal
@@ -194,7 +198,7 @@ Current action slots:
 7. Aether Seal — Ender Aether/Ward suppression on explicit Aether-dependent targets
 8. Rest — deterministic recovery
 
-Current prototype level unlocks:
+Historical browser prototype level unlocks (not approved Godot progression):
 
 - level 3 — Wind Ward
 - level 4 — Aether Seal
