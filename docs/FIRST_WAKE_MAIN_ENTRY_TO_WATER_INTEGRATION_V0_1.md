@@ -37,3 +37,12 @@ After the measured local `RigidBody2D`/water `Area2D` float settles and the open
 `reserve_inspection_observed` is an **authored, player-triggered story inspection**. `real_inventory_scan_verified=false` remains explicit; it does not certify a physical fuel-meter simulation or approved salvage item. A repeated interaction must fail; the safe family reunion is still **not** triggered automatically while adrift. This preserves Lyra's family introduction and Talen's noncombat safety for a later playable and geography-approved scene.
 
 The standalone local physics regression and the configured main-entry F8 -> Ionia hiring -> preflight -> F flight -> water contact -> **E reserve diagnosis** -> F8 return tests now both assert this boundary. The v2 preflight-only checkpoint, main_scene and legacy v1 data remain unchanged.
+
+
+## Stacked afloat reserve-station review — successor draft to #545
+
+**Proposed integration only — do not attribute this work to exact-head #545**. This successor branch starts from #545 commit `742d1329f0072e75ea884f4b3679063b9dae4c70`. It changes only the postflotation inspection UI: E while stably waterborne opens a **new onboard, physically navigable review room**. Ender uses ordinary movement controls to reach a reserve station, then E at the station to invoke the same `Opening.inspect_postflight_reserve(true)` contract. Proximity is checked using Ender's current local scene position; remote/duplicate inspection is refused.
+
+The room shows only Ender and Ionia and does not transition into a shoreline, family reunion, physical salvage, planetary travel, fuel chemistry or approved cinematic asset pipeline. Existing `postflight_diagnosis` remains the sole progression authority. The parent flight stage retains its measured 2D contact and stability flags, and the existing F8 return still restores original v1 from memory. The independent preflight-only v2 save and K/L refusal during flight remain unchanged.
+
+**Tests required before claiming verified:** the two existing exact-head Godot 4.7.2 native tests must now additionally walk the Ender actor in the new scene, refuse early and distant station interactions, prove shared opening identity, require near-station E, reject repeat interactions, assert no inventory or salvage verification, and check the unchanged original save-slot hashes and return state. Passing #545 alone **does not** certify this successor commit. No CI, render, Windows security, creator visual acceptance, or release status is inherited from #545.
