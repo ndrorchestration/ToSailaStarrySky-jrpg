@@ -25,6 +25,6 @@ Tests must reject early job-search, pre-boarding, non-opt-in, absent-sink and un
 - `godot/tests/first_wake_ship_pose_port_test.gd`: instantiate *real* playable Ionia-first chapter scene and issue stage-gated requests to a nonrendered native `Node3D` test double `godot/tests/first_wake_ship_pose_test_sink.gd`.
 - New [native CI workflow](../.github/workflows/godot-first-wake-ship-pose-admission.yml): official Godot 4.7.2 SHA-verified editor, source import, ship pose port, inherited real ship-space, job-scene and v2 checkpoint regressions.
 - No rendered wing animation is claimed by this test because the real chapter project does not have an admitted 3D ship mesh. Existing [#490](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/490) supplies isolated 3D visual evidence only, not scene-integrated evidence.
-- [Public production admission requirements](SHIP_POSE_PROTOTYPE_TO_PRODUCTION_ADMISSION.md) track later physical 3D rig/occupied deck/door/bridge-scale compatibility and hardware + creator review.
+- [Public production admission requirements](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/blob/docs/ship-pose-production-handoff-20261027/docs/SHIP_POSE_PROTOTYPE_TO_PRODUCTION_ADMISSION.md) track later physical 3D rig/occupied deck/door/bridge-scale compatibility and hardware + creator review.
 
 **NO AUTOMATIC MERGE / NO RELEASE.** If the exact-head CI run is not successful, status is implementation candidate with failed native admission.
