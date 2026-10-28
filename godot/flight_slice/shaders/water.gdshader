@@ -6,6 +6,8 @@ uniform float texture_detail_strength : hint_range(0.0, 1.0) = 0.65;
 uniform sampler2D biome_macrodetail : filter_linear_mipmap, repeat_enable;
 uniform sampler2D coast_distance_field : filter_linear, repeat_disable;
 uniform float biome_layer_strength : hint_range(0.0, 1.0) = 0.0;
+// A/B control for breaking surf confined to the shared signed coastline.
+uniform float coastal_surf_strength : hint_range(0.0, 1.0) = 0.0;
 uniform sampler2D terrain_coverage : filter_nearest, repeat_disable;
 uniform float study_time = 0.0;
 uniform bool low_quality = false;
@@ -76,6 +78,22 @@ void fragment() {
     float foam=cover*smoothstep(0.15,0.65,
         sin(depth*24.0-study_time*1.4+wave1*0.4))*shore;
     foam*=mix(1.0,0.63+0.37*coast_proximity,biome_layer_strength);
+    // A narrow, advancing swash band is bound by signed wet-side coastal
+    // distance and the original terrain depth/coverage. No second coastline,
+    // extra water mesh or particle emitter. Low quality uses inherited foam.
+    if (!low_quality && coastal_surf_strength>0.001) {
+        float wet_side=1.0-smoothstep(-0.20,0.18,sea_distance);
+        float coast_band=(1.0-smoothstep(0.35,3.40,abs(sea_distance)))
+            *(1.0-smoothstep(0.35,2.10,depth))*wet_side*cover;
+        float swash_phase=depth*5.8-study_time*0.55
+            +wave1*0.58+coast_region.g*0.72;
+        float swash_rim=smoothstep(0.24,0.88,sin(swash_phase));
+        float feather=0.42+0.58*texture(water_ripple_detail,
+            p*0.12+vec2(study_time*0.012,-study_time*0.007)).g;
+        float swash=coast_band*swash_rim*feather
+            *coastal_surf_strength*0.72;
+        foam=clamp(foam+swash*(1.0-foam),0.0,1.0);
+    }
     // Broad shoreline patchiness; bounded by depth and current visible
     // terrain coverage, never an independently invented coast mask.
     foam*=mix(1.0,0.75+coast_region.r*0.53,biome_layer_strength);
