@@ -3,6 +3,7 @@ name: Godot Aureate Wake Unified Metric Bridge (prototype only)
 on:
   pull_request:
     paths:
+      - 'docs/AUREATE_WAKE_METRIC_BRIDGE_PROTOTYPE_2026-10-27.md'
       - 'godot/scripts/aureate_wake_metric_bridge_study.gd'
       - 'godot/scenes/aureate_wake_metric_bridge_study.tscn'
       - 'godot/tests/aureate_wake_metric_bridge_physics_test.gd'
