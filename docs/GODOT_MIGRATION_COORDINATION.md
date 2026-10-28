@@ -34,3 +34,10 @@
 - **RELEASE:** separately authorized action; default HOLD.
 
 Documentation and canon descriptions do not upgrade any of these evidence categories. Notion/Drive may hold detailed receipts, but the GitHub branch/PR must link them explicitly when required. Verify the head again: these SHAs are dated pointers, not immutable branch locks.
+
+
+## October 28 prototype-to-production handoff consolidation
+
+The six distinct 2026-10-27 public-safe equipment, ship-pose, VFX, perceptual-biome, character-motion and enemy-visual admission documents are now navigable through the [Agent Handoff Index](AGENT_HANDOFF_INDEX.md#consolidated-prototype-to-production-admission-handoffs-2026-10-28-review-only). They were sourced from proposals #498, #499, #500, #501, #502 and #505. Bringing review text together does **not** integrate those six runtime branches, approve their source artwork, certify performance, freeze numerical combat mechanics, or authorize Windows distribution.
+
+Always bind an actual admission to the exact currently tested Godot head, supported source assets, creator-directed Ionia-first story order, physical native player behavior, and explicit visual review. Preserve this consolidation as documentation only until it passes its own link and provenance checks and is separately reviewed for merge.
