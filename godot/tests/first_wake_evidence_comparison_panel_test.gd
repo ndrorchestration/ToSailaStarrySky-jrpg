@@ -43,6 +43,7 @@ func _run() -> void:
     if errors.is_empty():
         print("TSTSS_CH1_EVIDENCE_PANEL_PASS native_ui=true story_unchanged=true")
         quit(0)
+        return
     for issue in errors:
         push_error("TSTSS_CH1_EVIDENCE_PANEL_FAIL: " + issue)
     quit(1)
