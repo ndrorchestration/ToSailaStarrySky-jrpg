@@ -8,10 +8,16 @@ const HORIZON_RADIUS_M: float = 240.0
 var ocean: MeshInstance3D
 var atmosphere: WorldEnvironment
 var sky_energy: float = 0.0
+var reduced_motion: bool = false
+var twilight_review: bool = false
+var sky_material: ProceduralSkyMaterial
+var sea_material: ShaderMaterial
+var sunlight: DirectionalLight3D
 
 func _ready() -> void:
     name = "OptionalMaritimeAtmosphere"
     _make_sky()
+    _make_sunlight()
     _make_sea()
 
 func _make_sky() -> void:
@@ -26,6 +32,7 @@ func _make_sky() -> void:
     shader.ground_bottom_color = Color(0.09, 0.24, 0.32)
     shader.ground_horizon_color = Color(0.42, 0.64, 0.65)
     shader.sun_angle_max = 26.0
+    sky_material = shader
     sky.sky_material = shader
     env.sky = sky
     env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
@@ -34,6 +41,17 @@ func _make_sky() -> void:
     atmosphere.environment = env
     add_child(atmosphere)
     sky_energy = 1.0
+
+func _make_sunlight() -> void:
+    # One original directional key for authored deck surfaces and geodesic
+    # bridge glass. Entirely visual; no collider, time, or story authority.
+    sunlight = DirectionalLight3D.new()
+    sunlight.name = "CinematicMaritimeSun"
+    sunlight.rotation_degrees = Vector3(-34.0, -28.0, 0.0)
+    sunlight.light_color = Color("#ffe5bf")
+    sunlight.light_energy = 0.78
+    sunlight.shadow_enabled = true
+    add_child(sunlight)
 
 func _make_sea() -> void:
     ocean = MeshInstance3D.new()
@@ -54,18 +72,22 @@ uniform vec4 ocean_ridge : source_color = vec4(0.092, 0.305, 0.36, 1.0);
 uniform vec4 horizon_mist : source_color = vec4(0.38, 0.61, 0.64, 1.0);
 uniform float wave_height = 0.105;
 uniform float wave_speed = 0.37;
+uniform float visual_motion_scale = 1.0;
+uniform float twilight_blend = 0.0;
+uniform vec3 twilight_water_deep : source_color = vec3(0.035, 0.075, 0.145);
+uniform vec3 twilight_water_ridge : source_color = vec3(0.21, 0.19, 0.27);
 varying vec2 sea_position;
 varying float wave_crest;
 void vertex() {
     vec3 world_vertex = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
     sea_position = world_vertex.xz;
-    float broad = sin(world_vertex.x * 0.15 + world_vertex.z * 0.105 + TIME * wave_speed);
-    float cross_wave = sin(world_vertex.x * 0.21 - world_vertex.z * 0.17 - TIME * wave_speed * 0.62);
+    float broad = sin(world_vertex.x * 0.15 + world_vertex.z * 0.105 + TIME * wave_speed * visual_motion_scale);
+    float cross_wave = sin(world_vertex.x * 0.21 - world_vertex.z * 0.17 - TIME * wave_speed * visual_motion_scale * 0.62);
     VERTEX.y += wave_height * (broad * 0.66 + cross_wave * 0.34);
     wave_crest = broad * 0.5 + 0.5;
 }
 void fragment() {
-    float t = TIME;
+    float t = TIME * visual_motion_scale;
     // Low-frequency domain warping breaks the rectangular repeated lines
     // that appeared in the first native ocean-horizon render.
     vec2 domain_warp = 2.75 * vec2(
@@ -89,13 +111,54 @@ void fragment() {
     float sea_distance = distance(sea_position, CAMERA_POSITION_WORLD.xz);
     float atmospheric_fade = smoothstep(55.0, 215.0, sea_distance);
     vec3 near_water = mix(ocean_deep.rgb, ocean_ridge.rgb, ripples);
-    ALBEDO = mix(near_water, horizon_mist.rgb, atmospheric_fade * 0.61);
+    vec3 sunset_water = mix(twilight_water_deep, twilight_water_ridge, ripples);
+    vec3 graded_water = mix(near_water, sunset_water, twilight_blend);
+    ALBEDO = mix(graded_water, horizon_mist.rgb, atmospheric_fade * (0.61 - 0.18 * twilight_blend));
     METALLIC = 0.085;
     ROUGHNESS = mix(0.29, 0.45, atmospheric_fade);
     SPECULAR = 0.85;
-    EMISSION = ocean_ridge.rgb * (glints + wave_crest * 0.011) * (1.0 - atmospheric_fade * 0.78);
+    vec3 light_tint = mix(ocean_ridge.rgb, vec3(0.94, 0.44, 0.24), twilight_blend);
+    EMISSION = light_tint * (glints + wave_crest * 0.011) * (1.0 - atmospheric_fade * 0.78);
 }
 """
     material.shader = shader
+    sea_material = material
     ocean.material_override = material
+    set_reduced_motion(reduced_motion)
     add_child(ocean)
+
+func set_reduced_motion(enabled: bool) -> void:
+    # Presentation-only: freeze ocean waves without modifying 3D collisions,
+    # camera rays, chapter progress, or the sea-level position.
+    reduced_motion = enabled
+    if sea_material != null:
+        sea_material.set_shader_parameter("visual_motion_scale", 0.0 if enabled else 1.0)
+
+func visual_review_snapshot() -> Dictionary:
+    return {
+        "ocean_mesh_present": ocean != null and ocean.mesh is PlaneMesh,
+        "directional_sun_active": sunlight != null and sunlight.shadow_enabled,
+        "source_sea_level": SEA_LEVEL_M,
+        "reduced_motion": reduced_motion,
+        "twilight_review": twilight_review,
+        "water_twilight_blend": sea_material.get_shader_parameter("twilight_blend") if sea_material != null else -1.0,
+        "motion_scale": sea_material.get_shader_parameter("visual_motion_scale") if sea_material != null else -1.0,
+        "has_buoyancy_authority": false,
+        "canonical_geography": false,
+    }
+
+func set_twilight_review(enabled: bool) -> void:
+    # A reversible lighting study, not a story clock or canonical weather event.
+    twilight_review = enabled
+    if sky_material == null or atmosphere == null:
+        return
+    sky_material.sky_top_color = Color("#15223c") if enabled else Color(0.07, 0.19, 0.32)
+    sky_material.sky_horizon_color = Color("#db9876") if enabled else Color(0.70, 0.74, 0.69)
+    sky_material.ground_bottom_color = Color("#17263a") if enabled else Color(0.09, 0.24, 0.32)
+    sky_material.ground_horizon_color = Color("#b17c72") if enabled else Color(0.42, 0.64, 0.65)
+    atmosphere.environment.ambient_light_energy = 0.65 if enabled else 1.0
+    if sea_material != null:
+        sea_material.set_shader_parameter("twilight_blend", 1.0 if enabled else 0.0)
+    if sunlight != null:
+        sunlight.light_color = Color("#ffc29a") if enabled else Color("#ffe5bf")
+        sunlight.light_energy = 0.47 if enabled else 0.78
