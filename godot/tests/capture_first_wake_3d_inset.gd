@@ -44,11 +44,11 @@ func _save(dir: String, label: String) -> Image:
     return image.duplicate()
 
 func _delta(a: Image, b: Image) -> float:
-    # Only the actual 400x225 SubViewport panel is sampled, excluding the
+    # Only the actual 355x200 SubViewport panel is sampled, excluding the
     # timeline text and moving 2D physics body outside the visual region.
     var total: float = 0.0
-    for y in range(164, 340, 8):
-        for x in range(544, 922, 8):
+    for y in range(164, 326, 8):
+        for x in range(586, 924, 8):
             var lhs: Color = a.get_pixel(x, y)
             var rhs: Color = b.get_pixel(x, y)
             total += absf(lhs.r-rhs.r)+absf(lhs.g-rhs.g)+absf(lhs.b-rhs.b)
