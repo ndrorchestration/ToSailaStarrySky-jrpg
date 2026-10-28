@@ -11,6 +11,7 @@ on:
       - 'scripts/build-first-wake-godot-installer.ps1'
       - 'scripts/verify-first-wake-installer-defender.ps1'
       - 'scripts/prepare-first-wake-windows-installer.ps1'
+      - 'scripts/publish-first-wake-approved-windows-installer.ps1'
       - 'tests/first-wake-installer-contract.test.js'
       - 'packaging/windows/ToSailTheStarrySky.nsi'
       - 'tests/godot-windows-preview-package-contract.test.js'
@@ -259,7 +260,8 @@ jobs:
           # PowerShell parser without executing their protected scan paths.
           foreach ($file in @(
             "scripts/verify-first-wake-installer-defender.ps1",
-            "scripts/prepare-first-wake-windows-installer.ps1"
+            "scripts/prepare-first-wake-windows-installer.ps1",
+            "scripts/publish-first-wake-approved-windows-installer.ps1"
           )) {
             $tokens = $null
             $parseErrors = $null
