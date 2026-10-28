@@ -1,0 +1,41 @@
+name: Godot P-03 Equipment Save Contract Proof (review only)
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/equipment_save_contract_review.gd'
+      - 'godot/scripts/equipment_save_store_review.gd'
+      - 'godot/tests/equipment_save_contract_review_test.gd'
+      - '.github/workflows/godot-equipment-save-contract-proof.yml'
+permissions:
+  contents: read
+jobs:
+  native-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - name: Checkout review source without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Download digest-verified Godot 4.7.2 Standard binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o godot-editor.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  godot-editor.zip" | sha256sum -c -
+          mkdir -p godot-editor
+          unzip -q godot-editor.zip -d godot-editor
+          chmod +x godot-editor/Godot_v4.7.2-stable_linux.x86_64
+      - name: Import actual Godot project with native editor
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
+      - name: Execute P-03 item instances, no-grant migration, and backup recovery
+        shell: bash
+        run: timeout --signal=TERM --kill-after=5s 100s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/equipment_save_contract_review_test.gd
+      - name: Preserve prior P-02 source and v1 filesystem save proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 100s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/battle_equipment_session_review_test.gd
+          timeout 100s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_save_store_test.gd
+          timeout 100s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_save_codec_test.gd
