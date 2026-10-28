@@ -36,3 +36,12 @@ The current GitHub-hosted `windows-2022` exact custody job has reported `DEFENDE
 5. **User explicitly approves a tagged prerelease/release/public deployment.** Only then attach the verified installer with `SHA256SUMS.txt` to a real GitHub Release and add the exact **existing** asset URL under **Download for Windows** in the repository README. Never link a fabricated, older Aetherwake, draft/unpublished or unverified installer.
 
 **This branch and all installer output are development-only.** The Windows packaging CI currently retains output runner-locally; it is not an installer download destination. No release, latest-asset alias or public README button has been published at this stage.
+
+
+## Defender-on hosted-runner restoration experiment (draft; not release evidence)
+
+The GitHub-hosted Windows 2022 custody job currently fails before game export because Defender real-time monitoring is off. A separate draft branch now adds a **fail-closed protective restoration attempt before the original unchanged preflight**: enable real-time and behavior monitoring, request bidirectional scanning, and remove whole-drive Defender exclusions when present. The existing exact-head security scan and all its required success receipts still execute only if the original preflight passes. Failure, policy refusal, hidden exclusions, an ineffective antivirus or missing telemetry must remain **BLOCKED**, not translated to a release clearance.
+
+This only tests whether the runner can be made suitable. Passing the existing Aetherwake-native Windows QA alone does **not** imply that the separate `ToSailTheStarrySky-Setup.exe` was Defender-scanned or signed. The *exact NSIS installer binary* still requires own-content malware scanning with source/build SHA-256 custody, publisher approval of unsigned-risk or a valid code signature, full on-device playtest and explicit release approval. No binary publication, upload, or public README installer link occurs from this probe.
+
+If restoration cannot succeed on hosted runners, run an equivalent uncompromised Defender-on build/scan on a trusted Windows runner rather than switching off the security gate.
