@@ -23,19 +23,23 @@ func _press(world: Node, action_id: String) -> void:
     world._unhandled_input(event)
 
 func _verify() -> void:
+    print("TSTSS_EQUIPMENT_DIAG: entered lifecycle test")
     var normal = NORMAL.instantiate()
     root.add_child(normal)
     await process_frame
-    normal.ender.position = normal.TRIAL_STATION_POSITION
+    print("TSTSS_EQUIPMENT_DIAG: ordinary scene ready")
+    normal.ender.position = Vector2(805, 465)
     if normal.equipment_station_review_enabled or normal.interact_nearest() or normal.open_gear_inspector():
         _fail("ordinary Chapter I scene acquired test-only station")
         return
     normal.queue_free()
     await process_frame
 
+    print("TSTSS_EQUIPMENT_DIAG: ordinary scene closed")
     var world = STUDY.instantiate()
     root.add_child(world)
     await process_frame
+    print("TSTSS_EQUIPMENT_DIAG: isolated scene ready")
     world.formula_encounter.rng_source = Callable(self, "_rng")
     if not world.equipment_station_review_enabled or world.field_gear_display == null:
         _fail("study scene did not instantiate real separate field rig")
@@ -53,6 +57,7 @@ func _verify() -> void:
 
     world.ender.position = world.TRIAL_STATION_POSITION
     _press(world, INPUT.INTERACT)
+    print("TSTSS_EQUIPMENT_DIAG: E interaction handled")
     if not world.gear_inspector_open or not world.gear_inspector_panel.visible or world.ender.player_controlled:
         _fail("nearby E action did not focus real equipment-station modal")
         return
@@ -99,6 +104,7 @@ func _verify() -> void:
     var stored_bag: Dictionary = world.trial_inventory.snapshot()["bag"]
     var field_key: String = world.field_gear_display.visual_key()
     _press(world, INPUT.FORMULA_REVIEW)
+    print("TSTSS_EQUIPMENT_DIAG: entered practice battle")
     if not world.formula_encounter.active or not world.trial_inventory.validate(world.battle_loadout):
         _fail("battle boundary did not receive field-owned gear")
         return
@@ -134,6 +140,7 @@ func _verify() -> void:
         return
 
     _press(world, INPUT.FORMULA_REVIEW)
+    print("TSTSS_EQUIPMENT_DIAG: returned from practice battle")
     if world.formula_encounter.active or not world.ender.player_controlled:
         _fail("C did not return to field after practice")
         return
@@ -156,6 +163,7 @@ func _verify() -> void:
     if original_snapshot.has("inventory") or original_snapshot.has("equipment"):
         _fail("preexisting Chapter I save already leaks gear")
         return
+    print("TSTSS_EQUIPMENT_DIAG: performing durable restore")
     if not world.restore_save_snapshot(original_snapshot):
         _fail("legacy-format Chapter I state no longer restores")
         return
