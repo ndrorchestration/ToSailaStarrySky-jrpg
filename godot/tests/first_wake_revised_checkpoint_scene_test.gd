@@ -130,6 +130,65 @@ func _verify() -> void:
         _fail("backup recovery accidentally granted Resonance")
         return
 
+    # Exercise the player's actual keyboard commands, not only save/load API
+    # calls: K writes the checkpoint and L reconstructs the scene.
+    var key_save := InputEventKey.new()
+    key_save.pressed = true
+    key_save.keycode = KEY_K
+    world._unhandled_input(key_save)
+    if not world.last_message.contains("saved"):
+        _fail("K save input did not report checkpoint success")
+        return
+    var key_load := InputEventKey.new()
+    key_load.pressed = true
+    key_load.keycode = KEY_L
+    world.ender.position = world.FLYER_POSITION
+    world._unhandled_input(key_load)
+    if not world.last_message.contains("restored") or world.ender.position != world.IONIA_DOCK_POSITION:
+        _fail("L load input did not restore the previously saved hired state")
+        return
+
+    # Full playable engineering route: all three station dialogues, then the
+    # safety checklist. A post-preflight restore must NOT resume movement.
+    world.ender.position = world.GANGWAY_POSITION
+    if not world.interact() or world.room != "engineering":
+        _fail("could not reboard after restored Ionia employment")
+        return
+    for item in ["fuel", "containment", "reference"]:
+        world.ender.position = world.ROOM_POSITIONS[item]
+        if not world.interact() or not _finish_dialogue(world):
+            _fail("full engineering evidence step failed: " + item)
+            return
+    world.ender.position = world.ROOM_POSITIONS["checklist"]
+    if not world.interact() or not _finish_dialogue(world):
+        _fail("preflight checklist dialogue failed")
+        return
+    if world.opening.step_key() != "preflight" or world.ender.player_controlled:
+        _fail("preflight did not block movement at handoff")
+        return
+    var preflight_position: Vector2 = world.ender.position
+    if not world.save_revised_checkpoint().get("ok", false):
+        _fail("complete preflight checkpoint did not save")
+        return
+    if not world.restore_revised_checkpoint(start):
+        _fail("could not return to new-game opening in test")
+        return
+    if world.opening.active_party_ids != ["ender"] or world.room != "dock":
+        _fail("new-game opening reconstruction drifted")
+        return
+    if not world.load_revised_checkpoint().get("ok", false):
+        _fail("preflight save could not be loaded")
+        return
+    if world.opening.step_key() != "preflight" or world.room != "engineering" or world.ender.position != preflight_position:
+        _fail("end-of-demo checklist/position not restored")
+        return
+    if world.ender.player_controlled or world.inspected_items.size() != 3:
+        _fail("preflight restore reopened movement or lost inspections")
+        return
+    if not world.resonance_status_label.text.contains("LOCKED") or "lyra" in world.opening.active_party_ids:
+        _fail("preflight save incorrectly admitted Lyra or a combo")
+        return
+
     var legacy_after: String = FileAccess.get_sha256(old_path) if FileAccess.file_exists(old_path) else ""
     if legacy_before != legacy_after:
         _fail("new checkpoint altered the v1 primary slot")
