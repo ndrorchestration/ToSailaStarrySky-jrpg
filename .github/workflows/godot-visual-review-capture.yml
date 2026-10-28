@@ -102,6 +102,18 @@ jobs:
             test -s "godot/review-evidence/first-wake-wide-3d/${frame}.png"
           done
           sha256sum godot/review-evidence/first-wake-wide-3d/*.png
+      - name: Capture original neutral warning on real wide 3D and matched off/interrupt
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 115s xvfb-run -a -s "-screen 0 960x640x24" editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_first_wake_wide_warning_vfx.gd 2>&1 | tee /tmp/wide-pw01-gl.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_WIDE_WARNING_CAPTURE_FAIL:' /tmp/wide-pw01-gl.log
+          grep -Fq 'TSTSS_FIRST_WAKE_WIDE_WARNING_CAPTURE_PASS frames=6' /tmp/wide-pw01-gl.log
+          grep -Fq 'TSTSS_WIDE_WARNING_GL_AB_PASS: on_off_distinct=true off_interrupt_identical=true' /tmp/wide-pw01-gl.log
+          for name in 01-preflight 02-warning-on 03-warning-off 04-warning-interrupted 05-descent 06-waterborne; do
+            test -s "godot/review-evidence/first-wake-wide-warning/${name}.png"
+          done
+          sha256sum godot/review-evidence/first-wake-wide-warning/*.png
       - name: Mark capture as not externally retrievable (Actions artifact quota)
         shell: bash
         run: |
