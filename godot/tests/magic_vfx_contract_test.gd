@@ -49,6 +49,14 @@ func _verify() -> void:
     if int(effect_particles.call("particle_budget")) != 14:
         _fail("default reduced-motion particle cap drift")
         return
+    var spirit_light = node.get_node_or_null("LyraIndependentSpiritPink")
+    if spirit_light == null or spirit_light.material == null or not (spirit_light.material is CanvasItemMaterial):
+        _fail("Lyra independent luminous pink layer missing")
+        return
+    var spirit_material: CanvasItemMaterial = spirit_light.material as CanvasItemMaterial
+    if spirit_material.light_mode != CanvasItemMaterial.LIGHT_MODE_UNSHADED:
+        _fail("Lyra spirit cue must survive ambient-darkness shading")
+        return
     for identity in Catalog.CHARACTER_ORDER:
         if not node.play_affinity(identity, false) or node.reduced_motion or node.finished:
             _fail("active review effect missing " + identity)
@@ -59,6 +67,9 @@ func _verify() -> void:
             return
         if str(effect_particles.get("character_id")) != identity or str(ground_contact.get("character_id")) != identity:
             _fail("affinity layer dispatch drift " + identity)
+            return
+        if spirit_light.visible != (identity == "lyra"):
+            _fail("pink spirit-layer leaked to a character other than Lyra")
             return
         if int(aura_shader.get_shader_parameter("motif")) != Catalog.CHARACTER_ORDER.find(identity):
             _fail("shader motif routing drift " + identity)
