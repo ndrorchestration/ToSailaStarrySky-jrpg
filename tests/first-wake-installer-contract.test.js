@@ -11,6 +11,7 @@ const entry = read('godot/scripts/first_wake_game.gd');
 const docs = read('docs/desktop/FIRST_WAKE_INSTALLER_DELIVERY.md');
 const custody = read('scripts/verify-first-wake-installer-defender.ps1');
 const prepare = read('scripts/prepare-first-wake-windows-installer.ps1');
+const publish = read('scripts/publish-first-wake-approved-windows-installer.ps1');
 
 for (const x of [
   'RequestExecutionLevel user',
@@ -103,4 +104,26 @@ for (const marker of [
 }
 assert(!/Set-MpPreference|Remove-MpPreference|gh release create|upload-artifact/.test(prepare),
   'trusted Windows prep must not weaken Defender or publish');
+for (const marker of [
+  "TSTSS_RELEASE_CREATOR_EXPLICIT_APPROVAL_REQUIRED",
+  "TSTSS_RELEASE_SOURCE_SHA_MISMATCH",
+  "TSTSS_RELEASE_EXACT_BINARY_DEFENDER_CUSTODY_NOT_VERIFIED",
+  "TSTSS_RELEASE_PLAYER_ACCEPTANCE_INCOMPLETE",
+  "TSTSS_RELEASE_UNSIGNED_PREVIEW_NEEDS_EXPLICIT_APPROVAL",
+  "TSTSS_RELEASE_MANIFEST_DIGEST_MISMATCH",
+  "TSTSS_RELEASE_DRAFT_ASSET_SHA256_MISMATCH",
+  "TSTSS_FIRST_WAKE_DIRECT_DOWNLOAD_READY=PASS",
+  "gh release create",
+  "--draft --prerelease",
+  "gh release download",
+  "gh release edit",
+  "DIRECT_WINDOWS_INSTALLER_URL.txt",
+]) {
+  assert(publish.includes(marker), 'publishing must be explicitly approved, binary-bound, scan-verified and remotely hash-matched: ' + marker);
+}
+assert(publish.indexOf('gh release create') < publish.indexOf('gh release download') &&
+  publish.indexOf('gh release download') < publish.indexOf('gh release edit'),
+  'draft upload and verified remote download must precede public promotion');
+assert(!/Set-MpPreference|Remove-MpPreference|continue-on-error/.test(publish),
+  'release path may not weaken host Defender or hide release failures');
 console.log('TSTSS_FIRST_WAKE_INSTALLER_CONTRACT_PASS release_authorized=false installer_link_published=false');
