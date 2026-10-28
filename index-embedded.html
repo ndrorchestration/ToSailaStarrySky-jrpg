@@ -251,7 +251,7 @@
 <script src="modules/first-wake-opening.js"></script>
 <script src="modules/party-state.js"></script>
 <script src="modules/air-navigation.js"></script>
-<script src="aetherwake.js"></script>
+<script src="tosailthestarrysky.js"></script>
 <script src="modules/char-create.js"></script>
 <script>
   // p5.js v1.11.3 webpack bundle needs window.webpackJsonp defined before load
@@ -295,7 +295,7 @@
   //
   // Our mirror:
   //   1. Show Loading.png (reference image) immediately — like Graphics.setLoadingImage
-  //   2. Let aetherwake.js run its BOOT state (preamble + title render)
+  //   2. Let tosailthestarrysky.js run its BOOT state (preamble + title render)
   //   3. When sketch signals it's ready (gameState advances past BOOT),
   //      hide the loading overlay — like Graphics.endLoading() → upper canvas cleared
   // ============================================================
@@ -310,7 +310,7 @@
       // immediately during Scene_Boot; Graphics.endLoading() clears it the moment
       // Scene_Boot.isReady() returns true and Scene_Title begins. Our mirror:
       // hide the HTML overlay the moment the canvas is live and p5 is drawing,
-      // so the player sees the aetherwake.js BOOT rendering (loading→preamble→title)
+      // so the player sees the tosailthestarrysky.js BOOT rendering (loading→preamble→title)
       // on the real canvas, not behind an HTML cover.
       // Wait for the real p5 canvas (not a placeholder) — p5 creates it
       // in setup() after the sketch boots. A 300x150 canvas is p5's default
