@@ -29,7 +29,9 @@ func _step_crew_to(actor: CharacterBody3D, target: float, frames: int = 200) -> 
     var reached: bool = false
     for step in range(frames):
         await physics_frame
-        if actor.position.z <= target if actor.test_direction.y < 0 else actor.position.z >= target:
+        var front: bool = target < 0.0 and actor.test_direction.y < 0.0
+        if (front and actor.position.z <= target) or (
+                not front and actor.position.z >= target):
             reached = true
             break
     actor.set_test_direction(Vector2.ZERO)
