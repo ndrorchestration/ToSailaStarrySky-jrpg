@@ -4,6 +4,27 @@ extends Node2D
 ## Separate background and foreground instances provide real actor occlusion.
 
 @export var foreground: bool = false
+@export var painted_sky_enabled: bool = true
+## Visual only. Reuses the existing project-approved-for-testing cinematic shader.
+const PaintedSkyShader = preload("res://shaders/first_wake_cinematic_sky.gdshader")
+var painted_sky: ColorRect
+
+func _ready() -> void:
+    if foreground or not painted_sky_enabled:
+        return
+    var sky := ColorRect.new()
+    sky.name = "PaintedCoastSkyVisualOnly"
+    sky.size = Vector2(960.0, 402.0)
+    sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    sky.show_behind_parent = true
+    sky.z_index = -1
+    var sky_material := ShaderMaterial.new()
+    sky_material.shader = PaintedSkyShader
+    sky.material = sky_material
+    painted_sky = sky
+    add_child(sky)
+    queue_redraw()
+
 
 const SKY_TOP := Color("#304565")
 const SKY_MID := Color("#7da4b7")
@@ -25,21 +46,24 @@ func _poly(points: Array[Vector2], color: Color) -> void:
     draw_colored_polygon(PackedVector2Array(points), color)
 
 func _draw_stage() -> void:
-    # Color grading is built into the scene's actual CanvasItem, not a mock screenshot.
-    for strip in range(0, 79):
-        var t := float(strip) / 78.0
-        var c: Color = SKY_TOP.lerp(SKY_MID, min(t * 1.5, 1.0)) if t < 0.57 else SKY_MID.lerp(SKY_LOW, (t - 0.57) / 0.43)
-        draw_rect(Rect2(0, strip * 5, 960, 6), c)
-    draw_circle(Vector2(174, 113), 79, Color(1.0, 0.91, 0.70, 0.065))
-    draw_circle(Vector2(174, 113), 45, Color(1.0, 0.91, 0.73, 0.14))
-    draw_circle(Vector2(174, 113), 23, Color("#fbe9bb"))
-    # Cloud layers have distinct depth planes, not floating traversal surfaces.
-    for i in range(7):
-        var x := 44.0 + float(i) * 141.0
-        var y := 160.0 + float(i % 3) * 34.0
-        draw_circle(Vector2(x, y), 30.0, Color(0.93, 0.96, 0.94, 0.23))
-        draw_circle(Vector2(x + 28, y - 11), 37.0, Color(0.96, 0.96, 0.94, 0.16))
-        draw_circle(Vector2(x + 58, y + 4), 28.0, Color(0.97, 0.94, 0.88, 0.17))
+    # Keep historic procedural sky as an exact rollback fallback.
+    # The cinematic sky is a material-only visual; physics remains unchanged.
+    if painted_sky == null:
+        # Color grading is built into the scene's actual CanvasItem, not a mock screenshot.
+        for strip in range(0, 79):
+            var t := float(strip) / 78.0
+            var c: Color = SKY_TOP.lerp(SKY_MID, min(t * 1.5, 1.0)) if t < 0.57 else SKY_MID.lerp(SKY_LOW, (t - 0.57) / 0.43)
+            draw_rect(Rect2(0, strip * 5, 960, 6), c)
+        draw_circle(Vector2(174, 113), 79, Color(1.0, 0.91, 0.70, 0.065))
+        draw_circle(Vector2(174, 113), 45, Color(1.0, 0.91, 0.73, 0.14))
+        draw_circle(Vector2(174, 113), 23, Color("#fbe9bb"))
+        # Cloud layers have distinct depth planes, not floating traversal surfaces.
+        for i in range(7):
+            var x := 44.0 + float(i) * 141.0
+            var y := 160.0 + float(i % 3) * 34.0
+            draw_circle(Vector2(x, y), 30.0, Color(0.93, 0.96, 0.94, 0.23))
+            draw_circle(Vector2(x + 28, y - 11), 37.0, Color(0.96, 0.96, 0.94, 0.16))
+            draw_circle(Vector2(x + 58, y + 4), 28.0, Color(0.97, 0.94, 0.88, 0.17))
     _poly([Vector2(0, 319), Vector2(92, 277), Vector2(143, 293), Vector2(196, 254), Vector2(240, 304), Vector2(330, 268), Vector2(392, 310), Vector2(460, 293), Vector2(535, 322), Vector2(620, 273), Vector2(697, 306), Vector2(790, 269), Vector2(850, 296), Vector2(960, 263), Vector2(960, 408), Vector2(0, 408)], Color("#719598"))
     _poly([Vector2(0, 366), Vector2(85, 341), Vector2(158, 354), Vector2(222, 333), Vector2(294, 358), Vector2(379, 331), Vector2(449, 361), Vector2(536, 344), Vector2(650, 369), Vector2(769, 342), Vector2(842, 363), Vector2(960, 340), Vector2(960, 400), Vector2(0, 400)], Color("#527e88"))
     for i in range(22):
