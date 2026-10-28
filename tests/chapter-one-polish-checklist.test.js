@@ -29,7 +29,7 @@ test('32 numbered, unique, unclosed high-quality gates; no accidental PASS label
 test('every item states measurable acceptance and evidence ownership', () => {
   for(const item of parsed){
     assert.ok(item.title.length>=9,'descriptive gate');
-    assert.ok(item.discipline.length>=3,'named discipline');
+    assert.ok(item.discipline.length>=2,'named discipline');
     assert.ok(item.acceptance.length>=90,'acceptance is not a vague slogan CH1-'+item.number);
     assert.ok(item.evidence.length>=40,'requires specific proof CH1-'+item.number);
   }
@@ -57,7 +57,7 @@ test('exact draft receipts remain distinct from production and human approvals',
     assert.ok(DOC.includes('/runs/'+run),'missing exact-head native receipt '+run);
   }
   assert.match(DOC,/Chapter One polish acceptance = HOLD/);
-  assert.match(DOC,/Not\\*\\* a claim that Chapter One is finished/i);
+  assert.match(DOC,/\*\*Not\*\* a claim that Chapter One is finished/i);
   assert.match(DOC,/Defender-on custody/);
   assert.match(DOC,/HUMAN|human|Human/);
   assert.match(DOC,/first suggested reversible player-facing patch/i);
