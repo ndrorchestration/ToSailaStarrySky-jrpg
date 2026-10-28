@@ -1,3 +1,11 @@
+## New: separate native 3D visual scene (draft PR #590)
+
+The real 3D First Wake coastline, pier, animated spatial sea, lighting, camera and **provisional** geodesic Aureate Wake composition are implemented in a **separately launchable Godot review scene**. The connected Windows machine rendered it with both OpenGL Compatibility and Vulkan Forward+, at 960×640. This is a **3D graphics prototype**, not a replacement for the existing Ionia-first playable First Wake, not a polished art release, and not the standalone Windows installer. Correct five-character rigged 3D models and 3D story/gameplay integration remain outstanding.
+
+[View the draft 3D implementation PR](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/590) · [Read native QA and the Blender/GLB production handoff](godot/art-review/FIRST_WAKE_3D_COASTAL_PRODUCTION_PROOF_2026-10-28.md)
+
+---
+
 ## To Sail the Starry Sky — native Windows game installer (in development)
 
 **The revised Ionia-first Godot game installer is not available for download yet.** The connected native game candidate is under [draft PR #547](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/547). A standalone `ToSailTheStarrySky-Setup.exe` packaging/test pipeline is being developed. **There is no verified installer asset to link here until Windows setup, native first-frame, security and creator release gates pass.**
