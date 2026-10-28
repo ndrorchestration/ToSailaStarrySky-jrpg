@@ -30,6 +30,53 @@ function Assert-DefenderReady {
     return $status
 }
 
+# Existing exclusions must not make our exact game/setup binaries unscannable.
+# A scan completion event alone is insufficient if the object is excluded.
+function Assert-NoTargetExclusions([string[]]$TargetFiles) {
+    $prefs = Get-MpPreference -ErrorAction Stop
+    $names = @($TargetFiles | ForEach-Object { [IO.Path]::GetFileName($_) })
+    foreach ($extension in @($prefs.ExclusionExtension)) {
+        if ($null -eq $extension) { continue }
+        $text = ([string]$extension).Trim()
+        if ($text.Contains("*") -or $text.Contains("?") -or
+            $text.TrimStart(".").Equals("exe", [StringComparison]::OrdinalIgnoreCase)) {
+            throw "TSTSS_DEFENDER_EXE_EXTENSION_EXCLUDED"
+        }
+    }
+    foreach ($process in @($prefs.ExclusionProcess)) {
+        if ($null -eq $process) { continue }
+        $text = ([string]$process).Trim()
+        if ($text.Contains("*") -or $text.Contains("?")) {
+            throw "TSTSS_DEFENDER_AMBIGUOUS_PROCESS_EXCLUSION"
+        }
+        $fileName = [IO.Path]::GetFileName($text.Replace("/", "\"))
+        foreach ($name in $names) {
+            if ($fileName.Equals($name, [StringComparison]::OrdinalIgnoreCase)) {
+                throw "TSTSS_DEFENDER_TARGET_PROCESS_EXCLUDED"
+            }
+        }
+    }
+    foreach ($exclusion in @($prefs.ExclusionPath)) {
+        if ($null -eq $exclusion -or [string]::IsNullOrWhiteSpace([string]$exclusion)) { continue }
+        $text = [Environment]::ExpandEnvironmentVariables(([string]$exclusion).Trim())
+        if ($text.Contains("*") -or $text.Contains("?")) {
+            throw "TSTSS_DEFENDER_AMBIGUOUS_PATH_EXCLUSION"
+        }
+        try {
+            $path = [IO.Path]::GetFullPath($text).TrimEnd("\")
+        } catch {
+            throw "TSTSS_DEFENDER_INVALID_PATH_EXCLUSION"
+        }
+        foreach ($file in $TargetFiles) {
+            $full = [IO.Path]::GetFullPath($file)
+            if ($full.Equals($path, [StringComparison]::OrdinalIgnoreCase) -or
+                $full.StartsWith($path + "\", [StringComparison]::OrdinalIgnoreCase)) {
+                throw "TSTSS_DEFENDER_TARGET_PATH_EXCLUDED"
+            }
+        }
+    }
+}
+
 function Get-DefenderField([System.Diagnostics.Eventing.Reader.EventRecord]$Event, [string]$Key) {
     [xml]$xml = $Event.ToXml()
     foreach ($item in @($xml.Event.EventData.Data)) {
@@ -135,8 +182,10 @@ if (-not $OutputDir) { $OutputDir = Join-Path $env:TEMP "tstss-defender-proof" }
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 
 $defender = Assert-DefenderReady
+Assert-NoTargetExclusions @($GameExe, $SetupExe)
 $gameResult = Invoke-ExactDefenderScan $GameExe "GAME"
 $setupResult = Invoke-ExactDefenderScan $SetupExe "SETUP"
+Assert-NoTargetExclusions @($GameExe, $SetupExe)
 $gameSign = Get-AuthenticodeSignature -LiteralPath $GameExe
 $setupSign = Get-AuthenticodeSignature -LiteralPath $SetupExe
 $finalDefender = Assert-DefenderReady
