@@ -1,4 +1,8 @@
-# Aetherwake JRPG — Technical Specification
+# Aetherwake JRPG — historical JavaScript technical specification
+
+> **Scope correction (2026-10-28):** This file is the preserved **JavaScript/p5/NW.js runtime specification and its original technical proof**, not the current creator-directed Godot Chapter I gameplay plan. In historical JS, Ender starts alone, Lyra joins at Sequence 06, and Ionia enters later. That **legacy implementation chronology** is retained verbatim below for reproducibility; **the forward Godot First Wake story has Ionia recruited before the first flight, with Lyra introduced after the controlled water landing**. Do not port the legacy party bootstrap or save schema into the new game. See [public canon policy](docs/CANON_AND_REVEAL_POLICY.md) and [native Chapter I authority register](docs/CHAPTER_I_NATIVE_AUTHORITY_STATUS_2026-10-28.md).
+>
+> **Current engine decision:** Godot 4.7.2 / GDScript for forward gameplay, with legacy browser code on `main` as a separately verified preservation track. The old Aetherwake Preview 0.1 installers and checksums later in this file are **not** the new Godot First Wake download. The latter remains unpublished pending independent Windows security, player acceptance and creator release approval.
 
 > **2026-10-25 migration note:** This specification describes the preserved **legacy p5.js executable/reference behavior** and long-term content contracts. The creator has selected **Godot 4.7.2 + GDScript** for all forward gameplay development. Read [../AGENTS.md](AGENTS.md) and [docs/GODOT_MIGRATION_COORDINATION.md](docs/GODOT_MIGRATION_COORDINATION.md). Do not mistake this file's "current runtime" for permission to add JavaScript features; migrate with parity tests and preserve compatibility/historical receipts.
 
