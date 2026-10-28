@@ -62,6 +62,8 @@ var current_enemy_adapter = CurrentEnemyAdapter.new()
 var party_combat_authority = PartyCombatAuthority.new()
 var active_hazard_encounter_id: String = ""
 var wind_shear_visual: Node2D
+# Presentation-only A/B review switch. Not serialized, a combat flag or lore.
+var wind_shear_stage_depth_enabled: bool = true
 var save_store = SaveStore.new()
 
 func _ready() -> void:
@@ -239,6 +241,10 @@ func _draw_formula_review() -> void:
     var heat: Dictionary = formula_encounter.player.get("heat", {"current": 0, "max": 3})
 
     var authored_hazard := not active_hazard_encounter_id.is_empty()
+    # Light and distant depth accents sit behind the CanvasItem enemy stage.
+    # Never render them for synthetic formula targets or noncombat hazards.
+    if wind_shear_stage_depth_enabled and authored_hazard and str(formula_encounter.target.get("id", "")) == "windShear":
+        _draw_wind_shear_stage_depth()
     var encounter_title := "CROSSING ENCOUNTER" if authored_hazard else "FORMULA REVIEW ENCOUNTER"
     var encounter_subtitle := (
         "Current-story Wind Shear · Gale Force retaliates · progress confirms on clear"
@@ -375,6 +381,36 @@ func _draw_formula_review() -> void:
         13,
         Color("#9dd9ee")
     )
+
+func _draw_wind_shear_stage_depth() -> void:
+    # Original, conservative combat-stage study: layered blue-green haze,
+    # a distant pressure-field boundary, and a low plane of reflected light.
+    # All geometry is static, behind art; no gameplay bodies or shadow casters.
+    var stage := Rect2(597.0, 197.0, 185.0, 182.0)
+    draw_rect(stage, Color(0.055, 0.15, 0.20, 0.35))
+    draw_rect(Rect2(604.0, 204.0, 171.0, 146.0), Color(0.04, 0.09, 0.13, 0.16))
+
+    # Soft nested pressure-light falloff, not a flash. At 960x640 these
+    # subtle halos visually separate the aquamarine fins from the dark panel.
+    var center := Vector2(687.0, 277.0)
+    for i in range(6):
+        var radius := 79.0 - float(i) * 10.0
+        var alpha := 0.013 + float(i) * 0.004
+        draw_circle(center, radius, Color(0.43, 0.79, 0.80, alpha))
+
+    # Thin far-plane edge rails keep the action area distinct from commands
+    # without putting a card, text, or line over the sprite's silhouette.
+    var far_rail := Color(0.31, 0.63, 0.72, 0.24)
+    draw_line(Vector2(603.0, 210.0), Vector2(603.0, 346.0), far_rail, 1.0)
+    draw_line(Vector2(779.0, 215.0), Vector2(779.0, 346.0), far_rail.darkened(0.12), 1.0)
+    draw_line(Vector2(603.0, 208.0), Vector2(621.0, 208.0), far_rail, 1.0)
+    draw_line(Vector2(761.0, 208.0), Vector2(779.0, 208.0), far_rail, 1.0)
+
+    # The hover shadow belongs to the sprite layer; this luminous horizon
+    # anchors its scale to the encounter stage without implying solid ground.
+    draw_line(Vector2(620.0, 376.0), Vector2(755.0, 376.0), Color(0.50, 0.77, 0.74, 0.24), 1.0)
+    draw_arc(Vector2(687.0, 373.0), 70.0, 0.10, PI - 0.10, 24,
+        Color(0.35, 0.67, 0.70, 0.24), 1.0)
 
 func _sync_wind_shear_visual() -> void:
     if wind_shear_visual == null:
