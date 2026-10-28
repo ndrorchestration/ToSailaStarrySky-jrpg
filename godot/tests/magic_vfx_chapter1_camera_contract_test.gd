@@ -27,6 +27,9 @@ func _verify() -> void:
     if ionia == null or ionia.visible or ionia.is_ionia_stage_art_enabled():
         _fail("the visual preview exposed Ionia before Contact")
         return
+    if scene.effect.z_index != -1 or scene.front_composite:
+        _fail("character-safe default behind-compositor not selected")
+        return
     if scene.active_index != 0 or not scene.reduced_motion or scene.effect.is_processing():
         _fail("unsafe default animation or character")
         return

@@ -181,6 +181,19 @@ func _draw_water(core: Color, accent: Color, p: float, energy: float) -> void:
         var a := float(i) * TAU / 8.0 + p * 0.6
         var pos := Vector2(cos(a) * 125.0, sin(a) * 69.0)
         draw_circle(pos, 2.8 if i % 2 == 0 else 4.0, _rgba(accent if i % 2 == 0 else core, 0.82 * energy))
+    # Lyra's creator-required pink spirit energy is distinct from Water itself.
+    # Two soft edge-streams stay outside the central actor silhouette when composited behind.
+    # No bloom threshold, strobe, gameplay permission, or elemental change.
+    for side in [-1.0, 1.0]:
+        var spirit_path := PackedVector2Array()
+        for step in range(24):
+            var t: float = float(step) / 23.0
+            var x: float = side * (75.0 + 9.0 * sin(t * PI))
+            var y: float = -83.0 + 160.0 * t + 5.0 * sin(t * TAU + p * 2.0)
+            spirit_path.append(Vector2(x, y))
+        draw_polyline(spirit_path, _rgba(accent, 0.64 * energy), 2.3, true)
+        draw_circle(spirit_path[2], 3.8, _rgba(accent, 0.83 * energy))
+        draw_circle(spirit_path[21], 3.2, _rgba(accent, 0.73 * energy))
 
 func _draw_earth(core: Color, accent: Color, p: float, energy: float) -> void:
     for i in range(8):

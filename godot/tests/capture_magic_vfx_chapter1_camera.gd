@@ -30,6 +30,38 @@ func _deck_brightness(frame: Image) -> float:
         sum += frame.get_pixelv(point).get_luminance()
     return sum / 4.0
 
+func _silhouette_retention(reference: Image, without_actor: Image, with_behind_magic: Image, roi: Rect2i) -> Dictionary:
+    # Mask inferred from real native Ender pixels; no guessed flat sprite rectangle.
+    # Compare only opaque-ish actor pixels to a no-light behind-layer VFX frame.
+    var n: int = 0
+    var retained: int = 0
+    for y in range(roi.position.y, roi.end.y):
+        for x in range(roi.position.x, roi.end.x):
+            var a: Color = reference.get_pixel(x, y)
+            var absent: Color = without_actor.get_pixel(x, y)
+            var actor_difference: float = absf(a.r - absent.r) + absf(a.g - absent.g) + absf(a.b - absent.b)
+            if actor_difference < 0.24:
+                continue
+            n += 1
+            var after: Color = with_behind_magic.get_pixel(x, y)
+            var delta: float = absf(a.r - after.r) + absf(a.g - after.g) + absf(a.b - after.b)
+            if delta <= 0.075:
+                retained += 1
+    return {"actor_pixels": n, "retained_pixels": retained, "retention": float(retained) / float(maxi(n, 1))}
+
+func _pink_spirit_pixels(with_visual: Image, without_visual: Image, roi: Rect2i) -> int:
+    # Distinctive magenta/pink chroma in *newly drawn* magic pixels, not Ender's sprite.
+    # This is a candidate-art signal detector; it is not a perceptual acceptance score.
+    var pixels: int = 0
+    for y in range(roi.position.y, roi.end.y):
+        for x in range(roi.position.x, roi.end.x):
+            var a: Color = with_visual.get_pixel(x, y)
+            var base: Color = without_visual.get_pixel(x, y)
+            var delta: float = absf(a.r - base.r) + absf(a.g - base.g) + absf(a.b - base.b)
+            if delta >= 0.11 and a.r > a.g + 0.05 and a.b > a.g + 0.05 and a.r > 0.22:
+                pixels += 1
+    return pixels
+
 func _capture() -> void:
     root.size = Vector2i(960, 640)
     if DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT)) != OK:
@@ -47,6 +79,15 @@ func _capture() -> void:
     var original: Image = await _snapshot("chapter1-magic-original-dock-native-960x640.png")
     if original == null:
         quit(2)
+        return
+    # Derive the Ender shape mask from the exact Chapter I scene with only its
+    # visual node hidden; restore immediately without touching gameplay state.
+    review.world.ender.visible = false
+    await process_frame
+    var no_actor: Image = await _snapshot("chapter1-magic-dock-without-ender-native-960x640.png")
+    review.world.ender.visible = true
+    if no_actor == null:
+        quit(28)
         return
     var previous: Image = null
     for i in range(Catalog.CHARACTER_ORDER.size()):
@@ -70,6 +111,13 @@ func _capture() -> void:
             push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: affinity visuals identical " + id)
             quit(6)
             return
+        if id == "lyra":
+            var daytime_pink: int = _pink_spirit_pixels(frame, original, Rect2i(275, 315, 175, 190))
+            print("STARRY_SKY_MAGIC_LYRA_PINK_DAY_PIXELS=" + str(daytime_pink))
+            if daytime_pink < 10:
+                push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: Lyra pink spirit motif missing under daylight")
+                quit(29)
+                return
         previous = frame
     review.choose_affinity(0)
     review.set_front_composite(false)
@@ -99,6 +147,17 @@ func _capture() -> void:
         push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: actual native dock does not respond to 2D light")
         quit(11)
         return
+    var mask: Dictionary = _silhouette_retention(original, no_actor, unlit, Rect2i(316, 356, 89, 133))
+    print("STARRY_SKY_MAGIC_ENDER_SILHOUETTE: pixels=" + str(mask["actor_pixels"]) + ":preserved=" + str(mask["retained_pixels"]) + ":ratio=" + str(mask["retention"]))
+    if int(mask["actor_pixels"]) < 150 or float(mask["retention"]) < 0.94:
+        push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: behind-composited spell degraded original Ender silhouette")
+        quit(30)
+        return
+    for hud_roi in [Rect2i(10, 8, 940, 91), Rect2i(10, 550, 940, 82)]:
+        if _different(original, unlit, hud_roi):
+            push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: VFX reached Chapter I HUD protection zone")
+            quit(31)
+            return
     review.set_lighting_enabled(true)
     review.set_camera_closeup(true)
     await process_frame
@@ -176,6 +235,27 @@ func _capture() -> void:
         push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: mist and rain paint identical pixels")
         quit(27)
         return
+    # Reuse the SAME actual night-mist scene for Lyra's spirit-color validation,
+    # comparing against a matched background with VFX and light both disabled.
+    review.set_weather_preset("mist")
+    review.choose_affinity(1)
+    await process_frame
+    var lyra_mist: Image = await _snapshot("chapter1-magic-lyra-night-mist-native-960x640.png")
+    if lyra_mist == null:
+        quit(32)
+        return
+    review.set_magic_visible(false)
+    await process_frame
+    var mist_control: Image = await _snapshot("chapter1-magic-night-mist-no-vfx-native-960x640.png")
+    if mist_control == null:
+        quit(33)
+        return
+    var night_pink: int = _pink_spirit_pixels(lyra_mist, mist_control, Rect2i(275, 315, 175, 190))
+    print("STARRY_SKY_MAGIC_LYRA_PINK_NIGHT_MIST_PIXELS=" + str(night_pink))
+    if night_pink < 4:
+        push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: Lyra spirit-pink disappears under night mist")
+        quit(34)
+        return
     if review.world.chapter.snapshot() != before or review.world.export_save_snapshot() != save_before:
         push_error("CHAPTER1_MAGIC_CAPTURE_FAIL: visual captures changed Chapter I durable state")
         quit(14)
@@ -186,6 +266,6 @@ func _capture() -> void:
         return
     review.queue_free()
     await process_frame
-    print("STARRY_SKY_CHAPTER1_MAGIC_NATIVE_CAPTURE_PASS: real dock+Ender, five affinities, layering and camera, daylight/dusk/night + mist/rain A/B")
+    print("STARRY_SKY_CHAPTER1_MAGIC_NATIVE_CAPTURE_PASS: real dock+Ender, silhouette and HUD protection, Lyra pink motif in day/night mist, lighting/weather A/B")
     print("STARRY_SKY_CHAPTER1_MAGIC_ART_ACCEPTANCE=PENDING")
     quit(0)

@@ -96,6 +96,9 @@ jobs:
           for identity in ender lyra ionia reson aepex; do
             test -s "godot/review-evidence/chapter1-magic-${identity}-dock-native-960x640.png"
           done
+          test -s godot/review-evidence/chapter1-magic-dock-without-ender-native-960x640.png
+          test -s godot/review-evidence/chapter1-magic-lyra-night-mist-native-960x640.png
+          test -s godot/review-evidence/chapter1-magic-night-mist-no-vfx-native-960x640.png
           test -s godot/review-evidence/chapter1-magic-ender-camera-close-native-960x640.png
           test -s godot/review-evidence/chapter1-magic-ender-behind-native-960x640.png
           test -s godot/review-evidence/chapter1-magic-ender-front-native-960x640.png
