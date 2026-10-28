@@ -167,7 +167,10 @@ if (-not [bool]$draft.isDraft -or
 # GitHub release asset digest provides a second independent stored checksum.
 # Older GitHub instances may omit digest; remote byte-download verification above
 # is mandatory regardless of this optional server-provided value.
-$digest = [string]$draftAsset[0].digest
+# GitHub CLI asset JSON does not guarantee a digest property across versions.
+# StrictMode treats missing properties as errors: inspect it explicitly.
+$digestProperty = $draftAsset[0].PSObject.Properties["digest"]
+$digest = if ($null -ne $digestProperty) { [string]$digestProperty.Value } else { "" }
 if ($digest -and $digest -cne "sha256:$installerHash") {
     throw "TSTSS_RELEASE_DRAFT_GITHUB_ASSET_DIGEST_MISMATCH"
 }
