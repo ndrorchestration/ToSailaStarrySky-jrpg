@@ -15,10 +15,13 @@ const HATCH_Z: float = -2.60
 const HATCH_CLEAR_WIDTH_M: float = 1.24
 const HATCH_CLEAR_HEIGHT_M: float = 2.10
 const RAIL_HEIGHT_M: float = 1.05
+const RAIL_INFILL_VERTICAL_STEP_M: float = 0.18
+const RAIL_INFILL_RUNG_COUNT: int = 5
 const REVIEW_HEADROOM_M: float = 2.05
 const COLLISION_LAYER: int = 8
 const REVIEW_STATUS := "SINGLE_SCENE_PHYSICS_PROTOTYPE_NOT_PRODUCTION"
 const CrewWalker = preload("res://scripts/aureate_wake_crew_walk_review.gd")
+const GeodesicTopology = preload("res://scripts/aureate_wake_icosphere_metric_topology.gd")
 const SOURCE_GLASS_SHADER = preload("res://art-staging/ship-glass-study/bridge_panorama_glass.gdshader")
 const SOURCE_GLASS_GIT_BLOB_SHA := "b6c7e8d4144acc14074581b08b61c61b7f5a047a"
 const SOURCE_GLASS_SHA256 := "fa5a1d235d28c51aa93640e30ef25ddffecce16ab7d1083330da122a2480b7be"
@@ -31,6 +34,8 @@ var crew_camera_occluded: bool = false
 
 var dome_panels: int = 0
 var dome_frame_edges: int = 0
+var dome_topology_source_head: String = ""
+var visual_hatch_aperture_in_mesh: bool = false
 var _hatch_open: bool = true
 var _wood: StandardMaterial3D
 var _brass: StandardMaterial3D
@@ -125,55 +130,25 @@ func _build_cabin_and_hull() -> void:
         Vector3(0.34, 0.06, 0.45), _glass, false)
 
 func _build_geodesic_helm() -> void:
-    # Native metric faceted hemisphere-inspired triangulation with an ACTUAL
-    # glass-mesh aperture wedge in the facing prow. This is new proxy art;
-    # original lab icosphere/shader in #482 is NOT imported or certified here.
-    var top_theta: float = acos((DOME_BASE_Y - DOME_CENTER_Y) / DOME_RADIUS_M)
+    # This mesh is a metre-adaptation of PR #471's *icosphere topology*,
+    # not an exact source asset transplant and NOT a watertight structure.
+    # The visual hatch has actual omitted glass triangles in the front shell.
+    var topology: Dictionary = GeodesicTopology.make_metric_shell(
+        DOME_RADIUS_M, Vector3(0, DOME_CENTER_Y, HELM_CENTER_Z),
+        DOME_BASE_Y, HELM_CENTER_Z - 0.65, 0.78, 2.33)
+    dome_panels = int(topology["panels"])
+    dome_frame_edges = int(topology["frame_edges"])
+    dome_topology_source_head = str(topology["source_head"])
+    visual_hatch_aperture_in_mesh = bool(topology["aperture_visual_only"])
     var glass := SurfaceTool.new()
     glass.begin(Mesh.PRIMITIVE_TRIANGLES)
+    for vertex in topology["triangles"]:
+        glass.add_vertex(vertex)
+    glass.generate_normals()
     var bronze := SurfaceTool.new()
     bronze.begin(Mesh.PRIMITIVE_TRIANGLES)
-    var edge_keys: Dictionary = {}
-    const SIDES: int = 18
-    const RINGS: int = 7
-    for layer in range(RINGS):
-        var ta: float = top_theta * float(layer) / float(RINGS)
-        var tb: float = top_theta * float(layer + 1) / float(RINGS)
-        for seg in range(SIDES):
-            # Forward opening: 5 sector wedge below upper door-head height.
-            # The missing pane triangles constitute a real visual opening;
-            # there are no fictitious zero-alpha collision panes across it.
-            var mid_y: float = DOME_CENTER_Y + DOME_RADIUS_M * cos((ta + tb) * 0.5)
-            if seg >= 12 and seg < 15 and mid_y < 2.36:
-                continue
-            var fa: float = TAU * float(seg) / float(SIDES)
-            var fb: float = TAU * float(seg + 1) / float(SIDES)
-            var a: Vector3 = _dome_point(ta, fa)
-            var c: Vector3 = _dome_point(tb, fa)
-            var d: Vector3 = _dome_point(tb, fb)
-            var e: Vector3 = _dome_point(ta, fb)
-            for triangle in [[a, c, d], [a, d, e]]:
-                var p: Vector3 = triangle[0]
-                var q: Vector3 = triangle[1]
-                var t: Vector3 = triangle[2]
-                if (q - p).cross(t - p).dot(
-                        (p + q + t) / 3.0 - Vector3(0, DOME_CENTER_Y, HELM_CENTER_Z)) < 0.0:
-                    var temp: Vector3 = q
-                    q = t
-                    t = temp
-                if (q - p).cross(t - p).length_squared() < 0.000000001:
-                    continue
-                for vert in [p, q, t]:
-                    glass.add_vertex(vert)
-                dome_panels += 1
-            for pair in [[a, c], [c, d], [d, e], [e, a], [a, d]]:
-                var key: String = _edge_key(pair[0], pair[1])
-                if edge_keys.has(key):
-                    continue
-                edge_keys[key] = true
-                _append_tube(bronze, pair[0], pair[1], 0.013)
-    dome_frame_edges = edge_keys.size()
-    glass.generate_normals()
+    for segment in topology["edges"]:
+        _append_tube(bronze, segment[0], segment[1], 0.013)
     bronze.generate_normals()
     var pane := MeshInstance3D.new()
     pane.name = "MetricFacetedGlassStudy"
@@ -185,31 +160,18 @@ func _build_geodesic_helm() -> void:
     structure.mesh = bronze.commit()
     structure.material_override = _brass
     add_child(structure)
-    # Two jambs enforce the real person-sized ingress corridor. Glass
-    # itself has NO collision yet and cannot claim pressure protection.
+    # The physics jambs remain the independent, real human-scale entrance.
+    # Visual glass has NO collision and is NOT certified weatherproof.
     _box("PortHelmEntryJamb", Vector3(-0.78, 1.04, HATCH_Z),
         Vector3(0.12, 2.08, 0.14), _brass, true)
     _box("StarboardHelmEntryJamb", Vector3(0.78, 1.04, HATCH_Z),
         Vector3(0.12, 2.08, 0.14), _brass, true)
     _box("HelmEntryHeader", Vector3(0.0, 2.22, HATCH_Z),
         Vector3(1.66, 0.20, 0.14), _brass, true)
-    # Faceted design remains open to creator selection; this proxy has no
-    # ship propulsion, atmospheric mode, collision glass or narrative clue.
     _box("HelmDeckBandPort", Vector3(-1.45, 0.30, -1.16),
         Vector3(0.12, 0.60, 2.25), _wood, false)
     _box("HelmDeckBandStarboard", Vector3(1.45, 0.30, -1.16),
         Vector3(0.12, 0.60, 2.25), _wood, false)
-
-func _dome_point(theta: float, phi: float) -> Vector3:
-    return Vector3(
-        DOME_RADIUS_M * sin(theta) * cos(phi),
-        DOME_CENTER_Y + DOME_RADIUS_M * cos(theta),
-        HELM_CENTER_Z + DOME_RADIUS_M * sin(theta) * sin(phi))
-
-func _edge_key(a: Vector3, b: Vector3) -> String:
-    var x: String = str(Vector3i(roundi(a.x * 10000), roundi(a.y * 10000), roundi(a.z * 10000)))
-    var y: String = str(Vector3i(roundi(b.x * 10000), roundi(b.y * 10000), roundi(b.z * 10000)))
-    return x + "|" + y if x < y else y + "|" + x
 
 func _append_tube(target: SurfaceTool, a: Vector3, b: Vector3, radius: float) -> void:
     var axis: Vector3 = b - a
@@ -236,6 +198,13 @@ func _build_foredeck_rails() -> void:
         var x: float = side * 1.11
         _box(label_text + "SafetyRail", Vector3(x, RAIL_HEIGHT_M - 0.05, -4.08),
             Vector3(0.12, 0.10, 2.83), _brass, true)
+        # Five low unobstructed sightline rails with real narrow infill
+        # obstacles: not independently certified child-safety geometry.
+        for rung in range(RAIL_INFILL_RUNG_COUNT):
+            var height_m: float = float(rung + 1) * RAIL_INFILL_VERTICAL_STEP_M
+            _box(label_text + "RailInfill" + str(rung),
+                Vector3(x, height_m, -4.08),
+                Vector3(0.075, 0.085, 2.83), _brass, true)
         for index in range(4):
             var z: float = -5.39 + float(index) * 0.86
             _box(label_text + "Post" + str(index),
@@ -243,6 +212,10 @@ func _build_foredeck_rails() -> void:
                 Vector3(0.11, 1.05, 0.11), _brass, true)
     _box("ForedeckNoseRail", Vector3(0.0, RAIL_HEIGHT_M - 0.05, -5.53),
         Vector3(2.30, 0.10, 0.09), _brass, true)
+    for rung in range(RAIL_INFILL_RUNG_COUNT):
+        _box("ForedeckNoseInfill" + str(rung),
+            Vector3(0.0, float(rung + 1) * RAIL_INFILL_VERTICAL_STEP_M, -5.53),
+            Vector3(2.24, 0.085, 0.075), _brass, true)
 
 func _build_hatch() -> void:
     var hinge := Node3D.new()
