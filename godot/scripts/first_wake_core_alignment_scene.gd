@@ -20,6 +20,28 @@ const BOUNDS := Rect2(Vector2(130, 404), Vector2(680, 116))
 
 var story = Opening.new()
 var core = Core.new()
+var has_external_story_handoff: bool = false
+
+func configure_from_working_theory(story_state: Variant) -> bool:
+    # Only preinstantiation, identical creator-directed opening contract.
+    # A player cannot skip the Lyra reunion or two evidence clues.
+    if is_inside_tree() or has_external_story_handoff:
+        return false
+    if not (story_state is RefCounted) or story_state.get_script() != Opening:
+        return false
+    var report: Dictionary = story_state.snapshot()
+    if report.get("step", "") != "working_theory":
+        return false
+    if report.get("active_party_ids", []) != ["ender", "ionia", "lyra"]:
+        return false
+    if not bool(report.get("safe_reunion_confirmed", false)) or int(report.get("evidence_count", 0)) < 2:
+        return false
+    if not core.begin(story_state):
+        return false
+    story = story_state
+    has_external_story_handoff = true
+    last_message = "Shared crew theory received; physical recovery is still required."
+    return true
 var analysis = MelodyAnalysis.new()
 var ender: CharacterBody2D
 var headline: Label
@@ -33,21 +55,22 @@ var last_message: String = "Review fixture: the splashdown and family reunion ar
 
 func _ready() -> void:
     Inputs.ensure_defaults()
-    # Only the authoring-fixture contract advances the offscreen prior story:
-    # not a user save, world teleport, physical splashdown or production quest.
-    story.accept_ionia_job()
-    story.complete_engineering_checks()
-    story.begin_test_flight()
-    story.record_engine_failure(true, true, true)
-    story.complete_ocean_splashdown(true, true)
-    story.inspect_postflight_reserve(true)
-    story.introduce_lyra_and_talen(true)
-    story.record_clue("phase_readings")
-    story.record_clue("lyra_observation")
-    story.form_working_fuel_theory()
-    if not core.begin(story):
-        push_error("CORE_REVIEW_FIXTURE_INVALID")
-        return
+    # Standalone F6 test retains its isolated fixture. The connected Chapter I
+    # review path instead injects the actual postflight crew/clue state.
+    if not has_external_story_handoff:
+        story.accept_ionia_job()
+        story.complete_engineering_checks()
+        story.begin_test_flight()
+        story.record_engine_failure(true, true, true)
+        story.complete_ocean_splashdown(true, true)
+        story.inspect_postflight_reserve(true)
+        story.introduce_lyra_and_talen(true)
+        story.record_clue("phase_readings")
+        story.record_clue("lyra_observation")
+        story.form_working_fuel_theory()
+        if not core.begin(story):
+            push_error("CORE_REVIEW_FIXTURE_INVALID")
+            return
 
     ender = Actor.new()
     ender.name = "EnderReviewPlayer"
@@ -230,7 +253,7 @@ func _refresh() -> void:
     if headline == null:
         return
     var s: Dictionary = core.snapshot()
-    headline.text = "AUREATE WAKE  /  POST-SPLASHDOWN REPAIR — ISOLATED STORY REVIEW"
+    headline.text = "AUREATE WAKE  /  POST-SPLASHDOWN REPAIR — " + ("CONNECTED REVIEW" if has_external_story_handoff else "ISOLATED FIXTURE")
     objective.text = "NEXT: %s  |  Samples: %d/2 recovered, %d/2 installed" % [str(s["phase"]).to_upper(), core.recovered.size(), core.installed.size()]
     status_label.text = "SUPPLY CHECK: %s  |  HARMONIC ALIGNMENT: %s  |  FLIGHT: LOCKED" % [
         "COMPLETE" if bool(s["materialReady"]) else "INCOMPLETE",
