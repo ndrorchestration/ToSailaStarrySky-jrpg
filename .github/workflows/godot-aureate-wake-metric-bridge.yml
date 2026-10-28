@@ -1,0 +1,75 @@
+name: Godot Aureate Wake Unified Metric Bridge (prototype only)
+
+on:
+  pull_request:
+    paths:
+      - 'docs/AUREATE_WAKE_METRIC_BRIDGE_PROTOTYPE_2026-10-27.md'
+      - 'godot/scripts/aureate_wake_metric_bridge_study.gd'
+      - 'godot/scenes/aureate_wake_metric_bridge_study.tscn'
+      - 'godot/tests/aureate_wake_metric_bridge_physics_test.gd'
+      - 'godot/tests/capture_aureate_wake_metric_bridge.gd'
+      - '.github/workflows/godot-aureate-wake-metric-bridge.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-metric-ship-physics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout source without saved credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Verify and install exact official Godot 4.7.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o /tmp/editor.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/editor.zip" | sha256sum -c -
+          mkdir -p /tmp/godot-editor
+          unzip -q /tmp/editor.zip -d /tmp/godot-editor
+          chmod +x /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Native editor import checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/metric-import.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|Failed loading|SHADER ERROR' /tmp/metric-import.log
+      - name: Real unified metric 3D physics and gameplay isolation proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 75s /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot \
+            --script res://tests/aureate_wake_metric_bridge_physics_test.gd 2>&1 | tee /tmp/metric-physics.log
+          grep -q 'AUREATE_WAKE_METRIC_PHYSICS_PASS' /tmp/metric-physics.log
+          grep -q 'path=REAL_3D_OPEN_CLOSED_OPEN production=BLOCKED' /tmp/metric-physics.log
+          ! grep -Eq 'AUREATE_WAKE_METRIC_PHYSICS_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/metric-physics.log
+      - name: Render 3 real 960x640 Godot Compatibility metric ship captures
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 110s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/godot-editor/Godot_v4.7.2-stable_linux.x86_64 --path godot \
+            --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_aureate_wake_metric_bridge.gd \
+            2>&1 | tee /tmp/metric-gl.log
+          test "$(grep -c 'AUREATE_WAKE_METRIC_NATIVE_FRAME:' /tmp/metric-gl.log)" -eq 3
+          grep -q 'AUREATE_WAKE_METRIC_DOOR_AB_PASS' /tmp/metric-gl.log
+          grep -q 'AUREATE_WAKE_METRIC_RENDER_PASS' /tmp/metric-gl.log
+          ! grep -Eq 'AUREATE_WAKE_METRIC_CAPTURE_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/metric-gl.log
+      - name: Collect metric scene evidence without release claims
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aureate-wake-metric-prototype-native-evidence
+          path: |
+            godot/review-evidence/aureate-wake-metric/*.png
+            /tmp/metric-import.log
+            /tmp/metric-physics.log
+            /tmp/metric-gl.log
+          retention-days: 7
+          if-no-files-found: warn
