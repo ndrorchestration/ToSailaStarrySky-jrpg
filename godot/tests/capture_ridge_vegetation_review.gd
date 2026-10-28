@@ -29,6 +29,11 @@ func _run() -> void:
         quit(1)
         return
     w.set_dock_depth_review_enabled(true)
+    var root_sample: Dictionary = preload("res://scripts/dock_ridge_surface.gd").sample_root(276.0)
+    if not root_sample["ok"] or root_sample["point"].y >= w.ender.walking_bounds.position.y:
+        push_error("RIDGE_CAPTURE_INVALID_AUTHORED_SURFACE")
+        quit(1)
+        return
     w.ender.set_walk_review_enabled(true)
     w.ionia.set_aligned_review_enabled(true)
     var before: Image = await _image("ridge-vegetation-off-native-960x640.png")
@@ -61,7 +66,7 @@ func _run() -> void:
         push_error("RIDGE_CAPTURE_NOT_REVERSIBLE")
         quit(1)
         return
-    print("NATIVE_RIDGE_VEGETATION_PAIR_PASS resolution=960x640 off=on=low=restore=4 gameplay_roi_unchanged=true")
+    print("NATIVE_RIDGE_VEGETATION_PAIR_PASS resolution=960x640 off=on=low=restore=4 gameplay_roi_unchanged=true source_ridge_sampler=true")
     print("NATIVE_RIDGE_VEGETATION_ART_ACCEPTANCE=PENDING")
     w.queue_free()
     await process_frame
