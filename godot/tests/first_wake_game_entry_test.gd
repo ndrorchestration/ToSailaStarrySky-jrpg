@@ -95,6 +95,10 @@ func _run() -> void:
             break
     verify(settled and flight.contact_observed and flight.stable_float_verified,
         "real water Area2D contact and sustained buoyancy required")
+    # The physics transition occurs after the game root's _process in this
+    # frame; allow the game authority to consume the real contact next frame.
+    await process_frame
+    await process_frame
     verify(root_game.session.physical_landing_observed,
         "game root admitted only the actual post-contact physics review")
     for tick in range(110):
