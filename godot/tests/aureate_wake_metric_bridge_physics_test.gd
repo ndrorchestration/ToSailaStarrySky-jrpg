@@ -51,8 +51,8 @@ func _verify() -> void:
         "front entrance is adult-scale and is aligned to proposed roof station")
     check(Study.RAIL_HEIGHT_M >= 0.90,
         "normal-deck physical rails exceed provisional 0.90 m review target")
-    check(ship.dome_panels >= 250 and ship.dome_frame_edges >= 350,
-        "helmside glazing is a real faceted triangle mesh plus struts")
+    check(ship.dome_panels >= 190 and ship.dome_frame_edges >= 280,
+        "helmside glazing is a real larger faceted triangle mesh plus diagonal support struts")
     check(ship.get_node("MetricFacetedGlassStudy") is MeshInstance3D
         and ship.get_node("GeodesicLatticeStudy") is MeshInstance3D,
         "new authored native 3D geometry renders inside the same metric ship")
