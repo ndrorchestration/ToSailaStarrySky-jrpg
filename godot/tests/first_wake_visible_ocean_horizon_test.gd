@@ -2,6 +2,7 @@ extends SceneTree
 ## Verify camera has water below sightline and sky above, in real Godot physics.
 const Scene = preload("res://scenes/first_wake_optional_shipboard_3d_review.tscn")
 const Codec = preload("res://scripts/first_wake_revised_checkpoint_codec.gd")
+const Maritime = preload("res://scripts/first_wake_maritime_atmosphere_review.gd")
 var total: int = 0
 var failed: Array[String] = []
 
@@ -74,13 +75,13 @@ func _run() -> void:
     verify(middle.y < -0.015 and sky.y > 0.0 and below.y < middle.y,
         "actual camera sightline includes sky above and sea below central horizon")
     var water_distance: float = (
-        (sea.SEA_LEVEL_M - lens.global_position.y) / middle.y
+        (Maritime.SEA_LEVEL_M - lens.global_position.y) / middle.y
         if middle.y < 0.0 else INF)
     verify(water_distance > 5.0 and water_distance < lens.far,
         "central camera ray can reach true ocean plane before far clipping")
     var water_hit: Vector3 = lens.global_position + middle * water_distance
-    verify(absf(water_hit.x) < sea.SEA_RADIUS_M
-        and absf(water_hit.z) < sea.SEA_RADIUS_M,
+    verify(absf(water_hit.x) < Maritime.SEA_RADIUS_M
+        and absf(water_hit.z) < Maritime.SEA_RADIUS_M,
         "forward view projects inside the actual world-scaled water mesh")
     verify(review.ship.get_node("ForedeckHatchHinge/HatchCollisionBody") is StaticBody3D
         and review.ship.get_node("ForedeckNoseInfill0Body") is StaticBody3D,
