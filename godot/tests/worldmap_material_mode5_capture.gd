@@ -81,7 +81,7 @@ func _run() -> void:
             _press(scene,KEY_J)
         var cam: Camera3D=scene.get_node("WorldMapOrbitCamera")
         var original_pose:=cam.position
-        var original_save:=scene.snapshot()
+        var original_save: Dictionary=scene.snapshot()
         var before:Image=await _capture()
         _save(before,family+"-off")
         _press(scene,KEY_B)
