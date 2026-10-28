@@ -4,6 +4,10 @@
 
 **Status:** Isolated native-engine proof, **not** a complete migration, creator-accepted art, scene/canon rewrite, approved release, or evidence that production is now Godot.
 
+## P-02 in-memory equipment handoff (further unmerged native draft)
+
+The [Equipment Session Authority Review](EQUIPMENT_SESSION_AUTHORITY_REVIEW.md) adds a five-protagonist starter-family session object and verifies handoff between independently instantiated Godot practice scenes, reusing one Ender-owned equipment ledger rather than cloning it. This is **volatile state only**: neither real item acquisition nor the Chapter I v1 save format has been changed. The existing first-flight plot, actor art, author-approved jobs and Windows release gates remain independent. Native contract status must be sourced to the exact-head P-02 workflow, not historical feasibility copy below.
+
 ## Objective
 
 Move the *next technical vertical slice* off the legacy `p5.js / NW.js / JavaScript` implementation and evaluate a **purpose-built Godot 4 scene graph** with GDScript. Existing JavaScript sources remain a reference for story, save semantics and gameplay rules; no backwards-compatibility or save-data migration has been attempted.
