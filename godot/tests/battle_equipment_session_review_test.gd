@@ -63,9 +63,11 @@ func _verify() -> void:
     if session.transition_count != 1:
         _fail("first scene boundary wasn't counted exactly once")
         return
+    first.ender.position = first.TRIAL_STATION_POSITION
+    # Position is part of the existing durable v1 snapshot; record the
+    # baseline AFTER walking to the station to isolate the gear-only change.
     var original_save: Dictionary = first.export_save_snapshot()
     var original_story: Dictionary = first.chapter.snapshot()
-    first.ender.position = first.TRIAL_STATION_POSITION
     if not first.interact_nearest() or not first.move_gear_inspector_item(1):
         _fail("owned inlay staff cannot be inspected from first field session")
         return
