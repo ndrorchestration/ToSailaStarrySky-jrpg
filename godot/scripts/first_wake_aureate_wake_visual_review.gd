@@ -152,6 +152,16 @@ func _draw() -> void:
     draw_circle(Vector2(4, -57), 2.3, EDGE)
     draw_circle(Vector2(-11, -53), 1.7, GOLD)
     draw_circle(Vector2(20, -52), 1.7, GOLD)
+    # Optical glints follow the existing bridge silhouette, with no change
+    # to collision, camera, navigation, pressure systems or ship modes.
+    var glass_glint: float = 0.0 if reduced_motion else 0.5 + 0.5 * sin(motion_seconds * 1.3)
+    _poly([
+        Vector2(-20, -42), Vector2(-10, -52), Vector2(-3, -54),
+        Vector2(-13, -35), Vector2(-22, -30),
+    ], Color(0.87, 0.98, 0.94, 0.10 + 0.09 * glass_glint))
+    _line(Vector2(-16, -46), Vector2(-10, -50), Color(0.98, 0.97, 0.83, 0.32 + 0.13 * glass_glint), 1.2)
+    for rivet_x in [-23.0, -13.0, -2.0, 10.0, 21.0, 31.0]:
+        draw_circle(Vector2(rivet_x, -21), 1.0, Color("#edc986"))
 
     # Warm fittings, hand-worked utility elements and restrained power halo.
     for x in [-46.0, -26.0, 43.0]:
