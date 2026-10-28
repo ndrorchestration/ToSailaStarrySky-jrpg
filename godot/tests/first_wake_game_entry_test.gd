@@ -149,6 +149,8 @@ func _run() -> void:
         "reserve becomes recorded only after player finishes dialogue")
     verify(root_game.session.opening.step_key() == "postflight_diagnosis",
         "revised story advances to correct postflight stage")
+    verify(deck.checkpoint_message.is_empty(),
+        "successful inspection clears the earlier declined-save warning")
     await capture_native_frame("02-reserve-inspected")
     verify(root_game.save_game() and FileAccess.file_exists(PATH),
         "F5 checkpoint persists new-format first-flight data")
@@ -216,6 +218,8 @@ func _run() -> void:
     verify(family.scene_phase == "family_arrival"
         and family.ender.player_controlled,
         "the actual postflight family scene is walkable and initially Lyra-free")
+    verify(family.objective_label.get_line_count() == 1,
+        "family arrival objective must not overlap party HUD")
     await capture_native_frame("03-staged-family-arrival")
     verify(not resumed.save_game()
         and FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
@@ -234,6 +238,10 @@ func _run() -> void:
     verify(_finish_dialogue(family)
         and family.opening.active_party_ids == ["ender", "ionia", "lyra"],
         "first-flight session identity admits Lyra SECOND after mandatory reunion")
+    await process_frame
+    verify(family.objective_label.get_line_count() == 1
+        and family.objective_label.text.contains("GATHER TWO CLUES"),
+        "investigation objective remains one visible line and clearly names two clues")
     await capture_native_frame("04-lyra-second-join")
     verify(family.interact() and _finish_dialogue(family)
         and "lyra_observation" in family.opening.clues,
