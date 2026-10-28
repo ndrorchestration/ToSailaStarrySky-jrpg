@@ -22,10 +22,17 @@ assert(readme.includes('conventional JRPG formula model'),
   'README does not state current combat target');
 assert(readme.includes('ACTIVE_PARTY[1..5]'),
   'README does not state 1–5 active-party architecture');
-assert(readme.includes('First Wake now begins with Ender alone'),
-  'README does not state authored First Wake party bootstrap');
-assert(readme.includes('Historical compatibility adapter; not the normal New Game path'),
-  'README still treats char-create as canonical onboarding');
+// The README now describes the forward Godot candidate. The Lyra-first
+// bootstrap belongs ONLY to the immutable historical JS specification.
+assert(readme.includes('Captain Ionia, who joins **before**') &&
+  readme.includes('Older **Lyra-first** onboarding') &&
+  readme.includes('## Legacy reference build'),
+  'README must distinguish revised Ionia-first Godot story from legacy Lyra-first runtime');
+assert(spec.includes('First Wake starts with Ender alone and adds Lyra at Sequence 06'),
+  'legacy SPEC lost the historical JS roster-opening evidence');
+assert(readme.includes('Historical compatibility adapter; not the normal New Game path') &&
+  readme.includes('modules/char-create.js'),
+  'README must quarantine the original character-create adapter inside the legacy reference');
 assert(!uiAdapter.includes('TURN-BASED 2D6 PbtA'),
   'active title UI still advertises 2D6/PbtA');
 assert(!ui.includes("'Uncover Truth  (2D6+Wits)'"),
