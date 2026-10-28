@@ -83,10 +83,19 @@ if ($signature.Status -ne [System.Management.Automation.SignatureStatus]::Valid 
 # Player acceptance is independent of script-created security evidence.
 # These fields must come from an actual installed-game Windows playtest.
 $playtest = Get-Content -LiteralPath $PlayerAcceptanceReceipt -Raw | ConvertFrom-Json
-if ($playtest.sourceSha -cne $ExpectedSourceSha -or
+if ($playtest.schema -cne "TSTSS_FIRST_WAKE_WINDOWS_PLAYER_ACCEPTANCE_V1" -or
+    $playtest.sourceSha -cne $ExpectedSourceSha -or
     $playtest.installerSha256 -cne $installerHash -or
-    $playtest.result -cne "PASS") {
+    $playtest.result -cne "PASS" -or
+    [string]::IsNullOrWhiteSpace([string]$playtest.tester) -or
+    [string]::IsNullOrWhiteSpace([string]$playtest.testedAtUtc)) {
     throw "TSTSS_RELEASE_PLAYER_ACCEPTANCE_NOT_BOUND"
+}
+$acceptanceAt = [datetimeoffset]::MinValue
+if (-not [datetimeoffset]::TryParse([string]$playtest.testedAtUtc, [ref]$acceptanceAt) -or
+    $acceptanceAt -gt [datetimeoffset]::UtcNow -or
+    $acceptanceAt -lt [datetimeoffset]::UtcNow.AddDays(-30)) {
+    throw "TSTSS_RELEASE_PLAYER_ACCEPTANCE_TIMESTAMP_INVALID"
 }
 foreach ($field in @(
     "installedGameLaunched", "firstFlightCompleted", "splashdownCompleted",
@@ -143,6 +152,19 @@ Write-Host "TSTSS_RELEASE_DRAFT_DOWNLOADED_SHA256=PASS:$remoteHash"
 
 # Public promotion is permitted only with explicit creator approval supplied
 # above AND source/Defender/installed-player/remote-byte proofs.
+# Validate the draft asset's expected direct URL before making it public.
+$draftDetails = (& gh release view $tag --repo $repo --json assets,isDraft | Out-String)
+if ($LASTEXITCODE -ne 0) { throw "TSTSS_RELEASE_DRAFT_METADATA_QUERY_FAILED" }
+$draft = $draftDetails | ConvertFrom-Json
+$draftAsset = @($draft.assets | Where-Object { $_.name -ceq "ToSailTheStarrySky-Setup.exe" })
+$expectedUrl = "https://github.com/$repo/releases/download/$tag/ToSailTheStarrySky-Setup.exe"
+if (-not [bool]$draft.isDraft -or
+    $draftAsset.Count -ne 1 -or
+    [string]$draftAsset[0].url -cne $expectedUrl -or
+    [long]$draftAsset[0].size -ne (Get-Item -LiteralPath $setup).Length) {
+    throw "TSTSS_RELEASE_DRAFT_ASSET_METADATA_MISMATCH"
+}
+Write-Host "TSTSS_RELEASE_DRAFT_METADATA=PASS"
 & gh release edit $tag --repo $repo --draft=false --prerelease
 if ($LASTEXITCODE -ne 0) { throw "TSTSS_RELEASE_PROMOTION_FAILED_DRAFT_ONLY" }
 $details = (& gh release view $tag --repo $repo --json assets,isDraft,isPrerelease | Out-String)
