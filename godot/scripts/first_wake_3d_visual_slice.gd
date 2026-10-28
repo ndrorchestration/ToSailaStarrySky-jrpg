@@ -137,7 +137,7 @@ func _assemble_coast() -> void:
                 1.0, Vector3(3.0, 0.65, 2.5), distant_green)
     for sign in [-1.0, 1.0]:
         for j in range(5):
-            var x := sign * (12.0 + j * 3.2)
+            var x: float = float(sign) * (12.0 + float(j) * 3.2)
             var zz := -18.0 + float(j % 3) * 9.0
             _sphere("CoastalNearRock", Vector3(x, -1.5, zz),
                 1.0, Vector3(2.5, 2.1 + j * 0.4, 2.7), dark_rock)
