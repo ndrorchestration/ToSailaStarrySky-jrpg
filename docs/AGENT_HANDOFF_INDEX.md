@@ -14,6 +14,10 @@
 | Cinematics | [CINEMATIC_CLIP_CONTRACT.md](CINEMATIC_CLIP_CONTRACT.md) and benchmark scene |
 | Builds / validation / release | [DEVELOPMENT.md](DEVELOPMENT.md), [PREVIEW_0_1_ACCEPTANCE.md](PREVIEW_0_1_ACCEPTANCE.md), [Godot coordination](GODOT_MIGRATION_COORDINATION.md) |
 
+## Current ship integration review path
+
+For Aureate Wake wing animation, chapter-scene bridging and visual-event plumbing, review [ship-pose prototype → production admission](SHIP_POSE_PROTOTYPE_TO_PRODUCTION_ADMISSION.md) before modifying Godot scene hierarchies. Source proofs: [#478 hinge](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/478), [#490 pose+weather](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/490), [#497 native Chapter I ship-space handoff](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/497). These are **drafts on different lineages**, not one merged runtime or a final ship model. The smallest next candidate is a test-only, renderer-independent pose request in the true native Ionia-first Chapter I engineering scene. No public late-game clues or mode identifiers.
+
 ## Cross-agent collaboration protocol
 
 **Hermes / Hyperagent Spellcraft / Muse Herald:** do not rely on your own chat memory or a private Notion connection to discover canon. Read this GitHub handoff and follow source links if authorized. A file linked in a draft PR is not in `main` until merged.
