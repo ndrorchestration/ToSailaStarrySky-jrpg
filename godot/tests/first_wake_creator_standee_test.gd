@@ -52,9 +52,15 @@ func _run() -> void:
                 check(actor.creator_standee.material is ShaderMaterial and
                     actor.creator_standee.material.shader != null,
                     "source figure must use bounded cinematic-coastal lighting")
-                var collider: CollisionShape2D = actor.get_node("CollisionShape2D") as CollisionShape2D
-                check(collider != null and collider.shape is CircleShape2D and
-                    absf(collider.shape.radius - 10.0) < 0.01,
+                # The existing actor creates an unnamed CollisionShape2D at runtime.
+                # Check its TYPE, rather than inventing a new canonical node name.
+                var original_collider: CollisionShape2D = null
+                for child in actor.get_children():
+                    if child is CollisionShape2D:
+                        original_collider = child
+                        break
+                check(original_collider != null and original_collider.shape is CircleShape2D and
+                    absf(original_collider.shape.radius - 10.0) < 0.01,
                     "source visuals must not change existing physics footprint")
             check(not e.walk_review_sprite.visible and not i.ionia_front_walk_sprite.visible,
                 "rejected provisional sprites must be hidden during source view")
