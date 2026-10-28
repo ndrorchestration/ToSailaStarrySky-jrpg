@@ -79,11 +79,13 @@ func _capture() -> void:
         else:
             if dock.ender.creator_standee_variant != "matte_v3" or dock.ionia.creator_standee_variant != "matte_v3":
                 _fail("static source renderer did not prefer refined original mattes")
+            dock._sync_presentation()
             await _photo("matte_v3")
         if not dock.ender.creator_standee_enabled or not dock.ionia.creator_standee_enabled:
             _fail("full-body static source not enabled")
         dock.ender.enable_creator_standee(false)
         dock.ionia.enable_creator_standee(false)
+        dock._sync_presentation()
         await _photo("existing_walkers")
         if dock.ender.creator_standee_enabled or dock.ionia.creator_standee_enabled:
             _fail("reversible originals not restored")
