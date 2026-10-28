@@ -90,6 +90,17 @@ func _verify() -> void:
         and scene.transient_review_contract()["ship_space_production_ready"] == false
         and scene.transient_review_contract()["saved_in_chapter1"] == false,
         "bridge remains an opt-in ephemeral review, never canonical gameplay grant")
+    var m_key := InputEventKey.new()
+    m_key.keycode = KEY_M
+    m_key.pressed = true
+    scene._unhandled_input(m_key)
+    check(scene.maritime_atmosphere.reduced_motion
+        and scene.maritime_atmosphere.sea_material.get_shader_parameter("visual_motion_scale") == 0.0,
+        "M freezes actual 3D ocean waves during playable crew walkthrough")
+    scene._unhandled_input(m_key)
+    check(not scene.maritime_atmosphere.reduced_motion
+        and scene.maritime_atmosphere.sea_material.get_shader_parameter("visual_motion_scale") == 1.0,
+        "M restores native 3D ocean animation without changing physics")
     check(not scene.inspect_review_helm(), "far crew cannot activate helm remotely")
     var actor: CharacterBody3D = ship.crew_walker
     for i in range(30):
