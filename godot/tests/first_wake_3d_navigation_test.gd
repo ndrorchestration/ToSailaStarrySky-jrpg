@@ -32,6 +32,15 @@ func _run() -> void:
     check(player.get_node("VisualAnchor_ApprovedCharacterGLBWillAttachHere").get_child(0).name ==
         "ExplicitNonCharacterFootprintCursor",
         "missing model was faked instead of explicit review locator")
+    var hud_backdrop: ColorRect = stage.get_node_or_null(
+        "ClearlyLabeled3DDevelopmentHUD/ReadableDarkOverlayFor3DControls") as ColorRect
+    check(hud_backdrop != null, "readable dark-background development HUD missing")
+    if hud_backdrop != null:
+        check(hud_backdrop.color.a >= 0.8, "bright-sky text contrast was weakened")
+        check(hud_backdrop.mouse_filter == Control.MOUSE_FILTER_IGNORE,
+            "UI background must not block gameplay input")
+    check("NON-CHARACTER" in stage.navigation_status.text,
+        "navigation cursor is not honestly identified as non-character")
     check(stage.interaction_probes.size() == 3, "three real spatial inspection probes not found")
     check(stage.physics_root.get_child_count() == 8,
         "physical dock, two rails, plaza, one actor and three areas incomplete")
