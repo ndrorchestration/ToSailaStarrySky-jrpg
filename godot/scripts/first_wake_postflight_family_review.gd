@@ -6,6 +6,7 @@ extends Node2D
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const Actor = preload("res://scripts/pilot_actor.gd")
 const Inputs = preload("res://scripts/first_wake_chapter1_input_policy.gd")
+const WorkshopScene = preload("res://scenes/first_wake_core_alignment_review.tscn")
 
 const LYRA_POSITION := Vector2(690, 470)
 const TALEN_POSITION := Vector2(812, 470)
@@ -30,6 +31,8 @@ var dialogue_label: Label
 var objective_label: Label
 var party_label: Label
 var hint_label: Label
+var ui_layer: CanvasLayer
+var repair_review: Node2D
 var last_message: String = "A temporary safe mooring review; exact shoreline geography is not established."
 
 func configure_after_safe_review(story: Variant, physical_water_verified: bool, stable_float_verified: bool, reserve_inspected: bool, mooring_confirmed: bool) -> bool:
@@ -62,7 +65,8 @@ func _ready() -> void:
     ender.position = Vector2(162, 475)
     add_child(ender)
     ender.set_walk_review_enabled(true)
-    var ui := CanvasLayer.new()
+    ui_layer = CanvasLayer.new()
+    var ui := ui_layer
     ui.name = "PostflightFamilyReadableUI"
     add_child(ui)
     objective_label = _label(ui, Vector2(23, 22), 20, 917)
@@ -114,11 +118,15 @@ func _draw() -> void:
         draw_rect(Rect2(TALEN_POSITION + Vector2(-9, -80), Vector2(17, 12)), Color("#f1c376"))
 
 func _unhandled_input(event: InputEvent) -> void:
+    if repair_review != null:
+        return
     if event.is_action_pressed(Inputs.INTERACT) and not event.is_echo():
         interact()
         get_viewport().set_input_as_handled()
 
 func interact() -> bool:
+    if repair_review != null:
+        return false
     if dialogue_open:
         return advance_dialogue()
     if ender == null or not safe_mooring_review:
@@ -207,9 +215,37 @@ func interact() -> bool:
         last_message = "Investigate the log, chart, and Lyra's observation; then gather at the table."
         _refresh()
         return false
+    if scene_phase == "working_theory":
+        if not _near(THEORY_TABLE):
+            last_message = "Return to the theory table to proceed to the repair workshop review."
+            _refresh()
+            return false
+        return open_connected_workshop()
     last_message = "The working theory is recorded. Recovery materials and harmonic resolution are next."
     _refresh()
     return false
+
+func open_connected_workshop() -> bool:
+    if scene_phase != "working_theory" or dialogue_open or repair_review != null:
+        return false
+    if opening.step_key() != "working_theory" or opening.active_party_ids != ["ender", "ionia", "lyra"]:
+        return false
+    if not safe_mooring_review or opening.clues.size() < 2:
+        return false
+    if ender == null or not _near(THEORY_TABLE):
+        return false
+    var review := WorkshopScene.instantiate()
+    if not bool(review.call("configure_from_working_theory", opening)):
+        review.free()
+        return false
+    repair_review = review
+    scene_phase = "repair_review"
+    ender.player_controlled = false
+    ender.visible = false
+    ui_layer.visible = false
+    add_child(repair_review)
+    queue_redraw()
+    return true
 
 func advance_dialogue() -> bool:
     if not dialogue_open:
@@ -275,6 +311,7 @@ func review_snapshot() -> Dictionary:
         "canonical_geography_assigned": false,
         "production_family_art_verified": false,
         "combat_art_granted": false,
+        "connected_repair_review": repair_review != null,
         "review_only": true,
     }
 
@@ -282,7 +319,9 @@ func _refresh() -> void:
     if objective_label == null:
         return
     var task := "MEET LYRA AND TALEN" if scene_phase == "family_arrival" else (
-        "GATHER TWO CLUES AND DISCUSS THE THEORY" if scene_phase == "investigation" else "WORKING THEORY RECORDED"
+        "GATHER TWO CLUES AND DISCUSS THE THEORY" if scene_phase == "investigation" else (
+            "GO TO THEORY TABLE: OPEN REPAIR REVIEW" if scene_phase == "working_theory" else "REPAIR REVIEW"
+        )
     )
     objective_label.text = "FIRST WAKE / POSTFLIGHT FAMILY & EVIDENCE REVIEW — " + task
     party_label.text = "Story party: " + " + ".join(opening.active_party_ids) + "  |  Talen: noncombat  |  Safely moored: review fixture"
