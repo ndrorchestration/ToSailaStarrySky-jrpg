@@ -121,6 +121,13 @@ jobs:
             exit 1
           fi
           grep -Fq 'TSTSS_FIRST_WAKE_PHYSICS_SPLASHDOWN_PASS:' /tmp/first-wake-water-proof.log
+      - name: Verify review-only Aureate Wake cinematography handoff from real Ionia-first water physics
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 50s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_cinematic_handoff_test.gd 2>&1 | tee /tmp/first-wake-visual-handoff.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_FIRST_WAKE_VISUAL_HANDOFF_FAIL:' /tmp/first-wake-visual-handoff.log
+          grep -Eq 'TSTSS_FIRST_WAKE_VISUAL_HANDOFF_PASS checks=[0-9]+' /tmp/first-wake-visual-handoff.log
       - name: Verify real First Wake authored dialogue gates scene progress
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_dialogue_scene_test.gd
