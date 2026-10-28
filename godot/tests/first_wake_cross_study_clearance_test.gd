@@ -102,6 +102,24 @@ func _run() -> void:
         report["poses"].size() == 5 and
         report["overlap_pairs"] >= 0,
         "five native 0%-100% wing poses compared against AABBs")
+    var regions: Dictionary = report["overlap_pairs_by_region"]
+    var by_wing: Dictionary = report["overlap_pairs_by_wing"]
+    var wing_count_sum: int = 0
+    for wing_name in Rig.WING_NAMES:
+        wing_count_sum += int(by_wing[wing_name])
+    verify(int(regions["foredeck"]) + int(regions["geodesic_helm"]) ==
+        int(report["overlap_pairs"]) and wing_count_sum == int(report["overlap_pairs"]),
+        "reported broad-phase contacts reconcile by target region and original wing")
+    var sample_sum: int = 0
+    for pose in report["poses"]:
+        var sample_by_region: Dictionary = pose["bounding_box_overlaps_by_region"]
+        verify(int(sample_by_region["foredeck"]) +
+            int(sample_by_region["geodesic_helm"]) ==
+            int(pose["bounding_box_overlap_pairs"]),
+            "every wing pose reports exact region-classified contact count")
+        sample_sum += int(pose["bounding_box_overlap_pairs"])
+    verify(sample_sum == int(report["overlap_pairs"]),
+        "five pose stages sum to full broad-phase total")
     verify(report["minimum_clearance_art_units"] >= 0.0 and
         not report["actors_collidable"] and
         not report["deck_clearance_test_is_certification"],
