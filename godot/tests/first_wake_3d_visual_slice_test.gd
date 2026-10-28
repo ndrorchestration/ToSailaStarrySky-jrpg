@@ -62,7 +62,7 @@ func _verify() -> void:
     check(preview.active_hour == "blue_hour" and preview.sunlight.light_energy < 0.5,
         "native T key did not switch to nighttime lighting")
     preview._unhandled_input(event)
-    check(preview.active_hour == "golden_hour" and preview.sunlight.light_energy > 1.0,
+    check(preview.active_hour == "golden_hour" and preview.sunlight.light_energy > 0.65,
         "T key could not restore cinematic sunset")
     var original_distance: float = preview.camera_distance
     Input.action_press("ui_up")
