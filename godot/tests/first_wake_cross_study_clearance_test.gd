@@ -91,7 +91,8 @@ func _run() -> void:
     verify(report["source_pinned"] and
         report["ship_blob"] == Cross.SOURCE_SHIP_BLOB and
         report["foredeck_blob"] == Cross.SOURCE_FOREDECK_BLOB and
-        report["bridge_blob"] == Cross.SOURCE_BRIDGE_BLOB,
+        report["bridge_blob"] == Cross.SOURCE_BRIDGE_BLOB and
+        report["interior_blob"] == Cross.SOURCE_INTERIOR_BLOB,
         "exact three independent source blobs are preserved")
     verify(report["admission"] ==
         "BLOCKED_ON_HULL_SCALE_EGRESS_AND_SWEPT_VOLUME" and
@@ -114,6 +115,13 @@ func _run() -> void:
         "upper-summit standing shortfall remains blocking")
     verify(is_equal_approx(float(report["foredeck_bridge_seam_gap_m"]), 0.075),
         "independent bow/dome seam projection is recorded")
+    verify(bool(report["interior_wider_than_outer"]) and
+        float(report["interior_beam_study_m"]) > float(report["outer_hull_beam_study_m"]),
+        "10.4m interior cutaway cannot fit current outer-hull beam under 2.5x hypothesis")
+    verify(is_equal_approx(float(report["interior_beam_study_m"]), 3.8) and
+        is_equal_approx(float(report["outer_hull_beam_study_m"]), 3.4) and
+        is_equal_approx(float(report["outer_hull_loft_length_study_m"]), 11.65),
+        "original outer skin beam/loft length measured in explicit provisional scale")
     var all_yaws_same: bool = true
     for name in Rig.WING_NAMES:
         var current: Node3D = rig.get_node("WingRig_" + name)
