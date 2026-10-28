@@ -17,6 +17,9 @@ var motion_visual: Node3D
 var review_observations: int = 0
 var review_label: Label
 var instruction_label: Label
+var helm_feedback: PanelContainer
+var helm_feedback_heading: Label
+var helm_feedback_body: Label
 var last_review_message: String = ""
 var _eligibility_last: bool = false
 
@@ -66,6 +69,7 @@ func _ready() -> void:
     instruction_label.add_theme_color_override(
         "font_color", Color(0.95, 0.89, 0.73))
     overlay.add_child(instruction_label)
+    _build_readonly_helm_feedback(overlay)
     _refresh_ui()
 
 func review_eligible() -> bool:
@@ -74,6 +78,42 @@ func review_eligible() -> bool:
     return chapter.room == "engineering" and (
         chapter.opening.step_key() in RECOGNIZED_STEPS) and (
         chapter.opening.active_party_ids == ["ender", "ionia"])
+
+func _build_readonly_helm_feedback(overlay: CanvasLayer) -> void:
+    helm_feedback = PanelContainer.new()
+    helm_feedback.name = "AccessibleReviewStatusPanel"
+    helm_feedback.position = Vector2(608, 68)
+    helm_feedback.custom_minimum_size = Vector2(324, 94)
+    var panel_style := StyleBoxFlat.new()
+    panel_style.bg_color = Color(0.055, 0.10, 0.15, 0.94)
+    panel_style.border_width_left = 2
+    panel_style.border_width_top = 2
+    panel_style.border_width_right = 2
+    panel_style.border_width_bottom = 2
+    panel_style.border_color = Color(0.68, 0.55, 0.35)
+    panel_style.content_margin_left = 12
+    panel_style.content_margin_top = 10
+    panel_style.content_margin_right = 12
+    panel_style.content_margin_bottom = 9
+    helm_feedback.add_theme_stylebox_override("panel", panel_style)
+    overlay.add_child(helm_feedback)
+    var stack := VBoxContainer.new()
+    helm_feedback.add_child(stack)
+    helm_feedback_heading = Label.new()
+    helm_feedback_heading.name = "Title"
+    helm_feedback_heading.text = "SHIPBOARD REVIEW / READ-ONLY"
+    helm_feedback_heading.add_theme_font_size_override("font_size", 13)
+    helm_feedback_heading.add_theme_color_override(
+        "font_color", Color(0.91, 0.73, 0.48))
+    stack.add_child(helm_feedback_heading)
+    helm_feedback_body = Label.new()
+    helm_feedback_body.name = "Notice"
+    helm_feedback_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    helm_feedback_body.custom_minimum_size = Vector2(292, 45)
+    helm_feedback_body.add_theme_font_size_override("font_size", 14)
+    helm_feedback_body.add_theme_color_override(
+        "font_color", Color(0.95, 0.94, 0.86))
+    stack.add_child(helm_feedback_body)
 
 func _set_chapter_present(enabled: bool) -> void:
     chapter.visible = enabled
@@ -177,6 +217,10 @@ func _process(delta: float) -> void:
 func _refresh_ui() -> void:
     if review_label == null or instruction_label == null:
         return
+    helm_feedback.visible = three_d_review_active and (
+        last_review_message != "")
+    if helm_feedback.visible:
+        helm_feedback_body.text = last_review_message
     if three_d_review_active:
         review_label.position = Vector2(24, 24)
         review_label.text = "AUREATE WAKE / ORDINARY SHIP WALKTHROUGH — STUDY ONLY"
