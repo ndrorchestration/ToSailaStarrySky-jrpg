@@ -19,6 +19,10 @@ const REVIEW_HEADROOM_M: float = 2.05
 const COLLISION_LAYER: int = 8
 const REVIEW_STATUS := "SINGLE_SCENE_PHYSICS_PROTOTYPE_NOT_PRODUCTION"
 const CrewWalker = preload("res://scripts/aureate_wake_crew_walk_review.gd")
+const SOURCE_GLASS_SHADER = preload("res://art-staging/ship-glass-study/bridge_panorama_glass.gdshader")
+const SOURCE_GLASS_GIT_BLOB_SHA := "b6c7e8d4144acc14074581b08b61c61b7f5a047a"
+const SOURCE_GLASS_SHA256 := "fa5a1d235d28c51aa93640e30ef25ddffecce16ab7d1083330da122a2480b7be"
+var glass_review_profile: String = "metric_proxy"
 const HATCH_INTERACT_RADIUS_M: float = 1.28
 var crew_walker: CharacterBody3D
 var crew_camera: Camera3D
@@ -331,6 +335,33 @@ func _process(_delta: float) -> void:
         target = eye + (target - eye).normalized() * distance
     crew_camera.global_position = target
     crew_camera.look_at(eye + Vector3(0, 0, -0.70), Vector3.UP)
+
+func set_glass_art_review(profile: String) -> bool:
+    # No source art replaces the real Chapter I scene. This shader can only
+    # alter visual panes in the isolated ship study, never collision geometry.
+    if profile not in ["metric_proxy", "source_clear", "source_low_glare"]:
+        return false
+    var pane: MeshInstance3D = get_node_or_null("MetricFacetedGlassStudy")
+    if pane == null:
+        return false
+    if profile == "metric_proxy":
+        pane.material_override = _glass
+    else:
+        var selected := ShaderMaterial.new()
+        selected.shader = SOURCE_GLASS_SHADER
+        if profile == "source_low_glare":
+            selected.set_shader_parameter("glass_tint", Color(0.38, 0.57, 0.62))
+            selected.set_shader_parameter("face_alpha", 0.085)
+            selected.set_shader_parameter("edge_alpha", 0.045)
+            selected.set_shader_parameter("highlight_gain", 0.10)
+        else:
+            selected.set_shader_parameter("glass_tint", Color(0.43, 0.65, 0.71))
+            selected.set_shader_parameter("face_alpha", 0.13)
+            selected.set_shader_parameter("edge_alpha", 0.12)
+            selected.set_shader_parameter("highlight_gain", 0.30)
+        pane.material_override = selected
+    glass_review_profile = profile
+    return true
 
 func set_hatch_open(value: bool) -> void:
     _hatch_open = value
