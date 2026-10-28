@@ -2,6 +2,7 @@ extends Node2D
 ## Five distinct four-direction original-source studies, isolated from Chapter I.
 const Actor = preload("res://scripts/five_lights_motion_actor.gd")
 const Atmosphere = preload("res://shaders/five_lights_motion_studio.gdshader")
+const Scenography = preload("res://scripts/five_lights_stage_scenography.gd")
 const CAST: Array[String] = ["Ionia", "Ender", "Aepex", "Lyra", "Reson"]
 const START_X: Array[float] = [134.0, 307.0, 480.0, 653.0, 826.0]
 const START_Y := 441.0
@@ -11,6 +12,8 @@ var keyboard_enabled: bool = true
 var reduced_motion: bool = false
 var ambience: ShaderMaterial
 var status: Label
+var controls: Label
+var note: Label
 
 func _ready() -> void:
     var background := ColorRect.new()
@@ -21,6 +24,9 @@ func _ready() -> void:
     ambience.shader = Atmosphere
     background.material = ambience
     add_child(background)
+    var scenery := Scenography.new()
+    scenery.name = "OriginalReviewScenographyNonColliding"
+    add_child(scenery)
     var cast_root := Node2D.new()
     cast_root.name = "NonCanonicalFiveLightsSourceReview"
     cast_root.y_sort_enabled = true
@@ -39,13 +45,15 @@ func _ready() -> void:
     var ui := CanvasLayer.new()
     ui.name = "ReviewInstructions"
     add_child(ui)
-    _label(ui, Vector2(39, 19), "TO SAIL THE STARRY SKY    /    FIVE LIGHTS", 24)
-    _label(ui, Vector2(42, 57), "Original candidate atlases  |  Four facings  |  Six phases", 15)
+    _label(ui, Vector2(38, 24), "TO SAIL THE STARRY SKY     |     FIVE LIGHTS", 24)
+    _label(ui, Vector2(42, 61), "IN-ENGINE CHARACTER MOTION  /  Source-original art  /  Night harbor review", 14)
     for i in range(CAST.size()):
-        var tag := _label(ui, Vector2(START_X[i] - 60, 303), CAST[i].to_upper(), 16)
+        var tag := _label(ui, Vector2(START_X[i] - 60, 485), CAST[i].to_upper(), 16)
         tag.custom_minimum_size = Vector2(120, 26)
         tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    status = _label(ui, Vector2(40, 552), "", 17)
+    status = _label(ui, Vector2(40, 541), "", 19)
+    controls = _label(ui, Vector2(40, 578), "WASD / arrows: move     TAB: select     F: facing     R: reset     M: reduced motion", 15)
+    note = _label(ui, Vector2(40, 603), "ART & STANCE UNAPPROVED  /  Gameplay, canon and saves unchanged", 13)
     _choose(1)
 
 func _label(parent: Node, at: Vector2, words: String, font_size: int) -> Label:
@@ -82,8 +90,7 @@ func _update_hud() -> void:
     var actor = cast_actors[CAST[selected_index]]
     status.text = "SELECTED %s  /  %s  /  frame %d of 6" % [
         CAST[selected_index].to_upper(), actor.facing.to_upper(), actor.phase + 1]
-    status.text += "\nArrows/WASD move  ·  TAB switch  ·  F turn  ·  R reset  ·  M reduced motion"
-    status.text += "\nREVIEW ONLY  ·  Unapproved character art  ·  No party/recruitment/save effects"
+    # A clean status row keeps source truth visible without covering actors.
 
 func _physics_process(_delta: float) -> void:
     if not keyboard_enabled or cast_actors.size() != CAST.size():
