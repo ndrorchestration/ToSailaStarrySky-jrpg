@@ -13,6 +13,12 @@ The [README native six-frame contact sheet](chapter1-six-native-stage-frames.svg
 | Separate provisional stores annex | `first-wake-salvage-depot-native-960x640.png` | 59,192 | `0ec1fd6c54bcd165c6296fa64c0dd93cf0a6911a8bad250c18a16d16178a5b02` |
 | Material-return workshop; installation still pending | `first-wake-salvage-installed-pending-native-960x640.png` | 70,439 | `25b059f6fc80b6285ad5d4e4342138eb2a0076f673a9736cb095131b713ea8ca` |
 
+## Visual QA findings from direct inspection
+
+The genuine native screenshots demonstrate **scene state and interaction implementation**, not cinematic presentation. The current **waterborne Aureate Wake** is represented by a simple flat hull polygon with no detailed ship silhouette, environmental material pass, foam, wake/water shader or cinematic camera response visible in the captured frame. The **family scene** stages Lyra and Talen as plain colored rectangular markers, alongside the clue stations; the characters are not implemented there as production-quality sprites. The **stores annex** uses basic gray rectangular architecture and untextured pickup props. Ender has a recognizable directional sprite, but environmental staging does not yet match the visual bible.
+
+**Production art gate:** before these scenes belong in a marketing gallery or receive an artistic PASS, replace placeholder ship, environment, Lyra/Talen and material assets; implement considered light, ocean surface, weather, material response, camera composition, scene depth and character animation; capture current gameplay again; and obtain creator/human visual review. Native test success must not be mistaken for artistic acceptance.
+
 ## Interpretation and limitations
 
 - The flight/water scene is a **local RigidBody2D + Area2D physics review**; neither a planet-scale ocean nor production ship model is verified.
