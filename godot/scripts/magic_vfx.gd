@@ -8,6 +8,7 @@ const SIGIL_DIR = "res://art-review/magic_vfx/"
 const AURA_SHADER = preload("res://shaders/magic_vfx_aura.gdshader")
 const Particles = preload("res://scripts/magic_vfx_particles.gd")
 const Ground = preload("res://scripts/magic_vfx_ground.gd")
+const SpiritLight = preload("res://scripts/magic_vfx_spirit_light.gd")
 const DEFAULT_STILL_PROGRESS = 0.29
 const SHADER_RESOLUTION = Vector2(380.0, 380.0)
 
@@ -21,6 +22,7 @@ var _aura: ColorRect
 var _aura_material: ShaderMaterial
 var _particles: Node2D
 var _ground: Node2D
+var _spirit_light: Node2D
 var quality_level: int = 1
 
 func _ready() -> void:
@@ -47,6 +49,9 @@ func _ready() -> void:
     _particles = Particles.new()
     _particles.name = "CinematicMicroParticles"
     add_child(_particles)
+    _spirit_light = SpiritLight.new()
+    _spirit_light.name = "LyraIndependentSpiritPink"
+    add_child(_spirit_light)
     play_affinity(character_id, reduced_motion)
 
 func play_affinity(next_id: String, use_reduced_motion: bool = true) -> bool:
@@ -104,6 +109,8 @@ func _sync_layers() -> void:
         _particles.set_visual(character_id, p, reduced_motion, quality_level)
     if _ground != null:
         _ground.set_visual(character_id, p, reduced_motion)
+    if _spirit_light != null:
+        _spirit_light.set_visual(character_id, p, reduced_motion)
     queue_redraw()
 
 func _process(delta: float) -> void:
@@ -181,20 +188,6 @@ func _draw_water(core: Color, accent: Color, p: float, energy: float) -> void:
         var a := float(i) * TAU / 8.0 + p * 0.6
         var pos := Vector2(cos(a) * 125.0, sin(a) * 69.0)
         draw_circle(pos, 2.8 if i % 2 == 0 else 4.0, _rgba(accent if i % 2 == 0 else core, 0.82 * energy))
-    # Lyra's creator-required pink spirit energy is distinct from Water itself.
-    # Two soft edge-streams stay outside the central actor silhouette when composited behind.
-    # No bloom threshold, strobe, gameplay permission, or elemental change.
-    for side in [-1.0, 1.0]:
-        var spirit_path := PackedVector2Array()
-        for step in range(24):
-            var t: float = float(step) / 23.0
-            var x: float = side * (75.0 + 9.0 * sin(t * PI))
-            var y: float = -83.0 + 160.0 * t + 5.0 * sin(t * TAU + p * 2.0)
-            spirit_path.append(Vector2(x, y))
-        draw_polyline(spirit_path, _rgba(accent, 0.64 * energy), 2.3, true)
-        draw_circle(spirit_path[2], 3.8, _rgba(accent, 0.83 * energy))
-        draw_circle(spirit_path[21], 3.2, _rgba(accent, 0.73 * energy))
-
 func _draw_earth(core: Color, accent: Color, p: float, energy: float) -> void:
     for i in range(8):
         var angle := TAU * float(i) / 8.0
