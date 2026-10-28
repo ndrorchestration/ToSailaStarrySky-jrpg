@@ -20,7 +20,8 @@ The `SURFACE_Y`, 144×34 ship collider, `Area2D` water and berth sensors, buoyan
 - Native splashdown/berth/family contract: **PASS** with test-only physics-frame waits.
 - Native main entry to Chapter I water/reunion/story test: **PASS** with same test-only physics-frame waits.
 - Native dialogue scene test: **PASS**.
-- Authentic native image capture of this new coastline: **not yet performed**.
+- Authentic native OpenGL image capture of updated coastline: **PASS**, six genuine 960x640 Godot PNG frames produced by `capture_first_wake_recovery_review.gd` (afloat, approach, contact, secured, family, Lyra joined). Existing image-distinctness assertions passed; artistic inspection still pending.
+- Capture waits for berth contact and secured-state now use `physics_frame` instead of render frames to avoid headless timing dependence.
 - Runtime gameplay mechanics were not changed by timing corrections.
 - Cinematic/art sign-off: **pending authentic Godot screenshot comparison**.
 - Windows installer/Defender custody: **blocked independently**.
