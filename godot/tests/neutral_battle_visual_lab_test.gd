@@ -61,6 +61,21 @@ func _run() -> void:
     if not lab.staff_view.visible or not lab.enemy_view.visible         or lab.staff_view.visual_contract().is_empty()         or lab.enemy_view.reaction_phase() != "hit"         or lab.enemy_view.queued_gale_seconds <= 0.0:
         _fail("one real strike did not render staff and enemy reaction truthfully")
         return
+    # Optical contact uses the real 168-unit staff shaft and its ferrule.
+    # These are measurable stage-space positions, NOT a physics hitbox.
+    var contact_frame: Dictionary = lab.staff_view.visual_contract()
+    var staff_tip: Vector2 = lab.staff_view.position + Vector2(contact_frame["shaftTipA"])
+    var expected_surface: Vector2 = lab.enemy_view.position + lab.OPTICAL_CONTACT_LOCAL
+    if not lab.optical_contact_verified or lab.optical_contact_distance > 2.0         or staff_tip.distance_to(expected_surface) > 2.0:
+        _fail("authored staff tip is not aligned to the review-only optical surface")
+        return
+    if absf(float(contact_frame["weaponLength"]) - 168.0) > 0.001         or bool(contact_frame.get("combatCommandIssued", true))         or bool(contact_frame.get("canExecute", true)):
+        _fail("optical staging shortened the staff or invented combat authority")
+        return
+    var planted_foot: Vector2 = lab.staff_view.position + Vector2(contact_frame["footA"])
+    if planted_foot.y < 424.0 or planted_foot.y > 480.0         or lab.staff_view.position.x < 350.0 or lab.staff_view.position.x > 510.0:
+        _fail("optical staging moved Ender off the plausible encounter deck")
+        return
     if not lab.visual_gate.consume(
         "ender","full_length_staff","staffStrike",true,before,after
     ).is_empty():
@@ -98,7 +113,7 @@ func _run() -> void:
     if not lab.resolve_one_staff_strike():
         _fail("reduced-motion presentation blocked an authorized battle action")
         return
-    if lab.enemy_view.reaction_phase() != "still"         or lab.enemy_view.authored_idle_frame() != 0         or not bool(lab.last_visual_receipt["visualPose"]["motionReduced"])         or not lab.staff_view.visible:
+    if lab.enemy_view.reaction_phase() != "still"         or lab.enemy_view.authored_idle_frame() != 0         or not bool(lab.last_visual_receipt["visualPose"]["motionReduced"])         or not lab.staff_view.visible         or not lab.optical_contact_verified:
         _fail("reduced motion did not preserve static weapon and enemy poses")
         return
     if lab.accepted_actions != 1 or lab.finished_visual_receipts != 1         or lab.encounter.turns != 1:
@@ -107,7 +122,7 @@ func _run() -> void:
 
     lab.queue_free()
     await process_frame
-    print("TSTSS_NEUTRAL_BATTLE_VISUAL_LAB_PASS: real staffStrike -> 1 read-only weapon+enemy cue, no replay/story/save; authentic hit -> resolved Gale; reduced motion")
+    print("TSTSS_NEUTRAL_BATTLE_VISUAL_LAB_PASS: real single staffStrike -> weapon+enemy, 168-unit ferrule/surface optical alignment, no replay/hitbox/story/save, hit -> resolved Gale, reduced motion")
     quit(0)
 
 func _fail(reason: String) -> void:
