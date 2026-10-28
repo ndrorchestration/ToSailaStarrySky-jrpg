@@ -40,47 +40,6 @@ jobs:
           }
           Write-Host "EXACT_HEAD_BINDING=PASS:$actual"
 
-      # Hosted Windows images can ship with Defender realtime monitoring off and
-      # blanket drive-root exclusions. Restoration is hard fail-closed: the
-      # unchanged custody preflight and exact Windows QA below still own PASS.
-      - name: Restore Defender realtime protection and remove drive-wide exclusions
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-          if (-not (Get-Command Set-MpPreference -ErrorAction SilentlyContinue) -or
-              -not (Get-Command Remove-MpPreference -ErrorAction SilentlyContinue)) {
-            throw "TSTSS_DEFENDER_RESTORE_COMMANDS_UNAVAILABLE"
-          }
-          $before = Get-MpComputerStatus -ErrorAction Stop
-          Write-Host "TSTSS_DEFENDER_BEFORE_ENABLED=$([bool]$before.AntivirusEnabled)"
-          Write-Host "TSTSS_DEFENDER_BEFORE_REALTIME=$([bool]$before.RealTimeProtectionEnabled)"
-          if (-not [bool]$before.AntivirusEnabled) {
-            throw "TSTSS_DEFENDER_ANTIVIRUS_UNAVAILABLE"
-          }
-          # This only enables protection; never turn scanning off or mask failures.
-          Set-MpPreference -DisableRealtimeMonitoring $false -DisableBehaviorMonitoring $false -RealTimeScanDirection Both -ErrorAction Stop
-          $initialExclusions = @((Get-MpPreference -ErrorAction Stop).ExclusionPath)
-          foreach ($exclusion in $initialExclusions) {
-            if ($null -ne $exclusion -and [string]$exclusion -match '^[A-Za-z]:[/\\]?$') {
-              Remove-MpPreference -ExclusionPath ([string]$exclusion) -ErrorAction Stop
-              Write-Host "TSTSS_DEFENDER_REMOVED_DRIVE_EXCLUSION=$exclusion"
-            }
-          }
-          $after = Get-MpComputerStatus -ErrorAction Stop
-          $preferences = Get-MpPreference -ErrorAction Stop
-          $remainingRootExclusions = @($preferences.ExclusionPath | Where-Object {
-            $null -ne $_ -and [string]$_ -match '^[A-Za-z]:[/\\]?$'
-          })
-          Write-Host "TSTSS_DEFENDER_AFTER_ENABLED=$([bool]$after.AntivirusEnabled)"
-          Write-Host "TSTSS_DEFENDER_AFTER_REALTIME=$([bool]$after.RealTimeProtectionEnabled)"
-          Write-Host "TSTSS_DEFENDER_AFTER_ROOT_EXCLUSIONS=$($remainingRootExclusions.Count)"
-          if (-not [bool]$after.AntivirusEnabled -or
-              -not [bool]$after.RealTimeProtectionEnabled -or
-              $remainingRootExclusions.Count -ne 0) {
-            throw "TSTSS_DEFENDER_RESTORE_FAILED_CUSTODY_BLOCKED"
-          }
-          Write-Host "TSTSS_DEFENDER_RESTORE_PROBE=PASS"
-
       - name: Preflight unchanged Defender custody requirements
         shell: pwsh
         run: |
@@ -706,43 +665,4 @@ jobs:
             -OutputDir $env:TSTSS_TRUSTED_INSTALLER_DIR
           Write-Host "TSTSS_TRUSTED_DEFENDER_ON_INSTALLER_SCAN=PASS"
           Write-Host "TSTSS_TRUSTED_INSTALLER_DISTRIBUTION=RUNNER_LOCAL_ONLY"
-          Write-Host "PUBLIC_RELEASE_AUTHORIZED=NO"
-
-
-  # Read-only comparison of the newer GitHub-hosted runner image.
-  # This does not approve release: it checks whether Defender-on custody
-  # would even be possible without changing the runner's security policy.
-  windows-2025-defender-capability:
-    runs-on: windows-2025
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    steps:
-      - name: Inspect Defender-on capability without modifying host
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-          foreach ($name in @("Get-MpComputerStatus", "Get-MpPreference", "Get-WinEvent", "Start-MpScan", "Get-MpThreatDetection")) {
-            if (-not (Get-Command $name -ErrorAction SilentlyContinue)) {
-              throw "TSTSS_WINDOWS2025_DEFENDER_COMMAND_UNAVAILABLE:$name"
-            }
-          }
-          $status = Get-MpComputerStatus -ErrorAction Stop
-          $prefs = Get-MpPreference -ErrorAction Stop
-          $roots = @($prefs.ExclusionPath | Where-Object {
-            $null -ne $_ -and [string]$_ -match '^[A-Za-z]:[/\\]?$'
-          })
-          Write-Host "TSTSS_WINDOWS2025_ANTIVIRUS_ENABLED=$([bool]$status.AntivirusEnabled)"
-          Write-Host "TSTSS_WINDOWS2025_REALTIME_ENABLED=$([bool]$status.RealTimeProtectionEnabled)"
-          Write-Host "TSTSS_WINDOWS2025_ROOT_EXCLUSIONS=$($roots.Count)"
-          Write-Host "TSTSS_WINDOWS2025_ENGINE_VERSION=$($status.AMEngineVersion)"
-          Write-Host "TSTSS_WINDOWS2025_SIGNATURE_VERSION=$($status.AntivirusSignatureVersion)"
-          $null = Get-WinEvent -ListLog "Microsoft-Windows-Windows Defender/Operational" -ErrorAction Stop
-          Write-Host "TSTSS_WINDOWS2025_OPERATIONAL_LOG=AVAILABLE"
-          if (-not [bool]$status.AntivirusEnabled -or
-              -not [bool]$status.RealTimeProtectionEnabled -or
-              $roots.Count -gt 0) {
-            throw "TSTSS_WINDOWS2025_CUSTODY_PREREQUISITE_UNAVAILABLE"
-          }
-          Write-Host "TSTSS_WINDOWS2025_DEFENDER_CAPABILITY=PASS"
           Write-Host "PUBLIC_RELEASE_AUTHORIZED=NO"
