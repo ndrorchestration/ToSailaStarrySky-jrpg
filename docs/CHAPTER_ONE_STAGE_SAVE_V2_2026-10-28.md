@@ -23,7 +23,15 @@ The existing normal F5 real Godot game-entry test now verifies:
 4. Source v1 file bytes preserved across v2 saves/loads; child combat party and forged failed-retest fields rejected.
 5. Current v2 corrupt, valid backup previous phase recovery; both corrupt, safe original v1 fallback.
 
-**CI status:** do not claim acceptance until the *exact head* GitHub native Godot pilot and isolated nine-frame F5 GL capture workflow return PASS. Independent developer art review, licensed music, actual world route, Windows Defender-on custody and final release remain OPEN.
+**Exact implementation proof:** `ea1e42f010df35fffb9e86631c06118ea1061b61` [Godot 4.7.2 full F5 + GL workflow #40651268170](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40651268170) **SUCCESS**: **102 headless** full-route native assertions, **104 real-GL** assertions, and **nine 960×640 exact-head native screenshot files** ([artifact #12800005490](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40651268170/artifacts/12800005490)). Validation covers full gameplay from authentic Ionia-first physical splashdown to signed-off bench review, staged v2 family/theory/workshop/supply/failure/candidate F5 saves, F9 restoration, v1 bytes unchanged, per-field tamper denial, invalid phase, corrupt primary + backup fallback, and missing/rewritten v1 authority failure. A freshly instantiated `FirstWakeGame` in the same Godot process restores the saved candidate without sharing the previous scene's objects. **This does not yet prove a cold operating-system process restart or shipped Windows installer session.**
+
+Same tested source [native First Wake pilot #40651268035](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40651268035) **SUCCESS**, and [repository smoke #40651270055](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40651270055) **SUCCESS**. Exact-head Ionia render and Windows security workflow were still active at documentation writing; verify them independently. No production/creator-art PASS is claimed.  Independent developer art review, licensed music, actual world route, Windows Defender-on custody and final release remain OPEN.
+
+## Current polish gate disposition
+
+**CH1-14:** **ENGINEERING PROTOTYPE PASS / PRODUCTION OPEN**. Legitimate family and repair progress is now locally saveable, recoverable and version-bound, but full cold Windows installer relaunch, schema lifecycle migration, load feedback on all screens, and human QA are open. The v1 physics receipt is unchanged and the new v2 raw SHA-256 link is a local consistency contract, **not a signed/anti-cheat trust guarantee**.
+
+**CH1-01:** native complete route remains provisional because staging is not actual voyage geometry or final chapter location. **CH1-20/21:** readable story cues tested, no authored voiced Denith shanty or final UI cinematic approval. Windows Defender-on custody and shipping remain independent hard gates.
 
 ## Explicit exclusions
 
