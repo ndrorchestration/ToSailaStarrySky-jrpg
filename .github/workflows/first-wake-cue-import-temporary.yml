@@ -1,0 +1,97 @@
+# Single-purpose importer; delete after source-authenticated capture promotion.
+name: First Wake four-frame GL evidence import
+on:
+  push:
+    branches:
+      - docs/native-godot-screenshot-gallery-20261027
+    paths:
+      - .github/workflows/first-wake-cue-import-temporary.yml
+permissions:
+  contents: write
+  actions: read
+jobs:
+  import-exact-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact documentation review branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: true
+      - name: Install pinned image encoding dependency
+        run: python3 -m pip install --disable-pip-version-check 'Pillow==11.3.0'
+      - name: Download exact reviewed four-frame 3D GL capture artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: godot-flight-slice-software-captures
+          repository: ndrorchestration/ToSailtheStarrySky-jrpg
+          run-id: 40625082846
+          path: /tmp/first-wake-source-artifact
+          github-token: ${{ github.token }}
+      - name: Verify native source image hashes and preserve original PNG plus optimized JPEG
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from hashlib import sha256
+          from io import BytesIO
+          from PIL import Image
+          import json
+          root=Path('/tmp/first-wake-source-artifact')
+          dest=Path('docs/screenshots/native-2026-10-27/first-wake-cues')
+          (dest/'original').mkdir(parents=True,exist_ok=True)
+          expected={
+             'first-lift':'3fe31045abacb77176aeea7dc949bed85cb51ca857023ba382ed4ae529e3ca81',
+             'controlled-descent':'be5bcc9a37123505066ddafc94220e96b4f03945146cf92ef6c9c2b9c200dc06',
+             'ocean-afloat-study':'80e26677e56c71e89df68d76ec10116d1d00a27908ba1b10702419476e03e340',
+             'recovery-checks':'192049e8845f5300e98c62234d10e129254472ef8d267d2182399b9d32f2643d',
+          }
+          manifest={
+            'source_pr':524,
+            'source_commit':'d6afcf7a3c94c841e6fd305f8aad5f5fbe603c75',
+            'source_workflow_run':40625082846,
+            'source_artifact_id':12788812796,
+            'source_artifact_sha256':'3a29b0a5aa087ed2b48e293298edf1e638ddd74cde35a418f335fd1121a00a53',
+            'renderer':'Godot 4.7.2 native software OpenGL 960x640',
+            'status':'real prototype frames; not approved production art, ocean physics, or rescue geography',
+            'fixture':'separate 3D cue consumer, not the forward 2D story producer in the same runtime',
+            'files':{}
+          }
+          for key,correct in expected.items():
+            hits=[p for p in root.rglob(key+'.png') if p.as_posix().endswith('/first-wake-cues/'+key+'.png')]
+            if len(hits)!=1: raise SystemExit('missing or ambiguous native frame: '+key)
+            data=hits[0].read_bytes()
+            if sha256(data).hexdigest()!=correct: raise SystemExit('native screenshot SHA-256 mismatch: '+key)
+            if not data.startswith(b'\x89PNG\r\n\x1a\n'): raise SystemExit('not PNG: '+key)
+            img=Image.open(BytesIO(data))
+            if img.size!=(960,640): raise SystemExit('not 960x640: '+key)
+            orig=dest/'original'/(key+'.png')
+            orig.write_bytes(data)
+            jpg=dest/(key+'.jpg')
+            img.convert('RGB').save(jpg,format='JPEG',quality=82,optimize=True,progressive=True)
+            manifest['files'][key]={
+               'source_path':hits[0].relative_to(root).as_posix(),
+               'original_png':'original/'+key+'.png',
+               'original_sha256':correct,
+               'optimized_jpg':key+'.jpg',
+               'optimized_sha256':sha256(jpg.read_bytes()).hexdigest(),
+               'dimensions':[960,640]
+            }
+            print('FIRST_WAKE_GL_CUE_ADMITTED',key,correct)
+          (dest/'provenance.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+          if len(manifest['files'])!=4: raise SystemExit('not exactly four frames')
+          print('FIRST_WAKE_GL_CUE_PROVENANCE_PASS: exactly 4 verified PNGs and JPEG derivatives')
+          PY
+      - name: Commit new frames to this draft only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "docs/native-godot-screenshot-gallery-20261027"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/screenshots/native-2026-10-27/first-wake-cues/
+          test "$(git diff --cached --name-only | wc -l)" -eq 9
+          git diff --cached --name-only | grep -v '^docs/screenshots/native-2026-10-27/first-wake-cues/' && exit 1 || true
+          git commit -m "docs(visual): preserve four exact-head First Wake native GL cues and provenance"
+          git push origin HEAD:refs/heads/docs/native-godot-screenshot-gallery-20261027
