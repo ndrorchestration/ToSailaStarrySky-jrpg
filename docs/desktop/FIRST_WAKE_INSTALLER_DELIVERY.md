@@ -57,3 +57,11 @@ The optional `trusted-installer-defender-qa` job is gated to the repository owne
 ### After security verification and creator approval
 
 Publish the exact verified `ToSailTheStarrySky-Setup.exe` to an approved GitHub Release, check its asset SHA-256, and add a **single direct Windows installer download** link to README. The player then double-clicks the setup and launches the native Godot game without Godot, ZIP extraction, a browser, or command-line tooling. No link should be published before that specific binary and release asset actually exist.
+
+### One-command creator-PC preparation (staged, not yet exercised)
+
+`scripts/prepare-first-wake-windows-installer.ps1` now orchestrates the existing export/NSIS compile and new exact-binary Defender security scan **in one trusted local PowerShell invocation**. It requires a specific expected 40-character source SHA, clean tracked source, already-enabled Defender real-time protection, official Godot 4.7.2 Windows export templates and an NSIS compiler. It can find an already-running Godot 4.7.2 editor and a standard NSIS installation; it does not download or silently install tools. The script creates `ToSailTheStarrySky-Setup.exe`, then requires an actual Defender scan receipt whose source/hash/status match the generated setup. It cannot make an installer publicly available.
+
+Example for an authorized Windows development machine with tools installed and a checked-out source: `pwsh -File scripts/prepare-first-wake-windows-installer.ps1 -ExpectedSourceSha <exact-commit-sha>`. This is an operator action, **not a step expected of players**. The connected creator PC is currently offline and this script has **not been run natively there**. Neither static contract CI nor the hosted functional installer job verifies the new local script end-to-end.
+
+A future public link will be created only from the exact security-verified binary after player acceptance and explicit creator release approval. The current game remains playable through Godot F5.
