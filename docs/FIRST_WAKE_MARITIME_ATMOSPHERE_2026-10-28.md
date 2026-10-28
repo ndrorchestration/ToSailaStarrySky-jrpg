@@ -1,0 +1,9 @@
+# First Wake — optional native daytime sky and open sea visual pass (2026-10-28)
+
+**Review-only G3 scene; draft/unmerged.** Stacks on PR #560 camera, anonymous crew motion and read-only helm feedback. New visual-only `first_wake_maritime_atmosphere_review.gd` creates a true Godot procedural sky, warmer horizon scattering approximation and 300m animated water shader mesh at -0.95 study metres under the real walking deck. It changes neither collisions nor water physics. The inherited dark WorldEnvironment is switched off only in the optional 2D↔3D scene, not in prior standalone metric-ship test scenes.
+
+**Intended test:** after Ionia first hires Ender, B opens the real 3D geodesic ship and G/F/C/E operate as before. The camera should now include daylit sky/water rather than an empty dark color. The sea isn't buoyancy, swell physics, pressure hull evidence or a confirmed planetary climate; all environmental values and ship geometry are art-study values, not canonical.
+
+Native CI checks actual Sky resource, physical water mesh/shader, preserved hatch/rail/crew collisions, unchanged 2D chapter save and locked Resonance and captures four actual 960×640 native Godot images. Compare against prior PR #560 screenshots rather than accepting a mere green render as cinematic art approval. A true full atmosphere/ocean pass still needs horizon matching, nearshore geometry, weather/lighting variation, physically convincing shoreline, sound, accessibility and performance testing.
+
+No final Ender art, ship safety guarantees, ship alternative modes, Windows release, default-scene switch, merge or canon approval are implied.
