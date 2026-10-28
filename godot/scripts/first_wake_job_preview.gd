@@ -178,6 +178,9 @@ func launch_flight_review() -> bool:
     if not bool(next_scene.call("configure_preflight", opening)):
         next_scene.free()
         return false
+    # Opt in only from the isolated First Wake employment/flight preview.
+    # 3D is an original-source, visual-only inset; 2D RigidBody remains authority.
+    next_scene.enable_3d_cinematic_inset = true
     flight_review = next_scene
     room = "flight_review"
     dock_background.visible = false
