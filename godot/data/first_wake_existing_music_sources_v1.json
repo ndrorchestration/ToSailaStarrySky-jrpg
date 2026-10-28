@@ -1,0 +1,59 @@
+{
+  "schema": "tstss.review.existing_chapter1_music.v1",
+  "authority": "historical_audio_source_inventory_only",
+  "source_repository": "ndrorchestration/ToSailtheStarrySky-jrpg",
+  "source_commit": "1b1f51806ea9d013433cb98add260bd9c5be79c0",
+  "source_pr": 151,
+  "source_manifest": "docs/audio-assets.json",
+  "source_manifest_status": "admitted_on_archived_branch_not_current_godot",
+  "new_godot_asset_policy": "no binary copied; SHA256+bytes must match after creator-approved source migration",
+  "public_streaming_authorized": false,
+  "new_story_music_placements_approved": false,
+  "tracks": [
+    {
+      "id": "skyward_arpeggio",
+      "title": "Skyward Arpeggio",
+      "source_path": "assets/audio/aetherwake-skyward-arpeggio-main-title.mp3",
+      "target_godot_path": "res://audio/aetherwake-skyward-arpeggio-main-title.mp3",
+      "sha256": "7ac5fe9c2ee0bc8d0cbfa36441dbb7783dbe2ef0cc5e2ee665086a527a7bc350",
+      "bytes": 4233081,
+      "source_role": "title_menu"
+    },
+    {
+      "id": "amonigio_umulula",
+      "title": "Amonigio Umulula",
+      "source_path": "assets/audio/amonigio-umulula.mp3",
+      "target_godot_path": "res://audio/amonigio-umulula.mp3",
+      "sha256": "bce86fc575323b99573e420dcb6c0d19bfe1eb8e6ba637edc2b72c1edf20cd98",
+      "bytes": 5364037,
+      "source_role": "opening_cinematic"
+    },
+    {
+      "id": "nocturnal_resolve",
+      "title": "Nocturnal Resolve",
+      "source_path": "assets/audio/nocturnal-resolve.mp3",
+      "target_godot_path": "res://audio/nocturnal-resolve.mp3",
+      "sha256": "c8a35d42762705011f8a9eeefebea91736b333677a9b1117087490bbf0dbc65c",
+      "bytes": 6500031,
+      "source_role": "combat_danger"
+    },
+    {
+      "id": "solar_punk_airship",
+      "title": "Solar Punk Airship",
+      "source_path": "assets/audio/solar-punk-airship.mp3",
+      "target_godot_path": "res://audio/solar-punk-airship.mp3",
+      "sha256": "d5d1561c1ef056978342732e363df5411860611739fb485bb707c6e98800335c",
+      "bytes": 4432217,
+      "source_role": "world_airship_exploration"
+    },
+    {
+      "id": "open_sky_signal",
+      "title": "Open Sky Signal",
+      "source_path": "assets/audio/open-sky-signal.mp3",
+      "target_godot_path": "res://audio/open-sky-signal.mp3",
+      "sha256": "831a195d060e22107c9b38ac1655b0ae879485e87eba601d41d3af46d8518484",
+      "bytes": 4171250,
+      "source_role": "ender_first_note_leitmotif"
+    }
+  ]
+}

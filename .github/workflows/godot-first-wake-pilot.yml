@@ -141,6 +141,16 @@ jobs:
             exit 1
           fi
           grep -Fq 'TSTSS_FIRST_WAKE_PIPELINE_PROJECTION_PASS:' /tmp/first-wake-pipeline.log
+      - name: Verify original five-track audio archive identity and nonplaying native Godot music cue preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 45s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_existing_music_cue_test.gd 2>&1 | tee /tmp/first-wake-five-track-audio.log
+          if grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_FIRST_WAKE_FIVE_TRACK_AUDIO_PREFLIGHT_FAIL:' /tmp/first-wake-five-track-audio.log; then
+            echo 'Native original-score provenance and cue preflight rejected' >&2
+            exit 1
+          fi
+          grep -Fq 'TSTSS_FIRST_WAKE_FIVE_TRACK_AUDIO_PREFLIGHT_PASS:' /tmp/first-wake-five-track-audio.log
       - name: Verify real First Wake authored dialogue gates scene progress
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_dialogue_scene_test.gd
