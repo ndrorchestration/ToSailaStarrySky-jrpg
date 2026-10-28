@@ -1,3 +1,7 @@
+## P-03 independent offline equipment save contract (draft, no live save migration)
+
+The [P-03 isolated save-contract review](EQUIPMENT_P03_SAVE_CONTRACT_REVIEW.md) explores a strict versioned item-instance envelope and a **test-only** atomic/backup storage slot. An existing Chapter I v1 save becomes **pending authorization with zero item grants**, not permanent loot or a production-upgraded inventory. The real `first_wake_chapter1_save_codec.gd`, `first_wake_chapter1_save_store.gd` and player save path are deliberately unchanged. Native exact-head tests and creator authorization are required before any production persistence claim.
+
 # Native battle equipment visual slice — review only
 
 **Source line:** stacked on Chapter I / party-combat-authority draft PR #347, not merged into `main` or the independent planetary/flight draft branches. **Engine target:** Godot 4.7.2 Standard + GDScript.
