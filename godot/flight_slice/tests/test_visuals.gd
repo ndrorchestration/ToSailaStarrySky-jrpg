@@ -34,6 +34,14 @@ func _run() -> void:
         "foam_breakup_strength"))),
         "original contour can be restored exactly for review")
     visuals.water.set_shader_parameter("foam_breakup_strength", 1.0)
+    check(is_equal_approx(float(visuals.water.get_shader_parameter(
+        "shelf_transition_strength")), 1.0),
+        "depth-bounded water shelf color study is explicitly enabled")
+    visuals.water.set_shader_parameter("shelf_transition_strength", 0.0)
+    check(is_zero_approx(float(visuals.water.get_shader_parameter(
+        "shelf_transition_strength"))),
+        "original textured #466 shelf color remains selectable without switching foam")
+    visuals.water.set_shader_parameter("shelf_transition_strength", 1.0)
     check(visuals.water.get_shader_parameter("water_ripple_detail") is Texture2D,
         "surf review preserves original PNG ripple texture binding")
     for station in [Vector2(-60.0, 0.0), Vector2(-2.0, 0.0), Vector2(30.0, 0.0)]:
