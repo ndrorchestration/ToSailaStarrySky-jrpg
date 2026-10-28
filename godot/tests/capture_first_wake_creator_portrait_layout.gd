@@ -4,7 +4,7 @@ extends SceneTree
 const Game = preload("res://scenes/first_wake_game.tscn")
 const IDLE_RGB := Color(0.78, 0.22, 0.12)
 const IONIA_RGB := Color(0.12, 0.72, 0.53)
-const TARGET := Vector2i(814, 385)
+const TARGET := Vector2i(814, 245)
 var failures: Array[String] = []
 
 func _initialize() -> void:
