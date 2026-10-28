@@ -57,4 +57,18 @@ assert(/func set_environment_asset_intake_review_enabled\(enabled: bool\)/.test(
 assert(!adapter.includes('user://'),'no save-state access');
 assert(!adapter.includes('CollisionShape'),'no collision-owned art');
 assert(!adapter.includes('Input.'),'no gameplay input hooks');
+const shaderPath=path.join(root,'godot/shaders/environment_material_adapter.gdshader');
+const shader=fs.readFileSync(shaderPath,'utf8');
+assert(shader.includes('shader_type canvas_item;'), 'shared material adapter uses native 2D renderer');
+assert(shader.includes('uniform sampler2D micro_detail'), 'original visual texture shader binding');
+assert(shader.includes('uniform sampler2D region_detail'), 'original regional PNG shader binding');
+assert(shader.includes('float footprint = x_mask * y_mask;'), 'material patch edges fade on all four sides');
+assert(!shader.includes('SCREEN_TEXTURE'), 'no framebuffer readback/copy of gameplay scene');
+assert(!shader.includes('discard;'), 'no hard-edged surface discard');
+assert(adapter.includes('set_low_detail(enabled: bool)'), 'native low-quality effect disable');
+assert(adapter.includes('set_preview_variant(variant: String)'), 'legacy vs blended comparison remains reversible');
+assert(adapter.includes('mouse_filter = Control.MOUSE_FILTER_IGNORE'), 'textures do not capture input');
+assert(adapter.includes('res://shaders/environment_material_adapter.gdshader'),
+  'Chapter I reuses one native 2D CanvasItem shader');
+
 console.log('GODOT_ENVIRONMENT_ART_INTAKE_PROVENANCE_PASS assets=4 exact-git-blobs=4 no-gameplay-mutations');
