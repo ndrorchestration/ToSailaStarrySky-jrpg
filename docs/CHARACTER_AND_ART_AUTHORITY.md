@@ -26,6 +26,10 @@ For the creator-supplied five-person group references (nighttime airship and day
 
 **Talen (5):** precocious, enjoys how the ship works, blocks, drawing and painting. Preserve personhood, curiosity and routine. Do not invent powers or portray him as a normal playable battle mage.
 
+## Current Godot directional-animation review (not accepted source art)
+
+The opt-in five-character visual board, four-way six-frame Lyra/Aepex/Reson studies, native 2D physics walking, boot-alpha probe, provisional stance windows, and Lyra south SVG shoe-polygon markers are staged only on stacked draft [#409](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/409) → [#421](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/421) → [#435](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/435) → [#439](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/439) → [#446](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/446) → [#458](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/458) → [#469](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/469) → [#474](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/474) → [#487](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/487). Source-polygon contact points in #487 are **not approved anatomical foot identities**, and 24.33/24.74 px measured world displacement is **not corrected gait**. Do not conflate this 2D lab with integrated 2.5D world grounding. See [Character motion P0–P6 production-admission pipeline](design/CHARACTER_MOTION_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md) for P0–P6 evidence, P-01 prototype route and acceptance holds.
+
 ## Approval and visual test
 
 Keep original layered source, consent/provenance, conversion pipeline, per-action frames/hashes and candidate status. Require side-by-side at native logical size, readable foot-grounding/collision, noninterpenetrating occlusion, plausible gait, matching light and texture, motion playback, and creator visual signoff. A CI green check is **not** a style pass.
