@@ -26,3 +26,9 @@ At `42e8022cbfe46c0fb1b4a3d05f4e18aedc0f2a42`:
 **Source-of-truth warnings:** The legacy Crossing Ender+Lyra combat metadata conflicts with Ionia-first opening and remains quarantined. Level-one baseline stat budget (25) differs from listed Ender (31) and Ionia (26), requiring owner design resolution. PRs #576/#579/#580 contain distinct cinematic implementations, not one merged playable 3D production build. No merge, canon change, or installer release is authorized.
 
 **Related:** `docs/production/CHAPTER1_VERTICAL_SLICE_ACCEPTANCE_CONTRACT_2026-10-28.md` and `docs/production/JRPG_100_POINT_QUALITY_GATE_MAPPING_2026-10-28.md`.
+
+## 2026-10-28 modal input hardening (draft follow-up)
+
+- New source head `d41c41c07227b119b9923b51c1c683e00e9fb73b` prevents `E` world interactions and `K`/`L` save/load hotkeys from acting behind the open **J** Evidence Notebook; **J** continues to close it. These are input-consistency guards, not new combat or save authority.
+- `godot/tests/first_wake_job_preview_notebook_test.gd` additionally asserts no story advancement from an attempted interact key while the notebook is open. Note: full physical movement/input capture and visual readability remain separate unsatisfied UI acceptance gates.
+- This follow-up had **not** yet received an exact-head completed native CI result at documentation time. Preserve previous exact-head success claims only for `79a5317879f8c213744981d3882cc096a82cc60d`; Windows Defender-on acceptance remains blocked.
