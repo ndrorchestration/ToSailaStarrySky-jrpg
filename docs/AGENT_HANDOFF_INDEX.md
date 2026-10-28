@@ -38,3 +38,19 @@
 5. Creator visual/player review, representative performance and Windows export/installed-launch verification.
 
 The existing canonical repository is public: https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg. Review actual branch states before making status claims.
+
+
+## Consolidated prototype-to-production admission handoffs (2026-10-28, review only)
+
+The six distinct source documents below are preserved without overwriting one another's historical evidence. They provide **review criteria, not production authorization**, and do not claim that the underlying Godot scenes, shaders, art, mechanics or item systems were merged into `main`.
+
+| Discipline | Admission contract | Original draft |
+| --- | --- | --- |
+| Equipment and item lifecycle | [Equipment prototype-to-production](design/EQUIPMENT_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md) | [#498](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/498) |
+| Aureate Wake geometry and transformations | [Ship-pose admission](SHIP_POSE_PROTOTYPE_TO_PRODUCTION_ADMISSION.md) | [#499](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/499) |
+| Engine-warning and combat VFX | [VFX admission](VFX_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md) | [#500](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/500) |
+| Snow, sand, wet earth and mist | [Perceptual biome materials](design/PERCEPTUAL_BIOME_MATERIAL_PROMOTION_2026-10-27.md) | [#501](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/501) |
+| Character movement and artwork | [Character motion admission](design/CHARACTER_MOTION_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md) | [#502](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/502) |
+| Enemy silhouette and scene VFX | [Enemy visual admission](reviews/ENEMY_VISUAL_PROTOTYPE_TO_PRODUCTION_2026-10-27.md) | [#505](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/505) |
+
+**Source-of-truth rule:** the newer creator visual reference and actual Ionia-first playable route outrank provisional historical design assumptions; no checklist is closed without exact-head native evidence and appropriate creator/art review. Keep the original PR discussions for provenance. This consolidated document index changes no runtime, canonical story, save schema, installer or published release.
