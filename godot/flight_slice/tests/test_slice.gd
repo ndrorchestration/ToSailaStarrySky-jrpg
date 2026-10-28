@@ -97,6 +97,30 @@ func _run_tests() -> void:
     _check(terrain.chunk_count() == 64, "bounded 64-chunk scene")
     # Engine is clockwise-front: a top-facing triangle has negative winding
     # cross.y here. This regression catches missing terrain seen in real frames.
+    # Refined highland resolution must be real geometry, not a post-effect.
+    # 24 fine divisions share all seven low-grid breakpoints with six divisions,
+    # so the existing stitched-edge algorithm remains authoritative.
+    _check(TerrainStudy.HIGH_SEGMENTS == 24 and
+        TerrainStudy.HIGH_SEGMENTS % TerrainStudy.LOW_SEGMENTS == 0,
+        "fine terrain tessellation preserves exact coarse LOD edge divisions")
+    var alpine_mesh: ArrayMesh = terrain._tile_mesh(3, -1,
+        TerrainStudy.HIGH_SEGMENTS)
+    var alpine_arrays: Array = alpine_mesh.surface_get_arrays(0)
+    var alpine_points: PackedVector3Array = alpine_arrays[Mesh.ARRAY_VERTEX]
+    var alpine_normals: PackedVector3Array = alpine_arrays[Mesh.ARRAY_NORMAL]
+    var expected_points: int = 6 * TerrainStudy.HIGH_SEGMENTS * TerrainStudy.HIGH_SEGMENTS + 24 * TerrainStudy.HIGH_SEGMENTS
+    _check(alpine_points.size() == expected_points and
+        alpine_normals.size() == expected_points,
+        "highland tile allocates an exact bounded 24-division mesh and normals")
+    var first_alpine_point: Vector3 = TerrainStudy.grid_point(3, -1,
+        TerrainStudy.HIGH_SEGMENTS, 0, 0)
+    _check(alpine_points[0].distance_to(first_alpine_point) < 0.0001,
+        "fine highland geometry preserves authoritative tile heights")
+    for k in range(0, alpine_points.size(), 3):
+        if k >= 6 * TerrainStudy.HIGH_SEGMENTS * TerrainStudy.HIGH_SEGMENTS:
+            break # skirts deliberately use their source ground normals
+        _check(alpine_normals[k].is_finite() and alpine_normals[k].y > 0.0,
+            "terrain top normals remain finite and upward after refinement")
     var probe_mesh: ArrayMesh = terrain._tile_mesh(0, 0, 6)
     var geometry: Array = probe_mesh.surface_get_arrays(0)
     var vertices: PackedVector3Array = geometry[Mesh.ARRAY_VERTEX]
