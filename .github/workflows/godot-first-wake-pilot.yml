@@ -169,6 +169,18 @@ jobs:
             exit 1
           fi
           grep -Fq 'TSTSS_FIRST_WAKE_PHYSICS_SPLASHDOWN_PASS:' "$log_file"
+      - name: Verify configured Chapter I F8 opt-in -> real flyer and engineering -> F physical splashdown -> original v1 return
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          trap 'rm -f "$log_file"' EXIT
+          timeout --kill-after=3s 75s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_main_entry_to_water_review_test.gd 2>&1 | tee "$log_file"
+          if grep -Eq 'SCRIPT ERROR|TSTSS_FIRST_WAKE_MAIN_TO_WATER_FAIL' "$log_file"; then
+            echo "End-to-end main scene to water route emitted a script or assertion error" >&2
+            exit 1
+          fi
+          grep -Fq 'TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS:' "$log_file"
       - name: Verify player-selectable original harmonic chart hypotheses and safe retry
         shell: bash
         run: |
