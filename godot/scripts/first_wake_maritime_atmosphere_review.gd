@@ -8,6 +8,8 @@ const HORIZON_RADIUS_M: float = 240.0
 var ocean: MeshInstance3D
 var atmosphere: WorldEnvironment
 var sky_energy: float = 0.0
+var reduced_motion: bool = false
+var sea_material: ShaderMaterial
 
 func _ready() -> void:
     name = "OptionalMaritimeAtmosphere"
@@ -54,18 +56,19 @@ uniform vec4 ocean_ridge : source_color = vec4(0.092, 0.305, 0.36, 1.0);
 uniform vec4 horizon_mist : source_color = vec4(0.38, 0.61, 0.64, 1.0);
 uniform float wave_height = 0.105;
 uniform float wave_speed = 0.37;
+uniform float visual_motion_scale = 1.0;
 varying vec2 sea_position;
 varying float wave_crest;
 void vertex() {
     vec3 world_vertex = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
     sea_position = world_vertex.xz;
-    float broad = sin(world_vertex.x * 0.15 + world_vertex.z * 0.105 + TIME * wave_speed);
+    float broad = sin(world_vertex.x * 0.15 + world_vertex.z * 0.105 + TIME * wave_speed * visual_motion_scale);
     float cross_wave = sin(world_vertex.x * 0.21 - world_vertex.z * 0.17 - TIME * wave_speed * 0.62);
     VERTEX.y += wave_height * (broad * 0.66 + cross_wave * 0.34);
     wave_crest = broad * 0.5 + 0.5;
 }
 void fragment() {
-    float t = TIME;
+    float t = TIME * visual_motion_scale;
     // Low-frequency domain warping breaks the rectangular repeated lines
     // that appeared in the first native ocean-horizon render.
     vec2 domain_warp = 2.75 * vec2(
@@ -97,5 +100,24 @@ void fragment() {
 }
 """
     material.shader = shader
+    sea_material = material
     ocean.material_override = material
+    set_reduced_motion(reduced_motion)
     add_child(ocean)
+
+func set_reduced_motion(enabled: bool) -> void:
+    # Presentation-only: freeze ocean waves without modifying 3D collisions,
+    # camera rays, chapter progress, or the sea-level position.
+    reduced_motion = enabled
+    if sea_material != null:
+        sea_material.set_shader_parameter("visual_motion_scale", 0.0 if enabled else 1.0)
+
+func visual_review_snapshot() -> Dictionary:
+    return {
+        "ocean_mesh_present": ocean != null and ocean.mesh is PlaneMesh,
+        "source_sea_level": SEA_LEVEL_M,
+        "reduced_motion": reduced_motion,
+        "motion_scale": sea_material.get_shader_parameter("visual_motion_scale") if sea_material != null else -1.0,
+        "has_buoyancy_authority": false,
+        "canonical_geography": false,
+    }
