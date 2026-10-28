@@ -25,9 +25,7 @@ const FIXTURE_IDS: Array[String] = [
 const REQUIRED_KEYS: Array[String] = ["schema", "state", "chapterV1", "roster", "instances"]
 
 static func preview_legacy_migration(chapter_v1: Dictionary) -> Dictionary:
-    if not bool(ChapterCodec.validate(chapter_v1).get("ok", false)):
-        return {}
-    if chapter_v1.has("inventory") or chapter_v1.has("equipment"):
+    if not _valid_legacy_chapter(chapter_v1):
         return {}
     # No item instance is invented during a backward-compatible migration.
     return {
@@ -41,9 +39,7 @@ static func preview_legacy_migration(chapter_v1: Dictionary) -> Dictionary:
 static func encode_test_fixture(session, chapter_v1: Dictionary) -> Dictionary:
     if session == null or not session.validate():
         return {}
-    if not bool(ChapterCodec.validate(chapter_v1).get("ok", false)):
-        return {}
-    if chapter_v1.has("inventory") or chapter_v1.has("equipment"):
+    if not _valid_legacy_chapter(chapter_v1):
         return {}
 
     var roster: Dictionary = {}
@@ -97,10 +93,8 @@ static func validate(raw: Variant) -> Dictionary:
     if not (envelope["chapterV1"] is Dictionary):
         return _reject("chapter_v1_type")
     var chapter: Dictionary = envelope["chapterV1"]
-    if not bool(ChapterCodec.validate(chapter).get("ok", false)):
-        return _reject("chapter_v1_invalid")
-    if chapter.has("inventory") or chapter.has("equipment") or chapter.has("trialBag"):
-        return _reject("legacy_payload_leak")
+    if not _valid_legacy_chapter(chapter):
+        return _reject("chapter_v1_invalid_or_unrecognized_fields")
     if not (envelope["roster"] is Dictionary) or not (envelope["instances"] is Array):
         return _reject("roster_or_instances_type")
     var roster: Dictionary = envelope["roster"]
@@ -211,6 +205,16 @@ static func inspect(raw: Variant) -> Dictionary:
         "roster": Dictionary(envelope["roster"]).duplicate(true),
         "instances": Array(envelope["instances"]).duplicate(true),
     }
+
+static func _valid_legacy_chapter(chapter: Dictionary) -> bool:
+    if not bool(ChapterCodec.validate(chapter).get("ok", false)):
+        return false
+    var allowed: Array[String] = ChapterCodec.REQUIRED_V1_FIELDS.duplicate()
+    allowed.append("player_position")
+    for key in chapter.keys():
+        if typeof(key) != TYPE_STRING or str(key) not in allowed:
+            return false
+    return true
 
 static func _instance_id(definition_id: String) -> String:
     return "fixture:" + definition_id
