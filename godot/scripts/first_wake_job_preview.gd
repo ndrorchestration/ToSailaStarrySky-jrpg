@@ -7,6 +7,7 @@ extends Node2D
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const RevisedCodec = preload("res://scripts/first_wake_revised_checkpoint_codec.gd")
 const SaveStore = preload("res://scripts/first_wake_chapter1_save_store.gd")
+const PrototypeRoute = preload("res://scripts/first_wake_prototype_route.gd")
 const ResonanceRoster = preload("res://scripts/first_wake_resonance_roster_gate.gd")
 const Actor = preload("res://scripts/pilot_actor.gd")
 const Dock = preload("res://scripts/dock_depth_review.gd")
@@ -158,6 +159,17 @@ func _draw_engineering_room() -> void:
     draw_line(Vector2(96, 535), Vector2(872, 535), Color("#bfa075"), 2.0)
 
 func _unhandled_input(event: InputEvent) -> void:
+    if event.is_action_pressed(InputPolicy.PROTOTYPE_ROUTE):
+        if event is InputEventKey and event.echo:
+            return
+        # Consume the input while the current viewport still belongs to this
+        # scene. change_scene_to_file() detaches us synchronously.
+        get_viewport().set_input_as_handled()
+        var returned: Dictionary = PrototypeRoute.leave(self)
+        if not bool(returned.get("ok", false)):
+            last_message = "Return unavailable: " + str(returned.get("reason", "unknown"))
+            _sync_presentation()
+        return
     if event is InputEventKey and event.pressed and not event.echo:
         if event.keycode == KEY_K:
             var saved: Dictionary = save_revised_checkpoint()
@@ -380,6 +392,10 @@ func _sync_presentation() -> void:
     else:
         dialogue_speaker.visible = false
         dialogue_text.visible = false
-        hint.text = last_message + "    [Arrows: move  |  E: interact  |  K: save  |  L: load]"
+        hint.text = last_message + (
+            "    [E: interact  |  K: save  |  L: load  |  F8: return to Chapter I]"
+            if get_tree().has_meta(PrototypeRoute.REVIEW_RETURN_SNAPSHOT)
+            else "    [Arrows: move  |  E: interact  |  K: save  |  L: load]"
+        )
     hint.visible = not dialogue_open
     queue_redraw()

@@ -110,6 +110,20 @@ jobs:
         run: |
           set -euo pipefail
           timeout --kill-after=3s 35s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/resonance_dual_review_scene_test.gd
+      - name: Verify opt-in F8 link from real default Chapter I to revised opening and exact memory-only return
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          trap 'rm -f "$log_file"' EXIT
+          timeout --kill-after=3s 45s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_prototype_entry_route_test.gd 2>&1 | tee "$log_file"
+          # Godot can print a GDScript runtime ERROR and still quit(0); the
+          # route may only be called verified when the full log is clean.
+          if grep -Eq 'SCRIPT ERROR|TSTSS_FIRST_WAKE_PROTO_ENTRY_FAIL' "$log_file"; then
+            echo "Prototype navigation has a Godot runtime error" >&2
+            exit 1
+          fi
+          grep -Fq 'TSTSS_FIRST_WAKE_PROTO_ENTRY_PASS:' "$log_file"
       - name: Verify v2 revised opening checkpoint codec cannot read or mutate legacy Chapter I saves
         shell: bash
         run: |

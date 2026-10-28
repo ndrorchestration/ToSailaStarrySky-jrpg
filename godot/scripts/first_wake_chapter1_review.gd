@@ -14,6 +14,7 @@ const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd")
 const CurrentEnemyAdapter = preload("res://scripts/first_wake_current_enemy_adapter.gd")
 const PartyCombatAuthority = preload("res://scripts/first_wake_party_combat_authority.gd")
+const PrototypeRoute = preload("res://scripts/first_wake_prototype_route.gd")
 
 const DECK_BOUNDS := SaveCodec.PLAYER_POSITION_BOUNDS
 const INTERACT_DISTANCE := 74.0
@@ -44,6 +45,7 @@ var headline: Label
 var objective: Label
 var hint: Label
 var party_label: Label
+var prototype_hint: Label
 var dialogue_speaker: Label
 var dialogue_body: Label
 var dialogue = DialogueState.new()
@@ -115,6 +117,7 @@ func _ready() -> void:
     headline = _label(ui, Vector2(24, 16), 23)
     objective = _label(ui, Vector2(24, 54), 16)
     party_label = _label(ui, Vector2(650, 18), 15)
+    prototype_hint = _label(ui, Vector2(25, 104), 14)
     hint = _label(ui, Vector2(28, 568), 18)
     dialogue_speaker = _label(ui, Vector2(142, 374), 18)
     dialogue_body = _label(ui, Vector2(142, 408), 17)
@@ -133,7 +136,16 @@ func _ready() -> void:
     hint.custom_minimum_size = Vector2(900, 54)
 
     headline.text = "AETHERWAKE  /  FIRST WAKE"
+    prototype_hint.text = "F8  REVISED OPENING / IONIA FIRST  —  OPT-IN PROTOTYPE (not story progression)"
     _refresh_ui()
+    if get_tree().has_meta(PrototypeRoute.RESTORE_PENDING):
+        var restored: Dictionary = PrototypeRoute.restore_pending(self)
+        last_message = (
+            "Returned from revised-opening prototype; original Chapter I state restored."
+            if bool(restored.get("ok", false))
+            else "Prototype return refused: " + str(restored.get("reason", "unknown"))
+        )
+        _refresh_ui()
     queue_redraw()
 
 func _label(parent: Node, location: Vector2, size: int) -> Label:
@@ -574,6 +586,17 @@ func _nearest_pending(points: Dictionary, completed: Array[String]) -> String:
     return best_id
 
 func _unhandled_input(event: InputEvent) -> void:
+    if event.is_action_pressed(InputPolicy.PROTOTYPE_ROUTE):
+        if event is InputEventKey and event.echo:
+            return
+        # SceneTree changes detach this node's viewport immediately; handle
+        # the F8 event before making the transition, never after.
+        get_viewport().set_input_as_handled()
+        var switched: Dictionary = PrototypeRoute.enter(self)
+        if not bool(switched.get("ok", false)):
+            last_message = "Prototype route unavailable: " + str(switched.get("reason", "unknown"))
+            _refresh_ui()
+        return
     if event.is_action_pressed(InputPolicy.SAVE_PROGRESS):
         save_progress_to_disk()
         return

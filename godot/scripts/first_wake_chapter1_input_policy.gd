@@ -13,6 +13,7 @@ const COMBAT_HOLD := "aetherwake_ch1_combat_hold"
 const COMBAT_REST := "aetherwake_ch1_combat_rest"
 const SAVE_PROGRESS := "aetherwake_ch1_save_progress"
 const LOAD_PROGRESS := "aetherwake_ch1_load_progress"
+const PROTOTYPE_ROUTE := "tstss_first_wake_prototype_route"
 
 static func ensure_defaults() -> void:
     _ensure_key_and_pad(INTERACT, KEY_E, JOY_BUTTON_A)
@@ -26,6 +27,7 @@ static func ensure_defaults() -> void:
     _ensure_key_and_pad(COMBAT_REST, KEY_4, JOY_BUTTON_A)
     _ensure_key(SAVE_PROGRESS, KEY_F5)
     _ensure_key(LOAD_PROGRESS, KEY_F9)
+    _ensure_key(PROTOTYPE_ROUTE, KEY_F8)
 
 static func primary_label(action: String) -> String:
     if not InputMap.has_action(action):
