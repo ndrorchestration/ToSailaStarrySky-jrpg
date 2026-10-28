@@ -589,11 +589,13 @@ func _unhandled_input(event: InputEvent) -> void:
     if event.is_action_pressed(InputPolicy.PROTOTYPE_ROUTE):
         if event is InputEventKey and event.echo:
             return
+        # SceneTree changes detach this node's viewport immediately; handle
+        # the F8 event before making the transition, never after.
+        get_viewport().set_input_as_handled()
         var switched: Dictionary = PrototypeRoute.enter(self)
         if not bool(switched.get("ok", false)):
             last_message = "Prototype route unavailable: " + str(switched.get("reason", "unknown"))
             _refresh_ui()
-        get_viewport().set_input_as_handled()
         return
     if event.is_action_pressed(InputPolicy.SAVE_PROGRESS):
         save_progress_to_disk()
