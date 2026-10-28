@@ -11,7 +11,7 @@ var failed:=false
 func _initialize() -> void:
     call_deferred("_run")
 
-func _press(node: Node3D,code: Key) -> void:
+func _press(node: Variant,code: Key) -> void:
     var event:=InputEventKey.new()
     event.pressed=true
     event.keycode=code
@@ -56,7 +56,7 @@ func _run() -> void:
         push_error("MODE5_MATERIAL_FOLDER_FAIL")
         quit(1)
         return
-    var scene: Node3D=World.instantiate()
+    var scene: Variant=World.instantiate()
     root.add_child(scene)
     await process_frame
     scene.set_process(false)
@@ -100,7 +100,7 @@ func _run() -> void:
         if scene.snapshot()!=original_save or cam.position!=original_pose:
             failed=true
             push_error("MODE5_MATERIAL_SAVE_OR_CAMERA_MUTATION "+family)
-        var stream:=scene.get_node("NativeCubedSphereTerrain")
+        var stream: Variant=scene.get_node("NativeCubedSphereTerrain")
         var on_stats:Dictionary=stream.stats()
         stream.set_material_review(true,
             "rain" if family=="wet_ground" else "clear",
