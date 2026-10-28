@@ -167,3 +167,11 @@ jobs:
       - name: Verify original procedural signal audio
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/vertical_slice_signal_audio_test.gd
+
+      - name: Verify real first-flight engine-warning VFX through 3 physics splashdowns
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 100s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_engine_warning_vfx_test.gd 2>&1 | tee /tmp/pw01-engine-warning-native.log
+          grep -q 'TSTSS_PW01_ENGINE_VFX_PASS:' /tmp/pw01-engine-warning-native.log
+          ! grep -Eq 'TSTSS_PW01_ENGINE_VFX_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/pw01-engine-warning-native.log
