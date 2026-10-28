@@ -123,15 +123,17 @@ func _capture() -> void:
     var initial: Image = await _image("01-player-command-before-approach")
     if not pilot.start_local_approach():
         problems.append("real 2D approach start invalid")
+    # The GL runner may render many frames per fixed physics tick. Wait on
+    # real SceneTree.physics_frame, never confuse video FPS with contact.
     for tick in range(800):
-        await process_frame
+        await physics_frame
         if pilot.contact_observed:
             break
     if not pilot.contact_observed or not pilot.berth_area.overlaps_body(pilot.hull):
         problems.append("true berth Area2D contact not recorded")
     var contact: Image = await _image("02-independent-physical-berth-contact")
     for tick in range(160):
-        await process_frame
+        await physics_frame
         if pilot.phase == "berth_ready":
             break
     if pilot.phase != "berth_ready" or not pilot.secure_lines():
