@@ -106,18 +106,21 @@ func _run()->void:
     mat.set_shader_parameter("tile_edge_blend_width",0.08)
     var feather_08:Image=await _frame()
     _save(feather_08,"wet-feather-08.png")
+    _save(feather_08,"wet-feathered-tile.png") # Actual live default
+    var new_soft:Image=feather_08
     mat.set_shader_parameter("tile_edge_blend_width",0.14)
     var feather_14:Image=await _frame()
     _save(feather_14,"wet-feather-14.png")
     mat.set_shader_parameter("tile_edge_blend_width",0.22)
-    var new_soft:Image=await _frame()
-    _save(new_soft,"wet-feathered-tile.png")
+    var feather_22:Image=await _frame()
+    _save(feather_22,"wet-feather-22.png")
+    mat.set_shader_parameter("tile_edge_blend_width",0.08)
     var change:int=_diff(old_hard,new_soft)
     var effect:int=_diff(original,new_soft)
     var sky_changed:int=_top_sky_drift(old_hard,new_soft)
     print("MODE5_EDGE_WIDTH_SWEEP width08_from_original=",_diff(original,feather_08),
         " width14_from_original=",_diff(original,feather_14),
-        " width22_from_original=",effect)
+        " width22_from_original=",_diff(original,feather_22))
     print("MODE5_EDGE_A_B_CHANGED pixels=",change,
         " source_to_feather=",effect,
         " sky_drift=",sky_changed," selected_key=",selected_key)
@@ -133,7 +136,7 @@ func _run()->void:
     if land.material_override is not StandardMaterial3D:
         failed=true
         push_error("MODE5_EDGE_ORIGINAL_NOT_RESTORED")
-    print("GODOT_MODE5_EDGE_NATIVE_REVIEW_PASS frames=3 real_scene=true",
+    print("GODOT_MODE5_EDGE_NATIVE_REVIEW_PASS frames=6 real_scene=true",
         " actual_cube_tile=true")
     world.queue_free()
     await process_frame
