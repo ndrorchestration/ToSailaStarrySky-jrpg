@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "kind": "noncanonical_review_only",
+  "native_target": "Godot 4.7.2",
+  "source": {
+    "visual_pr": 486,
+    "visual_sha": "36a13d6063235ed2114bb25d2a2cc61d1d4c9f22",
+    "native_ci_run": 40609537235,
+    "chapter_one_base_pr": 447,
+    "chapter_one_base_sha": "665a2b6439023afc0f77234b94a1eb05b4b170ba"
+  },
+  "stage": "first_wake_first_flight",
+  "camera_shots": [
+    "bow-quarter",
+    "wing-planform",
+    "stern-quarter"
+  ],
+  "look_presets": [
+    "golden-clear",
+    "storm-night-study"
+  ],
+  "default_look": "golden-clear",
+  "art_study_opt_in_only": "storm-night-study",
+  "outputs": {
+    "contract": "godot/scripts/first_wake_cinematic_handoff.gd",
+    "fallback_scene": "res://scenes/first_wake_flight_water_review.tscn",
+    "scene_capture_imported": false,
+    "execute_3d_scene": false
+  },
+  "non_authority": {
+    "blocks_progression": false,
+    "controls_physics": false,
+    "changes_party": false,
+    "changes_saves": false,
+    "reveals_fuel_formula": false,
+    "production_ocean_verified": false,
+    "visual_art_accepted": false,
+    "release_authorized": false
+  },
+  "promotion_requires": [
+    "licensed-or-original-visual-assets-in-native-chapter-scene",
+    "same-frame-cinematography-3d-to-2d-bridge-prototype",
+    "native-rendered-scene-with-ship-weather-and-physics-review-together",
+    "frame-time-vram-and-accessibility-target-receipts",
+    "creator-art-and-chapter-story-approval"
+  ]
+}
