@@ -3,6 +3,8 @@ extends Node2D
 ## chapter checkpoint. This is not an authored harbor, coastal route, tow
 ## method, or permission to recruit Lyra automatically.
 const Inputs = preload("res://scripts/first_wake_chapter1_input_policy.gd")
+const CinematicStage = preload("res://scripts/first_wake_berth_cinematic_stage.gd")
+const ShipArt = preload("res://scripts/first_wake_berth_ship_art.gd")
 const HULL_START := Vector2(215, 395)
 const SENSOR_AT := Vector2(780, 395)
 const SENSOR_SIZE := Vector2(78, 90)
@@ -22,6 +24,9 @@ var lines_secured: bool = false
 var return_requested: bool = false
 var objective: Label
 var hint: Label
+var telemetry: Label
+var cinematic_stage
+var ship_art
 
 func configure(s) -> bool:
     if is_inside_tree() or s == null:
@@ -39,6 +44,11 @@ func _ready() -> void:
     if session == null:
         push_error("TSTSS_LOCAL_BERTH_REQUIRES_REAL_POSTFLIGHT")
         return
+    # Original source shader materials and art sit BEHIND all physical nodes,
+    # with no collision shapes, input capture, scene or story authority.
+    cinematic_stage = CinematicStage.new()
+    cinematic_stage.name = "SourceNativePlayableBerthAtmosphere"
+    add_child(cinematic_stage)
     berth_area = Area2D.new()
     berth_area.name = "LocalBerthPhysicalContactSensor"
     berth_area.position = SENSOR_AT
@@ -65,13 +75,9 @@ func _ready() -> void:
     rectangle.size = HULL_SIZE
     shape.shape = rectangle
     hull.add_child(shape)
-    var visual := Polygon2D.new()
-    visual.name = "AuthorialHullReviewSilhouette"
-    visual.color = Color("#e9bd76")
-    visual.polygon = PackedVector2Array([
-        Vector2(-71, -8), Vector2(55, -8), Vector2(73, 0),
-        Vector2(52, 16), Vector2(-52, 16), Vector2(-73, 0)])
-    hull.add_child(visual)
+    ship_art = ShipArt.new()
+    ship_art.name = "FourWingWakeStudyAttachedToPhysicalHull"
+    hull.add_child(ship_art)
     add_child(hull)
     var ui := CanvasLayer.new()
     ui.name = "BerthInstructionHUD"
@@ -81,8 +87,15 @@ func _ready() -> void:
     objective.add_theme_font_size_override("font_size", 22)
     objective.add_theme_color_override("font_color", Color("#f5e5cb"))
     ui.add_child(objective)
+    telemetry = Label.new()
+    telemetry.position = Vector2(27, 75)
+    telemetry.add_theme_font_size_override("font_size", 15)
+    telemetry.add_theme_color_override("font_color", Color("#c4dfd6"))
+    ui.add_child(telemetry)
     hint = Label.new()
-    hint.position = Vector2(26, 562)
+    hint.position = Vector2(27, 559)
+    hint.custom_minimum_size.x = 910.0
+    hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     hint.add_theme_font_size_override("font_size", 18)
     hint.add_theme_color_override("font_color", Color("#f5e5cb"))
     ui.add_child(hint)
@@ -90,17 +103,9 @@ func _ready() -> void:
     queue_redraw()
 
 func _draw() -> void:
-    draw_rect(Rect2(0, 0, 960, 640), Color("#233e55"))
-    draw_rect(Rect2(0, 392, 960, 174), Color("#3e7f91"))
-    for x in range(12):
-        var offset := float(x) * 92.0
-        draw_line(Vector2(offset, 426), Vector2(offset + 58.0, 426), Color(0.65, 0.83, 0.81, 0.35), 2)
-    draw_rect(Rect2(790, 285, 110, 215), Color("#a88a67"))
-    draw_rect(Rect2(790, 285, 110, 18), Color("#cfb58c"))
-    draw_rect(Rect2(SENSOR_AT.x - 39.0, 360, 78, 72), Color(0.66, 0.87, 0.84, 0.1))
-    draw_line(Vector2(790, 275), Vector2(790, 497), Color("#e0c89b"), 4)
-    draw_rect(Rect2(0, 0, 960, 102), Color(0.04, 0.09, 0.15, 0.94))
-    draw_rect(Rect2(0, 546, 960, 94), Color(0.04, 0.09, 0.15, 0.96))
+    # The source-native cinematic stage owns all decorative draw calls.
+    # The collision shapes and authoritative hull remain unchanged.
+    pass
 
 func _physics_process(delta: float) -> void:
     if hull == null or berth_area == null or phase not in ["approaching", "settling"]:
@@ -157,6 +162,12 @@ func request_return() -> bool:
 func _unhandled_input(event: InputEvent) -> void:
     if event.is_echo():
         return
+    if event is InputEventKey and event.pressed and event.keycode == KEY_M:
+        if cinematic_stage != null:
+            cinematic_stage.set_reduced_motion(not cinematic_stage.reduced_motion)
+            _update_hud()
+            get_viewport().set_input_as_handled()
+        return
     if event.is_action_pressed(Inputs.INTERACT):
         var used: bool = start_local_approach() if phase == "awaiting_approach" else secure_lines()
         if used:
@@ -164,6 +175,11 @@ func _unhandled_input(event: InputEvent) -> void:
     elif event is InputEventKey and event.pressed and event.keycode == KEY_R:
         if request_return():
             get_viewport().set_input_as_handled()
+
+func set_reduced_motion(enabled: bool) -> void:
+    if cinematic_stage != null:
+        cinematic_stage.set_reduced_motion(enabled)
+    _update_hud()
 
 func review_snapshot() -> Dictionary:
     return {
@@ -179,22 +195,34 @@ func review_snapshot() -> Dictionary:
         "reunion_authorized": false,
         "fuel_formula": "unknown",
         "production_ocean_verified": false,
+        "cinematic_art_has_no_contact_authority": true,
+        "reduced_motion_visual_only": cinematic_stage.reduced_motion if cinematic_stage != null else false,
     }
 
 func _update_hud() -> void:
     if objective == null:
         return
-    objective.text = "FIRST WAKE / LOCAL SAFE BERTH REVIEW — ENDER + IONIA"
+    var dwell: float = clampf(stable_seconds / STABLE_SECONDS, 0.0, 1.0)
+    if cinematic_stage != null:
+        cinematic_stage.set_berth_display(phase,
+            hull.position.x if hull != null else HULL_START.x, dwell)
+    if ship_art != null:
+        ship_art.set_lines_secured(lines_secured)
+    objective.text = "FIRST WAKE  /  AUREATE WAKE — LOCAL BERTH"
+    var contact_label := "SENSOR: OVERLAP" if contact_observed else "SENSOR: CLEAR"
+    var dwell_label := str(int(roundf(dwell * 100.0))) + "%"
+    telemetry.text = "ENDER + IONIA   |   " + contact_label + "   |   STABLE DWELL: " + dwell_label
+    var motion := "STILL SEA" if cinematic_stage != null and cinematic_stage.reduced_motion else "SEA MOTION"
     match phase:
         "awaiting_approach":
-            hint.text = "E: begin measured local berth approach  |  R: return to shipboard"
+            hint.text = "E: approach local berth  |  M: " + motion + "  |  R: shipboard"
         "approaching":
-            hint.text = "Observe actual ship contact; not a world-scale route  |  R: return"
+            hint.text = "Local hull is moving; await actual sensor overlap  |  M: " + motion
         "settling":
-            hint.text = "Waiting for verified stable berth overlap  |  R: return"
+            hint.text = "Physical contact registered; waiting for safe low-speed settling  |  M: " + motion
         "berth_ready":
-            hint.text = "E: secure berth lines after stable physical contact  |  R: return"
+            hint.text = "Stable contact achieved — E: secure lines  |  M: " + motion
         "secured_local_berth":
-            hint.text = "Local lines secure. Later reunion remains separate. R: return to save."
+            hint.text = "Lines secured locally. Family arrival is NOT triggered.  |  R: return"
         _:
-            hint.text = "No physical berth proof."
+            hint.text = "Physical berth proof unavailable."
