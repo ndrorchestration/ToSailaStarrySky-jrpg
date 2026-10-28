@@ -150,32 +150,55 @@ func _cliff(label: String, location: Vector3, radius: float, height: float,
         seed: int, material: StandardMaterial3D) -> void:
     _mesh(label, _faceted_cliff_mesh(seed, radius, height), location, material)
 
+func _ridge_mesh(layer: int) -> ArrayMesh:
+    var surface := SurfaceTool.new()
+    surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var z_back := -2.0 - float(layer) * 2.0
+    var z_front := 2.8
+    for step in range(26):
+        var x0 := -78.0 + float(step) * 6.0
+        var x1 := x0 + 6.0
+        var peak0 := 4.6 + sin(float(step) * 0.55 + float(layer)) * 2.8 + cos(float(step) * 0.93) * 1.7
+        var peak1 := 4.6 + sin(float(step + 1) * 0.55 + float(layer)) * 2.8 + cos(float(step + 1) * 0.93) * 1.7
+        var a := Vector3(x0, -3.0, z_front)
+        var b := Vector3(x1, -3.0, z_front)
+        var c := Vector3(x0, peak0, z_front)
+        var d := Vector3(x1, peak1, z_front)
+        var e := Vector3(x0, peak0 + 0.2, z_back)
+        var f := Vector3(x1, peak1 + 0.2, z_back)
+        for point in [a, c, b, b, c, d, c, e, d, d, e, f]:
+            surface.add_vertex(point)
+    surface.generate_normals()
+    return surface.commit()
+
 func _assemble_coast() -> void:
+    var sandstone := _material(Color("#5e5759"), 0.95)
+    var mountain := _material(Color("#475e63"), 0.98)
     var dark_rock := _material(Color("#3c4b59"), 0.98)
-    var sandstone := _material(Color("#75615e"), 0.94)
-    var twilight_rock := _material(Color("#58606b"), 0.98)
-    var distant_green := _material(Color("#3d6258"), 0.97)
-    for rock in [dark_rock, sandstone, twilight_rock]:
-        rock.cull_mode = BaseMaterial3D.CULL_DISABLED
-    # Distinct layered volcanic/sandstone cliffs, not placeholder oval towers.
-    for i in range(15):
-        var x := float(i - 7) * 6.5
-        var z := -43.0 - float(i % 3) * 5.0
-        var h := 5.0 + float((i * 17) % 11) * 0.84
-        var radius := 3.9 + float(i % 3) * 0.78
-        var mat := twilight_rock if i % 3 == 0 else sandstone
-        _cliff("FacetedTrue3DCliff_%02d" % i, Vector3(x, -2.0, z), radius, h, i, mat)
+    var plant := _material(Color("#3b6058"), 0.98)
+    for mat in [sandstone, mountain, dark_rock]:
+        mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+    _mesh("ContinuousTrue3DCoastalRidge", _ridge_mesh(0),
+        Vector3(0, -1.5, -45.0), sandstone)
+    _mesh("DistantTrue3DMountainRidge", _ridge_mesh(2),
+        Vector3(0, 0.1, -61.0), mountain)
+    for i in range(9):
+        var x := -46.0 + float(i) * 12.8
+        var zz := -35.0 + float((i * 3) % 4) * 2.5
+        var h := 1.8 + float((i * 11) % 6) * 0.72
+        _cliff("JaggedRealCoastalShore_%02d" % i,
+            Vector3(x, -2.7, zz), 5.8, h, 33 + i, dark_rock)
         if i % 2 == 0:
-            _sphere("CliffTopVegetation_%02d" % i,
-                Vector3(x, h - 1.5, z), 1.0,
-                Vector3(2.8, 0.32, 2.5), distant_green)
+            _sphere("IrregularCliffTopVegetation_%02d" % i,
+                Vector3(x - 1.0, h - 2.4, zz), 1.0,
+                Vector3(4.0, 0.22, 3.1), plant)
     for sign in [-1.0, 1.0]:
-        for j in range(5):
-            var x: float = float(sign) * (13.2 + float(j) * 3.2)
-            var zz := -18.0 + float(j % 3) * 8.7
-            _cliff("NearFacetedShoreRock", Vector3(x, -2.5, zz),
-                2.6 + float(j % 2) * 0.4, 1.8 + float(j) * 0.33,
-                j + 27, dark_rock)
+        for j in range(4):
+            var x: float = float(sign) * (14.0 + float(j) * 6.1)
+            var zz := -16.0 + float(j % 3) * 8.2
+            _cliff("NearbyCoastalRock", Vector3(x, -2.5, zz),
+                2.7 + float(j % 2) * 0.5, 1.7 + float(j) * 0.28,
+                j + 81, dark_rock)
 
 func _assemble_pier() -> void:
     var wood_a := _material(Color("#795846"), 0.82)
@@ -214,67 +237,97 @@ func _assemble_pier() -> void:
         _box("StoneFlagstone_%02d" % i, Vector3(0.0, 0.17, z),
             Vector3(20.0, 0.025, 0.07), wood_dark)
 
+func _ship_hull_mesh() -> ArrayMesh:
+    var surface := SurfaceTool.new()
+    surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+    # Narrow prow, widened amidships and a tapered stern with a submerged keel.
+    var segments := [-7.0, -5.2, -2.7, 0.3, 3.4, 6.0, 7.7]
+    var widths := [0.22, 1.5, 2.55, 2.65, 2.2, 1.35, 0.17]
+    for i in range(segments.size() - 1):
+        var top_a_l := Vector3(-widths[i], 0.96, segments[i])
+        var top_b_l := Vector3(-widths[i+1], 0.96, segments[i+1])
+        var top_a_r := Vector3(widths[i], 0.96, segments[i])
+        var top_b_r := Vector3(widths[i+1], 0.96, segments[i+1])
+        var keel_a := Vector3(0, -1.40, segments[i])
+        var keel_b := Vector3(0, -1.40, segments[i+1])
+        for vertex in [
+            top_a_l, keel_a, top_b_l, top_b_l, keel_a, keel_b,
+            top_a_r, top_b_r, keel_a, top_b_r, keel_b, keel_a,
+            top_a_l, top_b_l, top_a_r, top_a_r, top_b_l, top_b_r
+        ]:
+            surface.add_vertex(vertex)
+    surface.generate_normals()
+    return surface.commit()
+
 func _assemble_aureate_wake_study() -> void:
-    # Provisional 3D spatial blockout of the ship, NOT production lore sign-off.
-    # Dome and accessible front deck are visible; no submersible/flight unlock is
-    # exposed or asserted by this review-only mesh.
+    # Recognizable original ship features in a separately labeled 3D BLOCKOUT:
+    # seaworthy tapered hull, open bow deck, wing surfaces and domed bridge.
+    # No plot-locked flight/submersible system is exposed in this visual test.
+    var origin := Vector3(-14.5, -0.75, -8.5)
     var ship_root := Node3D.new()
     ship_root.name = "AureateWake_Provisional3DComposition"
-    ship_root.position = Vector3(-14, -0.9, -8.5)
+    ship_root.position = origin
     visual_root.add_child(ship_root)
-    var bronze := _material(Color("#a37d54"), 0.35, 0.63)
-    var hull_mat := _material(Color("#3e5062"), 0.71, 0.30)
-    var deck := _material(Color("#977451"), 0.78)
-    var dome := _material(Color(0.34, 0.70, 0.78, 0.35), 0.12, 0.1)
+    var bronze := _material(Color("#a58253"), 0.42, 0.64)
+    var hull_material := _material(Color("#293b46"), 0.71, 0.27)
+    var shipwood := _material(Color("#876246"), 0.79)
+    var dome := _material(Color(0.18, 0.48, 0.61, 0.31), 0.19, 0.18)
     dome.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-    var hull := CapsuleMesh.new()
-    hull.radius = 2.85
-    hull.height = 14.7
-    hull.radial_segments = 18
-    var hull_instance := MeshInstance3D.new()
-    hull_instance.name = "LengthwiseHull3D"
-    hull_instance.mesh = hull
-    hull_instance.material_override = hull_mat
-    hull_instance.rotation_degrees.x = 90.0
-    ship_root.add_child(hull_instance)
+    hull_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    var hull := MeshInstance3D.new()
+    hull.name = "TaperedShipHull_True3D"
+    hull.mesh = _ship_hull_mesh()
+    hull.material_override = hull_material
+    ship_root.add_child(hull)
     geometry_count += 1
     var deck_mesh := BoxMesh.new()
-    deck_mesh.size = Vector3(4.7, 0.22, 11.6)
+    deck_mesh.size = Vector3(4.5, 0.18, 10.8)
     var deck_obj := MeshInstance3D.new()
-    deck_obj.name = "FrontAccessibleDeckBlockout"
+    deck_obj.name = "OpenAccessibleForeDeckBlockout"
     deck_obj.mesh = deck_mesh
-    deck_obj.material_override = deck
-    deck_obj.position = Vector3(0, 1.14, 0)
+    deck_obj.material_override = shipwood
+    deck_obj.position = Vector3(0, 1.02, 0.0)
     ship_root.add_child(deck_obj)
     geometry_count += 1
-    var glass := SphereMesh.new()
-    glass.radius = 1.0
-    glass.height = 2.0
-    glass.radial_segments = 20
+    var dome_sphere := SphereMesh.new()
+    dome_sphere.radius = 1.0
+    dome_sphere.height = 2.0
+    dome_sphere.radial_segments = 24
+    dome_sphere.rings = 12
     var bridge := MeshInstance3D.new()
     bridge.name = "GeodesicBridgeGlassComposition"
-    bridge.mesh = glass
+    bridge.mesh = dome_sphere
     bridge.material_override = dome
-    bridge.position = Vector3(0.0, 2.1, -3.15)
-    bridge.scale = Vector3(2.1, 1.5, 2.25)
+    bridge.position = Vector3(0, 2.1, -3.3)
+    bridge.scale = Vector3(2.05, 1.47, 2.15)
     ship_root.add_child(bridge)
     geometry_count += 1
-    # The accessible front deck remains open and visible.
-    _box("ShipPreviewWingPort", Vector3(-18.4, 0.7, -9.0),
-        Vector3(4.3, 0.16, 3.2), bronze, Vector3(0, 0, -0.09))
-    _box("ShipPreviewWingStarboard", Vector3(-9.5, 0.7, -9.0),
-        Vector3(4.3, 0.16, 3.2), bronze, Vector3(0, 0, 0.09))
-    var mast := CylinderMesh.new()
-    mast.top_radius = 0.12
-    mast.bottom_radius = 0.23
-    mast.height = 9.2
-    var mast_instance := MeshInstance3D.new()
-    mast_instance.name = "AureateWakeMastBlockout"
-    mast_instance.mesh = mast
-    mast_instance.material_override = bronze
-    mast_instance.position = Vector3(0, 5.4, 2.0)
-    ship_root.add_child(mast_instance)
-    geometry_count += 1
+    # Visible brass geodesic ribs on an actual volume, not a 2D dome decal.
+    var center := origin + Vector3(0, 2.1, -3.3)
+    for azimuth in range(8):
+        var az := TAU * float(azimuth) / 8.0
+        for segment in range(6):
+            var v0 := PI * float(segment) / 6.0
+            var v1 := PI * float(segment + 1) / 6.0
+            var point_a := center + Vector3(
+                2.07 * sin(v0) * cos(az), 1.50 * cos(v0),
+                2.17 * sin(v0) * sin(az))
+            var point_b := center + Vector3(
+                2.07 * sin(v1) * cos(az), 1.50 * cos(v1),
+                2.17 * sin(v1) * sin(az))
+            _pillar("GeodesicStructuralBrassRib", point_a, point_b, 0.024, bronze)
+    # The frontal deck remains physically open as specified in the ship design.
+    for side in [-1.0, 1.0]:
+        _box("AureateWakeWingBlockout", origin +
+            Vector3(float(side) * 4.7, 0.76, 0.9),
+            Vector3(4.3, 0.14, 3.25), bronze,
+            Vector3(0, 0, float(side) * 0.12))
+        for z in [0.2, 2.6, 4.8]:
+            _pillar("OpenDeckBrassRailingPost",
+                origin + Vector3(float(side) * 2.18, 1.05, z),
+                origin + Vector3(float(side) * 2.18, 2.14, z), 0.048, bronze)
+    _pillar("BrassMast", origin + Vector3(0, 1.1, 2.5),
+        origin + Vector3(0, 9.3, 2.5), 0.14, bronze)
 
 func _assemble_cast_import_points() -> void:
     var slots := [
