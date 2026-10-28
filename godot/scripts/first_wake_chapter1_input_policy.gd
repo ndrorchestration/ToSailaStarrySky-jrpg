@@ -3,6 +3,7 @@ extends RefCounted
 ## Creates defaults only when actions do not already exist, preserving remaps.
 
 const INTERACT := "aetherwake_ch1_interact"
+const FLIGHT_REVIEW_LAUNCH := "aetherwake_ch1_flight_review_launch"
 const CHOICE_A := "aetherwake_ch1_choice_a"
 const CHOICE_B := "aetherwake_ch1_choice_b"
 const CHOICE_C := "aetherwake_ch1_choice_c"
@@ -17,6 +18,7 @@ const PROTOTYPE_ROUTE := "tstss_first_wake_prototype_route"
 
 static func ensure_defaults() -> void:
     _ensure_key_and_pad(INTERACT, KEY_E, JOY_BUTTON_A)
+    _ensure_key_and_pad(FLIGHT_REVIEW_LAUNCH, KEY_F, JOY_BUTTON_RIGHT_SHOULDER)
     _ensure_key_and_pad(CHOICE_A, KEY_1, JOY_BUTTON_X)
     _ensure_key_and_pad(CHOICE_B, KEY_2, JOY_BUTTON_Y)
     _ensure_key_and_pad(CHOICE_C, KEY_3, JOY_BUTTON_B)
