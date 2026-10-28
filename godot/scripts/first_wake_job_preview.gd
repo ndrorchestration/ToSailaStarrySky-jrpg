@@ -5,6 +5,8 @@ extends Node2D
 ## No flight, water physics, save migration, release or new combat permissions.
 
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
+const RevisedCodec = preload("res://scripts/first_wake_revised_checkpoint_codec.gd")
+const SaveStore = preload("res://scripts/first_wake_chapter1_save_store.gd")
 const ResonanceRoster = preload("res://scripts/first_wake_resonance_roster_gate.gd")
 const Actor = preload("res://scripts/pilot_actor.gd")
 const Dock = preload("res://scripts/dock_depth_review.gd")
@@ -25,6 +27,7 @@ const DOCK_BOUNDS := Rect2(Vector2(145, 410), Vector2(670, 112))
 const ENGINEERING_ITEMS := ["reference", "containment", "fuel"]
 
 var opening = Opening.new()
+var revised_save_store = SaveStore.new()
 var resonance_roster_gate = ResonanceRoster.new()
 var room: String = "dock"
 var flyer_read: bool = false
@@ -155,6 +158,19 @@ func _draw_engineering_room() -> void:
     draw_line(Vector2(96, 535), Vector2(872, 535), Color("#bfa075"), 2.0)
 
 func _unhandled_input(event: InputEvent) -> void:
+    if event is InputEventKey and event.pressed and not event.echo:
+        if event.keycode == KEY_K:
+            var saved: Dictionary = save_revised_checkpoint()
+            last_message = "Revised opening checkpoint saved." if bool(saved.get("ok", false)) else "Save unavailable: " + str(saved.get("error", saved.get("reason", "unknown")))
+            _sync_presentation()
+            get_viewport().set_input_as_handled()
+            return
+        if event.keycode == KEY_L:
+            var loaded: Dictionary = load_revised_checkpoint()
+            last_message = "Revised opening checkpoint restored." if bool(loaded.get("ok", false)) else "Load unavailable: " + str(loaded.get("error", loaded.get("reason", "unknown")))
+            _sync_presentation()
+            get_viewport().set_input_as_handled()
+            return
     if event.is_action_pressed(InputPolicy.INTERACT) and not event.is_echo():
         interact()
         get_viewport().set_input_as_handled()
@@ -224,6 +240,56 @@ func interact() -> bool:
     last_message = "Inspect phase reference, containment and fuel, then use SAFETY CHECK."
     _sync_presentation()
     return false
+
+func export_revised_checkpoint() -> Dictionary:
+    if dialogue_open:
+        return {}
+    return RevisedCodec.encode(opening, flyer_read, room, inspected_items, ender.position)
+
+func restore_revised_checkpoint(snapshot: Variant) -> bool:
+    # Fully validate/reconstruct the story before changing ANY scene state.
+    # No old Chapter I v1 save may be interpreted as this new review format.
+    var staged: Dictionary = RevisedCodec.restore(snapshot)
+    if not bool(staged.get("ok", false)):
+        return false
+    opening = staged["opening"]
+    flyer_read = bool(staged["flyer_read"])
+    room = str(staged["room"])
+    inspected_items.clear()
+    for item in staged["inspections"]:
+        inspected_items.append(str(item))
+    dialogue_open = false
+    dialogue_lines.clear()
+    dialogue_event = ""
+    dialogue_cursor = 0
+    dialogue_character = ""
+    dock_background.visible = room == "dock"
+    dock_foreground.visible = room == "dock"
+    ender.walking_bounds = DOCK_BOUNDS if room == "dock" else ROOM_BOUNDS
+    ender.position = staged["player_position"]
+    ender.player_controlled = opening.step_key() != "preflight"
+    ionia.walking_bounds = DOCK_BOUNDS if room == "dock" else ROOM_BOUNDS
+    ionia.position = IONIA_DOCK_POSITION if room == "dock" else Vector2(149, 470)
+    ionia.set_ionia_stage_art_enabled(true, "west" if room == "dock" else "east")
+    last_message = "Revised opening review checkpoint restored; no new combat authorization."
+    _sync_presentation()
+    return true
+
+func save_revised_checkpoint() -> Dictionary:
+    var snapshot: Dictionary = export_revised_checkpoint()
+    if snapshot.is_empty():
+        return {"ok": false, "reason": "invalid_or_active_dialogue_state"}
+    return revised_save_store.save_snapshot(snapshot, RevisedCodec.SLOT_PATH, RevisedCodec)
+
+func load_revised_checkpoint() -> Dictionary:
+    if dialogue_open:
+        return {"ok": false, "reason": "dialogue_in_progress"}
+    var read: Dictionary = revised_save_store.load_snapshot(RevisedCodec.SLOT_PATH, RevisedCodec)
+    if not bool(read.get("ok", false)):
+        return read
+    if not restore_revised_checkpoint(read["snapshot"]):
+        return {"ok": false, "reason": "revised_checkpoint_restore_rejected"}
+    return read
 
 func _enter_engineering_room() -> void:
     if not ("ionia" in opening.active_party_ids) or opening.step_key() != "engineering":
@@ -314,6 +380,6 @@ func _sync_presentation() -> void:
     else:
         dialogue_speaker.visible = false
         dialogue_text.visible = false
-        hint.text = last_message + "    [Arrows: move  |  E: interact]"
+        hint.text = last_message + "    [Arrows: move  |  E: interact  |  K: save  |  L: load]"
     hint.visible = not dialogue_open
     queue_redraw()
