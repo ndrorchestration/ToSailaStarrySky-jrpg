@@ -89,6 +89,35 @@ func _run() -> void:
     var pilot = game.berth_review
     check(pilot.hull is RigidBody2D and pilot.berth_area is Area2D,
         "actual local hull physics and independent berth Area2D sensor exist")
+    var stage_report: Dictionary = pilot.cinematic_stage.visual_snapshot()
+    check(stage_report.get("native_source_sky_shader", false)
+        and stage_report.get("native_source_sea_shader", false),
+        "source-reused native sky and sea shader materials render in playable berth")
+    check(stage_report.get("source_native_pier_art", false)
+        and stage_report.get("art_only_no_physics", false)
+        and not stage_report.get("has_collision_authority", true),
+        "timber/brass pier is strictly art, physical overlap still separate")
+    check(not stage_report.get("has_story_authority", true)
+        and not stage_report.get("has_canonical_world_location", true)
+        and not stage_report.get("production_art_approved", true),
+        "art remains explicitly noncanonical and nonauthoritative")
+    check(pilot.ship_art.get_parent() == pilot.hull
+        and pilot.ship_art.get_script() == preload("res://scripts/first_wake_berth_ship_art.gd"),
+        "four-wing Wake geometry follows source native RigidBody2D, not proxy animation")
+    var sea_shader: ShaderMaterial = pilot.cinematic_stage.sea.material as ShaderMaterial
+    var physics_before: Dictionary = pilot.review_snapshot()
+    pilot.set_reduced_motion(true)
+    check(pilot.cinematic_stage.reduced_motion
+        and sea_shader.get_shader_parameter("motion_scale") == 0.0,
+        "M reduced motion stops genuine native shader animation")
+    pilot.set_reduced_motion(false)
+    check(not pilot.cinematic_stage.reduced_motion
+        and sea_shader.get_shader_parameter("motion_scale") == 1.0,
+        "re-enable waves without altering the original physics")
+    check(pilot.review_snapshot().get("local_2d_sensor_contact") ==
+        physics_before.get("local_2d_sensor_contact")
+        and not pilot.contact_observed,
+        "visual settings do not forge or transform berth physics")
     check(pilot.phase == "awaiting_approach" and not pilot.berth_area.overlaps_body(pilot.hull),
         "no staged initial berth contact")
     check(not pilot.secure_lines() and not pilot.contact_observed,
