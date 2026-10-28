@@ -28,3 +28,12 @@ The previously tested flight candidate uses a genuine Godot 4.7.2 **RigidBody2D*
 - Reuses exact [physics source and design receipt #447](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/447) rather than reimplementing ship physics.
 - Stacks on revised Chapter I route [#533](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/533) and safeguards the older scene/save.
 - Creator-directed short first-flight/ocean sequence, postflight Lyra recruitment and later materials/Denith shanty solution remain intact.
+
+
+## Immediate physical-afloat reserve investigation (review-only addition)
+
+After the measured local `RigidBody2D`/water `Area2D` float settles and the opening contract reaches `waterborne`, the pilot now tells the player to press **E** to examine the emergency reserve. This action is **not** automatic on touch-down. The core review refuses the action until `contact_observed=true`, `stable_float_verified=true`, story state `waterborne`, and **Ender + Ionia** alone; then it calls the previously established creator-directed `inspect_postflight_reserve(true)` story event and changes to `postflight_diagnosis`. The crew sees the concrete problem as an empty reserve, not an instant recipe for fuel or phase alignment.
+
+`reserve_inspection_observed` is an **authored, player-triggered story inspection**. `real_inventory_scan_verified=false` remains explicit; it does not certify a physical fuel-meter simulation or approved salvage item. A repeated interaction must fail; the safe family reunion is still **not** triggered automatically while adrift. This preserves Lyra's family introduction and Talen's noncombat safety for a later playable and geography-approved scene.
+
+The standalone local physics regression and the configured main-entry F8 -> Ionia hiring -> preflight -> F flight -> water contact -> **E reserve diagnosis** -> F8 return tests now both assert this boundary. The v2 preflight-only checkpoint, main_scene and legacy v1 data remain unchanged.
