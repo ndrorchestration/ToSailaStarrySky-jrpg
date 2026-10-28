@@ -153,11 +153,23 @@ func _verify() -> void:
     if flight.opening.step_key() != "postflight_diagnosis" or not flight.review_snapshot().get("reserve_inspection_observed", false):
         _fail("safe reserve examination did not progress to diagnosed postflight")
         return
-    if flight.review_snapshot().get("real_inventory_scan_verified", true) or flight.interact():
-        _fail("authored fuel review claimed inventory implementation or duplicate inspection")
+    if flight.review_snapshot().get("real_inventory_scan_verified", true):
+        _fail("authored fuel review claimed genuine fuel inventory implementation")
+        return
+    if not flight.interact() or flight.phase != "recovery_review":
+        _fail("recovery request was not a separate postflight decision")
         return
     if flight.opening.active_party_ids != ["ender", "ionia"]:
-        _fail("postflight diagnosis recruited Lyra before safe family meeting")
+        _fail("recovery request prematurely recruited Lyra")
+        return
+    if not flight.interact() or flight.family_review == null:
+        _fail("safe-berth review did not expose physical family meeting scene")
+        return
+    if flight.review_snapshot().get("real_recovery_route_verified", true):
+        _fail("the staged safety handoff falsely proved global geographic recovery")
+        return
+    if flight.opening.active_party_ids != ["ender", "ionia"] or flight.family_review.scene_phase != "family_arrival":
+        _fail("Lyra joined without her family dialogue")
         return
     if _file_hash(SaveStore.DEFAULT_PATH) != v1_hash or _file_hash(RevisedCodec.SLOT_PATH) != v2_hash:
         _fail("transient flight rewrote either save slot")
