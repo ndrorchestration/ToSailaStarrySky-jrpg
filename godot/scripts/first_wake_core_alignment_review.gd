@@ -76,6 +76,7 @@ func snapshot() -> Dictionary:
         "installed": installed.duplicate(),
         "failed_retest": failed_retest,
         "melody_recognized": melody_recognized,
+        "materialReady": phase >= 3,
         "alignment_candidate": phase == 10,
         "can_launch": false,
         "can_execute_art": false,
