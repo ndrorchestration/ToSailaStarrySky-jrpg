@@ -1,5 +1,15 @@
 # To Sail the Starry Sky — Integrated First Wake playable candidate (draft)
 
+## New separate true-3D coastal prototype — review only
+
+**Try the actual Godot 3D render:** [draft PR #590](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/590) adds `res://scenes/first_wake_3d_visual_slice.tscn`. It includes a real spatial ocean shader, shaded 3D coastal terrain, modeled pier, physically lit lanterns, a provisional 3D Aureate Wake hull/geodesic dome, and a working camera. **It does not replace the normal F5 playable First Wake.** There are no approved rigged character GLBs yet, and this is an art/technology scene, not Chapter One's 3D gameplay conversion.
+
+On the connected Windows computer, use **Desktop → Aetherwake → PLAY FIRST WAKE - 3D Coastal Preview**. Arrow keys orbit/zoom the camera, **T** changes time of day, and **R** resets the view. The adjacent **SEE FIRST WAKE - Real 3D Renderer Comparison** shortcut opens four true Godot 960×640 screenshots (Compatibility/Forward+, sunset/blue hour). Both renderers worked on the Intel Iris Xe test machine; the simple study observed around 60 FPS, potentially VSync-limited. This does **not** establish final-art quality or full-game performance.
+
+See the [exact native render, performance and Blender/GLB source handoff evidence](art-review/FIRST_WAKE_3D_COASTAL_PRODUCTION_PROOF_2026-10-28.md). The original Ionia-first scene, flight, saves, canonical character appearances, and Windows release security gate are unchanged.
+
+---
+
 **Normal Godot Play (F5) on this draft branch:** open `godot/project.godot` in **Godot 4.7.2 Standard**, and press F5. This branch's `project.godot` launches `first_wake_game.tscn`, **not** the historical Lyra-first chapter-preview scene. This is an authorized *development candidate*, **not merged, art-approved, Windows-certified, or released**.
 
 Play as Ender using arrow keys; **E** to inspect the posted job notice, converse with Captain Ionia (joining first), board via the gangway and inspect the three engineering stations. Complete the safety dialogue; **F** launches the original-source 3D Aureate Wake and native physics flight. **E** starts the test lift and later commands a controlled sea descent when the actual phase-warning cue appears. After the real `RigidBody2D/Area2D` local water contact and stable flotation, the game automatically returns player control to a shipboard engineering scene; move to the reserve instrument and use **E** through the full dialogue. **F5** writes an isolated postflight checkpoint only after physical landing and inspection. **F9** loads that checkpoint in the current game or on a fresh run.
