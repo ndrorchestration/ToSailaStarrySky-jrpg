@@ -8,7 +8,7 @@ const SIZE := Vector2(960, 640)
 
 var sky: ColorRect
 var sea: ColorRect
-var architecture: Node2D
+var architecture
 var reduced_motion: bool = false
 
 func _ready() -> void:
