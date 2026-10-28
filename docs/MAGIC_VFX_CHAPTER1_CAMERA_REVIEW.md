@@ -1,4 +1,4 @@
-# Chapter I magic VFX + camera integration study v0.5
+# Chapter I magic VFX + camera integration study v0.6
 
 **Authority:** IMPLEMENTED REVERSIBLE REVIEW CANDIDATE; source-tested in native Godot **4.7.2** at `a42fa46c57613191ce200a1f1d0e1993109575ad`. **NOT** playable spell execution, gameplay canon, approved character art, chapter-story change, or release authorization.
 
@@ -44,3 +44,20 @@ Capture test extends the real 960×640 dock evidence with daylight, dusk, night,
 - Separate Windows exact QA security status and any Defender preflight hold are not certified by these Linux visual results. No merging, release, or approved spell mechanic.
 
 **Next QA gate:** independent full-frame artistic inspection, actor readability against the actual Chapter I dialogue/UI surfaces, representative Windows GPU timings and environmental-material integration without bypassing battle/story authorization.
+
+## v0.6 sprite preservation, UI protection and Lyra spirit-light (2026-10-27)
+
+**Status: source-verified engineering candidate, visual/art acceptance pending.** Verifiable source `266d65880da2ece7ff83a5d7935ac1f627bd1156` on draft PR #411. No Chapter I gameplay files, authorizations, persistent state, class tree or narrative canon were changed.
+
+- The real native Ender field sprite is used to build a deterministic **silhouette mask**: one shot with the character visible, a matched control with only the sprite/actor node hidden, and a third with the visual spell behind the same character, **with spell lighting disabled for like-for-like pixel comparison**. A total of **1,169** silhouette pixels qualify; **1,166** are preserved within a fixed channel-difference tolerance (fraction **0.9974337040 / 99.74%**). The real native capture enforces at least **94%** retained shape pixels and at least 150 witness pixels.
+- A real Chapter I HUD-bleed regression compares untouched top and bottom UI regions under the same daylight/clear and no-light controls, requiring **identical bytes**. This does not establish legibility in every weather condition, WCAG ratios, or pixel-perfect rendering on Windows.
+- Lyra retains her creator-approved **Water** story energy with a separate **pink spirit-light** visual cue. Its two soft accent ribbons are an independent `CanvasItemMaterial.LIGHT_MODE_UNSHADED` child of the existing VFX node. This prevents CanvasModulate night lighting from erasing the pink motif without brightening the entire environment or changing affinity identity.
+- The render test counts magenta-like, changed VFX pixels relative to matching scene controls: **100 in daylight** and **66 in night + mist**. These are color-signature witnesses only, not approved color grading or final asset density. Godot contract verifies the independent spirit-light layer is visible **only for Lyra**; it does not grant spells to her or anyone else.
+- The default review effect center was shifted to `Ender + (64,-57)` native coordinates while remaining attached to his real Y-sorted actor scene. This lets the visual read adjacent to Ender's silhouette and remains fully reversible.
+- Authentic runner-side 960×640 framebuffer evidence now includes controls for sprite absent, Lyra at night in mist, and matched night-mist backdrop without VFX. Hash receipts appear in the renderer log, but full review PNGs are still runner-local due existing storage/custody limitations.
+
+**Evidence:** [native Godot 4.7.2 tests PASS](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40607204414) · [actual framebuffer, pixel-mask and pink witness PASS](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40607204395) · [repository smoke PASS](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40607204382).
+
+**QA lineage:** `d4ceea17` failed the original silhouette preservation threshold with **91.96%** retention. `7bc0edf7` corrected it to **99.74%**, but the initial blended pink-water accent disappeared in night mist (**0** qualifying pixels). `81c04de4` added the isolated unshaded spirit visual and passed native image controls; `266d65880da2ece7ff83a5d7935ac1f627bd1156` adds an exact native contract preventing the cue from leaking to other identities. Retain earlier failures as meaningful evidence, not accepted runs.
+
+**Limits:** Relative frame pixels cannot establish artistic quality, visual-impairment usability, 3D depth, camera motion under gameplay, production VFX budgets, or a playable magic system. Treat lighting and weather as *noncanonical QA stress settings*. Do not promote artwork or bypass the independent Windows Defender security hold.
