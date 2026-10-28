@@ -1,0 +1,69 @@
+name: Godot First Wake Optional Real 3D Shipboard Walkthrough (prototype)
+
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/first_wake_opt_in_shipboard_3d_review.gd'
+      - 'godot/scenes/first_wake_optional_shipboard_3d_review.tscn'
+      - 'godot/tests/first_wake_optional_shipboard_3d_test.gd'
+      - 'godot/tests/capture_first_wake_optional_shipboard_3d.gd'
+      - 'docs/FIRST_WAKE_OPTIONAL_3D_SHIPBOARD_2026-10-28.md'
+      - '.github/workflows/godot-first-wake-optional-3d-shipboard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-chapter-shipping-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 13
+    steps:
+      - name: Fetch exact source without credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Install only digest-pinned official Godot 4.7.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' -o /tmp/godot.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip' | sha256sum -c -
+          mkdir -p /tmp/editor
+          unzip -q /tmp/godot.zip -d /tmp/editor
+          chmod +x /tmp/editor/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Native editor import (actual mixed 2D and 3D root)
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/optional-chapter-import.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|SHADER ERROR|Failed loading' /tmp/optional-chapter-import.log
+      - name: Real Ionia-first entry and return, save, walking, helmet and authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 130s /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_optional_shipboard_3d_test.gd 2>&1 | tee /tmp/optional-chapter-test.log
+          grep -q 'FIRST_WAKE_OPTIONAL_3D_PASS' /tmp/optional-chapter-test.log
+          grep -q 'story=IONIA_FIRST traversal=ACTUAL_CHARACTERBODY3D return=SAME_2D_CHECKPOINT production=BLOCKED' /tmp/optional-chapter-test.log
+          ! grep -Eq 'FIRST_WAKE_OPTIONAL_3D_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/optional-chapter-test.log
+      - name: Render 4 actual live Godot 2D to 3D to 2D frames
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 140s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 /tmp/editor/Godot_v4.7.2-stable_linux.x86_64 --path godot --rendering-driver opengl3 --audio-driver Dummy --script res://tests/capture_first_wake_optional_shipboard_3d.gd 2>&1 | tee /tmp/optional-chapter-gl.log
+          test "$(grep -c 'FIRST_WAKE_OPTIONAL_3D_FRAME:' /tmp/optional-chapter-gl.log)" -eq 4
+          grep -q 'FIRST_WAKE_OPTIONAL_3D_RENDER_PASS' /tmp/optional-chapter-gl.log
+          ! grep -Eq 'FIRST_WAKE_OPTIONAL_3D_CAPTURE_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/optional-chapter-gl.log
+      - name: Preserve exact-commit QA receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: first-wake-optional-native-3d-walkthrough
+          path: |
+            godot/review-evidence/first-wake-opt-in-3d/*.png
+            /tmp/optional-chapter-import.log
+            /tmp/optional-chapter-test.log
+            /tmp/optional-chapter-gl.log
+          retention-days: 7
+          if-no-files-found: warn
