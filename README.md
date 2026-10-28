@@ -1,5 +1,7 @@
 # To Sail the Starry Sky
 
+> **Latest native graphical QA (2026-10-28):** A pinned clean Windows Godot 4.7.2 source (`4d2ec5fb`) passed native import, five bounded Chapter 1 headless regression scripts and a nine-frame 960×640 OpenGL capture. **Critical distinction:** the inspected Chapter 1 review scene still starts with Ender + Lyra and marks Ionia-first as an optional prototype; it is not the accepted canonical default. Rendered UI overlaps and older character presentation also remain. [Exact evidence and blockers](docs/CHAPTER_1_NATIVE_INTEGRATION_AUDIT_2026-10-28.md). No human chapter completion, creator visual approval or installer security acceptance was established.
+
 > **Current project orientation — October 28, 2026:** Native **Godot 4.7.2 / GDScript** is the forward production target for the cinematic Chapter 1 JRPG. The main-branch browser/p5.js material below is **historical reference and compatibility documentation**, not the current Godot player guide or proof of a released Chapter 1. Native First Wake development uses an **Ionia-first** opening; the older Lyra-first sequence described below remains browser-era provenance until explicitly reconciled.
 >
 > **Chapter 1 schedule:** [Solo beta roadmap](docs/CHAPTER_1_BETA_ROADMAP.md) — integration by Nov 30, 2026; feature-complete alpha by Mar 31, 2027; **planning beta target May 31, 2027**, with June–August contingency. Dates are goals, not verified delivery promises. 
