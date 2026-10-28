@@ -6,6 +6,7 @@ on:
       - 'godot/scripts/first_wake_maritime_atmosphere_review.gd'
       - 'godot/scripts/first_wake_3d_zone_camera_review.gd'
       - 'godot/tests/first_wake_visible_ocean_horizon_test.gd'
+      - 'godot/tests/first_wake_3d_ocean_motion_test.gd'
       - 'godot/tests/capture_first_wake_visible_ocean_horizon.gd'
       - 'docs/FIRST_WAKE_VISIBLE_OCEAN_HORIZON_2026-10-28.md'
       - '.github/workflows/godot-first-wake-visible-ocean-horizon.yml'
@@ -47,6 +48,13 @@ jobs:
           grep -q 'FIRST_WAKE_VISIBLE_HORIZON_PASS' /tmp/horizon-test.log
           grep -q 'shader=LAYERS camera=FORWARD physics=UNCHANGED story=UNCHANGED production=BLOCKED' /tmp/horizon-test.log
           ! grep -Eq 'FIRST_WAKE_VISIBLE_HORIZON_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/horizon-test.log
+      - name: Validate cinematic ocean motion, sunlight and sky-water color grading
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_3d_ocean_motion_test.gd 2>&1 | tee /tmp/ocean-grade-test.log
+          grep -Fq 'TSTSS_3D_OCEAN_MOTION_PASS' /tmp/ocean-grade-test.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|TSTSS_3D_OCEAN_MOTION_FAIL:' /tmp/ocean-grade-test.log
       - name: Real Godot software GL render and same-view water presence A-B
         shell: bash
         run: |
@@ -65,6 +73,7 @@ jobs:
             godot/review-evidence/first-wake-visible-horizon/*.png
             /tmp/horizon-import.log
             /tmp/horizon-test.log
+            /tmp/ocean-grade-test.log
             /tmp/horizon-render.log
           retention-days: 7
           if-no-files-found: warn
