@@ -22,12 +22,13 @@ func _capture() -> void:
     ender.set_motion(Vector2.RIGHT)
     for tick in range(30):
         await physics_frame
-    ender.set_motion(Vector2.ZERO)
-    await physics_frame
-    if ender.global_position.x <= initial.x + 20.0 or ender.facing != "east":
+    if ender.global_position.x <= initial.x + 20.0 or ender.facing != "east" or ender.phase == 0:
         push_error("TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_FAIL: no optical sprite motion on native physics root")
         quit(1)
         return
+    # Capture the actor during a genuine travel-distance-driven pose,
+    # rather than freezing a post-motion idle frame.
+    stage._update_hud()
     await RenderingServer.frame_post_draw
     var moving_sha: String = _save("MOVING")
     if moving_sha.is_empty() or moving_sha == original_sha:
@@ -35,8 +36,11 @@ func _capture() -> void:
         quit(1)
         return
 
+    ender.set_motion(Vector2.ZERO)
+    await physics_frame
     stage.reduced_motion = true
     stage.ambience.set_shader_parameter("reduced_motion", true)
+    stage._update_hud()
     await process_frame
     await RenderingServer.frame_post_draw
     var still_sha: String = _save("REDUCED_MOTION")
