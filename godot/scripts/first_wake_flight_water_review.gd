@@ -26,7 +26,7 @@ var status_label: Label
 var hint_label: Label
 var telemetry_label: Label
 var enable_3d_cinematic_inset: bool = false
-var cinematic_inset: Control
+var cinematic_inset
 var visual_reduced_motion: bool = false
 var visual_low_detail: bool = false
 
