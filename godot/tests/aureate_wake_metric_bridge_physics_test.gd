@@ -16,7 +16,8 @@ func check(ok: bool, label_text: String) -> void:
     if not ok:
         failures.append(label_text)
 
-func _capsule_pass_fraction(state: PhysicsDirectSpaceState3D) -> float:
+func _capsule_pass_fraction(state: PhysicsDirectSpaceState3D,
+        start_z: float = 3.0, end_z: float = -4.60) -> float:
     var actor := CapsuleShape3D.new()
     actor.radius = 0.26
     actor.height = 1.74
@@ -24,8 +25,8 @@ func _capsule_pass_fraction(state: PhysicsDirectSpaceState3D) -> float:
     query.shape = actor
     query.collision_mask = Study.COLLISION_LAYER
     query.collide_with_areas = false
-    query.transform = Transform3D(Basis(), Vector3(0.0, 1.05, 3.0))
-    query.motion = Vector3(0.0, 0.0, -7.60)
+    query.transform = Transform3D(Basis(), Vector3(0.0, 1.05, start_z))
+    query.motion = Vector3(0.0, 0.0, end_z - start_z)
     var fractions: PackedFloat32Array = state.cast_motion(query)
     return fractions[0] if fractions.size() >= 2 else -1.0
 
@@ -95,6 +96,8 @@ func _verify() -> void:
     var clear: float = _capsule_pass_fraction(physics)
     check(clear > 0.995,
         "adult-height 0.26 radius capsule can cross full cabin/helm/bow path")
+    check(_capsule_pass_fraction(physics, -4.60, 3.0) > 0.995,
+        "adult capsule can return from open bow through helm to cabin")
     ship.set_hatch_open(false)
     await physics_frame
     await physics_frame
@@ -102,11 +105,16 @@ func _verify() -> void:
     var blocked: float = _capsule_pass_fraction(physics)
     check(blocked >= 0.0 and blocked < 0.85,
         "closed collision panel physically interrupts same actor passage")
+    var reverse_blocked: float = _capsule_pass_fraction(physics, -4.60, 3.0)
+    check(reverse_blocked >= 0.0 and reverse_blocked < 0.85,
+        "closed hatch also blocks unauthorized movement from deck to cabin")
     ship.set_hatch_open(true)
     await physics_frame
     await physics_frame
     check(_capsule_pass_fraction(physics) > 0.995,
         "opening hatch restores complete real 3D actor-sized passage")
+    check(_capsule_pass_fraction(physics, -4.60, 3.0) > 0.995,
+        "reopened hatch restores return passage and emergency-exit direction")
     check(ship.get_node("ForedeckHatchHinge").rotation.y < -1.5,
         "hatch opens by real Node3D hinge rotation")
 
