@@ -97,6 +97,9 @@ func _run() -> void:
         and pilot.native_3d_review.ship_model != null
         and pilot.native_3d_review.viewport is SubViewport,
         "source-native 3D ship renders through its real isolated SubViewport")
+    check(pilot.native_3d_review.viewport.msaa_3d == Viewport.MSAA_4X
+        and pilot.native_3d_review.viewport.screen_space_aa == Viewport.SCREEN_SPACE_AA_FXAA,
+        "native 3D Wake uses antialiasing in live berth review")
     check(pilot.native_3d_review.review_snapshot().get("source_visual_pr") == 486
         and pilot.native_3d_review.review_snapshot().get("read_only", false),
         "3D model is original source-bound visual-only Chapter I study")
