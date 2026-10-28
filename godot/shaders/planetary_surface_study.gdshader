@@ -8,6 +8,13 @@ uniform float effect_strength : hint_range(0.0, 1.0) = 0.0;
 uniform int surface_family = 0; // 0=base, 1=snow, 2=sand, 3=wet soil
 uniform float wetness : hint_range(0.0, 1.0) = 0.0;
 uniform vec3 global_wind = vec3(0.7,0.17,-0.69);
+// Explicit mode-5 review-only edge feather. 0.0 retains exact P2 shader.
+uniform float tile_edge_blend_width = 0.0;
+uniform vec3 tile_face_normal = vec3(1.0,0.0,0.0);
+uniform vec3 tile_face_u = vec3(0.0,0.0,1.0);
+uniform vec3 tile_face_v = vec3(0.0,1.0,0.0);
+// Raw cubed-sphere face UV extents (u_min,u_max,v_min,v_max).
+uniform vec4 tile_face_bounds = vec4(-1.0,1.0,-1.0,1.0);
 varying vec3 planet_position;
 
 float hash3(vec3 p) {
@@ -37,6 +44,24 @@ void vertex() {
 void fragment() {
     vec3 base = COLOR.rgb;
     float strength = clamp(effect_strength,0.0,1.0);
+    // Read the same world-space cubed-sphere face projection that generated
+    // the mesh, independent of mesh UVs, camera, and local tile coordinates.
+    // Fade OPTIONAL optical tint/roughness to the exact original P2 base
+    // along all tile borders; ocean and actual terrain mesh stay untouched.
+    if (tile_edge_blend_width > 0.0001) {
+        vec3 radial = normalize(planet_position);
+        float face_depth = max(dot(radial,tile_face_normal),0.000001);
+        float face_u = dot(radial,tile_face_u)/face_depth;
+        float face_v = dot(radial,tile_face_v)/face_depth;
+        float step_u = max(tile_face_bounds.y-tile_face_bounds.x,0.000001);
+        float step_v = max(tile_face_bounds.w-tile_face_bounds.z,0.000001);
+        float coast_u = min(face_u-tile_face_bounds.x,
+            tile_face_bounds.y-face_u)/step_u;
+        float coast_v = min(face_v-tile_face_bounds.z,
+            tile_face_bounds.w-face_v)/step_v;
+        float edge_fraction = clamp(min(coast_u,coast_v),0.0,0.5);
+        strength *= smoothstep(0.0,tile_edge_blend_width,edge_fraction);
+    }
     vec3 wind=normalize(global_wind);
     vec3 sample_point=planet_position+wind*0.003;
     float broad=value_noise(sample_point*29.0);
