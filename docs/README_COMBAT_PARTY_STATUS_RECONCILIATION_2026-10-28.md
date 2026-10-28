@@ -1,6 +1,6 @@
 # README combat and party status reconciliation — October 28, 2026
 
-**Scope:** Review-only documentation correction on the stacked To Sail the Starry Sky Godot Chapter I draft. No game code, action definitions, combat permissions, character narrative canon, levels, saves, workflows, or installer distribution are changed. README must not be used to promote browser legacy code to the current Godot combat or narrative authority.
+**Scope:** Review-only documentation correction on the stacked To Sail the Starry Sky Godot Chapter I draft. No gameplay runtime code, action definitions, combat permissions, character narrative canon, levels, saves, workflows or installer distribution are changed. The **documentation-only SPEC scope banner** and **runtime/documentation SSOT regression assertions** are updated so CI no longer enforces stale README wording. README must not be used to promote browser legacy code to the current Godot combat or narrative authority.
 
 ## Findings removed from README
 
@@ -21,6 +21,10 @@
 - **Undelivered:** production-ready five-character turn economy, creator-approved weapon/armor/skill/Resonance trees and spell levels, final in-game assets, supported installer release.
 
 **Primary source files inspected on review base SHA `7ae50c697f6e74dc2dee5c36bea881c5d8bdfc1a`:** `README.md`; `modules/ability-defs.js`; `modules/progression-defs.js`; `godot/scripts/first_wake_combat_formula.gd`; `godot/scripts/first_wake_party_combat_authority.gd`; `godot/scripts/vertical_slice_encounter.gd`; `godot/scripts/first_wake_revised_opening_contract.gd`; `godot/scripts/first_wake_resonance_roster_gate.gd`; `godot/scripts/first_wake_resonance_composite_preflight.gd`; `godot/scripts/resonance_dual_review.gd`; `docs/design/AETHERWAKE_COMBAT_DIRECTION_DECISION_2026-10-21.md`; `docs/FIRST_WAKE_SALVAGE_V3_CHECKPOINT_PILOT.md`.
+
+## Source-of-truth guard repair
+
+The original `tests/runtime-ssot-contract.test.js` checked for the **literal older README phrase** `conventional JRPG formula model`, the old `First Wake now begins with Ender alone` wording, and the obsolete browser recruitment text in `SPEC.md`. Those fragile checks caused the first smoke run of this README correction to fail even though the documentation had correctly removed the stale claims. The test now asserts the new explicit separation of native combat, historical browser actions, five-protagonist target, and Ionia-first/Lyra-second Chapter I order. Existing runtime combat, package metadata, user interface and historical mirror assertions remain unchanged. `SPEC.md` is explicitly tagged as an archival browser technical baseline and the old skill lists and recruiting order are labeled historical.
 
 ## Acceptance boundary
 
