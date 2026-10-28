@@ -7,6 +7,7 @@ uniform bool low_quality = false;
 // ORIGINAL sand optics study: exposed-sand material only; no vertex displacement.
 // Strength 0 returns the entire preceding terrain shader without optical layers.
 uniform float sand_optics_strength = 1.0;
+uniform bool dune_study_override = false; // detached GL art fixture; default false
 uniform vec2 sand_wind_axis = vec2(0.93, 0.37);
 uniform vec3 sun_direction = vec3(0.65, 0.43, -0.70);
 varying vec3 world_pos;
@@ -46,7 +47,8 @@ void fragment() {
         *smoothstep(0.43,0.80,noise(p.xz*0.94));
     rock=mix(rock,vec3(0.32,0.32,0.31),scree*0.24);
     vec3 color=mix(grass,rock,rocky);
-    float sand=1.0-smoothstep(0.6,2.7,p.y+noise(p.xz*0.5)*0.5);
+    float sand=dune_study_override ? 1.0 :
+        1.0-smoothstep(0.6,2.7,p.y+noise(p.xz*0.5)*0.5);
     color=mix(color,mix(vec3(0.36,0.31,0.22),vec3(0.70,0.59,0.40),mottling),sand);
     // Waterline-darkened damp sand follows this SAME physical terrain elevation and
     // shared sea datum, not a second procedural coastline. Limit to gentle
@@ -54,7 +56,7 @@ void fragment() {
     float sea_clearance=max(p.y-sea_surface_elevation,0.0);
     float waterline_warp=(noise(p.xz*0.86)-0.5)*0.16;
     float flat_shore=1.0-smoothstep(0.12,0.34,slope);
-    float damp=shoreline_wetness*flat_shore*sand*
+    float damp=(dune_study_override ? 0.0 : shoreline_wetness)*flat_shore*sand*
         (1.0-smoothstep(0.16,1.15,sea_clearance+waterline_warp));
     vec3 damp_sand=mix(vec3(0.30,0.30,0.27),vec3(0.40,0.36,0.29),mottling);
     color=mix(color,damp_sand,damp*0.72);
