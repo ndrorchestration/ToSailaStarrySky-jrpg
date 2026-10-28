@@ -115,11 +115,19 @@ func _run() -> void:
             world.ender.position) != saved_before:
         _fail("presentation projection changed formula, story or save")
         return
+    # Natural playback expiry clears projected historical HP.
+    if not presenter.seek_review_seconds(duration):
+        _fail("presentation could not enter final recovery state")
+        return
+    presenter._process(presenter.MAX_HOLD_SECONDS+0.01)
+    await process_frame
+    if presenter.visible or presenter.presentation_queue.active         or hud.visible or not presenter.presentation_projection().is_empty():
+        _fail("completed presentation left historical HP over the real HUD")
+        return
     presenter.set_pilot_enabled(false)
     await process_frame
-    if not presenter.presentation_projection().is_empty() \
-        or hud.visible or presenter.presentation_queue.active:
-        _fail("disabling projection did not reveal actual HUD")
+    if presenter.visible or hud.visible         or world.formula_encounter.snapshot() != after_second:
+        _fail("disable/expiry altered authoritative HUD or formula")
         return
     if not world.close_formula_review():
         _fail("actual encounter could not close")
