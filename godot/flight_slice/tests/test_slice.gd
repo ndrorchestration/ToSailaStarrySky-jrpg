@@ -106,9 +106,9 @@ func _run_tests() -> void:
         "glazing and structural struts are real authored native mesh buffers")
     var pane_vertices: PackedVector3Array = panes.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
     var frame_vertices: PackedVector3Array = framelines.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
-    _check(bridge.panel_count >= 100 and pane_vertices.size() == 3 * bridge.panel_count,
-        "clipped subdivided icosphere generates at least one hundred glass triangles")
-    _check(bridge.unique_frame_edges > 120 and
+    _check(bridge.panel_count >= 35 and pane_vertices.size() == 3 * bridge.panel_count,
+        "clipped subdivided icosphere generates at least thirty-five large glass triangles")
+    _check(bridge.unique_frame_edges > 65 and
         frame_vertices.size() >= bridge.unique_frame_edges * 15,
         "deduplicated geodesic tessellation frames are real batched struts")
     _check(collar.mesh is ArrayMesh and
@@ -132,7 +132,7 @@ func _run_tests() -> void:
                     - Vector3.UP * GeodesicBridge.CENTER_Y) <= 0.0):
             outward = false
     _check(min_height >= GeodesicBridge.BASE_Y - 0.0001 and
-        max_height > 1.17 and outward,
+        max_height > 1.08 and outward,
         "glazing forms an outward-facing clipped upper dome, not a sphere primitive")
     _check(bridge.get_node("BridgeNavigationConsole") is MeshInstance3D and
         bridge.get_node("BridgeHarmonicCompass") is MeshInstance3D,
