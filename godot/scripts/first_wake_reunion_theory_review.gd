@@ -31,6 +31,8 @@ const THEORY_LINES: Array[String] = [
 var opening
 var phase: String = "unconfigured"
 var qa_recovery_fixture_admitted: bool = false
+var recovery_checklist_reviewed: bool = false
+var source_flight: Node
 var dialogue_cursor: int = 0
 var pending_clue: String = ""
 var headline: Label
@@ -59,13 +61,49 @@ func configure_from_postflight(flight: Node) -> bool:
     if not flight.opening.has_method("introduce_lyra_and_talen"):
         return false
     opening = flight.opening
+    source_flight = flight
     phase = "recovery_unverified"
+    return true
+
+func attach_recovery_readiness(plan: Node) -> bool:
+    # Completion of crew/engine/contact observations is necessary but NOT
+    # sufficient for recovery; exact family-safe meeting remains unapproved.
+    if recovery_checklist_reviewed or phase != "recovery_unverified":
+        return false
+    if plan == null or opening == null or source_flight == null:
+        return false
+    if not plan.has_method("review_snapshot"):
+        return false
+    if plan.source_flight != source_flight or plan.opening != opening:
+        return false
+    var receipt: Dictionary = plan.review_snapshot()
+    if receipt.get("review_source", "") != "isolated_first_wake_recovery_checklist":
+        return false
+    if not bool(receipt.get("readiness_review_complete", false)):
+        return false
+    if receipt.get("party", []) != ["ender", "ionia"] or receipt.get("story_step", "") != "postflight_diagnosis":
+        return false
+    if receipt.get("observations", []).size() != 3:
+        return false
+    for id in ["crew_accounting", "systems_isolation", "contact_plan"]:
+        if id not in receipt["observations"]:
+            return false
+    if bool(receipt.get("actual_sailing_route_verified", true)):
+        return false
+    if bool(receipt.get("safe_family_meeting_verified", true)):
+        return false
+    if bool(receipt.get("message_delivered", true)):
+        return false
+    if bool(receipt.get("recovery_success_certified", true)):
+        return false
+    recovery_checklist_reviewed = true
+    _refresh()
     return true
 
 func authorize_qa_reunion_fixture(proof: Dictionary) -> bool:
     # Intentionally no in-game control can call this. It does NOT attest to a
     # real voyage, approved coastline, port, rescue method or family position.
-    if phase != "recovery_unverified" or qa_recovery_fixture_admitted:
+    if phase != "recovery_unverified" or qa_recovery_fixture_admitted or not recovery_checklist_reviewed:
         return false
     var exact_keys := ["source", "fixture_only", "crew_safe", "family_contact_safe"]
     if proof.keys().size() != exact_keys.size():
@@ -196,6 +234,7 @@ func review_snapshot() -> Dictionary:
         "party": opening.active_party_ids.duplicate() if opening != null else [],
         "clues": opening.clues.duplicate() if opening != null else [],
         "recovery_fixture_only": qa_recovery_fixture_admitted,
+        "readiness_review_complete": recovery_checklist_reviewed,
         "real_recovery_route_verified": false,
         "geography_authorized": false,
         "talen_combat_authorized": false,
@@ -212,8 +251,8 @@ func _refresh() -> void:
     scene_dialogue.text = ""
     match phase:
         "recovery_unverified":
-            objective.text = "BLOCKED: external safe-recovery verification required before reunion."
-            footer.text = "No in-game bypass: 2D afloat is not proof of a safe family meeting."
+            objective.text = "BLOCKED: shipboard readiness + external family-safe meeting required."
+            footer.text = "Recovery checklist %s. No route/contact authorization." % ("reviewed" if recovery_checklist_reviewed else "incomplete")
         "reunion_ready":
             objective.text = "QA-ONLY SAFE-MEETING FIXTURE: read the family introduction."
             footer.text = "E: start rehearsal dialogue; no world location has been chosen."
