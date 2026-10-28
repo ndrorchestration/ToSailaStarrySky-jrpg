@@ -21,7 +21,7 @@ func _ready() -> void:
     camera.name = "ActualShipboardCamera"
     camera.fov = 60.0
     camera.near = 0.10
-    camera.far = 70.0
+    camera.far = 240.0
     camera.current = false
     add_child(camera)
 
@@ -57,7 +57,9 @@ func _camera_offset() -> Vector3:
         "helm":
             return Vector3(0.26, 0.78, 1.14) if shot == Shot.FOLLOW else Vector3(0.10, 1.47, 1.13)
         "foredeck":
-            return Vector3(0.50, 1.16, 1.00) if shot == Shot.FOLLOW else Vector3(0.17, 1.90, 1.35)
+            # The default deck shot looks *beyond* the bow at the true
+            # sky/water boundary. Elevated C still favors deck/rail review.
+            return Vector3(0.32, 0.71, 1.20) if shot == Shot.FOLLOW else Vector3(0.17, 1.90, 1.35)
     return Vector3(0.20, 0.95, 1.20)
 
 func _find_safe_position(eye: Vector3, desired: Vector3) -> Vector3:
@@ -85,7 +87,9 @@ func update_view(delta: float, snap: bool = false) -> void:
     zone = _zone_for(actor.global_position.z)
     # Aim at visible torso/head instead of sky. The avatar can be seen ahead
     # of the lens, even on the open deck near the geodesic door.
-    var target: Vector3 = actor.global_position + Vector3(0.0, 0.20, -0.42)
+    var target: Vector3 = actor.global_position + (
+        Vector3(0.0, 0.72, -3.80) if zone == "foredeck" and shot == Shot.FOLLOW
+        else Vector3(0.0, 0.20, -0.42))
     var eye: Vector3 = actor.global_position + Vector3(0, 0.39, 0)
     var desired: Vector3 = eye + _camera_offset()
     var safe: Vector3 = _find_safe_position(eye, desired)
