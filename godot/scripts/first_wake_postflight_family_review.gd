@@ -248,9 +248,11 @@ func advance_dialogue() -> bool:
     _refresh()
     return true
 
-func _begin_dialogue(speaker: String, lines: Array[String], event_id: String) -> void:
+func _begin_dialogue(speaker: String, lines: Array, event_id: String) -> void:
     dialogue_open = true
-    dialogue_lines = lines.duplicate()
+    dialogue_lines.clear()
+    for line in lines:
+        dialogue_lines.append(str(line))
     dialogue_cursor = 0
     dialogue_event = event_id
     speaker_label.text = speaker
@@ -286,7 +288,7 @@ func _refresh() -> void:
     party_label.text = "Story party: " + " + ".join(opening.active_party_ids) + "  |  Talen: noncombat  |  Safely moored: review fixture"
     dialogue_panel.visible = dialogue_open
     if dialogue_open:
-        speaker_label.text = "CONVERSATION: " + speaker_label.text.trim_prefix("CONVERSATION: ")
+        speaker_label.text = "CONVERSATION (E: NEXT): " + speaker_label.text.trim_prefix("CONVERSATION (E: NEXT): ")
         dialogue_label.text = dialogue_lines[dialogue_cursor]
         hint_label.text = "E: next line  |  %d / %d" % [dialogue_cursor + 1, dialogue_lines.size()]
     else:
