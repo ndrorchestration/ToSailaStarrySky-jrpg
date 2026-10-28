@@ -1,5 +1,7 @@
 # Godot production direction and parallel-agent coordination
 
+> **2026-10-28 scheduling update:** [Chapter 1 beta roadmap](CHAPTER_1_BETA_ROADMAP.md) governs the solo integration and review milestones. The branch inventory below is a **dated historical snapshot**; do not use its 2026-10-24 PR heads as current. Re-query the remote before integration. The native Ionia-first sequence takes priority over legacy Lyra-first browser onboarding. No merge/release authorized.
+
 **Creator-selected 2026-10-24:** Stop expanding p5.js/JavaScript gameplay; continue development in **Godot 4.7.2 + GDScript**. This is the authoritative **forward development decision**, not retroactive proof that the full JRPG, save data, world, art or Windows release has already migrated.
 
 ## Branch/track separation (as last inspected)
