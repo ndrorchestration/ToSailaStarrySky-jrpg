@@ -122,11 +122,13 @@ func set_wide_stage_enabled(enabled: bool) -> bool:
     viewport.size = extent
     viewport_container.size = Vector2(extent)
     size = Vector2(extent) + Vector2(0, 25)
-    var border = get_child(0)
+    var border: ColorRect = get_child(0) as ColorRect
     border.size = size
     label.position = Vector2(10, float(extent.y) + 2.0)
-    label.text = "3D SHIP REVIEW | CONTACT CONTROLLED BY 2D SENSOR" if enabled else \
-        "3D SHIP STUDY  /  PHYSICS REMAINS 2D"
+    if enabled:
+        label.text = "3D SHIP REVIEW | CONTACT CONTROLLED BY 2D SENSOR"
+    else:
+        label.text = "3D SHIP STUDY  /  PHYSICS REMAINS 2D"
     if not enabled:
         ship_model.position = Vector3.ZERO
         visual_altitude_above_waterline = 0.0
