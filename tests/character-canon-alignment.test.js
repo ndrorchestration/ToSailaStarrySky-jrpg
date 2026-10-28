@@ -42,7 +42,7 @@ for (const member of state.roster) {
 }
 
 const guardedFiles = [
-  'aetherwake.js',
+  'tosailthestarrysky.js',
   'modules/world.js',
   'modules/char-create.js',
   'modules/combat.js',
