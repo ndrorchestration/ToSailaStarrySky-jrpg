@@ -23,6 +23,18 @@ for (const x of [
 }
 assert(!nsi.includes('RMDir /r "$INSTDIR"'), 'uninstall may not recursively destroy foreign files');
 assert(!/RequestExecutionLevel\s+admin/i.test(nsi), 'the game must never require admin');
+assert(nsi.includes('MUI_PAGE_WELCOME') && nsi.includes('MUI_PAGE_FINISH') &&
+  nsi.includes('MUI_FINISHPAGE_RUN'),
+  'installer must present a normal welcome/finish flow and optional first launch');
+assert(nsi.includes('Function CheckInstallDestination') &&
+  nsi.includes('Call CheckInstallDestination') &&
+  nsi.includes('IfFileExists "$INSTDIR\\*"') &&
+  nsi.includes('IfFileExists "$DESKTOP\\To Sail the Starry Sky (First Wake).lnk"'),
+  'do not overwrite a populated installation path or pre-existing player shortcut');
+assert(nsi.includes('WriteRegStr HKCU') &&
+  nsi.includes('DeleteRegKey HKCU') &&
+  nsi.includes('QuietUninstallString'),
+  'Windows Apps & Features should offer a per-user uninstall that also cleans registry metadata');
 assert(build.includes('first_wake_game_entry_test.gd') && build.includes('binary_format/embed_pck=true'),
   'packaging requires actual revised First Wake scene, physical gate and embedded game resources');
 for (const marker of [
@@ -34,8 +46,12 @@ for (const marker of [
 }
 assert(qa.includes('Compile and exercise actual First Wake Windows Setup.exe') &&
   qa.includes('TSTSS_INSTALLER_LOCAL_FUNCTIONAL_PROOF=PASS') &&
-  qa.includes('TSTSS_INSTALLER_DEFENDER_QA=NOT_ESTABLISHED'),
-  'functional Windows install/window/uninstall chain must be present and not misreport defender');
+  qa.includes('TSTSS_INSTALLER_DEFENDER_QA=NOT_ESTABLISHED') &&
+  qa.includes('TSTSS_INSTALLER_NATIVE_WINDOW_MAXIMIZE_RESTORE=PASS') &&
+  qa.includes('TSTSS_INSTALLER_ADD_REMOVE_PROGRAMS_REGISTRY=PASS') &&
+  qa.includes('TSTSS_INSTALLER_EXISTING_INSTALL_PROTECTED=PASS') &&
+  qa.includes('TSTSS_INSTALLER_UNINSTALL_SHORTCUTS_AND_REGISTRY=PASS'),
+  'functional Windows install/window/maximize/shortcut/uninstall checks and separate Defender boundary required');
 assert(qa.includes('Preflight unchanged Defender custody requirements') &&
   qa.includes('WINDOWS_QA_HOST_DEFENDER_REALTIME_DISABLED'),
   'existing Defender custody preflight may not be removed or bypassed');
@@ -44,7 +60,7 @@ assert(project.includes('run/main_scene="res://scenes/first_wake_game.tscn"') &&
   project.includes('window/size/borderless=false'),
   'game candidate must boot from the real game and allow normal Windows maximize');
 assert(entry.includes('KEY_F11') && entry.includes('event.alt_pressed') &&
-  entry.includes('Window.MODE_FULLSCREEN'),
+  entry.includes('Window.MODE_FULLSCREEN') && entry.includes('pre_fullscreen_mode'),
   'normal game window must offer an accessible fullscreen toggle');
 assert(docs.includes('NOT YET PUBLISHED') && docs.includes('README'),
   'delivery docs must distinguish build proof from an actual download');
