@@ -1,5 +1,15 @@
 # To Sail the Starry Sky — Integrated First Wake playable candidate (draft)
 
+## New: physically navigable 3D dock (draft PR #591 — review only)
+
+[PR #591](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/591) extends the separate 3D coast with an **actual WASD CharacterBody3D**, a walkable physics deck and edge protection, three genuine **Area3D + E** interaction checkpoints, a follow-camera toggle (**C**), and a readable development-only HUD. The turquoise circle is deliberately **not a substitute Ender model**. No source-approved rigged Five Lights GLBs, canonical Ionia scene, quests, combat, ship boarding, saves or 3D Chapter One release have been falsely claimed.
+
+Official 4.7.2 Linux CI passed the physical controller and real screen capture tests, including an unchanged original F5 First Wake water-contact/save regression. Three actual **960×640** source-free screenshots are in [the GitHub Actions artifact](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40708140207). Full source/provenance and limitations: [3D navigation QA and integration contract](art-review/FIRST_WAKE_3D_NAVIGATION_INTEGRATION_QA_2026-10-28.md).
+
+**Windows handoff:** The connected Windows desktop went offline during PR #591 testing. Its existing **PLAY FIRST WAKE - 3D Coastal Preview** shortcut still launches PR #590's earlier scene without the new walking controller. Do not promise the newer branch is locally installed until an exact-head Windows worktree has been checked and its shortcut intentionally updated. The existing playable 2D F5 main scene remains unchanged.
+
+---
+
 ## New separate true-3D coastal prototype — review only
 
 **Try the actual Godot 3D render:** [draft PR #590](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/590) adds `res://scenes/first_wake_3d_visual_slice.tscn`. It includes a real spatial ocean shader, shaded 3D coastal terrain, modeled pier, physically lit lanterns, a provisional 3D Aureate Wake hull/geodesic dome, and a working camera. **It does not replace the normal F5 playable First Wake.** There are no approved rigged character GLBs yet, and this is an art/technology scene, not Chapter One's 3D gameplay conversion.
