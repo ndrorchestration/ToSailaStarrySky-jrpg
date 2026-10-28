@@ -21,6 +21,78 @@ const CREATOR_REFINED_MATTE_PATHS := {
     "Ender": "res://art-review/creator-field-review/ender_field_matte_v3.png",
 }
 const CreatorFieldLight = preload("res://shaders/creator_field_contact_lighting.gdshader")
+const CreatorMotionPack = preload("res://scripts/creator_motion_pack.gd")
+const CREATOR_MOTION_BASE := "res://art-review/creator-motion-private/"
+const CREATOR_MOTION_SCALE := 0.78
+var creator_motion_pack: RefCounted
+var creator_motion_sprite: Sprite2D
+var creator_motion_enabled: bool = false
+var creator_motion_error: String = ""
+var creator_motion_root_override: String = ""
+
+func _motion_root() -> String:
+    return creator_motion_root_override if not creator_motion_root_override.is_empty() else (
+        CREATOR_MOTION_BASE + character_name.to_lower()
+    )
+
+func has_creator_motion() -> bool:
+    var candidate = CreatorMotionPack.new()
+    return candidate.load_from_directory(_motion_root(), character_name.to_lower())
+
+func enable_creator_motion(enabled: bool) -> bool:
+    if not enabled:
+        creator_motion_enabled = false
+        if creator_motion_sprite != null:
+            creator_motion_sprite.visible = false
+        _sync_ender_direction()
+        _sync_ionia_direction()
+        queue_redraw()
+        return true
+    var candidate = CreatorMotionPack.new()
+    if not candidate.load_from_directory(_motion_root(), character_name.to_lower()):
+        creator_motion_error = candidate.error_message
+        return false
+    if creator_standee_enabled:
+        enable_creator_standee(false)
+    creator_motion_pack = candidate
+    if creator_motion_sprite == null:
+        creator_motion_sprite = Sprite2D.new()
+        creator_motion_sprite.name = "CreatorAuthoredMotionReviewOnly"
+        creator_motion_sprite.scale = Vector2.ONE * CREATOR_MOTION_SCALE
+        creator_motion_sprite.position = Vector2(0.0, -72.0 * CREATOR_MOTION_SCALE)
+        creator_motion_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+        add_child(creator_motion_sprite)
+    creator_motion_enabled = true
+    creator_motion_error = ""
+    _sync_creator_motion_frame()
+    _sync_ender_direction()
+    _sync_ionia_direction()
+    queue_redraw()
+    return true
+
+func _sync_creator_motion_frame() -> void:
+    if not creator_motion_enabled or creator_motion_pack == null or creator_motion_sprite == null:
+        return
+    var direction: String = ionia_facing if character_name == "Ionia" else walk_facing
+    if direction not in CreatorMotionPack.DIRECTIONS:
+        direction = "south"
+    var target_frame: int = int(travel_distance / PIXELS_PER_STEP) % CreatorMotionPack.FRAME_COUNT
+    var texture: Texture2D = creator_motion_pack.get_frame(direction, target_frame)
+    if texture == null:
+        creator_motion_sprite.visible = false
+        return
+    creator_motion_sprite.texture = texture
+    creator_motion_sprite.visible = true
+
+func creator_motion_snapshot() -> Dictionary:
+    return {
+        "enabled": creator_motion_enabled,
+        "ready": creator_motion_pack != null and creator_motion_pack.loaded,
+        "frames_loaded": creator_motion_pack.frame_count() if creator_motion_pack != null else 0,
+        "story_authority": false,
+        "production_approved": false,
+        "last_error": creator_motion_error
+    }
 const SOURCE_FIELD_SCALE := 0.21
 @export var creator_field_lighting_enabled: bool = true
 var creator_standee: Sprite2D
@@ -63,6 +135,8 @@ func enable_creator_standee(enabled: bool) -> bool:
     if not has_creator_standee():
         enable_creator_standee(false)
         return false
+    if creator_motion_enabled:
+        enable_creator_motion(false)
     if creator_standee == null:
         var selected_path: String = creator_standee_source_path()
         var texture: Texture2D = load(selected_path) as Texture2D
@@ -208,7 +282,7 @@ func _new_ionia_walk_view(view_name: String, atlas: Texture2D) -> Sprite2D:
 func _sync_ionia_direction() -> void:
     if ionia_front_walk_sprite == null:
         return
-    var visible: bool = (ionia_stage_art_enabled or ionia_walk_review_enabled or ionia_route_review_enabled) and not creator_standee_enabled
+    var visible: bool = (ionia_stage_art_enabled or ionia_walk_review_enabled or ionia_route_review_enabled) and not creator_standee_enabled and not creator_motion_enabled
     ionia_front_walk_sprite.visible = visible and ionia_facing == "south"
     ionia_north_walk_sprite.visible = visible and ionia_facing == "north"
     ionia_east_walk_sprite.visible = visible and ionia_facing == "east"
@@ -224,10 +298,10 @@ func _sync_ender_direction() -> void:
         return
     # East preserves the unmodified original six-frame pixel source from #308.
     # West has its OWN unmirrored source. No staff-side reversal of the east PNG.
-    walk_review_sprite.visible = walk_review_enabled and walk_facing == "east" and not creator_standee_enabled
-    walk_west_sprite.visible = walk_review_enabled and walk_facing == "west" and not creator_standee_enabled
-    walk_front_sprite.visible = walk_review_enabled and walk_facing == "south" and not creator_standee_enabled
-    walk_back_sprite.visible = walk_review_enabled and walk_facing == "north" and not creator_standee_enabled
+    walk_review_sprite.visible = walk_review_enabled and walk_facing == "east" and not creator_standee_enabled and not creator_motion_enabled
+    walk_west_sprite.visible = walk_review_enabled and walk_facing == "west" and not creator_standee_enabled and not creator_motion_enabled
+    walk_front_sprite.visible = walk_review_enabled and walk_facing == "south" and not creator_standee_enabled and not creator_motion_enabled
+    walk_back_sprite.visible = walk_review_enabled and walk_facing == "north" and not creator_standee_enabled and not creator_motion_enabled
     walk_review_sprite.flip_h = false
     walk_west_sprite.flip_h = false
 
@@ -393,6 +467,7 @@ func _physics_process(_delta: float) -> void:
         for ionia_frame in [ionia_front_walk_sprite, ionia_north_walk_sprite, ionia_east_walk_sprite, ionia_west_walk_sprite]:
             ionia_frame.frame = current_frame
         _sync_ionia_direction()
+    _sync_creator_motion_frame()
     queue_redraw()
 
 func _draw() -> void:
@@ -403,7 +478,7 @@ func _draw() -> void:
     var hair := Color("#e4b65f") if is_ionia else Color("#965936")
     # Source artwork uses a softer layered grounding cue at the real foot origin.
     # The fallback walks keep their exact previous foot-shadow contract.
-    if creator_standee_enabled:
+    if creator_standee_enabled or creator_motion_enabled:
         for layer in range(5):
             var contour := PackedVector2Array()
             var factor := float(layer) / 4.0
@@ -422,7 +497,7 @@ func _draw() -> void:
             inner_contact.append(Vector2(cos(angle) * 12.0, -1.0 + sin(angle) * 2.7))
         draw_colored_polygon(outer_contact, Color(0.09, 0.13, 0.17, 0.19))
         draw_colored_polygon(inner_contact, Color(0.05, 0.09, 0.13, 0.31))
-    if is_review_art_enabled() or walk_review_enabled or creator_standee_enabled:
+    if is_review_art_enabled() or walk_review_enabled or creator_standee_enabled or creator_motion_enabled:
         # Suppress placeholder body only, retain shared foot-ground cue.
         return
     var step := gait_step if player_controlled else 0.0
