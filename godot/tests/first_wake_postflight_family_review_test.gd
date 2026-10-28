@@ -113,17 +113,56 @@ func _verify() -> void:
     if scene.review_snapshot()["combat_art_granted"] or scene.review_snapshot()["canonical_geography_assigned"]:
         _fail("theory fabricated combat or geography authority")
         return
-    if not scene.interact() or scene.repair_review == null:
-        _fail("theory table did not open connected repair workshop")
+    if not scene.interact() or scene.salvage_review == null:
+        _fail("theory table did not open playable two-area salvage search")
         return
-    if not scene.repair_review.has_external_story_handoff or scene.repair_review.story != story:
-        _fail("repair workshop used a forged/fixture story instead of actual postflight evidence")
+    var salvage = scene.salvage_review
+    if salvage.story != story or salvage.core.authorized_story != story:
+        _fail("salvage used a forged story instead of exact family evidence")
         return
-    if scene.repair_review.core.snapshot()["phase"] != "recover" or scene.repair_review.core.snapshot()["can_launch"]:
-        _fail("physical quest bypassed or flight permitted at workshop entry")
+    if salvage.core.snapshot()["phase"] != "recover" or salvage.core.snapshot()["can_launch"]:
+        _fail("salvage or flight permission prematurely granted")
+        return
+    if salvage.handoff_to_workshop() or salvage.recover_item("recovered_part", salvage.DEPOT):
+        _fail("salvage cheated distant item, preemptive return or wrong region")
+        return
+    salvage.ender.position = salvage.QUAY_SUPPLY
+    if not salvage.interact() or salvage.recover_item("recovered_supply", salvage.QUAY):
+        _fail("quay item failed or duplicate receipt accepted")
+        return
+    if salvage.core.snapshot()["phase"] != "recover":
+        _fail("one item completed entire supply gate")
+        return
+    salvage.ender.position = salvage.QUAY_TO_DEPOT
+    if not salvage.interact() or salvage.region != salvage.DEPOT:
+        _fail("walking to second source region failed")
+        return
+    salvage.ender.position = salvage.DEPOT_PART
+    if not salvage.interact() or salvage.snapshot()["custody"].size() != 2:
+        _fail("second-world-location part or custody receipt missing")
+        return
+    if salvage.handoff_to_workshop() or salvage.snapshot()["approved_material_identity"]:
+        _fail("remote depot automatically transferred item or invented composition")
+        return
+    salvage.ender.position = salvage.DEPOT_TO_QUAY
+    if not salvage.interact() or salvage.region != salvage.QUAY:
+        _fail("physical return to the quay failed")
+        return
+    salvage.ender.position = salvage.RETURN_TO_WAKE
+    if not salvage.interact() or salvage.workshop == null:
+        _fail("two recovered items did not reach the ship workshop")
+        return
+    if not salvage.snapshot()["required_regions_visited"] or not salvage.workshop.has_external_salvage_custody:
+        _fail("provenance not connected to actual installed-core review")
+        return
+    if salvage.workshop.story != story or salvage.workshop.core != salvage.core:
+        _fail("salvage custody lost identity during handoff")
+        return
+    if salvage.workshop.core.snapshot()["phase"] != "install" or salvage.workshop.core.snapshot()["can_launch"]:
+        _fail("material recovery skipped installation or unlocked flight")
         return
     if scene.interact() or not scene.review_snapshot()["connected_repair_review"]:
-        _fail("duplicate repair handoff admitted")
+        _fail("duplicate workshop handoff or lost status")
         return
     scene.queue_free()
     await process_frame

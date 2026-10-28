@@ -1,6 +1,6 @@
 extends Node2D
 ## Isolated physical-repair and remembered-melody story review. This scene
-## uses two anonymous test pickups; it is NOT real Chapter I, fuel art, sound,
+## accepts real two-area review pickups or its standalone fixture; no verified fuel art, sound,
 ## ship flight, DSP verification, or an approved mainline story destination.
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const Core = preload("res://scripts/first_wake_core_alignment_review.gd")
@@ -42,6 +42,39 @@ func configure_from_working_theory(story_state: Variant) -> bool:
     has_external_story_handoff = true
     last_message = "Shared crew theory received; physical recovery is still required."
     return true
+var has_external_salvage_custody: bool = false
+
+func configure_with_salvage_core(story_state: Variant, recovered_core: Variant) -> bool:
+    # The connected chapter supplies the same live repair state already
+    # populated by walkable world pickups in two distinct areas.
+    if is_inside_tree() or has_external_story_handoff or has_external_salvage_custody:
+        return false
+    if not (story_state is RefCounted) or story_state.get_script() != Opening:
+        return false
+    if not (recovered_core is RefCounted) or recovered_core.get_script() != Core:
+        return false
+    var report: Dictionary = story_state.snapshot()
+    if report.get("step", "") != "working_theory" or report.get("active_party_ids", []) != ["ender", "ionia", "lyra"]:
+        return false
+    if not bool(report.get("safe_reunion_confirmed", false)) or int(report.get("evidence_count", 0)) < 2:
+        return false
+    if recovered_core.authorized_story != story_state:
+        return false
+    var state: Dictionary = recovered_core.snapshot()
+    if state.get("phase", "") != "install" or state.get("installed", []) != []:
+        return false
+    if state.get("recovered", []).size() != Core.ITEM_IDS.size():
+        return false
+    for id in Core.ITEM_IDS:
+        if id not in state["recovered"]:
+            return false
+    core = recovered_core
+    story = story_state
+    has_external_story_handoff = true
+    has_external_salvage_custody = true
+    last_message = "Two physical review items returned. Install both before retesting; flight is locked."
+    return true
+
 var analysis = MelodyAnalysis.new()
 var ender: CharacterBody2D
 var headline: Label
@@ -253,7 +286,7 @@ func _refresh() -> void:
     if headline == null:
         return
     var s: Dictionary = core.snapshot()
-    headline.text = "AUREATE WAKE  /  POST-SPLASHDOWN REPAIR — " + ("CONNECTED REVIEW" if has_external_story_handoff else "ISOLATED FIXTURE")
+    headline.text = "AUREATE WAKE / POST-SPLASHDOWN REPAIR — " + ("SALVAGE RECEIVED" if has_external_salvage_custody else ("CONNECTED REVIEW" if has_external_story_handoff else "ISOLATED FIXTURE"))
     objective.text = "NEXT: %s  |  Samples: %d/2 recovered, %d/2 installed" % [str(s["phase"]).to_upper(), core.recovered.size(), core.installed.size()]
     status_label.text = "SUPPLY CHECK: %s  |  HARMONIC ALIGNMENT: %s  |  FLIGHT: LOCKED" % [
         "COMPLETE" if bool(s["materialReady"]) else "INCOMPLETE",

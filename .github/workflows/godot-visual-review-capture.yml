@@ -100,6 +100,20 @@ jobs:
           for phase in waterborne-review recovery-approach berth-contact berth-secured family-meeting lyra-joined; do
             test -s "godot/review-evidence/first-wake-${phase}-native-960x640.png"
           done
+          # Two provisional salvage areas and actual pickup/return state
+          # rendered in native Godot; screenshots remain runner-only.
+          salvage_log="$(mktemp)"
+          xvfb-run -a -s "-screen 0 960x640x24" editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_first_wake_salvage_review.gd 2>&1 | tee "$salvage_log"
+          if grep -Eq 'SCRIPT ERROR:|TSTSS_SALVAGE_NATIVE_CAPTURE_FAIL' "$salvage_log"; then
+            echo 'Native salvage rendering/custody visual check failed' >&2
+            rm -f "$salvage_log"
+            exit 1
+          fi
+          grep -Fq 'TSTSS_SALVAGE_NATIVE_CAPTURE_PASS:' "$salvage_log"
+          rm -f "$salvage_log"
+          for phase in quay-before quay-collected depot return installed-pending; do
+            test -s "godot/review-evidence/first-wake-salvage-${phase}-native-960x640.png"
+          done
           sha256sum godot/review-evidence/*.png
           # Private, native-resolution lossless crops in job logs: not a public artifact.
           # Entire 960x640 PNGs remain runner-only; do not conflate crop custody with full frames.
