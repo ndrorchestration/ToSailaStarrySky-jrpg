@@ -52,9 +52,11 @@ func _run() -> void:
     for cycle in range(30):
         await physics_frame
     var camera: Camera3D = ship.get_node("MetricShipStudyCamera")
-    camera.position = Vector3(4.3, 3.4, -5.1)
-    camera.fov = 42.0
-    camera.look_at(Vector3(0.0, 1.04, -2.58), Vector3.UP)
+    # Head-on from the normal bow approach: a 90-degree open door is
+    # edge-on rather than misleadingly appearing almost closed.
+    camera.position = Vector3(0.85, 2.85, -6.20)
+    camera.fov = 44.0
+    camera.look_at(Vector3(0.0, 1.16, -2.58), Vector3.UP)
 
     if not await _walk_to(actor, -1.62):
         problems.append("actor_cannot_reach_helm")
