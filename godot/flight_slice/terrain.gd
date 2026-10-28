@@ -3,7 +3,9 @@ extends Node3D
 ## Coordinates here are meters in a standalone study; no world/save/route adapter.
 const TILE_EDGE: float = 24.0
 const GRID_RADIUS: int = 4
-const HIGH_SEGMENTS: int = 18
+# Twenty-four fine samples per 24 m tile improve alpine arête silhouette
+# while preserving exact 6-segment coarse edge breakpoints for stitching.
+const HIGH_SEGMENTS: int = 24
 const LOW_SEGMENTS: int = 6
 const SEA_LEVEL: float = -0.15
 const NEAR_LOD: float = 43.0
@@ -173,7 +175,7 @@ func update_detail(observer: Vector3, delta: float) -> void:
         if is_high:
             detail_count += 1
     # High-resolution edge vertices lie on the piecewise-linear coarse edge.
-    # Eighteen segments is divisible by six, so every coarse corner is also
+    # Twenty-four segments is divisible by six, so every coarse corner is also
     # a fine vertex. Keep only one extra stitched mesh per tile.
     for record in _tiles:
         var node: MeshInstance3D = record["node"]
