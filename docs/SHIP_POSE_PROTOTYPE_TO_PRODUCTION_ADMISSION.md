@@ -83,6 +83,8 @@ Test the negative cases: missing sink; invalid/NaN values; premature request; fa
 
 **Interpretation:** Stage A contract is native-tested in a draft; **production Chapter I moving-wing visuals, boarded-safety, accepted scale, target GPU, creator acceptance and merge remain open.** Recheck PR heads / additional workflows before promotion.
 
+**Security gate classification:** on the same Chapter I #507 exact head, [Windows QA #40615917385](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40615917385) **FAILED BEFORE WINDOWS APPLICATION ADMISSION**. The hosted runner preflight reported `DEFENDER_ANTIVIRUS_ENABLED=False`, `DEFENDER_REALTIME_ENABLED=False`, and stopped at `WINDOWS_QA_HOST_DEFENDER_ANTIVIRUS_DISABLED`; the separate Windows functional-prerequisites job passed. Treat as <b>host security prerequisite failure</b>, not a demonstrated pose-adapter, art, or Windows-installer test failure/success. Do not relax the security control or claim hardware readiness.
+
 ## 5. Release and decision register
 
 | Gate | Current status |
