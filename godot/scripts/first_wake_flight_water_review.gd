@@ -14,8 +14,8 @@ const SETTLE_SECONDS := 0.45
 const ASCENT_SECONDS := 1.25
 # Local towing/berthing prototype geometry, NOT established geography,
 # rescue method, shipping lanes or powered levitation propulsion.
-const BERTH_CENTER := Vector2(817.0, SURFACE_Y - 14.0)
-const BERTH_SENSOR_SIZE := Vector2(112.0, 78.0)
+const BERTH_CENTER := Vector2(891.0, SURFACE_Y - 14.0)
+const BERTH_SENSOR_SIZE := Vector2(42.0, 78.0)
 const RECOVERY_PULL_SPEED := 58.0
 const BERTH_STABLE_SPEED := 6.0
 const BERTH_STABLE_SECONDS := 0.35
@@ -153,8 +153,12 @@ func _draw() -> void:
         draw_rect(Rect2(864, SURFACE_Y - 4, 96, 134), Color("#806d57"))
         for y in [423.0, 452.0, 481.0, 510.0]:
             draw_line(Vector2(866, y), Vector2(960, y), Color("#bea281"), 2.0)
-        draw_line(Vector2(798, SURFACE_Y - 57), Vector2(798, SURFACE_Y + 15), Color("#e0c58c"), 3.0)
-        draw_circle(Vector2(798, SURFACE_Y - 58), 8, Color("#b5e6d2"))
+        draw_line(Vector2(854, SURFACE_Y - 57), Vector2(854, SURFACE_Y + 15), Color("#e0c58c"), 3.0)
+        draw_circle(Vector2(854, SURFACE_Y - 58), 8, Color("#b5e6d2") if berth_contact_observed else Color("#e8bc7f"))
+        if phase in ["berth_securing", "berth_ready"]:
+            # The line is visible only after the player explicitly secures it.
+            var bow := ship_body.position + Vector2(70.0, -6.0)
+            draw_line(bow, Vector2(864.0, SURFACE_Y - 28.0), Color("#dfd0a8"), 2.5)
         draw_string(ThemeDB.fallback_font, Vector2(656, 319), "PROVISIONAL BERTH / 2D REVIEW", HORIZONTAL_ALIGNMENT_LEFT, 296, 14, Color("#f4e4c4"))
 
 func _unhandled_input(event: InputEvent) -> void:
