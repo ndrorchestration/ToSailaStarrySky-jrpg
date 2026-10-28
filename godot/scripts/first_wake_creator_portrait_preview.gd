@@ -16,30 +16,39 @@ var _test_textures: Dictionary = {}
 
 func _ready() -> void:
     name = "CreatorHighFidelityPortraitPreview"
-    position = Vector2(737.0, 157.0)
-    size = Vector2(197.0, 343.0)
+    # 432x432 source is deliberately kept square, never portrait-cropped.
+    # The plaque ends at y=527, above the game's dialogue area at y=535.
+    position = Vector2(704.0, 269.0)
+    size = Vector2(236.0, 258.0)
     mouse_filter = Control.MOUSE_FILTER_IGNORE
     var outer := ColorRect.new()
-    outer.color = Color("#bb9260")
+    outer.color = Color("#c7a46a")
     outer.size = size
     outer.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(outer)
     var inner := ColorRect.new()
     inner.position = Vector2(2.0, 2.0)
     inner.size = size - Vector2(4, 4)
-    inner.color = Color("#111d2c")
+    inner.color = Color("#0c1927")
     inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(inner)
     visual = TextureRect.new()
     visual.name = "CreatorReferenceStillImage"
-    visual.position = Vector2(7.0, 7.0)
-    visual.size = Vector2(183, 290)
+    visual.position = Vector2(10.0, 9.0)
+    visual.size = Vector2(216.0, 216.0)
     visual.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    visual.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+    visual.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
     visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(visual)
     speaker_label = Label.new()
-    speaker_label.position = Vector2(11.0, 305.0)
+    var rule := ColorRect.new()
+    rule.name = "BrassPortraitRule"
+    rule.position = Vector2(10.0, 228.0)
+    rule.size = Vector2(216.0, 1.0)
+    rule.color = Color("#8e7148")
+    rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(rule)
+    speaker_label.position = Vector2(15.0, 231.0)
     speaker_label.add_theme_font_size_override("font_size", 17)
     speaker_label.add_theme_color_override("font_color", Color("#f8e7ca"))
     speaker_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -94,5 +103,7 @@ func snapshot() -> Dictionary:
         "speaker": current_speaker, "visible": visible,
         "enabled": portraits_enabled,
         "story_mutation": false, "party_mutation": false,
-        "save_mutation": false, "field_animation": false
+        "save_mutation": false, "field_animation": false,
+        "source_aspect_preserved": true, "review_only": true,
+        "viewport_rect": Rect2(position, size)
     }
