@@ -121,6 +121,22 @@ func _capture() -> void:
         return
     var pilot = game.berth_review
     var initial: Image = await _image("01-player-command-before-approach")
+    if not pilot.set_native_3d_review_enabled(true):
+        problems.append("optional authentic 3D berth viewport failed to enable")
+    var inset_on: Image = await _image("01b-original-source-3d-wake-enabled")
+    if pilot.native_3d_review == null or pilot.native_3d_review.viewport == null:
+        problems.append("real SubViewport unavailable")
+    elif not pilot.native_3d_review.review_snapshot().get("ship_mesh_present", false):
+        problems.append("original source 3D ship not present")
+    if initial != null and inset_on != null and initial.get_data() == inset_on.get_data():
+        problems.append("3D source render did not change genuine game framebuffer")
+    if not pilot.set_native_3d_review_enabled(false):
+        problems.append("3D view could not be disabled")
+    var inset_off: Image = await _image("01c-original-source-3d-wake-disabled")
+    if inset_off != null and inset_on != null and inset_off.get_data() == inset_on.get_data():
+        problems.append("3D off state did not change genuine game framebuffer")
+    if pilot.contact_observed or pilot.lines_secured or game.session.safe_local_berth_recorded:
+        problems.append("3D visual toggle forged physics or story authorization")
     if not pilot.start_local_approach():
         problems.append("real 2D approach start invalid")
     # The GL runner may render many frames per fixed physics tick. Wait on
@@ -158,7 +174,7 @@ func _capture() -> void:
     game.queue_free()
     await process_frame
     if problems.is_empty():
-        print("TSTSS_BERTH_GL_CAPTURE_PASS frames=3 genuine_gl=true",
+        print("TSTSS_BERTH_GL_CAPTURE_PASS frames=5 genuine_gl=true",
             " independent_2d_area_contact=true original_splashdown=true",
             " player_lines=true no_story_reunion=true")
         quit(0)
