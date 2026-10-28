@@ -115,13 +115,13 @@ func interact() -> bool:
     var success := false
     match phase:
         "recover":
-            var id: String = "recovered_supply" if core.recovered.is_empty() else "recovered_part"
-            success = core.take_world_item(id, "world_pickup")
-            last_message = "Recovered physical review item: " + id + "."
+            var pickup_id: String = "recovered_supply" if core.recovered.is_empty() else "recovered_part"
+            success = core.take_world_item(pickup_id, "world_pickup")
+            last_message = "Recovered physical review item: " + pickup_id + "."
         "install":
-            var id: String = "recovered_supply" if core.installed.is_empty() else "recovered_part"
-            success = core.install_part(id, true)
-            last_message = "Checked physical installation: " + id + "."
+            var installation_id: String = "recovered_supply" if core.installed.is_empty() else "recovered_part"
+            success = core.install_part(installation_id, true)
+            last_message = "Checked physical installation: " + installation_id + "."
         "retest":
             success = core.retest_with_supplies(true, true, true)
             last_message = "The supplies are installed. The core still refuses phase-lock. No flight."
@@ -176,6 +176,6 @@ func _refresh() -> void:
     status_label.text = "SUPPLY CHECK: %s  |  HARMONIC ALIGNMENT: %s  |  FLIGHT: LOCKED" % [
         "COMPLETE" if bool(s["materialReady"]) else "INCOMPLETE",
         "BENCH CANDIDATE" if bool(s["alignment_candidate"]) else "UNRESOLVED",
-    ] if s.has("materialReady") else "FLIGHT: LOCKED  |  NO AUDIO DSP OR ACTUAL WATER PHYSICS IN THIS STUDY"
+    ]
     hint.text = last_message + "  [Arrows: move; E: interact; no voice input required]"
     queue_redraw()
