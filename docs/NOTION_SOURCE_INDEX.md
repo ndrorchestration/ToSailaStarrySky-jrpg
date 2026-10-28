@@ -6,6 +6,7 @@
 
 | Subject | Notion primary source | GitHub-readable bridge |
 |---|---|---|
+| Enemy combat visuals and prototype/production admission | [Visual Bible](https://app.notion.com/p/3e3f5bad238b81579019c70c72778e1f), [2026-10-27 development ledger](https://app.notion.com/p/406f5bad238b81649ecaea05f451c2d6) | [Enemy visual admission matrix](reviews/ENEMY_VISUAL_PROTOTYPE_TO_PRODUCTION_2026-10-27.md); original sprite and native tests remain draft PR #410 |
 | Current product title and terminology | [Title/rebrand authority (contains restricted material; authorized access only)](https://app.notion.com/p/403f5bad238b81428c5ec7dc1a8f54ee) | [Canon policy](CANON_AND_REVEAL_POLICY.md) |
 | Narrative, status labels, roster continuity | [Narrative & Canon](https://app.notion.com/p/3e0f5bad238b812bac52c594d1465c29) | [Canon policy](CANON_AND_REVEAL_POLICY.md) |
 | Canon-vs-runtime precedence and historical conflicts | [Documentation Authority](https://app.notion.com/p/3e2f5bad238b813cae95ee61e4b517cc) | [Agent index](AGENT_HANDOFF_INDEX.md) |
