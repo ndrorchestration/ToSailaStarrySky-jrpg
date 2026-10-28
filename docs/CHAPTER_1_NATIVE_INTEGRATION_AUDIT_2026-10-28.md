@@ -39,3 +39,10 @@ Selected native PRs are **draft and unmerged**, and compare to current `main` as
 **Milestone alignment:** November 30, 2026 integrated baseline; March 31, 2027 feature-complete alpha; May 31, 2027 beta planning target. See [beta roadmap](CHAPTER_1_BETA_ROADMAP.md).
 
 **No merges, runtime changes or public releases were performed by this audit.**
+
+## 2026-10-28 Windows development worktree follow-up (read-only inspection)
+- Connected machine: `neontic` (online), exact path `C:\\Users\\Admin\\Desktop\\TSTSS-FirstWake-Visual-Review`.
+- Local branch `visual/first-wake-layered-coast-review-20261028` at `4d2ec5fb343a2bd9df40b26d6de75bc7654d0e81`.
+- Local uncommitted change: `godot/scripts/first_wake_flight_water_review.gd` (+7 lines; no deletions). **Preserve** until owner/agent determines intent; no reset/rebase/merge performed.
+- Godot native project file `godot/project.godot` exists locally. Another Git worktree at `Desktop/Aetherwake/Verification Sandbox/FirstWake-CreatorPortrait-QA-20261028` is detached at `849ea9c`.
+- This is **source/worktree observation only**, not native playtest, scene rendering, CI confirmation, or integration acceptance. Current worktree is dirty: require a clean separate integration worktree, anchored to a verified exact source SHA, before conflict checks or promotion.
