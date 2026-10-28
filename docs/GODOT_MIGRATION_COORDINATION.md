@@ -20,6 +20,12 @@
 5. Replace primitive art through creator-reviewed source/converted assets, genuine native screenshots and Blender/Godot visuals.
 6. Performance/Windows export/installed-launch/player acceptance and release permission are distinct; no silent promotion.
 
+## Combat/enemy art extraction handoff (2026-10-27)
+
+The verified Wind Shear art study in [draft #410](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/410) belongs to a **separate presentational extraction lane** on the older Chapter I combat branch. Its 80×92 original pixel atlases, deterministic analyzed/real-hit/Gale visuals, stage-depth A/B and native screenshot tests are reusable *without* its outdated Ender+Lyra party or Crossing placement. [Draft #493](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/493) supplies a tested read-only real-`staffStrike` weapon-visual sidecar; [draft #491](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/491) supplies the separately tested revised story–party–ship projection. None is a merged runtime event bus or production scene.
+
+**Order:** portable standalone enemy-view test → neutral native battle-lab consumption of one real post-resolution combat cue → original-scene capture/visual comparison → explicit Ionia-first quest/party reconciliation and encounter placement → target/performance/Windows custody → creator art/gameplay/release decisions. Full [admission matrix](reviews/ENEMY_VISUAL_PROTOTYPE_TO_PRODUCTION_2026-10-27.md). Preserve the current playable JS main baseline and do not merge old Chapter I scene content wholesale.
+
 ## Evidence categories
 
 - **SOURCE:** branch + commit SHA, changed paths, provenance.
