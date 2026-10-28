@@ -121,11 +121,15 @@ func _run() -> void:
         _fail("reduced-motion neutral lab failed to reset")
         return
     lab.enemy_view.set_process(false)
+    var frozen_root_before: Vector2 = lab.staff_view.position
+    if frozen_root_before.distance_to(grounded_root_before) > 2.0:
+        _fail("reduced-motion mode shifted the character's planted floor position")
+        return
     if not lab.resolve_one_staff_strike():
         _fail("reduced-motion presentation blocked an authorized battle action")
         return
-    if lab.enemy_view.reaction_phase() != "still"         or lab.enemy_view.authored_idle_frame() != 0         or not bool(lab.last_visual_receipt["visualPose"]["motionReduced"])         or not lab.staff_view.visible         or not lab.optical_contact_verified:
-        _fail("reduced motion did not preserve static weapon and enemy poses")
+    if lab.enemy_view.reaction_phase() != "still"         or lab.enemy_view.authored_idle_frame() != 0         or not bool(lab.last_visual_receipt["visualPose"]["motionReduced"])         or not lab.staff_view.visible         or lab.optical_contact_verified         or lab.staff_view.position.distance_to(frozen_root_before) > 2.0:
+        _fail("reduced motion shifted the standing actor or fabricated impact")
         return
     if lab.accepted_actions != 1 or lab.finished_visual_receipts != 1         or lab.encounter.turns != 1:
         _fail("reduced-motion presentation repeated combat work")
