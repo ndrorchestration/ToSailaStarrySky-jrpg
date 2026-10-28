@@ -134,7 +134,7 @@ func _test() -> void:
     var file_store = Store.new()
     file_store.delete_review()
     var first: Dictionary = file_store.save_review(migration)
-    if not bool(first.get("ok", false)) or not str(first.get("primary_sha256", "")).length() == 64:
+    if not bool(first.get("ok", false)) or str(first.get("primary_sha256", "")).length() != 64:
         _fail("migration-pending candidate could not write verified test-slot generation")
         return
     var first_bytes_sha: String = FileAccess.get_sha256(Store.PATH)
