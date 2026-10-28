@@ -109,6 +109,14 @@ func _test() -> void:
     var wrong_actor = changed.duplicate(true)
     wrong_actor["roster"]["lyra"]["slots"]["mainWeapon"] = "fixture:ender-starter-staff"
     mutations.append({"case": "stolen-item", "value": wrong_actor})
+    var ghost = changed.duplicate(true)
+    ghost["roster"]["ender"]["slots"]["mainWeapon"] = "fixture:phantom-staff"
+    for held_record in ghost["instances"]:
+        if held_record["definitionId"] == "ender-staff-inlay-review":
+            held_record["location"] = "bag"
+            held_record["actorId"] = ""
+            held_record["slot"] = ""
+    mutations.append({"case": "ghost-slot-with-real-item-in-bag", "value": ghost})
     var wrong_owner = changed.duplicate(true)
     wrong_owner["instances"][0]["actorId"] = "lyra"
     mutations.append({"case": "owner-record-conflict", "value": wrong_owner})
