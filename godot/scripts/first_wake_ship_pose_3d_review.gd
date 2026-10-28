@@ -47,8 +47,8 @@ func _ready() -> void:
     var camera := Camera3D.new()
     camera.name = "ReviewCamera"
     camera.current = true
-    camera.fov = 45.0
-    camera.position = Vector3(8.4, 5.1, 10.7)
+    camera.fov = 35.0
+    camera.position = Vector3(7.8, 4.8, 9.6)
     viewport.add_child(camera)
     camera.look_at(Vector3(0.0, 0.0, -0.15), Vector3.UP)
 
@@ -64,7 +64,7 @@ func _ready() -> void:
     var label := Label.new()
     label.name = "NoncanonicalAssetNotice"
     label.position = PREVIEW_POSITION + Vector2(9, 6)
-    label.text = "NATIVE 3D SHIP / ART REVIEW ONLY"
+    label.text = "SOURCE-PINNED 3D / REVIEW ONLY"
     label.add_theme_font_size_override("font_size", 13)
     label.add_theme_color_override("font_color", Color(1.0, 0.90, 0.73))
     label.mouse_filter = Control.MOUSE_FILTER_IGNORE
