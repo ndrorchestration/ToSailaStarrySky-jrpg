@@ -85,8 +85,15 @@ func _run() -> void:
     check(await _approach(actor, -1.40), "move physical walker from cabin into helm")
     check(rig.zone == "helm" and rig.camera.current,
         "camera automatically changes to the enclosed geodesic helm shot")
-    check(visual.walk_cycles >= 1 and visual.current_speed < 0.1,
-        "placeholder limb animation advances only during actual movement")
+    for settle_tick in range(5):
+        await physics_frame
+        await process_frame
+    print("FIRST_WAKE_ZONE_CAMERA_ANIM_DEBUG cycles=", visual.walk_cycles,
+        " speed=", visual.current_speed, " velocity=", actor.velocity)
+    check(visual.walk_cycles >= 1,
+        "actual physical motion advances the animated visual stride")
+    check(visual.current_speed < 0.1,
+        "walking proxy ceases animation input after movement stops")
     check(cam_before.distance_to(rig.camera.global_position) > 2.0,
         "actual camera follows character movement, not a fixed staged render")
     check(visual.get_node("LeftReviewArm").rotation.x > -0.60
