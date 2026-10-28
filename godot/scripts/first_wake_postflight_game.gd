@@ -24,6 +24,7 @@ var messages: Array[String] = [
 var dialogue_index: int = 0
 var inspected_station: bool = false
 var checkpoint_message: String = ""
+var local_berth_requested: bool = false
 
 func configure(the_session) -> bool:
     if is_inside_tree() or the_session == null:
@@ -95,7 +96,7 @@ func _unhandled_input(event: InputEvent) -> void:
         get_viewport().set_input_as_handled()
         return
     if event.is_action_pressed(InputPolicy.INTERACT) and not event.is_echo():
-        if interact_reserve():
+        if request_local_berth_review() or interact_reserve():
             get_viewport().set_input_as_handled()
 
 func set_reduced_motion(enabled: bool) -> void:
@@ -133,6 +134,21 @@ func interact_reserve() -> bool:
     _sync_ui()
     return true
 
+func request_local_berth_review() -> bool:
+    # Ionia is the only available captain, and the depleted reserve must
+    # actually have been observed. This is NOT an authorization for a new
+    # world route, Lyra arrival, or unverified material fuel acquisition.
+    if session == null or not session.can_checkpoint() or not inspected_station:
+        return false
+    if reserve_dialogue_open or ender == null or ionia == null:
+        return false
+    if ender.position.distance_to(ionia.position) > INTERACT_DISTANCE:
+        return false
+    local_berth_requested = true
+    checkpoint_message = "Ionia: We can examine a local berth approach. Nothing beyond that is confirmed."
+    _sync_ui()
+    return true
+
 func notify_checkpoint(message: String) -> void:
     checkpoint_message = message
     _sync_ui()
@@ -144,7 +160,7 @@ func _sync_ui() -> void:
     if cinematic_seascape != null:
         cinematic_seascape.set_reserve_inspected(inspected_station)
     objective.text = "FIRST WAKE  /  OPEN WATER — ENDER + IONIA\n" + (
-        "Reserve inspected. F5: save  |  F9: resume checkpoint" if done else
+        "Reserve inspected. F5: save | E near Ionia: local berth review" if done else
         "Ship stable. Examine the depleted engine reserve (E).")
     if reserve_dialogue_open:
         text_label.text = messages[dialogue_index]
@@ -152,6 +168,6 @@ func _sync_ui() -> void:
         text_label.visible = true
     else:
         hint.text = checkpoint_message if not checkpoint_message.is_empty() else (
-            "Arrows: move  |  E: inspect  |  M: still sea  |  F5: save  |  F9: load")
+            "Arrows: move  |  E: inspect / Ionia berth  |  M: still sea  |  F5: save  |  F9: load")
         text_label.visible = false
     queue_redraw()

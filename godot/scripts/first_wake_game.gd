@@ -6,12 +6,14 @@ extends Node2D
 const Session = preload("res://scripts/first_wake_game_session.gd")
 const JobScene = preload("res://scenes/first_wake_job_preview.tscn")
 const PostflightScene = preload("res://scenes/first_wake_postflight_game.tscn")
+const BerthScene = preload("res://scenes/first_wake_local_berth_game.tscn")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const Checkpoint = preload("res://scripts/first_wake_game_checkpoint.gd")
 
 var session = Session.new()
 var job
 var postflight
+var berth_review
 var game_stage: String = "uninitialized"
 var landing_hold: float = 0.0
 var checkpoint_path: String = Checkpoint.DEFAULT_PATH
@@ -23,7 +25,7 @@ func _ready() -> void:
     _start_job()
 
 func _start_job() -> bool:
-    if job != null or postflight != null:
+    if job != null or postflight != null or berth_review != null:
         return false
     job = JobScene.instantiate()
     job.name = "PlayableFirstWakeFromJobFlyer"
@@ -36,6 +38,16 @@ func _start_job() -> bool:
     return true
 
 func _process(delta: float) -> void:
+    if game_stage == "postflight" and postflight != null:
+        if postflight.local_berth_requested:
+            _enter_local_berth()
+        return
+    if game_stage == "local_berth" and berth_review != null:
+        if berth_review.phase == "secured_local_berth" and not session.safe_local_berth_recorded:
+            session.record_verified_local_berth(berth_review)
+        if berth_review.return_requested:
+            _enter_postflight()
+        return
     if game_stage != "first_flight" or job == null:
         return
     var flight = job.flight_review
@@ -51,7 +63,7 @@ func _process(delta: float) -> void:
         _enter_postflight()
 
 func _enter_postflight() -> bool:
-    if game_stage != "first_flight" or not session.physical_landing_observed:
+    if game_stage not in ["first_flight", "local_berth"] or not session.physical_landing_observed:
         return false
     if postflight != null:
         return false
@@ -62,10 +74,34 @@ func _enter_postflight() -> bool:
     if job != null:
         job.queue_free()
         job = null
+    if berth_review != null:
+        berth_review.queue_free()
+        berth_review = null
     postflight = candidate
     postflight.name = "PlayablePostflightShipboardInspection"
     add_child(postflight)
     game_stage = "postflight"
+    if session.reserve_inspected:
+        postflight.inspected_station = true
+        postflight.notify_checkpoint("Reserve recorded. F5: checkpoint. Local berth remains experimental.")
+    transition_count += 1
+    return true
+
+func _enter_local_berth() -> bool:
+    if game_stage != "postflight" or postflight == null or berth_review != null:
+        return false
+    if not postflight.local_berth_requested or not session.can_checkpoint():
+        return false
+    var candidate = BerthScene.instantiate()
+    if not candidate.configure(session):
+        candidate.free()
+        return false
+    postflight.queue_free()
+    postflight = null
+    berth_review = candidate
+    berth_review.name = "PlayablePhysicalLocalBerthReview"
+    add_child(berth_review)
+    game_stage = "local_berth"
     transition_count += 1
     return true
 
@@ -112,6 +148,9 @@ func load_game() -> bool:
     if postflight != null:
         postflight.queue_free()
         postflight = null
+    if berth_review != null:
+        berth_review.queue_free()
+        berth_review = null
     game_stage = "first_flight"
     var ok: bool = _enter_postflight()
     if ok:
@@ -124,6 +163,8 @@ func game_snapshot() -> Dictionary:
     snap["game_stage"] = game_stage
     snap["native_godot_game_root"] = true
     snap["postflight_player_present"] = postflight != null and postflight.ender != null
+    snap["physical_local_berth_active"] = berth_review != null
+    snap["physical_local_berth_secured"] = session.safe_local_berth_recorded
     snap["physical_review_active"] = job != null and job.flight_review != null
     snap["transition_count"] = transition_count
     snap["legacy_chapter_scene_used"] = false
