@@ -12,6 +12,8 @@ var visuals: Node3D
 var _low_quality: bool = false
 var _surface_textures: bool = true
 var _biome_layers: bool = true
+var _forest_shapes: bool = true
+var _coastal_surf: bool = true
 
 var terrain
 var ship
@@ -90,7 +92,7 @@ func _process(delta: float) -> void:
                 "ON" if _magical_sky else "OFF"]
             if visuals.transition_active:
                 atmospheric_note += " / TRANSITION"
-        overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + atmospheric_note + "  |  B light / N weather / G magic sky\n" + "F pilot · W/S move · A/D steer · E/Q ascend/descend\nT test-field landing · P pause · M still effects · C camera\nR reset · V detail · K grain · J biome/coast · H HUD\nNON-CANON STUDY  •  NO GAMEPLAY CLIMATE"
+        overlay.text = "TO SAIL THE STARRY SKY  /  FLIGHT LAB\nCOAST  →  FOREST  →  HIGHLANDS\n" + flight_info + "  |  %s TILES / %s NEAR LOD\n" % [terrain.visible_tiles, terrain.detailed_tiles] + atmospheric_note + "  |  B light / N weather / G magic sky\n" + "F pilot · W/S move · A/D steer · E/Q ascend/descend\nT test-field landing · P pause · M still effects · C camera\nR reset · V detail · K grain · J biome/coast · Y foliage · U surf · H HUD\nNON-CANON STUDY  •  NO GAMEPLAY CLIMATE"
 
 func _unhandled_key_input(event: InputEvent) -> void:
     if not (event is InputEventKey):
@@ -124,6 +126,14 @@ func _unhandled_key_input(event: InputEvent) -> void:
             _biome_layers = not _biome_layers
             if visuals != null:
                 visuals.set_biome_layer_enabled(_biome_layers)
+        KEY_Y:
+            _forest_shapes = not _forest_shapes
+            if visuals != null:
+                visuals.set_foliage_shape_enabled(_forest_shapes)
+        KEY_U:
+            _coastal_surf = not _coastal_surf
+            if visuals != null:
+                visuals.set_coastal_surf_enabled(_coastal_surf)
         KEY_H:
             overlay.visible = not overlay.visible
         KEY_B:
