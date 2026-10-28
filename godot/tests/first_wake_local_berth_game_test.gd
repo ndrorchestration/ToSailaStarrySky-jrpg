@@ -103,6 +103,17 @@ func _run() -> void:
     check(pilot.native_3d_review.review_snapshot().get("source_visual_pr") == 486
         and pilot.native_3d_review.review_snapshot().get("read_only", false),
         "3D model is original source-bound visual-only Chapter I study")
+    check(pilot.native_3d_review.last_camera_shot == "bow-quarter",
+        "berth opens on the original source bow-quarter composition")
+    check(pilot.cycle_native_3d_camera()
+        and pilot.native_3d_review.last_camera_shot == "stern-quarter",
+        "C switches actual ship camera to stern-quarter")
+    check(pilot.cycle_native_3d_camera()
+        and pilot.native_3d_review.last_camera_shot == "wing-planform",
+        "C reveals original four-wing planform")
+    check(pilot.cycle_native_3d_camera()
+        and pilot.native_3d_review.last_camera_shot == "bow-quarter",
+        "cinematic camera cycles safely to original bow shot")
     pilot.set_reduced_motion(true)
     check(pilot.native_3d_review.use_reduced_motion,
         "M reduced-motion setting propagates to optional native 3D viewport")
