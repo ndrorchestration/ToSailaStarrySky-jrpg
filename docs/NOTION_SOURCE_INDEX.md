@@ -1,5 +1,7 @@
 # Notion → GitHub evidence map (public-safe)
 
+> **2026-10-28 production verification link:** [Native graphical / integration audit](CHAPTER_1_NATIVE_INTEGRATION_AUDIT_2026-10-28.md) ↔ [Notion Native Chapter 1 Integration Audit](https://app.notion.com/p/407f5bad238b812abfbed83ad2acebf4). Nine Windows frames passed at `4d2ec5fb`; inspected legacy review frames reveal Lyra-first default and opt-in Ionia-first wording, plus UI overlap. This is a documented blocking discrepancy, not an artistic acceptance.
+
 > **Roadmap bridge (2026-10-28):** [Chapter 1 beta milestones and quality gates](CHAPTER_1_BETA_ROADMAP.md) ↔ [Notion Chapter 1 Beta Roadmap](https://app.notion.com/p/407f5bad238b81879510f3b490c4b48a). The Operational Control Center links to this planning record. Historical and draft sources must not be promoted to merged implementation status.
 
 **Why:** Hermes, Hyperagent/Spellcraft and Muse/Herald may not share Notion access. This index contains **public-safe pointers and locally synthesized constraints**. It does not export private images, restricted postgame solutions, or all Notion content. Links require applicable Notion permissions.
