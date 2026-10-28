@@ -1,0 +1,42 @@
+name: Godot P-02 Volatile Equipment Session Proof (review only)
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/battle_equipment_session_review.gd'
+      - 'godot/tests/battle_equipment_session_review_test.gd'
+      - 'godot/scripts/first_wake_chapter1_review.gd'
+      - '.github/workflows/godot-equipment-session-proof.yml'
+permissions:
+  contents: read
+jobs:
+  source-bound-native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout review draft without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Fetch digest-verified official Godot 4.7.2 Standard binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o godot-editor.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  godot-editor.zip" | sha256sum -c -
+          mkdir -p godot-editor
+          unzip -q godot-editor.zip -d godot-editor
+          chmod +x godot-editor/Godot_v4.7.2-stable_linux.x86_64
+      - name: Import GDScript assets with actual native editor
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
+      - name: Verify five-cast in-memory session authority over real scene replacement
+        shell: bash
+        run: timeout --signal=TERM --kill-after=5s 85s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/battle_equipment_session_review_test.gd
+      - name: Preserve Chapter I gear, inventory, inspector and save contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/equipment_lifecycle_study_test.gd
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/battle_equipment_trial_inventory_test.gd
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/battle_equipment_loadout_test.gd
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_save_scene_test.gd
