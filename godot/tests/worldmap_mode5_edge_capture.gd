@@ -103,12 +103,21 @@ func _run()->void:
     mat.set_shader_parameter("tile_edge_blend_width",0.0)
     var old_hard:Image=await _frame()
     _save(old_hard,"wet-hard-tile.png")
+    mat.set_shader_parameter("tile_edge_blend_width",0.08)
+    var feather_08:Image=await _frame()
+    _save(feather_08,"wet-feather-08.png")
+    mat.set_shader_parameter("tile_edge_blend_width",0.14)
+    var feather_14:Image=await _frame()
+    _save(feather_14,"wet-feather-14.png")
     mat.set_shader_parameter("tile_edge_blend_width",0.22)
     var new_soft:Image=await _frame()
     _save(new_soft,"wet-feathered-tile.png")
     var change:int=_diff(old_hard,new_soft)
     var effect:int=_diff(original,new_soft)
     var sky_changed:int=_top_sky_drift(old_hard,new_soft)
+    print("MODE5_EDGE_WIDTH_SWEEP width08_from_original=",_diff(original,feather_08),
+        " width14_from_original=",_diff(original,feather_14),
+        " width22_from_original=",effect)
     print("MODE5_EDGE_A_B_CHANGED pixels=",change,
         " source_to_feather=",effect,
         " sky_drift=",sky_changed," selected_key=",selected_key)
