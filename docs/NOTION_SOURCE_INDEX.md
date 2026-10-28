@@ -2,6 +2,8 @@
 
 **Why:** Hermes, Hyperagent/Spellcraft and Muse/Herald may not share Notion access. This index contains **public-safe pointers and locally synthesized constraints**. It does not export private images, restricted postgame solutions, or all Notion content. Links require applicable Notion permissions.
 
+**Ship-pose provenance addendum, 2026-10-27:** The [public-safe Godot production admission plan](SHIP_POSE_PROTOTYPE_TO_PRODUCTION_ADMISSION.md) routes wing-rig review (#478/#490) to real Chapter I ship-space preview (#497) without exporting private vessel designs. The public index documents evidence categories and engineering source refs only; private creator story records remain access-controlled.
+
 ## Source record map
 
 | Subject | Notion primary source | GitHub-readable bridge |
