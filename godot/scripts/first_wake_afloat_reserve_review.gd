@@ -8,6 +8,9 @@ const Actor = preload("res://scripts/pilot_actor.gd")
 const RESERVE_POSITION := Vector2(729, 456)
 const INTERACT_RADIUS := 68.0
 const DECK_BOUNDS := Rect2(Vector2(154, 402), Vector2(680, 113))
+# Keep the deck's actor collisions local: nested dock/flight review bodies
+# otherwise remain physically present even when their visuals are hidden.
+const ABOARD_ACTOR_LAYER := 1 << 18
 
 var opening
 var ender: CharacterBody2D
@@ -40,6 +43,8 @@ func _ready() -> void:
     ender.name = "Ender"
     ender.character_name = "Ender"
     ender.player_controlled = true
+    ender.collision_layer = ABOARD_ACTOR_LAYER
+    ender.collision_mask = ABOARD_ACTOR_LAYER
     ender.walking_bounds = DECK_BOUNDS
     ender.position = Vector2(210, 460)
     actors.add_child(ender)
@@ -49,8 +54,10 @@ func _ready() -> void:
     ionia.name = "Ionia"
     ionia.character_name = "Ionia"
     ionia.player_controlled = false
+    ionia.collision_layer = ABOARD_ACTOR_LAYER
+    ionia.collision_mask = ABOARD_ACTOR_LAYER
     ionia.walking_bounds = DECK_BOUNDS
-    ionia.position = Vector2(319, 463)
+    ionia.position = Vector2(319, 415)
     actors.add_child(ionia)
     ionia.set_ionia_stage_art_enabled(true, "east")
 
