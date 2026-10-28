@@ -6,6 +6,8 @@ on:
       - "godot/scripts/ship_foredeck_cross_study.gd"
       - "godot/scripts/ship_geodesic_bridge_cross_study.gd"
       - "godot/scripts/ship_cross_study_clearance_contract.gd"
+      - "godot/scripts/ship_wing_dome_triangle_probe.gd"
+      - "godot/tests/first_wake_wing_dome_triangle_probe_test.gd"
       - "godot/scripts/first_wake_ship_pose_3d_review.gd"
       - "godot/shaders/bridge_panorama_glass.gdshader"
       - "godot/tests/first_wake_cross_study_clearance_test.gd"
@@ -54,6 +56,16 @@ jobs:
           grep -Eq 'FIRST_WAKE_CROSS_STUDY_PASS checks=[0-9]+' /tmp/cross-native.log
           grep -q 'FIRST_WAKE_CROSS_STUDY_NUMERIC:' /tmp/cross-native.log
           ! grep -Eq 'FIRST_WAKE_CROSS_STUDY_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/cross-native.log
+      - name: Native narrow phase original membrane versus glass triangle probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 120s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless \
+            --path godot --script res://tests/first_wake_wing_dome_triangle_probe_test.gd \
+            2>&1 | tee /tmp/wing-dome-triangle.log
+          grep -Eq 'FIRST_WAKE_TRIANGLE_PROBE_PASS checks=[0-9]+' /tmp/wing-dome-triangle.log
+          grep -q 'FIRST_WAKE_TRIANGLE_PROBE_REPORT:' /tmp/wing-dome-triangle.log
+          ! grep -Eq 'FIRST_WAKE_TRIANGLE_PROBE_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/wing-dome-triangle.log
       - name: Inherit real three-dimensional wing, pose, and story/save contracts
         shell: bash
         run: |
@@ -92,6 +104,7 @@ jobs:
             godot/review-evidence/ship-geometry-cross-study/*.png
             /tmp/cross-import.log
             /tmp/cross-native.log
+            /tmp/wing-dome-triangle.log
             /tmp/cross-wing-regression.log
             /tmp/cross-pose-regression.log
             /tmp/cross-spaces-regression.log
