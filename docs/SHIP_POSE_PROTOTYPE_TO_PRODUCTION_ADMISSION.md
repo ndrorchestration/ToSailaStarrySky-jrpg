@@ -95,6 +95,10 @@ First exact-head [Godot CI #40624681728](https://github.com/ndrorchestration/ToS
 
 **Next physical gate:** select one creator-accepted internal metre reference; reconcile external hull, foredeck, geodesic dome, working hatch/threshold, three masts, four swept-wing roots and actor occupancy in a **single Godot 3D scene**, with on-screen collision/occlusion tests and safe boarding. Only then move the visual component from an overlay viewport into the playable world.
 
+**Stage B0 revised exact-head closure:** [Draft #523](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/523) source head `0bc89c83c0fc82c7286fa806cbf2f84d795fbd73` has [Godot 4.7.2 native #40625102042](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625102042) **SUCCESS**, with 43 actual 3D Chapter I rig tests, inherited 38 pose-port and 32 ship-space checks. Four genuine 960×640 captures (original chapter/no inset, neutral 3D wings, midpoint, 15° sweep) confirm visible changes, with 9,015 sampled changed pixels to expose renderer, 954 for first-half wing motion and 1,006 for second-half. Inherited Chapter I pilot, Ionia render, ship-space, pose port and smoke also completed SUCCESS at that exact head. [Raw four-frame artifact](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625102042/artifacts/12789370952) available while retained. The QA viewport occludes some engineering props, so it is **not an acceptable always-on production HUD**.
+
+The separate [Windows QA #40625101984](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625101984) **FAILED host Defender custody preflight**; independent Windows functional-prerequisites job SUCCESS cannot override this boundary. Keep Windows security and GPU acceptance blocked without weakening preflight. Native visual + story contract success does **not** authorize merge or production use.
+
 ## 5. Release and decision register
 
 | Gate | Current status |
