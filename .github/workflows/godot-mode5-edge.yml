@@ -50,9 +50,9 @@ jobs:
             --script res://tests/worldmap_mode5_edge_capture.gd \
             2>&1 | tee /tmp/edge-capture.log
           grep -Eq 'MODE5_EDGE_A_B_CHANGED pixels=[0-9]+ source_to_feather=[0-9]+ sky_drift=0 selected_key=' /tmp/edge-capture.log
-          grep -q 'GODOT_MODE5_EDGE_NATIVE_REVIEW_PASS frames=3 real_scene=true actual_cube_tile=true' /tmp/edge-capture.log
+          grep -q 'GODOT_MODE5_EDGE_NATIVE_REVIEW_PASS frames=6 real_scene=true actual_cube_tile=true' /tmp/edge-capture.log
           grep -Eq 'MODE5_EDGE_WIDTH_SWEEP width08_from_original=[0-9]+ width14_from_original=[0-9]+ width22_from_original=[0-9]+' /tmp/edge-capture.log
-          for n in wet-original wet-hard-tile wet-feather-08 wet-feather-14 wet-feathered-tile; do
+          for n in wet-original wet-hard-tile wet-feather-08 wet-feather-14 wet-feather-22 wet-feathered-tile; do
             test -s "godot/evidence/mode5-edge-review/${n}.png"
           done
           ! grep -Eq 'SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:|MODE5_EDGE_A_B_UNREADABLE' /tmp/edge-capture.log
