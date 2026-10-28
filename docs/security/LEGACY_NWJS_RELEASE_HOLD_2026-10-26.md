@@ -1,6 +1,6 @@
 # Legacy Windows NW.js / NSIS release: fail-closed hold
 
-**2026-10-26 security response — proposed in isolated draft, NOT merged.**
+**2026-10-26 security response, consolidated October 28 — proposed in isolated draft, NOT merged.**
 
 ## Risk and observed source
 
@@ -37,3 +37,12 @@ At the observed current source SHA for [draft PR #347](https://github.com/ndrorc
 - Recheck the current default branch, check states and required review rules before an authorized merge. A green PR CI check is **not merge authorization**.
 
 Maintainer/creator permission is required for merge or any future redistribution. This is not a new build or user-downloadable Chapter I package.
+
+ 
+## October 28 consolidation — PR #299 and child #305
+
+The historical **local** PowerShell release path previously remained callable even when the GitHub NW.js publisher workflow was retired. The October 28 consolidation adds an unconditional `SECURITY_HOLD_293` throw immediately after the PowerShell error-preference declaration and **before** repository resolution, `npm ci`, `npm run package:windows`, `makensis`, any `Start-Process`, and output creation. The existing smoke-workflow `scripts/verify-legacy-release-hold.mjs` now checks both the retired GitHub publisher and the early local refusal.
+
+This carries forward the distinct local-build safety intent of [#299](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/299) without reinstating that PR's old active publisher workflow. The independent behavioral negative-test idea in child [#305](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/305) is retained for separate exact-head review; do **not** close #299/#305 before confirming their remaining distinct protections and dependency relationships. A static script guard cannot replace running that behavioral security oracle on an authorized PowerShell host.
+
+**Scope boundary:** this is containment of the historical JavaScript/NW.js/NSIS route, NOT clearance of the new Godot installer. Keep Windows Defender-on, artifact provenance, signing, player acceptance and creator release approval as separate unchanged hold gates. Do not merge or ship solely because ordinary smoke checks pass.
