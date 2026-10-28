@@ -38,9 +38,11 @@ func _render() -> void:
     var cam: Camera3D = scene.get_node("MetricShipStudyCamera")
 
     # Source-identical framing, real transform of the physical hatch.
-    cam.position = Vector3(7.1, 5.1, -7.4)
-    cam.fov = 51.0
-    cam.look_at(Vector3(0.0, 1.08, -1.45), Vector3.UP)
+    # Tight portal framing is essential: distant full-hull A/B obscured the
+    # actual hatch motion even though the native collider checks passed.
+    cam.position = Vector3(4.3, 3.4, -5.1)
+    cam.fov = 42.0
+    cam.look_at(Vector3(0.0, 1.04, -2.58), Vector3.UP)
     scene.set_hatch_open(true)
     var open_img: Image = await _capture("metric-bridge-open.png")
     scene.set_hatch_open(false)
