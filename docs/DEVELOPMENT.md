@@ -1,5 +1,11 @@
 # Aetherwake Development Guide
 
+## Chapter One forward-polish acceptance gate (2026-10-28, documentation-only)
+
+The new [Chapter One high-quality polish checklist](CHAPTER_ONE_HIGH_QUALITY_POLISH_CHECKLIST_2026-10-28.md) defines **32 open, measurable P0/P1/P2 gates**, a quality evidence/owner receipt, and an explicit prioritization of playable route convergence before visual refinements. It is a **proposed acceptance contract**, not current-main gameplay authority. Independently verified draft native [#547](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/547) (normal F5 through postflight checkpoint), [#548](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/548) (alternative F8 later Lyra/Talen and Denith melody continuation) and [#551](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/551) (Windows installer UX) are **different stacked branches, not one integrated released Chapter I**. The existing [Preview 0.1 acceptance](PREVIEW_0_1_ACCEPTANCE.md) remains historical Lyra-first/Aetherwake-player evidence, and does not sign off the new Ender→Ionia-first chronology.
+
+The smoke CI has a **checklist-schema** regression that enforces stable gate IDs, required evidence and *unaccepted* status. Passing it does not establish chapter art, gameplay or distribution quality. Native/Windows/security/human checks remain independent and must use the exact source head, creator approval and traceable screenshot/build hashes before any closure.
+
 ## Current stage
 
 Aetherwake is a late-prototype / pre-alpha project.
