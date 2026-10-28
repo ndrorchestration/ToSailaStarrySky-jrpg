@@ -16,6 +16,8 @@ const PARTICIPANTS := ["ender", "lyra"]
 var party: Dictionary = {}
 var phase: String = "player"
 var ward_capacity: int = 0
+var declared_target: String = "ender"
+var declared_damage: int = DEFAULT_STRIKE
 var turns: int = 0
 var enemy_turns: int = 0
 var last_outcome: Dictionary = {}
@@ -34,6 +36,8 @@ func reset() -> void:
     }
     phase = "player"
     ward_capacity = 0
+    declared_target = "ender"
+    declared_damage = DEFAULT_STRIKE
     turns = 0
     enemy_turns = 0
     last_outcome = {}
@@ -43,6 +47,7 @@ func snapshot() -> Dictionary:
     return {
         "reviewOnly": true, "phase": phase, "party": party.duplicate(true),
         "wardCapacity": ward_capacity, "turns": turns, "enemyTurns": enemy_turns,
+        "threat": {"target": declared_target, "damage": declared_damage, "locked": phase != "player"},
         "lastOutcome": last_outcome.duplicate(true), "log": log.duplicate(),
     }
 
@@ -72,6 +77,20 @@ func configure_fixture(actor_id: String, values: Dictionary) -> bool:
         actor["canAct"] = values["canAct"]
     party = next
     return true
+
+func configure_threat(target_id: String, damage: int) -> Dictionary:
+    # Review-only hostile intent is announced before the player chooses to ward.
+    # The same target and strength must be used at resolution; no retroactive
+    # target switching after resource/action commitment.
+    if phase != "player" or turns != 0:
+        return _reject("threat_locked")
+    if target_id not in PARTICIPANTS or not (damage is int) or damage < 1 or damage > MAX_FIXTURE_STRIKE:
+        return _reject("invalid_threat")
+    if not party.has(target_id) or not _valid_actor(party[target_id]) or not bool(party[target_id]["alive"]):
+        return _reject("invalid_target")
+    declared_target = target_id
+    declared_damage = damage
+    return {"ok": true, "reason": "threat_declared", "reviewOnly": true}
 
 func admission() -> Dictionary:
     if not catalog.validate_catalog():
@@ -139,6 +158,8 @@ func resolve_enemy_strike(target_id: String, damage: int) -> Dictionary:
         return _reject("wrong_phase")
     if target_id not in PARTICIPANTS or not (damage is int) or damage < 1 or damage > MAX_FIXTURE_STRIKE:
         return _reject("invalid_strike")
+    if target_id != declared_target or damage != declared_damage:
+        return _reject("undeclared_strike")
     if not _valid_actor(party["ender"]) or not _valid_actor(party["lyra"]):
         return _reject("invalid_actor_state")
     if not bool(party[target_id]["alive"]):
@@ -163,7 +184,7 @@ func resolve_enemy_strike(target_id: String, damage: int) -> Dictionary:
     phase = "complete"
     enemy_turns += 1
     last_outcome = {
-        "kind": "enemy_strike", "target": target_id, "incoming": damage,
+        "kind": "enemy_strike", "declaredIntentHonored": true, "target": target_id, "incoming": damage,
         "wardApplied": shielded, "absorbed": absorbed,
         "targetDamage": target_damage, "partnerDamage": partner_damage,
     }
