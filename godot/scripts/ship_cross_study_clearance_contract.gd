@@ -116,6 +116,10 @@ static func assess(ship: Node3D, deck: Node3D, bridge: Node3D) -> Dictionary:
         original_yaws[name] = rig.rotation.y
         original_positions[name] = rig.position
     var overlaps: int = 0
+    var overlap_regions: Dictionary = {"foredeck": 0, "geodesic_helm": 0}
+    var overlap_wings: Dictionary = {}
+    for name in Ship.WING_NAMES:
+        overlap_wings[name] = 0
     var min_clearance: float = INF
     var sample_poses: Array[Dictionary] = []
     for progress in REVIEW_POSES:
@@ -125,6 +129,7 @@ static func assess(ship: Node3D, deck: Node3D, bridge: Node3D) -> Dictionary:
                 old.rotation.y = float(original_yaws[name])
             return refused
         var frame_overlaps: int = 0
+        var frame_regions: Dictionary = {"foredeck": 0, "geodesic_helm": 0}
         var frame_min: float = INF
         for name in Ship.WING_NAMES:
             var rig: Node3D = ship.get_node("WingRig_" + name)
@@ -137,11 +142,16 @@ static func assess(ship: Node3D, deck: Node3D, bridge: Node3D) -> Dictionary:
                     frame_min = minf(frame_min, gap)
                     if gap <= 0.00001:
                         frame_overlaps += 1
+                        var region: String = "foredeck" if deck.is_ancestor_of(obstacle) else "geodesic_helm"
+                        frame_regions[region] = int(frame_regions[region]) + 1
+                        overlap_regions[region] = int(overlap_regions[region]) + 1
+                        overlap_wings[name] = int(overlap_wings[name]) + 1
         min_clearance = minf(min_clearance, frame_min)
         overlaps += frame_overlaps
         sample_poses.append({
             "progress": progress,
             "bounding_box_overlap_pairs": frame_overlaps,
+            "bounding_box_overlaps_by_region": frame_regions,
             "minimum_aabb_gap_art_units": frame_min
         })
     # Restore presentation exactly; no scene or timeline state changed.
@@ -152,6 +162,8 @@ static func assess(ship: Node3D, deck: Node3D, bridge: Node3D) -> Dictionary:
             return refused
     report["samples"] = REVIEW_POSES.size()
     report["overlap_pairs"] = overlaps
+    report["overlap_pairs_by_region"] = overlap_regions
+    report["overlap_pairs_by_wing"] = overlap_wings
     report["minimum_clearance_art_units"] = min_clearance
     report["poses"] = sample_poses
     # Blocking remains in place even when AABBs happen not to overlap, since
