@@ -21,8 +21,14 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Verify legacy Windows release remains disabled
+        run: node scripts/verify-legacy-release-hold.mjs
+
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Verify historic runtime source rename integrity
+        run: node --test tests/legacy-runtime-source-identity.test.js
 
       - name: Verify effect vocabulary contract
         run: npm run test:effects

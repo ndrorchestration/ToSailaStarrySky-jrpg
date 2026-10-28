@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const source = fs.readFileSync(path.resolve(__dirname, '..', 'aetherwake.js'), 'utf8');
+const source = fs.readFileSync(path.resolve(__dirname, '..', 'tosailthestarrysky.js'), 'utf8');
 
 function extractFunction(name) {
   const marker = `function ${name}(`;

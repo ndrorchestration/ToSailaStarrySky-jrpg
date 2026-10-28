@@ -3,7 +3,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const runtime = fs.readFileSync(path.join(__dirname,'..','aetherwake.js'),'utf8');
+const runtime = fs.readFileSync(path.join(__dirname,'..','tosailthestarrysky.js'),'utf8');
 const embedded = fs.readFileSync(path.join(__dirname,'..','index-embedded.html'),'utf8');
 const desktop = JSON.parse(fs.readFileSync(path.join(__dirname,'..','package.json'),'utf8'));
 
