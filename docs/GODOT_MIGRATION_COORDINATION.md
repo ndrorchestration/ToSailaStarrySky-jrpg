@@ -11,6 +11,12 @@
 - **Earlier JS planetary studies:** draft [#349](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/349), [#363](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/363). Preserve as evidence/visual reference; **no additional JS gameplay development**.
 - **Standalone higher-fidelity Godot artifact line:** tracked separately in Notion and #350. Do not reconstruct from textual hashes or assume the exact renderer ZIP is already in this GitHub repository.
 
+## Character visual/locomotion track — separate draft lineage
+
+The current character work is not part of `main` or proof of integrated native Chapter I gameplay. Its isolated draft chain is [#409](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/409) → [#421](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/421) → [#435](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/435) → [#439](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/439) → [#446](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/446) → [#458](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/458) → [#469](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/469) → [#474](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/474) → [#487](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/487). Verified source pixels and 2D physics travel **must be adapted to actual native Chapter I terrain/deck collision, character-state authority, optional equipment visual binding and cinematics** before production.
+
+Read [Character motion P0–P6 production-admission pipeline](design/CHARACTER_MOTION_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md). First next gate: P-01 **opt-in noncanon actor visual adapter** into a single exact-head native Chapter I fixture, no early recruitment and no save/party mutations. Do not merge stacked art studies wholesale or assert that their source hashes are available on historical JS `main`.
+
 ## Safe integration sequence
 
 1. Fetch branch/PR states and the *exact* sources (not just agent summaries); choose a common ancestry, avoid overwriting other agents' changes.
