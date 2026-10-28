@@ -5,6 +5,7 @@ extends Node2D
 const Inputs = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const CinematicStage = preload("res://scripts/first_wake_berth_cinematic_stage.gd")
 const ShipArt = preload("res://scripts/first_wake_berth_ship_art.gd")
+const SourceShip3D = preload("res://scripts/prototypes/first_wake_3d_inset.gd")
 const HULL_START := Vector2(215, 395)
 const SENSOR_AT := Vector2(780, 395)
 const SENSOR_SIZE := Vector2(78, 90)
@@ -27,6 +28,9 @@ var hint: Label
 var telemetry: Label
 var cinematic_stage
 var ship_art
+var native_3d_review: Control
+var three_d_review_enabled: bool = false
+var hud_layer: CanvasLayer
 
 func configure(s) -> bool:
     if is_inside_tree() or s == null:
@@ -81,6 +85,7 @@ func _ready() -> void:
     add_child(hull)
     var ui := CanvasLayer.new()
     ui.name = "BerthInstructionHUD"
+    hud_layer = ui
     add_child(ui)
     objective = Label.new()
     objective.position = Vector2(26, 20)
@@ -159,13 +164,87 @@ func request_return() -> bool:
     return_requested = true
     return true
 
+func set_native_3d_review_enabled(enabled: bool) -> bool:
+    # Original PR #486 source mesh and existing Chapter I viewport are reused;
+    # the optional shot is never a substitute for 2D hull or berth physics.
+    if not is_inside_tree() or hull == null or hud_layer == null:
+        return false
+    if enabled and native_3d_review == null:
+        native_3d_review = SourceShip3D.new()
+        native_3d_review.name = "ReadOnlySourceAureateWakeBerth3D"
+        native_3d_review.position = Vector2(578, 125)
+        hud_layer.add_child(native_3d_review)
+        var plan := {
+            "admitted_for_review": true,
+            "executes_visuals": false,
+            "blocks_progression": false,
+            "visual_source_pr": 486,
+            "camera_shot_id": "bow-quarter",
+            "visual_grade_id": "golden-clear",
+            "scene_phase": "local-berth-study",
+            "reduced_motion": cinematic_stage.reduced_motion if cinematic_stage != null else false,
+            "low_detail": false,
+            "grants_combat_magic": false,
+            "modifies_story_state": false,
+            "changes_saves": false,
+            "production_ocean_verified": false,
+        }
+        if not native_3d_review.set_visual_intent(plan):
+            native_3d_review.queue_free()
+            native_3d_review = null
+            return false
+        native_3d_review.set_warning_enabled(false)
+    three_d_review_enabled = enabled
+    if native_3d_review != null:
+        native_3d_review.visible = enabled
+        native_3d_review.set_review_quality(
+            cinematic_stage.reduced_motion if cinematic_stage != null else false, false)
+    _update_hud()
+    return true
+
+func cycle_native_3d_camera() -> bool:
+    # Camera-only composition review, independent of hull motion and story.
+    if not three_d_review_enabled or native_3d_review == null:
+        return false
+    var shots := ["bow-quarter", "stern-quarter", "wing-planform"]
+    var current: String = native_3d_review.last_camera_shot
+    var next_index: int = (shots.find(current) + 1) % shots.size()
+    var plan := {
+        "admitted_for_review": true,
+        "executes_visuals": false,
+        "blocks_progression": false,
+        "visual_source_pr": 486,
+        "camera_shot_id": shots[next_index],
+        "visual_grade_id": "golden-clear",
+        "scene_phase": "local-berth-study",
+        "reduced_motion": cinematic_stage.reduced_motion,
+        "low_detail": false,
+        "grants_combat_magic": false,
+        "modifies_story_state": false,
+        "changes_saves": false,
+        "production_ocean_verified": false,
+    }
+    return native_3d_review.set_visual_intent(plan)
+
+func _process(delta: float) -> void:
+    if three_d_review_enabled and native_3d_review != null:
+        native_3d_review.advance_visual_clock(delta)
+
 func _unhandled_input(event: InputEvent) -> void:
     if event.is_echo():
         return
+    if event is InputEventKey and event.pressed and event.keycode == KEY_C:
+        if cycle_native_3d_camera():
+            get_viewport().set_input_as_handled()
+        return
+    if event is InputEventKey and event.pressed and event.keycode == KEY_V:
+        if set_native_3d_review_enabled(not three_d_review_enabled):
+            get_viewport().set_input_as_handled()
+        return
     if event is InputEventKey and event.pressed and event.keycode == KEY_M:
         if cinematic_stage != null:
-            cinematic_stage.set_reduced_motion(not cinematic_stage.reduced_motion)
-            _update_hud()
+            # One accessibility setting controls both sea shader and 3D wings.
+            set_reduced_motion(not cinematic_stage.reduced_motion)
             get_viewport().set_input_as_handled()
         return
     if event.is_action_pressed(Inputs.INTERACT):
@@ -179,6 +258,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func set_reduced_motion(enabled: bool) -> void:
     if cinematic_stage != null:
         cinematic_stage.set_reduced_motion(enabled)
+    if native_3d_review != null:
+        native_3d_review.set_review_quality(enabled, false)
     _update_hud()
 
 func review_snapshot() -> Dictionary:
@@ -196,6 +277,9 @@ func review_snapshot() -> Dictionary:
         "fuel_formula": "unknown",
         "production_ocean_verified": false,
         "cinematic_art_has_no_contact_authority": true,
+        "source_3d_review_enabled": three_d_review_enabled,
+        "source_3d_mesh_present": native_3d_review != null and native_3d_review.ship_model != null,
+        "source_3d_has_no_contact_authority": true,
         "reduced_motion_visual_only": cinematic_stage.reduced_motion if cinematic_stage != null else false,
     }
 
@@ -213,9 +297,10 @@ func _update_hud() -> void:
     var dwell_label := str(int(roundf(dwell * 100.0))) + "%"
     telemetry.text = "ENDER + IONIA   |   " + contact_label + "   |   STABLE DWELL: " + dwell_label
     var motion := "STILL SEA" if cinematic_stage != null and cinematic_stage.reduced_motion else "SEA MOTION"
+    var view := "3D ON" if three_d_review_enabled else "3D OFF"
     match phase:
         "awaiting_approach":
-            hint.text = "E: approach local berth  |  M: " + motion + "  |  R: shipboard"
+            hint.text = "E: approach berth  |  V: " + view + "  |  C: camera  |  M: " + motion + "  |  R: shipboard"
         "approaching":
             hint.text = "Local hull is moving; await actual sensor overlap  |  M: " + motion
         "settling":

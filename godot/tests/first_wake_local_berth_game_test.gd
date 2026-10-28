@@ -89,6 +89,58 @@ func _run() -> void:
     var pilot = game.berth_review
     check(pilot.hull is RigidBody2D and pilot.berth_area is Area2D,
         "actual local hull physics and independent berth Area2D sensor exist")
+    # Explicit source-3D promotion checks: genuine existing ship, no authority.
+    var before_3d: Dictionary = pilot.review_snapshot()
+    check(pilot.set_native_3d_review_enabled(true),
+        "V enables the existing source-native 3D Aureate Wake viewport")
+    check(pilot.native_3d_review != null
+        and pilot.native_3d_review.ship_model != null
+        and pilot.native_3d_review.viewport is SubViewport,
+        "source-native 3D ship renders through its real isolated SubViewport")
+    check(pilot.native_3d_review.viewport.msaa_3d == Viewport.MSAA_4X
+        and pilot.native_3d_review.viewport.screen_space_aa == Viewport.SCREEN_SPACE_AA_FXAA,
+        "native 3D Wake uses antialiasing in live berth review")
+    check(pilot.native_3d_review.review_snapshot().get("source_visual_pr") == 486
+        and pilot.native_3d_review.review_snapshot().get("read_only", false),
+        "3D model is original source-bound visual-only Chapter I study")
+    check(pilot.native_3d_review.last_camera_shot == "bow-quarter",
+        "berth opens on the original source bow-quarter composition")
+    check(pilot.cycle_native_3d_camera()
+        and pilot.native_3d_review.last_camera_shot == "stern-quarter",
+        "C switches actual ship camera to stern-quarter")
+    check(pilot.cycle_native_3d_camera()
+        and pilot.native_3d_review.last_camera_shot == "wing-planform",
+        "C reveals original four-wing planform")
+    check(pilot.cycle_native_3d_camera()
+        and pilot.native_3d_review.last_camera_shot == "bow-quarter",
+        "cinematic camera cycles safely to original bow shot")
+    pilot.set_reduced_motion(true)
+    check(pilot.native_3d_review.use_reduced_motion,
+        "M reduced-motion setting propagates to optional native 3D viewport")
+    pilot.set_reduced_motion(false)
+    check(not pilot.native_3d_review.use_reduced_motion,
+        "3D view motion setting is reversible")
+    # Keyboard parity: M must reduce both animated visual systems together.
+    var motion_key := InputEventKey.new()
+    motion_key.keycode = KEY_M
+    motion_key.pressed = true
+    pilot._unhandled_input(motion_key)
+    check(pilot.cinematic_stage.reduced_motion
+        and pilot.native_3d_review.use_reduced_motion,
+        "M key stops 2D sea and source 3D ship motion together")
+    pilot._unhandled_input(motion_key)
+    check(not pilot.cinematic_stage.reduced_motion
+        and not pilot.native_3d_review.use_reduced_motion,
+        "M key reversibly restores both visual motions")
+    check(pilot.set_native_3d_review_enabled(false)
+        and not pilot.native_3d_review.visible,
+        "V hides source 3D review without destroying local physical pilot")
+    check(pilot.review_snapshot().get("phase") == before_3d.get("phase")
+        and pilot.review_snapshot().get("story_step") == before_3d.get("story_step")
+        and pilot.review_snapshot().get("local_2d_sensor_contact") ==
+            before_3d.get("local_2d_sensor_contact")
+        and not pilot.lines_secured and not pilot.contact_observed,
+        "visual-only 3D transition cannot authorize contact, mooring or story")
     var stage_report: Dictionary = pilot.cinematic_stage.visual_snapshot()
     check(stage_report.get("native_source_sky_shader", false)
         and stage_report.get("native_source_sea_shader", false),
