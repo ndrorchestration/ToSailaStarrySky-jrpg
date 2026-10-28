@@ -50,6 +50,14 @@ authoritative First Wake FSM + real local flight contact
 
 **Proposed PASS:** genuine single-scene integrated Godot video/scene review, deterministic cue tied to legitimate warning, A/B pixel proof, safe skip and missing-asset fallback, no story/save/combat authorization drift, no character/showcase leakage. **No PASS solely from** schema lint, shader compilation, CI success on separate branches, hash presence, or screenshots not viewed by an independent artist.
 
+## PW-01 first native combined implementation candidate (2026-10-27; stacked review)
+
+[Draft PR #519](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/519) now stages the first **real shared local scene** using a **live #492 flight/physics FSM** with a neutral visual-engine phase-drift overlay attached to the actual 2D ship body. This changes the previous status of PW-01 from *not implemented* to **IMPLEMENTED FOR NATIVE REVIEW, NOT PRODUCTION ADMITTED** on a **separate Godot branch**. It reuses #411's low-cost radial shader and five-phase animation techniques, but **not** the five-character magic catalog, protagonist spell privileges or #496's manual-only interface; the engine glow has a separate visual identity. Its intentionally restricted `warning` trigger comes from real `first_wake_cinematic_handoff.gd` output, not arbitrary scene playback.
+
+- **Source and evidence:** initial #519 commit `81ef6ba89408df7bda25dc04ec79fbd7d45ca9be` passed [actual native renderer #40624508372](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40624508372), including 6 960×640 frames and physical flotation. Its native contract run [#40624508325](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40624508325) **failed** a bad test fixture (`float("nan")` not genuine NaN), not an admission failure of the renderer. Follow-up `34b722727e9c69d6b6305beb9aedae674f7780d2` uses native `NAN`, with **new exact-head CI pending** until actual run readback. Never promote a failed/queued candidate to PASS.
+- **Scope:** real local 2D Chapter I Ionia-first launch, legitimate phase-warning visual, on/off/interrupted preview, real controlled descent and Area2D buoyant settlement. Art is provisional, no rendered 3D Aureate Wake model, no calibrated GPU frame-time, no new fuel knowledge, no auto-combat spells or hidden route cues.
+- **Next promotion test:** confirm revised native 3× complete physics trials and exact-head GL capture, then independently inspect original-resolution frames, exercise missing-asset fallback, representative Windows GPU profiler, dialogue/camera framing, and completed Chapter I handoff. Existing Windows Defender security hold remains independent. Never merge or release from these isolated receipts alone.
+
 ## Production admission gates
 
 | Gate | Current evidence | Needed before a production claim |
