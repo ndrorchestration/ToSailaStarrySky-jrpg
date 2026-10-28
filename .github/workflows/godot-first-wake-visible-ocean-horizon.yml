@@ -1,0 +1,70 @@
+name: Godot First Wake Visible Ocean Horizon (review)
+
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/first_wake_maritime_atmosphere_review.gd'
+      - 'godot/scripts/first_wake_3d_zone_camera_review.gd'
+      - 'godot/tests/first_wake_visible_ocean_horizon_test.gd'
+      - 'godot/tests/capture_first_wake_visible_ocean_horizon.gd'
+      - 'docs/FIRST_WAKE_VISIBLE_OCEAN_HORIZON_2026-10-28.md'
+      - '.github/workflows/godot-first-wake-visible-ocean-horizon.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-water-and-sky-view:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - name: Checkout exact branch without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Download exact SHA-pinned official Godot 4.7.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL 'https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip' -o /tmp/godot.zip
+          echo 'cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  /tmp/godot.zip' | sha256sum -c -
+          mkdir -p /tmp/godot
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Import native project and fail on script parser errors
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/horizon-import.log
+          ! grep -Eq 'SCRIPT ERROR|Parse Error|Failed loading' /tmp/horizon-import.log
+      - name: Assert actual world camera can see sky and sea and preserves Chapter I
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 140s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_visible_ocean_horizon_test.gd 2>&1 | tee /tmp/horizon-test.log
+          grep -q 'FIRST_WAKE_VISIBLE_HORIZON_PASS' /tmp/horizon-test.log
+          grep -q 'shader=LAYERS camera=FORWARD physics=UNCHANGED story=UNCHANGED production=BLOCKED' /tmp/horizon-test.log
+          ! grep -Eq 'FIRST_WAKE_VISIBLE_HORIZON_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/horizon-test.log
+      - name: Real Godot software GL render and same-view water presence A-B
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 155s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --path godot --rendering-driver opengl3 --audio-driver Dummy --script res://tests/capture_first_wake_visible_ocean_horizon.gd 2>&1 | tee /tmp/horizon-render.log
+          test "$(grep -c 'FIRST_WAKE_VISIBLE_HORIZON_FRAME:' /tmp/horizon-render.log)" -eq 5
+          grep -q 'FIRST_WAKE_VISIBLE_HORIZON_WATER_AB_CHANGED=' /tmp/horizon-render.log
+          grep -q 'FIRST_WAKE_VISIBLE_HORIZON_RENDER_PASS' /tmp/horizon-render.log
+          ! grep -Eq 'FIRST_WAKE_VISIBLE_HORIZON_CAPTURE_FAIL|SCRIPT ERROR|Parse Error|SHADER ERROR|ERROR:' /tmp/horizon-render.log
+      - name: Retain exact Godot frames, A-B control, source import and test proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: first-wake-forward-ocean-horizon-native-proof
+          path: |
+            godot/review-evidence/first-wake-visible-horizon/*.png
+            /tmp/horizon-import.log
+            /tmp/horizon-test.log
+            /tmp/horizon-render.log
+          retention-days: 7
+          if-no-files-found: warn
