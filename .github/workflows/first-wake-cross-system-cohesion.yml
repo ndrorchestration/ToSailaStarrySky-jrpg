@@ -7,6 +7,8 @@ on:
       - 'godot/scripts/first_wake_evidence_comparison_review.gd'
       - 'godot/scripts/first_wake_evidence_comparison_panel.gd'
       - 'godot/tests/first_wake_evidence_comparison_panel_test.gd'
+      - 'godot/tests/first_wake_job_preview_notebook_test.gd'
+      - 'godot/scripts/first_wake_job_preview.gd'
       - 'docs/reviews/CH1_3D_RPG_SYSTEM_COHESION_2026-10-28.md'
       - '.github/workflows/first-wake-cross-system-cohesion.yml'
   workflow_dispatch:
@@ -52,3 +54,10 @@ jobs:
           timeout 85s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_evidence_comparison_panel_test.gd 2>&1 | tee /tmp/evidence-ui.log
           grep -Fq 'TSTSS_CH1_EVIDENCE_PANEL_PASS' /tmp/evidence-ui.log
           ! grep -Eq 'TSTSS_CH1_EVIDENCE_PANEL_FAIL:|SCRIPT ERROR:|Parse Error' /tmp/evidence-ui.log
+      - name: Native F6 First Wake evidence notebook integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 85s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_job_preview_notebook_test.gd 2>&1 | tee /tmp/notebook-f6.log
+          grep -Fq 'TSTSS_CH1_NOTEBOOK_F6_PASS' /tmp/notebook-f6.log
+          ! grep -Eq 'TSTSS_CH1_NOTEBOOK_F6_FAIL:|SCRIPT ERROR:|Parse Error' /tmp/notebook-f6.log
