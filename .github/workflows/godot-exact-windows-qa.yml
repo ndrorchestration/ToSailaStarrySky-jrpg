@@ -255,6 +255,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "WINDOWS_PACKAGE_CONTRACT_FAILED" }
           node tests/godot-windows-native-qa-contract.test.js
           if ($LASTEXITCODE -ne 0) { throw "WINDOWS_NATIVE_QA_CONTRACT_FAILED" }
+          node tests/first-wake-installer-contract.test.js
+          if ($LASTEXITCODE -ne 0) { throw "TSTSS_INSTALLER_CONTRACT_FAILED" }
 
       - name: Build real Windows Godot export
         shell: pwsh
