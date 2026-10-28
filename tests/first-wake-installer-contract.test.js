@@ -99,6 +99,10 @@ for (const marker of [
   "verify-first-wake-installer-defender.ps1",
   "TSTSS_INSTALLER_PREP_INVALID_RECEIPT",
   "TSTSS_INSTALLER_LOCAL_PREP=PASS",
+  "TSTSS_INSTALLER_VERIFIED_PORTABLE_GODOT=FOUND",
+  "Godot_v4.7.2-stable_win64_console.exe",
+  "godot-4.7.2*",
+
   "PUBLIC_RELEASE_AUTHORIZED=NO",
 ]) {
   assert(prepare.includes(marker), 'single-command trusted Windows preparation cannot skip provenance, binary scan, or nonpublication: ' + marker);
