@@ -4,6 +4,7 @@ extends Node2D
 ## ship flight, DSP verification, or an approved mainline story destination.
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const Core = preload("res://scripts/first_wake_core_alignment_review.gd")
+const Melody = preload("res://scripts/first_wake_melody_math_fixture.gd")
 const Actor = preload("res://scripts/pilot_actor.gd")
 const Inputs = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 
@@ -131,7 +132,8 @@ func interact() -> bool:
             success = core.ionia_repeats_denith_song(true, true)
             last_message = "Ender asks her to come closer. Ionia sings Denith's old shanty again."
         "analyze":
-            success = core.ender_matches_sequence(true, true, true)
+            # This is a deterministic abstract QA motif, not live sung audio.
+            success = core.ender_matches_review_phrase(Melody.sample_phrase(), Melody.sample_sensor_vector())
             last_message = "Ender matches intervals and held-note timing to the shifting core readings."
         "observe":
             success = core.lyra_confirms_response(true)
