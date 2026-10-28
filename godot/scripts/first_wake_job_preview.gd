@@ -162,6 +162,21 @@ func _draw_engineering_room() -> void:
 func _unhandled_input(event: InputEvent) -> void:
     if room == "flight_review":
         return
+    # Optional source-locked *static* character proportions study.
+    # Does not fake six authored walk phases or change physics/story authority.
+    if room == "dock" and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_P:
+        var next_enabled: bool = not ender.creator_standee_enabled
+        var e: bool = ender.enable_creator_standee(next_enabled)
+        var i: bool = ionia.enable_creator_standee(next_enabled)
+        if next_enabled and (not e or not i):
+            ender.enable_creator_standee(false)
+            ionia.enable_creator_standee(false)
+            last_message = "Static field art not installed; original walking sprites retained."
+        else:
+            last_message = "Creator full-body STATIC reference ON — no authored gait yet." if next_enabled else "Original walking art restored."
+        _sync_presentation()
+        get_viewport().set_input_as_handled()
+        return
     if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_V:
         if portrait_preview != null:
             portrait_preview.set_portraits_enabled(not portrait_preview.portraits_enabled)
@@ -348,7 +363,9 @@ func _sync_presentation() -> void:
         objective.text = "PRE-FLIGHT READY — Press F for local physics flight/splashdown review."
     else:
         objective.text = "Engineering: inspect reference, containment and fuel (%d / 3)." % inspected_items.size()
-    party_label.text = "Story party: " + " + ".join(opening.active_party_ids) + "  |  Character art preview — field sprites provisional"
+    party_label.text = "Story party: " + " + ".join(opening.active_party_ids) + (
+        "  |  P: original-source STATIC standee (walk animation pending)" if ender.creator_standee_enabled else
+        "  |  P: compare source-art proportions  |  field sprites provisional")
     if dialogue_open:
         dialogue_speaker.visible = true
         dialogue_text.visible = true
