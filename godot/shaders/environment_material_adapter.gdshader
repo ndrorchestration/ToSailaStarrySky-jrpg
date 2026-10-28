@@ -35,7 +35,7 @@ void fragment() {
         group_shape = 1.0 - smoothstep(0.22, 0.72, length(ellipse)
             + (macro.g - 0.5) * 0.16);
     }
-    float intensity = (surface_family == 1 ? 0.56 : 0.30);
+    float intensity = (surface_family == 1 ? 0.67 : 0.52);
     // Reduced-quality bypass uses the original stage beneath the adapter.
     float alpha = clamp(footprint * group_shape * grain_contrast * intensity
         * material_strength * mask_quality, 0.0, 0.45);
