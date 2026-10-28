@@ -4,6 +4,7 @@ extends Node3D
 ## Keep the existing res://scenes/first_wake_game.tscn entry untouched.
 const WaterShader = preload("res://shaders/first_wake_3d_water.gdshader")
 const CharacterSlot = preload("res://scripts/first_wake_3d_character_slot.gd")
+const NavigationMarker = preload("res://scripts/first_wake_3d_navigation_marker.gd")
 const CAMERA_TARGET := Vector3(-3.4, 0.9, -9.0)
 
 var visual_root: Node3D
@@ -18,6 +19,13 @@ var animation_assets_loaded := 0
 var camera_azimuth := 0.30
 var camera_distance := 34.0
 var camera_elevation := 0.24
+var navigation_body: CharacterBody3D
+var physics_root: Node3D
+var interaction_probes: Array[Area3D] = []
+var interaction_receipts: Array[String] = []
+var navigation_notice: Label
+var navigation_status: Label
+var camera_follow_navigation := false
 
 func _ready() -> void:
     _assemble()
@@ -343,6 +351,131 @@ func _assemble_cast_import_points() -> void:
         if slot.ready_for_art_review:
             animation_assets_loaded += 1
 
+func _static_collision(label: String, center: Vector3, bounds: Vector3) -> void:
+    var fixed := StaticBody3D.new()
+    fixed.name = label
+    fixed.collision_layer = 1
+    fixed.collision_mask = 0
+    fixed.position = center
+    var collider := CollisionShape3D.new()
+    collider.name = "TruePhysicalBoundary"
+    var shape := BoxShape3D.new()
+    shape.size = bounds
+    collider.shape = shape
+    fixed.add_child(collider)
+    physics_root.add_child(fixed)
+
+func _interaction_probe(label: String, position3: Vector3,
+        purpose: String, tint: Color) -> void:
+    var area := Area3D.new()
+    area.name = label
+    area.set_meta("review_text", purpose)
+    area.collision_layer = 0
+    area.collision_mask = 2
+    area.monitoring = true
+    area.monitorable = true
+    area.position = position3 + Vector3(0, 0.9, 0)
+    var collider := CollisionShape3D.new()
+    collider.name = "Genuine3DProximityVolume"
+    var sphere := SphereShape3D.new()
+    sphere.radius = 1.85
+    collider.shape = sphere
+    area.add_child(collider)
+    physics_root.add_child(area)
+    interaction_probes.append(area)
+    # Clearly marked golden 3D review waypoint, not a story NPC stand-in.
+    var marker_material := _material(tint, 0.38, 0.5)
+    marker_material.emission_enabled = true
+    marker_material.emission = tint * 0.55
+    marker_material.emission_energy_multiplier = 0.5
+    _box(label + "_NonCanonicalWaypoint", position3 + Vector3(0, 0.23, 0),
+        Vector3(0.65, 0.38, 0.65), marker_material)
+
+func _assemble_navigation_physics() -> void:
+    physics_root = Node3D.new()
+    physics_root.name = "IsolatedTrue3DPhysicsAndInteractionReview"
+    add_child(physics_root)
+    # Collision follows modeled pier coordinates, but does not change any
+    # CollisionShape2D/Area2D that drives the canonical First Wake.
+    _static_collision("ContinuousPierDeckPhysics",
+        Vector3(0, -0.055, -5.05), Vector3(9.10, 0.32, 30.55))
+    _static_collision("StoneArrivalPlazaPhysics",
+        Vector3(0, -0.055, -23.1), Vector3(21.8, 0.43, 10.65))
+    for side in [-1.0, 1.0]:
+        _static_collision("PierSafetyBalustrade_%s" % str(int(side)),
+            Vector3(side * 4.62, 0.72, -5.05), Vector3(0.32, 1.55, 30.5))
+    var rail_material := _material(Color("#6f5547"), 0.82, 0.06)
+    for side in [-1.0, 1.0]:
+        _box("PierContinuousVisibleSafetyRail", Vector3(side * 4.62, 1.42, -5.05),
+            Vector3(0.22, 0.15, 30.5), rail_material)
+        _box("PierLowerVisibleSafetyRail", Vector3(side * 4.62, 0.53, -5.05),
+            Vector3(0.19, 0.13, 30.5), rail_material)
+
+    navigation_body = NavigationMarker.new()
+    navigation_body.name = "NonCharacterPhysicsNavigationMarker"
+    navigation_body.position = Vector3(0, 0.14, 6.8)
+    physics_root.add_child(navigation_body)
+    _interaction_probe("NoticeBoard_ReviewOnly", Vector3(-0.9, 0.11, -6.7),
+        "Spatial notice reached. Canonical job-flyer dialogue is still in First Wake.",
+        Color("#d29b57"))
+    _interaction_probe("IoniaArrival_ReviewOnly", Vector3(1.35, 0.11, -13.2),
+        "Ionia's 3D arrival point reached. Source-approved model and conversation pending.",
+        Color("#6fc9ad"))
+    _interaction_probe("AureateWakeGangway_ReviewOnly", Vector3(-3.4, 0.11, -10.0),
+        "Gangway position verified. Real 3D boarding and ship physics not yet migrated.",
+        Color("#8ca9d8"))
+
+func _assemble_navigation_hud() -> void:
+    var overlay := CanvasLayer.new()
+    overlay.name = "ClearlyLabeled3DDevelopmentHUD"
+    overlay.layer = 3
+    add_child(overlay)
+    # Dark, input-transparent material ensures the development interaction
+    # text remains readable at both bright sunset and dark blue hour.
+    var backdrop := ColorRect.new()
+    backdrop.name = "ReadableDarkOverlayFor3DControls"
+    backdrop.position = Vector2(8, 8)
+    backdrop.size = Vector2(944, 67)
+    backdrop.color = Color(0.025, 0.065, 0.105, 0.88)
+    backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    overlay.add_child(backdrop)
+    navigation_notice = Label.new()
+    navigation_notice.name = "NavigationControls"
+    navigation_notice.position = Vector2(20, 20)
+    navigation_notice.text = "3D PHYSICS REVIEW  |  WASD move  |  E inspect  |  arrows camera  |  C follow  |  T light  |  R reset"
+    navigation_notice.add_theme_font_size_override("font_size", 13)
+    navigation_notice.add_theme_color_override("font_color", Color("#f4e9d4"))
+    overlay.add_child(navigation_notice)
+    navigation_status = Label.new()
+    navigation_status.name = "HonestArtworkStatus"
+    navigation_status.position = Vector2(20, 44)
+    navigation_status.text = "Turquoise floor ring = NON-CHARACTER marker. Ender/Ionia rigging and story migration pending."
+    navigation_status.add_theme_font_size_override("font_size", 12)
+    navigation_status.add_theme_color_override("font_color", Color("#c5eadc"))
+    overlay.add_child(navigation_status)
+
+func inspect_nearest_probe() -> bool:
+    if navigation_body == null:
+        return false
+    var nearest: Area3D = null
+    var nearest_distance := 100000.0
+    for area in interaction_probes:
+        # Verify actual Area3D physics overlap, not a fake screen-space
+        # proximity estimate or story flag.
+        if not area.get_overlapping_bodies().has(navigation_body):
+            continue
+        var distance := area.global_position.distance_to(navigation_body.global_position)
+        if distance < nearest_distance:
+            nearest_distance = distance
+            nearest = area
+    if nearest == null:
+        navigation_status.text = "Move the turquoise locator near a gold 3D inspection beacon, then press E."
+        return false
+    var receipt: String = nearest.name
+    interaction_receipts.append(receipt)
+    navigation_status.text = str(nearest.get_meta("review_text", "Spatial inspection only."))
+    return true
+
 func _assemble() -> void:
     visual_root = Node3D.new()
     visual_root.name = "True3DEnvironmentGeometry"
@@ -353,6 +486,8 @@ func _assemble() -> void:
     _assemble_pier()
     _assemble_aureate_wake_study()
     _assemble_cast_import_points()
+    _assemble_navigation_physics()
+    _assemble_navigation_hud()
     camera = Camera3D.new()
     camera.name = "PlayableReviewOrbitCamera"
     camera.current = true
@@ -365,12 +500,17 @@ func _update_camera() -> void:
     if camera == null:
         return
     var horizontal := camera_distance * cos(camera_elevation)
-    camera.position = CAMERA_TARGET + Vector3(
+    var look_target: Vector3 = (
+        navigation_body.global_position + Vector3(0.0, 1.0, -3.5)
+        if camera_follow_navigation and navigation_body != null
+        else CAMERA_TARGET
+    )
+    camera.position = look_target + Vector3(
         sin(camera_azimuth) * horizontal,
         camera_distance * sin(camera_elevation),
         cos(camera_azimuth) * horizontal
     )
-    camera.look_at(CAMERA_TARGET, Vector3.UP)
+    camera.look_at(look_target, Vector3.UP)
 
 func set_time_of_day(night: bool) -> void:
     active_hour = "blue_hour" if night else "golden_hour"
@@ -385,6 +525,13 @@ func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventKey and event.pressed and not event.echo:
         if event.keycode == KEY_T:
             set_time_of_day(active_hour != "blue_hour")
+            get_viewport().set_input_as_handled()
+        elif event.keycode == KEY_E:
+            inspect_nearest_probe()
+            get_viewport().set_input_as_handled()
+        elif event.keycode == KEY_C:
+            camera_follow_navigation = not camera_follow_navigation
+            _update_camera()
             get_viewport().set_input_as_handled()
         elif event.keycode == KEY_R:
             camera_azimuth = 0.30
@@ -407,7 +554,7 @@ func _process(delta: float) -> void:
     if Input.is_action_pressed("ui_down"):
         camera_distance = minf(75.0, camera_distance + delta * 12.0)
         moved = true
-    if moved:
+    if moved or camera_follow_navigation:
         _update_camera()
 
 func quality_snapshot() -> Dictionary:
@@ -427,5 +574,10 @@ func quality_snapshot() -> Dictionary:
         "canonical_first_wake_unchanged": true,
         "playable_chapter_one_3d_migrated": false,
         "rigged_creator_models_ready": animation_assets_loaded,
-        "cinematic_art_approved": false
+        "cinematic_art_approved": false,
+        "navigation_3d_ready": navigation_body is CharacterBody3D,
+        "physics_collision_surfaces": physics_root.get_child_count() - interaction_probes.size() - 1 if physics_root != null else 0,
+        "interactive_probes": interaction_probes.size(),
+        "chapter_1_3d_story_connected": false,
+        "3d_debug_marker_is_character_art": false
     }
