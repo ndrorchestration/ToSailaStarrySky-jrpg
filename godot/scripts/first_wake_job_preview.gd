@@ -208,6 +208,10 @@ func _unhandled_input(event: InputEvent) -> void:
             _sync_presentation()
             get_viewport().set_input_as_handled()
             return
+    if evidence_panel.visible:
+        # Modal notebook must not forward E/Interact to dock, dialogue or
+        # engineering while players are choosing evidence.
+        return
     if event.is_action_pressed(InputPolicy.INTERACT) and not event.is_echo():
         interact()
         get_viewport().set_input_as_handled()
