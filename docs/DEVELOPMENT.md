@@ -1,4 +1,6 @@
-# Aetherwake Development Guide
+# To Sail the Starry Sky — Development Guide
+
+> **2026-10-28 authority notice:** This guide retains historical **Aetherwake browser/desktop-preview evidence**; it must not be interpreted as native Godot Chapter 1 completion. The forward engine is Godot 4.7.2 / GDScript. See [Chapter 1 beta roadmap](CHAPTER_1_BETA_ROADMAP.md) for 2026-11 through 2027-05 integration/alpha/beta milestones and quality gates. Native Ionia-first First Wake story authority supersedes older Lyra-first browser onboarding for new production work. Distinguish merged main, exact-head draft PRs, released historical artifacts and creator artistic acceptance.
 
 ## Current stage
 
