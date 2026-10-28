@@ -86,6 +86,11 @@ jobs:
             echo "Resonance preview failed native frame differentiation" >&2
             exit 1
           fi
+          # P-01B exact current Chapter I configured entry-point scene; opt-in Lyra visual.
+          xvfb-run -a -s "-screen 0 960x640x24" editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_first_wake_chapter1_visual_p01b.gd
+          for mode in off south west restored; do
+            test -s "godot/review-evidence/ch1-character-p01b-${mode}-native-960x640.png"
+          done
           sha256sum godot/review-evidence/*.png
           # Private, native-resolution lossless crops in job logs: not a public artifact.
           # Entire 960x640 PNGs remain runner-only; do not conflate crop custody with full frames.
