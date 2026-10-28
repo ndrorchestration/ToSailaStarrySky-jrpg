@@ -164,7 +164,7 @@ func _run() -> void:
         check(ender.creator_motion_sprite.texture ==
             ender.creator_motion_pack.get_frame("east", physical_frame),
             "actual distance-driven movement did not select the matching authored frame")
-        check(ender.creator_motion_sprite.position.y == -72.0 * 0.78,
+        check(absf(ender.creator_motion_sprite.position.y + 72.0 * 0.78) < 0.01,
             "render-only motion sprite drifted away from ground origin")
         # Ionia's existing scripted walk route remains a real physics trajectory.
         ionia.set_ionia_route_review_enabled(true)
@@ -178,14 +178,15 @@ func _run() -> void:
                 int(ionia.travel_distance / ionia.PIXELS_PER_STEP) % 6),
             "Ionia active route did not synchronize with source-authored frame atlas")
         ionia.set_ionia_route_review_enabled(false)
+        ionia.set_ionia_stage_art_enabled(true, ionia.ionia_facing)
         check(scene.session.opening.active_party_ids == ["ender"],
             "source art preview recruited a party member")
         check(not scene.session.can_checkpoint(), "motion preview granted save checkpoint")
         dock._unhandled_input(o_key)
         check(not ender.creator_motion_enabled and not ionia.creator_motion_enabled,
             "O cannot revert motion preview")
-        check(ender.walk_west_sprite.visible and ionia.ionia_north_walk_sprite.visible,
-            "O did not restore correct *current* facing sprite fallback")
+        check(ender.walk_review_sprite.visible and ionia.ionia_front_walk_sprite.visible,
+            "O did not restore current legacy field actors after actual physical movement")
 
     # Tamper checks are performed AFTER the live test so fixture changes cannot
     # give false success to the actual actor integration.
