@@ -17,7 +17,7 @@ func _verify() -> void:
         _fail("opt-in scene defaults or review authority invalid")
         return
     var opening: Dictionary = world.battle.snapshot()
-    if world.threat_status == null or not world.threat_status.text.contains("ENDER"):
+    if world.threat_status == null or not world.threat_status.text.contains("Ender"):
         _fail("announced strike target missing from accessible HUD")
         return
     world._set_threat("lyra")
