@@ -81,6 +81,18 @@ func _capture() -> void:
                 _fail("static source renderer did not prefer refined original mattes")
             dock._sync_presentation()
             await _photo("matte_v3")
+            # Native player-facing L key: source-art lit versus original colors.
+            var lighting_key := InputEventKey.new()
+            lighting_key.keycode = KEY_L
+            lighting_key.pressed = true
+            dock._unhandled_input(lighting_key)
+            if dock.ender.creator_field_lighting_enabled or dock.ionia.creator_field_lighting_enabled:
+                _fail("L key did not disable both artist-source materials")
+            dock._sync_presentation()
+            await _photo("matte_v3_unlit")
+            dock._unhandled_input(lighting_key)
+            if not dock.ender.creator_field_lighting_enabled or not dock.ionia.creator_field_lighting_enabled:
+                _fail("L key did not restore the default art lighting")
         if not dock.ender.creator_standee_enabled or not dock.ionia.creator_standee_enabled:
             _fail("full-body static source not enabled")
         dock.ender.enable_creator_standee(false)
@@ -94,5 +106,5 @@ func _capture() -> void:
     game.queue_free()
     await process_frame
     if faults.is_empty():
-        print("TSTSS_CREATOR_FIELD_NATIVE_PASS:source=actual_creator_sheet matte=v3 static_only=true art_swap=true 960x640=true story_unchanged=true")
+        print("TSTSS_CREATOR_FIELD_NATIVE_PASS:source=actual_creator_sheet matte=v3 lighting_ab=true static_only=true art_swap=true 960x640=true story_unchanged=true")
     quit(0 if faults.is_empty() else 1)
