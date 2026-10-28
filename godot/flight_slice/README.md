@@ -2,6 +2,12 @@
 
 Self-contained **Godot 4.7.2** Compatibility project at `godot/flight_slice/`. It is a **separate flight-scale visual vertical slice**, not the private v0.8.0 project, not a port of hidden Moon Bridge gates, and not a change to Chapter I. Open `project.godot` with Godot 4.7.2 and run F6/F5. No third-party assets, costs, online services, or JavaScript runtime.
 
+## Organic canopy silhouettes and shoreline swash — 2026-10-27
+
+The existing conifer and broadleaf MultiMesh batches now use subtle, deterministic perimeter asymmetry for naturalized forest silhouettes, with no change to positions, instance budgets or colliders. **Y** switches between old and new mesh profiles for camera-matched visual inspection. The ocean adds slow nonflashing swash that uses the **same height-derived signed coastal distance field** from the previous pass, along with actual water depth and original ripple PNG, rather than generating another surf coastline. **U** switches the additional surf on/off, preserving ordinary ocean foam. **V** removes the new surf work in low quality; **M** fixes its animation clock.
+
+New Godot QA: `tests/test_foliage_surf.gd` and `tests/capture_foliage_surf.gd`. See [art review and scope boundaries](../../docs/reviews/FOLIAGE_SURF_VISUAL_STUDY_2026-10-27.md). Study only; no gameplay or planet-wide asset acceptance.
+
 ## Source-derived coast distance, forest floor and faceted highland art — 2026-10-27
 
 The current visual pass removes the earlier height-only wet-sand approximation. A bounded signed distance field is baked **from the exact RF terrain height field already driving the ocean** and shared by land and water shaders. There is no second coastline, changed physical terrain or hidden route. Existing terrain/biome PNG channels now tint forest leaf litter, while at most 88 deterministic **noncolliding** instanced rocky outcrops add highland silhouettes with the real existing stone textures. **V** hides rock geometry; **K** disables rock microtexture; **J** controls region color, shoreline wetness and rock palette. All remain preview-only.
