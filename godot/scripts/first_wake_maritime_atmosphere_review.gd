@@ -9,6 +9,8 @@ var ocean: MeshInstance3D
 var atmosphere: WorldEnvironment
 var sky_energy: float = 0.0
 var reduced_motion: bool = false
+var twilight_review: bool = false
+var sky_material: ProceduralSkyMaterial
 var sea_material: ShaderMaterial
 
 func _ready() -> void:
@@ -28,6 +30,7 @@ func _make_sky() -> void:
     shader.ground_bottom_color = Color(0.09, 0.24, 0.32)
     shader.ground_horizon_color = Color(0.42, 0.64, 0.65)
     shader.sun_angle_max = 26.0
+    sky_material = shader
     sky.sky_material = shader
     env.sky = sky
     env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
@@ -117,7 +120,19 @@ func visual_review_snapshot() -> Dictionary:
         "ocean_mesh_present": ocean != null and ocean.mesh is PlaneMesh,
         "source_sea_level": SEA_LEVEL_M,
         "reduced_motion": reduced_motion,
+        "twilight_review": twilight_review,
         "motion_scale": sea_material.get_shader_parameter("visual_motion_scale") if sea_material != null else -1.0,
         "has_buoyancy_authority": false,
         "canonical_geography": false,
     }
+
+func set_twilight_review(enabled: bool) -> void:
+    # A reversible lighting study, not a story clock or canonical weather event.
+    twilight_review = enabled
+    if sky_material == null or atmosphere == null:
+        return
+    sky_material.sky_top_color = Color("#15223c") if enabled else Color(0.07, 0.19, 0.32)
+    sky_material.sky_horizon_color = Color("#db9876") if enabled else Color(0.70, 0.74, 0.69)
+    sky_material.ground_bottom_color = Color("#17263a") if enabled else Color(0.09, 0.24, 0.32)
+    sky_material.ground_horizon_color = Color("#b17c72") if enabled else Color(0.42, 0.64, 0.65)
+    atmosphere.environment.ambient_light_energy = 0.65 if enabled else 1.0
