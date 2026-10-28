@@ -30,3 +30,28 @@
 Do not label P-01 as fully PASS until those remaining gates are actually exercised on a single authoritative current Chapter I integration branch. This #487 descendant is the *historical native dock pilot*, not necessarily the latest playable revised Chapter I/hull/planet branch. Before production integration, diff this branch against the current Ionia-first revised runtime and preserve its scene/story/save ownership.
 
 **Authority:** existing character locks, Ionia-first Chapter I hiring/test flight, post-splashdown Lyra arrival, and distinct innate Spirit/Earth/Water/Air/Fire story energies remain unchanged. Innate resonance never guarantees combat spells. No art, release or merge signoff.
+
+## Native executed P-01A proof — 2026-10-27 local / 2026-10-28 UTC
+
+**Exact implementation head:** `b6abd3768a940a24fd07ca0cf8ea71b5ad8fef3b`. All three [native Godot workflow #40623886417](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40623886417), [real OpenGL 960×640 capture #40623886478](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40623886478), and [repository smoke #40623886520](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40623886520) **PASS**. Native actual First Wake test emitted:
+
+```text
+FIRST_WAKE_CHARACTER_P01_ROUTE: native First Wake scene; 400.0px; four directions; six phases; unchanged Ender and Ionia
+FIRST_WAKE_CHARACTER_P01_OBSTACLE: contact_ticks>0 stopped_y=449.00
+FIRST_WAKE_CHARACTER_P01_PASS: integrated visual fixture real First Wake 2D dock, F6 reversible, no actor/dialogue authority changes
+FIRST_WAKE_CHARACTER_P01_TERRAIN_2_5D=NOT_TESTED
+FIRST_WAKE_CHARACTER_P01_SAVE_PARTY_STATE=NO_SAVE_OR_PARTY_IMPLEMENTATION_IN_THIS_PILOT
+```
+
+Authentic native Godot default-OFF, moving-SOUTH, moving-WEST, restored-OFF 960×640 PNG SHA-256 values:
+
+| Mode | SHA-256 |
+| --- | --- |
+| OFF | `45b133d1131ec275466795158099f8a3b722f0cb6f710b001a167a65f30ef566` |
+| SOUTH moving | `f3374468cc586e18d91bef9904dfb6159cc31eecd7e933e714b0c4bcf7846589` |
+| WEST moving | `84db877003827c1a49a31391dddaf77576796d59c931a747843f12c884487603` |
+| RESTORED OFF | `45b133d1131ec275466795158099f8a3b722f0cb6f710b001a167a65f30ef566` |
+
+The OFF and RESTORED frames are **pixel-identical**, and moving frames visibly show distinct original Lyra art. Native 350×295 cropped JPEG previews were inspected from the private workflow logs; full PNG frames were retained runner-side. This proves an **actual in-scene native render and reversible physical fixture**, not approved art, permanent deck collision, playable recruitment, equipment/battle/portrait continuity, saved party integrity (no such system exists in this pilot), installed Windows behavior or creator acceptance.
+
+**Next independent gate:** move this opt-in renderer into the current Ionia-first revised Chapter I branch (after exact-head conflict resolution), test against actual production floor/deck topology and scene-state persistence, and capture at required logical/presentation resolutions; keep class, energy, inventory, party and story state read-only. **P-01A executed; broader P-01 remains NOT COMPLETE.**
