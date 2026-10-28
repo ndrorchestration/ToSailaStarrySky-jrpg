@@ -37,6 +37,17 @@ A visual receipt reports `turnDelta=1`, observed HP loss, one actual enemy turn,
 - **Actual visual review:** legible character+enemy silhouettes, real HP changing 14→6, distinct Gale effect, static reduced-motion pose, no obvious overlapping readouts. **Outstanding:** staff's optical contact is spatially far from the enemy, and the current geometric staff actor is **unapproved**. This verifies a visual *contract*, not melee collision, reach, final camera composition or polished contact effects.
 - Keyboard-review addition in follow-on commit has its own exact-head run; verify before recording as passed.
 
+## P1.1 measured optical contact staging — subsequent implementation
+
+The first authentic native battle screenshot had Ender and Wind Shear far apart; the staff was visually disconnected from the enemy. On the same isolated draft #516:
+
+- The original `EnderStaffCombatKeyframeReview` exports the full **168-unit shaft** and actual authored `shaftTipA`. The lab defines a *nonphysical* enemy pressure-surface marker (`OPTICAL_CONTACT_LOCAL = Vector2(-49, -58)`) on the existing elemental illustration. It places the staff actor's root so the **true drawn ferrule** reaches that anchor at the observed post-resolution pose.
+- A bounded regression requires at most **2 display pixels** of ferrule-to-surface separation, the **original full-length weapon**, foot-on-deck coordinates, no teleported actor root, no invented command/hitbox, and the same single real combat turn.
+- A **nonflashing, motion-accessible** optical contact highlight is shown only while a *genuine HP-loss* visual is active. Neither its proximity nor the marker drives combat, damage, criticals, a new timing window or progression.
+- The pre-action stage now shows Ender's **still, visual-only staff pose** at the same grounded root. It is derived from the existing art timeline with no real attack or charge cost; the accepted action changes the visual pose without making Ender appear from nowhere. This is **still not complete approach/recovery animation**.
+- Implementation commits `3853ea1a` (contact), `00b36434` (accent expiry), `d4adc81b` (distance/ground tests), `19858f4d` (static ready stance), `986c5abf` (no-teleport test). Their native CI and screenshots must be checked separately before marking the follow-on P1.1 pass; earlier P1 run 40623979189 does **not** verify these revisions.
+- **Art acceptance boundary:** a geometrically aligned ferrule is a review pose, **not evidence of physics contact or an approved hit animation**. Further production work still needs actual authored anticipation/approach/recovery frames, direction tests and a proper canonical/scene placement review.
+
 ## Production admission sequence (not yet implemented)
 
 1. **P1 contract:** this neutral lab is the narrow executed joint visual proof. Isolate a reusable production-safe, **versioned** combat resolution consumer rather than treating test-sidecar snapshots as signed events.
