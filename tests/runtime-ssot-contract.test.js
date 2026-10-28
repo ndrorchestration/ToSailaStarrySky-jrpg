@@ -13,6 +13,11 @@ const uiAdapter = read('modules/ui-adapter.js');
 const ui = read('modules/ui.js');
 const combatMirror = read('modules/combat.js');
 const gap = read('gap_analysis.md');
+const canon = read('docs/CANON_AND_REVEAL_POLICY.md');
+const nativeStatus = read('docs/CHAPTER_I_NATIVE_AUTHORITY_STATUS_2026-10-28.md');
+const development = read('docs/DEVELOPMENT.md');
+const coordination = read('docs/GODOT_MIGRATION_COORDINATION.md');
+const handoff = read('docs/AGENT_HANDOFF_INDEX.md');
 
 assert(!/2D6 PbtA JRPG/i.test(pkg.description),
   'package description still brands current game as 2D6/PbtA');
@@ -53,5 +58,36 @@ assert(spec.includes('First Wake starts with Ender alone and adds Lyra at Sequen
   'SPEC does not bind the authored opening recruitment boundary');
 assert(spec.includes('modules/first-wake-opening.js'),
   'SPEC does not identify the active First Wake opening controller');
+
+// Public canon supersedes the historical JS enrollment order. No test may
+// require the author-approved revised Godot story to inherit Lyra-first saves.
+assert(canon.includes('Ionia joins before the Aureate Wake') &&
+  canon.includes('Lyra joins later, after splashdown') &&
+  canon.includes('this enumeration is **not** the recruitment order') &&
+  !canon.includes('joined through the story in that order'),
+  'public canon policy must distinguish roster IDs from the revised Ionia-first party order');
+assert(canon.includes('LEGACY IMPLEMENTATION') &&
+  canon.includes('party combat and reveal authorization distinct'),
+  'canon policy must quarantine historical Lyra-first code and prevent combat-story energy conflation');
+assert(spec.includes('historical JavaScript technical specification') &&
+  spec.includes('the forward Godot First Wake story has Ionia recruited before the first flight'),
+  'legacy SPEC must explicitly preserve historical behavior without claiming its recruitment order is current');
+assert(development.includes('Forward-development authority') &&
+  development.includes('Historical JavaScript smoke gate') &&
+  development.includes('Defender-on custody') &&
+  development.includes('the preserved **JavaScript/p5/NW.js** runtime'),
+  'development guide must distinguish native Godot from legacy browser/test/release evidence');
+assert(coordination.includes('Native First Wake development state') &&
+  coordination.includes('Historical 2026-10-24 branch/track snapshot') &&
+  coordination.includes('independent Defender-on security custody failed'),
+  'agent coordination must separate current native drafts from superseded historical branch pointers');
+assert(handoff.includes('CHAPTER_I_NATIVE_AUTHORITY_STATUS_2026-10-28.md') &&
+  handoff.includes('Ionia') && handoff.includes('Lyra-first'),
+  'agent routing must point to public-safe native story/evidence authority');
+assert(nativeStatus.includes('not in \`main\`') &&
+  nativeStatus.includes('Defender-on security') &&
+  nativeStatus.includes('SPEC.md') &&
+  !nativeStatus.includes('releases/download/'),
+  'dated status register must stay source-bound, legacy-aware, security-gated and without fake download links');
 
 console.log('Aetherwake runtime/documentation SSOT contract: PASS');
