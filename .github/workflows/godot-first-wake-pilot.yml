@@ -169,6 +169,18 @@ jobs:
             exit 1
           fi
           grep -Fq 'TSTSS_FIRST_WAKE_PHYSICS_SPLASHDOWN_PASS:' "$log_file"
+      - name: Verify walkable postflight safe Lyra Talen reunion and evidence theory review
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="$(mktemp)"
+          trap 'rm -f "$log_file"' EXIT
+          timeout --kill-after=3s 45s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_postflight_family_review_test.gd 2>&1 | tee "$log_file"
+          if grep -Eq 'SCRIPT ERROR|TSTSS_FIRST_WAKE_POSTFLIGHT_FAMILY_FAIL' "$log_file"; then
+            echo "Family review scene emitted Godot error or failure" >&2
+            exit 1
+          fi
+          grep -Fq 'TSTSS_FIRST_WAKE_POSTFLIGHT_FAMILY_PASS:' "$log_file"
       - name: Verify configured Chapter I F8 opt-in -> real flyer and engineering -> F physical splashdown -> original v1 return
         shell: bash
         run: |
