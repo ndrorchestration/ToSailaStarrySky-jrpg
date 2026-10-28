@@ -9,6 +9,7 @@ const qa = read('.github/workflows/godot-exact-windows-qa.yml');
 const project = read('godot/project.godot');
 const entry = read('godot/scripts/first_wake_game.gd');
 const docs = read('docs/desktop/FIRST_WAKE_INSTALLER_DELIVERY.md');
+const custody = read('scripts/verify-first-wake-installer-defender.ps1');
 
 for (const x of [
   'RequestExecutionLevel user',
@@ -70,4 +71,21 @@ assert(entry.includes('KEY_F11') && entry.includes('event.alt_pressed') &&
   'normal game window must offer an accessible fullscreen toggle');
 assert(docs.includes('NOT YET PUBLISHED') && docs.includes('README'),
   'delivery docs must distinguish build proof from an actual download');
+assert(qa.includes('trusted-installer-defender-qa:') &&
+  qa.includes('runs-on: [self-hosted, Windows, X64, defender-on]') &&
+  qa.includes("contains(github.event.pull_request.labels.*.name, 'trusted-defender-on')") &&
+  qa.includes('github.event.pull_request.user.login') &&
+  qa.includes('verify-first-wake-installer-defender.ps1'),
+  'trusted scan must require deliberate maintainer opt-in, private runner, exact installer scan');
+for (const marker of [
+  'TSTSS_DEFENDER_REALTIME_NOT_ENABLED',
+  'TSTSS_DEFENDER_WHOLE_DRIVE_EXCLUDED',
+  'Start-MpScan -ScanType CustomScan',
+  'TSTSS_DEFENDER_SCAN_COMPLETION_NOT_ATTESTED',
+  'TSTSS_DEFENDER_DETECTION',
+  'TSTSS_DEFENDER_CUSTODY=PASS',
+  'publicReleaseAuthorized = $false',
+]) {
+  assert(custody.includes(marker), 'trusted scan fail-closed/security marker missing: ' + marker);
+}
 console.log('TSTSS_FIRST_WAKE_INSTALLER_CONTRACT_PASS release_authorized=false installer_link_published=false');
