@@ -3,10 +3,12 @@ extends Node2D
 ## Reuses native Ender movement and Chapter I input. Art remains provisional.
 const Actor = preload("res://scripts/pilot_actor.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
+const Environment = preload("res://scripts/first_wake_cinematic_environment.gd")
 const BOUNDS := Rect2(Vector2(112, 404), Vector2(736, 122))
 const RESERVE_STATION := Vector2(420, 467)
 const INTERACT_DISTANCE := 82.0
 
+var cinematic_environment_enabled: bool = true
 var session
 var ender: CharacterBody2D
 var ionia: CharacterBody2D
@@ -81,20 +83,27 @@ func _label(parent: Node, at: Vector2, font_size: int) -> Label:
     parent.add_child(out)
     return out
 
+func set_cinematic_environment_enabled(enabled: bool) -> void:
+    cinematic_environment_enabled = enabled
+    queue_redraw()
+
 func _draw() -> void:
-    draw_rect(Rect2(0, 0, 960, 640), Color("#1a3446"))
-    draw_rect(Rect2(0, 178, 960, 222), Color("#2e4855"))
-    draw_rect(Rect2(0, 400, 960, 135), Color("#705947"))
-    for k in range(8):
-        draw_line(Vector2(0, 404 + k * 18), Vector2(960, 404 + k * 18),
-            Color("#99816b"), 1.0)
-    for x in [88.0, 320.0, 662.0, 883.0]:
-        draw_line(Vector2(x, 205), Vector2(x, 395), Color("#c2a57b"), 4.0)
-    draw_rect(Rect2(335, 278, 176, 116), Color("#182d39"))
-    draw_rect(Rect2(350, 290, 144, 89), Color("#31525b"))
-    draw_arc(RESERVE_STATION + Vector2(0, -116), 38, 0, TAU, 48,
-        Color("#c37b60") if not inspected_station else Color("#88b9ad"), 4.0)
-    draw_line(Vector2(372, 355), Vector2(472, 355), Color("#d5b68b"), 2.0)
+    if cinematic_environment_enabled:
+        Environment.draw_reserve(self,inspected_station)
+    else:
+        draw_rect(Rect2(0, 0, 960, 640), Color("#1a3446"))
+        draw_rect(Rect2(0, 178, 960, 222), Color("#2e4855"))
+        draw_rect(Rect2(0, 400, 960, 135), Color("#705947"))
+        for k in range(8):
+            draw_line(Vector2(0, 404 + k * 18), Vector2(960, 404 + k * 18),
+                Color("#99816b"), 1.0)
+        for x in [88.0, 320.0, 662.0, 883.0]:
+            draw_line(Vector2(x, 205), Vector2(x, 395), Color("#c2a57b"), 4.0)
+        draw_rect(Rect2(335, 278, 176, 116), Color("#182d39"))
+        draw_rect(Rect2(350, 290, 144, 89), Color("#31525b"))
+        draw_arc(RESERVE_STATION + Vector2(0, -116), 38, 0, TAU, 48,
+            Color("#c37b60") if not inspected_station else Color("#88b9ad"), 4.0)
+        draw_line(Vector2(372, 355), Vector2(472, 355), Color("#d5b68b"), 2.0)
     draw_rect(Rect2(0, 0, 960, 112), Color(0.04, 0.08, 0.14, 0.92))
     draw_rect(Rect2(0, 537, 960, 103), Color(0.04, 0.08, 0.14, 0.96))
 
