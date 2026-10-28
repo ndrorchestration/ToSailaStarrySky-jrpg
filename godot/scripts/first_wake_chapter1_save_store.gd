@@ -3,16 +3,18 @@ extends RefCounted
 ## The versioned SaveCodec remains authority for semantic validation.
 ## Writes are staged to a verified temp file; the last valid primary is kept as
 ## a backup so interrupted/corrupt primary writes fail closed with recovery.
+## A separate explicit validator can be supplied ONLY with a separate path;
+## default v1 codec/path and existing callers remain unchanged.
 
 const SaveCodec = preload("res://scripts/first_wake_chapter1_save_codec.gd")
 
 const VERSION := "0.1.0"
 const DEFAULT_PATH := "user://first_wake_chapter1_save.json"
 
-func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Dictionary:
-    var semantic := SaveCodec.validate(snapshot)
+func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH, validator: Variant = SaveCodec) -> Dictionary:
+    var semantic: Dictionary = validator.validate(snapshot)
     if not bool(semantic.get("ok", false)):
-        return _error("SAVE_SNAPSHOT_INVALID:" + str(semantic.get("error", "unknown")))
+        return _error("SAVE_SNAPSHOT_INVALID:" + str(semantic.get("error", semantic.get("reason", "unknown"))))
 
     var temp_path := path + ".tmp"
     var backup_path := path + ".bak"
@@ -29,7 +31,7 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
     file.flush()
     file.close()
 
-    var temp_read := _read_valid(temp_path)
+    var temp_read := _read_valid(temp_path, validator)
     if not bool(temp_read.get("ok", false)):
         _remove_if_exists(temp_path)
         return _error("SAVE_TEMP_VERIFY_FAILED:" + str(temp_read.get("error", "unknown")))
@@ -40,7 +42,7 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
 
     # Preserve only a semantically valid previous primary. Stage and verify the
     # replacement backup before touching any already-known-good .bak generation.
-    var previous := _read_valid(path)
+    var previous := _read_valid(path, validator)
     var previous_sha := ""
     if bool(previous.get("ok", false)):
         previous_sha = FileAccess.get_sha256(path)
@@ -50,7 +52,7 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
         if not _copy(path, backup_candidate_path):
             _remove_if_exists(temp_path)
             return _error("SAVE_BACKUP_CANDIDATE_COPY_FAILED")
-        var backup_candidate_read := _read_valid(backup_candidate_path)
+        var backup_candidate_read := _read_valid(backup_candidate_path, validator)
         if not bool(backup_candidate_read.get("ok", false)):
             _remove_if_exists(temp_path)
             _remove_if_exists(backup_candidate_path)
@@ -81,7 +83,7 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
         _remove_if_exists(temp_path)
         return _error("SAVE_PRIMARY_RENAME_FAILED")
 
-    var final_read := _read_valid(path)
+    var final_read := _read_valid(path, validator)
     if not bool(final_read.get("ok", false)):
         _remove_if_exists(path)
         if FileAccess.file_exists(backup_path):
@@ -105,8 +107,8 @@ func save_snapshot(snapshot: Dictionary, path: String = DEFAULT_PATH) -> Diction
         "backup_sha256": FileAccess.get_sha256(backup_path) if FileAccess.file_exists(backup_path) else "",
     }
 
-func load_snapshot(path: String = DEFAULT_PATH) -> Dictionary:
-    var primary := _read_valid(path)
+func load_snapshot(path: String = DEFAULT_PATH, validator: Variant = SaveCodec) -> Dictionary:
+    var primary := _read_valid(path, validator)
     if bool(primary.get("ok", false)):
         return {
             "ok": true,
@@ -118,7 +120,7 @@ func load_snapshot(path: String = DEFAULT_PATH) -> Dictionary:
         }
 
     var backup_path := path + ".bak"
-    var backup := _read_valid(backup_path)
+    var backup := _read_valid(backup_path, validator)
     if bool(backup.get("ok", false)):
         return {
             "ok": true,
@@ -138,8 +140,8 @@ func load_snapshot(path: String = DEFAULT_PATH) -> Dictionary:
         "path": path,
     }
 
-func has_valid_save(path: String = DEFAULT_PATH) -> bool:
-    return bool(load_snapshot(path).get("ok", false))
+func has_valid_save(path: String = DEFAULT_PATH, validator: Variant = SaveCodec) -> bool:
+    return bool(load_snapshot(path, validator).get("ok", false))
 
 func delete_slot(path: String = DEFAULT_PATH) -> void:
     _remove_if_exists(path)
@@ -147,7 +149,7 @@ func delete_slot(path: String = DEFAULT_PATH) -> void:
     _remove_if_exists(path + ".bak")
     _remove_if_exists(path + ".bak.next")
 
-func _read_valid(path: String) -> Dictionary:
+func _read_valid(path: String, validator: Variant = SaveCodec) -> Dictionary:
     if not FileAccess.file_exists(path):
         return {"ok": false, "error": "missing", "snapshot": {}}
     var text := FileAccess.get_file_as_string(path)
@@ -165,9 +167,9 @@ func _read_valid(path: String) -> Dictionary:
     if not (parsed is Dictionary):
         return {"ok": false, "error": "invalid_json_root", "snapshot": {}}
     var snapshot: Dictionary = parsed
-    var semantic := SaveCodec.validate(snapshot)
+    var semantic: Dictionary = validator.validate(snapshot)
     if not bool(semantic.get("ok", false)):
-        return {"ok": false, "error": "invalid_snapshot:" + str(semantic.get("error", "unknown")), "snapshot": {}}
+        return {"ok": false, "error": "invalid_snapshot:" + str(semantic.get("error", semantic.get("reason", "unknown"))), "snapshot": {}}
     return {"ok": true, "error": "", "snapshot": snapshot}
 
 func _ensure_parent(path: String) -> bool:
