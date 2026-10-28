@@ -144,6 +144,21 @@ func _verify() -> void:
     if preview.opening.active_party_ids != ["ender", "ionia"] or "talen" in preview.opening.active_party_ids:
         _fail("Lyra/Talen prematurely joined before safe reunion")
         return
+    if review.get("reserve_inspection_observed", true) or flight.opening.step_key() != "waterborne":
+        _fail("depleted-reserve diagnosis was granted before explicit player inspection")
+        return
+    if not flight.interact():
+        _fail("player could not inspect reserve after stable floating")
+        return
+    if flight.opening.step_key() != "postflight_diagnosis" or not flight.review_snapshot().get("reserve_inspection_observed", false):
+        _fail("safe reserve examination did not progress to diagnosed postflight")
+        return
+    if flight.review_snapshot().get("real_inventory_scan_verified", true) or flight.interact():
+        _fail("authored fuel review claimed inventory implementation or duplicate inspection")
+        return
+    if flight.opening.active_party_ids != ["ender", "ionia"]:
+        _fail("postflight diagnosis recruited Lyra before safe family meeting")
+        return
     if _file_hash(SaveStore.DEFAULT_PATH) != v1_hash or _file_hash(RevisedCodec.SLOT_PATH) != v2_hash:
         _fail("transient flight rewrote either save slot")
         return
@@ -161,7 +176,7 @@ func _verify() -> void:
     if _file_hash(SaveStore.DEFAULT_PATH) != v1_hash or _file_hash(RevisedCodec.SLOT_PATH) != v2_hash:
         _fail("F8 exit from splashdown rewrote v1/v2 checkpoint data")
         return
-    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: configured startup F8, flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, F8 exact v1 return; no save or Art migration")
+    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: configured startup F8, flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, explicit empty-reserve postflight inspection, F8 exact v1 return; no save or Art migration")
     quit(0)
 
 func _finish_dialogue(world: Node) -> bool:
