@@ -7,6 +7,8 @@ extends Node2D
 
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const FlightScene = preload("res://scenes/first_wake_flight_water_review.tscn")
+const SalvageScene = preload("res://scenes/first_wake_salvage_review.tscn")
+const SalvageCheckpoint = preload("res://scripts/first_wake_salvage_checkpoint_v3.gd")
 const RevisedCodec = preload("res://scripts/first_wake_revised_checkpoint_codec.gd")
 const SaveStore = preload("res://scripts/first_wake_chapter1_save_store.gd")
 const PrototypeRoute = preload("res://scripts/first_wake_prototype_route.gd")
@@ -41,6 +43,7 @@ var dock_background: Node2D
 var dock_foreground: Node2D
 var ui_layer: CanvasLayer
 var flight_review: Node2D
+var salvage_review: Node2D
 var headline: Label
 var objective: Label
 var hint: Label
@@ -175,6 +178,16 @@ func _unhandled_input(event: InputEvent) -> void:
             last_message = "Return unavailable: " + str(returned.get("reason", "unknown"))
             _sync_presentation()
         return
+    if event.is_action_pressed(InputPolicy.RESUME_SALVAGE_REVIEW) and not event.is_echo():
+        var result: Dictionary = resume_salvage_review_v3()
+        if not bool(result.get("ok", false)):
+            last_message = "V3 resume unavailable: " + str(result.get("reason", result.get("error", "unknown")))
+            _sync_presentation()
+        get_viewport().set_input_as_handled()
+        return
+    if room == "salvage_review":
+        # Children own their E/K/L; F8 above always returns exactly to v1.
+        return
     if event.is_action_pressed(InputPolicy.FLIGHT_REVIEW_LAUNCH) and not event.is_echo():
         var started: bool = launch_flight_review()
         if not started and room != "flight_review":
@@ -205,6 +218,40 @@ func _unhandled_input(event: InputEvent) -> void:
         interact()
         get_viewport().set_input_as_handled()
 
+func resume_salvage_review_v3(path: String = SalvageCheckpoint.SLOT_PATH) -> Dictionary:
+    # Explicit J-only opt-in resume: the v1/v2 save/read paths are never used.
+    if room != "dock" or flyer_read or dialogue_open or salvage_review != null or flight_review != null:
+        return {"ok": false, "reason": "only_fresh_revised_dock_may_resume_v3"}
+    if opening.step_key() != "job_search" or opening.active_party_ids != ["ender"]:
+        return {"ok": false, "reason": "opening_state_not_fresh"}
+    var data: Dictionary = revised_save_store.load_snapshot(path, SalvageCheckpoint)
+    if not bool(data.get("ok", false)):
+        return data
+    var rebuilt: Dictionary = SalvageCheckpoint.restore(data["snapshot"])
+    if not bool(rebuilt.get("ok", false)):
+        return {"ok": false, "reason": rebuilt.get("reason", "invalid_v3")}
+    var scene := SalvageScene.instantiate()
+    if not bool(scene.call("configure_from_restored_checkpoint", rebuilt)):
+        scene.free()
+        return {"ok": false, "reason": "restored_salvage_scene_rejected"}
+    # Commit only after complete external validation and pre-tree acceptance.
+    opening = rebuilt["opening"]
+    salvage_review = scene
+    room = "salvage_review"
+    dock_background.visible = false
+    dock_foreground.visible = false
+    ender.visible = false
+    ender.player_controlled = false
+    ionia.visible = false
+    ui_layer.visible = false
+    add_child(salvage_review)
+    return {
+        "ok": true,
+        "source": data.get("source", ""),
+        "recovered": data.get("recovered", false),
+        "prior_physical_water_reverified": false,
+    }
+
 func launch_flight_review() -> bool:
     # Reuse tested PR #447 local RigidBody2D ocean study; do not advance the
     # story before validated preflight, or pretend its ocean is the planet.
@@ -234,6 +281,8 @@ func launch_flight_review() -> bool:
     return true
 
 func interact() -> bool:
+    if room == "salvage_review":
+        return false
     if room == "flight_review":
         return false
     if dialogue_open:
@@ -302,12 +351,12 @@ func interact() -> bool:
     return false
 
 func export_revised_checkpoint() -> Dictionary:
-    if dialogue_open or room == "flight_review" or flight_review != null:
+    if dialogue_open or room in ["flight_review", "salvage_review"] or flight_review != null or salvage_review != null:
         return {}
     return RevisedCodec.encode(opening, flyer_read, room, inspected_items, ender.position)
 
 func restore_revised_checkpoint(snapshot: Variant) -> bool:
-    if room == "flight_review" or flight_review != null:
+    if room in ["flight_review", "salvage_review"] or flight_review != null or salvage_review != null:
         return false
     # Fully validate/reconstruct the story before changing ANY scene state.
     # No old Chapter I v1 save may be interpreted as this new review format.
@@ -346,6 +395,8 @@ func save_revised_checkpoint() -> Dictionary:
 func load_revised_checkpoint() -> Dictionary:
     if room == "flight_review" or flight_review != null:
         return {"ok": false, "reason": "flight_review_is_transient_and_unpersisted"}
+    if room == "salvage_review" or salvage_review != null:
+        return {"ok": false, "reason": "salvage_uses_dedicated_v3_checkpoint"}
     if dialogue_open:
         return {"ok": false, "reason": "dialogue_in_progress"}
     var read: Dictionary = revised_save_store.load_snapshot(RevisedCodec.SLOT_PATH, RevisedCodec)
@@ -421,7 +472,7 @@ func _sync_presentation() -> void:
     headline.text = "TO SAIL THE STARRY SKY  /  FIRST WAKE — PLAYABLE REVIEW"
     if room == "dock":
         if not flyer_read:
-            objective.text = "Find work: inspect the notice posted at the dock."
+            objective.text = "Find work: inspect the dock notice. J: opt-in saved v3 salvage resume."
         elif not ("ionia" in opening.active_party_ids):
             objective.text = "Speak to Captain Ionia about harmonic levitation repairs."
         else:
