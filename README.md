@@ -1,12 +1,18 @@
 # To Sail the Starry Sky
 
+> **Current project orientation — October 28, 2026:** Native **Godot 4.7.2 / GDScript** is the forward production target for the cinematic Chapter 1 JRPG. The main-branch browser/p5.js material below is **historical reference and compatibility documentation**, not the current Godot player guide or proof of a released Chapter 1. Native First Wake development uses an **Ionia-first** opening; the older Lyra-first sequence described below remains browser-era provenance until explicitly reconciled.
+>
+> **Chapter 1 schedule:** [Solo beta roadmap](docs/CHAPTER_1_BETA_ROADMAP.md) — integration by Nov 30, 2026; feature-complete alpha by Mar 31, 2027; **planning beta target May 31, 2027**, with June–August contingency. Dates are goals, not verified delivery promises. 
+>
+> **Readiness rule:** Draft PRs, green CI, captured screenshots and visual studies are *not* equivalent to merged native-game behavior, creator visual acceptance, a downloadable verified Windows installer or finished chapter. See the roadmap's beta gates and exact source/evidence requirements.
+
 > **2026-10-25 cross-agent handoff:** New development targets **Godot 4.7.2 / GDScript**, not additional p5.js/JavaScript gameplay. Agents (Hermes, Spellcraft/Hyperagent, Muse/Herald) start with [AGENTS.md](AGENTS.md) and the [agent handoff index](docs/AGENT_HANDOFF_INDEX.md). New [canon/reveal safeguards](docs/CANON_AND_REVEAL_POLICY.md), [character/art locks](docs/CHARACTER_AND_ART_AUTHORITY.md), [world/ship direction](docs/WORLD_SHIP_VISUAL_DIRECTION.md), [Godot coordination](docs/GODOT_MIGRATION_COORDINATION.md) and [Notion source index](docs/NOTION_SOURCE_INDEX.md) reconcile creator-approved decisions without rewriting historical JS runtime evidence. The legacy instructions below document the preserved reference build, not the forward feature-development engine.
 
 *Formerly developed as **Aetherwake — The Last Solarpunk Airship**.*
 
-**To Sail the Starry Sky** is a **pre-alpha solarpunk turn-based JRPG** about the crew of the *Aureate Wake*, a dragonfly-inspired airship navigating a world of sky routes, forgotten histories, and choices that shape the people aboard. The current playable prototype begins with Ender at Wake Dock, where an oncoming storm reveals that the ship's potential depends on the people who resonate with it.
+**To Sail the Starry Sky** is a **pre-alpha solarpunk turn-based JRPG** about the crew of the *Aureate Wake*, a dragonfly-inspired airship navigating a world of sky routes, forgotten histories, and choices that shape the people aboard. The preserved browser prototype begins with Ender at Wake Dock, where an oncoming storm reveals that the ship's potential depends on the people who resonate with it.
 
-**Project status:** This is a publicly accessible **development repository**, not an approved finished game or a verified public Windows release. The browser prototype, character systems and Chapter I work remain under development; game builds and player acceptance have separate verification gates.
+**Project status:** This is a publicly accessible **development repository**, not an approved finished Chapter 1 or a verified native Godot Chapter 1 Windows release. Historical Aetherwake-branded desktop preview packages are documented separately below. The browser prototype, character systems and Chapter I work remain under development; game builds and player acceptance have separate verification gates.
 
 The project retains legacy `Aetherwake` filenames, package identifiers, save/release references, and historical test receipts for compatibility and provenance. They are **not** instructions to rename working files or migrate saves without testing.
 
@@ -14,7 +20,7 @@ Selected implementation patterns and reference material were studied from *Memor
 
 The current repository contains a playable vertical-slice prototype plus an active architecture migration toward the full authored-party RPG.
 
-## Development status
+## Development status — legacy browser baseline (not a current Godot feature inventory)
 
 - **Stage:** late prototype / pre-alpha
 - **Playable baseline:** boot → First Wake opening → world exploration → dialogue/quest systems → combat
@@ -24,7 +30,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
 
-## Run the game
+## Run the preserved browser prototype (developer/reference path)
 
 Use a local HTTP server for the reliable launch path. The canonical smoke test uses this same model.
 
@@ -58,7 +64,7 @@ The development runtime is designed to work offline and uses:
 
 Current canvas: **960×640**.
 
-## Controls
+## Controls — preserved browser prototype
 
 | Key | Action |
 |---|---|
@@ -76,7 +82,7 @@ Current canvas: **960×640**.
 | **1–8** | Combat actions |
 | **S** | Secondary combat action when available |
 
-## Combat prototype
+## Combat prototype — preserved browser implementation
 
 Combat is migrating to a **conventional JRPG formula model**. Production-native actions use explicit power/scaling, defenses, bounded accuracy/critical variance, costs, statuses, and deterministic analysis where appropriate. Legacy 2D6 behavior remains only in explicitly quarantined compatibility actions and historical mirrors.
 
@@ -120,7 +126,7 @@ The development runtime now has the first persistent party-state layer:
 
 The prototype names/jobs remain implementation provenance rather than final character canon.
 
-## Current quest vertical slice
+## Current quest vertical slice — browser reference
 
 The existing prototype quest follows:
 
@@ -148,7 +154,7 @@ It includes signal hooks, traversal hazards, NPC encounters, three major choice 
 | `memories_adaptation_catalog.md` | Adaptation/provenance reference |
 | `tests/` | Canonical automated smoke/regression tests |
 
-## Verification
+## Verification — historical browser test suite
 
 Install dependencies and Chromium once:
 
@@ -223,11 +229,11 @@ Andrew Hensel (ndrorchestration)
 Reference loading-screen UX and adaptation study: *Memories 0.7.4*. Fonts include VT323 and Press Start 2P. TTS tooling uses Microsoft Edge TTS where generated voice assets are available.
 
 
-## Windows desktop package
+## Windows desktop package — historical preview and forward production target
 
 The intended player experience is **download one verified Windows artifact, launch/install it, and run To Sail the Starry Sky in its own large resizable/maximizable desktop window**. Existing historical packages still use the `Aetherwake` executable identity; the rebrand has not yet migrated installed app names. The desktop presentation defaults to **1440×960** and scales proportionally when maximized, while preserving the 960×640 logical game layout. **Alt+Enter** or **F11** toggles native fullscreen; **Escape** exits fullscreen. Browser/HTTP instructions above are development and diagnostic paths, not the desired end-user experience.
 
-### Current Preview 0.1 release authority — 2026-10-06
+### Historical Preview 0.1 release evidence — 2026-10-06
 
 The runtime baseline before the documentation-only reconciliation was `875503662d9a9cff64eb6ec1bbbeedbfcc3ccbe3`. Documentation-only changes can advance `main` without changing player-runtime bytes. GitHub branch protection and release approval are separate controls; neither is established by a README update. The current bounded Preview 0.1 remediation/review candidate remains PR #250 at exact head `46f50c581d992bf581bb6b6d7961a9421b8b779d`; candidate identity is bound to that exact SHA and artifact hashes, not to a moving `main` pointer.
 
