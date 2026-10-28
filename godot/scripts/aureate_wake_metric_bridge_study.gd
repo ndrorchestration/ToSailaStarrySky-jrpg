@@ -123,8 +123,8 @@ func _build_geodesic_helm() -> void:
     var bronze := SurfaceTool.new()
     bronze.begin(Mesh.PRIMITIVE_TRIANGLES)
     var edge_keys: Dictionary = {}
-    const SIDES: int = 24
-    const RINGS: int = 9
+    const SIDES: int = 18
+    const RINGS: int = 7
     for layer in range(RINGS):
         var ta: float = top_theta * float(layer) / float(RINGS)
         var tb: float = top_theta * float(layer + 1) / float(RINGS)
@@ -133,7 +133,7 @@ func _build_geodesic_helm() -> void:
             # The missing pane triangles constitute a real visual opening;
             # there are no fictitious zero-alpha collision panes across it.
             var mid_y: float = DOME_CENTER_Y + DOME_RADIUS_M * cos((ta + tb) * 0.5)
-            if seg >= 15 and seg < 21 and mid_y < 2.36:
+            if seg >= 12 and seg < 15 and mid_y < 2.36:
                 continue
             var fa: float = TAU * float(seg) / float(SIDES)
             var fb: float = TAU * float(seg + 1) / float(SIDES)
@@ -155,7 +155,7 @@ func _build_geodesic_helm() -> void:
                 for vert in [p, q, t]:
                     glass.add_vertex(vert)
                 dome_panels += 1
-            for pair in [[a, c], [c, d], [d, e], [e, a]]:
+            for pair in [[a, c], [c, d], [d, e], [e, a], [a, d]]:
                 var key: String = _edge_key(pair[0], pair[1])
                 if edge_keys.has(key):
                     continue
