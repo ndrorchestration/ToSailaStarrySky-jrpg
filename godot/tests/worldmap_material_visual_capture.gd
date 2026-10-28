@@ -34,6 +34,17 @@ func _sky_delta(a: Image,b: Image) -> int:
                 changes+=1
     return changes
 
+func _foreground_pixels(frame: Image) -> int:
+    # Guard against the exact all-sky failure that can falsely return a
+    # low-quality pixel-perfect image without rendering any native terrain.
+    var background: Color=frame.get_pixel(0,0)
+    var changed: int=0
+    for y in range(0,640,2):
+        for x in range(0,960,2):
+            if frame.get_pixel(x,y)!=background:
+                changed+=1
+    return changed
+
 func _save(img: Image,name: String) -> void:
     var file: String=ProjectSettings.globalize_path("res://evidence/material-review/"+name)
     if img==null or img.get_size()!=Vector2i(960,640) or img.save_png(file)!=OK:
@@ -105,6 +116,10 @@ func _run() -> void:
             str(item["weather"]),float(item["rain"]),WIND,SUN)
         var patch:=LocalPatch.new()
         world.add_child(patch)
+        # LowSkyTerrainDevelopmentPatch deliberately defaults to invisible
+        # because the actual game scene enables it only in mode 4. This
+        # detached native GL fixture must make that single mode explicit.
+        patch.visible=true
         patch.position=Vector3.ZERO
         patch.rebuild({"latDeg":coord.x,"lonDeg":coord.y},30.0,48)
         var land:=patch.get_node("CurvedTerrainMesh") as MeshInstance3D
@@ -123,6 +138,12 @@ func _run() -> void:
         key.look_at(-local_sun,Vector3.UP)
         mat.set_shader_parameter("optics_strength",0.0)
         var baseline: Image=await _frame()
+        var foreground: int=_foreground_pixels(baseline)
+        print("WORLDMAP_MATERIAL_FOREGROUND name=",name,
+            " pixels=",foreground)
+        if foreground<1300:
+            failed=true
+            push_error("WORLDMAP_MATERIAL_INVISIBLE_TERRAIN "+name)
         mat.set_shader_parameter("optics_strength",1.0)
         var candidate: Image=await _frame()
         _save(baseline,"worldmap-"+name+"-plain.png")
