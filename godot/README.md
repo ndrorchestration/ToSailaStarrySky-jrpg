@@ -1,3 +1,28 @@
+# To Sail the Starry Sky — native Godot 4.7.2 First Wake
+
+**Current playable development path (October 28, 2026):** the nested Godot Chapter I project, including an opt-in revised **Ionia-first** story through local first flight, ocean recovery, Lyra/Talen reunion, theory, two-area salvage and bounded engine/Denith shanty study. This is a **draft review**, not a merged production migration, artistically accepted game, finished five-person combat engine or approved Windows installer.
+
+See the [project-wide current README](../README.md), the [dated current Godot implementation register](../docs/CURRENT_GODOT_STATUS_2026-10-28.md), and the [separate v3 salvage save contract](../docs/FIRST_WAKE_SALVAGE_V3_CHECKPOINT_PILOT.md) before relying on older claims below.
+
+## Launch the real configured preview
+
+1. Open **Godot 4.7.2 Standard** Project Manager → **Import** → select this directory's **`project.godot`**.
+2. Press **F5 in the Godot editor** to run `res://scenes/first_wake_chapter1_player_preview.tscn`; this preserves the original v1 review.
+3. Press **F8 within the running game** to enter the revised, opt-in Ionia-first opening. Use **E** to interact and **F** when engineering/preflight checks are completed to enter the native local flight study.
+4. After reaching the two distinct salvage areas, **K** writes and **L** reloads its independent v3 checkpoint. From a new/restarted revised dock, use **J before reading the flyer** to opt in to a previous v3 checkpoint. The game refuses v3 saves inside the engine workshop, ocean flight or melody sequence. **F8** returns to the original preserved scene.
+
+The configured original route has its own in-game **F5 save / F9 load** and independent combat-review controls; these are **not** the revised route's save format. This project does not require the older JavaScript browser's npm/node launch process.
+
+## Current project verification and limits
+
+The pinned [native Godot CI run #40649372371](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40649372371) passed the reviewed combined Chapter I story/physics/checkpoint tests at its exact prior head. [Native renderer CI #40649372369](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40649372369) passed, and the [actual six-frame Chapter I contact sheet](../docs/reviews/native-evidence/2026-10-28-first-wake/chapter1-six-native-stage-frames.svg) is viewable from the README. Neither proves full cinematic art quality, uncoached player success, approved complete fuel/ship technology, five-character live combat, or a Windows installer. The **Defender custody/security gate remains blocked**. No merge or release authorized.
+
+## Archived Godot feasibility / visual experiments (October 21 onward)
+
+The material below is a chronological record of **earlier source candidates**, not an up-to-date description of the configured project or canonical recruitment order. For example, an old passage saying “no migrated quest / no native combat formulas / F6 opens the whole project” refers to an **earlier state that has since been superseded in this draft stack**. Do not reinterpret it as the latest game implementation.
+
+---
+
 # Aetherwake — Godot 4.7.2 / GDScript migration feasibility pilot
 
 **Status:** Isolated native-engine proof, **not** a complete migration, creator-accepted art, scene/canon rewrite, approved release, or evidence that production is now Godot.
