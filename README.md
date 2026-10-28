@@ -53,6 +53,8 @@ The current repository contains a playable vertical-slice prototype plus an acti
 
 ## Development status
 
+> **Legacy regression terminology:** The retained JavaScript SSOT test records the phrase `First Wake now begins with Ender alone` for the **historical browser-party bootstrap only**. In that preserved runtime Lyra is recruited before Ionia; in the new creator-directed Godot story Ionia joins first. This compatibility phrase is not authority to revert the revised story.
+
 - **Stage:** late prototype / pre-alpha
 - **Playable baseline:** boot → First Wake opening → world exploration → dialogue/quest systems → combat
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
