@@ -127,9 +127,34 @@ func _draw() -> void:
         for x in [135.0, 320.0, 505.0, 690.0]:
             draw_rect(Rect2(x, 268, 140, 113), Color("#5a6663"))
             draw_line(Vector2(x + 9, 318), Vector2(x + 131, 318), Color("#c1a47c"), 2.0)
-    draw_rect(Rect2(0, 396, 960, 147), Color("#6e5b4a") if water_side else Color("#635749"))
+    # Shared authored surface kit across the quay and stores annex;
+    # strictly below the navigable actor and existing custody stations.
+    draw_rect(Rect2(0, 396, 960, 147), Color("#665443") if water_side else Color("#514e46"))
     for y in [417.0, 443.0, 469.0, 495.0, 521.0]:
-        draw_line(Vector2(63, y), Vector2(900, y), Color("#907d68"), 1.0)
+        draw_line(Vector2(0, y), Vector2(960, y - 4), Color("#a58b69") if water_side else Color("#89908b"), 1.5)
+        draw_line(Vector2(0, y + 4), Vector2(960, y), Color("#312e2c", 0.65), 1.0)
+    for row_idx in range(5):
+        for section in range(9):
+            var px := 31.0 + float(section) * 118.0 + float(row_idx % 2) * 50.0
+            var py := 415.0 + float(row_idx) * 26.0
+            draw_line(Vector2(px, py), Vector2(px - 5.0, py + 21.0), Color("#282e30", 0.46), 1.0)
+    if water_side:
+        for post in range(7):
+            var hx := 58.0 + float(post) * 146.0
+            draw_line(Vector2(hx, 376), Vector2(hx, 406), Color("#263f48"), 4.0)
+            draw_line(Vector2(hx - 19, 379), Vector2(hx + 19, 379), Color("#ba9c73"), 2.0)
+        for spark in range(22):
+            var sx := float(spark) * 45.0
+            var sy := 302.0 + float(spark % 4) * 19.0
+            draw_line(Vector2(sx, sy), Vector2(sx + 14, sy), Color(0.77, 0.92, 0.89, 0.22), 1.0)
+    else:
+        for truss in range(7):
+            var tx := 93.0 + float(truss) * 128.0
+            draw_line(Vector2(tx, 246), Vector2(tx + 34, 380), Color("#293e47"), 3.0)
+            draw_line(Vector2(tx + 34, 380), Vector2(tx + 75, 251), Color("#77817c", 0.65), 1.5)
+        for glow_x in [178.0, 462.0, 752.0]:
+            draw_circle(Vector2(glow_x, 285), 19, Color(1.0, 0.76, 0.48, 0.055))
+            draw_circle(Vector2(glow_x, 285), 4, Color("#eec18c"))
     draw_rect(Rect2(0, 0, 960, 159), Color("#0c1b2c"))
     draw_rect(Rect2(0, 547, 960, 93), Color("#0c1b2c"))
     if water_side:

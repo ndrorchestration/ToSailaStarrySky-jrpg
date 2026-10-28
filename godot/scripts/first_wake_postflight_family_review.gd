@@ -97,10 +97,36 @@ func _label(parent: Node, pos: Vector2, font_size: int, width: float) -> Label:
 func _draw() -> void:
     # Original draft blocking, not approved character portraits or geography.
     draw_rect(Rect2(0, 0, 960, 640), Color("#183347"))
-    draw_rect(Rect2(0, 328, 960, 220), Color("#42616a"))
-    draw_rect(Rect2(0, 395, 960, 148), Color("#735d47"))
-    for y in [413.0, 439.0, 465.0, 491.0, 517.0]:
-        draw_line(Vector2(65, y), Vector2(904, y), Color("#9f8060"), 2.0)
+    # Layered shore atmosphere and handcrafted quay surface; visual only.
+    draw_rect(Rect2(0, 298, 960, 105), Color("#436d75"))
+    for band in range(9):
+        var y := 307.0 + float(band) * 10.0
+        draw_line(Vector2(0, y), Vector2(960, y - 3.0), Color(0.72, 0.83, 0.80, 0.025 + float(band) * 0.005), 1.0)
+    for mast in range(7):
+        var mx := 48.0 + float(mast) * 153.0
+        var my := 336.0 + float(mast % 3) * 7.0
+        draw_line(Vector2(mx, my + 59), Vector2(mx, my - 36), Color("#263f49"), 2.0)
+        draw_line(Vector2(mx, my - 29), Vector2(mx + 21, my + 11), Color("#9cb3ac", 0.42), 1.1)
+        draw_line(Vector2(mx - 8, my + 54), Vector2(mx + 33, my + 54), Color("#273f49"), 3.0)
+    draw_rect(Rect2(0, 395, 960, 148), Color("#544839"))
+    draw_colored_polygon(PackedVector2Array([
+        Vector2(0, 395), Vector2(960, 395), Vector2(960, 410),
+        Vector2(0, 422)
+    ]), Color("#b29774"))
+    for y in [414.0, 440.0, 467.0, 493.0, 520.0]:
+        draw_line(Vector2(0, y), Vector2(960, y - 6), Color("#a28a68"), 2.0)
+        draw_line(Vector2(0, y + 4), Vector2(960, y - 2), Color("#2d3031", 0.5), 1.0)
+    for row_idx in range(5):
+        for plank_idx in range(9):
+            var offset_x := 31.0 + float(plank_idx) * 117.0 + float(row_idx % 2) * 56.0
+            var plank_y := 413.0 + float(row_idx) * 26.0
+            draw_line(Vector2(offset_x, plank_y), Vector2(offset_x - 6, plank_y + 20), Color("#302d2d", 0.47), 1.0)
+            draw_circle(Vector2(offset_x + 16, plank_y + 11), 1.0, Color("#d6b991", 0.43))
+    # Warm shipyard lighting without new objects, mechanics or geography.
+    for lamp_x in [103.0, 856.0]:
+        draw_circle(Vector2(lamp_x, 378), 13, Color(1.0, 0.75, 0.42, 0.07))
+        draw_circle(Vector2(lamp_x, 378), 4, Color("#f4ce92"))
+        draw_line(Vector2(lamp_x, 382), Vector2(lamp_x, 409), Color("#243d47"), 2.0)
     draw_rect(Rect2(0, 0, 960, 116), Color("#0c1d2e"))
     draw_string(ThemeDB.fallback_font, Vector2(28, 191), "TEMPORARY SAFE BERTH — REVIEW SPACE / SITE UNASSIGNED", HORIZONTAL_ALIGNMENT_LEFT, 900, 17, Color("#f1d9ad"))
     for item in [
