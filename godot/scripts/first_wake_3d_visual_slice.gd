@@ -430,19 +430,28 @@ func _assemble_navigation_hud() -> void:
     overlay.name = "ClearlyLabeled3DDevelopmentHUD"
     overlay.layer = 3
     add_child(overlay)
+    # Dark, input-transparent material ensures the development interaction
+    # text remains readable at both bright sunset and dark blue hour.
+    var backdrop := ColorRect.new()
+    backdrop.name = "ReadableDarkOverlayFor3DControls"
+    backdrop.position = Vector2(8, 8)
+    backdrop.size = Vector2(944, 67)
+    backdrop.color = Color(0.025, 0.065, 0.105, 0.88)
+    backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    overlay.add_child(backdrop)
     navigation_notice = Label.new()
     navigation_notice.name = "NavigationControls"
-    navigation_notice.position = Vector2(16, 14)
+    navigation_notice.position = Vector2(20, 20)
     navigation_notice.text = "3D PHYSICS REVIEW  |  WASD move  |  E inspect  |  arrows camera  |  C follow  |  T light  |  R reset"
     navigation_notice.add_theme_font_size_override("font_size", 13)
     navigation_notice.add_theme_color_override("font_color", Color("#f4e9d4"))
     overlay.add_child(navigation_notice)
     navigation_status = Label.new()
     navigation_status.name = "HonestArtworkStatus"
-    navigation_status.position = Vector2(16, 38)
+    navigation_status.position = Vector2(20, 44)
     navigation_status.text = "Turquoise floor ring = NON-CHARACTER marker. Ender/Ionia rigging and story migration pending."
     navigation_status.add_theme_font_size_override("font_size", 12)
-    navigation_status.add_theme_color_override("font_color", Color("#e4d4ba"))
+    navigation_status.add_theme_color_override("font_color", Color("#c5eadc"))
     overlay.add_child(navigation_status)
 
 func inspect_nearest_probe() -> bool:
