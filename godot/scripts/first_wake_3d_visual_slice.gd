@@ -4,7 +4,7 @@ extends Node3D
 ## Keep the existing res://scenes/first_wake_game.tscn entry untouched.
 const WaterShader = preload("res://shaders/first_wake_3d_water.gdshader")
 const CharacterSlot = preload("res://scripts/first_wake_3d_character_slot.gd")
-const CAMERA_TARGET := Vector3(0.0, 0.9, -9.0)
+const CAMERA_TARGET := Vector3(-3.4, 0.9, -9.0)
 
 var visual_root: Node3D
 var camera: Camera3D
@@ -15,7 +15,7 @@ var active_hour := "golden_hour"
 var geometry_count := 0
 var lantern_count := 0
 var animation_assets_loaded := 0
-var camera_azimuth := 0.42
+var camera_azimuth := 0.30
 var camera_distance := 34.0
 var camera_elevation := 0.24
 
@@ -93,20 +93,20 @@ func _assemble_environment() -> void:
     environment.name = "CinematicCoastalWorldEnvironment"
     environment.environment = Environment.new()
     environment.environment.background_mode = Environment.BG_COLOR
-    environment.environment.background_color = Color("#e0b79f")
+    environment.environment.background_color = Color("#b58b89")
     environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-    environment.environment.ambient_light_color = Color("#b5b6c3")
-    environment.environment.ambient_light_energy = 0.65
+    environment.environment.ambient_light_color = Color("#8f9ca9")
+    environment.environment.ambient_light_energy = 0.37
     environment.environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
     environment.environment.fog_enabled = true
-    environment.environment.fog_light_color = Color("#f1c9ab")
-    environment.environment.fog_density = 0.008
+    environment.environment.fog_light_color = Color("#c49f91")
+    environment.environment.fog_density = 0.006
     add_child(environment)
     sunlight = DirectionalLight3D.new()
     sunlight.name = "KeySun_GoldenHour"
     sunlight.rotation_degrees = Vector3(-31.0, -36.0, 5.0)
     sunlight.light_color = Color("#ffcea3")
-    sunlight.light_energy = 1.35
+    sunlight.light_energy = 0.71
     sunlight.shadow_enabled = true
     add_child(sunlight)
 
@@ -119,28 +119,63 @@ func _assemble_sea() -> void:
     water_material.shader = WaterShader
     water = _mesh("ActualSpatial3DAnimatedSea", ocean, Vector3(0, -0.65, -23), water_material)
 
+func _faceted_cliff_mesh(seed: int, radius: float, height: float) -> ArrayMesh:
+    # Low-poly strata with irregular real 3D profiles instead of elongated spheres.
+    # Deterministic so QA can compare actual native GPU frames across revisions.
+    var surface := SurfaceTool.new()
+    surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+    var edges := 11
+    var lower: Array[Vector3] = []
+    var upper: Array[Vector3] = []
+    for j in range(edges):
+        var angle := TAU * float(j) / float(edges)
+        var irregular := 0.88 + float((j * 17 + seed * 11) % 9) * 0.035
+        var upper_rough := 0.61 + float((j * 7 + seed * 13) % 8) * 0.023
+        lower.append(Vector3(cos(angle) * radius * irregular,
+            -2.3 + float(j % 3) * 0.08, sin(angle) * radius * irregular))
+        upper.append(Vector3(cos(angle) * radius * upper_rough,
+            height + float((j * 5 + seed) % 5) * 0.19,
+            sin(angle) * radius * upper_rough))
+    for j in range(edges):
+        var next := (j + 1) % edges
+        for vertex in [lower[j], upper[j], lower[next],
+                upper[j], upper[next], lower[next]]:
+            surface.add_vertex(vertex)
+        for vertex in [upper[j], Vector3(0, height + 0.35, 0), upper[next]]:
+            surface.add_vertex(vertex)
+    surface.generate_normals()
+    return surface.commit()
+
+func _cliff(label: String, location: Vector3, radius: float, height: float,
+        seed: int, material: StandardMaterial3D) -> void:
+    _mesh(label, _faceted_cliff_mesh(seed, radius, height), location, material)
+
 func _assemble_coast() -> void:
-    var dark_rock := _material(Color("#535b64"), 0.96)
-    var sandstone := _material(Color("#ae8977"), 0.91)
-    var twilight_rock := _material(Color("#707582"), 0.98)
-    var distant_green := _material(Color("#617761"), 0.95)
-    # Volumetric silhouette layers are true 3D meshes, not 2D painted cards.
+    var dark_rock := _material(Color("#3c4b59"), 0.98)
+    var sandstone := _material(Color("#75615e"), 0.94)
+    var twilight_rock := _material(Color("#58606b"), 0.98)
+    var distant_green := _material(Color("#3d6258"), 0.97)
+    for rock in [dark_rock, sandstone, twilight_rock]:
+        rock.cull_mode = BaseMaterial3D.CULL_DISABLED
+    # Distinct layered volcanic/sandstone cliffs, not placeholder oval towers.
     for i in range(15):
         var x := float(i - 7) * 6.5
-        var z := -44.0 - float(i % 3) * 4.0
-        var h := 4.5 + float((i * 17) % 11) * 0.7
+        var z := -43.0 - float(i % 3) * 5.0
+        var h := 5.0 + float((i * 17) % 11) * 0.84
+        var radius := 3.9 + float(i % 3) * 0.78
         var mat := twilight_rock if i % 3 == 0 else sandstone
-        _sphere("Actual3DCliff_%02d" % i, Vector3(x, -1.8 + h * 0.42, z),
-            1.0, Vector3(4.0 + float(i % 3), h, 3.5), mat)
+        _cliff("FacetedTrue3DCliff_%02d" % i, Vector3(x, -2.0, z), radius, h, i, mat)
         if i % 2 == 0:
-            _sphere("VegetationCanopy_%02d" % i, Vector3(x + 1.0, h * 0.72, z + 1.5),
-                1.0, Vector3(3.0, 0.65, 2.5), distant_green)
+            _sphere("CliffTopVegetation_%02d" % i,
+                Vector3(x, h - 1.5, z), 1.0,
+                Vector3(2.8, 0.32, 2.5), distant_green)
     for sign in [-1.0, 1.0]:
         for j in range(5):
-            var x: float = float(sign) * (12.0 + float(j) * 3.2)
-            var zz := -18.0 + float(j % 3) * 9.0
-            _sphere("CoastalNearRock", Vector3(x, -1.5, zz),
-                1.0, Vector3(2.5, 2.1 + j * 0.4, 2.7), dark_rock)
+            var x: float = float(sign) * (13.2 + float(j) * 3.2)
+            var zz := -18.0 + float(j % 3) * 8.7
+            _cliff("NearFacetedShoreRock", Vector3(x, -2.5, zz),
+                2.6 + float(j % 2) * 0.4, 1.8 + float(j) * 0.33,
+                j + 27, dark_rock)
 
 func _assemble_pier() -> void:
     var wood_a := _material(Color("#795846"), 0.82)
@@ -289,9 +324,9 @@ func set_time_of_day(night: bool) -> void:
     if sunlight == null:
         return
     sunlight.light_color = Color("#9bb8db") if night else Color("#ffcea3")
-    sunlight.light_energy = 0.40 if night else 1.35
-    environment.environment.background_color = Color("#273a56") if night else Color("#e0b79f")
-    environment.environment.fog_light_color = Color("#4c6b83") if night else Color("#f1c9ab")
+    sunlight.light_energy = 0.20 if night else 0.71
+    environment.environment.background_color = Color("#273a56") if night else Color("#b58b89")
+    environment.environment.fog_light_color = Color("#4c6b83") if night else Color("#c49f91")
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventKey and event.pressed and not event.echo:
@@ -299,7 +334,7 @@ func _unhandled_input(event: InputEvent) -> void:
             set_time_of_day(active_hour != "blue_hour")
             get_viewport().set_input_as_handled()
         elif event.keycode == KEY_R:
-            camera_azimuth = 0.42
+            camera_azimuth = 0.30
             camera_distance = 34.0
             camera_elevation = 0.24
             _update_camera()
