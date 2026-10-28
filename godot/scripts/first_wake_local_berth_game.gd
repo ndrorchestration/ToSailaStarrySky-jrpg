@@ -215,8 +215,8 @@ func _unhandled_input(event: InputEvent) -> void:
         return
     if event is InputEventKey and event.pressed and event.keycode == KEY_M:
         if cinematic_stage != null:
-            cinematic_stage.set_reduced_motion(not cinematic_stage.reduced_motion)
-            _update_hud()
+            # One accessibility setting controls both sea shader and 3D wings.
+            set_reduced_motion(not cinematic_stage.reduced_motion)
             get_viewport().set_input_as_handled()
         return
     if event.is_action_pressed(Inputs.INTERACT):
