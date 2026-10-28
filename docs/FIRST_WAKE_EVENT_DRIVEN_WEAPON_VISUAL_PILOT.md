@@ -1,0 +1,24 @@
+# First Wake action-resolved signal → opt-in staff visual pilot
+
+**Status:** Implemented Godot 4.7.2 candidate, NOT merged, not approved as production gameplay or sprite art. Child of draft PR #493 → #479. Default main scene `res://scenes/first_wake_chapter1_player_preview.tscn` remains unchanged. `main` remains the legacy JavaScript game.
+
+## Actual integration
+`first_wake_chapter1_review.gd` now announces **`formula_action_resolved(event: Dictionary)`**, after its existing party-authority and formula controller accept an action. The signal includes a transient, monotonically incrementing serial, the action/actor IDs, accepted true, deep-copied before/after formula-encounter and Chapter I snapshots, and explicit nonexecution metadata. **No signal** is emitted for unauthorized, inactive, failed, blocked, or exhausted actions. The signal is a notification **after** the existing formula action, not a command and not a source for damage, enemy behavior, turn calculations, resource consumption, or saves. The event serial is runtime-only and the existing v1 save schema is unchanged. No listener is attached in the default Chapter I scene.
+
+`first_wake_staff_signal_visual_presenter.gd` is an **opt-in** Node2D subscribing to that signal. It validates the signal origin/serial against the actual attached scene's state, rejects duplicates, and passes accepted Ender/full-length-staff/`staffStrike` transitions through the existing read-only observer, four-facing combat rig, and visual-only target. Other accepted combat actions increment the serial but do not animate the staff. The presenter has no `take_action`, save, inventory, hitbox, damage, or user-input handlers. It can detach cleanly and be disabled with no gameplay effects. Reduced motion freezes physical geometry and contact flashes.
+
+The separate `res://scenes/first_wake_staff_signal_pilot_review.tscn` intentionally instantiates the **actual existing** Chapter I Godot migration scene and attaches the optional presenter. Open with F6 for the developer-only proof. It supports normal formula review and authored Wind Shear, subject to the existing legacy scene's story order. The new preview is geometric **unapproved original art**, not the creator-approved Ender reference.
+
+## Native evidence gates
+- `first_wake_staff_signal_pilot_test.gd`: inspect real Chapter I initial state; reject `sharedDream` without emission; observe `uncoverTruth` without staff animation; observe exactly one presenter playback after real accepted `staffStrike`; verify formula damage, staff charge cost, turn count, stable Chapter I/save schema, stale signal rejection, reduced motion, enable/disable and detach. Advance actual signals to Crossing and observe an authored Wind Shear staff turn without promoting progression or granting another action.
+- `capture_first_wake_staff_signal_pilot.gd`: three **real native 960×640 Chapter I viewport images**, before authorized action, after the real staff action at visually scrubbed contact, and reduced motion from the **same** action. Their lossless PNGs and hashes are CI-runner-only; small downsampled montage appears in CI logs for visual QA.
+- Existing Chapter I scene/action and passive-observer tests, weapon mastery, layered art and target studies rerun with digest-verified official Godot 4.7.2.
+
+**Nonclaims:** an emitted signal does not constitute cryptographically authenticated provenance. The presenter listens inside the same trusted Godot process and checks scene snapshots, but hostile code with direct scene access could fabricate events; native tests check the production-like path. The visual training disk has no collision or physics, and the former story-party ordering (Ender/Lyra Crossing, Ionia Contact) remains a migration-preview conflict with the newly authored Chapter I plot (Ionia first, Lyra later). No canon, progression, save codec, approved character asset, base scene, deployment or release is changed.
+
+## Production admission gates
+1. Confirm current Chapter I narrative continuity (first boarding, splashdown, Ionia/Lyra joining) and define the authoritative battle protagonist timeline.
+2. Promote a reviewed read-only visual signal interface behind a stable scene contract and ensure signal receiver failures cannot affect the already-resolved combat outcome.
+3. Replace procedural rig with provenance-checked directional sprite sheets, real hand/weapon layers and accessibility QA at 1×, and independently review the target reaction versus actual physics hits.
+4. Add unambiguous audio/subtitle, screen shake/camera comfort, controller focus, frame performance and Windows security proof, plus save migration tests **if** persistent equipped weapon data is eventually added.
+5. Merge parent draft stack only through maintainer review; never silently treat passing CI as canon approval or production release.
