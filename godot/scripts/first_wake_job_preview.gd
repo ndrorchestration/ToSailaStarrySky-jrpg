@@ -195,6 +195,7 @@ func _unhandled_input(event: InputEvent) -> void:
             get_viewport().set_input_as_handled()
             return
         if evidence_panel.visible:
+            # Do not save/load or interact with the world behind the notebook.
             return
         if event.keycode == KEY_K:
             var saved: Dictionary = save_revised_checkpoint()
