@@ -151,6 +151,16 @@ jobs:
             exit 1
           fi
           grep -Fq 'TSTSS_FIRST_WAKE_FIVE_TRACK_AUDIO_PREFLIGHT_PASS:' /tmp/first-wake-five-track-audio.log
+      - name: Verify synthetic native two-deck music bus transitions without original MP3 publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 45s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_synthetic_music_bus_test.gd 2>&1 | tee /tmp/first-wake-synthetic-music-bus.log
+          if grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_FIRST_WAKE_SYNTH_MUSIC_BUS_FAIL:' /tmp/first-wake-synthetic-music-bus.log; then
+            echo 'First Wake native synthetic sound bus failed closed' >&2
+            exit 1
+          fi
+          grep -Fq 'TSTSS_FIRST_WAKE_SYNTH_MUSIC_BUS_PASS:' /tmp/first-wake-synthetic-music-bus.log
       - name: Verify real First Wake authored dialogue gates scene progress
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_dialogue_scene_test.gd
