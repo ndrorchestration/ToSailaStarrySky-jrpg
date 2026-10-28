@@ -83,6 +83,17 @@ func _run() -> void:
             push_error("MAGIC_HUD_QA_FAIL: closeup UI correction leaked into normal camera")
             quit(10)
             return
+    # Hide only native text labels for matched screenshot controls. Hiding the
+    # entire CanvasLayer would also remove camera-safe scrims and contaminate
+    # background luminance, giving spurious contrast failures under close-up.
+    var original_label_visibility: Dictionary = {}
+    for child in ui.get_children():
+        if child is Label:
+            original_label_visibility[child] = child.visible
+    if original_label_visibility.size() < 4:
+        push_error("MAGIC_HUD_QA_FAIL: expected actual Chapter I labels missing")
+        quit(12)
+        return
     review.choose_affinity(1) # Lyra's pink/light stress case, visual-only.
     review.seek_phase(3) # pause at cinematic impact.
     for condition in CONDITIONS:
@@ -98,16 +109,19 @@ func _run() -> void:
                 quit(11)
                 return
         review.set_magic_visible(true)
-        ui.visible = true
+        for label in original_label_visibility:
+            label.visible = original_label_visibility[label]
         await process_frame
         var on: Image = await _snapshot("chapter1-magic-hud-" + id + "-visible-native-960x640.png")
         if on == null:
             quit(5)
             return
-        ui.visible = false
+        for label in original_label_visibility:
+            label.visible = false
         await process_frame
         var off: Image = await _snapshot("chapter1-magic-hud-" + id + "-hidden-native-960x640.png")
-        ui.visible = true
+        for label in original_label_visibility:
+            label.visible = original_label_visibility[label]
         if off == null:
             quit(6)
             return
