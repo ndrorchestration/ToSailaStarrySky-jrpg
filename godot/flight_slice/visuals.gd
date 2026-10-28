@@ -12,15 +12,17 @@ var low_quality: bool = false
 var coverage: ImageTexture
 var _terrain: Node3D
 var _coverage_bytes := PackedByteArray()
-# One near/far mesh per existing species, keeping the exact CPU instance poses.
-# These are GROVE-WIDE art LODs, not per-tree clusters / production globe LOD.
+# One near/far mesh per existing species; CPU source poses are unchanged.
+# Spatial batches in the bounded visual adapter; not production globe streaming.
 const CANOPY_NEAR: float = 29.0
 const CANOPY_FAR: float = 39.0
 var _evergreen_near: ArrayMesh
 var _evergreen_far: ArrayMesh
 var _broadleaf_near: ArrayMesh
 var _broadleaf_far: ArrayMesh
-var _near_forest_detail: bool = false
+var _near_forest_detail: bool = false # true when ANY spatial batch is detailed
+var _near_patch_count: int = 0
+var _forest_batches: Array[Dictionary] = []
 var _last_forest_observer: Vector3 = Vector3(-56.0, 20.0, 52.0)
 # 0=automatic; 1=force detailed; 2=force coarse for matched framebuffer QA.
 var canopy_review_override: int = 0
@@ -94,16 +96,11 @@ func bind_terrain(terrain: Node3D) -> void:
     water.set_shader_parameter("height_field", ImageTexture.create_from_image(field))
     terrain.get_node("OceanSurface").material_override = water
     refresh_coverage()
-    var crowns: MultiMeshInstance3D = terrain.get_node("ForestCrowns")
     _evergreen_near = _layered_crown(true)
     _evergreen_far = _layered_crown(false)
     _broadleaf_near = _broadleaf_crown(true)
     _broadleaf_far = _broadleaf_crown(false)
-    crowns.multimesh.mesh = _evergreen_far
-    crowns.material_override = foliage
-    var broad_crowns: MultiMeshInstance3D = terrain.get_node("BroadleafCrowns")
-    broad_crowns.multimesh.mesh = _broadleaf_far
-    broad_crowns.material_override = broadleaf
+    _build_forest_batches(terrain)
     # Independent presentation-only ground cover; no route or collision changes.
     if not terrain.has_node("ForestGroundCover"):
         var floor = ForestFloorStudy.new()
@@ -112,36 +109,97 @@ func bind_terrain(terrain: Node3D) -> void:
         floor.populate()
     update_forest_detail(_last_forest_observer)
 
-# Existing spatial footprint is x≈18..56, z≈-80..82. Use a minimum
-# 3D distance to the forest band, not distance to its very long centroid.
+# 2x5 cells: x [16..64] / z [-80..120], deterministically derived
+# from ORIGINAL tree transforms; no new/removed trees or duplicate crown nodes.
+# Each original Crown node is repurposed as the first occupied spatial cell.
+func _build_forest_batches(terrain: Node3D) -> void:
+    if not _forest_batches.is_empty():
+        return
+    for species in ["evergreen", "broadleaf"]:
+        var poses: Array[Transform3D] = terrain.tree_poses if species == "evergreen" else terrain.broadleaf_poses
+        var original: MultiMeshInstance3D = terrain.get_node(
+            "ForestCrowns" if species == "evergreen" else "BroadleafCrowns")
+        var groups: Dictionary = {}
+        for pose in poses:
+            var ix: int = clampi(floori((pose.origin.x - 16.0) / 24.0), 0, 1)
+            var iz: int = clampi(floori((pose.origin.z + 80.0) / 40.0), 0, 4)
+            var cell := Vector2i(ix, iz)
+            var bucket: Array = groups.get(cell, [])
+            bucket.append(pose)
+            groups[cell] = bucket
+        var first: bool = true
+        for ix in range(2):
+            for iz in range(5):
+                var cell := Vector2i(ix, iz)
+                var group: Array = groups.get(cell, [])
+                if group.is_empty():
+                    continue
+                var instances := MultiMesh.new()
+                instances.transform_format = MultiMesh.TRANSFORM_3D
+                instances.mesh = _evergreen_far if species == "evergreen" else _broadleaf_far
+                instances.instance_count = group.size()
+                for i in range(group.size()):
+                    var t: Transform3D = group[i]
+                    var y_offset: float = 2.55 if species == "evergreen" else 2.50
+                    instances.set_instance_transform(i, Transform3D(t.basis,
+                        t.origin + Vector3.UP * y_offset * t.basis.get_scale().y))
+                var node: MultiMeshInstance3D
+                if first:
+                    node = original
+                    first = false
+                else:
+                    node = MultiMeshInstance3D.new()
+                    node.name = ("Evergreen" if species == "evergreen" else "Broadleaf") + (
+                        "Patch_%s_%s" % [ix, iz])
+                    terrain.add_child(node)
+                node.multimesh = instances
+                node.material_override = foliage if species == "evergreen" else broadleaf
+                _forest_batches.append({"node": node, "species": species,
+                    "ix": ix, "iz": iz, "detailed": false,
+                    "cpu_poses": group.duplicate()})
+
 func _forest_distance(observer: Vector3) -> float:
     var closest := Vector3(clampf(observer.x, 18.0, 56.0),
         5.0, clampf(observer.z, -80.0, 82.0))
     return observer.distance_to(closest)
 
+func _batch_distance(observer: Vector3, batch: Dictionary) -> float:
+    var x0: float = 16.0 + float(batch["ix"]) * 24.0
+    var z0: float = -80.0 + float(batch["iz"]) * 40.0
+    return observer.distance_to(Vector3(
+        clampf(observer.x, x0, x0 + 24.0),
+        5.0, clampf(observer.z, z0, z0 + 40.0)))
+
 func update_forest_detail(observer: Vector3) -> void:
     _last_forest_observer = observer
-    if _terrain == null or _evergreen_near == null:
+    if _terrain == null or _forest_batches.is_empty():
         return
+    _near_patch_count = 0
+    for batch in _forest_batches:
+        var distance: float = _batch_distance(observer, batch)
+        var detailed: bool = bool(batch["detailed"])
+        if distance > CANOPY_FAR:
+            detailed = false
+        elif distance < CANOPY_NEAR:
+            detailed = true
+        if low_quality or canopy_review_override == 2:
+            detailed = false
+        elif canopy_review_override == 1:
+            detailed = true
+        if detailed != bool(batch["detailed"]):
+            batch["detailed"] = detailed
+            var node: MultiMeshInstance3D = batch["node"]
+            if batch["species"] == "evergreen":
+                node.multimesh.mesh = _evergreen_near if detailed else _evergreen_far
+            else:
+                node.multimesh.mesh = _broadleaf_near if detailed else _broadleaf_far
+        if detailed:
+            _near_patch_count += 1
+    _near_forest_detail = _near_patch_count > 0
+    # Ground-cover remains one independent noncollision MultiMesh per type.
+    # It is still culled as a whole; spatial splitting is only for canopy LOD.
     var distance: float = _forest_distance(observer)
-    var detailed: bool = _near_forest_detail
-    if distance > CANOPY_FAR:
-        detailed = false
-    elif distance < CANOPY_NEAR:
-        detailed = true
-    if low_quality or canopy_review_override == 2:
-        detailed = false
-    elif canopy_review_override == 1:
-        detailed = true
-    if detailed != _near_forest_detail:
-        _near_forest_detail = detailed
-        var evergreen: MultiMeshInstance3D = _terrain.get_node("ForestCrowns")
-        var broad: MultiMeshInstance3D = _terrain.get_node("BroadleafCrowns")
-        evergreen.multimesh.mesh = _evergreen_near if detailed else _evergreen_far
-        broad.multimesh.mesh = _broadleaf_near if detailed else _broadleaf_far
-    # Small noncollision fronds are unnecessary in wide/distant views.
-    # Grove-wide culling is deliberately coarse; no distance-dither/alpha pop claim.
-    var show_floor: bool = (distance < CANOPY_NEAR)
+    var show_floor: bool = distance < CANOPY_NEAR
     if distance > CANOPY_FAR:
         show_floor = false
     elif distance >= CANOPY_NEAR:

@@ -112,7 +112,11 @@ func _run() -> void:
     var branches: MultiMeshInstance3D = scene.terrain.get_node("ForestCrowns")
     var cpu_poses: Array[Transform3D] = scene.terrain.tree_poses
     check(cpu_poses.size() > 5, "forest authored CPU transforms retained")
-    check(branches.multimesh.instance_count == cpu_poses.size(), "GPU instance budget mirrors authored forest")
+    var evergreen_total: int = 0
+    for batch in visuals._forest_batches:
+        if batch["species"] == "evergreen":
+            evergreen_total += batch["node"].multimesh.instance_count
+    check(evergreen_total == cpu_poses.size(), "spatial evergreen batches conserve source trees")
     # RenderingServer Dummy readback can report identity for every MultiMesh
     # transform in --headless; validate the actual CPU inputs, not fake GPU data.
     var first_tree: Transform3D = cpu_poses[0]
@@ -145,8 +149,12 @@ func _run() -> void:
         check(leaf_vertices.size() == leaf_normals.size(), "clustered crown normals are complete")
         var broad_poses: Array[Transform3D] = scene.terrain.broadleaf_poses
         check(broad_poses.size() > 5, "second canopy has multiple placements")
-        check(broadleaf.multimesh.instance_count == broad_poses.size(),
-            "second canopy instance count mirrors authored placements")
+        var broadleaf_total: int = 0
+        for batch in visuals._forest_batches:
+            if batch["species"] == "broadleaf":
+                broadleaf_total += batch["node"].multimesh.instance_count
+        check(broadleaf_total == broad_poses.size(),
+            "spatial broadleaf batches conserve source trees")
         var trunk_nodes: MultiMeshInstance3D = scene.terrain.get_node("ForestTrunks")
         check(trunk_nodes.multimesh.instance_count == cpu_poses.size() + broad_poses.size(),
             "each mixed-forest crown retains a trunk")
@@ -190,49 +198,69 @@ func _run() -> void:
         check(floor.fern_poses.size() == old_count,
             "ground cover setup is idempotent")
 
-    # Grove-wide study LOD keeps all original instance placements and forest bounds.
-    var evergreen: MultiMeshInstance3D = scene.terrain.get_node("ForestCrowns")
-    var broadwood: MultiMeshInstance3D = scene.terrain.get_node("BroadleafCrowns")
+    # Independent spatial canopy batch LOD with exact pose conservation.
+    check(visuals._forest_batches.size() >= 6 and visuals._forest_batches.size() <= 20,
+        "forest patches are bounded and spatially partitioned")
     check(visuals._evergreen_near.get_faces().size() >
-        visuals._evergreen_far.get_faces().size(),
-        "near evergreen mesh has extra deterministic bough silhouette")
+        visuals._evergreen_far.get_faces().size(), "conifer near mesh has silhouette detail")
     check(visuals._broadleaf_near.get_faces().size() >
-        visuals._broadleaf_far.get_faces().size(),
-        "near broadleaf mesh has additional asymmetric lobes")
-    var prior_tree_count: int = evergreen.multimesh.instance_count
-    var prior_broad_count: int = broadwood.multimesh.instance_count
-    visuals.update_forest_detail(Vector3(-68.0, 30.0, 0.0))
-    check(not visuals._near_forest_detail, "distant forest chooses coarse geometry")
-    check(evergreen.multimesh.mesh == visuals._evergreen_far,
-        "distant forest uses coarse evergreen mesh")
-    check(not scene.terrain.get_node("ForestGroundCover/FernClumps").visible,
-        "distant forest hides tiny ground cover")
-    visuals.update_forest_detail(Vector3(34.0, 17.0, 0.0))
-    check(visuals._near_forest_detail, "approaching grove chooses detailed geometry")
-    check(evergreen.multimesh.mesh == visuals._evergreen_near,
-        "approaching grove swaps to detailed evergreen")
-    check(broadwood.multimesh.mesh == visuals._broadleaf_near,
-        "approaching grove swaps to detailed broadleaf")
-    check(scene.terrain.get_node("ForestGroundCover/FernClumps").visible,
-        "close forest reveals static understory")
-    visuals.update_forest_detail(Vector3(34.0, 37.0, 0.0))
-    check(visuals._near_forest_detail, "LOD hysteresis holds its state inside band")
-    visuals.set_low_quality(true)
-    check(not visuals._near_forest_detail, "low-quality forces coarse canopy")
-    check(not scene.terrain.get_node("ForestGroundCover/UnderstoryShrubs").visible,
-        "low-quality omits small shrub layer")
-    visuals.set_low_quality(false)
-    visuals.update_forest_detail(Vector3(34.0, 15.0, 0.0))
-    check(visuals._near_forest_detail, "high quality restores detailed grove")
+        visuals._broadleaf_far.get_faces().size(), "broadleaf near mesh has silhouette detail")
+    var original_positions: Dictionary = {}
+    for pose in cpu_poses:
+        original_positions[str(pose.origin)] = 1
+    for pose in scene.terrain.broadleaf_poses:
+        original_positions[str(pose.origin)] = 1
+    var represented: Dictionary = {}
+    var spatial_count: int = 0
+    for batch in visuals._forest_batches:
+        var batch_node: MultiMeshInstance3D = batch["node"]
+        check(batch_node.multimesh.instance_count == batch["cpu_poses"].size(),
+            "one GPU transform for each batch CPU tree")
+        for pose in batch["cpu_poses"]:
+            var k: String = str(pose.origin)
+            check(original_positions.has(k), "patch tree originates from authored poses")
+            check(not represented.has(k), "patch partitions never duplicate tree")
+            represented[k] = 1
+            spatial_count += 1
+    check(spatial_count == cpu_poses.size() + scene.terrain.broadleaf_poses.size(),
+        "spatial patches account for every original crown exactly once")
     visuals.set_canopy_review_override(2)
-    check(not visuals._near_forest_detail, "reference mode forces coarse mesh")
+    check(visuals._near_patch_count == 0, "all patches coarse in reference mode")
+    for batch in visuals._forest_batches:
+        var expected: ArrayMesh = visuals._evergreen_far if (
+            batch["species"] == "evergreen") else visuals._broadleaf_far
+        check(batch["node"].multimesh.mesh == expected,
+            "all spatial batch meshes match forced coarse reference")
     visuals.set_canopy_review_override(1)
-    check(visuals._near_forest_detail, "detail review mode forces near mesh")
+    check(visuals._near_patch_count == visuals._forest_batches.size(),
+        "forced detail updates every spatial patch")
+    for batch in visuals._forest_batches:
+        var expected: ArrayMesh = visuals._evergreen_near if (
+            batch["species"] == "evergreen") else visuals._broadleaf_near
+        check(batch["node"].multimesh.mesh == expected,
+            "all spatial batch meshes match forced detailed reference")
     visuals.set_canopy_review_override(0)
-    check(evergreen.multimesh.instance_count == prior_tree_count and
-        broadwood.multimesh.instance_count == prior_broad_count,
-        "LOD mode never changes source tree instance populations")
-    # Restore natural scene camera prior to the pause regression.
+    visuals.update_forest_detail(Vector3(-60.0, 23.0, 0.0))
+    check(visuals._near_patch_count == 0,
+        "distant camera selects coarse meshes for every patch")
+    check(not scene.terrain.get_node("ForestGroundCover/FernClumps").visible,
+        "distant camera culls small forest floor geometry")
+    visuals.update_forest_detail(Vector3(26.0, 13.0, 0.0))
+    check(visuals._near_patch_count > 0 and
+        visuals._near_patch_count < visuals._forest_batches.size(),
+        "near camera mixes detailed local and coarse distant patches")
+    var near_count: int = visuals._near_patch_count
+    visuals.update_forest_detail(Vector3(26.0, 32.0, 0.0))
+    check(visuals._near_patch_count >= 1 and
+        visuals._near_patch_count <= near_count,
+        "camera elevation changes LOD locally without global forced detail")
+    visuals.set_low_quality(true)
+    check(visuals._near_patch_count == 0, "low quality forces all patches coarse")
+    check(not scene.terrain.get_node("ForestGroundCover/UnderstoryShrubs").visible,
+        "low quality culls the small shrub layer")
+    visuals.set_low_quality(false)
+    visuals.update_forest_detail(Vector3(26.0, 13.0, 0.0))
+    check(visuals._near_patch_count > 0, "high quality restores nearby patches")
     visuals.update_forest_detail(scene.camera.position)
 
     scene._clock = 9.0
