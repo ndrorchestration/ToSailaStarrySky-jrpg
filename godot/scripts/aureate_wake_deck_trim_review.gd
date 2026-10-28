@@ -50,6 +50,25 @@ func _hide_original_bar_renderers() -> void:
     for rung in range(5):
         _hide("ForedeckNoseInfill" + str(rung))
 
+func _set_legacy_visual(name: String, show: bool) -> void:
+    var original := get_parent().get_node_or_null(name) as MeshInstance3D
+    if original != null:
+        original.visible = show
+
+func set_design_review_enabled(enabled: bool) -> void:
+    # A/B is read-only to physics: only visibility of visual MeshInstances
+    # changes. All underlying StaticBody3D guard colliders stay constant.
+    visible = enabled
+    for side in ["Port", "Starboard"]:
+        _set_legacy_visual(side + "SafetyRail", not enabled)
+        for rung in range(5):
+            _set_legacy_visual(side + "RailInfill" + str(rung), not enabled)
+        for post in range(4):
+            _set_legacy_visual(side + "Post" + str(post), not enabled)
+    _set_legacy_visual("ForedeckNoseRail", not enabled)
+    for rung in range(5):
+        _set_legacy_visual("ForedeckNoseInfill" + str(rung), not enabled)
+
 func _beam(name: String, a: Vector3, b: Vector3,
         radius: float, material: Material) -> void:
     var length: float = a.distance_to(b)
