@@ -85,6 +85,46 @@ func _valid_surface(value: Variant, quality: String) -> bool:
         return false
     return true
 
+# Independently reconstruct each cubed-sphere tile-center direction.
+# Planetary geometry uses mathematical Z as the polar axis here, not the
+# eventual rendered Godot Y-up convention; this is a data-integrity check.
+func _face_center(face: String, level: int, x: int, y: int) -> Vector2:
+    var normal: Vector3
+    var right: Vector3
+    var up: Vector3
+    match face:
+        "px":
+            normal = Vector3(1,0,0)
+            right = Vector3(0,1,0)
+            up = Vector3(0,0,1)
+        "nx":
+            normal = Vector3(-1,0,0)
+            right = Vector3(0,-1,0)
+            up = Vector3(0,0,1)
+        "py":
+            normal = Vector3(0,1,0)
+            right = Vector3(-1,0,0)
+            up = Vector3(0,0,1)
+        "ny":
+            normal = Vector3(0,-1,0)
+            right = Vector3(1,0,0)
+            up = Vector3(0,0,1)
+        "pz":
+            normal = Vector3(0,0,1)
+            right = Vector3(0,1,0)
+            up = Vector3(-1,0,0)
+        "nz":
+            normal = Vector3(0,0,-1)
+            right = Vector3(0,1,0)
+            up = Vector3(1,0,0)
+    var side: float = float(1 << level)
+    var u: float = -1.0 + (float(x) + 0.5) * 2.0 / side
+    var v: float = -1.0 + (float(y) + 0.5) * 2.0 / side
+    var direction: Vector3 = (normal + right * u + up * v).normalized()
+    var lat: float = rad_to_deg(atan2(direction.z, Vector2(direction.x, direction.y).length()))
+    var lon: float = fposmod(rad_to_deg(atan2(direction.y, direction.x)) + 540.0, 360.0) - 180.0
+    return Vector2(lat, lon)
+
 func _valid_tile(value: Variant, lod: int, quality: String) -> bool:
     if typeof(value) != TYPE_DICTIONARY:
         return false
@@ -105,6 +145,14 @@ func _valid_tile(value: Variant, lod: int, quality: String) -> bool:
     if not _position(t.get("center")) or not _valid_surface(t.get("surface"), quality):
         return false
     var center: Dictionary = t["center"]
+    var independently_derived: Vector2 = _face_center(
+        str(id["face"]), lod, int(id["x"]), int(id["y"]))
+    if absf(float(center["latDeg"]) - independently_derived.x) > 0.001:
+        return false
+    var lon_delta: float = fposmod(float(center["lonDeg"]) -
+        independently_derived.y + 540.0, 360.0) - 180.0
+    if absf(lon_delta) > 0.001:
+        return false
     var coord: Dictionary = t["surface"]["coordinate"]
     if absf(float(center["latDeg"]) - float(coord["latDeg"])) > 0.000001:
         return false
@@ -185,6 +233,10 @@ func _run() -> void:
         altered = document.duplicate(true)
         altered["cases"][0]["plan"]["tiles"][0]["surface"]["material"]["cliffProjection"] = "AUTHORISED"
         _check(not _valid_manifest(altered), "unapproved cliff material execution rejected")
+        altered = document.duplicate(true)
+        altered["cases"][0]["plan"]["tiles"][0]["center"]["latDeg"] += 2.0
+        altered["cases"][0]["plan"]["tiles"][0]["surface"]["coordinate"]["latDeg"] += 2.0
+        _check(not _valid_manifest(altered), "geographic center must match independent cubed-sphere reconstruction")
         altered = document.duplicate(true)
         altered["planetRadiusCanonKm"] = 6371
         _check(not _valid_manifest(altered), "fixture world radius cannot be upgraded to canon")
