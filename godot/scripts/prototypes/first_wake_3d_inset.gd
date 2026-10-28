@@ -4,6 +4,7 @@ extends Control
 ## from the independent native flight study (PR #486, 36a13d6).
 ## Presentation-only: never owns physics, action handling, story, or saves.
 const Ship = preload("res://scripts/prototypes/aureate_wake_source_ship_3d.gd")
+const WarningLens = preload("res://scripts/first_wake_engine_warning_vfx.gd")
 const SHOTS = {
     "bow-quarter": Vector3(6.5, 3.0, -7.0),
     "stern-quarter": Vector3(-7.0, 2.8, 7.0),
@@ -32,6 +33,11 @@ var wide_stage_enabled: bool = false
 var physical_body_y: float = 255.0
 var visual_altitude_above_waterline: float = 0.0
 var physically_stable: bool = false
+var warning_visual
+var warning_enabled: bool = true
+var warning_interrupted: bool = false
+var warning_admitted: bool = false
+var warning_admission_count: int = 0
 
 func _ready() -> void:
     mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -114,6 +120,13 @@ func _ready() -> void:
     label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(label)
 
+    # Original PW-01 CanvasItem warning renders ABOVE the genuine 3D ship view.
+    # Never on the hidden 2D collision body and never in the 3D physics world.
+    warning_visual = WarningLens.new()
+    add_child(warning_visual)
+    warning_visual.configure(true, 0)
+    _place_warning_visual()
+
 func set_wide_stage_enabled(enabled: bool) -> bool:
     if viewport == null or viewport_container == null or ship_model == null:
         return false
@@ -133,6 +146,7 @@ func set_wide_stage_enabled(enabled: bool) -> bool:
         ship_model.position = Vector3.ZERO
         visual_altitude_above_waterline = 0.0
     _reframe()
+    _place_warning_visual()
     return true
 
 func sync_physical_waterline(body_y: float, water_y: float,
@@ -190,8 +204,66 @@ func set_visual_intent(plan: Dictionary) -> bool:
         environment_node.environment.ambient_light_color = Color("#a4b4bf")
         key_light.light_color = Color("#f7d7a2")
         key_light.light_energy = 1.4
+    _sync_warning_from_intent(plan)
     viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
     presentation_updates += 1
+    return true
+
+func _place_warning_visual() -> void:
+    if warning_visual == null:
+        return
+    if wide_stage_enabled:
+        warning_visual.position = Vector2(480.0, 221.0)
+        warning_visual.scale = Vector2.ONE
+    else:
+        warning_visual.position = Vector2(177.5, 100.0)
+        warning_visual.scale = Vector2(0.48, 0.48)
+
+func _sync_warning_from_intent(plan: Dictionary) -> void:
+    if warning_visual == null:
+        return
+    # Original actual Ionia-first story snapshot was validated by #492.
+    # We permit only an authorised warning-stern, never a cinematic forged
+    # waterborne or assumed specialist fuel / combat magic reveal.
+    var admitted: bool = (
+        plan.get("scene_phase", "") == "warning"
+        and plan.get("camera_shot_id", "") == "stern-quarter"
+        and plan.get("visual_grade_id", "") == "golden-clear"
+        and not bool(plan.get("grants_combat_magic", true))
+        and not bool(plan.get("modifies_story_state", true))
+        and not bool(plan.get("changes_saves", true))
+        and not bool(plan.get("production_ocean_verified", true))
+    )
+    if not admitted:
+        warning_admitted = false
+        warning_interrupted = false
+        warning_visual.stop_warning()
+        return
+    if not warning_admitted:
+        warning_admission_count += 1
+    warning_admitted = true
+    # Motion-safe default for engine phase distortion independently of the
+    # existing ship's wing motion. No change to player motion policy.
+    warning_visual.configure(true, 0 if use_low_detail else 1)
+    if not warning_enabled or warning_interrupted:
+        warning_visual.stop_warning()
+    elif not warning_visual.active:
+        warning_visual.begin_warning()
+
+func set_warning_enabled(enabled: bool) -> void:
+    warning_enabled = enabled
+    if warning_visual == null:
+        return
+    if not enabled:
+        warning_visual.stop_warning()
+    elif warning_admitted and not warning_interrupted and not warning_visual.active:
+        warning_visual.begin_warning()
+
+func interrupt_warning_visual() -> bool:
+    if not warning_admitted or warning_visual == null or not warning_visual.active:
+        return false
+    warning_interrupted = true
+    warning_visual.stop_warning()
     return true
 
 func advance_visual_clock(delta: float) -> void:
@@ -228,4 +300,10 @@ func review_snapshot() -> Dictionary:
         "visual_altitude_above_waterline": visual_altitude_above_waterline,
         "physical_stable_for_review": physically_stable,
         "visual_ship_has_no_colliders": true,
+        "engine_warning_overlay_is_canvas_only": warning_visual != null,
+        "engine_warning_active": warning_visual.active if warning_visual != null else false,
+        "engine_warning_visible": warning_visual.visible if warning_visual != null else false,
+        "engine_warning_admitted": warning_admitted,
+        "engine_warning_interrupted": warning_interrupted,
+        "engine_warning_admission_count": warning_admission_count,
     }
