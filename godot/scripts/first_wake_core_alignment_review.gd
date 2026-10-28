@@ -10,6 +10,8 @@ var recovered: Array[String] = []
 var installed: Array[String] = []
 var failed_retest: bool = false
 var melody_recognized: bool = false
+# Exact in-memory origin of this review core; no serialized item/plot authority.
+var authorized_story: Variant
 
 func begin(story: Variant) -> bool:
     if phase != 0 or not (story is RefCounted) or story.get_script() != Opening:
@@ -23,6 +25,7 @@ func begin(story: Variant) -> bool:
         return false
     if int(state.get("evidence_count", 0)) < 2:
         return false
+    authorized_story = story
     phase = 1
     return true
 
