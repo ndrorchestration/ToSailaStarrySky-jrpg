@@ -5,6 +5,8 @@ on:
       - 'godot/tests/first_wake_cross_system_cohesion_test.gd'
       - 'godot/tests/first_wake_evidence_comparison_review_test.gd'
       - 'godot/scripts/first_wake_evidence_comparison_review.gd'
+      - 'godot/scripts/first_wake_evidence_comparison_panel.gd'
+      - 'godot/tests/first_wake_evidence_comparison_panel_test.gd'
       - 'docs/reviews/CH1_3D_RPG_SYSTEM_COHESION_2026-10-28.md'
       - '.github/workflows/first-wake-cross-system-cohesion.yml'
   workflow_dispatch:
@@ -43,3 +45,10 @@ jobs:
           timeout 85s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_evidence_comparison_review_test.gd 2>&1 | tee /tmp/evidence-hook-test.log
           grep -Fq 'TSTSS_CH1_EVIDENCE_HOOK_PASS' /tmp/evidence-hook-test.log
           ! grep -Eq 'TSTSS_CH1_EVIDENCE_HOOK_FAIL:|SCRIPT ERROR:|Parse Error' /tmp/evidence-hook-test.log
+      - name: Native player evidence-selection UI and chronology gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 85s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_evidence_comparison_panel_test.gd 2>&1 | tee /tmp/evidence-ui.log
+          grep -Fq 'TSTSS_CH1_EVIDENCE_PANEL_PASS' /tmp/evidence-ui.log
+          ! grep -Eq 'TSTSS_CH1_EVIDENCE_PANEL_FAIL:|SCRIPT ERROR:|Parse Error' /tmp/evidence-ui.log
