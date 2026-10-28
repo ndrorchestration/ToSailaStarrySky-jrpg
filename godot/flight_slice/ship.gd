@@ -6,6 +6,21 @@ extends Node3D
 var _course_yaw: float = 0.0
 const WING_NAMES = ["PortFore", "PortAft", "StarboardFore", "StarboardAft"]
 
+## Non-runtime artist preview. Does not modify ship flight, landing, or weather.
+## Reversible 0-15 degree trailing-wing sweep around four physical roots.
+func set_wing_review_sweep(progress: float) -> bool:
+    if not is_finite(progress):
+        return false
+    for name in WING_NAMES:
+        if get_node_or_null("WingRig_" + name) == null:
+            return false
+    var sweep: float = deg_to_rad(15.0) * clampf(progress, 0.0, 1.0)
+    for name in WING_NAMES:
+        var rig: Node3D = get_node("WingRig_" + name)
+        var trailing: float = 1.0 if name.begins_with("Port") else -1.0
+        rig.rotation.y = trailing * sweep
+    return true
+
 func set_course(yaw: float) -> void:
     _course_yaw = yaw
 
@@ -217,6 +232,14 @@ func _wing(side: float, fore: bool, brass: Material, glazing: Material) -> void:
     _rod_batch(rig, "BrassRibBundle_" + wing_name, brass_rods, brass)
     _rod_batch(rig, "DarkRibBundle_" + wing_name, dark_rods, dark_edge)
     _rod_batch(rig, "GlassRibBundle_" + wing_name, glass_rods, glazing)
+    # The original geometry uses ship-local points. Moving the rig's origin to
+    # its membrane root and compensating every child preserves the neutral pose
+    # while enabling actual root-based articulation (not ship-center rotation).
+    var wing_root: Vector3 = outline[0]
+    for component in rig.get_children():
+        var part: Node3D = component as Node3D
+        part.position -= wing_root
+    rig.position = wing_root
 
 func _rod_batch(parent: Node3D, label_name: String,
         segments: Array[Dictionary], surface: Material) -> void:
