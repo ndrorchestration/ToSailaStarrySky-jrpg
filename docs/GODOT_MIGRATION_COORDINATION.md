@@ -11,6 +11,10 @@
 - **Earlier JS planetary studies:** draft [#349](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/349), [#363](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/363). Preserve as evidence/visual reference; **no additional JS gameplay development**.
 - **Standalone higher-fidelity Godot artifact line:** tracked separately in Notion and #350. Do not reconstruct from textual hashes or assume the exact renderer ZIP is already in this GitHub repository.
 
+## Equipment prototype-to-production track (documentation-only handoff, 2026-10-27)
+
+[Equipment lifecycle promotion gate](design/EQUIPMENT_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md) records verified Godot 4.7.2 equipment draft #481 and prerequisites #412/#423/#444/#449/#462. Native mechanics, read-only item comparison and temporary practice ownership are tested at exact source head, **but** no complete field-station-to-combat playable integration, production inventory persistence, approved art or eligible Windows release has been established. Keep this equipment stack separate from other Chapter I cinematic, ship and planetary work; require an ancestry/source reconciliation and new end-to-end native evidence before combining. No canonical item names, acquisition or character join timing are decided by this document.
+
 ## Safe integration sequence
 
 1. Fetch branch/PR states and the *exact* sources (not just agent summaries); choose a common ancestry, avoid overwriting other agents' changes.
