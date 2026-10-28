@@ -8,6 +8,7 @@ const Target = preload("res://scripts/ender_staff_target_alignment_review.gd")
 const OUT := "res://review-evidence"
 var world: Node2D
 var overlay: CanvasLayer
+var side_viewport: SubViewport
 var actor_stage: Node2D
 var actor: Node2D
 var target: Node2D
@@ -59,7 +60,7 @@ func _capture() -> void:
         return
     print("FIRST_WAKE_STAFF_VISUAL_RENDER_PASS: 2 real 1600x640 side-by-side Chapter I + review pose renders; one actual turn")
     world.queue_free()
-    overlay.queue_free()
+    side_viewport.queue_free()
     quit(0)
 
 func _text(text_value: String, pos: Vector2, bounds: Vector2, size: int) -> Label:
@@ -74,27 +75,33 @@ func _text(text_value: String, pos: Vector2, bounds: Vector2, size: int) -> Labe
     return label
 
 func _build_side_panel() -> void:
+    side_viewport=SubViewport.new()
+    side_viewport.name="NativeReadOnlyWeaponPanelViewport"
+    side_viewport.size=Vector2i(640,640)
+    side_viewport.disable_3d=true
+    side_viewport.render_target_update_mode=SubViewport.UPDATE_ALWAYS
+    get_root().add_child(side_viewport)
     overlay=CanvasLayer.new()
-    overlay.layer=20
+    overlay.layer=0
     overlay.name="ReadOnlyWeaponPipelineEvidence"
-    get_root().add_child(overlay)
+    side_viewport.add_child(overlay)
     var panel := ColorRect.new()
     panel.color=Color("#07131f")
-    panel.position=Vector2(960.0,0.0)
+    panel.position=Vector2.ZERO
     panel.size=Vector2(640.0,640.0)
     overlay.add_child(panel)
     var edge := ColorRect.new()
     edge.color=Color("#d1b578")
-    edge.position=Vector2(961.0,0.0)
+    edge.position=Vector2(1.0,0.0)
     edge.size=Vector2(2.0,640.0)
     overlay.add_child(edge)
     title=_text("STAFF STRIKE  /  READ-ONLY VISUAL PIPELINE",
-        Vector2(1000,25),Vector2(562,58),21)
+        Vector2(40,25),Vector2(562,58),21)
     status=_text("FIRST WAKE FORMULA ENCOUNTER  ·  PROTOTYPE ONLY",
-        Vector2(1000,85),Vector2(560,45),13)
+        Vector2(40,85),Vector2(560,45),13)
     actor_stage=Pose.new()
     actor_stage.name="IsolatedCombatPoseStage"
-    actor_stage.position=Vector2(1290.0,335.0)
+    actor_stage.position=Vector2(330.0,335.0)
     actor_stage.show_mannequin=false
     actor_stage.show_static_target=false
     actor_stage.show_review_effects=false
@@ -106,7 +113,7 @@ func _build_side_panel() -> void:
     target=Target.new()
     target.name="ReadOnlyContactFixture"
     actor_stage.add_child(target)
-    result=_text("",Vector2(997,550),Vector2(574,75),14)
+    result=_text("",Vector2(37,550),Vector2(574,75),14)
 
 func _display_receipt(reduced: bool) -> bool:
     var original: Dictionary = receipt
@@ -149,10 +156,18 @@ func _display_receipt(reduced: bool) -> bool:
 func _save(label: String) -> bool:
     await process_frame
     await process_frame
-    var pic: Image=get_root().get_texture().get_image()
-    if pic == null or pic.get_width()!=1600 or pic.get_height()!=640:
-        _fail("actual native window not 1600x640")
+    var main: Image=get_root().get_texture().get_image()
+    var side: Image=side_viewport.get_texture().get_image()
+    if main == null or main.get_width()!=960 or main.get_height()!=640         or side == null or side.get_width()!=640 or side.get_height()!=640:
+        _fail("native main (960x640) or side (640x640) viewport size mismatch")
         return false
+    # Compose BOTH actual GPU-rendered scene images, never a substitute
+    # graphic or invented battle screen. First Wake stays untouched.
+    main.convert(Image.FORMAT_RGBA8)
+    side.convert(Image.FORMAT_RGBA8)
+    var pic: Image=Image.create_empty(1600,640,false,Image.FORMAT_RGBA8)
+    pic.blit_rect(main,Rect2i(0,0,960,640),Vector2i.ZERO)
+    pic.blit_rect(side,Rect2i(0,0,640,640),Vector2i(960,0))
     var path:=OUT+"/"+label+"-native-1600x640.png"
     if pic.save_png(path)!=OK:
         _fail("PNG write failed")
