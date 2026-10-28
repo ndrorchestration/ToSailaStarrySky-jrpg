@@ -136,7 +136,7 @@ func _draw() -> void:
         Vector2(32, -24), Vector2(14, -28),
     ], Color("#385a6d"))
     _line(Vector2(-26, -21), Vector2(34, -21), GOLD, 2.2)
-    for a, b in [
+    for segment in [
         [Vector2(-26, -21), Vector2(-11, -53)],
         [Vector2(-11, -53), Vector2(4, -57)],
         [Vector2(4, -57), Vector2(20, -52)],
@@ -148,7 +148,7 @@ func _draw() -> void:
         [Vector2(-12, -35), Vector2(4, -57)],
         [Vector2(22, -35), Vector2(4, -57)],
     ]:
-        _line(a, b, Color("#cfbf94"), 1.1)
+        _line(segment[0], segment[1], Color("#cfbf94"), 1.1)
     draw_circle(Vector2(4, -57), 2.3, EDGE)
     draw_circle(Vector2(-11, -53), 1.7, GOLD)
     draw_circle(Vector2(20, -52), 1.7, GOLD)
