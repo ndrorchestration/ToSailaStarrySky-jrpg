@@ -104,6 +104,24 @@ func _verify() -> void:
     if flight.opening.inspect_postflight_reserve(false):
         _fail("postflight diagnosis accepted without reserve evidence")
         return
+    if review.get("reserve_inspection_observed", true) or review.get("real_inventory_scan_verified", true):
+        _fail("water-contact receipt prematurely claimed material inventory evidence")
+        return
+    if not flight.interact() or flight.phase != "postflight_diagnosis":
+        _fail("postflight reserve inspection not player-triggerable from safe afloat")
+        return
+    if flight.opening.step_key() != "postflight_diagnosis":
+        _fail("inspected empty reserve did not enter postflight story state")
+        return
+    if not flight.review_snapshot().get("reserve_inspection_observed", false):
+        _fail("inspection receipt missing after authored reserve confirmation")
+        return
+    if flight.review_snapshot().get("real_inventory_scan_verified", true):
+        _fail("authored review incorrectly claimed actual inventory implementation")
+        return
+    if flight.interact() or "lyra" in flight.opening.active_party_ids:
+        _fail("duplicate inspection or premature Lyra reunion admitted")
+        return
 
     world.queue_free()
     await process_frame
