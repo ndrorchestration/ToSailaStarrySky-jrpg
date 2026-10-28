@@ -48,6 +48,7 @@ var dialogue_cursor: int = 0
 var dialogue_event: String = ""
 var dialogue_character: String = ""
 var portrait_preview: Control
+var motion_return_to_static: bool = false
 var last_message: String = "Read the job notice, then speak to the captain."
 
 func _ready() -> void:
@@ -169,15 +170,24 @@ func _unhandled_input(event: InputEvent) -> void:
         if not enable_motion:
             ender.enable_creator_motion(false)
             ionia.enable_creator_motion(false)
+            if motion_return_to_static:
+                ender.enable_creator_standee(true)
+                ionia.enable_creator_standee(true)
             last_message = "Authentic motion preview OFF — prior field art restored."
+            motion_return_to_static = false
         elif not ender.has_creator_motion() or not ionia.has_creator_motion():
             last_message = "Authoring gate: both complete 4-way, 6-phase creator packs required."
         else:
+            motion_return_to_static = ender.creator_standee_enabled and ionia.creator_standee_enabled
             var ender_ready: bool = ender.enable_creator_motion(true)
             var ionia_ready: bool = ionia.enable_creator_motion(true)
             if not ender_ready or not ionia_ready:
                 ender.enable_creator_motion(false)
                 ionia.enable_creator_motion(false)
+                if motion_return_to_static:
+                    ender.enable_creator_standee(true)
+                    ionia.enable_creator_standee(true)
+                motion_return_to_static = false
                 last_message = "Motion source failed verification; original actors preserved."
             else:
                 last_message = "Creator-authored motion REVIEW — 4 directions, 6 verified frames."
@@ -190,6 +200,7 @@ func _unhandled_input(event: InputEvent) -> void:
         if ender.creator_motion_enabled or ionia.creator_motion_enabled:
             ender.enable_creator_motion(false)
             ionia.enable_creator_motion(false)
+            motion_return_to_static = false
         var next_enabled: bool = not ender.creator_standee_enabled
         var e: bool = ender.enable_creator_standee(next_enabled)
         var i: bool = ionia.enable_creator_standee(next_enabled)
