@@ -26,3 +26,9 @@
 Evaluate actual dune images for smooth traversable silhouettes and lighting response, ripple density at camera distance, subtlety of grain glitter, plausible wind orientation, absence of striped checkerboard aliasing, sky/foreground readability and comparison with the original coastal shader. Even with all assertions green, creator art approval and representative native GPU motion-performance remain open.
 
 **No merge, release, public plot reveal, physical sand simulation, dune-surfer gameplay or canonical desert authoring.**
+
+## First native failure and repair
+
+First head `d274a83c11aef5369115f26a369870f9129de098` [run 40606851840](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40606851840) **FAILED** the native dune capture admission (`NATIVE_DUNE_OPTICS_PAIR_DELTA pixels=67`, below required 80). The standalone source/mesh contract passed, as did earlier existing terrain/physics stages and the repository smoke [40606851842](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40606851842).
+
+[Actual failed native screenshots, artifact 12781271028](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40606851840/artifacts/12781271028), were downloaded and visually inspected. They showed **only a hairline edge of orange terrain in an otherwise blue background**, not a subtle shader difference. Root cause: dune mesh triangle winding was backfacing in Godot Compatibility GL. This is a geometry visibility failure the prior height/normal test did not catch. Corrective source `7f89d651` flips both index triangles; the new regression test checks the exact first-cell face orientation rather than weakening the optical pixel gate. Source is now subject to fresh native replay. This failure remains part of the honest evidence record; no success claim for the revised head until its real 960×640 images and tests pass.
