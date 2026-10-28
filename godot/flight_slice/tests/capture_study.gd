@@ -131,8 +131,8 @@ func _capture() -> void:
             push_error("NATIVE_CANOPY_MOTION_DIRECTORY_FAILED")
             failed = true
         else:
-            scene.visuals.set_canopy_review_override(0)
             scene.visuals.set_low_quality(false)
+            scene.visuals.set_canopy_review_override(2)
             scene._clock = 23.0
             scene._update_scene(10.0)
             scene.overlay.visible = false
@@ -152,6 +152,10 @@ func _capture() -> void:
                 scene.camera.look_at(shot[2], Vector3.UP)
                 scene.terrain.update_detail(scene.camera.position, 1.0)
                 scene.visuals.update_forest_detail(scene.camera.position)
+                if shot[0] == "far":
+                    # Reset the prior forced-art-review mesh state at the far
+                    # waypoint, then enter normal budgeted LOD mode.
+                    scene.visuals.set_canopy_review_override(0)
                 scene.visuals.refresh_coverage()
                 var frame: Image = await _frame()
                 if frame == null or frame.get_size() != Vector2i(960,640) or (

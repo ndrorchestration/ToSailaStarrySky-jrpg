@@ -239,6 +239,9 @@ func _run() -> void:
             batch["species"] == "evergreen") else visuals._broadleaf_near
         check(batch["node"].multimesh.mesh == expected,
             "all spatial batch meshes match forced detailed reference")
+    # Reset the QA forced-near state through the immediate forced-coarse mode
+    # before evaluating normal camera-budgeted transitions.
+    visuals.set_canopy_review_override(2)
     visuals.set_canopy_review_override(0)
     visuals.update_forest_detail(Vector3(-60.0, 23.0, 0.0))
     var far_receipt: Dictionary = visuals.forest_lod_receipt()
