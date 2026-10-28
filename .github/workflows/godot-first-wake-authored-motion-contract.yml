@@ -1,0 +1,57 @@
+name: Godot First Wake Authored Motion Contract (draft)
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/creator_motion_pack.gd'
+      - 'godot/scripts/pilot_actor.gd'
+      - 'godot/scripts/first_wake_job_preview.gd'
+      - 'godot/tests/creator_motion_contract_test.gd'
+      - 'godot/art-review/pipeline/build_private_creator_motion_manifest.py'
+      - '.github/workflows/godot-first-wake-authored-motion-contract.yml'
+permissions:
+  contents: read
+jobs:
+  source-motion-native-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Keep creator originals and generated synthetic frame fixtures out of public Git
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git ls-files | grep -E '^godot/art-review/(creator-motion-private|creator-field-review|creator-portrait-preview)/' || true)"
+          python3 -m py_compile godot/art-review/pipeline/build_private_creator_motion_manifest.py
+      - name: Fetch official SHA-256 pinned Godot 4.7.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o godot-editor.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  godot-editor.zip" | sha256sum -c -
+          mkdir -p godot-editor
+          unzip -q godot-editor.zip -d godot-editor
+          chmod +x godot-editor/Godot_v4.7.2-stable_linux.x86_64
+      - name: Native import and source code checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/authored-motion-import.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:' /tmp/authored-motion-import.log
+      - name: Validate 48 synthetic frames, all four views, frame hashes and real physics traversal
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 110s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/creator_motion_contract_test.gd 2>&1 | tee /tmp/authored-motion-contract.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_AUTHORED_MOTION_CONTRACT_FAIL:' /tmp/authored-motion-contract.log
+          grep -Fq 'TSTSS_AUTHORED_MOTION_CONTRACT_PASS' /tmp/authored-motion-contract.log
+      - name: No regressions to source art, dock, water-contact and saves
+        shell: bash
+        run: |
+          set -euo pipefail
+          for script in first_wake_creator_standee_test first_wake_dock_material_review_test first_wake_game_entry_test; do
+            timeout 110s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script "res://tests/${script}.gd" 2>&1 | tee "/tmp/${script}.log"
+            ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_.*_FAIL:' "/tmp/${script}.log"
+            grep -Fq '_PASS' "/tmp/${script}.log"
+          done
