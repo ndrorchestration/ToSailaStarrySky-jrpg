@@ -60,7 +60,7 @@ test('exact draft receipts remain distinct from production and human approvals',
   assert.match(DOC,/not a claim that Chapter One is finished/i);
   assert.match(DOC,/Defender-on custody/);
   assert.match(DOC,/HUMAN|human|Human/);
-  assert.match(DOC,/The first suggested reversible player-facing patch/);
+  assert.match(DOC,/first suggested reversible player-facing patch/i);
 });
 
 test('P0 blockers do not hide behind optional art or installer proofs',()=>{
