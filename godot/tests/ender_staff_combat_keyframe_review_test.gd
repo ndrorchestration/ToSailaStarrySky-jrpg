@@ -47,6 +47,18 @@ func _run() -> void:
             if absf(float(output["weaponLength"])-168.0) > 0.01:
                 _fail("staff full-length visual invariant changed")
                 return
+            # Anatomical review: each independently authored elbow bridges its
+            # shoulder and exact staff-wrapped hand, without detached limbs.
+            for side in ["left","right"]:
+                var shoulder: Vector2 = output[side+"Shoulder"]
+                var elbow: Vector2 = output[side+"Elbow"]
+                var hand: Vector2 = output[side+"Hand"]
+                if shoulder.distance_to(elbow) < 5.0                     or elbow.distance_to(hand) < 5.0                     or shoulder.distance_to(elbow) > 125.0                     or elbow.distance_to(hand) > 125.0:
+                    _fail("implausible articulated arm segments: "+facing+"/"+side)
+                    return
+            if float(output["clothFlare"]) < 0.0                 or float(output["clothFlare"]) > 15.0                 or absf(float(output["satchelSwing"])) > 6.01:
+                _fail("secondary coat or equipment motion outside bounds")
+                return
             if Vector2(output["leftHand"]).distance_to(Vector2(output["leftGripPoint"])) > 0.001 \
                 or Vector2(output["rightHand"]).distance_to(Vector2(output["rightGripPoint"])) > 0.001 \
                 or float(output["gripError"]) > 0.001:
@@ -82,6 +94,9 @@ func _run() -> void:
             or Vector2(quiet["shaftMidpoint"]) != Vector2(base_frame["shaftMidpoint"]) \
             or Vector2(quiet["hip"]) != Vector2(base_frame["hip"]):
             _fail("reduced motion failed to freeze combat pose")
+            return
+        if float(quiet["clothFlare"]) != 0.0             or float(quiet["satchelSwing"]) != 0.0:
+            _fail("reduced-motion freeze did not suppress cloth and satchel movement")
             return
         if float(quiet["trailStrength"]) != 0.0             or float(quiet["dustStrength"]) != 0.0:
             _fail("reduced motion failed to suppress physical motion trail")
