@@ -79,6 +79,11 @@ for (const marker of [
   'TSTSS_DEFENDER_SCAN_COMPLETION_NOT_ATTESTED',
   'TSTSS_DEFENDER_DETECTION',
   'TSTSS_DEFENDER_CUSTODY=PASS',
+  'TSTSS_DEFENDER_EXE_EXTENSION_EXCLUDED',
+  'TSTSS_DEFENDER_TARGET_PROCESS_EXCLUDED',
+  'TSTSS_DEFENDER_TARGET_PATH_EXCLUDED',
+  'TSTSS_DEFENDER_AMBIGUOUS_PATH_EXCLUSION',
+  'Assert-NoTargetExclusions @($GameExe, $SetupExe)',
   'publicReleaseAuthorized = $false',
 ]) {
   assert(custody.includes(marker), 'trusted scan fail-closed/security marker missing: ' + marker);
