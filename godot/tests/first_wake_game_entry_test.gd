@@ -4,7 +4,9 @@ extends SceneTree
 ## Saves are new-format only; old Lyra-first Chapter I snapshots fail closed.
 const Game = preload("res://scenes/first_wake_game.tscn")
 const Checkpoint = preload("res://scripts/first_wake_game_checkpoint.gd")
+const Extended = preload("res://scripts/first_wake_chapter1_progress_v2.gd")
 const PATH = "user://first_wake_game_entry_integration_test.json"
+const PATH_V2 = PATH + ".chapter_v2"
 
 var checks: int = 0
 var errors: Array[String] = []
@@ -51,7 +53,7 @@ func _run() -> void:
         var folder: String = ProjectSettings.globalize_path("res://review-evidence")
         verify(DirAccess.make_dir_recursive_absolute(folder) == OK,
             "native capture directory available")
-    for path in [PATH, PATH + ".tmp", PATH + ".bak"]:
+    for path in [PATH, PATH + ".tmp", PATH + ".bak", PATH_V2, PATH_V2 + ".tmp", PATH_V2 + ".bak"]:
         if FileAccess.file_exists(path):
             DirAccess.remove_absolute(path)
     verify(ProjectSettings.get_setting("application/run/main_scene") ==
@@ -60,6 +62,7 @@ func _run() -> void:
     root.add_child(root_game)
     await process_frame
     root_game.checkpoint_path = PATH
+    root_game.chapter_progress_path = PATH_V2
     verify(root_game.job != null and root_game.postflight == null,
         "real player-controlled job-search scene is loaded")
     verify(root_game.game_stage == "first_flight"
@@ -174,6 +177,7 @@ func _run() -> void:
     root.add_child(resumed)
     await process_frame
     resumed.checkpoint_path = PATH
+    resumed.chapter_progress_path = PATH_V2
     verify(resumed.load_game(), "F9 loads postflight state in a fresh Godot game")
     verify(resumed.job == null and resumed.postflight != null
         and resumed.postflight.ender.player_controlled,
@@ -195,6 +199,8 @@ func _run() -> void:
     broken.close()
     verify(Checkpoint.load(PATH).get("schema", "") == Checkpoint.SCHEMA,
         "corrupt/legacy primary falls back to valid prior save without migration")
+    verify(resumed.save_game() and Extended._valid_parent(PATH),
+        "restoring first-flight generation reestablishes valid v1 anchor for separate stage progress")
     # New normal-F5 in-memory continuation: never forge an ocean-to-harbor
     # route. A player must explicitly acknowledge provisional safe staging.
     verify(not resumed._enter_family_review(),
@@ -221,9 +227,11 @@ func _run() -> void:
     verify(family.objective_label.get_line_count() == 1,
         "family arrival objective must not overlap party HUD")
     await capture_native_frame("03-staged-family-arrival")
-    verify(not resumed.save_game()
-        and FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
-        "unfinished extended save schema cannot overwrite postflight checkpoint")
+    verify(resumed.save_game()
+        and Extended.load(PATH,PATH_V2).get("stage") == "family_arrival",
+        "F5 now writes a separate admissible family v2 checkpoint")
+    verify(FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
+        "family stage save leaves physical v1 checkpoint byte-identical")
     family.ender.position = family.TALEN_POSITION
     verify(family.interact() and _finish_dialogue(family)
         and family.child_block_ship_viewed,
@@ -235,6 +243,8 @@ func _run() -> void:
     verify(family.interact()
         and not family.opening.active_party_ids.has("lyra"),
         "Lyra joins only after full family conversation")
+    verify(not resumed.save_game(),
+        "cannot save an interrupted conversation or skip Lyra's full introduction")
     verify(_finish_dialogue(family)
         and family.opening.active_party_ids == ["ender", "ionia", "lyra"],
         "first-flight session identity admits Lyra SECOND after mandatory reunion")
@@ -256,19 +266,24 @@ func _run() -> void:
     verify(family.interact() and _finish_dialogue(family)
         and same_story.step_key() == "working_theory",
         "same F5 story admits working theory only after dialogue and two clues")
+    verify(resumed.save_game()
+        and Extended.load(PATH,PATH_V2).get("stage") == "working_theory",
+        "crew hypothesis can be saved after complete dialogue without inventing fuel certainty")
     verify(family.interact() and family.repair_review != null
         and family.repair_review.story == same_story,
         "in-game family leads to real physical pickup/melody scene with same story")
     await capture_native_frame("05-connected-workshop-entry")
     verify(not family.repair_review.core.snapshot()["can_launch"]
-        and not resumed.save_game(),
-        "core-alignment bench cannot grant relaunch or write unsupported save state")
+        and resumed.save_game(),
+        "new separate stage save supports repair entry without granting launch")
     var workshop = family.repair_review
     for target in [workshop.PICKUP_A, workshop.PICKUP_B]:
         workshop.ender.position = target
         verify(workshop.interact(),"actual F5 shop physically retrieves material")
     verify(workshop.core.snapshot()["phase"] == "install",
         "same F5 story owns two recovered items")
+    verify(resumed.save_game() and Extended.load(PATH,PATH_V2)["core"]["phase"] == "install",
+        "real recovered materials persist as independent review checkpoint")
     workshop.ender.position = workshop.INSTALL
     verify(workshop.interact() and workshop.interact(),
         "both source-owned supplies physically installed")
@@ -276,6 +291,8 @@ func _run() -> void:
     verify(workshop.interact() and workshop.core.snapshot()["phase"] == "listen",
         "mandatory material-only restart fails before melody discovery")
     await capture_native_frame("06-failed-material-retest")
+    verify(resumed.save_game() and Extended.load(PATH,PATH_V2)["core"]["phase"] == "listen",
+        "saved failure cannot be retroactively treated as a stable core")
     workshop.ender.position = workshop.IONIA
     verify(workshop.interact() and workshop.interact(),
         "Ionia recalls Denith's shanty only AFTER the failed material retest")
@@ -283,6 +300,8 @@ func _run() -> void:
     workshop.ender.position = workshop.CHART
     verify(workshop.interact() and workshop.analysis.open,
         "actual full F5 route opens accessible harmonic choice panel")
+    verify(not resumed.save_game(),
+        "modal harmonic analysis cannot be saved before a resolved choice")
     await capture_native_frame("08-interactive-harmonic-chart")
     verify(not workshop.submit_analysis(),"no automatic correct harmonic answer")
     verify(workshop.choose_analysis(1) and workshop.submit_analysis(),
@@ -297,29 +316,102 @@ func _run() -> void:
         and not workshop.core.snapshot()["can_launch"],
         "bench candidate is achieved after real F5 scene inputs, flight locked")
     await capture_native_frame("09-bench-candidate")
-    verify(not resumed.save_game()
-        and FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
-        "extended bench progress never silently upgrades v1 disk checkpoint")
+    verify(resumed.save_game()
+        and Extended.load(PATH,PATH_V2)["core"]["phase"] == "candidate",
+        "completed bench candidate persists only in separately versioned v2")
+    verify(FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
+        "even full bench stage never silently edits v1 physical evidence")
+    var candidate_for_cold_process: Dictionary = Extended.load(PATH,PATH_V2)
+    # Separate scene-instance cold-start proxy: no in-memory Session, Actor,
+    # party or Core object is reused from the previous live scene.
+    var cold = Game.instantiate()
+    root.add_child(cold)
+    await process_frame
+    cold.checkpoint_path = PATH
+    cold.chapter_progress_path = PATH_V2
+    verify(cold.load_game()
+        and cold.game_stage == "family_review"
+        and cold.family_review.repair_review != null
+        and cold.family_review.repair_review.core.snapshot()["phase"] == "candidate"
+        and cold.family_review.opening == cold.session.opening,
+        "new native Godot scene instance replays completed chapter from verified disk files")
+    verify(not cold.family_review.repair_review.core.snapshot()["can_launch"],
+        "fresh game instance restores no physical launch permission")
+    cold.queue_free()
+    await process_frame
+    # Same semantic v1 JSON with even one additional whitespace byte cannot
+    # certify a different v2-generation parent digest.
+    var different_parent := PATH + ".different-generation"
+    var different_file := FileAccess.open(different_parent,FileAccess.WRITE)
+    different_file.store_string(checkpoint_before_family + "\n")
+    different_file.close()
+    verify(Checkpoint.validate(Checkpoint.load(different_parent))
+        and Extended.load(different_parent,PATH_V2).is_empty(),
+        "valid-but-different v1 file bytes cannot silently inherit another v2 generation")
+    DirAccess.remove_absolute(different_parent)
     if capture_enabled:
         verify(captured.size() == 9, "all nine native chapter frames captured")
     verify(resumed.load_game()
+        and resumed.game_stage == "family_review"
+        and resumed.family_review != null
+        and resumed.family_review.repair_review != null
+        and resumed.family_review.repair_review.core.snapshot()["phase"] == "candidate"
+        and resumed.session.opening.active_party_ids == ["ender","ionia","lyra"],
+        "F9 now reconstructs complete family and safe bench candidate from separate validated v2")
+    verify(not resumed.family_review.repair_review.core.snapshot()["can_launch"],
+        "reloaded candidate NEVER authorizes actual flight or combat Art")
+    verify(FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
+        "v2 replay does not rewrite original v1 physical checkpoint bytes")
+    var tampered: Dictionary = Extended.load(PATH,PATH_V2)
+    tampered["party"] = ["ender","ionia","lyra","talen"]
+    verify(not Extended.validate(tampered),
+        "malicious child party grant rejected")
+    tampered = Extended.load(PATH,PATH_V2)
+    tampered["unapproved_discovery"] = "moon_bridge"
+    verify(not Extended.validate(tampered),
+        "unrecognized save keys cannot smuggle early geographic or story unlocks")
+    tampered = Extended.load(PATH,PATH_V2)
+    tampered["core"]["phase"] = "candidate"
+    tampered["core"]["failed_retest"] = false
+    verify(not Extended.validate(tampered),
+        "forged bench bypass without material failure rejected")
+    var corrupt := FileAccess.open(PATH_V2,FileAccess.WRITE)
+    corrupt.store_string('{"schema":"aetherwake.first-wake.chapter1.v1"}')
+    corrupt.close()
+    verify(Extended.load(PATH,PATH_V2).get("core",{}).get("phase") == "listen",
+        "corrupt v2 primary falls back to previously verified failed-retest backup")
+    verify(resumed.load_game() and
+        resumed.family_review.repair_review.core.snapshot()["phase"] == "listen",
+        "F9 replays valid stage backup without jumping ahead to candidate")
+    var broken_backup := FileAccess.open(PATH_V2 + ".bak",FileAccess.WRITE)
+    broken_backup.store_string('{"schema":"invalid"}')
+    broken_backup.close()
+    verify(resumed.load_game()
         and resumed.game_stage == "postflight"
         and resumed.family_review == null
-        and resumed.session.opening.active_party_ids == ["ender", "ionia"],
-        "F9 reload returns to honest persisted postflight checkpoint, not false family save")
+        and resumed.session.opening.active_party_ids == ["ender","ionia"],
+        "invalid v2 and backup recover honest v1 landing/reserve checkpoint")
     verify(FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
-        "F9 and family review never rewrite signed checkpoint data")
+        "v2 failure never edits original first-flight v1 evidence")
 
     resumed.queue_free()
     await process_frame
-    for path in [PATH, PATH + ".tmp", PATH + ".bak"]:
-        if FileAccess.file_exists(path):
-            DirAccess.remove_absolute(path)
+    var keep_for_cold_process: bool = OS.get_cmdline_user_args().has("--retain-stage-save")
+    if keep_for_cold_process:
+        verify(Extended.save(candidate_for_cold_process,PATH,PATH_V2)
+            and Extended.load(PATH,PATH_V2).get("core",{}).get("phase") == "candidate",
+            "restore actual authored candidate for separate Godot OS-process replay")
+        print("TSTSS_CH1_COLD_PROCESS_FIXTURE_READY: v1_verified=true v2_candidate=true")
+    else:
+        for path in [PATH, PATH + ".tmp", PATH + ".bak",
+            PATH_V2, PATH_V2 + ".tmp", PATH_V2 + ".bak"]:
+            if FileAccess.file_exists(path):
+                DirAccess.remove_absolute(path)
     if errors.is_empty():
         print("TSTSS_FIRST_WAKE_GAME_ENTRY_PASS checks=", checks,
             " real_water_contact=true postflight_player=true",
             " save_resume=true legacy_schema_isolated=true family_to_repair=true\n",
-            " staged_geography=false extended_save=false",
+            " staged_geography=false extended_save=true",
             " harmonic_bench_candidate=true captures=",captured.size())
         quit(0)
     else:
