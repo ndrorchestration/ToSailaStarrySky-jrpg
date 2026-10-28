@@ -42,6 +42,8 @@ var _map_environment: Environment
 var _low_sky: Node3D
 var _cube_stream: Node3D
 var _terrain_timer := 0.0
+var _material_review_enabled := false
+var _material_review_rain := false
 
 func _ready() -> void:
     _apply_state(State.defaults())
@@ -70,6 +72,11 @@ func _apply_state(next: Dictionary) -> void:
     _autopilot = false
     _survey_center = {}
     _survey_altitude = -1.0
+
+func material_review_status() -> Dictionary:
+    if _cube_stream == null:
+        return {"enabled":false}
+    return _cube_stream.call("review_stats")
 
 func snapshot() -> Dictionary:
     return {"flight": _flight.duplicate(true), "mode": _mode,
@@ -338,6 +345,9 @@ func _refresh_chart() -> void:
         limb.visible = _mode != "tiles"
     if _cube_stream != null:
         _cube_stream.visible = _mode == "tiles"
+        _cube_stream.call("set_material_review",_material_review_enabled,
+            "rain" if _material_review_rain else "clear",
+            0.8 if _material_review_rain else 0.0,false)
         if _mode == "tiles":
             _cube_stream.call("refresh",_flight)
     if _low_sky != null:
@@ -410,6 +420,10 @@ func _update_view() -> void:
                 Geo.horizon_distance_km(float(_flight["altitudeKm"]),PLANET_KM)]
     _footer.text = "1 GLOBE   2 CHART   3 HORIZON   4 LOCAL 3D   5 CUBE TILES   W/S THROTTLE   Q/E TURN   R/F CLIMB\n"
     _footer.text += "A/D ORBIT   DRAG/WHEEL CAMERA   SHIFT FAST TRAVEL   P WAYPOINT PILOT   K SAVE   O LOAD"
+    if _mode == "tiles":
+        _footer.text += "   B MATERIAL %s   J RAIN STUDY %s" % [
+            "ON" if _material_review_enabled else "OFF",
+            "ON" if _material_review_rain else "OFF"]
     if _autopilot:
         _footer.text += "   /   WAYPOINT PILOT ACTIVE"
 
@@ -455,6 +469,12 @@ func _unhandled_input(event: InputEvent) -> void:
             KEY_3: _mode = "local"
             KEY_4: _mode = "flight"
             KEY_5: _mode = "tiles"
+            KEY_B:
+                if _mode == "tiles":
+                    _material_review_enabled = not _material_review_enabled
+            KEY_J:
+                if _mode == "tiles":
+                    _material_review_rain = not _material_review_rain
             KEY_P:
                 _autopilot = not _autopilot if not _waypoint.is_empty() else false
             KEY_K:
