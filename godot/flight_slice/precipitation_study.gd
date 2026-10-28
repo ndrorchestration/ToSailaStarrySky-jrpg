@@ -6,7 +6,7 @@ const GroundShader = preload("res://shaders/precipitation_ground.gdshader")
 const WIND_AXIS: Vector2 = Vector2(0.93,0.37)
 const SUN_DIRECTION: Vector3 = Vector3(0.65,0.43,-0.70)
 
-var study_mesh: Node3D
+var study_mesh: DuneStudy
 var ground_material: ShaderMaterial
 var weather_mode: int = 0
 
