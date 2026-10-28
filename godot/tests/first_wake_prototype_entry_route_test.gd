@@ -21,10 +21,9 @@ func _verify() -> void:
     if err != OK:
         _fail("could not open current default Godot entry")
         return
-    await process_frame
-    var original = current_scene
-    if original == null or original.scene_file_path != Route.LEGACY_ENTRY:
-        _fail("original main scene did not instantiate")
+    var original = await _await_current_scene(Route.LEGACY_ENTRY)
+    if original == null:
+        _fail("original main scene did not instantiate, current=" + _scene_label())
         return
     if not InputMap.has_action(InputPolicy.PROTOTYPE_ROUTE):
         _fail("opt-in F8 action was not registered")
@@ -57,10 +56,9 @@ func _verify() -> void:
     f8.keycode = KEY_F8
     f8.pressed = true
     original._unhandled_input(f8)
-    await process_frame
-    var preview = current_scene
-    if preview == null or preview.scene_file_path != Route.REVISED_REVIEW:
-        _fail("F8 from startup did not open the playable new opening")
+    var preview = await _await_current_scene(Route.REVISED_REVIEW)
+    if preview == null:
+        _fail("F8 from startup did not open the playable new opening; current=" + _scene_label())
         return
     if preview.opening.active_party_ids != ["ender"] or preview.opening.step_key() != "job_search":
         _fail("preview did not start with Ender only")
@@ -81,10 +79,9 @@ func _verify() -> void:
     # Route back through actual F8 event and require an exact original state,
     # not a new chapter or a conversion from the Ionia-first v2 checkpoint.
     preview._unhandled_input(f8)
-    await process_frame
-    var returned = current_scene
-    if returned == null or returned.scene_file_path != Route.LEGACY_ENTRY:
-        _fail("F8 did not navigate back to original startup scene")
+    var returned = await _await_current_scene(Route.LEGACY_ENTRY)
+    if returned == null:
+        _fail("F8 did not navigate back to original startup scene; current=" + _scene_label())
         return
     if returned.export_save_snapshot() != preserved:
         _fail("volatile v1 snapshot not restored exactly after scene change")
@@ -108,18 +105,30 @@ func _verify() -> void:
     # The bridge must be repeatable without retaining the first session or
     # changing the story parties, class unlocks, or persistent save format.
     returned._unhandled_input(f8)
-    await process_frame
+    await _await_current_scene(Route.REVISED_REVIEW)
     if current_scene == null or current_scene.scene_file_path != Route.REVISED_REVIEW:
         _fail("second opt-in visit was refused after volatile cleanup")
         return
     current_scene._unhandled_input(f8)
-    await process_frame
+    await _await_current_scene(Route.LEGACY_ENTRY)
     if current_scene == null or current_scene.export_save_snapshot() != preserved:
         _fail("second review return changed original Chapter I state")
         return
 
     print("TSTSS_FIRST_WAKE_PROTO_ENTRY_PASS: actual Godot main scene F8 -> revised Ionia-first review -> original v1 state, no disk writes or Resonance unlock")
     quit(0)
+
+func _await_current_scene(expected_path: String) -> Node:
+    for i in range(8):
+        await process_frame
+        if current_scene != null and current_scene.scene_file_path == expected_path:
+            return current_scene
+    return null
+
+func _scene_label() -> String:
+    if current_scene == null:
+        return "(null)"
+    return str(current_scene.scene_file_path) + ":" + current_scene.name
 
 func _sha(path: String) -> String:
     return FileAccess.get_sha256(path) if FileAccess.file_exists(path) else ""
