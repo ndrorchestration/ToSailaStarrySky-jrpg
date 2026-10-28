@@ -7,7 +7,7 @@ const Core = preload("res://scripts/first_wake_core_alignment_review.gd")
 const MelodyAnalysis = preload("res://scripts/first_wake_melody_analysis_review.gd")
 const Actor = preload("res://scripts/pilot_actor.gd")
 const Inputs = preload("res://scripts/first_wake_chapter1_input_policy.gd")
-const Environment = preload("res://scripts/first_wake_cinematic_environment.gd")
+const CinematicStageArt = preload("res://scripts/first_wake_cinematic_environment.gd")
 
 const PICKUP_A := Vector2(260, 470)
 const PICKUP_B := Vector2(410, 470)
@@ -121,7 +121,7 @@ func set_cinematic_environment_enabled(enabled: bool) -> void:
 
 func _draw() -> void:
     if cinematic_environment_enabled:
-        Environment.draw_workshop(self,str(core.snapshot()["phase"]))
+        CinematicStageArt.draw_workshop(self,str(core.snapshot()["phase"]))
     else:
         draw_rect(Rect2(0, 0, 960, 640), Color("#142d3e"))
         draw_rect(Rect2(12, 8, 936, 157), Color("#0b1726"))
