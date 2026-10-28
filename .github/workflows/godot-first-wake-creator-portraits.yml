@@ -1,0 +1,49 @@
+name: Godot First Wake Creator Portrait Overlay (draft)
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/first_wake_creator_portrait_preview.gd'
+      - 'godot/scripts/first_wake_job_preview.gd'
+      - 'godot/scripts/first_wake_postflight_game.gd'
+      - 'godot/tests/first_wake_creator_portrait_preview_test.gd'
+      - '.github/workflows/godot-first-wake-creator-portraits.yml'
+permissions:
+  contents: read
+jobs:
+  source-safe-dialogue-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact-head draft without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Fetch checksum-verified official Godot 4.7.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o godot-editor.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  godot-editor.zip" | sha256sum -c -
+          mkdir -p godot-editor
+          unzip -q godot-editor.zip -d godot-editor
+          chmod +x godot-editor/Godot_v4.7.2-stable_linux.x86_64
+      - name: Import compile native gameplay with optional creator art missing
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/creator-portrait-import.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:' /tmp/creator-portrait-import.log
+      - name: Test actual flyer interview and shipboard speaker visuals without story mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 60s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_creator_portrait_preview_test.gd 2>&1 | tee /tmp/creator-portrait-dialogue.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_FIRST_WAKE_CREATOR_PORTRAIT_FAIL:' /tmp/creator-portrait-dialogue.log
+          grep -Fq 'TSTSS_FIRST_WAKE_CREATOR_PORTRAIT_PASS' /tmp/creator-portrait-dialogue.log
+      - name: Regress real playable First Wake and genuine splashdown
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 105s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_game_entry_test.gd 2>&1 | tee /tmp/creator-portrait-game-entry.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_FIRST_WAKE_GAME_ENTRY_FAIL:' /tmp/creator-portrait-game-entry.log
+          grep -Fq 'TSTSS_FIRST_WAKE_GAME_ENTRY_PASS' /tmp/creator-portrait-game-entry.log
