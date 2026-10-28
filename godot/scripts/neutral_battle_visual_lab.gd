@@ -42,6 +42,15 @@ var finished_visual_receipts: int = 0
 var optical_contact_distance: float = -1.0
 var optical_contact_world: Vector2 = Vector2.ZERO
 var optical_contact_verified: bool = false
+var _last_drawn_reaction_phase: String = ""
+
+func _process(_delta: float) -> void:
+    if enemy_view == null or not optical_contact_verified:
+        return
+    var current_phase: String = enemy_view.reaction_phase()
+    if current_phase != _last_drawn_reaction_phase:
+        _last_drawn_reaction_phase = current_phase
+        queue_redraw()
 
 func _ready() -> void:
     enemy_view = EnemyView.new()
@@ -97,6 +106,7 @@ func start_lab(enable_reduced_motion: bool = false) -> bool:
     optical_contact_distance = -1.0
     optical_contact_verified = false
     optical_contact_world = Vector2.ZERO
+    _last_drawn_reaction_phase = ""
     reduced_motion = enable_reduced_motion
     enemy_view.begin_encounter()
     enemy_view.set_reduced_motion(reduced_motion)
