@@ -116,3 +116,23 @@ The previous Chapter I battle HUD displayed current trial-bag quantities but did
 - Existing input-map entries/remaps are preserved. Native tests cover wrong-actor/forged inventory, owned-only choices, nonmutating forward/reverse comparisons, real equipment confirmation, modal turn denial, return to pressure mitigation, and save-restore closure. Screenshot CI captures **three additional actual 960×640 Godot framebuffers**: current item → uncommitted candidate → confirmed ownership swap, with pixel assertions and hashes.
 
 **Scope limits:** Descriptions are editorially neutral temporary study copy, **not** item lore approval; the panel is not the production equipment menu, has no acquisition pathway, audio narration, screen-reader semantics, character-artist accepted sprites, permanent saves, rarity balancing or class-based permission editor. Those are separate design and engineering gates. Story plot energies remain independent of magic job selection. No merges or releases.
+
+## 2026-10-27 P-01 end-to-end noncanonical field-to-battle equipment lifecycle
+
+**Draft implementation only; no production promotion.** The new isolated `res://scenes/equipment_lifecycle_study.tscn` sets `equipment_station_review_enabled=true` on the existing Chapter I review engine. That flag defaults **false** in both existing Chapter I scenes and is **not a canonical ship room, field location, item find, quest step or party join**. It draws a source-safe `GEAR STUDY` marker at a temporary test coordinate near Ender and a **detachable equipment review mannequin**; this is not a replacement for the approved field sprite or its painted staff.
+
+**Manual native Godot 4.7.2 test:** Run Current Scene on `res://scenes/equipment_lifecycle_study.tscn`. Walk Ender with arrow keys to the `GEAR STUDY` marker, press **E** to open the owned-item inspector (9 also opens only in optional formula battle); navigate with Up/Down, Left/Right, Enter to equip and Escape to close. The field gear mannequin uses the same validated loadout appearance as the battle equipment rig. Press **C** to enter noncanonical formula practice; equipped training staff and guard/charm modify the already bounded practice math. Close with **C**, return to the study marker and inspect again. State and bag quantities are conserved across this field→battle→field session. Existing Chapter I saves explicitly **do not** persist any test item; restore resets study equipment, bag and field mannequin together.
+
+**Exact gate and genuine evidence:**
+
+```sh
+godot --headless --path godot --editor --quit
+godot --headless --path godot --script res://tests/equipment_lifecycle_study_test.gd
+xvfb-run -a -s "-screen 0 960x640x24" godot --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_equipment_lifecycle_study.gd
+```
+
+- `equipment_lifecycle_study_test.gd`: real scene input E near station, denial outside radius, field modal previews that cannot change ownership or allow battle turns, 6→9 provisional outbound strike, 10/9 physical/aether practice mitigation, no item duplication, blocked narrative ability, exact field/battle appearance ID parity, post-battle inventory/gear survival, authentic unchanged story stage, and legacy-format save restoration.
+- `capture_equipment_lifecycle_study.gd`: six **real native** 960×640 local PNGs, with A/B changed pixels during preview/confirm and field weapon before/after; field return must render the same gear rig as before battle. Captures and hashes are review evidence, not creator acceptance; actual PNG distribution remains subject to runner artifact quota.
+- Hosted exact-head Godot native, native GL, legacy smoke, and protected Windows security must be checked separately before marking PASS. A successful scene contract is **not** equivalent to player-led cold playtesting.
+
+**Promotion source-of-truth:** [standalone documentation-only draft #498](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/498) contains [P0–P5 architecture, QA and documentation gates](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/blob/docs/equipment-promotion-handoff-20261027/docs/design/EQUIPMENT_PROTOTYPE_TO_PRODUCTION_PIPELINE_2026-10-27.md). At P-01 the field icon is a test rig, the station location is not canon, and the engine still lacks a production persistent inventory, multi-character equipment actor art, confirmed job permissions, true production damage-type balance, and a Windows release. Any merge, lore, art admission or public deployment remains HOLD.
