@@ -131,6 +131,16 @@ jobs:
             exit 1
           fi
           grep -Fq 'TSTSS_FIRST_WAKE_REUNION_THEORY_PASS:' /tmp/first-wake-reunion-proof.log
+      - name: Verify native First Wake story-party-ship cue pipeline adapter without production privileges
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 45s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_pipeline_projection_test.gd 2>&1 | tee /tmp/first-wake-pipeline.log
+          if grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_FIRST_WAKE_PIPELINE_PROJECTION_FAIL:' /tmp/first-wake-pipeline.log; then
+            echo 'Native First Wake integration adapter receipt rejected' >&2
+            exit 1
+          fi
+          grep -Fq 'TSTSS_FIRST_WAKE_PIPELINE_PROJECTION_PASS:' /tmp/first-wake-pipeline.log
       - name: Verify real First Wake authored dialogue gates scene progress
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_dialogue_scene_test.gd
