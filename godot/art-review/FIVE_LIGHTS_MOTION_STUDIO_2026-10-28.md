@@ -12,3 +12,8 @@ Existing Ender/Ionia source textures remain untouched from #555. Lyra/Aepex/Reso
 **Test:** godot/tests/five_lights_motion_studio_test.gd verifies five source-bound CharacterBody2D actors, all four independent facings, six atlas cells, real collision shapes, real translation, no horizontal sprite flip, and the unchanged normal F5 entry. A passing code test does NOT establish final artistic quality.
 
 **Remaining gates:** exact-head native Godot import, 960×640 authentic frame captures, source frame silhouette/stride/boot-contact review, independent portrait/costume and lighting approval, frame-rate and reduced-motion visual QA, Windows/Defender security, creator acceptance, and separately authorized integration into playable First Wake. This draft is not a release candidate.
+
+
+## P1 source-pose inspector (verified)
+In the separate studio only: **P** toggles static pose inspection, **Q/E** choose the previous/next one of six source frame phases, and **F** changes among four independently authored facings. TAB switches the selected actor; R resets all actors. During pose inspection, the physics body must not translate, and exit restores normal native movement. These controls are not part of canonical First Wake.
+The first official exact-head Godot 4.7.2 regression and GL capture at `751d5fd4e65cfca756086c4f75b68b73346d3091` **PASS**: [native run #40649632801](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40649632801). See the [P1 genuine capture evidence and quality gates](FIVE_LIGHTS_VISUAL_POLISH_P01_2026-10-28.md). This verifies keyboard-mode logic but **not** high-fidelity frame art or certified planted-foot animation.
