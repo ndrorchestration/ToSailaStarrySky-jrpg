@@ -18,6 +18,8 @@ var sky_material: ShaderMaterial
 var low_quality: bool = false
 var texture_detail_enabled: bool = true
 var biome_layer_enabled: bool = true
+var foliage_shape_enabled: bool = true
+var coastal_surf_enabled: bool = true
 const TEXTURE_DETAIL_STRENGTH: float = 0.68
 var texture_resources: Dictionary = {}
 var rain: Node3D
@@ -35,6 +37,8 @@ var _transition_seconds: float = 1.8
 var coastal_distance: ImageTexture
 var coverage: ImageTexture
 var _terrain: Node3D
+var _conifer_instancing: MultiMeshInstance3D
+var _broadleaf_instancing: MultiMeshInstance3D
 var _coverage_bytes := PackedByteArray()
 
 func _ready() -> void:
@@ -135,9 +139,11 @@ func bind_terrain(terrain: Node3D) -> void:
     terrain.get_node("OceanSurface").material_override = water
     refresh_coverage()
     var crowns: MultiMeshInstance3D = terrain.get_node("ForestCrowns")
+    _conifer_instancing = crowns
     crowns.multimesh.mesh = _layered_crown()
     crowns.material_override = foliage
     var broad_crowns: MultiMeshInstance3D = terrain.get_node("BroadleafCrowns")
+    _broadleaf_instancing = broad_crowns
     broad_crowns.multimesh.mesh = _broadleaf_crown()
     broad_crowns.material_override = broadleaf
     var floor_plants: MultiMeshInstance3D = terrain.get_node("GroundUnderstory")
@@ -201,6 +207,20 @@ func set_biome_layer_enabled(enabled: bool) -> void:
     biome_layer_enabled = enabled
     _apply_texture_quality()
 
+## A/B review only: swap shared meshes without changing tree transforms.
+func set_foliage_shape_enabled(enabled: bool) -> void:
+    if foliage_shape_enabled == enabled:
+        return
+    foliage_shape_enabled = enabled
+    if _conifer_instancing != null:
+        _conifer_instancing.multimesh.mesh = _layered_crown(enabled)
+    if _broadleaf_instancing != null:
+        _broadleaf_instancing.multimesh.mesh = _broadleaf_crown(enabled)
+
+func set_coastal_surf_enabled(enabled: bool) -> void:
+    coastal_surf_enabled = enabled
+    _apply_texture_quality()
+
 func _apply_texture_quality() -> void:
     var strength: float = TEXTURE_DETAIL_STRENGTH if (
         texture_detail_enabled and not low_quality) else 0.0
@@ -212,6 +232,8 @@ func _apply_texture_quality() -> void:
     water.set_shader_parameter("biome_layer_strength", macro_strength)
     rocky_material.set_shader_parameter("biome_layer_strength", macro_strength)
     land.set_shader_parameter("shoreline_wet_strength", macro_strength)
+    water.set_shader_parameter("coastal_surf_strength", 0.68 if (
+        coastal_surf_enabled and not low_quality) else 0.0)
 
 ## Instant selection remains available to deterministic captures and API clients.
 ## Neither selection path changes actual world time, physics or saved state.
@@ -284,7 +306,7 @@ func _shader(path: String) -> ShaderMaterial:
     material.shader = load(path)
     return material
 
-func _layered_crown() -> ArrayMesh:
+func _layered_crown(naturalistic: bool = true) -> ArrayMesh:
     # Irregular overlapping leaf masses replace the uniform triangular cones.
     # All positions remain local to one instanced tree: no new draw calls.
     var surface := SurfaceTool.new()
@@ -303,10 +325,14 @@ func _layered_crown() -> ArrayMesh:
             var b: float = float(side + 1) / float(sides) * TAU + float(tier) * 0.17
             var edge_a: float = 0.91 + 0.12 * sin(float(side) * 2.53 + float(tier) * 1.37)
             var edge_b: float = 0.91 + 0.12 * sin(float(side + 1) * 2.53 + float(tier) * 1.37)
+            if naturalistic:
+                # Static asymmetry / grouped branch fans, no extra surfaces.
+                edge_a *= 0.91 + 0.14 * sin(a * 3.0 + float(tier) * 0.81)
+                edge_b *= 0.91 + 0.14 * sin(b * 3.0 + float(tier) * 0.81)
             var lower_a := Vector3(cos(a) * radius * edge_a,
-                base + 0.08 * sin(a * 3.0), sin(a) * radius * edge_a)
+                base + (0.14 if naturalistic else 0.08) * sin(a * 3.0), sin(a) * radius * edge_a)
             var lower_b := Vector3(cos(b) * radius * edge_b,
-                base + 0.08 * sin(b * 3.0), sin(b) * radius * edge_b)
+                base + (0.14 if naturalistic else 0.08) * sin(b * 3.0), sin(b) * radius * edge_b)
             var shoulder_a := Vector3(lower_a.x * 0.67,
                 base + 0.61, lower_a.z * 0.67)
             var shoulder_b := Vector3(lower_b.x * 0.67,
@@ -318,7 +344,7 @@ func _layered_crown() -> ArrayMesh:
 
 # Three overlapping, compressed leaf masses make a less spherical silhouette.
 # They are one instanced mesh, not individual meshes per tree or final foliage.
-func _broadleaf_crown() -> ArrayMesh:
+func _broadleaf_crown(naturalistic: bool = true) -> ArrayMesh:
     var primitive := SphereMesh.new()
     primitive.radius = 0.90
     primitive.height = 1.80
@@ -345,7 +371,18 @@ func _broadleaf_crown() -> ArrayMesh:
             var transformed_normal := Vector3(n.x / scale.x, n.y / scale.y, n.z / scale.z).normalized()
             surface.set_normal(transformed_normal)
             surface.set_color(colors[lobe])
-            surface.add_vertex(points[index] * scale + centers[lobe])
+            var vertex: Vector3 = points[index] * scale + centers[lobe]
+            if naturalistic:
+                # The original 3 lobe low-poly mesh is retained, but its
+                # perimeter breaks away from the repeated spherical silhouette.
+                # Deterministic per-lobe angular shaping, not runtime RNG.
+                var azimuth: float = atan2(vertex.z, vertex.x)
+                var edge: float = 1.0 + 0.13 * sin(azimuth * 5.0 + float(lobe) * 1.7)
+                    + 0.06 * cos(azimuth * 9.0 - float(lobe) * 0.43)
+                vertex.x *= edge
+                vertex.z *= edge
+                vertex.y += 0.09 * sin(azimuth * 3.0 + float(lobe) * 2.3)
+            surface.add_vertex(vertex)
     return surface.commit()
 
 
