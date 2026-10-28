@@ -8,13 +8,39 @@ const BASE_Y: float = 0.26
 const CLIP_LOCAL_Y: float = BASE_Y - CENTER_Y
 const SUBDIVISIONS: int = 1
 
+const PANORAMA_GLASS = preload("res://shaders/bridge_panorama_glass.gdshader")
 var panel_count: int = 0
 var unique_frame_edges: int = 0
+var glass_review_profile: String = "clear"
+
+func set_glass_review_profile(profile: String) -> void:
+    # Art-review only; no storm protection or navigation-mode gameplay.
+    if profile != "clear" and profile != "low_glare":
+        return
+    glass_review_profile = profile
+    var panes: MeshInstance3D = get_node_or_null("GeodesicGlass")
+    if panes == null:
+        return
+    var material := panes.material_override as ShaderMaterial
+    if material == null:
+        return
+    if profile == "low_glare":
+        material.set_shader_parameter("glass_tint", Color(0.38, 0.57, 0.62, 1.0))
+        material.set_shader_parameter("face_alpha", 0.085)
+        material.set_shader_parameter("edge_alpha", 0.045)
+        material.set_shader_parameter("highlight_gain", 0.10)
+    else:
+        material.set_shader_parameter("glass_tint", Color(0.43, 0.65, 0.71, 1.0))
+        material.set_shader_parameter("face_alpha", 0.13)
+        material.set_shader_parameter("edge_alpha", 0.12)
+        material.set_shader_parameter("highlight_gain", 0.30)
+
 
 func _ready() -> void:
     _build_geodesic_shell()
     _build_base_ring()
     _build_helm()
+    set_glass_review_profile("clear")
 
 func _icosphere() -> Array:
     var phi: float = (1.0 + sqrt(5.0)) * 0.5
@@ -136,14 +162,8 @@ func _build_geodesic_shell() -> void:
     var glazing := MeshInstance3D.new()
     glazing.name = "GeodesicGlass"
     glazing.mesh = panes.commit()
-    var glass_mat := StandardMaterial3D.new()
-    glass_mat.vertex_color_use_as_albedo = true
-    glass_mat.albedo_color = Color.WHITE
-    glass_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-    glass_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-    glass_mat.roughness = 0.19
-    glass_mat.metallic = 0.07
-    glass_mat.specular = 0.83
+    var glass_mat := ShaderMaterial.new()
+    glass_mat.shader = PANORAMA_GLASS
     glazing.material_override = glass_mat
     add_child(glazing)
 
