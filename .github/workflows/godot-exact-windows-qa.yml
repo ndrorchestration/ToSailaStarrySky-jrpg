@@ -265,7 +265,7 @@ jobs:
             )
             if (@($parseErrors).Count -ne 0) {
               $details = @($parseErrors | ForEach-Object { "$($_.Extent.StartLineNumber):$($_.Message)" }) -join "; "
-              throw "TSTSS_TRUSTED_WINDOWS_SCRIPT_PARSER_FAILED:$file:$details"
+              throw "TSTSS_TRUSTED_WINDOWS_SCRIPT_PARSER_FAILED:$($file):$details"
             }
             Write-Host "TSTSS_TRUSTED_WINDOWS_SCRIPT_PARSE_PASS=$file"
           }
