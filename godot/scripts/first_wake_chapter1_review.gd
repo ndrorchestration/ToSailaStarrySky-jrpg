@@ -20,9 +20,15 @@ const EquipmentTraining = preload("res://scripts/battle_equipment_training_profi
 const TrialInventory = preload("res://scripts/battle_equipment_trial_inventory.gd")
 const GearInspector = preload("res://scripts/battle_equipment_inspector.gd")
 const GearInspectorPanel = preload("res://scripts/battle_equipment_inspector_panel.gd")
+const EquipmentStatModel = preload("res://scripts/jrpg_stat_model.gd")
 
 const DECK_BOUNDS := SaveCodec.PLAYER_POSITION_BOUNDS
 const INTERACT_DISTANCE := 74.0
+const TRIAL_STATION_POSITION := Vector2(805, 465)
+
+## True only in the separate noncanonical P-01 field-to-battle demo scene.
+## The ordinary Chapter I preview remains byte-for-byte default-off.
+@export var equipment_station_review_enabled: bool = false
 
 const SIGNAL_POINTS := {
     "harmonic_buoy": Vector2(250, 465),
@@ -74,6 +80,7 @@ var gear_inspector_panel
 var gear_inspector_open: bool = false
 var equipment_training = EquipmentTraining.new()
 var battle_equipment_view
+var field_gear_display
 
 func _ready() -> void:
     InputPolicy.ensure_defaults()
@@ -141,6 +148,12 @@ func _ready() -> void:
     battle_equipment_view.set_appearance(battle_loadout.appearance())
     battle_equipment_view.visible = false
     add_child(battle_equipment_view)
+    if equipment_station_review_enabled:
+        field_gear_display = BattleEquipmentVisual.new()
+        field_gear_display.name = "TrialFieldGearRigNoncanonical"
+        field_gear_display.position = Vector2(810, 366)
+        field_gear_display.set_appearance(battle_loadout.appearance())
+        add_child(field_gear_display)
     gear_inspector_panel = GearInspectorPanel.new()
     gear_inspector_panel.name = "TrialGearInspectionPanelReviewOnly"
     gear_inspector_panel.z_index = 40
@@ -234,8 +247,19 @@ func _draw() -> void:
         draw_rect(Rect2(120, 350, 720, 190), Color(0.035, 0.07, 0.13, 0.97))
         draw_rect(Rect2(124, 354, 712, 182), Color("#8cdbc8"), false, 2.0)
 
+    if equipment_station_review_enabled and not formula_encounter.active:
+        _draw_trial_station()
     if formula_encounter.active:
         _draw_formula_review()
+
+func _draw_trial_station() -> void:
+    # Deliberately visible as a noncanonical equipment experiment.
+    var point := TRIAL_STATION_POSITION
+    draw_rect(Rect2(point.x - 53, point.y - 16, 106, 31), Color("#1e3d4c"))
+    draw_rect(Rect2(point.x - 53, point.y - 16, 106, 31), Color("#8cdbc8"), false, 2.0)
+    draw_string(ThemeDB.fallback_font, point + Vector2(-48, 5), "GEAR STUDY", HORIZONTAL_ALIGNMENT_LEFT, 100, 13, Color("#fff1ce"))
+    draw_string(ThemeDB.fallback_font, Vector2(650, 314), "TEST ONLY  E: inspect nearby", HORIZONTAL_ALIGNMENT_LEFT, 275, 13, Color("#fff1ce"))
+    draw_string(ThemeDB.fallback_font, Vector2(650, 332), "C: enter practice battle", HORIZONTAL_ALIGNMENT_LEFT, 275, 12, Color("#9dd9ee"))
 
 func _draw_formula_review() -> void:
     var panel := Rect2(145, 112, 670, 390)
@@ -424,7 +448,13 @@ func _draw_target(point: Vector2, label_text: String, target_color: Color, compl
 
 ## The modal never authorizes a new action or enters the story inventory.
 func open_gear_inspector() -> bool:
-    if not formula_encounter.active or not active_hazard_encounter_id.is_empty():
+    var in_practice: bool = formula_encounter.active and active_hazard_encounter_id.is_empty()
+    var at_field_station: bool = (
+        equipment_station_review_enabled and not formula_encounter.active
+        and not dialogue.open and chapter.stage_key() == "signal"
+        and ender != null and ender.position.distance_to(TRIAL_STATION_POSITION) <= INTERACT_DISTANCE
+    )
+    if not in_practice and not at_field_station:
         return false
     if formula_encounter.completed or formula_encounter.player_defeated:
         return false
@@ -432,6 +462,8 @@ func open_gear_inspector() -> bool:
         return false
     gear_inspector_open = true
     gear_inspector_panel.visible = true
+    if not formula_encounter.active:
+        ender.player_controlled = false
     return refresh_gear_inspector()
 
 func refresh_gear_inspector() -> bool:
@@ -440,8 +472,8 @@ func refresh_gear_inspector() -> bool:
     var data: Dictionary = gear_inspector.describe(
         battle_loadout,
         trial_inventory,
-        Dictionary(formula_encounter.player.get("productionStats", {})),
-        int(formula_encounter.player.get("level", 1))
+        Dictionary(formula_encounter.player.get("productionStats", {})) if formula_encounter.active else EquipmentStatModel.new().get_primary_stats("ender", 1),
+        int(formula_encounter.player.get("level", 1)) if formula_encounter.active else 1
     )
     if data.is_empty():
         close_gear_inspector()
@@ -454,6 +486,8 @@ func close_gear_inspector() -> void:
     if gear_inspector_panel != null:
         gear_inspector_panel.visible = false
         gear_inspector_panel.set_inspection({})
+    if equipment_station_review_enabled and ender != null and not formula_encounter.active:
+        ender.player_controlled = not dialogue.open and chapter.stage_key() not in ["choice", "done"]
     queue_redraw()
 
 func move_gear_inspector_slot(delta: int) -> bool:
@@ -487,7 +521,7 @@ func confirm_gear_inspector_item() -> bool:
     return refresh_gear_inspector()
 
 func start_formula_review() -> bool:
-    if formula_encounter.active or dialogue.open or chapter.stage_key() in ["choice", "done"]:
+    if gear_inspector_open or formula_encounter.active or dialogue.open or chapter.stage_key() in ["choice", "done"]:
         return false
     active_hazard_encounter_id = ""
     close_gear_inspector()
@@ -599,11 +633,16 @@ func take_formula_review_action(action_id: String) -> bool:
 ## This is an ownership-conserving practice transaction, not story loot.
 ## It consumes no turn and cannot replace the approved formula/action authority.
 func equip_review_item(slot_id: String, item_id: String) -> bool:
-    if not formula_encounter.active or not trial_inventory.transfer(battle_loadout, slot_id, item_id):
+    if not formula_encounter.active and not (equipment_station_review_enabled and gear_inspector_open):
+        return false
+    if not trial_inventory.transfer(battle_loadout, slot_id, item_id):
         return false
     battle_equipment_view.set_appearance(battle_loadout.appearance())
+    if field_gear_display != null:
+        field_gear_display.set_appearance(battle_loadout.appearance())
     # Training-only: intentional no-op in authored Wind Shear encounters.
-    formula_encounter.set_training_loadout(battle_loadout)
+    if formula_encounter.active:
+        formula_encounter.set_training_loadout(battle_loadout)
     last_message = "Equipment study: " + str(battle_loadout.appearance().get("weaponName", ""))
     _refresh_ui()
     queue_redraw()
@@ -630,6 +669,9 @@ func toggle_training_pressure_review() -> bool:
     return true
 
 func interact_nearest() -> bool:
+    if equipment_station_review_enabled and not formula_encounter.active and not gear_inspector_open:
+        if chapter.stage_key() == "signal" and not dialogue.open and ender.position.distance_to(TRIAL_STATION_POSITION) <= INTERACT_DISTANCE:
+            return open_gear_inspector()
     match chapter.stage_key():
         "signal":
             return _interact_signal()
@@ -950,6 +992,8 @@ func restore_save_snapshot(snapshot: Dictionary) -> bool:
     battle_equipment_view.set_pose("idle")
     battle_equipment_view.set_appearance(battle_loadout.appearance())
     battle_equipment_view.visible = false
+    if field_gear_display != null:
+        field_gear_display.set_appearance(battle_loadout.appearance())
     active_hazard_encounter_id = ""
     pending_signal_id = ""
     pending_contact_id = ""

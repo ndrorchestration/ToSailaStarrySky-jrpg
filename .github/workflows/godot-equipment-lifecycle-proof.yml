@@ -1,0 +1,53 @@
+name: Godot P-01 Equipment Lifecycle Proof (review only)
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/first_wake_chapter1_review.gd'
+      - 'godot/scenes/equipment_lifecycle_study.tscn'
+      - 'godot/tests/equipment_lifecycle_study_test.gd'
+      - 'godot/tests/capture_equipment_lifecycle_study.gd'
+      - '.github/workflows/godot-equipment-lifecycle-proof.yml'
+permissions:
+  contents: read
+jobs:
+  proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout source without persisted credentials
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Fetch digest-verified Godot 4.7.2 Standard binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o godot-editor.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  godot-editor.zip" | sha256sum -c -
+          mkdir -p godot-editor
+          unzip -q godot-editor.zip -d godot-editor
+          chmod +x godot-editor/Godot_v4.7.2-stable_linux.x86_64
+      - name: Import source scene in real native Godot
+        shell: bash
+        run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit
+      - name: Prove field to gear station to native battle to field and restored save
+        shell: bash
+        run: timeout --signal=TERM --kill-after=5s 75s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/equipment_lifecycle_study_test.gd
+      - name: Render six real field-inspector-battle-return receipts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p godot/review-evidence/battle-equipment
+          xvfb-run -a -s "-screen 0 960x640x24" godot-editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_equipment_lifecycle_study.gd
+          for phase in field-baseline station-inspect station-preview field-equipped battle-equipped field-return; do
+            test -s "godot/review-evidence/battle-equipment/lifecycle-${phase}-native-960x640.png"
+          done
+          sha256sum godot/review-evidence/battle-equipment/lifecycle-*.png
+      - name: Verify existing ownership, inspector, authored-hazard, and save boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/battle_equipment_trial_inventory_test.gd
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/battle_equipment_inspector_test.gd
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/battle_equipment_pressure_test.gd
+          godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_save_scene_test.gd

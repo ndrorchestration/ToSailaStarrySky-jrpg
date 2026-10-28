@@ -1,5 +1,7 @@
 # Aetherwake — Godot 4.7.2 / GDScript migration feasibility pilot
 
+> **2026-10-27 actual development status (unmerged draft):** The historical feasibility statements below describe the earliest Godot pilot and are not a complete inventory of subsequent native capabilities. Later stacked draft source [#481](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/481) verifies temporary actor-owned equipment, socket rendering, item inspection and optional practice combat. The independent P-01 `res://scenes/equipment_lifecycle_study.tscn` goes further by connecting a noncanonical field study marker to the **same native inventory/loadout** used in a practice encounter and back. Its own native tests/capture are the new evidence gate; it does not authorize persistent inventory, item lore, new canonical Chapter I locations, approved character art, main-branch migration, Windows packaging or release. Consult [equipment review](BATTLE_EQUIPMENT_REVIEW.md) and [promotion documentation draft #498](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/498).
+
 **Status:** Isolated native-engine proof, **not** a complete migration, creator-accepted art, scene/canon rewrite, approved release, or evidence that production is now Godot.
 
 ## Objective
