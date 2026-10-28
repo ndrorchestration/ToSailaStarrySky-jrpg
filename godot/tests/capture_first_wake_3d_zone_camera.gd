@@ -64,6 +64,10 @@ func _run() -> void:
     if not await _move(actor, -1.45):
         issues.append("real_crew_did_not_walk_to_helm")
     review.ship.set_glass_art_review("source_low_glare")
+    if not review.inspect_review_helm():
+        issues.append("real_helm_F_interaction_refused_at_nearby_console")
+    if not review.helm_feedback.visible or not review.helm_feedback_body.text.contains("unverified"):
+        issues.append("helmside_visual_feedback_not_legible_on_screen")
     var helm: Image = await _capture("02-geodesic-helm-corrected-camera.png")
     if not await _move(actor, -4.30):
         issues.append("real_crew_did_not_walk_to_open_deck")
