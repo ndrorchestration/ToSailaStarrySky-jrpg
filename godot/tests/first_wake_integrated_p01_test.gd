@@ -7,6 +7,7 @@ var problems: Array[String] = []
 var checks: int = 0
 var captured: Array[Image] = []
 var capture_requested: bool = false
+var decision_requested: bool = false
 
 func _photo(name: String) -> void:
     for index in range(6):
@@ -54,6 +55,7 @@ func _finish_dialogue(world: Node) -> bool:
 
 func _verify() -> void:
     capture_requested = OS.get_cmdline_user_args().has("--capture")
+    decision_requested = OS.get_cmdline_user_args().has("--p02")
     var packed: PackedScene = load("res://scenes/first_wake_integrated_p01.tscn")
     if not require(packed != null, "actual job preview scene available"):
         _finish()
@@ -146,6 +148,9 @@ func _verify() -> void:
     require(not flight.flight_overlay.visible, "no conflicting flight HUD over checklist")
     require(readiness.phase == "inspect", "review starts with zero completed checks")
     require(not readiness.interact(), "checklist cannot complete without selecting station")
+    if decision_requested:
+        require(not readiness.begin_contact_decision(),
+            "P02 route desk cannot open before crew/engine/contact checklist")
     require(not readiness.inspect_station("unknown"), "invalid station denied")
     for station in ["systems_isolation", "crew_accounting", "contact_plan"]:
         require(readiness.inspect_station(station), "player chooses "+station)
@@ -154,6 +159,9 @@ func _verify() -> void:
         for line in range(lines.size()):
             require(readiness.interact(), "player reads station "+station+" "+str(line))
         require(station in readiness.completed_stations, "station earned after dialogue")
+        if decision_requested and readiness.completed_stations.size() < 3:
+            require(not readiness.begin_contact_decision(),
+                "P02 route desk cannot bypass partial station evidence")
         require(not readiness.inspect_station(station), "no duplicate evidence "+station)
     var finish: Dictionary = readiness.review_snapshot()
     require(finish["readiness_review_complete"], "three observed readiness checks")
@@ -180,6 +188,62 @@ func _verify() -> void:
                 " recovery=",recovery_delta)
             require(diagnosis_delta > 0.2, "postflight inspection changes actual UI")
             require(recovery_delta > 8.0, "recovery scene draws its own visual state")
+    if decision_requested:
+        require(readiness.begin_contact_decision(),
+            "P02 visible decision desk opens only from all-three real readiness checks")
+        require(not readiness.begin_contact_decision(), "P02 cannot spawn duplicate desk")
+        var desk = readiness.contact_decision
+        require(desk != null and desk.opening == scene.opening,
+            "P02 shares actual original Ionia-first story object, no fixture")
+        require(desk.source_flight == flight and desk.source_readiness == readiness,
+            "P02 provenance binds exact physical water ship and its checklist")
+        require(not readiness.overlay.visible, "no overlaid recovery menu behind desk")
+        require(not desk.interact(), "P02 cannot conclude without three decisions reviewed")
+        require(not desk.inspect_option("invented_shortcut"), "unapproved route option denied")
+        require(not desk.review_snapshot()["delivery_confirmed"],
+            "no message delivery can be inferred from merely opening desk")
+        if capture_requested:
+            await _photo("04-contact-route-desk-before-evidence")
+        for option in ["signal_link", "external_tow", "sea_route"]:
+            require(desk.inspect_option(option), "P02 player examines "+option)
+            require(option not in desk.reviewed_options,
+                "P02 does not reward observation before full reading")
+            require(not desk.inspect_option(option),
+                "P02 cannot overwrite open dialogue for "+option)
+            var reading: Array = desk.OPTION_LINES[option]
+            for n in range(reading.size()):
+                require(desk.interact(), "P02 reads "+option+" line "+str(n))
+            require(option in desk.reviewed_options,
+                "P02 records only fully witnessed "+option)
+            require(not desk.inspect_option(option), "P02 cannot duplicate "+option)
+        require(desk.phase == "decision_reviewed",
+            "P02 three-option assessment precedes final route hold")
+        require(desk.interact(), "P02 player acknowledges evidence-limited route hold")
+        var decision: Dictionary = desk.review_snapshot()
+        require(decision["decision_reviewed"] and decision["phase"] == "route_hold",
+            "P02 stable decision holds for creator-approved geography")
+        require(decision["reviewed_options"].size() == 3,
+            "P02 sea/signal/tow alternatives independently examined")
+        for forbidden in ["delivery_confirmed", "contact_recipient_identified",
+                "tow_arranged", "shore_reached", "route_authorized",
+                "family_reunion_authorized", "lyra_joined", "fuel_formula_verified",
+                "can_launch"]:
+            require(not decision[forbidden], "P02 must not invent "+forbidden)
+        require(decision["route_status"] == "awaiting_creator_geography",
+            "P02 route geography unresolved")
+        require(decision["party"] == ["ender", "ionia"],
+            "P02 Lyra not aboard before verified safe reunion")
+        require(scene.opening.step_key() == "postflight_diagnosis",
+            "P02 makes no unauthorized quest progress")
+        require(not desk.interact() and not desk.inspect_option("sea_route"),
+            "P02 route hold remains fail-closed on further input")
+        if capture_requested:
+            await _photo("05-contact-decision-three-options-hold")
+            require(captured.size() == 5, "P02 five native GL evidence frames")
+            if captured.size() == 5:
+                var decision_delta: float = _contrast(captured[3], captured[4])
+                print("TSTSS_FIRST_WAKE_P02_DELTAS desk_before_to_hold=",decision_delta)
+                require(decision_delta > 3.0, "P02 actual desk framebuffer reflects three options")
     scene.queue_free()
     await process_frame
     _finish()
@@ -187,7 +251,13 @@ func _verify() -> void:
 func _finish() -> void:
     if problems.is_empty():
         if capture_requested:
-            print("TSTSS_FIRST_WAKE_INTEGRATED_P01_GL_PASS frames=3")
+            if decision_requested:
+                print("TSTSS_FIRST_WAKE_INTEGRATED_P02_GL_PASS frames=5")
+            else:
+                print("TSTSS_FIRST_WAKE_INTEGRATED_P01_GL_PASS frames=3")
+        if decision_requested:
+            print("TSTSS_FIRST_WAKE_INTEGRATED_P02_PASS checks=",checks,
+                " route=actual_flight/waterborne/diagnosis/recovery/contact_sea_tow_hold")
         print("TSTSS_FIRST_WAKE_INTEGRATED_P01_PASS checks=",checks,
             " route=job_flyer/ionia_hire/engineering/preflight/native_flight/",
             "physics_waterborne/observed_reserve/recovery_3_checks/geography_hold")
