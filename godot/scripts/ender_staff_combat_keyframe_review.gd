@@ -151,6 +151,16 @@ func sample_frame(next_facing: String, pose: Dictionary) -> Dictionary:
     if next_facing == "west" or next_facing == "north":
         left_contact = hand_b
         right_contact = hand_a
+    # Separate forearm articulation and delayed cloth/satchel movement:
+    # deliberately bounded; zero pose delta when reduced motion is selected.
+    var facing_sign: float = -1.0 if next_facing in ["west","north"] else 1.0
+    var joint_turn: float = 0.0 if reduced else sin(progress*PI)*3.4
+    var left_elbow: Vector2 = (left_shoulder+left_contact)*0.5         + Vector2(-7.0-facing_sign*joint_turn,6.0+crouch*0.18)
+    var right_elbow: Vector2 = (right_shoulder+right_contact)*0.5         + Vector2(7.0-facing_sign*joint_turn,5.0+crouch*0.16)
+    var cloth_flare: float = 0.0 if reduced else clampf(
+        absf(lean)*0.42+trail_strength*6.5,0.0,15.0)
+    var satchel_swing: float = 0.0 if reduced else clampf(
+        -lean*0.19+sin(progress*TAU)*1.8,-6.0,6.0)
     return {
         "actorId":"ender","facing":next_facing,
         "source":ART_AUTHORITY,"progress":progress,
@@ -163,6 +173,8 @@ func sample_frame(next_facing: String, pose: Dictionary) -> Dictionary:
         "shaftTipA":shaft_mid+shaft_axis*STAFF_HALF,
         "shaftTipB":shaft_mid-shaft_axis*STAFF_HALF,
         "leftHand":left_contact,"rightHand":right_contact,
+        "leftElbow":left_elbow,"rightElbow":right_elbow,
+        "clothFlare":cloth_flare,"satchelSwing":satchel_swing,
         "leftGripPoint":left_contact,"rightGripPoint":right_contact,
         "weaponLength":STAFF_HALF*2.0,
         "gripError":0.0,"floorY":FLOOR_Y,
@@ -212,6 +224,22 @@ func _draw() -> void:
     _stroke(d["kneeB"],foot_b+Vector2(0.0,-7.0),COAT,12.0)
     _stroke(foot_a+Vector2(-5.0,-4.0),foot_a+Vector2(8.0,-4.0),BOOT,11.0)
     _stroke(foot_b+Vector2(-7.0,-4.0),foot_b+Vector2(6.0,-4.0),BOOT,11.0)
+    # Weighted back hem: a separate dark cloth layer lags behind torso lean,
+    # yet remains attached to the existing waist and preserves planted boots.
+    var cloth_flare: float = clampf(float(d.get("clothFlare",0.0)),0.0,15.0)
+    var hem_side: float = -1.0 if facing in ["west","north"] else 1.0
+    draw_colored_polygon(PackedVector2Array([
+        hip+Vector2(-15.0,1.0),hip+Vector2(15.0,1.0),
+        hip+Vector2(16.0+hem_side*cloth_flare,43.0),
+        hip+Vector2(-19.0+hem_side*cloth_flare*0.4,42.0)
+    ]),OUTLINE)
+    draw_colored_polygon(PackedVector2Array([
+        hip+Vector2(-12.0,2.0),hip+Vector2(13.0,2.0),
+        hip+Vector2(12.0+hem_side*cloth_flare,39.0),
+        hip+Vector2(-16.0+hem_side*cloth_flare*0.4,38.0)
+    ]),COAT_SHADOW)
+    draw_line(hip+Vector2(-15.0+hem_side*cloth_flare*0.4,39.0),
+        hip+Vector2(12.0+hem_side*cloth_flare,40.0),BRASS.darkened(0.40),1.5)
     # Original layered coat and field scholar silhouette.
     var width: float = 18.0 if facing in ["south","north"] else 13.0
     draw_colored_polygon(PackedVector2Array([
@@ -230,9 +258,15 @@ func _draw() -> void:
         BRASS,3.0)
     # Off-torso satchel, leather straps and simple material separation.
     var satchel_side: float = -1.0 if facing in ["east","south"] else 1.0
-    var bag: Vector2 = hip+Vector2(satchel_side*(width+8.0),-8.0)
+    var bag: Vector2 = hip+Vector2(
+        satchel_side*(width+8.0)+float(d.get("satchelSwing",0.0)),-8.0)
+    draw_line(chest+Vector2(-satchel_side*11.0,-12.0),
+        bag+Vector2(0.0,-7.0),LEATHER,3.0)
     draw_rect(Rect2(bag-Vector2(8.0,10.0),Vector2(16.0,19.0)),LEATHER)
+    draw_rect(Rect2(bag-Vector2(6.0,8.0),Vector2(12.0,13.0)),
+        Color("#624d39"))
     draw_line(bag+Vector2(-7.0,-5.0),bag+Vector2(7.0,-5.0),BRASS,2.0)
+    draw_circle(bag+Vector2(0.0,-5.0),1.8,BRASS)
     # Head faces independently per direction; rear excludes front lenses.
     draw_circle(head,20.0,OUTLINE)
     draw_circle(head,17.0,SKIN)
@@ -274,9 +308,14 @@ func _draw() -> void:
             draw_line(near_boot+Vector2(dust_x,-2.0),
                 near_boot+Vector2(dust_x+5.0,-4.0-float(i)*1.6),
                 Color("#b7b1a0",trail*0.24),1.6)
-    # Both arm segments are generated from the SAME grip anchors as the staff.
-    _stroke(d["leftShoulder"],d["leftHand"],COAT_SHADOW,9.0)
-    _stroke(d["rightShoulder"],d["rightHand"],COAT,9.0)
+    # Upper arms and forearms independently meet at authored elbows, then
+    # terminate at the SAME grip points; no detached-hands shortcut.
+    _stroke(d["leftShoulder"],d["leftElbow"],COAT_SHADOW,10.0)
+    _stroke(d["leftElbow"],d["leftHand"],COAT_SHADOW,8.0)
+    _stroke(d["rightShoulder"],d["rightElbow"],COAT,10.0)
+    _stroke(d["rightElbow"],d["rightHand"],COAT,8.0)
+    draw_circle(d["leftElbow"],4.0,CREAM.darkened(0.36))
+    draw_circle(d["rightElbow"],4.0,CREAM.darkened(0.27))
     var tip_a: Vector2 = d["shaftTipA"]
     var tip_b: Vector2 = d["shaftTipB"]
     _stroke(tip_a,tip_b,WOOD,8.0)
