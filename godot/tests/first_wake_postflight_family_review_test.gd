@@ -59,6 +59,18 @@ func _verify() -> void:
     if scene.ionia_visual.position != Vector2(350, 475):
         _fail("Ionia art was displaced from the family stage")
         return
+    if scene.ionia_visual.ionia_front_walk_sprite.texture == null:
+        _fail("Ionia authored texture failed native asset import")
+        return
+    if scene.ionia_visual.ionia_front_walk_sprite.hframes != 6:
+        _fail("Ionia six-frame direction atlas contract changed")
+        return
+    if scene.ionia_visual.ionia_front_walk_sprite.texture.get_width() % 6 != 0:
+        _fail("Ionia texture has invalid six-frame atlas dimensions")
+        return
+    if scene.ender.walk_review_sprite == null or scene.ender.walk_review_sprite.texture == null:
+        _fail("Ender directional source is missing from playable family scene")
+        return
     if scene.review_snapshot()["lyra_joined"] or story.active_party_ids != ["ender", "ionia"]:
         _fail("Lyra prematurely recruited when scene was opened")
         return
