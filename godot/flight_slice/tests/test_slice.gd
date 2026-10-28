@@ -124,8 +124,8 @@ func _run_tests() -> void:
         var p0: Vector3 = pane_vertices[index]
         var p1: Vector3 = pane_vertices[index + 1]
         var p2: Vector3 = pane_vertices[index + 2]
-        min_height = minf(min_height, p0.y, p1.y, p2.y)
-        max_height = maxf(max_height, p0.y, p1.y, p2.y)
+        min_height = minf(min_height, minf(p0.y, minf(p1.y, p2.y)))
+        max_height = maxf(max_height, maxf(p0.y, maxf(p1.y, p2.y)))
         var normal: Vector3 = (p1 - p0).cross(p2 - p0)
         if normal.length_squared() <= 0.000000001 or
             normal.dot((p0 + p1 + p2) / 3.0 - Vector3.UP * GeodesicBridge.CENTER_Y) <= 0.0:
