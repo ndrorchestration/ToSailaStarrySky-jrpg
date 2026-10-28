@@ -8,6 +8,25 @@ const PATH = "user://first_wake_game_entry_integration_test.json"
 
 var checks: int = 0
 var errors: Array[String] = []
+var capture_enabled: bool = false
+var captured: Array[String] = []
+
+func capture_native_frame(frame_id: String) -> void:
+    if not capture_enabled:
+        return
+    # Capture actual configured F5 game viewport, never an invented scene.
+    await process_frame
+    await RenderingServer.frame_post_draw
+    var image: Image = root.get_texture().get_image()
+    if image.get_size() != Vector2i(960, 640):
+        verify(false, "native frame size not 960x640: "+frame_id)
+        return
+    var target := "res://review-evidence/ch1-f5-"+frame_id+"-native-960x640.png"
+    if image.save_png(target) != OK:
+        verify(false, "native image cannot save: "+frame_id)
+        return
+    captured.append(frame_id)
+
 
 func _initialize() -> void:
     call_deferred("_run")
@@ -26,6 +45,12 @@ func _finish_dialogue(job) -> bool:
     return not job.dialogue_open
 
 func _run() -> void:
+    capture_enabled = OS.get_cmdline_user_args().has("--capture")
+    if capture_enabled:
+        root.size = Vector2i(960, 640)
+        var folder: String = ProjectSettings.globalize_path("res://review-evidence")
+        verify(DirAccess.make_dir_recursive_absolute(folder) == OK,
+            "native capture directory available")
     for path in [PATH, PATH + ".tmp", PATH + ".bak"]:
         if FileAccess.file_exists(path):
             DirAccess.remove_absolute(path)
@@ -86,6 +111,7 @@ func _run() -> void:
             warned = true
             break
     verify(warned, "real flight reaches phase-drift warning")
+    await capture_native_frame("01-phase-warning")
     verify(flight.stabilize_for_water_descent(), "Ionia executes controlled sea descent")
     var settled := false
     for tick in range(540):
@@ -123,6 +149,9 @@ func _run() -> void:
         "reserve becomes recorded only after player finishes dialogue")
     verify(root_game.session.opening.step_key() == "postflight_diagnosis",
         "revised story advances to correct postflight stage")
+    verify(deck.checkpoint_message.is_empty(),
+        "successful inspection clears the earlier declined-save warning")
+    await capture_native_frame("02-reserve-inspected")
     verify(root_game.save_game() and FileAccess.file_exists(PATH),
         "F5 checkpoint persists new-format first-flight data")
     var data: Dictionary = Checkpoint.load(PATH)
@@ -166,6 +195,121 @@ func _run() -> void:
     broken.close()
     verify(Checkpoint.load(PATH).get("schema", "") == Checkpoint.SCHEMA,
         "corrupt/legacy primary falls back to valid prior save without migration")
+    # New normal-F5 in-memory continuation: never forge an ocean-to-harbor
+    # route. A player must explicitly acknowledge provisional safe staging.
+    verify(not resumed._enter_family_review(),
+        "family screen cannot be entered without player staging")
+    var same_story = resumed.session.opening
+    var checkpoint_before_family: String = FileAccess.get_file_as_string(PATH)
+    verify(resumed.request_safe_berth_review()
+        and resumed.safe_berth_review_confirmations == 1,
+        "first R only requests explicitly nongeographic safe recovery")
+    verify(resumed.family_review == null
+        and resumed.session.opening.active_party_ids == ["ender", "ionia"],
+        "one safe recovery acknowledgment cannot teleport or recruit Lyra")
+    verify(resumed.request_safe_berth_review()
+        and resumed.game_stage == "family_review",
+        "second R starts clearly staged safe berth family scene")
+    await process_frame
+    var family = resumed.family_review
+    verify(family != null and family.opening == same_story
+        and family.review_snapshot()["real_return_route_verified"] == false,
+        "F5 continuation preserves identical first-flight story without inventing route")
+    verify(family.scene_phase == "family_arrival"
+        and family.ender.player_controlled,
+        "the actual postflight family scene is walkable and initially Lyra-free")
+    verify(family.objective_label.get_line_count() == 1,
+        "family arrival objective must not overlap party HUD")
+    await capture_native_frame("03-staged-family-arrival")
+    verify(not resumed.save_game()
+        and FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
+        "unfinished extended save schema cannot overwrite postflight checkpoint")
+    family.ender.position = family.TALEN_POSITION
+    verify(family.interact() and _finish_dialogue(family)
+        and family.child_block_ship_viewed,
+        "optional Talen block ship stays an everyday noncombat scene")
+    verify(not family.opening.active_party_ids.has("talen")
+        and not family.opening.active_party_ids.has("lyra"),
+        "child dialogue does not recruit child or Lyra")
+    family.ender.position = family.LYRA_POSITION
+    verify(family.interact()
+        and not family.opening.active_party_ids.has("lyra"),
+        "Lyra joins only after full family conversation")
+    verify(_finish_dialogue(family)
+        and family.opening.active_party_ids == ["ender", "ionia", "lyra"],
+        "first-flight session identity admits Lyra SECOND after mandatory reunion")
+    await process_frame
+    verify(family.objective_label.get_line_count() == 1
+        and family.objective_label.text.contains("GATHER TWO CLUES"),
+        "investigation objective remains one visible line and clearly names two clues")
+    await capture_native_frame("04-lyra-second-join")
+    verify(family.interact() and _finish_dialogue(family)
+        and "lyra_observation" in family.opening.clues,
+        "Lyra's physical listening clue is genuinely interacted with")
+    family.ender.position = family.THEORY_TABLE
+    verify(not family.interact(),
+        "a single clue cannot invent a fuel theory")
+    family.ender.position = family.PHASE_CHART
+    verify(family.interact() and _finish_dialogue(family),
+        "Ender independently inspects the loaded phase readings")
+    family.ender.position = family.THEORY_TABLE
+    verify(family.interact() and _finish_dialogue(family)
+        and same_story.step_key() == "working_theory",
+        "same F5 story admits working theory only after dialogue and two clues")
+    verify(family.interact() and family.repair_review != null
+        and family.repair_review.story == same_story,
+        "in-game family leads to real physical pickup/melody scene with same story")
+    await capture_native_frame("05-connected-workshop-entry")
+    verify(not family.repair_review.core.snapshot()["can_launch"]
+        and not resumed.save_game(),
+        "core-alignment bench cannot grant relaunch or write unsupported save state")
+    var workshop = family.repair_review
+    for target in [workshop.PICKUP_A, workshop.PICKUP_B]:
+        workshop.ender.position = target
+        verify(workshop.interact(),"actual F5 shop physically retrieves material")
+    verify(workshop.core.snapshot()["phase"] == "install",
+        "same F5 story owns two recovered items")
+    workshop.ender.position = workshop.INSTALL
+    verify(workshop.interact() and workshop.interact(),
+        "both source-owned supplies physically installed")
+    workshop.ender.position = workshop.ENGINE
+    verify(workshop.interact() and workshop.core.snapshot()["phase"] == "listen",
+        "mandatory material-only restart fails before melody discovery")
+    await capture_native_frame("06-failed-material-retest")
+    workshop.ender.position = workshop.IONIA
+    verify(workshop.interact() and workshop.interact(),
+        "Ionia recalls Denith's shanty only AFTER the failed material retest")
+    await capture_native_frame("07-ionia-remembered-shanty")
+    workshop.ender.position = workshop.CHART
+    verify(workshop.interact() and workshop.analysis.open,
+        "actual full F5 route opens accessible harmonic choice panel")
+    await capture_native_frame("08-interactive-harmonic-chart")
+    verify(not workshop.submit_analysis(),"no automatic correct harmonic answer")
+    verify(workshop.choose_analysis(1) and workshop.submit_analysis(),
+        "Ender selects correct isolated review interval pattern")
+    workshop.ender.position = workshop.LYRA
+    verify(workshop.interact(),"Lyra independently corroborates the stable note")
+    workshop.ender.position = workshop.IONIA
+    verify(workshop.interact(),"Ionia independently authorizes contained bench test")
+    workshop.ender.position = workshop.ENGINE
+    verify(workshop.interact()
+        and workshop.core.snapshot()["alignment_candidate"]
+        and not workshop.core.snapshot()["can_launch"],
+        "bench candidate is achieved after real F5 scene inputs, flight locked")
+    await capture_native_frame("09-bench-candidate")
+    verify(not resumed.save_game()
+        and FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
+        "extended bench progress never silently upgrades v1 disk checkpoint")
+    if capture_enabled:
+        verify(captured.size() == 9, "all nine native chapter frames captured")
+    verify(resumed.load_game()
+        and resumed.game_stage == "postflight"
+        and resumed.family_review == null
+        and resumed.session.opening.active_party_ids == ["ender", "ionia"],
+        "F9 reload returns to honest persisted postflight checkpoint, not false family save")
+    verify(FileAccess.get_file_as_string(PATH) == checkpoint_before_family,
+        "F9 and family review never rewrite signed checkpoint data")
+
     resumed.queue_free()
     await process_frame
     for path in [PATH, PATH + ".tmp", PATH + ".bak"]:
@@ -174,7 +318,9 @@ func _run() -> void:
     if errors.is_empty():
         print("TSTSS_FIRST_WAKE_GAME_ENTRY_PASS checks=", checks,
             " real_water_contact=true postflight_player=true",
-            " save_resume=true legacy_schema_isolated=true")
+            " save_resume=true legacy_schema_isolated=true family_to_repair=true\n",
+            " staged_geography=false extended_save=false",
+            " harmonic_bench_candidate=true captures=",captured.size())
         quit(0)
     else:
         for error in errors:
