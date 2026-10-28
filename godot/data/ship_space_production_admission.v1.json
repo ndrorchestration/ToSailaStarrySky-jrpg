@@ -1,0 +1,72 @@
+{
+  "schema": "tstss.ship-space-admission.v1",
+  "authority": "public_safe_engineering_review",
+  "target_project": "godot/project.godot",
+  "target_scene": "res://scenes/first_wake_job_preview.tscn",
+  "source": {
+    "ship_lab_pr": 482,
+    "ship_lab_head": "8f7112d0f8ed3afcad8faa76b5d0b224d25cdce9",
+    "ship_lab_native_run": 40608998147,
+    "chapter_handoff_pr": 497,
+    "chapter_handoff_head": "d341d367c005b3c00d758336982d0e34d5e95839",
+    "chapter_handoff_native_run": 40613875428
+  },
+  "entry_evidence": {
+    "reviewed_character_order": "ender_ionia_first_lyra_after_splashdown",
+    "visibility": "explicit_review_only",
+    "save_schema_changed": false,
+    "player_abilities_granted": false,
+    "physical_doorway_usable": false,
+    "production_asset_imported": false,
+    "exact_hull_scale_proven": false,
+    "production_art_approved": false,
+    "windows_acceptance_passed": false,
+    "creator_merge_authorized": false,
+    "release_authorized": false
+  },
+  "components": [
+    {
+      "id": "semantic_ship_space_ids",
+      "stage": "ch1_native_prototype_verified",
+      "next": "production_scene_schema_review",
+      "production_ready": false
+    },
+    {
+      "id": "geodesic_glass_material",
+      "stage": "isolated_lab_native_verified",
+      "next": "quarantined_native_asset_import",
+      "production_ready": false
+    },
+    {
+      "id": "foredeck_ordinary_layout",
+      "stage": "isolated_lab_native_verified",
+      "next": "unified_hull_scale_and_actor_clearance",
+      "production_ready": false
+    },
+    {
+      "id": "bridge_to_foredeck_egress",
+      "stage": "blocked_on_scale_and_aperture",
+      "next": "single_scene_physics_capsule_and_exit_test",
+      "production_ready": false
+    },
+    {
+      "id": "weather_and_habitable_protection",
+      "stage": "unverified_as_physical_system",
+      "next": "separate_environmental_and_safety_validation",
+      "production_ready": false
+    }
+  ],
+  "admission": {
+    "next_stage": "prototype_asset_staging_review",
+    "production_ready": false,
+    "physical_access_ready": false,
+    "engineering_reconciliation_required": true,
+    "dimensional_review": {
+      "reference_only": true,
+      "dome_diameter_m": 3.8,
+      "cabin_width_m": 2.35,
+      "dome_peak_above_deck_m": 1.825,
+      "standing_review_min_m": 2.05
+    }
+  }
+}
