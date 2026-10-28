@@ -59,7 +59,8 @@ static func world_support(actor: CharacterBody2D, facing: String, phase: int, si
     var support: Dictionary = sample[key]
     if not support.get("present", false):
         return {"valid": false, "reason": "candidate_pixel_missing"}
-    var sprite: Sprite2D = actor.get("source_sprites").get(facing) as Sprite2D
+    var sources: Dictionary = actor.get("source_sprites")
+    var sprite: Sprite2D = sources.get(facing) as Sprite2D
     if sprite == null:
         return {"valid": false, "reason": "source_sprite_missing"}
     var pixel_pos: Vector2 = actor.global_position + sprite.position + Vector2(
