@@ -5,6 +5,9 @@ on:
     paths:
       - 'godot/art-staging/environment-study/**'
       - 'godot/scripts/ch1_environment_art_intake.gd'
+      - 'godot/shaders/environment_material_adapter.gdshader'
+      - 'godot/tests/environment_material_adapter_test.gd'
+      - 'godot/tests/capture_environment_material_adapter.gd'
       - 'godot/scripts/first_wake_chapter1_review.gd'
       - 'godot/tests/environment_art_intake_test.gd'
       - 'godot/tests/capture_environment_art_intake.gd'
@@ -48,6 +51,13 @@ jobs:
           timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/environment_art_intake_test.gd 2>&1 | tee /tmp/ch1-environment-test.log
           grep -Eq 'GODOT_CH1_ENVIRONMENT_INTAKE_PASS checks=[0-9]+' /tmp/ch1-environment-test.log
           ! grep -Eq 'GODOT_CH1_ENVIRONMENT_INTAKE_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/ch1-environment-test.log
+      - name: Verify actual native blended CanvasItem surface materials and safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/environment_material_adapter_test.gd 2>&1 | tee /tmp/ch1-material-adapter-test.log
+          grep -Eq 'GODOT_ENV_MATERIAL_ADAPTER_PASS checks=[0-9]+' /tmp/ch1-material-adapter-test.log
+          ! grep -Eq 'GODOT_ENV_MATERIAL_ADAPTER_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/ch1-material-adapter-test.log
       - name: Compare genuine native 960x640 Chapter I dock frames
         shell: bash
         run: |
@@ -61,6 +71,19 @@ jobs:
           grep -Eq 'GODOT_CH1_ENVIRONMENT_INTAKE_DELTAS water_left=[0-9.]+' /tmp/ch1-environment-capture.log
           ! grep -Eq 'GODOT_CH1_ENVIRONMENT_CAPTURE_FAIL|SCRIPT ERROR|Parse Error|ERROR:' /tmp/ch1-environment-capture.log
           sha256sum godot/review-evidence/environment-intake/*.png
+      - name: Native GL A/B/C proof that soft material fixes rectangular patches
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 110s xvfb-run -a -s '-screen 0 960x640x24' \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot --rendering-driver opengl3 --resolution 960x640 \
+            --audio-driver Dummy \
+            --script res://tests/capture_environment_material_adapter.gd 2>&1 | tee /tmp/ch1-material-adapter-capture.log
+          grep -q 'GODOT_CH1_MATERIAL_BLEND_CAPTURE_PASS frames=3' /tmp/ch1-material-adapter-capture.log
+          grep -Eq 'GODOT_CH1_MATERIAL_BLEND_DELTAS left=[0-9.]+' /tmp/ch1-material-adapter-capture.log
+          ! grep -Eq 'GODOT_CH1_MATERIAL_BLEND_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/ch1-material-adapter-capture.log
+          sha256sum godot/review-evidence/environment-material/*.png
       - name: Upload noncanonical native review images (best effort)
         if: always()
         continue-on-error: true
@@ -69,6 +92,9 @@ jobs:
           name: ch1-environment-intake-native
           path: |
             godot/review-evidence/environment-intake/*.png
+            godot/review-evidence/environment-material/*.png
+            /tmp/ch1-material-adapter-test.log
+            /tmp/ch1-material-adapter-capture.log
             /tmp/ch1-environment-import.log
             /tmp/ch1-environment-test.log
             /tmp/ch1-environment-capture.log
