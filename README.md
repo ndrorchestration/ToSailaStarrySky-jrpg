@@ -4,9 +4,15 @@
 
 *Formerly developed as **Aetherwake — The Last Solarpunk Airship**.*
 
-**To Sail the Starry Sky** is a **pre-alpha solarpunk turn-based JRPG** about the crew of the *Aureate Wake*, a dragonfly-inspired airship navigating a world of sky routes, forgotten histories, and choices that shape the people aboard. The current playable prototype begins with Ender at Wake Dock, where an oncoming storm reveals that the ship's potential depends on the people who resonate with it.
+**To Sail the Starry Sky** is a **pre-alpha solarpunk turn-based JRPG** about the crew of the *Aureate Wake*, a dragonfly-inspired airship navigating a world of sky routes, forgotten histories, and choices that shape the people aboard. The **preserved historical browser prototype** begins with Ender at Wake Dock and the older storm/choice sequence. That is **not** the creator-approved forward Godot Chapter I opening (described below).
 
 **Project status:** This is a publicly accessible **development repository**, not an approved finished game or a verified public Windows release. The browser prototype, character systems and Chapter I work remain under development; game builds and player acceptance have separate verification gates.
+
+## Forward Chapter I — First Wake (creator-directed, draft Godot line)
+
+The current **forward story direction** begins with an out-of-work **Ender finding Captain Ionia's harmonic-engine repair flyer**. Ionia recruits him first; the *Aureate Wake* takes its first short test flight after a year grounded and makes a controlled ocean splashdown. The crew investigates the depleted specialized reserve and its harmonic instability. **Lyra and her five-year-old son Talen are introduced later, following a safe recovery**; Talen is not a combat party member. Ender, Ionia and Lyra share observations and develop a **working** fuel theory, not an established formula. The ship's hidden specifications and later celestial revelations remain deliberately undisclosed.
+
+**Evidence boundary:** This **does not describe the current `main` browser-playable sequence**. It is developed in separate **draft and unmerged native Godot branches**. The experimental story-to-ship cue producer [#491](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/491) passed [native Godot CI #40612310838](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40612310838); the separate Aureate Wake 3D story-cue consumer [#524](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/524) passed [native 3D and four-frame OpenGL CI #40625082846](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625082846) at `d6afcf7a`. **They have not yet run in one integrated production Godot project.**
 
 ## Native Godot screenshot gallery (October 27, 2026)
 
@@ -27,6 +33,18 @@ These images are **real Godot 4.7.2 framebuffer captures**, not AI-generated moc
 
 For full native-resolution captures, source commit IDs, CI artifact provenance, remaining art gates and additional angles, see the [**Godot visual development gallery**](docs/VISUAL_DEVELOPMENT_GALLERY.md). **Passing renderer checks is not artistic acceptance.**
 
+### Latest cinematic integration evidence
+
+[Draft #524](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/524) successfully tested **actual 3D Aureate Wake** framing plus four First Wake story-graded **960×640 OpenGL screenshots** (first lift, controlled descent, afloat and recovery). [View the completed test](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625082846) or the [temporary four-frame capture artifact](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40625082846/artifacts/12788812796) (expires November 4, 2026). These newer shots have **not yet been committed as durable README media**; the image gallery above shows older, committed and provenance-verified native studies from #422/#421.
+
+## Existing game music — recovered source inventory
+
+**Five actual MP3 recordings** were historically admitted on the earlier Chapter One convergence branch, exact commit [`1b1f5180`](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/tree/1b1f51806ea9d013433cb98add260bd9c5be79c0), including **Skyward Arpeggio** (title), **Amonigio Umulula** (opening/cinematics), **Nocturnal Resolve** (combat), **Solar Punk Airship** (travel), and **Open Sky Signal** (Ender's First Note leitmotif). The original audio manifests give the file paths, sizes, SHA-256 identities and historical playback routing.
+
+These binaries are **not present on `main`** and do **not** yet have verified playback in the forward Godot prototype. Newer scene cues must be reconciled with the revised Ionia-first story, and music release/reuse clearance remains a separate gate. No unapproved public audio player is embedded here.
+
+[Full soundtrack provenance and native migration plan](docs/AUDIO_ASSET_REGISTER.md).
+
 The project retains legacy `Aetherwake` filenames, package identifiers, save/release references, and historical test receipts for compatibility and provenance. They are **not** instructions to rename working files or migrate saves without testing.
 
 Selected implementation patterns and reference material were studied from *Memories 0.7.4*; see [Provenance](#provenance) and `memories_adaptation_catalog.md` for the adaptation record.
@@ -38,7 +56,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 - **Stage:** late prototype / pre-alpha
 - **Playable baseline:** boot → First Wake opening → world exploration → dialogue/quest systems → combat
 - **Target roster:** 5 authored playable protagonists — Ender, Lyra, Ionia, Reson, Aepex
-- **Combat party target:** supports 1–5 active authored protagonists, growing through recruitment; First Wake now begins with Ender alone, adds Lyra first, and brings Ionia officially into the early storm/shield sequence
+- **Combat party target:** supports 1–5 active authored protagonists, growing through recruitment; **the preserved JS prototype** recruits Lyra first and Ionia later, while the newer creator-directed Godot Chapter I **recruits Ionia first** and introduces Lyra only after splashdown. The two implementations must not be misrepresented as the same playable build.
 - **Current migration:** smoke-green persistent roster, effect vocabulary/resolver contracts, centralized transactional use eligibility, reachable level-gated progression, and corrected secondary-action state; higher-order effect semantics remain separate gates
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
@@ -131,7 +149,7 @@ Persistent progression belongs to the five-character roster. The target combat/m
 The development runtime now has the first persistent party-state layer:
 
 - `modules/party-state.js` owns exactly five stable roster identities: `ender`, `lyra`, `ionia`, `reson`, and `aepex`;
-- `ACTIVE_PARTY` is validated for 1–5 direct references into `ROSTER`; First Wake now begins with Ender alone, recruits Lyra at Sequence 06, and brings Ionia officially into the early storm/shield sequence;
+- `ACTIVE_PARTY` is validated for 1–5 direct references into `ROSTER`; **historical JS Sequence 06** recruits Lyra ahead of Ionia, but this chronology is superseded for the forward native Godot design;
 - `world.player`, `ROSTER[0]`, and `ACTIVE_PARTY[0]` are the same object, so combat write-back updates the canonical lead record;
 - the preserved character-creation flow still creates two player-named prototype companions and prototype jobs, then adapts them into the Lyra/Ionia roster slots;
 - Reson and Aepex are identity-only runtime shells until authored onboarding/mechanics are migrated;
