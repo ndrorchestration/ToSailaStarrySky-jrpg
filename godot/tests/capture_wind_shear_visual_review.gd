@@ -81,9 +81,20 @@ func _capture() -> void:
         _fail("pixel atlas missing from live encounter")
         return
     art.set_reduced_motion(true)
+    # Honest A/B with the SAME real combat scene and identical encounter state.
+    # The review switch controls only a static backdrop behind the sprite.
+    world.wind_shear_stage_depth_enabled = false
+    world.queue_redraw()
+    await process_frame
+    if not (await _snapshot("wind-shear-flat-native-960x640")):
+        _fail("flat stage control capture")
+        return
+    var flat_stage_frame: Image = _frames.pop_back()
+    world.wind_shear_stage_depth_enabled = true
+    world.queue_redraw()
     await process_frame
     if not (await _snapshot("wind-shear-idle-native-960x640")):
-        _fail("idle capture")
+        _fail("depth-lit idle capture")
         return
 
     # Review-only clock samples of the same actual live enemy and native
@@ -179,7 +190,17 @@ func _capture() -> void:
         return
 
     if _frames.size() != 9:
-        _fail("nine native captures missing")
+        _fail("nine native combat-state captures missing")
+        return
+    # The stage depth pass must change only its intended enemy area. The
+    # adjoining command, actor and status panel must remain exactly unchanged.
+    var background_roi := Rect2i(590, 190, 195, 190)
+    var protected_ui_roi := Rect2i(165, 202, 414, 245)
+    if flat_stage_frame.get_region(background_roi).get_data() == _frames[0].get_region(background_roi).get_data():
+        _fail("new depth-light stage matches the undressed flat control")
+        return
+    if flat_stage_frame.get_region(protected_ui_roi).get_data() != _frames[0].get_region(protected_ui_roi).get_data():
+        _fail("combat stage lighting leaked into player controls or text")
         return
     var target := Rect2i(588, 185, 196, 192)
     # Native captures prove all hand-authored idle poses are visually
@@ -215,7 +236,7 @@ func _capture() -> void:
         return
     world.queue_free()
     await process_frame
-    print("WIND_SHEAR_NATIVE_RENDER_PASS: nine 960x640 captures, authored idles, identical reduced-motion still, real hit THEN already-resolved Gale; creator acceptance pending")
+    print("WIND_SHEAR_NATIVE_RENDER_PASS: ten 960x640 captures including isolated A/B depth stage, nine authored/reaction states, fixed reduced-motion still; creator acceptance pending")
     quit(0)
 
 func _fail(reason: String) -> void:
