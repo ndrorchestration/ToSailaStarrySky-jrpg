@@ -1,5 +1,6 @@
 extends SceneTree
-## Genuine GL framebuffer capture. PNG stays runner-local; JPEG is a lossy review derivative.
+## GL output capture. PNGs are authoritative runner-local evidence;
+## small lossy JPEGs are explicitly marked human-inspection derivatives.
 const Studio = preload("res://scenes/five_lights_motion_studio.tscn")
 
 func _initialize() -> void:
@@ -11,27 +12,59 @@ func _capture() -> void:
     stage.keyboard_enabled = false
     await process_frame
     await RenderingServer.frame_post_draw
-    var frame: Image = root.get_viewport().get_texture().get_image()
-    if frame == null or frame.get_width() != 960 or frame.get_height() != 640:
-        push_error("TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_FAIL: incorrect framebuffer dimensions")
+    var original_sha: String = _save("IDLE")
+    if original_sha.is_empty():
         quit(1)
         return
-    var full_path := "/tmp/tstss_five_lights_native_960x640.png"
-    var err: Error = frame.save_png(full_path)
-    if err != OK:
-        push_error("TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_FAIL: could not save native framebuffer")
+
+    var ender = stage.cast_actors["Ender"]
+    var initial: Vector2 = ender.global_position
+    ender.set_motion(Vector2.RIGHT)
+    for tick in range(30):
+        await physics_frame
+    ender.set_motion(Vector2.ZERO)
+    await physics_frame
+    if ender.global_position.x <= initial.x + 20.0 or ender.facing != "east":
+        push_error("TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_FAIL: no optical sprite motion on native physics root")
         quit(1)
         return
-    var preview: Image = frame.duplicate()
-    preview.resize(480, 320, Image.INTERPOLATE_LANCZOS)
-    var jpg: PackedByteArray = preview.save_jpg_to_buffer(0.7)
-    if jpg.is_empty() or jpg.size() > 90000:
-        push_error("TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_FAIL: review preview bounds")
+    await RenderingServer.frame_post_draw
+    var moving_sha: String = _save("MOVING")
+    if moving_sha.is_empty() or moving_sha == original_sha:
+        push_error("TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_FAIL: unchanged moving frame")
         quit(1)
         return
-    print("TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_PASS:960x640 sha256=" + FileAccess.get_sha256(full_path))
-    print("TSTSS_FIVE_LIGHTS_REVIEW_JPEG_480x320_BEGIN")
-    print(Marshalls.raw_to_base64(jpg))
-    print("TSTSS_FIVE_LIGHTS_REVIEW_JPEG_480x320_END")
+
+    stage.reduced_motion = true
+    stage.ambience.set_shader_parameter("reduced_motion", true)
+    await process_frame
+    await RenderingServer.frame_post_draw
+    var still_sha: String = _save("REDUCED_MOTION")
+    if still_sha.is_empty():
+        quit(1)
+        return
+    print("TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_PASS:frames=3 native_960x640=true ender_physics_moved=true atmos_still=true")
     stage.queue_free()
     quit(0)
+
+func _save(label: String) -> String:
+    var frame: Image = root.get_viewport().get_texture().get_image()
+    if frame == null or frame.get_width() != 960 or frame.get_height() != 640:
+        push_error("TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_FAIL: framebuffer dimensions")
+        return ""
+    var png_path: String = "/tmp/tstss_five_lights_%s_native_960x640.png" % label.to_lower()
+    if frame.save_png(png_path) != OK:
+        push_error("TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_FAIL: could not save original PNG " + label)
+        return ""
+    var digest: String = FileAccess.get_sha256(png_path)
+    var review: Image = frame.duplicate()
+    review.resize(480, 320, Image.INTERPOLATE_LANCZOS)
+    var jpeg: PackedByteArray = review.save_jpg_to_buffer(0.74)
+    if jpeg.size() <= 0 or jpeg.size() > 90000:
+        push_error("TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_FAIL: invalid 480x320 JPEG")
+        return ""
+    print("TSTSS_FIVE_LIGHTS_NATIVE_FRAME:" + label + ":sha256=" + digest)
+    print("TSTSS_FIVE_LIGHTS_REVIEW_JPEG_" + label + "_BEGIN")
+    print(Marshalls.raw_to_base64(jpeg))
+    print("TSTSS_FIVE_LIGHTS_REVIEW_JPEG_" + label + "_END")
+    return digest
