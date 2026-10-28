@@ -188,8 +188,14 @@ static func validate(raw: Variant) -> Dictionary:
                 return _reject("bag_instance_equipped_or_has_owner")
         else:
             return _reject("unrecognized_location")
-    if seen_instances.size() != FIXTURE_IDS.size() or references.size() > seen_instances.size():
+    if seen_instances.size() != FIXTURE_IDS.size():
         return _reject("missing_item_instances")
+    # Every worn slot must resolve to a real instance. Otherwise a fake ID
+    # in Ender's slot could masquerade as gear while the true item remains
+    # in the bag: the duplication/ghost-item case must fail closed.
+    for equipped_id in references.keys():
+        if not seen_instances.has(equipped_id):
+            return _reject("equipped_reference_without_owned_instance")
     return {"ok": true, "ready": true, "error": ""}
 
 static func inspect(raw: Variant) -> Dictionary:
