@@ -232,9 +232,3 @@ func visual_contract() -> Dictionary:
         "presentationSequence":presentation_queue.sequence,
     }
 
-func _draw() -> void:
-    if not visible:
-        return
-    draw_string(ThemeDB.fallback_font,Vector2(-160,-154),
-        "STAFF VISUAL STUDY / NONEXECUTING",
-        HORIZONTAL_ALIGNMENT_LEFT,-1,15,Color("#d9cba9"))
