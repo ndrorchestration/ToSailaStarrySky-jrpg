@@ -163,6 +163,21 @@ jobs:
           timeout 125s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_local_berth_game_test.gd 2>&1 | tee /tmp/first-wake-local-berth.log
           ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_PLAYABLE_LOCAL_BERTH_FAIL:' /tmp/first-wake-local-berth.log
           grep -Eq 'TSTSS_PLAYABLE_LOCAL_BERTH_PASS checks=[0-9]+ original_2d_splashdown=true independent_berth_overlap=true' /tmp/first-wake-local-berth.log
+      - name: Verify physical berth is the only admission to playable Lyra and Talen family review
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 130s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_physical_family_bridge_test.gd 2>&1 | tee /tmp/first-wake-physical-family-bridge.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_FIRST_WAKE_PHYSICAL_FAMILY_BRIDGE_FAIL:' /tmp/first-wake-physical-family-bridge.log
+          grep -Eq 'TSTSS_FIRST_WAKE_PHYSICAL_FAMILY_BRIDGE_PASS checks=[0-9]+ original_ocean_contact=true real_berth_sensor=true' /tmp/first-wake-physical-family-bridge.log
+      - name: Verify imported family fuel and melody story contracts are still independent and fail closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in first_wake_postflight_family_review_test first_wake_core_alignment_review_test first_wake_core_alignment_scene_test first_wake_melody_analysis_review_test; do
+            timeout 65s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script "res://tests/${name}.gd" 2>&1 | tee "/tmp/${name}.log"
+            ! grep -Eq 'SCRIPT ERROR:|Parse Error|ERROR:|_FAIL:' "/tmp/${name}.log"
+          done
       - name: Verify native cinematic postflight shaders and reversible reduced motion
         shell: bash
         run: |
