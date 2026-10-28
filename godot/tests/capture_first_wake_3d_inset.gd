@@ -13,6 +13,23 @@ func _frame() -> Image:
         await RenderingServer.frame_post_draw
     return root.get_texture().get_image()
 
+func _private_review_jpeg(frame: Image, label: String) -> void:
+    # Existing visual QA custody: native 960x640 originals remain runner-only.
+    # Small low-quality JPEG is printed in bounded chunks for inspection.
+    if not (label.begins_with("01-") or label.begins_with("02-") or label.begins_with("05-")):
+        return
+    var reduced: Image = frame.duplicate()
+    reduced.resize(480, 320, Image.INTERPOLATE_LANCZOS)
+    var bytes: PackedByteArray = reduced.save_jpg_to_buffer(0.68)
+    if bytes.is_empty() or bytes.size() > 180000:
+        problems.append("private 3D shot preview encoding failed or exceeded 180KB")
+        return
+    var encoded: String = Marshalls.raw_to_base64(bytes)
+    print("TSTSS_3D_PRIVATE_JPEG_BEGIN:" + label + ":480x320")
+    for i in range(0, encoded.length(), 3500):
+        print("TSTSS_3D_PRIVATE_JPEG_DATA:" + encoded.substr(i, 3500))
+    print("TSTSS_3D_PRIVATE_JPEG_END:" + label)
+
 func _save(dir: String, label: String) -> Image:
     var image: Image = await _frame()
     if image == null or image.get_size() != Vector2i(960, 640):
@@ -23,6 +40,7 @@ func _save(dir: String, label: String) -> Image:
         problems.append("could not write actual rendered " + path)
         return null
     print("NATIVE_FIRST_WAKE_3D_FRAME: ", path)
+    _private_review_jpeg(image, label)
     return image.duplicate()
 
 func _delta(a: Image, b: Image) -> float:
