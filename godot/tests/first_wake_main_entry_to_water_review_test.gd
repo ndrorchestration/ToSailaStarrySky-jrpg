@@ -147,8 +147,45 @@ func _verify() -> void:
     if review.get("reserve_inspection_observed", true) or flight.opening.step_key() != "waterborne":
         _fail("depleted-reserve diagnosis was granted before explicit player inspection")
         return
-    if not flight.interact():
-        _fail("player could not inspect reserve after stable floating")
+    if flight.inspect_empty_reserve_after_splashdown():
+        _fail("could inspect reserve without boarding the onboard review")
+        return
+    if not flight.interact() or flight.phase != "afloat_inspection":
+        _fail("stable float did not open the gated onboard reserve deck")
+        return
+    if not flight.review_snapshot().get("afloat_station_entered", false):
+        _fail("afloat station did not enter the actual flight scene")
+        return
+    if flight.open_afloat_reserve_review() or flight.interact():
+        _fail("duplicate entry or distant inspection was incorrectly permitted")
+        return
+    var deck = flight.afloat_review
+    if deck == null or deck.opening != flight.opening:
+        _fail("afloat review lost the shared story contract")
+        return
+    if deck.review_snapshot().get("real_inventory_scan_verified", true):
+        _fail("afloat station incorrectly claimed inventory verification")
+        return
+    var before_walk: float = deck.ender.position.x
+    Input.action_press("ui_right")
+    for i in range(12):
+        await physics_frame
+    Input.action_release("ui_right")
+    if deck.ender.position.x <= before_walk:
+        _fail("Ender could not physically move in the reserve station scene")
+        return
+    if flight.interact() or deck.inspection_observed:
+        _fail("remote inspection was possible before arriving at the station")
+        return
+    deck.ender.position = deck.RESERVE_POSITION
+    if not flight.interact() or flight.phase != "postflight_diagnosis":
+        _fail("nearby reserve-station inspection failed to advance the story")
+        return
+    if not flight.review_snapshot().get("physical_reserve_interaction_verified", false):
+        _fail("actual onboard reserve interaction receipt missing")
+        return
+    if deck.review_snapshot().get("salvage_verified", true):
+        _fail("onboard inspection improperly granted physical salvage")
         return
     if flight.opening.step_key() != "postflight_diagnosis" or not flight.review_snapshot().get("reserve_inspection_observed", false):
         _fail("safe reserve examination did not progress to diagnosed postflight")
@@ -176,7 +213,7 @@ func _verify() -> void:
     if _file_hash(SaveStore.DEFAULT_PATH) != v1_hash or _file_hash(RevisedCodec.SLOT_PATH) != v2_hash:
         _fail("F8 exit from splashdown rewrote v1/v2 checkpoint data")
         return
-    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: configured startup F8, flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, explicit empty-reserve postflight inspection, F8 exact v1 return; no save or Art migration")
+    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: configured startup F8, flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, physical onboard reserve-station proximity inspection, F8 exact v1 return; no save or Art migration")
     quit(0)
 
 func _finish_dialogue(world: Node) -> bool:
