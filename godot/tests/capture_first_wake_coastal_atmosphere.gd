@@ -84,8 +84,10 @@ func _run() -> void:
     var clear: Image = await _shot("03-deck-source-water-coastal-clear.png")
     if not sky.set_review_profile("coastal_dusk"):
         failures.append("dusk_reentry_denied")
-    review.cycle_camera_review()
-    var elevated: Image = await _shot("04-elevated-coastal-ocean-and-ship.png")
+    if not review.toggle_scenic_horizon_review():
+        failures.append("could_not_aim_actual_lookout_camera")
+    review.helm_feedback.visible = false
+    var elevated: Image = await _shot("04-lookout-scenic-sky-and-ocean.png")
 
     var flat_dusk: int = _diff(before, dusk)
     var dusk_clear: int = _diff(dusk, clear)
