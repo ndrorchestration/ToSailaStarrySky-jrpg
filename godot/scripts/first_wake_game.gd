@@ -71,6 +71,17 @@ func _enter_postflight() -> bool:
 func _input(event: InputEvent) -> void:
     if event.is_echo():
         return
+    # Native standalone window, not a web frame. Resizable title bar stays
+    # available; F11 and Alt+Enter are deliberate player fullscreen options.
+    if event is InputEventKey and event.pressed:
+        if event.keycode == KEY_F11 or (event.keycode == KEY_ENTER and event.alt_pressed):
+            var window: Window = get_window()
+            if window.mode == Window.MODE_FULLSCREEN or window.mode == Window.MODE_EXCLUSIVE_FULLSCREEN:
+                window.mode = Window.MODE_WINDOWED
+            else:
+                window.mode = Window.MODE_FULLSCREEN
+            get_viewport().set_input_as_handled()
+            return
     if event.is_action_pressed(InputPolicy.SAVE_PROGRESS):
         save_game()
         get_viewport().set_input_as_handled()
