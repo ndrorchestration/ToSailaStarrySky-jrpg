@@ -119,14 +119,47 @@ func _verify() -> void:
     if flight.review_snapshot().get("real_inventory_scan_verified", true):
         _fail("authored review incorrectly claimed actual inventory implementation")
         return
-    if not flight.interact() or flight.phase != "recovery_review":
-        _fail("explicit safe-recovery request after postflight diagnosis rejected")
+    if not flight.interact() or flight.phase != "recovery_approach":
+        _fail("explicit safe-recovery request did not move physical hull along local surface corridor")
+        return
+    if flight.interact() or flight.acknowledge_safe_berth_and_open_family_review():
+        _fail("family reunion shortcut worked before local berth sensor contact")
         return
     if "lyra" in flight.opening.active_party_ids or not flight.review_snapshot().get("recovery_request_recorded", false):
         _fail("request skipped crew decision or recruited Lyra")
         return
+    var arrived_at_berth := false
+    for i in range(420):
+        await process_frame
+        if flight.phase == "berth_contact":
+            arrived_at_berth = true
+            break
+    if not arrived_at_berth or not flight.berth_area.overlaps_body(flight.ship_body):
+        _fail("real native 2D ship never reached independently measured berth Area2D")
+        return
+    if flight.acknowledge_safe_berth_and_open_family_review() or flight.review_snapshot().get("berth_stable_verified", true):
+        _fail("berth contact alone falsely certified safe stable mooring")
+        return
+    if not flight.interact() or flight.phase != "berth_securing":
+        _fail("player could not secure lines after berth contact")
+        return
+    if flight.interact():
+        _fail("family accepted while physical berth speed/hold still unresolved")
+        return
+    var stable_at_berth := false
+    for i in range(240):
+        await process_frame
+        if flight.phase == "berth_ready":
+            stable_at_berth = true
+            break
+    if not stable_at_berth or not flight.review_snapshot().get("local_2d_berth_approach_verified", false):
+        _fail("native 2D berth sensor contact and sustained safe-speed hold failed")
+        return
     if not flight.interact() or flight.family_review == null:
-        _fail("deliberate safe berth staging did not open playable family review")
+        _fail("measured local safe berth did not open playable family review")
+        return
+    if flight.review_snapshot().get("approved_shoreline_or_tow_method", true):
+        _fail("local berth proof incorrectly approved real shoreline or tow lore")
         return
     if flight.opening.active_party_ids != ["ender", "ionia"] or flight.family_review.opening != flight.opening:
         _fail("family scene changed party before introduction or lost shared story")
