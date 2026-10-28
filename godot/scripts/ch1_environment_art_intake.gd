@@ -59,7 +59,7 @@ func _paint_region(area: Rect2, source: Texture2D, family: int) -> void:
     shader_material.set_shader_parameter("micro_detail", source)
     shader_material.set_shader_parameter("region_detail", BIOME)
     shader_material.set_shader_parameter("surface_family", family)
-    shader_material.set_shader_parameter("material_strength", 0.78)
+    shader_material.set_shader_parameter("material_strength", 0.88)
     shader_material.set_shader_parameter("mask_quality", 1.0)
     patch.material = shader_material
     add_child(patch)
