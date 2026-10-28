@@ -1,10 +1,74 @@
-# Aetherwake — The Last Solarpunk Airship
+# To Sail the Starry Sky
 
-Aetherwake is a **pre-alpha turn-based JRPG** built with p5.js and adapted from selected technical patterns and reference material from *Memories 0.7.4*. You play Ender aboard the *Aureate Wake*, the last solarpunk airship, as a storm at Wake Dock reveals that the ship can exceed ordinary performance only when the right crew resonates with it.
+**An original science-fantasy JRPG in development.** Formerly developed under the *Aetherwake* name, this project is building a character-led, cinematic 2.5D exploration experience around the **Aureate Wake**, an extraordinary ship whose capabilities unfold through the story.
 
-The current repository contains a playable vertical-slice prototype plus an active architecture migration toward the full authored-party RPG.
+The repository currently contains **two distinct playable development paths**: an earlier p5.js browser prototype at the root, and a **native Godot 4.7.2 Chapter I review** in [`godot/`](godot/). The revised Godot story opening is under review in unmerged draft PRs; it does not replace the original main-branch gameplay or authorize a new release.
 
-## Development status
+## In-engine visual gallery
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <a href="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-south-full.png">
+        <img src="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-south-full.png" width="460" alt="Actual 960×640 Godot review rendering: Ender and Ionia facing south at fixed positions in the dock scene">
+      </a>
+      <br><sub><strong>Ender and Ionia — south-facing native frame</strong></sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-east-full.png">
+        <img src="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-east-full.png" width="460" alt="Actual 960×640 Godot review rendering: Ender and Ionia facing east at the same scene anchors">
+      </a>
+      <br><sub><strong>Ender and Ionia — east-facing native frame</strong></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-north-full.png">
+        <img src="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-north-full.png" width="460" alt="Actual 960×640 Godot review rendering: Ender and Ionia facing north">
+      </a>
+      <br><sub><strong>Ender and Ionia — north-facing native frame</strong></sub>
+    </td>
+    <td align="center">
+      <a href="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-west-full.png">
+        <img src="docs/reviews/native-evidence/2026-10-21-pr319/joint-fixed-west-full.png" width="460" alt="Actual 960×640 Godot review rendering: Ender and Ionia facing west">
+      </a>
+      <br><sub><strong>Ender and Ionia — west-facing native frame</strong></sub>
+    </td>
+  </tr>
+</table>
+
+*These are **real, previously committed Godot 960×640 native renderer captures** from the October 21 character-direction review (PR #319), **not** screenshots of the latest Chapter I salvage or save system. They document earlier visual implementation, not approved final character art, a cinematic-quality sign-off, or a released build.*
+
+<details>
+<summary><strong>More artwork and native character comparisons</strong></summary>
+
+**Four-way character contact sheet — authentic in-engine render study**
+
+![Four native Godot character views, captured at fixed dock positions](docs/reviews/native-evidence/2026-10-21-pr319/fourway-contact-sheet.svg)
+
+**Ionia front/rear cohesion comparison — archived native render study**
+
+![Ionia V4/V5 front and rear actual native visual comparison, art review only](docs/reviews/native-evidence/2026-10-21-pr325/ionia-front-rear-v4-v5-actual-native-comparison.svg)
+
+**Ender original high-resolution art reference — reference illustration, not a native screenshot**
+
+<img src="godot/art-review/ender-approved-reference.png" width="400" alt="Ender high-resolution character art reference, separate from in-engine review renders">
+
+</details>
+
+**Visual evidence boundary:** The newer Chapter I runs for local water physics, safely moored family introduction, two-area salvage, and v3 checkpointing have passed native workflow checks in [draft PR #561](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/561), but their latest screenshot PNGs remain **runner-local**, not published in this README. Do not mistake these archived screenshots for new gameplay frames. [First Wake native workflow evidence](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40646186594) · [visual review workflow](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40646186513).
+
+## Play the native Godot Chapter I review
+
+1. Install **Godot 4.7.2**, open **Godot Project Manager**, and import **[`godot/project.godot`](godot/project.godot)**. The project file is intentionally nested beneath the repository root.
+2. Open the imported project and press **F5** (Run Project). The default scene is the preserved original Chapter I review. Press **F8** to visit the revised, *Ionia-first* First Wake prototype; this is an opt-in development route.
+3. Use **arrow keys** to walk and **E** to interact. After completing hiring, engineering checks, and the safety review, **F** enters the first-flight sequence. In the revised salvage area, **K** saves and **L** loads its separate v3 review checkpoint; from a fresh revised dock, **J** opts into a prior v3 salvage resume. **F8** returns to the original scene.
+
+The v3 checkpoint and recent in-game visuals are **draft branch features**, not yet merged into the main downloadable build. The planned single-click Windows installer is still **blocked by independent Defender custody/security preflight**, even though other native Godot tests pass; no new release download is advertised here.
+
+## Legacy browser development status
+
+The following technical/runtime notes describe the **older p5.js browser baseline**, not the full revised native Godot Chapter I or final campaign.
 
 - **Stage:** late prototype / pre-alpha
 - **Playable baseline:** boot → First Wake opening → world exploration → dialogue/quest systems → combat
@@ -14,7 +78,7 @@ The current repository contains a playable vertical-slice prototype plus an acti
 
 See `SPEC.md` for the implementation/target split and `docs/DEVELOPMENT.md` for source-of-truth and verification rules.
 
-## Run the game
+## Run the legacy browser prototype
 
 Use a local HTTP server for the reliable launch path. The canonical smoke test uses this same model.
 
