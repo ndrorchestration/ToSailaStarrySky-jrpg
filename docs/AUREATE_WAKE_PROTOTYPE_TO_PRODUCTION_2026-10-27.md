@@ -61,3 +61,16 @@ Independent stacked [draft PR #512](https://github.com/ndrorchestration/ToSailth
 - The real Chapter I preview still does NOT instantiate this 3D scene. Existing story chronology, saved game states and Resonance authorization remain untouched. The separate Windows QA host Defender prerequisite remains a hold.
 
 Next: **G1** source-verified native asset staging/visual validation, then **G2** creator-reviewed dimensioned hull and real actor/egress hazard checks; reserve real Chapter I shipboard camera/dialogue interaction for G3. This ledger remains on an unmerged **docs-only PR #506**, and does not promote the Godot study to main.
+
+## 2026-10-28 — actual walking crew and exact-original-glass staging (drafts)
+
+Two **independent, still unmerged, staged** updates build on metric physics draft #512:
+
+| New draft | Runtime addition | Evidence boundary |
+| --- | --- | --- |
+| [#531 — isolated native walking review](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/531) | Real anonymous 1.74m `CharacterBody3D` with `move_and_slide()`, gravity, actual E-range hatch interaction, bidirectional room/deck walking, lateral turn and physics-based follow-camera occlusion | Initial exact-head native [run 40630213192](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40630213192) passed **31** moving-crew checks and 3 crew/hatch images; final viewpoint revision **requires newer exact-head CI**, not automatically inherited |
+| [#540 — original glass shader staging](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/540) | Quarantined original `bridge_panorama_glass.gdshader` source from #482 with Git SHA1 blob `b6c7e8d4144acc14074581b08b61c61b7f5a047a` and content SHA256 `fa5a1d235d28c51aa93640e30ef25ddffecce16ab7d1083330da122a2480b7be`, plus opt-in source clear / low-glare visual settings in **isolated** metric 3D ship | Target Git blob was checked against the source and matched **exactly**. This is a **G1 shader byte intake only**. Native import, shader GL and A/B acceptance must be read from #540's own exact-head CI; **not yet assumed passed at document creation** |
+
+The new controller/render studies remain separated from the real Chapter I employment/engineering playable preview, so no existing save, party, Resonance or story progression is changed. Neither their passing physics nor glass hash proves weather protection, a sealed or accredited hull, finished ship art, licensed production asset adoption, real protagonist appearance, player accessibility, target hardware Windows performance, or release authority. All prototype hull dimensions remain proposals until creator review.
+
+**Production progression:** G0 semantic Chapter I handoff verified; G1 shader source custody staged for Godot verification; G2 actor-controlled 3D circulation demonstrated in a separate laboratory, not yet an approved hull or main gameplay; G3–G5 open/blocked. Do not merge until independent authorization. This main-directed documentation remains a **draft PR #506**.
