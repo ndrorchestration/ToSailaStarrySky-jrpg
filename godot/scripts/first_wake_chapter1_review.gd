@@ -5,6 +5,7 @@ extends Node2D
 
 const Actor = preload("res://scripts/pilot_actor.gd")
 const DockDepthReview = preload("res://scripts/dock_depth_review.gd")
+const EnvironmentArtIntake = preload("res://scripts/ch1_environment_art_intake.gd")
 const ChapterState = preload("res://scripts/first_wake_chapter1_state.gd")
 const Content = preload("res://scripts/first_wake_chapter1_content.gd")
 const DialogueState = preload("res://scripts/first_wake_chapter1_dialogue_state.gd")
@@ -38,6 +39,7 @@ const CONTACT_POINTS := {
 }
 
 var chapter = ChapterState.new()
+var environment_asset_intake: Node2D
 var ender: CharacterBody2D
 var contacts: Dictionary = {}
 var headline: Label
@@ -69,6 +71,13 @@ func _ready() -> void:
     background.name = "ChapterOneDockBackgroundReviewOnly"
     background.z_index = -2
     add_child(background)
+
+    # An opt-in material intake layer between scenery and real actors.
+    # Hidden unless a review script explicitly requests it; no new
+    # gameplay key, save field, quest mutation, collider or stage rule.
+    environment_asset_intake = EnvironmentArtIntake.new()
+    environment_asset_intake.name = "ChapterOneEnvironmentAssetIntakeReviewOnly"
+    add_child(environment_asset_intake)
 
     var actors := Node2D.new()
     actors.name = "ChapterOneMigrationActors"
@@ -135,6 +144,13 @@ func _ready() -> void:
     headline.text = "AETHERWAKE  /  FIRST WAKE"
     _refresh_ui()
     queue_redraw()
+
+func set_environment_asset_intake_review_enabled(enabled: bool) -> void:
+    if environment_asset_intake != null:
+        environment_asset_intake.visible = enabled
+
+func is_environment_asset_intake_review_enabled() -> bool:
+    return environment_asset_intake != null and environment_asset_intake.visible
 
 func _label(parent: Node, location: Vector2, size: int) -> Label:
     var label := Label.new()
