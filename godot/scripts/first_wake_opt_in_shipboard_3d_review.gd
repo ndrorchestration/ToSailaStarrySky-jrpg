@@ -5,6 +5,7 @@ const FirstWakeScene = preload("res://scenes/first_wake_job_preview.tscn")
 const ShipScene = preload("res://scenes/aureate_wake_metric_bridge_study.tscn")
 const ZoneCamera = preload("res://scripts/first_wake_3d_zone_camera_review.gd")
 const CrewMotion = preload("res://scripts/first_wake_3d_crew_motion_proxy.gd")
+const CoastalAtmosphere = preload("res://scripts/first_wake_coastal_atmosphere_review.gd")
 const REVIEW_ID := "tstss.first-wake.3d-ship-walk.review.v1"
 const REVIEW_PRODUCTION_READY: bool = false
 const HELM_CONSOLE_INTERACT_RANGE_M: float = 1.55
@@ -14,6 +15,7 @@ var ship: Node3D
 var three_d_review_active: bool = false
 var zone_camera: Node3D
 var motion_visual: Node3D
+var atmosphere_review: Node3D
 var review_observations: int = 0
 var review_label: Label
 var instruction_label: Label
@@ -42,6 +44,8 @@ func _ready() -> void:
     ship.add_child(zone_camera)
     motion_visual = CrewMotion.new()
     ship.crew_walker.add_child(motion_visual)
+    atmosphere_review = CoastalAtmosphere.new()
+    ship.add_child(atmosphere_review)
     # The original anonymous whole-body capsule remains the physical collider.
     # Only its old mesh is visually replaced in this optional review scene.
     ship.crew_walker.get_node("AnonymousCrewBodyVisual").visible = false
@@ -192,6 +196,17 @@ func cycle_camera_review() -> bool:
     _refresh_ui()
     return true
 
+func cycle_atmosphere_review() -> bool:
+    if not three_d_review_active:
+        return false
+    if not atmosphere_review.cycle_coastal_lighting():
+        return false
+    last_review_message = (
+        "Coastal atmosphere art study: " + atmosphere_review.review_profile +
+        ". This is visual only; no weather or sea physics.")
+    _refresh_ui()
+    return true
+
 func transient_review_contract() -> Dictionary:
     return {
         "schema": REVIEW_ID,
@@ -225,7 +240,7 @@ func _refresh_ui() -> void:
         review_label.position = Vector2(24, 24)
         review_label.text = "AUREATE WAKE / ORDINARY SHIP WALKTHROUGH — STUDY ONLY"
         instruction_label.text = (
-            "WASD / ARROWS: walk    E: hatch    F: helm    G: glass    C: camera    B: return")
+            "WASD / ARROWS walk   E hatch   F helm   G glass   C camera   V light   B return")
         instruction_label.visible = true
     else:
         review_label.position = Vector2(24, 148)
@@ -248,4 +263,7 @@ func _unhandled_input(event: InputEvent) -> void:
             get_viewport().set_input_as_handled()
     elif three_d_review_active and event.keycode == KEY_C:
         if cycle_camera_review():
+            get_viewport().set_input_as_handled()
+    elif three_d_review_active and event.keycode == KEY_V:
+        if cycle_atmosphere_review():
             get_viewport().set_input_as_handled()
