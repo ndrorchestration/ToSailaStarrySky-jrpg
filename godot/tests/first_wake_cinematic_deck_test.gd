@@ -1,6 +1,6 @@
 extends SceneTree
 ## Shader/native node-level QA. Does NOT impersonate an ocean landing or grant story.
-const Environment = preload("res://scripts/first_wake_cinematic_seascape.gd")
+const DeckEnvironment = preload("res://scripts/first_wake_cinematic_seascape.gd")
 var failures: Array[String] = []
 var checks: int = 0
 
@@ -13,7 +13,7 @@ func verify(ok: bool, what: String) -> void:
         failures.append(what)
 
 func _run() -> void:
-    var stage := Environment.new()
+    var stage := DeckEnvironment.new()
     root.add_child(stage)
     await process_frame
     var snap: Dictionary = stage.visual_snapshot()
