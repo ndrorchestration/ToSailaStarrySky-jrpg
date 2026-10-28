@@ -177,6 +177,13 @@ func _unhandled_input(event: InputEvent) -> void:
         _sync_presentation()
         get_viewport().set_input_as_handled()
         return
+    if room == "dock" and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
+        var next_material: bool = not dock_background.refined_materials_enabled
+        dock_background.set_refined_materials_enabled(next_material)
+        last_message = "Pier materials ON — weathered wood and coastal detail." if next_material else "Original simple pier materials restored."
+        _sync_presentation()
+        get_viewport().set_input_as_handled()
+        return
     if room == "dock" and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_L:
         if ender.creator_standee_enabled and ionia.creator_standee_enabled:
             var next_lighting: bool = not ender.creator_field_lighting_enabled
