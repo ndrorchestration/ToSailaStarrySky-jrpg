@@ -481,6 +481,9 @@ func confirm_gear_inspector_item() -> bool:
         if str(GearInspector.SLOTS[idx]) == selected_slot:
             gear_inspector.slot_index = idx
             break
+    if not gear_inspector.move_slot(0, battle_loadout, trial_inventory):
+        close_gear_inspector()
+        return false
     return refresh_gear_inspector()
 
 func start_formula_review() -> bool:
