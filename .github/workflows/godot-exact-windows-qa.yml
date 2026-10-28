@@ -252,6 +252,23 @@ jobs:
       - name: Verify Windows package safety contracts
         shell: pwsh
         run: |
+          # Validate both trusted-host PowerShell scripts on a real Windows
+          # PowerShell parser without executing their protected scan paths.
+          foreach ($file in @(
+            "scripts/verify-first-wake-installer-defender.ps1",
+            "scripts/prepare-first-wake-windows-installer.ps1"
+          )) {
+            $tokens = $null
+            $parseErrors = $null
+            $null = [System.Management.Automation.Language.Parser]::ParseFile(
+              (Join-Path $PWD.Path $file), [ref]$tokens, [ref]$parseErrors
+            )
+            if (@($parseErrors).Count -ne 0) {
+              $details = @($parseErrors | ForEach-Object { "$($_.Extent.StartLineNumber):$($_.Message)" }) -join "; "
+              throw "TSTSS_TRUSTED_WINDOWS_SCRIPT_PARSER_FAILED:$file:$details"
+            }
+            Write-Host "TSTSS_TRUSTED_WINDOWS_SCRIPT_PARSE_PASS=$file"
+          }
           node tests/godot-windows-preview-package-contract.test.js
           if ($LASTEXITCODE -ne 0) { throw "WINDOWS_PACKAGE_CONTRACT_FAILED" }
           node tests/godot-windows-native-qa-contract.test.js
