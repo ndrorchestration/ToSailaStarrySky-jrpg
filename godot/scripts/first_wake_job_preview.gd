@@ -13,6 +13,7 @@ const Dock = preload("res://scripts/dock_depth_review.gd")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const ShipSpacesHandoff = preload("res://scripts/first_wake_ship_spaces_handoff.gd")
 const ShipPosePort = preload("res://scripts/first_wake_ship_visual_pose_port.gd")
+const ShipPoseReview3D = preload("res://scripts/first_wake_ship_pose_3d_review.gd")
 
 const FLYER_POSITION := Vector2(442, 463)
 const IONIA_DOCK_POSITION := Vector2(677, 467)
@@ -41,6 +42,7 @@ var dock_foreground: Node2D
 var ship_spaces_handoff: Node2D
 var _ship_spaces_requested: bool = false
 var ship_pose_port = ShipPosePort.new()
+var ship_pose_3d_review = null
 var headline: Label
 var objective: Label
 var hint: Label
@@ -116,12 +118,16 @@ func set_ship_spaces_review_enabled(enabled: bool) -> bool:
     var approved: bool = ship_spaces_handoff.request_review(
         enabled, room, opening.step_key(), opening.active_party_ids)
     _ship_spaces_requested = approved
+    if not approved and ship_pose_3d_review != null:
+        set_ship_pose_3d_review_enabled(false)
     return approved
 
 func _sync_ship_space_review() -> void:
     if ship_spaces_handoff != null:
         _ship_spaces_requested = ship_spaces_handoff.request_review(
             _ship_spaces_requested, room, opening.step_key(), opening.active_party_ids)
+        if not _ship_spaces_requested and ship_pose_3d_review != null:
+            set_ship_pose_3d_review_enabled(false)
 
 ## Explicit QA-only adapter; not mapped to any player input or gameplay event.
 func request_ship_pose_review(sink: Node3D, cue: String) -> bool:
@@ -133,6 +139,35 @@ func advance_ship_pose_review(sink: Node3D, delta: float,
 
 func clear_ship_pose_review(sink: Node3D) -> bool:
     return ship_pose_port.clear_preview(sink)
+
+## Explicit test-only 3D scene review. No player key or automatic event.
+func set_ship_pose_3d_review_enabled(enabled: bool) -> bool:
+    if enabled:
+        if not _ship_spaces_requested or ship_spaces_handoff == null:
+            return false
+        if not ship_spaces_handoff.visible:
+            return false
+        if ship_pose_3d_review != null:
+            return true
+        ship_pose_3d_review = ShipPoseReview3D.new()
+        add_child(ship_pose_3d_review)
+        return ship_pose_3d_review.ship != null
+    if ship_pose_3d_review == null:
+        return false
+    clear_ship_pose_review(ship_pose_3d_review.ship)
+    ship_pose_3d_review.queue_free()
+    ship_pose_3d_review = null
+    return false
+
+func request_ship_pose_3d_review(cue: String) -> bool:
+    if ship_pose_3d_review == null:
+        return false
+    return request_ship_pose_review(ship_pose_3d_review.ship, cue)
+
+func advance_ship_pose_3d_review(delta: float, reduced_motion: bool) -> bool:
+    if ship_pose_3d_review == null:
+        return false
+    return advance_ship_pose_review(ship_pose_3d_review.ship, delta, reduced_motion)
 
 func _label(parent: Node, pos: Vector2, font_size: int, width: float) -> Label:
     var node := Label.new()
