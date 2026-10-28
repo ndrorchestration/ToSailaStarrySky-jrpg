@@ -4,9 +4,11 @@ on:
     paths:
       - 'godot/art-review/*-sixphase-v1-unapproved.svg'
       - 'godot/scripts/five_lights_motion_*.gd'
+      - 'godot/scripts/five_lights_stage_scenography.gd'
       - 'godot/shaders/five_lights_motion_studio.gdshader'
       - 'godot/scenes/five_lights_motion_studio.tscn'
       - 'godot/tests/five_lights_motion_studio_test.gd'
+      - 'godot/tests/capture_five_lights_motion_studio.gd'
       - '.github/workflows/godot-five-lights-motion-studio.yml'
 permissions:
   contents: read
@@ -48,6 +50,8 @@ jobs:
           command -v xvfb-run
           timeout 75s xvfb-run -a -s "-screen 0 960x640x24" godot-editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_five_lights_motion_studio.gd 2>&1 | tee /tmp/five-lights-native-render.log
           ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_FAIL:' /tmp/five-lights-native-render.log
-          grep -Fq 'TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_PASS:960x640' /tmp/five-lights-native-render.log
-          test -s /tmp/tstss_five_lights_native_960x640.png
-          sha256sum /tmp/tstss_five_lights_native_960x640.png
+          grep -Fq 'TSTSS_FIVE_LIGHTS_NATIVE_CAPTURE_PASS:frames=3 native_960x640=true' /tmp/five-lights-native-render.log
+          for mode in idle moving reduced_motion; do
+            test -s "/tmp/tstss_five_lights_${mode}_native_960x640.png"
+          done
+          sha256sum /tmp/tstss_five_lights_*_native_960x640.png
