@@ -84,7 +84,7 @@ assert(coordination.includes('Native First Wake development state') &&
 assert(handoff.includes('CHAPTER_I_NATIVE_AUTHORITY_STATUS_2026-10-28.md') &&
   handoff.includes('Ionia') && handoff.includes('Lyra-first'),
   'agent routing must point to public-safe native story/evidence authority');
-assert(nativeStatus.includes('not in \`main\`') &&
+assert(nativeStatus.includes('**Godot is not in main**') &&
   nativeStatus.includes('Defender-on security') &&
   nativeStatus.includes('SPEC.md') &&
   !nativeStatus.includes('releases/download/'),
