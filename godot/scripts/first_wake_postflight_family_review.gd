@@ -318,12 +318,14 @@ func review_snapshot() -> Dictionary:
 func _refresh() -> void:
     if objective_label == null:
         return
-    var task := "MEET LYRA AND TALEN" if scene_phase == "family_arrival" else (
-        "GATHER TWO CLUES AND DISCUSS THE THEORY" if scene_phase == "investigation" else (
-            "GO TO THEORY TABLE: OPEN REPAIR REVIEW" if scene_phase == "working_theory" else "REPAIR REVIEW"
+    # A single compact line preserves the separate party/status line at y=63
+    # in the 960x640 native review viewport. Required next actions remain explicit.
+    var task := "MEET LYRA & TALEN" if scene_phase == "family_arrival" else (
+        "GATHER TWO CLUES" if scene_phase == "investigation" else (
+            "GO TO THEORY TABLE" if scene_phase == "working_theory" else "REPAIR WORKSHOP"
         )
     )
-    objective_label.text = "FIRST WAKE / POSTFLIGHT FAMILY & EVIDENCE REVIEW — " + task
+    objective_label.text = "FIRST WAKE / SAFE BERTH REVIEW — " + task
     party_label.text = "Story party: " + " + ".join(opening.active_party_ids) + "  |  Talen: noncombat  |  Safely moored: review fixture"
     dialogue_panel.visible = dialogue_open
     if dialogue_open:
