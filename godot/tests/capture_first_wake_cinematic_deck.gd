@@ -15,6 +15,23 @@ func _advance(job) -> bool:
             return false
     return not job.dialogue_open
 
+func _private_preview_jpeg(frame: Image, label: String) -> void:
+    # This art is public-safe. Low-resolution QA log only, not an artifact,
+    # download, project asset or production visual acceptance receipt.
+    if label == "03-reduced-motion-still-sea":
+        return
+    var reduced: Image = frame.duplicate()
+    reduced.resize(480, 320, Image.INTERPOLATE_LANCZOS)
+    var bytes: PackedByteArray = reduced.save_jpg_to_buffer(0.70)
+    if bytes.is_empty() or bytes.size() > 180000:
+        failures.append("bounded visual review JPEG was not encoded")
+        return
+    var encoded: String = Marshalls.raw_to_base64(bytes)
+    print("TSTSS_POSTFLIGHT_PRIVATE_JPEG_BEGIN:" + label + ":480x320")
+    for offset in range(0, encoded.length(), 3500):
+        print("TSTSS_POSTFLIGHT_PRIVATE_JPEG_DATA:" + encoded.substr(offset, 3500))
+    print("TSTSS_POSTFLIGHT_PRIVATE_JPEG_END:" + label)
+
 func _photo(folder: String, name: String) -> Image:
     for frame in range(10):
         await process_frame
@@ -29,6 +46,7 @@ func _photo(folder: String, name: String) -> Image:
         return null
     print("TSTSS_CINEMATIC_DECK_FRAME: ", path)
     print("TSTSS_CINEMATIC_DECK_HASH: ", FileAccess.get_sha256(path))
+    _private_preview_jpeg(image, name)
     return image
 
 func _region_delta(left: Image, right: Image) -> float:
