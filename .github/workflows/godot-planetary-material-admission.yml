@@ -61,6 +61,7 @@ jobs:
             --script res://tests/worldmap_material_visual_capture.gd \
             2>&1 | tee /tmp/material-s3.log
           for k in snow sand rain; do
+            grep -Eq "WORLDMAP_MATERIAL_FOREGROUND name=${k} pixels=[0-9]+" /tmp/material-s3.log
             grep -Eq "WORLDMAP_MATERIAL_PAIR name=${k} pixels=[0-9]+ sky_drift=0" /tmp/material-s3.log
             grep -q "WORLDMAP_MATERIAL_LOW name=${k} pixels=0" /tmp/material-s3.log
             test -s "godot/evidence/material-review/worldmap-${k}-plain.png"
