@@ -111,6 +111,11 @@ func _draw() -> void:
     draw_rect(Rect2(0, 0, 960, 640), Color("#183347"))
     # Layered shore atmosphere and handcrafted quay surface; visual only.
     draw_rect(Rect2(0, 298, 960, 105), Color("#436d75"))
+    # Align aerial perspective with the distant coast on the flight stage.
+    # Screen-space visual treatment only, not weather or calendar state.
+    for mist in range(10):
+        var mist_y := 306.0 + float(mist) * 8.0
+        draw_line(Vector2(0, mist_y), Vector2(960, mist_y - 3.0), Color(0.90, 0.84, 0.71, 0.015 + float(mist) * 0.004), 2.0)
     for band in range(9):
         var y := 307.0 + float(band) * 10.0
         draw_line(Vector2(0, y), Vector2(960, y - 3.0), Color(0.72, 0.83, 0.80, 0.025 + float(band) * 0.005), 1.0)

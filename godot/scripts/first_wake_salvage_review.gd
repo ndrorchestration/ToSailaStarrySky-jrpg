@@ -119,6 +119,10 @@ func _draw() -> void:
     draw_rect(Rect2(0, 0, 960, 640), Color("#173649") if water_side else Color("#293e45"))
     if water_side:
         draw_rect(Rect2(0, 270, 960, 125), Color("#326979"))
+        # Matched distant shore haze with the flight and family compositions.
+        for mist in range(10):
+            var mist_y := 287.0 + float(mist) * 9.0
+            draw_line(Vector2(0, mist_y), Vector2(960, mist_y - 3.0), Color(0.90, 0.84, 0.71, 0.015 + float(mist) * 0.004), 2.0)
         for x in [45.0, 205.0, 365.0, 525.0, 685.0, 845.0]:
             draw_arc(Vector2(x, 368), 54, 0, PI, 20, Color("#92c9ca"), 2.0)
         draw_line(Vector2(0, 396), Vector2(960, 396), Color("#b8dad2"), 3.0)
