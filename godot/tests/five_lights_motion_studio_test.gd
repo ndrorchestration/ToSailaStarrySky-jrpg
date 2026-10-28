@@ -53,6 +53,19 @@ func _run() -> void:
     check(ender.phase == 0, "idle animation did not settle")
     check(stage.cast_actors["Ionia"].global_position == Vector2(134, 441), "unselected Ionia translated")
     check(not stage.reduced_motion, "ambient reduced-motion default changed")
+    var frozen_position: Vector2 = ender.global_position
+    stage.toggle_pose_inspector()
+    check(stage.pose_inspector_enabled, "pose mode not enabled")
+    check(ender.pose_preview_enabled, "chosen actor was not frozen for pose inspection")
+    check(stage.scrub_pose(4), "manual source frame 5 rejected")
+    check(ender.phase == 4 and ender.sprites[ender.facing].frame == 4, "source atlas not showing frame 5")
+    ender.set_motion(Vector2.RIGHT)
+    for tick in range(12):
+        await physics_frame
+    check(ender.global_position == frozen_position, "pose inspector illegally translated native body")
+    stage.toggle_pose_inspector()
+    check(not stage.pose_inspector_enabled and not ender.pose_preview_enabled and ender.phase == 0,
+        "pose mode was not reversibly cleared")
     check(stage.ambience != null and stage.ambience.shader != null, "review shader is missing")
     check(stage.cast_actors["Lyra"].motion == Vector2.ZERO, "unselected character has movement intent")
     stage.queue_free()
