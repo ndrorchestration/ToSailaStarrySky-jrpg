@@ -48,7 +48,7 @@ assert(qa.includes('Compile and exercise actual First Wake Windows Setup.exe') &
   qa.includes('TSTSS_INSTALLER_LOCAL_FUNCTIONAL_PROOF=PASS') &&
   qa.includes('TSTSS_INSTALLER_DEFENDER_QA=NOT_ESTABLISHED') &&
   qa.includes('TSTSS_INSTALLER_NATIVE_WINDOW_MAXIMIZE_RESTORE=PASS') &&
-  qa.includes('TSTSS_INSTALLER_ADD_REMOVE_PROGRAMS_REGISTRY=PASS') &&
+  qa.includes('TSTSS_INSTALLER_APPS_AND_FEATURES_REGISTRY=PASS') &&
   qa.includes('TSTSS_INSTALLER_EXISTING_INSTALL_PROTECTED=PASS') &&
   qa.includes('TSTSS_INSTALLER_UNINSTALL_SHORTCUTS_AND_REGISTRY=PASS'),
   'functional Windows install/window/maximize/shortcut/uninstall checks and separate Defender boundary required');
