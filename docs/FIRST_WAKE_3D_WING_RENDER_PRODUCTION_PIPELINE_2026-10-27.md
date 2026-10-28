@@ -18,13 +18,19 @@
 | Admission | Real Chapter I flyer/hiring/gangway, explicit existing ship-space opt-in, fail-closed earlier stage | The ship is navigable or flyable in Chapter I |
 | Animation | Native actual wing Y rotations 0 → 7.5° → 15°, interrupted reverse, invalid delta, reduced-motion snap | Continuous cinematic quality / robust full pose modes |
 | Persistence | Immutable party, actor bounds, objective, v2 checkpoint, Resonance locked; save/load and opt-out destroy temporary renderer | Saved legitimate production visual state |
-| Native GL | Genuine 960×640 same-scene off/neutral/swept screenshots with visible pixel delta inside the actual SubViewport | Windows GPU perf, motion-video, camera/player approval |
+| Native GL | Genuine 960×640 same-scene off/neutral/midpoint/swept screenshots with independent pixel changes through both visual motion stages | Windows GPU perf, motion-video, camera/player approval |
 | Physical | Separate standalone test scene, no colliders or passenger geometry in this review | Actual wing-vs-dome/foredeck clearances or safety |
 | Human art | Creator review still required | Final aesthetic fidelity or canonical geography |
 
 ### Physical scale still fail-closed
 
 Independent cabin, glass bridge and boarding proposals are **not** interchangeable metre-scale representations. Existing bridge review [#482](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/482) exposes a provisional 3.80 m dome vs 2.35 m threshold and 1.825 m summit height vs 2.05 m review minimum. The ordinary foredeck [#452](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/452) and boarding [#461](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/461) remain another branch line. No scale conversion, pressure seam, collision or occupied-wing volume is authorized by matching pixels in a viewport. Do **not** move the full ship art into a player-collidable scene until a single unit system and complete hull/cabin/bridge/foredeck/entry layout are reconciled.
+
+### Initial native visual receipt and refinement
+
+At first implementation head `3149f6458c3abe905e3f62e87916b0805526be9b`, [Godot CI run #40624681728](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40624681728) completed **SUCCESS** with `FIRST_WAKE_NATIVE_WING_RENDER_PASS checks=43`, inherited pose-port 38 and ship-space 32 checks, and three authentic 960×640 captures. Godot screenshot receipt reported 9,017 sampled changed pixels for the inset and 586 for the full wing sweep. The preview showed the actual ship model and legible movement but the ship occupied too little of the inset for confident artistic review.
+
+Follow-up changes narrow the **test camera field of view** and take **four** screenshots: off, neutral, 50% wing pose and final pose. The camera/art refinement modifies no physical geometry, story or controls. Its new head **must pass fresh exact-head CI** and the new frames must be inspected before claiming visual improvement. Neither the earlier three-frame CI result nor metadata from its commit can be inherited as evidence for the new head.
 
 ### Open production gates after this test
 
