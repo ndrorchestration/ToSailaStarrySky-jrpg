@@ -25,6 +25,7 @@ var dialogue_index: int = 0
 var inspected_station: bool = false
 var checkpoint_message: String = ""
 var local_berth_requested: bool = false
+var family_review_requested: bool = false
 
 func configure(the_session) -> bool:
     if is_inside_tree() or the_session == null:
@@ -96,7 +97,7 @@ func _unhandled_input(event: InputEvent) -> void:
         get_viewport().set_input_as_handled()
         return
     if event.is_action_pressed(InputPolicy.INTERACT) and not event.is_echo():
-        if request_local_berth_review() or interact_reserve():
+        if request_safe_family_review() or request_local_berth_review() or interact_reserve():
             get_viewport().set_input_as_handled()
 
 func set_reduced_motion(enabled: bool) -> void:
@@ -134,11 +135,27 @@ func interact_reserve() -> bool:
     _sync_ui()
     return true
 
+func request_safe_family_review() -> bool:
+    # Only the real, secured *local* berth session may unlock this review.
+    # Never substitute two button presses for berth physics or invent a harbor.
+    if session == null or not session.can_checkpoint() or not session.safe_local_berth_recorded:
+        return false
+    if not inspected_station or reserve_dialogue_open or ender == null or ionia == null:
+        return false
+    if ender.position.distance_to(ionia.position) > INTERACT_DISTANCE:
+        return false
+    family_review_requested = true
+    checkpoint_message = "Ionia: Our local berth is secure. We may now review the family's arrival."
+    _sync_ui()
+    return true
+
 func request_local_berth_review() -> bool:
     # Ionia is the only available captain, and the depleted reserve must
     # actually have been observed. This is NOT an authorization for a new
     # world route, Lyra arrival, or unverified material fuel acquisition.
     if session == null or not session.can_checkpoint() or not inspected_station:
+        return false
+    if session.safe_local_berth_recorded:
         return false
     if reserve_dialogue_open or ender == null or ionia == null:
         return false
@@ -160,7 +177,8 @@ func _sync_ui() -> void:
     if cinematic_seascape != null:
         cinematic_seascape.set_reserve_inspected(inspected_station)
     objective.text = "FIRST WAKE  /  OPEN WATER — ENDER + IONIA\n" + (
-        "Reserve inspected. F5: save | E near Ionia: local berth review" if done else
+        ("Berth confirmed. E near Ionia: review Lyra/Talen arrival" if session.safe_local_berth_recorded else
+        "Reserve inspected. F5: save | E near Ionia: local berth review") if done else
         "Ship stable. Examine the depleted engine reserve (E).")
     if reserve_dialogue_open:
         text_label.text = messages[dialogue_index]

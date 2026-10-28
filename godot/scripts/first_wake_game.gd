@@ -7,6 +7,7 @@ const Session = preload("res://scripts/first_wake_game_session.gd")
 const JobScene = preload("res://scenes/first_wake_job_preview.tscn")
 const PostflightScene = preload("res://scenes/first_wake_postflight_game.tscn")
 const BerthScene = preload("res://scenes/first_wake_local_berth_game.tscn")
+const FamilyScene = preload("res://scenes/first_wake_postflight_family_review.tscn")
 const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const Checkpoint = preload("res://scripts/first_wake_game_checkpoint.gd")
 
@@ -14,6 +15,7 @@ var session = Session.new()
 var job
 var postflight
 var berth_review
+var family_review
 var game_stage: String = "uninitialized"
 var landing_hold: float = 0.0
 var checkpoint_path: String = Checkpoint.DEFAULT_PATH
@@ -25,7 +27,7 @@ func _ready() -> void:
     _start_job()
 
 func _start_job() -> bool:
-    if job != null or postflight != null or berth_review != null:
+    if job != null or postflight != null or berth_review != null or family_review != null:
         return false
     job = JobScene.instantiate()
     job.name = "PlayableFirstWakeFromJobFlyer"
@@ -39,7 +41,9 @@ func _start_job() -> bool:
 
 func _process(delta: float) -> void:
     if game_stage == "postflight" and postflight != null:
-        if postflight.local_berth_requested:
+        if postflight.family_review_requested:
+            _enter_family_review()
+        elif postflight.local_berth_requested:
             _enter_local_berth()
         return
     if game_stage == "local_berth" and berth_review != null:
@@ -105,6 +109,34 @@ func _enter_local_berth() -> bool:
     transition_count += 1
     return true
 
+func _enter_family_review() -> bool:
+    if game_stage != "postflight" or postflight == null or family_review != null:
+        return false
+    if not postflight.family_review_requested or not session.can_checkpoint():
+        return false
+    # The *only* admissions are a real earlier water contact + reserve
+    # observation + authenticated independent berth Area2D/dwell/lines.
+    if not (session.physical_landing_observed and session.reserve_inspected
+        and session.safe_local_berth_recorded):
+        return false
+    if session.opening.active_party_ids != ["ender", "ionia"]:
+        return false
+    var candidate = FamilyScene.instantiate()
+    if not candidate.configure_after_safe_review(
+        session.opening, session.physical_landing_observed,
+        session.physical_landing_observed, session.reserve_inspected,
+        session.safe_local_berth_recorded):
+        candidate.free()
+        return false
+    postflight.queue_free()
+    postflight = null
+    family_review = candidate
+    family_review.name = "PhysicallyMooredPlayableFamilyReview"
+    add_child(family_review)
+    game_stage = "family_review"
+    transition_count += 1
+    return true
+
 func _input(event: InputEvent) -> void:
     if event.is_echo():
         return
@@ -151,6 +183,9 @@ func load_game() -> bool:
     if berth_review != null:
         berth_review.queue_free()
         berth_review = null
+    if family_review != null:
+        family_review.queue_free()
+        family_review = null
     game_stage = "first_flight"
     var ok: bool = _enter_postflight()
     if ok:
@@ -165,6 +200,8 @@ func game_snapshot() -> Dictionary:
     snap["postflight_player_present"] = postflight != null and postflight.ender != null
     snap["physical_local_berth_active"] = berth_review != null
     snap["physical_local_berth_secured"] = session.safe_local_berth_recorded
+    snap["family_review_active"] = family_review != null
+    snap["family_requires_real_berth"] = true
     snap["physical_review_active"] = job != null and job.flight_review != null
     snap["transition_count"] = transition_count
     snap["legacy_chapter_scene_used"] = false
