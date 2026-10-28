@@ -1,0 +1,68 @@
+name: Godot First Wake 3D Navigation & Interactions (draft)
+on:
+  pull_request:
+    paths:
+      - 'godot/scripts/first_wake_3d_navigation_marker.gd'
+      - 'godot/scripts/first_wake_3d_visual_slice.gd'
+      - 'godot/tests/first_wake_3d_navigation_test.gd'
+      - 'godot/tests/first_wake_3d_visual_slice_test.gd'
+      - '.github/workflows/godot-first-wake-3d-navigation.yml'
+permissions:
+  contents: read
+jobs:
+  physical-3d-dock-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 17
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Keep the real art source private; require unchanged native F5
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git ls-files | grep -E '^godot/art-review/(private-3d|creator-motion-private|creator-field-review|creator-portrait-preview)/' || true)"
+          grep -Fq 'run/main_scene="res://scenes/first_wake_game.tscn"' godot/project.godot
+      - name: Download official Godot 4.7.2 with SHA-256 pin
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --retry 3 -fsSL "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip" -o godot-editor.zip
+          echo "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4  godot-editor.zip" | sha256sum -c -
+          mkdir -p godot-editor
+          unzip -q godot-editor.zip -d godot-editor
+          chmod +x godot-editor/Godot_v4.7.2-stable_linux.x86_64
+      - name: Import source and compile 3D actor, collision and scene
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --editor --quit 2>&1 | tee /tmp/nav-import.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:' /tmp/nav-import.log
+      - name: Assert actual WASD motion, gravity, pier rails and real Area3D interactions
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 125s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_3d_navigation_test.gd 2>&1 | tee /tmp/nav-physics.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_NAVIGATION_3D_FAIL:' /tmp/nav-physics.log
+          grep -Fq 'TSTSS_NAVIGATION_3D_PASS' /tmp/nav-physics.log
+      - name: Preserve existing 3D water/ship/lighting review
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 90s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_3d_visual_slice_test.gd 2>&1 | tee /tmp/nav-base-scene.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_3D_SLICE_FAIL:' /tmp/nav-base-scene.log
+          grep -Fq 'TSTSS_3D_SLICE_PASS' /tmp/nav-base-scene.log
+      - name: Preserve real First Wake Ionia-first flight, landing and saves
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 110s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_game_entry_test.gd 2>&1 | tee /tmp/nav-original-first-wake.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_FIRST_WAKE_GAME_ENTRY_FAIL:' /tmp/nav-original-first-wake.log
+          grep -Fq 'TSTSS_FIRST_WAKE_GAME_ENTRY_PASS' /tmp/nav-original-first-wake.log
+      - name: Render scene with genuine 3D camera in OpenGL compatibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 100s xvfb-run -a -s "-screen 0 960x640x24" godot-editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_first_wake_3d_visual_slice.gd 2>&1 | tee /tmp/nav-real-render.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_3D_NATIVE_CAPTURE_FAIL:' /tmp/nav-real-render.log
+          grep -Fq 'TSTSS_3D_NATIVE_CAPTURE_PASS' /tmp/nav-real-render.log
