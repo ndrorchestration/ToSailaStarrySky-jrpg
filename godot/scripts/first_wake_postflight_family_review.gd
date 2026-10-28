@@ -19,6 +19,7 @@ const BOUNDS := Rect2(Vector2(132, 414), Vector2(706, 109))
 var opening
 var scene_phase: String = "not_configured"
 var ender: CharacterBody2D
+var ionia_visual: CharacterBody2D
 var safe_mooring_review: bool = false
 var dialogue_open: bool = false
 var dialogue_lines: Array[String] = []
@@ -65,6 +66,17 @@ func _ready() -> void:
     ender.position = Vector2(162, 475)
     add_child(ender)
     ender.set_walk_review_enabled(true)
+    # Ionia's existing four-facing art candidate is reused as a stationary
+    # visual companion, not a recruit, simulated actor or approved field pack.
+    ionia_visual = Actor.new()
+    ionia_visual.name = "IoniaFamilySceneArtCandidate"
+    ionia_visual.character_name = "Ionia"
+    ionia_visual.player_controlled = false
+    ionia_visual.position = Vector2(350, 475)
+    ionia_visual.collision_layer = 0
+    ionia_visual.collision_mask = 0
+    add_child(ionia_visual)
+    ionia_visual.set_ionia_stage_art_enabled(true, "south")
     ui_layer = CanvasLayer.new()
     var ui := ui_layer
     ui.name = "PostflightFamilyReadableUI"
