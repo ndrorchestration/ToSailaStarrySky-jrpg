@@ -12,6 +12,7 @@ var checks: int = 0
 var errors: Array[String] = []
 var capture_enabled: bool = false
 var captured: Array[String] = []
+var cinematic_pairs_captured: int = 0
 
 func capture_native_frame(frame_id: String) -> void:
     if not capture_enabled:
@@ -29,6 +30,41 @@ func capture_native_frame(frame_id: String) -> void:
         return
     captured.append(frame_id)
 
+
+func capture_cinematic_pair(scene: Node2D, game: Node, label: String) -> void:
+    if not (capture_enabled and OS.get_cmdline_user_args().has("--cinematic-pairs")):
+        return
+    var state_before: Dictionary = game.game_snapshot()
+    scene.set_cinematic_environment_enabled(false)
+    await process_frame
+    await RenderingServer.frame_post_draw
+    var original: Image = root.get_texture().get_image()
+    scene.set_cinematic_environment_enabled(true)
+    await process_frame
+    await RenderingServer.frame_post_draw
+    var cinematic: Image = root.get_texture().get_image()
+    var changed := 0
+    for y in range(180,535,3):
+        for x in range(28,932,3):
+            var a: Color = original.get_pixel(x,y)
+            var b: Color = cinematic.get_pixel(x,y)
+            if maxf(absf(a.r-b.r),maxf(absf(a.g-b.g),absf(a.b-b.b))) > 3.0/255.0:
+                changed += 1
+    verify(changed >= 1900,
+        "native in-game environmental background must visibly change: "+label)
+    verify(game.game_snapshot() == state_before,
+        "cinematic background cannot mutate chapter state: "+label)
+    for entry in [
+        {"version":"original","image":original},
+        {"version":"cinematic","image":cinematic}
+    ]:
+        var target: String = "res://review-evidence/ch1-visual-%s-%s-960x640.png" % [
+                label,str(entry["version"])]
+        verify(entry["image"].save_png(target) == OK,
+            "full native A/B image must save: "+target)
+    cinematic_pairs_captured += 1
+    print("TSTSS_CH1_CINEMATIC_AB label=",label," changed_sample_pixels=",changed,
+        " state_unchanged=true real_game_viewport=true")
 
 func _initialize() -> void:
     call_deferred("_run")
@@ -155,6 +191,7 @@ func _run() -> void:
     verify(deck.checkpoint_message.is_empty(),
         "successful inspection clears the earlier declined-save warning")
     await capture_native_frame("02-reserve-inspected")
+    await capture_cinematic_pair(deck,root_game,"reserve")
     verify(root_game.save_game() and FileAccess.file_exists(PATH),
         "F5 checkpoint persists new-format first-flight data")
     var data: Dictionary = Checkpoint.load(PATH)
@@ -227,6 +264,7 @@ func _run() -> void:
     verify(family.objective_label.get_line_count() == 1,
         "family arrival objective must not overlap party HUD")
     await capture_native_frame("03-staged-family-arrival")
+    await capture_cinematic_pair(family,resumed,"family")
     verify(resumed.save_game()
         and Extended.load(PATH,PATH_V2).get("stage") == "family_arrival",
         "F5 now writes a separate admissible family v2 checkpoint")
@@ -291,6 +329,7 @@ func _run() -> void:
     verify(workshop.interact() and workshop.core.snapshot()["phase"] == "listen",
         "mandatory material-only restart fails before melody discovery")
     await capture_native_frame("06-failed-material-retest")
+    await capture_cinematic_pair(workshop,resumed,"workshop")
     verify(resumed.save_game() and Extended.load(PATH,PATH_V2)["core"]["phase"] == "listen",
         "saved failure cannot be retroactively treated as a stable core")
     workshop.ender.position = workshop.IONIA
@@ -351,6 +390,9 @@ func _run() -> void:
     DirAccess.remove_absolute(different_parent)
     if capture_enabled:
         verify(captured.size() == 9, "all nine native chapter frames captured")
+        if OS.get_cmdline_user_args().has("--cinematic-pairs"):
+            verify(cinematic_pairs_captured == 3,
+                "all three true native scene A/B cinematic comparisons captured")
     verify(resumed.load_game()
         and resumed.game_stage == "family_review"
         and resumed.family_review != null
