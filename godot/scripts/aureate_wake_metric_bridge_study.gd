@@ -22,6 +22,7 @@ const COLLISION_LAYER: int = 8
 const REVIEW_STATUS := "SINGLE_SCENE_PHYSICS_PROTOTYPE_NOT_PRODUCTION"
 const CrewWalker = preload("res://scripts/aureate_wake_crew_walk_review.gd")
 const GeodesicTopology = preload("res://scripts/aureate_wake_icosphere_metric_topology.gd")
+const DeckTrim = preload("res://scripts/aureate_wake_deck_trim_review.gd")
 const SOURCE_GLASS_SHADER = preload("res://art-staging/ship-glass-study/bridge_panorama_glass.gdshader")
 const SOURCE_GLASS_GIT_BLOB_SHA := "b6c7e8d4144acc14074581b08b61c61b7f5a047a"
 const SOURCE_GLASS_SHA256 := "fa5a1d235d28c51aa93640e30ef25ddffecce16ab7d1083330da122a2480b7be"
@@ -54,6 +55,9 @@ func _ready() -> void:
     _build_cabin_and_hull()
     _build_geodesic_helm()
     _build_foredeck_rails()
+    var study_trim := DeckTrim.new()
+    study_trim.name = "AureateMaritimeRailArtReview"
+    add_child(study_trim)
     _build_hatch()
     _camera()
     _create_crew_controller()
