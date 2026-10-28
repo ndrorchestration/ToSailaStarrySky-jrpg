@@ -12,26 +12,49 @@ var portraits_enabled: bool = true
 var current_speaker: String = ""
 var visual: TextureRect
 var speaker_label: Label
+var frame_border: ColorRect
+var frame_rule: ColorRect
+var frame_accent: ColorRect
+const SKY_ANCHOR := Vector2(704.0, 122.0)
+const CARD_SIZE := Vector2(236.0, 258.0)
+const IONIA_ACCENT := Color("#d7aa70")
+const ENDER_ACCENT := Color("#68b7b5")
 var _test_textures: Dictionary = {}
 
 func _ready() -> void:
     name = "CreatorHighFidelityPortraitPreview"
     # 432x432 source is deliberately kept square, never portrait-cropped.
-    # The plaque ends at y=527, above the game's dialogue area at y=535.
-    position = Vector2(704.0, 269.0)
-    size = Vector2(236.0, 258.0)
+    # Place the portrait entirely above the physical dock walking band (y>=405).
+    # This avoids covering either field actor or the y=535 dialogue ribbon.
+    position = SKY_ANCHOR
+    size = CARD_SIZE
     mouse_filter = Control.MOUSE_FILTER_IGNORE
-    var outer := ColorRect.new()
-    outer.color = Color("#c7a46a")
-    outer.size = size
-    outer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    add_child(outer)
+    var shadow := ColorRect.new()
+    shadow.name = "SoftPlanimetricShadow"
+    shadow.position = Vector2(-7.0, 6.0)
+    shadow.size = size + Vector2(7.0, 3.0)
+    shadow.color = Color(0.012, 0.025, 0.043, 0.55)
+    shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(shadow)
+    frame_border = ColorRect.new()
+    frame_border.name = "BrassFrame"
+    frame_border.color = IONIA_ACCENT
+    frame_border.size = size
+    frame_border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(frame_border)
     var inner := ColorRect.new()
     inner.position = Vector2(2.0, 2.0)
     inner.size = size - Vector2(4, 4)
     inner.color = Color("#0c1927")
     inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(inner)
+    frame_accent = ColorRect.new()
+    frame_accent.name = "SpeakerAccentTop"
+    frame_accent.position = Vector2(10.0, 5.0)
+    frame_accent.size = Vector2(216.0, 2.0)
+    frame_accent.color = IONIA_ACCENT
+    frame_accent.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(frame_accent)
     visual = TextureRect.new()
     visual.name = "CreatorReferenceStillImage"
     visual.position = Vector2(10.0, 9.0)
@@ -41,15 +64,15 @@ func _ready() -> void:
     visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(visual)
     speaker_label = Label.new()
-    var rule := ColorRect.new()
-    rule.name = "BrassPortraitRule"
-    rule.position = Vector2(10.0, 228.0)
-    rule.size = Vector2(216.0, 1.0)
-    rule.color = Color("#8e7148")
-    rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    add_child(rule)
+    frame_rule = ColorRect.new()
+    frame_rule.name = "BrassPortraitRule"
+    frame_rule.position = Vector2(10.0, 228.0)
+    frame_rule.size = Vector2(216.0, 1.0)
+    frame_rule.color = IONIA_ACCENT
+    frame_rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(frame_rule)
     speaker_label.position = Vector2(15.0, 231.0)
-    speaker_label.add_theme_font_size_override("font_size", 17)
+    speaker_label.add_theme_font_size_override("font_size", 16)
     speaker_label.add_theme_color_override("font_color", Color("#f8e7ca"))
     speaker_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(speaker_label)
@@ -87,7 +110,11 @@ func display_dialogue_line(line: String, speaker_fallback: String = "") -> bool:
         hide_portrait()
         return false
     visual.texture = texture
-    speaker_label.text = speaker
+    var accent: Color = IONIA_ACCENT if speaker == "IONIA" else ENDER_ACCENT
+    frame_border.color = accent
+    frame_rule.color = accent
+    frame_accent.color = accent
+    speaker_label.text = "IONIA  /  CAPTAIN" if speaker == "IONIA" else "ENDER  /  RIFT SCHOLAR"
     current_speaker = speaker
     visible = true
     return true
@@ -105,5 +132,6 @@ func snapshot() -> Dictionary:
         "story_mutation": false, "party_mutation": false,
         "save_mutation": false, "field_animation": false,
         "source_aspect_preserved": true, "review_only": true,
-        "viewport_rect": Rect2(position, size)
+        "viewport_rect": Rect2(position, size),
+        "world_actor_occlusion": false
     }
