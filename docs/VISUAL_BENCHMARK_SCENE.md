@@ -116,6 +116,10 @@ PASS only when:
 - no effect obscures interaction readability;
 - scene could plausibly serve as a store-page screenshot without retouching.
 
+## Representative combat companion benchmark — proposed
+
+The dusk dock remains the principal environmental benchmark. Before any combat visual treatment propagates project-wide, exercise a **separate, neutral Godot battle-lab** that stages one original enemy graphic under the same art/camera/pixel/lighting rules. Verify an actual formula-driven hit, weakness reveal, post-resolution retaliation, HP/status truth, enemy–party scale, legible commands, depth layering, source-hashed 960×640 frames, and a visibly equivalent still under reduced motion. Use the existing Wind Shear candidate [#410](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/410) **only as reference input**, not as an approved encounter or final art. No old Lyra-first stage is authorized in the current Ionia-first opening. [Admission matrix](reviews/ENEMY_VISUAL_PROTOTYPE_TO_PRODUCTION_2026-10-27.md).
+
 ## 9. Propagation rule
 
 Do not scale this visual treatment across the whole game until:
