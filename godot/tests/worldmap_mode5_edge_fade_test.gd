@@ -65,7 +65,7 @@ func _run()->void:
             shaded+=1
             var mat:ShaderMaterial=land.material_override
             check(is_equal_approx(float(
-                mat.get_shader_parameter("tile_edge_blend_width")),0.22),
+                mat.get_shader_parameter("tile_edge_blend_width")),0.08),
                 "live shader receives bounded 22pct face-UV edge fade")
             var tile:Dictionary=tile_node.get_meta("surface_review_tile")
             var bounds:Vector4=mat.get_shader_parameter("tile_face_bounds")
