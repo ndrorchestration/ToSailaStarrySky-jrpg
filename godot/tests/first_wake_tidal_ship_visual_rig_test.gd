@@ -29,8 +29,14 @@ func _verify() -> void:
     if scene.ship_body.name != "AureateWakeLocalBuoyancyProof":
         _fail("real physics vessel identity changed")
         return
-    var shape = scene.ship_body.get_node_or_null("CollisionShape2D")
-    if not (shape is CollisionShape2D):
+    # The runtime creates a CollisionShape2D without an explicit Node.name;
+    # its generated name is not an engine contract. Inspect the actual class.
+    var shape: CollisionShape2D = null
+    for child in scene.ship_body.get_children():
+        if child is CollisionShape2D:
+            shape = child
+            break
+    if shape == null:
         _fail("ship's verified physics collider removed")
         return
     if not (shape.shape is RectangleShape2D) or shape.shape.size != Vector2(144, 34):
