@@ -12,8 +12,8 @@ func _initialize() -> void:
     call_deferred("_verify")
 
 func _verify() -> void:
-    if ProjectSettings.get_setting("application/run/main_scene", "") != Route.LEGACY_ENTRY:
-        _fail("configured startup scene was altered")
+    if ProjectSettings.get_setting("application/run/main_scene", "") != Route.REVISED_REVIEW:
+        _fail("canonical Ionia-first default startup was altered")
         return
     var v1_hash: String = _file_hash(SaveStore.DEFAULT_PATH)
     var v2_hash: String = _file_hash(RevisedCodec.SLOT_PATH)
@@ -318,7 +318,7 @@ func _verify() -> void:
     if _file_hash(SaveStore.DEFAULT_PATH) != v1_hash or _file_hash(RevisedCodec.SLOT_PATH) != v2_hash:
         _fail("F8 exit from splashdown rewrote v1/v2 checkpoint data")
         return
-    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: configured startup F8, flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, reserve inspection, local berth sensor and safe Lyra/Talen dialogue, two real crew clues, two distinct salvage areas and custody receipts, failed restart and chosen Denith melody, F8 v1 return; no ship/Art rights")
+    print("TSTSS_FIRST_WAKE_MAIN_TO_WATER_PASS: canonical startup configured; explicit legacy fixture F8 to flyer/Ionia job, three engineering checks, F flight, actual local water contact and floating, reserve inspection, local berth sensor and safe Lyra/Talen dialogue, two real crew clues, two distinct salvage areas and custody receipts, failed restart and chosen Denith melody, F8 v1 return; no ship/Art rights")
     quit(0)
 
 func _finish_dialogue(world: Node) -> bool:
