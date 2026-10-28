@@ -37,6 +37,19 @@ func _capture() -> void:
     if opening == null:
         quit(4)
         return
+    world._set_threat("lyra")
+    await process_frame
+    var alternate: Image = await _snapshot("resonance-lyra-intent-native-960x640.png")
+    if alternate == null or alternate.get_data() == opening.get_data():
+        push_error("RESONANCE_NATIVE_CAPTURE_FAIL: alternate announced target did not change the visible frame")
+        quit(10)
+        return
+    if world.battle.snapshot()["threat"]["target"] != "lyra":
+        push_error("RESONANCE_NATIVE_CAPTURE_FAIL: visible alternate target mismatched live controller")
+        quit(11)
+        return
+    world._set_threat("ender")
+    await process_frame
     world._cast()
     await process_frame
     var armed: Image = await _snapshot("resonance-ward-native-960x640.png")
@@ -63,7 +76,7 @@ func _capture() -> void:
         push_error("RESONANCE_NATIVE_CAPTURE_FAIL: renderer frames not visually distinct")
         quit(9)
         return
-    print("GODOT_RESONANCE_NATIVE_CAPTURE_PASS: opening, ward and resolved native screenshots")
+    print("GODOT_RESONANCE_NATIVE_CAPTURE_PASS: opening, alternate Lyra target, ward and resolved native screenshots")
     world.queue_free()
     await process_frame
     quit(0)
