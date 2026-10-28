@@ -1,3 +1,15 @@
+# To Sail the Starry Sky — Integrated First Wake playable candidate (draft)
+
+**Normal Godot Play (F5) on this draft branch:** open `godot/project.godot` in **Godot 4.7.2 Standard**, and press F5. This branch's `project.godot` launches `first_wake_game.tscn`, **not** the historical Lyra-first chapter-preview scene. This is an authorized *development candidate*, **not merged, art-approved, Windows-certified, or released**.
+
+Play as Ender using arrow keys; **E** to inspect the posted job notice, converse with Captain Ionia (joining first), board via the gangway and inspect the three engineering stations. Complete the safety dialogue; **F** launches the original-source 3D Aureate Wake and native physics flight. **E** starts the test lift and later commands a controlled sea descent when the actual phase-warning cue appears. After the real `RigidBody2D/Area2D` local water contact and stable flotation, the game automatically returns player control to a shipboard engineering scene; move to the reserve instrument and use **E** through the full dialogue. **F5** writes an isolated postflight checkpoint only after physical landing and inspection. **F9** loads that checkpoint in the current game or on a fresh run.
+
+**Save formats are deliberately separate:** `user://first_wake_first_flight_v1.json` uses `tstss.first-wake.first-flight.v1` for the new Ender→Ionia→postflight chronology. The old `aetherwake.first-wake.chapter1.v1` save code and old `first_wake_chapter1_player_preview.tscn` remain available but are **not** loaded, modified or silently migrated; the older Lyra-first storyline is not accepted into the revised opening. Audio, proper 3D ocean/ship physics, final art, later Lyra/Talen reunion and the shanty fuel-alignment revelation are still to be integrated.
+
+**Developer regression:** `--script res://tests/first_wake_game_entry_test.gd` must complete the job flyer, recruitment, genuine water contact, resumed postflight agency, reserve inspection, checkpoint save/relaunch and incompatible legacy-schema rejection on the exact source head. The original native Chapter I, ship, visual and Windows security gates still run in CI. For architecture, evidence boundaries and upcoming adoption gates see [First Wake integration plan](../docs/prototypes/FIRST_WAKE_GAME_ENTRY_AND_CHECKPOINT_2026-10-28.md).
+
+---
+
 # Aetherwake — Godot 4.7.2 / GDScript migration feasibility pilot
 
 **Status:** Isolated native-engine proof, **not** a complete migration, creator-accepted art, scene/canon rewrite, approved release, or evidence that production is now Godot.
