@@ -14,6 +14,7 @@ const InputPolicy = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const FormulaEncounter = preload("res://scripts/first_wake_formula_encounter.gd")
 const CurrentEnemyAdapter = preload("res://scripts/first_wake_current_enemy_adapter.gd")
 const PartyCombatAuthority = preload("res://scripts/first_wake_party_combat_authority.gd")
+const CharacterVisualP01B = preload("res://scripts/first_wake_chapter1_visual_p01b.gd")
 
 const DECK_BOUNDS := SaveCodec.PLAYER_POSITION_BOUNDS
 const INTERACT_DISTANCE := 74.0
@@ -61,6 +62,8 @@ var current_enemy_adapter = CurrentEnemyAdapter.new()
 var party_combat_authority = PartyCombatAuthority.new()
 var active_hazard_encounter_id: String = ""
 var save_store = SaveStore.new()
+var character_visual_p01b: Node
+var character_visual_parent: Node2D
 
 func _ready() -> void:
     InputPolicy.ensure_defaults()
@@ -74,6 +77,10 @@ func _ready() -> void:
     actors.name = "ChapterOneMigrationActors"
     actors.y_sort_enabled = true
     add_child(actors)
+    character_visual_parent = actors
+    character_visual_p01b = CharacterVisualP01B.new()
+    character_visual_p01b.name = "P01BUnrecruitedVisualAdapterOnly"
+    add_child(character_visual_p01b)
 
     ender = Actor.new()
     ender.name = "EnderChapterOneReviewPlayer"
@@ -573,7 +580,24 @@ func _nearest_pending(points: Dictionary, completed: Array[String]) -> String:
             best_id = target_id
     return best_id
 
+func set_character_visual_p01b_enabled(enabled: bool) -> void:
+    if character_visual_p01b != null:
+        character_visual_p01b.call("set_review_enabled", enabled, character_visual_parent)
+
+func is_character_visual_p01b_enabled() -> bool:
+    return character_visual_p01b != null and bool(character_visual_p01b.call("is_review_enabled"))
+
+func get_character_visual_p01b_actor() -> CharacterBody2D:
+    if character_visual_p01b == null:
+        return null
+    return character_visual_p01b.call("get_review_actor") as CharacterBody2D
+
 func _unhandled_input(event: InputEvent) -> void:
+    # P-01B diagnostic input on an unmerged, review-only branch.
+    # Never process a cosmetic fixture as a story/party/ability action.
+    if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F6:
+        set_character_visual_p01b_enabled(not is_character_visual_p01b_enabled())
+        return
     if event.is_action_pressed(InputPolicy.SAVE_PROGRESS):
         save_progress_to_disk()
         return
