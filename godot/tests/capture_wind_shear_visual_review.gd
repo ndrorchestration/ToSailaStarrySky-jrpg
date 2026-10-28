@@ -142,25 +142,33 @@ func _capture() -> void:
     if world.formula_encounter.completed or int(world.formula_encounter.target.get("hp", 0)) >= hp_before_strike:
         _fail("review strike was expected to be a nonlethal confirmed hit")
         return
-    if art.hit_feedback_seconds <= 0.0:
-        _fail("actual HP loss was not reflected in pixel hit state")
+    if art.hit_feedback_seconds <= 0.0 or art.reaction_phase() != "hit":
+        _fail("actual HP loss was not reflected before the Gale after-effect")
         return
-    # The same real action also caused Gale Force. Isolate the new hit accent
-    # in this screenshot; this direct art-state edit changes NO combat fields.
-    art.gale_accent_seconds = 0.0
-    art.queue_redraw()
+    if art.queued_gale_seconds <= 0.0 or art.gale_accent_seconds != 0.0:
+        _fail("already-resolved Gale retaliation is competing with hit animation")
+        return
     await process_frame
     if not (await _snapshot("wind-shear-hit-native-960x640")):
         _fail("post-resolution hit capture")
         return
 
-    # Review-only visual state, NOT an extra enemy turn or gameplay mutation.
-    art.set_reduced_motion(false)
-    art.hit_feedback_seconds = 0.0
-    art.set_encounter_state(true, false, art.last_enemy_turn + 1)
+    # No extra enemy turn, mutation or synthetic retaliation is injected.
+    # Advance only the presentation timer: the controller already resolved
+    # Gale Force mechanically during the real Staff Strike.
+    var actual_enemy_turns: int = world.formula_encounter.enemy_turns
+    var actual_player_vit: int = int(world.formula_encounter.player["vit"])
+    for _visual_step in range(6):
+        art._process(0.05)
+    if art.reaction_phase() != "gale" or art.queued_gale_seconds != 0.0:
+        _fail("confirmed retaliation never became visible after the hit phase")
+        return
+    if world.formula_encounter.enemy_turns != actual_enemy_turns or int(world.formula_encounter.player["vit"]) != actual_player_vit:
+        _fail("timer-only frame review changed combat outcome")
+        return
     await process_frame
     if not (await _snapshot("wind-shear-gale-native-960x640")):
-        _fail("Gale Force art capture")
+        _fail("verified Gale Force post-hit art capture")
         return
 
     # Review-only dissipated pose, NOT a credited victory.
@@ -207,7 +215,7 @@ func _capture() -> void:
         return
     world.queue_free()
     await process_frame
-    print("WIND_SHEAR_NATIVE_RENDER_PASS: nine 960x640 captures, 4 authored idle poses, original static reduced motion, observed hit; creator acceptance pending")
+    print("WIND_SHEAR_NATIVE_RENDER_PASS: nine 960x640 captures, authored idles, identical reduced-motion still, real hit THEN already-resolved Gale; creator acceptance pending")
     quit(0)
 
 func _fail(reason: String) -> void:
