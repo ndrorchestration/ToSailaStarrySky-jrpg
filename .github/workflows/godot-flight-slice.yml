@@ -103,6 +103,12 @@ jobs:
           timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_rock_dressing.gd 2>&1 | tee /tmp/rock-dressing-test.log
           grep -Eq 'GODOT_ROCK_DRESSING_PASS checks=[0-9]+' /tmp/rock-dressing-test.log
           ! grep -Eq 'GODOT_ROCK_DRESSING_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/rock-dressing-test.log
+      - name: Native bounded foliage silhouettes and source-coast surf QA
+        run: |
+          set -o pipefail
+          timeout 45s /tmp/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot/flight_slice --script res://tests/test_foliage_surf.gd 2>&1 | tee /tmp/foliage-surf-test.log
+          grep -Eq 'GODOT_FOLIAGE_SURF_PASS checks=[0-9]+' /tmp/foliage-surf-test.log
+          ! grep -Eq 'GODOT_FOLIAGE_SURF_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/foliage-surf-test.log
       - name: Deterministic native manual Dragonfly pilot mode contracts
         run: |
           set -o pipefail
@@ -195,6 +201,16 @@ jobs:
           grep -q 'NATIVE_COAST_ROCK_CAPTURE_PASS frames=6' /tmp/coast-rock-capture.log
           grep -Eq 'NATIVE_COAST_ROCK_DELTAS coast=[0-9.]+' /tmp/coast-rock-capture.log
           ! grep -Eq 'NATIVE_COAST_ROCK_CAPTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/coast-rock-capture.log
+      - name: Matched native GL coastal surf and forest silhouette A/B captures
+        run: |
+          set -o pipefail
+          timeout 125s xvfb-run --auto-servernum env LIBGL_ALWAYS_SOFTWARE=1 \
+            /tmp/Godot_v4.7.2-stable_linux.x86_64 \
+            --path godot/flight_slice --rendering-driver opengl3 --audio-driver Dummy \
+            --script res://tests/capture_foliage_surf.gd 2>&1 | tee /tmp/foliage-surf-capture.log
+          grep -q 'NATIVE_FOLIAGE_SURF_CAPTURE_PASS frames=4' /tmp/foliage-surf-capture.log
+          grep -Eq 'NATIVE_FOLIAGE_SURF_DELTAS surf=[0-9.]+' /tmp/foliage-surf-capture.log
+          ! grep -Eq 'NATIVE_FOLIAGE_SURF_CAPTURE_FAIL|SCRIPT ERROR|SHADER ERROR|Parse Error|ERROR:' /tmp/foliage-surf-capture.log
       - name: Profile actual rendered scripted flight sweep
         run: |
           set -o pipefail
@@ -239,6 +255,8 @@ jobs:
             /tmp/coast-distance-test.log
             /tmp/rock-dressing-test.log
             /tmp/coast-rock-capture.log
+            /tmp/foliage-surf-test.log
+            /tmp/foliage-surf-capture.log
             /tmp/environment-mood-capture.log
             /tmp/atmosphere-capture.log
             /tmp/cinematic-camera.log
