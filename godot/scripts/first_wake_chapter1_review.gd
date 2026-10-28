@@ -448,8 +448,8 @@ func _draw_target(point: Vector2, label_text: String, target_color: Color, compl
 
 ## The modal never authorizes a new action or enters the story inventory.
 func open_gear_inspector() -> bool:
-    var in_practice := formula_encounter.active and active_hazard_encounter_id.is_empty()
-    var at_field_station := (
+    var in_practice: bool = formula_encounter.active and active_hazard_encounter_id.is_empty()
+    var at_field_station: bool = (
         equipment_station_review_enabled and not formula_encounter.active
         and not dialogue.open and chapter.stage_key() == "signal"
         and ender != null and ender.position.distance_to(TRIAL_STATION_POSITION) <= INTERACT_DISTANCE
