@@ -40,6 +40,13 @@ func _run() -> void:
     check(normals.size() == verts.size(), "every dune vertex has analytic height normal")
     check(ids.size() == 6*dune.SEGMENTS*dune.SEGMENTS,
         "bounded two-triangle-per-cell dune budget")
+    # Real Godot Compatibility GL screenshot caught the backfacing original
+    # mesh: first triangle must use the approved camera-visible winding.
+    check(ids.size() >= 6 and ids[0] == 0 and ids[1] == 1
+        and ids[2] == dune.SEGMENTS+1
+        and ids[3] == 1 and ids[4] == dune.SEGMENTS+2
+        and ids[5] == dune.SEGMENTS+1,
+        "actual dune triangles face the Godot review camera")
     for i in range(0, verts.size(), 71):
         var vertex: Vector3 = verts[i]
         check(is_equal_approx(vertex.y, dune.sample_height(vertex.x, vertex.z)),
