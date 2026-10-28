@@ -89,6 +89,32 @@ func _run() -> void:
     var pilot = game.berth_review
     check(pilot.hull is RigidBody2D and pilot.berth_area is Area2D,
         "actual local hull physics and independent berth Area2D sensor exist")
+    # Explicit source-3D promotion checks: genuine existing ship, no authority.
+    var before_3d: Dictionary = pilot.review_snapshot()
+    check(pilot.set_native_3d_review_enabled(true),
+        "V enables the existing source-native 3D Aureate Wake viewport")
+    check(pilot.native_3d_review != null
+        and pilot.native_3d_review.ship_model != null
+        and pilot.native_3d_review.viewport is SubViewport,
+        "source-native 3D ship renders through its real isolated SubViewport")
+    check(pilot.native_3d_review.review_snapshot().get("source_visual_pr") == 486
+        and pilot.native_3d_review.review_snapshot().get("read_only", false),
+        "3D model is original source-bound visual-only Chapter I study")
+    pilot.set_reduced_motion(true)
+    check(pilot.native_3d_review.use_reduced_motion,
+        "M reduced-motion setting propagates to optional native 3D viewport")
+    pilot.set_reduced_motion(false)
+    check(not pilot.native_3d_review.use_reduced_motion,
+        "3D view motion setting is reversible")
+    check(pilot.set_native_3d_review_enabled(false)
+        and not pilot.native_3d_review.visible,
+        "V hides source 3D review without destroying local physical pilot")
+    check(pilot.review_snapshot().get("phase") == before_3d.get("phase")
+        and pilot.review_snapshot().get("story_step") == before_3d.get("story_step")
+        and pilot.review_snapshot().get("local_2d_sensor_contact") ==
+            before_3d.get("local_2d_sensor_contact")
+        and not pilot.lines_secured and not pilot.contact_observed,
+        "visual-only 3D transition cannot authorize contact, mooring or story")
     var stage_report: Dictionary = pilot.cinematic_stage.visual_snapshot()
     check(stage_report.get("native_source_sky_shader", false)
         and stage_report.get("native_source_sea_shader", false),
