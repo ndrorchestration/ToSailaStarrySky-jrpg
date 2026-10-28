@@ -19,6 +19,9 @@ func _run() -> void:
     stage.keyboard_enabled = false
     check(stage.cast_actors.size() == 5, "five required")
     check(stage.selected_index == 1, "Ender selected")
+    var scenery: Node = stage.get_node_or_null("OriginalReviewScenographyNonColliding")
+    check(scenery != null and not (scenery is CollisionObject2D), "decorative stage cannot acquire collision authority")
+    check(stage.get_node_or_null("NonCanonicalFiveLightsSourceReview") != null, "visual actors must remain in isolated stage")
     for id in CAST:
         var actor = stage.cast_actors.get(id)
         check(actor != null, "missing " + id)
@@ -32,6 +35,7 @@ func _run() -> void:
             if sprite == null:
                 continue
             check(sprite.texture != null and sprite.hframes == 6 and not sprite.flip_h, "six-phase original source " + id + "/" + direction)
+            check(sprite.texture.get_height() * sprite.scale.y >= 115.0, "sprite collapsed below useful stage-review height " + id + "/" + direction)
             check(actor.set_facing(direction), "facing rejected " + id + "/" + direction)
             check(sprite.visible, "facing hidden " + id + "/" + direction)
         check(not actor.set_facing("invalid"), "invalid facing accepted " + id)
@@ -49,6 +53,8 @@ func _run() -> void:
     check(ender.phase == 0, "idle animation did not settle")
     check(stage.cast_actors["Ionia"].global_position == Vector2(134, 441), "unselected Ionia translated")
     check(not stage.reduced_motion, "ambient reduced-motion default changed")
+    check(stage.ambience != null and stage.ambience.shader != null, "review shader is missing")
+    check(stage.cast_actors["Lyra"].motion == Vector2.ZERO, "unselected character has movement intent")
     stage.queue_free()
     await process_frame
     if failures == 0:
