@@ -6,6 +6,18 @@
 
 > **Development review, not a public release.** This README is on the [unmerged visual-gallery draft PR #564](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/564). The latest native game is not yet a cleared one-click Windows installer; independent Windows Defender custody/security preflight remains blocked. No game installer is linked or implied to be safe.
 
+## October 28 local Chapter One development status (not yet published)
+
+**Source of truth for this local review:** `visual/first-wake-layered-coast-review-20261028`, starting from the unmerged draft PR #564 branch. The improvements below are **local commits only**; the ZIP download and gallery links in this README point to the earlier **remote** branch and do **not** contain these latest changes. Do not advertise them as available through that download link.
+
+- **Playability:** The Godot First Wake route includes Ender's Ionia-first hiring, engineering checks, the Aureate Wake's flight and physical ocean contact, reserve inspection, safe berth, Lyra/Talen reunion, clue gathering, two-area salvage, a repair workshop, and the return route. Tests verify these as bounded review gameplay, not production-complete Chapter One.
+- **Visual upgrades:** Locally implemented layered coastal silhouettes, Aureate Wake bridge-glass glints and hull presentation, coordinated warm haze in flight/family/quay scenes, atmospheric sunrise details, richer family meeting and salvage surfaces, distinctive collection objects, and deeper depot loading-bay architecture. The ship still uses 2D physics; these are actual in-game draw calls, not completed cinematic 3D environments.
+- **Characters:** Existing Ender and Ionia directional candidates are loaded in Godot; Ionia also appears in the playable family scene as non-colliding visual dressing. Their directional art remains subject to approved-reference comparison. Lyra, Talen, and the remaining protagonists do not have admitted production sprite packs in this checkout.
+- **Native evidence:** The connected Windows Godot 4.7.2 OpenGL renderer captured six recovery/family frames and five salvage/workshop frames at 960x640, with file hashes and scripted visual-state checks. These **new captures remain local** under `godot/review-evidence/`; they have not been visually signed off, distributed, or substituted for the older published gallery.
+- **Verification:** On this local branch, native family, salvage, ship-rig, water-contact, and main-to-water route tests have passed after the relevant edits. There is no new remote CI receipt for these local commits. No merge or release was made. The independent Defender-on security condition for Windows installer acceptance remains unresolved.
+
+See [consolidated development status and evidence boundaries](docs/FIRST_WAKE_LOCAL_DEVELOPMENT_STATUS_2026-10-28.md). Existing remote screenshots and links below are **historical source-specific evidence** only.
+
 ## Actual in-engine graphics — development evidence
 
 ### Latest playable Aureate Wake and sea material review
