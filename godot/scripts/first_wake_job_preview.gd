@@ -2,9 +2,11 @@ extends Node2D
 ## Standalone playable First Wake employment / engineering preview.
 ## Forward story candidate, NOT an approved art pack or replacement of live Chapter I.
 ## Open directly: res://scenes/first_wake_job_preview.tscn (F6 in Godot).
-## No flight, water physics, save migration, release or new combat permissions.
+## Bounded local 2D water-contact pilot; no planetary flight, save migration,
+## full seaworthiness certification, release or new combat permissions.
 
 const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
+const FlightScene = preload("res://scenes/first_wake_flight_water_review.tscn")
 const RevisedCodec = preload("res://scripts/first_wake_revised_checkpoint_codec.gd")
 const SaveStore = preload("res://scripts/first_wake_chapter1_save_store.gd")
 const PrototypeRoute = preload("res://scripts/first_wake_prototype_route.gd")
@@ -37,6 +39,8 @@ var ender: CharacterBody2D
 var ionia: CharacterBody2D
 var dock_background: Node2D
 var dock_foreground: Node2D
+var ui_layer: CanvasLayer
+var flight_review: Node2D
 var headline: Label
 var objective: Label
 var hint: Label
@@ -88,7 +92,8 @@ func _ready() -> void:
     dock_foreground.z_index = 3
     add_child(dock_foreground)
 
-    var ui := CanvasLayer.new()
+    ui_layer = CanvasLayer.new()
+    var ui := ui_layer
     ui.name = "ReadableGameplayOverlay"
     add_child(ui)
     headline = _label(ui, Vector2(22, 17), 24, 900)
@@ -170,6 +175,19 @@ func _unhandled_input(event: InputEvent) -> void:
             last_message = "Return unavailable: " + str(returned.get("reason", "unknown"))
             _sync_presentation()
         return
+    if event.is_action_pressed(InputPolicy.FLIGHT_REVIEW_LAUNCH) and not event.is_echo():
+        var started: bool = launch_flight_review()
+        if not started and room != "flight_review":
+            last_message = "First-flight review requires completed engineering and Ionia at the helm."
+            _sync_presentation()
+        get_viewport().set_input_as_handled()
+        return
+    # The flight subscene owns its E interaction; the old 2D preview never
+    # loads/overwrites the earlier preflight-only v2 checkpoint in flight.
+    if room == "flight_review":
+        if event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_K, KEY_L]:
+            get_viewport().set_input_as_handled()
+        return
     if event is InputEventKey and event.pressed and not event.echo:
         if event.keycode == KEY_K:
             var saved: Dictionary = save_revised_checkpoint()
@@ -187,7 +205,37 @@ func _unhandled_input(event: InputEvent) -> void:
         interact()
         get_viewport().set_input_as_handled()
 
+func launch_flight_review() -> bool:
+    # Reuse tested PR #447 local RigidBody2D ocean study; do not advance the
+    # story before validated preflight, or pretend its ocean is the planet.
+    if room != "engineering" or dialogue_open or flight_review != null:
+        return false
+    if opening.step_key() != "preflight" or opening.active_party_ids != ["ender", "ionia"]:
+        return false
+    if inspected_items.size() != ENGINEERING_ITEMS.size():
+        return false
+    for item in ENGINEERING_ITEMS:
+        if item not in inspected_items:
+            return false
+    var review := FlightScene.instantiate()
+    if not bool(review.call("configure_preflight", opening)):
+        review.free()
+        return false
+    flight_review = review
+    room = "flight_review"
+    dock_background.visible = false
+    dock_foreground.visible = false
+    ender.player_controlled = false
+    ender.visible = false
+    ionia.visible = false
+    ui_layer.visible = false
+    add_child(flight_review)
+    queue_redraw()
+    return true
+
 func interact() -> bool:
+    if room == "flight_review":
+        return false
     if dialogue_open:
         return _advance_dialogue()
     if room == "dock":
@@ -216,7 +264,7 @@ func interact() -> bool:
         _sync_presentation()
         return false
     if opening.step_key() == "preflight":
-        last_message = "Engineering checklist complete. Flight scene not connected in this preview."
+        last_message = "Engineering checklist complete. Press F for local first-flight physics review."
         _sync_presentation()
         return false
     for item in ENGINEERING_ITEMS:
@@ -254,11 +302,13 @@ func interact() -> bool:
     return false
 
 func export_revised_checkpoint() -> Dictionary:
-    if dialogue_open:
+    if dialogue_open or room == "flight_review" or flight_review != null:
         return {}
     return RevisedCodec.encode(opening, flyer_read, room, inspected_items, ender.position)
 
 func restore_revised_checkpoint(snapshot: Variant) -> bool:
+    if room == "flight_review" or flight_review != null:
+        return false
     # Fully validate/reconstruct the story before changing ANY scene state.
     # No old Chapter I v1 save may be interpreted as this new review format.
     var staged: Dictionary = RevisedCodec.restore(snapshot)
@@ -294,6 +344,8 @@ func save_revised_checkpoint() -> Dictionary:
     return revised_save_store.save_snapshot(snapshot, RevisedCodec.SLOT_PATH, RevisedCodec)
 
 func load_revised_checkpoint() -> Dictionary:
+    if room == "flight_review" or flight_review != null:
+        return {"ok": false, "reason": "flight_review_is_transient_and_unpersisted"}
     if dialogue_open:
         return {"ok": false, "reason": "dialogue_in_progress"}
     var read: Dictionary = revised_save_store.load_snapshot(RevisedCodec.SLOT_PATH, RevisedCodec)
@@ -358,7 +410,7 @@ func _advance_dialogue() -> bool:
             last_message = "Engineering inspection %d / 3 recorded." % inspected_items.size()
         "preflight":
             if opening.complete_engineering_checks():
-                last_message = "Preflight complete: chapter opening handoff is now ready for review."
+                last_message = "Preflight complete. Press F for bounded first-flight/ocean review."
                 ender.player_controlled = false
     _sync_presentation()
     return true
@@ -375,7 +427,7 @@ func _sync_presentation() -> void:
         else:
             objective.text = "Take the gangway aboard the Aureate Wake."
     elif opening.step_key() == "preflight":
-        objective.text = "PRE-FLIGHT READY — This preview ends before the test flight."
+        objective.text = "PRE-FLIGHT READY — F: enter local 2D flight/splashdown study."
     else:
         objective.text = "Engineering: inspect reference, containment and fuel (%d / 3)." % inspected_items.size()
     party_label.text = "Story party: " + " + ".join(opening.active_party_ids) + "  |  Review-only art / no live game integration"
