@@ -4,6 +4,7 @@ extends RefCounted
 const Ship = preload("res://scripts/ship_visual_3d_rig_study.gd")
 const Foredeck = preload("res://scripts/ship_foredeck_cross_study.gd")
 const Bridge = preload("res://scripts/ship_geodesic_bridge_cross_study.gd")
+const Interior = preload("res://scripts/ship_interior_layout_cross_study.gd")
 
 const STUDY_ART_TO_METRES: float = 2.5  # From independent boarding PR #461.
 const CANDIDATE_ENTRY_WIDTH_M: float = 2.35
@@ -13,6 +14,7 @@ const REVIEW_POSES: Array[float] = [0.0, 0.25, 0.50, 0.75, 1.0]
 const SOURCE_SHIP_BLOB := "b21327071e2120fd75113d6051af17dd2c45dbfd"
 const SOURCE_FOREDECK_BLOB := "638b2e1d2761cd27870ec38a470f6e3f47c027cc"
 const SOURCE_BRIDGE_BLOB := "88bb7540df89ab552f5ef415ab5c0b1da8945086"
+const SOURCE_INTERIOR_BLOB := "036ada9a33ddb6ce8a56886156c4f22992d319fd"
 
 static func _ship_local_box(ship: Node3D, part: MeshInstance3D) -> AABB:
     # Mesh vertices remain in their original authoring coordinates;
@@ -57,6 +59,12 @@ static func assess(ship: Node3D, deck: Node3D, bridge: Node3D) -> Dictionary:
         return refused
     if not ship.has_method("set_wing_review_sweep"):
         return refused
+    var hull: MeshInstance3D = ship.get_node_or_null("LongHull") as MeshInstance3D
+    if hull == null or hull.mesh == null:
+        return refused
+    var original_hull_box: AABB = hull.get_aabb()
+    var outer_hull_beam_m: float = original_hull_box.size.x * STUDY_ART_TO_METRES
+    var outer_hull_length_m: float = original_hull_box.size.z * STUDY_ART_TO_METRES
     var domediameter: float = 2.0 * Bridge.RADIUS * STUDY_ART_TO_METRES
     var summit: float = (Bridge.CENTER_Y + Bridge.RADIUS - Foredeck.PLATFORM_Y) * STUDY_ART_TO_METRES
     var seam: float = absf(
@@ -70,6 +78,12 @@ static func assess(ship: Node3D, deck: Node3D, bridge: Node3D) -> Dictionary:
         "ship_blob": SOURCE_SHIP_BLOB,
         "foredeck_blob": SOURCE_FOREDECK_BLOB,
         "bridge_blob": SOURCE_BRIDGE_BLOB,
+        "interior_blob": SOURCE_INTERIOR_BLOB,
+        "outer_hull_beam_study_m": outer_hull_beam_m,
+        "outer_hull_loft_length_study_m": outer_hull_length_m,
+        "interior_beam_study_m": Interior.BEAM_M,
+        "interior_length_study_m": Interior.LENGTH_M,
+        "interior_wider_than_outer": Interior.BEAM_M > outer_hull_beam_m,
         "unit_assumption": "UNAPPROVED_2_5_METRES_PER_ART_UNIT",
         "bridge_diameter_study_m": domediameter,
         "entry_width_study_m": CANDIDATE_ENTRY_WIDTH_M,
