@@ -56,6 +56,30 @@ func _draw() -> void:
             Color(0.77, 0.94, 0.86, 0.3), 1.0)
     draw_line(Vector2(4, -10), Vector2(31, -10),
         Color(0.73, 0.91, 0.85, 0.39), 1.2)
+    # Render-only projected geodesic glazing. Facet edges are clipped to
+    # the original helm radius, making a recognizable faceted glass crown
+    # without inventing ship collision, an interior or actual watertightness.
+    var crown := Vector2(18, -10)
+    var rim := 13.2
+    var glass_edge := Color(0.81, 0.96, 0.91, 0.47)
+    var glass_glint := Color(0.89, 1.0, 0.96, 0.24)
+    for band in [-0.62, 0.0, 0.62]:
+        var rise := band * rim
+        var half_span := sqrt(maxf(rim * rim - rise * rise, 0.0))
+        draw_line(crown + Vector2(-half_span, rise),
+            crown + Vector2(half_span, rise), glass_edge, 0.9)
+    for angle_index in range(6):
+        var theta := TAU * float(angle_index) / 6.0
+        var rim_point := crown + Vector2(cos(theta), sin(theta)) * rim
+        draw_line(crown, rim_point, glass_glint, 0.8)
+    draw_arc(crown, rim, 0.0, TAU, 32, BRASS.lightened(0.17), 1.25, true)
+    # Open bow deck remains visible in top-down silhouette; rails are
+    # decorative and have no crew-access/pressure-protection authority.
+    draw_line(Vector2(-32, -17), Vector2(-8, -17), BRASS, 1.05)
+    draw_line(Vector2(-32, 16), Vector2(-8, 16), BRASS, 1.05)
+    for rail_x in [-29.0, -18.0, -9.0]:
+        draw_circle(Vector2(rail_x, -17), 1.25, glass_edge)
+        draw_circle(Vector2(rail_x, 16), 1.25, glass_edge)
     # Tapered stern/rail and brass ventilation fittings.
     for x in [-44.0, -32.0, 0.0, 45.0]:
         draw_circle(Vector2(x, -10), 2.2, BRASS.darkened(0.10))
