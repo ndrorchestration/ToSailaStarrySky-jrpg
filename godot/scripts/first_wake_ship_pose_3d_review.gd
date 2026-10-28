@@ -2,6 +2,9 @@ extends CanvasLayer
 ## Explicit test-only real Godot 3D inset inside Ionia-first Chapter I.
 ## This is not the game's physical ship. No collision, player input or saves.
 const ShipRig = preload("res://scripts/ship_visual_3d_rig_study.gd")
+const CrossStudyDeck = preload("res://scripts/ship_foredeck_cross_study.gd")
+const CrossStudyBridge = preload("res://scripts/ship_geodesic_bridge_cross_study.gd")
+const Clearance = preload("res://scripts/ship_cross_study_clearance_contract.gd")
 const SOURCE_PR: int = 490
 const SOURCE_BLOB := "b21327071e2120fd75113d6051af17dd2c45dbfd"
 const PREVIEW_SIZE := Vector2i(480, 270)
@@ -11,6 +14,8 @@ const PREVIEW_DISPLAY_SIZE := Vector2(394.0, 222.0)
 var ship: Node3D
 var viewport: SubViewport
 var review_texture: TextureRect
+var geometry_deck: Node3D
+var geometry_bridge: Node3D
 
 func _ready() -> void:
     name = "OptionalNative3DShipReview"
@@ -70,6 +75,31 @@ func _ready() -> void:
     label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(label)
 
+## Additional QA-only geometry. Not shown by default, and never used as
+## collision or bridge-access gameplay. Both scripts are source-exact copies.
+func set_geometry_cross_study_enabled(enabled: bool) -> bool:
+    if not enabled:
+        if geometry_deck != null:
+            geometry_deck.queue_free()
+            geometry_deck = null
+        if geometry_bridge != null:
+            geometry_bridge.queue_free()
+            geometry_bridge = null
+        return false
+    if geometry_deck != null or geometry_bridge != null or ship == null:
+        return false
+    geometry_deck = CrossStudyDeck.new()
+    geometry_deck.name = "PROVISIONAL_OriginalOpenForedeck_NoPhysics"
+    ship.add_child(geometry_deck)
+    geometry_bridge = CrossStudyBridge.new()
+    geometry_bridge.name = "PROVISIONAL_OriginalGeodesicHelm_NoEgress"
+    geometry_bridge.position = Vector3(0.0, 0.0, Clearance.BRIDGE_SHIP_Z)
+    ship.add_child(geometry_bridge)
+    return true
+
+func assess_geometry_cross_study() -> Dictionary:
+    return Clearance.assess(ship, geometry_deck, geometry_bridge)
+
 func source_contract() -> Dictionary:
     return {
         "source_pr": SOURCE_PR,
@@ -80,7 +110,9 @@ func source_contract() -> Dictionary:
         "visible_by_default": false,
         "has_ship_physics": false,
         "has_gameplay_input": false,
-        "modifies_story_or_save": false
+        "modifies_story_or_save": false,
+        "geometry_cross_study_default_off": true,
+        "geometry_cross_study_admitted": false
     }
 
 func neutral_restored() -> bool:
