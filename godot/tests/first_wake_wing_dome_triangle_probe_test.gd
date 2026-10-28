@@ -7,9 +7,9 @@ const Rig = preload("res://scripts/ship_visual_3d_rig_study.gd")
 var checks: int = 0
 var failures: Array[String] = []
 
-func check(pass: bool, label: String) -> void:
+func check(ok: bool, label: String) -> void:
     checks += 1
-    if not pass:
+    if not ok:
         failures.append(label)
 
 func clear_dialogue(world: Node) -> bool:
