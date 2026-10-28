@@ -135,6 +135,13 @@ jobs:
           timeout 75s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_3d_inset_scene_test.gd 2>&1 | tee /tmp/first-wake-live-3d-inset.log
           ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_FIRST_WAKE_3D_INSET_FAIL:' /tmp/first-wake-live-3d-inset.log
           grep -Eq 'TSTSS_FIRST_WAKE_3D_INSET_PASS checks=[0-9]+' /tmp/first-wake-live-3d-inset.log
+      - name: Verify wide 3D scene reads real 2D hull waterline and can restore fallback
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 75s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_wide_composition_test.gd 2>&1 | tee /tmp/first-wake-wide-composition.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error|TSTSS_FIRST_WAKE_WIDE_3D_FAIL:' /tmp/first-wake-wide-composition.log
+          grep -Eq 'TSTSS_FIRST_WAKE_WIDE_3D_PASS checks=[0-9]+' /tmp/first-wake-wide-composition.log
       - name: Verify real First Wake authored dialogue gates scene progress
         shell: bash
         run: godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --script res://tests/first_wake_chapter1_dialogue_scene_test.gd

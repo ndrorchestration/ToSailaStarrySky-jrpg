@@ -10,6 +10,9 @@ const SHOTS = {
     "wing-planform": Vector3(2.5, 10.5, 2.0),
 }
 const SIZE := Vector2i(355, 200)
+const WIDE_SIZE := Vector2i(960, 442)
+const SEA_Y := -0.89
+const BODY_SCALE_Y := 0.035
 
 var viewport: SubViewport
 var viewport_container: SubViewportContainer
@@ -25,6 +28,10 @@ var use_low_detail: bool = false
 var scene_clock: float = 0.0
 var presentation_updates: int = 0
 var label: Label
+var wide_stage_enabled: bool = false
+var physical_body_y: float = 255.0
+var visual_altitude_above_waterline: float = 0.0
+var physically_stable: bool = false
 
 func _ready() -> void:
     mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -76,7 +83,7 @@ func _ready() -> void:
     var sea := MeshInstance3D.new()
     sea.name = "VisualWaterOnly_NoPhysics"
     var sea_mesh := PlaneMesh.new()
-    sea_mesh.size = Vector2(48, 48)
+    sea_mesh.size = Vector2(400, 400)
     sea.mesh = sea_mesh
     var ocean := StandardMaterial3D.new()
     ocean.albedo_color = Color("#245d72")
@@ -107,6 +114,49 @@ func _ready() -> void:
     label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(label)
 
+func set_wide_stage_enabled(enabled: bool) -> bool:
+    if viewport == null or viewport_container == null or ship_model == null:
+        return false
+    wide_stage_enabled = enabled
+    var extent: Vector2i = WIDE_SIZE if enabled else SIZE
+    viewport.size = extent
+    viewport_container.size = Vector2(extent)
+    size = Vector2(extent) + Vector2(0, 25)
+    var border: ColorRect = get_child(0) as ColorRect
+    border.size = size
+    label.position = Vector2(10, float(extent.y) + 2.0)
+    if enabled:
+        label.text = "3D SHIP REVIEW | CONTACT CONTROLLED BY 2D SENSOR"
+    else:
+        label.text = "3D SHIP STUDY  /  PHYSICS REMAINS 2D"
+    if not enabled:
+        ship_model.position = Vector3.ZERO
+        visual_altitude_above_waterline = 0.0
+    _reframe()
+    return true
+
+func sync_physical_waterline(body_y: float, water_y: float,
+        body_stable: bool) -> bool:
+    # The 2D Rigidbody is authoritative; the 3D ship only READS its height.
+    # Sea and hull cannot grant physics contact or approve a state transition.
+    if not is_finite(body_y) or not is_finite(water_y):
+        return false
+    physical_body_y = body_y
+    physically_stable = body_stable
+    if not wide_stage_enabled or ship_model == null:
+        return false
+    visual_altitude_above_waterline = (water_y - 14.0 - body_y) * BODY_SCALE_Y
+    ship_model.position.y = visual_altitude_above_waterline
+    _reframe()
+    return true
+
+func _reframe() -> void:
+    if shot_camera == null or ship_model == null:
+        return
+    var shot: String = last_camera_shot if SHOTS.has(last_camera_shot) else "bow-quarter"
+    shot_camera.position = ship_model.position + SHOTS[shot]
+    shot_camera.look_at(ship_model.position + Vector3(0.0, 0.2, 0.0), Vector3.UP)
+
 func set_visual_intent(plan: Dictionary) -> bool:
     if not bool(plan.get("admitted_for_review", false)):
         return false
@@ -127,8 +177,7 @@ func set_visual_intent(plan: Dictionary) -> bool:
     last_camera_shot = shot
     last_phase = str(plan.get("scene_phase", ""))
     last_grade = grade
-    shot_camera.position = SHOTS[shot]
-    shot_camera.look_at(Vector3(0, 0.2, 0), Vector3.UP)
+    _reframe()
     ship_model.set_motion(scene_clock, use_reduced_motion)
     # Review palette only: not a climate event, and cannot change physics.
     if grade == "storm-night-study":
@@ -173,4 +222,10 @@ func review_snapshot() -> Dictionary:
         "original_study_weather_shaders_imported": false,
         "planet_or_production_ocean_rendered": false,
         "update_count": presentation_updates,
+        "wide_stage_enabled": wide_stage_enabled,
+        "inset_dimensions": viewport.size if viewport != null else Vector2i.ZERO,
+        "physical_body_y": physical_body_y,
+        "visual_altitude_above_waterline": visual_altitude_above_waterline,
+        "physical_stable_for_review": physically_stable,
+        "visual_ship_has_no_colliders": true,
     }

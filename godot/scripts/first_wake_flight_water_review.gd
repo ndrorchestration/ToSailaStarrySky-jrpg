@@ -26,6 +26,7 @@ var status_label: Label
 var hint_label: Label
 var telemetry_label: Label
 var enable_3d_cinematic_inset: bool = false
+var enable_wide_cinematic_composition: bool = false
 var cinematic_inset
 var visual_reduced_motion: bool = false
 var visual_low_detail: bool = false
@@ -99,7 +100,24 @@ func _ready() -> void:
         cinematic_inset.name = "NoncanonicalInScene3DFlightStudy"
         cinematic_inset.position = Vector2(578, 144)
         ui.add_child(cinematic_inset)
+        if enable_wide_cinematic_composition:
+            set_cinematic_wide_mode(true)
     _refresh_presentation()
+
+func set_cinematic_wide_mode(wide: bool) -> bool:
+    # Review mode is strictly a renderer change, never a contact/save change.
+    if cinematic_inset == null or ship_body == null:
+        return false
+    if not bool(cinematic_inset.set_wide_stage_enabled(wide)):
+        return false
+    enable_wide_cinematic_composition = wide
+    cinematic_inset.position = Vector2(0, 103) if wide else Vector2(578, 144)
+    for child in ship_body.get_children():
+        if child is Polygon2D:
+            child.visible = not wide
+    cinematic_inset.sync_physical_waterline(
+        ship_body.position.y, SURFACE_Y, stable_float_verified)
+    return true
 
 func _make_label(parent: Node, at: Vector2, size: int) -> Label:
     var node := Label.new()
@@ -196,6 +214,10 @@ func _physics_process(delta: float) -> void:
                     phase = "waterborne"
                     ship_body.freeze = true
                     _refresh_presentation()
+    # Positional sync remains one-way, after real 2D physics/phase evaluation.
+    if cinematic_inset != null and enable_wide_cinematic_composition:
+        cinematic_inset.sync_physical_waterline(
+            ship_body.position.y, SURFACE_Y, stable_float_verified)
 
 func _on_water_body_entered(body: Node2D) -> void:
     if body != ship_body or phase != "descent":
@@ -219,6 +241,7 @@ func review_snapshot() -> Dictionary:
         "hull_y": ship_body.position.y if ship_body != null else -1.0,
         "fuel_formula": "unknown",
         "production_ocean_verified": false,
+        "wide_visual_composition": enable_wide_cinematic_composition,
     }
 
 func _refresh_presentation() -> void:
@@ -246,4 +269,7 @@ func _refresh_presentation() -> void:
         var visual_plan: Dictionary = CinematicHandoff.build(
             review_snapshot(), visual_reduced_motion, visual_low_detail, false)
         cinematic_inset.set_visual_intent(visual_plan)
+        if enable_wide_cinematic_composition:
+            cinematic_inset.sync_physical_waterline(
+                ship_body.position.y, SURFACE_Y, stable_float_verified)
     queue_redraw()
