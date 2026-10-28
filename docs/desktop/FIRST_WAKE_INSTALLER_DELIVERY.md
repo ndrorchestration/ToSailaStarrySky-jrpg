@@ -50,7 +50,7 @@ Both hosted environments fail the current required Defender-on custody prerequis
 
 ### Trusted Defender-on Windows alternative (staged, unverified)
 
-The new `scripts/verify-first-wake-installer-defender.ps1` checks the source SHA, active Defender realtime protection, whole-drive exclusions, scan-ID and exact-file-matched start/completion Defender events, detections and SHA-256 of **both** the Godot game executable and the actual NSIS `ToSailTheStarrySky-Setup.exe`. It records Authenticode status and emits a local JSON receipt with `publicReleaseAuthorized=false`. It does not sign, upload, promote or publish.
+The new `scripts/verify-first-wake-installer-defender.ps1` checks the source SHA, active Defender realtime protection, whole-drive and exact-target process/extension/path exclusions, scan-ID and exact-file-matched start/completion Defender events, detections and SHA-256 of **both** the Godot game executable and the actual NSIS `ToSailTheStarrySky-Setup.exe`. It records Authenticode status and emits a local JSON receipt with `publicReleaseAuthorized=false`. It does not sign, upload, promote or publish.
 
 The optional `trusted-installer-defender-qa` job is gated to the repository owner's own PR plus explicit `trusted-defender-on` label, and needs an online reviewed self-hosted Windows X64 runner labeled `defender-on` with configured `TSTSS_GODOT_EXE` and `TSTSS_NSIS_EXE`. The runner independently checks Defender status; its label is not proof. **No suitable trusted runner has been verified.** Running the same build/scan locally on an authorized, protected Windows computer is a possible alternative.
 
