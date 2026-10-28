@@ -165,6 +165,12 @@ func _apply_surface_review() -> void:
     var candidate: ShaderMaterial = SurfaceLook.build(best_context,true)
     if candidate == null:
         return
+    # Only the P2 preview's one selected tile receives border feather.
+    # Source mesh, all other tiles and sea material remain untouched.
+    var tile_info: Dictionary = _active[best_key].get_meta("surface_review_tile",{})
+    if tile_info.is_empty() or not SurfaceLook.configure_review_tile_edge(
+            candidate,tile_info,0.22):
+        return
     var target: MeshInstance3D = _active[best_key].get_node("SphericalLand")
     target.material_override = candidate
     _review_key = best_key
