@@ -7,7 +7,7 @@ const Opening = preload("res://scripts/first_wake_revised_opening_contract.gd")
 const Actor = preload("res://scripts/pilot_actor.gd")
 const Inputs = preload("res://scripts/first_wake_chapter1_input_policy.gd")
 const WorkshopScene = preload("res://scenes/first_wake_core_alignment_review.tscn")
-const Environment = preload("res://scripts/first_wake_cinematic_environment.gd")
+const CinematicStageArt = preload("res://scripts/first_wake_cinematic_environment.gd")
 
 const LYRA_POSITION := Vector2(690, 470)
 const TALEN_POSITION := Vector2(812, 470)
@@ -102,7 +102,7 @@ func set_cinematic_environment_enabled(enabled: bool) -> void:
 
 func _draw() -> void:
     if cinematic_environment_enabled:
-        Environment.draw_family(self)
+        CinematicStageArt.draw_family(self)
     else:
         # Original draft blocking, not approved character portraits or geography.
         draw_rect(Rect2(0, 0, 960, 640), Color("#183347"))
