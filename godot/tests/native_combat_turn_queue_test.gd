@@ -43,6 +43,25 @@ func _initialize() -> void:
     if invalid["ok"]:
         _fail("duplicate participants")
         return
+    # Skipping a defeated last participant must still close the round.
+    var triple_roster: Dictionary = roster.duplicate(true)
+    triple_roster["talen"] = {"hp": 3, "max_hp": 3, "mp": 4, "max_mp": 4, "stamina": 4, "max_stamina": 4}
+    var triple_order: Array[String] = ["ender", "ionia", "talen"]
+    var triple := Turns.begin(triple_roster, triple_order)
+    if not triple["ok"]:
+        _fail("three participant begin")
+        return
+    var knockout := Turns.take_action(triple, "ender", "talen", {"kind": "damage", "power": 3, "resource": "mp", "cost": 0})
+    if not knockout["ok"] or knockout["state"]["roster"]["talen"]["hp"] != 0:
+        _fail("last participant knockout")
+        return
+    var after_knockout := Turns.take_action(knockout["state"], "ionia", "ender", action)
+    if not after_knockout["ok"] or after_knockout["state"]["round"] != 2 or Turns.current_actor(after_knockout["state"]) != "ender":
+        _fail("skipped last participant round rollover")
+        return
+    if after_knockout["state"]["roster"]["talen"]["hp"] != 0 or triple["roster"] != triple_roster:
+        _fail("knockout state preservation")
+        return
     print("NATIVE_COMBAT_TURN_QUEUE_PASS")
     quit(0)
 
