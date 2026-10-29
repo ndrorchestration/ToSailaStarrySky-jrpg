@@ -65,6 +65,10 @@ func advance_authoritative_dialogue() -> bool:
         bridge_status = str(authoritative_job.last_message)
         if not prior_event.is_empty():
             completed_dialogues.append(prior_event)
+        if prior_event == "preflight":
+            # The original First Wake 2D review handles F and flight.
+            # The 3D spatial scene does not; never advertise an inert control.
+            bridge_status = "Original preflight complete. 3D flight is not yet implemented; the existing playable First Wake handles launch and water landing."
     return true
 
 func interact_at_verified_probe(probe_name: String) -> bool:
