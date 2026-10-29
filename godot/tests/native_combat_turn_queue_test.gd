@@ -63,17 +63,14 @@ func _initialize() -> void:
         _fail("knockout state preservation")
         return
     # Only one living participant remains: each legal action begins a new round.
-    var solo_roster: Dictionary = roster.duplicate(true)
-    solo_roster["ionia"]["hp"] = 0
     var solo_state: Dictionary = Turns.begin(roster, order)
     if not solo_state["ok"]:
         _fail("solo setup")
         return
     solo_state["roster"]["ionia"]["hp"] = 0
-    var solo_original: Dictionary = solo_state.duplicate(true)
     var solo_action := {"kind": "heal", "power": 1, "resource": "mp", "cost": 0}
     solo_state["roster"]["ender"]["hp"] = 49
-    solo_original = solo_state.duplicate(true)
+    var solo_original: Dictionary = solo_state.duplicate(true)
     var solo_result := Turns.take_action(solo_state, "ender", "ender", solo_action)
     if not solo_result["ok"] or solo_result["state"]["round"] != 2 or Turns.current_actor(solo_result["state"]) != "ender":
         _fail("sole survivor round rollover")
