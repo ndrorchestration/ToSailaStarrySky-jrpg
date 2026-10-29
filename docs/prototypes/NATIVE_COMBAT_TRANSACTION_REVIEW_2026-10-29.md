@@ -39,3 +39,10 @@ These commands must each exit 0; inspect all stderr, imports and warnings. Expec
 - `godot/tests/native_combat_ability_adapter_test.gd` covers bad ability IDs, friendly-fire rejection, invalid self-targets, successful same-unit heal with MP cost, event attribution, immutability and out-of-turn denial.
 - Run `godot --headless --path godot --script res://tests/native_combat_ability_adapter_test.gd` alongside the three earlier tests on the exact head.
 - **No Godot execution, approved canonical ability integration, 3D battle screen or gameplay acceptance is claimed.**
+
+## 2026-10-29 isolated turn-queue hardening
+
+- The ordered turn queue now advances its round counter when the next eligible participant wraps to an earlier index, including when the last participant is incapacitated. Defeated units remain in the declared order but cannot act.
+- `native_combat_turn_queue_test.gd` includes an isolated three-participant knockout/round-rollover regression and checks the prior roster remains unchanged.
+- **Execution remains unverified**: these changes are authored and committed, not proven with Godot 4.7.2 or native scene playthrough. No encounter, party registry, ability registry, battle UI, VFX, or release wiring was changed.
+- Exact commands for the additional test: `godot --headless --path godot --script res://tests/native_combat_turn_queue_test.gd`. Inspect engine exit status and stderr, not just the printed PASS marker.
