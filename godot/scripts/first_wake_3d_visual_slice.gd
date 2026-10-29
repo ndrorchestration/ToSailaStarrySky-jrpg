@@ -464,6 +464,8 @@ func _enter_real_3d_engineering_room() -> void:
     var floor := _material(Color("#66574c"), 0.92)
     var walls := _material(Color("#455360"), 0.90)
     var inlay := _material(Color("#a28b68"), 0.48, 0.55)
+    var timber := _material(Color("#293e4b"), 0.76, 0.21)
+    var copper := _material(Color("#ba9061"), 0.36, 0.71)
     _box("WakeEngineRoom_Actual3DFloor", ENGINE_ROOM_ORIGIN + Vector3(0, -0.22, 0),
         Vector3(11.7, 0.36, 24.0), floor)
     for side in [-1.0, 1.0]:
@@ -472,6 +474,24 @@ func _enter_real_3d_engineering_room() -> void:
             Vector3(0.26, 4.6, 24.0), walls)
         _static_collision("EngineeringSideWallPhysics", ENGINE_ROOM_ORIGIN +
             Vector3(float(side) * 5.8, 2.1, 0), Vector3(0.30, 4.6, 24.0))
+    _box("WakeEngineRoom_EnclosedRoof",
+        ENGINE_ROOM_ORIGIN + Vector3(0, 4.35, 0),
+        Vector3(11.7, 0.27, 24.0), timber)
+    for index in range(7):
+        var beam_z := -10.8 + float(index) * 3.6
+        _box("WakeEngineRoom_TransverseCeilingTruss_%02d" % index,
+            ENGINE_ROOM_ORIGIN + Vector3(0, 3.96, beam_z),
+            Vector3(11.15, 0.20, 0.22), copper)
+    for side in [-1.0, 1.0]:
+        for height in [1.3, 2.9]:
+            _box("WakeEngineRoom_LongitudinalServiceConduit",
+                ENGINE_ROOM_ORIGIN + Vector3(float(side) * 5.34, height, 0),
+                Vector3(0.14, 0.13, 22.5), copper)
+        for point in range(7):
+            var z_pos := -10.1 + float(point) * 3.4
+            _box("WakeEngineRoom_BulkheadStructuralRib",
+                ENGINE_ROOM_ORIGIN + Vector3(float(side) * 5.53, 2.1, z_pos),
+                Vector3(0.18, 3.8, 0.16), copper)
     _box("WakeEngineRoom_BackBulkhead", ENGINE_ROOM_ORIGIN + Vector3(0, 2.1, -12),
         Vector3(11.8, 4.6, 0.34), walls)
     _static_collision("EngineeringBackBulkheadPhysics",
@@ -501,20 +521,44 @@ func _enter_real_3d_engineering_room() -> void:
         _box("EngineRoom_BrassDeckSeam_%02d" % index,
             ENGINE_ROOM_ORIGIN + Vector3(0, -0.005, z),
             Vector3(10.7, 0.025, 0.056), inlay)
-    var lamp := OmniLight3D.new()
-    lamp.name = "WakeEngineRoom_True3DKeyLight"
-    lamp.light_color = Color("#f7d6a2")
-    lamp.light_energy = 0.95
-    lamp.omni_range = 27.0
-    lamp.position = ENGINE_ROOM_ORIGIN + Vector3(0, 3.4, -2.5)
-    add_child(lamp)
+    # Central harmonic-regulator silhouette is an unpowered engineering
+    # *composition study*, not a claimed working engine or new lore fact.
+    var regulator_tone := _material(Color("#73b3ae"), 0.22, 0.37)
+    regulator_tone.emission_enabled = true
+    regulator_tone.emission = Color("#3f8d91")
+    regulator_tone.emission_energy_multiplier = 0.65
+    var regulator_center := ENGINE_ROOM_ORIGIN + Vector3(0.0, 2.15, -11.54)
+    _sphere("WakeEngineering_BackBulkheadUnpoweredRegulatorStudy",
+        regulator_center, 0.93, Vector3(1.15, 1.0, 0.27), regulator_tone)
+    for arc in range(12):
+        var phase := TAU * float(arc) / 12.0
+        var next_phase := TAU * float(arc + 1) / 12.0
+        var arc_a := regulator_center + Vector3(cos(phase) * 1.48, sin(phase) * 1.48, 0.14)
+        var arc_b := regulator_center + Vector3(cos(next_phase) * 1.48, sin(next_phase) * 1.48, 0.14)
+        _pillar("WakeEngineering_BackBulkheadBrassRegulatorRim", arc_a, arc_b, 0.045, copper)
+    for index in range(4):
+        var light_z := -8.4 + float(index) * 5.2
+        var fixture := ENGINE_ROOM_ORIGIN + Vector3(0, 3.87, light_z)
+        var fixture_mat := _material(Color("#e4b480"), 0.23, 0.28)
+        fixture_mat.emission_enabled = true
+        fixture_mat.emission = Color("#ecb776")
+        fixture_mat.emission_energy_multiplier = 1.65
+        _box("WakeEngineering_ActualCeilingLamp_%02d" % index, fixture,
+            Vector3(1.15, 0.07, 0.42), fixture_mat)
+        var local_light := OmniLight3D.new()
+        local_light.name = "WakeEngineering_SpatialLamp_%02d" % index
+        local_light.light_color = Color("#f4c8a1")
+        local_light.light_energy = 1.25
+        local_light.omni_range = 9.0
+        local_light.position = fixture + Vector3(0, -0.35, 0)
+        add_child(local_light)
     navigation_body.global_position = ENGINE_ROOM_ORIGIN + Vector3(0, 0.18, 8.7)
     navigation_body.velocity = Vector3.ZERO
     navigation_body.travel_facing = "north"
     camera_follow_navigation = true
-    camera_distance = 19.0
+    camera_distance = 8.5
     camera_azimuth = 0.04
-    camera_elevation = 0.26
+    camera_elevation = 0.16
     _update_camera()
     navigation_status.text = "Aureate Wake engineering: E inspect 3 stations, then safety checklist. Flight is gated."
 
@@ -660,6 +704,10 @@ func _update_camera() -> void:
         if camera_follow_navigation and navigation_body != null
         else CAMERA_TARGET
     )
+    if engineering_room_instantiated and camera_follow_navigation and navigation_body != null:
+        # Keep the actual reviewer camera INSIDE the physical room at human
+        # scale rather than looking down from outside the open doorway.
+        look_target = navigation_body.global_position + Vector3(0.0, 1.1, -5.9)
     camera.position = look_target + Vector3(
         sin(camera_azimuth) * horizontal,
         camera_distance * sin(camera_elevation),
