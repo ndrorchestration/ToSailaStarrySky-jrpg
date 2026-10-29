@@ -29,7 +29,14 @@ The separate native [visual capture run #40937547028](https://github.com/ndrorch
 
 The subsequent interior-composition pass [native run #40938154384](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40938154384) passed **all** dedicated CI steps, including the stronger roof/camera/lighting assertions, and recaptured three native frames. Artist review confirms enclosed camera/ceiling and clearer engineering focus, but **final cinematic visual acceptance remains withheld**. The colored cubes are temporary debug interaction beacons, and the source-approved 3D Ender and Ionia character models do not yet exist.
 
-The last code change makes the 3D preflight message explicitly deny unimplemented flight. **Final exact-head CI must pass before this last UI revision is certified.**
+**Final exact-head native acceptance:** Godot 4.7.2 [Actions run #40938979354](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40938979354), source implementation head `1a8c401b016e6f6de66116b4e9164761dddce56b`, **PASS**. Verified runner log: **46** 3D navigation, **48** original flyer/Ionia/boarding dialogue, **89** full physically visited engineering/preflight, and **48** existing original First Wake water-contact/save assertions PASS. The exact 3D flight status correctly says launch is not implemented, and the camera composition regression asserts the interior remains visible at completed preflight. Three native 960×640 Godot OpenGL images and SHA-256 manifests were captured; this is not a rendered illustration or a Windows-native playtest.
+
+Final screenshots (SHA-256):
+- Room entry: `fbc17bbfcd386b4cd824f3c985c180933d48c165ae33349cfc0bcd0daa061a50`.
+- Original phase-reference dialogue: `ba425ab0c2af377b23bc81909b6beb54ce863a827299d0879c18902934272ab2`.
+- Completed original preflight: `8958d04bd2629fe3a95ce0fafa6a697c765378328669bd3b346ae0d33b7a857c`.
+
+All images and their `SHA256SUMS.txt` are in the review-only artifact `first-wake-3d-engineering-real-gpu-evidence` on the linked GitHub Actions run. The actual interior and closing frame were inspected: the camera now remains in the room, structural ceiling/lighting/gauges are present, and the original preflight UI clearly holds flight as an unimplemented 3D milestone. **The artwork is still a rough geometric blockout and artistically unapproved.**
 
 ## Production boundary and next work
 
