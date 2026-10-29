@@ -13,6 +13,12 @@ const Session = preload("res://scripts/first_wake_game_session.gd")
 const PROBE_FLYER := "NoticeBoard_ReviewOnly"
 const PROBE_IONIA := "IoniaArrival_ReviewOnly"
 const PROBE_GANGWAY := "AureateWakeGangway_ReviewOnly"
+const ENGINEERING_STATIONS := {
+    "EngineeringReference_ReviewOnly": "reference",
+    "EngineeringContainment_ReviewOnly": "containment",
+    "EngineeringFuel_ReviewOnly": "fuel",
+    "EngineeringSafety_ReviewOnly": "checklist",
+}
 
 var authoritative_job: Node2D
 var authoritative_session = Session.new()
@@ -84,14 +90,43 @@ func interact_at_verified_probe(probe_name: String) -> bool:
                 return false
             authoritative_job.ender.position = authoritative_job.IONIA_DOCK_POSITION
         PROBE_GANGWAY:
-            if not "ionia" in authoritative_job.opening.active_party_ids:
-                bridge_status = "First complete Ionia's original hiring dialogue."
-            else:
-                bridge_status = "The original gangway is ready, but 3D engineering boarding remains gated. Play the existing First Wake for engineering and flight."
-            return false
+            if authoritative_job.opening.step_key() != "engineering" or (
+                    authoritative_job.opening.active_party_ids != ["ender", "ionia"]):
+                bridge_status = "Complete Ionia's original hiring dialogue before boarding."
+                return false
+            if authoritative_job.room != "dock":
+                bridge_status = "The original engineering room is already active."
+                return false
+            # The caller has already verified REAL gangway Area3D overlap.
+            # The same original JobScene.interact performs the actual room transition.
+            authoritative_job.ender.position = authoritative_job.GANGWAY_POSITION
+            if not authoritative_job.interact() or authoritative_job.room != "engineering":
+                bridge_status = "The existing First Wake boarding rules rejected this entry."
+                return false
+            physically_confirmed_interactions += 1
+            bridge_status = "Original First Wake engineering room entered. Inspect all three stations and the safety checklist."
+            return true
         _:
-            bridge_status = "Unknown 3D story interaction blocked."
-            return false
+            if not ENGINEERING_STATIONS.has(probe_name):
+                bridge_status = "Unknown 3D story interaction blocked."
+                return false
+            if authoritative_job.room != "engineering":
+                bridge_status = "Engineering is inaccessible before verified gangway boarding."
+                return false
+            var item: String = ENGINEERING_STATIONS[probe_name]
+            if authoritative_job.opening.step_key() != "engineering":
+                bridge_status = "Engineering checks are already completed; 3D flight remains gated."
+                return false
+            if item == "checklist" and authoritative_job.inspected_items.size() != (
+                    authoritative_job.ENGINEERING_ITEMS.size()):
+                bridge_status = "First complete reference, containment and fuel inspections."
+                return false
+            if item != "checklist" and item in authoritative_job.inspected_items:
+                bridge_status = "That original engineering inspection is already recorded."
+                return false
+            # Original job checks player distance to its original station positions;
+            # this maps a REAL 3D physics overlap to that SAME existing contract.
+            authoritative_job.ender.position = authoritative_job.ROOM_POSITIONS[item]
     if not authoritative_job.interact():
         bridge_status = "Original First Wake scene refused the attempted interaction."
         return false
@@ -110,7 +145,13 @@ func story_snapshot() -> Dictionary:
     progress["dialogue_line"] = _dialogue_line()
     progress["dialogue_completions"] = completed_dialogues.duplicate()
     progress["verified_probe_interactions"] = physically_confirmed_interactions
-    progress["3d_engineering_room_ready"] = false
+    progress["3d_engineering_room_ready"] = (
+        authoritative_job != null and authoritative_job.room == "engineering"
+    )
+    progress["engineering_checks"] = (
+        authoritative_job.inspected_items.duplicate() if authoritative_job != null else []
+    )
+    progress["3d_flight_launch_allowed"] = false
     progress["physical_3d_water_contact_verified"] = false
     progress["3d_authoritative_checkpoint_available"] = false
     return progress
