@@ -50,3 +50,21 @@ These commands must each exit 0; inspect all stderr, imports and warnings. Expec
 ## First Wake party preview bridge (2026-10-29; untested)
 
 `godot/scripts/combat/first_wake_party_preview.gd` reads the real `first_wake_revised_opening_contract.gd` snapshot without mutating it. It accepts only recruited party identities, caps the proposed crew at three combatants, rejects duplicates and overlapping enemy IDs, and returns a separately labeled **unauthorized review preview** with a copied turn state. It does not authorize encounters, modify story or saves, or install a battle scene. Run `godot --headless --path godot --script res://tests/first_wake_party_preview_test.gd` on the current PR head; the new test targets Ionia-before-hire rejection, Lyra-before-reunion rejection, Ionia-after-hire preview, uniqueness, and story immutability. **Native execution not performed.**
+
+## Further regression coverage — sole-survivor turn order
+
+The turn queue test now exercises the case where only the first participant is conscious and the next participant is incapacitated. It expects a successful self-heal, a rollover to round 2, no mutation of the input state, and continued eligibility for the survivor. This test is **authored, not confirmed executed**, and does not grant encounter or release approval.
+
+Verification commands (from repository root, with Godot 4.7.2):
+
+```sh
+godot --headless --path godot --editor --quit
+godot --headless --path godot --script res://tests/native_combat_transaction_test.gd
+godot --headless --path godot --script res://tests/native_roster_battle_test.gd
+godot --headless --path godot --script res://tests/native_combat_turn_queue_test.gd
+godot --headless --path godot --script res://tests/native_combat_ability_adapter_test.gd
+godot --headless --path godot --script res://tests/native_ability_learning_guard_20261029_test.gd
+godot --headless --path godot --script res://tests/first_wake_party_preview_test.gd
+```
+
+Do not infer that general First Wake render/smoke workflow successes executed these exact combat tests. Record exact-head logs and exit codes before promotion.
