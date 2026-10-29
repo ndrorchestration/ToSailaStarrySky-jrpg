@@ -5,6 +5,8 @@ on:
       - 'godot/scripts/first_wake_3d_navigation_marker.gd'
       - 'godot/scripts/first_wake_3d_visual_slice.gd'
       - 'godot/tests/first_wake_3d_navigation_test.gd'
+      - 'godot/scripts/first_wake_3d_story_bridge.gd'
+      - 'godot/tests/first_wake_3d_authoritative_dialogue_test.gd'
       - 'godot/tests/capture_first_wake_3d_navigation.gd'
       - 'godot/tests/first_wake_3d_visual_slice_test.gd'
       - '.github/workflows/godot-first-wake-3d-navigation.yml'
@@ -46,6 +48,13 @@ jobs:
           timeout 125s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_3d_navigation_test.gd 2>&1 | tee /tmp/nav-physics.log
           ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_NAVIGATION_3D_FAIL:' /tmp/nav-physics.log
           grep -Fq 'TSTSS_NAVIGATION_3D_PASS' /tmp/nav-physics.log
+      - name: Verify original First Wake dialogue and opening session are the only 3D story authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 125s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_3d_authoritative_dialogue_test.gd 2>&1 | tee /tmp/3d-authoritative-story.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_3D_AUTHORITATIVE_DIALOGUE_FAIL:' /tmp/3d-authoritative-story.log
+          grep -Fq 'TSTSS_3D_AUTHORITATIVE_DIALOGUE_PASS' /tmp/3d-authoritative-story.log
       - name: Capture genuine 3D player walking and physical inspection frames
         shell: bash
         run: |
