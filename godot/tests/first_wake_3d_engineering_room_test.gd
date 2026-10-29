@@ -131,6 +131,8 @@ func _run() -> void:
     verify(job.opening.step_key() == "preflight" and
         session.opening.step_key() == "preflight",
         "Original completed preflight dialogue did not advance single opening FSM")
+    verify("3D flight is not yet implemented" in bridge.bridge_status,
+        "3D scene falsely advertises unavailable F/flight control after preflight")
     verify(not bridge.interact_at_verified_probe("EngineeringFuel_ReviewOnly"),
         "Already completed preflight can reopen station incorrectly")
     verify(not session.can_checkpoint() and not session.physical_landing_observed and
