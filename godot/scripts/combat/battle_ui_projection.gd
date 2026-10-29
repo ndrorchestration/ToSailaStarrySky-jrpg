@@ -9,11 +9,18 @@ static func project(state: Dictionary) -> Dictionary:
         return {"ok": false, "reason": "invalid_battle"}
     if typeof(state.get("events")) != TYPE_ARRAY or typeof(state.get("round")) != TYPE_INT:
         return {"ok": false, "reason": "invalid_battle"}
+    if typeof(state.get("cursor")) != TYPE_INT or state["round"] < 1:
+        return {"ok": false, "reason": "invalid_turn_state"}
+    var order: Array = state["order"]
+    if order.is_empty() or state["cursor"] < 0 or state["cursor"] >= order.size():
+        return {"ok": false, "reason": "invalid_turn_state"}
     var roster: Dictionary = state["roster"]
+    var seen := {}
     var members: Array = []
     for id in state["order"]:
-        if typeof(id) != TYPE_STRING or not roster.has(id) or typeof(roster[id]) != TYPE_DICTIONARY:
+        if typeof(id) != TYPE_STRING or id.is_empty() or seen.has(id) or not roster.has(id) or typeof(roster[id]) != TYPE_DICTIONARY:
             return {"ok": false, "reason": "invalid_participant"}
+        seen[id] = true
         var unit: Dictionary = roster[id]
         for field in ["hp", "max_hp", "mp", "max_mp", "stamina", "max_stamina"]:
             if typeof(unit.get(field)) != TYPE_INT:
