@@ -92,6 +92,16 @@ func _run() -> void:
         "Room floor, physical stations and four Area3D interaction zones absent")
     verify(stage.camera_follow_navigation and stage.camera_distance <= 20.0,
         "Real 3D camera did not relocate to engineering interior")
+    verify(stage.visual_root.get_node_or_null("WakeEngineRoom_EnclosedRoof") is MeshInstance3D,
+        "Engineering ceiling remains open-air instead of spatially enclosed")
+    verify(stage.visual_root.get_node_or_null("WakeEngineering_BackBulkheadUnpoweredRegulatorStudy") is MeshInstance3D,
+        "3D back bulkhead lacks native engineering regulator composition")
+    for lamp_id in range(4):
+        verify(stage.get_node_or_null("WakeEngineering_SpatialLamp_%02d" % lamp_id) is OmniLight3D,
+            "Real spatial ceiling lighting missing")
+    verify(stage.camera.global_position.x > 52.0 and stage.camera.global_position.x < 64.0 and
+        stage.camera.global_position.z < 11.2 and stage.camera.global_position.y < 4.1,
+        "Native interior camera remains outside room or above engineering ceiling")
     for i in range(18):
         await physics_frame
     verify(player.is_on_floor() and player.global_position.x > 50.0,
