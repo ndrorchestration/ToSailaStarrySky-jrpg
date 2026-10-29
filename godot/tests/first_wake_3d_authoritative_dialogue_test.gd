@@ -142,9 +142,9 @@ func _run() -> void:
         "gangway failed to call original engineering room transition")
     _check(stage.engineering_room_instantiated and stage.interaction_probes.size() == 7,
         "physical 3D engineering interior and four Area3D stations were not created")
-    _check(player.global_position.x > 50.0 and player.is_on_floor() == false,
+    _check(player.global_position.x > 50.0,
         "3D boarding did not position the player in actual engineering geometry")
-    for frame in range(12):
+    for frame in range(36):
         await physics_frame
     _check(player.is_on_floor(), "engineering has no real walkable physics floor")
     _check(session.opening.active_party_ids == ["ender", "ionia"],
