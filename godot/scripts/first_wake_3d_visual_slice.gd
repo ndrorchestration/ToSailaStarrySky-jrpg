@@ -488,7 +488,7 @@ func _assemble_navigation_hud() -> void:
 func _update_authoritative_dialogue_ui() -> void:
     if original_dialogue_panel == null:
         return
-    var show_line := (
+    var show_line: bool = (
         authoritative_story_mode and authoritative_story_bridge != null and
         authoritative_story_bridge.authoritative_job != null and
         authoritative_story_bridge.authoritative_job.dialogue_open
