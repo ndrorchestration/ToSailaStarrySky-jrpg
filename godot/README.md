@@ -1,5 +1,13 @@
 # To Sail the Starry Sky — Integrated First Wake playable candidate (draft)
 
+## New: original First Wake dialogue inside the physically navigable 3D dock (draft PR #600)
+
+[Draft PR #600](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/600) binds a **hidden original First Wake job scene** to the exact same existing session and opening contract that the ordinary native F5 game uses. In the separate 3D review scene, press **B** for authentic First Wake story interaction, walk with **WASD** to the real 3D notice and press **E** to start the **original Ender flyer dialogue**, then E to advance. Walk to Ionia and press E to start the **original Ionia hiring dialogue**; her party recruitment occurs only at the actual authored completion event. The 3D dialogue panel reads lines and speaker directly from the original job scene, not duplicated text. Press B to return to the old spatial-only debug interaction review.
+
+This **does not** implement 3D engineering, gangway boarding, flight or postflight. The gangway remains gated, the turquoise locator is still not an approved character model, normal F5 remains the already-playable First Wake, and neither the checkpoint system nor original splashdown mechanics are changed. The Windows Desktop Commander connection is offline; the existing desktop preview shortcut points to the older PR #590 scene, not this development branch. Verified GitHub CI and 960×640 story screenshot evidence are tracked in the [3D original dialogue QA record](art-review/FIRST_WAKE_3D_AUTHORITATIVE_DIALOGUE_QA_2026-10-29.md).
+
+---
+
 ## New: physically navigable 3D dock (draft PR #591 — review only)
 
 [PR #591](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/591) extends the separate 3D coast with an **actual WASD CharacterBody3D**, a walkable physics deck and edge protection, three genuine **Area3D + E** interaction checkpoints, a follow-camera toggle (**C**), and a readable development-only HUD. The turquoise circle is deliberately **not a substitute Ender model**. No source-approved rigged Five Lights GLBs, canonical Ionia scene, quests, combat, ship boarding, saves or 3D Chapter One release have been falsely claimed.
