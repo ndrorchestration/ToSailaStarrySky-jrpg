@@ -6,7 +6,8 @@ func _initialize() -> void:
         "ender": {"hp": 50, "max_hp": 50, "mp": 6, "max_mp": 6, "stamina": 4, "max_stamina": 4},
         "ionia": {"hp": 40, "max_hp": 40, "mp": 4, "max_mp": 4, "stamina": 4, "max_stamina": 4}
     }
-    var initial := Turns.begin(roster, ["ender", "ionia"] as Array[String])
+    var order: Array[String] = ["ender", "ionia"]
+    var initial := Turns.begin(roster, order)
     if not initial["ok"]:
         _fail("begin")
         return
@@ -37,7 +38,8 @@ func _initialize() -> void:
     if second["state"]["events"].size() != 2:
         _fail("event log")
         return
-    var invalid := Turns.begin(roster, ["ender", "ender"] as Array[String])
+    var duplicate_order: Array[String] = ["ender", "ender"]
+    var invalid := Turns.begin(roster, duplicate_order)
     if invalid["ok"]:
         _fail("duplicate participants")
         return
