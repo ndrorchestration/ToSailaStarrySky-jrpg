@@ -143,6 +143,8 @@ func _run() -> void:
     verify(stage.quality_snapshot().get("3d_engineering_preflight_completed") and
         stage.quality_snapshot().get("3d_engineering_stations_present"),
         "3D scene fails to report physically completed engineering status")
+    verify(stage.camera.global_position.z > stage.ENGINE_ROOM_ORIGIN.z - 1.0,
+        "Engineering camera is aiming through the back bulkhead rather than showing room context")
     verify(stage.interaction_receipts.size() == 7,
         "Exactly seven physical story transitions expected: flyer, hire, gangway, 4 stations")
     stage.queue_free()
