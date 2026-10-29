@@ -30,3 +30,12 @@ These commands must each exit 0; inspect all stderr, imports and warnings. Expec
 5. Preserve installer Defender-on, signing, provenance, visual review and explicit release approval as independent gates.
 
 **Status:** Source committed, unit test scripts authored; native execution **UNVERIFIED**. GitHub commit status API returned no status entries on head `1eaee41e6c735a440afaa7da75f43d9b30bf3dc3`. Do not infer test pass or mergeability.
+
+## 2026-10-29 ability-to-turn adapter continuation (unverified)
+
+- `godot/scripts/combat/ability_turn_adapter.gd` adds an isolated ID-based catalog bridge to the existing turn queue. It rejects missing/unknown abilities, invalid descriptors and improper self/ally/enemy targeting before the turn transaction.
+- The input catalog and faction map are **review fixtures**, not the canonical character/ability databases, and do not establish unlock eligibility, enemy encounter approval, class/job rules or damage balance.
+- The adapter adds only an `ability_id` reference to the successful event log, preserving copy-on-write behavior.
+- `godot/tests/native_combat_ability_adapter_test.gd` covers bad ability IDs, friendly-fire rejection, invalid self-targets, successful same-unit heal with MP cost, event attribution, immutability and out-of-turn denial.
+- Run `godot --headless --path godot --script res://tests/native_combat_ability_adapter_test.gd` alongside the three earlier tests on the exact head.
+- **No Godot execution, approved canonical ability integration, 3D battle screen or gameplay acceptance is claimed.**
