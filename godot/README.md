@@ -1,10 +1,20 @@
+## New: walkable Aureate Wake 3D engineering interior (draft PR #602)
+
+[PR #602](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/602) advances the separate true 3D First Wake scene from dock dialogue into **actual physically walkable engineering**. After the **original** job flyer and Ionia hire, verified 3D gangway boarding opens a real interior with floor/wall collision, enclosed ceiling, lighting and four independent `Area3D` stations. Inspect phase reference, containment, fuel and Ionia's checklist with **E**: every conversation and progression event uses the same existing First Wake `JobScene`/`Opening`, not rewritten story code.
+
+**Verified on the official Godot 4.7.2 Linux runner** in [native CI #40938979354](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40938979354): **46** 3D movement, **48** original dialogue/boarding, **89** physical engineering/preflight and **48** unchanged canonical First Wake flight/water/save assertions. Three 960×640 GPU screenshots (room entry, original dialogue and completed preflight) are attached as review artifacts. [Full exact-head QA and native source custody](art-review/FIRST_WAKE_3D_ENGINEERING_NATIVE_QA_2026-10-29.md).
+
+**Not final:** The room is visually an engineering blockout with temporary interaction markers; creator-approved rigged Ender/Ionia characters, cinematic PBR assets and 3D flight remain missing. A completed engineering checklist does **not** enable unimplemented 3D flight. Normal F5 still opens the older working First Wake, and your Windows desktop shortcut still targets the older PR #590 review scene, **not PR #602**. Neither installation nor Windows Defender-on release approval exists.
+
+---
+
 # To Sail the Starry Sky — Integrated First Wake playable candidate (draft)
 
-## New: original First Wake dialogue inside the physically navigable 3D dock (draft PR #600)
+## Earlier milestone: original First Wake dialogue inside 3D dock (draft PR #600)
 
 [Draft PR #600](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/600) binds a **hidden original First Wake job scene** to the exact same existing session and opening contract that the ordinary native F5 game uses. In the separate 3D review scene, press **B** for authentic First Wake story interaction, walk with **WASD** to the real 3D notice and press **E** to start the **original Ender flyer dialogue**, then E to advance. Walk to Ionia and press E to start the **original Ionia hiring dialogue**; her party recruitment occurs only at the actual authored completion event. The 3D dialogue panel reads lines and speaker directly from the original job scene, not duplicated text. Press B to return to the old spatial-only debug interaction review.
 
-This **does not** implement 3D engineering, gangway boarding, flight or postflight. The gangway remains gated, the turquoise locator is still not an approved character model, normal F5 remains the already-playable First Wake, and neither the checkpoint system nor original splashdown mechanics are changed. The Windows Desktop Commander connection is offline; the existing desktop preview shortcut points to the older PR #590 scene, not this development branch. Verified GitHub CI and 960×640 story screenshot evidence are tracked in the [3D original dialogue QA record](art-review/FIRST_WAKE_3D_AUTHORITATIVE_DIALOGUE_QA_2026-10-29.md).
+**Historical PR #600 boundary (superseded by draft PR #602):** at that stage the 3D engineering room and gangway boarding were not implemented. PR #602 adds these with physical engine-station inspection; 3D flight and postflight remain gated. At PR #600 the gangway remained gated, the turquoise locator is still not an approved character model, normal F5 remains the already-playable First Wake, and neither the checkpoint system nor original splashdown mechanics are changed. The Windows Desktop Commander connection is offline; the existing desktop preview shortcut points to the older PR #590 scene, not this development branch. Verified GitHub CI and 960×640 story screenshot evidence are tracked in the [3D original dialogue QA record](art-review/FIRST_WAKE_3D_AUTHORITATIVE_DIALOGUE_QA_2026-10-29.md).
 
 ---
 

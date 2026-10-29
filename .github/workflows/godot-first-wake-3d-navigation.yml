@@ -7,6 +7,8 @@ on:
       - 'godot/tests/first_wake_3d_navigation_test.gd'
       - 'godot/scripts/first_wake_3d_story_bridge.gd'
       - 'godot/tests/first_wake_3d_authoritative_dialogue_test.gd'
+      - 'godot/tests/first_wake_3d_engineering_room_test.gd'
+      - 'godot/tests/capture_first_wake_3d_engineering_room.gd'
       - 'godot/tests/capture_first_wake_3d_authoritative_dialogue.gd'
       - 'godot/tests/capture_first_wake_3d_navigation.gd'
       - 'godot/tests/first_wake_3d_visual_slice_test.gd'
@@ -56,6 +58,31 @@ jobs:
           timeout 125s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_3d_authoritative_dialogue_test.gd 2>&1 | tee /tmp/3d-authoritative-story.log
           ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_3D_AUTHORITATIVE_DIALOGUE_FAIL:' /tmp/3d-authoritative-story.log
           grep -Fq 'TSTSS_3D_AUTHORITATIVE_DIALOGUE_PASS' /tmp/3d-authoritative-story.log
+      - name: Verify actual 3D engineering movement and the single original preflight authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 125s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_3d_engineering_room_test.gd 2>&1 | tee /tmp/3d-engineering-room.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_3D_ENGINEERING_FAIL:' /tmp/3d-engineering-room.log
+          grep -Fq 'TSTSS_3D_ENGINEERING_PASS' /tmp/3d-engineering-room.log
+      - name: Capture native 3D engineering room, source dialogue and physical preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 130s xvfb-run -a -s "-screen 0 960x640x24" godot-editor/Godot_v4.7.2-stable_linux.x86_64 --rendering-driver opengl3 --resolution 960x640 --path godot --script res://tests/capture_first_wake_3d_engineering_room.gd 2>&1 | tee /tmp/engineering-gpu-capture.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_3D_ENGINEERING_RENDER_FAIL:' /tmp/engineering-gpu-capture.log
+          grep -Fq 'TSTSS_3D_ENGINEERING_RENDER_PASS' /tmp/engineering-gpu-capture.log
+          mkdir -p engineering-review-frames
+          find "$HOME/.local/share/godot/app_userdata" -type f -name 'first_wake_actual_engineering_*.png' -exec cp {} engineering-review-frames/ \;
+          test "$(find engineering-review-frames -maxdepth 1 -type f -name '*.png' | wc -l)" -eq 3
+          sha256sum engineering-review-frames/*.png > engineering-review-frames/SHA256SUMS.txt
+      - name: Upload 3D engineering GPU screenshots (review evidence, not a build)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: first-wake-3d-engineering-real-gpu-evidence
+          path: engineering-review-frames/
+          retention-days: 14
+          if-no-files-found: error
       - name: Capture real 3D original First Wake dialogue in 960x640 GPU frames
         shell: bash
         run: |

@@ -1,6 +1,16 @@
-## New: separate native 3D visual scene (draft PR #590)
+## New: walkable Aureate Wake 3D engineering interior (draft PR #602)
 
-The real 3D First Wake coastline, pier, animated spatial sea, lighting, camera and **provisional** geodesic Aureate Wake composition are implemented in a **separately launchable Godot review scene**. The connected Windows machine rendered it with both OpenGL Compatibility and Vulkan Forward+, at 960×640. This is a **3D graphics prototype**, not a replacement for the existing Ionia-first playable First Wake, not a polished art release, and not the standalone Windows installer. Correct five-character rigged 3D models and 3D story/gameplay integration remain outstanding.
+[PR #602](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/602) advances the separate true 3D First Wake scene from dock dialogue into **actual physically walkable engineering**. After the **original** job flyer and Ionia hire, verified 3D gangway boarding opens a real interior with floor/wall collision, enclosed ceiling, lighting and four independent `Area3D` stations. Inspect phase reference, containment, fuel and Ionia's checklist with **E**: every conversation and progression event uses the same existing First Wake `JobScene`/`Opening`, not rewritten story code.
+
+**Verified on the official Godot 4.7.2 Linux runner** in [native CI #40938979354](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40938979354): **46** 3D movement, **48** original dialogue/boarding, **89** physical engineering/preflight and **48** unchanged canonical First Wake flight/water/save assertions. Three 960×640 GPU screenshots (room entry, original dialogue and completed preflight) are attached as review artifacts. [Full exact-head QA and native source custody](godot/art-review/FIRST_WAKE_3D_ENGINEERING_NATIVE_QA_2026-10-29.md).
+
+**Not final:** The room is visually an engineering blockout with temporary interaction markers; creator-approved rigged Ender/Ionia characters, cinematic PBR assets and 3D flight remain missing. A completed engineering checklist does **not** enable unimplemented 3D flight. Normal F5 still opens the older working First Wake, and your Windows desktop shortcut still targets the older PR #590 review scene, **not PR #602**. Neither installation nor Windows Defender-on release approval exists.
+
+---
+
+## Earlier foundation: separate native 3D visual scene (draft PR #590)
+
+The real 3D First Wake coastline, pier, animated spatial sea, lighting, camera and **provisional** geodesic Aureate Wake composition are implemented in a **separately launchable Godot review scene**. The connected Windows machine rendered it with both OpenGL Compatibility and Vulkan Forward+, at 960×640. This is a **3D graphics prototype**, not a replacement for the existing Ionia-first playable First Wake, not a polished art release, and not the standalone Windows installer. Correct five-character rigged 3D models and full 3D story/gameplay integration were outstanding at this PR #590 foundation; PR #602 adds the dock, original Ionia dialogue and engineering room while flight and final art remain outstanding.
 
 [View the draft 3D implementation PR](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/590) · [Read native QA and the Blender/GLB production handoff](godot/art-review/FIRST_WAKE_3D_COASTAL_PRODUCTION_PROOF_2026-10-28.md)
 

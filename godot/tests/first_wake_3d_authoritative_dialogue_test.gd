@@ -132,20 +132,25 @@ func _run() -> void:
     _check(job.room == "dock",
         "3D Ionia event incorrectly advanced into an unavailable engineering interior")
 
-    # The gangway is an actual physics probe, but the real 3D engineering room
-    # does not yet exist, so gameplay transition must remain fail-closed.
+    # Enter the new real 3D engineering space ONLY after original hiring.
     player.global_position = Vector3(-3.4, 0.1, -10.0)
     for i in range(5):
         await physics_frame
-    var before_step: String = session.opening.step_key()
-    _check(not stage.inspect_nearest_probe(),
-        "unimplemented 3D gangway boarding was falsely accepted")
-    _check(session.opening.step_key() == before_step and job.room == "dock",
-        "gangway review bypassed existing engineering room")
-    _check("gated" in stage.navigation_status.text,
-        "gangway gate fails to explain missing 3D engineering room")
+    _check(stage.inspect_nearest_probe(),
+        "verified 3D gangway was not authorized by original Ionia hire")
+    _check(job.room == "engineering" and session.opening.step_key() == "engineering",
+        "gangway failed to call original engineering room transition")
+    _check(stage.engineering_room_instantiated and stage.interaction_probes.size() == 7,
+        "physical 3D engineering interior and four Area3D stations were not created")
+    _check(player.global_position.x > 50.0,
+        "3D boarding did not position the player in actual engineering geometry")
+    for frame in range(36):
+        await physics_frame
+    _check(player.is_on_floor(), "engineering has no real walkable physics floor")
+    _check(session.opening.active_party_ids == ["ender", "ionia"],
+        "new 3D room incorrectly changes canonical party")
     _check(not session.can_checkpoint(),
-        "gangway interaction forged checkpoint eligibility")
+        "entering engineering is not proof of physical splashdown or postflight reserves")
 
     toggle.keycode = KEY_B
     stage._unhandled_input(toggle)
@@ -158,13 +163,14 @@ func _run() -> void:
         "3D quality report claims story state without original authoritative binding")
     _check(snapshot.get("original_dialogue_panel_uses_source_lines") == true,
         "production-quality dialogue panel does not use original source lines")
-    _check(snapshot.get("3d_gangway_canonical_boarding_ready") == false,
-        "3D mode claims an unimplemented chapter transition")
+    _check(snapshot.get("3d_gangway_canonical_boarding_ready") == true and
+        snapshot.get("3d_engineering_stations_present") == true,
+        "original gangway boarding or physical 3D engineering stations missing")
     _check(not snapshot.get("playable_chapter_one_3d_migrated"),
         "3D review falsely claims full first wake migration")
     stage.queue_free()
     await process_frame
     if errors.is_empty():
         print("TSTSS_3D_AUTHORITATIVE_DIALOGUE_PASS checks=", checks,
-            " original_job_text=true original_opening_identity=true physical_notice=true physical_ionia=true gated_gangway=true save_untouched=true")
+            " original_job_text=true original_opening_identity=true physical_notice=true physical_ionia=true verified_gangway=true 3d_engineering_floor=true save_untouched=true")
     quit(0 if errors.is_empty() else 1)
