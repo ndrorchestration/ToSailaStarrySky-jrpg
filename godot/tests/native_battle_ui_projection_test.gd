@@ -34,6 +34,26 @@ func _initialize() -> void:
     if updated["events"].size() != 1 or updated["current_actor_id"] != "ender":
         _fail("active actor after incapacitation")
         return
+    # Malformed queue metadata must not be presented as authoritative UI.
+    for bad_cursor in [-1, 2, "0"]:
+        var malformed: Dictionary = state.duplicate(true)
+        malformed["cursor"] = bad_cursor
+        if View.project(malformed).get("ok", true):
+            _fail("invalid cursor accepted")
+            return
+    var repeated: Dictionary = state.duplicate(true)
+    repeated["order"] = ["ender", "ender"]
+    if View.project(repeated).get("ok", true):
+        _fail("duplicate participant accepted")
+        return
+    var empty_order: Dictionary = state.duplicate(true)
+    empty_order["order"] = []
+    if View.project(empty_order).get("ok", true):
+        _fail("empty order accepted")
+        return
+    if state != before:
+        _fail("invalid projection mutated input")
+        return
     print("NATIVE_BATTLE_UI_PROJECTION_PASS")
     quit(0)
 
