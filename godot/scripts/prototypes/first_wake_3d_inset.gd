@@ -75,6 +75,8 @@ func _ready() -> void:
     env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
     env.ambient_light_color = Color("#a4b4bf")
     env.ambient_light_energy = 0.70
+    env.reflected_light_source = Environment.REFLECTION_SOURCE_BG
+    env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
     environment_node.environment = env
     stage.add_child(environment_node)
 
@@ -83,18 +85,27 @@ func _ready() -> void:
     key_light.rotation_degrees = Vector3(-46, -27, 0)
     key_light.light_color = Color("#f7d7a2")
     key_light.light_energy = 1.4
-    key_light.shadow_enabled = false
+    key_light.shadow_enabled = true
+    key_light.directional_shadow_max_distance = 50.0
+
+    var sky_fill := DirectionalLight3D.new()
+    sky_fill.name = "CoolSkyFill_VisualOnly"
+    sky_fill.rotation_degrees = Vector3(-32, 135, 0)
+    sky_fill.light_color = Color("#a2d5e5")
+    sky_fill.light_energy = 0.38
+    sky_fill.shadow_enabled = false
+    stage.add_child(sky_fill)
     stage.add_child(key_light)
 
     var sea := MeshInstance3D.new()
     sea.name = "VisualWaterOnly_NoPhysics"
     var sea_mesh := PlaneMesh.new()
     sea_mesh.size = Vector2(400, 400)
+    sea_mesh.subdivide_width = 96
+    sea_mesh.subdivide_depth = 96
     sea.mesh = sea_mesh
-    var ocean := StandardMaterial3D.new()
-    ocean.albedo_color = Color("#245d72")
-    ocean.metallic = 0.06
-    ocean.roughness = 0.48
+    var ocean := ShaderMaterial.new()
+    ocean.shader = preload("res://shaders/first_wake_cinematic_ocean.gdshader")
     sea.material_override = ocean
     sea.position.y = -0.89
     stage.add_child(sea)
