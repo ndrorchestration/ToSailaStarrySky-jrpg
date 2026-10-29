@@ -41,3 +41,19 @@ The later source-accurate dialogue UI pass adds visible speaker/text parity asse
 2. Implement a physically enterable 3D Aureate Wake engineering room, reusing original `JobScene` station dialogue and `Opening.complete_engineering_checks()` instead of writing a second story implementation.
 3. Demonstrate true native Windows 3D dialogue and engineering gameplay with original source assets and full prior-flight/save parity.
 4. Preserve reviewer approval, merge and release gates; no unauthorized mainline change.
+
+
+## Final native visual proof — source-accurate dialogue panel
+
+The HUD follow-on pass was fixed for strict GDScript typing and retested at implementation head `4f99ac0c9ef42f4a30eaeded45957e080aad6073`.
+
+**Official Godot 4.7.2 native runner:** [GitHub Actions run #40933519778](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40933519778) **PASS**. Retrieved logs specifically confirm:
+- **46** true 3D `CharacterBody3D`/Area3D navigation, collision and review-control assertions PASS.
+- **45** original flyer/Ionia dialogue, exact speaker-and-line display, object identity, true physical interaction, post-dialogue recruitment, and gated boarding assertions PASS.
+- **48** original native First Wake physical landing, postflight and saved-checkpoint regression assertions PASS.
+- Actual original dialogue rendered in native 960×640 OpenGL. `flyer_at_physical_notice`: SHA-256 `9c32fd3b22805388d3347dc220d7d59b0b84b0fb2bda3661d074af27ec9e0597`. `ionia_authored_interview`: SHA-256 `dc32ac89064f65da85b1db4cf5ffcb41d649751ca3cd3894765db7dcc3423bec`.
+- [Two original 3D story frames with SHA-256 manifests](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/actions/runs/40933519778) are retained as a review-only GitHub Actions artifact named `first-wake-3d-original-dialogue-qa-frames`.
+
+**Visual inspection:** the text and speaker are readable in a dark input-transparent dialogue panel; the true 3D dock, sea and Aureate Wake are visible in the background. The environment remains a low-detail blockout, and neither source-approved 3D character model has been loaded. Original 2D story text is authoritative, but in-game 3D art is not artistically accepted.
+
+**Proof limits unchanged:** the exact Windows owner machine remains offline, and no Windows native PR #600 screenshot, installer acceptance, author-model approval, story/save rewrite or main merge is established. The original F5 First Wake and Windows PR #590 desktop preview remain separate.
