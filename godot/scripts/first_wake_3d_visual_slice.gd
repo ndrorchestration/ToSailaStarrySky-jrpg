@@ -32,6 +32,8 @@ var authoritative_story_mode := false
 var original_dialogue_panel: ColorRect
 var original_dialogue_speaker: Label
 var original_dialogue_line: Label
+var engineering_room_instantiated := false
+const ENGINE_ROOM_ORIGIN := Vector3(58.0, 0.0, -1.0)
 
 func _ready() -> void:
     _assemble()
@@ -431,6 +433,91 @@ func _assemble_navigation_physics() -> void:
         "Gangway position verified. Real 3D boarding and ship physics not yet migrated.",
         Color("#8ca9d8"))
 
+func _engineering_fixture(label: String, station: Vector3, tone: Color) -> void:
+    var cabinet := _material(Color("#3a4f5b"), 0.66, 0.36)
+    var brass := _material(Color("#a68b61"), 0.37, 0.75)
+    var glass := _material(tone, 0.18, 0.30)
+    glass.emission_enabled = true
+    glass.emission = tone * 0.4
+    glass.emission_energy_multiplier = 0.85
+    _box(label + "_Console", station + Vector3(3.1, 1.06, 0),
+        Vector3(1.32, 1.54, 1.68), cabinet)
+    _box(label + "_Gauge", station + Vector3(2.34, 1.39, 0),
+        Vector3(0.07, 0.71, 0.96), glass)
+    _box(label + "_BrassInstrumentFrame", station + Vector3(2.27, 1.44, 0),
+        Vector3(0.035, 0.91, 1.08), brass)
+    for segment in range(3):
+        _pillar(label + "_PressureTube",
+            station + Vector3(3.3, 1.8, -0.63 + float(segment) * 0.56),
+            station + Vector3(3.3, 3.15, -0.63 + float(segment) * 0.56),
+            0.05, brass)
+
+func _enter_real_3d_engineering_room() -> void:
+    # Only after verified real Area3D gangway and ORIGINAL JobScene room change.
+    if engineering_room_instantiated or authoritative_story_bridge == null:
+        return
+    var job = authoritative_story_bridge.authoritative_job
+    if job == null or job.room != "engineering" or (
+            authoritative_story_bridge.authoritative_session.opening.step_key() != "engineering"):
+        return
+    engineering_room_instantiated = true
+    var floor := _material(Color("#66574c"), 0.92)
+    var walls := _material(Color("#455360"), 0.90)
+    var inlay := _material(Color("#a28b68"), 0.48, 0.55)
+    _box("WakeEngineRoom_Actual3DFloor", ENGINE_ROOM_ORIGIN + Vector3(0, -0.22, 0),
+        Vector3(11.7, 0.36, 24.0), floor)
+    for side in [-1.0, 1.0]:
+        _box("WakeEngineRoom_Actual3DSideWall",
+            ENGINE_ROOM_ORIGIN + Vector3(float(side) * 5.8, 2.1, 0),
+            Vector3(0.26, 4.6, 24.0), walls)
+        _static_collision("EngineeringSideWallPhysics", ENGINE_ROOM_ORIGIN +
+            Vector3(float(side) * 5.8, 2.1, 0), Vector3(0.30, 4.6, 24.0))
+    _box("WakeEngineRoom_BackBulkhead", ENGINE_ROOM_ORIGIN + Vector3(0, 2.1, -12),
+        Vector3(11.8, 4.6, 0.34), walls)
+    _static_collision("EngineeringBackBulkheadPhysics",
+        ENGINE_ROOM_ORIGIN + Vector3(0, 2.1, -12),
+        Vector3(11.8, 4.6, 0.36))
+    _static_collision("EngineeringActualWalkableFloor",
+        ENGINE_ROOM_ORIGIN + Vector3(0, -0.22, 0),
+        Vector3(11.7, 0.38, 24.0))
+    var stations := [
+        {"id":"EngineeringReference_ReviewOnly", "z":4.6, "label":"PhaseReference",
+            "color":Color("#74cbd8")},
+        {"id":"EngineeringContainment_ReviewOnly", "z":0.0, "label":"ContainmentRegulators",
+            "color":Color("#e6b66d")},
+        {"id":"EngineeringFuel_ReviewOnly", "z":-4.3, "label":"FuelReserveGauge",
+            "color":Color("#a0b6ef")},
+        {"id":"EngineeringSafety_ReviewOnly", "z":-8.5, "label":"IoniaSafetyChecklist",
+            "color":Color("#a1d3a6")}
+    ]
+    for station in stations:
+        var station_pos: Vector3 = ENGINE_ROOM_ORIGIN + Vector3(-0.75, 0.1, station["z"])
+        _engineering_fixture(station["label"], station_pos, station["color"])
+        _interaction_probe(station["id"], station_pos,
+            "Original First Wake " + str(station["label"]) + " dialogue (E).",
+            station["color"])
+    for index in range(9):
+        var z := -10.8 + float(index) * 2.7
+        _box("EngineRoom_BrassDeckSeam_%02d" % index,
+            ENGINE_ROOM_ORIGIN + Vector3(0, -0.005, z),
+            Vector3(10.7, 0.025, 0.056), inlay)
+    var lamp := OmniLight3D.new()
+    lamp.name = "WakeEngineRoom_True3DKeyLight"
+    lamp.light_color = Color("#f7d6a2")
+    lamp.light_energy = 0.95
+    lamp.omni_range = 27.0
+    lamp.position = ENGINE_ROOM_ORIGIN + Vector3(0, 3.4, -2.5)
+    add_child(lamp)
+    navigation_body.global_position = ENGINE_ROOM_ORIGIN + Vector3(0, 0.18, 8.7)
+    navigation_body.velocity = Vector3.ZERO
+    navigation_body.travel_facing = "north"
+    camera_follow_navigation = true
+    camera_distance = 19.0
+    camera_azimuth = 0.04
+    camera_elevation = 0.26
+    _update_camera()
+    navigation_status.text = "Aureate Wake engineering: E inspect 3 stations, then safety checklist. Flight is gated."
+
 func _assemble_navigation_hud() -> void:
     var overlay := CanvasLayer.new()
     overlay.name = "ClearlyLabeled3DDevelopmentHUD"
@@ -534,6 +621,8 @@ func inspect_nearest_probe() -> bool:
         _update_authoritative_dialogue_ui()
         if allowed:
             interaction_receipts.append(receipt)
+            if receipt == "AureateWakeGangway_ReviewOnly":
+                _enter_real_3d_engineering_room()
         return allowed
     interaction_receipts.append(receipt)
     navigation_status.text = str(nearest.get_meta("review_text", "Spatial inspection only."))
@@ -661,6 +750,11 @@ func quality_snapshot() -> Dictionary:
             authoritative_story_bridge != null and
             authoritative_story_bridge.story_snapshot().get("same_original_opening_instance") == true
         ),
-        "3d_gangway_canonical_boarding_ready": false,
+        "3d_gangway_canonical_boarding_ready": engineering_room_instantiated,
+        "3d_engineering_stations_present": engineering_room_instantiated and interaction_probes.size() == 7,
+        "3d_engineering_preflight_completed": (
+            authoritative_story_bridge != null and
+            authoritative_story_bridge.authoritative_session.opening.step_key() == "preflight"
+        ),
         "original_dialogue_panel_uses_source_lines": original_dialogue_panel != null
     }
