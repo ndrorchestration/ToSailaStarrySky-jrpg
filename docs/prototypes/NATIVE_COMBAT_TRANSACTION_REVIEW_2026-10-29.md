@@ -68,3 +68,9 @@ godot --headless --path godot --script res://tests/first_wake_party_preview_test
 ```
 
 Do not infer that general First Wake render/smoke workflow successes executed these exact combat tests. Record exact-head logs and exit codes before promotion.
+
+## Read-only UI projection queue-validation gate
+
+The isolated `battle_ui_projection.gd` now rejects missing/out-of-range/non-integer cursors, empty participant order, repeated participant identities, and invalid round counts instead of showing malformed queue data as an accepted view. The native UI projection test adds failure cases and checks that failed projection attempts do not mutate the source state.
+
+Run `godot --headless --path godot --script res://tests/native_battle_ui_projection_test.gd` on the exact PR head using the project's required Godot version; collect the process exit code and stderr. **Not executed or visually approved in this session.** No scene hookup, player-facing HUD, encounter authorization, merge, or release approval follows from this code change.
