@@ -707,7 +707,15 @@ func _update_camera() -> void:
     if engineering_room_instantiated and camera_follow_navigation and navigation_body != null:
         # Keep the actual reviewer camera INSIDE the physical room at human
         # scale rather than looking down from outside the open doorway.
-        look_target = navigation_body.global_position + Vector3(0.0, 1.1, -5.9)
+        # Preserve a readable room-wide composition as the player approaches
+        # the back bulkhead; do not push camera aim behind the sealed wall.
+        var forward_target_z: float = clampf(
+            navigation_body.global_position.z - 5.9,
+            ENGINE_ROOM_ORIGIN.z - 8.0,
+            ENGINE_ROOM_ORIGIN.z + 7.2
+        )
+        look_target = Vector3(navigation_body.global_position.x,
+            navigation_body.global_position.y + 1.1, forward_target_z)
     camera.position = look_target + Vector3(
         sin(camera_azimuth) * horizontal,
         camera_distance * sin(camera_elevation),
