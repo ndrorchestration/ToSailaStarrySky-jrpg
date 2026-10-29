@@ -48,7 +48,14 @@ static func take_action(state: Dictionary, actor_id: String, target_id: String, 
     var order: Array = next["order"]
     var idx: int = order.find(actor_id)
     next["cursor"] = (idx + 1) % order.size()
-    if idx + 1 >= order.size():
+    # A defeated participant still occupies a slot; passing the end of the
+    # order advances the round even when that slot is skipped.
+    var next_active: String = current_actor(next)
+    if not next_active.is_empty():
+        var next_idx: int = order.find(next_active)
+        if next_idx <= idx:
+            next["round"] += 1
+    elif idx + 1 >= order.size():
         next["round"] += 1
     return {"ok": true, "state": next, "event": event}
 
