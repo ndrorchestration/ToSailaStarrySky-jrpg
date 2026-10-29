@@ -88,11 +88,18 @@ func _run() -> void:
     _check(_press_e(stage), "physical notice E did not start original flyer dialogue")
     _check(job.dialogue_open and job.dialogue_event == "flyer",
         "3D notice interaction didn't use original flyer event")
+    _check(stage.original_dialogue_panel.visible,
+        "3D dialogue panel did not open when the original flyer conversation began")
+    _check(stage.original_dialogue_line.text == str(job.dialogue_lines[0]) and
+        stage.original_dialogue_speaker.text == job.dialogue_speaker.text,
+        "3D HUD dialogue must exactly reproduce original scene text and speaker")
     _check("harmonic levitation" in " ".join(job.dialogue_lines).to_lower(),
         "original author-approved job notice text was not reused")
     _check(not job.flyer_read and job.opening.active_party_ids == ["ender"],
         "read flyer progressed before the final authored dialogue line")
     _complete_dialogue(stage, "flyer")
+    _check(not stage.original_dialogue_panel.visible,
+        "3D dialogue panel did not hide after original flyer completion")
     _check(job.flyer_read and job.opening.step_key() == "job_search",
         "flyer completion changed party/story stage incorrectly")
     _check(job.opening.active_party_ids == ["ender"],
@@ -104,11 +111,16 @@ func _run() -> void:
     _check(_press_e(stage), "physics Ionia E did not start original hiring dialogue")
     _check(job.dialogue_open and job.dialogue_event == "hire",
         "3D Ionia conversation must be original hiring event")
+    _check(stage.original_dialogue_panel.visible and
+        stage.original_dialogue_line.text == str(job.dialogue_lines[0]),
+        "Ionia 3D dialogue panel does not present unchanged original first line")
     _check("Welcome aboard" in " ".join(job.dialogue_lines),
         "the original creator-directed Ionia dialogue was replaced or shortened")
     _check(job.opening.active_party_ids == ["ender"],
         "Ionia joined prematurely before the last authored line")
     _complete_dialogue(stage, "hire")
+    _check(not stage.original_dialogue_panel.visible,
+        "Ionia dialogue completion did not close the original-source panel")
     _check(job.opening.active_party_ids == ["ender", "ionia"],
         "real original opening contract failed to recruit Ionia exactly once")
     _check(session.opening == job.opening and session.opening.step_key() == "engineering",
@@ -144,6 +156,8 @@ func _run() -> void:
     _check(snapshot.get("original_story_contract_bridge_bound") and
         snapshot.get("uses_same_original_first_wake_opening"),
         "3D quality report claims story state without original authoritative binding")
+    _check(snapshot.get("original_dialogue_panel_uses_source_lines") == true,
+        "production-quality dialogue panel does not use original source lines")
     _check(snapshot.get("3d_gangway_canonical_boarding_ready") == false,
         "3D mode claims an unimplemented chapter transition")
     _check(not snapshot.get("playable_chapter_one_3d_migrated"),
