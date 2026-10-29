@@ -7,6 +7,7 @@ on:
       - 'godot/tests/first_wake_3d_navigation_test.gd'
       - 'godot/scripts/first_wake_3d_story_bridge.gd'
       - 'godot/tests/first_wake_3d_authoritative_dialogue_test.gd'
+      - 'godot/tests/first_wake_3d_engineering_room_test.gd'
       - 'godot/tests/capture_first_wake_3d_authoritative_dialogue.gd'
       - 'godot/tests/capture_first_wake_3d_navigation.gd'
       - 'godot/tests/first_wake_3d_visual_slice_test.gd'
@@ -56,6 +57,13 @@ jobs:
           timeout 125s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_3d_authoritative_dialogue_test.gd 2>&1 | tee /tmp/3d-authoritative-story.log
           ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_3D_AUTHORITATIVE_DIALOGUE_FAIL:' /tmp/3d-authoritative-story.log
           grep -Fq 'TSTSS_3D_AUTHORITATIVE_DIALOGUE_PASS' /tmp/3d-authoritative-story.log
+      - name: Verify actual 3D engineering movement and the single original preflight authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 125s godot-editor/Godot_v4.7.2-stable_linux.x86_64 --headless --fixed-fps 60 --path godot --script res://tests/first_wake_3d_engineering_room_test.gd 2>&1 | tee /tmp/3d-engineering-room.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|TSTSS_3D_ENGINEERING_FAIL:' /tmp/3d-engineering-room.log
+          grep -Fq 'TSTSS_3D_ENGINEERING_PASS' /tmp/3d-engineering-room.log
       - name: Capture real 3D original First Wake dialogue in 960x640 GPU frames
         shell: bash
         run: |
