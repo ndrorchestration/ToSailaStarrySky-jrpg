@@ -29,6 +29,9 @@ var navigation_status: Label
 var camera_follow_navigation := false
 var authoritative_story_bridge: Node
 var authoritative_story_mode := false
+var original_dialogue_panel: ColorRect
+var original_dialogue_speaker: Label
+var original_dialogue_line: Label
 
 func _ready() -> void:
     _assemble()
@@ -457,6 +460,48 @@ func _assemble_navigation_hud() -> void:
     navigation_status.add_theme_color_override("font_color", Color("#c5eadc"))
     overlay.add_child(navigation_status)
 
+    original_dialogue_panel = ColorRect.new()
+    original_dialogue_panel.name = "OriginalFirstWakeDialoguePanel"
+    original_dialogue_panel.position = Vector2(20, 492)
+    original_dialogue_panel.size = Vector2(920, 130)
+    original_dialogue_panel.color = Color(0.035, 0.071, 0.125, 0.94)
+    original_dialogue_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    original_dialogue_panel.visible = false
+    overlay.add_child(original_dialogue_panel)
+
+    original_dialogue_speaker = Label.new()
+    original_dialogue_speaker.name = "OriginalSpeaker"
+    original_dialogue_speaker.position = Vector2(19, 11)
+    original_dialogue_speaker.add_theme_font_size_override("font_size", 17)
+    original_dialogue_speaker.add_theme_color_override("font_color", Color("#f4cc91"))
+    original_dialogue_panel.add_child(original_dialogue_speaker)
+
+    original_dialogue_line = Label.new()
+    original_dialogue_line.name = "UnmodifiedOriginalDialogue"
+    original_dialogue_line.position = Vector2(19, 42)
+    original_dialogue_line.size = Vector2(880, 79)
+    original_dialogue_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    original_dialogue_line.add_theme_font_size_override("font_size", 19)
+    original_dialogue_line.add_theme_color_override("font_color", Color("#f7ead6"))
+    original_dialogue_panel.add_child(original_dialogue_line)
+
+func _update_authoritative_dialogue_ui() -> void:
+    if original_dialogue_panel == null:
+        return
+    var show_line := (
+        authoritative_story_mode and authoritative_story_bridge != null and
+        authoritative_story_bridge.authoritative_job != null and
+        authoritative_story_bridge.authoritative_job.dialogue_open
+    )
+    original_dialogue_panel.visible = show_line
+    if not show_line:
+        return
+    var job = authoritative_story_bridge.authoritative_job
+    original_dialogue_speaker.text = job.dialogue_speaker.text
+    original_dialogue_line.text = authoritative_story_bridge.story_snapshot().get("dialogue_line", "")
+    # Top status must not attempt to display a full script line on one row.
+    navigation_status.text = "Original First Wake dialogue  |  E: next line  |  Original party authority preserved"
+
 func inspect_nearest_probe() -> bool:
     if navigation_body == null:
         return false
@@ -466,6 +511,7 @@ func inspect_nearest_probe() -> bool:
         if authoritative_story_bridge.authoritative_job.dialogue_open:
             var advanced: bool = authoritative_story_bridge.advance_authoritative_dialogue()
             navigation_status.text = authoritative_story_bridge.bridge_status
+            _update_authoritative_dialogue_ui()
             return advanced
     var nearest: Area3D = null
     var nearest_distance := 100000.0
@@ -485,6 +531,7 @@ func inspect_nearest_probe() -> bool:
     if authoritative_story_mode:
         var allowed: bool = authoritative_story_bridge.interact_at_verified_probe(receipt)
         navigation_status.text = authoritative_story_bridge.bridge_status
+        _update_authoritative_dialogue_ui()
         if allowed:
             interaction_receipts.append(receipt)
         return allowed
@@ -555,6 +602,7 @@ func _unhandled_input(event: InputEvent) -> void:
                     authoritative_story_bridge.bridge_status if authoritative_story_mode
                     else "Spatial-only debugging restored. Canonical First Wake story state preserved."
                 )
+            _update_authoritative_dialogue_ui()
             get_viewport().set_input_as_handled()
         elif event.keycode == KEY_C:
             camera_follow_navigation = not camera_follow_navigation
@@ -613,5 +661,6 @@ func quality_snapshot() -> Dictionary:
             authoritative_story_bridge != null and
             authoritative_story_bridge.story_snapshot().get("same_original_opening_instance") == true
         ),
-        "3d_gangway_canonical_boarding_ready": false
+        "3d_gangway_canonical_boarding_ready": false,
+        "original_dialogue_panel_uses_source_lines": original_dialogue_panel != null
     }
