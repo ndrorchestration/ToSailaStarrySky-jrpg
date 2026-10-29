@@ -46,3 +46,7 @@ These commands must each exit 0; inspect all stderr, imports and warnings. Expec
 - `native_combat_turn_queue_test.gd` includes an isolated three-participant knockout/round-rollover regression and checks the prior roster remains unchanged.
 - **Execution remains unverified**: these changes are authored and committed, not proven with Godot 4.7.2 or native scene playthrough. No encounter, party registry, ability registry, battle UI, VFX, or release wiring was changed.
 - Exact commands for the additional test: `godot --headless --path godot --script res://tests/native_combat_turn_queue_test.gd`. Inspect engine exit status and stderr, not just the printed PASS marker.
+
+## First Wake party preview bridge (2026-10-29; untested)
+
+`godot/scripts/combat/first_wake_party_preview.gd` reads the real `first_wake_revised_opening_contract.gd` snapshot without mutating it. It accepts only recruited party identities, caps the proposed crew at three combatants, rejects duplicates and overlapping enemy IDs, and returns a separately labeled **unauthorized review preview** with a copied turn state. It does not authorize encounters, modify story or saves, or install a battle scene. Run `godot --headless --path godot --script res://tests/first_wake_party_preview_test.gd` on the current PR head; the new test targets Ionia-before-hire rejection, Lyra-before-reunion rejection, Ionia-after-hire preview, uniqueness, and story immutability. **Native execution not performed.**
