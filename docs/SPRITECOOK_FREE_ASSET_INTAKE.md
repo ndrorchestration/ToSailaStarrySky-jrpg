@@ -2,6 +2,7 @@
 **Status:** Candidate workflow only. No authenticated SpriteCook account, generated art or native Godot acceptance was established on 2026-10-30.
 
 Production task: https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/issues/606
+**Ready-to-run Codex instructions:** [SPRITECOOK_FREE_CODEX_RUNBOOK.md](SPRITECOOK_FREE_CODEX_RUNBOOK.md). Use this as the current operational setup source; only the account authorization must be performed by the owner.
 
 ## Current free-tier constraints
 Official pricing: https://www.spritecook.ai/pricing
@@ -11,6 +12,8 @@ Official pricing: https://www.spritecook.ai/pricing
 - Paid-only: dedicated Godot export, full asset packs, private generations, 2K/4K. Native Godot can import free PNGs without paid export.
 - **No account upgrades, paid top-ups, auto-retries, metered browser automation or unofficial payments.** Do not send private creator reference images or unreleased spoilers to a public gallery.
 - A generated grid does not necessarily mean the individual sprite tiles were correctly extracted. Inspect all transparent exports before use.
+- The **24-credit nine-item Mini Pack** is available with free credits, but generates **pixel art** rather than the project's preferred detailed 2D HUD treatment; do not run it by default. Source: https://www.spritecook.ai/game-asset-pack-generator .
+- SpriteCook has a free downloadable **browser-based sheet slicer** at https://www.spritecook.ai/sprite-sheet-slicer , useful for free PNG splitting when an actual sheet is produced.
 
 ## Execution order
 1. Account owner installs official **SpriteCook Codex plugin** (Codex Plugins -> SpriteCook -> Install -> sign in in browser) per https://www.spritecook.ai/codex . Do not assert completion until tool is connected and balance is readable. The plugin was not available in the current ChatGPT tool connection; linked Windows development PCs were offline.
