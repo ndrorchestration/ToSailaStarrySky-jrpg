@@ -38,6 +38,14 @@ bool ATSTSSWaterContactObserver::IsStableSample(
         FMath::Abs(VerticalSpeedCmPerSecond) <= MaximumVerticalSpeed;
 }
 
+bool ATSTSSWaterContactObserver::IsNearWaterSurface(
+    const float VesselCenterZ, const float SurfaceZ, const float MaximumCenterDistance)
+{
+    return FMath::IsFinite(VesselCenterZ) && FMath::IsFinite(SurfaceZ) &&
+        FMath::IsFinite(MaximumCenterDistance) && MaximumCenterDistance > 0.f &&
+        FMath::Abs(VesselCenterZ - SurfaceZ) <= MaximumCenterDistance;
+}
+
 void ATSTSSWaterContactObserver::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
@@ -74,8 +82,18 @@ void ATSTSSWaterContactObserver::Tick(float DeltaSeconds)
         return;
     }
 
+    // The top face of an unrotated contact box represents the authored
+    // still-water reference plane in this prototype. No wave data is inferred.
+    const FRotator VolumeRotation = ContactVolume->GetComponentRotation();
+    const bool bWaterPlaneLevel = FMath::IsNearlyZero(VolumeRotation.Pitch, 0.1f) &&
+        FMath::IsNearlyZero(VolumeRotation.Roll, 0.1f);
+    const float SurfaceZ = ContactVolume->GetComponentLocation().Z +
+        ContactVolume->GetScaledBoxExtent().Z;
+    const bool bNearWaterline = bWaterPlaneLevel && IsNearWaterSurface(
+        VesselBody->GetComponentLocation().Z, SurfaceZ,
+        MaximumCenterDistanceFromWaterlineCm);
     const float VerticalSpeed = VesselBody->GetPhysicsLinearVelocity().Z;
-    if (!IsStableSample(bOverlap, bPhysics, VerticalSpeed, MaximumVerticalSpeedCmPerSecond))
+    if (!bNearWaterline || !IsStableSample(bOverlap, bPhysics, VerticalSpeed, MaximumVerticalSpeedCmPerSecond))
     {
         StableElapsedSeconds = 0.f;
         return;
