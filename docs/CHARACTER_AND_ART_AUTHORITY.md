@@ -12,7 +12,7 @@ For the creator-supplied five-person group references (nighttime airship and day
 |---|---|---|
 | **Ender (22)** | Protagonist, Rift Scholar: youthful/slender adult; **short auburn/dark copper hair, bright green eyes, brass forehead goggles with green lenses**, olive vest, cream short-sleeved embroidered shirt, dark trousers, brown boots and leather satchel; carries an **unshortened full-length staff** with wrapping at the *longitudinal midpoint* and brass ferrules. Curious/anxious/idealistic, studies boundaries and anomalous correspondences. | Generic wizard costume, muscular adult hero, arbitrary weapon shortening, wrong grip/strap, unapproved changes to approved full-body likeness. |
 | **Lyra (24)** | Long **red hair**, adult sensitive listener to frequency/dream phenomena; unusually receptive, not merely the only person who can use magic. **Mother of Talen (5)**, with independent aspirations and agency. | Short/other-color hair without approval, childlike proportions, generic forest priestess or fully resolved job/magic identity. |
-| **Ionia (28)** | **Shoulder-length curly blonde hair**, young but seasoned Captain of the Aureate Wake, Lyra's cousin, warm caretaker and practiced navigator; navy/white/gold uniform is current visual production direction; **green eyes required in the aligned native source candidate**. Ship entrusted by Denith after 10 years' service. | Elder/farmer caricature, older woman, blue-iris candidate left uncorrected, automatic promotion of one-frame sprite / assumed caster role. |
+| **Ionia (28)** | **Long curly blonde hair** (may be arranged into a practical Captain's updo without shortening her established hair), young but seasoned Captain of the Aureate Wake, Lyra's cousin, warm caretaker and practiced navigator; navy/white/gold uniform is current visual production direction; **green eyes required in the aligned native source candidate**. Ship entrusted by Denith after 10 years' service. | Elder/farmer caricature, older woman, blue-iris candidate left uncorrected, automatic promotion of one-frame sprite / assumed caster role. |
 | **Reson (25)** | **Tallest** protagonist, broad and powerfully built, youthful military-athletic weapon master; rifle-type firearm, pike and sword, ex-military, gruff with a heart of gold. Socially extroverted, confident and playful (not a shallow jock). | Elderly scarred brute, frail/mage-first silhouette, made-up military insignia or service branch. |
 | **Aepex (27)** | **Second-tallest**, taller than Ender; angular **sharp undercut**, visible tattoos; lean/lanky muscular technical specialist, inventor, computers/interfaces/diagnostics as well as mechanics. Confident and relaxed; reserved, dry humor versus Reson's outgoing swagger. | Frail recluse, generic mage/mechanic, omission of information technology, invented signature weapon/job. |
 
@@ -26,6 +26,21 @@ For the creator-supplied five-person group references (nighttime airship and day
 
 **Talen (5):** precocious, enjoys how the ship works, blocks, drawing and painting. Preserve personhood, curiosity and routine. Do not invent powers or portray him as a normal playable battle mage.
 
+## Five-protagonist character sheet (2026-10-30) — reconciliation pending
+
+On 2026-10-30 the creator labeled a five-protagonist sheet, ordered **Ionia · Ender · Aepex · Lyra · Reson**, as "Approved Character Art". Source tool/prompt, SHA-256 and redistribution rights are **not yet recorded**; do not commit the image to this public repository until they are.
+
+Differences from the locks above, as observed on the sheet. Each is **OPEN** until the creator marks whether the sheet supersedes the lock:
+- **Ionia:** long, voluminous curly blonde hair aligns with the newer creator direction; hairstyle/updo variations are acceptable, while outfit and added role labels remain subject to separate review; explorer outfit with leaf crown rather than the navy/white/gold uniform; role labels read Explorer · Naturalist · Cartographer.
+- **Ender:** hair appears green-tinted (lock: auburn/dark copper); no full-length staff or satchel visible; role labels read Tinker · Mechanic · Innovator.
+- **Aepex:** role labels read Scout · Protector · Rogue (lock: technical specialist).
+- **Lyra:** role labels read Scholar · Healer · Herbalist (lock leaves job/magic identity open).
+- **Reson:** no rifle, pike or sword visible; a "Pilot Emblem" patch appears (lock warns against invented insignia).
+
+Role canon recorded 2026-10-30 (see [CANON_AND_REVEAL_POLICY.md](CANON_AND_REVEAL_POLICY.md)): Ionia is Captain; Reson is a combatant and an Ace pilot; Ender is a harmonic-resonance specialist who keeps his full-length staff; Aepex later upgrades it. The staff stays visually canonical for Ender in all models and sprites.
+
+For 3D production the sheet lacks orthographic turnarounds, a proportion chart and material callouts. Do not derive relative heights from its perspective-distorted composition.
+
 ## Approval and visual test
 
 Keep original layered source, consent/provenance, conversion pipeline, per-action frames/hashes and candidate status. Require side-by-side at native logical size, readable foot-grounding/collision, noninterpenetrating occlusion, plausible gait, matching light and texture, motion playback, and creator visual signoff. A CI green check is **not** a style pass.
@@ -33,3 +48,10 @@ Keep original layered source, consent/provenance, conversion pipeline, per-actio
 ## Sources
 
 [Notion character-art contract](https://app.notion.com/p/3e2f5bad238b8109b13ce1328d65910c), [Notion art library](https://app.notion.com/p/3e3f5bad238b81999b97cd821db6603b), [dossiers directory](https://app.notion.com/p/3e0f5bad238b812bac52c594d1465c29), [art recovery](https://app.notion.com/p/3fef5bad238b81358ee3e85a1fc27467), [repo existing character contract](CHARACTER_ART_DIRECTION.md).
+
+## Cross-track implementation inputs — 2026-10-30
+
+- Use the 2026-10-27 First Wake native storyboard/integration audit as a migration test oracle: flyer → Ionia hire and command → launch → managed sea landing → Lyra/Talen afterward. Do not carry older Lyra-first recruitment into Unreal. [Native integration audit](https://app.notion.com/p/407f5bad238b812abfbed83ad2acebf4) identifies stacked draft source dependencies and warns against direct merges.
+- [Unreal Aureate Wake preview PR #610](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/610) models exactly four persistent wings, Sea hydrofoils, Submersible folded wings, and four equal Orbiter radial sails. It is **code prototype only**; it does not resolve character class labels, actor likeness or approved ship visuals.
+- Ionia's Captain authority and Reson's Ace pilot role are confirmed. The **timing of any helm handoff** is not. Unreal crew assignments and cutscene scripts must therefore keep helm-holder events data-driven and undecided rather than hardcoding an unapproved transfer.
+- Ender's early staff must visually remain full-length with midpoint wrap and brass ferrules; legacy offensive staff defaults are a separate gameplay design conflict. Maintain no premature Aepex upgrade or inferred skills.
