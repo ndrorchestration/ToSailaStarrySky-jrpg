@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "TSTSSCombatRules.generated.h"
 
 // Pure, transactional combat calculations. No world mutation or animation coupling.
