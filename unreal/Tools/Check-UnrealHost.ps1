@@ -71,3 +71,4 @@ $Output = [ordered]@{
 }
 $Output | ConvertTo-Json -Depth 4
 if ($RequireReady -and -not $Ready) { exit 2 }
+exit 0
