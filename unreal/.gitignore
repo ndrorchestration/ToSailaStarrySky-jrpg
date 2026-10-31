@@ -13,3 +13,7 @@ LocalArt/
 PrivateArt/
 Content/TSTSS/Review/CastCandidates/
 Content/TSTSS/Review/FirstWake_Benchmark_V1.umap
+
+# Windows/Linux Python QA must not dirty a native build verification checkout.
+__pycache__/
+*.py[cod]
