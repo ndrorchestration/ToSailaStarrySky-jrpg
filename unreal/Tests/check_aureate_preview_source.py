@@ -2,7 +2,7 @@
 """Read-only source contract checks. NOT a replacement for UE compiler or renderer tests."""
 from pathlib import Path
 import re
-root = Path(__file__).resolve().parents[2]
+root = Path(__file__).resolve().parents[1]
 source = (root / "Source/ToSailTheStarrySky/Private/AureateWakePreviewActor.cpp").read_text()
 header = (root / "Source/ToSailTheStarrySky/Public/AureateWakePreviewActor.h").read_text()
 checks = {
