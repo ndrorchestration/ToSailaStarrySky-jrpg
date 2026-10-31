@@ -3,6 +3,7 @@
 #include "TSTSSPersistence.h"
 #include "TSTSSSaveGame.h"
 #include "TSTSSPartyCombatBridge.h"
+#include "TSTSSGameMode.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -29,6 +30,10 @@ void ATSTSSExplorerCharacter::BeginPlay()
 {
     Super::BeginPlay();
     FirstWakeState = NewObject<UTSTSSFirstWakeState>(this);
+    if (ATSTSSGameMode* Mode = GetWorld()->GetAuthGameMode<ATSTSSGameMode>())
+    {
+        Mode->TryInitializeNewExplorer(this);
+    }
 }
 
 void ATSTSSExplorerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
