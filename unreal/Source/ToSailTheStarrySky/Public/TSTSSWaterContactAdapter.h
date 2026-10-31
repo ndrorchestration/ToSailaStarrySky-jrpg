@@ -26,4 +26,14 @@ protected:
     UPROPERTY(Transient) TObjectPtr<UTSTSSWaterLandingGate> Gate;
     UPROPERTY(EditAnywhere, Category="TSTSS|Water")
     FName WaterVolumeTag = TEXT("TSTSSWaterVolume");
+
+    // Prototype displacement approximation, configured per hull. Not final hydrodynamics.
+    UPROPERTY(EditAnywhere, Category="TSTSS|Buoyancy", meta=(ClampMin="0.0"))
+    float MaxBuoyantAccelerationCms2 = 1800.f;
+    UPROPERTY(EditAnywhere, Category="TSTSS|Buoyancy", meta=(ClampMin="0.0"))
+    float VerticalDampingPerSecond = 1.5f;
+    UPROPERTY(EditAnywhere, Category="TSTSS|Buoyancy", meta=(ClampMin="1.0"))
+    float HullDraftCm = 120.f;
+    UPROPERTY(EditAnywhere, Category="TSTSS|Buoyancy")
+    bool bEnablePrototypeBuoyancy = false;
 };
