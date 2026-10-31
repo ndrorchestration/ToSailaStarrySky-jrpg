@@ -7,6 +7,8 @@ on:
     paths:
       - "unreal/Tools/author_aureate_root_support.py"
       - "unreal/Tests/test_author_aureate_root_support.py"
+      - "unreal/Tools/import_aureate_root_support_review.py"
+      - "unreal/Tests/test_import_aureate_root_support.py"
       - "unreal/Source/ToSailTheStarrySky/Public/AureateWakePreviewActor.h"
       - "unreal/Source/ToSailTheStarrySky/Private/AureateWakePreviewActor.cpp"
       - ".github/workflows/unreal-root-support-artpack.yml"
@@ -26,15 +28,18 @@ jobs:
           python-version: "3.11"
       - name: Syntax verification
         run: |
-          python -m py_compile unreal/Tools/author_aureate_root_support.py unreal/Tests/test_author_aureate_root_support.py
+          python -m py_compile unreal/Tools/author_aureate_root_support.py unreal/Tests/test_author_aureate_root_support.py unreal/Tools/import_aureate_root_support_review.py unreal/Tests/test_import_aureate_root_support.py
       - name: Deterministic GLB closed mesh and ship mount authority tests
         run: |
           python -m unittest discover -s unreal/Tests -p "test_author_aureate_root_support.py" -v
+      - name: Test fail-closed Unreal support import preflight
+        run: python -m unittest discover -s unreal/Tests -p "test_import_aureate_root_support.py" -v
       - name: Build source-only review candidate without third-party tools
         run: |
           python unreal/Tools/author_aureate_root_support.py --output-dir "$RUNNER_TEMP/root-support"
           test -s "$RUNNER_TEMP/root-support/AureateWake_RootSupport_Lookdev.glb"
           test -s "$RUNNER_TEMP/root-support/AureateWake_RootSupport_Manifest.json"
+          python unreal/Tools/import_aureate_root_support_review.py --glb "$RUNNER_TEMP/root-support/AureateWake_RootSupport_Lookdev.glb" --manifest "$RUNNER_TEMP/root-support/AureateWake_RootSupport_Manifest.json" --check
       - name: Publish noncanonical review-only GLB and SHA manifest
         uses: actions/upload-artifact@v4
         with:
