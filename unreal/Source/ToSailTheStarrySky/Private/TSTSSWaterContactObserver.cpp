@@ -43,7 +43,7 @@ void ATSTSSWaterContactObserver::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
 
     if (!IsValid(VesselBody) || !IsValid(Explorer) || !IsValid(ContactVolume) ||
-        !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.f)
+        !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.f || DeltaSeconds > 0.25f)
     {
         StableElapsedSeconds = 0.f;
         return;
