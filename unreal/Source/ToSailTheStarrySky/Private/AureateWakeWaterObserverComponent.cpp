@@ -39,7 +39,12 @@ void UAureateWakeWaterObserverComponent::TickComponent(float DeltaTime,
     }
 
     const bool bTouchingWater = PhysicalHull->IsOverlappingComponent(WaterCollision);
-    const float VerticalSpeed = PhysicalHull->GetComponentVelocity().Z;
+    // A simulating body can move independently of its owning actor or root.
+    // Use the actual rigid-body velocity where possible; otherwise read the
+    // kinematic component velocity. Scene wiring still requires native proof.
+    const float VerticalSpeed = (PhysicalHull->IsSimulatingPhysics()
+        ? PhysicalHull->GetPhysicsLinearVelocity()
+        : PhysicalHull->GetComponentVelocity()).Z;
     // Validate the sample with the existing story gate FIRST. A rejected or
     // malformed sample must not trigger a visual landing either.
     if (!FMath::IsFinite(DeltaTime) || DeltaTime <= 0.f ||
