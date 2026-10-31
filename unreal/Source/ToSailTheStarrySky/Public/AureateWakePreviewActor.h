@@ -7,6 +7,7 @@
 class UStaticMeshComponent;
 class USceneComponent;
 class UMaterialInterface;
+class UStaticMesh;
 class UMaterialInstanceDynamic;
 
 UENUM(BlueprintType)
@@ -27,6 +28,7 @@ class TOSAILTHESTARRYSKY_API AAureateWakePreviewActor : public AActor
 public:
     AAureateWakePreviewActor();
     virtual void Tick(float DeltaSeconds) override;
+    virtual void BeginPlay() override;
 
     UFUNCTION(BlueprintCallable, Category="Aureate Wake|Preview")
     bool RequestForm(EAureateWakeForm RequestedForm);
@@ -54,6 +56,19 @@ public:
 
     UFUNCTION(BlueprintCallable, Category="Aureate Wake|Preview")
     void RefreshWingMaterials();
+
+    /** Artist-supplied reusable wing mesh. Never changes wing identity or quantity. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aureate Wake|Visuals")
+    TObjectPtr<UStaticMesh> AuthoredWingMesh;
+
+    UFUNCTION(BlueprintCallable, Category="Aureate Wake|Visuals")
+    void RefreshWingMeshes();
+
+    UFUNCTION(BlueprintPure, Category="Aureate Wake|Preview")
+    int32 GetWingCount() const { return Wings.Num(); }
+
+    UFUNCTION(BlueprintPure, Category="Aureate Wake|Preview")
+    int32 GetHydrofoilCount() const { return Hydrofoils.Num(); }
 
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Aureate Wake|Preview")
