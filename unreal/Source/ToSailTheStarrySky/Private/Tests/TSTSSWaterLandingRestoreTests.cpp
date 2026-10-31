@@ -35,12 +35,16 @@ bool FTSTSSWaterLandingNegativePathsTest::RunTest(const FString& Parameters)
 
     TestFalse(TEXT("No collision cannot advance"), Gate->Observe(0.1f, false, 0.f, Story));
     TestEqual(TEXT("Still launched"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::Launched);
+    TestFalse(TEXT("Prelude continues before splashdown"), Story->IsChapterOneActOne());
+    TestFalse(TEXT("Prelude is incomplete before contact"), Story->IsPreludeComplete());
     TestFalse(TEXT("Bad delta rejected"), Gate->Observe(0.3f, true, 0.f, Story));
     TestEqual(TEXT("Bad delta does not record contact"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::Launched);
 
     TestFalse(TEXT("Physical contact registers but not immediate flotation"),
         Gate->Observe(0.1f, true, 150.f, Story));
     TestEqual(TEXT("Contact recorded"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::SeaContact);
+    TestTrue(TEXT("Chapter I starts at physical splashdown"), Story->IsChapterOneActOne());
+    TestTrue(TEXT("Prelude completed at splashdown"), Story->IsPreludeComplete());
     for (int32 Index = 0; Index < 15; ++Index)
         Gate->Observe(0.1f, true, 90.f, Story);
     TestEqual(TEXT("Fast motion never confirms flotation"),
