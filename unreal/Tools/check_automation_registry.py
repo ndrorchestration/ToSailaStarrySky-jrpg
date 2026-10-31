@@ -43,6 +43,7 @@ def main() -> int:
         for name in unexpected:
             print(f"FAIL: native test missing from required verification list: {name}", file=sys.stderr)
         return 1
+    # A registration-only check is deliberately not a C++ compile or runtime test.
     print(f"PASS: {len(names)} required names registered in {len(sources)} test files (source-only)")
     return 0
 
