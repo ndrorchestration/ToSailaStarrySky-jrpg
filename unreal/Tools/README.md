@@ -11,3 +11,5 @@ This script fails closed if the engine is absent, build fails, the automation pr
 ## Fast source-only preflight (Python 3; no Unreal installation)
 
 From repository root run `python unreal/Tools/check_automation_registry.py`. This verifies that every named test required by `Verify-Unreal.ps1` has a unique native C++ automation registration, catching name drift before an expensive UE build. It does **not** compile, execute tests, inspect game visuals, or replace exact-head Windows evidence. It can run in a low-cost developer environment before invoking the Windows gate.
+
+The registry preflight checks **both directions**: a required test must have a C++ registration, and every registered `TSTSS.*` automation test must appear in the native verification list. This prevents newly added tests from silently being excluded. A source-level inspection on October 31, 2026 found twelve matching registered/required names before the stricter check was committed; the Python command and native Unreal suite have not been executed in this session.
