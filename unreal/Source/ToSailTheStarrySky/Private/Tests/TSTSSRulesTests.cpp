@@ -145,6 +145,13 @@ bool FTSTSSSaveValidationTest::RunTest(const FString& Parameters)
     Save->SchemaVersion = UTSTSSSaveGame::CurrentVersion;
     Save->FirstWakeBeat = ETSTSSFirstWakeBeat::Launched;
     TestFalse(TEXT("Unstarted late milestone is rejected"), Save->IsStructurallyValid());
+    Save->bFirstWakeStarted = true;
+    Save->InspectionMask = 0x07;
+    TestTrue(TEXT("Valid inspected launch save accepted"), Save->IsStructurallyValid());
+    Save->InspectionMask = 0x03;
+    TestFalse(TEXT("Partial inspections cannot restore a launch"), Save->IsStructurallyValid());
+    Save->InspectionMask = 0xFF;
+    TestFalse(TEXT("Unknown inspection bits rejected"), Save->IsStructurallyValid());
     return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTSTSSSaveSlotGuardTest,
