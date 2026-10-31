@@ -1,4 +1,5 @@
 #include "Misc/AutomationTest.h"
+#include "Misc/Guid.h"
 #include "TSTSSFirstWakeState.h"
 #include "TSTSSCombatRules.h"
 #include "TSTSSSaveGame.h"
@@ -169,11 +170,15 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTSTSSSaveRoundTripTest,
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FTSTSSSaveRoundTripTest::RunTest(const FString& Parameters)
 {
-    // Dedicated test slot; never overwrite a player's normal slot.
-    const FString Slot = TEXT("tstss_automation_roundtrip_v1");
+    // Per-run GUID slot avoids stale-file collisions and player data.
+    const FString Slot = TEXT("tstss_qa_") + FGuid::NewGuid().ToString(EGuidFormats::Digits);
+    if (!TestTrue(TEXT("Temporary slot name valid"), UTSTSSPersistence::IsValidSlotName(Slot)))
+    {
+        return false;
+    }
     if (UGameplayStatics::DoesSaveGameExist(Slot, 0))
     {
-        AddError(TEXT("Test slot already exists; refusing to overwrite it"));
+        AddError(TEXT("Generated temporary slot unexpectedly exists; refusing to overwrite it"));
         return false;
     }
     UTSTSSSaveGame* Original = NewObject<UTSTSSSaveGame>();
@@ -188,6 +193,8 @@ bool FTSTSSSaveRoundTripTest::RunTest(const FString& Parameters)
     Original->PartyRoster.Add(Ender);
     if (!TestTrue(TEXT("Save succeeds"), UTSTSSPersistence::SaveProgress(Slot, Original)))
     {
+        if (UGameplayStatics::DoesSaveGameExist(Slot, 0))
+            UGameplayStatics::DeleteGameInSlot(Slot, 0);
         return false;
     }
     const UTSTSSSaveGame* Loaded = UTSTSSPersistence::LoadProgress(Slot);
