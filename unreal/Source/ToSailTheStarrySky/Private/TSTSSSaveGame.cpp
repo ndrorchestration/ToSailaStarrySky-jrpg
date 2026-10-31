@@ -77,3 +77,11 @@ bool UTSTSSSaveGame::CapturePartyRoster(const TArray<FTSTSSCombatant>& Roster)
     PartyRoster = Roster;
     return true;
 }
+
+bool UTSTSSSaveGame::CanCheckpointParty(bool bLivePartyInitialized) const
+{
+    // Existing payload must be valid regardless of its origin. An initialized
+    // live roster is independently validated by CapturePartyRoster before write.
+    return IsStructurallyValid() &&
+        (bLivePartyInitialized || !PartyRoster.IsEmpty());
+}
