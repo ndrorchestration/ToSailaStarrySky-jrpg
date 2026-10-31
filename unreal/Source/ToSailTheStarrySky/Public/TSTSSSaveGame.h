@@ -12,7 +12,7 @@ class TOSAILTHESTARRYSKY_API UTSTSSSaveGame : public USaveGame
 {
     GENERATED_BODY()
 public:
-    static constexpr int32 CurrentVersion = 1;
+    static constexpr int32 CurrentVersion = 2;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, SaveGame, Category="TSTSS|Save")
     int32 SchemaVersion = CurrentVersion;
@@ -25,6 +25,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category="TSTSS|Save")
     TArray<FTSTSSCombatant> PartyRoster;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category="TSTSS|Save")
+    uint8 InspectionMask = 0;
 
     UFUNCTION(BlueprintPure, Category="TSTSS|Save")
     bool IsSupportedVersion() const { return SchemaVersion == CurrentVersion; }
