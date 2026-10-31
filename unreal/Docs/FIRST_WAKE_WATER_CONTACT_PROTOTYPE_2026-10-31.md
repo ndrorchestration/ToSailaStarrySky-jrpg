@@ -36,3 +36,9 @@ This is a **narrowed software call surface, not cryptographic attestation or fin
 
 ### Integration conflict flagged
 The sibling draft [#614](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/614) contains a full-path *synthetic* unit test that directly advances `SeaContact` and `FlotationConfirmed`. That test must be revised to use native observer-driven integration evidence when combining branches; do not merge both unchanged or reinterpret a synthetic advance as proof of physical contact. Preserve the non-physical ordered milestones and save/restore assertions from #614.
+
+## Waterline proximity guard — October 31
+
+A further source-level regression guard now requires the assigned vessel physics component center to remain within a configurable distance of the level-authored water surface, modeled as the **top of an unpitched/unrolled water contact box**. The default tolerance is 150 cm (provisional; depends on the final vessel origin and hull dimensions). Very deep submerged or high airborne bodies cannot accumulate stable-flotation dwell simply because vertical speed is small. Tilted water volumes fail closed for this simplified plane assumption. Tests cover in-range, deep, airborne, boundary, zero threshold and nonfinite data.
+
+This is **not** proof of afloat state: a seabed directly below the plane, buoyancy behavior, vessel pivot offsets, waves, lateral flow, collision support, and visual acceptance remain unverified. A real UE5.8 physics level must measure hull support, waterline and seabed clearance and tune thresholds before this gate can close. Do not treat these numerical defaults as final physics design.
