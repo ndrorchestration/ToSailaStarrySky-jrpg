@@ -13,8 +13,8 @@ bool FTSTSSAbilityGateTest::RunTest(const FString& Parameters)
     FTSTSSCombatant Foe = Ender;
     Foe.CharacterId = TEXT("Foe"); Foe.Health = 8; Foe.MaxHealth = 8;
     FTSTSSCombatTurnState State;
-    TestTrue(TEXT("Begin"), FTSTSSCombatTurns::TryBegin(
-        {Ender, Foe}, {TEXT("Ender"), TEXT("Foe")}, State));
+    if (!TestTrue(TEXT("Begin"), FTSTSSCombatTurns::TryBegin(
+        {Ender, Foe}, {TEXT("Ender"), TEXT("Foe")}, State))) return false;
     FTSTSSAbilitySpec Strike;
     Strike.AbilityId = TEXT("Strike"); Strike.Power = 3; Strike.Cost = 2;
     Strike.Target = FTSTSSAbilitySpec::ETarget::Enemy;
@@ -29,8 +29,9 @@ bool FTSTSSAbilityGateTest::RunTest(const FString& Parameters)
     Learned.Add(TEXT("Ender"), TSet<FName>{TEXT("Strike")});
     TestFalse(TEXT("Enemy skill cannot target ally"), FTSTSSCombatAbilities::TryUse(
         State, TEXT("Ender"), TEXT("Ender"), TEXT("Strike"), Catalog, Learned, Teams, Output));
-    TestTrue(TEXT("Learned enemy skill accepted"), FTSTSSCombatAbilities::TryUse(
-        State, TEXT("Ender"), TEXT("Foe"), TEXT("Strike"), Catalog, Learned, Teams, Output));
+    if (!TestTrue(TEXT("Learned enemy skill accepted"), FTSTSSCombatAbilities::TryUse(
+        State, TEXT("Ender"), TEXT("Foe"), TEXT("Strike"), Catalog, Learned, Teams, Output))) return false;
+    if (!TestTrue(TEXT("Accepted action returns complete roster"), Output.Roster.Num() == 2)) return false;
     TestEqual(TEXT("Target damaged"), Output.Roster[1].Health, 4);
     TestEqual(TEXT("Resource spent"), Output.Roster[0].Resource, 3);
     TestEqual(TEXT("Input preserved"), State.Roster[1].Health, 8);
