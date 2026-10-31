@@ -20,6 +20,23 @@ $GitHead | Set-Content (Join-Path $Evidence 'head.txt')
     Tee-Object (Join-Path $Evidence 'build.log')
 if ($LASTEXITCODE -ne 0) { throw "Unreal editor build failed ($LASTEXITCODE)" }
 if ($SkipTests) { Write-Host 'Build succeeded; automation tests deliberately skipped'; exit 0 }
+# Count authored TSTSS automation declarations instead of accepting a stale fixed
+# minimum as the suite grows. This is a *lower bound*, not a substitute for
+# matching individual test identities in a native AutomationReport.
+$SourceRoot = Join-Path $PSScriptRoot '../Source/ToSailTheStarrySky/Private'
+$TestDeclarations = @(
+    Get-ChildItem -Path $SourceRoot -Filter '*Tests.cpp' -Recurse -File |
+        ForEach-Object {
+            [regex]::Matches((Get-Content $_.FullName -Raw),
+                'IMPLEMENT_SIMPLE_AUTOMATION_TEST\\s*\\(\\s*[^,]+,\\s*"(TSTSS\\.[^"]+)"') |
+                ForEach-Object { $_.Groups[1].Value }
+        }
+)
+if ($TestDeclarations.Count -lt 6) { throw 'Unable to discover expected Unreal automation suite' }
+if (@($TestDeclarations | Sort-Object -Unique).Count -ne $TestDeclarations.Count) {
+    throw 'Duplicate Unreal automation test identifiers found'
+}
+$TestDeclarations | Sort-Object | Set-Content (Join-Path $Evidence 'expected-tests.txt')
 $ReportDirectory = Join-Path $Evidence 'AutomationReport'
 if (Test-Path $ReportDirectory) { Remove-Item $ReportDirectory -Recurse -Force }
 New-Item -Path $ReportDirectory -ItemType Directory -Force | Out-Null
@@ -33,7 +50,7 @@ $Report = Get-Content $ReportPath -Raw | ConvertFrom-Json
 if ($null -eq $Report.succeeded -or $null -eq $Report.failed -or $null -eq $Report.notRun) {
     throw 'Automation report schema missing required summary fields; cannot claim PASS'
 }
-if ($Report.failed -gt 0 -or $Report.notRun -gt 0 -or $Report.succeeded -lt 6) {
+if ($Report.failed -gt 0 -or $Report.notRun -gt 0 -or $Report.succeeded -lt $TestDeclarations.Count) {
     throw "Automation evidence incomplete: succeeded=$($Report.succeeded), failed=$($Report.failed), notRun=$($Report.notRun)"
 }
 Write-Host "Native build and reported automation checks passed at $GitHead. Visual acceptance remains separate."
