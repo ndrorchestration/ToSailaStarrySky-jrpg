@@ -47,6 +47,9 @@ try {
     }
     $Count++
     Write-Output "PASS: $Count Windows PowerShell engine-version and strict HOLD cases"
+    # The deliberate -RequireReady rejection sets LASTEXITCODE=2; clear it only
+    # after every asserted case completed. Real failures still throw above.
+    $global:LASTEXITCODE = 0
 } finally {
     if (Test-Path -LiteralPath $Temp) {
         Remove-Item -LiteralPath $Temp -Force -Recurse
