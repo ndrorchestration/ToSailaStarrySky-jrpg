@@ -7,6 +7,7 @@ bool UTSTSSWaterLandingGate::Observe(float DeltaSeconds, bool bHullTouchesWater,
         !FMath::IsFinite(HullVerticalSpeedCms) || DeltaSeconds <= 0.f ||
         DeltaSeconds > 0.25f)
     {
+        Reset(); // Invalid samples cannot preserve stable-contact evidence.
         return false;
     }
     if (Story->GetCurrentBeat() != ETSTSSFirstWakeBeat::Launched &&
