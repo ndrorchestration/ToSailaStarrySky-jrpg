@@ -75,7 +75,7 @@ class ShipFoundationIntegrationAuthority(unittest.TestCase):
         self.assertIn("RequestedForm == EAureateWakeForm::Orbiter || CurrentForm == EAureateWakeForm::Orbiter", self.ship)
         for importer in (self.importer, self.support):
             self.assertIn("/Review/", importer)
-            self.assertIn("replace_existing', False", importer.replace('"', "'"))
+            self.assertIn("set_editor_property('replace_existing',False)", "".join(importer.replace('"', "'").split()))
             self.assertNotIn("spawn_actor_from_class(", importer)
             self.assertNotIn("SeaContact(", importer)
 
