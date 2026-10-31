@@ -19,3 +19,9 @@ No source images have been imported into Unreal. Creator-approved art remains th
 ## Acceptance
 
 Native compile, automated test results, save/load round-trip, rendered First Wake footage, visual approval, then Windows packaging. Preserve the existing Godot release while Unreal is unverified.
+
+## Combat migration verification — 2026-10-30
+
+Godot draft PR #601 is a **reference implementation**, not permission to copy its provisional rules as final canon. The Unreal module already contains `UTSTSSCombatRules::TryApplyAction` with transactional roster output. An additional Unreal automation test, `TSTSS.Combat.RejectsInvalidActionsWithoutMutation`, now covers unaffordable actions, unknown targets, negative power, duplicate unit IDs, and output preservation on failure.
+
+These tests are **source committed but Unreal-native execution has not been verified**. Run the Unreal Editor automation suite in the pinned UE 5.8 environment and retain exact-head logs before UI, encounter, or release promotion. Combat formulas, learned-ability authorization, turn sequencing, factions, party eligibility, and presentation binding still require an explicit UE design and verified implementation. The approved cast art and First Wake story are unchanged.
