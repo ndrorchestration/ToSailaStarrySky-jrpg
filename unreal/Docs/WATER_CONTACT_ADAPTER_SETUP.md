@@ -26,3 +26,6 @@ The water actor now attempts to find the first local `ATSTSSExplorerCharacter` a
 The player's interaction ray additionally requires the physical player-to-hit distance to be within `InteractionDistance`; distant camera booms cannot grant interaction from beyond the character's range.
 
 Native PIE acceptance must test actor initialization order, a respawn/repossess while an old character still exists, water volume settings and overlap, three inspections, launch, sea contact, save/load, camera collision, and the no-physics-abuse regression. Auto-binding does not solve player replacement/respawn; use explicit rebinding if that occurs.
+
+## Possession/restart handling update
+The auto-bound adapter now compares the currently possessed local player story with the bound story on Tick and calls `BindStory` only when the reference changes. Rebinding resets the landing gate, including after player loss, replacing the earlier retry-only approach that could retain a stale story after respawn. This costs a local player lookup each tick while auto-bind is enabled; disable auto-bind and explicitly bind on possession changes for a larger production world. The current single-player behavior still requires native PIE tests of possession, save/load, destruction, and actor ordering.
