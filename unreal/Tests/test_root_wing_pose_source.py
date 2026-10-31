@@ -26,12 +26,14 @@ class RootWingPoseSourceContracts(unittest.TestCase):
     def test_pose_adapter_binds_both_snap_and_transition(self):
         self.assertIn("SetRelativeTransform(WingPoseForMesh(Form, Index))", SOURCE)
         self.assertIn("TargetWingTransforms.Add(WingPoseForMesh(RequestedForm, Index))", SOURCE)
-        self.assertIn("if (bUseRootPivotedWingPose && !bTransitioning)", SOURCE)
+        self.assertIn("if (!bTransitioning)", SOURCE)
         self.assertIn("SnapToForm(CurrentForm);", SOURCE)
 
     def test_authored_pose_requires_imported_mesh(self):
         self.assertIn("(bUseRootPivotedWingPose && !AuthoredWingMesh)", SOURCE)
-        self.assertIn("if (!AuthoredWingMesh)", SOURCE)
+        self.assertIn("UStaticMesh* MeshToDisplay = bUseRootPivotedWingPose", SOURCE)
+        self.assertIn("if (!MeshToDisplay)", SOURCE)
+        self.assertIn("OriginalCubeWingMesh.Get()", SOURCE)
 
     def test_four_cardinal_sail_rotations_are_distinct_and_equal_scale(self):
         root = SOURCE.split("FTransform AAureateWakePreviewActor::RootPivotedWingPose(",1)[1]
@@ -45,6 +47,7 @@ class RootWingPoseSourceContracts(unittest.TestCase):
     def test_story_progression_and_orbiter_unlock_unchanged(self):
         self.assertIn("bool bAllowOrbiterPreview = false;",HEADER)
         self.assertIn("(RequestedForm == EAureateWakeForm::Orbiter && !bAllowOrbiterPreview)",SOURCE)
+        self.assertIn("RequestedForm == EAureateWakeForm::Orbiter || CurrentForm == EAureateWakeForm::Orbiter",SOURCE)
         self.assertNotIn("AdvanceTo(",SOURCE)
         self.assertNotIn("FlotationConfirmed(",SOURCE)
         self.assertNotIn("SeaContact(",SOURCE)
