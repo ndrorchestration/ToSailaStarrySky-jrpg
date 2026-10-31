@@ -24,7 +24,8 @@ bool FTSTSSCombatTurnOrderTest::RunTest(const FString& Parameters)
     const TArray<FTSTSSCombatant> Roster{Ender, Ionia, Foe};
     const TArray<FName> Order{TEXT("Ender"), TEXT("Ionia"), TEXT("Foe")};
     FTSTSSCombatTurnState Initial;
-    TestTrue(TEXT("Valid roster starts"), FTSTSSCombatTurns::TryBegin(Roster, Order, Initial));
+    if (!TestTrue(TEXT("Valid roster starts"), FTSTSSCombatTurns::TryBegin(Roster, Order, Initial))) return false;
+    if (!TestEqual(TEXT("Initial roster size"), Initial.Roster.Num(), 3)) return false;
     TestEqual(TEXT("Initial actor"), FTSTSSCombatTurns::CurrentActor(Initial), FName(TEXT("Ender")));
 
     FTSTSSCombatAction Action;
@@ -36,7 +37,8 @@ bool FTSTSSCombatTurnOrderTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Rejected output unchanged"), Result.AcceptedActions, 0);
 
     Action.ActorId = TEXT("Ender");
-    TestTrue(TEXT("Ender defeats Foe"), FTSTSSCombatTurns::TryAction(Initial, Action, Result));
+    if (!TestTrue(TEXT("Ender defeats Foe"), FTSTSSCombatTurns::TryAction(Initial, Action, Result))) return false;
+    if (!TestEqual(TEXT("Knockout result roster size"), Result.Roster.Num(), 3)) return false;
     TestEqual(TEXT("Ionia follows"), FTSTSSCombatTurns::CurrentActor(Result), FName(TEXT("Ionia")));
     TestEqual(TEXT("Input foe is unaffected"), Initial.Roster[2].Health, 3);
     TestEqual(TEXT("Foe is knocked out"), Result.Roster[2].Health, 0);
@@ -47,7 +49,7 @@ bool FTSTSSCombatTurnOrderTest::RunTest(const FString& Parameters)
     Heal.bHealing = true;
     Heal.Power = 1;
     FTSTSSCombatTurnState After;
-    TestTrue(TEXT("Ionia takes legal turn"), FTSTSSCombatTurns::TryAction(Result, Heal, After));
+    if (!TestTrue(TEXT("Ionia takes legal turn"), FTSTSSCombatTurns::TryAction(Result, Heal, After))) return false;
     TestEqual(TEXT("Round advances past unconscious final slot"), After.Round, 2);
     TestEqual(TEXT("Next actor wraps to Ender"), FTSTSSCombatTurns::CurrentActor(After), FName(TEXT("Ender")));
     TestEqual(TEXT("Accepted action count"), After.AcceptedActions, 2);
