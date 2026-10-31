@@ -41,3 +41,6 @@ Moon Bridge is a **hidden traversal mode**, not default combat magic or an ordin
 
 ## Canon and project boundaries
 First Wake actual opening uses Skyborne and Seaborne; its sea landing must remain meaningful. Submersible and Moon Bridge are later progression. Do not mark any generated visual as canonical without creator approval. Current Unreal foundation is draft PR #608; SpriteCook starter material remains concept-only in draft PR #609. No claim of native Unreal model, animation or validated four-form rig is made here.
+
+## Creator-confirmed fourth-form lock — October 30, 2026
+The Moon Bridge form is **satellite-like**, with the ship's existing wings rotating/reconfiguring into a **radial solar-sail arrangement** around the recognizable central hull and geodesic bridge. This is creator-specified visual canon, not speculative styling. Preserve continuity of hinge points, structure and wing identities between atmospheric and radial modes. The exact wing count, deployed diameter, membrane geometry, motion and physical propulsion remain design questions, not settled canon. Review matched-scale front/side/top silhouettes and animated transition for overlaps, crew safety and readability. The resemblance to solar sails does not establish that solar radiation pressure powers this traversal mode.
