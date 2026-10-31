@@ -54,8 +54,13 @@ void UAureateWakeWaterObserverComponent::TickComponent(float DeltaTime,
         return;
     }
     LandingGate->Observe(DeltaTime, bTouchingWater, VerticalSpeed, Story);
-    // Presentation responds only to valid observations; story is gate-owned.
-    if (bTouchingWater && IsValid(VisualShip) &&
+    // Request the visual landing only after the story gate has accepted
+    // contact. Do not infer acceptance merely from a collider overlap.
+    const ETSTSSFirstWakeBeat AcceptedBeat = Story->GetCurrentBeat();
+    const bool bContactAccepted =
+        AcceptedBeat == ETSTSSFirstWakeBeat::SeaContact ||
+        AcceptedBeat == ETSTSSFirstWakeBeat::FlotationConfirmed;
+    if (bContactAccepted && bTouchingWater && IsValid(VisualShip) &&
         VisualShip->GetCurrentForm() == EAureateWakeForm::Skyborne &&
         !VisualShip->IsTransitioning())
     {
