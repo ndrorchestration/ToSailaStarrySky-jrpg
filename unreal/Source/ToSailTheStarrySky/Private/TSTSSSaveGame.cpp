@@ -28,3 +28,30 @@ bool UTSTSSSaveGame::IsStructurallyValid() const
     }
     return true;
 }
+
+bool UTSTSSSaveGame::CaptureFirstWake(const UTSTSSFirstWakeState* State)
+{
+    if (!IsValid(State) || !IsStructurallyValid())
+    {
+        return false;
+    }
+
+    // Snapshot the story into a validated temporary object first. Avoid
+    // corrupting this save when the source story has an inconsistent mask.
+    UTSTSSSaveGame* Candidate = NewObject<UTSTSSSaveGame>(this);
+    Candidate->SchemaVersion = SchemaVersion;
+    Candidate->PartyRoster = PartyRoster;
+    Candidate->bFirstWakeStarted = State->HasStarted();
+    Candidate->FirstWakeBeat = State->GetCurrentBeat();
+    Candidate->InspectionMask = State->GetInspectionMask();
+
+    if (!Candidate->IsStructurallyValid())
+    {
+        return false;
+    }
+
+    bFirstWakeStarted = Candidate->bFirstWakeStarted;
+    FirstWakeBeat = Candidate->FirstWakeBeat;
+    InspectionMask = Candidate->InspectionMask;
+    return true;
+}
