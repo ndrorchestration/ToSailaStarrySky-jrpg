@@ -1,11 +1,38 @@
 from pathlib import Path
+import argparse
+import shutil
 import subprocess
+import sys
 import tempfile
+
+parser = argparse.ArgumentParser(description="Isolated, real C++ request logic executable test")
+parser.add_argument(
+    "--source-only", action="store_true",
+    help="Explicit source-bound screen on hosts without a C++ compiler; NOT an execution PASS")
+args = parser.parse_args()
 
 source = (Path(__file__).resolve().parents[1] / 'Source/ToSailTheStarrySky/Private/AureateWakePreviewActor.cpp').read_text()
 start = source.index('bool AAureateWakePreviewActor::RequestForm(')
 end = source.index('\nvoid AAureateWakePreviewActor::Tick', start)
 method = source[start:end]
+if args.source_only:
+    # This mode is deliberately weaker than compiling and running RequestForm.
+    # Linux CI must continue using the default executable C++ mode.
+    for marker in ("bTransitioning || RequestedForm == CurrentForm",
+                   "Wings.Num() != 4 || Hydrofoils.Num() != 2",
+                   "bUseRootPivotedWingPose && !AuthoredWingMesh",
+                   "RequestedForm == EAureateWakeForm::Orbiter || CurrentForm == EAureateWakeForm::Orbiter",
+                   "Hydrofoils[Index]->SetVisibility("):
+        if marker not in method:
+            raise SystemExit("SOURCE HOLD missing RequestForm guard: " + marker)
+    print("SOURCE SCREEN ONLY: request guards present; no C++ compiler or runtime executed")
+    raise SystemExit(0)
+compiler = next((p for name in ("g++", "clang++", "c++")
+                 if (p := shutil.which(name))), None)
+if compiler is None:
+    print("C++ TOOLCHAIN UNAVAILABLE: g++/clang++/c++ required for executable RequestForm check; "
+          "use --source-only only for an explicitly weaker audit", file=sys.stderr)
+    raise SystemExit(2)
 # Compile the actual RequestForm body against minimal boundary substitutes.
 # This executes request logic, not Unreal components, transforms or rendering.
 stub = r'''
@@ -68,5 +95,5 @@ with tempfile.TemporaryDirectory() as folder:
     cpp=Path(folder)/'probe.cpp'
     exe=Path(folder)/'probe'
     cpp.write_text(stub+method+main)
-    subprocess.run(['g++','-std=c++17','-Wall','-Wextra',str(cpp),'-o',str(exe)],check=True)
+    subprocess.run([compiler, '-std=c++17', '-Wall', '-Wextra', str(cpp), '-o', str(exe)], check=True)
     raise SystemExit(subprocess.run([str(exe)]).returncode)

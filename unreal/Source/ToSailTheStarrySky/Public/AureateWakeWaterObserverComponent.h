@@ -17,6 +17,13 @@ public:
     virtual void BeginPlay() override;
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* Function) override;
 
+    /** Fail closed by default: no second story water observer runs on spawn.
+     * Enable only for an isolated scene after verifying a single authoritative
+     * landing observation pathway. This is NOT automatic mutual exclusion.
+     */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aureate Wake|Water")
+    bool bEnableStoryWaterObservation = false;
+
     /** These must be scene-authored components with real overlap/collision enabled. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aureate Wake|Water")
     TObjectPtr<UPrimitiveComponent> PhysicalHull;

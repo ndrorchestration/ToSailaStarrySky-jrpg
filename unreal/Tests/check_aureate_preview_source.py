@@ -9,7 +9,7 @@ checks = {
     "four persistent wings": 'Index < 4' in source and 'DragonflyWing_%d' in source,
     "two hydrofoils": 'Index < 2' in source and 'Hydrofoil_%d' in source,
     "seaborne foil deployment": 'Form == EAureateWakeForm::Seaborne' in source,
-    "submersible wing visibility": 'case EAureateWakeForm::Submersible:' in source and 'Wings[Index]->SetRelativeTransform(WingPoseForMesh(Form, Index))' in source and not re.search(r'\\b(?:Wing|Wings\\[[^]]+\\])\\s*->\\s*SetVisibility\\(\\s*false\\s*\\)', source),
+    "submersible wing visibility": 'case EAureateWakeForm::Submersible:' in source and 'Wings[Index]->SetRelativeTransform(WingPoseForMesh(Form, Index))' in source and not re.search(r'\b(?:Wing|Wings\[[^\]]+\])\s*->\s*SetVisibility\(\s*false\s*\)', source),
     "four additional *supports*, not wings": 'WingRootSupports.Add(Support);' in source and 'Wings.Add(Wing);' in source and 'GetRootSupportCount()' in header,
     "orbiter access gate": 'bAllowOrbiterPreview = false' in header and '!bAllowOrbiterPreview' in source,
     "cardinal orbiter offsets": all(fragment in source for fragment in ['FVector(0, 0, 315)', 'FVector(0, 0, -315)', 'FVector(0, -315, 0)', 'FVector(0, 315, 0)']),
