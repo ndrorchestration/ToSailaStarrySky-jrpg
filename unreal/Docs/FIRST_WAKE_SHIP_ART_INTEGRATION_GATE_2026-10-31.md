@@ -45,3 +45,24 @@ The first integrated workflow run `41191917278` executed 77 offline unit tests a
 **Engine-native quality:** procedural GLB geometry and source check passes are not artistic acceptance, real-time optical effects, animations or player-visible feature admission.
 
 **Asset provenance:** candidate wing/support meshes are authored review lookdev, not final producer-approved objects; older v1 100× oversized wing GLB is permanently retired for import.
+
+
+## Explicit editor-only ship art binding (review scene only)
+
+This branch additionally provides [`unreal/Tools/bind_first_wake_review_ship_art.py`](../Tools/bind_first_wake_review_ship_art.py) and [`unreal/Tests/test_bind_first_wake_review_ship_art.py`](../Tests/test_bind_first_wake_review_ship_art.py). The aim is to get the actual corrected wing/support meshes onto the existing Aureate Wake C++ ship actor in the **isolated benchmark map**, rather than relying on source code and standalone GLBs alone. This is a human-reviewed editing convenience, not a game integration or engine execution result.
+
+**Prerequisites (not yet verified here):** UE 5.8 Windows C++ project compiles; both separate review-only GLB importers have been run manually and each produces a valid StaticMesh; the isolated `/Game/TSTSS/Review/FirstWake_Benchmark_V1` map exists and is open in Unreal Editor, with a single `TSTSS_REVIEW_AureateWake` actor from the compiled `AAureateWakePreviewActor` class.
+
+Review the exact imported asset paths in the Content Browser. Example **read-only** preflight, outside Unreal:
+
+```powershell
+py -3.11 unreal/Tools/bind_first_wake_review_ship_art.py --inspect --wing-asset "/Game/TSTSS/Review/ShipArt/WingCandidateV2/AureateWake_Wing_Lookdev" --root-support-asset "/Game/TSTSS/Review/ShipArt/RootSupportCandidateV1/AureateWake_RootSupport_Lookdev"
+```
+
+Only if the actual imported asset names match those paths, run the identical script with `--bind-in-editor` rather than `--inspect`, inside **Unreal Editor Python**, with the same two asset arguments. The editor function refuses any other world, duplicate or missing actor, non-StaticMesh, pre-existing authored art assignment, transitioning/non-Skyborne form, or enabled Orbiter. It then attaches reviewed wing and support assets to this one actor, enables its root-pivot pose mode, and calls the existing `refresh_wing_meshes()` and `refresh_root_supports()` C++ methods. On setter/refresh failures it attempts to restore the original asset properties.
+
+**Never auto-save:** this function does not create/spawn/destroy actors, open/save levels, import new assets, alter gameplay or perform actor form requests. The editor's map is intentionally left dirty and must be reviewed visually by the creator before any manual review-map save. Do not run it against a playable level.
+
+Source API references: [Epic UE 5.8 EditorActorSubsystem](https://dev.epicgames.com/documentation/en-us/unreal-engine/python-api/class/EditorActorSubsystem?application_version=5.8) and [Epic Python Editor scripting](https://dev.epicgames.com/documentation/unreal-engine/scripting-the-unreal-editor-using-python).
+
+**Verification boundary:** mocked Python tests prove guard logic only. Unreal Editor import, reflection of properties/functions, actual compilation, live binding and resulting image are NOT VERIFIED on a native machine.
