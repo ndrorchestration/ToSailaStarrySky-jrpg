@@ -2,6 +2,26 @@
 
 bool UTSTSSFirstWakeState::AdvanceTo(const ETSTSSFirstWakeBeat RequestedBeat)
 {
+    if (RequestedBeat == ETSTSSFirstWakeBeat::SeaContact ||
+        RequestedBeat == ETSTSSFirstWakeBeat::FlotationConfirmed)
+    {
+        return false;
+    }
+    return AdvanceUnchecked(RequestedBeat);
+}
+
+bool UTSTSSFirstWakeState::AdvanceFromWaterObservation(const ETSTSSFirstWakeBeat RequestedBeat)
+{
+    if (RequestedBeat != ETSTSSFirstWakeBeat::SeaContact &&
+        RequestedBeat != ETSTSSFirstWakeBeat::FlotationConfirmed)
+    {
+        return false;
+    }
+    return AdvanceUnchecked(RequestedBeat);
+}
+
+bool UTSTSSFirstWakeState::AdvanceUnchecked(const ETSTSSFirstWakeBeat RequestedBeat)
+{
     const uint8 Requested = static_cast<uint8>(RequestedBeat);
     const uint8 Current = static_cast<uint8>(CurrentBeat);
     const uint8 Last = static_cast<uint8>(ETSTSSFirstWakeBeat::ReturnedToBerth);

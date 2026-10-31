@@ -4,6 +4,8 @@
 #include "UObject/Object.h"
 #include "TSTSSFirstWakeState.generated.h"
 
+class ATSTSSWaterContactObserver;
+
 // Ordered story milestones. A debug map may drive these without claiming canonical completion.
 UENUM(BlueprintType)
 enum class ETSTSSFirstWakeBeat : uint8
@@ -33,6 +35,7 @@ class TOSAILTHESTARRYSKY_API UTSTSSFirstWakeState : public UObject
     GENERATED_BODY()
 public:
     UFUNCTION(BlueprintCallable, Category="TSTSS|First Wake")
+    // Manual/scripted story milestones only. Physical beats are rejected here.
     bool AdvanceTo(ETSTSSFirstWakeBeat RequestedBeat);
 
     UFUNCTION(BlueprintPure, Category="TSTSS|First Wake")
@@ -58,6 +61,13 @@ public:
     bool Restore(bool bWasStarted, ETSTSSFirstWakeBeat SavedBeat, uint8 SavedInspectionMask = 0);
 
 private:
+    friend class ATSTSSWaterContactObserver;
+
+    // Only the water observer may request these physical beats. C++ friendship
+    // narrows the write surface; native collision tests must still prove evidence.
+    bool AdvanceFromWaterObservation(ETSTSSFirstWakeBeat RequestedBeat);
+    bool AdvanceUnchecked(ETSTSSFirstWakeBeat RequestedBeat);
+
     UPROPERTY(VisibleAnywhere, Category="TSTSS|First Wake")
     ETSTSSFirstWakeBeat CurrentBeat = ETSTSSFirstWakeBeat::FlyerDiscovered;
 
