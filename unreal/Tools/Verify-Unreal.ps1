@@ -19,7 +19,19 @@ $GitHead | Set-Content (Join-Path $Evidence 'head.txt')
 & $BuildTool ToSailTheStarrySkyEditor Win64 Development "-Project=$Project" -WaitMutex 2>&1 |
     Tee-Object (Join-Path $Evidence 'build.log')
 if ($LASTEXITCODE -ne 0) { throw "Unreal editor build failed ($LASTEXITCODE)" }
-if ($SkipTests) { Write-Host 'Build succeeded; automation tests deliberately skipped'; exit 0 }
+if ($SkipTests) {
+    # Build-only evidence still requires a stable, clean checkout.
+    $BuildHead = (git -C (Join-Path $PSScriptRoot '../..') rev-parse HEAD)
+    if ($LASTEXITCODE -ne 0 -or $BuildHead -ne $GitHead) {
+        throw "Repository HEAD changed during build; initial=$GitHead final=$BuildHead"
+    }
+    $BuildTree = @(git -C (Join-Path $PSScriptRoot '../..') status --porcelain)
+    if ($LASTEXITCODE -ne 0 -or $BuildTree.Count -gt 0) {
+        throw 'Working tree changed during build; build-only evidence rejected'
+    }
+    Write-Host "Editor build completed at $GitHead; automation tests deliberately skipped. No automation PASS is claimed."
+    exit 0
+}
 $ReportDirectory = Join-Path $Evidence 'AutomationReport'
 if (Test-Path $ReportDirectory) { Remove-Item $ReportDirectory -Recurse -Force }
 New-Item -Path $ReportDirectory -ItemType Directory -Force | Out-Null
