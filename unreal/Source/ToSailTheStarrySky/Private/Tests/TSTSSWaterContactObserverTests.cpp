@@ -21,6 +21,18 @@ bool FTSTSSWaterEvidencePolicyTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Negative threshold fails closed"), Stable(true, true, 0.f, -1.f));
     TestFalse(TEXT("Nonfinite speed fails closed"), Stable(true, true, TNumericLimits<float>::Infinity(), 35.f));
     TestFalse(TEXT("Nonfinite threshold fails closed"), Stable(true, true, 0.f, TNumericLimits<float>::Infinity()));
+    TestTrue(TEXT("Near waterline vessel eligible"),
+        ATSTSSWaterContactObserver::IsNearWaterSurface(90.f, 100.f, 150.f));
+    TestFalse(TEXT("Deeply submerged vessel not stable flotation"),
+        ATSTSSWaterContactObserver::IsNearWaterSurface(-500.f, 100.f, 150.f));
+    TestFalse(TEXT("Airborne vessel not stable flotation"),
+        ATSTSSWaterContactObserver::IsNearWaterSurface(500.f, 100.f, 150.f));
+    TestTrue(TEXT("Waterline distance boundary is inclusive"),
+        ATSTSSWaterContactObserver::IsNearWaterSurface(250.f, 100.f, 150.f));
+    TestFalse(TEXT("Invalid waterline tolerance fails closed"),
+        ATSTSSWaterContactObserver::IsNearWaterSurface(100.f, 100.f, 0.f));
+    TestFalse(TEXT("Nonfinite waterline height fails closed"),
+        ATSTSSWaterContactObserver::IsNearWaterSurface(100.f, TNumericLimits<float>::Infinity(), 150.f));
     return true;
 }
 
