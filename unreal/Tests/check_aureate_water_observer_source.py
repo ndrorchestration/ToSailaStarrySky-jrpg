@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
-"""Fast source-structure guard, not an Unreal runtime/compile test."""
+"""Source-only guard for the unique First Wake water-contact authority."""
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[1]
-observer=(ROOT/"Source/ToSailTheStarrySky/Private/AureateWakeWaterObserverComponent.cpp").read_text()
-ship=(ROOT/"Source/ToSailTheStarrySky/Private/AureateWakePreviewActor.cpp").read_text()
-checks={
-    "physics overlap sampled": "IsOverlappingComponent(WaterCollision)" in observer,
-    "physical velocity sampled": "GetPhysicsLinearVelocity()" in observer and "GetComponentVelocity()" in observer and "IsSimulatingPhysics()" in observer,
-    "nonfinite samples rejected": "FMath::IsFinite(VerticalSpeed)" in observer,
-    "stale gate resets": observer.count("LandingGate->Reset()")>=3,
-    "story gate evaluated before visual request": observer.find("LandingGate->Observe(")<observer.find("VisualShip->RequestForm("),
-    "Seaborne requires accepted contact": "bContactAccepted && bTouchingWater" in observer and "AcceptedBeat == ETSTSSFirstWakeBeat::SeaContact" in observer,
-    "preview does not advance story": "AdvanceTo(" not in ship,
-    "preview preserves four wings": "Index < 4" in ship,
-    "Orbiter remains gated": "bAllowOrbiterPreview" in ship,
+ROOT = Path(__file__).resolve().parents[1]
+base = ROOT / "Source/ToSailTheStarrySky"
+observer = (base / "Private/AureateWakeWaterObserverComponent.cpp").read_text()
+header = (base / "Public/AureateWakeWaterObserverComponent.h").read_text()
+adapter = (base / "Private/TSTSSWaterContactAdapter.cpp").read_text()
+checks = {
+    "physical contact owned by foundation": "Gate->Observe(" in adapter,
+    "foundation checks physical hull": "GetPhysicsLinearVelocity()" in adapter and "bActualImmersion" in adapter,
+    "ship observer never records contact": "Observe(" not in observer and "AdvanceTo(" not in observer,
+    "ship observer does not own water gate": "LandingGate" not in observer and "LandingGate" not in header,
+    "ship observer does not sample collision": "IsOverlappingComponent" not in observer and "PhysicalHull" not in header,
+    "visual trigger requires accepted story beat": "ETSTSSFirstWakeBeat::SeaContact" in observer and "bContactAccepted" in observer,
+    "ship only requests visual form": "RequestForm(EAureateWakeForm::Seaborne)" in observer,
 }
-for label,passed in checks.items():
-    print(("PASS" if passed else "FAIL")+": "+label)
+for label, passed in checks.items():
+    print(("PASS" if passed else "FAIL") + ": " + label)
 if not all(checks.values()):
     raise SystemExit(1)
-print("SOURCE CONTRACT ONLY — Unreal compilation, actual overlap, flotation, and rendering unverified")
+print("SOURCE ONLY: native Unreal behavior and rendering remain unverified")
