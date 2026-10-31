@@ -55,3 +55,25 @@ bool UTSTSSSaveGame::CaptureFirstWake(const UTSTSSFirstWakeState* State)
     InspectionMask = Candidate->InspectionMask;
     return true;
 }
+
+bool UTSTSSSaveGame::CapturePartyRoster(const TArray<FTSTSSCombatant>& Roster)
+{
+    // A story-only checkpoint must never replace a populated roster with an
+    // accidental empty list. New-game roster initialization is a separate step.
+    if (Roster.IsEmpty() || !IsStructurallyValid())
+    {
+        return false;
+    }
+    UTSTSSSaveGame* Candidate = NewObject<UTSTSSSaveGame>(this);
+    Candidate->SchemaVersion = SchemaVersion;
+    Candidate->bFirstWakeStarted = bFirstWakeStarted;
+    Candidate->FirstWakeBeat = FirstWakeBeat;
+    Candidate->InspectionMask = InspectionMask;
+    Candidate->PartyRoster = Roster;
+    if (!Candidate->IsStructurallyValid())
+    {
+        return false;
+    }
+    PartyRoster = Roster;
+    return true;
+}
