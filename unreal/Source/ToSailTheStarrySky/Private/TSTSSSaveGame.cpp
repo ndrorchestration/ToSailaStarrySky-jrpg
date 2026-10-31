@@ -85,3 +85,22 @@ bool UTSTSSSaveGame::CanCheckpointParty(bool bLivePartyInitialized) const
     return IsStructurallyValid() &&
         (bLivePartyInitialized || !PartyRoster.IsEmpty());
 }
+
+bool UTSTSSSaveGame::IsValidFirstWakeStartingEnder(
+    const FTSTSSCombatant& StartingEnder)
+{
+    // Opening roster is Ender alone. Numeric values must be authored elsewhere;
+    // accepting the default struct's placeholder is not approval of its balance.
+    if (StartingEnder.CharacterId != FName(TEXT("Ender")) ||
+        StartingEnder.Health <= 0)
+    {
+        return false;
+    }
+    UTSTSSSaveGame* Candidate = NewObject<UTSTSSSaveGame>();
+    if (!IsValid(Candidate))
+    {
+        return false;
+    }
+    Candidate->PartyRoster.Add(StartingEnder);
+    return Candidate->IsStructurallyValid();
+}
