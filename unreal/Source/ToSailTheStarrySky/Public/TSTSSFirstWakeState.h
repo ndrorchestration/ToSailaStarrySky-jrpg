@@ -36,6 +36,10 @@ public:
     UFUNCTION(BlueprintCallable, Category="TSTSS|First Wake")
     void Reset();
 
+    // Restores only in-range states; avoids replaying milestone side effects.
+    UFUNCTION(BlueprintCallable, Category="TSTSS|First Wake")
+    bool Restore(bool bWasStarted, ETSTSSFirstWakeBeat SavedBeat);
+
 private:
     UPROPERTY(VisibleAnywhere, Category="TSTSS|First Wake")
     ETSTSSFirstWakeBeat CurrentBeat = ETSTSSFirstWakeBeat::FlyerDiscovered;
