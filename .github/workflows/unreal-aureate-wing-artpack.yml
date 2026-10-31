@@ -8,6 +8,8 @@ on:
     paths:
       - "unreal/Tools/author_aureate_wing_glb.py"
       - "unreal/Tests/test_author_aureate_wing_glb.py"
+      - "unreal/Tools/import_aureate_wing_review.py"
+      - "unreal/Tests/test_import_aureate_wing_review.py"
       - ".github/workflows/unreal-aureate-wing-artpack.yml"
   workflow_dispatch:
 
@@ -24,15 +26,18 @@ jobs:
         with:
           python-version: "3.11"
       - name: Syntax verification
-        run: python -m py_compile unreal/Tools/author_aureate_wing_glb.py unreal/Tests/test_author_aureate_wing_glb.py
+        run: python -m py_compile unreal/Tools/author_aureate_wing_glb.py unreal/Tests/test_author_aureate_wing_glb.py unreal/Tools/import_aureate_wing_review.py unreal/Tests/test_import_aureate_wing_review.py
       - name: Determinism, mesh manifold and glTF material QA
         run: python -m unittest discover -s unreal/Tests -p "test_author_aureate_wing_glb.py" -v
+      - name: Validate corrected GLB review-import preflight
+        run: python -m unittest discover -s unreal/Tests -p "test_import_aureate_wing_review.py" -v
       - name: Create scratch-only asset and review manifest
         run: |
           python unreal/Tools/author_aureate_wing_glb.py --output-dir "$RUNNER_TEMP/aureate-wing-artpack"
           test -s "$RUNNER_TEMP/aureate-wing-artpack/AureateWake_Wing_Lookdev.glb"
           test -s "$RUNNER_TEMP/aureate-wing-artpack/AureateWake_Wing_Albedo.png"
           test -s "$RUNNER_TEMP/aureate-wing-artpack/AureateWake_Wing_Manifest.json"
+          python unreal/Tools/import_aureate_wing_review.py --glb "$RUNNER_TEMP/aureate-wing-artpack/AureateWake_Wing_Lookdev.glb" --manifest "$RUNNER_TEMP/aureate-wing-artpack/AureateWake_Wing_Manifest.json" --check
       - name: Upload review-only corrected GLB files (not an approved asset)
         uses: actions/upload-artifact@v4
         with:
