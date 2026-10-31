@@ -1,10 +1,9 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "TSTSSWaterLandingGate.h"
+#include "TSTSSFirstWakeState.h"
 #include "AureateWakeWaterObserverComponent.generated.h"
 
-class UPrimitiveComponent;
 class AAureateWakePreviewActor;
 
 /** Opt-in observer. No simulated contact or synthetic flotation receipts. */
@@ -17,20 +16,10 @@ public:
     virtual void BeginPlay() override;
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* Function) override;
 
-    /** These must be scene-authored components with real overlap/collision enabled. */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aureate Wake|Water")
-    TObjectPtr<UPrimitiveComponent> PhysicalHull;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aureate Wake|Water")
-    TObjectPtr<UPrimitiveComponent> WaterCollision;
-
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aureate Wake|Water")
     TObjectPtr<AAureateWakePreviewActor> VisualShip;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aureate Wake|Water")
     TObjectPtr<UTSTSSFirstWakeState> Story;
 
-private:
-    UPROPERTY(Transient)
-    TObjectPtr<UTSTSSWaterLandingGate> LandingGate;
 };
