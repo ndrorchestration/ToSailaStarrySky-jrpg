@@ -61,6 +61,51 @@ bool FTSTSSCombatAtomicTest::RunTest(const FString& Parameters)
     return true;
 }
 
+// Regression coverage for the UE-side atomic resolver migrated from the Godot study.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTSTSSCombatRejectionTest,
+    "TSTSS.Combat.RejectsInvalidActionsWithoutMutation",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FTSTSSCombatRejectionTest::RunTest(const FString& Parameters)
+{
+    FTSTSSCombatant Ender;
+    Ender.CharacterId = TEXT("Ender");
+    Ender.Health = 12; Ender.MaxHealth = 20;
+    Ender.Resource = 3; Ender.MaxResource = 5;
+    Ender.Attack = 2;
+
+    FTSTSSCombatant Foe;
+    Foe.CharacterId = TEXT("Foe");
+    Foe.Health = 10; Foe.MaxHealth = 10;
+    Foe.Resource = 0; Foe.MaxResource = 0;
+    const TArray<FTSTSSCombatant> Initial{Ender, Foe};
+    TArray<FTSTSSCombatant> Output = Initial;
+    FTSTSSCombatAction Action;
+    Action.ActorId = TEXT("Ender");
+    Action.TargetId = TEXT("Foe");
+    Action.Power = 2;
+
+    Action.ResourceCost = 4;
+    TestFalse(TEXT("Unaffordable action is rejected"), UTSTSSCombatRules::TryApplyAction(Initial, Action, Output));
+    TestEqual(TEXT("Rejected action preserves output HP"), Output[1].Health, 10);
+    TestEqual(TEXT("Rejected action preserves output resources"), Output[0].Resource, 3);
+
+    Action.ResourceCost = 0;
+    Action.TargetId = TEXT("Missing");
+    TestFalse(TEXT("Unknown target is rejected"), UTSTSSCombatRules::TryApplyAction(Initial, Action, Output));
+    TestEqual(TEXT("Unknown target preserves output"), Output[1].Health, 10);
+
+    Action.TargetId = TEXT("Foe");
+    Action.Power = -1;
+    TestFalse(TEXT("Negative power is rejected"), UTSTSSCombatRules::TryApplyAction(Initial, Action, Output));
+    Action.Power = 2;
+
+    TArray<FTSTSSCombatant> Duplicates{Ender, Ender, Foe};
+    TestFalse(TEXT("Duplicate roster IDs are rejected"), UTSTSSCombatRules::TryApplyAction(Duplicates, Action, Output));
+    TestEqual(TEXT("Duplicate roster rejection preserves output size"), Output.Num(), 2);
+    TestEqual(TEXT("Input roster remains unchanged"), Initial[1].Health, 10);
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTSTSSSaveValidationTest,
     "TSTSS.Save.RejectsUnsupportedSchema",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
