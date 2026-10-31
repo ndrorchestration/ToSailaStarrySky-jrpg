@@ -27,3 +27,12 @@
 - Current tests evaluate decision policy and beat ordering but not actual Unreal overlap events, physics or tick-driven dwell. Only a native integration test can close this gap.
 
 **No merge or release authorized.** Art and narrative remain governed by creator-approved cast/ship/Five Lights. Original playable Godot reference remains intact.
+
+## October 31 follow-up — state-machine provenance boundary
+
+The prior implementation exposed public `AdvanceTo(SeaContact)` and `AdvanceTo(FlotationConfirmed)`, allowing arbitrary Blueprint/story code to bypass the milestone actor guard. This PR now rejects those two beats in `AdvanceTo` and restricts `AdvanceFromWaterObservation` to the C++ water observer via a private friend declaration. Negative regression tests assert both direct bypasses preserve the launched state.
+
+This is a **narrowed software call surface, not cryptographic attestation or final physics proof**. The assigned observer still requires real UE physics execution and the afloat/stability acceptance gates above. A malicious or incorrect native C++ change could still falsify evidence; native testing and source review remain required.
+
+### Integration conflict flagged
+The sibling draft [#614](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/pull/614) contains a full-path *synthetic* unit test that directly advances `SeaContact` and `FlotationConfirmed`. That test must be revised to use native observer-driven integration evidence when combining branches; do not merge both unchanged or reinterpret a synthetic advance as proof of physical contact. Preserve the non-physical ordered milestones and save/restore assertions from #614.
