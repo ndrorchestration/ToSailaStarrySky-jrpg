@@ -45,4 +45,7 @@ public:
     // Story checkpoints require either an explicitly initialized live party
     // or an existing valid saved party. Never create an empty-party checkpoint.
     bool CanCheckpointParty(bool bLivePartyInitialized) const;
+
+    // Validates creator-supplied opening stats; does not choose balance values.
+    static bool IsValidFirstWakeStartingEnder(const FTSTSSCombatant& StartingEnder);
 };
