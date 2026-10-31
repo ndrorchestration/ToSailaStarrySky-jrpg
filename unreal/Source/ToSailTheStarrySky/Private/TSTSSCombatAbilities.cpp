@@ -1,10 +1,12 @@
 #include "TSTSSCombatAbilities.h"
+#include "TSTSSEncounterGate.h"
 
 bool FTSTSSCombatAbilities::TryUse(
     const FTSTSSCombatTurnState& State, FName ActorId, FName TargetId,
     FName AbilityId, const TMap<FName, FTSTSSAbilitySpec>& Catalog,
     const TMap<FName, TSet<FName>>& Learned,
     const TMap<FName, FName>& Factions,
+    FName PartyFaction, FName OpponentFaction,
     FTSTSSCombatTurnState& OutState)
 {
     if (ActorId.IsNone() || TargetId.IsNone() || AbilityId.IsNone()) return false;
@@ -37,5 +39,6 @@ bool FTSTSSCombatAbilities::TryUse(
     Action.ResourceCost = Ability->Cost;
     Action.Power = Ability->Power;
     Action.bHealing = Ability->bHealing;
-    return FTSTSSCombatTurns::TryAction(State, Action, OutState);
+    return FTSTSSEncounterGate::TryAction(State, Factions, PartyFaction,
+                                        OpponentFaction, Action, OutState);
 }
