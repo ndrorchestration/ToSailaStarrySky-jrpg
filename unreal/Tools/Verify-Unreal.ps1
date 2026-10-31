@@ -33,7 +33,7 @@ $Report = Get-Content $ReportPath -Raw | ConvertFrom-Json
 if ($null -eq $Report.succeeded -or $null -eq $Report.failed -or $null -eq $Report.notRun) {
     throw 'Automation report schema missing required summary fields; cannot claim PASS'
 }
-if ($Report.failed -gt 0 -or $Report.notRun -gt 0 -or $Report.succeeded -lt 6) {
+if ($Report.failed -gt 0 -or $Report.notRun -gt 0) {
     throw "Automation evidence incomplete: succeeded=$($Report.succeeded), failed=$($Report.failed), notRun=$($Report.notRun)"
 }
 # Require evidence for named critical tests, not merely an aggregate success count.
@@ -55,6 +55,9 @@ $RequiredTests = @(
 $Entries = @($Report.tests)
 if ($Entries.Count -eq 0 -or $null -eq $Entries[0]) {
     throw 'No per-test automation evidence; refusing aggregate-only PASS'
+}
+if ($Report.succeeded -lt $RequiredTests.Count) {
+    throw "Automation success count $($Report.succeeded) is below required test count $($RequiredTests.Count)"
 }
 foreach ($TestName in $RequiredTests) {
     $Matches = @($Entries | Where-Object { $_.fullTestPath -eq $TestName })
