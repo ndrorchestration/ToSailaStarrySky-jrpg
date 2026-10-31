@@ -22,5 +22,6 @@ public:
                        const TMap<FName, FTSTSSAbilitySpec>& Catalog,
                        const TMap<FName, TSet<FName>>& Learned,
                        const TMap<FName, FName>& Factions,
+                       FName PartyFaction, FName OpponentFaction,
                        FTSTSSCombatTurnState& OutState);
 };
