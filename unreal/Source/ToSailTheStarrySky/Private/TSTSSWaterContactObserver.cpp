@@ -62,7 +62,7 @@ void ATSTSSWaterContactObserver::Tick(float DeltaSeconds)
     if (State->GetCurrentBeat() == ETSTSSFirstWakeBeat::Launched)
     {
         // The state transition is triggered by observed vessel-water overlap.
-        if (!State->AdvanceTo(ETSTSSFirstWakeBeat::SeaContact))
+        if (!State->AdvanceFromWaterObservation(ETSTSSFirstWakeBeat::SeaContact))
         {
             StableElapsedSeconds = 0.f;
             return;
@@ -86,7 +86,7 @@ void ATSTSSWaterContactObserver::Tick(float DeltaSeconds)
     StableElapsedSeconds += DeltaSeconds;
     if (StableElapsedSeconds >= FMath::Max(0.25f, RequiredStableSeconds))
     {
-        if (State->AdvanceTo(ETSTSSFirstWakeBeat::FlotationConfirmed))
+        if (State->AdvanceFromWaterObservation(ETSTSSFirstWakeBeat::FlotationConfirmed))
         {
             SetActorTickEnabled(false);
         }
