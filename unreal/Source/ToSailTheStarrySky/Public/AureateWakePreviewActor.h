@@ -61,6 +61,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aureate Wake|Visuals")
     TObjectPtr<UStaticMesh> AuthoredWingMesh;
 
+    /** Opt-in review pose for root-pivoted +X 280cm wing art. Default cube posing is unchanged. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aureate Wake|Visuals")
+    bool bUseRootPivotedWingPose = false;
+
     UFUNCTION(BlueprintCallable, Category="Aureate Wake|Visuals")
     void RefreshWingMeshes();
 
@@ -103,6 +107,8 @@ private:
     TArray<FTransform> TargetFoilTransforms;
 
     static FTransform WingPose(EAureateWakeForm Form, int32 WingIndex);
+    static FTransform RootPivotedWingPose(EAureateWakeForm Form, int32 WingIndex);
+    FTransform WingPoseForMesh(EAureateWakeForm Form, int32 WingIndex) const;
     static FTransform FoilPose(EAureateWakeForm Form, int32 FoilIndex);
     static FTransform Interpolate(const FTransform& Start, const FTransform& End, float Alpha);
     void SnapToForm(EAureateWakeForm Form);
