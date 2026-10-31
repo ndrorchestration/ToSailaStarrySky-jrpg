@@ -13,6 +13,9 @@ ATSTSSMilestoneActor::ATSTSSMilestoneActor()
 bool ATSTSSMilestoneActor::TryActivate(UTSTSSFirstWakeState* State)
 {
     if (!IsValid(State)) return false;
+    // Only physics observations may establish sea contact and stable flotation.
+    if (!bIsInspectionStation && (Milestone == ETSTSSFirstWakeBeat::SeaContact ||
+        Milestone == ETSTSSFirstWakeBeat::FlotationConfirmed)) return false;
     const bool bSucceeded = bIsInspectionStation
         ? State->InspectStation(InspectionStation)
         : State->AdvanceTo(Milestone);
