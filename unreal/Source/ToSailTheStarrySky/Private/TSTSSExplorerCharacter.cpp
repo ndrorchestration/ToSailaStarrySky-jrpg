@@ -38,6 +38,8 @@ void ATSTSSExplorerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
     PlayerInputComponent->BindAxis(TEXT("Turn"), this, &ATSTSSExplorerCharacter::Turn);
     PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &ATSTSSExplorerCharacter::LookUp);
     PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &ATSTSSExplorerCharacter::Interact);
+    PlayerInputComponent->BindAction(TEXT("QuickSave"), IE_Pressed, this, &ATSTSSExplorerCharacter::QuickSave);
+    PlayerInputComponent->BindAction(TEXT("QuickLoad"), IE_Pressed, this, &ATSTSSExplorerCharacter::QuickLoad);
 }
 
 void ATSTSSExplorerCharacter::MoveForward(float Value)
@@ -78,6 +80,16 @@ void ATSTSSExplorerCharacter::Interact()
             }
         }
     }
+}
+
+void ATSTSSExplorerCharacter::QuickSave()
+{
+    SaveFirstWake(TEXT("first_wake_quick"));
+}
+
+void ATSTSSExplorerCharacter::QuickLoad()
+{
+    LoadFirstWake(TEXT("first_wake_quick"));
 }
 
 bool ATSTSSExplorerCharacter::SaveFirstWake(const FString& Slot)
