@@ -16,7 +16,8 @@ $GitHead | Set-Content (Join-Path $Evidence 'head.txt')
     Tee-Object (Join-Path $Evidence 'build.log')
 if ($LASTEXITCODE -ne 0) { throw "Unreal editor build failed ($LASTEXITCODE)" }
 if ($SkipTests) { Write-Host 'Build succeeded; automation tests deliberately skipped'; exit 0 }
-& $EditorCmd $Project -unattended -nop4 -nullrhi '-ExecCmds=Automation RunTests TSTSS; Quit' '-ReportExportPath='+(Join-Path $Evidence 'AutomationReport') -log 2>&1 |
+$ExportArgument = '-ReportExportPath=' + (Join-Path $Evidence 'AutomationReport')
+& $EditorCmd $Project -unattended -nop4 -nullrhi '-ExecCmds=Automation RunTests TSTSS; Quit' $ExportArgument -log 2>&1 |
     Tee-Object (Join-Path $Evidence 'automation.log')
 if ($LASTEXITCODE -ne 0) { throw "Unreal automation command failed ($LASTEXITCODE)" }
 $ReportPath = Join-Path $Evidence 'AutomationReport/index.json'
