@@ -2,6 +2,8 @@
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/MaterialInterface.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace
@@ -109,6 +111,22 @@ FTransform AAureateWakePreviewActor::Interpolate(const FTransform& Start, const 
         FMath::Lerp(Start.GetScale3D(), End.GetScale3D(), Alpha));
 }
 
+void AAureateWakePreviewActor::RefreshWingMaterials()
+{
+    DynamicWingMaterials.Reset();
+    if (!WingMaterial)
+    {
+        return;
+    }
+    for (UStaticMeshComponent* Wing : Wings)
+    {
+        UMaterialInstanceDynamic* Dynamic = UMaterialInstanceDynamic::Create(WingMaterial, this);
+        Wing->SetMaterial(0, Dynamic);
+        Dynamic->SetScalarParameterValue(TEXT("OrbiterSailBlend"), OrbiterSailBlend);
+        DynamicWingMaterials.Add(Dynamic);
+    }
+}
+
 void AAureateWakePreviewActor::SnapToForm(EAureateWakeForm Form)
 {
     for (int32 Index = 0; Index < Wings.Num(); ++Index)
@@ -119,6 +137,11 @@ void AAureateWakePreviewActor::SnapToForm(EAureateWakeForm Form)
     {
         Hydrofoils[Index]->SetRelativeTransform(FoilPose(Form, Index));
         Hydrofoils[Index]->SetVisibility(Form == EAureateWakeForm::Seaborne);
+    }
+    OrbiterSailBlend = Form == EAureateWakeForm::Orbiter ? 1.f : 0.f;
+    for (UMaterialInstanceDynamic* Dynamic : DynamicWingMaterials)
+    {
+        if (Dynamic) Dynamic->SetScalarParameterValue(TEXT("OrbiterSailBlend"), OrbiterSailBlend);
     }
     CurrentForm = Form;
     TargetForm = Form;
@@ -136,6 +159,8 @@ bool AAureateWakePreviewActor::RequestForm(EAureateWakeForm RequestedForm)
     }
 
     TargetForm = RequestedForm;
+    StartSailBlend = OrbiterSailBlend;
+    TargetSailBlend = RequestedForm == EAureateWakeForm::Orbiter ? 1.f : 0.f;
     TransitionElapsed = 0.f;
     StartWingTransforms.Reset();
     TargetWingTransforms.Reset();
@@ -168,6 +193,11 @@ void AAureateWakePreviewActor::Tick(float DeltaSeconds)
     TransitionElapsed += FMath::Max(0.f, DeltaSeconds);
     const float T = FMath::Clamp(TransitionElapsed / FMath::Max(0.1f, TransitionSeconds), 0.f, 1.f);
     const float Smooth = T * T * (3.f - 2.f * T);
+    OrbiterSailBlend = FMath::Lerp(StartSailBlend, TargetSailBlend, Smooth);
+    for (UMaterialInstanceDynamic* Dynamic : DynamicWingMaterials)
+    {
+        if (Dynamic) Dynamic->SetScalarParameterValue(TEXT("OrbiterSailBlend"), OrbiterSailBlend);
+    }
     for (int32 Index = 0; Index < Wings.Num(); ++Index)
     {
         Wings[Index]->SetRelativeTransform(Interpolate(StartWingTransforms[Index], TargetWingTransforms[Index], Smooth));
