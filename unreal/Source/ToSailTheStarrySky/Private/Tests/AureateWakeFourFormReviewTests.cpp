@@ -57,13 +57,25 @@ bool FAureateFourFormReview::RunTest(const FString& Parameters)
         auto* Bridge = Find(Ship, TEXT("ForwardBridge"));
         const FTransform BridgeStart = Bridge ? Bridge->GetRelativeTransform() : FTransform::Identity;
         TestNotNull(Route + TEXT("Bridge"), Bridge);
+        auto CheckTransitFoils = [&]()
+        {
+            for (int32 Index = 1; Index <= 2; ++Index)
+            {
+                auto* Foil = Find(Ship, FString::Printf(TEXT("Hydrofoil_%d"), Index));
+                TestNotNull(Route + TEXT("Transit foil"), Foil);
+                if (Foil) TestEqual(Route + TEXT("Only sea routes expose moving foils"),
+                    Foil->IsVisible(), From == 1 || To == 1);
+            }
+        };
         TestTrue(Route + TEXT("Request accepted"), Ship->RequestForm(static_cast<EAureateWakeForm>(To)));
+        CheckTransitFoils();
         TestFalse(Route + TEXT("Busy request rejected"), Ship->RequestForm(static_cast<EAureateWakeForm>(From)));
         Ship->Tick(-1.f);
         for (int32 Index = 0; Index < 4; ++Index)
             if (Wings[Index]) TestTrue(Route + TEXT("Negative time cannot advance"),
                 Wings[Index]->GetRelativeTransform().Equals(Starts[Index]));
         Ship->Tick(0.5f);
+        CheckTransitFoils();
         TestTrue(Route + TEXT("Midpoint still transitioning"), Ship->IsTransitioning());
         TestEqual(Route + TEXT("State commits only at completion"), static_cast<int32>(Ship->GetCurrentForm()), From);
         for (auto* Wing : Wings)
