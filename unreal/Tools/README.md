@@ -17,3 +17,7 @@ The registry preflight checks **both directions**: a required test must have a C
 ## Preflight self-tests
 
 Run `python unreal/Tools/test_automation_registry.py` (stdlib-only). Five temporary-directory fixtures assert the checker accepts matching names and rejects missing, unlisted, and duplicate native registrations or duplicate required names. The test creates and deletes temporary directories and does not touch Unreal project saves. These fixtures are authored but were **not executed** in the committing environment: the remote Windows device is offline and direct local retrieval of the branch was unavailable. A passing checker self-test would not establish C++ compilation or native UE automation success.
+
+## Independent Python fixture execution — 2026-10-31
+
+The five `test_automation_registry.py` scenarios were reconstructed from the then-current GitHub source in an isolated Python environment and executed: **5 tests, 0 failures**. This supports the preflight checker's fixture logic, but was **not** an exact repository-checkout run (GitHub raw retrieval was unavailable in that execution environment), was not a native Unreal build, and does not establish current-head compile or game-test status. Re-run `python unreal/Tools/test_automation_registry.py` and `python unreal/Tools/check_automation_registry.py` on the pinned branch checkout before consuming native evidence.
