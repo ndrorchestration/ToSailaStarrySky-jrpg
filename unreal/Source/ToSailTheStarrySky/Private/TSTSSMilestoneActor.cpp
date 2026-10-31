@@ -12,7 +12,11 @@ ATSTSSMilestoneActor::ATSTSSMilestoneActor()
 
 bool ATSTSSMilestoneActor::TryActivate(UTSTSSFirstWakeState* State)
 {
-    if (!IsValid(State) || !State->AdvanceTo(Milestone)) return false;
+    if (!IsValid(State)) return false;
+    const bool bSucceeded = bIsInspectionStation
+        ? State->InspectStation(InspectionStation)
+        : State->AdvanceTo(Milestone);
+    if (!bSucceeded) return false;
     OnMilestoneActivated();
     return true;
 }
