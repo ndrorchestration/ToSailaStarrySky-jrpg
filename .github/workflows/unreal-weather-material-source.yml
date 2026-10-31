@@ -1,0 +1,24 @@
+name: Unreal weather material generator source checks
+on:
+  pull_request:
+    paths:
+      - 'unreal/Tools/build_weather_material_review.py'
+      - 'unreal/Tests/test_weather_material_review.py'
+      - '.github/workflows/unreal-weather-material-source.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m py_compile unreal/Tools/build_weather_material_review.py
+      - run: python -m unittest discover -s unreal/Tests -p 'test_weather_material_review.py' -v
+      - run: python unreal/Tools/build_weather_material_review.py --validate
