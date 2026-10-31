@@ -1,0 +1,62 @@
+#include "Misc/AutomationTest.h"
+#include "TSTSSCombatTurns.h"
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTSTSSCombatTurnOrderTest,
+    "TSTSS.Combat.TurnOrderAndAtomicity",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FTSTSSCombatTurnOrderTest::RunTest(const FString& Parameters)
+{
+    FTSTSSCombatant Ender;
+    Ender.CharacterId = TEXT("Ender");
+    Ender.Health = 20; Ender.MaxHealth = 20;
+    Ender.Resource = 5; Ender.MaxResource = 5;
+    Ender.Attack = 2;
+
+    FTSTSSCombatant Ionia = Ender;
+    Ionia.CharacterId = TEXT("Ionia");
+
+    FTSTSSCombatant Foe = Ender;
+    Foe.CharacterId = TEXT("Foe");
+    Foe.Health = 3; Foe.MaxHealth = 3;
+
+    const TArray<FTSTSSCombatant> Roster{Ender, Ionia, Foe};
+    const TArray<FName> Order{TEXT("Ender"), TEXT("Ionia"), TEXT("Foe")};
+    FTSTSSCombatTurnState Initial;
+    TestTrue(TEXT("Valid roster starts"), FTSTSSCombatTurns::TryBegin(Roster, Order, Initial));
+    TestEqual(TEXT("Initial actor"), FTSTSSCombatTurns::CurrentActor(Initial), FName(TEXT("Ender")));
+
+    FTSTSSCombatAction Action;
+    Action.ActorId = TEXT("Ionia");
+    Action.TargetId = TEXT("Foe");
+    Action.Power = 3;
+    FTSTSSCombatTurnState Result;
+    TestFalse(TEXT("Out of turn rejected"), FTSTSSCombatTurns::TryAction(Initial, Action, Result));
+    TestEqual(TEXT("Rejected output unchanged"), Result.AcceptedActions, 0);
+
+    Action.ActorId = TEXT("Ender");
+    TestTrue(TEXT("Ender defeats Foe"), FTSTSSCombatTurns::TryAction(Initial, Action, Result));
+    TestEqual(TEXT("Ionia follows"), FTSTSSCombatTurns::CurrentActor(Result), FName(TEXT("Ionia")));
+    TestEqual(TEXT("Input foe is unaffected"), Initial.Roster[2].Health, 3);
+    TestEqual(TEXT("Foe is knocked out"), Result.Roster[2].Health, 0);
+
+    FTSTSSCombatAction Heal;
+    Heal.ActorId = TEXT("Ionia");
+    Heal.TargetId = TEXT("Ender");
+    Heal.bHealing = true;
+    Heal.Power = 1;
+    FTSTSSCombatTurnState After;
+    TestTrue(TEXT("Ionia takes legal turn"), FTSTSSCombatTurns::TryAction(Result, Heal, After));
+    TestEqual(TEXT("Round advances past unconscious final slot"), After.Round, 2);
+    TestEqual(TEXT("Next actor wraps to Ender"), FTSTSSCombatTurns::CurrentActor(After), FName(TEXT("Ender")));
+    TestEqual(TEXT("Accepted action count"), After.AcceptedActions, 2);
+
+    FTSTSSCombatTurnState Invalid = Initial;
+    Invalid.Order.Add(TEXT("Ender"));
+    FTSTSSCombatTurnState Unchanged = After;
+    TestFalse(TEXT("Invalid duplicate order rejected"), FTSTSSCombatTurns::TryAction(Invalid, Action, Unchanged));
+    TestEqual(TEXT("Invalid state preserves output"), Unchanged.AcceptedActions, 2);
+    return true;
+}
+#endif
