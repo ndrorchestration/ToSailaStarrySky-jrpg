@@ -199,6 +199,8 @@ def build():
         import unreal as u
     except ImportError as exc:
         raise RuntimeError('--build requires Unreal Editor Python') from exc
+    if not hasattr(u, 'EditorAssetLibrary'):
+        raise RuntimeError('--build requires Unreal Editor Python, not the repository namespace')
     plan = validate()
     meshes = preflight(u)
     # Partial creation is deliberately retained for inspection on failure. Never delete user assets.
