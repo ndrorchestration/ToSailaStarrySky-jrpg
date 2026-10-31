@@ -43,3 +43,11 @@ The UE turn-order test now mirrors two additional Godot #601 scenarios: sole sur
 - **Not an encounter spawner or party/recruitment authorization system.** Faction data is caller-supplied; canonical encounter eligibility, rewards, retreats, animations, save/resume semantics and level exit remain unimplemented. All native Unreal build/test evidence remains pending.
 - Cross-PR pull assessment is unchanged: #601 supplies behavioral fixtures, #610 supplies an isolated stacked ship visual preview, #609 supplies provenance-bound concept art references. None was merged, and #609/#610 content was not copied into #608.
 - Required native test: `TSTSS.Combat.EncounterCompletion`, alongside all existing `TSTSS.Combat.*` tests in a clean UE 5.8 Win64 editor build, retaining exact-head reports.
+
+## Additional pull-in review — October 31, 2026
+
+Latest inspected snapshots: #608 `822f76fc9f57b7b58f3abe5a584966ca2ba1e142`, #610 `1e567b2b22e74e7d7bbb86bc1b8a0ddd9b6f478c`, #609 `3f808b477346d6ed8c261a954b8962be98558e7f`, #601 `c6c969685e86a9879bf8ab23d3fe3c34928cbc98`. Source references may advance.
+
+The existing `UPSTREAM_INTEGRATION_AUDIT_2026-10-30.md` already inventories First Wake milestone/physics, Chapter I gates, approved art, save continuity and installer lessons: do not duplicate or silently import those branches. The immediate low-risk code pull-in was an encounter-state validation alignment with `FTSTSSCombatTurns::IsValid`: reject negative attack/defense before encounter evaluation or action commit. Added negative-value and nonmutation automation fixtures. **These are source changes only; Unreal 5.8 compilation and test execution are still required.**
+
+Remaining high-value integration gaps: (1) route every ability use through the encounter termination authority, not directly through a lower-level turn primitive in playable scenes; (2) verify native build/test evidence; (3) review #610's ship preview after restacking against the current #608 head; (4) recover licensed #609 reference originals before UE asset import. No merges or production render approvals.
