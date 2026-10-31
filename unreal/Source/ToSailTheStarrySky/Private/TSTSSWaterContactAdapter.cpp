@@ -46,13 +46,25 @@ void ATSTSSWaterContactAdapter::Tick(float DeltaSeconds)
     }
     FVector HullOrigin, HullExtent;
     Hull->GetComponentBounds(HullOrigin, HullExtent, false);
-    const float Draft = FMath::Max(1.f, HullDraftCm);
+    // Invalid authored configuration must never generate buoyancy or landing proof.
+    if (!FMath::IsFinite(HullDraftCm) || HullDraftCm <= 1.f ||
+        !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.f)
+    {
+        Gate->Reset();
+        return;
+    }
+    const float Draft = HullDraftCm;
     const float Submersion = bInWater && FMath::IsFinite(WaterSurfaceZ)
         ? FMath::Clamp((WaterSurfaceZ - (HullOrigin.Z - Draft)) / (2.f * Draft), 0.f, 1.f)
         : 0.f;
     // Mere overlap with a tagged volume is not sufficient for sea contact.
     const bool bActualImmersion = bInWater && Submersion > 0.01f;
     const float VerticalSpeed = Hull->GetPhysicsLinearVelocity().Z;
+    if (!FMath::IsFinite(VerticalSpeed) || !FMath::IsFinite(Submersion))
+    {
+        Gate->Reset();
+        return;
+    }
     if (bActualImmersion && bEnablePrototypeBuoyancy && HullDraftCm > 1.f &&
         FMath::IsFinite(MaxBuoyantAccelerationCms2) &&
         FMath::IsFinite(VerticalDampingPerSecond) &&
