@@ -33,12 +33,15 @@ def main() -> int:
     for source in sources:
         registered.extend(pattern.findall(source.read_text(encoding="utf-8")))
     duplicates = {name for name in registered if registered.count(name) > 1}
+    unexpected = sorted(set(registered) - set(names))
     missing = sorted(set(names) - set(registered))
-    if duplicates or missing:
+    if duplicates or missing or unexpected:
         for name in sorted(duplicates):
             print(f"FAIL: duplicate native registration: {name}", file=sys.stderr)
         for name in missing:
             print(f"FAIL: required name not registered: {name}", file=sys.stderr)
+        for name in unexpected:
+            print(f"FAIL: native test missing from required verification list: {name}", file=sys.stderr)
         return 1
     print(f"PASS: {len(names)} required names registered in {len(sources)} test files (source-only)")
     return 0
