@@ -21,6 +21,9 @@ public:
     bool SaveFirstWake(const FString& Slot);
     UFUNCTION(BlueprintCallable, Category="TSTSS|Save")
     bool LoadFirstWake(const FString& Slot);
+    // Transactional live combat: commit only valid resolver outcomes.
+    UFUNCTION(BlueprintCallable, Category="TSTSS|Combat")
+    bool TryApplyLiveCombatAction(const FTSTSSCombatAction& Action);
     UFUNCTION(BlueprintCallable, Category="TSTSS|Party")
     bool SetLivePartyRoster(const TArray<FTSTSSCombatant>& NewRoster);
     UFUNCTION(BlueprintPure, Category="TSTSS|Party")
