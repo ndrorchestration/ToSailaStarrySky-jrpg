@@ -37,6 +37,8 @@ jobs:
         run: |
           python unreal/Tests/check_aureate_preview_source.py
           python unreal/Tests/check_aureate_water_observer_source.py
+      - name: Isolated C++ request logic and authored-wing gates (not Unreal)
+        run: python unreal/Tests/check_aureate_request_logic.py
       - name: Native automation declarations versus required verifier inventory
         run: |
           python unreal/Tools/test_automation_registry.py

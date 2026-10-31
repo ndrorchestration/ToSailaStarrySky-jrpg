@@ -66,3 +66,14 @@ Only if the actual imported asset names match those paths, run the identical scr
 Source API references: [Epic UE 5.8 EditorActorSubsystem](https://dev.epicgames.com/documentation/en-us/unreal-engine/python-api/class/EditorActorSubsystem?application_version=5.8) and [Epic Python Editor scripting](https://dev.epicgames.com/documentation/unreal-engine/scripting-the-unreal-editor-using-python).
 
 **Verification boundary:** mocked Python tests prove guard logic only. Unreal Editor import, reflection of properties/functions, actual compilation, live binding and resulting image are NOT VERIFIED on a native machine.
+
+
+## Hydrofoil review regression carried forward
+
+Ported the bounded visibility correction from PR #635 at `90932ad322589ff4eddae4ff1b5d0ba103fc7856` onto integration baseline `8b3cc4d6c8327487cd0d9e0f4081e0f30facfd60`. Only the RequestForm foil visibility statement changes: foils stay visible during deployment/retraction on routes involving Seaborne and hidden on other routes. Existing authored mesh selection, four supports, water/story authority and fail-closed authored Orbiter route are retained.
+
+Added the 12-route native BasicShapes mechanics test from #635 and required its exact name in Verify-Unreal.ps1. This native test uses default cube mode, not imported-art poses. Run the ordinary native verifier; a missing or skipped ship test must prevent PASS.
+
+Adapted the isolated g++ RequestForm probe for the integrated class and 48 route/mode cases: cube preview permitted, authored mesh present, authored mesh missing, and cube Orbiter permission disabled. Rejected requests must preserve foil visibility, source form and empty transition arrays. Before correction: 12 failing cases; afterward: 48/48 passed locally. The probe executes the actual method with boundary substitutes and does not test Unreal types, transforms, assets, physics or rendered visibility. CI now runs it alongside existing integrated suites.
+
+Windows Unreal compilation, native automation, authored-wing visuals and artist acceptance remain NOT VERIFIED. #635 and #610 are preserved, main and Godot untouched. Roll back this integration increment as one commit if necessary.
