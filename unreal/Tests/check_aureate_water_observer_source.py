@@ -10,6 +10,7 @@ checks={
     "nonfinite samples rejected": "FMath::IsFinite(VerticalSpeed)" in observer,
     "stale gate resets": observer.count("LandingGate->Reset()")>=3,
     "story gate evaluated before visual request": observer.find("LandingGate->Observe(")<observer.find("VisualShip->RequestForm("),
+    "Seaborne requires accepted contact": "bContactAccepted && bTouchingWater" in observer and "AcceptedBeat == ETSTSSFirstWakeBeat::SeaContact" in observer,
     "preview does not advance story": "AdvanceTo(" not in ship,
     "preview preserves four wings": "Index < 4" in ship,
     "Orbiter remains gated": "bAllowOrbiterPreview" in ship,
