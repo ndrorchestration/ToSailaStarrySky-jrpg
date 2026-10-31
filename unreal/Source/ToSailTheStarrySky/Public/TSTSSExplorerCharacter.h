@@ -25,6 +25,8 @@ public:
     UFUNCTION(BlueprintCallable, Category="TSTSS|Combat")
     bool TryApplyLiveCombatAction(const FTSTSSCombatAction& Action);
     UFUNCTION(BlueprintCallable, Category="TSTSS|Party")
+    bool InitializeFirstWakeStartingParty(const FTSTSSCombatant& StartingEnder);
+    UFUNCTION(BlueprintCallable, Category="TSTSS|Party")
     bool SetLivePartyRoster(const TArray<FTSTSSCombatant>& NewRoster);
     UFUNCTION(BlueprintPure, Category="TSTSS|Party")
     TArray<FTSTSSCombatant> GetLivePartyRoster() const { return LivePartyRoster; }
