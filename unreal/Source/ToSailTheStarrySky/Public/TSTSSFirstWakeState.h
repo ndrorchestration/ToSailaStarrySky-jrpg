@@ -41,13 +41,13 @@ public:
     UFUNCTION(BlueprintPure, Category="TSTSS|First Wake")
     bool HasStarted() const { return bStarted; }
 
-    // Splashdown is the Prelude/Chapter 1 Act 1 boundary.
-    // This is a derived view of the existing version-2 save beat, not a new slot.
+    // First physical sea contact marks Splashdown and the Chapter I, Act 1 boundary.
+    // Flotation confirmation occurs afterward; no new persisted save beat is added.
     UFUNCTION(BlueprintPure, Category="TSTSS|Story")
     bool IsChapterOneActOne() const
     {
         return bStarted && static_cast<uint8>(CurrentBeat) >=
-            static_cast<uint8>(ETSTSSFirstWakeBeat::FlotationConfirmed);
+            static_cast<uint8>(ETSTSSFirstWakeBeat::SeaContact);
     }
 
     UFUNCTION(BlueprintPure, Category="TSTSS|Story")
