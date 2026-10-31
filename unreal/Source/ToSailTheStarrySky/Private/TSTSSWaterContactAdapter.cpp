@@ -57,7 +57,8 @@ void ATSTSSWaterContactAdapter::Tick(float DeltaSeconds)
         }
     }
     FVector HullOrigin, HullExtent;
-    Hull->GetComponentBounds(HullOrigin, HullExtent, false);
+    float HullSphereRadius = 0.f;
+    Hull->GetComponentBounds(HullOrigin, HullExtent, HullSphereRadius);
     // Invalid authored configuration must never generate buoyancy or landing proof.
     if (!FMath::IsFinite(HullDraftCm) || HullDraftCm <= 1.f ||
         !FMath::IsFinite(DeltaSeconds) || DeltaSeconds <= 0.f)
