@@ -77,7 +77,11 @@ void ATSTSSWaterContactAdapter::Tick(float DeltaSeconds)
         ? FMath::Clamp((WaterSurfaceZ - (HullOrigin.Z - Draft)) / (2.f * Draft), 0.f, 1.f)
         : 0.f;
     // Mere overlap with a tagged volume is not sufficient for sea contact.
-    const bool bActualImmersion = bInWater && Submersion > 0.01f;
+    // Require the hull's lower bound to be below the authored surface, not
+    // merely an overlapping volume's broad bounding box.
+    const bool bBelowSurface = bInWater &&
+        (HullOrigin.Z - HullExtent.Z) < WaterSurfaceZ;
+    const bool bActualImmersion = bBelowSurface && Submersion > 0.01f;
     const float VerticalSpeed = Hull->GetPhysicsLinearVelocity().Z;
     if (!FMath::IsFinite(VerticalSpeed) || !FMath::IsFinite(Submersion))
     {
