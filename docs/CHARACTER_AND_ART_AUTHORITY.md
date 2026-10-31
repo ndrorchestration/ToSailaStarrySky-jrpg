@@ -26,6 +26,21 @@ For the creator-supplied five-person group references (nighttime airship and day
 
 **Talen (5):** precocious, enjoys how the ship works, blocks, drawing and painting. Preserve personhood, curiosity and routine. Do not invent powers or portray him as a normal playable battle mage.
 
+## Five-protagonist character sheet (2026-10-30) — reconciliation pending
+
+On 2026-10-30 the creator labeled a five-protagonist sheet, ordered **Ionia · Ender · Aepex · Lyra · Reson**, as "Approved Character Art". Source tool/prompt, SHA-256 and redistribution rights are **not yet recorded**; do not commit the image to this public repository until they are.
+
+Differences from the locks above, as observed on the sheet. Each is **OPEN** until the creator marks whether the sheet supersedes the lock:
+- **Ionia:** hair appears long and voluminous (lock: shoulder-length); explorer outfit with leaf crown rather than the navy/white/gold uniform; role labels read Explorer · Naturalist · Cartographer.
+- **Ender:** hair appears green-tinted (lock: auburn/dark copper); no full-length staff or satchel visible; role labels read Tinker · Mechanic · Innovator.
+- **Aepex:** role labels read Scout · Protector · Rogue (lock: technical specialist).
+- **Lyra:** role labels read Scholar · Healer · Herbalist (lock leaves job/magic identity open).
+- **Reson:** no rifle, pike or sword visible; a "Pilot Emblem" patch appears (lock warns against invented insignia).
+
+Role canon recorded 2026-10-30 (see [CANON_AND_REVEAL_POLICY.md](CANON_AND_REVEAL_POLICY.md)): Ionia is Captain; Reson is a combatant and an Ace pilot; Ender is a harmonic-resonance specialist who keeps his full-length staff; Aepex later upgrades it. The staff stays visually canonical for Ender in all models and sprites.
+
+For 3D production the sheet lacks orthographic turnarounds, a proportion chart and material callouts. Do not derive relative heights from its perspective-distorted composition.
+
 ## Approval and visual test
 
 Keep original layered source, consent/provenance, conversion pipeline, per-action frames/hashes and candidate status. Require side-by-side at native logical size, readable foot-grounding/collision, noninterpenetrating occlusion, plausible gait, matching light and texture, motion playback, and creator visual signoff. A CI green check is **not** a style pass.
