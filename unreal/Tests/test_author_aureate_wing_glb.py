@@ -8,7 +8,7 @@ import sys
 import tempfile
 import unittest
 
-SOURCE = Path(__file__).resolve().with_name("author_aureate_wing_glb.py")
+SOURCE = Path(__file__).resolve().parents[1] / "Tools" / "author_aureate_wing_glb.py"
 spec = importlib.util.spec_from_file_location("author_aureate_wing_glb", SOURCE)
 wing = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = wing
