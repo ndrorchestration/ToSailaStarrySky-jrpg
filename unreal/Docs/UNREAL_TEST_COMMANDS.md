@@ -45,3 +45,7 @@ The native verification helper now checks Git HEAD and working-tree cleanliness 
 ## Automation threshold maintenance — 2026-10-31
 
 The verifier no longer uses the obsolete fixed `succeeded >= 6` threshold. It now requires successful aggregate count to be at least the actual number of entries in its named required-test list (currently ten), *and* still demands each named test exactly once with a successful per-test state. Expanding the required set no longer leaves a contradictory hard-coded count. This is source-only, not a successful UE 5.8 test receipt. Validate the report JSON field names on the first native run and retain exact-head artifacts.
+
+## Confirmed engine-free CI result — 2026-10-31
+
+GitHub reported the **Unreal source preflight** workflow as completed/success on exact commit `4c43979883b713697ed0d3f4c09bb3cb0d34a704`, along with successful Unreal source inventory and Aetherwake smoke workflows. This is an actual GitHub Actions receipt for source-level validation, **not** Unreal Engine 5.8 compilation, runtime tests, graphics capture, or a playable installer. Verification must be repeated against the integration commit being promoted. The connected Windows device remained offline at review.
