@@ -154,6 +154,21 @@ bool FTSTSSSaveValidationTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Partial inspections cannot restore a launch"), Save->IsStructurallyValid());
     Save->InspectionMask = 0xFF;
     TestFalse(TEXT("Unknown inspection bits rejected"), Save->IsStructurallyValid());
+    Save->InspectionMask = 0x07;
+    FTSTSSCombatant Stranger;
+    Stranger.CharacterId = TEXT("NotACanonicalCharacter");
+    Save->PartyRoster.Add(Stranger);
+    TestFalse(TEXT("Unknown party identity rejected"), Save->IsStructurallyValid());
+    Save->PartyRoster.Reset();
+    for (const TCHAR* Id : {TEXT("Ender"), TEXT("Ionia"), TEXT("Lyra"), TEXT("Reson"), TEXT("Aepex")})
+    {
+        FTSTSSCombatant Member;
+        Member.CharacterId = FName(Id);
+        Save->PartyRoster.Add(Member);
+    }
+    TestTrue(TEXT("Five valid identities accepted"), Save->IsStructurallyValid());
+    Save->PartyRoster.Add(Save->PartyRoster[0]);
+    TestFalse(TEXT("Oversized roster rejected"), Save->IsStructurallyValid());
     return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTSTSSSaveSlotGuardTest,
