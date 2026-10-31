@@ -93,6 +93,10 @@ bool ATSTSSExplorerCharacter::SaveFirstWake(const FString& Slot)
     {
         return false;
     }
+    if (bHasLivePartyRoster && !Save->CapturePartyRoster(LivePartyRoster))
+    {
+        return false;
+    }
     return UTSTSSPersistence::SaveProgress(Slot, Save);
 }
 
@@ -101,5 +105,25 @@ bool ATSTSSExplorerCharacter::LoadFirstWake(const FString& Slot)
     if (!IsValid(FirstWakeState)) return false;
     const UTSTSSSaveGame* Save = UTSTSSPersistence::LoadProgress(Slot);
     if (!Save) return false;
-    return FirstWakeState->Restore(Save->bFirstWakeStarted, Save->FirstWakeBeat, Save->InspectionMask);
+    if (!FirstWakeState->Restore(Save->bFirstWakeStarted, Save->FirstWakeBeat, Save->InspectionMask))
+    {
+        return false;
+    }
+    // A validated load replaces live state only after story restoration succeeds.
+    LivePartyRoster = Save->PartyRoster;
+    bHasLivePartyRoster = !LivePartyRoster.IsEmpty();
+    return true;
+}
+
+bool ATSTSSExplorerCharacter::SetLivePartyRoster(const TArray<FTSTSSCombatant>& NewRoster)
+{
+    // A save payload supplies the same structural validation used for disk data.
+    UTSTSSSaveGame* Probe = NewObject<UTSTSSSaveGame>(this);
+    if (!IsValid(Probe) || !Probe->CapturePartyRoster(NewRoster))
+    {
+        return false;
+    }
+    LivePartyRoster = NewRoster;
+    bHasLivePartyRoster = true;
+    return true;
 }
