@@ -38,6 +38,15 @@ public:
         meta=(ClampMin="1.0"))
     float MaximumVerticalSpeedCmPerSecond = 35.f;
 
+    // Bounded provisional vessel-center proximity to the water-volume top.
+    // This is not a buoyancy displacement or seabed-clearance measurement.
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="TSTSS|First Wake|Water",
+        meta=(ClampMin="1.0"))
+    float MaximumCenterDistanceFromWaterlineCm = 150.f;
+
+    static bool IsNearWaterSurface(float VesselCenterZ, float SurfaceZ,
+        float MaximumCenterDistance);
+
     // Unit-testable policy: called only after overlap, physics and state checks.
     static bool IsStableSample(bool bOverlapping, bool bSimulatingPhysics,
         float VerticalSpeedCmPerSecond, float MaximumVerticalSpeed);
