@@ -85,7 +85,7 @@ FTransform AAureateWakePreviewActor::WingPose(EAureateWakeForm Form, int32 WingI
         Position = WingIndex == 0 ? FVector(0, 0, 315) :
                    WingIndex == 1 ? FVector(0, 0, -315) :
                    WingIndex == 2 ? FVector(0, -315, 0) : FVector(0, 315, 0);
-        Rotation = WingIndex < 2 ? FRotator(0, 0, 90) : FRotator::ZeroRotator;
+        // UE FRotator pitch rotates the long local X axis into world Z for vertical sails.\n        Rotation = WingIndex < 2 ? FRotator(0.f, 90.f, 0.f) : FRotator::ZeroRotator;
         Scale = FVector(2.5f, 1.7f, 0.055f); // Same scale for all four sails.
         break;
     }
@@ -126,7 +126,7 @@ void AAureateWakePreviewActor::SnapToForm(EAureateWakeForm Form)
 
 bool AAureateWakePreviewActor::RequestForm(EAureateWakeForm RequestedForm)
 {
-    if (bTransitioning || RequestedForm == CurrentForm ||
+    if (!FMath::IsWithinInclusive(static_cast<int32>(RequestedForm), 0, 3) ||\n        Wings.Num() != 4 || Hydrofoils.Num() != 2 ||\n        bTransitioning || RequestedForm == CurrentForm ||
         (RequestedForm == EAureateWakeForm::Orbiter && !bAllowOrbiterPreview))
     {
         return false;
