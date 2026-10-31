@@ -236,6 +236,8 @@ bool FTSTSSWaterLandingTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Invalid observation clears stability timer"), Gate->GetStableContactSeconds(), 0.f);
     for (int32 Step = 0; Step < 10; ++Step) Gate->Observe(0.1f, true, 5.f, Story);
     TestFalse(TEXT("Losing overlap clears timer"), Gate->Observe(0.1f, false, 0.f, Story));
+    TestEqual(TEXT("Contact reset does not undo established story contact"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::SeaContact);
+    TestEqual(TEXT("Contact gap resets stable seconds"), Gate->GetStableContactSeconds(), 0.f);
     TestEqual(TEXT("Brief contact is insufficient"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::SeaContact);
     bool bConfirmed = false;
     for (int32 Step = 0; Step < 21; ++Step)
