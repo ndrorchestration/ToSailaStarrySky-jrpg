@@ -45,6 +45,7 @@ $RequiredTests = @(
     'TSTSS.Combat.AbilityAuthorization',
     'TSTSS.Combat.EncounterCompletion',
     'TSTSS.FirstWake.RequiresOrderedMilestones',
+    'TSTSS.FirstWake.WaterLandingRequiresMeasuredStability',
     'TSTSS.Save.RejectsUnsupportedSchema',
     'TSTSS.Save.RejectsUnsafeSlots',
     'TSTSS.Save.RoundTripFirstWakeAndParty'
