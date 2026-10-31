@@ -11,3 +11,8 @@ The C++ project now provides an explorer pawn with spring-arm follow camera, key
 7. Import artistically approved character assets separately; verify hair silhouette, facial design, costume and materials via native renderer captures against approved references.
 
 No maps, characters, meshes or binaries have been committed by this text-only milestone. Native compile and gameplay verification are outstanding.
+
+## October 30 preflight integration
+Three interactions from the Godot #547 contract are now modeled in Unreal source as separate stations: Lift, Pressure, Reserve. Place three `ATSTSSMilestoneActor` instances with `bIsInspectionStation=true` and unique `InspectionStation` values. These must be accessible after boarding the Aureate Wake. An ordinary milestone actor with `Milestone=EngineeringChecked` will reject activation unless all three inspections have occurred. Duplicate inspections and early station calls are rejected. The inspection mask is persisted in `UTSTSSSaveGame` version 2, and restoring incomplete inspection evidence past engineering sign-off is rejected.
+
+**Migration caveat:** version-1 Unreal saves are intentionally unsupported by this schema; no automatic conversion is implemented. Godot saves are not imported. The new station data are logic-only; authored meshes, text prompts, check feedback, engine animations and native testing remain open. Physics-verified sea contact/flotation from Godot #547 still require a separate Unreal implementation and must not be satisfied by generic milestone clicks.
