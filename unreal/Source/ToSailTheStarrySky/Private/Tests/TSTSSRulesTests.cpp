@@ -2,6 +2,7 @@
 #include "TSTSSFirstWakeState.h"
 #include "TSTSSCombatRules.h"
 #include "TSTSSSaveGame.h"
+#include "TSTSSPersistence.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -72,6 +73,22 @@ bool FTSTSSSaveValidationTest::RunTest(const FString& Parameters)
     Save->SchemaVersion = UTSTSSSaveGame::CurrentVersion;
     Save->FirstWakeBeat = ETSTSSFirstWakeBeat::Launched;
     TestFalse(TEXT("Unstarted late milestone is rejected"), Save->IsStructurallyValid());
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTSTSSSaveSlotGuardTest,
+    "TSTSS.Save.RejectsUnsafeSlots",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FTSTSSSaveSlotGuardTest::RunTest(const FString& Parameters)
+{
+    TestTrue(TEXT("Safe slot accepted"), UTSTSSPersistence::IsValidSlotName(TEXT("first_wake_01")));
+    TestFalse(TEXT("Path traversal rejected"), UTSTSSPersistence::IsValidSlotName(TEXT("../escape")));
+    TestFalse(TEXT("Empty slot rejected"), UTSTSSPersistence::IsValidSlotName(TEXT("")));
+    TestFalse(TEXT("Slash rejected"), UTSTSSPersistence::IsValidSlotName(TEXT("a/b")));
+    TestFalse(TEXT("Spaces rejected"), UTSTSSPersistence::IsValidSlotName(TEXT("my save")));
+    TestTrue(TEXT("Missing invalid slot returns null"), UTSTSSPersistence::LoadProgress(TEXT("../escape")) == nullptr);
+    UTSTSSSaveGame* Save = NewObject<UTSTSSSaveGame>();
+    Save->SchemaVersion = 99;
+    TestFalse(TEXT("Invalid payload write rejected"), UTSTSSPersistence::SaveProgress(TEXT("test_slot"), Save));
     return true;
 }
 #endif
