@@ -38,3 +38,7 @@ These tests are **source committed but Unreal-native execution has not been veri
 The isolated `FTSTSSCombatAbilities` adapter receives explicit ability specs, learned-by-character records and faction mappings. It rejects unknown/unlearned abilities, invalid factions and incompatible self/ally/enemy targets before delegating to `FTSTSSCombatTurns::TryAction`. Regression coverage is authored under `TSTSS.Combat.AbilityAuthorization`.
 
 **Execution/acceptance boundary:** Unreal 5.8 compilation and tests have not been demonstrated. The ability catalog and learning records in tests are synthetic fixtures, not canonical skills or character progression. No encounters, HUD, VFX, scene entry, balance acceptance or release authority is implied. Native Editor tests and exact-head build logs are required before promotion.
+
+## Ability gate negative-path regression extension
+
+The Unreal `TSTSS.Combat.AbilityAuthorization` fixture now checks missing target faction, negative ability cost, out-of-turn action rejection, and preservation of the previously accepted output after failures. These tests remain **authored, not engine-executed**. No HUD, encounter, canonical learning progression, or cast asset change is authorized by this work.
