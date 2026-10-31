@@ -59,6 +59,28 @@ class WingArtPackTests(unittest.TestCase):
             self.assertEqual(view["byteOffset"]%4,0)
             self.assertLessEqual(view["byteOffset"]+view["byteLength"],binlen)
 
+    def test_gltf_is_meter_scaled_while_normals_remain_unit_vectors(self):
+        # glTF 2.0 specifies meters. Imported UE bounds should be 280cm,
+        # not 280m, and surface normals must not be scaled with positions.
+        data=self.glb
+        jlen=struct.unpack_from("<I",data,12)[0]
+        doc=json.loads(data[20:20+jlen])
+        self.assertEqual(doc["extras"]["sourceToGltfScale"], .01)
+        self.assertEqual(doc["extras"]["gltfLinearUnits"], "meters")
+        pos_id=doc["meshes"][0]["primitives"][0]["attributes"]["POSITION"]
+        bounds=doc["accessors"][pos_id]
+        self.assertAlmostEqual(bounds["max"][0], 2.80, places=5)
+        self.assertAlmostEqual(bounds["min"][0], 0, places=5)
+        self.assertEqual(self.manifest["source_to_gltf_scale"], .01)
+        normal_id=doc["meshes"][0]["primitives"][0]["attributes"]["NORMAL"]
+        normal_accessor=doc["accessors"][normal_id]
+        view=doc["bufferViews"][normal_accessor["bufferView"]]
+        blob=data[20+jlen+8:]
+        for i in (0, 1, 42, normal_accessor["count"]-1):
+            xyz=struct.unpack_from("<fff",blob,view.get("byteOffset",0)+12*i)
+            self.assertAlmostEqual(sum(v*v for v in xyz),1.0,places=4)
+        self.assertGreater(len(self.glb), 10000)
+
     def test_material_and_embedded_image_contract(self):
         dlen=struct.unpack_from("<I",self.glb,12)[0]
         doc=json.loads(self.glb[20:20+dlen])
