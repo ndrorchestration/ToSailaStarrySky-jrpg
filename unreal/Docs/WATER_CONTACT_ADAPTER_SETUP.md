@@ -12,3 +12,10 @@ Setup in the *native* level:
 7. SeaContact and FlotationConfirmed are not triggered by generic milestone actors; audit any other direct calls to `AdvanceTo` before claiming anti-bypass guarantees.
 
 Evidence gate: exact SHA native Windows compile and a recorded physics-backed sea landing with hull waterline / contact logs and creator scene review. Do not close CH1-05 based on these source files.
+
+## Buoyancy prototype (October 31)
+The adapter now has opt-in (`bEnablePrototypeBuoyancy=false` by default) force-based vertical buoyancy. For a genuinely overlapping tagged volume, it estimates a water-surface elevation from the volume's upper world-space bound and an immersed fraction using a configurable draft. It applies `Mass * (max_buoyant_acceleration * immersion - damping * vertical_velocity)` through `UStaticMeshComponent::AddForce`, subject to positive mass and finite numeric inputs.
+
+**Explicit limitations:** This is not fluid volume displacement, Unreal Water plugin integration, calibrated hydrostatics, pitch/roll stabilization, wave sampling, or certified seaworthiness. The top of an arbitrary bounding box may not be the water surface; volume authoring must ensure the level matches. The actor still needs to be placed, provided a licensed collidable hull asset, configured for true physics/overlap and run in Unreal. No Unreal compilation, runtime splashdown, frame capture, creator art approval, or installer is claimed.
+
+**Potential upstream pulls:** Godot #547's real contact/sustained flotation test vectors; ship identity constraints from `docs/WORLD_SHIP_VISUAL_DIRECTION.md` (compact articulated dragonfly body, veined wings, rootwood/brass, habitable bridge); #551's installer safeguards; Chapter One checklist CH1-05/17/18/19. Pull *requirements and tests*, not Godot physics APIs, historical low-fidelity model art, or assets without clear redistribution rights.
