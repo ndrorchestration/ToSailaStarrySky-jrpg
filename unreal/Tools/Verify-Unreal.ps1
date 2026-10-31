@@ -63,4 +63,13 @@ foreach ($TestName in $RequiredTests) {
         throw "Required test is not successful: $TestName ($($Matches[0].state))"
     }
 }
+# Recheck the checkout after execution so a moving branch cannot inherit stale evidence.
+$FinalHead = (git -C (Join-Path $PSScriptRoot '../..') rev-parse HEAD)
+if ($LASTEXITCODE -ne 0 -or $FinalHead -ne $GitHead) {
+    throw "Repository HEAD changed during verification; initial=$GitHead final=$FinalHead"
+}
+$FinalWorkingTree = @(git -C (Join-Path $PSScriptRoot '../..') status --porcelain)
+if ($LASTEXITCODE -ne 0 -or $FinalWorkingTree.Count -gt 0) {
+    throw 'Working tree changed during verification; refusing to bind PASS to a dirty checkout'
+}
 Write-Host "Native build and reported automation checks passed at $GitHead. Visual acceptance remains separate."
