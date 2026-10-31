@@ -6,6 +6,8 @@
 
 class UStaticMeshComponent;
 class USceneComponent;
+class UMaterialInterface;
+class UMaterialInstanceDynamic;
 
 UENUM(BlueprintType)
 enum class EAureateWakeForm : uint8
@@ -42,6 +44,17 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aureate Wake|Preview", meta=(ClampMin="0.1"))
     float TransitionSeconds = 2.5f;
 
+    /** Optional creator-authored translucent/iridescent wing material; no material asset is included yet. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Aureate Wake|Visuals")
+    TObjectPtr<UMaterialInterface> WingMaterial;
+
+    /** Lerp scalar used by optional shader: 0 atmospheric membrane, 1 Orbiter photovoltaic/light-sail display. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Aureate Wake|Visuals")
+    float OrbiterSailBlend = 0.f;
+
+    UFUNCTION(BlueprintCallable, Category="Aureate Wake|Preview")
+    void RefreshWingMaterials();
+
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Aureate Wake|Preview")
     TObjectPtr<USceneComponent> VesselRoot;
@@ -65,6 +78,10 @@ private:
     bool bTransitioning = false;
     float TransitionElapsed = 0.f;
     EAureateWakeForm TargetForm = EAureateWakeForm::Skyborne;
+    UPROPERTY(Transient)
+    TArray<TObjectPtr<UMaterialInstanceDynamic>> DynamicWingMaterials;
+    float StartSailBlend = 0.f;
+    float TargetSailBlend = 0.f;
     TArray<FTransform> StartWingTransforms;
     TArray<FTransform> TargetWingTransforms;
     TArray<FTransform> StartFoilTransforms;
