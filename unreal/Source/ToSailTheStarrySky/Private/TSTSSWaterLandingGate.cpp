@@ -14,10 +14,20 @@ bool UTSTSSWaterLandingGate::Observe(float DeltaSeconds, bool bHullTouchesWater,
         StableContactSeconds = 0.f;
         return false;
     }
+    // A restored save may already have recorded SeaContact. Reacquire contact
+    // without replaying a milestone; never skip ahead from another story beat.
     if (!bContactRecorded)
     {
-        if (!Story->AdvanceTo(ETSTSSFirstWakeBeat::SeaContact)) return false;
-        bContactRecorded = true;
+        if (Story->HasStarted() &&
+            Story->GetCurrentBeat() == ETSTSSFirstWakeBeat::SeaContact)
+        {
+            bContactRecorded = true;
+        }
+        else
+        {
+            if (!Story->AdvanceTo(ETSTSSFirstWakeBeat::SeaContact)) return false;
+            bContactRecorded = true;
+        }
     }
     if (FMath::Abs(HullVerticalSpeedCms) > 25.f)
     {
