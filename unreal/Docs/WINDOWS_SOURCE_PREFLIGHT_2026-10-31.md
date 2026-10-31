@@ -32,3 +32,16 @@ Review the authored startup Ender data asset and integrate the real First Wake v
 - Visual Studio's `vswhere.exe -all -products * -format json` returned `[]`; no compatible MSVC install or Windows SDK was detected in standard locations. Epic UE 5.8 requires at least Visual Studio 2022 17.14 / MSVC 14.38 and Windows SDK 10.0.22621.0; recommended Visual Studio 2026 / MSVC 14.50, per its official 5.8 release notes.
 - `winget show --id Microsoft.VisualStudio.2022.BuildTools --exact` found version 17.14.44. A noninteractive installation command requesting the C++ build workload was launched on the authorized Windows machine; **the command only reached the installer download stage in the observed output, so its completion and component readiness must be rechecked**.
 - Continue only after checking engine version/Build.bat/Editor-Cmd, `vswhere` toolchain inventory, Windows SDK and available disk. Do not run old UE 5.3 binaries and do not infer a UE 5.8 PASS from the presence of `.egstore`.
+
+
+## Repeatable preflight now checked on Windows
+`unreal/Tools/Test-UE58Readiness.ps1` is a read-only readiness gate for the pinned engine, Visual Studio C++ toolchain and Windows SDK. It reports the individual requirements as JSON with `-Json` and returns exit code **2** if any are missing. The script does not download/install an engine or start a compile.
+
+Executed on the connected `neontic` Windows computer from isolated checkout `dc4ed9af6168aa3fc0d44ffe477a3580ae6e2407`:
+- PowerShell parser: **0** syntax errors.
+- `EngineVersionFile=false`, `EngineBuildBatch=false`, `EngineEditorCommand=false`, `EngineVersionIs58=false`.
+- `VsWherePresent=true`, `MsvcToolchainPresent=false`, `WindowsSdkIncludePresent=false`.
+- `ReadyForPinnedBuild=false`, **readiness exit=2** (expected blocked status).
+- Visual Studio installer continued to show `Starting package install...`, without verified completion.
+
+Only when readiness is true should `Verify-Unreal.ps1 -EngineRoot 'C:\Program Files\Epic Games\UE_5.8' -BuildGameTarget` be used for native evidence. A green readiness result alone is not a compile or game test.
