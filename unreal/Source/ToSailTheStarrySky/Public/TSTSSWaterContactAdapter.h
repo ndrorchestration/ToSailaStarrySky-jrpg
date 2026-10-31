@@ -24,6 +24,10 @@ public:
 protected:
     UPROPERTY(Transient) TObjectPtr<UTSTSSFirstWakeState> Story;
     UPROPERTY(Transient) TObjectPtr<UTSTSSWaterLandingGate> Gate;
+    // Single-player First Wake convenience; disable for authored story ownership.
+    UPROPERTY(EditAnywhere, Category="TSTSS|Water")
+    bool bAutoBindPlayerStory = true;
+
     UPROPERTY(EditAnywhere, Category="TSTSS|Water")
     FName WaterVolumeTag = TEXT("TSTSSWaterVolume");
 
