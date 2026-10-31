@@ -31,3 +31,7 @@ These are review snapshots, not permanent heads. Reinspect before any cherry-pic
 ## Nonclaims and protected state
 
 No UE compile, native automation, 3D asset import, ship physics, visual acceptance, gameplay encounter, Windows installer or release approval is established here. Five Lights are plot affinities; they do not automatically grant magic. Chapter I Ionia-first opening and the missing Lyra/Talen shoreline reunion/salvage beats remain protected. No existing PR was merged or closed by this documentation-only integration review.
+
+## Follow-up regression pulled forward
+
+The UE turn-order test now mirrors two additional Godot #601 scenarios: sole surviving actor round rollover and duplicate participant rejection on battle initialization, including preservation of the prior output on rejection. This is **test source only, not proof of Unreal compilation or test pass**. The fixture also demonstrates that the current turn primitive has no battle-victory/encounter termination authority: a surviving actor can continue acting when opponents are incapacitated. Before playable battle integration, add an explicit encounter lifecycle gate that determines when turns terminate. Preserve draft status and native verification gates.
