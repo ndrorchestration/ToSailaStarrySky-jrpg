@@ -211,25 +211,18 @@ bool FTSTSSSaveRoundTripTest::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTSTSSWaterLandingTest,
-    "TSTSS.FirstWake.WaterLandingRequiresMeasuredStability",
+    "TSTSS.FirstWake.LegacyWaterGateFailsClosed",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FTSTSSWaterLandingTest::RunTest(const FString& Parameters)
 {
     UTSTSSFirstWakeState* Story = NewObject<UTSTSSFirstWakeState>();
-    UTSTSSWaterLandingGate* Gate = NewObject<UTSTSSWaterLandingGate>();
-    Story->Restore(true, ETSTSSFirstWakeBeat::Launched, 0x07);
-    TestFalse(TEXT("No water contact"), Gate->Observe(0.1f, false, 0.f, Story));
-    TestEqual(TEXT("Unchanged without collision"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::Launched);
-    TestFalse(TEXT("Impact is not stable flotation"), Gate->Observe(0.1f, true, 180.f, Story));
-    TestEqual(TEXT("Collision records contact"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::SeaContact);
-    for (int32 Step = 0; Step < 10; ++Step) Gate->Observe(0.1f, true, 5.f, Story);
-    TestFalse(TEXT("Losing overlap clears timer"), Gate->Observe(0.1f, false, 0.f, Story));
-    TestEqual(TEXT("Brief contact is insufficient"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::SeaContact);
-    bool bConfirmed = false;
-    for (int32 Step = 0; Step < 21; ++Step)
-        bConfirmed |= Gate->Observe(0.1f, true, 5.f, Story);
-    TestTrue(TEXT("Sustained stable overlap confirms flotation"), bConfirmed);
-    TestEqual(TEXT("Flotation beat recorded"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::FlotationConfirmed);
+    UTSTSSWaterLandingGate* Legacy = NewObject<UTSTSSWaterLandingGate>();
+    if (!TestTrue(TEXT("Restored launch state"), Story->Restore(true, ETSTSSFirstWakeBeat::Launched, 0x07))) return false;
+    TestFalse(TEXT("Synthetic overlap rejected"), Legacy->Observe(0.1f, true, 0.f, Story));
+    TestEqual(TEXT("No contact recorded"), Story->GetCurrentBeat(), ETSTSSFirstWakeBeat::Launched);
+    TestEqual(TEXT("Legacy timer reset"), Legacy->GetStableContactSeconds(), 0.f);
+    TestFalse(TEXT("Direct contact rejected"), Story->AdvanceTo(ETSTSSFirstWakeBeat::SeaContact));
+    TestFalse(TEXT("Direct flotation rejected"), Story->AdvanceTo(ETSTSSFirstWakeBeat::FlotationConfirmed));
     return true;
 }
 #endif
