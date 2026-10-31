@@ -6,6 +6,8 @@ bool UTSTSSFirstWakeState::AdvanceTo(const ETSTSSFirstWakeBeat RequestedBeat)
     const uint8 Current = static_cast<uint8>(CurrentBeat);
     const uint8 Last = static_cast<uint8>(ETSTSSFirstWakeBeat::ReturnedToBerth);
 
+    if (RequestedBeat == ETSTSSFirstWakeBeat::SeaContact ||
+        RequestedBeat == ETSTSSFirstWakeBeat::FlotationConfirmed) return false;
     if (Requested > Last)
     {
         return false;
@@ -29,6 +31,24 @@ bool UTSTSSFirstWakeState::AdvanceTo(const ETSTSSFirstWakeBeat RequestedBeat)
     }
     CurrentBeat = RequestedBeat;
     return true;
+}
+
+bool UTSTSSFirstWakeState::AdvanceWaterBeat(ETSTSSFirstWakeBeat RequestedBeat)
+{
+    if (!bStarted) return false;
+    if (RequestedBeat == ETSTSSFirstWakeBeat::SeaContact &&
+        CurrentBeat == ETSTSSFirstWakeBeat::Launched)
+    {
+        CurrentBeat = RequestedBeat;
+        return true;
+    }
+    if (RequestedBeat == ETSTSSFirstWakeBeat::FlotationConfirmed &&
+        CurrentBeat == ETSTSSFirstWakeBeat::SeaContact)
+    {
+        CurrentBeat = RequestedBeat;
+        return true;
+    }
+    return false;
 }
 
 bool UTSTSSFirstWakeState::InspectStation(ETSTSSInspectionStation Station)
