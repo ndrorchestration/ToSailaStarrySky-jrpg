@@ -57,6 +57,25 @@ AAureateWakePreviewActor::AAureateWakePreviewActor()
     SnapToForm(EAureateWakeForm::Skyborne);
 }
 
+void AAureateWakePreviewActor::BeginPlay()
+{
+    Super::BeginPlay();
+    RefreshWingMeshes();
+    RefreshWingMaterials();
+}
+
+void AAureateWakePreviewActor::RefreshWingMeshes()
+{
+    if (!AuthoredWingMesh)
+    {
+        return; // Preserve intentionally temporary cubes until a reviewed mesh is provided.
+    }
+    for (UStaticMeshComponent* Wing : Wings)
+    {
+        if (Wing) Wing->SetStaticMesh(AuthoredWingMesh);
+    }
+}
+
 FTransform AAureateWakePreviewActor::WingPose(EAureateWakeForm Form, int32 WingIndex)
 {
     const bool bForwardWing = WingIndex < 2;
