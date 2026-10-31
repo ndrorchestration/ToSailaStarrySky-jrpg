@@ -58,6 +58,10 @@ public:
     bool Restore(bool bWasStarted, ETSTSSFirstWakeBeat SavedBeat, uint8 SavedInspectionMask = 0);
 
 private:
+    friend class UTSTSSWaterLandingGate;
+    // Only the dedicated physics observation gate can progress these events.
+    bool AdvanceWaterBeat(ETSTSSFirstWakeBeat RequestedBeat);
+
     UPROPERTY(VisibleAnywhere, Category="TSTSS|First Wake")
     ETSTSSFirstWakeBeat CurrentBeat = ETSTSSFirstWakeBeat::FlyerDiscovered;
 
