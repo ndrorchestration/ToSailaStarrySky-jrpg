@@ -23,13 +23,26 @@ bool FTSTSSFirstWakeOrderTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Reject impossible unstarted saved milestone"),
         State->Restore(false, ETSTSSFirstWakeBeat::Launched));
     TestTrue(TEXT("Restore valid progressed story"),
-        State->Restore(true, ETSTSSFirstWakeBeat::EngineeringChecked));
+        State->Restore(true, ETSTSSFirstWakeBeat::EngineeringChecked, 0x07));
     TestEqual(TEXT("Restored beat matches save"),
         State->GetCurrentBeat(), ETSTSSFirstWakeBeat::EngineeringChecked);
     TestFalse(TEXT("Cannot skip from restored beat"),
         State->AdvanceTo(ETSTSSFirstWakeBeat::FlotationConfirmed));
     TestTrue(TEXT("Continue from restored beat"),
         State->AdvanceTo(ETSTSSFirstWakeBeat::Launched));
+    State->Reset();
+    TestTrue(TEXT("Start flyer"), State->AdvanceTo(ETSTSSFirstWakeBeat::FlyerDiscovered));
+    TestTrue(TEXT("Hire Ionia"), State->AdvanceTo(ETSTSSFirstWakeBeat::IoniaHired));
+    TestTrue(TEXT("Board"), State->AdvanceTo(ETSTSSFirstWakeBeat::BoardedAureateWake));
+    TestFalse(TEXT("Engineering blocked without inspections"), State->AdvanceTo(ETSTSSFirstWakeBeat::EngineeringChecked));
+    TestTrue(TEXT("Lift inspection"), State->InspectStation(ETSTSSInspectionStation::Lift));
+    TestFalse(TEXT("Duplicate lift rejected"), State->InspectStation(ETSTSSInspectionStation::Lift));
+    TestTrue(TEXT("Pressure inspection"), State->InspectStation(ETSTSSInspectionStation::Pressure));
+    TestFalse(TEXT("Still missing reserve"), State->AdvanceTo(ETSTSSFirstWakeBeat::EngineeringChecked));
+    TestTrue(TEXT("Reserve inspection"), State->InspectStation(ETSTSSInspectionStation::Reserve));
+    TestTrue(TEXT("Engineering signoff after all checks"), State->AdvanceTo(ETSTSSFirstWakeBeat::EngineeringChecked));
+    TestFalse(TEXT("No late inspection"), State->InspectStation(ETSTSSInspectionStation::Reserve));
+    TestFalse(TEXT("Reject missing inspection evidence on restore"), State->Restore(true, ETSTSSFirstWakeBeat::Launched, 0));
     return true;
 }
 
@@ -165,6 +178,7 @@ bool FTSTSSSaveRoundTripTest::RunTest(const FString& Parameters)
     UTSTSSSaveGame* Original = NewObject<UTSTSSSaveGame>();
     Original->bFirstWakeStarted = true;
     Original->FirstWakeBeat = ETSTSSFirstWakeBeat::EngineeringChecked;
+    Original->InspectionMask = 0x07;
     FTSTSSCombatant Ender;
     Ender.CharacterId = TEXT("Ender");
     Ender.Health = 14; Ender.MaxHealth = 20;
@@ -182,6 +196,7 @@ bool FTSTSSSaveRoundTripTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("Schema version preserved"), Loaded->SchemaVersion, UTSTSSSaveGame::CurrentVersion);
         TestTrue(TEXT("Started state preserved"), Loaded->bFirstWakeStarted);
         TestEqual(TEXT("First Wake milestone preserved"), Loaded->FirstWakeBeat, ETSTSSFirstWakeBeat::EngineeringChecked);
+        TestEqual(TEXT("Inspection evidence preserved"), Loaded->InspectionMask, static_cast<uint8>(0x07));
         TestEqual(TEXT("Party size preserved"), Loaded->PartyRoster.Num(), 1);
         if (Loaded->PartyRoster.Num() == 1)
         {
