@@ -81,6 +81,7 @@ bool ATSTSSExplorerCharacter::SaveFirstWake(const FString& Slot)
     UTSTSSSaveGame* Save = NewObject<UTSTSSSaveGame>(this);
     Save->bFirstWakeStarted = FirstWakeState->HasStarted();
     Save->FirstWakeBeat = FirstWakeState->GetCurrentBeat();
+    Save->InspectionMask = FirstWakeState->GetInspectionMask();
     return UTSTSSPersistence::SaveProgress(Slot, Save);
 }
 
@@ -89,5 +90,5 @@ bool ATSTSSExplorerCharacter::LoadFirstWake(const FString& Slot)
     if (!IsValid(FirstWakeState)) return false;
     const UTSTSSSaveGame* Save = UTSTSSPersistence::LoadProgress(Slot);
     if (!Save) return false;
-    return FirstWakeState->Restore(Save->bFirstWakeStarted, Save->FirstWakeBeat);
+    return FirstWakeState->Restore(Save->bFirstWakeStarted, Save->FirstWakeBeat, Save->InspectionMask);
 }
