@@ -36,4 +36,30 @@ if ($null -eq $Report.succeeded -or $null -eq $Report.failed -or $null -eq $Repo
 if ($Report.failed -gt 0 -or $Report.notRun -gt 0 -or $Report.succeeded -lt 6) {
     throw "Automation evidence incomplete: succeeded=$($Report.succeeded), failed=$($Report.failed), notRun=$($Report.notRun)"
 }
+# Require evidence for named critical tests, not merely an aggregate success count.
+# Unreal AutomationTool exports per-test entries under tests[].fullTestPath/state.
+$RequiredTests = @(
+    'TSTSS.Combat.TransactionalActions',
+    'TSTSS.Combat.RejectsInvalidActionsWithoutMutation',
+    'TSTSS.Combat.TurnOrderAndAtomicity',
+    'TSTSS.Combat.AbilityAuthorization',
+    'TSTSS.Combat.EncounterCompletion',
+    'TSTSS.FirstWake.RequiresOrderedMilestones',
+    'TSTSS.Save.RejectsUnsupportedSchema',
+    'TSTSS.Save.RejectsUnsafeSlots',
+    'TSTSS.Save.RoundTripFirstWakeAndParty'
+)
+$Entries = @($Report.tests)
+if ($Entries.Count -eq 0 -or $null -eq $Entries[0]) {
+    throw 'No per-test automation evidence; refusing aggregate-only PASS'
+}
+foreach ($TestName in $RequiredTests) {
+    $Matches = @($Entries | Where-Object { $_.fullTestPath -eq $TestName })
+    if ($Matches.Count -ne 1) {
+        throw "Required test missing or duplicated in report: $TestName"
+    }
+    if ($Matches[0].state -ne 'Success') {
+        throw "Required test is not successful: $TestName ($($Matches[0].state))"
+    }
+}
 Write-Host "Native build and reported automation checks passed at $GitHead. Visual acceptance remains separate."
