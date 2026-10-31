@@ -181,6 +181,8 @@ bool FTSTSSSaveSlotGuardTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Empty slot rejected"), UTSTSSPersistence::IsValidSlotName(TEXT("")));
     TestFalse(TEXT("Slash rejected"), UTSTSSPersistence::IsValidSlotName(TEXT("a/b")));
     TestFalse(TEXT("Spaces rejected"), UTSTSSPersistence::IsValidSlotName(TEXT("my save")));
+    TestFalse(TEXT("Non-ASCII slot rejected"), UTSTSSPersistence::IsValidSlotName(FString::Chr(233)));
+    TestFalse(TEXT("Long slot rejected"), UTSTSSPersistence::IsValidSlotName(FString::ChrN(49, TEXT('a'))));
     TestTrue(TEXT("Missing invalid slot returns null"), UTSTSSPersistence::LoadProgress(TEXT("../escape")) == nullptr);
     UTSTSSSaveGame* Save = NewObject<UTSTSSSaveGame>();
     Save->SchemaVersion = 99;
