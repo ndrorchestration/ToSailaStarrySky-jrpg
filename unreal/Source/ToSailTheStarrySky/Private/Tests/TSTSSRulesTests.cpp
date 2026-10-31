@@ -56,7 +56,8 @@ bool FTSTSSCombatAtomicTest::RunTest(const FString& Parameters)
     Action.ResourceCost = 2;
     Action.Power = 3;
     Action.bHealing = true;
-    TestTrue(TEXT("Self-heal is legal"), UTSTSSCombatRules::TryApplyAction(Initial, Action, After));
+    if (!TestTrue(TEXT("Self-heal is legal"), UTSTSSCombatRules::TryApplyAction(Initial, Action, After))) return false;
+    if (!TestEqual(TEXT("Self-heal output roster size"), After.Num(), 2)) return false;
     TestEqual(TEXT("Self-heal applies resource"), After[0].Resource, 3);
     TestEqual(TEXT("Self-heal applies healing"), After[0].Health, 13);
     TestEqual(TEXT("Initial remains untouched"), Initial[0].Health, 6);
@@ -67,7 +68,8 @@ bool FTSTSSCombatAtomicTest::RunTest(const FString& Parameters)
     Action.ResourceCost = 1;
     Action.bHealing = false;
     Action.TargetId = TEXT("Ionia");
-    TestTrue(TEXT("Valid damage"), UTSTSSCombatRules::TryApplyAction(Initial, Action, After));
+    if (!TestTrue(TEXT("Valid damage"), UTSTSSCombatRules::TryApplyAction(Initial, Action, After))) return false;
+    if (!TestEqual(TEXT("Damage output roster size"), After.Num(), 2)) return false;
     TestEqual(TEXT("Defense accounted for"), After[1].Health, 10);
     return true;
 }
