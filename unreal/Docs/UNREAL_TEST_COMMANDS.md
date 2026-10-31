@@ -31,3 +31,7 @@ The `TSTSS.Save.RoundTripFirstWakeAndParty` editor automation test writes to a d
 ## Combat automation failure-path hardening — 2026-10-30
 
 The transactional-combat and turn-order regression fixtures now stop after failed expected-success assertions, and check result roster sizes before indexing. This prevents a secondary invalid array access from obscuring the first failure. Source committed on the migration draft; **no Unreal compiler or automation run was performed here**. The connected Windows development machine was offline at inspection. Require native Win64 compilation, test-by-test automation results, and an independent renderer-enabled review before any playable promotion.
+
+## Stronger native evidence gate — 2026-10-31
+
+`Tools/Verify-Unreal.ps1` now checks individual automation report entries for nine required named `TSTSS.*` tests in addition to aggregate counters. Every required `fullTestPath` must appear exactly once with `state=Success`; omitted, duplicated, malformed or failing tests block a PASS. This prevents unrelated passing tests from satisfying a stale `succeeded >= 6` threshold. The report schema and names must be validated on an actual UE 5.8 Win64 Editor run; the new script logic is authored but **not executed** on an Unreal workstation. A renderer-enabled artistic review and packaged-game smoke test remain independent gates.
