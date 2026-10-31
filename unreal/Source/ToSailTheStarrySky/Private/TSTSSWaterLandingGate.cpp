@@ -32,7 +32,7 @@ bool UTSTSSWaterLandingGate::Observe(float DeltaSeconds, bool bHullTouchesWater,
         }
         else
         {
-            if (!Story->AdvanceTo(ETSTSSFirstWakeBeat::SeaContact)) return false;
+            if (!Story->AdvanceWaterBeat(ETSTSSFirstWakeBeat::SeaContact)) return false;
             bContactRecorded = true;
         }
     }
@@ -43,7 +43,7 @@ bool UTSTSSWaterLandingGate::Observe(float DeltaSeconds, bool bHullTouchesWater,
     }
     StableContactSeconds += DeltaSeconds;
     if (StableContactSeconds < 2.f) return false;
-    if (Story->AdvanceTo(ETSTSSFirstWakeBeat::FlotationConfirmed))
+    if (Story->AdvanceWaterBeat(ETSTSSFirstWakeBeat::FlotationConfirmed))
     {
         return true;
     }
