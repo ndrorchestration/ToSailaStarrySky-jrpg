@@ -39,7 +39,7 @@ void ATSTSSWaterContactAdapter::Tick(float DeltaSeconds)
         return;
     }
     TArray<AActor*> Overlaps;
-    Hull->GetOverlappingActors(Overlaps);
+    Hull->GetOverlappingActors(Overlaps, AActor::StaticClass());
     bool bInWater = false;
     float WaterSurfaceZ = -TNumericLimits<float>::Max();
     for (const AActor* Other : Overlaps)
