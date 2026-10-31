@@ -25,3 +25,20 @@ This draft is stacked atop the authored wing GLB [PR #625](https://github.com/nd
 **Limitation:** Current poses are review geometry guesses, NOT physically engineered hinge kinematics, seaworthy sealing, buoyancy or a cinematic art pass. User-approved art and ship design still govern all final proportions.
 
 [Unreal wing art GLB review document](https://github.com/ndrorchestration/ToSailtheStarrySky-jrpg/blob/feat/unreal-aureate-wing-glb-artpack-v1/unreal/Docs/AUREATE_WAKE_WING_GLB_ART_REVIEW_V1.md)
+
+
+## Corrected asset import gate — October 31, 2026
+
+The original wing v1 GLB is **retired for import**: it encoded centimeter geometry as glTF meters and could appear **100× too large**. The [corrected generator](../Tools/author_aureate_wing_glb.py) writes positions in meters (0.01 × source-centimeter coordinate), preserving unit normals. Expected full X bounds are approximately -0.16 to +2.804 meters (about 296.4 cm including the rear brass hinge). The prior v1 GLB is not valid review input.
+
+New [fail-closed review importer](../Tools/import_aureate_wing_review.py) and [import regression tests](../Tests/test_import_aureate_wing_review.py) check the exact corrected manifest SHA-256, glTF meter-scale metadata, 2.8-m membrane span, 3-section material layout and empty candidate destination.
+
+Offline check (can run without Unreal Engine):
+
+```powershell
+py -3.11 unreal/Tools/import_aureate_wing_review.py --glb "C:\\TSTSS_Review\\AureateWake_Wing_Lookdev.glb" --manifest "C:\\TSTSS_Review\\AureateWake_Wing_Manifest.json" --check
+```
+
+Editor-only workflow: enable Python Editor Script Plugin and Unreal Interchange, run the same script inside Unreal Editor Python with `--import-review` instead of `--check`. The editor must present its pipeline options for explicit operator inspection; destinations with existing assets are refused, and no actor/map is modified. Validate imported centimeters, Z-up conversion, normals, mesh sections, material transparency and pivot before manually linking to `AuthoredWingMesh` in an isolated map. **Unreal native execution NOT VERIFIED; source checks cannot satisfy this acceptance gate.**
+
+Source references: [Khronos glTF 2.0 units](https://github.com/KhronosGroup/glTF/blob/main/specification/2.0/Specification.adoc); [Epic Unreal Interchange import](https://dev.epicgames.com/documentation/unreal-engine/importing-assets-using-interchange-in-unreal-engine).
