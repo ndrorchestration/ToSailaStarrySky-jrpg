@@ -34,4 +34,8 @@ public:
 
     UFUNCTION(BlueprintPure, Category="TSTSS|Save")
     bool IsStructurallyValid() const;
+
+    // Update only story fields, retaining existing party stats and future payload data.
+    // Reject invalid source state without modifying this save.
+    bool CaptureFirstWake(const UTSTSSFirstWakeState* State);
 };
