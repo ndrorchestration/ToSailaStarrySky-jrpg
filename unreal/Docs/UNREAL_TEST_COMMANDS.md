@@ -27,3 +27,7 @@ The `TSTSS.Save.RoundTripFirstWakeAndParty` editor automation test writes to a d
 ## Automation fixture crash-safety gate — 2026-10-30
 
 `TSTSS.Combat.AbilityAuthorization` now aborts its test early if combat initialization or the expected successful action fails, and validates roster size before indexing result entries. This avoids a secondary invalid-array-access failure obscuring the original failed assertion. **The updated test has not been executed in Unreal Engine 5.8.** Collect an exact-SHA Win64 compile log and Editor automation report before interpreting this as a passing test or promoting the draft.
+
+## Combat automation failure-path hardening — 2026-10-30
+
+The transactional-combat and turn-order regression fixtures now stop after failed expected-success assertions, and check result roster sizes before indexing. This prevents a secondary invalid array access from obscuring the first failure. Source committed on the migration draft; **no Unreal compiler or automation run was performed here**. The connected Windows development machine was offline at inspection. Require native Win64 compilation, test-by-test automation results, and an independent renderer-enabled review before any playable promotion.
