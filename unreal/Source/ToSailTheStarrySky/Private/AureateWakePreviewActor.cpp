@@ -74,6 +74,10 @@ void AAureateWakePreviewActor::RefreshWingMeshes()
     {
         if (Wing) Wing->SetStaticMesh(AuthoredWingMesh);
     }
+    if (bUseRootPivotedWingPose && !bTransitioning)
+    {
+        SnapToForm(CurrentForm); // Recompose with correct root position after mesh binding.
+    }
 }
 
 FTransform AAureateWakePreviewActor::WingPose(EAureateWakeForm Form, int32 WingIndex)
@@ -114,6 +118,72 @@ FTransform AAureateWakePreviewActor::WingPose(EAureateWakeForm Form, int32 WingI
     return FTransform(Rotation, Position, Scale);
 }
 
+FTransform AAureateWakePreviewActor::RootPivotedWingPose(EAureateWakeForm Form, int32 WingIndex)
+{
+    // Review-only geometry: authored 280cm span extends from the root along local +X.
+    // Do not use the centered 100cm cube transforms for this mesh.
+    const bool bForward = WingIndex < 2;
+    const float Side = WingIndex % 2 == 0 ? -1.f : 1.f;
+    const float RootX = bForward ? 155.f : -180.f;
+    const float RootY = Side * 112.f;
+    FVector Position(RootX, RootY, 48.f);
+    FRotator Rotation;
+    FVector Scale(1.f, 1.f, 1.f);
+
+    switch (Form)
+    {
+    case EAureateWakeForm::Skyborne:
+        // Outboard dragonfly span with modest fore/aft sweep and dihedral.
+        Rotation = FRotator(0.f, Side * (bForward ? 80.f : 100.f), Side * 7.f);
+        break;
+    case EAureateWakeForm::Seaborne:
+        // Fold upward above the sea while leaving all four wing components present.
+        Position.Z = 82.f;
+        Rotation = FRotator(32.f, Side * (bForward ? 75.f : 105.f), Side * 50.f);
+        Scale = FVector(.94f, .82f, 1.f);
+        break;
+    case EAureateWakeForm::Submersible:
+        // Tuck wings lengthwise along the hull, visibly retained, never hidden.
+        Position.Z = 16.f;
+        Rotation = FRotator(0.f, Side * (bForward ? 23.f : 157.f), Side * 72.f);
+        Scale = FVector(.78f, .38f, .95f);
+        break;
+    case EAureateWakeForm::Orbiter:
+        // Opt-in review ONLY. Four equal root-pivoted sails in cardinal directions.
+        // Hull orientation remains +X, separate from any story/unlock authority.
+        Scale = FVector(1.f, 1.f, 1.f);
+        if (WingIndex == 0)
+        {
+            Position = FVector(0.f, 0.f, 130.f);
+            Rotation = FRotator(90.f, 0.f, 0.f);
+        }
+        else if (WingIndex == 1)
+        {
+            Position = FVector(0.f, 0.f, -130.f);
+            Rotation = FRotator(-90.f, 0.f, 0.f);
+        }
+        else if (WingIndex == 2)
+        {
+            Position = FVector(0.f, -130.f, 0.f);
+            Rotation = FRotator(0.f, -90.f, 0.f);
+        }
+        else
+        {
+            Position = FVector(0.f, 130.f, 0.f);
+            Rotation = FRotator(0.f, 90.f, 0.f);
+        }
+        break;
+    }
+    return FTransform(Rotation, Position, Scale);
+}
+
+FTransform AAureateWakePreviewActor::WingPoseForMesh(EAureateWakeForm Form, int32 WingIndex) const
+{
+    return bUseRootPivotedWingPose && AuthoredWingMesh
+        ? RootPivotedWingPose(Form, WingIndex)
+        : WingPose(Form, WingIndex);
+}
+
 FTransform AAureateWakePreviewActor::FoilPose(EAureateWakeForm Form, int32 FoilIndex)
 {
     const float Side = FoilIndex == 0 ? -1.f : 1.f;
@@ -150,7 +220,7 @@ void AAureateWakePreviewActor::SnapToForm(EAureateWakeForm Form)
 {
     for (int32 Index = 0; Index < Wings.Num(); ++Index)
     {
-        Wings[Index]->SetRelativeTransform(WingPose(Form, Index));
+        Wings[Index]->SetRelativeTransform(WingPoseForMesh(Form, Index));
     }
     for (int32 Index = 0; Index < Hydrofoils.Num(); ++Index)
     {
@@ -171,6 +241,7 @@ bool AAureateWakePreviewActor::RequestForm(EAureateWakeForm RequestedForm)
 {
     if (!FMath::IsWithinInclusive(static_cast<int32>(RequestedForm), 0, 3) ||
         Wings.Num() != 4 || Hydrofoils.Num() != 2 ||
+        (bUseRootPivotedWingPose && !AuthoredWingMesh) ||
         bTransitioning || RequestedForm == CurrentForm ||
         (RequestedForm == EAureateWakeForm::Orbiter && !bAllowOrbiterPreview))
     {
@@ -189,7 +260,7 @@ bool AAureateWakePreviewActor::RequestForm(EAureateWakeForm RequestedForm)
     for (int32 Index = 0; Index < Wings.Num(); ++Index)
     {
         StartWingTransforms.Add(Wings[Index]->GetRelativeTransform());
-        TargetWingTransforms.Add(WingPose(RequestedForm, Index));
+        TargetWingTransforms.Add(WingPoseForMesh(RequestedForm, Index));
     }
     for (int32 Index = 0; Index < Hydrofoils.Num(); ++Index)
     {
