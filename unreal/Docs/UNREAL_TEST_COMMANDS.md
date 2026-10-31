@@ -23,3 +23,7 @@ The `TSTSS.Save.RoundTripFirstWakeAndParty` editor automation test writes to a d
 - Confirm test cleanup, PIE interaction/camera, true physical First Wake events, and Blueprint milestone hook behavior.
 - Capture native UE renderer stills/video and obtain artistic approval of imported cast; prior approved reference artwork is not a rigged character asset.
 - Keep migration PR draft and Godot playable until a working Windows packaged build is tested.
+
+## Automation fixture crash-safety gate — 2026-10-30
+
+`TSTSS.Combat.AbilityAuthorization` now aborts its test early if combat initialization or the expected successful action fails, and validates roster size before indexing result entries. This avoids a secondary invalid-array-access failure obscuring the original failed assertion. **The updated test has not been executed in Unreal Engine 5.8.** Collect an exact-SHA Win64 compile log and Editor automation report before interpreting this as a passing test or promoting the draft.
