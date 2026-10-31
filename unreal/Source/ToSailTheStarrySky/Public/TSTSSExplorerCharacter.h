@@ -24,7 +24,7 @@ public:
     UFUNCTION(BlueprintCallable, Category="TSTSS|Party")
     bool SetLivePartyRoster(const TArray<FTSTSSCombatant>& NewRoster);
     UFUNCTION(BlueprintPure, Category="TSTSS|Party")
-    const TArray<FTSTSSCombatant>& GetLivePartyRoster() const { return LivePartyRoster; }
+    TArray<FTSTSSCombatant> GetLivePartyRoster() const { return LivePartyRoster; }
     UFUNCTION(BlueprintPure, Category="TSTSS|Party")
     bool HasLivePartyRoster() const { return bHasLivePartyRoster; }
 protected:
