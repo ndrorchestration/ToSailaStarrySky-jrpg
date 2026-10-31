@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feat/unreal-aureate-wing-glb-artpack-v1
+      - feat/unreal-aureate-root-wing-pose-adapter-v1
     paths:
       - "unreal/Tools/author_aureate_wing_glb.py"
       - "unreal/Tests/test_author_aureate_wing_glb.py"
