@@ -24,6 +24,7 @@ AAureateWakePreviewActor::AAureateWakePreviewActor()
 
     static ConstructorHelpers::FObjectFinder<UStaticMesh> Cube(TEXT("/Engine/BasicShapes/Cube.Cube"));
     UStaticMesh* Shape = Cube.Succeeded() ? Cube.Object : nullptr;
+    OriginalCubeWingMesh = Shape;
 
     Hull = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Hull"));
     Hull->SetupAttachment(VesselRoot);
@@ -66,17 +67,28 @@ void AAureateWakePreviewActor::BeginPlay()
 
 void AAureateWakePreviewActor::RefreshWingMeshes()
 {
-    if (!AuthoredWingMesh)
+    // Orbiter authored-wing interpolation has not cleared the hull/bridge envelope.
+    // Keep the currently displayed cube preview rather than switching mid-Orbiter.
+    if (bUseRootPivotedWingPose && CurrentForm == EAureateWakeForm::Orbiter)
     {
-        return; // Preserve intentionally temporary cubes until a reviewed mesh is provided.
+        return;
+    }
+
+    // Selecting an authored GLB without opting into its root-pivot poses must
+    // NOT stretch it through transforms calibrated for the old 100cm cubes.
+    UStaticMesh* MeshToDisplay = bUseRootPivotedWingPose
+        ? AuthoredWingMesh.Get() : OriginalCubeWingMesh.Get();
+    if (!MeshToDisplay)
+    {
+        return;
     }
     for (UStaticMeshComponent* Wing : Wings)
     {
-        if (Wing) Wing->SetStaticMesh(AuthoredWingMesh);
+        if (Wing) Wing->SetStaticMesh(MeshToDisplay);
     }
-    if (bUseRootPivotedWingPose && !bTransitioning)
+    if (!bTransitioning)
     {
-        SnapToForm(CurrentForm); // Recompose with correct root position after mesh binding.
+        SnapToForm(CurrentForm); // Recompose the same preview form without story events.
     }
 }
 
@@ -242,6 +254,9 @@ bool AAureateWakePreviewActor::RequestForm(EAureateWakeForm RequestedForm)
     if (!FMath::IsWithinInclusive(static_cast<int32>(RequestedForm), 0, 3) ||
         Wings.Num() != 4 || Hydrofoils.Num() != 2 ||
         (bUseRootPivotedWingPose && !AuthoredWingMesh) ||
+        // Root-pivoted authored GLB crosses provisional hull/bridge during
+        // direct Orbiter interpolation. Do not attempt until a safe route exists.
+        (bUseRootPivotedWingPose && (RequestedForm == EAureateWakeForm::Orbiter || CurrentForm == EAureateWakeForm::Orbiter)) ||
         bTransitioning || RequestedForm == CurrentForm ||
         (RequestedForm == EAureateWakeForm::Orbiter && !bAllowOrbiterPreview))
     {
