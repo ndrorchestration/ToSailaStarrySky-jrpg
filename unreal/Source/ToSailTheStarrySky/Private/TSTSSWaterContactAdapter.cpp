@@ -65,6 +65,12 @@ void ATSTSSWaterContactAdapter::Tick(float DeltaSeconds)
         Gate->Reset();
         return;
     }
+    if (!FMath::IsFinite(HullOrigin.Z) || !FMath::IsFinite(HullExtent.Z) ||
+        HullExtent.Z <= 0.f)
+    {
+        Gate->Reset();
+        return;
+    }
     const float Draft = HullDraftCm;
     const float Submersion = bInWater && FMath::IsFinite(WaterSurfaceZ)
         ? FMath::Clamp((WaterSurfaceZ - (HullOrigin.Z - Draft)) / (2.f * Draft), 0.f, 1.f)
