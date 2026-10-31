@@ -1,0 +1,24 @@
+name: Unreal source preflight
+
+on:
+  pull_request:
+    paths:
+      - 'unreal/Source/**'
+      - 'unreal/Tools/**'
+      - '.github/workflows/unreal-source-preflight.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  registry:
+    name: Unreal automation source registration (not native tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify checker self-tests
+        run: python3 unreal/Tools/test_automation_registry.py
+      - name: Compare expected and registered Unreal tests
+        run: python3 unreal/Tools/check_automation_registry.py

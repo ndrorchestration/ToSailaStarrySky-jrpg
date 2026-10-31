@@ -1,0 +1,24 @@
+name: Unreal source inventory (engine-free)
+on:
+  pull_request:
+    paths:
+      - 'unreal/**'
+      - '.github/workflows/unreal-source-inventory.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    name: Verify Unreal automation declarations
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check required test inventory without Unreal
+        run: python3 unreal/Tools/check_unreal_test_inventory.py
+      - name: Confirm this is source-only
+        run: echo "No Unreal compilation, renderer or native test execution occurred."
