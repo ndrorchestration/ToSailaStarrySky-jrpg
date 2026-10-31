@@ -18,7 +18,9 @@ bool UTSTSSWaterLandingGate::Observe(float DeltaSeconds, bool bHullTouchesWater,
     }
     if (!bHullTouchesWater)
     {
-        StableContactSeconds = 0.f;
+        // A discontinuity invalidates both contact provenance and settling time.
+        // On re-entry the story can reacquire SeaContact without replaying it.
+        Reset();
         return false;
     }
     // A restored save may already have recorded SeaContact. Reacquire contact
