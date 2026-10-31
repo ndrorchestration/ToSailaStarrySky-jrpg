@@ -1,5 +1,7 @@
 #include "TSTSSWaterContactAdapter.h"
 #include "Components/StaticMeshComponent.h"
+#include "TSTSSExplorerCharacter.h"
+#include "Kismet/GameplayStatics.h"
 
 ATSTSSWaterContactAdapter::ATSTSSWaterContactAdapter()
 {
@@ -13,6 +15,13 @@ void ATSTSSWaterContactAdapter::BeginPlay()
 {
     Super::BeginPlay();
     Gate = NewObject<UTSTSSWaterLandingGate>(this);
+    if (bAutoBindPlayerStory)
+    {
+        if (ATSTSSExplorerCharacter* Player = Cast<ATSTSSExplorerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0)))
+        {
+            BindStory(Player->GetFirstWakeState());
+        }
+    }
 }
 
 void ATSTSSWaterContactAdapter::BindStory(UTSTSSFirstWakeState* InStory)
@@ -25,6 +34,14 @@ void ATSTSSWaterContactAdapter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
     if (!IsValid(Gate)) return;
+    // Player BeginPlay may occur after this actor, so retry only while unbound.
+    if (!IsValid(Story) && bAutoBindPlayerStory)
+    {
+        if (ATSTSSExplorerCharacter* Player = Cast<ATSTSSExplorerCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0)))
+        {
+            if (IsValid(Player->GetFirstWakeState())) BindStory(Player->GetFirstWakeState());
+        }
+    }
     if (!IsValid(Story) || !IsValid(Hull) || !Hull->IsSimulatingPhysics())
     {
         Gate->Reset();
