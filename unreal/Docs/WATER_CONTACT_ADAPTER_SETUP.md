@@ -19,3 +19,10 @@ The adapter now has opt-in (`bEnablePrototypeBuoyancy=false` by default) force-b
 **Explicit limitations:** This is not fluid volume displacement, Unreal Water plugin integration, calibrated hydrostatics, pitch/roll stabilization, wave sampling, or certified seaworthiness. The top of an arbitrary bounding box may not be the water surface; volume authoring must ensure the level matches. The actor still needs to be placed, provided a licensed collidable hull asset, configured for true physics/overlap and run in Unreal. No Unreal compilation, runtime splashdown, frame capture, creator art approval, or installer is claimed.
 
 **Potential upstream pulls:** Godot #547's real contact/sustained flotation test vectors; ship identity constraints from `docs/WORLD_SHIP_VISUAL_DIRECTION.md` (compact articulated dragonfly body, veined wings, rootwood/brass, habitable bridge); #551's installer safeguards; Chapter One checklist CH1-05/17/18/19. Pull *requirements and tests*, not Godot physics APIs, historical low-fidelity model art, or assets without clear redistribution rights.
+
+## First Wake single-player wiring update
+The water actor now attempts to find the first local `ATSTSSExplorerCharacter` and bind to its `UTSTSSFirstWakeState` in BeginPlay. If player BeginPlay has not yet initialized that object, the adapter retries while unbound on Tick, then stops doing the lookup after successful binding. `bAutoBindPlayerStory` is author-configurable and may be disabled for explicit ownership or multiplayer. This is runtime source wiring, not proof that an Unreal level has been authored or run.
+
+The player's interaction ray additionally requires the physical player-to-hit distance to be within `InteractionDistance`; distant camera booms cannot grant interaction from beyond the character's range.
+
+Native PIE acceptance must test actor initialization order, a respawn/repossess while an old character still exists, water volume settings and overlap, three inspections, launch, sea contact, save/load, camera collision, and the no-physics-abuse regression. Auto-binding does not solve player replacement/respawn; use explicit rebinding if that occurs.
