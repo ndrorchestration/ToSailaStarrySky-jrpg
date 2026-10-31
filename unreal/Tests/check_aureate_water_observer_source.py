@@ -6,10 +6,17 @@ observer=(ROOT/"Source/ToSailTheStarrySky/Private/AureateWakeWaterObserverCompon
 ship=(ROOT/"Source/ToSailTheStarrySky/Private/AureateWakePreviewActor.cpp").read_text()
 checks={
     "physics overlap sampled": "IsOverlappingComponent(WaterCollision)" in observer,
+    "explicit observer authority defaults disabled": 'if (!bEnableStoryWaterObservation)' in observer and
+        'bEnableStoryWaterObservation = false;' in
+        (ROOT/"Source/ToSailTheStarrySky/Public/AureateWakeWaterObserverComponent.h").read_text(),
+    "finite measured waterline required": "HasMeasuredHullWaterlineIntersection(" in observer
+        and "PhysicalHull->GetComponentBounds(" in observer
+        and "WaterCollision->GetComponentBounds(" in observer,
     "physical velocity sampled": "GetPhysicsLinearVelocity()" in observer and "GetComponentVelocity()" in observer and "IsSimulatingPhysics()" in observer,
     "nonfinite samples rejected": "FMath::IsFinite(VerticalSpeed)" in observer,
     "stale gate resets": observer.count("LandingGate->Reset()")>=3,
-    "story gate evaluated before visual request": observer.find("LandingGate->Observe(")<observer.find("VisualShip->RequestForm("),
+    "story gate evaluated before visual request": observer.find("HasMeasuredHullWaterlineIntersection(") <
+        observer.find("LandingGate->Observe(") < observer.find("VisualShip->RequestForm("),
     "Seaborne requires accepted contact": "bContactAccepted && bTouchingWater" in observer and "AcceptedBeat == ETSTSSFirstWakeBeat::SeaContact" in observer,
     "preview does not advance story": "AdvanceTo(" not in ship,
     "preview preserves four wings": "Index < 4" in ship,
