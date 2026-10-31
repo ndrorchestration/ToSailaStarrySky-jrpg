@@ -22,24 +22,38 @@ void UAureateWakeWaterObserverComponent::TickComponent(float DeltaTime,
         !IsValid(Story) || !IsValid(LandingGate) ||
         !PhysicalHull->GetGenerateOverlapEvents() || !WaterCollision->GetGenerateOverlapEvents())
     {
-        return; // Unwired components must fail closed.
+        if (IsValid(LandingGate)) LandingGate->Reset();
+        return; // Unwired components must fail closed and discard stale samples.
     }
 
-    if (!Story->HasStarted()) return;
+    if (!Story->HasStarted())
+    {
+        LandingGate->Reset();
+        return;
+    }
     const ETSTSSFirstWakeBeat Beat = Story->GetCurrentBeat();
     if (Beat != ETSTSSFirstWakeBeat::Launched && Beat != ETSTSSFirstWakeBeat::SeaContact)
     {
+        LandingGate->Reset();
         return; // Chapter gate: never infer story milestones from geometry.
     }
 
     const bool bTouchingWater = PhysicalHull->IsOverlappingComponent(WaterCollision);
     const float VerticalSpeed = PhysicalHull->GetComponentVelocity().Z;
-    // Presentation is allowed to react to genuine overlap, but cannot authorize contact.
+    // Validate the sample with the existing story gate FIRST. A rejected or
+    // malformed sample must not trigger a visual landing either.
+    if (!FMath::IsFinite(DeltaTime) || DeltaTime <= 0.f ||
+        DeltaTime > 0.25f || !FMath::IsFinite(VerticalSpeed))
+    {
+        LandingGate->Reset();
+        return;
+    }
+    LandingGate->Observe(DeltaTime, bTouchingWater, VerticalSpeed, Story);
+    // Presentation responds only to valid observations; story is gate-owned.
     if (bTouchingWater && IsValid(VisualShip) &&
         VisualShip->GetCurrentForm() == EAureateWakeForm::Skyborne &&
         !VisualShip->IsTransitioning())
     {
         VisualShip->RequestForm(EAureateWakeForm::Seaborne);
     }
-    LandingGate->Observe(DeltaTime, bTouchingWater, VerticalSpeed, Story);
 }
