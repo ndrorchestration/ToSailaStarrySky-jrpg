@@ -38,6 +38,8 @@ void ATSTSSExplorerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
     PlayerInputComponent->BindAxis(TEXT("Turn"), this, &ATSTSSExplorerCharacter::Turn);
     PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &ATSTSSExplorerCharacter::LookUp);
     PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &ATSTSSExplorerCharacter::Interact);
+    PlayerInputComponent->BindAction(TEXT("QuickSave"), IE_Pressed, this, &ATSTSSExplorerCharacter::QuickSave);
+    PlayerInputComponent->BindAction(TEXT("QuickLoad"), IE_Pressed, this, &ATSTSSExplorerCharacter::QuickLoad);
 }
 
 void ATSTSSExplorerCharacter::MoveForward(float Value)
@@ -70,9 +72,24 @@ void ATSTSSExplorerCharacter::Interact()
     {
         if (ATSTSSMilestoneActor* Milestone = Cast<ATSTSSMilestoneActor>(Hit.GetActor()))
         {
-            Milestone->TryActivate(FirstWakeState);
+            // Camera boom distance cannot extend usable interaction range.
+            const float Range = FMath::Max(0.f, InteractionDistance);
+            if (FVector::DistSquared(GetActorLocation(), Hit.ImpactPoint) <= FMath::Square(Range))
+            {
+                Milestone->TryActivate(FirstWakeState);
+            }
         }
     }
+}
+
+void ATSTSSExplorerCharacter::QuickSave()
+{
+    SaveFirstWake(TEXT("first_wake_quick"));
+}
+
+void ATSTSSExplorerCharacter::QuickLoad()
+{
+    LoadFirstWake(TEXT("first_wake_quick"));
 }
 
 bool ATSTSSExplorerCharacter::SaveFirstWake(const FString& Slot)
