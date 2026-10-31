@@ -41,4 +41,8 @@ public:
 
     // Validate an explicitly provided live roster before replacing stored stats.
     bool CapturePartyRoster(const TArray<FTSTSSCombatant>& Roster);
+
+    // Story checkpoints require either an explicitly initialized live party
+    // or an existing valid saved party. Never create an empty-party checkpoint.
+    bool CanCheckpointParty(bool bLivePartyInitialized) const;
 };
