@@ -23,7 +23,25 @@ bool UTSTSSFirstWakeState::AdvanceTo(const ETSTSSFirstWakeBeat RequestedBeat)
     {
         return false;
     }
+    if (RequestedBeat == ETSTSSFirstWakeBeat::EngineeringChecked && !AreInspectionsComplete())
+    {
+        return false;
+    }
     CurrentBeat = RequestedBeat;
+    return true;
+}
+
+bool UTSTSSFirstWakeState::InspectStation(ETSTSSInspectionStation Station)
+{
+    if (!bStarted || CurrentBeat != ETSTSSFirstWakeBeat::BoardedAureateWake)
+    {
+        return false;
+    }
+    const uint8 Index = static_cast<uint8>(Station);
+    if (Index > 2) return false;
+    const uint8 Bit = static_cast<uint8>(1u << Index);
+    if ((InspectionMask & Bit) != 0) return false;
+    InspectionMask |= Bit;
     return true;
 }
 
@@ -31,16 +49,21 @@ void UTSTSSFirstWakeState::Reset()
 {
     bStarted = false;
     CurrentBeat = ETSTSSFirstWakeBeat::FlyerDiscovered;
+    InspectionMask = 0;
 }
 
-bool UTSTSSFirstWakeState::Restore(bool bWasStarted, ETSTSSFirstWakeBeat SavedBeat)
+bool UTSTSSFirstWakeState::Restore(bool bWasStarted, ETSTSSFirstWakeBeat SavedBeat, uint8 SavedInspectionMask)
 {
     if (static_cast<uint8>(SavedBeat) > static_cast<uint8>(ETSTSSFirstWakeBeat::ReturnedToBerth) ||
-        (!bWasStarted && SavedBeat != ETSTSSFirstWakeBeat::FlyerDiscovered))
+        (SavedInspectionMask & ~0x07u) != 0 ||
+        (!bWasStarted && (SavedBeat != ETSTSSFirstWakeBeat::FlyerDiscovered || SavedInspectionMask != 0)) ||
+        (SavedInspectionMask != 0 && static_cast<uint8>(SavedBeat) < static_cast<uint8>(ETSTSSFirstWakeBeat::BoardedAureateWake)) ||
+        (static_cast<uint8>(SavedBeat) >= static_cast<uint8>(ETSTSSFirstWakeBeat::EngineeringChecked) && SavedInspectionMask != 0x07))
     {
         return false;
     }
     bStarted = bWasStarted;
     CurrentBeat = SavedBeat;
+    InspectionMask = SavedInspectionMask;
     return true;
 }
