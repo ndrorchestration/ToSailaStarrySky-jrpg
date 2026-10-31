@@ -9,7 +9,10 @@ bool UTSTSSPersistence::IsValidSlotName(const FString& Slot)
     }
     for (TCHAR Character : Slot)
     {
-        if (!FChar::IsAlnum(Character) && Character != TEXT('_') && Character != TEXT('-'))
+        if (!((Character >= TEXT('a') && Character <= TEXT('z')) ||
+              (Character >= TEXT('A') && Character <= TEXT('Z')) ||
+              (Character >= TEXT('0') && Character <= TEXT('9')) ||
+              Character == TEXT('_') || Character == TEXT('-')))
         {
             return false;
         }
