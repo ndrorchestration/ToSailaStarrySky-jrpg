@@ -25,3 +25,10 @@ Native compile, automated test results, save/load round-trip, rendered First Wak
 Godot draft PR #601 is a **reference implementation**, not permission to copy its provisional rules as final canon. The Unreal module already contains `UTSTSSCombatRules::TryApplyAction` with transactional roster output. An additional Unreal automation test, `TSTSS.Combat.RejectsInvalidActionsWithoutMutation`, now covers unaffordable actions, unknown targets, negative power, duplicate unit IDs, and output preservation on failure.
 
 These tests are **source committed but Unreal-native execution has not been verified**. Run the Unreal Editor automation suite in the pinned UE 5.8 environment and retain exact-head logs before UI, encounter, or release promotion. Combat formulas, learned-ability authorization, turn sequencing, factions, party eligibility, and presentation binding still require an explicit UE design and verified implementation. The approved cast art and First Wake story are unchanged.
+
+## Isolated Unreal turn authority — 2026-10-30
+
+- `Public/TSTSSCombatTurns.h` and `Private/TSTSSCombatTurns.cpp` implement deterministic ordered participants, active-actor enforcement, copy-on-write roster action updates, incapacitation skipping, round rollover and accepted-action count, calling the existing `UTSTSSCombatRules` primitive.
+- `Private/Tests/TSTSSCombatTurnsTests.cpp` provides Unreal automation regression coverage for out-of-turn rejection, knockout, skipped-final-participant round rollover, input immutability, and invalid order rejection.
+- **All test results remain unverified.** Compile and run the `TSTSS.Combat.TurnOrderAndAtomicity` automation test under Unreal Engine 5.8 before accepting the semantics. Review invalid/unsupported ability targets, encounter authority, learned skills, participant allegiance, incapacitated allies and save serialization separately.
+- This is a noncanonical engineering prototype; it does not connect to player-facing First Wake, combat HUD, game art, enemy AI, chapter events or shipping installers. The Godot branch and approved characters remain unchanged.
